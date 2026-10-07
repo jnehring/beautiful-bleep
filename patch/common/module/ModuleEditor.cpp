@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "ModuleEditor.h"
 
-#include "BleepPatchWeb.h"
+#include "ModuleWeb.h" // this module's ui/ + common/ui, generated per plugin
 
 namespace bleep::patch {
 
@@ -30,14 +30,14 @@ const char* mimeFor(const juce::String& path) {
     return "application/octet-stream";
 }
 
-/// Serves the embedded web assets (BinaryData target BleepPatchWeb).
+/// Serves the embedded UI files (BinaryData target <Module>Web).
 std::optional<juce::WebBrowserComponent::Resource> embeddedResource(const juce::String& url) {
     auto path = url.upToFirstOccurrenceOf("?", false, false).trimCharactersAtStart("/");
     if (path.isEmpty()) path = "index.html";
-    for (int i = 0; i < BleepPatchWeb::namedResourceListSize; ++i) {
-        if (path != BleepPatchWeb::originalFilenames[i]) continue;
+    for (int i = 0; i < ModuleWeb::namedResourceListSize; ++i) {
+        if (path != ModuleWeb::originalFilenames[i]) continue;
         int size = 0;
-        const char* data = BleepPatchWeb::getNamedResource(BleepPatchWeb::namedResourceList[i], size);
+        const char* data = ModuleWeb::getNamedResource(ModuleWeb::namedResourceList[i], size);
         if (data == nullptr) break;
         std::vector<std::byte> bytes((size_t)size);
         std::memcpy(bytes.data(), data, (size_t)size);

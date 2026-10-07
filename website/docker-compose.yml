@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT
+#
+# The Bleep Patch website as a single container (static files behind Caddy).
+#
+#   docker compose -f website/docker-compose.yml up --build -d
+#   open http://localhost:8080        (BLEEP_SITE_PORT=… to change)
+#
+# Later this service moves into the Brilliant Bleep site's Compose stack.
+# Own project name: the folder name "website" collides with the Brilliant Bleep site.
+name: bleep-patch-site
+
+services:
+  site:
+    build:
+      context: ..
+      dockerfile: website/Dockerfile
+    image: bleep-patch-site:latest
+    ports:
+      - "${BLEEP_SITE_PORT:-8080}:80"
+    restart: unless-stopped

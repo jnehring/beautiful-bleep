@@ -1,0 +1,3 @@
+/* SPDX-License-Identifier: MIT */
+/* Module-specific styles; shared styles live in patch/common/ui/bleep-module.css. */
+:root { --accent: #f6a85b; }

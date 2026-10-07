@@ -1,0 +1,7 @@
+.git
+build
+**/node_modules
+**/.next
+website/app/out
+website/app/public/docs
+website/app/public/llms.txt

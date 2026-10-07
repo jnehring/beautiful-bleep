@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 //
-// ModuleEditor — every Bleep Patch module shows the same HTML/CSS/JS UI
-// (patch/common/web/) in a WebView. The page builds itself from the
-// processor's description, so a new module needs no UI code at all.
+// ModuleEditor — shows a module's HTML/CSS/JS UI in a WebView. The page is
+// patch/modules/<module>/ui/index.html; it uses the shared library in
+// patch/common/ui/ (bleep-module.js builds the standard layout from the
+// processor's description), and adds module-specific views via hooks.
 //
 // Bridge (all names are JUCE native functions / events):
 //   JS → C++   describe() setParam(id, v) beginGesture(id) endGesture(id)

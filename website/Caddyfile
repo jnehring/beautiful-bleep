@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+# Serves the static export of website/app.
+:80 {
+	root * /srv
+	encode zstd gzip
+
+	# Single-file docs and llms.txt are plain text for humans and coding assistants.
+	@markdown path *.md
+	header @markdown Content-Type "text/markdown; charset=utf-8"
+	header /llms.txt Content-Type "text/plain; charset=utf-8"
+
+	try_files {path} {path}/index.html
+	file_server
+
+	handle_errors {
+		rewrite * /404.html
+		file_server
+	}
+}

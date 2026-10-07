@@ -11,9 +11,20 @@ npm run dev      # http://localhost:3000; regenerates public/docs + llms.txt fir
 npm run build    # static export to app/out/
 ```
 
+With Docker (one container: the static export served by Caddy):
+
+```bash
+docker compose -f website/docker-compose.yml up --build -d    # http://localhost:8080
+docker compose -f website/docker-compose.yml down
+```
+
+Set `BLEEP_SITE_PORT` to use another port. The build context is the repository
+root, because the site reads `website/content`, `patch/modules/*/module.json`,
+`bus/include` and `tools/`.
+
 `npm run docs` runs `tools/build_docs.py`, which also writes the single-file
 versions (`/docs/api-reference-full.md`, …, versioned under `/docs/v0.1/`) and
 `/llms.txt`.
 
-Deployment will sit in the Brilliant Bleep site stack (Caddy, Docker
-Compose) as its own section or subdomain. That decision is still open.
+Later the service moves into the Brilliant Bleep site's Compose stack as its
+own section or subdomain. That decision is still open.

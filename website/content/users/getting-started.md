@@ -11,13 +11,16 @@ without extra tracks.
 
 ## Install
 
-Copy the `.vst3` (and on macOS, `.component`) files to your plugin folder,
-then rescan plugins in Live (Preferences → Plug-Ins).
+Copy the `.vst3` files to your plugin folder, then rescan plugins in Live
+(Preferences → Plug-Ins).
 
-| | VST3 | AU |
-|---|---|---|
-| macOS | `~/Library/Audio/Plug-Ins/VST3` | `~/Library/Audio/Plug-Ins/Components` |
-| Windows | `C:\Program Files\Common Files\VST3` | — |
+| | VST3 folder |
+|---|---|
+| macOS | `~/Library/Audio/Plug-Ins/VST3` |
+| Windows | `C:\Program Files\Common Files\VST3` |
+
+Every module also comes as a **standalone app**. That's handy for trying a
+module without a DAW. Standalone apps join the same bus as plugins in Live.
 
 ## Your first patch (5 minutes)
 

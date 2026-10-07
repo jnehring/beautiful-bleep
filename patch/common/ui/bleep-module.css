@@ -69,3 +69,9 @@ canvas.scope { width: 100%; height: 30px; background: var(--panel-2); border-rad
 .empty { color: var(--muted); font-size: 12px; }
 
 @media (max-width: 420px) { .ports { grid-template-columns: 1fr; } }
+
+.custom { display: flex; flex-wrap: wrap; gap: 10px; }
+.custom:empty { display: none; }
+.view { background: var(--panel); border-radius: var(--radius); padding: 8px 10px; flex: 1 1 260px; }
+.view h2 { font-size: 11px; margin: 0 0 6px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+.view canvas { width: 100%; height: 90px; display: block; }

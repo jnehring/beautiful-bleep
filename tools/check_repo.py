@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".js", ".ts", ".tsx", ".css", ".py", ".cmake"}
+SOURCE_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".js", ".ts", ".tsx", ".css", ".py", ".cmake", ".sh"}
 SKIP_DIRS = {"build", "node_modules", ".next", "out", ".git", "public"}
 GENERATED = {"next-env.d.ts"}
 problems: list[str] = []

@@ -4,8 +4,8 @@ The open protocol and reference SDK for sending per-sample control signals
 between audio plugins through shared memory. MIT-licensed. Builds on its own.
 
 ```bash
-cmake -S bus -B build/bus && cmake --build build/bus
-ctest --test-dir build/bus                 # conformance suite + wrapper test
+bus/build.sh                               # build + conformance suite (--debug, --clean, --no-test)
+# or by hand: cmake -S bus -B build/bus && cmake --build build/bus && ctest --test-dir build/bus
 ./build/bus/minimal_sender & ./build/bus/minimal_receiver
 ./build/bus/bb_conformance inspect         # look at a live bus
 ```

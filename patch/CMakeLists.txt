@@ -11,6 +11,7 @@
 #   BLEEP_PATCH_BUILD_TESTS     build the DSP unit tests (no JUCE needed)     ON
 #   BLEEP_JUCE_DIR              local JUCE checkout; empty = FetchContent
 #   BLEEP_PATCH_COPY_PLUGINS    copy plugins to the user plugin folders       OFF
+#   BLEEP_PATCH_FORMATS         plugin formats                    "VST3;Standalone"
 #   BLEEP_PATCH_CLAP            also build CLAP (needs clap-juce-extensions)  OFF
 #   BLEEP_CLAP_JUCE_EXTENSIONS_DIR  local clap-juce-extensions checkout
 cmake_minimum_required(VERSION 3.22)
@@ -29,6 +30,7 @@ option(BLEEP_PATCH_BUILD_PLUGINS "Build the Bleep Patch plugins (needs JUCE)" ON
 option(BLEEP_PATCH_BUILD_TESTS "Build the DSP unit tests" ON)
 option(BLEEP_PATCH_COPY_PLUGINS "Copy built plugins into the user's plugin folders" OFF)
 option(BLEEP_PATCH_CLAP "Also build CLAP versions" OFF)
+set(BLEEP_PATCH_FORMATS "VST3;Standalone" CACHE STRING "Plugin formats (JUCE names, e.g. VST3;Standalone;AU)")
 set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.9)")
 set(BLEEP_CLAP_JUCE_EXTENSIONS_DIR "" CACHE PATH "Local clap-juce-extensions checkout")
 
@@ -43,11 +45,11 @@ endif ()
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/common"
-    "${CMAKE_CURRENT_SOURCE_DIR}/modules/function"
-    "${CMAKE_CURRENT_SOURCE_DIR}/modules/random"
-    "${CMAKE_CURRENT_SOURCE_DIR}/modules/utility"
-    "${CMAKE_CURRENT_SOURCE_DIR}/modules/midi-out"
-    "${CMAKE_CURRENT_SOURCE_DIR}/modules/filter")
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/function/dsp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/random/dsp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/utility/dsp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/midi-out/dsp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/filter/dsp")
 target_compile_features(bleep_patch_dsp INTERFACE cxx_std_17)
 
 if (BLEEP_PATCH_BUILD_TESTS)
@@ -87,25 +89,24 @@ if (BLEEP_PATCH_CLAP)
     endif ()
 endif ()
 
-# Shared web UI (patch/common/web), embedded into every module.
-juce_add_binary_data(BleepPatchWeb
-    HEADER_NAME BleepPatchWeb.h
-    NAMESPACE BleepPatchWeb
-    SOURCES
-        common/web/index.html
-        common/web/module.css
-        common/web/bridge.js
-        common/web/demo.js
-        common/web/module.js)
+# Shared UI library (patch/common/ui); each module adds its own ui/ folder.
+file(GLOB BLEEP_COMMON_UI CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common/ui/*")
 
 # bleep_add_module(TARGET <t> PRODUCT <name> CODE <4 chars> DIR <modules/dir>
 #                  SOURCES ... [FORMATS ...] [VST3_CATEGORIES ...] [CLAP_FEATURES ...]
 #                  [SYNTH] [MIDI_OUT])
+# A module folder holds dsp/ (JUCE-free DSP), ui/ (its HTML/CSS/JS page) and
+# the processor that joins them. ui/ and common/ui/ are embedded as
+# BinaryData with the header ModuleWeb.h, which ModuleEditor.cpp serves.
 function(bleep_add_module)
     cmake_parse_arguments(M "SYNTH;MIDI_OUT" "TARGET;PRODUCT;CODE;DIR"
                           "SOURCES;FORMATS;VST3_CATEGORIES;CLAP_FEATURES" ${ARGN})
     if (NOT M_FORMATS)
-        set(M_FORMATS VST3 AU)
+        set(M_FORMATS ${BLEEP_PATCH_FORMATS})
+    endif ()
+    # Live takes MIDI output only from VST3 plugins: never build MIDI Out as AU.
+    if (M_MIDI_OUT)
+        list(REMOVE_ITEM M_FORMATS AU)
     endif ()
     string(TOLOWER "${M_TARGET}" lower)
     set(webview2 FALSE)
@@ -132,20 +133,27 @@ function(bleep_add_module)
         VST3_CATEGORIES ${M_VST3_CATEGORIES}
         COPY_PLUGIN_AFTER_BUILD ${BLEEP_PATCH_COPY_PLUGINS})
 
+    file(GLOB module_ui CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${M_DIR}/ui/*")
+    juce_add_binary_data(${M_TARGET}Web
+        HEADER_NAME ModuleWeb.h
+        NAMESPACE ModuleWeb
+        SOURCES ${BLEEP_COMMON_UI} ${module_ui})
+
     target_sources(${M_TARGET} PRIVATE
         ${M_SOURCES}
         "${CMAKE_CURRENT_SOURCE_DIR}/common/module/ModuleProcessor.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/common/module/ModuleEditor.cpp")
     target_include_directories(${M_TARGET} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/common/module"
-        "${CMAKE_CURRENT_SOURCE_DIR}/${M_DIR}")
+        "${CMAKE_CURRENT_SOURCE_DIR}/${M_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/${M_DIR}/dsp")
     target_compile_definitions(${M_TARGET} PUBLIC
         JUCE_WEB_BROWSER=1
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
     target_link_libraries(${M_TARGET}
         PRIVATE
-            BleepPatchWeb
+            ${M_TARGET}Web
             bleep_patch_dsp
             bleep_bus_cpp
             juce::juce_audio_utils
@@ -174,10 +182,9 @@ bleep_add_module(TARGET BleepUtility PRODUCT Utility CODE BpUt DIR modules/utili
 bleep_add_module(TARGET BleepFilter PRODUCT Filter CODE BpFl DIR modules/filter
     SOURCES modules/filter/FilterProcessor.cpp
     VST3_CATEGORIES Fx Filter CLAP_FEATURES audio-effect filter)
-# MIDI Out is VST3 only: Live does not take MIDI output from AU plugins.
 bleep_add_module(TARGET BleepMidiOut PRODUCT "MIDI Out" CODE BpMo DIR modules/midi-out
     SOURCES modules/midi-out/MidiOutProcessor.cpp
-    FORMATS VST3 SYNTH MIDI_OUT
+    SYNTH MIDI_OUT
     VST3_CATEGORIES Instrument Tools CLAP_FEATURES instrument note-effect)
 
 # Integration test: load the built VST3s into a headless host.

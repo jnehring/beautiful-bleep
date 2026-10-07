@@ -1,8 +1,36 @@
 // SPDX-License-Identifier: MIT
-// module.js — the generic Bleep Patch module UI. Everything is built from
-// native("describe"); live values arrive in "state" events, cables in "patch".
+// bleep-module.js — the shared Bleep Patch module UI library.
+//
+// A module's ui/index.html loads this file last. It builds the standard page
+// (header, knobs, settings, ports) from native("describe"); live values
+// arrive in "state" events, cables in "patch" events.
+//
+// A module customises its page through window.BleepModule (its <slug>.js):
+//   demo         description used by bleep-demo.js in a plain browser
+//   afterBuild(module, customSection)   add module-specific views
+//   onState(state, module)              update them, 30 times per second
+// and through markup in <template id="module-custom">, which is copied into
+// the custom section before afterBuild runs.
 (function () {
   "use strict";
+  const hooks = window.BleepModule || {};
+  const SKELETON = `
+    <header class="top">
+      <div class="product" id="product">…</div>
+      <input class="name" id="name" spellcheck="false" maxlength="63" aria-label="Instance name">
+      <div class="status" id="status"></div>
+    </header>
+    <main>
+      <section class="knobs" id="knobs" aria-label="Parameters"></section>
+      <section class="custom" id="custom"></section>
+      <section class="settings" id="settings" aria-label="Settings"></section>
+      <section class="ports">
+        <div class="port-col" id="inputs-col"><h2>In</h2><div id="inputs"></div></div>
+        <div class="port-col" id="outputs-col"><h2>Out</h2><div id="outputs"></div></div>
+      </section>
+    </main>`;
+  const app = document.getElementById("app") || document.body;
+  app.insertAdjacentHTML("afterbegin", SKELETON);
   const $ = (id) => document.getElementById(id);
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
@@ -277,6 +305,12 @@
     for (const port of module.outputs) $("outputs").appendChild(makeOutput(port));
     if (!module.outputs.length) $("outputs-col").hidden = true;
     pickers.forEach((p) => p.render());
+
+    const custom = $("custom");
+    const tpl = document.getElementById("module-custom");
+    if (tpl) custom.appendChild(tpl.content.cloneNode(true));
+    if (hooks.afterBuild) hooks.afterBuild(module, custom);
+    if (!custom.childElementCount) custom.remove();
   }
 
   $("name").addEventListener("change", async (e) => { e.target.value = await native("setName", e.target.value); });
@@ -284,6 +318,7 @@
 
   onNative("state", (s) => {
     if (!module) return;
+    if (hooks.onState) hooks.onState(s, module);
     for (const id in s.params) {
       const k = knobs.get(id);
       if (k) {

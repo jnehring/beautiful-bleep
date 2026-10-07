@@ -3,6 +3,9 @@
   "slug": "midi-out",
   "tagline": "Gates, pitch and controls to MIDI notes, CC and pitch bend.",
   "colour": "#60a5fa",
-  "formats": ["VST3"],
+  "formats": [
+    "VST3",
+    "Standalone"
+  ],
   "doc": "users/modules/midi-out.md"
 }

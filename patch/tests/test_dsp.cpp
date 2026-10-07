@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 // Unit tests for the Bleep Patch DSP cores. No JUCE, no bus: pure C++.
-#include "../modules/filter/FilterDsp.h"
-#include "../modules/function/FunctionDsp.h"
-#include "../modules/midi-out/MidiOutDsp.h"
-#include "../modules/random/RandomDsp.h"
-#include "../modules/utility/UtilityDsp.h"
+#include "../modules/filter/dsp/FilterDsp.h"
+#include "../modules/function/dsp/FunctionDsp.h"
+#include "../modules/midi-out/dsp/MidiOutDsp.h"
+#include "../modules/random/dsp/RandomDsp.h"
+#include "../modules/utility/dsp/UtilityDsp.h"
 
 #include <cmath>
 #include <cstdio>
