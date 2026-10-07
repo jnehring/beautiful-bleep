@@ -3,7 +3,7 @@
 #
 # Builds Bleep Bus (library, examples, conformance suite) and runs its tests.
 #
-#   bus/build.sh [--debug] [--clean] [--no-test]
+#   scripts/build-bus.sh [--debug] [--clean] [--no-test]
 #
 # Output: build/bus/ (bleep_bus library, bb_conformance, minimal_sender,
 # minimal_receiver, attenuverter).

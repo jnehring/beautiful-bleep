@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 tools/check_repo.py
-      - run: python3 tools/check_api_docs.py
-      - run: python3 tools/build_docs.py --out build/docs
+      - run: python3 scripts/check-repo.py
+      - run: python3 scripts/check-api-docs.py
+      - run: python3 scripts/build-docs.py --out build/docs
       - uses: actions/upload-artifact@v4
         with:
           name: docs-single-files

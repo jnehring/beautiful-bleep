@@ -20,9 +20,9 @@ docker compose -f website/docker-compose.yml down
 
 Set `BLEEP_SITE_PORT` to use another port. The build context is the repository
 root, because the site reads `website/content`, `patch/modules/*/module.json`,
-`bus/include` and `tools/`.
+`bus/include` and `scripts/`.
 
-`npm run docs` runs `tools/build_docs.py`, which also writes the single-file
+`npm run docs` runs `scripts/build-docs.py`, which also writes the single-file
 versions (`/docs/api-reference-full.md`, …, versioned under `/docs/v0.1/`) and
 `/llms.txt`.
 

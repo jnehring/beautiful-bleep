@@ -4,7 +4,7 @@
 patch/modules/<module>/ui/ overlaid on patch/common/ui/ (module files win).
 The page runs against bleep-demo.js, a fake backend.
 
-    python3 tools/ui_server.py function [--port 8765]
+    python3 scripts/ui-server.py function [--port 8765]
 """
 import argparse
 import functools

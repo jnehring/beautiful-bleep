@@ -41,7 +41,7 @@ def text(p: Path) -> str:
 
 # 1. bus/ is self-contained
 for p in files("bus"):
-    if re.search(r"\.\./(patch|website|tools)\b|\b(patch|website)/(common|modules|app|content)/", text(p)):
+    if re.search(r"\.\./(patch|website|scripts)\b|\b(patch|website)/(common|modules|app|content)/", text(p)):
         problems.append(f"{p.relative_to(ROOT)}: bus/ must not reference other parts of the repository")
 
 # 2. patch/ uses only the public API
@@ -60,7 +60,7 @@ for folder in ("bus", "patch"):
             problems.append(f"{p.relative_to(ROOT)}: must not depend on website/")
 
 # 4. SPDX headers and LICENSE files
-for folder in ("bus", "patch", "tools", "website"):
+for folder in ("bus", "patch", "scripts", "website"):
     if not (ROOT / folder / "LICENSE").exists():
         problems.append(f"{folder}/LICENSE missing")
     for p in files(folder):

@@ -3,7 +3,7 @@
 # Builds the static site and serves it with Caddy. The build context is the
 # repository root, because the site reads the docs (website/content), module
 # metadata (patch/modules/*/module.json), the bus header (spec version) and
-# the docs generator (tools/build_docs.py).
+# the docs generator (scripts/build-docs.py).
 #
 #   docker compose -f website/docker-compose.yml up --build
 
@@ -14,7 +14,7 @@ COPY website/app/package.json website/app/package-lock.json website/app/
 RUN cd website/app && npm ci --no-audit --no-fund
 COPY bus/include bus/include
 COPY patch/modules patch/modules
-COPY tools tools
+COPY scripts scripts
 COPY website/content website/content
 COPY website/app website/app
 RUN cd website/app && npm run build

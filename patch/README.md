@@ -6,9 +6,9 @@ plugins with HTML/CSS/JS interfaces, and they talk over Bleep Bus through its
 public API only.
 
 ```bash
-patch/build.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
-patch/build.sh --install                 # also copy the plugins into your user plugin folders
-patch/build.sh --formats "VST3;Standalone;AU" --clap
+scripts/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
+scripts/build-patch.sh --install                 # also copy the plugins into your user plugin folders
+scripts/build-patch.sh --formats "VST3;Standalone;AU" --clap
 ```
 
 The script builds into `build/patch/`, then runs the DSP unit tests and a
@@ -40,7 +40,7 @@ and Filter's response curve are examples.
 UI work without a DAW serves the same files with a fake backend:
 
 ```bash
-python3 tools/ui_server.py filter      # http://localhost:8765
+python3 scripts/ui-server.py filter      # http://localhost:8765
 ```
 
 **JUCE licensing:** this source is MIT, but binaries built with JUCE are

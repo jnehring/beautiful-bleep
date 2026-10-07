@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "docs": "python3 ../../tools/build_docs.py --out public/docs --base-url /docs && cp public/docs/llms.txt public/llms.txt",
+    "docs": "python3 ../../scripts/build-docs.py --out public/docs --base-url /docs && cp public/docs/llms.txt public/llms.txt",
     "dev": "npm run docs && next dev",
     "build": "npm run docs && next build"
   },

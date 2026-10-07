@@ -4,7 +4,7 @@
 # Builds the Bleep Patch modules as VST3 and Standalone apps, then runs the
 # DSP unit tests and the headless VST3 host test.
 #
-#   patch/build.sh [--debug] [--clean] [--no-test] [--install]
+#   scripts/build-patch.sh [--debug] [--clean] [--no-test] [--install]
 #                  [--juce <dir>] [--formats "VST3;Standalone;AU"] [--clap]
 #
 #   --juce     local JUCE checkout (default: $BLEEP_JUCE_DIR, else download JUCE 8.0.9)

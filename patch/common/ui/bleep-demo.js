@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // bleep-demo.js — a fake backend so a module UI runs in a plain browser
-// (python3 tools/ui_server.py <module>). Inactive inside a plugin.
+// (python3 scripts/ui-server.py <module>). Inactive inside a plugin.
 // The description comes from window.BleepModule.demo in the module's <slug>.js.
 (function () {
   "use strict";
