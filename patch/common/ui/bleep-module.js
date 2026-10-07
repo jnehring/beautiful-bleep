@@ -313,6 +313,11 @@
     if (!custom.childElementCount) custom.remove();
   }
 
+  // Cmd/Ctrl-R reloads the page: with a UI dev build this picks up edited files.
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "r") { e.preventDefault(); location.reload(); }
+  });
+
   $("name").addEventListener("change", async (e) => { e.target.value = await native("setName", e.target.value); });
   $("name").addEventListener("keydown", (e) => { if (e.key === "Enter") e.target.blur(); });
 

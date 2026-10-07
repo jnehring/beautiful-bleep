@@ -37,7 +37,10 @@ with scopes) from the processor's description. A module adds its own views
 through `window.BleepModule` hooks in `<name>.js`; Function's slope preview
 and Filter's response curve are examples.
 
-UI work without a DAW serves the same files with a fake backend:
+With `scripts/build-patch.sh --ui-dev`, plugins read `ui/` and `common/ui/`
+from the source tree, so an edited page appears when the plugin window is
+reopened (or after ⌘R in it). Without a DAW, serve the same files with a
+fake backend:
 
 ```bash
 python3 scripts/ui-server.py filter      # http://localhost:8765

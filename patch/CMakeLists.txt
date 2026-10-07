@@ -11,6 +11,8 @@
 #   BLEEP_PATCH_BUILD_TESTS     build the DSP unit tests (no JUCE needed)     ON
 #   BLEEP_JUCE_DIR              local JUCE checkout; empty = FetchContent
 #   BLEEP_PATCH_COPY_PLUGINS    copy plugins to the user plugin folders       OFF
+#   BLEEP_PATCH_UI_DEV          plugins read their UI from the source tree   OFF
+#                               (edit HTML/CSS/JS, reopen the plugin window)
 #   BLEEP_PATCH_FORMATS         plugin formats                    "VST3;Standalone"
 #   BLEEP_PATCH_CLAP            also build CLAP (needs clap-juce-extensions)  OFF
 #   BLEEP_CLAP_JUCE_EXTENSIONS_DIR  local clap-juce-extensions checkout
@@ -29,6 +31,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BLEEP_PATCH_BUILD_PLUGINS "Build the Bleep Patch plugins (needs JUCE)" ON)
 option(BLEEP_PATCH_BUILD_TESTS "Build the DSP unit tests" ON)
 option(BLEEP_PATCH_COPY_PLUGINS "Copy built plugins into the user's plugin folders" OFF)
+option(BLEEP_PATCH_UI_DEV "Development builds: serve the UI from the source tree instead of the embedded copy" OFF)
 option(BLEEP_PATCH_CLAP "Also build CLAP versions" OFF)
 set(BLEEP_PATCH_FORMATS "VST3;Standalone" CACHE STRING "Plugin formats (JUCE names, e.g. VST3;Standalone;AU)")
 set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.9)")
@@ -115,7 +118,7 @@ function(bleep_add_module)
     endif ()
 
     juce_add_plugin(${M_TARGET}
-        COMPANY_NAME "Brilliant Bleep"
+        COMPANY_NAME "Bleep Patch"   # Live groups VST3 plugins by this vendor name
         COMPANY_WEBSITE "https://brilliantbleep.com"
         BUNDLE_ID "com.brilliantbleep.patch.${lower}"
         PLUGIN_MANUFACTURER_CODE BrBp
@@ -151,6 +154,12 @@ function(bleep_add_module)
         JUCE_WEB_BROWSER=1
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
+    if (BLEEP_PATCH_UI_DEV)
+        # Never ship these builds: they read the UI from this machine's source tree.
+        target_compile_definitions(${M_TARGET} PRIVATE
+            "BLEEP_UI_DEV_MODULE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/${M_DIR}/ui\""
+            "BLEEP_UI_DEV_COMMON_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/common/ui\"")
+    endif ()
     target_link_libraries(${M_TARGET}
         PRIVATE
             ${M_TARGET}Web

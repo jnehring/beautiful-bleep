@@ -12,7 +12,8 @@ without extra tracks.
 ## Install
 
 Copy the `.vst3` files to your plugin folder, then rescan plugins in Live
-(Preferences → Plug-Ins).
+(Settings → Plug-Ins, with "Use VST3 Plug-In System Folders" on). The
+modules appear in Live's browser under **Plug-Ins → Bleep Patch**.
 
 | | VST3 folder |
 |---|---|

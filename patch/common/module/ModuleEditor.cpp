@@ -30,10 +30,32 @@ const char* mimeFor(const juce::String& path) {
     return "application/octet-stream";
 }
 
-/// Serves the embedded UI files (BinaryData target <Module>Web).
+#if defined(BLEEP_UI_DEV_MODULE_DIR)
+constexpr bool kUiFromDisk = true;
+#else
+constexpr bool kUiFromDisk = false;
+#endif
+
+/// Serves the UI files. UI dev builds read them from the source tree on every
+/// request (module ui/ first, then common/ui/), so an edited page shows up
+/// when the plugin window is reopened or reloaded with Cmd-R; everything else
+/// comes from the embedded copy (BinaryData target <Module>Web).
 std::optional<juce::WebBrowserComponent::Resource> embeddedResource(const juce::String& url) {
     auto path = url.upToFirstOccurrenceOf("?", false, false).trimCharactersAtStart("/");
     if (path.isEmpty()) path = "index.html";
+#if defined(BLEEP_UI_DEV_MODULE_DIR)
+    if (!path.contains("..")) {
+        for (const char* dir : {BLEEP_UI_DEV_MODULE_DIR, BLEEP_UI_DEV_COMMON_DIR}) {
+            const auto file = juce::File(dir).getChildFile(path);
+            juce::MemoryBlock data;
+            if (file.existsAsFile() && file.loadFileAsData(data)) {
+                std::vector<std::byte> bytes(data.getSize());
+                std::memcpy(bytes.data(), data.getData(), data.getSize());
+                return juce::WebBrowserComponent::Resource{std::move(bytes), mimeFor(path)};
+            }
+        }
+    }
+#endif
     for (int i = 0; i < ModuleWeb::namedResourceListSize; ++i) {
         if (path != ModuleWeb::originalFilenames[i]) continue;
         int size = 0;
@@ -166,7 +188,7 @@ juce::var ModuleEditor::describe() const {
     root->setProperty("colour", "#" + d.colour.toDisplayString(false));
     root->setProperty("name", processor_.instanceName());
     root->setProperty("uid", uidHex(processor_.uid()));
-    root->setProperty("status", processor_.busStatus());
+    root->setProperty("status", processor_.busStatus() + (kUiFromDisk ? " · UI from source (dev)" : ""));
 
     juce::Array<juce::var> params;
     for (auto* base : processor_.getParameters()) {
