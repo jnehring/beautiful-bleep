@@ -1,0 +1,8 @@
+{
+  "name": "Random",
+  "slug": "random",
+  "tagline": "Seeded stepped randomness with a looping memory, from always-new to locked.",
+  "colour": "#f6a85b",
+  "formats": ["VST3", "AU"],
+  "doc": "users/modules/random.md"
+}

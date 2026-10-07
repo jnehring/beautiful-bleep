@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bleep Patch</title>
+  <link rel="stylesheet" href="module.css">
+</head>
+<body>
+  <header class="top">
+    <div class="product" id="product">…</div>
+    <input class="name" id="name" spellcheck="false" maxlength="63" aria-label="Instance name">
+    <div class="status" id="status"></div>
+  </header>
+  <main>
+    <section class="knobs" id="knobs" aria-label="Parameters"></section>
+    <section class="settings" id="settings" aria-label="Settings"></section>
+    <section class="ports">
+      <div class="port-col" id="inputs-col"><h2>In</h2><div id="inputs"></div></div>
+      <div class="port-col" id="outputs-col"><h2>Out</h2><div id="outputs"></div></div>
+    </section>
+  </main>
+  <script src="bridge.js"></script>
+  <script src="demo.js"></script>
+  <script src="module.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "Utility",
+  "slug": "utility",
+  "tagline": "Attenuverter, offset, mixer, shaper, slew and comparator: the glue.",
+  "colour": "#a78bfa",
+  "formats": ["VST3", "AU"],
+  "doc": "users/modules/utility.md"
+}

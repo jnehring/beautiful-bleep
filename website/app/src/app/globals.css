@@ -1,0 +1,34 @@
+/* SPDX-License-Identifier: MIT */
+:root {
+  --bg: #fbfaf7; --fg: #1b1d22; --muted: #646b78; --line: #e3e1db; --card: #ffffff;
+  --accent: #0f9488; --code: #f2f0ea;
+  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #15171c; --fg: #e7e9ee; --muted: #8b92a3; --line: #2c313c; --card: #1d2027; --accent: #4fd1c5; --code: #252932; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); }
+a { color: var(--accent); }
+header.site { display: flex; gap: 20px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+header.site .brand { font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--fg); text-decoration: none; }
+header.site nav { display: flex; gap: 16px; flex-wrap: wrap; }
+main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+.hero h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; margin: 24px 0 12px; }
+.hero p { font-size: 1.15rem; color: var(--muted); max-width: 640px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin: 20px 0; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.card h3 { margin: 0 0 6px; }
+.card .tag { font-size: .8rem; color: var(--muted); }
+.docs { display: grid; grid-template-columns: 220px 1fr; gap: 28px; }
+.docs nav { font-size: .9rem; }
+.docs nav h4 { margin: 18px 0 6px; text-transform: uppercase; font-size: .75rem; letter-spacing: .1em; color: var(--muted); }
+.docs nav ul { list-style: none; padding: 0; margin: 0; }
+.docs nav li { margin: 3px 0; }
+article { min-width: 0; }
+article pre { background: var(--code); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: .85rem; }
+article code { background: var(--code); padding: 1px 4px; border-radius: 4px; font-size: .9em; }
+article pre code { background: none; padding: 0; }
+article table { border-collapse: collapse; display: block; overflow-x: auto; font-size: .9rem; }
+article th, article td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+@media (max-width: 720px) { .docs { grid-template-columns: 1fr; } }
