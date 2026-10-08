@@ -150,6 +150,29 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-sub { color: var(--muted); font-size: 11px; }
 .v-head button { background: none; border: 0; padding: 0 4px; color: var(--muted); }
 .v-head button:hover { color: var(--text); }
-.v-head .pin.on { color: var(--accent); }
+.v-head .pin.on, .v-head .help.on { color: var(--accent); }
+.v-head .help { font-weight: 700; width: 20px; height: 20px; border: 1px solid var(--line); border-radius: 50%;
+                padding: 0; font-size: 11px; line-height: 18px; }
+.v-head .help.on { border-color: var(--accent); }
 .v-head .spacer { flex: 1; }
 .v-body { max-height: 70vh; overflow-y: auto; }
+.vwin.doc { width: 460px; }
+
+/* ---- module documentation (bleep-markdown.js) */
+.v-doc { padding: 4px 16px 16px; font-size: 12.5px; line-height: 1.5; user-select: text; -webkit-user-select: text; }
+.v-doc h1 { font-size: 17px; margin: 10px 0 6px; color: var(--accent); }
+.v-doc h2 { font-size: 13px; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.v-doc h3 { font-size: 11px; margin: 14px 0 4px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.v-doc p, .v-doc ul, .v-doc ol { margin: 6px 0; }
+.v-doc ul, .v-doc ol { padding-left: 18px; }
+.v-doc li { margin: 3px 0; }
+.v-doc strong { color: var(--text); font-weight: 600; }
+.v-doc em { color: #c7ccd8; }
+.v-doc code { font: 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--panel-2); border-radius: 4px; padding: 0 3px; }
+.v-doc pre { background: var(--panel-2); border-radius: 6px; padding: 8px 10px; overflow-x: auto; }
+.v-doc pre code { background: none; padding: 0; }
+.v-doc table { border-collapse: collapse; width: 100%; margin: 6px 0; font-size: 12px; }
+.v-doc th, .v-doc td { text-align: left; vertical-align: top; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.v-doc th { color: var(--muted); font-weight: 500; font-size: 11px; }
+.v-doc img { max-width: 100%; border-radius: 6px; }
+.v-doc a { color: var(--accent); }

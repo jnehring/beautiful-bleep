@@ -4,11 +4,16 @@
 
 Docs are written as small Markdown files in website/content/<audience>/
 (musicians/, developers/; the spec lives in developers/spec/<version>/).
+The module manuals live with the modules, in patch/modules/<name>/doc/, and
+belong to the musicians' docs.
 This script concatenates them per audience (ordered by the `order:` front
 matter, then path) into one file each, for coding assistants and offline
 reading, and writes an llms.txt index.
 
-    python3 scripts/build-docs.py [--out DIR] [--base-url URL]
+    python3 scripts/build-docs.py [--out DIR] [--base-url URL] [--module-assets DIR]
+
+--module-assets copies the files next to each module's doc (images) to
+DIR/<module>/, where the website serves them (/modules/<module>/).
 
 Output (default: build/docs):
     quickstart-full.md
@@ -21,12 +26,15 @@ Output (default: build/docs):
 from __future__ import annotations
 
 import argparse
+import json
 import re
+import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "website" / "content"
+MODULES = ROOT / "patch" / "modules"
 HEADER = ROOT / "bus" / "include" / "bleep_bus.h"
 TOKEN_BUDGET = 80_000  # concept §9.3: beyond this, simplify the API or split the audience
 
@@ -67,9 +75,28 @@ def bundle(title: str, files: list[Path], version: str) -> str:
         parts.append(f"# {title}\n\n")
     for f in ordered(files):
         _, body = parse(f)
-        rel = f.relative_to(CONTENT)
+        rel = f.relative_to(CONTENT) if f.is_relative_to(CONTENT) else f.relative_to(ROOT)
         parts.append(f"<!-- source: {rel} -->\n{body}\n")
     return "".join(parts)
+
+
+def module_docs() -> list[Path]:
+    """patch/modules/<name>/doc/<file>.md, as named by module.json."""
+    docs = []
+    for meta in sorted(MODULES.glob("*/module.json")):
+        doc = json.loads(meta.read_text(encoding="utf-8")).get("doc")
+        if doc and (meta.parent / doc).is_file():
+            docs.append(meta.parent / doc)
+    return docs
+
+
+def copy_module_assets(out: Path) -> None:
+    for doc_dir in sorted(MODULES.glob("*/doc")):
+        for f in doc_dir.iterdir():
+            if f.is_file() and f.suffix != ".md":
+                target = out / doc_dir.parent.name / f.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(f, target)
 
 
 def estimate_tokens(text: str) -> int:
@@ -80,7 +107,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "build" / "docs"))
     ap.add_argument("--base-url", default="https://patch.brilliantbleep.com/docs")
+    ap.add_argument("--module-assets", help="copy the module docs' images here, one folder per module")
     args = ap.parse_args()
+    if args.module_assets:
+        copy_module_assets(Path(args.module_assets))
     out = Path(args.out)
     version = spec_version()
 
@@ -88,7 +118,8 @@ def main() -> int:
     bundles = {
         "quickstart-full.md": ("", [dev / "quickstart.md"]),
         "api-reference-full.md": ("", sorted((dev / "api-reference").glob("*.md"))),
-        "user-docs-full.md": ("Bleep Patch user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
+        "user-docs-full.md": ("Bleep Patch user documentation",
+                              sorted((CONTENT / "musicians").rglob("*.md")) + module_docs()),
     }
     for spec_dir in sorted((dev / "spec").iterdir()):
         if spec_dir.is_dir():

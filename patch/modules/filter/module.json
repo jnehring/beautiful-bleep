@@ -6,5 +6,5 @@
   "formats": [
     "Board module"
   ],
-  "doc": "musicians/modules/filter.md"
+  "doc": "doc/filter.md"
 }

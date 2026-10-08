@@ -1391,12 +1391,17 @@
     win.style.setProperty("--accent", n.colour || t.colour || "#4fd1c5");
     const head = el("div", "v-head");
     head.append(el("span", "v-title", n.name), el("span", "v-sub", t.name), el("span", "spacer"));
+    const help = el("button", "help", "?");
+    help.title = "Documentation";
+    help.hidden = true;
     const pin = el("button", "pin", "📌");
     pin.title = "Keep open when entering or leaving cells";
     const close = el("button", "", "×");
     close.title = "Close (Esc)";
-    head.append(pin, close);
+    head.append(help, pin, close);
     const body = el("div", "v-body");
+    const doc = el("div", "v-doc");
+    doc.hidden = true;
     win.append(head, body);
     const api = {
       setParam: (pid, v) => {
@@ -1420,9 +1425,14 @@
     };
     const bv = BleepView.create(t, clone(n), api);
     if (!n.params) n.params = {};
-    body.appendChild(bv.root);
+    body.append(bv.root, doc);
     $("views").appendChild(win);
     const v = { win, bv, pinned: false };
+    moduleDoc(t.type).then((md) => {
+      if (md === null) return;
+      help.hidden = false;
+      doc.innerHTML = BleepMarkdown.render(md);
+    });
     views.set(id, v);
 
     // Next to the node, inside the canvas.
@@ -1438,6 +1448,19 @@
 
     win.addEventListener("pointerdown", () => front(win));
     pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); });
+    help.addEventListener("click", () => {
+      const open = doc.hidden;
+      doc.hidden = !open;
+      bv.root.hidden = open;
+      help.classList.toggle("on", open);
+      win.classList.toggle("doc", open);
+      help.title = open ? "Back to the controls" : "Documentation";
+      body.scrollTop = 0;
+      // The docs are wider: keep the window, and its buttons, inside the canvas.
+      const maxLeft = canvas.clientWidth - win.offsetWidth - 8;
+      if (win.offsetLeft > maxLeft) win.style.left = Math.max(8, maxLeft) + "px";
+    });
+    doc.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });  // the page must not navigate
     close.addEventListener("click", () => closeView(id));
     head.addEventListener("pointerdown", (e) => {
       if (e.target.closest("button")) return;
@@ -1448,6 +1471,16 @@
       window.addEventListener("pointerup", up);
     });
     watch();
+  }
+  /// A module's documentation (modules/<name>/doc/<type>.md), or null if it has none.
+  const docs = new Map();
+  function moduleDoc(type) {
+    if (!docs.has(type))
+      docs.set(type, fetch(encodeURIComponent(type) + ".md")
+        .then((r) => (r.ok ? r.text() : null))
+        .then((md) => (md && md.trim() ? md : null))
+        .catch(() => null));
+    return docs.get(type);
   }
   function front(win) {
     for (const w of document.querySelectorAll(".vwin")) w.classList.remove("front");

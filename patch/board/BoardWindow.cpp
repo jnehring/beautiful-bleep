@@ -27,7 +27,12 @@ const char* mimeFor(const juce::String& path) {
     if (path.endsWith(".css")) return "text/css";
     if (path.endsWith(".js")) return "text/javascript";
     if (path.endsWith(".json")) return "application/json";
+    if (path.endsWith(".md")) return "text/markdown; charset=utf-8";
     if (path.endsWith(".svg")) return "image/svg+xml";
+    if (path.endsWith(".png")) return "image/png";
+    if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+    if (path.endsWith(".gif")) return "image/gif";
+    if (path.endsWith(".webp")) return "image/webp";
     return "application/octet-stream";
 }
 
@@ -44,8 +49,10 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
     // UI dev builds: read the source tree on every request (reload with Cmd-R).
     const juce::File root(BLEEP_UI_DEV_ROOT);
     juce::Array<juce::File> dirs{root.getChildFile("board/ui"), root.getChildFile("common/ui")};
-    for (const auto& d : root.getChildFile("modules").findChildFiles(juce::File::findDirectories, false))
+    for (const auto& d : root.getChildFile("modules").findChildFiles(juce::File::findDirectories, false)) {
         dirs.add(d.getChildFile("ui"));
+        dirs.add(d.getChildFile("doc"));
+    }
     for (const auto& d : dirs) {
         juce::MemoryBlock data;
         if (d.getChildFile(path).loadFileAsData(data)) return bytesOf(data.getData(), data.getSize());
@@ -215,12 +222,16 @@ public:
               "for (const n of p.nodes) b.nodes.push(n); for (const c of p.cables) b.cables.push(c); "
               "native('commit', b, 'smoke').then(m => { window.__smoke = m.board.nodes.length; "
               "window.__voiceCells = m.board.nodes.filter(n => n.type === 'voice-cell').length; "
-              "window.__voiceCables = m.board.cables.length; }); return 1; })()",
+              "window.__voiceCables = m.board.cables.length; }); "
+              "fetch('adsr.md').then(r => r.text()).then(t => window.__doc = t.length); "
+              "fetch('no-such-module.md').then(r => window.__noDoc = r.status, () => window.__noDoc = 'rejected'); "
+              "return 1; })()",
               [](const juce::var&) {});
         later(4000,
               "JSON.stringify({nodes: document.querySelectorAll('.node').length, "
               "committed: window.__smoke || 0, voiceCells: window.__voiceCells || 0, "
               "cables: window.__voiceCables || 0, errors: window.__errors || [], "
+              "doc: window.__doc || 0, noDoc: window.__noDoc || 0, "
               "types: document.querySelectorAll('#browser .b-item').length})",
               [](const juce::var& v) {
                   std::printf("board smoke: %s\n", v.toString().toRawUTF8());

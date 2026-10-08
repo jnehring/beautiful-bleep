@@ -35,10 +35,11 @@ patch/
 │   ├── dsp/          the module's DSP (<Name>Dsp.h, no JUCE)
 │   ├── <Name>Module.cpp   the node: params, jacks, process()
 │   ├── ui/           optional custom displays for its module view (<name>.js)
+│   ├── doc/          its documentation (<type>.md, plus any images), shown by the view's ? button
 │   └── module.json   metadata for the website
 ├── common/
 │   ├── dsp/          shared DSP: SVF, smoothing, counter-based randomness, tempo
-│   └── ui/           bleep-bridge.js (JUCE bridge), bleep-view.js/.css (module views)
+│   └── ui/           bleep-bridge.js (JUCE bridge), bleep-view.js/.css (module views), bleep-markdown.js (docs)
 └── tests/            DSP, engine and bridge tests, bridge plugin test, board smoke test, type dump
 ```
 

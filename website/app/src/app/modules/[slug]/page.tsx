@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { findDoc, modules } from "@/lib/content";
+import { moduleDoc, modules } from "@/lib/content";
 import { notFound } from "next/navigation";
 
 export function generateStaticParams() {
@@ -10,7 +10,7 @@ export default async function ModulePage({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   const m = modules().find((x) => x.slug === slug);
   if (!m) notFound();
-  const doc = findDoc(m.doc.replace(/\.md$/, "").split("/"));
+  const doc = moduleDoc(m);
   return (
     <article style={{ borderTop: `4px solid ${m.colour}`, paddingTop: 8 }}>
       <p className="tag">{m.formats.join(" · ")} · free and open source (MIT)</p>

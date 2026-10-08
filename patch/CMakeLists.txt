@@ -139,13 +139,15 @@ if (NOT BLEEP_PATCH_BUILD_PLUGINS)
     return()
 endif ()
 
-# The board UI (board/ui), the module views' hooks (modules/*/ui) and the
-# shared UI library (common/ui), embedded in every plugin.
+# The board UI (board/ui), the module views' hooks (modules/*/ui), the
+# modules' documentation (modules/*/doc) and the shared UI library
+# (common/ui), embedded in every plugin. All are served flat, by file name.
 file(GLOB BLEEP_BOARD_UI CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/*"
     "${CMAKE_CURRENT_SOURCE_DIR}/common/ui/*")
 foreach (m IN LISTS BLEEP_MODULES)
-    file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/ui/*")
+    file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/ui/*"
+        "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/doc/*")
     list(APPEND BLEEP_BOARD_UI ${s})
 endforeach ()
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
