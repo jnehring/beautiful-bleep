@@ -18,6 +18,7 @@ All scripts live in [`scripts/`](scripts/) and work from any directory.
 |---|---|
 | [`build-bus.sh`](scripts/build-bus.sh) | Builds Bleep Bus (library, examples, conformance suite) into `build/bus/` and runs its tests. Options: `--debug`, `--clean`, `--no-test` |
 | [`build-patch.sh`](scripts/build-patch.sh) | Builds the plugins as VST3 into `build/patch/` and runs the DSP, engine and headless-host tests. Options: `--juce <dir>` (or `BLEEP_JUCE_DIR`; otherwise JUCE 8.0.9 is downloaded), `--install`, `--ui-dev`, `--debug`, `--clean`, `--no-test` |
+| [`run-app.sh`](scripts/run-app.sh) | Builds only the standalone Bleep Patch app and starts it with its console output: `scripts/run-app.sh [project.bleepboard]`. Options: `--debug`, `--ui-dev`, `--no-build`, `--smoke`, `--juce <dir>` |
 | [`reload-live.sh`](scripts/reload-live.sh) | macOS: rebuilds the plugins, quits Ableton Live, replaces the VST3s and reopens a test set: `scripts/reload-live.sh ~/Music/test.als [build options]` |
 | [`run-website.sh`](scripts/run-website.sh) | Runs the website in Docker on http://localhost:8080: `up` (default), `down`, `logs`, `rebuild` |
 | [`ui-server.py`](scripts/ui-server.py) | Serves the board UI in a browser with a fake engine: `scripts/ui-server.py`, then open http://localhost:8765 |
