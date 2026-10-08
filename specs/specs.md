@@ -2,7 +2,7 @@
 
 **Working titles:** *Bleep Patch* (product family), *Bleep Board* (the shared patching canvas), *Bleep Bus* (open protocol). Product and protocol names are placeholders.
 **Author:** Jan Nehring / Brilliant Bleep
-**Status:** Draft v0.2, October 2026
+**Status:** Draft v0.2, October 2026. The core (engine, board, cells, Ableton bridge) is implemented in `patch/`; see `patch/README.md`.
 
 **Changes since v0.1:** Modules are no longer individual plugins in Live's device chain. They are nodes on one shared canvas, the **Bleep Board**, processed by a shared engine. In Live, users only add **ports** (MIDI/audio in and out) and the **Bleep Patch** plugin that opens the board. New: cells and poly cells, cable rules, the Ableton bridge, board persistence.
 
@@ -50,24 +50,30 @@
 &emsp;&emsp;[9.11 Keyboard shortcuts](#911-keyboard-shortcuts)<br>
 &emsp;&emsp;[9.12 Example workflows](#912-example-workflows)<br>
 [10. Audio on the board](#10-audio-on-the-board)<br>
-[11. First module set](#11-first-module-set)<br>
-[12. Native support in Brilliant Bleep plugins](#12-native-support-in-brilliant-bleep-plugins)<br>
-[13. Positioning](#13-positioning)<br>
-[14. Open technology](#14-open-technology)<br>
-&emsp;&emsp;[14.1 What "open" means concretely](#141-what-open-means-concretely)<br>
-&emsp;&emsp;[14.2 Why open is good for the business](#142-why-open-is-good-for-the-business)<br>
-&emsp;&emsp;[14.3 Documentation, split by audience](#143-documentation-split-by-audience)<br>
-&emsp;&emsp;[14.4 Sketch of the API shape (illustrative, not final)](#144-sketch-of-the-api-shape-illustrative-not-final)<br>
-[15. Homepage](#15-homepage)<br>
-&emsp;&emsp;[15.1 Content for musicians](#151-content-for-musicians)<br>
-&emsp;&emsp;[15.2 Content for developers](#152-content-for-developers)<br>
-&emsp;&emsp;[15.3 Shared and community](#153-shared-and-community)<br>
-&emsp;&emsp;[15.4 Requirements](#154-requirements)<br>
-[16. Repository structure](#16-repository-structure)<br>
-[17. More bridges and interoperability (future work)](#17-more-bridges-and-interoperability-future-work)<br>
-[18. Roadmap](#18-roadmap)<br>
-[19. Risks and open questions](#19-risks-and-open-questions)<br>
-[20. Legal note on inspiration](#20-legal-note-on-inspiration)
+[11. The standalone app](#11-the-standalone-app)<br>
+&emsp;&emsp;[11.1 What it is](#111-what-it-is)<br>
+&emsp;&emsp;[11.2 MIDI: the app's own MIDI ports](#112-midi-the-apps-own-midi-ports)<br>
+&emsp;&emsp;[11.3 Audio: Bleep Audio Bridge](#113-audio-bleep-audio-bridge)<br>
+&emsp;&emsp;[11.4 Ableton Link](#114-ableton-link)<br>
+&emsp;&emsp;[11.5 Limits and open questions](#115-limits-and-open-questions)<br>
+[12. First module set](#12-first-module-set)<br>
+[13. Native support in Brilliant Bleep plugins](#13-native-support-in-brilliant-bleep-plugins)<br>
+[14. Positioning](#14-positioning)<br>
+[15. Open technology](#15-open-technology)<br>
+&emsp;&emsp;[15.1 What "open" means concretely](#151-what-open-means-concretely)<br>
+&emsp;&emsp;[15.2 Why open is good for the business](#152-why-open-is-good-for-the-business)<br>
+&emsp;&emsp;[15.3 Documentation, split by audience](#153-documentation-split-by-audience)<br>
+&emsp;&emsp;[15.4 Sketch of the API shape (illustrative, not final)](#154-sketch-of-the-api-shape-illustrative-not-final)<br>
+[16. Homepage](#16-homepage)<br>
+&emsp;&emsp;[16.1 Content for musicians](#161-content-for-musicians)<br>
+&emsp;&emsp;[16.2 Content for developers](#162-content-for-developers)<br>
+&emsp;&emsp;[16.3 Shared and community](#163-shared-and-community)<br>
+&emsp;&emsp;[16.4 Requirements](#164-requirements)<br>
+[17. Repository structure](#17-repository-structure)<br>
+[18. More bridges and interoperability (future work)](#18-more-bridges-and-interoperability-future-work)<br>
+[19. Roadmap](#19-roadmap)<br>
+[20. Risks and open questions](#20-risks-and-open-questions)<br>
+[21. Legal note on inspiration](#21-legal-note-on-inspiration)
 
 ---
 
@@ -98,7 +104,7 @@ Ableton Live is linear. Its strengths are clips, device chains and a fast workfl
 2. **Modulation-first.** Every knob on every module is a modulation destination. Modulating the modulator is the default, not a special case.
 3. **One board, woven into the set.** The patch lives on one board per set, but it touches Live wherever the user drops a port: any track, any device chain. It syncs to Live's transport and saves with the set. Users don't leave Live to patch.
 4. **Small and composable.** Many small modules beat one giant one. Cells make bigger structures reusable.
-5. **Open technology.** The bus is an open standard. Anyone can build compatible plugins (see section 14).
+5. **Open technology.** The bus is an open standard. Anyone can build compatible plugins (see section 15).
 6. **Deterministic.** Seeded randomness, transport-locked phase and fixed latencies, so a set renders the same way every time.
 
 ## 4. Concepts and naming
@@ -118,6 +124,8 @@ Ableton Live is linear. Its strengths are clips, device chains and a fast workfl
 | **Module view** | A module's full UI (knobs, switches, mod rings, scopes). Opens as a floating window inside the board window. |
 | **Panel** | A custom UI on the board that combines several module views into one front panel. Can also be shown in a port's plugin window or in a Bleep Panel plugin. |
 | **Bleep Panel plugin** | A plugin that shows one panel in its own plugin window, so the panel can be placed anywhere in Live. Not a node on the board. |
+| **Bleep Patch app** | The standalone app: engine and board without a DAW, with its own projects (section 11). |
+| **Bleep Audio Bridge** | A plugin in Live that connects a track's audio to the running app; a node on the app's board (section 11.3). |
 | **Engine** | The shared code that processes the board's graph (section 5.3). |
 | **Bleep Bus** | The open protocol through which external plugins (Grit, Cinch, third-party) join the board (section 5.5). |
 
@@ -144,15 +152,16 @@ Ableton Live is linear. Its strengths are clips, device chains and a fast workfl
 
 ### 5.2 Plugin formats and the plugin bundle
 
-- **Target host: Ableton Live only** (for now). Other hosts, including those that sandbox plugins into separate processes (e.g. Bitwig), are out of scope.
+- **Target host: Ableton Live only** (for now), plus the standalone app (section 11). Other hosts, including those that sandbox plugins into separate processes (e.g. Bitwig), are out of scope.
 - **Format: VST3 only** (for now), on macOS and Windows. This avoids a set loading two formats of the bundle and running two engines. AU and CLAP are possible later.
-- **One bundle, several plugins.** The *Bleep Patch* plugin and all port plugins ship as **one VST3 binary** that exposes several plugin classes. This gives one shared engine per process (section 5.3) and guarantees that all ports run the same engine version.
+- **One engine per process.** JUCE builds one plugin per binary, so the *Bleep Patch* plugin and every port are separate VST3 binaries that all contain the engine code. The first Bleep plugin loaded into Live's process creates the engine and publishes it (an environment variable holding the process ID, the engine's address and an ABI tag); every later Bleep plugin uses that instance. The binary that created it pins itself in memory, so the engine's code is never unloaded while others use it. A binary from a different build (another ABI tag) doesn't share: its plugins show "Another version of Bleep Patch is loaded".
 
 ### 5.3 The shared engine
 
 The board's DSP runs in a **shared engine**: a process-wide singleton inside the plugin bundle. There is no dedicated host plugin that must exist for the board to run.
 
-- **Who processes the graph.** Live calls each plugin's `process()` on worker threads in no guaranteed order. For every host block, the **first** Bleep plugin whose `process()` runs claims that block (a lock-free compare-and-swap on the block's transport position) and processes the entire board graph for it. All other plugins in that block only exchange data with the engine and never wait.
+- **Who processes the graph.** Live calls each plugin's `process()` on worker threads in no guaranteed order. For every host block, the **first** Bleep plugin whose `process()` runs claims that block (a lock-free compare-and-swap on a shared block counter) and processes the entire board graph for it. All other plugins in that block only exchange data with the engine and never wait.
+- **Which block is this?** Transport positions can't identify a block (they stand still while Live is stopped), so every plugin counts its own `process()` calls and compares that count with the engine's. A plugin that joins late, or that Live skipped, resynchronises by following the engine's count. Data goes through small rings of frames tagged with their block number and guarded by sequence locks, so a frame is never read while it's being written, even during a resync. Plugins show resyncs and dropped frames in their status line (phase 0 measures them in Live).
 - **Fixed latencies at the ports.** To stay deterministic regardless of thread order:
   - an input port writes block *N*; the engine consumes it in block *N+1*;
   - the engine's output for block *N* is read by output ports in block *N+1*.
@@ -245,7 +254,7 @@ In Live, users can only add the plugins in this section. Each port appears autom
 | **Bleep Audio In** | Audio effect (passes audio through) | Outputs: `audio` L, R | Taps the track's audio at its position in the chain. |
 | **Bleep Audio Out** | Instrument | Inputs: `audio` L, R | A sound source on its own track, so board audio gets a normal mixer channel, sends and effects. Typical use: a poly synth built on the board. |
 | **Bleep Instrument** | Instrument | Outputs: same as Bleep MIDI In. Inputs: `audio` L, R | MIDI In and Audio Out in one plugin, so a board synth sits on one track with normal record-arm and monitoring. Its plugin window can show a panel (section 9.7). Reports its latency like Audio Out. |
-| **Bleep Audio Insert** | Audio effect | Outputs: `audio` L, R (dry signal). Inputs: `audio` L, R (return) | Routes the track's audio through the board and back. Dry/wet control on the plugin. Two blocks of latency (section 5.3). |
+| **Bleep Audio Insert** | Audio effect | Outputs: `audio` L, R (dry signal). Inputs: `audio` L, R (return) | Routes the track's audio through the board and back. Dry/wet control on the plugin; the dry signal is delayed to match. With nothing patched into the return, the send passes through. Two blocks of latency (section 5.3). |
 
 **Bleep Panel** is also part of the bundle but isn't a port: it carries no signals and doesn't appear as a node (section 9.7).
 
@@ -253,7 +262,7 @@ In Live, users can only add the plugins in this section. Each port appears autom
 |---|---|---|---|
 | **Bleep Panel** | Audio effect (passes audio through) | Nothing (not a node) | Shows one panel of the board in its plugin window. Any number per set; several can show the same panel. |
 
-Every port's own plugin UI is small: port name, port-specific settings (e.g. CC selection), latency display, and an *Open Board* button.
+Every port's own plugin UI is small: the node's name, a status line (board, latency, resyncs), an *Open Board* button, and Dry/Wet for the Audio Insert. Port-specific settings (MIDI channel, CC numbers, transpose) are knobs and settings of the port's node, in its module view on the board.
 
 **Port nodes on the board:**
 - can be renamed (the name is shown in both the board and the plugin UI);
@@ -269,7 +278,7 @@ Every port's own plugin UI is small: port name, port-specific settings (e.g. CC 
 
 ### 7.1 Signal types
 
-All signals use **virtual volts** (section 17), so they map one to one to CV and VCV Rack later.
+All signals use **virtual volts** (section 18), so they map one to one to CV and VCV Rack later.
 
 | Type | Value | Cable colour (proposal) |
 |---|---|---|
@@ -338,7 +347,7 @@ Connecting, disconnecting or changing an amount on an `audio` or `control` input
 - **Nesting:** cells can contain cells, to any depth.
 - **Navigation:** double-click enters a cell; a breadcrumb (*Board › Pad › Env*) leads back out.
 - **Copying:** copies are independent. Editing one copy doesn't change the others.
-- **Presets:** any cell can be saved as a preset file and loaded into any board. Cell presets are the basis of the patch library (section 15.1).
+- **Presets:** any cell can be saved as a preset file and loaded into any board. Cell presets are the basis of the patch library (section 16.1).
 
 ### 8.2 Why cells matter
 
@@ -547,7 +556,70 @@ Constraints:
 - **Determinism** during offline rendering: same rules as for control signals, but failures are more audible.
 - **Audio over Bleep Bus** (to external plugins) is reserved for a later bus version.
 
-## 11. First module set
+## 11. The standalone app
+
+The **Bleep Patch app** runs the engine, the board, modules, cells and panels without a DAW: for playing and sound design on its own, or next to Live. It is the same engine as in the plugins; only its bridges differ.
+
+### 11.1 What it is
+
+- **A desktop app** (macOS, Windows). Its main window is the board.
+- **Its own projects.** The app saves its board in a project file (`.bleepboard`), not in a Live set.
+- **Its own audio device** when it runs alone: inputs and outputs of the selected audio interface appear as Audio In/Out nodes (the **device bridge**).
+- **Bridges to the outside world:**
+
+| Connection | How | Section |
+|---|---|---|
+| MIDI to and from Live, other apps and hardware | The app's own virtual MIDI ports | 11.2 |
+| Audio to and from Live | **Bleep Audio Bridge** plugin on any track in Live | 11.3 |
+| Tempo, beat, start/stop | **Ableton Link** | 11.4 |
+
+A Live set either has its board in Bleep Patch (section 6) or works with the app through Bleep Audio Bridge. Both can be used at the same time; they are separate boards.
+
+### 11.2 MIDI: the app's own MIDI ports
+
+- **The app creates its own virtual MIDI ports**, "Bleep Patch 1" … "Bleep Patch n" (the number is set in the app's settings, default 2). Live and other apps see them like a hardware MIDI interface: no loopback tool needed.
+- **The MIDI bridge** puts each port on the board as two nodes: **MIDI In** (same outputs as Bleep MIDI In: notes, pitch, gate, velocity, CCs …) and **MIDI Out** (same inputs as Bleep MIDI Out). Hardware MIDI interfaces appear the same way.
+- **In Live:** a MIDI track sets *MIDI From* "Bleep Patch 1" to play from the app, or *MIDI To* "Bleep Patch 1" to play into it. Live's MIDI preferences can also send MIDI clock to a port.
+- **Platforms:** macOS CoreMIDI virtual endpoints. Windows: virtual devices of Windows MIDI Services (Windows 11); on older systems a loopMIDI port can be selected instead.
+- **Limits:** MIDI between apps is not sample-accurate (about a millisecond of jitter) and not delay-compensated.
+
+### 11.3 Audio: Bleep Audio Bridge
+
+**Bleep Audio Bridge** is a VST3 audio effect for Live that connects a track to the running app. No virtual audio driver, no aggregate device.
+
+```
+ Ableton Live                                  Bleep Patch app
+ ┌─ Track "Drums" ───────────────┐             ┌─ Board ─────────────────────────┐
+ │ Drum Rack → [Bleep Audio      │ ══ shared ══│  [Bridge "Drums"] → Filter ─┐   │
+ │              Bridge] → out    │   memory    │        ▲                    │   │
+ └───────────────────────────────┘             │        └────────────────────┘   │
+                                               └─────────────────────────────────┘
+```
+
+- **In the app,** each bridge is a node named after its track: outputs **Send L/R** (the track's audio) and inputs **Return L/R** (audio back to the track). Any number of bridges, one node each. A bridge that isn't connected is a ghost (section 6).
+- **In Live,** the plugin window has a **Monitor** setting: *Send* (the track's audio passes through), *Return* (the app's audio replaces it) or *Mix* (dry/wet; the dry signal is delayed to match). Plus the node's name, a status line and *Open App*.
+- **Live sets the pace.** While at least one bridge is connected, the app's engine follows Live's audio blocks instead of its own audio device, with the same scheme as inside Live (section 5.3): for every block the first bridge hands its audio over and signals the app; the app processes the block on a real-time thread; every bridge picks up the result two blocks later. One clock, so no drift, no resampling and no extra buffering. The app's own audio device is muted meanwhile.
+- **Fixed latency** of two blocks, reported to Live, so Live's delay compensation lines it up (section 5.3).
+- **Deadline.** The app has one block to process. If it misses, that block is silent on the return and counted in the plugin's status line.
+- **Offline export.** When Live renders faster than real time, the bridge waits for the app (allowed outside real time), so exports include the app's audio.
+- **Without the app** the bridge passes the track's audio through and shows "Bleep Patch app not running". It reconnects when the app starts.
+- **Identity.** Each bridge keeps a stable ID in the Live set; the app's project remembers the nodes by these IDs, so cables survive closing and reopening both.
+- **Open:** the shared-memory protocol between bridge and app is a versioned Bleep Bus extension (section 15), so other hosts or plugins could implement a bridge too.
+
+### 11.4 Ableton Link
+
+- **A Link node** on the app's board: outputs *Tempo* (control), *Beat* and *Bar* phase (control, 0…1), *Clock* (gate, 24 per quarter note), *Playing* (gate), and triggers on every beat and bar. Settings: quantum (beats per bar), start/stop sync on/off.
+- **Transport.** When the app runs alone, the board's musical time (Sync settings of Function, Random, Clock …) follows Link: tempo, beat position and start/stop. With Bleep Audio Bridge connected, Live's transport (from the bridge) takes priority; the Link node stays available.
+- **In Live,** turn Link on (and Start Stop Sync), and Live and the app share tempo, phase and transport.
+- **License.** Ableton Link is GPLv2-or-later. Builds that include it are distributed under the GPL (compatible with JUCE under AGPLv3 and with our MIT source) with their source. A closed-source build would need a license from Ableton.
+
+### 11.5 Limits and open questions
+
+- **Cross-process deadline.** Processing in another process within one block is soft real-time. Phase 0 measures misses at small buffer sizes and under load.
+- **One host at a time.** The app accepts bridges from one host process at a time.
+- **Two boards.** A Live set with Bleep Patch and the app are separate boards; cables don't cross between them (except via MIDI ports and bridges).
+
+## 12. First module set
 
 Each module is our own design, built from generic modular concepts.
 
@@ -581,7 +653,7 @@ Function plus Utility already cover the motivating case: an LFO modulates anothe
 - **A scope on every output.**
 - **Polyphony** through poly cells.
 
-## 12. Native support in Brilliant Bleep plugins
+## 13. Native support in Brilliant Bleep plugins
 
 Grit, Cinch, Tame, Rasp, Hum, Wander, Spore, Probe and future products expose Bleep Bus modulation inputs on their parameters. On the board, each instance appears as a node (section 5.5). Effects:
 
@@ -589,20 +661,20 @@ Grit, Cinch, Tame, Rasp, Hum, Wander, Spore, Probe and future products expose Bl
 - **No bridge needed** for Brilliant Bleep destinations, so it works in every Live edition, not just Suite.
 - **Differentiation** from generic modulation tools.
 
-## 13. Positioning
+## 14. Positioning
 
 - **VCV Rack 2 Pro** runs a complete Eurorack environment inside one plugin, on one track. Bleep Patch's board spans the whole set: its ports sit on any track and in any device chain.
 - **Bitwig's Grid** isn't available in Live, and each Grid patch lives inside one device.
 - **Live's built-in modulators and Kilohearts-style containers** are one-to-one or container-bound.
 - **Bleep Patch's position:** one board for the whole set, Live-native, modulation-first, open.
 
-## 14. Open technology
+## 15. Open technology
 
 Bleep Bus is an open standard. Anyone (individual developers, other plugin companies, open-source projects) can build plugins that join the board through the bus, without permission and without fees.
 
 **Scope for now:** third-party plugins join the board as external nodes (section 5.5). Loading third-party *modules* onto the board (a module SDK) is out of scope for now.
 
-### 14.1 What "open" means concretely
+### 15.1 What "open" means concretely
 
 | Element | Commitment |
 |---|---|
@@ -617,23 +689,23 @@ Bleep Bus is an open standard. Anyone (individual developers, other plugin compa
 | **Registry (optional)** | A public, community-editable list of compatible plugins. |
 | **No lock-in** | No license fees, no mandatory registration, no runtime that calls home. |
 
-### 14.2 Why open is good for the business
+### 15.2 Why open is good for the business
 
 - **More plugins on the bus make the board more valuable.** Bleep Bus and Bleep Patch are free and open (MIT). Brilliant Bleep earns money with its commercial plugins and instruments (developed in separate repositories), which become more valuable the bigger the open ecosystem gets.
 - **An open standard builds trust** with developers and power users, and is a strong story for talks and community building.
 - **Other developers adding Bleep Bus inputs** to their synths solves the "can't modulate third-party plugins" problem without any host support.
 - **Risk:** competitors build plugins for the bus. That's intended. Brilliant Bleep's edge is design quality, native integration across its own product line, and being the reference implementation.
 
-### 14.3 Documentation, split by audience
+### 15.3 Documentation, split by audience
 
-Documentation is split by **audience**, not crammed into one file. It lives in the website's content folder (section 16) and is published on the homepage. The README files in the repository stay short: what this folder is, how to build it, and links to the website.
+Documentation is split by **audience**, not crammed into one file. It lives in the website's content folder (section 17) and is published on the homepage. The README files in the repository stay short: what this folder is, how to build it, and links to the website.
 
 | Document | Audience | Content |
 |---|---|---|
 | **Quickstart** | Every developer, first contact | Minimal plugin that appears on the board with one input and one output, built and running in Live in 15 minutes. Small enough to paste into a coding AI in full. |
 | **API reference** | Plugin developers using the SDK | Concepts, signal conventions, lifecycle, every function/struct/enum/error code, C++/JUCE wrapper, complete examples, host notes, pitfalls, conformance checklist. |
 | **Specification** | People reimplementing the bus without the SDK (other languages, bridges) | Shared-memory layout, atomics and memory ordering, registry internals, versioning and extension rules. |
-| **User docs** | Musicians | Getting started, the board, ports, cells and poly cells, module manuals, Ableton integration guides, tutorials (section 15.1). |
+| **User docs** | Musicians | Getting started, the board, ports, cells and poly cells, module manuals, Ableton integration guides, tutorials (section 16.1). |
 
 Requirements:
 
@@ -647,7 +719,7 @@ Requirements:
 - **Kept in sync.** The API reference is checked against the SDK headers in CI. The headers are themselves thoroughly commented, because coding AIs read source files too.
 - **Size check.** If the full API reference grows past ~80k tokens, that's a signal to simplify the API or split the audience further.
 
-### 14.4 Sketch of the API shape (illustrative, not final)
+### 15.4 Sketch of the API shape (illustrative, not final)
 
 ```c
 bb_bus*      bb_bus_open(uint32_t spec_version, bb_error* err);
@@ -669,11 +741,11 @@ void bb_unregister_instance(bb_endpoint*);
 void bb_bus_close(bb_bus*);
 ```
 
-## 15. Homepage
+## 16. Homepage
 
 Bleep Patch gets its own homepage. It serves both audiences: **musicians** who use the board, and **developers** who build for the bus. It's an extension of the Brilliant Bleep site and reuses its stack (FastAPI backend, Next.js frontend, Docker Compose), its shop and its brand. It gets its own section or subdomain (e.g. `patch.brilliantbleep…` or a dedicated domain, to be decided).
 
-### 15.1 Content for musicians
+### 16.1 Content for musicians
 
 - **Landing page.** What Bleep Patch is, the "one modular board for your whole Live set" pitch, short videos and GIFs of patching in action.
 - **Module pages.** One page per module, with description, controls, example patches and audio demos.
@@ -688,30 +760,30 @@ Bleep Patch gets its own homepage. It serves both audiences: **musicians** who u
 - **Tutorials and recipes.** For example "LFO modulating LFO", "build a poly synth with a poly cell", "generative melodies with Random + MIDI Out", "slow drift for ambient textures".
 - **Browser playground (later).** A web version of the board with a few modules (e.g. Function + Utility + Oscillator + Filter) to try patching without installing anything.
 
-### 15.2 Content for developers
+### 16.2 Content for developers
 
 - **Developer landing page.** What the open standard is, why to adopt it, and how to start in 15 minutes.
-- **Quickstart, API reference and specification** (section 14.3) as readable pages, plus their **raw single-file versions** at stable URLs and an `llms.txt` index for coding AIs.
+- **Quickstart, API reference and specification** (section 15.3) as readable pages, plus their **raw single-file versions** at stable URLs and an `llms.txt` index for coding AIs.
 - **Specification** with version history and changelog; older spec versions remain available.
 - **SDK downloads** (links to the GitHub releases) and reference examples.
 - **Conformance suite.** How to run it and how to obtain the "Bleep Bus compatible" badge.
 - **RFC process.** How to propose changes, with a list of open and accepted RFCs (mirrored from GitHub).
 
-### 15.3 Shared and community
+### 16.3 Shared and community
 
 - **Compatible plugins registry.** Searchable list of Bleep Bus plugins from all vendors, with filters (sender/receiver, format, free/paid).
 - **News / changelog / blog** for releases, spec updates and showcases of third-party plugins.
 - **Community links:** GitHub, Discord or a forum, and a newsletter signup.
 - **FAQ and support,** with a clear split between user support (Brilliant Bleep products) and developer questions (public GitHub issues).
 
-### 15.4 Requirements
+### 16.4 Requirements
 
-- **Docs as code.** Docs live in the same repository as the SDK (`website/content/`, section 16) and are built and deployed by CI, so the website, docs and SDK never drift apart.
-- **No login** for any documentation, spec or SDK download (consistent with section 14).
+- **Docs as code.** Docs live in the same repository as the SDK (`website/content/`, section 17) and are built and deployed by CI, so the website, docs and SDK never drift apart.
+- **No login** for any documentation, spec or SDK download (consistent with section 15).
 - **Fast, searchable, mobile-friendly.** Full-text search across docs.
 - **Bilingual later:** English first, German as an option.
 
-## 16. Repository structure
+## 17. Repository structure
 
 Everything lives in **one repository**, in three clearly separated top-level folders, one per part of the project.
 
@@ -730,6 +802,7 @@ bleep/
 │   ├── README.md              Short: what's in the bundle, build, link to user docs
 │   ├── engine/                Shared engine: graph, scheduling, cells, poly cells, state, undo
 │   ├── board/                 The board window: canvas, browser, module views, panels
+│   ├── app/                   The standalone Bleep Patch app (section 11)
 │   ├── common/                Shared UI and DSP: mod rings, cables, scopes, filters, smoothing
 │   ├── modules/               Board modules (not plugins)
 │   │   ├── function/
@@ -740,6 +813,7 @@ bleep/
 │   │   └── amp/
 │   └── bridges/
 │       ├── ableton/           Bleep Patch, Bleep Panel and port plugins (MIDI In/Out, Audio In/Out, Instrument, Insert)
+│       ├── standalone/        The app's bridges: audio device, virtual MIDI ports, Ableton Link, Bleep Audio Bridge
 │       └── …                  Later: M4L, Extensions SDK tools, OSC, CV, VCV
 ├── website/                   The Bleep Patch homepage
 │   ├── README.md              Short: how to run and deploy
@@ -764,7 +838,7 @@ bleep/
 
 Plugins under other licenses, including commercial ones, live **in separate repositories** and use the bus through its public API, exactly like any third-party developer. This applies to Brilliant Bleep's own commercial products (Grit, Cinch, Hum, …) as well as to plugins from other vendors. The MIT license on the bus explicitly allows this.
 
-## 17. More bridges and interoperability (future work)
+## 18. More bridges and interoperability (future work)
 
 > **Status: future work.** Nothing in this section is part of the first releases. It describes how the board can later connect to external systems, so that early design decisions don't block it.
 
@@ -777,7 +851,7 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 | **CV bridge** | Real Eurorack hardware via DC-coupled audio interfaces (e.g. Expert Sleepers) | Virtual volts (1.0 = 1 V/oct for pitch, bipolar ±1 ≈ ±5 V, gate high at 0.5) map directly to real voltages. |
 | **MIDI extensions** | MPE synths, high-resolution MIDI receivers, future MIDI 2.0 hosts | MIDI In/Out ports gain MPE (per-note pitch bend, pressure, slide), 14-bit CC / NRPN, and MIDI 2.0 / UMP as hosts adopt it. MPE maps naturally onto the `notes` type and poly cells. |
 | **M4L bridge** | Any Live or third-party parameter (Suite) | `live.remote~`; see section 5.8. |
-| **Ableton Link** | Standalone apps, the browser playground, hardware bridges | Not needed inside plugins (the host provides transport). Link is GPLv2 for open source; closed-source use needs a license from Ableton. |
+| **Ableton Link** | The standalone app (section 11.4), the browser playground, hardware bridges | Not needed inside plugins (the host provides transport). Link is GPLv2-or-later for open source; closed-source use needs a license from Ableton. |
 | **Network bridge** | Board signals between computers on a LAN | E.g. via OSC or a dedicated protocol, with discovery via mDNS/DNS-SD. Latency and clock-sync caveats apply. |
 | **Other plugin ecosystems** | CLAP hosts with native parameter modulation (e.g. Bitwig) | Map board signals onto CLAP's non-destructive parameter modulation where the host supports it. |
 
@@ -787,18 +861,19 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 - **Bus extensions** use versioned, string-ID'd extensions (as in CLAP), so bridges can declare what they support.
 - **The `notes` type and the MIDI ports** use high-resolution, per-note values internally, so MPE and MIDI 2.0 can be added without a rewrite.
 
-## 18. Roadmap
+## 19. Roadmap
 
 | Phase | Content |
 |---|---|
 | **0: Technical prototype** | Plugin bundle with two ports and the shared engine in Live: block claiming, port latency, timing and jitter under different buffer sizes, thread loads and offline export. Port latency reporting and Live's delay compensation. Board window as a non-host top-level window (focus, keyboard, hide/show) on macOS and Windows. Main-plugin persistence across save/load, track duplication, copy/paste between sets and undo in Live. Test MIDI ports as instrument vs. effect. |
 | **1: Core release** | Engine, board (nodes, cables, cells, floating module views, undo, cell presets), Ableton bridge (Bleep Patch with macros, MIDI In, MIDI Out, Audio In, Audio Out, Bleep Instrument, Audio Insert). Modules: Function, Utility, Random, Filter. Bus v1 spec, open SDK, developer docs, conformance suite, **Bleep Patch homepage**. Bus inputs in Grit and Cinch. |
 | **2: Synthesis and expansion** | Poly cells; panels stage 1 (combined module views, shown in the board, in port plugin windows and in the **Bleep Panel** plugin); Oscillator, Amp/Mixer; Clock, Drift, Morph; native bus inputs across the Brilliant Bleep line; patch library on the homepage. |
+| **2b: Standalone** | The Bleep Patch app (section 11): projects, device bridge, virtual MIDI ports, Bleep Audio Bridge, Ableton Link node. |
 | **3: Live bridge** | M4L Bridge device (`live.remote~`); Extensions SDK companion tools (routing setup, render-to-automation). |
 | **4: Beyond** | Panel controls (encoders, faders, XY pads with multi-target mappings), custom-programmed HTML/JS views, MIDI-learn for panels; multi-core engine, "tight feedback" cells, audio over Bleep Bus, MPE, CLAP per-voice modulation in supporting hosts, community registry, community patch library and browser playground. |
-| **5: Interoperability** | Further bridges from section 17: OSC, VCV Rack, CV, MIDI 2.0, Ableton Link, network bridge. |
+| **5: Interoperability** | Further bridges from section 18: OSC, VCV Rack, CV, MIDI 2.0, network bridge. |
 
-## 19. Risks and open questions
+## 20. Risks and open questions
 
 - **Engine ticking in Live.** The engine assumes that, for each audio buffer, Live calls `process()` on all active Bleep plugins with the same transport position, and that the first call can safely process the board. Phase 0 tests this with a logging prototype (block positions, thread IDs, call order) under:
   - different buffer sizes and heavy CPU load;
@@ -809,12 +884,13 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 - **Port latency compensation.** Section 5.3 relies on Live compensating the latency reported by Audio Out, Bleep Instrument and Audio Insert. Phase 0 verifies this, including during export.
 - **Board persistence.** Main-plugin model (section 5.4): verify duplication, copy/paste between sets and Live's undo in phase 0.
 - **Board window.** A non-host top-level window may misbehave in some Live versions (focus, z-order, full-screen, multiple monitors).
+- **Bleep Audio Bridge deadline.** The app must process each block within one buffer, in another process (section 11.5).
 - **CPU.** One thread for the whole board until the multi-core engine exists. Large poly cells may hit this early.
 - **Offline rendering.** The engine must behave deterministically when Live exports faster or slower than real time.
 - **Spec stability vs. speed.** Opening the spec early invites adoption but makes changes costlier. Mark v0.x as experimental.
 - **Naming and trademarks.** Final product and protocol names; avoid any confusion with existing modules or brands.
 - **Support burden** of an open standard (issues, RFCs, third-party bugs that look like ours).
 
-## 20. Legal note on inspiration
+## 21. Legal note on inspiration
 
 The modules are inspired by general concepts common in modular synthesis. No module reproduces a specific hardware module's panel layout, name, branding or exact feature combination. Where open-source firmware is used as a reference, its license is checked per file and respected.
