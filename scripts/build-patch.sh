@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# Builds the Bleep Patch plugins (Bleep Patch and the ports of the Ableton
-# bridge) as VST3, then runs the DSP and engine tests and the headless VST3
-# host test.
+# Builds the Bleep Patch plugin as VST3, then runs the DSP and engine tests.
 #
 #   scripts/build-patch.sh [--debug] [--clean] [--no-test] [--install]
 #                  [--juce <dir>] [--ui-dev]

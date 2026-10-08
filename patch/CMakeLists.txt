@@ -188,18 +188,6 @@ endfunction()
 
 bleep_add_plugin(TARGET BleepPatch PRODUCT "Bleep Patch" CODE BpPa KIND Patch
     VST3_CATEGORIES Fx Tools)
-bleep_add_plugin(TARGET BleepMidiIn PRODUCT "Bleep MIDI In" CODE BpMi KIND MidiIn SYNTH
-    VST3_CATEGORIES Instrument Tools)
-bleep_add_plugin(TARGET BleepMidiOut PRODUCT "Bleep MIDI Out" CODE BpMo KIND MidiOut SYNTH MIDI_OUT
-    VST3_CATEGORIES Instrument Tools)
-bleep_add_plugin(TARGET BleepAudioIn PRODUCT "Bleep Audio In" CODE BpAi KIND AudioIn
-    VST3_CATEGORIES Fx Tools)
-bleep_add_plugin(TARGET BleepAudioOut PRODUCT "Bleep Audio Out" CODE BpAo KIND AudioOut SYNTH
-    VST3_CATEGORIES Instrument Tools)
-bleep_add_plugin(TARGET BleepInstrument PRODUCT "Bleep Instrument" CODE BpIn KIND Instrument SYNTH
-    VST3_CATEGORIES Instrument Synth)
-bleep_add_plugin(TARGET BleepAudioInsert PRODUCT "Bleep Audio Insert" CODE BpAs KIND AudioInsert
-    VST3_CATEGORIES Fx Tools)
 
 # Opens the real board window on a real engine for a few seconds (not in ctest).
 if (BLEEP_PATCH_BUILD_TESTS)
@@ -210,21 +198,4 @@ if (BLEEP_PATCH_BUILD_TESTS)
         BLEEP_BOARD_SMOKE_TEST=1 "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     target_link_libraries(bleep_board_smoke PRIVATE bleep_board_web bleep_patch_dsp juce::juce_gui_extra
         juce::juce_recommended_config_flags)
-endif ()
-
-# Integration test: load the built VST3s into a headless host. They must
-# share one engine across binaries and pass audio through the board.
-if (BLEEP_PATCH_BUILD_TESTS)
-    juce_add_console_app(bleep_patch_host_test PRODUCT_NAME "Bleep Patch Host Test")
-    target_sources(bleep_patch_host_test PRIVATE tests/host_test.cpp)
-    target_compile_definitions(bleep_patch_host_test PRIVATE
-        JUCE_PLUGINHOST_VST3=1 JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_patch_host_test PRIVATE juce::juce_audio_processors
-        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
-    add_dependencies(bleep_patch_host_test BleepPatch_VST3 BleepAudioIn_VST3 BleepAudioOut_VST3 BleepMidiIn_VST3
-        BleepMidiOut_VST3)
-    add_test(NAME patch.host COMMAND bleep_patch_host_test
-        "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepPatch_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>"
-        "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepAudioIn_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>"
-        "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepAudioOut_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>")
 endif ()

@@ -8,12 +8,6 @@ on the board. In Live you add only:
 | Plugin | Live device | On the board |
 |---|---|---|
 | **Bleep Patch** | audio effect | required once per set; stores and opens the board; 16 macros |
-| **Bleep MIDI In** | instrument | notes, pitch, gate, velocity, CCs from a MIDI track |
-| **Bleep MIDI Out** | instrument (VST3 MIDI out) | notes, gate/pitch, CCs and bend to another track |
-| **Bleep Audio In** | audio effect | the track's audio |
-| **Bleep Audio Out** | instrument | board audio on its own track |
-| **Bleep Instrument** | instrument | MIDI In and Audio Out in one plugin |
-| **Bleep Audio Insert** | audio effect | the track's audio through the board and back, dry/wet |
 
 ```bash
 scripts/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
@@ -21,8 +15,7 @@ scripts/build-patch.sh --install                 # also copy the plugins into yo
 ```
 
 VST3 only, Ableton Live only for now (spec §5.2). The script builds into
-`build/patch/`, then runs the DSP tests, the engine tests and a headless VST3
-host test.
+`build/patch/`, then runs the DSP tests and the engine tests.
 
 ## Layout
 
