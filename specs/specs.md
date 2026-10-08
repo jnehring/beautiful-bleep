@@ -455,24 +455,20 @@ Notes and per-voice signals live on two levels: outside, one `notes` cable carri
 ### 9.2 Layout
 
 ```
-┌─ Board › Pad ──────────────────────────── [Add ⇥]  ↶ ↷   CPU 7%   L 256 smp ─┐
-│ BROWSER        │ CANVAS                                                      │
-│ In this set    │  ▌Keys          ┌─ Pad ×8 ─────┐          ▌Synth            │
-│  ▌Keys         │  ▌MIDI In ●━━━━▶│ Voice Cell   │━━━━━━━━━▶ ▌Audio Out       │
-│  ▌Synth        │                 │ ●●●○○○○○     │                             │
-│  ┆Drums (ghost)│  Wobble ●───────▶└──────────────┘    ┌─ Function · Wobble ─┐  │
-│  Grit · Bus    │  Function ●───────────────▶ Grit     │ (Rise) (Fall) ...   │  │
-│ Modules        │                                      │  floating module    │  │
-│ Cell presets   │  ┆Drums┆ ┄┄┄┄┄┄┄┄┄┄▶                  │  view               │  │
-│ Panels         │                                      └─────────────────────┘  │
-└────────────────┴─────────────────────────────────────────────────────────────┘
+┌─ Board › Pad ─────────────── [Add] ↶ ↷ ────────────── CPU 7%  L 256 smp ─┐
+│ CANVAS (inside the cell "Pad")                           [Close cell ×]  │
+│                                                                          │
+│  Voice In ●━━▶ Oscillator ━━▶ Multi Filter ━━▶ VCA ━━▶ Voice Out          │
+│      ●───────▶ ADSR ─────────────────────────────▲                       │
+│                                       ┌─ Oscillator ──────────────┐      │
+│  Cell In ●┄┄▶ (Cutoff, Bend)          │ (Octave) (Shape) ...      │      │
+│                                       │  floating module view     │      │
+│                                       └───────────────────────────┘      │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Top bar:** breadcrumb (*Board › Pad*), Add (search), undo/redo, CPU load, port latency.
-- **Browser (left):**
-  - **In this set:** all ports and external plugins, marked with their Live track's colour; ghosts greyed out. Clicking one centres the canvas on it.
-  - **Modules**, **Cell presets** (the patch library), **Panels** (section 9.7).
-- **Canvas (middle):** nodes and cables. Pan by dragging empty space or scrolling, zoom with pinch or ⌘-scroll.
+- **Top bar:** breadcrumb (*Board › Pad*), Add (the Add menu, section 9.6), undo/redo, CPU load, port latency.
+- **Canvas:** nodes and cables. Inside a cell, a *Close cell* button at the top right leads back out (like Esc and the breadcrumb). Pan by dragging empty space or scrolling, zoom with pinch or ⌘-scroll.
 - **Module views** float over the canvas (section 9.4).
 
 ### 9.3 Nodes on the canvas
@@ -528,7 +524,7 @@ Module view sketch:
 - **Add** from the **Add menu** (the top bar's *Add* button or right-click on empty space):
   - *Module ›* one submenu per category (*Sources*, *Modulation*, *Audio*, *Utility*) with its modules;
   - *Cell ›* *New Cell*, *New Voice Cell*, and one submenu per preset category (*Synthesizers ›* *Basic Poly*, …, then the user's own categories).
-  Tab or a double-click on empty space opens a search field at the cursor; the browser lists the same items for dragging.
+  Tab or a double-click on empty space opens a search field at the cursor. Under *Cell ›*, each category of the user's own presets also has *Delete preset ›*.
 - **Rename** with a double-click on the title.
 - **Select** with a drag box; Shift adds to the selection.
 - **Duplicate** with ⌘D: copies the nodes and the cables between them. ⌘⇧D also keeps the incoming cables.
@@ -538,7 +534,7 @@ Module view sketch:
   - ⌘G groups the selection into a cell; cables crossing the new border become cell jacks. ⌘⇧G ungroups.
   - Double-click enters a cell; Esc or the breadcrumb leads back out.
   - Right-click → *Make Voice Cell* turns a cell into a Voice Cell (section 8.3.3).
-  - Right-click → *Save as preset*, with a name and a category, adds the cell to the Add menu and the browser.
+  - Right-click → *Save as preset*, with a name and a category, adds the cell to the Add menu.
 
 ### 9.7 Panels
 
@@ -878,7 +874,7 @@ bleep/
 ├── patch/                     Bleep Patch: one plugin bundle
 │   ├── README.md              Short: what's in the bundle, build, link to user docs
 │   ├── engine/                Shared engine: graph, scheduling, cells, Voice Cells, state, undo
-│   ├── board/                 The board window: canvas, browser, module views, panels
+│   ├── board/                 The board window: canvas, Add menu, module views, panels
 │   ├── app/                   The standalone Bleep Patch app (section 11)
 │   ├── common/                Shared UI and DSP: mod rings, cables, scopes, filters, smoothing
 │   ├── modules/               Board modules (not plugins)

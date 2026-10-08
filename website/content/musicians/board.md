@@ -51,8 +51,9 @@ them (📌) to keep them open when you enter or leave cells.
   out. Inside, *Cell In* and *Cell Out* are the cell's jacks: drop a cable on
   their *new input* / *new output* row to add one.
 - **⌘⇧G** ungroups a cell again.
-- Right-click a cell → **Save as preset** to keep it in the browser for every
-  set. Click or drag a preset to add it.
+- Right-click a cell → **Save as preset** to keep it in the Add menu for every
+  set: **Add → Cell → <category>**. Your own presets can be deleted there
+  under **Delete preset**.
 
 ## Shortcuts
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// board.js — the Bleep Board (spec §9): canvas, browser, patching, cells,
+// board.js — the Bleep Board (spec §9): canvas, Add menu, patching, cells,
 // floating module views, undo and keyboard shortcuts.
 //
 // The engine owns the board document; this page edits a copy and commits it
@@ -198,7 +198,7 @@
   // ---------------------------------------------------------------- render
   function render() {
     renderCrumbs();
-    renderBrowser();
+    $("cell-close").hidden = path.length === 0;
     renderNodes();
     applyCam();  // before the cables: their positions are measured on screen
     renderCables();
@@ -231,65 +231,6 @@
       const n = nodeById(id);
       crumb(n ? n.name : "?", i + 1);
     });
-  }
-
-  function renderBrowser() {
-    const b = $("browser");
-    b.innerHTML = "";
-    const section = (title) => b.appendChild(el("h3", "", title));
-    const item = (label, sub, opts = {}) => {
-      const it = el("div", "b-item" + (opts.ghost ? " ghost" : ""));
-      const sw = el("span", "swatch");
-      if (opts.colour) sw.style.background = opts.colour;
-      it.append(sw, el("span", "", label));
-      if (sub) it.appendChild(el("span", "sub", sub));
-      if (opts.onClick) it.addEventListener("click", opts.onClick);
-      if (opts.drag) {
-        it.draggable = true;
-        it.addEventListener("dragstart", (e) => e.dataTransfer.setData("text/plain", JSON.stringify(opts.drag)));
-      }
-      if (opts.onDelete) {
-        const d = el("span", "del", "×");
-        d.title = "Delete preset";
-        d.addEventListener("click", (e) => { e.stopPropagation(); opts.onDelete(); });
-        it.appendChild(d);
-      }
-      b.appendChild(it);
-      return it;
-    };
-
-    section("In this set");
-    const portNodes = board ? board.nodes.filter(isPort) : [];
-    if (!portNodes.length) b.appendChild(el("div", "b-empty", board ? "Add Bleep ports in Live" : "No board"));
-    for (const n of portNodes)
-      item(n.name, typeOf(n).name + (isGhost(n) ? " · ghost" : ""), {
-        colour: n.colour || typeOf(n).colour, ghost: isGhost(n),
-        onClick: () => focusNode(n.id),
-      });
-
-    const cats = new Map();
-    for (const t of typeList)
-      if (offered(t) && t.category !== "Cells") {
-        if (!cats.has(t.category)) cats.set(t.category, []);
-        cats.get(t.category).push(t);
-      }
-    for (const [cat, list] of cats) {
-      section(cat);
-      for (const t of list)
-        item(t.name, "", { colour: t.colour, drag: { type: t.type }, onClick: () => addAtCentre({ type: t.type }) });
-    }
-    section("Cells");
-    item("New Cell", "", { colour: types.cell ? types.cell.colour : "", drag: { type: "cell" },
-      onClick: () => addAtCentre({ type: "cell" }) });
-    item("New Voice Cell", "", { colour: types["voice-cell"] ? types["voice-cell"].colour : "", drag: { type: "voice-cell" },
-      onClick: () => addAtCentre({ type: "voice-cell" }) });
-    for (const [cat, list] of presetCategories()) {
-      section(cat);
-      for (const p of list)
-        item(p.name, p.factory ? "factory" : "", { colour: p.preset.nodes[0] && p.preset.nodes.find((n) => n.id === p.preset.root).type === "voice-cell" ? "#c084fc" : "#9aa3b5",
-          drag: { preset: p.name }, onClick: () => addAtCentre({ preset: p.name }),
-          onDelete: p.factory ? null : async () => { setPresets((await native("deletePreset", p.name)) || []); renderBrowser(); } });
-    }
   }
 
   function signalColour(t) { return `var(--sig-${t || "control"})`; }
@@ -1009,7 +950,16 @@
                    { label: "New Voice Cell", run: place({ type: "voice-cell" }) }];
     const byCat = presetCategories();
     if (byCat.size) cells.push("-");
-    for (const [cat, list] of byCat) cells.push({ label: cat, items: list.map((p) => ({ label: p.name, run: place({ preset: p.name }) })) });
+    for (const [cat, list] of byCat) {
+      const items = list.map((p) => ({ label: p.name, run: place({ preset: p.name }) }));
+      const own = list.filter((p) => !p.factory);
+      if (own.length) {  // the user's own presets can be deleted here
+        items.push("-");
+        items.push({ label: "Delete preset", items: own.map((p) => ({
+          label: p.name, run: async () => setPresets((await native("deletePreset", p.name)) || []) })) });
+      }
+      cells.push({ label: cat, items });
+    }
     return [{ label: "Module", items: [...cats].map(([cat, items]) => ({ label: cat, items })) },
             { label: "Cell", items: cells }];
   }
@@ -1351,7 +1301,6 @@
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
     const saved = await native("savePreset", name, { format: 1, root: cell.id, category: category || "My Cells", nodes, cables });
     if (saved) setPresets(saved);
-    renderBrowser();
   }
 
   function insertPreset(b, preset, lvl, x, y) {
@@ -1570,7 +1519,6 @@
       if (key !== portsKey) {
         portsKey = key;
         ports = s.ports;
-        renderBrowser();
         renderNodes();
         renderCables();
       }
@@ -1617,6 +1565,7 @@
   async function undo() { applyMessage(await native("undo")); }
   async function redo() { applyMessage(await native("redo")); }
   $("undo").addEventListener("click", undo);
+  $("cell-close").addEventListener("click", () => { if (path.length) leaveTo(path.length - 1); });
   $("redo").addEventListener("click", redo);
   window.addEventListener("resize", () => { renderCables(); positionCablePop(); });
 

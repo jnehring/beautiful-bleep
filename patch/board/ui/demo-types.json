@@ -460,8 +460,8 @@
         "max": 20.0
       },
       {
-        "id": "velocity",
-        "name": "Velocity",
+        "id": "velamount",
+        "name": "Vel Amount",
         "kind": "float",
         "default": 0.5,
         "steps": 0,

@@ -57,7 +57,7 @@ void registerAdsrModule(Registry& r) {
                 ParamSpec::seconds("decay", "Decay", 0.001f, 10.0f, 0.4f, 0.3f),
                 ParamSpec::percent("sustain", "Sustain", 0.0f, 1.0f, 0.7f),
                 ParamSpec::seconds("release", "Release", 0.001f, 20.0f, 0.6f, 0.4f),
-                ParamSpec::percent("velocity", "Velocity", 0.0f, 1.0f, 0.5f)};
+                ParamSpec::percent("velamount", "Vel Amount", 0.0f, 1.0f, 0.5f)};
     s.inputs = {{"gate", "Gate", Signal::Gate}, {"retrig", "Retrigger", Signal::Trigger},
                 {"velocity", "Velocity", Signal::Control}};
     s.outputs = {{"env", "Env", Signal::Control, false}, {"end", "End", Signal::Trigger, false},
