@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -104,7 +105,7 @@ struct Rig {
 
 void specs() {
     const char* types[] = {"attenuverter", "cv-mixer", "audio-mixer", "multiplier", "crossfader",
-                           "logic",        "quantizer", "switch",     "notes-to-cv"};
+                           "logic",        "quantizer", "switch",     "notes-to-cv", "level-meter"};
     for (const char* t : types) {
         g_test = t;
         const ModuleSpec* s = Registry::get().find(t);
@@ -329,6 +330,53 @@ void audioMixer() {
     EXPECT(level.toNormalised(0.0f) > 0.75f && level.toNormalised(0.0f) < 0.85f);
 }
 
+void levelMeter() {
+    g_test = "level-meter";
+    Rig r("level-meter");
+    auto live = [&] {
+        std::vector<std::pair<std::string, double>> v;
+        r.m->liveValues(v);
+        std::map<std::string, double> m(v.begin(), v.end());
+        return m;
+    };
+    // Mono: In L feeds both outputs and the view shows one bar.
+    r.patch("l", 0.5f);
+    r.inputs[0][3] = -0.8f;
+    r.run();
+    EXPECT(r.out("l") == 0.5f && r.out("r") == 0.5f);
+    EXPECT_NEAR(r.out("l", 3), -0.8f, 0.0);
+    EXPECT_NEAR(r.out("r", 3), -0.8f, 0.0);
+    auto v = live();
+    EXPECT(v["stereo"] == 0.0);
+    EXPECT_NEAR(v["peakL"], 0.8, 1e-6);
+    EXPECT_NEAR(v["peakR"], 0.8, 1e-6);
+    EXPECT(v["clipL"] == 0.0);
+    EXPECT(r.out("clip") == 0.0f);
+    // The peak is reported once, then what came since.
+    r.patch("l", 0.25f);
+    r.run();
+    EXPECT_NEAR(live()["peakL"], 0.25, 1e-6);
+    // Stereo, with a clipped right channel.
+    r.patch("r", 1.5f);
+    r.run();
+    EXPECT(r.out("r") == 1.5f);
+    EXPECT(r.out("clip") == 1.0f);
+    v = live();
+    EXPECT(v["stereo"] == 1.0);
+    EXPECT(v["clipL"] == 0.0 && v["clipR"] == 1.0);
+    EXPECT(live()["clipR"] == 0.0);  // read once
+    // Level: a steady 0 dBFS signal settles at 1, silence falls to 0.
+    r.patch("l", 1.0f);
+    r.patch("r", 1.0f);
+    r.set("response", 0.01f);
+    r.run(200);
+    EXPECT_NEAR(r.out("level"), 1.0, 1e-3);
+    r.patch("l", 0.0f);
+    r.patch("r", 0.0f);
+    r.run(400);  // 25 time constants: far below −60 dB
+    EXPECT(r.out("level") == 0.0f);
+}
+
 }  // namespace
 
 int main() {
@@ -342,6 +390,7 @@ int main() {
     switchNode();
     notesToCv();
     audioMixer();
+    levelMeter();
     if (g_failures) {
         std::printf("%d failure(s)\n", g_failures);
         return 1;

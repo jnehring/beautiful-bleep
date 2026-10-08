@@ -28,6 +28,7 @@ Registry::Registry() {
     registerSwitchModule(*this);
     registerAudioMixerModule(*this);
     registerCrossfaderModule(*this);
+    registerLevelMeterModule(*this);
     registerDialModule(*this);
     registerButtonModule(*this);
     registerKeyboardModule(*this);

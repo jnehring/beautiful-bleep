@@ -74,6 +74,7 @@ void registerNotesToCvModule(Registry&);
 void registerDialModule(Registry&);
 void registerButtonModule(Registry&);
 void registerKeyboardModule(Registry&);
+void registerLevelMeterModule(Registry&);
 void registerPortModules(Registry&);
 
 }  // namespace bleep::engine

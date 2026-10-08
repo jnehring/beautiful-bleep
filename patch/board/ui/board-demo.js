@@ -145,6 +145,15 @@
         entry.active = last === undefined ? -1 : last;
         entry.held = held.length;
       }
+      if (n.type === "level-meter") {
+        // A beat that swells, now and then into the red.
+        const beat = Math.exp(-((t * 2) % 1) * 4), swell = 0.6 + 0.5 * Math.sin(t * 0.4);
+        const stereo = board.cables.some((c) => c.to.node === n.id && c.to.jack === "r");
+        const pk = [beat * swell, beat * swell * (stereo ? 0.8 : 1)];
+        Object.assign(entry, { peakL: pk[0], peakR: pk[1], rmsL: pk[0] * 0.45, rmsR: pk[1] * 0.45,
+                               clipL: +(pk[0] > 1), clipR: +(pk[1] > 1), stereo: +stereo });
+        Object.assign(outputs, { l: pk[0], r: pk[1], clip: +(pk[0] > 1), level: Math.max(0, 1 + 20 * Math.log10(pk[0] * 0.45 + 1e-9) / 60) });
+      }
       // Activity (the cables' pulse): how far each output moved since the last frame.
       entry.activity = {};
       for (const o of ty.outputs) {

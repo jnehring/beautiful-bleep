@@ -2914,6 +2914,116 @@
     ]
   },
   {
+    "type": "level-meter",
+    "name": "Level Meter",
+    "category": "Utility",
+    "colour": "#c4b5fd",
+    "description": "Stereo peak and RMS meters with clip lights. The audio passes through; Level puts the loudness on a cable.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "response",
+        "name": "Response",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 2.0
+      },
+      {
+        "id": "floor",
+        "name": "Floor",
+        "kind": "choice",
+        "default": 0.600000023841858,
+        "steps": 6,
+        "modulatable": false,
+        "choices": [
+          "-24 dB",
+          "-36 dB",
+          "-48 dB",
+          "-60 dB",
+          "-72 dB",
+          "-96 dB"
+        ],
+        "min": 0.0,
+        "max": 5.0
+      },
+      {
+        "id": "detector",
+        "name": "Level Follows",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "RMS",
+          "Peak"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "hold",
+        "name": "Peak Hold",
+        "kind": "choice",
+        "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "1 s",
+          "3 s",
+          "Until Reset"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "clip",
+        "name": "Clip",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "dial",
     "name": "Dial",
     "category": "Controllers",

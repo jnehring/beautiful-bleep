@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Unit tests for the utility module cores: Attenuverter, CV Mixer, Audio
-// Mixer, Multiplier, Crossfader, Logic, Quantizer, Switch and Notes to CV.
+// Mixer, Multiplier, Crossfader, Logic, Quantizer, Switch, Notes to CV and
+// Level Meter.
 // Pure C++, like test_dsp.cpp.
 #include "../modules/attenuverter/dsp/AttenuverterDsp.h"
 #include "../modules/audio-mixer/dsp/AudioMixerDsp.h"
 #include "../modules/crossfader/dsp/CrossfaderDsp.h"
 #include "../modules/cv-mixer/dsp/CvMixerDsp.h"
+#include "../modules/level-meter/dsp/LevelMeterDsp.h"
 #include "../modules/logic/dsp/LogicDsp.h"
 #include "../modules/multiplier/dsp/MultiplierDsp.h"
 #include "../modules/notes-to-cv/dsp/NotesToCvDsp.h"
@@ -844,6 +846,69 @@ static void audioMixer() {
     }
 }
 
+static void levelMeter() {
+    g_test = "level scale";
+    EXPECT_NEAR(levelToUnit(1.0f, -60.0f), 1.0, 1e-6);
+    EXPECT_NEAR(levelToUnit(0.001f, -60.0f), 0.0, 1e-5);   // −60 dB
+    EXPECT(levelToUnit(0.0f, -60.0f) == 0.0f);
+    EXPECT(levelToUnit(2.0f, -60.0f) == 1.0f);
+    EXPECT_NEAR(levelToUnit(0.1f, -40.0f), 0.5, 1e-5);     // −20 dB
+
+    const double sr = 48000.0;
+    g_test = "level meter rms";
+    {
+        LevelMeterDsp m;
+        m.prepare(sr);
+        LevelMeterParams p;
+        p.response = 0.1f;
+        LevelMeterFrame f;
+        for (int n = 0; n < (int)sr; ++n) {
+            const float x = (float)std::sin(2 * kPi * 1000.0 * n / sr);
+            m.tick(x, 0.5f * x, p, f);
+        }
+        EXPECT_NEAR(f.rmsL, 0.70711, 0.01);
+        EXPECT_NEAR(f.rmsR, 0.35355, 0.005);
+        EXPECT_NEAR(f.level, (-3.0103 + 60.0) / 60.0, 0.003);  // the louder channel
+        EXPECT(f.clip == 0.0f);
+    }
+    g_test = "level meter peak";
+    {
+        LevelMeterDsp m;
+        m.prepare(sr);
+        LevelMeterParams p;
+        p.response = 0.5f;
+        p.peakMode = true;
+        LevelMeterFrame f;
+        m.tick(0.0f, 0.0f, p, f);
+        EXPECT(f.level == 0.0f);
+        m.tick(-0.5f, 0.0f, p, f);
+        EXPECT_NEAR(f.level, levelToUnit(0.5f, -60.0f), 1e-6);  // instant attack
+        EXPECT(f.peakL == 0.5f);
+        for (int n = 0; n < (int)(0.5 * sr) - 1; ++n) m.tick(0.0f, 0.0f, p, f);
+        // 60 dB down after Response: −66 dB, below the floor.
+        EXPECT(f.level == 0.0f);
+        m.reset();
+        m.tick(1.0f, 0.0f, p, f);
+        for (int n = 0; n < (int)(0.25 * sr) - 1; ++n) m.tick(0.0f, 0.0f, p, f);
+        EXPECT_NEAR(f.level, 0.5, 0.01);                    // −30 dB halfway
+    }
+    g_test = "level meter clip";
+    {
+        LevelMeterDsp m;
+        m.prepare(sr);
+        LevelMeterParams p;
+        LevelMeterFrame f;
+        m.tick(0.999f, -0.999f, p, f);
+        EXPECT(f.clip == 0.0f && !f.clipped);
+        m.tick(0.0f, -1.2f, p, f);
+        EXPECT(f.clip == 1.0f && f.clipped);
+        for (int n = 0; n < (int)(0.04 * sr); ++n) m.tick(0.0f, 0.0f, p, f);
+        EXPECT(f.clip == 1.0f && !f.clipped);
+        for (int n = 0; n < (int)(0.02 * sr); ++n) m.tick(0.0f, 0.0f, p, f);
+        EXPECT(f.clip == 0.0f);
+    }
+}
+
 int main() {
     clipAndAttenuverter();
     cvMixer();
@@ -854,6 +919,7 @@ int main() {
     switchModule();
     notesToCv();
     audioMixer();
+    levelMeter();
     if (g_failures) {
         std::printf("%d failure(s)\n", g_failures);
         return 1;

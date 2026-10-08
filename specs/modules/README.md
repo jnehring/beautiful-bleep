@@ -25,6 +25,7 @@ section 21): no hardware names in the files, the UI or the docs.
 | Dial | [dial.md](dial.md) | Implemented |
 | Button | [button.md](button.md) | Implemented |
 | Keyboard | [keyboard.md](keyboard.md) | Implemented |
+| Level Meter | [level-meter.md](level-meter.md) | Implemented |
 | Attenuverter | [attenuverter.md](attenuverter.md) | Implemented |
 | CV Mixer | [cv-mixer.md](cv-mixer.md) | Implemented |
 | Audio Mixer | [audio-mixer.md](audio-mixer.md) | Implemented |

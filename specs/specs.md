@@ -710,6 +710,7 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **Switch** | Sequential switch, up to 8 steps: 8 → 1 and 1 → 8 at once; stepped by triggers, the transport or Select; fades that never jump; per-step levels | Source selector, router and 8-step value sequencer in one. See `specs/modules/switch.md`. |
 | **Audio Mixer** | Four stereo channels: level (dB), pan, mute/solo, send; return, master, limiter, meters | Several sound sources into one stereo pair. See `specs/modules/audio-mixer.md`. |
 | **Crossfader** | Stereo A/B blend, equal-power or linear | Dry/wet and source morphing under modulation. See `specs/modules/crossfader.md`. |
+| **Level Meter** | Stereo peak and RMS meters, peak hold, clip lights; audio thru; Level and Clip outputs | See how loud a signal is anywhere in the patch, and use the loudness as modulation. See `specs/modules/level-meter.md`. |
 | **Dial** | One big knob as a control signal: Min/Max range, detents, smoothing | A macro or selector by hand. See `specs/modules/dial.md`. |
 | **Button** | A pad: gate (momentary or toggle), press and release triggers, toggle | Starts, resets and mutes by hand; the toggle is saved. See `specs/modules/button.md`. |
 | **Keyboard** | Three octaves to play with the mouse or the computer keyboard; hold | *Notes* plays a Voice Cell; mono pitch, gate, velocity, trigger with priority and glide. See `specs/modules/keyboard.md`. |
