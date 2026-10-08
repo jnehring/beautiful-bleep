@@ -63,6 +63,12 @@ foreach (j IN LISTS module_jsons)
     list(APPEND BLEEP_MODULES "${m}")
 endforeach ()
 list(SORT BLEEP_MODULES)
+# Optional: build only some modules (a list of folder names), e.g. while
+# several people add modules to one tree at the same time.
+set(BLEEP_PATCH_ONLY_MODULES "" CACHE STRING "Build only these modules (empty: all)")
+if (BLEEP_PATCH_ONLY_MODULES)
+    list(FILTER BLEEP_MODULES INCLUDE REGEX "^(${BLEEP_PATCH_ONLY_MODULES})$")
+endif ()
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)
