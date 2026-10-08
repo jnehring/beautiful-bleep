@@ -885,7 +885,7 @@ void drumNodes() {
 
     int drums = 0;
     for (const auto* s : Registry::get().all()) {
-        if (s->category != "Drums") continue;
+        if (s->category.rfind("Drums/", 0) != 0) continue;
         g_test = s->type.c_str();
         ++drums;
         const int level = (int)s->params.size() - 1;

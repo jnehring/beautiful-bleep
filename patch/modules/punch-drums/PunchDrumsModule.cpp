@@ -9,6 +9,7 @@ using namespace patch;
 
 namespace {
 
+constexpr const char* kKit = "Punch";
 constexpr const char* kColour = "#f43f5e";
 
 ParamSpec semitones() { return ParamSpec::number("tune", "Tune", -12.0f, 12.0f, 0.0f, "st", 1); }
@@ -17,7 +18,7 @@ ParamSpec semitones() { return ParamSpec::number("tune", "Tune", -12.0f, 12.0f, 
 
 void registerPunchDrumsModules(Registry& r) {
     addDrum<PunchKick>(r,
-        drumSpec("punch-kick", "Punch Kick", kColour, "Hard, tight kick: a sine that sweeps down fast, with a noise click.",
+        drumSpec(kKit, "punch-kick", "Punch Kick", kColour, "Hard, tight kick: a sine that sweeps down fast, with a noise click.",
                  {ParamSpec::hertz("tune", "Tune", 30.0f, 120.0f, 50.0f),
                   ParamSpec::seconds("decay", "Decay", 0.05f, 2.5f, 0.5f, 0.6f),
                   ParamSpec::percent("sweep", "Sweep", 0.0f, 1.0f, 0.5f),
@@ -34,7 +35,7 @@ void registerPunchDrumsModules(Registry& r) {
         });
 
     addDrum<PunchSnare>(r,
-        drumSpec("punch-snare", "Punch Snare", kColour, "Snare: two swept sines for the body and filtered noise for the wires.",
+        drumSpec(kKit, "punch-snare", "Punch Snare", kColour, "Snare: two swept sines for the body and filtered noise for the wires.",
                  {ParamSpec::hertz("tune", "Tune", 120.0f, 400.0f, 200.0f),
                   ParamSpec::percent("tone", "Tone", 0.0f, 1.0f, 0.5f),
                   ParamSpec::percent("snappy", "Snappy", 0.0f, 1.0f, 0.6f),
@@ -49,7 +50,7 @@ void registerPunchDrumsModules(Registry& r) {
         });
 
     addDrum<PunchClap>(r,
-        drumSpec("punch-clap", "Punch Clap", kColour, "Bright hand clap: tight bursts of noise and a roomy tail.",
+        drumSpec(kKit, "punch-clap", "Punch Clap", kColour, "Bright hand clap: tight bursts of noise and a roomy tail.",
                  {ParamSpec::hertz("tone", "Tone", 500.0f, 4000.0f, 1500.0f),
                   ParamSpec::seconds("decay", "Decay", 0.05f, 1.5f, 0.35f, 0.35f),
                   ParamSpec::seconds("spread", "Spread", 0.003f, 0.03f, 0.008f, 0.008f),
@@ -64,7 +65,7 @@ void registerPunchDrumsModules(Registry& r) {
         });
 
     addDrum<PunchTom>(r,
-        drumSpec("punch-tom", "Punch Tom", kColour, "Tom: a sine that drops in pitch, with a touch of noise.",
+        drumSpec(kKit, "punch-tom", "Punch Tom", kColour, "Tom: a sine that drops in pitch, with a touch of noise.",
                  {ParamSpec::hertz("tune", "Tune", 50.0f, 500.0f, 110.0f),
                   ParamSpec::seconds("decay", "Decay", 0.05f, 2.0f, 0.45f, 0.45f),
                   ParamSpec::percent("bend", "Bend", 0.0f, 1.0f, 0.5f),
@@ -79,7 +80,7 @@ void registerPunchDrumsModules(Registry& r) {
         });
 
     addDrum<PunchRim>(r,
-        drumSpec("punch-rim", "Punch Rim", kColour, "Rim shot: a hard, bright crack.",
+        drumSpec(kKit, "punch-rim", "Punch Rim", kColour, "Rim shot: a hard, bright crack.",
                  {semitones(), ParamSpec::exponential("decay", "Decay", 0.25f, 4.0f, 1.0f, "×")}),
         [](const Module& m, const ProcessContext& c, int i) {
             PunchRim::Params p;
@@ -89,7 +90,7 @@ void registerPunchDrumsModules(Registry& r) {
         });
 
     addDrum<PunchHats, 2>(r,
-        drumSpec("punch-hats", "Punch Hats", kColour, "Bright, crunchy closed and open hi-hats. Closed cuts open.",
+        drumSpec(kKit, "punch-hats", "Punch Hats", kColour, "Bright, crunchy closed and open hi-hats. Closed cuts open.",
                  {semitones(), ParamSpec::seconds("closed", "Closed Decay", 0.01f, 0.3f, 0.05f, 0.05f),
                   ParamSpec::seconds("open", "Open Decay", 0.05f, 3.0f, 0.4f, 0.4f),
                   ParamSpec::percent("tone", "Tone", 0.0f, 1.0f, 0.5f),
@@ -106,7 +107,7 @@ void registerPunchDrumsModules(Registry& r) {
         });
 
     addDrum<PunchCymbal>(r,
-        drumSpec("punch-cymbal", "Punch Cymbal", kColour, "Crash or ride: bright, crunchy metal with a long decay.",
+        drumSpec(kKit, "punch-cymbal", "Punch Cymbal", kColour, "Crash or ride: bright, crunchy metal with a long decay.",
                  {ParamSpec::choice("voice", "Voice", {"Crash", "Ride"}, 0), semitones(),
                   ParamSpec::seconds("decay", "Decay", 0.3f, 8.0f, 2.0f, 2.0f),
                   ParamSpec::percent("tone", "Tone", 0.0f, 1.0f, 0.5f),

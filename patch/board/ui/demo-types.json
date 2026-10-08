@@ -1719,7 +1719,7 @@
   {
     "type": "ring-kick",
     "name": "Ring Kick",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Deep, round kick: a struck resonator that rings and dies away.",
     "port": "",
@@ -1813,7 +1813,7 @@
   {
     "type": "ring-snare",
     "name": "Ring Snare",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Snare: two ringing drum heads and a burst of bright noise.",
     "port": "",
@@ -1897,7 +1897,7 @@
   {
     "type": "ring-clap",
     "name": "Ring Clap",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Hand clap: a few quick bursts of noise and a short tail.",
     "port": "",
@@ -1981,7 +1981,7 @@
   {
     "type": "ring-tom",
     "name": "Ring Tom",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Tom or hand drum: a ringing tone that falls in pitch, with a little noise.",
     "port": "",
@@ -2065,7 +2065,7 @@
   {
     "type": "ring-rim",
     "name": "Ring Rim",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Rim shot or clave: short, high, woody clicks.",
     "port": "",
@@ -2143,7 +2143,7 @@
   {
     "type": "ring-cowbell",
     "name": "Ring Cowbell",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Cowbell: two square waves through a band-pass, a sharp hit and a tail.",
     "port": "",
@@ -2217,7 +2217,7 @@
   {
     "type": "ring-hats",
     "name": "Ring Hats",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Closed and open hi-hats from six detuned squares. Closed cuts open.",
     "port": "",
@@ -2307,7 +2307,7 @@
   {
     "type": "ring-cymbal",
     "name": "Ring Cymbal",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Cymbal: a low clang and a long sizzle from six detuned squares.",
     "port": "",
@@ -2381,7 +2381,7 @@
   {
     "type": "punch-kick",
     "name": "Punch Kick",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Hard, tight kick: a sine that sweeps down fast, with a noise click.",
     "port": "",
@@ -2475,7 +2475,7 @@
   {
     "type": "punch-snare",
     "name": "Punch Snare",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Snare: two swept sines for the body and filtered noise for the wires.",
     "port": "",
@@ -2559,7 +2559,7 @@
   {
     "type": "punch-clap",
     "name": "Punch Clap",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Bright hand clap: tight bursts of noise and a roomy tail.",
     "port": "",
@@ -2643,7 +2643,7 @@
   {
     "type": "punch-tom",
     "name": "Punch Tom",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Tom: a sine that drops in pitch, with a touch of noise.",
     "port": "",
@@ -2727,7 +2727,7 @@
   {
     "type": "punch-rim",
     "name": "Punch Rim",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Rim shot: a hard, bright crack.",
     "port": "",
@@ -2791,7 +2791,7 @@
   {
     "type": "punch-hats",
     "name": "Punch Hats",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Bright, crunchy closed and open hi-hats. Closed cuts open.",
     "port": "",
@@ -2891,7 +2891,7 @@
   {
     "type": "punch-cymbal",
     "name": "Punch Cymbal",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Crash or ride: bright, crunchy metal with a long decay.",
     "port": "",

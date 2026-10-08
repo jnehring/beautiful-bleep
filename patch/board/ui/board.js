@@ -881,7 +881,7 @@
     for (const t of typeList)
       if (offered(t) && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
         out.push({ label: t.name === "Cell" ? "New Cell" : t.name === "Voice Cell" ? "New Voice Cell" : t.name,
-                   sub: t.category, what: { type: t.type } });
+                   sub: t.category.replace(/\//g, " › "), what: { type: t.type } });
     if (!link)
       for (const p of presets)
         if (p.name.toLowerCase().includes(q)) out.push({ label: p.name, sub: "cell preset", what: { preset: p.name } });
@@ -940,12 +940,16 @@
       const w = toWorld(at.x + r.left, at.y + r.top);
       addAt(what, w.x, w.y);
     };
-    const cats = new Map();
+    // A category path nests: "Drums/Ring" is Module › Drums › Ring.
+    const cats = [];
+    const submenu = (items, label) => {
+      let m = items.find((it) => it.items && it.label === label);
+      if (!m) items.push(m = { label, items: [] });
+      return m.items;
+    };
     for (const t of typeList)
-      if (offered(t) && t.category !== "Cells") {
-        if (!cats.has(t.category)) cats.set(t.category, []);
-        cats.get(t.category).push({ label: t.name, run: place({ type: t.type }) });
-      }
+      if (offered(t) && t.category !== "Cells")
+        t.category.split("/").reduce(submenu, cats).push({ label: t.name, run: place({ type: t.type }) });
     const cells = [{ label: "New Cell", run: place({ type: "cell" }) },
                    { label: "New Voice Cell", run: place({ type: "voice-cell" }) }];
     const byCat = presetCategories();
@@ -960,7 +964,7 @@
       }
       cells.push({ label: cat, items });
     }
-    return [{ label: "Module", items: [...cats].map(([cat, items]) => ({ label: cat, items })) },
+    return [{ label: "Module", items: cats },
             { label: "Cell", items: cells }];
   }
 

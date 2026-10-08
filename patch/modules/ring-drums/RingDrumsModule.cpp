@@ -9,6 +9,7 @@ using namespace patch;
 
 namespace {
 
+constexpr const char* kKit = "Ring";
 constexpr const char* kColour = "#f59e0b";
 
 ParamSpec semitones() { return ParamSpec::number("tune", "Tune", -12.0f, 12.0f, 0.0f, "st", 1); }
@@ -17,7 +18,7 @@ ParamSpec semitones() { return ParamSpec::number("tune", "Tune", -12.0f, 12.0f, 
 
 void registerRingDrumsModules(Registry& r) {
     addDrum<RingKick>(r,
-        drumSpec("ring-kick", "Ring Kick", kColour, "Deep, round kick: a struck resonator that rings and dies away.",
+        drumSpec(kKit, "ring-kick", "Ring Kick", kColour, "Deep, round kick: a struck resonator that rings and dies away.",
                  {ParamSpec::hertz("tune", "Tune", 30.0f, 120.0f, 50.0f),
                   ParamSpec::seconds("decay", "Decay", 0.05f, 3.0f, 0.6f, 0.8f),
                   ParamSpec::percent("sweep", "Sweep", 0.0f, 1.0f, 0.3f),
@@ -34,7 +35,7 @@ void registerRingDrumsModules(Registry& r) {
         });
 
     addDrum<RingSnare>(r,
-        drumSpec("ring-snare", "Ring Snare", kColour, "Snare: two ringing drum heads and a burst of bright noise.",
+        drumSpec(kKit, "ring-snare", "Ring Snare", kColour, "Snare: two ringing drum heads and a burst of bright noise.",
                  {ParamSpec::hertz("tune", "Tune", 100.0f, 400.0f, 180.0f),
                   ParamSpec::percent("tone", "Tone", 0.0f, 1.0f, 0.5f),
                   ParamSpec::percent("snappy", "Snappy", 0.0f, 1.0f, 0.6f),
@@ -49,7 +50,7 @@ void registerRingDrumsModules(Registry& r) {
         });
 
     addDrum<RingClap>(r,
-        drumSpec("ring-clap", "Ring Clap", kColour, "Hand clap: a few quick bursts of noise and a short tail.",
+        drumSpec(kKit, "ring-clap", "Ring Clap", kColour, "Hand clap: a few quick bursts of noise and a short tail.",
                  {ParamSpec::hertz("tone", "Tone", 500.0f, 4000.0f, 1100.0f),
                   ParamSpec::seconds("decay", "Decay", 0.05f, 1.5f, 0.3f, 0.3f),
                   ParamSpec::seconds("spread", "Spread", 0.003f, 0.03f, 0.011f, 0.011f),
@@ -64,7 +65,7 @@ void registerRingDrumsModules(Registry& r) {
         });
 
     addDrum<RingTom>(r,
-        drumSpec("ring-tom", "Ring Tom", kColour, "Tom or hand drum: a ringing tone that falls in pitch, with a little noise.",
+        drumSpec(kKit, "ring-tom", "Ring Tom", kColour, "Tom or hand drum: a ringing tone that falls in pitch, with a little noise.",
                  {ParamSpec::hertz("tune", "Tune", 50.0f, 600.0f, 140.0f),
                   ParamSpec::seconds("decay", "Decay", 0.05f, 2.0f, 0.4f, 0.4f),
                   ParamSpec::percent("bend", "Bend", 0.0f, 1.0f, 0.3f),
@@ -79,7 +80,7 @@ void registerRingDrumsModules(Registry& r) {
         });
 
     addDrum<RingRim>(r,
-        drumSpec("ring-rim", "Ring Rim", kColour, "Rim shot or clave: short, high, woody clicks.",
+        drumSpec(kKit, "ring-rim", "Ring Rim", kColour, "Rim shot or clave: short, high, woody clicks.",
                  {ParamSpec::choice("voice", "Voice", {"Rim", "Clave"}, 0), semitones(),
                   ParamSpec::exponential("decay", "Decay", 0.25f, 4.0f, 1.0f, "×")}),
         [](const Module& m, const ProcessContext& c, int i) {
@@ -91,7 +92,7 @@ void registerRingDrumsModules(Registry& r) {
         });
 
     addDrum<RingCowbell>(r,
-        drumSpec("ring-cowbell", "Ring Cowbell", kColour, "Cowbell: two square waves through a band-pass, a sharp hit and a tail.",
+        drumSpec(kKit, "ring-cowbell", "Ring Cowbell", kColour, "Cowbell: two square waves through a band-pass, a sharp hit and a tail.",
                  {semitones(), ParamSpec::seconds("decay", "Decay", 0.05f, 2.0f, 0.4f, 0.4f),
                   ParamSpec::percent("tone", "Tone", 0.0f, 1.0f, 0.5f)}),
         [](const Module& m, const ProcessContext& c, int i) {
@@ -103,7 +104,7 @@ void registerRingDrumsModules(Registry& r) {
         });
 
     addDrum<RingHats, 2>(r,
-        drumSpec("ring-hats", "Ring Hats", kColour, "Closed and open hi-hats from six detuned squares. Closed cuts open.",
+        drumSpec(kKit, "ring-hats", "Ring Hats", kColour, "Closed and open hi-hats from six detuned squares. Closed cuts open.",
                  {semitones(), ParamSpec::seconds("closed", "Closed Decay", 0.01f, 0.3f, 0.06f, 0.06f),
                   ParamSpec::seconds("open", "Open Decay", 0.05f, 3.0f, 0.5f, 0.5f),
                   ParamSpec::percent("tone", "Tone", 0.0f, 1.0f, 0.5f)},
@@ -118,7 +119,7 @@ void registerRingDrumsModules(Registry& r) {
         });
 
     addDrum<RingCymbal>(r,
-        drumSpec("ring-cymbal", "Ring Cymbal", kColour, "Cymbal: a low clang and a long sizzle from six detuned squares.",
+        drumSpec(kKit, "ring-cymbal", "Ring Cymbal", kColour, "Cymbal: a low clang and a long sizzle from six detuned squares.",
                  {semitones(), ParamSpec::seconds("decay", "Decay", 0.3f, 8.0f, 2.0f, 2.0f),
                   ParamSpec::percent("tone", "Tone", 0.0f, 1.0f, 0.5f)}),
         [](const Module& m, const ProcessContext& c, int i) {
