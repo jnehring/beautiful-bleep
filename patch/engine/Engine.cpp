@@ -18,6 +18,10 @@ namespace bleep::engine {
 
 namespace {
 
+/// Non-ASCII text (·, —, …) must reach juce::String as UTF-8.
+inline juce::String u8(const char* text) { return juce::String::fromUTF8(text); }
+
+
 void copyOut(const juce::String& s, char* out, int capacity) {
     if (out == nullptr || capacity <= 0) return;
     const auto utf8 = s.toStdString();
@@ -29,7 +33,8 @@ void copyOut(const juce::String& s, char* out, int capacity) {
 double nowMs() { return juce::Time::getMillisecondCounterHiRes(); }
 
 bool sendsToTrack(PortKind k) {
-    return k == PortKind::MidiOut || k == PortKind::AudioOut || k == PortKind::Instrument || k == PortKind::AudioInsert;
+    return k == PortKind::MidiOut || k == PortKind::AudioOut || k == PortKind::Instrument || k == PortKind::AudioInsert ||
+           k == PortKind::AudioBridge;
 }
 
 }  // namespace
@@ -178,9 +183,9 @@ void Engine::statusText(int handle, char* out, int capacity) noexcept {
             const int l = latencySamples();
             text = "Board running";
             if (s && s->kind != PortKind::Patch && s->kind != PortKind::MidiIn && s->kind != PortKind::AudioIn)
-                text << " · latency " << l << " smp (" << juce::String(1000.0 * l / sampleRate_, 1) << " ms)";
-            if (s && s->resyncs.load() > 0) text << " · resyncs " << (int)s->resyncs.load();
-            if (s && s->drops.load() > 0) text << " · drops " << (int)s->drops.load();
+                text << u8(" · latency ") << l << " smp (" << juce::String(1000.0 * l / sampleRate_, 1) << " ms)";
+            if (s && s->resyncs.load() > 0) text << u8(" · resyncs ") << (int)s->resyncs.load();
+            if (s && s->drops.load() > 0) text << u8(" · drops ") << (int)s->drops.load();
             break;
         }
     }
@@ -366,7 +371,7 @@ void Engine::reconcile(bool force) {
     bool changed = false;
     int inputs = 0, outputs = 0;
     for (const auto& s : instances_) {
-        if (s->kind == PortKind::Patch && s->handle != mainHandle_) continue;
+        if (s->kind == PortKind::Patch && (s->handle != mainHandle_ || standalone_)) continue;
         auto* existing = board::findNodeByPort(board_, juce::String(s->id));
         if (existing != nullptr) {
             // Keep the last known track on the node, so ghosts still say where they were.
@@ -380,7 +385,9 @@ void Engine::reconcile(bool force) {
         if (!force && !s->restored && nowMs() - s->registeredAt < 500.0) continue;  // wait for setState
         const ModuleSpec* spec = Registry::get().forPort(s->kind);
         if (spec == nullptr) continue;
-        const bool toTrack = sendsToTrack(s->kind) && s->kind != PortKind::Instrument;
+        const bool toTrack = (sendsToTrack(s->kind) && s->kind != PortKind::Instrument &&
+                              s->kind != PortKind::AudioInsert && s->kind != PortKind::AudioBridge) ||
+                             s->kind == PortKind::MidiOut;
         const double x = toTrack ? 760.0 : 40.0;
         const double y = 40.0 + 110.0 * (toTrack ? outputs++ : inputs++);
         const auto id = board::addNode(board_, *spec, x, y, juce::String(s->id));
@@ -443,13 +450,15 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
     }
     root->setProperty("nodes", juce::var(nodes));
     root->setProperty("ports", ports());
+    if (statusProvider_) root->setProperty("status", statusProvider_());
     return juce::var(root);
 }
 
 juce::String Engine::statusLine() const {
     juce::String s;
+    if (statusProvider_) return statusProvider_();
     if (!hasBoard()) return "No board in this set. Add Bleep Patch.";
-    s << "Latency " << const_cast<Engine*>(this)->latencySamples() << " smp · " << juce::String(sampleRate_ / 1000.0, 1)
+    s << "Latency " << const_cast<Engine*>(this)->latencySamples() << u8(" smp · ") << juce::String(sampleRate_ / 1000.0, 1)
       << " kHz";
     return s;
 }
@@ -469,19 +478,69 @@ void Engine::openBoard(int handle) noexcept {
 
 // ---- audio -------------------------------------------------------------------------
 
+namespace {
+
+void silence(BlockIO& io) noexcept {
+    for (int ch = 0; ch < io.numAudioOut; ++ch)
+        if (io.audioOut[ch]) std::fill_n(io.audioOut[ch], io.numSamples, 0.0f);
+}
+
+/// Hands a plugin's host block `c` to the engine. [RT]
+void writeIn(PortSlot& s, int64_t c, const BlockIO& io) noexcept {
+    const int n = std::min(io.numSamples, kMaxHostBlock);
+    PortFrame& f = s.in[c % kRing];
+    f.beginWrite(c);
+    f.numSamples = n;
+    f.transport = io.transport;
+    f.numChannels = std::min(io.numAudioIn, 2);
+    for (int ch = 0; ch < f.numChannels; ++ch)
+        if (io.audioIn[ch]) std::memcpy(f.audio[ch], io.audioIn[ch], sizeof(float) * (size_t)n);
+    f.numMidi = 0;
+    for (int i = 0; i < io.numMidiIn && f.numMidi < kMaxMidiEvents; ++i)
+        if (io.midiIn[i].offset < n) f.midi[f.numMidi++] = io.midiIn[i];
+    if (io.macros) std::memcpy(f.macros, io.macros, sizeof(f.macros));
+    f.endWrite();
+}
+
+/// Copies the board's output for host block `want` to the plugin. [RT]
+void readOut(PortSlot& s, int64_t want, BlockIO& io) noexcept {
+    if (io.numAudioOut == 0 && io.midiOut == nullptr) return;
+    const PortFrame& o = s.out[((want % kRing) + kRing) % kRing];
+    const uint32_t s1 = o.seq.load(std::memory_order_acquire);
+    if (want < 0 || (s1 & 1u) != 0 || o.block != want) {
+        silence(io);
+        return;
+    }
+    const int m = std::min(std::min(io.numSamples, kMaxHostBlock), o.numSamples);
+    for (int ch = 0; ch < io.numAudioOut; ++ch) {
+        if (!io.audioOut[ch]) continue;
+        std::memcpy(io.audioOut[ch], o.audio[std::min(ch, 1)], sizeof(float) * (size_t)m);
+        std::fill(io.audioOut[ch] + m, io.audioOut[ch] + io.numSamples, 0.0f);
+    }
+    int midi = 0;
+    if (io.midiOut)
+        for (int i = 0; i < o.numMidi && midi < io.midiOutCapacity; ++i)
+            if (o.midi[i].offset < io.numSamples) io.midiOut[midi++] = o.midi[i];
+    std::atomic_thread_fence(std::memory_order_acquire);
+    if (o.seq.load(std::memory_order_relaxed) != s1) {  // overwritten while we copied
+        s.drops.fetch_add(1, std::memory_order_relaxed);
+        silence(io);
+        return;
+    }
+    io.numMidiOut = midi;
+    io.boardAudioValid = true;
+}
+
+}  // namespace
+
 void Engine::process(int handle, BlockIO& io) noexcept {
     io.numMidiOut = 0;
     io.boardAudioValid = false;
-    auto silence = [&] {
-        for (int ch = 0; ch < io.numAudioOut; ++ch)
-            if (io.audioOut[ch]) std::fill_n(io.audioOut[ch], io.numSamples, 0.0f);
-    };
     PortSlot* s = slot(handle);
     if (s == nullptr) {
-        silence();
+        silence(io);
         return;
     }
-    const int n = std::min(io.numSamples, kMaxHostBlock);
 
     // Which host block is this? The first plugin of a block claims it (spec §5.3).
     int64_t T = ticks_.load(std::memory_order_acquire);
@@ -501,49 +560,30 @@ void Engine::process(int handle, BlockIO& io) noexcept {
     s->counter = c;
     s->lastBlock.store(c, std::memory_order_relaxed);
 
-    // Hand this block to the engine.
-    PortFrame& f = s->in[c % kRing];
-    f.beginWrite(c);
-    f.numSamples = n;
-    f.transport = io.transport;
-    f.numChannels = std::min(io.numAudioIn, 2);
-    for (int ch = 0; ch < f.numChannels; ++ch)
-        if (io.audioIn[ch]) std::memcpy(f.audio[ch], io.audioIn[ch], sizeof(float) * (size_t)n);
-    f.numMidi = 0;
-    for (int i = 0; i < io.numMidiIn && f.numMidi < kMaxMidiEvents; ++i)
-        if (io.midiIn[i].offset < n) f.midi[f.numMidi++] = io.midiIn[i];
-    if (io.macros) std::memcpy(f.macros, io.macros, sizeof(f.macros));
-    f.endWrite();
-
+    writeIn(*s, c, io);
     if (claimed) runTick(c, io);
+    readOut(*s, c - 2, io);  // the tick in block c-1 processed block c-2
+}
 
-    // Take the board's output for block c-2.
-    if (io.numAudioOut == 0 && io.midiOut == nullptr) return;
-    const int64_t want = c - 2;
-    const PortFrame& o = s->out[((want % kRing) + kRing) % kRing];
-    const uint32_t s1 = o.seq.load(std::memory_order_acquire);
-    if (want < 0 || (s1 & 1u) != 0 || o.block != want) {
-        silence();
-        return;
+void Engine::processAll(const int* handles, BlockIO* const* ios, int count) noexcept {
+    if (count <= 0) return;
+    // One thread drives every port: no claiming, and no latency inside the engine.
+    const int64_t c = ticks_.load(std::memory_order_relaxed) + 1;
+    for (int k = 0; k < count; ++k) {
+        ios[k]->numMidiOut = 0;
+        ios[k]->boardAudioValid = false;
+        if (PortSlot* s = slot(handles[k])) {
+            s->counter = c;
+            s->lastBlock.store(c, std::memory_order_relaxed);
+            writeIn(*s, c, *ios[k]);
+        }
     }
-    const int m = std::min(n, o.numSamples);
-    for (int ch = 0; ch < io.numAudioOut; ++ch) {
-        if (!io.audioOut[ch]) continue;
-        std::memcpy(io.audioOut[ch], o.audio[std::min(ch, 1)], sizeof(float) * (size_t)m);
-        std::fill(io.audioOut[ch] + m, io.audioOut[ch] + io.numSamples, 0.0f);
+    ticks_.store(c, std::memory_order_release);
+    runTick(c + 1, *ios[0]);  // processes block c
+    for (int k = 0; k < count; ++k) {
+        if (PortSlot* s = slot(handles[k])) readOut(*s, c, *ios[k]);
+        else silence(*ios[k]);
     }
-    int midi = 0;
-    if (io.midiOut)
-        for (int i = 0; i < o.numMidi && midi < io.midiOutCapacity; ++i)
-            if (o.midi[i].offset < io.numSamples) io.midiOut[midi++] = o.midi[i];
-    std::atomic_thread_fence(std::memory_order_acquire);
-    if (o.seq.load(std::memory_order_relaxed) != s1) {  // overwritten while we copied
-        s->drops.fetch_add(1, std::memory_order_relaxed);
-        silence();
-        return;
-    }
-    io.numMidiOut = midi;
-    io.boardAudioValid = true;
 }
 
 void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {

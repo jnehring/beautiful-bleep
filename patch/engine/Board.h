@@ -58,7 +58,7 @@ struct BoardModel {
     std::vector<NodeModel> nodes;
     std::vector<CableModel> cables;
 
-    const NodeModel* node(const std::string& id) const noexcept;
+    const NodeModel* node(const std::string& nodeId) const noexcept;
     /// The jack's signal type, if `jack` is an output (or input) of `node`.
     bool outputType(const NodeModel& node, const std::string& jack, Signal& type) const noexcept;
     bool inputType(const NodeModel& node, const std::string& jack, Signal& type) const noexcept;

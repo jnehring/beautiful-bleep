@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
 #include "Board.h"
 
+#include <cstring>
 #include <set>
 
 namespace bleep::engine {
 
 // ---- BoardModel ------------------------------------------------------------
 
-const NodeModel* BoardModel::node(const std::string& id) const noexcept {
+const NodeModel* BoardModel::node(const std::string& nodeId) const noexcept {
     for (const auto& n : nodes)
-        if (n.id == id) return &n;
+        if (n.id == nodeId) return &n;
     return nullptr;
 }
 
@@ -228,12 +229,13 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
                     nodes.remove(i);
                 }
             if (count == 0) {
+                const bool isIn = std::strcmp(t, kCellIn) == 0;
                 auto* o = new juce::DynamicObject();
-                const juce::String id = newId(t == juce::String(kCellIn) ? "ci" : "co");
+                const juce::String id = newId(isIn ? "ci" : "co");
                 o->setProperty("id", id);
                 o->setProperty("type", t);
-                o->setProperty("name", t == juce::String(kCellIn) ? "Cell In" : "Cell Out");
-                o->setProperty("x", t == juce::String(kCellIn) ? 40.0 : 640.0);
+                o->setProperty("name", isIn ? "Cell In" : "Cell Out");
+                o->setProperty("x", isIn ? 40.0 : 640.0);
                 o->setProperty("y", 120.0);
                 o->setProperty("parent", cellId);
                 o->setProperty("muted", false);

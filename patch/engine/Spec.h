@@ -69,8 +69,9 @@ struct JackSpec {
     bool bipolar = true;  ///< outputs: declared range, for scopes
 };
 
-/// Which plugin in Live a port node belongs to (spec §6). None for modules.
-enum class PortKind { None, Patch, MidiIn, MidiOut, AudioIn, AudioOut, Instrument, AudioInsert };
+/// Which plugin in Live (or which device of the standalone app, spec §11) a port node
+/// belongs to (spec §6). None for modules.
+enum class PortKind { None, Patch, MidiIn, MidiOut, AudioIn, AudioOut, Instrument, AudioInsert, AudioBridge, Link };
 
 const char* portKindName(PortKind k) noexcept;
 
@@ -123,6 +124,8 @@ inline const char* portKindName(PortKind k) noexcept {
         case PortKind::AudioOut: return "audio-out";
         case PortKind::Instrument: return "instrument";
         case PortKind::AudioInsert: return "audio-insert";
+        case PortKind::AudioBridge: return "audio-bridge";
+        case PortKind::Link: return "link";
         case PortKind::None: break;
     }
     return "";

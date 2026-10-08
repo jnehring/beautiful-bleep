@@ -1353,6 +1353,7 @@
   let portsKey = "";
   onNative("state", (s) => {
     live = s;
+    if (s && s.status) $("status").textContent = s.status;
     if (!board || !s || !s.nodes) return;
     for (const [key, sc] of scopes) {
       const [node, jack] = key.split("|");

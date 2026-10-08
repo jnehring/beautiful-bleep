@@ -18,6 +18,7 @@
 #include <juce_events/juce_events.h>
 
 #include <atomic>
+#include <functional>
 #include <map>
 #include <memory>
 #include <set>
@@ -87,6 +88,17 @@ public:
     juce::var liveState(const std::set<juce::String>& detailed) const;
     juce::String statusLine() const;
 
+    // ---- the standalone app (spec §11) ---------------------------------------
+    /// No Macros node, and the app drives the engine itself (processAll).
+    void setStandalone(bool on) noexcept { standalone_ = on; }
+    /// Replaces the board's status line (device, Link, transport).
+    void setStatusProvider(std::function<juce::String()> provider) { statusProvider_ = std::move(provider); }
+    /// Processes one block for several ports at once, from one thread. Every
+    /// port's output is the board's output for this same block (no latency
+    /// inside the engine). Only for a process with a single driving thread,
+    /// never mixed with process(). [RT]
+    void processAll(const int* handles, BlockIO* const* ios, int count) noexcept;
+
     // ---- for tests ----------------------------------------------------------
     int64_t ticks() const noexcept { return ticks_.load(); }
     void reconcileNow();   ///< adds nodes for new ports without the settle delay
@@ -131,6 +143,8 @@ private:
     std::atomic<int64_t> ticks_{0};
     bool wasPlaying_ = false;
 
+    bool standalone_ = false;
+    std::function<juce::String()> statusProvider_;
     std::unique_ptr<BoardUi> ui_;
     juce::String pendingFocus_;
 };

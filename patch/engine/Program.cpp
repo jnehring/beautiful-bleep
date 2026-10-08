@@ -11,7 +11,8 @@ namespace {
 bool isStructural(const std::string& type) { return type == kCell || type == kCellIn || type == kCellOut; }
 
 bool writesToTrack(PortKind k) {
-    return k == PortKind::MidiOut || k == PortKind::AudioOut || k == PortKind::Instrument || k == PortKind::AudioInsert;
+    return k == PortKind::MidiOut || k == PortKind::AudioOut || k == PortKind::Instrument || k == PortKind::AudioInsert ||
+           k == PortKind::AudioBridge;
 }
 
 struct Resolved {

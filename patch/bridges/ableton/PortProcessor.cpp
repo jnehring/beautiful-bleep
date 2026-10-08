@@ -18,6 +18,8 @@ const char* productName(PortKind k) {
         case PortKind::AudioOut: return "Bleep Audio Out";
         case PortKind::Instrument: return "Bleep Instrument";
         case PortKind::AudioInsert: return "Bleep Audio Insert";
+        case PortKind::AudioBridge:  // Bleep Audio Bridge and Link nodes belong to the standalone app
+        case PortKind::Link:
         case PortKind::None: break;
     }
     return "Bleep";
@@ -191,6 +193,8 @@ void PortProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuff
         }
         case PortKind::Patch:
         case PortKind::AudioIn:
+        case PortKind::AudioBridge:
+        case PortKind::Link:
         case PortKind::None:
             break;  // audio passes through untouched
     }

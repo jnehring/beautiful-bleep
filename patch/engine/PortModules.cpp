@@ -292,6 +292,44 @@ public:
     }
 };
 
+// ---- the standalone app: Ableton Link (spec §11.4) ---------------------------------
+
+/// Musical time as signals. The app feeds the transport from Link (or from
+/// Live through Bleep Audio Bridge); the node only reads ctx.transport.
+class LinkModule final : public Module {
+public:
+    enum { Quantum, StartStop };
+    enum { Tempo, Beat, Bar, Clock, Playing, BeatTrig, BarTrig };
+
+    using Module::Module;
+
+    void reset() override { lastBeat_ = lastBar_ = -1.0; }
+
+    void process(const ProcessContext& c) override {
+        const double quantum = std::max(1.0, (double)setting(Quantum));
+        const bool playing = c.transport->playing;
+        const float tempo = (float)(c.transport->bpm / 100.0);
+        for (int i = 0; i < c.numSamples; ++i) {
+            const double ppq = c.ppqAt(i);
+            const double beat = ppq - std::floor(ppq);
+            const double bar = ppq / quantum - std::floor(ppq / quantum);
+            const double tick = ppq * 24.0;
+            c.outputs[Tempo][i] = tempo;
+            c.outputs[Beat][i] = (float)beat;
+            c.outputs[Bar][i] = (float)bar;
+            c.outputs[Clock][i] = playing && tick - std::floor(tick) < 0.5 ? 1.0f : 0.0f;
+            c.outputs[Playing][i] = playing ? 1.0f : 0.0f;
+            c.outputs[BeatTrig][i] = playing && lastBeat_ >= 0.0 && beat < lastBeat_ ? 1.0f : 0.0f;
+            c.outputs[BarTrig][i] = playing && lastBar_ >= 0.0 && bar < lastBar_ ? 1.0f : 0.0f;
+            lastBeat_ = beat;
+            lastBar_ = bar;
+        }
+    }
+
+private:
+    double lastBeat_ = -1.0, lastBar_ = -1.0;
+};
+
 // ---- specs ------------------------------------------------------------------------
 
 std::vector<JackSpec> midiInOutputs() {
@@ -381,6 +419,25 @@ void registerPortModules(Registry& r) {
         s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
         s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, true); });
+    }
+    {
+        ModuleSpec s = portSpec("audio-bridge", "Audio Bridge", PortKind::AudioBridge,
+                                "A Live track's audio through the standalone app and back (Bleep Audio Bridge).");
+        s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
+        s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, true); });
+    }
+    {
+        ModuleSpec s = portSpec("link", "Link", PortKind::Link,
+                                "Tempo, beat and bar from Ableton Link (or from Live through Bleep Audio Bridge).");
+        s.colour = "#ff9f43";
+        s.params = {ParamSpec::integer("quantum", "Quantum", 1, 16, 4), ParamSpec::toggle("startstop", "Start/Stop Sync", true)};
+        s.params[0].label = "beats";
+        s.outputs = {{"tempo", "Tempo", Signal::Control, false},  {"beat", "Beat", Signal::Control, false},
+                     {"bar", "Bar", Signal::Control, false},      {"clock", "Clock", Signal::Gate, false},
+                     {"playing", "Playing", Signal::Gate, false}, {"beattrig", "Beat Trig", Signal::Trigger, false},
+                     {"bartrig", "Bar Trig", Signal::Trigger, false}};
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<LinkModule>(spec); });
     }
     {
         ModuleSpec s = portSpec("macros", "Macros", PortKind::Patch,

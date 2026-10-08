@@ -22,7 +22,7 @@
 namespace bleep::engine {
 
 /// Changes whenever this interface or the data it passes changes.
-constexpr const char* kAbiTag = "bleep-engine-abi-3";
+constexpr const char* kAbiTag = "bleep-engine-abi-4";
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port

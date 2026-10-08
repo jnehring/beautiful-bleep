@@ -406,6 +406,62 @@ void undoRedo() {
     e->release();
 }
 
+/// The standalone app drives every port from one thread: no latency inside
+/// the engine, no Macros node, and the Link node follows the transport.
+void standaloneDriver() {
+    g_test = "standalone";
+    auto* e = new Engine();
+    e->setStandalone(true);
+    const int main = e->registerInstance(PortKind::Patch);
+    const int ain = e->registerInstance(PortKind::AudioIn);
+    const int aout = e->registerInstance(PortKind::AudioOut);
+    const int link = e->registerInstance(PortKind::Link);
+    e->reconcileNow();
+    int macros = 0;
+    for (const auto& n : *e->board()["nodes"].getArray()) macros += n["type"].toString() == "macros";
+    EXPECT(macros == 0);
+    auto edited = copyOf(e->board());
+    edited["cables"].getArray()->add(cable(portNode(*e, ain), "l", portNode(*e, aout), "l"));
+    edited["cables"].getArray()->add(cable(portNode(*e, link), "beattrig", portNode(*e, aout), "r"));
+    e->commit(edited, "patch");
+
+    FakePort pIn(*e, ain), pOut(*e, aout), pLink(*e, link);
+    int sameBlock = 0, beats = 0;
+    for (int b = 0; b < 200; ++b) {
+        for (int i = 0; i < kBlock; ++i) pIn.in[0][(size_t)i] = (float)(b * kBlock + i + 1);
+        BlockIO ios[3];
+        FakePort* ports[3] = {&pIn, &pOut, &pLink};
+        const float* ins[3][2];
+        float* outs[3][2];
+        int handles[3] = {ain, aout, link};
+        BlockIO* ptrs[3];
+        for (int k = 0; k < 3; ++k) {
+            ins[k][0] = ports[k]->in[0].data();
+            ins[k][1] = ports[k]->in[1].data();
+            outs[k][0] = ports[k]->out[0].data();
+            outs[k][1] = ports[k]->out[1].data();
+            ios[k].numSamples = kBlock;
+            ios[k].transport.sampleRate = kRate;
+            ios[k].transport.bpm = 120.0;  // one beat = 24000 samples
+            ios[k].transport.playing = true;
+            ios[k].transport.ppqValid = true;
+            ios[k].transport.ppq = (double)(b * kBlock) / 24000.0;
+            ios[k].audioIn = ins[k];
+            ios[k].numAudioIn = 2;
+            ios[k].audioOut = outs[k];
+            ios[k].numAudioOut = 2;
+            ptrs[k] = &ios[k];
+        }
+        e->processAll(handles, ptrs, 3);
+        if (std::abs(pOut.out[0][5] - (float)(b * kBlock + 6)) < 0.5f) ++sameBlock;
+        for (int i = 0; i < kBlock; ++i) beats += pOut.out[1][(size_t)i] > 0.5f ? 1 : 0;
+    }
+    EXPECT(sameBlock >= 199);  // every block but the very first (program warm-up)
+    EXPECT(beats == 1);        // 200 × 128 samples = 1.07 beats at 120 BPM
+    for (int h : {main, ain, aout, link}) e->unregisterInstance(h);
+    e->release();
+}
+
 }  // namespace
 
 int main() {
@@ -418,6 +474,7 @@ int main() {
     midiThrough();
     persistenceAndDuplicates();
     undoRedo();
+    standaloneDriver();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;
 }

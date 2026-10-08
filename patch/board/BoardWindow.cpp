@@ -10,6 +10,7 @@
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
 //              "state"  {nodes: {id: {outputs, params?}}, ports}   30 times per second
 //              "focus"  {node}   a plugin window asked for its node
+#include "BoardWindow.h"
 #include "Engine.h"
 
 #include "BoardWeb.h"
@@ -257,20 +258,37 @@ private:
     bool pageReady_ = false;  ///< the page called init(): events can be delivered
 };
 
+BoardWindowStyle& style() {
+    static BoardWindowStyle s;
+    return s;
+}
+juce::DocumentWindow* g_window = nullptr;
+
 class BoardWindow : public juce::DocumentWindow {
 public:
     explicit BoardWindow(Engine& engine)
-        : juce::DocumentWindow("Bleep Board", juce::Colour(0xff15171c), juce::DocumentWindow::allButtons) {
+        : juce::DocumentWindow(style().title, juce::Colour(0xff15171c), juce::DocumentWindow::allButtons) {
         setUsingNativeTitleBar(true);
         view_ = new BoardView(engine);
         setContentOwned(view_, false);
         setResizable(true, false);
         setResizeLimits(640, 420, 10000, 10000);
-        centreWithSize(1180, 760);
-        // Floats above Live's main window, like Live's own plugin windows. (Phase 0: verify.)
-        setAlwaysOnTop(true);
+        if (style().bounds.isEmpty()) centreWithSize(1180, 760);
+        else setBounds(style().bounds);
+        // Plugins: floats above Live's main window, like Live's own plugin windows. (Phase 0: verify.)
+        setAlwaysOnTop(style().alwaysOnTop);
+#if !JUCE_MAC
+        if (style().menu) setMenuBar(style().menu);
+#endif
+        g_window = this;
     }
-    void closeButtonPressed() override { setVisible(false); }  // keeps the page and its state
+    ~BoardWindow() override {
+        if (g_window == this) g_window = nullptr;
+    }
+    void closeButtonPressed() override {
+        if (style().onClose) style().onClose();
+        else setVisible(false);  // keeps the page and its state
+    }
     BoardView& view() { return *view_; }
 
 private:
@@ -300,5 +318,14 @@ private:
 }  // namespace
 
 std::unique_ptr<BoardUi> createBoardUi(Engine& engine) { return std::make_unique<BoardWindowUi>(engine); }
+
+void setBoardWindowStyle(const BoardWindowStyle& s) { style() = s; }
+
+void setBoardWindowTitle(const juce::String& title) {
+    style().title = title;
+    if (g_window) g_window->setName(title);
+}
+
+juce::DocumentWindow* boardWindow() { return g_window; }
 
 }  // namespace bleep::engine

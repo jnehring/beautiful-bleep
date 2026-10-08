@@ -8,6 +8,7 @@ on the board. In Live you add only:
 | Plugin | Live device | On the board |
 |---|---|---|
 | **Bleep Patch** | audio effect | required once per set; stores and opens the board; 16 macros |
+| **Bleep Audio Bridge** | audio effect | connects Live to the standalone Bleep Patch app (spec §11.3) |
 
 ```bash
 scripts/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
@@ -15,7 +16,11 @@ scripts/build-patch.sh --install                 # also copy the plugins into yo
 ```
 
 VST3 only, Ableton Live only for now (spec §5.2). The script builds into
-`build/patch/`, then runs the DSP tests and the engine tests.
+`build/patch/`, then runs the DSP tests, the engine tests and the bridge tests.
+
+It also builds the standalone **Bleep Patch app** (spec §11): the board without
+a DAW, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server.
+See [`app/README.md`](app/README.md).
 
 ## Layout
 
@@ -23,7 +28,9 @@ VST3 only, Ableton Live only for now (spec §5.2). The script builds into
 patch/
 ├── engine/           the shared engine (spec §5.3): board model, compiler, block claiming, ports, undo
 ├── board/            the board window (BoardWindow.cpp) and its page (ui/: board.js, board.css, demo backend)
+├── app/              the standalone app: AppController (device, MIDI ports, Link, projects), Main
 ├── bridges/ableton/  the plugins: PortProcessor (one class for all of them) and its small editor
+├── bridges/standalone/  Bleep Audio Bridge: shared-memory protocol, plugin (client), app side (server), Link clock
 ├── modules/<name>/
 │   ├── dsp/          the module's DSP (<Name>Dsp.h, no JUCE)
 │   ├── <Name>Module.cpp   the node: params, jacks, process()
@@ -32,7 +39,7 @@ patch/
 ├── common/
 │   ├── dsp/          shared DSP: SVF, smoothing, counter-based randomness, tempo
 │   └── ui/           bleep-bridge.js (JUCE bridge), bleep-view.js/.css (module views)
-└── tests/            DSP tests, engine tests, host test, board smoke test, type dump
+└── tests/            DSP, engine and bridge tests, bridge plugin test, board smoke test, type dump
 ```
 
 ## How the pieces fit

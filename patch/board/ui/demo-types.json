@@ -1233,6 +1233,120 @@
     ]
   },
   {
+    "type": "audio-bridge",
+    "name": "Audio Bridge",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "A Live track's audio through the standalone app and back (Bleep Audio Bridge).",
+    "port": "audio-bridge",
+    "creatable": false,
+    "params": [],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "Return L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Return R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Send L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Send R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "link",
+    "name": "Link",
+    "category": "Ports",
+    "colour": "#ff9f43",
+    "description": "Tempo, beat and bar from Ableton Link (or from Live through Bleep Audio Bridge).",
+    "port": "link",
+    "creatable": false,
+    "params": [
+      {
+        "id": "quantum",
+        "name": "Quantum",
+        "kind": "int",
+        "default": 0.200000002980232,
+        "steps": 16,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 16.0
+      },
+      {
+        "id": "startstop",
+        "name": "Start/Stop Sync",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "tempo",
+        "name": "Tempo",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "beat",
+        "name": "Beat",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "bar",
+        "name": "Bar",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "playing",
+        "name": "Playing",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "beattrig",
+        "name": "Beat Trig",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "bartrig",
+        "name": "Bar Trig",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "macros",
     "name": "Macros",
     "category": "Ports",
