@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 // Step Sequencer core (specs/modules/step-sequencer.md): 32 steps with a
 // gate (Off/On/Tie), a pitch and a velocity; transport-locked or clocked;
-// scale quantizing and seeded live variation. Notes leave through a callback,
-// so this stays free of the engine's types.
+// scale quantizing and seeded live variation. Timing comes from the shared
+// dsp::SeqClock, notes from dsp::SeqVoice; notes leave through a callback, so
+// this stays free of the engine's types.
 #pragma once
 
 #include "dsp/Random.h"
 #include "dsp/Scales.h"
-#include "dsp/Smoothing.h"
+#include "dsp/SeqClock.h"
+#include "dsp/SeqNotes.h"
+#include "dsp/Tempo.h"
 
 #include <algorithm>
 #include <array>
@@ -56,18 +59,18 @@ struct SeqOutputs {
 
 class StepSequencerDsp {
 public:
-    static constexpr int kNumRates = 14;
+    static constexpr int kNumRates = dsp::kNumSequencerRates;
+    /// The shared sequencer rate list (Tempo.h): 1/1 … 1/32T.
     static const std::array<const char*, kNumRates>& rateNames() {
-        static const std::array<const char*, kNumRates> n{"1/1",  "1/2",  "1/4.",  "1/4",  "1/4T",  "1/8.", "1/8",
-                                                          "1/8T", "1/16.", "1/16", "1/16T", "1/32.", "1/32", "1/32T"};
+        static const std::array<const char*, kNumRates> n = [] {
+            std::array<const char*, kNumRates> a{};
+            for (int i = 0; i < kNumRates; ++i) a[(size_t)i] = dsp::sequencerRate(i).name;
+            return a;
+        }();
         return n;
     }
     /// A step's length in quarter notes.
-    static double rateBeats(int rate) noexcept {
-        static constexpr double b[kNumRates] = {4.0,   2.0,  1.5,       1.0,    2.0 / 3.0, 0.75,  0.5,
-                                                1.0 / 3.0, 0.375, 0.25, 1.0 / 6.0, 0.1875, 0.125, 1.0 / 12.0};
-        return b[std::clamp(rate, 0, kNumRates - 1)];
-    }
+    static double rateBeats(int rate) noexcept { return dsp::sequencerRateBeats(rate); }
     static int64_t mod(int64_t a, int64_t m) noexcept { return ((a % m) + m) % m; }
     /// Steps until the playhead is back at the start of its cycle.
     static int cycle(int length, int direction) noexcept {
@@ -92,27 +95,14 @@ public:
         return std::clamp(q, -60, 67);  // MIDI 0..127
     }
 
-    void prepare(double sampleRate) noexcept { sampleRate_ = sampleRate; }
+    void prepare(double sampleRate) noexcept { clock_.prepare(sampleRate); }
 
     void reset() noexcept {
         clock_.reset();
-        reset_.reset();
-        haveN_ = haveClock_ = false;
-        lastN_ = 0;
-        pendingReset_ = false;
-        delayLeft_ = 0;
-        sinceClock_ = 0;
-        period_ = (int64_t)(sampleRate_ * 0.125);  // 1/16 at 120 BPM
-        transportOn_ = false;
-        origin_ = 0;
-        sounding_ = tie_ = played_ = false;
-        retrig_ = false;
-        note_ = 0;
+        voice_.reset();
+        played_ = false;
         step_ = 0;
         lastIdx_ = -1;
-        pitch_ = velocity_ = 0.0f;
-        sinceStep_ = 0;
-        gateSamples_ = 1;
         varied_ = 0;
         stopRequested_ = false;
     }
@@ -120,12 +110,12 @@ public:
     /// A new pattern. A sounding step that lost its gate stops.
     void setPattern(const SeqPattern& p) noexcept {
         pattern_ = p;
-        if (sounding_ && pattern_[(size_t)step_].gate == SeqOff) stopRequested_ = true;
+        if (voice_.sounding() && pattern_[(size_t)step_].gate == SeqOff) stopRequested_ = true;
     }
     const SeqPattern& pattern() const noexcept { return pattern_; }
 
     int playingStep() const noexcept { return step_; }
-    bool sounding() const noexcept { return sounding_; }
+    bool sounding() const noexcept { return voice_.sounding(); }
     uint32_t variedSteps() const noexcept { return varied_; }
 
     /// One sample. `emit(on, note, pitch, velocity)` receives note events.
@@ -133,7 +123,7 @@ public:
     void tick(const SeqParams& p, float clockIn, bool clockPatched, float resetIn, float transpose, const SeqTime& t,
               SeqOutputs& out, Emit&& emit) noexcept {
         out.trigger = out.end = 0.0f;
-        retrig_ = false;
+        voice_.beginSample();
         const int length = std::clamp(p.length, 1, kSeqSteps);
         if (configured_ && (length != length_ || p.direction != direction_ || clockPatched != clocked_)) stop(emit);
         configured_ = true;
@@ -141,71 +131,26 @@ public:
         direction_ = p.direction;
         clocked_ = clockPatched;
         if (stopRequested_) stop(emit);
-        swing_ = (std::clamp(p.swing, 0.5f, 0.75f) - 0.5f) * 2.0f;
 
-        const bool resetEdge = reset_.process(resetIn) > 0;
-        if (resetEdge) stop(emit);
-        ++sinceStep_;
+        dsp::SeqClockInput in;
+        in.clocked = clockPatched;
+        in.clock = clockIn;
+        in.reset = resetIn;
+        in.running = t.running;
+        in.started = t.started;
+        in.ppq = t.ppq;
+        in.bpm = t.bpm;
+        in.stepBeats = rateBeats(p.rate);
+        in.swing = p.swing;
+        clock_.tick(in, [&](const dsp::SeqClockEvent& e) {
+            if (e.type == dsp::SeqClockEvent::Release) stop(emit);
+            else start(p, e.n, transpose, e.durationSamples, emit, out);
+        });
 
-        if (clockPatched) {
-            ++sinceClock_;
-            if (resetEdge) {
-                pendingReset_ = true;
-                delayLeft_ = 0;
-            }
-            if (delayLeft_ > 0 && --delayLeft_ == 0) start(p, pendingN_, transpose, (double)period_, emit, out);
-            if (clock_.process(clockIn) > 0) {
-                if (delayLeft_ > 0) {  // the swung step is late: play it now
-                    delayLeft_ = 0;
-                    start(p, pendingN_, transpose, (double)period_, emit, out);
-                }
-                if (sinceClock_ > 0 && haveClock_) period_ = sinceClock_;
-                haveClock_ = true;
-                sinceClock_ = 0;
-                const int64_t n = pendingReset_ || !haveN_ ? 0 : lastN_ + 1;
-                pendingReset_ = false;
-                haveN_ = true;
-                lastN_ = n;
-                const int delay = (n & 1) ? (int)std::lround(swing_ * (double)period_) : 0;
-                if (delay >= 1) {
-                    pendingN_ = n;
-                    delayLeft_ = delay;
-                } else {
-                    start(p, n, transpose, (double)period_, emit, out);
-                }
-            }
-        } else if (t.running) {
-            const double beats = rateBeats(p.rate);
-            if (t.started || !transportOn_) {
-                if (t.started) origin_ = 0;
-                haveN_ = false;
-            }
-            transportOn_ = true;
-            if (resetEdge) origin_ = (int64_t)std::floor(t.ppq / beats) + 1;  // the next boundary is step 1
-            const double s = t.ppq / beats - (double)origin_;
-            int64_t n = (int64_t)std::floor(s);
-            if ((n & 1) && s - (double)n < swing_) --n;
-            if (resetEdge) {  // silent until then
-                haveN_ = true;
-                lastN_ = n;
-            } else if (!haveN_ || n != lastN_) {
-                haveN_ = true;
-                lastN_ = n;
-                start(p, n, transpose, beats * 60.0 / std::max(t.bpm, 1.0) * sampleRate_, emit, out);
-            }
-        } else if (transportOn_) {
-            transportOn_ = false;
-            haveN_ = false;
-            stop(emit);
-        }
-
-        if (sounding_ && !tie_ && sinceStep_ >= gateSamples_) {
-            emit(false, note_, (float)(note_ - 60) / 12.0f, 0.0f);
-            sounding_ = false;
-        }
-        out.pitch = pitch_;
-        out.velocity = velocity_;
-        out.gate = sounding_ && !retrig_ ? 1.0f : 0.0f;
+        voice_.endSample(emit);
+        out.pitch = voice_.pitch();
+        out.velocity = voice_.velocity();
+        out.gate = voice_.gate() ? 1.0f : 0.0f;
         out.step = length > 1 ? (float)step_ / (float)(length - 1) : 0.0f;
     }
 
@@ -213,12 +158,11 @@ private:
     template <class Emit>
     void stop(Emit& emit) noexcept {
         stopRequested_ = false;
-        if (sounding_) emit(false, note_, (float)(note_ - 60) / 12.0f, 0.0f);
-        sounding_ = tie_ = false;
+        voice_.release(emit);
     }
 
     template <class Emit>
-    void start(const SeqParams& p, int64_t n, float transpose, double stepSamples, Emit& emit, SeqOutputs& out) noexcept {
+    void start(const SeqParams& p, int64_t n, float transpose, double durationSamples, Emit& emit, SeqOutputs& out) noexcept {
         const int length = length_;
         int idx;
         if (direction_ == SeqRandom && length > 1) {
@@ -237,15 +181,10 @@ private:
         played_ = true;
         step_ = idx;
 
-        const double dur = stepSamples * ((n & 1) ? 1.0 - swing_ : 1.0 + swing_);
-        gateSamples_ = std::max<int64_t>(1, (int64_t)std::llround(std::clamp(p.gateLength, 0.01f, 1.0f) * dur));
-        sinceStep_ = 0;
-
         const SeqStep& st = pattern_[(size_t)idx];
         varied_ &= ~(1u << idx);
         if (st.gate == SeqOff) {
-            if (sounding_) emit(false, note_, (float)(note_ - 60) / 12.0f, 0.0f);
-            sounding_ = tie_ = false;
+            voice_.rest(emit);
             return;
         }
         float rel = (float)(p.octave * 12 + st.pitch) + transpose * 12.0f;
@@ -257,44 +196,19 @@ private:
             varied_ |= 1u << idx;
         }
         const int q = pitchOf(p, rel);
-        const int note = 60 + q;
         vel = std::clamp(vel, 1.0f / 127.0f, 1.0f);
-        const float pitch = (float)q / 12.0f;
-        if (sounding_ && tie_) {
-            if (note != note_) {  // legato: the new note first
-                emit(true, note, pitch, vel);
-                emit(false, note_, (float)(note_ - 60) / 12.0f, 0.0f);
-            }
-        } else {
-            if (sounding_) {
-                emit(false, note_, (float)(note_ - 60) / 12.0f, 0.0f);
-                retrig_ = true;
-            }
-            emit(true, note, pitch, vel);
-            out.trigger = 1.0f;
-        }
-        note_ = note;
-        pitch_ = pitch;
-        velocity_ = vel;
-        sounding_ = true;
-        tie_ = st.gate == SeqTie;
+        const auto how = voice_.play(60 + q, (float)q / 12.0f, vel, st.gate == SeqTie,
+                                     dsp::gateSamples(durationSamples, p.gateLength), emit);
+        if (how == dsp::SeqVoice::Fresh) out.trigger = 1.0f;
     }
 
-    double sampleRate_ = 48000.0;
     SeqPattern pattern_{};
-    dsp::GateEdge clock_, reset_;
+    dsp::SeqClock clock_;
+    dsp::SeqVoice voice_;
     bool configured_ = false, clocked_ = false;
     int length_ = 16, direction_ = SeqForward;
-    float swing_ = 0.0f;
-    bool haveN_ = false, haveClock_ = false, pendingReset_ = false;
-    int64_t lastN_ = 0, pendingN_ = 0;
-    int64_t delayLeft_ = 0, sinceClock_ = 0, period_ = 6000;
-    bool transportOn_ = false;
-    int64_t origin_ = 0;
-    bool sounding_ = false, tie_ = false, played_ = false, retrig_ = false, stopRequested_ = false;
-    int note_ = 0, step_ = 0, lastIdx_ = -1;
-    float pitch_ = 0.0f, velocity_ = 0.0f;
-    int64_t sinceStep_ = 0, gateSamples_ = 1;
+    bool played_ = false, stopRequested_ = false;
+    int step_ = 0, lastIdx_ = -1;
     uint32_t varied_ = 0;
 };
 

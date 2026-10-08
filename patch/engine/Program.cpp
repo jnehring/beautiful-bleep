@@ -309,6 +309,7 @@ void Program::run(const Transport& t, int numSamples, bool transportStarted) noe
 
 void Program::runChunk(const ProcessContext& chunk) noexcept {
     ProcessContext ctx = chunk;
+    if (!ctx.harmony) ctx.harmony = harmony_.data();  // a Voice Cell's inside shares the board's buses
     const int m = ctx.numSamples;
     {
         for (auto& st : steps_) {

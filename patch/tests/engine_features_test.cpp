@@ -9,6 +9,7 @@
 #include "Media.h"
 #include "Program.h"
 #include "Registry.h"
+#include "dsp/Harmony.h"
 
 #include <cmath>
 #include <cstdio>
@@ -57,6 +58,12 @@ public:
             for (int s = 0; s < c.numSamples; ++s) c.outputs[o][s] = 0.5f;
         }
         stepped = value(c, 0, c.numSamples - 1);
+        if (spec().harmony == HarmonyRole::Writer) {
+            c.harmony[1].valid = true;
+            c.harmony[1].key = 7;
+        } else if (spec().harmony == HarmonyRole::Reader) {
+            heardKey = c.harmony[1].valid ? c.harmony[1].key : -1;
+        }
         pollCommands([&](const Command& cmd) {
             lastCommand = cmd.index;
             lastValue = cmd.value;
@@ -65,7 +72,7 @@ public:
     }
     float in[4] = {}, stepped = 0.0f, lastValue = 0.0f;
     bool connected[4] = {}, outConnected[4] = {};
-    int ranAt = 0, lastCommand = -1, commands = 0;
+    int ranAt = 0, lastCommand = -1, commands = 0, heardKey = -2;
 };
 
 void registerTestModules(Registry& r) {
@@ -175,6 +182,7 @@ void harmonyOrder() {
     runOnce(*c.program);
     EXPECT(c.probe("w")->ranAt < c.probe("r")->ranAt);
     EXPECT(c.probe("w")->ranAt < c.probe("r2")->ranAt);
+    EXPECT(c.probe("r")->heardKey == 7 && c.probe("r2")->heardKey == 7);  // same chunk, through ctx.harmony
 }
 
 void steppedKnobs() {

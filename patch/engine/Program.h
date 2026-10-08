@@ -12,7 +12,9 @@
 
 #include "Board.h"
 #include "PortSlot.h"
+#include "dsp/Harmony.h"
 
+#include <array>
 #include <map>
 #include <memory>
 #include <set>
@@ -87,6 +89,9 @@ private:
     std::vector<std::vector<Source>> taps_;
     std::vector<std::shared_ptr<PortSlot>> slots_;
     std::set<std::string> feedback_;
+    /// The harmony buses (ProcessContext::harmony). Writers publish their full
+    /// state every chunk, so a recompile loses nothing.
+    std::array<dsp::HarmonyState, dsp::kHarmonyBuses> harmony_{};
     double sampleRate_ = 48000.0;
 };
 
