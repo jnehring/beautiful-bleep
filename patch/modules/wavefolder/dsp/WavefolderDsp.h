@@ -16,103 +16,18 @@
 
 namespace bleep::patch {
 
-/// The half-band filter of dsp::Oversampler (same 95 taps, dsp::HalfbandFir::taps())
-/// in polyphase form: a half-band filter's taps are zero at every other
-/// position except the centre, and zero-stuffing makes every other input zero,
-/// so one 2× step needs 48 multiply-adds instead of 2 × 95. Same response,
-/// 47 samples of delay at the higher rate. (Oversampler.h runs the full FIR on
-/// every sample; this is about 4× cheaper and the folder needs it twice per
-/// channel.)
-class HalfbandPoly {
-public:
-    static constexpr int kTaps = 48;  ///< the even-indexed taps h[0], h[2], … h[94]
-    static constexpr int kCentre = 23;  ///< the odd phase: h[47] · x[n − 23]
-
-    static const std::array<float, kTaps>& even() noexcept {
-        static const std::array<float, kTaps> e = [] {
-            std::array<float, kTaps> t{};
-            for (int k = 0; k < kTaps; ++k) t[(size_t)k] = dsp::HalfbandFir::taps()[(size_t)(2 * k)];
-            return t;
-        }();
-        return e;
-    }
-    static float centre() noexcept { return dsp::HalfbandFir::taps()[47]; }
-
-    /// A ring of the last kTaps values, readable as one contiguous block.
-    struct Ring {
-        std::array<float, 2 * kTaps> buf{};
-        int pos = 0;
-        void reset() noexcept { buf.fill(0.0f), pos = 0; }
-        void push(float x) noexcept {
-            pos = pos == 0 ? kTaps - 1 : pos - 1;
-            buf[(size_t)pos] = buf[(size_t)(pos + kTaps)] = x;
-        }
-        /// x[n − k] for k = 0 … kTaps − 1.
-        const float* recent() const noexcept { return &buf[(size_t)pos]; }
-        float dot() const noexcept {
-            const float* x = recent();
-            const auto& h = even();
-            // Eight independent sums: the compiler may not reorder one float sum.
-            float s[8] = {};
-            for (int k = 0; k < kTaps; k += 8)
-                for (int j = 0; j < 8; ++j) s[j] += h[(size_t)(k + j)] * x[k + j];
-            return ((s[0] + s[1]) + (s[2] + s[3])) + ((s[4] + s[5]) + (s[6] + s[7]));
-        }
-    };
-
-    /// One sample → two at twice the rate.
-    struct Up {
-        Ring ring;
-        void reset() noexcept { ring.reset(); }
-        void process(float x, float* out) noexcept {
-            ring.push(x);
-            out[0] = 2.0f * ring.dot();
-            out[1] = 2.0f * centre() * ring.recent()[kCentre];
-        }
-    };
-    /// Two samples → one at half the rate.
-    struct Down {
-        Ring evens, odds;
-        void reset() noexcept { evens.reset(), odds.reset(); }
-        float process(const float* in) noexcept {
-            evens.push(in[0]);
-            const float y = evens.dot() + centre() * odds.recent()[kCentre];  // odd sample of 24 steps ago
-            odds.push(in[1]);
-            return y;
-        }
-    };
-};
-
-/// 1×, 2× or 4× with HalfbandPoly stages.
+/// 1×, 2× or 4× with the shared half-band resamplers (dsp/Oversampler.h).
 class FolderOversampler {
 public:
-    void reset() noexcept { upA_.reset(), upB_.reset(), downA_.reset(), downB_.reset(); }
-    void up(float x, int factor, float* out) noexcept {
-        if (factor <= 1) {
-            out[0] = x;
-            return;
-        }
-        float u[2];
-        upA_.process(x, u);
-        if (factor == 2) {
-            out[0] = u[0], out[1] = u[1];
-            return;
-        }
-        upB_.process(u[0], out);
-        upB_.process(u[1], out + 2);
-    }
-    float down(const float* in, int factor) noexcept {
-        if (factor <= 1) return in[0];
-        if (factor == 2) return downA_.process(in);
-        const float v[2] = {downB_.process(in), downB_.process(in + 2)};
-        return downA_.process(v);
-    }
+    void reset() noexcept { up_.reset(), down_.reset(); }
+    void up(float x, int factor, float* out) noexcept { up_.process(x, factor, out); }
+    float down(const float* in, int factor) noexcept { return down_.process(in, factor); }
     /// Latency in base samples: 47 per stage at its own rate.
-    static double latency(int factor) noexcept { return factor <= 1 ? 0.0 : factor == 2 ? 47.0 : 70.5; }
+    static double latency(int factor) noexcept { return dsp::oversamplerLatency(factor); }
 
 private:
-    HalfbandPoly::Up upA_, upB_;
-    HalfbandPoly::Down downA_, downB_;
+    dsp::Upsampler up_;
+    dsp::Downsampler down_;
 };
 
 struct WavefolderParams {

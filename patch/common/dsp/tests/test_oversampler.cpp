@@ -66,9 +66,26 @@ static void roundTrip() {
     }
 }
 
+static void latency() {
+    TEST("round-trip latency");
+    for (int factor : {2, 4}) {
+        dsp::Upsampler up;
+        dsp::Downsampler down;
+        float buf[4], peak = 0.0f;
+        int at = -1;
+        for (int i = 0; i < 400; ++i) {
+            up.process(i == 0 ? 1.0f : 0.0f, factor, buf);
+            const float y = down.process(buf, factor);
+            if (std::fabs(y) > peak) peak = std::fabs(y), at = i;
+        }
+        EXPECT_NEAR(at, dsp::oversamplerLatency(factor), 0.5);
+    }
+}
+
 int main() {
     zeroTaps();
     matchesFullConvolution();
     roundTrip();
+    latency();
     return test::finish("oversampler");
 }

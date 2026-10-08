@@ -26,101 +26,11 @@ namespace bleep::patch {
 
 namespace metamod {
 
-/// The half-band FIR of dsp::Oversampler (same taps) in polyphase form: 48
-/// multiply-adds per 2× step instead of 2 × 95, 47 samples of delay at the
-/// higher rate. (The same class as the Folder's; Oversampler.h could adopt it.)
-class Halfband {
-public:
-    static constexpr int kTaps = 48;
-    static constexpr int kCentre = 23;
-    static const std::array<float, kTaps>& even() noexcept {
-        static const std::array<float, kTaps> e = [] {
-            std::array<float, kTaps> t{};
-            for (int k = 0; k < kTaps; ++k) t[(size_t)k] = dsp::HalfbandFir::taps()[(size_t)(2 * k)];
-            return t;
-        }();
-        return e;
-    }
-    static float centre() noexcept { return dsp::HalfbandFir::taps()[47]; }
-
-    struct Ring {
-        std::array<float, 2 * kTaps> buf{};
-        int pos = 0;
-        void reset() noexcept { buf.fill(0.0f), pos = 0; }
-        void push(float x) noexcept {
-            pos = pos == 0 ? kTaps - 1 : pos - 1;
-            buf[(size_t)pos] = buf[(size_t)(pos + kTaps)] = x;
-        }
-        const float* recent() const noexcept { return &buf[(size_t)pos]; }
-        float dot() const noexcept {
-            const float* x = recent();
-            const auto& h = even();
-            // Eight independent sums: the compiler may not reorder one float sum.
-            float s[8] = {};
-            for (int k = 0; k < kTaps; k += 8)
-                for (int j = 0; j < 8; ++j) s[j] += h[(size_t)(k + j)] * x[k + j];
-            return ((s[0] + s[1]) + (s[2] + s[3])) + ((s[4] + s[5]) + (s[6] + s[7]));
-        }
-    };
-    struct Up {
-        Ring ring;
-        void reset() noexcept { ring.reset(); }
-        void process(float x, float* out) noexcept {
-            ring.push(x);
-            out[0] = 2.0f * ring.dot();
-            out[1] = 2.0f * centre() * ring.recent()[kCentre];
-        }
-    };
-    struct Down {
-        Ring evens, odds;
-        void reset() noexcept { evens.reset(), odds.reset(); }
-        float process(const float* in) noexcept {
-            evens.push(in[0]);
-            const float y = evens.dot() + centre() * odds.recent()[kCentre];
-            odds.push(in[1]);
-            return y;
-        }
-    };
-};
-
-class Upsampler {
-public:
-    void reset() noexcept { a_.reset(), b_.reset(); }
-    void process(float x, int factor, float* out) noexcept {
-        if (factor <= 1) {
-            out[0] = x;
-            return;
-        }
-        float u[2];
-        a_.process(x, u);
-        if (factor == 2) {
-            out[0] = u[0], out[1] = u[1];
-            return;
-        }
-        b_.process(u[0], out);
-        b_.process(u[1], out + 2);
-    }
-
-private:
-    Halfband::Up a_, b_;
-};
-
-class Downsampler {
-public:
-    void reset() noexcept { a_.reset(), b_.reset(); }
-    float process(const float* in, int factor) noexcept {
-        if (factor <= 1) return in[0];
-        if (factor == 2) return a_.process(in);
-        const float v[2] = {b_.process(in), b_.process(in + 2)};
-        return a_.process(v);
-    }
-
-private:
-    Halfband::Down a_, b_;
-};
-
+// The shared polyphase half-band resamplers (dsp/Oversampler.h).
+using Upsampler = dsp::Upsampler;
+using Downsampler = dsp::Downsampler;
 /// Base samples of delay of an up/down pair at `factor`.
-inline double latency(int factor) noexcept { return factor <= 1 ? 0.0 : factor == 2 ? 47.0 : 70.5; }
+inline double latency(int factor) noexcept { return dsp::oversamplerLatency(factor); }
 
 /// A short delay line with a 4-point Lagrange read (for the half-sample at 4×).
 class Delay {
