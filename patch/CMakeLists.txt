@@ -97,12 +97,12 @@ file(GLOB BLEEP_COMMON_UI CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common/
 
 # bleep_add_module(TARGET <t> PRODUCT <name> CODE <4 chars> DIR <modules/dir>
 #                  SOURCES ... [FORMATS ...] [VST3_CATEGORIES ...] [CLAP_FEATURES ...]
-#                  [SYNTH] [MIDI_OUT])
+#                  [SYNTH] [MIDI_IN] [MIDI_OUT])
 # A module folder holds dsp/ (JUCE-free DSP), ui/ (its HTML/CSS/JS page) and
 # the processor that joins them. ui/ and common/ui/ are embedded as
 # BinaryData with the header ModuleWeb.h, which ModuleEditor.cpp serves.
 function(bleep_add_module)
-    cmake_parse_arguments(M "SYNTH;MIDI_OUT" "TARGET;PRODUCT;CODE;DIR"
+    cmake_parse_arguments(M "SYNTH;MIDI_IN;MIDI_OUT" "TARGET;PRODUCT;CODE;DIR"
                           "SOURCES;FORMATS;VST3_CATEGORIES;CLAP_FEATURES" ${ARGN})
     if (NOT M_FORMATS)
         set(M_FORMATS ${BLEEP_PATCH_FORMATS})
@@ -127,7 +127,7 @@ function(bleep_add_module)
         VERSION ${PROJECT_VERSION}
         FORMATS ${M_FORMATS}
         IS_SYNTH ${M_SYNTH}
-        NEEDS_MIDI_INPUT FALSE
+        NEEDS_MIDI_INPUT ${M_MIDI_IN}
         NEEDS_MIDI_OUTPUT ${M_MIDI_OUT}
         IS_MIDI_EFFECT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS TRUE
@@ -193,7 +193,10 @@ bleep_add_module(TARGET BleepFilter PRODUCT Filter CODE BpFl DIR modules/filter
     VST3_CATEGORIES Fx Filter CLAP_FEATURES audio-effect filter)
 bleep_add_module(TARGET BleepMidiOut PRODUCT "MIDI Out" CODE BpMo DIR modules/midi-out
     SOURCES modules/midi-out/MidiOutProcessor.cpp
-    SYNTH MIDI_OUT
+    # Live refuses VST3 instruments without an event input bus ("plugin has
+    # instrument category, but no valid event input bus"), so MIDI Out takes
+    # MIDI in, and ignores it.
+    SYNTH MIDI_IN MIDI_OUT
     VST3_CATEGORIES Instrument Tools CLAP_FEATURES instrument note-effect)
 
 # Integration test: load the built VST3s into a headless host.

@@ -12,7 +12,7 @@ class MidiOutProcessor final : public ModuleProcessor {
 public:
     MidiOutProcessor()
         : ModuleProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true),
-                          {"MIDI Out", "Brilliant Bleep", juce::Colour(0xff60a5fa), false, true}, layout()) {
+                          {"MIDI Out", "Brilliant Bleep", juce::Colour(0xff60a5fa), true, true}, layout()) {
         velocity_ = addModulation("velocity");
         ccA_ = addModulation("cca");
         ccB_ = addModulation("ccb");
@@ -44,7 +44,7 @@ public:
 
     void renderModule(const RenderBlock& b, juce::AudioBuffer<float>& audio, juce::MidiBuffer& midi) override {
         if (b.start == 0) {
-            midi.clear();
+            midi.clear(); // incoming MIDI is not passed on: only the patch plays
             audio.clear();
         }
         MidiOutParams p;
