@@ -189,7 +189,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
     # Writes the node types for the board UI's browser demo (board/ui/demo-types.json).
     juce_add_console_app(bleep_dump_types PRODUCT_NAME "Bleep Dump Types")
     target_sources(bleep_dump_types PRIVATE tests/dump_types.cpp engine/Board.cpp engine/Registry.cpp
-        engine/PortModules.cpp)
+        engine/PortModules.cpp engine/Media.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
         target_sources(bleep_dump_types PRIVATE ${s})

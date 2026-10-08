@@ -1655,11 +1655,25 @@
   window.__board = () => board;  // for tests/board_smoke.cpp
 
   // ------------------------------------------------------------------ start
+  /// Module views (modules/<name>/ui/<type>.js, served flat): loads the
+  /// script of every module type that has none loaded yet. Modules without a
+  /// custom view simply have no file.
+  function loadModuleViews(list) {
+    return Promise.all(list.filter((t) => !t.port && !isStructural(t) && t.type !== "voice-cell" && !BleepViews.get(t.type))
+      .map((t) => new Promise((done) => {
+        const s = document.createElement("script");
+        s.src = encodeURIComponent(t.type) + ".js";
+        s.onload = s.onerror = () => done();
+        document.head.appendChild(s);
+      })));
+  }
+
   async function start() {
     const m = await native("init");
     if (!m) return;
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
+    await loadModuleViews(typeList);
     dev = !!m.dev;
     standalone = !!m.standalone;
     setPresets((await native("presets")) || []);

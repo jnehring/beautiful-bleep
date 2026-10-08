@@ -22,11 +22,19 @@ public:
     float process(float x) noexcept {
         buf_[(size_t)pos_] = buf_[(size_t)(pos_ + kTaps)] = x;
         const float* b = &buf_[(size_t)pos_];  // b[k] = x[n − (kTaps − 1) + k]
+        // Half-band: every second tap is exactly zero, so only the centre tap
+        // and the odd distances from it contribute (half the multiplies).
         const auto& h = taps();
-        float y = 0.0f;
-        for (int k = 0; k < kTaps; ++k) y += h[(size_t)k] * b[k];
+        constexpr int m = (kTaps - 1) / 2;
+        float y = h[(size_t)m] * b[m];
+        for (int k = (m + 1) & 1; k < kTaps; k += 2) y += h[(size_t)k] * b[k];
         if (++pos_ == kTaps) pos_ = 0;
         return y;
+    }
+    /// Feeds a sample whose output is not needed (decimation).
+    void push(float x) noexcept {
+        buf_[(size_t)pos_] = buf_[(size_t)(pos_ + kTaps)] = x;
+        if (++pos_ == kTaps) pos_ = 0;
     }
 
     static const std::array<float, kTaps>& taps() noexcept {
@@ -37,7 +45,8 @@ public:
             double sum = 0.0;
             for (int n = 0; n < kTaps; ++n) {
                 const double k = n - m;
-                const double sinc = n == m ? 0.5 : std::sin(0.5 * pi * k) / (pi * k);
+                // Every second tap of a half-band filter is exactly zero.
+                const double sinc = n == m ? 0.5 : ((n - m) % 2 == 0 ? 0.0 : std::sin(0.5 * pi * k) / (pi * k));
                 const double w = 0.42 - 0.5 * std::cos(2.0 * pi * n / (kTaps - 1)) + 0.08 * std::cos(4.0 * pi * n / (kTaps - 1));
                 t[(size_t)n] = (float)(sinc * w);
                 sum += sinc * w;
@@ -84,12 +93,12 @@ public:
         float s0 = in[0], s1 = in[1];
         if (factor == 4) {
             s0 = b_.process(in[0]);
-            b_.process(in[1]);
+            b_.push(in[1]);
             s1 = b_.process(in[2]);
-            b_.process(in[3]);
+            b_.push(in[3]);
         }
         const float y = a_.process(s0);
-        a_.process(s1);
+        a_.push(s1);
         return y;
     }
 
