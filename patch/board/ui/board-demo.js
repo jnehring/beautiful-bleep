@@ -25,6 +25,8 @@
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode */ } },
   };
+  /// Cell presets and the other libraries (kind "drums": Drum Grid patterns).
+  const presetKey = (kind) => (kind && kind !== "cell" ? `bleep-demo-presets-${kind}` : "bleep-demo-presets");
 
   function node(id, type, name, x, y, extra) {
     const t = typeOf(type);
@@ -111,6 +113,16 @@
         entry.sounding = 1;
         entry.varied = 0;
       }
+      if (n.type === "drum-grid") {
+        const d = n.data || {}, slot = d.current || 0, pat = (d.patterns || [])[slot];
+        const len = pat ? pat.length : 16;
+        entry.step = Math.floor(t * 8) % len;
+        entry.playing = slot;
+        entry.queued = -1;
+        entry.running = 1;
+        entry.hits = 0;
+        if (pat) pat.steps.forEach((row, k) => { if ("xX".includes(row[entry.step])) entry.hits |= 1 << k; });
+      }
       if (n.type === "voice-cell") entry.voices = Math.floor(t * 2) % 2 ? 0b101 : 0b011;
       nodes[n.id] = entry;
     });
@@ -156,17 +168,17 @@
         }
         case "watch": watched = a[0] || []; return null;
         case "midiDevices": return ["Demo Keyboard", "Demo Pads"];
-        case "presets": return store.get("bleep-demo-presets", []);
+        case "presets": return store.get(presetKey(a[0]), []);
         case "savePreset": {
-          const list = store.get("bleep-demo-presets", []).filter((p) => p.name !== a[0]);
+          const list = store.get(presetKey(a[2]), []).filter((p) => p.name !== a[0]);
           list.push({ name: a[0], preset: a[1] });
           list.sort((x, y) => x.name.localeCompare(y.name));
-          store.set("bleep-demo-presets", list);
+          store.set(presetKey(a[2]), list);
           return list;
         }
         case "deletePreset": {
-          const list = store.get("bleep-demo-presets", []).filter((p) => p.name !== a[0]);
-          store.set("bleep-demo-presets", list);
+          const list = store.get(presetKey(a[1]), []).filter((p) => p.name !== a[0]);
+          store.set(presetKey(a[1]), list);
           return list;
         }
         case "resetDemo":

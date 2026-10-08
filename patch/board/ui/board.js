@@ -1422,6 +1422,10 @@
         if (m) m.data = clone(data);
         native("setData", id, data);
       },
+      // Preset libraries shared by all sets, e.g. Drum Grid patterns ("drums").
+      presets: async (kind) => (await native("presets", kind)) || [],
+      savePreset: async (kind, name, preset) => (await native("savePreset", name, preset, kind)) || [],
+      deletePreset: async (kind, name) => (await native("deletePreset", name, kind)) || [],
       setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
       cablesInto: (pid) => cablesInto(id, pid).map((c) => {
         const src = nodeById(c.from.node);

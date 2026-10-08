@@ -58,6 +58,7 @@ void registerAdsrModule(Registry&);
 void registerVcaModule(Registry&);
 void registerCvToNotesModule(Registry&);
 void registerStepSequencerModule(Registry&);
+void registerDrumGridModule(Registry&);
 void registerNoiseModule(Registry&);
 void registerRingDrumsModules(Registry&);
 void registerPunchDrumsModules(Registry&);

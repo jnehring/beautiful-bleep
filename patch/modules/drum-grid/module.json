@@ -1,0 +1,10 @@
+{
+  "name": "Drum Grid",
+  "slug": "drum-grid",
+  "tagline": "Eight drum tracks on a step grid, with accents, 16 pattern slots and a pattern library.",
+  "colour": "#fb923c",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/drum-grid.md"
+}

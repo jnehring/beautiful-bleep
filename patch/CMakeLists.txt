@@ -49,7 +49,7 @@ if (NOT TARGET bleep_bus)
 endif ()
 
 # Pure DSP, no JUCE.
-set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes step-sequencer lfo noise ring-drums punch-drums)
+set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes step-sequencer drum-grid lfo noise ring-drums punch-drums)
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)

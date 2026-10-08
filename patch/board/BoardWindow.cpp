@@ -6,7 +6,8 @@
 // Bridge (JUCE native functions / events):
 //   JS → C++   init() commit(board, label) undo() redo() beginGesture()
 //              setParam(node, param, v) setAmount(cable, v) setData(node, data) watch([nodeIds])
-//              presets() savePreset(name, preset) deletePreset(name)
+//              presets(kind?) savePreset(name, preset, kind?) deletePreset(name, kind?)
+//              (kind: "cell", the default, or "drums" for Drum Grid patterns)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
 //              "state"  {nodes: {id: {outputs, params?}}, ports}   30 times per second
 //              "focus"  {node}   a plugin window asked for its node
@@ -69,20 +70,31 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
-// Cell presets (spec §8.1): one JSON file per preset, shared by all sets.
-juce::File presetFolder() {
+// Presets: one JSON file per preset, shared by all sets. Cell presets (spec
+// §8.1) and Drum Grid patterns (specs/modules/drum-grid.md §4.6), by kind.
+struct PresetKind {
+    const char* folder;
+    const char* extension;
+};
+
+PresetKind presetKind(const juce::var& kind) {
+    if (kind.toString() == "drums") return {"Drum Patterns", ".bleepdrums"};
+    return {"Cells", ".bleepcell"};
+}
+
+juce::File presetFolder(const PresetKind& k) {
     return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-        .getChildFile("Bleep Patch").getChildFile("Cells");
+        .getChildFile("Bleep Patch").getChildFile(k.folder);
 }
 
-juce::File presetFile(const juce::String& name) {
+juce::File presetFile(const juce::String& name, const PresetKind& k) {
     const auto safe = juce::File::createLegalFileName(name.trim()).substring(0, 80);
-    return safe.isEmpty() ? juce::File() : presetFolder().getChildFile(safe + ".bleepcell");
+    return safe.isEmpty() ? juce::File() : presetFolder(k).getChildFile(safe + k.extension);
 }
 
-juce::var presetList() {
+juce::var presetList(const PresetKind& k) {
     juce::Array<juce::var> list;
-    auto files = presetFolder().findChildFiles(juce::File::findFiles, false, "*.bleepcell");
+    auto files = presetFolder(k).findChildFiles(juce::File::findFiles, false, juce::String("*") + k.extension);
     files.sort();
     for (const auto& f : files) {
         const auto v = juce::JSON::parse(f.loadFileAsString());
@@ -171,11 +183,12 @@ public:
                         if (!d.name.startsWith("Bleep Patch ")) names.add(d.name);
                     done(names);
                 })
-                .withNativeFunction("presets", [](const juce::Array<juce::var>&, Completion done) {
-                    done(presetList());
+                .withNativeFunction("presets", [](const juce::Array<juce::var>& a, Completion done) {
+                    done(presetList(presetKind(a[0])));
                 })
                 .withNativeFunction("savePreset", [](const juce::Array<juce::var>& a, Completion done) {
-                    const auto file = presetFile(a[0].toString());
+                    const auto kind = presetKind(a[2]);
+                    const auto file = presetFile(a[0].toString(), kind);
                     auto* o = new juce::DynamicObject();
                     o->setProperty("name", a[0].toString());
                     o->setProperty("preset", a[1]);
@@ -183,11 +196,12 @@ public:
                         file.getParentDirectory().createDirectory();
                         file.replaceWithText(juce::JSON::toString(juce::var(o)));
                     }
-                    done(presetList());
+                    done(presetList(kind));
                 })
                 .withNativeFunction("deletePreset", [](const juce::Array<juce::var>& a, Completion done) {
-                    presetFile(a[0].toString()).deleteFile();
-                    done(presetList());
+                    const auto kind = presetKind(a[1]);
+                    presetFile(a[0].toString(), kind).deleteFile();
+                    done(presetList(kind));
                 })
                 .withNativeFunction("watch", [this](const juce::Array<juce::var>& a, Completion done) {
                     watched_.clear();

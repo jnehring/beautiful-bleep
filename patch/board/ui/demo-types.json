@@ -1400,6 +1400,323 @@
     ]
   },
   {
+    "type": "drum-grid",
+    "name": "Drum Grid",
+    "category": "Sequencing",
+    "colour": "#fb923c",
+    "description": "8 drum tracks × up to 32 steps (off, on, accent), 16 pattern slots, gate, accent and velocity out per track.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tempo",
+        "name": "Tempo",
+        "kind": "float",
+        "default": 0.357142865657806,
+        "steps": 0,
+        "modulatable": true,
+        "min": 20.0,
+        "max": 300.0
+      },
+      {
+        "id": "gatelength",
+        "name": "Gate Length",
+        "kind": "float",
+        "default": 0.242424234747887,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 1.0
+      },
+      {
+        "id": "swing",
+        "name": "Swing",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.5,
+        "max": 0.75
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "kind": "float",
+        "default": 0.699999988079071,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "source",
+        "name": "Source",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Transport",
+          "Tempo"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.636363625526428,
+        "steps": 12,
+        "modulatable": false,
+        "choices": [
+          "1/4.",
+          "1/4",
+          "1/4T",
+          "1/8.",
+          "1/8",
+          "1/8T",
+          "1/16.",
+          "1/16",
+          "1/16T",
+          "1/32.",
+          "1/32",
+          "1/32T"
+        ],
+        "min": 0.0,
+        "max": 11.0
+      },
+      {
+        "id": "ppqn",
+        "name": "Clock PPQN",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "1 per step",
+          "2 PPQN",
+          "4 PPQN",
+          "24 PPQN",
+          "48 PPQN"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "switch",
+        "name": "Switch",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "At End",
+          "Immediate"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "run",
+        "name": "Run",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "pattern",
+        "name": "Pattern",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "gate1",
+        "name": "Gate 1",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent1",
+        "name": "Accent 1",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity1",
+        "name": "Velocity 1",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate2",
+        "name": "Gate 2",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent2",
+        "name": "Accent 2",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity2",
+        "name": "Velocity 2",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate3",
+        "name": "Gate 3",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent3",
+        "name": "Accent 3",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity3",
+        "name": "Velocity 3",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate4",
+        "name": "Gate 4",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent4",
+        "name": "Accent 4",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity4",
+        "name": "Velocity 4",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate5",
+        "name": "Gate 5",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent5",
+        "name": "Accent 5",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity5",
+        "name": "Velocity 5",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate6",
+        "name": "Gate 6",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent6",
+        "name": "Accent 6",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity6",
+        "name": "Velocity 6",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate7",
+        "name": "Gate 7",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent7",
+        "name": "Accent 7",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity7",
+        "name": "Velocity 7",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate8",
+        "name": "Gate 8",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent8",
+        "name": "Accent 8",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity8",
+        "name": "Velocity 8",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "accent",
+        "name": "Accent",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "stepclock",
+        "name": "Step Clock",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "end",
+        "name": "End",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "running",
+        "name": "Running",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "ring-kick",
     "name": "Ring Kick",
     "category": "Drums",

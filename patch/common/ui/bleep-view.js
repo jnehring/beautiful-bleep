@@ -8,7 +8,9 @@
 //     node   the node from the board document
 //     api    { setParam(id, v), beginGesture(), setAmount(cableId, v),
 //              removeCable(cableId), cablesInto(paramId) → [{id, label, amount}],
-//              setNodeProperty(key, value), setData(data) }
+//              setNodeProperty(key, value), setData(data),
+//              presets(kind), savePreset(kind, name, preset), deletePreset(kind, name)
+//                → the library's [{name, preset}] (kind "drums": Drum Grid patterns) }
 //   view.root                     the element to insert
 //   view.update(nodeState)        live values: { params: {id: {v, e, a, t}}, outputs }
 //   view.refresh(node)            the node changed (cables, values from undo)

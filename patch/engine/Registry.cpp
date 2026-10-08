@@ -20,6 +20,7 @@ Registry::Registry() {
     registerUtilityModule(*this);
     registerCvToNotesModule(*this);
     registerStepSequencerModule(*this);
+    registerDrumGridModule(*this);
     registerRingDrumsModules(*this);
     registerPunchDrumsModules(*this);
     registerPortModules(*this);

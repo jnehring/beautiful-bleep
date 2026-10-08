@@ -31,7 +31,7 @@ section 21): no hardware names in the files, the UI or the docs.
 | Quantizer | [quantizer.md](quantizer.md) | Specified |
 | Switch | [switch.md](switch.md) | Specified |
 | Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Specified |
-| Drum Grid | [drum-grid.md](drum-grid.md) | Specified |
+| Drum Grid | [drum-grid.md](drum-grid.md) | Implemented |
 | Noise | [noise.md](noise.md) | Implemented |
 | Ring Drums | [ring-drums.md](ring-drums.md) | Implemented |
 | Punch Drums | [punch-drums.md](punch-drums.md) | Implemented |
