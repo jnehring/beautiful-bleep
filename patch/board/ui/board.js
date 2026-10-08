@@ -1000,13 +1000,20 @@
     for (const t of typeList)
       if (offered(t) && t.category !== "Cells")
         t.category.split("/").reduce(submenu, cats).push({ label: t.name, run: place({ type: t.type }) });
+    const byLabel = (a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base", numeric: true });
+    const sortTree = (items) => {
+      items.sort(byLabel);
+      for (const it of items) if (it.items) sortTree(it.items);
+      return items;
+    };
+    sortTree(cats);
     const cells = [{ label: "New Cell", run: place({ type: "cell" }) },
                    { label: "New Voice Cell", run: place({ type: "voice-cell" }) }];
     const byCat = presetCategories();
     if (byCat.size) cells.push("-");
-    for (const [cat, list] of byCat) {
-      const items = list.map((p) => ({ label: p.name, run: place({ preset: p.name }) }));
-      const own = list.filter((p) => !p.factory);
+    for (const [cat, list] of [...byCat].sort(([a], [b]) => byLabel({ label: a }, { label: b }))) {
+      const items = list.map((p) => ({ label: p.name, run: place({ preset: p.name }) })).sort(byLabel);
+      const own = list.filter((p) => !p.factory).sort((a, b) => byLabel({ label: a.name }, { label: b.name }));
       if (own.length) {  // the user's own presets can be deleted here
         items.push("-");
         items.push({ label: "Delete preset", items: own.map((p) => ({
