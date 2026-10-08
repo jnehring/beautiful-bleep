@@ -29,6 +29,8 @@
 //   top        true: the custom section comes before the knobs
 //   settingsTop  true: the settings (choices, toggles) come first
 //   width      the view window's width in px (default 340)
+//   hideParams   ids of knobs/settings the custom section replaces (they stay
+//                modulatable through cables, just not drawn twice)
 //   afterBuild(view, customElement)
 //   onState(nodeState, view)
 //   onRefresh(view)    the node changed (undo, another edit)
@@ -267,7 +269,9 @@
     }
 
     const groups = new Map();  // knob group heading → its row
+    const hidden = new Set((h && h.hideParams) || []);
     for (const p of type.params) {
+      if (hidden.has(p.id)) continue;
       if (p.kind === "float" || p.modulatable) {  // stepped knobs are knobs too
         const k = makeKnob(p);
         view.knobs.set(p.id, k);

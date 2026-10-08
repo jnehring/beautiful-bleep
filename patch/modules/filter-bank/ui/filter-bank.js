@@ -129,6 +129,7 @@
 
   BleepViews.register("filter-bank", {
     top: true,
+    hideParams: ["level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "level10"],  // the slider bank edits them
     template: '<div class="bv-panel"><h2>Bands <select class="fb-presets" style="float:right">' +
       '<option value="">Presets…</option>' + Object.keys(PRESETS).map((n) => `<option>${n}</option>`).join("") +
       '</select></h2><canvas class="fb-bank" style="height:' + H + 'px;width:100%;cursor:ns-resize"></canvas></div>',
