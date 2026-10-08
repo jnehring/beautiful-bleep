@@ -528,6 +528,7 @@ Module view sketch:
 - **Rename** with a double-click on the title.
 - **Select** with a drag box; Shift adds to the selection.
 - **Duplicate** with ⌘D: copies the nodes and the cables between them. ⌘⇧D also keeps the incoming cables.
+- **Copy, cut and paste** with ⌘C, ⌘X and ⌘V: the selection (cells with their contents) and the cables between them go to the system clipboard, so they can be pasted into another cell, another set or another board. Paste puts them at the pointer (or where the canvas was right-clicked), keeps their layout and selects them. Ports aren't copied; a Voice Cell isn't pasted inside another Voice Cell.
 - **Delete** works on everything except ports (section 6).
 - **Fit** the patch to the window with F; **auto-layout** tidies the selection from left to right.
 - **Cells:**
@@ -586,6 +587,7 @@ The board has its own undo/redo stack covering all edits: adding, removing, movi
 | Tab / double-click | Add module (search at cursor) |
 | ⌘G / ⌘⇧G | Group into cell / ungroup |
 | ⌘D / ⌘⇧D | Duplicate / duplicate with incoming cables |
+| ⌘C / ⌘X / ⌘V | Copy / cut / paste |
 | Delete | Remove selection |
 | Esc | Close view, leave cell |
 | F | Fit patch to window |

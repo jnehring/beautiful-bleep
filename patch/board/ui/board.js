@@ -28,6 +28,7 @@
   const kShownOutputs = 4;
   const NODE_W = 184;         // matches --node-w in board.css
   let pointer = { x: 0, y: 0 };// last pointer position in canvas coordinates
+  let pointerInside = false;   // the pointer is over the canvas (paste lands there)
   let dev = false;
   let standalone = false;      // the standalone app: MIDI Device is offered
 
@@ -730,6 +731,7 @@
       { label: "Add", items: addMenu(at) },
       { label: "Search…", key: "Tab", run: () => openSearch(at.x, at.y) },
       "-",
+      { label: "Paste", key: "⌘V", run: () => paste(at) },
       { label: "Select all", key: "⌘A", run: selectAll },
       { label: "Fit to window", key: "F", run: fit },
     ]);
@@ -751,10 +753,14 @@
     }
     applyCam();
   }, { passive: false });
-  canvas.addEventListener("pointermove", (ev) => {
+  const trackPointer = (ev) => {
     const r = canvas.getBoundingClientRect();
     pointer = { x: ev.clientX - r.left, y: ev.clientY - r.top };
-  });
+    pointerInside = true;
+  };
+  canvas.addEventListener("pointermove", trackPointer);
+  canvas.addEventListener("pointerdown", trackPointer, true);
+  canvas.addEventListener("pointerleave", () => { pointerInside = false; });
   canvas.addEventListener("dragover", (ev) => ev.preventDefault());
   canvas.addEventListener("drop", (ev) => {
     ev.preventDefault();
@@ -1077,6 +1083,9 @@
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
     items.push("-");
+    items.push({ label: "Cut", key: "⌘X", run: cut, disabled: !canDuplicate() });
+    items.push({ label: "Copy", key: "⌘C", run: copy, disabled: !canDuplicate() });
+    items.push({ label: "Paste", key: "⌘V", run: () => paste() });
     items.push({ label: "Duplicate", key: "⌘D", run: () => duplicate(false), disabled: !canDuplicate() });
     items.push({ label: many ? "Group into cell" : "Put into cell", key: "⌘G", run: group, disabled: !canGroup() });
     if (n.type === "cell") {
@@ -1128,7 +1137,7 @@
     renderSelection();
   }
 
-  function deleteSelection() {
+  function deleteSelection(label = "delete") {
     if (selCable) return removeCable(selCable);
     const doomed = new Set();
     for (const n of selectedNodes()) {
@@ -1139,7 +1148,7 @@
     if (!doomed.size) return;
     for (const id of doomed) closeView(id);
     sel.clear();
-    edit("delete", (b) => {
+    edit(label, (b) => {
       b.nodes = b.nodes.filter((n) => !doomed.has(n.id));
       b.cables = b.cables.filter((c) => !doomed.has(c.from.node) && !doomed.has(c.to.node));
     });
@@ -1189,6 +1198,80 @@
                             amount: c.amount });
       sel.clear();
       rs.forEach((r) => sel.add(map.get(r.id)));
+    });
+  }
+
+  /// ⌘C (spec §9.6): the selection (cells with their contents) and the cables
+  /// between them go to the system clipboard as JSON, so they can be pasted
+  /// into another cell, another set or another board window.
+  const CLIP_FORMAT = "bleep-board-clip";
+  function copy() {
+    const roots = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
+    if (!roots.length) return false;
+    const nodes = [];
+    for (const r of roots) nodes.push(r, ...(isCellLike(r) ? descendants(r.id) : []));
+    const ids = new Set(nodes.map((n) => n.id));
+    const clip = {
+      format: CLIP_FORMAT, version: 1,
+      roots: roots.map((r) => r.id),
+      nodes: nodes.map((n) => { const c = clone(n); delete c.port; return c; }),
+      cables: board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone),
+    };
+    native("copyText", JSON.stringify(clip));
+    return true;
+  }
+
+  function cut() {
+    if (!copy()) return;
+    selCable = null;
+    deleteSelection("cut");
+  }
+
+  /// ⌘V: the clipboard's nodes land at the pointer (or `at`, in canvas
+  /// coordinates), keeping their layout, with fresh ids; the paste is selected.
+  async function paste(at) {
+    if (!board) return;
+    let clip = null;
+    try { clip = JSON.parse(await native("pasteText")); } catch (e) { return; }
+    if (!clip || clip.format !== CLIP_FORMAT || !Array.isArray(clip.nodes) || !Array.isArray(clip.roots)) return;
+    const lvl = level();
+    const byId = new Map(clip.nodes.map((n) => [n.id, n]));
+    const known = (n) => isCellLike(n) || isBoundary(n) || !!types[n.type];
+    const roots = clip.roots.map((id) => byId.get(id)).filter((n) => n && known(n) && !isPort(n) && !isBoundary(n)
+      && !(n.type === "voice-cell" && insideVoiceCell(lvl)));  // no nesting
+    if (!roots.length) return;
+    // Each root's subtree (its contents, for cells).
+    const all = [];
+    const walk = (id) => { for (const n of clip.nodes) if (n.parent === id && known(n)) { all.push(n); if (isCellLike(n)) walk(n.id); } };
+    for (const r of roots) { all.push(r); if (isCellLike(r)) walk(r.id); }
+    // Top-left of the copied roots goes to the pointer; step aside from an exact overlap (repeated pastes).
+    const x0 = Math.min(...roots.map((n) => n.x)), y0 = Math.min(...roots.map((n) => n.y));
+    const r = canvas.getBoundingClientRect();
+    const p = at || (pointerInside ? pointer : { x: r.width / 2, y: r.height / 2 });
+    const w = toWorld(r.left + p.x, r.top + p.y);
+    let dx = Math.round(w.x - x0), dy = Math.round(w.y - y0);
+    const here = nodesAt(lvl);
+    for (let i = 0; i < 20 && roots.some((n) => here.some((m) => Math.abs(m.x - n.x - dx) < 20 && Math.abs(m.y - n.y - dy) < 20)); i++) {
+      dx += 30;
+      dy += 30;
+    }
+    edit("paste", (b) => {
+      const map = new Map(all.map((n) => [n.id, uid(isCellLike(n) ? "c" : "n")]));
+      for (const n of all) {
+        const c = clone(n);
+        c.id = map.get(n.id);
+        c.parent = roots.includes(n) ? lvl : map.get(n.parent);
+        if (roots.includes(n)) { c.x += dx; c.y += dy; }
+        delete c.port;
+        b.nodes.push(c);
+      }
+      for (const c of clip.cables || [])
+        if (c && c.from && c.to && map.has(c.from.node) && map.has(c.to.node))
+          b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
+                          to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
+      sel.clear();
+      selCable = null;
+      roots.forEach((n) => sel.add(map.get(n.id)));
     });
   }
 
@@ -1651,6 +1734,9 @@
     if (cmd && k === "g") { e.preventDefault(); e.shiftKey ? selectedNodes().filter((n) => n.type === "cell").forEach((n) => ungroup(n.id)) : group(); return; }
     if (cmd && k === "d") { e.preventDefault(); duplicate(e.shiftKey); return; }
     if (cmd && k === "a") { e.preventDefault(); selectAll(); return; }
+    if (cmd && k === "c") { e.preventDefault(); copy(); return; }
+    if (cmd && k === "x") { e.preventDefault(); cut(); return; }
+    if (cmd && k === "v") { e.preventDefault(); paste(); return; }
     if (cmd) return;
     if (e.key === "Tab") { e.preventDefault(); openSearch(pointer.x, pointer.y); return; }
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteSelection(); return; }

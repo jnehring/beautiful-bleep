@@ -229,6 +229,8 @@
           store.set(presetKey(a[1]), list);
           return list;
         }
+        case "copyText": store.set("bleep-demo-clipboard", String(a[0])); return null;
+        case "pasteText": return store.get("bleep-demo-clipboard", "");
         case "resetDemo":
           board = demoBoard(); undo = []; redo = []; save();
           setTimeout(() => emit("board", message()));

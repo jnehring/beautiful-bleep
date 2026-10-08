@@ -9,6 +9,7 @@
 //              perform(node, action, [args])   (Button presses, Keyboard keys: not saved)
 //              presets(kind?) savePreset(name, preset, kind?) deletePreset(name, kind?)
 //              (kind: "cell", the default, or "drums" for Drum Grid patterns)
+//              copyText(text) pasteText()   the system clipboard (board copy & paste)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
 //              "state"  {nodes: {id: {outputs, activity, params?}}, ports}   30 times per second
 //              "focus"  {node}   a plugin window asked for its node
@@ -207,6 +208,13 @@ public:
                     const auto kind = presetKind(a[1]);
                     presetFile(a[0].toString(), kind).deleteFile();
                     done(presetList(kind));
+                })
+                .withNativeFunction("copyText", [](const juce::Array<juce::var>& a, Completion done) {
+                    juce::SystemClipboard::copyTextToClipboard(a[0].toString());
+                    done({});
+                })
+                .withNativeFunction("pasteText", [](const juce::Array<juce::var>&, Completion done) {
+                    done(juce::SystemClipboard::getTextFromClipboard());
                 })
                 .withNativeFunction("watch", [this](const juce::Array<juce::var>& a, Completion done) {
                     watched_.clear();
