@@ -298,6 +298,28 @@ static void ratio() {
     EXPECT(m.cycleSamples() == 50.0 && m.periodSamples() == 100);
 }
 
+static void clockFallbackAndRestart() {
+    TEST("clock fallback and restart");
+    SeqClock c = fresh();
+    c.setFallbackPeriod(2400);  // e.g. a 1/16 at 300 BPM
+    const auto s = steps(run(c, 3000, [](int64_t i, SeqClockInput& in) {
+        in.clocked = true;
+        in.clock = i % 1000 == 0 ? 1.0f : 0.0f;
+    }));
+    EXPECT(!s.empty() && s[0].e.stepSamples == 2400.0);
+    EXPECT(c.periodSamples() == 1000);
+    c.setFallbackPeriod(5000);  // measured already: ignored
+    EXPECT(c.periodSamples() == 1000);
+    // restartCount: the count starts at 0 again, the measured period stays.
+    c.restartCount();
+    EXPECT(c.periodSamples() == 1000);
+    const auto t = steps(run(c, 1500, [](int64_t i, SeqClockInput& in) {
+        in.clocked = true;
+        in.clock = i % 1000 == 0 ? 1.0f : 0.0f;
+    }));
+    EXPECT(!t.empty() && t[0].e.n == 0 && t[0].e.stepSamples == 1000.0);
+}
+
 int main() {
     noteValueTable();
     transportRates();
@@ -308,5 +330,6 @@ int main() {
     clockSwing();
     gates();
     ratio();
+    clockFallbackAndRestart();
     return bleep::test::finish("seqclock");
 }

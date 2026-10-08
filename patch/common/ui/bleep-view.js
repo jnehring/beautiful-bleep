@@ -9,7 +9,7 @@
 //     api    { setParam(id, v), beginGesture(), setAmount(cableId, v),
 //              removeCable(cableId), cablesInto(paramId) → [{id, label, amount}],
 //              setNodeProperty(key, value), setData(data),
-//              command(id, value), importMedia(name, base64) → Promise<{id, name, seconds, channels} | {error}>,
+//              isPatched(inputJack) → bool, command(id, value), importMedia(name, base64) → Promise<{id, name, seconds, channels} | {error}>,
 //              exportMedia(slot) → Promise<{id, seconds, channels} | {error}> }
 //
 // From the type description it also handles: stepped knobs (modulatable

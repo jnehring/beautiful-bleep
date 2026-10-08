@@ -114,9 +114,25 @@ public:
         delayLeft_ = 0;
         sinceClock_ = 0;
         period_ = (int64_t)(sampleRate_ * 0.125);  // 1/16 at 120 BPM
+        measured_ = false;
         transportOn_ = false;
         origin_ = 0;
         resetEdge_ = false;
+    }
+
+    /// Clock mode, before two pulses have been measured: assume this step
+    /// length instead of a 1/16 at 120 BPM (e.g. the Rate at the current tempo).
+    void setFallbackPeriod(int64_t samples) noexcept {
+        if (!measured_) period_ = std::max<int64_t>(1, samples);
+    }
+    /// Starts counting steps again (e.g. on a transport start) but keeps the
+    /// measured clock period, unlike reset().
+    void restartCount() noexcept {
+        const int64_t period = period_;
+        const bool measured = measured_;
+        reset();
+        period_ = period;
+        measured_ = measured;
     }
 
     /// One sample. `on(const SeqClockEvent&)` receives the events.
@@ -138,7 +154,7 @@ public:
                     delayLeft_ = 0;
                     step(on, pendingN_, (double)period_);
                 }
-                if (sinceClock_ > 0 && haveClock_) period_ = sinceClock_;
+                if (sinceClock_ > 0 && haveClock_) period_ = sinceClock_, measured_ = true;
                 haveClock_ = true;
                 sinceClock_ = 0;
                 const int64_t n = pendingReset_ || !haveN_ ? 0 : lastN_ + 1;
@@ -212,7 +228,7 @@ private:
     double sampleRate_ = 48000.0;
     GateEdge clock_, reset_;
     float swing_ = 0.0f;
-    bool haveN_ = false, haveClock_ = false, pendingReset_ = false, resetEdge_ = false;
+    bool haveN_ = false, haveClock_ = false, pendingReset_ = false, resetEdge_ = false, measured_ = false;
     int64_t lastN_ = 0, pendingN_ = 0;
     int64_t delayLeft_ = 0, sinceClock_ = 0, period_ = 6000;
     bool transportOn_ = false;

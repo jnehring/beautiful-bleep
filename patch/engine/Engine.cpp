@@ -482,6 +482,27 @@ void Engine::timerCallback() {
     applySampleRate();
     collectGarbage();
     reconcile(false);
+    pollModuleData();
+}
+
+void Engine::pollModuleData() {
+    if (!hasBoard()) return;
+    bool changed = false;
+    for (const auto& [id, m] : modules_) {
+        std::string json;
+        if (!m->takeData(json)) continue;
+        const ModuleSpec& spec = m->spec();
+        auto* n = board::findNode(board_, juce::String(id));
+        if (n == nullptr || !spec.sanitiseData) continue;
+        const std::string clean = spec.sanitiseData(json);
+        n->setProperty("data", board::fromJson(juce::String(clean)));
+        m->setData(clean);
+        changed = true;
+    }
+    if (changed) {
+        generation_.fetch_add(1);
+        if (ui_) ui_->boardChanged();
+    }
 }
 
 juce::var Engine::ports() const {

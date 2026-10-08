@@ -95,6 +95,9 @@ struct ProcessContext {
     /// The board-wide harmony buses (dsp::kHarmonyBuses of them), for modules
     /// whose spec declares a HarmonyRole. Writers run before readers.
     dsp::HarmonyState* harmony = nullptr;
+    /// Inside a Voice Cell: this voice's index (0 … voices − 1), e.g. to give each
+    /// voice its own random stream. -1 outside Voice Cells.
+    int voice = -1;
 
     bool isOutputConnected(int jack) const noexcept { return !outputConnected || outputConnected[jack]; }
 };
@@ -121,6 +124,14 @@ public:
     /// bits, a buffer overview). Read audio-thread data safely (atomics).
     virtual void liveArrays(std::vector<std::pair<std::string, std::vector<float>>>& out) const { (void)out; }
 
+    /// [message thread] Node data the module changed itself (e.g. a captured
+    /// loop): return true and fill `json`. The engine stores it in the board
+    /// (through sanitiseData), passes it back through setData and tells open
+    /// views. Polled ten times a second; no undo entry of its own.
+    virtual bool takeData(std::string& json) {
+        (void)json;
+        return false;
+    }
     /// [message thread] Audio the module wants saved to the media folder
     /// (Media.h), e.g. a recorded reel; `slot` names which. Null: nothing to save.
     virtual std::shared_ptr<const MediaClip> exportMedia(const std::string& slot) {

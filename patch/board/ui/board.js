@@ -1457,6 +1457,7 @@
       },
       removeCable,
       command: (cmd, value) => native("command", id, cmd, value),
+      isPatched: (jack) => board.cables.some((c) => c.to.node === id && c.to.jack === jack),
       importMedia: (name, base64) => native("importMedia", name, base64),
       exportMedia: (slot) => native("exportMedia", id, slot),
       setData: (data) => {

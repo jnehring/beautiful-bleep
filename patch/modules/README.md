@@ -121,6 +121,17 @@ board warns when one goes into a Voice Cell.
 `Reader` (anything that follows it). Writers run before readers; the state
 is in `ctx.harmony` (`dsp/Harmony.h`, `kHarmonyBuses` buses).
 
+**Voices.** Inside a Voice Cell, `ctx.voice` is the voice's index (−1
+outside): use it as a random stream so voices vary but renders repeat.
+
+**Data the module changes itself.** Override `takeData(json)` (message
+thread, polled ten times a second) to store node data the module produced,
+e.g. a captured loop; the engine saves it in the board and calls `setData`.
+
+**Custom views.** `view.api.isPatched(input)` tells whether an input has a
+cable; `hideParams: [ids]` in the view hooks hides knobs the custom section
+edits itself.
+
 **Live values for views.** `liveValues()` for numbers (a playhead),
 `liveArrays()` for arrays (a spectrum, register bits). They arrive in the
 view's `onState(st)` as `st.<key>` and `st.arrays.<key>`.

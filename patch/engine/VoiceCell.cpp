@@ -253,6 +253,7 @@ void VoiceCellModule::process(const ProcessContext& c) {
         Voice& v = vs[(size_t)k];
         if (!v.gate && !v.sounding) continue;  // sleeping voices use no CPU
         Program& p = *programs_[(size_t)k];
+        inner.voice = k;
         p.runChunk(inner);
         const float pan = voices > 1 ? spread * (2.0f * (float)k / (float)(voices - 1) - 1.0f) : 0.0f;
         const float angle = (pan + 1.0f) * 0.25f * 3.14159265f;

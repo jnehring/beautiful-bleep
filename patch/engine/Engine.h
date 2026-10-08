@@ -115,6 +115,8 @@ public:
     int64_t ticks() const noexcept { return ticks_.load(); }
     void reconcileNow();   ///< adds nodes for new ports without the settle delay
     void collectGarbage();
+    /// Stores node data modules changed themselves (Module::takeData).
+    void pollModuleData();
 
 private:
     void timerCallback() override;
