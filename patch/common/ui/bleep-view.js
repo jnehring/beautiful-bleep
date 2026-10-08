@@ -7,7 +7,8 @@
 //     type   node type from init().types
 //     node   the node from the board document
 //     api    { setParam(id, v), beginGesture(), setAmount(cableId, v),
-//              removeCable(cableId), cablesInto(paramId) → [{id, label, amount}] }
+//              removeCable(cableId), cablesInto(paramId) → [{id, label, amount}],
+//              setNodeProperty(key, value) }
 //   view.root                     the element to insert
 //   view.update(nodeState)        live values: { params: {id: {v, e, a, t}}, outputs }
 //   view.refresh(node)            the node changed (cables, values from undo)
@@ -76,7 +77,7 @@
     root.append(knobsEl, customEl, settingsEl);
     if (type.description) root.appendChild(el("p", "bv-description", type.description));
 
-    const view = { root, type, node, knobs: new Map(), settings: new Map() };
+    const view = { root, type, node, api, knobs: new Map(), settings: new Map() };
 
     function setParam(id, v) {
       v = clamp01(v);

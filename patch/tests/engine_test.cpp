@@ -6,7 +6,9 @@
 #include "Board.h"
 #include "Engine.h"
 
+#include <array>
 #include <cmath>
+#include <functional>
 #include <condition_variable>
 #include <cstdio>
 #include <random>
@@ -462,6 +464,155 @@ void standaloneDriver() {
     e->release();
 }
 
+/// Voice Cells (spec §8.3): MIDI notes into a Voice Cell whose voice outputs
+/// its pitch as audio, so the cell's output is the sum of the playing pitches.
+struct VoiceRig {
+    Engine* e = new Engine();
+    int main = 0, midi = 0, out = 0;
+    juce::String cellId = "vc", voiceIn = "vi", voiceOut = "vo";
+    FakePort *pMidi = nullptr, *pOut = nullptr;
+
+    VoiceRig() {
+        e->setStandalone(true);
+        main = e->registerInstance(PortKind::Patch);
+        midi = e->registerInstance(PortKind::MidiIn);
+        out = e->registerInstance(PortKind::AudioOut);
+        e->reconcileNow();
+        pMidi = new FakePort(*e, midi);
+        pOut = new FakePort(*e, out);
+    }
+    ~VoiceRig() {
+        delete pMidi;
+        delete pOut;
+        e->unregisterInstance(midi);
+        e->unregisterInstance(out);
+        e->unregisterInstance(main);
+        e->release();
+    }
+    /// A Voice Cell; `inside` adds nodes and cables inside it.
+    void build(juce::var params, std::function<void(juce::Array<juce::var>&, juce::Array<juce::var>&)> inside) {
+        auto doc = copyOf(e->board());
+        auto* nodes = doc["nodes"].getArray();
+        auto* cables = doc["cables"].getArray();
+        auto cell = node(cellId, "voice-cell");
+        cell.getDynamicObject()->setProperty("params", params);
+        nodes->add(cell);
+        nodes->add(node(voiceIn, "voice-in", cellId));
+        nodes->add(node(voiceOut, "voice-out", cellId));
+        juce::Array<juce::var> n, c;
+        inside(n, c);
+        nodes->addArray(n);
+        cables->addArray(c);
+        cables->add(cable(portNode(*e, midi), "notes", cellId, "notes"));
+        cables->add(cable(cellId, "l", portNode(*e, out), "l"));
+        e->commit(doc, "voice cell");
+    }
+    /// One block in standalone mode; returns the last output sample.
+    float block(std::vector<std::array<int, 3>> events = {}) {
+        for (const auto& ev : events) {
+            MidiEvent m;
+            m.offset = 0;
+            m.bytes[0] = (uint8_t)ev[0];
+            m.bytes[1] = (uint8_t)ev[1];
+            m.bytes[2] = (uint8_t)ev[2];
+            m.size = 3;
+            pMidi->midiIn.push_back(m);
+        }
+        BlockIO a, b;
+        const float* ins[2] = {pMidi->in[0].data(), pMidi->in[1].data()};
+        float* outs[2] = {pOut->out[0].data(), pOut->out[1].data()};
+        for (BlockIO* io : {&a, &b}) {
+            io->numSamples = kBlock;
+            io->transport.sampleRate = kRate;
+        }
+        a.audioIn = ins;
+        a.midiIn = pMidi->midiIn.data();
+        a.numMidiIn = (int)pMidi->midiIn.size();
+        b.audioOut = outs;
+        b.numAudioOut = 2;
+        int handles[2] = {midi, out};
+        BlockIO* ios[2] = {&a, &b};
+        e->processAll(handles, ios, 2);
+        pMidi->midiIn.clear();
+        return pOut->out[0][kBlock - 1];
+    }
+};
+
+juce::var voiceParams(int voices, int stealing, int mode) {
+    const auto* spec = Registry::get().find("voice-cell");
+    auto norm = [&](const char* id, float v) { return spec->params[(size_t)spec->paramIndex(id)].toNormalised(v); };
+    return obj({{"voices", norm("voices", (float)voices)}, {"stealing", norm("stealing", (float)stealing)},
+                {"mode", norm("mode", (float)mode)}, {"output", norm("output", 0.0f)}});  // output: plain sum
+}
+
+void voiceCells() {
+    g_test = "voice cell";
+    auto pitchVoice = [](juce::Array<juce::var>&, juce::Array<juce::var>& c) {
+        c.add(cable("vi", "pitch", "vo", "l"));  // the voice's audio = its pitch
+    };
+    {
+        VoiceRig rig;
+        rig.build(voiceParams(2, 0, 0), pitchVoice);  // 2 voices, steal oldest
+        rig.block({{0x90, 64, 100}, {0x90, 67, 100}});
+        EXPECT_NEAR(rig.block(), 4.0 / 12 + 7.0 / 12, 1e-5);
+        rig.block({{0x90, 72, 100}});  // a third note steals E (the oldest)
+        EXPECT_NEAR(rig.block(), 7.0 / 12 + 12.0 / 12, 1e-5);
+        // A board edit doesn't cut the notes (voices survive recompiles).
+        auto moved = copyOf(rig.e->board());
+        for (auto& n : *moved["nodes"].getArray())
+            if (n["id"].toString() == "vc") n.getDynamicObject()->setProperty("x", 333);
+        rig.e->commit(moved, "move");
+        EXPECT_NEAR(rig.block(), 7.0 / 12 + 12.0 / 12, 1e-5);
+        // The engine shows which voices play.
+        const auto live = rig.e->liveState({});
+        EXPECT((int)live["nodes"]["vc"]["voices"] == 3);
+    }
+    {
+        VoiceRig rig;
+        rig.build(voiceParams(2, 4, 0), pitchVoice);  // 2 voices, stealing: none
+        rig.block({{0x90, 64, 100}, {0x90, 67, 100}, {0x90, 72, 100}});
+        EXPECT_NEAR(rig.block(), 4.0 / 12 + 7.0 / 12, 1e-5);  // the third note is dropped
+    }
+    {
+        VoiceRig rig;
+        rig.build(voiceParams(8, 0, 1), pitchVoice);  // mono
+        rig.block({{0x90, 60, 100}, {0x90, 64, 100}});
+        EXPECT_NEAR(rig.block(), 4.0 / 12, 1e-5);
+        rig.block({{0x80, 64, 0}});  // back to the held C
+        EXPECT_NEAR(rig.block(), 0.0, 1e-5);
+    }
+    {
+        // A real voice: Oscillator → VCA, ADSR on the gain and on Active. It sounds, then sleeps.
+        VoiceRig rig;
+        rig.build(voiceParams(8, 0, 0), [](juce::Array<juce::var>& n, juce::Array<juce::var>& c) {
+            n.add(node("osc", "oscillator", "vc"));
+            n.add(node("env", "adsr", "vc"));
+            n.add(node("amp", "vca", "vc"));
+            c.add(cable("vi", "pitch", "osc", "pitch"));
+            c.add(cable("vi", "gate", "env", "gate"));
+            c.add(cable("vi", "trigger", "env", "retrig"));
+            c.add(cable("osc", "sine", "amp", "l"));
+            c.add(cable("env", "env", "amp", "gain"));
+            c.add(cable("amp", "l", "vo", "l"));
+            c.add(cable("env", "active", "vo", "active"));
+        });
+        rig.block({{0x90, 69, 127}});
+        float peak = 0.0f;
+        for (int b = 0; b < 40; ++b) {
+            rig.block();
+            for (float x : rig.pOut->out[0]) peak = std::max(peak, std::fabs(x));
+        }
+        EXPECT(peak > 0.1f);
+        EXPECT((int)rig.e->liveState({})["nodes"]["vc"]["voices"] == 1);
+        rig.block({{0x80, 69, 0}});
+        for (int b = 0; b < 2000; ++b) rig.block();  // ≈ 5 s: the release (0.4 s) is long over
+        float tail = 0.0f;
+        for (float x : rig.pOut->out[0]) tail = std::max(tail, std::fabs(x));
+        EXPECT(tail < 1e-4f);
+        EXPECT((int)rig.e->liveState({})["nodes"]["vc"]["voices"] == 0);  // asleep
+    }
+}
+
 }  // namespace
 
 int main() {
@@ -475,6 +626,7 @@ int main() {
     persistenceAndDuplicates();
     undoRedo();
     standaloneDriver();
+    voiceCells();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;
 }

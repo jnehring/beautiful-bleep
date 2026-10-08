@@ -77,6 +77,11 @@ kbd { font: inherit; font-size: 11px; color: var(--muted); }
         box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
 .node.port { border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; }
 .node.cell { border: 2px solid #59607080; background: var(--panel-2); }
+.node.voice { border-color: #c084fc80; }
+.n-voices { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 0 8px 6px; }
+.vdot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.vdot.on { background: #c084fc; box-shadow: 0 0 4px #c084fc; }
+.n-warn { margin-left: auto; color: var(--warn); font-size: 10px; }
 .node.boundary { background: var(--panel-2); border-style: dashed; }
 .node.selected { border-color: var(--sel); box-shadow: 0 0 0 1px var(--sel); }
 .node.port.selected { border-left-color: var(--accent); }
@@ -132,7 +137,9 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .s-item { padding: 4px 8px; border-radius: 5px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
 .s-item .sub { color: var(--muted); font-size: 11px; margin-left: auto; }
 .s-item.active { background: var(--panel-3); }
-#menu { padding: 4px; min-width: 190px; }
+#menu, .submenu { padding: 4px; min-width: 190px; }
+.submenu { z-index: 21; max-height: 70vh; overflow-y: auto; }
+.m-item.has-sub .key { margin-left: auto; }
 .m-item { padding: 5px 10px; border-radius: 5px; cursor: pointer; display: flex; gap: 12px; }
 .m-item:hover { background: var(--panel-3); }
 .m-item .key { margin-left: auto; color: var(--muted); font-size: 11px; }

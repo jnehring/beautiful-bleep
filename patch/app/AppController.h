@@ -89,6 +89,7 @@ private:
     };
 
     void timerCallback() override;
+    void syncDeviceNodes();
     void changeListenerCallback(juce::ChangeBroadcaster*) override;
     void syncPorts();
     int addInstance(engine::PortKind kind, const juce::String& id, const juce::String& name);
@@ -125,6 +126,7 @@ private:
     juce::SpinLock portsLock_;
     std::vector<std::unique_ptr<AudioPort>> audioPorts_;
     std::vector<std::unique_ptr<MidiPort>> midiPorts_;
+    std::vector<std::unique_ptr<MidiPort>> devicePorts_;  ///< MIDI Device nodes (spec §12): id = node's port
     engine::BlockIO linkIo_;
     std::vector<int> handles_;
     std::vector<engine::BlockIO*> ios_;

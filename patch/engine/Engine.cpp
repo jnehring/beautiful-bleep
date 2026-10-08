@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "Engine.h"
 
+#include "VoiceCell.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
@@ -283,11 +285,14 @@ juce::var Engine::commit(const juce::var& edited, const juce::String& label) {
     // Ports can't be deleted from the board (spec §6): put back what went missing.
     if (auto* oldNodes = board_["nodes"].getArray()) {
         bool restored = false;
-        for (const auto& n : *oldNodes)
+        for (const auto& n : *oldNodes) {
+            const auto* spec = Registry::get().find(n["type"].toString().toStdString());
+            if (spec && spec->userCreatable) continue;  // e.g. MIDI Device: the user may delete it
             if (n["port"].toString().isNotEmpty() && board::findNode(clean, n["id"].toString()) == nullptr) {
                 clean["nodes"].getArray()->add(n);
                 restored = true;
             }
+        }
         if (restored) clean = board::sanitise(clean);
     }
     undo_.push_back(board::toJson(board_));
@@ -334,6 +339,12 @@ void Engine::setParam(const juce::String& nodeId, const juce::String& paramId, f
         const int i = m->second->spec().paramIndex(paramId.toStdString());
         if (i >= 0) m->second->setKnob(i, v);
     }
+    // Inside a Voice Cell: every voice (spec §8.3.2).
+    if (auto in = inner_.find(nodeId.toStdString()); in != inner_.end())
+        for (const auto& m : in->second.modules) {
+            const int i = m->spec().paramIndex(paramId.toStdString());
+            if (i >= 0) m->setKnob(i, v);
+        }
     generation_.fetch_add(1);
 }
 
@@ -352,6 +363,14 @@ void Engine::recompile() {
     std::unique_ptr<Program> next;
     if (hasBoard()) next = Program::compile(board::parse(board_), modules_, ports, sampleRate_);
     else modules_.clear();
+    // The modules inside Voice Cells, one per voice, for knob changes and views.
+    inner_.clear();
+    for (const auto& [id, m] : modules_)
+        if (auto cell = std::dynamic_pointer_cast<VoiceCellModule>(m)) {
+            std::map<std::string, std::vector<std::shared_ptr<Module>>> found;
+            cell->collect(found);
+            for (auto& [nodeId, mods] : found) inner_[nodeId] = Inner{std::move(mods), cell};
+        }
     if (Program* old = program_.exchange(next.release(), std::memory_order_seq_cst)) retired_.push_back(old);
 }
 
@@ -372,6 +391,7 @@ void Engine::reconcile(bool force) {
     int inputs = 0, outputs = 0;
     for (const auto& s : instances_) {
         if (s->kind == PortKind::Patch && (s->handle != mainHandle_ || standalone_)) continue;
+        if (s->kind == PortKind::MidiDevice) continue;  // its node comes first; the app follows it
         auto* existing = board::findNodeByPort(board_, juce::String(s->id));
         if (existing != nullptr) {
             // Keep the last known track on the node, so ghosts still say where they were.
@@ -425,8 +445,13 @@ juce::var Engine::ports() const {
 juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
     auto* root = new juce::DynamicObject();
     auto* nodes = new juce::DynamicObject();
-    for (const auto& [id, m] : modules_) {
+    std::vector<std::pair<std::string, std::shared_ptr<Module>>> shown(modules_.begin(), modules_.end());
+    for (const auto& [id, in] : inner_)  // inside Voice Cells: the voice that started last
+        if (!in.modules.empty())
+            shown.push_back({id, in.modules[(size_t)std::clamp(in.cell->displayVoice(), 0, (int)in.modules.size() - 1)]});
+    for (const auto& [id, m] : shown) {
         auto* n = new juce::DynamicObject();
+        if (auto cell = std::dynamic_pointer_cast<VoiceCellModule>(m)) n->setProperty("voices", (int)cell->activeVoices());
         auto* outs = new juce::DynamicObject();
         const auto& spec = m->spec();
         for (size_t k = 0; k < spec.outputs.size(); ++k)

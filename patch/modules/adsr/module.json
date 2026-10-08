@@ -1,0 +1,10 @@
+{
+  "name": "ADSR",
+  "slug": "adsr",
+  "tagline": "Attack, decay, sustain, release with velocity, retrigger and an Active gate for Voice Cells.",
+  "colour": "#fbbf24",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "musicians/modules/adsr.md"
+}

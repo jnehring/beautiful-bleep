@@ -390,6 +390,19 @@ void registerPortModules(Registry& r) {
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MidiInModule>(spec, true); });
     }
     {
+        // Standalone only (spec §12): the user adds it and picks a controller; the app feeds it.
+        ModuleSpec s = portSpec("midi-device", "MIDI Device", PortKind::MidiDevice,
+                                "A connected MIDI controller: notes for Voice Cells, plus pitch, gate, velocity and CCs.");
+        s.category = "Sources";
+        s.colour = "#38bdf8";
+        s.userCreatable = true;
+        s.standaloneOnly = true;
+        s.params = {ParamSpec::choice("channel", "Channel", channels, 0)};
+        for (auto& p : ccParams()) s.params.push_back(p);
+        s.outputs = midiInOutputs();
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MidiInModule>(spec, false); });
+    }
+    {
         ModuleSpec s = portSpec("midi-out", "MIDI Out", PortKind::MidiOut,
                                 "Notes, CCs and pitch bend to another track (Bleep MIDI Out).");
         s.params = {ParamSpec::percent("velocity", "Velocity", 0.0f, 1.0f, 0.8f),

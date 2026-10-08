@@ -17,6 +17,10 @@ namespace bleep::engine {
 constexpr const char* kCell = "cell";
 constexpr const char* kCellIn = "cell-in";
 constexpr const char* kCellOut = "cell-out";
+/// Voice Cells (spec §8.3): the cell is a real node; Voice In/Out are structural.
+constexpr const char* kVoiceCell = "voice-cell";
+constexpr const char* kVoiceIn = "voice-in";
+constexpr const char* kVoiceOut = "voice-out";
 
 class Registry {
 public:
@@ -48,6 +52,10 @@ void registerFunctionModule(Registry&);
 void registerRandomModule(Registry&);
 void registerUtilityModule(Registry&);
 void registerFilterModule(Registry&);
+void registerOscillatorModule(Registry&);
+void registerAdsrModule(Registry&);
+void registerVcaModule(Registry&);
+void registerCvToNotesModule(Registry&);
 void registerPortModules(Registry&);
 
 }  // namespace bleep::engine

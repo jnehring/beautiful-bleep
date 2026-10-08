@@ -1,0 +1,10 @@
+{
+  "name": "Oscillator",
+  "slug": "oscillator",
+  "tagline": "Triangle-core oscillator: waveform morph, through-zero FM, hard sync and a sub octave.",
+  "colour": "#5eead4",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "musicians/modules/oscillator.md"
+}

@@ -71,7 +71,7 @@ struct JackSpec {
 
 /// Which plugin in Live (or which device of the standalone app, spec §11) a port node
 /// belongs to (spec §6). None for modules.
-enum class PortKind { None, Patch, MidiIn, MidiOut, AudioIn, AudioOut, Instrument, AudioInsert, AudioBridge, Link };
+enum class PortKind { None, Patch, MidiIn, MidiOut, AudioIn, AudioOut, Instrument, AudioInsert, AudioBridge, Link, MidiDevice };
 
 const char* portKindName(PortKind k) noexcept;
 
@@ -83,6 +83,7 @@ struct ModuleSpec {
     std::string description;
     PortKind port = PortKind::None;
     bool userCreatable = true;  ///< false for ports and cell boundaries
+    bool standaloneOnly = false;  ///< only offered in the standalone app (spec §11)
     std::vector<ParamSpec> params;
     std::vector<JackSpec> inputs;
     std::vector<JackSpec> outputs;
@@ -126,6 +127,7 @@ inline const char* portKindName(PortKind k) noexcept {
         case PortKind::AudioInsert: return "audio-insert";
         case PortKind::AudioBridge: return "audio-bridge";
         case PortKind::Link: return "link";
+        case PortKind::MidiDevice: return "midi-device";
         case PortKind::None: break;
     }
     return "";

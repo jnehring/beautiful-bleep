@@ -1,0 +1,10 @@
+{
+  "name": "VCA",
+  "slug": "vca",
+  "tagline": "Stereo amplifier with linear or exponential response; an envelope into Gain opens it.",
+  "colour": "#fb7185",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "musicians/modules/vca.md"
+}

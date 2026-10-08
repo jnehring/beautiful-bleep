@@ -4,7 +4,7 @@
 **Author:** Jan Nehring / Brilliant Bleep
 **Status:** Draft v0.2, October 2026. The core (engine, board, cells, Ableton bridge) is implemented in `patch/`; see `patch/README.md`.
 
-**Changes since v0.1:** Modules are no longer individual plugins in Live's device chain. They are nodes on one shared canvas, the **Bleep Board**, processed by a shared engine. In Live, users only add **ports** (MIDI/audio in and out) and the **Bleep Patch** plugin that opens the board. New: cells and poly cells, cable rules, the Ableton bridge, board persistence.
+**Changes since v0.1:** Modules are no longer individual plugins in Live's device chain. They are nodes on one shared canvas, the **Bleep Board**, processed by a shared engine. In Live, users only add **ports** (MIDI/audio in and out) and the **Bleep Patch** plugin that opens the board. New: cells and Voice Cells, cable rules, the Ableton bridge, board persistence.
 
 ---
 
@@ -35,7 +35,7 @@
 [8. Cells](#8-cells)<br>
 &emsp;&emsp;[8.1 Cells](#81-cells)<br>
 &emsp;&emsp;[8.2 Why cells matter](#82-why-cells-matter)<br>
-&emsp;&emsp;[8.3 Poly cells](#83-poly-cells)<br>
+&emsp;&emsp;[8.3 Voice Cells](#83-voice-cells)<br>
 [9. The board UI](#9-the-board-ui)<br>
 &emsp;&emsp;[9.1 Window model](#91-window-model)<br>
 &emsp;&emsp;[9.2 Layout](#92-layout)<br>
@@ -81,7 +81,7 @@
 
 Bleep Patch is a family of small, Eurorack-inspired building blocks that make Ableton Live feel modular: function generators, random sources, clocks, morph macros, filters, utilities.
 
-All blocks live on one shared canvas per Live set, the **Bleep Board**. On the board, modules are **nodes** and patch cables are directed connections between them. Nodes can be grouped into **cells**, which nest and can be copied. A **poly cell** turns a cell into a polyphonic voice.
+All blocks live on one shared canvas per Live set, the **Bleep Board**. On the board, modules are **nodes** and patch cables are directed connections between them. Nodes can be grouped into **cells**, which nest and can be copied. A **Voice Cell** turns one synthesizer voice into a polyphonic instrument.
 
 The board connects to Live through **ports**: small plugins that users drop onto tracks (*Bleep MIDI In*, *Bleep MIDI Out*, *Bleep Audio In*, *Bleep Audio Out*, *Bleep Instrument*, *Bleep Audio Insert*). Each port appears as a node on the board. Together, the ports form the **Ableton bridge**. Later bridges (OSC, CV, VCV Rack) connect the board to other worlds the same way.
 
@@ -117,7 +117,7 @@ Ableton Live is linear. Its strengths are clips, device chains and a fast workfl
 | **Module** | A processing node built into Bleep Patch (Function, Random, Filter, …). Modules exist only on the board, not as plugins in Live. |
 | **Cable** | A directed connection from an output jack to an input jack. |
 | **Cell** | A named group of nodes with its own input and output jacks. Cells can contain cells. Cells can be copied and saved as presets. |
-| **Poly cell** | A special cell that runs its contents once per voice and handles voice allocation and stealing (section 8.3). |
+| **Voice Cell** | A special cell: the user patches one voice inside; the cell runs it once per voice, assigns notes, steals voices (section 8.3). |
 | **Bridge** | A family of nodes that connect the board to the outside world. v1 has one: the **Ableton bridge**. |
 | **Port** | One plugin instance in Live that belongs to a bridge, e.g. one *Bleep MIDI Out* on a track. Each port is one node on the board. |
 | **Ghost** | A node whose port is currently unavailable (deleted, deactivated, frozen, not yet loaded). Shown greyed out. Its cables are kept. |
@@ -143,7 +143,7 @@ Ableton Live is linear. Its strengths are clips, device chains and a fast workfl
          │                  Envelope follower                │        one per set)
          │                          │ control → cutoff       │
          ▼                          ▼                        │
-   ┌─ Poly cell "Pad" (8 voices) ────────────────────────┐   │
+   ┌─ Voice Cell "Pad" (8 voices) ───────────────────────┐   │
    │ Voice In → Osc → Filter → Amp → Voice Out           ├───┘
    └─────────────────────────────────────────────────────┘
 
@@ -172,7 +172,7 @@ The board's DSP runs in a **shared engine**: a process-wide singleton inside the
   - **Board-internal clocks** run on the timestamps of the input data they belong to, so transport-synced modules stay on the grid after compensation.
   - `L` changes only when the buffer size or sample rate changes, never during playback or export.
   - **Not compensated:** *MIDI Out* → another track (Live doesn't compensate this routing reliably); modulation into external plugins via Bleep Bus (one block late, inaudible for modulation); monitored tracks when *Reduced Latency When Monitoring* is on (it bypasses delay compensation for those tracks).
-  - Playing live through the board (MIDI In → poly cell → Audio Out) adds `L` to the feel. Ports show their latency.
+  - Playing live through the board (MIDI In → Voice Cell → Audio Out) adds `L` to the feel. Ports show their latency.
 - **Timestamps.** Every block is stamped with the host's transport sample position, so the engine stays aligned under variable block sizes, transport jumps and offline rendering.
 - **Idle.** If no Bleep plugin is processing (e.g. all their tracks are deactivated), the engine does not run.
 - **CPU.** The whole board runs on whichever thread claimed the block, so it doesn't spread across Live's cores. Later: process independent cells (and poly voices) in parallel on a small worker pool.
@@ -317,7 +317,7 @@ All types except `notes` are written per sample, so audio-rate modulation is alw
 | any float type → `trigger` | Yes | Pulse on each rising edge through 0.5 |
 | `gate` / `trigger` → float input | Yes | 0 or 1 |
 | `notes` → `notes` | Yes | Direct |
-| `notes` → anything else | No | Use a *Notes to CV* utility or a poly cell's *Voice In* |
+| `notes` → anything else | No | Use a *Notes to CV* utility or a Voice Cell's *Voice In* |
 | anything else → `notes` | No | Use a *CV to Notes* utility |
 
 Implicit conversions show a small converter icon on the cable.
@@ -353,30 +353,90 @@ Connecting, disconnecting or changing an amount on an `audio` or `control` input
 
 - **Overview.** Large patches collapse into a few named blocks.
 - **Reuse.** "Wobble bass mod", "Euclidean hats", "Ambient drift pack" become one-click building blocks.
-- **Polyphony.** A poly cell is a cell that runs once per voice.
+- **Polyphony.** A Voice Cell runs one voice's patch once per voice (section 8.3).
 
-### 8.3 Poly cells
+### 8.3 Voice Cells
 
-A **poly cell** is a special cell that runs its contents once per voice.
+A **Voice Cell** turns one synthesizer voice into a polyphonic instrument. Inside, the user patches *one* voice, like a mono synth; the cell runs it once per voice and assigns incoming notes to the voices.
 
-- **Inputs:**
-  - one `notes` input (e.g. from Bleep MIDI In);
-  - any number of ordinary inputs. They are sent to all voices unchanged ("broadcast"), e.g. a global LFO.
-- **Inside,** a *Voice In* node provides per-voice signals:
-  - `pitch`, `gate`, `velocity`, `trigger` (note on), `pressure`, `release velocity`;
-  - `voice index` (0…N−1) and `voice random` (a seeded random value per voice and note), for per-voice variation.
-- **Inside,** a *Voice Out* node collects per-voice outputs:
-  - `audio` and `control` outputs are **summed** across voices;
-  - a `voice active` input tells the cell when a voice has finished sounding (e.g. connected to the amp envelope's end-of-cycle gate). If it's not connected, a voice ends when its gate is off and its audio has stayed below −90 dB for 50 ms.
-- **Settings:**
-  - **voices:** 1–16;
-  - **allocation:** round robin, lowest free voice, or reuse the voice already playing the same note;
-  - **stealing** when all voices are busy: oldest, quietest, lowest note, highest note, or none (drop the new note);
-  - **mode:** poly, mono, legato (mono with retrigger only on detached notes);
-  - **glide** time and mode (always / legato only).
-- **One definition, N voices.** The voices share one definition: editing the cell edits all voices. Variation comes from `voice index` and `voice random`.
+```
+ Outside (the board)                Voice Cell "Basic Poly" ×8
+                                    ┌─────────────────────────────────────────────┐
+ MIDI Device ── Notes ─────────────►│ Notes ─► voice allocation                  │
+ (C, E, G held)                     │   voice 1 ─► Voice In: Pitch C, Gate ─► Osc → VCA ─┐
+                                    │   voice 2 ─► Voice In: Pitch E, Gate ─► Osc → VCA ─┼─► Out L/R
+                                    │   voice 3 ─► Voice In: Pitch G, Gate ─► Osc → VCA ─┘   (summed)
+                                    └─────────────────────────────────────────────┘
+```
+
+#### 8.3.1 The voice interface
+
+Notes and per-voice signals live on two levels: outside, one `notes` cable carries all notes; inside, *Voice In* gives each voice the signals of the note it plays. *Notes* is the only way notes enter a Voice Cell. A mono source (a sequencer's pitch and gate) plays a Voice Cell through the **CV to Notes** module (section 12).
+
+**From outside**, fixed jacks (can't be removed or retyped) plus optional shared jacks:
+
+| Jack | Type | Fixed? | Meaning |
+|---|---|---|---|
+| **Notes** | `notes` | fixed | All notes; the cell assigns them to voices |
+| **Out L**, **Out R** | `audio` | fixed | All voices, summed |
+| Shared inputs | any but `notes` | optional | The same signal for every voice (an LFO, a cutoff macro, pitch bend) |
+| Shared outputs | `control`, `audio` | optional | Summed over the voices |
+
+**Inside**, two fixed nodes that can't be deleted, plus *Cell In* / *Cell Out* for the shared jacks:
+
+*Voice In* — outputs, per voice:
+
+| Output | Type | Meaning |
+|---|---|---|
+| Pitch | `pitch` | the note's pitch (1 V/oct, 0 = C4), with glide |
+| Gate | `gate` | high while the note is held |
+| Trigger | `trigger` | at each note start, also when a voice is stolen |
+| Velocity | `control` 0…1 | note-on velocity |
+| Release | `control` 0…1 | release velocity |
+| Pressure | `control` 0…1 | polyphonic aftertouch |
+| Voice # | `control` | 0 … voices − 1 |
+| Random | `control` −1…+1 | a new value per note, fixed while it plays: slight variation between voices (seeded, so renders repeat) |
+
+*Voice Out* — inputs, per voice:
+
+| Input | Type | Meaning |
+|---|---|---|
+| Out L | `audio` | the voice's audio |
+| Out R | `audio` | optional; without it, Out L feeds both sides |
+| Active | `gate` | optional; high while the voice still sounds (e.g. the amp ADSR's *Active*). Without it, a voice is free once its gate is off and its audio has stayed below −90 dB for 50 ms |
+
+**Rules:**
+- Ordinary cells may go inside a Voice Cell; Voice Cells can't be nested, and ports can't go inside.
+- A Voice Cell whose *Out L* isn't patched inside shows "no sound" on its node.
+- **Pitch bend** is per MIDI channel, not per note: it enters as a shared input (MIDI Device *Bend*) and is added to the oscillator's pitch inside. MPE (section 18) will put bend and slide on the notes themselves.
+
+#### 8.3.2 Settings
+
+| Setting | Values | Default |
+|---|---|---|
+| Voices | 1–16 | 8 |
+| Allocation | Round robin · lowest free · reuse the voice playing the same note | Round robin |
+| Stealing (all voices busy) | Oldest · quietest · lowest note · highest note · none (drop the new note) | Oldest |
+| Mode | Poly · mono · legato (mono, retrigger only on detached notes) | Poly |
+| Glide | time; always / legato only | 0 (off) |
+| Stereo spread | pans the voices across L/R | 0 % |
+| Output | sum · sum with gain compensation (÷√voices) | compensated |
+| Unison (later) | voices per note, detune spread | 1 |
+
+- **One definition, N voices.** Editing a knob inside changes it in every voice; variation comes from *Voice #* and *Random*.
 - **Sleeping voices** use no CPU.
-- **Nesting:** a poly cell may contain ordinary cells, but not another poly cell (v1).
+- **Cell controls** (section 8.1): a Voice Cell can expose up to 8 inner knobs as its own, which apply to all voices and are modulation targets from outside.
+
+#### 8.3.3 How users work with Voice Cells
+
+1. **Add.** *Add → Cell → New Voice Cell* (or Tab, "voice"). The cell arrives with its fixed jacks and a **starter voice** inside: Oscillator → VCA, an ADSR on the VCA's gain, the ADSR's *Active* on *Voice Out*. It makes sound right away; everything can be changed.
+2. **Connect** *Notes* (e.g. from MIDI Device) and *Out L/R* (e.g. to Audio Out).
+3. **Design the voice.** Double-click to enter; patch one voice.
+4. **Play it from outside.** Click the cell: its view shows the voice settings and the cell controls; dots on the node show which voices play.
+5. **Reuse.** Right-click → *Save as preset*, with a name and a category (e.g. *Synthesizers*). The preset appears under *Add → Cell → Synthesizers*, next to the factory presets.
+6. **Convert.** Right-click on an ordinary cell → *Make Voice Cell* adds *Voice In* and *Voice Out*; the cell's existing jacks become shared jacks.
+
+**Factory preset *Basic Poly*** (*Add → Cell → Synthesizers*): Oscillator → Multi Filter → VCA, one ADSR for the filter, one for the VCA, 8 voices, with shared inputs *Cutoff* and *Bend*.
 
 ## 9. The board UI
 
@@ -398,7 +458,7 @@ A **poly cell** is a special cell that runs its contents once per voice.
 ┌─ Board › Pad ──────────────────────────── [Add ⇥]  ↶ ↷   CPU 7%   L 256 smp ─┐
 │ BROWSER        │ CANVAS                                                      │
 │ In this set    │  ▌Keys          ┌─ Pad ×8 ─────┐          ▌Synth            │
-│  ▌Keys         │  ▌MIDI In ●━━━━▶│ Poly cell    │━━━━━━━━━▶ ▌Audio Out       │
+│  ▌Keys         │  ▌MIDI In ●━━━━▶│ Voice Cell   │━━━━━━━━━▶ ▌Audio Out       │
 │  ▌Synth        │                 │ ●●●○○○○○     │                             │
 │  ┆Drums (ghost)│  Wobble ●───────▶└──────────────┘    ┌─ Function · Wobble ─┐  │
 │  Grit · Bus    │  Function ●───────────────▶ Grit     │ (Rise) (Fall) ...   │  │
@@ -425,7 +485,7 @@ Nodes are compact: name, type, jacks and a mini scope per output. Knobs live in 
 | Port | Stripe in its Live track's colour, track name (if Live passes track name and colour to plugins; to be tested) |
 | External plugin | Card with a "Bus" badge |
 | Cell | Thicker border, its jacks and up to 8 cell controls |
-| Poly cell | Voice count (e.g. ×8) and one dot per voice that lights while the voice plays |
+| Voice Cell | Voice count (e.g. ×8) and one dot per voice that lights while the voice plays |
 | Ghost | Dashed and greyed; cables dimmed |
 
 - **Semantic zoom:** zoomed out, only names and cables; zoomed in, jack names and scopes.
@@ -465,7 +525,10 @@ Module view sketch:
 
 ### 9.6 Editing and cells
 
-- **Add** a module with Tab or a double-click on empty space (a search field opens at the cursor), or by dragging from the browser.
+- **Add** from the **Add menu** (the top bar's *Add* button or right-click on empty space):
+  - *Module ›* one submenu per category (*Sources*, *Modulation*, *Audio*, *Utility*) with its modules;
+  - *Cell ›* *New Cell*, *New Voice Cell*, and one submenu per preset category (*Synthesizers ›* *Basic Poly*, …, then the user's own categories).
+  Tab or a double-click on empty space opens a search field at the cursor; the browser lists the same items for dragging.
 - **Rename** with a double-click on the title.
 - **Select** with a drag box; Shift adds to the selection.
 - **Duplicate** with ⌘D: copies the nodes and the cables between them. ⌘⇧D also keeps the incoming cables.
@@ -474,8 +537,8 @@ Module view sketch:
 - **Cells:**
   - ⌘G groups the selection into a cell; cables crossing the new border become cell jacks. ⌘⇧G ungroups.
   - Double-click enters a cell; Esc or the breadcrumb leads back out.
-  - Right-click → *Make poly* turns a cell into a poly cell and adds *Voice In* and *Voice Out*.
-  - Right-click → *Save as preset* adds the cell to the browser.
+  - Right-click → *Make Voice Cell* turns a cell into a Voice Cell (section 8.3.3).
+  - Right-click → *Save as preset*, with a name and a category, adds the cell to the Add menu and the browser.
 
 ### 9.7 Panels
 
@@ -491,7 +554,7 @@ A **panel** is a custom UI that combines several module views into one front pan
 - **Where panels show up:**
   - in the board window, as a floating window like a module view;
   - **in a Bleep Panel plugin** (see below), for playing without the board;
-  - **inside a port's plugin window.** Each port can be set to show one panel instead of its default settings view. Main case: the *Bleep Instrument* plugin window shows the panel of the poly cell it plays, so a board synth feels like a normal instrument in Live.
+  - **inside a port's plugin window.** Each port can be set to show one panel instead of its default settings view. Main case: the *Bleep Instrument* plugin window shows the panel of the Voice Cell it plays, so a board synth feels like a normal instrument in Live.
 - **Bleep Panel plugin.** A VST3 plugin whose only job is to show one panel:
   - The user drops it on any track (it passes audio through untouched) and picks a panel from a dropdown in its window. Live's floating plugin window can then be placed anywhere on screen, next to the arrangement, the mixer or a second monitor.
   - Any number of Bleep Panels per set; several can show the same panel. Each remembers its panel by ID; if the panel is deleted from the board, it shows "Panel not found" and the dropdown.
@@ -630,28 +693,42 @@ Each module is our own design, built from generic modular concepts.
 | **Drift** | Slow chaotic systems (coupled differential equations) | Organic, never-repeating movement over seconds to hours. |
 | **Clock** | Transport-locked divisions/multiplications, Euclidean patterns, probability gates, swing | A full rhythmic modulation source, phase-locked to Live's bars. |
 | **Morph** | Keyframe snapshots + interpolation, XY pad | One knob or one LFO morphs many destinations through stored states. |
-| **Utility** | Attenuverter, offset, mix, slew, S&H, comparator, logic, rectify/fold, quantizer, Notes to CV, CV to Notes | The glue. Small, cheap, endlessly combinable. |
-| **Filter** | Zero-delay-feedback state-variable filter, mode morph, drive, key-tracking, envelope follower out | See below. |
-| **Oscillator** | Band-limited classic waveforms, wave morph, sync, through-zero FM | The basic sound source for synths on the board. |
-| **Amp / Mixer** | VCA with linear/exponential response, small mixer with pan | Turns envelopes into loudness; sums voices and signals. |
+| **Utility** | Attenuverter, offset, mix, slew, S&H, comparator, logic, rectify/fold, quantizer | The glue. Small, cheap, endlessly combinable. |
+| **Multi Filter** | Several filter algorithms behind one panel: a **Type** dropdown, plus mode morph, drive, key-tracking, envelope follower out | See below. |
+| **Oscillator** | Triangle-core oscillator: waveform morph, through-zero FM, hard sync, sub | See below. The basic sound source for synths on the board. |
+| **VCA** | Voltage-controlled amplifier, linear or exponential response, stereo | Turns envelopes into loudness. Its *Gain* knob starts at 0, so an envelope patched into it opens it fully. |
+| **ADSR** | Attack, decay, sustain, release; velocity amount; retrigger | Outputs *Env*, *End* (trigger when the release finishes) and *Active* (gate while the envelope runs, for a Voice Cell's *Voice Out*). |
+| **CV to Notes** | Pitch + gate → `notes` | Lets mono sources (sequencers, Random + Utility) play Voice Cells. Legato on pitch changes while the gate is high. |
+| **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
-**Filter details:**
-- **Core:** a state-variable filter in zero-delay-feedback (TPT) form, with LP / BP / HP / notch outputs and continuous morphing between modes. It stays stable and click-free under fast, even audio-rate, modulation.
+**Multi Filter details:**
+- **Type** dropdown, one algorithm each:
+  - *Clean*: a state-variable filter in zero-delay-feedback (TPT) form. Stable and click-free under fast, even audio-rate, modulation.
+  - *Rough*: a 12 dB/oct multimode filter with saturating, slightly unstable stages that growls and distorts when driven and pushed into resonance — the character of classic gritty analog multimode filters, designed from general principles.
+  - More types later (e.g. a 24 dB ladder).
+- **Mode** morphs continuously LP → BP → HP → notch in every type.
 - **Controls:** cutoff, resonance, drive, mode/morph, mix.
 - **Cutoff modulation** is applied in the exponential (octave) domain, so a bipolar signal sweeps musically.
 - **Pitch input** for key-tracking.
 - **Envelope follower** on the filtered signal as a `control` output, so audio drives modulation elsewhere.
+- The module keeps its saved type id (`filter`), so boards from before keep loading (as type *Clean*).
 
-MIDI In and MIDI Out are no longer modules; they are ports (section 6).
+**Oscillator details:** a triangle core, as in classic through-zero analog oscillators, designed from general principles:
+- **Pitch:** octave (−3…+3), coarse (±12 semitones), fine (±100 cents), plus the 1 V/oct *Pitch* input.
+- **Waveforms:** separate outputs *Sine*, *Triangle*, *Saw*, *Square* and *Sub* (square, one octave down), and *Out*, a continuous morph sine → triangle → saw → square (*Shape*). *Pulse Width* for the square. Saw and square are band-limited.
+- **Through-zero FM:** the *FM* input (audio) with *FM Depth*; the core runs backwards for negative frequencies, so deep FM stays in tune.
+- **Hard sync:** a rising edge on *Sync* restarts the cycle.
 
-Function plus Utility already cover the motivating case: an LFO modulates another LFO, and the result is routed to several destinations at different amounts. Bleep MIDI In + a poly cell (Oscillator, Function, Filter, Amp) + Bleep Audio Out is a complete polyphonic synth.
+MIDI In and MIDI Out are no longer modules; they are ports (section 6). In the standalone app, the **MIDI Device** module reads a controller directly.
+
+Function plus Utility already cover the motivating case: an LFO modulates another LFO, and the result is routed to several destinations at different amounts. MIDI Device + a Voice Cell (Oscillator, Multi Filter, VCA, ADSR) + an audio output is a complete polyphonic synth; *Basic Poly* is exactly that.
 
 **Software advantages to exploit:**
 - **Transport sync** and phase reset to bars.
 - **Seeded randomness.**
 - **Unlimited mod inputs**, since every knob is one.
 - **A scope on every output.**
-- **Polyphony** through poly cells.
+- **Polyphony** through Voice Cells.
 
 ## 13. Native support in Brilliant Bleep plugins
 
@@ -705,7 +782,7 @@ Documentation is split by **audience**, not crammed into one file. It lives in t
 | **Quickstart** | Every developer, first contact | Minimal plugin that appears on the board with one input and one output, built and running in Live in 15 minutes. Small enough to paste into a coding AI in full. |
 | **API reference** | Plugin developers using the SDK | Concepts, signal conventions, lifecycle, every function/struct/enum/error code, C++/JUCE wrapper, complete examples, host notes, pitfalls, conformance checklist. |
 | **Specification** | People reimplementing the bus without the SDK (other languages, bridges) | Shared-memory layout, atomics and memory ordering, registry internals, versioning and extension rules. |
-| **User docs** | Musicians | Getting started, the board, ports, cells and poly cells, module manuals, Ableton integration guides, tutorials (section 16.1). |
+| **User docs** | Musicians | Getting started, the board, ports, cells and Voice Cells, module manuals, Ableton integration guides, tutorials (section 16.1). |
 
 Requirements:
 
@@ -757,7 +834,7 @@ Bleep Patch gets its own homepage. It serves both audiences: **musicians** who u
   - the virtual-loopback CC workaround (IAC / loopMIDI);
   - later, the M4L Bridge and Extensions companion tools.
 - **Patch library.** Downloadable cell presets and example Live sets; later, community-submitted cells.
-- **Tutorials and recipes.** For example "LFO modulating LFO", "build a poly synth with a poly cell", "generative melodies with Random + MIDI Out", "slow drift for ambient textures".
+- **Tutorials and recipes.** For example "LFO modulating LFO", "build a poly synth with a Voice Cell", "generative melodies with Random + MIDI Out", "slow drift for ambient textures".
 - **Browser playground (later).** A web version of the board with a few modules (e.g. Function + Utility + Oscillator + Filter) to try patching without installing anything.
 
 ### 16.2 Content for developers
@@ -800,7 +877,7 @@ bleep/
 │   └── conformance/           Test host and validator
 ├── patch/                     Bleep Patch: one plugin bundle
 │   ├── README.md              Short: what's in the bundle, build, link to user docs
-│   ├── engine/                Shared engine: graph, scheduling, cells, poly cells, state, undo
+│   ├── engine/                Shared engine: graph, scheduling, cells, Voice Cells, state, undo
 │   ├── board/                 The board window: canvas, browser, module views, panels
 │   ├── app/                   The standalone Bleep Patch app (section 11)
 │   ├── common/                Shared UI and DSP: mod rings, cables, scopes, filters, smoothing
@@ -849,7 +926,7 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 | **OSC bridge** | TouchOSC, Max, Pure Data, SuperCollider, TouchDesigner, game engines, lighting software, custom apps | OSC is packet-based (UDP) and not sample-accurate, so it's an edge gateway, never the internal transport. Node and jack names follow an OSC-compatible address scheme (`/bass/function1/a`) so they map one to one. |
 | **VCV Rack bridge** | The largest software-modular community; inside Live via VCV Rack Pro | A Rack module that appears on the board as a node. The Rack SDK is GPLv3: either open-source the bridge or obtain a commercial license from VCV. |
 | **CV bridge** | Real Eurorack hardware via DC-coupled audio interfaces (e.g. Expert Sleepers) | Virtual volts (1.0 = 1 V/oct for pitch, bipolar ±1 ≈ ±5 V, gate high at 0.5) map directly to real voltages. |
-| **MIDI extensions** | MPE synths, high-resolution MIDI receivers, future MIDI 2.0 hosts | MIDI In/Out ports gain MPE (per-note pitch bend, pressure, slide), 14-bit CC / NRPN, and MIDI 2.0 / UMP as hosts adopt it. MPE maps naturally onto the `notes` type and poly cells. |
+| **MIDI extensions** | MPE synths, high-resolution MIDI receivers, future MIDI 2.0 hosts | MIDI In/Out ports gain MPE (per-note pitch bend, pressure, slide), 14-bit CC / NRPN, and MIDI 2.0 / UMP as hosts adopt it. MPE maps naturally onto the `notes` type and Voice Cells. |
 | **M4L bridge** | Any Live or third-party parameter (Suite) | `live.remote~`; see section 5.8. |
 | **Ableton Link** | The standalone app (section 11.4), the browser playground, hardware bridges | Not needed inside plugins (the host provides transport). Link is GPLv2-or-later for open source; closed-source use needs a license from Ableton. |
 | **Network bridge** | Board signals between computers on a LAN | E.g. via OSC or a dedicated protocol, with discovery via mDNS/DNS-SD. Latency and clock-sync caveats apply. |
@@ -867,7 +944,7 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 |---|---|
 | **0: Technical prototype** | Plugin bundle with two ports and the shared engine in Live: block claiming, port latency, timing and jitter under different buffer sizes, thread loads and offline export. Port latency reporting and Live's delay compensation. Board window as a non-host top-level window (focus, keyboard, hide/show) on macOS and Windows. Main-plugin persistence across save/load, track duplication, copy/paste between sets and undo in Live. Test MIDI ports as instrument vs. effect. |
 | **1: Core release** | Engine, board (nodes, cables, cells, floating module views, undo, cell presets), Ableton bridge (Bleep Patch with macros, MIDI In, MIDI Out, Audio In, Audio Out, Bleep Instrument, Audio Insert). Modules: Function, Utility, Random, Filter. Bus v1 spec, open SDK, developer docs, conformance suite, **Bleep Patch homepage**. Bus inputs in Grit and Cinch. |
-| **2: Synthesis and expansion** | Poly cells; panels stage 1 (combined module views, shown in the board, in port plugin windows and in the **Bleep Panel** plugin); Oscillator, Amp/Mixer; Clock, Drift, Morph; native bus inputs across the Brilliant Bleep line; patch library on the homepage. |
+| **2: Synthesis and expansion** | Voice Cells, Oscillator, Multi Filter, VCA, ADSR, CV to Notes, MIDI Device (standalone); panels stage 1 (combined module views, shown in the board, in port plugin windows and in the **Bleep Panel** plugin); Oscillator, Amp/Mixer; Clock, Drift, Morph; native bus inputs across the Brilliant Bleep line; patch library on the homepage. |
 | **2b: Standalone** | The Bleep Patch app (section 11): projects, device bridge, virtual MIDI ports, Bleep Audio Bridge, Ableton Link node. |
 | **3: Live bridge** | M4L Bridge device (`live.remote~`); Extensions SDK companion tools (routing setup, render-to-automation). |
 | **4: Beyond** | Panel controls (encoders, faders, XY pads with multi-target mappings), custom-programmed HTML/JS views, MIDI-learn for panels; multi-core engine, "tight feedback" cells, audio over Bleep Bus, MPE, CLAP per-voice modulation in supporting hosts, community registry, community patch library and browser playground. |
@@ -885,7 +962,7 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 - **Board persistence.** Main-plugin model (section 5.4): verify duplication, copy/paste between sets and Live's undo in phase 0.
 - **Board window.** A non-host top-level window may misbehave in some Live versions (focus, z-order, full-screen, multiple monitors).
 - **Bleep Audio Bridge deadline.** The app must process each block within one buffer, in another process (section 11.5).
-- **CPU.** One thread for the whole board until the multi-core engine exists. Large poly cells may hit this early.
+- **CPU.** One thread for the whole board until the multi-core engine exists. Large Voice Cells may hit this early.
 - **Offline rendering.** The engine must behave deterministically when Live exports faster or slower than real time.
 - **Spec stability vs. speed.** Opening the spec early invites adoption but makes changes costlier. Mark v0.x as experimental.
 - **Naming and trademarks.** Final product and protocol names; avoid any confusion with existing modules or brands.

@@ -58,7 +58,10 @@
   /// A little of the engine's sanitise(): dangling cables go, ports stay.
   function sanitise(next) {
     const ids = new Set(next.nodes.map((n) => n.id));
-    for (const n of board.nodes) if (n.port && !ids.has(n.id)) { next.nodes.push(n); ids.add(n.id); }
+    for (const n of board.nodes) {
+      const t = typeOf(n.type);
+      if (n.port && !ids.has(n.id) && !(t && t.creatable)) { next.nodes.push(n); ids.add(n.id); }
+    }
     next.cables = next.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node));
     return next;
   }
@@ -101,6 +104,7 @@
           entry.params[p.id] = { v, e, a: into.length > 0, t: paramText(p, into.length ? e : v) };
         }
       }
+      if (n.type === "voice-cell") entry.voices = Math.floor(t * 2) % 2 ? 0b101 : 0b011;
       nodes[n.id] = entry;
     });
     emit("state", { nodes, ports });
@@ -113,7 +117,7 @@
         case "init":
           types = await (await fetch("demo-types.json")).json();
           board = store.get("bleep-demo-board", null) || demoBoard();
-          return Object.assign(message(), { types, dev: true });
+          return Object.assign(message(), { types, dev: true, standalone: true });
         case "commit":
           pushUndo();
           board = sanitise(clone(a[0]));
@@ -139,6 +143,7 @@
           return null;
         }
         case "watch": watched = a[0] || []; return null;
+        case "midiDevices": return ["Demo Keyboard", "Demo Pads"];
         case "presets": return store.get("bleep-demo-presets", []);
         case "savePreset": {
           const list = store.get("bleep-demo-presets", []).filter((p) => p.name !== a[0]);

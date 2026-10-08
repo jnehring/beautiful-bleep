@@ -49,7 +49,7 @@ if (NOT TARGET bleep_bus)
 endif ()
 
 # Pure DSP, no JUCE.
-set(BLEEP_MODULES function random utility filter)
+set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes)
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)
@@ -86,7 +86,8 @@ set(BLEEP_ENGINE_SOURCES
     engine/Engine.cpp
     engine/PortModules.cpp
     engine/Program.cpp
-    engine/Registry.cpp)
+    engine/Registry.cpp
+    engine/VoiceCell.cpp)
 foreach (m IN LISTS BLEEP_MODULES)
     file(GLOB module_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
     list(APPEND BLEEP_ENGINE_SOURCES ${module_sources})
@@ -216,7 +217,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
     target_include_directories(bleep_board_smoke PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_board_smoke PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
         BLEEP_BOARD_SMOKE_TEST=1 "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
-    target_link_libraries(bleep_board_smoke PRIVATE bleep_board_web bleep_patch_dsp juce::juce_gui_extra
+    target_link_libraries(bleep_board_smoke PRIVATE bleep_board_web bleep_patch_dsp juce::juce_gui_extra juce::juce_audio_devices
         juce::juce_recommended_config_flags)
 endif ()
 

@@ -1,0 +1,10 @@
+{
+  "name": "CV to Notes",
+  "slug": "cv-to-notes",
+  "tagline": "Pitch and gate in, notes out: mono sources play Voice Cells.",
+  "colour": "#a78bfa",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "musicians/modules/cv-to-notes.md"
+}

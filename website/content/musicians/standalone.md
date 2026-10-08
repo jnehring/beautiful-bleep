@@ -14,6 +14,13 @@ saved as `.bleepboard` files (File → Save).
 Choose your audio interface in **File → Settings**. Its inputs and outputs are
 nodes on the board: *In 1/2*, *Out 1/2* and so on.
 
+## A MIDI keyboard
+
+Add **MIDI Device** (*Add → Module → Sources*), click it and choose your
+controller. Patch its *Notes* into a Voice Cell — e.g. *Basic Poly* — and the
+cell's *Out L/R* into *Out 1/2*. MIDI Device also has mono *Pitch*, *Gate*,
+*Velocity*, *Bend*, *Mod Wheel* and CCs. It exists only in the app.
+
 ## MIDI to and from Live
 
 The app has its own MIDI ports, **Bleep Patch 1** and **Bleep Patch 2** (more in

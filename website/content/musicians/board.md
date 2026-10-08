@@ -8,6 +8,18 @@ order: 1
 One canvas per Live set with every module, port and cable. Open it from any
 Bleep plugin's window (it opens with the window, or comes to the front).
 
+## Adding things
+
+**Add** (top left, or right-click on empty space) opens the Add menu:
+
+- **Module ›** one submenu per category: *Sources*, *Modulation*, *Audio*,
+  *Utility*.
+- **Cell ›** *New Cell*, *New Voice Cell*, and your cell presets by category
+  (*Synthesizers › Basic Poly* comes with Bleep Patch).
+
+Tab (or a double-click on empty space) opens a search at the cursor instead.
+See [Voice Cells](voice-cells.md) for polyphonic synths.
+
 ## Patching
 
 - **Drag from an output** (the dots on the right of a node) to an input on

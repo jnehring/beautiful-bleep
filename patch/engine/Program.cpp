@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "Program.h"
 
+#include "VoiceCell.h"
+
 #include <algorithm>
 #include <functional>
 
@@ -8,7 +10,9 @@ namespace bleep::engine {
 
 namespace {
 
-bool isStructural(const std::string& type) { return type == kCell || type == kCellIn || type == kCellOut; }
+bool isStructural(const std::string& type) {
+    return type == kCell || type == kCellIn || type == kCellOut || type == kVoiceIn || type == kVoiceOut;
+}
 
 bool writesToTrack(PortKind k) {
     return k == PortKind::MidiOut || k == PortKind::AudioOut || k == PortKind::Instrument || k == PortKind::AudioInsert ||
@@ -18,6 +22,7 @@ bool writesToTrack(PortKind k) {
 struct Resolved {
     std::string node, jack;
     float amount;
+    const float* buffer = nullptr;  ///< an external source (scope)
 };
 
 }  // namespace
@@ -25,8 +30,9 @@ struct Resolved {
 std::unique_ptr<Program> Program::compile(const BoardModel& board,
                                           std::map<std::string, std::shared_ptr<Module>>& modules,
                                           const std::map<std::string, std::shared_ptr<PortSlot>>& ports,
-                                          double sampleRate) {
+                                          double sampleRate, const Scope* scope) {
     auto program = std::make_unique<Program>();
+    const std::string root = scope ? scope->root : std::string();
     program->sampleRate_ = sampleRate;
     const auto& reg = Registry::get();
 
@@ -39,7 +45,25 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
     std::multimap<std::pair<std::string, std::string>, const CableModel*> into;
     for (const auto& c : board.cables) into.emplace(std::make_pair(c.to.node, c.to.jack), &c);
 
-    auto isReal = [](const NodeModel& n) { return n.spec != nullptr && !isStructural(n.type) && !n.muted; };
+    // The Voice Cell a node belongs to ("" for none): its scope.
+    auto voiceRoot = [&](const NodeModel& n) {
+        std::string p = n.parent;
+        for (int depth = 0; !p.empty() && depth < 64; ++depth) {
+            auto it = byId.find(p);
+            if (it == byId.end()) break;
+            if (it->second->type == kVoiceCell) return p;
+            p = it->second->parent;
+        }
+        return std::string();
+    };
+    auto isReal = [&](const NodeModel& n) {
+        return n.spec != nullptr && !isStructural(n.type) && !n.muted && voiceRoot(n) == root;
+    };
+    auto external = [&](const std::string& node, const std::string& jack) -> const float* {
+        if (!scope) return nullptr;
+        auto it = scope->external.find({node, jack});
+        return it != scope->external.end() ? it->second : nullptr;
+    };
 
     // Follows cables back to real outputs, through cell jacks (spec §8.1).
     std::function<void(const std::string&, const std::string&, float, int, std::vector<Resolved>&)> resolveInto;
@@ -53,7 +77,10 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
             if (s == byId.end()) continue;
             const NodeModel& src = *s->second;
             const float amount = scale * c.amount;
-            if (src.type == kCellIn) {
+            if (src.type == kVoiceIn || (src.type == kCellIn && scope && src.parent == root)) {
+                if (const float* b = external(src.type == kVoiceIn ? src.id : root, c.from.jack))
+                    out.push_back({src.id, c.from.jack, amount, b});
+            } else if (src.type == kCellIn) {
                 resolveInto(src.parent, c.from.jack, amount, depth + 1, out);
             } else if (src.type == kCell) {
                 if (auto co = cellOutOf.find(src.id); co != cellOutOf.end())
@@ -74,9 +101,13 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         for (const auto& p : n.spec->params)
             if (p.modulatable) resolveInto(n.id, p.id, 1.0f, 0, found);
         for (const auto& j : n.spec->inputs) resolveInto(n.id, j.id, 1.0f, 0, found);
+        if (n.type == kVoiceCell) {  // its jacks are on the node, not in the registry spec
+            for (const auto& j : n.cellInputs) resolveInto(n.id, j.id, 1.0f, 0, found);
+            resolveInto(n.id, "notes", 1.0f, 0, found);
+        }
         auto& d = deps[n.id];
         for (const auto& r : found)
-            if (std::find(d.begin(), d.end(), r.node) == d.end()) d.push_back(r.node);
+            if (!r.buffer && std::find(d.begin(), d.end(), r.node) == d.end()) d.push_back(r.node);
     }
 
     // Topological order; an edge back into the current path is feedback.
@@ -103,7 +134,10 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
     for (const auto* n : order) {
         std::shared_ptr<Module> m;
         if (auto it = modules.find(n->id); it != modules.end() && it->second->spec().type == n->type) m = it->second;
-        if (!m) {
+        if (n->type == kVoiceCell) {
+            // Always rebuilt (its inside may have changed); its voices keep their state.
+            m = VoiceCellModule::create(board, *n, std::dynamic_pointer_cast<VoiceCellModule>(m), sampleRate);
+        } else if (!m) {
             m = std::shared_ptr<Module>(reg.create(n->type).release());
             if (!m) continue;
             m->prepare(sampleRate);
@@ -131,7 +165,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         Step st;
         st.nodeId = n->id;
         st.module = mod->second;
-        const ModuleSpec& spec = *n->spec;
+        const ModuleSpec& spec = st.module->spec();  // a Voice Cell's spec carries its own jacks
         for (const auto& o : spec.outputs) {
             if (o.type == Signal::Notes) {
                 st.noteOutputs.push_back(std::make_unique<NoteBuffer>());
@@ -157,7 +191,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
 
     for (auto& st : program->steps_) {
         const NodeModel& n = *byId[st.nodeId];
-        const ModuleSpec& spec = *n.spec;
+        const ModuleSpec& spec = st.module->spec();
         for (const auto& p : spec.params) {
             st.paramBuffers.push_back(std::make_unique<float[]>(kChunk));
             std::vector<Source> sources;
@@ -165,7 +199,8 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
                 std::vector<Resolved> found;
                 resolveInto(n.id, p.id, 1.0f, 0, found);
                 for (const auto& r : found)
-                    if (auto b = outBuf.find({r.node, r.jack}); b != outBuf.end()) sources.push_back({b->second, r.amount});
+                    if (r.buffer) sources.push_back({r.buffer, r.amount});
+                    else if (auto b = outBuf.find({r.node, r.jack}); b != outBuf.end()) sources.push_back({b->second, r.amount});
             }
             st.paramSources.push_back(std::move(sources));
         }
@@ -182,7 +217,8 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
                 st.inputBuffers.push_back(nullptr);
             } else {
                 for (const auto& r : found)
-                    if (auto b = outBuf.find({r.node, r.jack}); b != outBuf.end()) sources.push_back({b->second, r.amount});
+                    if (r.buffer) sources.push_back({r.buffer, r.amount});
+                    else if (auto b = outBuf.find({r.node, r.jack}); b != outBuf.end()) sources.push_back({b->second, r.amount});
                 st.inputBuffers.push_back(std::make_unique<float[]>(kChunk));
                 std::fill_n(st.inputBuffers.back().get(), kChunk, 0.0f);
                 st.noteInputs.push_back(nullptr);
@@ -198,6 +234,18 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         for (auto& b : st.noteOutputs) st.notesOutPtrs.push_back(b.get());
         st.io.slot = st.port.get();
     }
+
+    // Taps: what feeds Voice Out and the cell's shared outputs, per voice.
+    if (scope)
+        for (const auto& t : scope->taps) {
+            std::vector<Resolved> found;
+            resolveInto(t.node, t.jack, 1.0f, 0, found);
+            std::vector<Source> sources;
+            for (const auto& r : found)
+                if (r.buffer) sources.push_back({r.buffer, r.amount});
+                else if (auto b = outBuf.find({r.node, r.jack}); b != outBuf.end()) sources.push_back({b->second, r.amount});
+            program->taps_.push_back(std::move(sources));
+        }
     return program;
 }
 
@@ -205,15 +253,21 @@ void Program::run(const Transport& t, int numSamples, bool transportStarted) noe
     const int n = std::min(numSamples, kMaxHostBlock);
     const double ppqPerSample = t.bpm / 60.0 / std::max(t.sampleRate, 1.0);
     for (int off = 0; off < n; off += kChunk) {
-        const int m = std::min(kChunk, n - off);
         ProcessContext ctx;
-        ctx.numSamples = m;
+        ctx.numSamples = std::min(kChunk, n - off);
         ctx.offset = off;
         ctx.transport = &t;
         ctx.transportStarted = transportStarted && off == 0;
         ctx.ppqStart = t.ppq + ppqPerSample * off;
         ctx.ppqPerSample = ppqPerSample;
+        runChunk(ctx);
+    }
+}
 
+void Program::runChunk(const ProcessContext& chunk) noexcept {
+    ProcessContext ctx = chunk;
+    const int m = ctx.numSamples;
+    {
         for (auto& st : steps_) {
             Module& mod = *st.module;
             for (size_t i = 0; i < st.paramBuffers.size(); ++i) {

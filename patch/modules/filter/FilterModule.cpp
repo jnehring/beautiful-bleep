@@ -12,7 +12,7 @@ using patch::FilterParams;
 
 class FilterModule final : public Module {
 public:
-    enum { Cutoff, Resonance, Drive, Morph, Mix, KeyTrack };
+    enum { Cutoff, Resonance, Drive, Morph, Mix, KeyTrack, Type };
     enum { InL, InR, Pitch };
     enum { OutL, OutR, Env };
 
@@ -28,6 +28,7 @@ public:
         // A mono source (only L patched) feeds both channels.
         const float* inR = c.inputConnected[InR] ? c.inputs[InR] : c.inputs[InL];
         FilterParams p;
+        p.type = (int)setting(Type);
         for (int i = 0; i < c.numSamples; ++i) {
             p.cutoff = c.params[Cutoff][i];  // normalised = octave domain
             p.resonance = value(c, Resonance, i);
@@ -51,10 +52,10 @@ private:
 void registerFilterModule(Registry& r) {
     ModuleSpec s;
     s.type = "filter";
-    s.name = "Filter";
+    s.name = "Multi Filter";
     s.category = "Audio";
     s.colour = "#f472b6";
-    s.description = "Stereo state-variable filter with LP/BP/HP/notch morph, drive, key tracking and an envelope out.";
+    s.description = "Stereo multimode filter with several algorithms (Type): LP/BP/HP/notch morph, drive, key tracking, envelope out.";
     ParamSpec mode = ParamSpec::number("mode", "Mode", 0.0f, 1.0f, 0.0f);
     mode.format = ParamSpec::Format::FilterMode;
     s.params = {ParamSpec::hertz("cutoff", "Cutoff", 20.0f, 20000.0f, 2000.0f),
@@ -62,7 +63,8 @@ void registerFilterModule(Registry& r) {
                 ParamSpec::percent("drive", "Drive", 0.0f, 1.0f, 0.0f),
                 mode,
                 ParamSpec::percent("mix", "Mix", 0.0f, 1.0f, 1.0f),
-                ParamSpec::percent("keytrack", "Key Track", 0.0f, 1.0f, 0.0f)};
+                ParamSpec::percent("keytrack", "Key Track", 0.0f, 1.0f, 0.0f),
+                ParamSpec::choice("type", "Type", {"Clean", "Rough"}, 0)};
     s.inputs = {{"l", "In L", Signal::Audio}, {"r", "In R", Signal::Audio}, {"pitch", "Pitch", Signal::Pitch}};
     s.outputs = {{"l", "Out L", Signal::Audio, true}, {"r", "Out R", Signal::Audio, true},
                  {"env", "Env", Signal::Control, false}};

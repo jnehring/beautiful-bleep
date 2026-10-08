@@ -17,7 +17,13 @@ const NodeModel* BoardModel::node(const std::string& nodeId) const noexcept {
 bool BoardModel::outputType(const NodeModel& n, const std::string& jack, Signal& type) const noexcept {
     const std::vector<CellJack>* jacks = nullptr;
     if (n.type == kCell) jacks = &n.cellOutputs;
-    else if (n.type == kCellIn) {
+    else if (n.type == kVoiceCell) {
+        if (jack == "l" || jack == "r") {  // fixed (spec §8.3.1)
+            type = Signal::Audio;
+            return true;
+        }
+        jacks = &n.cellOutputs;
+    } else if (n.type == kCellIn) {
         if (const auto* cell = node(n.parent)) jacks = &cell->cellInputs;
     }
     if (jacks) {
@@ -38,7 +44,13 @@ bool BoardModel::outputType(const NodeModel& n, const std::string& jack, Signal&
 bool BoardModel::inputType(const NodeModel& n, const std::string& jack, Signal& type) const noexcept {
     const std::vector<CellJack>* jacks = nullptr;
     if (n.type == kCell) jacks = &n.cellInputs;
-    else if (n.type == kCellOut) {
+    else if (n.type == kVoiceCell) {
+        if (jack == "notes") {
+            type = Signal::Notes;
+            return true;
+        }
+        jacks = &n.cellInputs;
+    } else if (n.type == kCellOut) {
         if (const auto* cell = node(n.parent)) jacks = &cell->cellOutputs;
     }
     if (jacks) {
@@ -137,7 +149,8 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
     std::set<juce::String> ids, ports, cells;
     if (auto* a = in["nodes"].getArray()) {
         for (const auto& n : *a)
-            if (str(n, "type") == kCell && str(n, "id").isNotEmpty()) cells.insert(str(n, "id"));
+            if ((str(n, "type") == kCell || str(n, "type") == kVoiceCell) && str(n, "id").isNotEmpty())
+                cells.insert(str(n, "id"));
         for (const auto& n : *a) {
             const juce::String id = str(n, "id"), type = str(n, "type");
             const ModuleSpec* spec = reg.find(type.toStdString());
@@ -172,7 +185,7 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
                     continue;
                 }
             }
-            if ((type == kCellIn || type == kCellOut) && parent.isEmpty()) {
+            if ((type == kCellIn || type == kCellOut || type == kVoiceIn || type == kVoiceOut) && parent.isEmpty()) {
                 warn("dropped cell boundary '" + id + "' outside a cell");
                 ids.erase(id);
                 delete o;
@@ -189,10 +202,17 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
                 params->setProperty(juce::Identifier(p.id), v);
             }
             o->setProperty("params", juce::var(params));
-            if (type == kCell) {
+            if (type == kCell || type == kVoiceCell) {
                 juce::Array<juce::var> ins, outs;
-                for (const auto& j : parseJacks(n["inputs"])) ins.add(jackVar(j));
-                for (const auto& j : parseJacks(n["outputs"])) outs.add(jackVar(j));
+                // A Voice Cell's fixed jacks (notes, l, r) can't be shared jacks; notes stay outside.
+                auto reserved = [&](const CellJack& j, bool input) {
+                    if (type != kVoiceCell) return false;
+                    return j.type == Signal::Notes || (input ? j.id == "notes" : (j.id == "l" || j.id == "r"));
+                };
+                for (const auto& j : parseJacks(n["inputs"]))
+                    if (!reserved(j, true)) ins.add(jackVar(j));
+                for (const auto& j : parseJacks(n["outputs"]))
+                    if (!reserved(j, false)) outs.add(jackVar(j));
                 o->setProperty("inputs", ins);
                 o->setProperty("outputs", outs);
             } else {
@@ -218,10 +238,43 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
             p = next;
         }
     }
-    // Every cell has exactly one Cell In and one Cell Out.
+    auto typeOf = [&](const juce::String& nodeId) {
+        for (const auto& m : nodes)
+            if (str(m, "id") == nodeId) return str(m, "type");
+        return juce::String();
+    };
+    // Voice In / Voice Out only inside Voice Cells; Voice Cells don't nest (spec §8.3.1).
+    for (int i = nodes.size(); --i >= 0;) {
+        const auto t = str(nodes[i], "type");
+        if ((t == kVoiceIn || t == kVoiceOut) && typeOf(str(nodes[i], "parent")) != kVoiceCell) {
+            warn("dropped '" + str(nodes[i], "id") + "' outside a Voice Cell");
+            ids.erase(str(nodes[i], "id"));
+            nodes.remove(i);
+        }
+    }
+    for (auto& n : nodes) {
+        if (str(n, "type") != kVoiceCell) continue;
+        for (juce::String p = str(n, "parent"); p.isNotEmpty();) {
+            if (typeOf(p) == kVoiceCell) {
+                warn("moved Voice Cell '" + str(n, "id") + "' out of another Voice Cell");
+                n.getDynamicObject()->setProperty("parent", juce::String());
+                break;
+            }
+            juce::String next;
+            for (const auto& m : nodes)
+                if (str(m, "id") == p) next = str(m, "parent");
+            p = next;
+        }
+    }
+    // Every cell has exactly one Cell In and one Cell Out; a Voice Cell also one Voice In and Voice Out.
     for (const auto& cellId : cells) {
         if (ids.count(cellId) == 0) continue;
-        for (const char* t : {kCellIn, kCellOut}) {
+        std::vector<const char*> boundaries{kCellIn, kCellOut};
+        if (typeOf(cellId) == kVoiceCell) {
+            boundaries.push_back(kVoiceIn);
+            boundaries.push_back(kVoiceOut);
+        }
+        for (const char* t : boundaries) {
             int count = 0;
             for (int i = nodes.size(); --i >= 0;)
                 if (str(nodes[i], "type") == t && str(nodes[i], "parent") == cellId && ++count > 1) {
@@ -229,14 +282,15 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
                     nodes.remove(i);
                 }
             if (count == 0) {
-                const bool isIn = std::strcmp(t, kCellIn) == 0;
+                const bool isIn = std::strcmp(t, kCellIn) == 0 || std::strcmp(t, kVoiceIn) == 0;
+                const bool voice = std::strcmp(t, kVoiceIn) == 0 || std::strcmp(t, kVoiceOut) == 0;
                 auto* o = new juce::DynamicObject();
-                const juce::String id = newId(isIn ? "ci" : "co");
+                const juce::String id = newId(voice ? (isIn ? "vi" : "vo") : (isIn ? "ci" : "co"));
                 o->setProperty("id", id);
                 o->setProperty("type", t);
-                o->setProperty("name", isIn ? "Cell In" : "Cell Out");
-                o->setProperty("x", isIn ? 40.0 : 640.0);
-                o->setProperty("y", 120.0);
+                o->setProperty("name", juce::String(reg.find(t)->name));
+                o->setProperty("x", isIn ? 40.0 : 900.0);
+                o->setProperty("y", voice ? 60.0 : 420.0);
                 o->setProperty("parent", cellId);
                 o->setProperty("muted", false);
                 o->setProperty("params", juce::var(new juce::DynamicObject()));
@@ -383,6 +437,7 @@ juce::var describeTypes() {
         t->setProperty("description", juce::String(s->description));
         t->setProperty("port", portKindName(s->port));
         t->setProperty("creatable", s->userCreatable);
+        t->setProperty("standaloneOnly", s->standaloneOnly);
         juce::Array<juce::var> params, inputs, outputs;
         for (const auto& p : s->params) {
             auto* o = new juce::DynamicObject();

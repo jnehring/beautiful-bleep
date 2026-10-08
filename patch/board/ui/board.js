@@ -29,6 +29,7 @@
   const NODE_W = 184;         // matches --node-w in board.css
   let pointer = { x: 0, y: 0 };// last pointer position in canvas coordinates
   let dev = false;
+  let standalone = false;      // the standalone app: MIDI Device is offered
 
   const $ = (id) => document.getElementById(id);
   const canvas = $("canvas"), world = $("world"), nodesEl = $("nodes"), cablesEl = $("cables");
@@ -52,16 +53,24 @@
   const nodesAt = (lvl, b = board) => (b ? b.nodes.filter((n) => (n.parent || "") === lvl) : []);
   const typeOf = (n) => types[n.type] || { type: n.type, name: n.type, params: [], inputs: [], outputs: [] };
   const isPort = (n) => !!typeOf(n).port;
-  const isStructural = (n) => n.type === "cell" || n.type === "cell-in" || n.type === "cell-out";
+  const isCellLike = (n) => n.type === "cell" || n.type === "voice-cell";
+  const isBoundary = (n) => n.type === "cell-in" || n.type === "cell-out" || n.type === "voice-in" || n.type === "voice-out";
+  const isStructural = (n) => n.type === "cell" || isBoundary(n);  // a Voice Cell has a view: its settings
+  /// Ports the user adds and deletes (MIDI Device); the others come from Live (spec §6).
+  const isFixedPort = (n) => isPort(n) && !typeOf(n).creatable;
+  const VOICE_IN = [{ id: "notes", name: "Notes", type: "notes" }];
+  const VOICE_OUT = [{ id: "l", name: "Out L", type: "audio" }, { id: "r", name: "Out R", type: "audio" }];
   const compatible = (a, b) => (a === "notes") === (b === "notes");
 
   function outputsOf(n, b = board) {
     if (n.type === "cell") return n.outputs || [];
+    if (n.type === "voice-cell") return VOICE_OUT.concat(n.outputs || []);  // spec §8.3.1
     if (n.type === "cell-in") { const c = nodeById(n.parent, b); return c ? c.inputs || [] : []; }
     return typeOf(n).outputs;
   }
   function inputsOf(n, b = board) {
     if (n.type === "cell") return n.inputs || [];
+    if (n.type === "voice-cell") return VOICE_IN.concat(n.inputs || []);
     if (n.type === "cell-out") { const c = nodeById(n.parent, b); return c ? c.outputs || [] : []; }
     return typeOf(n).inputs;
   }
@@ -81,6 +90,17 @@
   }
   const cablesInto = (node, jack, b = board) => b.cables.filter((c) => c.to.node === node && c.to.jack === jack);
   function portInfo(n) { return n.port ? ports[n.port] : null; }
+  /// A param's value in its own units (for integer settings like Voices).
+  function paramValue(n, id) {
+    const p = typeOf(n).params.find((q) => q.id === id);
+    if (!p) return 0;
+    const v = n.params && id in n.params ? n.params[id] : p.default;
+    return Math.round(p.min + v * (p.max - p.min));
+  }
+  function insideVoiceCell(id, b = board) {
+    for (let n = nodeById(id, b); n; n = nodeById(n.parent, b)) if (n.type === "voice-cell") return true;
+    return false;
+  }
   function isGhost(n) {
     if (!isPort(n)) return false;
     const p = portInfo(n);
@@ -90,7 +110,7 @@
     const out = [];
     const walk = (id) => {
       for (const n of b.nodes)
-        if ((n.parent || "") === id) { out.push(n); if (n.type === "cell") walk(n.id); }
+        if ((n.parent || "") === id) { out.push(n); if (isCellLike(n)) walk(n.id); }
     };
     walk(cellId);
     return out;
@@ -249,7 +269,7 @@
 
     const cats = new Map();
     for (const t of typeList)
-      if (t.creatable && t.type !== "cell") {
+      if (offered(t) && t.category !== "Cells") {
         if (!cats.has(t.category)) cats.set(t.category, []);
         cats.get(t.category).push(t);
       }
@@ -259,12 +279,17 @@
         item(t.name, "", { colour: t.colour, drag: { type: t.type }, onClick: () => addAtCentre({ type: t.type }) });
     }
     section("Cells");
-    item("Empty cell", "", { colour: types.cell ? types.cell.colour : "", drag: { type: "cell" },
+    item("New Cell", "", { colour: types.cell ? types.cell.colour : "", drag: { type: "cell" },
       onClick: () => addAtCentre({ type: "cell" }) });
-    for (const p of presets)
-      item(p.name, "preset", { colour: "#9aa3b5", drag: { preset: p.name },
-        onClick: () => addAtCentre({ preset: p.name }),
-        onDelete: async () => { presets = (await native("deletePreset", p.name)) || []; renderBrowser(); } });
+    item("New Voice Cell", "", { colour: types["voice-cell"] ? types["voice-cell"].colour : "", drag: { type: "voice-cell" },
+      onClick: () => addAtCentre({ type: "voice-cell" }) });
+    for (const [cat, list] of presetCategories()) {
+      section(cat);
+      for (const p of list)
+        item(p.name, p.factory ? "factory" : "", { colour: p.preset.nodes[0] && p.preset.nodes.find((n) => n.id === p.preset.root).type === "voice-cell" ? "#c084fc" : "#9aa3b5",
+          drag: { preset: p.name }, onClick: () => addAtCentre({ preset: p.name }),
+          onDelete: p.factory ? null : async () => { setPresets((await native("deletePreset", p.name)) || []); renderBrowser(); } });
+    }
   }
 
   function signalColour(t) { return `var(--sig-${t || "control"})`; }
@@ -297,8 +322,9 @@
     const e = el("div", "node");
     e.dataset.id = n.id;
     if (isPort(n)) e.classList.add("port");
-    if (n.type === "cell") e.classList.add("cell");
-    if (n.type === "cell-in" || n.type === "cell-out") e.classList.add("boundary");
+    if (isCellLike(n)) e.classList.add("cell");
+    if (n.type === "voice-cell") e.classList.add("voice");
+    if (isBoundary(n)) e.classList.add("boundary");
     if (isGhost(n)) e.classList.add("ghost");
     if (n.muted) e.classList.add("muted");
     if (sel.has(n.id)) e.classList.add("selected");
@@ -312,10 +338,21 @@
     let sub = t.name;
     if (isPort(n)) sub = isGhost(n) ? (portInfo(n) ? "inactive" : "not in set") : n.track || t.name;
     if (n.type === "cell") sub = "Cell";
-    if (n.type === "cell-in" || n.type === "cell-out") sub = "";
+    if (n.type === "voice-cell") sub = "×" + paramValue(n, "voices");
+    if (isBoundary(n)) sub = "";
     if (n.name === sub) sub = t.name;
     if (sub) head.appendChild(el("span", "n-sub", sub));
     e.appendChild(head);
+    if (n.type === "voice-cell") {
+      // One dot per voice, lit while it plays (spec §9.3); a warning if the voice makes no sound.
+      const dots = el("div", "n-voices");
+      const count = paramValue(n, "voices");
+      for (let k = 0; k < count; k++) dots.appendChild(el("span", "vdot"));
+      const vout = board.nodes.find((m) => m.parent === n.id && m.type === "voice-out");
+      if (!vout || !board.cables.some((c) => c.to.node === vout.id && c.to.jack === "l"))
+        dots.appendChild(el("span", "n-warn", "no sound"));
+      e.appendChild(dots);
+    }
 
     const body = el("div", "n-body");
     const ins = el("div", "n-ins"), outs = el("div", "n-outs");
@@ -353,7 +390,7 @@
     e.addEventListener("dblclick", (ev) => {
       ev.stopPropagation();
       if (ev.target.closest(".n-title")) return startRename(n, e);
-      if (n.type === "cell") enterCell(n.id);
+      if (isCellLike(n)) enterCell(n.id);
     });
     e.addEventListener("contextmenu", (ev) => {
       ev.preventDefault();
@@ -705,7 +742,9 @@
     const r = canvas.getBoundingClientRect();
     const at = { x: ev.clientX - r.left, y: ev.clientY - r.top };
     showMenu(ev, [
-      { label: "Add module…", key: "Tab", run: () => openSearch(at.x, at.y) },
+      { label: "Add", items: addMenu(at) },
+      { label: "Search…", key: "Tab", run: () => openSearch(at.x, at.y) },
+      "-",
       { label: "Select all", key: "⌘A", run: selectAll },
       { label: "Fit to window", key: "F", run: fit },
     ]);
@@ -795,6 +834,11 @@
   /// `link` (from a cable dropped on empty canvas) is connected to the new node.
   function addAt(what, x, y, link) {
     if (!board) return;
+    // Don't land exactly on another node (e.g. several adds at the canvas centre).
+    for (let i = 0; i < 20 && nodesAt(level()).some((n) => Math.abs(n.x - x) < 40 && Math.abs(n.y - y) < 40); i++) {
+      x += 36;
+      y += 36;
+    }
     let newId = null;
     edit("add", (b) => {
       const lvl = level();
@@ -802,6 +846,9 @@
         const p = presets.find((q) => q.name === what.preset);
         if (!p) return false;
         newId = insertPreset(b, p.preset, lvl, x, y);
+      } else if (what.type === "voice-cell") {
+        newId = addVoiceCell(b, lvl, x, y);
+        if (!newId) return false;
       } else if (what.type === "cell") {
         newId = uid("c");
         b.nodes.push({ id: newId, type: "cell", name: "Cell", x: Math.round(x), y: Math.round(y), parent: lvl,
@@ -814,7 +861,12 @@
         newId = uid("n");
         const params = {};
         for (const p of t.params) params[p.id] = p.default;
-        b.nodes.push({ id: newId, type: t.type, name: t.name, x: Math.round(x), y: Math.round(y), parent: lvl, params });
+        const node = { id: newId, type: t.type, name: t.name, x: Math.round(x), y: Math.round(y), parent: lvl, params };
+        if (t.port) {  // a port the user adds (MIDI Device): the app follows it by this id
+          if (lvl) return false;  // ports live on the top level (spec §6)
+          node.port = uid("mdev-");
+        }
+        b.nodes.push(node);
         if (link) {
           const j = t.inputs.find((i) => compatible(link.type, i.type));
           if (j) connect(b, link.from, { node: newId, jack: j.id }, 1);
@@ -824,6 +876,45 @@
       }
       sel.clear();
       sel.add(newId);
+    });
+  }
+
+  /// A Voice Cell with its fixed nodes and a starter voice (spec §8.3.3):
+  /// Oscillator → VCA, an ADSR on the VCA's gain and on Voice Out's Active.
+  function addVoiceCell(b, lvl, x, y) {
+    if (lvl && insideVoiceCell(lvl, b)) return null;  // no nesting
+    const id = uid("vc");
+    const vt = types["voice-cell"];
+    const params = {};
+    for (const p of vt.params) params[p.id] = p.default;
+    const defaults = (type) => Object.fromEntries(types[type].params.map((p) => [p.id, p.default]));
+    const n = (nid, type, name, nx, ny, extra) =>
+      Object.assign({ id: nid, type, name, x: nx, y: ny, parent: id, params: types[type] ? defaults(type) : {} }, extra || {});
+    const vin = uid("vi"), vout = uid("vo"), osc = uid("n"), env = uid("n"), amp = uid("n");
+    b.nodes.push({ id, type: "voice-cell", name: "Voice Cell", x: Math.round(x), y: Math.round(y), parent: lvl,
+                   params, inputs: [], outputs: [] },
+      n(vin, "voice-in", "Voice In", 40, 60), n(vout, "voice-out", "Voice Out", 900, 80),
+      n(uid("ci"), "cell-in", "Cell In", 40, 460), n(uid("co"), "cell-out", "Cell Out", 900, 460),
+      n(osc, "oscillator", "Oscillator", 320, 40), n(env, "adsr", "ADSR", 320, 260), n(amp, "vca", "VCA", 620, 80));
+    const k = (fn, fj, tn, tj) => ({ id: uid("k"), from: { node: fn, jack: fj }, to: { node: tn, jack: tj }, amount: 1 });
+    b.cables.push(k(vin, "pitch", osc, "pitch"), k(vin, "gate", env, "gate"), k(vin, "trigger", env, "retrig"),
+      k(vin, "velocity", env, "velocity"), k(osc, "out", amp, "l"), k(env, "env", amp, "gain"),
+      k(amp, "l", vout, "l"), k(amp, "r", vout, "r"), k(env, "active", vout, "active"));
+    return id;
+  }
+
+  /// Right-click → Make Voice Cell: an ordinary cell gets Voice In and Voice Out (spec §8.3.3).
+  function makeVoiceCell(cellId) {
+    edit("make voice cell", (b) => {
+      const cell = nodeById(cellId, b);
+      if (!cell || cell.type !== "cell" || insideVoiceCell(cell.parent, b)) return false;
+      if (descendants(cellId, b).some((d) => d.type === "voice-cell" || isPort(d))) return false;
+      cell.type = "voice-cell";
+      cell.params = Object.fromEntries(types["voice-cell"].params.map((p) => [p.id, p.default]));
+      const kids = b.nodes.filter((m) => m.parent === cellId);
+      const x0 = Math.min(...kids.map((m) => m.x), 300), x1 = Math.max(...kids.map((m) => m.x), 600);
+      b.nodes.push({ id: uid("vi"), type: "voice-in", name: "Voice In", x: x0 - 280, y: 40, parent: cellId, params: {} },
+                   { id: uid("vo"), type: "voice-out", name: "Voice Out", x: x1 + 280, y: 40, parent: cellId, params: {} });
     });
   }
 
@@ -847,8 +938,9 @@
     const accepts = (t) => !link || t.inputs.some((i) => compatible(link.type, i.type)) ||
       (link.type !== "notes" && t.params.some((p) => p.modulatable && p.kind === "float"));
     for (const t of typeList)
-      if (t.creatable && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
-        out.push({ label: t.name, sub: t.category, what: { type: t.type } });
+      if (offered(t) && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
+        out.push({ label: t.name === "Cell" ? "New Cell" : t.name === "Voice Cell" ? "New Voice Cell" : t.name,
+                   sub: t.category, what: { type: t.type } });
     if (!link)
       for (const p of presets)
         if (p.name.toLowerCase().includes(q)) out.push({ label: p.name, sub: "cell preset", what: { preset: p.name } });
@@ -890,29 +982,90 @@
     e.stopPropagation();
   });
   $("search-input").addEventListener("blur", () => setTimeout(() => { if (searchState) closeSearch(); }, 100));
-  $("add").addEventListener("click", () => openSearch(canvas.clientWidth / 2 - 130, 60));
+  $("add").addEventListener("click", (ev) => {
+    const r = $("add").getBoundingClientRect();
+    showMenu({ clientX: r.left, clientY: r.bottom + 4 }, addMenu(null));
+  });
+
+  /// Types this board offers (MIDI Device only in the standalone app, spec §12).
+  const offered = (t) => t.creatable && (!t.standaloneOnly || standalone);
+
+  /// The Add menu (spec §9.6): Module › category › modules; Cell › new cells and presets by category.
+  /// `at` is a canvas position, or null for the middle of the canvas.
+  function addMenu(at) {
+    const place = (what) => () => {
+      if (!at) return addAtCentre(what);
+      const r = canvas.getBoundingClientRect();
+      const w = toWorld(at.x + r.left, at.y + r.top);
+      addAt(what, w.x, w.y);
+    };
+    const cats = new Map();
+    for (const t of typeList)
+      if (offered(t) && t.category !== "Cells") {
+        if (!cats.has(t.category)) cats.set(t.category, []);
+        cats.get(t.category).push({ label: t.name, run: place({ type: t.type }) });
+      }
+    const cells = [{ label: "New Cell", run: place({ type: "cell" }) },
+                   { label: "New Voice Cell", run: place({ type: "voice-cell" }) }];
+    const byCat = presetCategories();
+    if (byCat.size) cells.push("-");
+    for (const [cat, list] of byCat) cells.push({ label: cat, items: list.map((p) => ({ label: p.name, run: place({ preset: p.name }) })) });
+    return [{ label: "Module", items: [...cats].map(([cat, items]) => ({ label: cat, items })) },
+            { label: "Cell", items: cells }];
+  }
 
   // ------------------------------------------------------------------ menus
+  /// Menus; an item with `items` opens a submenu to its right on hover.
   function showMenu(ev, items) {
+    closeSubmenus(0);
     const m = $("menu");
+    fillMenu(m, items, 0);
+    const r = canvas.getBoundingClientRect();
+    m.hidden = false;
+    m.style.left = Math.max(4, Math.min(ev.clientX - r.left, canvas.clientWidth - m.offsetWidth - 8)) + "px";
+    m.style.top = Math.max(4, Math.min(ev.clientY - r.top, canvas.clientHeight - m.offsetHeight - 8)) + "px";
+  }
+  const submenus = [];
+  function closeSubmenus(depth) {
+    while (submenus.length > depth) submenus.pop().remove();
+  }
+  function fillMenu(m, items, depth) {
     m.innerHTML = "";
     for (const it of items) {
       if (it === "-") { m.appendChild(el("div", "m-sep")); continue; }
-      const row = el("div", "m-item" + (it.disabled ? " disabled" : ""));
+      const row = el("div", "m-item" + (it.disabled ? " disabled" : "") + (it.items ? " has-sub" : ""));
       row.append(el("span", "", it.label));
       if (it.key) row.appendChild(el("span", "key", it.key));
+      if (it.items) row.appendChild(el("span", "key", "›"));
       // Run on click, and keep focus where it is: the action may open a text field.
       row.addEventListener("pointerdown", (e) => e.stopPropagation());
       row.addEventListener("mousedown", (e) => e.preventDefault());
-      row.addEventListener("click", (e) => { e.stopPropagation(); m.hidden = true; it.run(); });
+      row.addEventListener("mouseenter", () => {
+        closeSubmenus(depth);
+        if (it.items && !it.disabled) openSubmenu(row, it.items, depth);
+      });
+      row.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (it.items) return;
+        hidePopovers();
+        it.run();
+      });
       m.appendChild(row);
     }
-    const r = canvas.getBoundingClientRect();
-    m.hidden = false;
-    m.style.left = Math.min(ev.clientX - r.left, canvas.clientWidth - m.offsetWidth - 8) + "px";
-    m.style.top = Math.min(ev.clientY - r.top, canvas.clientHeight - m.offsetHeight - 8) + "px";
+  }
+  function openSubmenu(row, items, depth) {
+    const sm = el("div", "popover submenu");
+    canvas.appendChild(sm);
+    submenus.push(sm);
+    fillMenu(sm, items, depth + 1);
+    const r = canvas.getBoundingClientRect(), rr = row.getBoundingClientRect();
+    let x = rr.right - r.left + 2;
+    if (x + sm.offsetWidth > canvas.clientWidth - 4) x = rr.left - r.left - sm.offsetWidth - 2;
+    sm.style.left = Math.max(4, x) + "px";
+    sm.style.top = Math.max(4, Math.min(rr.top - r.top - 4, canvas.clientHeight - sm.offsetHeight - 8)) + "px";
   }
   function hidePopovers() {
+    closeSubmenus(0);
     $("menu").hidden = true;
     $("cable-pop").hidden = true;
     if (searchState) closeSearch();
@@ -922,7 +1075,7 @@
     const many = sel.size > 1;
     const items = [];
     if (!isStructural(n)) items.push({ label: views.has(n.id) ? "Close view" : "Open view", run: () => toggleView(n.id) });
-    if (n.type === "cell") items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
+    if (isCellLike(n)) items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
     items.push("-");
@@ -930,11 +1083,12 @@
     items.push({ label: many ? "Group into cell" : "Put into cell", key: "⌘G", run: group, disabled: !canGroup() });
     if (n.type === "cell") {
       items.push({ label: "Ungroup", key: "⌘⇧G", run: () => ungroup(n.id) });
-      items.push({ label: "Save as preset…", run: () => savePreset(n) });
+      items.push({ label: "Make Voice Cell", run: () => makeVoiceCell(n.id), disabled: insideVoiceCell(n.parent) });
     }
+    if (isCellLike(n)) items.push({ label: "Save as preset…", run: () => savePreset(n) });
     items.push({ label: "Trace signal flow", key: "T", run: toggleTrace });
     items.push("-");
-    items.push({ label: "Delete", key: "⌫", run: deleteSelection, disabled: isPort(n) || isStructural(n) && n.type !== "cell" });
+    items.push({ label: "Delete", key: "⌫", run: deleteSelection, disabled: isFixedPort(n) || isBoundary(n) });
     showMenu(ev, items);
   }
 
@@ -967,8 +1121,8 @@
 
   // ------------------------------------------------------------ operations
   function selectedNodes(b = board) { return [...sel].map((id) => nodeById(id, b)).filter(Boolean); }
-  const canDuplicate = () => selectedNodes().some((n) => !isPort(n) && !isStructural(n) || n.type === "cell");
-  const canGroup = () => selectedNodes().some((n) => !isPort(n) && !isStructural(n) || n.type === "cell");
+  const canDuplicate = () => selectedNodes().some((n) => !isPort(n) && !isBoundary(n));
+  const canGroup = () => selectedNodes().some((n) => !isPort(n) && !isBoundary(n));
 
   function selectAll() {
     sel.clear();
@@ -980,9 +1134,9 @@
     if (selCable) return removeCable(selCable);
     const doomed = new Set();
     for (const n of selectedNodes()) {
-      if (isPort(n) || n.type === "cell-in" || n.type === "cell-out") continue;  // spec §6
+      if (isFixedPort(n) || isBoundary(n)) continue;  // spec §6, §8.3.1
       doomed.add(n.id);
-      if (n.type === "cell") descendants(n.id).forEach((d) => doomed.add(d.id));
+      if (isCellLike(n)) descendants(n.id).forEach((d) => doomed.add(d.id));
     }
     if (!doomed.size) return;
     for (const id of doomed) closeView(id);
@@ -1006,9 +1160,9 @@
     const all = [];
     for (const r of roots) {
       all.push(r);
-      if (r.type === "cell") all.push(...descendants(r.id, b));
+      if (isCellLike(r)) all.push(...descendants(r.id, b));
     }
-    for (const n of all) map.set(n.id, uid(n.type === "cell" ? "c" : "n"));
+    for (const n of all) map.set(n.id, uid(isCellLike(n) ? "c" : "n"));
     for (const n of all) {
       const c = clone(n);
       c.id = map.get(n.id);
@@ -1025,7 +1179,7 @@
   }
 
   function duplicate(keepIncoming) {
-    const roots = selectedNodes().filter((n) => !isPort(n) && (!isStructural(n) || n.type === "cell"));
+    const roots = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
     if (!roots.length) return;
     edit("duplicate", (b) => {
       const rs = roots.map((r) => nodeById(r.id, b));
@@ -1043,8 +1197,9 @@
   /// ⌘G (spec §8.1): the selection moves into a new cell; cables that cross
   /// the new border become cell jacks.
   function group() {
-    const picked = selectedNodes().filter((n) => !isPort(n) && (!isStructural(n) || n.type === "cell"));
+    const picked = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
     if (!picked.length) return;
+    if (insideVoiceCell(level()) && picked.some((n) => n.type === "voice-cell")) return;
     edit("group", (b) => {
       const inside = new Set(picked.map((n) => n.id));
       const lvl = level();
@@ -1118,32 +1273,67 @@
   }
 
   // ---------------------------------------------------------- cell presets
-  /// A small inline text field (WebViews in plugins may not support prompt()).
-  function ask(label, value, at) {
+  /// Small inline text fields (WebViews in plugins may not support prompt()).
+  /// Resolves to the trimmed values, or null when cancelled.
+  function ask(fields, at) {
     return new Promise((resolve) => {
       const m = $("menu");
+      closeSubmenus(0);
       m.innerHTML = "";
-      const row = el("div", "m-ask");
-      row.appendChild(el("div", "m-ask-label", label));
-      const input = el("input", "n-rename");
-      input.value = value;
-      row.appendChild(input);
-      m.appendChild(row);
+      const box = el("div", "m-ask");
+      const inputs = fields.map((f) => {
+        box.appendChild(el("div", "m-ask-label", f.label));
+        const input = el("input", "n-rename");
+        input.value = f.value;
+        if (f.suggestions) {
+          const list = el("datalist");
+          list.id = uid("dl");
+          for (const sgg of f.suggestions) list.appendChild(new Option(sgg));
+          box.appendChild(list);
+          input.setAttribute("list", list.id);
+        }
+        box.appendChild(input);
+        return input;
+      });
+      m.appendChild(box);
       m.hidden = false;
       m.style.left = at.x + "px";
       m.style.top = at.y + "px";
-      input.focus();
-      input.select();
+      inputs[0].focus();
+      inputs[0].select();
       let done = false;
-      const finish = (v) => { if (done) return; done = true; m.hidden = true; canvas.focus(); resolve(v); };
-      input.addEventListener("keydown", (e) => {
-        e.stopPropagation();
-        if (e.key === "Enter") finish(input.value.trim());
-        if (e.key === "Escape") finish("");
-      });
-      input.addEventListener("blur", () => finish(""));
-      input.addEventListener("pointerdown", (e) => e.stopPropagation());
+      const finish = (ok) => {
+        if (done) return;
+        done = true;
+        m.hidden = true;
+        canvas.focus();
+        resolve(ok ? inputs.map((i) => i.value.trim()) : null);
+      };
+      for (const input of inputs) {
+        input.addEventListener("keydown", (e) => {
+          e.stopPropagation();
+          if (e.key === "Enter") finish(true);
+          if (e.key === "Escape") finish(false);
+        });
+        input.addEventListener("pointerdown", (e) => e.stopPropagation());
+        input.addEventListener("blur", () => setTimeout(() => { if (!box.contains(document.activeElement)) finish(false); }, 0));
+      }
     });
+  }
+
+  /// Factory presets (factory-presets.js) and the user's own, by category.
+  function setPresets(user) {
+    const factory = (window.BleepFactoryPresets || []).map((p) => Object.assign({ factory: true }, p));
+    presets = factory.concat((user || []).map((p) => Object.assign({ category: (p.preset && p.preset.category) || "My Cells" }, p)));
+  }
+  function presetCategories() {
+    const byCat = new Map();
+    for (const p of presets) {
+      const cat = p.category || (p.preset && p.preset.category) || "My Cells";
+      if (!byCat.has(cat)) byCat.set(cat, []);
+      byCat.get(cat).push(p);
+    }
+    return byCat;
   }
 
   async function savePreset(cell) {
@@ -1151,12 +1341,16 @@
     const r = canvas.getBoundingClientRect();
     const at = ne ? { x: ne.getBoundingClientRect().left - r.left, y: ne.getBoundingClientRect().bottom - r.top + 6 }
                   : { x: 40, y: 40 };
-    const name = await ask("Save cell as preset", cell.name, at);
-    if (!name) return;
+    const cats = [...new Set(["Synthesizers", ...presetCategories().keys()])];
+    const answer = await ask([{ label: "Save cell as preset", value: cell.name },
+                              { label: "Category", value: cell.type === "voice-cell" ? "Synthesizers" : "My Cells", suggestions: cats }], at);
+    if (!answer || !answer[0]) return;
+    const [name, category] = answer;
     const nodes = [cell, ...descendants(cell.id)].map(clone);
     const ids = new Set(nodes.map((n) => n.id));
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
-    presets = (await native("savePreset", name, { format: 1, root: cell.id, nodes, cables })) || presets;
+    const saved = await native("savePreset", name, { format: 1, root: cell.id, category: category || "My Cells", nodes, cables });
+    if (saved) setPresets(saved);
     renderBrowser();
   }
 
@@ -1164,7 +1358,8 @@
     const tmp = { nodes: clone(preset.nodes), cables: clone(preset.cables) };
     const root = tmp.nodes.find((n) => n.id === preset.root);
     if (!root) return null;
-    const map = new Map(tmp.nodes.map((n) => [n.id, uid(n.type === "cell" ? "c" : "n")]));
+    if (root.type === "voice-cell" && insideVoiceCell(lvl, b)) return null;  // no nesting
+    const map = new Map(tmp.nodes.map((n) => [n.id, uid(isCellLike(n) ? "c" : "n")]));
     for (const n of tmp.nodes) {
       n.id = map.get(n.id);
       n.parent = n === root ? lvl : map.get(n.parent) || lvl;
@@ -1259,6 +1454,7 @@
         const m = nodeById(id);
         if (m) m.params[pid] = v;
         native("setParam", id, pid, v);
+        if (m && m.type === "voice-cell" && pid === "voices") { renderNodes(); renderCables(); }  // ×N and the dots
       },
       beginGesture: gesture,
       setAmount: (cableId, v) => {
@@ -1267,6 +1463,7 @@
         native("setAmount", cableId, v);
       },
       removeCable,
+      setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
       cablesInto: (pid) => cablesInto(id, pid).map((c) => {
         const src = nodeById(c.from.node);
         return { id: c.id, amount: c.amount, label: src ? `${src.name} › ${jackName(src, c.from.jack, true)}` : "?" };
@@ -1361,6 +1558,12 @@
       if (ns && ns.outputs && jack in ns.outputs) drawScope(sc, ns.outputs[jack]);
     }
     for (const [id, v] of views) v.bv.update(s.nodes[id]);
+    // Voice Cells: which voices play.
+    for (const ne of nodesEl.querySelectorAll(".node.voice")) {
+      const ns = s.nodes[ne.dataset.id];
+      const mask = ns && ns.voices ? ns.voices : 0;
+      ne.querySelectorAll(".vdot").forEach((d, k) => d.classList.toggle("on", (mask >> k & 1) === 1));
+    }
     // Ports went live or ghost: redraw.
     if (s.ports) {
       const key = Object.entries(s.ports).map(([k, p]) => k + (p.live ? 1 : 0)).sort().join();
@@ -1426,7 +1629,8 @@
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     dev = !!m.dev;
-    presets = (await native("presets")) || [];
+    standalone = !!m.standalone;
+    setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);
     // Fit once the canvas has its size (the window may still be opening).

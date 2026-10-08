@@ -49,16 +49,30 @@ public:
         std::vector<NoteBuffer*> notesOutPtrs;
     };
 
+    /// Which part of the board to compile. The whole board is the default
+    /// scope; a Voice Cell compiles its inside as a scope of its own (spec §8.3):
+    /// Voice In and the cell's shared inputs become `external` buffers it fills,
+    /// and Voice Out and the cell's shared outputs become `taps` it reads.
+    struct Scope {
+        std::string root;  ///< the Voice Cell's id; empty for the whole board
+        std::map<std::pair<std::string, std::string>, const float*> external;  ///< (node, jack) → buffer
+        std::vector<Endpoint> taps;  ///< inputs whose sources the owner reads after each chunk
+    };
+
     /// Compiles `board`. Reuses modules from `modules` (by node id and type)
     /// and creates the missing ones; `modules` is updated to exactly the
-    /// board's real nodes. `ports` maps port IDs to their live slots.
+    /// scope's real nodes. `ports` maps port IDs to their live slots.
     static std::unique_ptr<Program> compile(const BoardModel& board,
                                             std::map<std::string, std::shared_ptr<Module>>& modules,
                                             const std::map<std::string, std::shared_ptr<PortSlot>>& ports,
-                                            double sampleRate);
+                                            double sampleRate, const Scope* scope = nullptr);
 
     /// Runs one host block of `numSamples`. [RT]
     void run(const Transport& transport, int numSamples, bool transportStarted) noexcept;
+    /// Runs one chunk (at most kChunk samples) described by `chunk`. [RT]
+    void runChunk(const ProcessContext& chunk) noexcept;
+    /// Sources feeding taps[i] of the scope, valid after runChunk. [RT]
+    const std::vector<Source>& tap(size_t i) const noexcept { return taps_[i]; }
 
     const std::vector<Step>& steps() const noexcept { return steps_; }
     std::vector<Step>& steps() noexcept { return steps_; }
@@ -69,6 +83,7 @@ public:
 
 private:
     std::vector<Step> steps_;
+    std::vector<std::vector<Source>> taps_;
     std::vector<std::shared_ptr<PortSlot>> slots_;
     std::set<std::string> feedback_;
     double sampleRate_ = 48000.0;

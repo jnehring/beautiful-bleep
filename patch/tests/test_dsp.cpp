@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Unit tests for the Bleep Patch DSP cores. No JUCE, no bus: pure C++.
+#include "../modules/adsr/dsp/AdsrDsp.h"
 #include "../modules/filter/dsp/FilterDsp.h"
+#include "../modules/oscillator/dsp/OscillatorDsp.h"
 #include "../modules/function/dsp/FunctionDsp.h"
 #include "../modules/random/dsp/RandomDsp.h"
 #include "../modules/utility/dsp/UtilityDsp.h"
@@ -206,6 +208,88 @@ static void utilityShapes() {
     EXPECT_NEAR(out, -0.3, 1e-6);
 }
 
+static void oscillator() {
+    g_test = "oscillator";
+    OscillatorDsp o;
+    o.prepare(48000.0);
+    o.reset();
+    OscillatorParams p;
+    p.pitch = 9.0f / 12.0f;  // A4 = 440 Hz
+    EXPECT_NEAR(OscillatorDsp::frequency(p.pitch), 440.0, 0.01);
+    int crossings = 0;
+    float last = 0.0f, peak = 0.0f;
+    for (int i = 0; i < 48000; ++i) {
+        const auto f = o.tick(p, 0.0f, 0.0f);
+        if (last < 0.0f && f.sine >= 0.0f) ++crossings;
+        last = f.sine;
+        peak = std::max(peak, std::fabs(f.saw));
+    }
+    EXPECT(crossings >= 439 && crossings <= 441);  // one second of 440 Hz
+    EXPECT(peak < 1.2f);  // band-limited saw: small polyBLEP overshoot only
+
+    // Deep through-zero FM stays finite and bounded.
+    p.fmDepth = 1.0f;
+    for (int i = 0; i < 48000; ++i) {
+        const auto f = o.tick(p, std::sin(i * 0.05f), 0.0f);
+        EXPECT(std::isfinite(f.out) && std::fabs(f.out) <= 1.5f);
+        if (g_failures) return;
+    }
+}
+
+static void adsr() {
+    g_test = "adsr";
+    AdsrDsp env;
+    env.prepare(1000.0);  // 1 sample = 1 ms
+    env.reset();
+    AdsrParams p;
+    p.attack = 0.010f;
+    p.decay = 0.050f;
+    p.sustain = 0.5f;
+    p.release = 0.100f;
+    p.velocityAmount = 0.0f;
+    AdsrFrame f{};
+    for (int i = 0; i < 10; ++i) f = env.tick(p, 1.0f, 0.0f, 1.0f);
+    EXPECT_NEAR(f.env, 1.0, 1e-4);  // attack done after 10 ms
+    for (int i = 0; i < 200; ++i) f = env.tick(p, 1.0f, 0.0f, 1.0f);
+    EXPECT_NEAR(f.env, 0.5, 1e-3);  // sustain
+    EXPECT(f.active > 0.5f);
+    int end = -1;
+    for (int i = 0; i < 300 && end < 0; ++i) {
+        f = env.tick(p, 0.0f, 0.0f, 1.0f);
+        if (f.end > 0.5f) end = i;
+    }
+    EXPECT(end >= 85 && end <= 105);  // −80 dB after the release time (from full level; sustain 0.5 is a bit sooner)
+    EXPECT(f.active < 0.5f);
+
+    // Velocity scales the level when the amount is up.
+    p.velocityAmount = 1.0f;
+    env.reset();
+    for (int i = 0; i < 20; ++i) f = env.tick(p, 1.0f, 0.0f, 0.5f);
+    EXPECT(f.env <= 0.5f + 1e-4f);
+}
+
+static void roughFilter() {
+    g_test = "rough filter";
+    FilterDsp f;
+    f.prepare(48000.0);
+    FilterParams p;
+    p.type = 1;
+    p.resonance = 1.0f;
+    p.drive = 1.0f;
+    std::mt19937 rng(3);
+    std::uniform_real_distribution<float> u(-1.0f, 1.0f);
+    float peak = 0.0f;
+    for (int i = 0; i < 96000; ++i) {
+        p.cutoff = 0.5f + 0.5f * std::sin(i * 0.001f);
+        float frame[2] = {u(rng), u(rng)};
+        f.tick(p, 0.0f, frame, 2);
+        EXPECT(std::isfinite(frame[0]));
+        peak = std::max(peak, std::fabs(frame[0]));
+        if (g_failures) return;
+    }
+    EXPECT(peak < 20.0f);  // saturation keeps full resonance bounded
+}
+
 int main() {
     svfBasics();
     filterMapping();
@@ -213,6 +297,9 @@ int main() {
     functionEnvelope();
     randomDeterminism();
     utilityShapes();
+    oscillator();
+    adsr();
+    roughFilter();
     if (g_failures) {
         std::printf("%d failure(s)\n", g_failures);
         return 1;

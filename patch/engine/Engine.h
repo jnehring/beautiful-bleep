@@ -91,6 +91,7 @@ public:
     // ---- the standalone app (spec §11) ---------------------------------------
     /// No Macros node, and the app drives the engine itself (processAll).
     void setStandalone(bool on) noexcept { standalone_ = on; }
+    bool standalone() const noexcept { return standalone_; }
     /// Replaces the board's status line (device, Link, transport).
     void setStatusProvider(std::function<juce::String()> provider) { statusProvider_ = std::move(provider); }
     /// Processes one block for several ports at once, from one thread. Every
@@ -133,6 +134,11 @@ private:
     std::atomic<uint64_t> generation_{0};
     std::vector<juce::String> undo_, redo_;
     std::map<std::string, std::shared_ptr<Module>> modules_;
+    struct Inner {
+        std::vector<std::shared_ptr<Module>> modules;  ///< one per voice
+        std::shared_ptr<class VoiceCellModule> cell;
+    };
+    std::map<std::string, Inner> inner_;  ///< nodes inside Voice Cells
 
     // Program hand-over (hazard pointer: the audio thread announces what it runs).
     std::atomic<Program*> program_{nullptr};

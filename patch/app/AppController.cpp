@@ -113,8 +113,10 @@ AppController::~AppController() {
             removeInstance(m->inHandle);
             removeInstance(m->outHandle);
         }
+        for (auto& d : devicePorts_) removeInstance(d->inHandle);
         audioPorts_.clear();
         midiPorts_.clear();
+        devicePorts_.clear();
         removeInstance(linkHandle_);
     }
 #if JUCE_MAC
@@ -339,7 +341,8 @@ engine::Transport AppController::transportFor(int numSamples) {
 /// MIDI and Link ports for one block. Caller holds portsLock_.
 void AppController::buildControlPorts(const engine::Transport& t, int n, std::vector<int>& handles,
                                       std::vector<engine::BlockIO*>& ios) {
-    for (auto& m : midiPorts_) {
+    for (auto* list : {&midiPorts_, &devicePorts_})
+    for (auto& m : *list) {
         if (m->inHandle) {
             m->inBlock.clear();
             const auto scope = m->fifo.read(m->fifo.getNumReady());
@@ -426,7 +429,8 @@ void AppController::handleIncomingMidiMessage(juce::MidiInput* source, const juc
     if (message.getRawDataSize() > 3 || message.isSysEx()) return;
     const juce::SpinLock::ScopedTryLockType lock(portsLock_);
     if (!lock.isLocked()) return;
-    for (auto& m : midiPorts_) {
+    for (auto* list : {&midiPorts_, &devicePorts_})
+    for (auto& m : *list) {
         const bool mine = m->input ? source == m->input.get() : (source && source->getIdentifier() == m->identifier);
         if (!mine || m->inHandle == 0) continue;
         const auto scope = m->fifo.write(1);
@@ -441,8 +445,56 @@ void AppController::handleIncomingMidiMessage(juce::MidiInput* source, const juc
 
 // ---- the timer: Link settings from the board, title, bridge heartbeat --------------------------
 
+/// MIDI Device nodes (spec §12): the node names a controller; the app opens it
+/// and feeds the node. Nodes come and go with the board (add, delete, undo).
+void AppController::syncDeviceNodes() {
+    std::vector<std::pair<juce::String, juce::String>> wanted;  // port id, device name
+    if (auto* nodes = engine_->board()["nodes"].getArray())
+        for (const auto& n : *nodes)
+            if (n["type"].toString() == "midi-device" && n["port"].toString().isNotEmpty())
+                wanted.push_back({n["port"].toString(), n["device"].toString()});
+    bool same = wanted.size() == devicePorts_.size();
+    for (size_t i = 0; same && i < wanted.size(); ++i)
+        same = devicePorts_[i]->id == wanted[i].first && devicePorts_[i]->name == wanted[i].second;
+    if (same) return;
+
+    std::vector<std::unique_ptr<MidiPort>> next;
+    for (const auto& [port, device] : wanted) {
+        std::unique_ptr<MidiPort> p;
+        for (auto& old : devicePorts_)
+            if (old && old->id == port && old->name == device) p = std::move(old);
+        if (!p) {
+            p = std::make_unique<MidiPort>();
+            p->id = port;
+            p->name = device;
+            p->inBlock.reserve(engine::kMaxMidiEvents);
+            p->outBlock.resize(engine::kMaxMidiEvents);
+            for (const auto& d : juce::MidiInput::getAvailableDevices())
+                if (d.name == device) {
+                    p->identifier = d.identifier;
+                    p->input = juce::MidiInput::openDevice(d.identifier, this);
+                    if (p->input) p->input->start();
+                }
+            // Keep the engine instance when only the device changed.
+            for (auto& old : devicePorts_)
+                if (old && old->id == port) std::swap(p->inHandle, old->inHandle);
+            if (p->inHandle == 0) p->inHandle = addInstance(PortKind::MidiDevice, port, device.isEmpty() ? "MIDI Device" : device);
+        }
+        next.push_back(std::move(p));
+    }
+    std::vector<std::unique_ptr<MidiPort>> gone;
+    {
+        const juce::SpinLock::ScopedLockType lock(portsLock_);
+        gone = std::move(devicePorts_);
+        devicePorts_ = std::move(next);
+    }
+    for (auto& g : gone)
+        if (g) removeInstance(g->inHandle);  // the node was deleted
+}
+
 void AppController::timerCallback() {
     if (bridge_) bridge_->poll();
+    syncDeviceNodes();
     // The Link node's settings (spec §11.4).
     const auto& board = engine_->board();
     if (auto* nodes = board["nodes"].getArray())

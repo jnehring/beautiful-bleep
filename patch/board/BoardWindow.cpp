@@ -15,6 +15,7 @@
 
 #include "BoardWeb.h"
 
+#include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 
 namespace bleep::engine {
@@ -121,6 +122,7 @@ public:
                     auto r = boardMessage();
                     r.getDynamicObject()->setProperty("types", board::describeTypes());
                     r.getDynamicObject()->setProperty("status", engine_.statusLine());
+                    r.getDynamicObject()->setProperty("standalone", engine_.standalone());
 #if defined(BLEEP_UI_DEV_ROOT)
                     r.getDynamicObject()->setProperty("dev", true);
 #endif
@@ -150,6 +152,13 @@ public:
                 .withNativeFunction("setAmount", [this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.setAmount(a[0].toString(), (float)a[1]);
                     done({});
+                })
+                .withNativeFunction("midiDevices", [](const juce::Array<juce::var>&, Completion done) {
+                    // Connected controllers for the MIDI Device module (standalone, spec §12).
+                    juce::Array<juce::var> names;
+                    for (const auto& d : juce::MidiInput::getAvailableDevices())
+                        if (!d.name.startsWith("Bleep Patch ")) names.add(d.name);
+                    done(names);
                 })
                 .withNativeFunction("presets", [](const juce::Array<juce::var>&, Completion done) {
                     done(presetList());
@@ -202,11 +211,16 @@ public:
         later(2500,
               "(function(){ const b = JSON.parse(JSON.stringify(window.__board())); b.nodes.push({id:'smoke', "
               "type:'function', name:'Smoke', x:300, y:300, parent:'', params:{}}); "
-              "native('commit', b, 'smoke').then(m => window.__smoke = m.board.nodes.length); return 1; })()",
+              "const p = JSON.parse(JSON.stringify(window.BleepFactoryPresets[0].preset)); "
+              "for (const n of p.nodes) b.nodes.push(n); for (const c of p.cables) b.cables.push(c); "
+              "native('commit', b, 'smoke').then(m => { window.__smoke = m.board.nodes.length; "
+              "window.__voiceCells = m.board.nodes.filter(n => n.type === 'voice-cell').length; "
+              "window.__voiceCables = m.board.cables.length; }); return 1; })()",
               [](const juce::var&) {});
         later(4000,
               "JSON.stringify({nodes: document.querySelectorAll('.node').length, "
-              "committed: window.__smoke || 0, errors: window.__errors || [], "
+              "committed: window.__smoke || 0, voiceCells: window.__voiceCells || 0, "
+              "cables: window.__voiceCables || 0, errors: window.__errors || [], "
               "types: document.querySelectorAll('#browser .b-item').length})",
               [](const juce::var& v) {
                   std::printf("board smoke: %s\n", v.toString().toRawUTF8());

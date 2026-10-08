@@ -1,12 +1,16 @@
 ---
-title: Filter
+title: Multi Filter
 order: 13
 ---
 
-# Filter
+# Multi Filter
 
-A stereo state-variable filter that stays stable and click-free under fast
-modulation, even at audio rate.
+A stereo multimode filter with several algorithms: choose one with **Type**.
+
+- **Clean:** a state-variable filter that stays stable and click-free under
+  fast modulation, even at audio rate.
+- **Rough:** a gritty 12 dB filter. Its stages saturate, so it growls and
+  distorts when driven and pushed into resonance.
 
 | Control | Range | What it does |
 |---|---|---|
@@ -16,6 +20,7 @@ modulation, even at audio rate.
 | Mode | LP → BP → HP → Notch | continuous morph between the four responses |
 | Mix | 0 – 100 % | dry/wet |
 | Key Track | 0 – 100 % | how far cutoff follows the *Pitch* input (100 % = one octave per octave) |
+| Type | Clean, Rough | the filter algorithm |
 
 **Inputs:** *In L*, *In R* (audio; with only *In L* patched, both channels
 get it), *Pitch* (1 V/oct), plus every control.

@@ -19,6 +19,7 @@ struct FilterParams {
     float morph = 0.0f;     ///< 0 LP, 1/3 BP, 2/3 HP, 1 notch
     float mix = 1.0f;       ///< dry/wet
     float keyTrack = 0.0f;  ///< 0..1: octaves of cutoff per octave of pitch
+    int type = 0;           ///< 0 Clean (ZDF SVF), 1 Rough (saturating 12 dB)
 };
 
 class FilterDsp {
@@ -39,6 +40,7 @@ public:
 
     void reset() noexcept {
         for (auto& f : svf_) f.reset();
+        for (auto& f : rough_) f.reset();
         env_.reset();
         lastHz_ = lastQ_ = -1.0f;
     }
@@ -47,17 +49,21 @@ public:
     float tick(const FilterParams& p, float pitch, float* frame, int numChannels) noexcept {
         const float hz = cutoffHz(p.cutoff, p.keyTrack * pitch);
         const float qq = q(p.resonance);
-        if (std::fabs(hz - lastHz_) > 0.0f || std::fabs(qq - lastQ_) > 0.0f) { // changed
-            for (auto& f : svf_) f.set(hz, qq, sampleRate_);
+        const bool rough = p.type == 1;
+        if (std::fabs(hz - lastHz_) > 0.0f || std::fabs(qq - lastQ_) > 0.0f || rough != lastRough_) { // changed
+            if (rough) for (auto& f : rough_) f.set(hz, qq, sampleRate_);
+            else for (auto& f : svf_) f.set(hz, qq, sampleRate_);
             lastHz_ = hz;
             lastQ_ = qq;
+            lastRough_ = rough;
         }
-        const float gain = 1.0f + 7.0f * p.drive;
+        const float gain = 1.0f + (rough ? 12.0f : 7.0f) * p.drive;
         float sum = 0.0f;
         for (int ch = 0; ch < std::min(numChannels, kMaxChannels); ++ch) {
             const float dry = frame[ch];
             const float driven = dry + p.drive * (std::tanh(dry * gain) - dry);
-            const float wet = dsp::morphSvf(svf_[(size_t)ch].process(driven), p.morph);
+            const float wet = rough ? dsp::morphSvf(rough_[(size_t)ch].process(driven), p.morph)
+                                    : dsp::morphSvf(svf_[(size_t)ch].process(driven), p.morph);
             frame[ch] = dry + p.mix * (wet - dry);
             sum += frame[ch];
         }
@@ -67,6 +73,8 @@ public:
 private:
     double sampleRate_ = 48000.0;
     std::array<dsp::Svf, kMaxChannels> svf_{};
+    std::array<dsp::RoughSvf, kMaxChannels> rough_{};
+    bool lastRough_ = false;
     dsp::EnvelopeFollower env_;
     float lastHz_ = -1.0f, lastQ_ = -1.0f;
 };
