@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Repository rules (concept §11), enforced in CI:
+"""Repository rules (spec §17), enforced in CI:
 
 1. bus/ depends on nothing else in the repository.
 2. patch/ uses the bus only through its public API: bus/include and

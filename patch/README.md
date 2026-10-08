@@ -1,50 +1,83 @@
 # Bleep Patch
 
-The modules: **Function**, **Random**, **Utility**, **Filter** and
-**MIDI Out**, built as **VST3** and **Standalone** apps. They are JUCE
-plugins with HTML/CSS/JS interfaces, and they talk over Bleep Bus through its
-public API only.
+The shared engine, the **Bleep Board** and the plugins you add in Ableton
+Live (spec: [`specs/specs.md`](../specs/specs.md)). Modules (**Function**,
+**Random**, **Utility**, **Filter**) are not plugins any more: they are nodes
+on the board. In Live you add only:
+
+| Plugin | Live device | On the board |
+|---|---|---|
+| **Bleep Patch** | audio effect | required once per set; stores and opens the board; 16 macros |
+| **Bleep MIDI In** | instrument | notes, pitch, gate, velocity, CCs from a MIDI track |
+| **Bleep MIDI Out** | instrument (VST3 MIDI out) | notes, gate/pitch, CCs and bend to another track |
+| **Bleep Audio In** | audio effect | the track's audio |
+| **Bleep Audio Out** | instrument | board audio on its own track |
+| **Bleep Instrument** | instrument | MIDI In and Audio Out in one plugin |
+| **Bleep Audio Insert** | audio effect | the track's audio through the board and back, dry/wet |
 
 ```bash
 scripts/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
-scripts/build-patch.sh --install                 # also copy the plugins into your user plugin folders
-scripts/build-patch.sh --formats "VST3;Standalone;AU" --clap
+scripts/build-patch.sh --install                 # also copy the plugins into your user plugin folder
 ```
 
-The script builds into `build/patch/`, then runs the DSP unit tests and a
-headless VST3 host test.
+VST3 only, Ableton Live only for now (spec §5.2). The script builds into
+`build/patch/`, then runs the DSP tests, the engine tests and a headless VST3
+host test.
 
 ## Layout
 
 ```
 patch/
-├── common/
-│   ├── dsp/          shared DSP: SVF, smoothing, counter-based randomness, tempo
-│   ├── module/       ModuleProcessor (bus plumbing, modulation offsets, state), WebView editor
-│   └── ui/           shared UI library: bleep-module.js/.css, bleep-bridge.js, bleep-demo.js
+├── engine/           the shared engine (spec §5.3): board model, compiler, block claiming, ports, undo
+├── board/            the board window (BoardWindow.cpp) and its page (ui/: board.js, board.css, demo backend)
+├── bridges/ableton/  the plugins: PortProcessor (one class for all of them) and its small editor
 ├── modules/<name>/
 │   ├── dsp/          the module's DSP (<Name>Dsp.h, no JUCE)
-│   ├── ui/           the module's page: index.html, <name>.css, <name>.js
-│   ├── <Name>Processor.cpp   joins dsp/ and ui/ into a plugin
+│   ├── <Name>Module.cpp   the node: params, jacks, process()
+│   ├── ui/           optional custom displays for its module view (<name>.js)
 │   └── module.json   metadata for the website
-├── tests/            DSP unit tests, headless host integration test
-└── bridges/          later: Max for Live bridge, Extensions SDK tools, OSC, VCV
+├── common/
+│   ├── dsp/          shared DSP: SVF, smoothing, counter-based randomness, tempo
+│   └── ui/           bleep-bridge.js (JUCE bridge), bleep-view.js/.css (module views)
+└── tests/            DSP tests, engine tests, host test, board smoke test, type dump
 ```
 
-Each plugin embeds its own `ui/` plus `common/ui/`. `bleep-module.js` builds
-the standard layout (knobs with mod rings and source menus, settings, ports
-with scopes) from the processor's description. A module adds its own views
-through `window.BleepModule` hooks in `<name>.js`; Function's slope preview
-and Filter's response curve are examples.
+## How the pieces fit
 
-With `scripts/build-patch.sh --ui-dev`, plugins read `ui/` and `common/ui/`
-from the source tree, so an edited page appears when the plugin window is
-reopened (or after ⌘R in it). Without a DAW, serve the same files with a
-fake backend:
+- **One engine per process.** JUCE builds one plugin per binary, so every
+  plugin contains the engine code. The first Bleep plugin loaded creates the
+  engine and publishes it in the process (`BLEEP_PATCH_ENGINE`); the others
+  use that instance. The binary that created it pins itself so it is never
+  unloaded. Binaries from another build refuse to share and say so.
+- **Ticks.** For every host block the first plugin to run claims the block
+  and runs the compiled board. Plugins exchange their block with the engine
+  through small tagged rings: a signal from an input port to an output port
+  takes exactly two blocks, whatever order Live runs the tracks in. Output
+  ports report that latency to Live.
+- **The board** is a JSON document owned by the engine and saved in Bleep
+  Patch's state. The page edits a copy and commits it; the engine sanitises
+  it (`engine/Board.cpp`), compiles it (`engine/Program.cpp`: cells are
+  flattened, cycles get a 32-sample feedback delay) and keeps the undo stack.
+- **Ports** appear on the board on their own, can't be deleted there, and
+  turn into ghosts when their plugin is gone or inactive.
+
+## Working on the board UI
 
 ```bash
-python3 scripts/ui-server.py filter      # http://localhost:8765
+python3 scripts/ui-server.py      # http://localhost:8765, with a fake engine (no audio)
 ```
+
+With `scripts/build-patch.sh --ui-dev`, plugins read the page from the
+source tree; press ⌘R in the board window after an edit. The demo backend
+reads node types from `board/ui/demo-types.json`; after changing a module's
+params or jacks, regenerate it (ctest checks it is current):
+
+```bash
+build/patch/bleep_dump_types_artefacts/Release/bleep_dump_types --write patch/board/ui/demo-types.json
+```
+
+`bleep_board_smoke` opens the real board window on a real engine for a few
+seconds and checks the page through the real bridge (not part of ctest).
 
 **JUCE licensing:** this source is MIT, but binaries built with JUCE are
 also covered by JUCE's license (AGPLv3 or a commercial JUCE licence).

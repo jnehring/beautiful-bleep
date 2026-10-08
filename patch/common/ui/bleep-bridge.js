@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MIT
-// bridge.js — minimal client for JUCE's WebBrowserComponent native integration.
+// bleep-bridge.js — minimal client for JUCE's WebBrowserComponent native integration.
 //   native("describe").then(...)      calls a C++ native function
 //   onNative("state", fn)             listens to events emitted by C++
 // Outside a plugin (plain browser) it falls back to a demo backend so the UI
 // can be developed with any static file server.
 (function () {
   "use strict";
+  // Uncaught errors, for the smoke test and the console.
+  window.__errors = [];
+  window.addEventListener("error", (e) => window.__errors.push(String(e.message)));
+  window.addEventListener("unhandledrejection", (e) => window.__errors.push(String(e.reason)));
   const pending = new Map();
   let nextId = 1;
   const backend = () => window.__JUCE__ && window.__JUCE__.backend;

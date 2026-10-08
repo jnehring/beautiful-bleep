@@ -4,8 +4,7 @@
   "tagline": "Seeded stepped randomness with a looping memory, from always-new to locked.",
   "colour": "#f6a85b",
   "formats": [
-    "VST3",
-    "Standalone"
+    "Board module"
   ],
   "doc": "musicians/modules/random.md"
 }

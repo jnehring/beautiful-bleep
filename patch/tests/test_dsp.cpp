@@ -2,7 +2,6 @@
 // Unit tests for the Bleep Patch DSP cores. No JUCE, no bus: pure C++.
 #include "../modules/filter/dsp/FilterDsp.h"
 #include "../modules/function/dsp/FunctionDsp.h"
-#include "../modules/midi-out/dsp/MidiOutDsp.h"
 #include "../modules/random/dsp/RandomDsp.h"
 #include "../modules/utility/dsp/UtilityDsp.h"
 
@@ -207,47 +206,6 @@ static void utilityShapes() {
     EXPECT_NEAR(out, -0.3, 1e-6);
 }
 
-struct MidiEvent {
-    int offset;
-    uint8_t b0, b1, b2;
-};
-struct MidiSink {
-    std::vector<MidiEvent> events;
-    void operator()(int offset, const uint8_t* m, int) { events.push_back({offset, m[0], m[1], m[2]}); }
-};
-
-static void midiOut() {
-    g_test = "midi out";
-    MidiOutDsp<MidiSink> m;
-    MidiSink sink;
-    m.reset();
-    MidiOutParams p;
-    p.sendCCs = false;
-    p.channel = 2;
-    m.tick(p, 0.0f, 0.0f, 0, sink);
-    EXPECT(sink.events.empty());
-    m.tick(p, 1.0f, 7.0f / 12.0f, 1, sink); // gate on, a fifth up
-    EXPECT(sink.events.size() == 1);
-    EXPECT(sink.events[0].b0 == 0x91 && sink.events[0].b1 == 67 && sink.events[0].b2 == 102);
-    m.tick(p, 1.0f, 1.0f, 2, sink); // legato to C5
-    EXPECT(sink.events.size() == 3);
-    EXPECT(sink.events[1].b0 == 0x91 && sink.events[1].b1 == 72);
-    EXPECT(sink.events[2].b0 == 0x81 && sink.events[2].b1 == 67);
-    m.tick(p, 0.0f, 1.0f, 3, sink);
-    EXPECT(sink.events.size() == 4 && sink.events[3].b0 == 0x81 && sink.events[3].b1 == 72);
-    EXPECT(m.activeNote() == -1);
-
-    sink.events.clear();
-    p.sendCCs = true;
-    p.ccA = 0.5f;
-    p.bend = 0.0f;
-    for (int i = 0; i < 128; ++i) m.tick(p, 0.0f, 0.0f, i, sink);
-    // One CC A, one CC B, one pitch bend — sent once, not repeated.
-    EXPECT(sink.events.size() == 3);
-    EXPECT(sink.events[0].b0 == 0xB1 && sink.events[0].b1 == 1 && sink.events[0].b2 == 64);
-    EXPECT(sink.events[2].b0 == 0xE1 && ((sink.events[2].b2 << 7) | sink.events[2].b1) == 8192);
-}
-
 int main() {
     svfBasics();
     filterMapping();
@@ -255,7 +213,6 @@ int main() {
     functionEnvelope();
     randomDeterminism();
     utilityShapes();
-    midiOut();
     if (g_failures) {
         std::printf("%d failure(s)\n", g_failures);
         return 1;

@@ -1,0 +1,163 @@
+// SPDX-License-Identifier: MIT
+// board-demo.js — a fake engine so the board runs in a plain browser
+// (python3 scripts/ui-server.py). Inactive inside a plugin. It keeps a small
+// demo set, an undo stack and cell presets in localStorage, and animates
+// outputs; it does not process audio.
+(function () {
+  "use strict";
+  if (window.__JUCE__) return;
+
+  const listeners = {};
+  const emit = (e, v) => (listeners[e] || []).forEach((f) => f(v));
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  let types = [];
+  const typeOf = (t) => types.find((x) => x.type === t);
+  let board = null;
+  let undo = [], redo = [];
+  let watched = [];
+  const ports = {
+    "p-main": { kind: "patch", track: "Master", live: true, main: true },
+    "p-keys": { kind: "midi-in", track: "Keys", live: true, main: false },
+    "p-synth": { kind: "audio-out", track: "Synth", live: true, main: false },
+    "p-drums": { kind: "audio-in", track: "Drums", live: false, main: false },
+  };
+  const store = {
+    get(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode */ } },
+  };
+
+  function node(id, type, name, x, y, extra) {
+    const t = typeOf(type);
+    const params = {};
+    for (const p of t.params) params[p.id] = p.default;
+    return Object.assign({ id, type, name, x, y, parent: "", muted: false, params }, extra || {});
+  }
+  const cable = (id, fn, fj, tn, tj, amount) => ({ id, from: { node: fn, jack: fj }, to: { node: tn, jack: tj }, amount });
+
+  function demoBoard() {
+    return {
+      format: 1, id: "demo",
+      nodes: [
+        node("keys", "midi-in", "Keys", 40, 40, { port: "p-keys", track: "Keys", colour: "#a78bfa" }),
+        node("drums", "audio-in", "Drums", 40, 330, { port: "p-drums", track: "Drums", colour: "#ff9f6b" }),
+        node("macros", "macros", "Macros", 40, 560, { port: "p-main" }),
+        node("wobble", "function", "Wobble", 300, 90),
+        node("filter", "filter", "Filter", 540, 240),
+        node("synth", "audio-out", "Synth", 800, 120, { port: "p-synth", track: "Synth", colour: "#ff6b6b" }),
+      ],
+      cables: [
+        cable("k1", "wobble", "a", "filter", "cutoff", 0.4),
+        cable("k2", "drums", "l", "filter", "l", 1),
+        cable("k3", "filter", "l", "synth", "l", 1),
+        cable("k4", "filter", "r", "synth", "r", 1),
+        cable("k5", "keys", "gate", "wobble", "trig", 1),
+      ],
+    };
+  }
+
+  /// A little of the engine's sanitise(): dangling cables go, ports stay.
+  function sanitise(next) {
+    const ids = new Set(next.nodes.map((n) => n.id));
+    for (const n of board.nodes) if (n.port && !ids.has(n.id)) { next.nodes.push(n); ids.add(n.id); }
+    next.cables = next.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node));
+    return next;
+  }
+
+  const message = () => ({ board, ports, canUndo: undo.length > 0, canRedo: redo.length > 0,
+                           status: "Demo · no audio · latency 256 smp" });
+  function save() { store.set("bleep-demo-board", board); }
+  function pushUndo() { undo.push(JSON.stringify(board)); if (undo.length > 200) undo.shift(); redo = []; }
+
+  function paramText(p, v) {
+    if (p.kind === "bool") return v >= 0.5 ? "On" : "Off";
+    const x = p.min + v * (p.max - p.min);
+    if (p.kind === "choice") return p.choices[Math.round(x - p.min)] || "";
+    if (p.kind === "int") return String(Math.round(x));
+    return x.toFixed(2);
+  }
+
+  let t = 0;
+  setInterval(() => {
+    if (!board) return;
+    t += 1 / 30;
+    const nodes = {};
+    board.nodes.forEach((n, i) => {
+      const ty = typeOf(n.type);
+      if (!ty) return;
+      const outputs = {};
+      ty.outputs.forEach((o, k) => {
+        const s = Math.sin(t * (1.3 + 0.4 * k) + i * 1.7);
+        outputs[o.id] = o.type === "gate" || o.type === "trigger" ? (s > 0.8 ? 1 : 0)
+          : o.type === "audio" ? Math.sin(t * 40 + i) * 0.5 * (n.port && !ports[n.port].live ? 0 : 1)
+          : o.bipolar ? s : 0.5 + 0.5 * s;
+      });
+      const entry = { outputs };
+      if (watched.includes(n.id)) {
+        entry.params = {};
+        for (const p of ty.params) {
+          const v = n.params[p.id] ?? p.default;
+          const into = board.cables.filter((c) => c.to.node === n.id && c.to.jack === p.id);
+          const e = Math.min(1, Math.max(0, v + into.reduce((a, c) => a + c.amount * 0.5 * Math.sin(t * 2), 0)));
+          entry.params[p.id] = { v, e, a: into.length > 0, t: paramText(p, into.length ? e : v) };
+        }
+      }
+      nodes[n.id] = entry;
+    });
+    emit("state", { nodes, ports });
+  }, 1000 / 30);
+
+  window.BleepDemo = {
+    listen: (e, f) => (listeners[e] = listeners[e] || []).push(f),
+    async call(name, a) {
+      switch (name) {
+        case "init":
+          types = await (await fetch("demo-types.json")).json();
+          board = store.get("bleep-demo-board", null) || demoBoard();
+          return Object.assign(message(), { types, dev: true });
+        case "commit":
+          pushUndo();
+          board = sanitise(clone(a[0]));
+          save();
+          return message();
+        case "undo":
+          if (undo.length) { redo.push(JSON.stringify(board)); board = JSON.parse(undo.pop()); save(); }
+          return message();
+        case "redo":
+          if (redo.length) { undo.push(JSON.stringify(board)); board = JSON.parse(redo.pop()); save(); }
+          return message();
+        case "beginGesture":
+          pushUndo();
+          return message();
+        case "setParam": {
+          const n = board.nodes.find((x) => x.id === a[0]);
+          if (n) { n.params[a[1]] = a[2]; save(); }
+          return null;
+        }
+        case "setAmount": {
+          const c = board.cables.find((x) => x.id === a[0]);
+          if (c) { c.amount = a[1]; save(); }
+          return null;
+        }
+        case "watch": watched = a[0] || []; return null;
+        case "presets": return store.get("bleep-demo-presets", []);
+        case "savePreset": {
+          const list = store.get("bleep-demo-presets", []).filter((p) => p.name !== a[0]);
+          list.push({ name: a[0], preset: a[1] });
+          list.sort((x, y) => x.name.localeCompare(y.name));
+          store.set("bleep-demo-presets", list);
+          return list;
+        }
+        case "deletePreset": {
+          const list = store.get("bleep-demo-presets", []).filter((p) => p.name !== a[0]);
+          store.set("bleep-demo-presets", list);
+          return list;
+        }
+        case "resetDemo":
+          board = demoBoard(); undo = []; redo = []; save();
+          setTimeout(() => emit("board", message()));
+          return null;
+        default: return null;
+      }
+    },
+  };
+})();

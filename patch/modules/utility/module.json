@@ -4,8 +4,7 @@
   "tagline": "Attenuverter, offset, mixer, shaper, slew and comparator: the glue.",
   "colour": "#a78bfa",
   "formats": [
-    "VST3",
-    "Standalone"
+    "Board module"
   ],
   "doc": "musicians/modules/utility.md"
 }

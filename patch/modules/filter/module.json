@@ -4,8 +4,7 @@
   "tagline": "Zero-delay-feedback state-variable filter with mode morph, drive and an envelope output.",
   "colour": "#f472b6",
   "formats": [
-    "VST3",
-    "Standalone"
+    "Board module"
   ],
   "doc": "musicians/modules/filter.md"
 }

@@ -1,0 +1,1380 @@
+[
+  {
+    "type": "function",
+    "name": "Function",
+    "category": "Modulation",
+    "colour": "#4fd1c5",
+    "description": "Rise/fall slope generator: LFO, envelope or slew, with four related outputs.",
+    "port": "",
+    "creatable": true,
+    "params": [
+      {
+        "id": "rise",
+        "name": "Rise",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.001000000047497,
+        "max": 10.0
+      },
+      {
+        "id": "fall",
+        "name": "Fall",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.001000000047497,
+        "max": 10.0
+      },
+      {
+        "id": "shape",
+        "name": "Shape",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "spread",
+        "name": "Spread",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "cycle",
+        "name": "Cycle",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 10,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "gate",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "a",
+        "name": "A",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "c",
+        "name": "C",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "d",
+        "name": "D",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "eoc",
+        "name": "EOC",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "random",
+    "name": "Random",
+    "category": "Modulation",
+    "colour": "#f6a85b",
+    "description": "Seeded stepped randomness. Loop moves from always new to a locked loop.",
+    "port": "",
+    "creatable": true,
+    "params": [
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "float",
+        "default": 0.534020006656647,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 50.0
+      },
+      {
+        "id": "spread",
+        "name": "Spread",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "bias",
+        "name": "Bias",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "smooth",
+        "name": "Smooth",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "loop",
+        "name": "Loop",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.444444447755814,
+        "steps": 10,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0
+      },
+      {
+        "id": "length",
+        "name": "Length",
+        "kind": "choice",
+        "default": 0.625,
+        "steps": 9,
+        "modulatable": false,
+        "choices": [
+          "2 steps",
+          "3 steps",
+          "4 steps",
+          "5 steps",
+          "6 steps",
+          "8 steps",
+          "12 steps",
+          "16 steps",
+          "32 steps"
+        ],
+        "min": 0.0,
+        "max": 8.0
+      },
+      {
+        "id": "quantize",
+        "name": "Semitones",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "gate",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "utility",
+    "name": "Utility",
+    "category": "Modulation",
+    "colour": "#a78bfa",
+    "description": "The glue: attenuverter, offset, mixer, rectify/fold/quantize, S&H, slew, comparator.",
+    "port": "",
+    "creatable": true,
+    "params": [
+      {
+        "id": "scalex",
+        "name": "Scale X",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "scaley",
+        "name": "Scale Y",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "offset",
+        "name": "Offset",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "slew",
+        "name": "Slew",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 5.0
+      },
+      {
+        "id": "threshold",
+        "name": "Threshold",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "Through",
+          "Rectify",
+          "Fold",
+          "Quantize",
+          "Sample & Hold"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "x",
+        "name": "X",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "y",
+        "name": "Y",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "gate",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "inv",
+        "name": "Inv",
+        "type": "control",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "filter",
+    "name": "Filter",
+    "category": "Audio",
+    "colour": "#f472b6",
+    "description": "Stereo state-variable filter with LP/BP/HP/notch morph, drive, key tracking and an envelope out.",
+    "port": "",
+    "creatable": true,
+    "params": [
+      {
+        "id": "cutoff",
+        "name": "Cutoff",
+        "kind": "float",
+        "default": 0.666666686534882,
+        "steps": 0,
+        "modulatable": true,
+        "min": 20.0,
+        "max": 20000.0
+      },
+      {
+        "id": "resonance",
+        "name": "Resonance",
+        "kind": "float",
+        "default": 0.200000002980232,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "drive",
+        "name": "Drive",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "keytrack",
+        "name": "Key Track",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "env",
+        "name": "Env",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "midi-in",
+    "name": "MIDI In",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "Notes and controllers from a MIDI track (Bleep MIDI In).",
+    "port": "midi-in",
+    "creatable": false,
+    "params": [
+      {
+        "id": "channel",
+        "name": "Channel",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 17,
+        "modulatable": false,
+        "choices": [
+          "All",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16"
+        ],
+        "min": 0.0,
+        "max": 16.0
+      },
+      {
+        "id": "cc1",
+        "name": "CC 1 #",
+        "kind": "int",
+        "default": 0.015748031437397,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc2",
+        "name": "CC 2 #",
+        "kind": "int",
+        "default": 0.031496062874794,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc3",
+        "name": "CC 3 #",
+        "kind": "int",
+        "default": 0.05511811003089,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc4",
+        "name": "CC 4 #",
+        "kind": "int",
+        "default": 0.078740157186985,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc5",
+        "name": "CC 5 #",
+        "kind": "int",
+        "default": 0.086614176630974,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc6",
+        "name": "CC 6 #",
+        "kind": "int",
+        "default": 0.559055089950562,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc7",
+        "name": "CC 7 #",
+        "kind": "int",
+        "default": 0.582677185535431,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc8",
+        "name": "CC 8 #",
+        "kind": "int",
+        "default": 0.503937005996704,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "pressure",
+        "name": "Pressure",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "bend",
+        "name": "Bend",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "mod",
+        "name": "Mod Wheel",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc1",
+        "name": "CC 1",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc2",
+        "name": "CC 2",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc3",
+        "name": "CC 3",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc4",
+        "name": "CC 4",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc5",
+        "name": "CC 5",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc6",
+        "name": "CC 6",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc7",
+        "name": "CC 7",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc8",
+        "name": "CC 8",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "instrument",
+    "name": "Instrument",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "MIDI In and Audio Out in one plugin (Bleep Instrument).",
+    "port": "instrument",
+    "creatable": false,
+    "params": [
+      {
+        "id": "channel",
+        "name": "Channel",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 17,
+        "modulatable": false,
+        "choices": [
+          "All",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16"
+        ],
+        "min": 0.0,
+        "max": 16.0
+      },
+      {
+        "id": "cc1",
+        "name": "CC 1 #",
+        "kind": "int",
+        "default": 0.015748031437397,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc2",
+        "name": "CC 2 #",
+        "kind": "int",
+        "default": 0.031496062874794,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc3",
+        "name": "CC 3 #",
+        "kind": "int",
+        "default": 0.05511811003089,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc4",
+        "name": "CC 4 #",
+        "kind": "int",
+        "default": 0.078740157186985,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc5",
+        "name": "CC 5 #",
+        "kind": "int",
+        "default": 0.086614176630974,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc6",
+        "name": "CC 6 #",
+        "kind": "int",
+        "default": 0.559055089950562,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc7",
+        "name": "CC 7 #",
+        "kind": "int",
+        "default": 0.582677185535431,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc8",
+        "name": "CC 8 #",
+        "kind": "int",
+        "default": 0.503937005996704,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "Audio L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Audio R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "pressure",
+        "name": "Pressure",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "bend",
+        "name": "Bend",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "mod",
+        "name": "Mod Wheel",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc1",
+        "name": "CC 1",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc2",
+        "name": "CC 2",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc3",
+        "name": "CC 3",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc4",
+        "name": "CC 4",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc5",
+        "name": "CC 5",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc6",
+        "name": "CC 6",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc7",
+        "name": "CC 7",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "cc8",
+        "name": "CC 8",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "midi-out",
+    "name": "MIDI Out",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "Notes, CCs and pitch bend to another track (Bleep MIDI Out).",
+    "port": "midi-out",
+    "creatable": false,
+    "params": [
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "channel",
+        "name": "Channel",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 16,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 16.0
+      },
+      {
+        "id": "transpose",
+        "name": "Transpose",
+        "kind": "int",
+        "default": 0.5,
+        "steps": 49,
+        "modulatable": false,
+        "min": -24.0,
+        "max": 24.0
+      },
+      {
+        "id": "cc1",
+        "name": "CC 1 #",
+        "kind": "int",
+        "default": 0.015748031437397,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc2",
+        "name": "CC 2 #",
+        "kind": "int",
+        "default": 0.031496062874794,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc3",
+        "name": "CC 3 #",
+        "kind": "int",
+        "default": 0.05511811003089,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc4",
+        "name": "CC 4 #",
+        "kind": "int",
+        "default": 0.078740157186985,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc5",
+        "name": "CC 5 #",
+        "kind": "int",
+        "default": 0.086614176630974,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc6",
+        "name": "CC 6 #",
+        "kind": "int",
+        "default": 0.559055089950562,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc7",
+        "name": "CC 7 #",
+        "kind": "int",
+        "default": 0.582677185535431,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "cc8",
+        "name": "CC 8 #",
+        "kind": "int",
+        "default": 0.503937005996704,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "cc1in",
+        "name": "CC 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cc2in",
+        "name": "CC 2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cc3in",
+        "name": "CC 3",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cc4in",
+        "name": "CC 4",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cc5in",
+        "name": "CC 5",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cc6in",
+        "name": "CC 6",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cc7in",
+        "name": "CC 7",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cc8in",
+        "name": "CC 8",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "bend",
+        "name": "Bend",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "audio-in",
+    "name": "Audio In",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "The track's audio (Bleep Audio In).",
+    "port": "audio-in",
+    "creatable": false,
+    "params": [],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "audio-out",
+    "name": "Audio Out",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "Board audio to a track (Bleep Audio Out).",
+    "port": "audio-out",
+    "creatable": false,
+    "params": [],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "audio-insert",
+    "name": "Audio Insert",
+    "category": "Ports",
+    "colour": "#60a5fa",
+    "description": "A track's audio through the board and back (Bleep Audio Insert).",
+    "port": "audio-insert",
+    "creatable": false,
+    "params": [],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "Return L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Return R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Send L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Send R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "macros",
+    "name": "Macros",
+    "category": "Ports",
+    "colour": "#f6c35b",
+    "description": "The 16 automatable macros of the Bleep Patch plugin.",
+    "port": "patch",
+    "creatable": false,
+    "params": [],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "m1",
+        "name": "Macro 1",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m2",
+        "name": "Macro 2",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m3",
+        "name": "Macro 3",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m4",
+        "name": "Macro 4",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m5",
+        "name": "Macro 5",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m6",
+        "name": "Macro 6",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m7",
+        "name": "Macro 7",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m8",
+        "name": "Macro 8",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m9",
+        "name": "Macro 9",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m10",
+        "name": "Macro 10",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m11",
+        "name": "Macro 11",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m12",
+        "name": "Macro 12",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m13",
+        "name": "Macro 13",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m14",
+        "name": "Macro 14",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m15",
+        "name": "Macro 15",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "m16",
+        "name": "Macro 16",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "cell",
+    "name": "Cell",
+    "category": "Cells",
+    "colour": "#9aa3b5",
+    "description": "A group of nodes with its own jacks. Double-click to enter.",
+    "port": "",
+    "creatable": true,
+    "params": [],
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "cell-in",
+    "name": "Cell In",
+    "category": "Cells",
+    "colour": "#9aa3b5",
+    "description": "",
+    "port": "",
+    "creatable": false,
+    "params": [],
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "cell-out",
+    "name": "Cell Out",
+    "category": "Cells",
+    "colour": "#9aa3b5",
+    "description": "",
+    "port": "",
+    "creatable": false,
+    "params": [],
+    "inputs": [],
+    "outputs": []
+  }
+]

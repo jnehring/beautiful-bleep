@@ -1,6 +1,10 @@
-# Bridges (later)
+# Bridges
 
-Planned edge gateways between Bleep Bus and other systems: Max for Live
-bridge (`live.remote~`), Ableton Extensions SDK companion tools, OSC, VCV
-Rack, CV in/out. See the concept, sections 12 and 13. Each bridge will be its
-own module using the public bus API.
+A bridge is a family of nodes that connect the board to the outside world
+(spec §4, §18).
+
+- [`ableton/`](ableton/): the **Ableton bridge**, the plugins you add in Live:
+  Bleep Patch and the ports (MIDI In/Out, Audio In/Out, Instrument, Audio
+  Insert). One class, `PortProcessor`, built once per plugin.
+- Later: Max for Live (`live.remote~`), Ableton Extensions SDK tools, OSC,
+  VCV Rack, CV in/out.

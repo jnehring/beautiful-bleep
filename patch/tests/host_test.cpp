@@ -1,32 +1,29 @@
 // SPDX-License-Identifier: MIT
 //
-// Integration test: loads the built VST3 modules into a minimal headless host
-// and checks that they really talk over Bleep Bus.
+// Integration test: loads the built VST3s into a minimal headless host.
+// Bleep Patch, Bleep Audio In and Bleep Audio Out are three different
+// binaries; they must find one shared engine (spec §5.3), report the board
+// latency, pass audio through a cable on the board, and save the board.
 //
-//   bleep_patch_host_test <Function.vst3> <Utility.vst3> <Filter.vst3> <MidiOut.vst3>
+//   bleep_patch_host_test <Bleep Patch.vst3> <Bleep Audio In.vst3> <Bleep Audio Out.vst3>
 #include <juce_audio_processors/juce_audio_processors.h>
 
-#include "bleep_bus.hpp"
-
-#include <cmath>
 #include <cstdio>
-#include <cstdlib>
 
 namespace {
 
 int failures = 0;
-#define EXPECT(cond)                                                          \
-    do {                                                                      \
-        if (!(cond)) {                                                        \
-            std::printf("FAILED %s:%d: %s\n", __FILE__, __LINE__, #cond);     \
-            ++failures;                                                       \
-        }                                                                     \
+#define EXPECT(cond)                                                      \
+    do {                                                                  \
+        if (!(cond)) {                                                    \
+            std::printf("FAILED %s:%d: %s\n", __FILE__, __LINE__, #cond); \
+            ++failures;                                                   \
+        }                                                                 \
     } while (0)
 
 constexpr double kRate = 48000.0;
 constexpr int kBlock = 256;
 
-/// A transport that is always playing, advancing one block per call.
 struct PlayHead : juce::AudioPlayHead {
     int64_t pos = 0;
     juce::Optional<PositionInfo> getPosition() const override {
@@ -60,140 +57,107 @@ std::unique_ptr<juce::AudioPluginInstance> load(juce::AudioPluginFormatManager& 
     return p;
 }
 
-void setParam(juce::AudioPluginInstance& p, const juce::String& name, float normalised) {
-    for (auto* prm : p.getParameters())
-        if (prm->getName(64) == name) {
-            prm->setValueNotifyingHost(normalised);
-            return;
-        }
-    std::printf("no parameter %s\n", name.toRawUTF8());
-    ++failures;
+// A hosted VST3's state is JUCE's <VST3PluginState> with the plugin's own
+// state base64-encoded in <IComponent>.
+std::unique_ptr<juce::XmlElement> stateOf(juce::AudioPluginInstance& p) {
+    juce::MemoryBlock m;
+    p.getStateInformation(m);
+    auto wrapper = juce::AudioProcessor::getXmlFromBinary(m.getData(), (int)m.getSize());
+    auto* component = wrapper ? wrapper->getChildByName("IComponent") : nullptr;
+    if (component == nullptr) return nullptr;
+    juce::MemoryBlock inner;
+    inner.fromBase64Encoding(component->getAllSubText());
+    return juce::AudioProcessor::getXmlFromBinary(inner.getData(), (int)inner.getSize());
 }
 
-uint64_t uidOf(bleep::Bus& bus, const char* product) {
-    for (const auto& e : bus.endpoints())
-        if (juce::String(e.product) == product) return e.uid;
-    return 0;
+void setState(juce::AudioPluginInstance& p, const juce::XmlElement& xml) {
+    juce::MemoryBlock inner, outer;
+    juce::AudioProcessor::copyXmlToBinary(xml, inner);
+    juce::XmlElement wrapper("VST3PluginState");
+    wrapper.createNewChildElement("IComponent")->addTextElement(inner.toBase64Encoding());
+    juce::AudioProcessor::copyXmlToBinary(wrapper, outer);
+    p.setStateInformation(outer.getData(), (int)outer.getSize());
 }
 
-/// Runs one block on every plugin, in the given order. Returns the RMS of
-/// `measure`'s output and collects its MIDI.
-float runBlock(std::initializer_list<juce::AudioPluginInstance*> order, juce::AudioPluginInstance* measure,
-               PlayHead& head, int& phase, juce::MidiBuffer* midiOut = nullptr) {
-    float rms = 0.0f;
-    for (auto* p : order) {
-        juce::AudioBuffer<float> buf(2, kBlock);
-        for (int i = 0; i < kBlock; ++i) {
-            const float s = 0.5f * std::sin(2.0f * juce::MathConstants<float>::pi * 5000.0f * (float)(phase + i) / (float)kRate);
-            buf.setSample(0, i, s);
-            buf.setSample(1, i, s);
-        }
-        juce::MidiBuffer midi;
-        p->processBlock(buf, midi);
-        if (p == measure) {
-            rms = buf.getRMSLevel(0, 0, kBlock);
-            if (midiOut) midiOut->addEvents(midi, 0, kBlock, 0);
-        }
-    }
-    phase += kBlock;
-    head.pos += kBlock;
-    return rms;
+juce::var obj(std::initializer_list<std::pair<const char*, juce::var>> props) {
+    auto* o = new juce::DynamicObject();
+    for (const auto& [k, v] : props) o->setProperty(k, v);
+    return juce::var(o);
 }
 
 }  // namespace
 
 int main(int argc, char** argv) {
-    if (argc < 5) {
-        std::printf("usage: %s <Function.vst3> <Utility.vst3> <Filter.vst3> <MidiOut.vst3>\n", argv[0]);
+    if (argc < 4) {
+        std::printf("usage: %s <Bleep Patch.vst3> <Bleep Audio In.vst3> <Bleep Audio Out.vst3>\n", argv[0]);
         return 2;
     }
-    // Private bus namespace so a running DAW is not disturbed.
-    const juce::String ns = "host" + juce::String(juce::Random::getSystemRandom().nextInt(99999));
-#if JUCE_WINDOWS
-    _putenv_s("BLEEP_BUS_NAMESPACE", ns.toRawUTF8());
-#else
-    setenv("BLEEP_BUS_NAMESPACE", ns.toRawUTF8(), 1);
-#endif
-    bb_bus_unlink(ns.toRawUTF8());
-
     juce::ScopedJuceInitialiser_GUI juce;
     juce::AudioPluginFormatManager fm;
     fm.addFormat(new juce::VST3PluginFormat());
     PlayHead head;
-
     {
-        bleep::Bus bus(ns.toRawUTF8());
-        EXPECT(bus.ok());
-        auto function = load(fm, argv[1], head);
-        auto utility = load(fm, argv[2], head);
-        auto filter = load(fm, argv[3], head);
-        auto midiOut = load(fm, argv[4], head);
-        if (!function || !utility || !filter || !midiOut) return 1;
+        auto patch = load(fm, argv[1], head);
+        auto audioIn = load(fm, argv[2], head);
+        auto audioOut = load(fm, argv[3], head);
+        if (!patch || !audioIn || !audioOut) return 1;
 
-        // Four endpoints with their ports on the bus.
-        EXPECT(bus.endpoints().size() == 4);
-        const uint64_t utilityUid = uidOf(bus, "Utility"), filterUid = uidOf(bus, "Filter"),
-                       midiUid = uidOf(bus, "MIDI Out");
-        EXPECT(utilityUid && filterUid && midiUid && uidOf(bus, "Function"));
-        EXPECT(bus.inputs(filterUid).size() == 7);   // six parameters + Pitch
-        EXPECT(bus.outputs().size() == 5 + 3 + 1);   // Function A-D+EOC, Utility Out/Gate/Inv, Filter Env
+        EXPECT(audioOut->getLatencySamples() == 2 * kBlock);
+        EXPECT(audioIn->getLatencySamples() == 0);
 
-        // Utility outputs a constant +1 (Offset fully up).
-        setParam(*utility, "Offset", 1.0f);
-        int phase = 0;
-        float open = 0.0f;
-        for (int i = 0; i < 8; ++i) open = runBlock({utility.get(), filter.get()}, filter.get(), head, phase);
-        EXPECT(open > 0.02f); // 5 kHz through the default 2 kHz LP: attenuated, clearly audible
+        // The board: Audio In → Audio Out, stored in Bleep Patch's state.
+        auto inState = stateOf(*audioIn), outState = stateOf(*audioOut), patchState = stateOf(*patch);
+        EXPECT(inState && outState && patchState);
+        if (!inState || !outState || !patchState) return 1;
+        const auto inId = inState->getStringAttribute("id"), outId = outState->getStringAttribute("id");
+        EXPECT(inId.length() == 36 && outId.length() == 36 && inId != outId);
+        auto board = obj({{"format", 1},
+                          {"id", "host-test"},
+                          {"nodes", juce::Array<juce::var>{obj({{"id", "in"}, {"type", "audio-in"}, {"port", inId}}),
+                                                           obj({{"id", "out"}, {"type", "audio-out"}, {"port", outId}})}},
+                          {"cables", juce::Array<juce::var>{
+                                         obj({{"from", obj({{"node", "in"}, {"jack", "l"}})},
+                                              {"to", obj({{"node", "out"}, {"jack", "l"}})},
+                                              {"amount", 0.5}})}}});
+        if (auto* b = patchState->getChildByName("Board")) patchState->removeChildElement(b, true);
+        patchState->createNewChildElement("Board")->addTextElement(juce::JSON::toString(board));
+        setState(*patch, *patchState);
 
-        // Cable: Utility.Out → Filter.Cutoff, amount -1: cutoff falls ten octaves to 20 Hz.
-        EXPECT(bus.connect(filterUid, "Cutoff", utilityUid, "Out", -1.0f) == BB_OK);
-        float closed = 1.0f;
-        for (int i = 0; i < 64; ++i)
-            closed = runBlock({filter.get(), utility.get()}, filter.get(), head, phase); // reader first
-        std::printf("filter rms: open %.4f, modulated %.6f\n", open, closed);
-        EXPECT(closed < open * 0.01f); // > 40 dB further down
+        // An impulse into Audio In comes out of Audio Out two blocks later, at half level.
+        int arrived = -1, sample = -1;
+        float level = 0.0f;
+        for (int b = 0; b < 8; ++b) {
+            juce::MidiBuffer midi;
+            juce::AudioBuffer<float> p(2, kBlock), in(2, kBlock), out(2, kBlock);
+            p.clear();
+            in.clear();
+            out.clear();
+            if (b == 1) in.setSample(0, 17, 1.0f);
+            patch->processBlock(p, midi);
+            audioIn->processBlock(in, midi);
+            audioOut->processBlock(out, midi);
+            EXPECT(b != 1 || in.getSample(0, 17) == 1.0f);  // Audio In passes audio through
+            for (int i = 0; i < kBlock && arrived < 0; ++i)
+                if (std::abs(out.getSample(0, i)) > 0.01f) {
+                    arrived = b;
+                    sample = i;
+                    level = out.getSample(0, i);
+                }
+            head.pos += kBlock;
+        }
+        std::printf("impulse arrived in block %d, sample %d, level %.2f\n", arrived, sample, level);
+        EXPECT(arrived == 3 && sample == 17);
+        EXPECT(std::abs(level - 0.5f) < 1e-4f);
 
-        // The knob itself did not move.
-        for (auto* prm : filter->getParameters())
-            if (prm->getName(64) == "Cutoff") EXPECT(std::abs(prm->getValue() - prm->getDefaultValue()) < 1e-6f);
-
-        // The filter publishes its envelope.
-        EXPECT(!bus.peek(filterUid, "Env").empty());
-
-        // Cables live in the receiver's state and come back with it.
-        juce::MemoryBlock state;
-        filter->getStateInformation(state);
-        EXPECT(bus.disconnectAll(filterUid, "Cutoff") == BB_OK);
-        filter->setStateInformation(state.getData(), (int)state.getSize());
-        EXPECT(bus.connections(filterUid, "Cutoff").size() == 1);
-
-        // A duplicate (same saved UID) gets a fresh UID but keeps the cables.
-        auto duplicate = load(fm, argv[3], head);
-        duplicate->setStateInformation(state.getData(), (int)state.getSize());
-        uint64_t dupUid = 0;
-        for (const auto& e : bus.endpoints())
-            if (juce::String(e.product) == "Filter" && e.uid != filterUid) dupUid = e.uid;
-        EXPECT(dupUid != 0);
-        EXPECT(bus.connections(dupUid, "Cutoff").size() == 1);
-        duplicate.reset();
-
-        // MIDI Out: Utility.Gate (high, since Out = 1 > threshold 0) → note on.
-        EXPECT(bus.connect(midiUid, "Gate", utilityUid, "Gate", 1.0f) == BB_OK);
-        juce::MidiBuffer midi;
-        for (int i = 0; i < 4; ++i) runBlock({utility.get(), midiOut.get()}, midiOut.get(), head, phase, &midi);
-        int noteOns = 0;
-        for (const auto m : midi)
-            if (m.getMessage().isNoteOn()) {
-                ++noteOns;
-                EXPECT(m.getMessage().getNoteNumber() == 60);
-            }
-        EXPECT(noteOns == 1);
-
-        // Unloading a plugin removes its endpoint.
-        midiOut.reset();
-        EXPECT(bus.endpoints().size() == 3);
+        // Bleep Patch saves the board with the cable.
+        auto saved = stateOf(*patch);
+        auto* savedBoard = saved ? saved->getChildByName("Board") : nullptr;
+        EXPECT(savedBoard != nullptr);
+        if (savedBoard) {
+            const auto doc = juce::JSON::parse(savedBoard->getAllSubText());
+            EXPECT(doc["cables"].getArray() && doc["cables"].getArray()->size() == 1);
+        }
     }
-    bb_bus_unlink(ns.toRawUTF8());
     std::printf(failures ? "%d failure(s)\n" : "host test passed\n", failures);
     return failures ? 1 : 0;
 }

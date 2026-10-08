@@ -17,6 +17,11 @@ modulation, even at audio rate.
 | Mix | 0 – 100 % | dry/wet |
 | Key Track | 0 – 100 % | how far cutoff follows the *Pitch* input (100 % = one octave per octave) |
 
-**Inputs:** *Pitch* (1 V/oct), plus every control.
-**Outputs:** *Env*, an envelope follower on the filtered signal. Patch it
-anywhere, e.g. the filtered bass pumping another track's filter.
+**Inputs:** *In L*, *In R* (audio; with only *In L* patched, both channels
+get it), *Pitch* (1 V/oct), plus every control.
+**Outputs:** *Out L*, *Out R* (audio), *Env*, an envelope follower on the
+filtered signal. Patch it anywhere, e.g. the filtered drums pumping a pad's
+cutoff.
+
+To filter a track, put **Bleep Audio Insert** on it and patch the board:
+Insert *Send* → Filter *In* → Filter *Out* → Insert *Return*.

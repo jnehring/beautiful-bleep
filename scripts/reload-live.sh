@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# Rebuilds the modules and restarts Ableton Live with a test set (macOS).
+# Rebuilds the plugins and restarts Ableton Live with a test set (macOS).
 # Live keeps a plugin's code loaded until it quits, so this is the shortest
-# loop for DSP and bus changes.
+# loop for engine, DSP and bus changes.
 #
 #   scripts/reload-live.sh <set.als> [build-patch.sh options]
 #   e.g. scripts/reload-live.sh ~/Music/bleep-test.als --juce ~/JUCE --ui-dev

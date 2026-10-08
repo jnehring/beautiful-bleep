@@ -1,11 +1,10 @@
 {
   "name": "Function",
   "slug": "function",
-  "tagline": "Rise/fall slope generator: LFO, envelope, slew — one primitive, four related outputs.",
+  "tagline": "Rise/fall slope generator: LFO, envelope, slew \u2014 one primitive, four related outputs.",
   "colour": "#4fd1c5",
   "formats": [
-    "VST3",
-    "Standalone"
+    "Board module"
   ],
   "doc": "musicians/modules/function.md"
 }
