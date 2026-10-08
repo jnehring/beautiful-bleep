@@ -22,4 +22,4 @@ scripts/build-bus.sh                               # build + conformance suite (
 
 Docs: [quickstart](../website/content/developers/quickstart.md),
 [API reference](../website/content/developers/api-reference/00-overview.md),
-[specification](../website/content/spec/v0.1/00-overview.md).
+[specification](../website/content/developers/spec/v0.1/00-overview.md).

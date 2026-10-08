@@ -12,7 +12,7 @@ export default function Home() {
           modulation destination.
         </p>
         <p>
-          <a href="/docs/users/getting-started/">Get started</a> · <a href="/docs/developers/quickstart/">Build for the bus</a>
+          <a href="/docs/musicians/getting-started/">Get started</a> · <a href="/docs/developers/quickstart/">Build for the bus</a>
         </p>
       </section>
       <h2>Modules</h2>

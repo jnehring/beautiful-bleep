@@ -50,4 +50,4 @@ python3 scripts/ui-server.py filter      # http://localhost:8765
 also covered by JUCE's license (AGPLv3 or a commercial JUCE licence).
 Check that before you distribute builds.
 
-User docs: [getting started](../website/content/users/getting-started.md).
+User docs: [getting started](../website/content/musicians/getting-started.md).

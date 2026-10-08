@@ -4,12 +4,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { marked } from "marked";
+import { AUDIENCES, type Audience } from "./audiences";
+
+export { AUDIENCES, type Audience };
 
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const CONTENT = path.join(ROOT, "website", "content");
 const MODULES = path.join(ROOT, "patch", "modules");
 
-export type Doc = { slug: string[]; title: string; order: number; section: string; html: string };
+export type Doc = { slug: string[]; audience: Audience; title: string; order: number; section: string; html: string };
 export type ModuleMeta = { name: string; slug: string; tagline: string; colour: string; formats: string[]; doc: string };
 
 function parse(file: string): { meta: Record<string, string>; body: string } {
@@ -47,8 +50,10 @@ export function allDocs(): Doc[] {
       const rel = path.relative(CONTENT, file).replace(/\\/g, "/").replace(/\.md$/, "");
       const slug = rel.split("/");
       const { meta, body } = parse(file);
+      if (!(slug[0] in AUDIENCES)) throw new Error(`${file}: docs must live under ${Object.keys(AUDIENCES).join("/ or ")}/`);
       return {
         slug,
+        audience: slug[0] as Audience,
         title: meta.title ?? slug[slug.length - 1],
         order: Number(meta.order ?? 1000),
         section: slug.slice(0, -1).join("/"),
@@ -56,7 +61,16 @@ export function allDocs(): Doc[] {
       };
     })
     .sort((a, b) => a.section.localeCompare(b.section) || a.order - b.order);
+  for (const audience of Object.values(AUDIENCES))
+    for (const item of audience.menu) {
+      const target = item.href.match(/^\/docs\/(.+)\/$/)?.[1];
+      if (target && !cache.some((d) => d.slug.join("/") === target)) throw new Error(`menu link ${item.href} has no doc`);
+    }
   return cache;
+}
+
+export function docsFor(audience: Audience): Doc[] {
+  return allDocs().filter((d) => d.audience === audience);
 }
 
 export function findDoc(slug: string[]): Doc | undefined {

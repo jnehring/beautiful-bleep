@@ -13,6 +13,11 @@ a { color: var(--accent); }
 header.site { display: flex; gap: 20px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 header.site .brand { font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--fg); text-decoration: none; }
 header.site nav { display: flex; gap: 16px; flex-wrap: wrap; }
+header.site nav a[aria-current] { font-weight: 700; text-decoration: none; }
+nav.submenu { display: flex; gap: 18px; flex-wrap: wrap; padding: 8px 20px; border-bottom: 1px solid var(--line); background: var(--card); font-size: .92rem; }
+nav.submenu a { color: var(--muted); text-decoration: none; padding: 2px 0; border-bottom: 2px solid transparent; }
+nav.submenu a:hover { color: var(--fg); }
+nav.submenu a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--accent); }
 main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
 .hero h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; margin: 24px 0 12px; }
 .hero p { font-size: 1.15rem; color: var(--muted); max-width: 640px; }
@@ -25,6 +30,7 @@ main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
 .docs nav h4 { margin: 18px 0 6px; text-transform: uppercase; font-size: .75rem; letter-spacing: .1em; color: var(--muted); }
 .docs nav ul { list-style: none; padding: 0; margin: 0; }
 .docs nav li { margin: 3px 0; }
+.docs nav a[aria-current="page"] { font-weight: 700; }
 article { min-width: 0; }
 article pre { background: var(--code); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: .85rem; }
 article code { background: var(--code); padding: 1px 4px; border-radius: 4px; font-size: .9em; }

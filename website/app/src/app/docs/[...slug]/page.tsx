@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { allDocs, findDoc } from "@/lib/content";
+import { AUDIENCES, allDocs, docsFor, findDoc } from "@/lib/content";
 import { notFound } from "next/navigation";
 
 export function generateStaticParams() {
@@ -7,32 +7,39 @@ export function generateStaticParams() {
 }
 
 const SECTION_TITLES: Record<string, string> = {
-  users: "Musicians",
-  "users/modules": "Modules",
-  "users/guides": "Guides",
-  developers: "Developers",
+  musicians: "Start here",
+  "musicians/modules": "Modules",
+  "musicians/guides": "Guides",
+  developers: "Start here",
   "developers/api-reference": "API reference",
 };
+
+function sectionTitle(section: string): string {
+  const spec = section.match(/^developers\/spec\/(.+)$/);
+  return SECTION_TITLES[section] ?? (spec ? `Spec ${spec[1]}` : section);
+}
 
 export default async function DocPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
   const doc = findDoc(slug);
   if (!doc) notFound();
+  const audience = AUDIENCES[doc.audience];
+  // Only this audience's docs: the musician and developer documentation stay separate.
   const sections = new Map<string, ReturnType<typeof allDocs>>();
-  for (const d of allDocs()) {
+  for (const d of docsFor(doc.audience)) {
     if (!sections.has(d.section)) sections.set(d.section, []);
     sections.get(d.section)!.push(d);
   }
   return (
     <div className="docs">
-      <nav aria-label="Documentation">
+      <nav aria-label={`${audience.title} documentation`}>
         {[...sections.entries()].map(([section, docs]) => (
           <div key={section}>
-            <h4>{SECTION_TITLES[section] ?? (section.startsWith("spec/") ? `Spec ${section.slice(6)}` : section)}</h4>
+            <h4>{sectionTitle(section)}</h4>
             <ul>
               {docs.map((d) => (
                 <li key={d.slug.join("/")}>
-                  <a href={`/docs/${d.slug.join("/")}/`}>{d.title}</a>
+                  <a href={`/docs/${d.slug.join("/")}/`} aria-current={d === doc ? "page" : undefined}>{d.title}</a>
                 </li>
               ))}
             </ul>
@@ -40,9 +47,9 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
         ))}
         <h4>Single files</h4>
         <ul>
-          <li><a href="/docs/quickstart-full.md">quickstart-full.md</a></li>
-          <li><a href="/docs/api-reference-full.md">api-reference-full.md</a></li>
-          <li><a href="/docs/spec-v0.1-full.md">spec-v0.1-full.md</a></li>
+          {audience.bundles.map((b) => (
+            <li key={b}><a href={`/docs/${b}`}>{b}</a></li>
+          ))}
         </ul>
       </nav>
       <article dangerouslySetInnerHTML={{ __html: doc.html }} />

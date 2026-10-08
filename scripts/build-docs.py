@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 """Builds the single-file documentation versions and llms.txt.
 
-Docs are written as small Markdown files in website/content/<audience>/.
+Docs are written as small Markdown files in website/content/<audience>/
+(musicians/, developers/; the spec lives in developers/spec/<version>/).
 This script concatenates them per audience (ordered by the `order:` front
 matter, then path) into one file each, for coding assistants and offline
 reading, and writes an llms.txt index.
@@ -87,9 +88,9 @@ def main() -> int:
     bundles = {
         "quickstart-full.md": ("", [dev / "quickstart.md"]),
         "api-reference-full.md": ("", sorted((dev / "api-reference").glob("*.md"))),
-        "user-docs-full.md": ("Bleep Patch user documentation", sorted((CONTENT / "users").rglob("*.md"))),
+        "user-docs-full.md": ("Bleep Patch user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
     }
-    for spec_dir in sorted((CONTENT / "spec").iterdir()):
+    for spec_dir in sorted((dev / "spec").iterdir()):
         if spec_dir.is_dir():
             bundles[f"spec-{spec_dir.name}-full.md"] = ("", sorted(spec_dir.glob("*.md")))
 

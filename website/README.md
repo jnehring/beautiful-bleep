@@ -1,7 +1,8 @@
 # Bleep Patch website
 
 Homepage and documentation. `content/` holds all docs as small Markdown files,
-split by audience (`users/`, `developers/`, `spec/<version>/`). `app/` is a
+split into two separate documentations: `musicians/` and `developers/`
+(the spec lives in `developers/spec/<version>/`). `app/` is a
 static Next.js site that renders them.
 
 ```bash
