@@ -77,6 +77,9 @@ Four rows, each with *Scale* and *Offset* side by side, and a small bar meter
 showing the row's live output (−1…+1, centre zero). The rows' input and output
 jacks sit on the left and right edges of the row they belong to.
 
+The first version uses the generic module view (knobs and settings); the
+displays described here come later.
+
 ## 6. Saved state
 
 Only knob and setting values; no node data.

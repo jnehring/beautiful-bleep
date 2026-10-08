@@ -1,0 +1,10 @@
+{
+  "name": "Crossfader",
+  "slug": "crossfader",
+  "tagline": "Blend two stereo signals with one knob, equal-power or linear.",
+  "colour": "#fb7185",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/crossfader.md"
+}

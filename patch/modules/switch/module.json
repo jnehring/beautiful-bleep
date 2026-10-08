@@ -1,0 +1,10 @@
+{
+  "name": "Switch",
+  "slug": "switch",
+  "tagline": "Sequential switch: eight inputs to one output and one input to eight, stepped by triggers, the song or a knob.",
+  "colour": "#c4b5fd",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/switch.md"
+}

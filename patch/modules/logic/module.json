@@ -1,0 +1,10 @@
+{
+  "name": "Logic",
+  "slug": "logic",
+  "tagline": "AND, OR, XOR and friends for gates, a flip-flop and edge triggers.",
+  "colour": "#86efac",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/logic.md"
+}

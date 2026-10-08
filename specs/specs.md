@@ -707,7 +707,7 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **Multiplier** | Two four-quadrant multipliers with bias, chained; optional oversampling | Ring mod at audio rate, depth-by-modulator for control. See `specs/modules/multiplier.md`. |
 | **Logic** | AND, OR, XOR, NAND, NOR, NOT, flip-flop, edge triggers; threshold with hysteresis | Rhythms from rhythms; clock ÷2. See `specs/modules/logic.md`. |
 | **Quantizer** | Scale quantizer sharing the Step Sequencer's scales, custom scale, transpose before/after, note-change trigger | Turns any modulator into a melody. See `specs/modules/quantizer.md`. |
-| **Switch** | 4 → 1 or 1 → 4, by knob, CV or clock steps; click-free fade | Source selector, router and sequential switch. See `specs/modules/switch.md`. |
+| **Switch** | Sequential switch, up to 8 steps: 8 → 1 and 1 → 8 at once; stepped by triggers, the transport or Select; fades that never jump; per-step levels | Source selector, router and 8-step value sequencer in one. See `specs/modules/switch.md`. |
 | **Audio Mixer** | Four stereo channels: level (dB), pan, mute/solo, send; return, master, limiter, meters | Several sound sources into one stereo pair. See `specs/modules/audio-mixer.md`. |
 | **Crossfader** | Stereo A/B blend, equal-power or linear | Dry/wet and source morphing under modulation. See `specs/modules/crossfader.md`. |
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |

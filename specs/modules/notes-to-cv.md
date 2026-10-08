@@ -77,7 +77,7 @@ another is still held.
 ### 4.3 Housekeeping
 
 - Notes from other MIDI channels are ignored when *Channel* is set.
-- When the transport stops, or the *Notes* cable changes or is removed, all held
+- When the transport stops, or the *Notes* cable is removed, all held
   notes are released (the same rule as Voice Cells, `specs.md` section 8.3.1),
   so the gate never hangs.
 - Event timing is sample-accurate: outputs change at the event's sample offset.
@@ -87,6 +87,9 @@ another is still held.
 The settings and *Glide*, plus a small keyboard (two octaves around the
 active note) showing held notes and highlighting the active one, and the
 note name of *Pitch*.
+
+The first version uses the generic module view (knobs and settings); the
+displays described here come later.
 
 ## 6. Saved state
 
@@ -106,6 +109,7 @@ Only knob and setting values; no node data.
 - Glide Legato only: no glide on detached notes, glide on overlapping ones.
 - Round trip: CV to Notes → Notes to CV reproduces pitch and gate.
 - Removing the Notes cable or stopping the transport ends the gate.
+- Later: also release when the *Notes* cable is replaced by another source.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later

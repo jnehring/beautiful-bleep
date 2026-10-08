@@ -55,4 +55,20 @@ inline int quantize(float semitones, uint16_t mask) noexcept {
     return semitones - (float)lo <= (float)hi - semitones ? lo : hi;
 }
 
+/// The highest scale note at or below `semitones`.
+inline int quantizeDown(float semitones, uint16_t mask) noexcept {
+    if ((mask & 0xfff) == 0) mask = 0xfff;
+    int lo = (int)std::floor(semitones);
+    while (!inScale(mask, lo)) --lo;
+    return lo;
+}
+
+/// The lowest scale note at or above `semitones`.
+inline int quantizeUp(float semitones, uint16_t mask) noexcept {
+    if ((mask & 0xfff) == 0) mask = 0xfff;
+    int hi = (int)std::ceil(semitones);
+    while (!inScale(mask, hi)) ++hi;
+    return hi;
+}
+
 }  // namespace bleep::dsp

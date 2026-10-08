@@ -37,11 +37,11 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Level 1–4 | −inf…+6 dB | 0 dB | Channel fader. The bottom of the travel is silence. |
+| Level 1–4 | −60 (silence)…+6 dB | 0 dB | Channel fader. The bottom of the travel is silence. |
 | Pan 1–4 | −1 (L)…+1 (R) | 0 | Mono channels: position. Stereo channels: balance. |
-| Send 1–4 | −inf…+6 dB | −inf | Level into the send bus. |
-| Return Level | −inf…+6 dB | 0 dB | Level of the return into the master. |
-| Master | −inf…+6 dB | 0 dB | Master fader. |
+| Send 1–4 | −60 (silence)…+6 dB | silence | Level into the send bus. |
+| Return Level | −60 (silence)…+6 dB | 0 dB | Level of the return into the master. |
+| Master | −60 (silence)…+6 dB | 0 dB | Master fader. |
 
 **Settings**
 
@@ -62,9 +62,9 @@ In → Level (dB) → Mute/Solo → Pan → master bus
 ```
 
 Levels are converted from dB per sample (`10^(dB/20)`), with the engine's
-usual parameter smoothing, so modulating a fader is click-free. The fader
-law places 0 dB at about three quarters of the travel; the lowest 5 % is
-−inf (silence).
+usual parameter smoothing, so modulating a fader is click-free. Faders run
+from −60 dB to +6 dB, and −60 dB is silence (−inf). The fader law (a skewed
+knob with −12 dB in the middle) places 0 dB at about 80 % of the travel.
 
 ### 4.2 Mono and stereo
 
@@ -87,8 +87,11 @@ law places 0 dB at about three quarters of the travel; the lowest 5 % is
 
 `Out = limit((master bus + Return × Return Level) × Master)`.
 
-The **limiter** is a soft-knee peak limiter at −0.3 dBFS with 1 ms lookahead
-and 50 ms release. It keeps the board's output safe when four loud sources
+The **limiter** is a lookahead peak limiter at −0.3 dBFS (linked stereo):
+the gain is the minimum required over the next 1 ms, released over 50 ms,
+then averaged over the lookahead window, so it ramps down smoothly and
+reaches each peak's gain before the peak leaves the delay line. The ceiling
+is never exceeded. It keeps the board's output safe when four loud sources
 meet. Off leaves the signal untouched; the board's output ports clip as usual.
 The limiter's lookahead adds 1 ms of latency to *Out* only.
 
@@ -112,14 +115,17 @@ The channel's name in the strip is the name of the node patched into *In L*
 (or "1"…"4" when unpatched). The *Send Point* setting is in the strip's
 right-click menu.
 
+The first version uses the generic module view (knobs and settings); the
+displays described here come later.
+
 ## 6. Saved state
 
 Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-- Stereo meters and the limiter's gain reduction via `liveValues`
-  (two peaks per channel, plus master and GR: 11 values).
+- Meters and the limiter's gain reduction via `liveValues` (one peak per
+  channel, the master peak and the gain reduction).
 - A shared dB/fader-law helper in `patch/common/dsp/` (the *VCA* and future
   modules can reuse it).
 - The limiter's 1 ms latency is not reported to the host; it only shifts

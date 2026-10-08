@@ -49,7 +49,7 @@ if (NOT TARGET bleep_bus)
 endif ()
 
 # Pure DSP, no JUCE.
-set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes step-sequencer drum-grid lfo noise ring-drums punch-drums)
+set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes step-sequencer drum-grid lfo noise ring-drums punch-drums attenuverter cv-mixer audio-mixer multiplier crossfader logic quantizer switch notes-to-cv)
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)
@@ -62,6 +62,9 @@ if (BLEEP_PATCH_BUILD_TESTS)
     add_executable(bleep_patch_dsp_tests tests/test_dsp.cpp)
     target_link_libraries(bleep_patch_dsp_tests PRIVATE bleep_patch_dsp)
     add_test(NAME patch.dsp COMMAND bleep_patch_dsp_tests)
+    add_executable(bleep_patch_utility_tests tests/test_utility_dsp.cpp)
+    target_link_libraries(bleep_patch_utility_tests PRIVATE bleep_patch_dsp)
+    add_test(NAME patch.utility-dsp COMMAND bleep_patch_utility_tests)
 endif ()
 
 if (NOT BLEEP_PATCH_BUILD_PLUGINS AND NOT BLEEP_PATCH_BUILD_TESTS)
@@ -108,6 +111,15 @@ if (BLEEP_PATCH_BUILD_TESTS)
         bleep_patch_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.engine COMMAND bleep_engine_tests)
+
+    juce_add_console_app(bleep_utility_module_tests PRODUCT_NAME "Bleep Utility Module Tests")
+    target_sources(bleep_utility_module_tests PRIVATE tests/utility_modules_test.cpp ${BLEEP_ENGINE_SOURCES})
+    target_include_directories(bleep_utility_module_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_utility_module_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_utility_module_tests PRIVATE
+        bleep_patch_dsp juce::juce_events
+        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+    add_test(NAME patch.utility-modules COMMAND bleep_utility_module_tests)
 
     juce_add_console_app(bleep_bridge_tests PRODUCT_NAME "Bleep Bridge Tests")
     target_sources(bleep_bridge_tests PRIVATE tests/bridge_test.cpp ${BLEEP_ENGINE_SOURCES}

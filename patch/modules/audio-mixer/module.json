@@ -1,0 +1,10 @@
+{
+  "name": "Audio Mixer",
+  "slug": "audio-mixer",
+  "tagline": "Four stereo channels with level, pan, mute, solo and a send, plus a limiter.",
+  "colour": "#fb7185",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/audio-mixer.md"
+}

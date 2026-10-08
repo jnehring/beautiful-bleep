@@ -22,15 +22,15 @@ section 21): no hardware names in the files, the UI or the docs.
 |---|---|---|
 | Step Sequencer | [step-sequencer.md](step-sequencer.md) | Implemented |
 | LFO | [lfo.md](lfo.md) | Implemented |
-| Attenuverter | [attenuverter.md](attenuverter.md) | Specified |
-| CV Mixer | [cv-mixer.md](cv-mixer.md) | Specified |
-| Audio Mixer | [audio-mixer.md](audio-mixer.md) | Specified |
-| Multiplier | [multiplier.md](multiplier.md) | Specified |
-| Crossfader | [crossfader.md](crossfader.md) | Specified |
-| Logic | [logic.md](logic.md) | Specified |
-| Quantizer | [quantizer.md](quantizer.md) | Specified |
-| Switch | [switch.md](switch.md) | Specified |
-| Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Specified |
+| Attenuverter | [attenuverter.md](attenuverter.md) | Implemented |
+| CV Mixer | [cv-mixer.md](cv-mixer.md) | Implemented |
+| Audio Mixer | [audio-mixer.md](audio-mixer.md) | Implemented |
+| Multiplier | [multiplier.md](multiplier.md) | Implemented |
+| Crossfader | [crossfader.md](crossfader.md) | Implemented |
+| Logic | [logic.md](logic.md) | Implemented |
+| Quantizer | [quantizer.md](quantizer.md) | Implemented |
+| Switch | [switch.md](switch.md) | Implemented |
+| Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Implemented |
 | Drum Grid | [drum-grid.md](drum-grid.md) | Implemented |
 | Noise | [noise.md](noise.md) | Implemented |
 | Ring Drums | [ring-drums.md](ring-drums.md) | Implemented |

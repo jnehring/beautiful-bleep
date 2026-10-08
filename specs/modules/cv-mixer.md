@@ -88,6 +88,9 @@ bar meter. To the right: *Mode*, *Master*, *Offset*, and a small scope
 of *Out* (the last two seconds). In *Scan* mode, the *Scan* knob appears under
 the strips, and the channel strips light up with their current weight.
 
+The first version uses the generic module view (knobs and settings); the
+displays described here come later.
+
 ## 6. Saved state
 
 Only knob and setting values; no node data.

@@ -1,0 +1,75 @@
+# Audio Mixer
+
+## Introduction
+
+A small stereo mixer for the board. It brings up to four sound sources
+(oscillators, drums, Voice Cells) together into one stereo pair, with a
+level, a pan, mute and solo for each, and a send for a shared effect. A
+limiter on the master keeps the sum from clipping.
+
+## How does it work?
+
+Each channel's signal goes through:
+
+1. **Level:** a fader in dB, from silence to +6 dB. 0 dB (unchanged) sits at
+   about 80 % of the travel.
+2. **Mute** and **Solo:** a muted channel is silent; when any channel is
+   soloed, only soloed channels reach the master. Changes fade over 5 ms.
+3. **Pan:** a mono channel (only *L* patched) is placed in the stereo field at
+   even loudness; a stereo channel is balanced (moving right turns the left side
+   down).
+4. **Send:** a copy of the channel goes to the *Send* outputs at the *Send*
+   level, after the fader, or before it with *Send Point* *Pre-Fader*.
+
+The four channels and the *Return* (at *Return Level*) are added, scaled by
+*Master*, and pass the **limiter**. It holds the output below −0.3 dBFS by
+turning the gain down just before a peak (a 1 ms lookahead) and releasing it
+over 50 ms. Switching it off leaves the signal untouched.
+
+Solo doesn't affect the sends, so a reverb keeps its tail while you solo.
+
+## How to use it?
+
+- **Mix a drum kit:** each drum into its own channel, *Out L/R* to an audio
+  output port.
+- **A shared reverb or delay:** turn up each channel's *Send*, patch *Send L/R*
+  into the effect and the effect's output into *Return L/R*. The return
+  arrives about 0.7 ms late (the board treats the loop as feedback), which is
+  inaudible for reverbs and delays.
+- **Rhythmic muting:** a clock or a gate pattern into *Mute 1*: the channel is
+  silent while the gate is high.
+- **Ducking:** the *Level* output follows the master's loudness; patch it with
+  a negative amount onto another VCA's gain.
+
+## Reference
+
+### Knobs and settings
+
+| Control | Range | Default |
+|---|---|---|
+| Level 1–4 | −60 dB (silence) … +6 dB | 0 dB |
+| Pan 1–4 | −1 (left) … +1 (right) | 0 |
+| Send 1–4 | −60 dB (silence) … +6 dB | silence |
+| Return Level | −60 dB (silence) … +6 dB | 0 dB |
+| Master | −60 dB (silence) … +6 dB | 0 dB |
+| Mute 1–4 | Off, On | Off |
+| Solo 1–4 | Off, On | Off |
+| Send Point 1–4 | Post-Fader, Pre-Fader | Post-Fader |
+| Limiter | Off, On | On |
+
+### Inputs
+
+| Input | Signal | What it does |
+|---|---|---|
+| In 1–4 L | audio | Left (or mono) input of each channel |
+| In 1–4 R | audio | Right input; unpatched, the channel is mono |
+| Return L, R | audio | The effect return; Return R unpatched copies L |
+| Mute 1–4 | gate | Mutes the channel while high |
+
+### Outputs
+
+| Output | Signal | What it does |
+|---|---|---|
+| Out L, R | audio | The master mix |
+| Send L, R | audio | The send bus |
+| Level | control | The master's loudness, 0 … 1 (10 ms attack, 200 ms release) |
