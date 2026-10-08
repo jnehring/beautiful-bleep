@@ -275,7 +275,7 @@ static void roughFilter() {
     FilterDsp f;
     f.prepare(48000.0);
     FilterParams p;
-    p.type = 1;
+    p.type = (int)FilterType::SvfSaturating;
     p.resonance = 1.0f;
     p.drive = 1.0f;
     std::mt19937 rng(3);
@@ -568,6 +568,102 @@ static void seqNoHangingNotes() {
     }
 }
 
+/// Steady-state gain of one algorithm for a sine at freq (after settling).
+static double filterGain(FilterType type, float hz, double freq, float resonance = 0.0f, float morph = 0.0f,
+                         float gain = 0.0f) {
+    FilterDsp f;
+    f.prepare(48000.0);
+    FilterParams p;
+    p.type = (int)type;
+    p.cutoff = std::log(hz / 20.0f) / std::log(1000.0f);
+    p.resonance = resonance;
+    p.morph = morph;
+    p.gain = gain;
+    double in = 0.0, out = 0.0;
+    for (int i = 0; i < 48000; ++i) {
+        const float x = freq == 0.0 ? 0.1f : 0.1f * (float)std::sin(2.0 * 3.14159265358979 * freq * i / 48000.0);
+        float frame[2] = {x, x};
+        f.tick(p, 0.0f, frame, 2);
+        if (i >= 24000) {
+            in += (double)x * x;
+            out += (double)frame[0] * frame[0];
+        }
+    }
+    return std::sqrt(out / in);
+}
+
+static void filterAlgorithms() {
+    g_test = "filter algorithms";
+    // Every algorithm stays finite and bounded at full resonance and drive,
+    // with audio-rate cutoff modulation and every morph position.
+    for (int t = 0; t < va::kNumTypes; ++t) {
+        for (float morph : {0.0f, 0.5f, 1.0f}) {
+            FilterDsp f;
+            f.prepare(48000.0);
+            FilterParams p;
+            p.type = t;
+            p.resonance = 1.0f;
+            p.drive = 1.0f;
+            p.morph = morph;
+            p.gain = 24.0f;
+            std::mt19937 rng(11);
+            std::uniform_real_distribution<float> u(-1.0f, 1.0f);
+            float peak = 0.0f;
+            for (int i = 0; i < 48000; ++i) {
+                p.cutoff = 0.5f + 0.5f * std::sin(i * (i < 24000 ? 0.0005f : 0.3f));
+                float frame[2] = {u(rng), std::sin(i * 0.05f)};
+                f.tick(p, 0.0f, frame, 2);
+                peak = std::max({peak, std::fabs(frame[0]), std::fabs(frame[1])});
+                if (!std::isfinite(frame[0]) || !std::isfinite(frame[1])) break;
+            }
+            if (!(std::isfinite(peak) && peak < 100.0f))
+                std::printf("  type %d morph %.1f: peak %g\n", t, morph, peak);
+            EXPECT(std::isfinite(peak) && peak < 100.0f);
+        }
+    }
+
+    // Low-pass responses: unity at DC (shelf/compensation aside), far down two octaves above.
+    for (FilterType t : {FilterType::Svf, FilterType::OnePoleLp, FilterType::Ladder, FilterType::LadderFeedbackHp,
+                         FilterType::LadderNonlinear, FilterType::Diode, FilterType::NaiveOnePole, FilterType::Biquad,
+                         FilterType::SvfAtanh, FilterType::SvfHyperbolic}) {
+        g_test = "filter low-pass";
+        const double pass = filterGain(t, 1000.0f, 50.0), stop = filterGain(t, 1000.0f, 8000.0);
+        if (!(pass > 0.85 && pass < 1.15 && stop < 0.2)) std::printf("  type %d: pass %g stop %g\n", (int)t, pass, stop);
+        EXPECT(pass > 0.85 && pass < 1.15);
+        EXPECT(stop < 0.2);
+    }
+    for (FilterType t : {FilterType::OnePoleHp}) {
+        g_test = "filter high-pass";
+        EXPECT(filterGain(t, 1000.0f, 50.0) < 0.1);
+        EXPECT_NEAR(filterGain(t, 1000.0f, 15000.0), 1.0, 0.05);
+    }
+    g_test = "filter ladder modes";
+    EXPECT(filterGain(FilterType::Ladder, 1000.0f, 8000.0, 0.0f, 2.0f / 3.0f) > 0.85);  // HP passes highs
+    EXPECT(filterGain(FilterType::Ladder, 1000.0f, 100.0, 0.0f, 2.0f / 3.0f) < 0.01);  // −24 dB/oct
+    EXPECT(filterGain(FilterType::Ladder, 1000.0f, 1000.0, 0.0f, 1.0f) < 0.05);        // notch at the cutoff
+    EXPECT(filterGain(FilterType::Ladder, 1000.0f, 1000.0, 0.0f, 1.0f / 3.0f) > 0.9);  // BP peak, unit gain
+
+    g_test = "filter allpass";
+    for (FilterType t : {FilterType::OnePoleAp, FilterType::SvfAllpass})
+        for (double freq : {100.0, 1000.0, 10000.0}) EXPECT_NEAR(filterGain(t, 1000.0f, freq, 0.5f), 1.0, 0.02);
+
+    g_test = "filter shelves";
+    EXPECT_NEAR(filterGain(FilterType::OnePoleLowShelf, 1000.0f, 20.0, 0.0f, 0.0f, 12.0f), std::pow(10.0, 0.6), 0.1);
+    EXPECT_NEAR(filterGain(FilterType::OnePoleLowShelf, 1000.0f, 15000.0, 0.0f, 0.0f, 12.0f), 1.0, 0.05);
+    EXPECT_NEAR(filterGain(FilterType::OnePoleHighShelf, 1000.0f, 15000.0, 0.0f, 0.0f, -12.0f), std::pow(10.0, -0.6), 0.03);
+    EXPECT_NEAR(filterGain(FilterType::SvfBandShelf, 1000.0f, 1000.0, 0.0f, 0.0f, 6.0f), std::pow(10.0, 0.3), 0.05);
+    EXPECT_NEAR(filterGain(FilterType::SvfUnitBp, 1000.0f, 1000.0, 0.7f), 1.0, 0.03);
+
+    g_test = "filter phaser";
+    // 1-pole phaser: four allpasses at −45° each (ω = tan 22.5°) sum to −180°, a notch;
+    // at the cutoff they sum to −360°, a peak.
+    EXPECT(filterGain(FilterType::Phaser1, 1000.0f, 1000.0 * std::tan(3.14159265358979 / 8.0)) < 0.05);
+    EXPECT(filterGain(FilterType::Phaser1, 1000.0f, 1000.0) > 0.95);
+    // Flanger: delay 1/cutoff → notches at odd multiples of cutoff / 2.
+    EXPECT(filterGain(FilterType::Flanger, 1000.0f, 500.0) < 0.05);
+    EXPECT(filterGain(FilterType::Flanger, 1000.0f, 1000.0) > 0.95);
+}
+
 int main() {
     svfBasics();
     filterMapping();
@@ -578,6 +674,7 @@ int main() {
     oscillator();
     adsr();
     roughFilter();
+    filterAlgorithms();
     seqScales();
     seqTransport();
     seqClock();

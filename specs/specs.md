@@ -699,16 +699,20 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
 **Multi Filter details:**
-- **Type** dropdown, one algorithm each:
-  - *Clean*: a state-variable filter in zero-delay-feedback (TPT) form. Stable and click-free under fast, even audio-rate, modulation.
-  - *Rough*: a 12 dB/oct multimode filter with saturating, slightly unstable stages that growls and distorts when driven and pushed into resonance — the character of classic gritty analog multimode filters, designed from general principles.
-  - More types later (e.g. a 24 dB ladder).
-- **Mode** morphs continuously LP → BP → HP → notch in every type.
-- **Controls:** cutoff, resonance, drive, mode/morph, mix.
+- **Type** dropdown with the 25 algorithms of Zavalishin's *The Art of VA Filter Design* (rev. 1.0.3), all in zero-delay-feedback (TPT) form, grouped by family (the dropdown shows the groups as headings):
+  - *State Variable*: SVF multimode, unit-gain band-pass, band shelf, peaking, allpass.
+  - *1-Pole*: low-pass, high-pass, allpass, low shelf, high shelf.
+  - *Transistor Ladder* (24 dB): linear, high-pass feedback shaping, tanh and hyperbolic feedback saturators (solved numerically), nonlinear stages. Multimode LP/BP/HP/notch from the ladder taps.
+  - *Diode Ladder* (24 dB): linear, tanh feedback saturator.
+  - *Allpass Effects*: 1-pole phaser, 2-pole phaser, flanger, each with zero-delay feedback.
+  - *Classic Digital*: naive 1-pole, direct form I biquad (for comparison).
+  - *Nonlinear State Variable*: atanh and hyperbolic damping, saturating integrators (the former *Rough*).
+- **Mode** morphs continuously LP → BP → HP → notch on the multimode types; on the phasers and flanger it sets polarity or notch spacing.
+- **Controls:** cutoff, resonance, drive, mode/morph, mix, key track, gain (dB, for the shelves).
 - **Cutoff modulation** is applied in the exponential (octave) domain, so a bipolar signal sweeps musically.
 - **Pitch input** for key-tracking.
 - **Envelope follower** on the filtered signal as a `control` output, so audio drives modulation elsewhere.
-- The module keeps its saved type id (`filter`), so boards from before keep loading (as type *Clean*).
+- The module keeps its saved type id (`filter`), so boards from before keep loading. *Type* is saved normalised: *SVF Multimode* (the former *Clean*) stays first and *SVF Saturating* (the former *Rough*) stays last, so old boards keep their sound. New types go in between.
 
 **Oscillator details:** a triangle core, as in classic through-zero analog oscillators, designed from general principles:
 - **Pitch:** octave (−3…+3), coarse (±12 semitones), fine (±100 cents), plus the 1 V/oct *Pitch* input.

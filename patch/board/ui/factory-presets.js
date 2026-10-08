@@ -8,7 +8,7 @@
   const k = (fn, fj, tn, tj, amount) => ({ id: "k" + fn + fj + tn + tj, from: { node: fn, jack: fj },
                                           to: { node: tn, jack: tj }, amount: amount === undefined ? 1 : amount });
 
-  // Basic Poly: Oscillator → Multi Filter (Rough) → VCA, an ADSR each for filter and VCA,
+  // Basic Poly: Oscillator → Multi Filter (SVF Saturating) → VCA, an ADSR each for filter and VCA,
   // key tracking, and shared inputs Cutoff and Bend (±2 semitones).
   const basicPoly = {
     format: 1,
@@ -22,7 +22,7 @@
       n("ci", "cell-in", "Cell In", 40, 480),
       n("osc", "oscillator", "Oscillator", 320, 40),
       n("envf", "adsr", "Filter Env", 320, 300, { sustain: 0.3 }),
-      n("flt", "filter", "Multi Filter", 620, 40, { cutoff: 0.42, resonance: 0.35, keytrack: 0.5, type: 1 }),
+      n("flt", "filter", "Multi Filter", 620, 40, { cutoff: 0.42, resonance: 0.35, keytrack: 0.5, type: 1 }),  // type 1: the last type, SVF Saturating
       n("enva", "adsr", "Amp Env", 620, 320),
       n("amp", "vca", "VCA", 920, 60),
       n("vo", "voice-out", "Voice Out", 1200, 80),

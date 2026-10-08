@@ -1,7 +1,7 @@
 {
   "name": "Filter",
   "slug": "filter",
-  "tagline": "Zero-delay-feedback state-variable filter with mode morph, drive and an envelope output.",
+  "tagline": "Stereo multimode filter with 25 zero-delay-feedback algorithms: SVF, transistor and diode ladders, shelves, phasers and a flanger.",
   "colour": "#f472b6",
   "formats": [
     "Board module"

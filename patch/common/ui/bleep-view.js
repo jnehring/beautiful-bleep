@@ -16,6 +16,7 @@
 // A module adds its own displays with BleepViews.register(type, hooks):
 //   template   HTML for the custom section
 //   top        true: the custom section comes before the knobs
+//   settingsTop  true: the settings (choices, toggles) come first
 //   width      the view window's width in px (default 340)
 //   afterBuild(view, customElement)
 //   onState(nodeState, view)
@@ -78,8 +79,9 @@
     const customEl = el("section", "bv-custom");
     const settingsEl = el("section", "bv-settings");
     const h = hooks[type.type];
-    if (h && h.top) root.append(customEl, knobsEl, settingsEl);
-    else root.append(knobsEl, customEl, settingsEl);
+    const sections = h && h.top ? [customEl, knobsEl] : [knobsEl, customEl];
+    if (h && h.settingsTop) root.append(settingsEl, ...sections);
+    else root.append(...sections, settingsEl);
     if (type.description) root.appendChild(el("p", "bv-description", type.description));
 
     const view = { root, type, node, api, knobs: new Map(), settings: new Map() };
@@ -175,8 +177,18 @@
         s.draw = () => b.classList.toggle("on", (view.node.params[p.id] ?? p.default) >= 0.5);
       } else if (p.kind === "choice" || steps <= 33) {
         const select = el("select");
-        for (let i = 0; i < steps; i++)
-          select.appendChild(new Option(p.choices ? p.choices[i] : String(Math.round(p.min + i)), i));
+        let group = null;  // consecutive choices with the same group share an <optgroup>
+        for (let i = 0; i < steps; i++) {
+          const opt = new Option(p.choices ? p.choices[i] : String(Math.round(p.min + i)), i);
+          if (p.groups && p.groups[i]) {
+            if (!group || group.label !== p.groups[i]) {
+              group = el("optgroup");
+              group.label = p.groups[i];
+              select.appendChild(group);
+            }
+            group.appendChild(opt);
+          } else select.appendChild(opt);
+        }
         select.addEventListener("change", () => {
           api.beginGesture();
           setParam(p.id, parseInt(select.value, 10) / (steps - 1));
