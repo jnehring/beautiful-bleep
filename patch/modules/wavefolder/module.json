@@ -1,0 +1,10 @@
+{
+  "name": "Folder",
+  "slug": "wavefolder",
+  "tagline": "Stereo six-stage wavefolder with tap crossfade, symmetry and an internal oscillator, anti-aliased for audio.",
+  "colour": "#10b981",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/wavefolder.md"
+}

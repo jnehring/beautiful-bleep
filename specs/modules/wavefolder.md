@@ -30,7 +30,7 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Jack | Type | What it carries |
 |---|---|---|
-| Out L, Out R | `audio` | The folded signal after *Tap*, DC blocking and *Mix*, within ±1. |
+| Out L, Out R | `audio` | The folded signal after *Tap*, *Mix* and DC blocking: within ±1, up to about ±2 with strong *Symmetry* (a lopsided fold minus its DC). |
 | Osc | `audio` | The internal oscillator before folding (the "fundamental", for mixing back in or for FM elsewhere). Silent when the oscillator is off. |
 
 ## 3. Controls
@@ -57,7 +57,7 @@ Every knob is also an input (`specs.md` section 7.3).
 |---|---|---|
 | Source | Auto, Input, Internal | Auto |
 | Octave | −3…+3 | 0 |
-| Quality | Eco (2×), Normal (4×), High (8×) | Normal |
+| Quality | Eco (2×), Normal (4×) | Normal |
 
 ## 4. Behaviour
 
@@ -100,11 +100,13 @@ this.
 Folding creates very high harmonics; without care, a C6 folded deeply is mostly
 alias. Two measures, combined:
 
-1. **Oversampling.** The input is upsampled by 2×, 4× or 8× (*Quality*) with
-   cascaded polyphase half-band IIR filters (allpass pairs, 0.1 dB passband to
-   0.45 fs, > 90 dB stopband), folded, and decimated with the same filters.
-   Latency: about 3 / 4 / 5 samples, reported to the engine and compensated in
-   the dry path.
+1. **Oversampling.** The input is upsampled by 2× or 4× (*Quality*) with
+   cascaded linear-phase half-band FIRs (the 95-tap filter of
+   `dsp/Oversampler.h`, run in polyphase form: 48 multiply-adds per 2× step),
+   folded, and decimated with the same filters. Latency: 47 (2×) or 70.5 (4×)
+   base samples, compensated in the dry path. (An 8× setting is not offered:
+   4× with ADAA already meets the targets below, and 8× would double the
+   cost again.)
 2. **First-order antiderivative anti-aliasing (ADAA)** in every stage. With
    `G` the antiderivative of `F`,
 
@@ -114,13 +116,18 @@ alias. Two measures, combined:
 
    falling back to `F((u[n] + u[n−1]) / 2)` when `|u[n] − u[n−1]| < 1e-5`
    (ill-conditioning). ADAA adds half a sample of delay per stage at the
-   oversampled rate, which is included in the latency above.
+   oversampled rate; the dry path adds it too (`stages / 2 / factor`, read
+   from the delay line with 4-point Lagrange interpolation).
 
-*Normal* (4× + ADAA) keeps aliases below −80 dB for a C5 saw at *Fold* 100 %;
-*Eco* is meant for many voices, *High* for bounces.
+Measured with a C5 sine (strongest alias relative to the fundamental): *Fold*
+100 % at *Tap* 1: −115 dB (Normal) / −77 dB (Eco); *Fold* 100 % at *Tap* 2
+(16× total drive): −84 / −38 dB; *Fold* 50 % at *Tap* 6 (64×): −74 / −42 dB.
+Deeper settings (high *Fold* at *Tap* 3–6, total drive in the hundreds or
+thousands) fold into dense noise by design. *Eco* is meant for many voices
+and moderate folds.
 
 **DC.** *Symmetry* creates DC; a 5 Hz one-pole high-pass on each output
-removes it. Changes of *Symmetry* and *Level* are smoothed over 2 ms (they
+(after *Mix*, so dry and wet stay in phase) removes it. Changes of *Symmetry* and *Level* are smoothed over 2 ms (they
 would otherwise click at the hard corners); *Fold* and *Tap* are taken per
 sample at the oversampled rate (linear interpolation of the sub-block values),
 so audio-rate modulation works.
@@ -129,7 +136,8 @@ so audio-rate modulation works.
 
 - **Source *Auto*** (default): the oscillator runs when *Pitch* is patched and
   *In L* is not. *Input*: always fold the inputs. *Internal*: always run the
-  oscillator; a patched *In L* then becomes its FM input.
+  oscillator; a patched *In L* then becomes its FM input. Switching between
+  input and oscillator crossfades over 5 ms.
 - The oscillator is the shared core (`chord-oscillator.md` section 7) limited
   to sine and triangle, morphed by *Wave*, at
   `C4 · 2^(Octave + Pitch + (Coarse + Fine/100)/12)`, mono into both channels
@@ -140,9 +148,18 @@ so audio-rate modulation works.
 
 ### 4.6 CPU
 
-Per channel and stage, one fold with ADAA at the oversampled rate. *Normal*
-quality with all 6 stages costs about 1.5 Oscillators-worth in stereo; a mono
-source (*In R* unpatched, *Spread* 0) is computed once and copied.
+Per channel and stage, one fold with ADAA at the oversampled rate; a mono
+source (*In R* unpatched, *Spread* 0) is computed once and copied (when
+*Spread* or *In R* turns stereo on, the right channel continues from the left
+one's state, without a click). Stages above the tap are skipped.
+
+Measured (one core, 48 kHz, Tap 6): Normal mono 3.4–4.1 % (Shape 0–50 %),
+2.1 % (Shape 100 %); stereo about twice that; Eco about half. That is well
+above the original target of 1.5 Oscillators: the cost is in
+`dsp::Folder` (about 37 ns per stage and sample: a double-precision cosine
+for the soft curve's antiderivative and a division), 24 stage evaluations per
+channel and sample at 4×. A float fold with a polynomial cosine in
+`Folder.h` would roughly halve the module.
 
 ## 5. Module view
 
@@ -162,33 +179,37 @@ Only knob and setting values; no node data.
 
 ```json
 { "type": "wavefolder",
-  "params": { "fold": 0.0, "symmetry": 0.5, "tap": 1.0, "shape": 0.5, "source": 0.0, "quality": 0.5, … } }
+  "params": { "fold": 0.0, "symmetry": 0.5, "tap": 1.0, "shape": 0.5, "source": 0.0, "quality": 1.0, … } }
 ```
 
 ## 7. Engine requirements
 
-1. **Oversampling helper** `patch/common/dsp/Oversampler.h` (polyphase
-   half-band IIR, 2×/4×/8×, per channel), also usable by Multi Filter drive and
-   Low Pass Gate. The fold function and its ADAA (4.1, 4.4) go into
+1. **Oversampling helper** `patch/common/dsp/Oversampler.h` (half-band FIR,
+   2×/4×, per channel), also usable by Multi Filter drive and Low Pass Gate.
+   Its `HalfbandFir` runs all 95 taps on every (zero-stuffed) sample and reads
+   its ring one sample late (48 instead of 47 samples of delay per stage); the
+   module uses the same taps in polyphase form (`HalfbandPoly` in
+   `WavefolderDsp.h`), which Oversampler.h could adopt. The fold function and its ADAA (4.1, 4.4) go into
    `patch/common/dsp/Folder.h`; both files are also proposed by
    `dual-oscillator.md` and `macro-oscillator.md`, so whichever module is built
-   first creates them and the others reuse them (Folder needs the 8× setting
-   and the per-stage taps on top).
+   first creates them and the others reuse them (Folder needs the per-stage
+   taps on top).
 2. **Latency reporting** per node, if the engine doesn't compensate parallel
-   paths yet: for now the module compensates its own dry path only; document
-   that parallel patching around it is off by up to 5 samples.
+   paths yet: for now the module compensates its own dry path only; the
+   documentation says that parallel patching around it is off by about 1.5 ms
+   (70.5 samples at Normal, 47 at Eco).
 3. The shared oscillator core (`chord-oscillator.md` section 7).
 
 ## 8. Tests
 
 - Fold 0 %, Shape 100 %, Symmetry 0: a sine at ±0.9 passes with < −90 dB THD (identity).
-- The ADAA output matches the naive fold of a slow signal within 1e-4 (no bias); the ill-conditioned fallback is exercised with DC input.
-- Aliasing: a C5 saw at Fold 100 %, Normal quality — energy at non-harmonic frequencies below −80 dB relative to the fundamental.
-- Bounds: outputs within ±1 for random inputs up to ±20 and all knob extremes.
-- Tap: integer taps equal the stage outputs; Tap 1 computes one stage (timing check).
+- The ADAA output matches the naive fold of a slow signal within 1e-4 (no bias); the ill-conditioned fallback is exercised with DC input (shared `common/dsp/tests/test_folder.cpp`).
+- Aliasing with a C5 sine (a sine, so everything non-harmonic is alias): Fold 100 % at Tap 2 below −80 dB at Normal; Fold 50 % at Tap 6 below −70 dB; Fold 100 % at Tap 1 below −110 dB; Normal always better than Eco.
+- Bounds: outputs finite and within ±2.2 for random inputs up to ±20, knob extremes and audio-rate Fold/Tap modulation.
+- Tap: integer taps equal the stage outputs (shared test); Tap 1 is cheaper than Tap 6 (timing check).
 - Symmetry 0 yields no even harmonics (< −90 dB) for a symmetric input; the output has no DC after 1 s.
 - Source Auto switches with the patch state; Internal + In L gives FM; the *Osc* output equals the internal oscillator.
-- Mix 50 % with Fold 0 % and Shape 100 % equals the input (dry/wet in phase).
+- Mix 50 % with Fold 0 % and Shape 100 % equals Mix 0 % (dry/wet in phase, within 1 %: six ADAA stages average neighbouring samples); Mix 0 % is the input delayed by the stated latency.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later

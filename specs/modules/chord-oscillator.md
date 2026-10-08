@@ -40,14 +40,14 @@ Every knob is also an input (`specs.md` section 7.3).
 | Knob | Range | Default | What it does |
 |---|---|---|---|
 | Tune | −100…+100 cents | 0 | Fine tuning of all voices. |
-| Chord | stepped, one step per entry of the active chord list | Major (chromatic) / Triad (scale) | The chord quality (4.2, 4.4). Modulating it with a slow source walks through the list. |
+| Chord | stepped, one step per entry of the active chord list | Major (chromatic) / Triad (scale) | The chord quality (4.2, 4.4). Modulating it with a slow source walks through the list. Two knobs share the name: `chord` (the 24 chromatic qualities, shown in Chromatic mode) and `stack` (the 10 scale stacks, shown in Scale mode), each with its own step names. |
 | Inversion | stepped, −4…+4 | 0 | Moves the lowest (positive) or highest (negative) tones by an octave (4.3). |
 | Voicing | stepped, 6 positions | Close | Close, Drop 2, Drop 3, Drop 2+4, Open, Wide (4.3). |
 | Voices | stepped, 1–6 | 4 | How many oscillators play; which tones are kept or doubled is in 4.3. |
 | Shape | 0–100 % | 67 % (saw) | Waveform morph sine → triangle → saw → square for every voice, the same curve as the Oscillator's *Shape*. |
 | Pulse Width | 5–95 % | 50 % | Duty cycle at the square end of *Shape*. |
 | Detune | 0–50 cents | 0 | Each voice gets a fixed, seeded offset within ±Detune (4.6). |
-| Glide | 0–1 s | 0 | Time for a voice to slide to a new pitch when the chord changes. 0 jumps. |
+| Glide | 0–1 s | 0 | Time (99 %) for a voice to slide to a new pitch when the chord or the input pitch changes; the *Root* output glides with it. 0 jumps. |
 | Root Level | 0–100 % | 100 % | Level of the root voice inside *Out L/R* (not at *Root*). Lower it when a bass plays the root separately. |
 | Stereo | 0–100 % | 0 % | Spreads the voices across L/R (4.6). |
 | FM Depth | 0–100 % | 0 % | Scales the *FM* input: at 100 % an FM signal of ±1 swings each voice's frequency by ±4× its base, through zero. |
@@ -186,27 +186,36 @@ Before the first pulse the module plays the chord as if unlatched.
 ### 4.6 Mixing, detune and stereo
 
 - **Level.** Out L/R = Σ voice · gᵢ / √n, where n is the number of voices and
-  gᵢ is 1 (root: *Root Level*). A four-voice saw chord peaks about as high as
-  two saws, so it can feed a filter without clipping. *Root* is a single voice
-  at full level (±1).
+  gᵢ is 1 (root: *Root Level*); n follows the 5 ms voice fades, so changing
+  *Voices* doesn't step the level. A four-voice saw chord is about as loud as
+  two saws. Peaks can reach ±√n (±2.45 for six square voices); voices 2–6
+  start at seeded random phases (voice 1 and *Root* at phase 0, like the
+  Oscillator), so they rarely add up in phase. *Root* is a single voice at
+  full level (±1).
 - **Detune.** Each voice's offset is
   `Detune · (2 · uniform01(Seed, voiceIndex, 0) − 1)` cents (the counter-based
   random of `Random.h`), fixed while playing, so renders repeat. Inside a Voice
   Cell, every voice of the cell gets the same offsets; patch *Voice In ›
   Random* onto *Detune* for per-note variation.
-- **Stereo.** Voice k of n gets the pan position
-  `Stereo · (2k / (n − 1) − 1)` with equal-power panning, alternating sides
-  (voice order root, 3rd, 5th… goes L, R, L, …) so the root stays near the
-  centre at low settings. At 0 % everything is centred.
+- **Stereo.** The n voices get the evenly spaced positions
+  `Stereo · (2j / (n − 1) − 1)`, j = 0…n−1, handed out from the centre
+  outwards and alternating sides (voice order root, 3rd, 5th, …: centre or
+  just left, then right, left, …), so the root sits nearest the centre.
+  Equal-power panning with unity gain in the centre; at 0 % everything is
+  centred and L = R.
 
 ### 4.7 DSP
 
-Each voice is the Oscillator's core: a phase accumulator per voice, the
-sine/triangle/saw/square morph with polyBLEP for saw and square, through-zero
-FM. Glide is a one-pole in the pitch (semitone) domain. Six voices cost about
-six Oscillators; at 8 Voice Cell voices that is 48 oscillator cores, well within
-budget. Voices that are not playing (beyond *Voices*) use no CPU after their
-fade-out.
+Each voice is the Oscillator's core (`dsp::OscCore`): a phase accumulator per
+voice, the sine/triangle/saw/square morph with polyBLEP for saw and square,
+through-zero FM. The *Root* output is a seventh core whose pitch is summed
+exactly as the Oscillator's, so at Glide 0 it is sample-identical to an
+Oscillator at the same pitch and Shape. Glide is a one-pole in the pitch
+(semitone) domain. The chord is rebuilt only when the stepped knobs, the
+quantized root (Scale mode) or the settings change. Voices that are not
+playing (beyond *Voices*) use no CPU after their fade-out; the Root core and
+the Pitch 1–4 sort are skipped while nothing reads them. Measured: about
+1.2 % of one core in the module harness (random settings, 48 kHz).
 
 ## 5. Module view
 
@@ -236,13 +245,13 @@ Only knob and setting values; no node data.
 
 ```json
 { "type": "chord-osc",
-  "params": { "chord": 0.087, "inversion": 0.5, "voicing": 0.0, "voices": 0.6, "shape": 0.67, … } }
+  "params": { "chord": 0.087, "stack": 0.222, "inversion": 0.5, "voicing": 0.0, "voices": 0.6, "shape": 0.67, … } }
 ```
 
-The *Chord* knob stores a normalised value over the active list; switching
-*Mode* keeps the normalised value, so the chord jumps to the corresponding
-place in the other list (documented, not a bug). New entries are only ever
-appended to either list, so saved boards keep their chords.
+Each mode has its own *Chord* knob (`chord` over the 24 chromatic
+qualities, `stack` over the 10 scale stacks), so switching *Mode* keeps both
+choices. Both are normalised over their list: new entries may only be
+appended together with a migration of saved values.
 
 ## 7. Engine requirements
 
@@ -253,9 +262,10 @@ appended to either list, so saved boards keep their chords.
 2. **Chord table** in `patch/common/dsp/Chords.h` (4.2, 4.4 lists plus the naming
    function). Macro Osc's *Chord* model and Swarm Osc can read the same table.
 3. **Stepped knobs** that display the step name (chord, voicing) on the knob
-   and in the modulation ring. If the param spec can't name steps yet, add a
-   `stepNames` list to `ParamSpec`.
-4. **Live values:** `chordName`, `voicePitch1…6`, `latched` for the view.
+   and in the modulation ring: `ParamSpec::stepped` (exists).
+4. **Live values** (numbers only): `rootPc`, `quality` (table index, −1 for a
+   Scale-mode cluster), `bassPc`, `degree`, `count`, `latched`,
+   `voicePitch1…6`; the view builds the chord name from them.
 
 ## 8. Tests
 
@@ -265,7 +275,8 @@ appended to either list, so saved boards keep their chords.
 - Scale mode: in C major the triads on all seven degrees have qualities maj, min, min, maj, maj, min, dim; quantizing ties go down; 5-note scales wrap correctly.
 - Latch: modulating *Chord* between pulses doesn't change the output; a pulse and a pitch change on the same sample use the new pitch.
 - Chord changes with Glide 0 produce no discontinuity larger than one polyBLEP step; voice-count changes fade over 5 ms.
-- Level: Out stays within ±1.2 for 6 voices of square at Stereo 0; *Root* is identical to an Oscillator at the same pitch and Shape.
+- Level: Out stays within ±√6 for 6 voices of square at Stereo 0 and L = R; *Root* is identical (within 1e-6) to an Oscillator at the same pitch, Shape, Pulse Width and FM.
+- Aliasing: a saw voice at C7 keeps aliases below 10 kHz under −50 dB (polyBLEP).
 - The same Seed gives identical Detune offsets; different Seeds differ.
 - The demo types file includes the module (`patch.ui-types`).
 

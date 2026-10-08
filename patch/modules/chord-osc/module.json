@@ -1,0 +1,10 @@
+{
+  "name": "Chord Osc",
+  "slug": "chord-osc",
+  "tagline": "One pitch in, a whole chord out: up to six oscillators on a chromatic or diatonic chord, with inversion, voicing and latch.",
+  "colour": "#22d3ee",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/chord-osc.md"
+}
