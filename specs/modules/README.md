@@ -30,3 +30,4 @@ section 21): no hardware names in the files, the UI or the docs.
 | Quantizer | [quantizer.md](quantizer.md) | Specified |
 | Switch | [switch.md](switch.md) | Specified |
 | Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Specified |
+| Drum Grid | [drum-grid.md](drum-grid.md) | Specified |
