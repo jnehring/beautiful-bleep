@@ -55,6 +55,7 @@ Random onto *X* and *Y* is the main way to play the module.
 | Chaos | 0–100 % | 0 % | Size of the seeded random change to every step's level (4.5). |
 | Accent | 50–100 % | 78 % | Level above which a hit is accented. |
 | Swing | 50–75 % | 50 % | Delays every second step. |
+| Note Length | 10–100 % of a step | 50 % | Length of the notes on *Notes* (a knob, so it can be modulated). |
 
 **Settings**
 
@@ -64,8 +65,7 @@ Random onto *X* and *Y* is the main way to play the module.
 | Rate | 1/8, 1/8T, 1/16, 1/16T, 1/32 | 1/16 |
 | Chaos Rate | every bar, every 2 / 4 / 8 bars, Frozen | every bar |
 | Seed | 0–999 | 1 |
-| Kick Note, Snare Note, Hats Note | 0–127 (shown as note names) | 36 (C1), 38 (D1), 42 (F♯1) |
-| Note Length | 10–100 % of a step | 50 % |
+| Kick Note, Snare Note, Hats Note | 0–127 (shown as numbers) | 36 (C1), 38 (D1), 42 (F♯1) |
 
 ## 4. Behaviour
 
@@ -84,33 +84,40 @@ but never mid-step.
 
 ### 4.2 Building our own map
 
-The factory map is **generated** by a script that ships with the source
-(`tools/drum-map/generate.py`) and written as a constant table to
-`patch/common/dsp/DrumMapTable.h` (25 nodes × 3 voices × 32 bytes = 2400 bytes).
-The table is then auditioned and touched up by hand; both the script and the
-table are ours. The recipe, for a node at map position (u, v) ∈ [0, 1]²:
+The factory map is **generated in code**: `drumFactoryNode(column, row)` in
+the module's `dsp/DrumMapDsp.h` builds each node from the rules below, and
+`drumFactoryMap()` makes the 25-node table (2400 bytes) once. There is no
+separate script or checked-in table to keep in sync; the rules are tuned by
+listening and by the test's ASCII print. The recipe, for a node at map
+position (u, v) ∈ [0, 1]²:
 
 1. **Metric weights.** Every 16th step gets a weight from its place in the
    bar: downbeat 1.0, half-bar 0.85, other quarter notes 0.7, off-beat 8ths
    0.45, 16ths 0.25. Bar 2 copies bar 1, with its last quarter left open for
-   fills (weights × 0.6 there, plus the pickups of step 4).
-2. **Kick.** Starts from the quarter-note weights (u = 0: steady on every
-   beat). Toward u = 1, weight moves from beats 2 and 4 to 16ths just before
+   fills (kick and snare × 0.8, hats × 0.75 there, so the backbone still
+   plays at 50 % density, plus the pickups of step 4).
+2. **Kick.** Starts from the quarter notes (u = 0: steady on every beat:
+   255, 170, 215, 170 — beats 2 and 4 stay below the spacing threshold so
+   the backbeat survives). Toward u = 1, weight moves from beats 2 and 4 to 16ths just before
    or after them and to a 3 + 3 + 2 grouping of 8ths. v adds 8th and 16th
    pickups at levels 60–140, rising with v.
 3. **Snare.** A backbone on beats 2 and 4 (level 230). Toward u = 1 it moves to
-   a half-time placement (beat 3 only) or a displaced backbeat, blended
-   continuously. v adds ghost notes (40–110) on the 16ths next to the
+   a half-time placement (beat 3 only, strongest around u = 0.6) and then a
+   displaced backbeat (16ths 8 and 13, 16 lightly), blended by overlapping
+   crossfades taken by maximum, so no point of the map loses its snare
+   backbone at 50 % density. v adds ghost notes (40–110) on the 16ths next to the
    backbone.
 4. **Pickups and fills.** In the last quarter of bar 2, both kick and snare get
    rising levels (80–170, scaled by v), so raising Density or Fill reveals a fill.
-5. **Hats.** v = 0: quarter notes; v = 0.5: 8ths; v = 1: 16ths, with
+5. **Hats.** v = 0: quarter notes (210) with off-beat 8ths at 90; the 8ths
+   rise to 210 by v = 0.5, the remaining 16ths from 40 to 160 by v = 1, with
    alternating strong/weak levels. Toward u = 1, the strong hats move to the
    off-beats.
 6. **Spacing.** Where the kick level is above 180, the snare level on the same
    step is multiplied by 0.4, so the two rarely collide at medium density.
-7. Levels are scaled to 0–255 and rounded. The script prints an ASCII grid of
-   every node at three densities for review.
+7. Levels are clamped to 0–255 and rounded. The test prints an ASCII grid of
+   every node at three densities for review (`DRUM_MAP_PRINT=1
+   bleep_test_drum_map`).
 
 **User map.** Any node can be edited in the module view (section 5). Edited nodes are
 saved in the node's data and override the factory node; *Reset node* removes
@@ -175,10 +182,12 @@ levels, not hits directly, strong hits survive and weak ones come and go.
   per drag). With cables on X/Y, the puck shows the modulated position and a
   short trail; the knob position is a hollow ring. Edited nodes show a dot.
 - **Lanes** show the 32 interpolated levels per voice as bars, the threshold
-  as a line, hits as filled squares (accents bolder), and Chaos changes as a
-  small mark. The playhead is highlighted.
-- **Edit node:** click a node on the pad, then drag levels in its lanes; the
-  lanes then show that node instead of the interpolated pattern.
+  as a line, hits as filled squares (accents bolder). The playhead is
+  highlighted. (The bars already include Chaos.)
+- **Edit node** (a toggle): click a node on the pad, then drag levels in its
+  lanes; the lanes then show that node instead of the interpolated pattern.
+  The first edit copies the whole node into the data. **Reset node** removes
+  the override.
 - The knobs and settings sit below the map and lanes; the window is 600 px wide.
 
 ## 6. Saved state
@@ -186,7 +195,7 @@ levels, not hits directly, strong hits survive and weak ones come and go.
 ```json
 {
   "type": "drum-map",
-  "params": { "x": 0.25, "y": 0.25, "kickDensity": 0.5, … },
+  "params": { "x": 0.25, "y": 0.25, "kickdensity": 0.5, … },
   "data": {
     "nodes": {
       "2,3": { "kick": [255, 0, 0, 40, …32], "snare": [ …32 ], "hats": [ …32 ] }
@@ -203,12 +212,15 @@ clamped to 0–255. A new module has no edits.
 
 1. Node data and live values exist (Step Sequencer section 7). The data is
    parsed into a full 25-node table on the message thread and handed over
-   like the sequencer's steps. Live values: `step`, `levels` (3 × 32 bytes of
-   the current interpolated pattern after Chaos), `hits`, `pos` (X/Y after
-   modulation).
+   with `RtHandoff`. Live values: `step`, `hits` (bit per sounding voice),
+   `px`, `py` (X/Y after modulation), `kd`, `sd`, `hd` (the effective
+   densities, Fill included), `accent`, `edited` (bit per edited node). Live
+   arrays: `levels` (3 × 32 levels of the current interpolated pattern after
+   Chaos, computed on the message thread from the published table) and, while
+   the view edits a node (command `editnode` with the node index, −1 to stop),
+   `node` (that node's 3 × 32 levels).
 2. Shared sequencer clock (`SeqClock.h`, see the Cartesian Seq spec).
-3. The generator script and table (4.2); a build check that the table matches
-   the script's output, unless the table is marked hand-edited.
+3. The generator (4.2), in the module's DSP header.
 4. Bar counting from the song position for Chaos blocks (time signature
    from the host; 4/4 assumed when unknown).
 
@@ -228,7 +240,9 @@ clamped to 0–255. A new module has no edits.
 - Notes: correct note numbers and velocities; retrigger order; no hanging
   notes after stop, Reset, note-number change, removal.
 - User nodes round-trip; broken `nodes` entries load safely.
-- The generator's table matches the checked-in header.
+- The generated map: the default node at 50 % has kick on beats 1 and 3,
+  snare on 2 and 4 and 8th hats; straight/sparse/busy/broken edges have their
+  character; neighbouring nodes differ.
 
 ## 9. Later
 

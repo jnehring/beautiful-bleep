@@ -44,7 +44,7 @@ are the position inputs of *Cartesian* mode: patch a `control` signal onto them.
 | Trigger | `trigger` | A pulse when a cell starts a new note. |
 | X Pos | `control` (unipolar) | Column / (Columns − 1); 0 for one column. |
 | Y Pos | `control` (unipolar) | Row / (Rows − 1); 0 for one row. |
-| Row End | `trigger` | A pulse when the X playhead wraps. |
+| Row End | `trigger` | A pulse when the X playhead wraps (raster: when the path moves on to its next row). |
 | Grid End | `trigger` | A pulse when the whole path wraps (both playheads back at their first cell, or the raster path at its start). |
 
 ## 3. Controls
@@ -57,7 +57,7 @@ are the position inputs of *Cartesian* mode: patch a `control` signal onto them.
 | Swing | 50–75 % | 50 % | Delays every second X step (Transport and Clock modes). |
 | X | 0–100 % | 0 % | *Cartesian*: picks the column. *Clocks*: shifts the X playhead by `floor(X · Columns)` columns. |
 | Y | 0–100 % | 0 % | The same for rows. |
-| Mod Slew | 0–1 s (curved: fine at the low end) | 0 s | Glide time of the *Mod* output between cells. |
+| Mod Slew | 0–1 s (curved: fine at the low end) | 0 s | Glide time of the *Mod* output between cells (a linear ramp that arrives after exactly Mod Slew). |
 
 **Settings**
 
@@ -104,7 +104,9 @@ Each axis has its own step counter, `nx` and `ny`.
   `ny = floor(nx / cycleX)`, where `cycleX` is the length of one X cycle
   (Columns; `2·Columns − 2` for Ping-Pong; Columns for Random). This is a
   *raster* scan: row by row through the grid.
-- **Y, a note value**: `ny = floor(ppq / yLen)`, independent of X. With
+- **Y, a note value**: `ny = floor((ppq − origin) / yLen)`, independent of X
+  (`origin` is X's grid origin, so Reset re-anchors both axes together; with X
+  Clock patched Y keeps its own origin on the transport). With
   4 columns at 1/16 and Y at 1/4·, X cycles every quarter while Y changes every
   dotted quarter, so the 16-cell grid plays a pattern that repeats after 3 bars.
 - **Y, Clock** (Y Clock patched): `ny` counts pulses, whatever *Y Rate* says.
@@ -121,8 +123,12 @@ never the same index twice in a row for N > 1). Then the *X* / *Y* knob offset
 is added modulo N, so modulating X rotates the row while it plays.
 
 **Reset.** As the Step Sequencer: in Clock mode the next pulse plays index 0 on
-both axes; in Transport mode the grid re-anchors so that the next X boundary is
-column 0, row 0. A Reset on the same sample as a clock plays (0, 0).
+both axes (a Y Clock puts Y on row 0 at once, and its next pulse counts as
+row 0 again); in Transport mode the grid re-anchors so that the next X
+boundary is column 0, row 0. A Reset on the same sample as a clock plays
+(0, 0).
+
+When only Y moves, the gate length is relative to the last X step.
 
 ### 4.3 Skipped cells
 
@@ -133,7 +139,10 @@ not on wall time:
   in X Direction, rows in Y Direction), with skipped cells removed. With `K`
   cells left, the cell played is `path[n mod K]` — skipping a cell shortens the
   pattern by one step and nothing is played twice. *Grid End* fires when
-  `n mod K` returns to 0. Random direction draws from the remaining K.
+  `n mod K` returns to 0; *Row End* fires where the path moves on to its next
+  row. If either direction is *Random*, every step plays a seeded random cell
+  of the playing cells (`uniform01(Seed, n, …)`, never the same cell twice in
+  a row); *Grid End* then fires every K steps and *Row End* every Columns steps.
 - **Independent axes:** both axes keep their own count. If (x, y) is skipped,
   the module plays the next playing cell in X Direction within the same row
   (wrapping). If the whole row is skipped, nothing plays and the Gate stays low.
@@ -153,7 +162,12 @@ amount 50 % on a knob set to 50 % sweeps the full grid.
 - **Sample = Change:** a cell plays whenever the position enters a new cell.
   To avoid chatter, a new cell is entered only when the position passes
   10 % of a cell width beyond the border (hysteresis). At most one new cell per
-  1 ms. Gate Length is relative to the X Rate step in this mode.
+  1 ms. Gate Length is relative to the X Rate step in this mode. The first
+  position after loading (or switching to this mode) is taken silently; a
+  Reset replays the current cell.
+
+In Cartesian mode *Row End* fires every Columns X steps and *Grid End* every
+Columns × Rows X steps (Sample = Clock).
 
 When the transport stops, Cartesian *Change* mode keeps playing (it needs no
 clock) — useful for live XY performance; Clock mode follows the transport.
@@ -184,8 +198,8 @@ known: the note holds until the next cell starts.
  └──────────────────────────────────────────────────────────────┘
 ```
 
-- Cells are 56 px squares; the visible grid follows Columns × Rows (cells
-  outside are hidden, not dimmed; a *Show all* toggle reveals the full 8 × 8).
+- Cells are 54 px squares; the visible grid follows Columns × Rows (cells
+  outside are hidden; a *Show all* toggle reveals the full 8 × 8).
 - Every cell always shows its note name, a gate glyph, a velocity bar along
   the bottom and a mod tint in the corner. The **Layer** buttons choose what a
   drag edits: Gate (click cycles Off → On → Tie, drag paints), Pitch and
@@ -198,8 +212,9 @@ known: the note holds until the next cell starts.
   how a patched LFO travels.
 - **Randomize** works per layer, with the Step Sequencer's options plus
   *Skip density* (0–50 %, default 0) for the Access layer.
-- The playhead cell is outlined; the path order (Raster) is drawn as faint
-  numbers on hover over the Y Rate setting.
+- **Randomize** rewrites the shown layer inside the playing area (one undo step).
+- The playhead cell is outlined (thicker while it sounds). Cells outside the
+  playing area show dimmed when *Show all* is on.
 
 ## 6. Saved state
 
@@ -218,21 +233,22 @@ known: the note holds until the next cell starts.
 Cells are row-major: `cells[row · 8 + column]`. `g` 0/1/2 = Off/On/Tie, `m`
 −100…100, `a` 0 = Skip, 1 = Play. Short arrays are padded with
 Off/0/100/0/Play; out-of-range values are clamped. A new module fills the
-4 × 4 area with On cells on the scale degrees 0, 2, 4, 7, … read row-major,
-so it plays an ascending figure right away.
+4 × 4 area with On cells playing rising broken chords read row-major (rows:
+C E G C, D F A D, E G B E, F A C F — semitones 0 4 7 12, 2 5 9 14, 4 7 11 16,
+5 9 12 17), the first cell of each row accented (velocity 112, others 88), and
+Mod rising from −100 % to +100 % through the 16 cells, so it plays an
+ascending figure right away.
 
 ## 7. Engine requirements
 
 1. Node data, data hand-over and live values exist (Step Sequencer, section 7
-   there). Live values: `x`, `y`, `cell`, `sounding`, `pos` (the Cartesian
+   there). Live values: `x`, `y`, `cell`, `sounding`, `px`, `py` (the Cartesian
    position, for the crosshair).
-2. **Shared sequencer helpers.** Move the transport step clock (ppq → step,
-   Reset anchoring, Clock-mode duration estimate, swing) and the tie/no-hanging-
-   notes note emitter out of the Step Sequencer's DSP into
-   `patch/common/dsp/` (e.g. `SeqClock.h`, `SeqNotes.h`) and use them in both.
-   The Stage Seq and Gate Sequencer reuse them too.
-3. A rate list with dotted and triplet values in `Tempo.h` (the Step
-   Sequencer's list) shared by all sequencers.
+2. **Shared sequencer helpers** (done): the X axis runs on `dsp::SeqClock`
+   (`SeqClock.h`), notes on `dsp::SeqVoice` (`SeqNotes.h`); the Y transport
+   counter is computed in the module from the song position and X's origin.
+3. The rate list with dotted and triplet values in `Tempo.h`
+   (`sequencerRates()`), shared by all sequencers.
 
 ## 8. Tests
 

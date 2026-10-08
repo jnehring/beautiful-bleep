@@ -23,7 +23,7 @@ lines that still land on the song's grid and render the same every time.
 | Reset | `trigger` | Every track's next step is its loop start (see 4.2). |
 | Transpose | `pitch` | Added before quantizing, sampled at each note start (as in the Step Sequencer). |
 | Pattern | `control` (unipolar) | Selects the pattern slot: 0…1 maps to slots 1…*Slots used*. Switching follows *Pattern Change* (4.6). |
-| Hold | `gate` | While high, no track advances; the current note keeps playing its ratchets. |
+| Hold | `gate` | While high, no new hits start; the current note keeps playing its ratchets. Positions stay functions of the tick count, so when Hold falls every track is where the song is. |
 
 Every knob is also an input (`specs.md` section 7.3).
 
@@ -50,7 +50,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Ratchet Amt | 0–100 % | 100 % | Scales the ratchet track: 0 % plays single hits only. |
 | Swing | 50–75 % | 50 % | Delays every second base tick. |
 | Velocity | 0–100 % | 80 % | Base velocity; accent steps (4.1) add 20 %. |
-| Spread | 0–100 % | 0 % | Seeded humanize: random velocity variation ±25 % × Spread and timing offset up to ±5 % of a tick × Spread. |
+| Spread | 0–100 % | 0 % | Seeded humanize: random velocity variation ±25 % × Spread and a timing delay of up to 5 % of a tick × Spread (late only; nothing plays early). |
 
 **Settings**
 
@@ -102,9 +102,10 @@ the last two pulses). Swing works as there.
 Each track derives its own step counter from the base tick:
 
 - **Division /n:** the track advances every *n* ticks: `trackTick = floor(tick / n)`.
-- **Division ×n:** the track advances *n* times per tick. In Transport mode the
-  sub-ticks are exact song positions; in Clock mode they are spaced by the last
-  measured tick duration (the first tick after a pause is not subdivided).
+- **Division ×n:** the track advances *n* times per tick, at `k/n` of the
+  tick's (swung) duration from its start: the transport's tick length in
+  Transport mode, the last measured tick duration in Clock mode. Its tick
+  count at fraction `f` of base tick `n` is `n·m + floor(f·m)`.
 - `position = map(trackTick, loopStart, loopEnd, direction)`, e.g. Forward:
   `loopStart + trackTick mod (loopEnd − loopStart + 1)`.
 
@@ -127,14 +128,19 @@ counter that Reset clears).
 divides the hit's duration (one Trigger-track step) into *r'* sub-hits.
 *Even* spaces them equally; *Accelerate* uses positions `(k/r')^1.5`,
 *Decelerate* `(k/r')^0.67`. Each sub-hit's gate is the Gate track value × its
-own sub-duration. Sub-hits keep the pitch; velocity falls 8 % per repeat.
+own sub-duration (× Gate Scale); with Tie only the last sub-hit ties. Sub-hits
+keep the pitch; repeat *k* plays at `1 − 0.08·k` of the velocity.
 
 **Reset.** As Step Sequencer: in Clock mode the next tick is tick 0 for all
 tracks; in Transport mode Reset re-anchors the grid. Reset also realigns
 *Bar*. **Bar** fires on the tick where every unmuted track sits on its loop
 start; the cycle length is the LCM of the tracks' effective periods
 (`loop length × division`), shown in the view (e.g. *cycle: 560 steps*).
-If the LCM exceeds 2³¹ ticks *Bar* never fires and the view says *∞*.
+If the LCM exceeds 2³¹ ticks *Bar* never fires and the view says *∞*. A
+track's period in base ticks is `P / gcd(P, m)` for ×m and `P · d` for /d
+(`P` = loop length, `2L − 2` for ping-pong). *Bar* also fires on tick 0.
+*Track Ends* fires when an unmuted track steps onto its cycle start (not on
+the very first tick).
 
 ### 4.3 Gates and notes
 
@@ -163,16 +169,19 @@ degrees), Probability between bounds, Ratchet with a chance of 2–4 (default
 ### 4.6 Pattern slots
 
 Up to 8 slots, each a full set of six tracks with their lengths, loops,
-divisions and directions. *Pattern* (input + knob through the usual knob
-input) selects the slot; the switch happens at the moment chosen by
-*Pattern Change*. Track tick counters are not reset by a switch, so the new
+divisions and directions. The *Pattern* input (when patched) or the view's
+slot buttons (the data's `slot`, when it isn't) select the slot; there is no
+Pattern knob. The switch happens at the moment chosen by *Pattern Change*
+(*Next bar* is every 4 beats of the song, or every 16 ticks in Clock mode;
+with the transport stopped and no clock, a switch is immediate). Track tick counters are not reset by a switch, so the new
 pattern enters in phase. Slots can be copied/pasted in the view.
 
 ### 4.7 CPU and memory
 
 Per tick: six table lookups and one hash; negligible. Data: 8 slots × 6
-tracks × 64 steps × 2 bytes ≈ 6 KB, handed to the audio thread like the Step
-Sequencer's steps (try-lock swap).
+tracks × 64 steps × 2 bytes ≈ 6 KB, handed to the audio thread with
+`RtHandoff` (`Handoff.h`); a data change that only moves `slot` or the
+Randomize options doesn't republish it.
 
 ## 5. Module view
 
@@ -198,7 +207,11 @@ Sequencer's steps (try-lock swap).
 - A **phase strip** at the bottom shows each track's position in its loop as
   a small arc and the full-cycle progress, so the drift is visible.
 - Slot buttons: click to select (when the *Pattern* input isn't patched),
-  right-click to copy/paste/clear. Edits are one undo step per drag.
+  Copy / Paste buttons copy the shown slot. Edits are one undo step per drag.
+- Row controls: length (number), division (list), direction (→ ← ↔ ?), **M**
+  mute and **⟳** randomize. Shift-click a Gate step toggles Tie, a Ratchet
+  step cycles its shape. The loop bracket under each row is dragged at
+  either end.
 
 ## 6. Saved state
 
@@ -226,16 +239,22 @@ Sequencer's steps (try-lock swap).
 
 Gate `-1` is Tie. Ratchet pairs are `[count, shape]`. `sanitiseData` clamps
 every value, fixes `lo ≤ hi < len`, pads `steps` to 64 with the neutral
-value and fills missing slots with the default pattern (a four-on-the-floor
-Trigger track and a 7-step rising Note track, so a new module plays at once).
+value and fills missing slots with the default pattern, so a new module
+plays at once: Trigger (16) `2 0 1 0 2 0 1 1 2 0 1 0 2 1 0 1` (accents on the
+beats), Note (7) degrees `0 1 2 4 2 3 5`, Octave (5) `0 0 1 0 −1`, Gate (16)
+mostly 30–80 % with one Tie, Probability (16) mostly 100 % with a few 60–90 %,
+Ratchet (16) a double on the last step: a 560-step cycle. `div` is one of
+`x4 x3 x2 1 /2 /3 /4 /5 /6 /7 /8 /16`, `dir` one of `fwd bwd pp rnd`.
+`randomize` also keeps `ratchet` (the ratchet chance, default 10 %).
 
 ## 7. Engine requirements
 
-Nothing new: node data, `setData`, `liveValues` (one position per track,
-`cycle`, `slot`), the shared scales and transport helpers already exist.
-`Scales.h` needs a `degreeToSemitones(degree, scale)` helper (scale degrees
-across octaves, including negative degrees). Inside a Voice Cell it runs per
-voice like any module; outside is the usual place.
+Nothing new: node data, `setData`, `liveValues` (`pos0` … `pos5`, `cycle`,
+`slot`, `sounding`), the shared scales and transport helpers already exist.
+`Scales.h` has no `degreeToSemitones(degree, scale)` yet, so the module's DSP
+carries it (scale degrees across octaves, including negative degrees); it
+could move to `Scales.h`. Inside a Voice Cell it runs per voice like any
+module; outside is the usual place.
 
 ## 8. Tests
 

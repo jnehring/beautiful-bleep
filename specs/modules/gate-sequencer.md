@@ -91,12 +91,21 @@ track on the right step.
 
 In Clock mode, Clock pulses are 1/16 ticks; a track with Rate `r` advances
 every `r / (1/16)` ticks (1/8 = every 2 ticks, 1/32 = twice per tick at the
-measured tick duration; triplet and dotted rates use the measured duration and
-a fractional tick accumulator, so they stay exact over a bar).
+measured tick duration). The module keeps a virtual position
+`b = (tick + min(sinceTick / period, 0.999)) / 4` beats, which runs at the
+measured tick length and waits just short of the next tick until its pulse
+arrives; every track (triplet and dotted ones too) reads its steps from `b`
+exactly as in Transport mode, so they stay exact over a bar.
+
+**Reset.** Clock mode: the next pulse is tick 0. Transport mode: the origin
+moves to the next 1/16 line, which becomes step 1 of every track (steps before
+the origin never play).
 
 *Cycle* fires where all tracks are at position 0 together: in Transport mode at
-multiples of `lcm(Length_t · stepLen_t)` (in 1/96-note units), in Clock mode
-by checking positions at each tick.
+multiples of `lcm(Length_t · stepLen_t)` in 1/48-beat units (every rate is a
+whole number of them; tracks without steps count too), in Clock mode the same
+on the virtual position. It also fires when the transport starts on such a
+line.
 
 ### 4.3 Whether a step plays
 
@@ -119,7 +128,8 @@ in advance which steps will play.
 
 - **A:B** — true when `k mod B == A − 1` (e.g. 4:4 = the fourth of every four loops). Loop counts come from the song position, so they stay in phase with the bars.
 - **First / Not First** — true on the first loop since the transport started (or since Reset), and the opposite.
-- **Fill / Not Fill** — the *Fill* gate at the step's nominal start.
+- **Fill / Not Fill** — the *Fill* gate when the step's first hit plays (an
+  early-nudged step reads it early).
 - **Prev / Not Prev** — true when the most recent earlier step on this track that has a probability below 100 % or a condition other than Always actually played (false if there is none). Since every decision is a pure function, *Prev* is evaluated on demand, also after a jump; chains of *Prev* steps are followed back at most one loop.
 
 ### 4.5 Gates, ratchets and micro-timing
@@ -134,9 +144,12 @@ in advance which steps will play.
   *Faster*: gaps shrink geometrically (each 0.75 × the previous), *Slower*:
   grow (each 1.33 ×), normalised to fill the step. Each hit's gate is the
   step's *Length* of its own slot.
-- **Length / Tie:** a Tie step's gate stays high until the next step on the
-  track ends its gate or a silent step starts. Two touching gates (100 %, or a
-  hit right after another) drop for 1 ms so the next rising edge is clean.
+- **Length / Tie:** a Tie step's gate (its last ratchet hit; earlier hits
+  fill their slots) stays high until the next step on the track that doesn't
+  play starts; hits in between keep the gate up (no gap) and retrigger the
+  note. Two touching gates (100 %, or a hit within 1 ms of the last gate's
+  end) drop for 1 ms so the next rising edge is clean (the gate rises 1 ms
+  after the trigger).
 - **Swing** delays the odd steps of each track by `(Swing − 50 %) · 2 · stepLen_t`, before Nudge.
 - Velocity outputs carry `velocity/127`, with Ratchet Decay applied per hit.
 
@@ -165,21 +178,23 @@ port and a drum rack in Live, or the gate outputs to drum modules on the board.
 ```
 
 - Each row is a track with its length and rate at the left (drag the length
-  marker at the end of the row; click the rate to choose). Each track has its
-  own playhead; columns are 18 px and scroll for 32 steps.
+  marker at the end of the row, or type it; choose the rate from the list).
+  Each track has its own playhead; columns are 16 px and scroll for 32 steps.
 - **Edit** buttons choose what a drag edits; the row then shows that field as
   bars (Prob, Len, Vel, Nudge as a horizontal shift, Ratchet as tick marks).
   In *On* view, every cell still shows its probability as fill height, ratchet
   ticks and a condition badge, so a track reads at a glance.
-- Click a step to select it (Shift/drag for several); the **inspector** line
-  edits every field of the selection at once.
+- Click a step to select it (Shift-click for several); the **inspector** line
+  edits every field of the selection at once. In *Cond* view a click cycles
+  the condition kind.
 - Steps that will be skipped on the coming pass (probability or condition)
   are drawn hollow — possible because decisions are pure functions.
 - **M** toggles mute in the view (a data setting, OR-ed with the Mute input).
 - **Randomize** per track: density, probability range, ratchet chance,
   nudge range (UI-side random, one undo step). **Euclid** fills a track with
   `k` hits evenly spread over its Length (rotation offset).
-- Copy/paste a track; rotate a track ◀ ▶. Every gesture is one undo step.
+- Copy/paste a track; rotate a track ◀ ▶. The track tools act on the track
+  last clicked. Every gesture is one undo step.
 
 ## 6. Saved state
 
@@ -202,18 +217,23 @@ port and a drum rack in Live, or the gate outputs to drum modules on the board.
 nudge −50…50; `c` is `[kind, arg]`: 0 Always, 1 A:B with arg `A·10 + B`,
 2 First, 3 Not First, 4 Fill, 5 Not Fill, 6 Prev, 7 Not Prev. Missing tracks
 or steps are padded with defaults, values clamped. A new module has track 1 on
-every 4th step, track 2 on steps 5 and 13, track 3 on every 2nd step with
-60 % probability on the off-beats, and track 4 empty.
+every 4th step, track 2 on steps 5 and 13 (plus a 35 % ghost on step 16),
+track 3 on every 2nd step with 60 % probability on the off-beats and a
+3-hit *Faster* ratchet on step 15, and track 4 empty.
 
 ## 7. Engine requirements
 
 1. Node data, data hand-over and live values exist (Step Sequencer section 7).
-   Live values: `pos` (4 positions), `hits`, `upcoming` (bit masks of the
-   steps that will play on the current pass, per track).
-2. Shared sequencer clock and note emitter (`SeqClock.h`, `SeqNotes.h`, see the
-   Cartesian Seq spec), extended with **look-ahead scheduling**: emit events at
-   a sample offset up to one step ahead of the grid position.
-3. Transport start detection for *First* (the engine's transport state change).
+   Live values: `pos1` … `pos4`, `hits` (bit t: track t's gate is high),
+   `upcoming1` … `upcoming4` (bit masks of the steps that will play on the
+   current pass, recomputed once per loop and after edits).
+2. Look-ahead scheduling lives in the module's DSP: per track it keeps the
+   next hit (time in steps, from the pure step functions) and fires it when
+   the position passes it. `SeqClock.h`'s `swingAmount` and `SeqNotes.h`'s
+   `SeqNoteSet` are shared; `SeqClock` itself isn't used because hits can
+   come before their grid line.
+3. Transport start: `ProcessContext::transportStarted` and the transport's
+   playing flag (both exist).
 
 ## 8. Tests
 

@@ -1,0 +1,10 @@
+{
+  "name": "Polymeter Seq",
+  "slug": "polymeter-sequencer",
+  "tagline": "A step split into six drifting tracks — trigger, note, octave, gate, probability, ratchet — that still land on the grid.",
+  "colour": "#f59e6b",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/polymeter-sequencer.md"
+}

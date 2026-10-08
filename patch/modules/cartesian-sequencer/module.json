@@ -1,0 +1,10 @@
+{
+  "name": "Cartesian Seq",
+  "slug": "cartesian-sequencer",
+  "tagline": "An 8 × 8 grid of notes walked by two playheads, or played by moving X and Y.",
+  "colour": "#e8c547",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/cartesian-sequencer.md"
+}

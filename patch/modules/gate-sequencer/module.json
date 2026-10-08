@@ -1,0 +1,10 @@
+{
+  "name": "Gate Sequencer",
+  "slug": "gate-sequencer",
+  "tagline": "Four tracks of deep gate steps: probability, ratchets, nudge and conditions, each track with its own length and rate.",
+  "colour": "#d4e157",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/gate-sequencer.md"
+}

@@ -37,8 +37,8 @@ Every knob is also an input (`specs.md` section 7.3).
 | Pitch | `pitch` | The current stage's quantized pitch, gliding over *Slide Time* into slide stages. Holds on Rest stages. |
 | Gate | `gate` | The gates of 4.4. |
 | Velocity | `control` (unipolar) | The current stage's velocity, accent included, 0–1. |
-| Accent | `gate` | High while an accented stage's notes sound. |
-| Trigger | `trigger` | A pulse at each note start (each ratchet included). |
+| Accent | `gate` | High while an accented stage's notes sound (jack id `accentgate`, as the knob is `accent`). |
+| Trigger | `trigger` | A pulse at each new note start (each ratchet included; a legato slide doesn't retrigger). |
 | Stage | `control` (unipolar) | Stage index / (Stages − 1). |
 | Stage Start | `trigger` | A pulse at the start of every stage, whatever its gate mode. |
 | End | `trigger` | A pulse when the cycle returns to its first stage (Forward, Reverse, Pendulum) or a phrase restarts (Random, Brownian). |
@@ -50,7 +50,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Knob | Range | Default | What it does |
 |---|---|---|---|
 | Gate Length | 1–100 % of a pulse | 50 % | Gate length for *First*, *Every* and *Ratchet* notes (of the ratchet's sub-pulse). |
-| Slide Time | 1 ms–2 s (exponential) | 80 ms | Glide time of *Pitch* into a slide stage. |
+| Slide Time | 1 ms–2 s (curved, 150 ms in the middle) | 80 ms | Glide time of *Pitch* into a slide stage. |
 | Accent | 0–100 % | 50 % | How much accented stages are boosted: `v' = v + Accent · (127 − v)`. |
 | Swing | 50–75 % | 50 % | Delays every second pulse (pulse count, not stage count). |
 
@@ -87,7 +87,8 @@ Sequencer's scale table (`patch/common/dsp/Scales.h`, ties go down).
 ### 4.2 Timing
 
 Time is counted in **pulses**: in Transport mode `n = floor(ppq / pulseLen)`
-(`pulseLen` = *Rate* in quarter notes), in Clock mode `n` counts Clock pulses.
+(`pulseLen` = *Rate* in quarter notes), in Clock mode `n` counts Clock pulses
+since Reset (and *Rate* still says what a pulse is worth, for *Phrase*).
 The pulse duration for Gate Length, ratchets and Swing is `pulseLen` or, in
 Clock mode, the time between the last two pulses (fallback 1/16 at 120 BPM).
 
@@ -95,7 +96,9 @@ The playing order is a list of stages:
 
 - **Forward:** 1 … S. **Reverse:** S … 1.
 - **Pendulum:** 1 … S … 2 (end stages once per turn; S = 1 plays stage 1).
-- **Random:** each next stage is `hash3(Seed, visit, 0) mod S`, never the same twice in a row (S > 1).
+- **Random:** each next stage is drawn from the other S − 1 stages with
+  `uniform01(phraseSeed, visit, 0)` (so never the same twice in a row, S > 1);
+  the first stage of a phrase is a free draw, `phraseSeed = hash3(Seed, phrase, 99)`.
 - **Brownian:** from the current stage, +1 with 50 %, −1 with 25 %, stay with 25 % (wrapping at both ends), drawn from `hash3(Seed, visit, 1)`.
 
 For the three fixed orders the cycle is `C = Σ pulses` over the order, and the
@@ -109,7 +112,10 @@ stage lengths decide when the next choice happens. So the walk restarts at
 stage 1 (Brownian) or at a fresh draw (Random) at every *Phrase* boundary,
 with `visit` counting from 0 inside the phrase and the phrase index mixed into
 the seed. After a jump, the module replays the current phrase from its start
-(at most 16 bars × 32 pulses = 512 visits of pure hashing, done in one block).
+(at most 16 bars × 48 pulses = 768 visits of pure hashing, done in one block;
+in normal playback the walk just steps on from its cached position). A phrase
+is the pulses whose start lies in it: phrase `p` starts at pulse
+`ceil(p · phraseLen / pulseLen)`, which keeps dotted and triplet rates exact.
 A stage that would cross the phrase end is cut short there. The same Seed
 therefore gives the same walk every time, in real time and offline.
 
@@ -122,10 +128,15 @@ the same sample play stage 1.
 
 While *Hold* is high, a stage that ends starts again (same stage, same
 pitch, new pulses). In Clock mode the order continues where it left off when
-Hold falls. In Transport mode Hold freezes the *output*, not the clock: when
+Hold falls (the replayed pulses are not counted; the next pulse after Hold
+falls is the stage that would have come next). In Transport mode Hold freezes the *output*, not the clock: when
 Hold falls, the module rejoins the transport position at the next pulse, so
 it is never out of phase afterwards. Hold during Random or Brownian also
 freezes the walk's visible stage; the hidden walk keeps running.
+
+Entering a stage in the middle (after a jump, a transport start inside a
+stage, or when Hold falls) counts as entering it: *First* and *Hold* stages
+start their note on that pulse, *Stage Start* fires.
 
 ### 4.4 Gate modes, slides and notes
 
@@ -206,19 +217,23 @@ proportional to its pulse count, so the view shows the rhythm as it plays.
 
 `g`: 0 Rest, 1 First, 2 Every, 3 Hold, 4 Ratchet. Missing entries are padded
 with the defaults of 4.1, values clamped. A new module has 8 stages on scale
-degrees 0, 0, 4, 2, 0, 4, 7, 4 with pulses 2, 1, 1, 2, 1, 1, 3, 1 and a mix of
-Hold and Every, so it plays a recognisable line right away.
+degrees 0, 0, 4, 2, 0, 4, 7, 4 (semitones 0, 0, 7, 4, 0, 7, 12, 7) with pulses
+2, 1, 1, 2, 1, 1, 3, 1 and gates Hold, Every, Every, Hold, First, Every, Hold,
+Ratchet ×2; stages 1 and 5 are accented and stage 7 slides, so it plays a
+recognisable 12-pulse line right away.
 
 ## 7. Engine requirements
 
 1. Node data, data hand-over and live values exist (Step Sequencer section 7).
-   Live values: `stage`, `pulse`, `sounding`, `trail` (Random/Brownian).
-2. Shared sequencer helpers in `patch/common/dsp/` (`SeqClock.h`,
-   `SeqNotes.h`), as proposed in the Cartesian Seq spec, plus a small
-   **phrase replayer** (re-run a hash-driven walk from a phrase start in one
-   call) that the Gate Sequencer's conditions also use.
-3. An exponential glide (one-pole toward target, time constant from Slide
-   Time) — `patch/common/dsp/Smoothing.h` likely has it.
+   Live values: `stage`, `pulse`, `sounding`; live array `trail` (the last
+   eight stages entered, newest first).
+2. Shared sequencer helpers (`SeqClock.h` for pulses, `SeqNotes.h`'s
+   `SeqVoice` for notes). The **phrase replayer** lives in the module's DSP
+   (`StageSequencerDsp::locate`): a cached walk position that steps on, and
+   restarts from the phrase start when the position moves backwards or into
+   another phrase.
+3. The glide is a one-pole in the module (coefficient `exp(−ln 100 / (Slide
+   Time · fs))`, 99 % after Slide Time).
 
 ## 8. Tests
 
