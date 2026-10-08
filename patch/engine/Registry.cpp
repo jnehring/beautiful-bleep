@@ -11,6 +11,7 @@ const Registry& Registry::get() {
 Registry::Registry() {
     registerOscillatorModule(*this);
     registerFunctionModule(*this);
+    registerLfoModule(*this);
     registerRandomModule(*this);
     registerAdsrModule(*this);
     registerFilterModule(*this);

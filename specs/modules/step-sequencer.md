@@ -147,10 +147,12 @@ The scale table lives in `patch/common/` so the Utility quantizer and Random's
 
 Two tools, one for writing patterns and one for playing them:
 
-**Randomize** (a button in the module view) rewrites the pattern. A small
-popover next to it holds its options, remembered per module:
+**Randomize** rewrites the pattern, one lane at a time or all at once: each
+lane has a dice button (⚄) next to its name (Gate: new gates and ties; Pitch:
+new pitches; Vel: new velocities), and **Randomize all** in the toolbar
+rewrites all three. A panel opened with **▾** holds the options, remembered
+per module:
 
-- **Lanes:** Gate, Pitch, Velocity (each on/off; all on by default).
 - **Density:** 0–100 %, the share of steps that get a gate (default 60 %); about one in eight gated steps becomes a Tie.
 - **Pitch range:** 1–3 octaves above the root (default 1); pitches are drawn from the current scale.
 - **Velocity range:** low and high bounds (default 60–100 %).
@@ -173,10 +175,10 @@ editor above them:
 
 ```
  ┌───────────────────────────────────────────────────────────────┐
- │  [Randomize ▾]   [◀ shift]  [shift ▶]   [Clear]               │
- │ Gate  ■ ■ □ ━ ■ □ ■ ■ │ ■ □ ■ ■ ━ ■ □ ■                      │
- │ Pitch ▁ ▃ ▁ ▅ ▇ ▁ ▃ ▂ │ …       (note names on hover/drag)   │
- │ Vel   ▇ ▅ ▇ ▃ ▇ ▅ ▆ ▇ │ …                                    │
+ │  [Randomize all] [▾]  [◀ shift]  [shift ▶]   [Clear]          │
+ │ Gate⚄ ■ ■ □ ━ ■ □ ■ ■ │ ■ □ ■ ■ ━ ■ □ ■                      │
+ │ Pitch⚄▁ ▃ ▁ ▅ ▇ ▁ ▃ ▂ │ …       (note names on hover/drag)   │
+ │ Vel⚄  ▇ ▅ ▇ ▃ ▇ ▅ ▆ ▇ │ …                                    │
  │       1       ▲       8                                       │
  └───────────────────────────────────────────────────────────────┘
 ```
@@ -202,8 +204,7 @@ randomizer options in the board document:
   "params": { "length": 0.4839, "scale": 0.0625, … },
   "data": {
     "steps": [ { "g": 1, "p": 0, "v": 100 }, … 32 entries … ],
-    "randomize": { "lanes": ["gate", "pitch", "velocity"], "density": 0.6,
-                   "octaves": 1, "velocity": [0.6, 1.0] }
+    "randomize": { "density": 0.6, "octaves": 1, "velocity": [0.6, 1.0] }
   }
 }
 ```

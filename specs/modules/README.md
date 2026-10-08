@@ -21,6 +21,7 @@ section 21): no hardware names in the files, the UI or the docs.
 | Module | File | Status |
 |---|---|---|
 | Step Sequencer | [step-sequencer.md](step-sequencer.md) | Implemented |
+| LFO | [lfo.md](lfo.md) | Implemented |
 | Attenuverter | [attenuverter.md](attenuverter.md) | Specified |
 | CV Mixer | [cv-mixer.md](cv-mixer.md) | Specified |
 | Audio Mixer | [audio-mixer.md](audio-mixer.md) | Specified |

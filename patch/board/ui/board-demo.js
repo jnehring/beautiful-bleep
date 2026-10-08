@@ -104,6 +104,7 @@
           entry.params[p.id] = { v, e, a: into.length > 0, t: paramText(p, into.length ? e : v) };
         }
       }
+      if (n.type === "lfo") entry.phase = (t * 0.5) % 1;
       if (n.type === "step-sequencer") {
         const len = Math.round(1 + (n.params.length ?? 0.48) * 31);
         entry.step = Math.floor(t * 8) % len;

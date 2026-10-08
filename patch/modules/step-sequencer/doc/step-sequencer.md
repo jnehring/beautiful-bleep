@@ -5,7 +5,7 @@
 The Step Sequencer plays a melody of up to **32 steps**. Each step has a
 **gate** (off, on or tied to the next step), a **pitch** and a **velocity**,
 drawn in three lanes. Pitches snap to a **scale**, so every pattern stays in
-key. **Randomize** writes a new pattern in one click, and the **Variation** knob
+key. **Randomize** buttons write new gates, pitches or velocities in one click, and the **Variation** knob
 adds seeded variation while the pattern plays, without changing it.
 
 Patch *Notes* into a Voice Cell and you have a polyphonic synth playing a
@@ -51,9 +51,11 @@ time.
   them. Drag in the pitch lane to draw a melody; it snaps to the scale (hold
   Shift for single semitones outside it). Double-click a pitch to reset it to
   the root. Drag in the velocity lane to draw accents.
-- **New ideas:** click **Randomize**. The **▾** button sets which lanes it
-  rewrites, how many steps get a gate (*Density*), the pitch range in octaves
-  and the velocity range. Each click is one undo step.
+- **New ideas:** each lane has its own dice button (⚄) next to its name: new
+  gates and ties, new pitches from the scale, or new velocities, leaving the
+  other lanes alone. **Randomize all** rewrites all three. The **▾** button
+  sets how many steps get a gate (*Density*), the pitch range in octaves and
+  the velocity range. Each click is one undo step.
 - **Moving patterns:** ◀ and ▶ rotate the steps; **Clear** turns all gates off.
 - **Evolving lines:** patch a slow Function or Random onto **Variation**. The
   melody wanders off and comes back.

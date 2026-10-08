@@ -4,6 +4,7 @@
 #include "../modules/filter/dsp/FilterDsp.h"
 #include "../modules/oscillator/dsp/OscillatorDsp.h"
 #include "../modules/function/dsp/FunctionDsp.h"
+#include "../modules/lfo/dsp/LfoDsp.h"
 #include "../modules/random/dsp/RandomDsp.h"
 #include "../modules/step-sequencer/dsp/StepSequencerDsp.h"
 #include "../modules/utility/dsp/UtilityDsp.h"
@@ -664,6 +665,125 @@ static void filterAlgorithms() {
     EXPECT(filterGain(FilterType::Flanger, 1000.0f, 1000.0) > 0.95);
 }
 
+// ---- LFO (specs/modules/lfo.md §8) -------------------------------------------
+
+static void lfoBasics() {
+    g_test = "lfo";
+    // Free rate: 2 Hz → a Cycle pulse every 24000 samples, starting at 0.
+    LfoDsp d;
+    d.prepare(48000.0);
+    d.reset();
+    LfoParams p;
+    p.rateHz = 2.0f;
+    LfoTime t;
+    LfoFrame f;
+    std::vector<int> cycles;
+    float lo = 1e9f, hi = -1e9f;
+    for (int i = 0; i < 48000; ++i) {
+        d.tick(p, 0.0f, t, f);
+        if (f.cycle > 0.0f) cycles.push_back(i);
+        lo = std::min(lo, f.out);
+        hi = std::max(hi, f.out);
+    }
+    EXPECT(cycles.size() == 2 && cycles[0] == 0 && std::abs(cycles[1] - 24000) <= 1);
+    EXPECT(lo >= -1.0f && hi <= 1.0f && hi > 0.999f && lo < -0.999f);
+
+    // Wave values at the quarter phases.
+    const double ph[4] = {0.0, 0.25, 0.5, 0.75};
+    const float sine[4] = {0, 1, 0, -1}, tri[4] = {0, 1, 0, -1}, saw[4] = {-1, -0.5f, 0, 0.5f};
+    for (int k = 0; k < 4; ++k) {
+        EXPECT_NEAR(LfoDsp::value(LfoSine, ph[k], 0.5f, 1, 0), sine[k], 1e-6);
+        EXPECT_NEAR(LfoDsp::value(LfoTriangle, ph[k], 0.5f, 1, 0), tri[k], 1e-6);
+        EXPECT_NEAR(LfoDsp::value(LfoSawUp, ph[k], 0.5f, 1, 0), saw[k], 1e-6);
+        EXPECT_NEAR(LfoDsp::value(LfoSawDown, ph[k], 0.5f, 1, 0), -saw[k], 1e-6);
+    }
+    EXPECT(LfoDsp::value(LfoSquare, 0.2, 0.25f, 1, 0) == 1.0f && LfoDsp::value(LfoSquare, 0.3, 0.25f, 1, 0) == -1.0f);
+
+    // Random: per cycle, seeded; Smooth is continuous and meets the next value.
+    EXPECT(LfoDsp::randomAt(1, 5) == LfoDsp::randomAt(1, 5));
+    EXPECT(LfoDsp::randomAt(1, 5) != LfoDsp::randomAt(2, 5));
+    EXPECT(LfoDsp::value(LfoRandomStep, 0.1, 0.5f, 1, 3) == LfoDsp::value(LfoRandomStep, 0.9, 0.5f, 1, 3));
+    EXPECT_NEAR(LfoDsp::value(LfoRandomSmooth, 0.0, 0.5f, 1, 3), LfoDsp::randomAt(1, 3), 1e-6);
+    EXPECT_NEAR(LfoDsp::value(LfoRandomSmooth, 0.999999, 0.5f, 1, 3), LfoDsp::randomAt(1, 4), 1e-4);
+    {
+        LfoDsp r;
+        r.prepare(48000.0);
+        r.reset();
+        LfoParams q;
+        q.wave = LfoRandomSmooth;
+        q.rateHz = 5.0f;
+        float last = 0.0f, maxStep = 0.0f;
+        for (int i = 0; i < 48000; ++i) {
+            r.tick(q, 0.0f, t, f);
+            if (i) maxStep = std::max(maxStep, std::fabs(f.out - last));
+            last = f.out;
+        }
+        EXPECT(maxStep < 0.01f);
+    }
+
+    // Unipolar stays in 0..1.
+    {
+        LfoDsp u;
+        u.prepare(48000.0);
+        u.reset();
+        LfoParams q;
+        q.unipolar = true;
+        q.rateHz = 7.0f;
+        for (int w = 0; w < kLfoWaves; ++w) {
+            q.wave = w;
+            for (int i = 0; i < 9000; ++i) {
+                u.tick(q, 0.0f, t, f);
+                EXPECT(f.out >= 0.0f && f.out <= 1.0f && f.random >= 0.0f && f.random <= 1.0f);
+                if (g_failures) return;
+            }
+        }
+    }
+
+    // Sync: phase = frac(ppq / beats), also after a loop jump.
+    for (int sync = 1; sync < 10; ++sync) {
+        LfoDsp s;
+        s.prepare(48000.0);
+        s.reset();
+        LfoParams q;
+        q.sync = sync;
+        q.wave = LfoSawUp;
+        LfoTime ts;
+        ts.running = true;
+        ts.bpm = 120.0;
+        const double beats = dsp::syncBeats(sync);
+        float first = 0.0f;
+        for (int i = 0; i < 60000; ++i) {
+            const int j = i < 30000 ? i : i - 30000;  // loop jump back to 0
+            ts.ppq = 0.37 + j / 24000.0;
+            ts.started = i == 0;
+            s.tick(q, 0.0f, ts, f);
+            const double expect = std::fmod(ts.ppq / beats, 1.0);
+            EXPECT_NEAR(s.phase(), expect, 1e-9);
+            if (i == 100) first = f.out;
+            if (i == 30100) EXPECT(f.out == first);
+            if (g_failures) return;
+        }
+    }
+
+    // Reset restarts the cycle; Fade ramps from 0 to full.
+    {
+        LfoDsp r;
+        r.prepare(48000.0);
+        r.reset();
+        LfoParams q;
+        q.wave = LfoSquare;
+        q.fade = 0.5f;
+        for (int i = 0; i < 1000; ++i) r.tick(q, 0.0f, t, f);
+        r.tick(q, 1.0f, t, f);
+        EXPECT(f.cycle == 1.0f && r.phase() == 0.0);
+        EXPECT(f.out > 0.0f && f.out < 0.001f);
+        for (int i = 0; i < 12000; ++i) r.tick(q, 0.0f, t, f);
+        EXPECT_NEAR(f.out, 0.5, 0.01);  // a quarter of a second into a half-second fade (square is high)
+        for (int i = 0; i < 12100; ++i) r.tick(q, 0.0f, t, f);
+        EXPECT(std::fabs(f.out) == 1.0f);
+    }
+}
+
 int main() {
     svfBasics();
     filterMapping();
@@ -674,6 +794,7 @@ int main() {
     oscillator();
     adsr();
     roughFilter();
+    lfoBasics();
     filterAlgorithms();
     seqScales();
     seqTransport();

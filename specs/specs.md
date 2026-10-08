@@ -684,6 +684,7 @@ Each module is our own design, built from generic modular concepts. Each module 
 
 | Module | Building blocks | Key ideas |
 |---|---|---|
+| **LFO** | Sine, triangle, saw up/down, square (pulse width), random step and smooth; free or tempo-synced; phase, fade-in, reset | The quickest modulation source, phase-locked to the bars when synced. Every wave on its own output. See `specs/modules/lfo.md`. |
 | **Function** | Rise/fall slope generator, cycle mode, end-of-cycle gate, chaining | One primitive that acts as envelope, LFO, slew or portamento depending on patching. A *spread* control derives several related outputs (rate ratios, phase offsets) from one gesture. |
 | **Random** | Sample & hold random, distribution (spread/bias), smoothing, quantize, looping memory | A single knob between "always new" and "locked loop". Seeded, so renders are reproducible. |
 | **Drift** | Slow chaotic systems (coupled differential equations) | Organic, never-repeating movement over seconds to hours. |
@@ -894,6 +895,7 @@ bleep/
 │   ├── common/                Shared UI and DSP: mod rings, cables, scopes, filters, smoothing
 │   ├── modules/               Board modules (not plugins)
 │   │   ├── function/
+│   │   ├── lfo/
 │   │   ├── random/
 │   │   ├── utility/
 │   │   ├── filter/

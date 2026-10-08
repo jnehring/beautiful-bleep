@@ -688,7 +688,7 @@ void stepSequencer() {
         EXPECT((int)saved["steps"][0]["g"] == 2 && (int)saved["steps"][0]["p"] == 36 && (int)saved["steps"][0]["v"] == 1);
         EXPECT((int)saved["steps"][1]["g"] == 2 && (int)saved["steps"][1]["p"] == -3);
         EXPECT((int)saved["steps"][2]["g"] == 0);  // short arrays are padded with Off
-        EXPECT(saved["randomize"]["lanes"].size() == 3);
+        EXPECT(std::fabs((double)saved["randomize"]["density"] - 0.6) < 1e-9 && !saved["randomize"].hasProperty("lanes"));
         EXPECT(!board::findNode(d, "u")->hasProperty("data"));
         EXPECT(board::parse(d).node("short")->data.find("\"steps\"") != std::string::npos);
     }

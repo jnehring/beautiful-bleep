@@ -36,7 +36,7 @@
     let d = view.node.data;
     if (!d || !Array.isArray(d.steps)) d = view.node.data = { steps: Array.from({ length: STEPS }, freshStep) };
     while (d.steps.length < STEPS) d.steps.push({ g: 0, p: 0, v: 100 });
-    if (!d.randomize) d.randomize = { lanes: ["gate", "pitch", "velocity"], density: 0.6, octaves: 1, velocity: [0.6, 1] };
+    if (!d.randomize) d.randomize = { density: 0.6, octaves: 1, velocity: [0.6, 1] };
     return d;
   }
   /// The note a step plays (without Transpose and Variation), e.g. "E4".
@@ -166,9 +166,10 @@
   }
 
   // ---- Randomize (spec §4.5) ---------------------------------------------
-  function randomize(view) {
+  /// Rewrites the given lanes ("gate", "pitch", "velocity") of all 32 steps.
+  function randomize(view, lanes) {
     edit(view, (d) => {
-      const o = d.randomize, lanes = o.lanes || [];
+      const o = d.randomize;
       const scale = clamp(setting(view, "scale"), 0, SCALES.length - 1);
       const notes = [];
       for (let k = 0; k <= 12 * (o.octaves || 1); k++) if (inScale(scale, k)) notes.push(k);
@@ -190,14 +191,6 @@
       box.appendChild(r);
     };
     const save = () => { view.api.beginGesture(); send(view); };
-    for (const lane of ["gate", "pitch", "velocity"]) {
-      const cb = Object.assign(document.createElement("input"), { type: "checkbox", checked: o.lanes.includes(lane) });
-      cb.addEventListener("change", () => {
-        o.lanes = ["gate", "pitch", "velocity"].filter((l) => (l === lane ? cb.checked : o.lanes.includes(l)));
-        save();
-      });
-      row(lane[0].toUpperCase() + lane.slice(1), cb);
-    }
     const number = (value, min, max, set) => {
       const n = Object.assign(document.createElement("input"), { type: "number", min, max, value, className: "bv-number" });
       n.addEventListener("change", () => { set(clamp(parseFloat(n.value) || 0, min, max)); save(); options(view, box); });
@@ -221,9 +214,12 @@
     .seq-opt { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .seq-opt .bv-number { width: 56px; }
     .seq-body { display: flex; }
-    .seq-labels { position: relative; width: 34px; flex: none; height: ${H}px; font-size: 9px; color: var(--muted);
+    .seq-labels { position: relative; width: 40px; flex: none; height: ${H}px; font-size: 9px; color: var(--muted);
       text-transform: uppercase; letter-spacing: .06em; }
-    .seq-labels span { position: absolute; left: 0; }
+    .seq-labels .seq-lane { position: absolute; left: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+    .seq-labels button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 5px;
+      padding: 0 3px; font-size: 16px; line-height: 16px; cursor: pointer; }
+    .seq-labels button:hover { border-color: var(--accent); }
     .seq-scroll { overflow-x: auto; flex: 1; min-width: 0; }
     .seq-scroll canvas { display: block; touch-action: none; cursor: crosshair; }`;
 
@@ -232,7 +228,7 @@
     width: 600,
     template: `<div class="bv-panel seq-panel">
       <div class="seq-tools">
-        <button class="seq-rand" title="Write a new pattern (one undo step)">Randomize</button>
+        <button class="seq-rand" title="New gates, pitches and velocities (one undo step)">Randomize all</button>
         <button class="seq-more" title="Randomize options">▾</button>
         <button class="seq-left" title="Rotate the steps left">◀</button>
         <button class="seq-right" title="Rotate the steps right">▶</button>
@@ -241,7 +237,11 @@
       </div>
       <div class="seq-options" hidden></div>
       <div class="seq-body">
-        <div class="seq-labels"><span style="top:${GATE[0] + 4}px">Gate</span><span style="top:${PITCH[0] + 40}px">Pitch</span><span style="top:${VEL[0] + 16}px">Vel</span></div>
+        <div class="seq-labels">
+          <div class="seq-lane" style="top:${GATE[0] + 2}px">Gate <button data-lane="gate" title="New gates and ties">⚄</button></div>
+          <div class="seq-lane" style="top:${PITCH[0] + 30}px">Pitch <button data-lane="pitch" title="New pitches from the scale">⚄</button></div>
+          <div class="seq-lane" style="top:${VEL[0] + 6}px">Vel <button data-lane="velocity" title="New velocities">⚄</button></div>
+        </div>
         <div class="seq-scroll"><canvas></canvas></div>
       </div>
     </div>`,
@@ -256,7 +256,9 @@
       view.seq = { canvas, length: el.querySelector(".seq-len"), state: null };
       attach(view, canvas);
       const box = el.querySelector(".seq-options"), more = el.querySelector(".seq-more");
-      el.querySelector(".seq-rand").addEventListener("click", () => randomize(view));
+      el.querySelector(".seq-rand").addEventListener("click", () => randomize(view, ["gate", "pitch", "velocity"]));
+      for (const b of el.querySelectorAll(".seq-labels button"))
+        b.addEventListener("click", () => randomize(view, [b.dataset.lane]));
       more.addEventListener("click", () => {
         box.hidden = !box.hidden;
         more.classList.toggle("on", !box.hidden);

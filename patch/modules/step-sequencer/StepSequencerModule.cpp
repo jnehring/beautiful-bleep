@@ -52,14 +52,6 @@ std::string sanitiseData(const std::string& json) {
     // Randomizer options (spec §4.5), kept for the view.
     const juce::var r = in["randomize"];
     auto* ro = new juce::DynamicObject();
-    juce::Array<juce::var> lanes;
-    if (const auto* a = r["lanes"].getArray()) {
-        for (const char* lane : {"gate", "pitch", "velocity"})
-            if (a->contains(juce::var(lane))) lanes.add(lane);
-    } else {
-        lanes = {"gate", "pitch", "velocity"};
-    }
-    ro->setProperty("lanes", lanes);
     auto number = [&](const char* key, double def, double lo, double hi) {
         const auto v = r.getProperty(key, def);
         return juce::jlimit(lo, hi, v.isDouble() || v.isInt() || v.isInt64() ? (double)v : def);

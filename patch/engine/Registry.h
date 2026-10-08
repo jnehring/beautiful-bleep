@@ -49,6 +49,7 @@ private:
 
 // Registration functions, one per source file (called by Registry()).
 void registerFunctionModule(Registry&);
+void registerLfoModule(Registry&);
 void registerRandomModule(Registry&);
 void registerUtilityModule(Registry&);
 void registerFilterModule(Registry&);

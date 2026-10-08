@@ -263,6 +263,175 @@
     ]
   },
   {
+    "type": "lfo",
+    "name": "LFO",
+    "category": "Modulation",
+    "colour": "#7dd3fc",
+    "description": "Low-frequency oscillator: classic waves, free or locked to the bars, with a fade-in.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "float",
+        "default": 0.540691077709198,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 50.0
+      },
+      {
+        "id": "phase",
+        "name": "Phase",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 360.0
+      },
+      {
+        "id": "pw",
+        "name": "Pulse Width",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 0.949999988079071
+      },
+      {
+        "id": "fade",
+        "name": "Fade",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 10.0
+      },
+      {
+        "id": "wave",
+        "name": "Wave",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 7,
+        "modulatable": false,
+        "choices": [
+          "Sine",
+          "Triangle",
+          "Saw Up",
+          "Saw Down",
+          "Square",
+          "Random Step",
+          "Random Smooth"
+        ],
+        "min": 0.0,
+        "max": 6.0
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 10,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0
+      },
+      {
+        "id": "polarity",
+        "name": "Polarity",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Bipolar",
+          "Unipolar"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "sine",
+        "name": "Sine",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "triangle",
+        "name": "Triangle",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "saw",
+        "name": "Saw",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "square",
+        "name": "Square",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "random",
+        "name": "Random",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cycle",
+        "name": "Cycle",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "random",
     "name": "Random",
     "category": "Modulation",
