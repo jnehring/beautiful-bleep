@@ -1,0 +1,10 @@
+{
+  "name": "Dual Osc",
+  "slug": "dual-osc",
+  "tagline": "Two analog cores with B → A FM, sync and a stereo wavefolder: a complete complex-oscillator voice.",
+  "colour": "#2dd4bf",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/dual-osc.md"
+}

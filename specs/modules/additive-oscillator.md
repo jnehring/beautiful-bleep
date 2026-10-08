@@ -32,7 +32,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Jack | Type | What it carries |
 |---|---|---|
 | Out L, Out R | `audio` | All partials; spread across the stereo field by *Width* (4.7). |
-| Odd | `audio` | Odd partials only (1, 3, 5 …), mono. |
+| Odd | `audio` | Odd partials only (1, 3, 5 …, the fundamental included), mono. |
 | Even | `audio` | Even partials only (2, 4, 6 …), mono. *Odd* + *Even* = mono sum of *Out*. |
 | Fundamental | `audio` | Partial 1 alone, at its level: a clean sine for sub-bass or sync. |
 
@@ -56,7 +56,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Chorus | 0–50 ct | 0 | Seeded per-partial detune depth (4.4). |
 | Chorus Rate | 0.01–5 Hz | 0.3 Hz | Speed at which each partial's detune wanders. |
 | Width | 0–100 % | 0 % | Stereo spread of the partials. |
-| Decay | 10 ms – 20 s, ∞ | ∞ | Decay time of the fundamental after a trigger; ∞ = sustained. |
+| Decay | 10 ms – 20 s | 20 s (= ∞) | Decay time of the fundamental after a trigger; the maximum (20 s) means sustained. |
 | Damp | 0–100 % | 50 % | How much faster high partials decay than low ones. |
 
 **Settings**
@@ -95,15 +95,18 @@ For partial `n` the level is the product of:
 Each partial's level is smoothed with a 2 ms one-pole, so every knob above
 can be modulated at audio-ish rates without zipper noise.
 
-**Normalise On** divides by `√(Σ an²)` (smoothed over 20 ms) and scales to
-an RMS of 0.3, so *Partials*, *Tilt* and *Comb* change the colour, not the
-loudness. Off keeps the raw sum (a saw at 64 partials peaks near ±1.1; the
-output is soft-clipped at ±1.5 only as a safety net).
+**Normalise On** divides by `√(Σ an²)` of the shape levels (steps 1–5,
+before the decay and the band limit; smoothed over 20 ms) and scales to an
+RMS of 0.3, so *Partials*, *Tilt* and *Comb* change the colour, not the
+loudness, and the decay still decays. Off keeps the raw sum scaled by 2/π (a
+saw at 64 partials spans about ±1.18); it is linear up to ±1.2 and
+soft-clipped into ±1.5 only as a safety net.
 
 ### 4.3 Frequencies: Stretch and Shift
 
-- **Stretch** `s`: `rn = n × (1 + B n²)^½` with `B = 0.0005 × s × |s|` for
-  `s ≥ 0` (string-like stiffness: upper partials go sharp), and
+- **Stretch** `s`: `rn = n × ((1 + B n²) / (1 + B))^½` with
+  `B = 0.0005 × s × |s|` for `s ≥ 0` (string-like stiffness: upper partials go
+  sharp; `partials::stretchRatio`), and
   `rn = n^(1 + 0.3 s)` for `s < 0` (compressed, darker, bell-like when
   extreme). The fundamental always stays at `f0`, so the note stays in tune.
 - **Shift** adds `Shift × f0` Hz to every partial: the series becomes
@@ -116,8 +119,10 @@ Partials whose final frequency exceeds the band limit are dropped (4.2 step
 ### 4.4 Chorus
 
 Each partial gets its own detune `dn(t)` in cents: a smoothed random walk
-from `hash(Seed, n, voice index)` at *Chorus Rate*, scaled by *Chorus*.
-The fundamental gets half the depth. The result is the thick, shimmering
+(`PartialBank`'s seeded `OscDrift` per partial) at *Chorus Rate*, scaled by
+*Chorus*. The first partial of each of the three banks (4.8) — the
+fundamental, partials 2 and 3 — gets half the depth. The engine has no voice
+index yet, so voices of a Voice Cell share the walks. The result is the thick, shimmering
 ensemble sound of many slightly detuned sines, with no beating pattern that
 repeats. The walks reset to their seeded start at transport start, so
 renders repeat.
@@ -140,25 +145,27 @@ back to 1 from where it is), no click.
 
 ### 4.7 Stereo
 
-With *Width* `w`, partial `n` is panned with constant power to
-`±w × (0.3 + 0.7 × min(n / 16, 1))`, alternating sides (odd left, even
-right). The fundamental stays centred. The mono sum equals the *Width* 0 %
-sound within ±1.5 dB.
+With *Width* `w`, the odd partials (3, 5 …) are panned with constant power
+to `−0.7 × w` and the even partials to `+0.7 × w`; the fundamental stays
+centred. (One pan per group, because the odd and even partials run in their
+own banks, 4.8.) The mono sum equals the *Width* 0 % sound within ±1.5 dB.
 
 ### 4.8 DSP and CPU
 
-- Phase accumulators per partial (float32 per lane, re-wrapped each sample),
-  sine by a 5th-order odd polynomial on the wrapped phase (error < −100 dB),
-  processed 8 partials at a time with SIMD.
+- Three `dsp::PartialBank`s (`Partials.h`): the fundamental, the odd
+  partials 3 … 63 and the even partials 2 … 64. One pass gives *Fundamental*,
+  *Odd* (fundamental + odd bank), *Even* and the stereo pair.
+- Phase accumulators per partial (float, re-wrapped each sample), sine by
+  `partials::sin2pi` (odd polynomial, about −120 dB).
 - Per sample: the fundamental increment from *Pitch*; per sub-block (32
-  samples): ratios, shift, chorus and band-limit are recomputed, and each
-  partial's increment is `inc0 × rn + shift/fs`. Audio-rate *Pitch* FM is
-  therefore exact for harmonic spectra, and the ratio-dependent parts follow
-  within one sub-block.
+  samples, and at once on a trigger): levels, ratios, shift, chorus and band
+  limit are recomputed (the spectral knobs are read every 8 samples). Audio-
+  rate *Pitch* FM is therefore exact for harmonic spectra, and the
+  ratio-dependent parts follow within one sub-block.
 - Skipped partials cost nothing; at C6 and above, few partials remain.
-- Target: 64 partials at C2 ≤ 2.5 % of one core per voice at 48 kHz;
-  16 partials ≤ 0.8 %. The view warns when a Voice Cell has more than 8
-  voices at 64 partials.
+- Measured at 48 kHz (one core): 64 partials at C2 0.7 %, 16 partials 0.4 %
+  (targets 2.5 % and 0.8 %). A Voice Cell warning for many voices is left
+  to the board.
 
 ### 4.9 Transport
 
@@ -178,13 +185,15 @@ reset to their seeded state.
 ```
 
 - **Spectrum:** the final level of each partial, at its real frequency
-  (log x-axis), drawn from the modulated values, with the band limit marked.
-  Dropped partials are hidden.
+  (log x-axis), from the live arrays `levels` and `hz` (as of the last
+  control update), with the band limit (live value `limit`) marked. Dropped
+  partials are hidden.
 - **Draw mode:** with *Base* = *Drawn*, drag across the bars to paint the
   64 levels (Shift: fine, relative). Double-click a bar: reset to 1/n. Menu:
   *Copy from Saw / Square / Flat*, *Smooth*, *Randomize* (UI random). A drag
-  is one undo step (`beginGesture`).
-- Width 600 px.
+  is one undo step (`beginGesture`). The editor shows only with *Base* =
+  *Drawn*.
+- Width 600 px (`ui/additive-osc.js`).
 
 ## 6. Saved state
 
@@ -209,15 +218,15 @@ edited.
    and the Swarm.
 2. **Node data** (exists): `sanitiseData` pads/clamps `drawn`; `setData`
    hands the 64 levels to the audio thread like the Step Sequencer's steps.
-3. **Live values:** the final partial levels (64 floats, decimated to 30 Hz)
-   for the spectrum view.
-4. Inside Voice Cells: per voice; the chorus differs per voice via the voice
-   index.
+3. **Live arrays:** the final partial levels and frequencies (64 floats each,
+   refreshed every chunk, read by the view at its own rate).
+4. Inside Voice Cells: per voice. The chorus should differ per voice via a
+   voice index, which `ProcessContext` doesn't provide yet.
 
 ## 8. Tests
 
 - Pitch: partial 1 at 261.63 Hz ±0.1 cent; partial n at n × f0 when Stretch and Shift are 0.
-- Band limit: for f0 = 2 kHz at 48 kHz, no energy above 0.45 × fs; sweeping f0 across a partial's cutoff never jumps more than 0.01 between samples.
+- Band limit: for f0 = 2 kHz at 48 kHz, no energy above 0.45 × fs and full level below 0.40 × fs; sweeping f0 from 2 to 4 kHz across the cutoffs stays click-free.
 - Base Saw, 64 partials, Aligned, Normalise Off, at a low pitch matches a reference band-limited saw to −50 dB.
 - Odd/Even −1 removes even partials (< −90 dB); +1 removes odd partials above the fundamental; *Odd* + *Even* outputs sum to the mono *Out*.
 - Comb 100 %: the partial at each notch centre is below −90 dB; moving *Comb Phase* by 1/Spacing shifts the notches by one partial.

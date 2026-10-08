@@ -38,7 +38,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Mix | `audio` | `(1 − Balance)·A + Balance·B`, before the folder. |
 | Out L, Out R | `audio` | The folded mix. With *Width* 0 % both carry the same signal (4.5). |
 | Ring | `audio` | `A × B` (sine cores), a clean ring modulation. |
-| Sub | `audio` | Square one octave below A (flips each A cycle, also after sync resets). |
+| Sub | `audio` | Square one octave below A: flips on each forward wrap of A and on each sync reset with *Sync* ≥ 75 % (band-limited at the exact flip time). |
 
 ## 3. Controls
 
@@ -81,9 +81,11 @@ crossfades between neighbours, as in `OscillatorDsp.h`.
 - `fA0 = 261.63 Hz × 2^(OctA + TuneA/12 + FineA/1200 + Pitch + driftA)`.
 - Saw and pulse use polyBLEP; the triangle uses polyBLAMP at its corners, so
   hard-synced triangles stay clean.
-- *Drift* is a 0.2 Hz smoothed random walk per core from `hash(Seed, core,
-  voice index)` (`Random.h`), so two Voice Cell voices drift apart, and
-  renders repeat.
+- *Drift* is a 0.2 Hz smoothed random walk per core (`dsp::OscDrift`, seeded
+  by `Seed` and the core), so renders repeat. The engine gives modules no
+  voice index yet, so voices of a Voice Cell drift identically (section 7.3).
+- The cores are `dsp::SyncOsc` (`OscCore.h`); *Pitch*, *FM* and *Fold CV* are
+  interpolated linearly across the oversampled sub-samples.
 
 ### 4.2 B → A frequency modulation
 
@@ -101,35 +103,49 @@ FM Depth is smoothed over 5 ms; the modulator itself is not smoothed.
 
 ### 4.3 Sync
 
-On each B phase wrap (B completing a cycle) at sub-sample position `t`:
+On each B phase wrap (B completing a cycle) at sub-sample position `t`
+(`SyncOsc` semantics):
 
-- **Hard part:** A's phase is pulled toward 0 by `Sync` (100 % = exact reset).
-- **Soft part (0–50 %):** below 50 % the reset only happens when A is in the
-  second half of its cycle, and A's direction reverses instead of resetting
-  (a "reversing" soft sync), giving gentler, vocal timbres.
+- **0–50 %, reversing soft sync:** if A is in the last `Sync` of its cycle,
+  its direction reverses instead of resetting (no jump in value, only in
+  slope), giving gentler, vocal timbres.
+- **50–100 %, hard part** `h = 2·Sync − 1`: A's phase is pulled toward 0
+  (`phase ← phase·(1 − h)`) and runs forward again, except inside a reversal
+  window that shrinks from half the cycle (50 %) to nothing (100 %). 100 % is
+  an exact reset.
 - The reset happens at the exact fractional position `t`; the discontinuity
-  in each waveform is corrected with a BLEP (saw, pulse) or BLAMP (triangle)
-  scaled by the jump size, so sync sweeps don't alias.
+  in each waveform is corrected with a polyBLEP (saw, pulse, sub) or
+  polyBLAMP (triangle) scaled by the jump size.
 
-The external *Sync* input resets both phases at the trigger's sample offset.
+The external *Sync* input resets both phases (amount 100 %), applied one
+oversampled sample after the edge's sample.
 
 ### 4.4 Folder
 
-`x = Mix × (1 + 11 × Fold) + Symmetry + FoldCV`, then a 4-stage folder:
-`y = sin(π/2 · x)` blended with a triangle fold (reflection at ±1, repeated)
-for the stages after the first, normalised to ±1. Folding is evaluated with
-first-order antiderivative anti-aliasing (ADAA) and the whole cross-mod
-section (both cores, FM, sync, folder) runs at the *Quality* oversampling
-factor with a polyphase half-band decimator. *A*, *B*, *Mix*, *Ring* and
-*Sub* are taken from the same oversampled stream after decimation, so all
-outputs stay phase-aligned. A 5 Hz DC blocker follows the folder (Symmetry
-adds DC).
+`x = Mix × (1 + 11 × Fold) + FoldCV` into `dsp::Folder` (`Folder.h`) with
+gain 1, bias *Symmetry* (and half of it before stage 2), up to 4 stages:
+
+- Stage 1 morphs from a hard fold (reflection at ±1: the identity within ±1)
+  at *Fold* 0 to a soft fold `sin(π/2 · x)` at *Fold* ≥ 25 %, so *Fold* 0
+  passes the mix unchanged.
+- Stages 2–4 (a 50/50 blend of soft and triangle fold) come in one after the
+  other: tap = `1 + 3 × Fold`, fractional taps crossfade neighbours.
+
+Every stage uses first-order antiderivative anti-aliasing (ADAA, half an
+oversampled sample of delay) and the whole cross-mod section (both cores,
+FM, sync, folder) runs at the *Quality* oversampling factor (`Oversampler.h`
+half-band FIR decimators). *A*, *B*, *Mix*, *Ring* and *Sub* are taken from
+the same oversampled stream after decimation, so all outputs stay
+phase-aligned. A 5 Hz DC blocker follows the folder (Symmetry adds DC). The
+band-limited folds overshoot a little: *Out* stays within about ±1.25.
 
 ### 4.5 Stereo
 
 With *Width* > 0, *Out L* and *Out R* fold two slightly different mixes:
 L uses `Balance − Width/4`, R `Balance + Width/4`, and R's symmetry is
-mirrored (`−Symmetry`). The result is a wide image that collapses cleanly to
+`Symmetry × (1 − 2 × Width)` (mirrored at 100 %, so 0 % stays identical).
+When *Width* turns up from 0, R's folder, decimator and DC blocker start
+from L's state, so there is no click. The result is a wide image that collapses cleanly to
 mono (the sum keeps the fundamental in phase).
 
 ### 4.6 Edge cases and transport
@@ -142,9 +158,12 @@ mono (the sum keeps the fundamental in phase).
 
 ### 4.7 CPU
 
-Two cores + folder at 2× ≈ 4× the single Oscillator; at 4× ≈ 7×. Target per
-voice at 48 kHz: ≤ 1.5 % (Normal), ≤ 3 % (High) of one core. Unpatched
-outputs aren't decimated.
+Measured at 48 kHz (one core, Apple silicon) with only *Out L* patched:
+1.4 % at the defaults, 2.6 % (Normal) and 4.5 % (High) with FM, sync and
+folding active; with all seven outputs patched 5.3 % / 12.4 %. Most of it is
+the decimators (`Oversampler.h` computes every tap, including the half-band
+zeros and the discarded phase); a polyphase decimator there would roughly
+halve these figures. Unpatched outputs aren't decimated.
 
 ## 5. Module view
 
@@ -161,7 +180,10 @@ outputs aren't decimated.
   sync and FM are visible.
 - **Fold curve:** the transfer function at the current Fold and Symmetry,
   with a dot tracing the input level.
-- Two rows, A above B, so the pair reads like two oscillators. Width 560 px.
+- Knob groups *Osc A*, *Osc B*, *Cross* and *Folder*, so the pair reads like
+  two oscillators; the scope (live arrays `scopeA/B/Out`, 128 points) and the
+  fold curve (computed in the view, dot from the live value `foldIn`) sit
+  below them. Width 560 px (`ui/dual-osc.js`).
 
 ## 6. Saved state
 
@@ -175,26 +197,25 @@ Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-1. **Shared DSP** in `patch/common/dsp/`: `OscCore.h` (phase, morph,
-   polyBLEP/BLAMP, extracted from `OscillatorDsp.h` as proposed in
-   chord-oscillator.md; the Dual Osc adds fractional-offset BLEP insertion for
-   sync), `Oversampler.h` and `Folder.h` (ADAA fold, wavefolder.md). The Dual
-   Osc's folder is a fixed 4-stage use of the Folder module's code; the Folder
-   module itself has more stages, taps and its own oscillator.
+1. **Shared DSP** in `patch/common/dsp/`: `OscCore.h` (`SyncOsc`: phase,
+   polyBLEP/BLAMP at every discontinuity including sync; `OscCore::morph`;
+   `OscDrift`), `Oversampler.h` and `Folder.h` (ADAA fold, wavefolder.md).
+   The Dual Osc's folder is a fixed 4-stage use of the Folder module's code.
 2. **Sub-sample trigger offsets** for the external *Sync* input (already part
    of the `trigger` type, `specs.md` section 7.1).
-3. **Inside Voice Cells:** runs per voice; *Drift* differs per voice through
-   the voice index.
+3. **Inside Voice Cells:** runs per voice. *Drift* should differ per voice
+   through a voice index, which `ProcessContext` doesn't provide yet; until
+   then all voices drift alike.
 
 ## 8. Tests
 
 - Tuning: A at 0 V plays 261.63 Hz ±0.1 cent; B at *Octave B* −1 plays 130.81 Hz; *B Track* off ignores *Pitch* for B.
 - Linear FM: with B at A's frequency and FM Depth 50 %, the spectrum's fundamental stays at fA0 (through-zero holds the pitch); exponential FM raises the mean pitch.
-- Hard sync: A's period equals B's period at *Sync* 100 % for any A pitch; aliasing during a sync sweep (A C4→C7, B at C3) stays below −70 dB (Normal) / −85 dB (High).
-- Folder: *Fold* 0 % and *Symmetry* 0 make *Out* equal *Mix* within 1e-5 (after the decimator's delay); output stays within ±1.05; DC after the blocker < 1e-3.
+- Hard sync: A's period equals B's period at *Sync* 100 % for any A pitch; aliasing of a synced saw (A at C5, C6.4, C7; B at C3) stays below −55 dB (Normal) / −75 dB (High) under 20 kHz (most of it sits above 15 kHz).
+- Folder: *Fold* 0 % and *Symmetry* 0 make *Out* equal the DC-blocked *Mix* within 0.015 (the ADAA's half oversampled sample); output stays within ±1.3; DC after the blocker < 1e-3.
 - Stereo: *Width* 0 % gives L = R exactly; L + R at 100 % keeps the fundamental within 3 dB of mono.
-- Outputs are phase-aligned: a sync reset appears on A, Mix and Out at the same sample.
-- Same Seed → identical renders including Drift; different voice indices drift differently.
+- Outputs are phase-aligned (the transparency test above); the external *Sync* input lines two differently started renders up exactly.
+- Same Seed → identical renders including Drift; another Seed differs.
 - Saved params round-trip; demo types file includes the module.
 
 ## 9. Later

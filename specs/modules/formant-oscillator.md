@@ -29,7 +29,7 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Jack | Type | What it carries |
 |---|---|---|
-| Out L, Out R | `audio` | Square and formant mixed by *Body*. R uses the second formant (4.5); with *Spread* 0 L = R. |
+| Out L, Out R | `audio` | Square (at half level) and formant mixed by *Body*. R uses the second formant (4.5); with *Spread* 0 L = R. |
 | Formant | `audio` | The burst train alone (mono, first formant). |
 | Square | `audio` | A band-limited square at the fundamental, in phase with the bursts. |
 | Sub | `audio` | Square one octave below. |
@@ -65,8 +65,10 @@ Every knob is also an input (`specs.md` section 7.3).
 
 `f0 = 261.63 Hz × 2^(Octave + Coarse/12 + Fine/1200 + Pitch)`. A double
 precision phase `φ ∈ [0, 1)` runs at `f0`. *Square* is a polyBLEP square from
-φ, *Sub* flips at every wrap. A rising edge at *Sync* resets φ at its sample
-offset (with BLEP correction on *Square* and *Sub*).
+φ, *Sub* flips at every wrap. A rising edge at *Sync* resets φ (and the
+formant phase by the *Reset* rule) at its sample; the old cycle crossfades
+into the restarted one over 0.25 ms, so square, sub and a burst cut mid-way
+never click.
 
 ### 4.2 The formant
 
@@ -78,8 +80,8 @@ The formant frequency:
   fundamental). The formant tracks the note: same timbre on every key.
 - *Fixed:* the same with 261.63 Hz in place of `f0`: the formant stays put while the pitch moves, like a vowel sung on different notes.
 
-`Formant CV` adds octaves to |F|; *Formant FM* multiplies:
-`ff × (1 + 4 × FMDepth × fm)`.
+`Formant CV` scales by `2^CV` (adds octaves to |F|, and scales smoothly near
+zero); *Formant FM* multiplies: `ff × (1 + 4 × FMDepth × fm)` (through zero).
 
 Each fundamental cycle produces one burst:
 
@@ -96,8 +98,14 @@ Each fundamental cycle produces one burst:
   Shorter bursts contain fewer formant cycles: a wider peak and more
   brightness.
 
-The formant output is normalised by the window's RMS so *Narrow* doesn't
-change the loudness much (±2 dB over its range).
+`dsp::FormantOsc` normalises the burst by the window's RMS (gain `g`, capped
+at 4). The module scales it by `0.8 / √max(g, 1)`, so narrow bursts don't
+peak far above 1: the peak stays ≤ 1.6 and the loudness falls by at most
+about 6 dB from the widest to the narrowest window. *Body* mixes
+`0.5 × Square` and the burst.
+
+*Roll* and *Narrow* glide over 2 ms (one-pole), so jumping them (e.g. a fast
+square LFO) doesn't click.
 
 ### 4.3 Reset
 
@@ -131,8 +139,10 @@ give width; larger values put two formant peaks, one in each ear. *Formant*
   so it's still click-free.
 - When *Narrow* is near 100 % the window approaches an impulse of 5 % of
   the cycle; at high pitches that window has energy above Nyquist. The
-  oscillator therefore limits `L ≥ 4 / (f0 period in samples)` (at least four
-  samples per window) and fades the formant down when `|ff| > 0.4 × fs`.
+  module therefore limits *Narrow* so the window stays at least 12 samples
+  long at the burst generator's rate (4 samples aliased at −21 dB at C6, 8 at
+  −44 dB, 12 meets −60 dB), and `FormantOsc` fades the formant down when
+  `|ff| > 0.4 × fs`.
 - *High* quality runs the burst generator at 2× with a half-band decimator,
   for bright patches above C6.
 
@@ -146,10 +156,11 @@ give width; larger values put two formant peaks, one in each ear. *Formant*
 
 ### 4.8 CPU
 
-One phase, one or two formant sines (sine table, `SineTable.h`) and one
-`pow` per window change (the window is computed from a 1024-point table of
-`sin²` and a fast power approximation). Target ≤ 0.6 % per voice at 48 kHz
-(Normal), about 2× the plain Oscillator.
+One phase, one or two formant sines and one `pow` per sample (the window is
+read from `dsp::FormantOsc`'s 1024-point `sin²` table). Measured at 48 kHz
+(one core): 0.36 % Normal (target ≤ 0.6 %), 2.9 % High with all five outputs
+patched: the High cost is the `Oversampler.h` decimators, one per patched
+output.
 
 ## 5. Module view
 
@@ -165,10 +176,12 @@ One phase, one or two formant sines (sine table, `SineTable.h`) and one
 ```
 
 - **Cycle view:** one fundamental cycle with the window outline, the burst
-  inside it and the square behind it, drawn from the modulated values.
-- **Spectrum:** the first 64 harmonics as bars, with a marker at the formant
-  frequency (and the second formant when *Spread* ≠ 0).
-- Width 520 px.
+  inside it and the square behind it, computed in the view from the
+  modulated values and the live values `f0`, `ff`, `ff2` (Hz).
+- **Spectrum:** the first 64 harmonics of that cycle (a DFT in the view) as
+  bars, with a marker at the formant frequency (and the second formant when
+  *Spread* ≠ 0).
+- Width 520 px (`ui/formant-osc.js`).
 
 ## 6. Saved state
 
@@ -182,9 +195,9 @@ Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-1. `patch/common/dsp/Formant.h`: the burst generator (window table, phase
-   handling), shared with the Macro Osc's *Grain* model.
-2. `SineTable.h` and `Oversampler.h` (shared with the other source modules).
+1. `patch/common/dsp/Formant.h`: the burst generator (`FormantOsc`: window
+   table, phase handling, RMS gain), shared with the Macro Osc's *Grain* model.
+2. `Oversampler.h` (shared with the other source modules).
 3. Nothing else: a standard audio module. Inside Voice Cells it runs per voice.
 
 ## 8. Tests
@@ -192,9 +205,10 @@ Only knob and setting values; no node data.
 - Pitch: fundamental at 0 V = 261.63 Hz ±0.1 cent; *Formant* output with *Reset* 100 % has energy only at multiples of f0 (harmonic), checked by FFT.
 - Formant peak: the strongest harmonic is the one nearest `ff` (±1 harmonic) for F = +1, +2, +3 oct in Ratio mode; in Fixed mode the peak stays within ±1 harmonic of the fixed frequency across pitches C3–C5.
 - Through zero: sweeping *Formant* from −1 to +1 oct produces no sample jump above 0.05 (Cosine start).
-- Click-free: modulating *Roll*, *Narrow* and *Reset* with a fast square produces no discontinuity above 0.1.
+- Click-free: modulating *Roll*, *Narrow* and *Reset* with a fast square raises the largest sample step by less than 0.1 (at C2).
+- Through zero is checked at C2 (largest step < 0.05).
 - Aliasing: at C6 with *Narrow* 90 %, aliased energy stays below −60 dB (Normal) and −80 dB (High).
-- *Spread* 0 gives L = R exactly; *Body* 0 % gives Out = Square.
+- *Spread* 0 gives L = R exactly; *Body* 0 % gives Out = 0.5 × Square; after a *Sync* (Reset 100 %) the output equals a freshly started oscillator.
 - Saved params round-trip; demo types file includes the module.
 
 ## 9. Later

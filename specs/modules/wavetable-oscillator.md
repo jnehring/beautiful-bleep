@@ -44,13 +44,13 @@ Every knob is also an input (`specs.md` section 7.3), including *Bank*.
 | Octave | −4…+4 (stepped) | 0 | Whole octaves. |
 | Coarse | −12…+12 st | 0 | Semitones. |
 | Fine | −100…+100 ct | 0 | Cents. |
-| Bank | stepped: factory banks, then *User* | 1 (Analog) | Which bank plays. Changes crossfade (4.7). |
+| Bank | stepped: *User*, then the 11 factory banks | 1 (Analog) | Which bank plays. Changes crossfade (4.7). |
 | X | 0–100 % | 0 % | Column position on the grid (continuous). |
 | Y | 0–100 % | 0 % | Row position. |
 | Scan | 0–100 % | 0 % | Position along the chosen *Path* (used instead of X/Y when *Path* ≠ Off). |
 | Warp | 0–100 % | 0 % | Amount of the phase warp chosen in *Warp Mode*. |
 | FM Depth | 0–100 % | 0 % | ±4× frequency swing at 100 % (through zero). |
-| Stereo | −50…+50 % | 0 % | X offset of the right channel. |
+| Stereo | −50…+50 % | 0 % | X offset of the right channel (in grid widths; 50 % = half the grid). |
 | Sub Level | 0–100 % | 0 % | Mixes *Sub* into *Out* as well (the *Sub* jack is always full level). |
 
 **Settings**
@@ -89,10 +89,15 @@ identical on every machine, so renders repeat):
 | 8 | Organ | drawbar mixes (8 registrations) | percussion harmonic added |
 | 9 | Digital | bit depth 8 → 2 bits | sample-and-hold steps 64 → 4 per cycle |
 | 10 | Spectra | seeded random spectra (fixed seed) | smoothing |
+| 11 | Bell | church-bell partials compressed → stretched | bright → dark |
 
-The generators live with the bank code; each frame is built from its
-harmonic amplitudes and phases (FFT synthesis), so every factory frame is
-band-limited by construction.
+The generators live in `Wavetable.h` (`factoryBank()`); each frame is built
+from its harmonic amplitudes and phases (FFT synthesis), so every factory
+frame is band-limited by construction. All 11 take about 0.9 s to build
+(FM and Fold most of it), once per process: `prepare()` builds Analog and the
+selected bank, a module-local worker thread builds the rest (joined at
+process exit). Until a bank is ready, selecting it keeps the current one
+playing.
 
 **User bank** (one per module): imported audio, see 4.8.
 
@@ -103,7 +108,8 @@ With *Path* Off: `x = X × 7`, `y = Y × 7` (grid coordinates). With a path,
 consecutive cells: *Rows* (left to right, row by row), *Snake* (rows
 alternating direction, so neighbours are always adjacent), *Columns*,
 *Diagonal* (zig-zag across diagonals), *Spiral* (outside in). X and Y are
-then ignored (dimmed). Position values are smoothed over 1 ms.
+then ignored (hidden in the view). Position values are smoothed over 1 ms.
+Paths work on the current bank's grid (a user bank may be smaller).
 
 *Smooth* blend reads the four surrounding frames and blends bilinearly; *Step*
 plays the nearest frame (a deliberate, stepped "digital" sound; the step
@@ -112,37 +118,48 @@ report `x/7`, `y/7`.
 
 ### 4.4 Warp
 
-`w(φ)` with `a` = *Warp*:
+`w(φ)` with `a` = *Warp* (`wavetable::warpPhase`):
 
 - **Bend:** a two-segment phase curve with its knee at `(0.5 − 0.45a, 0.5)`:
   the first half of the waveform is squeezed, the second stretched. Brighter,
   "resonant" tones.
-- **Sync:** `w = frac(φ × (1 + 7a))`, windowed at the cycle end: a hard-sync
-  sweep inside the table; the reset is band-limited as in 4.5.
-- **Mirror:** reads forward to `0.5 + 0.5a`, then backward: symmetric shapes,
-  new even/odd balance.
+- **Sync:** `w = frac(φ × (1 + 7a))`: a hard-sync sweep inside the table.
+- **Mirror:** `(1 − a)·φ + a·(2φ for φ < ½, else 2 − 2φ)`: at 100 % the table
+  is read forward in the first half of the cycle and backward in the second:
+  symmetric shapes, a new even/odd balance.
 - **Squash:** reads the whole table in the first `1 − 0.9a` of the cycle
-  and holds the last value (0 for zero-ended tables) for the rest: a PWM for
-  any wave.
-- **Steps:** quantises φ to `64 × 2^(−5a)` steps (64 → 2): lo-fi stairs.
+  and holds the table's start value for the rest: a PWM for any wave.
+- **Steps:** quantises φ to `2^(11 − 10a)` steps (2048 → 2): lo-fi stairs.
 
-All warps are 0 at `a = 0` (identity).
+All warps are the identity at `a = 0`. The *Warp* knob takes the mode's name
+in the view.
 
 ### 4.5 Band-limiting
 
-Each frame is stored as 11 mipmap levels: level `L` keeps harmonics up to
-`1024 / 2^L` (level 0 full, level 10 the fundamental only), built by FFT
-(zeroing bins) and inverse FFT. Per sample the oscillator picks the level
-from the **effective** frequency `f_eff = |f| × s`, where `s` is the warp's
-maximum phase slope (Bend `1 / (0.5 − 0.45a)`, Sync `1 + 7a`, Squash
-`1 / (1 − 0.9a)`, Mirror 2, Steps 1): the level is the lowest one whose top
-harmonic × `f_eff` stays below 0.45 × fs. The two adjacent levels are
-crossfaded by the fractional octave, so a pitch sweep never steps in
-brightness. The remaining discontinuities (Sync reset, Squash hold edge,
-Steps, external *Sync*) get a polyBLEP correction scaled by the jump
-size. *High* quality runs the whole read at 2× with a half-band decimator,
-which also covers fast FM. *Read Raw* bypasses all of this on purpose: level
-0, nearest sample, aliasing included.
+Each frame is stored as 11 mipmap levels (`Wavetable.h`): level `L` keeps
+harmonics up to `1024 / 2^L` in a table of 2048 (levels 0, 1) down to 64
+samples. Per sample the oscillator picks the level from the **effective**
+frequency `f_eff = |f| × s`, where `s` is the warp's maximum phase slope
+(`warpSlope`: Bend `0.5 / min(k, 1 − k)`, Sync `1 + 7a`, Squash
+`1 / (1 − 0.9a)`, Mirror `1 + a`, Steps 1): every harmonic read stays below
+0.45 × fs, and the two adjacent levels are crossfaded by the fractional
+octave, so a pitch sweep never steps in brightness.
+
+The tables hold 4 samples per period of their top harmonic, so the cubic
+read's interpolation images set the aliasing floor near the top of a level:
+about −60 dB (−71 dB at C4). Twice as large tables in `Wavetable.h` would
+lower it.
+
+The remaining discontinuities get a polyBLEP correction scaled by the jump,
+at their sub-sample time: the cycle reset with *Sync* and *Steps* warps (the
+warped reading jumps from `w(1⁻)` to `w(0)`) and each step edge of *Steps*
+(when at most one falls in a sample). *Squash*'s hold and the other warps
+are continuous in value (the table is periodic). The external *Sync* input
+restarts the cycle (and the sub) at its sample, which plays the midpoint of
+the jump (the polyBLEP of a jump at the sample instant). *High* quality runs
+the whole read at 2× with a half-band decimator, which also covers fast FM.
+*Read Raw* bypasses all of this on purpose: level 0, nearest sample,
+aliasing included.
 
 ### 4.6 Stereo and sub
 
@@ -154,46 +171,58 @@ with it), so it stays in phase after sync.
 
 ### 4.7 Bank changes
 
-Changing *Bank* (by hand or modulation) crossfades over 10 ms from the old
-bank to the new one, read at the same position. A bank that is still being
-built (import in progress) keeps the old one playing until it's ready.
+Changing *Bank* (by hand or modulation, read once per chunk) crossfades over
+10 ms from the old bank to the new one, read at the same position (clamped
+to each bank's grid). A factory bank that is still being built keeps the old
+one playing until it's ready; a new user bank (an import) swaps in with the
+same crossfade.
 
 ### 4.8 Importing tables
 
-Drop a WAV file on the view, or use *Import…*:
+Drop a WAV file on *Import…* in the view (or click it to choose one). The
+view imports it into the media store (`api.importMedia`, `Media.h`: one
+media folder, files referenced by a content-hash id) and sets the node data
+to `{ "sample": id, "name": file name, "cycle": length }`:
 
-- Formats: PCM 16/24-bit and 32-bit float, any sample rate, first channel.
-- **Slicing:** *Cycle length* (in the import popover, default *Auto*):
-  256, 512, 1024, 2048, 4096 samples, or *Auto* (2048 if the length is a
-  multiple of it, else the whole file is one cycle). Up to 64 cycles are
-  taken; the rest is ignored with a notice.
-- Each cycle is resampled to 2048 samples with FFT (band-limited), its DC
-  removed, and normalised to peak 1.
-- Fewer than 64 cycles fill the grid row by row and the grid shrinks to the
-  rows used (`rows = ceil(n / 8)`; one cycle fills the whole grid). With a
-  path, Scan covers exactly the imported cycles.
+- Formats: whatever `media::decodeWav` reads (PCM 8/16/24/32-bit, float
+  32/64-bit, any sample rate); the first channel is used.
+- **Slicing:** *Cycle* (a menu next to *Import…*, default *Auto*): 256, 512,
+  1024, 2048, 4096 samples, or *Auto* (2048 if the length is a multiple of
+  it, else the whole file is one cycle). Up to 64 cycles are taken; the view
+  shows a notice when the file has more (live value `userCycles`).
+- Each cycle is resampled to 2048 samples by its spectrum (band-limited), its
+  DC removed, and normalised to peak 1 (`wavetable::bankFromCycles`).
+- Fewer than 64 cycles fill the grid row by row (8 columns) and the grid
+  shrinks to the rows used (`rows = ceil(n / 8)`; fewer than 8 cycles make a
+  single row; one cycle fills the whole grid). With a path, Scan covers the
+  grid of the imported cycles (the last row padded with the last cycle).
 - **Single cells:** dropping a file on one cell of the grid view replaces only
-  that cell (first cycle of the file).
-- Parsing, resampling and mipmap building run on a background thread; the
-  finished bank is swapped in through an atomic pointer and the old one is
-  freed on the message thread. An import is one undo step.
+  that cell with the file's first cycle: `"cells": { "<index>": id }` in the
+  node data (index = column + 8 × row). Without an imported file the other
+  cells start as sines.
+- `setData` (message thread) loads the media with `media::load`, slices and
+  builds the bank with its mipmaps (about 45 ms for 64 cycles) and hands it
+  to the audio thread with `RtHandoff`; the module keeps the last three banks
+  alive so the audio thread's crossfade never reads a freed bank. An import
+  is one `setData`, so one undo step; the importing view also switches
+  *Bank* to *User*.
 
 ### 4.9 Edge cases and transport
 
-- Silent or invalid files: rejected with a message; the bank is unchanged.
-- Empty user bank selected: plays a sine (the user bank starts as copy of
-  *Analog* row 1 until something is imported).
-- `f` is clamped to 0.45 × fs (× 2 at High).
+- Silent or unreadable files: rejected (live value `userError`, a message in
+  the view); the bank is unchanged.
+- Empty user bank selected: plays a sine.
+- `f` is clamped to 0.45 × the (oversampled) rate.
 - Free-running; the transport is ignored.
 
 ### 4.10 CPU and memory
 
 Per sample: 4 frames (Smooth) × 2 mip levels × cubic (4 taps) = 32 table
-reads at most; Step halves it, Linear halves it again. Target ≤ 0.8 % per
-voice at 48 kHz (Normal, Smooth, Cubic), ≤ 1.5 % at High. A bank is about
-1 MB (64 frames × 2048 × ~2 for mipmaps × 4 bytes); banks are shared by all
-voices and all instances using them (factory banks are built once per
-process, lazily, the first time they are selected).
+reads at most per channel; Step halves it, Linear halves the taps. Measured
+at 48 kHz (one core): 0.56 % Normal (target 0.8 %), 2.0 % High; the High
+cost is mostly the `Oversampler.h` decimators. A factory bank is 1.6 MB
+(64 frames × 6380 floats with mipmaps and guards), all 11 about 18 MB, built
+once and shared by every instance and voice; a user bank is per instance.
 
 ## 5. Module view
 
@@ -210,68 +239,69 @@ process, lazily, the first time they are selected).
  └───────────────────────────────────────────────────────────────┘
 ```
 
-- **Grid:** 64 thumbnails; a dot shows the played position (live values), a
-  hollow dot the right channel; the path is drawn when one is chosen.
-  Dragging on the grid sets X and Y together (one gesture). Dropping a file
-  on a cell replaces it (4.8).
-- **Waveform:** the current blended cycle after warp, L and R overlaid.
-- **Stack view:** the 8 frames of the current row (or the path's
-  neighbourhood) drawn in perspective, to see how the table evolves.
-- Width 640 px.
+- **Grid:** one 32-point thumbnail per frame (live array `thumbs`, sent
+  after a bank change and about once a second); a dot shows the played
+  position (live values `xL`, `yL`), a ring the right channel (`xR`, `yR`);
+  the path is drawn when one is chosen. Dragging on the grid sets X and Y
+  together (one gesture). Dropping a file on a cell replaces it (4.8).
+- **Waveform:** the current blended cycle after warp, L and R overlaid (live
+  arrays `waveL`, `waveR`, computed on the message thread from the bank).
+- **Stack view:** the frames of the current row drawn in perspective, the
+  played column highlighted.
+- The bank name, *Import…*, the *Cycle* menu and import notices sit above
+  the grid. Width 640 px (`ui/wavetable-osc.js`).
 
 ## 6. Saved state
 
-Knob and setting values, plus the user bank when one exists:
+Knob and setting values, plus the user bank's media when one exists:
 
 ```json
 {
   "type": "wavetable-osc",
-  "params": { "bank": 0.2, "x": 0.0, "y": 0.0, "warp": 0.0, "path": 0.0, … },
-  "data": {
-    "user": { "name": "my-pad.wav", "frames": 24, "length": 2048,
-              "pcm16": "<base64, frames × 2048 little-endian int16>" }
-  }
+  "params": { "bank": 0.0, "x": 0.0, "y": 0.0, "warp": 0.0, "path": 0.0, … },
+  "data": { "sample": "0123456789abcdef.wav", "name": "my-pad.wav", "cycle": 0,
+            "cells": { "12": "fedcba9876543210.wav" } }
 }
 ```
 
-Only the 2048-sample frames are stored (mipmaps are rebuilt on load). 64
-frames are 256 KB of PCM, about 350 KB as base64. `sanitiseData` checks
-that the decoded size matches `frames × length`, clamps `frames` to 1–64,
-and drops a broken `user` entry (the bank then falls back to the sine of
-4.9). *Bank* is saved normalised over a fixed range of 32 slots: slot 0 is
-*User* (shown last in the menu), factory banks start at slot 1 and new ones
-are appended, so adding factory banks never remaps a saved board.
+No samples are stored in the board: the WAV files live in the media folder,
+referenced by id, and the mipmaps are rebuilt on load. `sanitiseData` keeps
+only valid ids, a known cycle length and cell indices 0–63; a missing file
+loads as the sine of 4.9. *Bank* is saved normalised over its choice list
+(*User* first, then the factory banks): appending factory banks later
+remaps saved values and needs a migration.
 
 ## 7. Engine requirements
 
-1. **`WavetableBank.h`** in `patch/common/dsp/`: frames, mipmap build (FFT —
-   needs a small real FFT, e.g. a header-only radix-2 of our own), reader
-   with bilinear frame blend and mip crossfade. Shared with the Macro Osc
-   *Table* model.
-2. **Background work for modules.** `ModuleSpec` hook to build heavy data
-   (the mipmaps) off the audio and message threads, and a safe swap/free
-   pattern (atomic pointer + deferred deletion on the message thread).
-3. **File drop on module views** with the file passed to the module's view
-   code (WAV parsing in `patch/common/`, no external dependency).
-4. **Larger node data.** The board document must handle ~350 KB per node;
-   undo stores it by reference (copy-on-write) rather than copying it for
-   every unrelated edit. Later, a binary asset store in the board document
-   (deduplicated by hash) replaces the base64 field.
-5. **Stepped modulatable knob** for *Bank* (shared need with Macro Osc).
-6. **Live values:** played X/Y for both channels.
+1. **`Wavetable.h`** in `patch/common/dsp/` (exists): frames, mipmap build
+   (own radix-2 FFT), reader with bilinear frame blend and mip crossfade,
+   warps, factory banks, user banks from cycles.
+2. **Background work for modules:** still missing as an engine hook. The
+   module builds factory banks on its own worker thread (once per process)
+   and user banks in `setData` on the message thread, handing them over with
+   `RtHandoff`.
+3. **File drop on module views:** `BleepView.mediaDrop` and `api.importMedia`
+   with the media store (exists).
+4. **Larger node data:** not needed; the data holds media ids only.
+5. **Stepped modulatable knob** for *Bank* (exists).
+6. **Live values / arrays:** played X/Y for both channels, the waveform and
+   the thumbnails (exist).
+7. `bleep_dump_types` links the modules without `engine/Media.cpp`; the
+   module carries a weak stand-in for `media::load` (GCC/Clang) until the
+   build adds it.
 
 ## 8. Tests
 
-- Pitch: 0 V = 261.63 Hz ±0.1 cent with *Analog* (0,0) = sine.
-- Mipmaps: for every factory frame and each level L, no harmonic above `1024 / 2^L` (< −120 dB); a C1→C8 sweep at 48 kHz keeps aliasing below −80 dB (Normal, Warp 0) and −60 dB with Sync warp at 100 %.
-- Mip crossfade: no step in RMS brightness larger than 0.5 dB between adjacent semitones.
-- Position: X/Y at grid points play exactly that frame (bit-exact, Read Cubic at level 0 vs the stored frame); Smooth blend at (0.5, 0.5) of a cell equals the average of the four.
-- Paths: Scan 0 and 1 reach the path's first and last cells; *Snake* never jumps between non-adjacent cells.
+- Pitch: 0 V = 261.63 Hz ±0.1 cent with *Analog* (0,0) = sine; *Sub* one octave below.
+- Aliasing: a saw frame at C1, C4, C6, C7 and just below C8 stays below −58 dB, and with Sync warp at 100 % (Normal and High) below −58 dB (the cubic read's floor, 4.5). The mipmaps themselves are tested in `common/dsp/tests/test_wavetable.cpp`.
+- Mip crossfade: no step in high-frequency level larger than 0.5 dB between adjacent semitones (C5–C8).
+- Position: X/Y at grid points play exactly that frame (Read Cubic, level 0, within 1e-5); Smooth blend at the centre of a cell equals the average of the four.
+- Paths: every path visits each cell once on 8×8, 8×3, 5×1 and 1×1 grids; *Snake* and *Spiral* only step to neighbours; Scan 0 and 1 reach the path's first and last cells.
 - Warps at 0 % equal no warp; Squash at 100 % holds over 90 % of the cycle.
-- Stereo 0 → L = R; *Sub* is one octave below and keeps phase after a Sync.
-- Import: 16/24/32f WAVs of 1, 8, 64, 100 cycles load as 1, 8, 64, 64 frames; DC is removed; an invalid file leaves the bank unchanged.
-- Saved user bank round-trips bit-exact (int16); a truncated base64 field loads safely.
-- Bank change and import swap are click-free (no sample jump > 0.1 at a static pitch); the audio thread never allocates or blocks (checked with the allocation guard in tests).
+- Stereo 0 → L = R; after a Sync the output and *Sub* equal a freshly started oscillator.
+- User banks: 1, 8, 64, 100 cycles give 1, 8, 64, 64 frames; DC is removed.
+- Bank changes and user-bank swaps are click-free (no sample step more than 0.1 above the static signal's).
+- The module harness covers node data (sanitising, broken JSON) and the audio path with every input fed.
 - Demo types file includes the module.
 
 ## 9. Later

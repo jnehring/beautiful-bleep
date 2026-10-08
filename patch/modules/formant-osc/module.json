@@ -1,0 +1,10 @@
+{
+  "name": "Formant Osc",
+  "slug": "formant-osc",
+  "tagline": "Pulse-formant oscillator: a resonant peak that sweeps through zero, vocal and filter-like with no filter.",
+  "colour": "#e879f9",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/formant-osc.md"
+}

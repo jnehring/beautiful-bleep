@@ -1,0 +1,10 @@
+{
+  "name": "Additive Osc",
+  "slug": "additive-osc",
+  "tagline": "64 sine partials shaped by tilt, odd/even, stretch, comb and chorus, or a drawn spectrum. Never aliases.",
+  "colour": "#a3e635",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/additive-osc.md"
+}
