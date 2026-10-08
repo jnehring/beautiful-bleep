@@ -3,6 +3,7 @@
 // band-limited squares, a six-oscillator metal source and a hand clap.
 #pragma once
 
+#include "Lofi.h"
 #include "Noise.h"
 #include "Svf.h"
 
@@ -154,21 +155,17 @@ private:
 /// sampler. Crunch 0 is clean.
 class Crusher {
 public:
-    void reset() noexcept { held_ = 0.0f; ph_ = 1.0; }
+    void reset() noexcept { held_ = 0.0f; dec_.reset(); }
     float process(float x, float crunch, double sampleRate) noexcept {
         if (crunch <= 0.0f) return x;
-        ph_ += (1.0 - 0.6 * crunch) * 44100.0 / sampleRate;  // down to ~18 kHz
-        if (ph_ >= 1.0) {
-            ph_ -= std::floor(ph_);
-            const float steps = std::exp2(15.0f - 9.0f * crunch);  // 16 bits … 7 bits (sign included)
-            held_ = std::round(x * steps) / steps;
-        }
+        if (dec_.advance((1.0 - 0.6 * crunch) * 44100.0 / sampleRate))  // down to ~18 kHz
+            held_ = quantizeSteps(x, std::exp2(15.0f - 9.0f * crunch));  // 16 bits … 7 bits (sign included)
         return held_;
     }
 
 private:
     float held_ = 0.0f;
-    double ph_ = 1.0;
+    Decimator dec_;
 };
 
 /// Hand clap: band-passed noise opened by a few quick bursts, then a short
