@@ -108,6 +108,7 @@ AppController::~AppController() {
     bridge_.reset();
     {
         const juce::SpinLock::ScopedLockType lock(portsLock_);
+        const juce::SpinLock::ScopedLockType midiLock(midiLock_);
         for (auto& p : audioPorts_) removeInstance(p->handle);
         for (auto& m : midiPorts_) {
             removeInstance(m->inHandle);
@@ -254,6 +255,7 @@ void AppController::syncPorts() {
     std::vector<std::unique_ptr<MidiPort>> oldMidi;
     {
         const juce::SpinLock::ScopedLockType lock(portsLock_);
+        const juce::SpinLock::ScopedLockType midiLock(midiLock_);
         oldAudio = std::move(audioPorts_);
         oldMidi = std::move(midiPorts_);
         audioPorts_ = std::move(audio);
@@ -345,9 +347,24 @@ void AppController::buildControlPorts(const engine::Transport& t, int n, std::ve
     for (auto& m : *list) {
         if (m->inHandle) {
             m->inBlock.clear();
+            // Messages that arrived during the last block's time are spread over this
+            // block by arrival time: steady one-block delay, real timing between notes,
+            // and a quick tap (press and release) never collapses onto one sample.
+            const double now = juce::Time::getMillisecondCounterHiRes() * 0.001;
+            const double sr = t.sampleRate > 0.0 ? t.sampleRate : 48000.0;
+            int last = 0;
+            auto take = [&](int index) {
+                engine::MidiEvent e = m->fifoData[(size_t)index];
+                const double ago = now - m->fifoTime[(size_t)index];
+                int offset = juce::jlimit(0, n - 1, (int)std::lround((double)n - ago * sr));
+                offset = juce::jmax(offset, last);  // keep the order
+                last = offset;
+                e.offset = offset;
+                m->inBlock.push_back(e);
+            };
             const auto scope = m->fifo.read(m->fifo.getNumReady());
-            for (int i = 0; i < scope.blockSize1; ++i) m->inBlock.push_back(m->fifoData[(size_t)(scope.startIndex1 + i)]);
-            for (int i = 0; i < scope.blockSize2; ++i) m->inBlock.push_back(m->fifoData[(size_t)(scope.startIndex2 + i)]);
+            for (int i = 0; i < scope.blockSize1; ++i) take(scope.startIndex1 + i);
+            for (int i = 0; i < scope.blockSize2; ++i) take(scope.startIndex2 + i);
             m->inIo = {};
             m->inIo.numSamples = n;
             m->inIo.transport = t;
@@ -427,8 +444,9 @@ void AppController::audioDeviceIOCallbackWithContext(const float* const* inputs,
 
 void AppController::handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& message) {
     if (message.getRawDataSize() > 3 || message.isSysEx()) return;
-    const juce::SpinLock::ScopedTryLockType lock(portsLock_);
-    if (!lock.isLocked()) return;
+    const double arrived = juce::Time::getMillisecondCounterHiRes() * 0.001;
+    // Waits only for the message thread swapping ports, never for audio: no message is dropped.
+    const juce::SpinLock::ScopedLockType lock(midiLock_);
     for (auto* list : {&midiPorts_, &devicePorts_})
     for (auto& m : *list) {
         const bool mine = m->input ? source == m->input.get() : (source && source->getIdentifier() == m->identifier);
@@ -438,7 +456,10 @@ void AppController::handleIncomingMidiMessage(juce::MidiInput* source, const juc
         e.offset = 0;
         e.size = (uint8_t)message.getRawDataSize();
         std::memcpy(e.bytes, message.getRawData(), e.size);
-        if (scope.blockSize1 > 0) m->fifoData[(size_t)scope.startIndex1] = e;
+        if (scope.blockSize1 > 0) {
+            m->fifoData[(size_t)scope.startIndex1] = e;
+            m->fifoTime[(size_t)scope.startIndex1] = arrived;
+        }
         return;
     }
 }
@@ -485,6 +506,7 @@ void AppController::syncDeviceNodes() {
     std::vector<std::unique_ptr<MidiPort>> gone;
     {
         const juce::SpinLock::ScopedLockType lock(portsLock_);
+        const juce::SpinLock::ScopedLockType midiLock(midiLock_);
         gone = std::move(devicePorts_);
         devicePorts_ = std::move(next);
     }

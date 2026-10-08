@@ -84,6 +84,7 @@ private:
         juce::MidiOutput* sharedOutput = nullptr;  ///< hardware: the device manager's default output
         juce::AbstractFifo fifo{512};
         std::array<engine::MidiEvent, 512> fifoData{};
+        std::array<double, 512> fifoTime{};  ///< arrival, in seconds (Time::getMillisecondCounterHiRes)
         std::vector<engine::MidiEvent> inBlock, outBlock;
         engine::BlockIO inIo, outIo;
     };
@@ -122,8 +123,11 @@ private:
     std::unique_ptr<juce::FileChooser> chooser_;
     juce::Component::SafePointer<juce::DialogWindow> settingsWindow_;
 
-    // Ports: changed on the message thread under the lock; audio threads try it.
+    // Ports: changed on the message thread under both locks. Audio threads only
+    // try portsLock_ (they never wait); MIDI input threads take midiLock_ and
+    // never drop a message (a lost note-off is a hanging voice).
     juce::SpinLock portsLock_;
+    juce::SpinLock midiLock_;
     std::vector<std::unique_ptr<AudioPort>> audioPorts_;
     std::vector<std::unique_ptr<MidiPort>> midiPorts_;
     std::vector<std::unique_ptr<MidiPort>> devicePorts_;  ///< MIDI Device nodes (spec §12): id = node's port

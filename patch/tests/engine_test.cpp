@@ -12,6 +12,7 @@
 #include <condition_variable>
 #include <cstdio>
 #include <random>
+#include <set>
 #include <mutex>
 #include <thread>
 
@@ -509,9 +510,15 @@ struct VoiceRig {
     }
     /// One block in standalone mode; returns the last output sample.
     float block(std::vector<std::array<int, 3>> events = {}) {
+        std::vector<std::array<int, 4>> at;
+        for (const auto& ev : events) at.push_back({ev[0], ev[1], ev[2], 0});
+        return blockAt(at);
+    }
+    /// The same, with each event at its own sample offset {status, d1, d2, offset}.
+    float blockAt(const std::vector<std::array<int, 4>>& events) {
         for (const auto& ev : events) {
             MidiEvent m;
-            m.offset = 0;
+            m.offset = ev[3];
             m.bytes[0] = (uint8_t)ev[0];
             m.bytes[1] = (uint8_t)ev[1];
             m.bytes[2] = (uint8_t)ev[2];
@@ -610,6 +617,58 @@ void voiceCells() {
         for (float x : rig.pOut->out[0]) tail = std::max(tail, std::fabs(x));
         EXPECT(tail < 1e-4f);
         EXPECT((int)rig.e->liveState({})["nodes"]["vc"]["voices"] == 0);  // asleep
+    }
+    {
+        // Hammering: random chords, quick taps and stealing; when every key is up,
+        // every voice must fall silent and sleep. No voice may hang.
+        VoiceRig rig;
+        rig.build(voiceParams(4, 0, 0), [](juce::Array<juce::var>& n, juce::Array<juce::var>& c) {
+            n.add(node("osc", "oscillator", "vc"));
+            n.add(node("env", "adsr", "vc"));
+            n.add(node("amp", "vca", "vc"));
+            c.add(cable("vi", "pitch", "osc", "pitch"));
+            c.add(cable("vi", "gate", "env", "gate"));
+            c.add(cable("vi", "trigger", "env", "retrig"));
+            c.add(cable("osc", "sine", "amp", "l"));
+            c.add(cable("env", "env", "amp", "gain"));
+            c.add(cable("amp", "l", "vo", "l"));
+            c.add(cable("env", "active", "vo", "active"));
+        });
+        std::mt19937 rng(11);
+        std::set<int> held;
+        for (int b = 0; b < 3000; ++b) {
+            std::vector<std::array<int, 4>> ev;
+            const int count = (int)(rng() % 4);
+            int offset = 0;
+            for (int k = 0; k < count; ++k) {
+                offset = std::min(kBlock - 1, offset + (int)(rng() % 40));
+                const int note = 48 + (int)(rng() % 24);
+                if (held.count(note) || rng() % 3 == 0) {
+                    if (held.count(note)) {
+                        // Both note-off forms: 0x80 (any velocity) and 0x90 with velocity 0.
+                        if (rng() % 2) ev.push_back({0x80, note, (int)(rng() % 128), offset});
+                        else ev.push_back({0x90, note, 0, offset});
+                        held.erase(note);
+                    }
+                } else {
+                    ev.push_back({0x90, note, 1 + (int)(rng() % 127), offset});
+                    held.insert(note);
+                    if (rng() % 5 == 0) {  // a quick tap: released in the same block
+                        ev.push_back({0x80, note, 0, std::min(kBlock - 1, offset + 1)});
+                        held.erase(note);
+                    }
+                }
+            }
+            rig.blockAt(ev);
+        }
+        std::vector<std::array<int, 4>> off;
+        for (int note : held) off.push_back({0x80, note, 0, 0});
+        rig.blockAt(off);
+        for (int b = 0; b < 2000; ++b) rig.block();
+        float tail = 0.0f;
+        for (float x : rig.pOut->out[0]) tail = std::max(tail, std::fabs(x));
+        EXPECT(tail < 1e-4f);
+        EXPECT((int)rig.e->liveState({})["nodes"]["vc"]["voices"] == 0);
     }
 }
 
