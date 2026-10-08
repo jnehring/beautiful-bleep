@@ -1518,7 +1518,12 @@
 
   // ------------------------------------------------------- floating views
   let viewZ = 1;
-  function toggleView(id) { views.has(id) ? closeView(id) : openView(id); }
+  // Opening a view replaces the other unpinned ones; pinned views stay.
+  function toggleView(id) {
+    if (views.has(id)) return closeView(id);
+    closeUnpinnedViews();
+    openView(id);
+  }
 
   function openView(id) {
     const n = nodeById(id);
@@ -1533,7 +1538,7 @@
     help.title = "Documentation";
     help.hidden = true;
     const pin = el("button", "pin", "📌");
-    pin.title = "Keep open when entering or leaving cells";
+    pin.title = "Keep open when opening other views or entering and leaving cells";
     const close = el("button", "", "×");
     close.title = "Close (Esc)";
     head.append(help, pin, close);
