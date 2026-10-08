@@ -480,6 +480,12 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
         for (size_t k = 0; k < spec.outputs.size(); ++k)
             outs->setProperty(juce::Identifier(spec.outputs[k].id), m->outputDisplay((int)k).value.load());
         n->setProperty("outputs", juce::var(outs));
+        // How much each output moved since the last call: the cables' pulse.
+        auto* act = new juce::DynamicObject();
+        for (size_t k = 0; k < spec.outputs.size(); ++k)
+            if (const float a = m->outputDisplay((int)k).activity(); a > 1e-4f)
+                act->setProperty(juce::Identifier(spec.outputs[k].id), a);
+        n->setProperty("activity", juce::var(act));
         if (detailed.count(juce::String(id))) {
             auto* params = new juce::DynamicObject();
             for (size_t i = 0; i < spec.params.size(); ++i) {

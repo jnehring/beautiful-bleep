@@ -10,7 +10,7 @@
 //              presets(kind?) savePreset(name, preset, kind?) deletePreset(name, kind?)
 //              (kind: "cell", the default, or "drums" for Drum Grid patterns)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
-//              "state"  {nodes: {id: {outputs, params?}}, ports}   30 times per second
+//              "state"  {nodes: {id: {outputs, activity, params?}}, ports}   30 times per second
 //              "focus"  {node}   a plugin window asked for its node
 #include "BoardWindow.h"
 #include "Engine.h"

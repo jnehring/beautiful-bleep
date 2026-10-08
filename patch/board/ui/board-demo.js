@@ -83,6 +83,7 @@
 
   const played = {};  // node → what perform() played: {held, pressed, released, notes}
   let t = 0;
+  const lastOut = new Map();
   setInterval(() => {
     if (!board) return;
     t += 1 / 30;
@@ -143,6 +144,14 @@
                                  vel: held.length ? n.params.velocity ?? 0.8 : 0 });
         entry.active = last === undefined ? -1 : last;
         entry.held = held.length;
+      }
+      // Activity (the cables' pulse): how far each output moved since the last frame.
+      entry.activity = {};
+      for (const o of ty.outputs) {
+        const key = n.id + "|" + o.id, v = outputs[o.id] ?? 0;
+        const a = o.type === "audio" ? 2 * Math.abs(v) : Math.abs(v - (lastOut.get(key) ?? v));
+        lastOut.set(key, v);
+        if (a > 1e-4) entry.activity[o.id] = a;
       }
       if (n.type === "voice-cell") entry.voices = Math.floor(t * 2) % 2 ? 0b101 : 0b011;
       nodes[n.id] = entry;

@@ -121,6 +121,14 @@ public:
     struct Display {
         std::atomic<float> value{0.0f};
         std::atomic<bool> active{false};
+        /// Outputs: the signal's range since the UI last read it (activity()).
+        std::atomic<float> lo{1e30f}, hi{-1e30f};
+        /// The swing since the last call (0 when idle or constant), then resets. UI thread.
+        float activity() noexcept {
+            const float h = hi.exchange(-1e30f, std::memory_order_relaxed);
+            const float l = lo.exchange(1e30f, std::memory_order_relaxed);
+            return h > l ? h - l : 0.0f;
+        }
     };
     Display& paramDisplay(int i) noexcept { return paramDisplay_[(size_t)i]; }
     Display& outputDisplay(int i) noexcept { return outputDisplay_[(size_t)i]; }

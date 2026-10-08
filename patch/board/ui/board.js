@@ -359,8 +359,14 @@
     return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
   }
 
+  // Signal pulse: a faint light travelling along each cable whose source
+  // output moves, brighter the more it moves (state.activity).
+  const pulses = new Map();   // cable id → {path, node, jack}
+  const pulseLevel = new Map();  // "node|jack" → smoothed 0..1
+
   function renderCables() {
     cablesEl.innerHTML = "";
+    pulses.clear();
     if (!board) return;
     const here = new Set(nodesAt(level()).map((n) => n.id));
     for (const c of board.cables) {
@@ -392,7 +398,17 @@
         renderCables();
         showCablePop(c);
       });
-      cablesEl.append(p, hit);
+      cablesEl.append(p);
+      if (!p.classList.contains("ghost") && !p.classList.contains("dim")) {
+        const glow = document.createElementNS(SVGNS, "path");
+        glow.setAttribute("d", d);
+        glow.setAttribute("class", "cable-pulse");
+        glow.style.setProperty("--c", signalColour(type));
+        glow.style.setProperty("--act", pulseLevel.get(c.from.node + "|" + c.from.jack) || 0);
+        cablesEl.append(glow);
+        pulses.set(c.id, { path: glow, key: c.from.node + "|" + c.from.jack });
+      }
+      cablesEl.append(hit);
     }
     if (!selCable) $("cable-pop").hidden = true;
   }
@@ -1456,8 +1472,6 @@
       },
       // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
       perform: (action, ...args) => native("perform", id, action, args),
-      // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
-      perform: (action, ...args) => native("perform", id, action, args),
       // Preset libraries shared by all sets, e.g. Drum Grid patterns ("drums").
       presets: async (kind) => (await native("presets", kind)) || [],
       savePreset: async (kind, name, preset) => (await native("savePreset", name, preset, kind)) || [],
@@ -1576,6 +1590,22 @@
     g.stroke();
   }
 
+  function updatePulses(nodes) {
+    for (const [id, ns] of Object.entries(nodes)) {
+      const act = ns.activity || {};
+      for (const jack of Object.keys(ns.outputs || {})) {
+        const key = id + "|" + jack;
+        // Swing → 0..1: a full-scale control sweep or audio near unity is "full".
+        const target = Math.min(1, Math.sqrt((act[jack] || 0) / 0.5));
+        const prev = pulseLevel.get(key) || 0;
+        const v = target > prev ? prev + (target - prev) * 0.5 : prev * 0.9;  // quick rise, slow fade
+        if (v < 0.01) pulseLevel.delete(key); else pulseLevel.set(key, v);
+      }
+    }
+    for (const { path, key } of pulses.values())
+      path.style.setProperty("--act", (pulseLevel.get(key) || 0).toFixed(2));
+  }
+
   let portsKey = "";
   onNative("state", (s) => {
     live = s;
@@ -1587,6 +1617,7 @@
       if (ns && ns.outputs && jack in ns.outputs) drawScope(sc, ns.outputs[jack]);
     }
     for (const [id, v] of views) v.bv.update(s.nodes[id]);
+    updatePulses(s.nodes);
     // Voice Cells: which voices play.
     for (const ne of nodesEl.querySelectorAll(".node.voice")) {
       const ns = s.nodes[ne.dataset.id];
