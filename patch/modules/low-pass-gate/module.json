@@ -1,0 +1,10 @@
+{
+  "name": "Low Pass Gate",
+  "slug": "low-pass-gate",
+  "tagline": "Filter and VCA in one, opened by a modelled vactrol: organic plucks from a single trigger.",
+  "colour": "#4ade80",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/low-pass-gate.md"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Modal Voice",
+  "slug": "modal-voice",
+  "tagline": "Bowed, blown and struck physical-modelling instrument with a small room, built for Voice Cells.",
+  "colour": "#14b8a6",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/modal-voice.md"
+}

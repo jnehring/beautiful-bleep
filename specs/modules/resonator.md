@@ -65,9 +65,12 @@ Every knob is also an input (`specs.md` section 7.3).
 Each voice has a fundamental `f0 = C4 · 2^((Frequency + 12·Pitch) / 12)`,
 clamped to 16 Hz … 0.4 × sample rate. The decay time of the fundamental is
 `T60 = 30 s · 0.0017^Damping`. Brightness `b` and Position `p` are used by all
-models as described below. All coefficient changes are interpolated linearly
-across each 32-sample sub-block, so every knob can be modulated, even at audio
-rate for *Frequency* (coefficients are then recomputed every 8 samples).
+models as described below. Knobs are read every 16 samples and the modal
+coefficients are interpolated linearly across each 16-sample sub-block (the
+strings take their new loop at the sub-block start), so every knob can be
+modulated, *Frequency* up to a fast vibrato or sweep. Only coefficients whose
+inputs changed are recomputed (`ModalBank::set` costs one sin/cos per mode
+when only the pitch moves).
 
 ### 4.2 Modal
 
@@ -94,11 +97,17 @@ A bank of `M` = *Modes* parallel resonators per voice. Mode `k` (1…M) has
 Each mode is a complex one-pole resonator (rotation by `2π fₖ / fs` times
 `decayCoef(T60ₖ)`, the same structure as `dsp::Resonator` in `Drums.h`): its
 level doesn't depend on frequency, so sweeping *Frequency* while ringing keeps
-the energy. The input is injected scaled by `aₖ · (1 − |coef|)` so a steady
-input gives a level that doesn't explode at long decays. Modes whose frequency
+the energy. The bank is the shared `dsp::ModalBank` (struck input). The
+input is injected energy-normalised, scaled by `aₖ · 2 · √(2 (1 − |coef₁|))`
+(`coef₁` the fundamental's decay per sample): white noise in gives about the
+same output level at any *Damping*, a transient rings longer but softer at
+long decays (its energy stays the same), and a steady input in tune with a
+mode builds up (the output limiter, 4.6, catches it). The plain
+`(1 − |coef|)` scaling made drum loops ring 40–50 dB below the input at
+musical decays. Modes whose frequency
 is above 0.45 × sample rate are skipped, and the ones between 0.40 and 0.45
 fade out, so nothing aliases when the pitch rises. Modes are processed in SIMD
-groups of 4 (8 with AVX).
+groups of 4.
 
 ### 4.3 Sympathetic
 
@@ -119,16 +128,23 @@ matches their tuning. *Structure* picks the tuning of the set, stepping through
 | 75–87 % | detuned unisons: 0, ±4, ±8, ±12, +16 cents |
 | 87–100 % | seeded inharmonic: 0 and seven seeded ratios in 1.1…6 |
 
-*Damping* sets the strings' decay, *Brightness* their loop filter, *Position*
-the pickup on each string. Odd strings go to *Odd*, even strings to *Even*.
+Within the last fifth of each step the intervals glide linearly into the next
+tuning, so sweeping *Structure* never jumps. The set is the shared
+`dsp::SympatheticStrings`, which scales each string's input by
+`1 − loop gain` (a steady sine in tune comes out at about its own level);
+the module adds ×10 on *In* and ×28 on the exciter so transients and strums
+ring at a useful level. *Damping* sets the strings' decay, *Brightness*
+their loop filter, *Position* the pickup on each string. Odd strings go to
+*Odd*, even strings to *Even*.
 
 ### 4.4 String
 
 A plucked-string waveguide per voice, in the Karplus-Strong family:
 
 - A delay line of length `N = fs / f0` minus the loop-filter delay, with a
-  first-order allpass (Thiran) for the fractional part, so tuning is exact to
-  a cent across the range.
+  first-order allpass for the fractional part, solved exactly for the phase
+  delay at f0 (close to Thiran's), so tuning is exact to a fraction of a cent
+  across the range (the shared `dsp::WaveguideString`).
 - **Loop filter:** a one-pole low-pass whose cutoff rises with *Brightness*
   (from `2 · f0` to 0.45 · fs), and a loop gain `g = 10^(−3 / (T60 · f0))`
   compensated for the filter's loss at f0, so *Damping* sets the real T60.
@@ -136,9 +152,11 @@ A plucked-string waveguide per voice, in the Karplus-Strong family:
   *Structure* (0 = none, 100 % = strongly stiff, piano-wire to metal-bar).
   Their phase delay at f0 is subtracted from `N`, so the fundamental stays in
   tune.
-- **Position:** the excitation is combed (`x[n] − x[n − p·N]`) and the two
-  pickups read at `p·N` (*Odd*) and `(1 − p)·N` (*Even*).
+- **Position:** the excitation is combed (`x[n] − 0.95 · x[n − p·N]`) and the
+  two pickups read at `p·N` (*Odd*) and `(1 − p)·N` (*Even*).
 - A DC blocker (5 Hz) in the loop keeps long decays clean.
+- The internal exciter goes into the loop as is; *In* is scaled by
+  `15 · (1 − loop gain)`, so a steady input in tune doesn't explode.
 
 Changing *Frequency* while ringing reads the delay line at a moving length
 (with the allpass state reset smoothly), which gives a natural pitch bend.
@@ -154,16 +172,25 @@ Changing *Frequency* while ringing reads the delay line at a moving length
   excitation adds to the ringing, like hitting a string again.
 - **Internal exciter**, on each strum when *Exciter* > 0: a 3 ms burst of white
   noise times a raised-cosine window, low-passed by a one-pole whose cutoff
-  follows *Brightness* (500 Hz … 16 kHz), plus a single-sample click of the
-  same polarity. Its level is *Exciter* (trigger has no velocity; patch an
-  envelope or *Voice In › Velocity* onto *Exciter* for dynamics).
-- **Strum Source *Input onsets*:** a transient detector on *In* (fast/slow
-  envelope ratio > 6 dB, 30 ms hold-off) generates strums, so a drum loop
-  played into a 4-voice resonator spreads its hits over the voices and the
-  current *Pitch* is captured per hit. The *Strum* jack still works too.
+  follows *Brightness* (500 Hz … 16 kHz), plus a single-sample click of half
+  the level (`dsp::NoiseBurst`, seeded per strum from *Seed* and a strum
+  counter that restarts with the transport). Its level is *Exciter* (trigger
+  has no velocity; patch an envelope or *Voice In › Velocity* onto *Exciter*
+  for dynamics). The levels are calibrated so a default strum peaks around
+  0.5 in every model.
+- **Strum Source *Input onsets*:** a transient detector on *In* (a fast
+  envelope, 0.5 ms / 10 ms, more than 6 dB above a slow one, 30 ms / 150 ms,
+  and above −50 dB; 30 ms hold-off; it re-arms only once the two envelopes
+  have come back within 3 dB) generates strums, so a drum loop played into a
+  4-voice resonator spreads its hits over the voices and the current *Pitch*
+  is captured per hit. The *Strum* jack still works too.
+- A *Strum* button in the view strums like the jack.
 - Without *In* and without strums the resonator is silent.
-- A voice sleeps (no CPU) when its energy stays below −100 dB for 50 ms; all
-  states are flushed to zero below 1e-15 (no denormals).
+- A voice sleeps (no CPU) when its output stays below −100 dB for 50 ms with
+  no input and no exciter running; its states are then cleared. All states
+  are flushed to zero below 1e-15 (no denormals).
+- Changing *Model* dips the outputs (2.5 ms out, switch and clear all voices,
+  2.5 ms in); when nothing rings it switches at once.
 
 ### 4.6 Outputs and level
 
@@ -194,7 +221,9 @@ frequency axis (16 Hz – 20 kHz), its height the amplitude `aₖ` and its
 brightness the remaining energy, so *Structure*, *Position* and *Brightness*
 can be seen as well as heard. A row of four dots shows which voices ring and
 which one is active. In String mode the display shows the string with markers
-for the position and the two pickups.
+for the position and the two pickups. The settings come first (the model
+decides what *Structure* means; its name follows the model: *Structure*,
+*Tuning*, *Stiffness*). A *Strum* button fires the exciter.
 
 ## 6. Saved state
 
@@ -213,8 +242,10 @@ Only knob and setting values; no node data. Ringing voices are not saved.
 2. **Shared waveguide string** `patch/common/dsp/Waveguide.h` (delay line,
    Thiran allpass, loop filter, dispersion chain), used by String, Sympathetic
    and later by other physical models.
-3. **Live values:** `active`, `voiceEnergy1…4` and the mode list (frequency,
-   amplitude) of the active voice, throttled to the view's refresh rate.
+3. **Live values:** `active` and `voiceEnergy1…4` (output level per voice);
+   live arrays `modeHz`, `modeAmp`, `modeLevel` for the active voice's modes
+   (Modal, up to 64) or strings (Sympathetic, 8; empty for String), updated
+   about 30 times a second.
 
 ## 8. Tests
 
@@ -222,9 +253,11 @@ Only knob and setting values; no node data. Ringing voices are not saved.
 - Decay: the fundamental's T60 matches the *Damping* formula within 10 % in all three models.
 - Structure: mode frequencies at 0 %, 50 %, 75 % match the ratio tables; 100 % gives the same table for the same Seed and a different one for another.
 - Position 50 % cancels even modes (Modal) and the second harmonic (String) by at least 30 dB.
-- Anti-aliasing: no mode above 0.45 fs; sweeping Frequency upward produces no component above Nyquist folding back (spectrum check).
+- Anti-aliasing: sweeping Frequency upward over four octaves, no processed mode is ever above 0.45 fs.
 - Round robin: four strums use voices 1, 2, 3, 4, 1; each holds its pitch; *In* reaches only the active voice.
-- Input onsets: a click train at 4 Hz yields 4 strums per second; hold-off suppresses double triggers.
+- Input onsets: a click train at 4 Hz yields 4 strums per second; a second click 10 ms after each is suppressed.
+- Levels: a default strum peaks between 0.2 and 1 in every model; white noise in gives a useful level.
+- Changing *Model* while ringing doesn't click.
 - Stability: white noise at +12 dB with Damping 0 stays bounded by the limiter; silence after input stops decays to sleep; no denormals (timing check).
 - The demo types file includes the module (`patch.ui-types`).
 

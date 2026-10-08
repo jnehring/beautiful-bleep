@@ -1,0 +1,10 @@
+{
+  "name": "Resonator",
+  "slug": "resonator",
+  "tagline": "A tuned resonant body (modal, sympathetic strings or a plucked string) that rings when anything hits it.",
+  "colour": "#0891b2",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/resonator.md"
+}

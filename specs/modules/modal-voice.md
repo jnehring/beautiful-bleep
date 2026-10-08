@@ -82,32 +82,43 @@ the engine's sub-block size.
 ### 4.2 Exciters
 
 **Envelope (bow and blow).** A gate-driven envelope `e`: attack time
-`A = 400 ms · (1 − Contour)³ + 2 ms`, release `R = 1.5 s · (1 − Contour)² + 30 ms`;
-from 50 % *Contour* up, the attack overshoots to 1 and decays over 200 ms to a
-sustain of `1 − (Contour − 0.5)`. A new gate while releasing starts from the
-current value (no click).
+`A = 400 ms · (1 − Contour)³ + 2 ms` (linear rise to 1), release (T60, exponential)
+`R = 1.5 s · (1 − Contour)² + 30 ms`; from 50 % *Contour* up, the attack
+overshoots to 1 and decays (95 % in 200 ms) to a sustain of
+`1 − (Contour − 0.5)`. A new gate while releasing starts from the current
+value (no click).
 
-**Bow.** A friction model: bow velocity `v_b = e · Bow · (1 + 0.05 · n)`, with
-`n` a low-passed noise (bow hair irregularity, more with *Bow Timbre*). The
-resonator's velocity at the bow point `v_r` is the modal sum weighted by the
-position factors, delayed one sample. The relative velocity `Δv = v_b − v_r`
-gives the force through a stick-slip curve
-`F = Δv · (|Δv| · s + 0.75)^(−4)`, clamped to ±1, where the slope `s = 5 − 4 ·
-Bow Timbre` is the inverse bow pressure: low timbre slips easily (airy, flautando),
-high timbre grips (scratchy, rich). `F` is the excitation. This makes the
-resonator self-oscillate at its own frequency, as a bowed body does, and the
+**Bow.** The shared `dsp::Bow` (`common/dsp/Exciter.h`), a friction model:
+bow velocity `v_b = 0.5 · e · Bow · Velocity · (1 + (0.02 + 0.08 · Bow Timbre) · n)`,
+with `n` a 40 Hz low-passed noise (bow hair irregularity). The resonator's
+velocity at the bow point `v_r` is the modal sum weighted by the position
+factors, delayed one sample (`ModalBank::velocity()`). The relative velocity
+`Δv = v_b − v_r` gives the force through the stick-slip curve
+`F(Δv) = Δv · (|Δv| · s + 0.75)^(−4)`, clamped to ±1, where the slope
+`s = 5 − 3 · Bow Timbre` is the inverse bow pressure: low timbre slips easily
+(airy, flautando), high timbre grips (scratchy, rich). The library evaluates
+the curve relative to the bow speed (`(v_b / 0.2) · F(0.2 · Δv / v_b)`), so
+the regime depends on the timbre only and the level follows the bow speed,
+and scales the force into the bank by `bowCoupling(admittance)` so the
+one-sample loop never chatters. This makes the resonator self-oscillate at
+its own frequency (a few cents flat at most, as bowed bodies are), and the
 tone depends on *Position* and *Geometry*. Because only pitched modes of the
 bank are driven, the bow works on bars and plates too (bowed metal).
 
-**Blow.** Flow noise: white noise through a ZDF band-pass (`dsp::Svf`, Q 0.7)
-whose centre is `f0 · 2^(6 · Blow Timbre − 1)` (it tracks pitch), times `e ·
-Blow`. Above 60 % *Blow Timbre* a jet term is added: `j = tanh(4 · (e · Blow ·
-0.5 − g · y))`, where `y` is the resonator output and `g` rises from 0 at 60 %
-to 1 at 100 %. The jet feeds back like a flute's air stream, so bright settings
-can make the body sing on its own, with breath noise on top.
+**Blow.** The shared `dsp::Blow`. Flow noise: white noise through a ZDF
+band-pass (`dsp::Svf`, Q 0.7) whose centre is `f0 · 2^(6 · Blow Timbre − 1)`
+(it tracks pitch), times the flow `e · Blow · Velocity`. Above 60 % *Blow
+Timbre* a jet term is added: `j = flow · tanh(30 · g · y(n − ¾ period))`,
+where `y` is the resonator output (the jet's travel time is ¾ of a period)
+and `g` rises from 0 at 60 % to 1 at 100 %. The jet feeds back like a
+flute's air stream, so bright settings make the body sing on its own at a
+level that follows the flow. The blow goes into the bank's resonant input.
+The breath noise mostly passes the body only at its resonances, so 0.4 × the
+blow signal also goes straight to the outputs: audible breath on top.
 
 **Strike.** On each strike (Strike jack, or a gate rising edge if it is
-unpatched) the mallet fires a pulse of level `Strike · Velocity`:
+unpatched) the mallet (`dsp::Mallet`) fires a force pulse of area
+`Strike · Velocity` (scaled ×3 into the bank's struck input):
 
 | Strike Timbre | Pulse |
 |---|---|
@@ -119,8 +130,10 @@ The impulse positions of the burst come from `uniform01(Seed, strikeCount, k)`,
 with the strike counter cleared on transport start, so renders repeat. A strike
 on a ringing body adds to it; nothing is reset.
 
-**Ext In** is added as is (after *Ext Level* and *Velocity*); with all other
-levels at 0 the module is a resonator with a room.
+**Ext In** (after *Ext Level* and *Velocity*) goes into the struck input
+energy-normalised like the Resonator's input (`resonator.md` 4.2): scaled by
+`2 · √(2 (1 − |coef₁|))`, so noise in gives about the same level at any
+*Damping*. With all other levels at 0 the module is a resonator with a room.
 
 ### 4.3 Resonator
 
@@ -129,9 +142,12 @@ The shared modal bank (`resonator.md` 4.2; *Geometry* plays the role of
 T60 of the fundamental `20 s · 0.002^Damping`. Position sets both the
 excitation weights `|sin(π k p')|` and, for the outputs, two pickups: odd
 partials are weighted toward *Out L*, even toward *Out R* (60/40), so the body
-is slightly wide before the space. Partials above 0.45 × sample rate are
-skipped (no aliasing). The modal output passes `softClip` at ±1 because a hard
-bow on a long-decay body can build energy.
+is slightly wide before the space; the fundamental goes 50/50 so low notes
+stay centred. Partials above 0.45 × sample rate are skipped (no aliasing).
+The body is scaled by 0.5 (a default strike then peaks around 0.5, a bow at
+80 % plays around 0.25 RMS) and passes `softClip` at ±1 because a hard bow on
+a long-decay body can build energy. The bank's coefficients are updated every
+16 samples with a linear ramp.
 
 ### 4.4 Space
 
@@ -142,7 +158,8 @@ a one-pole damping filter in each line (darker for bigger rooms), RT60 from
 on two lines against metallic ringing. An early-reflection tap pair feeds L/R
 directly. *Space* is the wet level; the dry body stays at full level. Memory is
 about 160 kB per voice (2.5 × 41 ms × 4 lines at 96 kHz). At *Space* 0 % the
-network is bypassed and cleared after its tail falls below −90 dB.
+network is bypassed (its output is exactly 0) and sleeps after its tail falls
+below −90 dB. This is the shared `dsp::Room<4>` with its damping at 50 %.
 
 For large Voice Cells, set *Space* to 0 % inside and put one board-level reverb
 after the cell: that saves CPU and keeps one shared room.
@@ -154,7 +171,8 @@ Typical patch inside a Voice Cell: *Voice In › Pitch* → Pitch, *Gate* → Ga
 (aftertouch swells the bow); Out L/R → *Voice Out*, *Active* → *Voice Out ›
 Active*. *Active* falls when the gate is low and the summed output (body and
 space) has stayed below −80 dB for 50 ms; the module then sleeps until the next
-gate or strike.
+gate, strike or *Ext In* signal (the body, the envelope and the room are
+cleared, and nothing is computed).
 
 ### 4.6 CPU
 
@@ -173,6 +191,8 @@ them:
   axis, height = amplitude, brightness = remaining energy) with a marker for
   *Position*.
 - An *Active* LED.
+- A *Play* button (a momentary module button): held, it is a gate, and its
+  press strikes, for auditioning without cables.
 
 ## 6. Saved state
 
@@ -188,8 +208,12 @@ Only knob and setting values; no node data.
 1. The shared `ModalBank` and its ratio tables (see `resonator.md` section 7).
 2. A small shared FDN room in `patch/common/dsp/Room.h`, reusable by a later
    board reverb module.
-3. **Live values:** `active` and a downsampled exciter buffer (64 points) for the
-   scope, and the partial list as for the Resonator.
+3. **Live values:** `active`; live arrays `exciter` (64 points over 50 ms, the
+   signed peak of each slice) for the scope, and `modeHz`, `modeAmp`,
+   `modeLevel` for the partials, as for the Resonator.
+   The *Exciter* output is the monitor sum `0.2 · bow force + blow + mallet
+   pulse × (0.5 ms · fs) + Ext In`, scaled so each part is visible at about
+   its level.
 4. Nothing else: Voice Cell activity already reads *Voice Out › Active*.
 
 ## 8. Tests
@@ -198,11 +222,12 @@ Only knob and setting values; no node data.
 - Bow: with Bow 80 %, Damping 50 %, the output reaches a steady periodic oscillation at f0 (±5 cents) within 300 ms, and stops after release.
 - Blow below 60 % timbre never self-oscillates with the gate low; above 60 % it sustains a pitched tone while the gate is high.
 - Strike: two strikes 100 ms apart add (energy rises), no reset discontinuity; Strike Timbre 70–100 % gives the same burst for the same Seed and strike count.
-- Gate edge strikes only when *Strike* is unpatched.
+- Gate edge strikes only when *Strike* is unpatched (module logic; checked in the board, not in the DSP test).
 - Velocity scales all exciters; unpatched = 1.
 - Active: high while the gate is high; falls within 60 ms after the output goes below −80 dB; includes the space tail.
-- Stability: maximum Bow, Blow and Strike with Damping 0 stays within ±1; no NaN/denormals after 60 s.
-- Space 0 % output equals the dry body exactly.
+- Stability: maximum Bow, Blow and Strike (all timbres 100 %, strikes every 100 ms) with Damping 0 and Space 0 stays within ±1 and finite for 10 s at Geometry 0, 50 % and 100 %.
+- Space 0 % output equals the dry body exactly (renders with different *Size* match sample for sample); with Space on they differ.
+- Active sleeps the voice after it falls.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later

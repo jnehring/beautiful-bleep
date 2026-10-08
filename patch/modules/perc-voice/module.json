@@ -1,0 +1,10 @@
+{
+  "name": "Perc Voice",
+  "slug": "perc-voice",
+  "tagline": "One percussion voice from kick to bell: FM, modal and noise-bank engines behind the same knobs.",
+  "colour": "#fdba74",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/perc-voice.md"
+}

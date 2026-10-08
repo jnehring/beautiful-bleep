@@ -42,19 +42,22 @@ Every knob is also an input (`specs.md` section 7.3).
 |---|---|---|---|
 | Pitch | 20 Hz – 4 kHz | 55 Hz | Fundamental (exponential; 1 V/oct input adds). |
 | Tone | 0–100 % | 20 % | Spectrum: sine (0 %) → membrane modes (33 %) → bar modes (67 %) → inharmonic metal (100 %); morphs continuously (4.2). |
-| Morph | 0–100 % | 50 % | Engine-specific (4.3): FM index, partial balance, or noise band width. |
+| Morph | 0–100 % | 50 % | Engine-specific (4.3): FM index, partial balance, or noise band width. Its name follows the engine (*FM Index*, *Balance*, *Width*). |
 | Click | 0–100 % | 30 % | Transient: a short filtered noise burst plus a pitch blip at the start. |
 | Decay | 10 ms – 8 s | 400 ms | T60 of the body. |
 | Damp | 0–100 % | 40 % | How much faster upper partials decay (0 = all equal, 100 % = highs 8× shorter). |
 | Sweep | 0–100 % | 40 % | Pitch drop at the start: up to +3 octaves falling to *Pitch*, time ≈ Decay / 8. |
-| Spread | 0–100 % | 20 % | Stereo spread of the partials (odd left, even right) plus slight per-side detune. |
+| Spread | 0–100 % | 20 % | Stereo spread: Modal and Noise Bank pan odd partials left and even right (the fundamental stays centred); FM detunes the two sides' carriers by up to ±8 cents. |
 | Level | 0–100 % | 80 % | Output level. |
 
 **Settings**
 
+*Engine* is a stepped knob (modulatable, read at each strike), so a
+sequencer can pick the engine per hit.
+
 | Setting | Values | Default |
 |---|---|---|
-| Engine | FM, Modal, Noise Bank | Modal |
+| Engine | FM, Modal, Noise Bank (stepped knob) | Modal |
 | Track | off (pitch sampled at trigger) / on (follows live) | off |
 | Drive | Clean, Warm, Hot | Clean |
 | Seed | 0–999 | 1 |
@@ -67,7 +70,15 @@ Every engine produces up to **8 partials**. Partial *k* has a frequency ratio
 `r_k` (from *Tone*, 4.2), an amplitude `a_k` and its own decay
 `T60_k = Decay × d_k` with `d_k = (1 / r_k) ^ (3 × Damp)`, so higher partials
 die faster when *Damp* is up. The fundamental's pitch envelope (*Sweep*)
-applies to all partials, keeping the ratios.
+applies to all partials, keeping the ratios: it starts at
+`3 oct × Sweep × accent depth` and falls exponentially to 5 % in Decay / 8.
+
+The amplitudes are `a_k = fade_k · k^tilt`, normalised (FM: to a sum of 1;
+Modal and Noise Bank: to a power of 1), with `fade_k` the Tone fade-in of
+partials 2–8 (4.2) and the tilt per engine: Modal `−2 + 3 · Morph`, FM `−1`,
+Noise Bank `−0.5`, each lowered by `0.8 · (1 − Accent)` (4.5). Modal and
+Noise Bank outputs are scaled by 0.7 and 0.8 so the default hit peaks below
+the output limiter's knee.
 
 ### 4.2 Tone: ratio tables
 
@@ -92,17 +103,20 @@ muted with a smooth roll-off (no aliasing when sweeping *Pitch* up).
   index (0–8), decaying with its own envelope (half of *Decay*), so the
   attack is bright and the tail purer: classic FM toms, kicks and bells.
 - **Modal** — The partials are 8 struck resonators (complex one-pole, as in
-  `dsp/Drums.h Resonator`), excited by the click burst and an impulse.
+  `dsp/Drums.h Resonator`), excited by an impulse of `a_k × level` at the
+  strike (zero phase, so they start without a click) and by the click burst.
   *Morph* tilts the amplitude balance: 0 % fundamental-heavy (drums), 100 %
   upper partials (glassy bells). A second strike adds to the ringing like a
   real body, so rolls build up naturally.
 - **Noise Bank** — Seeded white noise feeds 8 resonant band-passes (TPT SVF)
   at the partial frequencies. *Morph* is the bandwidth: 0 % narrow (Q 40,
   almost pitched: steel drums, wood), 100 % wide (Q 0.7: snares, shakers,
-  breathy hits). Combined with Tone 100 % it gives cymbals and gongs.
+  breathy hits), log-spaced in between. Each band is normalised so white noise
+  gives about the same level at any width, then shaped by its partial's
+  amplitude and decay. Combined with Tone 100 % it gives cymbals and gongs.
 
-Switching *Engine* (a setting) applies at the next strike; the sounding hit
-finishes with the old engine.
+*Engine* is read at each strike; the sounding hit finishes with its own
+engine.
 
 ### 4.4 Click
 
@@ -114,28 +128,38 @@ resonators, so the click colours the body.
 ### 4.5 Accent
 
 Accent `a` (0–1) sets: level × (0.4 + 0.6 a), Click × (0.5 + a), Sweep depth
-× (0.6 + 0.4 a), FM index × (0.7 + 0.6 a). So soft hits are duller as well as
-quieter, like a real drum.
+× (0.6 + 0.4 a), FM index × (0.7 + 0.6 a), and tilts the partial amplitudes
+by `k^(−0.8 (1 − a))`. So soft hits are duller as well as quieter, like a
+real drum. The *Hit* button plays at accent 0.7, as does *Trig* with *Accent*
+unpatched.
 
 ### 4.6 Retriggering and clicks
 
 Outside a Voice Cell the module is monophonic but uses **two internal
 voices**: a new strike starts on the free one while the previous hit fades
-over 3 ms (Modal: keeps ringing and is re-struck instead, 4.3). Retriggering
-never clicks. *Choke* fades the sounding voice(s) over 5 ms.
+over 3 ms (Modal on a sounding Modal hit: keeps ringing and is re-struck
+instead, 4.3). Retriggering never clicks. *Choke* fades the sounding voice(s)
+over 5 ms.
 
-Knob changes during a hit apply immediately and smoothly: all partial
-frequencies, amplitudes and decays are recomputed per sample from the
-effective values (cheap: 8 partials); FM uses phase accumulators, so
-modulating *Pitch* or *Tone* at audio rate gives FM-like timbres, not clicks.
-*Decay* modulation changes the decay rate from that sample on.
+Knob changes during a hit apply immediately and smoothly: partial ratios,
+amplitudes and decays are recomputed every 8 samples from the effective
+values, and the pitch envelope and partial frequencies per sample (the
+resonator rotations and band-pass coefficients use polynomial sin/cos and a
+Padé tan, so this stays cheap). FM uses phase accumulators, so modulating
+*Pitch* or *Tone* at audio rate gives FM-like timbres, not clicks. *Decay*
+modulation changes the decay rate from the next update on.
+
+A hit ends (and *Active* falls) when its body has stayed below −80 dB for 32
+samples and its click is over; the voice then costs nothing.
 
 ### 4.7 Polyphony and transport
 
 - **Voice Cells:** works per voice like the Oscillator. Patch *Voice In ›
   Trigger* into *Trig*, *Pitch* into *Pitch*, *Velocity* into *Accent*, and
-  *Active* into *Voice Out › Active*. The *Basic Perc* factory preset (7.3)
-  does this.
+  *Active* into *Voice Out › Active*. The *Basic Perc* factory preset (7.3,
+  not built yet) will do this.
+- The *Pitch* input adds octaves to the *Pitch* knob (0 V = the knob's
+  frequency).
 - The voice runs regardless of transport; a hit started before stop rings
   out. The noise and Metal ratios come from *Seed* (noise reseeded per strike
   from `hash(Seed, strike counter)`, counter reset on `transportStarted`), so
@@ -164,30 +188,38 @@ modulating *Pitch* or *Tone* at audio rate gives FM-like timbres, not clicks.
 - **Envelope sketch** for the current Decay, Click and Sweep.
 - **Hit** button strikes the voice at Accent 0.7 (audition without patching).
 
+Live arrays `ratios`, `amps` and `decays` (8 each; decay as `T60_k / Decay`)
+carry the partial set of the newest hit's engine at the current knobs, about
+30 times a second.
+
 ## 6. Saved state
 
 Knob and setting values only. No node data.
 
 ## 7. Engine requirements
 
-1. Reuse `patch/common/dsp/Drums.h` (`Resonator`, `Decay`, `SweepOsc`) and
-   `dsp/Noise.h`; add an 8-partial bank and the ratio tables there so Analog
-   Drums and Drum + Mod can share them.
-2. **Audition from the view:** a message-thread → audio-thread "strike" event
-   for the *Hit* button (a one-shot flag on the module, consumed at the start
-   of the next block). Useful for every drum module.
+1. Uses `dsp/Drums.h` (`decayCoef`, drive `softClip`), `dsp/Exciter.h`
+   (`NoiseBurst` for the click), `dsp/Svf.h`, `dsp/Noise.h`, `dsp/Random.h`.
+   The 8-partial engine and the ratio tables (`perc::` in
+   `modules/perc-voice/dsp/PercVoiceDsp.h`) are local for now, written so they
+   can move to `common/dsp` when Analog Drums and Drum + Mod want them.
+2. **Audition from the view:** the *Hit* button is a module button
+   (`ModuleSpec::buttons`), drained with `pollCommands` at the start of the
+   next block.
 3. **Factory preset *Basic Perc*** (*Add → Cell → Drums*): Voice Cell with
-   Perc Voice, 8 voices, Allocation *lowest free*, Stealing *quietest*.
+   Perc Voice, 8 voices, Allocation *lowest free*, Stealing *quietest*. Not
+   built yet (board side).
 
 ## 8. Tests
 
 - Tone 0 %, Sweep 0, Click 0: a pure sine at *Pitch* (THD < −60 dB) with the
   set T60 ± 10 %.
 - Ratio tables: Tone 33 % and 67 % produce partials at the table ratios
-  (FFT peaks within 1 %).
+  (FFT peaks at the ratios, ±3 % off-peak clearly lower).
 - Damp 100 %: partial 2's T60 is shorter than partial 1's by the formula.
 - Each engine at the default settings produces a finite, non-silent output
-  and decays below −80 dB within 1.2 × Decay; *Active* falls then.
+  and decays below −80 dB within 1.4 × Decay (the fundamental's T60 is
+  *Decay*, and −80 dB is 1.33 × T60 from full level); *Active* falls then.
 - Accent 0 vs 1: level and brightness (spectral centroid) increase.
 - Retrigger every 10 ms for 1 s: no sample-to-sample step above a threshold
   relative to the signal; Choke fades in 5 ms ± 1 ms.
