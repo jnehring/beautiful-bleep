@@ -99,6 +99,10 @@ public:
     /// and whenever the data changes; modules hand it to the audio thread
     /// themselves.
     virtual void setData(const std::string& json) { (void)json; }
+    /// [message thread] A performance gesture from the module view (a button
+    /// press, a key played): no undo entry, not saved. Modules hand it to the
+    /// audio thread themselves, e.g. through a ControlQueue.
+    virtual void perform(const std::string& action, const std::vector<double>& args) { (void)action; (void)args; }
     /// [message thread] Extra live values for the module view, e.g. a playhead.
     virtual void liveValues(std::vector<std::pair<std::string, double>>& out) const { (void)out; }
 

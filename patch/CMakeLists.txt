@@ -49,7 +49,7 @@ if (NOT TARGET bleep_bus)
 endif ()
 
 # Pure DSP, no JUCE.
-set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes step-sequencer drum-grid lfo noise ring-drums punch-drums attenuverter cv-mixer audio-mixer multiplier crossfader logic quantizer switch notes-to-cv)
+set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes step-sequencer drum-grid lfo noise ring-drums punch-drums attenuverter cv-mixer audio-mixer multiplier crossfader logic quantizer switch notes-to-cv dial button keyboard)
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)
@@ -120,6 +120,15 @@ if (BLEEP_PATCH_BUILD_TESTS)
         bleep_patch_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.utility-modules COMMAND bleep_utility_module_tests)
+
+    juce_add_console_app(bleep_controller_module_tests PRODUCT_NAME "Bleep Controller Module Tests")
+    target_sources(bleep_controller_module_tests PRIVATE tests/controller_modules_test.cpp ${BLEEP_ENGINE_SOURCES})
+    target_include_directories(bleep_controller_module_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_controller_module_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_controller_module_tests PRIVATE
+        bleep_patch_dsp juce::juce_events
+        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+    add_test(NAME patch.controller-modules COMMAND bleep_controller_module_tests)
 
     juce_add_console_app(bleep_bridge_tests PRODUCT_NAME "Bleep Bridge Tests")
     target_sources(bleep_bridge_tests PRIVATE tests/bridge_test.cpp ${BLEEP_ENGINE_SOURCES}

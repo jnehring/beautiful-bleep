@@ -71,6 +71,9 @@ void registerLogicModule(Registry&);
 void registerQuantizerModule(Registry&);
 void registerSwitchModule(Registry&);
 void registerNotesToCvModule(Registry&);
+void registerDialModule(Registry&);
+void registerButtonModule(Registry&);
+void registerKeyboardModule(Registry&);
 void registerPortModules(Registry&);
 
 }  // namespace bleep::engine

@@ -81,6 +81,7 @@
     return x.toFixed(2);
   }
 
+  const played = {};  // node → what perform() played: {held, pressed, released, notes}
   let t = 0;
   setInterval(() => {
     if (!board) return;
@@ -124,6 +125,25 @@
         entry.hits = 0;
         if (pat) pat.steps.forEach((row, k) => { if ("xX".includes(row[entry.step])) entry.hits |= 1 << k; });
       }
+      // Controllers: what the view played (perform), not the animation.
+      if (n.type === "dial") {
+        const at = (id) => { const p = ty.params.find((x) => x.id === id); return p.min + (n.params[id] ?? p.default) * (p.max - p.min); };
+        outputs.out = at("min") + (at("max") - at("min")) * (n.params.value ?? 0.5);
+      }
+      if (n.type === "button") {
+        const b = played[n.id] || {}, on = !!(n.data && n.data.on);
+        Object.assign(outputs, { gate: (n.params.mode ?? 0) >= 0.5 ? +on : +!!b.held, toggle: +on,
+                                 trigger: b.pressed ? 1 : 0, release: b.released ? 1 : 0 });
+        b.pressed = b.released = false;
+      }
+      if (n.type === "keyboard") {
+        const held = (played[n.id] || {}).notes || [];
+        const last = held[held.length - 1];
+        Object.assign(outputs, { gate: held.length ? 1 : 0, pitch: last === undefined ? 0 : (last - 60) / 12, trigger: 0,
+                                 vel: held.length ? n.params.velocity ?? 0.8 : 0 });
+        entry.active = last === undefined ? -1 : last;
+        entry.held = held.length;
+      }
       if (n.type === "voice-cell") entry.voices = Math.floor(t * 2) % 2 ? 0b101 : 0b011;
       nodes[n.id] = entry;
     });
@@ -165,6 +185,15 @@
         case "setAmount": {
           const c = board.cables.find((x) => x.id === a[0]);
           if (c) { c.amount = a[1]; save(); }
+          return null;
+        }
+        case "perform": {  // Button and Keyboard gestures (see the state loop)
+          const p = (played[a[0]] = played[a[0]] || { notes: [] }), args = a[2] || [];
+          if (a[1] === "press") { p.held = p.pressed = true; }
+          if (a[1] === "release") { p.held = false; p.released = true; }
+          if (a[1] === "on") { p.notes = p.notes.filter((x) => x !== args[0]); p.notes.push(args[0]); }
+          if (a[1] === "off") p.notes = p.notes.filter((x) => x !== args[0]);
+          if (a[1] === "allOff") p.notes = [];
           return null;
         }
         case "watch": watched = a[0] || []; return null;

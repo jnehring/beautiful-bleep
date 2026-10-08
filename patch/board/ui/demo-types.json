@@ -2914,6 +2914,231 @@
     ]
   },
   {
+    "type": "dial",
+    "name": "Dial",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "One big knob as a control signal, scaled to a range, smooth or in steps.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "value",
+        "name": "Value",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "min",
+        "name": "Min",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "max",
+        "name": "Max",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "smooth",
+        "name": "Smooth",
+        "kind": "float",
+        "default": 0.250000029802322,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "steps",
+        "name": "Steps",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 25,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 24.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "button",
+    "name": "Button",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "A pad to press: gate while held (or toggled), triggers on press and release.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Momentary",
+          "Toggle"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "toggle",
+        "name": "Toggle",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "keyboard",
+    "name": "Keyboard",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "Play notes with the mouse or the computer keyboard. Notes out plays a Voice Cell.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "kind": "float",
+        "default": 0.797979831695557,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 1.0
+      },
+      {
+        "id": "glide",
+        "name": "Glide",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "octave",
+        "name": "Octave",
+        "kind": "int",
+        "default": 0.5,
+        "steps": 7,
+        "modulatable": false,
+        "min": -3.0,
+        "max": 3.0
+      },
+      {
+        "id": "priority",
+        "name": "Priority",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Last",
+          "Lowest",
+          "Highest",
+          "First"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "hold",
+        "name": "Hold",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "vel",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "step-sequencer",
     "name": "Step Sequencer",
     "category": "Sequencing",

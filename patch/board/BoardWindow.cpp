@@ -6,6 +6,7 @@
 // Bridge (JUCE native functions / events):
 //   JS → C++   init() commit(board, label) undo() redo() beginGesture()
 //              setParam(node, param, v) setAmount(cable, v) setData(node, data) watch([nodeIds])
+//              perform(node, action, [args])   (Button presses, Keyboard keys: not saved)
 //              presets(kind?) savePreset(name, preset, kind?) deletePreset(name, kind?)
 //              (kind: "cell", the default, or "drums" for Drum Grid patterns)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
@@ -174,6 +175,10 @@ public:
                 })
                 .withNativeFunction("setData", [this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.setData(a[0].toString(), a[1]);
+                    done({});
+                })
+                .withNativeFunction("perform", [this](const juce::Array<juce::var>& a, Completion done) {
+                    engine_.perform(a[0].toString(), a[1].toString(), a[2]);
                     done({});
                 })
                 .withNativeFunction("midiDevices", [](const juce::Array<juce::var>&, Completion done) {

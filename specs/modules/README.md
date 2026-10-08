@@ -22,6 +22,9 @@ section 21): no hardware names in the files, the UI or the docs.
 |---|---|---|
 | Step Sequencer | [step-sequencer.md](step-sequencer.md) | Implemented |
 | LFO | [lfo.md](lfo.md) | Implemented |
+| Dial | [dial.md](dial.md) | Implemented |
+| Button | [button.md](button.md) | Implemented |
+| Keyboard | [keyboard.md](keyboard.md) | Implemented |
 | Attenuverter | [attenuverter.md](attenuverter.md) | Implemented |
 | CV Mixer | [cv-mixer.md](cv-mixer.md) | Implemented |
 | Audio Mixer | [audio-mixer.md](audio-mixer.md) | Implemented |

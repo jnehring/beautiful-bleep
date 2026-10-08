@@ -1456,6 +1456,8 @@
       },
       // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
       perform: (action, ...args) => native("perform", id, action, args),
+      // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
+      perform: (action, ...args) => native("perform", id, action, args),
       // Preset libraries shared by all sets, e.g. Drum Grid patterns ("drums").
       presets: async (kind) => (await native("presets", kind)) || [],
       savePreset: async (kind, name, preset) => (await native("savePreset", name, preset, kind)) || [],

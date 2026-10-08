@@ -9,6 +9,7 @@
 //     api    { setParam(id, v), beginGesture(), setAmount(cableId, v),
 //              removeCable(cableId), cablesInto(paramId) → [{id, label, amount}],
 //              setNodeProperty(key, value), setData(data),
+//              perform(action, ...args)  (performance gestures: not saved, no undo),
 //              presets(kind), savePreset(kind, name, preset), deletePreset(kind, name)
 //                → the library's [{name, preset}] (kind "drums": Drum Grid patterns) }
 //   view.root                     the element to insert

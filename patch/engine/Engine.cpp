@@ -361,6 +361,16 @@ void Engine::setData(const juce::String& nodeId, const juce::var& data) {
     generation_.fetch_add(1);
 }
 
+void Engine::perform(const juce::String& nodeId, const juce::String& action, const juce::var& args) {
+    std::vector<double> values;
+    if (const auto* a = args.getArray())
+        for (const auto& v : *a) values.push_back((double)v);
+    const std::string id = nodeId.toStdString(), name = action.toStdString();
+    if (auto m = modules_.find(id); m != modules_.end()) m->second->perform(name, values);
+    if (auto in = inner_.find(id); in != inner_.end())
+        for (const auto& m : in->second.modules) m->perform(name, values);
+}
+
 void Engine::setAmount(const juce::String& cableId, float amount) {
     auto* c = hasBoard() ? board::findCable(board_, cableId) : nullptr;
     if (c == nullptr) return;

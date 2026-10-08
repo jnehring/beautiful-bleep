@@ -1,0 +1,10 @@
+{
+  "name": "Keyboard",
+  "slug": "keyboard",
+  "tagline": "Play notes with the mouse or the computer keyboard; Notes out plays a Voice Cell.",
+  "colour": "#fda4af",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/keyboard.md"
+}
