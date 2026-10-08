@@ -10,6 +10,7 @@ const Registry& Registry::get() {
 
 Registry::Registry() {
     registerOscillatorModule(*this);
+    registerNoiseModule(*this);
     registerFunctionModule(*this);
     registerLfoModule(*this);
     registerRandomModule(*this);
@@ -19,6 +20,8 @@ Registry::Registry() {
     registerUtilityModule(*this);
     registerCvToNotesModule(*this);
     registerStepSequencerModule(*this);
+    registerRingDrumsModules(*this);
+    registerPunchDrumsModules(*this);
     registerPortModules(*this);
 
     // Cells (spec §8): their jacks live in the board, not in the spec.

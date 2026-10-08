@@ -1,0 +1,10 @@
+{
+  "name": "Ring Drums",
+  "slug": "ring-drums",
+  "tagline": "A deep, round drum kit, one node per drum: struck resonators, noise and detuned square waves.",
+  "colour": "#f59e0b",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/ring-drums.md"
+}

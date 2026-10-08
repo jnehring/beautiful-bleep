@@ -1,0 +1,10 @@
+{
+  "name": "Noise",
+  "slug": "noise",
+  "tagline": "White, pink, brown and blue noise, and a Colour knob that sweeps from dark to bright.",
+  "colour": "#cbd5e1",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/noise.md"
+}

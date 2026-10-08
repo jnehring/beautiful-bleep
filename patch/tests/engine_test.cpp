@@ -5,6 +5,7 @@
 // calling IEngine directly, including from several threads per host block.
 #include "Board.h"
 #include "Engine.h"
+#include "Registry.h"
 
 #include <array>
 #include <cmath>
@@ -757,6 +758,100 @@ void stepSequencer() {
     e->release();
 }
 
+/// Drum nodes (specs/modules/ring-drums.md, punch-drums.md) and Noise, run
+/// through their jacks: a trigger plays, Velocity scales, Level is last.
+void drumNodes() {
+    struct Rig {
+        std::unique_ptr<Module> m;
+        std::vector<std::vector<float>> params, inputs, outputs;
+        std::vector<const float*> pp, ip;
+        std::vector<float*> op;
+        std::unique_ptr<bool[]> connected;
+        Transport transport;
+
+        explicit Rig(const std::string& type) : m(Registry::get().create(type)) {
+            const auto& s = m->spec();
+            params.assign(s.params.size(), std::vector<float>(kChunk));
+            inputs.assign(s.inputs.size(), std::vector<float>(kChunk, 0.0f));
+            outputs.assign(s.outputs.size(), std::vector<float>(kChunk, 0.0f));
+            connected.reset(new bool[s.inputs.size() + 1]());
+            for (size_t i = 0; i < s.params.size(); ++i) setParam((int)i, s.params[i].defaultNormalised());
+            for (auto& v : params) pp.push_back(v.data());
+            for (auto& v : inputs) ip.push_back(v.data());
+            for (auto& v : outputs) op.push_back(v.data());
+            m->prepare(kRate);
+            m->reset();
+        }
+        void setParam(int i, float normalised) {
+            m->setKnob(i, normalised);
+            std::fill(params[(size_t)i].begin(), params[(size_t)i].end(), normalised);
+        }
+        /// Runs `seconds`; input `trig` gets a one-sample pulse at the start. Returns the peak of output 0.
+        float run(double seconds, int trig = -1) {
+            ProcessContext c;
+            c.numSamples = kChunk;
+            c.transport = &transport;
+            c.params = pp.data();
+            c.inputs = ip.data();
+            c.inputConnected = connected.get();
+            c.outputs = op.data();
+            float peak = 0.0f;
+            for (int n = 0; n < (int)(seconds * kRate / kChunk); ++n) {
+                if (trig >= 0) inputs[(size_t)trig][3] = n == 0 ? 1.0f : 0.0f;
+                m->process(c);
+                for (float x : outputs[0]) {
+                    EXPECT(std::isfinite(x));
+                    peak = std::max(peak, std::fabs(x));
+                }
+            }
+            return peak;
+        }
+    };
+
+    int drums = 0;
+    for (const auto* s : Registry::get().all()) {
+        if (s->category != "Drums") continue;
+        g_test = s->type.c_str();
+        ++drums;
+        const int level = (int)s->params.size() - 1;
+        const int velocity = s->inputIndex("velocity");
+        EXPECT(s->params[(size_t)level].id == "level");
+        EXPECT(velocity == (int)s->inputs.size() - 1);
+        EXPECT(s->outputs.size() == 1 && s->outputs[0].type == Signal::Audio);
+        for (int t = 0; t < velocity; ++t) {
+            Rig rig(s->type);
+            EXPECT(rig.run(0.1) == 0.0f);           // silent until triggered
+            const float loud = rig.run(0.5, t);
+            EXPECT(loud > 0.2f && loud < 1.2f);
+            rig.run(10.0);
+            EXPECT(rig.run(0.1) < 1e-3f * loud);   // dies away
+            // Velocity, sampled at the trigger.
+            rig.connected[(size_t)velocity] = true;
+            std::fill(rig.inputs[(size_t)velocity].begin(), rig.inputs[(size_t)velocity].end(), 0.25f);
+            const float soft = rig.run(0.5, t);
+            EXPECT(soft < 0.4f * loud && soft > 0.1f * loud);
+            rig.run(10.0);
+            // Level scales the output.
+            rig.connected[(size_t)velocity] = false;
+            rig.setParam(level, 0.0f);
+            EXPECT(rig.run(0.5, t) == 0.0f);
+        }
+    }
+    EXPECT(drums == 15);
+
+    g_test = "noise node";
+    Rig noise("noise");
+    EXPECT(noise.run(0.1) > 0.1f);
+    for (size_t o = 1; o < noise.outputs.size(); ++o) {
+        float peak = 0.0f;
+        for (float x : noise.outputs[o]) peak = std::max(peak, std::fabs(x));
+        EXPECT(peak > 0.0f && peak < 2.0f);
+    }
+    noise.setParam(1, 0.0f);  // Level
+    EXPECT(noise.run(0.1) == 0.0f);
+    EXPECT(noise.outputs[1][0] != 0.0f);  // the fixed colours ignore Level
+}
+
 }  // namespace
 
 int main() {
@@ -772,6 +867,7 @@ int main() {
     standaloneDriver();
     voiceCells();
     stepSequencer();
+    drumNodes();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;
 }

@@ -58,6 +58,9 @@ void registerAdsrModule(Registry&);
 void registerVcaModule(Registry&);
 void registerCvToNotesModule(Registry&);
 void registerStepSequencerModule(Registry&);
+void registerNoiseModule(Registry&);
+void registerRingDrumsModules(Registry&);
+void registerPunchDrumsModules(Registry&);
 void registerPortModules(Registry&);
 
 }  // namespace bleep::engine

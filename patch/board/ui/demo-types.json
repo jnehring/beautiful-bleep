@@ -139,6 +139,71 @@
     ]
   },
   {
+    "type": "noise",
+    "name": "Noise",
+    "category": "Sources",
+    "colour": "#cbd5e1",
+    "description": "White, pink, brown and blue noise. Colour sweeps from dark brown to bright violet.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "colour",
+        "name": "Colour",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "white",
+        "name": "White",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "pink",
+        "name": "Pink",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "brown",
+        "name": "Brown",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "blue",
+        "name": "Blue",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
     "type": "function",
     "name": "Function",
     "category": "Modulation",
@@ -1331,6 +1396,1276 @@
         "name": "Step",
         "type": "control",
         "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "ring-kick",
+    "name": "Ring Kick",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Deep, round kick: a struck resonator that rings and dies away.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.368482768535614,
+        "steps": 0,
+        "modulatable": true,
+        "min": 30.0,
+        "max": 120.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.568272709846497,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 3.0
+      },
+      {
+        "id": "sweep",
+        "name": "Sweep",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "drive",
+        "name": "Drive",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "ring-snare",
+    "name": "Ring Snare",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Snare: two ringing drum heads and a burst of bright noise.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.423998415470123,
+        "steps": 0,
+        "modulatable": true,
+        "min": 100.0,
+        "max": 400.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "snappy",
+        "name": "Snappy",
+        "kind": "float",
+        "default": 0.600000023841858,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.499999970197678,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "ring-clap",
+    "name": "Ring Clap",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Hand clap: a few quick bursts of noise and a short tail.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.379167854785919,
+        "steps": 0,
+        "modulatable": true,
+        "min": 500.0,
+        "max": 4000.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 1.5
+      },
+      {
+        "id": "spread",
+        "name": "Spread",
+        "kind": "float",
+        "default": 0.499999970197678,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.003000000026077,
+        "max": 0.029999999329448
+      },
+      {
+        "id": "bursts",
+        "name": "Bursts",
+        "kind": "int",
+        "default": 0.600000023841858,
+        "steps": 6,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 6.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "ring-tom",
+    "name": "Ring Tom",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Tom or hand drum: a ringing tone that falls in pitch, with a little noise.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.414349347352982,
+        "steps": 0,
+        "modulatable": true,
+        "min": 50.0,
+        "max": 600.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 2.0
+      },
+      {
+        "id": "bend",
+        "name": "Bend",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "noise",
+        "name": "Noise",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "ring-rim",
+    "name": "Ring Rim",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Rim shot or clave: short, high, woody clicks.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "voice",
+        "name": "Voice",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Rim",
+          "Clave"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -12.0,
+        "max": 12.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.25,
+        "max": 4.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "ring-cowbell",
+    "name": "Ring Cowbell",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Cowbell: two square waves through a band-pass, a sharp hit and a tail.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -12.0,
+        "max": 12.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 2.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "ring-hats",
+    "name": "Ring Hats",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Closed and open hi-hats from six detuned squares. Closed cuts open.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -12.0,
+        "max": 12.0
+      },
+      {
+        "id": "closed",
+        "name": "Closed Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 0.300000011920929
+      },
+      {
+        "id": "open",
+        "name": "Open Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 3.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "closed",
+        "name": "Closed",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "open",
+        "name": "Open",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "ring-cymbal",
+    "name": "Ring Cymbal",
+    "category": "Drums",
+    "colour": "#f59e0b",
+    "description": "Cymbal: a low clang and a long sizzle from six detuned squares.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -12.0,
+        "max": 12.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.300000011920929,
+        "max": 8.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "punch-kick",
+    "name": "Punch Kick",
+    "category": "Drums",
+    "colour": "#f43f5e",
+    "description": "Hard, tight kick: a sine that sweeps down fast, with a noise click.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.368482768535614,
+        "steps": 0,
+        "modulatable": true,
+        "min": 30.0,
+        "max": 120.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.542771935462952,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 2.5
+      },
+      {
+        "id": "sweep",
+        "name": "Sweep",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "attack",
+        "name": "Attack",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "drive",
+        "name": "Drive",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "punch-snare",
+    "name": "Punch Snare",
+    "category": "Drums",
+    "colour": "#f43f5e",
+    "description": "Snare: two swept sines for the body and filtered noise for the wires.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.42428332567215,
+        "steps": 0,
+        "modulatable": true,
+        "min": 120.0,
+        "max": 400.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "snappy",
+        "name": "Snappy",
+        "kind": "float",
+        "default": 0.600000023841858,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.499999970197678,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "punch-clap",
+    "name": "Punch Clap",
+    "category": "Drums",
+    "colour": "#f43f5e",
+    "description": "Bright hand clap: tight bursts of noise and a roomy tail.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.528320848941803,
+        "steps": 0,
+        "modulatable": true,
+        "min": 500.0,
+        "max": 4000.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 1.5
+      },
+      {
+        "id": "spread",
+        "name": "Spread",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.003000000026077,
+        "max": 0.029999999329448
+      },
+      {
+        "id": "bursts",
+        "name": "Bursts",
+        "kind": "int",
+        "default": 0.600000023841858,
+        "steps": 6,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 6.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "punch-tom",
+    "name": "Punch Tom",
+    "category": "Drums",
+    "colour": "#f43f5e",
+    "description": "Tom: a sine that drops in pitch, with a touch of noise.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.342422693967819,
+        "steps": 0,
+        "modulatable": true,
+        "min": 50.0,
+        "max": 500.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 2.0
+      },
+      {
+        "id": "bend",
+        "name": "Bend",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "noise",
+        "name": "Noise",
+        "kind": "float",
+        "default": 0.200000002980232,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "punch-rim",
+    "name": "Punch Rim",
+    "category": "Drums",
+    "colour": "#f43f5e",
+    "description": "Rim shot: a hard, bright crack.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -12.0,
+        "max": 12.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.25,
+        "max": 4.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "punch-hats",
+    "name": "Punch Hats",
+    "category": "Drums",
+    "colour": "#f43f5e",
+    "description": "Bright, crunchy closed and open hi-hats. Closed cuts open.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -12.0,
+        "max": 12.0
+      },
+      {
+        "id": "closed",
+        "name": "Closed Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 0.300000011920929
+      },
+      {
+        "id": "open",
+        "name": "Open Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.050000000745058,
+        "max": 3.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "crunch",
+        "name": "Crunch",
+        "kind": "float",
+        "default": 0.400000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "closed",
+        "name": "Closed",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "open",
+        "name": "Open",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "punch-cymbal",
+    "name": "Punch Cymbal",
+    "category": "Drums",
+    "colour": "#f43f5e",
+    "description": "Crash or ride: bright, crunchy metal with a long decay.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "voice",
+        "name": "Voice",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Crash",
+          "Ride"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "tune",
+        "name": "Tune",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -12.0,
+        "max": 12.0
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.300000011920929,
+        "max": 8.0
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "crunch",
+        "name": "Crunch",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trig",
+        "name": "Trig",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
       }
     ]
   },

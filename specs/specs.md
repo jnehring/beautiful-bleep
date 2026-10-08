@@ -693,11 +693,14 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **Utility** | Attenuverter, offset, mix, slew, S&H, comparator, logic, rectify/fold, quantizer | The glue. Small, cheap, endlessly combinable. |
 | **Multi Filter** | Several filter algorithms behind one panel: a **Type** dropdown, plus mode morph, drive, key-tracking, envelope follower out | See below. |
 | **Oscillator** | Triangle-core oscillator: waveform morph, through-zero FM, hard sync, sub | See below. The basic sound source for synths on the board. |
+| **Noise** | White, pink, brown, blue; continuous colour sweep | *Colour* morphs brown → pink → white → blue → violet at constant loudness. Every instance plays its own noise. See `specs/modules/noise.md`. |
 | **VCA** | Voltage-controlled amplifier, linear or exponential response, stereo | Turns envelopes into loudness. Its *Gain* knob starts at 0, so an envelope patched into it opens it fully. |
 | **ADSR** | Attack, decay, sustain, release; velocity amount; retrigger | Outputs *Env*, *End* (trigger when the release finishes) and *Active* (gate while the envelope runs, for a Voice Cell's *Voice Out*). |
 | **Step Sequencer** | Up to 32 steps with gate (on/off/tie), pitch and velocity lanes; scale quantizing; randomizer and seeded *Variation* | Transport-locked or clocked. *Notes* output plays a Voice Cell directly. See `specs/modules/step-sequencer.md`. |
 | **Drum Grid** | 8 tracks × up to 32 steps (off/on/accent); per-track gate, accent and velocity outputs; 16 pattern slots; pattern library | Transport-locked, own tempo or clocked; a Run gate starts and stops it. Patterns switch at the end or immediately and save to a library shared by all sets. See `specs/modules/drum-grid.md`. |
 | **CV to Notes** | Pitch + gate → `notes` | Lets mono sources (sequencers, Random + Utility) play Voice Cells. Legato on pitch changes while the gate is high. |
+| **Ring Drums** | One node per drum: kick, snare, clap, tom, rim/clave, cowbell, hats, cymbal | Deep, round kit from struck resonators, band-passed noise and six detuned squares. Shared outside: *Trig*, *Velocity*, *Out*, *Level*. See `specs/modules/ring-drums.md`. |
+| **Punch Drums** | One node per drum: kick, snare, clap, tom, rim, hats, crash/ride | Tight, hard kit from fast-swept sines, noise clicks and crunchy metal. Same outside as Ring Drums. See `specs/modules/punch-drums.md`. |
 | **Notes to CV** | `notes` → pitch, gate, trigger, velocity, pressure; note priority, retrigger, glide | The way out of `notes` (section 7.4) for modules outside a Voice Cell. See `specs/modules/notes-to-cv.md`. |
 | **Attenuverter** | Four rows of scale (−2…+2) and offset, sum output, clip | Unpatched rows are manual constants: four macro knobs. See `specs/modules/attenuverter.md`. |
 | **CV Mixer** | Four bipolar channels; sum, average, max, min, scan; master, offset | Combines modulators in more ways than fan-in's sum. See `specs/modules/cv-mixer.md`. |
@@ -901,6 +904,9 @@ bleep/
 │   │   ├── filter/
 │   │   ├── oscillator/
 │   │   ├── step-sequencer/
+│   │   ├── noise/
+│   │   ├── ring-drums/
+│   │   ├── punch-drums/
 │   │   └── amp/
 │   └── bridges/
 │       ├── ableton/           Bleep Patch, Bleep Panel and port plugins (MIDI In/Out, Audio In/Out, Instrument, Insert)
