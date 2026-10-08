@@ -21,3 +21,12 @@ section 21): no hardware names in the files, the UI or the docs.
 | Module | File | Status |
 |---|---|---|
 | Step Sequencer | [step-sequencer.md](step-sequencer.md) | Implemented |
+| Attenuverter | [attenuverter.md](attenuverter.md) | Specified |
+| CV Mixer | [cv-mixer.md](cv-mixer.md) | Specified |
+| Audio Mixer | [audio-mixer.md](audio-mixer.md) | Specified |
+| Multiplier | [multiplier.md](multiplier.md) | Specified |
+| Crossfader | [crossfader.md](crossfader.md) | Specified |
+| Logic | [logic.md](logic.md) | Specified |
+| Quantizer | [quantizer.md](quantizer.md) | Specified |
+| Switch | [switch.md](switch.md) | Specified |
+| Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Specified |

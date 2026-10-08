@@ -696,6 +696,15 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **ADSR** | Attack, decay, sustain, release; velocity amount; retrigger | Outputs *Env*, *End* (trigger when the release finishes) and *Active* (gate while the envelope runs, for a Voice Cell's *Voice Out*). |
 | **Step Sequencer** | Up to 32 steps with gate (on/off/tie), pitch and velocity lanes; scale quantizing; randomizer and seeded *Variation* | Transport-locked or clocked. *Notes* output plays a Voice Cell directly. See `specs/modules/step-sequencer.md`. |
 | **CV to Notes** | Pitch + gate → `notes` | Lets mono sources (sequencers, Random + Utility) play Voice Cells. Legato on pitch changes while the gate is high. |
+| **Notes to CV** | `notes` → pitch, gate, trigger, velocity, pressure; note priority, retrigger, glide | The way out of `notes` (section 7.4) for modules outside a Voice Cell. See `specs/modules/notes-to-cv.md`. |
+| **Attenuverter** | Four rows of scale (−2…+2) and offset, sum output, clip | Unpatched rows are manual constants: four macro knobs. See `specs/modules/attenuverter.md`. |
+| **CV Mixer** | Four bipolar channels; sum, average, max, min, scan; master, offset | Combines modulators in more ways than fan-in's sum. See `specs/modules/cv-mixer.md`. |
+| **Multiplier** | Two four-quadrant multipliers with bias, chained; optional oversampling | Ring mod at audio rate, depth-by-modulator for control. See `specs/modules/multiplier.md`. |
+| **Logic** | AND, OR, XOR, NAND, NOR, NOT, flip-flop, edge triggers; threshold with hysteresis | Rhythms from rhythms; clock ÷2. See `specs/modules/logic.md`. |
+| **Quantizer** | Scale quantizer sharing the Step Sequencer's scales, custom scale, transpose before/after, note-change trigger | Turns any modulator into a melody. See `specs/modules/quantizer.md`. |
+| **Switch** | 4 → 1 or 1 → 4, by knob, CV or clock steps; click-free fade | Source selector, router and sequential switch. See `specs/modules/switch.md`. |
+| **Audio Mixer** | Four stereo channels: level (dB), pan, mute/solo, send; return, master, limiter, meters | Several sound sources into one stereo pair. See `specs/modules/audio-mixer.md`. |
+| **Crossfader** | Stereo A/B blend, equal-power or linear | Dry/wet and source morphing under modulation. See `specs/modules/crossfader.md`. |
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
 **Multi Filter details:**
