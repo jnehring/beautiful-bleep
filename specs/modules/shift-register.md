@@ -56,12 +56,12 @@ worth modulating.
 | Level | 0–100 % | 100 % | Scales *Voltage*. |
 | Gate Length | 1–100 % of a step | 50 % | Length of the bit gates and *Combo*. At 100 % consecutive 1s merge into one long gate. |
 | Weight 1 … Weight 6 | −1…+1 | 1, ½, ¼, ⅛, 0, 0 | The six mixer sliders (4.6). |
+| Length | 2–16 bits (stepped) | 8 | Which bit is fed back (4.1). A stepped knob, so it can be modulated. |
 
 **Settings**
 
 | Setting | Values | Default |
 |---|---|---|
-| Length | 2–16 bits | 8 |
 | Sync | Free, 1/32, 1/16, 1/8, 1/4, 1/2, 1 bar, 2 bars, 4 bars, 8 bars (shared list, `patch/common/dsp/Tempo.h`) | 1/16 |
 | Source | Loop, Data, Data ⊕ Loop | Loop |
 | Combine | Any (OR), All (AND), Odd (XOR) | Any |
@@ -74,8 +74,9 @@ worth modulating.
 
 ### 4.1 The register
 
-The register holds 16 bits, `b1` (newest) … `b16` (oldest). *Length* chooses
-which bit is fed back: `b_Length`. On each step:
+Step 0 (after a start, a Reset or a jump to the start) is the start pattern
+itself, unshifted. The register holds 16 bits, `b1` (newest) … `b16`
+(oldest). *Length* chooses which bit is fed back: `b_Length`. On each later step:
 
 ```
 out  = b_Length                         // the bit that recirculates
@@ -115,7 +116,9 @@ Steps come from, in order of priority (as in Random):
    tempo while the transport is stopped), and `k` keeps counting.
 
 Gate durations need a step length: in Clock mode it is the time between the
-last two pulses (first pulse: 1/16 at the current tempo).
+last two pulses (first pulse: 1/16 at 120 BPM, as the shared `dsp::SeqClock`).
+The Clock and transport modes use `dsp::SeqClock`; a Reset in transport mode
+makes the next grid boundary step 0.
 
 ### 4.3 Voltage and pitch
 
@@ -165,7 +168,7 @@ an LFO on one slider makes the mix shift between two stepped patterns.
 
 - Flips are a pure function of (*Seed*, `k`). The register's state is history,
   so the module also stores a **start pattern** (6). A transport start loads
-  it and then fast-forwards from step 0 to the current step with the current
+  it and then fast-forwards from step 0 to the current step (steps 1 … k) with the current
   *Lock* and *Source* (*Data* counts as 0 while fast-forwarding), capped at
   65,536 steps (about 1 ms of work). A loop jump or seek (the step index is
   not the previous one + 1) does the same.
@@ -175,7 +178,9 @@ an LFO on one slider makes the mix shift between two stepped patterns.
 - **Capture** (5) writes the current register into the start pattern, so a
   pattern you like becomes part of the board and comes back on every play,
   whatever the seed or the song position.
-- Transport stop: gates fall; *Voltage*, *Pitch* and *Mix* hold.
+- Transport stop: gates fall; *Voltage*, *Pitch* and *Mix* hold until the next
+  step, which comes from the free clock (4.2, 3) at the phase where the grid
+  left off.
 - Changing *Length* never clears bits; it only changes which bit is fed back.
 
 ## 5. Module view
@@ -191,15 +196,17 @@ an LFO on one slider makes the mix shift between two stepped patterns.
 
 - **Bit ring:** the 16 live bits, newest left; bits beyond *Length* dimmed;
   the feedback tap marked. Bits that were flipped on entry flash briefly.
-- **Clicking a bit** toggles it in the start pattern and, with **Load**, also
-  in the running register (one undo step each).
+- **Two rows:** the live register on top, the start pattern below it.
+  **Clicking a live bit** flips it in the running register (a command, no undo
+  step); **clicking a start bit** edits the start pattern (node data, one undo
+  step).
 - **Capture** copies the live register into the start pattern; **Load**
   loads the start pattern into the running register now.
 - **Combo toggles** choose the bits for *Combo*.
 - **History strip:** the last 32 values of *Voltage*, so you can watch a
   pattern lock or dissolve while turning *Lock*.
-- Knobs and settings below; the six Weight sliders sit in a row as vertical
-  faders.
+- Knobs and settings below; the six Weights are a knob group (*Mixer*).
+  *Combine* stays with the settings.
 
 ## 6. Saved state
 
@@ -213,7 +220,8 @@ an LFO on one slider makes the mix shift between two stepped patterns.
 
 `start` is the 16-bit start pattern (bit 0 = *b1*), `combo` the 8-bit mask
 of the Combo toggles (bit 0 = Bit 1). A new module gets `start` from
-`hash3(Seed, 0, 7)` masked to 16 bits (never 0, so it plays immediately) and
+`hash3(1, 0, 7)` (the default Seed: `sanitiseData` can't see the knobs) masked
+to 16 bits (never 0, so it plays immediately) and
 `combo` 9. Out-of-range values are masked; missing fields get the defaults
 (sanitise).
 
@@ -221,14 +229,15 @@ of the Combo toggles (bit 0 = Bit 1). A new module gets `start` from
 
 1. **Node data** (exists, `ModuleSpec::sanitiseData`) for `start` and `combo`.
 2. **One-shot commands** from the view to the running module, without an undo
-   entry: *Load* and toggling a live bit. Proposal: `Module::command(name,
-   json)`, queued lock-free to the audio thread. *Capture* needs no command:
-   the view reads the live register from `liveValues` (`bits`, `k`, `flips`)
-   and writes it into `data.start`.
+   entry: done with `Module::command(id, value)` (`"load"`, `"toggle"` with the
+   bit index), overridden to queue them with `postCommand` for `pollCommands`.
+   *Capture* needs no command: the view reads the live register from
+   `liveValues` (`bits`, `k`, `flips`) and writes it into `data.start`. The
+   history strip comes from `liveArrays` (`history`, `flipped`: 32 values each).
 3. **Jump detection** is local (step index discontinuity); no engine change.
-4. **Inside Voice Cells:** each voice runs its own register; the flip stream
-   uses `stream = 1 + voice index`, so voices drift apart from the same start
-   pattern unless *Lock* is +100 %.
+4. **Inside Voice Cells:** each voice runs its own register. The flip stream
+   should be `stream = 1 + voice index` so voices drift apart, but modules
+   can't see their voice index yet (no engine field): voices use stream 1.
 
 ## 8. Tests
 

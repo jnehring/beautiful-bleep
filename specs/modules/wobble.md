@@ -99,7 +99,8 @@ next step comes before it settles, the wobbles of successive steps overlap,
 which is where the lively, bouncing movement comes from.
 
 Overshoot can exceed ±1; Wobble passes values within ±1 unchanged and
-compresses beyond that with a cubic soft knee to a maximum of ±1.5.
+compresses beyond that with a smooth (quadratic) knee, `1 + d − d²/2` for an
+excess `d` up to 1, to a maximum of ±1.5.
 
 Both filters are computed per sample in zero-delay-feedback form and keep
 working while *Hold* is high or the transport is stopped.
@@ -110,8 +111,9 @@ On each step, with probability *Burst* (`uniform01(Seed, step, 2) < Burst`),
 a burst of `n = 2 + floor(uniform01(Seed, step, 3) × (Burst Size − 1))`
 pulses fires, evenly spaced over the first half of the step (`T / (2n)`
 apart). With *Chaos* above 0 the spacing accelerates or decelerates randomly
-(each gap scaled by `1 ± Chaos × 0.5`). A burst that would run past the next
-step is cut off there. Bursts are ratchet-like rolls for drums or quick
+(each gap scaled by `1 + Chaos × 0.5 × (2u − 1)`, `u = uniform01(Seed,
+8·step + k, 4)`). A burst that would run past the next step (held or not) is
+cut off there. Bursts are ratchet-like rolls for drums or quick
 re-triggers of an envelope.
 
 ### 4.5 Chaos
@@ -141,9 +143,11 @@ paths 1 and 3 still apply. With an external Clock, path 2 is off as well.
   On a jump they simply continue from where they are and glide to the new
   value, which is musically fine and never clicks.
 - With *Chaos* above 0 the values depend on the filter state. On transport
-  start and on a jump, the module replays the last 64 steps from rest, so a
-  render from the same start position is always identical, though not the
-  same as having played through from earlier.
+  start and on a jump, the module replays the last 64 steps from rest (the
+  Smooth filter at 0, run at 128 points per step at the current *Smooth*) to
+  find the current value, so a render from the same start position is always
+  identical, though not the same as having played through from earlier. On a
+  jump the filters themselves continue as above.
 - In Free mode with *Chaos* above 0 the clock itself is history: renders repeat
   exactly from the same start, but there is no song-position lock.
 
@@ -170,14 +174,14 @@ Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-1. A **sub-audio two-pole filter**: the shared `dsp::Svf` clamps its cutoff at
-   5 Hz, but Wobble needs cutoffs down to about 0.001 Hz. Either lower the clamp
-   (with double-precision state for very low cutoffs) or add a
-   `dsp::SlowSvf` next to it in `patch/common/dsp/`.
-2. **Live values** (exists) feed the scope: the module publishes the three
-   values each UI frame; the view keeps the history.
+1. A **sub-audio two-pole filter**: done, `dsp::SvfLow` in `Svf.h` (double
+   state, cutoffs down to 0.0001 Hz, `resetTo` for a calm start).
+2. **Live arrays** (exist) feed the scope: the module keeps the last four steps
+   of Stepped, Smooth, Wobble and Burst in 192 points each (`liveArrays`
+   stepped, smooth, wobble, burst), so fast rates don't alias in the view.
 3. **Inside Voice Cells:** each voice runs its own clock and filters; raw
-   values use `stream + voice index`. Patch *Voice In › Trigger* into *Clock*
+   values would use `stream + voice index`, but a module can't see its voice
+   index yet (no engine field), so voices share the stream. Patch *Voice In › Trigger* into *Clock*
    for one new value per note, wobbling into place.
 
 ## 8. Tests

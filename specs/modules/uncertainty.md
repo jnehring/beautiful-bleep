@@ -57,7 +57,7 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Setting | Values | Default |
 |---|---|---|
-| F Sync | Free, 1/16 … 8 bars (shared list) | Free |
+| F Sync | Free, 1/32 … 8 bars (shared list) | Free |
 | Q Sync, Store Sync | Free, 1/32 … 8 bars (shared list) | 1/8, 1/4 |
 | Q1 Bits, Q2 Bits | 1–4 (2, 4, 8, 16 levels) | 3, 2 |
 | Q1 Interval, Q2 Interval | Even, 1, 2, 5, 7, 12 semitones | Even |
@@ -76,7 +76,9 @@ Each Fluctuating output is a smooth curve through random points:
 - **Free:** point `j` lies `T · (0.5 + uniform01(Seed, j, s_t))` after point
   `j − 1`, with `T = 1 / Rate`. The irregular spacing avoids the regular
   pulse of a plain smoothed random. Point values are
-  `Spread · (2 · uniform01(Seed, j, s_v) − 1)`.
+  `Spread · (2 · uniform01(Seed, j, s_v) − 1)`. *Spread* scales the curve, so
+  turning it never jumps. A transport start restarts the free curve at point 0
+  (so renders from the same start repeat).
 - **Synced (transport playing):** points sit on the grid,
   `j = floor(ppq / syncBeats)`, so the curve is a pure function of the
   song position and two Fluctuating outputs synced to 1 bar and 4 bars move in
@@ -133,8 +135,11 @@ Then *Shape* and *Distribution* turn `u` into the output:
 
 To keep it a pure function, `z_k` is defined as the truncated sum
 `√(1 − c²) · Σ_{j=0..511} c^j · n_{k−j}` (the error against the endless sum is
-below 10⁻¹¹ for |c| ≤ 0.95). The running recursion produces the same values
-during playback; on a seek the module evaluates the sum directly.
+below 10⁻¹¹ for |c| ≤ 0.95). The module always evaluates the sum directly
+(stopping once `|c|^j < 10⁻¹³`; about 25 µs per Store event at |c| = 0.95),
+so a moved *Correlation* knob takes effect at the next event without any
+history, and seeking is free. It equals the recursion
+`z_k = c · z_{k−1} + √(1 − c²) · n_k` to within 10⁻⁹.
 
 ### 4.4 Integrated
 
@@ -146,18 +151,23 @@ speed at every Store event: rising, falling, levelling off. With a positive
 negative one it trembles around a point.
 
 On transport start `I` starts at 0. On a jump it is rebuilt by integrating the
-last 64 Store intervals from 0, so a render from a given start is always the
-same.
+last 64 Store intervals from 0 (one direct sum, then the recursion), so a
+render from a given start is always the same. Jumps are only defined for a
+synced *Store*; with a free or patched *Store* the line just continues.
 
 ### 4.5 Timing and determinism
 
 Clocks follow the usual order: input patched, then transport-locked sync,
 then free rate. Every fresh value is `uniform01(Seed, index, stream)`, with
 the index from the song position when synced, or a counter from the last
-transport start otherwise. Fluct (synced), Quantized and Stored are pure
-functions of the song position and render identically from any start;
-Integrated and free-running Fluct are identical from the same start. On
-transport stop all outputs hold, and free-running Fluct keeps moving.
+transport start otherwise (a patched *Clock Q2* has its own counter). Synced
+Fluct, Quantized and Stored are pure functions of the song position and render
+identically from any start; Integrated and free-running Fluct are identical
+from the same start. While the transport is stopped, synced Quantized and
+Stored clocks run free at the synced length (from the phase where the grid
+left off, as in Random), so the module moves without a transport; a synced
+Fluct curve holds (it is a function of the song position), free ones keep
+moving, and Integrated keeps integrating.
 
 ## 5. Module view
 
@@ -166,8 +176,8 @@ Six small lanes, one per output, each a 4-second scope of its output. Next to
 analytically) with a marker at the current value, and a scatter plot of the
 last 64 pairs (value, next value), which shows *Correlation* as a diagonal
 cloud (positive) or an anti-diagonal one (negative). Next to each Quantized
-lane, its levels as horizontal lines, labelled with note names when
-*Interval* is in semitones.
+lane, its levels as horizontal lines; the lowest and highest level are labelled
+with note names when *Interval* is in semitones.
 
 ## 6. Saved state
 
@@ -175,12 +185,15 @@ Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-1. **Shared helpers in `patch/common/dsp/`:** a seeded standard normal
-   (`normal(seed, index, stream)` from two uniforms) and Φ (via `erfc`), next
-   to `Random.h`. Recall and later modules can use them too.
-2. **Live values** (exists) for the scopes and the scatter plot.
-3. **Inside Voice Cells:** each voice runs its own generators with
-   `stream + voice index`. Patch *Voice In › Trigger* into *Store* for a
+1. **Shared helpers:** done, `dsp::standardNormal(seed, index, stream)` and
+   `dsp::normalCdf` in `Random.h`, with `smoothstep01`, `inverseSmoothstep01`,
+   `skew01` and `smoothNoise` (the synced Fluct curve).
+2. **Live arrays** (exist) for the scopes (the last 4 s of each output in 128
+   points) and the scatter plot (the last 64 stored values).
+3. **Inside Voice Cells:** each voice runs its own generators; `stream + voice
+   index` needs the voice index, which modules can't see yet, so voices share
+   the streams: two voices that saw the same number of events give the same
+   values. Patch *Voice In › Trigger* into *Store* for a
    skewed, correlated per-note random value (unlike *Voice In › Random*,
    which is plain uniform).
 

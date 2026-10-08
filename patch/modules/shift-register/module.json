@@ -1,0 +1,10 @@
+{
+  "name": "Shift Register",
+  "slug": "shift-register",
+  "tagline": "A looping register of bits: echoing gates, stepped voltages and melodies.",
+  "colour": "#dc2626",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/shift-register.md"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Uncertainty",
+  "slug": "uncertainty",
+  "tagline": "Six kinds of randomness: fluctuating, quantized, stored and integrated.",
+  "colour": "#db2777",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/uncertainty.md"
+}

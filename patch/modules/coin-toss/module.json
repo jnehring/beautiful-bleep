@@ -1,0 +1,10 @@
+{
+  "name": "Coin Toss",
+  "slug": "coin-toss",
+  "tagline": "Sends each gate to A or B by a weighted, seeded coin.",
+  "colour": "#7c3aed",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/coin-toss.md"
+}

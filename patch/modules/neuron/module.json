@@ -1,0 +1,10 @@
+{
+  "name": "Neuron",
+  "slug": "neuron",
+  "tagline": "Two leaky integrate-and-fire neurons with logic and cross-feedback.",
+  "colour": "#c026d3",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/neuron.md"
+}

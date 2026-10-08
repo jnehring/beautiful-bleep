@@ -1,0 +1,10 @@
+{
+  "name": "Recall",
+  "slug": "recall",
+  "tagline": "Random rhythms and voltages that can recall and lock their own recent past.",
+  "colour": "#e11d48",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/recall.md"
+}

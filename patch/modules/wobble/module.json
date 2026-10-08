@@ -1,0 +1,10 @@
+{
+  "name": "Wobble",
+  "slug": "wobble",
+  "tagline": "One random stream, three shapes of motion: stepped, smooth and wobbling.",
+  "colour": "#34d399",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/wobble.md"
+}

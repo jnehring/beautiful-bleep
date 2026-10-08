@@ -61,13 +61,13 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Setting | Values | Default |
 |---|---|---|
-| Sync | Free, 1/32 … 1/1 straight, dotted and triplet (the Step Sequencer's *Rate* list), 2 bars | 1/16 |
-| T Mode | Coin, Chance, Ratchet, Drums | Coin |
-| T Loop | 1–16 ticks | 8 |
+| Sync | Free, 2 bars, then the Step Sequencer's *Rate* list (1/1, 1/2, 1/4., 1/4, 1/4T, 1/8., 1/8, 1/8T, 1/16., 1/16, 1/16T, 1/32., 1/32, 1/32T) | 1/16 |
+| T Mode | Coin, Chance, Ratchet, Drums (stepped knob) | Coin |
+| T Loop | 1–16 ticks (stepped knob) | 8 |
 | X Source | Tick, T1, T2, External | Tick |
 | X Mode | Independent, Sorted | Independent |
 | X Range | Bipolar (−1…+1), Unipolar (0…1), Wide (−2…+2) | Bipolar |
-| X Loop | 1–16 draws | 8 |
+| X Loop | 1–16 draws (stepped knob) | 8 |
 | Root | C … B | C |
 | Scale | the shared scale list (`patch/common/dsp/Scales.h`) | Major |
 | Seed | 0–999 | 1 |
@@ -92,18 +92,22 @@ On every tick the section takes a **decision**: four raw uniforms `u0…u3`
 |---|---|---|
 | Coin | fires if `u0 < Bias` | fires otherwise: exactly one of the pair per tick |
 | Chance | fires if `u0 < Bias` | fires if `u1 < Bias` (independent) |
-| Ratchet | `u0` picks a rate from ÷4, ÷3, ÷2, ×1, ×2, ×3, ×4, weighted toward divisions left of 50 % *Bias* and multiplications right of it; a division fires on the first tick of its group | same with `u1` |
-| Drums | fires if `u0 < Bias × w_kick(pos)` | fires if `u1 < Bias × w_snare(pos)` |
+| Ratchet | `u0` picks a rate from ÷4, ÷3, ÷2, ×1, ×2, ×3, ×4, weighted with a bell (σ 1.1 choices) around choice `6 × Bias`, so divisions left of 50 % *Bias* and multiplications right of it; a division fires on the first tick of its group | same with `u1` |
+| Drums | fires if `u0 < min(1, 2 × Bias × w_kick(pos))` | fires if `u1 < min(1, 2 × Bias × w_snare(pos))` |
 
 In *Drums*, `pos` is the tick's position in a 16-tick bar and the weights
 come from a fixed metric table: `w_kick` is high on 1 and 9, medium on 5 and
 13, low elsewhere; `w_snare` is high on 5 and 13, medium on the off-beat
 eighths, low on the rest. At *Bias* 50 % you get a plain backbeat with
-occasional ghost hits; higher fills in, lower thins out. (The weights are our
-own table, listed in the implementation.)
+occasional ghost hits (high weights fire every time at 50 %, hence the 2 ×);
+higher fills in, lower thins out. Our table (`RecallDsp::kickWeight`,
+`snareWeight`): kick 1 on 1 and 9, 0.35 on 5 and 13, 0.05–0.2 elsewhere;
+snare 1 on 5 and 13, 0.3 on the off-beat eighths, 0.05–0.1 elsewhere.
 
-**Jitter** delays each gate by `u2 × Jitter × ½ tick` (never early, so it
-works in real time). Ratchet sub-pulses keep their spacing and are delayed
+**Jitter** delays T1 by `u2 × Jitter × ½ tick` and T2 by `u3 × Jitter × ½ tick`
+(never early, so it works in real time). When a gate starts while the same
+output is still high, the output drops for one sample so the new gate is a
+new edge. Ratchet sub-pulses keep their spacing and are delayed
 together. *Clock* is never jittered.
 
 ### 4.3 X section
@@ -124,7 +128,8 @@ bottom. With Spread at 0 % it moves the constant itself.
 
 **Steps**:
 - 0–45 %: smooth. The output glides from the old to the new value with a
-  cosine curve over `(45 % − Steps) / 45 %` of the time to the next event;
+  cosine curve over `(45 % − Steps) / 45 %` of the time to the next event (the
+  tick length for *X Source* Tick, else the last interval between draws);
   at 0 % it glides over the whole interval, so X becomes a smooth random
   curve.
 - 45–55 %: plain steps.
@@ -147,7 +152,7 @@ Each section has a ring of its last *Loop* decisions (T: `u0…u3`; X: nine
 uniforms). For each new decision at index `i`:
 
 ```
-if uniform01(seed, i, repeatStream) < Recall:  use ring[i mod Loop]   // repeat
+if slot filled and uniform01(seed, i, repeatStream) < Recall:  use ring[i mod Loop]   // repeat
 else:                                          ring[i mod Loop] = fresh(seed, i)
 ```
 
@@ -170,14 +175,20 @@ their first use.
   T, X and the repeat tests, so T and X never influence each other.
 - The rings are history. On transport start, and on a jump (the tick index
   isn't the previous one + 1), each ring is rebuilt by replaying the decisions
-  from tick 0 (or from the last 4,096 ticks) with the current Recall values.
+  from tick max(0, i − 4,096) with the current knobs (T1/T2 X sources count
+  the replayed T gates for the draw index). A Reset is not a jump: the loops
+  start again at slot 0 and the memory stays.
   A render from the same start is always identical; one started later matches
   a full play-through unless a Recall knob was automated before that point.
 - **Capture** (5) stores both rings in the node data and turns on
   *Use captured* for that section: the section then plays `ring[i mod Loop]`
   from the stored loop on every tick, ignoring Recall. That is fully
   position-independent: the found pattern is part of the board.
-- Transport stop: T gates fall; X outputs hold.
+- Transport stop: T gates fall; X outputs hold until the free clock (4.1)
+  ticks again.
+- *X Source* T1/T2/External: the draw index counts draws since the start
+  (External: since the transport start, no replay). External with *X Clock*
+  unpatched draws on every tick.
 
 ## 5. Module view
 
@@ -196,8 +207,12 @@ their first use.
   notes as grey lines.
 - **Distribution preview:** a histogram of the current Spread/Bias shape, drawn
   analytically (no audio data needed).
-- **Capture T / Capture X** store the ring; **Use** toggles playback of the
-  stored loop. One undo step each.
+- **Capture T / Capture X** are module buttons (`ModuleSpec::buttons`): the
+  audio thread snapshots the ring (its *Loop* slots; unused slots get their
+  fresh values) into `liveArrays` (`tCapture`, `xCapture`) and bumps a counter
+  (`tCaptures`, `xCaptures`); the view writes the snapshot into the data with
+  `use: true`. **Use T / Use X** toggle playback of the stored loop. One undo
+  step each.
 
 ## 6. Saved state
 
@@ -213,22 +228,22 @@ their first use.
 ```
 
 Each loop has up to 16 entries of 4 (T) or 9 (X) numbers in 0…1. Missing or
-short loops are padded with values from `uniform01(Seed, slot, stream)`;
+short loops are padded at run time with `uniform01(Seed, slot, 300 + j)` (T)
+or `uniform01(Seed, slot, 400 + j)` (X) for number `j`;
 values are clamped to [0, 1). A new module has `use: false` and empty loops.
 
 ## 7. Engine requirements
 
 1. **Node data** (exists) for the captured loops; the module copies the loops
-   to the audio thread as the Step Sequencer does (try-lock hand-over).
-2. **Live values** (exists): the view needs the current rings and which
-   decisions were repeats. The ring is small (16 × 13 floats), so it goes
-   through `liveValues` as a flattened list, or a proposed `liveData(json)`
-   for structured values.
-3. **Capture** reads the live rings in the view and writes `data`; no new
-   engine call.
+   to the audio thread with `RtHandoff` (`Handoff.h`).
+2. **Live arrays** (exist): `lanes` (the last 16 ticks: bit 0 T1, bit 1 T2,
+   bit 2 repeated, bit 3 captured), `x1` … `x3` (the last 32 draws) and the
+   capture snapshots.
+3. **Capture**: module buttons + `pollCommands` (see 5); the view writes
+   `data`; no new engine call.
 4. **Inside Voice Cells:** each voice runs its own section clocks and rings;
-   fresh decisions use `stream + voice index`, so voices play different
-   patterns from one patch.
+   fresh decisions should use `stream + voice index`, but modules can't see
+   their voice index yet (no engine field), so voices share the streams.
 
 ## 8. Tests
 

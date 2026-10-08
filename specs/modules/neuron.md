@@ -48,10 +48,10 @@ signal: audio into a neuron gives audio-rate firing.
 
 | Knob | Range | Default (A / B) | What it does |
 |---|---|---|---|
-| W1, W2, W3 | −2…+2 | A: 0.6, 1, 0.5 · B: 0.2, 1, −1 | Weight of each input. |
+| W1, W2, W3 | −2…+2 | A: 0.6, 1, 0.5 · B: 0.9, 1, −1 | Weight of each input. |
 | Threshold | −1…+1 | 0.5 / 0.5 | Level the membrane must cross to fire. |
 | Hysteresis | 0–100 % | 10 % / 10 % | Gap between the on and off levels (4.2). |
-| Leak | 0 ms – 5 s (exp., 0 = off) | 250 ms / 400 ms | Membrane time constant (4.1). 0: the membrane equals the sum. |
+| Leak | 0 ms – 5 s (skewed, 0 = off) | 250 ms / 400 ms | Membrane time constant (4.1). 0: the membrane equals the sum. |
 | Sharp | 1–100 (exp.) | 4 / 4 | Gain of the *Out* curve (4.3). |
 | Pulse | 1 ms – 1 s (exp.) | 30 ms / 30 ms | Gate length in *Spike* mode. |
 
@@ -64,9 +64,11 @@ signal: audio into a neuron gives audio-rate firing.
 | Reset on Start | on, off | on |
 
 The default patch-free state: A charges from its bias (W1 · +1) and fires
-regularly; each A firing pushes B's membrane down through W3 = −1 while B's
-own bias slowly charges it, so B fires in the gaps; B's output in turn speeds
-A up. A two-voice rhythm plays out of the box, and patching anything into
+regularly; as A charges, its *Out* (a saw, 4.3) pushes B's membrane down
+through W3 = −1 while B's own bias (W1 0.9) charges it, so B fires in the
+gaps, irregularly; B's output in turn speeds A up (A fires about every
+0.2–0.5 s, B about once a second). (B's W1 was 0.2 in the first draft: B
+then never reaches the threshold.) A two-voice rhythm plays out of the box, and patching anything into
 In 2 bends it.
 
 ## 4. Behaviour
@@ -100,16 +102,23 @@ the higher the sum and the shorter the leak, so the input level becomes a
 rhythm rate. With `θ = Threshold + h/2 > 0` and a constant `s > θ`, the
 rate is `1 / (Pulse − Leak · ln(1 − θ / s))`; it never fires for `s ≤ θ`.
 With `θ ≤ 0` it fires again right after each *Pulse* (the fastest rhythm).
+The gate is low for at least one sample between pulses (`dsp::LifNeuron`),
+so every firing is a visible edge; the period is then *Pulse* + 1 sample.
 
 *Spike* fires on each rising gate edge in either mode.
 
 ### 4.3 Out
 
-`Out = clamp(Sharp · (m − Threshold), 0, 1)`, then a smooth-step on the top
-5 % so it doesn't kink at 1. *Sharp* 1 gives a rectified copy of the membrane
-above the threshold; *Sharp* 100 is almost a gate with a short ramp. In
-*Spike* mode *Out* shows the charging membrane, a saw-like shape that drops at
-each spike: useful as a modulation that is locked to the neuron's rhythm.
+*Compare* mode: `Out = clamp(Sharp · (m − Threshold), 0, 1)`, then a soft
+knee over the top 5 % so it doesn't kink at 1 (`dsp::neuronOut`). *Sharp* 1
+gives a rectified copy of the membrane above the threshold; *Sharp* 100 is
+almost a gate with a short ramp.
+
+*Spike* mode: the same ramp moved down by `1 / Sharp`, so it ends at the
+threshold: `Out = clamp(Sharp · (m − Threshold) + 1, 0, 1)`. (In Spike mode the
+membrane is reset as soon as it crosses the threshold, so the Compare formula
+would stay near 0.) *Out* shows the charging membrane, a saw-like shape that
+drops at each spike: useful as a modulation locked to the neuron's rhythm.
 
 ### 4.4 Cross normals
 
@@ -154,10 +163,11 @@ Two columns, one per neuron:
 
 Each column shows the membrane over the last 2 seconds with the threshold and
 hysteresis band as lines, and the gate as a strip below; the threshold line
-can be dragged (it is the *Threshold* knob). Spikes flash a dot. The weights
-sit next to their inputs, so the view reads like the signal flow. The cross
-normals are drawn as two curved arrows between the columns, dimmed when a
-cable replaces them.
+can be dragged (it is the *Threshold* knob). Spikes flash a dot. A line under
+the columns says what the cross normals carry. The weights are the grouped
+knobs below (*Neuron A*, *Neuron B*). (Dimming the cross normal when *In 3*
+has a cable needs the view to know which input jacks are patched, which the
+view API doesn't offer yet.)
 
 ## 6. Saved state
 
@@ -168,7 +178,9 @@ Only knob and setting values; no node data.
 1. **Normalled inputs** to the module's own outputs: the module needs to know
    whether *In 1* and *In 3* are patched (`ProcessContext::inputConnected`,
    exists) and handles the normals itself; no engine change.
-2. **Live values** (exists): membranes, gates and spike flags for the view.
+2. **Live values** (exist): `liveValues` membraneA/B and spike counters
+   spikesA/B; `liveArrays` membraneA/B and gateA/B (the last 2 s in 128
+   points) for the view.
 3. **Inside Voice Cells:** each voice has its own pair of neurons. With
    *Voice In › Velocity* into *In 2*, louder notes fire faster rhythms.
 

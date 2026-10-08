@@ -76,7 +76,8 @@ consecutive samples (no lost tosses).
   other). This is the third, shared-probability mode.
 - **Opposed:** shared coin, channel 2 compares `u ≥ 1 − p2`, so the channels
   avoid each other — useful to share one clock between two voices without
-  collisions.
+  collisions. B on both never happens while p1 + p2 ≤ 100 %; above that the
+  overlap is p1 + p2 − 100 %.
 
 Shared and Opposed toss on channel 1's edges; channel 2's input is then only
 used for its gate length.
@@ -84,8 +85,9 @@ used for its gate length.
 ### 4.3 Determinism
 
 Each channel keeps a **toss counter** *k*, cleared by Reset and when the
-transport starts. The coin is `u = uniform01(Seed, k, channel)`; the memory
-check uses stream `channel + 8`. When the transport plays and the input
+transport starts. The coin is `u = uniform01(Seed, k, channel)` (channel 1 or 2; Shared and
+Opposed use channel 1's coin and counter); the memory check uses stream
+`channel + 8`. When the transport plays and the input
 comes from a transport-locked source, the counter is still event-based (not
 derived from ppq): the board is deterministic, so the same song position
 always delivers the same number of edges, and a render repeats exactly as
@@ -109,11 +111,11 @@ memory check is part of the loop too, so a loop is exactly repeatable.
 
 ## 5. Module view
 
-Two columns, one per channel: knobs, mode selector and a **toss history**
-strip of the last 32 decisions (filled square = B, empty = A), newest right.
+Above the knobs, one row per channel: a **toss history** strip of the last
+32 decisions (filled square = B, empty = A), newest right.
 With *Loop* on, the strip shows the loop's decisions and marks the current
-one. A small coin icon flips on each toss. The *Link* selector sits between
-the columns and draws a chain icon when Shared/Opposed.
+one. A small coin icon flips on each toss. The *Link* setting stays with the
+other settings; the view draws a link between the two strips when Shared/Opposed.
 
 ## 6. Saved state
 
@@ -125,7 +127,8 @@ survives recompiles (modules are reused by node id).
 None. Uses `hash3`/`uniform01` from `patch/common/dsp/Random.h` and
 `GateEdge` from `Smoothing.h`. Normalling an unpatched input to another
 (*In 2* ← *In 1*) is done inside the module via `inputConnected`.
-`liveValues`: `coin1`, `coin2`, `history1`, `history2` (32-bit masks).
+`liveValues`: `coin1`, `coin2`, `history1`, `history2` (32-bit masks, newest
+in bit 0) and `count1`, `count2` (tosses since Reset, for the loop marker).
 
 ## 8. Tests
 
@@ -135,7 +138,8 @@ None. Uses `hash3`/`uniform01` from `patch/common/dsp/Random.h` and
   doubles the mean run length.
 - Modes: Trigger preserves gate length; Latch is always complementary;
   Toggle at 0 % never flips.
-- Shared: with p1 < p2, B1 implies B2 for every toss; Opposed never sets B on both.
+- Shared: with p1 < p2, B1 implies B2 for every toss; Opposed never sets B on both
+  (p1 + p2 ≤ 100 %).
 - Same Seed and input → identical output twice; Reset repeats the sequence;
   Loop *n* repeats with period *n*.
 - *In 2* unpatched follows *In 1*'s edges.
