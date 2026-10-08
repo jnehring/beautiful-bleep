@@ -44,7 +44,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Pitch | −24…+24 semitones | 0 | Playback transposition of each grain. |
 | Density | 0–100 % | 50 % | Grains per second, 0.5–200 (exponential) in Continuous mode; in *Sync* mode, selects the note division (4.2). Below 50 % grains are sparse and irregular; the knob's centre is a smooth cloud. |
 | Texture | 0–100 % | 40 % | Window shape: 0 % rectangle-ish (5 % fades), 25 % trapezoid, 50 % Hann, 75 % Gaussian (narrow), 100 % percussive (fast attack, exponential decay). Interpolated between neighbours. |
-| Spread | 0–100 % | 30 % | Random scatter per grain: position jitter up to ±25 % × Spread of the buffer view, stereo pan across ±Spread, and pitch jitter (see *Pitch Jitter*). |
+| Spread | 0–100 % | 30 % | Random scatter per grain: position jitter up to ±25 % × Spread of the buffer view and stereo pan across ±Spread (pitch scatter is *Pitch Jitter*). |
 | Pitch Jitter | 0–12 semitones | 0 | Random pitch offset per grain; quantized to *Pitch Quant*. |
 | Feedback | 0–100 % | 0 % | Part of the output written back into the buffer with the input (soft-clipped). Builds dense, evolving textures. |
 | Blur | 0–100 % | 0 % | A diffuse reverb-like smear after the grains (4.5). |
@@ -70,10 +70,12 @@ Every knob is also an input (`specs.md` section 7.3).
 A stereo circular buffer of *Buffer* seconds (32-bit float; 8 s at 48 kHz =
 3 MB). The write head records `In + Feedback × softclip(Out_wet)` unless
 frozen. Freezing stops writing within one sample but crossfades the write
-over 5 ms on both ends so the seam is clean; while frozen, *Position* is
-measured from the freeze point, so the frozen sound doesn't move. Changing
-*Buffer* reallocates on the message thread and swaps in at the next block
-(the buffer then starts empty).
+over 5 ms on both ends so the seam is clean (the write blends from the input
+into the old content there, which is the oldest audio, so the frozen buffer
+loops seamlessly at the write head); while frozen, *Position* is
+measured from the freeze point, so the frozen sound doesn't move. The buffer
+is allocated once in `prepare()` for 16 s; changing *Buffer* ducks the output
+for 10 ms, empties the buffer (it then starts empty) and fades back in.
 
 ### 4.2 Grain scheduling
 
@@ -81,11 +83,15 @@ measured from the freeze point, so the frozen sound doesn't move. Changing
   `1 / rate × (1 + irregularity × (2u − 1))`, where *rate* comes from
   *Density* and *irregularity* grows as Density falls below 50 % (up to ±90 %).
 - **Continuous, Sync on:** grains start on the song grid at the chosen
-  division; *Density* above 50 % adds 1–3 subdivisions, below 50 % skips grid
-  points with probability `(0.5 − d) × 2`. Grain *n* is identified by its grid
-  index `floor(ppq / division)`, so the cloud is phase-locked to the bars.
+  division; *Density* above 50 % adds 1–3 subdivisions (2–4 grains per grid
+  point), below 50 % skips grid points with probability `(0.5 − d) × 2`.
+  Grain *n* is identified by its grid index (`4 × floor(ppq / division)` plus
+  the subdivision), so the cloud is phase-locked to the bars. With the
+  transport stopped the grid runs on at the last tempo.
 - **Triggered:** each *Trigger* pulse starts one grain; *Density* > 50 % turns
   each pulse into a burst of up to 8 grains spaced by Size/4.
+- In Continuous mode a *Trigger* pulse adds one extra grain (its own seeded
+  numbering, so it doesn't shift the regular grains).
 
 Every random choice of grain *n* (jitter, pan, pitch, reverse, skip) uses
 `uniform01(Seed, n, stream)` with one stream per parameter. *n* counts grains
@@ -108,7 +114,8 @@ from a 1024-point table per texture shape, interpolated between shapes.
 
 Output gain is normalised by the expected overlap: `1 / sqrt(max(1, rate × Size))`,
 smoothed over 50 ms, so turning *Density* or *Size* up doesn't blow up the
-level.
+level (synced: rate = grains per grid point / division; triggered: up to 4
+overlapping burst grains / Size).
 
 ### 4.4 Pitch
 
@@ -118,18 +125,20 @@ The pitch input is sampled at each grain's start.
 
 ### 4.5 Blur
 
-A small diffusion network after the grains: 4 series allpasses (prime delays
-4–23 ms) into a 4-line feedback delay network with a Hadamard matrix, delays
-modulated slowly by ±0.3 ms. *Blur* sets both the wet level and the decay
-(0.3–8 s). Its tail is part of what *Feedback* writes back, which makes
-frozen pads endless. CPU ≈ the grains at 16 voices.
+A small diffusion network after the grains: 4 series allpasses per side
+(4.1–22.9 ms, `dsp::Diffuser`, lengths modulated ±0.3 ms) into the shared
+FDN (`dsp::Fdn`, 8 lines, Householder, size 0.35, modulation ≈ ±0.3 ms, its
+soft limiter on). *Blur* sets both the wet level and the decay (0.3–8 s):
+`wet = (1 − ½ Blur) × grains + Blur × fdn`. At Blur 0 the stage idles (and
+starts empty when turned up again). Its tail is part of what *Feedback*
+writes back, which makes frozen pads endless.
 
 ### 4.6 CPU and memory
 
 Per grain per sample: one cubic read per channel, one window lookup, pan:
 ≈ 20 flops. 32 grains ≈ 1.5 % of one core at 48 kHz; 64 grains ≈ 3 %. Memory:
-`Buffer × sample rate × 2 × 4 bytes` (16 s at 96 kHz = 12 MB) plus the blur
-lines (< 100 KB). Inside a Voice Cell each voice has its own buffer; the
+always the 16 s maximum, `16 × sample rate × 2 × 4 bytes` (6.1 MB at 48 kHz,
+12.3 MB at 96 kHz), plus the blur FDN (≈ 2 MB at 48 kHz). Inside a Voice Cell each voice has its own buffer; the
 view warns when a cell's total exceeds 64 MB.
 
 ### 4.7 Transport and edge cases
@@ -152,23 +161,28 @@ horizontally on the waveform sets *Position*; vertically sets *Size*.
 
 Knobs and settings only. The live buffer is **not saved** — it's a recording
 of whatever is playing. Exception: with *Freeze* on, the view offers *Keep
-frozen buffer*; then the buffer is written as a WAV file beside the board
-(the media folder of section 7 of `splice.md`) and referenced in `data`:
+frozen buffer*; then the buffer (oldest sample first, ending at the freeze
+point) is saved with `exportMedia("frozen")` to the media store
+(`patch/engine/Media.h`) and its id is referenced in `data`:
 
 ```json
-{ "type": "grains", "params": { … }, "data": { "frozen": "media/3f9a…e2.wav" } }
+{ "type": "grains", "params": { … }, "data": { "frozen": "3f9a0c1d2e3b4a59.wav" } }
 ```
 
-On load the WAV is read on a background thread and the module starts frozen.
+On load, `setData` reads the WAV (on the message thread; resampled with cubic
+interpolation if its rate differs) and hands it to the audio thread
+(`RtHandoff`); with the *Freeze* setting on, the module starts frozen on it.
+When Freeze turns off, the module records live again and the view clears the
+id. A missing file leaves the module recording live.
 
 ## 7. Engine requirements
 
 1. **Large allocations off the audio thread:** buffers are allocated in
    `prepare` / `setData` on the message thread and swapped in atomically.
 2. **Board media files** (shared with Splice): see `splice.md` section 7.
-3. **Waveform view data:** a downsampled peak buffer exposed to the view
-   (`liveValues` is too small); proposal: a per-module read-only "view
-   stream" the UI polls.
+3. **Waveform view data:** `liveArrays`: `peaks` (256 bins of the valid
+   span, oldest first, computed on the message thread from the buffer) and
+   `dots` (position, progress and gain of each live grain).
 
 ## 8. Tests
 
@@ -181,7 +195,9 @@ On load the WAV is read on a background thread and the module starts frozen.
 - Freeze stops writing; position stays fixed relative to the freeze point.
 - Feedback 100 % with Blur stays bounded (soft clip) over 60 s of noise.
 - A grain never reads past the write head.
-- Saved frozen buffer round-trips through WAV.
+- Saved frozen buffer round-trips through WAV and plays as the frozen source.
+- (The module's tests live in `tests/test_grains_module.cpp`; `test_grains`
+  is the shared engine's test.)
 
 ## 9. Later
 

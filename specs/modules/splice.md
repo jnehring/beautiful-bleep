@@ -44,11 +44,11 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Speed | −4…+4 (centre detent at +1), bipolar | +1 | Varispeed as a playback ratio; negative plays backwards. Around 0 the curve is flatter for fine slow-motion; at exactly 0 the head stops (tape stop). |
-| Window Size | 0.5 ms … 100 % of the splice (exponential) | 100 % | Length of a window. At 100 % the whole splice plays; smaller values loop a piece of it. |
+| Speed | −4…+4, +1 in the middle of the knob, bipolar | +1 | Varispeed as a playback ratio; negative plays backwards. At 0 the head stops (tape stop: silence). |
+| Window Size | 0.001 % … 100 % of the splice (exponential), at least 0.5 ms | 100 % | Length of a window. At 100 % the whole splice plays; smaller values loop a piece of it. |
 | Position | 0–100 % | 0 % | Where in the splice the windows are taken from. A slow LFO scrubs through the splice. |
-| Overlap | 0–100 % | 0 % | Window overlap / density (4.4): from gaps, to seamless loops, to a dense cloud of 2–4 overlapping windows with pitch-scattered copies. |
-| Pick | 0–100 % | 0 % | Selects the target splice when *Select* isn't patched: 0…1 → splice 1…n (moving the knob is the manual way to pick a splice). Changes take effect at the end of the current window/splice (4.3). |
+| Overlap | 0–100 % | 40 % | Window overlap / density (4.4): from gaps, to seamless loops (the default), to a dense cloud of 2–4 overlapping windows with pitch-scattered copies. |
+| Pick | 0–100 % | 0 % | Selects the target splice when *Select* isn't patched: 0…1 → splice 1…n (moving the knob is the manual way to pick a splice; only a moving knob picks, so recording or loading doesn't jump to its splice). Changes take effect per *Shift* (4.3). |
 | Overdub | 0–100 % | 100 % | While recording onto existing audio: how much of the old audio is kept (0 % replaces, 100 % fully layers). |
 | Level | 0–200 % | 100 % | Output level. |
 | Fade | 0–50 ms | 3 ms | Crossfade at splice/window boundaries and on record punch-in/out. |
@@ -77,25 +77,34 @@ are sample positions sorted ascending; *n* markers give *n* + 1 splices
 (marker 0 is implicit at 0, the end at *C*). Up to 128 splices.
 
 - **Recording, New splice:** appends at *C*, adds a marker at the old *C* and
-  extends *C*. When the reel is full, recording stops and the view flashes.
-- **Recording, Current splice:** writes into the current splice at the play
-  head (looping within it), `new = in + Overdub × old`, with the play head's
-  speed (so recording at Speed ½ writes at half speed — tape behaviour).
+  extends *C*. The new splice becomes current; playback pauses while it is
+  recorded and starts from its beginning when recording stops. Takes shorter
+  than 10 ms are dropped. When the reel (*Reel length*) is full, recording
+  stops.
+- **Recording, Current splice:** writes into the current splice with an
+  overdub head that starts at the play head and runs at the playback speed,
+  looping within the splice, `new = in + Overdub × old` (so recording at
+  Speed ½ writes at half speed — tape behaviour). Playback goes on.
 - **Recording, Whole reel:** clears markers, records from 0.
 - *Mark* during recording splits the take at that point; during playback it
   splits the current splice at the play head. Markers within 10 ms of an
   existing one are ignored.
-- Punch-in/out ramps over *Fade*.
+- Punch-in/out ramps over *Fade* (appending: the punch-out fades the take's
+  last *Fade* samples in place; overdub: writing continues while the ramp
+  falls).
 
 ### 4.2 Playback
 
 The play head runs through the current splice at *Speed* × `2^(Speed input)`,
-with 4-point cubic interpolation. At the splice end (or start, reversed) it
+with 4-point cubic interpolation. Reads outside the reel's content are silent;
+reads past a splice's end (a crossfade tail) hear the following audio. At the splice end (or start, reversed) it
 wraps (Loop) or stops and outputs silence (One-shot) until *Play*. *End* fires
-at each wrap. With *Sync* Bars, the base speed is set so the splice lasts
-exactly the chosen number of bars at the current tempo (pitch follows, like
-tape); the splice start is then aligned to the bar line, and the position is
-derived from the song position, so renders repeat.
+at each wrap. With *Sync* on 1, 2, 4 or 8 bars, the base speed is set so the splice lasts
+exactly that many bars at the current tempo (pitch follows, like tape; the
+*Speed* knob only keeps its sign); window starts are derived from the song
+position (window *k* starts at `k × period` counted from song position 0),
+so the splice start sits on the bar line, a jump lands in phase (the voice
+joins mid-window with a *Fade* ramp) and renders repeat.
 
 ### 4.3 Moving between splices
 
@@ -113,12 +122,18 @@ Within the current splice of length *S*, a window is a window of length
 *Overlap* controls how windows are played:
 
 - **0–30 %: gaps.** Each window plays once, then silence until the next window
-  period; the period is `G / (1 − gap)`, gap up to 75 %. Rhythmic stutter.
-- **30–50 %: seamless.** Windows repeat back to back with a *Fade* crossfade — a clean micro-loop.
+  period; the period is `G / (1 − gap)`, gap from 75 % (at 0 %) down to 0
+  (at 30 %). Rhythmic stutter.
+- **30–50 %: seamless.** Windows repeat back to back; each voice plays *Fade*
+  longer than the period and the two overlap with equal-power ramps — a clean
+  micro-loop (at Fade 0, a sample-exact loop).
 - **50–100 %: overlap.** 2 to 4 window voices run with staggered starts
-  (overlap factor 1→4); each voice uses a Hann window. Above 75 %, voices get a
-  seeded pitch offset of 0, +12, −12 or +7 semitones (`uniform01(Seed, windowIndex, voice)`)
-  and pan spread — a granular cloud built from the splice.
+  (overlap factor 2→4, period `G / factor`); each voice uses a Hann window and
+  a gain of 2 / factor. Above 75 %, a growing share of the windows (0 → 100 %
+  from 75 to 100 % Overlap) gets a seeded pitch offset of 0, +12, −12 or +7
+  semitones and a pan position (`uniform01(Seed, windowIndex, stream)`) — a
+  granular cloud built from the splice. Pitched voices stay centred on the
+  window.
 
 Changing *Position* moves the next window's start; running windows finish, so position
 sweeps sound like scrubbing, not like jumps. With *Window Size* < 100 % and *End
@@ -126,24 +141,33 @@ Mode* Window, *End* fires at each window — a clock derived from the audio.
 
 ### 4.5 Import and export
 
-- **Import WAV** (view menu or dropping a file on the module): mono/stereo,
-  any sample rate (resampled on a background thread with a windowed-sinc
-  converter), 16/24/32-bit. Cue markers in the WAV become splice markers.
-  Files longer than the reel are truncated (with a notice). Import can
-  replace the reel or append as a new splice.
-- **Export WAV**: the whole reel or the current splice, 32-bit float at the
-  engine rate, with markers written as cue points.
+- **Import WAV** (the view's drop target, or dropping a file on the reel):
+  `BleepView.mediaDrop` imports it into the media store (`Media.h`: PCM
+  8/16/24/32-bit, float, any channel count, any rate); the view puts the id
+  in the data, and `setData` loads it on the message thread, resamples it to
+  the engine rate (cubic) and hands it to the audio thread, which copies it
+  into the reel 65536 frames per chunk (about 60 ms for a full 120 s reel at
+  48 kHz; the output is silent meanwhile). Files longer than 120 s are
+  truncated. Import replaces the reel. (The media store has no cue chunks, so
+  WAV cue markers are not read; markers live in the node data.)
+- **Export**: `exportMedia("reel")` (the whole reel) and `exportMedia("splice")`
+  (the current splice), 32-bit float at the engine rate. The view saves the
+  reel this way automatically when its audio changed and recording has
+  stopped, and stores the returned id.
 
 ### 4.6 CPU, memory, edge cases
 
 - CPU: one cubic read per channel per window voice (≤ 4) ≈ 1 % of a core at 48 kHz.
-- Memory: the reel (up to 92 MB at 96 kHz, 120 s); the view warns when a
-  board's audio buffers exceed 512 MB. Inside a Voice Cell all voices **share
-  one reel** (read-only playback per voice; recording only from voice 1) — so
-  a Voice Cell becomes a polyphonic sampler without copying memory.
+- Memory: the reel is allocated once in `prepare()` for the 120 s maximum
+  (46 MB at 48 kHz, 92 MB at 96 kHz); *Reel length* limits recording. A
+  loaded file is held on the message thread until it has been copied in.
+  (Later, engine: inside a Voice Cell all voices **share one reel** —
+  read-only playback per voice; recording only from voice 1. Today each voice
+  has its own reel, and the board's memory-heavy warning applies.)
 - Empty reel: outputs silence; *End* doesn't fire.
-- Speed 0: the head stops; a window/loop still plays with Overlap > 50 % (frozen texture).
-- Deleting a splice's marker merges it with the next (view, one undo step).
+- Speed 0: the head stops (silence).
+- Deleting a splice's marker merges it with the next (view: double-click the
+  marker; one undo step).
 
 ## 5. Module view
 
@@ -156,13 +180,16 @@ Mode* Window, *End* fires at each window — a clock derived from the audio.
  └──────────────────────────────────────────────────────────────────┘
 ```
 
-- Top strip: the whole reel, splices in alternating tints, current and
-  pending marked. Click a splice to select it; drag a marker to move it;
-  double-click to add a marker; select + Delete to remove one.
-- Zoomed strip: the current splice with the window window (Position/Window Size)
+- Top strip: the whole reel (`liveArrays` `peaks`, 512 bins), splices in
+  alternating tints, current (bar) and pending (dashed) marked, every
+  voice's head. Click a splice to select it (a view command, takes effect per
+  *Shift*); drag a marker to move it; double-click to add a marker;
+  double-click a marker to remove it.
+- Zoomed strip: the current splice with the window (Position/Window Size)
   shaded and each window voice's head drawn.
-- Splices can be named (shown on hover) and reordered by dragging (the audio
-  stays, the play order changes).
+- Rec, Mark, Next, Play and Clear reel are module buttons; the header shows
+  the reel time, splice count and whether the reel is unsaved.
+- (Later: naming splices on hover, reordering them by dragging.)
 - Each marker/structural edit is one undo step; audio itself is not part of
   undo except *Clear reel* and *Import*, which keep the previous reel file.
 
@@ -176,24 +203,25 @@ JSON:
   "type": "splice",
   "params": { "speed": 0.625, "window": 1.0, … },
   "data": {
-    "reel": "media/9c41d0…7a.wav",
+    "reel": "9c41d0…7a.wav",
     "length": 1968000,
-    "markers": [0, 96000, 288000, …],
-    "order": [0, 1, 2, …],
+    "markers": [96000, 288000, …],
     "names": { "3": "vox" },
     "current": 2
   }
 }
 ```
 
-- The file name is the SHA-256 of its content, so identical reels are stored
-  once and an unchanged reel isn't rewritten on save. A reel is written
-  (32-bit float WAV, with cue markers) when the board is saved after the
-  audio changed.
+- `reel` is a media-store id (a content hash, `Media.h`), so identical reels
+  are stored once. Markers (frames at the engine rate, the implicit 0
+  excluded) are in the data, not in the WAV. The view writes the reel
+  (32-bit float WAV) after the audio changed; the audio thread's structure
+  (length, markers, current) is mirrored into the data by the view.
 - Missing file on load: the module loads with an empty reel and a "reel
   missing — locate…" notice; markers are kept.
-- `sanitiseData` sorts and clamps markers to `length`, drops duplicates, and
-  makes `order` a permutation.
+- `sanitiseData` sorts and clamps markers to `length`, drops duplicates and
+  invalid ids, clamps `current`, and keeps short string `names`. (`order` —
+  a play order different from the reel order — is left for later.)
 
 ## 7. Engine requirements
 
@@ -222,11 +250,20 @@ JSON:
 - Windows: Window Size/Position window positions; seamless mode has no discontinuity; Overlap overlap count; seeded pitch offsets repeat.
 - Overdub 0 % replaces, 100 % sums.
 - Sync Bars: a splice spans exactly N bars at several tempos; after a loop jump it is in phase.
-- WAV import (rates, bit depths, cue markers) and export round-trip; hash-named file reused.
+- WAV export and import round-trip through the media store (the reel and its
+  markers come back; the loaded reel is copied in slice by slice); the
+  hash-named file is reused. (Rates and bit depths are the media store's
+  tests.)
 - Missing media file loads safely.
 
 ## 9. Later
 
+- Splice play order (`order` in the data) and splice names in the view.
+- Import that appends as a new splice; WAV cue markers in and out (needs cue
+  chunks in the media store).
+- Shared reels in Voice Cells (engine support).
+- Saving the reel when the board is saved, without the view open (engine:
+  ask modules with unsaved media at save time).
 - Per-splice settings (speed, level, loop mode).
 - Tape character: wow/flutter, saturation, high-frequency loss on overdub.
 - Record from Grains, or Grains reading a Splice reel.

@@ -1,0 +1,10 @@
+{
+  "name": "Bender",
+  "slug": "bender",
+  "tagline": "Seeded glitches: repeats, re-pitches, reverses, slices and corrupts pieces of the input, the same way on every playback.",
+  "colour": "#d8b4fe",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/bender.md"
+}

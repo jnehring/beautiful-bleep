@@ -1,0 +1,10 @@
+{
+  "name": "Grains",
+  "slug": "grains",
+  "tagline": "Granular processor: records its input and plays it back as a cloud of seeded grains, with freeze, feedback and blur.",
+  "colour": "#2563eb",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/grains.md"
+}

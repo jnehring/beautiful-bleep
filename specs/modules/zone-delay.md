@@ -108,13 +108,16 @@ two crossfade (equal-power) over 30 ms (Comb/Short), 60 ms (Echo) or 120 ms
 when it ends (latest value wins), so fast modulation in this mode becomes
 stepped at the crossfade rate, never clicky. Pitch never changes.
 
-*Wobble* is added after the mode logic, as a continuous offset, in both modes.
+*Wobble* is added after the mode logic, as a continuous offset of the read
+position, in both modes (the crossfading heads take it as an offset, so it
+never triggers a crossfade). Peak depth per zone: 0.12, 1.8, 2.5, 4 and 6 ms.
 
 ### 4.4 Stereo, Offset and Ping-Pong
 
 Each channel has its own head; *Offset* skews the right channel's time. With
 *Ping-Pong* on, the feedback crosses over (L → R, R → L) and the input to
-the right line is muted for the first pass, so a mono source bounces. Turning
+the right line is muted for the first pass (the left line takes the mid of
+both inputs instead), so a mono source bounces. Turning
 *Ping-Pong* on or off crossfades the feedback routing over 20 ms; repeats
 already in the buffer keep bouncing or settle.
 
@@ -125,17 +128,20 @@ windows: two heads, each reading backwards from the write head over one delay
 time, offset by half a window, with raised-cosine windows that sum to 1.
 The feedback path takes the reversed signal, so repeats alternate direction
 when *Reverse* is on throughout. Switching *Reverse* crossfades the forward
-and reversed reads over 20 ms.
+and reversed reads over 20 ms. The window is at most half the buffer (15 s):
+longer Vast times reverse in 15 s windows.
 
 ### 4.6 Hold
 
-*Hold* high: recording into the buffer stops (with a 10 ms fade of the
-write), feedback is set to exactly 1 and the loop region is the current delay
-time per channel. *Character* and *Diffuse* are bypassed for the held loop so
+*Hold* high: recording into the buffer stops and the loop region is the
+current delay time per channel (`dsp::HoldLoop`): playback continues exactly
+where the read head was, the loop seam is crossfaded over 10 ms, and the loop
+replays without loss (feedback is effectively 1). *Character* and *Diffuse* are bypassed for the held loop so
 it doesn't degrade (later: an option to keep them for evolving loops).
 *Time* still moves the read head inside the held region: in Tape mode it
 changes speed (pitch), in Crossfade mode it changes the loop length. Hold low:
-writing fades back in and the knobs apply again. Combined with *Reverse*, a
+writing resumes and the output crossfades from the held loop back to the live
+read over 20 ms; the knobs apply again. Combined with *Reverse*, a
 held loop plays backwards.
 
 ### 4.7 Character
@@ -145,22 +151,28 @@ are computed and crossfaded, so modulation is smooth.
 
 | Position | Name | In the loop |
 |---|---|---|
-| 0 % | Clean | flat, 20 kHz low-pass only; hard clip at ±4 for safety |
+| 0 % | Clean | flat, 20 kHz low-pass only |
 | 25 % | Tape | 1-pole low-pass ≈ 7 kHz, 40 Hz high-pass, soft tanh saturation, a little hiss (−80 dB, seeded) |
 | 50 % | Dark | 2-pole low-pass ≈ 2.2 kHz, 120 Hz high-pass, gentle saturation |
 | 75 % | Band | resonant band-pass (Q 2) at ≈ 1 kHz: telephone-like repeats |
 | 100 % | Lo-Fi | 12 kHz sample-rate reduction, 10-bit quantization, 5 kHz low-pass, mild saturation |
 
 *Tone* moves every filter's cutoff by ±2 octaves. All filters are TPT
-(zero-delay feedback), so per-sample modulation is safe. Every character
-saturates softly from 0 dBFS, so Feedback > 100 % builds into a stable,
-compressed drone instead of exploding.
+(zero-delay feedback), so per-sample modulation is safe. The character is
+applied to everything written into the line (input plus feedback), so the
+first echo already has it and every pass adds more. After the character, the
+loop's safety net is linear up to ±1 and bends softly towards ±1.5, so
+Feedback > 100 % builds into a stable, compressed drone instead of exploding,
+also in Clean. In the Comb zone the Clean low-pass's group delay is
+subtracted from the read time, so the comb stays in tune.
 
 ### 4.8 Diffuse
 
-Four allpasses in series inside the feedback loop per channel (lengths 3–23
-ms, scaled down in the Comb and Short zones), coefficient 0.7 × Diffuse,
-lengths slowly modulated (±0.3 ms, seeded rates) to avoid metallic
+Four allpasses in series in the feedback path per channel (`dsp::Diffuser`,
+lengths 3–23 ms, × 0.05 in Comb and × 0.25 in Short, the scale gliding over
+100 ms on zone changes), coefficient 0.7 × Diffuse, blended with the
+undiffused path by Diffuse (so 0 % is exactly the clean loop and the stage
+idles), lengths slowly modulated (±0.3 ms, seeded rates) to avoid metallic
 ringing. Each pass through the loop smears the repeat further: the first
 echo is still recognizable, later ones dissolve into a cloud. At 100 % with
 Feedback near 100 % it behaves like a reverb with a delay-time pre-delay.
@@ -168,9 +180,10 @@ Feedback near 100 % it behaves like a reverb with a delay-time pre-delay.
 ### 4.9 Tails, transport and determinism
 
 - Transport stop doesn't touch the buffer: the echoes ring out.
-- *Clear on Play* empties the buffer (10 ms fade) on `transportStarted`, for
-  bit-identical offline renders. Wobble and hiss reseed from *Seed* at the
-  same moment either way.
+- *Clear on Play* empties the buffer on `transportStarted`, for
+  bit-identical offline renders; the old tail's last output value is ramped
+  to zero over 5 ms so the cut doesn't click (renders are identical from
+  then on). Wobble and hiss restart from *Seed* at the same moment either way.
 - In Transport sync, the *Tap* output and Hold loop boundaries are not
   phase-aligned to bars (a delay has no phase); sync only sets the time.
 
@@ -178,8 +191,12 @@ Feedback near 100 % it behaves like a reverb with a delay-time pre-delay.
 
 - ≈ 0.5 % of one core at 48 kHz without Diffuse, ≈ 0.8 % with; Crossfade mode
   doubles the reads during fades.
-- Buffer: 20 s + 50 % offset headroom per channel → 30 s × 2 channels:
-  ≈ 11.5 MB at 48 kHz, 46 MB at 192 kHz, allocated in `prepare()`.
+- Buffer: 20 s + 50 % offset headroom per channel → 30 s × 2 channels,
+  rounded up to a power of two by `dsp::RingDelay`: 16 MB at 44.1/48 kHz,
+  32 MB at 96 kHz, 64 MB at 192 kHz, allocated in `prepare()`.
+- Measured: ≈ 1 % of one core in the module harness (all inputs patched,
+  three knobs modulated); Wobble is computed at control rate (every 32
+  samples, interpolated).
 - Inside a Voice Cell this multiplies per voice; the Add menu should warn
   (7.3).
 
@@ -243,13 +260,16 @@ Buffer contents are not saved; a held loop is lost when the board closes
   shift during the glide.
 - **Crossfade mode:** a step in Time produces no pitch change; modulation
   faster than the crossfade becomes stepped but click-free.
-- **Reverse:** a ramp input comes out descending within each window; window
-  sums are 1 (no amplitude modulation on a constant input).
+- **Reverse:** a ramp input comes out descending for a large part of each
+  window (each head is exactly reversed; the raised-cosine crossfade between
+  them adds the window shape); window sums are 1 (no amplitude modulation on
+  a constant input).
 - **Hold:** with input continuing, the loop content stays identical for
   60 s (bit-exact with Character/Diffuse bypassed).
 - Feedback 110 %: output stays bounded (< +6 dBFS) for every character.
 - Ping-Pong: an impulse on L appears alternately on R and L.
-- Clear on Play: renders are bit-identical; same Seed, same Wobble.
+- Clear on Play: renders are bit-identical (after the 5 ms declick); same
+  Seed, same Wobble.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later

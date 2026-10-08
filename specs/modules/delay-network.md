@@ -57,7 +57,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Setting | Values | Default |
 |---|---|---|
 | Routing | Parallel, Chain, Ring, Mesh | Ring |
-| Sync | Free, 1/16 … 4 bars (straight, dotted, triplet) | Free |
+| Sync | Free, 4 bars … 1/16T (straight, dotted, triplet) | Free |
 | Time Change | Tape, Crossfade | Crossfade |
 | Clear on Play | off / on | off |
 | Seed | 0–999 | 1 |
@@ -77,7 +77,9 @@ Tap *i* of *n* active taps (`n = ceil(Taps)`) sits at
 ```
 
 then offset by *Jitter* (a seeded value per tap, fixed per seed, so a
-jittered network keeps its groove). Tap *n* always sits at *Time*. The
+jittered network keeps its groove; up to half the gap to the neighbour on
+that side). Tap *n* always sits at *Time* (no jitter). Positions are computed
+at control rate (every 16 samples) and scaled by *Time* per sample. The
 fractional part of *Taps* is the level of tap *n* (0 → 1 over the fraction)
 and the positions of the others are interpolated between the n − 1 and n
 layouts, so sweeping *Taps* slides the echoes into new places instead of
@@ -98,7 +100,8 @@ Each tap is its own **mono delay line** (so the feedback routing can treat
 taps separately). The line input is the mid signal (L+R)/2, plus feedback.
 Taps are panned alternately left and right, spread by *Width*: tap 1 at
 −Width, tap 2 at +Width, tap 3 at −Width × 0.6, … so the echoes ping around.
-At Width 0 everything is centred. Panning is equal-power.
+At Width 0 everything is centred. Panning is equal-power (−3 dB per side in
+the centre); taps are not normalised, each echo keeps its level.
 
 ### 4.4 Reversed taps
 
@@ -108,7 +111,9 @@ reversed follows a fixed, seeded order (e.g. 5, 2, 7, 1, …), so raising
 forward and reverse readers over 20 ms. A reversed tap uses the windowed
 two-head reverse reader of the shared delay toolkit (window = the tap's own
 delay time, raised-cosine, overlap 50 %), so it plays the last *t_i* of audio
-backwards, smoothly.
+backwards, smoothly. The window is at most half a line (about 5.4 s at
+48 kHz), so taps longer than that reverse in windows of that length. The
+share is rounded: `round(Reverse × n)` of the *n* active taps.
 
 ### 4.5 Character (per feedback path)
 
@@ -119,8 +124,8 @@ routed back. *Character* morphs:
 |---|---|---|
 | 0 % | Clean | flat |
 | 20 % | Warm | 1-pole low-pass ≈ 6 kHz, 60 Hz high-pass, soft tanh |
-| 40 % | Filter | resonant SVF band-pass (Q 1.5), centre spread per tap over ±1 octave around 1.2 kHz, so each echo has its own colour |
-| 60 % | Drive | asymmetric saturation (+12 dB drive), 4 kHz low-pass |
+| 40 % | Filter | resonant SVF band-pass (Q 1.5, ≈ unit gain at the centre), centre spread per tap over ±1 octave around 1.2 kHz, so each echo has its own colour |
+| 60 % | Drive | asymmetric saturation (+12 dB drive, small-signal gain 1), 4 kHz low-pass |
 | 80 % | Crush | 8 kHz sample-rate reduction, 8-bit quantize |
 | 100 % | Wear | wow (0.5 Hz) and flutter (7 Hz) per line, −60 dB seeded noise, 3 kHz low-pass, slight level loss: an old tape loop |
 
@@ -148,8 +153,12 @@ Ring wraps at the last *active* line. Switching *Routing*
 crossfades between old and new matrices over 50 ms.
 
 **Freeze:** within 20 ms the input fades out, feedback becomes exactly 1 and
-the character stages are bypassed (Ring or Mesh keeps the material moving;
-Parallel loops each tap). Freeze low fades back.
+the character stages (and Wear's wow) are bypassed (Ring or Mesh keeps the
+material moving; Parallel loops each tap; Chain wraps from its last line to
+the first while frozen, so it holds too). Freeze low fades back. The loop's
+safety net (linear to ±1, a soft knee towards ±1.5) is transparent at normal
+levels, so the frozen network is lossless with whole tap counts (Mesh: with all
+8 taps, since muted lines take energy out).
 
 ### 4.7 Time changes
 
@@ -162,18 +171,24 @@ therefore always click-free: stepped in Crossfade mode, FM-like in Tape mode.
 ### 4.8 Tails, transport, determinism
 
 - Transport stop leaves the network ringing out.
-- *Clear on Play* empties the lines on `transportStarted`; Jitter offsets,
-  the reverse order, Wear wow phases and noise are seeded from *Seed* and
-  restart at the same moment, so renders are repeatable.
+- *Clear on Play* empties the lines on `transportStarted` (at once; the old
+  tail's last value ramps out over 5 ms); Jitter offsets, the reverse order,
+  Wear wow phases and noise are seeded from *Seed* and restart at the same
+  moment, so renders are repeatable.
+- The *Clear* input and button fade the network out over 10 ms, empty one
+  line per sample, and fade back in over 10 ms.
+- *Pulse* uses a peak follower on the mid input: an onset is a rise above
+  −30 dB to more than twice the slow average; it re-arms below −40 dB.
 
 ### 4.9 CPU and memory
 
 - Per active tap: one write, one or two interpolated reads (two during
   crossfades or when reversed), one character stage. 8 taps ≈ 1.2 % of one
   core at 48 kHz; Mesh adds a 24-addition Hadamard per sample.
-- Memory: 8 mono lines × 8 s (+ reverse window headroom): ≈ 13 MB at 48 kHz,
-  52 MB at 192 kHz, allocated in `prepare()`. Flagged memory-heavy for Voice
-  Cells (see Zone Delay, section 7).
+- Memory: 8 mono lines × 8 s, rounded up to powers of two by
+  `dsp::RingDelay`: 16 MB at 44.1/48 kHz, 32 MB at 96 kHz, 64 MB at 192 kHz,
+  allocated in `prepare()`. Flagged memory-heavy for Voice Cells (see Zone
+  Delay, section 7). Inactive lines skip their reads.
 
 ## 5. Module view
 
@@ -223,9 +238,9 @@ therefore always click-free: stepped in Crossfade mode, FM-like in Tape mode.
   seed; a ramp comes out descending on those taps.
 - Each routing: an impulse appears at the expected sums of tap times
   (e.g. Chain: t1, t1+t2, …).
-- Stability: Feedback 100 % with Clean character keeps energy constant
-  (± 0.5 dB, 30 s) for every routing; 110 % stays bounded with every
-  character.
+- Stability: Feedback 100 % with Clean character keeps the network's energy
+  (all line outputs) constant (± 0.5 dB, 30 s) for Parallel, Ring and Mesh;
+  110 % stays bounded with every character and routing.
 - Freeze holds the content without loss; release is click-free.
 - Crossfade and Tape modes: audio-rate modulation of Time gives no
   discontinuity.

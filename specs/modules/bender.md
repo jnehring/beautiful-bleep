@@ -71,15 +71,19 @@ into **segments**:
 - **Sync on a note value, transport playing:** segment *k* starts at
   `ppq = k × noteLength`; boundaries are sample-accurate and phase-locked to
   the bar, so glitches land on the grid after a loop jump too.
-- **Sync Free (or transport stopped):** segments of *Time* follow each
-  other from the moment the transport stopped or the module started.
+- **Sync Free (or transport stopped):** segments follow each other from the
+  moment the transport stopped or the module started: *Time* long in Free; a
+  synced note value keeps its length at the last tempo.
 - **Clock patched:** each pulse starts a segment; its length is the time
   since the previous pulse (clamped to 2 s).
 
 At each segment start the module makes one **decision** (4.2). If the
 segment is a glitch, the **source** is the audio of the segment that just
 ended (the last segment length in the buffer), which is then played
-*Repeats* times in place of the input.
+*Repeats* segments long in place of the input. The source (plus 10 ms of
+pre-roll for the loop seam) is copied out of the ring when the glitch
+starts, so even 16 repeats of a 2 s segment keep their source while the ring
+records on.
 
 ### 4.2 Seeded decisions
 
@@ -100,11 +104,16 @@ immediately starts a glitch with the last segment as source).
 
 A glitch reads its source at speed *Bend* (× the per-segment variation),
 snapped by *Bend Steps* (Octaves: ±0.25, ±0.5, ±1, ±2; Fifths add ×1.5 and
-×0.75; Semitones: 2^(n/12)). Reads use cubic interpolation. Negative speeds
+×0.75; Semitones: 2^(n/12); with Octaves or Fifths, |speed| < 0.125 snaps
+to 0). *Bend Var* draws one value per glitch and picks a factor from
+{1, ½, 2, −1, 1.5, ¾, −½, ¼}; the share of the set in use grows with Bend Var
+(0 % is always 1). Reads use cubic interpolation. Negative speeds
 read the segment backwards from its end. Speed 0 holds a single frame (a
-buzz at the segment's grain, repeated with a 2 ms window so it's a tone, not
-DC). At speed ≠ 1 the source is read cyclically within the segment, so a
-segment always lasts its full length. *Bend* may be modulated at audio rate:
+buzz: two 2 ms grains at the head, half a grain apart under sin² windows, so
+it's a tone, not DC). At speed ≠ 1 the source is read cyclically within the
+segment, so a segment always lasts its full length; the loop point is
+crossfaded over the Edge time into the pre-roll before the source, so the
+wrap is continuous. *Bend* may be modulated at audio rate:
 it changes the read speed continuously, never jumps the read position.
 
 ### 4.4 Slice (stutter)
@@ -127,12 +136,17 @@ grid (1/16 → 1/32 → 1/64 …).
 
 *Corrupt When* = *Always* also applies the corruption to the passing audio
 between glitches (but Shuffle and Smear only act on glitches).
-Mode is a setting; switching it crossfades the two modes over 20 ms.
+Mode is a setting; switching it ramps the corruption out over 10 ms, changes
+the mode and ramps it back in over 10 ms (20 ms in all). Shuffle crossfades
+at slice changes over the Edge time; Smear's jitter is a smooth seeded curve
+(points every 5 ms), so it scratches rather than clicks. Dropout gaps fade
+over a quarter of the Edge time (at most a cell).
 
 ### 4.6 Freeze
 
 *Freeze* high: the current source segment loops indefinitely (as a glitch
-with unlimited repeats), the buffer stops recording, and *Bend*, *Slice* and
+with unlimited repeats; while passing, a glitch starts at once from the last
+segment length), the buffer stops recording, and *Bend*, *Slice* and
 *Corrupt* keep acting on the held loop. Freeze low: the glitch ends at the
 next segment boundary (so the release lands on the grid), and recording
 continues.
@@ -150,7 +164,9 @@ continues.
 
 - Very cheap: one write, at most two interpolated reads per channel during
   crossfades, plus the corruption stage. ≈ 0.2 % of one core at 48 kHz.
-- Buffer 4 s stereo: 1.5 MB at 48 kHz, 6 MB at 192 kHz.
+- Ring 4 s stereo (rounded to a power of two: 2 MB at 48 kHz) plus two
+  source copies of 2 s stereo (1.5 MB at 48 kHz): ≈ 3.5 MB at 48 kHz,
+  14 MB at 192 kHz.
 - Works per voice inside Voice Cells (each voice glitches on its own; with
   the same Seed they glitch in unison unless *Voice In › Random* is patched
   onto a knob).
@@ -171,8 +187,8 @@ continues.
   (filled), sliced (split). With transport sync it shows the *upcoming*
   decisions of the next bar too (they're deterministic), so you can see what
   *Chance* and *Seed* will do before it happens.
-- **Buffer view:** the input waveform with the current source segment and
-  read head.
+- **Source bar:** the read head inside the current source segment (the
+  input waveform is left for later).
 - **Freeze** latches (ORed with the gate); **Glitch** sends a pulse.
 
 ## 6. Saved state
@@ -191,9 +207,11 @@ Buffer content is not saved.
 
 1. **Shared delay toolkit** `patch/common/dsp/Delay.h` (ring buffer, cubic
    read) and the hash in `dsp/Random.h`.
-2. **Look-ahead decisions for the view:** `liveValues` exports the decisions
-   of the current and next bar as a bit mask (`glitches`, `slices`), computed
-   from the same hash on the message thread, no audio-thread involvement.
+2. **Look-ahead decisions for the view:** `liveArrays` exports `plan`, the
+   decisions of the current and next bar (0 pass, 1 glitch start, 2 repeat,
+   3 sliced repeat), computed from the same hash on the message thread from
+   the last chunk's song position, Chance, Repeats and Seed (forced glitches
+   excluded), and `history`, the last 64 segments as they happened.
 3. Node data for the latched Freeze.
 
 ## 8. Tests
