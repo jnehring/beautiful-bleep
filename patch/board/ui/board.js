@@ -546,7 +546,11 @@
     const move = (e) => {
       const b = toWorld(e.clientX, e.clientY);
       tmp.setAttribute("d", cablePath(a, b));
-      for (const t of document.querySelectorAll(".drop-ok")) t.classList.remove("drop-hover");
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      const knob = over && over.closest(".bv-target.drop-ok");
+      for (const t of document.querySelectorAll(".drop-hover")) if (t !== knob) t.classList.remove("drop-hover");
+      if (knob) knob.classList.add("drop-hover");
+      springOpen(over);
     };
     const up = (e) => {
       window.removeEventListener("pointermove", move);
@@ -556,6 +560,7 @@
       const d = drag;
       drag = null;
       dropCable(d, e);
+      endSpring(e);
     };
     move(ev);
     window.addEventListener("pointermove", move);
@@ -570,8 +575,47 @@
       const n = nodeById(row.dataset.node);
       row.classList.add(n && compatible(drag.type, row.dataset.type) && n.id !== drag.from.node ? "drop-ok" : "drop-no");
     }
-    for (const k of document.querySelectorAll(".bv-target"))
+    for (const k of document.querySelectorAll(".bv-target")) {
       k.classList.toggle("drop-ok", on && drag.type !== "notes");
+      if (!on) k.classList.remove("drop-hover");
+    }
+  }
+
+  // While a cable is in hand, resting on a module opens its view, so the
+  // cable can go straight onto a knob (spec §9.5). Views opened this way close
+  // again unless the cable ends in them or on their node.
+  const kSpringDelay = 250;  // ms
+  let spring = { timer: 0, node: null, opened: new Set() };
+
+  function springOpen(over) {
+    if (!drag || drag.type === "notes") return;
+    if (over && over.closest(".vwin")) { clearTimeout(spring.timer); spring.node = null; return; }
+    const ne = over && over.closest(".node");
+    const n = ne && nodeById(ne.dataset.id);
+    const id = n && n.id !== drag.from.node && !isStructural(n) && modParams(n).length ? n.id : null;
+    if (id === spring.node) return;
+    clearTimeout(spring.timer);
+    spring.node = id;
+    if (!id) return;
+    spring.timer = setTimeout(() => {
+      if (!drag || spring.node !== id) return;
+      // Only one view opened by the cable at a time.
+      for (const o of spring.opened) if (o !== id) closeView(o);
+      spring.opened = new Set([...spring.opened].filter((o) => o === id));
+      if (views.has(id)) front(views.get(id).win);
+      else { openView(id); spring.opened.add(id); }
+      markTargets(true);  // the new view's knobs
+    }, kSpringDelay);
+  }
+
+  function endSpring(e) {
+    clearTimeout(spring.timer);
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const win = target && target.closest(".vwin");
+    const ne = target && target.closest(".node");
+    const keep = win ? win.dataset.node : ne ? ne.dataset.id : null;
+    for (const id of spring.opened) if (id !== keep) closeView(id);
+    spring = { timer: 0, node: null, opened: new Set() };
   }
 
   function connect(b, from, to, amount) {
