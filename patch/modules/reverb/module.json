@@ -1,0 +1,10 @@
+{
+  "name": "Verb",
+  "slug": "reverb",
+  "tagline": "Stereo FDN reverb built to be played: click-free Size and Decay modulation, infinite decay and Freeze.",
+  "colour": "#f0abfc",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/reverb.md"
+}

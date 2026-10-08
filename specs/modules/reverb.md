@@ -40,7 +40,7 @@ Every knob is also an input (`specs.md` section 7.3).
 |---|---|---|---|
 | Size | 0–100 % | 50 % | Scales every delay in the tank: 0 % is a small booth (≈ 3 m), 100 % a huge space (≈ 60 m). |
 | Decay | 0.1 s – 60 s, then ∞ | 2.5 s | Mid-frequency T60 (time to fall by 60 dB). The top 4 % of the knob is *infinite*. |
-| Pre-delay | 0–1000 ms | 20 ms | Gap between the dry sound and the reverb. In sync mode: the note value set by *Pre-delay Sync* (see 4.5). |
+| Pre-delay | 0–1000 ms | 20 ms | Gap between the dry sound and the reverb. Hidden in sync mode, where *Pre-delay Sync* sets it (see 4.5). |
 | Diffusion | 0–100 % | 70 % | Density of the early build-up: low values keep audible discrete echoes, high values give a smooth wash. |
 | Damping | 0–100 % | 40 % | How much faster the highs decay than the mids (high-frequency T60 = Decay × (1 − 0.9 × Damping)). |
 | Bass | 0.5× – 2× | 1× | Low-frequency T60 relative to *Decay* (below ≈ 250 Hz). |
@@ -54,10 +54,15 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Setting | Values | Default |
 |---|---|---|
-| Pre-delay Sync | Free, 1/64, 1/32, 1/16, 1/8, 1/4, 1/2 (each straight, dotted, triplet) | Free |
+| Pre-delay Sync | Free, 1/64, 1/32, 1/16, 1/8, 1/4, 1/2 (each triplet, straight, dotted) | Free |
 | Quality | Eco (8 lines), Fine (16 lines) | Fine |
 | Clear on Play | off / on | off |
 | Seed | 0–999 | 1 |
+| Freeze (latch) | off / on | off |
+
+*Decay* is an exponential seconds knob (0.1 s at 0 %, 60 s at 92 %); above
+92 % it is the infinite region (4.3), so the knob's own read-out shows
+seconds up to ≈ 104 s at the top and the view shows *Infinite*.
 
 ## 4. Behaviour
 
@@ -87,8 +92,11 @@ infinite decay and freeze clean.
   Size factor, coefficient 0.35 + 0.4 × Diffusion). At low *Diffusion* the
   diffuser coefficient is low and the first reflections stay audible as
   echoes.
-- **Reads** are fractional with cubic Hermite interpolation. Every line's
-  length can change every sample (4.2).
+- **Reads** are fractional through first-order allpass interpolation
+  (`dsp::AllpassTap`), which is exactly flat in magnitude, so freeze and
+  infinite decay keep their highs while the modulation runs (cubic reads lose
+  treble on every pass). The pre-delay is read with cubic Hermite
+  interpolation. Every line's length can change every sample (4.2).
 
 ### 4.2 Modulating Size without clicks
 
@@ -126,16 +134,22 @@ length.
   an effective control rate of fs/8 ≈ 6 kHz).
 - Shelf coefficients are TPT one-poles (`specs.md` Multi Filter, zero-delay
   feedback), so changing them per sample is stable.
-- **∞ (infinite)**: above 96 % on the knob, gains are exactly 1 and the shelves
-  are flat. The region between 92 % and 96 % ramps T60 from 60 s towards the
-  lossless state, so sweeping into infinity is continuous. The input stays
-  open, so new sound keeps piling up; a soft limiter (tanh at −1 dBFS on the
-  line sum, only engaged in the loop above 92 %) keeps the energy bounded.
+- **∞ (infinite)**: between 92 % and 96 % T60 ramps from 60 s towards
+  lossless (`60 s / (1 − t)`), and above 96 % the module runs the tank with
+  T60 = 10⁹ s: per-pass gains differ from 1 by about 10⁻¹⁰ and the shelves
+  are flat, so sweeping into infinity is continuous. The input stays open,
+  so new sound keeps piling up; the tank's soft limiter (tanh at −1 dBFS in
+  the loop) bounds it. The limiter is engaged only above 92 % **and** while
+  the tank is hot (wet peak above −6 dBFS, released below −9 dBFS, 0.5 s
+  peak hold), because its gentle compression drains a moderate tail by
+  several dB a minute; the tank's own `infinite` mode keeps it on at all
+  levels, so the module doesn't use that mode.
 
 ### 4.4 Freeze
 
-*Freeze* high: within 20 ms the tank input fades to zero and the loop
-becomes lossless (as ∞ above, including flat shelves), and the modulation
+*Freeze* high (the gate, ORed with the latching *Freeze* setting): within
+20 ms the tank input fades to zero and the loop becomes lossless (gains
+exactly 1, flat shelves), and the modulation
 keeps running so the held sound slowly shimmers instead of ringing static.
 *Size* and *Mod Depth* still act on the frozen sound (moving its pitch and
 movement); *Decay*, *Damping* and *Bass* are ignored until release. *Freeze*
@@ -145,9 +159,8 @@ low: input fades back in and the gains glide back to the knob values over
 ### 4.5 Pre-delay and the transport
 
 With *Pre-delay Sync* on a note value, the pre-delay equals that note at the
-current tempo (4/4), clamped to 1000 ms; *Pre-delay* then scales it 0–100 %
-(default 100 % of the note when synced). Tempo changes glide the delay
-(4.2). The pre-delay is the only tempo-aware part; the tank is not
+current tempo (4/4), clamped to 1000 ms, and the *Pre-delay* knob is not
+used (hidden). Tempo changes glide the delay (4.2). The pre-delay is the only tempo-aware part; the tank is not
 quantized.
 
 ### 4.6 Tails, Clear and determinism
@@ -155,10 +168,12 @@ quantized.
 - **Transport stop** never cuts the tail: the module keeps running while the
   engine runs (`specs.md` section 5.3), and the tail rings out normally.
 - **Clear** fades the wet path out over 10 ms, zeroes all lines, filters and
-  the pre-delay, and fades back in. The dry path is untouched.
+  the pre-delay, and fades back in. The dry path is untouched. *Quality* and
+  *Seed* changes go through the same fade (the change happens at silence).
 - **Clear on Play**: when on, starting the transport (the engine's
-  `transportStarted`) acts like *Clear*. With it on, two offline renders of
-  the same section are bit-identical. With it off (default), leftover tail
+  `transportStarted`) clears everything at once (no fade: a fade would carry
+  the old tail into the render). With it on, two offline renders of the
+  same section are bit-identical. With it off (default), leftover tail
   from before the render is part of the output, as in a hardware reverb.
 - **Modulation phases** of the internal LFOs (one per line, rates spread
   ±23 % around *Mod Rate*, start phases from *Seed*) restart from the seed on
@@ -169,10 +184,13 @@ quantized.
 ### 4.7 CPU and memory
 
 - Fine: 16 lines, 8 diffuser allpasses, 16 interpolated reads, 32 shelf
-  filters per sample. Expect ≈ 1.5 % of one core at 48 kHz on an M1; Eco about
-  half.
-- Memory: lines sized for the maximum (390 ms × 16) plus 1 s stereo
-  pre-delay: ≈ 1.6 MB at 48 kHz, ≈ 6.4 MB at 192 kHz. Allocated in `prepare()`
+  filters per sample. The module harness measures ≈ 2.5–3 % of one core
+  (48 kHz-equivalent, every knob modulated); nearly all of it is the shared
+  tank (`Fdn.h`). The module reads its slow knobs every 8 samples. Eco is
+  about half.
+- Memory: lines sized for the maximum (390 ms × 16, rounded up to powers of
+  two) plus 1 s stereo pre-delay: ≈ 2.5 MB at 48 kHz, ≈ 10 MB at 192 kHz.
+  The spec flags the module `memoryHeavy`. Allocated in `prepare()`
   on the message thread, never on the audio thread.
 - **Inside a Voice Cell** it works per voice (each voice its own tank), which
   multiplies CPU and memory by the number of voices. Usually place it after
@@ -194,30 +212,30 @@ them:
 - **Decay curves:** three lines (low, mid, high) from the *effective*
   (modulated) values, on a log time axis; the pre-delay is drawn as a gap.
   ∞ shows a flat line and the label *Infinite*.
-- **Freeze** button: latching toggle, ORed with the *Freeze* gate. Lit while
-  frozen from either source.
+- **Freeze** button: latching toggle (it sets the *Freeze (latch)* setting),
+  ORed with the *Freeze* gate. Lit while frozen from either source (live
+  value `frozen`).
 - **Clear** button: same as the trigger.
-- **Wet meter:** the *Env* output.
+- **Wet meter:** the *Env* output (live value `env`). The pre-delay gap uses
+  the live value `preDelayMs` (it follows the tempo when synced).
 
 ## 6. Saved state
 
-Only knob and setting values; the latching Freeze button is saved so a board
-reopens frozen-ready (the tank content itself is not saved: it opens empty).
+Only knob and setting values. The latching Freeze button is a setting
+(`freeze`), so a board reopens frozen-ready (the tank content itself is not
+saved: it opens empty). No node data.
 
 ```json
 {
   "type": "reverb",
-  "params": { "size": 0.5, "decay": 0.41, "mix": 0.35, … },
-  "data": { "freezeLatched": false }
+  "params": { "size": 0.5, "decay": 0.463, "mix": 0.35, …, "freeze": 0.0 }
 }
 ```
 
 ## 7. Engine requirements
 
-1. **Shared delay toolkit** in `patch/common/dsp/Delay.h`: a fractional
-   delay line (cubic Hermite), the slew-limited length follower of 4.2, and
-   denormal-safe one-pole shelves. Zone Delay, Delay Net and Bender use the
-   same file.
+1. **Shared tank** `patch/common/dsp/Fdn.h` (exists) on the delay toolkit
+   `Delay.h` (`RingDelay`, `AllpassTap`, `TapeTime`).
 2. **Allocation in `prepare()`** for buffers sized by sample rate (no
    allocation in `process`). If `prepare()` is called again with a new rate,
    buffers are reallocated and cleared.
@@ -225,7 +243,7 @@ reopens frozen-ready (the tank content itself is not saved: it opens empty).
    the LFO reseed use it.
 4. **State across recompiles:** like every module, reused by node id, so
    patching elsewhere on the board doesn't cut the tail.
-5. Small node data for the latched Freeze (`ModuleSpec::sanitiseData`).
+5. No node data: the latched Freeze is a plain setting.
 
 ## 8. Tests
 
@@ -233,16 +251,19 @@ reopens frozen-ready (the tank content itself is not saved: it opens empty).
   60 dB in 2 s ± 10 %, measured on the RMS envelope; with Damping 100 % the
   > 5 kHz band decays at least 5× faster.
 - **Lossless loop:** Decay ∞ and Freeze each keep an injected burst's energy
-  within ±0.5 dB over 60 s; the limiter bounds the output below 0 dBFS when
-  noise is fed continuously at ∞.
+  (noise low-passed at 6 kHz) within ±0.5 dB over 56 s (measured −0.2 dB);
+  the limiter bounds the wet output below ±2 (measured peak ≈ 1.45, so not
+  below 0 dBFS: up to 16 limited lines add up) when full-scale noise is fed
+  continuously at ∞.
 - **Click-free Size:** sweep Size 0 → 100 % in 10 ms and modulate it with a
   1 kHz sine at full depth; the output's sample-to-sample difference never
   exceeds that of the unmodulated tail by more than a fixed factor, and no
   sample exceeds ±2.
 - **Click-free Decay / Pre-delay:** same check for audio-rate modulation of
   Decay and Pre-delay.
-- **Freeze:** gate on/off gives no discontinuity (max step < −40 dBFS) and the
-  frozen tail holds; dry path unchanged.
+- **Freeze:** toggling the gate every 0.5 s gives no sample step larger than
+  1.5× the unmodulated tail's; the frozen tail holds (above); dry path
+  unchanged (Mix 0 gives the input exactly).
 - **Clear on Play:** two renders of the same transport section after
   different prior input are bit-identical with it on.
 - **Seed:** same seed, same output; different seeds, different modulation.

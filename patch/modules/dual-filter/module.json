@@ -1,0 +1,10 @@
+{
+  "name": "Dual Filter",
+  "slug": "dual-filter",
+  "tagline": "Two morphing state-variable filters under one cutoff, pulled apart by Spread: serial, parallel or stereo.",
+  "colour": "#f9a8d4",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/dual-filter.md"
+}

@@ -63,7 +63,7 @@ Every knob is also an input (`specs.md` section 7.3). As on the Filter,
 | Res 1 | 0–100 % | 20 % | Resonance of filter 1 (Q 0.5–25, the Filter's mapping `Q = 0.5 · 50^res`). |
 | Res 2 | 0–100 % | 20 % | Resonance of filter 2. |
 | Mode 1 | LP → BP → HP → Notch | LP | Response of filter 1, morphed continuously (`dsp::morphSvf`). |
-| Mode 2 | LP → BP → HP → Notch | LP | Response of filter 2; with *Link* on, an offset from Mode 1 (4.3). |
+| Mode 2 | LP → BP → HP → Notch | LP | Response of filter 2; with *Link* on, an offset from Mode 1 (4.3), and the knob is shown as *Mode 2 Offset*. |
 | Balance | −100…+100 % | 0 % | Level of filter 1 vs filter 2 in Parallel and Stereo; in Serial, the share of filter 1's output that bypasses filter 2. |
 | Drive | 0–100 % | 0 % | tanh input drive, as on the Filter. |
 | Key Track | 0–100 % | 0 % | How far *Pitch* moves both cutoffs. |
@@ -89,11 +89,13 @@ tracking) and `s` the *Spread* in octaves:
  f2 = 20 Hz · 2^(c + s/2)
 ```
 
-Both are clamped to 5 Hz … 0.49 · fs (as `dsp::Svf::set` does). At Spread 0
+Both are clamped to 5 Hz … 0.49 · fs (as `dsp::Svf::set` does; 0.45 · fs
+for `dsp::RoughSvf`). At Spread 0
 the two filters sit on the same frequency; in Serial with both at LP this is
 a 24 dB/oct low-pass with two coinciding resonance peaks. Coefficients are
-computed per sample when *Cutoff*, *Spread* or *Pitch* are modulated (a `tan`
-per filter per sample) and once per sub-block otherwise.
+recomputed in any sample where a cutoff or Q differs from the previous sample
+(a `tan` per filter, as the Filter module does), so modulation is exact per
+sample and an unmodulated filter costs nothing extra.
 
 ### 4.2 Routing
 
@@ -119,10 +121,12 @@ extra effect there); in Parallel the levels are `1 − Balance` and
   BP − BP gives a notch with steep sides.
 - **Stereo:** each channel has only one filter; Spread places the left and
   right cutoffs apart (a mono source gets stereo width), and *Balance* is a
-  left/right level.
+  left/right level: left × min(1, 1 − Balance), right × min(1, 1 + Balance)
+  (not halved, so the centre is unity).
 
 Serial and Parallel are processed per channel (two filters per channel, four
-in all); Stereo uses two in all.
+in all); with *In R* unpatched they run once and the result is copied. Stereo
+uses two in all.
 
 ### 4.3 Link
 
@@ -149,13 +153,16 @@ Two resonant peaks in series can add up to +56 dB at the same frequency. In
 *Clean* Serial, the input of filter 2 is scaled by `1 / max(1, Q1 / 4)` when
 the cutoffs are within a semitone of each other, rising back to 1 over the
 next octave of spread, so turning up both resonances at Spread 0 is loud but
-not explosive. The output then passes `x / (1 + |x| / 8)` as a final safety
-limit (inaudible below ±2).
+not explosive. *Out*, *F1 Out* and *F2 Out* then pass a final safety limit:
+linear up to ±2, above that `2 + 6 · tanh((|x| − 2) / 6)` (bounded at ±8).
+(`x / (1 + |x| / 8)` was considered but already takes 1 dB off a full-scale
+signal.)
 
 ### 4.6 Edge cases and CPU
 
 - **Routing change:** the filters keep their state, and the output
-  crossfades from the old routing to the new over 10 ms.
+  crossfades (smoothstep) from the old routing to the new over 10 ms. The old
+  routing finishes on a copy of the filters, so both stay continuous.
 - **Character change** resets the filter states (as the Filter's *Type*).
 - **Unpatched F1/F2 outputs** cost nothing extra; the filters run anyway for
   *Out*.
@@ -177,7 +184,8 @@ The usual knobs and settings, and a response display above them:
 ```
 
 - Thin curves for each filter, a bright curve for the combined response of the
-  current routing (for Stereo: left and right in two colours).
+  current routing including *Balance*, gain staging and *Mix* (for Stereo:
+  left and right in two colours).
 - Three markers: f1, the centre, f2. Dragging the centre marker sets *Cutoff*;
   dragging f1 or f2 sets *Spread* symmetrically (Alt: moves only that
   cutoff by changing *Cutoff* and *Spread* together). Vertical drag on a
@@ -192,7 +200,7 @@ Only knob and setting values; no node data.
 ```json
 {
   "type": "dual-filter",
-  "params": { "cutoff": 0.5674, "spread": 0.6, "res1": 0.2, "res2": 0.2,
+  "params": { "cutoff": 0.5663, "spread": 0.6, "res1": 0.2, "res2": 0.2,
               "mode1": 0.0, "mode2": 0.0, "balance": 0.5, "drive": 0.0,
               "keyTrack": 0.0, "mix": 1.0, "routing": 0.0, "link": 0.0,
               "character": 0.0 }
@@ -202,10 +210,14 @@ Only knob and setting values; no node data.
 ## 7. Engine requirements
 
 None beyond what exists: `dsp::Svf`, `dsp::RoughSvf` and `dsp::morphSvf` in
-`patch/common/dsp/Svf.h`, the resonance mapping of the Filter (move
-`Q = 0.5 · 50^res` into a shared helper in `Svf.h` so both modules use the
-same curve), `dsp::EnvelopeFollower`, and the Filter's response-curve
-drawing code (`patch/modules/filter/ui`), generalised to plot several curves.
+`patch/common/dsp/Svf.h`, `dsp::EnvelopeFollower`, and the Filter's resonance
+mapping `Q = 0.5 · 50^res` and cutoff mapping, used directly from
+`FilterDsp::q` (the module includes the Filter's `FilterDsp.h`, which is on
+the include path), so both modules share one curve. The view has its own
+small response plot (`ui/dual-filter.js`) with the same SVF model as the
+Filter's view; generalising `filter.js` into a shared multi-curve plot is
+left for later. *F1 Out* / *F2 Out* are renamed *F1 (L)* / *F2 (R)* in Stereo
+routing (`namedBy`).
 
 ## 8. Tests
 
@@ -215,16 +227,19 @@ drawing code (`patch/modules/filter/ui`), generalised to plot several curves.
   (within 1 dB of the analytic response at 4× and 8× the cutoff).
 - Serial HP → LP with Spread +2 oct: −3 dB points within 5 % of f1 and f2 at
   low resonance.
-- Parallel (F2 inverted), both LP: response at the geometric mean of f1 and f2
-  is the maximum; DC and 20 kHz are below −30 dB.
+- Parallel (F2 inverted), both LP (Q 0.707, Spread +2 oct): the response at
+  the geometric mean of f1 and f2 is above the response at 0.3× and 3× it;
+  DC (exactly 0) and 20 kHz are below −30 dB relative to it.
 - Stereo with a mono input: left output equals filter 1 at f1, right equals
-  filter 2 at f2.
+  filter 2 at f2 (sample for sample against a lone `dsp::Svf`).
 - Link Same and Mirror produce the documented filter-2 modes for Mode 1 at
   0, 1/3, 2/3, 1.
 - Gain staging: Clean Serial, both Res 100 %, Spread 0, full-scale noise:
   output stays below ±8.
-- Routing change produces no sample step larger than 0.05 on a sine.
-- Audio-rate *Spread* modulation stays stable (no NaN, bounded) at Res 100 %.
+- Routing change (through all four) produces no sample step larger than 0.05
+  on a 150 Hz sine.
+- Audio-rate *Spread* (and *Cutoff*) modulation stays stable (no NaN,
+  bounded) at Res 100 %, in every routing and both characters.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later

@@ -1,0 +1,10 @@
+{
+  "name": "Filter Bank",
+  "slug": "filter-bank",
+  "tagline": "Ten fixed band-pass filters with levels, tilt, a scan window, per-band outputs and envelopes, and a built-in vocoder.",
+  "colour": "#eab308",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/filter-bank.md"
+}
