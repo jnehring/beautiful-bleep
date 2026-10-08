@@ -56,7 +56,7 @@
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
   /// Vertical drag helper: 200 px for the full range, Shift for fine.
-  function dragValue(target, get, set, onStart) {
+  function dragValue(target, get, set, onStart, onEnd) {
     let startY = 0, startV = 0, dragging = false;
     target.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
@@ -69,7 +69,11 @@
       if (!dragging) return;
       set(startV + (startY - e.clientY) / (e.shiftKey ? 1000 : 200));
     });
-    const end = () => (dragging = false);
+    const end = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (onEnd) onEnd();
+    };
     target.addEventListener("pointerup", end);
     target.addEventListener("pointercancel", end);
     return () => dragging;
@@ -133,7 +137,12 @@
         setParam(p.id, (view.node.params[p.id] ?? p.default) - e.deltaY / (e.shiftKey ? 3000 : 600));
         k.draw();
       }, { passive: false });
+      // A refresh during an amount drag (beginGesture answers with the board)
+      // must not replace the chip under the pointer; it re-renders on release.
+      let chipDrag = false, stale = false;
       k.renderAmounts = () => {
+        if (chipDrag) { stale = true; return; }
+        stale = false;
         amounts.innerHTML = "";
         if (!p.modulatable || !api.cablesInto) return;
         for (const c of api.cablesInto(p.id)) {
@@ -145,13 +154,15 @@
           show();
           const x = el("button", "bv-amount-remove", "×");
           x.title = "Remove cable";
+          x.addEventListener("pointerdown", (e) => e.stopPropagation());
           x.addEventListener("click", (e) => { e.stopPropagation(); api.removeCable(c.id); });
           chip.append(label, pct, x);
           dragValue(chip, () => (c.amount + 1) / 2, (v) => {
             c.amount = Math.round((clamp01(v) * 2 - 1) * 1000) / 1000;
             show();
             api.setAmount(c.id, c.amount);
-          }, () => api.beginGesture());
+          }, () => { chipDrag = true; api.beginGesture(); },
+          () => { chipDrag = false; if (stale) k.renderAmounts(); });
           chip.addEventListener("dblclick", () => { api.beginGesture(); c.amount = 1; show(); api.setAmount(c.id, 1); });
           amounts.appendChild(chip);
         }
