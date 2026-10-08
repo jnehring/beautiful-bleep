@@ -73,11 +73,31 @@ static void filterMapping() {
     FilterDsp f;
     f.prepare(48000.0);
     FilterParams p;
-    p.mix = 0.0f; // dry: identity
-    float frame[2] = {0.3f, -0.2f};
-    f.tick(p, 0.0f, frame, 2);
-    EXPECT_NEAR(frame[0], 0.3, 1e-7);
-    EXPECT_NEAR(frame[1], -0.2, 1e-7);
+    p.mix = 0.0f; // dry: the input, exactly, delayed by the oversampling latency
+    for (int i = 0; i <= FilterDsp::kLatency; ++i) {
+        float frame[2] = {i == 0 ? 0.3f : 0.0f, i == 0 ? -0.2f : 0.0f};
+        f.tick(p, 0.0f, frame, 2);
+        EXPECT_NEAR(frame[0], i == FilterDsp::kLatency ? 0.3 : 0.0, 1e-7);
+        EXPECT_NEAR(frame[1], i == FilterDsp::kLatency ? -0.2 : 0.0, 1e-7);
+    }
+
+    // Wet and dry line up: a pass-through filter at 50 % mix keeps a 1 kHz tone whole.
+    {
+        FilterDsp g;
+        g.prepare(48000.0);
+        FilterParams q;
+        q.type = (int)FilterType::OnePoleAp;
+        q.mix = 0.5f;
+        q.cutoff = 1.0f;  // 20 kHz: the allpass barely shifts 1 kHz
+        double in = 0.0, out = 0.0;
+        for (int i = 0; i < 9600; ++i) {
+            const float x = std::sin(i * 2.0f * 3.14159265f * 1000.0f / 48000.0f);
+            float fr[2] = {x, x};
+            g.tick(q, 0.0f, fr, 2);
+            if (i >= 4800) in += (double)x * x, out += (double)fr[0] * fr[0];
+        }
+        EXPECT_NEAR(std::sqrt(out / in), 1.0, 0.02);
+    }
 
     p.mix = 1.0f;
     p.cutoff = 0.0f; // 20 Hz low-pass: a 5 kHz tone almost vanishes, envelope stays low
@@ -295,6 +315,47 @@ static void roughFilter() {
         if (g_failures) return;
     }
     EXPECT(peak < 20.0f);  // saturation keeps full resonance bounded
+}
+
+/// Magnitude of one frequency in x (Goertzel), normalised to a sine's amplitude.
+static double toneLevel(const std::vector<float>& x, double freq, double sampleRate) {
+    const double w = 2.0 * 3.14159265358979 * freq / sampleRate, k = 2.0 * std::cos(w);
+    double s1 = 0.0, s2 = 0.0;
+    for (float v : x) {
+        const double s0 = v + k * s1 - s2;
+        s2 = s1, s1 = s0;
+    }
+    return 2.0 * std::sqrt(std::max(0.0, s1 * s1 + s2 * s2 - k * s1 * s2)) / (double)x.size();
+}
+
+static void filterAliasing() {
+    g_test = "filter aliasing";
+    // A hard-driven 7.3 kHz sine: its in-band harmonics are 7.3 and 21.9 kHz;
+    // everything else in the output is harmonics above Nyquist folded back.
+    const double f0 = 7300.0, sr = 48000.0;
+    for (FilterType t : {FilterType::Svf, FilterType::LadderTanh}) {
+        FilterDsp f;
+        f.prepare(sr);
+        FilterParams p;
+        p.type = (int)t;
+        p.cutoff = 1.0f;
+        p.resonance = 0.0f;
+        p.drive = 1.0f;
+        std::vector<float> out;
+        for (int i = 0; i < 48000; ++i) {
+            const float x = 0.8f * (float)std::sin(2.0 * 3.14159265358979 * f0 * i / sr);
+            float frame[2] = {x, x};
+            f.tick(p, 0.0f, frame, 2);
+            if (i >= 4800) out.push_back(frame[0]);
+        }
+        double total = 0.0;
+        for (float v : out) total += (double)v * v / (double)out.size();
+        const double h1 = toneLevel(out, f0, sr), h3 = toneLevel(out, 3.0 * f0, sr);
+        const double alias = std::sqrt(std::max(0.0, total - 0.5 * (h1 * h1 + h3 * h3))) / h1;
+        if (!(alias < 0.01)) std::printf("  type %d: aliases only %.1f dB down\n", (int)t, -20.0 * std::log10(alias));
+        EXPECT(h1 > 0.1);
+        EXPECT(alias < 0.01);  // below −40 dB
+    }
 }
 
 // ---- Step Sequencer (specs/modules/step-sequencer.md §8) -------------------
@@ -1279,6 +1340,7 @@ int main() {
     oscillator();
     adsr();
     roughFilter();
+    filterAliasing();
     lfoBasics();
     filterAlgorithms();
     seqScales();

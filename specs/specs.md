@@ -730,6 +730,7 @@ Each module is our own design, built from generic modular concepts. Each module 
 - **Cutoff modulation** is applied in the exponential (octave) domain, so a bipolar signal sweeps musically.
 - **Pitch input** for key-tracking.
 - **Envelope follower** on the filtered signal as a `control` output, so audio drives modulation elsewhere.
+- **4× oversampling**, always on: drive and filter run at four times the host rate between the half-band stages of `patch/common/dsp/Oversampler.h`, so the saturating types and hard drive alias far less (a fully driven 7.3 kHz sine at 48 kHz: aliases ≥ 49 dB down, against ~17 dB without). The output is delayed by 71 samples; the dry signal for *Mix* is delayed to match. It is fixed rather than switched by type or drive, since switching would jump the latency mid-signal.
 - The module keeps its saved type id (`filter`), so boards from before keep loading. *Type* is saved normalised: *SVF Multimode* (the former *Clean*) stays first and *SVF Saturating* (the former *Rough*) stays last, so old boards keep their sound. New types go in between.
 
 **Oscillator details:** a triangle core, as in classic through-zero analog oscillators, designed from general principles:

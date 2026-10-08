@@ -160,6 +160,9 @@ it shows the quiet-signal (linear) response.
 - **Drive:** how hard the input is saturated before filtering. At 0 % the
   signal is untouched. Turn down the source level if you want drive without
   much extra loudness.
+  Drive and the filter run at four times the sample rate, so even hard drive
+  and the saturating types stay clean, without the harsh, out-of-tune
+  overtones of aliasing.
 - **Mode:** the response, morphed continuously:
   0 % low-pass (removes highs), 33 % band-pass (keeps a band around the
   cutoff), 67 % high-pass (removes lows), 100 % notch (removes a band).
@@ -193,3 +196,7 @@ All knobs are modulation destinations.
 | Out L | audio | filtered left channel |
 | Out R | audio | filtered right channel |
 | Env | control, 0 – 1 | envelope follower on the filtered output |
+
+The outputs lag the inputs by 71 samples (about 1.5 ms at 48 kHz), the cost
+of oversampling. The dry signal of *Mix* lags by the same amount, so the two
+stay in phase.

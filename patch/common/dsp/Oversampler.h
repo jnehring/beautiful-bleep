@@ -19,12 +19,19 @@ public:
         buf_.fill(0.0f);
         pos_ = 0;
     }
+    /// Stores a sample whose output is not needed (decimation).
+    void push(float x) noexcept {
+        buf_[(size_t)pos_] = buf_[(size_t)(pos_ + kTaps)] = x;
+        if (++pos_ == kTaps) pos_ = 0;
+    }
     float process(float x) noexcept {
         buf_[(size_t)pos_] = buf_[(size_t)(pos_ + kTaps)] = x;
         const float* b = &buf_[(size_t)pos_];  // b[k] = x[n − (kTaps − 1) + k]
         const auto& h = taps();
-        float y = 0.0f;
-        for (int k = 0; k < kTaps; ++k) y += h[(size_t)k] * b[k];
+        // Half-band: every tap an odd distance from the centre is zero.
+        constexpr int m = (kTaps - 1) / 2;
+        float y = h[(size_t)m] * b[m];
+        for (int k = (m + 1) % 2; k < kTaps; k += 2) y += h[(size_t)k] * b[k];
         if (++pos_ == kTaps) pos_ = 0;
         return y;
     }
@@ -42,7 +49,8 @@ public:
                 t[(size_t)n] = (float)(sinc * w);
                 sum += sinc * w;
             }
-            for (auto& v : t) v = (float)(v / sum);
+            for (int n = 0; n < kTaps; ++n)
+                t[(size_t)n] = n != m && (n - m) % 2 == 0 ? 0.0f : (float)(t[(size_t)n] / sum);
             return t;
         }();
         return h;
@@ -84,12 +92,12 @@ public:
         float s0 = in[0], s1 = in[1];
         if (factor == 4) {
             s0 = b_.process(in[0]);
-            b_.process(in[1]);
+            b_.push(in[1]);
             s1 = b_.process(in[2]);
-            b_.process(in[3]);
+            b_.push(in[3]);
         }
         const float y = a_.process(s0);
-        a_.process(s1);
+        a_.push(s1);
         return y;
     }
 
