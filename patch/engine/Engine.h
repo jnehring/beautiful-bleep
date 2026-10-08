@@ -86,6 +86,15 @@ public:
     void setAmount(const juce::String& cableId, float amount);
     /// A node's data (e.g. a sequencer's steps): no recompile, no undo entry of its own.
     void setData(const juce::String& nodeId, const juce::var& data);
+    /// A view button or one-shot command (Module::command), for the node and,
+    /// inside a Voice Cell, for every voice.
+    void command(const juce::String& nodeId, const juce::String& id, float value);
+    /// Imports a WAV file (its bytes) into the media folder (Media.h). Returns
+    /// {id, name, seconds, channels} or {error}.
+    juce::var importMedia(const juce::String& name, const juce::MemoryBlock& bytes);
+    /// Saves audio a module holds (Module::exportMedia) to the media folder.
+    /// Returns {id, seconds, channels} or {error}.
+    juce::var exportMedia(const juce::String& nodeId, const juce::String& slot);
     /// Live values for the UI: outputs of every node, params of `detailed`.
     juce::var liveState(const std::set<juce::String>& detailed) const;
     juce::String statusLine() const;

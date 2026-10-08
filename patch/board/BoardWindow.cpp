@@ -164,6 +164,24 @@ public:
                     engine_.setData(a[0].toString(), a[1]);
                     done({});
                 })
+                .withNativeFunction("command", [this](const juce::Array<juce::var>& a, Completion done) {
+                    engine_.command(a[0].toString(), a[1].toString(), (float)a[2]);
+                    done({});
+                })
+                .withNativeFunction("importMedia", [this](const juce::Array<juce::var>& a, Completion done) {
+                    // a[0]: file name, a[1]: the file's bytes as base64 (the page reads dropped files).
+                    juce::MemoryOutputStream decoded;
+                    if (!juce::Base64::convertFromBase64(decoded, a[1].toString())) {
+                        auto* o = new juce::DynamicObject();
+                        o->setProperty("error", "could not read the file");
+                        done(juce::var(o));
+                        return;
+                    }
+                    done(engine_.importMedia(a[0].toString(), decoded.getMemoryBlock()));
+                })
+                .withNativeFunction("exportMedia", [this](const juce::Array<juce::var>& a, Completion done) {
+                    done(engine_.exportMedia(a[0].toString(), a[1].toString()));
+                })
                 .withNativeFunction("midiDevices", [](const juce::Array<juce::var>&, Completion done) {
                     // Connected controllers for the MIDI Device module (standalone, spec §12).
                     juce::Array<juce::var> names;

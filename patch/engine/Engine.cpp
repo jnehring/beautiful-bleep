@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 #include "Engine.h"
 
+#include "Media.h"
 #include "VoiceCell.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -43,7 +45,11 @@ bool sendsToTrack(PortKind k) {
 
 // ---- lifetime ------------------------------------------------------------------
 
-Engine::Engine() { startTimerHz(10); }
+Engine::Engine() {
+    media::setFolder(juce::File::getSpecialLocation(juce::File::userMusicDirectory)
+                         .getChildFile("Bleep Patch").getChildFile("Media").getFullPathName().toStdString());
+    startTimerHz(10);
+}
 
 Engine::~Engine() {
     stopTimer();
@@ -361,6 +367,43 @@ void Engine::setData(const juce::String& nodeId, const juce::var& data) {
     generation_.fetch_add(1);
 }
 
+void Engine::command(const juce::String& nodeId, const juce::String& id, float value) {
+    const std::string node = nodeId.toStdString(), cmd = id.toStdString();
+    if (auto m = modules_.find(node); m != modules_.end()) m->second->command(cmd, value);
+    if (auto in = inner_.find(node); in != inner_.end())
+        for (const auto& m : in->second.modules) m->command(cmd, value);
+}
+
+juce::var Engine::importMedia(const juce::String& name, const juce::MemoryBlock& bytes) {
+    auto* o = new juce::DynamicObject();
+    std::string error;
+    auto clip = media::import((const uint8_t*)bytes.getData(), bytes.getSize(), name.toStdString(), &error);
+    if (!clip) {
+        o->setProperty("error", juce::String(error));
+        return juce::var(o);
+    }
+    o->setProperty("id", juce::String(clip->id));
+    o->setProperty("name", name);
+    o->setProperty("seconds", clip->seconds());
+    o->setProperty("channels", clip->numChannels());
+    return juce::var(o);
+}
+
+juce::var Engine::exportMedia(const juce::String& nodeId, const juce::String& slot) {
+    auto* o = new juce::DynamicObject();
+    std::shared_ptr<const MediaClip> clip;
+    if (auto m = modules_.find(nodeId.toStdString()); m != modules_.end()) clip = m->second->exportMedia(slot.toStdString());
+    const std::string id = clip ? media::save(*clip) : std::string();
+    if (id.empty()) {
+        o->setProperty("error", clip ? "could not write to the media folder" : "nothing to save");
+        return juce::var(o);
+    }
+    o->setProperty("id", juce::String(id));
+    o->setProperty("seconds", clip->seconds());
+    o->setProperty("channels", clip->numChannels());
+    return juce::var(o);
+}
+
 void Engine::setAmount(const juce::String& cableId, float amount) {
     auto* c = hasBoard() ? board::findCable(board_, cableId) : nullptr;
     if (c == nullptr) return;
@@ -486,6 +529,18 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
             std::vector<std::pair<std::string, double>> extra;
             m->liveValues(extra);
             for (const auto& [key, value] : extra) n->setProperty(juce::Identifier(key), value);
+            std::vector<std::pair<std::string, std::vector<float>>> arrays;
+            m->liveArrays(arrays);
+            if (!arrays.empty()) {
+                auto* a = new juce::DynamicObject();
+                for (const auto& [key, values] : arrays) {
+                    juce::Array<juce::var> list;
+                    list.ensureStorageAllocated((int)values.size());
+                    for (float v : values) list.add(std::isfinite(v) ? v : 0.0f);
+                    a->setProperty(juce::Identifier(key), list);
+                }
+                n->setProperty("arrays", juce::var(a));
+            }
         }
         nodes->setProperty(juce::Identifier(id), juce::var(n));
     }

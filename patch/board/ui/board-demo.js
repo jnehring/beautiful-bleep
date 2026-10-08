@@ -155,6 +155,14 @@
           return null;
         }
         case "watch": watched = a[0] || []; return null;
+        case "command": return null;  // no DSP in the demo
+        case "importMedia": {
+          // No media folder in the demo: a stable fake id from the name and size.
+          let h = 0;
+          for (const ch of a[0] + ":" + (a[1] || "").length) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+          return { id: h.toString(16).padStart(16, "0").slice(-16) + ".wav", name: a[0], seconds: 0, channels: 2 };
+        }
+        case "exportMedia": return { error: "no audio in the demo" };
         case "midiDevices": return ["Demo Keyboard", "Demo Pads"];
         case "presets": return store.get("bleep-demo-presets", []);
         case "savePreset": {

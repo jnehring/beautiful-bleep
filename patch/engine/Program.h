@@ -44,6 +44,7 @@ public:
         // Pointer arrays handed to the module.
         std::vector<const float*> paramPtrs, inputPtrs;
         std::unique_ptr<bool[]> connected;
+        std::unique_ptr<bool[]> outConnected;   ///< per output jack: something reads it
         std::vector<const NoteBuffer*> notesInPtrs;
         std::vector<float*> outputPtrs;
         std::vector<NoteBuffer*> notesOutPtrs;

@@ -1,7 +1,18 @@
 // SPDX-License-Identifier: MIT
 #include "Registry.h"
 
+#include <algorithm>
+
 namespace bleep::engine {
+
+namespace {
+std::vector<std::pair<std::string, RegisterFn>>& autoRegistered() {
+    static std::vector<std::pair<std::string, RegisterFn>> list;
+    return list;
+}
+}  // namespace
+
+AutoRegister::AutoRegister(const char* name, RegisterFn fn) { autoRegistered().emplace_back(name, fn); }
 
 const Registry& Registry::get() {
     static const Registry registry;
@@ -22,6 +33,11 @@ Registry::Registry() {
     registerStepSequencerModule(*this);
     registerRingDrumsModules(*this);
     registerPunchDrumsModules(*this);
+    {
+        auto list = autoRegistered();
+        std::sort(list.begin(), list.end());
+        for (const auto& [name, fn] : list) fn(*this);
+    }
     registerPortModules(*this);
 
     // Cells (spec §8): their jacks live in the board, not in the spec.

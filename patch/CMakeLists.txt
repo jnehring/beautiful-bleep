@@ -32,6 +32,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(BLEEP_PATCH_BUILD_PLUGINS "Build the Bleep Patch plugins (needs JUCE)" ON)
 option(BLEEP_PATCH_BUILD_TESTS "Build the DSP and engine tests" ON)
+option(BLEEP_PATCH_LIGHT_TESTS "Tests only: DSP tests, module harness and type dump (juce_core only, no plugins)" OFF)
+if (BLEEP_PATCH_LIGHT_TESTS)
+    set(BLEEP_PATCH_BUILD_TESTS ON)
+    set(BLEEP_PATCH_BUILD_PLUGINS OFF)
+    set(BLEEP_PATCH_BUILD_APP OFF)
+endif ()
 option(BLEEP_PATCH_COPY_PLUGINS "Copy built plugins into the user's plugin folders" OFF)
 option(BLEEP_PATCH_UI_DEV "Development builds: serve the board UI from the source tree instead of the embedded copy" OFF)
 # Spec §5.2: VST3 only, Ableton Live only (for now).
@@ -48,8 +54,15 @@ if (NOT TARGET bleep_bus)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../bus" "${CMAKE_CURRENT_BINARY_DIR}/bus")
 endif ()
 
-# Pure DSP, no JUCE.
-set(BLEEP_MODULES function random utility filter oscillator adsr vca cv-to-notes step-sequencer lfo noise ring-drums punch-drums)
+# Pure DSP, no JUCE. Every folder in modules/ with a module.json is a module.
+file(GLOB module_jsons RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/modules" CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/*/module.json")
+set(BLEEP_MODULES)
+foreach (j IN LISTS module_jsons)
+    get_filename_component(m "${j}" DIRECTORY)
+    list(APPEND BLEEP_MODULES "${m}")
+endforeach ()
+list(SORT BLEEP_MODULES)
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)
@@ -62,6 +75,19 @@ if (BLEEP_PATCH_BUILD_TESTS)
     add_executable(bleep_patch_dsp_tests tests/test_dsp.cpp)
     target_link_libraries(bleep_patch_dsp_tests PRIVATE bleep_patch_dsp)
     add_test(NAME patch.dsp COMMAND bleep_patch_dsp_tests)
+    # DSP tests next to the code they test: common/dsp/tests/*.cpp and
+    # modules/<name>/tests/*.cpp, one executable (and one ctest) per file.
+    file(GLOB dsp_test_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common/dsp/tests/*.cpp")
+    foreach (m IN LISTS BLEEP_MODULES)
+        file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/tests/*.cpp")
+        list(APPEND dsp_test_sources ${s})
+    endforeach ()
+    foreach (t IN LISTS dsp_test_sources)
+        get_filename_component(name "${t}" NAME_WE)
+        add_executable(bleep_${name} "${t}")
+        target_link_libraries(bleep_${name} PRIVATE bleep_patch_dsp)
+        add_test(NAME patch.${name} COMMAND bleep_${name})
+    endforeach ()
 endif ()
 
 if (NOT BLEEP_PATCH_BUILD_PLUGINS AND NOT BLEEP_PATCH_BUILD_TESTS)
@@ -84,6 +110,7 @@ endif ()
 set(BLEEP_ENGINE_SOURCES
     engine/Board.cpp
     engine/Engine.cpp
+    engine/Media.cpp
     engine/PortModules.cpp
     engine/Program.cpp
     engine/Registry.cpp
@@ -100,6 +127,38 @@ set(BLEEP_BRIDGE_SERVER_SOURCES ${BLEEP_BRIDGE_PROTOCOL_SOURCES} bridges/standal
 set(BLEEP_BRIDGE_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/bridges/standalone")
 
 if (BLEEP_PATCH_BUILD_TESTS)
+    # Every module type on a real compiled board: random knobs and inputs,
+    # finite outputs, data round trips (tests/module_harness.cpp). juce_core only.
+    juce_add_console_app(bleep_module_harness PRODUCT_NAME "Bleep Module Harness")
+    target_sources(bleep_module_harness PRIVATE tests/module_harness.cpp engine/Board.cpp engine/Program.cpp
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+    foreach (m IN LISTS BLEEP_MODULES)
+        file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+        target_sources(bleep_module_harness PRIVATE ${s})
+    endforeach ()
+    target_include_directories(bleep_module_harness PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_module_harness PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_module_harness PRIVATE bleep_patch_dsp juce::juce_core
+        juce::juce_recommended_config_flags)
+    add_test(NAME patch.modules COMMAND bleep_module_harness)
+
+    # Engine features modules build on (normalling, output flags, harmony order,
+    # stepped knobs, view metadata, commands, media). juce_core only.
+    juce_add_console_app(bleep_engine_features PRODUCT_NAME "Bleep Engine Features")
+    target_sources(bleep_engine_features PRIVATE tests/engine_features_test.cpp engine/Board.cpp engine/Program.cpp
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+    foreach (m IN LISTS BLEEP_MODULES)
+        file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+        target_sources(bleep_engine_features PRIVATE ${s})
+    endforeach ()
+    target_include_directories(bleep_engine_features PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_engine_features PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_engine_features PRIVATE bleep_patch_dsp juce::juce_core
+        juce::juce_recommended_config_flags)
+    add_test(NAME patch.engine-features COMMAND bleep_engine_features)
+endif ()
+
+if (BLEEP_PATCH_BUILD_TESTS AND NOT BLEEP_PATCH_LIGHT_TESTS)
     juce_add_console_app(bleep_engine_tests PRODUCT_NAME "Bleep Engine Tests")
     target_sources(bleep_engine_tests PRIVATE tests/engine_test.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_engine_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
@@ -118,7 +177,9 @@ if (BLEEP_PATCH_BUILD_TESTS)
         bleep_patch_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.bridge COMMAND bleep_bridge_tests)
+endif ()
 
+if (BLEEP_PATCH_BUILD_TESTS)
     # Writes the node types for the board UI's browser demo (board/ui/demo-types.json).
     juce_add_console_app(bleep_dump_types PRODUCT_NAME "Bleep Dump Types")
     target_sources(bleep_dump_types PRIVATE tests/dump_types.cpp engine/Board.cpp engine/Registry.cpp

@@ -47,6 +47,15 @@ private:
     std::vector<const ModuleSpec*> order_;
 };
 
+/// Modules added after the first set register themselves, so a new module
+/// touches no shared file: put `BLEEP_REGISTER_MODULE(registerFooModule);`
+/// after the function in FooModule.cpp. Registry() calls them in name order.
+using RegisterFn = void (*)(Registry&);
+struct AutoRegister {
+    AutoRegister(const char* name, RegisterFn fn);
+};
+#define BLEEP_REGISTER_MODULE(fn) static const ::bleep::engine::AutoRegister bleepAutoRegister_##fn(#fn, fn)
+
 // Registration functions, one per source file (called by Registry()).
 void registerFunctionModule(Registry&);
 void registerLfoModule(Registry&);

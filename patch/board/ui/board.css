@@ -176,3 +176,11 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-doc th { color: var(--muted); font-weight: 500; font-size: 11px; }
 .v-doc img { max-width: 100%; border-radius: 6px; }
 .v-doc a { color: var(--accent); }
+/* A jack hidden by the module's current mode but still patched (JackSpec::show). */
+.jack.unused { opacity: .45; }
+.jack.unused .jl { text-decoration: line-through; }
+/* Short notices (e.g. a memory-heavy module inside a Voice Cell). */
+.board-notice { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+                background: var(--panel-2, #20242c); color: var(--text, #e6e6e6); border: 1px solid var(--line, #333);
+                border-radius: 8px; padding: 8px 14px; font-size: 12px; transition: opacity .2s, transform .2s; z-index: 1000; }
+.board-notice.show { opacity: 1; transform: translate(-50%, 0); }

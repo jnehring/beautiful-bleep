@@ -63,7 +63,15 @@ struct MidiEvent {
     uint8_t size = 0;
 };
 
-struct PortIO;  // Engine.h: a port's host-block data for the running tick
+struct PortIO;     // Engine.h: a port's host-block data for the running tick
+struct MediaClip;  // Media.h: decoded audio from the media folder
+}  // namespace bleep::engine
+
+namespace bleep::dsp {
+struct HarmonyState;  // dsp/Harmony.h: the board-wide key, scale and chord
+}
+
+namespace bleep::engine {
 
 struct ProcessContext {
     int numSamples = 0;
@@ -80,7 +88,15 @@ struct ProcessContext {
     const NoteBuffer* const* notesIn = nullptr;  ///< per input jack (nullptr unless notes)
     float* const* outputs = nullptr;        ///< per output jack (nullptr for notes jacks)
     NoteBuffer* const* notesOut = nullptr;  ///< per output jack (nullptr unless notes)
+    /// Per output jack: something reads it. Unread outputs may be skipped
+    /// (their buffers must still hold valid numbers; leaving them as they are is fine).
+    const bool* outputConnected = nullptr;
     PortIO* port = nullptr;                 ///< port nodes: this tick's host data (nullptr = ghost)
+    /// The board-wide harmony buses (dsp::kHarmonyBuses of them), for modules
+    /// whose spec declares a HarmonyRole. Writers run before readers.
+    dsp::HarmonyState* harmony = nullptr;
+
+    bool isOutputConnected(int jack) const noexcept { return !outputConnected || outputConnected[jack]; }
 };
 
 class Module {
@@ -101,6 +117,45 @@ public:
     virtual void setData(const std::string& json) { (void)json; }
     /// [message thread] Extra live values for the module view, e.g. a playhead.
     virtual void liveValues(std::vector<std::pair<std::string, double>>& out) const { (void)out; }
+    /// [message thread] Live arrays for custom displays (a spectrum, a register's
+    /// bits, a buffer overview). Read audio-thread data safely (atomics).
+    virtual void liveArrays(std::vector<std::pair<std::string, std::vector<float>>>& out) const { (void)out; }
+
+    /// [message thread] Audio the module wants saved to the media folder
+    /// (Media.h), e.g. a recorded reel; `slot` names which. Null: nothing to save.
+    virtual std::shared_ptr<const MediaClip> exportMedia(const std::string& slot) {
+        (void)slot;
+        return nullptr;
+    }
+
+    /// [message thread] A view button (ModuleSpec::buttons) or another one-shot
+    /// command. The default queues it for the audio thread: drain the queue
+    /// with pollCommands() at the start of process().
+    virtual void command(const std::string& id, float value) {
+        for (size_t i = 0; i < spec_.buttons.size(); ++i)
+            if (spec_.buttons[i].id == id) postCommand((int)i, value);
+    }
+    /// One queued command: `index` into ModuleSpec::buttons (or a module's own code).
+    struct Command {
+        int index = 0;
+        float value = 0.0f;
+    };
+    /// [message thread] Queues a command; false if the queue is full.
+    bool postCommand(int index, float value) noexcept {
+        const uint32_t w = cmdWrite_.load(std::memory_order_relaxed);
+        if (w - cmdRead_.load(std::memory_order_acquire) >= kCommandQueue) return false;
+        commands_[w % kCommandQueue] = {index, value};
+        cmdWrite_.store(w + 1, std::memory_order_release);
+        return true;
+    }
+    /// [audio thread] Calls f(Command) for every queued command, oldest first.
+    template <class F>
+    void pollCommands(F&& f) noexcept {
+        uint32_t r = cmdRead_.load(std::memory_order_relaxed);
+        const uint32_t w = cmdWrite_.load(std::memory_order_acquire);
+        for (; r != w; ++r) f(commands_[r % kCommandQueue]);
+        cmdRead_.store(r, std::memory_order_release);
+    }
 
     // ---- knobs: written by the message thread, read by the audio thread ----
     void setKnob(int i, float normalised) noexcept { knobs_[(size_t)i].store(normalised, std::memory_order_relaxed); }
@@ -125,6 +180,10 @@ protected:
     double sampleRate_ = 48000.0;
 
 private:
+    static constexpr uint32_t kCommandQueue = 64;
+    Command commands_[kCommandQueue];
+    std::atomic<uint32_t> cmdWrite_{0}, cmdRead_{0};
+
     const ModuleSpec& spec_;
     std::unique_ptr<std::atomic<float>[]> knobs_;
     std::unique_ptr<Display[]> paramDisplay_;

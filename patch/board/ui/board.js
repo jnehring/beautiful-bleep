@@ -74,7 +74,7 @@
     if (n.type === "cell-out") { const c = nodeById(n.parent, b); return c ? c.outputs || [] : []; }
     return typeOf(n).inputs;
   }
-  const modParams = (n) => typeOf(n).params.filter((p) => p.modulatable && p.kind === "float");
+  const modParams = (n) => typeOf(n).params.filter((p) => p.modulatable);  // knobs, incl. stepped ones
   function outType(n, jack) { const j = outputsOf(n).find((o) => o.id === jack); return j ? j.type : null; }
   function inType(n, jack) {
     const j = inputsOf(n).find((o) => o.id === jack);
@@ -84,7 +84,7 @@
   function jackName(n, jack, out) {
     const list = out ? outputsOf(n) : inputsOf(n);
     const j = list.find((o) => o.id === jack);
-    if (j) return j.name;
+    if (j) return shownName(n, j);
     const p = typeOf(n).params.find((q) => q.id === jack);
     return p ? p.name : jack;
   }
@@ -96,6 +96,34 @@
     if (!p) return 0;
     const v = n.params && id in n.params ? n.params[id] : p.default;
     return Math.round(p.min + v * (p.max - p.min));
+  }
+  /// Optional type metadata: a jack or param shown only while a setting is in
+  /// range ("show"), and names that follow a setting ("names").
+  function isShown(n, item) {
+    if (!item.show) return true;
+    const v = paramValue(n, item.show.param);
+    return v >= item.show.min && v <= item.show.max;
+  }
+  function shownName(n, item) {
+    return (item.names && item.names.list[paramValue(n, item.names.by)]) || item.name;
+  }
+  /// Does changing this param change how the node's jacks look?
+  function drivesJacks(n, pid) {
+    const t = typeOf(n);
+    return [...(t.inputs || []), ...(t.outputs || [])].some((j) =>
+      (j.show && j.show.param === pid) || (j.names && j.names.by === pid));
+  }
+  /// A short notice at the bottom of the canvas.
+  function notice(text) {
+    let box = document.querySelector(".board-notice");
+    if (!box) {
+      box = el("div", "board-notice");
+      document.body.appendChild(box);
+    }
+    box.textContent = text;
+    box.classList.add("show");
+    clearTimeout(notice.timer);
+    notice.timer = setTimeout(() => box.classList.remove("show"), 5000);
   }
   function insideVoiceCell(id, b = board) {
     for (let n = nodeById(id, b); n; n = nodeById(n.parent, b)) if (n.type === "voice-cell") return true;
@@ -299,7 +327,15 @@
     const ins = el("div", "n-ins"), outs = el("div", "n-outs");
     for (const j of inputsOf(n)) {
       const connected = board.cables.some((c) => c.to.node === n.id && c.to.jack === j.id);
-      ins.appendChild(jackRow(n, j.id, j.name, j.type, "in", connected ? "connected" : ""));
+      const shown = isShown(n, j);
+      if (!shown && !connected) continue;  // hidden in this mode; its cables are kept (dimmed)
+      const row = jackRow(n, j.id, shownName(n, j), j.type, "in",
+        (connected ? "connected" : "") + (shown ? "" : " unused"));
+      if (j.normal && !connected) {
+        const src = inputsOf(n).find((k) => k.id === j.normal);
+        row.title = `Unpatched: follows ${src ? shownName(n, src) : j.normal}`;
+      }
+      ins.appendChild(row);
     }
     for (const p of modParams(n))
       if (board.cables.some((c) => c.to.node === n.id && c.to.jack === p.id))
@@ -309,10 +345,10 @@
       ins.appendChild(add);
     }
     // Long output lists (MIDI In, Macros) show the first few and the patched ones.
-    const all = outputsOf(n);
+    const all = outputsOf(n).filter((j) => isShown(n, j) || board.cables.some((c) => c.from.node === n.id && c.from.jack === j.id));
     const shown = all.length <= kShownOutputs + 1 || expanded.has(n.id) ? all
       : all.filter((j, i) => i < kShownOutputs || board.cables.some((c) => c.from.node === n.id && c.from.jack === j.id));
-    for (const j of shown) outs.appendChild(jackRow(n, j.id, j.name, j.type, "out"));
+    for (const j of shown) outs.appendChild(jackRow(n, j.id, shownName(n, j), j.type, "out", isShown(n, j) ? "" : "unused"));
     if (all.length > kShownOutputs + 1) {
       const more = el("div", "jack out more", expanded.has(n.id) ? "show less" : `+ ${all.length - shown.length} more`);
       more.addEventListener("pointerdown", (ev) => {
@@ -808,6 +844,8 @@
           node.port = uid("mdev-");
         }
         b.nodes.push(node);
+        if (t.memoryHeavy && lvl && insideVoiceCell(lvl, b))
+          notice(`${t.name} uses a lot of memory: inside a Voice Cell it runs once per voice.`);
         if (link) {
           const j = t.inputs.find((i) => compatible(link.type, i.type));
           if (j) connect(b, link.from, { node: newId, jack: j.id }, 1);
@@ -1409,6 +1447,7 @@
         if (m) m.params[pid] = v;
         native("setParam", id, pid, v);
         if (m && m.type === "voice-cell" && pid === "voices") { renderNodes(); renderCables(); }  // ×N and the dots
+        else if (m && drivesJacks(m, pid)) { renderNodes(); renderCables(); }  // jacks shown or renamed by a mode
       },
       beginGesture: gesture,
       setAmount: (cableId, v) => {
@@ -1417,6 +1456,9 @@
         native("setAmount", cableId, v);
       },
       removeCable,
+      command: (cmd, value) => native("command", id, cmd, value),
+      importMedia: (name, base64) => native("importMedia", name, base64),
+      exportMedia: (slot) => native("exportMedia", id, slot),
       setData: (data) => {
         const m = nodeById(id);
         if (m) m.data = clone(data);

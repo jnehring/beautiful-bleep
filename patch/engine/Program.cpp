@@ -91,6 +91,19 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         }
     };
 
+    // An input jack's sources; an unpatched input follows its normal (JackSpec::normal).
+    auto resolveInput = [&](const NodeModel& n, const ModuleSpec& spec, size_t jack, std::vector<Resolved>& out) {
+        std::string id = spec.inputs[jack].id;
+        for (int hop = 0; hop < 8; ++hop) {
+            const size_t before = out.size();
+            resolveInto(n.id, id, 1.0f, 0, out);
+            if (out.size() != before) return;
+            const int j = spec.inputIndex(id);
+            if (j < 0 || spec.inputs[(size_t)j].normal.empty()) return;
+            id = spec.inputs[(size_t)j].normal;
+        }
+    };
+
     // Real nodes and their dependencies.
     std::vector<const NodeModel*> real;
     std::map<std::string, std::vector<std::string>> deps;
@@ -100,7 +113,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         std::vector<Resolved> found;
         for (const auto& p : n.spec->params)
             if (p.modulatable) resolveInto(n.id, p.id, 1.0f, 0, found);
-        for (const auto& j : n.spec->inputs) resolveInto(n.id, j.id, 1.0f, 0, found);
+        for (size_t j = 0; j < n.spec->inputs.size(); ++j) resolveInput(n, *n.spec, j, found);
         if (n.type == kVoiceCell) {  // its jacks are on the node, not in the registry spec
             for (const auto& j : n.cellInputs) resolveInto(n.id, j.id, 1.0f, 0, found);
             resolveInto(n.id, "notes", 1.0f, 0, found);
@@ -109,6 +122,14 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         for (const auto& r : found)
             if (!r.buffer && std::find(d.begin(), d.end(), r.node) == d.end()) d.push_back(r.node);
     }
+    // The harmony bus: every writer runs before every reader (specs/modules/harmony-master.md §7).
+    for (const auto* r : real)
+        if (r->spec->harmony == HarmonyRole::Reader)
+            for (const auto* w : real)
+                if (w->spec->harmony == HarmonyRole::Writer) {
+                    auto& d = deps[r->id];
+                    if (std::find(d.begin(), d.end(), w->id) == d.end()) d.push_back(w->id);
+                }
 
     // Topological order; an edge back into the current path is feedback.
     std::vector<const NodeModel*> order;
@@ -209,6 +230,8 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         for (size_t j = 0; j < spec.inputs.size(); ++j) {
             std::vector<Resolved> found;
             resolveInto(n.id, spec.inputs[j].id, 1.0f, 0, found);
+            const bool patched = !found.empty();
+            if (!patched) resolveInput(n, spec, j, found);  // normalled to another input
             std::vector<Source> sources;
             std::vector<const NoteBuffer*> notes;
             if (spec.inputs[j].type == Signal::Notes) {
@@ -224,7 +247,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
                 std::fill_n(st.inputBuffers.back().get(), kChunk, 0.0f);
                 st.noteInputs.push_back(nullptr);
             }
-            st.connected[j] = !sources.empty() || !notes.empty();
+            st.connected[j] = patched && (!sources.empty() || !notes.empty());
             st.inputSources.push_back(std::move(sources));
             st.noteSources.push_back(std::move(notes));
         }
@@ -247,6 +270,25 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
                 else if (auto b = outBuf.find({r.node, r.jack}); b != outBuf.end()) sources.push_back({b->second, r.amount});
             program->taps_.push_back(std::move(sources));
         }
+
+    // Which outputs something reads (ProcessContext::outputConnected).
+    std::set<const void*> read;
+    for (const auto& st : program->steps_) {
+        for (const auto& list : st.paramSources)
+            for (const auto& s : list) read.insert(s.buffer);
+        for (const auto& list : st.inputSources)
+            for (const auto& s : list) read.insert(s.buffer);
+        for (const auto& list : st.noteSources)
+            for (const NoteBuffer* b : list) read.insert(b);
+    }
+    for (const auto& list : program->taps_)
+        for (const auto& s : list) read.insert(s.buffer);
+    for (auto& st : program->steps_) {
+        st.outConnected = std::make_unique<bool[]>(st.outputBuffers.size() + 1);
+        for (size_t k = 0; k < st.outputBuffers.size(); ++k)
+            st.outConnected[k] = st.outputBuffers[k] ? read.count(st.outputBuffers[k].get()) > 0
+                                                     : read.count(st.noteOutputs[k].get()) > 0;
+    }
     return program;
 }
 
@@ -317,6 +359,7 @@ void Program::runChunk(const ProcessContext& chunk) noexcept {
             ctx.notesIn = st.notesInPtrs.data();
             ctx.outputs = st.outputPtrs.data();
             ctx.notesOut = st.notesOutPtrs.data();
+            ctx.outputConnected = st.outConnected.get();
             ctx.port = st.port ? &st.io : nullptr;
             mod.process(ctx);
 

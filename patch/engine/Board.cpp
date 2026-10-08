@@ -435,6 +435,29 @@ juce::String addNode(juce::var& doc, const ModuleSpec& spec, double x, double y,
     return id;
 }
 
+namespace {
+/// Optional view metadata shared by params and jacks: "show" {param, min, max}
+/// and "names" {by, list}.
+void describeShowAndNames(juce::DynamicObject* o, const ShowIf& show, const std::string& namesBy,
+                          const std::vector<std::string>& names) {
+    if (show.active()) {
+        auto* s = new juce::DynamicObject();
+        s->setProperty("param", juce::String(show.param));
+        s->setProperty("min", show.min);
+        s->setProperty("max", show.max);
+        o->setProperty("show", juce::var(s));
+    }
+    if (!namesBy.empty() && !names.empty()) {
+        auto* n = new juce::DynamicObject();
+        n->setProperty("by", juce::String(namesBy));
+        juce::Array<juce::var> list;
+        for (const auto& x : names) list.add(juce::String(x));
+        n->setProperty("list", list);
+        o->setProperty("names", juce::var(n));
+    }
+}
+}  // namespace
+
 juce::var describeTypes() {
     juce::Array<juce::var> types;
     for (const ModuleSpec* s : Registry::get().all()) {
@@ -472,6 +495,8 @@ juce::var describeTypes() {
             }
             o->setProperty("min", p.min);
             o->setProperty("max", p.max);
+            if (!p.group.empty()) o->setProperty("group", juce::String(p.group));
+            describeShowAndNames(o, p.show, p.namesBy, p.names);
             params.add(juce::var(o));
         }
         auto jacks = [](const std::vector<JackSpec>& list, juce::Array<juce::var>& dst) {
@@ -481,6 +506,8 @@ juce::var describeTypes() {
                 o->setProperty("name", juce::String(j.name));
                 o->setProperty("type", signalName(j.type));
                 o->setProperty("bipolar", j.bipolar);
+                describeShowAndNames(o, j.show, j.namesBy, j.names);
+                if (!j.normal.empty()) o->setProperty("normal", juce::String(j.normal));
                 dst.add(juce::var(o));
             }
         };
@@ -489,6 +516,20 @@ juce::var describeTypes() {
         t->setProperty("params", params);
         t->setProperty("inputs", inputs);
         t->setProperty("outputs", outputs);
+        if (!s->buttons.empty()) {
+            juce::Array<juce::var> buttons;
+            for (const auto& b : s->buttons) {
+                auto* o = new juce::DynamicObject();
+                o->setProperty("id", juce::String(b.id));
+                o->setProperty("name", juce::String(b.name));
+                o->setProperty("momentary", b.momentary);
+                buttons.add(juce::var(o));
+            }
+            t->setProperty("buttons", buttons);
+        }
+        if (s->memoryHeavy) t->setProperty("memoryHeavy", true);
+        if (s->harmony != HarmonyRole::None)
+            t->setProperty("harmony", s->harmony == HarmonyRole::Writer ? "writer" : "reader");
         types.add(juce::var(t));
     }
     return types;

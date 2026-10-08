@@ -8,7 +8,18 @@
 //     node   the node from the board document
 //     api    { setParam(id, v), beginGesture(), setAmount(cableId, v),
 //              removeCable(cableId), cablesInto(paramId) → [{id, label, amount}],
-//              setNodeProperty(key, value), setData(data) }
+//              setNodeProperty(key, value), setData(data),
+//              command(id, value), importMedia(name, base64) → Promise<{id, name, seconds, channels} | {error}>,
+//              exportMedia(slot) → Promise<{id, seconds, channels} | {error}> }
+//
+// From the type description it also handles: stepped knobs (modulatable
+// choices and integers), knob groups ("group"), knobs and settings shown only
+// in some modes ("show"), names that follow a setting ("names") and the
+// module's buttons ("buttons", sent through api.command).
+//
+// BleepView.mediaDrop(element, api, onImported) makes `element` accept a
+// dropped WAV file (or a click to choose one) and imports it into the media
+// folder; onImported({id, name, seconds, channels}) gets the result.
 //   view.root                     the element to insert
 //   view.update(nodeState)        live values: { params: {id: {v, e, a, t}}, outputs }
 //   view.refresh(node)            the node changed (cables, values from undo)
@@ -86,10 +97,45 @@
 
     const view = { root, type, node, api, knobs: new Map(), settings: new Map() };
 
+    const paramById = new Map(type.params.map((p) => [p.id, p]));
+    /// A param's value in its own units (rounded, for settings).
+    function units(id) {
+      const p = paramById.get(id);
+      if (!p) return 0;
+      return Math.round(p.min + (view.node.params[id] ?? p.default) * (p.max - p.min));
+    }
+    const isShown = (item) => !item.show || (units(item.show.param) >= item.show.min && units(item.show.param) <= item.show.max);
+    const shownName = (item) => (item.names && item.names.list[units(item.names.by)]) || item.name;
+    view.isShown = isShown;
+    view.shownName = shownName;
+    view.units = units;
+    /// Params some knob, setting or jack depends on (show / names).
+    const drivers = new Set();
+    for (const item of [...type.params, ...type.inputs, ...type.outputs]) {
+      if (item.show) drivers.add(item.show.param);
+      if (item.names) drivers.add(item.names.by);
+    }
+
     function setParam(id, v) {
       v = clamp01(v);
+      const p = paramById.get(id);
+      if (p && p.steps > 1) v = Math.round(v * (p.steps - 1)) / (p.steps - 1);  // stepped knobs snap
       view.node.params[id] = v;
       api.setParam(id, v);
+      if (drivers.has(id)) applyLayout();
+    }
+    /// Shows, hides and renames knobs and settings after a mode change.
+    function applyLayout() {
+      for (const [id, k] of view.knobs) {
+        k.box.hidden = !isShown(k.p);
+        k.label.textContent = shownName(k.p);
+      }
+      for (const [id, s] of view.settings) {
+        s.box.hidden = !isShown(s.p);
+        if (s.label) s.label.textContent = shownName(s.p);
+      }
+      for (const g of knobsEl.querySelectorAll(".bv-group"))
+        g.hidden = ![...g.querySelectorAll(".bv-knob")].some((b) => !b.hidden);
     }
 
     // ---- knobs: every modulatable float is a destination (spec §7.3)
@@ -97,7 +143,9 @@
       const box = el("div", "bv-knob");
       box.dataset.param = p.id;
       if (p.modulatable) box.classList.add("bv-target");
-      box.appendChild(el("div", "bv-label", p.name));
+      if (p.kind !== "float") box.classList.add("bv-stepped");
+      const label = el("div", "bv-label", p.name);
+      box.appendChild(label);
       const s = svg("svg", { viewBox: "0 0 64 64" });
       const track = svg("path", { class: "bv-track", d: arcPath(24, START, END) });
       const arc = svg("path", { class: "bv-arc" });
@@ -109,7 +157,7 @@
       box.appendChild(value);
       const amounts = el("div", "bv-amounts");
       box.appendChild(amounts);
-      const k = { p, box, arc, ring, pointer, value, amounts, eff: null };
+      const k = { p, box, label, arc, ring, pointer, value, amounts, eff: null };
       k.draw = () => {
         const v = view.node.params[p.id] ?? p.default;
         arc.setAttribute("d", arcPath(24, START, angle(v)));
@@ -163,10 +211,11 @@
       const box = el("div", "bv-setting");
       const label = el("span", "bv-label", p.name);
       box.appendChild(label);
-      const s = { p, box };
+      const s = { p, box, label };
       const steps = Math.max(2, p.steps);
       if (p.kind === "bool") {
         label.remove();
+        s.label = null;
         const b = el("button", "bv-toggle", p.name);
         b.addEventListener("click", () => {
           api.beginGesture();
@@ -217,11 +266,20 @@
       return s;
     }
 
+    const groups = new Map();  // knob group heading → its row
     for (const p of type.params) {
-      if (p.kind === "float") {
+      if (p.kind === "float" || p.modulatable) {  // stepped knobs are knobs too
         const k = makeKnob(p);
         view.knobs.set(p.id, k);
-        knobsEl.appendChild(k.box);
+        if (p.group) {
+          if (!groups.has(p.group)) {
+            const g = el("div", "bv-group");
+            g.append(el("div", "bv-group-title", p.group), el("div", "bv-group-knobs"));
+            knobsEl.appendChild(g);
+            groups.set(p.group, g.lastChild);
+          }
+          groups.get(p.group).appendChild(k.box);
+        } else knobsEl.appendChild(k.box);
       } else {
         const s = makeSetting(p);
         view.settings.set(p.id, s);
@@ -230,6 +288,34 @@
     }
     if (!knobsEl.childElementCount) knobsEl.remove();
     if (!settingsEl.childElementCount) settingsEl.remove();
+    if (groups.size) knobsEl.classList.add("bv-grouped");
+
+    // ---- buttons (ModuleSpec::buttons): momentary ones also send 0 on release
+    if (type.buttons && type.buttons.length && api.command) {
+      const bar = el("section", "bv-buttons");
+      for (const b of type.buttons) {
+        const btn = el("button", "bv-button", b.name);
+        btn.dataset.command = b.id;
+        if (b.momentary) {
+          btn.addEventListener("pointerdown", (e) => {
+            e.stopPropagation();
+            btn.setPointerCapture(e.pointerId);
+            btn.classList.add("on");
+            api.command(b.id, 1);
+          });
+          const up = () => {
+            if (!btn.classList.contains("on")) return;
+            btn.classList.remove("on");
+            api.command(b.id, 0);
+          };
+          btn.addEventListener("pointerup", up);
+          btn.addEventListener("pointercancel", up);
+        } else btn.addEventListener("click", () => api.command(b.id, 1));
+        bar.appendChild(btn);
+      }
+      root.insertBefore(bar, settingsEl.parentNode === root ? settingsEl : root.querySelector(".bv-description"));
+    }
+    applyLayout();
 
     if (h && h.template) customEl.innerHTML = h.template;
     if (h && h.afterBuild) h.afterBuild(view, customEl);
@@ -251,6 +337,7 @@
           if (ps) view.node.params[id] = ps.v;
           s.draw();
         }
+        if (drivers.size) applyLayout();
       }
       if (h && h.onState) h.onState(st, view);
     };
@@ -258,6 +345,7 @@
       view.node = n;
       for (const k of view.knobs.values()) { k.renderAmounts(); k.draw(); }
       for (const s of view.settings.values()) s.draw();
+      applyLayout();
       if (h && h.onRefresh) h.onRefresh(view);
     };
     /// Effective value of a param (modulated if active), for custom displays.
@@ -269,5 +357,41 @@
     return view;
   }
 
-  window.BleepView = { create };
+  /// Drop target / click-to-choose for a WAV file, imported into the media folder.
+  function mediaDrop(target, api, onImported, onError) {
+    target.classList.add("bv-drop");
+    const report = (msg) => (onError ? onError(msg) : (target.title = msg));
+    async function importFile(file) {
+      if (!file) return;
+      if (!/\.wav$/i.test(file.name)) return report("Only WAV files can be imported.");
+      target.classList.add("busy");
+      try {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        let bin = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+        const r = await api.importMedia(file.name, btoa(bin));
+        if (!r || r.error) report((r && r.error) || "Import failed.");
+        else onImported(r);
+      } finally {
+        target.classList.remove("busy");
+      }
+    }
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".wav,audio/wav,audio/x-wav";
+    input.hidden = true;
+    input.addEventListener("change", () => importFile(input.files[0]));
+    target.appendChild(input);
+    target.addEventListener("click", (e) => { if (e.target !== input) input.click(); });
+    target.addEventListener("dragover", (e) => { e.preventDefault(); target.classList.add("over"); });
+    target.addEventListener("dragleave", () => target.classList.remove("over"));
+    target.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      target.classList.remove("over");
+      importFile(e.dataTransfer && e.dataTransfer.files[0]);
+    });
+  }
+
+  window.BleepView = { create, mediaDrop };
 })();

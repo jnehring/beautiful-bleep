@@ -24,6 +24,16 @@ inline bool compatible(Signal from, Signal to) noexcept {
     return (from == Signal::Notes) == (to == Signal::Notes);
 }
 
+/// Shows a knob, setting or jack only while another setting's value (in its
+/// own units, rounded) lies in [min, max]; e.g. jacks 5–8 only while Count ≥ 5,
+/// or a knob only in one mode. Hidden jacks keep their cables (the board dims
+/// them); hidden knobs keep their values. Empty `param`: always shown.
+struct ShowIf {
+    std::string param;
+    int min = 0, max = 0;
+    bool active() const noexcept { return !param.empty(); }
+};
+
 /// A knob or setting. Values cross the bridge and are saved normalised (0..1).
 struct ParamSpec {
     enum class Kind { Float, Choice, Bool, Int };
@@ -42,7 +52,30 @@ struct ParamSpec {
     std::string label;           ///< unit suffix for Format::Number
     std::vector<std::string> choices;
     std::vector<std::string> choiceGroups;  ///< optional: each choice's heading in the dropdown
-    bool modulatable = true;     ///< a knob (input jack) or a plain setting
+    bool modulatable = true;     ///< a knob (input jack) or a plain setting;
+                                 ///< choices and integers can be modulatable too (stepped knobs)
+    std::string group;           ///< optional heading the module view groups knobs under
+    ShowIf show;                 ///< optional: only shown while another setting is in range
+    std::string namesBy;         ///< optional: the shown name is names[value of this setting]
+    std::vector<std::string> names;
+
+    // Chainable modifiers: ParamSpec::percent(...).inGroup("Env").when("mode", 1, 1)
+    ParamSpec inGroup(std::string g) const {
+        ParamSpec p = *this;
+        p.group = std::move(g);
+        return p;
+    }
+    ParamSpec when(std::string param, int min, int max) const {
+        ParamSpec p = *this;
+        p.show = {std::move(param), min, max};
+        return p;
+    }
+    ParamSpec namedBy(std::string param, std::vector<std::string> list) const {
+        ParamSpec p = *this;
+        p.namesBy = std::move(param);
+        p.names = std::move(list);
+        return p;
+    }
 
     /// Units → 0..1 and back, with JUCE's NormalisableRange semantics.
     float toNormalised(float value) const noexcept;
@@ -62,6 +95,10 @@ struct ParamSpec {
     static ParamSpec choice(std::string id, std::string name, std::vector<std::string> choices, int def);
     static ParamSpec toggle(std::string id, std::string name, bool def);
     static ParamSpec integer(std::string id, std::string name, int min, int max, int def);
+    /// A modulatable choice: a stepped knob whose value snaps to the choices.
+    static ParamSpec stepped(std::string id, std::string name, std::vector<std::string> choices, int def);
+    /// A modulatable integer: a stepped knob.
+    static ParamSpec steppedInt(std::string id, std::string name, int min, int max, int def);
 };
 
 struct JackSpec {
@@ -69,7 +106,44 @@ struct JackSpec {
     std::string name;
     Signal type = Signal::Control;
     bool bipolar = true;  ///< outputs: declared range, for scopes
+    ShowIf show;          ///< optional: only shown while a setting is in range (cables are kept)
+    std::string namesBy;  ///< optional: the shown name is names[value of this setting]
+    std::vector<std::string> names;
+    /// Inputs: while unpatched, this input reads the signal of the input named
+    /// here (normalling, e.g. Trig B follows Trig A). It still reports itself
+    /// as unpatched in ProcessContext::inputConnected.
+    std::string normal;
+
+    JackSpec when(std::string param, int min, int max) const {
+        JackSpec j = *this;
+        j.show = {std::move(param), min, max};
+        return j;
+    }
+    JackSpec namedBy(std::string param, std::vector<std::string> list) const {
+        JackSpec j = *this;
+        j.namesBy = std::move(param);
+        j.names = std::move(list);
+        return j;
+    }
+    JackSpec normalledTo(std::string input) const {
+        JackSpec j = *this;
+        j.normal = std::move(input);
+        return j;
+    }
 };
+
+/// A button in the module view (e.g. Ping, Clear, Capture). Pressing it calls
+/// Module::command(id, 1); a momentary button also sends (id, 0) on release.
+struct ButtonSpec {
+    std::string id;
+    std::string name;
+    bool momentary = false;
+};
+
+/// The board-wide harmony bus (specs/modules/harmony-master.md §7): writers
+/// publish a key, scale and chord; readers follow it. The compiler orders
+/// every writer before every reader.
+enum class HarmonyRole { None, Writer, Reader };
 
 /// Which plugin in Live (or which device of the standalone app, spec §11) a port node
 /// belongs to (spec §6). None for modules.
@@ -89,6 +163,11 @@ struct ModuleSpec {
     std::vector<ParamSpec> params;
     std::vector<JackSpec> inputs;
     std::vector<JackSpec> outputs;
+    std::vector<ButtonSpec> buttons;
+    /// Large buffers (delays, samplers): the board warns before putting one
+    /// into a Voice Cell, where memory multiplies by the number of voices.
+    bool memoryHeavy = false;
+    HarmonyRole harmony = HarmonyRole::None;
     /// Modules with node data (board document "data"): JSON in (may be empty
     /// or broken), valid JSON out, including the defaults for a new node.
     std::function<std::string(const std::string&)> sanitiseData;
@@ -271,6 +350,18 @@ inline ParamSpec ParamSpec::integer(std::string id, std::string name, int min, i
     p.kind = Kind::Int;
     p.format = Format::Integer;
     p.modulatable = false;
+    return p;
+}
+
+inline ParamSpec ParamSpec::stepped(std::string id, std::string name, std::vector<std::string> choices, int def) {
+    ParamSpec p = choice(std::move(id), std::move(name), std::move(choices), def);
+    p.modulatable = true;
+    return p;
+}
+
+inline ParamSpec ParamSpec::steppedInt(std::string id, std::string name, int min, int max, int def) {
+    ParamSpec p = integer(std::move(id), std::move(name), min, max, def);
+    p.modulatable = true;
     return p;
 }
 
