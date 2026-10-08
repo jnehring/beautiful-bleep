@@ -533,12 +533,12 @@
     const up = (e) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
-      markTargets(false);
       tmp.remove();
       const d = drag;
       drag = null;
       dropCable(d, e);
       endSpring(e);
+      markTargets(false);  // after the drop: it may land on a view's input strip
     };
     move(ev);
     window.addEventListener("pointermove", move);
@@ -546,7 +546,8 @@
   }
 
   function markTargets(on) {
-    for (const row of nodesEl.querySelectorAll(".jack.in")) {
+    for (const [id, v] of views) viewInputs(id, v, on);
+    for (const row of document.querySelectorAll("#nodes .jack.in, #views .jack.in")) {
       row.classList.remove("drop-ok", "drop-no");
       if (!on) continue;
       if (row.dataset.jack === "+") { row.classList.add("drop-ok"); continue; }
@@ -557,6 +558,33 @@
       k.classList.toggle("drop-ok", on && drag.type !== "notes");
       if (!on) k.classList.remove("drop-hover");
     }
+  }
+
+  // While a cable is in hand, open views show the module's input jacks in a
+  // strip on their left, so the cable can end there too. The window grows to
+  // the left, keeping its controls where they were.
+  function viewInputs(id, v, on) {
+    const old = v.win.querySelector(".v-ins");
+    if (old) {
+      v.win.style.left = v.win.offsetLeft + old.offsetWidth + "px";
+      v.win.style.width = v.ownWidth;
+      v.win.classList.remove("wiring");
+      old.remove();
+    }
+    const n = nodeById(id);
+    const jacks = on && n ? inputsOf(n) : [];
+    if (!jacks.length) return;
+    const strip = el("div", "v-ins");
+    for (const j of jacks) {
+      const connected = board.cables.some((c) => c.to.node === id && c.to.jack === j.id);
+      strip.appendChild(jackRow(n, j.id, j.name, j.type, "in", connected ? "connected" : ""));
+    }
+    v.ownWidth = v.win.style.width;
+    const w = v.win.offsetWidth;
+    v.win.classList.add("wiring");
+    v.win.insertBefore(strip, v.win.querySelector(".v-body"));
+    v.win.style.width = w + strip.offsetWidth + "px";
+    v.win.style.left = v.win.offsetLeft - strip.offsetWidth + "px";
   }
 
   // While a cable is in hand, resting on a module opens its view, so the
@@ -1426,6 +1454,8 @@
         if (m) m.data = clone(data);
         native("setData", id, data);
       },
+      // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
+      perform: (action, ...args) => native("perform", id, action, args),
       // Preset libraries shared by all sets, e.g. Drum Grid patterns ("drums").
       presets: async (kind) => (await native("presets", kind)) || [],
       savePreset: async (kind, name, preset) => (await native("savePreset", name, preset, kind)) || [],
