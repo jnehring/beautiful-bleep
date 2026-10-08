@@ -44,7 +44,7 @@ Per channel (A–D):
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Steps | −14…+14 (integer) | A 0, B +2, C +4, D +6 | Scale steps (*Transpose*), chord-tone steps (*Follow*), or arpeggio offset (*Arp*). Ignored in *Quantize*. |
+| Steps | −14…+14 (stepped) | A 0, B +2, C +4, D +6 | Scale steps (*Transpose*, *Follow* · *Scale*), chord-tone steps (*Follow* · *Chord*), or arpeggio offset (*Arp*). Ignored (and hidden) in *Quantize*; ignored in *Follow* · *Chord + Scale* and *Root*. |
 | Slew | 0–2 s | 0 | Glide on *Out* (constant time per note change, linear in pitch). |
 
 **Settings**
@@ -65,7 +65,12 @@ Per channel (A–D):
 
 Shared: *Hysteresis* (knob, 0–50 % of a semitone, default 10 %), *Link* (on/off,
 default on: B–D use channel A's Root, Scale and Harmony; their own settings are
-greyed and kept), *Velocity* (knob, 1–100 %, default 80 %), *Seed* (0–999).
+hidden and kept), *Velocity* (knob, 1–100 %, default 80 %), *Seed* (0–999,
+default 0). *Hysteresis*, *Velocity* and the *Slew* knobs are read once per
+32-sample chunk.
+
+Settings are named per channel ("Mode A", "Root B", …); *Chord*, *Order* and
+*Span* show only in *Arp*, *Target* only in *Follow*.
 
 The allowed-note **mask** of each channel is node data (6), edited on the
 keyboard.
@@ -114,8 +119,11 @@ notes (all octaves), and `n(x)` the note of index `x`.
   new size). *Reset* sets `a = 0` on all channels. With no Trig patched on this
   or any earlier channel, the arpeggio advances at 1/16 notes from the
   transport (`step = floor(ppq / 0.25)`, so it is phase-locked). *Chromatic*
-  as the scale builds major-quality chords (Triad 0 4 7, Seventh 0 4 7 10)
-  instead of clusters.
+  as the scale builds major-quality chords (Triad 0 4 7, Seventh 0 4 7 10,
+  Sus2 0 2 7, Sus4 0 5 7, Fifth 0 7, Ninth 0 4 7 10 14, Octave 0) instead of
+  clusters. Tones that coincide (wide spans) count once. The transport-driven
+  arpeggio's notes end when the transport stops and start again at the next
+  step; *Reset* makes the next step index 0.
 - **Follow.** Needs *Harmony* on a bus (otherwise acts as *Quantize* and
   shows "no harmony"). With the context's chord tones `C` (all octaves):
   - *Scale*: as Quantize on the context's scale;
@@ -168,8 +176,9 @@ outside MIDI 0–127 are folded by octaves into range.
 
 Four channel strips side by side (A–D), each with:
 
-- the *Mode* as four tabs, the mode's settings below it (unused ones hidden),
-  *Steps* and *Slew* knobs;
+- the *Mode* (the generic settings and knobs, grouped per channel, show the
+  mode's settings and hide the unused ones; tabs are *Later*), *Steps* and
+  *Slew* knobs;
 - a one-octave keyboard: scale notes lit, masked-out notes crossed, the current
   note highlighted, chord tones dotted in *Arp* and *Follow*. Clicking a lit
   key toggles it in the mask (one undo step);
@@ -203,8 +212,13 @@ new module allows all notes.
 - Node data for the masks (`sanitiseData`, `setData`) and `liveValues` (each
   channel's note, arpeggio index, mask-effective scale) for the view.
 - Shared code: `Scales.h` (quantize), `Chords.h` / `Harmony.h` (chord tones,
-  `quantizeToChord`), and the Quantizer's hysteresis helper, which moves to
-  `patch/common/dsp/` so both modules use it.
+  `quantizeSemis`, `stepSemis`, `chordSemis`). The hysteresis helper is in the
+  module's own header for now (Chord Quantizer has the same rule); it should
+  move to `patch/common/dsp/` when the single Quantizer is built.
+- Harmony: the module is a `HarmonyRole::Reader` (every Harmony Master runs
+  first); each channel reads `ctx.harmony[bus]`, one context per chunk.
+- Notes: a change waits while the chunk's note buffer has no room, so no
+  note-off is dropped.
 
 ## 8. Tests
 

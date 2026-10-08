@@ -47,7 +47,7 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Chord | stepped, one step per entry of the chord list | Major / Triad | Quality (chromatic) or stack (diatonic), as Chord Osc's *Chord* knob. |
+| Chord | stepped, one step per entry of the chord list | Major / Triad | Quality (chromatic) or stack (diatonic), as Chord Osc's *Chord* knob. Two stepped knobs share the name: the chord table's first 24 entries (Unison … Quartal) shown in *Chromatic*, the 10 scale stacks shown in *Diatonic*; neither is shown in *Follow*. |
 | Inversion | −3…+3 (integer) | 0 | As Chord Osc 4.3 step 2. Ignored while *Voice Leading* chooses. |
 | Strum | 0–100 ms | 0 | Delay between successive voices at a change (4.6). |
 | Velocity | 1–100 % | 80 % | Velocity of the *Notes* output. |
@@ -57,9 +57,9 @@ Every knob is also an input (`specs.md` section 7.3).
 | Setting | Values | Default |
 |---|---|---|
 | Mode | Chromatic, Diatonic, Follow | Chromatic |
-| Root | C … B | C |
-| Scale | the 17 scales of `Scales.h` | Major |
-| Harmony | Off, Bus A–D | Off |
+| Root | C … B (shown in Diatonic and Follow) | C |
+| Scale | the 17 scales of `Scales.h` (shown in Diatonic and Follow) | Major |
+| Harmony | Off, Bus A–D (shown in Diatonic and Follow) | Off |
 | Voices | 1–4 | 4 |
 | Voicing | Close, Drop 2, Drop 3, Spread, Open | Close |
 | Voice Leading | Off, Smooth, Smooth + Top | Off |
@@ -83,8 +83,10 @@ Every knob is also an input (`specs.md` section 7.3).
 - **Follow:** the chord **is** the context's current chord (`chordRoot`,
   `chord`, `bass`) and *Chord* is ignored; the input only sets the register
   (via *Anchor*). A sequence into Pitch then moves the chord's position while
-  the harmony comes from the Harmony Master. Without a valid bus, Follow acts as
-  Diatonic and shows "no harmony".
+  the harmony comes from the Harmony Master. A slash chord (`bass` ≠ root) is
+  inverted so the bass is the lowest voice (without Voice Leading; otherwise
+  *Inversion* applies as usual). Without a valid bus, Follow acts as Diatonic
+  and shows "no harmony".
 
 The tone count, dropping rules for fewer voices and doubling for more are Chord
 Osc's (4.3 step 1): fifth, extension, seventh, third are dropped in that
@@ -135,8 +137,11 @@ thread, with no allocation.
 
 **Trig unpatched:** the chord is recomputed whenever the quantized root, the
 context (*Follow*/*Harmony*), or a stepped knob (*Chord*, *Inversion*) changes;
-hysteresis keeps a noisy input from flickering between roots. The register
-(octave shift from *Anchor*) also follows the input continuously.
+hysteresis keeps a noisy input from flickering between roots (in *Follow* the
+root's octave has the same hysteresis). Without Voice Leading the register
+(octave shift from *Anchor*) also follows the input continuously, moving once
+the anchor is more than 6 semitones + *Hysteresis* away from the input; with
+Voice Leading the register is chosen at chord changes only.
 
 **Trig patched:** *Pitch*, the context, *Chord* and *Inversion* are read only at
 each pulse; the result is held until the next pulse. A pulse that produces the
@@ -173,7 +178,8 @@ The usual knobs and settings, plus:
   and the root marked; the previous chord shown faintly while *Voice
   Leading* is on, so the movement is visible;
 - in *Diatonic*, the scale's chords as a row of seven buttons (I, ii, iii, …):
-  clicking one previews it (no state change).
+  clicking one previews it on the keyboard (no state change, no sound; click
+  again to leave the preview).
 
 ## 6. Saved state
 
@@ -184,16 +190,20 @@ node id), but not saving; after loading, the first chord uses *Inversion*.
 ## 7. Engine requirements
 
 - **Harmony bus** (`harmony-master.md` section 7) for *Follow* and the
-  *Harmony* setting, declared through `ModuleSpec::harmonyFollow`.
+  *Harmony* setting: the module is a `HarmonyRole::Reader` and reads
+  `ctx.harmony[bus]` (one context per chunk; *Chromatic* ignores the bus).
 - **Shared code:** `patch/common/dsp/Chords.h` (chord table, diatonic stacks,
   tone dropping and doubling, inversion and the Close/Drop voicings) is
   extracted from Chord Osc so both modules build identical chords; *Spread* and
-  *Open* as defined here are added there; voice-leading search in
-  `Chords.h` as `leadVoices(prev, candidates)`.
+  *Open* as defined here are `VoicingSpread` and `VoicingOpenUp` there; the
+  voice-leading search is `leadChord` / `leadVoices`.
 - **Delayed notes** for *Strum*: note events scheduled up to 100 ms ahead,
   held in the module and emitted in the right chunk (no engine change; a
   fixed-size queue in the module).
-- `liveValues` for the view (voice pitches, chord quality index, root).
+- `liveValues` / `liveArrays` for the view (voice pitches, the previous
+  voices, chord quality index, root, the bus chord, the key and scale).
+- Notes: a change waits while the chunk's note buffer has no room for it, so
+  no note-off is ever dropped.
 
 ## 8. Tests
 

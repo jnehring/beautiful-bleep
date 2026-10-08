@@ -26,7 +26,7 @@ line, an arpeggio and a pad on other tracks follow.
 | Notes | `notes` | Held notes; in *Detect* source the chord is recognised from them (4.4). |
 | Next | `trigger` | *Progression* source, *Trigger* advance: go to the next slot. |
 | Reset | `trigger` | *Progression*: go to slot 1 (*Trigger* advance) or restart the progression grid at the next beat (*Transport* advance). |
-| Transpose | `pitch` | Shifts key and chord by the input rounded to semitones (1/12 V steps), applied at chord changes and at Next/Reset; a sequencer on this jack modulates the key. |
+| Transpose | `pitch` | Shifts key and chord by the input rounded to semitones (1/12 V steps). In *Progression* it is applied at slot changes and at Next/Reset (so a sequencer on this jack changes key in time with the progression); in *Manual* and *Detect* as soon as it moves by a semitone. |
 
 Every knob is also an input (`specs.md` section 7.3).
 
@@ -48,8 +48,8 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Degree | 1–7 (integer) | 1 | *Manual* source: the scale degree the chord is built on. |
-| Slot | 1–16 (integer) | 1 | *Progression*, *Select* advance: the slot that plays. |
+| Degree | 1–7 (stepped) | 1 | *Manual* source (and *Detect* without Latch while nothing is held): the scale degree the chord is built on. |
+| Slot | 1–16 (stepped) | 1 | *Progression*, *Select* advance: the slot that plays (wrapped to the slot count). Shown only while *Advance* = *Select*. |
 | Velocity | 1–100 % | 70 % | Velocity of the *Notes* output. |
 
 **Settings**
@@ -84,7 +84,10 @@ The context is a small value, the same for every reader:
 | `serial` | increases at every change |
 
 After *Transpose* (`t` semitones), `key`, `chordRoot` and `bass` are shifted by
-`t` mod 12. A chord change is published on the exact sample it happens.
+`t` mod 12. The engine's bus holds one context per 32-sample chunk (7): the
+master publishes the context as it stands at the **end** of each chunk, so a
+follower sees a change up to 31 samples (< 1 ms) early, never late, and a
+follower's trigger on the same sample as a change always reads the new chord.
 
 ### 4.2 Building a chord
 
@@ -119,7 +122,8 @@ bass (for slash chords and inversions) and a length (½, 1, 2, 3, 4, 6, 8, 12,
   the Reset offset, `pos = (ppq − off) mod T`; the slot is the one whose
   cumulative span contains `pos`. Phase-locked like every transport module, so
   loop jumps and renders land on the right chord. Transport stopped: the
-  current chord holds.
+  current chord holds. *Reset* sets `off` to the next beat (the current chord
+  holds until then); `off` returns to 0 when the transport starts.
 - **Trigger:** each *Next* pulse goes to the next slot (wrapping); *Reset* to
   slot 1. Lengths are ignored.
 - **Select:** the *Slot* knob (rounded, wrapped to the slot count) chooses the
@@ -147,7 +151,7 @@ C major 6.
 
 The held set must be stable for 30 ms before it counts, so a strummed or
 slightly early chord is read once, not note by note. At most one detected
-change per 30 ms.
+change per 30 ms. Up to 16 held notes count.
 
 ### 4.5 Pitch outputs
 
@@ -182,7 +186,10 @@ The usual knobs and settings, plus:
   on the canvas.
 
 The node on the canvas shows the current chord name, so the board's harmony is
-readable without opening the view.
+readable without opening the view. *(Not implemented: the engine has no way
+for a module to label its canvas node, and no list of a bus's followers; the
+view shows the chord name, the key and scale, a warning when another master
+owns the bus, the keyboard and the progression strip.)*
 
 ## 6. Saved state
 
@@ -214,25 +221,29 @@ the four slots I – vi – IV – V, four beats each. An empty list behaves lik
 
 **A board-wide harmony bus** (new, owned by this module's work):
 
-1. **Context buses.** The engine keeps four harmony buses (A–D). Each holds a
-   `HarmonyContext` (the fields of 4.1, plain data) and, per processing chunk,
-   the context at the chunk start plus up to 8 changes with their sample
-   offsets. `ProcessContext` gains `const HarmonyBus* harmony` (the four
-   buses); a reader calls `harmony[bus].at(sample)`. A bus nobody publishes to
-   is `valid = false`.
-2. **One publisher per bus.** A Harmony Master publishes to its *Bus*. If two
-   publish to the same bus, the one created first wins; the other shows "Bus A
-   already has a Harmony Master" and publishes nothing.
-3. **Ordering.** A module that follows a bus gets an implicit dependency on
-   the bus's master, as if a cable ran between them, so the master is
-   processed first and a chord change and a note on the same sample agree. If
-   that edge closes a cycle (a sequencer that follows bus A also feeds the
-   master's *Notes*), it is treated like a feedback cable (`specs.md` 7.5):
-   the follower reads the context one sub-block late. The canvas draws no
-   cable; followers show a small bus badge instead.
-4. **Followers declare it.** `ModuleSpec` gains `harmonyFollow`: the index of
-   the follower's *Harmony* setting (Off, A, B, C, D). The compiler adds the
-   dependency edges from it; changing the setting recompiles like patching.
+1. **Context buses** (implemented). The engine keeps four harmony buses
+   (A–D) as `dsp::HarmonyState` (`Harmony.h`: the fields of 4.1, plain data);
+   `ProcessContext::harmony` points at them. A bus holds **one** context per
+   32-sample chunk: the master writes its full state every chunk (as at the
+   chunk end, 4.1), so a recompile, which resets the buses, loses nothing. A
+   bus nobody publishes to is `valid = false`. (`Harmony.h` also has a
+   `HarmonyBus` with up to 8 changes per chunk at sample offsets; the engine
+   does not carry it yet, see *Later*.)
+2. **One publisher per bus** (in the module). A Harmony Master writes its bus
+   only while the bus is empty or still holds what it wrote itself last
+   chunk; so the master processed first keeps the bus and another one on the
+   same bus shows "Bus A already has a Harmony Master" and publishes nothing.
+   Changing *Bus* empties the old bus.
+3. **Ordering** (implemented, simplified). `ModuleSpec::harmony` declares a
+   module `HarmonyRole::Writer` (Harmony Master) or `Reader` (followers); the
+   compiler orders every writer before every reader, whatever bus they use,
+   as if cables ran between them, so a chord change and a note on the same
+   chunk agree. If that closes a cycle (a follower also feeds the master's
+   *Notes*), the compiler's feedback rule (`specs.md` 7.5) applies. The canvas
+   draws no cable.
+4. **Followers declare it.** A follower's own *Harmony* setting (Off, Bus
+   A–D) picks the bus; the module reads `ctx.harmony[bus]`. (No per-bus
+   `harmonyFollow` index: every reader depends on every writer.)
 5. **Across cells.** Buses are board-wide and reach inside cells and Voice
    Cells (exceptions to "cables don't cross cell borders": the context is not
    a cable). All voices of a Voice Cell read the same context. Cell presets
@@ -272,6 +283,12 @@ can join later.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later
+
+- Sample-accurate bus changes inside a chunk (`dsp::HarmonyBus` carried by the
+  engine), so followers see a change on its exact sample instead of up to a
+  chunk early.
+- Per-bus dependency edges (`harmonyFollow`), the chord name on the canvas
+  node and the followers count in the view (engine features).
 
 - Chord suggestions: next-chord candidates ranked by common function.
 - A *Tension* knob that adds extensions (9, 11, 13) from the scale.

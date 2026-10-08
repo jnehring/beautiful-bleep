@@ -54,7 +54,7 @@ modulate.
 | Setting | Values | Default |
 |---|---|---|
 | Family | Even, Prime, Metric, Poly, Interlock, Seeded | Even |
-| Length | 2–32 steps, or Open | 16 |
+| Length | 2–32 steps, or Open (a choice) | 16 |
 | Rate | as the Step Sequencer's *Rate* (1/1 … 1/32, dotted, triplet) | 1/16 |
 | Complement | Off, Avoid, Fill, Pairs | Off |
 | Change | Step, Cycle | Cycle |
@@ -124,7 +124,7 @@ P 16 moves Out 2 to beat 3 only, P 32 moves Out 3 to beats 2 and 4
 (the backbeat). Short lengths with few levels clamp and
 can make neighbouring numbers equal.
 
-**Poly.** Each output plays `nⱼ` evenly spaced hits per cycle of `L` steps,
+**Poly.** (Two hits falling into one step keep the first.) Each output plays `nⱼ` evenly spaced hits per cycle of `L` steps,
 not tied to the step grid. The table is all ascending four-number
 combinations of {2, …, 9}, sorted by their lcm, then lexicographically, and
 keeping the 64 simplest of the 70: index `P mod 64` (0 = {2,3,4,6}, lcm 12;
@@ -186,10 +186,12 @@ the hit still plays at its exact time.
 ### 4.5 Pattern changes
 
 *Change* = *Cycle* (default): a new *Pattern* (or *Family*, *Length*,
-*Complement*) takes effect at step 1 of the next cycle; a slow modulator then
-switches grooves on the bar. *Step*: it takes effect at the next step. Rotate
-and Mute always apply at the next step. A gate already high finishes its
-*Width*.
+*Complement*, *Grid*) takes effect at step 1 of the next cycle (judged on the
+old Length; *Open*: every 16 steps); a slow modulator then switches grooves
+on the bar. *Step*: it takes effect at the next step. Rotate and Mute always
+apply at the next step. A gate already high finishes its *Width*; a hit on an
+output that is still high drops it for one sample so every hit is a new rise.
+*Cycle* fires at every step 1, the first one included.
 
 ## 5. Module view
 
@@ -208,12 +210,13 @@ Only knob and setting values; no node data. Patterns are fully defined by
 
 ## 7. Engine requirements
 
-None beyond what exists: transport position, `Random.h` (`uniform01`) and
-`liveValues` (step, four gate states, pending pattern). The pattern tables are
-computed on the message thread when Family, Pattern or Length changes and
-handed to the audio thread (the Step Sequencer's try-lock hand-over); when
-*Pattern* is modulated, the audio thread computes a pattern itself at the
-change point (all families are O(L) per output, no allocation).
+None beyond what exists: transport position (the shared `SeqClock`),
+`Random.h` (`uniform01`) and `liveValues` / `liveArrays` (step, four gate
+states, active and pending pattern, the playing rows and Accent row). The audio
+thread computes a pattern itself when a change applies (every family is O(L)
+per output, no allocation); the two small tables (Prime subsets, Poly sets) are
+built when the module type registers. The view's rows are computed on the
+message thread from the active pattern.
 
 ## 8. Tests
 

@@ -1,0 +1,10 @@
+{
+  "name": "Chord Quantizer",
+  "slug": "chord-quantizer",
+  "tagline": "One pitch in, a voiced chord out: four pitches and notes, with inversions, voicings, voice leading and strum.",
+  "colour": "#9f8cf7",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/chord-quantizer.md"
+}

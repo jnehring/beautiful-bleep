@@ -111,8 +111,12 @@ downbeat, so the last cycle in the bar is shortened (a /3 plays steps 1, 4, 7,
 always drops for at least 1 ms before its next rise.
 
 **Transport stopped:** all gates fall and the outputs stay low; *Stair* holds
-0. When the transport starts, the state is worked out from the start position
-(no "catching up" pulses).
+0. When the transport starts (and after a loop jump), the state is worked out
+from the position with no "catching up": an output fires only if one of its
+cycles starts exactly there (within one sample); a gate in the middle of its
+cycle stays high only if it already was, else it waits for the next cycle.
+From then on every rise is a pure function of the position, so a loop's second
+pass fires on the same samples as the first.
 
 **Clock mode** (Clock patched). A counter `n` advances on every pulse
 (`n` = 0 on the first pulse after Reset). Output *k* starts a cycle on pulses
@@ -135,8 +139,12 @@ A new *Rotate* (or *Set*, *Rotate Mode*) applies according to *Rotate Sync*:
   *Align* (clock mode).
 
 In every mode a gate that is already high finishes its length under the old
-division, so a rotation never produces truncated "clicks" of gate. A pending
-change that is superseded before it applies is dropped.
+division, so a rotation never produces truncated "clicks" of gate; if the new
+division starts a cycle while that gate is still high, the output drops for
+one sample so the new rise is seen. A pending change that is superseded before
+it applies is dropped (and turning back to the current mapping cancels it).
+*Next Bar* in clock mode applies at the next pulse where every output starts a
+cycle (*Align*).
 
 ### 4.4 Reset
 
@@ -156,7 +164,8 @@ In *Trigger* output mode each output counts as high for one base step after its
 pulse, so *Stair* still moves.
 
 *Align* fires on base steps where `x mod d(k) = 0` for all k (after rotation),
-and at each Realign boundary.
+and at each Realign boundary: wherever all eight outputs start a cycle on the
+same sample.
 
 ## 5. Module view
 
@@ -174,7 +183,8 @@ applies.
         /5 ○
 ```
 
-With *Set* = *Custom*, clicking a spoke's label opens a number field (1–64).
+With *Set* = *Custom*, eight number fields (1–64, the series before rotation)
+appear under the ring; clicking a spoke's label focuses its field.
 Below the ring, a strip shows the next 32 base steps for all eight outputs, so
 the effect of a rotation is visible before it applies.
 

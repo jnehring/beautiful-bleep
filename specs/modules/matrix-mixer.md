@@ -18,7 +18,7 @@ snapshots and morphed, one cable can move an entire routing.
 | Jack | Type | What it does |
 |---|---|---|
 | In 1 … In *N* | `audio` (any float type) | The sources. *N* = *Inputs* setting. An unpatched input is 0, or 1 with *Unpatched = 1* (so a row becomes a set of offsets). |
-| Morph | `control` (unipolar) | Adds to the *Morph* knob (as any knob input); listed here because it's the main performance jack. |
+| (Morph) | — | No separate jack: the *Morph* knob is the cable target (every knob is an input), which is the main performance input. |
 
 Every knob is also an input (`specs.md` section 7.3), including all 64
 crosspoints — they appear as targets when dragging a cable onto the view.
@@ -35,9 +35,9 @@ crosspoints — they appear as targets when dragging a cable onto the view.
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Gain *i*·*j* (64) | −1…+1 | 0 (1 on the diagonal for a new module) | Crosspoint from input *i* to output *j*. |
+| Gain *i*·*j* (64) | −1…+1 | 0 (1 on the diagonal for a new module) | Crosspoint from input *i* to output *j* (id `g_i_j`, named "i → j", grouped per input row; columns beyond *Outputs* are hidden through `when`, rows beyond *Inputs* by the view). |
 | Level 1 … 8 | 0–200 % (−∞…+6 dB) | 100 % | Output level. |
-| Morph | 0–100 % | 0 % | Blend between snapshot *A* and *B* (4.4). Only active when *Morph* is on. |
+| Morph | 0–100 % | 0 % | Blend between snapshot *A* and *B* (4.4). Only active (and shown) when *Morph* is on. |
 
 **Settings**
 
@@ -48,7 +48,7 @@ crosspoints — they appear as targets when dragging a cable onto the view.
 | Mute 1 … 8 (per input) | on/off | off |
 | Output stage | Clean, Soft clip, Normalize | Clean |
 | Unpatched | 0, 1 | 0 |
-| Morph | Off, On | Off |
+| Morph | Off, On (id `morphon`) | Off |
 | Morph curve | Linear, Smooth (smoothstep), Equal power | Linear |
 
 ## 4. Behaviour
@@ -69,14 +69,15 @@ loses no patching (see 7).
 
 A crosspoint whose effective gain is exactly 0 for a whole 32-sample chunk,
 with no modulation cable, is skipped. Cost: at most 64 multiply-adds per
-sample (8×8 dense), about 0.05 % CPU at 48 kHz on a current machine; a
+sample (8×8 dense), about 0.1 % CPU at 48 kHz for the mixing itself (measured; the harness, with the engine filling 87 knob buffers, shows about 0.5 %); a
 typical sparse matrix costs a few multiply-adds.
 
 ### 4.3 Output stage
 
-- **Clean:** no limiting; sums above ±1 pass (other modules may clip).
-- **Soft clip:** `tanh`-shaped soft clip above ±1 (with 2× oversampling only
-  when the output is above 0.9; otherwise free).
+- **Clean:** no limiting; sums above ±1 pass (other modules may clip); a
+  safety limit holds every output within ±10.
+- **Soft clip:** linear up to 0.9, then a `tanh` knee that never exceeds ±1
+  (no oversampling: control signals and moderate audio levels don't need it).
 - **Normalize:** each output is divided by `max(1, Σ_i |gain_ij|)`, so a
   column can never exceed the loudest input. Useful for control mixes that
   must stay in ±1, and for feedback matrices that should not run away.
@@ -86,13 +87,16 @@ typical sparse matrix costs a few multiply-adds.
 The view stores up to 8 **snapshots**: each holds all 64 crosspoint values,
 the 8 levels and the mutes. *Recall* writes a snapshot into the knobs (one
 undo step; the change ramps over 20 ms to avoid clicks). With *Morph* on, two
-snapshot slots are assigned as *A* and *B*, and the crosspoint knobs show
-(read-only) the morphed matrix:
+snapshot slots are assigned as *A* and *B*, and the view's grid shows the
+morphed matrix (the generic knobs keep showing their own values; the engine
+can't drive a knob's display from a module):
 
 `gain_ij = lerp(A_ij, B_ij, curve(Morph)) + Σ mod_ij × amount`
 
-i.e. modulation cables on crosspoints still add on top. Mutes switch at
-50 %. Levels morph like gains. Editing a crosspoint while morphing edits the
+i.e. modulation cables on crosspoints still add on top (the module takes the
+modulation as `effective − knob`). Mutes switch at 50 %. Levels morph like
+gains (with the *Morph* value at the chunk start). An empty A or B slot uses
+the current knobs for that end. Editing a crosspoint while morphing edits the
 snapshot nearest the current morph position (shown in the view) — so the user
 can shape both ends by moving *Morph* to 0 or 100 % and editing.
 
@@ -126,12 +130,14 @@ supported use (feedback delay networks with delays, filters in the loop); the
   ring like any knob.
 - **Click** an empty crosspoint: sets +1. **Click** a set one: sets 0.
   **Drag** vertically: sets the value (Shift: fine). **Alt-click**: −1.
-  **Double-click**: type a value. A drag is one undo step.
+  **Double-click**: type a value. A drag is one undo step. (Knob changes of
+  any kind ramp over 20 ms in the module.)
 - Row/column headers: input and output names (editable labels, saved),
-  mute buttons per row, level knobs per column, meters per column.
+  mute buttons per row, meters per column (the levels are the generic knobs
+  of the *Levels* group).
 - Snapshot buttons: click recalls, Shift-click stores, right-click → rename,
-  clear, assign to A/B. A *Randomize* menu (sparse/dense, unipolar/bipolar)
-  writes random gains (UI-side randomness, one undo step).
+  clear, assign to A/B. *Random sparse* / *Random dense* buttons write
+  random bipolar gains (UI-side randomness, one undo step).
 
 ## 6. Saved state
 
@@ -153,8 +159,9 @@ Crosspoint gains, levels and morph are params. Labels and snapshots live in
 ```
 
 Gains in snapshots are stored in their own units (−1…+1); `sanitiseData`
-clamps and pads to 8×8 and 8 slots. All 64 crosspoints are saved even when
-the matrix is smaller.
+clamps and pads to 8×8 and 8 slots, pads labels to 8 + 8 strings and cuts
+labels and snapshot names to 24 characters. All 64 crosspoints are saved even
+when the matrix is smaller. A new module has empty labels and no snapshots.
 
 ## 7. Engine requirements
 
@@ -166,8 +173,11 @@ the matrix is smaller.
    knob-target picker must scale (group them as *Crosspoints* in the cable
    target menu).
 3. **Params driven by data.** With *Morph* on, the module computes the base
-   gain from snapshot data instead of the knob; the view must show the
-   morphed value as the knob position (a `liveValues` array `gains[64]`).
+   gain from snapshot data instead of the knob; the view's grid shows the
+   morphed value from the `liveArrays` array `gains[64]` (with `meters[8]`).
+   Implemented: (1) through `JackSpec::when` / `ParamSpec::when` (one
+   condition per item, hence the view hides the extra knob rows); (2) as 87
+   params grouped per row.
 
 ## 8. Tests
 

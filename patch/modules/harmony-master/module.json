@@ -1,0 +1,10 @@
+{
+  "name": "Harmony Master",
+  "slug": "harmony-master",
+  "tagline": "The board's key, scale and chord, from knobs, a progression or played chords, for every module that follows harmony.",
+  "colour": "#9333ea",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/harmony-master.md"
+}
