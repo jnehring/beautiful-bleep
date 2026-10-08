@@ -21,7 +21,7 @@ breakpoint editor.
 |---|---|---|
 | Gate | `gate` | Rising edge starts the chain at segment 1; falling edge jumps to the release part (4.3). |
 | Velocity | `control` (unipolar) | Scales every segment's level through *Vel Amount*. Unpatched counts as 1. Sampled at each Gate rising edge. |
-| Seg 1 … Seg 8 | `trigger` | Per-segment events: ends a *Hold* that waits for a trigger, or jumps to that segment (see *Seg In* in 3). |
+| Seg 1 … Seg 8 | `trigger` | Per-segment events: ends a *Hold* that waits for a trigger, or jumps to that segment (see *Seg In* in 3). Jack ids `segin1` … `segin8` (the outputs are `seg1` … `seg8`). |
 
 Every knob is also an input (`specs.md` section 7.3).
 
@@ -45,7 +45,7 @@ lost when *Count* is lowered; their outputs are 0 and their inputs ignored.
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Time n | 0.5 ms – 30 s (exponential, centre 250 ms) | see 4.6 | Duration of the segment. With *Sync* on, a note value instead (4.4). |
+| Time n | 0.5 ms – 30 s (skewed, centre 250 ms) | see 4.6 | Duration of the segment. With *Sync* on, the segment's note value (node data) is used instead (4.4). |
 | Level n | −1 … +1 | see 4.6 | Target level (Ramp, Step). Ignored by Hold. |
 | Shape n | −1 … +1 | 0 | Ramp: curve (the Function curve, 4.2). Step: glide share. Hold: ignored. |
 
@@ -60,7 +60,7 @@ Global knobs:
 
 | Setting | Values | Default |
 |---|---|---|
-| Count | 1–8 segments | 4 |
+| Count | 1–8 segments (a setting; the view's − / + change it) | 4 |
 | Run | Gated, Free | Gated |
 | Release | Jump, Finish | Jump |
 | Sync | Off, On | Off |
@@ -73,7 +73,7 @@ Per segment (stored in node data, edited in the view, 6):
 | Loop | on/off | off |
 | Wait (Hold only) | Time, Gate, Trigger | Gate |
 | Seg In | Advance, Jump | Advance |
-| Sync value | 1/64 … 8 bars, straight, dotted, triplet | 1/4 |
+| Sync value | 8 bars … 1/64T, straight, dotted, triplet (`dsp::noteValues()` 1 … 24, saved by name) | 1/4 |
 
 ## 4. Behaviour
 
@@ -110,14 +110,18 @@ in both directions as Function's fall.
 - **Loop region:** the segments from the first to the last with *Loop* on.
   When playback leaves the last loop segment it returns to the first one and
   *Loop* fires. One looped segment loops alone (a Step on its own is a
-  constant; a Ramp on its own is a saw).
+  constant; a Ramp on its own is a saw: a lone looping Ramp restarts each
+  pass from the level of the last non-Hold segment before it, or 0).
 - **Sustain point:** the last Hold with *Wait* = *Gate*, or else the end of the
   loop region. The **release part** is everything after it.
 - **Gate falling edge**, *Release* = *Jump*: if playback is before or at the
   sustain point, it jumps to the first release segment, starting from the
   current level (like any ADSR whose gate ends early). *Release* = *Finish*:
   the loop finishes its current pass, earlier segments play out, then the
-  release follows.
+  release follows. Either way the chain is *releasing* until the next rising
+  edge: a loop is left at the end of its pass, so a loop placed after the
+  sustain point (in the release part) plays once. A Hold with *Wait* =
+  *Trigger* also ends on the falling edge.
 - **No sustain point and no loop:** the chain is a one-shot; the gate's
   length doesn't matter.
 - **End** fires when the last of *Count* segments finishes; the output keeps
@@ -135,15 +139,21 @@ in both directions as Function's fall.
 - **Sync on:** each segment's length is its *Sync value* in beats at the
   current tempo; *Time n* and *Time Scale* are not used (the view shows the
   note values on the Time knobs, which turn into note-value pickers).
-- **Run = Free:** no gate needed; the chain starts on its own and loops (or
-  ends). With Sync on and the transport playing, the position is derived from
-  the song: the intro (segments before the loop region) is placed at the last
-  transport start; the loop's position is
-  `frac((ppq − ppqLoopStart) / loopBeats)`, with `ppqLoopStart` rounded to a
-  bar, so a looping chain always sits at the same place in the bar, survives
-  loop jumps and renders identically. With a Gate patched in Free mode, a
-  rising edge still restarts the chain (and drops the lock until the next
-  transport start).
+- **Run = Free:** no gate needed; the chain starts on its own (at the
+  module's start, when switched to Free, and at every transport start) and
+  loops (or ends). The Gate's falling edge is ignored (a loop never
+  releases), but Holds with *Wait* = *Gate* still read the Gate's level. With
+  Sync on and the transport playing, the position is derived from the song:
+  the intro (segments before the loop region) is placed at the last
+  transport start `ppqStart`; the loop's position is
+  `(ppq − anchor) mod loopBeats` with
+  `anchor = round(ppqStart / 4) × 4 + introBeats`, so a looping chain sits on
+  the bar grid, survives loop jumps and renders identically. In this mode
+  every segment lasts its note value (Holds too), segment 1 starts from 0, the
+  loop start from the intro's end level in the first pass and from the loop
+  end's level in later passes; *Loop* fires when the pass number grows. A
+  Gate rising edge or a Seg pulse restarts the chain and drops the lock until
+  the next transport start.
 - **Run = Gated with Sync:** times follow the tempo, but the start follows the
   gate, as for an envelope.
 - **Transport start** restarts a Free chain; **transport stop** leaves it
@@ -185,13 +195,19 @@ release).
 ```
 
 - **Breakpoint editor:** one node per segment end. Drag a node vertically for
-  *Level*, horizontally for *Time* (log-scaled x axis; with Sync, it snaps to
-  note values). Drag a curve's middle for *Shape*. A drag is one undo step.
+  *Level*, horizontally for *Time* (log-scaled x axis: each segment's width
+  grows with log₂(1 + t / 4 ms); a drag doubles the time per 40 px; with
+  Sync, it steps through the note values). Drag a curve vertically for
+  *Shape*. A drag is one undo step. The drawing starts from 0 and uses the
+  live (modulated) knob values.
 - Click a segment to select it; the row below edits its Type, Wait, Loop,
-  Seg In and its three knobs (these are the same params that cables can
-  modulate, with their mod rings).
-- The loop region is drawn as a bracket above the segments; dragging its ends
-  sets the Loop flags.
+  Seg In, the note value (with Sync) and its three knobs (these are the same
+  params that cables can modulate, with their mod rings; the view moves the
+  knob elements into the row and shows only the selected segment's; Time is
+  hidden with Sync, Level and Shape for Holds).
+- The loop region is drawn as a bracket in a strip above the segments;
+  dragging across the strip sets the Loop flags on that range, clicking a lone
+  looped segment clears them.
 - **+ / −** buttons at the right end change *Count*.
 - A playhead dot follows the live output; each segment's header lights while
   its *Seg* gate is high. Modulated knobs draw their live, modulated shape.
@@ -218,13 +234,13 @@ and accepts only sync values from the list.
 
 ## 7. Engine requirements
 
-- Node data and `setData` (as for the Step Sequencer): the segment table is
-  parsed on the message thread and handed over through a try-lock.
-- A sync-value list with dotted and triplet values from 1/64 to 8 bars in
-  `patch/common/dsp/Tempo.h` (the current list has no dotted/triplet values);
-  the Step Sequencer's rate list can share it.
+- Node data and `setData`: the segment table is parsed on the message thread
+  and handed over with `RtHandoff` (done).
+- The shared note values with dotted and triplet values (`dsp::noteValues()`,
+  done).
 - `liveValues`: `segment`, `u` (elapsed share) and `level` for the view.
-- Dynamic visibility of jacks beyond *Count* (dimmed, not removed) on the node.
+- Dynamic visibility of jacks beyond *Count* (`.when("count", n, 8)`, done);
+  the per-segment knobs carry the same condition.
 
 ## 8. Tests
 
@@ -236,7 +252,9 @@ and accepts only sync values from the list.
 - Hold Wait *Trigger* ends exactly on the *Seg n* pulse sample; *Jump* lands on segment n.
 - Sync + Free run + transport: the value at bar 5 is the same on two renders and after a loop jump.
 - Segment gates: exactly one *Seg n* is high at a time while running.
-- Saved data round-trips; short or broken `segments` arrays load safely.
+- Saved data round-trips; short or broken `segments` arrays load safely (`sanitiseData` stability and broken documents are checked by `patch.modules`).
+- Count lowered below the running segment goes to the release part (or ends).
+- A lone looping Ramp is a saw.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later

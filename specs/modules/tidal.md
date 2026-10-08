@@ -47,7 +47,7 @@ At audio rate the outputs can be patched straight into audio inputs (`control`
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Frequency | depends on *Range* (exponential) | 1 Hz (Medium) | Cycle rate. In *AD*/*AR* it sets the slope's total time, `1 / Frequency`. |
+| Frequency | depends on *Range* (exponential; Audio: exponential on each half, C4 at the centre) | 1 Hz (Medium) | Cycle rate. In *AD*/*AR* it sets the slope's total time, `1 / Frequency`. The knob is declared in the Medium range; the view relabels it for Slow and Audio, Sync and Clock (5). |
 | Skew | 0–100 % | 50 % | Share of the cycle spent rising. 50 % is symmetric; 0 % a falling saw, 100 % a rising saw. |
 | Curve | −1 … +1 | 0 | Bends both slopes (4.2). |
 | Smooth | −1 … +1 | 0 | Below 0: low-pass rounding. Above 0: wavefolding (4.2). |
@@ -60,9 +60,9 @@ At audio rate the outputs can be patched straight into audio inputs (`control`
 | Mode | AD, Loop, AR | Loop |
 | Range | Slow (0.001–1 Hz), Medium (0.02–50 Hz), Audio (8 Hz–8 kHz, centre C4) | Medium |
 | Relation | Ratio, Phase, Level, Harmonic | Phase |
-| Sync | Free, 1/32 … 8 bars (the shared sync list), also dotted and triplet | Free |
+| Sync | Free, 8 bars … 1/32T (the shared note values, straight, dotted and triplet) | Free |
 | Ratio | ÷16, ÷8, ÷6, ÷4, ÷3, ÷2, ×1, ×2, ×3, ×4, ×6, ×8, ×16 | ×1 |
-| Polarity | Bipolar, Unipolar | Bipolar |
+| Polarity (shown in Loop) | Bipolar, Unipolar | Bipolar |
 
 ## 4. Behaviour
 
@@ -90,13 +90,19 @@ between neighbours): −1 logarithmic `1 − (1−u)^4`, 0 linear, +0.5 cosine
 tracks the cycle frequency: `fc = f × 2^(7 × (1 + Smooth))` → at −1 the cutoff
 equals `f`, turning any shape into a near-sine; near 0 it is transparent. The
 filter's delay is compensated for *End* and *Rise*, which come from the
-unfiltered phase.
+unfiltered phase. The filter lowers the level (at −1 a triangle keeps about
+57 % of its swing), so in *Loop* each output's range is measured once per
+cycle and the filtered curve is mapped back onto the unfiltered range (gain
+1…8 and centre, gliding from cycle to cycle): a near-sine at full level. In
+AD/AR there is no compensation; Smooth rounds and delays the envelope.
 
 **Smooth > 0** folds: `x = (2·shaped − 1) × (1 + 5 × Smooth)`, reflected back
-into −1…+1 as often as needed, then mapped back to 0…1. At +1 a triangle folds
-three times per slope: a bright, many-peaked contour at LFO rates and a
-harmonically rich tone at audio rate. Folding is applied per output, after the
-relation (4.3), so every output folds alike.
+into −1…+1 as often as needed, then mapped back to 0…1 (`foldUnit` in
+`dsp/Slope.h`). At +1, `x` sweeps −6…+6, so each slope is reflected six times
+and the triangle's ends add a turning point each: seven peaks per cycle, a
+bright, many-peaked contour at LFO rates and a harmonically rich tone at audio
+rate. Folding is applied per output, on that output's slope, so every output
+folds alike; *Level* (4.3) scales after the fold.
 
 ### 4.3 Relations
 
@@ -106,11 +112,12 @@ Outputs are numbered k = 0 (A) … 3 (D). `s` = *Spread*.
 |---|---|---|
 | **Ratio** | Rhythmic ratios that realign: *Spread* picks a ratio set; each output runs at its ratio of A's frequency, and all four reset together at their common period, so the pattern repeats. | all ×1 |
 | **Phase** | Phase offsets: output k at `p + k·s/4` (negative s shifts backwards). At ±1: 0°, 90°, 180°, 270°. | identical |
-| **Level** | Staggered levels: output k is scaled by `1 − k·|s|/3`; for s < 0 the scaled output is also inverted for odd k (a "fan" that alternates). | identical |
+| **Level** | Staggered levels: output k is A (after Smooth and Polarity) scaled by `1 − k·|s|/3`; for s < 0 odd k are also inverted (`−x` bipolar, `1 − x` unipolar before scaling): a "fan" that alternates. | identical |
 | **Harmonic** | Frequency ratios: output k at `1 + k·s` × f for s ≥ 0 (at +1: ×1, ×2, ×3, ×4), `1 / (1 + k·|s|)` for s < 0 (undertones ×1, ×½, ×⅓, ×¼). In between the ratios are inharmonic, which beat slowly. | identical |
 
-Ratio sets for *Ratio* (the knob is divided into equal zones, |s| picks the
-zone, the sign chooses faster (+) or slower (−) ratios):
+Ratio sets for *Ratio* (zone `round(|s| × 5)`, so |s| < 0.1 is all ×1 and
+each set has an equal share of the knob; the sign chooses faster (+) or
+slower (−) ratios):
 
 | Zone | B | C | D | Repeats every |
 |---|---|---|---|---|
@@ -120,12 +127,15 @@ zone, the sign chooses faster (+) or slower (−) ratios):
 | 4 | 5/4 | 3/2 | 7/4 | 4 |
 | 5 | 5/3 | 7/4 | 9/4 | 12 |
 
-For negative *Spread*, the reciprocals (e.g. 2/3, 1/2, 1/3).
+For negative *Spread*, the reciprocals (e.g. 2/3, 1/2, 1/3); they repeat
+after the lcm of their denominators (zone 1: 1/2, 1/3, 1/4 every 12 cycles).
 
 In *Harmonic* and *Ratio*, B…D are separate phase accumulators; a reset on
 *Trig* (Loop) or a transport start resets them all. In *AD* and *AR* modes
 *Ratio* and *Harmonic* scale the slope time: output k's envelope is
-`1 / ratio` as long (for *Ratio*) — an accent pattern from one trigger.
+`1 / ratio` as long — an accent pattern from one trigger. *Phase* in AD/AR
+delays the envelopes instead: output k's Trig edges arrive `k·|s|/4` of the
+slope's length later (a cascade). *Level* scales as in Loop.
 
 ### 4.4 Timing: Free, Sync, Clock
 
@@ -134,14 +144,16 @@ In *Harmonic* and *Ratio*, B…D are separate phase accumulators; a reset on
   playing, `p = frac(ppq / cycleBeats)` (Ratio-mode outputs derive from the
   same ppq, so the polyrhythm also locks to bars). Transport stopped: runs at
   the synced length and current tempo. *Frequency* is ignored; *Pitch* still
-  shifts it in octaves (so +1 = twice per sync value).
+  shifts it, rounded to whole octaves so the lock holds (+1 = twice per sync
+  value). *Trig* doesn't reset a locked cycle (the song position decides).
 - **Clock patched:** the period `T` is the time between the last two pulses,
   smoothed over 4 pulses so a little jitter doesn't wobble the rate. The
   frequency is `Ratio / T`. For multiplications, the phase is set to 0 on every
   clock pulse (A starts each beat in step); for divisions, on every n-th pulse,
   counted from the first pulse after patching or Reset. A pulse that arrives
   more than 2 × T after the last one is treated as a new start (no wild rate
-  after a pause). The first period after patching uses 0.5 s.
+  after a pause). The first period after patching uses 0.5 s. *Frequency*
+  and *Pitch* are ignored while the clock is patched. (`dsp::ClockLock`.)
 - Clock overrides Sync; Sync overrides Frequency.
 
 ### 4.5 Modes
@@ -181,18 +193,19 @@ survives recompiles (modules are reused by node id).
 
 ## 7. Engine requirements
 
-- Dotted and triplet values in the shared sync list (`patch/common/dsp/Tempo.h`).
-- A small shared wavefolder in `patch/common/dsp/` (Utility's *Fold* can use it).
-- `liveValues`: phase of A for the scope's dot; the scope itself uses the
-  engine's per-output scope.
+- Dotted and triplet values in the shared note values (`dsp::noteValues()` in
+  `Tempo.h`, done).
+- The slope, curves, smoother/folder and clock follower in `dsp/Slope.h` (done).
+- `liveValues`: `phase` of A for the scope's dot, `hz`, `clocked` and the
+  measured `bpm`. The view computes the four traces from the knobs.
 
 ## 8. Tests
 
 - Frequency: 2 Hz Loop gives exactly 2 *End* pulses per second; Pitch +1 doubles it.
 - Skew: rise time = `r / f`; Skew 0 and 100 % give saws (in Medium range), limited in Audio range.
 - Curve: values at u = 0.5 match the table for −1, 0, +0.5, +1.
-- Smooth −1 on a square-ish Skew gives a peak-to-peak within 10 % of a sine of the same frequency; +1 folds a triangle into the documented number of peaks.
-- Relations: Phase ±1 gives quarter offsets; Harmonic +1 gives 1:2:3:4 *End* counts; Ratio zone 3 realigns every 6 cycles of A.
+- Smooth −1 on a square-ish contour (Curve −1) gives a peak-to-peak within 10 % of a full-scale sine of the same frequency, with a small 3rd harmonic; +1 folds a triangle into seven peaks per cycle.
+- Relations: Phase ±1 gives quarter offsets; Harmonic +1 gives 1:2:3:4 cycle counts (−1: 12:6:4:3); Ratio zone 3 realigns every 6 cycles of A.
 - Clock: ×4 gives 4 cycles per pulse and resets on each pulse; ÷3 resets every third pulse; a long pause doesn't produce a runaway rate.
 - Sync with transport: `p = frac(ppq / cycleBeats)`; a loop jump returns the same values.
 - AD from mid-level retrigger: no discontinuity; AR fall starts from the current level.

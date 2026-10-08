@@ -1,0 +1,10 @@
+{
+  "name": "Quad LFO",
+  "slug": "quad-lfo",
+  "tagline": "Four LFOs in one: independent, in quadrature, spread in phase or divided from one rate.",
+  "colour": "#ea580c",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/quad-lfo.md"
+}

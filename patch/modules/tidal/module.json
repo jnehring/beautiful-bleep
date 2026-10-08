@@ -1,0 +1,10 @@
+{
+  "name": "Tidal",
+  "slug": "tidal",
+  "tagline": "Slope oscillator from minute-long swells to audio rate, with four related outputs, smoothing and folding.",
+  "colour": "#60a5fa",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/tidal.md"
+}

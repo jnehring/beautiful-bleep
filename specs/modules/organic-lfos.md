@@ -65,17 +65,20 @@ the whole group; modulating *Spread* opens and closes the fan.
 
 `f_k = f_1 × 2^(Spread × 4 × g_k)` for k = 1…8, with
 `g_k = (k − 1) / 7 + j_k`, where `j_k` is a seeded offset in ±0.03
-(`j_1 = 0`, from `uniform01(Seed, k, stream 1)`). At Spread +1 LFO 8 runs
+(`j_1 = 0`, `j_k = 0.06 × uniform01(Seed, k − 1, stream 1) − 0.03`). At Spread +1 LFO 8 runs
 about 16× as fast as LFO 1; at 0 all eight share the rate (and only drift and
 start phases tell them apart); at −1 LFO 8 is 16× slower. The jitter keeps the
-ratios irrational, so no two channels fall into a simple, repeating relation.
+ratios off the grid of `2^(4k/7)` (where LFO 8 would be exactly 16 × LFO 1),
+different per channel and seed. Near-simple ratios can still happen for some
+seeds and Spread settings; Drift keeps them from locking.
 
 ### 4.2 Drift
 
 Each LFO k has two slow, seeded noise curves: `n_k(t)` for rate and `m_k(t)`
-for shape, each a cubic interpolation of `uniform01(Seed, i, stream)` values
-placed every `8 / f_k` seconds (rate) and `13 / f_k` (shape) — so a fast LFO
-drifts faster than a slow one, always at a few-cycle timescale.
+for shape, each `dsp::smoothNoise` (Catmull-Rom through seeded points) on a
+noise clock that advances `f_k / 8` (rate) and `f_k / 13` (shape) points per
+second, with `f_k` the undrifted rate — so a fast LFO drifts faster than a
+slow one, always at a few-cycle timescale.
 
 - **Rate drift:** `f_k' = f_k × 2^(Drift × 0.35 × n_k(t))`, n in −1…+1: at
   100 % between about −21 % and +27 %.
@@ -91,8 +94,12 @@ With `p` the phase and `t` = Twist_k:
 - `t ≥ 0`: the phase is skewed so the rise takes `0.5 − 0.4·t` of the cycle,
   then `x = sin(2π·p')` and `y = sign(x)·|x|^(1 + 2t)`: a fast rise to a
   narrow peak and a long, lazy fall.
-- `t < 0`: `x = sin(2π·p)`, `y = tanh(g·x) / tanh(g)` with `g = 1 + 5|t|`: a
-  rounded plateau, almost a soft square at −1.
+- `t < 0`: `x = sin(2π·p)`, `y = tanh(g·x) / tanh(g)` with `g = 6|t|`: a
+  rounded plateau, almost a soft square at −1. (`g → 0` gives the sine, so
+  the shape is continuous through Twist 0.)
+
+For `t ≥ 0` the skewed phase is `p'' = frac(p + 0.25)` mapped to 0…½ over the
+rise and ½…1 over the fall, `x = −cos(2π·p'')`, which is `sin(2π·p)` at t = 0.
 
 *Unipolar* maps `0.5 + 0.5·y`; *Level* scales after that (towards 0).
 
@@ -102,27 +109,34 @@ With `p` the phase and `t` = Twist_k:
   The noise curves run on the module's own sample counter (counted from the
   last Reset or transport start), so with the same Seed the same patch moves
   the same way every time it is rendered from the same start.
-- **Lock = Bars:** *Rate* picks a note value for LFO 1 (1/4 … 64 bars, with
-  dotted and triplet values). While the transport plays, everything is a
+- **Lock = Bars:** *Rate* picks a note value for LFO 1 (64 bars at the knob's
+  left … 1/4T at its right: 64 and 32 bars, then `dsp::noteValues()` from
+  16 bars to 1/4T). While the transport plays, everything is a
   function of the song position, so it's seekable and survives loop jumps:
   - LFO 1: `p_1 = frac(ppq / beats)` (+ its scatter offset);
   - LFO k: `p_k = frac(ppq × r_k / beats + s_k + Drift × 0.5 × D_k(ppq))`
     with `r_k = 2^(Spread × 4 × g_k)`, `s_k` its scatter offset, and `D_k`
     a seeded noise curve in song time (cubic, one point every 8 cycles of
     LFO k). Rate drift becomes a phase drift in this mode, which is how it
-    stays a pure function of `ppq`.
-  - Transport stopped: runs free at the current tempo from where it was.
+    stays a pure function of `ppq`. Shape drift uses a song-time curve too
+    (one point every 13 cycles). LFO 1 has no phase drift with *Anchor* on.
+    Because the phases are `ppq × r_k`, changing *Spread* while locked jumps
+    them (the fan re-forms around the song position).
+  - Transport stopped: runs free at the current tempo from where it was (a
+    virtual song position advancing at the tempo).
 - **Start phases:** `s_k = Scatter × uniform01(Seed, k, stream 3)`; LFO 1's
   is 0 with *Anchor* on. *Reset* and transport start set every phase to
-  `s_k` and restart the noise clocks. With Lock = Bars and the transport
-  playing, Reset only restarts the noise clocks.
+  `s_k` and restart the noise clocks. With Lock = Bars the noise is in song
+  time, so Reset does nothing there (the song position decides).
 - Changing *Seed* changes the jitter, the drift and the scatter; the switch
-  crossfades over 50 ms.
+  crossfades over 50 ms (from the outputs at the moment of the change). So
+  does switching *Lock*.
 
 ### 4.5 Sum and Max
 
-`Sum = tanh(1.4 × Σ y_k / √8) / tanh(1.4)` (bipolar values, before
-*Polarity*), so eight unrelated waves give a full but not clipped contour;
+`Sum = clamp(tanh(1.4 × Σ y_k / √8) / tanh(1.4), −1, 1)` (bipolar values,
+before *Polarity*), so eight unrelated waves give a full but not clipped
+contour (eight in step would exceed full scale and are held at ±1);
 then *Polarity* and *Level*. `Max = max_k(y_k)`, likewise mapped. Max is
 always ≥ the average, so in Bipolar it mostly stays in the upper half; use it
 unipolar for brightness or density controls.
@@ -152,17 +166,18 @@ runtime state and survive recompiles (modules are reused by node id).
 ## 7. Engine requirements
 
 - A cubic-interpolated seeded noise helper in `patch/common/dsp/Random.h`
-  (Random's *Smooth* and the planned Drift module can use it).
-- Note values up to 64 bars in the shared sync list.
-- `liveValues`: the eight live rates for the rate strip.
+  (`smoothNoise`, done; the module caches its four points per curve).
+- Note values up to 64 bars: the shared list stops at 16 bars, so the module
+  adds 32 and 64 bars itself.
+- `liveArrays`: `rates`, the eight live rates for the rate strip.
 
 ## 8. Tests
 
 - Drift 0, Spread 0, Scatter 0: all eight outputs identical.
-- Spread +1, Drift 0: LFO 8 / LFO 1 rate is `2^(4 × (1 + j_8))`; no two channels have a rational ratio with denominator ≤ 16 (checked numerically).
+- Spread +1, Drift 0: LFO 8 / LFO 1 rate is `2^(4 × (1 + j_8))`; the jitter is within ±0.03, different per channel and seed, and moves LFO 8 off 16× (and off 8× at Spread 0.75).
 - Drift: rates stay within −21 % … +27 % at 100 %; with Anchor on, LFO 1's rate is exact.
 - Reproducibility: two renders from the same start with the same Seed are bit-identical; a different Seed differs.
-- Lock = Bars: LFO 1 phase equals `frac(ppq / beats)`; seeking to a song position gives the same outputs as playing to it.
+- Lock = Bars: with Drift 0 and Twist 0, LFO 1 is `sin(2π·frac(ppq / beats))`; seeking to a song position gives the same outputs as playing to it.
 - Twist: −1, 0, +1 values at quarter phases match the formulas; outputs stay in range.
 - Sum stays within ±1; Max ≥ every output.
 - The demo types file includes the module (`patch.ui-types`).

@@ -45,7 +45,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Knob | Range | Default | What it does |
 |---|---|---|---|
 | Time | 1 ms – 60 s (exponential, centre 500 ms) | 500 ms | Duration of the whole shape (or one LFO cycle). A note value with *Sync*. |
-| Shape | 0 – 103 (stepped) | 0 | Which shape plays: 0–95 factory, 96–103 user. |
+| Shape | 0 – 103 (a stepped choice of the shape names, with the family names as headings) | 0 (Click) | Which shape plays: 0–95 factory, 96–103 user. |
 | Morph | 0–100 % | 0 % | Blend toward the next shape in the library (4.2). |
 | Level | 0–100 % | 100 % | Output scale. |
 | Vel Amount | 0–100 % | 0 % | Peak scale `1 − VelAmount × (1 − Velocity)`, as in *ADSR*. |
@@ -56,9 +56,9 @@ Every knob is also an input (`specs.md` section 7.3).
 | Setting | Values | Default |
 |---|---|---|
 | Mode | One-shot, Gated, Loop | One-shot |
-| Sync | Off, 1/32 … 16 bars (straight, dotted, triplet) | Off |
+| Sync | Off, 16 bars … 1/32T (the shared note values, straight, dotted, triplet) | Off |
 | Reverse | Off, On | Off |
-| Retrigger | Restart, Ignore while running | Restart |
+| Retrigger (shown in One-shot and Gated) | Restart, Ignore while running | Restart |
 
 ## 4. Behaviour
 
@@ -93,8 +93,9 @@ that maps old indices, so saved boards keep their sound.
 | 88–95 | Textures | cycle, bipolar | Smoothed seeded noise curves (fixed seeds 1–8): irregular but repeating |
 | 96–103 | User 1–8 | per drawing | Drawn in the view (5), saved in node data (6) |
 
-(Full formulas live in `patch/common/dsp/ShapeLibrary.h`; this table names
-the families and order.)
+(Full formulas live in `patch/common/dsp/Shapes.h`, `dsp::ShapeLibrary`; this
+table names the families and order. Its tests pin a checksum per table, and the
+module's test pins one over the whole library.)
 
 ### 4.2 Morph
 
@@ -111,6 +112,7 @@ per sample.
 
 - **One-shot:** Trig or a Gate rising edge plays the whole shape over *Time*,
   then *End* fires and the output stays at the last value (0 for envelopes).
+  Before the first start the output is 0.
   *Retrigger* = *Restart*: a new start crossfades from the current level into
   the shape over 2 ms. *Ignore*: starts while running are dropped.
 - **Gated:** as One-shot, but playback stops at the sustain point while
@@ -118,14 +120,19 @@ per sample.
   the sustain point plays on without stopping. Shapes without a sustain point
   play as One-shot. Trig starts the shape like a gate of zero length.
 - **Loop:** the shape repeats every *Time*; *End* fires at each wrap. Trig or
-  a Gate rising edge resets the phase to 0. Envelope shapes loop too (a
-  repeating decay is a classic rhythmic effect).
+  a Gate rising edge resets the phase to 0 (crossfaded over 2 ms). Envelope
+  shapes loop too (a repeating decay is a classic rhythmic effect). *Active*
+  is always high in Loop.
 - **Sync:** *Time* becomes a note value. In *Loop* with the transport playing,
   `phase = frac(ppq / beats)`, locked to bars, identical on every render and
-  after loop jumps; Trig then only restarts the next cycle's crossfade, not
-  the phase. In One-shot and Gated, Sync only sets the duration.
+  after loop jumps; Trig and Gate don't move the phase then (they still set
+  the velocity). In One-shot and Gated, Sync only sets the duration.
 - **Reverse** reads the table from the end (`1 − phase`); sustain points are
-  mirrored too.
+  mirrored too. Order: the playback phase is skewed (4.4), then reversed,
+  then looked up, so Skew always speeds up the start of the playback. The
+  Gated hold happens at the playback phase `target^(2^Skew)` with
+  `target` = sustain (or `1 − sustain` reversed), which the skew maps back
+  onto the sustain point.
 
 ### 4.4 Skew
 
@@ -162,10 +169,11 @@ snappier or lazier feel without editing it.
   thumbnail previews it in the main graph; clicking sets *Shape* (one undo
   step). Left/right arrow keys step through shapes.
 - **Draw** turns the preview into an editor for the current user slot (or
-  offers *Copy to User n* when a factory shape is selected): freehand drawing,
-  a *Line* tool, *Smooth*, *Mirror* (make it symmetric), *Snap* to 8/16 grid
-  steps, and a sustain-point handle. Envelope/cycle and polarity toggles sit
-  next to it. A stroke is one undo step (`beginGesture`).
+  offers *Copy to User n* when a factory shape is selected; it copies the
+  shape as shown, with Morph, Skew and Reverse): *Free* drawing, a *Line*
+  tool, a *Sustain* tool (click to place; *No sustain* removes it), *Smooth*,
+  *Mirror* (make it symmetric), *Snap 8/16* (steps), *Envelope/Cycle* and
+  *± Bipolar* toggles and *Clear*. A stroke is one undo step (`beginGesture`).
 
 ## 6. Saved state
 
@@ -186,17 +194,23 @@ Knobs and settings are params; the user shapes are node data:
 
 `points` holds 64 values (3 decimals); they are resampled to 256 with a
 monotone cubic on load, which keeps documents small. `sanitiseData` pads to 8
-slots, clamps points to the polarity's range, forces the last point to the
-first for cycles, and drops a sustain point outside 0…1.
+slots, resamples any other point count linearly to 64, replaces non-numbers
+with 0, clamps points to the polarity's range, forces the last point to the
+first for cycles, and drops a sustain point outside 0…1 (`patch::UserSlot`,
+tested in the module's DSP test). `sustain` is `null` without one.
 
 ## 7. Engine requirements
 
 - Node data and `setData` (as for the Step Sequencer); the user tables are
   built on the message thread and swapped in through a try-lock.
-- `ShapeLibrary` in `patch/common/dsp/` (generated tables, family names), also
-  usable by *Segments* later for freehand segment shapes.
-- Dotted/triplet sync values up to 16 bars in `Tempo.h`.
-- `liveValues`: `phase` and `holding` for the preview.
+- `ShapeLibrary` in `patch/common/dsp/Shapes.h` (done; built in `prepare()`).
+- Dotted/triplet note values up to 16 bars in `Tempo.h` (done).
+- `ParamSpec::choiceGroups` for the family headings of the Shape choices (done).
+- `liveValues`: `phase`, `holding`, `playing` (the latched shape), `sustain`
+  (the hold point in playback phase, −1 for none) and `bipolar` for the
+  preview. `liveArrays`: `preview` (128 points of the current morphed, skewed,
+  reversed shape) every update, and `thumbs` (all 104 shapes × 48 points) once
+  after the view sends the command `thumbs` (and after new data).
 
 ## 8. Tests
 

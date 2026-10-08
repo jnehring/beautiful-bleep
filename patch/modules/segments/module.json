@@ -1,0 +1,10 @@
+{
+  "name": "Segments",
+  "slug": "segments",
+  "tagline": "A chain of up to 8 ramp, step and hold segments: any envelope, or with a loop, an LFO of any shape.",
+  "colour": "#ca8a04",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/segments.md"
+}

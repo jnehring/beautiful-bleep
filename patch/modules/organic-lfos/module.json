@@ -1,0 +1,10 @@
+{
+  "name": "Organic LFOs",
+  "slug": "organic-lfos",
+  "tagline": "Eight slow LFOs that drift like living things: related, never quite in step, the same on every render.",
+  "colour": "#bef264",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/organic-lfos.md"
+}

@@ -42,8 +42,8 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Rate 1 … 4 | 0.01–50 Hz (exponential, centre 1 Hz); a note value with *Sync* | 1 Hz, 1.5, 2, 3 Hz | Per-channel speed in *Free*. Rate 1 is the master rate in the other modes. |
-| Spread | 0–360° | 90° | *Phase* mode: offset between adjacent channels. |
+| Rate 1 … 4 | 0.01–50 Hz (exponential, centre ≈ 0.7 Hz, as the LFO's Rate); a note value with *Sync* | 1 Hz, 1.5, 2, 3 Hz | Per-channel speed in *Free*. Rate 1 is the master rate in the other modes; Rate 2–4 are shown only in *Free*. |
+| Spread | 0–360° | 90° | *Phase* mode (shown only there): offset between adjacent channels. |
 | Level 1 … 4 | −100 … +100 % | 100 % | Per-channel depth; negative inverts. |
 | Pulse Width | 5–95 % | 50 % | For channels set to *Square* (shared). |
 
@@ -53,7 +53,7 @@ Every knob is also an input (`specs.md` section 7.3).
 |---|---|---|
 | Mode | Free, Quadrature, Phase, Divide | Quadrature |
 | Wave 1 … 4 | Sine, Triangle, Saw Up, Saw Down, Square, Random Step, Random Smooth | Sine |
-| Divide 1 … 4 | ×4, ×3, ×2, ÷1 … ÷8, ÷12, ÷16 | ÷1, ÷2, ÷3, ÷4 |
+| Divide 1 … 4 (shown in Divide mode) | ×4, ×3, ×2, ÷1 … ÷8, ÷12, ÷16 | ÷1, ÷2, ÷3, ÷4 |
 | Sync | Off, On | Off |
 | Clock Ratio | 1, 2, 3, 4, 6, 8, 12, 16, 24, 32 pulses per cycle | 4 |
 | Polarity | Bipolar, Unipolar | Bipolar |
@@ -74,8 +74,12 @@ With `f_1` the master rate (Rate 1, the synced rate or the clock rate) and
 | **Divide** | `f_k = f_1 × d_k` (`d_k` from *Divide k*) | each its own; all reset together (4.4) |
 
 In Quadrature and Phase there is only one accumulator; the offsets are added
-after it, so modulating *Spread* never fires extra *Cycle* triggers (a channel's
-*Cycle* fires when its offset phase wraps). At *Spread* 0° the four outputs are
+after it. Each channel's *Cycle* fires once per cycle of the phase it runs on
+(channel 1's in the shared modes): armed when that phase wraps, it fires when
+the phase reaches `1 − offset` (where the offset phase wraps). With a steady
+Spread that is exactly the offset phase's wrap; a modulated Spread moves the
+pulse but never adds one. Channels whose phase is 0 at the module's start
+fire a pulse there (as the LFO's *Cycle*). At *Spread* 0° the four outputs are
 identical apart from wave and level; at 180° channels 1 and 3, 2 and 4 match.
 
 Switching *Mode* keeps channel 1's phase; the others jump to their new phase
@@ -84,7 +88,8 @@ over 5 ms (crossfade), so a mode switch never clicks.
 ### 4.2 Waves
 
 The waves are the *LFO* module's (`lfo.md` 4.2): same formulas, same seeded
-random. Random values are `uniform01(Seed, cycle number, stream = k)`, so
+random. Random values are `uniform01(Seed, cycle number, stream = k)` (k = 1…4, the
+cycle number of the offset phase), so
 the four channels' random waves differ but are reproducible.
 
 Output k = `wave_k(φ_k) × Level k`; *Unipolar* maps to `0.5 + 0.5 v` before
@@ -94,8 +99,9 @@ Output k = `wave_k(φ_k) × Level k`; *Unipolar* maps to `0.5 + 0.5 v` before
 ### 4.3 Timing and sync
 
 - **Sync Off:** Rates in Hz, modulated per sample.
-- **Sync On:** each Rate knob picks from 1/32T … 16 bars (straight, dotted,
-  triplet), one cycle per value; modulation steps through the list. With the
+- **Sync On:** each Rate knob picks from 16 bars (knob at 0) … 1/32T (knob at 1)
+  in `dsp::noteValues()` (straight, dotted, triplet), one cycle per value;
+  modulation steps through the list. The view shows the note value. With the
   transport playing, every phase is derived from the song:
   `φ_k = frac(ppq / beats_k) + offset_k` — Free uses each channel's own note
   value, the other modes channel 1's (Divide: `beats_1 / d_k`). All four are
@@ -133,11 +139,13 @@ Output k = `wave_k(φ_k) × Level k`; *Unipolar* maps to `0.5 + 0.5 v` before
 - A **four-trace scope** of one cycle of channel 1 (two cycles in Divide),
   each trace in its own tint, with a dot at each live phase.
 - An **XY view** toggle: Out 1 against Out 2 (a circle in Quadrature with
-  sines), to see what a stereo pair will do.
+  sines), to see what a stereo pair will do, with a dot at the live outputs.
+  The toggle is remembered per browser.
 - Below: a row per channel (Wave, Rate, Level, Divide), then Mode, Spread,
-  Sync, Polarity. Rows show only what the Mode uses (Rate 2–4 are greyed out
-  outside Free, Divide outside Divide mode), but greyed knobs keep their
-  cables and values.
+  Sync, Polarity. Rows show only what the Mode uses (Rate 2–4 are hidden
+  outside Free, Divide outside Divide mode, Spread outside Phase), but hidden
+  knobs keep their cables and values. Knobs are grouped *Rates*, *Levels* and
+  *Shape* (Spread, Pulse Width); the waves and divisions are settings below.
 
 ## 6. Saved state
 
@@ -145,14 +153,15 @@ Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-- Dotted/triplet note values in the shared sync list (`Tempo.h`), up to 16 bars.
-- `liveValues`: four phases for the scope's dots.
-- The LFO module's wave functions moved to `patch/common/dsp/` so both modules share them.
+- Dotted/triplet note values in the shared list (`dsp::noteValues()`, done).
+- `liveValues`: `phase1` … `phase4` (with offsets) for the scope's dots, plus
+  `clocked` and the measured `bpm`.
+- The LFO module's wave functions in `patch/common/dsp/Waves.h` (done).
 
 ## 8. Tests
 
 - Quadrature: at any sample, `φ_k − φ_1 = (k − 1) / 4` (mod 1); sine outputs 1 and 2 trace a unit circle.
-- Phase: Spread 120° gives offsets 0, ⅓, ⅔, 0; modulating Spread fires no extra Cycle pulses.
+- Phase: Spread 120° gives offsets 0, ⅓, ⅔, 0; sweeping Spread 0–360° at 3 Hz over a 1 Hz LFO still gives one Cycle pulse per cycle (±1).
 - Divide ÷1 ÷2 ÷3 ÷4: Cycle counts over 12 s at 1 Hz are 12, 6, 4, 3; all realign at 12 s.
 - Free: four rates give independent Cycle counts.
 - Sync + transport: `φ_k = frac(ppq / beats_k) + offset_k`; a loop jump repeats values exactly.

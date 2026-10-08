@@ -43,7 +43,7 @@ Every knob is also an input (`specs.md` section 7.3).
 
 | Knob | Range | Default | What it does |
 |---|---|---|---|
-| Rate | slope modes: 0.02–1000 Hz, shown as time 1 ms – 50 s (exponential, centre 2 Hz / 500 ms); Sound: 16 Hz – 4 kHz (centre C4) | 2 Hz | Speed of channel 1; the others follow through *Harmonics*. |
+| Rate | slope modes: 0.02–1000 Hz, shown as time 1 ms – 50 s (exponential, centre ≈ 4.5 Hz / 220 ms); Sound: 16 Hz – 4 kHz (exponential on each half, C4 at the centre) | 2 Hz | Speed of channel 1; the others follow through *Harmonics*. Declared in the slope modes' range; the view shows the time, note or note value. |
 | Harmonics | −1 … +1 | 0 | Spreads the six rates (4.2). |
 | Skew | 0–100 % | 25 % | Share of each slope spent rising. 25 % is a quick rise and a longer fall. |
 | Curve | −1 … +1 | 0 | Bends the slopes: −1 logarithmic, 0 linear, +1 exponential (the Function curve). |
@@ -56,8 +56,8 @@ Every knob is also an input (`specs.md` section 7.3).
 |---|---|---|
 | Mode | AR, ASR, Loop, Sound | AR |
 | Snap | Off, Integer, Just | Off |
-| Sync | Free, 1/32 … 8 bars (the shared sync list) | Free |
-| Polarity | Unipolar, Bipolar (Loop only; Sound is always bipolar) | Unipolar |
+| Sync (hidden in Sound) | Free, 8 bars … 1/32T (the shared note values) | Free |
+| Polarity (shown in Loop) | Unipolar, Bipolar (Loop only; Sound is always bipolar) | Unipolar |
 
 ## 4. Behaviour
 
@@ -66,7 +66,9 @@ Every knob is also an input (`specs.md` section 7.3).
 Each channel `k` (1…6) has its own phase. A slope rises over
 `Skew / f_k` and falls over `(1 − Skew) / f_k`, shaped by
 `curve(u, Curve)` = `u^(1+3c)` for `c ≥ 0`, `1 − (1−u)^(1−3c)` for `c < 0`.
-Skew is limited to 0.5–99.5 %.
+Skew is limited to 0.5–99.5 %. The slopes are `dsp::Slope` with
+`morphCurve = false` (AR → `SlopeMode::AD`, ASR → `SlopeMode::AR`, Loop and
+Sound → `SlopeMode::Loop`).
 
 ### 4.2 Harmonics
 
@@ -96,7 +98,9 @@ number; if none is patched above it, it reads nothing. Examples:
   slopes end at the harmonic times: a natural "strum" of decays).
 - Trig 1 and Trig 4 patched: channels 1–3 follow Trig 1, 4–6 follow Trig 4.
 
-The node draws a thin line from each normalled jack to its source.
+This is the engine's input normalling: Trig k is `normalledTo("trig k−1")`
+and the compiler follows the chain to the nearest patched jack. The node shows
+the source in the jack's tooltip ("Unpatched: follows Trig 1").
 
 ### 4.4 Modes
 
@@ -112,11 +116,12 @@ The node draws a thin line from each normalled jack to its source.
   the wave from saw to triangle to ramp, *Curve* bends it (+0.5 gives a
   sine-like tone). A Trig rising edge hard-syncs its channel (phase to 0),
   so patching an oscillator into Trig 1 makes six synced partials. Output is
-  bipolar. Frequencies above `sr / 4` are muted (fade over one octave) instead
-  of aliasing.
+  bipolar. Frequencies above `sr / 4` are muted (a fade over the octave below
+  `sr / 4`) instead of aliasing.
 
 **Sync** (slope and Loop modes): the length of channel 1's cycle (or slope) is
-one sync value at the current tempo; the others keep their ratios. In Loop
+one sync value at the current tempo; the others keep their ratios. *Pitch*
+then shifts in whole octaves (so the lock holds). In Loop
 with the transport playing, each phase is derived from the song:
 `p_k = frac(ppq · ratio_k / cycleBeats)`, so with integer ratios the channels
 realign on every sync length and every render is identical. A Trig reset in
@@ -131,7 +136,8 @@ is silent and channel 6 full; at −1 the other way. In Sound mode a negative
 Tilt gives a darker chord, as with natural overtone amplitudes.
 
 **Sum** = `Σ out_k / 6 × 2`, clipped to the output range (unipolar 0…1, or
-−1…+1): six equal unipolar slopes sum to full scale when about half are up.
+−1…+1; in Sound mode a `tanh` soft clip instead, so the mixed tone doesn't
+buzz): six equal unipolar slopes sum to full scale when about half are up.
 In Loop with inharmonic ratios it's a complex, slowly evolving contour; in
 Sound mode it's the mixed tone (patch it into a VCA's audio input).
 
@@ -157,9 +163,11 @@ Sound mode it's the mixed tone (patch it into a VCA's audio input).
  └────────────────────────────────────────────┘
 ```
 
-- Six thin lanes, one per channel, each with a short running scope and its
-  current ratio (e.g. *3/2*, or a note name in Sound mode). The Sum's scope
-  sits beside them.
+- Six thin lanes, one per channel, each with a short running scope (about
+  four seconds of the live output) and its current ratio (e.g. *3/2*, or a
+  note name in Sound mode, where the lane draws the channel's wave instead).
+  The Sum's scope sits below them. The Rate knob shows a time, a note (Sound)
+  or the note value (Sync).
 - Turning *Harmonics* updates the ratio labels live; with *Snap* on, the
   label shows the snapped fraction.
 
@@ -169,16 +177,16 @@ Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-- Trigger normalling between a module's own inputs: the module reads
-  `inputConnected` per jack and copies the signal itself (no engine change);
-  the node view needs a hook to draw the normal lines.
-- `liveValues`: the six phases and levels for the lanes.
+- Trigger normalling between a module's own inputs: `JackSpec::normalledTo`
+  (done; chains resolve to the nearest patched jack).
+- `liveArrays`: `ratios`, `hz` and `phases` (six each) for the lane labels;
+  the lanes scroll the engine's per-output values.
 
 ## 8. Tests
 
 - Harmonics 0: all six channels identical. +1: Loop *End 1* counts and per-channel cycle counts are 1 : 2 : … : 6 over a second; −1 the reciprocals.
 - Snap Integer: Harmonics 0.4 gives ratios 1, 1, 2, 2, 3, 3; Just gives only ratios from the table.
-- Normalling: only Trig 1 patched fires all six; Trig 4 patched splits 1–3 and 4–6.
+- Normalling: one trigger on all six (as the normals deliver it) fires all six; separate triggers into 1–3 and 4–6 split them. (The engine's normal chain itself is covered by `patch.engine-features`.)
 - AR retrigger from mid-fall, ASR early release: no discontinuity.
 - Sound: Rate C4 gives 261.63 Hz on channel 1; a channel above `sr / 4` is muted.
 - Sync + Loop + transport: phases follow `frac(ppq · ratio / cycleBeats)`; identical after a loop jump.

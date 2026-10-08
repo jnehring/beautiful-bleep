@@ -1,0 +1,10 @@
+{
+  "name": "Six Slopes",
+  "slug": "six-slopes",
+  "tagline": "Six slope generators on one set of knobs: envelopes, LFOs or partials spread over harmonic ratios.",
+  "colour": "#d97706",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/six-slopes.md"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Shape Env",
+  "slug": "shape-env",
+  "tagline": "Envelope and LFO that plays shapes from a library of 96, plus 8 you draw yourself.",
+  "colour": "#fda4af",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/shape-env.md"
+}
