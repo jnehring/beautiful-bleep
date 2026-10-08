@@ -11,7 +11,8 @@
 //
 //   { "format": 1, "id": "<uuid>",
 //     "nodes":  [ { "id", "type", "name", "x", "y", "parent", "params": {id: 0..1},
-//                   "muted", "port", "track", "inputs": [jack], "outputs": [jack] } ],
+//                   "muted", "port", "track", "inputs": [jack], "outputs": [jack],
+//                   "data": {...} (modules with node data, e.g. a sequencer's steps) } ],
 //     "cables": [ { "id", "from": {"node", "jack"}, "to": {"node", "jack"}, "amount" } ],
 //     "view": {...}  (UI state, kept as is) }
 //
@@ -40,6 +41,7 @@ struct NodeModel {
     bool muted = false;
     const ModuleSpec* spec = nullptr;
     std::map<std::string, float> params;  ///< normalised
+    std::string data;                     ///< node data as compact JSON (empty if none)
     std::vector<CellJack> cellInputs, cellOutputs;
 };
 

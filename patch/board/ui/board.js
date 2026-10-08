@@ -1417,6 +1417,11 @@
         native("setAmount", cableId, v);
       },
       removeCable,
+      setData: (data) => {
+        const m = nodeById(id);
+        if (m) m.data = clone(data);
+        native("setData", id, data);
+      },
       setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
       cablesInto: (pid) => cablesInto(id, pid).map((c) => {
         const src = nodeById(c.from.node);
@@ -1424,6 +1429,8 @@
       }),
     };
     const bv = BleepView.create(t, clone(n), api);
+    const hook = BleepViews.get(t.type);
+    if (hook && hook.width) win.style.width = hook.width + "px";
     if (!n.params) n.params = {};
     body.append(bv.root, doc);
     $("views").appendChild(win);
@@ -1440,7 +1447,7 @@
     const r = canvas.getBoundingClientRect();
     let x = 40, y = 40;
     if (ne) { const nr = ne.getBoundingClientRect(); x = nr.right - r.left + 16; y = nr.top - r.top; }
-    x = Math.max(8, Math.min(x, r.width - 350));
+    x = Math.max(8, Math.min(x, r.width - win.offsetWidth - 10));
     y = Math.max(8, Math.min(y, r.height - 200));
     win.style.left = x + "px";
     win.style.top = y + "px";

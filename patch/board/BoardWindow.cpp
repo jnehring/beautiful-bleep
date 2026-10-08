@@ -5,7 +5,7 @@
 //
 // Bridge (JUCE native functions / events):
 //   JS → C++   init() commit(board, label) undo() redo() beginGesture()
-//              setParam(node, param, v) setAmount(cable, v) watch([nodeIds])
+//              setParam(node, param, v) setAmount(cable, v) setData(node, data) watch([nodeIds])
 //              presets() savePreset(name, preset) deletePreset(name)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
 //              "state"  {nodes: {id: {outputs, params?}}, ports}   30 times per second
@@ -158,6 +158,10 @@ public:
                 })
                 .withNativeFunction("setAmount", [this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.setAmount(a[0].toString(), (float)a[1]);
+                    done({});
+                })
+                .withNativeFunction("setData", [this](const juce::Array<juce::var>& a, Completion done) {
+                    engine_.setData(a[0].toString(), a[1]);
                     done({});
                 })
                 .withNativeFunction("midiDevices", [](const juce::Array<juce::var>&, Completion done) {

@@ -14,6 +14,8 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace bleep::engine {
@@ -91,6 +93,14 @@ public:
     virtual void prepare(double sampleRate) { sampleRate_ = sampleRate; }
     virtual void reset() {}
     virtual void process(const ProcessContext& ctx) = 0;
+
+    /// [message thread] The node's free-form data (board document "data", as
+    /// JSON), after the spec's sanitiseData. Called when the module is built
+    /// and whenever the data changes; modules hand it to the audio thread
+    /// themselves.
+    virtual void setData(const std::string& json) { (void)json; }
+    /// [message thread] Extra live values for the module view, e.g. a playhead.
+    virtual void liveValues(std::vector<std::pair<std::string, double>>& out) const { (void)out; }
 
     // ---- knobs: written by the message thread, read by the audio thread ----
     void setKnob(int i, float normalised) noexcept { knobs_[(size_t)i].store(normalised, std::memory_order_relaxed); }

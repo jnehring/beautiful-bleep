@@ -44,6 +44,18 @@ std::shared_ptr<VoiceCellModule> VoiceCellModule::create(const BoardModel& board
     const ModuleSpec& vin = *Registry::get().find(kVoiceIn);
     for (const auto& c : board.cables)
         if (c.to.node == voiceOut && c.to.jack == "active") m->activeTapped_ = true;
+    // A source that leaves (unpatched, deleted, muted) never sends its note-offs.
+    std::vector<std::string> sources;
+    for (const auto& c : board.cables)
+        if (c.to.node == node.id && c.to.jack == "notes") {
+            const auto* src = board.node(c.from.node);
+            sources.push_back(c.from.node + "." + c.from.jack + (src && src->muted ? " muted" : ""));
+        }
+    std::sort(sources.begin(), sources.end());
+    std::string signature;
+    for (const auto& s : sources) signature += s + "\n";
+    if (signature != state->notesSources) m->releaseAll_ = previous != nullptr;
+    state->notesSources = signature;
 
     for (int v = 0; v < kMaxVoices; ++v) {
         Program::Scope scope;
@@ -190,6 +202,13 @@ void VoiceCellModule::process(const ProcessContext& c) {
     const float glideTime = setting(Glide);
     const float glideCoef = glideTime > 0.0f ? 1.0f - (float)std::exp(-1.0 / (glideTime * sampleRate_)) : 1.0f;
     auto& vs = state_->voices;
+
+    if (releaseAll_) {
+        releaseAll_ = false;
+        for (auto& v : vs) v.gate = false;
+        state_->held.clear();
+        state_->heldVelocity.clear();
+    }
 
     for (size_t k = 0; k < sharedIn_.size(); ++k) std::copy(c.inputs[1 + k], c.inputs[1 + k] + m, sharedIn_[k].begin());
 

@@ -17,6 +17,7 @@ Registry::Registry() {
     registerVcaModule(*this);
     registerUtilityModule(*this);
     registerCvToNotesModule(*this);
+    registerStepSequencerModule(*this);
     registerPortModules(*this);
 
     // Cells (spec §8): their jacks live in the board, not in the spec.

@@ -865,6 +865,247 @@
     ]
   },
   {
+    "type": "step-sequencer",
+    "name": "Step Sequencer",
+    "category": "Sequencing",
+    "colour": "#f6c453",
+    "description": "Up to 32 steps of gate, pitch and velocity, quantized to a scale. Notes out plays a Voice Cell.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "gatelength",
+        "name": "Gate Length",
+        "kind": "float",
+        "default": 0.494949489831924,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 1.0
+      },
+      {
+        "id": "swing",
+        "name": "Swing",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.5,
+        "max": 0.75
+      },
+      {
+        "id": "variation",
+        "name": "Variation",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "varrange",
+        "name": "Var. Range",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 24.0
+      },
+      {
+        "id": "length",
+        "name": "Length",
+        "kind": "int",
+        "default": 0.483870953321457,
+        "steps": 32,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 32.0
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.692307710647583,
+        "steps": 14,
+        "modulatable": false,
+        "choices": [
+          "1/1",
+          "1/2",
+          "1/4.",
+          "1/4",
+          "1/4T",
+          "1/8.",
+          "1/8",
+          "1/8T",
+          "1/16.",
+          "1/16",
+          "1/16T",
+          "1/32.",
+          "1/32",
+          "1/32T"
+        ],
+        "min": 0.0,
+        "max": 13.0
+      },
+      {
+        "id": "direction",
+        "name": "Direction",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Forward",
+          "Backward",
+          "Ping-Pong",
+          "Random"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "root",
+        "name": "Root",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 12,
+        "modulatable": false,
+        "choices": [
+          "C",
+          "C#",
+          "D",
+          "D#",
+          "E",
+          "F",
+          "F#",
+          "G",
+          "G#",
+          "A",
+          "A#",
+          "B"
+        ],
+        "min": 0.0,
+        "max": 11.0
+      },
+      {
+        "id": "scale",
+        "name": "Scale",
+        "kind": "choice",
+        "default": 0.0625,
+        "steps": 17,
+        "modulatable": false,
+        "choices": [
+          "Chromatic",
+          "Major",
+          "Natural Minor",
+          "Harmonic Minor",
+          "Melodic Minor",
+          "Dorian",
+          "Phrygian",
+          "Lydian",
+          "Mixolydian",
+          "Locrian",
+          "Phrygian Dominant",
+          "Major Pentatonic",
+          "Minor Pentatonic",
+          "Blues",
+          "Whole Tone",
+          "Diminished",
+          "Hirajoshi"
+        ],
+        "min": 0.0,
+        "max": 16.0
+      },
+      {
+        "id": "octave",
+        "name": "Octave",
+        "kind": "int",
+        "default": 0.5,
+        "steps": 7,
+        "modulatable": false,
+        "min": -3.0,
+        "max": 3.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "transpose",
+        "name": "Transpose",
+        "type": "pitch",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "end",
+        "name": "End",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "step",
+        "name": "Step",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "midi-in",
     "name": "MIDI In",
     "category": "Ports",

@@ -672,6 +672,91 @@ void voiceCells() {
     }
 }
 
+/// Step Sequencer (specs/modules/step-sequencer.md): node data, live step
+/// edits, and notes into a Voice Cell.
+void stepSequencer() {
+    g_test = "step sequencer";
+    {  // Data is filled in and clamped.
+        auto withData = node("short", "step-sequencer");
+        juce::Array<juce::var> steps{obj({{"g", 7}, {"p", 99}, {"v", 0}}), obj({{"g", 2}, {"p", -3}, {"v", 64}})};
+        withData.getDynamicObject()->setProperty("data", obj({{"steps", steps}}));
+        auto d = board::sanitise(doc({node("fresh", "step-sequencer"), withData, node("u", "utility")}, {}));
+        auto fresh = board::findNode(d, "fresh")->getProperty("data");
+        auto saved = board::findNode(d, "short")->getProperty("data");
+        EXPECT(fresh["steps"].size() == 32 && (int)fresh["steps"][31]["g"] == 1 && (int)fresh["steps"][0]["v"] == 100);
+        EXPECT(saved["steps"].size() == 32);
+        EXPECT((int)saved["steps"][0]["g"] == 2 && (int)saved["steps"][0]["p"] == 36 && (int)saved["steps"][0]["v"] == 1);
+        EXPECT((int)saved["steps"][1]["g"] == 2 && (int)saved["steps"][1]["p"] == -3);
+        EXPECT((int)saved["steps"][2]["g"] == 0);  // short arrays are padded with Off
+        EXPECT(saved["randomize"]["lanes"].size() == 3);
+        EXPECT(!board::findNode(d, "u")->hasProperty("data"));
+        EXPECT(board::parse(d).node("short")->data.find("\"steps\"") != std::string::npos);
+    }
+
+    auto* e = new Engine();
+    e->setStandalone(true);
+    const int main = e->registerInstance(PortKind::Patch);
+    const int out = e->registerInstance(PortKind::AudioOut);
+    e->reconcileNow();
+    FakePort pOut(*e, out);
+    juce::Array<juce::var> steps;
+    for (int i = 0; i < 32; ++i) steps.add(obj({{"g", 2}, {"p", 7}, {"v", 100}}));  // one long tied G
+    auto seq = node("seq", "step-sequencer");
+    seq.getDynamicObject()->setProperty("data", obj({{"steps", steps}}));
+    auto cell = node("vc", "voice-cell");
+    cell.getDynamicObject()->setProperty("params", voiceParams(8, 0, 0));
+    auto edited = copyOf(e->board());
+    for (auto n : {seq, cell, node("vi", "voice-in", "vc"), node("vo", "voice-out", "vc")})
+        edited["nodes"].getArray()->add(n);
+    for (auto c : {cable("seq", "notes", "vc", "notes"), cable("vi", "pitch", "vo", "l"), cable("vi", "gate", "vo", "r"),
+                   cable("vi", "gate", "vo", "active"), cable("vc", "l", portNode(*e, out), "l"), cable("vc", "r", portNode(*e, out), "r")})
+        edited["cables"].getArray()->add(c);
+    e->commit(edited, "sequencer");
+    int64_t pos = 0;
+    auto run = [&](int blocks, bool playing = true) {
+        for (int b = 0; b < blocks; ++b, pos += kBlock) {
+            BlockIO io;
+            float* outs[2] = {pOut.out[0].data(), pOut.out[1].data()};
+            io.numSamples = kBlock;
+            io.transport.sampleRate = kRate;
+            io.transport.bpm = 120.0;
+            io.transport.playing = playing;
+            io.transport.ppqValid = true;
+            io.transport.ppq = (double)pos / 24000.0;
+            io.audioOut = outs;
+            io.numAudioOut = 2;
+            int handles[1] = {out};
+            BlockIO* ios[1] = {&io};
+            e->processAll(handles, ios, 1);
+        }
+    };
+    run(100);
+    EXPECT_NEAR(pOut.out[0][kBlock - 1], 7.0 / 12.0, 1e-4);  // one voice playing G
+    EXPECT_NEAR(pOut.out[1][kBlock - 1], 1.0, 1e-6);
+    // A step edit takes effect without a commit; the doc follows.
+    const auto undoBefore = e->canUndo();
+    for (int i = 0; i < 32; ++i) steps.set(i, obj({{"g", 2}, {"p", 4}, {"v", 100}}));
+    e->setData("seq", obj({{"steps", steps}}));
+    EXPECT((int)board::findNode(e->board(), "seq")->getProperty("data")["steps"][5]["p"] == 4);
+    EXPECT(e->canUndo() == undoBefore);
+    run(100);
+    EXPECT_NEAR(pOut.out[0][kBlock - 1], 4.0 / 12.0, 1e-4);  // legato to E: still one voice
+    EXPECT_NEAR(pOut.out[1][kBlock - 1], 1.0, 1e-6);
+    auto live = e->liveState({"seq"})["nodes"]["seq"];
+    EXPECT(live.hasProperty("step") && (int)live["sounding"] == 1);
+    // Deleting the sequencer releases the note it was holding.
+    edited = copyOf(e->board());
+    auto* nodes = edited["nodes"].getArray();
+    for (int i = nodes->size(); --i >= 0;)
+        if ((*nodes)[i]["id"].toString() == "seq") nodes->remove(i);
+    e->commit(edited, "delete");
+    run(20);
+    EXPECT_NEAR(pOut.out[1][kBlock - 1], 0.0, 1e-6);
+    e->unregisterInstance(out);
+    e->unregisterInstance(main);
+    e->release();
+}
+
 }  // namespace
 
 int main() {
@@ -686,6 +771,7 @@ int main() {
     undoRedo();
     standaloneDriver();
     voiceCells();
+    stepSequencer();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;
 }

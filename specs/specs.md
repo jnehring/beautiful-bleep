@@ -184,7 +184,7 @@ The board's DSP runs in a **shared engine**: a process-wide singleton inside the
 
 Live saves state per plugin instance, but the board belongs to the whole set. The **Bleep Patch** plugin is the **main plugin**: it stores the board.
 
-- **Exactly one main plugin per set.** It holds the complete board: nodes, cells, cables, knob values, names, layout, macros. It's usually placed on its own track or the master track.
+- **Exactly one main plugin per set.** It holds the complete board: nodes, cells, cables, knob values, node data (e.g. a sequencer's steps), names, layout, macros. It's usually placed on its own track or the master track.
 - **A second Bleep Patch** shows a warning and stays inactive: "This set already has a board. Remove this device, or replace the current board with this one." If it came from another set (it carries a different board ID), it also offers: "Import its board as a cell."
 - **Without a main plugin,** ports keep passing audio through and show "No board in this set. Add Bleep Patch." The board window offers to add it.
 - **Ports store only themselves:** stable port ID, name, port settings. The board refers to ports by ID. A port that loads before the main plugin waits for it.
@@ -371,7 +371,7 @@ A **Voice Cell** turns one synthesizer voice into a polyphonic instrument. Insid
 
 #### 8.3.1 The voice interface
 
-Notes and per-voice signals live on two levels: outside, one `notes` cable carries all notes; inside, *Voice In* gives each voice the signals of the note it plays. *Notes* is the only way notes enter a Voice Cell. A mono source (a sequencer's pitch and gate) plays a Voice Cell through the **CV to Notes** module (section 12).
+Notes and per-voice signals live on two levels: outside, one `notes` cable carries all notes; inside, *Voice In* gives each voice the signals of the note it plays. *Notes* is the only way notes enter a Voice Cell. The Step Sequencer's *Notes* output plays a Voice Cell directly; any other mono source (pitch and gate) plays one through the **CV to Notes** module (section 12). When what feeds *Notes* changes (a cable removed, the source deleted or muted), the cell releases its held notes, since the old source can no longer send their note-offs.
 
 **From outside**, fixed jacks (can't be removed or retyped) plus optional shared jacks:
 
@@ -680,7 +680,7 @@ A Live set either has its board in Bleep Patch (section 6) or works with the app
 
 ## 12. First module set
 
-Each module is our own design, built from generic modular concepts.
+Each module is our own design, built from generic modular concepts. Each module gets its own specification file in `specs/modules/` (purpose, jacks, controls, behaviour, view, saved state, tests); the table below is the overview.
 
 | Module | Building blocks | Key ideas |
 |---|---|---|
@@ -694,6 +694,7 @@ Each module is our own design, built from generic modular concepts.
 | **Oscillator** | Triangle-core oscillator: waveform morph, through-zero FM, hard sync, sub | See below. The basic sound source for synths on the board. |
 | **VCA** | Voltage-controlled amplifier, linear or exponential response, stereo | Turns envelopes into loudness. Its *Gain* knob starts at 0, so an envelope patched into it opens it fully. |
 | **ADSR** | Attack, decay, sustain, release; velocity amount; retrigger | Outputs *Env*, *End* (trigger when the release finishes) and *Active* (gate while the envelope runs, for a Voice Cell's *Voice Out*). |
+| **Step Sequencer** | Up to 32 steps with gate (on/off/tie), pitch and velocity lanes; scale quantizing; randomizer and seeded *Variation* | Transport-locked or clocked. *Notes* output plays a Voice Cell directly. See `specs/modules/step-sequencer.md`. |
 | **CV to Notes** | Pitch + gate → `notes` | Lets mono sources (sequencers, Random + Utility) play Voice Cells. Legato on pitch changes while the gate is high. |
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
@@ -883,6 +884,7 @@ bleep/
 │   │   ├── utility/
 │   │   ├── filter/
 │   │   ├── oscillator/
+│   │   ├── step-sequencer/
 │   │   └── amp/
 │   └── bridges/
 │       ├── ableton/           Bleep Patch, Bleep Panel and port plugins (MIDI In/Out, Audio In/Out, Instrument, Insert)

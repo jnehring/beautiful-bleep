@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -40,6 +41,7 @@ struct ParamSpec {
     int decimals = 2;
     std::string label;           ///< unit suffix for Format::Number
     std::vector<std::string> choices;
+    std::vector<std::string> choiceGroups;  ///< optional: each choice's heading in the dropdown
     bool modulatable = true;     ///< a knob (input jack) or a plain setting
 
     /// Units → 0..1 and back, with JUCE's NormalisableRange semantics.
@@ -87,6 +89,9 @@ struct ModuleSpec {
     std::vector<ParamSpec> params;
     std::vector<JackSpec> inputs;
     std::vector<JackSpec> outputs;
+    /// Modules with node data (board document "data"): JSON in (may be empty
+    /// or broken), valid JSON out, including the defaults for a new node.
+    std::function<std::string(const std::string&)> sanitiseData;
 
     int paramIndex(const std::string& id) const noexcept;
     int inputIndex(const std::string& id) const noexcept;

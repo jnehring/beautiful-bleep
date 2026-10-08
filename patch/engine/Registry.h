@@ -56,6 +56,7 @@ void registerOscillatorModule(Registry&);
 void registerAdsrModule(Registry&);
 void registerVcaModule(Registry&);
 void registerCvToNotesModule(Registry&);
+void registerStepSequencerModule(Registry&);
 void registerPortModules(Registry&);
 
 }  // namespace bleep::engine

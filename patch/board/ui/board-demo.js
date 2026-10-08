@@ -104,6 +104,12 @@
           entry.params[p.id] = { v, e, a: into.length > 0, t: paramText(p, into.length ? e : v) };
         }
       }
+      if (n.type === "step-sequencer") {
+        const len = Math.round(1 + (n.params.length ?? 0.48) * 31);
+        entry.step = Math.floor(t * 8) % len;
+        entry.sounding = 1;
+        entry.varied = 0;
+      }
       if (n.type === "voice-cell") entry.voices = Math.floor(t * 2) % 2 ? 0b101 : 0b011;
       nodes[n.id] = entry;
     });
@@ -135,6 +141,11 @@
         case "setParam": {
           const n = board.nodes.find((x) => x.id === a[0]);
           if (n) { n.params[a[1]] = a[2]; save(); }
+          return null;
+        }
+        case "setData": {
+          const n = board.nodes.find((x) => x.id === a[0]);
+          if (n) { n.data = clone(a[1]); save(); }
           return null;
         }
         case "setAmount": {

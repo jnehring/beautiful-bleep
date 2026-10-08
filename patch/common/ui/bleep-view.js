@@ -8,19 +8,22 @@
 //     node   the node from the board document
 //     api    { setParam(id, v), beginGesture(), setAmount(cableId, v),
 //              removeCable(cableId), cablesInto(paramId) → [{id, label, amount}],
-//              setNodeProperty(key, value) }
+//              setNodeProperty(key, value), setData(data) }
 //   view.root                     the element to insert
 //   view.update(nodeState)        live values: { params: {id: {v, e, a, t}}, outputs }
 //   view.refresh(node)            the node changed (cables, values from undo)
 //
 // A module adds its own displays with BleepViews.register(type, hooks):
 //   template   HTML for the custom section
+//   top        true: the custom section comes before the knobs
+//   width      the view window's width in px (default 340)
 //   afterBuild(view, customElement)
 //   onState(nodeState, view)
+//   onRefresh(view)    the node changed (undo, another edit)
 (function () {
   "use strict";
   const hooks = {};
-  window.BleepViews = { register: (type, h) => (hooks[type] = h) };
+  window.BleepViews = { register: (type, h) => (hooks[type] = h), get: (type) => hooks[type] || null };
 
   const NS = "http://www.w3.org/2000/svg";
   const el = (tag, cls, text) => {
@@ -74,7 +77,9 @@
     const knobsEl = el("section", "bv-knobs");
     const customEl = el("section", "bv-custom");
     const settingsEl = el("section", "bv-settings");
-    root.append(knobsEl, customEl, settingsEl);
+    const h = hooks[type.type];
+    if (h && h.top) root.append(customEl, knobsEl, settingsEl);
+    else root.append(knobsEl, customEl, settingsEl);
     if (type.description) root.appendChild(el("p", "bv-description", type.description));
 
     const view = { root, type, node, api, knobs: new Map(), settings: new Map() };
@@ -214,7 +219,6 @@
     if (!knobsEl.childElementCount) knobsEl.remove();
     if (!settingsEl.childElementCount) settingsEl.remove();
 
-    const h = hooks[type.type];
     if (h && h.template) customEl.innerHTML = h.template;
     if (h && h.afterBuild) h.afterBuild(view, customEl);
     if (!customEl.childElementCount) customEl.remove();
@@ -242,6 +246,7 @@
       view.node = n;
       for (const k of view.knobs.values()) { k.renderAmounts(); k.draw(); }
       for (const s of view.settings.values()) s.draw();
+      if (h && h.onRefresh) h.onRefresh(view);
     };
     /// Effective value of a param (modulated if active), for custom displays.
     view.value = (st, id) => {

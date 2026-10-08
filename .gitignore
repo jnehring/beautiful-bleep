@@ -6,3 +6,5 @@ cmake-build-*/
 .idea/
 node_modules/
 next-prompts.md
+# Local presets (not shared yet)
+/presets/

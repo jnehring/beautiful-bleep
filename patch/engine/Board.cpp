@@ -202,6 +202,13 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
                 params->setProperty(juce::Identifier(p.id), v);
             }
             o->setProperty("params", juce::var(params));
+            if (spec->sanitiseData) {
+                const auto saved = n["data"];
+                const std::string json = saved.isVoid() ? std::string() : juce::JSON::toString(saved, true).toStdString();
+                o->setProperty("data", fromJson(juce::String(spec->sanitiseData(json))));
+            } else {
+                o->removeProperty("data");
+            }
             if (type == kCell || type == kVoiceCell) {
                 juce::Array<juce::var> ins, outs;
                 // A Voice Cell's fixed jacks (notes, l, r) can't be shared jacks; notes stay outside.
@@ -368,6 +375,7 @@ BoardModel parse(const juce::var& doc) {
                 for (const auto& p : node.spec->params)
                     node.params[p.id] = juce::jlimit(
                         0.0f, 1.0f, (float)n["params"].getProperty(juce::Identifier(p.id), p.defaultNormalised()));
+            if (n.hasProperty("data")) node.data = juce::JSON::toString(n["data"], true).toStdString();
             node.cellInputs = parseJacks(n["inputs"]);
             node.cellOutputs = parseJacks(n["outputs"]);
             m.nodes.push_back(std::move(node));
@@ -422,6 +430,7 @@ juce::String addNode(juce::var& doc, const ModuleSpec& spec, double x, double y,
     auto* params = new juce::DynamicObject();
     for (const auto& p : spec.params) params->setProperty(juce::Identifier(p.id), p.defaultNormalised());
     o->setProperty("params", juce::var(params));
+    if (spec.sanitiseData) o->setProperty("data", fromJson(juce::String(spec.sanitiseData({}))));
     if (auto* a = doc["nodes"].getArray()) a->add(juce::var(o));
     return id;
 }
@@ -455,6 +464,11 @@ juce::var describeTypes() {
                 juce::Array<juce::var> c;
                 for (const auto& x : p.choices) c.add(juce::String(x));
                 o->setProperty("choices", c);
+            }
+            if (!p.choiceGroups.empty()) {
+                juce::Array<juce::var> g;
+                for (const auto& x : p.choiceGroups) g.add(juce::String(x));
+                o->setProperty("groups", g);
             }
             o->setProperty("min", p.min);
             o->setProperty("max", p.max);

@@ -54,6 +54,7 @@ public:
         std::vector<float> heldVelocity;
         uint64_t counter = 0;
         int nextVoice = 0;
+        std::string notesSources;  ///< what feeds the Notes input, to spot rewiring
     };
 
     /// Builds the Voice Cell for `node`, keeping the voices of `previous`.
@@ -85,6 +86,7 @@ private:
     std::vector<std::array<float, kChunk>> sharedIn_;
     size_t numSharedOut_ = 0;
     bool activeTapped_ = false;
+    bool releaseAll_ = false;  ///< the Notes input was rewired: no note-offs will come for held notes
     uint64_t seed_ = 0;
     std::atomic<int> displayVoice_{0};
     std::atomic<uint32_t> activeMask_{0};

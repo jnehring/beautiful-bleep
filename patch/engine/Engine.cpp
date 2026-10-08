@@ -348,6 +348,19 @@ void Engine::setParam(const juce::String& nodeId, const juce::String& paramId, f
     generation_.fetch_add(1);
 }
 
+void Engine::setData(const juce::String& nodeId, const juce::var& data) {
+    auto* n = hasBoard() ? board::findNode(board_, nodeId) : nullptr;
+    if (n == nullptr) return;
+    const auto* spec = Registry::get().find(n->getProperty("type").toString().toStdString());
+    if (spec == nullptr || !spec->sanitiseData) return;
+    const std::string json = spec->sanitiseData(juce::JSON::toString(data, true).toStdString());
+    n->setProperty("data", board::fromJson(juce::String(json)));
+    if (auto m = modules_.find(nodeId.toStdString()); m != modules_.end()) m->second->setData(json);
+    if (auto in = inner_.find(nodeId.toStdString()); in != inner_.end())
+        for (const auto& m : in->second.modules) m->setData(json);
+    generation_.fetch_add(1);
+}
+
 void Engine::setAmount(const juce::String& cableId, float amount) {
     auto* c = hasBoard() ? board::findCable(board_, cableId) : nullptr;
     if (c == nullptr) return;
@@ -470,6 +483,9 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
                 params->setProperty(juce::Identifier(spec.params[i].id), juce::var(p));
             }
             n->setProperty("params", juce::var(params));
+            std::vector<std::pair<std::string, double>> extra;
+            m->liveValues(extra);
+            for (const auto& [key, value] : extra) n->setProperty(juce::Identifier(key), value);
         }
         nodes->setProperty(juce::Identifier(id), juce::var(n));
     }

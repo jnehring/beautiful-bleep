@@ -84,6 +84,8 @@ public:
     void beginGesture();
     void setParam(const juce::String& nodeId, const juce::String& paramId, float normalised);
     void setAmount(const juce::String& cableId, float amount);
+    /// A node's data (e.g. a sequencer's steps): no recompile, no undo entry of its own.
+    void setData(const juce::String& nodeId, const juce::var& data);
     /// Live values for the UI: outputs of every node, params of `detailed`.
     juce::var liveState(const std::set<juce::String>& detailed) const;
     juce::String statusLine() const;

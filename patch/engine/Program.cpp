@@ -147,6 +147,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
             auto v = n->params.find(n->spec->params[i].id);
             m->setKnob((int)i, v != n->params.end() ? v->second : n->spec->params[i].defaultNormalised());
         }
+        if (n->spec->sanitiseData) m->setData(n->data);
         kept[n->id] = m;
     }
     // Muted and structural nodes keep their state while they exist.

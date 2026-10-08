@@ -1,0 +1,10 @@
+{
+  "name": "Step Sequencer",
+  "slug": "step-sequencer",
+  "tagline": "Up to 32 steps of gate, pitch and velocity, quantized to a scale, with a randomizer.",
+  "colour": "#f6c453",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/step-sequencer.md"
+}
