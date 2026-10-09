@@ -1,0 +1,144 @@
+# SPDX-License-Identifier: MIT
+"""The release side of the registry: plugins and modules, written with a release token, read by anyone.
+
+Flow (scripts/release.py): list versions → create a draft release with its file list → PUT each file
+(size and SHA-256 checked) → publish. Publishing writes entry.json and regenerates v1/index.json; a
+release is visible to clients only when the index changes.
+"""
+import hashlib
+import io
+import json
+import tempfile
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from ..db import get_db
+from ..deps import require_release_token
+from ..models import ApiToken, Release, now
+from ..schemas import ReleaseIn, ReleaseOut
+from ..storage import Storage, get_storage
+
+router = APIRouter(prefix="/api/registry", tags=["registry"])
+
+Kind = Literal["plugin", "module"]
+Slug = Path(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")
+VersionPath = Path(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}$")
+MAX_FILE_BYTES = 1024 * 1024 * 1024
+
+
+def _key(r: Release, path: str = "") -> str:
+    return f"v1/{r.kind}s/{r.slug}/{r.version}" + (f"/{path}" if path else "")
+
+
+def _find(db: Session, kind: str, slug: str, version: str) -> Release:
+    row = db.scalar(select(Release).where(Release.kind == kind, Release.slug == slug, Release.version == version))
+    if not row:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such release")
+    return row
+
+
+def _published(db: Session, kind: str | None = None, slug: str | None = None) -> list[Release]:
+    q = select(Release).where(Release.status == "published")
+    if kind:
+        q = q.where(Release.kind == kind)
+    if slug:
+        q = q.where(Release.slug == slug)
+    return list(db.scalars(q.order_by(Release.major, Release.minor, Release.patch)))
+
+
+@router.get("/{kind}/{slug}/versions")
+def versions(kind: Kind, slug: str = Slug, db: Session = Depends(get_db)):
+    return [{"version": r.version, "channel": r.channel, "published_at": r.published_at} for r in _published(db, kind, slug)]
+
+
+@router.post("/{kind}/{slug}/releases", response_model=ReleaseOut, status_code=status.HTTP_201_CREATED)
+def create_release(kind: Kind, body: ReleaseIn, slug: str = Slug, db: Session = Depends(get_db),
+                   token: ApiToken = Depends(require_release_token)):
+    """Starts a draft. The version must be higher than every published version of this id; a draft of the same version is replaced."""
+    major, minor, patch = (int(p) for p in body.version.split("."))
+    if len({f.path for f in body.files}) != len(body.files):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Duplicate file paths")
+    newest = max(((r.major, r.minor, r.patch) for r in _published(db, kind, slug)), default=None)
+    if newest is not None and (major, minor, patch) <= newest:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Version must be higher than {'.'.join(map(str, newest))}")
+    row = db.scalar(select(Release).where(Release.kind == kind, Release.slug == slug, Release.version == body.version))
+    if row is None:
+        row = Release(kind=kind, slug=slug, version=body.version, major=major, minor=minor, patch=patch)
+        db.add(row)
+    row.channel, row.title, row.notes, row.requires = body.channel, body.title, body.notes, body.requires
+    row.files = [{**f.model_dump(), "uploaded": False} for f in body.files]
+    row.created_by_token = token.id
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "That version already exists")
+    return row
+
+
+@router.put("/{kind}/{slug}/releases/{version}/files/{path:path}", status_code=status.HTTP_204_NO_CONTENT)
+async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug, version: str = VersionPath,
+                      db: Session = Depends(get_db), storage: Storage = Depends(get_storage),
+                      _: ApiToken = Depends(require_release_token)):
+    row = _find(db, kind, slug, version)
+    if row.status != "draft":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Release is already published")
+    declared = next((f for f in row.files if f["path"] == path), None)
+    if declared is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "File is not part of this release")
+    digest, size = hashlib.sha256(), 0
+    with tempfile.SpooledTemporaryFile(max_size=16 * 1024 * 1024) as spool:
+        async for chunk in request.stream():
+            size += len(chunk)
+            if size > min(declared["bytes"], MAX_FILE_BYTES):
+                raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "More bytes than declared")
+            digest.update(chunk)
+            spool.write(chunk)
+        if size != declared["bytes"] or digest.hexdigest() != declared["sha256"]:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Size or SHA-256 does not match the declaration")
+        spool.seek(0)
+        storage.put(_key(row, path), spool)
+    row.files = [{**f, "uploaded": True} if f["path"] == path else f for f in row.files]
+    db.commit()
+
+
+def _entry(r: Release) -> dict:
+    return {
+        "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
+        "notes": r.notes, "requires": r.requires, "published": r.published_at.isoformat(),
+        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform")} for f in r.files],
+    }
+
+
+def write_index(db: Session, storage: Storage) -> dict:
+    """v1/index.json: per channel, the newest version of every plugin and module. beta also sees stable releases."""
+    channels: dict = {"stable": {"plugins": {}, "modules": {}}, "beta": {"plugins": {}, "modules": {}}}
+    for r in _published(db):  # ascending, so later rows are newer
+        for channel in ("stable", "beta") if r.channel == "stable" else ("beta",):
+            channels[channel][r.kind + "s"][r.slug] = {"version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json"}
+    index = {"format": 1, "generated": now().isoformat(), "channels": channels}
+    storage.put("v1/index.json", io.BytesIO(json.dumps(index, indent=1).encode()), "application/json")
+    return index
+
+
+@router.post("/{kind}/{slug}/releases/{version}/publish", response_model=ReleaseOut)
+def publish(kind: Kind, slug: str = Slug, version: str = VersionPath, db: Session = Depends(get_db),
+            storage: Storage = Depends(get_storage), _: ApiToken = Depends(require_release_token)):
+    row = _find(db, kind, slug, version)
+    if row.status == "published":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Already published")
+    missing = [f["path"] for f in row.files if not f["uploaded"]]
+    if missing:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Files not uploaded: {', '.join(missing)}")
+    newest = max(((r.major, r.minor, r.patch) for r in _published(db, kind, slug)), default=None)
+    if newest is not None and (row.major, row.minor, row.patch) <= newest:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"A version up to {'.'.join(map(str, newest))} was published meanwhile")
+    row.status, row.published_at = "published", now()
+    storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
+    db.commit()
+    write_index(db, storage)
+    return row

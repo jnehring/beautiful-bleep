@@ -7,7 +7,7 @@ from sqlalchemy import select
 from .config import settings
 from .db import SessionLocal
 from .models import User
-from .routers import admin, auth, profile
+from .routers import admin, auth, profile, registry, tokens
 from .security import hash_password
 
 
@@ -33,6 +33,8 @@ app = FastAPI(title="Bleep Patch API", lifespan=lifespan, docs_url=None, redoc_u
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(admin.router)
+app.include_router(tokens.router)
+app.include_router(registry.router)
 
 
 @app.get("/api/health")

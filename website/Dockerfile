@@ -12,6 +12,9 @@
 # and the web engine (scripts/build-web.sh). Served at /play/.
 FROM emscripten/emsdk:4.0.10 AS web
 WORKDIR /repo
+# JUCE in its own layer: cloned once, not on every change under patch/.
+RUN git clone --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git /juce
+ENV BLEEP_JUCE_DIR=/juce
 COPY patch patch
 COPY scripts scripts
 RUN scripts/build-web.sh /out

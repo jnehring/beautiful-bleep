@@ -20,6 +20,17 @@
 		reverse_proxy api:8000
 	}
 
+	# Registry downloads: the public-read bucket in SeaweedFS, anonymous, no app code in the path.
+	# Releases are immutable (versioned paths) except index.json, which must revalidate.
+	handle /registry/* {
+		@index path /registry/v1/index.json /registry/v1/presets/index.json
+		header @index Cache-Control "no-cache"
+		header !@index Cache-Control "public, max-age=31536000, immutable"
+		uri strip_prefix /registry
+		rewrite * /bleep-registry{uri}
+		reverse_proxy storage:8333
+	}
+
 	try_files {path} {path}/index.html
 	file_server
 

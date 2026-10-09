@@ -53,6 +53,14 @@ cd website/api && python3 -m venv .venv && .venv/bin/pip install -r requirements
 # `npm run dev` proxies /api to it.
 ```
 
+Admin console (promote a user, reset a password, list users; passwords are prompted, never passed as arguments):
+
+```bash
+docker compose exec api python -m app.cli list
+docker compose exec api python -m app.cli promote someone@example.com
+docker compose exec api python -m app.cli set-password someone@example.com
+```
+
 Not in this iteration: email verification, password reset, login rate limiting.
 
 Later the service moves into the Brilliant Bleep site's Compose stack as its

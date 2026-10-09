@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Cookie, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .db import get_db
-from .models import User, UserSession, now
+from .models import ApiToken, User, UserSession, now
 from .security import hash_token
 
 COOKIE = "bleep_session"
@@ -34,3 +34,15 @@ def require_role(*roles: str):
 
 
 require_admin = require_role("admin")
+
+
+def require_release_token(authorization: str | None = Header(default=None), db: Session = Depends(get_db)) -> ApiToken:
+    """Dependency: `Authorization: Bearer <token>` with a release token an admin created."""
+    scheme, _, value = (authorization or "").partition(" ")
+    if scheme.lower() == "bearer" and value:
+        row = db.scalar(select(ApiToken).where(ApiToken.token_hash == hash_token(value.strip())))
+        if row and row.scope == "release" and (row.expires_at is None or row.expires_at > now()):
+            row.last_used_at = now()
+            db.commit()
+            return row
+    raise HTTPException(status.HTTP_401_UNAUTHORIZED, "A valid release token is required")
