@@ -53,6 +53,7 @@ docker compose exec api python -m app.cli promote you@example.com
 ```bash
 docker compose exec api python -m app.cli list                          # all users
 docker compose exec api python -m app.cli promote you@example.com       # make an admin
+docker compose exec api python -m app.cli demote you@example.com        # make a normal user
 docker compose exec api python -m app.cli set-password you@example.com  # prompts; ends their sessions
 ```
 

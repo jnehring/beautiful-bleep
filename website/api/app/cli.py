@@ -3,6 +3,7 @@
 
     python -m app.cli list
     python -m app.cli promote EMAIL
+    python -m app.cli demote EMAIL
     python -m app.cli set-password EMAIL
     python -m app.cli token-create NAME [--days N]
     python -m app.cli token-list
@@ -51,6 +52,17 @@ def promote(args: argparse.Namespace) -> None:
         user.role = "admin"
         db.commit()
         print(f"{user.email} is now an admin")
+
+
+def demote(args: argparse.Namespace) -> None:
+    with SessionLocal() as db:
+        user = _find(db, args.email)
+        if user.role == "user":
+            print(f"{user.email} is already a normal user")
+            return
+        user.role = "user"
+        db.commit()
+        print(f"{user.email} is now a normal user")
 
 
 def set_password(args: argparse.Namespace) -> None:
@@ -107,6 +119,7 @@ def main(argv: list[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("list", help="list all users").set_defaults(run=list_users)
     for name, fn, help_ in (("promote", promote, "make a user an admin"),
+                            ("demote", demote, "make an admin a normal user"),
                             ("set-password", set_password, "set a user's password (prompted, never on the command line)")):
         p = sub.add_parser(name, help=help_)
         p.add_argument("email")

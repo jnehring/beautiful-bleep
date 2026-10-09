@@ -29,6 +29,17 @@ def test_promote(client, capsys):
     assert "already" in capsys.readouterr().out
 
 
+def test_demote(client, capsys):
+    register(client)
+    cli.main(["promote", "a@example.com"])
+    cli.main(["demote", "A@Example.com"])
+    with SessionLocal() as db:
+        assert db.query(User).one().role == "user"
+    assert client.get("/api/admin/users").status_code == 403
+    cli.main(["demote", "a@example.com"])
+    assert "already" in capsys.readouterr().out
+
+
 def test_unknown_user_exits(client):
     with pytest.raises(SystemExit):
         cli.main(["promote", "nobody@example.com"])

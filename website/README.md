@@ -40,7 +40,7 @@ session cookie (HttpOnly, SameSite=Lax, Secure when `BLEEP_COOKIE_SECURE=true`) 
 
 - Roles: `user` (default for everyone who registers) and `admin`. Endpoints declare what they need with
   `Depends(require_role("admin"))` (`api/app/deps.py`). Users can edit only their own profile (`PATCH /api/me`) and
-  password; admins manage every user under `/api/admin/users` (there is no admin page yet). The last active admin
+  password; admins manage every user under `/api/admin/users`. The admin page (`/admin/`, linked in the header for admins) creates and revokes release tokens and lists the registry's downloads (plugins, modules, presets; `GET /api/admin/downloads`). The last active admin
   cannot be demoted, deactivated or deleted.
 - The first admin is created on start from `BLEEP_ADMIN_EMAIL` / `BLEEP_ADMIN_PASSWORD`. Everyone else registers as `user`.
 - Passwords are hashed with Argon2; sessions are random tokens of which only the SHA-256 is stored.
@@ -58,6 +58,7 @@ Admin console (promote a user, reset a password, list users; passwords are promp
 ```bash
 docker compose exec api python -m app.cli list
 docker compose exec api python -m app.cli promote someone@example.com
+docker compose exec api python -m app.cli demote someone@example.com
 docker compose exec api python -m app.cli set-password someone@example.com
 ```
 
