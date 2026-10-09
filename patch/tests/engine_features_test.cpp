@@ -11,7 +11,9 @@
 #include "Registry.h"
 #include "dsp/Harmony.h"
 
+#include <chrono>
 #include <cmath>
+#include <string>
 #include <cstdio>
 #include <filesystem>
 
@@ -228,7 +230,8 @@ void commands() {
 
 void mediaStore() {
     g_test = "media";
-    const auto dir = std::filesystem::temp_directory_path() / "bleep-media-test";
+    const auto dir = std::filesystem::temp_directory_path() /
+        ("bleep-media-test-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::remove_all(dir);
     media::setFolder(dir.string());
     MediaClip clip;

@@ -5,8 +5,10 @@
 // The media store (no JUCE), for the WAV import / export round trip.
 #include "../../../engine/Media.cpp"
 
+#include <chrono>
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <vector>
 
 using namespace bleep::patch;
@@ -265,7 +267,8 @@ static void syncBars() {
 static void wavRoundTrip() {
     TEST("reel export and import through WAV; missing media is safe");
     namespace media = bleep::engine::media;
-    const auto dir = std::filesystem::temp_directory_path() / "bleep-splice-test";
+    const auto dir = std::filesystem::temp_directory_path() /
+        ("bleep-splice-test-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::remove_all(dir);
     media::setFolder(dir.string());
     Run s;
@@ -279,6 +282,7 @@ static void wavRoundTrip() {
     EXPECT(media::save(clip) == id);  // hash-named: stored once
     const auto back = media::load(id);
     EXPECT(back && back->channels == clip.channels);
+    if (!back) return;
     Run t;
     const float* ch[2] = {back->channels[0].data(), back->channels[1].data()};
     const int64_t m[] = {20000};

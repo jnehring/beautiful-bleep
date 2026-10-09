@@ -5,8 +5,10 @@
 // The media store (no JUCE), for the frozen-buffer WAV round trip.
 #include "../../../engine/Media.cpp"
 
+#include <chrono>
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <vector>
 
 using namespace bleep::patch;
@@ -170,7 +172,8 @@ static void feedbackBounded() {
 static void frozenWavRoundTrip() {
     TEST("a frozen buffer saved as WAV comes back identical");
     namespace media = bleep::engine::media;
-    const auto dir = std::filesystem::temp_directory_path() / "bleep-grains-test";
+    const auto dir = std::filesystem::temp_directory_path() /
+        ("bleep-grains-test-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::remove_all(dir);
     media::setFolder(dir.string());
     Run g;
@@ -182,6 +185,7 @@ static void frozenWavRoundTrip() {
     EXPECT(media::validId(id));
     const auto back = media::load(id);
     EXPECT(back && back->channels == clip.channels);
+    if (!back) return;
     // Played as a clip while frozen: grains read it.
     Run p;
     p.in.freeze = true;
