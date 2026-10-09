@@ -7,7 +7,7 @@ from sqlalchemy import select
 from .config import settings
 from .db import SessionLocal
 from .models import User
-from .routers import admin, auth, profile, registry, tokens
+from .routers import admin, auth, profile, downloads, registry, tokens
 from .security import hash_password
 
 
@@ -34,6 +34,7 @@ app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(admin.router)
 app.include_router(tokens.router)
+app.include_router(downloads.router)
 app.include_router(registry.router)
 
 

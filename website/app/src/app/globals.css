@@ -68,3 +68,21 @@ button.linklike { background: none; border: 0; padding: 0; font: inherit; color:
   color: var(--bg); font: inherit; font-weight: 600; cursor: pointer; }
 .auth button[disabled] { opacity: .6; cursor: default; }
 .auth .error { color: #d14343; } .auth .ok { color: var(--accent); } .auth .muted { color: var(--muted); }
+
+/* Admin */
+.admin { max-width: 900px; }
+.admin .tabs { display: flex; gap: 8px; margin: 12px 0; }
+.admin .tabs button, .admin button { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.admin .tabs button[aria-current="page"] { border-color: var(--accent); color: var(--accent); }
+.admin button.linklike { border: 0; padding: 0; background: none; color: var(--accent); }
+.admin form.inline { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin: 16px 0; }
+.admin form.inline label { font-weight: 600; font-size: .92rem; }
+.admin form.inline input { display: block; margin-top: 4px; padding: 8px 10px; font: inherit; color: var(--fg);
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+.admin form.inline button[type="submit"] { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.admin .scroll { overflow-x: auto; }
+.admin table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.admin th, .admin td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.admin .secret { border: 1px solid var(--accent); border-radius: 8px; padding: 12px; margin: 12px 0; word-break: break-all; }
+.admin .error { color: #d14343; } .admin .muted { color: var(--muted); }

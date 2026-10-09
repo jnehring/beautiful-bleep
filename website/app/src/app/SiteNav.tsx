@@ -23,6 +23,7 @@ export default function SiteNav() {
         <nav className="account" aria-label="Account">
           {user ? (
             <>
+              {user.role === "admin" && <a href="/admin/" aria-current={path.startsWith("/admin") ? "true" : undefined}>Admin</a>}
               <a href="/account/" aria-current={path.startsWith("/account") ? "true" : undefined}>{user.display_name}</a>
               <button type="button" className="linklike" onClick={logout}>Log out</button>
             </>
