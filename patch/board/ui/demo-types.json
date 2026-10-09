@@ -1332,6 +1332,23 @@
         "modulatable": false,
         "min": 0.0,
         "max": 999.0
+      },
+      {
+        "id": "harmony",
+        "name": "Harmony",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "Bus A",
+          "Bus B",
+          "Bus C",
+          "Bus D"
+        ],
+        "min": 0.0,
+        "max": 4.0
       }
     ],
     "inputs": [
@@ -1397,7 +1414,8 @@
         "type": "control",
         "bipolar": false
       }
-    ]
+    ],
+    "harmony": "reader"
   },
   {
     "type": "ring-kick",

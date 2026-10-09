@@ -258,6 +258,26 @@ void mediaStore() {
     std::filesystem::remove_all(dir);
 }
 
+void sequencerFollowsHarmony() {
+    g_test = "step sequencer follows harmony";
+    // The test writer publishes key G (7) on bus B; the default pattern plays the root.
+    auto run = [](double harmonyBus) {
+        auto c = compile({node("w", "test-writer"), node("s", "step-sequencer", obj({{"harmony", harmonyBus / 4.0}}))}, {});
+        Transport t;
+        t.playing = t.ppqValid = true;
+        for (int b = 0; b < 40; ++b) {
+            c.program->run(t, 256, b == 0);
+            t.ppq += 120.0 / 60.0 * 256 / 48000.0;
+        }
+        for (const auto& st : c.program->steps())
+            if (st.nodeId == "s") return st.outputBuffers[1][0];  // Pitch
+        return -99.0f;
+    };
+    EXPECT(std::fabs(run(0.0)) < 1e-6f);               // Off: Root C
+    EXPECT(std::fabs(run(2.0) - 7.0f / 12.0f) < 1e-6f);  // Bus B: G
+    EXPECT(std::fabs(run(1.0)) < 1e-6f);               // Bus A is silent: Root C
+}
+
 void handoff() {
     g_test = "handoff";
     RtHandoff<int> h;
@@ -282,6 +302,7 @@ int main() {
     commands();
     mediaStore();
     handoff();
+    sequencerFollowsHarmony();
     std::printf("engine features: %d failures\n", g_failures);
     return g_failures == 0 ? 0 : 1;
 }

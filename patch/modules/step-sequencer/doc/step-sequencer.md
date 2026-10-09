@@ -94,6 +94,7 @@ Every knob is a modulation destination.
 | Scale | Chromatic, Major, Natural Minor, Harmonic Minor, Melodic Minor, Dorian, Phrygian, Lydian, Mixolydian, Locrian, Phrygian Dominant, Major Pentatonic, Minor Pentatonic, Blues, Whole Tone, Diminished, Hirajoshi | Major |
 | Octave | −3 … +3 | 0 |
 | Seed | 0 – 999 | 1 |
+| Harmony | Off, Bus A – Bus D: follow a Harmony Master (its key becomes the root, its scale replaces Scale) | Off |
 
 ### Inputs
 

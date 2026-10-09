@@ -56,6 +56,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Scale | the scales in 4.3 | Major |
 | Octave | −3…+3 | 0 |
 | Seed | 0–999 | 1 |
+| Harmony | Off, Bus A–D: follow a Harmony Master; while its bus is active, the bus key replaces *Root* and the bus scale replaces *Scale* (steps stay relative to the root, so the melody follows key changes). A silent bus keeps *Root* and *Scale*. | Off |
 
 ## 4. Behaviour
 

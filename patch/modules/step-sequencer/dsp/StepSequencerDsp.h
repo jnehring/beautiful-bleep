@@ -38,6 +38,7 @@ struct SeqParams {
     int direction = SeqForward;
     int root = 0;            ///< 0 = C
     int scale = 1;           ///< dsp::scales() index
+    int scaleMask = -1;      ///< >= 0: quantize to this 12-bit mask instead (the harmony bus)
     int octave = 0;
     uint32_t seed = 1;
     float gateLength = 0.5f; ///< share of a step
@@ -91,7 +92,8 @@ public:
     /// A step's quantized pitch, in semitones from C4.
     static int pitchOf(const SeqParams& p, float relative) noexcept {
         const auto& sc = dsp::scales()[(size_t)std::clamp(p.scale, 0, (int)dsp::scales().size() - 1)];
-        const int q = p.root + dsp::quantize(relative, sc.mask);
+        const uint16_t mask = p.scaleMask >= 0 ? (uint16_t)p.scaleMask : sc.mask;
+        const int q = p.root + dsp::quantize(relative, mask);
         return std::clamp(q, -60, 67);  // MIDI 0..127
     }
 

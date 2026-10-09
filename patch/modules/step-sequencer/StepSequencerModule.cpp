@@ -3,6 +3,7 @@
 // node's data, timing from the transport or a clock, notes and CV out.
 #include "StepSequencerDsp.h"
 #include "Registry.h"
+#include "dsp/Harmony.h"
 
 #include <juce_core/juce_core.h>
 
@@ -71,7 +72,7 @@ std::string sanitiseData(const std::string& json) {
 
 class StepSequencerModule final : public Module {
 public:
-    enum { GateLength, Swing, Variation, VariationRange, Length, Rate, Direction, Root, Scale, Octave, Seed };
+    enum { GateLength, Swing, Variation, VariationRange, Length, Rate, Direction, Root, Scale, Octave, Seed, Harmony };
     enum { Clock, Reset, Transpose };
     enum { Notes, Pitch, Gate, Velocity, Trigger, End, Step };
 
@@ -113,6 +114,15 @@ public:
         p.direction = (int)setting(Direction);
         p.root = (int)setting(Root);
         p.scale = (int)setting(Scale);
+        // Following a harmony bus: its key is the root, its scale the quantizer
+        // (specs/modules/harmony-master.md §7). A silent bus keeps Root and Scale.
+        if (const int bus = (int)setting(Harmony); bus > 0 && c.harmony != nullptr) {
+            const dsp::HarmonyState& h = c.harmony[bus - 1];
+            if (h.valid) {
+                p.root = h.key;
+                p.scaleMask = h.scale;
+            }
+        }
         p.octave = (int)setting(Octave);
         p.seed = (uint32_t)setting(Seed);
         const Transport& tr = *c.transport;
@@ -186,7 +196,9 @@ void registerStepSequencerModule(Registry& r) {
                 ParamSpec::choice("root", "Root", roots, 0),
                 ParamSpec::choice("scale", "Scale", scales, 1),
                 ParamSpec::integer("octave", "Octave", -3, 3, 0),
-                ParamSpec::integer("seed", "Seed", 0, 999, 1)};
+                ParamSpec::integer("seed", "Seed", 0, 999, 1),
+                ParamSpec::choice("harmony", "Harmony", {"Off", "Bus A", "Bus B", "Bus C", "Bus D"}, 0)};
+    s.harmony = HarmonyRole::Reader;  // follows a Harmony Master when Harmony is set
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}, {"transpose", "Transpose", Signal::Pitch}};
     s.outputs = {{"notes", "Notes", Signal::Notes, false},       {"pitch", "Pitch", Signal::Pitch, true},
                  {"gate", "Gate", Signal::Gate, false},          {"velocity", "Velocity", Signal::Control, false},
