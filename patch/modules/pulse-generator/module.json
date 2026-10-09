@@ -1,0 +1,10 @@
+{
+  "name": "Pulse Generator",
+  "slug": "pulse-generator",
+  "tagline": "Exactly timed pulses with delay, width and slewed edges, ringing like a badly terminated cable.",
+  "colour": "#facc15",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/pulse-generator.md"
+}

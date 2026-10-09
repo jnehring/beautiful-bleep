@@ -5475,6 +5475,220 @@
     ]
   },
   {
+    "type": "beat-oscillator",
+    "name": "Beat Oscillator",
+    "category": "Sources",
+    "colour": "#e879f9",
+    "description": "Two high carriers mixed down to their difference: a heterodyne tone that sweeps from kilohertz to a slow pulse. Pull makes them lock and stutter, Drift makes them wander.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "carrier",
+        "name": "Carrier",
+        "kind": "float",
+        "default": 0.835974991321564,
+        "steps": 0,
+        "modulatable": true,
+        "min": 500.0,
+        "max": 18000.0,
+        "map": "exp"
+      },
+      {
+        "id": "beat",
+        "name": "Beat",
+        "kind": "float",
+        "default": 0.75382000207901,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "fine",
+        "name": "Fine",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -2.0,
+        "max": 2.0
+      },
+      {
+        "id": "pull",
+        "name": "Pull",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "detector",
+        "name": "Detector",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "drift",
+        "name": "Drift",
+        "kind": "float",
+        "default": 0.150000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "detuneRange",
+        "name": "Detune Range",
+        "kind": "float",
+        "default": 0.464158862829208,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 200.0,
+        "map": "skew",
+        "centre": 25.0
+      },
+      {
+        "id": "range",
+        "name": "Range",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "±20 Hz",
+          "±200 Hz",
+          "±2 kHz"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "mixer",
+        "name": "Mixer",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Ideal",
+          "Diode",
+          "Overdriven"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "coupling",
+        "name": "Coupling",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "AC",
+          "DC"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "warmup",
+        "name": "Warm-up",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "10 s",
+          "30 s",
+          "2 min"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "detune",
+        "name": "Detune",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "fm",
+        "name": "FM",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "a",
+        "name": "A",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "beat",
+        "name": "Beat",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "lock",
+        "name": "Lock",
+        "type": "gate",
+        "bipolar": false
+      }
+    ],
+    "buttons": [
+      {
+        "id": "cold",
+        "name": "Cold",
+        "momentary": false
+      }
+    ]
+  },
+  {
     "type": "bender",
     "name": "Bender",
     "category": "Audio",
@@ -14336,6 +14550,381 @@
     ]
   },
   {
+    "type": "pulse-generator",
+    "name": "Pulse Generator",
+    "category": "Sources",
+    "colour": "#facc15",
+    "description": "A lab pulse generator: exactly timed pulses with delay, width, slewed edges, bursts and double pulses. Its edges ring like a badly terminated cable: clicks, pings and small drums.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "period",
+        "name": "Period",
+        "kind": "float",
+        "default": 0.649059355258942,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.000019999999495,
+        "max": 10.0,
+        "map": "exp",
+        "group": "Timing",
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 2
+        }
+      },
+      {
+        "id": "width",
+        "name": "Width",
+        "kind": "float",
+        "default": 0.597106695175171,
+        "steps": 0,
+        "modulatable": true,
+        "min": 9.999999974752427e-7,
+        "max": 5.0,
+        "map": "exp",
+        "group": "Timing",
+        "show": {
+          "param": "units",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "widthpct",
+        "name": "Width",
+        "kind": "float",
+        "default": 0.100000001490116,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Timing",
+        "show": {
+          "param": "units",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "delay",
+        "name": "Delay",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.009999999776483,
+        "group": "Timing",
+        "show": {
+          "param": "units",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "delaypct",
+        "name": "Delay",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Timing",
+        "show": {
+          "param": "units",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "rise",
+        "name": "Rise",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Timing"
+      },
+      {
+        "id": "fall",
+        "name": "Fall",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Timing"
+      },
+      {
+        "id": "amplitude",
+        "name": "Amplitude",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Level"
+      },
+      {
+        "id": "offset",
+        "name": "Offset",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "group": "Level"
+      },
+      {
+        "id": "jitter",
+        "name": "Jitter",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Level",
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 2
+        }
+      },
+      {
+        "id": "ring",
+        "name": "Ring",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Ring"
+      },
+      {
+        "id": "ringfreq",
+        "name": "Ring Freq",
+        "kind": "float",
+        "default": 0.666666686534882,
+        "steps": 0,
+        "modulatable": true,
+        "min": 20.0,
+        "max": 20000.0,
+        "map": "exp",
+        "group": "Ring"
+      },
+      {
+        "id": "damping",
+        "name": "Damping",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Ring"
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Free Run",
+          "Triggered",
+          "Gated",
+          "External Width"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 10,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0,
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "units",
+        "name": "Time Units",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Time",
+          "% of Period"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "double",
+        "name": "Double",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 2
+        }
+      },
+      {
+        "id": "burst",
+        "name": "Burst",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 64,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "polarity",
+        "name": "Polarity",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Normal",
+          "Complement"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "warmup",
+        "name": "Warm-up",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "ring",
+        "name": "Ring",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "buttons": [
+      {
+        "id": "single",
+        "name": "Single",
+        "momentary": false
+      }
+    ]
+  },
+  {
     "type": "quad-lfo",
     "name": "Quad LFO",
     "category": "Modulation",
@@ -20135,6 +20724,623 @@
     ]
   },
   {
+    "type": "sweep-generator",
+    "name": "Sweep Generator",
+    "category": "Sources",
+    "colour": "#fb923c",
+    "description": "A function generator that glides from Start to Stop: risers, sirens, tone bursts, and a sweep ramp, pitch and marker triggers for gear that follows it.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "start",
+        "name": "Start",
+        "kind": "float",
+        "default": 0.634816884994507,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 20000.0,
+        "map": "exp"
+      },
+      {
+        "id": "stop",
+        "name": "Stop",
+        "kind": "float",
+        "default": 0.904450535774231,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 20000.0,
+        "map": "exp"
+      },
+      {
+        "id": "time",
+        "name": "Sweep Time",
+        "kind": "float",
+        "default": 0.650515019893646,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 100.0,
+        "map": "exp",
+        "show": {
+          "param": "sweepsync",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "symmetry",
+        "name": "Symmetry",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "marker1",
+        "name": "Marker 1",
+        "kind": "float",
+        "default": 0.69797158241272,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 20000.0,
+        "map": "exp",
+        "show": {
+          "param": "markers",
+          "min": 1,
+          "max": 3
+        }
+      },
+      {
+        "id": "marker2",
+        "name": "Marker 2",
+        "kind": "float",
+        "default": 0.793521046638489,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 20000.0,
+        "map": "exp",
+        "show": {
+          "param": "markers",
+          "min": 2,
+          "max": 3
+        }
+      },
+      {
+        "id": "marker3",
+        "name": "Marker 3",
+        "kind": "float",
+        "default": 0.889070510864258,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 20000.0,
+        "map": "exp",
+        "show": {
+          "param": "markers",
+          "min": 3,
+          "max": 3
+        }
+      },
+      {
+        "id": "fm",
+        "name": "FM",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "drift",
+        "name": "Drift",
+        "kind": "float",
+        "default": 0.150000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "waveform",
+        "name": "Waveform",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 6,
+        "modulatable": false,
+        "choices": [
+          "Sine",
+          "Triangle",
+          "Square",
+          "Ramp Up",
+          "Ramp Down",
+          "Pulse"
+        ],
+        "min": 0.0,
+        "max": 5.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Continuous",
+          "Triggered",
+          "Gated",
+          "Burst"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "sweepsync",
+        "name": "Sweep Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 8,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars",
+          "16 bars"
+        ],
+        "min": 0.0,
+        "max": 7.0
+      },
+      {
+        "id": "law",
+        "name": "Law",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Log",
+          "Lin"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "direction",
+        "name": "Direction",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Up",
+          "Down",
+          "Up-Down"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "retrace",
+        "name": "Retrace",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Instant",
+          "Glide"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "show": {
+          "param": "direction",
+          "min": 0,
+          "max": 1
+        }
+      },
+      {
+        "id": "burstcount",
+        "name": "Burst Count",
+        "kind": "int",
+        "default": 0.047619048506021,
+        "steps": 64,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "show": {
+          "param": "mode",
+          "min": 3,
+          "max": 3
+        }
+      },
+      {
+        "id": "markers",
+        "name": "Markers",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "markerwidth",
+        "name": "Marker Width",
+        "kind": "choice",
+        "default": 0.400000005960464,
+        "steps": 6,
+        "modulatable": false,
+        "choices": [
+          "1 ms",
+          "5 ms",
+          "10 ms",
+          "25 ms",
+          "50 ms",
+          "100 ms"
+        ],
+        "min": 0.0,
+        "max": 5.0,
+        "show": {
+          "param": "markers",
+          "min": 1,
+          "max": 3
+        }
+      },
+      {
+        "id": "phasereset",
+        "name": "Phase Reset",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "warmup",
+        "name": "Warm-up",
+        "kind": "choice",
+        "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "10 s",
+          "30 s",
+          "2 min"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "hold",
+        "name": "Hold",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "fm",
+        "name": "FM",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "am",
+        "name": "AM",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "sweep",
+        "name": "Sweep",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "freq",
+        "name": "Freq",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "marker",
+        "name": "Marker",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "markergate",
+        "name": "Marker Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "end",
+        "name": "End",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "test-oscillator",
+    "name": "Test Oscillator",
+    "category": "Sources",
+    "colour": "#f59e0b",
+    "description": "A lamp-stabilised sine from a self-oscillating loop: it bounces, warms up and hums; below 100 % it rings when kicked.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "freq",
+        "name": "Frequency",
+        "kind": "float",
+        "default": 0.643452703952789,
+        "steps": 0,
+        "modulatable": true,
+        "min": 1.0,
+        "max": 10.0,
+        "map": "exp"
+      },
+      {
+        "id": "fine",
+        "name": "Fine",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -50.0,
+        "max": 50.0
+      },
+      {
+        "id": "fm",
+        "name": "FM",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "loopgain",
+        "name": "Loop Gain",
+        "kind": "float",
+        "default": 0.400000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "settle",
+        "name": "Settle",
+        "kind": "float",
+        "default": 0.652932703495026,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.004999999888241,
+        "max": 2.0,
+        "map": "exp"
+      },
+      {
+        "id": "drift",
+        "name": "Drift",
+        "kind": "float",
+        "default": 0.400000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "kick",
+        "name": "Kick",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "range",
+        "name": "Range",
+        "kind": "choice",
+        "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "×1",
+          "×10",
+          "×100",
+          "×1k"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "warmup",
+        "name": "Warm-up",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mains",
+        "name": "Mains",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "50 Hz",
+          "60 Hz"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "powerup",
+        "name": "Power-up",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "On load",
+          "On play"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "fm",
+        "name": "FM",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "kick",
+        "name": "Kick",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "audio",
+        "name": "Audio In",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "sine",
+        "name": "Sine",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "square",
+        "name": "Square",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "lamp",
+        "name": "Lamp",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "tidal",
     "name": "Tidal",
     "category": "Modulation",
@@ -20729,6 +21935,326 @@
         "id": "storetrig",
         "name": "Store Trig",
         "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "wave-analyzer",
+    "name": "Wave Analyzer",
+    "category": "Audio",
+    "colour": "#22d3ee",
+    "description": "A very narrow tunable band-pass: pick single partials out of a sound, sweep them into a spectrum, or lock onto the strongest one and follow it.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "frequency",
+        "name": "Frequency",
+        "kind": "float",
+        "default": 0.447474241256714,
+        "steps": 0,
+        "modulatable": true,
+        "min": 20.0,
+        "max": 20000.0,
+        "map": "exp"
+      },
+      {
+        "id": "span",
+        "name": "Span",
+        "kind": "float",
+        "default": 0.400000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 10.0,
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "sweeptime",
+        "name": "Sweep Time",
+        "kind": "float",
+        "default": 0.618050634860992,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.100000001490116,
+        "max": 120.0,
+        "map": "exp",
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "capture",
+        "name": "Capture",
+        "kind": "float",
+        "default": 0.291666656732559,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 24.0,
+        "show": {
+          "param": "mode",
+          "min": 2,
+          "max": 2
+        }
+      },
+      {
+        "id": "drift",
+        "name": "Drift",
+        "kind": "float",
+        "default": 0.150000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "listen",
+        "name": "Listen",
+        "kind": "float",
+        "default": 0.6327183842659,
+        "steps": 0,
+        "modulatable": true,
+        "min": 50.0,
+        "max": 4000.0,
+        "map": "exp"
+      },
+      {
+        "id": "threshold",
+        "name": "Threshold",
+        "kind": "float",
+        "default": 0.600000023841858,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "gain",
+        "name": "Gain",
+        "kind": "float",
+        "default": 0.533333361148834,
+        "steps": 0,
+        "modulatable": true,
+        "min": -20.0,
+        "max": 40.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Manual",
+          "Sweep",
+          "Lock"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "bandwidth",
+        "name": "Bandwidth",
+        "kind": "choice",
+        "default": 0.25,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "3 Hz",
+          "10 Hz",
+          "30 Hz",
+          "100 Hz",
+          "1/3 octave"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "range",
+        "name": "Range",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Full",
+          "20–200 Hz",
+          "200 Hz–2 kHz",
+          "2–20 kHz"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "sweepdir",
+        "name": "Sweep Dir",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Up",
+          "Down",
+          "Up-Down"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 13,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars",
+          "16 bars",
+          "32 bars",
+          "64 bars"
+        ],
+        "min": 0.0,
+        "max": 12.0,
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "floor",
+        "name": "Floor",
+        "kind": "choice",
+        "default": 0.600000023841858,
+        "steps": 6,
+        "modulatable": false,
+        "choices": [
+          "-24 dB",
+          "-36 dB",
+          "-48 dB",
+          "-60 dB",
+          "-72 dB",
+          "-96 dB"
+        ],
+        "min": 0.0,
+        "max": 5.0
+      },
+      {
+        "id": "ballistics",
+        "name": "Ballistics",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Needle",
+          "Fast"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "hold",
+        "name": "Hold",
+        "type": "gate",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "thru",
+        "name": "Thru",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "band",
+        "name": "Band",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "shifted",
+        "name": "Shifted",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "track",
+        "name": "Track",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "peak",
+        "name": "Peak",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "locked",
+        "name": "Locked",
+        "type": "gate",
         "bipolar": false
       }
     ]

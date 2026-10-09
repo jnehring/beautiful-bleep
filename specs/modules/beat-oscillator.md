@@ -43,12 +43,12 @@ Every knob is also an input (`specs.md` section 7.3).
 | Knob | Range | Default | What it does |
 |---|---|---|---|
 | Carrier | 500 Hz–18 kHz (exp.) | 10 kHz | Frequency of A. |
-| Beat | −*Range*…+*Range* (cubic) | +261.6 Hz | Offset of B from A: `b = Range · x³`, x in −1…+1 (on ±2 kHz, x = 0.1 is 2 Hz). |
+| Beat | −*Range*…+*Range* (cubic) | +261.6 Hz | Offset of B from A: `b = Range · x³`, x in −1…+1 (on ±2 kHz, x = 0.1 is 2 Hz). The knob shows x as −100…+100 % (default 50.76 %); the view shows the beat in Hz. |
 | Fine | −2…+2 Hz (linear) | 0 Hz | Added to the offset, for dialling zero beat. |
 | Pull | 0–100 % | 0 % | Coupling: lock range `L = 200 · Pull³` Hz (25 % → 3.1 Hz, 50 % → 25 Hz). |
 | Detector | 0–100 % | 0 % | Detector cutoff `fd = 2500 · 24^Detector` Hz (2.5 kHz…60 kHz). |
 | Drift | 0–100 % | 15 % | Depth of the carriers' wander: `D = 25 · Drift²` cents. |
-| Detune Range | 0–200 Hz (cubic) | 20 Hz | Hz added to B per 1.0 at *Detune*. |
+| Detune Range | 0–200 Hz (cubic) | 20 Hz | Hz added to B per 1.0 at *Detune*. (A Skew map with centre 25 Hz, which is exactly `200 · x³`.) |
 
 **Settings**
 
@@ -116,7 +116,12 @@ At the 4× rate, with `a = cos φA`, `b = cos φB`:
 | Overdriven | `a′ · b′ + 0.1 · (a′ + b′)`, `x′ = tanh(4x) / tanh(4)` | Near-square carriers: a triangle-like beat with odd harmonics, plus carrier leakage from the imbalance. |
 
 `g` (and the other modes' scale) is calibrated so a free-running beat peaks
-near ±1 at Out.
+near ±1 at Out. Diode also subtracts its calibrated mid level, so the beat is
+centred on 0 with *Coupling* DC too: with `0.5 (a + b) = E cos θ`,
+`E = cos(ψ/2)`, the detector keeps `F(|E|)`, the mean of `max(0, E cos θ + 0.2)²`
+over θ (closed form), and Diode outputs `g · (… )² − g · (F(1) + F(0)) / 2` with
+`g = 2 / (F(1) − F(0))`. Overdriven is scaled by `1 / mean(a′²)`, the
+correlation of the shaped carriers at ψ = 0.
 
 ### 4.4 Detector and output
 
@@ -131,6 +136,9 @@ the detector open brings the whistle down into range.
 *Coupling* AC removes DC with a 5 Hz one-pole high-pass (`x − OnePole(x)`):
 slow beats become swells and a locked pair is silent. DC keeps slow beats as a
 usable modulation signal on Out. Out then passes `dsp::softClip`.
+
+The detector cutoff follows *Detector* once per sample (it is not
+interpolated across the sub-samples).
 
 ### 4.5 Beat measurement
 
@@ -159,14 +167,25 @@ Warm-up: `w_X(t) = −40 · c_X · e^(−3t / Tw)` cents, `Tw` the setting lengt
 `c_A = 1`, `c_B = 0.7 + 0.6 · uniform01(Seed, 0, 5)`: both start flat by
 different amounts, so the beat glides in to its dialled value over about `Tw`.
 `t` counts from transport start, or (stopped) from load or the *Cold* button.
+*Cold* only acts while the transport is stopped (while it plays, warm-up runs
+from the start so renders repeat).
+
+While stopped, `u` continues from where playback left it
+(`u = u_stop + seconds since stop / 4`, `u_stop = 0` after load), so stopping
+does not make the drift jump.
 
 ### 4.7 Rates, transport and determinism
 
 - Knobs, *Pitch* and *Detune* are interpolated linearly across the four
-  sub-samples; *FM* goes through the 4× upsampler. *A* and *B* are `cos φ` at
-  the first sub-sample of each sample.
+  sub-samples: the carrier frequencies `fA`, `fB` (without FM) and `K` are
+  computed once per sample and interpolated, which is the same to first
+  order. *FM* goes through the 4× upsampler (it rests while unpatched). *A*
+  and *B* are `cos φ` at the first sub-sample of each sample.
 - Transport start sets `φA = φB = 0`, resets the beat measurement and
-  filters and restarts warm-up: renders from one start are identical.
+  filters and restarts warm-up: renders from one start are identical. To
+  avoid a click, the step between the last output before the start and the
+  first one after it fades out linearly over 5 ms, so the first 5 ms carry a
+  remainder of whatever played before; from then on renders are identical.
 - On a jump, phases and filters continue; drift steps to the new position.
 
 ## 5. Module view
@@ -201,11 +220,16 @@ Only knob and setting values; no node data.
 None new. Phases, mixer, detector and beat measurement run at 4 · fs with
 `dsp::Upsampler` (FM) and `dsp::Downsampler` (Out) from `Oversampler.h`; the
 detector is two `dsp::Svf` set with `sampleRate = 4 · fs` (60 kHz is inside
-its clamps). `dsp::uniform01` (`Random.h`) gives the drift knots,
-`dsp::OnePole` (`Smoothing.h`) the DC blocker, Δf smoother and Beat slew,
-`dsp::softClip` (`Clip.h`) the output. Live values carry fA, fB, Δf, ψ, lock
-and a slip flag to the view. Inside Voice Cells each voice runs its own pair,
-with drift streams `stream + 8 · voice index`, so voices drift apart.
+its clamps). `dsp::noisePoint` / `dsp::catmullRom` (`Random.h`, the knots of
+`dsp::smoothNoise`, cached per knot) give the drift, one-pole smoothers with
+`dsp::OnePole`'s response (coefficients computed once, double state) the DC
+blocker, Δf smoother and Beat slew, `dsp::partials::sin2pi` (`Partials.h`,
+|error| < 1e-6) the sines and cosines of the phases, and `dsp::softClip`
+(`Clip.h`) the output. Live values carry the actual fA and fB (phase advance,
+50 ms average), the nominal ones, the signed beat (`sign(Δf_s) · fm`), Δf_s,
+L, ψ, lock and a slip counter (the view flashes the lamp when it changes) to
+the view. Inside Voice Cells each voice runs its own pair, with drift streams
+`stream + 8 · voice index` (also stream 5 for `c_B`), so voices drift apart.
 
 ## 8. Tests
 

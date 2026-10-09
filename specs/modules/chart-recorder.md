@@ -65,7 +65,9 @@ Every knob is also an input (`specs.md` section 7.3).
 | Replay Sync | Free, Song | Song |
 | Interpolation | Step, Linear, Smooth | Linear |
 
-**Clear**, **Arm** and a **Hold paper** toggle on the panel act like the inputs.
+**Clear**, **Arm** and a **Hold Paper** toggle on the panel act like the inputs
+(module buttons; Hold Paper flips on each press and lights while the paper
+is held).
 
 ## 4. Behaviour
 
@@ -80,7 +82,9 @@ Every knob is also an input (`specs.md` section 7.3).
   at the top edge, −*Log Range* at the bottom, as on a level recorder.
 
 The detector value becomes a pen target on the paper, which is 100 mm wide
-from −1 to +1: `t = y` for DC, `t = 2y − 1` for the unipolar detectors.
+from −1 to +1: `t = y` for DC, `t = 2y − 1` for the unipolar detectors
+(limited to ±1.5: Rectified, RMS and Peak are unbounded with Gain up, and
+beyond the end stops a larger target only bangs the pen harder into them).
 
 ### 4.2 The pen
 
@@ -89,7 +93,7 @@ per sample (semi-implicit Euler, double precision), position `u`, velocity
 `v` in paper units (2 = full width):
 
 ```
-ω    = 2π · Writing Speed / 20           (5 mHz … 50 Hz natural frequency)
+ω    = 2π · Writing Speed / 20           (50 mHz … 50 Hz natural frequency)
 ζ    = 0.05 · 40^Damping                 (0.05 … 2; 0.66 at the default)
 vmax = Writing Speed / 50                (paper units per second; 1 unit = 50 mm)
 F    = ω² · (t − u) − 2ζω · v
@@ -110,9 +114,11 @@ same line.
 ### 4.3 Paper and writing
 
 The strip has `N = min(Lsec · 200, 24000)` points: `Lsec` is *Length* in
-seconds, or `bars · 240 / bpm` at the tempo it was sized for. That is 200
-points/s up to 2 minutes, coarser beyond (10 min: 40/s). Each point is an
-int16, or *blank* (−32768, no ink).
+seconds, or `bars · 240 / bpm` at the tempo it was sized for (at least 16).
+That is 200 points/s up to 2 minutes, coarser beyond (10 min: 40/s). Each
+point is an int16 (`round(u · 32767)`), or *blank* (−32768, no ink). A strip
+with no ink at all follows the current Length and tempo (there is nothing to
+stretch); once inked it keeps its `N`.
 
 The write head `p ∈ [0, 1)` moves:
 
@@ -123,7 +129,9 @@ The write head `p ∈ [0, 1)` moves:
   release); the pen keeps writing into the point under the head.
 
 While writing, each point gets the mean of `u` over the samples the head
-spent on it. Points skipped by a jump stay as they were. *Record* modes:
+spent on it. Points skipped by a jump stay as they were. The pen only writes
+while the paper runs (Free, or Transport while playing; held paper counts as
+running), so a stopped transport writes nothing in any mode. *Record* modes:
 
 - **Always:** writes whenever the paper moves.
 - **Gate:** writes while *Record* is high (pen lifted otherwise).
@@ -132,7 +140,7 @@ spent on it. Points skipped by a jump stay as they were. *Record* modes:
   Writing, Done.
 
 **Mark** stores the point index under the write head (256 at most; more drop
-the oldest). **Clear** blanks every point and removes the marks. Changing
+the oldest; a point already marked is not stored twice). **Clear** blanks every point and removes the marks. Changing
 *Length* resamples the strip and marks to the new `N`; a tempo change keeps
 `N` (the strip stretches with the song).
 
@@ -155,8 +163,9 @@ ends). Blank points are skipped: a blank reads the nearest inked point
 before it (wrapping), and a strip with no ink reads 0. The result is
 converted from paper units like *Pen*; drawn vertical edges give jumps.
 
-**Marker** fires (one pulse per sample at most) when `floor(q · N)` crosses
-a marked index in either direction, the short way round across the wrap.
+**Marker** fires (one pulse per sample at most) when `floor(q · N)` enters
+a marked index in either direction, the short way round across the wrap
+(every index passed by a jump of up to N/2 points counts).
 
 ## 5. Module view
 
@@ -196,16 +205,25 @@ and Armed state are not saved.
 ## 7. Engine requirements
 
 1. **Node data, `setData`, live values** exist (see `step-sequencer.md`).
-2. **Data written by the audio thread** (new): `Module::takeData()`, polled
-   on the message thread, returns a strip snapshot when Record falls, a pass
-   ends, on Clear and every 5 s of writing; the board stores it without an
-   undo entry. View edits still use `setData` with undo.
-3. `liveValues` carries the heads, `u`, the record state and only the points
-   written since the last read.
+2. **Data written by the audio thread:** `Module::takeData()`, polled on the
+   message thread, returns a strip snapshot when writing stops, a pass ends,
+   on Clear, on a new mark, after a Length resample and every 5 s of
+   writing; the board stores it without an undo entry and hands it back
+   through `setData`, which the module recognises as its own and ignores.
+   View edits still use `setData` with undo.
+3. `liveValues`: `p`, `q`, `u`, `rec` (0 idle, 1 armed, 2 writing, 3 done),
+   `writing`, `held`, `n`, `seconds`. `liveArrays`: `ink` (`[index, value, …]`
+   for the points written since the last read, from a 4096-entry ring),
+   `strip` (every point, −2 = blank) after a load, Clear, resize, a ring
+   overflow or the view's `sync` command (sent when it opens and when the
+   node data changes), and `marks`.
 4. Detector: `dsp::OnePole`, `dsp::EnvelopeFollower` (`Smoothing.h`);
    `dsp::wrap01` (`Tempo.h`). The pen is new, small and local to the module.
-5. **Inside Voice Cells:** one shared strip; each voice has its own pen and
-   replay head, and only voice 0 writes.
+5. **Inside Voice Cells** (simplified): each voice has its own pen, replay
+   head and copy of the strip from the node data; only voice 0 writes, into
+   its own copy, and Clear and Mark only act there. Voices do not share
+   what voice 0 records, and it is not saved (the engine polls `takeData`
+   on top-level modules only). A shared strip needs engine support.
 
 ## 8. Tests
 
@@ -221,7 +239,9 @@ and Armed state are not saved.
 - Marker fires once per mark crossing in both directions and on wrap.
 - `sanitiseData`: round-trips bit-exact; truncated base64, wrong `n` and bad
   marks load safely; resizing *Length* rescales marks.
-- The demo types file includes the module (`patch.ui-types`).
+- The demo types file includes the module (`patch.ui-types`): needs
+  `bleep_dump_types --write patch/board/ui/demo-types.json`, a shared file
+  regenerated when the module is merged.
 
 ## 9. Later
 

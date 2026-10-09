@@ -609,11 +609,13 @@ private:
     void resize(int nNew) noexcept {
         finishPoint();
         const int nOld = n();
-        for (int k = 0; k < nOld; ++k) scratch_[(size_t)k] = points_[(size_t)k].load(std::memory_order_relaxed);
-        for (int j = 0; j < nNew; ++j) points_[(size_t)j].store(chartResamplePoint(scratch_.get(), nOld, nNew, j), std::memory_order_relaxed);
-        for (int j = nNew; j < nOld; ++j) points_[(size_t)j].store(kChartBlank, std::memory_order_relaxed);
+        if (inked_ > 0) {  // points past n are always blank, so a blank strip only changes n
+            for (int k = 0; k < nOld; ++k) scratch_[(size_t)k] = points_[(size_t)k].load(std::memory_order_relaxed);
+            for (int j = 0; j < nNew; ++j) points_[(size_t)j].store(chartResamplePoint(scratch_.get(), nOld, nNew, j), std::memory_order_relaxed);
+            for (int j = nNew; j < nOld; ++j) points_[(size_t)j].store(kChartBlank, std::memory_order_relaxed);
+        }
         n_.store(nNew, std::memory_order_relaxed);
-        rebuildInk();
+        if (inked_ > 0) rebuildInk();
         const int count = markCount();
         int kept = 0;
         for (int i = 0; i < count; ++i) {

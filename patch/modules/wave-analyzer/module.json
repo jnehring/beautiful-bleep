@@ -1,0 +1,11 @@
+{
+  "name": "Wave Analyzer",
+  "slug": "wave-analyzer",
+  "tagline": "A tunable needle of a band-pass: pick out single partials, sweep a spectrum, lock onto the loudest.",
+  "colour": "#22d3ee",
+  "formats": [
+    "Board module"
+  ],
+  "category": "Audio",
+  "doc": "doc/wave-analyzer.md"
+}

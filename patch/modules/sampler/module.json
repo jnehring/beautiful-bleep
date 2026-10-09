@@ -1,0 +1,10 @@
+{
+  "name": "Sampler",
+  "slug": "sampler",
+  "tagline": "Polyphonic sample player and slicer: slice by hand, transients or beats, with play modes, 16 playheads, envelope and filter.",
+  "colour": "#0d9488",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/sampler.md"
+}

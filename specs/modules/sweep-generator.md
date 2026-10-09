@@ -26,7 +26,7 @@ signal for feedback patches. The old benches' character is kept on purpose:
 | Hold | `gate` | While high, the sweep position freezes; the tone keeps running. |
 | Pitch | `pitch` | Shifts *Start*, *Stop* and the markers together (1.0 = one octave). |
 | FM | `audio` | Linear frequency modulation, depth set by *FM* (4.4). |
-| AM | `audio` | Amplitude modulation: gain × max(0, 1 + AM). Unpatched = 0. |
+| AM | `audio` | Amplitude modulation: gain × clamp(1 + AM, 0, 4). Unpatched = 0. |
 
 Every knob is also an input (`specs.md` section 7.3).
 
@@ -99,16 +99,21 @@ by `2^Pitch` too.
   wraps; synced and playing, `p = wrap01((ppq − o) / syncBeats)`, a pure
   function of song position. *Trigger* resets `p` to 0 (synced: sets the
   offset `o` to the trigger's ppq; transport start sets `o = 0`).
-- **Triggered:** waits at *Start* until a trigger, then runs one sweep of
-  length `L` (tempo at the trigger); at `p = 1` *End* fires and the tone holds
-  at the final frequency. A retrigger mid-sweep restarts from 0.
+- **Triggered:** waits at `p = 0` (*Start*; *Stop* in Down) until a trigger,
+  then runs one sweep of length `L` (tempo at the trigger); at `p = 1` *End*
+  fires and the tone holds at the final frequency. A retrigger mid-sweep
+  restarts from 0.
 - **Gated:** `p` advances only while *Gate* is high (wrapping as in
-  Continuous) and pauses while low. *Trigger* resets `p` to 0.
+  Continuous, at `1/(L · sr)` per sample also when synced: a paused sweep
+  cannot follow the grid) and pauses while low. *Trigger* resets `p` to 0.
 - **Burst:** each trigger plays *Burst Count* whole cycles from phase 0 at
   the current sweep frequency, with 0.5 ms raised-cosine fades; *Out* is
   silent between bursts. The sweep runs as in Continuous, so bursts step
   through the band like a stepped response measurement. A trigger during a
-  burst restarts it after the fade-out.
+  burst restarts it after a 0.5 ms fade-out. *Sync* fires at the burst's
+  start and at each further cycle start, so a burst gives exactly *Burst
+  Count* pulses; the fade-out is timed from the phase so it ends with the last
+  cycle.
 
 *Hold* freezes `p` in every mode; synced, releasing it rejoins the grid.
 
@@ -118,9 +123,12 @@ The phase `φ ∈ [0, 1)` advances by `f_i / sr` with
 `f_i = f · (1 + 2 · FM · x_FM)`, clamped to ±0.45 · sr: linear and
 through-zero, with a constant index across the sweep. Frequency changes never
 touch the phase, so wraps and retriggers don't click. With *Phase Reset* On,
-a trigger sets `φ = 0`, the step smoothed by a polyBLEP.
+a trigger sets `φ = 0`, the step smoothed by a polyBLEP placed at the
+sample's start (that sample is the mean of both sides, no latency); transport
+start does the same. Both count as a cycle start and fire *Sync*.
 
-**Retrace.** When a Continuous Up or Down sweep wraps, *Instant* jumps back.
+**Retrace.** When an Up or Down sweep wraps (Continuous, Gated, and the
+sweep under Burst), *Instant* jumps back.
 *Glide* flies back over `min(5 % of L, 250 ms)` on an exponential curve (time
 constant a fifth of that), audible like a bench sweeper's flyback; *Sweep*
 follows it, *End* fires at its start, and markers stay silent during it.
@@ -130,7 +138,8 @@ follows it, *End* fires at its start, and markers stay silent during it.
 With `k = 0.5 + 0.45 · Symmetry` (0.05 … 0.95):
 
 - **Sine:** warped phase `ψ = φ < k ? 0.5 φ / k : 0.5 + 0.5 (φ − k) / (1 − k)`,
-  `y = sin(2πψ)`. The kink at `φ = k` is corrected with a polyBLAMP.
+  `y = sin(2πψ)`. The kinks at `φ = k` and at the wrap (both change the
+  slope by `π (1/k − 1/(1 − k))`) are corrected with a polyBLAMP.
 - **Triangle:** rises from −1 to +1 over `[0, k)`, falls over `[k, 1)`;
   polyBLAMP at both corners. It starts at −1, so Burst fades it in.
 - **Square:** +1 for `φ < k`, −1 after; polyBLEP at both edges.
@@ -138,7 +147,13 @@ With `k = 0.5 + 0.45 · Symmetry` (0.05 … 0.95):
   (1 … 25 %), with its mean removed and peak at +1:
   `y = ((φ < d ? 1 : −1) − (2d − 1)) / (2 − 2d)`; polyBLEP at both edges.
 - **Ramp Up / Down:** `y = ±(2 φ^c − 1)` with `c = 2^(−2 · Symmetry)`
-  (convex to concave); polyBLEP at the reset.
+  (convex to concave); polyBLEP at the reset, and a polyBLAMP for the slope
+  change there (from `2c` to the mean slope over the first sample).
+
+Corner corrections assume straight segments of at least one sample; where
+`min(k, 1 − k)` is shorter than the phase increment they are scaled by that
+ratio (a skewed sine or triangle near Nyquist stays bounded). The polyBLEP
+and polyBLAMP residuals are `dsp::osc::polyBlep` / `polyBlamp` (`OscCore.h`).
 
 Below audio rate *Out* doubles as a sweeping LFO (not DC-blocked).
 
@@ -155,10 +170,16 @@ The frequency is multiplied by `2^(c / 1200)` with
   `τ` = *Warm-up* / 3, `t_s` counting from transport start (or module
   creation): it starts off-pitch and settles like a cold bench instrument.
 
+The drift is recomputed every 16 samples and smoothed by a 20 ms one-pole,
+which also glides its jumps on a seek or when the transport stops (song time
+↔ module time). Drift 0 gives exactly 0 cents.
+
 ### 4.7 Markers and triggers
 
 A marker fires when `log2(f_sweep / m_i)` changes sign between samples, in
-either direction (drift and FM excluded). *Marker Gate* then stays high for
+either direction (drift and FM excluded; Pitch shifts both sides, so it never
+fires one). Jumps don't fire markers: a wrap (Instant retrace), a trigger's
+restart, a seek, transport start, or a marker just switched on. *Marker Gate* then stays high for
 *Marker Width*, retriggerable. *End* fires at `p = 1` and at the Up-Down
 turning point; *Sync* fires on each phase wrap, forwards or backwards.
 
@@ -189,7 +210,11 @@ time over one cycle: the sweep curve from the settings (straight in Log,
 bowed in Lin, a tent in Up-Down, retrace faint), active markers as dashed
 lines and the current position as a bright dot. A dial-style readout shows
 the current frequency. Dragging the curve's ends sets *Start* and *Stop*;
-dragging a marker line moves it. Waveform is a row of icon buttons.
+dragging a marker line moves it. Waveform is a row of icon buttons (the
+Waveform setting is hidden from the settings list). The axis extends down by
+decades when Start, Stop or a marker is below 10 Hz; the dot sits at the real
+frequency (Pitch and Drift included), the retrace preview (Glide) uses the
+live cycle length.
 
 ## 6. Saved state
 
@@ -197,15 +222,17 @@ Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-1. **polyBLEP / polyBLAMP helpers:** polyBLEP exists privately in
-   `OscillatorDsp.h` and `Drums.h`; move it to a shared `dsp/Blep.h` and add
-   polyBLAMP for the triangle and skewed-sine corners.
+1. **polyBLEP / polyBLAMP helpers:** both exist in `OscCore.h`
+   (`dsp::osc::polyBlep`, `dsp::osc::polyBlamp`); the module uses those, no
+   new header.
 2. **Transport:** song position (ppq), tempo and play state per block, as
-   used by Random and LFO; `dsp::syncBeats` in `Tempo.h` needs the longer
-   values (16 bars = 64 beats) or a second table for this module's choices.
+   used by Random and LFO. The Sweep Sync choices have their own table
+   (`sweepSyncBeats` in `SweepGeneratorDsp.h`, 1/4 … 16 bars = 1 … 64 beats).
 3. Uses `dsp::uniform01` (`Random.h`) for drift, `dsp::OnePole`
-   (`Smoothing.h`) to smooth knob jumps over 5 ms, and **live values**
-   (exists) to publish `s` and `f` each UI frame for the dot and readout.
+   (`Smoothing.h`) to smooth knob jumps over 5 ms (Start and Stop in octaves),
+   and **live values** (exists): `p`, `s`, `hz` (drift and Pitch included),
+   `length` (seconds per cycle, for the retrace preview) and `waiting`
+   (Triggered, before a trigger), for the dot and readout.
 
 ## 8. Tests
 
@@ -222,7 +249,9 @@ Only knob and setting values; no node data.
 - Aliasing: a Square at 15 kHz has aliases at least 20 dB below a naive one.
 - Drift: same Seed → identical renders; Drift 0 → exact frequency; the
   warm-up offset is down to 5 % (`e^−3`) after *Warm-up*.
-- The demo types file includes the module (`patch.ui-types`).
+- The demo types file includes the module (`patch.ui-types`): regenerate
+  `demo-types.json` with `bleep_dump_types` when the module is merged (a
+  shared file, not part of the module folder).
 
 ## 9. Later
 

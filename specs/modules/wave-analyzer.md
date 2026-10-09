@@ -66,7 +66,10 @@ Every knob is also an input (`specs.md` section 7.3).
 | Seed | 0–999 | 1 |
 
 *Range* is the lab range switch: in a decade range the *Frequency* knob
-covers only that decade, ten times finer; *Pitch* is added afterwards.
+covers only that decade, ten times finer; *Pitch* is added afterwards. (The
+knob's normalised position is mapped by *Range*, `WaveAnalyzerDsp::dialHz`;
+the plain knob text always shows the Full scale, so the view hides the small
+knob and draws the big dial with the *Range* scale.)
 
 ## 4. Behaviour
 
@@ -118,7 +121,8 @@ value `m = clamp((dB − Floor) / −Floor, 0, 1)` drives the needle:
   moving-coil meter. Computed per sample in zero-delay-feedback form.
 - **Fast:** a one-pole with 5 ms time constant (`dsp::OnePole`).
 
-*Level* is the needle position. *Peak* fires when *Level* rises above
+*Level* is the needle position, stopped at the pins 0 and 1 (the needle
+filter itself is not clamped). *Peak* fires when *Level* rises above
 *Threshold* and re-arms below `Threshold − 0.03`. While sweeping, each
 loud partial fires once: a rhythm read from the spectrum.
 
@@ -139,18 +143,34 @@ late and wide, as on the bench; the view then lights *Too Fast*.
 The lock loop has two states, *Hunt* and *Lock*. The window is
 `W = [Frequency · 2^(−Capture/12), Frequency · 2^(+Capture/12)]`.
 
-- **Hunt:** the dial scans `W` once upwards in log frequency, at
-  `max(B² / 2 Hz/s, width(W) / 8 s)`. It remembers the frequency `f*` where
-  `|Z|` was largest. At the end it jumps to `f*` and enters *Lock* if that
-  peak read above *Floor* + 6 dB, otherwise it scans again.
-- **Lock:** a second-order phase-locked loop. The phase error is
-  `e = atan2(Q, I)` (radians), the loop filter
-  `Δf = (Kp · e + Ki · ∫e dt) / 2π`, with `ωn = 2π · B/8`, damping 0.707,
-  `Kp = 2 · 0.707 · ωn`, `Ki = ωn²`. The integrator starts at `f*`, and `f`
-  is clamped to `W`. At a quarter of the low-pass cutoff the filter adds
-  about 40° of lag: the loop is stable but springy, ringing as it pulls in.
+The loop works on the dial value `F` (so `f = F · 2^(pitch + drift)` as in
+4.1, and `W` moves with *Pitch*); its frequency terms are divided by
+`2^(pitch + drift)`.
+
+- **Hunt:** the dial scans `W` once upwards at
+  `max(B² / 2 Hz/s, width(W) / 8 s)` (evaluated at the current `F`, so a
+  1/3-octave band scans faster higher up). It remembers the frequency `f*`
+  where `|Z|` was largest. At the end it jumps to `f*` and enters *Lock* if
+  that peak read above *Floor* + 6 dB, otherwise it scans again. Because the
+  band reads a moving dial late by its group delay (`0.832 / B` s for the
+  4-pole Butterworth), `f*` is first moved back by `rate · 0.832 / B`. A hunt
+  lasts at least `1/B` seconds (it matters only for *Capture* 0).
+- **Lock:** a second-order phase-locked loop with frequency-locked-loop aid.
+  The phase error is `e = atan2(Q, I)` (radians), the turn of `Z` per sample
+  `τ = arg(Z[n] · conj(Z[n−1]))`; the integrator advances by
+  `(Ki · e · dt + Kf · τ) / 2π` and `f = integrator + Kp · e / 2π`, with
+  `ωn = 2π · B/16`, damping 1, `Kp = 2 · ωn`, `Ki = ωn²`, `Kf = ωn`. The
+  integrator starts at `f*`; it and `f` are clamped to `W`. Locked, `τ` is 0
+  and only the PLL acts; pulling in, the FLL term drags the loop onto the
+  partial without slipping cycles. It still springs: it overshoots and rings
+  for a few cycles as it pulls in (settled within about 0.8 s at 10 Hz).
+  (Designed first with `ωn = 2π · B/8`, damping 0.707 and no FLL term: with
+  the low-pass lag at the loop's crossover that left about 5° of phase
+  margin. It rang for seconds and, started a few hertz off, slipped cycles
+  forever while reporting *Locked*.)
 - **Losing lock:** after 4/B seconds with `|Z|` more than 20 dB below the
-  value at lock-in, or with `f` pinned to an edge of `W`, it hunts again.
+  value at lock-in (the hunt's peak), or with `f` pinned to an edge of `W`
+  (only when `W` has a width), it hunts again.
   *Reset* forces a new hunt; *Hold* freezes `f` and the integrator.
   *Locked* is high in *Lock*; *Track* then works as a crude pitch tracker.
 
@@ -159,15 +179,26 @@ The lock loop has two states, *Hunt* and *Lock*. The window is
 The local oscillator wanders like a warm valve set:
 `drift = Drift · 0.02 · d(t)` octaves (up to ±24 cents), where `d(t)` is a
 cubic (Hermite) interpolation of seeded values `2 · uniform01(Seed, k, 1) − 1`
-at knots `k` spaced 6 s apart, `t` being song time while playing (seekable)
-and a free-running counter otherwise. A partial slides out of a 3 Hz band and
+at knots `k` spaced 6 s apart (`dsp::smoothNoise`, a Catmull-Rom curve),
+`t` being song time while playing (seekable; the transport's sample position
+divided by the sample rate) and a free-running counter otherwise. It is
+recomputed every 16 samples. A partial slides out of a 3 Hz band and
 back; in *Lock* the loop chases it.
 
 ### 4.8 Transport and edge cases
 
-- On transport start: `φ` and `ψ` reset to 0, the filters and needle clear,
-  the lock loop starts a hunt. A render from the same position is identical.
-- *Bandwidth* changes recompute coefficients only; states flush below 1e−20.
+- On transport start: `φ` and `ψ` reset to 0, the Hilbert pair, DC block,
+  filters and needle clear, a free sweep restarts, the lock loop starts a
+  hunt. A render from the same position is identical.
+- *Hold* freezes the whole tuned frequency `f` (dial, sweep, lock loop,
+  *Pitch* and drift); on release it jumps to the current value and the band
+  rings.
+- *Gain* is smoothed (20 ms); *Shifted*'s oscillator is skipped when nothing
+  reads it.
+- *Bandwidth* changes recompute coefficients only (and only when `B` moves
+  by more than 0.1 %, so a 1/3-octave sweep does not recompute every
+  sample); the I/Q states are cleared when they and their input fall below
+  1e−20.
 - In a Voice Cell each voice has its own analyser; drift uses stream `1 + voice`.
 
 ## 5. Module view
@@ -193,6 +224,12 @@ back; in *Lock* the loop chases it.
   the current pass, drawn as ink; the previous pass stays as faded ink, so a
   spectrum builds up slowly, sweep by sweep. In *Manual* and *Lock* the pen
   leaves a trace wherever the dial goes. Clicking the strip clears it.
+  Implementation: the node publishes the per-column needle maxima since the
+  last read as the live array `ink` (read and reset), plus live values `f`,
+  `level`, `locked`, `hunting`, `tooFast` and `pass`; `pass` counts sweep
+  passes (a wrap of `r`, *Reset*, a transport start, entering or leaving
+  *Sweep*), and the view moves the current ink to the faded layer when it
+  changes.
 
 ## 6. Saved state
 
@@ -200,21 +237,30 @@ Only knob and setting values. The plotter ink is not saved.
 
 ## 7. Engine requirements
 
-1. **Hilbert pair** (`patch/common/dsp/Hilbert.h`), as proposed in
-   *Freq Shifter*.
-2. **Low-cutoff filter:** `dsp::Svf` clamps at 5 Hz; I and Q need 1.5 Hz.
-   Use the double-precision `dsp::SlowSvf` proposed in *Wobble*.
+All met with existing code:
+
+1. **Hilbert pair:** `dsp::HilbertTransformer` (`patch/common/dsp/Hilbert.h`),
+   band edge 15 Hz.
+2. **Low-cutoff filter:** the double-precision `dsp::SvfLow` (`Svf.h`) for
+   I, Q and the needle.
 3. **Array live values:** 384 atomic per-column maxima, read and reset by
-   `liveValues` like the peak in *Level Meter*.
-4. Sync lengths of 16, 32 and 64 bars beyond `dsp::syncBeats`.
+   `liveArrays` (key `ink`).
+4. Sync lengths of 16, 32 and 64 bars: `WaveAnalyzerDsp::syncNames()` /
+   `syncBeats()` extend `dsp::syncNames()` locally.
 
 ## 8. Tests
 
 - A 1 kHz sine at amplitude 0.5, tuned to 1 kHz: *Band* settles to the same
   sine within 0.1 dB; tuned 3·B away: attenuated by more than 40 dB.
 - Bandwidth: −3 dB points at `f ± B/2` within 5 % for each setting.
-- No image: tuned to 30 Hz, a 60 Hz input at B = 100 Hz reads below −30 dB.
-- Phase accuracy: after one hour at 15 kHz, B = 3 Hz, still within 0.5 dB.
+- No image: tuned to 30 Hz at B = 100 Hz, a 30 Hz input leaves its `2f`
+  (60 Hz) term in `|Z|` below −30 dB (a real mixer would pass it: it lies
+  inside the 50 Hz low-pass). (Written first as "a 60 Hz input reads below
+  −30 dB", but 60 Hz is inside a 100 Hz band around 30 Hz.)
+- Phase accuracy: the double phase accumulator after one hour at 15 kHz
+  (44.1 kHz, where the increment is not exact) is within 1e−6 cycles of the
+  exact phase; a 3 Hz band started with that phase on the partial an hour in
+  reads within 0.5 dB.
 - *Shifted*: a 2 kHz sine tuned at 2 kHz, *Listen* 800 Hz → 800 Hz sine.
 - Level mapping: 0 dBFS → 1, *Floor* → 0; Needle overshoot under 2 %.
 - Peak: one trigger per crossing, no chatter. Synced sweep: `f` = fn(ppq).
@@ -222,7 +268,9 @@ Only knob and setting values. The plotter ink is not saved.
   (scan time + 1 s), *Track* within 2 cents of `log2(523 / 261.626)`.
   Two sines (−6 dB and 0 dB) in the window: it locks to the louder one.
 - Drift 0 → `f` exact; Drift > 0 → identical over two renders, |drift| ≤ 24 ct.
-- The demo types file includes the module (`patch.ui-types`).
+- The demo types file includes the module (`patch.ui-types`): needs
+  `bleep_dump_types --write patch/board/ui/demo-types.json` (a shared file,
+  regenerated when the module is merged).
 
 ## 9. Later
 

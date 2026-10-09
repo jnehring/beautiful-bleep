@@ -1,0 +1,11 @@
+{
+  "name": "XY Scope",
+  "slug": "xy-scope",
+  "tagline": "Lissajous figures on a green screen, with phase, correlation, ratio and a Still gate as outputs.",
+  "colour": "#4ade80",
+  "category": "Utility",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/xy-scope.md"
+}

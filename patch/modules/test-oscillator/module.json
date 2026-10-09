@@ -1,0 +1,10 @@
+{
+  "name": "Test Oscillator",
+  "slug": "test-oscillator",
+  "tagline": "A lamp-stabilised bridge oscillator: a dial, a range switch, and a sine that bounces, drifts and rings.",
+  "colour": "#f59e0b",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/test-oscillator.md"
+}

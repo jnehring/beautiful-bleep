@@ -1,0 +1,10 @@
+{
+  "name": "Sweep Generator",
+  "slug": "sweep-generator",
+  "tagline": "A bench function generator that glides from Start to Stop: risers, sirens, tone bursts and tracking sweeps.",
+  "colour": "#fb923c",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/sweep-generator.md"
+}
