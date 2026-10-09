@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: MIT
+#
+# Development override: the site is `next dev` (hot reload, no image rebuild) behind the same
+# Caddy routes as production, next to the normal api, db and storage services.
+#
+#   docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env up
+#   open http://localhost:8080
+#
+# The docs (public/docs, llms.txt) are generated when `dev` starts; after editing website/content
+# or a module's doc/, run:  docker compose ... restart dev
+# The board UI at /play/ is not built here; run scripts/build-web.sh --no-modules website/app/public/play
+# on the host if you need it. Needs Docker Compose 2.24+ (!reset).
+services:
+  dev:
+    image: node:22-alpine
+    working_dir: /repo/website/app
+    command: sh -c "npm ci --no-audit --no-fund && apk add --no-cache python3 >/dev/null && npm run dev -- --hostname 0.0.0.0"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      WATCHPACK_POLLING: "true"   # bind mounts on macOS do not deliver file events reliably
+    volumes:
+      - ./app:/repo/website/app
+      - ./content:/repo/website/content
+      - ../scripts:/repo/scripts:ro
+      - ../bus/include:/repo/bus/include:ro
+      - ../patch/modules:/repo/patch/modules
+      - ../patch/board/ui/demo-types.json:/repo/patch/board/ui/demo-types.json:ro
+      # Linux builds of node_modules and the Next cache stay in volumes, not on the host.
+      - dev-node-modules:/repo/website/app/node_modules
+      - dev-next:/repo/website/app/.next
+    restart: unless-stopped
+
+  site:
+    build: !reset null
+    image: caddy:2-alpine
+    volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
+      - ${BLEEP_WEB_MODULES:-../build/web/modules}:/srv/play-modules:ro
+    depends_on:
+      - dev
+      - api
+      - storage
+
+volumes:
+  dev-node-modules:
+  dev-next:

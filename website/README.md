@@ -20,6 +20,13 @@ docker compose -f website/docker-compose.yml --env-file website/.env up --build 
 docker compose -f website/docker-compose.yml --env-file website/.env down             # add -v to delete the database
 ```
 
+Development with hot reload (`next dev` behind the same Caddy routes, no image rebuild):
+
+```bash
+docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env up
+```
+After editing `website/content` or module docs, `docker compose ... restart dev` regenerates the docs.
+
 Set `BLEEP_SITE_PORT` to use another port. The build context is the repository
 root, because the site reads `website/content`, `patch/modules/*/module.json`,
 `bus/include` and `scripts/`.

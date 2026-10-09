@@ -86,9 +86,10 @@ services:
     volumes:
       - registry-data:/data
     healthcheck:
-      # Master leader elected AND filer up (the bucket is created through the filer), then S3
-      # (any HTTP answer, even 403, means it is listening: wget exits 8 on an error status).
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9333/cluster/status && wget -q -O /dev/null http://localhost:8888/ && { wget -q -O /dev/null http://localhost:8333/; [ $$? -le 8 ]; }"]
+      # Master up, filer up (the bucket is created through the filer), S3 answering (any HTTP
+      # status, even 403, means it listens). SeaweedFS listens on the container IP, not on
+      # localhost, so the checks use the service name.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://storage:9333/cluster/status && wget -q -O /dev/null http://storage:8888/ && wget -S -O /dev/null http://storage:8333/ 2>&1 | grep -q 'HTTP/'"]
       interval: 3s
       timeout: 3s
       retries: 30
