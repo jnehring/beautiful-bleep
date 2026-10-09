@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """api tokens and releases
 
 Revision ID: 0002
