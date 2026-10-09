@@ -84,7 +84,8 @@ value.
 The **figure ratio** `p/q` (lowest terms, `1 ≤ p, q ≤ 8`) is the fraction
 with the smallest `p + q` within 3 % of `r`; if none, `p = q = 1`. To stop it
 flickering between neighbours, a new fraction takes over only after it has
-been the choice for 200 ms.
+been the choice for 200 ms. After a stretch where either channel was invalid,
+the first choice is taken at once (so a fresh lock is found quickly).
 
 ### 4.3 Phase
 
@@ -93,8 +94,10 @@ figure. X is demodulated at harmonic `q` and Y at harmonic `p`:
 
 `Xc = LP(x · e^(−j·q·ψ))`, `Yc = LP(y · e^(−j·p·ψ))`
 
-where `LP` is a complex one-pole low-pass with time constant
-`τd = clamp(4 / fx, 20 ms, 2 s)`. The figure phase is
+where `LP` is two complex one-pole low-passes in series, each with time
+constant `τd / 2`, `τd = clamp(4 / fx, 20 ms, 2 s)` (the second pole cuts
+the demodulation ripple at twice the carrier, which a single pole leaves at
+about ±0.02 · max(p, q) in Phase). The figure phase is
 
 `φ = wrap(q · arg Yc − p · arg Xc)` in (−π, π], and **Phase** = `φ / π`.
 
@@ -114,7 +117,10 @@ constant on the DC-blocked signals (0 when the denominator is below 1e−8).
 ### 4.5 Still
 
 The slip `ω` (turns per second) is the change of unwrapped φ over the last
-50 ms. **Still** goes high once, for 100 ms without a break, both channels are
+50 ms, with φ first smoothed by a one-pole of `τd / 2` (so the remaining
+ripple doesn't read as slip). The slip history starts only once the
+demodulator had `τd` to settle after a channel became valid or the figure
+ratio changed; until 5 ms of history exist the slip counts as unknown. **Still** goes high once, for 100 ms without a break, both channels are
 valid, `|r − p/q| / (p/q) < 0.25 %` and `|ω|` is below the tolerance (Tight
 0.05, Normal 0.2, Loose 1 turn/s); it goes low once either condition has
 failed for 50 ms. A figure that turns once every five seconds is still enough
@@ -124,7 +130,8 @@ at *Normal*.
 
 The sweep runs left to right over *Timebase*. **Y Rising** starts a sweep at
 the next rising crossing of Y (4.1) after the previous sweep ends; **Auto**
-does too, but free-runs if no crossing comes within one sweep length;
+does too, but free-runs if no crossing comes within one sweep length (a
+triggered sweep starts at the interpolated crossing, to the sub-sample);
 **Beat** starts a sweep on every beat while the transport plays
 (`floor(ppq)` changes) and free-runs while it is stopped. Y is drawn as the
 main trace; X, when patched, as a second trace at half brightness. The
@@ -154,13 +161,17 @@ reach an output.
 
 ### 5.1 Points from the audio thread
 
-The audio thread writes (x, y, z) triples (before gain) into a lock-free
-single-producer ring of 8192 entries, keeping every `D`th sample with
+The audio thread writes (x, y, z, s) points (before gain; s is the Y-T
+sweep position 0…1, or −1 while the beam waits for a trigger) into a
+wait-free single-producer ring of 8192 entries (`XyPointRing`), keeping every `D`th sample with
 `D = max(1, ceil(sampleRate / 61,440))`, i.e. up to 1024 points per 60 Hz
-UI frame (every sample at 44.1 and 48 kHz, every second at 96 kHz). Each UI
-frame the view drains what is new, at most 4096 points; if the view fell
-behind, older points are dropped. In Y-T mode the audio thread also marks the
-sample index where each sweep starts.
+UI frame (every sample at 44.1 and 48 kHz, every second at 96 kHz). The
+board sends live state about 30 times a second; each time `liveArrays`
+drains what is new as `pts` (at most 4096 points; if the view fell behind,
+older points are dropped) plus `meta` = [point rate, 50 Hz hum phase of the
+first point, dropped count]. The view queues the points and draws, each
+animation frame, the ones that belong to the time that passed (keeping about
+45 ms queued), so the beam moves smoothly at the screen's frame rate.
 
 ### 5.2 Drawing the beam
 
@@ -175,9 +186,12 @@ where `Δts` is the segment's duration, `b = clamp(1 + z, 0, 2)` and `s` the
 spot size: brightness is inversely proportional to beam speed, so slow parts
 of a figure glow and fast edges are faint, as on a real tube. Lines are drawn
 with additive blending at a width of `1 + 5 · (1 − Focus)` pixels with a
-Gaussian edge. The buffer is shown through a tone curve `1 − e^(−k·E)` in
-the phosphor colour (Green `#4ade80`, Amber `#fbbf24`, Blue-White `#c7d2fe`),
-with a faint bloom around the brightest parts.
+Gaussian edge (`E` is the deposit per pixel along the segment, so the
+dwell time per pixel is kept). The buffer is shown through a tone curve
+`1 − e^(−k·E)` in the phosphor colour (Green `#4ade80`, Amber `#fbbf24`,
+Blue-White `#c7d2fe`), with a faint bloom around the brightest parts.
+`k = 14 · (1 − f) / Δt` for the frame's fade `f`, so a still figure is
+equally bright at any Persistence (longer persistence only lengthens trails).
 
 ### 5.3 Screen and character
 
@@ -197,22 +211,24 @@ Only knob and setting values; the screen buffer is not saved.
 
 ## 7. Engine requirements
 
-1. A **bulk live buffer**: `Module::liveValues` carries named doubles once per
-   frame, which cannot carry several thousand points. Add a lock-free
-   single-producer, single-consumer ring of float triples that a module can
-   expose and the view can drain on the message thread, generic enough for
-   other scope-like modules (Chart Recorder, Wave Analyzer).
-2. `dsp::OnePole` (`Smoothing.h`) for the DC blockers, Ratio smoothing and
-   correlation averages; the complex demodulator low-pass is two of them.
-3. Inside Voice Cells each voice measures its own pair; the view shows voice 1.
+1. A **bulk live buffer**: no engine change was needed. The module keeps a
+   wait-free ring (`XyPointRing` in `XyScopeDsp.h`) and drains it in
+   `liveArrays` on the message thread (as Chart Recorder does with its ink).
+   It could move to `common/` once another scope-like module needs it.
+2. One-pole filters: the module uses its own double-precision one-pole with
+   a cached coefficient (`XyPole`) instead of `dsp::OnePole`, which
+   recomputes `exp` every sample and runs in float (too coarse for the
+   0.2 Hz DC blocker).
+3. Inside Voice Cells each voice measures its own pair; the view shows the
+   voice the board shows (the one that started last).
 
 ## 8. Tests
 
 - Out X and Out Y equal the inputs. Frequency estimates within 0.1 % for sines at 1, 110 and 5000 Hz; invalid
   below −60 dBFS and with Y unpatched (Ratio and Phase hold, Still low).
 - Ratio: Y a fifth (×1.5) above X reads 0.585 ± 0.002; an octave reads 1.0.
-- Figure ratio: 3:2 for r = 1.5, 1:1 for r = 1.73 (no fraction within 3 %),
-  and no flicker for r swept slowly through 1.49–1.51.
+- Figure ratio: 3:2 for r = 1.5, 7:4 for r = 1.73, 1:1 for r = 1.07 (no
+  fraction within 3 %), and no flicker for r swept slowly through 1.49–1.51.
 - Phase at 1:1: Y lagging/leading X by 0°, 90°, −90°, 179° reads 0, +0.5,
   −0.5, ≈ +0.99. At 3:2 with a fixed offset, Phase is constant over 10 s.
 - Detuned 1:1 (220 vs 220.5 Hz): Phase is a rising saw at 0.5 Hz.
@@ -221,6 +237,8 @@ Only knob and setting values; the screen buffer is not saved.
   *Normal*; high for 220 vs 220.1 Hz at *Normal*, low at *Tight*.
 - Point ring: 1024 points per frame at 48 kHz; overflow drops oldest, never
   blocks the audio thread.
+- Y-T: sweeps start at Y's rising crossings; Auto free-runs; Beat sweeps on
+  every beat.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later
