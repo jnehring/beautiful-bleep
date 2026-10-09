@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: MIT
+#
+# Builds the plugins on macOS, Linux and Windows and releases them to the Bleep registry: the
+# macOS job publishes the new version, the others add their platform to it afterwards.
+# DISABLED for now: it has no trigger. To enable it, replace `on:` with the commented
+# `workflow_dispatch` block (and set the repository secret BLEEP_RELEASE_TOKEN and the variable
+# BLEEP_REGISTRY_URL), then run it from the Actions tab.
+name: Release
+
+on: {}
+#  workflow_dispatch:
+#    inputs:
+#      level:
+#        description: Version level (x, 1.x, 1.4.x, major, minor, patch)
+#        required: true
+#        default: patch
+
+env:
+  BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
+  BLEEP_RELEASE_TOKEN: ${{ secrets.BLEEP_RELEASE_TOKEN }}
+
+jobs:
+  release-macos:
+    name: Release (macos-arm64)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/build-patch.sh
+      - run: python3 scripts/release.py --all --level "${{ inputs.level }}" --yes
+
+  add-platform:
+    name: Add platform (${{ matrix.os }})
+    needs: release-macos
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev \
+            libfreetype-dev libfontconfig1-dev libgl1-mesa-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev
+      - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_PATCH_FORMATS=VST3
+      - run: cmake --build build/patch --config Release --parallel
+      - run: python scripts/release.py --all --add-platform latest --yes

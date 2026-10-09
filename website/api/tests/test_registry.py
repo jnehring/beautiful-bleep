@@ -143,3 +143,35 @@ def test_token_check(client, make_admin):
     assert client.get("/api/registry/token").status_code == 401
     token = make_token(client, make_admin)
     assert client.get("/api/registry/token", headers={"Authorization": f"Bearer {token}"}).json() == {"name": "ci"}
+
+
+def test_admin_downloads_lists_contents(client, make_admin):
+    token = make_token(client, make_admin)
+    assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
+    assert release(client, token, "bleep-patch", "0.2.0", publish=False).status_code == 201
+    assert client.get("/api/admin/downloads").status_code == 401
+    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
+    r = client.get("/api/admin/downloads")
+    assert r.status_code == 200
+    plugins = r.json()["plugins"]
+    assert [(p["version"], p["status"]) for p in plugins] == [("0.2.0", "draft"), ("0.1.0", "published")]
+    assert r.json()["modules"] == [] and r.json()["presets"] == []
+
+
+def test_platform_can_be_added_to_a_published_release(client, make_admin, storage):
+    token = make_token(client, make_admin)
+    h = {"Authorization": f"Bearer {token}"}
+    assert release(client, token).status_code == 200
+    url = "/api/registry/plugin/bleep-patch/releases/0.1.0"
+    data = b"linuxzip"
+    f = {"path": "bleep-patch-0.1.0-linux-x86_64.zip", "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data), "platform": "linux-x86_64"}
+    assert client.post(url + "/platforms", json={"files": [{**f, "platform": "macos-arm64"}]}, headers=h).status_code == 409
+    assert client.post(url + "/platforms", json={"files": [f]}, headers=h).status_code == 200
+    entry_key = "v1/plugins/bleep-patch/0.1.0/entry.json"
+    assert [x["platform"] for x in json.loads(storage.objects[entry_key])["files"]] == ["macos-arm64"]  # not until uploaded
+    assert client.put(url + "/files/" + f["path"], content=data, headers=h).status_code == 204
+    assert [x["platform"] for x in json.loads(storage.objects[entry_key])["files"]] == ["macos-arm64", "linux-x86_64"]
+    assert client.put(url + "/files/" + f["path"], content=data, headers=h).status_code == 409  # uploaded files never change
+    assert client.put(url + "/files/bleep-patch-0.1.0.zip", content=b"other", headers=h).status_code == 409
+    assert client.post(url + "/platforms", json={"files": [f]}, headers=h).status_code == 409
+    assert client.post("/api/registry/plugin/bleep-patch/releases/9.9.9/platforms", json={"files": [f]}, headers=h).status_code == 404

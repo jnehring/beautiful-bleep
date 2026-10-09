@@ -104,6 +104,10 @@ class ReleaseIn(BaseModel):
     files: list[FileIn] = Field(min_length=1, max_length=64)
 
 
+class PlatformIn(BaseModel):
+    files: list[FileIn] = Field(min_length=1, max_length=64)
+
+
 class ReleaseOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     kind: str
@@ -113,3 +117,21 @@ class ReleaseOut(BaseModel):
     status: str
     files: list
     published_at: datetime | None
+
+
+class DownloadItemOut(BaseModel):
+    slug: str
+    version: str
+    channel: str
+    status: str
+    title: str
+    files: int
+    bytes: int
+    published_at: datetime | None
+    created_at: datetime
+
+
+class DownloadsOut(BaseModel):
+    plugins: list[DownloadItemOut]
+    modules: list[DownloadItemOut]
+    presets: list[DownloadItemOut]

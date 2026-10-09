@@ -9,7 +9,10 @@
 What it does, per plugin: finds the build in build/patch (run scripts/build-patch.sh first, or
 pass --build), asks the registry for the published versions, counts the next version at the
 level you ask for, zips the build, uploads it and publishes it. A release is one machine's
-build: the zip is named for this platform. Versions are immutable.
+build: the zip is named for this platform. Versions are immutable, but a published version can gain
+builds for platforms it lacks: build on the other machine and run
+    scripts/release.py --all --add-platform 0.1.0 --registry ...   (or "latest": each plugin's newest version)
+The registry refuses a platform the version already has; existing files never change.
 
 Levels (what is counted up; the rest of the number is kept):
     x      next major                  1.4.2 -> 2.0.0
@@ -124,6 +127,15 @@ class Registry:
                 self._request("PUT", f"{base}/{version}/files/{z.name}", data=f, length=z.stat().st_size)
         self._request("POST", f"{base}/{version}/publish")
 
+    def add_platform(self, slug: str, version: str, zips: list[Path], platform_id: str) -> None:
+        """Adds this machine's build to a published release (the registry refuses a platform it already has)."""
+        files = [{"path": z.name, "sha256": sha256(z), "bytes": z.stat().st_size, "platform": platform_id} for z in zips]
+        base = f"/plugin/{slug}/releases/{version}"
+        self._request("POST", f"{base}/platforms", {"files": files})
+        for z in zips:
+            with z.open("rb") as f:
+                self._request("PUT", f"{base}/files/{z.name}", data=f, length=z.stat().st_size)
+
 
 # ---- packaging ----------------------------------------------------------------
 
@@ -187,7 +199,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("plugins", nargs="*", metavar="PLUGIN", help="plugin ids: " + ", ".join(PLUGINS))
     ap.add_argument("--all", action="store_true", help="release every plugin")
     ap.add_argument("--list", action="store_true", help="list the plugins and exit")
-    ap.add_argument("--level", help="x, 1.x, 1.4.x, major, minor or patch (required)")
+    ap.add_argument("--level", help="x, 1.x, 1.4.x, major, minor or patch (required unless --add-platform)")
+    ap.add_argument("--add-platform", metavar="VERSION|latest", help="add this machine's build to the published VERSION instead of releasing a new one")
     ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL"), help="the website's URL (or $BLEEP_REGISTRY_URL)")
     ap.add_argument("--token-file", help="file holding the release token (or $BLEEP_RELEASE_TOKEN)")
     ap.add_argument("--channel", choices=("stable", "beta"), default="stable")
@@ -209,14 +222,23 @@ def main(argv: list[str] | None = None) -> int:
     unknown = [n for n in names if n not in PLUGINS]
     if unknown:
         ap.error(f"unknown plugin(s): {', '.join(unknown)} (see --list)")
-    if not args.level:
+    if args.add_platform:
+        if args.level:
+            ap.error("--level and --add-platform are exclusive")
+        try:
+            if args.add_platform != "latest":
+                parse_version(args.add_platform)
+        except ValueError as e:
+            ap.error(str(e))
+    elif not args.level:
         ap.error("--level is required: x, 1.x, 1.4.x, major, minor or patch")
     if not args.registry:
         ap.error("--registry (or $BLEEP_REGISTRY_URL) is required")
-    try:
-        next_version(args.level, [])
-    except ValueError as e:
-        ap.error(str(e))
+    if args.level:
+        try:
+            next_version(args.level, [])
+        except ValueError as e:
+            ap.error(str(e))
 
     if args.build:
         subprocess.run([str(ROOT / "scripts" / "build-patch.sh")], check=True)
@@ -231,12 +253,19 @@ def main(argv: list[str] | None = None) -> int:
             if artefact is None:
                 sys.exit(f"{slug}: no build at {args.build_dir / PLUGINS[slug][1].format(cfg=args.config)} (run scripts/build-patch.sh, or pass --build)")
             published = registry.versions(slug)
-            plan.append((slug, artefact, published, next_version(args.level, published)))
+            if args.add_platform:
+                target = max(published, key=parse_version) if args.add_platform == "latest" and published else args.add_platform
+                if target not in published:
+                    sys.exit(f"{slug}: {target} is not published (published: {', '.join(published) or 'none'})")
+                plan.append((slug, artefact, published, target))
+            else:
+                plan.append((slug, artefact, published, next_version(args.level, published)))
     except RegistryError as e:
         sys.exit(str(e))
 
     plat = platform_id()
-    print(f"Registry {args.registry}, channel {args.channel}, level {args.level}, platform {plat}")
+    print(f"Registry {args.registry}, " + (f"adding platform {plat} to {args.add_platform}" if args.add_platform
+          else f"channel {args.channel}, level {args.level}, platform {plat}"))
     for slug, artefact, published, version in plan:
         print(f"  {slug:22} {(published[-1] if published else 'none'):>8} -> {version}   {artefact.relative_to(ROOT) if artefact.is_relative_to(ROOT) else artefact}")
     if args.dry_run:
@@ -252,7 +281,10 @@ def main(argv: list[str] | None = None) -> int:
         zip_path = out_dir / f"{slug}-{version}-{plat}.zip"
         try:
             make_zip(artefact, zip_path)
-            registry.release(slug, version, args.channel, PLUGINS[slug][0], args.notes, [zip_path], plat)
+            if args.add_platform:
+                registry.add_platform(slug, version, [zip_path], plat)
+            else:
+                registry.release(slug, version, args.channel, PLUGINS[slug][0], args.notes, [zip_path], plat)
         except (RegistryError, subprocess.CalledProcessError) as e:
             print(f"  {slug} {version}: FAILED: {e}", file=sys.stderr)
             if done:

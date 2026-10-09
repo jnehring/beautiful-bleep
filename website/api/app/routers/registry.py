@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..deps import require_release_token
 from ..models import ApiToken, Release, now
-from ..schemas import ReleaseIn, ReleaseOut
+from ..schemas import PlatformIn, ReleaseIn, ReleaseOut
 from ..storage import Storage, get_storage
 
 router = APIRouter(prefix="/api/registry", tags=["registry"])
@@ -91,11 +91,11 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
                       db: Session = Depends(get_db), storage: Storage = Depends(get_storage),
                       _: ApiToken = Depends(require_release_token)):
     row = _find(db, kind, slug, version)
-    if row.status != "draft":
-        raise HTTPException(status.HTTP_409_CONFLICT, "Release is already published")
     declared = next((f for f in row.files if f["path"] == path), None)
     if declared is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "File is not part of this release")
+    if row.status != "draft" and declared["uploaded"]:  # a published release only takes files still pending (a platform added later)
+        raise HTTPException(status.HTTP_409_CONFLICT, "Release is already published")
     digest, size = hashlib.sha256(), 0
     with tempfile.SpooledTemporaryFile(max_size=16 * 1024 * 1024) as spool:
         async for chunk in request.stream():
@@ -109,14 +109,39 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
         spool.seek(0)
         storage.put(_key(row, path), spool)
     row.files = [{**f, "uploaded": True} if f["path"] == path else f for f in row.files]
+    if row.status == "published":
+        storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()
+
+
+@router.post("/{kind}/{slug}/releases/{version}/platforms", response_model=ReleaseOut)
+def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = VersionPath,
+                 db: Session = Depends(get_db), _: ApiToken = Depends(require_release_token)):
+    """Declares files for platforms a published release lacks (built on another machine). Existing files never change;
+    each file shows in entry.json once it is uploaded, so clients never see a half-uploaded platform file."""
+    row = _find(db, kind, slug, version)
+    if row.status != "published":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Release is not published; create or replace the draft instead")
+    have = {f["platform"] for f in row.files if f["uploaded"]}
+    paths = {f["path"] for f in row.files if f["uploaded"]}
+    if len({f.path for f in body.files}) != len(body.files):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Duplicate file paths")
+    for f in body.files:
+        if f.platform in have or f.platform == "any":
+            raise HTTPException(status.HTTP_409_CONFLICT, f"Platform {f.platform} is already in this release")
+        if f.path in paths:
+            raise HTTPException(status.HTTP_409_CONFLICT, f"File {f.path} already exists in this release")
+    pending = {f.path for f in body.files}
+    row.files = [f for f in row.files if f["uploaded"] or f["path"] not in pending] + [{**f.model_dump(), "uploaded": False} for f in body.files]
+    db.commit()
+    return row
 
 
 def _entry(r: Release) -> dict:
     return {
         "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
         "notes": r.notes, "requires": r.requires, "published": r.published_at.isoformat(),
-        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform")} for f in r.files],
+        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform")} for f in r.files if f["uploaded"]],
     }
 
 
