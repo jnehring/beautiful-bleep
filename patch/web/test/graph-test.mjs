@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // Graph runner test (node): oscillator → filter → audio-out, with a cable that modulates a knob.
 // usage: node graph-test.mjs <site dir>   (the output of build_modules.py)
 import { readFileSync } from "node:fs";

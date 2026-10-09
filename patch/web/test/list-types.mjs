@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // Prints {slug: [type ids]} for every module .wasm in <out>/modules (used by build_modules.py).
 import { readdirSync, readFileSync } from "node:fs";
 import { compileModule, readSpecs } from "../js/module-host.js";

@@ -5,6 +5,31 @@
 // the main thread and node: only WebAssembly is used.
 
 const CHUNK = 32;
+
+// AudioWorkletGlobalScope has no TextEncoder / TextDecoder.
+function utf8Decode(bytes) {
+  let out = "";
+  for (let i = 0; i < bytes.length; ) {
+    const b = bytes[i++];
+    let cp = b;
+    if (b >= 0xf0) { cp = ((b & 7) << 18) | ((bytes[i++] & 63) << 12) | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63); }
+    else if (b >= 0xe0) { cp = ((b & 15) << 12) | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63); }
+    else if (b >= 0xc0) { cp = ((b & 31) << 6) | (bytes[i++] & 63); }
+    out += String.fromCodePoint(cp);
+  }
+  return out;
+}
+function utf8Encode(text) {
+  const out = [];
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    if (cp < 0x80) out.push(cp);
+    else if (cp < 0x800) out.push(0xc0 | (cp >> 6), 0x80 | (cp & 63));
+    else if (cp < 0x10000) out.push(0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63));
+    else out.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 63), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63));
+  }
+  return Uint8Array.from(out);
+}
 const NOTE_SIZE = 16;  // sizeof(NoteEvent)
 export const NOTE_ON = 0, NOTE_OFF = 1, NOTE_PRESSURE = 2;
 
@@ -61,7 +86,7 @@ function instantiate(module) {
   const x = instance.exports;
   const ptr = x.bleep_spec_json();
   const len = x.bleep_spec_json_length();
-  const specs = JSON.parse(new TextDecoder().decode(new Uint8Array(memory.buffer, ptr, len)));
+  const specs = JSON.parse(utf8Decode(new Uint8Array(memory.buffer, ptr, len)));
   return { instance, x, memory, specs };
 }
 
@@ -115,7 +140,7 @@ export class ModuleInstance {
 
   // ---- strings, gestures and live values -------------------------------------
   #writeString(text, extraBytes = 0) {
-    const bytes = new TextEncoder().encode(text);
+    const bytes = utf8Encode(text);
     const ptr = this.x.bleep_scratch(this.handle, bytes.length + 1 + extraBytes);
     const mem = new Uint8Array(this.memory.buffer);
     mem.set(bytes, ptr);
@@ -123,7 +148,7 @@ export class ModuleInstance {
     return { ptr, length: bytes.length };
   }
   #readText(length) {
-    return new TextDecoder().decode(new Uint8Array(this.memory.buffer, this.x.bleep_text(this.handle), length));
+    return utf8Decode(new Uint8Array(this.memory.buffer, this.x.bleep_text(this.handle), length));
   }
   setData(json) { const { length } = this.#writeString(json); this.x.bleep_set_data(this.handle, length); }
   /// A performance gesture from the module view (a key played, a button pressed).

@@ -7,6 +7,14 @@
 #
 #   docker compose -f website/docker-compose.yml up --build
 
+# Bleep Board: every module compiled to its own WebAssembly file, plus the board UI
+# and the web engine (scripts/build-web.sh). Served at /play/.
+FROM emscripten/emsdk:4.0.10 AS web
+WORKDIR /repo
+COPY patch patch
+COPY scripts scripts
+RUN scripts/build-web.sh /out
+
 FROM node:22-alpine AS build
 RUN apk add --no-cache python3
 WORKDIR /repo
@@ -17,6 +25,7 @@ COPY patch/modules patch/modules
 COPY scripts scripts
 COPY website/content website/content
 COPY website/app website/app
+COPY --from=web /out website/app/public/play
 RUN cd website/app && npm run build
 
 FROM caddy:2-alpine

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // Smoke test: the oscillator wasm runs under plain WebAssembly and makes a sine of the right pitch.
 import { readFileSync } from "node:fs";
 import { compileModule, ModuleInstance } from "../js/module-host.js";

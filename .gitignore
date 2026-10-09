@@ -11,3 +11,4 @@ next-prompts.md
 
 # Claude Code worktrees (local checkouts of other branches)
 .claude/worktrees/
+website/app/public/play
