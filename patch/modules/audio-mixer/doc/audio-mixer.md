@@ -30,6 +30,19 @@ over 50 ms. Switching it off leaves the signal untouched.
 
 Solo doesn't affect the sends, so a reverb keeps its tail while you solo.
 
+**Mono** sums every channel (and the return) to mono: Pan is ignored and
+*Out L* and *Out R* carry the same signal.
+
+## The view
+
+The view is a horizontal row of channel strips. Each has a **Pan** dial, a
+**Send** dial, **M**ute and **S**olo buttons and a **Level** fader with a level
+meter beside it (peak, with a hold line and a clip light; click the light to
+reset). The meter shares the fader's scale, so 0 dB lines up on both. The
+master strip has the *Master* fader with a stereo meter, the *Limiter* and
+*Mono* buttons, and the limiter's gain reduction. Double-click a control to
+reset it.
+
 ## How to use it?
 
 - **Mix a drum kit:** each drum into its own channel, *Out L/R* to an audio
@@ -58,6 +71,7 @@ Solo doesn't affect the sends, so a reverb keeps its tail while you solo.
 | Solo 1–4 | Off, On | Off |
 | Send Point 1–4 | Post-Fader, Pre-Fader | Post-Fader |
 | Limiter | Off, On | On |
+| Mono | Off, On | Off |
 
 ### Inputs
 

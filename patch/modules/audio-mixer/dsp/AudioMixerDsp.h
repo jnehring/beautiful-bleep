@@ -79,6 +79,7 @@ struct AudioMixerParams {
     MixerChannelParams ch[kMixerChannels];
     float returnDb = 0.0f, masterDb = 0.0f;
     bool limiter = true;
+    bool mono = false;  ///< every channel and the return summed to mono; no pan, Out L = Out R
 };
 
 struct AudioMixerInputs {
@@ -133,10 +134,15 @@ public:
             mute_[k].setTarget(muted ? 0.0f : 1.0f, rampSamples_);
             solo_[k].setTarget(soloedOut ? 0.0f : 1.0f, rampSamples_);
             const float m = mute_[k].next(), s = solo_[k].next();
-            const float xl = in.l[k], xr = in.stereo[k] ? in.r[k] : in.l[k];
+            float xl = in.l[k], xr = in.stereo[k] ? in.r[k] : in.l[k];
             const float level = dsp::faderGain(c.levelDb);
             float gl, gr;
-            panGains(c.pan, in.stereo[k], gl, gr);
+            if (p.mono) {
+                xl = xr = 0.5f * (xl + xr);
+                gl = gr = 1.0f;
+            } else {
+                panGains(c.pan, in.stereo[k], gl, gr);
+            }
             const float yl = xl * level * gl * m, yr = xr * level * gr * m;
             busL += yl * s, busR += yr * s;
             f.peak[k] = std::max(std::fabs(xl * level * m), std::fabs(xr * level * m));
@@ -148,7 +154,9 @@ public:
             }
         }
         const float ret = dsp::faderGain(p.returnDb), master = dsp::faderGain(p.masterDb);
-        float l = (busL + in.returnL * ret) * master, r = (busR + in.returnR * ret) * master;
+        float retL = in.returnL, retR = in.returnR;
+        if (p.mono) retL = retR = 0.5f * (retL + retR);
+        float l = (busL + retL * ret) * master, r = (busR + retR * ret) * master;
         if (p.limiter) limiter_.process(l, r);
         f.outL = l, f.outR = r;
         f.sendL = sendL, f.sendR = sendR;

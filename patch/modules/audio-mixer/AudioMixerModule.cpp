@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Audio Mixer node (specs/modules/audio-mixer.md): four stereo channels,
-// a send and return, a master with a limiter, and meters.
+// a send and return, a master with a limiter, a mono option and meters.
 #include "AudioMixerDsp.h"
 #include "Registry.h"
 
 #include <algorithm>
+#include <cmath>
 #include <atomic>
 #include <string>
 
@@ -21,11 +22,18 @@ ParamSpec fader(const std::string& id, const std::string& name, float def) {
     return p;
 }
 
+/// Raises a to v if v is larger (audio thread; the view resets it on read).
+void raise(std::atomic<float>& a, float v) noexcept {
+    float prev = a.load(std::memory_order_relaxed);
+    while (v > prev && !a.compare_exchange_weak(prev, v, std::memory_order_relaxed)) {}
+}
+
 class AudioMixerModule final : public Module {
 public:
     // Per channel k: params Level, Pan, Send at 3k…3k+2; then these.
     enum { ReturnLevel = 3 * kMixerChannels, Master, Mute1, Solo1 = Mute1 + kMixerChannels,
-           SendPoint1 = Solo1 + kMixerChannels, Limiter = SendPoint1 + kMixerChannels };
+           SendPoint1 = Solo1 + kMixerChannels, Limiter = SendPoint1 + kMixerChannels,
+           Mono };
     // Inputs: In k L at 2k, In k R at 2k+1; then these.
     enum { ReturnL = 2 * kMixerChannels, ReturnR, MuteIn1 };
     enum { OutL, OutR, SendL, SendR, Level };
@@ -39,14 +47,16 @@ public:
     void reset() override { dsp_.reset(); }
 
     void liveValues(std::vector<std::pair<std::string, double>>& out) const override {
-        for (int k = 0; k < kMixerChannels; ++k) out.push_back({"peak" + std::to_string(k + 1), (double)peak_[k].load()});
-        out.push_back({"master", (double)masterPeak_.load()});
+        for (int k = 0; k < kMixerChannels; ++k) out.push_back({"peak" + std::to_string(k + 1), (double)peak_[k].exchange(0.0f)});
+        out.push_back({"masterL", (double)masterL_.exchange(0.0f)});
+        out.push_back({"masterR", (double)masterR_.exchange(0.0f)});
         out.push_back({"gr", (double)reduction_.load()});
     }
 
     void process(const ProcessContext& c) override {
         patch::AudioMixerParams p;
         p.limiter = setting(Limiter) >= 0.5f;
+        p.mono = setting(Mono) >= 0.5f;
         patch::AudioMixerInputs in;
         for (int k = 0; k < kMixerChannels; ++k) {
             p.ch[k].mute = setting(Mute1 + k) >= 0.5f;
@@ -56,7 +66,7 @@ public:
         }
         const bool returnStereo = c.inputConnected[ReturnR];
         patch::AudioMixerFrame f;
-        float peaks[kMixerChannels] = {}, master = 0.0f;
+        float peaks[kMixerChannels] = {}, masterL = 0.0f, masterR = 0.0f;
         for (int i = 0; i < c.numSamples; ++i) {
             for (int k = 0; k < kMixerChannels; ++k) {
                 p.ch[k].levelDb = value(c, 3 * k, i);
@@ -77,17 +87,21 @@ public:
             c.outputs[SendR][i] = f.sendR;
             c.outputs[Level][i] = f.level;
             for (int k = 0; k < kMixerChannels; ++k) peaks[k] = std::max(peaks[k], f.peak[k]);
-            master = std::max({master, std::fabs(f.outL), std::fabs(f.outR)});
+            masterL = std::max(masterL, std::fabs(f.outL));
+            masterR = std::max(masterR, std::fabs(f.outR));
         }
-        for (int k = 0; k < kMixerChannels; ++k) peak_[k].store(peaks[k]);
-        masterPeak_.store(master);
+        for (int k = 0; k < kMixerChannels; ++k) raise(peak_[k], peaks[k]);
+        raise(masterL_, masterL);
+        raise(masterR_, masterR);
         reduction_.store(dsp_.gainReduction());
     }
 
 private:
     patch::AudioMixerDsp dsp_;
-    std::atomic<float> peak_[kMixerChannels] = {};
-    std::atomic<float> masterPeak_{0.0f}, reduction_{1.0f};
+    // Peaks since the view last read them (liveValues resets them), so no short peak is missed.
+    mutable std::atomic<float> peak_[kMixerChannels] = {};
+    mutable std::atomic<float> masterL_{0.0f}, masterR_{0.0f};
+    std::atomic<float> reduction_{1.0f};
 };
 
 }  // namespace
@@ -113,6 +127,7 @@ void registerAudioMixerModule(Registry& r) {
         s.params.push_back(ParamSpec::choice("sendpoint" + std::to_string(k), "Send Point " + std::to_string(k),
                                              {"Post-Fader", "Pre-Fader"}, 0));
     s.params.push_back(ParamSpec::toggle("limiter", "Limiter", true));
+    s.params.push_back(ParamSpec::toggle("mono", "Mono", false));
     for (int k = 1; k <= kMixerChannels; ++k) {
         const std::string n = std::to_string(k);
         s.inputs.push_back({"in" + n + "l", "In " + n + " L", Signal::Audio});

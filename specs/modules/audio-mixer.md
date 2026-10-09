@@ -51,6 +51,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Solo 1–4 | Off, On | Off |
 | Send Point 1–4 | Post-fader, Pre-fader | Post-fader |
 | Limiter | Off, On | On |
+| Mono | Off, On | Off |
 
 ## 4. Behaviour
 
@@ -140,6 +141,7 @@ Only knob and setting values; no node data.
 - Stereo balance: centre passes unchanged; hard right silences L, R unchanged.
 - Mute setting or a high Mute gate mutes the channel; Solo on one channel silences the others on Out but not on Send.
 - Pre-fader send ignores Level; post-fader follows it.
+- Mono: every channel is summed to (L+R)/2, Pan is ignored, Out L = Out R.
 - Limiter: a +12 dB sine stays below −0.3 dBFS after the attack; Off is bit-exact.
 - Moving a fader at full speed produces no step larger than the smoothing allows (no clicks).
 - The demo types file includes the module (`patch.ui-types`).
