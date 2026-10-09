@@ -68,7 +68,16 @@
     return next;
   }
 
-  const message = () => ({ board, ports, canUndo: undo.length > 0, canRedo: redo.length > 0,
+  /// MIDI Device nodes the user added are live ports of the browser build.
+  function syncPorts() {
+    if (!board) return;
+    for (const n of board.nodes) {
+      const t = typeOf(n.type);
+      if (n.port && t && t.port === "midi-device")
+        ports[n.port] = { kind: "midi-device", track: n.device || "", live: true, main: false };
+    }
+  }
+  const message = () => (syncPorts(), { board, ports, canUndo: undo.length > 0, canRedo: redo.length > 0,
                            status: (window.BleepWeb && BleepWeb.status) || "Demo · no audio · latency 256 smp" });
   function save() { store.set("bleep-demo-board", board); }
   function pushUndo() { undo.push(JSON.stringify(board)); if (undo.length > 200) undo.shift(); redo = []; }
@@ -165,6 +174,7 @@
       if (n.type === "voice-cell") entry.voices = Math.floor(t * 2) % 2 ? 0b101 : 0b011;
       nodes[n.id] = entry;
     });
+    syncPorts();
     emit("state", { nodes, ports });
   }, 1000 / 30);
 
@@ -179,6 +189,7 @@
       }
     }
     if (changed) emit("board", message());
+    syncPorts();
     emit("state", { nodes: state.nodes, ports });
   }
   if (window.BleepWeb) {
@@ -201,6 +212,25 @@
           save();
           if (window.BleepWeb) BleepWeb.setBoard(board);
           return message();
+        case "loadPatch": {  // the preset browser (dev server): port nodes take the demo's own ports of their kind
+          const next = clone(a[0]), used = new Set();
+          next.nodes = next.nodes.filter((n) => {
+            if (!n.port) return true;
+            const kind = (types.find((t) => t.type === n.type) || {}).port;
+            const free = Object.entries(ports).find(([id, p]) => p.kind === kind && !used.has(id));
+            if (!free) return false;
+            used.add(free[0]);
+            n.port = free[0];
+            return true;
+          });
+          const ids = new Set(next.nodes.map((n) => n.id));
+          next.cables = next.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node));
+          pushUndo();
+          board = sanitise(next);
+          save();
+          if (window.BleepWeb) BleepWeb.setBoard(board);
+          return message();
+        }
         case "undo":
           if (undo.length) { redo.push(JSON.stringify(board)); board = JSON.parse(undo.pop()); save(); if (window.BleepWeb) BleepWeb.setBoard(board); }
           return message();
@@ -244,7 +274,7 @@
           return { id: h.toString(16).padStart(16, "0").slice(-16) + ".wav", name: a[0], seconds: 0, channels: 2 };
         }
         case "exportMedia": return { error: "no audio in the demo" };
-        case "midiDevices": return ["Demo Keyboard", "Demo Pads"];
+        case "midiDevices": return window.BleepWeb ? BleepWeb.midiDevices() : ["Demo Keyboard", "Demo Pads"];
         case "presets": return store.get(presetKey(a[0]), []);
         case "savePreset": {
           const list = store.get(presetKey(a[2]), []).filter((p) => p.name !== a[0]);

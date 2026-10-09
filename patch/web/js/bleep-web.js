@@ -132,34 +132,56 @@
   const keys = "awsedftgyhujkolp;'".split("");  // C … E, piano layout
   const down = new Set();
   let octave = 4;
+  /// Keyboard modules play too (their own view handles the keys only while it has focus).
+  const played = (note, action) => {
+    if (board) for (const n of board.nodes) if (n.type === "keyboard") W.perform(n.id, action, [note]);
+  };
   window.addEventListener("keydown", (e) => {
     if (!W.running || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     if (/^(input|textarea|select)$/i.test(e.target.tagName) || e.target.isContentEditable) return;
     const k = keys.indexOf(e.key.toLowerCase());
     if (k < 0 || down.has(e.key)) return;
     down.add(e.key);
-    W.noteOn(12 * (octave + 1) + k);
+    const note = 12 * (octave + 1) + k;
+    W.noteOn(note);
+    played(note, "on");
   });
   window.addEventListener("keyup", (e) => {
     const k = keys.indexOf(e.key.toLowerCase());
     if (k < 0 || !down.delete(e.key)) return;
-    W.noteOff(12 * (octave + 1) + k);
+    const note = 12 * (octave + 1) + k;
+    W.noteOff(note);
+    played(note, "off");
   });
 
   // ---- Web MIDI ---------------------------------------------------------------------
+  let midiAccess = null;
+  const midiNames = () => (midiAccess ? [...midiAccess.inputs.values()].map((i) => i.name) : []);
+  /// The controllers the MIDI Device nodes on the board are set to. With none on the board, every input plays.
+  const wanted = () => (board ? board.nodes.filter((n) => n.type === "midi-device").map((n) => n.device).filter(Boolean) : []);
+  const listens = (input) => {
+    const hasNodes = board && board.nodes.some((n) => n.type === "midi-device");
+    return !hasNodes || wanted().includes(input.name);
+  };
   W.enableMidi = async function () {
     if (!navigator.requestMIDIAccess) return false;
-    const access = await navigator.requestMIDIAccess();
+    if (!midiAccess) midiAccess = await navigator.requestMIDIAccess();
     const wire = (input) => { input.onmidimessage = (e) => {
+      if (!listens(input)) return;
       const [s, a, b] = e.data, cmd = s & 0xf0;
-      if (cmd === 0x90 && b > 0) W.noteOn(a, b / 127);
-      else if (cmd === 0x80 || cmd === 0x90) W.noteOff(a);
+      if (cmd === 0x90 && b > 0) { W.noteOn(a, b / 127); played(a, "on"); }
+      else if (cmd === 0x80 || cmd === 0x90) { W.noteOff(a); played(a, "off"); }
       else if (cmd === 0xb0) post({ cmd: "cc", number: a, value: b / 127 });
       else if (cmd === 0xe0) post({ cmd: "bend", value: ((b << 7) | a) / 16383 });
     }; };
-    access.inputs.forEach(wire);
-    access.onstatechange = () => access.inputs.forEach(wire);
+    midiAccess.inputs.forEach(wire);
+    midiAccess.onstatechange = () => { midiAccess.inputs.forEach(wire); if (W.onMidiDevices) W.onMidiDevices(midiNames()); };
     return true;
+  };
+  /// Names of the connected MIDI inputs (asks the browser for access the first time).
+  W.midiDevices = async function () {
+    try { await W.enableMidi(); } catch (e) { return []; }
+    return midiNames();
   };
 
   // ---- the "start audio" button -----------------------------------------------------
