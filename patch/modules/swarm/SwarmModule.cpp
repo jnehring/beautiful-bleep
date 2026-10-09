@@ -97,7 +97,7 @@ private:
 
 }  // namespace
 
-void registerSwarmModule(Registry& r) {
+static void registerSwarmModule(Registry& r) {
     ModuleSpec s;
     s.type = "swarm";
     s.name = "Swarm";

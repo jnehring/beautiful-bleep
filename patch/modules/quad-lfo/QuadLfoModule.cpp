@@ -84,7 +84,7 @@ private:
 
 }  // namespace
 
-void registerQuadLfoModule(Registry& r) {
+static void registerQuadLfoModule(Registry& r) {
     ModuleSpec s;
     s.type = "quad-lfo";
     s.name = "Quad LFO";

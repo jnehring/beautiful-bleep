@@ -41,9 +41,36 @@ inline double hardIntegral(double x) noexcept {
     const double m = x + 1.0 - 4.0 * std::floor((x + 1.0) * 0.25);
     return m <= 2.0 ? 0.5 * m * m - m : 3.0 * m - 0.5 * m * m - 4.0;
 }
+/// sin(π/2 · x) and cos(π/2 · x) without libm: x is reduced to the nearest
+/// quarter period, then Taylor polynomials on |a| ≤ π/4 (error < 1e-14,
+/// enough for ADAA's differences of G). Several times cheaper than std::sin.
+inline void sinCosHalfPi(double x, double& s, double& c) noexcept {
+    const double q = std::floor(x + 0.5);  // nearest quarter period
+    const double a = 0.5 * kPi * (x - q);  // |a| ≤ π/4
+    const double a2 = a * a;
+    const double sa = a * (1.0 + a2 * (-1.0 / 6 + a2 * (1.0 / 120 + a2 * (-1.0 / 5040 + a2 * (1.0 / 362880 +
+                                 a2 * (-1.0 / 39916800 + a2 * (1.0 / 6227020800.0)))))));
+    const double ca = 1.0 + a2 * (-0.5 + a2 * (1.0 / 24 + a2 * (-1.0 / 720 + a2 * (1.0 / 40320 +
+                            a2 * (-1.0 / 3628800 + a2 * (1.0 / 479001600.0 + a2 * (-1.0 / 87178291200.0)))))));
+    switch (((long long)q % 4 + 4) % 4) {
+        case 0: s = sa, c = ca; break;
+        case 1: s = ca, c = -sa; break;
+        case 2: s = -sa, c = -ca; break;
+        default: s = -ca, c = sa; break;
+    }
+}
+
 /// Soft fold sin(π/2 · x) and its antiderivative.
-inline double soft(double x) noexcept { return std::sin(0.5 * kPi * x); }
-inline double softIntegral(double x) noexcept { return -(2.0 / kPi) * std::cos(0.5 * kPi * x); }
+inline double soft(double x) noexcept {
+    double s, c;
+    sinCosHalfPi(x, s, c);
+    return s;
+}
+inline double softIntegral(double x) noexcept {
+    double s, c;
+    sinCosHalfPi(x, s, c);
+    return -(2.0 / kPi) * c;
+}
 
 /// The fold curve: shape 0 soft … 1 hard.
 inline double curve(double x, double shape) noexcept {

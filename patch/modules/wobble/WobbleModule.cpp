@@ -112,7 +112,7 @@ private:
 
 }  // namespace
 
-void registerWobbleModule(Registry& r) {
+static void registerWobbleModule(Registry& r) {
     ModuleSpec s;
     s.type = "wobble";
     s.name = "Wobble";

@@ -14,7 +14,8 @@ patch/modules/<type>/
 └── tests/test_<name>.cpp  DSP tests: each file is its own executable and ctest
 ```
 
-End `<Name>Module.cpp` with the registration function and
+End `<Name>Module.cpp` with the registration function (`static`, it is only
+used here) and
 
 ```cpp
 BLEEP_REGISTER_MODULE(registerFooModule);

@@ -166,7 +166,7 @@ private:
 
 }  // namespace
 
-void registerShiftRegisterModule(Registry& r) {
+static void registerShiftRegisterModule(Registry& r) {
     ModuleSpec s;
     s.type = "shift-register";
     s.name = "Shift Register";

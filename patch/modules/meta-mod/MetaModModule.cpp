@@ -126,7 +126,7 @@ private:
 
 }  // namespace
 
-void registerMetaModModule(Registry& r) {
+static void registerMetaModModule(Registry& r) {
     ModuleSpec s;
     s.type = "meta-mod";
     s.name = "Meta Mod";

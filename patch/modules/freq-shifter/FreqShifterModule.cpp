@@ -160,7 +160,7 @@ private:
 
 }  // namespace
 
-void registerFreqShifterModule(Registry& r) {
+static void registerFreqShifterModule(Registry& r) {
     ModuleSpec s;
     s.type = "freq-shifter";
     s.name = "Freq Shifter";

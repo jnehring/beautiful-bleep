@@ -145,7 +145,7 @@ private:
 
 }  // namespace
 
-void registerNeuronModule(Registry& r) {
+static void registerNeuronModule(Registry& r) {
     ModuleSpec s;
     s.type = "neuron";
     s.name = "Neuron";

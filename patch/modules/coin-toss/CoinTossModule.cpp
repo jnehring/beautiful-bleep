@@ -70,7 +70,7 @@ private:
 
 }  // namespace
 
-void registerCoinTossModule(Registry& r) {
+static void registerCoinTossModule(Registry& r) {
     ModuleSpec s;
     s.type = "coin-toss";
     s.name = "Coin Toss";

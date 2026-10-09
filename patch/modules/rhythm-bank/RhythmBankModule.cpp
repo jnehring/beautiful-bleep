@@ -110,7 +110,7 @@ private:
 
 }  // namespace
 
-void registerRhythmBankModule(Registry& r) {
+static void registerRhythmBankModule(Registry& r) {
     (void)patch::rbPrimeSets();  // build the tables here, not on the audio thread
     (void)patch::rbPolySets();
     ModuleSpec s;

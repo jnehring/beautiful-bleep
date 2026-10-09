@@ -205,7 +205,7 @@ private:
 
 }  // namespace
 
-void registerGateSequencerModule(Registry& r) {
+static void registerGateSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "gate-sequencer";
     s.name = "Gate Sequencer";

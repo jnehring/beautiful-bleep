@@ -120,7 +120,7 @@ ParamSpec levelParam(int k) {
 
 }  // namespace
 
-void registerFilterBankModule(Registry& r) {
+static void registerFilterBankModule(Registry& r) {
     ModuleSpec s;
     s.type = "filter-bank";
     s.name = "Filter Bank";

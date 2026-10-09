@@ -114,7 +114,7 @@ private:
 
 }  // namespace
 
-void registerReverbModule(Registry& r) {
+static void registerReverbModule(Registry& r) {
     ModuleSpec s;
     s.type = "reverb";
     s.name = "Verb";

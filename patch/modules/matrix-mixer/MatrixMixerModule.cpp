@@ -186,7 +186,7 @@ private:
 
 }  // namespace
 
-void registerMatrixMixerModule(Registry& r) {
+static void registerMatrixMixerModule(Registry& r) {
     ModuleSpec s;
     s.type = "matrix-mixer";
     s.name = "Matrix Mixer";

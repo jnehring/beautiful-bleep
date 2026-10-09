@@ -81,7 +81,7 @@ private:
 
 }  // namespace
 
-void registerChordOscModule(Registry& r) {
+static void registerChordOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "chord-osc";
     s.name = "Chord Osc";

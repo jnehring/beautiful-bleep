@@ -168,7 +168,7 @@ private:
 
 }  // namespace
 
-void registerModalVoiceModule(Registry& r) {
+static void registerModalVoiceModule(Registry& r) {
     ModuleSpec s;
     s.type = "modal-voice";
     s.name = "Modal Voice";

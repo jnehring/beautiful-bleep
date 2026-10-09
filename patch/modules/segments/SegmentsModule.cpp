@@ -154,7 +154,7 @@ private:
 
 }  // namespace
 
-void registerSegmentsModule(Registry& r) {
+static void registerSegmentsModule(Registry& r) {
     ModuleSpec s;
     s.type = "segments";
     s.name = "Segments";

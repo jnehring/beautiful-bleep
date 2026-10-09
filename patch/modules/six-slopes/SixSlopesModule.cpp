@@ -84,7 +84,7 @@ private:
 
 }  // namespace
 
-void registerSixSlopesModule(Registry& r) {
+static void registerSixSlopesModule(Registry& r) {
     ModuleSpec s;
     s.type = "six-slopes";
     s.name = "Six Slopes";

@@ -69,7 +69,7 @@ private:
 
 }  // namespace
 
-void registerOrganicLfosModule(Registry& r) {
+static void registerOrganicLfosModule(Registry& r) {
     ModuleSpec s;
     s.type = "organic-lfos";
     s.name = "Organic LFOs";

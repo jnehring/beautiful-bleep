@@ -132,7 +132,7 @@ private:
 
 }  // namespace
 
-void registerWavefolderModule(Registry& r) {
+static void registerWavefolderModule(Registry& r) {
     ModuleSpec s;
     s.type = "wavefolder";
     s.name = "Folder";

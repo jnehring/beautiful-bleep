@@ -207,7 +207,7 @@ private:
 
 }  // namespace
 
-void registerDrumMapModule(Registry& r) {
+static void registerDrumMapModule(Registry& r) {
     ModuleSpec s;
     s.type = "drum-map";
     s.name = "Drum Map";

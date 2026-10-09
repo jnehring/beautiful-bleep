@@ -209,7 +209,7 @@ private:
 
 }  // namespace
 
-void registerHarmonyMasterModule(Registry& r) {
+static void registerHarmonyMasterModule(Registry& r) {
     ModuleSpec s;
     s.type = "harmony-master";
     s.name = "Harmony Master";

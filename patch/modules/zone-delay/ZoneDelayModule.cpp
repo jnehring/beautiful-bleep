@@ -125,7 +125,7 @@ private:
 
 }  // namespace
 
-void registerZoneDelayModule(Registry& r) {
+static void registerZoneDelayModule(Registry& r) {
     ModuleSpec s;
     s.type = "zone-delay";
     s.name = "Zone Delay";

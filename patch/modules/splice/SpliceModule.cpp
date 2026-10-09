@@ -394,7 +394,7 @@ private:
 
 }  // namespace
 
-void registerSpliceModule(Registry& r) {
+static void registerSpliceModule(Registry& r) {
     ModuleSpec s;
     s.type = "splice";
     s.name = "Splice";

@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <array>
-#include <bit>
 #include <cmath>
 #include <cstdint>
 
@@ -89,7 +88,9 @@ public:
     }
     /// The combined gate of the bits in `mask` (4.5).
     static bool combo(uint16_t reg, uint8_t mask, SrCombine how) noexcept {
-        const unsigned chosen = (unsigned)(reg & mask), count = (unsigned)std::popcount(chosen);
+        const unsigned chosen = (unsigned)(reg & mask);
+        unsigned count = 0;  // set bits (std::popcount needs C++20; the app builds as C++17)
+        for (unsigned b = chosen; b; b &= b - 1) ++count;
         if (mask == 0) return false;
         switch (how) {
             case SrCombine::Any: return count > 0;

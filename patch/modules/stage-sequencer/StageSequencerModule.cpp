@@ -198,7 +198,7 @@ private:
 
 }  // namespace
 
-void registerStageSequencerModule(Registry& r) {
+static void registerStageSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "stage-sequencer";
     s.name = "Stage Seq";

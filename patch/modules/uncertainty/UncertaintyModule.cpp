@@ -127,7 +127,7 @@ private:
 
 }  // namespace
 
-void registerUncertaintyModule(Registry& r) {
+static void registerUncertaintyModule(Registry& r) {
     ModuleSpec s;
     s.type = "uncertainty";
     s.name = "Uncertainty";

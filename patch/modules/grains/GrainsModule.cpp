@@ -221,7 +221,7 @@ private:
 
 }  // namespace
 
-void registerGrainsModule(Registry& r) {
+static void registerGrainsModule(Registry& r) {
     ModuleSpec s;
     s.type = "grains";
     s.name = "Grains";

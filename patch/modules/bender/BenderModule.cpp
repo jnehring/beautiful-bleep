@@ -159,7 +159,7 @@ private:
 
 }  // namespace
 
-void registerBenderModule(Registry& r) {
+static void registerBenderModule(Registry& r) {
     ModuleSpec s;
     s.type = "bender";
     s.name = "Bender";

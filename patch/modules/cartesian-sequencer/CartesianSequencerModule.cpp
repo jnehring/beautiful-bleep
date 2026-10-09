@@ -194,7 +194,7 @@ private:
 
 }  // namespace
 
-void registerCartesianSequencerModule(Registry& r) {
+static void registerCartesianSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "cartesian-sequencer";
     s.name = "Cartesian Seq";

@@ -177,7 +177,7 @@ private:
 
 }  // namespace
 
-void registerShapeEnvModule(Registry& r) {
+static void registerShapeEnvModule(Registry& r) {
     ModuleSpec s;
     s.type = "shape-env";
     s.name = "Shape Env";

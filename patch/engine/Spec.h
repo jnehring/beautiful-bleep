@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace bleep::engine {
@@ -65,9 +66,9 @@ struct ParamSpec {
         p.group = std::move(g);
         return p;
     }
-    ParamSpec when(std::string param, int min, int max) const {
+    ParamSpec when(std::string param, int lo, int hi) const {
         ParamSpec p = *this;
-        p.show = {std::move(param), min, max};
+        p.show = {std::move(param), lo, hi};
         return p;
     }
     ParamSpec namedBy(std::string param, std::vector<std::string> list) const {
@@ -102,6 +103,12 @@ struct ParamSpec {
 };
 
 struct JackSpec {
+    JackSpec() = default;
+    /// {id, name, type, bipolar}: the optional fields below are set with when(),
+    /// namedBy() and normalledTo().
+    JackSpec(std::string jackId, std::string jackName, Signal signal = Signal::Control, bool isBipolar = true)
+        : id(std::move(jackId)), name(std::move(jackName)), type(signal), bipolar(isBipolar) {}
+
     std::string id;
     std::string name;
     Signal type = Signal::Control;
@@ -114,9 +121,9 @@ struct JackSpec {
     /// as unpatched in ProcessContext::inputConnected.
     std::string normal;
 
-    JackSpec when(std::string param, int min, int max) const {
+    JackSpec when(std::string param, int lo, int hi) const {
         JackSpec j = *this;
-        j.show = {std::move(param), min, max};
+        j.show = {std::move(param), lo, hi};
         return j;
     }
     JackSpec namedBy(std::string param, std::vector<std::string> list) const {

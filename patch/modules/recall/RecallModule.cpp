@@ -219,7 +219,7 @@ private:
 
 }  // namespace
 
-void registerRecallModule(Registry& r) {
+static void registerRecallModule(Registry& r) {
     ModuleSpec s;
     s.type = "recall";
     s.name = "Recall";

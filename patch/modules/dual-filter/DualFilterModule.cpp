@@ -62,7 +62,7 @@ private:
 
 }  // namespace
 
-void registerDualFilterModule(Registry& r) {
+static void registerDualFilterModule(Registry& r) {
     ModuleSpec s;
     s.type = "dual-filter";
     s.name = "Dual Filter";

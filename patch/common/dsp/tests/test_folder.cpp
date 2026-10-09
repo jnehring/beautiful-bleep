@@ -5,6 +5,7 @@
 #include "dsp/Oversampler.h"
 #include "dsp/tests/TestUtil.h"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -199,7 +200,21 @@ void dcBlocker() {
 
 }  // namespace
 
+static void fastSinCos() {
+    TEST("sin/cos without libm");
+    double worst = 0.0;
+    for (int i = -400000; i <= 400000; ++i) {
+        const double x = i * 1e-4 + 1e-7 * (i % 7);  // −40 … 40, off-grid too
+        double s, c;
+        bleep::dsp::fold::sinCosHalfPi(x, s, c);
+        worst = std::max(worst, std::fabs(s - std::sin(0.5 * 3.14159265358979323846 * x)));
+        worst = std::max(worst, std::fabs(c - std::cos(0.5 * 3.14159265358979323846 * x)));
+    }
+    EXPECT(worst < 1e-13);
+}
+
 int main() {
+    fastSinCos();
     curves();
     adaaMatchesNaive();
     adaaReducesAliasing();

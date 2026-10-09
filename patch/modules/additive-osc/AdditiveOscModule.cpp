@@ -138,7 +138,7 @@ private:
 
 }  // namespace
 
-void registerAdditiveOscModule(Registry& r) {
+static void registerAdditiveOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "additive-osc";
     s.name = "Additive Osc";

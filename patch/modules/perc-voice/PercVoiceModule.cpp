@@ -120,7 +120,7 @@ private:
 
 }  // namespace
 
-void registerPercVoiceModule(Registry& r) {
+static void registerPercVoiceModule(Registry& r) {
     ModuleSpec s;
     s.type = "perc-voice";
     s.name = "Perc Voice";

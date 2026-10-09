@@ -157,7 +157,7 @@ private:
 
 }  // namespace
 
-void registerQuantizerSuiteModule(Registry& r) {
+static void registerQuantizerSuiteModule(Registry& r) {
     ModuleSpec s;
     s.type = "quantizer-suite";
     s.name = "Quantizer Suite";

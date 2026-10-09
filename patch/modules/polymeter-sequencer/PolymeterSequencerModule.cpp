@@ -229,7 +229,7 @@ private:
 
 }  // namespace
 
-void registerPolymeterSequencerModule(Registry& r) {
+static void registerPolymeterSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "polymeter-sequencer";
     s.name = "Polymeter Seq";

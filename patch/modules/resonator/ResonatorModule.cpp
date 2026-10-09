@@ -144,7 +144,7 @@ private:
 
 }  // namespace
 
-void registerResonatorModule(Registry& r) {
+static void registerResonatorModule(Registry& r) {
     ModuleSpec s;
     s.type = "resonator";
     s.name = "Resonator";

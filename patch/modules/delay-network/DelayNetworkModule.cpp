@@ -131,7 +131,7 @@ private:
 
 }  // namespace
 
-void registerDelayNetworkModule(Registry& r) {
+static void registerDelayNetworkModule(Registry& r) {
     ModuleSpec s;
     s.type = "delay-network";
     s.name = "Delay Net";

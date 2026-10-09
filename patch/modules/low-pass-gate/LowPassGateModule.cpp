@@ -131,7 +131,7 @@ private:
 
 }  // namespace
 
-void registerLowPassGateModule(Registry& r) {
+static void registerLowPassGateModule(Registry& r) {
     ModuleSpec s;
     s.type = "low-pass-gate";
     s.name = "Low Pass Gate";

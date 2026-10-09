@@ -123,7 +123,7 @@ private:
 
 }  // namespace
 
-void registerRotatingDividerModule(Registry& r) {
+static void registerRotatingDividerModule(Registry& r) {
     ModuleSpec s;
     s.type = "rotating-divider";
     s.name = "Rotating Div";

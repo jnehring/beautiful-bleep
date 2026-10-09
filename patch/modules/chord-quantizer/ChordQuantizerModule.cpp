@@ -107,7 +107,7 @@ private:
 
 }  // namespace
 
-void registerChordQuantizerModule(Registry& r) {
+static void registerChordQuantizerModule(Registry& r) {
     ModuleSpec s;
     s.type = "chord-quantizer";
     s.name = "Chord Quantizer";

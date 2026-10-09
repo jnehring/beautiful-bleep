@@ -74,7 +74,7 @@ private:
 
 }  // namespace
 
-void registerTidalModule(Registry& r) {
+static void registerTidalModule(Registry& r) {
     ModuleSpec s;
     s.type = "tidal";
     s.name = "Tidal";

@@ -140,7 +140,7 @@ private:
 
 }  // namespace
 
-void registerDualOscModule(Registry& r) {
+static void registerDualOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "dual-osc";
     s.name = "Dual Osc";

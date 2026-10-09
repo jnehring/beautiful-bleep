@@ -73,7 +73,7 @@ private:
 
 }  // namespace
 
-void registerFormantOscModule(Registry& r) {
+static void registerFormantOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "formant-osc";
     s.name = "Formant Osc";

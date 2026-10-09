@@ -315,7 +315,7 @@ private:
 
 }  // namespace
 
-void registerWavetableOscModule(Registry& r) {
+static void registerWavetableOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "wavetable-osc";
     s.name = "Wavetable Osc";
