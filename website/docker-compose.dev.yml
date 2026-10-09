@@ -8,9 +8,22 @@
 #
 # The docs (public/docs, llms.txt) are generated when `dev` starts; after editing website/content
 # or a module's doc/, run:  docker compose ... restart dev
-# The board UI at /play/ is not built here; run scripts/build-web.sh --no-modules website/app/public/play
-# on the host if you need it. Needs Docker Compose 2.24+ (!reset).
+# The board UI at /play/ is built into app/public/play by the one-shot `play` service at start;
+# after editing patch/board or patch/web, run:  docker compose ... run --rm play
+# Needs Docker Compose 2.24+ (!reset).
 services:
+  play:
+    image: node:22-alpine
+    working_dir: /repo
+    command: sh -c "apk add --no-cache bash python3 >/dev/null && scripts/build-web.sh --no-modules /tmp/play && cp -r /tmp/play/. /repo/website/app/public/play/"
+    volumes:
+      - ../scripts:/repo/scripts:ro
+      - ../patch/board:/repo/patch/board:ro
+      - ../patch/common:/repo/patch/common:ro
+      - ../patch/modules:/repo/patch/modules:ro
+      - ../patch/web:/repo/patch/web:ro
+      - ./app/public/play:/repo/website/app/public/play
+
   dev:
     image: node:22-alpine
     working_dir: /repo/website/app
@@ -28,6 +41,9 @@ services:
       # Linux builds of node_modules and the Next cache stay in volumes, not on the host.
       - dev-node-modules:/repo/website/app/node_modules
       - dev-next:/repo/website/app/.next
+    depends_on:
+      play:
+        condition: service_completed_successfully
     restart: unless-stopped
 
   site:
