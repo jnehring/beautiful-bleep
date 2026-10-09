@@ -15,6 +15,11 @@
 	header @wasm Content-Type "application/wasm"
 	header @wasm Cache-Control "public, max-age=300, must-revalidate"
 
+	# Accounts API (website/api). Same origin as the site, so the session cookie needs no CORS.
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
 	try_files {path} {path}/index.html
 	file_server
 

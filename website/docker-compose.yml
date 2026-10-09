@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: MIT
 #
-# The Bleep Patch website as a single container (static files behind Caddy).
+# The Bleep Patch website: static files behind Caddy, plus the accounts API and its database.
 #
-#   docker compose -f website/docker-compose.yml up --build -d
-#   open http://localhost:8080        (BLEEP_SITE_PORT=… to change)
+#   cp website/.env.example website/.env      # then set the passwords
+#   docker compose -f website/docker-compose.yml --env-file website/.env up --build -d
+#   open http://localhost:8080                (BLEEP_SITE_PORT=… to change)
 #
-# Later this service moves into the Brilliant Bleep site's Compose stack.
+# Later this stack moves into the Brilliant Bleep site's Compose stack.
 # Own project name: the folder name "website" collides with the Brilliant Bleep site.
 name: bleep-patch-site
 
@@ -17,4 +18,38 @@ services:
     image: bleep-patch-site:latest
     ports:
       - "${BLEEP_SITE_PORT:-8080}:80"
+    depends_on:
+      - api
     restart: unless-stopped
+
+  api:
+    build: api
+    image: bleep-patch-api:latest
+    environment:
+      BLEEP_DATABASE_URL: postgresql+psycopg://bleep:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in website/.env}@db:5432/bleep
+      # Secure cookies need HTTPS. Plain http://localhost needs false; set true behind TLS.
+      BLEEP_COOKIE_SECURE: ${BLEEP_COOKIE_SECURE:-false}
+      BLEEP_ADMIN_EMAIL: ${BLEEP_ADMIN_EMAIL:-}
+      BLEEP_ADMIN_PASSWORD: ${BLEEP_ADMIN_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: bleep
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in website/.env}
+      POSTGRES_DB: bleep
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bleep -d bleep"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  db-data:

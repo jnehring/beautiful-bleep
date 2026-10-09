@@ -55,3 +55,16 @@ article th, article td { border: 1px solid var(--line); padding: 5px 8px; text-a
   font: 600 1rem system-ui; cursor: pointer; }
 .board-start:hover { background: #12302f; }
 .board-loading { position: absolute; inset: 0; }
+
+/* Accounts */
+header.site nav.account { margin-left: auto; align-items: center; }
+button.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); cursor: pointer; text-decoration: underline; }
+.auth { max-width: 420px; }
+.auth label { display: block; margin: 14px 0; font-weight: 600; font-size: .92rem; }
+.auth label small { font-weight: 400; color: var(--muted); }
+.auth input, .auth textarea { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; font: inherit; color: var(--fg);
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+.auth button[type="submit"] { padding: 8px 18px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent);
+  color: var(--bg); font: inherit; font-weight: 600; cursor: pointer; }
+.auth button[disabled] { opacity: .6; cursor: default; }
+.auth .error { color: #d14343; } .auth .ok { color: var(--accent); } .auth .muted { color: var(--muted); }
