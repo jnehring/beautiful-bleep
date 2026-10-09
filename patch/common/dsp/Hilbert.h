@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // IIR Hilbert transformer and single-sideband frequency shifter
-// (specs/modules/frequency-shifter.md §4.1).
+// (doc/specs/modules/frequency-shifter.md §4.1).
 //
 // Two parallel chains of 8 allpass sections in z⁻² (the polyphase half-band
 // design rotated by fs/4, as in Niemitalo's and de Soras' HIIR Hilbert

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // LFO waveforms as pure phase → value functions, a phase accumulator that
 // counts cycles, and helpers that lock a phase to the song position.
-// Shared by LFO (specs/modules/lfo.md), Quad LFO and the other modulators.
+// Shared by LFO (doc/specs/modules/lfo.md), Quad LFO and the other modulators.
 // Random waves are a pure function of (seed, cycle, stream), so synced
 // renders repeat exactly and the transport can jump.
 #pragma once

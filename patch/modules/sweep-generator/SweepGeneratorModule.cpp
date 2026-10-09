@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Sweep Generator node (specs/modules/sweep-generator.md): a function
+// Sweep Generator node (doc/specs/modules/sweep-generator.md): a function
 // generator with a built-in frequency sweep, sweep ramp, pitch, marker, End
 // and Sync outputs.
 #include "Registry.h"

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Drum Grid core (specs/modules/drum-grid.md): 8 tracks × 32 steps
+// Drum Grid core (doc/specs/modules/drum-grid.md): 8 tracks × 32 steps
 // (Off/On/Accent) in 16 pattern slots; time from the transport, its own
 // tempo or a clock; per-track gate, accent and velocity outputs.
 #pragma once

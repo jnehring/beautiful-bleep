@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Punch drums: one node per drum voice (specs/modules/punch-drums.md).
+// Punch drums: one node per drum voice (doc/specs/modules/punch-drums.md).
 #include "DrumModule.h"
 #include "PunchDrumsDsp.h"
 

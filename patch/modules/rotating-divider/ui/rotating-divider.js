@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Rotating Div view (specs/modules/rotating-divider.md §5): the division
+// Rotating Div view (doc/specs/modules/rotating-divider.md §5): the division
 // ring (eight spokes with their division and a gate lamp; a pending rotation
 // shows as a ghost label), dragged round to rotate (one undo step); with Set
 // = Custom, clicking a label edits that division. Below, the next 32 base

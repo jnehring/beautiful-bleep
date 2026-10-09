@@ -1,0 +1,7 @@
+# Internal operations
+
+For the people who build, release and run Bleep. User and developer documentation lives in `website/content/`.
+
+- [Build the standalone app](build-standalone-app.md)
+- [Release](release.md)
+- [Run the website and create the admin user](website.md)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Shape Env (specs/modules/shape-envelope.md §8): the library as the module
+// Shape Env (doc/specs/modules/shape-envelope.md §8): the library as the module
 // plays it, Morph, one-shot timing, the gated hold, retrigger crossfades,
 // the bar lock, Skew and Reverse, and user slots.
 #include "ShapeEnvDsp.h"

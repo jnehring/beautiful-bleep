@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Formant Osc (specs/modules/formant-oscillator.md): a pulse-formant
+// Formant Osc (doc/specs/modules/formant-oscillator.md): a pulse-formant
 // oscillator. Every fundamental cycle fires one windowed burst of a formant
 // sine (dsp::FormantOsc, common/dsp/Formant.h); the formant tracks the note
 // (Ratio) or stays put (Fixed) and passes through 0 Hz. A second formant on

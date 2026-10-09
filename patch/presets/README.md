@@ -20,7 +20,7 @@ ctest --test-dir build/patch -R factory   # the engine loads every preset withou
 | Factory presets | this folder → `factory-presets.json` | Written in units with [`kit.mjs`](kit.mjs), compiled and checked; read-only in the app. |
 | User presets | `<app data>/Bleep Patch/Cells/*.bleepcell` | *Right-click a cell → Save as preset…* (name, category, description). Deleted under *Add → Cell → <category> → Delete preset*. |
 | Browsing | Add menu, Tab search | *Add → Cell → <category> → <preset>*; hovering shows the description. Tab search matches names, categories, tags and descriptions. |
-| Panels | [`panels.mjs`](panels.mjs) → `../board/ui/factory-panels.json` | Hand-written front panels for cell presets (so far Punch Machine), keyed by preset name: tabs, a few knobs per module, mixer faders, loaded module panels. Checked against the preset when built; see [`specs/panels.md`](../../specs/panels.md) §6. `node patch/presets/panels-gallery.mjs out.html [name …]` draws them. |
+| Panels | [`panels.mjs`](panels.mjs) → `../board/ui/factory-panels.json` | Hand-written front panels for cell presets (so far Punch Machine), keyed by preset name: tabs, a few knobs per module, mixer faders, loaded module panels. Checked against the preset when built; see [`doc/specs/panels.md`](../../doc/specs/panels.md) §6. `node patch/presets/panels-gallery.mjs out.html [name …]` draws them. |
 | Checks | `kit.mjs`, `bleep_dump_types --check-presets` | The kit rejects unknown modules, knobs, choices, jacks, out-of-range values and incompatible cables while building; the ctest runs every preset through the engine's `board::sanitise` and fails on any warning or anything dropped. |
 
 ## Writing a preset

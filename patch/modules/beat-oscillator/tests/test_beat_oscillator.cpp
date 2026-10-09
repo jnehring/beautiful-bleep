@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Beat Oscillator: the free beat and its measurement, the square-root law and
 // locking, the bottleneck near the lock edge, the detector and aliasing,
-// coupling, determinism and warm-up (specs/modules/beat-oscillator.md §8).
+// coupling, determinism and warm-up (doc/specs/modules/beat-oscillator.md §8).
 #include "BeatOscillatorDsp.h"
 #include "dsp/tests/TestUtil.h"
 

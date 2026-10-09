@@ -125,7 +125,7 @@ The ✎ in a panel's title bar switches between playing and editing; *New panel*
 - **XY pad.** Two values from one control: each wire has an axis (the first is *x*, the next *y*; changeable on the wire). Each axis can set knobs, modulate them, or feed jacks. It saves its position as `[x, y]`.
 - **Computer keyboard.** While the pointer is over a panel with Keys, A W S E D F T G Y H U J K O L P ; ' play it like a piano, Z / X move the octave. The keys stay out of the board's shortcuts while they do.
 - **Add to panel.** Right-click any knob in a module view (also one embedded in a panel) → *Add to panel ▸* a panel that can reach the node, or *New panel* for the cell or the board. The control (dial, select for a long list, button for a toggle) is wired and placed in the first free spot.
-- **Build panel from cell.** Right-click a cell (or the toolbar's Panels list with the cell selected) → *Build panel from cell*: the cell's inputs as controls, a section of main knobs for each module (the lists in [`panel-build.js`](../patch/board/ui/panel-build.js)), faders for mixers, the view of each sequencer, a keyboard and the voice settings for a Voice Cell, and a meter. A starting point: every control is an ordinary one.
+- **Build panel from cell.** Right-click a cell (or the toolbar's Panels list with the cell selected) → *Build panel from cell*: the cell's inputs as controls, a section of main knobs for each module (the lists in [`panel-build.js`](../../patch/board/ui/panel-build.js)), faders for mixers, the view of each sequencer, a keyboard and the voice settings for a Voice Cell, and a meter. A starting point: every control is an ordinary one.
 - **Copy, paste, duplicate.** Cells carry their panels (and the module panels they load) with ⌘C / ⌘V and ⌘D, into the same board or another, with the wires pointing at the new nodes.
 
 Under the hood the engine makes a hidden source for each jack, modulation or notes wire (a Dial, Button or Keyboard module, id `~<panel>:<control>:<wire>`), cabled into the target when the board compiles; the board file doesn't contain them. They don't reach nodes inside a Voice Cell (its knobs can still be *set* from a panel, which applies to all voices). A board panel's wires may go to any node of the board.
@@ -176,7 +176,7 @@ Panel controls never change engine state directly (section 9.7). They go through
 
 ## 6. Factory panels
 
-Factory cell presets get panels one at a time, written by hand: [`patch/presets/panels.mjs`](../patch/presets/panels.mjs) holds them, `node patch/presets/build.mjs` checks each against its preset (every wire resolves to a real knob, jack or output; nothing overlaps; loaded panels exist) and writes `patch/board/ui/factory-panels.json`, keyed by preset name. The board attaches a preset's panels when the preset is placed.
+Factory cell presets get panels one at a time, written by hand: [`patch/presets/panels.mjs`](../../patch/presets/panels.mjs) holds them, `node patch/presets/build.mjs` checks each against its preset (every wire resolves to a real knob, jack or output; nothing overlaps; loaded panels exist) and writes `patch/board/ui/factory-panels.json`, keyed by preset name. The board attaches a preset's panels when the preset is placed.
 
 **Punch Machine** is the first (drum machine, punch kit):
 
@@ -203,7 +203,7 @@ Rules the next panels follow:
 
 Stage 1 can ship before the editor exists: factory panels are plain data, written one preset at a time.
 
-**Implemented so far** ([`patch/board/ui/panels.js`](../patch/board/ui/panels.js), `board.js`): a cell placed from a preset that has a factory panel carries `panel` (the preset's name) and its nodes carry `pkey` (the id the preset gave them), which is how a panel finds its nodes after ids are renumbered, copied or renamed. The cell shows a ▦ (also *Open panel* in its menu) that opens the panel in a floating, pinned-by-default window. Drawn: labels, sections, tabs, dials and faders with *Set* wires on knobs (drag, Shift for fine, double-click for the default, in step with module views and undo), meters from output activity, module views and loaded panels. Other control types show as an empty box. Not yet: panels in the board document, mod/jack/notes wires, the Panels list, Interface/Wiring views, editing.
+**Implemented so far** ([`patch/board/ui/panels.js`](../../patch/board/ui/panels.js), `board.js`): a cell placed from a preset that has a factory panel carries `panel` (the preset's name) and its nodes carry `pkey` (the id the preset gave them), which is how a panel finds its nodes after ids are renumbered, copied or renamed. The cell shows a ▦ (also *Open panel* in its menu) that opens the panel in a floating, pinned-by-default window. Drawn: labels, sections, tabs, dials and faders with *Set* wires on knobs (drag, Shift for fine, double-click for the default, in step with module views and undo), meters from output activity, module views and loaded panels. Other control types show as an empty box. Not yet: panels in the board document, mod/jack/notes wires, the Panels list, Interface/Wiring views, editing.
 
 ## 8. Open questions
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Rotating Div core (specs/modules/rotating-divider.md): eight clock
+// Rotating Div core (doc/specs/modules/rotating-divider.md): eight clock
 // dividers on one base clock, their divisions taken from a series (Set) and
 // rotated across the outputs. Transport mode derives every cycle from the
 // song position (a pure function of ppq, so loop jumps and renders agree);

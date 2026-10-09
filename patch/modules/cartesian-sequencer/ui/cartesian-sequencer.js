@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Cartesian Seq view (specs/modules/cartesian-sequencer.md §5): the 8 × 8
+// Cartesian Seq view (doc/specs/modules/cartesian-sequencer.md §5): the 8 × 8
 // grid editor with layers (gate, pitch, velocity, mod, access), row and
 // column rotation, copy/paste, the playhead, the X/Y crosshair in Cartesian
 // mode and per-layer Randomize. Cells live in the node's data; edits go to

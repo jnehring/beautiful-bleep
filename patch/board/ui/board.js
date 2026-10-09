@@ -1850,7 +1850,7 @@
     watch();
   }
   // ----------------------------------------------------------- front panels
-  // Panels live in the board document (board.panels, specs/panels.md): a cell's
+  // Panels live in the board document (board.panels, doc/specs/panels.md): a cell's
   // panel names nodes inside the cell, a board panel any node; a module panel
   // ("for") is loaded by other panels and names its module "this".
   const panelList = () => (board && board.panels) || [];

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Beat Oscillator view (specs/modules/beat-oscillator.md §5): two calibrated
+// Beat Oscillator view (doc/specs/modules/beat-oscillator.md §5): two calibrated
 // dials with the actual frequencies of A and B (after drift, warm-up and
 // pulling), the signed beat B − A between them with a lock lamp that flashes
 // once per slip, and the phase-difference circle below: a dot at ψ with a

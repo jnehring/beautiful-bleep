@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Stage Seq view (specs/modules/stage-sequencer.md §5): a timeline where each
+// Stage Seq view (doc/specs/modules/stage-sequencer.md §5): a timeline where each
 // stage is a column as wide as its pulses, with lanes for pitch, pulses,
 // gate mode, slide, velocity and accent; the playhead (stage and pulse), the
 // Random/Brownian trail, and Randomize. Stages live in the node's data; edits

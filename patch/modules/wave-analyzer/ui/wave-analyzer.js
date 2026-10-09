@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Wave Analyzer view (specs/modules/wave-analyzer.md §5): a moving-coil
+// Wave Analyzer view (doc/specs/modules/wave-analyzer.md §5): a moving-coil
 // needle meter (Floor … 0 dB, Threshold as a red tick), the big calibrated
 // Frequency dial printed with the Range scale (its pointer shows the actual
 // tuned frequency), Locked and Too Fast lights, and the plotter strip: level

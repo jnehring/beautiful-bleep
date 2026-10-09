@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Uncertainty node (specs/modules/uncertainty.md): six kinds of randomness.
+// Uncertainty node (doc/specs/modules/uncertainty.md): six kinds of randomness.
 #include "Registry.h"
 #include "UncertaintyDsp.h"
 

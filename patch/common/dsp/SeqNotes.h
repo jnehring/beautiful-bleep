@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Note output for sequencers (specs/modules/step-sequencer.md §4.4),
+// Note output for sequencers (doc/specs/modules/step-sequencer.md §4.4),
 // extracted from the Step Sequencer so every sequencer ties, glides and
 // releases notes the same way:
 //

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dual Osc node (specs/modules/dual-oscillator.md): two cores with B → A FM,
+// Dual Osc node (doc/specs/modules/dual-oscillator.md): two cores with B → A FM,
 // A → B sync and a stereo wavefolder; a scope of A, B and Out for the view.
 #include "DualOscDsp.h"
 #include "Registry.h"

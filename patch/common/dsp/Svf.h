@@ -51,7 +51,7 @@ private:
 };
 
 /// The same filter in double precision for sub-audio cutoffs, e.g. smoothing
-/// modulation down to 0.0001 Hz (specs/modules/wobble.md). At 0.001 Hz and
+/// modulation down to 0.0001 Hz (doc/specs/modules/wobble.md). At 0.001 Hz and
 /// 48 kHz the per-sample coefficient g is about 6.5e-8, too small for float
 /// state (the step response is off by ~10 %); double keeps it within 1e-4.
 /// q 0.5 is critically damped (no overshoot); higher q overshoots and rings.

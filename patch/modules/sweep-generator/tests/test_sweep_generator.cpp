@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Sweep Generator: frequency laws, Freq output, synced position and End on
 // bars, phase continuity, Triggered/Gated/Hold, bursts, markers and retrace,
-// aliasing, drift and warm-up (specs/modules/sweep-generator.md §8).
+// aliasing, drift and warm-up (doc/specs/modules/sweep-generator.md §8).
 #include "SweepGeneratorDsp.h"
 #include "dsp/tests/TestUtil.h"
 

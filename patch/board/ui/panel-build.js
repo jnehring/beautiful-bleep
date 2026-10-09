@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// panel-build.js — "Build panel from cell" (specs/panels.md §3, §6): a first
+// panel-build.js — "Build panel from cell" (doc/specs/panels.md §3, §6): a first
 // panel for a cell, made the way the factory panels are: the cell's inputs as
 // controls first, then a section of main knobs for each module, faders for
 // mixers, a keyboard under a Voice Cell, a meter. Every control it makes is an

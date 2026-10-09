@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Neuron (specs/modules/neuron.md): two leaky integrate-and-fire neurons
+// Neuron (doc/specs/modules/neuron.md): two leaky integrate-and-fire neurons
 // (dsp::LifNeuron). Each sums three weighted inputs; In 1 unpatched is +1 (a
 // bias), In 3 unpatched hears the other neuron's Out or Gate from the previous
 // sample. Logic outputs combine the gates. No randomness: the same inputs give

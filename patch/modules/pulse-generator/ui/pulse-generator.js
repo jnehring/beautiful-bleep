@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Pulse Generator view (specs/modules/pulse-generator.md §5): a front-panel
+// Pulse Generator view (doc/specs/modules/pulse-generator.md §5): a front-panel
 // timing diagram over one period. Sync ticks, the pulse trapezoid with its
 // ringing (computed here from 4.5: a decaying sine per edge, smeared over
 // slow edges), and Period, Delay and Width as dimension lines with values.

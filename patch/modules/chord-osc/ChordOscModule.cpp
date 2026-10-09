@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chord Osc node (specs/modules/chord-oscillator.md): up to six oscillator
+// Chord Osc node (doc/specs/modules/chord-oscillator.md): up to six oscillator
 // cores playing a chord built on one pitch, chromatic or diatonic, with
 // inversion, voicing, latch, detune and stereo spread.
 #include "ChordOscDsp.h"

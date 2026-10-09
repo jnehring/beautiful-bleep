@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Modal Voice node: bow, blow, mallet and external audio drive a modal body
-// in a small room (specs/modules/modal-voice.md). Built for Voice Cells: an
+// in a small room (doc/specs/modules/modal-voice.md). Built for Voice Cells: an
 // Active output, and the voice sleeps when silent. The view shows an
 // exciter scope and the partials from live arrays.
 #include "ModalVoiceDsp.h"

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Formant Osc: pitch, harmonic bursts, formant peak position (Ratio and
 // Fixed), sweeping through zero, click-free modulation, aliasing, stereo,
-// Body, Sync (specs/modules/formant-oscillator.md §8).
+// Body, Sync (doc/specs/modules/formant-oscillator.md §8).
 #include "FormantOscDsp.h"
 #include "dsp/Wavetable.h"
 #include "dsp/tests/TestUtil.h"

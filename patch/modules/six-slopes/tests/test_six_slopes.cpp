@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Six Slopes (specs/modules/six-slopes.md §8): harmonic ratios and snapping,
+// Six Slopes (doc/specs/modules/six-slopes.md §8): harmonic ratios and snapping,
 // shared triggers, envelopes without jumps, Sound mode pitch and muting,
 // transport lock, Tilt and Sum.
 #include "SixSlopesDsp.h"

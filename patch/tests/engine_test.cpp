@@ -705,7 +705,7 @@ void voiceCells() {
     }
 }
 
-/// Step Sequencer (specs/modules/step-sequencer.md): node data, live step
+/// Step Sequencer (doc/specs/modules/step-sequencer.md): node data, live step
 /// edits, and notes into a Voice Cell.
 void stepSequencer() {
     g_test = "step sequencer";
@@ -790,7 +790,7 @@ void stepSequencer() {
     e->release();
 }
 
-/// Drum Grid (specs/modules/drum-grid.md): node data, live edits, and gates
+/// Drum Grid (doc/specs/modules/drum-grid.md): node data, live edits, and gates
 /// through the engine.
 void drumGrid() {
     g_test = "drum grid";
@@ -865,7 +865,7 @@ void drumGrid() {
     e->release();
 }
 
-/// Drum nodes (specs/modules/ring-drums.md, punch-drums.md) and Noise, run
+/// Drum nodes (doc/specs/modules/ring-drums.md, punch-drums.md) and Noise, run
 /// through their jacks: a trigger plays, Velocity scales, Level is last.
 void drumNodes() {
     struct Rig {
@@ -959,7 +959,7 @@ void drumNodes() {
     EXPECT(noise.outputs[1][0] != 0.0f);  // the fixed colours ignore Level
 }
 
-/// Front panels are kept with the board (specs/panels.md): objects with an id survive, the rest is dropped.
+/// Front panels are kept with the board (doc/specs/panels.md): objects with an id survive, the rest is dropped.
 void panelsAreKept() {
     g_test = "panels";
     auto d = board::sanitise(doc({node("u", "utility")}, {}));

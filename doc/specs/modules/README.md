@@ -1,6 +1,6 @@
 # Module specifications
 
-One file per board module. The main specification (`specs/specs.md`, section 12)
+One file per board module. The main specification (`doc/specs/specs.md`, section 12)
 lists every module in one line each; the file here holds the full design.
 
 Each file follows the same outline, so they're easy to compare:

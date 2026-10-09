@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// XY Scope node (specs/modules/xy-scope.md): an oscilloscope for X against Y
+// XY Scope node (doc/specs/modules/xy-scope.md): an oscilloscope for X against Y
 // (or Y over time) whose measurements come out as signals: Phase,
 // Correlation, Ratio and a Still gate.
 //

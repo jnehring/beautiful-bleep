@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Drum Map node (specs/modules/drum-map.md): kick, snare and hats from the
+// Drum Map node (doc/specs/modules/drum-map.md): kick, snare and hats from the
 // generated map plus the user's edited nodes (node data), triggers,
 // accents, velocities and notes out.
 #include "DrumMapDsp.h"

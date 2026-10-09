@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Zone Delay view (specs/modules/zone-delay.md §5): the zone strip, the
+// Zone Delay view (doc/specs/modules/zone-delay.md §5): the zone strip, the
 // effective left/right times (with the synced note value), a scrolling strip
 // of the wet signal's level with a marker at every delay time, and the
 // latched Reverse / Hold / Ping-Pong buttons (kept in the node's data, ORed

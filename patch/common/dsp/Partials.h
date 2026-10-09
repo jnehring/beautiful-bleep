@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // An additive bank of up to 64 sine partials, for the Additive Osc
-// (specs/modules/additive-oscillator.md), the Macro Osc's Harmonic model and
+// (doc/specs/modules/additive-oscillator.md), the Macro Osc's Harmonic model and
 // the Swarm. Each partial has a float phase (re-wrapped every sample) and a
 // polynomial sine, so a sample costs a few multiply-adds per partial and the
 // loop vectorises; no std::sin in the audio path.

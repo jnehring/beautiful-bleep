@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Matrix Mixer view (specs/modules/matrix-mixer.md §5): the crosspoint grid
+// Matrix Mixer view (doc/specs/modules/matrix-mixer.md §5): the crosspoint grid
 // (circle size = |gain|, warm positive, cool negative; click toggles +1/0,
 // Alt-click −1, drag sets, Shift fine, double-click types), row labels and
 // mutes, column labels and meters, snapshots (click recalls, Shift-click

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Quad LFO node (specs/modules/quad-lfo.md): four LFOs, free, in quadrature,
+// Quad LFO node (doc/specs/modules/quad-lfo.md): four LFOs, free, in quadrature,
 // spread in phase or divided from one rate; synced or clocked.
 #include "QuadLfoDsp.h"
 #include "Registry.h"

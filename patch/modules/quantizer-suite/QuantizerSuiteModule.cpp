@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Quantizer Suite node (specs/modules/quantizer-suite.md): four quantizer
+// Quantizer Suite node (doc/specs/modules/quantizer-suite.md): four quantizer
 // channels (Quantize, Transpose, Arp, Follow) with normalled inputs, a note
 // mask per channel in the node's data, and a merged Notes output.
 #include "QuantizerSuiteDsp.h"

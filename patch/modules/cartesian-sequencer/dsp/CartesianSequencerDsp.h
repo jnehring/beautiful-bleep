@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Cartesian Seq core (specs/modules/cartesian-sequencer.md): an 8 × 8 grid of
+// Cartesian Seq core (doc/specs/modules/cartesian-sequencer.md): an 8 × 8 grid of
 // cells (gate, pitch, velocity, mod, access) walked by two playheads. In
 // Clocks mode X follows the transport or the X Clock, Y either wraps with X
 // (a raster scan through the grid) or runs on its own rate or clock; in

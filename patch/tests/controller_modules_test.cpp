@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Node-level tests for the controller modules (specs/modules/dial.md,
+// Node-level tests for the controller modules (doc/specs/modules/dial.md,
 // button.md, keyboard.md): their specs, performance gestures from the view
 // (Module::perform) and the node data, run through the Module API.
 #include "Engine.h"

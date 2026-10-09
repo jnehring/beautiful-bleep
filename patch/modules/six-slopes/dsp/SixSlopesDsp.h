@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Six Slopes core (specs/modules/six-slopes.md): six independent rise/fall
+// Six Slopes core (doc/specs/modules/six-slopes.md): six independent rise/fall
 // slopes sharing one set of controls. Harmonics spreads their rates over
 // overtone or undertone ratios (optionally snapped to whole numbers or a just
 // scale); each channel has its own trigger. Modes: one-shot (AR), sustained

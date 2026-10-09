@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Formant synthesis shared by Formant Osc (specs/modules/formant-oscillator.md),
+// Formant synthesis shared by Formant Osc (doc/specs/modules/formant-oscillator.md),
 // the Macro Osc's Grain and Vowel models and the Wavetable Osc's Vowel bank:
 //
 // - FormantOsc: a pulse-formant ("burst") oscillator. Every fundamental cycle

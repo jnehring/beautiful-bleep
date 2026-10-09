@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Folder (specs/modules/wavefolder.md): a stereo six-stage wavefolder with a
+// Folder (doc/specs/modules/wavefolder.md): a stereo six-stage wavefolder with a
 // tap crossfade, anti-aliased by 2× or 4× oversampling plus first-order ADAA
 // in every stage (the shared dsp::Folder). A sine/triangle oscillator can
 // stand in for the input. The dry path is delayed by the oversampling and

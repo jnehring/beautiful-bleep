@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Gate Sequencer core (specs/modules/gate-sequencer.md): four tracks of up to
+// Gate Sequencer core (doc/specs/modules/gate-sequencer.md): four tracks of up to
 // 32 steps with probability, gate length or tie, ratchets, micro-timing
 // (nudge) and conditions; each track has its own length and rate.
 //

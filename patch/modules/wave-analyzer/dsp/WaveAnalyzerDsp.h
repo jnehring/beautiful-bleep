@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Wave Analyzer (specs/modules/wave-analyzer.md): a very narrow, tunable
+// Wave Analyzer (doc/specs/modules/wave-analyzer.md): a very narrow, tunable
 // band-pass after the heterodyne wave analyzers of the measurement lab.
 //
 //   In ─► DC block (5 Hz) ─► Hilbert ─► a = x + j·H(x)

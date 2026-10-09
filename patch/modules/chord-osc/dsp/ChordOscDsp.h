@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chord Osc (specs/modules/chord-oscillator.md): up to six Oscillator cores
+// Chord Osc (doc/specs/modules/chord-oscillator.md): up to six Oscillator cores
 // tuned to a chord built on one pitch. The chord itself (quality, tone
 // dropping and doubling, inversion, voicing) comes from the shared
 // dsp/Chords.h; in Scale mode the root is quantized to a key and the chord is

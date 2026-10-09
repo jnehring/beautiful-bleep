@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dual Osc (specs/modules/dual-oscillator.md): two analog-style cores A and B.
+// Dual Osc (doc/specs/modules/dual-oscillator.md): two analog-style cores A and B.
 // B frequency-modulates A (linear through-zero or exponential), A syncs to B
 // (reversing soft sync → hard sync), and the A/B mix runs into a 4-stage
 // wavefolder with a stereo spread.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Test Oscillator view (specs/modules/test-oscillator.md §5): a large
+// Test Oscillator view (doc/specs/modules/test-oscillator.md §5): a large
 // log-printed dial for Frequency (drag vertically, Shift for fine, double-click
 // for the default), a four-button range switch, the lamp glowing with the
 // heat (dark at 0, orange at 0.5, white-hot at 1), a scope of two periods of

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Segments (specs/modules/segments.md §8): the default ADSR, ramp curves,
+// Segments (doc/specs/modules/segments.md §8): the default ADSR, ramp curves,
 // click-free retrigger, Jump vs Finish release, loops, Seg inputs, the song
 // lock, and one segment gate at a time.
 #include "SegmentsDsp.h"

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // A photoresistive cell ("vactrol") and the low-pass gate built on it
-// (specs/modules/low-pass-gate.md). Light opens the cell almost at once; in
+// (doc/specs/modules/low-pass-gate.md). Light opens the cell almost at once; in
 // the dark it recovers slowly, more slowly the darker it gets, and more
 // slowly still after it has been lit long and bright. That is the organic,
 // bright-then-dark decay of struck and plucked sounds.

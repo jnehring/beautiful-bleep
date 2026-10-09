@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// panels.js — front panels (specs/panels.md): a cell's or the board's dials,
+// panels.js — front panels (doc/specs/panels.md): a cell's or the board's dials,
 // faders, buttons, selects, meters, labels and the views of the modules, laid
 // out on a 20 px grid, with tabs. "set" wires on knobs (with a range per wire),
 // view controls and loaded panels. Controls of other types are kept and shown

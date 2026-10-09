@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Onset and tempo detection for slicing a sample (specs/modules/sampler.md
+// Onset and tempo detection for slicing a sample (doc/specs/modules/sampler.md
 // section 4.2). An energy-flux detector: the signal is high-passed with a
 // first difference (so low rumble doesn't mask a click), cut into 256-sample
 // hops, and the rise in log energy from hop to hop is the onset function. Peaks

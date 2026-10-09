@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dual Filter view (specs/modules/dual-filter.md §5): the response of each
+// Dual Filter view (doc/specs/modules/dual-filter.md §5): the response of each
 // filter (thin) and of the current routing (bright; Stereo: left and right),
 // drawn from the modulated values with the quiet-signal (linear) SVF model.
 // Markers at f1, the centre and f2: drag the centre for Cutoff, f1/f2 for

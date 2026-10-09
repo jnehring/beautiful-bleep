@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Formant Osc node (specs/modules/formant-oscillator.md): a pulse-formant
+// Formant Osc node (doc/specs/modules/formant-oscillator.md): a pulse-formant
 // oscillator with a second formant on the right channel, square and sub.
 #include "FormantOscDsp.h"
 #include "Registry.h"

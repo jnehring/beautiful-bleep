@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Attenuverter node (specs/modules/attenuverter.md): four rows of scale and
+// Attenuverter node (doc/specs/modules/attenuverter.md): four rows of scale and
 // offset; an unpatched row is a manual constant.
 #include "AttenuverterDsp.h"
 #include "Registry.h"

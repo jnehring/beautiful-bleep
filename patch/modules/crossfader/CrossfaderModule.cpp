@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Crossfader node (specs/modules/crossfader.md): stereo A/B blend,
+// Crossfader node (doc/specs/modules/crossfader.md): stereo A/B blend,
 // equal-power or linear.
 #include "CrossfaderDsp.h"
 #include "Registry.h"

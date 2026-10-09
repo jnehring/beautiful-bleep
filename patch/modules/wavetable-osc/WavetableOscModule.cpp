@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Wavetable Osc node (specs/modules/wavetable-oscillator.md): 2-D wavetable
+// Wavetable Osc node (doc/specs/modules/wavetable-oscillator.md): 2-D wavetable
 // oscillator over factory banks and one user bank imported from the media
 // store. The node data names the media (never the samples); setData loads the
 // WAV, builds the bank's mipmaps on the message thread and hands it to the

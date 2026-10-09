@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Recall (specs/modules/recall.md): random gates (T) and random voltages (X)
+// Recall (doc/specs/modules/recall.md): random gates (T) and random voltages (X)
 // on one clock, each with a ring of its last Loop decisions. Recall is the
 // chance that a decision repeats the one from Loop ticks ago, so the section
 // moves from always new, through variations, to a locked loop. The rings hold

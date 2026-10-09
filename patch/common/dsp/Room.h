@@ -2,7 +2,7 @@
 // A small stereo room: a feedback delay network of 4 (or 8) lines with a
 // Householder mixing matrix, a one-pole damping filter per line, two slow
 // modulated lines against metallic ringing and an early-reflection tap pair
-// (specs/modules/modal-voice.md 4.4). Cheap enough to run per voice inside a
+// (doc/specs/modules/modal-voice.md 4.4). Cheap enough to run per voice inside a
 // Voice Cell; a board reverb can use the 8-line version.
 //
 // Lines are 13–41 ms scaled by size (0.5× … 2.5×); RT60 runs from 0.3 s to

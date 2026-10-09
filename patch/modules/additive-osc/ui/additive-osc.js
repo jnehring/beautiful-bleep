@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Additive Osc view (specs/modules/additive-oscillator.md §5): the final level
+// Additive Osc view (doc/specs/modules/additive-oscillator.md §5): the final level
 // of each partial at its real frequency (log axis, live arrays from the
 // module) with the band limit marked, and, with Base = Drawn, an editor for
 // the 64 drawn levels (node data "drawn"; one drag is one undo step).

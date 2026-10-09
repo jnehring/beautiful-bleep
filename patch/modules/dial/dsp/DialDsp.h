@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dial core (specs/modules/dial.md §4): the dial's position, stepped and
+// Dial core (doc/specs/modules/dial.md §4): the dial's position, stepped and
 // scaled to a range, then smoothed.
 #pragma once
 

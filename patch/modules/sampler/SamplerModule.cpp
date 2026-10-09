@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Sampler node (specs/modules/sampler.md): a polyphonic sample player and
+// Sampler node (doc/specs/modules/sampler.md): a polyphonic sample player and
 // slicer. The WAV lives in the media store; the node's data holds its id, the
 // slice markers and the per-slice settings. setData loads the clip (resampled
 // to the engine rate), builds a Sample the audio thread reads in place, and

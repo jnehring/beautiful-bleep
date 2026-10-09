@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Delay-line toolkit shared by the delays, the reverb and the glitch modules
-// (specs/modules/zone-delay.md, delay-network.md, reverb.md, bender.md): a
+// (doc/specs/modules/zone-delay.md, delay-network.md, reverb.md, bender.md): a
 // power-of-two ring buffer with fractional reads, and the readers built on
 // it: a tape-style time follower (time changes bend pitch), a two-head
 // crossfading reader (time changes without pitch bend), a windowed reverse

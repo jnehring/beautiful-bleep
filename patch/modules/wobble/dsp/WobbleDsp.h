@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Wobble (specs/modules/wobble.md): one stream of random values in three
+// Wobble (doc/specs/modules/wobble.md): one stream of random values in three
 // shapes. Stepped jumps, Smooth glides (critically damped two-pole low-pass),
 // Wobble glides with resonance (overshoot and ringing). The cutoff follows the
 // step period, so the character is the same at any rate. Bursts, a step

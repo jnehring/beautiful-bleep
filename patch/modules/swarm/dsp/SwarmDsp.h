@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Swarm (specs/modules/swarm-oscillator.md): up to 16 oscillators spread over
+// Swarm (doc/specs/modules/swarm-oscillator.md): up to 16 oscillators spread over
 // a chord or scale around one root. Spread opens the cloud from unison into
 // the chord (each oscillator lands on the nearest chord note of its scaled
 // position), each oscillator glides there at its own seeded pace, detune

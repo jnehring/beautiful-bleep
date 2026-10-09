@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Quantizer view (specs/modules/quantizer.md §5): a one-octave keyboard
+// Quantizer view (doc/specs/modules/quantizer.md §5): a one-octave keyboard
 // showing the scale and the current note. Clicking a key edits the scale:
 // the shown scale is copied into the Custom mask (node data) first, so any
 // scale is a starting point.

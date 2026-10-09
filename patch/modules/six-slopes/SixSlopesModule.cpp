@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Six Slopes node (specs/modules/six-slopes.md): six slope generators with
+// Six Slopes node (doc/specs/modules/six-slopes.md): six slope generators with
 // shared controls, harmonic rate ratios and normalled triggers.
 #include "SixSlopesDsp.h"
 #include "Registry.h"

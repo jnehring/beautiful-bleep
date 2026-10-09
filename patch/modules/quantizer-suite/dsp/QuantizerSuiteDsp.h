@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Quantizer Suite core (specs/modules/quantizer-suite.md): four quantizer
+// Quantizer Suite core (doc/specs/modules/quantizer-suite.md): four quantizer
 // channels, each quantizing to a scale ∧ note mask, transposing in scale
 // steps, arpeggiating a scale chord, or following the board's harmony; with
 // sampling, slew and a legato note per channel. Channels run A → D each

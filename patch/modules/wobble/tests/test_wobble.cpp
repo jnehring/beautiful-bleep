@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Wobble: seeded values, transport grid, Smooth/Wobble step responses, cutoff
 // scaling, soft limit, Hold, bursts, Compare, Chaos determinism
-// (specs/modules/wobble.md §8).
+// (doc/specs/modules/wobble.md §8).
 #include "WobbleDsp.h"
 #include "dsp/tests/TestUtil.h"
 

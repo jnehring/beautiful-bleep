@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Level Meter core (specs/modules/level-meter.md §4): peak and RMS detectors
+// Level Meter core (doc/specs/modules/level-meter.md §4): peak and RMS detectors
 // per channel, the Level output on a dB scale and the Clip gate.
 #pragma once
 

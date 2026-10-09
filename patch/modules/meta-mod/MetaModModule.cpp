@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Meta Mod node (specs/modules/meta-modulator.md): carrier and modulator
+// Meta Mod node (doc/specs/modules/meta-modulator.md): carrier and modulator
 // combined by one of eight morphing algorithms, with an internal oscillator
 // standing in for an unpatched input.
 #include "MetaModDsp.h"

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// CV Mixer node (specs/modules/cv-mixer.md): four bipolar channels combined
+// CV Mixer node (doc/specs/modules/cv-mixer.md): four bipolar channels combined
 // by sum, average, max, min or scan.
 #include "CvMixerDsp.h"
 #include "Registry.h"

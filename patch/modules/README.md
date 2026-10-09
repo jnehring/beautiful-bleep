@@ -22,7 +22,7 @@ used here) and
 BLEEP_REGISTER_MODULE(registerFooModule);
 ```
 
-The design lives in `specs/modules/<name>.md`; the module follows it, and the
+The design lives in `doc/specs/modules/<name>.md`; the module follows it, and the
 spec is updated where the implementation had to differ.
 
 ## Building and testing

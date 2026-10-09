@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Dual Osc: tuning, B tracking, linear vs exponential FM, hard sync period
 // and aliasing, folder transparency and bounds, stereo, determinism
-// (specs/modules/dual-oscillator.md §8).
+// (doc/specs/modules/dual-oscillator.md §8).
 #include "DualOscDsp.h"
 #include "dsp/Wavetable.h"
 #include "dsp/tests/TestUtil.h"

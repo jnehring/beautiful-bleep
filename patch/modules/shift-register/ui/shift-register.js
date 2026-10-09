@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Shift Register view (specs/modules/shift-register.md §5): the 16 live bits
+// Shift Register view (doc/specs/modules/shift-register.md §5): the 16 live bits
 // (newest left, bits beyond Length dimmed, the feedback tap marked, flipped
 // bits flashing), the start pattern below them, Capture / Load, the Combo
 // toggles and a history strip of the last 32 Voltage values.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Logic node (specs/modules/logic.md): boolean gates, a flip-flop and edge
+// Logic node (doc/specs/modules/logic.md): boolean gates, a flip-flop and edge
 // triggers for gates and triggers.
 #include "LogicDsp.h"
 #include "Registry.h"

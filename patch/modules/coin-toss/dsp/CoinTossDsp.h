@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Coin Toss (specs/modules/coin-toss.md): two probability routers. Each rising
+// Coin Toss (doc/specs/modules/coin-toss.md): two probability routers. Each rising
 // edge at a channel's input tosses a weighted coin that sends the gate to A or
 // B. Every toss is uniform01(seed, k, stream) for a toss counter k, so a render
 // repeats exactly from the same start.

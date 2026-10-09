@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Logic core (specs/modules/logic.md §4): boolean gates over A, B and an
+// Logic core (doc/specs/modules/logic.md §4): boolean gates over A, B and an
 // optional C, a toggle flip-flop and edge triggers, with a shared threshold
 // and hysteresis.
 #pragma once

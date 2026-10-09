@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Neuron: compare thresholds, spike rate, leak, normals and cross delay,
-// logic, Out curve, the default rhythm, determinism (specs/modules/neuron.md §8).
+// logic, Out curve, the default rhythm, determinism (doc/specs/modules/neuron.md §8).
 #include "NeuronDsp.h"
 #include "dsp/tests/TestUtil.h"
 

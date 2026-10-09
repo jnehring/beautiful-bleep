@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Wavetable Osc (specs/modules/wavetable-oscillator.md): a two-dimensional
+// Wavetable Osc (doc/specs/modules/wavetable-oscillator.md): a two-dimensional
 // wavetable oscillator. A bank is a grid of single-cycle frames with
 // band-limited mipmaps (dsp::WavetableBank, common/dsp/Wavetable.h); X and Y
 // (or Scan along a path) pick a point on the grid, the four nearest frames

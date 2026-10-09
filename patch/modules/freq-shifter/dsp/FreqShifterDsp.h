@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Freq Shifter (specs/modules/frequency-shifter.md): single-sideband
+// Freq Shifter (doc/specs/modules/frequency-shifter.md): single-sideband
 // frequency shifting per channel with a Hilbert pair and a quadrature
 // oscillator (dsp/Hilbert.h), a feedback loop with its own delay, opposite
 // shifts on the two channels (Spread), anti-aliasing and tempo sync.

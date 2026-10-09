@@ -2,7 +2,7 @@
 // Lo-fi corruption stages: bit-depth reduction, sample-rate decimation
 // (sample & hold, optionally anti-aliased), seeded dropouts, a short
 // averaging "smear" and a wavefolding "fold". Used by Bender's corrupt modes
-// (specs/modules/bender.md §4.5), the delays' lo-fi characters and the drum
+// (doc/specs/modules/bender.md §4.5), the delays' lo-fi characters and the drum
 // Crusher.
 #pragma once
 

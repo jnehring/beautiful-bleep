@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Beat Oscillator node (specs/modules/beat-oscillator.md): two high carriers
+// Beat Oscillator node (doc/specs/modules/beat-oscillator.md): two high carriers
 // mixed down to their difference tone, with injection locking (Pull), seeded
 // drift and a warm-up glide.
 #include "BeatOscillatorDsp.h"

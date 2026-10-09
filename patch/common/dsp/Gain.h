@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Decibel helpers for faders (specs/modules/audio-mixer.md §4.1).
+// Decibel helpers for faders (doc/specs/modules/audio-mixer.md §4.1).
 #pragma once
 
 #include <cmath>

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Resonator: tuning, decay, structure tables, position, anti-aliasing,
 // round robin, input onsets, levels and stability
-// (specs/modules/resonator.md §8).
+// (doc/specs/modules/resonator.md §8).
 #include "ResonatorDsp.h"
 #include "dsp/tests/TestUtil.h"
 

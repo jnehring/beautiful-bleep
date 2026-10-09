@@ -3,7 +3,7 @@
 // the early eighties built them. Struck resonators that ring and die away
 // (kick, toms, snare body, rim), band-passed noise (snare, clap) and six
 // detuned square waves for the metal (cowbell, hats, cymbal). Deep, round,
-// a little soft. See specs/modules/ring-drums.md.
+// a little soft. See doc/specs/modules/ring-drums.md.
 //
 // Every voice: prepare(), reset(), trigger(input, velocity), tick(params).
 #pragma once

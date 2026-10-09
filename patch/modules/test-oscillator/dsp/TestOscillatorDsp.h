@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Test Oscillator (specs/modules/test-oscillator.md): a lamp-stabilised
+// Test Oscillator (doc/specs/modules/test-oscillator.md): a lamp-stabilised
 // bridge oscillator. A band-pass resonator (zero-delay-feedback SVF, Q0 = 5)
 // and a soft-clipping amplifier form a closed loop that is solved implicitly each
 // sample, so the small-signal frequency is exactly the cutoff. A lamp (a

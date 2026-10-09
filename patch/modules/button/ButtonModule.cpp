@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Button node (specs/modules/button.md): a pad in the module view; pressing
+// Button node (doc/specs/modules/button.md): a pad in the module view; pressing
 // it gives a gate, triggers and a toggle.
 #include "ButtonDsp.h"
 #include "ControlQueue.h"

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Keyboard view (specs/modules/keyboard.md §5): three octaves of keys to
+// Keyboard view (doc/specs/modules/keyboard.md §5): three octaves of keys to
 // play with the mouse or a finger (drag for a glissando), or with the
 // computer keyboard while the keys have focus (A W S E D … like a piano,
 // Z/X octave). Hold latches keys. Notes go to the engine with api.perform:

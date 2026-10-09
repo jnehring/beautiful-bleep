@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Rhythm Bank view (specs/modules/rhythm-bank.md §5): the playing pattern as
+// Rhythm Bank view (doc/specs/modules/rhythm-bank.md §5): the playing pattern as
 // four rows by Length steps (muted rows dimmed, the playhead, Accent steps
 // marked below, Poly Free hits at their exact position), a large pattern
 // number with ◀ ▶ (one undo step each) and the family name; a pending

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// XY Scope view (specs/modules/xy-scope.md §5): a phosphor screen in a dark
+// XY Scope view (doc/specs/modules/xy-scope.md §5): a phosphor screen in a dark
 // round-cornered bezel, an 8 × 10 graticule engraved behind the trace, and a
 // readout line (frequencies, figure ratio, φ, ρ, Still lamp).
 //

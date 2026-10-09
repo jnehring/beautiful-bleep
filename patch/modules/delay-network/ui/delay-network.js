@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Delay Net view (specs/modules/delay-network.md §5): a timeline with every
+// Delay Net view (doc/specs/modules/delay-network.md §5): a timeline with every
 // active tap at its effective time (height = its level, colour = side, ◀ for
 // reversed taps), a small diagram of the routing, and the latched Freeze
 // button (kept in the node's data, ORed with the gate input). The Clear

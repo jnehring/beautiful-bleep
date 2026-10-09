@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Coin Toss node (specs/modules/coin-toss.md): two seeded probability routers.
+// Coin Toss node (doc/specs/modules/coin-toss.md): two seeded probability routers.
 #include "CoinTossDsp.h"
 #include "Registry.h"
 

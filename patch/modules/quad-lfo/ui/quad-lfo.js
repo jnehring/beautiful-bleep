@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Quad LFO view (specs/modules/quad-lfo.md §5): a four-trace scope of one
+// Quad LFO view (doc/specs/modules/quad-lfo.md §5): a four-trace scope of one
 // cycle of channel 1 (two in Divide) with a dot at each live phase, computed
 // from the knobs like QuadLfoDsp, and an XY view (Out 1 against Out 2). In
 // Sync the Rate knobs show note values; with a clock, Rate 1 shows the

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Tidal view (specs/modules/tidal.md §5): a scope of all four outputs over two
+// Tidal view (doc/specs/modules/tidal.md §5): a scope of all four outputs over two
 // cycles of A (one envelope in AD/AR), computed from the knobs like TidalDsp,
 // with a dot at A's live phase. Relabels Frequency for the Range, Sync and
 // Clock, and Spread with the ratio set in the Ratio relation.

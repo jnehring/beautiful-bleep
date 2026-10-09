@@ -3,7 +3,7 @@
 // Media.h — audio files that modules use (a sampler's reel, a wavetable, a
 // frozen grain buffer). The board document stores only a media *id*; the
 // audio lives as a WAV file in one media folder on the computer
-// (specs/modules/splice.md §7), shared by every set:
+// (doc/specs/modules/splice.md §7), shared by every set:
 //
 //   macOS    ~/Music/Bleep Patch/Media/<id>.wav
 //   Windows  %USERPROFILE%\Music\Bleep Patch\Media\<id>.wav

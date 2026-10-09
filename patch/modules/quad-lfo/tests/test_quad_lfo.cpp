@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Quad LFO (specs/modules/quad-lfo.md §8): quadrature and phase offsets,
+// Quad LFO (doc/specs/modules/quad-lfo.md §8): quadrature and phase offsets,
 // Cycle pulses that ignore Spread movement, Divide realignment, free rates,
 // transport lock, clock, seeded random waves and click-free mode switches.
 #include "QuadLfoDsp.h"

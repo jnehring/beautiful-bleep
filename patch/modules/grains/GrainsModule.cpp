@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Grains node (specs/modules/grains.md): a granular processor over a live
+// Grains node (doc/specs/modules/grains.md): a granular processor over a live
 // buffer. A frozen buffer can be kept: the view saves it to the media store
 // (exportMedia("frozen")) and stores the id in the node's data; on load,
 // setData decodes it (resampled to the engine rate) and hands it to the

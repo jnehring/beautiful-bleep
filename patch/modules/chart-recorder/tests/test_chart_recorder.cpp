@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Chart Recorder: detectors, the pen (overshoot, velocity limit, stiction, end
 // stops), paper and record modes, replay of a written ramp, interpolation and
-// blank points, markers, saved data (specs/modules/chart-recorder.md §8).
+// blank points, markers, saved data (doc/specs/modules/chart-recorder.md §8).
 #include "ChartRecorderDsp.h"
 #include "dsp/tests/TestUtil.h"
 

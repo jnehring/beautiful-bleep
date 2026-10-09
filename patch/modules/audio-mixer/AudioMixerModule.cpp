@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Audio Mixer node (specs/modules/audio-mixer.md): four stereo channels,
+// Audio Mixer node (doc/specs/modules/audio-mixer.md): four stereo channels,
 // a send and return, a master with a limiter, a mono option and meters.
 #include "AudioMixerDsp.h"
 #include "Registry.h"

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Additive Osc (specs/modules/additive-oscillator.md): up to 64 sine partials
+// Additive Osc (doc/specs/modules/additive-oscillator.md): up to 64 sine partials
 // shaped by a few spectral knobs (base shape, tilt, odd/even, count, comb),
 // bent by stretch and shift, detuned by a seeded chorus, with a per-partial
 // decay for struck sounds. Partials above the band limit are dropped, so it

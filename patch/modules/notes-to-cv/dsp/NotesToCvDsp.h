@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Notes to CV core (specs/modules/notes-to-cv.md §4): a held-note list, one
+// Notes to CV core (doc/specs/modules/notes-to-cv.md §4): a held-note list, one
 // active note by priority, and mono pitch/gate/velocity/pressure out.
 #pragma once
 

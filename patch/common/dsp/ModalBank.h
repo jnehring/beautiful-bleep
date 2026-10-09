@@ -4,7 +4,7 @@
 // complex one-pole (a rotation times a decay, like dsp::Resonator in
 // Drums.h): stable for any per-sample change of pitch or decay, exactly in
 // tune, and its level doesn't depend on its frequency, so pitch sweeps keep
-// the energy. See specs/modules/resonator.md section 4.2.
+// the energy. See doc/specs/modules/resonator.md section 4.2.
 //
 // Usage: prepare(), then set(params) once per sub-block (cheap when only the
 // pitch moves; the coefficients can ramp linearly over the block), then

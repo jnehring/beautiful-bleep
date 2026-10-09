@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Zone Delay node (specs/modules/zone-delay.md): a stereo delay over five
+// Zone Delay node (doc/specs/modules/zone-delay.md): a stereo delay over five
 // time zones with tape or crossfade time changes, loop characters, diffusion
 // and the Reverse / Hold / Ping-Pong switches (gates ORed with the view's
 // latched buttons, which live in the node's data).

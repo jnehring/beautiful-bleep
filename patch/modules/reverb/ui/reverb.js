@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Verb view (specs/modules/reverb.md §5): decay curves for the low, mid and
+// Verb view (doc/specs/modules/reverb.md §5): decay curves for the low, mid and
 // high bands from the effective (modulated) Decay, Bass and Damping on a log
 // time axis, with the pre-delay as a gap; "Infinite" in the ∞ region; a
 // latching Freeze button (the "freeze" setting, ORed with the gate) lit while

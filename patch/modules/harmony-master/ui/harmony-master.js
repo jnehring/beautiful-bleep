@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Harmony Master view (specs/modules/harmony-master.md §5): the chord now
+// Harmony Master view (doc/specs/modules/harmony-master.md §5): the chord now
 // playing with its key and scale and a one-octave keyboard, and the
 // progression strip (Progression source): click a slot to edit it, drag its
 // right edge to change the length, + adds a slot. Slots live in the node's

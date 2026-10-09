@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// LFO node (specs/modules/lfo.md): classic waveforms, free or synced.
+// LFO node (doc/specs/modules/lfo.md): classic waveforms, free or synced.
 #include "LfoDsp.h"
 #include "Registry.h"
 

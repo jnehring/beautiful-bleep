@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Exciters for the physical models (specs/modules/modal-voice.md 4.2,
+// Exciters for the physical models (doc/specs/modules/modal-voice.md 4.2,
 // resonator.md 4.5): a bow (stick-slip friction against the body's
 // velocity), a blow (pitch-tracked breath noise plus a jet that couples with
 // the body), a mallet (felt → wood → tick → seeded scrape) and a generic

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Swarm node (specs/modules/swarm-oscillator.md): up to 16 oscillators spread
+// Swarm node (doc/specs/modules/swarm-oscillator.md): up to 16 oscillators spread
 // over a chord or scale around one pitch, gliding, drifting, cross-modulating
 // and scattered in stereo.
 #include "Registry.h"

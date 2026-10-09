@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Additive Osc: pitch, partial levels, band limit, reference saw, odd/even,
 // comb, normalisation, stretch, decay, drawn spectrum, determinism
-// (specs/modules/additive-oscillator.md §8).
+// (doc/specs/modules/additive-oscillator.md §8).
 #include "AdditiveOscDsp.h"
 #include "dsp/Wavetable.h"
 #include "dsp/tests/TestUtil.h"

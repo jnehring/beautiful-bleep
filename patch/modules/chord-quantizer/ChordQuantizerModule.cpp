@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chord Quantizer node (specs/modules/chord-quantizer.md): a pitch picks a
+// Chord Quantizer node (doc/specs/modules/chord-quantizer.md): a pitch picks a
 // chord root, the chord is voiced, voice-led and strummed onto four pitch
 // outputs and a note set; Follow takes the chord from a Harmony Master.
 #include "ChordQuantizerDsp.h"

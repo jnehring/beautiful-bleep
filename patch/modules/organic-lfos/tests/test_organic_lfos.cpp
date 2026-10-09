@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Organic LFOs (specs/modules/organic-lfos.md §8): identical without drift,
+// Organic LFOs (doc/specs/modules/organic-lfos.md §8): identical without drift,
 // irrational rate fan, bounded drift with an exact anchor, bit-identical
 // renders, the bar lock (seekable), the Twist formulas, Sum and Max.
 #include "OrganicLfosDsp.h"

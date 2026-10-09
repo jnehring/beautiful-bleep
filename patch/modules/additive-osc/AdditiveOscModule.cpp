@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Additive Osc node (specs/modules/additive-oscillator.md): 64 sine partials
+// Additive Osc node (doc/specs/modules/additive-oscillator.md): 64 sine partials
 // shaped by spectral knobs; the drawn spectrum is node data; the final
 // partial levels and frequencies are live arrays for the spectrum view.
 #include "AdditiveOscDsp.h"

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dual Filter node (specs/modules/dual-filter.md): two multimode SVFs under
+// Dual Filter node (doc/specs/modules/dual-filter.md): two multimode SVFs under
 // one Cutoff, pulled apart by Spread, in serial, parallel or stereo routing.
 // Cutoff and Spread modulation work in octaves and may run at audio rate.
 #include "DualFilterDsp.h"

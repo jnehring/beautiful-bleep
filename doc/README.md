@@ -1,7 +1,8 @@
-# Internal operations
+# Documentation
 
-For the people who build, release and run Bleep. User and developer documentation lives in `website/content/`.
+| Folder | What |
+|---|---|
+| [`specs/`](specs/) | The specifications: the main spec ([`specs.md`](specs/specs.md)), one file per board module ([`modules/`](specs/modules/)), panels and the registry |
+| [`operations/`](operations/) | Internal operations: building the standalone app, releasing, running the website |
 
-- [Build the standalone app](build-standalone-app.md)
-- [Release](release.md)
-- [Run the website and create the admin user](website.md)
+User and developer documentation (what the website shows) lives in [`website/content/`](../website/content/).

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Attenuverter core (specs/modules/attenuverter.md): four rows of
+// Attenuverter core (doc/specs/modules/attenuverter.md): four rows of
 // In × Scale + Offset, a sum, and optional clipping.
 #pragma once
 

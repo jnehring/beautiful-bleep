@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Node-level tests for the utility modules (specs/modules/attenuverter.md,
+// Node-level tests for the utility modules (doc/specs/modules/attenuverter.md,
 // cv-mixer.md, audio-mixer.md, multiplier.md, crossfader.md, logic.md,
 // quantizer.md, switch.md, notes-to-cv.md): their specs, normalling of
 // unpatched jacks, node data and note input, run through the Module API.

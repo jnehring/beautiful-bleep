@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Recall view (specs/modules/recall.md §5): the T lane (the last T Loop ticks
+// Recall view (doc/specs/modules/recall.md §5): the T lane (the last T Loop ticks
 // with T1/T2 hits; ● repeated, ○ fresh, ◆ from a captured loop), the X lane
 // (X1–X3 over the last 32 draws, allowed scale notes as grey lines when
 // quantizing), a preview of the X distribution (computed here, as

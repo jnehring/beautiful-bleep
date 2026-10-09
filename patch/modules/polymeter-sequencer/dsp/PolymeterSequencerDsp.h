@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Polymeter Seq core (specs/modules/polymeter-sequencer.md): a step split into
+// Polymeter Seq core (doc/specs/modules/polymeter-sequencer.md): a step split into
 // six tracks (Trigger, Note, Octave, Gate, Probability, Ratchet), each with
 // its own length, loop window, clock division and direction, in up to 8
 // pattern slots. Every track position is a pure function of the base tick

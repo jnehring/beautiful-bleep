@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Neuron node (specs/modules/neuron.md): two integrate-and-fire neurons with
+// Neuron node (doc/specs/modules/neuron.md): two integrate-and-fire neurons with
 // cross-feedback normals and logic outputs.
 #include "NeuronDsp.h"
 #include "Registry.h"

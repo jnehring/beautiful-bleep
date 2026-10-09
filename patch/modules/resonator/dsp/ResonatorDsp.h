@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Resonator DSP (specs/modules/resonator.md): up to four voices of a tuned
+// Resonator DSP (doc/specs/modules/resonator.md): up to four voices of a tuned
 // body (the shared ModalBank, SympatheticStrings or a WaveguideString), fed by
 // the input and by an internal noise-burst exciter on each strum. Voices take
 // turns on strums (round robin); the newest one gets the input and follows

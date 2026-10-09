@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Button view (specs/modules/button.md §5): a big pad. Press with the mouse,
+// Button view (doc/specs/modules/button.md §5): a big pad. Press with the mouse,
 // a finger, or Space/Enter while the pad has focus. The toggle's state is
 // saved in the node's data, so it survives saving the set.
 (function () {

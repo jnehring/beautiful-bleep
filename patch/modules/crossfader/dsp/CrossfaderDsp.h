@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Crossfader gains (specs/modules/crossfader.md §4).
+// Crossfader gains (doc/specs/modules/crossfader.md §4).
 #pragma once
 
 #include <algorithm>

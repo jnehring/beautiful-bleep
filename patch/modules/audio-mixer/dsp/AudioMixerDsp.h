@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Audio Mixer core (specs/modules/audio-mixer.md §4): four stereo channels
+// Audio Mixer core (doc/specs/modules/audio-mixer.md §4): four stereo channels
 // with fader, pan, mute/solo and a send; a return, a master fader and a
 // lookahead peak limiter.
 #pragma once

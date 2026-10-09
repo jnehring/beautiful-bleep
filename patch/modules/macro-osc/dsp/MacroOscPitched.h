@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Macro Osc models 1–9, the pitched ones (specs/modules/macro-oscillator.md
+// Macro Osc models 1–9, the pitched ones (doc/specs/modules/macro-oscillator.md
 // 4.2): reduced versions of the dedicated oscillators, built from the shared
 // cores in patch/common/dsp (SyncOsc, Folder, FormantOsc, PartialBank, the
 // wavetable banks, the chord table, the vowel table, Svf).

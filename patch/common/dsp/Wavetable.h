@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Single-cycle wavetables with band-limited mipmaps, for the Wavetable Osc
-// (specs/modules/wavetable-oscillator.md) and the Macro Osc's Table model.
+// (doc/specs/modules/wavetable-oscillator.md) and the Macro Osc's Table model.
 //
 // A WavetableBank is a cols × rows grid of frames (factory banks are 8 × 8).
 // Each frame is defined by its harmonic spectrum and stored as 11 mip levels:

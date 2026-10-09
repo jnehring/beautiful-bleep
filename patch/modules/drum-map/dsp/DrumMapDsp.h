@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Drum Map core (specs/modules/drum-map.md): kick, snare and hats played from
+// Drum Map core (doc/specs/modules/drum-map.md): kick, snare and hats played from
 // a 5 × 5 map of patterns. Each map node holds 32 levels (0–255) per voice;
 // X/Y interpolate between nodes, Density thresholds the levels, Chaos moves
 // them by a seeded amount that repeats per bar block. The factory map is

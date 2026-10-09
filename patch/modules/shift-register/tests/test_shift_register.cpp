@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Shift Register: Lock extremes, flip share, determinism, seeking, timing,
 // voltage/pitch, bit gates, Combo, Mix, Data source
-// (specs/modules/shift-register.md §8).
+// (doc/specs/modules/shift-register.md §8).
 #include "ShiftRegisterDsp.h"
 #include "dsp/tests/TestUtil.h"
 

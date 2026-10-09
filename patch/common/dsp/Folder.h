@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Multi-stage wavefolder (specs/modules/wavefolder.md 4.1–4.4), also used by
+// Multi-stage wavefolder (doc/specs/modules/wavefolder.md 4.1–4.4), also used by
 // the Dual Osc (a fixed 4-stage fold), the Macro Osc's Fold model and the Meta
 // Mod's Fold algorithm (one soft stage).
 //

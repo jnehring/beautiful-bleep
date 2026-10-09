@@ -15,7 +15,7 @@
 //                   "data": {...} (modules with node data, e.g. a sequencer's steps) } ],
 //     "cables": [ { "id", "from": {"node", "jack"}, "to": {"node", "jack"}, "amount" } ],
 //     "view": {...}  (UI state, kept as is),
-//     "panels": [ {...} ]  (front panels, specs/panels.md: kept as is) }
+//     "panels": [ {...} ]  (front panels, doc/specs/panels.md: kept as is) }
 //
 // Cells are nodes of type "cell" with their own "inputs"/"outputs"; inside a
 // cell (nodes whose "parent" is the cell), a "cell-in" node exposes the
@@ -76,7 +76,7 @@ juce::var create();
 /// Returns a valid copy of `doc`. `warnings` (optional) collects what was dropped.
 juce::var sanitise(const juce::var& doc, juce::StringArray* warnings = nullptr);
 BoardModel parse(const juce::var& doc);
-/// Panel controls wired to a cell's input jacks or notes (specs/panels.md §5) become hidden
+/// Panel controls wired to a cell's input jacks or notes (doc/specs/panels.md §5) become hidden
 /// source nodes ("~<panel>:<control>:<wire>": a Dial, Button or Keyboard) cabled into the
 /// cell. They exist only in the compiled model, not in the saved board; the UI moves them
 /// with setParam / perform on their ids.

@@ -547,7 +547,7 @@ Module view sketch:
 
 ### 9.7 Panels
 
-A **panel** is a custom UI for a cell or the board, like the front panel of a hardware synth: sliders, dials, buttons, a keyboard roll, text labels, displays, and the views of modules from inside the cell. The full design is in [`specs/panels.md`](panels.md); this is the summary.
+A **panel** is a custom UI for a cell or the board, like the front panel of a hardware synth: sliders, dials, buttons, a keyboard roll, text labels, displays, and the views of modules from inside the cell. The full design is in [`doc/specs/panels.md`](panels.md); this is the summary.
 
 - **Two views.** *Interface* is for playing. *Wiring* is for building: every control shows what it is wired to, and the user connects it to a knob, a cell jack, a note input or a module's button, with a range and a curve per wire. One control can drive several targets (a macro). Layout editing (add, move, resize, label, colour) is in the Interface view behind an unlock.
 - **Panels belong to the board.** A board can have any number of panels. A panel can front a cell and wire into anything inside it, at any depth. Panels are saved with the board; *panels in cell presets:* the panels whose controls all wire inside a cell are saved with it, and factory cell presets come with panels.
@@ -691,11 +691,11 @@ A Live set either has its board in Bleep Patch (section 6) or works with the app
 
 ## 12. First module set
 
-Each module is our own design, built from generic modular concepts. Each module gets its own specification file in `specs/modules/` (purpose, jacks, controls, behaviour, view, saved state, tests); the table below is the overview.
+Each module is our own design, built from generic modular concepts. Each module gets its own specification file in `doc/specs/modules/` (purpose, jacks, controls, behaviour, view, saved state, tests); the table below is the overview.
 
 | Module | Building blocks | Key ideas |
 |---|---|---|
-| **LFO** | Sine, triangle, saw up/down, square (pulse width), random step and smooth; free or tempo-synced; phase, fade-in, reset | The quickest modulation source, phase-locked to the bars when synced. Every wave on its own output. See `specs/modules/lfo.md`. |
+| **LFO** | Sine, triangle, saw up/down, square (pulse width), random step and smooth; free or tempo-synced; phase, fade-in, reset | The quickest modulation source, phase-locked to the bars when synced. Every wave on its own output. See `doc/specs/modules/lfo.md`. |
 | **Function** | Rise/fall slope generator, cycle mode, end-of-cycle gate, chaining | One primitive that acts as envelope, LFO, slew or portamento depending on patching. A *spread* control derives several related outputs (rate ratios, phase offsets) from one gesture. |
 | **Random** | Sample & hold random, distribution (spread/bias), smoothing, quantize, looping memory | A single knob between "always new" and "locked loop". Seeded, so renders are reproducible. |
 | **Drift** | Slow chaotic systems (coupled differential equations) | Organic, never-repeating movement over seconds to hours. |
@@ -704,27 +704,27 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **Utility** | Attenuverter, offset, mix, slew, S&H, comparator, logic, rectify/fold, quantizer | The glue. Small, cheap, endlessly combinable. |
 | **Multi Filter** | Several filter algorithms behind one panel: a **Type** dropdown, plus mode morph, drive, key-tracking, envelope follower out | See below. |
 | **Oscillator** | Triangle-core oscillator: waveform morph, through-zero FM, hard sync, sub | See below. The basic sound source for synths on the board. |
-| **Noise** | White, pink, brown, blue; continuous colour sweep | *Colour* morphs brown → pink → white → blue → violet at constant loudness. Every instance plays its own noise. See `specs/modules/noise.md`. |
+| **Noise** | White, pink, brown, blue; continuous colour sweep | *Colour* morphs brown → pink → white → blue → violet at constant loudness. Every instance plays its own noise. See `doc/specs/modules/noise.md`. |
 | **VCA** | Voltage-controlled amplifier, linear or exponential response, stereo | Turns envelopes into loudness. Its *Gain* knob starts at 0, so an envelope patched into it opens it fully. |
 | **ADSR** | Attack, decay, sustain, release; velocity amount; retrigger | Outputs *Env*, *End* (trigger when the release finishes) and *Active* (gate while the envelope runs, for a Voice Cell's *Voice Out*). |
-| **Step Sequencer** | Up to 32 steps with gate (on/off/tie), pitch and velocity lanes; scale quantizing; randomizer and seeded *Variation* | Transport-locked or clocked. *Notes* output plays a Voice Cell directly. See `specs/modules/step-sequencer.md`. |
-| **Drum Grid** | 8 tracks × up to 32 steps (off/on/accent); per-track gate, accent and velocity outputs; 16 pattern slots; pattern library | Transport-locked, own tempo or clocked; a Run gate starts and stops it. Patterns switch at the end or immediately and save to a library shared by all sets. See `specs/modules/drum-grid.md`. |
+| **Step Sequencer** | Up to 32 steps with gate (on/off/tie), pitch and velocity lanes; scale quantizing; randomizer and seeded *Variation* | Transport-locked or clocked. *Notes* output plays a Voice Cell directly. See `doc/specs/modules/step-sequencer.md`. |
+| **Drum Grid** | 8 tracks × up to 32 steps (off/on/accent); per-track gate, accent and velocity outputs; 16 pattern slots; pattern library | Transport-locked, own tempo or clocked; a Run gate starts and stops it. Patterns switch at the end or immediately and save to a library shared by all sets. See `doc/specs/modules/drum-grid.md`. |
 | **CV to Notes** | Pitch + gate → `notes` | Lets mono sources (sequencers, Random + Utility) play Voice Cells. Legato on pitch changes while the gate is high. |
-| **Ring Drums** | One node per drum: kick, snare, clap, tom, rim/clave, cowbell, hats, cymbal | Deep, round kit from struck resonators, band-passed noise and six detuned squares. Shared outside: *Trig*, *Velocity*, *Out*, *Level*. See `specs/modules/ring-drums.md`. |
-| **Punch Drums** | One node per drum: kick, snare, clap, tom, rim, hats, crash/ride | Tight, hard kit from fast-swept sines, noise clicks and crunchy metal. Same outside as Ring Drums. See `specs/modules/punch-drums.md`. |
-| **Notes to CV** | `notes` → pitch, gate, trigger, velocity, pressure; note priority, retrigger, glide | The way out of `notes` (section 7.4) for modules outside a Voice Cell. See `specs/modules/notes-to-cv.md`. |
-| **Attenuverter** | Four rows of scale (−2…+2) and offset, sum output, clip | Unpatched rows are manual constants: four macro knobs. See `specs/modules/attenuverter.md`. |
-| **CV Mixer** | Four bipolar channels; sum, average, max, min, scan; master, offset | Combines modulators in more ways than fan-in's sum. See `specs/modules/cv-mixer.md`. |
-| **Multiplier** | Two four-quadrant multipliers with bias, chained; optional oversampling | Ring mod at audio rate, depth-by-modulator for control. See `specs/modules/multiplier.md`. |
-| **Logic** | AND, OR, XOR, NAND, NOR, NOT, flip-flop, edge triggers; threshold with hysteresis | Rhythms from rhythms; clock ÷2. See `specs/modules/logic.md`. |
-| **Quantizer** | Scale quantizer sharing the Step Sequencer's scales, custom scale, transpose before/after, note-change trigger | Turns any modulator into a melody. See `specs/modules/quantizer.md`. |
-| **Switch** | Sequential switch, up to 8 steps: 8 → 1 and 1 → 8 at once; stepped by triggers, the transport or Select; fades that never jump; per-step levels | Source selector, router and 8-step value sequencer in one. See `specs/modules/switch.md`. |
-| **Audio Mixer** | Four stereo channels: level (dB), pan, mute/solo, send; return, master, limiter, meters | Several sound sources into one stereo pair. See `specs/modules/audio-mixer.md`. |
-| **Crossfader** | Stereo A/B blend, equal-power or linear | Dry/wet and source morphing under modulation. See `specs/modules/crossfader.md`. |
-| **Level Meter** | Stereo peak and RMS meters, peak hold, clip lights; audio thru; Level and Clip outputs | See how loud a signal is anywhere in the patch, and use the loudness as modulation. See `specs/modules/level-meter.md`. |
-| **Dial** | One big knob as a control signal: Min/Max range, detents, smoothing | A macro or selector by hand. See `specs/modules/dial.md`. |
-| **Button** | A pad: gate (momentary or toggle), press and release triggers, toggle | Starts, resets and mutes by hand; the toggle is saved. See `specs/modules/button.md`. |
-| **Keyboard** | Three octaves to play with the mouse or the computer keyboard; hold | *Notes* plays a Voice Cell; mono pitch, gate, velocity, trigger with priority and glide. See `specs/modules/keyboard.md`. |
+| **Ring Drums** | One node per drum: kick, snare, clap, tom, rim/clave, cowbell, hats, cymbal | Deep, round kit from struck resonators, band-passed noise and six detuned squares. Shared outside: *Trig*, *Velocity*, *Out*, *Level*. See `doc/specs/modules/ring-drums.md`. |
+| **Punch Drums** | One node per drum: kick, snare, clap, tom, rim, hats, crash/ride | Tight, hard kit from fast-swept sines, noise clicks and crunchy metal. Same outside as Ring Drums. See `doc/specs/modules/punch-drums.md`. |
+| **Notes to CV** | `notes` → pitch, gate, trigger, velocity, pressure; note priority, retrigger, glide | The way out of `notes` (section 7.4) for modules outside a Voice Cell. See `doc/specs/modules/notes-to-cv.md`. |
+| **Attenuverter** | Four rows of scale (−2…+2) and offset, sum output, clip | Unpatched rows are manual constants: four macro knobs. See `doc/specs/modules/attenuverter.md`. |
+| **CV Mixer** | Four bipolar channels; sum, average, max, min, scan; master, offset | Combines modulators in more ways than fan-in's sum. See `doc/specs/modules/cv-mixer.md`. |
+| **Multiplier** | Two four-quadrant multipliers with bias, chained; optional oversampling | Ring mod at audio rate, depth-by-modulator for control. See `doc/specs/modules/multiplier.md`. |
+| **Logic** | AND, OR, XOR, NAND, NOR, NOT, flip-flop, edge triggers; threshold with hysteresis | Rhythms from rhythms; clock ÷2. See `doc/specs/modules/logic.md`. |
+| **Quantizer** | Scale quantizer sharing the Step Sequencer's scales, custom scale, transpose before/after, note-change trigger | Turns any modulator into a melody. See `doc/specs/modules/quantizer.md`. |
+| **Switch** | Sequential switch, up to 8 steps: 8 → 1 and 1 → 8 at once; stepped by triggers, the transport or Select; fades that never jump; per-step levels | Source selector, router and 8-step value sequencer in one. See `doc/specs/modules/switch.md`. |
+| **Audio Mixer** | Four stereo channels: level (dB), pan, mute/solo, send; return, master, limiter, meters | Several sound sources into one stereo pair. See `doc/specs/modules/audio-mixer.md`. |
+| **Crossfader** | Stereo A/B blend, equal-power or linear | Dry/wet and source morphing under modulation. See `doc/specs/modules/crossfader.md`. |
+| **Level Meter** | Stereo peak and RMS meters, peak hold, clip lights; audio thru; Level and Clip outputs | See how loud a signal is anywhere in the patch, and use the loudness as modulation. See `doc/specs/modules/level-meter.md`. |
+| **Dial** | One big knob as a control signal: Min/Max range, detents, smoothing | A macro or selector by hand. See `doc/specs/modules/dial.md`. |
+| **Button** | A pad: gate (momentary or toggle), press and release triggers, toggle | Starts, resets and mutes by hand; the toggle is saved. See `doc/specs/modules/button.md`. |
+| **Keyboard** | Three octaves to play with the mouse or the computer keyboard; hold | *Notes* plays a Voice Cell; mono pitch, gate, velocity, trigger with priority and glide. See `doc/specs/modules/keyboard.md`. |
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
 **Multi Filter details:**

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Segments view (specs/modules/segments.md §5): a breakpoint editor of the
+// Segments view (doc/specs/modules/segments.md §5): a breakpoint editor of the
 // chain (drag a node up/down for Level, left/right for Time; drag a curve's
 // middle for Shape), the loop bracket (drag across segments to set the Loop
 // flags), the selected segment's row (Type, Wait, Loop, Seg In, Sync value and

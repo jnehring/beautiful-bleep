@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Rise/fall slope generator: the common core of Tidal, Six Slopes and
-// Segments (specs/modules/tidal.md, six-slopes.md, segments.md). One cycle is
+// Segments (doc/specs/modules/tidal.md, six-slopes.md, segments.md). One cycle is
 // a rise and a fall; Skew sets their ratio at a constant period. It runs as a
 // looping oscillator from 0.001 Hz to audio rate, as an AD envelope or as an
 // AR/ASR envelope, with curve shaping, smoothing/folding, end-of-rise and

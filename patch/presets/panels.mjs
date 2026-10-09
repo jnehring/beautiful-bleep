@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Factory panels (specs/panels.md §6): front panels written by hand for cell
+// Factory panels (doc/specs/panels.md §6): front panels written by hand for cell
 // presets, keyed by the preset's name. build.mjs checks each against its
 // preset and writes patch/board/ui/factory-panels.json.
 //

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Grains core (specs/modules/grains.md): a stereo circular buffer recording
+// Grains core (doc/specs/modules/grains.md): a stereo circular buffer recording
 // the input (plus feedback), played back by the shared granular engine
 // (dsp::GrainEngine, dsp::GrainCloud): continuous, transport-locked or
 // triggered scheduling, seeded per grain, pitch quantizing, a Blur stage

@@ -2,7 +2,7 @@
 // Pulse Generator: Free Run timing, transport grid with jitter, bursts,
 // Gated runs, External Width delay line and its overflow, Double and
 // Complement, band-limiting (aliasing, sub-sample edges), ringing, warm-up
-// (specs/modules/pulse-generator.md §8).
+// (doc/specs/modules/pulse-generator.md §8).
 #include "PulseGeneratorDsp.h"
 #include "dsp/tests/TestUtil.h"
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Filter Bank (specs/modules/filter-bank.md): ten fixed band-pass filters
+// Filter Bank (doc/specs/modules/filter-bank.md): ten fixed band-pass filters
 // (dsp::Svf, unit gain at the centre) with per-band levels, tilt, odd/even
 // balance and a scanning window, an envelope follower per band, and a
 // built-in vocoder that scales each band by the matching band of a

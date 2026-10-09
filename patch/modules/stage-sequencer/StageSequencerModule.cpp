@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Stage Seq node (specs/modules/stage-sequencer.md): stages from the node's
+// Stage Seq node (doc/specs/modules/stage-sequencer.md): stages from the node's
 // data, pulses from the transport or a clock, notes and CV out.
 #include "StageSequencerDsp.h"
 #include "Registry.h"

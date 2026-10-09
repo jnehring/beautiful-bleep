@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Bender view (specs/modules/bender.md §5): with transport sync, the
+// Bender view (doc/specs/modules/bender.md §5): with transport sync, the
 // decisions of the current and the next bar (computed from the same seeded
 // hash as the audio, so you see what Chance and Seed will do before it
 // happens) with the playing segment marked; otherwise the recent segments.

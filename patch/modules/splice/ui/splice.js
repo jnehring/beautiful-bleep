@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Splice view (specs/modules/splice.md §5): the whole reel with its splices
+// Splice view (doc/specs/modules/splice.md §5): the whole reel with its splices
 // (alternating tints, current and pending marked, markers, play heads), a
 // zoom on the current splice with the window shaded, and a drop target for
 // WAV files. Click a splice to select it, double-click to add a marker

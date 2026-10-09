@@ -93,7 +93,7 @@ inline double skew01(double u, double amount) noexcept {
     return std::pow(std::clamp(u, 0.0, 1.0), std::pow(4.0, -std::clamp(amount, -1.0, 1.0)));
 }
 
-/// Spread + bias distribution (specs/modules/recall.md 4.3, X section).
+/// Spread + bias distribution (doc/specs/modules/recall.md 4.3, X section).
 /// u0..u2 are raw uniforms in [0, 1); spread 0..1, bias 0..1 (0.5 neutral).
 /// Returns −1..+1:
 ///   spread 0        → the centre (0, moved by bias);

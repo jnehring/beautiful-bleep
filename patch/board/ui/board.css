@@ -204,7 +204,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
                 border-radius: 8px; padding: 8px 14px; font-size: 12px; transition: opacity .2s, transform .2s; z-index: 1000; }
 .board-notice.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---- front panels (panels.js, specs/panels.md) ---- */
+/* ---- front panels (panels.js, doc/specs/panels.md) ---- */
 .n-panel { margin-left: auto; background: none; border: 0; padding: 0 2px; color: var(--muted); font-size: 14px; cursor: pointer; }
 .n-panel:hover { color: var(--accent); }
 .pwin { width: auto; max-width: calc(100% - 16px); }

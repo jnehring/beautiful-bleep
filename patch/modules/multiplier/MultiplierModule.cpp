@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Multiplier node (specs/modules/multiplier.md): two four-quadrant
+// Multiplier node (doc/specs/modules/multiplier.md): two four-quadrant
 // multipliers with bias, chained, optionally oversampled.
 #include "MultiplierDsp.h"
 #include "Registry.h"

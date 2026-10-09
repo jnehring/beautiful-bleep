@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dial view (specs/modules/dial.md §5): one big dial for Value, with its
+// Dial view (doc/specs/modules/dial.md §5): one big dial for Value, with its
 // detents, the modulation ring and the output in the range's units.
 (function () {
   "use strict";

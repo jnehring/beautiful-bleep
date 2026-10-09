@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Organic LFOs view (specs/modules/organic-lfos.md §5): a rate strip (each
+// Organic LFOs view (doc/specs/modules/organic-lfos.md §5): a rate strip (each
 // LFO's live rate as a tick on a log axis) above an eight-trace scrolling
 // scope of about the last four cycles of LFO 1, with the Sum as a thicker
 // line on top. With Lock = Bars the Rate knob shows note values.

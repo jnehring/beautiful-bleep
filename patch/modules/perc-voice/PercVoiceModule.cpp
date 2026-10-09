@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Perc Voice node: kicks, toms, bells and noisy hits from eight partials and
-// three engines (specs/modules/perc-voice.md). Env and Active outputs for
+// three engines (doc/specs/modules/perc-voice.md). Env and Active outputs for
 // Voice Cells; a Hit button auditions it; the view draws the partials.
 #include "PercVoiceDsp.h"
 #include "Registry.h"

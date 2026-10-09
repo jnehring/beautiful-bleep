@@ -147,7 +147,7 @@ struct ButtonSpec {
     bool momentary = false;
 };
 
-/// The board-wide harmony bus (specs/modules/harmony-master.md §7): writers
+/// The board-wide harmony bus (doc/specs/modules/harmony-master.md §7): writers
 /// publish a key, scale and chord; readers follow it. The compiler orders
 /// every writer before every reader.
 enum class HarmonyRole { None, Writer, Reader };

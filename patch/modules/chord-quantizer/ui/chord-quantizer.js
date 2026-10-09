@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chord Quantizer view (specs/modules/chord-quantizer.md §5): the chord's
+// Chord Quantizer view (doc/specs/modules/chord-quantizer.md §5): the chord's
 // name (and the Harmony Master's chord in Follow), a two-octave keyboard
 // with each voice as a numbered dot and the previous chord faintly (Voice
 // Leading), and in Diatonic the key's seven chords: clicking one previews

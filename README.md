@@ -8,6 +8,7 @@ Everything in this repository is MIT-licensed.
 | [`bus/`](bus/) | **Bleep Bus**: the open standard. C library, C++/JUCE helpers, examples, conformance suite | [Quickstart](website/content/developers/quickstart.md) |
 | [`patch/`](patch/) | **Bleep Patch**: the shared engine, the Bleep Board and the plugins you add in Live (Bleep Patch and the ports); modules (Function, Random, Utility, Filter) run on the board | [Getting started](website/content/musicians/getting-started.md) |
 | [`website/`](website/) | The Bleep Patch homepage and **all documentation** (`website/content/`) | [Spec v0.1](website/content/developers/spec/v0.1/00-overview.md) |
+| [`doc/`](doc/) | The specifications (`doc/specs/`) and internal operations docs (`doc/operations/`: build, release, website) | [Index](doc/README.md) |
 | [`scripts/`](scripts/) | Build, run and check scripts (below) | |
 
 ## Scripts

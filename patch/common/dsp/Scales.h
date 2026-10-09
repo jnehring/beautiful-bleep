@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Scales and quantizing (specs/modules/step-sequencer.md §4.3), shared by
+// Scales and quantizing (doc/specs/modules/step-sequencer.md §4.3), shared by
 // every module that snaps pitches to a scale.
 #pragma once
 

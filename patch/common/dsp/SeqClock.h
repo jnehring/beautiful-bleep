@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Sequencer timing (specs/modules/step-sequencer.md §4.2), extracted from the
+// Sequencer timing (doc/specs/modules/step-sequencer.md §4.2), extracted from the
 // Step Sequencer so every sequencer steps the same way:
 //
 //   Transport mode  step n = floor((ppq − origin·len) / len), phase-locked to

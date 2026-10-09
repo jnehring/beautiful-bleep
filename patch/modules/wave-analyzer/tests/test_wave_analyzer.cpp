@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Wave Analyzer: unity band, skirts, −3 dB points, no image at low tunings,
 // long-run phase accuracy, Shifted, level mapping and needle, Peak, synced
-// sweep, hunt and lock, drift and repeatability (specs/modules/wave-analyzer.md §8).
+// sweep, hunt and lock, drift and repeatability (doc/specs/modules/wave-analyzer.md §8).
 #include "WaveAnalyzerDsp.h"
 #include "dsp/tests/TestUtil.h"
 

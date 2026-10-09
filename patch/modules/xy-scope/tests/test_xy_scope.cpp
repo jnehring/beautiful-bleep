@@ -2,7 +2,7 @@
 // XY Scope: frequency estimates, validity and holds, Ratio, figure ratio and
 // its hysteresis, Phase at 1:1 and 3:2, the detuned saw, Correlation, Still
 // at each tolerance, the Y-T sweep, determinism and the point ring
-// (specs/modules/xy-scope.md §8).
+// (doc/specs/modules/xy-scope.md §8).
 #include "XyScopeDsp.h"
 #include "dsp/tests/TestUtil.h"
 

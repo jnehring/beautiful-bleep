@@ -60,4 +60,4 @@ The app includes Ableton Link by default, which makes that binary GPL; the VST3 
 
 ## Planned: the rest of the registry
 
-`specs/registry.md` specifies the full system. Built so far: the object storage, the release API, tokens and `scripts/release.py` for plugins. Not built: module packages and releases, signing the index, staging, presets.
+`doc/specs/registry.md` specifies the full system. Built so far: the object storage, the release API, tokens and `scripts/release.py` for plugins. Not built: module packages and releases, signing the index, staging, presets.

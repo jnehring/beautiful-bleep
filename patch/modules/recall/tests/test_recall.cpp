@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Recall: transport grid, rebuild on jumps, T modes, jitter, X distribution,
-// Steps, Recall rings, Sorted, captured loops (specs/modules/recall.md §8).
+// Steps, Recall rings, Sorted, captured loops (doc/specs/modules/recall.md §8).
 #include "RecallDsp.h"
 #include "dsp/tests/TestUtil.h"
 

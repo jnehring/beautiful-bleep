@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Reverb core (specs/modules/reverb.md §4): a feedback delay network of 8 or
+// Reverb core (doc/specs/modules/reverb.md §4): a feedback delay network of 8 or
 // 16 lines mixed by a lossless Householder or Hadamard matrix, after a
 // pre-delay and an allpass input diffuser. All decay comes from per-line
 // gains and shelves derived from the T60 per band (Jot's method), so every

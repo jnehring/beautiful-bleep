@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Switch core (specs/modules/switch.md §4): a sequential switch with up to
+// Switch core (doc/specs/modules/switch.md §4): a sequential switch with up to
 // 8 steps. One step position drives both sections, 8 → 1 and 1 → 8. Steps
 // come from Step triggers or the transport, Select offsets them, and every
 // change fades from the current mix, so interrupted fades never jump.

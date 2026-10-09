@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dual Osc view (specs/modules/dual-oscillator.md §5): a scope of A, B and Out
+// Dual Osc view (doc/specs/modules/dual-oscillator.md §5): a scope of A, B and Out
 // over two cycles of B (live arrays from the module), and the folder's
 // transfer curve at the current Fold and Symmetry with a dot at the input
 // level. The curve mirrors DualOscDsp::folderParams and dsp::Folder::transfer.

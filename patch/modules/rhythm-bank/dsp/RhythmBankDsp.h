@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Rhythm Bank core (specs/modules/rhythm-bank.md): four related rhythms from
+// Rhythm Bank core (doc/specs/modules/rhythm-bank.md): four related rhythms from
 // (Family, Pattern, Length). rbPattern() builds the raw rows (a pure
 // function, O(L) per output, no allocation); RhythmBankDsp steps through
 // them with the Step Sequencer's clock (SeqClock), applying rotation, mute

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Level Meter view (specs/modules/level-meter.md §5): a bar per channel with
+// Level Meter view (doc/specs/modules/level-meter.md §5): a bar per channel with
 // the RMS level inside the peak level, a peak-hold line, a dB scale, the
 // held peak in numbers and a clip light. A click resets holds and lights.
 (function () {

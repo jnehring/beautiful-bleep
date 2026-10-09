@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dual Filter (specs/modules/dual-filter.md): two morphing state-variable
+// Dual Filter (doc/specs/modules/dual-filter.md): two morphing state-variable
 // filters (dsp::Svf clean, dsp::RoughSvf saturating) under one cutoff, pulled
 // apart symmetrically by Spread, in serial, parallel, parallel-inverted or
 // stereo routing. Cutoffs, resonance mapping, drive and the envelope follow

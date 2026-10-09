@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Segments core (specs/modules/segments.md): a chain of up to 8 segments
+// Segments core (doc/specs/modules/segments.md): a chain of up to 8 segments
 // (ramp, step or hold), each with its own time, level and curve, played as an
 // envelope (gated, with a sustain point and a release part), a looping chain
 // (an LFO of any shape) or anything in between. Every segment starts from the

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Pulse Generator (specs/modules/pulse-generator.md): a laboratory pulse
+// Pulse Generator (doc/specs/modules/pulse-generator.md): a laboratory pulse
 // generator. One trapezoidal pulse per period with a delay, a width and
 // slewed edges; Free Run (optionally locked to the song position),
 // Triggered bursts, Gated runs and an External Width gate delay line; Double

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Splice node (specs/modules/splice.md): a reel recorder and splice player.
+// Splice node (doc/specs/modules/splice.md): a reel recorder and splice player.
 // The reel's audio lives in the media store: the view saves it with
 // exportMedia("reel") and keeps the id in the node's data together with the
 // markers; setData loads a reel (resampled to the engine rate) and hands it

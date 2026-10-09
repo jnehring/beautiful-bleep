@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Multiplier core (specs/modules/multiplier.md §4): two four-quadrant
+// Multiplier core (doc/specs/modules/multiplier.md §4): two four-quadrant
 // multipliers, the second chained from the first, optionally oversampled.
 // Both sections run at the same (over)sampling rate, so the chain adds no
 // extra latency.

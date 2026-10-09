@@ -1,7 +1,7 @@
 # Bleep Patch
 
 The shared engine, the **Bleep Board** and the plugins you add in Ableton
-Live (spec: [`specs/specs.md`](../specs/specs.md)). Modules (**Function**,
+Live (spec: [`doc/specs/specs.md`](../doc/specs/specs.md)). Modules (**Function**,
 **Random**, **Utility**, **Filter**) are not plugins any more: they are nodes
 on the board. In Live you add only:
 

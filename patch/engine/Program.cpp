@@ -122,7 +122,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
         for (const auto& r : found)
             if (!r.buffer && std::find(d.begin(), d.end(), r.node) == d.end()) d.push_back(r.node);
     }
-    // The harmony bus: every writer runs before every reader (specs/modules/harmony-master.md §7).
+    // The harmony bus: every writer runs before every reader (doc/specs/modules/harmony-master.md §7).
     for (const auto* r : real)
         if (r->spec->harmony == HarmonyRole::Reader)
             for (const auto* w : real)

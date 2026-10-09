@@ -4,7 +4,7 @@
 // down fast (kick, toms, snare body), with a noise click on top, and bright,
 // slightly crunchy metal for the hats and cymbals, like the early samplers
 // those machines used for them. Tight, hard, forward. See
-// specs/modules/punch-drums.md.
+// doc/specs/modules/punch-drums.md.
 //
 // Every voice: prepare(), reset(), trigger(input, velocity), tick(params).
 #pragma once

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Verb node (specs/modules/reverb.md): a stereo FDN reverb whose every knob,
+// Verb node (doc/specs/modules/reverb.md): a stereo FDN reverb whose every knob,
 // Size and Decay included, can be modulated at audio rate; infinite decay,
 // Freeze (gate or latch), Clear, tempo-synced pre-delay.
 #include "ReverbDsp.h"

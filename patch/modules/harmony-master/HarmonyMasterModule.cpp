@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Harmony Master node (specs/modules/harmony-master.md): the board's key,
+// Harmony Master node (doc/specs/modules/harmony-master.md): the board's key,
 // scale and chord from the knobs, a progression or played chords, published
 // on a harmony bus for the followers, and played as pitches and notes.
 #include "HarmonyMasterDsp.h"

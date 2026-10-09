@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Sampler core (specs/modules/sampler.md): a polyphonic sample player and
+// Sampler core (doc/specs/modules/sampler.md): a polyphonic sample player and
 // slicer. A loaded sample (stereo or mono floats, markers that cut it into
 // slices) is played by up to 16 playheads. A start comes from a note (the
 // note number picks the slice in slice mode, or the pitch in whole-sample

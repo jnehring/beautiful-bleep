@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Shape library (specs/modules/shape-envelope.md 4.1): 96 factory envelope and
+// Shape library (doc/specs/modules/shape-envelope.md 4.1): 96 factory envelope and
 // LFO shapes in 12 families of 8, generated from formulas in a fixed order
 // (the index is a stable id saved in boards: never reorder, only append), each
 // sampled into a 256-point table. Plus user shapes from point lists, Morph,

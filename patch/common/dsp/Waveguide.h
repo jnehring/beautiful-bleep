@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Plucked and struck strings in the Karplus-Strong family, and a set of
-// sympathetic strings (specs/modules/resonator.md 4.3 and 4.4, the Macro
+// sympathetic strings (doc/specs/modules/resonator.md 4.3 and 4.4, the Macro
 // Osc's Pluck). One delay line closed by a loop of: a first-order allpass
 // for the fractional delay, a one-pole low-pass (brightness), four
 // first-order allpasses (dispersion / stiffness) and a DC blocker. The phase

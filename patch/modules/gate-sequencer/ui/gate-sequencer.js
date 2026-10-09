@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Gate Sequencer view (specs/modules/gate-sequencer.md §5): four track rows
+// Gate Sequencer view (doc/specs/modules/gate-sequencer.md §5): four track rows
 // with their length and rate, edit modes (On, Prob, Len, Ratch, Nudge, Cond,
 // Vel), per-track playheads, steps that won't play this pass drawn hollow,
 // mute, a selection inspector, and per-track tools (Randomize, Euclid,

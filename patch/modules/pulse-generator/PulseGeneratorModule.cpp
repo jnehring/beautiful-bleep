@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Pulse Generator node (specs/modules/pulse-generator.md): timed pulses with
+// Pulse Generator node (doc/specs/modules/pulse-generator.md): timed pulses with
 // delay, width, slewed edges, bursts and double pulses, band-limited, with a
 // ringing resonance on every edge.
 #include "PulseGeneratorDsp.h"

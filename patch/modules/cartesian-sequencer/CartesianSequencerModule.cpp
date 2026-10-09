@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Cartesian Seq node (specs/modules/cartesian-sequencer.md): an 8 × 8 grid
+// Cartesian Seq node (doc/specs/modules/cartesian-sequencer.md): an 8 × 8 grid
 // from the node's data, two playheads (or the X/Y knobs) walking it, notes
 // and CV out.
 #include "CartesianSequencerDsp.h"

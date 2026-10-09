@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Perc Voice DSP (specs/modules/perc-voice.md): one percussion voice from
+// Perc Voice DSP (doc/specs/modules/perc-voice.md): one percussion voice from
 // eight partials. Tone picks the partial ratios (sine → membrane → bar →
 // seeded metal), three engines turn them into sound (FM, struck modal
 // resonators, a resonant noise bank), and Click, Sweep, Decay and Damp shape

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chart Recorder node (specs/modules/chart-recorder.md): a sprung pen draws
+// Chart Recorder node (doc/specs/modules/chart-recorder.md): a sprung pen draws
 // the input onto a looping strip; the strip replays as modulation.
 //
 // The strip lives on the audio thread (atomics in ChartRecorderDsp). Node data

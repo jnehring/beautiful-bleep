@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Output limiting shared by the utility modules (specs/modules/attenuverter.md
+// Output limiting shared by the utility modules (doc/specs/modules/attenuverter.md
 // §4.3): off, a soft knee into ±1, or a hard clamp.
 #pragma once
 

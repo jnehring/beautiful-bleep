@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Freq Shifter view (specs/modules/frequency-shifter.md §5): the input and
+// Freq Shifter view (doc/specs/modules/frequency-shifter.md §5): the input and
 // output spectra (live arrays from FreqShifterModule::liveArrays, 20 Hz …
 // 20 kHz, log axis), a phase dial with the left and right oscillators, and
 // the shift in hertz (or the synced note value).

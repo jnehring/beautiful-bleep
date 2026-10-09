@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Macro Osc (specs/modules/macro-oscillator.md §8): pitch per pitched model,
+// Macro Osc (doc/specs/modules/macro-oscillator.md §8): pitch per pitched model,
 // aliasing at a high note per model, Harmonic's band limit, click-free model
 // changes, the trigger envelope and gate, silent drums, Pluck tuning,
 // determinism, bounded outputs under random knobs, and a CPU report per model.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chart Recorder view (specs/modules/chart-recorder.md §5): graph paper that
+// Chart Recorder view (doc/specs/modules/chart-recorder.md §5): graph paper that
 // scrolls right to left under a fixed pen carriage, red ink, marks as
 // triangles on the top edge, the replay head as a thin line, and an overview
 // of the whole loop below. A status line shows the time, the detector and

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Resonator node: a tuned body (modal, sympathetic strings or a plucked
 // string) that rings with its input and with an internal exciter on each
-// strum, up to four voices round robin (specs/modules/resonator.md). The
+// strum, up to four voices round robin (doc/specs/modules/resonator.md). The
 // view draws the active voice's modes or strings from live arrays.
 #include "Registry.h"
 #include "ResonatorDsp.h"

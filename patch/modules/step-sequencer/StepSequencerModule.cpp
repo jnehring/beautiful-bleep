@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Step Sequencer node (specs/modules/step-sequencer.md): steps from the
+// Step Sequencer node (doc/specs/modules/step-sequencer.md): steps from the
 // node's data, timing from the transport or a clock, notes and CV out.
 #include "StepSequencerDsp.h"
 #include "Registry.h"
@@ -115,7 +115,7 @@ public:
         p.root = (int)setting(Root);
         p.scale = (int)setting(Scale);
         // Following a harmony bus: its key is the root, its scale the quantizer
-        // (specs/modules/harmony-master.md §7). A silent bus keeps Root and Scale.
+        // (doc/specs/modules/harmony-master.md §7). A silent bus keeps Root and Scale.
         if (const int bus = (int)setting(Harmony); bus > 0 && c.harmony != nullptr) {
             const dsp::HarmonyState& h = c.harmony[bus - 1];
             if (h.valid) {

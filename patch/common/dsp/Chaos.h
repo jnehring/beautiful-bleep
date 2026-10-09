@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Small chaotic and neural building blocks: a leaky integrate-and-fire neuron
-// (specs/modules/neuron.md) and chaotic attractors for slow, never-repeating
+// (doc/specs/modules/neuron.md) and chaotic attractors for slow, never-repeating
 // drift. No randomness: the same inputs (and seed) give the same outputs,
 // sample for sample.
 #pragma once

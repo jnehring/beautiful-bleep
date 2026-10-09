@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Quad LFO core (specs/modules/quad-lfo.md): four LFOs with the LFO module's
+// Quad LFO core (doc/specs/modules/quad-lfo.md): four LFOs with the LFO module's
 // waves and a global mode for how they relate: independent rates, quadrature,
 // an adjustable phase spread, or divisions of one rate. Free, synced to the
 // song position (seekable, renders repeat) or following a clock. The waves and

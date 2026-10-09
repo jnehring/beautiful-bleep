@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Harmony Master core (specs/modules/harmony-master.md): holds the board's
+// Harmony Master core (doc/specs/modules/harmony-master.md): holds the board's
 // harmonic context (key, scale, chord) from the knobs, a transport-synced
 // progression or chords played into Notes, and plays it as pitches and
 // notes. The module publishes context() to its harmony bus. Notes leave

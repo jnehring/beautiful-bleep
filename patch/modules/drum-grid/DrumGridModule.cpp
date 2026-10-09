@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Drum Grid node (specs/modules/drum-grid.md): patterns from the node's
+// Drum Grid node (doc/specs/modules/drum-grid.md): patterns from the node's
 // data, timing from the transport, its own tempo or a clock; gate, accent
 // and velocity out per track.
 #include "DrumGridDsp.h"

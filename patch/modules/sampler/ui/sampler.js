@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Sampler view (specs/modules/sampler.md §5): the waveform with slice markers,
+// Sampler view (doc/specs/modules/sampler.md §5): the waveform with slice markers,
 // the current slice highlighted and a dot per playhead; slicing controls
 // (manual, threshold, beats); per-slice settings for the selected slice; a
 // drop target for WAV files. Click a slice to select it (shift-click to hear

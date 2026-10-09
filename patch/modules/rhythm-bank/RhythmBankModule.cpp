@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Rhythm Bank node (specs/modules/rhythm-bank.md): four related rhythms
+// Rhythm Bank node (doc/specs/modules/rhythm-bank.md): four related rhythms
 // from a Family and a Pattern number, stepped by the transport or a clock.
 #include "RhythmBankDsp.h"
 #include "Registry.h"

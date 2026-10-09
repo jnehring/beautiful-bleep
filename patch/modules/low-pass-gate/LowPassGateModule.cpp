@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Low Pass Gate node: a vactrol-modelled filter + VCA, opened by CV and Ping
-// flashes (specs/modules/low-pass-gate.md). Light and Active outputs for
+// flashes (doc/specs/modules/low-pass-gate.md). Light and Active outputs for
 // Voice Cells; the view draws the cell's last 2 s and the current cutoff.
 #include "LowPassGateDsp.h"
 #include "Registry.h"

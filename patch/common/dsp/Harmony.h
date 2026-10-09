@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// The board-wide harmony context (specs/modules/harmony-master.md §4.1, §7):
+// The board-wide harmony context (doc/specs/modules/harmony-master.md §4.1, §7):
 // what key, scale and chord the music is in right now. A Harmony Master
 // publishes a HarmonyState to one of kHarmonyBuses buses; followers read it
 // and quantize with the helpers here instead of their own Root/Scale.

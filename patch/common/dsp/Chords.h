@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chords (specs/modules/chord-oscillator.md §4.2–4.4, chord-quantizer.md
+// Chords (doc/specs/modules/chord-oscillator.md §4.2–4.4, chord-quantizer.md
 // §4.1–4.3, harmony-master.md §4.2/4.4), shared by every module that builds,
 // voices or recognises chords:
 //

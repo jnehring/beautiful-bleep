@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Modal Voice: strike tuning, bowed and blown bodies, strikes adding up and
 // repeating, velocity, Active and sleep, stability, the dry path at Space 0
-// (specs/modules/modal-voice.md §8).
+// (doc/specs/modules/modal-voice.md §8).
 #include "ModalVoiceDsp.h"
 #include "dsp/tests/TestUtil.h"
 

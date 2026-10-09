@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Shift Register (specs/modules/shift-register.md): a 16-bit looping register.
+// Shift Register (doc/specs/modules/shift-register.md): a 16-bit looping register.
 // On every step the bits move one place and the bit at Length comes back in at
 // the front, flipped with probability (1 − Lock) / 2. Outputs read the bits:
 // an 8-bit voltage and quantized pitch (b1 most significant), eight bit gates,

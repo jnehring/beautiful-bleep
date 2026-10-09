@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Folder node (specs/modules/wavefolder.md): stereo six-stage wavefolder with
+// Folder node (doc/specs/modules/wavefolder.md): stereo six-stage wavefolder with
 // tap crossfade, symmetry, anti-aliasing (oversampling + ADAA) and an
 // internal sine/triangle oscillator.
 #include "Registry.h"

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Sweep Generator view (specs/modules/sweep-generator.md §5): frequency (log
+// Sweep Generator view (doc/specs/modules/sweep-generator.md §5): frequency (log
 // axis, 10 Hz – 20 kHz, lower when Start or Stop go below) against time over
 // one sweep cycle, drawn from the knobs and settings like SweepGeneratorDsp:
 // straight in Log, bowed in Lin, a tent in Up-Down, the retrace faint. Active

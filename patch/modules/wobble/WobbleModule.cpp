@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Wobble node (specs/modules/wobble.md): stepped, smooth and wobbling random.
+// Wobble node (doc/specs/modules/wobble.md): stepped, smooth and wobbling random.
 #include "Registry.h"
 #include "WobbleDsp.h"
 

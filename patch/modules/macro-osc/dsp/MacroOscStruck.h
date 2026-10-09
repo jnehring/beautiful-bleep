@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Macro Osc models 10–16 (specs/modules/macro-oscillator.md 4.2): the noise
+// Macro Osc models 10–16 (doc/specs/modules/macro-oscillator.md 4.2): the noise
 // models (Noise Band, Dust) and the struck ones (Pluck, Modal, Kick, Snare,
 // Metal), built from the shared physical-model and drum parts:
 // WaveguideString + NoiseBurst (Pluck), ModalBank + Mallet (Modal),

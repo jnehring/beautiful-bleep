@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Uncertainty: Fluctuating continuity and sync, Quantized levels and divide,
 // Stored correlation / shape / distribution, seeking, Integrated
-// (specs/modules/uncertainty.md §8).
+// (doc/specs/modules/uncertainty.md §8).
 #include "UncertaintyDsp.h"
 #include "dsp/tests/TestUtil.h"
 

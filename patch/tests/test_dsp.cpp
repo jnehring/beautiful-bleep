@@ -358,7 +358,7 @@ static void filterAliasing() {
     }
 }
 
-// ---- Step Sequencer (specs/modules/step-sequencer.md §8) -------------------
+// ---- Step Sequencer (doc/specs/modules/step-sequencer.md §8) -------------------
 
 struct SeqEvent {
     int64_t at;
@@ -730,7 +730,7 @@ static void filterAlgorithms() {
     EXPECT(filterGain(FilterType::Flanger, 1000.0f, 1000.0) > 0.95);
 }
 
-// ---- LFO (specs/modules/lfo.md §8) -------------------------------------------
+// ---- LFO (doc/specs/modules/lfo.md §8) -------------------------------------------
 
 static void lfoBasics() {
     g_test = "lfo";
@@ -1062,7 +1062,7 @@ static void drums() {
     }
 }
 
-// ---- Drum Grid (specs/modules/drum-grid.md) --------------------------------
+// ---- Drum Grid (doc/specs/modules/drum-grid.md) --------------------------------
 
 /// Sets a track's row from a string: `.` Off, `x` On, `X` Accent.
 static void gridRow(GridPattern& p, int track, const char* row) {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Polymeter Seq view (specs/modules/polymeter-sequencer.md §5): six track rows
+// Polymeter Seq view (doc/specs/modules/polymeter-sequencer.md §5): six track rows
 // (Trigger, Note, Octave, Gate, Probability, Ratchet), each with its length,
 // loop window, division, direction, mute and dice; a playhead per track, a
 // phase strip, the full-cycle length and the pattern slots. Slots live in the

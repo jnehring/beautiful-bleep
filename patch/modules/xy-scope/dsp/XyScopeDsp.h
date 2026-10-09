@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// XY Scope (specs/modules/xy-scope.md): the measurement side of the scope.
+// XY Scope (doc/specs/modules/xy-scope.md): the measurement side of the scope.
 // Two channel trackers (DC blocker, peak follower, interpolated rising zero
 // crossings, mean period over 50 ms) give fx and fy; from them the Ratio
 // output and the figure ratio p/q. A reference phasor at fx / q demodulates X

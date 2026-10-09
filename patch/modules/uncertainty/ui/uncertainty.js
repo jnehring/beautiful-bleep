@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Uncertainty view (specs/modules/uncertainty.md §5): a 4-second scope per
+// Uncertainty view (doc/specs/modules/uncertainty.md §5): a 4-second scope per
 // output; the Quantized lanes show their levels (note names in semitone
 // mode); next to Stored the distribution of the current Shape and
 // Distribution (computed here, as UncertaintyDsp::shapeStored) and a scatter

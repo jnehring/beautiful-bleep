@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Bender node (specs/modules/bender.md): seeded glitches on a segment grid.
+// Bender node (doc/specs/modules/bender.md): seeded glitches on a segment grid.
 // Freeze latches in the node's data (ORed with the gate); Glitch is a view
 // button and a trigger input. The view's look-ahead of the next bar's
 // decisions is computed here on the message thread from the same hash.

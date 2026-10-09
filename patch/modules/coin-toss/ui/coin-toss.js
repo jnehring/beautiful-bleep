@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Coin Toss view (specs/modules/coin-toss.md §5): per channel the last 32
+// Coin Toss view (doc/specs/modules/coin-toss.md §5): per channel the last 32
 // tosses (filled = B, empty = A, newest right) and a coin that flips on each
 // toss; with Loop on, the loop's tosses and the current one are marked.
 (function () {

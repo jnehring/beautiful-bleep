@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Bender core (specs/modules/bender.md): a glitch effect. The input is
+// Bender core (doc/specs/modules/bender.md): a glitch effect. The input is
 // recorded into a 4 s ring; time is cut into segments (song grid, free
 // Time, or Clock pulses), and at each segment start a seeded decision
 // (hash of Seed and segment index) either passes the input or repeats the

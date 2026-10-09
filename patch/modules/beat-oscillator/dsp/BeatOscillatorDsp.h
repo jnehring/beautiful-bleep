@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Beat Oscillator (specs/modules/beat-oscillator.md): a heterodyne tone
+// Beat Oscillator (doc/specs/modules/beat-oscillator.md): a heterodyne tone
 // source. Two high carriers A and B are mixed and low-passed, and what is
 // left is their difference. Pull couples the carriers (Adler injection
 // locking: they lock, or beat in uneven blips near the edge), Drift lets them

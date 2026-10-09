@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Uncertainty (specs/modules/uncertainty.md): six random generators with
+// Uncertainty (doc/specs/modules/uncertainty.md): six random generators with
 // different characters. Two Fluctuating curves (Catmull-Rom through randomly
 // spaced points), two Quantized voltages on 2^Bits levels, a Stored value with
 // Shape, Distribution and Correlation (an AR(1) process in a Gaussian domain,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Organic LFOs core (specs/modules/organic-lfos.md): eight slow LFOs fanned
+// Organic LFOs core (doc/specs/modules/organic-lfos.md): eight slow LFOs fanned
 // out from one rate, each wandering a little in speed and shape along seeded
 // smooth-noise curves, so the group never lines up exactly but every render
 // is the same. Free-running (noise clocks counted from the last reset) or

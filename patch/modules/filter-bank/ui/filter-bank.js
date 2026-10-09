@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Filter Bank view (specs/modules/filter-bank.md §5): the ten Level knobs as
+// Filter Bank view (doc/specs/modules/filter-bank.md §5): the ten Level knobs as
 // a slider bank (drag across to draw, double-click for 0 dB), the effective
 // gain of each band (after tilt, odd/even, scan and vocode) as an outline,
 // live envelope meters, band frequencies (note names in Harmonic and Scale

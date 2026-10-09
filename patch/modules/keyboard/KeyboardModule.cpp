@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Keyboard node (specs/modules/keyboard.md): a playable keyboard in the
+// Keyboard node (doc/specs/modules/keyboard.md): a playable keyboard in the
 // module view (mouse, touch or the computer keyboard). Notes out for Voice
 // Cells, plus a mono pitch/gate/velocity/trigger.
 #include "ControlQueue.h"

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Coin Toss: probabilities, memory runs, modes, link modes, determinism,
-// Reset and Loop (specs/modules/coin-toss.md §8).
+// Reset and Loop (doc/specs/modules/coin-toss.md §8).
 #include "CoinTossDsp.h"
 #include "dsp/tests/TestUtil.h"
 

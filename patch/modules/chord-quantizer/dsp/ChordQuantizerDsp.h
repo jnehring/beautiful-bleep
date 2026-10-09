@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Chord Quantizer core (specs/modules/chord-quantizer.md): one pitch in, a
+// Chord Quantizer core (doc/specs/modules/chord-quantizer.md): one pitch in, a
 // voiced chord out. The input picks a root (chromatic, a scale degree, or the
 // board's harmony), a chord is built on it (Chords.h: tone selection,
 // inversion, voicing), placed by Anchor and Range, optionally voice-led, and

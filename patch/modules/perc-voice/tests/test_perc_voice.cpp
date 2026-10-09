@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Perc Voice: pure sine and T60, ratio tables, Damp, decay and Active per
 // engine, accent, click-free retriggers and choke, audio-rate modulation,
-// seeds (specs/modules/perc-voice.md §8).
+// seeds (doc/specs/modules/perc-voice.md §8).
 #include "PercVoiceDsp.h"
 #include "dsp/tests/TestUtil.h"
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Modal Voice DSP (specs/modules/modal-voice.md): exciters (bow, blow,
+// Modal Voice DSP (doc/specs/modules/modal-voice.md): exciters (bow, blow,
 // mallet, external audio) drive the shared modal bank, and a small room
 // places it. Everything runs sample by sample, so the bow's and the jet's
 // feedback from the body is one sample long. A gate-driven contour envelope

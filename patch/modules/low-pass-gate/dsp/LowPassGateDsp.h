@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Low Pass Gate DSP (specs/modules/low-pass-gate.md): a modelled vactrol cell
+// Low Pass Gate DSP (doc/specs/modules/low-pass-gate.md): a modelled vactrol cell
 // (dsp::Vactrol) opened by light (Level + CV + Ping flashes) drives a stereo
 // filter + VCA (dsp::LowPassGate). Drive saturates the input with
 // first-order antiderivative anti-aliasing (ADAA): far cheaper than

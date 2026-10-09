@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Notes to CV node (specs/modules/notes-to-cv.md): a `notes` stream → mono
+// Notes to CV node (doc/specs/modules/notes-to-cv.md): a `notes` stream → mono
 // pitch, gate, trigger, velocity and pressure.
 #include "NotesToCvDsp.h"
 #include "Registry.h"

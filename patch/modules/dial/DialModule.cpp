@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Dial node (specs/modules/dial.md): one big knob, scaled to a range, as a
+// Dial node (doc/specs/modules/dial.md): one big knob, scaled to a range, as a
 // control signal.
 #include "DialDsp.h"
 #include "Registry.h"

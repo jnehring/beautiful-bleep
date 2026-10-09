@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Button core (specs/modules/button.md §4): presses and releases in, gate and
+// Button core (doc/specs/modules/button.md §4): presses and releases in, gate and
 // triggers out. Every press flips the Toggle output; Gate follows the finger
 // (Momentary) or the toggle (Toggle).
 #pragma once

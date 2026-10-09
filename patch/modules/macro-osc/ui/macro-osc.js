@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Macro Osc view (specs/modules/macro-oscillator.md §5): a 4 × 4 model
+// Macro Osc view (doc/specs/modules/macro-oscillator.md §5): a 4 × 4 model
 // picker (Pitched / Noise / Struck, the playing model highlighted, a fading
 // one outlined), the scope of Out (solid) and Aux (dashed) from the module's
 // live arrays (two cycles for pitched models, 50 ms for the others), and the

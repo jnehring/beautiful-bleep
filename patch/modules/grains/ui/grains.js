@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Grains view (specs/modules/grains.md §5): the buffer's waveform (oldest on
+// Grains view (doc/specs/modules/grains.md §5): the buffer's waveform (oldest on
 // the left, the write head on the right), the Position window (± the Spread
 // jitter) shaded, every live grain as a dot (size = its window, brightness =
 // gain), a lock while frozen, and the Texture window shape. Dragging on the

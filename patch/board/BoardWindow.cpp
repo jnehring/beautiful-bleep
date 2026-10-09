@@ -81,7 +81,7 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
 // Presets: one JSON file per preset, shared by all sets. Cell presets (spec
-// §8.1) and Drum Grid patterns (specs/modules/drum-grid.md §4.6), by kind.
+// §8.1) and Drum Grid patterns (doc/specs/modules/drum-grid.md §4.6), by kind.
 struct PresetKind {
     const char* folder;
     const char* extension;
