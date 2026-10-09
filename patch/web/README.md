@@ -1,8 +1,8 @@
 # Bleep Board in the browser
 
 The board, running completely in the visitor's browser. No server, no plugin.
-Build with `scripts/build-web.sh` (needs the Emscripten SDK); the website serves
-the result at `/play/` and embeds it on `/board/`.
+Build with `scripts/build-web.sh` (needs the Emscripten SDK; `--no-modules` and `--modules-only` build the
+UI and the modules separately); the website serves the result at `/play/` and embeds it on `/board/`.
 
 ```
 main thread                               AudioWorklet (real time)

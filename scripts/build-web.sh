@@ -3,27 +3,58 @@
 # Builds the browser version of the board (Bleep Board): one .wasm per module,
 # the board UI and the web engine, as a static folder.
 #
-#   scripts/build-web.sh [out-dir]          default: build/web/site
+#   scripts/build-web.sh [out-dir]              everything; default: build/web/site
+#   scripts/build-web.sh --no-modules [out-dir] only the board UI and the web engine (seconds, no
+#                                               Emscripten or JUCE needed; what the website image does)
+#   scripts/build-web.sh --modules-only [out-dir]  only modules/*.wasm and manifest.json; default
+#                                               build/web/modules (the website mounts that folder)
+#   add --docker (first) to run the build in the Emscripten Docker image instead of a local emsdk:
+#   scripts/build-web.sh --docker --modules-only
 #   python3 -m http.server -d build/web/site 8000
 #
 # Needs emcc (https://emscripten.org: `source emsdk_env.sh`), python3 and node.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PATCH="$ROOT/patch"
-OUT="${1:-$ROOT/build/web/site}"
-command -v emcc >/dev/null || { echo "emcc not found: install the Emscripten SDK and source emsdk_env.sh" >&2; exit 1; }
+MODULES=1
+UI=1
+DOCKER=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --no-modules) MODULES=0 ;;
+    --modules-only) UI=0 ;;
+    --docker) DOCKER=1 ;;
+    *) break ;;
+  esac
+  shift
+done
+if [ "$DOCKER" = 1 ]; then
+  # Same build inside the Emscripten image: no local emsdk needed. JUCE is cloned into build/web/JUCE
+  # (kept between runs). Output paths must be inside the repository.
+  args=(); [ "$MODULES" = 0 ] && args+=(--no-modules); [ "$UI" = 0 ] && args+=(--modules-only)
+  uidargs=(); [ "$(uname)" = Linux ] && uidargs=(-u "$(id -u):$(id -g)" -e HOME=/tmp)
+  exec docker run --rm ${uidargs[@]+"${uidargs[@]}"} -e BLEEP_WEB_ONLY="${BLEEP_WEB_ONLY:-}" \
+    -v "$ROOT:/repo" -w /repo emscripten/emsdk:4.0.10 scripts/build-web.sh ${args[@]+"${args[@]}"} ${1:+"/repo/${1#$ROOT/}"}
+fi
+if [ "$UI" = 1 ]; then OUT="${1:-$ROOT/build/web/site}"; else OUT="${1:-$ROOT/build/web/modules}"; fi
+if [ "$MODULES" = 1 ]; then
+  command -v emcc >/dev/null || { echo "emcc not found: install the Emscripten SDK and source emsdk_env.sh" >&2; exit 1; }
+fi
 
-rm -rf "$OUT"
+[ "$UI" = 1 ] && rm -rf "$OUT"
 mkdir -p "$OUT/js"
 
 # 1. The modules: <out>/modules/*.wasm and <out>/manifest.json. Modules that use
 #    juce_core need a JUCE checkout: BLEEP_JUCE_DIR, else JUCE 8.0.9 is cloned.
-JUCE="${BLEEP_JUCE_DIR:-}"
-if [ -z "$JUCE" ]; then
-  JUCE="$ROOT/build/web/JUCE"
-  [ -d "$JUCE/modules/juce_core" ] || git clone --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git "$JUCE"
+if [ "$MODULES" = 1 ]; then
+  JUCE="${BLEEP_JUCE_DIR:-}"
+  if [ -z "$JUCE" ]; then
+    JUCE="$ROOT/build/web/JUCE"
+    [ -d "$JUCE/modules/juce_core" ] || git clone --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git "$JUCE"
+  fi
+  python3 "$PATCH/web/build_modules.py" --out "$OUT" --juce "$JUCE" ${BLEEP_WEB_ONLY:+--only "$BLEEP_WEB_ONLY"}
 fi
-python3 "$PATCH/web/build_modules.py" --out "$OUT" --juce "$JUCE" ${BLEEP_WEB_ONLY:+--only "$BLEEP_WEB_ONLY"}
+if [ "$UI" = 0 ]; then rmdir "$OUT/js" 2>/dev/null || true; echo "Built the modules in $OUT"; exit 0; fi
 
 # 2. The board UI, the way the plugins and scripts/ui-server.py serve it: board,
 #    common and every module's ui/ and doc/ files side by side.

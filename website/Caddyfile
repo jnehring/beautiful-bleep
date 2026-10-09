@@ -11,6 +11,20 @@
 
 	# Bleep Board (patch/web): wasm modules stream-compile with the right type;
 	# the build names no file by hash yet, so revalidate instead of immutable.
+	# The modules are not part of the image: they come from the folder mounted at /srv/play-modules
+	# (scripts/build-web.sh --modules-only).
+	handle /play/manifest.json {
+		root * /srv/play-modules
+		uri strip_prefix /play
+		header Cache-Control "no-cache"
+		file_server
+	}
+	handle /play/modules/* {
+		root * /srv/play-modules
+		uri strip_prefix /play
+		file_server
+	}
+
 	@wasm path *.wasm
 	header @wasm Content-Type "application/wasm"
 	header @wasm Cache-Control "public, max-age=300, must-revalidate"

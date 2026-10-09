@@ -3,7 +3,12 @@
 """Compiles every board module to its own standalone .wasm and writes the
 manifest the browser loads them by.
 
-    python3 patch/web/build_modules.py --out build/web [--only oscillator,filter] [-j 8]
+    python3 patch/web/build_modules.py --out build/web [--only oscillator,filter] [-j 8] [--force]
+
+A module is rebuilt only when something it compiles changed (its own files, the engine and
+common headers it includes, the shim) or its compiler flags did; <out>/.cache/<slug>.json
+records the files (the compiler's own dependency list) and their hashes. --force rebuilds all.
+With --only, the other modules already in <out> stay in the manifest.
 
 Needs emcc on PATH (source emsdk_env.sh). About a third of the modules use
 juce_core (juce::var / String / JSON for their node data): with --juce <JUCE
@@ -20,6 +25,7 @@ Output:
 """
 import argparse
 import concurrent.futures
+import hashlib
 import json
 import re
 import shutil
@@ -79,7 +85,36 @@ def build_juce_core(juce_dir, out):
     return work, obj
 
 
-def build(d, out, include_dirs, juce=None):
+ROOT = PATCH.parent
+
+
+def _sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _up_to_date(cache_file, key, target):
+    """True when the target exists, was built with the same key and none of its source files changed."""
+    try:
+        rec = json.loads(cache_file.read_text())
+        return (target.exists() and rec["key"] == key
+                and all((ROOT / rel).is_file() and _sha(ROOT / rel) == h for rel, h in rec["deps"].items()))
+    except (OSError, ValueError, KeyError):
+        return False
+
+
+def _write_cache(cache_file, key, depfile):
+    # The depfile is Makefile syntax: "target: dep dep \\\n dep". Keep only files of this repository (patch/).
+    text = depfile.read_text().replace("\\\n", " ")
+    deps = {}
+    for tok in text.split(":", 1)[1].split():
+        p = Path(tok.replace("\\ ", " "))
+        if p.is_absolute() and p.is_relative_to(ROOT) and p.is_file():
+            deps[str(p.relative_to(ROOT))] = _sha(p)
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
+    cache_file.write_text(json.dumps({"key": key, "deps": deps}))
+
+
+def build(d, out, include_dirs, juce=None, force=False):
     sources = sorted(d.glob("*Module.cpp"))
     if not sources:
         return d.name, None, "no *Module.cpp"
@@ -103,11 +138,20 @@ def build(d, out, include_dirs, juce=None):
         cmd = (["emcc"] + flags + [f"-I{tmp}"] + [f"-I{i}" for i in include_dirs] + extra
                + [str(PATCH / "web/src/WebShim.cpp")] + [str(s) for s in sources]
                + ["-o", str(target)])
-        r = subprocess.run(cmd, capture_output=True, text=True)
+        # What the result depends on besides file contents: flags, sources, the generated header.
+        key = hashlib.sha256(json.dumps([[c for c in cmd if c != f"-I{tmp}"], header.read_text() if fns else ""],
+                                        default=str).encode()).hexdigest()
+        cache_file = out / ".cache" / f"{d.name}.json"
+        if not force and _up_to_date(cache_file, key, target):
+            return d.name, target, "up to date"
+        depfile = Path(tmp) / "deps.d"
+        r = subprocess.run(cmd + ["-MMD", "-MF", str(depfile)], capture_output=True, text=True)
         if r.returncode != 0:
             target.unlink(missing_ok=True)
+            cache_file.unlink(missing_ok=True)
             lines = [l for l in r.stderr.splitlines() if "error" in l]
             return d.name, None, (lines[0] if lines else r.stderr[-300:]).strip()
+        _write_cache(cache_file, key, depfile)
         return d.name, target, ""
 
 
@@ -116,6 +160,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--only", default="")
     ap.add_argument("--juce", default="", help="JUCE 8 checkout: builds the modules that use juce_core")
+    ap.add_argument("--force", action="store_true", help="rebuild every module")
     ap.add_argument("-j", type=int, default=8)
     a = ap.parse_args()
     out = Path(a.out)
@@ -125,13 +170,22 @@ def main():
     juce = build_juce_core(a.juce, out) if a.juce and any(uses_juce(d) for d in dirs) else None
     manifest = {"modules": {}, "types": {}, "unavailable": {}}
     with concurrent.futures.ThreadPoolExecutor(a.j) as pool:
-        for slug, wasm, err in pool.map(lambda d: build(d, out, include_dirs, juce), dirs):
+        for slug, wasm, err in pool.map(lambda d: build(d, out, include_dirs, juce, a.force), dirs):
             if wasm is None:
                 manifest["unavailable"][slug] = err
                 print(f"  skip  {slug}: {err}")
                 continue
             manifest["modules"][slug] = {"file": f"modules/{slug}.wasm", "bytes": wasm.stat().st_size, "types": []}
-            print(f"  built {slug} ({wasm.stat().st_size // 1024} KB)")
+            print(f"  {'same ' if err else 'built'} {slug} ({wasm.stat().st_size // 1024} KB)")
+    old = out / "manifest.json"
+    if only and old.exists():  # keep the modules this run did not touch
+        prev = json.loads(old.read_text())
+        for slug, entry in prev.get("modules", {}).items():
+            if slug not in manifest["modules"] and slug not in only and (out / entry["file"]).exists():
+                manifest["modules"][slug] = entry
+        for slug, why in prev.get("unavailable", {}).items():
+            if slug not in only and slug not in manifest["unavailable"] and slug not in manifest["modules"]:
+                manifest["unavailable"][slug] = why
     # The node types of each file come from the file itself.
     node = subprocess.run(["node", str(PATCH / "web/test/list-types.mjs"), str(out)], capture_output=True, text=True)
     if node.returncode != 0:

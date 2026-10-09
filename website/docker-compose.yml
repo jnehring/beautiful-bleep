@@ -18,6 +18,9 @@ services:
     image: bleep-patch-site:latest
     ports:
       - "${BLEEP_SITE_PORT:-8080}:80"
+    volumes:
+      # The board's WebAssembly modules, built on the host: scripts/build-web.sh --modules-only
+      - ${BLEEP_WEB_MODULES:-../build/web/modules}:/srv/play-modules:ro
     depends_on:
       - api
       - storage

@@ -8,16 +8,19 @@
 #
 #   docker compose -f website/docker-compose.yml up --build
 
-# Bleep Board: every module compiled to its own WebAssembly file, plus the board UI
-# and the web engine (scripts/build-web.sh). Served at /play/.
-FROM emscripten/emsdk:4.0.10 AS web
+# Bleep Board: the board UI and the web engine (scripts/build-web.sh --no-modules), served at
+# /play/. The modules (.wasm) are not built here: they are served from a folder mounted into the
+# container (website/docker-compose.yml), built once with scripts/build-web.sh --modules-only,
+# and later come from the registry.
+FROM node:22-alpine AS web
+RUN apk add --no-cache bash python3
 WORKDIR /repo
-# JUCE in its own layer: cloned once, not on every change under patch/.
-RUN git clone --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git /juce
-ENV BLEEP_JUCE_DIR=/juce
-COPY patch patch
-COPY scripts scripts
-RUN scripts/build-web.sh /out
+COPY patch/board patch/board
+COPY patch/common patch/common
+COPY patch/modules patch/modules
+COPY patch/web patch/web
+COPY scripts/build-web.sh scripts/build-web.sh
+RUN scripts/build-web.sh --no-modules /out
 
 FROM node:22-alpine AS build
 RUN apk add --no-cache python3
