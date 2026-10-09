@@ -217,6 +217,19 @@ foreach (m IN LISTS BLEEP_MODULES)
         "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/doc/*")
     list(APPEND BLEEP_BOARD_UI ${s})
 endforeach ()
+# module-views.json: the module view scripts that exist, so the board loads
+# exactly those (board.js loadModuleViews).
+set(module_views)
+foreach (f IN LISTS BLEEP_BOARD_UI)
+    get_filename_component(dir "${f}" DIRECTORY)
+    get_filename_component(name "${f}" NAME)
+    if (dir MATCHES "/modules/[^/]+/ui$" AND name MATCHES "\\.js$")
+        list(APPEND module_views "\"${name}\"")
+    endif ()
+endforeach ()
+list(JOIN module_views ", " module_views)
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/module-views.json" "[${module_views}]\n")
+list(APPEND BLEEP_BOARD_UI "${CMAKE_CURRENT_BINARY_DIR}/module-views.json")
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
 
 # bleep_add_plugin(TARGET <t> PRODUCT <name> CODE <4 chars> KIND <PortKind>

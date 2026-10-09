@@ -1655,17 +1655,25 @@
   window.__board = () => board;  // for tests/board_smoke.cpp
 
   // ------------------------------------------------------------------ start
-  /// Module views (modules/<name>/ui/<type>.js, served flat): loads the
-  /// script of every module type that has none loaded yet. Modules without a
-  /// custom view simply have no file.
-  function loadModuleViews(list) {
-    return Promise.all(list.filter((t) => !t.port && !isStructural(t) && t.type !== "voice-cell" && !BleepViews.get(t.type))
-      .map((t) => new Promise((done) => {
-        const s = document.createElement("script");
-        s.src = encodeURIComponent(t.type) + ".js";
-        s.onload = s.onerror = () => done();
-        document.head.appendChild(s);
-      })));
+  /// Module views (modules/<name>/ui/*.js, served flat): loads the scripts
+  /// listed in module-views.json that the page doesn't load yet. Without the
+  /// list, tries <type>.js for every module type.
+  async function loadModuleViews(list) {
+    const loaded = new Set([...document.scripts].map((s) => s.src.split("/").pop()));
+    let names = null;
+    try {
+      const r = await fetch("module-views.json");
+      if (r.ok) names = await r.json();
+    } catch (e) { /* fall back below */ }
+    if (!Array.isArray(names))
+      names = list.filter((t) => !t.port && !isStructural(t) && t.type !== "voice-cell" && !BleepViews.get(t.type))
+        .map((t) => t.type + ".js");
+    return Promise.all(names.filter((n) => !loaded.has(n)).map((n) => new Promise((done) => {
+      const s = document.createElement("script");
+      s.src = encodeURIComponent(n);
+      s.onload = s.onerror = () => done();
+      document.head.appendChild(s);
+    })));
   }
 
   async function start() {

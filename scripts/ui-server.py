@@ -9,6 +9,7 @@ plugin the page runs against board-demo.js, a fake engine (no audio).
 """
 import argparse
 import http.server
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -27,6 +28,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if candidate.is_file():
                 return str(candidate)
         return str(DIRS[0] / name)
+
+    def do_GET(self):
+        if self.path.split("?", 1)[0].lstrip("/") == "module-views.json":  # as the plugin build writes it
+            names = sorted(f.name for m in MODULES for f in (m / "ui").glob("*.js"))
+            body = json.dumps(names).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        super().do_GET()
 
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".md": "text/markdown; charset=utf-8"}
 

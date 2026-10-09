@@ -48,6 +48,14 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 #if defined(BLEEP_UI_DEV_ROOT)
     // UI dev builds: read the source tree on every request (reload with Cmd-R).
     const juce::File root(BLEEP_UI_DEV_ROOT);
+    if (path == "module-views.json") {  // the module view scripts in the tree right now
+        juce::StringArray names;
+        for (const auto& d : root.getChildFile("modules").findChildFiles(juce::File::findDirectories, false))
+            for (const auto& f : d.getChildFile("ui").findChildFiles(juce::File::findFiles, false, "*.js"))
+                names.add("\"" + f.getFileName() + "\"");
+        const auto json = ("[" + names.joinIntoString(", ") + "]\n").toStdString();
+        return bytesOf(json.data(), json.size());
+    }
     juce::Array<juce::File> dirs{root.getChildFile("board/ui"), root.getChildFile("common/ui")};
     for (const auto& d : root.getChildFile("modules").findChildFiles(juce::File::findDirectories, false)) {
         dirs.add(d.getChildFile("ui"));
