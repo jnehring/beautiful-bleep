@@ -2346,8 +2346,8 @@
     await loadModuleViews(typeList);
     dev = !!m.dev;
     standalone = !!m.standalone;
-    if (standalone && !window.BleepWeb) {  // the app's preset browser: whole patches (spec §11.5)
-      await BleepPresetBrowser.init({ board: () => board, apply: applyMessage });
+    {  // the preset browser: whole patches (spec §11.5); in a plugin their port nodes map onto the set's ports
+      await BleepPresetBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone });
       $("presets").hidden = false;
       $("presets").addEventListener("click", () => BleepPresetBrowser.open());
     }

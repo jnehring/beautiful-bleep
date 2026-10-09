@@ -688,6 +688,8 @@ A Live set either has its board in Bleep Patch (section 6) or works with the app
 
 *File → Presets…* (⌘P) and the **Presets** button in the board's top bar open the preset browser: whole patches that load directly into the app.
 
+The same button is in the plugins' board window and the web board. In a plugin, loading a patch replaces the board as one undoable edit (no tempo or transport change); the patch's *Out 1/2* nodes take over the board's existing Audio Out ports by type, and extra ones are left out, so a set without an Audio Out port hears nothing from a demo.
+
 - **Demo patches.** Five for every advanced module (every module except the basic building blocks; **Sampler** has none, because it plays a WAV file the user loads and a patch can't ship one), listed under *Demos by module*. Each plays by itself with the transport, needs no MIDI or audio input and reaches *Out 1/2*. They are written in units in `patch/presets/demos/<module>.mjs`, compiled with the cell presets into `board/ui/demo-patches.json` (`node patch/presets/build.mjs`), and described in each module's documentation under *Demo patches*. See `patch/presets/demos/README.md`.
 - **My patches.** *Save current patch…* keeps the board you are working on as one `.bleeppatch` file (`{name, preset}`, the board's nodes and cables, a description) in the app data folder, `Bleep Patch/Patches/`. User patches can be deleted in the browser.
 - **Browsing.** A list of groups on the left (*All patches*, *My patches*, one per module), cards on the right with name, description and tags; the search field matches names, modules, tags and descriptions. *Load* or a double-click loads.

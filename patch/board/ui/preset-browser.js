@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-// preset-browser.js — the standalone app's preset browser (spec §11.5): whole patches to load.
+// preset-browser.js — the preset browser (spec §11.5; standalone app, plugins and web): whole patches to load.
 //
 //   Demo patches   five per advanced module (demo-patches.json, built from patch/presets/demos)
 //   My patches     the user's own, saved from the current board (native "presets"/"savePreset" kind "patches")
 //
-// Loading replaces the project (native "loadPatch"; the app asks about unsaved changes first).
+// Loading replaces the board (native "loadPatch"; the standalone app asks about unsaved changes first).
 (function () {
   "use strict";
   let host = null;            // {board(), apply(message)} from board.js
@@ -110,9 +110,26 @@
     renderList();
   }
 
+  /// In a plugin the patch's port nodes (Out 1/2, …) take the ports this board already has, by type;
+  /// extra ones are left out, with their cables.
+  function mapPorts(board) {
+    const free = ((host.board() || {}).nodes || []).filter((n) => n.port);
+    board.nodes = board.nodes.filter((n) => {
+      if (!n.port) return true;
+      const i = free.findIndex((f) => f.type === n.type);
+      if (i < 0) return false;
+      const [f] = free.splice(i, 1);
+      for (const k of ["port", "track", "colour"]) if (f[k] !== undefined) n[k] = f[k];
+      return true;
+    });
+    const ids = new Set(board.nodes.map((n) => n.id));
+    board.cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node));
+  }
+
   async function loadPatch(p) {
     const src = p.preset;
     const board = { format: 1, id: uuid(), nodes: clone(src.nodes), cables: clone(src.cables) };
+    if (host.mapPorts) mapPorts(board);
     close();
     host.apply(await native("loadPatch", board, src.tempo || 0, p.name));
   }
