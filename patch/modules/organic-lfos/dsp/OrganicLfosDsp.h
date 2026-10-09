@@ -126,7 +126,7 @@ public:
             for (int k = 0; k < kLfos; ++k) start_[(size_t)k] = dsp::uniform01(seed_, (uint64_t)k, kScatter);
             spread_ = 2.0f;  // recompute the ratios
         }
-        if (p.spread != spread_) {
+        if (p.spread < spread_ || p.spread > spread_) {
             spread_ = p.spread;
             for (int k = 0; k < kLfos; ++k) ratio_[(size_t)k] = rateRatio(seed_, k, spread_);
         }

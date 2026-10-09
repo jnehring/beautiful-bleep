@@ -45,7 +45,11 @@ struct GateStep {
     uint8_t cond = GateAlways;
     uint8_t condA = 1, condB = 2;  ///< A:B, 1 ≤ A ≤ B, 2 ≤ B ≤ 8
     uint8_t velocity = 100;  ///< 1..127
-    bool operator==(const GateStep&) const = default;
+    bool operator==(const GateStep& o) const noexcept {
+        return on == o.on && prob == o.prob && length == o.length && tie == o.tie && ratchet == o.ratchet &&
+               shape == o.shape && nudge == o.nudge && cond == o.cond && condA == o.condA && condB == o.condB &&
+               velocity == o.velocity;
+    }
 };
 struct GateTrack {
     bool mute = false;
@@ -316,7 +320,7 @@ private:
         int j = 0;
     };
     static bool after(const Hit& a, double T, int64_t m, int j) noexcept {  // (T, m, j) > a
-        return T > a.T || (T == a.T && (m > a.m || (m == a.m && j > a.j)));
+        return T > a.T || (!(T < a.T || T > a.T) && (m > a.m || (m == a.m && j > a.j)));
     }
 
     struct TrackState {
@@ -365,7 +369,7 @@ private:
                 double slot;
                 const double T = hitTime(p, st, m, j, slot);
                 if (!after(from, T, m, j)) continue;
-                if (!best.valid || T < best.T || (T == best.T && m < best.m)) best = {true, T, m, j};
+                if (!best.valid || T < best.T || (!(T < best.T || T > best.T) && m < best.m)) best = {true, T, m, j};
             }
         }
         return best;

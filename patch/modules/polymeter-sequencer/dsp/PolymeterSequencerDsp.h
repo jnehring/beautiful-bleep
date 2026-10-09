@@ -50,7 +50,10 @@ struct PolyTrack {
     bool mute = false;
     std::array<int8_t, kPolySteps> steps{};  ///< the track's values (Ratchet: counts)
     std::array<uint8_t, kPolySteps> shape{}; ///< Ratchet track: shapes
-    bool operator==(const PolyTrack&) const = default;
+    bool operator==(const PolyTrack& o) const noexcept {
+        return length == o.length && lo == o.lo && hi == o.hi && division == o.division && direction == o.direction &&
+               mute == o.mute && steps == o.steps && shape == o.shape;
+    }
 };
 using PolySlot = std::array<PolyTrack, kPolyTracks>;
 using PolyPattern = std::array<PolySlot, kPolySlots>;

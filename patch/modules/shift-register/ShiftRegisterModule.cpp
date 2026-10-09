@@ -144,7 +144,7 @@ private:
     /// value(), recomputed only when the knob moves (fromNormalised may cost a pow).
     float cachedValue(const ProcessContext& c, int k, int s) noexcept {
         const float n = c.params[k][s];
-        if (n != knobNorm_[(size_t)k]) {
+        if (n < knobNorm_[(size_t)k] || n > knobNorm_[(size_t)k]) {
             knobNorm_[(size_t)k] = n;
             knobUnits_[(size_t)k] = value(c, k, s);
         }

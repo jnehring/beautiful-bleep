@@ -73,7 +73,7 @@ public:
         bool in = out;
         if (source == SrSource::Data) in = data;
         else if (source == SrSource::DataXorLoop) in = out != data;
-        return (uint16_t)((reg << 1) | ((in != flip) ? 1u : 0u));
+        return (uint16_t)(((unsigned)reg << 1) | ((in != flip) ? 1u : 0u));
     }
     /// The first eight bits as a number, b1 most significant (4.3).
     static int number(uint16_t reg) noexcept {

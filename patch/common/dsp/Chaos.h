@@ -79,7 +79,7 @@ private:
             m_ = (double)sum;
             return;
         }
-        if (leak != lastLeak_) {
+        if (leak < lastLeak_ || leak > lastLeak_) {
             lastLeak_ = leak;
             coeff_ = 1.0 - std::exp(-1.0 / ((double)leak * sampleRate_));
         }

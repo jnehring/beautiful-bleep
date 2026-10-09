@@ -158,7 +158,6 @@ public:
             repeat = std::lcm(repeat, den[k]);
         }
         auto mult = [&](int k) { return (double)num[k] / (double)den[k]; };
-        const double beats1 = syncBeats(p.rate[0]);
 
         // Mode switch: channel 1 keeps its phase, the others crossfade to their new phase.
         if (mode_ >= 0 && mode != mode_) {

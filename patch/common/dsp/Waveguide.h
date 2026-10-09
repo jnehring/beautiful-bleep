@@ -263,6 +263,13 @@ inline void stringTuning(StringTuning t, uint64_t seed, float out[8]) noexcept {
         case StringTuning::Harmonic:
             for (int i = 0; i < 8; ++i) out[i] = 12.0f * std::log2((float)(i + 1));
             return;
+        case StringTuning::Octaves:
+        case StringTuning::Fifths:
+        case StringTuning::Major:
+        case StringTuning::Minor:
+        case StringTuning::Sus:
+        case StringTuning::Add9:
+        case StringTuning::Unison:
         default:
             for (int i = 0; i < 8; ++i) out[i] = tables[(int)t][i];
     }

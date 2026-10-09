@@ -155,7 +155,7 @@ private:
 
 }  // namespace
 
-void registerMacroOscModule(Registry& r) {
+static void registerMacroOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "macro-osc";
     s.name = "Macro Osc";

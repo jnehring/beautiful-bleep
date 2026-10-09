@@ -294,7 +294,7 @@ private:
     }
 
     // ---- Clock ---------------------------------------------------------------------
-    void clockMode(const RdParams& p, const RdInput& in, bool pulse, bool resetEdge, bool* rose, int& rises) noexcept {
+    void clockMode(const RdParams& p, [[maybe_unused]] const RdInput& in, bool pulse, bool resetEdge, bool* rose, int& rises) noexcept {
         ++sinceClock_;
         if (resetEdge) pendingReset_ = true;
         if (havePending_ && p.sync == RdImmediate) apply();

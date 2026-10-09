@@ -528,7 +528,7 @@ private:
 
     void updateCoefs(float tone) noexcept {
         const double m = std::exp2(2.0 * std::clamp((double)tone, -1.0, 1.0));
-        if (m == toneCache_) return;
+        if (!(m < toneCache_ || m > toneCache_)) return;
         toneCache_ = m;
         warmLp_ = dnet::OnePole::coef(6000.0 * m, sr_);
         warmHp_ = dnet::OnePole::coef(60.0 * m, sr_);

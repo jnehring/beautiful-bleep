@@ -364,7 +364,7 @@ private:
         const int total = pre + L;
         for (int c = 0; c < 2; ++c) {
             float* d = src.ch[(size_t)c].data();
-            for (int i = 0; i < total; ++i) d[i] = ring_[c].at((size_t)(total - 1 - i));  // oldest first
+            for (int i = 0; i < total; ++i) d[i] = ring_[(size_t)c].at((size_t)(total - 1 - i));  // oldest first
         }
         src.pre = pre;
         src.len = L;

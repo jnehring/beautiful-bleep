@@ -215,7 +215,7 @@ private:
             if (prev < r && next >= r) {
                 eor = true;
                 if (holdAtTop) next = r;
-            } else if (holdAtTop && prev == r) {
+            } else if (holdAtTop && !(prev < r || prev > r)) {
                 next = r;  // sustaining
             }
             if (next >= 1.0) {

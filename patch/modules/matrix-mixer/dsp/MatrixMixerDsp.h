@@ -114,7 +114,7 @@ public:
             }
             const float target = mute ? 0.0f : 1.0f;
             float g = muteGain_[i];
-            if (g == target) {
+            if (!(g < target || g > target)) {
                 std::fill(mg[i], mg[i] + n, g);
                 continue;
             }
@@ -179,7 +179,7 @@ public:
                 for (int s = 0; s < n; ++s) o[s] = mmSoftClip(o[s]);
             float peak = 0.0f;
             for (int s = 0; s < n; ++s) {
-                const float v = o[s] == o[s] ? std::fmin(std::fmax(o[s], -kMmLimit), kMmLimit) : 0.0f;  // NaN → 0
+                const float v = !std::isnan(o[s]) ? std::fmin(std::fmax(o[s], -kMmLimit), kMmLimit) : 0.0f;  // NaN → 0
                 o[s] = v;
                 peak = std::fmax(peak, std::fabs(v));
             }
@@ -220,15 +220,15 @@ private:
         lastBase_[k] = base_[k];
         bool modulated = false;
         if (eff)
-            for (int s = 0; s < n && !modulated; ++s) modulated = eff[s] != knob;
-        if (!modulated && start == base_[k]) {  // not ramping, not modulated
+            for (int s = 0; s < n && !modulated; ++s) modulated = eff[s] < knob || eff[s] > knob;
+        if (!modulated && !(start < base_[k] || start > base_[k])) {  // not ramping, not modulated
             g[0] = start;
-            return start == 0.0f ? 0 : 1;
+            return !(start < 0.0f || start > 0.0f) ? 0 : 1;
         }
         float v = start;
         const float tgt = target_[k];
         for (int s = 0; s < n; ++s) {
-            if (v != tgt) v = step_[k] > 0.0f ? std::min(tgt, v + step_[k]) : std::max(tgt, v + step_[k]);
+            if (v < tgt || v > tgt) v = step_[k] > 0.0f ? std::min(tgt, v + step_[k]) : std::max(tgt, v + step_[k]);
             g[s] = v + (eff ? eff[s] - knob : 0.0f);
         }
         return 2;
@@ -236,12 +236,12 @@ private:
 
     void advanceRamp(const MmBlock& b, int k, int n) noexcept {
         const float knob = b.gainKnob[k];
-        if (knob != target_[k]) {
+        if (knob < target_[k] || knob > target_[k]) {
             target_[k] = knob;
             step_[k] = (float)((knob - base_[k]) / rampSamples_);
         }
         float v = base_[k];
-        if (v != target_[k]) {
+        if (v < target_[k] || v > target_[k]) {
             v += step_[k] * (float)n;
             if ((step_[k] > 0.0f && v > target_[k]) || (step_[k] <= 0.0f && v < target_[k])) v = target_[k];
         }

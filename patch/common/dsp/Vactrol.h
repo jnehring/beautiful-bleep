@@ -36,6 +36,7 @@ public:
         switch (cell) {
             case VactrolCell::Fast: return {0.001f, 0.012f, 3.0f, 0.15f, 0.5f, 1.0f};
             case VactrolCell::SlowMemory: return {0.006f, 0.060f, 5.0f, 0.6f, 3.0f, 3.0f};
+            case VactrolCell::Classic:
             default: return {0.003f, 0.028f, 4.0f, 0.3f, 1.0f, 1.5f};
         }
     }

@@ -169,7 +169,7 @@ private:
     /// Converts a param buffer to units when it differs from the knob (modulated); else null.
     static const float* unitsIfModulated(const float* src, float knob, int n, float scale, float offset, float* dst) {
         bool modulated = false;
-        for (int s = 0; s < n && !modulated; ++s) modulated = src[s] != knob;
+        for (int s = 0; s < n && !modulated; ++s) modulated = src[s] < knob || src[s] > knob;
         if (!modulated) return nullptr;
         for (int s = 0; s < n; ++s) dst[s] = scale * src[s] + offset;
         return dst;

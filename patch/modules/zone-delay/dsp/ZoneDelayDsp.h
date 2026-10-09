@@ -241,10 +241,10 @@ public:
         static constexpr float diffL[4] = {3.1f, 7.3f, 13.7f, 22.9f};
         static constexpr float diffR[4] = {3.7f, 8.9f, 14.9f, 21.1f};
         for (int c = 0; c < 2; ++c) {
-            ch_[c].line.resize(maxSamples);
-            ch_[c].diffuser.prepare(sampleRate, c == 0 ? diffL : diffR, 4, 1.0f, 0.4f);
-            ch_[c].diffuser.setModulation(0.3f, 0.35f);
-            ch_[c].tape.prepare(sampleRate, 0.15f, 1.0);
+            ch_[(size_t)c].line.resize(maxSamples);
+            ch_[(size_t)c].diffuser.prepare(sampleRate, c == 0 ? diffL : diffR, 4, 1.0f, 0.4f);
+            ch_[(size_t)c].diffuser.setModulation(0.3f, 0.35f);
+            ch_[(size_t)c].tape.prepare(sampleRate, 0.15f, 1.0);
         }
         reset();
     }
@@ -295,7 +295,7 @@ public:
     void restart(uint32_t seed) noexcept {
         seed_ = seed;
         n_ = 0;
-        for (int c = 0; c < 2; ++c) ch_[c].diffuser.setSeed(seed * 2u + (uint32_t)c + 1u);
+        for (int c = 0; c < 2; ++c) ch_[(size_t)c].diffuser.setSeed(seed * 2u + (uint32_t)c + 1u);
     }
 
     /// The left and right delay (samples) and the synced note (−1: none) of the last tick.
@@ -328,7 +328,7 @@ public:
     void tick(const ZoneDelayParams& p, const ZoneDelayInput& in, ZoneDelayFrame& f) noexcept {
         if (p.seed != seed_) {  // a new Seed: new Wobble and hiss, same clock
             seed_ = p.seed;
-            for (int c = 0; c < 2; ++c) ch_[c].diffuser.setSeed(seed_ * 2u + (uint32_t)c + 1u);
+            for (int c = 0; c < 2; ++c) ch_[(size_t)c].diffuser.setSeed(seed_ * 2u + (uint32_t)c + 1u);
         }
         clock_.process(in.clock, sr_);
         int note = -1;
@@ -339,9 +339,9 @@ public:
 
         if (!primed_ || p.crossfade != crossfadeMode_) {  // start (or switch modes) on the current time
             for (int c = 0; c < 2; ++c) {
-                const double d = primed_ ? ch_[c].current : target[c];
-                ch_[c].tape.reset(d);
-                ch_[c].heads.reset(d - 1.0);  // the heads hold the read distance (loop − 1)
+                const double d = primed_ ? ch_[(size_t)c].current : target[c];
+                ch_[(size_t)c].tape.reset(d);
+                ch_[(size_t)c].heads.reset(d - 1.0);  // the heads hold the read distance (loop − 1)
             }
             crossfadeMode_ = p.crossfade;
             primed_ = true;
@@ -384,15 +384,15 @@ public:
         const float blend = cpos - (float)lo;
         if (lo != lastLo_ || hi != lastHi_) {  // a character entering the pair starts from rest
             for (auto& c : ch_) {
-                if (lo != lastLo_ && lo != lastHi_) c.chr[lo] = CharState{};
-                if (hi != lastLo_ && hi != lastHi_) c.chr[hi] = CharState{};
+                if (lo != lastLo_ && lo != lastHi_) c.chr[(size_t)lo] = CharState{};
+                if (hi != lastLo_ && hi != lastHi_) c.chr[(size_t)hi] = CharState{};
             }
             lastLo_ = lo;
             lastHi_ = hi;
         }
         const double toneMul = std::exp2(2.0 * std::clamp((double)p.tone, -1.0, 1.0));
-        if (toneMul != coefTone_[lo]) setCharacter(lo, toneMul);
-        if (toneMul != coefTone_[hi]) setCharacter(hi, toneMul);
+        if (toneMul < coefTone_[(size_t)lo] || toneMul > coefTone_[(size_t)lo]) setCharacter(lo, toneMul);
+        if (toneMul < coefTone_[(size_t)hi] || toneMul > coefTone_[(size_t)hi]) setCharacter(hi, toneMul);
         // Comb tuning: remove the Clean low-pass's group delay (1 / 2g samples).
         const double comp = p.zone == 1 && lo == ZoneClean ? (1.0 - blend) * cleanDelay_ : 0.0;
 
@@ -403,7 +403,7 @@ public:
         float y[2];
         const float inSig[2] = {in.l, in.r};
         for (int c = 0; c < 2; ++c) {
-            Channel& ch = ch_[c];
+            Channel& ch = ch_[(size_t)c];
             if ((n_ & 31) == 0) {  // control rate: the next 32 samples interpolate linearly
                 const double t1 = (double)(n_ + 32) / sr_;
                 const auto shape = [&](double tt) {
@@ -452,7 +452,7 @@ public:
             const float fb = std::clamp(p.feedback, 0.0f, 1.1f);
             const float inPP[2] = {in.l + ppMix_ * 0.5f * (in.r - in.l), in.r * (1.0f - ppMix_)};
             for (int c = 0; c < 2; ++c) {
-                Channel& ch = ch_[c];
+                Channel& ch = ch_[(size_t)c];
                 const float route = y[c] + ppMix_ * (y[1 - c] - y[c]);
                 float d = route;
                 if (diffAmt > 0.0f) {  // idle at 0 %: starts from silence when turned up
@@ -483,7 +483,7 @@ public:
         const float gd = std::cos(1.5707963f * mix), gw = std::sin(1.5707963f * mix);
         const float dc = declickLeft_ > 0 ? (float)declickLeft_-- / (float)declickLen_ : 0.0f;
         for (int c = 0; c < 2; ++c) {
-            Channel& ch = ch_[c];
+            Channel& ch = ch_[(size_t)c];
             const float w = y[c] + ch.declick * dc;
             ch.lastWet = w;
             (c == 0 ? f.wetL : f.wetR) = w;
@@ -519,8 +519,8 @@ private:
     };
 
     void setCharacter(int k, double toneMul) noexcept {
-        coefTone_[k] = toneMul;
-        Coefs& c = coefs_[k];
+        coefTone_[(size_t)k] = toneMul;
+        Coefs& c = coefs_[(size_t)k];
         switch (k) {
             case ZoneClean: {
                 const double hz = std::min(20000.0 * toneMul, 0.45 * sr_);
@@ -544,8 +544,8 @@ private:
     }
 
     float character(Channel& ch, int k, float x, int c) noexcept {
-        CharState& s = ch.chr[k];
-        const Coefs& k_ = coefs_[k];
+        CharState& s = ch.chr[(size_t)k];
+        const Coefs& k_ = coefs_[(size_t)k];
         switch (k) {
             case ZoneClean:
                 s.lp.G = k_.lp.G;

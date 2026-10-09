@@ -242,7 +242,7 @@ public:
                                      (uint64_t)key << 10 | (uint64_t)allow << 14 |
                                      (h ? (uint64_t)h->chordRoot << 26 | (uint64_t)h->chord << 30 : 0) |
                                      (uint64_t)(cp.octave + 8) << 42 | (uint64_t)(hyst * 1000.0f) << 46;
-                if (sampleNow && c.have && !trigEdge && x == c.lastX && cfg == c.lastCfg) sampleNow = false;
+                if (sampleNow && c.have && !trigEdge && !(x < c.lastX || x > c.lastX) && cfg == c.lastCfg) sampleNow = false;
                 if (sampleNow || !c.have) {
                     c.lastX = x;
                     c.lastCfg = cfg;

@@ -59,7 +59,7 @@ bool sameAudio(const MediaClip& a, const MediaClip& b) {
     const int64_t n = a.numFrames();
     for (int c = 0; c < a.numChannels(); ++c)
         for (int64_t i : {(int64_t)0, n / 3, n / 2, n - 1})
-            if (n > 0 && a.channels[(size_t)c][(size_t)i] != b.channels[(size_t)c][(size_t)i]) return false;
+            if (n > 0 && (a.channels[(size_t)c][(size_t)i] < b.channels[(size_t)c][(size_t)i] || a.channels[(size_t)c][(size_t)i] > b.channels[(size_t)c][(size_t)i])) return false;
     return true;
 }
 

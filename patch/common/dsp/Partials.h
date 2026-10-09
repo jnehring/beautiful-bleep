@@ -51,6 +51,7 @@ inline float baseLevel(Base base, int n) noexcept {
     switch (base) {
         case Base::Square: return n % 2 ? 1.0f / (float)n : 0.0f;
         case Base::Flat: return 1.0f / std::sqrt((float)n);
+        case Base::Saw:
         default: return 1.0f / (float)n;
     }
 }
@@ -138,7 +139,7 @@ public:
     /// fundamental gets half), wandering at about rateHz.
     void setChorus(float depthCents, float rateHz) noexcept {
         chorusCents_ = std::max(depthCents, 0.0f);
-        if (rateHz != chorusRate_) {
+        if (rateHz < chorusRate_ || rateHz > chorusRate_) {
             chorusRate_ = rateHz;
             for (auto& d : drift_) d.setRate(rateHz);
         }

@@ -371,6 +371,7 @@ private:
                 break;
             case UseClip: clipActive_ = clip_.channels != nullptr && clip_.length > 8; break;
             case DropClip: clipActive_ = false; break;
+            case None:
             default: break;
         }
     }

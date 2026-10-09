@@ -67,6 +67,8 @@ inline int pathCells(Path path, int cols, int rows, uint8_t* cx, uint8_t* cy) no
             }
             break;
         }
+        case Path::Off:
+        case Path::Rows:
         default:  // Rows (and Off)
             for (int r = 0; r < rows; ++r)
                 for (int c = 0; c < cols; ++c) add(c, r);

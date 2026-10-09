@@ -45,7 +45,7 @@ public:
         static const char* names[3] = {"scopeA", "scopeB", "scopeOut"};
         for (int t = 0; t < 3; ++t) {
             std::vector<float> v(kScope);
-            for (int i = 0; i < kScope; ++i) v[(size_t)i] = scope_[b][t][(size_t)i].load(std::memory_order_relaxed);
+            for (int i = 0; i < kScope; ++i) v[(size_t)i] = scope_[(size_t)b][(size_t)t][(size_t)i].load(std::memory_order_relaxed);
             out.push_back({names[t], std::move(v)});
         }
     }
@@ -115,9 +115,9 @@ private:
             writing_ = shown_.load(std::memory_order_relaxed) == 0 ? 1 : 0;
         }
         while (capturing_ && pos_ <= 0.0) {
-            scope_[writing_][0][(size_t)index_].store(a, std::memory_order_relaxed);
-            scope_[writing_][1][(size_t)index_].store(b, std::memory_order_relaxed);
-            scope_[writing_][2][(size_t)index_].store(out, std::memory_order_relaxed);
+            scope_[(size_t)writing_][0][(size_t)index_].store(a, std::memory_order_relaxed);
+            scope_[(size_t)writing_][1][(size_t)index_].store(b, std::memory_order_relaxed);
+            scope_[(size_t)writing_][2][(size_t)index_].store(out, std::memory_order_relaxed);
             pos_ += step_;
             if (++index_ >= kScope) {
                 capturing_ = false;

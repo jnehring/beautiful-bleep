@@ -185,12 +185,12 @@ public:
         // Filters: same cutoff, Smooth critically damped, Wobble resonant.
         const double fc = cutoffHz(p.smooth, stepSamples_ / sampleRate_);
         const double q = wobbleQ(p.wobble);
-        if (fc != lastFc_) {
+        if (fc < lastFc_ || fc > lastFc_) {
             smooth_.set(fc, 0.5, sampleRate_);
             lastFc_ = fc;
             lastQ_ = -1.0;
         }
-        if (q != lastQ_) {
+        if (q < lastQ_ || q > lastQ_) {
             wobble_.set(fc, q, sampleRate_);
             lastQ_ = q;
         }

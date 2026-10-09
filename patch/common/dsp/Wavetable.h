@@ -265,6 +265,7 @@ inline float readTable(const float* t, int size, double phase, Interp interp) no
     switch (interp) {
         case Interp::Nearest: return f < 0.5f ? p[0] : p[1];
         case Interp::Linear: return p[0] + f * (p[1] - p[0]);
+        case Interp::Cubic:
         default: {  // Catmull-Rom: exact at the stored samples
             const float a = p[-1], b = p[0], c = p[1], d = p[2];
             return b + 0.5f * f * (c - a + f * (2.0f * a - 5.0f * b + 4.0f * c - d + f * (3.0f * (b - c) + d - a)));
@@ -334,6 +335,7 @@ inline double warpPhase(Warp warp, double phase, float amount) noexcept {
             const double n = std::exp2(11.0 - 10.0 * a);
             return std::floor(phase * n) / n;
         }
+        case Warp::None:
         default: return phase;
     }
 }
@@ -349,6 +351,8 @@ inline double warpSlope(Warp warp, float amount) noexcept {
         case Warp::Sync: return 1.0 + 7.0 * a;
         case Warp::Mirror: return 1.0 + a;
         case Warp::Squash: return 1.0 / (1.0 - 0.9 * a);
+        case Warp::None:
+        case Warp::Steps:
         default: return 1.0;
     }
 }
@@ -517,6 +521,7 @@ inline Spectrum generate(FactoryBank bank, int c, int r) {
             }
             return s;
         }
+        case FactoryBank::Count:
         default: return s;
     }
 }

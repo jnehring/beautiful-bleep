@@ -129,7 +129,7 @@ public:
         }
         // Σ voices / √n, with n following the fades so a count change doesn't step.
         const float norm = 1.0f / std::sqrt(std::max(active, 1.0f));
-        if (!panReady_ || n != panCount_ || p.stereo != panStereo_) updatePan(n, p.stereo);
+        if (!panReady_ || n != panCount_ || p.stereo < panStereo_ || p.stereo > panStereo_) updatePan(n, p.stereo);
         ChordOscFrame out;
         for (int k = 0; k < kMaxVoices; ++k) {
             const float goal = rootSemis + shift + offsets_[k];
@@ -213,7 +213,7 @@ private:
 
     float glideCoefficient(float seconds) noexcept {
         if (seconds <= 0.0f) return 0.0f;
-        if (seconds != glideTime_) {
+        if (seconds < glideTime_ || seconds > glideTime_) {
             glideTime_ = seconds;
             // One-pole: 99 % of a jump in `seconds` (4.6 time constants).
             glideA_ = (float)std::exp(-4.6 / (seconds * sampleRate_));
