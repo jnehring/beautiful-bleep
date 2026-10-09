@@ -57,6 +57,9 @@
   const isCellLike = (n) => n.type === "cell" || n.type === "voice-cell";
   const isBoundary = (n) => n.type === "cell-in" || n.type === "cell-out" || n.type === "voice-in" || n.type === "voice-out";
   const isStructural = (n) => n.type === "cell" || isBoundary(n);  // a Voice Cell has a view: its settings
+  /// A cell may have several Cell Ins and Cell Outs (to lay cables out as you like), but keeps at least one of each.
+  const isFixedBoundary = (n) => isBoundary(n) &&
+    !((n.type === "cell-in" || n.type === "cell-out") && board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type));
   /// Ports the user adds and deletes (MIDI Device); the others come from Live (spec §6).
   const isFixedPort = (n) => isPort(n) && !typeOf(n).creatable;
   const VOICE_IN = [{ id: "notes", name: "Notes", type: "notes" }];
@@ -498,7 +501,7 @@
     if (dot) {
       ev.stopPropagation();
       const row = dot.closest(".jack");
-      if (row.classList.contains("out") && row.dataset.jack !== "+") return startCableDrag(ev, n.id, row.dataset.jack);
+      if (row.classList.contains("out") && (row.dataset.jack !== "+" || n.type === "cell-in")) return startCableDrag(ev, n.id, row.dataset.jack);
       if (row.classList.contains("in")) {
         // Pick up the last cable into this jack and move its end (spec §9.5).
         const into = cablesInto(n.id, row.dataset.jack);
@@ -689,6 +692,23 @@
     const amount = d.moving ? d.moving.amount : 1;
 
     // A knob in a module view (spec §9.5).
+    // A cable from the "+" of a Cell In: its end becomes a new cell input, named after the jack or knob it lands on.
+    if (d.from.jack === "+") {
+      const knobEl = target && target.closest(".bv-target");
+      const rowEl = target && target.closest(".jack.in");
+      const dest = knobEl ? { node: knobEl.closest(".vwin").dataset.node, jack: knobEl.dataset.param, type: "control" }
+                 : rowEl && rowEl.dataset.jack !== "+" ? { node: rowEl.dataset.node, jack: rowEl.dataset.jack, type: rowEl.dataset.type } : null;
+      if (!dest || dest.node === d.from.node || !compatible("control", dest.type)) return;
+      return edit("new cell input", (b) => {
+        const cell = nodeById(nodeById(d.from.node, b).parent, b);
+        const dn = nodeById(dest.node, b);
+        const id = uid("i");
+        cell.inputs = cell.inputs || [];
+        cell.inputs.push({ id, name: jackName(dn, dest.jack, false), type: dest.type });
+        connect(b, { node: d.from.node, jack: id }, { node: dest.node, jack: dest.jack }, 1);
+      });
+    }
+
     const knob = target && target.closest(".bv-target");
     if (knob && d.type !== "notes") {
       const nodeId = knob.closest(".vwin").dataset.node;
@@ -1017,7 +1037,8 @@
   });
 
   /// Types this board offers (MIDI Device only in the standalone app, spec §12).
-  const offered = (t) => t.creatable && (!t.standaloneOnly || standalone);
+  const offered = (t) => t.creatable && (!t.standaloneOnly || standalone) &&
+    !((t.type === "cell-in" || t.type === "cell-out") && !level());  // boundaries live inside a cell
 
   /// The Add menu (spec §9.6): Module › category › modules; Cell › new cells and presets by category.
   /// `at` is a canvas position, or null for the middle of the canvas.
@@ -1058,6 +1079,8 @@
           label: p.name, run: async () => setPresets((await native("deletePreset", p.name)) || []) })) });
       }
       cells.push({ label: cat, items });
+    if (level()) cells.push("-", { label: "Cell In", run: place({ type: "cell-in" }) },
+                                { label: "Cell Out", run: place({ type: "cell-out" }) });
     }
     return [{ label: "Module", items: cats },
             { label: "Cell", items: cells }];
@@ -1140,7 +1163,7 @@
     if (isCellLike(n)) items.push({ label: "Save as preset…", run: () => savePreset(n) });
     items.push({ label: "Trace signal flow", key: "T", run: toggleTrace });
     items.push("-");
-    items.push({ label: "Delete", key: "⌫", run: deleteSelection, disabled: isFixedPort(n) || isBoundary(n) });
+    items.push({ label: "Delete", key: "⌫", run: deleteSelection, disabled: isFixedPort(n) || isFixedBoundary(n) });
     showMenu(ev, items);
   }
 
@@ -1186,7 +1209,8 @@
     if (selCable) return removeCable(selCable);
     const doomed = new Set();
     for (const n of selectedNodes()) {
-      if (isFixedPort(n) || isBoundary(n)) continue;  // spec §6, §8.3.1
+      if (isFixedPort(n) || isFixedBoundary(n) ||  // spec §6, §8.3.1
+          (isBoundary(n) && doomedBoundary(n, doomed))) continue;
       doomed.add(n.id);
       if (isCellLike(n)) descendants(n.id).forEach((d) => doomed.add(d.id));
     }
@@ -1213,6 +1237,10 @@
     for (const r of roots) {
       all.push(r);
       if (isCellLike(r)) all.push(...descendants(r.id, b));
+  /// True when deleting n would take the last Cell In / Cell Out of its cell, counting those already doomed.
+  const doomedBoundary = (n, doomed) =>
+    !board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type && !doomed.has(m.id));
+
     }
     for (const n of all) map.set(n.id, uid(isCellLike(n) ? "c" : "n"));
     for (const n of all) {
@@ -1375,20 +1403,21 @@
     edit("ungroup", (b) => {
       const cell = nodeById(cellId, b);
       if (!cell || cell.type !== "cell") return false;
-      const cin = b.nodes.find((n) => n.parent === cellId && n.type === "cell-in");
-      const cout = b.nodes.find((n) => n.parent === cellId && n.type === "cell-out");
+      const cins = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-in");
+      const couts = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out");
+      const cinIds = new Set(cins.map((n) => n.id)), coutIds = new Set(couts.map((n) => n.id));
       const kids = b.nodes.filter((n) => n.parent === cellId && n.type !== "cell-in" && n.type !== "cell-out");
       const kx = Math.min(...kids.map((k) => k.x), Infinity), ky = Math.min(...kids.map((k) => k.y), Infinity);
       for (const k of kids) {
         k.parent = cell.parent || "";
         if (isFinite(kx)) { k.x = cell.x + (k.x - kx); k.y = cell.y + (k.y - ky); }
       }
-      const boundary = new Set([cellId, cin && cin.id, cout && cout.id]);
+      const boundary = new Set([cellId, ...cinIds, ...coutIds]);
       const next = b.cables.filter((c) => !boundary.has(c.from.node) && !boundary.has(c.to.node));
       for (const outer of b.cables.filter((c) => c.to.node === cellId))
-        for (const inner of b.cables.filter((c) => cin && c.from.node === cin.id && c.from.jack === outer.to.jack))
+        for (const inner of b.cables.filter((c) => cinIds.has(c.from.node) && c.from.jack === outer.to.jack))
           next.push({ id: uid("k"), from: clone(outer.from), to: clone(inner.to), amount: outer.amount * inner.amount });
-      for (const inner of b.cables.filter((c) => cout && c.to.node === cout.id))
+      for (const inner of b.cables.filter((c) => coutIds.has(c.to.node)))
         for (const outer of b.cables.filter((c) => c.from.node === cellId && c.from.jack === inner.to.jack))
           next.push({ id: uid("k"), from: clone(inner.from), to: clone(outer.to), amount: outer.amount * inner.amount });
       b.cables = next;

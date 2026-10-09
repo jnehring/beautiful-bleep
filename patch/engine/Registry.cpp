@@ -67,7 +67,7 @@ Registry::Registry() {
     in.name = "Cell In";
     in.category = "Cells";
     in.colour = "#9aa3b5";
-    in.userCreatable = false;
+    in.userCreatable = true;  // inside a cell, as many as you like (the UI offers them there only)
     add(in, nullptr);
     ModuleSpec out = in;
     out.type = kCellOut;

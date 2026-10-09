@@ -34,12 +34,11 @@ std::shared_ptr<VoiceCellModule> VoiceCellModule::create(const BoardModel& board
     m->sharedIn_.assign(node.cellInputs.size(), {});
     m->numSharedOut_ = node.cellOutputs.size();
 
-    std::string voiceIn, voiceOut, cellOut;
+    std::string voiceIn, voiceOut;
     for (const auto& n : board.nodes)
         if (n.parent == node.id) {
             if (n.type == kVoiceIn) voiceIn = n.id;
             if (n.type == kVoiceOut) voiceOut = n.id;
-            if (n.type == kCellOut) cellOut = n.id;
         }
     const ModuleSpec& vin = *Registry::get().find(kVoiceIn);
     for (const auto& c : board.cables)
@@ -65,7 +64,7 @@ std::shared_ptr<VoiceCellModule> VoiceCellModule::create(const BoardModel& board
         for (size_t k = 0; k < node.cellInputs.size(); ++k)
             scope.external[{node.id, node.cellInputs[k].id}] = m->sharedIn_[k].data();
         scope.taps = {{voiceOut, "l"}, {voiceOut, "r"}, {voiceOut, "active"}};
-        for (const auto& j : node.cellOutputs) scope.taps.push_back({cellOut, j.id});
+        for (const auto& j : node.cellOutputs) scope.taps.push_back({node.id, j.id});  // read from any of the cell's Cell Outs
         m->programs_[(size_t)v] = Program::compile(board, state->modules[(size_t)v], {}, sampleRate, &scope);
     }
     return m;

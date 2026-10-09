@@ -196,6 +196,38 @@ void compileCellsAndFeedback() {
     }
     EXPECT(program->feedback().size() == 1);
 
+    // Several Cell Ins and Cell Outs per cell: all kept, and cables resolve through whichever one they use.
+    {
+        juce::Array<juce::var> ns{node("u", "utility"), node("c", "cell"), node("f", "filter", "c"),
+                                  node("g", "utility"),
+                                  obj({{"id", "ci"}, {"type", kCellIn}, {"parent", "c"}}),
+                                  obj({{"id", "ci2"}, {"type", kCellIn}, {"parent", "c"}}),
+                                  obj({{"id", "co"}, {"type", kCellOut}, {"parent", "c"}}),
+                                  obj({{"id", "co2"}, {"type", kCellOut}, {"parent", "c"}})};
+        ns.getReference(1).getDynamicObject()->setProperty(
+            "inputs", juce::Array<juce::var>{obj({{"id", "in1"}, {"name", "Mod"}, {"type", "control"}})});
+        ns.getReference(1).getDynamicObject()->setProperty(
+            "outputs", juce::Array<juce::var>{obj({{"id", "o1"}, {"name", "Out"}, {"type", "audio"}})});
+        auto d2 = board::sanitise(doc(ns, {cable("u", "out", "c", "in1"), cable("ci2", "in1", "f", "cutoff"),
+                                           cable("f", "l", "co2", "o1"), cable("c", "o1", "g", "x")}));
+        const auto m2 = board::parse(d2);
+        int ins = 0, outs = 0;
+        for (const auto& n : m2.nodes) {
+            ins += n.type == kCellIn && n.parent == "c";
+            outs += n.type == kCellOut && n.parent == "c";
+        }
+        EXPECT(ins == 2 && outs == 2);
+        EXPECT(m2.cables.size() == 4);
+        std::map<std::string, std::shared_ptr<Module>> modules2;
+        auto p2 = Program::compile(m2, modules2, {}, kRate);
+        EXPECT(p2->steps().size() == 3);  // u, f, g
+        for (const auto& st : p2->steps())
+            if (st.nodeId == "g") {
+                const int x = st.module->spec().inputIndex("x");
+                EXPECT(x >= 0 && st.inputSources[(size_t)x].size() == 1);
+            }
+    }
+
     // Running it: the modulated cutoff goes down by half the range.
     Transport t;
     t.sampleRate = kRate;

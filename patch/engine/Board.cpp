@@ -273,7 +273,8 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
             p = next;
         }
     }
-    // Every cell has exactly one Cell In and one Cell Out; a Voice Cell also one Voice In and Voice Out.
+    // Every cell has at least one Cell In and one Cell Out (more are fine, to lay out cables); a Voice Cell has
+    // exactly one Voice In and Voice Out.
     for (const auto& cellId : cells) {
         if (ids.count(cellId) == 0) continue;
         std::vector<const char*> boundaries{kCellIn, kCellOut};
@@ -283,8 +284,9 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
         }
         for (const char* t : boundaries) {
             int count = 0;
+            const bool single = std::strcmp(t, kCellIn) != 0 && std::strcmp(t, kCellOut) != 0;
             for (int i = nodes.size(); --i >= 0;)
-                if (str(nodes[i], "type") == t && str(nodes[i], "parent") == cellId && ++count > 1) {
+                if (str(nodes[i], "type") == t && str(nodes[i], "parent") == cellId && (++count > 1 && single)) {
                     ids.erase(str(nodes[i], "id"));
                     nodes.remove(i);
                 }

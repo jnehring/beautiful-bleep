@@ -37,10 +37,10 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
     const auto& reg = Registry::get();
 
     std::map<std::string, const NodeModel*> byId;
-    std::map<std::string, const NodeModel*> cellOutOf;  // cell id → its Cell Out node
+    std::map<std::string, std::vector<const NodeModel*>> cellOutOf;  // cell id → its Cell Out nodes
     for (const auto& n : board.nodes) {
         byId[n.id] = &n;
-        if (n.type == kCellOut) cellOutOf[n.parent] = &n;
+        if (n.type == kCellOut) cellOutOf[n.parent].push_back(&n);
     }
     std::multimap<std::pair<std::string, std::string>, const CableModel*> into;
     for (const auto& c : board.cables) into.emplace(std::make_pair(c.to.node, c.to.jack), &c);
@@ -84,7 +84,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
                 resolveInto(src.parent, c.from.jack, amount, depth + 1, out);
             } else if (src.type == kCell) {
                 if (auto co = cellOutOf.find(src.id); co != cellOutOf.end())
-                    resolveInto(co->second->id, c.from.jack, amount, depth + 1, out);
+                    for (const NodeModel* o : co->second) resolveInto(o->id, c.from.jack, amount, depth + 1, out);
             } else if (isReal(src)) {
                 out.push_back({src.id, c.from.jack, amount});
             }
@@ -263,7 +263,10 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
     if (scope)
         for (const auto& t : scope->taps) {
             std::vector<Resolved> found;
-            resolveInto(t.node, t.jack, 1.0f, 0, found);
+            if (auto co = cellOutOf.find(t.node); co != cellOutOf.end())  // a cell's shared output: any of its Cell Outs
+                for (const NodeModel* o : co->second) resolveInto(o->id, t.jack, 1.0f, 0, found);
+            else
+                resolveInto(t.node, t.jack, 1.0f, 0, found);
             std::vector<Source> sources;
             for (const auto& r : found)
                 if (r.buffer) sources.push_back({r.buffer, r.amount});
