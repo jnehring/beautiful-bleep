@@ -32,6 +32,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 PATCH = Path(__file__).resolve().parent.parent
@@ -155,6 +156,39 @@ def build(d, out, include_dirs, juce=None, force=False):
         return d.name, target, ""
 
 
+class Progress:
+    """`[#####-----] 12/40 name` on one line when attached to a terminal, a log line per module otherwise.
+    Modules that were up to date only advance the bar."""
+
+    def __init__(self, total):
+        self.total, self.n, self.tty = total, 0, sys.stdout.isatty()
+        self.t0 = time.monotonic()
+        self.skipped = 0
+        self._draw("")
+
+    def _draw(self, name):
+        if self.tty:
+            width = shutil.get_terminal_size().columns
+            fill = round(24 * self.n / max(self.total, 1))
+            line = f"[{'#' * fill}{'-' * (24 - fill)}] {self.n}/{self.total} {int(time.monotonic() - self.t0)}s {name}"
+            print("\r\033[K" + line[: width - 1], end="", flush=True)
+
+    def done(self, name, message):
+        self.n += 1
+        if message is None:
+            self.skipped += 1
+        elif self.tty:
+            print("\r\033[K" + message)
+        else:
+            print(message, flush=True)
+        self._draw(name)
+
+    def finish(self):
+        if self.tty:
+            print("\r\033[K", end="")
+        print(f"{self.total} modules in {int(time.monotonic() - self.t0)}s ({self.skipped} up to date)", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -167,16 +201,22 @@ def main():
     only = set(filter(None, a.only.split(",")))
     dirs = module_dirs(only)
     include_dirs = [PATCH / "engine", PATCH / "common"] + [d / "dsp" for d in module_dirs(set()) if (d / "dsp").is_dir()]
+    if a.juce and any(uses_juce(d) for d in dirs) and not (out / ".juce" / "juce_core.o").exists():
+        print("Compiling juce_core for WebAssembly (once)...", flush=True)
     juce = build_juce_core(a.juce, out) if a.juce and any(uses_juce(d) for d in dirs) else None
     manifest = {"modules": {}, "types": {}, "unavailable": {}}
+    progress = Progress(len(dirs))
     with concurrent.futures.ThreadPoolExecutor(a.j) as pool:
-        for slug, wasm, err in pool.map(lambda d: build(d, out, include_dirs, juce, a.force), dirs):
+        futures = [pool.submit(build, d, out, include_dirs, juce, a.force) for d in dirs]
+        for f in concurrent.futures.as_completed(futures):
+            slug, wasm, err = f.result()
             if wasm is None:
                 manifest["unavailable"][slug] = err
-                print(f"  skip  {slug}: {err}")
+                progress.done(slug, f"  skip  {slug}: {err}")
                 continue
             manifest["modules"][slug] = {"file": f"modules/{slug}.wasm", "bytes": wasm.stat().st_size, "types": []}
-            print(f"  {'same ' if err else 'built'} {slug} ({wasm.stat().st_size // 1024} KB)")
+            progress.done(slug, None if err else f"  built {slug} ({wasm.stat().st_size // 1024} KB)")
+    progress.finish()
     old = out / "manifest.json"
     if only and old.exists():  # keep the modules this run did not touch
         prev = json.loads(old.read_text())

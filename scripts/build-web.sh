@@ -33,7 +33,8 @@ if [ "$DOCKER" = 1 ]; then
   # (kept between runs). Output paths must be inside the repository.
   args=(); [ "$MODULES" = 0 ] && args+=(--no-modules); [ "$UI" = 0 ] && args+=(--modules-only)
   uidargs=(); [ "$(uname)" = Linux ] && uidargs=(-u "$(id -u):$(id -g)" -e HOME=/tmp)
-  exec docker run --rm ${uidargs[@]+"${uidargs[@]}"} -e BLEEP_WEB_ONLY="${BLEEP_WEB_ONLY:-}" \
+  ttyargs=(); [ -t 1 ] && ttyargs=(-t)   # a terminal: the progress bar redraws in place
+  exec docker run --rm ${ttyargs[@]+"${ttyargs[@]}"} -e PYTHONUNBUFFERED=1 ${uidargs[@]+"${uidargs[@]}"} -e BLEEP_WEB_ONLY="${BLEEP_WEB_ONLY:-}" \
     -v "$ROOT:/repo" -w /repo emscripten/emsdk:4.0.10 scripts/build-web.sh ${args[@]+"${args[@]}"} ${1:+"/repo/${1#$ROOT/}"}
 fi
 if [ "$UI" = 1 ]; then OUT="${1:-$ROOT/build/web/site}"; else OUT="${1:-$ROOT/build/web/modules}"; fi
@@ -50,7 +51,7 @@ if [ "$MODULES" = 1 ]; then
   JUCE="${BLEEP_JUCE_DIR:-}"
   if [ -z "$JUCE" ]; then
     JUCE="$ROOT/build/web/JUCE"
-    [ -d "$JUCE/modules/juce_core" ] || git clone --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git "$JUCE"
+    [ -d "$JUCE/modules/juce_core" ] || git clone -q --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git "$JUCE"
   fi
   python3 "$PATCH/web/build_modules.py" --out "$OUT" --juce "$JUCE" ${BLEEP_WEB_ONLY:+--only "$BLEEP_WEB_ONLY"}
 fi
