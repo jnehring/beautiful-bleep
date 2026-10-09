@@ -51,7 +51,7 @@
   };
 
   // Drum machines: a Drum Grid plays one kit's voices (gate → trigger, velocity → velocity per track),
-  // one Audio Mixer takes the drums, one the toms and perc, a third mixes both to the cell's Out L/R.
+  // one Audio Mixer takes the drums, one the toms and perc, a third mixes both to the cell's Out L/R. Clock and Run go to the grid.
   // Params are normalised: Hz on a log scale, pan 0.5 = centre, toggles 0/1.
   const drumGrid = (perc, patterns) => ({
     tracks: ["Kick", "Snare", "Closed Hat", "Open Hat", "Clap", "Low Tom", "High Tom", perc]
@@ -73,7 +73,8 @@
       ["perc", t + "-" + perc.toLowerCase(), kit + " " + perc, s.perc, [8], "mixB", 3],
     ];
     const nodes = [
-      { id: "root", type: "cell", name, x: 0, y: 0, parent: "", params: {}, inputs: [],
+      { id: "root", type: "cell", name, x: 0, y: 0, parent: "", params: {},
+        inputs: [{ id: "clock", name: "Clock", type: "trigger" }, { id: "run", name: "Run", type: "gate" }],
         outputs: [{ id: "l", name: "Out L", type: "audio" }, { id: "r", name: "Out R", type: "audio" }] },
       n("ci", "cell-in", "Cell In", 40, 60),
       n("grid", "drum-grid", "Drum Grid", 300, 60, {}, { data: drumGrid(perc, patterns) }),
@@ -82,7 +83,7 @@
       n("master", "audio-mixer", "Master", 1340, 260),
       n("co", "cell-out", "Cell Out", 1660, 300),
     ];
-    const cables = [];
+    const cables = [k("ci", "clock", "grid", "clock"), k("ci", "run", "grid", "run")];  // unpatched: the transport drives the grid
     voices.forEach(([id, type, vname, params, tracks, mix, ch], i) => {
       nodes.push(n(id, type, vname, 660, 40 + i * 130, params));
       if (tracks.length === 2) cables.push(k("grid", "gate" + tracks[0], id, "closed"), k("grid", "gate" + tracks[1], id, "open"));

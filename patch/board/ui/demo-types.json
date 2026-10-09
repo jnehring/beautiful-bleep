@@ -17999,6 +17999,723 @@
     ]
   },
   {
+    "type": "sampler",
+    "name": "Sampler",
+    "category": "Audio",
+    "colour": "#0d9488",
+    "description": "Polyphonic sample player and slicer: load a WAV, cut it into slices by hand, by transients or into beats, and play it from notes or triggers with up to 16 playheads, play modes, an envelope and a filter.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "start",
+        "name": "Start",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Sample"
+      },
+      {
+        "id": "end",
+        "name": "End",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Sample"
+      },
+      {
+        "id": "transpose",
+        "name": "Transpose",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -48.0,
+        "max": 48.0,
+        "group": "Pitch"
+      },
+      {
+        "id": "fine",
+        "name": "Fine",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -100.0,
+        "max": 100.0,
+        "group": "Pitch"
+      },
+      {
+        "id": "speed",
+        "name": "Speed",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -4.0,
+        "max": 4.0,
+        "map": "skew",
+        "centre": 1.0,
+        "group": "Pitch"
+      },
+      {
+        "id": "position",
+        "name": "Position",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Sample"
+      },
+      {
+        "id": "attack",
+        "name": "Attack",
+        "kind": "float",
+        "default": 0.225595578551292,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.000500000023749,
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.100000001490116,
+        "group": "Envelope"
+      },
+      {
+        "id": "decay",
+        "name": "Decay",
+        "kind": "float",
+        "default": 0.401946306228638,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.001000000047497,
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.300000011920929,
+        "group": "Envelope"
+      },
+      {
+        "id": "sustain",
+        "name": "Sustain",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Envelope"
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "kind": "float",
+        "default": 0.349821954965591,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.001000000047497,
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.300000011920929,
+        "group": "Envelope"
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0,
+        "group": "Output"
+      },
+      {
+        "id": "pan",
+        "name": "Pan",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "group": "Output"
+      },
+      {
+        "id": "cutoff",
+        "name": "Cutoff",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 20.0,
+        "max": 20000.0,
+        "map": "exp",
+        "group": "Filter"
+      },
+      {
+        "id": "resonance",
+        "name": "Resonance",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Filter"
+      },
+      {
+        "id": "filterenv",
+        "name": "Filter Env",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "group": "Filter"
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Output"
+      },
+      {
+        "id": "crush",
+        "name": "Crush",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "group": "Output"
+      },
+      {
+        "id": "layerpitch",
+        "name": "Layer Pitch",
+        "kind": "float",
+        "default": 0.645833313465118,
+        "steps": 0,
+        "modulatable": true,
+        "min": -24.0,
+        "max": 24.0,
+        "group": "Layers",
+        "show": {
+          "param": "voicemode",
+          "min": 3,
+          "max": 3
+        }
+      },
+      {
+        "id": "layeroffset",
+        "name": "Layer Offset",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 200.0,
+        "group": "Layers",
+        "show": {
+          "param": "voicemode",
+          "min": 3,
+          "max": 3
+        }
+      },
+      {
+        "id": "voices",
+        "name": "Voices",
+        "kind": "int",
+        "default": 0.466666668653488,
+        "steps": 16,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 16.0
+      },
+      {
+        "id": "voicemode",
+        "name": "Voice Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Poly",
+          "Mono",
+          "Legato",
+          "Layers"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "layers",
+        "name": "Layers",
+        "kind": "int",
+        "default": 0.142857149243355,
+        "steps": 8,
+        "modulatable": false,
+        "min": 1.0,
+        "max": 8.0,
+        "show": {
+          "param": "voicemode",
+          "min": 3,
+          "max": 3
+        }
+      },
+      {
+        "id": "triggerby",
+        "name": "Trigger By",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Note",
+          "CV"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "slicemode",
+        "name": "Slice Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "Gate",
+          "To end of sample",
+          "To end of slice",
+          "Loop",
+          "One-shot"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "loopstyle",
+        "name": "Loop Style",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Forward",
+          "Ping-pong"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "loopfade",
+        "name": "Loop Crossfade",
+        "kind": "float",
+        "default": 0.370956897735596,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 0.050000000745058,
+        "map": "skew",
+        "centre": 0.009999999776483
+      },
+      {
+        "id": "root",
+        "name": "Root Note",
+        "kind": "int",
+        "default": 0.472440958023071,
+        "steps": 128,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 127.0
+      },
+      {
+        "id": "keytrack",
+        "name": "Key Tracking",
+        "kind": "float",
+        "default": 0.666666686534882,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 2.0
+      },
+      {
+        "id": "quality",
+        "name": "Quality",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Linear",
+          "Cubic",
+          "Sinc"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "positionmode",
+        "name": "Position Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Scrub",
+          "Offset"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "voiceouts",
+        "name": "Voice Outs",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "output",
+        "name": "Output",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Stereo",
+          "Mono"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": true
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "slice",
+        "name": "Slice",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "speed",
+        "name": "Speed",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "stop",
+        "name": "Stop",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "step",
+        "name": "Step",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "end",
+        "name": "End",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "slice",
+        "name": "Slice",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "playhead",
+        "name": "Playhead",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "active",
+        "name": "Active",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "voice1",
+        "name": "Voice 1",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice2",
+        "name": "Voice 2",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice3",
+        "name": "Voice 3",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice4",
+        "name": "Voice 4",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice5",
+        "name": "Voice 5",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice6",
+        "name": "Voice 6",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice7",
+        "name": "Voice 7",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice8",
+        "name": "Voice 8",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice9",
+        "name": "Voice 9",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice10",
+        "name": "Voice 10",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice11",
+        "name": "Voice 11",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice12",
+        "name": "Voice 12",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice13",
+        "name": "Voice 13",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice14",
+        "name": "Voice 14",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice15",
+        "name": "Voice 15",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "voice16",
+        "name": "Voice 16",
+        "type": "audio",
+        "bipolar": true,
+        "show": {
+          "param": "voiceouts",
+          "min": 1,
+          "max": 1
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "id": "next",
+        "name": "Next",
+        "momentary": false
+      },
+      {
+        "id": "random",
+        "name": "Random",
+        "momentary": false
+      },
+      {
+        "id": "stop",
+        "name": "Stop",
+        "momentary": false
+      }
+    ],
+    "memoryHeavy": true
+  },
+  {
     "type": "segments",
     "name": "Segments",
     "category": "Modulation",
@@ -22957,6 +23674,223 @@
       {
         "id": "compare",
         "name": "Compare",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "xy-scope",
+    "name": "XY Scope",
+    "category": "Utility",
+    "colour": "#4ade80",
+    "description": "An oscilloscope for X against Y: Lissajous figures that stand still when two oscillators lock, with Phase, Correlation, Ratio and a Still gate as outputs.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "xgain",
+        "name": "X Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.100000001490116,
+        "max": 10.0,
+        "map": "exp"
+      },
+      {
+        "id": "ygain",
+        "name": "Y Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.100000001490116,
+        "max": 10.0,
+        "map": "exp"
+      },
+      {
+        "id": "timebase",
+        "name": "Timebase",
+        "kind": "float",
+        "default": 0.39412847161293,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.001000000047497,
+        "max": 2.0,
+        "map": "exp",
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "persistence",
+        "name": "Persistence",
+        "kind": "float",
+        "default": 0.435755580663681,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 5.0,
+        "map": "exp"
+      },
+      {
+        "id": "focus",
+        "name": "Focus",
+        "kind": "float",
+        "default": 0.800000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "intensity",
+        "name": "Intensity",
+        "kind": "float",
+        "default": 0.600000023841858,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "X-Y",
+          "Y-T"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Y Rising",
+          "Auto",
+          "Beat"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "phosphor",
+        "name": "Phosphor",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Green",
+          "Amber",
+          "Blue-White"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "character",
+        "name": "Character",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Clean",
+          "Vintage"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "tolerance",
+        "name": "Still Tolerance",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Tight",
+          "Normal",
+          "Loose"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "x",
+        "name": "X",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "y",
+        "name": "Y",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "z",
+        "name": "Z",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "outx",
+        "name": "Out X",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "outy",
+        "name": "Out Y",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "phase",
+        "name": "Phase",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "corr",
+        "name": "Correlation",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "ratio",
+        "name": "Ratio",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "still",
+        "name": "Still",
         "type": "gate",
         "bipolar": false
       }
