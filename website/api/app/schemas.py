@@ -135,3 +135,24 @@ class DownloadsOut(BaseModel):
     plugins: list[DownloadItemOut]
     modules: list[DownloadItemOut]
     presets: list[DownloadItemOut]
+
+
+class DownloadFileOut(BaseModel):
+    path: str
+    bytes: int
+    sha256: str
+    platform: str
+    uploaded: bool
+
+
+class DownloadReleaseOut(DownloadItemOut):
+    notes: str
+    requires: dict
+    file_list: list[DownloadFileOut]
+
+
+class DownloadDetailOut(BaseModel):
+    kind: str
+    slug: str
+    title: str
+    releases: list[DownloadReleaseOut]

@@ -70,11 +70,15 @@ button.linklike { background: none; border: 0; padding: 0; font: inherit; color:
 .auth .error { color: #d14343; } .auth .ok { color: var(--accent); } .auth .muted { color: var(--muted); }
 
 /* Admin */
+.dropdown { position: relative; }
+.dropdown-menu { display: none; position: absolute; right: 0; top: 100%; min-width: 140px; z-index: 10; flex-direction: column;
+  padding: 6px 0; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+.dropdown:hover .dropdown-menu, .dropdown:focus-within .dropdown-menu { display: flex; }
+.dropdown-menu a { padding: 6px 14px; margin: 0; white-space: nowrap; }
+.dropdown-menu a[aria-current="page"] { color: var(--accent); }
 .admin { max-width: 900px; }
-.admin .tabs { display: flex; gap: 8px; margin: 12px 0; }
-.admin .tabs button, .admin button { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line);
+.admin button { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line);
   border-radius: 999px; padding: 6px 14px; cursor: pointer; }
-.admin .tabs button[aria-current="page"] { border-color: var(--accent); color: var(--accent); }
 .admin button.linklike { border: 0; padding: 0; background: none; color: var(--accent); }
 .admin form.inline { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin: 16px 0; }
 .admin form.inline label { font-weight: 600; font-size: .92rem; }

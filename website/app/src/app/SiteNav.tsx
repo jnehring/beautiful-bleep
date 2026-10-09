@@ -23,7 +23,15 @@ export default function SiteNav() {
         <nav className="account" aria-label="Account">
           {user ? (
             <>
-              {user.role === "admin" && <a href="/admin/" aria-current={path.startsWith("/admin") ? "true" : undefined}>Admin</a>}
+              {user.role === "admin" && (
+                <div className="dropdown">
+                  <a href="/admin/downloads/" aria-current={path.startsWith("/admin") ? "true" : undefined} aria-haspopup="true">Admin</a>
+                  <div className="dropdown-menu">
+                    <a href="/admin/downloads/" aria-current={path.startsWith("/admin/downloads") ? "page" : undefined}>Downloads</a>
+                    <a href="/admin/tokens/" aria-current={path.startsWith("/admin/tokens") ? "page" : undefined}>Tokens</a>
+                  </div>
+                </div>
+              )}
               <a href="/account/" aria-current={path.startsWith("/account") ? "true" : undefined}>{user.display_name}</a>
               <button type="button" className="linklike" onClick={logout}>Log out</button>
             </>

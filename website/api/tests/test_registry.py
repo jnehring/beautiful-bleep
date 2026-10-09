@@ -158,6 +158,19 @@ def test_admin_downloads_lists_contents(client, make_admin):
     assert r.json()["modules"] == [] and r.json()["presets"] == []
 
 
+def test_admin_download_detail(client, make_admin):
+    token = make_token(client, make_admin)
+    assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
+    assert client.get("/api/admin/downloads/plugin/bleep-patch").status_code == 401
+    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
+    r = client.get("/api/admin/downloads/plugin/bleep-patch")
+    assert r.status_code == 200
+    rel = r.json()["releases"][0]
+    assert rel["version"] == "0.1.0" and rel["file_list"] and rel["file_list"][0]["uploaded"] is True
+    assert client.get("/api/admin/downloads/module/bleep-patch").status_code == 404
+    assert client.get("/api/admin/downloads/bogus/x").status_code == 422
+
+
 def test_platform_can_be_added_to_a_published_release(client, make_admin, storage):
     token = make_token(client, make_admin)
     h = {"Authorization": f"Bearer {token}"}
