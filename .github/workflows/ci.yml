@@ -14,6 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: python3 scripts/check-repo.py
       - run: python3 scripts/check-api-docs.py
+      - run: node patch/presets/build.mjs --check
       - run: python3 scripts/build-docs.py --out build/docs
       - uses: actions/upload-artifact@v4
         with:

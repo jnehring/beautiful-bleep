@@ -221,7 +221,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 10.0
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.25
       },
       {
         "id": "fall",
@@ -231,7 +233,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 10.0
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.25
       },
       {
         "id": "shape",
@@ -345,7 +349,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.009999999776483,
-        "max": 50.0
+        "max": 50.0,
+        "map": "exp"
       },
       {
         "id": "phase",
@@ -375,7 +380,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 10.0
+        "max": 10.0,
+        "map": "skew",
+        "centre": 1.0
       },
       {
         "id": "wave",
@@ -514,7 +521,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 50.0
+        "max": 50.0,
+        "map": "exp"
       },
       {
         "id": "spread",
@@ -661,7 +669,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 10.0
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.200000002980232
       },
       {
         "id": "decay",
@@ -671,7 +681,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 10.0
+        "max": 10.0,
+        "map": "skew",
+        "centre": 0.400000005960464
       },
       {
         "id": "sustain",
@@ -691,7 +703,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 20.0
+        "max": 20.0,
+        "map": "skew",
+        "centre": 0.600000023841858
       },
       {
         "id": "velamount",
@@ -763,7 +777,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 20.0,
-        "max": 20000.0
+        "max": 20000.0,
+        "map": "exp"
       },
       {
         "id": "resonance",
@@ -1043,7 +1058,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 5.0
+        "max": 5.0,
+        "map": "skew",
+        "centre": 0.100000001490116
       },
       {
         "id": "threshold",
@@ -1176,7 +1193,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232
       },
       {
         "id": "priority",
@@ -1935,7 +1954,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232
       },
       {
         "id": "root",
@@ -2168,7 +2189,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.050000000745058
       },
       {
         "id": "length",
@@ -2439,7 +2462,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "pan1",
@@ -2459,7 +2484,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "level2",
@@ -2469,7 +2496,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "pan2",
@@ -2489,7 +2518,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "level3",
@@ -2499,7 +2530,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "pan3",
@@ -2519,7 +2552,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "level4",
@@ -2529,7 +2564,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "pan4",
@@ -2549,7 +2586,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "return",
@@ -2559,7 +2598,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "master",
@@ -2569,7 +2610,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -60.0,
-        "max": 6.0
+        "max": 6.0,
+        "map": "skew",
+        "centre": -12.0
       },
       {
         "id": "mute1",
@@ -2931,7 +2974,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.009999999776483,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.300000011920929
       },
       {
         "id": "floor",
@@ -3071,7 +3116,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232
       },
       {
         "id": "steps",
@@ -3175,7 +3222,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232
       },
       {
         "id": "octave",
@@ -3842,7 +3891,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 30.0,
-        "max": 120.0
+        "max": 120.0,
+        "map": "exp"
       },
       {
         "id": "decay",
@@ -3852,7 +3902,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 3.0
+        "max": 3.0,
+        "map": "skew",
+        "centre": 0.600000023841858
       },
       {
         "id": "sweep",
@@ -3936,7 +3988,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 100.0,
-        "max": 400.0
+        "max": 400.0,
+        "map": "exp"
       },
       {
         "id": "tone",
@@ -3966,7 +4019,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 1.0
+        "max": 1.0,
+        "map": "skew",
+        "centre": 0.25
       },
       {
         "id": "level",
@@ -4020,7 +4075,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 500.0,
-        "max": 4000.0
+        "max": 4000.0,
+        "map": "exp"
       },
       {
         "id": "decay",
@@ -4030,7 +4086,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 1.5
+        "max": 1.5,
+        "map": "skew",
+        "centre": 0.300000011920929
       },
       {
         "id": "spread",
@@ -4040,7 +4098,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.003000000026077,
-        "max": 0.029999999329448
+        "max": 0.029999999329448,
+        "map": "skew",
+        "centre": 0.010999999940395
       },
       {
         "id": "bursts",
@@ -4104,7 +4164,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 50.0,
-        "max": 600.0
+        "max": 600.0,
+        "map": "exp"
       },
       {
         "id": "decay",
@@ -4114,7 +4175,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.400000005960464
       },
       {
         "id": "bend",
@@ -4212,7 +4275,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.25,
-        "max": 4.0
+        "max": 4.0,
+        "map": "exp"
       },
       {
         "id": "level",
@@ -4276,7 +4340,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.400000005960464
       },
       {
         "id": "tone",
@@ -4350,7 +4416,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.009999999776483,
-        "max": 0.300000011920929
+        "max": 0.300000011920929,
+        "map": "skew",
+        "centre": 0.059999998658895
       },
       {
         "id": "open",
@@ -4360,7 +4428,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 3.0
+        "max": 3.0,
+        "map": "skew",
+        "centre": 0.5
       },
       {
         "id": "tone",
@@ -4440,7 +4510,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.300000011920929,
-        "max": 8.0
+        "max": 8.0,
+        "map": "skew",
+        "centre": 2.0
       },
       {
         "id": "tone",
@@ -4504,7 +4576,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 30.0,
-        "max": 120.0
+        "max": 120.0,
+        "map": "exp"
       },
       {
         "id": "decay",
@@ -4514,7 +4587,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 2.5
+        "max": 2.5,
+        "map": "skew",
+        "centre": 0.5
       },
       {
         "id": "sweep",
@@ -4598,7 +4673,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 120.0,
-        "max": 400.0
+        "max": 400.0,
+        "map": "exp"
       },
       {
         "id": "tone",
@@ -4628,7 +4704,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 1.0
+        "max": 1.0,
+        "map": "skew",
+        "centre": 0.300000011920929
       },
       {
         "id": "level",
@@ -4682,7 +4760,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 500.0,
-        "max": 4000.0
+        "max": 4000.0,
+        "map": "exp"
       },
       {
         "id": "decay",
@@ -4692,7 +4771,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 1.5
+        "max": 1.5,
+        "map": "skew",
+        "centre": 0.349999994039536
       },
       {
         "id": "spread",
@@ -4702,7 +4783,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.003000000026077,
-        "max": 0.029999999329448
+        "max": 0.029999999329448,
+        "map": "skew",
+        "centre": 0.00800000037998
       },
       {
         "id": "bursts",
@@ -4766,7 +4849,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 50.0,
-        "max": 500.0
+        "max": 500.0,
+        "map": "exp"
       },
       {
         "id": "decay",
@@ -4776,7 +4860,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.449999988079071
       },
       {
         "id": "bend",
@@ -4860,7 +4946,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.25,
-        "max": 4.0
+        "max": 4.0,
+        "map": "exp"
       },
       {
         "id": "level",
@@ -4924,7 +5011,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.009999999776483,
-        "max": 0.300000011920929
+        "max": 0.300000011920929,
+        "map": "skew",
+        "centre": 0.050000000745058
       },
       {
         "id": "open",
@@ -4934,7 +5023,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.050000000745058,
-        "max": 3.0
+        "max": 3.0,
+        "map": "skew",
+        "centre": 0.400000005960464
       },
       {
         "id": "tone",
@@ -5038,7 +5129,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.300000011920929,
-        "max": 8.0
+        "max": 8.0,
+        "map": "skew",
+        "centre": 2.0
       },
       {
         "id": "tone",
@@ -5245,6 +5338,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 5.0,
+        "map": "exp",
         "group": "Motion"
       },
       {
@@ -5267,6 +5361,8 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 20.0,
+        "map": "skew",
+        "centre": 1.0,
         "group": "Decay"
       },
       {
@@ -5396,7 +5492,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.125
       },
       {
         "id": "chance",
@@ -5714,7 +5812,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 1.0
+        "max": 1.0,
+        "map": "skew",
+        "centre": 0.100000001490116
       },
       {
         "id": "columns",
@@ -6039,6 +6139,333 @@
     ]
   },
   {
+    "type": "chart-recorder",
+    "name": "Chart Recorder",
+    "category": "Modulation",
+    "colour": "#a3e635",
+    "description": "A sprung pen draws the input onto a looping paper strip; the strip replays as modulation, at any speed or backwards.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "gain",
+        "name": "Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -24.0,
+        "max": 24.0
+      },
+      {
+        "id": "response",
+        "name": "Response",
+        "kind": "float",
+        "default": 0.514678776264191,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.001000000047497,
+        "max": 2.0,
+        "map": "exp"
+      },
+      {
+        "id": "writingspeed",
+        "name": "Writing Speed",
+        "kind": "float",
+        "default": 0.666666686534882,
+        "steps": 0,
+        "modulatable": true,
+        "min": 1.0,
+        "max": 1000.0,
+        "map": "exp"
+      },
+      {
+        "id": "damping",
+        "name": "Damping",
+        "kind": "float",
+        "default": 0.699999988079071,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "friction",
+        "name": "Friction",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "paperspeed",
+        "name": "Paper Speed",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.25,
+        "max": 4.0,
+        "map": "exp",
+        "show": {
+          "param": "paper",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "replayspeed",
+        "name": "Replay Speed",
+        "kind": "float",
+        "default": 0.625,
+        "steps": 0,
+        "modulatable": true,
+        "min": -4.0,
+        "max": 4.0
+      },
+      {
+        "id": "offset",
+        "name": "Offset",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "detector",
+        "name": "Detector",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "DC",
+          "Rectified",
+          "RMS",
+          "Peak",
+          "Log dB"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "logrange",
+        "name": "Log Range",
+        "kind": "choice",
+        "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "10 dB",
+          "25 dB",
+          "50 dB",
+          "75 dB"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "show": {
+          "param": "detector",
+          "min": 4,
+          "max": 4
+        }
+      },
+      {
+        "id": "paper",
+        "name": "Paper",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "lengthfree",
+        "name": "Length",
+        "kind": "choice",
+        "default": 0.375,
+        "steps": 9,
+        "modulatable": false,
+        "choices": [
+          "1 s",
+          "2 s",
+          "5 s",
+          "10 s",
+          "30 s",
+          "1 min",
+          "2 min",
+          "5 min",
+          "10 min"
+        ],
+        "min": 0.0,
+        "max": 8.0,
+        "show": {
+          "param": "paper",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "lengthbars",
+        "name": "Length",
+        "kind": "choice",
+        "default": 0.333333343267441,
+        "steps": 7,
+        "modulatable": false,
+        "choices": [
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars",
+          "16 bars",
+          "32 bars",
+          "64 bars"
+        ],
+        "min": 0.0,
+        "max": 6.0,
+        "show": {
+          "param": "paper",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "record",
+        "name": "Record",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Always",
+          "Gate",
+          "Armed"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "replaysync",
+        "name": "Replay Sync",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Free",
+          "Song"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "interp",
+        "name": "Interpolation",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Step",
+          "Linear",
+          "Smooth"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "record",
+        "name": "Record",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "mark",
+        "name": "Mark",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "hold",
+        "name": "Hold Paper",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "clear",
+        "name": "Clear",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "pen",
+        "name": "Pen",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "replay",
+        "name": "Replay",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "marker",
+        "name": "Marker",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "position",
+        "name": "Position",
+        "type": "control",
+        "bipolar": false
+      }
+    ],
+    "buttons": [
+      {
+        "id": "clear",
+        "name": "Clear",
+        "momentary": false
+      },
+      {
+        "id": "arm",
+        "name": "Arm",
+        "momentary": false
+      },
+      {
+        "id": "hold",
+        "name": "Hold Paper",
+        "momentary": false
+      }
+    ]
+  },
+  {
     "type": "chord-osc",
     "name": "Chord Osc",
     "category": "Sources",
@@ -6202,7 +6629,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 1.0
+        "max": 1.0,
+        "map": "skew",
+        "centre": 0.200000002980232
       },
       {
         "id": "rootLevel",
@@ -6502,7 +6931,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 0.100000001490116
+        "max": 0.100000001490116,
+        "map": "skew",
+        "centre": 0.029999999329448
       },
       {
         "id": "velocity",
@@ -6976,7 +7407,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.004999999888241,
-        "max": 8.0
+        "max": 8.0,
+        "map": "skew",
+        "centre": 0.600000023841858
       },
       {
         "id": "taps",
@@ -7567,7 +8000,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 20.0,
-        "max": 20000.0
+        "max": 20000.0,
+        "map": "exp"
       },
       {
         "id": "spread",
@@ -8133,6 +8567,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8144,6 +8580,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8155,6 +8593,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8166,6 +8606,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8177,6 +8619,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8188,6 +8632,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8199,6 +8645,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8210,6 +8658,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8221,6 +8671,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8232,6 +8684,8 @@
         "modulatable": true,
         "min": -60.0,
         "max": 12.0,
+        "map": "skew",
+        "centre": -13.596412658691406,
         "group": "Levels"
       },
       {
@@ -8243,6 +8697,7 @@
         "modulatable": true,
         "min": 0.5,
         "max": 30.0,
+        "map": "exp",
         "group": "Bands"
       },
       {
@@ -8320,6 +8775,7 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 0.100000001490116,
+        "map": "exp",
         "group": "Envelopes"
       },
       {
@@ -8331,6 +8787,7 @@
         "modulatable": true,
         "min": 0.004999999888241,
         "max": 2.0,
+        "map": "exp",
         "group": "Envelopes"
       },
       {
@@ -9060,6 +9517,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 1.0,
+        "map": "skew",
+        "centre": 0.100000001490116,
         "group": "Feedback"
       },
       {
@@ -9660,7 +10119,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.004999999888241,
-        "max": 2.0
+        "max": 2.0,
+        "map": "exp"
       },
       {
         "id": "pitch",
@@ -10670,6 +11130,8 @@
         "modulatable": true,
         "min": 0.004999999888241,
         "max": 10.0,
+        "map": "skew",
+        "centre": 0.600000023841858,
         "group": "Gate"
       },
       {
@@ -12894,6 +13356,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 5.0,
+        "map": "skew",
+        "centre": 0.300000011920929,
         "group": "Neuron A"
       },
       {
@@ -12905,6 +13369,7 @@
         "modulatable": true,
         "min": 1.0,
         "max": 100.0,
+        "map": "exp",
         "group": "Neuron A"
       },
       {
@@ -12916,6 +13381,8 @@
         "modulatable": true,
         "min": 0.001000000047497,
         "max": 1.0,
+        "map": "skew",
+        "centre": 0.050000000745058,
         "group": "Neuron A",
         "show": {
           "param": "amode",
@@ -12987,6 +13454,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 5.0,
+        "map": "skew",
+        "centre": 0.300000011920929,
         "group": "Neuron B"
       },
       {
@@ -12998,6 +13467,7 @@
         "modulatable": true,
         "min": 1.0,
         "max": 100.0,
+        "map": "exp",
         "group": "Neuron B"
       },
       {
@@ -13009,6 +13479,8 @@
         "modulatable": true,
         "min": 0.001000000047497,
         "max": 1.0,
+        "map": "skew",
+        "centre": 0.050000000745058,
         "group": "Neuron B",
         "show": {
           "param": "bmode",
@@ -13195,7 +13667,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.002000000094995,
-        "max": 20.0
+        "max": 20.0,
+        "map": "exp"
       },
       {
         "id": "spread",
@@ -13385,7 +13858,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 20.0,
-        "max": 4000.0
+        "max": 4000.0,
+        "map": "exp"
       },
       {
         "id": "tone",
@@ -13433,7 +13907,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.009999999776483,
-        "max": 8.0
+        "max": 8.0,
+        "map": "skew",
+        "centre": 0.600000023841858
       },
       {
         "id": "damp",
@@ -13878,6 +14354,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 50.0,
+        "map": "exp",
         "group": "Rates"
       },
       {
@@ -13889,6 +14366,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 50.0,
+        "map": "exp",
         "group": "Rates",
         "show": {
           "param": "mode",
@@ -13905,6 +14383,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 50.0,
+        "map": "exp",
         "group": "Rates",
         "show": {
           "param": "mode",
@@ -13921,6 +14400,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 50.0,
+        "map": "exp",
         "group": "Rates",
         "show": {
           "param": "mode",
@@ -14380,6 +14860,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232,
         "group": "Channel A"
       },
       {
@@ -14610,6 +15092,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232,
         "group": "Channel B"
       },
       {
@@ -14855,6 +15339,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232,
         "group": "Channel C"
       },
       {
@@ -15100,6 +15586,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 2.0,
+        "map": "skew",
+        "centre": 0.200000002980232,
         "group": "Channel D"
       },
       {
@@ -15588,6 +16076,7 @@
         "modulatable": true,
         "min": 0.100000001490116,
         "max": 40.0,
+        "map": "exp",
         "show": {
           "param": "sync",
           "min": 0,
@@ -16103,7 +16592,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.100000001490116,
-        "max": 104.647666931152344
+        "max": 104.647666931152344,
+        "map": "exp"
       },
       {
         "id": "preDelay",
@@ -16114,6 +16604,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 1.0,
+        "map": "skew",
+        "centre": 0.100000001490116,
         "show": {
           "param": "preSync",
           "min": 0,
@@ -16150,6 +16642,7 @@
         "modulatable": true,
         "min": 0.5,
         "max": 2.0,
+        "map": "exp",
         "group": "Tone"
       },
       {
@@ -16161,6 +16654,7 @@
         "modulatable": true,
         "min": 0.050000000745058,
         "max": 8.0,
+        "map": "exp",
         "group": "Modulation"
       },
       {
@@ -16934,6 +17428,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 1",
         "show": {
           "param": "count",
@@ -16982,6 +17478,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 2",
         "show": {
           "param": "count",
@@ -17030,6 +17528,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 3",
         "show": {
           "param": "count",
@@ -17078,6 +17578,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 4",
         "show": {
           "param": "count",
@@ -17126,6 +17628,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 5",
         "show": {
           "param": "count",
@@ -17174,6 +17678,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 6",
         "show": {
           "param": "count",
@@ -17222,6 +17728,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 7",
         "show": {
           "param": "count",
@@ -17270,6 +17778,8 @@
         "modulatable": true,
         "min": 0.000500000023749,
         "max": 30.0,
+        "map": "skew",
+        "centre": 0.25,
         "group": "Segment 8",
         "show": {
           "param": "count",
@@ -17318,6 +17828,7 @@
         "modulatable": true,
         "min": 0.100000001490116,
         "max": 10.0,
+        "map": "exp",
         "group": "Chain"
       },
       {
@@ -17621,7 +18132,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 60.0
+        "max": 60.0,
+        "map": "skew",
+        "centre": 0.5
       },
       {
         "id": "shape",
@@ -18047,6 +18560,7 @@
         "modulatable": true,
         "min": 0.050000000745058,
         "max": 50.0,
+        "map": "exp",
         "show": {
           "param": "sync",
           "min": 0,
@@ -18406,7 +18920,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.019999999552965,
-        "max": 1000.0
+        "max": 1000.0,
+        "map": "exp"
       },
       {
         "id": "harmonics",
@@ -18672,7 +19187,9 @@
         "steps": 0,
         "modulatable": true,
         "min": -4.0,
-        "max": 4.0
+        "max": 4.0,
+        "map": "skew",
+        "centre": 1.0
       },
       {
         "id": "window",
@@ -18683,6 +19200,7 @@
         "modulatable": true,
         "min": 9.999999747378752e-6,
         "max": 1.0,
+        "map": "exp",
         "group": "Windows"
       },
       {
@@ -18745,7 +19263,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.0,
-        "max": 0.050000000745058
+        "max": 0.050000000745058,
+        "map": "skew",
+        "centre": 0.009999999776483
       },
       {
         "id": "reel",
@@ -19017,7 +19537,9 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.001000000047497,
-        "max": 2.0
+        "max": 2.0,
+        "map": "skew",
+        "centre": 0.150000005960464
       },
       {
         "id": "accent",
@@ -19481,6 +20003,8 @@
         "modulatable": true,
         "min": 0.0,
         "max": 5.0,
+        "map": "skew",
+        "centre": 0.5,
         "group": "Motion"
       },
       {
@@ -19628,7 +20152,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.019999999552965,
-        "max": 50.0
+        "max": 50.0,
+        "map": "exp"
       },
       {
         "id": "skew",
@@ -19873,6 +20398,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 20.0,
+        "map": "exp",
         "group": "Fluctuating"
       },
       {
@@ -19884,6 +20410,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 20.0,
+        "map": "exp",
         "group": "Fluctuating"
       },
       {
@@ -19917,6 +20444,7 @@
         "modulatable": true,
         "min": 0.050000000745058,
         "max": 40.0,
+        "map": "exp",
         "group": "Quantized",
         "show": {
           "param": "qsync",
@@ -19933,6 +20461,7 @@
         "modulatable": true,
         "min": 0.050000000745058,
         "max": 40.0,
+        "map": "exp",
         "group": "Stored",
         "show": {
           "param": "storesync",
@@ -19971,6 +20500,7 @@
         "modulatable": true,
         "min": 0.009999999776483,
         "max": 10.0,
+        "map": "exp",
         "group": "Stored"
       },
       {
@@ -20737,7 +21267,8 @@
         "steps": 0,
         "modulatable": true,
         "min": 0.019999999552965,
-        "max": 40.0
+        "max": 40.0,
+        "map": "exp"
       },
       {
         "id": "smooth",
@@ -21047,6 +21578,8 @@
         "modulatable": false,
         "min": 0.004999999888241,
         "max": 2.0,
+        "map": "skew",
+        "centre": 0.150000005960464,
         "show": {
           "param": "timechange",
           "min": 0,
@@ -22359,7 +22892,7 @@
     "colour": "#9aa3b5",
     "description": "",
     "port": "",
-    "creatable": false,
+    "creatable": true,
     "standaloneOnly": false,
     "params": [],
     "inputs": [],
@@ -22372,7 +22905,7 @@
     "colour": "#9aa3b5",
     "description": "",
     "port": "",
-    "creatable": false,
+    "creatable": true,
     "standaloneOnly": false,
     "params": [],
     "inputs": [],
@@ -22453,7 +22986,9 @@
         "steps": 0,
         "modulatable": false,
         "min": 0.0,
-        "max": 5.0
+        "max": 5.0,
+        "map": "skew",
+        "centre": 0.200000002980232
       },
       {
         "id": "glidemode",

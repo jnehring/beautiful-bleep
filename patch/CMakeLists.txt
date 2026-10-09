@@ -221,6 +221,9 @@ if (BLEEP_PATCH_BUILD_TESTS)
         juce::juce_recommended_config_flags)
     add_test(NAME patch.ui-types COMMAND bleep_dump_types --check
         "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-types.json")
+    # The factory cell presets (compiled by patch/presets/build.mjs) load without a warning.
+    add_test(NAME patch.factory-presets COMMAND bleep_dump_types --check-presets
+        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json")
 endif ()
 
 if (NOT BLEEP_PATCH_BUILD_PLUGINS)

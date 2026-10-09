@@ -497,6 +497,13 @@ juce::var describeTypes() {
             }
             o->setProperty("min", p.min);
             o->setProperty("max", p.max);
+            // How units map to 0..1 (ParamSpec::toNormalised), for tools that write
+            // values in units, e.g. the factory preset build (patch/presets).
+            if (p.map == ParamSpec::Map::Exponential) o->setProperty("map", "exp");
+            if (p.map == ParamSpec::Map::Skew) {
+                o->setProperty("map", "skew");
+                o->setProperty("centre", p.centre);
+            }
             if (!p.group.empty()) o->setProperty("group", juce::String(p.group));
             describeShowAndNames(o, p.show, p.namesBy, p.names);
             params.add(juce::var(o));

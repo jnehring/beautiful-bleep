@@ -15,7 +15,8 @@
   let typeList = [];
   let ports = {};              // port id → {kind, track, live, main}
   let canUndo = false, canRedo = false;
-  let presets = [];            // [{name, preset}]
+  let presets = [];            // [{key, name, category, factory, preset}], factory first
+  let presetOrder = [];        // factory preset categories, in menu order
   let path = [];               // ids of the cells we're inside
   const cams = new Map();      // level → {x, y, z}
   const sel = new Set();       // selected node ids
@@ -56,10 +57,10 @@
   const isPort = (n) => !!typeOf(n).port;
   const isCellLike = (n) => n.type === "cell" || n.type === "voice-cell";
   const isBoundary = (n) => n.type === "cell-in" || n.type === "cell-out" || n.type === "voice-in" || n.type === "voice-out";
-  const isStructural = (n) => n.type === "cell" || isBoundary(n);  // a Voice Cell has a view: its settings
   /// A cell may have several Cell Ins and Cell Outs (to lay cables out as you like), but keeps at least one of each.
   const isFixedBoundary = (n) => isBoundary(n) &&
     !((n.type === "cell-in" || n.type === "cell-out") && board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type));
+  const isStructural = (n) => n.type === "cell" || isBoundary(n);  // a Voice Cell has a view: its settings
   /// Ports the user adds and deletes (MIDI Device); the others come from Live (spec §6).
   const isFixedPort = (n) => isPort(n) && !typeOf(n).creatable;
   const VOICE_IN = [{ id: "notes", name: "Notes", type: "notes" }];
@@ -691,7 +692,6 @@
     const without = (b) => { if (d.moving) b.cables = b.cables.filter((c) => c.id !== d.moving.id); };
     const amount = d.moving ? d.moving.amount : 1;
 
-    // A knob in a module view (spec §9.5).
     // A cable from the "+" of a Cell In: its end becomes a new cell input, named after the jack or knob it lands on.
     if (d.from.jack === "+") {
       const knobEl = target && target.closest(".bv-target");
@@ -709,6 +709,7 @@
       });
     }
 
+    // A knob in a module view (spec §9.5).
     const knob = target && target.closest(".bv-target");
     if (knob && d.type !== "notes") {
       const nodeId = knob.closest(".vwin").dataset.node;
@@ -890,7 +891,7 @@
     edit("add", (b) => {
       const lvl = level();
       if (what.preset) {
-        const p = presets.find((q) => q.name === what.preset);
+        const p = presets.find((q) => q.key === what.preset);
         if (!p) return false;
         newId = insertPreset(b, p.preset, lvl, x, y);
       } else if (what.type === "voice-cell") {
@@ -990,9 +991,14 @@
       if (offered(t) && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
         out.push({ label: t.name === "Cell" ? "New Cell" : t.name === "Voice Cell" ? "New Voice Cell" : t.name,
                    sub: t.category.replace(/\//g, " › "), what: { type: t.type } });
-    if (!link)
-      for (const p of presets)
-        if (p.name.toLowerCase().includes(q)) out.push({ label: p.name, sub: "cell preset", what: { preset: p.name } });
+    if (!link)  // presets: every word in the name, category, tags or description
+      for (const p of presets) {
+        const d = p.preset || {};
+        const text = [p.name, p.category || "", d.description || "", ...(d.tags || [])].join(" ").toLowerCase();
+        if (q.split(/\s+/).every((w) => text.includes(w)))
+          out.push({ label: p.name, sub: "cell preset" + (p.category ? " · " + p.category.replace(/\//g, " › ") : ""),
+                     hint: d.description, what: { preset: p.key } });
+      }
     return out;
   }
   function renderSearch() {
@@ -1007,6 +1013,11 @@
       row.addEventListener("pointerdown", (e) => { e.preventDefault(); chooseSearch(i); });
       list.appendChild(row);
     });
+    // The active preset's description, under the list.
+    const active = searchState.items[searchState.active], hint = $("search-hint");
+    hint.textContent = (active && active.hint) || "";
+    hint.hidden = !hint.textContent;
+    if (list.children[searchState.active]) list.children[searchState.active].scrollIntoView({ block: "nearest" });
   }
   function chooseSearch(i) {
     const it = searchState && searchState.items[i];
@@ -1068,20 +1079,36 @@
     sortTree(cats);
     const cells = [{ label: "New Cell", run: place({ type: "cell" }) },
                    { label: "New Voice Cell", run: place({ type: "voice-cell" }) }];
-    const byCat = presetCategories();
-    if (byCat.size) cells.push("-");
-    for (const [cat, list] of [...byCat].sort(([a], [b]) => byLabel({ label: a }, { label: b }))) {
-      const items = list.map((p) => ({ label: p.name, run: place({ preset: p.name }) })).sort(byLabel);
-      const own = list.filter((p) => !p.factory).sort((a, b) => byLabel({ label: a.name }, { label: b.name }));
-      if (own.length) {  // the user's own presets can be deleted here
-        items.push("-");
-        items.push({ label: "Delete preset", items: own.map((p) => ({
-          label: p.name, run: async () => setPresets((await native("deletePreset", p.name)) || []) })) });
-      }
-      cells.push({ label: cat, items });
     if (level()) cells.push("-", { label: "Cell In", run: place({ type: "cell-in" }) },
                                 { label: "Cell Out", run: place({ type: "cell-out" }) });
+    const byCat = presetCategories();
+    if (byCat.size) cells.push("-");
+    // Preset categories nest like module categories: "Drums/Kicks" is Cell › Drums › Kicks.
+    // Factory presets keep their authored order; the user's own follow, A–Z.
+    const tree = [];
+    for (const [cat, list] of byCat) {
+      const items = cat.split("/").reduce(submenu, tree);
+      const entry = (p) => ({ label: p.name, hint: p.preset && p.preset.description, run: place({ preset: p.key }) });
+      const own = list.filter((p) => !p.factory).sort((a, b) => byLabel({ label: a.name }, { label: b.name }));
+      items.push(...list.filter((p) => p.factory).map(entry), ...own.map((p) => Object.assign(entry(p), { own: true })));
+      if (own.length)  // the user's own presets can be deleted here
+        items.push({ label: "Delete preset", deletes: true, items: own.map((p) => ({
+          label: p.name, run: async () => setPresets((await native("deletePreset", p.name)) || []) })) });
     }
+    // Factory categories first, in their order (factory-presets.json), then the user's, A–Z.
+    const rank = (label) => {
+      const i = presetOrder.findIndex((c) => c === label || c.startsWith(label + "/"));
+      return i < 0 ? presetOrder.length : i;
+    };
+    const sortPresets = (items, top) => {
+      const subs = items.filter((it) => it.items && !it.deletes)
+        .sort((a, b) => (top ? rank(a.label) - rank(b.label) : 0) || byLabel(a, b));
+      const factory = items.filter((it) => !it.items && !it.own), own = items.filter((it) => it.own);
+      const del = items.filter((it) => it.deletes);
+      for (const it of subs) it.items = sortPresets(it.items, false);
+      return [...subs, ...factory, ...(factory.length && own.length ? ["-"] : []), ...own, ...(del.length ? ["-", ...del] : [])];
+    };
+    cells.push(...sortPresets(tree, true));
     return [{ label: "Module", items: cats },
             { label: "Cell", items: cells }];
   }
@@ -1103,6 +1130,8 @@
   }
   function fillMenu(m, items, depth) {
     m.innerHTML = "";
+    // Items with a hint (preset descriptions) show it in a line under the menu while hovered.
+    const hint = items.some((it) => it && it.hint) ? el("div", "m-hint") : null;
     for (const it of items) {
       if (it === "-") { m.appendChild(el("div", "m-sep")); continue; }
       const row = el("div", "m-item" + (it.disabled ? " disabled" : "") + (it.items ? " has-sub" : ""));
@@ -1115,6 +1144,7 @@
       row.addEventListener("mouseenter", () => {
         closeSubmenus(depth);
         if (it.items && !it.disabled) openSubmenu(row, it.items, depth);
+        if (hint) hint.textContent = it.hint || "";
       });
       row.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1124,6 +1154,7 @@
       });
       m.appendChild(row);
     }
+    if (hint) m.appendChild(hint);
   }
   function openSubmenu(row, items, depth) {
     const sm = el("div", "popover submenu");
@@ -1205,6 +1236,10 @@
     renderSelection();
   }
 
+  /// True when deleting n would take the last Cell In / Cell Out of its cell, counting those already doomed.
+  const doomedBoundary = (n, doomed) =>
+    !board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type && !doomed.has(m.id));
+
   function deleteSelection(label = "delete") {
     if (selCable) return removeCable(selCable);
     const doomed = new Set();
@@ -1237,10 +1272,6 @@
     for (const r of roots) {
       all.push(r);
       if (isCellLike(r)) all.push(...descendants(r.id, b));
-  /// True when deleting n would take the last Cell In / Cell Out of its cell, counting those already doomed.
-  const doomedBoundary = (n, doomed) =>
-    !board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type && !doomed.has(m.id));
-
     }
     for (const n of all) map.set(n.id, uid(isCellLike(n) ? "c" : "n"));
     for (const n of all) {
@@ -1476,10 +1507,24 @@
     });
   }
 
-  /// Factory presets (factory-presets.js) and the user's own, by category.
+  /// Factory presets, read-only: compiled ones (factory-presets.json, built from
+  /// patch/presets) and hand-written ones (factory-presets.js); names are unique
+  /// across both. Then the user's own (.bleepcell files), by category.
+  let compiledPresets = [];
+  async function loadFactoryPresets() {
+    try {
+      const doc = await (await fetch("factory-presets.json")).json();
+      presetOrder = (doc.categories || []).map((c) => c.name);
+      compiledPresets = doc.presets || [];
+    } catch (e) {
+      console.warn("factory-presets.json not loaded", e);
+    }
+  }
   function setPresets(user) {
-    const factory = (window.BleepFactoryPresets || []).map((p) => Object.assign({ factory: true }, p));
-    presets = factory.concat((user || []).map((p) => Object.assign({ category: (p.preset && p.preset.category) || "My Cells" }, p)));
+    const factory = compiledPresets.concat(window.BleepFactoryPresets || [])
+      .map((p) => Object.assign({ key: "factory:" + p.name, factory: true }, p));
+    presets = factory.concat((user || []).map((p) => Object.assign(
+      { key: "user:" + p.name, category: (p.preset && p.preset.category) || "My Cells" }, p)));
   }
   function presetCategories() {
     const byCat = new Map();
@@ -1498,13 +1543,16 @@
                   : { x: 40, y: 40 };
     const cats = [...new Set(["Synthesizers", ...presetCategories().keys()])];
     const answer = await ask([{ label: "Save cell as preset", value: cell.name },
-                              { label: "Category", value: cell.type === "voice-cell" ? "Synthesizers" : "My Cells", suggestions: cats }], at);
+                              { label: "Category", value: cell.type === "voice-cell" ? "Synthesizers" : "My Cells", suggestions: cats },
+                              { label: "Description (optional)", value: "" }], at);
     if (!answer || !answer[0]) return;
-    const [name, category] = answer;
+    const [name, category, description] = answer;
     const nodes = [cell, ...descendants(cell.id)].map(clone);
     const ids = new Set(nodes.map((n) => n.id));
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
-    const saved = await native("savePreset", name, { format: 1, root: cell.id, category: category || "My Cells", nodes, cables });
+    const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
+    if (description) preset.description = description;
+    const saved = await native("savePreset", name, preset);
     if (saved) setPresets(saved);
   }
 
@@ -1882,6 +1930,7 @@
     await loadModuleViews(typeList);
     dev = !!m.dev;
     standalone = !!m.standalone;
+    await loadFactoryPresets();
     setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);

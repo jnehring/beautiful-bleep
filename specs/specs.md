@@ -438,6 +438,14 @@ Notes and per-voice signals live on two levels: outside, one `notes` cable carri
 
 **Factory preset *Basic Poly*** (*Add → Cell → Synthesizers*): Oscillator → Multi Filter → VCA, one ADSR for the filter, one for the VCA, 8 voices, with shared inputs *Cutoff* and *Bend*.
 
+#### 8.3.4 Preset library
+
+- **Preset document:** a cell and everything inside it: `{format, root, category, description, tags, nodes, cables}`, knob values normalised as on the board. A user preset is one `.bleepcell` file (`{name, preset}`) in the app data folder, shared by all sets.
+- **Factory presets** ship in ten categories of ten: *Synthesizers*, *Basses*, *Leads*, *Pads*, *Plucks & Mallets*, *Drum Machines*, *Sequencers* (cells with a *Notes* output), *Effects* (stereo in and out), *Modulators* (control outputs) and *Generative* (self-playing). They are written in units in `patch/presets/` and compiled into the board UI (`factory-presets.json`); hand-written ones (`factory-presets.js`, e.g. the single drum sounds under *Drums ›*) join the same menu. Factory presets are read-only; names are unique.
+- **Browsing:** *Add → Cell → category → preset*, factory presets in their authored order, then the user's own (A–Z). Hovering a preset shows its description under the menu; the Tab search matches names, categories, tags and descriptions.
+- **Saving:** *Save as preset* asks for a name, a category and an optional description.
+- **Checks:** every factory preset loads through `board::sanitise` without a warning (ctest `patch.factory-presets`).
+
 ## 9. The board UI
 
 ### 9.1 Window model
