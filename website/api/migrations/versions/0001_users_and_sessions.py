@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """users and sessions
 
 Revision ID: 0001

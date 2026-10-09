@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# Runs the Bleep Patch website in Docker (one container: static site + Caddy).
+# Runs the Bleep Patch website in Docker (static site + Caddy, accounts API, PostgreSQL).
+# Needs website/.env (copy website/.env.example); see doc/website.md.
 #
 #   scripts/run-website.sh [up|down|logs|rebuild]     (default: up)
 #
