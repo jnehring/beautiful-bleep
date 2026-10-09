@@ -90,6 +90,18 @@ repeat.
 - **Echo clock:** patch *Pulse* into a drum's trigger: it plays along with
   the repeats of whatever you feed in.
 
+## Demo patches
+
+Five whole patches show what Delay Net does. In the standalone app open **File → Presets…** (⌘P) and pick *Delay Net* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Delay Net: Ring Pad** | Six taps in *Ring* routing with a dark *Character* and high *Feedback* smear soft notes into a slowly turning pad. |
+| **Delay Net: Dotted Pluck Grid** | *Sync* on a dotted eighth and *Parallel* routing place four taps on a rhythmic grid around plucks; *Scatter* nudges them off it. |
+| **Delay Net: Reverse Mesh** | *Mesh* routing with *Reverse* and *Jitter* blooms every note into reversed clouds; a slow LFO drifts *Time*. |
+| **Delay Net: Drum Echoes** | A beat through a synced *Chain* with *Jitter* and *Scatter*: a loose, dubby shadow of the groove. |
+| **Delay Net: Overdriven Loop** | *Feedback* near its limit turns the network into a self-sustaining drone; an LFO on *Character* moves it from clean to gritty. |
+
 ## Reference
 
 ### Knobs

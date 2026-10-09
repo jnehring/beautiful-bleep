@@ -151,6 +151,22 @@ if (BLEEP_PATCH_BUILD_TESTS)
         juce::juce_recommended_config_flags)
     add_test(NAME patch.modules COMMAND bleep_module_harness)
 
+    # The demo patches (patch/presets/demos, compiled to board/ui/demo-patches.json) load without a
+    # warning and make sound (tests/demo_patches_test.cpp). juce_core only.
+    juce_add_console_app(bleep_demo_patches PRODUCT_NAME "Bleep Demo Patches")
+    target_sources(bleep_demo_patches PRIVATE tests/demo_patches_test.cpp engine/Board.cpp engine/Program.cpp
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+    foreach (m IN LISTS BLEEP_MODULES)
+        file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+        target_sources(bleep_demo_patches PRIVATE ${s})
+    endforeach ()
+    target_include_directories(bleep_demo_patches PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_demo_patches PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_demo_patches PRIVATE bleep_patch_dsp juce::juce_core
+        juce::juce_recommended_config_flags)
+    add_test(NAME patch.demo-patches COMMAND bleep_demo_patches
+        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-patches.json")
+
     # Engine features modules build on (normalling, output flags, harmony order,
     # stepped knobs, view metadata, commands, media). juce_core only.
     juce_add_console_app(bleep_engine_features PRODUCT_NAME "Bleep Engine Features")

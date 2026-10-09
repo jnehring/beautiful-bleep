@@ -65,6 +65,18 @@ other (*Strum Order* Up: bass first), spread over the *Strum* time.
 - **Gated chords:** patch a gate into *Gate*: notes sound only while it is
   high.
 
+## Demo patches
+
+Five whole patches show what Chord Quantizer does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Quantizer* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Chord Quantizer: Smooth Pad** | *Voice Leading* on Smooth + Top and *Voicing* Spread turn a bar-long note sequence into a flowing A minor pad. |
+| **Chord Quantizer: Strummed Dorian** | *Strum* rolls open-voiced ninth chords across the four voices, with a dotted echo. |
+| **Chord Quantizer: Offbeat Stabs** | Chromatic *Mode* with *Chord* Minor 7 and a Drop 2 voicing for syncopated stabs; *Root* feeds a sine bass. |
+| **Chord Quantizer: Follow the Changes** | *Mode* Follow takes the chord from a Harmony Master progression; an LFO into *Pitch* moves the register. |
+| **Chord Quantizer: Whole-tone Pulse** | A Random walks *Pitch* through a Whole Tone scale, so every chord is augmented; an LFO gate pulses them in eighths. |
+
 ## Reference
 
 ### Knobs

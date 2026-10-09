@@ -2287,6 +2287,7 @@
     if (e.key === "Tab") { e.preventDefault(); openSearch(pointer.x, pointer.y); return; }
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteSelection(); return; }
     if (e.key === "Escape") {
+      if (window.BleepPresetBrowser && BleepPresetBrowser.close()) return;
       if (!$("menu").hidden || !$("cable-pop").hidden) return hidePopovers();
       if (trace) { trace = null; return render(); }
       if (closeTopView()) return;
@@ -2345,6 +2346,11 @@
     await loadModuleViews(typeList);
     dev = !!m.dev;
     standalone = !!m.standalone;
+    if (standalone && !window.BleepWeb) {  // the app's preset browser: whole patches (spec §11.5)
+      await BleepPresetBrowser.init({ board: () => board, apply: applyMessage });
+      $("presets").hidden = false;
+      $("presets").addEventListener("click", () => BleepPresetBrowser.open());
+    }
     await loadFactoryPresets();
     await loadFactoryPanels();
     setPresets((await native("presets")) || []);

@@ -25,6 +25,11 @@ BLEEP_REGISTER_MODULE(registerFooModule);
 The design lives in `doc/specs/modules/<name>.md`; the module follows it, and the
 spec is updated where the implementation had to differ.
 
+Advanced modules also get **five demo patches** (`patch/presets/demos/<type>.mjs`,
+whole boards for the app's preset browser, see
+[`presets/demos/README.md`](../presets/demos/README.md)) and a *Demo patches*
+section in their doc.
+
 ## Building and testing
 
 ```bash

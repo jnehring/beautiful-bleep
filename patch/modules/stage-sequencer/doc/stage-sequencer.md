@@ -84,6 +84,18 @@ and changing the sounding stage's gate mode or pulses all end the note.
 - **Chaining:** *Stage Start* fires on every stage, *End* when the cycle (or
   phrase) starts over.
 
+## Demo patches
+
+Five whole patches show what Stage Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Stage Seq* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Stage Seq: Staircase Lead** | Eight stages with held notes, a ratchet and slides in C harmonic minor; the Accent Gate snaps the filter open. |
+| **Stage Seq: Pendulum Pad** | *Mode* Pendulum across six long held stages with *Slide Time*, played by detuned oscillators as a pad. |
+| **Stage Seq: Brownian Bells** | *Mode* Brownian takes one stage up or down at a time over 16 stages of bells. |
+| **Stage Seq: Slide Bass** | *Mode* Reverse with slides and accents: *Accent* and *Slide Time* shape the squelch, over a beat. |
+| **Stage Seq: Hold Freeze** | *Mode* Random with a two-bar *Phrase*; an LFO on *Hold* freezes the sequence and Stage sweeps the filter. |
+
 ## Reference
 
 ### Knobs

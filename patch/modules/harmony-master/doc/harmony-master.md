@@ -63,6 +63,18 @@ warning and publishes nothing.
 - **A bass line:** *Root* or *Bass* into an oscillator; *Change* restarts its
   envelope at every chord change.
 
+## Demo patches
+
+Five whole patches show what Harmony Master does. In the standalone app open **File → Presets…** (⌘P) and pick *Harmony Master* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Harmony Master: Four-Chord Loop** | A *Progression* I – vi – IV – V in C, four beats per chord, drives a pad on *Tone 1 – 4* and a bass on *Bass*. |
+| **Harmony Master: Jazz Changes** | Slots with fixed roots, extended *Quality* entries and a slash bass, plucked on every *Change*. |
+| **Harmony Master: Rhythmic Changes** | *Advance* Trigger: a sequencer pulses *Next*, so the chords change in a syncopated rhythm, with the *Root* as bass. |
+| **Harmony Master: Adapting Scale** | *Scale Policy* Adapt bends A minor to harmonic minor on the E major chord; a Quantizer Suite follower plays the G♯. |
+| **Harmony Master: Wandering Key** | *Manual* source with a Random on *Degree* and a sequencer on *Transpose* that moves the key every two bars. |
+
 ## Reference
 
 ### Knobs

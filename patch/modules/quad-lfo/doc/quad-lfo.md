@@ -85,6 +85,18 @@ to the song position, smoothed over 5 ms.
 - **Gating on the beat:** a sequencer's clock into *Clock*, Clock Ratio 4,
   Square on LFO 1: a chop that follows the clock, even a swung or manual one.
 
+## Demo patches
+
+Five whole patches show what Quad LFO does. In the standalone app open **File → Presets…** (⌘P) and pick *Quad LFO* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Quad LFO: Circular Pan** | *Quadrature* mode: *Out 1* and *Out 2* pan two lines in a circle (try the **XY** view) while *Out 3* and *Out 4* swell a pad. |
+| **Quad LFO: Polyrhythm Plucks** | *Divide* mode with falling saws at ÷1 ÷2 ÷3 ÷4 pluck the notes of a chord in a 4:3:2 pattern that lines up every twelve beats. |
+| **Quad LFO: Chord Breath** | *Phase* mode with *Spread* 90° passes one swell along the four voices of a chord, like a breath rolling up and down. |
+| **Quad LFO: Cycle Drums** | The *Cycle* outputs in *Divide* mode trigger kick, hats, clap and tom at different fractions of one rate: a slowly phasing drum pattern. |
+| **Quad LFO: Clock Chop** | A sequencer trigger patched into *Clock* with *Clock Ratio* 2 makes a square LFO chop a sustained chord on the grid while LFO 2 sweeps the filter. |
+
 ## Reference
 
 ### Knobs

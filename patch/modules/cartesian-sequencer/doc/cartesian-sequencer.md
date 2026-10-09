@@ -91,6 +91,18 @@ for a filter, a wavefold amount, a pan — a second melody for anything.
 - **Chaining:** *Row End* and *Grid End* make good clocks or resets for other
   modules; *X Pos* and *Y Pos* are handy modulation sources.
 
+## Demo patches
+
+Five whole patches show what Cartesian Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Cartesian Seq* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Cartesian Seq: Lattice Pluck** | A 4 × 3 corner of the grid in F Lydian: *X Rate* 1/16 and *Y Rate* Wrap turn a twelve-step figure against the bar. |
+| **Cartesian Seq: Bass Raster** | Eight columns by two rows of bass; each cell's *Mod* value opens the filter, and a beat plays underneath. |
+| **Cartesian Seq: Crosshair Drift** | *Mode* Cartesian: two slow LFOs on *X* and *Y* steer the crosshair over a full 8 × 8 grid, with *Sample* set to Change. |
+| **Cartesian Seq: Two Clocks** | Independent *X Rate* and *Y Rate* with *X Direction* Ping-Pong; *Row End* and *Grid End* play a hat and a kick. |
+| **Cartesian Seq: Random Walk Arp** | Random *X Direction* and *Y Direction* with a fixed *Seed* hop around the grid in Hirajoshi. |
+
 ## Reference
 
 ### Knobs

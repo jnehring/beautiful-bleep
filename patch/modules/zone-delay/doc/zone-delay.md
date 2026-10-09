@@ -89,6 +89,18 @@ start from silence and repeat exactly; Wobble restarts from *Seed* either way.
   it backwards.
 - **Ambient wash:** Zone 4, Feedback 90 %, Diffuse 80 %, Wobble 40 %.
 
+## Demo patches
+
+Five whole patches show what Zone Delay does. In the standalone app open **File → Presets…** (⌘P) and pick *Zone Delay* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Zone Delay: Dub Echo** | *Zone* 3 with *Sync* on *Transport* and a tape *Character*; a square LFO on the *Ping-Pong* gate bounces the repeats. |
+| **Zone Delay: Tuned Combs** | *Zone* 1 (Comb) tuned by the *Pitch* input, with high *Feedback*: a sequencer plays resonant, string-like rings. |
+| **Zone Delay: Vast Hold Loop** | *Zone* 5 is a multi-bar loop; LFOs on the *Hold* and *Reverse* gates freeze and flip what is in the buffer. |
+| **Zone Delay: Tape Dive** | *Time Change* *Tape* with a long *Glide* and a stepped random source on *Time*: every jump bends the echoes. |
+| **Zone Delay: Diffuse Cloud** | Full *Diffuse* and high *Feedback* in the Long zone melt the repeats of a drum groove into a cloud; *Offset* widens it. |
+
 ## Reference
 
 ### Knobs

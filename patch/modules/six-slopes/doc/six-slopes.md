@@ -89,6 +89,18 @@ while any channel moves (AR, ASR) and always in Loop and Sound.
   *Sum* into a VCA. Turn Harmonics for different chords and Tilt to the left
   for a softer tone.
 
+## Demo patches
+
+Five whole patches show what Six Slopes does. In the standalone app open **File → Presets…** (⌘P) and pick *Six Slopes* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Six Slopes: Strummed Chord** | One trigger on *Trig 1* in *AR* with *Harmonics* at +0.6 and a short *Skew*: six notes open one after another like a strum. |
+| **Six Slopes: Phasing Pulses** | *Loop* mode with a small *Harmonics* value: six slow swells drift apart and back over a chord. |
+| **Six Slopes: Bar Polyrhythm** | *Loop*, *Sync* on one bar and *Snap* on Integer: six slopes at one to six cycles per bar, locked to the song. |
+| **Six Slopes: Six-Part Percussion** | Six drum triggers fire six slopes, each shaping a different sine tone; one *Skew* and *Curve* set shapes all decays. |
+| **Six Slopes: Just Drone** | *Sound* mode with *Snap* on Just and the sequencer on *Pitch*: six oscillators in pure ratios, moved by an LFO on *Harmonics*. |
+
 ## Reference
 
 ### Knobs

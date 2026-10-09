@@ -75,6 +75,18 @@ shift shows up as a translation. The dial shows both oscillators turning.
   *Cos* to two destinations (e.g. the pan of two voices) for circular motion.
 - **Rhythmic phaser:** Sync 1 bar, Shift slightly positive, Feedback 50 %.
 
+## Demo patches
+
+Five whole patches show what Freq Shifter does. In the standalone app open **File → Presets…** (⌘P) and pick *Freq Shifter* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Freq Shifter: Barber-Pole Phaser** | A tiny positive *Fine*, strong *Feedback* and half *Mix*: a phaser sweep that always rises. |
+| **Freq Shifter: Pad to Bells** | *Shift* at about +30 % of ±200 Hz and *Mix* 100 % make a harmonic pad inharmonic and metallic. |
+| **Freq Shifter: Spiral Echoes** | *Feedback* through *FB Delay* shifts every repeat up by the same step, so notes spiral upward. |
+| **Freq Shifter: Stereo Rotation** | *Spread* at 100 % shifts left and right in opposite directions so a mono arpeggio rotates. |
+| **Freq Shifter: Tempo Phaser** | *Sync* on one bar locks the shifter to the song for a slow phaser over drums and bass. |
+
 ## Reference
 
 ### Knobs and settings

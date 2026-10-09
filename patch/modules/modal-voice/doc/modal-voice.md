@@ -65,6 +65,18 @@ lower sustain. *Velocity* scales every exciter.
 - **Play button:** held, it is a gate (and a strike), for trying sounds
   without patching.
 
+## Demo patches
+
+Five whole patches show what Modal Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Modal Voice* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Modal Voice: Mallet Bars** | Mallet strikes (*Strike*) on a damped bar-like body; *Strike Timbre* changes soft to hard mallets. |
+| **Modal Voice: Bowed Strings** | Held gates with *Bow* up make the string sing; an LFO moves *Bow Timbre*. |
+| **Modal Voice: Breath Tube** | *Blow* excites a tube-like body for an airy melody, with a slowly rising vibrato on *Fine*. |
+| **Modal Voice: Metal Plate Groove** | Rhythmic hits on a large plate while LFOs morph *Geometry* and *Brightness*. |
+| **Modal Voice: Drums Through a Body** | A drum beat on the *Ext* input excites the body, tuned by a bass line; *Ext Level* sets the amount. |
+
 ## Reference
 
 ### Knobs and settings

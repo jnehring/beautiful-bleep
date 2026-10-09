@@ -53,6 +53,18 @@ or more parts hit together (before Complement), *Cycle* fires at step 1.
 - **Accents:** *Accent* into a drum's level or a VCA.
 - **Choke groups:** *Complement* = *Avoid*: hi-hat and snare never collide.
 
+## Demo patches
+
+Five whole patches show what Rhythm Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Rhythm Bank* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Rhythm Bank: Euclid Kit** | The *Even* family spreads hits evenly for kick, snare, hats and rim; turn *Pattern* and *Rotate 1 … 4*. |
+| **Rhythm Bank: Prime Marimba** | *Prime* with *Length* Open: four plucked notes repeat every few steps and drift against each other. |
+| **Rhythm Bank: Metric Backbeat** | The *Metric* family with *Complement* on Avoid; a Random moves *Pattern* once per bar. |
+| **Rhythm Bank: Cross-Rhythms** | The *Poly* family with *Grid* on Free plays hand drums and a bell at their exact cross-rhythm positions. |
+| **Rhythm Bank: Interlocking Hats** | *Interlock* never doubles a hit, and *Complement* on Fill puts hats on every step the others leave empty. |
+
 ## Reference
 
 ### Knobs

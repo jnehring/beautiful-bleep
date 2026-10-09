@@ -6,6 +6,11 @@ plugins, without a DAW. Built by `scripts/build-patch.sh` as
 
 - **Projects:** File → New / Open / Save (`.bleepboard`). The app reopens the
   last project.
+- **Presets:** File → Presets… (⌘P) or the *Presets* button opens the preset
+  browser: five demo patches for every advanced module (*Demos by module*) and
+  your own patches (*Save current patch…*, kept in `Bleep Patch/Patches/` in
+  the app data folder). Loading one replaces the project, sets the tempo and
+  starts the transport (spec §11.5).
 - **Audio device:** File → Settings. Pairs of input and output channels are
   *In 1/2*, *Out 1/2*, … nodes on the board.
 - **MIDI:** the app creates its own MIDI ports, *Bleep Patch 1* … *n* (number

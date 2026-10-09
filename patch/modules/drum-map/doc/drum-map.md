@@ -73,6 +73,18 @@ over. Every hit is also a note at the voice's note number, ending after
 - The lanes show what plays right now: level bars, a threshold line per voice
   and the hits (accents bolder).
 
+## Demo patches
+
+Five whole patches show what Drum Map does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Map* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Drum Map: Straight Four** | The straight corner of the map: kick on every beat, backbeat snare and eighth hats; move *X* and *Y* or the *Density* knobs. |
+| **Drum Map: Wandering Groove** | A slow LFO on *X* and a Random on *Y* walk the beat over the whole map, with *Chaos* adding ghost notes. |
+| **Drum Map: Fill Every Four** | A square LFO on the *Fill* gate adds *Fill Amount* to every density for one bar in four. |
+| **Drum Map: Half-Time Dub** | *Rate* 1/8 stretches the map into a sparse half-time beat; the snare and hats feed a delay through the mixer sends. |
+| **Drum Map: Chaos Shuffle** | *Rate* 1/16T, *Swing* and *Chaos* at 60 % make a rolling shuffle whose ghost notes change every bar. |
+
 ## Reference
 
 ### Knobs

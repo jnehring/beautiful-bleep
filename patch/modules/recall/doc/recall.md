@@ -79,6 +79,18 @@ before it, so a render from the same position always sounds the same.
 - **Human timing:** *T Jitter* 15 %.
 - **Rolls:** *T Mode* Ratchet, *T Bias* 75 %.
 
+## Demo patches
+
+Five whole patches show what Recall does. In the standalone app open **File → Presets…** (⌘P) and pick *Recall* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Recall: Random Backbeat** | *T Mode* Drums for kick and snare with *T Recall* at 60 %; the X section, snapped to a scale and clocked by T1, plays the bass. |
+| **Recall: Locked Melody** | *T Recall* and *X Recall* at 100 % lock an eight-step loop; change *Scale* or *X Spread* to reshape the same contour. |
+| **Recall: Ratchet Rolls** | *T Mode* Ratchet: rattling hats and claps from divisions and fast pulses over a steady kick. |
+| **Recall: Sorted Drift** | *X Mode* Sorted keeps X1, X2 and X3 low to high: three voices drifting through a chord that changes every half note. |
+| **Recall: Breathing Memory** | Slow LFOs move both Recall knobs between new and locked while *T Loop* 5 and *X Loop* 7 never line up. |
+
 ## Reference
 
 ### Knobs and settings

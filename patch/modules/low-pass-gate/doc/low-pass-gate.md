@@ -50,6 +50,18 @@ swell like a real struck object.
   brighter, too.
 - **Ping button:** fires a manual ping, for trying out *Response* and *Cell*.
 
+## Demo patches
+
+Five whole patches show what Low Pass Gate does. In the standalone app open **File → Presets…** (⌘P) and pick *Low Pass Gate* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Low Pass Gate: Pentatonic Pings** | A sequencer's trigger on *Ping* plucks a saw oscillator through the Classic *Cell*; *Response* and *Resonance* shape the pluck. |
+| **Low Pass Gate: Slow Memory Bass** | The *Slow memory* cell remembers earlier pings, so fast notes open the bass more; velocity drives the *Velocity* input. |
+| **Low Pass Gate: Vactrol Drums** | Three gates pinged from a Drum Grid turn a sine, noise and a square into kick, snare and ticks. |
+| **Low Pass Gate: Light Follower** | The *Light* output opens a filter on a saw drone so it brightens with each ping. |
+| **Low Pass Gate: Breathing Chord** | A slow LFO on *CV* opens and closes the gate over a held chord, with *Cell* on Slow memory for a darker-as-it-closes swell. |
+
 ## Reference
 
 ### Knobs and settings

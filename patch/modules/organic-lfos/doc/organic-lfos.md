@@ -73,6 +73,18 @@ over 50 ms so it doesn't click.
 - **Different per voice:** inside a Voice Cell, add *Voice In › Random* to
   *Twist* or *Rate* so each note gets its own movement.
 
+## Demo patches
+
+Five whole patches show what Organic LFOs does. In the standalone app open **File → Presets…** (⌘P) and pick *Organic LFOs* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Organic LFOs: Living Pad** | *Rate* 0.09 Hz and *Drift* 40 % let four LFOs open and close the filters of a chord while four more move each voice's waveform. |
+| **Organic LFOs: Breathing in Time** | *Lock* on *Bars* with *Anchor*: LFO 1 breathes with the song, *Max* and the others open a filter and pan a plucked line over a light beat. |
+| **Organic LFOs: Brightness Peaks** | *Max* in *Unipolar* with a high *Twist* flares the cutoff of a saw arpeggio whenever one of the eight LFOs peaks; *Sum* widens the reverb. |
+| **Organic LFOs: Detuned Swarm** | Each of four saw voices is detuned by its own LFO at a lively rate and high *Drift*: a restless, chorusing swarm. |
+| **Organic LFOs: Rain of Tones** | *Twist* +1 in *Unipolar* turns fast LFOs into sharp pulses that gate four bell tones into a never-repeating shower. |
+
 ## Reference
 
 ### Knobs

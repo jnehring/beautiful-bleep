@@ -88,6 +88,18 @@ undo step. Drawn shapes are saved with the board.
 - **Your own groove:** draw a shape in *User 1*, Snap 16, Loop, Sync 1 bar:
   a step-like modulation drawn in seconds.
 
+## Demo patches
+
+Five whole patches show what Shape Env does. In the standalone app open **File → Presets…** (⌘P) and pick *Shape Env* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Shape Env: Pluck Morph** | A Pluck shape in One-shot mode on every note, with a slow LFO on *Morph* between neighbouring shapes. |
+| **Shape Env: Gate Pattern** | A rhythmic shape in *Loop* mode with *Sync* 1/1 chops a chord into a gate pattern; *Morph* varies it. |
+| **Shape Env: Echoing Bell** | The *Echoes 1/8* shape repeats each bell note on the beat grid with no delay effect. |
+| **Shape Env: Breathing Filter** | The *Breathing* shape in Loop mode opens a filter while *Inv* closes another one. |
+| **Shape Env: Synth Drums** | Short exp as pitch drop, Pluck as amplitude and Roll on a noise snare build drums from sine oscillators. |
+
 ## Reference
 
 ### Knobs

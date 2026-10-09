@@ -101,6 +101,18 @@ Far out it spins and blurs into a ring.
 - **Melodic beat:** a sequencer into *Pitch* transposes the beat tone by octaves,
   and *Beat* (the output) gives back its pitch for a second oscillator.
 
+## Demo patches
+
+Five whole patches show what Beat Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Beat Oscillator* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Beat Oscillator: Heterodyne Theremin** | A slow LFO sweeps *Beat* from a pulse to a whistle between two 10 kHz *Carrier*s; try the *Mixer* setting and *Drift*. |
+| **Beat Oscillator: Lurching Thump** | *Pull* at 50 % and *Beat* just past the lock edge make single sub-bass blips that bunch up and stall as *Drift* moves the pair. |
+| **Beat Oscillator: Locked Melody** | The *Lock* output gates a melody; a wobble on *Detune* drives the carriers in and out of lock. |
+| **Beat Oscillator: Warm-up Whistle** | Low *Carrier*s with *Detector* open whistle on top of the beat, and *Warm-up* slides both into tune; *Mixer* Overdriven makes a triangle beat. |
+| **Beat Oscillator: Beat Follower** | A sequencer on *Pitch* plays the beat tone, and the *Beat* output steers a second oscillator that follows the melody. |
+
 ## Reference
 
 ### Knobs and settings

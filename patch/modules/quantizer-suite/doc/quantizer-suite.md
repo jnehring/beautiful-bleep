@@ -57,6 +57,18 @@ time however far it jumps.
   melody or LFO into the input.
 - **Harmoniser:** Mode *Follow*, Target *Chord*, Steps 1 and 2 on B and C.
 
+## Demo patches
+
+Five whole patches show what Quantizer Suite does. In the standalone app open **File → Presets…** (⌘P) and pick *Quantizer Suite* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Quantizer Suite: Pentatonic Mask** | The note mask keeps five notes of D major, so a random line always sounds right; channel B plays the same notes an octave down. |
+| **Quantizer Suite: Four-voice Harmony** | One melody into *In A*; Transpose *Steps* 2, 4 and 7 on B, C and D make a moving four-part chord. |
+| **Quantizer Suite: Arp Machine** | Channels A and B in Arp *Mode*: a seventh chord played Up-Down over two octaves and a shuffled triad. |
+| **Quantizer Suite: Chord Followers** | Follow *Mode* on a Harmony Master bus: *Target* Chord for a lead and a harmony voice, Root for a bass line. |
+| **Quantizer Suite: Gliding Lines** | Track & Hold *Sample* with *Slew* turns a smooth random curve into two sliding F Lydian lines. |
+
 ## Reference
 
 ### Knobs

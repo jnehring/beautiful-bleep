@@ -75,6 +75,18 @@ levels (Shift: fine, relative), double-click a bar to reset it to 1/n, or use
 *Saw*, *Square*, *Flat*, *Smooth* and *Randomize*. A drag is one undo step.
 The drawing is saved with the board.
 
+## Demo patches
+
+Five whole patches show what Additive Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Additive Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Additive Osc: Glass Pad** | A saw spectrum with a gentle *Tilt*, slight *Stretch* and slow *Chorus* makes a wide glassy pad; an LFO drifts *Tilt*. |
+| **Additive Osc: Hollow Reed** | *Base* Square with *Odd/Even* pushed to the odd side; a slow LFO sweeps it from hollow to bright. |
+| **Additive Osc: Inharmonic Bells** | *Stretch* detunes the partials from each other and *Decay* lets them ring on a *Trigger*: struck bells. |
+| **Additive Osc: Comb Drone** | A low saw drone whose *Comb* notches are moved by an LFO on *Comb Phase*: a phaser made of harmonics. |
+| **Additive Osc: Spectral Pulse** | A random generator moves *Partials*, *Tilt* and *Shift* on every sixteenth: each pluck is a different slice of the spectrum. |
+
 ## Reference
 
 ### Knobs and settings

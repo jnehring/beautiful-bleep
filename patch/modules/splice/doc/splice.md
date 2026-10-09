@@ -89,6 +89,18 @@ replaces the reel. **Clear reel** empties it.
 - **Texture:** Window Size 3 %, Overlap 90 %, a slow LFO on *Position*.
 - **Phrase in time:** Sync *2 bars*: whatever you recorded fits two bars.
 
+## Demo patches
+
+Five whole patches show what Splice does. In the standalone app open **File → Presets…** (⌘P) and pick *Splice* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Splice: Phrase Looper** | An LFO gate on *Record* captures one bar of a phrase and *Sync* locks the splice loop to the bars. |
+| **Splice: Micro Cloud** | *Window Size* of 3 % and high *Overlap* turn a recorded arpeggio into a cloud that an LFO scrubs through via *Position*. |
+| **Splice: Reel Keyboard** | One recorded note replayed melodically: a sequencer's pitch drives *Speed* and its trigger restarts the splice (*Loop* on *One-shot*). |
+| **Splice: Chopped Break** | A recorded beat is re-cut with a random *Position*, short windows with low *Overlap* and a clock on *Mark*. |
+| **Splice: Reverse Tape Drift** | A slow LFO on *Speed* sweeps playback from forward through standstill to reverse, like tape dragged by hand. |
+
 ## Reference
 
 ### Knobs

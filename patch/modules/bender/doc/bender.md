@@ -83,6 +83,18 @@ bar below shows the read head inside the source.
 - **In a Voice Cell:** each voice glitches on its own; with the same *Seed*
   they glitch together unless *Voice In › Random* moves a knob.
 
+## Demo patches
+
+Five whole patches show what Bender does. In the standalone app open **File → Presets…** (⌘P) and pick *Bender* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Bender: Stutter Beat** | Low *Chance* at a 1/16 *Sync*: now and then a slice repeats and stutters before the groove carries on. |
+| **Bender: Ratchet Arp** | *Slice* at 40 % and *Chance* at 35 % cut an arpeggio into ratchets; *Seed* picks which beats get them. |
+| **Bender: Tape-Stop Pad** | *Smear* mode with *Bend* at 0.5 and some *Bend Var*: pieces of a pad slur downward in octaves. |
+| **Bender: Shredder** | *Shuffle* mode with high *Chance* and *Corrupt* rearranges and crumbles a beat and bass line. |
+| **Bender: Glitch Triggers** | *Chance* at zero with a sequencer on the *Glitch* input: only chosen steps are glitched, and *Random* moves a filter. |
+
 ## Reference
 
 ### Knobs

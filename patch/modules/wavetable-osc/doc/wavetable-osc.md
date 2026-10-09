@@ -97,6 +97,18 @@ a sine.
 - **PWM anything:** *Warp Mode* Squash, an LFO on *Warp*.
 - **Bass:** *Sub Level* 50 %.
 
+## Demo patches
+
+Five whole patches show what Wavetable Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Wavetable Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Wavetable Osc: Morphing Pad** | An LFO on *Scan* walks the *Analog* bank along the *Snake* path, with *Stereo* spread. |
+| **Wavetable Osc: Vowel Talker** | The *Vowel* bank with *X* and *Y* moved by random generators: a tune that seems to speak. |
+| **Wavetable Osc: Bell Garden** | The *Bell* bank with an envelope on *Y*: each note starts bright and fades to a plain tone. |
+| **Wavetable Osc: Warp Bass** | *Warp* in *Sync* mode opened by an envelope on each note, plus *Sub Level* for weight. |
+| **Wavetable Osc: Spiral Crawl** | *Scan* crawls the *Spiral* path in the *Spectra* bank while the *X* position output opens a filter. |
+
 ## Reference
 
 ### Knobs and settings

@@ -55,6 +55,18 @@ next due step.
 - **A melody from rhythm:** *Stair* into a Quantizer Suite.
 - **Phrase starts:** *Align* resets a sequencer or advances a Harmony Master.
 
+## Demo patches
+
+Five whole patches show what Rotating Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Rotating Div* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Rotating Div: Integer Gears** | The Integers *Set* on a 16th clock drives a drum kit; a slow ramp on *Rotate* changes the gearing, *Realign* every 4 bars. |
+| **Rotating Div: Prime Chimes** | The Primes *Set* on 8ths strikes six chimes, with *Rotate* reassigning the fast and slow divisions. |
+| **Rotating Div: Fibonacci Pad** | *Output* Gate with the Fibonacci *Set* opens six notes of a chord and *Width* sets how long each is held. |
+| **Rotating Div: Powers Groove** | Powers of 2 make a techno grid, and the Stair output, quantised, plays the bass. |
+| **Rotating Div: Odd Meters** | *Set* Custom (4, 3, 5, 6, 7, 9, 10, 12) drives a tuned drum ensemble that *Realign* resets every 8 bars. |
+
 ## Reference
 
 ### Knobs

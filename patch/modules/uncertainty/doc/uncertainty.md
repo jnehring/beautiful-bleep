@@ -66,6 +66,18 @@ ones and Integrated render the same from the same start.
   *Store*, *Correlation* +80 %: each note's value is near the last one.
 - **Random sweeps:** *Integrated* to a filter cutoff, *Correlation* +60 %.
 
+## Demo patches
+
+Five whole patches show what Uncertainty does. In the standalone app open **File → Presets…** (⌘P) and pick *Uncertainty* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Uncertainty: Random Melody** | *Quant 1* with *Q1 Bits* 3 and *Q1 Interval* 2 st, snapped to D minor pentatonic by a quantizer, plays an endless random tune. |
+| **Uncertainty: Drifting Pad** | *Fluct 1* and *Fluct 2* at different rates move the filters, waveforms and pans of a four-voice pad. |
+| **Uncertainty: Random Sweeps** | *Stored* with *Correlation* +65 % feeds *Integrated*, a random sweep on the cutoff of an arpeggio; a one-bit *Quant 2* switches the hats. |
+| **Uncertainty: Random Octaves** | *Q2 Interval* 12 st sends a fixed riff to random octaves and a one-bit *Quant 1* at 7 st adds fifths. |
+| **Uncertainty: Drunken Walk** | *Stored* with *Correlation* +85 % and *Shape* Bell wanders pitch step by step; a quantizer and pinged gates turn it into bells. |
+
 ## Reference
 
 ### Knobs and settings

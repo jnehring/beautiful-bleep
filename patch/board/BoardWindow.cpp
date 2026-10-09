@@ -8,11 +8,13 @@
 //              setParam(node, param, v) setAmount(cable, v) setData(node, data) watch([nodeIds])
 //              perform(node, action, [args])   (Button presses, Keyboard keys: not saved)
 //              presets(kind?) savePreset(name, preset, kind?) deletePreset(name, kind?)
-//              (kind: "cell", the default, or "drums" for Drum Grid patterns)
+//              (kind: "cell", the default, "drums" for Drum Grid patterns, or "patches" for whole boards)
+//              loadPatch(board, tempo, name)   the preset browser: replace the project with a patch
 //              copyText(text) pasteText()   the system clipboard (board copy & paste)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
 //              "state"  {nodes: {id: {outputs, activity, params?}}, ports}   30 times per second
 //              "focus"  {node}   a plugin window asked for its node
+//              "openPresets"     show the preset browser
 #include "BoardWindow.h"
 #include "Engine.h"
 
@@ -81,7 +83,8 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
 // Presets: one JSON file per preset, shared by all sets. Cell presets (spec
-// §8.1) and Drum Grid patterns (doc/specs/modules/drum-grid.md §4.6), by kind.
+// §8.1), Drum Grid patterns (doc/specs/modules/drum-grid.md §4.6) and whole
+// patches (the preset browser, spec §11.5), by kind.
 struct PresetKind {
     const char* folder;
     const char* extension;
@@ -89,6 +92,7 @@ struct PresetKind {
 
 PresetKind presetKind(const juce::var& kind) {
     if (kind.toString() == "drums") return {"Drum Patterns", ".bleepdrums"};
+    if (kind.toString() == "patches") return {"Patches", ".bleeppatch"};
     return {"Cells", ".bleepcell"};
 }
 
@@ -138,6 +142,8 @@ private:
     bool navigated_ = false;
 };
 
+BoardWindowStyle& style();
+
 class BoardView : public juce::Component, private juce::Timer {
 public:
     explicit BoardView(Engine& engine) : engine_(engine) {
@@ -160,6 +166,11 @@ public:
                 })
                 .withNativeFunction("commit", [this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.commit(a[0], a[1].toString());
+                    done(boardMessage());
+                })
+                .withNativeFunction("loadPatch", [this](const juce::Array<juce::var>& a, Completion done) {
+                    if (style().onLoadPatch) style().onLoadPatch(a[0], (double)a[1], a[2].toString());
+                    else engine_.commit(a[0], "Load " + a[2].toString());
                     done(boardMessage());
                 })
                 .withNativeFunction("undo", [this](const juce::Array<juce::var>&, Completion done) {
@@ -307,6 +318,10 @@ public:
         if (pageReady_) web_->emitEventIfBrowserIsVisible("board", boardMessage());
     }
 
+    void showPresets() {
+        if (pageReady_) web_->emitEventIfBrowserIsVisible("openPresets", juce::var());
+    }
+
     void focus(const juce::String& nodeId) {
         focus_ = nodeId;
         sendFocus();
@@ -402,6 +417,10 @@ private:
 std::unique_ptr<BoardUi> createBoardUi(Engine& engine) { return std::make_unique<BoardWindowUi>(engine); }
 
 void setBoardWindowStyle(const BoardWindowStyle& s) { style() = s; }
+
+void openPresetBrowser() {
+    if (g_window) static_cast<BoardWindow*>(g_window)->view().showPresets();
+}
 
 void setBoardWindowTitle(const juce::String& title) {
     style().title = title;

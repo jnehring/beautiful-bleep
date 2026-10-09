@@ -1899,7 +1899,8 @@
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.289085,"decay":0.469903,"sustain":0.1,"release":0.435862}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"time":0.602241,"taps":1,"scatter":0.3,"jitter":0.3,"reverse":0.5,"feedback":0.363636,"character":0.25,"tone":0.55,"width":1,"mix":0.25,"routing":1,"timechange":0}},
-          {"id":"lfo","type":"lfo","name":"Time Drift","x":940,"y":260,"parent":"","params":{"rate":0.21037,"wave":0.166667}}
+          {"id":"lfo","type":"lfo","name":"Time Drift","x":940,"y":260,"parent":"","params":{"rate":0.21037,"wave":0.166667}},
+          {"id":"audiom","type":"audio-mixer","name":"Trim","x":1540,"y":40,"parent":"","params":{"level1":0.726805,"pan1":0,"level2":0.726805,"pan2":1,"master":0.903702}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"stepse","jack":"pitch"},"to":{"node":"oscill","jack":"pitch"},"amount":1},
@@ -1909,9 +1910,11 @@
           {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"delayn","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"delayn","jack":"r"},"amount":1},
-          {"id":"k8","from":{"node":"delayn","jack":"l"},"to":{"node":"out","jack":"l"},"amount":1},
-          {"id":"k9","from":{"node":"delayn","jack":"r"},"to":{"node":"out","jack":"r"},"amount":1},
-          {"id":"k10","from":{"node":"lfo","jack":"out"},"to":{"node":"delayn","jack":"time"},"amount":0.08}
+          {"id":"k8","from":{"node":"lfo","jack":"out"},"to":{"node":"delayn","jack":"time"},"amount":0.08},
+          {"id":"k9","from":{"node":"delayn","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k10","from":{"node":"delayn","jack":"r"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k11","from":{"node":"audiom","jack":"outl"},"to":{"node":"out","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"audiom","jack":"outr"},"to":{"node":"out","jack":"r"},"amount":1}
         ]
       }
     },

@@ -86,6 +86,18 @@ Hold all end the sounding note.
 - **Chaining:** *Track Ends* into a Random's trigger gives a new value every
   time any track wraps; *Bar* marks the whole cycle.
 
+## Demo patches
+
+Five whole patches show what Polymeter Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Polymeter Seq* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Polymeter Seq: Pentatonic Cycles** | Trigger, note, octave, gate and probability tracks of 16, 5, 7, 12 and 9 steps loop against each other. |
+| **Polymeter Seq: Acid Odd Lengths** | A Phrygian Dominant bass line from odd-length tracks with ties, ratchets and *Ratchet Amt*, over a beat. |
+| **Polymeter Seq: Division Dance** | Each track runs at its own division (×2, 1, /2, /3) with a ping-pong gate track, playing a marimba. |
+| **Polymeter Seq: Pattern Slots** | *Slots used* 3 and a slow LFO on the Pattern input change the tune every few bars (*Pattern Change* Next bar). |
+| **Polymeter Seq: Glass Shower** | Sparse probability bursts with ratchets and a slow LFO on *Prob. Bias*, over a quiet drone. |
+
 ## Reference
 
 ### Knobs

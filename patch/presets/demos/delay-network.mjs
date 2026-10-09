@@ -42,7 +42,9 @@ function reverseMesh() {
   const d = p.add("delay-network", [3, 0], { time: 1.2, taps: 8, scatter: -0.4, jitter: 0.3, reverse: 0.5, feedback: 0.4, character: 0.25,
     tone: 0.1, width: 1, mix: 0.25, routing: "Mesh", timechange: "Tape" });
   const lfo = p.add("lfo", [2, 1], { rate: 0.06, wave: "Triangle" }, { name: "Time Drift" });
-  p.cable(m.amp, "l", d, "l").cable(m.amp, "l", d, "r").stereo(d, p.out).cable(lfo, "out", d, "time", 0.08);
+  const trim = p.add("audio-mixer", [4, 0], { level1: -3, pan1: -1, level2: -3, pan2: 1, master: 3 }, { name: "Trim" });
+  p.cable(m.amp, "l", d, "l").cable(m.amp, "l", d, "r").cable(lfo, "out", d, "time", 0.08)
+    .cable(d, "l", trim, "in1l").cable(d, "r", trim, "in2l").stereo(trim, p.out, { from: ["outl", "outr"] });
   return p;
 }
 

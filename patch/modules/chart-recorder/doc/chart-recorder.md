@@ -91,6 +91,18 @@ few seconds while writing).
 - **Inside a Voice Cell:** every voice has its own pen and replay head; only
   the first voice records.
 
+## Demo patches
+
+Five whole patches show what Chart Recorder does. In the standalone app open **File → Presets…** (⌘P) and pick *Chart Recorder* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Chart Recorder: Pen with Momentum** | A bass envelope drawn with low *Damping* and slow *Writing Speed* overshoots, and the pen wobble sweeps the filter. |
+| **Chart Recorder: Sticky Steps** | High *Friction* turns slow LFOs into irregular steps that a Quantizer plays as a melody. |
+| **Chart Recorder: Backwards Gesture** | A live random walk is recorded on a four-bar strip, and a second voice plays it back with *Replay Speed* −1. |
+| **Chart Recorder: Loudness Contour** | *Detector* Log dB draws the drum loop's level, and an inverted *Pen* ducks a pad on every kick. |
+| **Chart Recorder: Drawn Table** | A drawn curve with *Replay Speed* 0 is scrubbed by *Offset*, so the drawing becomes a looping melody. |
+
 ## Reference
 
 ### Knobs and settings

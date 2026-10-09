@@ -78,6 +78,18 @@ and lets it run free.
   waveform and the tone squeals and stutters.
 - **An envelope of the bounces:** *Lamp* into a filter's cutoff.
 
+## Demo patches
+
+Five whole patches show what Test Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Test Oscillator* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Test Oscillator: Living Drone** | Three lamp-stabilised sines with long *Settle* and high *Drift* warm up and swell against each other. |
+| **Test Oscillator: Ringing Drums** | *Loop Gain* below 100 % and *Kick* from a Drum Grid make tuned drums on *Range* ×10, ×100 and ×1k. |
+| **Test Oscillator: Drum Resonator** | A drum loop in *Audio In* at 99.7 % *Loop Gain* rings as a tuned resonator that a sequencer steers with *Pitch*. |
+| **Test Oscillator: Squeal Tremolo** | A very short *Settle* and high *Loop Gain* make the lamp chase the waveform: a squealing, stuttering bass. |
+| **Test Oscillator: Bouncing Bass** | Pitch leaps make the amplitude dip and surge, and the *Lamp* output sweeps a lead filter. |
+
 ## Reference
 
 ### Knobs and settings

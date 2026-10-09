@@ -65,6 +65,18 @@ identical.
 - **Drum rolls:** *Burst* into a drum's trigger, *Burst* 30 %, Sync 1/4.
 - **A sample and hold:** patch a signal into *Sample* and a clock into *Clock*.
 
+## Demo patches
+
+Five whole patches show what Wobble does. In the standalone app open **File → Presets…** (⌘P) and pick *Wobble* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Wobble: Wandering Melody** | *Stepped* picks a new pitch every eighth through a Quantizer in D Dorian while *Wobble* springs the filter open; try *Chaos* and *Smooth*. |
+| **Wobble: Bouncy Bass** | The *Wobble* output with a high *Wobble* amount bounces a ladder filter on a bass line at Sync 1/8. |
+| **Wobble: Burst Rolls** | *Burst* fires quick rolls into a tom, *Stepped* retunes it and *Compare* opens the hats; raise *Burst* and *Burst Size*. |
+| **Wobble: Drifting Pad** | At a slow *Rate* with *Smooth* at 100 %, the outputs drift a filter, pulse width and pitch of a held chord. |
+| **Wobble: Sampled Arp** | A slow triangle LFO in *Sample* is read on every 1/16, so *Stepped* draws a staircase that a Quantizer turns into an arpeggio. |
+
 ## Reference
 
 ### Knobs and settings

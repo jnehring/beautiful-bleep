@@ -66,6 +66,18 @@ identical; small values give width, larger ones two peaks, one per ear.
   pings, useful as an odd modulation source.
 - Put *Quality* on High for bright patches above C6.
 
+## Demo patches
+
+Five whole patches show what Formant Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Formant Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Formant Osc: Wah Lead** | An LFO sweeps *Formant* over a tune like a hand on a wah pedal. |
+| **Formant Osc: Squelch Bass** | An envelope on *Formant* gives a resonant squelch with no filter; *Narrow* sets the bite. |
+| **Formant Osc: Vowel Choir** | A wide *Spread* pad with LFOs on *Formant* and *Narrow* that seems to sing changing vowels. |
+| **Formant Osc: Through Zero** | A low drone while *Formant* sweeps across zero, through a hollow ghostly moment. |
+| **Formant Osc: Chatter** | A random generator jumps *Formant* on every sixteenth over a broken beat. |
+
 ## Reference
 
 ### Knobs and settings

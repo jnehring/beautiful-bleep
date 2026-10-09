@@ -76,6 +76,18 @@ instead). *Choke* fades everything out in 5 ms.
 The *Pitch* input adds octaves to the *Pitch* knob (1 V/oct). It is read at
 each hit unless *Track* is on.
 
+## Demo patches
+
+Five whole patches show what Perc Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Perc Voice* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Perc Voice: FM Kit** | Three voices make a kit: an *FM* kick with a long *Sweep*, a clicky snap and a *Noise Bank* hat. |
+| **Perc Voice: Tuned Toms** | With *Track* on, a sequencer's pitch tunes the *Modal* engine: a melody played on toms. |
+| **Perc Voice: Metal Bells** | High *Tone* and the *FM* engine make long inharmonic bells; try *Morph* and *Spread*. |
+| **Perc Voice: Noise Bank Shakers** | *Noise Bank* shakers and ticks with random accents on the *Accent* input. |
+| **Perc Voice: Tone Sweep** | One voice, one rhythm: LFOs walk *Tone* and *Morph* from sine to membrane, bar and metal. |
+
 ## Reference
 
 ### Knobs and settings

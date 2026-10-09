@@ -83,6 +83,18 @@ same, wherever you start.
   outputs play it back delayed by 0 … 7 steps.
 - **Accents:** *Combo* on *All* with two bits chosen, into a velocity or a VCA.
 
+## Demo patches
+
+Five whole patches show what Shift Register does. In the standalone app open **File → Presets…** (⌘P) and pick *Shift Register* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Shift Register: Locked Loop** | *Lock* just below 100 % with a slow LFO: a repeating pentatonic melody that occasionally slips. |
+| **Shift Register: Canon Beat** | A 16-step pattern read at *Bit 1*, *Bit 3*, *Bit 4* and *Bit 6* drives kick, clap, hat and rim as a rhythmic canon. |
+| **Shift Register: Rhythm Echo** | *Source* Data: a drum pattern into *Data* returns as echoes that trigger chimes. |
+| **Shift Register: Mirror Flip** | *Lock* at −100 % inverts the pattern on every pass; *Combine* Odd rings a bell and *Voltage* opens the filter. |
+| **Shift Register: Drifting Free Run** | *Sync* Free with an LFO on *Rate* and another on *Lock*, in a whole-tone scale. |
+
 ## Reference
 
 ### Knobs and settings

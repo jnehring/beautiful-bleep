@@ -102,6 +102,8 @@ private:
 
     void newProject();
     bool openProject(const juce::File& file);
+    /// A patch from the preset browser: replaces the project (an untitled one) after asking about unsaved changes.
+    void loadPatch(const juce::var& board, double tempo, const juce::String& name);
     bool saveProject(const juce::File& file);
     void saveAs(std::function<void()> then = {});
     void save(std::function<void()> then = {});

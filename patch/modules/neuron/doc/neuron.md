@@ -58,6 +58,18 @@ every render is identical.
   *W1* 0, *Hysteresis* up until it stops chattering.
 - **Audio:** *Leak* near 0 and *Cross* on *Gate* oscillates at audio rate.
 
+## Demo patches
+
+Five whole patches show what Neuron does. In the standalone app open **File → Presets…** (⌘P) and pick *Neuron* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Neuron: Self-Made Rhythm** | Neuron A fires from its bias and its *Out* inhibits B, so *A Spike*, *B Spike*, *AND* and *XOR* play kick, snare, clap and hat in an irregular groove. |
+| **Neuron: Spike Melody** | *B Out* is sampled by a quantizer on every *A Spike*, and spikes ping low pass gates: a pentatonic tune from two cells. |
+| **Neuron: Accelerando** | A slow LFO into *A In 2* speeds the firing up into a roll and below *Threshold* silences it; B answers with a tom. |
+| **Neuron: Audio-Rate Buzz** | *Leak* near 0 and *Cross* on *Gate* make the pair oscillate at audio rate; an LFO bends *W3* and *Pulse* to retune the buzz. |
+| **Neuron: Logic Drums** | Both neurons in *Compare* mode act as Schmitt triggers on clocked LFOs; *AND*, *XOR*, *OR* and *A Gate* become kick, clap, hat and snare. |
+
 ## Reference
 
 ### Knobs and settings

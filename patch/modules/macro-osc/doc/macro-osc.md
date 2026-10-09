@@ -197,6 +197,18 @@ higher for toms.
 - *Blend* [Ring]: a ringing band-pass resonance (a cowbell, a bell).
 - *Decay*: short = hi-hat, long = cymbal. *Aux*: the unfiltered metal.
 
+## Demo patches
+
+Five whole patches show what Macro Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Macro Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Macro Osc: Plucked Strings** | The *Pluck* model struck by a sequencer *Trigger*: its built-in decay and gate need no envelope. |
+| **Macro Osc: Synthetic Kit** | Three Macro Oscs play a drum kit from one grid: *Kick*, *Snare* and *Metal* models. |
+| **Macro Osc: Chord Mist** | The *Chord* model with slow LFOs on *Tone* and *Shape*; *Aux* carries a second voice. |
+| **Macro Osc: Phase Warp Bass** | The *Phase Warp* model with an envelope on *Tone* for a bass that starts bent and settles. |
+| **Macro Osc: Dust Garden** | The *Dust* model scattering pitched clicks over a *Noise Band* breath. |
+
 ## Controls and jacks
 
 | Control | What it does |

@@ -67,6 +67,18 @@ makes a mono source wide. A mono source with *Spread* at 0 is computed once.
 - **Tame hot sources:** lower *Level* rather than *Fold*: it changes how far
   the signal reaches into the folds.
 
+## Demo patches
+
+Five whole patches show what Folder does. In the standalone app open **File → Presets…** (⌘P) and pick *Folder* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Folder: Complex Voice** | The internal sine played from a sequencer, with an envelope on *Fold*: each note starts bright and relaxes. |
+| **Folder: Moving Bass** | Slow LFOs on *Symmetry* and *Tap* turn a low sine from hollow to buzzy and back. |
+| **Folder: Fold Bells** | An Oscillator into *In L* with *FM Depth* up, then folded: bright, bell-like tones. |
+| **Folder: Stereo Brightener** | A plucked saw on the input with low *Fold*, *Mix* at half and *Spread* open: harmonics and width added to a dry sound. |
+| **Folder: Folded Beat** | A whole drum loop through the Folder with *Fold* moved by a slow LFO and *Mix* for parallel crunch. |
+
 ## Reference
 
 ### Knobs and settings

@@ -78,6 +78,18 @@ drag a marker up or down for that filter's resonance.
   low-passes through band-pass to two notches.
 - **Separate processing:** take *F1 Out* and *F2 Out* to different effects.
 
+## Demo patches
+
+Five whole patches show what Dual Filter does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Filter* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Dual Filter: Vowel Pad** | Parallel band-passes with high *Res 1* and *Res 2* form a vowel pair; a slow LFO on *Spread* slides between vowels. |
+| **Dual Filter: Wide Band Bass** | *Serial* with *Mode 1* high-pass and *Mode 2* low-pass makes a band: *Cutoff* places it, *Spread* widens it, *Drive* with *Saturating* adds growl. |
+| **Dual Filter: Stereo Breath** | *Routing* on Stereo with a mono source: *Spread* places the left and right cutoffs apart, and an LFO makes the image breathe. |
+| **Dual Filter: Notch Sweep** | *Parallel (F2 inverted)* turns two band-passes into a steep notch that sweeps through a riff over a beat. |
+| **Dual Filter: Mirror Morph** | *Link* on Mirror and an LFO on *Mode 1* morph both filters from low-pass through band-pass to notch, with *Character* Saturating. |
+
 ## Reference
 
 ### Knobs and settings

@@ -76,6 +76,18 @@ the root stays nearest the middle.
   switch between them with a sequential switch for an arpeggio that follows
   the chord.
 
+## Demo patches
+
+Five whole patches show what Chord Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Chord Osc: Soft Minor Pads** | *Minor 7* with the *Open* voicing, *Detune*, *Stereo* and *Glide* turns a slow bass line into melting chords. |
+| **Chord Osc: Diatonic Run** | *Mode* Scale: a plain tune becomes the diatonic chord on each note, changing on the step through *Latch*. |
+| **Chord Osc: Chord Arpeggio** | The *Pitch 1–4* outputs feed a Switch and an oscillator: an arpeggio that follows the held chord. |
+| **Chord Osc: Offbeat Stabs** | Short *Dominant 9* stabs with the *Drop 2* voicing and a squarer *Shape* over a four-on-the-floor beat. |
+| **Chord Osc: FM Quartal Glow** | Sine voices in fourths with an oscillator in *FM* whose amount is moved by a slow LFO. |
+
 ## Reference
 
 ### Knobs and settings

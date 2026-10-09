@@ -77,6 +77,18 @@ same outputs.
   the interval between two others.
 - **Classic scope:** Mode Y-T, any signal into Y.
 
+## Demo patches
+
+Five whole patches show what XY Scope does. In the standalone app open **File → Presets…** (⌘P) and pick *XY Scope* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **XY Scope: Beating Lissajous** | Two detuned sines turn the figure slowly; *Phase* becomes a sawtooth LFO for a pad's filter. |
+| **XY Scope: Interval Figures** | A sequenced sine against a fixed one draws each interval; *Ratio* steers a voice that follows the interval. |
+| **XY Scope: Waiting for Lock** | The *Still* gate opens a melody only while two wandering oscillators agree; try *Still Tolerance*. |
+| **XY Scope: Stereo Width** | A detuned pad's left and right on X and Y; *Correlation* darkens an arpeggio as the pad widens. |
+| **XY Scope: Drum Scope** | *Mode* Y-T with *Trigger* Beat draws a drum loop as a waveform, with the bass as a second trace. |
+
 ## Reference
 
 ### Knobs and settings

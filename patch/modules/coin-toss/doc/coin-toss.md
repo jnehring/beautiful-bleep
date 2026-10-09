@@ -62,6 +62,18 @@ count wrap after 2 … 32 tosses: a fixed random rhythm that repeats. Change
 - **A fixed random pattern:** *Loop* on 8 or 16, and a Reset from the bar
   (e.g. the Step Sequencer's *End*) so it stays on the bar.
 
+## Demo patches
+
+Five whole patches show what Coin Toss does. In the standalone app open **File → Presets…** (⌘P) and pick *Coin Toss* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Coin Toss: Heads or Tails Drums** | *Probability 1* and *2* send each sixteenth to a hat, a ghost snare or an open hat (with *Memory 2* for runs) over a fixed backbeat. |
+| **Coin Toss: Trading Voices** | One melody dealt note by note to a low pluck on *A 1* and a bright one on *B 1*; *Memory 1* makes them trade in runs. |
+| **Coin Toss: Latch Layers** | *Mode* Latch on both channels: A and B are always opposite, switching the pad, arpeggio and drums on and off by bar. |
+| **Coin Toss: Looped Groove** | *Link* Shared with *Loop* at 16 tosses: nested clap and hat figures that repeat every bar. |
+| **Coin Toss: Coin on the Pitch** | The *Coin* outputs as control voltages: Toggle lifts a bell melody by a fifth, Latch opens and closes a drone's filter. |
+
 ## Reference
 
 ### Knobs and settings

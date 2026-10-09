@@ -112,6 +112,18 @@ A dot follows the output, and the running segment's label lights up.
 - **Swell and burst:** Templates › Gated burst: a pulsing attack while the
   key is held, then a smooth release.
 
+## Demo patches
+
+Five whole patches show what Segments does. In the standalone app open **File → Presets…** (⌘P) and pick *Segments* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Segments: Two-Bloom Pluck** | Five segments draw an attack, a drop, a second bloom, a sustain hold and a release on the VCA and filter. |
+| **Segments: Lopsided LFO** | Four looped segments with *Sync* and *Run* Free make a tempo-locked LFO with a shape of your own on a bass filter. |
+| **Segments: Step Melody** | Eight *Step* segments of 1/8 each act as a sequencer; the *Levels* are pitches, quantized to a scale. |
+| **Segments: Breathing Pad** | A two-peak swell with a gate-waiting *Hold*; *Time Scale* stretches the whole breath. |
+| **Segments: Drums From Segments** | Eight looped Step segments form a one-bar clock; the *Seg* outputs trigger the drums and *Out* moves a bass filter. |
+
 ## Reference
 
 ### Knobs

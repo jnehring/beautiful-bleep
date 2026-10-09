@@ -111,6 +111,18 @@ even when Smooth delays the curve.
 - **Clocked LFO:** a sequencer's clock into *Clock*, Ratio ÷4: one cycle per
   bar that follows tempo changes and a manual clock.
 
+## Demo patches
+
+Five whole patches show what Tidal does. In the standalone app open **File → Presets…** (⌘P) and pick *Tidal* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Tidal: Slow Swell** | *Range* Slow: a tide of several seconds per cycle with a long rise (*Skew*) opens a filter and the level of a held chord. |
+| **Tidal: Circular Pan** | *Relation* Phase with *Spread* at maximum: outputs A and B are a sine and a cosine that pan two voices in opposite directions. |
+| **Tidal: Four Envelopes** | *Mode* AD with *Relation* Harmonic: one trigger gives four envelopes of different lengths on four chord tones. |
+| **Tidal: Audio Oscillator** | *Range* Audio: Tidal is the voice, played from a sequencer; *Skew* and *Smooth* drift to change the timbre. |
+| **Tidal: Clocked Ratios** | *Sync* 1 bar with *Relation* Ratio: four slopes meet again only after several bars and move a filter, a pulse shape and a mix level. |
+
 ## Reference
 
 ### Knobs

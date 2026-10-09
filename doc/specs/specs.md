@@ -55,7 +55,8 @@
 &emsp;&emsp;[11.2 MIDI: the app's own MIDI ports](#112-midi-the-apps-own-midi-ports)<br>
 &emsp;&emsp;[11.3 Audio: Bleep Audio Bridge](#113-audio-bleep-audio-bridge)<br>
 &emsp;&emsp;[11.4 Ableton Link](#114-ableton-link)<br>
-&emsp;&emsp;[11.5 Limits and open questions](#115-limits-and-open-questions)<br>
+&emsp;&emsp;[11.5 Preset browser](#115-preset-browser)<br>
+&emsp;&emsp;[11.6 Limits and open questions](#116-limits-and-open-questions)<br>
 [12. First module set](#12-first-module-set)<br>
 [13. Native support in Brilliant Bleep plugins](#13-native-support-in-brilliant-bleep-plugins)<br>
 [14. Positioning](#14-positioning)<br>
@@ -683,7 +684,17 @@ A Live set either has its board in Bleep Patch (section 6) or works with the app
 - **In Live,** turn Link on (and Start Stop Sync), and Live and the app share tempo, phase and transport.
 - **License.** Ableton Link is GPLv2-or-later. Builds that include it are distributed under the GPL (compatible with JUCE under AGPLv3 and with our MIT source) with their source. A closed-source build would need a license from Ableton.
 
-### 11.5 Limits and open questions
+### 11.5 Preset browser
+
+*File → Presets…* (⌘P) and the **Presets** button in the board's top bar open the preset browser: whole patches that load directly into the app.
+
+- **Demo patches.** Five for every advanced module (every module except the basic building blocks; **Sampler** has none, because it plays a WAV file the user loads and a patch can't ship one), listed under *Demos by module*. Each plays by itself with the transport, needs no MIDI or audio input and reaches *Out 1/2*. They are written in units in `patch/presets/demos/<module>.mjs`, compiled with the cell presets into `board/ui/demo-patches.json` (`node patch/presets/build.mjs`), and described in each module's documentation under *Demo patches*. See `patch/presets/demos/README.md`.
+- **My patches.** *Save current patch…* keeps the board you are working on as one `.bleeppatch` file (`{name, preset}`, the board's nodes and cables, a description) in the app data folder, `Bleep Patch/Patches/`. User patches can be deleted in the browser.
+- **Browsing.** A list of groups on the left (*All patches*, *My patches*, one per module), cards on the right with name, description and tags; the search field matches names, modules, tags and descriptions. *Load* or a double-click loads.
+- **Loading** replaces the project: the app asks about unsaved changes first, the board becomes an untitled project (Save asks for a file), the demo's tempo is set and the transport starts. Port nodes (Out 1/2, Bleep Patch 1) bind to the app's own ports by their IDs; other ports come back on their own, unpatched.
+- **Checks.** `bleep_demo_patches` (ctest `patch.demo-patches`) loads every demo through `board::sanitise` without a warning, renders 12 s with the transport running and fails on silence, clipping, non-finite output or a heavy CPU load.
+
+### 11.6 Limits and open questions
 
 - **Cross-process deadline.** Processing in another process within one block is soft real-time. Phase 0 measures misses at small buffer sizes and under load.
 - **One host at a time.** The app accepts bridges from one host process at a time.
@@ -997,7 +1008,7 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 - **Port latency compensation.** Section 5.3 relies on Live compensating the latency reported by Audio Out, Bleep Instrument and Audio Insert. Phase 0 verifies this, including during export.
 - **Board persistence.** Main-plugin model (section 5.4): verify duplication, copy/paste between sets and Live's undo in phase 0.
 - **Board window.** A non-host top-level window may misbehave in some Live versions (focus, z-order, full-screen, multiple monitors).
-- **Bleep Audio Bridge deadline.** The app must process each block within one buffer, in another process (section 11.5).
+- **Bleep Audio Bridge deadline.** The app must process each block within one buffer, in another process (section 11.6).
 - **CPU.** One thread for the whole board until the multi-core engine exists. Large Voice Cells may hit this early.
 - **Offline rendering.** The engine must behave deterministically when Live exports faster or slower than real time.
 - **Spec stability vs. speed.** Opening the spec early invites adoption but makes changes costlier. Mark v0.x as experimental.

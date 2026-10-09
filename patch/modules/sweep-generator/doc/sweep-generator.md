@@ -82,6 +82,18 @@ render from the same position is always identical.
 - **One sweep per note:** Mode Triggered, a note's trigger into *Trigger*,
   *Pitch* from the keyboard: each note sweeps from its own key.
 
+## Demo patches
+
+Five whole patches show what Sweep Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Sweep Generator* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Sweep Generator: Four-Bar Riser** | A *Ramp Up* sweep from *Start* 100 Hz to *Stop* 8 kHz over four bars (*Sweep Sync*) opens a filter, and *End* fires a crash. |
+| **Sweep Generator: Lab Sirens** | Two *Up-Down* sweeps of different *Sweep Time* wail left and right; *Law* Lin against Log changes the feel. |
+| **Sweep Generator: Climbing Bursts** | *Burst* mode plays *Burst Count* cycles at the frequency the slow sweep has reached for each sequencer step. |
+| **Sweep Generator: Marker Drums** | Three sweeps each fire *Marker* when they cross a set frequency and play a kick, a snare and a hat: a drifting polyrhythm. |
+| **Sweep Generator: Laser Plucks** | *Triggered* mode with a falling sweep makes a zap per note, and *Pitch* from the sequencer moves the sweep. |
+
 ## Reference
 
 ### Knobs and settings

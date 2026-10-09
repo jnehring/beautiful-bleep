@@ -13,7 +13,7 @@ namespace {
 inline juce::String u8(const char* text) { return juce::String::fromUTF8(text); }
 
 
-enum Command { cmdNew = 1, cmdOpen, cmdSave, cmdSaveAs, cmdSettings, cmdPlay, cmdLink };
+enum Command { cmdNew = 1, cmdOpen, cmdPresets, cmdSave, cmdSaveAs, cmdSettings, cmdPlay, cmdLink };
 
 constexpr const char* kProjectSuffix = ".bleepboard";
 constexpr const char* kVirtualPrefix = "Bleep Patch ";
@@ -154,6 +154,9 @@ void AppController::start(const juce::String& commandLine) {
     style.alwaysOnTop = false;
     style.title = u8("Untitled — Bleep Patch");
     style.onClose = [] { juce::JUCEApplication::getInstance()->systemRequestedQuit(); };
+    style.onLoadPatch = [this](const juce::var& board, double tempo, const juce::String& name) {
+        loadPatch(board, tempo, name);
+    };
     style.menu = this;
     engine::setBoardWindowStyle(style);  // before openBoard creates the window
     engine_->openBoard(main_);
@@ -568,6 +571,22 @@ bool AppController::openProject(const juce::File& file) {
     return true;
 }
 
+void AppController::loadPatch(const juce::var& board, double tempo, const juce::String& name) {
+    if (!board["nodes"].isArray()) return;
+    confirmDiscard([this, board, tempo, name] {
+        const auto json = engine::board::toJson(board).toStdString();
+        engine_->loadBoard(main_, json.data(), json.size());
+        engine_->reconcileNow();
+        project_ = juce::File();  // a patch is a starting point: Save asks for a new file
+        savedGeneration_ = engine_->boardGeneration();
+        if (tempo >= 20.0 && tempo <= 400.0) clock_.setTempo(tempo);
+        if (!clock_.playing()) clock_.setPlaying(true);  // demo patches play with the transport
+        commands_.commandStatusChanged();
+        updateTitle();
+        juce::ignoreUnused(name);
+    });
+}
+
 bool AppController::saveProject(const juce::File& file) {
     const size_t len = engine_->saveBoard(main_, nullptr, 0);
     std::string json(len, '\0');
@@ -628,6 +647,7 @@ juce::PopupMenu AppController::getMenuForIndex(int index, const juce::String&) {
     if (index == 0) {
         m.addCommandItem(&commands_, cmdNew);
         m.addCommandItem(&commands_, cmdOpen);
+        m.addCommandItem(&commands_, cmdPresets);
         m.addSeparator();
         m.addCommandItem(&commands_, cmdSave);
         m.addCommandItem(&commands_, cmdSaveAs);
@@ -641,7 +661,7 @@ juce::PopupMenu AppController::getMenuForIndex(int index, const juce::String&) {
 }
 
 void AppController::getAllCommands(juce::Array<juce::CommandID>& c) {
-    c.addArray({cmdNew, cmdOpen, cmdSave, cmdSaveAs, cmdSettings, cmdPlay, cmdLink});
+    c.addArray({cmdNew, cmdOpen, cmdPresets, cmdSave, cmdSaveAs, cmdSettings, cmdPlay, cmdLink});
 }
 
 void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandInfo& info) {
@@ -649,6 +669,10 @@ void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandI
     switch (id) {
         case cmdNew: info.setInfo("New", "New project", "File", 0); info.addDefaultKeypress('n', cmd); break;
         case cmdOpen: info.setInfo(u8("Open…"), "Open a project", "File", 0); info.addDefaultKeypress('o', cmd); break;
+        case cmdPresets:
+            info.setInfo(u8("Presets…"), "Browse the demo patches and your own patches", "File", 0);
+            info.addDefaultKeypress('p', cmd);
+            break;
         case cmdSave: info.setInfo("Save", "Save the project", "File", 0); info.addDefaultKeypress('s', cmd); break;
         case cmdSaveAs:
             info.setInfo(u8("Save As…"), "Save the project as", "File", 0);
@@ -682,6 +706,7 @@ bool AppController::perform(const InvocationInfo& info) {
                                       });
             });
             return true;
+        case cmdPresets: engine::openPresetBrowser(); return true;
         case cmdSave: save(); return true;
         case cmdSaveAs: saveAs(); return true;
         case cmdSettings: showSettings(); return true;

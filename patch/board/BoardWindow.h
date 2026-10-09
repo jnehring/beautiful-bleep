@@ -17,6 +17,10 @@ struct BoardWindowStyle {
     std::function<void()> onClose;            ///< default: hide the window
     juce::MenuBarModel* menu = nullptr;       ///< Windows/Linux menu bar (macOS uses the main menu)
     juce::Rectangle<int> bounds;              ///< empty: centred 1180 × 760
+    /// The preset browser loads a whole patch (a board, its tempo, its name). The standalone app
+    /// replaces its project with it (asking about unsaved changes first); without it the patch is
+    /// committed to the board as an ordinary edit.
+    std::function<void(const juce::var& board, double tempo, const juce::String& name)> onLoadPatch;
 };
 
 /// Call before the board window is first opened.
@@ -25,5 +29,7 @@ void setBoardWindowStyle(const BoardWindowStyle& style);
 void setBoardWindowTitle(const juce::String& title);
 /// The open board window, or null.
 juce::DocumentWindow* boardWindow();
+/// Shows the page's preset browser (standalone app: File → Presets).
+void openPresetBrowser();
 
 }  // namespace bleep::engine

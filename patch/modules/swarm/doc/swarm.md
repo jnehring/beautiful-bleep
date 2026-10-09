@@ -80,6 +80,18 @@ CPU.
 - **New variation:** press *Reshuffle* (or send a trigger) for a new random
   pattern and new glide times.
 
+## Demo patches
+
+Five whole patches show what Swarm does. In the standalone app open **File → Presets…** (⌘P) and pick *Swarm* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Swarm: Blooming Pad** | An LFO on *Spread* opens the swarm from one note into a *Minor 9* chord, and the *Spread* output opens a filter. |
+| **Swarm: Dark Cluster** | The *Cluster* chord with strong *Drift* and a little *Cross FM*: a restless low drone. |
+| **Swarm: Pentatonic Rain** | A *Major Pentatonic* swarm with *Reshuffle* fired every bar, so the notes rearrange themselves. |
+| **Swarm: Octave Super Bass** | Seven oscillators on *Octaves* with wide *Detune*: a thick unison bass over a beat. |
+| **Swarm: Glitter Fifths** | Stacked *Fifths* with *Warp* and *Cross FM* on slow LFOs: a glittering bell-like shimmer. |
+
 ## Reference
 
 ### Knobs and settings

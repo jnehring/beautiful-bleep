@@ -85,6 +85,18 @@ meter of the wet level.
 - **Spatial effects:** an audio-rate oscillator onto *Size* turns the tail
   into a frequency-modulated cloud.
 
+## Demo patches
+
+Five whole patches show what Verb does. In the standalone app open **File → Presets…** (⌘P) and pick *Verb* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Verb: Cathedral** | Large *Size*, a *Decay* of 14 s, *Damping* and *Pre-delay* turn a slow melody into a huge hall. |
+| **Verb: Tight Room** | A small *Size*, short *Decay* and high *Damping* glue a drum beat like a booth. |
+| **Verb: Freeze Pad** | A square LFO on the *Freeze* gate holds the tank as an endless chord, then lets it go to catch the next phrase. |
+| **Verb: Breathing Space** | Slow LFOs on *Size*, *Decay* and *Tone* plus *Mod Depth* make the room breathe around an arpeggio. |
+| **Verb: Pre-delay Echoes** | *Pre-delay Sync* on a dotted eighth gives one clear rhythmic echo before a short, diffuse bloom. |
+
 ## Reference
 
 ### Knobs and settings

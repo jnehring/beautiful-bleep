@@ -72,6 +72,18 @@ the transport starts.
 - **Two oscillators:** use *A* and *B* outputs separately; *Ring* gives A × B.
 - **Wide pad:** *Width* 60 %, a little *Fold* and *Symmetry*, *Drift* 30 %.
 
+## Demo patches
+
+Five whole patches show what Dual Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Dual Osc: Sync Lead** | B hard-syncs A (*Sync*) and a slow LFO sweeps *Tune B* for a tearing lead. |
+| **Dual Osc: Metal Bells** | B frequency-modulates A (*FM Depth*, *FM Mode* Exponential) at an odd ratio, with an envelope on the depth. |
+| **Dual Osc: Folding Bass** | A triangle bass through the stereo wavefolder: an envelope opens *Fold* on every note, *Symmetry* drifts. |
+| **Dual Osc: Drifting Pair** | Two saw cores a few cents apart with strong *Drift* and wide *Width*: a warm, breathing pad. |
+| **Dual Osc: Ring Clang** | The *Ring* output, struck by a short envelope, plays metallic percussion over a beat. |
+
 ## Reference
 
 ### Knobs and settings

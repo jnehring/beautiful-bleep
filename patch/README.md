@@ -20,7 +20,8 @@ VST3 only, Ableton Live only for now (spec §5.2). The script builds into
 
 It also builds the standalone **Bleep Patch app** (spec §11): the board without
 a DAW, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server.
-See [`app/README.md`](app/README.md).
+See [`app/README.md`](app/README.md). Its preset browser (File → Presets…) loads
+whole demo patches, five per advanced module.
 
 ## Layout
 
@@ -31,6 +32,7 @@ patch/
 ├── app/              the standalone app: AppController (device, MIDI ports, Link, projects), Main
 ├── bridges/ableton/  the plugins: PortProcessor (one class for all of them) and its small editor
 ├── bridges/standalone/  Bleep Audio Bridge: shared-memory protocol, plugin (client), app side (server), Link clock
+├── presets/          factory cell presets and the demo patches (presets/demos/), compiled into board/ui
 ├── modules/<name>/
 │   ├── dsp/          the module's DSP (<Name>Dsp.h, no JUCE)
 │   ├── <Name>Module.cpp   the node: params, jacks, process()

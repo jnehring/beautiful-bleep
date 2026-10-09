@@ -81,6 +81,18 @@ late for it.
 - **Delay a gate:** External Width, Delay 125 ms: the gate comes out late and
   as long as it went in.
 
+## Demo patches
+
+Five whole patches show what Pulse Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Pulse Generator* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Pulse Generator: Humanised Clock** | *Sync* 1/8 with some *Jitter* clocks a melody, while a second generator rings short pulses into hats. |
+| **Pulse Generator: Ringing Pings** | Triggered pulses per note excite *Ring*; the sequencer's pitch moves *Ring Freq* for glassy chimes, shaped by *Damping* and *Width*. |
+| **Pulse Generator: Pulse Drums** | Four generators in *Triggered* mode, struck by a Drum Grid: *Ring Freq* and *Damping* make a thump, a tom, a click and a tick. |
+| **Pulse Generator: Rolls and Flams** | *Burst* gives drum rolls at a 30 ms *Period*, and *Double* with a short *Delay* gives flams. |
+| **Pulse Generator: Gate Echo** | *External Width* mode delays a melody's gate by 330 ms and plays an octave-up echo voice with it. |
+
 ## Reference
 
 ### Knobs and settings

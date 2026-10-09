@@ -88,6 +88,18 @@ ring imbalance produce. Outputs stay within ±4.
 - **Dry/wet:** *Mix* blends the carrier (after *Carrier Level*) with the
   result.
 
+## Demo patches
+
+Five whole patches show what Meta Mod does. In the standalone app open **File → Presets…** (⌘P) and pick *Meta Mod* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Meta Mod: Ring Bells** | *Algorithm* 2 ring-modulates a sine melody with the internal oscillator while a slow LFO sweeps *Osc Tune* into inharmonic bells. |
+| **Meta Mod: Robot Choir** | *Algorithm* 6 (vocoder): a drum beat in *Modulator* talks through a buzzy chord in *Carrier*; *Timbre* drifts the formants. |
+| **Meta Mod: Harmonic Arpeggio** | *Algorithm* 7 (Chebyshev) turns a sine into its Nth harmonic, and a stepped Random on *Timbre* picks N for each sixteenth. |
+| **Meta Mod: Ring Bass** | A bass built inside Meta Mod: the internal oscillator is the carrier, a second oscillator the modulator, and an LFO glides *Algorithm* through ring, crossfade and fold. |
+| **Meta Mod: Bitwise Machine** | *Algorithm* 4 with *Bitwise Op* XOR combines a saw lead and a square arpeggio into gritty digital chords; *Timbre* moves the bit depth. |
+
 ## Reference
 
 ### Knobs and settings

@@ -65,6 +65,18 @@ the input level, so both outputs pass a soft limiter.
   voices: *Voice In › Trigger* → *Strum*, *Pitch* → *Pitch*.
 - **Strum button:** fires the exciter, for trying sounds without patching.
 
+## Demo patches
+
+Five whole patches show what Resonator does. In the standalone app open **File → Presets…** (⌘P) and pick *Resonator* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Resonator: Struck Bells** | The *Modal* model strummed by a sequencer, with *Structure* drifting between string, bar and bell. |
+| **Resonator: Plucked Strings** | The *String* model with four voices turns an arpeggio into a harp; try *Brightness*, *Damping* and *Position*. |
+| **Resonator: Sympathetic Drone** | A melody fed into the *Sympathetic* model makes its strings ring along; *Frequency* retunes them. |
+| **Resonator: Drum Body** | With *Strum Source* on *Input onsets* every drum hit rings the body, and a random source on *Frequency* walks its pitch. |
+| **Resonator: Noise Plate** | Noise bursts excite a *Modal* plate while LFOs move *Structure* and *Brightness*, from glass to gong. |
+
 ## Reference
 
 ### Knobs and settings

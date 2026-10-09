@@ -84,6 +84,18 @@ chases it. The drift follows *Seed* and the song position, so renders repeat.
   *Frequency* 20 Hz: one full spectrum every four bars on the plotter.
 - **Frozen partial:** *Hold* from a gate: the band stays put while you play.
 
+## Demo patches
+
+Five whole patches show what Wave Analyzer does. In the standalone app open **File → Presets…** (⌘P) and pick *Wave Analyzer* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Wave Analyzer: Harmonic Series** | *Sweep* mode with a 10 Hz *Bandwidth* plays the harmonics of a low saw; *Peak* triggers the hats. |
+| **Wave Analyzer: One Pitch from Everything** | The *Shifted* output moves each partial to the *Listen* frequency, so a melody becomes changing timbres at one pitch. |
+| **Wave Analyzer: Pitch Tracker** | *Lock* mode follows the loudest partial within *Capture*; *Track* drives a follower voice and *Locked* gates it. |
+| **Wave Analyzer: Spectrum Pad** | A slow synced *Sweep* with large *Span* sings through a three-saw chord while the plotter draws the spectrum. |
+| **Wave Analyzer: Held Partial** | A square LFO on *Hold* freezes the sweep, and a 1/3 octave *Bandwidth* makes it whistle and talk. |
+
 ## Reference
 
 ### Knobs and settings

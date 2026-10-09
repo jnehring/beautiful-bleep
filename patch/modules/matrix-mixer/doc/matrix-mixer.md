@@ -55,6 +55,18 @@ delay); with *Normalize* such loops stay stable.
 - **Modulation blender:** four LFOs in, eight related modulations out.
 - **Scene changes:** store snapshots, patch a slow LFO into *Morph*.
 
+## Demo patches
+
+Five whole patches show what Matrix Mixer does. In the standalone app open **File → Presets…** (⌘P) and pick *Matrix Mixer* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Matrix Mixer: Send Matrix** | Eight inputs, four outputs: a lead, bass and drums, two outputs as sends to an echo and a reverb, and the returns mixed back in by crosspoints. |
+| **Matrix Mixer: Scene Morph** | Two *snapshots* (a sparse scene and a full groove) blended by a slow LFO on *Morph* with *Morph Curve* on *Equal power*. |
+| **Matrix Mixer: Crosspoint Ring** | An oscillator patched into the **1 → 1** crosspoint ring-modulates the melody at audio rate; the **1 → 2** crosspoint keeps the dry sound. |
+| **Matrix Mixer: Feedback Web** | Two echo networks feed back into the matrix with *Output Stage* on *Normalize*: loops of repeats that stay stable. |
+| **Matrix Mixer: Modulation Blender** | Four Quad LFO waves go in, four blended (some inverted) mixes come out to move the filters of a chord. |
+
 ## Reference
 
 ### Knobs

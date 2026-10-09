@@ -70,6 +70,18 @@ board (the module then starts frozen on it); unfreezing lets it go.
 - **Granular delay:** Position 30 %, Spread 5 %, Mix 40 %.
 - **Scrubbing:** a slow LFO on Position while frozen.
 
+## Demo patches
+
+Five whole patches show what Grains does. In the standalone app open **File → Presets…** (⌘P) and pick *Grains* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Grains: Frozen Cloud** | A slow square LFO on *Freeze* holds the buffer for a few bars at a time: one moment of a phrase becomes an endless pad. |
+| **Grains: Stutter Rhythm** | *Triggered* mode synced to 1/16 chops a bass loop into a reversing, stuttering rhythm; *Position* jumps with a Random. |
+| **Grains: Shimmer Leaps** | *Pitch Quant* on octaves and fifths, a little *Pitch Jitter* and *Feedback* make a halo around a slow melody. |
+| **Grains: Melodic Cloud** | A sequencer drives the *Pitch* input of a noise cloud: the grains themselves play the tune. |
+| **Grains: Backwards Garden** | Long, mostly reversed grains scattered by *Spread* and *Blur* into a swelling reverse wash. |
+
 ## Reference
 
 ### Knobs

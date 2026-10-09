@@ -98,6 +98,18 @@ The *Presets* menu sets all ten levels at once: *Flat*, *Smile*,
 - **Vocoder with cables:** two banks, *Env k* of the first into *Level k* of
   the second (levels at 0, amount 100 %). Swap cables to shift formants.
 
+## Demo patches
+
+Five whole patches show what Filter Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Filter Bank* under *Demos by module*; loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Filter Bank: Rhythm Vocoder** | A drum beat in the *Sidechain* with *Env From* on Sidechain and *Vocode* at 100 % makes a saw chord speak the rhythm. |
+| **Filter Bank: Scanning Window** | A narrow *Width* with an LFO on *Scan* sweeps a two-band window across a held chord. |
+| **Filter Bank: Tuned Resonator** | *Tuning* on Harmonic, high *Q* and a sequencer on *Pitch* turn noise bursts and drums into pitched hits. |
+| **Filter Bank: Phaser Sweep** | An LFO on *Shift* slides all ten bands together for a vocal, phaser-like sweep on an arpeggio. |
+| **Filter Bank: Odd-Even Wide** | *Stereo* on Odd/Even split puts odd bands left and even bands right for a wide mono-to-stereo pad; *Odd/Even* and *Tilt* reshape it. |
+
 ## Reference
 
 ### Knobs and settings
