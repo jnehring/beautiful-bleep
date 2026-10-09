@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // "Bleep Board": the board running in the visitor's browser. The player itself
 // is the static build of patch/web (scripts/build-web.sh), served at /play/.
+import BoardPlayer from "./BoardPlayer";
 
 export const metadata = {
   title: "Bleep Board",
@@ -17,9 +18,7 @@ export default function BoardPage() {
           and no sound or patch ever leaves your computer. Each module is loaded the first time you use it.
         </p>
       </section>
-      <div className="board-frame">
-        <iframe src="/play/index.html" title="Bleep Board" allow="autoplay; midi" loading="lazy" />
-      </div>
+      <BoardPlayer />
       <p className="board-help">
         Click <strong>Start audio</strong>, then play the Keyboard module with your computer keys
         (<code>A W S E D F T G Y H U J</code>) or a MIDI keyboard (Chrome, Edge). Drag from a jack to patch,

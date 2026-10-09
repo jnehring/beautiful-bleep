@@ -166,7 +166,7 @@
   window.addEventListener("DOMContentLoaded", () => {
     const b = document.createElement("button");
     b.textContent = "▶ Start audio";
-    b.style.cssText = "position:fixed;z-index:50;right:16px;bottom:16px;padding:10px 16px;border-radius:999px;" +
+    b.style.cssText = "position:fixed;z-index:50;right:16px;top:52px;padding:10px 16px;border-radius:999px;" +
       "border:1px solid #5eead4;background:#0f1a1a;color:#5eead4;font:600 14px system-ui;cursor:pointer";
     b.onclick = async () => {
       b.disabled = true;
