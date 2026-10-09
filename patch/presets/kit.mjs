@@ -176,9 +176,42 @@ export class Preset {
     return this.cable(from, fl, to, tl, jacks.amount ?? 1).cable(from, fr, to, tr, jacks.amount ?? 1);
   }
 
+  /// Whether a module plays in time, so the cell should offer a Clock (and Run) jack for it: it has a
+  /// Clock input and either no Sync knob or one that isn't on Free (Zone Delay: Transport; Quad LFO: on).
+  #needsTempo(n) {
+    const t = types[n.type];
+    if (!t || !t.inputs.some((i) => i.id === "clock")) return false;
+    if (n.type === "utility" || n.type === "quantizer") return false;  // their Clock is a sample clock
+    if (n.type === "bender" && !(n.params.chance > 0)) return false;  // a pure crusher plays no segments in time
+    const sync = t.params.find((q) => q.id === "sync");
+    if (!sync) return true;
+    const x = n.params.sync ?? sync.default;
+    if (sync.kind === "bool") return x > 0.5;
+    const steps = sync.steps || sync.choices.length;
+    const i = Math.round(x * (steps - 1));
+    return sync.choices[0] === "Free" ? i > 0 : true;  // Rotating Divider's Sync is a quantise, not a rate
+  }
+
+  /// Every module that plays in time gets its Clock (and Run) from shared cell inputs of the same name,
+  /// unless a cable already feeds that jack. Left unpatched, they follow the transport as before.
+  #wireTempo() {
+    const fed = (n, jack) => this.cables.some((c) => c.to.node === n.id && c.to.jack === jack);
+    for (const n of [...this.nodes]) {
+      if (n.parent !== "root" || !this.#needsTempo(n)) continue;
+      for (const [jack, name, type] of [["clock", "Clock", "trigger"], ["run", "Run", "gate"]]) {
+        if (!types[n.type].inputs.some((i) => i.id === jack) || fed(n, jack)) continue;
+        const have = this.root.inputs.find((j) => j.id === jack);
+        if (have && have.type !== type) throw new Error(`${this.name}: cell input '${jack}' must be a ${type}`);
+        if (!have) this.input(jack, name, type);
+        this.cable(this.cin, jack, n, jack);
+      }
+    }
+  }
+
   /// The finished preset document (as saved in .bleepcell files), checked.
   build(category) {
     if (!this.description) throw new Error(`${this.name}: needs a description`);
+    this.#wireTempo();
     if (this.kind === "voice") {
       if (!this.cables.some((c) => c.to.node === "vo" && c.to.jack === "l"))
         throw new Error(`${this.name}: nothing reaches Voice Out › Out L`);

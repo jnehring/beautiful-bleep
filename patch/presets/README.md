@@ -61,5 +61,10 @@ export default category("Basses", "One sentence about the category.", [acidLine,
   semitones from a ±1 source.
 - Sequencers without a cable in *Clock* follow the transport, so cells play
   in time with Live (or the standalone app's transport) as they are.
+- **Tempo comes in through the cell.** `build()` gives every module that plays
+  in time (a Clock input and no Sync on Free: sequencers, drums, synced LFOs,
+  delays and benders) a shared **Clock** cell input, and the Drum Grid a
+  **Run** gate too, unless the preset already patches that jack. Nothing
+  patched into them still means "follow the transport"; a cable overrides it.
 - Every preset needs a **description**; names are unique across all
   categories. Keep each category at ten presets.

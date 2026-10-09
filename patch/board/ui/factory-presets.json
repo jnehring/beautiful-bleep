@@ -1931,7 +1931,7 @@
         "description": "Drum Map plays a Ring kick, snare, clap and hats; move the shared X and Y inputs to travel between grooves, hold Fill for fills.",
         "tags": ["drums","drum map","generative","ring"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Map Walker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"x","name":"X","type":"control"},{"id":"y","name":"Y","type":"control"},{"id":"fill","name":"Fill","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Map Walker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"x","name":"X","type":"control"},{"id":"y","name":"Y","type":"control"},{"id":"fill","name":"Fill","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumma","type":"drum-map","name":"Drum Map","x":340,"y":260,"parent":"root","params":{"x":0.3,"y":0.55,"kickdensity":0.55,"snaredensity":0.5,"hatsdensity":0.65,"chaos":0.12,"swing":0.16}},
@@ -1957,7 +1957,8 @@
           {"id":"k13","from":{"node":"ringcl","jack":"out"},"to":{"node":"audiom","jack":"in3l"},"amount":1},
           {"id":"k14","from":{"node":"ringha","jack":"out"},"to":{"node":"audiom","jack":"in4l"},"amount":1},
           {"id":"k15","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k17","from":{"node":"ci","jack":"clock"},"to":{"node":"drumma","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -1970,7 +1971,7 @@
         "description": "A Gate Sequencer with probabilities and ratchets plays Macro Osc's Kick, Snare and Metal models and a Perc Voice FM blip. Shared input Fill.",
         "tags": ["drums","gate sequencer","macro osc","synthetic"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Macro Foundry","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"fill","name":"Fill","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Macro Foundry","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"fill","name":"Fill","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"gatese","type":"gate-sequencer","name":"Gate Sequencer","x":340,"y":260,"parent":"root","params":{"swing":0.12,"ratchetdecay":0.3},"data":{"tracks":[{"mute":false,"steps":[{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100}]},{"mute":false,"steps":[{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":48},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":3,"rs":1,"n":0,"c":[0,0],"v":90},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100}]},{"mute":false,"steps":[{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":3,"rs":1,"n":0,"c":[0,0],"v":90},{"on":1,"p":100,"l":50,"t":0,"r":2,"rs":0,"n":0,"c":[0,0],"v":90},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":100,"l":50,"t":0,"r":3,"rs":1,"n":0,"c":[0,0],"v":90}]},{"mute":false,"steps":[{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[1,12],"v":90},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[1,12],"v":90},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110}]}]}},
@@ -1996,7 +1997,8 @@
           {"id":"k13","from":{"node":"percvo","jack":"l"},"to":{"node":"audiom","jack":"in4l"},"amount":1},
           {"id":"k14","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in4r"},"amount":1},
           {"id":"k15","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k17","from":{"node":"ci","jack":"clock"},"to":{"node":"gatese","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2009,7 +2011,7 @@
         "description": "Rhythm Bank's four related even rhythms play a skin, a wood block, a bar and a shaker from Perc Voices, in a small room. Shared input Pattern browses grooves.",
         "tags": ["drums","percussion","euclidean","rhythm bank","organic"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Euclid Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"pat","name":"Pattern","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Euclid Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"pat","name":"Pattern","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"rhythm","type":"rhythm-bank","name":"Rhythm Bank","x":340,"y":260,"parent":"root","params":{"pattern":0.291339,"family":0,"output":1}},
@@ -2039,7 +2041,8 @@
           {"id":"k16","from":{"node":"reverb","jack":"wetL"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k17","from":{"node":"reverb","jack":"wetR"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k18","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k19","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k19","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k20","from":{"node":"ci","jack":"clock"},"to":{"node":"rhythm","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2052,7 +2055,7 @@
         "description": "Drum Grid electro: syncopated Punch kick, snare and clap on the backbeat, busy hats, cowbell and a zapping tom; two patterns.",
         "tags": ["drums","electro","808","drum grid","breakdance"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Electro Pop-Lock","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Electro Pop-Lock","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.08},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Snare","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Open Hat","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Cowbell","mute":false,"solo":false},{"name":"Zap","mute":false,"solo":false},{"name":"Rim","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Pop","length":16,"steps":["X.....x...X..x..","....X.......X...","x.xxx.xxx.xxx.x.","..............x.","....x.......x...","..x....x..x.....","...........x....",""]},{"name":"Lock","length":16,"steps":["X.....x...X.x...","....X.......X..x","xxx.xxx.xxx.xx..","...x..........x.","....x.......x...","..x.....x.x...x.","...x.......x...x",".......x.....x.."]},null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2095,7 +2098,9 @@
           {"id":"k25","from":{"node":"audiom2","jack":"outl"},"to":{"node":"audiom3","jack":"in2l"},"amount":1},
           {"id":"k26","from":{"node":"audiom2","jack":"outr"},"to":{"node":"audiom3","jack":"in2r"},"amount":1},
           {"id":"k27","from":{"node":"audiom3","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k28","from":{"node":"audiom3","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k28","from":{"node":"audiom3","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k29","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k30","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1}
         ]
       }
     },
@@ -2108,7 +2113,7 @@
         "description": "Minimal techno on a Drum Grid: a dry Punch kick, off-beat Ring hats and a syncopated rim sent into a tempo-synced dub echo and a dark room.",
         "tags": ["drums","techno","minimal","dub","drum grid","effects"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Concrete Minimal","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Concrete Minimal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.2,"gatelength":0.191919},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Open Hat","mute":false,"solo":false},{"name":"Rim","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Low Tom","mute":false,"solo":false},{"name":"High Tom","mute":false,"solo":false},{"name":"Perc","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Floor","length":16,"steps":["X...X...X...X...","..x...x...x...x.","..............x.","...x..x....x..x.","","","",""]},{"name":"Ceiling","length":16,"steps":["X...X...X...X...","x.x.x.x.x.x.x.x.","..x...x...x.....","...x..x..x.x..x.","............x...","","",""]},null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2141,7 +2146,10 @@
           {"id":"k18","from":{"node":"reverb","jack":"l"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k19","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k20","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k21","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k21","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k22","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k23","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1},
+          {"id":"k24","from":{"node":"ci","jack":"clock"},"to":{"node":"zonede","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2154,7 +2162,7 @@
         "description": "A two-bar breakbeat (kick, ghosted snare, ride) through Bender, which repeats, reverses and reshuffles slices by chance. Shared inputs Chaos and Glitch.",
         "tags": ["drums","jungle","breakbeat","glitch","bender"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Break Shredder","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"chaos","name":"Chaos","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Break Shredder","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"chaos","name":"Chaos","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.08},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Snare","mute":false,"solo":false},{"name":"Ride","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Low Tom","mute":false,"solo":false},{"name":"High Tom","mute":false,"solo":false},{"name":"Perc","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Break","length":32,"steps":["X.x.......xx....X.x.......x.....","....X..x.x..X..x....X..x.x....X.","x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.","..............x...............xx"]},{"name":"Roller","length":32,"steps":["X.........X.....X.x.......x.....","....X..x.x.xX..x.x..X..x.x..X.xx","x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.","..x...x...x...x...x...x...x...x."]},null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2183,7 +2191,10 @@
           {"id":"k15","from":{"node":"audiom","jack":"outl"},"to":{"node":"bender","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"bender","jack":"r"},"amount":1},
           {"id":"k17","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k18","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k18","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k19","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k20","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1},
+          {"id":"k21","from":{"node":"ci","jack":"clock"},"to":{"node":"bender","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2196,7 +2207,7 @@
         "description": "Lo-fi boom-bap: a lazy swung Ring kit through a saturated ladder low-pass and a light bit crush, over a bed of tape hiss.",
         "tags": ["drums","lo-fi","hip hop","boom bap","dusty"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Dusty Tape Kit","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Dusty Tape Kit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.4,"velocity":0.6},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Snare","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Rim","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Low Tom","mute":false,"solo":false},{"name":"High Tom","mute":false,"solo":false},{"name":"Perc","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Nod","length":32,"steps":["X.........x.....X.x.......x..x..","....X.......X.......X.......X..x","x.x.x.xxx.x.x.x.x.x.x.xxx.x.x.x.","..............x.......x........."]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2229,7 +2240,9 @@
           {"id":"k17","from":{"node":"filter","jack":"l"},"to":{"node":"bender","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"filter","jack":"r"},"to":{"node":"bender","jack":"r"},"amount":1},
           {"id":"k19","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k20","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k20","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k21","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k22","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1}
         ]
       }
     },
@@ -2242,7 +2255,7 @@
         "description": "Rotating Div turns the 16th-note clock into /2 … /7 cycles on kick, hats, conga, clave, cowbell and clap: polyrhythms that realign every four bars. Shared input Rotate.",
         "tags": ["drums","polyrhythm","rotating divider","percussion"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Gear Train","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"rot","name":"Rotate","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Gear Train","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"rot","name":"Rotate","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"rotati","type":"rotating-divider","name":"Rotating Div","x":340,"y":260,"parent":"root","params":{"set":0,"output":1,"realign":0.75,"sync":1}},
@@ -2276,7 +2289,8 @@
           {"id":"k17","from":{"node":"audiom2","jack":"outl"},"to":{"node":"audiom3","jack":"in2l"},"amount":1},
           {"id":"k18","from":{"node":"audiom2","jack":"outr"},"to":{"node":"audiom3","jack":"in2r"},"amount":1},
           {"id":"k19","from":{"node":"audiom3","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k20","from":{"node":"audiom3","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k20","from":{"node":"audiom3","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k21","from":{"node":"ci","jack":"clock"},"to":{"node":"rotati","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -3602,7 +3616,7 @@
         "description": "A 16-step A Phrygian acid line with ties for slides and loud accents: play a mono Voice Cell with Legato and Glide. Shared inputs Transpose and Reset.",
         "tags": ["sequencer","acid","bass","step sequencer","phrygian"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Acid Sermon","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"rst","name":"Reset","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
+          {"id":"root","type":"cell","name":"Acid Sermon","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"rst","name":"Reset","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"stepse","type":"step-sequencer","name":"Step Sequencer","x":640,"y":260,"parent":"root","params":{"gatelength":0.545455,"swing":0.08,"root":0.818182,"scale":0.375,"octave":0.166667},"data":{"steps":[{"g":1,"p":0,"v":127},{"g":1,"p":0,"v":80},{"g":1,"p":12,"v":110},{"g":2,"p":12,"v":80},{"g":1,"p":1,"v":90},{"g":1,"p":0,"v":80},{"g":0,"p":0,"v":80},{"g":1,"p":7,"v":127},{"g":1,"p":0,"v":80},{"g":1,"p":12,"v":110},{"g":0,"p":0,"v":80},{"g":1,"p":3,"v":127},{"g":2,"p":3,"v":80},{"g":1,"p":0,"v":80},{"g":1,"p":10,"v":110},{"g":1,"p":1,"v":90},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}}
@@ -3612,7 +3626,8 @@
           {"id":"k2","from":{"node":"ci","jack":"rst"},"to":{"node":"stepse","jack":"reset"},"amount":1},
           {"id":"k3","from":{"node":"stepse","jack":"notes"},"to":{"node":"co","jack":"notes"},"amount":1},
           {"id":"k4","from":{"node":"stepse","jack":"pitch"},"to":{"node":"co","jack":"pitch"},"amount":1},
-          {"id":"k5","from":{"node":"stepse","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1}
+          {"id":"k5","from":{"node":"stepse","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"clock"},"to":{"node":"stepse","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -3625,7 +3640,7 @@
         "description": "A two-bar E minor bassline bouncing between octaves, moving to C in the second bar: disco and house bass. Shared input Transpose follows a key change or a chord sequencer.",
         "tags": ["sequencer","bass","octave","house","disco"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Octave Bounce","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
+          {"id":"root","type":"cell","name":"Octave Bounce","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"stepse","type":"step-sequencer","name":"Step Sequencer","x":640,"y":260,"parent":"root","params":{"gatelength":0.343434,"swing":0.16,"length":1,"root":0.363636,"scale":0.125,"octave":0.166667},"data":{"steps":[{"g":1,"p":0,"v":120},{"g":1,"p":12,"v":90},{"g":1,"p":0,"v":110},{"g":1,"p":12,"v":90},{"g":1,"p":0,"v":120},{"g":1,"p":12,"v":90},{"g":1,"p":0,"v":110},{"g":1,"p":12,"v":90},{"g":1,"p":0,"v":120},{"g":1,"p":12,"v":90},{"g":1,"p":0,"v":110},{"g":1,"p":12,"v":90},{"g":1,"p":3,"v":120},{"g":1,"p":15,"v":90},{"g":1,"p":5,"v":110},{"g":1,"p":17,"v":90},{"g":1,"p":8,"v":120},{"g":1,"p":20,"v":90},{"g":1,"p":8,"v":110},{"g":1,"p":20,"v":90},{"g":1,"p":8,"v":120},{"g":1,"p":20,"v":90},{"g":1,"p":8,"v":110},{"g":1,"p":20,"v":90},{"g":1,"p":7,"v":120},{"g":1,"p":19,"v":90},{"g":1,"p":7,"v":110},{"g":1,"p":19,"v":90},{"g":1,"p":10,"v":120},{"g":1,"p":22,"v":90},{"g":1,"p":10,"v":110},{"g":1,"p":12,"v":90}]}}
@@ -3634,7 +3649,8 @@
           {"id":"k1","from":{"node":"ci","jack":"tr"},"to":{"node":"stepse","jack":"transpose"},"amount":1},
           {"id":"k2","from":{"node":"stepse","jack":"notes"},"to":{"node":"co","jack":"notes"},"amount":1},
           {"id":"k3","from":{"node":"stepse","jack":"pitch"},"to":{"node":"co","jack":"pitch"},"amount":1},
-          {"id":"k4","from":{"node":"stepse","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1}
+          {"id":"k4","from":{"node":"stepse","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"clock"},"to":{"node":"stepse","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -3692,7 +3708,7 @@
         "description": "A Turing-machine melody: an 8-bit Shift Register that mutates now and then, quantized to E minor pentatonic over two octaves. Shared inputs Lock (frozen ↔ random) and Transpose.",
         "tags": ["sequencer","generative","shift register","turing","lead"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Turing Spiral","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"lock","name":"Lock","type":"control"},{"id":"tr","name":"Transpose","type":"pitch"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
+          {"id":"root","type":"cell","name":"Turing Spiral","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"lock","name":"Lock","type":"control"},{"id":"tr","name":"Transpose","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"shiftr","type":"shift-register","name":"Shift Register","x":340,"y":260,"parent":"root","params":{"lock":0.9,"length":0.428571,"gatelength":0.59596,"sync":0.222222,"octaves":0.333333,"root":0.363636,"scale":0.75}},
@@ -3705,7 +3721,8 @@
           {"id":"k4","from":{"node":"shiftr","jack":"bit1"},"to":{"node":"cvtono","jack":"gate"},"amount":1},
           {"id":"k5","from":{"node":"cvtono","jack":"notes"},"to":{"node":"co","jack":"notes"},"amount":1},
           {"id":"k6","from":{"node":"shiftr","jack":"pitch"},"to":{"node":"co","jack":"pitch"},"amount":1},
-          {"id":"k7","from":{"node":"shiftr","jack":"bit1"},"to":{"node":"co","jack":"gate"},"amount":1}
+          {"id":"k7","from":{"node":"shiftr","jack":"bit1"},"to":{"node":"co","jack":"gate"},"amount":1},
+          {"id":"k8","from":{"node":"ci","jack":"clock"},"to":{"node":"shiftr","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -3718,7 +3735,7 @@
         "description": "Polymeter Seq in F Dorian: rhythm 16, notes 5, octaves 7, gates 12 and chances 9 steps long, so the line keeps turning over for hundreds of bars. Shared input Transpose.",
         "tags": ["sequencer","polymeter","generative","dorian"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Clockwork Polymeter","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
+          {"id":"root","type":"cell","name":"Clockwork Polymeter","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"polyme","type":"polymeter-sequencer","name":"Polymeter Seq","x":640,"y":260,"parent":"root","params":{"velocity":0.8,"spread":0.2,"root":0.454545,"scale":0.3125,"octave":0.333333},"data":{"slot":0,"slots":[{"tracks":{"trig":{"len":16,"lo":0,"hi":15,"div":"1","dir":"fwd","mute":false,"steps":[2,0,1,1,0,1,2,0,1,0,1,1,0,2,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},"note":{"len":5,"lo":0,"hi":4,"div":"1","dir":"fwd","mute":false,"steps":[0,2,4,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"oct":{"len":7,"lo":0,"hi":6,"div":"1","dir":"fwd","mute":false,"steps":[0,0,1,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"gate":{"len":12,"lo":0,"hi":11,"div":"1","dir":"fwd","mute":false,"steps":[40,30,60,-1,30,50,30,80,30,40,-1,30,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50]},"prob":{"len":9,"lo":0,"hi":8,"div":"1","dir":"fwd","mute":false,"steps":[100,100,80,100,60,100,100,75,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100]},"ratch":{"len":16,"lo":0,"hi":15,"div":"1","dir":"fwd","mute":false,"steps":[[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[3,1],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0],[1,0]]}}}],"randomize":{"density":0.5,"degrees":[0,7],"stepwise":true,"ratchet":0.1}}}
@@ -3727,7 +3744,8 @@
           {"id":"k1","from":{"node":"ci","jack":"tr"},"to":{"node":"polyme","jack":"transpose"},"amount":1},
           {"id":"k2","from":{"node":"polyme","jack":"notes"},"to":{"node":"co","jack":"notes"},"amount":1},
           {"id":"k3","from":{"node":"polyme","jack":"pitch"},"to":{"node":"co","jack":"pitch"},"amount":1},
-          {"id":"k4","from":{"node":"polyme","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1}
+          {"id":"k4","from":{"node":"polyme","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"clock"},"to":{"node":"polyme","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -3740,7 +3758,7 @@
         "description": "Stage Seq in C harmonic minor: eight stages of held notes, repeats, a ratchet and two slides make a one-bar riff with a four-bar phrase. Shared inputs Transpose and Hold.",
         "tags": ["sequencer","stage sequencer","riff","harmonic minor"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Staircase Phrase","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"hold","name":"Hold","type":"gate"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
+          {"id":"root","type":"cell","name":"Staircase Phrase","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"hold","name":"Hold","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"stages","type":"stage-sequencer","name":"Stage Seq","x":640,"y":260,"parent":"root","params":{"gatelength":0.59596,"slidetime":0.407114,"accent":0.6,"stages":0.466667,"root":0,"scale":0.1875,"octave":0.333333},"data":{"stages":[{"p":0,"n":3,"g":3,"r":2,"s":0,"v":115,"a":1},{"p":0,"n":1,"g":2,"r":2,"s":0,"v":80,"a":0},{"p":7,"n":2,"g":1,"r":2,"s":0,"v":100,"a":0},{"p":8,"n":1,"g":2,"r":2,"s":1,"v":100,"a":0},{"p":7,"n":2,"g":4,"r":3,"s":0,"v":90,"a":0},{"p":3,"n":2,"g":3,"r":2,"s":0,"v":115,"a":1},{"p":2,"n":1,"g":2,"r":2,"s":0,"v":85,"a":0},{"p":-1,"n":4,"g":3,"r":2,"s":1,"v":100,"a":0}],"randomize":{"lanes":["pitch","pulses","gate"],"octaves":1,"maxPulses":4,"slide":0.15,"accent":0.15}}}
@@ -3750,7 +3768,8 @@
           {"id":"k2","from":{"node":"ci","jack":"hold"},"to":{"node":"stages","jack":"hold"},"amount":1},
           {"id":"k3","from":{"node":"stages","jack":"notes"},"to":{"node":"co","jack":"notes"},"amount":1},
           {"id":"k4","from":{"node":"stages","jack":"pitch"},"to":{"node":"co","jack":"pitch"},"amount":1},
-          {"id":"k5","from":{"node":"stages","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1}
+          {"id":"k5","from":{"node":"stages","jack":"gate"},"to":{"node":"co","jack":"gate"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"clock"},"to":{"node":"stages","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -3818,7 +3837,7 @@
         "description": "Recall draws random 16th-note gates and A minor pentatonic notes that keep echoing their recent past: half new, half remembered. Shared inputs Memory (more = repeats) and Reset.",
         "tags": ["sequencer","recall","generative","random","pentatonic"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Deja Vu Line","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"mem","name":"Memory","type":"control"},{"id":"rst","name":"Reset","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
+          {"id":"root","type":"cell","name":"Deja Vu Line","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"mem","name":"Memory","type":"control"},{"id":"rst","name":"Reset","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"recall","type":"recall","name":"Recall","x":640,"y":260,"parent":"root","params":{"tbias":0.6,"trecall":0.55,"gatelength":0.545455,"xspread":0.5,"xsteps":0.62,"xrecall":0.7,"sync":0.733333,"tloop":0.466667,"xloop":0.466667,"xsource":0.333333,"root":0.818182,"scale":0.75}},
@@ -3832,7 +3851,8 @@
           {"id":"k5","from":{"node":"recall","jack":"t1"},"to":{"node":"cvtono","jack":"gate"},"amount":1},
           {"id":"k6","from":{"node":"cvtono","jack":"notes"},"to":{"node":"co","jack":"notes"},"amount":1},
           {"id":"k7","from":{"node":"recall","jack":"x1"},"to":{"node":"co","jack":"pitch"},"amount":1},
-          {"id":"k8","from":{"node":"recall","jack":"t1"},"to":{"node":"co","jack":"gate"},"amount":1}
+          {"id":"k8","from":{"node":"recall","jack":"t1"},"to":{"node":"co","jack":"gate"},"amount":1},
+          {"id":"k9","from":{"node":"ci","jack":"clock"},"to":{"node":"recall","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -3872,7 +3892,7 @@
         "description": "Tempo-synced dotted-eighth echoes that bounce left and right, darker with every pass, into a short room. Shared inputs Feedback and Tone.",
         "tags": ["delay","ping-pong","dub","tempo"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Dub Ping-Pong","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"fb","name":"Feedback","type":"control"},{"id":"tone","name":"Tone","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Dub Ping-Pong","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"fb","name":"Feedback","type":"control"},{"id":"tone","name":"Tone","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"utilit","type":"utility","name":"Ping-Pong On","x":340,"y":260,"parent":"root","params":{"scalex":0.5,"offset":1}},
@@ -3888,7 +3908,8 @@
           {"id":"k6","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k8","from":{"node":"ci","jack":"fb"},"to":{"node":"zonede","jack":"feedback"},"amount":0.4},
-          {"id":"k9","from":{"node":"ci","jack":"tone"},"to":{"node":"zonede","jack":"tone"},"amount":0.5}
+          {"id":"k9","from":{"node":"ci","jack":"tone"},"to":{"node":"zonede","jack":"tone"},"amount":0.5},
+          {"id":"k10","from":{"node":"ci","jack":"clock"},"to":{"node":"zonede","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4006,7 +4027,7 @@
         "description": "Bender catches sixteenth-note slices by chance and repeats, reverses and re-pitches them in octaves: seeded glitches that come back every loop. Shared inputs Chance and Glitch.",
         "tags": ["glitch","stutter","repeat","tempo"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Stutter Engine","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"chance","name":"Chance","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Stutter Engine","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"chance","name":"Chance","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"bender","type":"bender","name":"Bender","x":340,"y":40,"parent":"root","params":{"sync":0.65,"chance":0.2,"repeats":0.2,"bend":0.75,"bendvar":0.4,"slice":0.3,"mode":0.75,"bendsteps":0.333333,"edge":0.8}}
@@ -4017,7 +4038,8 @@
           {"id":"k3","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k4","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k5","from":{"node":"ci","jack":"chance"},"to":{"node":"bender","jack":"chance"},"amount":0.5},
-          {"id":"k6","from":{"node":"ci","jack":"glitch"},"to":{"node":"bender","jack":"glitch"},"amount":1}
+          {"id":"k6","from":{"node":"ci","jack":"glitch"},"to":{"node":"bender","jack":"glitch"},"amount":1},
+          {"id":"k7","from":{"node":"ci","jack":"clock"},"to":{"node":"bender","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4114,7 +4136,7 @@
         "description": "Four tempo-locked LFOs from one Quad LFO, at a quarter, a half, one and two bars: sines and triangles that always meet on the downbeat. Shared input Hold.",
         "tags": ["lfo","tempo","sync","quad"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Tempo Quartet","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"hold","name":"Hold","type":"gate"}],"outputs":[{"id":"q","name":"1/4","type":"control"},{"id":"h","name":"1/2","type":"control"},{"id":"b1","name":"1 Bar","type":"control"},{"id":"b2","name":"2 Bars","type":"control"}]},
+          {"id":"root","type":"cell","name":"Tempo Quartet","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"hold","name":"Hold","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"q","name":"1/4","type":"control"},{"id":"h","name":"1/2","type":"control"},{"id":"b1","name":"1 Bar","type":"control"},{"id":"b2","name":"2 Bars","type":"control"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"quadlf","type":"quad-lfo","name":"Quad LFO","x":340,"y":40,"parent":"root","params":{"mode":1,"sync":1,"rate1":0.23809523809523808,"divide1":0,"divide2":0.166667,"divide3":0.25,"divide4":0.333333,"wave1":0,"wave2":0.166667,"wave3":0,"wave4":0.166667}}
@@ -4124,7 +4146,8 @@
           {"id":"k2","from":{"node":"quadlf","jack":"out1"},"to":{"node":"co","jack":"q"},"amount":1},
           {"id":"k3","from":{"node":"quadlf","jack":"out2"},"to":{"node":"co","jack":"h"},"amount":1},
           {"id":"k4","from":{"node":"quadlf","jack":"out3"},"to":{"node":"co","jack":"b1"},"amount":1},
-          {"id":"k5","from":{"node":"quadlf","jack":"out4"},"to":{"node":"co","jack":"b2"},"amount":1}
+          {"id":"k5","from":{"node":"quadlf","jack":"out4"},"to":{"node":"co","jack":"b2"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"clock"},"to":{"node":"quadlf","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4184,7 +4207,7 @@
         "description": "A Tidal slope looping every two bars with a slow rise and quick fall, in four phase-shifted copies for staggered swells. Shared inputs Restart and Skew.",
         "tags": ["envelope","cycle","tempo","slope"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Tide Cycler","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"restart","name":"Restart","type":"gate"},{"id":"skew","name":"Skew","type":"control"}],"outputs":[{"id":"a","name":"Tide A","type":"control"},{"id":"b","name":"Tide B","type":"control"},{"id":"c","name":"Tide C","type":"control"},{"id":"d","name":"Tide D","type":"control"},{"id":"end","name":"End","type":"trigger"}]},
+          {"id":"root","type":"cell","name":"Tide Cycler","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"restart","name":"Restart","type":"gate"},{"id":"skew","name":"Skew","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"a","name":"Tide A","type":"control"},{"id":"b","name":"Tide B","type":"control"},{"id":"c","name":"Tide C","type":"control"},{"id":"d","name":"Tide D","type":"control"},{"id":"end","name":"End","type":"trigger"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"tidal","type":"tidal","name":"Tidal","x":340,"y":40,"parent":"root","params":{"sync":0.142857,"skew":0.75,"curve":0.65,"smooth":0.65,"spread":0.75,"relation":0.333333,"polarity":1,"range":0}}
@@ -4196,7 +4219,8 @@
           {"id":"k4","from":{"node":"tidal","jack":"b"},"to":{"node":"co","jack":"b"},"amount":1},
           {"id":"k5","from":{"node":"tidal","jack":"c"},"to":{"node":"co","jack":"c"},"amount":1},
           {"id":"k6","from":{"node":"tidal","jack":"d"},"to":{"node":"co","jack":"d"},"amount":1},
-          {"id":"k7","from":{"node":"tidal","jack":"end"},"to":{"node":"co","jack":"end"},"amount":1}
+          {"id":"k7","from":{"node":"tidal","jack":"end"},"to":{"node":"co","jack":"end"},"amount":1},
+          {"id":"k8","from":{"node":"ci","jack":"clock"},"to":{"node":"tidal","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4358,7 +4382,7 @@
         "description": "Random gates tossed between three pinged low pass gates, each tuned to a fresh D minor pentatonic note: a west-coast hand-drum garden that keeps shifting. Shared input Density.",
         "tags": ["generative","west coast","percussion","pentatonic","low pass gate"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Bongo Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Bongo Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"recall","type":"recall","name":"Recall","x":340,"y":40,"parent":"root","params":{"tmode":0.333333,"tbias":0.42,"trecall":0.6,"tloop":1,"tjitter":0.08,"sync":0.733333,"seed":0.007007}},
@@ -4404,7 +4428,8 @@
           {"id":"k27","from":{"node":"reverb","jack":"l"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k28","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k29","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k30","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k30","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k31","from":{"node":"ci","jack":"clock"},"to":{"node":"recall","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4417,7 +4442,7 @@
         "description": "A Shift Register melody in A Dorian plucks a string Resonator while a sine bass echoes the same bits four steps later, through a dotted-eighth delay network. Shared input Lock (frozen ↔ mutating).",
         "tags": ["generative","turing machine","shift register","plucked","string","delay"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Turing Strings","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"lock","name":"Lock","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Turing Strings","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"lock","name":"Lock","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"shiftr","type":"shift-register","name":"Shift Register","x":340,"y":40,"parent":"root","params":{"lock":0.925,"length":0.428571,"sync":0.333333,"octaves":0.333333,"root":0.818182,"scale":0.3125,"seed":0.023023,"gatelength":0.393939}},
@@ -4445,7 +4470,9 @@
           {"id":"k14","from":{"node":"reverb","jack":"l"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k15","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k16","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k17","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k17","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k18","from":{"node":"ci","jack":"clock"},"to":{"node":"shiftr","jack":"clock"},"amount":1},
+          {"id":"k19","from":{"node":"ci","jack":"clock"},"to":{"node":"delayn","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4519,7 +4546,7 @@
         "description": "Gusts of chance triggers strike two bell-like Modal Voices tuned to F major pentatonic, slow organic movement on where they are struck, in a wide reverb. Shared input Wind (more strikes).",
         "tags": ["generative","chimes","bells","modal","ambient","pentatonic"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Wind Chimes","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"wind","name":"Wind","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Wind Chimes","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"wind","name":"Wind","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"recall","type":"recall","name":"Recall","x":340,"y":40,"parent":"root","params":{"tmode":0.333333,"tbias":0.16,"tjitter":0.7,"sync":0.733333,"seed":0.042042}},
@@ -4553,7 +4580,8 @@
           {"id":"k19","from":{"node":"reverb","jack":"l"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k20","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k21","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k22","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k22","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k23","from":{"node":"ci","jack":"clock"},"to":{"node":"recall","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4566,7 +4594,7 @@
         "description": "A generative techno loop: Drum Map kick, clap and hats with a touch of chaos, and a Polymeter Seq acid line in A minor through a resonant diode ladder whose cutoff drifts like weather. Shared input Cutoff.",
         "tags": ["generative","techno","acid","drums","loop"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Acid Weather","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Acid Weather","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"cut","name":"Cutoff","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumma","type":"drum-map","name":"Drum Map","x":340,"y":40,"parent":"root","params":{"x":0.3,"y":0.6,"kickdensity":0.55,"snaredensity":0.4,"hatsdensity":0.65,"chaos":0.25,"chaosrate":0.25,"swing":0.16,"seed":0.017017}},
@@ -4610,7 +4638,10 @@
           {"id":"k25","from":{"node":"delayn","jack":"l"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k26","from":{"node":"delayn","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k27","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k28","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k28","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k29","from":{"node":"ci","jack":"clock"},"to":{"node":"drumma","jack":"clock"},"amount":1},
+          {"id":"k30","from":{"node":"ci","jack":"clock"},"to":{"node":"polyme","jack":"clock"},"amount":1},
+          {"id":"k31","from":{"node":"ci","jack":"clock"},"to":{"node":"delayn","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4623,7 +4654,7 @@
         "description": "A Harmony Master (bus D) walks a repeating loop of four D minor seventh chords, two bars each: a saw pad holds the chord tones, a plucked bass follows the chord's bass note, and a Pluck arpeggio traces the chord. Shared input Root (transposes everything).",
         "tags": ["generative","chords","progression","arpeggio","harmony"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Seasons Turning","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"root","name":"Root","type":"pitch"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Seasons Turning","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"root","name":"Root","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"random","type":"random","name":"Chord Walk","x":340,"y":40,"parent":"root","params":{"sync":0.777778,"length":0.25,"loop":1,"spread":1,"seed":0.012012}},
@@ -4670,7 +4701,9 @@
           {"id":"k25","from":{"node":"reverb","jack":"l"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k26","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k27","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k28","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k28","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k29","from":{"node":"ci","jack":"clock"},"to":{"node":"random","jack":"clock"},"amount":1},
+          {"id":"k30","from":{"node":"ci","jack":"clock"},"to":{"node":"rhythm","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4724,7 +4757,7 @@
         "description": "Four Modal Voice marimba bars on C minor-seventh chord tones, struck every 2, 3, 5 and 7 sixteenths; a slow random rotates which bar gets which prime, so the polyrhythm turns over every four bars.",
         "tags": ["generative","polyrhythm","marimba","mallets","modal"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Prime Marimba","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Prime Marimba","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"rotati","type":"rotating-divider","name":"Rotating Div","x":340,"y":260,"parent":"root","params":{"set":0.5,"base":0.692308,"output":1,"rotate":0.25,"sync":1}},
@@ -4751,7 +4784,9 @@
           {"id":"k12","from":{"node":"reverb","jack":"l"},"to":{"node":"audiom","jack":"returnl"},"amount":1},
           {"id":"k13","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k14","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k15","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k15","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k16","from":{"node":"ci","jack":"clock"},"to":{"node":"rotati","jack":"clock"},"amount":1},
+          {"id":"k17","from":{"node":"ci","jack":"clock"},"to":{"node":"random","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4764,7 +4799,7 @@
         "description": "Sparse Lydian plucks from a Macro Osc feed Grains, which scatters them back at wandering positions, an octave or a fifth away, with feedback and blur: a slowly shimmering cloud. Shared input Density.",
         "tags": ["generative","granular","ambient","cloud","shimmer"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Pollen Cloud","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Pollen Cloud","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"random","type":"random","name":"Notes","x":340,"y":40,"parent":"root","params":{"sync":0.333333,"spread":0.8,"loop":0.4,"length":0.875,"seed":0.003003}},
@@ -4790,7 +4825,8 @@
           {"id":"k11","from":{"node":"reverb","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k12","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
           {"id":"k13","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k14","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k14","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k15","from":{"node":"ci","jack":"clock"},"to":{"node":"random","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -4803,7 +4839,7 @@
         "description": "Two Neurons firing at each other, nudged by slow organic drift, play metallic FM clicks, a modal knock, noise ticks and a rim; Bender glitches the mix and a scattered delay smears it. Shared input Excite (fires faster).",
         "tags": ["generative","glitch","percussion","neuron","idm"],
         "nodes": [
-          {"id":"root","type":"cell","name":"Synapse Clicks","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"exc","name":"Excite","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Synapse Clicks","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"exc","name":"Excite","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"neuron","type":"neuron","name":"Neuron","x":340,"y":40,"parent":"root","params":{"aw1":0.6875,"bw1":0.7375,"aleak":0.452466,"bleak":0.519354,"apulse":0.40214,"bpulse":0.40214}},
@@ -4839,7 +4875,8 @@
           {"id":"k20","from":{"node":"audiom","jack":"outl"},"to":{"node":"bender","jack":"l"},"amount":1},
           {"id":"k21","from":{"node":"audiom","jack":"outr"},"to":{"node":"bender","jack":"r"},"amount":1},
           {"id":"k22","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
-          {"id":"k23","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+          {"id":"k23","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k24","from":{"node":"ci","jack":"clock"},"to":{"node":"bender","jack":"clock"},"amount":1}
         ]
       }
     }
