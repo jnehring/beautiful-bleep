@@ -1,5 +1,7 @@
 # Tidal
 
+![Tidal in the module view](tidal.png)
+
 ## Introduction
 
 Tidal is a **slope generator**: a voltage that rises and falls, again and

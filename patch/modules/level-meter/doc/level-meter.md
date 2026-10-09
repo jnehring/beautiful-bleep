@@ -1,5 +1,7 @@
 # Level Meter
 
+![Level Meter in the module view](level-meter.png)
+
 ## Introduction
 
 The Level Meter shows **how loud a signal is**: a bar per channel for the

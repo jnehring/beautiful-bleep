@@ -1,5 +1,7 @@
 # Dual Osc
 
+![Dual Osc in the module view](dual-osc.png)
+
 ## Introduction
 
 The Dual Osc is two analog-style oscillators, *A* and *B*, wired together

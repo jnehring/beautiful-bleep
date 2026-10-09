@@ -1,5 +1,7 @@
 # Perc Voice
 
+![Perc Voice in the module view](perc-voice.png)
+
 ## Introduction
 
 Perc Voice is one percussion voice that covers kicks, toms, hand drums, bells,

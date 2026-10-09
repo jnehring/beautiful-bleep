@@ -1,5 +1,7 @@
 # Drum Map
 
+![Drum Map in the module view](drum-map.png)
+
 ## Introduction
 
 The Drum Map plays **kick**, **snare** and **hats** from a **map of

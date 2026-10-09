@@ -1,5 +1,7 @@
 # Coin Toss
 
+![Coin Toss in the module view](coin-toss.png)
+
 ## Introduction
 
 Coin Toss is a probability router. Every gate or trigger that arrives at its

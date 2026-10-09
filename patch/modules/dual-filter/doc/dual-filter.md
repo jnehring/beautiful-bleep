@@ -1,5 +1,7 @@
 # Dual Filter
 
+![Dual Filter in the module view](dual-filter.png)
+
 ## Introduction
 
 The Dual Filter is two multimode filters under one **Cutoff**. A **Spread**

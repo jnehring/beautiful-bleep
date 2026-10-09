@@ -25,6 +25,11 @@ main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
 .card h3 { margin: 0 0 6px; }
 .card .tag { font-size: .8rem; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.chips a { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 4px 12px; font-size: .92rem; text-decoration: none; color: inherit; }
+.chips a span { color: var(--muted); margin-left: 4px; }
+.category { scroll-margin-top: 80px; }
+article img { max-width: 100%; height: auto; border-radius: 10px; }
 .docs { display: grid; grid-template-columns: 220px 1fr; gap: 28px; }
 .docs nav { font-size: .9rem; }
 .docs nav h4 { margin: 18px 0 6px; text-transform: uppercase; font-size: .75rem; letter-spacing: .1em; color: var(--muted); }

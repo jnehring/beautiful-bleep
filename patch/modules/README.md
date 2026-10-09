@@ -9,7 +9,8 @@ patch/modules/<type>/
 ├── module.json            name, slug (= type id), tagline, colour, formats, doc
 ├── <Name>Module.cpp       the node: spec (params, jacks, buttons) and process()
 ├── dsp/<Name>Dsp.h        the DSP, no JUCE (namespace bleep::patch)
-├── doc/<type>.md          the user documentation (the view's ? button)
+├── doc/<type>.md          the user documentation (the view's ? button and the website)
+├── doc/<type>.png         screenshot of the module view, shown at the top of the doc
 ├── ui/<type>.js           optional custom displays for the module view
 └── tests/test_<name>.cpp  DSP tests: each file is its own executable and ctest
 ```
@@ -38,7 +39,14 @@ at 0, at 1 and random, at three sample rates, with the transport starting,
 stopping and jumping. Outputs must stay finite and within ±64.
 
 After changing params or jacks, regenerate the board UI's type list
-(`bleep_dump_types --write patch/board/ui/demo-types.json`).
+(`bleep_dump_types --write patch/board/ui/demo-types.json`). The website reads
+each module's category from it. A module whose type list entry doesn't exist
+yet needs `"category"` in its `module.json`.
+
+Every doc starts with its screenshot (`![Name in the module view](<type>.png)`
+under the title). With `scripts/ui-server.py` running,
+`scripts/module-screenshots.py [type ...]` retakes them after a view changes.
+The website shows them; the plugins only embed the `.md` files.
 
 ## Shared code
 

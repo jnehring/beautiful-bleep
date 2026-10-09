@@ -1,5 +1,7 @@
 # Keyboard
 
+![Keyboard in the module view](keyboard.png)
+
 ## Introduction
 
 The Keyboard is a **piano keyboard on the board**. Play it with the mouse, a

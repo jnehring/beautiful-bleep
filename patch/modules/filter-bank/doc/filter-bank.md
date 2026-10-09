@@ -1,5 +1,7 @@
 # Filter Bank
 
+![Filter Bank in the module view](filter-bank.png)
+
 ## Introduction
 
 The Filter Bank splits a sound into ten bands with fixed band-pass filters.

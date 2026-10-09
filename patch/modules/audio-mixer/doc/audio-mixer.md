@@ -1,5 +1,7 @@
 # Audio Mixer
 
+![Audio Mixer in the module view](audio-mixer.png)
+
 ## Introduction
 
 A small stereo mixer for the board. It brings up to four sound sources

@@ -1,5 +1,7 @@
 # Noise
 
+![Noise in the module view](noise.png)
+
 ## Introduction
 
 Noise is random audio: every frequency at once, with no pitch. It's the raw

@@ -1,5 +1,7 @@
 # Button
 
+![Button in the module view](button.png)
+
 ## Introduction
 
 The Button is a **pad to press** while the patch plays. Click it, tap it or

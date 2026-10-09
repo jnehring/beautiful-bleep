@@ -1,5 +1,7 @@
 # Cartesian Seq
 
+![Cartesian Seq in the module view](cartesian-sequencer.png)
+
 ## Introduction
 
 The Cartesian Seq is a sequencer on a **grid**: up to 8 × 8 cells, each with

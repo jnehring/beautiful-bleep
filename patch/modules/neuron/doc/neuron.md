@@ -1,5 +1,7 @@
 # Neuron
 
+![Neuron in the module view](neuron.png)
+
 ## Introduction
 
 Neuron holds two simple artificial neurons. Each one adds up three weighted

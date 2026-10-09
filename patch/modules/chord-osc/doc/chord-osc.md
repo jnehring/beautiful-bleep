@@ -1,5 +1,7 @@
 # Chord Osc
 
+![Chord Osc in the module view](chord-osc.png)
+
 ## Introduction
 
 The Chord Osc turns one pitch into a whole chord. Up to six oscillators play

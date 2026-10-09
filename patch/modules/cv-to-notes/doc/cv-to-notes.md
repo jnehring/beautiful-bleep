@@ -1,5 +1,7 @@
 # CV to Notes
 
+![CV to Notes in the module view](cv-to-notes.png)
+
 ## Introduction
 
 CV to Notes turns a **pitch** and a **gate** into **notes**. Voice Cells and

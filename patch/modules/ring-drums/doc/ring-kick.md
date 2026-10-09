@@ -1,5 +1,7 @@
 # Ring Kick
 
+![Ring Kick in the module view](ring-kick.png)
+
 ## Introduction
 
 A deep, round bass drum. A resonator is struck and rings at *Tune*,

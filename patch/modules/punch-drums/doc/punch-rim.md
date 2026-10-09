@@ -1,5 +1,7 @@
 # Punch Rim
 
+![Punch Rim in the module view](punch-rim.png)
+
 ## Introduction
 
 A rim shot: a hard, bright crack, shorter and more metallic than Ring

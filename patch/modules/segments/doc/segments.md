@@ -1,5 +1,7 @@
 # Segments
 
+![Segments in the module view](segments.png)
+
 ## Introduction
 
 Segments draws **any envelope you like** out of up to eight pieces. Each

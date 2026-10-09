@@ -1,5 +1,7 @@
 # VCA
 
+![VCA in the module view](vca.png)
+
 ## Introduction
 
 A VCA (voltage-controlled amplifier) sets the volume of a signal. On its own

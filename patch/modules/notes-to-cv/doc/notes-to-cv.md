@@ -1,5 +1,7 @@
 # Notes to CV
 
+![Notes to CV in the module view](notes-to-cv.png)
+
 ## Introduction
 
 Notes to CV turns **notes** into **pitch**, **gate** and friends. Notes come

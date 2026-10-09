@@ -1,5 +1,7 @@
 # Polymeter Seq
 
+![Polymeter Seq in the module view](polymeter-sequencer.png)
+
 ## Introduction
 
 The Polymeter Seq takes what a step usually holds — *does it play, which

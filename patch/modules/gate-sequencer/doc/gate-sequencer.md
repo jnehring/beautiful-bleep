@@ -1,5 +1,7 @@
 # Gate Sequencer
 
+![Gate Sequencer in the module view](gate-sequencer.png)
+
 ## Introduction
 
 The Gate Sequencer is a rhythm sequencer with **deep steps**: four tracks of

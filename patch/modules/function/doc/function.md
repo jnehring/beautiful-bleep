@@ -1,5 +1,7 @@
 # Function
 
+![Function in the module view](function.png)
+
 ## Introduction
 
 The Function is a **slope generator**: it rises to 1 and falls back to 0. That

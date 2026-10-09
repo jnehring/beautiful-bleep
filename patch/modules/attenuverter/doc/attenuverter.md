@@ -1,5 +1,7 @@
 # Attenuverter
 
+![Attenuverter in the module view](attenuverter.png)
+
 ## Introduction
 
 Four rows that make a signal smaller, bigger, upside down or shifted. With

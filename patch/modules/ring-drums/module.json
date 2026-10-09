@@ -6,5 +6,6 @@
   "formats": [
     "Board module"
   ],
+  "category": "Drums/Ring",
   "doc": "doc/ring-drums.md"
 }

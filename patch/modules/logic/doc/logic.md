@@ -1,5 +1,7 @@
 # Logic
 
+![Logic in the module view](logic.png)
+
 ## Introduction
 
 Logic combines gates and triggers the way digital circuits do: AND, OR, XOR

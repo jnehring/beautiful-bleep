@@ -1,5 +1,7 @@
 # Rhythm Bank
 
+![Rhythm Bank in the module view](rhythm-bank.png)
+
 ## Introduction
 
 Four related rhythms from one number. Choose a **Family** (how the rhythms are

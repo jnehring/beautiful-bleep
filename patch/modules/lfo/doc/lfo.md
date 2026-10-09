@@ -1,5 +1,7 @@
 # LFO
 
+![LFO in the module view](lfo.png)
+
 ## Introduction
 
 The LFO is a **low-frequency oscillator**: it moves up and down by itself,

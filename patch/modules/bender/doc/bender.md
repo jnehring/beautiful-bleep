@@ -1,5 +1,7 @@
 # Bender
 
+![Bender in the module view](bender.png)
+
 ## Introduction
 
 Bender is a glitch effect in the spirit of circuit-bent samplers and skipping

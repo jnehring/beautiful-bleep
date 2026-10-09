@@ -1,5 +1,7 @@
 # Multi Filter
 
+![Multi Filter in the module view](filter.png)
+
 ## Introduction
 
 The Multi Filter shapes the tone of a sound by removing or emphasising

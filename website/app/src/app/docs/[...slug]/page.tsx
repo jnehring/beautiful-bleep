@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { AUDIENCES, allDocs, docsFor, findDoc } from "@/lib/content";
+import { AUDIENCES, CATEGORIES, allDocs, categoryTitle, docsFor, findDoc, modulesByCategory } from "@/lib/content";
 import { notFound } from "next/navigation";
 
 export function generateStaticParams() {
@@ -15,6 +15,8 @@ const SECTION_TITLES: Record<string, string> = {
 };
 
 function sectionTitle(section: string): string {
+  const cat = section.match(/^musicians\/modules\/(\d+)-/);  // one section per module category
+  if (cat) return `Modules · ${CATEGORIES[Number(cat[1])] ? categoryTitle(CATEGORIES[Number(cat[1])]) : "Other"}`;
   const spec = section.match(/^developers\/spec\/(.+)$/);
   return SECTION_TITLES[section] ?? (spec ? `Spec ${spec[1]}` : section);
 }
@@ -47,7 +49,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
         ))}
         <h4>Single files</h4>
         <ul>
-          {audience.bundles.map((b) => (
+          {[...audience.bundles, ...(doc.audience === "musicians" ? modulesByCategory().map((g) => `modules-${g.slug}-full.md`) : [])].map((b) => (
             <li key={b}><a href={`/docs/${b}`}>{b}</a></li>
           ))}
         </ul>

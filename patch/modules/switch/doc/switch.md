@@ -1,5 +1,7 @@
 # Switch
 
+![Switch in the module view](switch.png)
+
 ## Introduction
 
 The Switch is a sequential switch with up to 8 steps. It picks one of eight

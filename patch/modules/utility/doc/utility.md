@@ -1,5 +1,7 @@
 # Utility
 
+![Utility in the module view](utility.png)
+
 ## Introduction
 
 Utility is the glue between modules. It scales, inverts, offsets and mixes

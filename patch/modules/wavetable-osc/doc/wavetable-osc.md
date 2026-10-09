@@ -1,5 +1,7 @@
 # Wavetable Osc
 
+![Wavetable Osc in the module view](wavetable-osc.png)
+
 ## Introduction
 
 The Wavetable Osc plays single-cycle waveforms from a *bank*: a grid of up

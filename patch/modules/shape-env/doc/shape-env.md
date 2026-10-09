@@ -1,5 +1,7 @@
 # Shape Env
 
+![Shape Env in the module view](shape-env.png)
+
 ## Introduction
 
 Shape Env is an **envelope and LFO that plays shapes from a library**

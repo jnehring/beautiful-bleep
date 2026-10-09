@@ -1,5 +1,7 @@
 # Quad LFO
 
+![Quad LFO in the module view](quad-lfo.png)
+
 ## Introduction
 
 Quad LFO is **four LFOs in one module**, with one *Mode* that decides how they

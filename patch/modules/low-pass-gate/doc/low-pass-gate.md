@@ -1,5 +1,7 @@
 # Low Pass Gate
 
+![Low Pass Gate in the module view](low-pass-gate.png)
+
 ## Introduction
 
 A low pass gate is a filter and an amplifier in one, opened by light. Inside

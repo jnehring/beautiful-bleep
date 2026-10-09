@@ -1,5 +1,7 @@
 # Chord Quantizer
 
+![Chord Quantizer in the module view](chord-quantizer.png)
+
 ## Introduction
 
 One pitch in, a **chord** out. The input picks the chord's root, the module

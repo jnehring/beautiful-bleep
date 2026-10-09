@@ -1,5 +1,7 @@
 # Macro Osc
 
+![Macro Osc in the module view](macro-osc.png)
+
 ## Introduction
 
 The Macro Osc is sixteen synthesis models behind one *Model* knob. Every

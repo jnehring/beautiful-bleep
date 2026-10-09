@@ -1,5 +1,7 @@
 # Punch Snare
 
+![Punch Snare in the module view](punch-snare.png)
+
 ## Introduction
 
 A snare with a hard, forward body: two sine waves that drop slightly in

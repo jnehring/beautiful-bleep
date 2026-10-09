@@ -1,5 +1,7 @@
 # Harmony Master
 
+![Harmony Master in the module view](harmony-master.png)
+
 ## Introduction
 
 Harmony Master says what **key and chord** the music is in right now, for the

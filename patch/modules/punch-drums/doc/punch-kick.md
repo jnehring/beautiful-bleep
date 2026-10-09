@@ -1,5 +1,7 @@
 # Punch Kick
 
+![Punch Kick in the module view](punch-kick.png)
+
 ## Introduction
 
 A hard, tight bass drum: a sine wave that starts high and sweeps down

@@ -1,5 +1,7 @@
 # Wobble
 
+![Wobble in the module view](wobble.png)
+
 ## Introduction
 
 Wobble turns one stream of random values into three shapes of movement.

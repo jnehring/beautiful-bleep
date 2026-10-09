@@ -1,5 +1,7 @@
 # Drum Grid
 
+![Drum Grid in the module view](drum-grid.png)
+
 ## Introduction
 
 The Drum Grid is a drum machine's step sequencer: **8 tracks** by up to

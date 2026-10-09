@@ -1,5 +1,7 @@
 # Six Slopes
 
+![Six Slopes in the module view](six-slopes.png)
+
 ## Introduction
 
 Six Slopes is **six slope generators on one set of knobs**. Each slope rises

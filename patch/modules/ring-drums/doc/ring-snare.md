@@ -1,5 +1,7 @@
 # Ring Snare
 
+![Ring Snare in the module view](ring-snare.png)
+
 ## Introduction
 
 A snare drum: two ringing drum heads for the body, and a burst of

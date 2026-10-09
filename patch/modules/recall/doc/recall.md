@@ -1,5 +1,7 @@
 # Recall
 
+![Recall in the module view](recall.png)
+
 ## Introduction
 
 Recall generates random rhythms and melodies in two sections that share one

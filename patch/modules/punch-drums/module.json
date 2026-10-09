@@ -6,5 +6,6 @@
   "formats": [
     "Board module"
   ],
+  "category": "Drums/Punch",
   "doc": "doc/punch-drums.md"
 }

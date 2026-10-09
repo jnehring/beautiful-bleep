@@ -1,5 +1,7 @@
 # Zone Delay
 
+![Zone Delay in the module view](zone-delay.png)
+
 ## Introduction
 
 Zone Delay is one stereo delay for every delay time worth having: tuned combs

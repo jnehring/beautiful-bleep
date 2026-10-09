@@ -1,5 +1,7 @@
 # Formant Osc
 
+![Formant Osc in the module view](formant-osc.png)
+
 ## Introduction
 
 The Formant Osc is a pulse-formant oscillator. Every cycle of the note fires

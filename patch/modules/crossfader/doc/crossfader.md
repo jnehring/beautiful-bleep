@@ -1,5 +1,7 @@
 # Crossfader
 
+![Crossfader in the module view](crossfader.png)
+
 ## Introduction
 
 The Crossfader blends between two stereo signals with one knob: dry and wet

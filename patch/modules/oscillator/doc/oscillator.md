@@ -1,5 +1,7 @@
 # Oscillator
 
+![Oscillator in the module view](oscillator.png)
+
 ## Introduction
 
 The Oscillator is the sound source of most patches. It makes a steady tone

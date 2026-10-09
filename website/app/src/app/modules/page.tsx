@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
+import { CategoryLinks, ModuleCatalog } from "../ModuleCatalog";
 import { modules } from "@/lib/content";
 
 export default function Modules() {
   return (
     <>
       <h1>Modules</h1>
-      <div className="grid">
-        {modules().map((m) => (
-          <a key={m.slug} className="card" href={`/modules/${m.slug}/`} style={{ borderTop: `4px solid ${m.colour}`, textDecoration: "none", color: "inherit" }}>
-            <h3>{m.name}</h3>
-            <div>{m.tagline}</div>
-          </a>
-        ))}
-      </div>
+      <p>
+        {modules().length} modules, in the same categories as the board's Add menu. Every knob is a modulation
+        destination; each page is the manual behind the <strong>?</strong> button of the module's window.
+      </p>
+      <CategoryLinks />
+      <ModuleCatalog />
     </>
   );
 }

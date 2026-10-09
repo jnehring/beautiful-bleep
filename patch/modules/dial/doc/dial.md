@@ -1,5 +1,7 @@
 # Dial
 
+![Dial in the module view](dial.png)
+
 ## Introduction
 
 The Dial is **one big knob** whose position comes out of a jack as a control

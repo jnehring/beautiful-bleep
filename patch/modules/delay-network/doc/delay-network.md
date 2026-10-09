@@ -1,5 +1,7 @@
 # Delay Net
 
+![Delay Net in the module view](delay-network.png)
+
 ## Introduction
 
 Delay Net is a network of up to eight delay lines whose repeats feed each

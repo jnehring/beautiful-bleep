@@ -1,5 +1,7 @@
 # ADSR
 
+![ADSR in the module view](adsr.png)
+
 ## Introduction
 
 The ADSR is the classic envelope generator: **attack, decay, sustain,

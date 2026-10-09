@@ -1,5 +1,7 @@
 # Shift Register
 
+![Shift Register in the module view](shift-register.png)
+
 ## Introduction
 
 Shift Register is a looping row of 16 bits. On every step the bits move one

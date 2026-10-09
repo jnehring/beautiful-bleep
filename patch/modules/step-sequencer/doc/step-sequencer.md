@@ -1,5 +1,7 @@
 # Step Sequencer
 
+![Step Sequencer in the module view](step-sequencer.png)
+
 ## Introduction
 
 The Step Sequencer plays a melody of up to **32 steps**. Each step has a

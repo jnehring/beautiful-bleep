@@ -1,5 +1,7 @@
 # Modal Voice
 
+![Modal Voice in the module view](modal-voice.png)
+
 ## Introduction
 
 Modal Voice is a complete physical-modelling instrument in one module. An

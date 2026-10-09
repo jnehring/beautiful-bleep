@@ -1,5 +1,7 @@
 # Ring Tom
 
+![Ring Tom in the module view](ring-tom.png)
+
 ## Introduction
 
 A tom or hand drum: a ringing tone that falls slightly in pitch as it

@@ -1,5 +1,7 @@
 # Random
 
+![Random in the module view](random.png)
+
 ## Introduction
 
 Random produces a new random value on every step: the classic stepped

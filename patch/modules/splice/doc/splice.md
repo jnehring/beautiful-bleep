@@ -1,5 +1,7 @@
 # Splice
 
+![Splice in the module view](splice.png)
+
 ## Introduction
 
 Splice is a tape-style sampler and looper. You record onto a **reel** of up to

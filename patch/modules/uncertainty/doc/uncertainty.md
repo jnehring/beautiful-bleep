@@ -1,5 +1,7 @@
 # Uncertainty
 
+![Uncertainty in the module view](uncertainty.png)
+
 ## Introduction
 
 Uncertainty is six random generators in one module, each with a different

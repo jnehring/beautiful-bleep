@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-import { modules } from "@/lib/content";
+import { modules, modulesByCategory } from "@/lib/content";
+import { CategoryLinks } from "./ModuleCatalog";
 
 export default function Home() {
   return (
@@ -16,15 +17,8 @@ export default function Home() {
         </p>
       </section>
       <h2>Modules</h2>
-      <div className="grid">
-        {modules().map((m) => (
-          <a key={m.slug} className="card" href={`/modules/${m.slug}/`} style={{ borderTop: `4px solid ${m.colour}`, textDecoration: "none", color: "inherit" }}>
-            <h3>{m.name}</h3>
-            <div>{m.tagline}</div>
-            <div className="tag">{m.formats.join(" · ")}</div>
-          </a>
-        ))}
-      </div>
+      <p>{modules().length} modules in {modulesByCategory().length} categories. <a href="/modules/">See them all</a>.</p>
+      <CategoryLinks base="/modules/" />
       <h2>Open technology</h2>
       <p>
         The cables run on <strong>Bleep Bus</strong>, an open, MIT-licensed protocol with a C SDK, a conformance

@@ -1,5 +1,7 @@
 # Ring Clap
 
+![Ring Clap in the module view](ring-clap.png)
+
 ## Introduction
 
 A hand clap: band-passed noise opened by a few quick bursts, as if

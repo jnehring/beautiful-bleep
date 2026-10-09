@@ -1,5 +1,7 @@
 # Folder
 
+![Folder in the module view](wavefolder.png)
+
 ## Introduction
 
 The Folder is a stereo wavefolder: six folding stages in a row turn a simple

@@ -1,5 +1,7 @@
 # Additive Osc
 
+![Additive Osc in the module view](additive-osc.png)
+
 ## Introduction
 
 The Additive Osc builds its sound from up to 64 sine waves, the *partials*.

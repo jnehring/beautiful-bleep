@@ -1,5 +1,7 @@
 # Verb
 
+![Verb in the module view](reverb.png)
+
 ## Introduction
 
 Verb is a stereo reverb built to be **played**, not just set. Every knob,

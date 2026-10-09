@@ -1,5 +1,7 @@
 # Ring Cymbal
 
+![Ring Cymbal in the module view](ring-cymbal.png)
+
 ## Introduction
 
 A cymbal from the same six square waves as Ring Hats, split into two

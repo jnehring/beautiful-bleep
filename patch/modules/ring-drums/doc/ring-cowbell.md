@@ -1,5 +1,7 @@
 # Ring Cowbell
 
+![Ring Cowbell in the module view](ring-cowbell.png)
+
 ## Introduction
 
 A cowbell: two square waves, a fifth-ish apart, through a band-pass

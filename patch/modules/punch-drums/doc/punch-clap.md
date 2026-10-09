@@ -1,5 +1,7 @@
 # Punch Clap
 
+![Punch Clap in the module view](punch-clap.png)
+
 ## Introduction
 
 A bright, roomy hand clap: tight bursts of noise and a louder tail

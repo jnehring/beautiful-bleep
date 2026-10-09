@@ -1,5 +1,7 @@
 # Stage Seq
 
+![Stage Seq in the module view](stage-sequencer.png)
+
 ## Introduction
 
 The Stage Seq plays **stages** instead of steps. Each of up to 16 stages has

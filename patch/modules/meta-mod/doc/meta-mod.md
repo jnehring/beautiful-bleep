@@ -1,5 +1,7 @@
 # Meta Mod
 
+![Meta Mod in the module view](meta-mod.png)
+
 ## Introduction
 
 The Meta Mod combines two audio signals, a *Carrier* and a *Modulator*, into

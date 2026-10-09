@@ -1,5 +1,7 @@
 # Grains
 
+![Grains in the module view](grains.png)
+
 ## Introduction
 
 Grains records its input into a buffer of a few seconds and plays it back as

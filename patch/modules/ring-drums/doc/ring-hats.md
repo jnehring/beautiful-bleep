@@ -1,5 +1,7 @@
 # Ring Hats
 
+![Ring Hats in the module view](ring-hats.png)
+
 ## Introduction
 
 Closed and open hi-hats in one node. The sound comes from six square

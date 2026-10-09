@@ -1,5 +1,7 @@
 # Multiplier
 
+![Multiplier in the module view](multiplier.png)
+
 ## Introduction
 
 Two multipliers that compute X × Y, with both signals allowed to be negative.

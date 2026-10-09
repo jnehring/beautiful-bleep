@@ -1,5 +1,7 @@
 # Resonator
 
+![Resonator in the module view](resonator.png)
+
 ## Introduction
 
 The Resonator is a tuned body that rings when something hits it. Feed it any

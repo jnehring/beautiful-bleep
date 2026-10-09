@@ -36,6 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "website" / "content"
 MODULES = ROOT / "patch" / "modules"
 HEADER = ROOT / "bus" / "include" / "bleep_bus.h"
+CATEGORIES = ["Sources", "Modulation", "Audio", "Utility", "Controllers", "Sequencing", "Drums/Ring", "Drums/Punch"]  # the board's Add menu order
 TOKEN_BUDGET = 80_000  # concept §9.3: beyond this, simplify the API or split the audience
 
 
@@ -80,14 +81,25 @@ def bundle(title: str, files: list[Path], version: str) -> str:
     return "".join(parts)
 
 
-def module_docs() -> list[Path]:
-    """patch/modules/<name>/doc/<file>.md, as named by module.json."""
-    docs = []
+def module_docs_by_category() -> dict[str, list[Path]]:
+    """patch/modules/<name>/doc/*.md grouped by the board's categories (Sources, Audio, ...), in the board's order.
+
+    The category of a node comes from the board's type list (board/ui/demo-types.json), of a
+    kit's overview from its module.json. Inside a folder, the doc named by module.json comes first."""
+    types_file = ROOT / "patch" / "board" / "ui" / "demo-types.json"
+    categories = {t["type"]: t["category"] for t in json.loads(types_file.read_text(encoding="utf-8"))} if types_file.is_file() else {}
+    found: dict[str, list[Path]] = {}
     for meta in sorted(MODULES.glob("*/module.json")):
-        doc = json.loads(meta.read_text(encoding="utf-8")).get("doc")
-        if doc and (meta.parent / doc).is_file():
-            docs.append(meta.parent / doc)
-    return docs
+        info = json.loads(meta.read_text(encoding="utf-8"))
+        docs = sorted((meta.parent / "doc").glob("*.md"), key=lambda f: (f.stem != meta.parent.name, f.stem))
+        for doc in docs:
+            found.setdefault(categories.get(doc.stem) or info.get("category") or "Other", []).append(doc)
+    order = {c: i for i, c in enumerate(CATEGORIES)}
+    return dict(sorted(found.items(), key=lambda kv: (order.get(kv[0], len(order)), kv[0])))
+
+
+def category_slug(category: str) -> str:
+    return re.sub(r"[^a-z]+", "-", category.lower())
 
 
 def copy_module_assets(out: Path) -> None:
@@ -118,9 +130,12 @@ def main() -> int:
     bundles = {
         "quickstart-full.md": ("", [dev / "quickstart.md"]),
         "api-reference-full.md": ("", sorted((dev / "api-reference").glob("*.md"))),
-        "user-docs-full.md": ("Bleep Patch user documentation",
-                              sorted((CONTENT / "musicians").rglob("*.md")) + module_docs()),
+        "user-docs-full.md": ("Bleep Patch user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
     }
+    # The module manuals are too many for one file: one per category.
+    module_bundles = {f"modules-{category_slug(c)}-full.md": (f"Bleep Patch modules: {c.replace('/', ' · ')}", docs)
+                      for c, docs in module_docs_by_category().items()}
+    bundles.update(module_bundles)
     for spec_dir in sorted((dev / "spec").iterdir()):
         if spec_dir.is_dir():
             bundles[f"spec-{spec_dir.name}-full.md"] = ("", sorted(spec_dir.glob("*.md")))
@@ -164,7 +179,11 @@ def main() -> int:
         "",
         "## Musicians",
         "",
-        f"- [User documentation]({base}/v{version}/user-docs-full.md): getting started, module manuals, Live routing guides",
+        f"- [User documentation]({base}/v{version}/user-docs-full.md): getting started, the board, Live routing guides",
+    ]
+    for name, (title, _) in module_bundles.items():
+        llms.append(f"- [{title}]({base}/v{version}/{name}): the manuals of these modules")
+    llms += [
         "",
     ]
     (out / "llms.txt").write_text("\n".join(llms), encoding="utf-8")

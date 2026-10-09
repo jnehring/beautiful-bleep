@@ -1,5 +1,7 @@
 # CV Mixer
 
+![CV Mixer in the module view](cv-mixer.png)
+
 ## Introduction
 
 The CV Mixer combines up to four modulation signals into one. Adding them up

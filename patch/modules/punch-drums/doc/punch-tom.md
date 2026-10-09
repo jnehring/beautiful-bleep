@@ -1,5 +1,7 @@
 # Punch Tom
 
+![Punch Tom in the module view](punch-tom.png)
+
 ## Introduction
 
 A tom: a sine wave that starts above its pitch and drops onto it, with a

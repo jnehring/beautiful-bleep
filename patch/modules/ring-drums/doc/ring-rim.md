@@ -1,5 +1,7 @@
 # Ring Rim
 
+![Ring Rim in the module view](ring-rim.png)
+
 ## Introduction
 
 Short, high, woody clicks: a rim shot (the stick hitting the rim of a

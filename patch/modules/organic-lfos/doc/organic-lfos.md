@@ -1,5 +1,7 @@
 # Organic LFOs
 
+![Organic LFOs in the module view](organic-lfos.png)
+
 ## Introduction
 
 Organic LFOs are **eight slow LFOs that move like a group of living

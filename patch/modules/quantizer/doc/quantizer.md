@@ -1,5 +1,7 @@
 # Quantizer
 
+![Quantizer in the module view](quantizer.png)
+
 ## Introduction
 
 The Quantizer snaps a pitch to the nearest note of a scale. Feed it an LFO,

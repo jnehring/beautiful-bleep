@@ -1,5 +1,7 @@
 # Matrix Mixer
 
+![Matrix Mixer in the module view](matrix-mixer.png)
+
 ## Introduction
 
 A grid of up to **8 inputs by 8 outputs**. Every crosspoint is a gain from −1

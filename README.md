@@ -22,7 +22,8 @@ All scripts live in [`scripts/`](scripts/) and work from any directory.
 | [`reload-live.sh`](scripts/reload-live.sh) | macOS: rebuilds the plugins, quits Ableton Live, replaces the VST3s and reopens a test set: `scripts/reload-live.sh ~/Music/test.als [build options]` |
 | [`run-website.sh`](scripts/run-website.sh) | Runs the website in Docker on http://localhost:8080: `up` (default), `down`, `logs`, `rebuild` |
 | [`ui-server.py`](scripts/ui-server.py) | Serves the board UI in a browser with a fake engine: `scripts/ui-server.py`, then open http://localhost:8765 |
-| [`build-docs.py`](scripts/build-docs.py) | Writes the single-file docs per audience and `llms.txt` (also run by the website build) |
+| [`build-docs.py`](scripts/build-docs.py) | Writes the single-file docs per audience (module manuals one file per category) and `llms.txt` (also run by the website build) |
+| [`module-screenshots.py`](scripts/module-screenshots.py) | Screenshots every module's view into its `doc/<type>.png` (needs `ui-server.py` running and Playwright) |
 | [`check-api-docs.py`](scripts/check-api-docs.py) | Checks that every function in `bleep_bus.h` is documented in the API reference |
 | [`check-repo.py`](scripts/check-repo.py) | Checks the dependency rules between `bus/`, `patch/` and `website/`, SPDX headers and LICENSE files |
 

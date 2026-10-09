@@ -1,5 +1,7 @@
 # Punch Cymbal
 
+![Punch Cymbal in the module view](punch-cymbal.png)
+
 ## Introduction
 
 A crash or a ride cymbal: bright, slightly crunchy metal with a long

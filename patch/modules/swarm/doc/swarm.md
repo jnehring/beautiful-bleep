@@ -1,5 +1,7 @@
 # Swarm
 
+![Swarm in the module view](swarm.png)
+
 ## Introduction
 
 The Swarm is a cloud of up to 16 oscillators played from one pitch. Their

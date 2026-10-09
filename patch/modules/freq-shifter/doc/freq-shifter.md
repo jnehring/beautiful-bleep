@@ -1,5 +1,7 @@
 # Freq Shifter
 
+![Freq Shifter in the module view](freq-shifter.png)
+
 ## Introduction
 
 The Freq Shifter moves every frequency of a sound up or down by the same

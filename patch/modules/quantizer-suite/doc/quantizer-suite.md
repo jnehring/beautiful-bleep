@@ -1,5 +1,7 @@
 # Quantizer Suite
 
+![Quantizer Suite in the module view](quantizer-suite.png)
+
 ## Introduction
 
 Four quantizers in one module. Each channel snaps a pitch to a scale, and can

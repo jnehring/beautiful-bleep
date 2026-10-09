@@ -1,5 +1,7 @@
 # Rotating Div
 
+![Rotating Div in the module view](rotating-divider.png)
+
 ## Introduction
 
 Eight clock dividers on one clock. Out 1 fires every step, Out 2 every second

@@ -1,5 +1,7 @@
 # Punch Hats
 
+![Punch Hats in the module view](punch-hats.png)
+
 ## Introduction
 
 Bright, crunchy closed and open hi-hats in one node, with the slightly
