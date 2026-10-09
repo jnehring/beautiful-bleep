@@ -1824,6 +1824,21 @@
     });
     doc.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });  // the page must not navigate
     close.addEventListener("click", () => closeView(id));
+    if (hook && hook.resizable) {  // drag the lower right corner to change the width
+      const grip = el("div", "v-grip");
+      grip.title = "Drag to resize";
+      win.appendChild(grip);
+      grip.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        grip.setPointerCapture(e.pointerId);
+        const sx = e.clientX, w0 = win.offsetWidth, max = canvas.clientWidth - win.offsetLeft - 8;
+        const move = (m) => { win.style.width = Math.max(360, Math.min(max, w0 + m.clientX - sx)) + "px"; };
+        const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); };
+        grip.addEventListener("pointermove", move);
+        grip.addEventListener("pointerup", up);
+      });
+    }
     head.addEventListener("pointerdown", (e) => {
       if (e.target.closest("button")) return;
       const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;

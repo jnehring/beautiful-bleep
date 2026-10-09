@@ -4,7 +4,7 @@
 // in the node's data; edits go to the engine with api.setData.
 (function () {
   "use strict";
-  const TRACKS = 8, STEPS = 32, SLOTS = 16, COL = 16, ROW = 20, RULER = 14, H = RULER + TRACKS * ROW;
+  const TRACKS = 8, STEPS = 32, SLOTS = 16, MIN_COL = 10, RULER = 14;
   const NAMES = ["Kick", "Snare", "Closed Hat", "Open Hat", "Clap", "Low Tom", "High Tom", "Perc"];
   const PPQN = [0, 2, 4, 24, 48];
   const RATE_BEATS = [1.5, 1, 2 / 3, 0.75, 0.5, 1 / 3, 0.375, 0.25, 1 / 6, 0.1875, 0.125, 1 / 12];
@@ -46,8 +46,8 @@
   }
   const editSlot = (view) => (view.dg.edit ?? data(view).current);
   function send(view) { view.api.setData(clone(data(view))); }
-  function edit(view, fn) {
-    view.api.beginGesture();
+  async function edit(view, fn) {
+    await view.api.beginGesture();
     fn(data(view));
     send(view);
     render(view);
@@ -62,13 +62,25 @@
   const setCell = (p, k, i, c) => (p.steps[k] = p.steps[k].slice(0, i) + c + p.steps[k].slice(i + 1));
 
   // ---- drawing ------------------------------------------------------------
+  /// Cell size from the room the grid has: columns fill the width, rows follow.
+  function layout(view) {
+    const avail = view.dg.scroll.clientWidth || STEPS * MIN_COL;
+    const COL = Math.max(MIN_COL, avail / STEPS), ROW = Math.round(clamp(COL * 1.25, 20, 48));
+    view.root.style.setProperty("--dg-row", ROW + "px");
+    return { COL, ROW, W: COL * STEPS, H: RULER + TRACKS * ROW };
+  }
+
   function draw(view) {
     const c = view.dg && view.dg.canvas;
     if (!c) return;
     const d = data(view), st = view.dg.state || {}, p = pattern(view, false);
     const len = p ? p.length : 16;
-    const dpr = window.devicePixelRatio || 1, w = STEPS * COL;
-    if (c.width !== w * dpr) { c.width = w * dpr; c.height = H * dpr; c.style.width = w + "px"; c.style.height = H + "px"; }
+    const { COL, ROW, W: w, H } = layout(view);
+    const dpr = window.devicePixelRatio || 1;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(H * dpr)) {
+      c.width = Math.round(w * dpr); c.height = Math.round(H * dpr);
+      c.style.width = w + "px"; c.style.height = H + "px";
+    }
     const g = c.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, H);
@@ -105,17 +117,17 @@
         if (v === ".") {
           g.strokeStyle = muted;
           g.globalAlpha = a * 0.5;
-          g.strokeRect(x + 3.5, y + 4.5, COL - 7, ROW - 9);
+          g.strokeRect(x + 1.5, y + 1.5, COL - 3, ROW - 3);
           continue;
         }
         const hit = head && ((st.hits || 0) >> k) & 1;
         g.fillStyle = hit ? text : accent;
         g.globalAlpha = a * (v === "X" ? 1 : 0.6);
-        g.fillRect(x + 2, y + 3, COL - 4, ROW - 6);
+        g.fillRect(x + 1, y + 1, COL - 2, ROW - 2);
         if (v === "X") {  // accent mark
           g.fillStyle = text;
           g.globalAlpha = a;
-          g.fillRect(x + 4, y + 5, COL - 8, 2);
+          g.fillRect(x + 3, y + 3, COL - 6, 2);
         }
       }
     }
@@ -176,11 +188,12 @@
   function attach(view, c) {
     let drag = null;
     const at = (e) => {
-      const r = c.getBoundingClientRect();
+      const r = c.getBoundingClientRect(), { COL } = layout(view);
       return { i: clamp(Math.floor((e.clientX - r.left) / COL), 0, STEPS - 1), y: e.clientY - r.top,
                x: e.clientX - r.left };
     };
     const apply = (e) => {
+      const { COL, ROW } = layout(view);
       const { i, y, x } = at(e);
       if (drag.ruler) {
         const p = pattern(view, true);
@@ -197,12 +210,19 @@
       send(view);
       render(view);
     };
-    c.addEventListener("pointerdown", (e) => {
+    let token = 0, held = false;
+    c.addEventListener("pointerdown", async (e) => {
       if (e.button !== 0) return;
-      const { i, y } = at(e);
+      const { ROW } = layout(view);
+      const { i, y } = at(e), mine = ++token;
       e.stopPropagation();
       c.setPointerCapture(e.pointerId);
-      view.api.beginGesture();
+      drag = null;
+      held = true;
+      // The reply to beginGesture refreshes the view from the engine; wait for
+      // it, or it would overwrite the edit made below.
+      await view.api.beginGesture();
+      if (mine !== token) return;
       if (y < RULER) drag = { ruler: true };
       else {
         const k = clamp(Math.floor((y - RULER) / ROW), 0, TRACKS - 1);
@@ -211,9 +231,11 @@
         drag = { value };
       }
       apply(e);
+      if (!held) drag = null;  // released while waiting
     });
     c.addEventListener("pointermove", (e) => { if (drag) apply(e); });
-    const end = () => (drag = null);
+    const end = () => { held = false; drag = null; };
+    c.addEventListener("lostpointercapture", end);
     c.addEventListener("pointerup", end);
     c.addEventListener("pointercancel", end);
   }
@@ -330,7 +352,7 @@
   }
 
   const STYLE = `
-    .dg-panel { flex: 1 1 100%; min-width: 0; position: relative; }
+    .dg-panel { flex: 1 1 100%; min-width: 0; position: relative; --dg-row: 20px; }
     .dg-tools { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; font-size: 11px; color: var(--muted); }
     .dg-tools button, .dg-menu button { background: var(--panel); color: var(--text); border: 1px solid var(--line);
       border-radius: 6px; padding: 2px 8px; font: inherit; font-size: 11px; cursor: pointer; }
@@ -348,7 +370,7 @@
     .dg-warn { color: var(--accent); }
     .dg-body { display: flex; }
     .dg-tracks { flex: none; width: 128px; padding-top: ${RULER}px; }
-    .dg-track { height: ${ROW}px; display: flex; align-items: center; gap: 2px; }
+    .dg-track { height: var(--dg-row, 20px); display: flex; align-items: center; gap: 2px; }
     .dg-track input { width: 74px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--text);
       font: inherit; font-size: 11px; padding: 0 3px; }
     .dg-track input:focus { border-color: var(--line); outline: none; }
@@ -374,6 +396,7 @@
   BleepViews.register("drum-grid", {
     top: true,
     width: 660,
+    resizable: true,
     template: `<div class="bv-panel dg-panel">
       <div class="dg-slots"></div>
       <div class="dg-tools">
@@ -441,6 +464,8 @@
         tracks.appendChild(r);
         view.dg.tracks.push({ name, mute, solo });
       }
+      view.dg.scroll = el.querySelector(".dg-scroll");
+      new ResizeObserver(() => { if (view.root.isConnected) draw(view); }).observe(view.dg.scroll);
       attach(view, canvas);
       const paste = el.querySelector(".dg-paste");
       el.querySelector(".dg-presets").addEventListener("click", () => menu(view));
