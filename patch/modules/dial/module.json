@@ -1,0 +1,10 @@
+{
+  "name": "Dial",
+  "slug": "dial",
+  "tagline": "One big knob as a control signal: a macro, a selector, a hand on the patch.",
+  "colour": "#fda4af",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/dial.md"
+}

@@ -1159,6 +1159,2096 @@
     ]
   },
   {
+    "type": "notes-to-cv",
+    "name": "Notes to CV",
+    "category": "Utility",
+    "colour": "#c084fc",
+    "description": "Notes in; pitch, gate, trigger, velocity and pressure out, with note priority and glide.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "glide",
+        "name": "Glide",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "priority",
+        "name": "Priority",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Last",
+          "Lowest",
+          "Highest",
+          "First"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "retrigger",
+        "name": "Retrigger",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Off (Legato)",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "glidemode",
+        "name": "Glide Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Always",
+          "Legato Only"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "channel",
+        "name": "Channel",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 17,
+        "modulatable": false,
+        "choices": [
+          "All",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16"
+        ],
+        "min": 0.0,
+        "max": 16.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "pressure",
+        "name": "Pressure",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "count",
+        "name": "Count",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "attenuverter",
+    "name": "Attenuverter",
+    "category": "Utility",
+    "colour": "#c4b5fd",
+    "description": "Four rows of scale and offset; unpatched rows are manual constants.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "scale1",
+        "name": "Scale 1",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -2.0,
+        "max": 2.0
+      },
+      {
+        "id": "offset1",
+        "name": "Offset 1",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "scale2",
+        "name": "Scale 2",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -2.0,
+        "max": 2.0
+      },
+      {
+        "id": "offset2",
+        "name": "Offset 2",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "scale3",
+        "name": "Scale 3",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -2.0,
+        "max": 2.0
+      },
+      {
+        "id": "offset3",
+        "name": "Offset 3",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "scale4",
+        "name": "Scale 4",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -2.0,
+        "max": 2.0
+      },
+      {
+        "id": "offset4",
+        "name": "Offset 4",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "clip",
+        "name": "Clip",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "Soft",
+          "Hard"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in1",
+        "name": "In 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in2",
+        "name": "In 2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in3",
+        "name": "In 3",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in4",
+        "name": "In 4",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out1",
+        "name": "Out 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "out2",
+        "name": "Out 2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "out3",
+        "name": "Out 3",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "out4",
+        "name": "Out 4",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "sum",
+        "name": "Sum",
+        "type": "control",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "cv-mixer",
+    "name": "CV Mixer",
+    "category": "Utility",
+    "colour": "#c4b5fd",
+    "description": "Four bipolar channels combined by sum, average, max, min or a scan across them.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "level1",
+        "name": "Level 1",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level2",
+        "name": "Level 2",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level3",
+        "name": "Level 3",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level4",
+        "name": "Level 4",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "scan",
+        "name": "Scan",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "master",
+        "name": "Master",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "offset",
+        "name": "Offset",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "Sum",
+          "Average",
+          "Max",
+          "Min",
+          "Scan"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "clip",
+        "name": "Clip",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "Soft",
+          "Hard"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in1",
+        "name": "In 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in2",
+        "name": "In 2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in3",
+        "name": "In 3",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in4",
+        "name": "In 4",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "inv",
+        "name": "Inv",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "abs",
+        "name": "Abs",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "multiplier",
+    "name": "Multiplier",
+    "category": "Utility",
+    "colour": "#c4b5fd",
+    "description": "Two four-quadrant multipliers: ring modulation, or one modulator scaling another.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "biasx1",
+        "name": "Bias X1",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "biasy1",
+        "name": "Bias Y1",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "gain1",
+        "name": "Gain 1",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -2.0,
+        "max": 2.0
+      },
+      {
+        "id": "biasx2",
+        "name": "Bias X2",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "biasy2",
+        "name": "Bias Y2",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "gain2",
+        "name": "Gain 2",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -2.0,
+        "max": 2.0
+      },
+      {
+        "id": "oversampling",
+        "name": "Oversampling",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "2x",
+          "4x"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "x1",
+        "name": "X1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "y1",
+        "name": "Y1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "x2",
+        "name": "X2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "y2",
+        "name": "Y2",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out1",
+        "name": "Out 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "out2",
+        "name": "Out 2",
+        "type": "control",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "logic",
+    "name": "Logic",
+    "category": "Utility",
+    "colour": "#86efac",
+    "description": "AND, OR, XOR and friends for gates, plus a flip-flop and edge triggers.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "threshold",
+        "name": "Threshold",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "hysteresis",
+        "name": "Hysteresis",
+        "kind": "float",
+        "default": 0.03999999910593,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 0.5
+      },
+      {
+        "id": "flipsource",
+        "name": "Flip Source",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Flip Jack",
+          "A Rising Edge"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "a",
+        "name": "A",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "b",
+        "name": "B",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "c",
+        "name": "C",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "flip",
+        "name": "Flip",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "and",
+        "name": "AND",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "or",
+        "name": "OR",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "xor",
+        "name": "XOR",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "nand",
+        "name": "NAND",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "nor",
+        "name": "NOR",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "nota",
+        "name": "NOT A",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "ff",
+        "name": "FF",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "rise",
+        "name": "Rise",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "fall",
+        "name": "Fall",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "change",
+        "name": "Change",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "quantizer",
+    "name": "Quantizer",
+    "category": "Utility",
+    "colour": "#93c5fd",
+    "description": "Snaps a pitch to the notes of a scale: any modulator becomes a melody.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "range",
+        "name": "Range",
+        "kind": "float",
+        "default": 0.25,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "hysteresis",
+        "name": "Hysteresis",
+        "kind": "float",
+        "default": 0.200000002980232,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 0.5
+      },
+      {
+        "id": "glide",
+        "name": "Glide",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "root",
+        "name": "Root",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 12,
+        "modulatable": false,
+        "choices": [
+          "C",
+          "C#",
+          "D",
+          "D#",
+          "E",
+          "F",
+          "F#",
+          "G",
+          "G#",
+          "A",
+          "A#",
+          "B"
+        ],
+        "min": 0.0,
+        "max": 11.0
+      },
+      {
+        "id": "scale",
+        "name": "Scale",
+        "kind": "choice",
+        "default": 0.058823529630899,
+        "steps": 18,
+        "modulatable": false,
+        "choices": [
+          "Chromatic",
+          "Major",
+          "Natural Minor",
+          "Harmonic Minor",
+          "Melodic Minor",
+          "Dorian",
+          "Phrygian",
+          "Lydian",
+          "Mixolydian",
+          "Locrian",
+          "Phrygian Dominant",
+          "Major Pentatonic",
+          "Minor Pentatonic",
+          "Blues",
+          "Whole Tone",
+          "Diminished",
+          "Hirajoshi",
+          "Custom"
+        ],
+        "min": 0.0,
+        "max": 17.0
+      },
+      {
+        "id": "rounding",
+        "name": "Rounding",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "choices": [
+          "Nearest",
+          "Down",
+          "Up"
+        ],
+        "min": 0.0,
+        "max": 2.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "transpose",
+        "name": "Transpose",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "shift",
+        "name": "Shift",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "rootin",
+        "name": "Root In",
+        "type": "pitch",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "switch",
+    "name": "Switch",
+    "category": "Utility",
+    "colour": "#c4b5fd",
+    "description": "Sequential switch: 8 inputs to one output and one input to 8 outputs, stepped by triggers, the transport or Select.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "level1",
+        "name": "Level 1",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level2",
+        "name": "Level 2",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level3",
+        "name": "Level 3",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level4",
+        "name": "Level 4",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level5",
+        "name": "Level 5",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level6",
+        "name": "Level 6",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level7",
+        "name": "Level 7",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "level8",
+        "name": "Level 8",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "select",
+        "name": "Select",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "fade",
+        "name": "Fade",
+        "kind": "float",
+        "default": 0.273082911968231,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "length",
+        "name": "Length",
+        "kind": "int",
+        "default": 0.333333343267441,
+        "steps": 7,
+        "modulatable": false,
+        "min": 2.0,
+        "max": 8.0
+      },
+      {
+        "id": "order",
+        "name": "Direction",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "Forward",
+          "Backward",
+          "Ping-Pong",
+          "Random",
+          "Random Walk"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 10,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0
+      },
+      {
+        "id": "curve",
+        "name": "Fade Curve",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Equal Power",
+          "Linear"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Crossfade",
+          "Glide"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "idle",
+        "name": "Idle Outputs",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Zero",
+          "Hold"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 999.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in1",
+        "name": "In 1",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in2",
+        "name": "In 2",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in3",
+        "name": "In 3",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in4",
+        "name": "In 4",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in5",
+        "name": "In 5",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in6",
+        "name": "In 6",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in7",
+        "name": "In 7",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in8",
+        "name": "In 8",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in",
+        "name": "In",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "step",
+        "name": "Step",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out1",
+        "name": "Out 1",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out2",
+        "name": "Out 2",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out3",
+        "name": "Out 3",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out4",
+        "name": "Out 4",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out5",
+        "name": "Out 5",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out6",
+        "name": "Out 6",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out7",
+        "name": "Out 7",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "out8",
+        "name": "Out 8",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "end",
+        "name": "End",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "position",
+        "name": "Position",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "changed",
+        "name": "Changed",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "audio-mixer",
+    "name": "Audio Mixer",
+    "category": "Audio",
+    "colour": "#fb7185",
+    "description": "Four stereo channels with level, pan, mute, solo and a send; return, master and limiter.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "level1",
+        "name": "Level 1",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "pan1",
+        "name": "Pan 1",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "send1",
+        "name": "Send 1",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "level2",
+        "name": "Level 2",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "pan2",
+        "name": "Pan 2",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "send2",
+        "name": "Send 2",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "level3",
+        "name": "Level 3",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "pan3",
+        "name": "Pan 3",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "send3",
+        "name": "Send 3",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "level4",
+        "name": "Level 4",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "pan4",
+        "name": "Pan 4",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "send4",
+        "name": "Send 4",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "return",
+        "name": "Return Level",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "master",
+        "name": "Master",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0
+      },
+      {
+        "id": "mute1",
+        "name": "Mute 1",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mute2",
+        "name": "Mute 2",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mute3",
+        "name": "Mute 3",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "mute4",
+        "name": "Mute 4",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "solo1",
+        "name": "Solo 1",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "solo2",
+        "name": "Solo 2",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "solo3",
+        "name": "Solo 3",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "solo4",
+        "name": "Solo 4",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "sendpoint1",
+        "name": "Send Point 1",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "sendpoint2",
+        "name": "Send Point 2",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "sendpoint3",
+        "name": "Send Point 3",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "sendpoint4",
+        "name": "Send Point 4",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Post-Fader",
+          "Pre-Fader"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "limiter",
+        "name": "Limiter",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in1l",
+        "name": "In 1 L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in1r",
+        "name": "In 1 R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in2l",
+        "name": "In 2 L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in2r",
+        "name": "In 2 R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in3l",
+        "name": "In 3 L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in3r",
+        "name": "In 3 R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in4l",
+        "name": "In 4 L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "in4r",
+        "name": "In 4 R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "returnl",
+        "name": "Return L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "returnr",
+        "name": "Return R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "mute1in",
+        "name": "Mute 1",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "mute2in",
+        "name": "Mute 2",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "mute3in",
+        "name": "Mute 3",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "mute4in",
+        "name": "Mute 4",
+        "type": "gate",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "outl",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "outr",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "sendl",
+        "name": "Send L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "sendr",
+        "name": "Send R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "crossfader",
+    "name": "Crossfader",
+    "category": "Audio",
+    "colour": "#fb7185",
+    "description": "Blends two stereo signals with one knob, equal-power or linear.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "fade",
+        "name": "Fade",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "curve",
+        "name": "Curve",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Equal Power",
+          "Linear"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "al",
+        "name": "A L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "ar",
+        "name": "A R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "bl",
+        "name": "B L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "br",
+        "name": "B R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "outl",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "outr",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "level-meter",
+    "name": "Level Meter",
+    "category": "Utility",
+    "colour": "#c4b5fd",
+    "description": "Stereo peak and RMS meters with clip lights. The audio passes through; Level puts the loudness on a cable.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "response",
+        "name": "Response",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 2.0
+      },
+      {
+        "id": "floor",
+        "name": "Floor",
+        "kind": "choice",
+        "default": 0.600000023841858,
+        "steps": 6,
+        "modulatable": false,
+        "choices": [
+          "-24 dB",
+          "-36 dB",
+          "-48 dB",
+          "-60 dB",
+          "-72 dB",
+          "-96 dB"
+        ],
+        "min": 0.0,
+        "max": 5.0
+      },
+      {
+        "id": "detector",
+        "name": "Level Follows",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "RMS",
+          "Peak"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "hold",
+        "name": "Peak Hold",
+        "kind": "choice",
+        "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Off",
+          "1 s",
+          "3 s",
+          "Until Reset"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "clip",
+        "name": "Clip",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "dial",
+    "name": "Dial",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "One big knob as a control signal, scaled to a range, smooth or in steps.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "value",
+        "name": "Value",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "min",
+        "name": "Min",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "max",
+        "name": "Max",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0
+      },
+      {
+        "id": "smooth",
+        "name": "Smooth",
+        "kind": "float",
+        "default": 0.250000029802322,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "steps",
+        "name": "Steps",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 25,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 24.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "button",
+    "name": "Button",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "A pad to press: gate while held (or toggled), triggers on press and release.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Momentary",
+          "Toggle"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "toggle",
+        "name": "Toggle",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "keyboard",
+    "name": "Keyboard",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "Play notes with the mouse or the computer keyboard. Notes out plays a Voice Cell.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "kind": "float",
+        "default": 0.797979831695557,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 1.0
+      },
+      {
+        "id": "glide",
+        "name": "Glide",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0
+      },
+      {
+        "id": "octave",
+        "name": "Octave",
+        "kind": "int",
+        "default": 0.5,
+        "steps": 7,
+        "modulatable": false,
+        "min": -3.0,
+        "max": 3.0
+      },
+      {
+        "id": "priority",
+        "name": "Priority",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "choices": [
+          "Last",
+          "Lowest",
+          "Highest",
+          "First"
+        ],
+        "min": 0.0,
+        "max": 3.0
+      },
+      {
+        "id": "hold",
+        "name": "Hold",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "vel",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "step-sequencer",
     "name": "Step Sequencer",
     "category": "Sequencing",
@@ -1418,9 +3508,326 @@
     "harmony": "reader"
   },
   {
+    "type": "drum-grid",
+    "name": "Drum Grid",
+    "category": "Sequencing",
+    "colour": "#fb923c",
+    "description": "8 drum tracks × up to 32 steps (off, on, accent), 16 pattern slots, gate, accent and velocity out per track.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tempo",
+        "name": "Tempo",
+        "kind": "float",
+        "default": 0.357142865657806,
+        "steps": 0,
+        "modulatable": true,
+        "min": 20.0,
+        "max": 300.0
+      },
+      {
+        "id": "gatelength",
+        "name": "Gate Length",
+        "kind": "float",
+        "default": 0.242424234747887,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 1.0
+      },
+      {
+        "id": "swing",
+        "name": "Swing",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.5,
+        "max": 0.75
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "kind": "float",
+        "default": 0.699999988079071,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "source",
+        "name": "Source",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Transport",
+          "Tempo"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.636363625526428,
+        "steps": 12,
+        "modulatable": false,
+        "choices": [
+          "1/4.",
+          "1/4",
+          "1/4T",
+          "1/8.",
+          "1/8",
+          "1/8T",
+          "1/16.",
+          "1/16",
+          "1/16T",
+          "1/32.",
+          "1/32",
+          "1/32T"
+        ],
+        "min": 0.0,
+        "max": 11.0
+      },
+      {
+        "id": "ppqn",
+        "name": "Clock PPQN",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "choices": [
+          "1 per step",
+          "2 PPQN",
+          "4 PPQN",
+          "24 PPQN",
+          "48 PPQN"
+        ],
+        "min": 0.0,
+        "max": 4.0
+      },
+      {
+        "id": "switch",
+        "name": "Switch",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "At End",
+          "Immediate"
+        ],
+        "min": 0.0,
+        "max": 1.0
+      }
+    ],
+    "inputs": [
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "run",
+        "name": "Run",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "pattern",
+        "name": "Pattern",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "gate1",
+        "name": "Gate 1",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent1",
+        "name": "Accent 1",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity1",
+        "name": "Velocity 1",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate2",
+        "name": "Gate 2",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent2",
+        "name": "Accent 2",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity2",
+        "name": "Velocity 2",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate3",
+        "name": "Gate 3",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent3",
+        "name": "Accent 3",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity3",
+        "name": "Velocity 3",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate4",
+        "name": "Gate 4",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent4",
+        "name": "Accent 4",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity4",
+        "name": "Velocity 4",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate5",
+        "name": "Gate 5",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent5",
+        "name": "Accent 5",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity5",
+        "name": "Velocity 5",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate6",
+        "name": "Gate 6",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent6",
+        "name": "Accent 6",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity6",
+        "name": "Velocity 6",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate7",
+        "name": "Gate 7",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent7",
+        "name": "Accent 7",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity7",
+        "name": "Velocity 7",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate8",
+        "name": "Gate 8",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "accent8",
+        "name": "Accent 8",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity8",
+        "name": "Velocity 8",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "accent",
+        "name": "Accent",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "stepclock",
+        "name": "Step Clock",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "end",
+        "name": "End",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "running",
+        "name": "Running",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "ring-kick",
     "name": "Ring Kick",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Deep, round kick: a struck resonator that rings and dies away.",
     "port": "",
@@ -1514,7 +3921,7 @@
   {
     "type": "ring-snare",
     "name": "Ring Snare",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Snare: two ringing drum heads and a burst of bright noise.",
     "port": "",
@@ -1598,7 +4005,7 @@
   {
     "type": "ring-clap",
     "name": "Ring Clap",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Hand clap: a few quick bursts of noise and a short tail.",
     "port": "",
@@ -1682,7 +4089,7 @@
   {
     "type": "ring-tom",
     "name": "Ring Tom",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Tom or hand drum: a ringing tone that falls in pitch, with a little noise.",
     "port": "",
@@ -1766,7 +4173,7 @@
   {
     "type": "ring-rim",
     "name": "Ring Rim",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Rim shot or clave: short, high, woody clicks.",
     "port": "",
@@ -1844,7 +4251,7 @@
   {
     "type": "ring-cowbell",
     "name": "Ring Cowbell",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Cowbell: two square waves through a band-pass, a sharp hit and a tail.",
     "port": "",
@@ -1918,7 +4325,7 @@
   {
     "type": "ring-hats",
     "name": "Ring Hats",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Closed and open hi-hats from six detuned squares. Closed cuts open.",
     "port": "",
@@ -2008,7 +4415,7 @@
   {
     "type": "ring-cymbal",
     "name": "Ring Cymbal",
-    "category": "Drums",
+    "category": "Drums/Ring",
     "colour": "#f59e0b",
     "description": "Cymbal: a low clang and a long sizzle from six detuned squares.",
     "port": "",
@@ -2082,7 +4489,7 @@
   {
     "type": "punch-kick",
     "name": "Punch Kick",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Hard, tight kick: a sine that sweeps down fast, with a noise click.",
     "port": "",
@@ -2176,7 +4583,7 @@
   {
     "type": "punch-snare",
     "name": "Punch Snare",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Snare: two swept sines for the body and filtered noise for the wires.",
     "port": "",
@@ -2260,7 +4667,7 @@
   {
     "type": "punch-clap",
     "name": "Punch Clap",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Bright hand clap: tight bursts of noise and a roomy tail.",
     "port": "",
@@ -2344,7 +4751,7 @@
   {
     "type": "punch-tom",
     "name": "Punch Tom",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Tom: a sine that drops in pitch, with a touch of noise.",
     "port": "",
@@ -2428,7 +4835,7 @@
   {
     "type": "punch-rim",
     "name": "Punch Rim",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Rim shot: a hard, bright crack.",
     "port": "",
@@ -2492,7 +4899,7 @@
   {
     "type": "punch-hats",
     "name": "Punch Hats",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Bright, crunchy closed and open hi-hats. Closed cuts open.",
     "port": "",
@@ -2592,7 +4999,7 @@
   {
     "type": "punch-cymbal",
     "name": "Punch Cymbal",
-    "category": "Drums",
+    "category": "Drums/Punch",
     "colour": "#f43f5e",
     "description": "Crash or ride: bright, crunchy metal with a long decay.",
     "port": "",

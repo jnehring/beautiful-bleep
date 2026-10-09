@@ -113,6 +113,13 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .cable.ghost, .cable.dim { opacity: .2; }
 .cable.selected { stroke-width: 4; opacity: 1; filter: drop-shadow(0 0 3px var(--c)); }
 .cable.temp { stroke-dasharray: 6 4; opacity: .8; }
+/* Signal pulse: faint light travelling from output to input while the signal moves. */
+.cable-pulse { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; pointer-events: none;
+               stroke-dasharray: 10 70; opacity: calc(var(--act, 0) * .55); filter: brightness(1.8) blur(.6px);
+               transition: opacity .25s linear; animation: cable-pulse 1.4s linear infinite; }
+.cable.notes + .cable-pulse { stroke-width: 4; }
+@keyframes cable-pulse { from { stroke-dashoffset: 80; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .cable-pulse { animation: none; stroke-dasharray: none; opacity: calc(var(--act, 0) * .25); } }
 .cable-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
 
 /* ---- popovers */
@@ -157,6 +164,10 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-head .spacer { flex: 1; }
 .v-body { max-height: 70vh; overflow-y: auto; }
 .vwin.doc { width: 460px; }
+.vwin.wiring { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; }
+.vwin.wiring .v-head { grid-column: 1 / -1; }
+.v-ins { display: flex; flex-direction: column; gap: 1px; padding: 6px 10px 6px 12px; max-width: 140px;
+         border-right: 1px solid var(--line); background: var(--panel-2); }
 
 /* ---- module documentation (bleep-markdown.js) */
 .v-doc { padding: 4px 16px 16px; font-size: 12.5px; line-height: 1.5; user-select: text; -webkit-user-select: text; }

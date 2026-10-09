@@ -55,13 +55,14 @@ private:
     std::array<dsp::GateEdge, Triggers> edges_;
 };
 
-/// The common outside of a drum node: `params` gets Level appended.
-inline ModuleSpec drumSpec(const char* type, const char* name, const char* colour, const char* description,
+/// The common outside of a drum node: `params` gets Level appended. The
+/// category is Drums/<kit>, so each kit gets its own submenu (Module › Drums › kit).
+inline ModuleSpec drumSpec(const char* kit, const char* type, const char* name, const char* colour, const char* description,
                            std::vector<ParamSpec> params, std::vector<JackSpec> triggers = {{"trig", "Trig", Signal::Trigger}}) {
     ModuleSpec s;
     s.type = type;
     s.name = name;
-    s.category = "Drums";
+    s.category = std::string("Drums/") + kit;
     s.colour = colour;
     s.description = description;
     params.push_back(ParamSpec::percent("level", "Level", 0.0f, 1.0f, 0.8f));

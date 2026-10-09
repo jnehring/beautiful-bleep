@@ -1,0 +1,10 @@
+{
+  "name": "Notes to CV",
+  "slug": "notes-to-cv",
+  "tagline": "Notes in; pitch, gate, velocity and pressure out, with note priority and glide.",
+  "colour": "#c084fc",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/notes-to-cv.md"
+}

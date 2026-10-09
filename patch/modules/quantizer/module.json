@@ -1,0 +1,10 @@
+{
+  "name": "Quantizer",
+  "slug": "quantizer",
+  "tagline": "Snaps any signal to a scale: turns modulation into melodies.",
+  "colour": "#93c5fd",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/quantizer.md"
+}

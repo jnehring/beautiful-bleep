@@ -522,12 +522,13 @@ Module view sketch:
 ### 9.6 Editing and cells
 
 - **Add** from the **Add menu** (the top bar's *Add* button or right-click on empty space):
-  - *Module ›* one submenu per category (*Sources*, *Modulation*, *Audio*, *Utility*) with its modules;
+  - *Module ›* one submenu per category (*Sources*, *Modulation*, *Audio*, *Utility*, *Drums*) with its modules; a category with a slash nests, e.g. *Drums/Ring* is *Drums › Ring ›*;
   - *Cell ›* *New Cell*, *New Voice Cell*, and one submenu per preset category (*Synthesizers ›* *Basic Poly*, …, then the user's own categories).
   Tab or a double-click on empty space opens a search field at the cursor. Under *Cell ›*, each category of the user's own presets also has *Delete preset ›*.
 - **Rename** with a double-click on the title.
 - **Select** with a drag box; Shift adds to the selection.
 - **Duplicate** with ⌘D: copies the nodes and the cables between them. ⌘⇧D also keeps the incoming cables.
+- **Copy, cut and paste** with ⌘C, ⌘X and ⌘V: the selection (cells with their contents) and the cables between them go to the system clipboard, so they can be pasted into another cell, another set or another board. Paste puts them at the pointer (or where the canvas was right-clicked), keeps their layout and selects them. Ports aren't copied; a Voice Cell isn't pasted inside another Voice Cell.
 - **Delete** works on everything except ports (section 6).
 - **Fit** the patch to the window with F; **auto-layout** tidies the selection from left to right.
 - **Cells:**
@@ -586,6 +587,7 @@ The board has its own undo/redo stack covering all edits: adding, removing, movi
 | Tab / double-click | Add module (search at cursor) |
 | ⌘G / ⌘⇧G | Group into cell / ungroup |
 | ⌘D / ⌘⇧D | Duplicate / duplicate with incoming cables |
+| ⌘C / ⌘X / ⌘V | Copy / cut / paste |
 | Delete | Remove selection |
 | Esc | Close view, leave cell |
 | F | Fit patch to window |
@@ -707,9 +709,13 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **Multiplier** | Two four-quadrant multipliers with bias, chained; optional oversampling | Ring mod at audio rate, depth-by-modulator for control. See `specs/modules/multiplier.md`. |
 | **Logic** | AND, OR, XOR, NAND, NOR, NOT, flip-flop, edge triggers; threshold with hysteresis | Rhythms from rhythms; clock ÷2. See `specs/modules/logic.md`. |
 | **Quantizer** | Scale quantizer sharing the Step Sequencer's scales, custom scale, transpose before/after, note-change trigger | Turns any modulator into a melody. See `specs/modules/quantizer.md`. |
-| **Switch** | 4 → 1 or 1 → 4, by knob, CV or clock steps; click-free fade | Source selector, router and sequential switch. See `specs/modules/switch.md`. |
+| **Switch** | Sequential switch, up to 8 steps: 8 → 1 and 1 → 8 at once; stepped by triggers, the transport or Select; fades that never jump; per-step levels | Source selector, router and 8-step value sequencer in one. See `specs/modules/switch.md`. |
 | **Audio Mixer** | Four stereo channels: level (dB), pan, mute/solo, send; return, master, limiter, meters | Several sound sources into one stereo pair. See `specs/modules/audio-mixer.md`. |
 | **Crossfader** | Stereo A/B blend, equal-power or linear | Dry/wet and source morphing under modulation. See `specs/modules/crossfader.md`. |
+| **Level Meter** | Stereo peak and RMS meters, peak hold, clip lights; audio thru; Level and Clip outputs | See how loud a signal is anywhere in the patch, and use the loudness as modulation. See `specs/modules/level-meter.md`. |
+| **Dial** | One big knob as a control signal: Min/Max range, detents, smoothing | A macro or selector by hand. See `specs/modules/dial.md`. |
+| **Button** | A pad: gate (momentary or toggle), press and release triggers, toggle | Starts, resets and mutes by hand; the toggle is saved. See `specs/modules/button.md`. |
+| **Keyboard** | Three octaves to play with the mouse or the computer keyboard; hold | *Notes* plays a Voice Cell; mono pitch, gate, velocity, trigger with priority and glide. See `specs/modules/keyboard.md`. |
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
 **Multi Filter details:**
@@ -726,6 +732,7 @@ Each module is our own design, built from generic modular concepts. Each module 
 - **Cutoff modulation** is applied in the exponential (octave) domain, so a bipolar signal sweeps musically.
 - **Pitch input** for key-tracking.
 - **Envelope follower** on the filtered signal as a `control` output, so audio drives modulation elsewhere.
+- **4× oversampling**, always on: drive and filter run at four times the host rate between the half-band stages of `patch/common/dsp/Oversampler.h`, so the saturating types and hard drive alias far less (a fully driven 7.3 kHz sine at 48 kHz: aliases ≥ 49 dB down, against ~17 dB without). The output is delayed by 71 samples; the dry signal for *Mix* is delayed to match. It is fixed rather than switched by type or drive, since switching would jump the latency mid-signal.
 - The module keeps its saved type id (`filter`), so boards from before keep loading. *Type* is saved normalised: *SVF Multimode* (the former *Clean*) stays first and *SVF Saturating* (the former *Rough*) stays last, so old boards keep their sound. New types go in between.
 
 **Oscillator details:** a triangle core, as in classic through-zero analog oscillators, designed from general principles:

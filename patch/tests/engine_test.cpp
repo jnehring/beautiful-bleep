@@ -758,6 +758,81 @@ void stepSequencer() {
     e->release();
 }
 
+/// Drum Grid (specs/modules/drum-grid.md): node data, live edits, and gates
+/// through the engine.
+void drumGrid() {
+    g_test = "drum grid";
+    {  // Data is filled in and cleaned.
+        auto broken = node("broken", "drum-grid");
+        juce::Array<juce::var> rows{"x?X..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"};
+        juce::Array<juce::var> patterns{obj({{"length", 99}, {"steps", rows}}), 7};
+        juce::Array<juce::var> tracks{obj({{"name", "  "}, {"mute", true}})};
+        broken.getDynamicObject()->setProperty("data", obj({{"patterns", patterns}, {"tracks", tracks}, {"current", 40}}));
+        auto d = board::sanitise(doc({node("fresh", "drum-grid"), broken}, {}));
+        auto fresh = board::findNode(d, "fresh")->getProperty("data");
+        auto saved = board::findNode(d, "broken")->getProperty("data");
+        EXPECT(fresh["patterns"].size() == 16 && fresh["tracks"].size() == 8);
+        EXPECT(fresh["patterns"][0]["steps"][0].toString() == "x...x...x...x..." + juce::String::repeatedString(".", 16));
+        EXPECT(fresh["patterns"][1].isVoid() && fresh["tracks"][0]["name"].toString() == "Kick");
+        EXPECT((int)saved["patterns"][0]["length"] == 32 && (int)saved["current"] == 15);
+        EXPECT(saved["patterns"][0]["steps"][0].toString() == "x.X..xxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        EXPECT(saved["patterns"][0]["steps"][7].toString() == juce::String::repeatedString(".", 32));
+        EXPECT(saved["patterns"][1].isVoid() && saved["patterns"].size() == 16);
+        EXPECT(saved["tracks"][0]["name"].toString() == "Kick" && (bool)saved["tracks"][0]["mute"]);
+    }
+
+    auto* e = new Engine();
+    e->setStandalone(true);
+    const int main = e->registerInstance(PortKind::Patch);
+    const int out = e->registerInstance(PortKind::AudioOut);
+    e->reconcileNow();
+    FakePort pOut(*e, out);
+    juce::Array<juce::var> rows{"xxxxxxxxxxxxxxxx", "XXXXXXXXXXXXXXXX"};
+    juce::Array<juce::var> patterns{obj({{"length", 16}, {"steps", rows}})};
+    auto grid = node("grid", "drum-grid");
+    grid.getDynamicObject()->setProperty("data", obj({{"patterns", patterns}}));
+    grid.getDynamicObject()->setProperty("params", obj({{"gatelength", 1.0}}));
+    auto edited = copyOf(e->board());
+    edited["nodes"].getArray()->add(grid);
+    for (auto c : {cable("grid", "gate1", portNode(*e, out), "l"), cable("grid", "velocity2", portNode(*e, out), "r")})
+        edited["cables"].getArray()->add(c);
+    e->commit(edited, "grid");
+    int64_t pos = 0;
+    auto run = [&](int blocks) {
+        for (int b = 0; b < blocks; ++b, pos += kBlock) {
+            BlockIO io;
+            float* outs[2] = {pOut.out[0].data(), pOut.out[1].data()};
+            io.numSamples = kBlock;
+            io.transport.sampleRate = kRate;
+            io.transport.bpm = 120.0;
+            io.transport.playing = true;
+            io.transport.ppqValid = true;
+            io.transport.ppq = (double)pos / 24000.0;
+            io.audioOut = outs;
+            io.numAudioOut = 2;
+            int handles[1] = {out};
+            BlockIO* ios[1] = {&io};
+            e->processAll(handles, ios, 1);
+        }
+    };
+    run(20);
+    EXPECT_NEAR(pOut.out[0][kBlock - 1], 1.0, 1e-6);  // track 1 plays
+    EXPECT_NEAR(pOut.out[1][kBlock - 1], 1.0, 1e-6);  // track 2 is accented
+    // Muting track 1 closes its gate without a commit or an undo entry.
+    const auto undoBefore = e->canUndo();
+    juce::Array<juce::var> tracks{obj({{"mute", true}})};
+    e->setData("grid", obj({{"patterns", patterns}, {"tracks", tracks}}));
+    EXPECT((bool)board::findNode(e->board(), "grid")->getProperty("data")["tracks"][0]["mute"]);
+    EXPECT(e->canUndo() == undoBefore);
+    run(4);
+    EXPECT_NEAR(pOut.out[0][kBlock - 1], 0.0, 1e-6);
+    auto live = e->liveState({"grid"})["nodes"]["grid"];
+    EXPECT(live.hasProperty("step") && (int)live["playing"] == 0 && (int)live["queued"] == -1 && (int)live["running"] == 1);
+    e->unregisterInstance(out);
+    e->unregisterInstance(main);
+    e->release();
+}
+
 /// Drum nodes (specs/modules/ring-drums.md, punch-drums.md) and Noise, run
 /// through their jacks: a trigger plays, Velocity scales, Level is last.
 void drumNodes() {
@@ -810,7 +885,7 @@ void drumNodes() {
 
     int drums = 0;
     for (const auto* s : Registry::get().all()) {
-        if (s->category != "Drums") continue;
+        if (s->category.rfind("Drums/", 0) != 0) continue;
         g_test = s->type.c_str();
         ++drums;
         const int level = (int)s->params.size() - 1;
@@ -867,6 +942,7 @@ int main() {
     standaloneDriver();
     voiceCells();
     stepSequencer();
+    drumGrid();
     drumNodes();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;

@@ -95,6 +95,9 @@ public:
     /// Saves audio a module holds (Module::exportMedia) to the media folder.
     /// Returns {id, seconds, channels} or {error}.
     juce::var exportMedia(const juce::String& nodeId, const juce::String& slot);
+    /// A performance gesture for a node's module (Button press, Keyboard key):
+    /// not saved, no undo entry, no generation change.
+    void perform(const juce::String& nodeId, const juce::String& action, const juce::var& args);
     /// Live values for the UI: outputs of every node, params of `detailed`.
     juce::var liveState(const std::set<juce::String>& detailed) const;
     juce::String statusLine() const;

@@ -28,6 +28,7 @@
   const kShownOutputs = 4;
   const NODE_W = 184;         // matches --node-w in board.css
   let pointer = { x: 0, y: 0 };// last pointer position in canvas coordinates
+  let pointerInside = false;   // the pointer is over the canvas (paste lands there)
   let dev = false;
   let standalone = false;      // the standalone app: MIDI Device is offered
 
@@ -395,8 +396,14 @@
     return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
   }
 
+  // Signal pulse: a faint light travelling along each cable whose source
+  // output moves, brighter the more it moves (state.activity).
+  const pulses = new Map();   // cable id → {path, node, jack}
+  const pulseLevel = new Map();  // "node|jack" → smoothed 0..1
+
   function renderCables() {
     cablesEl.innerHTML = "";
+    pulses.clear();
     if (!board) return;
     const here = new Set(nodesAt(level()).map((n) => n.id));
     for (const c of board.cables) {
@@ -428,7 +435,17 @@
         renderCables();
         showCablePop(c);
       });
-      cablesEl.append(p, hit);
+      cablesEl.append(p);
+      if (!p.classList.contains("ghost") && !p.classList.contains("dim")) {
+        const glow = document.createElementNS(SVGNS, "path");
+        glow.setAttribute("d", d);
+        glow.setAttribute("class", "cable-pulse");
+        glow.style.setProperty("--c", signalColour(type));
+        glow.style.setProperty("--act", pulseLevel.get(c.from.node + "|" + c.from.jack) || 0);
+        cablesEl.append(glow);
+        pulses.set(c.id, { path: glow, key: c.from.node + "|" + c.from.jack });
+      }
+      cablesEl.append(hit);
     }
     if (!selCable) $("cable-pop").hidden = true;
   }
@@ -569,12 +586,12 @@
     const up = (e) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
-      markTargets(false);
       tmp.remove();
       const d = drag;
       drag = null;
       dropCable(d, e);
       endSpring(e);
+      markTargets(false);  // after the drop: it may land on a view's input strip
     };
     move(ev);
     window.addEventListener("pointermove", move);
@@ -582,7 +599,8 @@
   }
 
   function markTargets(on) {
-    for (const row of nodesEl.querySelectorAll(".jack.in")) {
+    for (const [id, v] of views) viewInputs(id, v, on);
+    for (const row of document.querySelectorAll("#nodes .jack.in, #views .jack.in")) {
       row.classList.remove("drop-ok", "drop-no");
       if (!on) continue;
       if (row.dataset.jack === "+") { row.classList.add("drop-ok"); continue; }
@@ -593,6 +611,33 @@
       k.classList.toggle("drop-ok", on && drag.type !== "notes");
       if (!on) k.classList.remove("drop-hover");
     }
+  }
+
+  // While a cable is in hand, open views show the module's input jacks in a
+  // strip on their left, so the cable can end there too. The window grows to
+  // the left, keeping its controls where they were.
+  function viewInputs(id, v, on) {
+    const old = v.win.querySelector(".v-ins");
+    if (old) {
+      v.win.style.left = v.win.offsetLeft + old.offsetWidth + "px";
+      v.win.style.width = v.ownWidth;
+      v.win.classList.remove("wiring");
+      old.remove();
+    }
+    const n = nodeById(id);
+    const jacks = on && n ? inputsOf(n) : [];
+    if (!jacks.length) return;
+    const strip = el("div", "v-ins");
+    for (const j of jacks) {
+      const connected = board.cables.some((c) => c.to.node === id && c.to.jack === j.id);
+      strip.appendChild(jackRow(n, j.id, j.name, j.type, "in", connected ? "connected" : ""));
+    }
+    v.ownWidth = v.win.style.width;
+    const w = v.win.offsetWidth;
+    v.win.classList.add("wiring");
+    v.win.insertBefore(strip, v.win.querySelector(".v-body"));
+    v.win.style.width = w + strip.offsetWidth + "px";
+    v.win.style.left = v.win.offsetLeft - strip.offsetWidth + "px";
   }
 
   // While a cable is in hand, resting on a module opens its view, so the
@@ -722,6 +767,7 @@
       { label: "Add", items: addMenu(at) },
       { label: "Search…", key: "Tab", run: () => openSearch(at.x, at.y) },
       "-",
+      { label: "Paste", key: "⌘V", run: () => paste(at) },
       { label: "Select all", key: "⌘A", run: selectAll },
       { label: "Fit to window", key: "F", run: fit },
     ]);
@@ -743,10 +789,14 @@
     }
     applyCam();
   }, { passive: false });
-  canvas.addEventListener("pointermove", (ev) => {
+  const trackPointer = (ev) => {
     const r = canvas.getBoundingClientRect();
     pointer = { x: ev.clientX - r.left, y: ev.clientY - r.top };
-  });
+    pointerInside = true;
+  };
+  canvas.addEventListener("pointermove", trackPointer);
+  canvas.addEventListener("pointerdown", trackPointer, true);
+  canvas.addEventListener("pointerleave", () => { pointerInside = false; });
   canvas.addEventListener("dragover", (ev) => ev.preventDefault());
   canvas.addEventListener("drop", (ev) => {
     ev.preventDefault();
@@ -919,7 +969,7 @@
     for (const t of typeList)
       if (offered(t) && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
         out.push({ label: t.name === "Cell" ? "New Cell" : t.name === "Voice Cell" ? "New Voice Cell" : t.name,
-                   sub: t.category, what: { type: t.type } });
+                   sub: t.category.replace(/\//g, " › "), what: { type: t.type } });
     if (!link)
       for (const p of presets)
         if (p.name.toLowerCase().includes(q)) out.push({ label: p.name, sub: "cell preset", what: { preset: p.name } });
@@ -978,19 +1028,30 @@
       const w = toWorld(at.x + r.left, at.y + r.top);
       addAt(what, w.x, w.y);
     };
-    const cats = new Map();
+    // A category path nests: "Drums/Ring" is Module › Drums › Ring.
+    const cats = [];
+    const submenu = (items, label) => {
+      let m = items.find((it) => it.items && it.label === label);
+      if (!m) items.push(m = { label, items: [] });
+      return m.items;
+    };
     for (const t of typeList)
-      if (offered(t) && t.category !== "Cells") {
-        if (!cats.has(t.category)) cats.set(t.category, []);
-        cats.get(t.category).push({ label: t.name, run: place({ type: t.type }) });
-      }
+      if (offered(t) && t.category !== "Cells")
+        t.category.split("/").reduce(submenu, cats).push({ label: t.name, run: place({ type: t.type }) });
+    const byLabel = (a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base", numeric: true });
+    const sortTree = (items) => {
+      items.sort(byLabel);
+      for (const it of items) if (it.items) sortTree(it.items);
+      return items;
+    };
+    sortTree(cats);
     const cells = [{ label: "New Cell", run: place({ type: "cell" }) },
                    { label: "New Voice Cell", run: place({ type: "voice-cell" }) }];
     const byCat = presetCategories();
     if (byCat.size) cells.push("-");
-    for (const [cat, list] of byCat) {
-      const items = list.map((p) => ({ label: p.name, run: place({ preset: p.name }) }));
-      const own = list.filter((p) => !p.factory);
+    for (const [cat, list] of [...byCat].sort(([a], [b]) => byLabel({ label: a }, { label: b }))) {
+      const items = list.map((p) => ({ label: p.name, run: place({ preset: p.name }) })).sort(byLabel);
+      const own = list.filter((p) => !p.factory).sort((a, b) => byLabel({ label: a.name }, { label: b.name }));
       if (own.length) {  // the user's own presets can be deleted here
         items.push("-");
         items.push({ label: "Delete preset", items: own.map((p) => ({
@@ -998,7 +1059,7 @@
       }
       cells.push({ label: cat, items });
     }
-    return [{ label: "Module", items: [...cats].map(([cat, items]) => ({ label: cat, items })) },
+    return [{ label: "Module", items: cats },
             { label: "Cell", items: cells }];
   }
 
@@ -1067,6 +1128,9 @@
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
     items.push("-");
+    items.push({ label: "Cut", key: "⌘X", run: cut, disabled: !canDuplicate() });
+    items.push({ label: "Copy", key: "⌘C", run: copy, disabled: !canDuplicate() });
+    items.push({ label: "Paste", key: "⌘V", run: () => paste() });
     items.push({ label: "Duplicate", key: "⌘D", run: () => duplicate(false), disabled: !canDuplicate() });
     items.push({ label: many ? "Group into cell" : "Put into cell", key: "⌘G", run: group, disabled: !canGroup() });
     if (n.type === "cell") {
@@ -1118,7 +1182,7 @@
     renderSelection();
   }
 
-  function deleteSelection() {
+  function deleteSelection(label = "delete") {
     if (selCable) return removeCable(selCable);
     const doomed = new Set();
     for (const n of selectedNodes()) {
@@ -1129,7 +1193,7 @@
     if (!doomed.size) return;
     for (const id of doomed) closeView(id);
     sel.clear();
-    edit("delete", (b) => {
+    edit(label, (b) => {
       b.nodes = b.nodes.filter((n) => !doomed.has(n.id));
       b.cables = b.cables.filter((c) => !doomed.has(c.from.node) && !doomed.has(c.to.node));
     });
@@ -1179,6 +1243,80 @@
                             amount: c.amount });
       sel.clear();
       rs.forEach((r) => sel.add(map.get(r.id)));
+    });
+  }
+
+  /// ⌘C (spec §9.6): the selection (cells with their contents) and the cables
+  /// between them go to the system clipboard as JSON, so they can be pasted
+  /// into another cell, another set or another board window.
+  const CLIP_FORMAT = "bleep-board-clip";
+  function copy() {
+    const roots = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
+    if (!roots.length) return false;
+    const nodes = [];
+    for (const r of roots) nodes.push(r, ...(isCellLike(r) ? descendants(r.id) : []));
+    const ids = new Set(nodes.map((n) => n.id));
+    const clip = {
+      format: CLIP_FORMAT, version: 1,
+      roots: roots.map((r) => r.id),
+      nodes: nodes.map((n) => { const c = clone(n); delete c.port; return c; }),
+      cables: board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone),
+    };
+    native("copyText", JSON.stringify(clip));
+    return true;
+  }
+
+  function cut() {
+    if (!copy()) return;
+    selCable = null;
+    deleteSelection("cut");
+  }
+
+  /// ⌘V: the clipboard's nodes land at the pointer (or `at`, in canvas
+  /// coordinates), keeping their layout, with fresh ids; the paste is selected.
+  async function paste(at) {
+    if (!board) return;
+    let clip = null;
+    try { clip = JSON.parse(await native("pasteText")); } catch (e) { return; }
+    if (!clip || clip.format !== CLIP_FORMAT || !Array.isArray(clip.nodes) || !Array.isArray(clip.roots)) return;
+    const lvl = level();
+    const byId = new Map(clip.nodes.map((n) => [n.id, n]));
+    const known = (n) => isCellLike(n) || isBoundary(n) || !!types[n.type];
+    const roots = clip.roots.map((id) => byId.get(id)).filter((n) => n && known(n) && !isPort(n) && !isBoundary(n)
+      && !(n.type === "voice-cell" && insideVoiceCell(lvl)));  // no nesting
+    if (!roots.length) return;
+    // Each root's subtree (its contents, for cells).
+    const all = [];
+    const walk = (id) => { for (const n of clip.nodes) if (n.parent === id && known(n)) { all.push(n); if (isCellLike(n)) walk(n.id); } };
+    for (const r of roots) { all.push(r); if (isCellLike(r)) walk(r.id); }
+    // Top-left of the copied roots goes to the pointer; step aside from an exact overlap (repeated pastes).
+    const x0 = Math.min(...roots.map((n) => n.x)), y0 = Math.min(...roots.map((n) => n.y));
+    const r = canvas.getBoundingClientRect();
+    const p = at || (pointerInside ? pointer : { x: r.width / 2, y: r.height / 2 });
+    const w = toWorld(r.left + p.x, r.top + p.y);
+    let dx = Math.round(w.x - x0), dy = Math.round(w.y - y0);
+    const here = nodesAt(lvl);
+    for (let i = 0; i < 20 && roots.some((n) => here.some((m) => Math.abs(m.x - n.x - dx) < 20 && Math.abs(m.y - n.y - dy) < 20)); i++) {
+      dx += 30;
+      dy += 30;
+    }
+    edit("paste", (b) => {
+      const map = new Map(all.map((n) => [n.id, uid(isCellLike(n) ? "c" : "n")]));
+      for (const n of all) {
+        const c = clone(n);
+        c.id = map.get(n.id);
+        c.parent = roots.includes(n) ? lvl : map.get(n.parent);
+        if (roots.includes(n)) { c.x += dx; c.y += dy; }
+        delete c.port;
+        b.nodes.push(c);
+      }
+      for (const c of clip.cables || [])
+        if (c && c.from && c.to && map.has(c.from.node) && map.has(c.to.node))
+          b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
+                          to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
+      sel.clear();
+      selCable = null;
+      roots.forEach((n) => sel.add(map.get(n.id)));
     });
   }
 
@@ -1418,7 +1556,12 @@
 
   // ------------------------------------------------------- floating views
   let viewZ = 1;
-  function toggleView(id) { views.has(id) ? closeView(id) : openView(id); }
+  // Opening a view replaces the other unpinned ones; pinned views stay.
+  function toggleView(id) {
+    if (views.has(id)) return closeView(id);
+    closeUnpinnedViews();
+    openView(id);
+  }
 
   function openView(id) {
     const n = nodeById(id);
@@ -1433,7 +1576,7 @@
     help.title = "Documentation";
     help.hidden = true;
     const pin = el("button", "pin", "📌");
-    pin.title = "Keep open when entering or leaving cells";
+    pin.title = "Keep open when opening other views or entering and leaving cells";
     const close = el("button", "", "×");
     close.title = "Close (Esc)";
     head.append(help, pin, close);
@@ -1465,6 +1608,12 @@
         if (m) m.data = clone(data);
         native("setData", id, data);
       },
+      // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
+      perform: (action, ...args) => native("perform", id, action, args),
+      // Preset libraries shared by all sets, e.g. Drum Grid patterns ("drums").
+      presets: async (kind) => (await native("presets", kind)) || [],
+      savePreset: async (kind, name, preset) => (await native("savePreset", name, preset, kind)) || [],
+      deletePreset: async (kind, name) => (await native("deletePreset", name, kind)) || [],
       setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
       cablesInto: (pid) => cablesInto(id, pid).map((c) => {
         const src = nodeById(c.from.node);
@@ -1579,6 +1728,22 @@
     g.stroke();
   }
 
+  function updatePulses(nodes) {
+    for (const [id, ns] of Object.entries(nodes)) {
+      const act = ns.activity || {};
+      for (const jack of Object.keys(ns.outputs || {})) {
+        const key = id + "|" + jack;
+        // Swing → 0..1: a full-scale control sweep or audio near unity is "full".
+        const target = Math.min(1, Math.sqrt((act[jack] || 0) / 0.5));
+        const prev = pulseLevel.get(key) || 0;
+        const v = target > prev ? prev + (target - prev) * 0.5 : prev * 0.9;  // quick rise, slow fade
+        if (v < 0.01) pulseLevel.delete(key); else pulseLevel.set(key, v);
+      }
+    }
+    for (const { path, key } of pulses.values())
+      path.style.setProperty("--act", (pulseLevel.get(key) || 0).toFixed(2));
+  }
+
   let portsKey = "";
   onNative("state", (s) => {
     live = s;
@@ -1590,6 +1755,7 @@
       if (ns && ns.outputs && jack in ns.outputs) drawScope(sc, ns.outputs[jack]);
     }
     for (const [id, v] of views) v.bv.update(s.nodes[id]);
+    updatePulses(s.nodes);
     // Voice Cells: which voices play.
     for (const ne of nodesEl.querySelectorAll(".node.voice")) {
       const ns = s.nodes[ne.dataset.id];
@@ -1623,6 +1789,9 @@
     if (cmd && k === "g") { e.preventDefault(); e.shiftKey ? selectedNodes().filter((n) => n.type === "cell").forEach((n) => ungroup(n.id)) : group(); return; }
     if (cmd && k === "d") { e.preventDefault(); duplicate(e.shiftKey); return; }
     if (cmd && k === "a") { e.preventDefault(); selectAll(); return; }
+    if (cmd && k === "c") { e.preventDefault(); copy(); return; }
+    if (cmd && k === "x") { e.preventDefault(); cut(); return; }
+    if (cmd && k === "v") { e.preventDefault(); paste(); return; }
     if (cmd) return;
     if (e.key === "Tab") { e.preventDefault(); openSearch(pointer.x, pointer.y); return; }
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteSelection(); return; }

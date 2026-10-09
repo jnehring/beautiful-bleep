@@ -1,0 +1,10 @@
+{
+  "name": "Multiplier",
+  "slug": "multiplier",
+  "tagline": "Two four-quadrant multipliers: ring modulation, or one modulator scaling another.",
+  "colour": "#c4b5fd",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/multiplier.md"
+}

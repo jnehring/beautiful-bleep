@@ -30,7 +30,21 @@ Registry::Registry() {
     registerVcaModule(*this);
     registerUtilityModule(*this);
     registerCvToNotesModule(*this);
+    registerNotesToCvModule(*this);
+    registerAttenuverterModule(*this);
+    registerCvMixerModule(*this);
+    registerMultiplierModule(*this);
+    registerLogicModule(*this);
+    registerQuantizerModule(*this);
+    registerSwitchModule(*this);
+    registerAudioMixerModule(*this);
+    registerCrossfaderModule(*this);
+    registerLevelMeterModule(*this);
+    registerDialModule(*this);
+    registerButtonModule(*this);
+    registerKeyboardModule(*this);
     registerStepSequencerModule(*this);
+    registerDrumGridModule(*this);
     registerRingDrumsModules(*this);
     registerPunchDrumsModules(*this);
     {

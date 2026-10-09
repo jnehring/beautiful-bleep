@@ -1,0 +1,10 @@
+{
+  "name": "Button",
+  "slug": "button",
+  "tagline": "A pad to press: gate, triggers and a toggle, by hand while the patch plays.",
+  "colour": "#fda4af",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/button.md"
+}

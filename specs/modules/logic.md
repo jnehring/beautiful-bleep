@@ -85,6 +85,9 @@ exact sample of the edge (`specs.md` section 7.1).
 The two knobs and the setting, and a row of small lamps, one per input and
 output, lit while high (triggers flash for 50 ms so they're visible).
 
+The first version uses the generic module view (knobs and settings); the
+displays described here come later.
+
 ## 6. Saved state
 
 Only knob and setting values; no node data.

@@ -25,6 +25,8 @@
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode */ } },
   };
+  /// Cell presets and the other libraries (kind "drums": Drum Grid patterns).
+  const presetKey = (kind) => (kind && kind !== "cell" ? `bleep-demo-presets-${kind}` : "bleep-demo-presets");
 
   function node(id, type, name, x, y, extra) {
     const t = typeOf(type);
@@ -79,7 +81,9 @@
     return x.toFixed(2);
   }
 
+  const played = {};  // node → what perform() played: {held, pressed, released, notes}
   let t = 0;
+  const lastOut = new Map();
   setInterval(() => {
     if (!board) return;
     t += 1 / 30;
@@ -105,11 +109,58 @@
         }
       }
       if (n.type === "lfo") entry.phase = (t * 0.5) % 1;
+      if (n.type === "quantizer") { entry.note = [0, 4, 7, 11, 12, 7][Math.floor(t * 2) % 6]; entry.root = 0; }
       if (n.type === "step-sequencer") {
         const len = Math.round(1 + (n.params.length ?? 0.48) * 31);
         entry.step = Math.floor(t * 8) % len;
         entry.sounding = 1;
         entry.varied = 0;
+      }
+      if (n.type === "drum-grid") {
+        const d = n.data || {}, slot = d.current || 0, pat = (d.patterns || [])[slot];
+        const len = pat ? pat.length : 16;
+        entry.step = Math.floor(t * 8) % len;
+        entry.playing = slot;
+        entry.queued = -1;
+        entry.running = 1;
+        entry.hits = 0;
+        if (pat) pat.steps.forEach((row, k) => { if ("xX".includes(row[entry.step])) entry.hits |= 1 << k; });
+      }
+      // Controllers: what the view played (perform), not the animation.
+      if (n.type === "dial") {
+        const at = (id) => { const p = ty.params.find((x) => x.id === id); return p.min + (n.params[id] ?? p.default) * (p.max - p.min); };
+        outputs.out = at("min") + (at("max") - at("min")) * (n.params.value ?? 0.5);
+      }
+      if (n.type === "button") {
+        const b = played[n.id] || {}, on = !!(n.data && n.data.on);
+        Object.assign(outputs, { gate: (n.params.mode ?? 0) >= 0.5 ? +on : +!!b.held, toggle: +on,
+                                 trigger: b.pressed ? 1 : 0, release: b.released ? 1 : 0 });
+        b.pressed = b.released = false;
+      }
+      if (n.type === "keyboard") {
+        const held = (played[n.id] || {}).notes || [];
+        const last = held[held.length - 1];
+        Object.assign(outputs, { gate: held.length ? 1 : 0, pitch: last === undefined ? 0 : (last - 60) / 12, trigger: 0,
+                                 vel: held.length ? n.params.velocity ?? 0.8 : 0 });
+        entry.active = last === undefined ? -1 : last;
+        entry.held = held.length;
+      }
+      if (n.type === "level-meter") {
+        // A beat that swells, now and then into the red.
+        const beat = Math.exp(-((t * 2) % 1) * 4), swell = 0.6 + 0.5 * Math.sin(t * 0.4);
+        const stereo = board.cables.some((c) => c.to.node === n.id && c.to.jack === "r");
+        const pk = [beat * swell, beat * swell * (stereo ? 0.8 : 1)];
+        Object.assign(entry, { peakL: pk[0], peakR: pk[1], rmsL: pk[0] * 0.45, rmsR: pk[1] * 0.45,
+                               clipL: +(pk[0] > 1), clipR: +(pk[1] > 1), stereo: +stereo });
+        Object.assign(outputs, { l: pk[0], r: pk[1], clip: +(pk[0] > 1), level: Math.max(0, 1 + 20 * Math.log10(pk[0] * 0.45 + 1e-9) / 60) });
+      }
+      // Activity (the cables' pulse): how far each output moved since the last frame.
+      entry.activity = {};
+      for (const o of ty.outputs) {
+        const key = n.id + "|" + o.id, v = outputs[o.id] ?? 0;
+        const a = o.type === "audio" ? 2 * Math.abs(v) : Math.abs(v - (lastOut.get(key) ?? v));
+        lastOut.set(key, v);
+        if (a > 1e-4) entry.activity[o.id] = a;
       }
       if (n.type === "voice-cell") entry.voices = Math.floor(t * 2) % 2 ? 0b101 : 0b011;
       nodes[n.id] = entry;
@@ -154,6 +205,15 @@
           if (c) { c.amount = a[1]; save(); }
           return null;
         }
+        case "perform": {  // Button and Keyboard gestures (see the state loop)
+          const p = (played[a[0]] = played[a[0]] || { notes: [] }), args = a[2] || [];
+          if (a[1] === "press") { p.held = p.pressed = true; }
+          if (a[1] === "release") { p.held = false; p.released = true; }
+          if (a[1] === "on") { p.notes = p.notes.filter((x) => x !== args[0]); p.notes.push(args[0]); }
+          if (a[1] === "off") p.notes = p.notes.filter((x) => x !== args[0]);
+          if (a[1] === "allOff") p.notes = [];
+          return null;
+        }
         case "watch": watched = a[0] || []; return null;
         case "command": return null;  // no DSP in the demo
         case "importMedia": {
@@ -164,19 +224,21 @@
         }
         case "exportMedia": return { error: "no audio in the demo" };
         case "midiDevices": return ["Demo Keyboard", "Demo Pads"];
-        case "presets": return store.get("bleep-demo-presets", []);
+        case "presets": return store.get(presetKey(a[0]), []);
         case "savePreset": {
-          const list = store.get("bleep-demo-presets", []).filter((p) => p.name !== a[0]);
+          const list = store.get(presetKey(a[2]), []).filter((p) => p.name !== a[0]);
           list.push({ name: a[0], preset: a[1] });
           list.sort((x, y) => x.name.localeCompare(y.name));
-          store.set("bleep-demo-presets", list);
+          store.set(presetKey(a[2]), list);
           return list;
         }
         case "deletePreset": {
-          const list = store.get("bleep-demo-presets", []).filter((p) => p.name !== a[0]);
-          store.set("bleep-demo-presets", list);
+          const list = store.get(presetKey(a[1]), []).filter((p) => p.name !== a[0]);
+          store.set(presetKey(a[1]), list);
           return list;
         }
+        case "copyText": store.set("bleep-demo-clipboard", String(a[0])); return null;
+        case "pasteText": return store.get("bleep-demo-clipboard", "");
         case "resetDemo":
           board = demoBoard(); undo = []; redo = []; save();
           setTimeout(() => emit("board", message()));

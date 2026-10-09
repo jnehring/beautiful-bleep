@@ -1,7 +1,8 @@
 # Punch Drums
 
 Node types `punch-kick`, `punch-snare`, `punch-clap`, `punch-tom`,
-`punch-rim`, `punch-hats`, `punch-cymbal` · category *Drums* · colour
+`punch-rim`, `punch-hats`, `punch-cymbal` · category *Drums/Punch* (Add
+menu: *Module › Drums › Punch*) · colour
 `#f43f5e`
 
 ## 1. Purpose

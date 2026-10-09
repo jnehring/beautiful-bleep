@@ -404,6 +404,16 @@ juce::var Engine::exportMedia(const juce::String& nodeId, const juce::String& sl
     return juce::var(o);
 }
 
+void Engine::perform(const juce::String& nodeId, const juce::String& action, const juce::var& args) {
+    std::vector<double> values;
+    if (const auto* a = args.getArray())
+        for (const auto& v : *a) values.push_back((double)v);
+    const std::string id = nodeId.toStdString(), name = action.toStdString();
+    if (auto m = modules_.find(id); m != modules_.end()) m->second->perform(name, values);
+    if (auto in = inner_.find(id); in != inner_.end())
+        for (const auto& m : in->second.modules) m->perform(name, values);
+}
+
 void Engine::setAmount(const juce::String& cableId, float amount) {
     auto* c = hasBoard() ? board::findCable(board_, cableId) : nullptr;
     if (c == nullptr) return;
@@ -534,6 +544,12 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
         for (size_t k = 0; k < spec.outputs.size(); ++k)
             outs->setProperty(juce::Identifier(spec.outputs[k].id), m->outputDisplay((int)k).value.load());
         n->setProperty("outputs", juce::var(outs));
+        // How much each output moved since the last call: the cables' pulse.
+        auto* act = new juce::DynamicObject();
+        for (size_t k = 0; k < spec.outputs.size(); ++k)
+            if (const float a = m->outputDisplay((int)k).activity(); a > 1e-4f)
+                act->setProperty(juce::Identifier(spec.outputs[k].id), a);
+        n->setProperty("activity", juce::var(act));
         if (detailed.count(juce::String(id))) {
             auto* params = new juce::DynamicObject();
             for (size_t i = 0; i < spec.params.size(); ++i) {

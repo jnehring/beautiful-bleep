@@ -60,6 +60,9 @@ form of amplitude modulation between two sources).
 The *Fade* knob as a wide horizontal slider with *A* and *B* at its ends, the
 *Curve* setting, and two small level bars showing the current A and B gains.
 
+The first version uses the generic module view (knobs and settings); the
+displays described here come later.
+
 ## 6. Saved state
 
 Only knob and setting values; no node data.

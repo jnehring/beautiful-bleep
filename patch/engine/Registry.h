@@ -67,9 +67,23 @@ void registerAdsrModule(Registry&);
 void registerVcaModule(Registry&);
 void registerCvToNotesModule(Registry&);
 void registerStepSequencerModule(Registry&);
+void registerDrumGridModule(Registry&);
 void registerNoiseModule(Registry&);
 void registerRingDrumsModules(Registry&);
 void registerPunchDrumsModules(Registry&);
+void registerAttenuverterModule(Registry&);
+void registerCvMixerModule(Registry&);
+void registerAudioMixerModule(Registry&);
+void registerMultiplierModule(Registry&);
+void registerCrossfaderModule(Registry&);
+void registerLogicModule(Registry&);
+void registerQuantizerModule(Registry&);
+void registerSwitchModule(Registry&);
+void registerNotesToCvModule(Registry&);
+void registerDialModule(Registry&);
+void registerButtonModule(Registry&);
+void registerKeyboardModule(Registry&);
+void registerLevelMeterModule(Registry&);
 void registerPortModules(Registry&);
 
 }  // namespace bleep::engine

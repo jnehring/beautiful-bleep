@@ -1,7 +1,8 @@
 # Ring Drums
 
 Node types `ring-kick`, `ring-snare`, `ring-clap`, `ring-tom`, `ring-rim`,
-`ring-cowbell`, `ring-hats`, `ring-cymbal` · category *Drums* · colour
+`ring-cowbell`, `ring-hats`, `ring-cymbal` · category *Drums/Ring* (Add
+menu: *Module › Drums › Ring*) · colour
 `#f59e0b`
 
 ## 1. Purpose

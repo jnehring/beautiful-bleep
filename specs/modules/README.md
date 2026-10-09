@@ -21,20 +21,24 @@ section 21): no hardware names in the files, the UI or the docs.
 | Module | File | Status |
 |---|---|---|
 | Step Sequencer | [step-sequencer.md](step-sequencer.md) | Implemented |
+| Attenuverter | [attenuverter.md](attenuverter.md) | Implemented |
+| CV Mixer | [cv-mixer.md](cv-mixer.md) | Implemented |
+| Audio Mixer | [audio-mixer.md](audio-mixer.md) | Implemented |
+| Multiplier | [multiplier.md](multiplier.md) | Implemented |
+| Crossfader | [crossfader.md](crossfader.md) | Implemented |
+| Logic | [logic.md](logic.md) | Implemented |
+| Quantizer | [quantizer.md](quantizer.md) | Implemented |
+| Switch | [switch.md](switch.md) | Implemented |
+| Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Implemented |
+| Drum Grid | [drum-grid.md](drum-grid.md) | Implemented |
 | LFO | [lfo.md](lfo.md) | Implemented |
-| Attenuverter | [attenuverter.md](attenuverter.md) | Specified |
-| CV Mixer | [cv-mixer.md](cv-mixer.md) | Specified |
-| Audio Mixer | [audio-mixer.md](audio-mixer.md) | Specified |
-| Multiplier | [multiplier.md](multiplier.md) | Specified |
-| Crossfader | [crossfader.md](crossfader.md) | Specified |
-| Logic | [logic.md](logic.md) | Specified |
-| Quantizer | [quantizer.md](quantizer.md) | Specified |
-| Switch | [switch.md](switch.md) | Specified |
-| Notes to CV | [notes-to-cv.md](notes-to-cv.md) | Specified |
-| Drum Grid | [drum-grid.md](drum-grid.md) | Specified |
 | Noise | [noise.md](noise.md) | Implemented |
 | Ring Drums | [ring-drums.md](ring-drums.md) | Implemented |
 | Punch Drums | [punch-drums.md](punch-drums.md) | Implemented |
+| Dial | [dial.md](dial.md) | Implemented |
+| Button | [button.md](button.md) | Implemented |
+| Keyboard | [keyboard.md](keyboard.md) | Implemented |
+| Level Meter | [level-meter.md](level-meter.md) | Implemented |
 
 The eurorack-inspired set:
 
@@ -89,3 +93,17 @@ The eurorack-inspired set:
 | Drum + Mod | [drum-modulator.md](drum-modulator.md) | Not built: the drum modules, LFO, ADSR and Random cover it |
 | Sequential Switch | [sequential-switch.md](sequential-switch.md) | Not built: Switch covers it |
 | Multi-out Filter | [multi-output-filter.md](multi-output-filter.md) | Not built: the Filter's ladder types cover it |
+
+Proposed lab-gear modules (draft specs, not yet reviewed): modelled on the
+character of vintage laboratory test equipment, where drift, bounce and
+imperfection are part of the sound.
+
+| Module | File | Category | Status |
+|---|---|---|---|
+| Test Oscillator | [test-oscillator.md](test-oscillator.md) | Sources | Draft |
+| Sweep Generator | [sweep-generator.md](sweep-generator.md) | Sources | Draft |
+| Beat Oscillator | [beat-oscillator.md](beat-oscillator.md) | Sources | Draft |
+| Pulse Generator | [pulse-generator.md](pulse-generator.md) | Sources | Draft |
+| Wave Analyzer | [wave-analyzer.md](wave-analyzer.md) | Audio | Draft |
+| Chart Recorder | [chart-recorder.md](chart-recorder.md) | Modulation | Draft |
+| XY Scope | [xy-scope.md](xy-scope.md) | Utility | Draft |

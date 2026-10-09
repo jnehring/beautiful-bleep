@@ -1,0 +1,10 @@
+{
+  "name": "CV Mixer",
+  "slug": "cv-mixer",
+  "tagline": "Four modulators combined by sum, average, max, min or a scan.",
+  "colour": "#c4b5fd",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/cv-mixer.md"
+}

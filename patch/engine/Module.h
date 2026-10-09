@@ -118,6 +118,10 @@ public:
     /// and whenever the data changes; modules hand it to the audio thread
     /// themselves.
     virtual void setData(const std::string& json) { (void)json; }
+    /// [message thread] A performance gesture from the module view (a button
+    /// press, a key played): no undo entry, not saved. Modules hand it to the
+    /// audio thread themselves, e.g. through a ControlQueue.
+    virtual void perform(const std::string& action, const std::vector<double>& args) { (void)action; (void)args; }
     /// [message thread] Extra live values for the module view, e.g. a playhead.
     virtual void liveValues(std::vector<std::pair<std::string, double>>& out) const { (void)out; }
     /// [message thread] Live arrays for custom displays (a spectrum, a register's
@@ -183,6 +187,14 @@ public:
     struct Display {
         std::atomic<float> value{0.0f};
         std::atomic<bool> active{false};
+        /// Outputs: the signal's range since the UI last read it (activity()).
+        std::atomic<float> lo{1e30f}, hi{-1e30f};
+        /// The swing since the last call (0 when idle or constant), then resets. UI thread.
+        float activity() noexcept {
+            const float h = hi.exchange(-1e30f, std::memory_order_relaxed);
+            const float l = lo.exchange(1e30f, std::memory_order_relaxed);
+            return h > l ? h - l : 0.0f;
+        }
     };
     Display& paramDisplay(int i) noexcept { return paramDisplay_[(size_t)i]; }
     Display& outputDisplay(int i) noexcept { return outputDisplay_[(size_t)i]; }

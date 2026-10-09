@@ -368,8 +368,17 @@ void Program::runChunk(const ProcessContext& chunk) noexcept {
                 auto& d = mod.outputDisplay((int)k);
                 if (const float* b = st.outputBuffers[k].get()) {
                     d.value.store(b[m - 1], std::memory_order_relaxed);
+                    float lo = d.lo.load(std::memory_order_relaxed), hi = d.hi.load(std::memory_order_relaxed);
+                    for (int s = 0; s < m; ++s) {
+                        lo = std::min(lo, b[s]);
+                        hi = std::max(hi, b[s]);
+                    }
+                    d.lo.store(lo, std::memory_order_relaxed);
+                    d.hi.store(hi, std::memory_order_relaxed);
                 } else if (const NoteBuffer* nb = st.noteOutputs[k].get(); nb && nb->count > 0) {
                     d.value.store(1.0f, std::memory_order_relaxed);
+                    d.lo.store(0.0f, std::memory_order_relaxed);
+                    d.hi.store(1.0f, std::memory_order_relaxed);
                 }
             }
         }

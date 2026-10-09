@@ -66,8 +66,9 @@ the two sections are independent.
 
 Ring modulation of two audio signals produces sum and difference frequencies,
 so the sum can alias. *Oversampling* runs the multiplication at 2× or 4× with
-the engine's shared half-band filters (a short FIR, a few samples of latency on
-both outputs). *Off* is exact and latency-free, and right for control signals.
+half-band FIR filters from `patch/common/dsp/Oversampler.h` (95 taps,
+Blackman window; 47 samples of latency per stage at that stage's rate, so
+about 47 samples at 2× and 70 at 4× at the base rate, on both outputs). *Off* is exact and latency-free, and right for control signals.
 
 ## 5. Module view
 
@@ -75,15 +76,17 @@ Two sections stacked vertically, each with *Bias X*, *Bias Y* and *Gain*, and
 a small XY scope (X horizontal, Y vertical, the product as brightness) showing
 the last 50 ms. The *Oversampling* dropdown sits at the bottom.
 
+The first version uses the generic module view (knobs and settings); the
+displays described here come later.
+
 ## 6. Saved state
 
 Only knob and setting values; no node data.
 
 ## 7. Engine requirements
 
-- A half-band up/down-sampler in `patch/common/dsp/`, shared with future
-  nonlinear modules (wavefolder, distortion). If the Multi Filter's drive
-  stages already have one, reuse it.
+- A half-band up/down-sampler in `patch/common/dsp/Oversampler.h`, shared
+  with future nonlinear modules (wavefolder, distortion).
 - Reported latency per output when oversampling is on; until the engine has
   latency compensation inside the board, the latency is listed in the docs.
 

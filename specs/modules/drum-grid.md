@@ -204,7 +204,8 @@ all sets, like cell presets (`specs.md` section 8.1):
   solid = playing, blinking = queued. Click selects (queued, see 4.4) **and**
   shows that slot for editing; Alt-click only shows it for editing without
   switching playback (the header then says *Editing 5 · Playing 2*). When
-  *Pattern* is patched the buttons only show, the input decides what plays.
+  *Pattern* is patched, the input decides what plays; the solid button
+  follows it.
 - **Copy / Paste** copy the shown pattern to another slot; **Clear** empties it;
   **◀ ▶** rotate all rows within *Length*. Each is one undo step.
 - **Presets ▾** (see 4.6 and section 6): *Factory ›* by style, *User ›* by
@@ -243,13 +244,17 @@ tracks/slots are padded, Length is clamped to 1–32, `current` to 0–15.
 in `<user app data>/Bleep Patch/Drum Patterns/` (next to `Cells/`):
 
 ```json
-{ "name": "Four on the Floor", "category": "My Kits", "version": 1,
-  "pattern": { "length": 16, "steps": [ … 8 strings … ],
-               "trackNames": [ "Kick", "Snare", … ] } }
+{ "name": "Four on the Floor",
+  "preset": { "category": "My Kits", "version": 1,
+              "pattern": { "name": "Four on the Floor", "length": 16,
+                           "steps": [ … 8 strings … ],
+                           "trackNames": [ "Kick", "Snare", … ] } } }
 ```
 
-Factory patterns use the same shape and live in the UI bundle, like
-`BleepFactoryPresets`.
+The outer `{name, preset}` is the same wrapper cell presets use. Factory
+patterns use the same shape and live in the UI bundle
+(`modules/drum-grid/ui/drum-grid-patterns.js`, `window.BleepDrumPatterns`),
+like `BleepFactoryPresets`.
 
 ## 7. Engine requirements
 
@@ -262,14 +267,16 @@ Factory patterns use the same shape and live in the UI bundle, like
 2. **Free-running clock.** The *Tempo* source needs no transport; it uses the
    module's own phase, kept across recompiles like the playhead.
 3. **Pattern library.** The board window's preset functions (`presets`,
-   `savePreset`, `deletePreset` in `BoardWindow.cpp`) are cell-only today.
-   Generalise them with a *kind* argument (`"cell"` → `Cells/*.bleepcell`,
+   `savePreset`, `deletePreset` in `BoardWindow.cpp`) take an optional
+   trailing *kind* argument (`"cell"`, the default → `Cells/*.bleepcell`,
    `"drums"` → `Drum Patterns/*.bleepdrums`), so later modules (Morph
-   snapshots, Step Sequencer patterns) reuse them.
-4. **Many outputs.** 28 output jacks is more than any module so far. The node
-   on the canvas should group them: per track a single stacked jack group
-   (*Gate · Acc · Vel*) with the track number, collapsed to the gates when the
-   node is small. This is a board UI change, not an engine one.
+   snapshots, Step Sequencer patterns) can reuse them. Module views reach
+   them through `api.presets(kind)`, `api.savePreset(kind, name, preset)`
+   and `api.deletePreset(kind, name)`.
+4. **Many outputs.** 28 output jacks is more than any module so far. The
+   node on the canvas shows the first few and collapses the rest
+   (*+ 24 more*), as it does for ports; that is enough for now. A grouped
+   per-track jack (*Gate · Acc · Vel*) is listed under Later.
 
 ## 8. Tests
 
@@ -295,4 +302,6 @@ Factory patterns use the same shape and live in the UI bundle, like
 - A *Notes* output (one note per track, GM drum map) to play Live's Drum Racks through a MIDI Out port.
 - Record from a *Notes* input or by tapping track buttons while playing.
 - More than 8 tracks; track names on the node's jack labels.
+- Grouped jacks on the node: one stacked *Gate · Acc · Vel* jack per track.
+- The view greys out the slot buttons while *Pattern* is patched.
 - A randomizer / Euclidean fill per row, like the Step Sequencer's.
