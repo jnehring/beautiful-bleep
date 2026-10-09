@@ -111,6 +111,13 @@ export function checkPanels(preset, list) {
           if (!(root.inputs || []).some((j) => j.id === t.cell)) throw new Error(`${where(c)}: the cell has no input '${t.cell}'`);
         } else if (t.notes) {
           if (root.type !== "voice-cell") throw new Error(`${where(c)}: only a Voice Cell takes notes`);
+        } else if (t.jack) {
+          const [nid, jack] = split(t.jack), n = node(nid, c), ty = types[n.type];
+          if (!ty.inputs.some((j) => j.id === jack) && !ty.params.some((p) => p.id === jack && p.modulatable))
+            throw new Error(`${where(c)}: ${n.type} has no input '${jack}'`);
+        } else if (t.command) {
+          const [nid, cmd] = split(t.command), n = node(nid, c);
+          if (!(types[n.type].buttons || []).some((b) => b.id === cmd)) throw new Error(`${where(c)}: ${n.type} has no button '${cmd}'`);
         } else throw new Error(`${where(c)}: a wire that goes nowhere`);
       }
       if (c.source) for (const ref of Array.isArray(c.source.out) ? c.source.out : [c.source.out]) {
@@ -126,7 +133,7 @@ export function checkPanels(preset, list) {
         if (c.size[0] !== sub.cols || c.size[1] !== sub.rows)
           throw new Error(`${where(c)}: size ${c.size} differs from ${sub.name}'s ${sub.cols}×${sub.rows}`);
       }
-      if (["dial", "slider", "wheel", "button", "switch", "select", "keys"].includes(c.type) && !(c.wire || []).length)
+      if (["dial", "slider", "wheel", "button", "switch", "select", "keys", "xy"].includes(c.type) && !(c.wire || []).length)
         throw new Error(`${where(c)}: a control with no wire`);
     }
     const seen = (id, trail) => {

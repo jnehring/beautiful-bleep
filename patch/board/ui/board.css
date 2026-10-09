@@ -303,3 +303,5 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .bp-keys.dead { opacity: .35; }
 .pe-group { color: var(--muted); text-transform: uppercase; font-size: 10px; letter-spacing: .06em; cursor: default; }
 .pe-knob small { float: right; color: var(--muted); }
+.bp-xy { border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); cursor: crosshair; touch-action: none; }
+.bp-xy s { position: absolute; width: 14px; height: 14px; margin: 0 0 -7px -7px; border-radius: 50%; background: var(--accent); pointer-events: none; }

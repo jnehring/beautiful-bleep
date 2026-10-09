@@ -25,6 +25,7 @@
 //   p.update(live)  the engine's state event: meters, embedded views
 //   p.refresh()   values changed elsewhere (module views, undo)
 //   p.nodeIds()   nodes whose views are embedded (the board watches them)
+//   p.destroy()   release the computer-keyboard listeners (call when the panel is dropped)
 (function () {
   "use strict";
   const U = 20;
@@ -72,6 +73,10 @@
     const widgets = [];           // {update(live), refresh()}
     const embedded = new Set();   // node ids whose view is drawn here
     const result = { root, stage: null, elements: new Map(), tab: () => null, setTab: () => {} };
+    const cleanups = [];          // listeners on the document, released by destroy()
+    let over = false;             // the pointer is over this panel: the computer keyboard plays its keys
+    root.addEventListener("pointerenter", () => { over = true; });
+    root.addEventListener("pointerleave", () => { over = false; });
 
     /// Draws one panel into `into`. `bound`: the node a module panel fronts ("this").
     function draw(panel, into, bound, depth) {
@@ -134,6 +139,7 @@
         case "button": return button(c, bound, panel);
         case "select": return select(c, bound, panel);
         case "keys": return keys(c, bound, panel);
+        case "xy": return xy(c, bound, panel);
         case "meter": return meter(c, bound);
         case "view": return embeddedView(c, bound);
         case "panel": {
@@ -147,43 +153,52 @@
       }
     }
 
-    /// What a control's wires drive, in order (the first leads): knobs, the cell's input jacks, its notes.
-    /// `sid` names the hidden source the engine makes for a jack or notes wire.
-    function targets(c, bound, panel) {
+    /// What a control's wires drive, in order (the first leads): knobs, jacks (the cell's, a module's, or a
+    /// knob in *mod* mode: a hidden source the engine makes, named `sid`), the cell's notes, a module's button.
+    /// `axis` picks the wires of one axis of an XY pad.
+    function targets(c, bound, panel, axis) {
       const out = [];
       (c.wire || []).forEach((w, i) => {
+        if (axis && (w.axis || "x") !== axis) return;
         const sid = `~${panel.id}:${c.id}:${i}`;
-        if (w.param) {
+        const [lo, hi] = w.range || [0, 1];
+        if (w.param && w.mode !== "mod") {
           const [key, pid] = split(w.param);
           const node = host.node(key, bound);
           const info = node && host.param(node.id, pid);
-          if (!info) return;
-          const [lo, hi] = w.range || [0, 1];
-          out.push({ kind: "param", id: node.id, pid, def: info.def, lo, hi });
-        } else if (w.cell) {
-          const [lo, hi] = w.range || [0, 1];
-          const jtype = host.jackType ? host.jackType(panel, w.cell) : null;
-          if (!jtype) return;   // the cell has no such jack
-          out.push({ kind: "jack", jack: w.cell, jtype, sid, lo, hi,
-                     def: { kind: "float", name: w.cell, min: lo, max: hi, default: 0 } });
+          if (info) out.push({ kind: "param", id: node.id, pid, def: info.def, lo, hi });
+        } else if (w.param || w.jack || w.cell) {
+          let jtype = null, name = "";
+          if (w.param) {   // modulation: like a cable into the knob
+            const [key, pid] = split(w.param), node = host.node(key, bound), info = node && host.param(node.id, pid);
+            if (info) { jtype = "control"; name = info.def.name; }
+          } else if (w.jack) {
+            const [key, jack] = split(w.jack), node = host.node(key, bound);
+            jtype = node && host.nodeJackType ? host.nodeJackType(node.id, jack) : null;
+            name = jack;
+          } else {
+            jtype = host.jackType ? host.jackType(panel, w.cell) : null;
+            name = w.cell;
+          }
+          if (jtype) out.push({ kind: "jack", jtype, sid, lo: w.mod ? lo : lo, hi, def: { kind: "float", name, min: lo, max: hi, default: 0 } });
         } else if (w.notes) {
           out.push({ kind: "notes", sid });
+        } else if (w.command) {
+          const [key, cmd] = split(w.command), node = host.node(key, bound);
+          if (node) out.push({ kind: "command", id: node.id, cmd });
         }
       });
       return out;
     }
 
-    /// Wires value, drag and display together for dials, faders, buttons and selects.
-    function wire(c, bound, e, paint, panel) {
-      const label = el("i", "", c.label || "");
-      e.append(label);
-      const ts = targets(c, bound, panel).filter((t) => t.kind !== "notes");
-      if (!ts.length) { e.classList.add("dead"); e.title = (c.wire || []).length ? "Not connected: the module or jack is gone" : "Not wired"; return null; }
+    /// Value, saving and what moving it drives, for one axis of a control. `o.initial`: the saved value,
+    /// `o.save(x)`: store it, `o.paint(x)` and `o.title`.
+    function driver(c, bound, panel, ts, o) {
       const lead = ts[0];
       // A jack has no knob to read: the control keeps its own value (saved with the panel), centred on 0.
       const home = (t) => (t.lo < 0 && t.hi > 0 ? -t.lo / (t.hi - t.lo) : 0);
       const read = () => {
-        if (lead.kind === "jack") return clamp01(c.value ?? home(lead));
+        if (lead.kind !== "param") return clamp01(o.initial() ?? home(lead));
         const v = host.value(lead.id, lead.pid);
         return lead.hi === lead.lo ? 0 : clamp01((v - lead.lo) / (lead.hi - lead.lo));
       };
@@ -194,7 +209,7 @@
         if (steps > 1 && lead.lo === 0 && lead.hi === 1) return Math.round(q * (steps - 1)) / (steps - 1);
         return q;
       };
-      const draw = () => { paint(x); e.title = `${c.label || lead.def.name}: ${show(lead.def, lead.lo + x * (lead.hi - lead.lo))}`; };
+      const draw = () => o.paint(x, lead.lo + x * (lead.hi - lead.lo), lead.def);
       let dirty = false;
       const move = (q) => {
         q = snap(q);
@@ -205,7 +220,7 @@
             const signal = t.lo + x * (t.hi - t.lo);
             host.source(t.sid, clamp01((signal + 1) / 2));
             dirty = true;
-          } else {
+          } else if (t.kind === "param") {
             let v = t.lo + x * (t.hi - t.lo);
             const n = t.def.kind === "float" ? 0 : t.def.steps || 0;
             if (n > 1) v = Math.round(v * (n - 1)) / (n - 1);
@@ -217,14 +232,33 @@
       // The gesture ends: a jack-driven control saves where it was left (a spring control doesn't).
       const end = () => {
         if (c.spring) move(home(lead));
-        else if (dirty) { host.save(panel.id, c.id, x); }
+        else if (dirty) o.save(x);
         dirty = false;
       };
       widgets.push({ refresh: () => { x = read(); draw(); } });
       draw();
+      const dflt = lead.kind !== "param" ? home(lead) : (lead.hi === lead.lo ? 0 : clamp01((lead.def.default - lead.lo) / (lead.hi - lead.lo)));
+      return { move, end, get: () => x, def: { default: dflt }, steps };
+    }
+
+    /// Wires value, drag and display together for dials, faders, buttons and selects.
+    function wire(c, bound, e, paint, panel) {
+      const label = el("i", "", c.label || "");
+      e.append(label);
+      const all = targets(c, bound, panel);
+      const ts = all.filter((t) => t.kind === "param" || t.kind === "jack");
+      if (!all.length || (!ts.length && c.type !== "button")) {
+        e.classList.add("dead");
+        e.title = (c.wire || []).length ? "Not connected: the module or jack is gone" : "Not wired";
+        return null;
+      }
+      if (!ts.length) { if (!opts.edit) return { ts: [], all, commands: all.filter((t) => t.kind === "command"), move() {}, end() {}, get: () => 0, def: { default: 0 }, steps: 0 }; return null; }
+      const d = driver(c, bound, panel, ts, {
+        initial: () => c.value, save: (x) => host.save(panel.id, c.id, x),
+        paint: (x, units, def) => { paint(x); e.title = `${c.label || def.name}: ${show(def, units)}`; },
+      });
       if (opts.edit) return null;
-      const dflt = lead.kind === "jack" ? home(lead) : (lead.hi === lead.lo ? 0 : clamp01((lead.def.default - lead.lo) / (lead.hi - lead.lo)));
-      return { move, end, ts, get: () => x, def: { default: dflt }, steps };
+      return Object.assign(d, { ts, all, commands: all.filter((t) => t.kind === "command") });
     }
 
     function knob(c, bound, panel) {
@@ -270,12 +304,14 @@
       const w = wire(c, bound, e, (v) => lamp.classList.toggle("on", v > 0.5), panel);
       if (w) {
         const pulses = w.ts.filter((t) => t.kind === "jack" && (t.jtype === "trigger" || t.jtype === "gate"));
+        const cmds = w.commands;
         e.addEventListener("pointerdown", (ev) => {
           if (ev.button !== 0) return;
           ev.stopPropagation();
-          if (pulses.length) {   // a trigger or gate into the cell: held while pressed
+          if (pulses.length || cmds.length) {   // a trigger or gate, or a module's button: held while pressed
             e.setPointerCapture(ev.pointerId);
             for (const t of pulses) host.press(t.sid, true);
+            for (const t of cmds) host.command(t.id, t.cmd, 1);
             lamp.classList.add("on");
             return;
           }
@@ -284,10 +320,48 @@
           w.move(w.steps > 2 ? (Math.round(w.get() * (w.steps - 1)) + 1) % w.steps / (w.steps - 1) : w.get() > 0.5 ? 0 : 1);
           w.end();
         });
-        const up = () => { for (const t of pulses) host.press(t.sid, false); if (pulses.length) lamp.classList.remove("on"); };
+        const up = () => {
+          for (const t of pulses) host.press(t.sid, false);
+          for (const t of cmds) host.command(t.id, t.cmd, 0);
+          if (pulses.length || cmds.length) lamp.classList.remove("on");
+        };
         e.addEventListener("pointerup", up);
         e.addEventListener("pointercancel", up);
       }
+      return e;
+    }
+
+    /// Two values at once: x and y, each with its own wires (`axis`).
+    function xy(c, bound, panel) {
+      const e = el("div", "");
+      const dot = el("s", "");
+      e.append(dot, el("i", "", c.label || ""));
+      const tx = targets(c, bound, panel, "x").filter((t) => t.kind !== "notes" && t.kind !== "command");
+      const ty = targets(c, bound, panel, "y").filter((t) => t.kind !== "notes" && t.kind !== "command");
+      if (!tx.length && !ty.length) { e.classList.add("dead"); e.title = "Not wired"; return e; }
+      const pos = [0.5, 0.5];
+      const save = () => host.save(panel.id, c.id, [pos[0], pos[1]]);
+      const paint = () => { dot.style.left = pos[0] * 100 + "%"; dot.style.bottom = `calc(20px + (100% - 20px) * ${pos[1]})`; };
+      const axes = [];
+      [[tx, 0], [ty, 1]].forEach(([ts, k]) => {
+        if (!ts.length) return;
+        axes[k] = driver(c, bound, panel, ts, { initial: () => (Array.isArray(c.value) ? c.value[k] : undefined), save,
+          paint: (x) => { pos[k] = x; paint(); } });
+      });
+      if (opts.edit) return e;
+      let on = false;
+      const at = (ev) => {
+        const r = e.getBoundingClientRect();
+        const x = clamp01((ev.clientX - r.left) / r.width), y = clamp01(1 - (ev.clientY - r.top) / Math.max(1, r.height - 20));
+        if (axes[0]) axes[0].move(x);
+        if (axes[1]) axes[1].move(y);
+      };
+      e.addEventListener("pointerdown", (ev) => { if (ev.button !== 0) return; ev.stopPropagation(); e.setPointerCapture(ev.pointerId); host.begin(); on = true; at(ev); });
+      e.addEventListener("pointermove", (ev) => { if (on) at(ev); });
+      const end = () => { if (on) { on = false; for (const a of axes) if (a) a.end(); } };
+      e.addEventListener("pointerup", end);
+      e.addEventListener("pointercancel", end);
+      paint();
       return e;
     }
 
@@ -394,6 +468,51 @@
       });
       e.addEventListener("pointerup", release);
       e.addEventListener("pointercancel", release);
+
+      // The computer keyboard while the pointer is over the panel: A W S E D F T G Y H U J K … like a piano, Z / X octave.
+      const CODES = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, KeyG: 7, KeyY: 8, KeyH: 9,
+                      KeyU: 10, KeyJ: 11, KeyK: 12, KeyO: 13, KeyL: 14, KeyP: 15, Semicolon: 16, Quote: 17 };
+      const down = new Map();   // code → note
+      let shift = 0;
+      const off = (code) => {
+        const n = down.get(code);
+        if (n === undefined) return;
+        for (const t of ts) host.note(t.sid, "off", [n]);
+        const k = nodes.get(n);
+        if (k) k.classList.remove("on");
+        down.delete(code);
+      };
+      const onDown = (ev) => {
+        if (!over || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+        const tag = ev.target && ev.target.tagName;
+        if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+        if (ev.code === "KeyZ" || ev.code === "KeyX") {
+          if (!ev.repeat) shift = Math.max(-3, Math.min(3, shift + (ev.code === "KeyX" ? 1 : -1)));
+          ev.preventDefault(); ev.stopPropagation();
+          return;
+        }
+        if (!(ev.code in CODES)) return;
+        ev.preventDefault(); ev.stopPropagation();   // not the board's one-letter shortcuts
+        if (ev.repeat || down.has(ev.code)) return;
+        const n = base + CODES[ev.code] + shift * 12;
+        if (n < 0 || n > 127) return;
+        down.set(ev.code, n);
+        for (const t of ts) host.note(t.sid, "on", [n, 0.8]);
+        const k = nodes.get(n);
+        if (k) k.classList.add("on");
+      };
+      const onUp = (ev) => { if (down.has(ev.code)) { ev.stopPropagation(); off(ev.code); } };
+      const onBlur = () => { for (const code of [...down.keys()]) off(code); };
+      document.addEventListener("keydown", onDown, true);
+      document.addEventListener("keyup", onUp, true);
+      window.addEventListener("blur", onBlur);
+      cleanups.push(() => {
+        document.removeEventListener("keydown", onDown, true);
+        document.removeEventListener("keyup", onUp, true);
+        window.removeEventListener("blur", onBlur);
+        onBlur();
+        release();
+      });
       return e;
     }
 
@@ -450,6 +569,7 @@
       update: (live) => { for (const w of widgets) if (w.update) w.update(live); },
       refresh: () => { for (const w of widgets) if (w.refresh) w.refresh(); },
       nodeIds: () => [...embedded],
+      destroy: () => { for (const f of cleanups.splice(0)) f(); },
     });
   }
 

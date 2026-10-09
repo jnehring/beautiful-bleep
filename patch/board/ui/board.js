@@ -1216,6 +1216,7 @@
         items.push({ label: "Edit panel" + suffix, run: () => openPanel(p.id, { edit: true }) });
       }
       items.push({ label: "New panel", run: () => newPanel(n.id) });
+      items.push({ label: "Build panel from cell", run: () => buildPanel(n.id) });
     }
     if (isCellLike(n)) items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
@@ -1325,6 +1326,7 @@
       if (map.has(c.from.node) && map.has(c.to.node))
         b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
                         to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
+    addPanels(b, panelsWithLoaded(((board && board.panels) || []).filter((q) => q.cell && map.has(q.cell))), map);
     return map;
   }
 
@@ -1359,6 +1361,7 @@
       roots: roots.map((r) => r.id),
       nodes: nodes.map((n) => { const c = clone(n); delete c.port; return c; }),
       cables: board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone),
+      panels: clone(panelsWithLoaded(panelList().filter((q) => q.cell && ids.has(q.cell)))),
     };
     native("copyText", JSON.stringify(clip));
     return true;
@@ -1412,6 +1415,7 @@
         if (c && c.from && c.to && map.has(c.from.node) && map.has(c.to.node))
           b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
                           to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
+      addPanels(b, Array.isArray(clip.panels) ? clip.panels : [], map);
       sel.clear();
       selCable = null;
       roots.forEach((n) => sel.add(map.get(n.id)));
@@ -1608,6 +1612,28 @@
     if (saved) setPresets(saved);
   }
 
+  /// Panels copied into the board (a placed preset, a paste, a duplicate): new ids, pointing at the new nodes.
+  /// `map`: old node id → new. Panels of cells that weren't copied are left out.
+  function addPanels(b, list, map) {
+    if (!list || !list.length) return;
+    const pmap = new Map(list.map((q) => [q.id, uid("p")]));
+    const key = (k) => (map.has(k) ? map.get(k) : k);   // "this" stays
+    const ref = (r) => { const i = r.indexOf("."); return key(r.slice(0, i)) + r.slice(i); };
+    for (const q of clone(list)) {
+      if (q.cell && !map.has(q.cell)) continue;
+      q.id = pmap.get(q.id);
+      if (q.cell) q.cell = key(q.cell);
+      delete q.open;
+      for (const c of q.controls) {
+        for (const w of c.wire || []) for (const k of ["param", "jack", "command"]) if (w[k]) w[k] = ref(w[k]);
+        if (c.source) c.source.out = [].concat(c.source.out).map(ref);
+        if (c.node) c.node = key(c.node);
+        if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;
+      }
+      (b.panels || (b.panels = [])).push(q);
+    }
+  }
+
   function insertPreset(b, preset, lvl, x, y) {
     const tmp = { nodes: clone(preset.nodes), cables: clone(preset.cables) };
     const root = tmp.nodes.find((n) => n.id === preset.root);
@@ -1626,22 +1652,7 @@
       if (map.has(c.from.node) && map.has(c.to.node))
         b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
                         to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
-    // The preset's panels: copied into the board, pointing at the new node ids.
-    const pmap = new Map((preset.panels || []).map((q) => [q.id, uid("p")]));
-    const key = (k) => (map.has(k) ? map.get(k) : k);   // "this" stays
-    const ref = (r) => { const i = r.indexOf("."); return key(r.slice(0, i)) + r.slice(i); };
-    for (const q of clone(preset.panels || [])) {
-      q.id = pmap.get(q.id);
-      if (q.cell) q.cell = key(q.cell);
-      delete q.open;
-      for (const c of q.controls) {
-        for (const w of c.wire || []) if (w.param) w.param = ref(w.param);
-        if (c.source) c.source.out = [].concat(c.source.out).map(ref);
-        if (c.node) c.node = key(c.node);
-        if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;
-      }
-      (b.panels || (b.panels = [])).push(q);
-    }
+    addPanels(b, preset.panels, map);
     return root.id;
   }
 
@@ -1711,6 +1722,7 @@
   /// What a module view (or a panel) calls to change node `id`.
   function makeApi(id) {
     return {
+      knobMenu: (pid, ev) => addToPanelMenu(id, pid, ev),
       setParam: (pid, v) => {
         if (learnCb && learnCb(id, pid)) learnCb = null;   // the panel editor's Learn
         const m = nodeById(id);
@@ -1876,10 +1888,51 @@
     if (items.length) items.push("-");
     items.push({ label: "New board panel", run: () => newPanel("") });
     const sel1 = selectedNodes().filter(isCellLike);
-    if (sel1.length === 1) items.push({ label: `New panel for “${sel1[0].name}”`, run: () => newPanel(sel1[0].id) });
+    if (sel1.length === 1) {
+      items.push({ label: `New panel for “${sel1[0].name}”`, run: () => newPanel(sel1[0].id) });
+      items.push({ label: `Build panel from “${sel1[0].name}”`, run: () => buildPanel(sel1[0].id) });
+    }
     showMenu(ev, items);
   }
-  async function newPanel(cellId) {
+  /// Right-click on a knob: put a control for it on a panel that can reach the node.
+  function addToPanelMenu(nodeId, pid, ev) {
+    const n = nodeById(nodeId);
+    if (!n) return;
+    const inside = (cellId) => { for (let m = n; m; m = nodeById(m.parent)) if (m.id === cellId) return true; return false; };
+    const reach = panelList().filter((q) => !q.for && (!q.cell || inside(q.cell)));
+    const items = reach.map((q) => ({ label: q.cell ? `${q.name} (${nodeById(q.cell).name})` : q.name, run: () => addKnobToPanel(q.id, nodeId, pid) }));
+    if (items.length) items.push("-");
+    const cell = nodeById(n.parent);
+    if (cell && isCellLike(cell)) items.push({ label: `New panel for “${cell.name}”`, run: async () => { const id = await newPanel(cell.id, true); if (id) addKnobToPanel(id, nodeId, pid); } });
+    items.push({ label: "New board panel", run: async () => { const id = await newPanel("", true); if (id) addKnobToPanel(id, nodeId, pid); } });
+    showMenu(ev, [{ label: "Add to panel", items }]);
+  }
+  async function addKnobToPanel(panelId, nodeId, pid) {
+    const n = nodeById(nodeId), def = n && typeOf(n).params.find((q) => q.id === pid);
+    if (!def) return;
+    const type = def.kind === "bool" ? "button" : def.kind === "choice" && def.choices && def.choices.length > 7 ? "select" : "dial";
+    let name = "";
+    await edit("add to panel", (b) => {
+      const q = (b.panels || []).find((x) => x.id === panelId);
+      if (!q) return false;
+      name = q.name;
+      const tab = q.tabs && q.tabs[0] ? q.tabs[0].id : null;
+      BleepPanelEditor.placeControl(q, type, { label: def.name, wire: [{ param: `${nodeId}.${pid}` }] }, tab);
+    });
+    notice(`Added “${def.name}” to the panel “${name}”`);
+  }
+  /// A first panel for a cell, built from what is inside it.
+  async function buildPanel(cellId) {
+    const cell = nodeById(cellId);
+    if (!cell) return;
+    const order = descendants(cellId).filter((m) => !isBoundary(m) || m.type === "voice-out" || m.type === "cell-out")
+      .sort((a, b) => a.x - b.x || a.y - b.y);
+    const doc = BleepPanelBuild.build(cell, { nodes: order, types, inputsOf, cables: board.cables });
+    doc.id = uid("p");
+    await edit("build panel", (b) => { (b.panels || (b.panels = [])).push(doc); });
+    openPanel(doc.id);
+  }
+  async function newPanel(cellId, quiet) {
     const cell = cellId && nodeById(cellId);
     const id = uid("p");
     const name = cell ? cell.name : "Panel";
@@ -1889,7 +1942,8 @@
         controls: [{ id: "c1", type: "label", at: [1, 0], size: [24, 2], text: name, style: "title" }],
       });
     });
-    openPanel(id, { edit: true });
+    if (!quiet) openPanel(id, { edit: true });
+    return id;
   }
   /// The panel that opens with the board (panel.open: "window" or "full").
   function openStartPanel() {
@@ -1916,6 +1970,8 @@
       begin: gesture,
       // A panel control wired to a cell's jack or notes drives a hidden source the engine makes (id "~panel:control:wire").
       jackType: (panel, jack) => { const c = panel.cell && nodeById(panel.cell); const j = c && inputsOf(c).find((q) => q.id === jack); return j ? j.type : null; },
+      nodeJackType: (id, jack) => { const m = nodeById(id); return m ? inType(m, jack) : null; },
+      command: (id, cmd, v) => native("command", id, cmd, v),
       source: (sid, v) => native("setParam", sid, "value", v),
       press: (sid, down) => native("perform", sid, down ? "press" : "release", []),
       note: (sid, action, args) => native("perform", sid, action, args),
@@ -1939,14 +1995,14 @@
   function panelScope(doc) {
     if (doc.for) {
       const t = types[doc.for.module] || { name: doc.for.module, params: [], outputs: [] };
-      return [{ id: "this", name: t.name, type: t.type, depth: 0, params: t.params, outputs: t.outputs, view: true }];
+      return [{ id: "this", name: t.name, type: t.type, depth: 0, params: t.params, outputs: t.outputs, inputs: t.inputs || [], buttons: t.buttons || [], view: true }];
     }
     const out = [];
     const walk = (parent, depth) => {
       for (const n of nodesAt(parent)) {
         if (isBoundary(n) || isPort(n)) continue;
         const t = typeOf(n);
-        if (t.params.length || t.outputs.length || n.type === "voice-cell") out.push({ id: n.id, name: n.name, type: t.type, depth, params: t.params, outputs: outputsOf(n), view: !isStructural(n) });
+        if (t.params.length || t.outputs.length || n.type === "voice-cell") out.push({ id: n.id, name: n.name, type: t.type, depth, params: t.params, outputs: outputsOf(n), inputs: inputsOf(n).filter((j) => j.type !== "audio" && j.type !== "notes"), buttons: t.buttons || [], view: !isStructural(n) });
         if (isCellLike(n)) walk(n.id, depth + 1);
       }
     };
@@ -2003,7 +2059,7 @@
       const doc = panelById(panelId);
       if (!doc) return;
       title.textContent = doc.name;
-      if (play) { play = null; }
+      if (play) { play.destroy(); play = null; }
       if (editor) { editor.destroy(); editor = null; }
       embeddedViews = [];
       body.innerHTML = "";
@@ -2047,6 +2103,7 @@
       win, pinned: true, panelId,
       setEdit: (on) => { state.edit = on; state.full = state.full && !on; draw(); },
       nodes: () => (play && !state.edit ? play.nodeIds() : []),
+      destroy: () => { if (play) play.destroy(); },
       bv: {
         update: (s) => { if (play) play.update(s); },
         refresh: (doc) => {
@@ -2105,7 +2162,7 @@
   function closeView(id) {
     const v = views.get(id);
     if (!v) return;
-    if (v.panelId) learnCb = null;
+    if (v.panelId) { learnCb = null; v.destroy(); }
     v.win.remove();
     views.delete(id);
     watch();

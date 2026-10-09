@@ -1013,6 +1013,27 @@ void panelSources() {
     const auto* dial = m2.node("~q:c1:0");
     EXPECT(dial != nullptr && dial->type == "dial");
     if (dial) EXPECT_NEAR(dial->params.at("value"), 1.0, 1e-6);
+
+    // Board panel: a modulation wire into a module's knob and a wire into a module's jack, on an XY pad.
+    auto d3 = board::sanitise(doc({node("flt", "filter"), node("vca", "vca")}, {}));
+    juce::Array<juce::var> c3;
+    c3.add(obj({{"id", "xy"}, {"type", "xy"}, {"value", juce::Array<juce::var>{juce::var(0.25), juce::var(1.0)}},
+                {"wire", juce::Array<juce::var>{
+                    obj({{"param", "flt.cutoff"}, {"mode", "mod"}, {"axis", "x"}, {"amount", 0.5}}),
+                    obj({{"jack", "vca.gain"}, {"axis", "y"}})}}}));
+    juce::Array<juce::var> p3;
+    p3.add(obj({{"id", "b"}, {"controls", c3}}));  // no cell: a board panel
+    d3.getDynamicObject()->setProperty("panels", p3);
+    auto m3 = board::parse(d3);
+    board::addPanelSources(m3, board::sanitise(d3));
+    const auto* mx = m3.node("~b:xy:0");
+    const auto* my = m3.node("~b:xy:1");
+    EXPECT(mx != nullptr && my != nullptr);
+    if (mx) EXPECT_NEAR(mx->params.at("value"), (0.25 + 1.0) * 0.5, 1e-6);
+    if (my) EXPECT_NEAR(my->params.at("value"), 1.0, 1e-6);
+    bool modCable = false;
+    for (const auto& c : m3.cables) modCable |= c.from.node == "~b:xy:0" && c.to.node == "flt" && c.to.jack == "cutoff" && std::abs(c.amount - 0.5f) < 1e-6f;
+    EXPECT(modCable);
 }
 
 }  // namespace

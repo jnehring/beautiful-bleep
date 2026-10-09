@@ -12,6 +12,7 @@
 //              isPatched(inputJack) → bool, command(id, value),
 //              importMedia(name, base64) → Promise<{id, name, seconds, channels} | {error}>,
 //              exportMedia(slot) → Promise<{id, seconds, channels} | {error}>,
+//              knobMenu(paramId, event)  (optional: right-click on a knob),
 //              perform(action, ...args)  (performance gestures: not saved, no undo),
 //              presets(kind), savePreset(kind, name, preset), deletePreset(kind, name)
 //                → the library's [{name, preset}] (kind "drums": Drum Grid patterns) }
@@ -182,6 +183,13 @@
       k.dragging = dragValue(s, () => view.node.params[p.id] ?? p.default,
         (v) => { setParam(p.id, v); k.draw(); }, () => api.beginGesture());
       s.addEventListener("dblclick", () => { api.beginGesture(); setParam(p.id, p.default); k.draw(); });
+      // Right-click: the board offers "Add to panel" (api.knobMenu, optional).
+      box.addEventListener("contextmenu", (e) => {
+        if (!api.knobMenu) return;
+        e.preventDefault();
+        e.stopPropagation();
+        api.knobMenu(p.id, e);
+      });
       s.addEventListener("wheel", (e) => {
         e.preventDefault();
         e.stopPropagation();

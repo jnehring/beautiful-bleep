@@ -23,12 +23,44 @@
   };
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const PALETTE = [
-    ["dial", "Dial", [4, 4]], ["slider", "Fader", [2, 8]], ["wheel", "Wheel", [3, 8]], ["button", "Button", [4, 3]], ["select", "Select", [6, 3]], ["keys", "Keys", [42, 7]],
+    ["dial", "Dial", [4, 4]], ["slider", "Fader", [2, 8]], ["wheel", "Wheel", [3, 8]], ["button", "Button", [4, 3]], ["select", "Select", [6, 3]], ["keys", "Keys", [42, 7]], ["xy", "XY pad", [12, 10]],
     ["meter", "Meter", [2, 8]], ["label", "Label", [14, 2]], ["section", "Section", [16, 10]],
     ["view", "Module view", [24, 14]], ["panel", "Load panel", [20, 12]],
   ];
-  const WIRED = new Set(["dial", "slider", "wheel", "button", "select", "keys"]);
+  const WIRED = new Set(["dial", "slider", "wheel", "button", "select", "keys", "xy"]);
+const ANALOG = ["dial", "slider", "wheel", "button", "xy"];   // controls that can drive a jack or a knob's modulation
   const sizeOf = (type) => (PALETTE.find((p) => p[0] === type) || [0, 0, [4, 4]])[2];
+
+  const rectOf = (c) => ({ x: c.at[0], y: c.at[1], w: c.size[0], h: c.size[1] });
+  const overlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  /// Grows the panel to cover its controls (never shrinks).
+  function fitPanel(p) {
+    for (const c of p.controls) {
+      p.cols = Math.max(p.cols, c.at[0] + c.size[0] + 1);
+      const tt = (p.tabs || []).find((q) => q.id === c.tab);
+      const need = c.at[1] + c.size[1] + 1;
+      if (tt) tt.rows = Math.max(tt.rows || 0, need);
+      p.rows = Math.max(p.rows, need);
+    }
+  }
+  /// The first free place for a control of `size` on `tab` (sections don't count); below everything if it is too wide.
+  function freeSpotIn(p, size, tab) {
+    const solid = p.controls.filter((c) => c.type !== "section" && (!c.tab || c.tab === tab)).map(rectOf);
+    for (let y = 0; y < 400; y++)
+      for (let x = 0; x + size[0] <= p.cols - 1; x++)
+        if (!solid.some((r) => overlap({ x, y, w: size[0], h: size[1] }, r))) return [x, y];
+    return [0, Math.max(0, ...solid.map((r) => r.y + r.h))];
+  }
+  const nextIdIn = (p) => { let n = 1; while (p.controls.some((c) => c.id === "c" + n)) n++; return "c" + n; };
+  /// Puts a new control on the panel (used by the editor and by "Add to panel"); returns it.
+  function placeControl(p, type, extra, tab) {
+    const size = extra.size || sizeOf(type);
+    const c = { id: nextIdIn(p), type, at: freeSpotIn(p, size, tab), ...extra, size };
+    if (tab) c.tab = tab;
+    p.controls.push(c);
+    fitPanel(p);
+    return c;
+  }
 
   function mount(body, ctx) {
     let view = "interface";      // interface | wiring
@@ -58,41 +90,30 @@
     const jacks = () => (ctx.jacks ? ctx.jacks() : []);
     const jackName = (id) => { const j = jacks().find((q) => q.id === id); return j ? j.name : id; };
     /// A wire as text: "Filter › Cutoff", "Cell › Bend", "Cell notes".
-    const wireLabel = (w) => (w.param ? label(w.param) : w.cell ? `Cell › ${jackName(w.cell)}` : w.notes ? "Cell notes" : "?");
-
-    /// Grows the panel to cover its controls (never shrinks).
-    function fit(p) {
-      const t = (p.tabs || []).find((q) => q.id === tab);
-      for (const c of p.controls) {
-        p.cols = Math.max(p.cols, c.at[0] + c.size[0] + 1);
-        const tt = (p.tabs || []).find((q) => q.id === c.tab);
-        const need = c.at[1] + c.size[1] + 1;
-        if (tt) tt.rows = Math.max(tt.rows || 0, need);
-        p.rows = Math.max(p.rows, need);
+    const wireLabel = (w) => {
+      if (w.param) return label(w.param) + (w.mode === "mod" ? " (mod)" : "");
+      if (w.cell) return `Cell › ${jackName(w.cell)}`;
+      if (w.notes) return "Cell notes";
+      const ref = w.jack || w.command;
+      if (ref) {
+        const [key, id] = BleepPanels.split(ref), n = scopeNode(key);
+        const d = n && ((n.inputs || []).concat(n.buttons || [])).find((q) => q.id === id);
+        return `${n ? n.name : key} › ${d ? d.name : id}` + (w.command ? " (button)" : "");
       }
-      void t;
-    }
-    function freeSpot(p, size) {
-      const solid = p.controls.filter((c) => c.type !== "section" && (!c.tab || c.tab === tab)).map(rect);
-      for (let y = 0; y < 400; y++)
-        for (let x = 0; x + size[0] <= p.cols - 1; x++)
-          if (!solid.some((r) => hits({ x, y, w: size[0], h: size[1] }, r))) return [x, y];
-      return [0, Math.max(0, ...solid.map((r) => r.y + r.h))];   // too wide for the panel: below everything
-    }
-    const nextId = (p) => { let n = 1; while (p.controls.some((c) => c.id === "c" + n)) n++; return "c" + n; };
+      return "?";
+    };
+
+    const fit = fitPanel;
+    const freeSpot = (p, size) => freeSpotIn(p, size, tab);
+    const nextId = nextIdIn;
 
     function addControl(type, extra = {}) {
       let id;
       ctx.mutate("add " + type, (p) => {
-        const size = extra.size || sizeOf(type);
-        const c = { id: (id = nextId(p)), type, at: freeSpot(p, size), size, ...extra };
-        delete c.size;
-        c.size = size;
-        if (tab) c.tab = tab;
-        if (type === "label") c.text = c.text || "Label";
-        if (type === "section") { c.text = c.text || "Section"; c.colour = c.colour || "#8b92a3"; }
-        p.controls.push(c);
-        fit(p);
+        const more = { ...extra };
+        if (type === "label") more.text = more.text || "Label";
+        if (type === "section") { more.text = more.text || "Section"; more.colour = more.colour || "#8b92a3"; }
+        id = placeControl(p, type, more, tab).id;
       });
       selected = id;
       return id;
@@ -293,8 +314,11 @@
         }
       }
       for (const n of ctx.scope()) {
-        const rows = (wantOutputs ? n.outputs.map((o) => ({ ...o, out: true })) : n.params.map((q) => ({ ...q })))
-          .filter((r) => !query || r.name.toLowerCase().includes(query) || n.name.toLowerCase().includes(query));
+        const match = (r) => !query || r.name.toLowerCase().includes(query) || n.name.toLowerCase().includes(query);
+        const rows = wantOutputs ? n.outputs.map((o) => ({ ...o, kind: "out" }))
+          : [...n.params.map((q) => ({ ...q, kind: "param" })),
+             ...(n.inputs || []).filter((j) => !n.params.some((q) => q.id === j.id)).map((j) => ({ ...j, kind: "jack" })),
+             ...(n.buttons || []).map((b) => ({ ...b, kind: "command" }))].filter(match);
         if (!rows.length) continue;
         const head = el("div", "pe-node", n.name);
         head.style.paddingLeft = 6 + n.depth * 10 + "px";
@@ -311,49 +335,73 @@
           const row = el("div", "pe-knob", r.name);
           row.style.paddingLeft = 18 + n.depth * 10 + "px";
           const ref = `${n.id}.${r.id}`;
-          if (c && (c.wire || []).some((w) => w.param === ref)) row.classList.add("wired");
-          row.title = wantOutputs ? "Click: show this output on the meter" : "Click: wire the selected control to this knob · double-click: new control";
-          row.addEventListener("click", () => wireTo(ref, r, !!r.out));
-          row.addEventListener("dblclick", () => { if (!r.out) newFor(ref, r); });
+          const key = r.kind === "param" ? "param" : r.kind;
+          if (c && (c.wire || []).some((w) => w[key] === ref)) row.classList.add("wired");
+          if (r.kind === "jack" || r.kind === "command") row.append(el("small", "", r.kind === "jack" ? "jack" : "button"));
+          row.title = r.kind === "out" ? "Click: show this output on the meter"
+            : r.kind === "param" ? "Click: wire the selected control to this knob (Alt: modulate it) · double-click: new control"
+            : r.kind === "jack" ? "Click: send the selected control into this jack · double-click: new control"
+            : "Click: press this button from the selected control · double-click: new button";
+          row.addEventListener("click", (ev) => wireRow(ref, r, ev.altKey));
+          row.addEventListener("dblclick", () => { if (r.kind !== "out") newForRow(ref, r); });
           list.append(row);
         }
       }
       if (!list.children.length) list.append(el("div", "pe-empty", "Nothing here"));
     }
 
-    function wireTo(ref, def, isOutput) {
+    /// Adds `wire` to the control (replacing a wire to the same target); an XY pad's wires alternate x and y.
+    function addWire(c, wire, fallbackLabel) {
+      ctx.mutate("wire " + (c.label || c.type), (p) => {
+        const t = p.controls.find((q) => q.id === c.id);
+        const target = (w) => w.param === wire.param && w.mode === wire.mode ? true : (wire.jack && w.jack === wire.jack) || (wire.command && w.command === wire.command)
+          || (wire.cell && w.cell === wire.cell) || (wire.notes && w.notes);
+        t.wire = (t.wire || []).filter((w) => !target(w));
+        if (t.type === "xy") wire.axis = t.wire.some((w) => (w.axis || "x") === "x") ? "y" : "x";
+        t.wire.push(wire);
+        if (!t.label && fallbackLabel) t.label = fallbackLabel;
+      });
+    }
+    /// A row of the outline clicked: a knob (set, or Alt: modulate), a jack, a button, or a meter output.
+    function wireRow(ref, r, alt) {
       const c = control(selected);
       if (!c) return;
-      if (isOutput && c.type === "meter") {
+      if (r.kind === "out") {
+        if (c.type !== "meter") return;
         ctx.mutate("meter source", (p) => {
           const t = p.controls.find((q) => q.id === c.id);
           const cur = t.source ? [].concat(t.source.out) : [];
           t.source = { out: cur.includes(ref) ? cur.filter((x) => x !== ref) : cur.concat(ref).slice(-2) };
           if (!t.source.out.length) delete t.source;
         });
-        return;
+      } else if (r.kind === "param") {
+        if (!WIRED.has(c.type) || c.type === "keys") return;
+        const mod = alt && ANALOG.includes(c.type);
+        addWire(c, mod ? { param: ref, mode: "mod", amount: 0.5 } : { param: ref }, r.name);
+      } else if (r.kind === "jack") {
+        if (!ANALOG.includes(c.type)) return;
+        addWire(c, { jack: ref, ...(r.type === "pitch" ? { range: [-1, 1] } : {}) }, r.name);
+      } else if (r.kind === "command") {
+        if (c.type !== "button") return;
+        addWire(c, { command: ref }, r.name);
       }
-      if (!WIRED.has(c.type)) return;
-      ctx.mutate("wire " + (c.label || c.type), (p) => {
-        const t = p.controls.find((q) => q.id === c.id);
-        t.wire = (t.wire || []).filter((w) => w.param !== ref);
-        t.wire.push({ param: ref });
-        if (!t.label) t.label = def.name;
-      });
+    }
+    function newForRow(ref, r) {
+      if (r.kind === "param") return newFor(ref, r);
+      if (r.kind === "jack") {
+        const pulse = r.type === "trigger" || r.type === "gate";
+        return addControl(pulse ? "button" : "dial", { label: r.name, wire: [{ jack: ref, ...(r.type === "pitch" ? { range: [-1, 1] } : {}) }] });
+      }
+      addControl("button", { label: r.name, wire: [{ command: ref }] });
     }
     /// The range a new wire to a jack starts with, and the control that suits it.
     const jackRange = (j, wheel) => (j.type === "pitch" || wheel ? [-1, 1] : [0, 1]);
     function wireJack(j) {
       const c = control(selected);
       if (!c) return;
-      if (j.id === "notes" ? c.type !== "keys" : !["dial", "slider", "wheel", "button"].includes(c.type)) return;
-      ctx.mutate("wire " + (c.label || c.type), (p) => {
-        const t = p.controls.find((q) => q.id === c.id);
-        const same = (w) => (j.id === "notes" ? w.notes : w.cell === j.id);
-        t.wire = (t.wire || []).filter((w) => !same(w));
-        t.wire.push(j.id === "notes" ? { notes: "cell" } : { cell: j.id, ...(jackRange(j, t.type === "wheel")[0] < 0 ? { range: [-1, 1] } : {}) });
-        if (!t.label && j.id !== "notes") t.label = j.name;
-      });
+      if (j.id === "notes" ? c.type !== "keys" : !ANALOG.includes(c.type)) return;
+      const range = jackRange(j, c.type === "wheel");
+      addWire(c, j.id === "notes" ? { notes: "cell" } : { cell: j.id, ...(range[0] < 0 ? { range } : {}) }, j.id === "notes" ? "" : j.name);
     }
     function newForJack(j) {
       if (j.type === "notes") return addControl("keys", { wire: [{ notes: "cell" }] });
@@ -497,18 +545,42 @@
         rm.addEventListener("click", () => change("remove wire", (t) => { t.wire.splice(i, 1); if (!t.wire.length) delete t.wire; }));
         head.append(rm);
         box.append(head);
-        if (!w.notes) {
-          const signed = !!w.cell;   // a cell input swings −100…+100 %; a knob's range is 0…100 %
+        const set = (fn) => change("wire", (t) => fn(t.wire[i]));
+        if (w.param) {   // a knob is set by the control, or modulated by it like a cable
+          const mode = el("select", "");
+          mode.append(new Option("Sets the knob", ""), new Option("Modulates the knob", "mod"));
+          mode.value = w.mode === "mod" ? "mod" : "";
+          mode.addEventListener("change", () => set((x) => {
+            if (mode.value) { x.mode = "mod"; x.amount = x.amount ?? 0.5; } else { delete x.mode; delete x.amount; }
+            delete x.range;
+          }));
+          field(box, "Mode", mode);
+        }
+        if (c.type === "xy") {
+          const ax = el("select", "");
+          ax.append(new Option("X axis", "x"), new Option("Y axis", "y"));
+          ax.value = w.axis || "x";
+          ax.addEventListener("change", () => set((x) => { x.axis = ax.value; }));
+          field(box, "Axis", ax);
+        }
+        if (!w.notes && !w.command) {
+          // A cell input, a jack and a modulated knob take a signal: −100…+100 %. A knob set directly: 0…100 % of its range.
+          const signed = !!(w.cell || w.jack || w.mode === "mod");
           const [lo, hi] = w.range || [0, 1];
           const r = el("div", "pe-range");
           const lowIn = num(Math.round(lo * 100), (v) => setRange(i, v / 100, null), signed ? -100 : 0, 100);
           const highIn = num(Math.round(hi * 100), (v) => setRange(i, null, v / 100), signed ? -100 : 0, 100);
           r.append(lowIn, el("span", "", "% to"), highIn, el("span", "", "%"));
           box.append(r);
-          if (w.param) {
+          if (w.param && w.mode !== "mod") {
             const [key, pid] = BleepPanels.split(w.param);
             const n = scopeNode(key), d = n && n.params.find((q) => q.id === pid);
             if (d) box.append(el("div", "pe-units", `${BleepPanels.show(d, lo)} … ${BleepPanels.show(d, hi)}`));
+          }
+          if (signed && (w.param || w.jack)) {
+            const am = el("div", "pe-range");
+            am.append(el("span", "", "Amount"), num(Math.round((w.amount ?? 1) * 100), (v) => set((x) => { x.amount = v / 100; }), -100, 100), el("span", "", "%"));
+            box.append(am);
           }
         }
         insp.append(box);
@@ -531,8 +603,7 @@
         const w = t.wire[index];
         const cur = w.range || [0, 1];
         w.range = [lo ?? cur[0], hi ?? cur[1]];
-        if (w.param && w.range[0] === 0 && w.range[1] === 1) delete w.range;
-        if (w.cell && w.range[0] === 0 && w.range[1] === 1) delete w.range;
+        if (w.range[0] === 0 && w.range[1] === 1) delete w.range;
       });
     }
     function startLearn() {
@@ -542,7 +613,7 @@
         if (!n) return false;   // not in this panel's scope: keep waiting
         const d = n.params.find((q) => q.id === pid);
         learning = false;
-        wireTo(`${id}.${pid}`, d || { name: pid }, false);
+        wireRow(`${id}.${pid}`, { kind: "param", name: d ? d.name : pid }, false);
         return true;
       });
     }
@@ -652,5 +723,5 @@
     };
   }
 
-  window.BleepPanelEditor = { mount };
+  window.BleepPanelEditor = { mount, placeControl, sizeOf };
 })();

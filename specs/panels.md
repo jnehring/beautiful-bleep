@@ -121,9 +121,16 @@ The ✎ in a panel's title bar switches between playing and editing; *New panel*
 
 - **Keys, Wheel, cell inputs.** *Keys* (1–6 octaves, velocity from where the key is pressed; slides across keys) plays a Voice Cell: wire it to **Cell inputs › Notes**. A *Dial*, *Fader*, *Wheel* or *Button* wired to a cell input (**Cell inputs** at the top of the outline) feeds that jack, summed with whatever is cabled in; triggers and gates from a Button arrive as pulses held while pressed. A Wheel can spring back to the middle (Bend). Double-clicking a cell input makes the fitting control. A jack-wired control keeps where it was left in the panel (`value`).
 
-Under the hood the engine makes a hidden source for each such wire (a Dial, Button or Keyboard module, id `~<panel>:<control>:<wire>`), cabled into the cell when the board compiles; the board file doesn't contain them. They don't apply to cells inside a Voice Cell.
+- **Module jacks and buttons.** Under each module in the outline, its input jacks (marked *jack*) and buttons (*button*). A control wired to a jack sends its value into it, like a cable from the panel; a Button wired to a module's button presses it (held while pressed). **Modulation:** Alt-click a knob (or set *Mode* to *Modulates the knob* on the wire) and the control no longer sets the knob but adds to it like a cable, with an *Amount*.
+- **XY pad.** Two values from one control: each wire has an axis (the first is *x*, the next *y*; changeable on the wire). Each axis can set knobs, modulate them, or feed jacks. It saves its position as `[x, y]`.
+- **Computer keyboard.** While the pointer is over a panel with Keys, A W S E D F T G Y H U J K O L P ; ' play it like a piano, Z / X move the octave. The keys stay out of the board's shortcuts while they do.
+- **Add to panel.** Right-click any knob in a module view (also one embedded in a panel) → *Add to panel ▸* a panel that can reach the node, or *New panel* for the cell or the board. The control (dial, select for a long list, button for a toggle) is wired and placed in the first free spot.
+- **Build panel from cell.** Right-click a cell (or the toolbar's Panels list with the cell selected) → *Build panel from cell*: the cell's inputs as controls, a section of main knobs for each module (the lists in [`panel-build.js`](../patch/board/ui/panel-build.js)), faders for mixers, the view of each sequencer, a keyboard and the voice settings for a Voice Cell, and a meter. A starting point: every control is an ordinary one.
+- **Copy, paste, duplicate.** Cells carry their panels (and the module panels they load) with ⌘C / ⌘V and ⌘D, into the same board or another, with the wires pointing at the new nodes.
 
-Not built yet: wires to a module's own jacks and commands; modulation-style wires (a control that adds to a knob like a cable); XY pad; computer-keyboard and MIDI play of the Keys; copying a panel between boards. The file format keeps those wire kinds.
+Under the hood the engine makes a hidden source for each jack, modulation or notes wire (a Dial, Button or Keyboard module, id `~<panel>:<control>:<wire>`), cabled into the target when the board compiles; the board file doesn't contain them. They don't reach nodes inside a Voice Cell (its knobs can still be *set* from a panel, which applies to all voices). A board panel's wires may go to any node of the board.
+
+Not built: **Bleep Panel plugin parameters (`expose`) and hardware MIDI-learn** — those belong to the plugin bridge, not the board UI (a MIDI controller plays a Voice Cell today by patching its MIDI In port); custom HTML views; a *Step bar* control; panel pages beyond tabs.
 
 ## 4. Document
 
