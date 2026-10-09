@@ -106,5 +106,5 @@ imperfection are part of the sound.
 | Pulse Generator | [pulse-generator.md](pulse-generator.md) | Sources | Draft |
 | Wave Analyzer | [wave-analyzer.md](wave-analyzer.md) | Audio | Draft |
 | Chart Recorder | [chart-recorder.md](chart-recorder.md) | Modulation | Draft |
-| Sampler | [sampler.md](sampler.md) | Audio | Draft |
+| Sampler | [sampler.md](sampler.md) | Audio | Implemented (v1) |
 | XY Scope | [xy-scope.md](xy-scope.md) | Utility | Draft |

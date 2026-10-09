@@ -87,12 +87,12 @@ NodeData parse(const juce::var& in) {
             if (p.name.toString() != juce::String(k) || k < 0 || k >= n) continue;
             const juce::var& s = p.value;
             sm::SliceCfg& c = d.slices[(size_t)k];
-            c.mode = std::clamp((int)number(s.getProperty("mode", -1), -1), -1, sm::ModeOneShot);
-            c.transpose = (float)std::clamp(number(s.getProperty("transpose", 0), 0), -48.0, 48.0);
-            c.level = (float)std::clamp(number(s.getProperty("level", 1), 1), 0.0, 2.0);
-            c.pan = (float)std::clamp(number(s.getProperty("pan", 0), 0), -1.0, 1.0);
+            c.mode = std::clamp((int)number(s.getProperty("mode", -1), -1.0), -1, (int)sm::ModeOneShot);
+            c.transpose = (float)std::clamp(number(s.getProperty("transpose", 0), 0.0), -48.0, 48.0);
+            c.level = (float)std::clamp(number(s.getProperty("level", 1), 1.0), 0.0, 2.0);
+            c.pan = (float)std::clamp(number(s.getProperty("pan", 0), 0.0), -1.0, 1.0);
             c.reverse = (bool)s.getProperty("reverse", false);
-            c.choke = std::clamp((int)number(s.getProperty("choke", 0), 0), 0, 8);
+            c.choke = std::clamp((int)number(s.getProperty("choke", 0), 0.0), 0, 8);
             d.names[(size_t)k] = s.getProperty("name", juce::String()).toString().substring(0, 64).toStdString();
         }
     d.slicing = in.getProperty("slicing", juce::var());
@@ -127,10 +127,10 @@ juce::var toVar(const NodeData& d) {
     auto* slicing = new juce::DynamicObject();
     slicing->setProperty("kind", juce::String(d.slicing.getProperty("kind", "manual").toString()));
     slicing->setProperty("threshold", std::clamp(number(d.slicing.getProperty("threshold", 0.5), 0.5), 0.0, 1.0));
-    slicing->setProperty("minGap", std::clamp(number(d.slicing.getProperty("minGap", 30), 30), 5.0, 500.0));
-    slicing->setProperty("beats", std::clamp((int)number(d.slicing.getProperty("beats", 16), 16), 2, sm::kMaxSlices));
-    slicing->setProperty("bpm", std::clamp(number(d.slicing.getProperty("bpm", 120), 120), 20.0, 400.0));
-    slicing->setProperty("bars", std::clamp((int)number(d.slicing.getProperty("bars", 4), 4), 1, 64));
+    slicing->setProperty("minGap", std::clamp(number(d.slicing.getProperty("minGap", 30), 30.0), 5.0, 500.0));
+    slicing->setProperty("beats", std::clamp((int)number(d.slicing.getProperty("beats", 16), 16.0), 2, sm::kMaxSlices));
+    slicing->setProperty("bpm", std::clamp(number(d.slicing.getProperty("bpm", 120), 120.0), 20.0, 400.0));
+    slicing->setProperty("bars", std::clamp((int)number(d.slicing.getProperty("bars", 4), 4.0), 1, 64));
     out->setProperty("slicing", juce::var(slicing));
     return result;
 }

@@ -25,12 +25,11 @@ for a moving cloud.
 | Slice | `control` (unipolar) | Picks the slice for the next trigger: 0…1 → slice 1…*n*. Sampled at the trigger. |
 | Pitch | `pitch` | 1 V/oct added to *Transpose* for CV-triggered playheads. |
 | Speed | `pitch` | 1 V/oct added to *Speed* (as a ratio). |
-| Position | `control` (bipolar) | Playhead scrub / jump (4.6). |
-| Start, End | `control` | Added to the trim points (*Start*, *End* knobs). |
+| Step | `trigger` | Moves the selected slice to the next one (wraps). |
 | Stop | `trigger` | Releases all playheads. |
 | Velocity | `control` (unipolar) | Velocity for CV-triggered playheads (default 1). |
 
-Every knob is also an input (`specs.md` section 7.3).
+Every knob (Start, End, Position, …) is also an input (`specs.md` section 7.3).
 
 **Outputs**
 
@@ -74,19 +73,16 @@ Every knob is also an input (`specs.md` section 7.3).
 | Voice mode | Poly, Mono, Legato, Layers | Poly |
 | Trigger by | Note, CV | Note |
 | Slice mode | Off (whole sample), On | Off |
-| Slicing | Manual, Threshold, Beats | Manual |
-| Threshold / Min gap | 0–100 %, 5–500 ms | 50 %, 30 ms |
-| Beats | 2–64 divisions, or BPM + bars | 16 |
 | Mode | Gate, To end of sample, To end of slice, Loop, One-shot | Gate |
 | Loop style | Forward, Ping-pong | Forward |
 | Loop crossfade | 0–50 ms | 5 ms |
-| Time | Repitch (v1), Stretch (v2) | Repitch |
-| Root note | C-2…G8, or *Auto* | C3 |
+| Root note | MIDI 0…127 (auto-detect later) | 60 |
 | Key tracking | −100…+200 % | 100 % |
-| Choke | per slice, groups 0 (none)…8 | 0 |
+| Position mode | Scrub, Offset | Scrub |
+| Voice outs | Off, On (shows Voice 1…16) | Off |
+| Layers, Layer pitch, Layer offset | 1–8, ±24 st, 0–200 ms | 2, 7, 0 |
 | Quality | Linear, Cubic, Sinc | Cubic |
 | Output | Stereo, Mono | Stereo |
-| Seed | 0–999 | 1 |
 
 ## 4. Behaviour
 
@@ -271,8 +267,27 @@ Splice and Grains).
 - The module harness: finite output within ±64 in every state, including no
   clip, a one-sample clip, and markers at the extremes.
 
+## 8a. Implementation notes (v1, as built)
+
+Differs from the text above where noted:
+
+- Slicing kind, threshold, min gap, beats, BPM and bars are view settings
+  saved in the node data (section 6), not knobs. Detection runs in the engine
+  through `perform("detect" | "bpm")` and returns through `takeData`.
+- The onset detector is energy-flux based (no FFT); `Onsets.h`.
+- Interpolation *Sinc* is an 8-tap table; there is no anti-alias lowpass when
+  pitching up yet.
+- Position *Scrub* jumps playheads when Position changes; the turntable-style
+  continuous scratch mode is not built.
+- Root note is an integer; *Auto* root (pitch detection) and the Sync option
+  are not built. The waveform has no zoom yet.
+- Stretch time mode is not built (v2); the setting is not exposed.
+- Seed is not a setting; Random slice uses a counter.
+
 ## 9. Later
 
+- Waveform zoom, root-note auto-detect, the tempo Sync option, an anti-alias
+  lowpass for Sinc when pitching up, scratch mode.
 - **Time-stretch** (Stretch time mode, section 4.5).
 - Per-slice start/end offsets and per-slice envelopes.
 - Sample sets: several files mapped across the keyboard (multisampling,
