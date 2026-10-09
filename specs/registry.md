@@ -145,7 +145,7 @@ Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persisten
 
 Single source: the repository. CI builds and publishes; nobody uploads by hand.
 
-1. **Version.** Each module's `module.json` has its own `version`. Plugins share one product version (`plugin-v0.3.0`). Tags: `plugin-v0.3.0`, `module/dual-filter@1.2.0`, or `modules-<date>` to release every changed module at once.
+1. **Version.** Every plugin and module has its own version, counted by the registry: `scripts/release.py --level x|1.x|1.1.x|major|minor|patch` takes the newest published version and counts up at that level (built for plugins; see `doc/release.md`). A module's `module.json` carries the version once modules are released.
 2. **Detect what changed.** Hash the module's folder plus the `patch/common/dsp/` headers it includes (and `engine/` ABI). If the hash differs from the last release, the module needs a new version, and CI fails if its `version` was not bumped.
 3. **Build and test** (existing CI): the DSP tests, the module harness, the wasm build, then the harness against the wasm. Plugins: the macOS/Windows/Linux matrix, signing and notarisation.
 4. **Package** (`scripts/package-module.py`, `scripts/package-plugin.sh`): produce the artifacts and the `entry.json` files.
@@ -153,7 +153,7 @@ Single source: the repository. CI builds and publishes; nobody uploads by hand.
 6. **Publish.** Copy staged files into the immutable paths, then write `index.json` last, signed, in one atomic replace. A release is visible only when the index changes; rollback is putting the previous index back.
 7. **Channels.** `beta` index first for testers; promoting to `stable` is a new index, not a rebuild.
 
-New script: `scripts/release.py` runs steps 2 and 4 to 6 locally (`--dry-run` default) and in CI.
+`scripts/release.py` is built for plugins (steps 4 to 6 in a simpler form: a draft release, size- and hash-checked uploads, publish, index regenerated). It authenticates with an **admin-created release token** (`python -m app.cli token-create`), not with the storage credentials, so the machine that releases never holds S3 keys. Not built yet: change detection, staging, a signed index, modules, merging several platforms into one release.
 
 ## 8. Website
 
@@ -211,7 +211,7 @@ patch/app/SoftwareCenter.*     the installer logic (UI is board-style web UI lik
 ## 12. Open questions
 
 - **Wasm for native modules** (4.2): confirm the direction after the CPU numbers.
-- **Release credentials.** `release.py` needs the S3 write credentials. Locally they come from `website/.env`; in CI they are secrets, and a separate user limited to `modules/` and `plugins/` is worth creating once releases run in CI.
+- **Release credentials.** `release.py` uses a release token (revocable, expiring, listed with last use), so S3 credentials stay on the server.
 - **Third-party modules.** Not in v1: only modules we build and sign. Wasm makes later opening possible (a review queue, a separate "community" channel), which is why the sandbox is a requirement now.
 - **Signing key custody** for `index.json` while the stack is local: a key file outside the repo and the bucket, used only by `release.py`.
 - **Naming:** the product name, package extensions and the `bleep://` scheme are placeholders like the rest of the project's names.

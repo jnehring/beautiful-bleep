@@ -64,7 +64,7 @@ def test_release_needs_a_token(client, make_admin):
 def test_revoked_token_stops_working(client, make_admin):
     token = make_token(client, make_admin)
     assert release(client, token).status_code == 200
-    login_as_admin(client, make_admin)
+    client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"})
     client.delete(f"/api/admin/tokens/{client.get('/api/admin/tokens').json()[0]['id']}")
     client.post("/api/auth/logout")
     assert release(client, token, version="0.2.0").status_code == 401
@@ -124,3 +124,22 @@ def test_rejects_bad_paths(client, make_admin):
         r = client.post("/api/registry/plugin/p/releases", headers=h, json={"version": "0.1.0", "files": [
             {"path": path, "sha256": "0" * 64, "bytes": 1}]})
         assert r.status_code == 422, path
+
+
+def test_cli_token_roundtrip(client, capsys):
+    from app import cli
+    cli.main(["token-create", "laptop", "--days", "30"])
+    token = capsys.readouterr().out.strip().splitlines()[-1]
+    assert token.startswith("blp_")
+    assert release(client, token).status_code == 200
+    cli.main(["token-list"])
+    out = capsys.readouterr().out
+    assert "laptop" in out and token not in out
+    cli.main(["token-revoke", "1"])
+    assert release(client, token, version="0.2.0").status_code == 401
+
+
+def test_token_check(client, make_admin):
+    assert client.get("/api/registry/token").status_code == 401
+    token = make_token(client, make_admin)
+    assert client.get("/api/registry/token", headers={"Authorization": f"Bearer {token}"}).json() == {"name": "ci"}

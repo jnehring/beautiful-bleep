@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: MIT
+from datetime import timezone
+
 from fastapi import Cookie, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -41,7 +43,7 @@ def require_release_token(authorization: str | None = Header(default=None), db: 
     scheme, _, value = (authorization or "").partition(" ")
     if scheme.lower() == "bearer" and value:
         row = db.scalar(select(ApiToken).where(ApiToken.token_hash == hash_token(value.strip())))
-        if row and row.scope == "release" and (row.expires_at is None or row.expires_at > now()):
+        if row and row.scope == "release" and (row.expires_at is None or (row.expires_at if row.expires_at.tzinfo else row.expires_at.replace(tzinfo=timezone.utc)) > now()):
             row.last_used_at = now()
             db.commit()
             return row

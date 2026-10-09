@@ -13,6 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/check-repo.py
+      - run: python3 -m unittest test_release
+        working-directory: scripts
       - run: python3 scripts/check-api-docs.py
       - run: node patch/presets/build.mjs --check
       - run: python3 scripts/build-docs.py --out build/docs

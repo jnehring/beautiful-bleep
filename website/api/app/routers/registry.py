@@ -50,6 +50,12 @@ def _published(db: Session, kind: str | None = None, slug: str | None = None) ->
     return list(db.scalars(q.order_by(Release.major, Release.minor, Release.patch)))
 
 
+@router.get("/token")
+def check_token(token: ApiToken = Depends(require_release_token)):
+    """Lets scripts/release.py fail early on a bad token, before it packages anything."""
+    return {"name": token.name}
+
+
 @router.get("/{kind}/{slug}/versions")
 def versions(kind: Kind, slug: str = Slug, db: Session = Depends(get_db)):
     return [{"version": r.version, "channel": r.channel, "published_at": r.published_at} for r in _published(db, kind, slug)]
