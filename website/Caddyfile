@@ -9,6 +9,12 @@
 	header @markdown Content-Type "text/markdown; charset=utf-8"
 	header /llms.txt Content-Type "text/plain; charset=utf-8"
 
+	# Bleep Board (patch/web): wasm modules stream-compile with the right type;
+	# the build names no file by hash yet, so revalidate instead of immutable.
+	@wasm path *.wasm
+	header @wasm Content-Type "application/wasm"
+	header @wasm Cache-Control "public, max-age=300, must-revalidate"
+
 	try_files {path} {path}/index.html
 	file_server
 

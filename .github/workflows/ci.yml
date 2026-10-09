@@ -50,6 +50,24 @@ jobs:
       - run: cmake --build build/patch
       - run: ctest --test-dir build/patch --output-on-failure
 
+  web:
+    name: Bleep Board in the browser (WebAssembly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: scripts/build-web.sh build/web/site
+      - run: node patch/web/test/graph-test.mjs build/web/site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bleep-board-web
+          path: build/web/site
+
   plugins:
     name: Plugins (${{ matrix.os }})
     strategy:

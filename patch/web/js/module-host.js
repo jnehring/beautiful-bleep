@@ -1,0 +1,210 @@
+// SPDX-License-Identifier: MIT
+//
+// module-host.js — runs one Bleep module that was compiled to its own
+// standalone .wasm (web/src/WebShim.cpp). Works in an AudioWorklet, a worker,
+// the main thread and node: only WebAssembly is used.
+
+const CHUNK = 32;
+
+// AudioWorkletGlobalScope has no TextEncoder / TextDecoder.
+function utf8Decode(bytes) {
+  let out = "";
+  for (let i = 0; i < bytes.length; ) {
+    const b = bytes[i++];
+    let cp = b;
+    if (b >= 0xf0) { cp = ((b & 7) << 18) | ((bytes[i++] & 63) << 12) | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63); }
+    else if (b >= 0xe0) { cp = ((b & 15) << 12) | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63); }
+    else if (b >= 0xc0) { cp = ((b & 31) << 6) | (bytes[i++] & 63); }
+    out += String.fromCodePoint(cp);
+  }
+  return out;
+}
+function utf8Encode(text) {
+  const out = [];
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    if (cp < 0x80) out.push(cp);
+    else if (cp < 0x800) out.push(0xc0 | (cp >> 6), 0x80 | (cp & 63));
+    else if (cp < 0x10000) out.push(0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63));
+    else out.push(0xf0 | (cp >> 18), 0x80 | ((cp >> 12) & 63), 0x80 | ((cp >> 6) & 63), 0x80 | (cp & 63));
+  }
+  return Uint8Array.from(out);
+}
+const NOTE_SIZE = 16;  // sizeof(NoteEvent)
+export const NOTE_ON = 0, NOTE_OFF = 1, NOTE_PRESSURE = 2;
+
+function writeNote(v, at, e) {
+  v.setUint8(at, e.type ?? 0);
+  v.setUint8(at + 1, e.channel ?? 0);
+  v.setInt16(at + 2, e.offset ?? 0, true);
+  v.setInt32(at + 4, e.note ?? 60, true);
+  v.setFloat32(at + 8, e.pitch ?? 0, true);
+  v.setFloat32(at + 12, e.value ?? 0, true);
+}
+
+/// The few WASI calls a standalone module may import. Output is dropped.
+function wasiImports(getMemory) {
+  const view = () => new DataView(getMemory().buffer);
+  const zero = () => 0;
+  return {
+    wasi_snapshot_preview1: {
+      fd_write: (fd, iovs, n, written) => {
+        let total = 0;
+        for (let i = 0; i < n; ++i) total += view().getUint32(iovs + i * 8 + 4, true);
+        view().setUint32(written, total, true);
+        return 0;
+      },
+      fd_close: zero, fd_seek: () => 70, fd_read: () => 8, fd_fdstat_get: () => 8,
+      environ_sizes_get: (count, size) => { view().setUint32(count, 0, true); view().setUint32(size, 0, true); return 0; },
+      environ_get: zero,
+      args_sizes_get: (count, size) => { view().setUint32(count, 0, true); view().setUint32(size, 0, true); return 0; },
+      args_get: zero,
+      clock_time_get: (id, precision, out) => { view().setBigUint64(out, 0n, true); return 0; },
+      proc_exit: (code) => { throw new Error(`module exited with ${code}`); },
+    },
+    env: {
+      emscripten_notify_memory_growth: zero,
+    },
+  };
+}
+
+function cString(memory, ptr) {
+  const bytes = new Uint8Array(memory.buffer);
+  let end = ptr;
+  while (bytes[end]) ++end;
+  return utf8Decode(bytes.subarray(ptr, end));
+}
+
+/// Compiles module bytes; the result can be shared and instantiated many times.
+export async function compileModule(bytes) {
+  return WebAssembly.compile(bytes);
+}
+
+/// The node types a file holds (what the board UI gets as `types`), without keeping an instance.
+export function readSpecs(module) {
+  return instantiate(module).specs;
+}
+
+function instantiate(module) {
+  let memory = null;
+  const imports = wasiImports(() => memory);
+  for (const { module: ns, name, kind } of WebAssembly.Module.imports(module)) {  // anything else: "not supported"
+    imports[ns] = imports[ns] || {};
+    if (kind === "function" && !imports[ns][name]) imports[ns][name] = () => 52;  // ENOSYS
+  }
+  const instance = new WebAssembly.Instance(module, imports);
+  memory = instance.exports.memory;
+  if (instance.exports._initialize) instance.exports._initialize();
+  const x = instance.exports;
+  const ptr = x.bleep_spec_json();
+  const len = x.bleep_spec_json_length();
+  const specs = JSON.parse(utf8Decode(new Uint8Array(memory.buffer, ptr, len)));
+  return { instance, x, memory, specs };
+}
+
+/// One running module instance: write inputs / params, process(), read outputs.
+export class ModuleInstance {
+  /// `type`: a node type id, when the file holds several (default: the first).
+  constructor(module, sampleRate, type) {
+    const { x, memory, specs } = instantiate(module);
+    const typeIndex = Math.max(0, type ? specs.findIndex((s) => s.type === type) : 0);
+    const spec = specs[typeIndex];
+    this.typeIndex = typeIndex;
+    if (x.bleep_chunk() !== CHUNK) throw new Error("module was built for another chunk size");
+    this.x = x;
+    this.memory = memory;
+    this.spec = spec;
+    this.handle = x.bleep_create(typeIndex, sampleRate);
+    if (!this.handle) throw new Error(`cannot create module ${spec.type}: ${cString(memory, x.bleep_error())}`);
+    this.knobs = spec.params.map((p) => p.default);  // normalised, as last set
+  }
+
+  /// Float32Array views of the parameter, input and output buffers
+  /// (jack i at [i × CHUNK, (i + 1) × CHUNK)); re-made only when the module's memory grew.
+  get views() {
+    if (this.#viewsOf !== this.memory.buffer) {
+      const f = (ptr, count) => new Float32Array(this.memory.buffer, ptr, Math.max(count, 1) * CHUNK);
+      this.#views = {
+        params: f(this.x.bleep_params_ptr(this.handle), this.spec.params.length),
+        inputs: f(this.x.bleep_inputs_ptr(this.handle), this.spec.inputs.length),
+        outputs: f(this.x.bleep_outputs_ptr(this.handle), this.spec.outputs.length),
+      };
+      this.#viewsOf = this.memory.buffer;
+    }
+    return this.#views;
+  }
+  #views = null;
+  #viewsOf = null;
+  get params() { return this.views.params; }
+  get inputs() { return this.views.inputs; }
+  get outputs() { return this.views.outputs; }
+  paramText(index, normalised) { return this.#readText(this.x.bleep_param_text(this.handle, index, normalised)); }
+
+  setKnob(index, normalised) { this.knobs[index] = normalised; this.x.bleep_set_knob(this.handle, index, normalised); }
+  setConnected(inputs, outputs) {
+    const a = new Uint8Array(this.memory.buffer, this.x.bleep_in_connected_ptr(this.handle), this.spec.inputs.length);
+    const b = new Uint8Array(this.memory.buffer, this.x.bleep_out_connected_ptr(this.handle), this.spec.outputs.length);
+    a.set(inputs);
+    b.set(outputs);
+  }
+  setTransport(bpm, ppq, playing, samplePos) { this.x.bleep_set_transport(this.handle, bpm, ppq, playing ? 1 : 0, BigInt(samplePos)); }
+  process(numSamples) { return this.x.bleep_process(this.handle, numSamples); }
+  reset() { this.x.bleep_reset(this.handle); }
+
+  // ---- strings, gestures and live values -------------------------------------
+  #writeString(text, extraBytes = 0) {
+    const bytes = utf8Encode(text);
+    const ptr = this.x.bleep_scratch(this.handle, bytes.length + 1 + extraBytes);
+    const mem = new Uint8Array(this.memory.buffer);
+    mem.set(bytes, ptr);
+    mem[ptr + bytes.length] = 0;
+    return { ptr, length: bytes.length };
+  }
+  #readText(length) {
+    return utf8Decode(new Uint8Array(this.memory.buffer, this.x.bleep_text(this.handle), length));
+  }
+  /// The module's node data made valid, defaults included (ModuleSpec::sanitiseData); null if it has none.
+  sanitiseData(json) {
+    const { length } = this.#writeString(json || "");
+    const n = this.x.bleep_sanitise_data(this.handle, this.typeIndex, length);
+    return n < 0 ? null : this.#readText(n);
+  }
+  setData(json) { const { length } = this.#writeString(json); this.x.bleep_set_data(this.handle, length); }
+  /// A performance gesture from the module view (a key played, a button pressed).
+  perform(action, args = []) {
+    const { ptr, length } = this.#writeString(action, 8 + args.length * 8);
+    const offset = (length + 1 + 7) & ~7;  // doubles are aligned
+    new Float64Array(this.memory.buffer, ptr + offset, args.length).set(args);
+    this.x.bleep_perform(this.handle, offset, args.length);
+  }
+  command(id, value) { this.#writeString(id); this.x.bleep_command(this.handle, value); }
+  /// {values: {name: number}, arrays: {name: number[]}} for the module's view.
+  live() { return JSON.parse(this.#readText(this.x.bleep_live(this.handle))); }
+  /// Data the module changed itself (a captured loop): a JSON string or null.
+  takeData() { const n = this.x.bleep_take_data(this.handle); return n < 0 ? null : this.#readText(n); }
+
+  // ---- the `notes` signal ----------------------------------------------------
+  /// Replaces the events of a notes input jack: [{type, channel, offset, note, pitch, value}].
+  setNotesIn(jack, events) {
+    const ptr = this.x.bleep_notes_in_ptr(this.handle, jack);
+    const v = new DataView(this.memory.buffer);
+    const n = Math.min(events.length, 64);
+    for (let k = 0; k < n; ++k) writeNote(v, ptr + k * NOTE_SIZE, events[k]);
+    v.setInt32(ptr + 64 * NOTE_SIZE, n, true);
+  }
+  notesOut(jack) {
+    const ptr = this.x.bleep_notes_out_ptr(this.handle, jack);
+    const v = new DataView(this.memory.buffer);
+    const n = v.getInt32(ptr + 64 * NOTE_SIZE, true);
+    const out = [];
+    for (let k = 0; k < n; ++k) {
+      const e = ptr + k * NOTE_SIZE;
+      out.push({ type: v.getUint8(e), channel: v.getUint8(e + 1), offset: v.getInt16(e + 2, true),
+                 note: v.getInt32(e + 4, true), pitch: v.getFloat32(e + 8, true), value: v.getFloat32(e + 12, true) });
+    }
+    return out;
+  }
+  destroy() { if (this.handle) this.x.bleep_destroy(this.handle); this.handle = 0; }
+}
+
+export { CHUNK };

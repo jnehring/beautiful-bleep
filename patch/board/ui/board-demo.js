@@ -69,7 +69,7 @@
   }
 
   const message = () => ({ board, ports, canUndo: undo.length > 0, canRedo: redo.length > 0,
-                           status: "Demo · no audio · latency 256 smp" });
+                           status: (window.BleepWeb && BleepWeb.status) || "Demo · no audio · latency 256 smp" });
   function save() { store.set("bleep-demo-board", board); }
   function pushUndo() { undo.push(JSON.stringify(board)); if (undo.length > 200) undo.shift(); redo = []; }
 
@@ -85,7 +85,7 @@
   let t = 0;
   const lastOut = new Map();
   setInterval(() => {
-    if (!board) return;
+    if (!board || (window.BleepWeb && BleepWeb.running)) return;  // the web engine reports the real state
     t += 1 / 30;
     const nodes = {};
     board.nodes.forEach((n, i) => {
@@ -168,44 +168,65 @@
     emit("state", { nodes, ports });
   }, 1000 / 30);
 
+  /// The web engine's state replaces the animation: add what the UI expects around it.
+  function webState(state) {
+    let changed = false;
+    for (const [id, entry] of Object.entries(state.nodes)) {
+      if (entry.data !== undefined) {  // a module changed its own data, or made a new node's valid
+        const n = board && board.nodes.find((x) => x.id === id);
+        if (n) { try { n.data = JSON.parse(entry.data); save(); changed = true; } catch (e) { /* keep */ } }
+        delete entry.data;
+      }
+    }
+    if (changed) emit("board", message());
+    emit("state", { nodes: state.nodes, ports });
+  }
+  if (window.BleepWeb) {
+    BleepWeb.onState = webState;
+    BleepWeb.onStatus = () => emit("board", message());
+  }
+
   window.BleepDemo = {
     listen: (e, f) => (listeners[e] = listeners[e] || []).push(f),
     async call(name, a) {
       switch (name) {
         case "init":
           types = await (await fetch("demo-types.json")).json();
-          board = store.get("bleep-demo-board", null) || demoBoard();
+          board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
+          if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
           return Object.assign(message(), { types, dev: true, standalone: true });
         case "commit":
           pushUndo();
           board = sanitise(clone(a[0]));
           save();
+          if (window.BleepWeb) BleepWeb.setBoard(board);
           return message();
         case "undo":
-          if (undo.length) { redo.push(JSON.stringify(board)); board = JSON.parse(undo.pop()); save(); }
+          if (undo.length) { redo.push(JSON.stringify(board)); board = JSON.parse(undo.pop()); save(); if (window.BleepWeb) BleepWeb.setBoard(board); }
           return message();
         case "redo":
-          if (redo.length) { undo.push(JSON.stringify(board)); board = JSON.parse(redo.pop()); save(); }
+          if (redo.length) { undo.push(JSON.stringify(board)); board = JSON.parse(redo.pop()); save(); if (window.BleepWeb) BleepWeb.setBoard(board); }
           return message();
         case "beginGesture":
           pushUndo();
           return message();
         case "setParam": {
           const n = board.nodes.find((x) => x.id === a[0]);
-          if (n) { n.params[a[1]] = a[2]; save(); }
+          if (n) { n.params[a[1]] = a[2]; save(); if (window.BleepWeb) BleepWeb.setKnob(a[0], a[1], a[2]); }
           return null;
         }
         case "setData": {
           const n = board.nodes.find((x) => x.id === a[0]);
-          if (n) { n.data = clone(a[1]); save(); }
+          if (n) { n.data = clone(a[1]); save(); if (window.BleepWeb) BleepWeb.setData(a[0], a[1]); }
           return null;
         }
         case "setAmount": {
           const c = board.cables.find((x) => x.id === a[0]);
-          if (c) { c.amount = a[1]; save(); }
+          if (c) { c.amount = a[1]; save(); if (window.BleepWeb) BleepWeb.setAmount(a[0], a[1]); }
           return null;
         }
         case "perform": {  // Button and Keyboard gestures (see the state loop)
+          if (window.BleepWeb) BleepWeb.perform(a[0], a[1], a[2]);
           const p = (played[a[0]] = played[a[0]] || { notes: [] }), args = a[2] || [];
           if (a[1] === "press") { p.held = p.pressed = true; }
           if (a[1] === "release") { p.held = false; p.released = true; }
@@ -214,8 +235,8 @@
           if (a[1] === "allOff") p.notes = [];
           return null;
         }
-        case "watch": watched = a[0] || []; return null;
-        case "command": return null;  // no DSP in the demo
+        case "watch": watched = a[0] || []; if (window.BleepWeb) BleepWeb.watch(watched); return null;
+        case "command": if (window.BleepWeb) BleepWeb.command(a[0], a[1], a[2]); return null;
         case "importMedia": {
           // No media folder in the demo: a stable fake id from the name and size.
           let h = 0;
@@ -240,7 +261,7 @@
         case "copyText": store.set("bleep-demo-clipboard", String(a[0])); return null;
         case "pasteText": return store.get("bleep-demo-clipboard", "");
         case "resetDemo":
-          board = demoBoard(); undo = []; redo = []; save();
+          board = demoBoard(); undo = []; redo = []; save(); if (window.BleepWeb) BleepWeb.setBoard(board);
           setTimeout(() => emit("board", message()));
           return null;
         default: return null;
