@@ -338,9 +338,11 @@ void Engine::beginGesture() {
 
 void Engine::setParam(const juce::String& nodeId, const juce::String& paramId, float v) {
     auto* n = hasBoard() ? board::findNode(board_, nodeId) : nullptr;
-    if (n == nullptr) return;
+    const bool panelSource = nodeId.startsWithChar('~');  // a panel control's hidden source: not in the saved board
+    if (n == nullptr && !panelSource) return;
     v = juce::jlimit(0.0f, 1.0f, v);
-    if (auto* params = n->getProperty("params").getDynamicObject()) params->setProperty(paramId, v);
+    if (n != nullptr)
+        if (auto* params = n->getProperty("params").getDynamicObject()) params->setProperty(paramId, v);
     if (auto m = modules_.find(nodeId.toStdString()); m != modules_.end()) {
         const int i = m->second->spec().paramIndex(paramId.toStdString());
         if (i >= 0) m->second->setKnob(i, v);
@@ -427,7 +429,11 @@ void Engine::recompile() {
     for (const auto& s : instances_)
         if (s->kind != PortKind::Patch || s->handle == mainHandle_) ports[s->id] = s;
     std::unique_ptr<Program> next;
-    if (hasBoard()) next = Program::compile(board::parse(board_), modules_, ports, sampleRate_);
+    if (hasBoard()) {
+        BoardModel model = board::parse(board_);
+        board::addPanelSources(model, board_);
+        next = Program::compile(model, modules_, ports, sampleRate_);
+    }
     else modules_.clear();
     // The modules inside Voice Cells, one per voice, for knob changes and views.
     inner_.clear();

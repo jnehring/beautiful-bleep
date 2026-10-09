@@ -32,6 +32,8 @@
   let pointerInside = false;   // the pointer is over the canvas (paste lands there)
   let dev = false;
   let standalone = false;      // the standalone app: MIDI Device is offered
+  let shownFor = null;         // the board whose start panel has been opened
+  let learnCb = null;          // the panel editor waits for a knob to move (Learn)
 
   const $ = (id) => document.getElementById(id);
   const canvas = $("canvas"), world = $("world"), nodesEl = $("nodes"), cablesEl = $("cables");
@@ -152,7 +154,16 @@
   // ---------------------------------------------------------------- backend
   function applyMessage(m) {
     if (!m) return;
-    if ("board" in m) board = m.board && m.board.nodes ? m.board : null;
+    if ("board" in m) {
+      board = m.board && m.board.nodes ? m.board : null;
+      // A different board was loaded: its start panel opens (panels "show on load").
+      const id = board ? String(board.id) : null;
+      if (id !== shownFor) {
+        shownFor = id;
+        for (const k of [...views.keys()]) if (k.startsWith("panel:")) closeView(k);
+        if (board) setTimeout(openStartPanel, 0);
+      }
+    }
     if (m.ports) ports = m.ports;
     if ("canUndo" in m) { canUndo = m.canUndo; canRedo = m.canRedo; }
     if (m.status) $("status").textContent = m.status;
@@ -161,6 +172,12 @@
     for (const id of [...sel]) if (!nodeById(id)) sel.delete(id);
     if (selCable && !(board && board.cables.some((c) => c.id === selCable))) selCable = null;
     for (const [id, v] of views) {
+      if (v.panelId) {
+        const d = panelById(v.panelId);
+        if (!d) closeView(id);
+        else v.bv.refresh(d);
+        continue;
+      }
       const n = nodeById(id);
       if (!n) closeView(id);
       else v.bv.refresh(n);
@@ -169,6 +186,7 @@
   }
 
   async function commit(next, label) {
+    prunePanels(next);
     board = next;
     render();
     applyMessage(await native("commit", next, label));
@@ -179,7 +197,7 @@
     if (!board) return;
     const next = clone(board);
     if (fn(next) === false) return;
-    commit(next, label);
+    return commit(next, label);
   }
 
   async function gesture() { applyMessage(await native("beginGesture")); }
@@ -316,6 +334,14 @@
     if (isBoundary(n)) sub = "";
     if (n.name === sub) sub = t.name;
     if (sub) head.appendChild(el("span", "n-sub", sub));
+    if (hasPanel(n)) {
+      const pb = el("button", "n-panel", "▦");
+      pb.title = "Open the front panel";
+      pb.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+      pb.addEventListener("dblclick", (ev) => ev.stopPropagation());
+      pb.addEventListener("click", (ev) => { ev.stopPropagation(); cellPanels(ev, n); });
+      head.appendChild(pb);
+    }
     e.appendChild(head);
     if (n.type === "voice-cell") {
       // One dot per voice, lit while it plays (spec §9.3); a warning if the voice makes no sound.
@@ -1046,6 +1072,10 @@
     const r = $("add").getBoundingClientRect();
     showMenu({ clientX: r.left, clientY: r.bottom + 4 }, addMenu(null));
   });
+  $("panels").addEventListener("click", () => {
+    const r = $("panels").getBoundingClientRect();
+    panelsMenu({ clientX: r.left, clientY: r.bottom + 4 });
+  });
 
   /// Types this board offers (MIDI Device only in the standalone app, spec §12).
   const offered = (t) => t.creatable && (!t.standaloneOnly || standalone) &&
@@ -1178,6 +1208,15 @@
     const many = sel.size > 1;
     const items = [];
     if (!isStructural(n)) items.push({ label: views.has(n.id) ? "Close view" : "Open view", run: () => toggleView(n.id) });
+    if (isCellLike(n)) {
+      const mine = panelsOfCell(n.id);
+      for (const p of mine) {
+        const suffix = mine.length > 1 ? " “" + p.name + "”" : "";
+        items.push({ label: (panelOpen(p.id) ? "Close panel" : "Open panel") + suffix, run: () => togglePanel(p.id) });
+        items.push({ label: "Edit panel" + suffix, run: () => openPanel(p.id, { edit: true }) });
+      }
+      items.push({ label: "New panel", run: () => newPanel(n.id) });
+    }
     if (isCellLike(n)) items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
@@ -1520,9 +1559,20 @@
       console.warn("factory-presets.json not loaded", e);
     }
   }
+  /// Factory panels (factory-panels.json, built from patch/presets/panels.mjs), by preset name:
+  /// they travel with the preset and are copied into the board when it is placed.
+  let panelDefs = {};
+  async function loadFactoryPanels() {
+    try {
+      panelDefs = (await (await fetch("factory-panels.json")).json()).panels || {};
+    } catch (e) {
+      console.warn("factory-panels.json not loaded", e);
+    }
+  }
   function setPresets(user) {
     const factory = compiledPresets.concat(window.BleepFactoryPresets || [])
-      .map((p) => Object.assign({ key: "factory:" + p.name, factory: true }, p));
+      .map((p) => Object.assign({ key: "factory:" + p.name, factory: true }, p,
+        panelDefs[p.name] ? { preset: Object.assign({}, p.preset, { panels: panelDefs[p.name] }) } : {}));
     presets = factory.concat((user || []).map((p) => Object.assign(
       { key: "user:" + p.name, category: (p.preset && p.preset.category) || "My Cells" }, p)));
   }
@@ -1551,6 +1601,8 @@
     const ids = new Set(nodes.map((n) => n.id));
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
     const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
+    const mine = panelsWithLoaded(panelList().filter((p) => p.cell && ids.has(p.cell)));
+    if (mine.length) preset.panels = clone(mine).map((p) => { delete p.open; return p; });
     if (description) preset.description = description;
     const saved = await native("savePreset", name, preset);
     if (saved) setPresets(saved);
@@ -1574,6 +1626,22 @@
       if (map.has(c.from.node) && map.has(c.to.node))
         b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
                         to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
+    // The preset's panels: copied into the board, pointing at the new node ids.
+    const pmap = new Map((preset.panels || []).map((q) => [q.id, uid("p")]));
+    const key = (k) => (map.has(k) ? map.get(k) : k);   // "this" stays
+    const ref = (r) => { const i = r.indexOf("."); return key(r.slice(0, i)) + r.slice(i); };
+    for (const q of clone(preset.panels || [])) {
+      q.id = pmap.get(q.id);
+      if (q.cell) q.cell = key(q.cell);
+      delete q.open;
+      for (const c of q.controls) {
+        for (const w of c.wire || []) if (w.param) w.param = ref(w.param);
+        if (c.source) c.source.out = [].concat(c.source.out).map(ref);
+        if (c.node) c.node = key(c.node);
+        if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;
+      }
+      (b.panels || (b.panels = [])).push(q);
+    }
     return root.id;
   }
 
@@ -1640,29 +1708,11 @@
     openView(id);
   }
 
-  function openView(id) {
-    const n = nodeById(id);
-    if (!n || isStructural(n)) return;
-    const t = typeOf(n);
-    const win = el("div", "vwin");
-    win.dataset.node = id;
-    win.style.setProperty("--accent", n.colour || t.colour || "#4fd1c5");
-    const head = el("div", "v-head");
-    head.append(el("span", "v-title", n.name), el("span", "v-sub", t.name), el("span", "spacer"));
-    const help = el("button", "help", "?");
-    help.title = "Documentation";
-    help.hidden = true;
-    const pin = el("button", "pin", "📌");
-    pin.title = "Keep open when opening other views or entering and leaving cells";
-    const close = el("button", "", "×");
-    close.title = "Close (Esc)";
-    head.append(help, pin, close);
-    const body = el("div", "v-body");
-    const doc = el("div", "v-doc");
-    doc.hidden = true;
-    win.append(head, body);
-    const api = {
+  /// What a module view (or a panel) calls to change node `id`.
+  function makeApi(id) {
+    return {
       setParam: (pid, v) => {
+        if (learnCb && learnCb(id, pid)) learnCb = null;   // the panel editor's Learn
         const m = nodeById(id);
         if (m) m.params[pid] = v;
         native("setParam", id, pid, v);
@@ -1697,6 +1747,30 @@
         return { id: c.id, amount: c.amount, label: src ? `${src.name} › ${jackName(src, c.from.jack, true)}` : "?" };
       }),
     };
+  }
+
+  function openView(id) {
+    const n = nodeById(id);
+    if (!n || isStructural(n)) return;
+    const t = typeOf(n);
+    const win = el("div", "vwin");
+    win.dataset.node = id;
+    win.style.setProperty("--accent", n.colour || t.colour || "#4fd1c5");
+    const head = el("div", "v-head");
+    head.append(el("span", "v-title", n.name), el("span", "v-sub", t.name), el("span", "spacer"));
+    const help = el("button", "help", "?");
+    help.title = "Documentation";
+    help.hidden = true;
+    const pin = el("button", "pin", "📌");
+    pin.title = "Keep open when opening other views or entering and leaving cells";
+    const close = el("button", "", "×");
+    close.title = "Close (Esc)";
+    head.append(help, pin, close);
+    const body = el("div", "v-body");
+    const doc = el("div", "v-doc");
+    doc.hidden = true;
+    win.append(head, body);
+    const api = makeApi(id);
     const bv = BleepView.create(t, clone(n), api);
     const hook = BleepViews.get(t.type);
     if (hook && hook.width) win.style.width = hook.width + "px";
@@ -1748,6 +1822,271 @@
     });
     watch();
   }
+  // ----------------------------------------------------------- front panels
+  // Panels live in the board document (board.panels, specs/panels.md): a cell's
+  // panel names nodes inside the cell, a board panel any node; a module panel
+  // ("for") is loaded by other panels and names its module "this".
+  const panelList = () => (board && board.panels) || [];
+  const panelById = (id, b = board) => ((b && b.panels) || []).find((q) => q.id === id);
+  const panelsOfCell = (cellId) => panelList().filter((q) => q.cell === cellId);
+  const boardPanels = () => panelList().filter((q) => !q.cell && !q.for);
+  const hasPanel = (n) => isCellLike(n) && panelsOfCell(n.id).length > 0;
+  const panelOpen = (id) => views.has("panel:" + id);
+  function togglePanel(id) {
+    if (panelOpen(id)) closeView("panel:" + id);
+    else openPanel(id);
+  }
+  /// `list` and every panel they load, directly or not.
+  function panelsWithLoaded(list) {
+    const out = new Set(list);
+    for (const q of out) for (const c of q.controls) {
+      const sub = c.type === "panel" && panelById(c.panel);
+      if (sub) out.add(sub);
+    }
+    return [...out];
+  }
+  /// Panels of cells that are gone, and module panels nobody loads, go with the edit.
+  function prunePanels(b) {
+    if (!b.panels) return;
+    const ids = new Set(b.nodes.map((n) => n.id));
+    let list = b.panels.filter((q) => !q.cell || ids.has(q.cell));
+    for (let again = true; again;) {
+      const loaded = new Set(list.flatMap((q) => q.controls.filter((c) => c.type === "panel").map((c) => c.panel)));
+      const next = list.filter((q) => !q.for || loaded.has(q.id));
+      again = next.length !== list.length;
+      list = next;
+    }
+    if (list.length) b.panels = list; else delete b.panels;
+  }
+
+  /// ▦ on a cell: its panel, or a list when it has several.
+  function cellPanels(ev, cell) {
+    const mine = panelsOfCell(cell.id);
+    if (mine.length === 1) return togglePanel(mine[0].id);
+    showMenu(ev, mine.map((q) => ({ label: q.name, run: () => togglePanel(q.id) })));
+  }
+  /// The toolbar's Panels list.
+  function panelsMenu(ev) {
+    const items = [];
+    const mine = boardPanels();
+    for (const q of mine) items.push({ label: q.name, key: q.open ? "on load" : "", run: () => togglePanel(q.id) });
+    const cellPanelItems = panelList().filter((q) => q.cell && nodeById(q.cell))
+      .map((q) => ({ label: `${nodeById(q.cell).name}: ${q.name}`, run: () => togglePanel(q.id) }));
+    if (cellPanelItems.length) items.push({ label: "Cell panels", items: cellPanelItems });
+    if (items.length) items.push("-");
+    items.push({ label: "New board panel", run: () => newPanel("") });
+    const sel1 = selectedNodes().filter(isCellLike);
+    if (sel1.length === 1) items.push({ label: `New panel for “${sel1[0].name}”`, run: () => newPanel(sel1[0].id) });
+    showMenu(ev, items);
+  }
+  async function newPanel(cellId) {
+    const cell = cellId && nodeById(cellId);
+    const id = uid("p");
+    const name = cell ? cell.name : "Panel";
+    await edit("new panel", (b) => {
+      (b.panels || (b.panels = [])).push({
+        id, name, ...(cell ? { cell: cellId } : {}), cols: 40, rows: 24,
+        controls: [{ id: "c1", type: "label", at: [1, 0], size: [24, 2], text: name, style: "title" }],
+      });
+    });
+    openPanel(id, { edit: true });
+  }
+  /// The panel that opens with the board (panel.open: "window" or "full").
+  function openStartPanel() {
+    const q = panelList().find((x) => x.open);
+    if (q && !panelOpen(q.id)) openPanel(q.id, { full: q.open === "full" });
+  }
+
+  /// What the nodes a panel names look like to it. A module panel's own module is "this".
+  function panelHost(doc, embeddedViews) {
+    const standIn = doc.for && { id: "this", name: (types[doc.for.module] || {}).name || doc.for.module, type: doc.for.module, params: {} };
+    const lookup = (id) => (id === "this" ? standIn : nodeById(id));
+    return {
+      node: (key, bound) => (key === "this" ? bound || standIn || null : nodeById(key)),
+      param: (id, pid) => {
+        const m = lookup(id);
+        const def = m && typeOf(m).params.find((q) => q.id === pid);
+        return def ? { node: m, def } : null;
+      },
+      value: (id, pid) => {
+        const m = lookup(id), def = typeOf(m).params.find((q) => q.id === pid);
+        return (m.params && m.params[pid]) ?? def.default;
+      },
+      set: (id, pid, v) => makeApi(id).setParam(pid, v),
+      begin: gesture,
+      // A panel control wired to a cell's jack or notes drives a hidden source the engine makes (id "~panel:control:wire").
+      jackType: (panel, jack) => { const c = panel.cell && nodeById(panel.cell); const j = c && inputsOf(c).find((q) => q.id === jack); return j ? j.type : null; },
+      source: (sid, v) => native("setParam", sid, "value", v),
+      press: (sid, down) => native("perform", sid, down ? "press" : "release", []),
+      note: (sid, action, args) => native("perform", sid, action, args),
+      save: (pid, cid, x) => edit("panel control", (b) => {
+        const q = (b.panels || []).find((r) => r.id === pid), c = q && q.controls.find((r) => r.id === cid);
+        if (!c) return false;
+        c.value = x;
+      }),
+      view: (id) => {
+        const m = nodeById(id);
+        if (!m || isStructural(m)) return null;
+        if (!m.params) m.params = {};
+        const bv = BleepView.create(typeOf(m), clone(m), makeApi(id));
+        embeddedViews.push({ id, bv });
+        return bv;
+      },
+      refreshView: (id, bv) => { const m = nodeById(id); if (m) bv.refresh(m); },
+    };
+  }
+  /// What the editor may wire: the nodes of the panel's cell (or the whole board), in tree order.
+  function panelScope(doc) {
+    if (doc.for) {
+      const t = types[doc.for.module] || { name: doc.for.module, params: [], outputs: [] };
+      return [{ id: "this", name: t.name, type: t.type, depth: 0, params: t.params, outputs: t.outputs, view: true }];
+    }
+    const out = [];
+    const walk = (parent, depth) => {
+      for (const n of nodesAt(parent)) {
+        if (isBoundary(n) || isPort(n)) continue;
+        const t = typeOf(n);
+        if (t.params.length || t.outputs.length || n.type === "voice-cell") out.push({ id: n.id, name: n.name, type: t.type, depth, params: t.params, outputs: outputsOf(n), view: !isStructural(n) });
+        if (isCellLike(n)) walk(n.id, depth + 1);
+      }
+    };
+    if (doc.cell) {
+      const root = nodeById(doc.cell);
+      if (!root) return [];
+      if (typeOf(root).params.length) out.push({ id: root.id, name: root.name, type: root.type, depth: 0, params: typeOf(root).params, outputs: outputsOf(root), view: false });
+      walk(doc.cell, 1);
+    } else walk("", 0);
+    return out;
+  }
+
+  /// The panel as drawn: what moving a control (its saved "value") does not change.
+  const layoutOf = (doc) => JSON.stringify(doc, (k, v) => (k === "value" ? undefined : v));
+
+  /// A panel in a floating window: played, or (✎) edited. ⤢ fills the canvas.
+  function openPanel(panelId, opts = {}) {
+    const doc0 = panelById(panelId);
+    if (!doc0) return;
+    const key = "panel:" + panelId;
+    if (views.has(key)) { front(views.get(key).win); if (opts.edit) views.get(key).setEdit(true); return; }
+    const state = { edit: !!opts.edit || !!doc0.for, full: !!opts.full, tab: null, json: "" };
+    let play = null, editor = null, embeddedViews = [];
+    const win = el("div", "vwin pwin");
+    win.dataset.node = key;
+    const head = el("div", "v-head");
+    const tools = el("span", "pwin-tools");
+    const editBtn = el("button", "", "✎");
+    editBtn.title = "Edit the panel";
+    const fullBtn = el("button", "", "⤢");
+    fullBtn.title = "Fill the canvas";
+    const pin = el("button", "pin on", "📌");
+    pin.title = "Keep open when opening other views or entering and leaving cells";
+    const close = el("button", "", "×");
+    close.title = "Close (Esc)";
+    const title = el("span", "v-title", doc0.name);
+    const sub = el("span", "v-sub", doc0.cell && nodeById(doc0.cell) ? nodeById(doc0.cell).name : doc0.for ? "Module panel" : "Board");
+    tools.append(editBtn, fullBtn);
+    head.append(title, sub, el("span", "spacer"), tools, pin, close);
+    const body = el("div", "v-body");
+    win.append(head, body);
+    $("views").appendChild(win);
+
+    const fit = () => {
+      if (!play) return;
+      const r = play.root;
+      r.style.transform = "";
+      if (state.full) {
+        const s = Math.min(body.clientWidth / r.offsetWidth, body.clientHeight / r.offsetHeight, 3);
+        r.style.transform = `scale(${Math.max(0.2, s)})`;
+      }
+    };
+    const draw = () => {
+      const doc = panelById(panelId);
+      if (!doc) return;
+      title.textContent = doc.name;
+      if (play) { play = null; }
+      if (editor) { editor.destroy(); editor = null; }
+      embeddedViews = [];
+      body.innerHTML = "";
+      state.json = layoutOf(doc);
+      win.classList.toggle("editing", state.edit);
+      win.classList.toggle("full", state.full && !state.edit);
+      editBtn.classList.toggle("on", state.edit);
+      fullBtn.classList.toggle("on", state.full);
+      fullBtn.hidden = !!doc.for;
+      if (state.edit) {
+        editor = BleepPanelEditor.mount(body, {
+          doc: () => panelById(panelId) || doc,
+          panels: () => panelList(),
+          mutate: (label, fn) => edit(label, (b) => {
+            const q = (b.panels || []).find((x) => x.id === panelId);
+            if (!q) return false;
+            fn(q, b.panels);
+          }),
+          scope: () => panelScope(panelById(panelId) || doc),
+          jacks: () => {
+            const c = doc.cell && nodeById(doc.cell);
+            if (!c) return [];
+            return inputsOf(c).map((j) => ({ id: j.id, name: j.name, type: j.type }))
+              .filter((j) => j.type !== "audio")
+              .map((j) => (j.type === "notes" ? { id: "notes", name: "Notes (plays the cell)", type: "notes" } : j));
+          },
+          host: () => panelHost(panelById(panelId) || doc, []),
+          learn: (cb) => { learnCb = cb; },
+          editPanel: (id) => openPanel(id, { edit: true }),
+        });
+      } else {
+        const host = panelHost(doc, embeddedViews);
+        play = BleepPanels.create(panelList(), panelId, host, { tab: state.tab, onTab: (t) => { state.tab = t; fit(); } });
+        body.append(play.root);
+        if (!state.full) win.style.width = Math.min(play.root.offsetWidth + 2, canvas.clientWidth - 16) + "px";
+        fit();
+      }
+      watch();
+    };
+    const entry = {
+      win, pinned: true, panelId,
+      setEdit: (on) => { state.edit = on; state.full = state.full && !on; draw(); },
+      nodes: () => (play && !state.edit ? play.nodeIds() : []),
+      bv: {
+        update: (s) => { if (play) play.update(s); },
+        refresh: (doc) => {
+          if (layoutOf(doc) !== state.json) { if (editor) { state.json = layoutOf(doc); title.textContent = doc.name; editor.rebuild(); } else draw(); return; }
+          if (play) {
+            for (const e of embeddedViews) { const m = nodeById(e.id); if (m) e.bv.refresh(m); }
+            play.refresh();
+          }
+        },
+      },
+    };
+    views.set(key, entry);
+    const r = canvas.getBoundingClientRect();
+    win.style.left = "8px";
+    win.style.top = "56px";
+    draw();
+    if (!state.full) {
+      win.style.left = Math.max(8, (r.width - win.offsetWidth) / 2) + "px";
+    }
+    front(win);
+    win.addEventListener("pointerdown", () => front(win));
+    editBtn.addEventListener("click", () => entry.setEdit(!state.edit));
+    fullBtn.addEventListener("click", () => {
+      state.full = !state.full;
+      if (state.full) state.edit = false;
+      draw();
+    });
+    window.addEventListener("resize", fit);
+    pin.addEventListener("click", () => { entry.pinned = !entry.pinned; pin.classList.toggle("on", entry.pinned); });
+    close.addEventListener("click", () => closeView(key));
+    head.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button") || state.full) return;
+      const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
+      const move = (m) => { win.style.left = m.clientX - sx + "px"; win.style.top = m.clientY - sy + "px"; };
+      const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+    });
+  }
+
   /// A module's documentation (modules/<name>/doc/<type>.md), or null if it has none.
   const docs = new Map();
   function moduleDoc(type) {
@@ -1766,6 +2105,7 @@
   function closeView(id) {
     const v = views.get(id);
     if (!v) return;
+    if (v.panelId) learnCb = null;
     v.win.remove();
     views.delete(id);
     watch();
@@ -1777,7 +2117,9 @@
     if (top) closeView(top);
     return !!top;
   }
-  function watch() { native("watch", [...views.keys()]); }
+  function watch() {
+    native("watch", [...views].flatMap(([id, v]) => (v.panelId ? v.nodes() : [id])));
+  }
 
   // ------------------------------------------------------------ live state
   function drawScope(s, v) {
@@ -1831,7 +2173,7 @@
       const ns = s.nodes[node];
       if (ns && ns.outputs && jack in ns.outputs) drawScope(sc, ns.outputs[jack]);
     }
-    for (const [id, v] of views) v.bv.update(s.nodes[id]);
+    for (const [id, v] of views) v.bv.update(v.panelId ? s : s.nodes[id]);
     updatePulses(s.nodes);
     // Voice Cells: which voices play.
     for (const ne of nodesEl.querySelectorAll(".node.voice")) {
@@ -1881,6 +2223,7 @@
       return;
     }
     if (k === "f") return fit();
+    if (k === "p" && !cmd) { const r = $("panels").getBoundingClientRect(); return panelsMenu({ clientX: r.left, clientY: r.bottom + 4 }); }
     if (k === "t") return toggleTrace();
     if (k === "m") return toggleMute();
     if (e.key === "Enter") {
@@ -1931,6 +2274,7 @@
     dev = !!m.dev;
     standalone = !!m.standalone;
     await loadFactoryPresets();
+    await loadFactoryPanels();
     setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);

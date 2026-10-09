@@ -122,7 +122,7 @@ Ableton Live is linear. Its strengths are clips, device chains and a fast workfl
 | **Port** | One plugin instance in Live that belongs to a bridge, e.g. one *Bleep MIDI Out* on a track. Each port is one node on the board. |
 | **Ghost** | A node whose port is currently unavailable (deleted, deactivated, frozen, not yet loaded). Shown greyed out. Its cables are kept. |
 | **Module view** | A module's full UI (knobs, switches, mod rings, scopes). Opens as a floating window inside the board window. |
-| **Panel** | A custom UI on the board that combines several module views into one front panel. Can also be shown in a port's plugin window or in a Bleep Panel plugin. |
+| **Panel** | A front panel for a cell or the board: controls (dials, sliders, buttons, keys, labels) wired to knobs and jacks, and module views. Interface and Wiring views; shown on the board, in a port's plugin window or in a Bleep Panel plugin (section 9.7). |
 | **Bleep Panel plugin** | A plugin that shows one panel in its own plugin window, so the panel can be placed anywhere in Live. Not a node on the board. |
 | **Bleep Patch app** | The standalone app: engine and board without a DAW, with its own projects (section 11). |
 | **Bleep Audio Bridge** | A plugin in Live that connects a track's audio to the running app; a node on the app's board (section 11.3). |
@@ -547,30 +547,31 @@ Module view sketch:
 
 ### 9.7 Panels
 
-A **panel** is a custom UI that combines several module views into one front panel, like the faceplate of a hardware synth.
+A **panel** is a custom UI for a cell or the board, like the front panel of a hardware synth: sliders, dials, buttons, a keyboard roll, text labels, displays, and the views of modules from inside the cell. The full design is in [`specs/panels.md`](panels.md); this is the summary.
 
-- **Panels belong to the board.** A board can have any number of panels. Each panel can combine module views from anywhere on the board, including from inside cells. Panels are saved with the board.
-- **Panels in cell presets:** when a cell is saved as a preset, panels whose views all come from inside that cell are saved with it.
-- **Stage 1: combining module views.**
-  - An edit mode lets the user drag module views from the board into a panel.
-  - Views are arranged in rows and columns, with optional section headers ("Osc", "Filter", "Env").
-  - Each view stays fully functional, with mod rings and scopes.
-  - Per view: compact mode (hide labels) and collapse.
+- **Two views.** *Interface* is for playing. *Wiring* is for building: every control shows what it is wired to, and the user connects it to a knob, a cell jack, a note input or a module's button, with a range and a curve per wire. One control can drive several targets (a macro). Layout editing (add, move, resize, label, colour) is in the Interface view behind an unlock.
+- **Panels belong to the board.** A board can have any number of panels. A panel can front a cell and wire into anything inside it, at any depth. Panels are saved with the board; *panels in cell presets:* the panels whose controls all wire inside a cell are saved with it, and factory cell presets come with panels.
+- **Board panels and show on load.** A panel can belong to a cell (opened with its ▦) or to the board (the **Panels** list in the toolbar, wiring to any node). A board panel can be set to open when the board loads, in a window or full screen, so a patch opens as an instrument.
+- **Tabs and loaded panels.** A panel can have tabs (Play, Sound, …) and can load another panel into a frame: a drum machine's panel loads the *Drum Grid* panel, a synth loads a *Step Sequencer* panel. A panel shows the controls that matter, not every knob.
+- **Opening and editing.**
+  - A cell with a panel shows ▦ on its node: one click opens the panel in a floating window; double-click still enters the cell.
+  - Inside a cell the breadcrumb bar has **Inside | Panel**; ⌘E switches Interface and Wiring.
+  - The toolbar's **Panels** button (P) lists every panel with a thumbnail.
+  - Right-click a knob → *Add to panel* puts a dial wired to it on a panel; right-click a cell → *Build panel from cell* makes a first panel automatically.
+  - Wiring: drag a control's connector onto a knob or jack, or *Learn* (press, then move a knob), or pick from the cell's outline.
 - **Where panels show up:**
   - in the board window, as a floating window like a module view;
   - **in a Bleep Panel plugin** (see below), for playing without the board;
-  - **inside a port's plugin window.** Each port can be set to show one panel instead of its default settings view. Main case: the *Bleep Instrument* plugin window shows the panel of the Voice Cell it plays, so a board synth feels like a normal instrument in Live.
+  - **inside a port's plugin window.** Each port can be set to show one panel instead of its default settings view. Main case: the *Bleep Instrument* plugin window shows the panel of the Voice Cell it plays, so a board synth feels like a normal instrument in Live;
+  - as the standalone app's main view (*Perform* mode).
 - **Bleep Panel plugin.** A VST3 plugin whose only job is to show one panel:
   - The user drops it on any track (it passes audio through untouched) and picks a panel from a dropdown in its window. Live's floating plugin window can then be placed anywhere on screen, next to the arrangement, the mixer or a second monitor.
   - Any number of Bleep Panels per set; several can show the same panel. Each remembers its panel by ID; if the panel is deleted from the board, it shows "Panel not found" and the dropdown.
   - It stores only the panel reference. Without a Bleep Patch plugin in the set, it shows "No board in this set".
   - Opening its window doesn't open the board (an *Open Board* button is available).
-  - Later, when panels get their own controls: those controls can be exposed as automatable parameters of the Bleep Panel plugin, so Live can automate and MIDI-map them.
-- **Mapping layer.** Panel controls never change engine state directly. They go through a mapping layer: control → target(s), each with range and curve. Stage 1 uses only 1:1 mappings (a view's knob controls its own module); the layer exists from the start so the later stages need no rewrite.
-- **Later stages:**
-  - **Controls:** encoders, faders, buttons, XY pads and labels, placed freely. Each maps to one or more targets with their own ranges: knobs of modules, cell jacks, or port controls (Bleep Patch macros, parameters of external plugins via the bus).
-  - **Custom-programmed views:** HTML/JS views (the module UIs are already web-based), sandboxed, talking to the engine through a small documented API.
-  - **Hardware controllers:** panel controls can be MIDI-learned.
+  - Controls marked *expose* are automatable parameters of the Bleep Panel plugin, so Live can automate and MIDI-map them.
+- **Mapping layer.** Panel controls never change engine state directly. They go through a mapping layer: control → target(s), each with range, curve and mode (*set* the knob, or *mod* it like a cable). Knob wires run on the message thread; modulation, jack and note wires compile to a hidden panel source node.
+- **Stages.** 1: reading panels (factory panels, module views on a panel, ▦, the Panels list, port windows, the Bleep Panel plugin). 2: wiring and editing. 3: MIDI-learn, XY pads, step bars, custom HTML views.
 
 ### 9.8 Connection to Live
 

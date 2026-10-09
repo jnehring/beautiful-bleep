@@ -143,6 +143,13 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
     juce::String boardId = str(in, "id");
     out->setProperty("id", boardId.isNotEmpty() ? boardId : juce::Uuid().toDashedString());
     if (in.hasProperty("view")) out->setProperty("view", in["view"]);
+    // Front panels (specs/panels.md): UI documents the engine keeps as they are, if each is an object with an id.
+    if (auto* a = in["panels"].getArray()) {
+        juce::Array<juce::var> panels;
+        for (const auto& p : *a)
+            if (p.getDynamicObject() && str(p, "id").isNotEmpty()) panels.add(p);
+        if (!panels.isEmpty()) out->setProperty("panels", panels);
+    }
 
     // ---- nodes -------------------------------------------------------------
     juce::Array<juce::var> nodes;
@@ -394,6 +401,82 @@ BoardModel parse(const juce::var& doc) {
         }
     }
     return m;
+}
+
+void addPanelSources(BoardModel& model, const juce::var& doc) {
+    const auto& reg = Registry::get();
+    auto* panels = doc["panels"].getArray();
+    if (panels == nullptr) return;
+    auto inVoiceCell = [&](const NodeModel& n) {  // a cell inside a Voice Cell can't be reached from the top level
+        std::string p = n.parent;
+        for (int depth = 0; !p.empty() && depth < 64; ++depth) {
+            const NodeModel* q = model.node(p);
+            if (q == nullptr) break;
+            if (q->type == kVoiceCell) return true;
+            p = q->parent;
+        }
+        return false;
+    };
+    auto add = [&](const std::string& id, const char* type, const std::string& cell, const std::string& fromJack,
+                   const std::string& toJack) -> NodeModel* {
+        NodeModel n;
+        n.id = id;
+        n.type = type;
+        n.name = type;
+        n.spec = reg.find(type);
+        if (n.spec == nullptr) return nullptr;
+        for (const auto& p : n.spec->params) n.params[p.id] = p.defaultNormalised();
+        model.nodes.push_back(std::move(n));
+        CableModel c;
+        c.id = "~k" + id;
+        c.from = {id, fromJack};
+        c.to = {cell, toJack};
+        model.cables.push_back(std::move(c));
+        return &model.nodes.back();
+    };
+    for (const auto& panel : *panels) {
+        const std::string cellId = sstr(panel, "cell"), panelId = sstr(panel, "id");
+        const NodeModel* found0 = cellId.empty() ? nullptr : model.node(cellId);
+        auto* controls = panel["controls"].getArray();
+        if (found0 == nullptr || controls == nullptr || inVoiceCell(*found0)) continue;
+        const NodeModel cellCopy = *found0;  // adding nodes below moves the vector
+        const NodeModel* cell = &cellCopy;
+        for (const auto& c : *controls) {
+            const std::string type = sstr(c, "type"), controlId = sstr(c, "id");
+            auto* wires = c["wire"].getArray();
+            if (wires == nullptr) continue;
+            int index = 0;
+            for (const auto& w : *wires) {
+                const std::string id = "~" + panelId + ":" + controlId + ":" + std::to_string(index++);
+                if (w.hasProperty("notes")) {
+                    if (cell->type == kVoiceCell) add(id, "keyboard", cellId, "notes", "notes");
+                    continue;
+                }
+                const std::string jack = sstr(w, "cell");
+                if (jack.empty()) continue;
+                Signal jt{};
+                bool found = false;
+                for (const auto& j : cell->cellInputs)
+                    if (j.id == jack) { jt = j.type; found = true; }
+                if (!found) continue;
+                if (type == "button" && (jt == Signal::Trigger || jt == Signal::Gate)) {
+                    add(id, "button", cellId, jt == Signal::Trigger ? "trigger" : "gate", jack);
+                    continue;
+                }
+                double lo = 0.0, hi = 1.0;
+                if (auto* r = w["range"].getArray(); r != nullptr && r->size() == 2) { lo = (double)(*r)[0]; hi = (double)(*r)[1]; }
+                const double x = juce::jlimit(0.0, 1.0, num(c, "value", (lo < 0.0 && hi > 0.0) ? -lo / (hi - lo) : 0.0));
+                const double signal = juce::jlimit(-1.0, 1.0, lo + x * (hi - lo));
+                if (NodeModel* n = add(id, "dial", cellId, "out", jack)) {
+                    // The Dial runs -1…+1 here; the UI sets "value" as (signal + 1) / 2.
+                    n->params["value"] = (float)((signal + 1.0) * 0.5);
+                    n->params["min"] = 0.0f;
+                    n->params["max"] = 1.0f;
+                    n->params["steps"] = 0.0f;
+                }
+            }
+        }
+    }
 }
 
 juce::DynamicObject* findNode(const juce::var& doc, const juce::String& id) {

@@ -959,12 +959,70 @@ void drumNodes() {
     EXPECT(noise.outputs[1][0] != 0.0f);  // the fixed colours ignore Level
 }
 
+/// Front panels are kept with the board (specs/panels.md): objects with an id survive, the rest is dropped.
+void panelsAreKept() {
+    g_test = "panels";
+    auto d = board::sanitise(doc({node("u", "utility")}, {}));
+    juce::Array<juce::var> panels;
+    panels.add(obj({{"id", "p1"}, {"name", "Mixer"}, {"open", "window"}}));
+    panels.add(obj({{"name", "no id"}}));
+    panels.add(juce::var("not an object"));
+    d.getDynamicObject()->setProperty("panels", panels);
+    auto kept = board::sanitise(d);
+    auto* list = kept["panels"].getArray();
+    EXPECT(list != nullptr && list->size() == 1);
+    if (list && list->size() == 1) EXPECT((*list)[0]["open"].toString() == "window");
+    // And through JSON, as saved.
+    auto again = board::fromJson(board::toJson(kept));
+    EXPECT(board::sanitise(again)["panels"].getArray() != nullptr);
+    EXPECT(board::sanitise(doc({node("u", "utility")}, {})).hasProperty("panels") == false);
+}
+
+/// Panel controls wired to a cell jack or notes become hidden source nodes cabled into the cell.
+void panelSources() {
+    g_test = "panel sources";
+    auto d = board::sanitise(doc({node("vc", "voice-cell"), node("f", "filter")}, {}));
+    juce::Array<juce::var> controls;
+    controls.add(obj({{"id", "c1"}, {"type", "keys"}, {"wire", juce::Array<juce::var>{obj({{"notes", "cell"}})}}}));
+    controls.add(obj({{"id", "c2"}, {"type", "dial"}, {"value", 0.5},
+                      {"wire", juce::Array<juce::var>{obj({{"cell", "nope"}})}}}));  // no such jack: nothing added
+    juce::Array<juce::var> panels;
+    panels.add(obj({{"id", "p1"}, {"cell", "vc"}, {"controls", controls}}));
+    d.getDynamicObject()->setProperty("panels", panels);
+    auto model = board::parse(d);
+    const size_t nodes = model.nodes.size();
+    board::addPanelSources(model, board::sanitise(d));
+    EXPECT(model.nodes.size() == nodes + 1);
+    EXPECT(model.node("~p1:c1:0") != nullptr && model.node("~p1:c1:0")->type == "keyboard");
+    bool cabled = false;
+    for (const auto& c : model.cables) cabled |= c.from.node == "~p1:c1:0" && c.to.node == "vc" && c.to.jack == "notes";
+    EXPECT(cabled);
+
+    // A dial on a plain cell's control jack: a Dial at (signal + 1) / 2, cabled into the jack.
+    auto cell = obj({{"id", "pc"}, {"type", "cell"}, {"parent", ""},
+                     {"inputs", juce::Array<juce::var>{obj({{"id", "cut"}, {"name", "Cutoff"}, {"type", "control"}})}}});
+    auto d2 = board::sanitise(doc({cell}, {}));
+    juce::Array<juce::var> c2;
+    c2.add(obj({{"id", "c1"}, {"type", "dial"}, {"value", 1.0},
+                {"wire", juce::Array<juce::var>{obj({{"cell", "cut"}, {"range", juce::Array<juce::var>{juce::var(-1.0), juce::var(1.0)}}})}}}));
+    juce::Array<juce::var> p2;
+    p2.add(obj({{"id", "q"}, {"cell", "pc"}, {"controls", c2}}));
+    d2.getDynamicObject()->setProperty("panels", p2);
+    auto m2 = board::parse(d2);
+    board::addPanelSources(m2, board::sanitise(d2));
+    const auto* dial = m2.node("~q:c1:0");
+    EXPECT(dial != nullptr && dial->type == "dial");
+    if (dial) EXPECT_NEAR(dial->params.at("value"), 1.0, 1e-6);
+}
+
 }  // namespace
 
 int main() {
     juce::ScopedJuceInitialiser_GUI juce;
     specMapping();
     sanitising();
+    panelsAreKept();
+    panelSources();
     compileCellsAndFeedback();
     latencyAndClaiming();
     parallelThreads();

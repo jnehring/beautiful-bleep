@@ -18,6 +18,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { reference } from "./kit.mjs";
+import panelsByPreset, { checkPanels } from "./panels.mjs";
 
 // Category files, in Add-menu order.
 const CATEGORIES = [
@@ -27,6 +28,7 @@ const CATEGORIES = [
 ];
 
 const OUT = fileURLToPath(new URL("../board/ui/factory-presets.json", import.meta.url));
+const PANELS = fileURLToPath(new URL("../board/ui/factory-panels.json", import.meta.url));
 const HAND_WRITTEN = fileURLToPath(new URL("../board/ui/factory-presets.js", import.meta.url));
 
 /// The presets factory-presets.js defines (it sets window.BleepFactoryPresets).
@@ -49,6 +51,29 @@ async function compile(only) {
     }
   }
   return { categories, presets };
+}
+
+/// The hand-written panels (panels.mjs), each checked against its preset.
+function panels(doc) {
+  const all = [...doc.presets, ...handWritten()];
+  for (const [name, list] of Object.entries(panelsByPreset)) {
+    const p = all.find((q) => q.name === name);
+    if (!p) throw new Error(`panels.mjs: no preset called '${name}'`);
+    checkPanels(p.preset, list);
+  }
+  return panelsByPreset;
+}
+
+/// One control per line: readable diffs.
+function formatPanels(all) {
+  const line = (v) => JSON.stringify(v);
+  return ["{", `  "format": 1,`, `  "panels": {`,
+    Object.entries(all).map(([name, list]) => `    ${line(name)}: [\n` + list.map((p) => {
+      const { controls, ...head } = p;
+      return `      {${Object.entries(head).map(([k, v]) => `${line(k)}: ${line(v)}`).join(", ")}, "controls": [\n` +
+        controls.map((c) => "        " + line(c)).join(",\n") + "\n      ]}";
+    }).join(",\n") + "\n    ]").join(",\n"),
+    "  }", "}", ""].join("\n");
 }
 
 /// JSON with one node or cable per line: readable diffs, small file.
@@ -87,16 +112,21 @@ if (arg === "--reference") {
   try {
     const doc = await compile(option("--only"));
     const text = format(doc);
+    const panelText = formatPanels(panels(doc));
     if (arg === "--check") {
-      let old = "";
-      try { old = readFileSync(OUT, "utf8"); } catch {}
-      if (old !== text) {
-        console.error("patch/board/ui/factory-presets.json is out of date: run node patch/presets/build.mjs");
+      const stale = [[OUT, text], [PANELS, panelText]].filter(([file, want]) => {
+        let old = "";
+        try { old = readFileSync(file, "utf8"); } catch {}
+        return old !== want;
+      });
+      if (stale.length) {
+        console.error(`${stale.map(([f]) => f.replace(/.*\/board\/ui\//, "patch/board/ui/")).join(" and ")} out of date: run node patch/presets/build.mjs`);
         process.exit(1);
       }
-    } else {
-      writeFileSync(option("--out") || OUT, text);
-    }
+    } else if (!option("--out")) {
+      writeFileSync(OUT, text);
+      writeFileSync(PANELS, panelText);
+    } else writeFileSync(option("--out"), text);
     const extra = handWritten();
     const count = (name) => doc.presets.filter((p) => p.category === name).length +
       extra.filter((p) => p.category === name).length;
