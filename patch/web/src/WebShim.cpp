@@ -250,6 +250,34 @@ struct Instance {
 
 // ---- the C ABI ---------------------------------------------------------------
 
+namespace {
+std::string& lastError() {
+    static std::string e;
+    return e;
+}
+/// C++ exceptions must not reach the audio thread: calls run through this; a
+/// failure is kept for bleep_error() and the call returns `fallback`.
+template <class R, class F>
+R guarded(R fallback, F&& f) {
+#if defined(__cpp_exceptions)   // modules built with juce_core need exceptions; the others are built without
+    try {
+        return f();
+    } catch (const std::exception& e) {
+        lastError() = e.what();
+    } catch (...) {
+        lastError() = "unknown exception";
+    }
+    return fallback;
+#else
+    (void)fallback;
+    return f();
+#endif
+}
+}  // namespace
+
+/// The message of the last call that threw (empty: none).
+BLEEP_EXPORT const char* bleep_error() { return lastError().c_str(); }
+
 /// A file holds the module types of one folder (usually one). Their specs as
 /// a JSON array, the same objects the board UI gets from describeTypes().
 BLEEP_EXPORT const char* bleep_spec_json() {
@@ -265,8 +293,19 @@ BLEEP_EXPORT int bleep_spec_json_length() { return (int)std::strlen(bleep_spec_j
 BLEEP_EXPORT int bleep_type_count() { return (int)Registry::get().all().size(); }
 BLEEP_EXPORT int bleep_chunk() { return kChunk; }
 
+/// A node type's data, made valid (ModuleSpec::sanitiseData): the input JSON is in the
+/// scratch buffer of `h` (any instance), the result in bleep_text. -1: this type has no node data.
+BLEEP_EXPORT int bleep_sanitise_data(void* h, int typeIndex, int length) { return guarded<int>(-1, [&]() -> int {
+    auto* i = static_cast<Instance*>(h);
+    const auto& all = Registry::get().all();
+    if (typeIndex < 0 || typeIndex >= (int)all.size() || !all[(size_t)typeIndex]->sanitiseData) return -1;
+    i->scratch[(size_t)length] = 0;
+    i->text = all[(size_t)typeIndex]->sanitiseData(std::string(i->scratch.data(), (size_t)length));
+    return (int)i->text.size();
+}); }
+
 /// A new instance of type `typeIndex` (the order of bleep_spec_json()).
-BLEEP_EXPORT void* bleep_create(int typeIndex, double sampleRate) {
+BLEEP_EXPORT void* bleep_create(int typeIndex, double sampleRate) { return guarded<void*>(nullptr, [&]() -> void* {
     const auto& all = Registry::get().all();
     if (typeIndex < 0 || typeIndex >= (int)all.size()) return nullptr;
     const ModuleSpec& spec = *all[(size_t)typeIndex];
@@ -299,7 +338,7 @@ BLEEP_EXPORT void* bleep_create(int typeIndex, double sampleRate) {
     inst->module->prepare(sampleRate);
     inst->module->reset();
     return inst.release();
-}
+}); }
 
 BLEEP_EXPORT void bleep_destroy(void* h) { delete static_cast<Instance*>(h); }
 BLEEP_EXPORT void bleep_reset(void* h) { static_cast<Instance*>(h)->module->reset(); }
@@ -332,25 +371,25 @@ BLEEP_EXPORT const char* bleep_text(void* h) { return static_cast<Instance*>(h)-
 BLEEP_EXPORT int bleep_text_length(void* h) { return (int)static_cast<Instance*>(h)->text.size(); }
 
 /// Node data (board document "data") as JSON, in the scratch buffer.
-BLEEP_EXPORT void bleep_set_data(void* h, int length) {
+BLEEP_EXPORT void bleep_set_data(void* h, int length) { guarded(0, [&] {
     auto* i = static_cast<Instance*>(h);
     i->scratch[(size_t)length] = 0;
     i->module->setData(std::string(i->scratch.data(), (size_t)length));
-}
+return 0; }); }
 /// A performance gesture; action in the scratch buffer (NUL-terminated), args as doubles after it.
-BLEEP_EXPORT void bleep_perform(void* h, int argOffset, int numArgs) {
+BLEEP_EXPORT void bleep_perform(void* h, int argOffset, int numArgs) { guarded(0, [&] {
     auto* i = static_cast<Instance*>(h);
     std::vector<double> args((size_t)numArgs);
     std::memcpy(args.data(), i->scratch.data() + argOffset, sizeof(double) * (size_t)numArgs);
     i->module->perform(i->scratch.data(), args);
-}
+return 0; }); }
 /// A view button by id (NUL-terminated in the scratch buffer).
-BLEEP_EXPORT void bleep_command(void* h, float value) {
+BLEEP_EXPORT void bleep_command(void* h, float value) { guarded(0, [&] {
     auto* i = static_cast<Instance*>(h);
     i->module->command(i->scratch.data(), value);
-}
+return 0; }); }
 /// Live values and arrays for the module's view, as {"values":{},"arrays":{}}.
-BLEEP_EXPORT int bleep_live(void* h) {
+BLEEP_EXPORT int bleep_live(void* h) { return guarded<int>(0, [&]() -> int {
     auto* i = static_cast<Instance*>(h);
     std::vector<std::pair<std::string, double>> values;
     std::vector<std::pair<std::string, std::vector<float>>> arrays;
@@ -373,7 +412,7 @@ BLEEP_EXPORT int bleep_live(void* h) {
     out += "}}";
     i->text = std::move(out);
     return (int)i->text.size();
-}
+}); }
 /// How the board shows a knob at `normalised` (ParamSpec::text): length of the string in bleep_text.
 BLEEP_EXPORT int bleep_param_text(void* h, int index, float normalised) {
     auto* i = static_cast<Instance*>(h);
@@ -383,13 +422,13 @@ BLEEP_EXPORT int bleep_param_text(void* h, int index, float normalised) {
     return (int)i->text.size();
 }
 /// Data the module changed itself (e.g. a captured loop): length of the JSON in bleep_text, or -1.
-BLEEP_EXPORT int bleep_take_data(void* h) {
+BLEEP_EXPORT int bleep_take_data(void* h) { return guarded<int>(-1, [&]() -> int {
     auto* i = static_cast<Instance*>(h);
     std::string json;
     if (!i->module->takeData(json)) return -1;
     i->text = std::move(json);
     return (int)i->text.size();
-}
+}); }
 /// The `notes` buffers (NoteBuffer: 64 events of 16 bytes, then an int count).
 BLEEP_EXPORT void* bleep_notes_in_ptr(void* h, int jack) { return &static_cast<Instance*>(h)->notesIn[(size_t)jack]; }
 BLEEP_EXPORT void* bleep_notes_out_ptr(void* h, int jack) { return &static_cast<Instance*>(h)->notesOut[(size_t)jack]; }
@@ -404,7 +443,7 @@ BLEEP_EXPORT void bleep_set_transport(void* h, double bpm, double ppq, int playi
 }
 
 /// Runs `numSamples` (≤ kChunk) samples. Returns 0 on success.
-BLEEP_EXPORT int bleep_process(void* h, int numSamples) {
+BLEEP_EXPORT int bleep_process(void* h, int numSamples) { return guarded<int>(2, [&]() -> int {
     auto* i = static_cast<Instance*>(h);
     if (numSamples < 1 || numSamples > kChunk) return 1;
     // The module reads `bool`s; the host writes bytes.
@@ -430,4 +469,4 @@ BLEEP_EXPORT int bleep_process(void* h, int numSamples) {
     for (auto& nb : i->notesOut) nb.clear();
     i->module->process(c);
     return 0;
-}
+}); }

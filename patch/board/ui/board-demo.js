@@ -170,13 +170,15 @@
 
   /// The web engine's state replaces the animation: add what the UI expects around it.
   function webState(state) {
+    let changed = false;
     for (const [id, entry] of Object.entries(state.nodes)) {
-      if (entry.data !== undefined) {  // a module changed its own data
+      if (entry.data !== undefined) {  // a module changed its own data, or made a new node's valid
         const n = board && board.nodes.find((x) => x.id === id);
-        if (n) { try { n.data = JSON.parse(entry.data); save(); } catch (e) { /* keep */ } }
+        if (n) { try { n.data = JSON.parse(entry.data); save(); changed = true; } catch (e) { /* keep */ } }
         delete entry.data;
       }
     }
+    if (changed) emit("board", message());
     emit("state", { nodes: state.nodes, ports });
   }
   if (window.BleepWeb) {

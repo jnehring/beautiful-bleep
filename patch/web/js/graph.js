@@ -133,7 +133,9 @@ export class Engine {
     this.outPos = 0;
     this.board = null;
     this.watched = new Set();
+    this.onError = null;  // (message) — set by the host
     this.generation = 0;
+    this.pendingData = new Map();  // node id → sanitised data the UI's board does not have yet
   }
 
   /// The UI's node types (demo-types.json / the manifest's specs).
@@ -233,9 +235,13 @@ export class Engine {
       }
       const s = spec(n);
       s.params.forEach((p, i) => entry.host.setKnob(i, n.params?.[p.id] ?? p.default));
-      if (n.data !== undefined && entry.dataJson !== JSON.stringify(n.data)) {
-        entry.dataJson = JSON.stringify(n.data);
-        entry.host.setData(entry.dataJson);
+      if (entry.host.sanitiseData) {
+        // Node data goes through the module's own sanitiser: valid JSON with the defaults for a new node.
+        const clean = entry.host.sanitiseData(n.data === undefined ? "" : JSON.stringify(n.data));
+        if (clean !== null) {
+          if (entry.dataJson !== clean) { entry.dataJson = clean; entry.host.setData(clean); }
+          if (JSON.stringify(JSON.parse(clean)) !== JSON.stringify(n.data)) this.pendingData.set(n.id, clean);
+        }
       }
       kept.set(n.id, entry);
     }
@@ -298,9 +304,15 @@ export class Engine {
     const mod = slug && this.wasm.get(slug);
     if (!mod) return null;
     if (probe) return true;
-    const host = new ModuleInstance(mod, this.sampleRate, n.type);
-    host.connectedIn = new Uint8Array(s.inputs.length);
-    return host;
+    try {
+      const host = new ModuleInstance(mod, this.sampleRate, n.type);
+      host.connectedIn = new Uint8Array(s.inputs.length);
+      return host;
+    } catch (e) {  // one broken module must not stop the board
+      this.onError?.(`${n.type}: ${e.message}`);
+      this.wasm.delete(slug);
+      return null;
+    }
   }
 
   // ---- live edits (no recompile) ----------------------------------------------------
@@ -321,7 +333,11 @@ export class Engine {
   command(nodeId, id, value) { this.instances.get(nodeId)?.host.command(id, value); }
   setData(nodeId, data) {
     const e = this.instances.get(nodeId);
-    if (e) { e.dataJson = JSON.stringify(data); e.host.setData(e.dataJson); }
+    if (!e) return;
+    const json = JSON.stringify(data);
+    const clean = e.host.sanitiseData ? e.host.sanitiseData(json) : json;
+    e.dataJson = clean ?? json;
+    e.host.setData(e.dataJson);
   }
 
   // ---- running ----------------------------------------------------------------------
@@ -410,8 +426,10 @@ export class Engine {
       }
       const taken = host.takeData();
       if (taken !== null) entry.data = taken;
+      else if (this.pendingData.has(st.id)) entry.data = this.pendingData.get(st.id);
       nodes[st.id] = entry;
     }
+    this.pendingData.clear();
     return { nodes };
   }
 }

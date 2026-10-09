@@ -9,6 +9,7 @@ class BleepProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.engine = new Engine(sampleRate);
+    this.engine.onError = (message) => this.port.postMessage({ cmd: "error", message });
     this.frames = 0;
     this.board = null;
     this.port.onmessage = (e) => this.#message(e.data);

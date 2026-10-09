@@ -52,6 +52,9 @@ public:
         ready_[(size_t)i].store(&wt::factoryBank((wt::FactoryBank)i), std::memory_order_release);
     }
     void startAll() {
+#ifdef __EMSCRIPTEN__
+        return;  // the browser build has no threads: banks are built when first used (ensure)
+#endif
         std::lock_guard<std::mutex> l(lock_);
         if (worker_.joinable()) return;
         worker_ = std::thread([this] {

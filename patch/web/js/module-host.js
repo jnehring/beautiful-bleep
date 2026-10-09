@@ -68,6 +68,13 @@ function wasiImports(getMemory) {
   };
 }
 
+function cString(memory, ptr) {
+  const bytes = new Uint8Array(memory.buffer);
+  let end = ptr;
+  while (bytes[end]) ++end;
+  return utf8Decode(bytes.subarray(ptr, end));
+}
+
 /// Compiles module bytes; the result can be shared and instantiated many times.
 export async function compileModule(bytes) {
   return WebAssembly.compile(bytes);
@@ -80,7 +87,12 @@ export function readSpecs(module) {
 
 function instantiate(module) {
   let memory = null;
-  const instance = new WebAssembly.Instance(module, wasiImports(() => memory));
+  const imports = wasiImports(() => memory);
+  for (const { module: ns, name, kind } of WebAssembly.Module.imports(module)) {  // anything else: "not supported"
+    imports[ns] = imports[ns] || {};
+    if (kind === "function" && !imports[ns][name]) imports[ns][name] = () => 52;  // ENOSYS
+  }
+  const instance = new WebAssembly.Instance(module, imports);
   memory = instance.exports.memory;
   if (instance.exports._initialize) instance.exports._initialize();
   const x = instance.exports;
@@ -97,12 +109,13 @@ export class ModuleInstance {
     const { x, memory, specs } = instantiate(module);
     const typeIndex = Math.max(0, type ? specs.findIndex((s) => s.type === type) : 0);
     const spec = specs[typeIndex];
+    this.typeIndex = typeIndex;
     if (x.bleep_chunk() !== CHUNK) throw new Error("module was built for another chunk size");
     this.x = x;
     this.memory = memory;
     this.spec = spec;
     this.handle = x.bleep_create(typeIndex, sampleRate);
-    if (!this.handle) throw new Error(`cannot create module ${spec.type}`);
+    if (!this.handle) throw new Error(`cannot create module ${spec.type}: ${cString(memory, x.bleep_error())}`);
     this.knobs = spec.params.map((p) => p.default);  // normalised, as last set
   }
 
@@ -149,6 +162,12 @@ export class ModuleInstance {
   }
   #readText(length) {
     return utf8Decode(new Uint8Array(this.memory.buffer, this.x.bleep_text(this.handle), length));
+  }
+  /// The module's node data made valid, defaults included (ModuleSpec::sanitiseData); null if it has none.
+  sanitiseData(json) {
+    const { length } = this.#writeString(json || "");
+    const n = this.x.bleep_sanitise_data(this.handle, this.typeIndex, length);
+    return n < 0 ? null : this.#readText(n);
   }
   setData(json) { const { length } = this.#writeString(json); this.x.bleep_set_data(this.handle, length); }
   /// A performance gesture from the module view (a key played, a button pressed).

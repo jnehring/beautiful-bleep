@@ -16,8 +16,14 @@ command -v emcc >/dev/null || { echo "emcc not found: install the Emscripten SDK
 rm -rf "$OUT"
 mkdir -p "$OUT/js"
 
-# 1. The modules: <out>/modules/*.wasm and <out>/manifest.json.
-python3 "$PATCH/web/build_modules.py" --out "$OUT" ${BLEEP_WEB_ONLY:+--only "$BLEEP_WEB_ONLY"}
+# 1. The modules: <out>/modules/*.wasm and <out>/manifest.json. Modules that use
+#    juce_core need a JUCE checkout: BLEEP_JUCE_DIR, else JUCE 8.0.9 is cloned.
+JUCE="${BLEEP_JUCE_DIR:-}"
+if [ -z "$JUCE" ]; then
+  JUCE="$ROOT/build/web/JUCE"
+  [ -d "$JUCE/modules/juce_core" ] || git clone --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git "$JUCE"
+fi
+python3 "$PATCH/web/build_modules.py" --out "$OUT" --juce "$JUCE" ${BLEEP_WEB_ONLY:+--only "$BLEEP_WEB_ONLY"}
 
 # 2. The board UI, the way the plugins and scripts/ui-server.py serve it: board,
 #    common and every module's ui/ and doc/ files side by side.

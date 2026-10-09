@@ -24,7 +24,7 @@ export default function BoardPage() {
         Click <strong>Start audio</strong>, then play the Keyboard module with your computer keys
         (<code>A W S E D F T G Y H U J</code>) or a MIDI keyboard (Chrome, Edge). Drag from a jack to patch,
         <kbd>Tab</kbd> adds a module. <a href="/play/index.html">Open full screen</a>.
-        Some modules (sequencers, quantizers, samplers) are not in the browser yet.
+        Not in the browser yet: Voice Cells, Link, audio input and importing audio files.
       </p>
     </>
   );

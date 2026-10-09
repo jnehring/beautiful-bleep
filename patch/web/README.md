@@ -41,13 +41,21 @@ keyboard and Web MIDI play MIDI In.
 
 ## Status (spike)
 
-- 48 of 72 module folders build unchanged. The other 24 still use
-  `juce::var`/`String`/`JSON` for node data (sequencers, quantizers, Button,
-  Drum Grid, samplers…). Next step: compile `juce_core` under Emscripten or
-  replace the few calls with a small JSON shim. They show up in the board and
-  stay silent (`manifest.unavailable` lists them with the reason).
-- Not ported yet: Voice Cells, Harmony Master/bus, Link, Macros, media import,
-  audio input.
+- All 72 module folders build for the browser. About a third use `juce_core`
+  (`juce::var`/`String`/`JSON` for node data: sequencers, quantizers, Button,
+  Drum Grid, samplers…): `build_modules.py --juce <JUCE 8 checkout>` compiles
+  `juce_core` once for WebAssembly (a patched copy: JUCE 8.0.9's wasm platform
+  lacks a thread-priority table and an `<emscripten.h>` include) and links it
+  into those modules, +~200 KB each. They use wasm exceptions; every ABI call
+  is guarded so a C++ exception never reaches the audio thread.
+- Node data (`sanitiseData`) runs inside the module: a new node's defaults come
+  back to the board document through the engine's `state` message.
+- Not ported yet: Voice Cells, Harmony Master/bus (modules run, but no shared
+  bus), Link, Macros, audio input, host MIDI out, and the media folder
+  (Splice, Grains and Wavetable Osc import find no files; Media.cpp is linked
+  so they build; an IndexedDB store is the next step). Modules that start
+  threads need a change: Wavetable Osc builds its factory banks on demand
+  in the browser.
 - The engine is JavaScript for now, not a `core.wasm`: `Board.cpp` and
   `Engine.cpp` are JUCE-heavy. It can move to wasm later without changing the
   module files or the UI contract.

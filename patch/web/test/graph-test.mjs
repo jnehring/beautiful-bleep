@@ -60,9 +60,33 @@ const f = crossings(run(1));
 console.log("dial → coarse:", f, "Hz");
 assert.ok(Math.abs(f - 523) <= 3, "Dial at full, amount 0.5 on Coarse (±12 st): one octave up");
 
-// 5. missing modules are reported, the rest still runs.
-engine.setBoard({ format: 1, id: "t", nodes: [node("w", "wavetable-osc"), node("out", "audio-out", {}, { port: "p" })], cables: [cable("c1", "w", "out", "out", "l")] });
-assert.deepEqual(engine.missingSlugs({ nodes: [node("w", "wavetable-osc")] }, { types: { "wavetable-osc": "wavetable-osc" } }), ["wavetable-osc"]);
-run(0.05);
-console.log("snapshot nodes:", Object.keys(engine.snapshot().nodes).join(","));
-console.log("graph tests passed");
+// 5. a board with modules that are not loaded yet reports which files it needs; the rest still runs.
+{
+  const bare = new Engine(48000);
+  bare.setTypes(types);
+  const board = { format: 1, id: "t", nodes: [node("w", "wavetable-osc"), node("out", "audio-out", {}, { port: "p" })], cables: [cable("c1", "w", "out", "out", "l")] };
+  assert.deepEqual(bare.missingSlugs(board, manifest), ["wavetable-osc"]);
+  bare.setBoard(board);
+  bare.render(new Float32Array(128), new Float32Array(128), 128);
+  assert.deepEqual(Object.keys(bare.snapshot().nodes), ["out"]);
+  console.log("missing modules: ok");
+}
+
+// 6. a module that uses juce_core (node data as JSON): the Step Sequencer plays from the transport.
+{
+  const seqType = types.find((t) => t.type === "step-sequencer");
+  assert.ok(manifest.modules["step-sequencer"], "step-sequencer.wasm is built (needs the JUCE checkout)");
+  engine.setBoard({ format: 1, id: "t", nodes: [node("seq", "step-sequencer"), node("osc", "oscillator"), node("out", "audio-out", {}, { port: "p" })],
+    cables: [cable("c1", "seq", seqType.outputs[0].id, "osc", "pitch"), cable("c2", "osc", "sine", "out", "l")] });
+  run(0.5);
+  const first = engine.snapshot();
+  // Its default pattern was sanitised by the module and is handed to the board document.
+  assert.ok(first.nodes.seq.data, "node data defaults come back for the board");
+  assert.ok(JSON.parse(first.nodes.seq.data).steps.length > 0);
+  const a = engine.snapshot().nodes.seq.step;
+  run(0.3);
+  const b = engine.snapshot().nodes.seq.step;
+  assert.ok(a !== undefined && b !== undefined && a !== b, `the sequencer advances (step ${a} → ${b})`);
+  console.log("step-sequencer (juce_core module): ok, step", a, "→", b);
+}
+console.log("all tests passed");
