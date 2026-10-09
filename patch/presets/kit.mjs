@@ -67,11 +67,13 @@ function resolveParam(where, p, v) {
 
 const GRID_X = 300, GRID_Y = 220;  // one layout column / row on the board
 
-/// Builds one preset. `kind`: "voice" (a Voice Cell: notes in, audio out) or
-/// "cell" (an ordinary cell with the jacks it declares).
+/// Builds one preset. `kind`: "voice" (a Voice Cell: notes in, audio out),
+/// "cell" (an ordinary cell with the jacks it declares) or "patch" (a whole
+/// board: modules at the top level, `p.out` the Out 1/2 port, `p.midi` the
+/// Bleep Patch 1 MIDI input; see patch()).
 export class Preset {
   constructor(kind, name, opts = {}) {
-    if (kind !== "voice" && kind !== "cell") throw new Error(`${name}: kind must be 'voice' or 'cell'`);
+    if (kind !== "voice" && kind !== "cell" && kind !== "patch") throw new Error(`${name}: kind must be 'voice', 'cell' or 'patch'`);
     this.kind = kind;
     this.name = name;
     this.description = opts.description || "";
@@ -79,6 +81,14 @@ export class Preset {
     this.nodes = [];
     this.cables = [];
     this.ids = new Set();
+    if (kind === "patch") {
+      this.module = opts.module || "";
+      this.tempo = opts.tempo || 120;
+      this.parent = "";
+      this.out = this.#port("out", "audio-out", "Out 1/2", "device-out-1", [6, 1]);
+      return;
+    }
+    this.parent = "root";
     const rootType = kind === "voice" ? "voice-cell" : "cell";
     this.root = { id: "root", type: rootType, name, x: 0, y: 0, parent: "", params: {}, inputs: [], outputs: [] };
     this.nodes.push(this.root);
@@ -89,6 +99,21 @@ export class Preset {
       this.vin = this.#boundary("vi", "voice-in", "Voice In", [-1, 0]);
       this.vout = this.#boundary("vo", "voice-out", "Voice Out", [6, 0]);
     }
+  }
+
+  #port(id, type, name, port, at) {
+    const n = { id, type, name, x: 40 + (at[0] + 1) * GRID_X, y: 40 + at[1] * GRID_Y, parent: "", muted: false,
+                port, params: {}, track: name };
+    this.nodes.push(n);
+    this.ids.add(id);
+    return n;
+  }
+
+  /// Patches: the MIDI input "Bleep Patch 1" (notes, pitch, gate, CCs), added when first used.
+  get midi() {
+    if (this.kind !== "patch") throw new Error(`${this.name}: only patches have a MIDI input`);
+    if (!this._midi) this._midi = this.#port("midi", "midi-in", "Bleep Patch 1", "vmidi-1:in", [-1, 0]);
+    return this._midi;
   }
 
   #where(n, what) { return `${this.name} › ${n.name}${what ? " › " + what : ""}`; }
@@ -128,7 +153,7 @@ export class Preset {
     for (let i = 2; this.ids.has(id); i++) id = (opts.id || type.replace(/[^a-z]/g, "").slice(0, 6)) + i;
     this.ids.add(id);
     const n = { id, type, name: opts.name || t.name, x: 40 + (at[0] + 1) * GRID_X, y: 40 + at[1] * GRID_Y,
-                parent: "root", params: {} };
+                parent: this.parent, params: {} };
     if (opts.data !== undefined) n.data = opts.data;
     this.#setParams(n, values);
     this.nodes.push(n);
@@ -211,6 +236,7 @@ export class Preset {
   /// The finished preset document (as saved in .bleepcell files), checked.
   build(category) {
     if (!this.description) throw new Error(`${this.name}: needs a description`);
+    if (this.kind === "patch") return this.#buildPatch();
     this.#wireTempo();
     if (this.kind === "voice") {
       if (!this.cables.some((c) => c.to.node === "vo" && c.to.jack === "l"))
@@ -223,10 +249,25 @@ export class Preset {
     return { format: 1, root: "root", category, description: this.description, tags: this.tags,
              nodes: this.nodes, cables: this.cables };
   }
+
+  /// A whole board for the preset browser: `{format, description, tags, module, tempo, nodes, cables}`.
+  #buildPatch() {
+    if (!this.cables.some((c) => c.to.node === "out" && (c.to.jack === "l" || c.to.jack === "r")))
+      throw new Error(`${this.name}: nothing reaches Out 1/2`);
+    if (!this.module) throw new Error(`${this.name}: needs the module it demonstrates (opts.module)`);
+    if (!types[this.module]) throw new Error(`${this.name}: no module type '${this.module}'`);
+    if (!this.nodes.some((n) => n.type === this.module))
+      throw new Error(`${this.name}: doesn't use the ${this.module} module it demonstrates`);
+    return { format: 1, module: this.module, description: this.description, tags: this.tags, tempo: this.tempo,
+             nodes: this.nodes, cables: this.cables };
+  }
 }
 
 export const voice = (name, opts) => new Preset("voice", name, opts);
 export const cell = (name, opts) => new Preset("cell", name, opts);
+/// A demo patch: a whole board that plays by itself with the transport (or from `p.midi`) into `p.out`.
+/// opts: {module: the type it demonstrates, description, tags, tempo}.
+export const patch = (name, opts) => new Preset("patch", name, opts);
 
 // ------------------------------------------------------------ small helpers
 

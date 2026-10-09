@@ -1,4 +1,8 @@
-# Factory cell presets
+# Factory presets
+
+Two kinds live here: the **cell presets** under *Add → Cell → <category>*
+(below) and the **demo patches**, whole boards for the standalone app's preset
+browser, five per advanced module (`demos/`, see [`demos/README.md`](demos/README.md)).
 
 The cells under *Add → Cell → <category>* that ship with Bleep Patch. Each
 category is one file here; [`build.mjs`](build.mjs) compiles them all into
@@ -7,9 +11,10 @@ the board loads next to the user's own presets.
 
 ```bash
 node patch/presets/build.mjs              # write factory-presets.json
-node patch/presets/build.mjs --check      # CI: the JSON is current
+node patch/presets/build.mjs --check      # CI: the JSON files are current (cell presets, panels, demo patches)
 node patch/presets/build.mjs --reference  # every module's knobs, in units
 ctest --test-dir build/patch -R factory   # the engine loads every preset without a warning
+ctest --test-dir build/patch -R demo      # every demo patch loads and makes sound
 ```
 
 ## How the preset system fits together

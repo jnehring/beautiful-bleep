@@ -176,7 +176,7 @@ Panel controls never change engine state directly (section 9.7). They go through
 
 ## 6. Factory panels
 
-Factory cell presets get panels one at a time, written by hand: [`patch/presets/panels.mjs`](../../patch/presets/panels.mjs) holds them, `node patch/presets/build.mjs` checks each against its preset (every wire resolves to a real knob, jack or output; nothing overlaps; loaded panels exist) and writes `patch/board/ui/factory-panels.json`, keyed by preset name. The board attaches a preset's panels when the preset is placed.
+Every factory cell preset has a panel. Presets without a hand-written one get the draft that *Build panel from cell* makes (`build.mjs` runs [`panel-build.js`](../../patch/board/ui/panel-build.js) on the preset and checks the result like the rest); a hand-written panel in `panels.mjs` takes its place by preset name. Hand-written panels are made one at a time: [`patch/presets/panels.mjs`](../../patch/presets/panels.mjs) holds them, `node patch/presets/build.mjs` checks each against its preset (every wire resolves to a real knob, jack or output; nothing overlaps; loaded panels exist) and writes `patch/board/ui/factory-panels.json`, keyed by preset name. The board attaches a preset's panels when the preset is placed.
 
 **Punch Machine** is the first (drum machine, punch kit):
 
