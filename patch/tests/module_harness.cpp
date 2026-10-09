@@ -250,7 +250,9 @@ int main(int argc, char** argv) {
     int count = 0;
     for (const ModuleSpec* spec : Registry::get().all()) {
         if (spec->port != PortKind::None || !spec->userCreatable || spec->type == "harness-source") continue;
-        if (spec->type == kCell || spec->type == kVoiceCell) continue;
+        // Cells and their boundary nodes compile to no step of their own.
+        if (spec->type == kCell || spec->type == kVoiceCell || spec->type == kCellIn || spec->type == kCellOut)
+            continue;
         if (!only.empty() && !only.count(spec->type)) continue;
         testModule(*spec, !only.empty());
         ++count;
