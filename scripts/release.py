@@ -171,7 +171,10 @@ def make_zip(src: Path, out: Path) -> None:
 
 def read_token(args: argparse.Namespace) -> str:
     if args.token_file:
-        return Path(args.token_file).expanduser().read_text().strip()
+        text = Path(args.token_file).expanduser().read_text()
+        # token-create prints a sentence before the token; accept the raw output as saved.
+        m = re.search(r"\bblp_\S+", text)
+        return m.group(0) if m else text.strip()
     token = os.environ.get("BLEEP_RELEASE_TOKEN", "").strip()
     if not token:
         sys.exit("A release token is required: set BLEEP_RELEASE_TOKEN or pass --token-file "
