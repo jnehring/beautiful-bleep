@@ -419,6 +419,7 @@ function(bleep_add_plugin)
         board/BoardWindow.cpp
         bridges/ableton/PortProcessor.cpp
         bridges/ableton/PortEditor.cpp
+        bridges/ableton/PanelView.cpp
         bridges/ableton/PresetLibrary.cpp)
     target_include_directories(${P_TARGET} PRIVATE ${BLEEP_ENGINE_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/bridges/ableton")

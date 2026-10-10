@@ -70,6 +70,7 @@ public:
     void openBoard(int handle) noexcept override;
     void setCellPreset(int handle, const char* json, size_t length, bool replace) noexcept override;
     size_t cellPreset(int handle, char* out, size_t capacity) noexcept override;
+    size_t uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept override;
 
     // ---- for the board window (message thread) ----------------------------
     bool hasBoard() const noexcept { return mainHandle_ != 0 || implicit_; }
@@ -136,6 +137,8 @@ private:
     void runTick(int64_t block, const BlockIO& claimer) noexcept;
     void clearBoard();
     void promoteMain();
+    juce::var uiDispatch(int handle, const juce::String& method, const juce::var& args);
+    juce::var uiMessage() const;
     /// Cell plugins in a set without Bleep Patch get a board of their own, dropped when the last one leaves.
     void updateImplicitBoard();
     /// Puts the instance's preset next to its port node (replacing a cell that is there).
@@ -149,6 +152,7 @@ private:
     std::vector<std::shared_ptr<PortSlot>> instances_;
     std::atomic<PortSlot*> table_[kMaxInstances] = {};
     int mainHandle_ = 0;
+    std::string uiLast_;       ///< the last uiCall result, for callers whose buffer was too small
     bool implicit_ = false;    ///< a board kept for cell plugins while there is no Bleep Patch
     double sampleRate_ = 48000.0;              ///< message thread: what modules are prepared for
     std::atomic<double> pendingRate_{0.0};     ///< set by prepare() on any thread, applied by the timer

@@ -1099,6 +1099,20 @@ void cellPlugins() {
             EXPECT(e->board()["panels"].isArray() && e->board()["panels"].size() >= 1);
             EXPECT(board::parse(e->board()).nodes.size() > 4);
         }
+        // What a plugin window's web view asks: the board page's native calls as JSON.
+        auto ui = [&](const char* method, const char* args) {
+            const size_t len = e->uiCall(inst, method, args, nullptr, 0);
+            std::string out(len, '\0');
+            e->uiCall(inst, "__last", "[]", out.data(), len);
+            return juce::JSON::parse(juce::String::fromUTF8(out.data(), (int)len));
+        };
+        const auto init = ui("init", "[]");
+        EXPECT(init["plugin"] && init["pluginCell"].toString() == cell && init["types"].size() > 10);
+        EXPECT(ui("pluginCell", "[]")["cell"].toString() == cell);
+        EXPECT(init["board"]["panels"].size() >= 1);
+        const juce::String firstNode = (*init["board"]["nodes"].getArray())[(init["board"]["nodes"].size() - 1)]["id"].toString();
+        EXPECT(ui("setParam", ("[\"" + firstNode + "\",\"nope\",0.5]").toRawUTF8()).isVoid());
+        EXPECT(ui("liveState", "[[]]").hasProperty("nodes"));
         FakePort p(*e, inst);
         MidiEvent on;
         on.offset = 0;

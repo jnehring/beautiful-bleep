@@ -47,10 +47,35 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
         addAndMakeVisible(mix_);
     }
 
-    setSize(400, (p.mixParameter() ? 188 : 156) + (p.loadsPresets() ? 34 : 0));
+    if (plugin()) {
+        // Bleep Instrument and Bleep FX (cell-plugins.md §11): a bar and the cell's panel; the board opens on request.
+        for (auto* b : {&prev_, &next_}) addAndMakeVisible(*b);
+        prev_.onClick = [this] { step(-1); };
+        next_.onClick = [this] { step(1); };
+        title_.setVisible(false);
+        status_.setVisible(false);
+        name_.setVisible(false);
+        preset_.setVisible(true);
+        panel_ = std::make_unique<PanelView>(processor_.engine(), processor_.handle(), [this](int w, int h) {
+            juce::MessageManager::callAsync([safe = juce::Component::SafePointer<PortEditor>(this), w, h] {
+                if (safe == nullptr) return;
+                safe->panelW_ = w;
+                safe->panelH_ = h;
+                const auto area = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+                safe->setSize(juce::jlimit(380, juce::jmax(380, area.getWidth() - 80), w),
+                              juce::jlimit(280, juce::jmax(280, area.getHeight() - 120), h + kBar));
+            });
+        });
+        addAndMakeVisible(*panel_);
+        setResizeLimits(380, 280, 3000, 2000);
+        setResizable(true, true);
+        setSize(560, 500);
+    } else {
+        setSize(400, p.mixParameter() ? 188 : 156);
+        // Spec §9.1: opening a plugin window opens the board, or brings it forward.
+        processor_.engine().editorOpened(processor_.handle());
+    }
     timerCallback();
-    // Spec §9.1: opening a plugin window opens the board, or brings it forward.
-    processor_.engine().editorOpened(processor_.handle());
     startTimerHz(4);
 }
 
@@ -65,6 +90,23 @@ void PortEditor::paint(juce::Graphics& g) {
 }
 
 void PortEditor::resized() {
+    if (plugin()) {
+        auto all = getLocalBounds();
+        auto bar = all.removeFromTop(kBar).reduced(6, 4);
+        prev_.setBounds(bar.removeFromLeft(26));
+        bar.removeFromLeft(2);
+        next_.setBounds(bar.removeFromLeft(26));
+        bar.removeFromLeft(6);
+        openBoard_.setBounds(bar.removeFromRight(100));
+        if (mix_.isVisible()) {
+            bar.removeFromRight(6);
+            mix_.setBounds(bar.removeFromRight(160));
+        }
+        bar.removeFromRight(6);
+        preset_.setBounds(bar);
+        if (panel_) panel_->setBounds(all);
+        return;
+    }
     auto r = getLocalBounds().reduced(14, 10);
     auto top = r.removeFromTop(26);
     openBoard_.setBounds(top.removeFromRight(110));
@@ -82,6 +124,19 @@ void PortEditor::resized() {
     }
     if (replace_.isVisible()) replace_.setBounds(r.removeFromBottom(26).removeFromLeft(190));
     status_.setBounds(r);
+}
+
+/// Steps to the previous or next preset of this plugin's list.
+void PortEditor::step(int by) {
+    const auto& list = PresetLibrary::forKind(processor_.kind());
+    if (list.isEmpty()) return;
+    const auto current = processor_.presetName();
+    int at = 0;
+    for (int i = 0; i < list.size(); ++i)
+        if (list[i].name == current) at = i;
+    const auto& next = list[(at + by + list.size()) % list.size()];
+    processor_.loadPreset(next.name);
+    preset_.setButtonText(next.name);
 }
 
 /// A menu of the presets this plugin can play, by category (the real browser comes later).
@@ -118,7 +173,7 @@ void PortEditor::timerCallback() {
     }
     const auto state = e.state(processor_.handle());
     // Bleep Patch has no node of its own, apart from its macros.
-    name_.setVisible(processor_.kind() != PortKind::Patch);
+    name_.setVisible(!plugin() && processor_.kind() != PortKind::Patch);
     const bool inactiveMain = state == PortState::InactiveMain;
     if (replace_.isVisible() != inactiveMain) {
         replace_.setVisible(inactiveMain);

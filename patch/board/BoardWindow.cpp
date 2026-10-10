@@ -16,6 +16,7 @@
 //              "focus"  {node}   a plugin window asked for its node
 //              "openPresets"     show the preset browser
 #include "BoardWindow.h"
+#include "BoardResources.h"
 #include "Engine.h"
 #if defined(BLEEP_WASM_MODULES)
 #include "wasm/ModuleStore.h"
@@ -582,5 +583,7 @@ void setBoardWindowTitle(const juce::String& title) {
 }
 
 juce::DocumentWindow* boardWindow() { return g_window; }
+
+std::optional<juce::WebBrowserComponent::Resource> boardResource(const juce::String& url) { return resource(url); }
 
 }  // namespace bleep::engine

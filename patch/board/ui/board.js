@@ -169,6 +169,7 @@
     if (m.status) $("status").textContent = m.status;
     // Leave cells that no longer exist.
     while (path.length && !nodeById(path[path.length - 1])) path.pop();
+    if (pluginMode) syncPluginPanel();
     for (const id of [...sel]) if (!nodeById(id)) sel.delete(id);
     if (selCable && !(board && board.cables.some((c) => c.id === selCable))) selCable = null;
     for (const [id, v] of views) {
@@ -183,6 +184,31 @@
       else v.bv.refresh(n);
     }
     render();
+  }
+
+  // ------------------------------------------------------ in a plugin window
+  // Bleep Instrument and Bleep FX show only the panel of the cell they hold (doc/specs/cell-plugins.md §11):
+  // the panel fills the window, and follows the cell when another preset replaces it. `?panelOf=<cell name>`
+  // does the same in a plain browser, for developing panels.
+  let pluginMode = false, pluginPanel = "", pluginSync = 0;
+  const pluginBuilt = new Set();
+  const panelOf = new URLSearchParams(location.search).get("panelOf");
+  async function syncPluginPanel() {
+    const tick = ++pluginSync;
+    const cell = panelOf ? ((board && board.nodes.find((n) => n.name === panelOf && !n.parent)) || {}).id : ((await native("pluginCell")) || {}).cell;
+    if (tick !== pluginSync || !board) return;
+    const q = (board.panels || []).find((p) => cell && p.cell === cell);
+    const id = q ? q.id : "";
+    if (id && id === pluginPanel && views.has("panel:" + id)) return;
+    pluginPanel = id;
+    for (const k of [...views.keys()]) if (k.startsWith("panel:")) closeView(k);
+    document.body.classList.toggle("no-panel", !q);
+    if (!q) {  // the panel was deleted: make one from the cell, once
+      if (cell && !pluginBuilt.has(cell)) { pluginBuilt.add(cell); buildPanel(cell); }
+      return;
+    }
+    openPanel(q.id, { full: true });
+    native("panelSize", (q.cols || 24) * BleepPanels.U, (q.rows || 16) * BleepPanels.U);
   }
 
   async function commit(next, label) {
@@ -1963,7 +1989,7 @@
     const doc = BleepPanelBuild.build(cell, { nodes: order, types, inputsOf, cables: board.cables });
     doc.id = uid("p");
     await edit("build panel", (b) => { (b.panels || (b.panels = [])).push(doc); });
-    openPanel(doc.id);
+    if (!pluginMode) openPanel(doc.id);
   }
   async function newPanel(cellId, quiet) {
     const cell = cellId && nodeById(cellId);
@@ -2375,6 +2401,8 @@
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
     if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone });
+    pluginMode = !!m.plugin || !!panelOf;
+    document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
     standalone = !!m.standalone;
     {  // the preset browser: whole patches (spec §11.5); in a plugin their port nodes map onto the set's ports

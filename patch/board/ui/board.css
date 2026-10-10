@@ -249,7 +249,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pwin .pwin-tools button { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 4px; }
 .pwin .pwin-tools button.on, .pwin .pwin-tools button:hover { color: var(--accent); }
 .pwin.full { left: 0 !important; top: 0 !important; width: 100% !important; height: 100%; max-width: none; border-radius: 0; z-index: 900; display: flex; flex-direction: column; }
-.pwin.full .v-body { flex: 1; max-height: none; overflow: hidden; display: grid; place-items: center; }
+.pwin.full .v-body { flex: 1; max-height: none; overflow: hidden; display: grid; place-items: center; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }  /* the track is the window's size, so a taller panel is scaled around its centre */
 .pwin.full .bp-root { transform-origin: center center; }
 .pwin.editing { width: min(1180px, calc(100% - 16px)); }
 .pwin.editing .v-body { max-height: calc(100vh - 120px); overflow: hidden; }
@@ -392,3 +392,9 @@ body.in-store #undo, body.in-store #redo { display: none; }
 #nodes .node .n-missing { padding: 6px 10px; color: var(--muted); font-size: 11px; }
 #nodes .node .n-install { margin: 0 10px 8px; padding: 3px 10px; font-size: 11px; background: var(--accent); color: #07201d; border: 0; border-radius: 4px; cursor: pointer; }
 #nodes .node .n-install:disabled { opacity: .6; cursor: default; }
+
+/* In a plugin window (Bleep Instrument, Bleep FX): only the cell's panel, filling the window. */
+body.plugin #top, body.plugin #hint, body.plugin #world, body.plugin #band, body.plugin #empty,
+body.plugin #cell-close, body.plugin .pwin .v-head { display: none; }
+body.plugin #canvas { background: var(--panel); }
+body.plugin .pwin.full { border: 0; }

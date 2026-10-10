@@ -22,7 +22,7 @@
 namespace bleep::engine {
 
 /// Changes whenever this interface or the data it passes changes.
-constexpr const char* kAbiTag = "bleep-engine-abi-6";
+constexpr const char* kAbiTag = "bleep-engine-abi-7";
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port
@@ -113,6 +113,13 @@ public:
     /// The instance's preset as it is now on the board, edits included (for the plugin state).
     /// Returns the full length; writes at most `capacity` bytes. Empty if none was loaded.
     virtual size_t cellPreset(int handle, char* out, size_t capacity) noexcept = 0;
+
+    // ---- the page in a plugin window ([non-RT], message thread) --------------
+    /// What a plugin editor's web view asks of the engine (cell-plugins.md §11.2): the board page's native
+    /// functions ("init", "commit", "setParam", "perform", "liveState", …) with their arguments as a JSON
+    /// array; the result is JSON. Returns the result's full length and writes at most `capacity` bytes;
+    /// if it did not fit, `method` "__last" returns the same result again.
+    virtual size_t uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept = 0;
 
 protected:
     virtual ~IEngine() = default;

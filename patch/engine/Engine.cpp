@@ -367,6 +367,84 @@ size_t Engine::cellPreset(int handle, char* out, size_t capacity) noexcept {
     return result.size();
 }
 
+juce::var Engine::uiMessage() const {
+    auto* o = new juce::DynamicObject();
+    o->setProperty("board", hasBoard() ? board_ : juce::var());
+    o->setProperty("ports", ports());
+    o->setProperty("canUndo", canUndo());
+    o->setProperty("canRedo", canRedo());
+    o->setProperty("status", statusLine());
+    return juce::var(o);
+}
+
+juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var& a) {
+    if (m == "init") {
+        auto r = uiMessage();
+        auto* o = r.getDynamicObject();
+        o->setProperty("types", board::describeTypes());
+        o->setProperty("standalone", standalone_);
+        o->setProperty("plugin", true);
+        juce::String cell;
+        if (auto s = slotShared(handle); s && hasBoard())
+            if (const auto* node = board::findNodeByPort(board_, juce::String(s->id)))
+                cell = board::attachedCell(board_, node->getProperty("id").toString());
+        o->setProperty("pluginCell", cell);
+        return r;
+    }
+    if (m == "board") return uiMessage();
+    if (m == "pluginCell") {  // {cell: id}: JSON results are objects or arrays, never a bare string
+        juce::String cell;
+        if (auto s = slotShared(handle); s && hasBoard())
+            if (const auto* node = board::findNodeByPort(board_, juce::String(s->id)))
+                cell = board::attachedCell(board_, node->getProperty("id").toString());
+        auto* o = new juce::DynamicObject();
+        o->setProperty("cell", cell);
+        return juce::var(o);
+    }
+    if (m == "types") return board::describeTypes();
+    if (m == "commit") {
+        commit(a[0], a[1].toString());
+        return uiMessage();
+    }
+    if (m == "undo" || m == "redo" || m == "beginGesture") {
+        if (m == "undo") undo();
+        else if (m == "redo") redo();
+        else beginGesture();
+        return uiMessage();
+    }
+    if (m == "setParam") setParam(a[0].toString(), a[1].toString(), (float)a[2]);
+    else if (m == "setAmount") setAmount(a[0].toString(), (float)a[1]);
+    else if (m == "setData") setData(a[0].toString(), a[1]);
+    else if (m == "command") command(a[0].toString(), a[1].toString(), (float)a[2]);
+    else if (m == "perform") perform(a[0].toString(), a[1].toString(), a[2]);
+    else if (m == "exportMedia") return exportMedia(a[0].toString(), a[1].toString());
+    else if (m == "importMedia") {
+        juce::MemoryOutputStream decoded;
+        if (!juce::Base64::convertFromBase64(decoded, a[1].toString())) {
+            auto* o = new juce::DynamicObject();
+            o->setProperty("error", "could not read the file");
+            return juce::var(o);
+        }
+        return importMedia(a[0].toString(), decoded.getMemoryBlock());
+    } else if (m == "liveState") {
+        std::set<juce::String> watched;
+        if (const auto* ids = a[0].getArray())
+            for (const auto& id : *ids) watched.insert(id.toString());
+        return liveState(watched);
+    }
+    return {};
+}
+
+size_t Engine::uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept {
+    if (method == nullptr) return 0;
+    if (juce::String(method) != "__last") {
+        const juce::var args = juce::JSON::parse(juce::String::fromUTF8(argsJson ? argsJson : "[]"));
+        uiLast_ = board::toJson(uiDispatch(handle, method, args)).toStdString();
+    }
+    if (out && capacity > 0) std::memcpy(out, uiLast_.data(), std::min(capacity, uiLast_.size()));
+    return uiLast_.size();
+}
+
 juce::var Engine::commit(const juce::var& edited, const juce::String& label) {
     juce::ignoreUnused(label);
     if (!hasBoard()) return board_;
@@ -940,6 +1018,7 @@ public:
     void openBoard(int) noexcept override {}
     void setCellPreset(int, const char*, size_t, bool) noexcept override {}
     size_t cellPreset(int, char*, size_t) noexcept override { return 0; }
+    size_t uiCall(int, const char*, const char*, char*, size_t) noexcept override { return 0; }
 
 private:
     int refs_ = 1;
