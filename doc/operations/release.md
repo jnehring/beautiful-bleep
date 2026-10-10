@@ -18,7 +18,7 @@ A token releases for one publisher: without `--publisher` it is for our own rele
 **One-time: signing (the registry refuses unsigned releases; `scripts/release/release.py` and `signing.py` need `pip install cryptography`).** Every file is signed with a developer key; the rules are in `doc/specs/signing.md`.
 
 1. **Make the keys** on a trusted machine: `scripts/release/signing.py init-registry ~/bleep-registry-keys`. Move `root.key` to your keystore (and back it up), then delete the copy: the website never needs it.
-2. **Give the registry its part.** Paste the three lines of `registry.env` (the root *public* key, the issuer key and its certificate) into `website/.env`, then `docker compose up -d api`. Without `BLEEP_ROOT_PUBLIC_KEYS` the registry refuses every release (fail closed).
+2. **Give the registry its part.** Append the three lines of `registry.env` (the root *public* key, the issuer key and its certificate) to `website/.env`, each on its own line (step-by-step in [website.md](website.md#signing-keys)), then `docker compose up -d api`. Without `BLEEP_ROOT_PUBLIC_KEYS` the registry refuses every release (fail closed).
 3. **Make a kit for the publisher** (our own: `bleep`, a first-party key that may sign ids without a namespace):
 
 ```bash

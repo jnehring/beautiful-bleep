@@ -89,10 +89,10 @@ It writes `root.key` and `root.pub` (the root), `issuer.key` and `issuer.cert` (
 
 2. **Secure the root key.** Put `root.key` into your keystore, check that you can read it back, then delete it from `~/bleep-registry-keys`. Keep `root.pub` (it is public; the apps will be built with it).
 
-3. **Give the registry its part.** Append the three lines to the website config, restrict the file, then delete `registry.env` (it duplicates the issuer key):
+3. **Give the registry its part.** Append the three lines to the website config, restrict the file, then delete `registry.env` (it duplicates the issuer key). The first `echo` matters: if `website/.env` does not end with a newline, the first appended line would be glued to the last one (for example onto `S3_SECRET_KEY`, which also breaks the storage login) and the root key would never be read:
 
 ```bash
-cat ~/bleep-registry-keys/registry.env >> website/.env
+{ echo; cat ~/bleep-registry-keys/registry.env; } >> website/.env
 ```
 
 ```bash
@@ -111,7 +111,7 @@ scripts/run/run-website.sh
 curl -s localhost:8080/api/registry/roots
 ```
 
-It must show your root public key and `"requireSignatures":true`. An empty `roots` list means the lines did not reach the container.
+It must show your root public key and `"requireSignatures":true`. An empty `roots` list means the lines did not reach the container: look at `website/.env` for a missing newline between two variables (each `NAME=` must start its own line).
 
 6. **Make a signing kit** for your own releases (the publisher `bleep` is ours; `--first-party` lets it sign ids without a namespace), and list the issued keys:
 
