@@ -1,0 +1,19 @@
+{
+  "name": "Crunch",
+  "slug": "crunch",
+  "tagline": "Overdrive, bit crusher and sample-rate reducer in one: warm saturation to broken digital grit, with a tone control.",
+  "colour": "#dc2626",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/crunch.md",
+  "license": "MIT",
+  "origin": {
+    "name": "Overdrive and Decimator (DaisySP, from Plaits)",
+    "author": "Electrosmith, LLC; Émilie Gillet (Mutable Instruments)",
+    "url": "https://github.com/electro-smith/DaisySP",
+    "license": "MIT",
+    "copyright": "DaisySP, copyright (c) 2020 Electrosmith, Corp.; Plaits, copyright 2016 Emilie Gillet",
+    "changes": "Both effects in one stereo module; the bit crusher rounds and takes fractional bit depths; the Drive knob covers the useful part of Plaits' curve with level compensation; a tone low-pass and an output level were added."
+  }
+}

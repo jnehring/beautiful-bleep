@@ -8562,6 +8562,145 @@
     "harmony": "reader"
   },
   {
+    "type": "chorus",
+    "name": "Chorus",
+    "category": "Audio",
+    "colour": "#14b8a6",
+    "description": "Stereo chorus (two swinging delay voices per side) or flanger (one, with feedback). Rate, depth, delay and feedback can all be modulated.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "float",
+        "default": 0.547290742397308,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.019999999552965,
+        "max": 10.0,
+        "def": 0.600000023841858,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp"
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "delay",
+        "name": "Delay",
+        "kind": "float",
+        "default": 0.814967215061188,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.100000001490116,
+        "max": 25.0,
+        "def": 9.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp"
+      },
+      {
+        "id": "feedback",
+        "name": "Feedback",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "spread",
+        "name": "Spread",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Chorus",
+          "Flanger"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
     "type": "coin-toss",
     "name": "Coin Toss",
     "category": "Utility",
@@ -8771,6 +8910,309 @@
         "name": "Coin 2",
         "type": "control",
         "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "compressor",
+    "name": "Compressor",
+    "category": "Audio",
+    "colour": "#64748b",
+    "description": "Stereo compressor and limiter: soft knee, peak or RMS detector, sidechain input, parallel mix and a gain reduction output you can patch.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "threshold",
+        "name": "Threshold",
+        "kind": "float",
+        "default": 0.699999988079071,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 0.0,
+        "def": -18.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
+      },
+      {
+        "id": "ratio",
+        "name": "Ratio",
+        "kind": "float",
+        "default": 0.375803649425507,
+        "steps": 0,
+        "modulatable": true,
+        "min": 1.0,
+        "max": 40.0,
+        "def": 4.0,
+        "format": "number",
+        "decimals": 2,
+        "label": ":1",
+        "map": "exp"
+      },
+      {
+        "id": "attack",
+        "name": "Attack",
+        "kind": "float",
+        "default": 0.666666686534882,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.100000001490116,
+        "max": 100.0,
+        "def": 10.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp"
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "kind": "float",
+        "default": 0.468999207019806,
+        "steps": 0,
+        "modulatable": true,
+        "min": 10.0,
+        "max": 2000.0,
+        "def": 120.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp"
+      },
+      {
+        "id": "knee",
+        "name": "Knee",
+        "kind": "float",
+        "default": 0.25,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 24.0,
+        "def": 6.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
+      },
+      {
+        "id": "makeup",
+        "name": "Makeup",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 24.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "link",
+        "name": "Link",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "detector",
+        "name": "Detector",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "choices": [
+          "Peak",
+          "RMS"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "key",
+        "name": "Sidechain",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "reduction",
+        "name": "Reduction",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "crunch",
+    "name": "Crunch",
+    "category": "Audio",
+    "colour": "#dc2626",
+    "description": "Overdrive, bit crusher and sample-rate reducer in one, with a tone low-pass: from warm saturation to broken digital grit.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "drive",
+        "name": "Drive",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.300000011920929,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "bits",
+        "name": "Bits",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 1.0,
+        "max": 16.0,
+        "def": 16.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "bit"
+      },
+      {
+        "id": "rate",
+        "name": "Rate Red.",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 500.0,
+        "max": 20000.0,
+        "def": 20000.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp"
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
       }
     ]
   },
@@ -10218,6 +10660,214 @@
       {
         "id": "sub",
         "name": "Sub",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "eq",
+    "name": "EQ",
+    "category": "Audio",
+    "colour": "#0ea5e9",
+    "description": "Four-band parametric equaliser: low shelf, two peaking bands, high shelf. Frequency and gain of every band can be modulated.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "lowHz",
+        "name": "Low Freq",
+        "kind": "float",
+        "default": 0.395343363285065,
+        "steps": 0,
+        "modulatable": true,
+        "min": 30.0,
+        "max": 1000.0,
+        "def": 120.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp",
+        "group": "Low shelf"
+      },
+      {
+        "id": "lowGain",
+        "name": "Low Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -15.0,
+        "max": 15.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "group": "Low shelf"
+      },
+      {
+        "id": "m1Hz",
+        "name": "Mid 1 Freq",
+        "kind": "float",
+        "default": 0.349485009908676,
+        "steps": 0,
+        "modulatable": true,
+        "min": 80.0,
+        "max": 8000.0,
+        "def": 400.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp",
+        "group": "Mid 1"
+      },
+      {
+        "id": "m1Gain",
+        "name": "Mid 1 Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -15.0,
+        "max": 15.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "group": "Mid 1"
+      },
+      {
+        "id": "m1Q",
+        "name": "Q",
+        "kind": "float",
+        "default": 0.366683185100555,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.300000011920929,
+        "max": 8.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Mid 1"
+      },
+      {
+        "id": "m2Hz",
+        "name": "Mid 2 Freq",
+        "kind": "float",
+        "default": 0.576383709907532,
+        "steps": 0,
+        "modulatable": true,
+        "min": 200.0,
+        "max": 16000.0,
+        "def": 2500.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp",
+        "group": "Mid 2"
+      },
+      {
+        "id": "m2Gain",
+        "name": "Mid 2 Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -15.0,
+        "max": 15.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "group": "Mid 2"
+      },
+      {
+        "id": "m2Q",
+        "name": "Q",
+        "kind": "float",
+        "default": 0.366683185100555,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.300000011920929,
+        "max": 8.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Mid 2"
+      },
+      {
+        "id": "highHz",
+        "name": "High Freq",
+        "kind": "float",
+        "default": 0.719437420368195,
+        "steps": 0,
+        "modulatable": true,
+        "min": 1000.0,
+        "max": 18000.0,
+        "def": 8000.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp",
+        "group": "High shelf"
+      },
+      {
+        "id": "highGain",
+        "name": "High Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -15.0,
+        "max": 15.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "group": "High shelf"
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -18.0,
+        "max": 6.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
         "type": "audio",
         "bipolar": true
       }
@@ -16605,6 +17255,271 @@
         "id": "hit",
         "name": "Hit",
         "momentary": false
+      }
+    ]
+  },
+  {
+    "type": "phaser",
+    "name": "Phaser",
+    "category": "Audio",
+    "colour": "#f97316",
+    "description": "Stereo phaser: 2 to 12 swept allpass stages, feedback in both polarities, a stereo LFO offset. Mixed with the dry signal it makes moving notches.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "float",
+        "default": 0.435755580663681,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.019999999552965,
+        "max": 10.0,
+        "def": 0.300000011920929,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp"
+      },
+      {
+        "id": "depth",
+        "name": "Depth",
+        "kind": "float",
+        "default": 0.600000023841858,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.600000023841858,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "centre",
+        "name": "Centre",
+        "kind": "float",
+        "default": 0.502387881278992,
+        "steps": 0,
+        "modulatable": true,
+        "min": 80.0,
+        "max": 6000.0,
+        "def": 700.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp"
+      },
+      {
+        "id": "feedback",
+        "name": "Feedback",
+        "kind": "float",
+        "default": 0.710526347160339,
+        "steps": 0,
+        "modulatable": true,
+        "min": -0.949999988079071,
+        "max": 0.949999988079071,
+        "def": 0.400000005960464,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "stages",
+        "name": "Stages",
+        "kind": "choice",
+        "default": 0.200000002980232,
+        "steps": 6,
+        "modulatable": false,
+        "choices": [
+          "2",
+          "4",
+          "6",
+          "8",
+          "10",
+          "12"
+        ],
+        "min": 0.0,
+        "max": 5.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "spread",
+        "name": "Spread",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "pitch-shifter",
+    "name": "Pitch Shifter",
+    "category": "Audio",
+    "colour": "#c026d3",
+    "description": "Shifts the pitch of audio by a musical interval, two crossfading delay heads, with drift for tape flutter and feedback for climbing spirals. Put it before a reverb for a shimmer.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "kind": "float",
+        "default": 0.75,
+        "steps": 0,
+        "modulatable": true,
+        "min": -24.0,
+        "max": 24.0,
+        "def": 12.0,
+        "format": "semitones",
+        "decimals": 2,
+        "label": "st"
+      },
+      {
+        "id": "fine",
+        "name": "Fine",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -100.0,
+        "max": 100.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "ct"
+      },
+      {
+        "id": "window",
+        "name": "Window",
+        "kind": "float",
+        "default": 0.489301085472107,
+        "steps": 0,
+        "modulatable": true,
+        "min": 20.0,
+        "max": 340.0,
+        "def": 80.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp"
+      },
+      {
+        "id": "drift",
+        "name": "Drift",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "feedback",
+        "name": "Feedback",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
       }
     ]
   },

@@ -1,0 +1,19 @@
+{
+  "name": "Chorus",
+  "slug": "chorus",
+  "tagline": "Stereo chorus and flanger: swinging delay voices with feedback, a stereo spread and tempo-free rate.",
+  "colour": "#14b8a6",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/chorus.md",
+  "license": "MIT",
+  "origin": {
+    "name": "Chorus and Flanger (DaisySP)",
+    "author": "Electrosmith, LLC",
+    "url": "https://github.com/electro-smith/DaisySP",
+    "license": "MIT",
+    "copyright": "DaisySP, copyright (c) 2020 Electrosmith, Corp.",
+    "changes": "One module for both effects, stereo with an LFO phase spread, cubic interpolation, negative feedback and a sample-rate independent rate in Hz."
+  }
+}

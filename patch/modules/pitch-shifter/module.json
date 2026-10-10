@@ -1,0 +1,19 @@
+{
+  "name": "Pitch Shifter",
+  "slug": "pitch-shifter",
+  "tagline": "Stereo pitch shifter by musical interval: two crossfading read heads, a drift for tape flutter and feedback for climbing spirals. The heart of a shimmer.",
+  "colour": "#c026d3",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/pitch-shifter.md",
+  "license": "MIT",
+  "origin": {
+    "name": "PitchShifter (DaisySP)",
+    "author": "Electrosmith, LLC (Shensley)",
+    "url": "https://github.com/electro-smith/DaisySP",
+    "license": "MIT",
+    "copyright": "DaisySP, copyright (c) 2020 Electrosmith, Corp.",
+    "changes": "Rewritten as a stereo module on our delay line: smoothed window size, fine tune in cents, feedback with a soft clip, tempo-independent drift on a seeded generator."
+  }
+}

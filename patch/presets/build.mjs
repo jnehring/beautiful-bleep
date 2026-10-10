@@ -27,7 +27,7 @@ import panelsByPreset, { checkPanels } from "./panels.mjs";
 const CATEGORIES = [
   "synthesizers", "basses", "leads", "pads", "plucks-and-mallets",
   "drum-machines", "drum-kicks", "drum-snares-and-claps", "drum-hats-and-cymbals", "drum-toms-and-percussion",
-  "drum-fx", "sequencers", "effects", "modulators", "generative", "starters", "test",
+  "drum-fx", "sequencers", "effects", "processors", "modulators", "generative", "starters", "test",
 ];
 
 const OUT = fileURLToPath(new URL("../board/ui/factory-presets.json", import.meta.url));

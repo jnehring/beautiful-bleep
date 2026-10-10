@@ -1,0 +1,10 @@
+{
+  "name": "Compressor",
+  "slug": "compressor",
+  "tagline": "Stereo compressor and limiter: soft knee, peak or RMS detection, sidechain input, parallel mix and a gain reduction output.",
+  "colour": "#64748b",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/compressor.md"
+}

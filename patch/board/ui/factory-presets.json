@@ -14,6 +14,7 @@
     {"name":"Drums/FX","blurb":"Zaps, lasers, metal, bells and noise hits for fills and transitions."},
     {"name":"Sequencers","blurb":"Note sources that follow the transport: patch Notes into any Voice Cell."},
     {"name":"Effects","blurb":"Stereo insert effects: patch In L/R from any sound and take Out L/R onwards."},
+    {"name":"Processors","blurb":"Pitch, modulation, dynamics and tone effects: shimmer, doubling, flanging, phasing, sidechain pumping and lo-fi."},
     {"name":"Modulators","blurb":"Control, gate and trigger sources for everything else on the board: LFOs, randomness, envelopes and rhythms."},
     {"name":"Generative","blurb":"Self-playing patches: press play and they make music on their own, in time with the transport. Out L/R out."},
     {"name":"Starters","blurb":"Empty cells to start your own instrument or effect from."},
@@ -4330,6 +4331,318 @@
           {"id":"k6","from":{"node":"multip","jack":"out1"},"to":{"node":"vca","jack":"gain"},"amount":1},
           {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k8","from":{"node":"vca","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Shimmer Verb", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "The reverb's tail is pitched up an octave and fed back into it, so every echo climbs: a halo of ever higher voices above the sound. A limiter keeps the loop bounded. Shared inputs Mix, Shimmer (loop amount) and Freeze.",
+        "tags": ["shimmer","reverb","octave","ambient","pitch"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":20}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Shimmer Verb","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"shimmer","name":"Shimmer","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":640,"y":40,"parent":"root","params":{"size":0.85,"decay":0.630219,"preDelay":0.308006,"damping":0.35,"modDepth":0.35,"tone":0.55,"mix":0.5}},
+          {"id":"vca","type":"vca","name":"Shimmer","x":940,"y":260,"parent":"root","params":{"gain":0.35}},
+          {"id":"pitchs","type":"pitch-shifter","name":"Pitch Shifter","x":1240,"y":260,"parent":"root","params":{"pitch":0.75,"window":0.568061,"drift":0.12,"mix":1}},
+          {"id":"compre","type":"compressor","name":"Loop Limiter","x":1540,"y":260,"parent":"root","params":{"threshold":0.85,"ratio":1,"attack":0.23299,"release":0.468999,"knee":0.125}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"reverb","jack":"wetL"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"reverb","jack":"wetR"},"to":{"node":"vca","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"vca","jack":"l"},"to":{"node":"pitchs","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"vca","jack":"r"},"to":{"node":"pitchs","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"pitchs","jack":"l"},"to":{"node":"compre","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"pitchs","jack":"r"},"to":{"node":"compre","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"compre","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"compre","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k13","from":{"node":"ci","jack":"mix"},"to":{"node":"reverb","jack":"mix"},"amount":0.5},
+          {"id":"k14","from":{"node":"ci","jack":"shimmer"},"to":{"node":"vca","jack":"gain"},"amount":0.5},
+          {"id":"k15","from":{"node":"ci","jack":"freeze"},"to":{"node":"reverb","jack":"freeze"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Fifth Shimmer", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "The same loop, but a fifth up: each echo moves to the next fifth, so the halo is open and suspended rather than bright. A longer window keeps it smooth. Shared inputs Mix, Shimmer and Freeze.",
+        "tags": ["shimmer","reverb","fifth","ambient","pitch"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":22}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Fifth Shimmer","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"shimmer","name":"Shimmer","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":640,"y":40,"parent":"root","params":{"size":0.85,"decay":0.662311,"preDelay":0.308006,"damping":0.35,"modDepth":0.35,"tone":0.55,"mix":0.5}},
+          {"id":"vca","type":"vca","name":"Shimmer","x":940,"y":260,"parent":"root","params":{"gain":0.3}},
+          {"id":"pitchs","type":"pitch-shifter","name":"Pitch Shifter","x":1240,"y":260,"parent":"root","params":{"pitch":0.645833,"window":0.686821,"drift":0.12,"mix":1}},
+          {"id":"compre","type":"compressor","name":"Loop Limiter","x":1540,"y":260,"parent":"root","params":{"threshold":0.85,"ratio":1,"attack":0.23299,"release":0.468999,"knee":0.125}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"reverb","jack":"wetL"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"reverb","jack":"wetR"},"to":{"node":"vca","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"vca","jack":"l"},"to":{"node":"pitchs","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"vca","jack":"r"},"to":{"node":"pitchs","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"pitchs","jack":"l"},"to":{"node":"compre","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"pitchs","jack":"r"},"to":{"node":"compre","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"compre","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"compre","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k13","from":{"node":"ci","jack":"mix"},"to":{"node":"reverb","jack":"mix"},"amount":0.5},
+          {"id":"k14","from":{"node":"ci","jack":"shimmer"},"to":{"node":"vca","jack":"gain"},"amount":0.5},
+          {"id":"k15","from":{"node":"ci","jack":"freeze"},"to":{"node":"reverb","jack":"freeze"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Sub Octaver", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "A copy of the sound an octave down, with its top taken off, mixed under the original: a bass, a lead or a kick gets a floor. Shared input Sub (the amount of the lower octave).",
+        "tags": ["octave","bass","pitch","sub"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Sub Octaver","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"sub","name":"Sub","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"pitchs","type":"pitch-shifter","name":"Pitch Shifter","x":340,"y":260,"parent":"root","params":{"pitch":0.25,"window":0.387762,"mix":1}},
+          {"id":"filter","type":"filter","name":"Round Off","x":640,"y":260,"parent":"root","params":{"cutoff":0.433677,"type":0.208333}},
+          {"id":"vca","type":"vca","name":"Sub","x":940,"y":260,"parent":"root","params":{"gain":0.6}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"pitchs","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"pitchs","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"pitchs","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"pitchs","jack":"r"},"to":{"node":"filter","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"vca","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k9","from":{"node":"ci","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"ci","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k11","from":{"node":"ci","jack":"sub"},"to":{"node":"vca","jack":"gain"},"amount":0.5}
+        ]
+      }
+    },
+    {
+      "name": "Vocal Doubler", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "Two copies, a few cents sharp and flat, each wandering a little, plus a light chorus: a single voice or lead becomes a small ensemble. Shared input Spread (the detune).",
+        "tags": ["doubler","vocal","chorus","pitch","wide"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Vocal Doubler","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"spread","name":"Spread","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"pitchs","type":"pitch-shifter","name":"Sharp","x":340,"y":40,"parent":"root","params":{"pitch":0.5,"fine":0.545,"window":0.244651,"drift":0.25,"mix":1}},
+          {"id":"pitchs2","type":"pitch-shifter","name":"Flat","x":340,"y":260,"parent":"root","params":{"pitch":0.5,"fine":0.455,"window":0.29398,"drift":0.25,"mix":1}},
+          {"id":"chorus","type":"chorus","name":"Chorus","x":640,"y":40,"parent":"root","params":{"rate":0.46056,"depth":0.35,"delay":0.894988,"spread":0.8,"mix":0.3}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"pitchs","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"pitchs","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"ci","jack":"l"},"to":{"node":"pitchs2","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"r"},"to":{"node":"pitchs2","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"l"},"to":{"node":"chorus","jack":"l"},"amount":0.5},
+          {"id":"k6","from":{"node":"ci","jack":"r"},"to":{"node":"chorus","jack":"r"},"amount":0.5},
+          {"id":"k7","from":{"node":"pitchs","jack":"l"},"to":{"node":"chorus","jack":"l"},"amount":0.35},
+          {"id":"k8","from":{"node":"pitchs","jack":"r"},"to":{"node":"chorus","jack":"r"},"amount":0.35},
+          {"id":"k9","from":{"node":"pitchs2","jack":"l"},"to":{"node":"chorus","jack":"l"},"amount":0.35},
+          {"id":"k10","from":{"node":"pitchs2","jack":"r"},"to":{"node":"chorus","jack":"r"},"amount":0.35},
+          {"id":"k11","from":{"node":"chorus","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"chorus","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k13","from":{"node":"ci","jack":"spread"},"to":{"node":"pitchs","jack":"fine"},"amount":0.3},
+          {"id":"k14","from":{"node":"ci","jack":"spread"},"to":{"node":"pitchs2","jack":"fine"},"amount":-0.3}
+        ]
+      }
+    },
+    {
+      "name": "Jet Flanger", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "A short, resonant flanger on a slow sweep: the whoosh of a jet passing over drums, noise or a full mix. Shared inputs Rate and Feedback.",
+        "tags": ["flanger","modulation","jet","sweep"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Jet Flanger","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"rate","name":"Rate","type":"control"},{"id":"fb","name":"Feedback","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"chorus","type":"chorus","name":"Chorus","x":340,"y":40,"parent":"root","params":{"mode":1,"rate":0.288314,"depth":0.85,"delay":0.559823,"feedback":0.86,"spread":0.6,"mix":0.5}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"chorus","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"chorus","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"chorus","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"chorus","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"rate"},"to":{"node":"chorus","jack":"rate"},"amount":0.4},
+          {"id":"k6","from":{"node":"ci","jack":"fb"},"to":{"node":"chorus","jack":"feedback"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "Slow Phaser", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "Eight allpass stages sweeping slowly and wide, the right ear half a cycle behind the left: notches that travel through a pad, strings or an electric piano. Shared inputs Speed and Feedback.",
+        "tags": ["phaser","modulation","pad","sweep","stereo"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Slow Phaser","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"speed","name":"Speed","type":"control"},{"id":"fb","name":"Feedback","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"phaser","type":"phaser","name":"Phaser","x":340,"y":40,"parent":"root","params":{"rate":0.22307,"depth":0.8,"centre":0.485223,"feedback":0.789474,"stages":0.6,"spread":1,"mix":0.5}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"phaser","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"phaser","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"phaser","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"phaser","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"speed"},"to":{"node":"phaser","jack":"rate"},"amount":0.4},
+          {"id":"k6","from":{"node":"ci","jack":"fb"},"to":{"node":"phaser","jack":"feedback"},"amount":0.3}
+        ]
+      }
+    },
+    {
+      "name": "Pump Duck", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "Patch a kick or any rhythmic sound into Sidechain and the sound on In L/R is pushed down with every hit, then swells back: the pumping of dance music. Shared inputs Sidechain, Depth (lowers the threshold) and Release.",
+        "tags": ["sidechain","compressor","pump","ducking","dance"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Pump Duck","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"key","name":"Sidechain","type":"audio"},{"id":"depth","name":"Depth","type":"control"},{"id":"release","name":"Release","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"compre","type":"compressor","name":"Compressor","x":340,"y":40,"parent":"root","params":{"threshold":0.466667,"ratio":0.673621,"attack":0.492374,"release":0.583401,"knee":0.166667,"makeup":0.083333,"link":1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"compre","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"compre","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"compre","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"compre","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"key"},"to":{"node":"compre","jack":"key"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"depth"},"to":{"node":"compre","jack":"threshold"},"amount":-0.4},
+          {"id":"k7","from":{"node":"ci","jack":"release"},"to":{"node":"compre","jack":"release"},"amount":0.4}
+        ]
+      }
+    },
+    {
+      "name": "Broken Radio", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "Five bits, a quarter of the sample rate, a drive and a band-limiting EQ: music through a failing radio or a 90s sampler. Shared input Damage.",
+        "tags": ["lo-fi","bitcrusher","radio","distortion"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Broken Radio","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"damage","name":"Damage","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"crunch","type":"crunch","name":"Crunch","x":340,"y":40,"parent":"root","params":{"drive":0.5,"bits":0.266667,"rate":0.35,"tone":0.503215,"level":0.5}},
+          {"id":"eq","type":"eq","name":"EQ","x":640,"y":40,"parent":"root","params":{"lowHz":0.802328,"lowGain":0.1,"m2Hz":0.474539,"m2Gain":0.666667,"m2Q":0.422211,"highHz":0.520375,"highGain":0.166667}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"crunch","jack":"l"},"to":{"node":"eq","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"crunch","jack":"r"},"to":{"node":"eq","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"eq","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"eq","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"ci","jack":"damage"},"to":{"node":"crunch","jack":"bits"},"amount":-0.35},
+          {"id":"k8","from":{"node":"ci","jack":"damage"},"to":{"node":"crunch","jack":"rate"},"amount":0.35}
+        ]
+      }
+    },
+    {
+      "name": "Telephone", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "Everything below 500 Hz and above 3 kHz removed, a bump in the middle and a touch of drive: a voice or a drum loop down the line. Shared input Drive.",
+        "tags": ["telephone","eq","band-pass","lo-fi"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Telephone","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"drive","name":"Drive","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"eq","type":"eq","name":"EQ","x":340,"y":40,"parent":"root","params":{"lowHz":0.898283,"lowGain":0,"m1Hz":0.636501,"m1Gain":0.7,"m1Q":0.490172,"highHz":0.380094,"highGain":0}},
+          {"id":"crunch","type":"crunch","name":"Crunch","x":640,"y":40,"parent":"root","params":{"drive":0.35,"mix":0.7}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"eq","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"eq","jack":"r"},"amount":1},
+          {"id":"k3","from":{"node":"eq","jack":"l"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"eq","jack":"r"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k5","from":{"node":"crunch","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"crunch","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k7","from":{"node":"ci","jack":"drive"},"to":{"node":"crunch","jack":"drive"},"amount":0.5}
+        ]
+      }
+    },
+    {
+      "name": "Wow & Flutter", "category": "Processors",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Processors",
+        "description": "The speed errors of a worn tape machine: a slow wow and a quick flutter wobble the pitch by a few cents, with a darker top, a little saturation and drift. Shared inputs Wow and Flutter (the depth of each).",
+        "tags": ["tape","wow","flutter","vibrato","lo-fi","pitch"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Wow & Flutter","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"wow","name":"Wow","type":"control"},{"id":"flutter","name":"Flutter","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"lfo","type":"lfo","name":"Wow","x":340,"y":40,"parent":"root","params":{"rate":0.470499,"wave":0}},
+          {"id":"lfo2","type":"lfo","name":"Wander","x":340,"y":260,"parent":"root","params":{"rate":0.580196,"wave":1}},
+          {"id":"lfo3","type":"lfo","name":"Flutter","x":340,"y":480,"parent":"root","params":{"rate":0.798666,"wave":1}},
+          {"id":"multip","type":"multiplier","name":"Depth","x":640,"y":260,"parent":"root","params":{"biasx1":0.5,"biasy1":0.8,"gain1":0.75,"biasx2":0.5,"biasy2":0.75,"gain2":0.75}},
+          {"id":"pitchs","type":"pitch-shifter","name":"Speed","x":940,"y":40,"parent":"root","params":{"pitch":0.5,"window":0.143111,"drift":0.2,"mix":1}},
+          {"id":"eq","type":"eq","name":"Head","x":1240,"y":40,"parent":"root","params":{"lowHz":0.197672,"lowGain":0.433333,"highHz":0.673239,"highGain":0.333333}},
+          {"id":"crunch","type":"crunch","name":"Tape","x":1540,"y":40,"parent":"root","params":{"drive":0.25,"mix":0.6}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"lfo","jack":"out"},"to":{"node":"multip","jack":"x1"},"amount":0.7},
+          {"id":"k2","from":{"node":"lfo2","jack":"out"},"to":{"node":"multip","jack":"x1"},"amount":0.3},
+          {"id":"k3","from":{"node":"ci","jack":"wow"},"to":{"node":"multip","jack":"y1"},"amount":0.4},
+          {"id":"k4","from":{"node":"lfo3","jack":"out"},"to":{"node":"multip","jack":"x2"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"flutter"},"to":{"node":"multip","jack":"y2"},"amount":0.4},
+          {"id":"k6","from":{"node":"multip","jack":"out1"},"to":{"node":"pitchs","jack":"pitch"},"amount":0.003},
+          {"id":"k7","from":{"node":"multip","jack":"out2"},"to":{"node":"pitchs","jack":"pitch"},"amount":0.0008},
+          {"id":"k8","from":{"node":"ci","jack":"l"},"to":{"node":"pitchs","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"ci","jack":"r"},"to":{"node":"pitchs","jack":"r"},"amount":1},
+          {"id":"k10","from":{"node":"pitchs","jack":"l"},"to":{"node":"eq","jack":"l"},"amount":1},
+          {"id":"k11","from":{"node":"pitchs","jack":"r"},"to":{"node":"eq","jack":"r"},"amount":1},
+          {"id":"k12","from":{"node":"eq","jack":"l"},"to":{"node":"crunch","jack":"l"},"amount":1},
+          {"id":"k13","from":{"node":"eq","jack":"r"},"to":{"node":"crunch","jack":"r"},"amount":1},
+          {"id":"k14","from":{"node":"crunch","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k15","from":{"node":"crunch","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
         ]
       }
     },

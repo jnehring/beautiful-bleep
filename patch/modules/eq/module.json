@@ -1,0 +1,10 @@
+{
+  "name": "EQ",
+  "slug": "eq",
+  "tagline": "Four-band parametric equaliser: low shelf, two peaking bands and a high shelf, every knob modulatable.",
+  "colour": "#0ea5e9",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/eq.md"
+}

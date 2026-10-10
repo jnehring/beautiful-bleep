@@ -1,0 +1,10 @@
+{
+  "name": "Phaser",
+  "slug": "phaser",
+  "tagline": "Stereo phaser: up to twelve swept allpass stages, feedback in both polarities and a stereo LFO offset.",
+  "colour": "#f97316",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/phaser.md"
+}

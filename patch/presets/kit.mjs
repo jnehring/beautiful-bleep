@@ -308,7 +308,7 @@ export const patch = (name, opts) => new Preset("patch", name, opts);
 /// Categories whose cells are for the board only (no audio of their own to load as a plugin).
 const BOARD_ONLY = new Set(["Test", "Sequencers", "Modulators"]);
 /// Ring-out of the effects that have one, in seconds (an effect's `tail`): the longest module in the cell.
-const TAIL = { reverb: 8, "delay-network": 8, "zone-delay": 6, grains: 2, "freq-shifter": 1 };
+const TAIL = { reverb: 8, "delay-network": 8, "zone-delay": 6, grains: 2, "freq-shifter": 1, "pitch-shifter": 1, chorus: 1, phaser: 1 };
 /// General MIDI notes of the hi-hats: pedal and closed close, open opens; anything else closes too.
 const HAT_NOTES = { default: "closed", 44: "closed", 46: "open" };
 
