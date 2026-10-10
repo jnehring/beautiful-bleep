@@ -197,6 +197,30 @@
     BleepWeb.onStatus = () => emit("board", message());
   }
 
+  // ---- a pretend Store (add ?store to the address): what the apps' Store section shows, for working on its looks ------------
+  const demoStore = new URLSearchParams(location.search).has("store") ? (() => {
+    const slugs = () => types.filter((t) => !t.internal).map((t) => t.type).slice(0, 60);
+    const st = { installed: null, busy: {}, indexOk: false, allow: { module: false, plugin: false }, firstRunDone: store.get("bleep-demo-store-first-run", false) };
+    const pick = (slug, i) => ({ slug, version: "0.1.0", source: i % 11 === 10 ? "local" : "registry", status: i % 11 === 10 ? "unsigned" : "signed", publisher: "bleep",
+                                 allowed: i % 11 !== 10, why: i % 11 === 10 ? "unsigned: allowed only with Security → Allow unsigned modules" : "", loaded: i % 11 !== 10, types: [slug] });
+    const work = (slug, what, then) => { st.busy[slug] = what; setTimeout(() => { delete st.busy[slug]; then(); }, 900); };
+    return {
+      status() {
+        if (!st.installed) st.installed = slugs().slice(0, 14).map(pick);
+        return { settings: { storeUrl: "https://store.example", channel: "stable", allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
+                 hasRoots: true, installed: st.installed,
+                 index: { ok: st.indexOk, error: "", modules: st.indexOk ? slugs().map((slug) => ({ slug, version: slug.length % 4 === 0 ? "0.2.0" : "0.1.0", types: [slug] })) : [] },
+                 busy: st.busy };
+      },
+      refresh() { setTimeout(() => (st.indexOk = true), 500); },
+      install(slug) { work(slug, "installing", () => { st.installed = st.installed.filter((m) => m.slug !== slug).concat(pick(slug, 0)); }); },
+      installAll() { const have = new Set(st.installed.map((m) => m.slug)); for (const slug of slugs()) if (!have.has(slug)) this.install(slug); },
+      remove(slug) { work(slug, "removing", () => { st.installed = st.installed.filter((m) => m.slug !== slug); }); },
+      settings(v) { if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-store-first-run", v.firstRunDone); } },
+      plugins() { return ["Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep Audio Insert"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
+    };
+  })() : null;
+
   window.BleepDemo = {
     listen: (e, f) => (listeners[e] = listeners[e] || []).push(f),
     async call(name, a) {
@@ -205,7 +229,7 @@
           types = await (await fetch("demo-types.json")).json();
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
-          return Object.assign(message(), { types, dev: true, standalone: true });
+          return Object.assign(message(), { types, dev: true, standalone: true }, demoStore ? { store: true } : {});
         case "commit":
           pushUndo();
           board = sanitise(clone(a[0]));
@@ -265,6 +289,15 @@
           if (a[1] === "allOff") p.notes = [];
           return null;
         }
+        case "types": return types;
+        case "storeStatus": return demoStore ? demoStore.status() : null;
+        case "storeRefresh": if (demoStore) demoStore.refresh(); return null;
+        case "storeInstall": if (demoStore) demoStore.install(a[0]); return null;
+        case "storeInstallAll": if (demoStore) demoStore.installAll(); return null;
+        case "storeRemove": if (demoStore) demoStore.remove(a[0]); return null;
+        case "storeSettings": if (demoStore) demoStore.settings(a[0]); return null;
+        case "storeInstallPlugins": return { ok: true, installed: 7, message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW." };
+        case "storePlugins": return demoStore ? demoStore.plugins() : [];
         case "watch": watched = a[0] || []; if (window.BleepWeb) BleepWeb.watch(watched); return null;
         case "command": if (window.BleepWeb) BleepWeb.command(a[0], a[1], a[2]); return null;
         case "importMedia": {

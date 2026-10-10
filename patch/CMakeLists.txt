@@ -128,10 +128,21 @@ set(BLEEP_ENGINE_SOURCES
     engine/Program.cpp
     engine/Registry.cpp
     engine/VoiceCell.cpp)
+# What the apps and the plugins are built from. With the wasm module host (BLEEP_PATCH_WASMTIME_DIR) they carry no
+# modules: those come from the Bleep Store, as .wasm files installed on the machine (doc/specs/store.md). Tests and
+# tools always compile the modules in (they are the reference the wasm builds are held to: bleep_wasm_parity).
+set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_ENGINE_SOURCES})
 foreach (m IN LISTS BLEEP_MODULES)
     file(GLOB module_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
     list(APPEND BLEEP_ENGINE_SOURCES ${module_sources})
 endforeach ()
+option(BLEEP_PATCH_BUNDLE_MODULES "Compile the modules into the apps and the plugins (default: only without the wasm module host)" OFF)
+if (BLEEP_PATCH_BUNDLE_MODULES OR NOT BLEEP_PATCH_WASMTIME_DIR)
+    set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_ENGINE_SOURCES})
+    set(BLEEP_APP_BUNDLES_MODULES TRUE)
+else ()
+    set(BLEEP_APP_BUNDLES_MODULES FALSE)
+endif ()
 set(BLEEP_ENGINE_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/engine")
 # The standalone app's audio bridge (spec §11.3): protocol, plugin side, app side.
 set(BLEEP_BRIDGE_PROTOCOL_SOURCES bridges/standalone/BridgeProtocol.cpp)
@@ -313,11 +324,13 @@ endif ()
 file(GLOB BLEEP_BOARD_UI CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/*"
     "${CMAKE_CURRENT_SOURCE_DIR}/common/ui/*")
-foreach (m IN LISTS BLEEP_MODULES)
-    file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/ui/*"
-        "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/doc/*.md")
-    list(APPEND BLEEP_BOARD_UI ${s})
-endforeach ()
+if (BLEEP_APP_BUNDLES_MODULES)  # otherwise the installed packages bring their own views and docs
+    foreach (m IN LISTS BLEEP_MODULES)
+        file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/ui/*"
+            "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/doc/*.md")
+        list(APPEND BLEEP_BOARD_UI ${s})
+    endforeach ()
+endif ()
 # module-views.json: the module view scripts that exist, so the board loads
 # exactly those (board.js loadModuleViews).
 set(module_views)
@@ -333,15 +346,18 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/module-views.json" "[${module_views}]\n"
 list(APPEND BLEEP_BOARD_UI "${CMAKE_CURRENT_BINARY_DIR}/module-views.json")
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
 
-# bleep_add_plugin(TARGET <t> PRODUCT <name> CODE <4 chars> KIND <PortKind>
-#                  [SYNTH] [MIDI_OUT] [VST3_CATEGORIES ...])
 # Modules installed from the Bleep Store (doc/specs/store.md): the wasm module host, the store client and signature checks.
 # With BLEEP_PATCH_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Store section.
 # The store's root public keys (hex, one per line) are in store/root-keys.txt, if it exists.
-set(BLEEP_STORE_ROOTS "")
+set(BLEEP_PATCH_STORE_URL "" CACHE STRING "The Bleep Store's address (the website) the apps and plugins start with")
+set(BLEEP_PATCH_STORE_ROOTS "" CACHE STRING "The store's root public keys (hex, comma separated), besides store/root-keys.txt")
+set(BLEEP_STORE_ROOTS "${BLEEP_PATCH_STORE_ROOTS}")
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/store/root-keys.txt")
     file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/store/root-keys.txt" BLEEP_STORE_ROOT_LINES REGEX "^[0-9a-fA-F]+$")
     list(JOIN BLEEP_STORE_ROOT_LINES "," BLEEP_STORE_ROOTS)
+    if (BLEEP_PATCH_STORE_ROOTS)
+        set(BLEEP_STORE_ROOTS "${BLEEP_STORE_ROOTS},${BLEEP_PATCH_STORE_ROOTS}")
+    endif ()
 endif ()
 function(bleep_use_store target)
     if (NOT BLEEP_PATCH_WASMTIME_DIR)
@@ -359,10 +375,18 @@ function(bleep_use_store target)
         engine/wasm/WasmRegistry.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp
         store/Package.cpp store/Client.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
     target_include_directories(${target} PRIVATE engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+    if (NOT BLEEP_APP_BUNDLES_MODULES)
+        target_compile_definitions(${target} PRIVATE BLEEP_NO_BUNDLED_MODULES=1)
+    endif ()
     target_compile_definitions(${target} PRIVATE BLEEP_WASM_MODULES=1 "BLEEP_STORE_ROOTS=\"${BLEEP_STORE_ROOTS}\"")
+    if (BLEEP_PATCH_STORE_URL)
+        target_compile_definitions(${target} PRIVATE "BLEEP_STORE_URL=\"${BLEEP_PATCH_STORE_URL}\"")
+    endif ()
     target_link_libraries(${target} PRIVATE bleep_wasmtime juce::juce_cryptography)
 endfunction()
 
+# bleep_add_plugin(TARGET <t> PRODUCT <name> CODE <4 chars> KIND <PortKind>
+#                  [SYNTH] [MIDI_OUT] [VST3_CATEGORIES ...])
 function(bleep_add_plugin)
     cmake_parse_arguments(P "SYNTH;MIDI_OUT" "TARGET;PRODUCT;CODE;KIND" "VST3_CATEGORIES" ${ARGN})
     string(TOLOWER "${P_TARGET}" lower)
@@ -391,7 +415,7 @@ function(bleep_add_plugin)
         VST3_CATEGORIES ${P_VST3_CATEGORIES}
         COPY_PLUGIN_AFTER_BUILD ${BLEEP_PATCH_COPY_PLUGINS})
     target_sources(${P_TARGET} PRIVATE
-        ${BLEEP_ENGINE_SOURCES}
+        ${BLEEP_APP_ENGINE_SOURCES}
         board/BoardWindow.cpp
         bridges/ableton/PortProcessor.cpp
         bridges/ableton/PortEditor.cpp
@@ -403,10 +427,10 @@ function(bleep_add_plugin)
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
     target_compile_definitions(${P_TARGET} PRIVATE BLEEP_PORT_KIND=${P_KIND})
+    bleep_use_store(${P_TARGET})
     if (BLEEP_PATCH_UI_DEV)
         # Never ship these builds: they read the UI from this machine's source tree.
         target_compile_definitions(${P_TARGET} PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
-    bleep_use_store(${P_TARGET})
     endif ()
     # Modules register themselves with a static initialiser (BLEEP_REGISTER_MODULE). JUCE puts the sources in a
     # static library, and a linker drops archive members nothing references: the plugin would offer only the modules
@@ -514,7 +538,7 @@ if (BLEEP_PATCH_BUILD_APP)
         app/AppController.cpp
         bridges/standalone/LinkClock.cpp
         board/BoardWindow.cpp
-        ${BLEEP_ENGINE_SOURCES}
+        ${BLEEP_APP_ENGINE_SOURCES}
         ${BLEEP_BRIDGE_SERVER_SOURCES})
     target_include_directories(BleepPatchApp PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/app")
@@ -523,10 +547,10 @@ if (BLEEP_PATCH_BUILD_APP)
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:BleepPatchApp,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BleepPatchApp,JUCE_VERSION>"
         BLEEP_PATCH_LINK=$<BOOL:${BLEEP_PATCH_LINK}>)
+    bleep_use_store(BleepPatchApp)
     if (BLEEP_PATCH_UI_DEV)
         target_compile_definitions(BleepPatchApp PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     endif ()
-    bleep_use_store(BleepPatchApp)
     target_link_libraries(BleepPatchApp PRIVATE
         bleep_board_web bleep_patch_dsp
         juce::juce_audio_utils juce::juce_gui_extra

@@ -204,6 +204,7 @@ juce::var ModuleStore::status() {
     allow->setProperty("module", settings_.allowUnsigned.module);
     allow->setProperty("plugin", settings_.allowUnsigned.plugin);
     s->setProperty("allowUnsigned", juce::var(allow));
+    s->setProperty("firstRunDone", settings_.firstRunDone);
     o->setProperty("settings", juce::var(s));
     o->setProperty("dataDir", dataDir_.getFullPathName());
     o->setProperty("hasRoots", !roots_.empty());

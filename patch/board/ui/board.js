@@ -2374,7 +2374,7 @@
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
-    if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes });
+    if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone });
     dev = !!m.dev;
     standalone = !!m.standalone;
     {  // the preset browser: whole patches (spec §11.5); in a plugin their port nodes map onto the set's ports

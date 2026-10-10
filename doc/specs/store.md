@@ -159,6 +159,9 @@ Declining either is fine: the app works, a missing module is a placeholder node 
 
 `<data>` is `~/Library/Application Support/Bleep` (macOS), `%APPDATA%\Bleep` (Windows), `~/.local/share/Bleep` (Linux); the settings can point at another folder. Every file in these folders goes through the same check as a download (signature, imports, ABI version); unsigned ones need *Allow unsigned modules* (or plugins) in **Settings → Security**, and the app, the plugins and the Store section all read that setting from the one settings file. When several copies provide the same node type, the choice is: highest compatible version, then signed over unsigned, then the manual folder over the store (`signing.md`, section 11).
 
+
+**Build options (apps and plugins).** With `-DBLEEP_PATCH_WASMTIME_DIR=<Wasmtime C API>` the apps and plugins are built **without modules** (`BLEEP_PATCH_BUNDLE_MODULES=ON` puts them back in). `BLEEP_PATCH_STORE_URL` is the store address they start with, `BLEEP_PATCH_STORE_ROOTS` (or `patch/store/root-keys.txt`, one hex key per line) the root public keys they trust. `BLEEP_DATA_DIR` moves the data folder (tests, development); a developer's own root goes into `settings.json` as `extraRoots`. The first-run assistant answers once (`firstRunDone` in `settings.json`); the plugin bundle is copied from `Contents/Resources/Plugins` of the app into the user's VST3 folder, with Live closed. The pretend Store for working on the UI is the board dev server with `?store` in the address.
+
 ## 6. Presets
 
 Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persistence plus the envelope in section 2):

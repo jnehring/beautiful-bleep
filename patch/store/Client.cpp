@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+#include <cstdlib>
 #include "Client.h"
 
 #include <algorithm>
@@ -75,6 +76,7 @@ bool readFile(const juce::File& f, std::vector<uint8_t>& out) {
 // ---- settings --------------------------------------------------------------------------------------------
 
 juce::File defaultDataDir() {
+    if (const char* dir = std::getenv("BLEEP_DATA_DIR"); dir && *dir) return juce::File(dir);  // tests and development: another folder
 #if JUCE_MAC
     return juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile("Library/Application Support/Bleep");
 #elif JUCE_WINDOWS
@@ -92,6 +94,7 @@ Settings Settings::load(const juce::File& dataDir) {
     if (v["channel"].isString()) s.channel = str(v["channel"]);
     s.allowUnsigned.module = v["allowUnsigned"]["module"].isBool() && (bool)v["allowUnsigned"]["module"];
     s.allowUnsigned.plugin = v["allowUnsigned"]["plugin"].isBool() && (bool)v["allowUnsigned"]["plugin"];
+    s.firstRunDone = v["firstRunDone"].isBool() && (bool)v["firstRunDone"];
     return s;
 }
 
@@ -103,6 +106,7 @@ bool Settings::save(const juce::File& dataDir) const {
     o->setProperty("storeUrl", juce::String(storeUrl));
     o->setProperty("channel", juce::String(channel));
     o->setProperty("allowUnsigned", juce::var(allow));
+    o->setProperty("firstRunDone", firstRunDone);
     dataDir.createDirectory();
     return dataDir.getChildFile("settings.json").replaceWithText(juce::JSON::toString(juce::var(o)));
 }

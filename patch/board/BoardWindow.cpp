@@ -108,6 +108,69 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
 #if defined(BLEEP_WASM_MODULES)
+/// The folder the system's VST3 plugins are installed into by this user.
+juce::File userVst3Folder() {
+#if JUCE_MAC
+    return juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile("Library/Audio/Plug-Ins/VST3");
+#elif JUCE_WINDOWS
+    return juce::File::getSpecialLocation(juce::File::globalApplicationsDirectory).getParentDirectory().getChildFile("Program Files/Common Files/VST3");
+#else
+    return juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile(".vst3");
+#endif
+}
+
+bool abletonLiveRunning() {
+    juce::ChildProcess p;
+#if JUCE_WINDOWS
+    if (!p.start("tasklist /FI \"IMAGENAME eq Ableton Live*\"")) return false;
+    return p.readAllProcessOutput().containsIgnoreCase("Ableton Live");
+#else
+    if (!p.start("pgrep -f \"Ableton Live\"")) return false;
+    return p.readAllProcessOutput().trim().isNotEmpty();
+#endif
+}
+
+/// The default plugin bundle (doc/specs/store.md 5a): the VST3 plugins that came with the app, copied into the user's VST3 folder.
+/// Live must be closed: replacing a plugin that Live has loaded can crash it.
+juce::var installPluginBundle() {
+    auto* r = new juce::DynamicObject();
+    juce::var result(r);
+    r->setProperty("ok", false);
+#if JUCE_MAC
+    const auto source = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getChildFile("Contents/Resources/Plugins");
+#else
+    const auto source = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory().getChildFile("Plugins");
+#endif
+    const auto bundles = source.findChildFiles(juce::File::findFilesAndDirectories, false, "*.vst3");
+    if (bundles.isEmpty()) {
+        r->setProperty("message", "This copy of Bleep Patch carries no plugins. Download the full installer from the website.");
+        return result;
+    }
+    if (abletonLiveRunning()) {
+        r->setProperty("message", "Ableton Live is running. Close it first: replacing a plugin that Live has loaded can crash it.");
+        return result;
+    }
+    const auto target = userVst3Folder();
+    target.createDirectory();
+    int n = 0;
+    for (const auto& b : bundles) {
+        const auto dest = target.getChildFile(b.getFileName());
+        if (dest.exists() && !dest.deleteRecursively()) {
+            r->setProperty("message", "Cannot replace " + dest.getFullPathName());
+            return result;
+        }
+        if (!b.copyDirectoryTo(dest)) {
+            r->setProperty("message", "Cannot copy " + b.getFileName() + " into " + target.getFullPathName());
+            return result;
+        }
+        ++n;
+    }
+    r->setProperty("ok", true);
+    r->setProperty("installed", n);
+    r->setProperty("message", juce::String(n) + " plugins installed into " + target.getFullPathName() + ". Rescan plugins in your DAW.");
+    return result;
+}
+
 /// The Bleep plugins in the system's VST3 folders (the Store section lists them; installing them is the app's job).
 juce::var installedPlugins() {
     juce::Array<juce::File> folders;
@@ -338,6 +401,7 @@ public:
             })
             .withNativeFunction("storeSettings", [](const juce::Array<juce::var>& a, Completion done) {
                 auto s = ModuleStore::instance().settings();
+                if (a[0]["firstRunDone"].isBool()) s.firstRunDone = (bool)a[0]["firstRunDone"];
                 const juce::var allow = a[0]["allowUnsigned"];
                 if (allow.isObject()) {
                     s.allowUnsigned.module = (bool)allow["module"];
@@ -346,7 +410,8 @@ public:
                 ModuleStore::instance().setSettings(s);
                 done({});
             })
-            .withNativeFunction("storePlugins", [](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); });
+            .withNativeFunction("storePlugins", [](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); })
+            .withNativeFunction("storeInstallPlugins", [](const juce::Array<juce::var>&, Completion done) { done(installPluginBundle()); });
 #endif
 #if JUCE_WINDOWS
         options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)

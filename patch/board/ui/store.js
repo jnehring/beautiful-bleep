@@ -80,6 +80,8 @@
     body.appendChild(top);
     if (!status.index.ok)
       body.appendChild(el("div", "st-note bad", status.index.error ? "The Bleep Store cannot be reached: " + status.index.error : "Reading the Bleep Store…"));
+    if (!status.installed.length && status.index.ok)
+      body.appendChild(el("div", "st-note warn", "The default modules are not installed. Boards show placeholders until they are."));
     if (!status.hasRoots)
       body.appendChild(el("div", "st-note warn", "This build trusts no developer keys, so nothing from the store can be verified. Add the store's root key (see doc/operations/website.md)."));
     const list = el("div", "st-list");
@@ -240,12 +242,79 @@
     return status.installed.some((x) => x.slug === m.slug && x.loaded);
   }
 
+  /// The setup assistant (doc/specs/store.md 5a): once, on the first launch, offers the two default bundles. Either may be declined.
+  async function firstRun() {
+    status = await native("storeStatus");
+    if (status.settings.firstRunDone) return;
+    const back = el("div", "st-modal");
+    const card = el("div", "st-card");
+    card.appendChild(el("h2", "", "Set up Bleep Patch"));
+    card.appendChild(el("p", "", "Modules are installed on this machine, from the Bleep Store. Until they are, a board shows placeholders where they belong. You can do this later from the Store section."));
+    const mods = el("label", "st-toggle");
+    const modBox = el("input");
+    modBox.type = "checkbox";
+    modBox.checked = true;
+    mods.appendChild(modBox);
+    mods.appendChild(el("span", "", "Download the default modules"));
+    card.appendChild(mods);
+    let plugBox = null;
+    if (host.standalone) {
+      const plugs = el("label", "st-toggle");
+      plugBox = el("input");
+      plugBox.type = "checkbox";
+      plugBox.checked = true;
+      plugs.appendChild(plugBox);
+      plugs.appendChild(el("span", "", "Install the default plugins (the Bleep VST3 plugins, for your DAW; close Ableton Live first)"));
+      card.appendChild(plugs);
+    }
+    const result = el("div", "st-message");
+    card.appendChild(result);
+    const buttons = el("div", "st-bar");
+    const later = el("button", "", "Not now");
+    const go = el("button", "primary", "Set up");
+    buttons.append(later, go);
+    card.appendChild(buttons);
+    back.appendChild(card);
+    document.body.appendChild(back);
+    const finish = async () => { await native("storeSettings", { firstRunDone: true }); back.remove(); };
+    later.addEventListener("click", finish);
+    go.addEventListener("click", async () => {
+      go.disabled = later.disabled = true;
+      const lines = [];
+      if (plugBox && plugBox.checked) {
+        const r = await native("storeInstallPlugins");
+        lines.push(r.message);
+        result.textContent = lines.join("\n");
+      }
+      if (modBox.checked) {
+        result.textContent = lines.concat("Reading the Bleep Store…").join("\n");
+        await native("storeRefresh");
+        for (let i = 0; i < 40; i++) {  // the native side reads the index on another thread
+          await new Promise((r) => setTimeout(r, 400));
+          status = await native("storeStatus");
+          if (status.index.ok || status.index.error) break;
+        }
+        if (!status.index.ok) {
+          result.textContent = lines.concat("The Bleep Store cannot be reached" + (status.index.error ? ": " + status.index.error : "") + ". Try again from the Store section.").join("\n");
+          go.disabled = later.disabled = false;
+          later.textContent = "Close";
+          return;
+        }
+        await native("storeInstallAll");
+        window.BleepStoreView.show();
+        await refresh();
+      }
+      await finish();
+    });
+  }
+
   window.BleepStoreView = {
     installType,
     lastMessage: () => message,
     async init(options) {
       host = options || {};
       build();
+      setTimeout(firstRun, 600);
       const header = document.getElementById("sections");
       header.hidden = false;
       document.getElementById("sec-board").addEventListener("click", () => window.BleepStoreView.hide());

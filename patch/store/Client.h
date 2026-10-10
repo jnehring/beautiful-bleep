@@ -15,10 +15,15 @@
 namespace bleep::store {
 
 /// The settings the app and every plugin share (<data>/settings.json).
+#ifndef BLEEP_STORE_URL
+#define BLEEP_STORE_URL "https://store.bleep.invalid"   // the site's address, put in at build time (CMake: BLEEP_PATCH_STORE_URL)
+#endif
+
 struct Settings {
-    std::string storeUrl = "https://store.bleep.invalid";  ///< the site's address; the store lives under /registry/v1/
+    std::string storeUrl = BLEEP_STORE_URL;  ///< the site's address; the store lives under /registry/v1/
     std::string channel = "stable";
     AllowUnsigned allowUnsigned;                           ///< Settings → Security
+    bool firstRunDone = false;                             ///< the setup assistant has been answered (doc/specs/store.md 5a)
 
     static Settings load(const juce::File& dataDir);       ///< defaults for what is missing
     bool save(const juce::File& dataDir) const;
