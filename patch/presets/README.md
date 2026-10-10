@@ -28,6 +28,25 @@ ctest --test-dir build/patch -R demo      # every demo patch loads and makes sou
 | Panels | [`panels.mjs`](panels.mjs) → `../board/ui/factory-panels.json` | Hand-written front panels for cell presets (so far Punch Machine), keyed by preset name: tabs, a few knobs per module, mixer faders, loaded module panels. Checked against the preset when built; see [`doc/specs/panels.md`](../../doc/specs/panels.md) §6. `node patch/presets/panels-gallery.mjs out.html [name …]` draws them. |
 | Checks | `kit.mjs`, `bleep_dump_types --check-presets` | The kit rejects unknown modules, knobs, choices, jacks, out-of-range values and incompatible cables while building; the ctest runs every preset through the engine's `board::sanitise` and fails on any warning or anything dropped. |
 
+## What a preset can be loaded as (`plays`)
+
+Bleep Instrument and Bleep FX load one cell preset each (spec:
+[`doc/specs/cell-plugins.md`](../../doc/specs/cell-plugins.md)). The build puts a `plays`
+entry in every preset that can be one, derived from the cell's jacks
+(`derivePlays` in [`kit.mjs`](kit.mjs)): Voice Cells and cells with audio out and no audio in are
+instruments, cells with audio in and out are effects. Categories Test, Sequencers and Modulators
+stay on the board. `p.plays({...})` overrides it (`p.plays(false)`: board only). Each preset that
+has `plays` gets a panel (generated if you don't write one), and `ctest -R cell-plugin` plays
+every one of them: a note into each instrument, noise through each effect.
+
+```js
+const p = cell("Dub Echo", { ... }).stereoIn().stereoOut()
+  .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 6 } });   // only to override the derived value
+```
+
+An effect that rings on (reverb, feedback delays) needs `tail` as long as it takes to die away:
+the test fails otherwise and tells you how long it still sounds.
+
 ## Writing a preset
 
 ```js

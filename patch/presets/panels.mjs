@@ -122,7 +122,8 @@ export function checkPanels(preset, list) {
       }
       if (c.source) for (const ref of Array.isArray(c.source.out) ? c.source.out : [c.source.out]) {
         const [nid, jack] = split(ref), n = node(nid, c);
-        if (!types[n.type].outputs.some((o) => o.id === jack)) throw new Error(`${where(c)}: no output '${ref}'`);
+        const outs = n.type === "cell-in" ? root.inputs || [] : types[n.type].outputs;  // Cell In outputs what the cell takes in
+        if (!outs.some((o) => o.id === jack)) throw new Error(`${where(c)}: no output '${ref}'`);
       }
       if (c.type === "view" && !types[node(c.node, c).type].creatable) throw new Error(`${where(c)}: '${c.node}' has no view`);
       if (c.type === "panel") {

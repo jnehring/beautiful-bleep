@@ -41,7 +41,8 @@ function shimmerCloud() {
   const p = cell("Shimmer Cloud", {
     description: "Grains pitched up an octave with octave-and-fifth jitter feed back into a long reverb: a shimmering halo above anything. Shared inputs Mix and Freeze.",
     tags: ["shimmer", "granular", "ambient", "reverb"],
-  }).stereoIn().stereoOut().input("mix", "Mix").input("freeze", "Freeze", "gate");
+  }).stereoIn().stereoOut().input("mix", "Mix").input("freeze", "Freeze", "gate")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 14 } });  // Verb decay 9 s, fed back by Grains
   const gr = p.add("grains", [0, 0], { size: 0.35, density: 0.6, texture: 0.5, spread: 0.4, pitch: 12,
                                        pitchjitter: 7, pitchquant: "Octaves + fifths", feedback: 0.3, blur: 0.5, mix: 0.35 });
   const verb = p.add("reverb", [1, 0], { size: 0.9, decay: 9, preDelay: 0.02, damping: 0.3, modDepth: 0.4, tone: 0.2, mix: 0.35 });

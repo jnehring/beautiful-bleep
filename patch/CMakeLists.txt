@@ -203,6 +203,22 @@ if (BLEEP_PATCH_BUILD_TESTS)
     add_test(NAME patch.demo-patches COMMAND bleep_demo_patches
         "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-patches.json")
 
+    # Every cell preset Bleep Instrument or Bleep FX can load (`plays`) is played like the plugin plays
+    # it and must make sound / die away (tests/cell_plugin_presets_test.cpp). juce_core only.
+    juce_add_console_app(bleep_cell_plugin_presets PRODUCT_NAME "Bleep Cell Plugin Presets")
+    target_sources(bleep_cell_plugin_presets PRIVATE tests/cell_plugin_presets_test.cpp engine/Board.cpp engine/Program.cpp
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+    foreach (m IN LISTS BLEEP_MODULES)
+        file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+        target_sources(bleep_cell_plugin_presets PRIVATE ${s})
+    endforeach ()
+    target_include_directories(bleep_cell_plugin_presets PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_cell_plugin_presets PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_cell_plugin_presets PRIVATE bleep_patch_dsp juce::juce_core
+        juce::juce_recommended_config_flags)
+    add_test(NAME patch.cell-plugin-presets COMMAND bleep_cell_plugin_presets
+        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json")
+
     # Engine features modules build on (normalling, output flags, harmony order,
     # stepped knobs, view metadata, commands, media). juce_core only.
     juce_add_console_app(bleep_engine_features PRODUCT_NAME "Bleep Engine Features")

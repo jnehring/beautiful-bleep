@@ -16,6 +16,7 @@
     {"name":"Effects","blurb":"Stereo insert effects: patch In L/R from any sound and take Out L/R onwards."},
     {"name":"Modulators","blurb":"Control, gate and trigger sources for everything else on the board: LFOs, randomness, envelopes and rhythms."},
     {"name":"Generative","blurb":"Self-playing patches: press play and they make music on their own, in time with the transport. Out L/R out."},
+    {"name":"Starters","blurb":"Empty cells to start your own instrument or effect from."},
     {"name":"Test","blurb":"Presets for trying things out by hand in a host."}
   ],
   "presets": [
@@ -27,6 +28,7 @@
         "category": "Synthesizers",
         "description": "Two saws detuned ±7 cents into a saturating transistor ladder, with a soft filter envelope and slow release.",
         "tags": ["poly","analog","warm","chords"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Warm Saws","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.4},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -71,6 +73,7 @@
         "category": "Synthesizers",
         "description": "Square wave and sub octave through a 1-pole low-pass, organ-style on/off envelope and a shared vibrato LFO.",
         "tags": ["poly","organ","keys","vintage"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Combo Organ","x":0,"y":0,"parent":"","params":{"voices":0.6},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -109,6 +112,7 @@
         "category": "Synthesizers",
         "description": "Detuned saw pair from Dual Osc into a ladder whose envelope swells in with the notes: synth brass stabs and swells.",
         "tags": ["poly","brass","analog","stabs"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Brass Section","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -149,6 +153,7 @@
         "category": "Synthesizers",
         "description": "Wavetable Osc on the Digital bank: each note sweeps through the table, a stereo-detuned bright poly. Shared input Position.",
         "tags": ["poly","wavetable","digital","bright"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Table Sweep","x":0,"y":0,"parent":"","params":{"voices":0.466667},"inputs":[{"id":"pos","name":"Position","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -190,6 +195,7 @@
         "category": "Synthesizers",
         "description": "Dual Osc as a two-operator FM piano: a sine modulator an octave up whose index decays with each note, harder with velocity.",
         "tags": ["poly","fm","keys","electric piano"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"FM Tines","x":0,"y":0,"parent":"","params":{"voices":0.6},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -226,6 +232,7 @@
         "category": "Synthesizers",
         "description": "Chord Osc stacks a minor seventh on every key into a resonant low-pass with a short envelope: dub-techno chord stabs.",
         "tags": ["poly","chords","stabs","dub","techno"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Dub Chords","x":0,"y":0,"parent":"","params":{"voices":0.2},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -267,6 +274,7 @@
         "category": "Synthesizers",
         "description": "Formant Osc whose resonant peak glides up with each note and settles: glassy, vocal keys with stereo spread.",
         "tags": ["poly","formant","vocal","glassy"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Glass Voice","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -304,6 +312,7 @@
         "category": "Synthesizers",
         "description": "Macro Osc in Phase Warp: each note starts bright and relaxes towards a sine, like a phase-distortion digital keyboard.",
         "tags": ["poly","digital","keys","phase distortion"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Phase Warp Keys","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -341,6 +350,7 @@
         "category": "Synthesizers",
         "description": "Swarm in unison: eight drifting, detuned oscillators per note spread across the stereo field, through a bright low-pass.",
         "tags": ["poly","supersaw","trance","wide"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Hyper Saw","x":0,"y":0,"parent":"","params":{"voices":0.333333},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -377,6 +387,7 @@
         "category": "Basses",
         "description": "Saw through a screaming diode ladder with a snappy filter envelope; harder notes open it further like a 303 accent, and legato notes slide. Shared input Cutoff.",
         "tags": ["mono","acid","303","squelch"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Diode Squelch","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.385811,"glidemode":1},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -419,6 +430,7 @@
         "category": "Basses",
         "description": "A sine an octave below the key with a whisper of triangle for audibility on small speakers, softly saturated: deep, clean sub bass.",
         "tags": ["mono","sub","808","deep"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Abyss Sub","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0.332316},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -455,6 +467,7 @@
         "category": "Basses",
         "description": "Dual Osc saws detuned 14 cents apart into a ladder whose cutoff drifts on a slow LFO and opens with aftertouch: the rolling drum-and-bass reese. Shared input Cutoff.",
         "tags": ["mono","reese","dnb","detuned","dark"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Reese Pressure","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.410467},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -495,6 +508,7 @@
         "category": "Basses",
         "description": "Macro Osc in FM mode: a 1:1 modulator whose index snaps down after each attack, with a little feedback grit. Punchy, woody digital bass. Shared input Index.",
         "tags": ["mono","fm","digital","punchy"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Ratio Thump","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0},"inputs":[{"id":"idx","name":"Index","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -532,6 +546,7 @@
         "category": "Basses",
         "description": "The Folder's internal sine folded hard on every attack and by aftertouch, rounded off by a ladder: a snarling, West Coast growl bass. Shared input Fold.",
         "tags": ["mono","wavefolder","growl","west coast"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Fold Growl","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.370957},"inputs":[{"id":"fold","name":"Fold","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -575,6 +590,7 @@
         "category": "Basses",
         "description": "Narrow pulse and sub square through a saturating state-variable low-pass with a short, velocity-sensitive pluck: a round funk and house bass.",
         "tags": ["mono","analog","pluck","funk","house"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Pocket Pluck","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -617,6 +633,7 @@
         "category": "Basses",
         "description": "Wavetable Osc on the FM bank with a sub, through a resonant ladder whose cutoff wobbles in eighth notes with the transport. Shared inputs Cutoff and Table.",
         "tags": ["mono","wobble","dubstep","wavetable","tempo"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Eighth Wobble","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.353553},"inputs":[{"id":"cut","name":"Cutoff","type":"control"},{"id":"tbl","name":"Table","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -657,6 +674,7 @@
         "category": "Basses",
         "description": "Formant Osc an octave down with its resonant peak swept by an envelope and pressure, so each note says \"yow\": a talking, vocal bass. Shared input Formant.",
         "tags": ["mono","formant","talking","vocal","funk"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Talkbox Low","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.398832},"inputs":[{"id":"fmt","name":"Formant","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -696,6 +714,7 @@
         "category": "Basses",
         "description": "Dual Osc hard-synced to a core an octave below; an envelope tears the synced core's pitch down on every note, under a driven low-pass. Shared input Sync Sweep.",
         "tags": ["mono","sync","aggressive","electro"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Torn Sync Bass","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0.304531},"inputs":[{"id":"sweep","name":"Sync Sweep","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -737,6 +756,7 @@
         "category": "Basses",
         "description": "A slightly FM'd triangle pinged through a Low Pass Gate and held open by the gate: rubbery, bouncy bass that darkens as it fades, no envelope needed.",
         "tags": ["lpg","rubber","west coast","pluck"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vactrol Rubber","x":0,"y":0,"parent":"","params":{"voices":0.066667,"mode":0},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -770,6 +790,7 @@
         "category": "Leads",
         "description": "Two slightly detuned saws into a warm ladder with a vibrato that fades in on held notes; legato notes glide. Shared inputs Cutoff and Bend (±2 semitones).",
         "tags": ["mono","lead","analog","vibrato","classic"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vibrato Bloom","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.370957,"glidemode":1},"inputs":[{"id":"cut","name":"Cutoff","type":"control"},{"id":"bend","name":"Bend","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -819,6 +840,7 @@
         "category": "Leads",
         "description": "A slowly swept PWM square whose width and brightness follow aftertouch; the shared Mod input adds vibrato depth, as a mod wheel would. Shared inputs Mod and Cutoff.",
         "tags": ["mono","lead","pwm","expressive","pressure"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Pressure Pulse","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.332316},"inputs":[{"id":"mod","name":"Mod","type":"control"},{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -864,6 +886,7 @@
         "category": "Leads",
         "description": "Dual Osc in hard sync: an envelope rips the synced core's pitch up and a slow LFO keeps it tearing while held, into a driven filter. Shared input Sync Sweep.",
         "tags": ["mono","lead","sync","aggressive","rock"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Sync Scream","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.353553},"inputs":[{"id":"sweep","name":"Sync Sweep","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -907,6 +930,7 @@
         "category": "Leads",
         "description": "Macro Osc in FM mode at a bell-like ratio, its index bright on the strike and mellowing as the note rings: a chiming bell lead for slow melodies.",
         "tags": ["lead","fm","bell","chime"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Carillon Lead","x":0,"y":0,"parent":"","params":{"voices":0.133333,"spread":0.3},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -945,6 +969,7 @@
         "category": "Leads",
         "description": "The Folder's internal triangle folded more with velocity and aftertouch while a slow LFO bends its symmetry: a glassy-to-gnarly West Coast lead. Shared input Fold.",
         "tags": ["mono","lead","wavefolder","west coast","expressive"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Origami Lead","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.353553},"inputs":[{"id":"fold","name":"Fold","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -989,6 +1014,7 @@
         "category": "Leads",
         "description": "Macro Osc's sung-vowel model: each note opens from \"o\" towards \"a\", with a delayed vibrato and a touch of breath. A wordless solo voice. Shared input Vowel.",
         "tags": ["mono","lead","vocal","formant","choir"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vowel Diva","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.410467},"inputs":[{"id":"vow","name":"Vowel","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1028,6 +1054,7 @@
         "category": "Leads",
         "description": "A rounded triangle-and-saw blend that slides slowly to every new note, theremin-like with a gentle vibrato: for long, singing portamento lines. Shared input Bend (±12 semitones).",
         "tags": ["mono","lead","glide","portamento","theremin"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Slide Ribbon","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0.545619,"glidemode":0},"inputs":[{"id":"bend","name":"Bend","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1066,6 +1093,7 @@
         "category": "Leads",
         "description": "A raw, unfiltered 12.5 % pulse whose width flips with the tempo in sixteenths and a quick delayed vibrato: a game-console chiptune lead.",
         "tags": ["mono","lead","chiptune","8-bit","retro"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"8-Bit Hero","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1101,6 +1129,7 @@
         "category": "Leads",
         "description": "Swarm in unison: six detuned, drifting saws per note spread wide, through a resonant low-pass with a filter envelope: a buzzing, huge trance lead. Shared input Cutoff.",
         "tags": ["lead","supersaw","unison","trance","wide"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Unison Hornet","x":0,"y":0,"parent":"","params":{"voices":0.066667,"mode":1,"glide":0.332316},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1143,6 +1172,7 @@
         "category": "Leads",
         "description": "A soft triangle with pink breath noise band-passed at the note, a slow attack and pressure-controlled breathiness: an airy, flute-like lead. Shared input Breath.",
         "tags": ["mono","lead","flute","breathy","organic"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Bamboo Breath","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.304531},"inputs":[{"id":"breath","name":"Breath","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1189,6 +1219,7 @@
         "category": "Pads",
         "description": "Two saws a few cents apart, each voice drifting at its own rate, into a soft ladder that swells open: a lush analog string pad. Shared input Cutoff.",
         "tags": ["pad","strings","analog","lush"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Velvet Strings","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.6},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1236,6 +1267,7 @@
         "category": "Pads",
         "description": "Ten Swarm oscillators bloom from unison into stacked fifths while Organic LFOs breathe on spread, warp and filter: a wide, living cloud. Shared input Bloom.",
         "tags": ["pad","cloud","wide","evolving"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Swarm Nebula","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.3},"inputs":[{"id":"bloom","name":"Bloom","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1277,6 +1309,7 @@
         "category": "Pads",
         "description": "Additive Osc with a chorus on its partials and a comb that sweeps slowly through them, differently per voice: an airy organ-choir. Shared input Air.",
         "tags": ["pad","choir","additive","airy"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Aether Choir","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.4},"inputs":[{"id":"air","name":"Air","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1314,6 +1347,7 @@
         "category": "Pads",
         "description": "Wavetable Osc on the Spectra bank, scanned along a spiral by a slow tide LFO and offset per voice, through a gentle ladder. Shared input Scan.",
         "tags": ["pad","wavetable","morphing","digital"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Tidal Tables","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[{"id":"scan","name":"Scan","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1353,6 +1387,7 @@
         "category": "Pads",
         "description": "Macro Osc's Vowel model: each voice drifts through its own vowels with a slow vibrato fading in, a little breath on top: a formant choir. Shared input Vowel.",
         "tags": ["pad","choir","formant","vocal"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Monastery Vowels","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.7},"inputs":[{"id":"vowel","name":"Vowel","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1393,6 +1428,7 @@
         "category": "Pads",
         "description": "Two pulse waves whose widths sweep in opposite phase, at a slightly different speed per voice, into a warm ladder: a shimmering PWM pad. Shared input Cutoff.",
         "tags": ["pad","pwm","analog","vintage"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Pulse Width Haze","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.7},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1436,6 +1472,7 @@
         "category": "Pads",
         "description": "Dual Osc saw over a triangle an octave down, lightly folded, into a low resonant ladder that Organic LFOs open and close over many seconds: a dark drone. Shared input Cutoff.",
         "tags": ["pad","drone","dark","ambient"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Abyssal Drone","x":0,"y":0,"parent":"","params":{"voices":0.2,"spread":0.5},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1476,6 +1513,7 @@
         "category": "Pads",
         "description": "Modal Voice bows an inharmonic glass body that swells in after a soft mallet ting; a slow LFO wanders the bow position and aftertouch bows harder. Shared input Brightness.",
         "tags": ["pad","glassy","bell","physical"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Bowed Crystal","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.6},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1507,6 +1545,7 @@
         "category": "Pads",
         "description": "Chord Osc spreads an open major seventh over the stereo field with a chorus-like detune, through a phaser that sweeps slowly: an ensemble pad for one-finger chords. Shared input Cutoff.",
         "tags": ["pad","chords","ensemble","lush"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Satin Sevenths","x":0,"y":0,"parent":"","params":{"voices":0.2},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1549,6 +1588,7 @@
         "category": "Pads",
         "description": "Pink noise through a pair of resonant band-passes tuned to the note, gusting and turning as Organic LFOs move them: a pitched wind texture. Shared input Howl (resonance).",
         "tags": ["pad","texture","noise","wind"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Desert Wind","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.8},"inputs":[{"id":"howl","name":"Howl","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1592,6 +1632,7 @@
         "category": "Plucks & Mallets",
         "description": "Modal Voice strikes a wooden bar: soft felt mallets that harden and brighten with velocity, a warm, short ring. Shared input Brightness.",
         "tags": ["mallet","marimba","physical","wood"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Rosewood Marimba","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.4},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1621,6 +1662,7 @@
         "category": "Plucks & Mallets",
         "description": "Modal Voice strikes long-ringing metal bars, with a motor tremolo on the amp: a mellow vibraphone; velocity hardens the mallet. Shared input Tremolo Rate.",
         "tags": ["mallet","vibraphone","physical","jazz"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Midnight Vibraphone","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.5},"inputs":[{"id":"motor","name":"Tremolo Rate","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1655,6 +1697,7 @@
         "category": "Plucks & Mallets",
         "description": "Resonator's String model plucked near the end on every note, odd and even partials split left and right; velocity plucks brighter and the strings ring on after release. Shared input Brightness.",
         "tags": ["pluck","harp","string","physical"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Celtic Harp","x":0,"y":0,"parent":"","params":{"voices":0.733333},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1690,6 +1733,7 @@
         "category": "Plucks & Mallets",
         "description": "Macro Osc's plucked string picked hard near the bridge, starting a shade sharp and settling, with a vibrato that fades in on held notes: a koto-like pluck.",
         "tags": ["pluck","koto","string","eastern"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Silk Koto","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1730,6 +1774,7 @@
         "category": "Plucks & Mallets",
         "description": "Perc Voice strikes metal tines (bar partials) with a soft click and a short, woody ring; velocity is the accent and every voice is struck a little differently.",
         "tags": ["pluck","kalimba","percussive","tines"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Thumb Kalimba","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.4},"inputs":[{"id":"decay","name":"Decay","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1758,6 +1803,7 @@
         "category": "Plucks & Mallets",
         "description": "Perc Voice's FM engine between membrane and bar ratios, a bright attack that mellows into a hollow ring: a steel drum; harder hits are brighter.",
         "tags": ["mallet","steel drum","fm","tropical"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Island Steelpan","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1786,6 +1832,7 @@
         "category": "Plucks & Mallets",
         "description": "Macro Osc's two-operator FM at an inharmonic 3.5 ratio, struck by each note with a long decay that darkens as it fades; velocity raises the index. Shared input Index.",
         "tags": ["mallet","bell","fm","metallic"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Temple FM Bell","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[{"id":"index","name":"Index","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1821,6 +1868,7 @@
         "category": "Plucks & Mallets",
         "description": "A lightly folded, FM'd Dual Osc pinged through a resonant Low Pass Gate whose light also opens the folder: the woody West-coast bongo. Shared inputs Brightness and Decay.",
         "tags": ["pluck","west coast","lpg","bongo"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vactrol Bongo","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.4},"inputs":[{"id":"bright","name":"Brightness","type":"control"},{"id":"decay","name":"Decay","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1852,6 +1900,7 @@
         "category": "Plucks & Mallets",
         "description": "Macro Osc's Modal model an octave up, hard and bright with slightly stretched modes: the plinking comb of a music box; velocity is the strike.",
         "tags": ["mallet","music box","bright","toy"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Music Box Tines","x":0,"y":0,"parent":"","params":{"voices":0.733333,"spread":0.5},"inputs":[],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1885,6 +1934,7 @@
         "category": "Plucks & Mallets",
         "description": "A short noise burst, louder and brighter with velocity, hammers a stiff metal string in the Resonator: a ringing hammered dulcimer. Shared input Brightness.",
         "tags": ["mallet","dulcimer","string","physical"],
+        "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Hammered Dulcimer","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.4},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1931,6 +1981,7 @@
         "category": "Drum Machines",
         "description": "Drum Map plays a Ring kick, snare, clap and hats; move the shared X and Y inputs to travel between grooves, hold Fill for fills.",
         "tags": ["drums","drum map","generative","ring"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Map Walker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"x","name":"X","type":"control"},{"id":"y","name":"Y","type":"control"},{"id":"fill","name":"Fill","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -1971,6 +2022,7 @@
         "category": "Drum Machines",
         "description": "A Gate Sequencer with probabilities and ratchets plays Macro Osc's Kick, Snare and Metal models and a Perc Voice FM blip. Shared input Fill.",
         "tags": ["drums","gate sequencer","macro osc","synthetic"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Macro Foundry","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"fill","name":"Fill","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2011,6 +2063,7 @@
         "category": "Drum Machines",
         "description": "Rhythm Bank's four related even rhythms play a skin, a wood block, a bar and a shaker from Perc Voices, in a small room. Shared input Pattern browses grooves.",
         "tags": ["drums","percussion","euclidean","rhythm bank","organic"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Euclid Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"pat","name":"Pattern","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2055,6 +2108,7 @@
         "category": "Drum Machines",
         "description": "Drum Grid electro: syncopated Punch kick, snare and clap on the backbeat, busy hats, cowbell and a zapping tom; two patterns.",
         "tags": ["drums","electro","808","drum grid","breakdance"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Electro Pop-Lock","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2113,6 +2167,7 @@
         "category": "Drum Machines",
         "description": "Minimal techno on a Drum Grid: a dry Punch kick, off-beat Ring hats and a syncopated rim sent into a tempo-synced dub echo and a dark room.",
         "tags": ["drums","techno","minimal","dub","drum grid","effects"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Concrete Minimal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2162,6 +2217,7 @@
         "category": "Drum Machines",
         "description": "A two-bar breakbeat (kick, ghosted snare, ride) through Bender, which repeats, reverses and reshuffles slices by chance. Shared inputs Chaos and Glitch.",
         "tags": ["drums","jungle","breakbeat","glitch","bender"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Break Shredder","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"chaos","name":"Chaos","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2207,6 +2263,7 @@
         "category": "Drum Machines",
         "description": "Lo-fi boom-bap: a lazy swung Ring kit through a saturated ladder low-pass and a light bit crush, over a bed of tape hiss.",
         "tags": ["drums","lo-fi","hip hop","boom bap","dusty"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Dusty Tape Kit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2255,6 +2312,7 @@
         "category": "Drum Machines",
         "description": "Rotating Div turns the 16th-note clock into /2 … /7 cycles on kick, hats, conga, clave, cowbell and clap: polyrhythms that realign every four bars. Shared input Rotate.",
         "tags": ["drums","polyrhythm","rotating divider","percussion"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Gear Train","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"rot","name":"Rotate","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2303,6 +2361,7 @@
         "category": "Drums/Kicks",
         "description": "A long, round 808-style boom: a low sine with a gentle pitch drop and a hint of drive.",
         "tags": ["drums","one-shot","kick","808","sub"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Boom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2327,6 +2386,7 @@
         "category": "Drums/Kicks",
         "description": "A short, punchy 909-style kick with a fast sweep and a clicky attack.",
         "tags": ["drums","one-shot","kick","909","house"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Punch","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2351,6 +2411,7 @@
         "category": "Drums/Kicks",
         "description": "A hard, driven kick through a saturating ladder filter: thick, warehouse-ready.",
         "tags": ["drums","one-shot","kick","techno","distorted"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Techno Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2378,6 +2439,7 @@
         "category": "Drums/Kicks",
         "description": "A very low, long kick that dives into the sub range, low-passed to pure weight.",
         "tags": ["drums","one-shot","kick","sub","boom"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Sub Drop","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2405,6 +2467,7 @@
         "category": "Drums/Kicks",
         "description": "A short, bright click kick on top of a rounder body kick: punch and weight together.",
         "tags": ["drums","one-shot","kick","layered"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Layered Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2433,6 +2496,7 @@
         "category": "Drums/Kicks",
         "description": "The Macro Osc kick model, darkened and crunched by a driven ladder filter.",
         "tags": ["drums","one-shot","kick","lo-fi","dusty"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Lo-Fi Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2460,6 +2524,7 @@
         "category": "Drums/Kicks",
         "description": "A modal drum head tuned low: an acoustic-leaning kick with a soft beater click.",
         "tags": ["drums","one-shot","kick","acoustic","modal"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Membrane Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2485,6 +2550,7 @@
         "category": "Drums/Kicks",
         "description": "A fully driven kick, wavefolded and low-passed: the distorted hardcore thump.",
         "tags": ["drums","one-shot","kick","gabber","hardcore","distorted"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Gabber Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2518,6 +2584,7 @@
         "category": "Drums/Kicks",
         "description": "A warm, mid-length kick, rolled off above 2.5 kHz for deep house and dub.",
         "tags": ["drums","one-shot","kick","deep house","dub"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Deep Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2545,6 +2612,7 @@
         "category": "Drums/Kicks",
         "description": "An FM kick: a low carrier with a fast-falling index for a rubbery, electronic thud.",
         "tags": ["drums","one-shot","kick","fm","electro"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"FM Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2570,6 +2638,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A classic 808-style snare: two tuned heads and a short burst of noise.",
         "tags": ["drums","one-shot","snare","808"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2594,6 +2663,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A bright, snappy 909-style snare with plenty of rattle.",
         "tags": ["drums","one-shot","snare","909","house"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2618,6 +2688,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A low, long snare with a quiet clap underneath for width and body.",
         "tags": ["drums","one-shot","snare","layered","fat"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Fat Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2646,6 +2717,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A snappy snare into a big, damped room: an arena backbeat.",
         "tags": ["drums","one-shot","snare","reverb","big"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Big Room Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2673,6 +2745,7 @@
         "category": "Drums/Snares & Claps",
         "description": "The Macro Osc snare model: a synthetic snare with a tight, papery body.",
         "tags": ["drums","one-shot","snare","synthetic"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Macro Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2697,6 +2770,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A noise-bank snare: a cloud of filtered noise with a sharp click and almost no tone.",
         "tags": ["drums","one-shot","snare","noise","electro"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Noise Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2722,6 +2796,7 @@
         "category": "Drums/Snares & Claps",
         "description": "An 808-style handclap: four quick noise bursts and a short tail.",
         "tags": ["drums","one-shot","clap","808"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2746,6 +2821,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A brighter, tighter 909-style handclap.",
         "tags": ["drums","one-shot","clap","909","house"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2770,6 +2846,7 @@
         "category": "Drums/Snares & Claps",
         "description": "Two differently tuned claps panned hard left and right: a wide, crowd-like clap.",
         "tags": ["drums","one-shot","clap","stereo","wide"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Wide Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2798,6 +2875,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A clap in a small, live room.",
         "tags": ["drums","one-shot","clap","reverb"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Room Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2825,6 +2903,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "808-style hi-hats from six square waves: Closed and Open, and Closed cuts the open hat.",
         "tags": ["drums","one-shot","hats","808"],
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2850,6 +2929,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Crisp 909-style hi-hats with a little crunch: Closed and Open, and Closed cuts the open hat.",
         "tags": ["drums","one-shot","hats","909","house"],
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2875,6 +2955,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Very short, bright hats high-passed at 7 kHz: ticks for fast patterns.",
         "tags": ["drums","one-shot","hats","tight","minimal"],
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Tight Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2903,6 +2984,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Detuned, fully crunched hats with a long, washy open hat.",
         "tags": ["drums","one-shot","hats","dirty","lo-fi"],
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Trashy Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2928,6 +3010,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Hats from two noise-bank voices, high-passed; Closed chokes the open hat.",
         "tags": ["drums","one-shot","hats","noise"],
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Noise Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2962,6 +3045,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Hats from the Macro Osc metal model: clangy, ring-modulated and inharmonic.",
         "tags": ["drums","one-shot","hats","metallic","industrial"],
+        "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Metal Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -2990,6 +3074,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "A bright crash cymbal with a three-second wash.",
         "tags": ["drums","one-shot","cymbal","crash"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Crash","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3014,6 +3099,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "A ride cymbal: a defined ping over a long, quiet shimmer.",
         "tags": ["drums","one-shot","cymbal","ride"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Ride","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3038,6 +3124,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "An 808-style cymbal: square-wave metal with a long, hissy decay.",
         "tags": ["drums","one-shot","cymbal","808"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Cymbal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3062,6 +3149,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "A small, high, short crash for accents.",
         "tags": ["drums","one-shot","cymbal","splash","accent"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Splash","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3086,6 +3174,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A deep 808-style tom with a soft pitch bend; retune it for high, mid and low toms.",
         "tags": ["drums","one-shot","tom","808"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3110,6 +3199,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A punchy 909-style mid tom with a strong pitch bend.",
         "tags": ["drums","one-shot","tom","909"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3134,6 +3224,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "An FM syn-tom with a steep downward sweep: the classic electronic pew.",
         "tags": ["drums","one-shot","tom","fm","syndrum","80s"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Syn Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3159,6 +3250,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A low, long floor tom in a small room.",
         "tags": ["drums","one-shot","tom","floor","reverb"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Floor Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3186,6 +3278,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A modal conga: a warm, slightly bending skin with a palm slap.",
         "tags": ["drums","one-shot","percussion","conga","latin","modal"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Conga","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3211,6 +3304,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "An 808-style cowbell: two detuned square waves through a band-pass.",
         "tags": ["drums","one-shot","percussion","cowbell","808"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Cowbell","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3235,6 +3329,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A short, woody clave click.",
         "tags": ["drums","one-shot","percussion","clave","latin"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Clave","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3259,6 +3354,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A sharp, short rimshot.",
         "tags": ["drums","one-shot","percussion","rim"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Rimshot","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3283,6 +3379,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A short burst of high noise-bank grains, high-passed: a shaker for 16ths.",
         "tags": ["drums","one-shot","percussion","shaker","noise"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Shaker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3311,6 +3408,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "Jingles from a bright open hat over a quiet, low clave for the skin.",
         "tags": ["drums","one-shot","percussion","tambourine"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Tambourine","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3339,6 +3437,7 @@
         "category": "Drums/FX",
         "description": "A short FM zap: a high pitch that falls to nothing in 150 ms.",
         "tags": ["drums","one-shot","fx","zap","electro"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Zap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3364,6 +3463,7 @@
         "category": "Drums/FX",
         "description": "A longer, brighter FM sweep into a wide space: a sci-fi laser shot.",
         "tags": ["drums","one-shot","fx","laser","sci-fi"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Laser","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3392,6 +3492,7 @@
         "category": "Drums/FX",
         "description": "The Macro Osc metal model, ringing for most of a second: a clangy industrial hit.",
         "tags": ["drums","one-shot","fx","metallic","industrial"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Metal Hit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3416,6 +3517,7 @@
         "category": "Drums/FX",
         "description": "A struck modal bell an octave up, into a hall.",
         "tags": ["drums","one-shot","fx","bell","modal"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Bell","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3444,6 +3546,7 @@
         "category": "Drums/FX",
         "description": "A metallic modal bar with a rimshot strike: a hard, ringing anvil.",
         "tags": ["drums","one-shot","fx","metallic","anvil"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Anvil","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3473,6 +3576,7 @@
         "category": "Drums/FX",
         "description": "A short burst of dust, wavefolded and band-passed: digital crackle for glitchy fills.",
         "tags": ["drums","one-shot","fx","glitch","noise"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Glitch Burst","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3506,6 +3610,7 @@
         "category": "Drums/FX",
         "description": "A rim click rings a bank of modal resonators: a tuned, wide, glassy hit.",
         "tags": ["drums","one-shot","fx","resonator","modal","tuned"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Struck Resonator","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3532,6 +3637,7 @@
         "category": "Drums/FX",
         "description": "A deep, driven boom with a crash on top, into a big hall: a transition hit.",
         "tags": ["drums","one-shot","fx","impact","cinematic","transition"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Impact","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3563,6 +3669,7 @@
         "category": "Drums/FX",
         "description": "A falling noise-bank whoosh into a long space: a downlifter on every hit.",
         "tags": ["drums","one-shot","fx","noise","sweep","transition"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Noise Sweep","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3591,6 +3698,7 @@
         "category": "Drums/FX",
         "description": "A tiny, pure FM blip: a short tonal tick for percussive melodies.",
         "tags": ["drums","one-shot","fx","blip","tonal"],
+        "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Blip","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3865,6 +3973,7 @@
         "category": "Effects",
         "description": "A gentle high-pass keeps the lows out of a big, dark hall with 40 ms pre-delay and a six-second tail. Shared inputs Mix and Freeze.",
         "tags": ["reverb","hall","ambient","space"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":8}},
         "nodes": [
           {"id":"root","type":"cell","name":"Cathedral Hall","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3892,6 +4001,7 @@
         "category": "Effects",
         "description": "Tempo-synced dotted-eighth echoes that bounce left and right, darker with every pass, into a short room. Shared inputs Feedback and Tone.",
         "tags": ["delay","ping-pong","dub","tempo"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":8}},
         "nodes": [
           {"id":"root","type":"cell","name":"Dub Ping-Pong","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"fb","name":"Feedback","type":"control"},{"id":"tone","name":"Tone","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3922,6 +4032,7 @@
         "category": "Effects",
         "description": "Grains pitched up an octave with octave-and-fifth jitter feed back into a long reverb: a shimmering halo above anything. Shared inputs Mix and Freeze.",
         "tags": ["shimmer","granular","ambient","reverb"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":14}},
         "nodes": [
           {"id":"root","type":"cell","name":"Shimmer Cloud","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3951,6 +4062,7 @@
         "category": "Effects",
         "description": "A short tape-style delay whose head drifts with wow, flutter and a slow LFO: warm chorus and seasick tape wobble. Shared input Depth.",
         "tags": ["chorus","tape","wobble","lo-fi","modulation"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":6}},
         "nodes": [
           {"id":"root","type":"cell","name":"Worn Tape Chorus","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"depth","name":"Depth","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -3976,6 +4088,7 @@
         "category": "Effects",
         "description": "A resonant tanh ladder swept up and down by a triangle locked to half notes: a tempo auto-filter for pads, chords and loops. Shared inputs Cutoff and Depth.",
         "tags": ["filter","auto-filter","tempo","wah"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Half-Note Wah","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"cut","name":"Cutoff","type":"control"},{"id":"depth","name":"Depth","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4004,6 +4117,7 @@
         "category": "Effects",
         "description": "A frequency shifter with tight feedback: phaser notches that rise forever, turning in opposite directions in the two ears. Shared input Speed.",
         "tags": ["phaser","barber-pole","frequency shifter","stereo"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
         "nodes": [
           {"id":"root","type":"cell","name":"Barber Pole","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"speed","name":"Speed","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4027,6 +4141,7 @@
         "category": "Effects",
         "description": "Bender catches sixteenth-note slices by chance and repeats, reverses and re-pitches them in octaves: seeded glitches that come back every loop. Shared inputs Chance and Glitch.",
         "tags": ["glitch","stutter","repeat","tempo"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Stutter Engine","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"chance","name":"Chance","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4052,6 +4167,7 @@
         "category": "Effects",
         "description": "A touch of wavefolding, constant sample-rate and bit crushing and a dull low-pass: a worn, crunchy sampler sound. Shared input Grit.",
         "tags": ["lo-fi","crush","distortion","saturation"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Bit Rot","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"grit","name":"Grit","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4082,6 +4198,7 @@
         "category": "Effects",
         "description": "Ten narrow band-passes tuned to C minor pentatonic, a slow window scanning across them: drums and noise turn into ringing, tuned chords. Shared input Scan.",
         "tags": ["filter bank","resonant","tuned","spectral"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Pentatonic Prism","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"scan","name":"Scan","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4107,6 +4224,7 @@
         "category": "Effects",
         "description": "A VCA chopped on sixteenths by a synced square with softened edges: rhythmic trance gate for pads and drones. Shared input Depth.",
         "tags": ["gate","tremolo","rhythmic","tempo"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Sixteenth Chopper","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"depth","name":"Depth","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4382,6 +4500,7 @@
         "category": "Generative",
         "description": "Random gates tossed between three pinged low pass gates, each tuned to a fresh D minor pentatonic note: a west-coast hand-drum garden that keeps shifting. Shared input Density.",
         "tags": ["generative","west coast","percussion","pentatonic","low pass gate"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Bongo Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4442,6 +4561,7 @@
         "category": "Generative",
         "description": "A Shift Register melody in A Dorian plucks a string Resonator while a sine bass echoes the same bits four steps later, through a dotted-eighth delay network. Shared input Lock (frozen ↔ mutating).",
         "tags": ["generative","turing machine","shift register","plucked","string","delay"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Turing Strings","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"lock","name":"Lock","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4485,6 +4605,7 @@
         "category": "Generative",
         "description": "Four soft voices of a D♭ major-seven chord, each swelling on its own free-running loop of 18 to 29 seconds so they never line up the same way twice, into a wobbling tape delay and a long hall.",
         "tags": ["generative","ambient","eno","tape loops","slow"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Tape Loop Choir","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4546,6 +4667,7 @@
         "category": "Generative",
         "description": "Gusts of chance triggers strike two bell-like Modal Voices tuned to F major pentatonic, slow organic movement on where they are struck, in a wide reverb. Shared input Wind (more strikes).",
         "tags": ["generative","chimes","bells","modal","ambient","pentatonic"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Wind Chimes","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"wind","name":"Wind","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4594,6 +4716,7 @@
         "category": "Generative",
         "description": "A generative techno loop: Drum Map kick, clap and hats with a touch of chaos, and a Polymeter Seq acid line in A minor through a resonant diode ladder whose cutoff drifts like weather. Shared input Cutoff.",
         "tags": ["generative","techno","acid","drums","loop"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Acid Weather","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"cut","name":"Cutoff","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4654,6 +4777,7 @@
         "category": "Generative",
         "description": "A Harmony Master (bus D) walks a repeating loop of four D minor seventh chords, two bars each: a saw pad holds the chord tones, a plucked bass follows the chord's bass note, and a Pluck arpeggio traces the chord. Shared input Root (transposes everything).",
         "tags": ["generative","chords","progression","arpeggio","harmony"],
+        "plays": {"instrument":{"notes":{"pitch":"root"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Seasons Turning","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"root","name":"Root","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4716,6 +4840,7 @@
         "category": "Generative",
         "description": "A twelve-voice Swarm on a C minor ninth, breathing through a scale-tuned Filter Bank; eight related Organic LFOs slowly move its spread, cross-FM and the bank's scan and shift. Shared input Root (pitch).",
         "tags": ["generative","drone","ambient","swarm","evolving"],
+        "plays": {"instrument":{"notes":{"pitch":"root"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Lichen Drone","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"root","name":"Root","type":"pitch"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4757,6 +4882,7 @@
         "category": "Generative",
         "description": "Four Modal Voice marimba bars on C minor-seventh chord tones, struck every 2, 3, 5 and 7 sixteenths; a slow random rotates which bar gets which prime, so the polyrhythm turns over every four bars.",
         "tags": ["generative","polyrhythm","marimba","mallets","modal"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Prime Marimba","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4799,6 +4925,7 @@
         "category": "Generative",
         "description": "Sparse Lydian plucks from a Macro Osc feed Grains, which scatters them back at wandering positions, an octave or a fifth away, with feedback and blur: a slowly shimmering cloud. Shared input Density.",
         "tags": ["generative","granular","ambient","cloud","shimmer"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Pollen Cloud","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4839,6 +4966,7 @@
         "category": "Generative",
         "description": "Two Neurons firing at each other, nudged by slow organic drift, play metallic FM clicks, a modal knock, noise ticks and a rim; Bender glitches the mix and a scattered delay smears it. Shared input Excite (fires faster).",
         "tags": ["generative","glitch","percussion","neuron","idm"],
+        "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Synapse Clicks","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"exc","name":"Excite","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4878,6 +5006,47 @@
           {"id":"k22","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k23","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k24","from":{"node":"ci","jack":"clock"},"to":{"node":"bender","jack":"clock"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Empty Instrument", "category": "Starters",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Starters",
+        "description": "A blank Voice Cell: notes in, nothing inside yet. Open the board and patch your own voice between Voice In and Voice Out.",
+        "tags": ["starter","empty"],
+        "plays": {"instrument":{"notes":"voice"}},
+        "nodes": [
+          {"id":"root","type":"voice-cell","name":"Empty Instrument","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"vi","type":"voice-in","name":"Voice In","x":40,"y":40,"parent":"root","params":{}},
+          {"id":"vo","type":"voice-out","name":"Voice Out","x":2140,"y":40,"parent":"root","params":{}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"vi","jack":"gate"},"to":{"node":"vo","jack":"active"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Empty FX", "category": "Starters",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Starters",
+        "description": "A blank effect: the audio passes straight through. Open the board and put your own modules between In and Out.",
+        "tags": ["starter","empty"],
+        "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Empty FX","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
         ]
       }
     },

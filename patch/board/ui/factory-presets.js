@@ -14,6 +14,7 @@
     format: 1,
     root: "root",
     category: "Synthesizers",
+    plays: { instrument: { notes: "voice" } },
     nodes: [
       { id: "root", type: "voice-cell", name: "Basic Poly", x: 0, y: 0, parent: "", params: {},
         inputs: [{ id: "cut", name: "Cutoff", type: "control" }, { id: "bend", name: "Bend", type: "control" }],
@@ -94,7 +95,7 @@
       k("mixA", "outl", "master", "in1l"), k("mixA", "outr", "master", "in1r"),
       k("mixB", "outl", "master", "in2l"), k("mixB", "outr", "master", "in2r"),
       k("master", "outl", "co", "l"), k("master", "outr", "co", "r"));
-    return { format: 1, root: "root", category: "Drum Machines", nodes, cables };
+    return { format: 1, root: "root", category: "Drum Machines", plays: { instrument: { notes: {} } }, nodes, cables };
   }
 
   // Punch Machine: the Punch kit with a rim shot on Perc; a four-on-the-floor and a broken beat.

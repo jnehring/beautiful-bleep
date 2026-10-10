@@ -20,14 +20,14 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
-import { reference, types } from "./kit.mjs";
+import { reference, types, derivePlays, checkPlays } from "./kit.mjs";
 import panelsByPreset, { checkPanels } from "./panels.mjs";
 
 // Category files, in Add-menu order.
 const CATEGORIES = [
   "synthesizers", "basses", "leads", "pads", "plucks-and-mallets",
   "drum-machines", "drum-kicks", "drum-snares-and-claps", "drum-hats-and-cymbals", "drum-toms-and-percussion",
-  "drum-fx", "sequencers", "effects", "modulators", "generative", "test",
+  "drum-fx", "sequencers", "effects", "modulators", "generative", "starters", "test",
 ];
 
 const OUT = fileURLToPath(new URL("../board/ui/factory-presets.json", import.meta.url));
@@ -44,8 +44,19 @@ function handWritten() {
   return sandbox.window.BleepFactoryPresets || [];
 }
 
+/// The presets in factory-presets.js carry their `plays` by hand; it must equal what the kit derives from their jacks.
+function checkHandWritten() {
+  for (const p of handWritten()) {
+    const want = derivePlays(p.preset, p.category);
+    if (JSON.stringify(p.preset.plays) !== JSON.stringify(want))
+      throw new Error(`factory-presets.js: '${p.name}' needs "plays": ${JSON.stringify(want)} in its preset`);
+    if (want) checkPlays(p.name, p.preset, want);
+  }
+}
+
 async function compile(only) {
   const categories = [], presets = [], names = new Set(handWritten().map((p) => p.name));
+  checkHandWritten();
   for (const file of only ? [only] : CATEGORIES) {
     const cat = (await import(`./${file}.mjs`)).default;
     categories.push({ name: cat.name, blurb: cat.blurb });
@@ -136,7 +147,10 @@ function panels(doc) {
     if (!p) throw new Error(`panels.mjs: no preset called '${name}'`);
     checkPanels(p.preset, list);
   }
-  return { ...panelsByPreset, ...generated };
+  const result = { ...panelsByPreset, ...generated };
+  // Bleep Instrument and Bleep FX open on the preset's panel: every preset they can load has one.
+  for (const q of all) if (q.preset.plays && !result[q.name]?.length) throw new Error(`'${q.name}' can be loaded as a plugin but has no panel`);
+  return result;
 }
 
 /// One control per line: readable diffs.

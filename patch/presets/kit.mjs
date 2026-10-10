@@ -78,6 +78,8 @@ export class Preset {
     this.name = name;
     this.description = opts.description || "";
     this.tags = opts.tags || [];
+    this.empty = !!opts.empty;  // a starter: a voice cell may stay silent
+    this.playsOverride = undefined;
     this.nodes = [];
     this.cables = [];
     this.ids = new Set();
@@ -123,6 +125,12 @@ export class Preset {
     this.nodes.push(n);
     this.ids.add(id);
     return n;
+  }
+
+  /// Overrides what the cell can be loaded as (see derivePlays); `false` keeps it on the board only.
+  plays(spec) {
+    this.playsOverride = spec;
+    return this;
   }
 
   /// The cell's own settings (a Voice Cell's Voices, Mode, Glide …), in units.
@@ -239,15 +247,21 @@ export class Preset {
     if (this.kind === "patch") return this.#buildPatch();
     this.#wireTempo();
     if (this.kind === "voice") {
-      if (!this.cables.some((c) => c.to.node === "vo" && c.to.jack === "l"))
+      if (!this.empty && !this.cables.some((c) => c.to.node === "vo" && c.to.jack === "l"))
         throw new Error(`${this.name}: nothing reaches Voice Out › Out L`);
     }
     for (const j of this.root.outputs)
       if (!this.cables.some((c) => c.to.node === "co" && c.to.jack === j.id))
         throw new Error(`${this.name}: output '${j.name}' isn't patched inside`);
     if (this.kind === "cell" && !this.root.outputs.length) throw new Error(`${this.name}: a cell preset needs an output`);
-    return { format: 1, root: "root", category, description: this.description, tags: this.tags,
-             nodes: this.nodes, cables: this.cables };
+    const doc = { format: 1, root: "root", category, description: this.description, tags: this.tags,
+                  nodes: this.nodes, cables: this.cables };
+    const plays = this.playsOverride === undefined ? derivePlays(doc, category) : this.playsOverride || undefined;
+    if (plays) {
+      checkPlays(this.name, doc, plays);
+      return { ...doc, plays };
+    }
+    return doc;
   }
 
   /// A whole board for the preset browser: `{format, description, tags, module, tempo, nodes, cables}`.
@@ -268,6 +282,75 @@ export const cell = (name, opts) => new Preset("cell", name, opts);
 /// A demo patch: a whole board that plays by itself with the transport (or from `p.midi`) into `p.out`.
 /// opts: {module: the type it demonstrates, description, tags, tempo}.
 export const patch = (name, opts) => new Preset("patch", name, opts);
+
+// ------------------------------------------------- what a cell can be loaded as
+
+/// Categories whose cells are for the board only (no audio of their own to load as a plugin).
+const BOARD_ONLY = new Set(["Test", "Sequencers", "Modulators"]);
+/// Ring-out of the effects that have one, in seconds (an effect's `tail`): the longest module in the cell.
+const TAIL = { reverb: 8, "delay-network": 8, "zone-delay": 6, grains: 2, "freq-shifter": 1 };
+/// General MIDI notes of the hi-hats: pedal and closed close, open opens; anything else closes too.
+const HAT_NOTES = { default: "closed", 44: "closed", 46: "open" };
+
+/// What a cell preset can be loaded as in Bleep Instrument and Bleep FX (doc/specs/cell-plugins.md):
+///   instrument: { notes: "voice" }  a Voice Cell: notes feed its voice allocator
+///               { notes: {trigger?, velocity?, pitch?, gate?} }  a plain cell: MIDI notes drive these cell inputs
+///                    (`trigger` is a jack id, or {default, "<midi note>": jack} for a cell with several);
+///                    {} is a cell that plays by itself, with the transport
+///   effect:     { in: [jack ids], out: [jack ids], tail: seconds }
+/// Derived from the root's jacks; `p.plays(…)` overrides it. Returns undefined for board-only cells.
+export function derivePlays(doc, category) {
+  const root = doc.nodes.find((n) => n.id === doc.root);
+  if (!root || BOARD_ONLY.has(category.split("/")[0])) return undefined;
+  if (root.type === "voice-cell") return { instrument: { notes: "voice" } };
+  const ins = root.inputs || [], outs = root.outputs || [];
+  const audioIn = ins.filter((j) => j.type === "audio").map((j) => j.id);
+  const audioOut = outs.filter((j) => j.type === "audio").map((j) => j.id);
+  if (!audioOut.length) return undefined;
+  if (audioIn.length) {
+    const tail = Math.max(0, ...doc.nodes.map((n) => TAIL[n.type] || 0));
+    return { effect: { in: audioIn.slice(0, 2), out: audioOut.slice(0, 2), tail } };
+  }
+  const has = (id) => ins.some((j) => j.id === id);
+  const notes = {};
+  if (has("closed") && has("open")) notes.trigger = HAT_NOTES;
+  else if (has("trig")) notes.trigger = "trig";
+  if (notes.trigger && has("velocity")) notes.velocity = "velocity";
+  if (!notes.trigger) {
+    const pitch = ins.find((j) => j.type === "pitch");
+    if (pitch) notes.pitch = pitch.id;
+  }
+  return { instrument: { notes } };
+}
+
+/// A `plays` entry names real jacks of the cell's root; a hand-written override cannot invent them.
+export function checkPlays(name, doc, plays) {
+  const root = doc.nodes.find((n) => n.id === doc.root);
+  const ins = new Set((root.inputs || []).map((j) => j.id)), outs = new Set((root.outputs || []).map((j) => j.id));
+  const need = (set, id, what) => { if (!set.has(id)) throw new Error(`${name}: plays › ${what} '${id}' isn't a jack of the cell`); };
+  const { instrument, effect } = plays;
+  if (!instrument && !effect) throw new Error(`${name}: plays needs an instrument or an effect`);
+  if (instrument) {
+    const { notes } = instrument;
+    if (root.type === "voice-cell" ? notes !== "voice" : typeof notes !== "object")
+      throw new Error(`${name}: plays › instrument › notes is "voice" for a Voice Cell and an object for a plain cell`);
+    if (notes !== "voice") {
+      for (const k of Object.keys(notes)) if (!["trigger", "velocity", "pitch", "gate"].includes(k))
+        throw new Error(`${name}: plays › instrument › notes › ${k} is not a note target`);
+      const t = notes.trigger;
+      for (const id of typeof t === "object" ? Object.values(t) : t ? [t] : []) need(ins, id, "trigger");
+      for (const k of ["velocity", "pitch", "gate"]) if (notes[k]) need(ins, notes[k], k);
+    }
+    if (![...outs].some((id) => root.outputs.find((j) => j.id === id).type === "audio") && root.type !== "voice-cell")
+      throw new Error(`${name}: an instrument needs an audio output`);
+  }
+  if (effect) {
+    for (const id of effect.in || []) need(ins, id, "in");
+    for (const id of effect.out || []) need(outs, id, "out");
+    if (!effect.in?.length || !effect.out?.length) throw new Error(`${name}: plays › effect needs in and out jacks`);
+    if (!(effect.tail >= 0)) throw new Error(`${name}: plays › effect › tail is seconds, 0 or more`);
+  }
+}
 
 // ------------------------------------------------------------ small helpers
 
