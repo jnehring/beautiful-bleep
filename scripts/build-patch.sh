@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# Builds the Bleep Patch plugins (Bleep Patch and Bleep Audio Bridge) as
+# Builds the Bleep Patch plugins (Bleep Patch, the six ports and Bleep Audio Bridge) as
 # VST3, then runs the DSP, engine and bridge tests.
 #
 #   scripts/build-patch.sh [--debug] [--clean] [--no-test] [--install]
@@ -39,11 +39,18 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+# ccache (when installed) keeps compiled objects across clean builds and build directories.
+LAUNCHER=()
+if command -v ccache >/dev/null; then
+    LAUNCHER=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_OBJCXX_COMPILER_LAUNCHER=ccache)
+fi
+
 GENERATOR=()
 if command -v ninja >/dev/null && [[ ! -f "$BUILD_DIR/CMakeCache.txt" ]]; then GENERATOR=(-G Ninja); fi
 
 cmake -S "$ROOT/patch" -B "$BUILD_DIR" ${GENERATOR[@]+"${GENERATOR[@]}"} \
     -DCMAKE_BUILD_TYPE="$CONFIG" \
+    ${LAUNCHER[@]+"${LAUNCHER[@]}"} \
     -DBLEEP_JUCE_DIR="$JUCE_DIR" \
     -DBLEEP_PATCH_FORMATS=VST3 \
     -DBLEEP_PATCH_COPY_PLUGINS="$INSTALL" \
