@@ -188,6 +188,32 @@ std::shared_ptr<const MediaClip> import(const uint8_t* data, size_t size, const 
     return clip;
 }
 
+#ifdef __wasm__
+// A module file has no disk. The host reads the media folder and hands the samples over through two imports
+// (doc/specs/module-abi.md, "Media"); a clip it does not have yet is "missing", and the host sends the module's node data
+// again when the clip has been read, so a module that loads in setData() simply loads again.
+extern "C" {
+__attribute__((import_module("env"), import_name("bleep_media_info")))
+int64_t bleep_media_info(const char* id, int32_t idLength, double* sampleRate, int32_t* channels);
+__attribute__((import_module("env"), import_name("bleep_media_read")))
+int32_t bleep_media_read(const char* id, int32_t idLength, int32_t channel, float* dst, int64_t frames);
+}
+
+std::shared_ptr<const MediaClip> load(const std::string& id) {
+    if (!validId(id)) return nullptr;
+    double rate = 0.0;
+    int32_t channels = 0;
+    const int64_t frames = bleep_media_info(id.data(), (int32_t)id.size(), &rate, &channels);
+    if (frames <= 0 || channels <= 0 || channels > 8 || rate <= 0.0) return nullptr;
+    auto clip = std::make_shared<MediaClip>();
+    clip->id = id;
+    clip->sampleRate = rate;
+    clip->channels.assign((size_t)channels, std::vector<float>((size_t)frames));
+    for (int32_t ch = 0; ch < channels; ++ch)
+        if (!bleep_media_read(id.data(), (int32_t)id.size(), ch, clip->channels[(size_t)ch].data(), frames)) return nullptr;
+    return clip;
+}
+#else
 std::shared_ptr<const MediaClip> load(const std::string& id) {
     if (!validId(id)) return nullptr;
     {
@@ -205,5 +231,6 @@ std::shared_ptr<const MediaClip> load(const std::string& id) {
     g_cache[id] = clip;
     return clip;
 }
+#endif  // __wasm__
 
 }  // namespace bleep::engine::media

@@ -3,6 +3,7 @@
 // The store's checks in C++ (patch/store, doc/specs/signing.md): every package in patch/tests/store-fixtures must get the
 // verdict the Python reference gave it (scripts/release/signing.py fixture), and the pieces underneath (content hash,
 // canonical JSON) must give Python's exact bytes. patch/web/test/store-client-test.mjs runs the same cases in JavaScript.
+#include "store/Client.h"
 #include "store/Verify.h"
 
 #include <cstdio>
@@ -10,9 +11,10 @@
 using namespace bleep::store;
 
 namespace {
-int failures = 0;
+int failures = 0, checks = 0;
 #define CHECK(cond, ...)                                       \
     do {                                                       \
+        ++checks;                                              \
         if (!(cond)) {                                         \
             std::printf("  FAIL %s:%d: ", __FILE__, __LINE__); \
             std::printf(__VA_ARGS__);                          \
@@ -83,6 +85,95 @@ void testFixtures(const juce::File& dir) {
     std::printf("  %d fixture packages checked\n", n);
 }
 
+void testClient(const juce::File& fixtures) {
+    const juce::var spec = juce::JSON::parse(fixtures.getChildFile("cases.json"));
+    const std::vector<std::vector<uint8_t>> roots = {fromHex(spec["roots"]["main"].toString().toStdString())};
+    const int64_t now = (juce::int64)spec["siteNow"];
+    const juce::File data = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-store-test-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
+    auto client = [&](const char* site, bool allowUnsigned = false) {
+        Settings s;
+        s.storeUrl = juce::URL(fixtures.getChildFile(site)).toString(false).toStdString();
+        s.allowUnsigned.module = allowUnsigned;
+        return Client(s, data, roots, now);
+    };
+    InstalledModule m;
+    std::string error;
+
+    Index index;
+    CHECK(client("site").fetchIndex(index, error), "index: %s", error.c_str());
+    CHECK(index.modules.size() == 6 && index.find("good") && index.find("good")->version == "1.2.0", "the index lists six modules");
+    CHECK(index.providing("acme/fuzz") && index.providing("acme/fuzz")->slug == "acme.fuzz" && !index.providing("nothing"), "a type finds its module");
+
+    CHECK(client("site").install("good", m, error), "install good: %s", error.c_str());
+    CHECK(m.result.status == "signed" && m.result.publisher == "bleep" && m.version == "1.2.0" && m.file.existsAsFile() && m.file.withFileExtension("sig.json").existsAsFile(),
+          "good is installed with its signature kept beside it");
+    CHECK(client("site").install("acme.fuzz", m, error) && m.result.publisher == "acme", "install acme.fuzz: %s", error.c_str());
+
+    CHECK(!client("site").install("unsigned-one", m, error) && error.find("Allow unsigned modules") != std::string::npos, "unsigned is refused: %s", error.c_str());
+    CHECK(client("site", true).install("unsigned-one", m, error) && m.result.status == "unsigned", "unsigned installs when the setting allows it: %s", error.c_str());
+    CHECK(!client("site", true).install("bad-download", m, error) && error.find("not the file the store lists") != std::string::npos, "a corrupted download: %s", error.c_str());
+    CHECK(!client("site", true).install("tampered", m, error) && error.find("invalid") != std::string::npos, "a package that is not what was signed is refused even if unsigned is allowed: %s", error.c_str());
+    CHECK(!client("site", true).install("forged", m, error) && error.find("invalid") != std::string::npos, "a signature by another root: %s", error.c_str());
+    CHECK(!client("site").install("missing", m, error) && error.find("no module") != std::string::npos, "an unknown module: %s", error.c_str());
+    CHECK(!data.getChildFile("modules/registry/tampered").exists() && !data.getChildFile("modules/registry/forged").exists() && !data.getChildFile("modules/registry/bad-download").exists(),
+          "nothing refused was written");
+
+    {
+        const auto list = client("site", true).installed();
+        std::map<std::string, const InstalledModule*> by;
+        for (const auto& i : list) by[i.slug] = &i;
+        CHECK(list.size() == 3 && by["good"] && by["good"]->allowed && by["acme.fuzz"] && by["unsigned-one"] && by["unsigned-one"]->result.status == "unsigned", "installed() lists what is there");
+        CHECK(!client("site", false).installed().empty() && [&] { for (const auto& i : client("site", false).installed()) if (i.slug == "unsigned-one") return !i.allowed; return false; }(),
+              "the same module is not allowed to load once the setting is off again");
+        std::vector<uint8_t> wasm;
+        std::string spec;
+        CHECK(client("site").contentOf(*by["good"], wasm, spec, error) && wasm.size() == 8 && wasm[1] == 'a', "the wasm of an installed module: %s", error.c_str());
+        // a package changed on disk is caught when it is loaded
+        juce::MemoryBlock block;
+        by["good"]->file.loadFileAsData(block);
+        ((uint8_t*)block.getData())[block.getSize() / 2] ^= 0x55;
+        by["good"]->file.replaceWithData(block.getData(), block.getSize());
+        CHECK(!client("site").contentOf(*by["good"], wasm, spec, error), "a package changed on disk is not loaded");
+    }
+
+    // a release later: the newest version stays, the old one goes
+    CHECK(client("site2").install("good", m, error) && m.version == "1.3.0", "update: %s", error.c_str());
+    CHECK(!data.getChildFile("modules/registry/good/1.2.0").exists() && data.getChildFile("modules/registry/good/1.3.0").isDirectory(), "the old version is removed");
+    {
+        int goods = 0;
+        for (const auto& i : client("site").installed())
+            if (i.slug == "good") { ++goods; CHECK(i.version == "1.3.0" && i.allowed && i.types.size() == 2, "installed() shows the new version with its types"); }
+        CHECK(goods == 1, "one version of good");
+    }
+
+    CHECK(client("site").remove("good", error), "remove: %s", error.c_str());
+    CHECK(!client("site").remove("good", error), "removing twice is an error");
+
+    // copied by hand: the file name says the version the signature is checked for
+    const juce::File local = data.getChildFile("modules/local");
+    local.createDirectory();
+    fixtures.getChildFile("signed.bleepmod").copyFileTo(local.getChildFile("acme.fuzz-1.0.0.bleepmod"));
+    fixtures.getChildFile("unsigned.bleepmod").copyFileTo(local.getChildFile("handmade-0.1.0.bleepmod"));
+    fixtures.getChildFile("signed.bleepmod").copyFileTo(local.getChildFile("renamed.bleepmod"));  // no version in its name: cannot be checked
+    {
+        std::map<std::string, InstalledModule> by;
+        for (const auto& i : client("site").installed())
+            if (i.source == "local") by[i.slug] = i;
+        CHECK(by["acme.fuzz"].allowed && by["acme.fuzz"].result.publisher == "acme", "a signed package copied into the local folder loads");
+        CHECK(!by["handmade"].allowed, "an unsigned one does not, by default");
+        CHECK(!by["renamed"].allowed, "one without its version in the name cannot be checked, so it is not loaded");
+    }
+
+    Settings s;
+    s.storeUrl = "http://example.test";
+    s.allowUnsigned.plugin = true;
+    CHECK(s.save(data), "save settings");
+    const Settings back = Settings::load(data);
+    CHECK(back.storeUrl == s.storeUrl && back.allowUnsigned.plugin && !back.allowUnsigned.module && back.channel == "stable", "settings come back");
+    CHECK(Settings::load(data.getChildFile("nowhere")).storeUrl == Settings().storeUrl, "defaults when there is no file");
+    data.deleteRecursively();
+}
+
 void testPolicy() {
     std::string why;
     Result signedBy, unsignedR, bad, expired;
@@ -105,7 +196,8 @@ int main() {
     testVector();
     testCanonical();
     testFixtures(dir);
+    testClient(dir);
     testPolicy();
-    std::printf("store test: %d failures\n", failures);
+    std::printf("store test: %d checks, %d failures\n", checks, failures);
     return failures == 0 ? 0 : 1;
 }

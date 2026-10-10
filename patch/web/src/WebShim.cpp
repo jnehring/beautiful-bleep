@@ -13,8 +13,10 @@
 // Build: scripts/build/build-web.sh, which passes -DBLEEP_WEB_REGISTER=<fn> for
 // modules that register by hand and relies on BLEEP_REGISTER_MODULE otherwise.
 #include "Registry.h"
+#include "dsp/Harmony.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -133,16 +135,18 @@ void stringList(std::string& out, const std::vector<std::string>& list) {
 
 void showAndNames(std::string& out, const ShowIf& show, const std::string& namesBy,
                   const std::vector<std::string>& names) {
+    // the same shape as board::describeTypes(): "show" {param, min, max} and "names" {by, list}
     if (show.active()) {
-        out += ",\"showIf\":{\"param\":";
+        out += ",\"show\":{\"param\":";
         quote(out, show.param);
-        out += ",\"min\":" + num(show.min) + ",\"max\":" + num(show.max) + "}";
+        out += ",\"min\":" + std::to_string(show.min) + ",\"max\":" + std::to_string(show.max) + "}";
     }
-    if (!namesBy.empty()) {
-        out += ",\"namesBy\":";
+    if (!namesBy.empty() && !names.empty()) {
+        out += ",\"names\":{\"by\":";
         quote(out, namesBy);
-        out += ",\"names\":";
+        out += ",\"list\":";
         stringList(out, names);
+        out += "}";
     }
 }
 
@@ -208,6 +212,14 @@ std::string describe(const ModuleSpec& s) {
             stringList(out, p.choiceGroups);
         }
         out += ",\"min\":" + num(p.min) + ",\"max\":" + num(p.max);
+        out += ",\"def\":" + num(p.def);
+        if (p.map == ParamSpec::Map::Exponential) out += ",\"map\":\"exp\"";
+        if (p.map == ParamSpec::Map::Skew) out += ",\"map\":\"skew\",\"centre\":" + num(p.centre);
+        out += std::string(",\"format\":\"") + formatName(p.format) + "\",\"decimals\":" + std::to_string(p.decimals);
+        if (!p.label.empty()) {
+            out += ",\"label\":";
+            quote(out, p.label);
+        }
         if (!p.group.empty()) {
             out += ",\"group\":";
             quote(out, p.group);
@@ -219,6 +231,21 @@ std::string describe(const ModuleSpec& s) {
     jackList(out, s.inputs);
     out += ",\"outputs\":";
     jackList(out, s.outputs);
+    if (!s.buttons.empty()) {
+        out += ",\"buttons\":[";
+        for (size_t i = 0; i < s.buttons.size(); ++i) {
+            if (i) out += ',';
+            out += "{\"id\":";
+            quote(out, s.buttons[i].id);
+            out += ",\"name\":";
+            quote(out, s.buttons[i].name);
+            out += std::string(",\"momentary\":") + (s.buttons[i].momentary ? "true" : "false") + "}";
+        }
+        out += ']';
+    }
+    if (s.memoryHeavy) out += ",\"memoryHeavy\":true";
+    if (s.groupColumns) out += ",\"groupColumns\":true";
+    if (s.harmony != HarmonyRole::None) out += std::string(",\"harmony\":\"") + (s.harmony == HarmonyRole::Writer ? "writer" : "reader") + "\"";
     out += '}';
     return out;
 }
@@ -241,6 +268,9 @@ struct Instance {
     std::vector<NoteBuffer*> notesOutPtrs;
     std::vector<uint8_t> inConnected, outConnected;
     std::unique_ptr<bool[]> inFlags, outFlags;
+    std::array<bleep::dsp::HarmonyState, bleep::dsp::kHarmonyBuses> harmony{};  // the board-wide buses, copied in and out by the host
+    int voice = -1;              // the voice this instance plays inside a Voice Cell (-1: not in one)
+    bool wasPlaying = false, startedPending = false;  // the transport started since the last chunk
     std::vector<char> scratch;   // strings and numbers crossing the boundary
     std::string text;            // the last string handed to JS
 };
@@ -440,7 +470,17 @@ BLEEP_EXPORT void bleep_set_transport(void* h, double bpm, double ppq, int playi
     i->transport.ppqValid = true;
     i->transport.playing = playing != 0;
     i->transport.samplePos = samplePos;
+    if (playing && !i->wasPlaying) i->startedPending = true;  // the first block after the transport started
+    i->wasPlaying = playing != 0;
 }
+
+/// Inside a Voice Cell: the voice this instance plays (ProcessContext::voice). Call once after bleep_create.
+BLEEP_EXPORT void bleep_set_voice(void* h, int voice) { static_cast<Instance*>(h)->voice = voice; }
+
+/// The board-wide harmony buses (dsp::kHarmonyBuses states, plain data). The host copies the board's state in before
+/// a chunk and, for a module that writes (spec "harmony": "writer"), the result out after it.
+BLEEP_EXPORT void* bleep_harmony_ptr(void* h) { return static_cast<Instance*>(h)->harmony.data(); }
+BLEEP_EXPORT int bleep_harmony_size() { return (int)sizeof(bleep::dsp::HarmonyState[bleep::dsp::kHarmonyBuses]); }
 
 /// Runs `numSamples` (≤ kChunk) samples. Returns 0 on success.
 BLEEP_EXPORT int bleep_process(void* h, int numSamples) { return guarded<int>(2, [&]() -> int {
@@ -454,7 +494,8 @@ BLEEP_EXPORT int bleep_process(void* h, int numSamples) { return guarded<int>(2,
     c.numSamples = numSamples;
     c.offset = 0;
     c.transport = &i->transport;
-    c.transportStarted = false;
+    c.transportStarted = i->startedPending;
+    i->startedPending = false;
     c.ppqStart = i->transport.ppq;
     c.ppqPerSample = i->transport.bpm / 60.0 / i->transport.sampleRate;
     c.params = i->paramPtrs.data();
@@ -465,7 +506,8 @@ BLEEP_EXPORT int bleep_process(void* h, int numSamples) { return guarded<int>(2,
     c.notesOut = i->notesOutPtrs.data();
     c.outputConnected = i->outFlags.get();
     c.port = nullptr;
-    c.harmony = nullptr;
+    c.harmony = i->harmony.data();
+    c.voice = i->voice;
     for (auto& nb : i->notesOut) nb.clear();
     i->module->process(c);
     return 0;

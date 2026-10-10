@@ -1,0 +1,272 @@
+// SPDX-License-Identifier: MIT
+#include "ModuleStore.h"
+
+#include "WasmRegistry.h"
+
+#include <thread>
+
+#ifndef BLEEP_STORE_ROOTS
+#define BLEEP_STORE_ROOTS ""   // the root public keys, hex, comma separated: patch/store/root-keys.txt, put in at build time
+#endif
+
+namespace bleep::engine {
+namespace {
+
+std::vector<std::vector<uint8_t>> bakedRoots() {
+    std::vector<std::vector<uint8_t>> roots;
+    for (const auto& h : juce::StringArray::fromTokens(juce::String(BLEEP_STORE_ROOTS), ",", ""))
+        if (auto k = store::fromHex(h.trim().toStdString()); k.size() == 32) roots.push_back(std::move(k));
+    return roots;
+}
+
+juce::var module(const store::InstalledModule& m, const LoadReport* r) {
+    auto* o = new juce::DynamicObject();
+    o->setProperty("slug", juce::String(m.slug));
+    o->setProperty("version", juce::String(m.version));
+    o->setProperty("source", juce::String(m.source));
+    o->setProperty("status", juce::String(m.result.status));
+    o->setProperty("publisher", juce::String(m.result.publisher));
+    o->setProperty("allowed", m.allowed);
+    o->setProperty("why", juce::String(r && !r->why.empty() ? r->why : m.why));
+    o->setProperty("loaded", r && r->loaded);
+    juce::Array<juce::var> types;
+    for (const auto& t : m.types) types.add(juce::String(t));
+    o->setProperty("types", types);
+    return juce::var(o);
+}
+
+}  // namespace
+
+ModuleStore& ModuleStore::instance() {
+    static ModuleStore store;
+    return store;
+}
+
+void ModuleStore::configure(juce::File dataDir, std::vector<std::vector<uint8_t>> extraRoots) {
+    std::lock_guard<std::mutex> l(mutex_);
+    dataDir_ = std::move(dataDir);
+    roots_ = std::move(extraRoots);
+}
+
+store::Settings ModuleStore::settings() const {
+    std::lock_guard<std::mutex> l(mutex_);
+    return settings_;
+}
+
+void ModuleStore::setSettings(const store::Settings& s) {
+    std::lock_guard<std::mutex> l(mutex_);
+    settings_ = s;
+    settings_.save(dataDir_);
+}
+
+std::unique_ptr<store::Client> ModuleStore::client() const {
+    std::lock_guard<std::mutex> l(mutex_);
+    return std::make_unique<store::Client>(settings_, dataDir_, roots_);
+}
+
+void ModuleStore::start() {
+    if (started_.exchange(true)) return;
+    {
+        std::lock_guard<std::mutex> l(mutex_);
+        if (dataDir_ == juce::File()) dataDir_ = store::defaultDataDir();
+        settings_ = store::Settings::load(dataDir_);
+        for (auto& r : bakedRoots()) roots_.push_back(std::move(r));
+        // a developer's own root (signing.md section 11: "Trusted developers"): added in the data folder, never in the code
+        const juce::var extra = juce::JSON::parse(dataDir_.getChildFile("settings.json"));
+        if (auto* a = extra["extraRoots"].getArray())
+            for (const auto& h : *a)
+                if (auto k = store::fromHex(h.toString().toStdString()); k.size() == 32) roots_.push_back(std::move(k));
+    }
+    const auto c = client();
+    const auto reports = loadInstalledModules(Registry::instance(), *c);
+    std::lock_guard<std::mutex> l(mutex_);
+    reports_ = reports;
+}
+
+void ModuleStore::registerInstalled(const std::string& slug) {
+    const auto c = client();
+    for (const auto& m : c->installed()) {
+        if (m.slug != slug) continue;
+        LoadReport r;
+        r.slug = m.slug; r.version = m.version; r.source = m.source; r.status = m.result.status; r.why = m.why;
+        std::vector<uint8_t> wasm;
+        std::string spec, error;
+        if (m.allowed && c->contentOf(m, wasm, spec, error)) {
+            auto package = spec.empty() ? WasmPackage::load(wasm.data(), wasm.size(), error) : WasmPackage::lazy(std::move(wasm), spec, error);
+            if (package && registerPackage(Registry::instance(), package, error)) { r.loaded = true; r.types = package->types; }
+            else r.why = error;
+        } else if (m.allowed) {
+            r.why = error;
+        }
+        std::lock_guard<std::mutex> l(mutex_);
+        reports_.erase(std::remove_if(reports_.begin(), reports_.end(), [&](const LoadReport& x) { return x.slug == slug; }), reports_.end());
+        reports_.push_back(std::move(r));
+        viewFiles_.clear();  // rebuilt on the next request
+    }
+}
+
+void ModuleStore::post(std::function<void()> f) {
+    if (postToMessageThread) postToMessageThread(std::move(f));
+    else f();  // tools without a message loop
+}
+
+void ModuleStore::setBusy(const std::string& slug, const std::string& what) {
+    std::lock_guard<std::mutex> l(mutex_);
+    if (what.empty()) busy_.erase(slug); else busy_[slug] = what;
+}
+
+void ModuleStore::refreshIndexAsync(std::function<void()> done) {
+    std::thread([this, done = std::move(done)] {
+        const auto c = client();
+        store::Index index;
+        std::string error;
+        const bool ok = c->fetchIndex(index, error);
+        {
+            std::lock_guard<std::mutex> l(mutex_);
+            haveIndex_ = ok;
+            indexError_ = ok ? "" : error;
+            if (ok) index_ = std::move(index);
+        }
+        if (done) post(done);
+    }).detach();
+}
+
+void ModuleStore::installAsync(const std::string& slug, std::function<void(bool, std::string)> done) {
+    setBusy(slug, "installing");
+    std::thread([this, slug, done = std::move(done)] {
+        const auto c = client();
+        store::InstalledModule m;
+        std::string error;
+        const bool ok = c->install(slug, m, error);
+        post([this, slug, ok, error, done] {
+            if (ok) {
+                registerInstalled(slug);
+                if (onTypesChanged) onTypesChanged();
+            }
+            setBusy(slug, "");
+            if (done) done(ok, error);
+        });
+    }).detach();
+}
+
+void ModuleStore::removeAsync(const std::string& slug, std::function<void(bool, std::string)> done) {
+    setBusy(slug, "removing");
+    std::thread([this, slug, done = std::move(done)] {
+        std::string error;
+        const bool ok = client()->remove(slug, error);
+        post([this, slug, ok, error, done] {
+            std::lock_guard<std::mutex> l(mutex_);
+            reports_.erase(std::remove_if(reports_.begin(), reports_.end(), [&](const LoadReport& x) { return x.slug == slug; }), reports_.end());
+            viewFiles_.clear();
+            busy_.erase(slug);
+            if (done) done(ok, error);
+            // the node types stay registered until the next start: nodes that use them keep working (store.md section 9)
+        });
+    }).detach();
+}
+
+void ModuleStore::installAllAsync(std::function<void(bool, std::string)> done) {
+    std::thread([this, done = std::move(done)] {
+        const auto c = client();
+        store::Index index;
+        std::string error;
+        if (!c->fetchIndex(index, error)) { if (done) post([done, error] { done(false, error); }); return; }
+        std::set<std::string> have;
+        for (const auto& m : c->installed()) have.insert(m.slug);
+        int ok = 0, failed = 0;
+        std::string lastError;
+        for (const auto& m : index.modules) {
+            if (have.count(m.slug)) continue;
+            setBusy(m.slug, "installing");
+            store::InstalledModule installed;
+            std::string e;
+            if (c->install(m.slug, installed, e)) {
+                ++ok;
+                post([this, slug = m.slug] { registerInstalled(slug); });
+            } else { ++failed; lastError = e; }
+            setBusy(m.slug, "");
+        }
+        post([this, done, ok, failed, lastError] {
+            if (onTypesChanged) onTypesChanged();
+            if (done) done(failed == 0, std::to_string(ok) + " installed" + (failed ? ", " + std::to_string(failed) + " failed: " + lastError : std::string()));
+        });
+    }).detach();
+}
+
+juce::var ModuleStore::status() {
+    const auto c = client();
+    std::lock_guard<std::mutex> l(mutex_);
+    auto* o = new juce::DynamicObject();
+    auto* s = new juce::DynamicObject();
+    s->setProperty("storeUrl", juce::String(settings_.storeUrl));
+    s->setProperty("channel", juce::String(settings_.channel));
+    auto* allow = new juce::DynamicObject();
+    allow->setProperty("module", settings_.allowUnsigned.module);
+    allow->setProperty("plugin", settings_.allowUnsigned.plugin);
+    s->setProperty("allowUnsigned", juce::var(allow));
+    o->setProperty("settings", juce::var(s));
+    o->setProperty("dataDir", dataDir_.getFullPathName());
+    o->setProperty("hasRoots", !roots_.empty());
+    juce::Array<juce::var> installed;
+    for (const auto& m : c->installed()) {
+        const LoadReport* r = nullptr;
+        for (const auto& x : reports_) if (x.slug == m.slug) r = &x;
+        installed.add(module(m, r));
+    }
+    o->setProperty("installed", installed);
+    auto* idx = new juce::DynamicObject();
+    idx->setProperty("ok", haveIndex_);
+    idx->setProperty("error", juce::String(indexError_));
+    juce::Array<juce::var> offered;
+    for (const auto& m : index_.modules) {
+        auto* x = new juce::DynamicObject();
+        x->setProperty("slug", juce::String(m.slug));
+        x->setProperty("version", juce::String(m.version));
+        juce::Array<juce::var> types;
+        for (const auto& t : m.types) types.add(juce::String(t));
+        x->setProperty("types", types);
+        offered.add(juce::var(x));
+    }
+    idx->setProperty("modules", offered);
+    o->setProperty("index", juce::var(idx));
+    auto* busy = new juce::DynamicObject();
+    for (const auto& [slug, what] : busy_) busy->setProperty(juce::Identifier(juce::String(slug)), juce::String(what));
+    o->setProperty("busy", juce::var(busy));
+    return juce::var(o);
+}
+
+// ---- what the board window serves from the installed packages -------------------------------------------------------
+
+bool ModuleStore::viewFile(const std::string& name, std::vector<uint8_t>& bytes) const {
+    if (name.empty() || name.find('/') != std::string::npos || name.find("..") != std::string::npos) return false;
+    const auto c = const_cast<ModuleStore*>(this)->client();
+    for (const auto& m : c->installed()) {
+        if (!m.allowed) continue;
+        std::vector<uint8_t> raw;
+        juce::MemoryBlock block;
+        if (!m.file.loadFileAsData(block)) continue;
+        store::Package pkg;
+        std::string error;
+        if (!store::readPackage((const uint8_t*)block.getData(), block.getSize(), pkg, error)) continue;
+        for (const char* dir : {"ui/", "doc/"})
+            if (auto it = pkg.files.find(dir + name); it != pkg.files.end()) { bytes = it->second; return true; }
+    }
+    return false;
+}
+
+std::string ModuleStore::moduleViewsJson() const {
+    juce::StringArray names;
+    const auto c = const_cast<ModuleStore*>(this)->client();
+    for (const auto& m : c->installed()) {
+        if (!m.allowed) continue;
+        juce::MemoryBlock block;
+        store::Package pkg;
+        std::string error;
+        if (!m.file.loadFileAsData(block) || !store::readPackage((const uint8_t*)block.getData(), block.getSize(), pkg, error)) continue;
+        for (const auto& [path, data] : pkg.files)
+            if (path.rfind("ui/", 0) == 0 && path.size() > 6 && path.substr(path.size() - 3) == ".js") names.add("\"" + juce::String(path.substr(3)) + "\"");
+    }
+    return ("[" + names.joinIntoString(", ") + "]\n").toStdString();
+}
+
+}  // namespace bleep::engine

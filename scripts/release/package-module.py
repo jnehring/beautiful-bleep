@@ -5,9 +5,14 @@
     scripts/release/package-module.py                       every module that has a built .wasm
     scripts/release/package-module.py reverb filter         just these
     scripts/release/package-module.py --out DIR --web DIR   other folders (defaults: build/store/modules, build/web/modules)
+    scripts/release/package-module.py --install DATA --kit KIT [--version 0.1.0]
+                                                            also sign each package with the kit and put it into DATA/modules/local,
+                                                            the folder the apps read modules copied by hand from (for tests and development)
 
 A package is a zip of: module.json (the module folder's, plus `types` and `requires.engineAbi`), module.wasm (built by
-scripts/build/build-web.sh --modules-only), the module's view scripts (ui/*.js) and its docs (doc/*.md, *.png).
+scripts/build/build-web.sh --modules-only), spec.json (the node types' descriptions, read from the .wasm with node: a host
+lists a module's node types from it without compiling the module), the module's view scripts (ui/*.js) and its docs
+(doc/*.md, *.png).
 The version is not in the package: the store counts it, so the content hash says whether the code changed.
 
 Before packaging, the .wasm is checked against doc/specs/module-abi.md: only the allowed imports, and every export of the
@@ -15,6 +20,7 @@ ABI present. The zip is reproducible (sorted files, fixed dates), so packaging t
 """
 import argparse
 import json
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -28,6 +34,7 @@ ENGINE_ABI = 1
 # doc/specs/module-abi.md, section 2 (imports) and 4 (exports)
 ALLOWED_IMPORTS = {
     ("env", "emscripten_notify_memory_growth"),
+    ("env", "bleep_media_info"), ("env", "bleep_media_read"),  # sample files, answered by the host (module-abi.md, "Media")
     *(("wasi_snapshot_preview1", n) for n in ("fd_close", "fd_read", "fd_seek", "fd_write", "environ_get", "environ_sizes_get", "clock_time_get")),
 }
 REQUIRED_EXPORTS = {
@@ -121,12 +128,21 @@ def check_abi(data: bytes) -> list[str]:
 
 # ---- the package ------------------------------------------------------------------------------
 
-def collect(folder: Path, wasm: bytes, types: list[str]) -> dict[str, bytes]:
-    """The files of a module's package: {path inside the zip: bytes}."""
+def spec_json(wasm_file: Path) -> str:
+    """The module's own description of its node types, as one line of JSON (patch/web/test/spec-json.mjs)."""
+    r = subprocess.run(["node", str(ROOT / "patch" / "web" / "test" / "spec-json.mjs"), str(wasm_file)], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise ValueError("cannot read the node types out of the .wasm: " + (r.stderr.strip().splitlines() or ["node failed"])[-1])
+    return r.stdout.strip()
+
+
+def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
+    """The files of a module's package: {path inside the zip: bytes}. `spec` is spec_json()."""
+    types = [t["type"] for t in json.loads(spec)]
     meta = json.loads((folder / "module.json").read_text())
     meta["types"] = types
     meta["requires"] = {"engineAbi": ENGINE_ABI}
-    files = {"module.json": (json.dumps(meta, indent=1, ensure_ascii=False) + "\n").encode(), "module.wasm": wasm}
+    files = {"module.json": (json.dumps(meta, indent=1, ensure_ascii=False) + "\n").encode(), "module.wasm": wasm, "spec.json": (spec + "\n").encode()}
     for sub, suffixes in (("ui", (".js",)), ("doc", (".md", ".png"))):
         for f in sorted((folder / sub).glob("*")) if (folder / sub).is_dir() else []:
             if f.suffix in suffixes:
@@ -161,14 +177,23 @@ def package(slug: str, web: Path, out: Path) -> tuple[Path, str]:
     problems = check_abi(wasm)
     if problems:
         raise ValueError("; ".join(problems))
-    manifest = json.loads((web / "manifest.json").read_text())
-    types = manifest["modules"].get(slug, {}).get("types")
-    if not types:
-        raise ValueError("the manifest lists no node types for it (rebuild: scripts/build/build-web.sh --modules-only)")
-    files = collect(folder, wasm, types)
+    files = collect(folder, wasm, spec_json(wasm_file))
     target = out / f"{slug}.bleepmod"
     write_zip(files, target)
     return target, signing.content_digest(entries_of(files)).hex()
+
+
+def install_local(package: Path, slug: str, data: Path, kit_file: Path | None, version: str) -> Path:
+    """A signed copy of the package in DATA/modules/local/<slug>-<version>.bleepmod, the way a developer would copy a module by hand."""
+    if kit_file is None:
+        raise ValueError("--install needs --kit")
+    import shutil
+    kit = json.loads(kit_file.read_text())
+    target = data / "modules" / "local" / f"{slug}-{version}.bleepmod"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(package, target)
+    signing.write_doc(target, signing.sign_with_kit(signing.read_entries(target), kit, "module", slug, version))
+    return target
 
 
 def main(argv=None) -> int:
@@ -176,6 +201,9 @@ def main(argv=None) -> int:
     ap.add_argument("modules", nargs="*", metavar="SLUG", help="module folders (default: every one with a built .wasm)")
     ap.add_argument("--out", type=Path, default=ROOT / "build" / "store" / "modules")
     ap.add_argument("--web", type=Path, default=ROOT / "build" / "web" / "modules", help="the output of build-web.sh --modules-only")
+    ap.add_argument("--install", type=Path, metavar="DATA", help="also install the signed packages into DATA/modules/local")
+    ap.add_argument("--kit", type=Path, help="the signing kit for --install")
+    ap.add_argument("--version", default="0.1.0", help="the version --install signs for (it is part of the file name)")
     a = ap.parse_args(argv)
     slugs = a.modules or sorted(p.parent.name for p in (ROOT / "patch" / "modules").glob("*/module.json"))
     failed = 0
@@ -187,6 +215,13 @@ def main(argv=None) -> int:
             print(f"{slug:22} FAILED: {e}", file=sys.stderr)
             failed += 1
             continue
+        if a.install:
+            try:
+                install_local(target, slug, a.install, a.kit, a.version)
+            except (ValueError, OSError) as e:
+                print(f"{slug:22} NOT INSTALLED: {e}", file=sys.stderr)
+                failed += 1
+                continue
         n = len(json.loads(zipfile.ZipFile(target).read("module.json"))["types"])
         print(f"{slug:22} {target.stat().st_size / 1024:6.1f}  {n:5}  {digest[:16]}")
     print(f"{len(slugs) - failed} packaged into {a.out}" + (f", {failed} failed" if failed else ""))

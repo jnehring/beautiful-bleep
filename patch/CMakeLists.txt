@@ -43,6 +43,10 @@ option(BLEEP_PATCH_UI_DEV "Development builds: serve the board UI from the sourc
 # Spec §5.2: VST3 only, Ableton Live only (for now).
 set(BLEEP_PATCH_FORMATS "VST3" CACHE STRING "Plugin formats (JUCE names)")
 set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.9)")
+# The wasm module host (engine/wasm/, doc/specs/module-abi.md): needs the Wasmtime C API, from
+# https://github.com/bytecodealliance/wasmtime/releases (wasmtime-v<version>-<target>-c-api). With it, the test
+# bleep_wasm_parity runs every module as native and as wasm and compares them (store.md section 13, M1).
+set(BLEEP_PATCH_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
 option(BLEEP_PATCH_BUILD_APP "Build the standalone Bleep Patch app" ON)
 option(BLEEP_PATCH_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
@@ -153,7 +157,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
 
     # The store's checks (signing.md): the packages of patch/tests/store-fixtures get the verdicts Python gave them.
     juce_add_console_app(bleep_store_test PRODUCT_NAME "Bleep Store Test")
-    target_sources(bleep_store_test PRIVATE tests/store_test.cpp store/Verify.cpp store/Package.cpp
+    target_sources(bleep_store_test PRIVATE tests/store_test.cpp store/Verify.cpp store/Package.cpp store/Client.cpp
         third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
     target_include_directories(bleep_store_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
     target_compile_definitions(bleep_store_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
@@ -168,7 +172,9 @@ if (BLEEP_PATCH_BUILD_TESTS)
         if (APPLE)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
-        set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp)
+        set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp
+            engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp store/Package.cpp store/Client.cpp
+            third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
         # wasm files (scripts/build/build-web.sh --modules-only).
         juce_add_console_app(bleep_wasm_parity PRODUCT_NAME "Bleep Wasm Parity")
@@ -178,12 +184,12 @@ if (BLEEP_PATCH_BUILD_TESTS)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_wasm_parity PRIVATE ${s})
         endforeach ()
-        target_include_directories(bleep_wasm_parity PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm)
+        target_include_directories(bleep_wasm_parity PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
         target_compile_definitions(bleep_wasm_parity PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
         # WebAssembly never fuses a multiply and an add; the native reference must not either, or a phase accumulator drifts
         # by rounding alone and every oscillator "differs".
         target_compile_options(bleep_wasm_parity PRIVATE -ffp-contract=off)
-        target_link_libraries(bleep_wasm_parity PRIVATE bleep_patch_dsp juce::juce_core bleep_wasmtime
+        target_link_libraries(bleep_wasm_parity PRIVATE bleep_patch_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
     endif ()
 

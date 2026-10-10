@@ -91,11 +91,12 @@ class Package(unittest.TestCase):
         self.tmp.cleanup()
 
     def files(self):
-        return pm.collect(self.folder, self.wasm, ["fuzz"])
+        return pm.collect(self.folder, self.wasm, '[{"type":"fuzz","name":"Fuzz"}]')
 
     def test_what_goes_in(self):
         files = self.files()
-        self.assertEqual(sorted(files), ["doc/fuzz.md", "doc/fuzz.png", "module.json", "module.wasm", "ui/fuzz.js"])
+        self.assertEqual(sorted(files), ["doc/fuzz.md", "doc/fuzz.png", "module.json", "module.wasm", "spec.json", "ui/fuzz.js"])
+        self.assertEqual(json.loads(files["spec.json"])[0]["type"], "fuzz")
         meta = json.loads(files["module.json"])
         self.assertEqual((meta["name"], meta["types"], meta["requires"]), ("Fuzz", ["fuzz"], {"engineAbi": 1}))
         self.assertNotIn("version", meta)  # the store counts the version; the content hash must not depend on it

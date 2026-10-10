@@ -57,6 +57,11 @@ def register_functions(sources):
     return names
 
 
+# Exceptions in the modules that use juce_core: the exception handling proposal as it was standardised (try_table), not
+# Emscripten's older default (try/catch). Wasmtime only compiles the standard one (patch/engine/wasm); browsers have it
+# since 2025 (Chrome 137, Firefox 131, Safari 18.4).
+EH_FLAGS = ["-sWASM_LEGACY_EXCEPTIONS=0"]
+
 JUCE_DEFINES = ["-DJUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1", "-DJUCE_STANDALONE_APPLICATION=1", "-DJUCE_WEB_BROWSER=0",
                 "-DJUCE_USE_CURL=0", "-DJUCE_DISABLE_JUCE_VERSION_PRINTING=1", "-DJUCE_MODULE_AVAILABLE_juce_core=1"]
 
@@ -79,7 +84,7 @@ def build_juce_core(juce_dir, out):
     wasm.write_text("#include <emscripten.h>\n" + wasm.read_text())
     unit = work / "juce_core_unit.cpp"
     unit.write_text("#include <juce_core/juce_core.cpp>\n")
-    r = subprocess.run(["emcc", "-std=c++20", "-O2", "-fwasm-exceptions", "-c", str(unit), f"-I{work}", *JUCE_DEFINES, "-o", str(obj)],
+    r = subprocess.run(["emcc", "-std=c++20", "-O2", "-fwasm-exceptions", *EH_FLAGS, "-c", str(unit), f"-I{work}", *JUCE_DEFINES, "-o", str(obj)],
                        capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit("juce_core for WebAssembly failed:\n" + r.stderr[-1500:])
@@ -132,7 +137,7 @@ def build(d, out, include_dirs, juce=None, force=False):
         if uses_juce(d):
             if not juce:
                 return d.name, None, "uses juce_core (pass --juce <JUCE checkout>)"
-            flags = [f for f in FLAGS if f != "-fno-exceptions"] + ["-fwasm-exceptions", "-sINITIAL_MEMORY=2MB", "-sSTACK_SIZE=256KB"]
+            flags = [f for f in FLAGS if f != "-fno-exceptions"] + ["-fwasm-exceptions", *EH_FLAGS, "-sINITIAL_MEMORY=2MB", "-sSTACK_SIZE=256KB"]
             extra = [f"-I{juce[0]}", *JUCE_DEFINES, str(juce[1])]
         if any("Media.h" in f.read_text() for f in sources + list(d.glob("dsp/*.h"))):
             extra.append(str(PATCH / "engine/Media.cpp"))  # no media folder in a browser yet: loads find nothing

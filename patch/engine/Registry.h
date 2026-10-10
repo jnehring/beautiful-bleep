@@ -27,6 +27,9 @@ public:
     using Factory = std::function<std::unique_ptr<Module>(const ModuleSpec&)>;
 
     static const Registry& get();
+    /// The same registry, for adding node types after start: installed modules (engine/wasm/WasmRegistry.h).
+    /// Only on the message thread, like every other use of the registry.
+    static Registry& instance();
 
     const ModuleSpec* find(const std::string& type) const noexcept;
     /// The node type of a port plugin, e.g. PortKind::MidiIn → "midi-in".
@@ -35,6 +38,8 @@ public:
     /// Creates the DSP for a node type; null for structural types.
     std::unique_ptr<Module> create(const std::string& type) const;
 
+    /// Adds a node type. One whose id is already there is **replaced** for everything that looks it up from now on (a new
+    /// version of an installed module); the old spec stays alive, because nodes that run with it hold a reference.
     void add(ModuleSpec spec, Factory factory);
 
 private:

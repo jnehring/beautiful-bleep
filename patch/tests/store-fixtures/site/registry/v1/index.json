@@ -1,0 +1,100 @@
+{
+ "channels": {
+  "beta": {
+   "modules": {
+    "acme.fuzz": {
+     "entry": "modules/acme.fuzz/1.0.0/entry.json",
+     "types": [
+      "acme/fuzz"
+     ],
+     "version": "1.0.0"
+    },
+    "bad-download": {
+     "entry": "modules/bad-download/0.1.0/entry.json",
+     "types": [
+      "bad-download"
+     ],
+     "version": "0.1.0"
+    },
+    "forged": {
+     "entry": "modules/forged/0.1.0/entry.json",
+     "types": [
+      "forged"
+     ],
+     "version": "0.1.0"
+    },
+    "good": {
+     "entry": "modules/good/1.2.0/entry.json",
+     "types": [
+      "good"
+     ],
+     "version": "1.2.0"
+    },
+    "tampered": {
+     "entry": "modules/tampered/0.1.0/entry.json",
+     "types": [
+      "tampered"
+     ],
+     "version": "0.1.0"
+    },
+    "unsigned-one": {
+     "entry": "modules/unsigned-one/0.1.0/entry.json",
+     "types": [
+      "unsigned-one"
+     ],
+     "version": "0.1.0"
+    }
+   },
+   "plugins": {}
+  },
+  "stable": {
+   "modules": {
+    "acme.fuzz": {
+     "entry": "modules/acme.fuzz/1.0.0/entry.json",
+     "types": [
+      "acme/fuzz"
+     ],
+     "version": "1.0.0"
+    },
+    "bad-download": {
+     "entry": "modules/bad-download/0.1.0/entry.json",
+     "types": [
+      "bad-download"
+     ],
+     "version": "0.1.0"
+    },
+    "forged": {
+     "entry": "modules/forged/0.1.0/entry.json",
+     "types": [
+      "forged"
+     ],
+     "version": "0.1.0"
+    },
+    "good": {
+     "entry": "modules/good/1.2.0/entry.json",
+     "types": [
+      "good"
+     ],
+     "version": "1.2.0"
+    },
+    "tampered": {
+     "entry": "modules/tampered/0.1.0/entry.json",
+     "types": [
+      "tampered"
+     ],
+     "version": "0.1.0"
+    },
+    "unsigned-one": {
+     "entry": "modules/unsigned-one/0.1.0/entry.json",
+     "types": [
+      "unsigned-one"
+     ],
+     "version": "0.1.0"
+    }
+   },
+   "plugins": {}
+  }
+ },
+ "format": 1,
+ "generated": "2025-10-09T00:00:00+00:00"
+}

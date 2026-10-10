@@ -18,9 +18,9 @@ One `module.wasm` holds the node types of one module folder (usually one, the dr
 | Requirement | Detail |
 |---|---|
 | Memory | One exported linear memory named `memory`, growable (1 to 2 MB at start, 64 to 256 KB of stack). A host **should cap it** (64 MB is a sensible limit; the largest module today starts at 2 MB) and must re-read the memory base after every call, because growing moves it. |
-| Imports | Only these, and the host provides them as stubs (see section 8): `env.emscripten_notify_memory_growth(i32)`, and, for modules using `juce_core`, seven WASI preview 1 functions: `fd_close`, `fd_read`, `fd_seek`, `fd_write`, `environ_get`, `environ_sizes_get`, `clock_time_get`. Across the 80 current files these are all the imports that occur. A module importing anything else is refused. |
+| Imports | Only these, and the host provides them as stubs (see section 8): `env.emscripten_notify_memory_growth(i32)`, `bleep_media_info` and `bleep_media_read` (section 5a; only modules that load sample files import them), and, for modules using `juce_core`, seven WASI preview 1 functions: `fd_close`, `fd_read`, `fd_seek`, `fd_write`, `environ_get`, `environ_sizes_get`, `clock_time_get`. Across the 80 current files these are all the imports that occur. A module importing anything else is refused. |
 | Start | Exports `_initialize` (runs C++ static constructors); the host calls it once, first. No `_start`, no start section that does I/O. |
-| Features | Whatever the pinned Emscripten (4.0.10) emits by default: no SIMD and no threads are requested, but the files do not record their feature set (the `target_features` section is stripped), so the exact list is **to be confirmed** by the package step. The modules built with `juce_core` (26 of the 80, the same 26 that import WASI) are built with `-fwasm-exceptions` and use wasm exception handling. Wasmtime runs them; **wasm3 does not support exception handling**, so as a fallback it only runs the modules without. **Proposed:** the package step reads the used features out of each file and writes them to `module.json` (`features`), and the host checks them at load, so a missing feature is a clear message. |
+| Features | Whatever the pinned Emscripten (4.0.10) emits by default: no SIMD and no threads are requested, but the files do not record their feature set (the `target_features` section is stripped), so the exact list is **to be confirmed** by the package step. The modules built with `juce_core` (26 of the 80, the same 26 that import WASI) use wasm **exception handling in its standardised form** (`try_table`: `-fwasm-exceptions -sWASM_LEGACY_EXCEPTIONS=0`). Emscripten's older default (`try`/`catch`) is **not accepted**: Wasmtime refuses to compile it, which a first version of the host found out. Browsers have the standard form since 2025 (Chrome 137, Firefox 131, Safari 18.4). **wasm3 does not support exception handling at all**, so as a fallback it only runs the modules without. **Proposed:** the package step reads the used features out of each file and writes them to `module.json` (`features`), and the host checks them at load, so a missing feature is a clear message. |
 | Determinism | No clock, no randomness from the host: `clock_time_get` returns 0. Any random stream is seeded by the module. The same input and knob values produce the same output on every host (the spike matched the native build to about 1e-6 on a peak of 0.4; wasm does not fuse multiply-adds the way a native build may). |
 
 ## 3. Life of a module instance
@@ -56,7 +56,9 @@ bleep_destroy(h)
 | `bleep_params_ptr`, `bleep_inputs_ptr`, `bleep_outputs_ptr` | `(h) → ptr` | The three float buffers, fixed for the life of the instance (section 5). |
 | `bleep_in_connected_ptr`, `bleep_out_connected_ptr` | `(h) → ptr` | One byte per input / output jack (`ni + 1`, `no + 1` bytes): 1 when patched. An output nobody reads may be skipped but must still hold valid numbers. |
 | `bleep_set_knob` | `(h, index: i32, normalised: f32)` | The value a module reads with `setting()`: the knob without modulation. Call it when the knob changes, and once for every knob after `create`, so the module sees the saved state. |
-| `bleep_set_transport` | `(h, bpm: f64, ppq: f64, playing: i32, samplePos: i64)` | Before each chunk. `ppq` is the position at the chunk start in quarter notes. |
+| `bleep_set_transport` | `(h, bpm: f64, ppq: f64, playing: i32, samplePos: i64)` | Before each chunk. `ppq` is the position at the chunk start in quarter notes. The module is told the transport **started** when `playing` goes from 0 to 1 between two calls (a host that restarts the transport without stopping it calls once with 0 first). |
+| `bleep_set_voice` | `(h, voice: i32)` | *Optional.* Inside a Voice Cell: the voice this instance plays (`ProcessContext::voice`); −1 outside. Call after `create` and when it changes. |
+| `bleep_harmony_ptr`, `bleep_harmony_size` | `(h) → ptr`, `() → i32` | *Optional.* The board-wide harmony buses (section 5). |
 | `bleep_process` | `(h, numSamples: i32) → i32` | Runs `numSamples` (1 to 32) samples. Returns 0, or non-zero when the call was refused or failed (the outputs are then unspecified and the host should bypass). |
 | `bleep_notes_in_ptr`, `bleep_notes_out_ptr` | `(h, jack: i32) → ptr` | The note buffer of a `notes` jack (section 5). |
 | `bleep_note_event_size` | `() → i32` | 16. The host checks it. |
@@ -93,7 +95,20 @@ Rows have 32 floats even for the last, shorter chunk; the first `numSamples` are
 
 **Notes.** A `notes` jack is a `NoteBuffer` in the module's memory: 64 events of 16 bytes, then an `i32` count (1028 bytes). Per event: `u8 type` (0 on, 1 off, 2 pressure), `u8 channel` (0 to 15), `i16 offset` (sample inside the chunk), `i32 note` (MIDI number, identifies the note), `f32 pitch`, `f32 value` (velocity or pressure, 0 … 1). The host writes the events of an input jack and the count before each chunk; it reads an output jack's events and count after it. More than 64 per chunk are dropped.
 
+**Harmony buses** (modules whose spec says `"harmony": "writer"` or `"reader"`). `bleep_harmony_ptr(h)` is the address of `dsp::kHarmonyBuses` (4) `HarmonyState` records in the module's memory, `bleep_harmony_size()` their total size (`HarmonyState` is plain data, 16 bytes: `valid`, `key`, `chordRoot`, `bass`, `scale`, `chord`, `quality`, `degree`, `serial`, laid out as the C++ struct). The host copies the board's buses in before every chunk and, for a **writer**, copies them back out after it; every writer runs before every reader on the board, as natively.
+
 **Strings** are UTF-8. Numbers crossing through the scratch buffer are little endian and aligned as stated.
+
+## 5a. Media
+
+Four modules (Grains, Sampler, Splice, Wavetable Osc) read audio files from the computer's media folder by id (`<16 hex digits>.wav`). A module file has no disk, so the host answers through two imports of the module, `env`:
+
+| Import | Signature | Meaning |
+|---|---|---|
+| `bleep_media_info` | `(id: ptr, idLength: i32, sampleRate: ptr→f64, channels: ptr→i32) → i64` | Length of the clip in frames, its sample rate and channels written to the two pointers; **0 if the clip is not available**. |
+| `bleep_media_read` | `(id: ptr, idLength: i32, channel: i32, dst: ptr, frames: i64) → i32` | Copies `frames` samples of one channel to `dst` (float32); 1 on success. |
+
+The host **must not block** to answer: these calls come from inside `bleep_set_data` on the audio thread. A clip that is not in memory is "not available"; the host reads it on another thread and, when it is there, sends the module's last node data again (`bleep_set_data`), which makes the module ask again and succeed. A host with no media folder (the browser, for now) answers 0 to everything.
 
 ## 6. Transport and time
 
@@ -101,7 +116,7 @@ Rows have 32 floats even for the last, shorter chunk; the first `numSamples` are
 
 ## 7. The spec JSON
 
-`bleep_spec_json()` is the same description the board UI gets from the engine for native modules (`describeTypes()`): per node type, `type`, `name`, `category`, `colour`, `description`, `creatable`, `params[]` (`id`, `name`, `kind` float | int | bool | choice, `default` in 0 … 1, `steps`, `modulatable`, `choices`, `min`, `max`, `group`, conditional display `showIf`, `names`), `inputs[]` and `outputs[]` (`id`, `name`, `type`, `bipolar`, `normal`, …). Unknown fields are ignored by hosts, so adding one is compatible. The order of `params`, `inputs` and `outputs` **is** the index order of every call above and of the buffers.
+`bleep_spec_json()` is **the same description the board UI gets from the engine for native modules** (`describeTypes()`), and complete: a host rebuilds a node type's whole `ModuleSpec` from it, so the engine cannot tell it from a compiled-in one. Per node type: `type`, `name`, `category`, `colour`, `description`, `port`, `creatable`, `standaloneOnly`, `params[]` (`id`, `name`, `kind` float | int | bool | choice, `default` in 0 … 1, `def` in units, `min`, `max`, `map` exp | skew and `centre`, `format`, `decimals`, `label`, `steps`, `modulatable`, `choices`, `groups`, `group`, conditional display `showIf`, `namesBy` and `names`), `inputs[]` and `outputs[]` (`id`, `name`, `type`, `bipolar`, `normal`, conditional display, names), `buttons[]`, `memoryHeavy`, `groupColumns` and, for the harmony bus, `harmony`. The parity test compares it with the native description of every module. Unknown fields are ignored by hosts, so adding one is compatible. The order of `params`, `inputs` and `outputs` **is** the index order of every call above and of the buffers.
 
 ## 8. What a host must do
 
@@ -114,7 +129,7 @@ Rows have 32 floats even for the last, shorter chunk; the first `numSamples` are
 
 ## 9. Not in ABI 1
 
-What a native module can do today and a wasm module cannot, yet: the board-wide harmony buses (Harmony Master and the quantizers that read them), Voice Cells and the per-voice index, the port nodes (audio and MIDI in and out), the Link tempo, and the media folder (samples). The 80 browser files omit those or build without them (`patch/web/README.md`, "Status"). They arrive as compatible additions, each a new optional export, or as a new ABI version when one changes what a module sees.
+What a native module can do today and a wasm module cannot, yet: the port nodes (audio and MIDI in and out; they are not DSP modules and stay in the engine) and the Link tempo. The harmony buses, the per-voice index, the transport-start event and sample files were missing from the first version of the shim and are now optional exports and imports (sections 4, 5 and 5a), added as compatible changes.
 
 ## 10. Conformance
 

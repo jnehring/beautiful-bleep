@@ -14,10 +14,12 @@ std::vector<std::pair<std::string, RegisterFn>>& autoRegistered() {
 
 AutoRegister::AutoRegister(const char* name, RegisterFn fn) { autoRegistered().emplace_back(name, fn); }
 
-const Registry& Registry::get() {
-    static const Registry registry;
+Registry& Registry::instance() {
+    static Registry registry;
     return registry;
 }
+
+const Registry& Registry::get() { return instance(); }
 
 Registry::Registry() {
     registerOscillatorModule(*this);
@@ -117,13 +119,15 @@ Registry::Registry() {
 
 void Registry::add(ModuleSpec spec, Factory factory) {
     Entry e{std::make_unique<ModuleSpec>(std::move(spec)), std::move(factory)};
-    order_.push_back(e.spec.get());
+    const auto old = std::find_if(order_.begin(), order_.end(), [&](const ModuleSpec* s) { return s->type == e.spec->type; });
+    if (old != order_.end()) *old = e.spec.get();  // a new version takes the old one's place in the lists
+    else order_.push_back(e.spec.get());
     entries_.push_back(std::move(e));
 }
 
 const ModuleSpec* Registry::find(const std::string& type) const noexcept {
-    for (const auto& e : entries_)
-        if (e.spec->type == type) return e.spec.get();
+    for (auto it = entries_.rbegin(); it != entries_.rend(); ++it)  // the newest first: a replaced type is found as its new version
+        if (it->spec->type == type) return it->spec.get();
     return nullptr;
 }
 
@@ -135,8 +139,8 @@ const ModuleSpec* Registry::forPort(PortKind kind) const noexcept {
 }
 
 std::unique_ptr<Module> Registry::create(const std::string& type) const {
-    for (const auto& e : entries_)
-        if (e.spec->type == type) return e.factory ? e.factory(*e.spec) : nullptr;
+    for (auto it = entries_.rbegin(); it != entries_.rend(); ++it)
+        if (it->spec->type == type) return it->factory ? it->factory(*it->spec) : nullptr;
     return nullptr;
 }
 

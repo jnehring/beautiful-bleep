@@ -228,9 +228,10 @@ class Fixtures(unittest.TestCase):
         import subprocess
         with tempfile.TemporaryDirectory() as d:
             subprocess.run([sys.executable, str(Path(__file__).parent / "signing.py"), "fixture", d], check=True, capture_output=True)
-            for f in sorted(Path(d).iterdir()):
-                self.assertEqual(f.read_bytes(), (FIXTURES / f.name).read_bytes(), f.name)
-            self.assertEqual(sorted(p.name for p in Path(d).iterdir()), sorted(p.name for p in FIXTURES.iterdir()))
+            made = sorted(p.relative_to(d).as_posix() for p in Path(d).rglob("*") if p.is_file())
+            self.assertEqual(made, sorted(p.relative_to(FIXTURES).as_posix() for p in FIXTURES.rglob("*") if p.is_file()))
+            for name in made:
+                self.assertEqual((Path(d) / name).read_bytes(), (FIXTURES / name).read_bytes(), name)
 
     def test_every_case_gets_its_verdict(self):
         spec = json.loads((FIXTURES / "cases.json").read_text())

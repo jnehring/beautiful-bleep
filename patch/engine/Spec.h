@@ -191,6 +191,28 @@ inline const char* signalName(Signal s) noexcept {
         case Signal::Gate: return "gate";
         case Signal::Trigger: return "trigger";
         case Signal::Pitch: return "pitch";
+inline const char* formatName(ParamSpec::Format f) noexcept {
+    switch (f) {
+        case ParamSpec::Format::Seconds: return "seconds";
+        case ParamSpec::Format::Percent: return "percent";
+        case ParamSpec::Format::Hertz: return "hertz";
+        case ParamSpec::Format::Choice: return "choice";
+        case ParamSpec::Format::Integer: return "integer";
+        case ParamSpec::Format::Toggle: return "toggle";
+        case ParamSpec::Format::FilterMode: return "filterMode";
+        case ParamSpec::Format::Semitones: return "semitones";
+        case ParamSpec::Format::Number: break;
+    }
+    return "number";
+}
+
+inline bool formatFromName(const std::string& name, ParamSpec::Format& out) noexcept {
+    for (auto f : {ParamSpec::Format::Number, ParamSpec::Format::Seconds, ParamSpec::Format::Percent, ParamSpec::Format::Hertz, ParamSpec::Format::Choice,
+                   ParamSpec::Format::Integer, ParamSpec::Format::Toggle, ParamSpec::Format::FilterMode, ParamSpec::Format::Semitones})
+        if (name == formatName(f)) { out = f; return true; }
+    return false;
+}
+
         case Signal::Audio: return "audio";
         case Signal::Notes: return "notes";
         case Signal::Control: break;
@@ -212,6 +234,16 @@ inline const char* portKindName(PortKind k) noexcept {
         case PortKind::Patch: return "patch";
         case PortKind::MidiIn: return "midi-in";
         case PortKind::MidiOut: return "midi-out";
+inline bool portKindFromName(const std::string& n, PortKind& out) noexcept {
+    for (PortKind k : {PortKind::None, PortKind::Patch, PortKind::MidiIn, PortKind::MidiOut, PortKind::AudioIn, PortKind::AudioOut, PortKind::Instrument,
+                       PortKind::AudioInsert, PortKind::AudioBridge, PortKind::Link, PortKind::MidiDevice})
+        if (n == portKindName(k)) {
+            out = k;
+            return true;
+        }
+    return false;
+}
+
         case PortKind::AudioIn: return "audio-in";
         case PortKind::AudioOut: return "audio-out";
         case PortKind::Instrument: return "instrument";
