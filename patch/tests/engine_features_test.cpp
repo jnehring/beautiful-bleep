@@ -296,8 +296,43 @@ void handoff() {
 
 }  // namespace
 
+void missingModules() {
+    g_test = "missing module";
+    // A board that uses a module this machine does not have: the node stays (with what it was saved with), so does the cable to it,
+    // and everything else still runs.
+    auto missing = node("m", "no-such-module", obj({{"depth", 0.25}}));
+    missing.getDynamicObject()->setProperty("x", 120.0);
+    missing.getDynamicObject()->setProperty("data", obj({{"steps", 16}}));
+    const juce::var doc = board::sanitise(obj({{"format", 1}, {"id", "t"},
+                                               {"nodes", juce::Array<juce::var>{node("k", "test-const"), missing, node("p", "test-probe")}},
+                                               {"cables", juce::Array<juce::var>{cable("1", "k", "a", "p", "a"), cable("2", "k", "a", "m", "in"), cable("3", "m", "out", "p", "b")}}}));
+    juce::StringArray warnings;
+    const juce::var again = board::sanitise(doc, &warnings);  // a second pass changes nothing
+    EXPECT(warnings.isEmpty() || warnings[0].contains("placeholder"));
+    int nodes = 0, cables = 0;
+    bool kept = false;
+    for (const auto& n : *again["nodes"].getArray()) {
+        ++nodes;
+        if (n["id"].toString() == "m") kept = (bool)n["missing"] && n["type"].toString() == "no-such-module" && (double)n["x"] == 120.0 &&
+                                              (int)n["data"]["steps"] == 16 && (double)n["params"]["depth"] == 0.25;
+    }
+    for (const auto& c : *again["cables"].getArray()) { (void)c; ++cables; }
+    EXPECT(nodes == 3 && kept);
+    EXPECT(cables == 3);
+    // the compiled board leaves the placeholder out and runs the rest
+    Compiled c;
+    c.program = Program::compile(board::parse(doc), c.modules, {}, 48000.0);
+    EXPECT(c.program != nullptr && c.modules.count("m") == 0 && c.modules.count("p") == 1);
+    runOnce(*c.program);
+    EXPECT(c.probe("p") && c.probe("p")->in[0] == 1.0f);
+    // an unknown node without an id is still dropped
+    const juce::var bad = board::sanitise(obj({{"format", 1}, {"nodes", juce::Array<juce::var>{obj({{"type", "no-such-module"}})}}}));
+    EXPECT(bad["nodes"].getArray()->size() == 0);
+}
+
 int main() {
     normalledInputs();
+    missingModules();
     outputFlags();
     harmonyOrder();
     steppedKnobs();

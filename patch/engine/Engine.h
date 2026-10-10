@@ -130,6 +130,8 @@ private:
     void recompile();
     void reconcile(bool force);
     void runTick(int64_t block, const BlockIO& claimer) noexcept;
+    /// Modules were installed: nodes of a type that was missing are real nodes now.
+    void modulesChanged();
     void clearBoard();
     void promoteMain();
     void applySampleRate();

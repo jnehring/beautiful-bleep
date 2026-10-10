@@ -333,6 +333,34 @@ juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb S
 
 # bleep_add_plugin(TARGET <t> PRODUCT <name> CODE <4 chars> KIND <PortKind>
 #                  [SYNTH] [MIDI_OUT] [VST3_CATEGORIES ...])
+# Modules installed from the Bleep Store (doc/specs/store.md): the wasm module host, the store client and signature checks.
+# With BLEEP_PATCH_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Store section.
+# The store's root public keys (hex, one per line) are in store/root-keys.txt, if it exists.
+set(BLEEP_STORE_ROOTS "")
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/store/root-keys.txt")
+    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/store/root-keys.txt" BLEEP_STORE_ROOT_LINES REGEX "^[0-9a-fA-F]+$")
+    list(JOIN BLEEP_STORE_ROOT_LINES "," BLEEP_STORE_ROOTS)
+endif ()
+function(bleep_use_store target)
+    if (NOT BLEEP_PATCH_WASMTIME_DIR)
+        return()
+    endif ()
+    if (NOT TARGET bleep_wasmtime)
+        add_library(bleep_wasmtime STATIC IMPORTED)
+        set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_PATCH_WASMTIME_DIR}/lib/libwasmtime.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_PATCH_WASMTIME_DIR}/include")
+        if (APPLE)
+            set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
+        endif ()
+    endif ()
+    target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
+        engine/wasm/WasmRegistry.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp
+        store/Package.cpp store/Client.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
+    target_include_directories(${target} PRIVATE engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+    target_compile_definitions(${target} PRIVATE BLEEP_WASM_MODULES=1 "BLEEP_STORE_ROOTS=\"${BLEEP_STORE_ROOTS}\"")
+    target_link_libraries(${target} PRIVATE bleep_wasmtime juce::juce_cryptography)
+endfunction()
+
 function(bleep_add_plugin)
     cmake_parse_arguments(P "SYNTH;MIDI_OUT" "TARGET;PRODUCT;CODE;KIND" "VST3_CATEGORIES" ${ARGN})
     string(TOLOWER "${P_TARGET}" lower)
@@ -375,6 +403,7 @@ function(bleep_add_plugin)
     if (BLEEP_PATCH_UI_DEV)
         # Never ship these builds: they read the UI from this machine's source tree.
         target_compile_definitions(${P_TARGET} PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
+    bleep_use_store(${P_TARGET})
     endif ()
     # Modules register themselves with a static initialiser (BLEEP_REGISTER_MODULE). JUCE puts the sources in a
     # static library, and a linker drops archive members nothing references: the plugin would offer only the modules
@@ -494,6 +523,7 @@ if (BLEEP_PATCH_BUILD_APP)
     if (BLEEP_PATCH_UI_DEV)
         target_compile_definitions(BleepPatchApp PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     endif ()
+    bleep_use_store(BleepPatchApp)
     target_link_libraries(BleepPatchApp PRIVATE
         bleep_board_web bleep_patch_dsp
         juce::juce_audio_utils juce::juce_gui_extra

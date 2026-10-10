@@ -17,6 +17,9 @@
 //              "openPresets"     show the preset browser
 #include "BoardWindow.h"
 #include "Engine.h"
+#if defined(BLEEP_WASM_MODULES)
+#include "wasm/ModuleStore.h"
+#endif
 
 #include "BoardWeb.h"
 
@@ -71,6 +74,28 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
         if (d.getChildFile(path).loadFileAsData(data)) return bytesOf(data.getData(), data.getSize());
     }
 #endif
+#if defined(BLEEP_WASM_MODULES)
+    if (path == "module-views.json") {  // the views built into the window, and those of the installed modules
+        juce::String embedded = "[]";
+        for (int i = 0; i < BoardWeb::namedResourceListSize; ++i)
+            if (path == BoardWeb::originalFilenames[i]) {
+                int size = 0;
+                if (const char* data = BoardWeb::getNamedResource(BoardWeb::namedResourceList[i], size)) embedded = juce::String::fromUTF8(data, size);
+            }
+        const juce::var a = juce::JSON::parse(embedded), b = juce::JSON::parse(juce::String(bleep::engine::ModuleStore::instance().moduleViewsJson()));
+        juce::Array<juce::var> all;
+        if (auto* x = a.getArray()) all.addArray(*x);
+        if (auto* y = b.getArray()) all.addArray(*y);
+        const auto json = juce::JSON::toString(juce::var(all)).toStdString();
+        return bytesOf(json.data(), json.size());
+    }
+    {
+        bool embedded = false;
+        for (int i = 0; i < BoardWeb::namedResourceListSize; ++i) embedded = embedded || path == BoardWeb::originalFilenames[i];
+        std::vector<uint8_t> bytes;
+        if (!embedded && bleep::engine::ModuleStore::instance().viewFile(path.toStdString(), bytes)) return bytesOf(bytes.data(), bytes.size());
+    }
+#endif
     for (int i = 0; i < BoardWeb::namedResourceListSize; ++i) {
         if (path != BoardWeb::originalFilenames[i]) continue;
         int size = 0;
@@ -81,6 +106,34 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 }
 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
+
+#if defined(BLEEP_WASM_MODULES)
+/// The Bleep plugins in the system's VST3 folders (the Store section lists them; installing them is the app's job).
+juce::var installedPlugins() {
+    juce::Array<juce::File> folders;
+#if JUCE_MAC
+    folders.add(juce::File("/Library/Audio/Plug-Ins/VST3"));
+    folders.add(juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile("Library/Audio/Plug-Ins/VST3"));
+#elif JUCE_WINDOWS
+    folders.add(juce::File::getSpecialLocation(juce::File::commonApplicationDataDirectory).getParentDirectory().getChildFile("Program Files/Common Files/VST3"));
+#else
+    folders.add(juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile(".vst3"));
+    folders.add(juce::File("/usr/lib/vst3"));
+#endif
+    juce::Array<juce::var> list;
+    for (const char* name : {"Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep Audio Insert"}) {
+        auto* o = new juce::DynamicObject();
+        o->setProperty("name", name);
+        o->setProperty("installed", false);
+        for (const auto& f : folders) {
+            const auto bundle = f.getChildFile(juce::String(name) + ".vst3");
+            if (bundle.exists()) { o->setProperty("installed", true); o->setProperty("path", bundle.getFullPathName()); break; }
+        }
+        list.add(juce::var(o));
+    }
+    return list;
+}
+#endif
 
 // Presets: one JSON file per preset, shared by all sets. Cell presets (spec
 // §8.1), Drum Grid patterns (doc/specs/modules/drum-grid.md §4.6) and whole
@@ -158,6 +211,9 @@ public:
                     r.getDynamicObject()->setProperty("types", board::describeTypes());
                     r.getDynamicObject()->setProperty("status", engine_.statusLine());
                     r.getDynamicObject()->setProperty("standalone", engine_.standalone());
+#if defined(BLEEP_WASM_MODULES)
+                    r.getDynamicObject()->setProperty("store", true);  // the Store section is offered
+#endif
 #if defined(BLEEP_UI_DEV_ROOT)
                     r.getDynamicObject()->setProperty("dev", true);
 #endif
@@ -259,6 +315,39 @@ public:
                         for (const auto& id : *ids) watched_.insert(id.toString());
                     done({});
                 });
+#if defined(BLEEP_WASM_MODULES)
+        using bleep::engine::ModuleStore;
+        options = options
+            .withNativeFunction("types", [](const juce::Array<juce::var>&, Completion done) { done(board::describeTypes()); })
+            .withNativeFunction("storeStatus", [](const juce::Array<juce::var>&, Completion done) { done(ModuleStore::instance().status()); })
+            .withNativeFunction("storeRefresh", [](const juce::Array<juce::var>&, Completion done) {
+                ModuleStore::instance().refreshIndexAsync();
+                done({});
+            })
+            .withNativeFunction("storeInstall", [](const juce::Array<juce::var>& a, Completion done) {
+                ModuleStore::instance().installAsync(a[0].toString().toStdString());
+                done({});
+            })
+            .withNativeFunction("storeInstallAll", [](const juce::Array<juce::var>&, Completion done) {
+                ModuleStore::instance().installAllAsync();
+                done({});
+            })
+            .withNativeFunction("storeRemove", [](const juce::Array<juce::var>& a, Completion done) {
+                ModuleStore::instance().removeAsync(a[0].toString().toStdString());
+                done({});
+            })
+            .withNativeFunction("storeSettings", [](const juce::Array<juce::var>& a, Completion done) {
+                auto s = ModuleStore::instance().settings();
+                const juce::var allow = a[0]["allowUnsigned"];
+                if (allow.isObject()) {
+                    s.allowUnsigned.module = (bool)allow["module"];
+                    s.allowUnsigned.plugin = (bool)allow["plugin"];
+                }
+                ModuleStore::instance().setSettings(s);
+                done({});
+            })
+            .withNativeFunction("storePlugins", [](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); });
+#endif
 #if JUCE_WINDOWS
         options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
                       .withWinWebView2Options(juce::WebBrowserComponent::Options::WinWebView2{}.withUserDataFolder(

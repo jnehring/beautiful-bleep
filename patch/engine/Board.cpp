@@ -161,8 +161,34 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
         for (const auto& n : *a) {
             const juce::String id = str(n, "id"), type = str(n, "type");
             const ModuleSpec* spec = reg.find(type.toStdString());
-            if (id.isEmpty() || spec == nullptr) {
-                warn("dropped node '" + id + "' of unknown type '" + type + "'");
+            if (id.isEmpty()) {
+                warn("dropped a node without an id");
+                continue;
+            }
+            if (spec == nullptr) {
+                // A module that is not installed (doc/specs/store.md, section 9): the node stays, with everything it was saved with,
+                // so the board is not damaged by opening it on a machine without that module. The compiler leaves it out, and
+                // cables to it are kept; the UI shows a placeholder. Installing the module brings the node back to life.
+                if (!ids.insert(id).second) {
+                    warn("dropped duplicate node '" + id + "'");
+                    continue;
+                }
+                auto* o = new juce::DynamicObject();
+                if (auto* src = n.getDynamicObject())
+                    for (const auto& prop : src->getProperties()) o->setProperty(prop.name, prop.value);
+                o->setProperty("id", id);
+                o->setProperty("type", type);
+                o->setProperty("name", str(n, "name").isNotEmpty() ? str(n, "name") : type);
+                o->setProperty("x", num(n, "x", 0.0));
+                o->setProperty("y", num(n, "y", 0.0));
+                juce::String parent = str(n, "parent");
+                if (parent.isNotEmpty() && (cells.count(parent) == 0 || parent == id)) parent = {};
+                o->setProperty("parent", parent);
+                o->setProperty("muted", (bool)n.getProperty("muted", false));
+                o->setProperty("missing", true);
+                if (!n.hasProperty("params")) o->setProperty("params", juce::var(new juce::DynamicObject()));
+                nodes.add(juce::var(o));
+                warn("kept node '" + id + "' of type '" + type + "' as a placeholder (not installed)");
                 continue;
             }
             if (!ids.insert(id).second) {
@@ -201,6 +227,7 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
             o->setProperty("parent", parent);
             o->setProperty("muted", (bool)n.getProperty("muted", false));
             auto* params = new juce::DynamicObject();
+            o->removeProperty("missing");  // its module is here (again)
             const juce::var savedParams = n["params"];
             for (const auto& p : spec->params) {
                 float v = p.defaultNormalised();
@@ -329,11 +356,13 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
             const NodeModel* src = model.node(fn);
             const NodeModel* dst = model.node(tn);
             Signal st{}, dt{};
-            if (!src || !dst || !model.outputType(*src, fj, st) || !model.inputType(*dst, tj, dt)) {
+            // a node of a module that is not installed has no jacks to check: its cables are kept as they were saved
+            const bool placeholder = (src && !src->spec) || (dst && !dst->spec);
+            if (!src || !dst || (!placeholder && (!model.outputType(*src, fj, st) || !model.inputType(*dst, tj, dt)))) {
                 warn("dropped cable to unknown jacks " + juce::String(fn + "." + fj + " → " + tn + "." + tj));
                 continue;
             }
-            if (!compatible(st, dt)) {
+            if (!placeholder && !compatible(st, dt)) {
                 warn("dropped incompatible cable " + juce::String(fn + "." + fj + " → " + tn + "." + tj));
                 continue;
             }
@@ -643,3 +672,7 @@ juce::var describeTypes() {
 
 }  // namespace board
 }  // namespace bleep::engine
+            o->setProperty("def", p.def);
+            o->setProperty("format", formatName(p.format));
+            o->setProperty("decimals", p.decimals);
+            if (!p.label.empty()) o->setProperty("label", juce::String(p.label));

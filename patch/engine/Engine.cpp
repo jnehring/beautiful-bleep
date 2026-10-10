@@ -3,6 +3,9 @@
 
 #include "Media.h"
 #include "VoiceCell.h"
+#if defined(BLEEP_WASM_MODULES)
+#include "wasm/ModuleStore.h"
+#endif
 
 #include <algorithm>
 #include <cmath>
@@ -48,6 +51,14 @@ bool sendsToTrack(PortKind k) {
 Engine::Engine() {
     media::setFolder(juce::File::getSpecialLocation(juce::File::userMusicDirectory)
                          .getChildFile("Bleep Patch").getChildFile("Media").getFullPathName().toStdString());
+#if defined(BLEEP_WASM_MODULES)
+    {  // the modules installed on this machine (doc/specs/store.md): registered before any board is loaded
+        auto& store = ModuleStore::instance();
+        store.postToMessageThread = [](std::function<void()> f) { juce::MessageManager::callAsync(std::move(f)); };
+        store.onTypesChanged = [this] { modulesChanged(); };
+        store.start();
+    }
+#endif
     startTimerHz(10);
 }
 
@@ -496,6 +507,13 @@ void Engine::reconcileNow() { reconcile(true); }
 
 void Engine::timerCallback() {
     applySampleRate();
+void Engine::modulesChanged() {
+    if (!hasBoard()) return;
+    board_ = board::sanitise(board_);  // nodes that were placeholders get their module's parameters and data
+    recompile();
+    generation_.fetch_add(1);
+}
+
     collectGarbage();
     reconcile(false);
     pollModuleData();

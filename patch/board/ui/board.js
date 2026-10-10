@@ -332,6 +332,8 @@
     if (n.type === "cell") sub = "Cell";
     if (n.type === "voice-cell") sub = "×" + paramValue(n, "voices");
     if (isBoundary(n)) sub = "";
+    const missingModule = !types[n.type] && !isCellLike(n) && !isBoundary(n) && !isPort(n);
+    if (missingModule) { e.classList.add("missing"); sub = "not installed"; }
     if (n.name === sub) sub = t.name;
     if (sub) head.appendChild(el("span", "n-sub", sub));
     if (hasPanel(n)) {
@@ -343,6 +345,22 @@
       head.appendChild(pb);
     }
     e.appendChild(head);
+    if (missingModule) {  // the module of this node is not on this machine: the node waits, with its settings, and its cables are kept
+      const note = el("div", "n-missing", n.type);
+      e.appendChild(note);
+      if (window.BleepStoreView) {
+        const b = el("button", "n-install", "Install");
+        b.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+        b.addEventListener("click", async (ev) => {
+          ev.stopPropagation();
+          b.disabled = true;
+          b.textContent = "Installing…";
+          const ok = await window.BleepStoreView.installType(n.type);
+          if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (window.BleepStoreView.lastMessage() || "not found in the store"); }
+        });
+        e.appendChild(b);
+      }
+    }
     if (n.type === "voice-cell") {
       // One dot per voice, lit while it plays (spec §9.3); a warning if the voice makes no sound.
       const dots = el("div", "n-voices");
@@ -2338,12 +2356,25 @@
     })));
   }
 
+  /// A module was installed: ask for the node types again, load their views and redraw (placeholders come to life).
+  async function refreshTypes() {
+    const list = await native("types");
+    if (!Array.isArray(list)) return;
+    typeList = list;
+    types = Object.fromEntries(typeList.map((t) => [t.type, t]));
+    await loadModuleViews(typeList);
+    const m = await native("init");  // the board as the engine has it now: the node types it kept are compiled again
+    if (m) applyMessage(m);
+    render();
+  }
+
   async function start() {
     const m = await native("init");
     if (!m) return;
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
+    if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes });
     dev = !!m.dev;
     standalone = !!m.standalone;
     {  // the preset browser: whole patches (spec §11.5); in a plugin their port nodes map onto the set's ports

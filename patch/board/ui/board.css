@@ -339,3 +339,49 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pb-load { background: var(--accent); color: #0d1f1d; border-color: var(--accent); font-weight: 600; }
 .pb-load:hover { background: #6fe0d5; }
 .pb-empty { color: var(--muted); padding: 30px; text-align: center; }
+
+/* ---- Store section (store.js) ---- */
+.sections { display: inline-flex; margin-right: 10px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.sections button { border: 0; border-radius: 0; background: transparent; color: var(--muted); padding: 4px 12px; }
+.sections button.on { background: var(--panel-3); color: var(--text); }
+body.in-store #main, body.in-store #crumbs, body.in-store #add, body.in-store #panels, body.in-store #presets,
+body.in-store #undo, body.in-store #redo { display: none; }
+#store { position: absolute; top: 36px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
+#store h2 { margin: 0; font-size: 18px; font-weight: 600; }
+#store h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+#store .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
+#store .st-summary { color: var(--muted); }
+#store .st-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+#store .st-tabs button { border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-bottom: 2px solid transparent; border-radius: 0; }
+#store .st-tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
+#store .st-message:not(:empty) { margin: 0 0 10px; color: var(--warn); }
+#store .st-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+#store .st-search { flex: 1; max-width: 320px; background: var(--panel); border: 1px solid var(--line); color: var(--text); padding: 6px 9px; border-radius: 5px; }
+#store button { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); padding: 5px 11px; border-radius: 5px; cursor: pointer; }
+#store button:hover:not(:disabled) { background: var(--panel-3); }
+#store button.primary { background: var(--accent); color: #07201d; border-color: var(--accent); font-weight: 600; }
+#store button:disabled { opacity: .5; cursor: default; }
+#store .st-note { padding: 8px 11px; margin: 0 0 12px; border-left: 3px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 0 5px 5px 0; }
+#store .st-note.warn { border-left-color: var(--mod); color: var(--text); }
+#store .st-note.bad { border-left-color: var(--warn); color: var(--text); }
+#store .st-list { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+#store .st-row { display: grid; grid-template-columns: 1.4fr .7fr .7fr 1.6fr 1fr; gap: 10px; align-items: center; padding: 7px 12px; border-top: 1px solid var(--line); }
+#store .st-row.plugins { grid-template-columns: 1.4fr .5fr 3fr; }
+#store .st-row.single { grid-template-columns: 1fr; }
+#store .st-row:first-child { border-top: 0; }
+#store .st-head { background: var(--panel); color: var(--muted); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
+#store .st-name { font-weight: 600; }
+#store .st-ver { color: var(--muted); font-variant-numeric: tabular-nums; }
+#store .st-why { color: var(--muted); font-size: 11px; margin-left: 8px; }
+#store .st-actions { display: flex; gap: 6px; justify-content: flex-end; }
+#store .st-busy { color: var(--accent); }
+#store .st-empty { padding: 14px 12px; color: var(--muted); }
+#store .st-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--line); }
+#store .st-badge.ok { color: #7ee2a8; border-color: #2c6b4a; }
+#store .st-badge.warn { color: var(--mod); border-color: #7a5d1f; }
+#store .st-badge.bad { color: var(--warn); border-color: #7a3a33; }
+#store .st-toggle { display: flex; align-items: center; gap: 9px; padding: 7px 0; }
+#nodes .node.missing { border-style: dashed; opacity: .85; }
+#nodes .node .n-missing { padding: 6px 10px; color: var(--muted); font-size: 11px; }
+#nodes .node .n-install { margin: 0 10px 8px; padding: 3px 10px; font-size: 11px; background: var(--accent); color: #07201d; border: 0; border-radius: 4px; cursor: pointer; }
+#nodes .node .n-install:disabled { opacity: .6; cursor: default; }
