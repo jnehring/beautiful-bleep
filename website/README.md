@@ -47,7 +47,7 @@ session cookie (HttpOnly, SameSite=Lax, Secure when `BLEEP_COOKIE_SECURE=true`) 
 
 - Roles: `user` (default for everyone who registers) and `admin`. Endpoints declare what they need with
   `Depends(require_role("admin"))` (`api/app/deps.py`). Users can edit only their own profile (`PATCH /api/me`) and
-  password; admins manage every user under `/api/admin/users`. The Admin menu in the header (admins only) opens `/admin/tokens/` (create and revoke release tokens) and `/admin/downloads/` (the registry's plugins, modules and presets; `GET /api/admin/downloads`). The last active admin
+  password; admins manage every user under `/api/admin/users`. The Admin menu in the header (admins only) opens `/admin/tokens/` (create and revoke release tokens). The public Bleep Store in the main menu (`/store/`, no login; `GET /api/store` with `kind`, `q`, `page`, `page_size`) lists what the registry has published. The last active admin
   cannot be demoted, deactivated or deleted.
 - The first admin is created on start from `BLEEP_ADMIN_EMAIL` / `BLEEP_ADMIN_PASSWORD`. Everyone else registers as `user`.
 - Passwords are hashed with Argon2; sessions are random tokens of which only the SHA-256 is stored.

@@ -19,15 +19,15 @@ export default function SiteNav() {
             <a key={a} href={AUDIENCES[a].home} aria-current={a === current ? "true" : undefined}>{AUDIENCES[a].title}</a>
           ))}
           <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Bleep Board</a>
+          <a href="/store/" aria-current={path.startsWith("/store") ? "true" : undefined}>Bleep Store</a>
         </nav>
         <nav className="account" aria-label="Account">
           {user ? (
             <>
               {user.role === "admin" && (
                 <div className="dropdown">
-                  <a href="/admin/downloads/" aria-current={path.startsWith("/admin") ? "true" : undefined} aria-haspopup="true">Admin</a>
+                  <a href="/admin/tokens/" aria-current={path.startsWith("/admin") ? "true" : undefined} aria-haspopup="true">Admin</a>
                   <div className="dropdown-menu">
-                    <a href="/admin/downloads/" aria-current={path.startsWith("/admin/downloads") ? "page" : undefined}>Downloads</a>
                     <a href="/admin/tokens/" aria-current={path.startsWith("/admin/tokens") ? "page" : undefined}>Tokens</a>
                   </div>
                 </div>

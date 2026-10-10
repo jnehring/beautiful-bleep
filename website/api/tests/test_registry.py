@@ -202,30 +202,35 @@ def test_token_check(client, make_admin):
     assert client.get("/api/registry/token", headers={"Authorization": f"Bearer {token}"}).json() == {"name": "ci"}
 
 
-def test_admin_downloads_lists_contents(client, make_admin):
+def test_store_lists_published_without_login(client, make_admin):
+    token = make_token(client, make_admin)
+    assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
+    assert release(client, token, "bleep-patch", "0.2.0").status_code == 200
+    assert release(client, token, "bleep-patch", "0.3.0", publish=False).status_code == 201
+    assert release(client, token, "other-fx", "1.0.0").status_code == 200
+    r = client.get("/api/store")  # public: no login
+    assert r.status_code == 200
+    body = r.json()
+    assert body["total"] == 2 and [(i["slug"], i["version"]) for i in body["items"]] == [("bleep-patch", "0.2.0"), ("other-fx", "1.0.0")]
+    assert client.get("/api/store?kind=module").json()["total"] == 0
+    assert client.get("/api/store?kind=preset").json()["items"] == []
+    assert [i["slug"] for i in client.get("/api/store?q=OTHER").json()["items"]] == ["other-fx"]
+    page = client.get("/api/store?page=2&page_size=1").json()
+    assert page["total"] == 2 and [i["slug"] for i in page["items"]] == ["other-fx"]
+    assert client.get("/api/store?page=0").status_code == 422
+
+
+def test_store_detail_is_public_and_hides_drafts(client, make_admin):
     token = make_token(client, make_admin)
     assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
     assert release(client, token, "bleep-patch", "0.2.0", publish=False).status_code == 201
-    assert client.get("/api/admin/downloads").status_code == 401
-    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
-    r = client.get("/api/admin/downloads")
+    r = client.get("/api/store/plugin/bleep-patch")
     assert r.status_code == 200
-    plugins = r.json()["plugins"]
-    assert [(p["version"], p["status"]) for p in plugins] == [("0.2.0", "draft"), ("0.1.0", "published")]
-    assert r.json()["modules"] == [] and r.json()["presets"] == []
-
-
-def test_admin_download_detail(client, make_admin):
-    token = make_token(client, make_admin)
-    assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
-    assert client.get("/api/admin/downloads/plugin/bleep-patch").status_code == 401
-    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
-    r = client.get("/api/admin/downloads/plugin/bleep-patch")
-    assert r.status_code == 200
-    rel = r.json()["releases"][0]
-    assert rel["version"] == "0.1.0" and rel["file_list"] and rel["file_list"][0]["uploaded"] is True
-    assert client.get("/api/admin/downloads/module/bleep-patch").status_code == 404
-    assert client.get("/api/admin/downloads/bogus/x").status_code == 422
+    assert [x["version"] for x in r.json()["releases"]] == ["0.1.0"]
+    f = r.json()["releases"][0]["file_list"][0]
+    assert f["uploaded"] is True and f["signer"]["publisher"] == "bleep" and "uploaded_by" not in f
+    assert client.get("/api/store/module/bleep-patch").status_code == 404
+    assert client.get("/api/store/bogus/x").status_code == 422
 
 
 def test_platform_can_be_added_to_a_published_release(client, make_admin, storage):
@@ -406,14 +411,6 @@ def test_added_platform_must_be_signed_by_the_same_publisher(client, make_admin,
     r = client.post("/api/registry/plugin/bleep-patch/releases/0.1.0/platforms", headers=h,
                     json={"files": [declare("x-linux.zip", b"y", platform="linux-x86_64", kit=other)]})
     assert r.status_code == 403  # a token for bleep, a signature by another
-
-
-def test_downloads_detail_shows_signer_and_uploader(client, make_admin):
-    token = make_token(client, make_admin)
-    assert release(client, token).status_code == 200
-    assert client.post("/api/auth/login", json={"email": "admin@example.com", "password": "admin-password-1"}).status_code == 200
-    f = client.get("/api/admin/downloads/plugin/bleep-patch").json()["releases"][0]["file_list"][0]
-    assert f["signer"]["publisher"] == "bleep" and f["uploaded_by"] == "ci"
 
 
 def test_developer_create_prints_a_kit_that_signs(client, capsys, make_admin):

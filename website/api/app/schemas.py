@@ -123,42 +123,47 @@ class ReleaseOut(BaseModel):
     published_at: datetime | None
 
 
-class DownloadItemOut(BaseModel):
+class StoreItemOut(BaseModel):
+    kind: str
     slug: str
     version: str
     channel: str
-    status: str
     title: str
+    notes: str
     files: int
     bytes: int
     published_at: datetime | None
-    created_at: datetime
 
 
-class DownloadsOut(BaseModel):
-    plugins: list[DownloadItemOut]
-    modules: list[DownloadItemOut]
-    presets: list[DownloadItemOut]
+class StoreListOut(BaseModel):
+    items: list[StoreItemOut]
+    total: int
+    page: int
+    page_size: int
 
 
-class DownloadFileOut(BaseModel):
+class StoreFileOut(BaseModel):
     path: str
     bytes: int
     sha256: str
     platform: str
     uploaded: bool
     signer: dict | None = None        # {"publisher", "keyId"} of the developer signature
-    uploaded_by: str | None = None    # the name of the release token that declared the file
 
 
-class DownloadReleaseOut(DownloadItemOut):
+class StoreReleaseOut(BaseModel):
+    version: str
+    channel: str
     notes: str
+    files: int
+    bytes: int
+    published_at: datetime | None
     requires: dict
-    file_list: list[DownloadFileOut]
+    file_list: list[StoreFileOut]
 
 
-class DownloadDetailOut(BaseModel):
+class StoreDetailOut(BaseModel):
     kind: str
     slug: str
     title: str
-    releases: list[DownloadReleaseOut]
+    releases: list[StoreReleaseOut]

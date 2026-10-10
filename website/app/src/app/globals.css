@@ -90,3 +90,11 @@ button.linklike { background: none; border: 0; padding: 0; font: inherit; color:
 .admin th, .admin td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .admin .secret { border: 1px solid var(--accent); border-radius: 8px; padding: 12px; margin: 12px 0; word-break: break-all; }
 .admin .error { color: #d14343; } .admin .muted { color: var(--muted); }
+
+/* Bleep Store */
+.store-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 16px 0; }
+.store-bar input { flex: 1 1 200px; padding: 8px 10px; font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+.store-bar [role="group"] { display: flex; gap: 6px; flex-wrap: wrap; }
+.admin button[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.admin button[disabled] { opacity: .5; cursor: default; }
+.pager { display: flex; gap: 16px; align-items: center; justify-content: center; margin: 16px 0; }
