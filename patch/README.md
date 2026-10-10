@@ -11,8 +11,8 @@ on the board. In Live you add only:
 | **Bleep Audio Bridge** | audio effect | connects Live to the standalone Bleep Patch app (spec §11.3) |
 
 ```bash
-scripts/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
-scripts/build-patch.sh --install                 # also copy the plugins into your user plugin folder
+scripts/build/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
+scripts/build/build-patch.sh --install                 # also copy the plugins into your user plugin folder
 ```
 
 VST3 only, Ableton Live only for now (spec §5.2). The script builds into
@@ -67,10 +67,10 @@ patch/
 ## Working on the board UI
 
 ```bash
-python3 scripts/ui-server.py      # http://localhost:8765, with a fake engine (no audio)
+python3 scripts/run/ui-server.py      # http://localhost:8765, with a fake engine (no audio)
 ```
 
-With `scripts/build-patch.sh --ui-dev`, plugins read the page from the
+With `scripts/build/build-patch.sh --ui-dev`, plugins read the page from the
 source tree; press ⌘R in the board window after an edit. The demo backend
 reads node types from `board/ui/demo-types.json`; after changing a module's
 params or jacks, regenerate it (ctest checks it is current):

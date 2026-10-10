@@ -11,12 +11,12 @@ The standalone app is `BleepPatchApp` in `patch/CMakeLists.txt` (spec §11): the
 ## Build and run (macOS)
 
 ```bash
-scripts/run-app.sh                       # Release build, then starts the app with its console output here
-scripts/run-app.sh my-project.bleepboard # open a project
-scripts/run-app.sh --no-build            # start the last build
-scripts/run-app.sh --smoke               # no audio inputs or Link, prints a report, quits (a quick check)
-scripts/run-app.sh --debug               # Debug build
-scripts/run-app.sh --ui-dev              # reads the board UI from patch/ (edit HTML/CSS/JS, press Cmd-R)
+scripts/run/run-app.sh                       # Release build, then starts the app with its console output here
+scripts/run/run-app.sh my-project.bleepboard # open a project
+scripts/run/run-app.sh --no-build            # start the last build
+scripts/run/run-app.sh --smoke               # no audio inputs or Link, prints a report, quits (a quick check)
+scripts/run/run-app.sh --debug               # Debug build
+scripts/run/run-app.sh --ui-dev              # reads the board UI from patch/ (edit HTML/CSS/JS, press Cmd-R)
 ```
 
 The script builds only the app target, in `build/patch/`. A running copy is asked to quit first and is never force-quit.
@@ -44,8 +44,8 @@ The Windows executable ends up in `build/patch/BleepPatchApp_artefacts/Release/`
 ## Checks before you hand a build to anyone
 
 ```bash
-scripts/build-patch.sh        # plugins and tests (DSP, engine, bridge); the app is built with the same tree
-scripts/run-app.sh --smoke
+scripts/build/build-patch.sh        # plugins and tests (DSP, engine, bridge); the app is built with the same tree
+scripts/run/run-app.sh --smoke
 ```
 
 The app is **not signed or notarized** by any script in this repository. On macOS a downloaded unsigned build is blocked by Gatekeeper until it is signed with a Developer ID and notarized; see [release.md](release.md).

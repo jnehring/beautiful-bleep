@@ -4,7 +4,7 @@
 # Builds the standalone Bleep Patch app (spec §11) and starts it, with its
 # console output in this terminal. Only the app is built, not the plugins.
 #
-#   scripts/run-app.sh [--debug] [--ui-dev] [--no-build] [--smoke]
+#   scripts/run/run-app.sh [--debug] [--ui-dev] [--no-build] [--smoke]
 #                      [--juce <dir>] [project.bleepboard]
 #
 #   --debug     Debug build (default Release)
@@ -19,7 +19,7 @@
 # never force-quits it. Output: build/patch/BleepPatchApp_artefacts/<Config>/
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR="$ROOT/build/patch"
 CONFIG=Release
 UI_DEV=OFF

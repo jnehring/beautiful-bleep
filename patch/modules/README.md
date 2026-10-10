@@ -49,8 +49,8 @@ each module's category from it. A module whose type list entry doesn't exist
 yet needs `"category"` in its `module.json`.
 
 Every doc starts with its screenshot (`![Name in the module view](<type>.png)`
-under the title). With `scripts/ui-server.py` running,
-`scripts/module-screenshots.py [type ...]` retakes them after a view changes.
+under the title). With `scripts/run/ui-server.py` running,
+`scripts/docs/module-screenshots.py [type ...]` retakes them after a view changes.
 The website shows them; the plugins only embed the `.md` files.
 
 ## Shared code

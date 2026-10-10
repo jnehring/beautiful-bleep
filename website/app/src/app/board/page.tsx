@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // "Bleep Board": the board running in the visitor's browser. The player itself
-// is the static build of patch/web (scripts/build-web.sh), served at /play/.
+// is the static build of patch/web (scripts/build/build-web.sh), served at /play/.
 import BoardPlayer from "./BoardPlayer";
 
 export const metadata = {

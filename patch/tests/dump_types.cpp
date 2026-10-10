@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //
 // Prints every node type as JSON, the way the board UI receives it. The board
-// UI's browser demo (scripts/ui-server.py) uses a copy in board/ui/demo-types.json:
+// UI's browser demo (scripts/run/ui-server.py) uses a copy in board/ui/demo-types.json:
 //
 //   bleep_dump_types --write patch/board/ui/demo-types.json
 //   bleep_dump_types --check patch/board/ui/demo-types.json   (ctest: the copy is current)

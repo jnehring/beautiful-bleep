@@ -9,7 +9,7 @@
 //   wasm3     the same file in the wasm3 interpreter (no executable memory needed)
 //
 //   spike <reverb.wasm> [seconds] [native|wasmtime|wasm3|all] [--serialized]
-// Build and run: scripts/wasm-spike.sh
+// Build and run: scripts/experiments/wasm-spike.sh
 #include <wasmtime.h>
 extern "C" {
 #include "wasm3.h"

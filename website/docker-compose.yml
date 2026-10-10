@@ -19,7 +19,7 @@ services:
     ports:
       - "${BLEEP_SITE_PORT:-8080}:80"
     volumes:
-      # The board's WebAssembly modules, built on the host: scripts/build-web.sh --modules-only
+      # The board's WebAssembly modules, built on the host: scripts/build/build-web.sh --modules-only
       - ${BLEEP_WEB_MODULES:-../build/web/modules}:/srv/play-modules:ro
     depends_on:
       - api
@@ -70,7 +70,7 @@ services:
 
   # Object storage for the registry (SeaweedFS, S3 API): plugin and module releases, preset files.
   # Anonymous clients may read (Caddy serves it at /registry/); writing needs the credentials
-  # (scripts/release.py through the S3 port below, the API for presets).
+  # (scripts/release/release.py through the S3 port below, the API for presets).
   storage:
     image: chrislusf/seaweedfs:latest
     entrypoint: ["/bin/sh", "-c"]

@@ -12,7 +12,7 @@
 	# Bleep Board (patch/web): wasm modules stream-compile with the right type;
 	# the build names no file by hash yet, so revalidate instead of immutable.
 	# The modules are not part of the image: they come from the folder mounted at /srv/play-modules
-	# (scripts/build-web.sh --modules-only).
+	# (scripts/build/build-web.sh --modules-only).
 	handle /play/manifest.json {
 		root * /srv/play-modules
 		uri strip_prefix /play

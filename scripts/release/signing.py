@@ -3,16 +3,16 @@
 """Command line for package signing (the library and the rules are in website/api/app/signing.py, doc/specs/signing.md).
 
 Admin, once:
-    scripts/signing.py init-registry DIR                   root.key (take it offline), root.pub, issuer.key, issuer.cert
+    scripts/release/signing.py init-registry DIR                   root.key (take it offline), root.pub, issuer.key, issuer.cert
 Admin, per developer (or inside the registry: docker compose exec api python -m app.cli developer-create):
-    scripts/signing.py issue-kit DIR --publisher acme [--scopes module,plugin] [--first-party] [--days 365]
+    scripts/release/signing.py issue-kit DIR --publisher acme [--scopes module,plugin] [--first-party] [--days 365]
                                                            acme.kit.json: the developer's private key and certificate
 Developer:
-    scripts/signing.py sign PACKAGE --kit acme.kit.json --kind module --id acme/fuzz --version 1.0.0
-    scripts/signing.py verify PACKAGE --root root.pub --kind module --id acme/fuzz --version 1.0.0
+    scripts/release/signing.py sign PACKAGE --kit acme.kit.json --kind module --id acme/fuzz --version 1.0.0
+    scripts/release/signing.py verify PACKAGE --root root.pub --kind module --id acme/fuzz --version 1.0.0
 Developer with their own key (the request flow, for later):
-    scripts/signing.py keygen NAME | request NAME --publisher P | issue NAME.csr --issuer-key K --issuer-cert C
-    scripts/signing.py vector                              the test vector in the spec
+    scripts/release/signing.py keygen NAME | request NAME --publisher P | issue NAME.csr --issuer-key K --issuer-cert C
+    scripts/release/signing.py vector                              the test vector in the spec
 """
 import argparse
 import base64
@@ -21,7 +21,7 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
 from app.signing import *  # noqa: E402,F401,F403
 from app.signing import (CERT_DOMAIN, KINDS, SIGNATURE_PATH, Ed25519PrivateKey, _verify_sig, b64, canonical, decide,  # noqa: E402,F401

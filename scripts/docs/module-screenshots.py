@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: MIT
 """Takes the module view screenshots shown in the module docs and on the website.
 
-Starts nothing itself: run scripts/ui-server.py first. For every module type
+Starts nothing itself: run scripts/run/ui-server.py first. For every module type
 (patch/board/ui/demo-types.json) it puts one node on the demo board, opens the
 node's view and saves the view window to patch/modules/<folder>/doc/<type>.png.
 Needs Playwright for Python (pip install playwright; playwright install chromium).
 
-    python3 scripts/module-screenshots.py [--url http://localhost:8765] [type ...]
+    python3 scripts/docs/module-screenshots.py [--url http://localhost:8765] [type ...]
 """
 import argparse
 import json
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 MODULES = ROOT / "patch" / "modules"
 # Types that share a folder with their kit (Ring Drums, Punch Drums): type prefix → folder.
 KITS = {"ring-": "ring-drums", "punch-": "punch-drums"}

@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 SOURCE_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".js", ".ts", ".tsx", ".css", ".py", ".cmake", ".sh"}
 SKIP_DIRS = {"build", "node_modules", ".next", "out", ".git", "public"}
 GENERATED = {"next-env.d.ts"}

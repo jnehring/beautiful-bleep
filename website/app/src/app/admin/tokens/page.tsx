@@ -38,7 +38,7 @@ function Tokens() {
 
   return (
     <section>
-      <p className="muted">Tokens let <code>scripts/release.py</code> publish plugins. A token is shown once, when it is created.</p>
+      <p className="muted">Tokens let <code>scripts/release/release.py</code> publish plugins. A token is shown once, when it is created.</p>
       <form className="inline" onSubmit={create}>
         <label>Name<input name="name" maxLength={80} required placeholder="my laptop" /></label>
         <label>Expires after (days)<input name="days" type="number" min={1} max={3650} placeholder="never" /></label>

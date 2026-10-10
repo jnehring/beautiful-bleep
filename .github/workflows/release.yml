@@ -25,8 +25,8 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - run: scripts/build-patch.sh
-      - run: python3 scripts/release.py --all --level "${{ inputs.level }}" --yes
+      - run: scripts/build/build-patch.sh
+      - run: python3 scripts/release/release.py --all --level "${{ inputs.level }}" --yes
 
   add-platform:
     name: Add platform (${{ matrix.os }})
@@ -46,4 +46,4 @@ jobs:
             libfreetype-dev libfontconfig1-dev libgl1-mesa-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev
       - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_PATCH_FORMATS=VST3
       - run: cmake --build build/patch --config Release --parallel
-      - run: python scripts/release.py --all --add-platform latest --yes
+      - run: python scripts/release/release.py --all --add-platform latest --yes

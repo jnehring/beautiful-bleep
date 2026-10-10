@@ -64,7 +64,7 @@ function walk(dir: string): string[] {
     e.isDirectory() ? walk(path.join(dir, e.name)) : e.name.endsWith(".md") ? [path.join(dir, e.name)] : []);
 }
 
-/** Images and other files next to a module's doc are copied to /modules/<slug>/ (scripts/build-docs.py). */
+/** Images and other files next to a module's doc are copied to /modules/<slug>/ (scripts/docs/build-docs.py). */
 function rewriteAssets(html: string, moduleSlug: string): string {
   return html.replace(/(src|href)="(?![a-z]+:|\/|#)([^"]+\.(?:png|jpe?g|gif|svg|webp))"/gi,
     (_m, attr: string, file: string) => `${attr}="/modules/${moduleSlug}/${file}"`);

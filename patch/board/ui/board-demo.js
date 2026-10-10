@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // board-demo.js — a fake engine so the board runs in a plain browser
-// (python3 scripts/ui-server.py). Inactive inside a plugin. It keeps a small
+// (python3 scripts/run/ui-server.py). Inactive inside a plugin. It keeps a small
 // demo set, an undo stack and cell presets in localStorage, and animates
 // outputs; it does not process audio.
 (function () {

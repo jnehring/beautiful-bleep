@@ -10,7 +10,7 @@
 // small C ABI at the bottom. The graph runner (Program.cpp's job in the
 // plugins) is web/js/graph.js.
 //
-// Build: scripts/build-web.sh, which passes -DBLEEP_WEB_REGISTER=<fn> for
+// Build: scripts/build/build-web.sh, which passes -DBLEEP_WEB_REGISTER=<fn> for
 // modules that register by hand and relies on BLEEP_REGISTER_MODULE otherwise.
 #include "Registry.h"
 

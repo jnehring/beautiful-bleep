@@ -3,18 +3,18 @@
 # Builds the browser version of the board (Bleep Board): one .wasm per module,
 # the board UI and the web engine, as a static folder.
 #
-#   scripts/build-web.sh [out-dir]              everything; default: build/web/site
-#   scripts/build-web.sh --no-modules [out-dir] only the board UI and the web engine (seconds, no
+#   scripts/build/build-web.sh [out-dir]              everything; default: build/web/site
+#   scripts/build/build-web.sh --no-modules [out-dir] only the board UI and the web engine (seconds, no
 #                                               Emscripten or JUCE needed; what the website image does)
-#   scripts/build-web.sh --modules-only [out-dir]  only modules/*.wasm and manifest.json; default
+#   scripts/build/build-web.sh --modules-only [out-dir]  only modules/*.wasm and manifest.json; default
 #                                               build/web/modules (the website mounts that folder)
 #   add --docker (first) to run the build in the Emscripten Docker image instead of a local emsdk:
-#   scripts/build-web.sh --docker --modules-only
+#   scripts/build/build-web.sh --docker --modules-only
 #   python3 -m http.server -d build/web/site 8000
 #
 # Needs emcc (https://emscripten.org: `source emsdk_env.sh`), python3 and node.
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PATCH="$ROOT/patch"
 MODULES=1
 UI=1
@@ -35,7 +35,7 @@ if [ "$DOCKER" = 1 ]; then
   uidargs=(); [ "$(uname)" = Linux ] && uidargs=(-u "$(id -u):$(id -g)" -e HOME=/tmp)
   ttyargs=(); [ -t 1 ] && ttyargs=(-t)   # a terminal: the progress bar redraws in place
   exec docker run --rm ${ttyargs[@]+"${ttyargs[@]}"} -e PYTHONUNBUFFERED=1 ${uidargs[@]+"${uidargs[@]}"} -e BLEEP_WEB_ONLY="${BLEEP_WEB_ONLY:-}" \
-    -v "$ROOT:/repo" -w /repo emscripten/emsdk:4.0.10 scripts/build-web.sh ${args[@]+"${args[@]}"} ${1:+"/repo/${1#$ROOT/}"}
+    -v "$ROOT:/repo" -w /repo emscripten/emsdk:4.0.10 scripts/build/build-web.sh ${args[@]+"${args[@]}"} ${1:+"/repo/${1#$ROOT/}"}
 fi
 if [ "$UI" = 1 ]; then OUT="${1:-$ROOT/build/web/site}"; else OUT="${1:-$ROOT/build/web/modules}"; fi
 if [ "$MODULES" = 1 ]; then
@@ -57,7 +57,7 @@ if [ "$MODULES" = 1 ]; then
 fi
 if [ "$UI" = 0 ]; then rmdir "$OUT/js" 2>/dev/null || true; echo "Built the modules in $OUT"; exit 0; fi
 
-# 2. The board UI, the way the plugins and scripts/ui-server.py serve it: board,
+# 2. The board UI, the way the plugins and scripts/run/ui-server.py serve it: board,
 #    common and every module's ui/ and doc/ files side by side.
 cp "$PATCH"/board/ui/* "$OUT"/
 cp "$PATCH"/common/ui/* "$OUT"/

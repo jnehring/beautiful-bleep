@@ -3,13 +3,13 @@
 #
 # Builds Bleep Bus (library, examples, conformance suite) and runs its tests.
 #
-#   scripts/build-bus.sh [--debug] [--clean] [--no-test]
+#   scripts/build/build-bus.sh [--debug] [--clean] [--no-test]
 #
 # Output: build/bus/ (bleep_bus library, bb_conformance, minimal_sender,
 # minimal_receiver, attenuverter).
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR="$ROOT/build/bus"
 CONFIG=Release
 TEST=1

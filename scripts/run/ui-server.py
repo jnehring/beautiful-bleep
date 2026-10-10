@@ -5,14 +5,14 @@ patch/board/ui, patch/common/ui, patch/modules/*/ui and patch/modules/*/doc side
 by side. Outside a
 plugin the page runs against board-demo.js, a fake engine (no audio).
 
-    python3 scripts/ui-server.py [--port 8765]
+    python3 scripts/run/ui-server.py [--port 8765]
 """
 import argparse
 import http.server
 import json
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 PATCH = ROOT / "patch"
 MODULES = sorted(p for p in (PATCH / "modules").iterdir() if p.is_dir())
 DIRS = [PATCH / "board" / "ui", PATCH / "common" / "ui"] + [m / sub for m in MODULES for sub in ("ui", "doc") if (m / sub).is_dir()]

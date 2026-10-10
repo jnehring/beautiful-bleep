@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""python3 -m unittest scripts/test_signing.py   (needs the `cryptography` package)"""
+"""python3 -m unittest scripts/release/test_signing.py   (needs the `cryptography` package)"""
 import copy
 import hashlib
 import json

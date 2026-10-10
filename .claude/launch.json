@@ -4,7 +4,7 @@
     {
       "name": "board-ui",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["scripts/ui-server.py", "--port", "8766"],
+      "runtimeArgs": ["scripts/run/ui-server.py", "--port", "8766"],
       "port": 8766
     }
   ]

@@ -21,21 +21,21 @@ Edit `website/.env`:
 Then start it:
 
 ```bash
-scripts/run-website.sh          # or: cd website && docker compose up --build -d
+scripts/run/run-website.sh          # or: cd website && docker compose up --build -d
 ```
 
 Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **not the board's WebAssembly modules**. Those are built on the host and mounted into the site container (read-only), so changing the site never recompiles them:
 
 ```bash
-scripts/build-web.sh --docker --modules-only   # in the Emscripten Docker image: no local emsdk needed
-scripts/build-web.sh --modules-only            # or with a local Emscripten SDK (emcc on the PATH)
+scripts/build/build-web.sh --docker --modules-only   # in the Emscripten Docker image: no local emsdk needed
+scripts/build/build-web.sh --modules-only            # or with a local Emscripten SDK (emcc on the PATH)
 ```
 
 The first run compiles every module (slow; on Apple Silicon the image runs emulated). Later runs rebuild only the modules whose files changed (the compiler's dependency list is hashed in `build/web/modules/.cache/`); an unchanged run takes seconds. To force a full rebuild, delete `build/web/modules/.cache`. `BLEEP_WEB_ONLY=oscillator,filter` builds just those and keeps the rest of the manifest.
 
 Without `build/web/modules`, the site runs but the Bleep Board at `/board/` has no modules. `BLEEP_WEB_MODULES` in `website/.env` points compose at another folder. (This is temporary: modules will come from the registry.)
 
-Other commands: `scripts/run-website.sh down | logs | rebuild`.
+Other commands: `scripts/run/run-website.sh down | logs | rebuild`.
 
 ## Create the admin user
 
@@ -57,7 +57,7 @@ docker compose exec api python -m app.cli demote you@example.com        # make a
 docker compose exec api python -m app.cli set-password you@example.com  # prompts; ends their sessions
 ```
 
-Release tokens for `scripts/release.py` come from the same console: `token-create NAME [--days N] [--publisher P]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create`, `developer-list`, `developer-revoke` (see [release.md](release.md); the keys the registry needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
+Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days N] [--publisher P]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create`, `developer-list`, `developer-revoke` (see [release.md](release.md); the keys the registry needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
 
 Run these from `website/`. The password is typed at a prompt, never given as an argument.
 
@@ -65,6 +65,6 @@ Run these from `website/`. The password is typed at a prompt, never given as an 
 
 - **Database password is fixed at first start.** Postgres keeps the password it was created with in the `db-data` volume. If you change `POSTGRES_PASSWORD` later, either change it inside Postgres or delete the volume: `docker compose down -v` (this deletes all accounts).
 - **Back up the database** with `docker compose exec db pg_dump -U bleep bleep > backup.sql`.
-- **Updates:** `git pull && scripts/run-website.sh`. The API applies database migrations when it starts.
+- **Updates:** `git pull && scripts/run/run-website.sh`. The API applies database migrations when it starts.
 - **HTTPS:** the Caddyfile serves plain HTTP on port 80. For a public site put TLS in front (or change the site address in the Caddyfile so Caddy gets a certificate) and set `BLEEP_COOKIE_SECURE=true`.
 - There is no login rate limiting, email verification or password reset yet.

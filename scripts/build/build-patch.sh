@@ -4,7 +4,7 @@
 # Builds the Bleep Patch plugins (Bleep Patch, the six ports and Bleep Audio Bridge) as
 # VST3, then runs the DSP, engine and bridge tests.
 #
-#   scripts/build-patch.sh [--debug] [--clean] [--no-test] [--install]
+#   scripts/build/build-patch.sh [--debug] [--clean] [--no-test] [--install]
 #                  [--juce <dir>] [--ui-dev]
 #
 #   --juce     local JUCE checkout (default: $BLEEP_JUCE_DIR, else download JUCE 8.0.9)
@@ -17,7 +17,7 @@
 # Output: build/patch/<Plugin>_artefacts/<Config>/VST3/
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR="$ROOT/build/patch"
 CONFIG=Release
 TEST=1

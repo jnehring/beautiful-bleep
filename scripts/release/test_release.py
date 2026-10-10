@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""python3 -m unittest scripts/test_release.py"""
+"""python3 -m unittest scripts/release/test_release.py"""
 import sys
 import unittest
 from pathlib import Path

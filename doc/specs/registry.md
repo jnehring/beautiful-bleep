@@ -74,7 +74,7 @@ S3 bucket `bleep-registry` (SeaweedFS)  →  Caddy proxies it read-only at /regi
 
 | Part | Where | Written by |
 |---|---|---|
-| Plugins and modules (files, `index.json`) | S3 bucket | Only the release pipeline: `scripts/release.py` uploads over the S3 API (port 8333, bound to localhost; credentials `S3_ACCESS_KEY`/`S3_SECRET_KEY` in `website/.env`) |
+| Plugins and modules (files, `index.json`) | S3 bucket | Only the release pipeline: `scripts/release/release.py` uploads over the S3 API (port 8333, bound to localhost; credentials `S3_ACCESS_KEY`/`S3_SECRET_KEY` in `website/.env`) |
 | Preset files | Same bucket under `presets/` | The API after validation |
 | Preset metadata (title, tags, author, versions, downloads, reports, state) | Postgres, new Alembic migration | The API |
 
@@ -176,21 +176,21 @@ Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persisten
 
 Single source: the repository. CI builds and publishes; nobody uploads by hand.
 
-1. **Version.** Every plugin and module has its own version, counted by the registry: `scripts/release.py --level x|1.x|1.1.x|major|minor|patch` takes the newest published version and counts up at that level (built for plugins; see `doc/release.md`). A module's `module.json` carries the version once modules are released.
+1. **Version.** Every plugin and module has its own version, counted by the registry: `scripts/release/release.py --level x|1.x|1.1.x|major|minor|patch` takes the newest published version and counts up at that level (built for plugins; see `doc/release.md`). A module's `module.json` carries the version once modules are released.
 2. **Detect what changed.** Hash the module's folder plus the `patch/common/dsp/` headers it includes (and `engine/` ABI). If the hash differs from the last release, the module needs a new version, and CI fails if its `version` was not bumped.
 3. **Build and test** (existing CI): the DSP tests, the module harness, the wasm build, then the harness against the wasm. Plugins: the macOS/Windows/Linux matrix, signing and notarisation.
-4. **Package and sign** (`scripts/package-module.py`, `scripts/package-plugin.sh`, `scripts/signing.py sign`): produce the artifacts and the `entry.json` files, each file signed with the publisher's key.
+4. **Package and sign** (`scripts/package-module.py`, `scripts/package-plugin.sh`, `scripts/release/signing.py sign`): produce the artifacts and the `entry.json` files, each file signed with the publisher's key.
 5. **Stage.** Upload to `…/staging/<release-id>/`. A smoke job loads every staged module in the node host test and in a headless browser.
 6. **Publish.** Copy staged files into the immutable paths, then write `index.json` last, signed, in one atomic replace. A release is visible only when the index changes; rollback is putting the previous index back.
 7. **Channels.** `beta` index first for testers; promoting to `stable` is a new index, not a rebuild.
 
-`scripts/release.py` is built for plugins (steps 4 to 6 in a simpler form: a draft release, size- and hash-checked uploads, publish, index regenerated). It authenticates with an **admin-created release token** (`python -m app.cli token-create`), not with the storage credentials, so the machine that releases never holds S3 keys. Built since: adding the build of another platform to a published release (`--add-platform`), and **signing**: `release.py` signs every file with the developer's kit and checks it against the registry's root keys before uploading; the registry verifies every signature, binds a token to a publisher, records who uploaded and refuses a release without a valid key (`signing.md`, section 10). Not built yet: change detection, staging, a signed index and revocation list, modules.
+`scripts/release/release.py` is built for plugins (steps 4 to 6 in a simpler form: a draft release, size- and hash-checked uploads, publish, index regenerated). It authenticates with an **admin-created release token** (`python -m app.cli token-create`), not with the storage credentials, so the machine that releases never holds S3 keys. Built since: adding the build of another platform to a published release (`--add-platform`), and **signing**: `release.py` signs every file with the developer's kit and checks it against the registry's root keys before uploading; the registry verifies every signature, binds a token to a publisher, records who uploaded and refuses a release without a valid key (`signing.md`, section 10). Not built yet: change detection, staging, a signed index and revocation list, modules.
 
 ## 8. Website
 
 - **Docker no longer builds wasm.** The `web` stage of `website/Dockerfile` is removed. The site image contains only the Next.js static export and the board UI.
 - **Modules load from the registry.** `bleep-web.js` fetches `index.json` (cached) and then `modules/<id>/<version>/<id>.bleepmod` on demand, from the CDN, exactly as it loads `.wasm` today.
-- **Pinned for reproducibility.** The site build commits a `web-lock.json` (module id → version → sha256) so a given site release always runs the module set it was tested with; updating it is a normal commit (`scripts/release.py --update-web-lock`). A newer module reaches the website when the lock is bumped, never silently.
+- **Pinned for reproducibility.** The site build commits a `web-lock.json` (module id → version → sha256) so a given site release always runs the module set it was tested with; updating it is a normal commit (`scripts/release/release.py --update-web-lock`). A newer module reaches the website when the lock is bumped, never silently.
 - The board UI and `patch/web/js/` (graph runner, worklet) are versioned with the site and declare the `engineAbi` they implement. The site's module catalog and docs pages read the registry entries at build time instead of `patch/modules/*/module.json` from the repo, with the repo as a fallback in development.
 - Preset browser on the site: read-only listing from `presets/index.json`, *Open in Bleep Board* and *Open in the app* (`bleep://preset/<author>/<slug>`).
 

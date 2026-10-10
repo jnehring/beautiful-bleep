@@ -5,11 +5,11 @@
 # Live keeps a plugin's code loaded until it quits, so this is the shortest
 # loop for engine, DSP and bus changes.
 #
-#   scripts/reload-live.sh <set.als> [build-patch.sh options]
-#   e.g. scripts/reload-live.sh ~/Music/bleep-test.als --juce ~/JUCE --ui-dev
+#   scripts/run/reload-live.sh <set.als> [build-patch.sh options]
+#   e.g. scripts/run/reload-live.sh ~/Music/bleep-test.als --juce ~/JUCE --ui-dev
 #
 # The set can also come from $BLEEP_LIVE_SET. Steps:
-#   1. build (scripts/build-patch.sh --no-test …); stop here if it fails
+#   1. build (scripts/build/build-patch.sh --no-test …); stop here if it fails
 #   2. ask Live to quit and wait — save the set first, or answer Live's
 #      save dialog; the script never force-quits Live
 #   3. replace the VST3 bundles in ~/Library/Audio/Plug-Ins/VST3
@@ -17,21 +17,21 @@
 #   4. open the set in the same Live version
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 VST3_DIR="$HOME/Library/Audio/Plug-Ins/VST3"
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then sed -n '3,17p' "$0"; exit 0; fi
 SET="${BLEEP_LIVE_SET:-}"
 if [[ $# -gt 0 && "$1" != --* ]]; then SET="$1"; shift; fi
 if [[ -z "$SET" || ! -f "$SET" ]]; then
-    echo "usage: scripts/reload-live.sh <set.als> [build options]   (or set BLEEP_LIVE_SET)" >&2
+    echo "usage: scripts/run/reload-live.sh <set.als> [build options]   (or set BLEEP_LIVE_SET)" >&2
     exit 2
 fi
 SET="$(cd "$(dirname "$SET")" && pwd)/$(basename "$SET")"
 [[ "$(uname)" == "Darwin" ]] || { echo "reload-live.sh supports macOS only" >&2; exit 2; }
 
 # 1. Build, without the CMake copy step (it would overwrite the loaded plugins).
-"$ROOT/scripts/build-patch.sh" --no-test "$@"
+"$ROOT/scripts/build/build-patch.sh" --no-test "$@"
 
 # 2. Quit Live, remembering which Live app was running.
 live_pid() { pgrep -f '\.app/Contents/MacOS/Live$' | head -1; }

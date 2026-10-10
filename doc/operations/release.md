@@ -2,7 +2,7 @@
 
 ## Releasing plugins to the registry
 
-`scripts/release.py` publishes plugins (`bleep-patch`, `bleep-audio-bridge`, `bleep-patch-app`) to the registry in the website stack. Modules are not released this way yet.
+`scripts/release/release.py` publishes plugins (`bleep-patch`, `bleep-audio-bridge`, `bleep-patch-app`) to the registry in the website stack. Modules are not released this way yet.
 
 **One-time: a release token.** An admin creates it on the website (Admin → Release tokens; shown once), or from the command line (it is shown once; put it in a file only you can read):
 
@@ -15,9 +15,9 @@ docker compose exec api python -m app.cli token-revoke ID
 
 A token releases for one publisher: without `--publisher` it is for our own releases (`bleep`); `token-create NAME --publisher acme` makes one for a developer.
 
-**One-time: signing (the registry refuses unsigned releases; `scripts/release.py` and `signing.py` need `pip install cryptography`).** Every file is signed with a developer key; the rules are in `doc/specs/signing.md`.
+**One-time: signing (the registry refuses unsigned releases; `scripts/release/release.py` and `signing.py` need `pip install cryptography`).** Every file is signed with a developer key; the rules are in `doc/specs/signing.md`.
 
-1. **Make the keys** on a trusted machine: `scripts/signing.py init-registry ~/bleep-registry-keys`. Move `root.key` to your keystore (and back it up), then delete the copy: the website never needs it.
+1. **Make the keys** on a trusted machine: `scripts/release/signing.py init-registry ~/bleep-registry-keys`. Move `root.key` to your keystore (and back it up), then delete the copy: the website never needs it.
 2. **Give the registry its part.** Paste the three lines of `registry.env` (the root *public* key, the issuer key and its certificate) into `website/.env`, then `docker compose up -d api`. Without `BLEEP_ROOT_PUBLIC_KEYS` the registry refuses every release (fail closed).
 3. **Make a kit for the publisher** (our own: `bleep`, a first-party key that may sign ids without a namespace):
 
@@ -33,12 +33,12 @@ docker compose exec api python -m app.cli developer-revoke KEY_ID
 
 **Release:**
 
-1. Set up the build: `scripts/build-patch.sh` (the script reads the artefacts in `build/patch`; `--build` runs that first).
+1. Set up the build: `scripts/build/build-patch.sh` (the script reads the artefacts in `build/patch`; `--build` runs that first).
 2. Run, for one plugin, several, or all:
 
 ```bash
-scripts/release.py bleep-patch --level 1.x --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json
-scripts/release.py --all --level patch --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json --dry-run
+scripts/release/release.py bleep-patch --level 1.x --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json
+scripts/release/release.py --all --level patch --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json --dry-run
 ```
 
 `--registry` and the token can also come from `BLEEP_REGISTRY_URL` and `BLEEP_RELEASE_TOKEN`. The token is never a command-line argument.
@@ -65,15 +65,15 @@ Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation
 1. **Check main is green.** CI (`.github/workflows/ci.yml`) builds and tests the bus, the plugins (macOS, Windows), the web board and the website.
 2. **Set the version.** The product version is `project(BleepPatch VERSION …)` in `patch/CMakeLists.txt`; the plugins and the app take it from there. The bus has its own version in `bus/CMakeLists.txt` (it follows the spec version). Commit the bump.
 3. **Tag.** `git tag plugin-vX.Y.Z && git push origin plugin-vX.Y.Z`.
-4. **Take the build from CI.** The `plugins` job uploads `bleep-patch-macos-latest` and `bleep-patch-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `scripts/build-patch.sh`.
+4. **Take the build from CI.** The `plugins` job uploads `bleep-patch-macos-latest` and `bleep-patch-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `scripts/build/build-patch.sh`.
 5. **Sign for the operating system.** (The registry signature above is separate and happens in `release.py`.) Not automated. macOS builds need a Developer ID signature and notarization to open without a Gatekeeper warning; Windows builds are unsigned. Do this before publishing.
 6. **Publish.** Attach the signed files to a GitHub release for the tag, with the changelog, and release them to the registry (above).
 7. **Website.** The site is deployed by rebuilding its containers (see [website.md](website.md)); deployment from CI is not set up yet (a note in the `website` job says so).
 
 ### Licence check before shipping the app
 
-The app includes Ableton Link by default, which makes that binary GPL; the VST3 plugins do not include it. JUCE is AGPLv3 or commercial. `python3 scripts/check-repo.py` checks the repository's dependency and licence-header rules; CI runs it.
+The app includes Ableton Link by default, which makes that binary GPL; the VST3 plugins do not include it. JUCE is AGPLv3 or commercial. `python3 scripts/check/check-repo.py` checks the repository's dependency and licence-header rules; CI runs it.
 
 ## Planned: the rest of the registry
 
-`doc/specs/registry.md` specifies the full system. Built so far: the object storage, the release API, tokens, signed releases (`scripts/release.py`, `scripts/signing.py`, the registry's checks) for plugins. Not built: module packages and releases, a signed index and revocation list, staging, presets.
+`doc/specs/registry.md` specifies the full system. Built so far: the object storage, the release API, tokens, signed releases (`scripts/release/release.py`, `scripts/release/signing.py`, the registry's checks) for plugins. Not built: module packages and releases, a signed index and revocation list, staging, presets.

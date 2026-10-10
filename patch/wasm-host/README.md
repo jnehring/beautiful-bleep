@@ -1,12 +1,12 @@
 # Wasm host spike
 
-Question: can a plugin run a Bleep module from its standalone `.wasm` (the files `scripts/build-web.sh`
+Question: can a plugin run a Bleep module from its standalone `.wasm` (the files `scripts/build/build-web.sh`
 builds for the browser, ABI in `patch/web/src/WebShim.cpp`), fast enough and where executable memory is limited?
 
 ```
-scripts/build-web.sh --docker --modules-only      # build/web/modules/modules/reverb.wasm
-scripts/wasm-spike.sh 10                          # 10 s of audio through Verb: native, Wasmtime, wasm3
-scripts/wasm-spike.sh 10 wasmtime --serialized    # Wasmtime with ahead-of-time compiled code
+scripts/build/build-web.sh --docker --modules-only      # build/web/modules/modules/reverb.wasm
+scripts/experiments/wasm-spike.sh 10                          # 10 s of audio through Verb: native, Wasmtime, wasm3
+scripts/experiments/wasm-spike.sh 10 wasmtime --serialized    # Wasmtime with ahead-of-time compiled code
 ```
 
 `spike.cpp` feeds the same noise bursts to each runtime in 32-sample chunks (the ABI's chunk) and compares the output.

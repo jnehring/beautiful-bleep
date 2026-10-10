@@ -12,13 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/check-repo.py
+      - run: python3 scripts/check/check-repo.py
       - run: python3 -m pip install cryptography
       - run: python3 -m unittest test_release test_signing
-        working-directory: scripts
-      - run: python3 scripts/check-api-docs.py
+        working-directory: scripts/release
+      - run: python3 scripts/check/check-api-docs.py
       - run: node patch/presets/build.mjs --check
-      - run: python3 scripts/build-docs.py --out build/docs
+      - run: python3 scripts/docs/build-docs.py --out build/docs
       - uses: actions/upload-artifact@v4
         with:
           name: docs-single-files
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: scripts/build-web.sh build/web/site
+      - run: scripts/build/build-web.sh build/web/site
       - run: node patch/web/test/graph-test.mjs build/web/site
       - uses: actions/upload-artifact@v4
         with:

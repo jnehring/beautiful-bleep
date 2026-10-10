@@ -4,12 +4,12 @@
 # Spike (macOS / Linux): runs the Verb module's .wasm in Wasmtime and wasm3 next to the native build and
 # prints CPU use and output differences. See patch/wasm-host/README.md.
 #
-#   scripts/wasm-spike.sh [seconds] [native|wasmtime|wasm3|all] [--serialized]
+#   scripts/experiments/wasm-spike.sh [seconds] [native|wasmtime|wasm3|all] [--serialized]
 #
-# Needs build/web/modules/modules/reverb.wasm (scripts/build-web.sh --docker --modules-only) and a C++20
+# Needs build/web/modules/modules/reverb.wasm (scripts/build/build-web.sh --docker --modules-only) and a C++20
 # compiler. Downloads Wasmtime's C API and wasm3 into build/wasm-spike (once).
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 W="$ROOT/build/wasm-spike"
 WT_VERSION=49.0.2
 mkdir -p "$W"

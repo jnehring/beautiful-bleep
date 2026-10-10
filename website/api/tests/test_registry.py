@@ -49,7 +49,7 @@ def pki(monkeypatch):
 
 
 def declare(path, data, *, slug="bleep-patch", version="0.1.0", platform="macos-arm64", kit=None, kind="plugin"):
-    """A file declaration for a release, signed like scripts/release.py does."""
+    """A file declaration for a release, signed like scripts/release/release.py does."""
     kit = kit or PKI.first_party
     sha = hashlib.sha256(data).digest()
     sig = signing.sign_with_kit(signing.entries_for_file(path, sha), kit, kind, slug.replace(".", "/", 1), version, platform)

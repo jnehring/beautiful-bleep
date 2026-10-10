@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 """The release side of the registry: plugins and modules, written with a release token, read by anyone.
 
-Flow (scripts/release.py): list versions → create a draft release with its file list → PUT each file
+Flow (scripts/release/release.py): list versions → create a draft release with its file list → PUT each file
 (size and SHA-256 checked) → publish. Publishing writes entry.json and regenerates v1/index.json; a
 release is visible to clients only when the index changes.
 """
@@ -110,13 +110,13 @@ def _published(db: Session, kind: str | None = None, slug: str | None = None) ->
 
 @router.get("/roots")
 def roots():
-    """The root public keys this registry trusts (public; scripts/release.py checks a signing kit against them before uploading)."""
+    """The root public keys this registry trusts (public; scripts/release/release.py checks a signing kit against them before uploading)."""
     return {"roots": [k.hex() for k in settings.roots], "requireSignatures": settings.require_signatures}
 
 
 @router.get("/token")
 def check_token(token: ApiToken = Depends(require_release_token)):
-    """Lets scripts/release.py fail early on a bad token, before it packages anything."""
+    """Lets scripts/release/release.py fail early on a bad token, before it packages anything."""
     return {"name": token.name}
 
 

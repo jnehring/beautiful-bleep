@@ -126,7 +126,7 @@ def developer_create(args: argparse.Namespace) -> None:
     The kit holds the developer's private key. Hand it over privately; the registry keeps only the key id.
     """
     if not settings.issuer_key or not settings.issuer_cert:
-        sys.exit("Set BLEEP_ISSUER_KEY and BLEEP_ISSUER_CERT (scripts/signing.py init-registry makes them)")
+        sys.exit("Set BLEEP_ISSUER_KEY and BLEEP_ISSUER_CERT (scripts/release/signing.py init-registry makes them)")
     scopes = [s for s in args.scopes.split(",") if s]
     if not scopes or any(s not in signing.KINDS for s in scopes):
         sys.exit("--scopes is a list of: module, plugin")
@@ -177,7 +177,7 @@ def main(argv: list[str] | None = None) -> None:
         p = sub.add_parser(name, help=help_)
         p.add_argument("email")
         p.set_defaults(run=fn)
-    p = sub.add_parser("token-create", help="create a release token for scripts/release.py")
+    p = sub.add_parser("token-create", help="create a release token for scripts/release/release.py")
     p.add_argument("name")
     p.add_argument("--days", type=int, help="expire after this many days (default: never)")
     p.add_argument("--publisher", help="the developer this token releases for (default: bleep, our own releases)")

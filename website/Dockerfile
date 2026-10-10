@@ -4,13 +4,13 @@
 # repository root, because the site reads the docs (website/content), module
 # metadata (patch/modules/*/module.json, board/ui/demo-types.json for the
 # categories), the bus header (spec version) and
-# the docs generator (scripts/build-docs.py).
+# the docs generator (scripts/docs/build-docs.py).
 #
 #   docker compose -f website/docker-compose.yml up --build
 
-# Bleep Board: the board UI and the web engine (scripts/build-web.sh --no-modules), served at
+# Bleep Board: the board UI and the web engine (scripts/build/build-web.sh --no-modules), served at
 # /play/. The modules (.wasm) are not built here: they are served from a folder mounted into the
-# container (website/docker-compose.yml), built once with scripts/build-web.sh --modules-only,
+# container (website/docker-compose.yml), built once with scripts/build/build-web.sh --modules-only,
 # and later come from the registry.
 FROM node:22-alpine AS web
 RUN apk add --no-cache bash python3
@@ -19,8 +19,8 @@ COPY patch/board patch/board
 COPY patch/common patch/common
 COPY patch/modules patch/modules
 COPY patch/web patch/web
-COPY scripts/build-web.sh scripts/build-web.sh
-RUN scripts/build-web.sh --no-modules /out
+COPY scripts/build/build-web.sh scripts/build/build-web.sh
+RUN scripts/build/build-web.sh --no-modules /out
 
 FROM node:22-alpine AS build
 RUN apk add --no-cache python3

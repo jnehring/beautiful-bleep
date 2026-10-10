@@ -2,7 +2,7 @@
 
 Everything the shop distributes as **code** is signed: modules (WebAssembly, see [`module-abi.md`](module-abi.md)) and plugins (installers for the VST3 family). A signature says two things: **who** published it, and that **not one byte has changed** since. Every developer has a private key of their own and signs with it; the user's apps check the signature before loading and refuse code that is unsigned unless the user has switched that on in the settings.
 
-The reference implementation is [`scripts/signing.py`](../../scripts/signing.py) with its tests in [`scripts/test_signing.py`](../../scripts/test_signing.py). This document is the specification; where they differ, fix whichever is wrong. Section 14 has a test vector other implementations must reproduce.
+The reference implementation is [`scripts/release/signing.py`](../../scripts/release/signing.py) with its tests in [`scripts/release/test_signing.py`](../../scripts/release/test_signing.py). This document is the specification; where they differ, fix whichever is wrong. Section 14 has a test vector other implementations must reproduce.
 
 ## 1. What it protects, and what it does not
 
@@ -39,7 +39,7 @@ root key            offline, held by Brilliant Bleep; its public key is built in
 | Issuer, private, and its certificate | `BLEEP_ISSUER_KEY`, `BLEEP_ISSUER_CERT` in `website/.env` | The registry needs it to issue developer keys. If it leaks, the root revokes it and certifies a new one: nothing already installed has to change. |
 | Developer, private | The developer's machine or CI, as the kit the admin handed over | Only they can sign as them. |
 
-`scripts/signing.py init-registry DIR` makes the root and the issuer in one go and writes `registry.env` with the three lines for `website/.env`; `root.key` is then moved to the keystore and the copy deleted.
+`scripts/release/signing.py init-registry DIR` makes the root and the issuer in one go and writes `registry.env` with the three lines for `website/.env`; `root.key` is then moved to the keystore and the copy deleted.
 
 ## 3. Primitives
 
@@ -162,8 +162,8 @@ Package signatures say who built a file. The registry additionally signs `index.
 admin      docker compose exec api python -m app.cli developer-create acme --scopes module [--days 365] > acme.kit.json
 admin      docker compose exec api python -m app.cli token-create "acme CI" --publisher acme > token
            (hand both over privately: the kit is the developer's private key and certificate)
-developer  scripts/signing.py sign fuzz.bleepmod --kit acme.kit.json --kind module --id acme/fuzz --version 1.0.0
-developer  scripts/release.py … --kit acme.kit.json --token-file token      (Bleep's own plugins: the "bleep" kit and an unrestricted token)
+developer  scripts/release/signing.py sign fuzz.bleepmod --kit acme.kit.json --kind module --id acme/fuzz --version 1.0.0
+developer  scripts/release/release.py … --kit acme.kit.json --token-file token      (Bleep's own plugins: the "bleep" kit and an unrestricted token)
 ```
 
 - **The trade-off.** The admin generates the key, so the admin has seen it. That is fine for a handful of people the admin knows; the registry stores only the key id, scopes and expiry (table `developers`), never the key. A developer who wants a key nobody else has seen uses the request flow, which the tool already has (`keygen`, `request`, then the admin runs `issue`), and later the website will take the request directly.
@@ -176,7 +176,7 @@ developer  scripts/release.py … --kit acme.kit.json --token-file token      (B
   2. **A token releases for one publisher.** A release token has a `publisher` (default `bleep`); the signature's publisher must be the same, or the request is refused. One release has one publisher, and a platform added later must be signed by the same one.
   3. **A signed module package must be the one that was signed.** The release declares the content hash; when the file arrives, the registry opens the zip and recomputes it.
   4. **Who uploaded is recorded.** Each file stores the token that declared it (shown by name in the admin's download details, never in the public `entry.json`) and the signer's publisher and key id. Only that token may continue a draft: upload files, replace the draft or publish it.
-  5. **`scripts/release.py` checks first.** Before building or uploading, it signs a probe with the kit and verifies it against the registry's root keys (`GET /api/registry/roots`), so a wrong or expired kit fails at once instead of after a 100 MB upload.
+  5. **`scripts/release/release.py` checks first.** Before building or uploading, it signs a probe with the kit and verifies it against the registry's root keys (`GET /api/registry/roots`), so a wrong or expired kit fails at once instead of after a 100 MB upload.
 
   The shop publishes nothing unsigned. Packages that are not in the shop (a developer's own test builds) can still be signed locally, so the same verification path runs everywhere.
 
@@ -241,13 +241,13 @@ contentDigest          39f61d45e3115066a934dabca6cf83c346420153e85d6d58841033d62
 signature (64 bytes)   5019b69bf480dae36510479a2c4bbeab84e94477efcdd4ec3dc1528ef6f2644471e89b42c0ac69b4ff617bac7da69e4b817717e2f99e6526d4be2c10e1a72c0b
 ```
 
-`scripts/signing.py vector` prints these and the 123-byte message; the unit test pins them. The digest and the message were also recomputed from this text alone, without the implementation.
+`scripts/release/signing.py vector` prints these and the 123-byte message; the unit test pins them. The digest and the message were also recomputed from this text alone, without the implementation.
 
 ## 15. Implementation
 
 | Where | With |
 |---|---|
-| Registry, release tooling, CI | Python: `cryptography` (Ed25519, SHA-256), see `scripts/signing.py`. The website API will import the same module. |
+| Registry, release tooling, CI | Python: `cryptography` (Ed25519, SHA-256), see `scripts/release/signing.py`. The website API will import the same module. |
 | Engine, plugins and app (C++) | A small public-domain Ed25519 implementation (Monocypher, one source file) and `juce::SHA256`: no OpenSSL, no system dependency in an audio plugin. |
 | Browser (Bleep Board) | WebCrypto Ed25519 where it exists, `@noble/ed25519` otherwise. |
 

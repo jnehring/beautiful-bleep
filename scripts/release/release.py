@@ -2,16 +2,16 @@
 # SPDX-License-Identifier: MIT
 """Releases plugins to the Bleep registry.
 
-    scripts/release.py bleep-patch --level 1.x --registry http://localhost:8080
-    scripts/release.py --all --level patch --registry https://registry.example --dry-run
-    scripts/release.py --list
+    scripts/release/release.py bleep-patch --level 1.x --registry http://localhost:8080
+    scripts/release/release.py --all --level patch --registry https://registry.example --dry-run
+    scripts/release/release.py --list
 
-What it does, per plugin: finds the build in build/patch (run scripts/build-patch.sh first, or
+What it does, per plugin: finds the build in build/patch (run scripts/build/build-patch.sh first, or
 pass --build), asks the registry for the published versions, counts the next version at the
 level you ask for, zips the build, uploads it and publishes it. A release is one machine's
 build: the zip is named for this platform. Versions are immutable, but a published version can gain
 builds for platforms it lacks: build on the other machine and run
-    scripts/release.py --all --add-platform 0.1.0 --registry ...   (or "latest": each plugin's newest version)
+    scripts/release/release.py --all --add-platform 0.1.0 --registry ...   (or "latest": each plugin's newest version)
 The registry refuses a platform the version already has; existing files never change.
 
 Levels (what is counted up; the rest of the number is kept):
@@ -44,7 +44,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
 from app import signing  # noqa: E402
 
@@ -233,7 +233,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--notes", default="", help="release notes")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build" / "patch")
     ap.add_argument("--config", default="Release", help="build configuration of the artefacts (default Release)")
-    ap.add_argument("--build", action="store_true", help="run scripts/build-patch.sh first (builds and tests)")
+    ap.add_argument("--build", action="store_true", help="run scripts/build/build-patch.sh first (builds and tests)")
     ap.add_argument("--dry-run", action="store_true", help="show what would be released; change nothing")
     ap.add_argument("-y", "--yes", action="store_true", help="do not ask for confirmation")
     args = ap.parse_args(argv)
@@ -267,7 +267,7 @@ def main(argv: list[str] | None = None) -> int:
             ap.error(str(e))
 
     if args.build:
-        subprocess.run([str(ROOT / "scripts" / "build-patch.sh")], check=True)
+        subprocess.run([str(ROOT / "scripts" / "build" / "build-patch.sh")], check=True)
     registry = Registry(args.registry, None if args.dry_run else read_token(args))
     kit = load_kit(args.kit)
     if kit is None and not args.dry_run:
@@ -280,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
         for slug in names:
             artefact = find_artefact(slug, args.build_dir, args.config)
             if artefact is None:
-                sys.exit(f"{slug}: no build at {args.build_dir / PLUGINS[slug][1].format(cfg=args.config)} (run scripts/build-patch.sh, or pass --build)")
+                sys.exit(f"{slug}: no build at {args.build_dir / PLUGINS[slug][1].format(cfg=args.config)} (run scripts/build/build-patch.sh, or pass --build)")
             published = registry.versions(slug)
             if args.add_platform:
                 target = max(published, key=parse_version) if args.add_platform == "latest" and published else args.add_platform

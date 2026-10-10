@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Package signing for modules and plugins: the reference implementation of doc/specs/signing.md.
 
-This library is used by the registry (website/api: it checks every release), by scripts/signing.py
+This library is used by the registry (website/api: it checks every release), by scripts/release/signing.py
 (the command line for developers and admins) and by scripts/release.py. Needs the `cryptography` package.
 
 A PACKAGE is a .bleepmod / .zip or a folder; the signature is META/signature.json inside it. The

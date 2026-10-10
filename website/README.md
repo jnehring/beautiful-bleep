@@ -36,7 +36,7 @@ their screenshots); the site shows one page per doc, grouped by the board's
 categories (read from `patch/board/ui/demo-types.json`). A module appears once
 its doc is written.
 
-`npm run docs` runs `scripts/build-docs.py`, which also writes the single-file
+`npm run docs` runs `scripts/docs/build-docs.py`, which also writes the single-file
 versions (`/docs/api-reference-full.md`, …, versioned under `/docs/v0.1/`; the module
 manuals as `/docs/modules-<category>-full.md`) and `/llms.txt`.
 

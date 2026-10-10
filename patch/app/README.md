@@ -1,7 +1,7 @@
 # Bleep Patch app
 
 The standalone app (spec §11): the same engine, board and modules as the
-plugins, without a DAW. Built by `scripts/build-patch.sh` as
+plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
 `build/patch/BleepPatchApp_artefacts/<Config>/Bleep Patch.app`.
 
 - **Projects:** File → New / Open / Save (`.bleepboard`). The app reopens the

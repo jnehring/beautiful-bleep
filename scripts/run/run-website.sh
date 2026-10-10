@@ -4,12 +4,12 @@
 # Runs the Bleep Patch website in Docker (static site + Caddy, accounts API, PostgreSQL).
 # Needs website/.env (copy website/.env.example); see doc/operations/website.md.
 #
-#   scripts/run-website.sh [up|down|logs|rebuild]     (default: up)
+#   scripts/run/run-website.sh [up|down|logs|rebuild]     (default: up)
 #
 # Serves on http://localhost:${BLEEP_SITE_PORT:-8080}.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 COMPOSE=(docker compose -f "$ROOT/website/docker-compose.yml")
 
 case "${1:-up}" in

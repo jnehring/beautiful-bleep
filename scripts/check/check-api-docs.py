@@ -8,7 +8,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 header = (ROOT / "bus/include/bleep_bus.h").read_text(encoding="utf-8")
 declared = set(re.findall(r"^(?:const )?[A-Za-z0-9_]+[\s*]+(bb_[a-z_]+)\(", header, flags=re.M))
 docs = "".join(p.read_text(encoding="utf-8") for p in (ROOT / "website/content/developers/api-reference").glob("*.md"))
