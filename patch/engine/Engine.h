@@ -68,9 +68,11 @@ public:
     void replaceBoardWith(int handle) noexcept override;
     void editorOpened(int handle) noexcept override;
     void openBoard(int handle) noexcept override;
+    void setCellPreset(int handle, const char* json, size_t length, bool replace) noexcept override;
+    size_t cellPreset(int handle, char* out, size_t capacity) noexcept override;
 
     // ---- for the board window (message thread) ----------------------------
-    bool hasBoard() const noexcept { return mainHandle_ != 0; }
+    bool hasBoard() const noexcept { return mainHandle_ != 0 || implicit_; }
     const juce::var& board() const noexcept { return board_; }
     /// Ports and external instances: id → {kind, track, colour, live}.
     juce::var ports() const;
@@ -128,12 +130,16 @@ private:
     void setBoard(juce::var doc, bool resetUndo);
     void boardEdited(bool notifyUi);
     void recompile();
-    void reconcile(bool force);
-    void runTick(int64_t block, const BlockIO& claimer) noexcept;
     /// Modules were installed: nodes of a type that was missing are real nodes now.
     void modulesChanged();
+    void reconcile(bool force);
+    void runTick(int64_t block, const BlockIO& claimer) noexcept;
     void clearBoard();
     void promoteMain();
+    /// Cell plugins in a set without Bleep Patch get a board of their own, dropped when the last one leaves.
+    void updateImplicitBoard();
+    /// Puts the instance's preset next to its port node (replacing a cell that is there).
+    void attachPreset(PortSlot& slot, const juce::String& portNodeId);
     void applySampleRate();
 
     juce::ScopedJuceInitialiser_GUI juceInit_;  ///< keeps this binary's JUCE alive while the engine lives
@@ -143,6 +149,7 @@ private:
     std::vector<std::shared_ptr<PortSlot>> instances_;
     std::atomic<PortSlot*> table_[kMaxInstances] = {};
     int mainHandle_ = 0;
+    bool implicit_ = false;    ///< a board kept for cell plugins while there is no Bleep Patch
     double sampleRate_ = 48000.0;              ///< message thread: what modules are prepared for
     std::atomic<double> pendingRate_{0.0};     ///< set by prepare() on any thread, applied by the timer
     std::atomic<int> maxBlock_{0};             ///< largest host block of any plugin (never shrinks)

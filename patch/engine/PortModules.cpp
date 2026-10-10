@@ -278,6 +278,34 @@ private:
     bool from_, to_;
 };
 
+/// The return half of an Audio Insert (or Bridge): board audio to the track. With nothing patched into
+/// the return, the track's own audio passes through.
+class AudioReturnModule final : public Module {
+public:
+    using Module::Module;
+    void process(const ProcessContext& c) override {
+        if (!c.port || !c.port->out) return;
+        const bool through = !c.inputConnected[0];
+        const PortFrame* in = c.port->in;
+        for (int ch = 0; ch < 2; ++ch) {
+            float* dst = c.port->out->audio[ch] + c.offset;
+            if (through) {
+                if (in == nullptr) {
+                    std::fill(dst, dst + c.numSamples, 0.0f);
+                    continue;
+                }
+                const float* src = in->audio[in->numChannels > 1 ? ch : 0] + c.offset;
+                const int n = std::clamp(in->numSamples - c.offset, 0, c.numSamples);
+                std::copy(src, src + n, dst);
+                std::fill(dst + n, dst + c.numSamples, 0.0f);
+            } else {
+                const float* src = ch == 1 && !c.inputConnected[1] ? c.inputs[0] : c.inputs[ch];  // mono → both
+                std::copy(src, src + c.numSamples, dst);
+            }
+        }
+    }
+};
+
 // ---- Bleep Patch: macros -----------------------------------------------------------
 
 class MacrosModule final : public Module {
@@ -431,14 +459,23 @@ void registerPortModules(Registry& r) {
                                 "A track's audio through the board and back (Bleep Audio Insert).");
         s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
         s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
-        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, true); });
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, false); });
     }
     {
         ModuleSpec s = portSpec("audio-bridge", "Audio Bridge", PortKind::AudioBridge,
                                 "A Live track's audio through the standalone app and back (Bleep Audio Bridge).");
         s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
         s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
-        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, true); });
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, false); });
+    }
+    {
+        // The return half of an Audio Insert or Audio Bridge: the compiler splits the node into send and return
+        // (Program::compile), so the path through the board is not a cycle and takes no feedback delay.
+        ModuleSpec s = portSpec(kAudioReturn, "Audio Return", PortKind::AudioInsert,
+                                "The return of an Audio Insert (made by the compiler).");
+        s.userCreatable = false;
+        s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioReturnModule>(spec); });
     }
     {
         ModuleSpec s = portSpec("link", "Link", PortKind::Link,

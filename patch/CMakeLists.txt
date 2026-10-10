@@ -245,7 +245,9 @@ if (BLEEP_PATCH_BUILD_TESTS AND NOT BLEEP_PATCH_LIGHT_TESTS)
     juce_add_console_app(bleep_engine_tests PRODUCT_NAME "Bleep Engine Tests")
     target_sources(bleep_engine_tests PRIVATE tests/engine_test.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_engine_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
-    target_compile_definitions(bleep_engine_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_compile_definitions(bleep_engine_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
+        BLEEP_FACTORY_PRESETS="${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json"
+        BLEEP_FACTORY_PANELS="${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-panels.json")
     target_link_libraries(bleep_engine_tests PRIVATE
         bleep_patch_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
@@ -392,7 +394,8 @@ function(bleep_add_plugin)
         ${BLEEP_ENGINE_SOURCES}
         board/BoardWindow.cpp
         bridges/ableton/PortProcessor.cpp
-        bridges/ableton/PortEditor.cpp)
+        bridges/ableton/PortEditor.cpp
+        bridges/ableton/PresetLibrary.cpp)
     target_include_directories(${P_TARGET} PRIVATE ${BLEEP_ENGINE_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/bridges/ableton")
     target_compile_definitions(${P_TARGET} PUBLIC

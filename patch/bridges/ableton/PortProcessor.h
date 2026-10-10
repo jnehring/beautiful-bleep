@@ -28,6 +28,11 @@ public:
     engine::IEngine& engine() const noexcept { return instance_.engine(); }
     int handle() const noexcept { return instance_.handle(); }
     juce::AudioParameterFloat* mixParameter() const noexcept { return mix_; }
+    /// Bleep Instrument and Bleep FX load a cell preset (doc/specs/cell-plugins.md).
+    bool loadsPresets() const noexcept { return kind_ == engine::PortKind::Instrument || kind_ == engine::PortKind::AudioInsert; }
+    /// Puts the named factory preset into this instance (replacing the cell that is there).
+    void loadPreset(const juce::String& name);
+    juce::String presetName() const;
     bool reportsLatency() const noexcept;
 
     // ---- juce::AudioProcessor ----------------------------------------------
@@ -72,6 +77,7 @@ private:
     std::atomic<int> latency_{0};
     int64_t fallbackPos_ = 0;
     uint64_t seenGeneration_ = 0;
+    bool stateRestored_ = false;   ///< setStateInformation ran: a saved set, not a fresh instance
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PortProcessor)
 };

@@ -70,6 +70,7 @@ struct PortSlot {
     double registeredAt = 0.0;      ///< ms, for the settle delay before a node appears
     bool restored = false;          ///< setState has run (or the settle delay passed)
     std::string savedBoard;         ///< Bleep Patch: the board it loaded or last saved
+    std::string presetJson;         ///< cell plugins: the preset as the plugin loaded it (name, plays, panels …)
 
     // Audio thread of this plugin.
     int64_t counter = -1;           ///< this plugin's idea of the host block index

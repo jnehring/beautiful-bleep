@@ -93,6 +93,23 @@ juce::DynamicObject* findCable(const juce::var& doc, const juce::String& id);
 /// Adds a node (with default params) and returns its id.
 juce::String addNode(juce::var& doc, const ModuleSpec& spec, double x, double y, const juce::String& portId = {});
 
+// ---- cell presets on the board (Bleep Instrument and Bleep FX, doc/specs/cell-plugins.md) -------
+
+/// Copies a cell preset document ({root, nodes, cables, panels?}) into the top level of `doc` with
+/// fresh ids, as the board's Add → Cell does, and returns the new root's id (empty if it has none).
+juce::String insertPreset(juce::var& doc, const juce::var& preset, double x, double y);
+/// Cables a preset cell to its port node the way the plugin plays it: `plays` is the preset's
+/// entry, `effect` says which half of it applies. The Instrument's MIDI jacks feed the cell's note
+/// inputs and its audio comes back to the port; an FX sends the port's audio through.
+void attachHost(juce::var& doc, const juce::String& portNodeId, const juce::String& cellId, const juce::var& plays,
+                bool effect);
+/// The top-level cell cabled to a port node, if any (its id, else empty).
+juce::String attachedCell(const juce::var& doc, const juce::String& portNodeId);
+/// Removes a cell with everything inside it, the cables touching them and the panels of the cell.
+void removeCell(juce::var& doc, const juce::String& cellId);
+/// The cell as a preset document again ({format, root, nodes, cables, panels}), with its edits.
+juce::var extractPreset(const juce::var& doc, const juce::String& cellId);
+
 /// Every node type, for the UI's browser and module views.
 juce::var describeTypes();
 

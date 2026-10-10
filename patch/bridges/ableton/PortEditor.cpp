@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "PortEditor.h"
+#include "PresetLibrary.h"
 
 namespace bleep::patch {
 
@@ -32,6 +33,9 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
 
     openBoard_.onClick = [this] { processor_.engine().openBoard(processor_.handle()); };
     addAndMakeVisible(openBoard_);
+    preset_.onClick = [this] { showPresets(); };
+    addChildComponent(preset_);
+    preset_.setVisible(p.loadsPresets());
     replace_.onClick = [this] { processor_.engine().replaceBoardWith(processor_.handle()); };
     addChildComponent(replace_);
 
@@ -43,7 +47,7 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
         addAndMakeVisible(mix_);
     }
 
-    setSize(400, p.mixParameter() ? 188 : 156);
+    setSize(400, (p.mixParameter() ? 188 : 156) + (p.loadsPresets() ? 34 : 0));
     timerCallback();
     // Spec §9.1: opening a plugin window opens the board, or brings it forward.
     processor_.engine().editorOpened(processor_.handle());
@@ -68,12 +72,34 @@ void PortEditor::resized() {
     r.removeFromTop(8);
     name_.setBounds(r.removeFromTop(26));
     r.removeFromTop(8);
+    if (preset_.isVisible()) {
+        preset_.setBounds(r.removeFromTop(26));
+        r.removeFromTop(8);
+    }
     if (mix_.isVisible()) {
         mix_.setBounds(r.removeFromTop(26));
         r.removeFromTop(6);
     }
     if (replace_.isVisible()) replace_.setBounds(r.removeFromBottom(26).removeFromLeft(190));
     status_.setBounds(r);
+}
+
+/// A menu of the presets this plugin can play, by category (the real browser comes later).
+void PortEditor::showPresets() {
+    juce::PopupMenu menu;
+    std::map<juce::String, juce::PopupMenu> byCategory;
+    std::vector<juce::String> order;
+    const auto& list = PresetLibrary::forKind(processor_.kind());
+    for (int i = 0; i < list.size(); ++i) {
+        if (byCategory.find(list[i].category) == byCategory.end()) order.push_back(list[i].category);
+        byCategory[list[i].category].addItem(i + 1, list[i].name, true, list[i].name == processor_.presetName());
+    }
+    for (const auto& c : order) menu.addSubMenu(c, byCategory[c]);
+    menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&preset_), [this, &list](int result) {
+        if (result <= 0) return;
+        processor_.loadPreset(list[result - 1].name);
+        preset_.setButtonText(list[result - 1].name);
+    });
 }
 
 void PortEditor::timerCallback() {
@@ -84,6 +110,11 @@ void PortEditor::timerCallback() {
     if (!name_.hasKeyboardFocus(true)) {
         e.nodeName(processor_.handle(), text, sizeof text);
         name_.setText(juce::String::fromUTF8(text), false);
+    }
+    // The preset's name is read when a window opens and after a pick; reading it extracts the whole cell.
+    if (preset_.isVisible() && preset_.getButtonText() == "Preset") {
+        const auto name = processor_.presetName();
+        if (name.isNotEmpty()) preset_.setButtonText(name);
     }
     const auto state = e.state(processor_.handle());
     // Bleep Patch has no node of its own, apart from its macros.

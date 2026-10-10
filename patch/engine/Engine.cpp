@@ -101,6 +101,7 @@ int Engine::registerInstance(PortKind kind) noexcept {
     table_[handle].store(s.get(), std::memory_order_release);
     if (kind == PortKind::Patch && mainHandle_ == 0) {
         mainHandle_ = handle;
+        implicit_ = false;  // Bleep Patch takes over from the board cell plugins kept on their own
         setBoard(board::create(), true);
     }
     return handle;
@@ -120,6 +121,7 @@ void Engine::unregisterInstance(int handle) noexcept {
         recompile();  // the port's node becomes a ghost
         if (ui_) ui_->boardChanged();
     }
+    updateImplicitBoard();
 }
 
 void Engine::restoreInstanceId(int handle, const char* savedId) noexcept {
@@ -276,6 +278,7 @@ void Engine::boardEdited(bool notifyUi) {
 
 void Engine::clearBoard() {
     mainHandle_ = 0;
+    implicit_ = false;
     board_ = juce::var();
     undo_.clear();
     redo_.clear();
@@ -293,6 +296,75 @@ void Engine::promoteMain() {
             setBoard(doc.isObject() ? doc : board::create(), true);
             return;
         }
+}
+
+void Engine::updateImplicitBoard() {
+    if (mainHandle_ != 0) {
+        implicit_ = false;
+        return;
+    }
+    bool any = false;
+    for (const auto& s : instances_) any = any || !s->presetJson.empty();
+    if (any && !implicit_) {
+        implicit_ = true;
+        setBoard(board::create(), true);
+    } else if (!any && implicit_) {
+        implicit_ = false;
+        clearBoard();
+    }
+}
+
+void Engine::attachPreset(PortSlot& s, const juce::String& portNodeId) {
+    const juce::var preset = board::fromJson(juce::String(s.presetJson));
+    if (!preset.isObject()) return;
+    if (const auto old = board::attachedCell(board_, portNodeId); old.isNotEmpty()) board::removeCell(board_, old);
+    const auto* port = board::findNode(board_, portNodeId);
+    const double x = port ? (double)port->getProperty("x") + 320.0 : 360.0;
+    const double y = port ? (double)port->getProperty("y") : 40.0;
+    const auto cell = board::insertPreset(board_, preset, x, y);
+    if (cell.isEmpty()) return;
+    board::attachHost(board_, portNodeId, cell, preset["plays"], s.kind == PortKind::AudioInsert);
+    board_ = board::sanitise(board_);
+}
+
+void Engine::setCellPreset(int handle, const char* json, size_t length, bool replace) noexcept {
+    auto s = slotShared(handle);
+    if (!s || json == nullptr) return;
+    if (s->kind != PortKind::Instrument && s->kind != PortKind::AudioInsert) return;
+    s->restored = true;  // the saved state has arrived: its node may appear
+    if (!replace && !s->presetJson.empty()) return;
+    s->presetJson.assign(json, length);
+    updateImplicitBoard();
+    if (!hasBoard()) return;
+    auto* node = board::findNodeByPort(board_, juce::String(s->id));
+    if (node == nullptr) {
+        reconcile(true);  // adds the port node and attaches the preset
+        return;
+    }
+    const juce::String portNodeId = node->getProperty("id").toString();
+    if (!replace && board::attachedCell(board_, portNodeId).isNotEmpty()) return;  // the board's copy wins
+    beginGesture();
+    attachPreset(*s, portNodeId);
+    boardEdited(true);
+}
+
+size_t Engine::cellPreset(int handle, char* out, size_t capacity) noexcept {
+    auto s = slotShared(handle);
+    if (!s) return 0;
+    std::string result = s->presetJson;
+    if (hasBoard() && !s->presetJson.empty())
+        if (const auto* node = board::findNodeByPort(board_, juce::String(s->id))) {
+            const auto cell = board::attachedCell(board_, node->getProperty("id").toString());
+            if (cell.isNotEmpty()) {
+                juce::var snapshot = board::extractPreset(board_, cell);
+                const juce::var meta = board::fromJson(juce::String(s->presetJson));
+                for (const char* key : {"name", "description", "category", "tags", "plays"})
+                    if (meta.hasProperty(key)) snapshot.getDynamicObject()->setProperty(key, meta[key]);
+                result = board::toJson(snapshot).toStdString();
+            }
+        }
+    if (out && capacity > 0) std::memcpy(out, result.data(), std::min(capacity, result.size()));
+    return result.size();
 }
 
 juce::var Engine::commit(const juce::var& edited, const juce::String& label) {
@@ -498,6 +570,7 @@ void Engine::reconcile(bool force) {
             n->setProperty("track", juce::String(s->trackName));
             n->setProperty("name", juce::String(s->trackName));
         }
+        if (!s->presetJson.empty()) attachPreset(*s, id);
         changed = true;
     }
     if (changed) boardEdited(true);
@@ -865,6 +938,8 @@ public:
     void replaceBoardWith(int) noexcept override {}
     void editorOpened(int) noexcept override {}
     void openBoard(int) noexcept override {}
+    void setCellPreset(int, const char*, size_t, bool) noexcept override {}
+    size_t cellPreset(int, char*, size_t) noexcept override { return 0; }
 
 private:
     int refs_ = 1;

@@ -2,6 +2,9 @@
 #include "PortProcessor.h"
 
 #include "PortEditor.h"
+#include "PresetLibrary.h"
+
+#include "Board.h"
 
 namespace bleep::patch {
 
@@ -213,6 +216,15 @@ void PortProcessor::getStateInformation(juce::MemoryBlock& dest) {
     root.setAttribute("id", id);
     for (auto* p : getParameters())
         if (auto* f = dynamic_cast<juce::AudioParameterFloat*>(p)) root.setAttribute(f->paramID, f->get());
+    if (loadsPresets()) {
+        // The cell as it is on the board, edits included; Bleep Patch's board holds it too (the board wins on restore).
+        const size_t len = engine().cellPreset(handle(), nullptr, 0);
+        if (len > 0) {
+            std::string json(len, '\0');
+            engine().cellPreset(handle(), json.data(), len);
+            root.createNewChildElement("Preset")->addTextElement(juce::String::fromUTF8(json.data(), (int)json.size()));
+        }
+    }
     if (kind_ == PortKind::Patch) {
         const size_t len = engine().saveBoard(handle(), nullptr, 0);
         std::string json(len, '\0');
@@ -229,6 +241,12 @@ void PortProcessor::setStateInformation(const void* data, int sizeInBytes) {
     for (auto* p : getParameters())
         if (auto* f = dynamic_cast<juce::AudioParameterFloat*>(p); f && xml->hasAttribute(f->paramID))
             *f = (float)xml->getDoubleAttribute(f->paramID);
+    stateRestored_ = true;
+    if (loadsPresets())
+        if (auto* p = xml->getChildByName("Preset")) {
+            const auto json = p->getAllSubText().toStdString();
+            engine().setCellPreset(handle(), json.data(), json.size(), false);
+        }
     if (kind_ == PortKind::Patch)
         if (auto* b = xml->getChildByName("Board")) {
             const auto json = b->getAllSubText().toStdString();
@@ -244,7 +262,25 @@ void PortProcessor::updateTrackProperties(const TrackProperties& properties) {
     engine().setTrack(handle(), name.toRawUTF8(), colour.getARGB());
 }
 
+void PortProcessor::loadPreset(const juce::String& name) {
+    if (const auto* e = PresetLibrary::find(kind_, name))
+        engine().setCellPreset(handle(), e->json.toRawUTF8(), (size_t)e->json.getNumBytesAsUTF8(), true);
+}
+
+juce::String PortProcessor::presetName() const {
+    const size_t len = engine().cellPreset(handle(), nullptr, 0);
+    if (len == 0) return {};
+    std::string json(len, '\0');
+    engine().cellPreset(handle(), json.data(), len);
+    return engine::board::fromJson(juce::String::fromUTF8(json.data(), (int)len))["name"].toString();
+}
+
 void PortProcessor::timerCallback() {
+    // A new instance starts with a preset; a saved set (setStateInformation ran) keeps what it had, even nothing.
+    if (loadsPresets() && !stateRestored_) {
+        stateRestored_ = true;
+        if (engine().cellPreset(handle(), nullptr, 0) == 0) loadPreset(PresetLibrary::defaultName(kind_));
+    }
     if (reportsLatency()) {
         const int l = engine().latencySamples();
         if (l != latency_.load()) {

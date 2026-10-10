@@ -158,6 +158,9 @@ enum class PortKind { None, Patch, MidiIn, MidiOut, AudioIn, AudioOut, Instrumen
 
 const char* portKindName(PortKind k) noexcept;
 
+/// The return half of an Audio Insert / Audio Bridge node, made by the compiler (never in a saved board).
+constexpr const char* kAudioReturn = "audio-return";
+
 struct ModuleSpec {
     std::string type;        ///< stable id saved in boards, e.g. "function"
     std::string name;        ///< "Function"

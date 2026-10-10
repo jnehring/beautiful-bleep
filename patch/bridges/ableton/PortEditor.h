@@ -20,11 +20,12 @@ public:
 
 private:
     void timerCallback() override;
+    void showPresets();
 
     PortProcessor& processor_;
     juce::Label title_, status_;
     juce::TextEditor name_;
-    juce::TextButton openBoard_{"Open Board"}, replace_{"Replace current board"};
+    juce::TextButton preset_{"Preset"}, openBoard_{"Open Board"}, replace_{"Replace current board"};
     juce::Slider mix_;
     std::unique_ptr<juce::SliderParameterAttachment> mixAttachment_;
 };

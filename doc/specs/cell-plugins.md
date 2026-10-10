@@ -129,7 +129,7 @@ Two empty presets are part of the delivery. Existing sets: the old Instrument id
 | # | Deliverable | Gate |
 |---|---|---|
 | 1 | **Done:** `plays` in the kit and preset schema, derived and checked; drum note maps; the panel requirement; the *Starters* category with Empty Instrument and Empty FX; `patch.cell-plugin-presets` | `--check` green, all shapes load |
-| 2 | **Spike:** a cell node on the shared board with built-in host ports (MIDI/audio), driven by a throwaway plugin; cable it to another plugin; edit it on the board and see the panel follow | Sound in Live, state round trip, latency as the old ports |
+| 2 | **Spike (done in the engine, not yet tried in Live):** see section 10 | Engine tests green; sound, state round trip and latency in Live still to check by ear |
 | 3 | The two plugins: panel window, browser, replace-preset, state, parameters, Dry/Wet | Pick, play, edit, save the set, reopen |
 | 4 | Remove the old Instrument and Audio Insert (code, release, docs) | Builds and tests green without them |
 | 5 | User and store presets, missing-module prompts, zero-latency fast path for unconnected cells, hand-written panels | Software Center installs a preset and it shows up |
@@ -139,3 +139,15 @@ Two empty presets are part of the delivery. Existing sets: the old Instrument id
 1. ~~What does *replace preset* do to cables to jacks the new cell does not have?~~ **Decided: they stay as ghosts** (as ports do when their plugin is gone), and reconnect when a jack with that id comes back.
 2. Per-voice multi-out for drum cells (more audio outputs to Live)? Out of scope now.
 3. Does Live's hot-swap list VST3 programs? Verify in phase 3.
+
+## 10. What the spike built (phase 2)
+
+The spike showed that **the existing ports already are the host side**. An instance is the old `Instrument` or `AudioInsert` port node with a preset cell inserted next to it and cabled to it, all as ordinary board nodes. No new module type and no new plugin-to-engine protocol.
+
+- **Engine** (`EngineApi.h`, ABI tag 6): `setCellPreset(handle, json, replace)` and `cellPreset(handle)`. `Engine::attachPreset` inserts the preset (fresh ids, its panels bound to the new cell) next to the port node and cables it from `plays`; `board::insertPreset`, `attachHost`, `attachedCell`, `removeCell` and `extractPreset` in `Board.cpp` do the document work. Choosing another preset replaces the cell.
+- **State:** the plugin saves the cell as it is on the board, edits included (`cellPreset`). Restoring with `replace` false keeps a cell already on the board, so with Bleep Patch the board's copy wins and the plugin's copy only fills a gap.
+- **No Bleep Patch needed:** while the set has no Bleep Patch, the engine keeps an implicit board for the cell plugins and drops it when the last one goes. Adding Bleep Patch replaces it with its own board; each instance's port node and cell are re-added from its saved copy. Cables between plugins need Bleep Patch, because only its board is saved.
+- **Plugins:** the existing Bleep Instrument and Bleep Audio Insert load a preset today (`PresetLibrary`: the factory presets compiled in, filtered by `plays`) with a plain menu in the window and a default for new instances (Warm Saws, Empty FX). Renaming, the real browser and the panel window are phase 3.
+- **A fix found on the way:** an Audio Insert's send and return were one node, so the way through the board counted as a cycle and got the 32-sample feedback delay: wet arrived 32 samples after the dry the plugin delays. The compiler now splits the node into send and return (`audio-return`), so a pass-through returns exactly two blocks later. This fixes the old Audio Insert too.
+- **Known gaps:** hi-hat cells (`closed`/`open`) get every note on the default jack, so open hats are not reachable yet; the three presets in `factory-presets.js` are not in the plugins' library yet; cables of a replaced cell are dropped, not kept as ghosts (decided, not built); the instance's window shows no panel yet.
+- **Tests:** `bleep_engine_tests` `cellPlugins` (an Instrument alone in the set plays a note; state round trip; Bleep Patch arriving; replacing a preset; an FX returns audio two blocks later).

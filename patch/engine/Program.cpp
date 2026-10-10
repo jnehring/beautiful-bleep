@@ -27,7 +27,40 @@ struct Resolved {
 
 }  // namespace
 
-std::unique_ptr<Program> Program::compile(const BoardModel& board,
+namespace {
+
+/// An Audio Insert (or Bridge) sends the track's audio into the board and takes it back: one node, so the way
+/// through the board would be a cycle with a feedback delay. Split it into the node (the send) and a return node
+/// that takes the cables into its inputs, and the audio goes out and back in the same chunk.
+bool hasInsert(const BoardModel& b) {
+    for (const auto& n : b.nodes)
+        if (n.type == "audio-insert" || n.type == "audio-bridge") return true;
+    return false;
+}
+
+BoardModel splitInserts(const BoardModel& in) {
+    BoardModel out = in;
+    const ModuleSpec* ret = Registry::get().find(kAudioReturn);
+    if (ret == nullptr) return out;
+    for (const auto& n : in.nodes) {
+        if (n.type != "audio-insert" && n.type != "audio-bridge") continue;
+        NodeModel r;
+        r.id = n.id + "~r";
+        r.type = kAudioReturn;
+        r.name = n.name;
+        r.port = n.port;
+        r.muted = n.muted;
+        r.spec = ret;
+        out.nodes.push_back(std::move(r));
+        for (auto& c : out.cables)
+            if (c.to.node == n.id) c.to.node = n.id + "~r";
+    }
+    return out;
+}
+
+}  // namespace
+
+std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
                                           std::map<std::string, std::shared_ptr<Module>>& modules,
                                           const std::map<std::string, std::shared_ptr<PortSlot>>& ports,
                                           double sampleRate, const Scope* scope) {
@@ -35,6 +68,9 @@ std::unique_ptr<Program> Program::compile(const BoardModel& board,
     const std::string root = scope ? scope->root : std::string();
     program->sampleRate_ = sampleRate;
     const auto& reg = Registry::get();
+    BoardModel split;
+    if (hasInsert(boardIn)) split = splitInserts(boardIn);
+    const BoardModel& board = hasInsert(boardIn) ? split : boardIn;
 
     std::map<std::string, const NodeModel*> byId;
     std::map<std::string, std::vector<const NodeModel*>> cellOutOf;  // cell id → its Cell Out nodes

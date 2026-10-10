@@ -22,7 +22,7 @@
 namespace bleep::engine {
 
 /// Changes whenever this interface or the data it passes changes.
-constexpr const char* kAbiTag = "bleep-engine-abi-5";
+constexpr const char* kAbiTag = "bleep-engine-abi-6";
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port
@@ -102,6 +102,17 @@ public:
     /// and highlights the instance's node (spec §9.1).
     virtual void editorOpened(int handle) noexcept = 0;
     virtual void openBoard(int handle) noexcept = 0;
+
+    // ---- cell plugins: Bleep Instrument, Bleep FX ([non-RT]) ---------------
+    /// Loads a cell preset (JSON: {name, root, nodes, cables, panels?, plays}) into the instance: its
+    /// cell appears on the board next to the instance's port node, cabled as `plays` says (spec
+    /// cell-plugins.md §1). With `replace` false a cell that is already there stays (restoring a saved
+    /// set: the board's copy, with its edits, wins). With no board in the set, the engine keeps a board
+    /// of its own for these plugins until Bleep Patch is added.
+    virtual void setCellPreset(int handle, const char* json, size_t length, bool replace) noexcept = 0;
+    /// The instance's preset as it is now on the board, edits included (for the plugin state).
+    /// Returns the full length; writes at most `capacity` bytes. Empty if none was loaded.
+    virtual size_t cellPreset(int handle, char* out, size_t capacity) noexcept = 0;
 
 protected:
     virtual ~IEngine() = default;

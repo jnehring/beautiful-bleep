@@ -1038,6 +1038,152 @@ void panelSources() {
 
 }  // namespace
 
+
+// ---------------------------------------------------------------------------------
+// Cell plugins (Bleep Instrument, Bleep FX): a preset cell next to the port node.
+
+/// A factory preset as the plugin hands it to the engine: its document plus name and panels.
+juce::String factoryPreset(const char* name) {
+    const auto presets = board::fromJson(juce::File(BLEEP_FACTORY_PRESETS).loadFileAsString());
+    const auto panels = board::fromJson(juce::File(BLEEP_FACTORY_PANELS).loadFileAsString());
+    for (const auto& p : *presets["presets"].getArray())
+        if (p["name"].toString() == name) {
+            juce::var doc = board::fromJson(board::toJson(p["preset"]));
+            doc.getDynamicObject()->setProperty("name", p["name"]);
+            if (panels["panels"].hasProperty(name)) doc.getDynamicObject()->setProperty("panels", panels["panels"][name]);
+            return board::toJson(doc);
+        }
+    return {};
+}
+
+void setPreset(Engine& e, int handle, const juce::String& json, bool replace = true) {
+    e.setCellPreset(handle, json.toRawUTF8(), (size_t)json.getNumBytesAsUTF8(), replace);
+}
+
+juce::String cellOf(Engine& e, int handle) {
+    const auto port = portNode(e, handle);
+    return port.isEmpty() ? juce::String() : board::attachedCell(e.board(), port);
+}
+
+float peakAfter(FakePort& p, int blocks, int from, std::function<void(int)> before = {}) {
+    float peak = 0.0f;
+    for (int b = 0; b < blocks; ++b) {
+        if (before) before(b);
+        p.run((int64_t)b * kBlock);
+        if (b >= from)
+            for (auto& ch : p.out)
+                for (float v : ch) peak = std::max(peak, std::fabs(v));
+    }
+    return peak;
+}
+
+void cellPlugins() {
+    g_test = "cell plugins";
+    const auto warm = factoryPreset("Warm Saws");
+    const auto empty = factoryPreset("Empty FX");
+    EXPECT(warm.isNotEmpty() && empty.isNotEmpty());
+
+    // An Instrument alone in the set: the engine keeps a board for it, with the port node and the cell.
+    juce::String snapshot;
+    {
+        auto* e = new Engine();
+        const int inst = e->registerInstance(PortKind::Instrument);
+        EXPECT(!e->hasBoard());
+        setPreset(*e, inst, warm);
+        EXPECT(e->hasBoard() && e->state(inst) == PortState::Ok);
+        const auto cell = cellOf(*e, inst);
+        EXPECT(cell.isNotEmpty());
+        if (cell.isNotEmpty()) {
+            EXPECT(board::findNode(e->board(), cell)->getProperty("type").toString() == "voice-cell");
+            EXPECT(board::findNode(e->board(), cell)->getProperty("name").toString() == "Warm Saws");
+            EXPECT(e->board()["panels"].isArray() && e->board()["panels"].size() >= 1);
+            EXPECT(board::parse(e->board()).nodes.size() > 4);
+        }
+        FakePort p(*e, inst);
+        MidiEvent on;
+        on.offset = 0;
+        on.size = 3;
+        on.bytes[0] = 0x90;
+        on.bytes[1] = 60;
+        on.bytes[2] = 100;
+        const float sound = peakAfter(p, 60, 4, [&](int b) { if (b == 0) p.midiIn.push_back(on); });
+        EXPECT(sound > 0.01f && std::isfinite(sound));
+        EXPECT(sound < 2.0f);
+
+        // The saved state carries the edited cell; a new set restores it.
+        auto edited = copyOf(e->board());
+        bool moved = false;
+        for (auto& n : *edited["nodes"].getArray())
+            if (n["parent"].toString().isNotEmpty() && n["type"].toString() != "voice-in" && n["type"].toString() != "voice-out" && !moved)
+                n.getDynamicObject()->setProperty("name", "Edited Node"), moved = true;
+        e->commit(edited, "move");
+        const size_t len = e->cellPreset(inst, nullptr, 0);
+        std::string json(len, '\0');
+        e->cellPreset(inst, json.data(), len);
+        snapshot = juce::String::fromUTF8(json.data(), (int)len);
+        const auto saved = board::fromJson(snapshot);
+        EXPECT(saved["name"].toString() == "Warm Saws" && saved.hasProperty("plays") && saved["panels"].isArray());
+        bool kept = false;
+        for (const auto& n : *saved["nodes"].getArray()) kept |= n["name"].toString() == "Edited Node";
+        EXPECT(moved && kept);
+        e->unregisterInstance(inst);
+        EXPECT(!e->hasBoard());  // the last cell plugin takes its board with it
+        e->collectGarbage();
+        e->release();
+    }
+    // Restoring: with Bleep Patch (its board is saved) the board's copy wins; without, the snapshot builds the cell.
+    {
+        auto* e = new Engine();
+        const int inst = e->registerInstance(PortKind::Instrument);
+        setPreset(*e, inst, snapshot, false);
+        const auto cell = cellOf(*e, inst);
+        bool kept = false;
+        for (const auto& n : *e->board()["nodes"].getArray()) kept |= n["name"].toString() == "Edited Node";
+        EXPECT(cell.isNotEmpty() && kept);
+        // Bleep Patch arrives: its board replaces the implicit one, and the cell comes back with the port node.
+        const int main = e->registerInstance(PortKind::Patch);
+        e->reconcileNow();
+        EXPECT(cellOf(*e, inst).isNotEmpty());
+        // A second state restore does not stack another cell on top.
+        setPreset(*e, inst, snapshot, false);
+        int cells = 0;
+        for (const auto& n : *e->board()["nodes"].getArray()) cells += n["type"].toString() == "voice-cell";
+        EXPECT(cells == 1);
+        // Choosing another preset replaces the cell.
+        setPreset(*e, inst, factoryPreset("Reese Pressure"), true);
+        cells = 0;
+        for (const auto& n : *e->board()["nodes"].getArray()) cells += n["type"].toString() == "voice-cell";
+        EXPECT(cells == 1);
+        EXPECT(board::findNode(e->board(), cellOf(*e, inst))->getProperty("name").toString() == "Reese Pressure");
+        e->unregisterInstance(inst);
+        e->unregisterInstance(main);
+        e->collectGarbage();
+        e->release();
+    }
+    // An FX: Empty FX passes the track's audio through the board and back, two blocks later.
+    {
+        auto* e = new Engine();
+        const int main = e->registerInstance(PortKind::Patch);
+        const int fx = e->registerInstance(PortKind::AudioInsert);
+        setPreset(*e, fx, empty);
+        EXPECT(cellOf(*e, fx).isNotEmpty());
+        FakePort pMain(*e, main), pFx(*e, fx);
+        int arrivedAt = -1;
+        for (int b = 0; b < 12; ++b) {
+            for (auto& ch : pFx.in) std::fill(ch.begin(), ch.end(), 0.0f);
+            if (b == 1) pFx.in[0][7] = pFx.in[1][7] = 0.5f;
+            pMain.run((int64_t)b * kBlock);
+            pFx.run((int64_t)b * kBlock);
+            if (arrivedAt < 0 && std::fabs(pFx.out[0][7]) > 0.25f) arrivedAt = b;
+        }
+        EXPECT(arrivedAt == 3);
+        e->unregisterInstance(fx);
+        e->unregisterInstance(main);
+        e->collectGarbage();
+        e->release();
+    }
+}
+
 int main() {
     juce::ScopedJuceInitialiser_GUI juce;
     specMapping();
@@ -1055,6 +1201,7 @@ int main() {
     stepSequencer();
     drumGrid();
     drumNodes();
+    cellPlugins();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;
 }
