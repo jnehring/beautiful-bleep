@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: MIT
 name: CI
 
-on:
-  push:
-    branches: [main]
-  pull_request:
+# DISABLED to save Actions minutes: no trigger. Re-enable by restoring the triggers:
+#   push:
+#     branches: [main]
+#   pull_request:
+on: {}
 
 jobs:
   rules:
