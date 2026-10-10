@@ -78,7 +78,14 @@ private:
     std::map<std::string, std::string> busy_;
     struct PluginJob { std::string state = "idle", message; bool ok = false; } pluginJob_;   // idle | running | done
     std::atomic<bool> started_{false};
-    std::map<std::string, std::string> viewFiles_;   // file name → the package it is in
+    /// The view scripts and docs of the installed modules by file name, read from the packages once (every request to the
+    /// window used to verify and unpack all of them). Dropped when the set of installed modules changes.
+    void buildViewCache() const;
+    void dropViewCache();
+    mutable std::mutex viewMutex_;
+    mutable bool viewCacheBuilt_ = false;
+    mutable std::map<std::string, std::vector<uint8_t>> viewFiles_;
+    mutable std::string viewScripts_;   // module-views.json
 };
 
 }  // namespace bleep::engine

@@ -3,6 +3,7 @@
 
 #include "WasmRegistry.h"
 
+#include <cstdio>
 #include <thread>
 
 #ifndef BLEEP_STORE_ROOTS
@@ -77,8 +78,10 @@ void ModuleStore::start() {
             for (const auto& h : *a)
                 if (auto k = store::fromHex(h.toString().toStdString()); k.size() == 32) roots_.push_back(std::move(k));
     }
+    const auto started = juce::Time::getMillisecondCounter();
     const auto c = client();
     const auto reports = loadInstalledModules(Registry::instance(), *c);
+    std::fprintf(stderr, "[store] %zu installed modules checked and registered in %u ms\n", reports.size(), juce::Time::getMillisecondCounter() - started);
     std::lock_guard<std::mutex> l(mutex_);
     reports_ = reports;
 }
@@ -98,11 +101,18 @@ void ModuleStore::registerInstalled(const std::string& slug) {
         } else if (m.allowed) {
             r.why = error;
         }
+        dropViewCache();  // rebuilt on the next request (never while holding mutex_: viewFile takes the two in the other order)
         std::lock_guard<std::mutex> l(mutex_);
         reports_.erase(std::remove_if(reports_.begin(), reports_.end(), [&](const LoadReport& x) { return x.slug == slug; }), reports_.end());
         reports_.push_back(std::move(r));
-        viewFiles_.clear();  // rebuilt on the next request
     }
+}
+
+void ModuleStore::dropViewCache() {
+    std::lock_guard<std::mutex> l(viewMutex_);
+    viewFiles_.clear();
+    viewScripts_.clear();
+    viewCacheBuilt_ = false;
 }
 
 void ModuleStore::post(std::function<void()> f) {
@@ -155,9 +165,9 @@ void ModuleStore::removeAsync(const std::string& slug, std::function<void(bool, 
         std::string error;
         const bool ok = client()->remove(slug, error);
         post([this, slug, ok, error, done] {
+            dropViewCache();
             std::lock_guard<std::mutex> l(mutex_);
             reports_.erase(std::remove_if(reports_.begin(), reports_.end(), [&](const LoadReport& x) { return x.slug == slug; }), reports_.end());
-            viewFiles_.clear();
             busy_.erase(slug);
             if (done) done(ok, error);
             // the node types stay registered until the next start: nodes that use them keep working (store.md section 9)
@@ -275,24 +285,9 @@ juce::var ModuleStore::status() {
 
 // ---- what the board window serves from the installed packages -------------------------------------------------------
 
-bool ModuleStore::viewFile(const std::string& name, std::vector<uint8_t>& bytes) const {
-    if (name.empty() || name.find('/') != std::string::npos || name.find("..") != std::string::npos) return false;
-    const auto c = const_cast<ModuleStore*>(this)->client();
-    for (const auto& m : c->installed()) {
-        if (!m.allowed) continue;
-        std::vector<uint8_t> raw;
-        juce::MemoryBlock block;
-        if (!m.file.loadFileAsData(block)) continue;
-        store::Package pkg;
-        std::string error;
-        if (!store::readPackage((const uint8_t*)block.getData(), block.getSize(), pkg, error)) continue;
-        for (const char* dir : {"ui/", "doc/"})
-            if (auto it = pkg.files.find(dir + name); it != pkg.files.end()) { bytes = it->second; return true; }
-    }
-    return false;
-}
-
-std::string ModuleStore::moduleViewsJson() const {
+void ModuleStore::buildViewCache() const {
+    if (viewCacheBuilt_) return;
+    const auto started = juce::Time::getMillisecondCounter();
     juce::StringArray names;
     const auto c = const_cast<ModuleStore*>(this)->client();
     for (const auto& m : c->installed()) {
@@ -301,10 +296,34 @@ std::string ModuleStore::moduleViewsJson() const {
         store::Package pkg;
         std::string error;
         if (!m.file.loadFileAsData(block) || !store::readPackage((const uint8_t*)block.getData(), block.getSize(), pkg, error)) continue;
-        for (const auto& [path, data] : pkg.files)
-            if (path.rfind("ui/", 0) == 0 && path.size() > 6 && path.substr(path.size() - 3) == ".js") names.add("\"" + juce::String(path.substr(3)) + "\"");
+        for (const auto& [path, data] : pkg.files) {
+            const bool ui = path.rfind("ui/", 0) == 0, doc = path.rfind("doc/", 0) == 0;
+            if (!ui && !doc) continue;
+            const std::string name = path.substr(ui ? 3 : 4);
+            if (name.empty() || name.find('/') != std::string::npos) continue;
+            viewFiles_.emplace(name, data);
+            if (ui && name.size() > 3 && name.substr(name.size() - 3) == ".js") names.add("\"" + juce::String(name) + "\"");
+        }
     }
-    return ("[" + names.joinIntoString(", ") + "]\n").toStdString();
+    viewScripts_ = ("[" + names.joinIntoString(", ") + "]\n").toStdString();
+    viewCacheBuilt_ = true;
+    std::fprintf(stderr, "[store] %zu view and doc files of the installed modules read in %u ms\n", viewFiles_.size(), juce::Time::getMillisecondCounter() - started);
+}
+
+bool ModuleStore::viewFile(const std::string& name, std::vector<uint8_t>& bytes) const {
+    if (name.empty() || name.find('/') != std::string::npos || name.find("..") != std::string::npos) return false;
+    std::lock_guard<std::mutex> l(viewMutex_);
+    buildViewCache();
+    const auto it = viewFiles_.find(name);
+    if (it == viewFiles_.end()) return false;
+    bytes = it->second;
+    return true;
+}
+
+std::string ModuleStore::moduleViewsJson() const {
+    std::lock_guard<std::mutex> l(viewMutex_);
+    buildViewCache();
+    return viewScripts_;
 }
 
 }  // namespace bleep::engine
