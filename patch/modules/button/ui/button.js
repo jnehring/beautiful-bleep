@@ -18,14 +18,17 @@
   }
 
   BleepViews.register("button", {
-    top: true,
+    side: true,
+    layout: [{ title: "Behaviour", params: ["mode"] }],
     template:
       "<style>" +
       ".bt{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1 1 100%}" +
-      ".bt-pad{width:150px;height:110px;border-radius:14px;border:2px solid var(--line);background:var(--panel-3);" +
-      "color:var(--muted);font:inherit;font-size:14px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;" +
+      ".bt-pad{width:100%;height:170px;border-radius:18px;border:2px solid var(--line);background:radial-gradient(circle at 50% 35%,var(--panel-3),var(--panel));" +
+      "color:var(--muted);font:inherit;font-size:20px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;" +
       "touch-action:none;user-select:none;transition:transform .04s,background .08s}" +
-      ".bt-pad.on{background:var(--accent);border-color:var(--accent);color:#0d1014}" +
+      ".bt-pad.on{background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--accent) 70%,#fff),var(--accent));border-color:var(--accent);color:#0d1014;" +
+      "box-shadow:0 0 36px var(--accent),inset 0 0 28px rgba(255,255,255,.3);animation:bt-pulse 1.6s ease-in-out infinite}" +
+      "@keyframes bt-pulse{50%{box-shadow:0 0 54px var(--accent),inset 0 0 36px rgba(255,255,255,.4)}}" +
       ".bt-pad.held{transform:scale(.97)}" +
       ".bt-pad:focus-visible{outline:2px solid var(--accent);outline-offset:3px}" +
       ".bt-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}" +

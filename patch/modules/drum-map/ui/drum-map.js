@@ -7,7 +7,8 @@
 (function () {
   "use strict";
   const GRID = 5, STEPS = 32, VOICES = ["Kick", "Snare", "Hats"], KEYS = ["kick", "snare", "hats"];
-  const PAD = 160, COL = 11, LANE = 46, LANES_H = VOICES.length * LANE + 14;
+  const PAD = 160, LANE_COL = 11, LANE = 46, LANES_H = VOICES.length * LANE + 14;
+  let COL = LANE_COL;  // follows the room the lanes have
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
   function data(view) {
@@ -55,6 +56,12 @@
     });
     g.globalAlpha = 1;
     const [kx, ky] = toPad(knob(view, "x"), knob(view, "y"));
+    {  // a soft halo round the playing position
+      const [hx, hy] = typeof st.px === "number" ? toPad(st.px, st.py) : [kx, ky];
+      const gr = g.createRadialGradient(hx, hy, 0, hx, hy, 42);
+      gr.addColorStop(0, c.accent + "55"); gr.addColorStop(1, c.accent + "00");
+      g.fillStyle = gr; g.fillRect(0, 0, PAD, PAD); g.fillStyle = c.accent;
+    }
     if (typeof st.px === "number") {
       const [mx, my] = toPad(st.px, st.py);
       g.beginPath(); g.arc(mx, my, 5, 0, Math.PI * 2); g.fill();
@@ -114,7 +121,9 @@
     return arr.levels && arr.levels.length === STEPS * 3 ? arr.levels : null;
   }
   function drawLanes(view) {
-    const dm = view.dm, w = STEPS * COL + 2, g = sizeCanvas(dm.lanes, w, LANES_H), c = colors(view), st = dm.state || {};
+    const dm = view.dm, room = dm.lanes.parentElement.clientWidth;
+    if (room > 0) COL = clamp(Math.floor((room - 2) / STEPS), LANE_COL, 22);
+    const w = STEPS * COL + 2, g = sizeCanvas(dm.lanes, w, LANES_H), c = colors(view), st = dm.state || {};
     const lv = levels(view), dens = [st.kd, st.sd, st.hd], acc = (typeof st.accent === "number" ? st.accent : 0.78) * 255;
     g.font = "8px system-ui, sans-serif";
     g.textAlign = "center";
@@ -203,7 +212,14 @@
 
   BleepViews.register("drum-map", {
     top: true,
-    width: 600,
+    width: 900,
+    hideParams: ["x", "y"],  // the pad is the X / Y control
+    layout: [
+      { title: "Density", params: ["kickdensity", "snaredensity", "hatsdensity", "fillamount"] },
+      { title: "Feel", params: ["chaos", "accent", "swing", "notelength"] },
+      { title: "Clock", params: ["rate", "length", "chaosrate", "seed"] },
+      { title: "Output notes", params: ["kicknote", "snarenote", "hatsnote"] },
+    ],
     template: `<div class="bv-panel dm-panel">
       <div class="dm-body">
         <canvas class="dm-pad" title="Drag to set X and Y"></canvas>

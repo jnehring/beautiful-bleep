@@ -54,23 +54,32 @@
     }
     // Output in the range's units (before smoothing).
     const out = units(view, "min") + (units(view, "max") - units(view, "min")) * snap(eff ?? v, steps);
+    const fmt = (x) => (x >= 0 ? "" : "−") + Math.abs(x).toFixed(2);
+    d.lo.textContent = fmt(units(view, "min"));
+    d.hi.textContent = fmt(units(view, "max"));
     d.out.textContent = (out >= 0 ? "+" : "−") + Math.abs(out).toFixed(2);
   }
 
   BleepViews.register("dial", {
-    top: true,
+    side: true,
+    hideParams: ["value"],
+    layout: [
+      { title: "Range", params: ["min", "max"] },
+      { title: "Feel", params: ["steps", "smooth"] },
+    ],
     template:
       "<style>" +
       ".dl{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1 1 100%}" +
-      ".dl svg{width:150px;height:150px;cursor:ns-resize;touch-action:none}" +
+      ".dl svg{width:210px;height:210px;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--accent) 60%,transparent));cursor:ns-resize;touch-action:none}" +
       ".dl .dl-track{stroke:var(--line);fill:none;stroke-width:7;stroke-linecap:round}" +
       ".dl .dl-arc{stroke:var(--accent);fill:none;stroke-width:7;stroke-linecap:round}" +
       ".dl .dl-ring{stroke:var(--mod);fill:none;stroke-width:4;stroke-linecap:round}" +
       ".dl .dl-cap{fill:var(--panel-3);stroke:var(--line)}" +
       ".dl .dl-pointer{stroke:var(--text);stroke-width:4;stroke-linecap:round}" +
       ".dl .dl-tick{stroke:var(--muted);stroke-width:1.5}" +
-      ".dl-out{font-size:22px;font-variant-numeric:tabular-nums}" +
+      ".dl-out{font-size:28px;font-variant-numeric:tabular-nums}" +
       ".dl-hint{font-size:10px;color:var(--muted)}" +
+      ".dl .dl-end{fill:var(--muted);font-size:8px;text-anchor:middle;font-variant-numeric:tabular-nums}" +
       "</style>" +
       '<div class="dl"><div class="dl-out"></div><div class="dl-hint">drag · wheel · double-click resets</div></div>',
     afterBuild(view, el) {
@@ -82,9 +91,10 @@
       const ring = svg("path", { class: "dl-ring", opacity: 0 });
       const cap = svg("circle", { class: "dl-cap", cx: C, cy: C, r: 38 });
       const pointer = svg("line", { class: "dl-pointer" });
-      s.append(ticks, track, a, ring, cap, pointer);
+      const lo = svg("text", { class: "dl-end", x: 22, y: 112 }), hi = svg("text", { class: "dl-end", x: 98, y: 112 });
+      s.append(ticks, track, a, ring, cap, pointer, lo, hi);
       box.insertBefore(s, box.firstChild);
-      view.dial = { arc: a, ring, pointer, ticks, out: box.querySelector(".dl-out"), eff: null, stepsDrawn: -1 };
+      view.dial = { lo, hi, arc: a, ring, pointer, ticks, out: box.querySelector(".dl-out"), eff: null, stepsDrawn: -1 };
       // The small Value knob would repeat the dial; cables into Value still show on the board.
       const small = view.knobs.get("value");
       if (small) small.box.style.display = "none";

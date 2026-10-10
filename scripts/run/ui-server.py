@@ -14,24 +14,30 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 PATCH = ROOT / "patch"
-MODULES = sorted(p for p in (PATCH / "modules").iterdir() if p.is_dir())
-DIRS = [PATCH / "board" / "ui", PATCH / "common" / "ui"] + [m / sub for m in MODULES for sub in ("ui", "doc") if (m / sub).is_dir()]
+
+
+def modules():
+    return sorted(p for p in (PATCH / "modules").iterdir() if p.is_dir())
+
+
+def dirs():  # looked up per request, so a new module ui/ folder is served without a restart
+    return [PATCH / "board" / "ui", PATCH / "common" / "ui"] + [m / sub for m in modules() for sub in ("ui", "doc") if (m / sub).is_dir()]
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         name = path.split("?", 1)[0].lstrip("/") or "index.html"
         if "/" in name or ".." in name:
-            return str(DIRS[0] / "404")
-        for base in DIRS:
+            return str(PATCH / "board" / "ui" / "404")
+        for base in dirs():
             candidate = base / name
             if candidate.is_file():
                 return str(candidate)
-        return str(DIRS[0] / name)
+        return str(PATCH / "board" / "ui" / name)
 
     def do_GET(self):
         if self.path.split("?", 1)[0].lstrip("/") == "module-views.json":  # as the plugin build writes it
-            names = sorted(f.name for m in MODULES for f in (m / "ui").glob("*.js"))
+            names = sorted(f.name for m in modules() for f in (m / "ui").glob("*.js"))
             body = json.dumps(names).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")

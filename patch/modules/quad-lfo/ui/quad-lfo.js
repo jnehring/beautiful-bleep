@@ -67,9 +67,18 @@
 
   BleepViews.register("quad-lfo", {
     top: true,
+    width: 900,
+    layout: [
+      { title: "Mode", params: ["mode", "sync", "clockratio", "spread"] },
+      { title: "Waves", params: ["wave1", "wave2", "wave3", "wave4"] },
+      { title: "Rates", params: ["rate1", "rate2", "rate3", "rate4", "divide1", "divide2", "divide3", "divide4"] },
+      { title: "Shape", params: ["pw", "polarity"] },
+      { title: "Levels", params: ["level1", "level2", "level3", "level4"] },
+      { title: "Random", params: ["seed"] },
+    ],
     template: '<div class="bv-panel"><h2 style="display:flex;justify-content:space-between;align-items:center">LFOs' +
       '<button class="bv-toggle quad-xy" title="Out 1 against Out 2">XY</button></h2>' +
-      '<canvas class="quad-scope" style="height:96px;width:100%"></canvas></div>',
+      '<canvas class="quad-scope" style="height:104px;width:100%"></canvas></div>',
     afterBuild(view, el) {
       view.quad = { xy: false };
       try { view.quad.xy = localStorage.getItem("bleep.quad-lfo.xy") === "1"; } catch (e) { /* no storage */ }
@@ -95,11 +104,7 @@
 
       const c = view.root.querySelector(".quad-scope");
       if (!c || !c.clientWidth) return;
-      const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-      if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
-      const g = c.getContext("2d");
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      g.clearRect(0, 0, w, h);
+      const { g, w, h } = BleepView.fit(c);
       const css = getComputedStyle(view.root);
       const accent = css.getPropertyValue("--accent").trim() || "#ea580c";
       const text = css.getPropertyValue("--text");
@@ -116,13 +121,14 @@
         g.moveTo(ox, py(q.unipolar ? 0.5 : 0)); g.lineTo(ox + s, py(q.unipolar ? 0.5 : 0)); g.stroke();
         const span = q.mode === 0 || q.mode === 3 ? 8 : 1, n = 600;
         g.strokeStyle = accent;
-        g.lineWidth = 1.5;
+        g.lineWidth = 1.6;
+        BleepView.glow(g, accent, 8);
         g.beginPath();
         for (let i = 0; i <= n; i++) {
           const x = (i / n) * span, a = valueAt(q, 0, x), b = valueAt(q, 1, x);
           i ? g.lineTo(px(a), py(b)) : g.moveTo(px(a), py(b));
         }
-        g.stroke();
+        g.stroke(); g.shadowBlur = 0;
         const o = st && st.outputs;
         if (o && typeof o.out1 === "number") {
           g.fillStyle = text;
@@ -137,7 +143,8 @@
       g.strokeStyle = accent;
       for (let k = 3; k >= 0; k--) {
         g.globalAlpha = 1 - k * 0.2;
-        g.lineWidth = k === 0 ? 2 : 1.3;
+        g.lineWidth = k === 0 ? 2.2 : 1.4;
+        BleepView.glow(g, accent, k === 0 ? 10 : 5);
         g.beginPath();
         for (let px = 0; px <= w; px++) {
           const v = valueAt(q, k, (px / w) * span);
@@ -145,7 +152,7 @@
         }
         g.stroke();
       }
-      g.globalAlpha = 1;
+      g.globalAlpha = 1; g.shadowBlur = 0;
       // Dots: where each channel's live phase falls in the window.
       g.fillStyle = text;
       for (let k = 0; k < 4; k++) {
@@ -155,9 +162,10 @@
         if (q.mode === 1 || q.mode === 2) x = live[0];
         if (x > span) continue;
         g.globalAlpha = 1 - k * 0.2;
-        g.beginPath(); g.arc((x / span) * w, y(valueAt(q, k, x)), 3, 0, Math.PI * 2); g.fill();
+        BleepView.glow(g, accent, 12);
+        g.beginPath(); g.arc((x / span) * w, y(valueAt(q, k, x)), 3.5, 0, Math.PI * 2); g.fill();
       }
-      g.globalAlpha = 1;
+      g.globalAlpha = 1; g.shadowBlur = 0;
     },
   });
 })();

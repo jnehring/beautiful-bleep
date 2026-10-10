@@ -213,17 +213,31 @@
     });
   }
 
+  if (!document.getElementById("sp-style")) {
+    const st = document.createElement("style");
+    st.id = "sp-style";
+    st.textContent = ".bleep-view.sp .bv-knob{width:56px}.bleep-view.sp .bv-knob svg{width:40px;height:40px}.bleep-view.sp .bv-sec-knobs{gap:2px 0}.bleep-view.sp .bv-label{font-size:9px;letter-spacing:.04em}";
+    document.head.appendChild(st);
+  }
+
   BleepViews.register("splice", {
-    top: true,
-    width: 420,
+    layout: [
+      { title: "Playback", params: ["speed", "loop", "endmode", "sync"] },
+      { title: "Windows", params: ["window", "position", "overlap", "pick", "fade"] },
+      { title: "Levels", params: ["overdub", "level"] },
+      { title: "Record", params: ["rectarget", "recmode", "monitor"] },
+      { title: "Reel", params: ["reel", "shift", "seed"] },
+    ],
     template:
-      '<div class="bv-panel"><div class="sp-head" style="display:flex;gap:8px;align-items:center;margin-bottom:6px">' +
+      '<div class="bv-panel" style="width:100%;flex:1 1 100%"><div class="sp-head" style="display:flex;gap:8px;align-items:center;margin-bottom:4px">' +
       '<span class="sp-rec" style="font-weight:600"></span><span class="sp-info" style="flex:1;color:var(--muted)"></span>' +
       '<span class="sp-drop bv-drop" style="padding:2px 8px">Import WAV</span></div>' +
-      '<canvas class="sp-reel" style="height:64px;touch-action:none"></canvas>' +
-      '<canvas class="sp-zoom" style="height:40px;margin-top:6px"></canvas>' +
+      '<div style="display:flex;gap:8px;align-items:stretch">' +
+      '<canvas class="sp-reel" style="flex:1 1 60%;min-width:0;height:64px;touch-action:none"></canvas>' +
+      '<canvas class="sp-zoom" style="flex:1 1 40%;min-width:0;height:64px"></canvas></div>' +
       '<div class="sp-note" style="color:var(--muted);margin-top:4px;min-height:1em"></div></div>',
     afterBuild(view, el) {
+      view.root.classList.add("sp");
       view.sp = {
         reel: el.querySelector(".sp-reel"), zoom: el.querySelector(".sp-zoom"), rec: el.querySelector(".sp-rec"),
         info: el.querySelector(".sp-info"), note: "", noteEl: el.querySelector(".sp-note"), state: null,

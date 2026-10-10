@@ -1,14 +1,29 @@
 /* SPDX-License-Identifier: MIT */
 /* Module views (bleep-view.js). Colours come from the board's tokens. */
-.bleep-view { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
-.bv-knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-.bv-knob { background: var(--panel-2); border: 1px solid transparent; border-radius: 8px; padding: 6px 6px 8px;
-           display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bleep-view { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+/* Landscape: the custom display and the controls side by side (hook "side"), or stacked full width. */
+.bv-stage { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.bv-side .bv-stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; gap: 12px; }
+.bv-side .bv-custom { flex-direction: column; }
+.bv-side .bv-custom .bv-panel { flex: 1 1 auto; }
+/* Controls: sections (cards) flowing left to right. */
+.bv-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; min-width: 0; }
+.bv-sec { background: var(--panel-2); border-radius: 10px; padding: 7px 8px 8px; display: flex; flex-direction: column; gap: 4px; }
+.bv-sec-title { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; padding-left: 2px; }
+.bv-sec-body { display: flex; flex-direction: column; gap: 6px; }
+.bv-sec-knobs { display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.bv-column .bv-sec-knobs { flex-direction: column; flex-wrap: nowrap; }
+.bv-sec-settings { display: flex; flex-wrap: wrap; gap: 6px; }
+.bv-sec-settings .bv-setting { background: none; padding: 0; flex-direction: column; align-items: flex-start; gap: 2px; }
+.bv-sec-flat { flex: 1 1 100%; }
+.bv-settings-first .bv-sec:last-child { order: -1; }
+.bv-knob { background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 3px 2px 4px; width: 80px;
+           display: flex; flex-direction: column; align-items: center; gap: 1px; }
 .bv-knob.drop-ok { border-color: var(--accent); background: var(--panel-3); }
 .bv-knob.drop-hover { border-color: var(--mod); box-shadow: 0 0 0 2px var(--mod); }
-.bv-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-.bv-knob svg { width: 56px; height: 56px; cursor: ns-resize; touch-action: none; }
-.bv-value { font-variant-numeric: tabular-nums; font-size: 12px; }
+.bv-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.bv-knob svg { width: 50px; height: 50px; cursor: ns-resize; touch-action: none; }
+.bv-value { font-variant-numeric: tabular-nums; font-size: 11px; }
 .bv-modulated .bv-label { color: var(--mod); }
 .bv-track { stroke: var(--line); fill: none; stroke-width: 4; stroke-linecap: round; }
 .bv-arc { stroke: var(--accent); fill: none; stroke-width: 4; stroke-linecap: round; }
@@ -29,16 +44,12 @@
 .bv-toggle { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 6px;
              padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
 .bv-toggle.on { background: var(--accent); color: #0d1014; border-color: var(--accent); }
-.bv-custom { display: flex; flex-wrap: wrap; gap: 8px; }
+.bv-custom { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
 .bv-panel { background: var(--panel-2); border-radius: 8px; padding: 6px 8px; flex: 1 1 220px; }
 .bv-panel h2 { font-size: 10px; margin: 0 0 4px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; font-weight: 500; }
-.bv-panel canvas { width: 100%; height: 80px; display: block; }
+/* :where keeps this default easy to override from a module view */
+:where(.bv-panel) canvas { width: 100%; height: 80px; display: block; }
 .bv-description { margin: 0; color: var(--muted); font-size: 12px; }
-/* Knob groups (ParamSpec::group): headed rows inside the knob grid. */
-.bv-knobs.bv-grouped { display: flex; flex-direction: column; gap: 8px; }
-.bv-group-title { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4px 2px; }
-.bv-group-knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-.bv-knobs.bv-grouped > .bv-knob { display: inline-block; width: 96px; }
 .bv-knob.bv-stepped .bv-arc { stroke-dasharray: 2 2; }
 /* Buttons (ModuleSpec::buttons). */
 .bv-buttons { display: flex; flex-wrap: wrap; gap: 8px; }

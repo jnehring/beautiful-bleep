@@ -7,7 +7,7 @@
 (function () {
   "use strict";
   const NS = "http://www.w3.org/2000/svg";
-  const R = 62, C = 80, STEPS = 32;
+  const R = 62, C = 80, STEPS = 32, RH = 14;
   const SETS = {
     0: (n) => n + 1,
     1: (n) => 2 * n + 1,
@@ -58,33 +58,94 @@
     v.info.textContent = `Rotate ${rot}` + (st.pending ? " · pending" : "");
     v.custom.hidden = setting(view, "set") !== 6;
     if (!v.custom.hidden) custom(view).forEach((x, i) => { if (document.activeElement !== v.fields[i]) v.fields[i].value = x; });
-    // Strip: the next 32 base steps.
-    const c = v.strip;
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth || 300, h = 8 * 8 + 2;
-    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = h * dpr; }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
-    const css = getComputedStyle(view.root);
-    const step = Math.max(0, Math.round(st.step || 0)), cw = w / STEPS;
-    for (let k = 0; k < 8; k++)
+    // Strip: the next 32 base steps, a row per output.
+    const { g, w } = BleepView.fit(v.strip);
+    if (!w) return;
+    const th = BleepView.theme(view.root);
+    const step = Math.max(0, Math.round(st.step || 0)), LBL = 30, cw = (w - LBL) / STEPS;
+    g.font = "9px system-ui, sans-serif"; g.textBaseline = "middle";
+    for (let k = 0; k < 8; k++) {
+      g.fillStyle = gates[k] > 0.5 ? th.accent : th.muted; g.textAlign = "left";
+      g.fillText("/" + div[k], 0, k * RH + RH / 2);
       for (let s = 0; s < STEPS; s++) {
-        const n = step + s, d = s === 0 ? div[k] : next[k];
-        g.fillStyle = n % d === 0 ? css.getPropertyValue("--accent") : css.getPropertyValue("--line");
-        g.fillRect(s * cw + 1, k * 8 + 1, Math.max(1, cw - 2), 6);
+        const n = step + s, d = s === 0 ? div[k] : next[k], hit = n % d === 0;
+        g.fillStyle = hit ? th.accent : s % 4 === 0 ? th.line : th.panel2 || th.line;
+        if (hit) BleepView.glow(g, th.accent, s === 0 ? 10 : 4);
+        g.fillRect(LBL + s * cw + 1, k * RH + 1, Math.max(1, cw - 2), RH - 3);
+        g.shadowBlur = 0;
       }
+    }
+    g.strokeStyle = th.text; g.lineWidth = 1;
+    g.strokeRect(LBL + 0.5, 0.5, cw, 8 * RH - 1);
+  }
+
+  /// Eight concentric rings, one per output: a pointer goes round once per division
+  /// and fires the gate as it passes the top.
+  function drawWheel(view, now) {
+    const v = view.rd;
+    if (!v) return;
+    const { g, w, h } = BleepView.fit(v.wheel);
+    if (!w) return;
+    const th = BleepView.theme(view.root), st = v.state || {}, arr = st.arrays || {};
+    const div = arr.div ? arr.div.map(Math.round) : divisions(view, setting(view, "rotate"));
+    const gates = arr.gates || [];
+    const step = Math.max(0, Math.round(st.step || 0));
+    if (step !== v.lastStep) {
+      if (v.lastStepAt) v.interval = Math.min(2, Math.max(0.02, now - v.lastStepAt));
+      v.lastStep = step; v.lastStepAt = now;
+    }
+    const frac = v.lastStepAt && v.interval ? Math.min(1, (now - v.lastStepAt) / v.interval) : 0;
+    const cx = w / 2, cy = h / 2, R0 = Math.min(w, h) / 2 - 6, R1 = 16, dr = (R0 - R1) / 7;
+    for (let k = 0; k < 8; k++) {
+      const R = R0 - k * dr, d = Math.max(1, div[k]);
+      const ph = ((step % d) + frac) / d, a = ph * 2 * Math.PI - Math.PI / 2;
+      const on = gates[k] > 0.5;
+      g.strokeStyle = th.line; g.lineWidth = 1;
+      g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.stroke();
+      if (d <= 24) {  // the division's ticks
+        g.fillStyle = th.muted; g.globalAlpha = 0.6;
+        for (let i = 0; i < d; i++) {
+          const ta = (i / d) * 2 * Math.PI - Math.PI / 2;
+          g.fillRect(cx + R * Math.cos(ta) - 0.75, cy + R * Math.sin(ta) - 0.75, 1.5, 1.5);
+        }
+        g.globalAlpha = 1;
+      }
+      // the swept arc since the top, fading toward the pointer
+      g.strokeStyle = th.accent; g.lineWidth = 2; g.globalAlpha = 0.5;
+      g.beginPath(); g.arc(cx, cy, R, -Math.PI / 2, a); g.stroke();
+      g.globalAlpha = 1;
+      const px = cx + R * Math.cos(a), py = cy + R * Math.sin(a);
+      g.fillStyle = on ? th.text : th.accent;
+      BleepView.glow(g, th.accent, on ? 16 : 7);
+      g.beginPath(); g.arc(px, py, on ? 3.6 : 2.6, 0, Math.PI * 2); g.fill();
+      g.shadowBlur = 0;
+    }
+    g.strokeStyle = th.text; g.globalAlpha = 0.5; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(cx, cy - R0 - 5); g.lineTo(cx, cy - R1 + 4); g.stroke();
+    g.globalAlpha = 1;
   }
 
   BleepViews.register("rotating-divider", {
     top: true,
-    width: 360,
-    template: `<div class="bv-panel rd-panel"><svg class="rd-ring" viewBox="0 0 160 160"></svg>
-      <div class="rd-info"></div><div class="rd-custom" hidden></div><canvas class="rd-strip" style="width:100%;height:66px"></canvas></div>`,
+    width: 900,
+    layout: [
+      { title: "Clock", params: ["base", "realign"] },
+      { title: "Divisions", params: ["set", "rotatemode", "sync", "rotate"] },
+      { title: "Gate", params: ["output", "gatelength", "width"] },
+    ],
+    template: `<div class="bv-panel rd-panel"><canvas class="rd-wheel" title="One ring per output; a pointer completes a turn per division"></canvas>
+      <div class="rd-ringbox"><svg class="rd-ring" viewBox="0 0 160 160"></svg><div class="rd-info"></div></div>
+      <div class="rd-side"><div class="rd-custom" hidden></div><canvas class="rd-strip"></canvas></div></div>`,
     afterBuild(view, el) {
       if (!document.getElementById("rd-style")) {
         const s = document.createElement("style");
         s.id = "rd-style";
         s.textContent = `
+          .rd-panel { display: flex; gap: 14px; align-items: center; }
+          .rd-panel canvas.rd-wheel { flex: none; width: 184px; height: 184px; }
+          .rd-ringbox { flex: none; }
+          .rd-side { flex: 1; min-width: 0; }
+          .rd-panel canvas.rd-strip { width: 100%; height: ${8 * RH}px; display: block; }
           .rd-ring { width: 160px; height: 160px; display: block; margin: 0 auto; cursor: grab; touch-action: none; }
           .rd-ring text { fill: var(--text); font-size: 11px; text-anchor: middle; dominant-baseline: middle; user-select: none; }
           .rd-ring text.ghost { fill: var(--muted); font-size: 8px; }
@@ -160,8 +221,9 @@
         box.appendChild(f);
         return f;
       });
-      view.rd = { labels, ghosts, lamps, fields, custom: box, info: el.querySelector(".rd-info"), strip: el.querySelector(".rd-strip"), state: null };
+      view.rd = { wheel: el.querySelector(".rd-wheel"), lastStep: -1, lastStepAt: 0, interval: 0, labels, ghosts, lamps, fields, custom: box, info: el.querySelector(".rd-info"), strip: el.querySelector(".rd-strip"), state: null };
       requestAnimationFrame(() => draw(view));
+      BleepView.loop(view.root, (t) => drawWheel(view, t));
     },
     onState(st, view) {
       if (!view.rd) return;

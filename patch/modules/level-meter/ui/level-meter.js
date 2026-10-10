@@ -35,53 +35,72 @@
     const g = c.getContext("2d");
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, h);
+    const th = BleepView.theme(view.root);
     const css = getComputedStyle(view.root);
     const colour = (v) => css.getPropertyValue(v).trim();
-    const top = 6, bottom = h - 6, y = (db) => top + (bottom - top) * Math.min(1, Math.max(0, db / floor));
-
-    // Scale on the left
-    const scaleW = 30;
-    g.font = "10px system-ui, sans-serif";
-    g.textAlign = "right";
-    g.textBaseline = "middle";
-    let lastY = -Infinity;
-    for (const t of TICKS) {
-      if (t < floor || y(t) - lastY < 14) continue;  // no crowding near 0 dB
-      lastY = y(t);
-      g.fillStyle = colour("--muted");
-      g.fillText(t === 0 ? "0" : "−" + -t, scaleW - 6, y(t));
-      g.fillStyle = colour("--line");
-      g.fillRect(scaleW - 3, Math.round(y(t)), w - scaleW + 3, 1);
-    }
-
     const shown = m.stereo ? m.ch : [m.ch[0]];
-    const gap = 8, bw = Math.min(48, (w - scaleW - gap * (shown.length + 1)) / shown.length);
-    const x0 = scaleW + (w - scaleW - shown.length * bw - (shown.length - 1) * gap) / 2;
+    // Horizontal bars with the dB scale across the top; the level history glows below.
+    const left = 28, right = 10, bw = w - left - right, top = 18, bh = 22, gap = 7;
+    const x = (db) => left + bw * Math.min(1, Math.max(0, 1 - db / floor));
+    g.font = "10px system-ui, sans-serif";
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    let lastX = -Infinity;
+    const histTop = top + shown.length * (bh + gap) + 6, histBot = h - 6;
+    for (const t of TICKS) {
+      if (t < floor || Math.abs(x(t) - lastX) < 26) continue;
+      lastX = x(t);
+      g.fillStyle = colour("--muted");
+      g.fillText(t === 0 ? "0" : "−" + -t, x(t), 8);
+      g.fillStyle = colour("--line");
+      g.fillRect(Math.round(x(t)), top - 4, 1, shown.length * (bh + gap) + 2);
+    }
+    const grad = g.createLinearGradient(left, 0, left + bw, 0);
+    const z6 = Math.min(1, Math.max(0, 1 - -6 / floor));
+    grad.addColorStop(0, colour("--sig-gate")); grad.addColorStop(Math.max(0.01, z6 - 0.02), colour("--sig-gate"));
+    grad.addColorStop(Math.min(0.99, z6 + 0.02), colour("--mod")); grad.addColorStop(1, colour("--warn"));
     shown.forEach((ch, k) => {
-      const x = x0 + k * (bw + gap);
+      const y = top + k * (bh + gap);
       g.fillStyle = colour("--panel-3");
-      g.fillRect(x, top, bw, bottom - top);
-      // Peak bar, coloured by zone: green, then −6 dB amber, then over 0 red.
-      const zones = [[floor, -6, colour("--sig-gate")], [-6, 0, colour("--mod")], [0, 6, colour("--warn")]];
-      for (const [lo, hi, col] of zones) {
-        if (ch.bar <= lo) continue;
-        const y0 = y(Math.min(hi, ch.bar)), y1 = y(lo);
-        g.globalAlpha = 0.45;
-        g.fillStyle = col;
-        g.fillRect(x, y0, bw, y1 - y0);
-        // RMS: the solid inner part
-        if (ch.rms > lo) {
-          const r0 = y(Math.min(hi, ch.rms));
-          g.globalAlpha = 1;
-          g.fillRect(x, r0, bw, y1 - r0);
-        }
+      g.fillRect(left, y, bw, bh);
+      g.fillStyle = grad;
+      if (ch.bar > floor) { g.globalAlpha = 0.4; g.fillRect(left, y, x(Math.min(6, ch.bar)) - left, bh); }
+      if (ch.rms > floor) {
+        g.globalAlpha = 1;
+        BleepView.glow(g, colour("--sig-gate"), 10);
+        g.fillRect(left, y + 4, x(Math.min(6, ch.rms)) - left, bh - 8);
+        g.shadowBlur = 0;
       }
       g.globalAlpha = 1;
       if (ch.hold > floor) {
         g.fillStyle = ch.hold > 0 ? colour("--warn") : colour("--text");
-        g.fillRect(x, Math.round(y(Math.min(0, ch.hold))) - 1, bw, 2);
+        g.fillRect(Math.round(x(Math.min(0, ch.hold))) - 1, y - 2, 2, bh + 4);
       }
+      g.fillStyle = colour("--muted");
+      g.textAlign = "left";
+      g.fillText(m.stereo ? (k ? "R" : "L") : "M", 8, y + bh / 2);
+      g.textAlign = "center";
     });
+    // History: the louder channel's RMS over the last seconds, newest at the right.
+    if (histBot - histTop > 16) {
+      const n = m.hist.length, hy = (db) => histBot - (histBot - histTop) * Math.min(1, Math.max(0, 1 - db / floor));
+      const area = g.createLinearGradient(0, histTop, 0, histBot);
+      area.addColorStop(0, th.accent); area.addColorStop(1, "transparent");
+      g.beginPath();
+      g.moveTo(left, histBot);
+      for (let i = 0; i < n; i++) g.lineTo(left + bw * i / (n - 1), hy(m.hist[(m.hi + i) % n]));
+      g.lineTo(left + bw, histBot);
+      g.closePath();
+      g.globalAlpha = 0.35; g.fillStyle = area; g.fill();
+      g.globalAlpha = 1;
+      g.beginPath();
+      for (let i = 0; i < n; i++) {
+        const px = left + bw * i / (n - 1), py = hy(m.hist[(m.hi + i) % n]);
+        i ? g.lineTo(px, py) : g.moveTo(px, py);
+      }
+      g.strokeStyle = th.accent; g.lineWidth = 1.5; g.lineJoin = "round";
+      BleepView.glow(g, th.accent, 8); g.stroke(); g.shadowBlur = 0;
+    }
 
     m.labels.forEach((l, k) => {
       const ch = m.ch[k], on = k === 0 || m.stereo;
@@ -94,12 +113,15 @@
   }
 
   BleepViews.register("level-meter", {
-    top: true,
+    layout: [
+      { title: "Detector", params: ["detector", "response"] },
+      { title: "Scale", params: ["floor", "hold"] },
+    ],
     template:
       "<style>" +
       ".lm{display:flex;flex-direction:column;gap:6px;flex:1 1 100%}" +
-      ".lm canvas{width:100%;height:180px;cursor:pointer}" +
-      ".lm-row{display:flex;gap:10px;justify-content:center}" +
+      ".bv-custom .lm canvas{width:100%;height:150px;cursor:pointer}" +
+      ".lm-row{display:flex;gap:28px;justify-content:center}" +
       ".lm-ch{display:grid;grid-template-columns:auto auto auto;gap:2px 8px;align-items:center;font-size:11px}" +
       ".lm-ch b{grid-row:span 2;font-weight:600;min-width:2.6em}" +
       ".lm-num{font-variant-numeric:tabular-nums;text-align:right;min-width:3.6em}" +
@@ -123,7 +145,7 @@
                  rms: box.querySelector(".lm-rms"), clip: box.querySelector(".lm-clip") };
       });
       const canvas = el.querySelector("canvas");
-      view.meter = { canvas, labels, ch: [channel(), channel()], stereo: false, last: 0 };
+      view.meter = { hist: new Float32Array(240).fill(-200), hi: 0, canvas, labels, ch: [channel(), channel()], stereo: false, last: 0 };
       canvas.addEventListener("click", () => reset(view));
       for (const l of labels) l.clip.addEventListener("click", (e) => { e.stopPropagation(); reset(view); });
       draw(view);
@@ -143,6 +165,8 @@
         else if (now - ch.holdAt > holdFor) ch.hold = ch.bar;
         if (st[ck]) ch.clip = true;
       });
+      const hot = Math.max(m.ch[0].rms, m.stereo ? m.ch[1].rms : -200);
+      m.hist[m.hi] = hot; m.hi = (m.hi + 1) % m.hist.length;
       draw(view);
     },
     onRefresh: draw,

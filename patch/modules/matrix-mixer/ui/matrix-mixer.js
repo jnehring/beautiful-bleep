@@ -309,8 +309,17 @@
     .mm-menu .mm-label { width: 90px; }`;
 
   BleepViews.register("matrix-mixer", {
-    top: true,
-    width: 440,
+    side: true,
+    width: 900,
+    // The grid is the editor for the crosspoint gains and the mutes; they stay modulatable through cables.
+    hideParams: [].concat(
+      ...Array.from({ length: N }, (_, i) => Array.from({ length: N }, (_, j) => `g_${i + 1}_${j + 1}`)),
+      Array.from({ length: N }, (_, i) => "mute_" + (i + 1))),
+    layout: [
+      { title: "Matrix", params: ["inputs", "outputs", "stage", "unpatched"] },
+      { title: "Morph", params: ["morphon", "morph", "curve"] },
+      { title: "Output levels", params: Array.from({ length: N }, (_, j) => "level_" + (j + 1)) },
+    ],
     template: `<div class="bv-panel">
       <div class="mm-grid"></div>
       <div class="mm-bar"><span>Snapshots</span><span class="mm-snaps"></span>

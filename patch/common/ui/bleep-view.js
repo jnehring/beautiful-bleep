@@ -31,14 +31,28 @@
 //
 // A module adds its own displays with BleepViews.register(type, hooks):
 //   template   HTML for the custom section
-//   top        true: the custom section comes before the knobs
+//   top        false: the controls come before the custom section (default: after it)
 //   settingsTop  true: the settings (choices, toggles) come first
-//   width      the view window's width in px (default 340)
+//   width      the view window's width in px (default 760: views are landscape)
+//   side       true: the custom section sits left, the controls right (else the custom
+//              section is a full-width band above or, with top:false, below the controls)
+//   layout     the controls in logical order, as sections (cards) side by side:
+//                [{ title: "Pitch", params: ["octave", "coarse", "fine"] }, ...]
+//              knobs, choices and toggles alike; params not listed follow in a last
+//              untitled section; "columns": true stacks a section's knobs vertically.
+//              Without a layout the module's ParamSpec groups become the sections.
 //   hideParams   ids of knobs/settings the custom section replaces (they stay
 //                modulatable through cables, just not drawn twice)
 //   afterBuild(view, customElement)
 //   onState(nodeState, view)
 //   onRefresh(view)    the node changed (undo, another edit)
+//
+// Drawing helpers for custom displays (BleepView.*):
+//   fit(canvas) → {g, w, h}   sizes the canvas to its CSS box and the device pixel ratio
+//   theme(root) → {accent, line, muted, text, panel, mod}   the colours as strings
+//   glow(g, colour, blur)     the next strokes glow (call g.shadowBlur = 0 to end)
+//   loop(root, fn)            calls fn(t seconds) every animation frame while the view
+//                             is on screen; stops by itself once it is removed
 (function () {
   "use strict";
   const hooks = {};
@@ -97,13 +111,10 @@
   function create(type, node, api) {
     const root = el("div", "bleep-view");
     root.style.setProperty("--accent", type.colour || "#4fd1c5");
-    const knobsEl = el("section", "bv-knobs");
     const customEl = el("section", "bv-custom");
-    const settingsEl = el("section", "bv-settings");
+    const stage = el("div", "bv-stage");  // the custom display and the controls
     const h = hooks[type.type];
-    const sections = h && h.top ? [customEl, knobsEl] : [knobsEl, customEl];
-    if (h && h.settingsTop) root.append(settingsEl, ...sections);
-    else root.append(...sections, settingsEl);
+    root.appendChild(stage);
     if (type.description) root.appendChild(el("p", "bv-description", type.description));
 
     const view = { root, type, node, api, knobs: new Map(), settings: new Map() };
@@ -145,8 +156,8 @@
         s.box.hidden = !isShown(s.p);
         if (s.label) s.label.textContent = shownName(s.p);
       }
-      for (const g of knobsEl.querySelectorAll(".bv-group"))
-        g.hidden = ![...g.querySelectorAll(".bv-knob")].some((b) => !b.hidden);
+      for (const g of root.querySelectorAll(".bv-sec"))
+        g.hidden = ![...g.querySelectorAll(".bv-knob, .bv-setting")].some((b) => !b.hidden);
     }
 
     // ---- knobs: every modulatable float is a destination (spec §7.3)
@@ -291,31 +302,71 @@
       return s;
     }
 
-    const groups = new Map();  // knob group heading → its row
+    // ---- build every knob and setting, then place them in sections
     const hidden = new Set((h && h.hideParams) || []);
+    const items = new Map();   // param id → its knob or setting box
     for (const p of type.params) {
       if (hidden.has(p.id)) continue;
       if (p.kind === "float" || p.modulatable) {  // stepped knobs are knobs too
         const k = makeKnob(p);
         view.knobs.set(p.id, k);
-        if (p.group) {
-          if (!groups.has(p.group)) {
-            const g = el("div", "bv-group");
-            g.append(el("div", "bv-group-title", p.group), el("div", "bv-group-knobs"));
-            knobsEl.appendChild(g);
-            groups.set(p.group, g.lastChild);
-          }
-          groups.get(p.group).appendChild(k.box);
-        } else knobsEl.appendChild(k.box);
+        items.set(p.id, k.box);
       } else {
         const s = makeSetting(p);
         view.settings.set(p.id, s);
-        settingsEl.appendChild(s.box);
+        items.set(p.id, s.box);
       }
     }
-    if (!knobsEl.childElementCount) knobsEl.remove();
-    if (!settingsEl.childElementCount) settingsEl.remove();
-    if (groups.size) knobsEl.classList.add("bv-grouped");
+    const controlsEl = el("section", "bv-controls");
+    const section = (title) => {
+      const sec = el("div", "bv-sec");
+      if (title) sec.appendChild(el("div", "bv-sec-title", title));
+      const body = el("div", "bv-sec-body");
+      sec.appendChild(body);
+      controlsEl.appendChild(sec);
+      return sec;
+    };
+    const put = (sec, id) => {
+      const box = items.get(id);
+      if (!box) return;
+      items.delete(id);
+      const isSetting = box.classList.contains("bv-setting");
+      let row = sec.querySelector(isSetting ? ".bv-sec-settings" : ".bv-sec-knobs");
+      if (!row) {
+        row = el("div", isSetting ? "bv-sec-settings" : "bv-sec-knobs");
+        sec.querySelector(".bv-sec-body").appendChild(row);
+      }
+      row.appendChild(box);
+    };
+    if (h && h.layout) {
+      for (const l of h.layout) {
+        const sec = section(l.title);
+        if (l.columns) sec.classList.add("bv-column");
+        for (const id of l.params) put(sec, id);
+      }
+      if (items.size) { const rest = section(""); for (const id of [...items.keys()]) put(rest, id); }
+    } else {
+      // The ParamSpec groups; knobs outside a group share an untitled section, settings go last.
+      const secs = new Map();
+      let loose = null;
+      for (const p of type.params) {
+        if (!items.has(p.id)) continue;
+        if (items.get(p.id).classList.contains("bv-setting")) continue;
+        if (p.group) {
+          if (!secs.has(p.group)) { secs.set(p.group, section(p.group)); if (type.groupColumns) secs.get(p.group).classList.add("bv-column"); }
+          put(secs.get(p.group), p.id);
+        } else {
+          if (!loose) loose = section("");
+          put(loose, p.id);
+        }
+      }
+      if (items.size) { const rest = section(""); rest.classList.add("bv-sec-flat"); for (const id of [...items.keys()]) put(rest, id); }
+    }
+    controlsEl.querySelectorAll(".bv-sec").forEach((sec) => { if (!sec.querySelector(".bv-knob, .bv-setting")) sec.remove(); });
+    if (!controlsEl.childElementCount) controlsEl.remove();
+    if (h && h.settingsTop) controlsEl.classList.add("bv-settings-first");
+    stage.append(...(h && h.top === false ? [controlsEl, customEl] : [customEl, controlsEl]));
+    if (h && h.side) root.classList.add("bv-side");
 
     // ---- buttons (ModuleSpec::buttons): momentary ones also send 0 on release
     if (type.buttons && type.buttons.length && api.command) {
@@ -340,7 +391,7 @@
         } else btn.addEventListener("click", () => api.command(b.id, 1));
         bar.appendChild(btn);
       }
-      root.insertBefore(bar, settingsEl.parentNode === root ? settingsEl : root.querySelector(".bv-description"));
+      root.insertBefore(bar, root.querySelector(".bv-description"));
     }
     applyLayout();
 
@@ -420,5 +471,34 @@
     });
   }
 
-  window.BleepView = { create, mediaDrop };
+  /// Sizes a canvas to its CSS box at the device pixel ratio and returns a context in CSS pixels.
+  function fit(canvas) {
+    const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    }
+    const g = canvas.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    return { g, w, h };
+  }
+  function theme(root) {
+    const css = getComputedStyle(root), c = (v) => css.getPropertyValue(v).trim();
+    return { accent: c("--accent"), line: c("--line"), muted: c("--muted"), text: c("--text"),
+             panel: c("--panel"), panel2: c("--panel-2"), mod: c("--mod") };
+  }
+  function glow(g, colour, blur) { g.shadowColor = colour; g.shadowBlur = blur === undefined ? 8 : blur; }
+  /// Calls fn(seconds) on every animation frame while `root` is attached to the page.
+  function loop(root, fn) {
+    let id = 0, seen = false;
+    const frame = (ms) => {
+      if (root.isConnected) { seen = true; if (root.offsetParent !== null) fn(ms / 1000); }
+      else if (seen) return;  // removed: stop
+      id = requestAnimationFrame(frame);
+    };
+    id = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(id);
+  }
+
+  window.BleepView = { create, mediaDrop, fit, theme, glow, loop };
 })();

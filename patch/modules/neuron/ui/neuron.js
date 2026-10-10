@@ -13,11 +13,7 @@
     for (const k of ["a", "b"]) {
       const c = view.neuron[k];
       if (!c || !c.clientWidth) continue;
-      const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-      if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
-      const g = c.getContext("2d");
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      g.clearRect(0, 0, w, h);
+      const { g, w, h } = BleepView.fit(c);
       const css = getComputedStyle(view.root);
       const accent = css.getPropertyValue("--accent").trim(), line = css.getPropertyValue("--line").trim();
       const muted = css.getPropertyValue("--muted").trim(), text = css.getPropertyValue("--text").trim();
@@ -36,10 +32,15 @@
       const arrays = (st && st.arrays) || {};
       const m = arrays["membrane" + k.toUpperCase()], gate = arrays["gate" + k.toUpperCase()];
       if (m && m.length) {
-        g.strokeStyle = accent; g.lineWidth = 1.5;
-        g.beginPath();
-        m.forEach((v, i) => { const x = (i / (m.length - 1)) * w; i ? g.lineTo(x, y(v)) : g.moveTo(x, y(v)); });
-        g.stroke();
+        g.strokeStyle = accent; g.lineWidth = 1.8;
+        const trace = () => { g.beginPath(); m.forEach((v, i) => { const x = (i / (m.length - 1)) * w; i ? g.lineTo(x, y(v)) : g.moveTo(x, y(v)); }); };
+        // fill from the membrane down to the threshold, above it brighter
+        trace(); g.lineTo(w, y(th)); g.lineTo(0, y(th)); g.closePath();
+        const fill = g.createLinearGradient(0, top, 0, bottom);
+        fill.addColorStop(0, accent); fill.addColorStop(1, "transparent");
+        g.save(); g.globalAlpha = 0.2; g.fillStyle = fill; g.fill(); g.restore();
+        BleepView.glow(g, accent, 9);
+        trace(); g.stroke(); g.shadowBlur = 0;
       }
       if (gate && gate.length) {
         g.fillStyle = accent;
@@ -50,7 +51,8 @@
       if (spikes !== undefined && spikes !== view.neuron.spikes[k]) { view.neuron.flash[k] = 8; view.neuron.spikes[k] = spikes; }
       if (view.neuron.flash[k] > 0) {
         g.fillStyle = text; g.globalAlpha = view.neuron.flash[k] / 8;
-        g.beginPath(); g.arc(w - 7, 9, 4, 0, Math.PI * 2); g.fill();
+        BleepView.glow(g, accent, 16);
+        g.beginPath(); g.arc(w - 9, 11, 5, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
         g.globalAlpha = 1;
         view.neuron.flash[k]--;
       }
@@ -85,17 +87,30 @@
     canvas.addEventListener("pointercancel", end);
   }
 
+  if (!document.getElementById("neuron-css")) {
+    const st = document.createElement("style");
+    st.id = "neuron-css";
+    st.textContent = ".nr-view .bv-sec:nth-child(-n+2) { flex: 1 1 330px; } .nr-view .bv-sec:nth-child(-n+2) .bv-sec-knobs { justify-content: space-around; }";
+    document.head.appendChild(st);
+  }
+
   BleepViews.register("neuron", {
     top: true,
-    width: 420,
+    width: 920,
+    layout: [
+      { title: "Neuron A", params: ["amode", "aw1", "aw2", "aw3", "athreshold", "ahysteresis", "aleak", "asharp", "apulse"] },
+      { title: "Neuron B", params: ["bmode", "bw1", "bw2", "bw3", "bthreshold", "bhysteresis", "bleak", "bsharp", "bpulse"] },
+      { title: "Wiring", params: ["cross", "resetstart"] },
+    ],
     template: `<div class="bv-panel" style="flex:1 1 100%">
       <div style="display:flex;gap:8px">
-        <canvas class="neuron-a" title="Membrane A: drag to set the threshold" style="flex:1;min-width:0;height:96px;cursor:ns-resize;touch-action:none"></canvas>
-        <canvas class="neuron-b" title="Membrane B: drag to set the threshold" style="flex:1;min-width:0;height:96px;cursor:ns-resize;touch-action:none"></canvas>
+        <canvas class="neuron-a" title="Membrane A: drag to set the threshold" style="flex:1;min-width:0;height:104px;cursor:ns-resize;touch-action:none"></canvas>
+        <canvas class="neuron-b" title="Membrane B: drag to set the threshold" style="flex:1;min-width:0;height:104px;cursor:ns-resize;touch-action:none"></canvas>
       </div>
       <div class="neuron-cross" style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px"></div>
     </div>`,
     afterBuild(view, el) {
+      view.root.classList.add("nr-view");
       view.neuron = { a: el.querySelector(".neuron-a"), b: el.querySelector(".neuron-b"), cross: el.querySelector(".neuron-cross"),
                       spikes: {}, flash: { a: 0, b: 0 }, state: null };
       attach(view, view.neuron.a, "a");

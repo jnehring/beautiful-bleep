@@ -6,7 +6,7 @@
 // they're played, not saved.
 (function () {
   "use strict";
-  const OCTAVES = 3, KEYS = OCTAVES * 12 + 1, WHITE_W = 22;
+  const OCTAVES = 3, KEYS = OCTAVES * 12 + 1, WHITE_W = 32, BLACK_W = 20;
   const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
   const IS_BLACK = [false, true, false, true, false, false, true, false, true, false, true, false];
   // Physical keys (layout-independent), semitones above the middle C shown.
@@ -70,7 +70,7 @@
       const k = document.createElement("div");
       k.className = black ? "kb-b" : "kb-w";
       k.dataset.note = n;
-      if (black) k.style.left = x - 7 + "px";
+      if (black) k.style.left = x - BLACK_W / 2 + "px";
       else {
         k.style.left = x + "px";
         x += WHITE_W;
@@ -101,8 +101,10 @@
   }
 
   BleepViews.register("keyboard", {
-    top: true,
-    width: 540,
+    layout: [
+      { title: "Play", params: ["octave", "hold", "priority"] },
+      { title: "Touch", params: ["velocity", "glide"] },
+    ],
     template:
       "<style>" +
       ".kb{display:flex;flex-direction:column;gap:6px;flex:1 1 100%}" +
@@ -111,14 +113,16 @@
       "padding:2px 9px;font:inherit;cursor:pointer}" +
       ".kb-bar button.on{background:var(--accent);border-color:var(--accent);color:#0d1014}" +
       ".kb-bar .sp{flex:1}" +
-      ".kb-keys{position:relative;height:110px;margin:0 auto;touch-action:none;user-select:none;outline:none;" +
+      ".kb-keys{position:relative;height:130px;margin:0 auto;touch-action:none;user-select:none;outline:none;" +
       "border-radius:4px}" +
       ".kb-keys:focus-visible{box-shadow:0 0 0 2px var(--accent)}" +
       ".kb-keys div{position:absolute;top:0;box-sizing:border-box;border:1px solid var(--line);border-radius:0 0 4px 4px}" +
-      ".kb-w{width:22px;height:110px;background:#e9edf2}" +
-      ".kb-w span{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;color:#5b6573}" +
-      ".kb-b{width:14px;height:66px;background:#1b1f26;z-index:1}" +
-      ".kb-keys .down{background:var(--accent)}" +
+      ".kb-w{width:32px;height:130px;background:linear-gradient(#f4f6f9,#d8dee6)}" +
+      ".kb-w span{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:10px;color:#5b6573}" +
+      ".kb-b{width:20px;height:78px;background:linear-gradient(#2a303a,#0f1217);z-index:1}" +
+      ".kb-keys .down{background:var(--accent);box-shadow:0 0 14px var(--accent),inset 0 -10px 18px rgba(255,255,255,.35)}" +
+      ".kb-keys .kb-w.down{z-index:0}" +
+      ".kb-keys .kb-b.down{box-shadow:0 0 14px var(--accent)}" +
       ".kb-keys .held{box-shadow:inset 0 -5px 0 var(--text)}" +
       ".kb-keys .active{border-color:var(--text);border-width:2px}" +
       ".kb-help{font-size:10px;color:var(--muted)}" +

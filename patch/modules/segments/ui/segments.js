@@ -94,11 +94,7 @@
   function draw(view) {
     const sg = view.sg, c = sg.canvas;
     if (!c || !c.clientWidth) return;
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-    if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
+    const { g, w, h } = BleepView.fit(c);
     const css = getComputedStyle(view.root);
     const accent = css.getPropertyValue("--accent").trim() || "#ca8a04";
     const line = css.getPropertyValue("--line"), text = css.getPropertyValue("--text"), muted = css.getPropertyValue("--muted");
@@ -133,9 +129,10 @@
       g.textAlign = "center";
       g.fillText("↺", (L.x0[ls] + L.x0[le + 1]) / 2, STRIP - 3);
     }
-    // The curve.
+    // The curve (a glowing line over a soft fill to the zero line).
     g.strokeStyle = accent;
-    g.lineWidth = 2;
+    g.lineWidth = 2.2;
+    g.lineJoin = "round";
     g.beginPath();
     let start = 0;
     g.moveTo(L.x0[0], L.y(0));
@@ -151,7 +148,32 @@
       }
       start = L.ends[i];
     });
-    g.stroke();
+    {
+      g.save();
+      const fill = g.createLinearGradient(0, L.top, 0, L.bottom);
+      fill.addColorStop(0, accent); fill.addColorStop(1, "transparent");
+      g.globalAlpha = 0.16; g.fillStyle = fill;
+      g.lineTo(L.x0[segs.length], L.y(0)); g.lineTo(L.x0[0], L.y(0)); g.fill();
+      g.restore();
+    }
+    // (the fill closed the path: draw the line again)
+    g.beginPath();
+    start = 0;
+    g.moveTo(L.x0[0], L.y(0));
+    BleepView.glow(g, accent, 10);
+    segs.forEach((s, i) => {
+      const xa = L.x0[i], xb = L.x0[i + 1], steps = Math.max(2, Math.round(xb - xa));
+      for (let k = 1; k <= steps; k++) {
+        const u = k / steps;
+        let v;
+        if (s.def.type === "hold") v = start;
+        else if (s.def.type === "step") v = s.shape > 0 ? start + (s.level - start) * Math.min(1, u / s.shape) : s.level;
+        else v = ramp(start, s.level, u, s.shape);
+        g.lineTo(xa + u * (xb - xa), L.y(v));
+      }
+      start = L.ends[i];
+    });
+    g.stroke(); g.shadowBlur = 0;
     // Nodes and headers.
     segs.forEach((s, i) => {
       const x = L.x0[i + 1], yy = L.y(L.ends[i]);
@@ -167,7 +189,8 @@
     if (running >= 0 && running < segs.length && typeof st.level === "number") {
       const x = L.x0[running] + clamp(st.u || 0, 0, 1) * (L.x0[running + 1] - L.x0[running]);
       g.fillStyle = text;
-      g.beginPath(); g.arc(x, L.y(clamp(st.level, -1, 1)), 3.5, 0, Math.PI * 2); g.fill();
+      BleepView.glow(g, accent, 16);
+      g.beginPath(); g.arc(x, L.y(clamp(st.level, -1, 1)), 4.5, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
     }
   }
 
@@ -332,13 +355,18 @@
 
   BleepViews.register("segments", {
     top: true,
-    width: 440,
+    width: 820,
+    layout: [
+      { title: "Run", params: ["run", "release", "sync", "count"] },
+      { title: "Chain", params: ["timescale", "velamount"] },
+    ],
     template: '<div class="bv-panel">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:6px">' +
       '<h2 style="margin:0">Chain</h2><div class="sg-head" style="display:flex;gap:4px;align-items:center"></div></div>' +
-      '<canvas class="sg-canvas" style="height:140px;width:100%;margin-top:4px;touch-action:none"></canvas>' +
-      '<div class="sg-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-top:6px"></div>' +
-      '<div class="sg-knobs bv-group-knobs" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px"></div></div>',
+      '<canvas class="sg-canvas" style="height:150px;width:100%;margin-top:4px;touch-action:none"></canvas>' +
+      '<div style="display:flex;gap:12px;align-items:center;margin-top:6px">' +
+      '<div class="sg-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;flex:1 1 auto"></div>' +
+      '<div class="sg-knobs bv-group-knobs" style="display:flex;gap:4px;flex:0 0 auto"></div></div></div>',
     afterBuild(view, el) {
       const sg = (view.sg = { canvas: el.querySelector(".sg-canvas"), sel: 0, state: null });
       // Header: Count − / + and Templates.

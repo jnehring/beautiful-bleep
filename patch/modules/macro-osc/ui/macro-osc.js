@@ -13,7 +13,7 @@
   const GROUP = (m) => (m <= 8 ? "pitched" : m <= 10 ? "noise" : "struck");
   const STYLE = `
     .mo-top { display: flex; gap: 8px; flex-wrap: wrap; }
-    .mo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; flex: 1 1 230px; }
+    .mo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; flex: 1 1 330px; }
     .mo-cell { position: relative; border: 1px solid var(--line); border-radius: 5px; background: var(--panel);
       color: var(--muted); font-size: 10px; padding: 2px 3px 1px; cursor: pointer; text-align: left; line-height: 1.15;
       min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -25,7 +25,7 @@
     .mo-cell.struck::before { background: #f59e0b; }
     .mo-cell.on { color: var(--text); border-color: var(--accent); background: var(--panel-3, var(--panel)); }
     .mo-cell.fading { border-style: dashed; }
-    .mo-side { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .mo-side { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
     .mo-head { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
     .mo-name { color: var(--text); font-weight: 600; }
     .mo-note { color: #f59e0b; }
@@ -114,32 +114,42 @@
   function drawScope(view) {
     const c = view.root.querySelector(".mo-scope");
     if (!c || !c.clientWidth) return;
-    const { g, w, h } = canvas2d(c);
-    const col = colours(view), a = view.mo.arrays;
+    const { g, w, h } = BleepView.fit(c);
+    const col = BleepView.theme(view.root), a = view.mo.arrays;
+    g.fillStyle = "rgba(0,0,0,0.3)"; g.fillRect(0, 0, w, h);
     g.strokeStyle = col.line;
     g.beginPath(); g.moveTo(0, h / 2 + 0.5); g.lineTo(w, h / 2 + 0.5); g.stroke();
-    const line = (arr, colour, dash) => {
+    const line = (arr, colour, dash, blur) => {
       if (!arr || !arr.length) return;
       g.strokeStyle = colour;
       g.setLineDash(dash);
-      g.lineWidth = dash.length ? 1 : 1.5;
+      g.lineWidth = dash.length ? 1 : 1.8;
+      if (blur) BleepView.glow(g, colour, blur);
       g.beginPath();
       for (let i = 0; i < arr.length; i++) {
         const x = (i / (arr.length - 1)) * w, y = h / 2 - Math.max(-1.2, Math.min(1.2, arr[i])) * (h / 2 - 3) / 1.2;
         i ? g.lineTo(x, y) : g.moveTo(x, y);
       }
       g.stroke();
+      g.shadowBlur = 0;
       g.setLineDash([]);
     };
-    line(a.scopeAux, col.muted, [3, 3]);
-    line(a.scope, col.accent, []);
+    if (!a.scope || !a.scope.length) {  // no live capture: the playing model's glyph, faint
+      const m = view.mo.playing | 0, arr = [];
+      for (let i = 0; i <= 160; i++) arr.push(Math.max(-1, Math.min(1, GLYPH[m](i / 160))));
+      g.globalAlpha = 0.5; line(arr, col.accent, [], 10); g.globalAlpha = 1;
+      return;
+    }
+    line(a.scopeAux, col.muted, [3, 3], 0);
+    line(a.scope, col.accent, [], 10);
   }
 
   function drawSpectrum(view) {
     const c = view.root.querySelector(".mo-spec");
     if (!c || !c.clientWidth) return;
-    const { g, w, h } = canvas2d(c);
-    const col = colours(view), raw = view.mo.arrays.raw, sr = view.mo.sr || 48000;
+    const { g, w, h } = BleepView.fit(c);
+    const col = BleepView.theme(view.root), raw = view.mo.arrays.raw, sr = view.mo.sr || 48000;
+    g.fillStyle = "rgba(0,0,0,0.3)"; g.fillRect(0, 0, w, h);
     g.strokeStyle = col.line;
     for (const f of [100, 1000, 10000]) {
       const x = (Math.log(f / 20) / Math.log(1000)) * w;
@@ -147,8 +157,9 @@
     }
     if (!raw || raw.length < 64) return;
     const db = spectrumDb(raw), n = raw.length;
-    g.fillStyle = col.accent;
-    g.globalAlpha = 0.6;
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, col.accent); gr.addColorStop(1, col.accent + "11");
+    g.fillStyle = gr;
     g.beginPath();
     g.moveTo(0, h);
     for (let px = 0; px <= w; px++) {
@@ -158,12 +169,12 @@
     }
     g.lineTo(w, h);
     g.fill();
-    g.globalAlpha = 1;
   }
 
   function update(view, st) {
     const m = modelOf(view, st), live = view.mo.live;
     const playing = typeof live.model === "number" ? Math.round(live.model) : m;
+    view.mo.playing = playing;
     view.mo.cells.forEach((cell, i) => {
       cell.classList.toggle("on", i === playing);
       cell.classList.toggle("fading", i === m && i !== playing);
@@ -181,16 +192,19 @@
   }
 
   BleepViews.register("macro-osc", {
-    width: 520,
-    top: true,
-    hideParams: [],
+    width: 1010,
+    layout: [
+      { title: "Model", params: ["model", "tone", "shape", "blend"] },
+      { title: "Pitch", params: ["octave", "coarse", "fine", "fmDepth", "quality", "seed"] },
+      { title: "Gate & level", params: ["decay", "gateColour", "level"] },
+    ],
     template: `
       <div class="bv-panel mo-top">
         <div class="mo-grid" title="Click a model (the Model knob and cables move it too)"></div>
         <div class="mo-side">
           <div class="mo-head"><span class="mo-name"></span><span class="mo-note"></span></div>
-          <canvas class="mo-scope" style="height:70px" title="Out (solid) and Aux (dashed)"></canvas>
-          <canvas class="mo-spec" style="height:46px" title="Spectrum of Out, 20 Hz – 20 kHz"></canvas>
+          <canvas class="mo-scope" style="height:90px" title="Out (solid) and Aux (dashed)"></canvas>
+          <canvas class="mo-spec" style="height:56px" title="Spectrum of Out, 20 Hz – 20 kHz"></canvas>
         </div>
       </div>`,
     afterBuild(view, el) {

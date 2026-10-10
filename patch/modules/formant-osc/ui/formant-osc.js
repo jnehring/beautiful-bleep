@@ -58,23 +58,31 @@
   function drawCycle(view, st, cy) {
     const c = view.root.querySelector(".fosc-cycle");
     if (!c || !c.clientWidth) return;
-    const { g, w, h } = canvas2d(c);
-    const col = colours(view);
+    const { g, w, h } = BleepView.fit(c);
+    const col = BleepView.theme(view.root);
     const body = view.value(st, "body");
     const X = (i) => (i / (N - 1)) * w, Y = (v) => h / 2 - v * (h / 2 - 4);
+    g.fillStyle = "rgba(0,0,0,0.3)"; g.fillRect(0, 0, w, h);
     g.strokeStyle = col.line;
     g.beginPath(); g.moveTo(0, h / 2 + 0.5); g.lineTo(w, h / 2 + 0.5); g.stroke();
-    const line = (a, colour, width, alpha) => {
+    const line = (a, colour, width, alpha, blur) => {
       g.globalAlpha = alpha;
       g.strokeStyle = colour;
       g.lineWidth = width;
+      if (blur) BleepView.glow(g, colour, blur);
       g.beginPath();
       for (let i = 0; i < N; i++) i ? g.lineTo(X(i), Y(a[i])) : g.moveTo(X(i), Y(a[i]));
       g.stroke();
+      g.shadowBlur = 0;
     };
+    // the window (and its mirror) the burst lives in: a soft filled envelope
+    g.globalAlpha = 0.14; g.fillStyle = col.accent; g.beginPath(); g.moveTo(0, h / 2);
+    for (let i = 0; i < N; i++) g.lineTo(X(i), Y(cy.win[i]));
+    for (let i = N - 1; i >= 0; i--) g.lineTo(X(i), Y(-cy.win[i]));
+    g.fill();
     line(cy.sq, col.muted, 1, 0.25 + 0.5 * (1 - body));
     line(cy.win, col.muted, 1, 0.8);
-    line(cy.burst, col.accent, 2, 0.4 + 0.6 * body);
+    line(cy.burst, col.accent, 2, 0.4 + 0.6 * body, 10);
     g.globalAlpha = 1;
     g.lineWidth = 1;
   }
@@ -82,8 +90,8 @@
   function drawSpectrum(view, st, cy) {
     const c = view.root.querySelector(".fosc-spec");
     if (!c || !c.clientWidth) return;
-    const { g, w, h } = canvas2d(c);
-    const col = colours(view);
+    const { g, w, h } = BleepView.fit(c);
+    const col = BleepView.theme(view.root);
     const mags = new Float32Array(HARMONICS + 1);
     let peak = 1e-9;
     for (let k = 1; k <= HARMONICS; k++) {
@@ -97,12 +105,17 @@
       peak = Math.max(peak, mags[k]);
     }
     const bw = w / HARMONICS;
-    g.fillStyle = col.accent;
+    g.fillStyle = "rgba(0,0,0,0.3)"; g.fillRect(0, 0, w, h);
+    BleepView.glow(g, col.accent, 7);
     for (let k = 1; k <= HARMONICS; k++) {
       const db = 20 * Math.log10(mags[k] / peak + 1e-9);
       const bh = Math.max(0, (db + 60) / 60) * (h - 10);
+      const gr = g.createLinearGradient(0, h, 0, h - bh);
+      gr.addColorStop(0, col.accent + "44"); gr.addColorStop(1, col.accent);
+      g.fillStyle = gr;
       g.fillRect((k - 1) * bw + 1, h - bh, Math.max(1, bw - 2), bh);
     }
+    g.shadowBlur = 0;
     const marker = (hz, colour) => {
       const k = Math.abs(hz) / cy.f0;
       if (!(k > 0) || k > HARMONICS + 0.5) return;
@@ -121,11 +134,16 @@
   }
 
   BleepViews.register("formant-osc", {
-    width: 520,
+    width: 900,
+    layout: [
+      { title: "Pitch", params: ["octave", "coarse", "fine", "tracking", "quality"] },
+      { title: "Formant", params: ["formant", "narrow", "body", "start"] },
+      { title: "Motion", params: ["reset", "roll", "spread", "fmDepth"] },
+    ],
     template: `
       <div class="bv-panel fosc-row">
-        <div><h2>One cycle</h2><canvas class="fosc-cycle" style="height:84px"></canvas></div>
-        <div><h2>Spectrum</h2><canvas class="fosc-spec" style="height:84px"></canvas></div>
+        <div><h2>One cycle · window, burst, square</h2><canvas class="fosc-cycle" style="height:100px"></canvas></div>
+        <div><h2>Harmonics · ▼ formants</h2><canvas class="fosc-spec" style="height:100px"></canvas></div>
       </div>`,
     afterBuild(view) {
       if (!document.getElementById("fosc-style")) {
@@ -135,6 +153,7 @@
         document.head.appendChild(s);
       }
       requestAnimationFrame(() => draw(view, null));
+      view.fosc = {};
     },
     onState(st, view) { draw(view, st); },
     onRefresh(view) { draw(view, null); },

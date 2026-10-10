@@ -51,13 +51,25 @@
     g.clearRect(0, 0, w, h);
     return { g, w, h };
   }
-  function curve(g, values, w, y) {
+  function curve(g, values, w, y, glowColour, base) {
+    if (glowColour) {  // soft fill down to the baseline, then the glowing line
+      g.save();
+      g.beginPath();
+      values.forEach((v, i) => { const x = (i / (values.length - 1)) * w; i ? g.lineTo(x, y(v)) : g.moveTo(x, y(v)); });
+      g.lineTo(w, base); g.lineTo(0, base);
+      const f = g.createLinearGradient(0, 0, 0, g.canvas.clientHeight || 100);
+      f.addColorStop(0, glowColour); f.addColorStop(1, "transparent");
+      g.globalAlpha = 0.18; g.fillStyle = f; g.fill();
+      g.restore();
+      BleepView.glow(g, glowColour, 10);
+    }
     g.beginPath();
     values.forEach((v, i) => {
       const x = (i / (values.length - 1)) * w;
       i ? g.lineTo(x, y(v)) : g.moveTo(x, y(v));
     });
     g.stroke();
+    g.shadowBlur = 0;
   }
 
   function render(view) {
@@ -92,7 +104,7 @@
       if (u) {
         g.strokeStyle = accent;
         g.lineWidth = 2;
-        curve(g, u.points, w, y);
+        curve(g, u.points, w, y, accent, y(0));
         if (typeof u.sustain === "number") {
           g.strokeStyle = text;
           g.setLineDash([3, 3]);
@@ -120,7 +132,7 @@
       if (!values) return;
       g.strokeStyle = accent;
       g.lineWidth = 2;
-      curve(g, values, w, y);
+      curve(g, values, w, y, accent, y(0));
       if (typeof sustain === "number" && sustain >= 0) {
         g.strokeStyle = text;
         g.setLineDash([3, 3]);
@@ -131,7 +143,8 @@
         const x = clamp(st.phase, 0, 1), i = x * (values.length - 1), k = Math.min(Math.floor(i), values.length - 2);
         const v = values[k] + (i - k) * (values[k + 1] - values[k]);
         g.fillStyle = text;
-        g.beginPath(); g.arc(x * w, y(v), st.holding ? 4.5 : 3.5, 0, Math.PI * 2); g.fill();
+        BleepView.glow(g, accent, 16);
+        g.beginPath(); g.arc(x * w, y(v), st.holding ? 5 : 4, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
       }
     }
   }
@@ -278,12 +291,17 @@
 
   BleepViews.register("shape-env", {
     top: true,
-    width: 420,
+    width: 820,
+    layout: [
+      { title: "Shape", params: ["shape", "morph", "skew", "reverse"] },
+      { title: "Timing", params: ["mode", "retrigger", "time", "sync"] },
+      { title: "Output", params: ["level", "velamount"] },
+    ],
     template: '<div class="bv-panel se-root" tabindex="0" style="outline:none">' +
       '<div style="display:flex;gap:6px;align-items:center;justify-content:space-between">' +
       '<div class="se-title" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>' +
       '<div class="se-buttons" style="display:flex;gap:4px"></div></div>' +
-      '<canvas class="se-canvas" style="height:100px;width:100%;margin-top:4px;touch-action:none"></canvas>' +
+      '<canvas class="se-canvas" style="height:120px;width:100%;margin-top:4px;touch-action:none"></canvas>' +
       '<div class="se-tools" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px"></div>' +
       '<div class="se-copy" style="display:flex;gap:4px;align-items:center;margin-top:4px"></div>' +
       '<div class="se-browser" style="max-height:260px;overflow:auto;margin-top:4px"></div></div>',

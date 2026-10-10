@@ -293,7 +293,12 @@
 
   BleepViews.register("polymeter-sequencer", {
     top: true,
-    width: 680,
+    width: 900,
+    layout: [
+      { title: "Clock & patterns", params: ["rate", "slots", "patternchange", "seed"] },
+      { title: "Gate", params: ["swing", "gatescale", "probbias", "ratchetamt", "velocity", "spread"] },
+      { title: "Pitch", params: ["root", "scale", "octave"] },
+    ],
     template: `<div class="bv-panel pm-panel">
       <div class="pm-tools">
         Slot <span class="pm-slots"></span>

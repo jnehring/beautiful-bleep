@@ -187,7 +187,8 @@
     // ink: in display order, broken at blanks
     const start = Math.ceil(G.head - CARRIAGE * n);
     g.strokeStyle = INK;
-    g.lineWidth = 1.5;
+    g.lineWidth = 1.6;
+    BleepView.glow(g, INK, 6);
     g.beginPath();
     let pen = false;
     for (let kk = start; kk < start + n; kk++) {
@@ -196,7 +197,7 @@
       const x = G.x(kk + 0.5), y = G.y(v / 32767);
       if (pen) g.lineTo(x, y); else { g.moveTo(x, y); pen = true; }
     }
-    g.stroke();
+    g.stroke(); g.shadowBlur = 0;
     // marks on the top edge
     g.fillStyle = text;
     for (const m of cr.marks) {
@@ -366,7 +367,7 @@
   const STYLE = `
     .cr { display: flex; flex-direction: column; gap: 4px; flex: 1 1 100%; }
     .cr canvas { width: 100%; display: block; border-radius: 4px; touch-action: none; }
-    .cr-paper { height: 150px; cursor: crosshair; }
+    .cr-paper { height: 120px; cursor: crosshair; }
     .cr-overview { height: 30px; }
     .cr-status { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--muted);
       font-variant-numeric: tabular-nums; }
@@ -376,7 +377,13 @@
 
   BleepViews.register("chart-recorder", {
     top: true,
-    width: 480,
+    width: 1040,
+    layout: [
+      { title: "Input", params: ["detector", "logrange", "gain", "offset"] },
+      { title: "Pen", params: ["response", "writingspeed", "damping", "friction"] },
+      { title: "Paper", params: ["paper", "lengthfree", "lengthbars", "paperspeed", "record"] },
+      { title: "Replay", params: ["replaysync", "replayspeed", "interp"] },
+    ],
     template: `<div class="cr">
       <canvas class="cr-paper" title="Drag: draw ink · Shift-drag: one straight segment · Right-drag: erase · Alt-click: add or remove a mark"></canvas>
       <canvas class="cr-overview" title="The whole loop: write head (red) and replay head"></canvas>

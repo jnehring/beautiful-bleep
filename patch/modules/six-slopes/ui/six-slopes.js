@@ -33,6 +33,12 @@
 
   BleepViews.register("six-slopes", {
     top: true,
+    layout: [
+      { title: "Mode", params: ["mode", "snap", "polarity"] },
+      { title: "Rate", params: ["rate", "sync"] },
+      { title: "Slope", params: ["skew", "curve", "harmonics"] },
+      { title: "Output", params: ["level", "tilt"] },
+    ],
     template: '<div class="bv-panel"><h2>Slopes</h2><div class="six-lanes" style="display:grid;grid-template-columns:1fr 64px;gap:2px 8px;align-items:center"></div></div>',
     afterBuild(view, el) {
       const lanes = el.querySelector(".six-lanes");
@@ -87,7 +93,8 @@
         g.lineWidth = 1;
         g.beginPath(); g.moveTo(0, y(0) + 0.5); g.lineTo(w, y(0) + 0.5); g.stroke();
         g.strokeStyle = accent;
-        g.lineWidth = k === 6 ? 1.6 : 1.2;
+        g.lineWidth = k === 6 ? 1.8 : 1.3;
+        BleepView.glow(g, accent, k === 6 ? 8 : 4);
         g.beginPath();
         if (sound && k < 6) {  // one cycle of channel 1, k + 1 … per ratio
           const gain = level * clamp(1 + (tilt * (k + 1 - 3.5)) / 2.5, 0, 1);
@@ -102,7 +109,7 @@
             i ? g.lineTo(px, y(h[i])) : g.moveTo(px, y(h[i]));
           }
         }
-        g.stroke();
+        g.stroke(); g.shadowBlur = 0;
       }
     },
   });

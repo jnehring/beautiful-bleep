@@ -57,35 +57,34 @@
     if (!c || !c.clientWidth) return;
     const m = model(view, (id) => view.value(st, id));
     view.df = m;
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-    if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
-    const css = getComputedStyle(view.root);
-    const accent = css.getPropertyValue("--accent"), line = css.getPropertyValue("--line");
-    const muted = css.getPropertyValue("--muted") || line, text = css.getPropertyValue("--text");
+    const { g, w, h } = BleepView.fit(c);
+    if (!w || !h) return;
+    const th = BleepView.theme(view.root);
+    const accent = th.accent, line = th.line, muted = th.muted || th.line, text = th.text;
     const y = (lin) => (TOP - clamp(20 * Math.log10(Math.max(lin, 1e-6)), BOTTOM, TOP)) / (TOP - BOTTOM) * h;
     g.strokeStyle = line;
     g.lineWidth = 1;
     g.beginPath(); g.moveTo(0, y(1)); g.lineTo(w, y(1)); g.stroke();
-    const plot = (fn, colour, width) => {
+    const plot = (fn, colour, width, glow) => {
       g.strokeStyle = colour;
       g.lineWidth = width;
+      if (glow) BleepView.glow(g, colour, 10);
       g.beginPath();
       for (let x = 0; x <= w; x += 2) {
         const yy = y(fn(20 * Math.pow(1000, x / w)));
         x ? g.lineTo(x, yy) : g.moveTo(x, yy);
       }
       g.stroke();
+      g.shadowBlur = 0;
+      if (glow) { g.lineTo(w, h); g.lineTo(0, h); g.closePath(); g.globalAlpha = 0.1; g.fillStyle = colour; g.fill(); g.globalAlpha = 1; }
     };
     const H1 = (f) => svf(f, m.f1, m.k1, m.m1), H2 = (f) => svf(f, m.f2, m.k2, m.m2);
     const wet = (H) => abs(add(scale(H, m.mix), [1 - m.mix, 0]));
     plot((f) => abs(H1(f)), muted, 1);
     plot((f) => abs(H2(f)), muted, 1);
     if (m.routing === 3) {
-      plot((f) => wet(scale(H1(f), Math.min(1, 1 - m.bal))), accent, 2);
-      plot((f) => wet(scale(H2(f), Math.min(1, 1 + m.bal))), text, 1.5);
+      plot((f) => wet(scale(H1(f), Math.min(1, 1 - m.bal))), accent, 2, true);
+      plot((f) => wet(scale(H2(f), Math.min(1, 1 + m.bal))), text, 1.5, true);
     } else {
       plot((f) => {
         const a = H1(f), b = H2(f);
@@ -95,7 +94,19 @@
         }
         const g1 = 0.5 * clamp(1 - m.bal, 0, 2), g2 = 0.5 * clamp(1 + m.bal, 0, 2);
         return wet(add(scale(a, g1), scale(b, m.routing === 2 ? -g2 : g2)));
-      }, accent, 2);
+      }, accent, 2, true);
+    }
+    // Routing diagram (top right): F1 and F2 as boxes, wires by routing.
+    {
+      const R = ["serial", "parallel", "invert", "stereo"][m.routing] || "serial", bx = w - 92, by = 8;
+      g.save(); g.globalAlpha = 0.85; g.lineWidth = 1.2; g.font = "9px system-ui, sans-serif"; g.textAlign = "center";
+      const box = (x, y, t, col) => { g.strokeStyle = col; g.strokeRect(x + 0.5, y + 0.5, 20, 13); g.fillStyle = col; g.fillText(t, x + 10.5, y + 10); };
+      g.strokeStyle = muted;
+      const ln = (a, b, c2, d) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c2, d); g.stroke(); };
+      if (R === "serial") { ln(bx, by + 7, bx + 8, by + 7); box(bx + 8, by, "F1", accent); ln(bx + 29, by + 7, bx + 40, by + 7); box(bx + 40, by, "F2", muted); ln(bx + 61, by + 7, bx + 72, by + 7); }
+      else if (R === "stereo") { box(bx + 20, by, "F1", accent); box(bx + 20, by + 17, "F2", text); ln(bx, by + 7, bx + 20, by + 7); ln(bx, by + 24, bx + 20, by + 24); ln(bx + 41, by + 7, bx + 62, by + 7); ln(bx + 41, by + 24, bx + 62, by + 24); g.fillStyle = muted; g.fillText("L", bx + 66, by + 10); g.fillText("R", bx + 66, by + 27); }
+      else { box(bx + 14, by, "F1", accent); box(bx + 14, by + 17, R === "invert" ? "−F2" : "F2", muted); ln(bx, by + 12, bx + 8, by + 12); ln(bx + 8, by + 7, bx + 8, by + 24); ln(bx + 8, by + 7, bx + 14, by + 7); ln(bx + 8, by + 24, bx + 14, by + 24); ln(bx + 35, by + 7, bx + 41, by + 7); ln(bx + 35, by + 24, bx + 41, by + 24); ln(bx + 41, by + 7, bx + 41, by + 24); ln(bx + 41, by + 12, bx + 50, by + 12); }
+      g.restore();
     }
     // Markers.
     const xOf = (f) => clamp(Math.log(f / 20) / Math.log(1000), 0, 1) * w;
@@ -162,8 +173,16 @@
   }
 
   BleepViews.register("dual-filter", {
-    settingsTop: true,  // the routing first: it decides what the knobs do
-    template: '<div class="bv-panel"><h2>Response</h2><canvas class="df-response" style="height:110px;cursor:ew-resize"></canvas></div>',
+    width: 900,
+    layout: [
+      { title: "Routing", params: ["routing", "link", "character"] },
+      { title: "Cutoff", params: ["cutoff", "spread", "keyTrack"] },
+      { title: "Filter 1", params: ["res1", "mode1"] },
+      { title: "Filter 2", params: ["res2", "mode2"] },
+      { title: "Drive", params: ["drive"] },
+      { title: "Output", params: ["balance", "mix"] },
+    ],
+    template: '<div class="bv-panel"><h2>Response — f1 · centre · f2</h2><canvas class="df-response" style="height:110px;cursor:ew-resize"></canvas></div>',
     afterBuild(view, el) {
       const c = el.querySelector(".df-response");
       if (c) attach(view, c);

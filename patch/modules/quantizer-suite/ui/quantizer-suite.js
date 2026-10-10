@@ -50,28 +50,34 @@
   }
 
   const STYLE = `
+    .qs-ctl .bv-knob svg { width: 36px; height: 36px; }
+    .qs-ctl .bv-knob { width: 66px; }
     .qs-strips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .qs-strip { min-width: 0; }
+    .qs-strip { min-width: 0; flex: 1 1 100%; }
     .qs-head { display: flex; justify-content: space-between; align-items: baseline; }
     .qs-ch { font-weight: 700; color: var(--muted); }
     .qs-note { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .qs-mode { color: var(--muted); font-size: 10px; }
     .qs-warn { color: #f87171; font-size: 10px; }
     .qs-kb { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1px; margin-top: 3px; }
-    .qs-kb span { height: 22px; border-radius: 2px; background: var(--bg, #15171c); position: relative; cursor: pointer; }
+    .qs-kb span { height: 20px; border-radius: 2px; background: var(--bg, #15171c); position: relative; cursor: pointer; }
     .qs-kb span.in { background: var(--panel-3, #2d323d); box-shadow: inset 0 0 0 1px var(--muted); }
     .qs-kb span.key { box-shadow: inset 0 -2px 0 var(--muted); }
     .qs-kb span.masked { background: transparent; outline: 1px solid var(--line); }
-    .qs-kb span.masked::after { content: "×"; position: absolute; inset: 0; text-align: center; line-height: 22px;
+    .qs-kb span.masked::after { content: "×"; position: absolute; inset: 0; text-align: center; line-height: 20px;
       font-size: 10px; color: var(--muted); }
-    .qs-kb span.now { background: var(--accent); }
+    .qs-kb span.now { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
     .qs-kb span.tone::before { content: ""; position: absolute; left: 50%; top: 3px; width: 4px; height: 4px; margin-left: -2px;
       border-radius: 50%; background: var(--text); }`;
 
+  const CH = (l) => ["mode", "root", "scale", "harmony", "chord", "order", "span", "target", "notes", "sample", "octave", "steps", "slew"].map((x) => l + "." + x);
   BleepViews.register("quantizer-suite", {
-    top: true,
-    width: 480,
-    template: `<div class="bv-panel"><div class="qs-strips"></div></div>`,
+    width: 900,
+    layout: [
+      ...LETTERS.map((l) => ({ title: "Channel " + l.toUpperCase(), params: CH(l) })),
+      { title: "All channels", params: ["hysteresis", "link", "velocity", "seed"] },
+    ],
+    template: "",
     afterBuild(view, el) {
       if (!document.getElementById("qs-style")) {
         const s = document.createElement("style");
@@ -79,12 +85,22 @@
         s.textContent = STYLE;
         document.head.appendChild(s);
       }
-      const box = el.querySelector(".qs-strips");
+      const secs = [...view.root.querySelectorAll(".bv-controls .bv-sec")];
+      const ctl = view.root.querySelector(".bv-controls");
+      if (ctl) ctl.classList.add("qs-ctl");
+      if (ctl) ctl.style.cssText = "display:grid;grid-template-columns:1fr 1fr 130px;gap:8px";
+      secs.forEach((sec, i) => {
+        if (i > 3) return;
+        const b = sec.querySelector(".bv-sec-body");  // selects and knobs share rows
+        b.style.cssText = "flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:6px";
+        for (const r of b.querySelectorAll(".bv-sec-settings, .bv-sec-knobs")) r.style.display = "contents";
+      });
+      secs.forEach((sec, i) => { if (i === 4) sec.style.cssText = "grid-column:3;grid-row:1 / span 2"; });
       const strips = LETTERS.map((letter, k) => {
         const strip = document.createElement("div");
         strip.className = "qs-strip";
-        strip.innerHTML = `<div class="qs-head"><span class="qs-ch">${letter.toUpperCase()}</span><span class="qs-note">–</span></div>
-          <div class="qs-mode"></div><div class="qs-warn" hidden>no harmony</div><div class="qs-kb"></div>`;
+        strip.innerHTML = `<div class="qs-head"><span class="qs-mode"></span><span class="qs-note">–</span></div>
+          <div class="qs-warn" hidden>no harmony</div><div class="qs-kb"></div>`;
         const kb = strip.querySelector(".qs-kb");
         const keys = NAMES.map((n, pc) => {
           const key = document.createElement("span");
@@ -101,7 +117,8 @@
           kb.appendChild(key);
           return key;
         });
-        box.appendChild(strip);
+        const body = secs[k] && secs[k].querySelector(".bv-sec-body");
+        if (body) body.insertBefore(strip, body.firstChild);
         return { note: strip.querySelector(".qs-note"), mode: strip.querySelector(".qs-mode"), warn: strip.querySelector(".qs-warn"), keys };
       });
       view.qs = { strips, state: null };

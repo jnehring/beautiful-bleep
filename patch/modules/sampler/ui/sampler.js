@@ -45,16 +45,10 @@
 
   function draw(view) {
     const sp = view.sp, st = sp.state || {}, c = sp.canvas;
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-    if (!w) return;
-    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
-    const css = getComputedStyle(view.root);
-    const accent = css.getPropertyValue("--accent").trim(), text = css.getPropertyValue("--text").trim();
-    const muted = css.getPropertyValue("--muted").trim(), line = css.getPropertyValue("--line").trim();
-    const panel = css.getPropertyValue("--panel-3").trim() || line;
+    const { g, w, h } = BleepView.fit(c);
+    if (!w || !h) return;
+    const th = BleepView.theme(view.root), accent = th.accent, text = th.text, muted = th.muted, line = th.line;
+    const panel = getComputedStyle(view.root).getPropertyValue("--panel-3").trim() || line;
     const peaks = (st.arrays && st.arrays.peaks) || [];
     const heads = (st.arrays && st.arrays.heads) || [];
     const d = data(view), len = total(view);
@@ -75,25 +69,78 @@
       g.fillRect(x(bounds[i]), 0, Math.max(1, x(bounds[i + 1]) - x(bounds[i])), h);
     }
     g.globalAlpha = 1;
-    g.fillStyle = muted;
+    // the waveform: a glowing mirrored silhouette, the current slice in the accent colour
     const bw = w / Math.max(peaks.length, 1);
+    const grad = g.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, muted); grad.addColorStop(0.5, text); grad.addColorStop(1, muted);
     for (let i = 0; i < peaks.length; i++) {
-      const v = Math.min(1, peaks[i]) * (h / 2 - 3);
+      const v = Math.min(1, peaks[i]) * (h / 2 - 3), fx = ((i + 0.5) / peaks.length) * len;
+      const inCur = fx >= bounds[cur] && fx < bounds[cur + 1];
+      g.fillStyle = inCur ? accent : grad;
+      g.globalAlpha = inCur ? 0.95 : 0.7;
       g.fillRect(i * bw, h / 2 - v, Math.max(1, bw), Math.max(1, 2 * v));
     }
+    g.globalAlpha = 1;
     g.fillStyle = accent;
     g.font = "10px system-ui, sans-serif";
     g.textAlign = "left";
+    BleepView.glow(g, accent, 6);
     for (let i = 0; i < markers.length; i++) g.fillRect(Math.round(x(markers[i])) - 1, 0, 2, h);
+    g.shadowBlur = 0;
     if (markers.length < 64)
       for (let i = 0; i + 1 < bounds.length; i++) g.fillText(String(i + 1), x(bounds[i]) + 3, 11);
     g.fillRect(x(bounds[cur]), h - 3, Math.max(2, x(bounds[cur + 1]) - x(bounds[cur])), 3);
     g.fillStyle = text;
+    BleepView.glow(g, text, 10);
     for (let i = 0; i + 1 < heads.length; i += 2) {
       g.beginPath();
       g.arc(x(heads[i]), h / 2, 4, 0, Math.PI * 2);
       g.fill();
     }
+    g.shadowBlur = 0;
+  }
+
+  // The amplitude envelope drawn from Attack, Decay, Sustain and Release (the
+  // stage widths follow the knob positions); a spark runs along it like a note.
+  function envelope(view, t) {
+    const c = view.sp && view.sp.env;
+    if (!c) return;
+    const { g, w, h } = BleepView.fit(c);
+    if (!w || !h) return;
+    const th = BleepView.theme(view.root), st = view.sp.state || {};
+    const A = 0.1 + view.value(st, "attack"), D = 0.1 + view.value(st, "decay"), R = 0.1 + view.value(st, "release");
+    const S = view.value(st, "sustain"), H = 0.6;
+    const tot = A + D + H + R, L = 6, W = w - 12, top = 8, bot = h - 6;
+    const px = (u) => L + (u / tot) * W, py = (v) => bot - v * (bot - top);
+    const pts = [[0, 0], [A, 1], [A + D, S], [A + D + H, S], [tot, 0]];
+    g.beginPath();
+    g.moveTo(px(0), py(0));
+    // decay and release as exponentials, attack as a rise
+    for (let i = 0; i <= 60; i++) { const u = i / 60 * tot; g.lineTo(px(u), py(envAt(u, A, D, S, H, R))); }
+    g.lineTo(px(tot), py(0));
+    const fg = g.createLinearGradient(0, top, 0, bot);
+    fg.addColorStop(0, th.accent); fg.addColorStop(1, "transparent");
+    g.globalAlpha = 0.25; g.fillStyle = fg; g.fill(); g.globalAlpha = 1;
+    g.strokeStyle = th.accent; g.lineWidth = 2; BleepView.glow(g, th.accent, 8);
+    g.beginPath();
+    for (let i = 0; i <= 60; i++) { const u = i / 60 * tot; const X = px(u), Y = py(envAt(u, A, D, S, H, R)); i ? g.lineTo(X, Y) : g.moveTo(X, Y); }
+    g.stroke(); g.shadowBlur = 0;
+    g.strokeStyle = th.line; g.lineWidth = 1; g.setLineDash([2, 3]);
+    for (const [u] of pts.slice(1, 4)) { g.beginPath(); g.moveTo(Math.round(px(u)) + 0.5, top); g.lineTo(Math.round(px(u)) + 0.5, bot); g.stroke(); }
+    g.setLineDash([]);
+    g.fillStyle = th.muted; g.font = "9px system-ui, sans-serif"; g.textAlign = "center";
+    g.fillText("A", px(A / 2), h - 0); g.fillText("D", px(A + D / 2), h - 0); g.fillText("S", px(A + D + H / 2), h - 0); g.fillText("R", px(A + D + H + R / 2), h - 0);
+    const u = ((t * 0.35) % 1) * tot * 1.0;
+    g.fillStyle = th.text; BleepView.glow(g, th.text, 12);
+    g.beginPath(); g.arc(px(u), py(envAt(u, A, D, S, H, R)), 3.2, 0, 6.2832); g.fill();
+    g.shadowBlur = 0;
+  }
+  function envAt(u, A, D, S, H, R) {
+    if (u < A) return u / A;
+    if (u < A + D) { const k = (u - A) / D; return S + (1 - S) * (1 - k) * (1 - k) * (1 - k * 0.3) ; }
+    if (u < A + D + H) return S;
+    const k = (u - A - D - H) / R;
+    return S * Math.max(0, (1 - k) * (1 - k));
   }
 
   function attach(view) {
@@ -185,33 +232,56 @@
   const num = (cls, min, max, step, w) =>
     '<input class="' + cls + '" type="number" min="' + min + '" max="' + max + '" step="' + step + '" style="width:' + (w || 56) + 'px">';
 
+  if (!document.getElementById("sa-style")) {
+    const st = document.createElement("style");
+    st.id = "sa-style";
+    st.textContent = ".bleep-view.sa .bv-knob{width:56px}.bleep-view.sa .bv-knob svg{width:38px;height:38px}" +
+      ".bleep-view.sa .bv-sec-knobs{gap:2px 0}.bleep-view.sa .bv-label{font-size:9px;letter-spacing:.04em}" +
+      ".sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:11px}" +
+      ".sa-grid label{display:flex;justify-content:space-between;align-items:center;gap:4px;color:var(--muted)}" +
+      ".sa-grid input,.sa-grid select,.bleep-view.sa .sa-tools input,.bleep-view.sa .sa-tools select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 3px}" +
+      ".sa-grid input[type=number]{width:52px}.sa-grid select{width:84px}" +
+      ".sa-tools button,.sa-grid button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 8px;cursor:pointer}" +
+      ".sa-tools button:hover,.sa-grid button:hover{border-color:var(--accent)}";
+    document.head.appendChild(st);
+  }
+
   BleepViews.register("sampler", {
-    top: true,
-    width: 460,
+    width: 900,
+    layout: [
+      { title: "Sample", params: ["start", "end", "position", "loopfade", "positionmode", "mode", "loopstyle"] },
+      { title: "Pitch", params: ["transpose", "fine", "speed", "keytrack", "root", "quality"] },
+      { title: "Envelope", params: ["attack", "decay", "sustain", "release"] },
+      { title: "Filter", params: ["cutoff", "resonance", "filterenv"] },
+      { title: "Output", params: ["level", "pan", "velocity", "crush"] },
+      { title: "Voices", params: ["voices", "voicemode", "layers", "layerpitch", "layeroffset", "triggerby", "slicemode", "output", "voiceouts"] },
+    ],
     template:
-      '<div class="bv-panel"><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">' +
+      '<div style="display:flex;gap:8px;width:100%;flex:1 1 100%;flex-wrap:wrap">' +
+      '<div class="bv-panel" style="flex:3 1 440px;min-width:0;display:flex;flex-direction:column"><div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">' +
       '<span class="sa-info" style="flex:1;color:var(--muted)"></span><span class="sa-drop bv-drop" style="padding:2px 8px">Import WAV</span></div>' +
-      '<canvas class="sa-canvas" style="height:96px;touch-action:none"></canvas>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px">' +
+      '<canvas class="sa-canvas" style="flex:1 1 80px;min-height:80px;touch-action:none"></canvas>' +
+      '<div class="sa-tools" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:11px">' +
       field("Slicing", '<select class="sa-kind"><option value="manual">Manual</option><option value="threshold">Threshold</option><option value="beats">Beats</option></select>') +
       '<span data-kind="threshold" style="display:flex;gap:8px;align-items:center">' +
-      field("Sensitivity", '<input class="sa-threshold" type="range" min="0" max="1" step="0.01" style="width:80px">') +
-      field("Min gap ms", num("sa-mingap", 5, 500, 1)) + '<button class="sa-detect">Detect</button></span>' +
+      field("Sensitivity", '<input class="sa-threshold" type="range" min="0" max="1" step="0.01" style="width:70px">') +
+      field("Min gap ms", num("sa-mingap", 5, 500, 1, 46)) + '<button class="sa-detect">Detect</button></span>' +
       '<span data-kind="beats" style="display:flex;gap:8px;align-items:center">' +
-      field("Divisions", num("sa-beats", 2, 64, 1, 48)) + field("BPM", num("sa-bpm", 20, 400, 0.1)) + field("Bars", num("sa-bars", 1, 64, 1, 44)) +
-      '<button class="sa-detect-bpm">Detect BPM</button><button class="sa-equal">Equal</button><button class="sa-grid">On BPM</button></span>' +
+      field("Divisions", num("sa-beats", 2, 64, 1, 42)) + field("BPM", num("sa-bpm", 20, 400, 0.1, 50)) + field("Bars", num("sa-bars", 1, 64, 1, 40)) +
+      '<button class="sa-detect-bpm">Detect BPM</button><button class="sa-equal">Equal</button><button class="sa-grid-btn">On BPM</button></span>' +
       '<button class="sa-clear">Clear</button></div>' +
-      '<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px">' +
-      '<div class="sa-sel" style="font-weight:600;margin-bottom:4px"></div>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+      '<div class="sa-note" style="color:var(--muted);margin-top:2px;min-height:1em;font-size:11px"></div></div>' +
+      '<div class="bv-panel" style="flex:1 1 250px;display:flex;flex-direction:column;gap:6px">' +
+      '<div class="sa-sel" style="font-weight:600"></div>' +
+      '<div class="sa-grid">' +
       field("Mode", '<select class="sa-mode">' + MODES.map((m, i) => '<option value="' + (i - 1) + '">' + m + "</option>").join("") + "</select>") +
       field("Transpose", num("sa-transpose", -48, 48, 1)) + field("Level", num("sa-level", 0, 2, 0.05)) +
       field("Pan", num("sa-pan", -1, 1, 0.05)) + field("Reverse", '<input class="sa-reverse" type="checkbox">') +
-      field("Choke", '<select class="sa-choke">' + [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => '<option value="' + n + '">' + (n || "–") + "</option>").join("") + "</select>") +
-      '<button class="sa-audition">Audition</button></div></div>' +
-      '<div class="sa-note" style="color:var(--muted);margin-top:4px;min-height:1em"></div></div>',
+      field("Choke", '<select class="sa-choke" style="width:52px">' + [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => '<option value="' + n + '">' + (n || "–") + "</option>").join("") + "</select>") +
+      '<button class="sa-audition" style="grid-column:1/3">Audition</button></div></div></div>',
     afterBuild(view, el) {
       const q = (s) => el.querySelector(s);
+      view.root.classList.add("sa");
       view.sp = {
         canvas: q(".sa-canvas"), info: q(".sa-info"), noteEl: q(".sa-note"), note: "", state: null, sel: q(".sa-sel"),
         kind: q(".sa-kind"), threshold: q(".sa-threshold"), minGap: q(".sa-mingap"), beats: q(".sa-beats"), bpm: q(".sa-bpm"), bars: q(".sa-bars"),
@@ -250,7 +320,7 @@
         view.api.beginGesture();
         send(view, { ...data(view), markers: beatMarkers(view, false), current: 0 });
       });
-      q(".sa-grid").addEventListener("click", () => {
+      q(".sa-grid-btn").addEventListener("click", () => {
         view.api.beginGesture();
         send(view, { ...data(view), markers: beatMarkers(view, true), current: 0 });
       });
@@ -267,6 +337,15 @@
       bind(sp.reverse, "reverse", (e) => e.checked);
       bind(sp.choke, "choke", (e) => +e.value);
       attach(view);
+      // The envelope drawing sits in the Envelope card, under its knobs.
+      const envBox = view.knobs.get("attack") && view.knobs.get("attack").box.closest(".bv-sec");
+      if (envBox) {
+        sp.env = document.createElement("canvas");
+        sp.env.title = "Amplitude envelope";
+        sp.env.style.cssText = "width:100%;height:46px;display:block;margin-top:2px";
+        envBox.appendChild(sp.env);
+      }
+      BleepView.loop(view.root, (t) => envelope(view, t));
       slicingPanel(view);
       slicePanel(view);
     },

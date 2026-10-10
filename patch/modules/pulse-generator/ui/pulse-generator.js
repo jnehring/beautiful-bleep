@@ -199,14 +199,26 @@
     const corners = [];
     for (const t0 of starts) corners.push(t0, t0 + tr, t0 + q.W, t0 + q.W + tf);
     const ts = [ax.tmin, ax.tmax, ...corners.flatMap((t) => [t - 1e-12, t])].filter((t) => t >= ax.tmin && t <= ax.tmax).sort((a, b) => a - b);
+    const trace = () => {
+      g.beginPath();
+      ts.forEach((t, i) => {
+        const p = shapeAt(q, starts, t), y = ys(q.comp ? 1 - p : p);
+        i ? g.lineTo(ax.x(t), y) : g.moveTo(ax.x(t), y);
+      });
+    };
+    // a faint gradient under the pulse, then the glowing trace
+    trace();
+    const base = ys(q.comp ? 1 : 0);
+    g.lineTo(ax.x(ts[ts.length - 1]), base); g.lineTo(ax.x(ts[0]), base); g.closePath();
+    const fillG = g.createLinearGradient(0, yHi, 0, yLo);
+    fillG.addColorStop(0, accent + "40"); fillG.addColorStop(1, accent + "05");
+    g.fillStyle = fillG; g.fill();
     g.strokeStyle = accent;
     g.lineWidth = 2;
-    g.beginPath();
-    ts.forEach((t, i) => {
-      const p = shapeAt(q, starts, t), y = ys(q.comp ? 1 - p : p);
-      i ? g.lineTo(ax.x(t), y) : g.moveTo(ax.x(t), y);
-    });
+    g.shadowColor = accent; g.shadowBlur = 8;
+    trace();
     g.stroke();
+    g.shadowBlur = 0;
 
     // Dimension lines.
     const first = q.dbl ? 0 : q.D;
@@ -328,7 +340,14 @@
 
   BleepViews.register("pulse-generator", {
     top: true,
-    width: 400,
+    side: true,
+    width: 1100,
+    layout: [
+      { title: "Mode", params: ["mode", "sync", "units", "polarity", "double", "burst", "warmup", "seed"] },
+      { title: "Timing", params: ["period", "width", "widthpct", "delay", "delaypct", "rise", "fall"] },
+      { title: "Ring", params: ["ring", "ringfreq", "damping"] },
+      { title: "Level", params: ["amplitude", "offset", "jitter"] },
+    ],
     template:
       "<style>" +
       ".pg canvas{width:100%;height:142px;display:block;touch-action:none}" +

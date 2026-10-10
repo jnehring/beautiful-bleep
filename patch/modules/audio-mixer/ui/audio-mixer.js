@@ -192,8 +192,7 @@
   }
 
   BleepViews.register("audio-mixer", {
-    top: true,
-    width: 440,
+    layout: [{ title: "Send bus", params: ["sendpoint1", "sendpoint2", "sendpoint3", "sendpoint4", "return"] }],
     hideParams: [].concat(
       ...[1, 2, 3, 4].map((k) => ["level" + k, "pan" + k, "send" + k, "mute" + k, "solo" + k]),
       ["master", "limiter", "mono"]),
@@ -202,10 +201,10 @@
       ".am{display:flex;gap:6px;align-items:stretch;flex:1 1 100%}" +
       ".am-strip{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 4px;" +
       "background:var(--panel-2,var(--panel-3));border:1px solid var(--line);border-radius:6px;min-width:0}" +
-      ".am-master{flex:1.2 1 0;border-color:var(--accent)}" +
+      ".am-master{flex:1 1 0;border-color:var(--accent)}" +
       ".am-name{font-size:11px;font-weight:600;color:var(--muted)}" +
       ".am-dial{display:flex;flex-direction:column;align-items:center;gap:1px}" +
-      ".am-dial svg{width:38px;height:38px;cursor:ns-resize;touch-action:none}" +
+      ".am-dial svg{width:40px;height:40px;cursor:ns-resize;touch-action:none}" +
       ".am-track{fill:none;stroke:var(--panel-3);stroke-width:3;stroke-linecap:round}" +
       ".am-arc{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round}" +
       ".am-ptr{stroke:var(--text);stroke-width:2;stroke-linecap:round}" +
@@ -217,20 +216,22 @@
       "color:var(--text);cursor:pointer}" +
       ".am-btn.on{background:var(--accent);color:#000;border-color:var(--accent)}" +
       ".am-btn.mute.on{background:var(--warn);border-color:var(--warn)}" +
-      ".am-frow{display:flex;gap:6px;justify-content:center;height:150px}" +
+      ".am-frow{display:flex;gap:6px;justify-content:center;height:128px}" +
+      ".am-body{display:flex;gap:10px;align-items:center;justify-content:center}" +
+      ".am-col{display:flex;flex-direction:column;align-items:center;gap:6px}" +
       ".am-fader{display:flex;flex-direction:column;align-items:center;gap:2px}" +
       ".am-ftrack{position:relative;width:22px;height:100%;cursor:ns-resize;touch-action:none}" +
       ".am-ftrack::before{content:'';position:absolute;left:9px;width:4px;top:0;bottom:0;background:var(--panel-3);border-radius:2px}" +
-      ".am-ffill{position:absolute;left:9px;width:4px;bottom:0;background:var(--accent);opacity:.5;border-radius:2px}" +
+      ".am-ffill{position:absolute;left:9px;width:4px;bottom:0;background:var(--accent);opacity:.7;border-radius:2px;box-shadow:0 0 8px var(--accent)}" +
       ".am-fzero{position:absolute;left:3px;right:3px;height:1px;background:var(--muted)}" +
       ".am-fknob{position:absolute;left:1px;right:1px;height:10px;margin-bottom:-5px;border-radius:3px;" +
       "background:var(--text);border:1px solid var(--line)}" +
       ".am-meters{display:flex;gap:2px;position:relative;padding-top:8px}" +
-      ".am-meter{position:relative;width:7px;background:var(--panel-3);border-radius:2px;overflow:hidden;align-self:stretch}" +
-      ".am-mlvl{position:absolute;left:0;right:0;bottom:0;background:var(--sig-gate)}" +
-      ".am-mlvl.warm{background:var(--mod)}.am-mlvl.hot{background:var(--warn)}" +
+      ".am-meter{position:relative;width:9px;background:var(--panel-3);border-radius:2px;overflow:hidden;align-self:stretch}" +
+      ".am-mlvl{position:absolute;left:0;right:0;bottom:0;background:var(--sig-gate);box-shadow:0 0 8px var(--sig-gate)}" +
+      ".am-mlvl.warm{background:var(--mod);box-shadow:0 0 8px var(--mod)}.am-mlvl.hot{background:var(--warn);box-shadow:0 0 8px var(--warn)}" +
       ".am-mhold{position:absolute;left:0;right:0;height:2px;background:var(--text)}" +
-      ".am-mclip{position:absolute;top:0;width:7px;height:5px;border-radius:1px;background:var(--panel-3);cursor:pointer}" +
+      ".am-mclip{position:absolute;top:0;width:9px;height:5px;border-radius:1px;background:var(--panel-3);cursor:pointer}" +
       ".am-mclip.on{background:var(--warn)}" +
       ".am-gr{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}" +
       "</style>" +
@@ -238,6 +239,12 @@
     afterBuild(view, el0) {
       const root = el0.querySelector(".am");
       const m = (view.mixer = { root, strips: [], last: 0 });
+      const bus = view.root.querySelector(".bv-controls .bv-sec");
+      if (bus) {  // the send bus: its four points and the return in one row
+        bus.style.flex = "1 1 100%";
+        const body = bus.querySelector(".bv-sec-body");
+        body.style.cssText = "flex-direction:row;align-items:center;gap:24px";
+      }
       for (let k = 1; k <= N; k++) {
         const strip = el("div", "am-strip");
         const pan = dial(view, "pan" + k, "Pan");
@@ -249,7 +256,11 @@
         const row = el("div", "am-row");
         row.append(mute.box, solo.box);
         const fad = fader(view, "level" + k, 1);
-        strip.append(el("div", "am-name", "" + k), pan.box, send.box, row, fad.box);
+        const col = el("div", "am-col");
+        col.append(pan.box, send.box, row);
+        const body = el("div", "am-body");
+        body.append(fad.box, col);
+        strip.append(el("div", "am-name", "" + k), body);
         root.appendChild(strip);
         m.strips.push({ dials: [pan, send], buttons: [mute, solo], fader: fad });
       }
@@ -261,7 +272,11 @@
       const opts = el("div", "am-row");
       opts.style.flexDirection = "column";
       opts.append(lim.box, mono.box);
-      ms.append(el("div", "am-name", "Master"), opts, gr, mf.box);
+      const mcol = el("div", "am-col");
+      mcol.append(opts, gr);
+      const mbody = el("div", "am-body");
+      mbody.append(mf.box, mcol);
+      ms.append(el("div", "am-name", "Master"), mbody);
       root.appendChild(ms);
       m.master = { fader: mf, buttons: [lim, mono], gr };
       m.draw = () => {

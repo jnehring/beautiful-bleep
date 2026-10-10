@@ -153,7 +153,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 
 /* ---- floating module views (spec §9.4) */
 #views { position: absolute; inset: 0; pointer-events: none; }
-.vwin { position: absolute; pointer-events: auto; width: 340px; background: var(--panel); border: 1px solid var(--line);
+.vwin { position: absolute; pointer-events: auto; width: 760px; max-width: calc(100vw - 24px); background: var(--panel); border: 1px solid var(--line);
         border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); overflow: hidden; }
 .vwin.front { z-index: 5; }
 .v-grip { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; touch-action: none;
@@ -171,7 +171,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-head .help.on { border-color: var(--accent); }
 .v-head .spacer { flex: 1; }
 .v-body { max-height: 70vh; overflow-y: auto; }
-.vwin.doc { width: 460px; }
+.vwin.doc { width: 560px; }
 .vwin.wiring { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; }
 .vwin.wiring .v-head { grid-column: 1 / -1; }
 .v-ins { display: flex; flex-direction: column; gap: 1px; padding: 6px 10px 6px 12px; max-width: 140px;

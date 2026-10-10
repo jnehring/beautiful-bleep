@@ -158,22 +158,40 @@
       g.fillText(shortHz(f), Math.min(cw - 8, Math.max(left + 6, x(f))), ch - 2);
     }
     const bw = pw / COLUMNS;
-    const bars = (arr, colour, alpha) => {
-      g.globalAlpha = alpha;
-      g.fillStyle = colour;
+    // Phosphor trace: a glowing top line over a gradient filled spectrum; the
+    // previous sweep stays as a faint ghost.
+    const area = (arr, colour, alpha, glowPx, lw) => {
+      const gr = g.createLinearGradient(0, top, 0, bottom);
+      gr.addColorStop(0, colour); gr.addColorStop(1, "transparent");
+      g.globalAlpha = alpha * 0.35;
+      g.fillStyle = gr;
       for (let k = 0; k < COLUMNS; k++) {
         const v = arr[k];
         if (v > 0.002) g.fillRect(left + k * bw, y(v), Math.max(1, bw), bottom - y(v));
       }
+      g.globalAlpha = alpha;
+      g.strokeStyle = colour; g.lineWidth = lw;
+      if (glowPx) BleepView.glow(g, colour, glowPx);
+      g.beginPath();
+      let pen = false;
+      for (let k = 0; k < COLUMNS; k++) {
+        const v = arr[k];
+        if (v > 0.002) { const px = left + (k + 0.5) * bw; pen ? g.lineTo(px, y(v)) : g.moveTo(px, y(v)); pen = true; }
+        else pen = false;
+      }
+      g.stroke();
+      g.shadowBlur = 0;
     };
-    bars(w.prev, col("--muted"), 0.35);
-    bars(w.cur, col("--accent"), 0.9);
+    area(w.prev, col("--muted"), 0.4, 0, 1);
+    area(w.cur, col("--accent"), 1, 8, 1.6);
     g.globalAlpha = 1;
     // The pen
     if (w.f > 0) {
       const px = x(Math.min(PLOT_HI, Math.max(PLOT_LO, w.f)));
       g.fillStyle = col("--text");
+      BleepView.glow(g, col("--text"), 8);
       g.beginPath(); g.moveTo(px, y(w.level) - 1); g.lineTo(px - 4, y(w.level) - 8); g.lineTo(px + 4, y(w.level) - 8); g.closePath(); g.fill();
+      g.shadowBlur = 0;
     }
   }
 
@@ -189,12 +207,16 @@
   }
 
   BleepViews.register("wave-analyzer", {
-    top: true,
-    width: 400,
     hideParams: ["frequency"],
+    layout: [
+      { title: "Tuning", params: ["mode", "range", "bandwidth"] },
+      { title: "Sweep / Lock", params: ["span", "sweeptime", "sweepdir", "sync", "capture"] },
+      { title: "Output", params: ["listen", "gain", "threshold", "drift"] },
+      { title: "Meter", params: ["floor", "ballistics", "seed"] },
+    ],
     template:
       "<style>" +
-      ".wa{display:flex;flex-direction:column;gap:6px;flex:1 1 100%}" +
+      ".wa{display:flex;flex-direction:row;align-items:stretch;gap:10px;flex:1 1 100%}.wa .wa-row{flex:none}" +
       ".wa-row{display:flex;align-items:center;justify-content:space-between;gap:6px}" +
       ".wa svg{display:block;touch-action:none}" +
       ".wa .wa-face{fill:var(--panel-3);stroke:var(--line)}" +
@@ -216,8 +238,8 @@
       ".wa-light.fast.on i{background:var(--warn);border-color:var(--warn)}" +
       ".wa-light.hunt i{animation:wa-blink .5s steps(2) infinite;background:var(--accent)}" +
       "@keyframes wa-blink{50%{opacity:.15}}" +
-      ".wa canvas{width:100%;height:96px;cursor:pointer}" +
-      ".wa-hint{font-size:10px;color:var(--muted)}" +
+      ".wa canvas{flex:1 1 auto;min-width:0;width:100%;height:128px;cursor:pointer;background:var(--panel-2);border-radius:8px}.bleep-view .wa ~ *{}.bleep-view:has(.wa) .bv-knob{width:64px}.bleep-view:has(.wa) .bv-knob svg{width:42px;height:42px}" +
+      ".wa-hint{display:none}" +
       "</style>" +
       '<div class="wa"><div class="wa-row"></div>' +
       '<canvas title="Plotter: level against frequency. Click to clear."></canvas></div>',
@@ -268,6 +290,7 @@
         drawDial(view);
       };
       let startY = 0, startV = 0, dragging = false;
+      dial.setAttribute("title", "Drag the dial (Shift: fine); double-click resets");
       dial.addEventListener("pointerdown", (e) => {
         if (e.button !== 0) return;
         e.stopPropagation();

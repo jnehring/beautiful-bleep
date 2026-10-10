@@ -100,37 +100,62 @@
   }
 
   BleepViews.register("filter", {
-    settingsTop: true,  // the algorithm first: it decides what the knobs do
-    template: '<div class="bv-panel"><h2>Response</h2><canvas class="response" style="height:96px"></canvas></div>',
+    width: 800,
+    layout: [
+      { title: "Algorithm", params: ["type", "mode"] },
+      { title: "Cutoff", params: ["cutoff", "keytrack", "resonance"] },
+      { title: "Drive / Output", params: ["drive", "gain", "mix"] },
+    ],
+    template: '<div class="bv-panel"><h2>Response</h2><canvas class="response" style="height:130px"></canvas></div>',
     onState(st, view) {
-      const c = view.root.querySelector(".response");
-      if (!c || !c.clientWidth) return;
+      const cv = view.root.querySelector(".response");
+      if (!cv || !cv.clientWidth) return;
       const fc = 20 * Math.pow(1000, view.value(st, "cutoff"));
       const tp = view.type.params.find((p) => p.id === "type");
       const index = Math.round(view.value(st, "type") * ((tp ? tp.steps : TYPES.length) - 1));
       const type = TYPES[index] || "svf";
-      const mode = view.value(st, "mode"), mix = view.value(st, "mix");
-      const co = coeffs(type, view.value(st, "resonance"), mode, -24 + 48 * view.value(st, "gain"));
-      const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-      if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
-      const g = c.getContext("2d");
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      g.clearRect(0, 0, w, h);
+      const mode = view.value(st, "mode"), mix = view.value(st, "mix"), res = view.value(st, "resonance");
+      const co = coeffs(type, res, mode, -24 + 48 * view.value(st, "gain"));
+      const { g, w, h } = BleepView.fit(cv);
+      if (!w || !h) return;
+      const th = BleepView.theme(view.root);
       const top = 24, bottom = -36;
-      const y = (db) => (top - Math.min(top, Math.max(bottom, db))) / (top - bottom) * h;
-      g.strokeStyle = getComputedStyle(view.root).getPropertyValue("--line");
-      g.beginPath(); g.moveTo(0, y(0)); g.lineTo(w, y(0)); g.stroke();
-      g.strokeStyle = getComputedStyle(view.root).getPropertyValue("--accent");
-      g.lineWidth = 2;
+      const y = (db) => (top - Math.min(top, Math.max(bottom, db))) / (top - bottom) * (h - 4) + 2;
+      // grid: decades and 12 dB steps
+      g.lineWidth = 1; g.strokeStyle = th.line; g.globalAlpha = 0.45;
       g.beginPath();
-      for (let x = 0; x <= w; x++) {
+      for (const f of [100, 1000, 10000]) { const x = Math.round(Math.log(f / 20) / Math.log(1000) * w) + 0.5; g.moveTo(x, 0); g.lineTo(x, h); }
+      for (const db of [12, -12, -24]) { const yy = Math.round(y(db)) + 0.5; g.moveTo(0, yy); g.lineTo(w, yy); }
+      g.stroke(); g.globalAlpha = 1;
+      g.strokeStyle = th.muted; g.beginPath(); g.moveTo(0, y(0) + 0.5); g.lineTo(w, y(0) + 0.5); g.stroke();
+      const pts = [];
+      for (let x = 0; x <= w; x += 2) {
         const freq = 20 * Math.pow(1000, x / w);
         const wet = response(type, freq, fc, co, mode);
         const lin = abs(add(scale(wet, mix), [1 - mix, 0]));
-        const yy = y(20 * Math.log10(Math.max(lin, 1e-6)));
-        x ? g.lineTo(x, yy) : g.moveTo(x, yy);
+        pts.push([x, y(20 * Math.log10(Math.max(lin, 1e-6)))]);
       }
-      g.stroke();
+      const path = () => { g.beginPath(); pts.forEach(([x, yy], i) => (i ? g.lineTo(x, yy) : g.moveTo(x, yy))); };
+      // gradient fill under the curve
+      path(); g.lineTo(w, h); g.lineTo(0, h); g.closePath();
+      const gr = g.createLinearGradient(0, 0, 0, h);
+      gr.addColorStop(0, th.accent); gr.addColorStop(1, "transparent");
+      g.globalAlpha = 0.22; g.fillStyle = gr; g.fill(); g.globalAlpha = 1;
+      // resonance halo at the cutoff
+      const cx = Math.log(fc / 20) / Math.log(1000) * w;
+      const near = pts.reduce((b, p) => (Math.abs(p[0] - cx) < Math.abs(b[0] - cx) ? p : b), pts[0]);
+      g.strokeStyle = th.accent; g.globalAlpha = 0.35; g.setLineDash([2, 4]);
+      g.beginPath(); g.moveTo(cx + 0.5, 0); g.lineTo(cx + 0.5, h); g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+      const rg = g.createRadialGradient(cx, near[1], 0, cx, near[1], 10 + 40 * res);
+      rg.addColorStop(0, th.accent); rg.addColorStop(1, "transparent");
+      g.globalAlpha = 0.25 + 0.4 * res; g.fillStyle = rg;
+      g.fillRect(cx - 60, near[1] - 60, 120, 120); g.globalAlpha = 1;
+      // the glowing curve
+      g.lineWidth = 2; g.lineJoin = "round"; g.strokeStyle = th.accent;
+      BleepView.glow(g, th.accent, 10);
+      path(); g.stroke();
+      g.shadowBlur = 0;
+      g.fillStyle = th.text; g.beginPath(); g.arc(cx, near[1], 3, 0, 7); g.fill();
     },
   });
 })();

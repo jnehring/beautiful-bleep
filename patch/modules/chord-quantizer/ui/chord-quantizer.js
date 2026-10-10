@@ -22,6 +22,57 @@
   // Scale stacks (Chords.h ScaleStack): scale steps above the degree.
   const STACKS = [[0], [0, 4], [0, 2, 4], [0, 1, 4], [0, 3, 4], [0, 2, 4, 5], [0, 2, 4, 6], [0, 2, 4, 8], [0, 2, 4, 6, 8], [0, 3, 6, 9]];
   const STACK_CHROMATIC = [0, 1, 2, 6, 7, 8, 10, 17, 22, 23];  // table quality on the Chromatic scale
+  // A pitch-class ring (C at the top): the scale as a glowing polygon, the chord inside it,
+  // the root ringed, and a fading glow on the notes just played. Shared by the pitch modules.
+  const pitchRing = window.BleepPitchRing || (window.BleepPitchRing = function (canvas, th, o) {
+    const { g, w, h } = BleepView.fit(canvas);
+    if (w < 24 || h < 24) return;
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 15, TAU = Math.PI * 2;
+    const P = (pc, r) => { const a = pc * Math.PI / 6 - Math.PI / 2; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+    const has = (m, pc) => ((m >> pc) & 1) === 1;
+    g.lineWidth = 1; g.strokeStyle = th.line;
+    g.beginPath(); g.arc(cx, cy, R, 0, TAU); g.stroke();
+    g.globalAlpha = 0.45; g.beginPath(); g.arc(cx, cy, R * 0.5, 0, TAU); g.stroke(); g.globalAlpha = 1;
+    const poly = (mask, fill, stroke, lw, blur, r) => {
+      const pcs = []; for (let i = 0; i < 12; i++) if (has(mask, i)) pcs.push(i);
+      if (pcs.length < 2) return;
+      g.beginPath();
+      pcs.forEach((pc, i) => { const [x, y] = P(pc, r); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+      g.closePath();
+      g.globalAlpha = fill; g.fillStyle = stroke; g.fill();
+      g.globalAlpha = 1; g.lineWidth = lw; g.strokeStyle = stroke; g.lineJoin = "round";
+      BleepView.glow(g, stroke, blur); g.stroke(); g.shadowBlur = 0;
+    };
+    poly(o.scale, 0.1, th.accent, 1.5, 8, R);
+    if (o.chord) poly(o.chord, 0.3, th.text, 1.5, 10, R * 0.86);
+    g.font = "9px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+    const NM = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+    for (let pc = 0; pc < 12; pc++) {
+      const [x, y] = P(pc, R), heat = o.heat ? o.heat[pc] : 0, inS = has(o.scale, pc), inC = o.chord && has(o.chord, pc);
+      if (heat > 0.02) {
+        const gr = g.createRadialGradient(x, y, 0, x, y, 8 + 14 * heat);
+        gr.addColorStop(0, th.accent); gr.addColorStop(1, "transparent");
+        g.globalAlpha = heat; g.fillStyle = gr; g.beginPath(); g.arc(x, y, 8 + 14 * heat, 0, TAU); g.fill(); g.globalAlpha = 1;
+      }
+      g.fillStyle = inC ? th.text : inS ? th.accent : th.line;
+      if (inS || inC) BleepView.glow(g, inC ? th.text : th.accent, 6);
+      g.beginPath(); g.arc(x, y, inC ? 4.5 : inS ? 3.2 : 1.8, 0, TAU); g.fill(); g.shadowBlur = 0;
+      if (pc === o.root) { g.strokeStyle = th.text; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, 7.5, 0, TAU); g.stroke(); }
+      const [lx, ly] = P(pc, R + 11);
+      g.fillStyle = inS ? th.text : th.muted; g.globalAlpha = inS ? 0.9 : 0.5; g.fillText(NM[pc], lx, ly); g.globalAlpha = 1;
+    }
+    if (o.now != null) {  // the note sounding: a spoke from the centre
+      const [x, y] = P(o.now, R);
+      g.strokeStyle = th.accent; g.lineWidth = 2; BleepView.glow(g, th.accent, 12);
+      g.beginPath(); g.moveTo(cx, cy); g.lineTo(x, y); g.stroke(); g.shadowBlur = 0;
+    }
+  });
+  /// Fades `heat` (12 values) by dt and lights the notes in `lit` (pitch classes).
+  const heatStep = (heat, dt, lit) => {
+    const f = Math.exp(-dt * 1.6);
+    for (let i = 0; i < 12; i++) heat[i] *= f;
+    for (const pc of lit) heat[pc] = 1;
+  };
   const KEYS = 24;
   const mod = (a, m) => ((a % m) + m) % m;
   const maskOf = (iv) => iv.reduce((m, x) => m | (1 << mod(x, 12)), 0);
@@ -116,13 +167,16 @@
   }
 
   const STYLE = `
+    .cq-wrap { display: flex; gap: 14px; align-items: center; }
+    .bv-panel canvas.cq-ring { width: 136px; height: 136px; flex: none; }
+    .cq-main { flex: 1; min-width: 0; }
     .cq-head { display: flex; align-items: baseline; gap: 10px; }
     .cq-name { font-size: 26px; font-weight: 600; }
     .cq-sub { color: var(--muted); font-size: 11px; }
     .cq-kb { position: relative; display: flex; gap: 1px; margin-top: 6px; }
-    .cq-kb span { flex: 1; height: 30px; border-radius: 3px; background: var(--panel-3, #2d323d); position: relative;
+    .cq-kb span { flex: 1; height: 36px; border-radius: 3px; background: var(--panel-3, #2d323d); position: relative;
       font-size: 9px; text-align: center; line-height: 14px; }
-    .cq-kb span.black { background: var(--panel, #1d2027); height: 22px; }
+    .cq-kb span.black { background: var(--panel, #1d2027); height: 24px; }
     .cq-kb span.root { box-shadow: inset 0 -3px 0 var(--muted); }
     .cq-kb span.prev::before { content: ""; position: absolute; left: 50%; top: 4px; width: 8px; height: 8px; margin-left: -4px;
       border-radius: 50%; border: 1px solid var(--muted); opacity: .6; }
@@ -135,13 +189,18 @@
     .cq-row span { color: var(--muted); }`;
 
   BleepViews.register("chord-quantizer", {
-    top: true,
-    width: 380,
-    template: `<div class="bv-panel">
+    width: 900,
+    layout: [
+      { title: "Source", params: ["mode", "root", "scale", "harmony", "hysteresis"] },
+      { title: "Chord", params: ["chord", "stack", "inversion", "voices"] },
+      { title: "Voicing", params: ["voicing", "lead", "anchor", "range"] },
+      { title: "Strum & output", params: ["strum", "velocity", "strumorder"] },
+    ],
+    template: `<div class="bv-panel"><div class="cq-wrap"><canvas class="cq-ring"></canvas><div class="cq-main">
       <div class="cq-head"><div class="cq-name">–</div><div class="cq-sub"></div></div>
       <div class="cq-kb"></div><div class="cq-oct"></div>
       <div class="cq-row" hidden></div>
-    </div>`,
+    </div></div></div>`,
     afterBuild(view, el) {
       if (!document.getElementById("cq-style")) {
         const s = document.createElement("style");
@@ -159,6 +218,31 @@
       }
       view.cq = { name: el.querySelector(".cq-name"), sub: el.querySelector(".cq-sub"), keys, octave: el.querySelector(".cq-oct"),
         row: el.querySelector(".cq-row"), state: null, preview: null, rowSig: "" };
+      const strum = [...view.root.querySelectorAll(".bv-controls .bv-sec")].pop();
+      if (strum) strum.querySelector(".bv-sec-body").style.cssText = "flex-direction:row;align-items:center;gap:8px";
+      view.cq.heat = new Float32Array(12);
+      view.cq.sig = "";
+      view.cq.t = 0;
+      const ring = el.querySelector(".cq-ring");
+      BleepView.loop(view.root, (t) => {
+        const c = view.cq, st = c.state || {}, arr = st.arrays || {};
+        const dt = c.t ? Math.min(0.1, t - c.t) : 0;
+        c.t = t;
+        let voices = c.preview ? c.preview.iv.map((x) => c.preview.root + x) : (arr.voices || []).map(Math.round);
+        const pcs = voices.map((v) => mod(v, 12));
+        const sig = pcs.join(",");
+        heatStep(c.heat, dt, sig !== c.sig ? pcs : []);
+        c.sig = sig;
+        let chord = pcs.reduce((a, pc) => a | (1 << pc), 0), rootPc = voices.length ? mod(c.preview ? c.preview.root : st.root ?? 0, 12) : -1;
+        if (!voices.length && setting(view, "mode") === 0) {  // no live voices: the chord shape on C
+          const q = CHORDS[Math.min(CHORDS.length - 1, setting(view, "chord"))];
+          chord = q ? maskOf(q[1]) : 0; rootPc = 0;
+        }
+        const mode = setting(view, "mode"), key = st.key ?? setting(view, "root");
+        const rel = st.scale ?? 0xab5;
+        const scale = mode === 1 || mode === 2 ? [...Array(12).keys()].reduce((a, pc) => a | (((rel >> mod(pc - key, 12)) & 1) << pc), 0) : 0;
+        pitchRing(ring, BleepView.theme(view.root), { scale, chord, root: rootPc, heat: c.heat });
+      });
       draw(view);
     },
     onState(st, view) {

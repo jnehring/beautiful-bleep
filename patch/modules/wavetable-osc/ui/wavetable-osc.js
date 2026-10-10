@@ -7,15 +7,15 @@
 // that cell. Imports go to the media store; the node data keeps only ids.
 (function () {
   "use strict";
-  const GRID = 232, THUMB = 32;
+  const GRID = 240, THUMB = 32;
   const CYCLES = [[0, "Auto"], [256, "256"], [512, "512"], [1024, "1024"], [2048, "2048"], [4096, "4096"]];
   const STYLE = `
     .wto-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; font-size: 12px; }
     .wto-bank { font-weight: 600; min-width: 90px; }
     .wto-import { padding: 3px 10px; border: 1px dashed var(--line); border-radius: 4px; cursor: pointer; }
     .wto-note { color: var(--muted); font-size: 11px; flex: 1; text-align: right; }
-    .wto-body { display: flex; gap: 10px; }
-    .wto-side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .wto-body { display: flex; gap: 10px; flex-wrap: wrap; }
+    .wto-side { flex: 1 1 120px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
     .wto-grid { width: ${GRID}px; height: ${GRID}px; cursor: crosshair; touch-action: none; }
     .wto-grid.over { outline: 2px solid var(--accent); }
   `;
@@ -109,27 +109,31 @@
     if (typeof st.xL === "number") {
       const [x, y] = at(st.xL, st.yL);
       g.fillStyle = col.accent;
+      BleepView.glow(g, col.accent, 14);
       g.beginPath(); g.arc(x, y, 5, 0, Math.PI * 2); g.fill();
+      g.shadowBlur = 0;
     }
   }
 
   function drawWave(view) {
     const c = view.root.querySelector(".wto-wave");
     if (!c || !c.clientWidth) return;
-    const { g, w, h } = canvas2d(c);
+    const { g, w, h } = BleepView.fit(c);
     const col = colours(view), a = view.wto.arrays;
+    g.fillStyle = "rgba(0,0,0,0.3)"; g.fillRect(0, 0, w, h);
     g.strokeStyle = col.line;
     g.beginPath(); g.moveTo(0, h / 2 + 0.5); g.lineTo(w, h / 2 + 0.5); g.stroke();
     const line = (v, colour, width) => {
       if (!v || !v.length) return;
       g.strokeStyle = colour;
       g.lineWidth = width;
+      if (width > 1) BleepView.glow(g, colour, 10);
       g.beginPath();
       for (let i = 0; i <= v.length; i++) {
         const x = (i / v.length) * w, y = h / 2 - clamp(v[i % v.length], -1.1, 1.1) * (h / 2 - 4) / 1.1;
         i ? g.lineTo(x, y) : g.moveTo(x, y);
       }
-      g.stroke();
+      g.stroke(); g.shadowBlur = 0;
     };
     line(a.waveR, col.muted, 1);
     line(a.waveL, col.accent, 2);
@@ -139,7 +143,7 @@
   function drawStack(view) {
     const c = view.root.querySelector(".wto-stack");
     if (!c || !c.clientWidth) return;
-    const { g, w, h } = canvas2d(c);
+    const { g, w, h } = BleepView.fit(c);
     const col = colours(view), thumbs = view.wto.thumbs, { cols, rows } = dims(view);
     if (!thumbs) return;
     const row = clamp(Math.round((view.wto.st.yL || 0) * (rows - 1)), 0, rows - 1);
@@ -153,12 +157,13 @@
       g.fillStyle = getComputedStyle(view.root).getPropertyValue("--panel").trim() || "rgba(0,0,0,0.6)";
       g.strokeStyle = k === playing ? col.accent : col.muted;
       g.lineWidth = k === playing ? 2 : 1;
+      if (k === playing) BleepView.glow(g, col.accent, 10);
       g.beginPath();
       for (let i = 0; i <= THUMB; i++) {
         const x = ox + (i / THUMB) * fw, y = oy + fh / 2 - clamp(thumbs[f * THUMB + (i % THUMB)], -1, 1) * (fh / 2 - 2);
         i ? g.lineTo(x, y) : g.moveTo(x, y);
       }
-      g.stroke();
+      g.stroke(); g.shadowBlur = 0;
     }
     g.lineWidth = 1;
   }
@@ -247,8 +252,14 @@
   }
 
   BleepViews.register("wavetable-osc", {
-    width: 640,
-    top: true,
+    width: 940,
+    side: true,
+    layout: [
+      { title: "Pitch", params: ["octave", "coarse", "fine"] },
+      { title: "Table", params: ["bank", "x", "y", "scan", "path", "blend", "read"] },
+      { title: "Warp", params: ["warp", "fmDepth", "warpMode"] },
+      { title: "Output", params: ["stereo", "subLevel", "quality"] },
+    ],
     template: `
       <div class="bv-panel">
         <div class="wto-bar">
@@ -260,8 +271,8 @@
         <div class="wto-body">
           <canvas class="wto-grid" title="Drag: X and Y. Drop a WAV on a cell to replace it."></canvas>
           <div class="wto-side">
-            <h2>Waveform</h2><canvas class="wto-wave" style="height:96px"></canvas>
-            <h2>Row</h2><canvas class="wto-stack" style="height:96px"></canvas>
+            <h2>Waveform</h2><canvas class="wto-wave" style="height:112px"></canvas>
+            <h2>Row</h2><canvas class="wto-stack" style="height:112px"></canvas>
           </div>
         </div>
       </div>`,

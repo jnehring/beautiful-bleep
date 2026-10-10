@@ -9,7 +9,6 @@
 //   start pattern into the running register now.
 (function () {
   "use strict";
-  const CELL = 20, ROW = 22;
   const setting = (view, id) => {
     const p = view.type.params.find((x) => x.id === id);
     return Math.round(p.min + (view.node.params[id] ?? p.default) * (p.max - p.min));
@@ -28,62 +27,95 @@
     d.start &= 0xffff;
     d.combo &= 0xff;
     view.api.setData({ start: d.start, combo: d.combo });
-    draw(view);
+    draw(view, performance.now() / 1000);
   }
 
-  function draw(view) {
+  const H = 128, RH = 40;
+  /// Layout of the canvas: bit cells on the left, the history strip right of them.
+  function geom(w) {
+    const cell = Math.max(14, Math.min(32, Math.floor((w - 70) * 0.58 / 16)));
+    return { cell, x0: 34, hx: 34 + 16 * cell + 56, rowY: [26, 26 + RH] };
+  }
+
+  function draw(view, now) {
     const s = view.sr;
     if (!s || !s.canvas) return;
-    const c = s.canvas, st = s.state || {}, d = data(view);
-    const dpr = window.devicePixelRatio || 1, w = 16 * CELL + 38, h = 2 * ROW + 70;
-    if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; c.style.width = w + "px"; c.style.height = h + "px"; }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
-    const css = getComputedStyle(view.root);
-    const accent = css.getPropertyValue("--accent").trim(), line = css.getPropertyValue("--line").trim();
-    const muted = css.getPropertyValue("--muted").trim(), text = css.getPropertyValue("--text").trim();
+    const { g, w } = BleepView.fit(s.canvas);
+    if (!w) return;
+    const th = BleepView.theme(view.root), accent = th.accent, line = th.line, muted = th.muted, text = th.text;
+    const st = s.state || {}, d = data(view);
+    const geo = geom(w), C = geo.cell;
+    s.geo = geo;
     const len = Math.min(16, Math.max(2, setting(view, "length")));
     const bits = st.bits ?? d.start, flips = st.flips ?? 0;
-    if (st.k !== s.lastK) { s.lastK = st.k; s.flash = flips & 1 ? 8 : 0; }
+    if (st.k !== s.lastK) {  // the register shifted: slide the cells one place right
+      if (s.lastK !== undefined) { s.shiftAt = now; s.flash = flips & 1 ? now : 0; }
+      s.lastK = st.k;
+    }
+    const slide = s.shiftAt ? Math.min(1, (now - s.shiftAt) / 0.12) : 1;
+    const ease = 1 - (1 - slide) * (1 - slide);
     g.font = "9px system-ui, sans-serif";
+    g.textBaseline = "middle";
+    // The feedback path: from the tap (bit Length) round under the cells to the input.
+    const tx = geo.x0 + (len - 1) * C + C / 2, ix = geo.x0 + C / 2, fy = 9;
+    g.strokeStyle = th.mod || muted; g.globalAlpha = 0.55; g.lineWidth = 1.2; g.setLineDash([3, 3]);
+    g.beginPath(); g.moveTo(tx, geo.rowY[0] - 1); g.lineTo(tx, fy); g.lineTo(ix, fy); g.lineTo(ix, geo.rowY[0] - 1); g.stroke();
+    g.setLineDash([]); g.globalAlpha = 1;
+    g.fillStyle = muted; g.textAlign = "center";
+    g.fillText("feedback  ◂  lock", (tx + ix) / 2, fy + 8);
     for (let row = 0; row < 2; row++) {
-      const v = row === 0 ? bits : d.start, y = 4 + row * ROW;
+      const v = row === 0 ? bits : d.start, y = geo.rowY[row] + (row === 0 ? 8 : 12);
+      const rad = row === 0 ? Math.min(11, C * 0.36) : Math.min(7, C * 0.24);
       for (let i = 0; i < 16; i++) {
-        const x = 4 + i * CELL + CELL / 2, on = (v >> i) & 1;
-        g.globalAlpha = i < len ? 1 : 0.35;
-        g.fillStyle = accent; g.strokeStyle = row === 0 ? accent : muted; g.lineWidth = 1.5;
-        g.beginPath(); g.arc(x, y + 8, row === 0 ? 7 : 5, 0, Math.PI * 2);
-        on ? g.fill() : g.stroke();
-        if (row === 0 && i === 0 && s.flash > 0) {  // the entering bit was flipped
-          g.strokeStyle = text; g.globalAlpha = s.flash / 8;
-          g.beginPath(); g.arc(x, y + 8, 9.5, 0, Math.PI * 2); g.stroke();
+        const on = (v >> i) & 1;
+        const dx = row === 0 ? (ease - 1) * C : 0;  // live cells glide in from the left
+        const x = geo.x0 + i * C + C / 2 + dx;
+        const inLen = i < len;
+        g.globalAlpha = (inLen ? 1 : 0.3) * (row === 0 && i === 0 ? ease : 1);
+        if (on) {
+          const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+          gr.addColorStop(0, text); gr.addColorStop(0.35, accent); gr.addColorStop(1, accent);
+          g.fillStyle = gr;
+          if (row === 0 && inLen) BleepView.glow(g, accent, 12);
+          g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.fill();
+          g.shadowBlur = 0;
+        } else {
+          g.strokeStyle = row === 0 ? accent : muted; g.lineWidth = 1.3;
+          g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.stroke();
+        }
+        if (row === 0 && i === 0 && s.flash && now - s.flash < 0.35) {  // the entering bit was flipped
+          g.strokeStyle = text; g.globalAlpha = 1 - (now - s.flash) / 0.35; g.lineWidth = 1.5;
+          g.beginPath(); g.arc(x, y, rad + 3 + (now - s.flash) * 14, 0, Math.PI * 2); g.stroke();
         }
         g.globalAlpha = 1;
       }
     }
-    if (s.flash > 0) s.flash--;
-    // feedback tap and labels
-    const tx = 4 + (len - 1) * CELL + CELL / 2;
-    g.fillStyle = text; g.textAlign = "center";
-    g.fillText("▲", tx, 2 * ROW + 12);
-    g.fillStyle = muted;
-    g.fillText("1", 4 + CELL / 2, 2 * ROW + 12);
-    g.fillText("8", 4 + 7 * CELL + CELL / 2, 2 * ROW + 12);
-    g.fillText("16", 4 + 15 * CELL + CELL / 2, 2 * ROW + 12);
-    g.textAlign = "left";
-    g.fillText("live", w - 28, 14);
-    g.fillText("start", w - 28, 4 + ROW + 12);
-    // history: the last 32 values of Voltage, flipped steps marked
+    g.fillStyle = muted; g.textAlign = "right";
+    g.fillText("LIVE", geo.x0 - 8, geo.rowY[0] + 8);
+    g.fillText("START", geo.x0 - 8, geo.rowY[1] + 12);
+    g.textAlign = "center";
+    for (const n of [1, 8, 16]) g.fillText(String(n), geo.x0 + (n - 1) * C + C / 2, H - 6);
+    g.fillStyle = text;
+    g.fillText("▲", tx, H - 6);
+    // History: the last 32 values of Voltage (flipped steps marked), as glowing bars.
     const hist = (st.arrays && st.arrays.history) || [], fl = (st.arrays && st.arrays.flipped) || [];
-    const top = 2 * ROW + 18, bh = h - top - 4, hw = 16 * CELL, bw = hw / 32;
-    g.strokeStyle = line; g.strokeRect(3.5, top - 0.5, hw + 1, bh + 1);
+    const top = 12, bh = H - top - 18, hw = w - geo.hx - 6, bw = hw / 32;
+    g.textAlign = "left"; g.fillStyle = muted;
+    g.fillText("VOLTAGE · last 32 steps", geo.hx, 4);
+    g.strokeStyle = line; g.lineWidth = 1;
+    g.strokeRect(geo.hx + 0.5, top + 0.5, hw, bh);
+    const bg = g.createLinearGradient(0, top, 0, top + bh);
+    bg.addColorStop(0, accent); bg.addColorStop(1, accent + "30");
+    g.fillStyle = bg;
+    BleepView.glow(g, accent, 6);
     hist.forEach((v, i) => {
-      g.fillStyle = accent;
-      g.fillRect(4 + i * bw + 1, top + bh - v * bh, bw - 2, Math.max(1, v * bh));
-      if (fl[i] > 0.5) { g.fillStyle = text; g.fillText("×", 4 + i * bw + 1, top + 8); }
+      const x = geo.hx + i * bw, hgt = Math.max(1, v * (bh - 2));
+      g.fillRect(x + 1, top + bh - 1 - hgt, Math.max(1, bw - 2), hgt);
     });
-    // combo toggles
+    g.shadowBlur = 0;
+    g.fillStyle = text; g.textAlign = "center";
+    hist.forEach((v, i) => { if (fl[i] > 0.5) g.fillText("×", geo.hx + i * bw + bw / 2, top + 8); });
+    if (!hist.length) { g.fillStyle = muted; g.fillText("no signal yet", geo.hx + hw / 2, top + bh / 2); }
     s.combo.forEach((b, i) => b.classList.toggle("on", ((d.combo >> i) & 1) === 1));
   }
 
@@ -93,11 +125,18 @@
     .sr-tools button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px;
       padding: 1px 7px; font: inherit; font-size: 11px; cursor: pointer; }
     .sr-tools button.on { border-color: var(--accent); background: var(--accent); color: var(--panel); }
-    .sr-panel canvas { display: block; cursor: pointer; touch-action: none; }`;
+    .sr-panel canvas { display: block; cursor: pointer; touch-action: none; width: 100%; height: ${H}px; }`;
 
   BleepViews.register("shift-register", {
     top: true,
-    width: 380,
+    width: 900,
+    layout: [
+      { title: "Clock & source", params: ["sync", "rate", "source", "combine", "seed"] },
+      { title: "Register", params: ["length", "lock"] },
+      { title: "Output", params: ["level", "gatelength"] },
+      { title: "Mixer", params: ["w1", "w2", "w3", "w4", "w5", "w6"] },
+      { title: "Pitch", params: ["octaves", "root", "scale"] },
+    ],
     template: `<div class="bv-panel sr-panel">
       <canvas></canvas>
       <div class="sr-tools">
@@ -125,10 +164,12 @@
       }
       view.sr = { canvas, combo, state: null, flash: 0, lastK: undefined };
       canvas.addEventListener("pointerdown", (e) => {
-        if (e.button !== 0) return;
-        const r = canvas.getBoundingClientRect(), x = e.clientX - r.left - 4, y = e.clientY - r.top - 4;
-        const i = Math.floor(x / CELL), row = Math.floor(y / ROW);
-        if (i < 0 || i > 15 || row < 0 || row > 1) return;
+        if (e.button !== 0 || !view.sr.geo) return;
+        const geo = view.sr.geo, r = canvas.getBoundingClientRect();
+        const x = e.clientX - r.left - geo.x0, y = e.clientY - r.top;
+        const i = Math.floor(x / geo.cell);
+        const row = y >= geo.rowY[0] - 4 && y < geo.rowY[0] + RH - 6 ? 0 : y >= geo.rowY[1] - 6 && y < geo.rowY[1] + 26 ? 1 : -1;
+        if (i < 0 || i > 15 || row < 0) return;
         e.stopPropagation();
         if (row === 0) view.api.command("toggle", i);
         else edit(view, (d) => (d.start ^= 1 << i));
@@ -138,13 +179,11 @@
         if (st && typeof st.bits === "number") edit(view, (d) => (d.start = st.bits));
       });
       el.querySelector(".sr-load").addEventListener("click", () => view.api.command("load", 1));
-      requestAnimationFrame(() => draw(view));
+      BleepView.loop(view.root, (t) => draw(view, t));
     },
     onState(st, view) {
-      if (!view.sr) return;
-      view.sr.state = st;
-      draw(view);
+      if (view.sr) view.sr.state = st;
     },
-    onRefresh(view) { draw(view); },
+    onRefresh(view) { if (view.sr) draw(view, performance.now() / 1000); },
   });
 })();

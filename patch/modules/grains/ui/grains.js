@@ -34,52 +34,83 @@
     return [g, w, h];
   }
 
-  function draw(view, st) {
+  const hash = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+  function draw(view, st, tm) {
     const gv = view.gr, c = gv.wave;
-    if (!c.clientWidth) return;
-    const [g, w, h] = sizeCanvas(c);
-    const css = getComputedStyle(view.root);
-    const accent = css.getPropertyValue("--accent").trim(), text = css.getPropertyValue("--text").trim();
-    const muted = css.getPropertyValue("--muted").trim(), line = css.getPropertyValue("--line").trim();
-    const peaks = (st.arrays && st.arrays.peaks) || [], dots = (st.arrays && st.arrays.dots) || [];
+    const { g, w, h } = BleepView.fit(c);
+    if (!w || !h) return;
+    const th = BleepView.theme(view.root), accent = th.accent, text = th.text, muted = th.muted, line = th.line;
+    const arrays = st.arrays, peaks = (arrays && arrays.peaks) || [], dots = (arrays && arrays.dots) || [];
     const pos = view.value(st, "position"), spread = view.value(st, "spread");
+    const tex = view.value(st, "texture");
     // Position window: 0 % is the newest audio (right edge).
     const x0 = w * (1 - Math.min(1, pos + 0.25 * spread)), x1 = w * (1 - Math.max(0, pos - 0.25 * spread));
-    g.fillStyle = line;
+    const wg = g.createLinearGradient(0, 0, 0, h);
+    wg.addColorStop(0, "transparent"); wg.addColorStop(0.5, line); wg.addColorStop(1, "transparent");
+    g.fillStyle = wg;
     g.fillRect(x0, 0, Math.max(2, x1 - x0), h);
-    g.fillStyle = muted;
+    g.fillStyle = accent; g.globalAlpha = 0.5;
+    g.fillRect(w * (1 - pos) - 0.5, 0, 1.5, h);  // the Position line
+    g.globalAlpha = 1;
+    // the buffer (oldest left, write head right): a mirrored glowing silhouette
     const bw = w / Math.max(peaks.length, 1);
+    g.fillStyle = muted; g.globalAlpha = 0.7;
     for (let i = 0; i < peaks.length; i++) {
-      const v = Math.min(1, peaks[i]) * (h / 2 - 2);
+      const v = Math.min(1, peaks[i]) * (h / 2 - 3);
       g.fillRect(i * bw, h / 2 - v, Math.max(1, bw - 0.5), Math.max(1, 2 * v));
     }
+    g.globalAlpha = 1;
     g.fillStyle = text;
     g.fillRect(w - 2, 0, 2, h);  // write head
-    g.fillStyle = accent;
-    const tex = view.value(st, "texture");
-    for (let i = 0; i + 2 < dots.length; i += 3) {
-      const x = w * (1 - dots[i]), env = windowAt(tex, dots[i + 1]);
-      g.globalAlpha = 0.25 + 0.75 * dots[i + 2] * env;
-      g.beginPath();
-      g.arc(x, h / 2 + (((i / 3) * 37) % 23) - 11, 2 + 4 * env, 0, 2 * Math.PI);
-      g.fill();
+    // grains: live ones as dots; without an engine (demo) a cloud from the params
+    let list = [];
+    if (dots.length) {
+      for (let i = 0; i + 2 < dots.length; i += 3) list.push([dots[i], dots[i + 1], dots[i + 2], i / 3]);
+    } else if (!arrays) {
+      const dens = view.value(st, "density"), size = view.value(st, "size");
+      const n = 6 + Math.round(dens * 40), dur = 0.4 + size * 1.6;
+      for (let i = 0; i < n; i++) {
+        const per = dur / n * (0.7 + 0.6 * hash(i)), start = i * per;
+        const prog = ((tm - start) % dur + dur) % dur / dur;
+        const k = Math.floor((tm - start) / dur);
+        const off = (hash(i * 7.3 + k * 1.7) - 0.5) * 2 * 0.25 * spread * 2;
+        list.push([Math.min(1, Math.max(0, pos + off)), prog, 0.5 + 0.5 * hash(i + k), i]);
+      }
     }
-    g.globalAlpha = 1;
+    const gs = view.value(st, "size");
+    const pj = view.value(st, "pitchjitter");
+    g.globalCompositeOperation = "lighter";
+    for (const [d, prog, gain, i] of list) {
+      const x = w * (1 - d), env = windowAt(tex, prog);
+      const lane = (hash(i * 3.1) - 0.5) * (0.5 + pj * 1.5) * (h - 20);  // pitch jitter spreads the lanes
+      const y = h / 2 + Math.max(-h / 2 + 8, Math.min(h / 2 - 8, lane));
+      const r = 1.5 + (2 + 8 * gs) * env;
+      const gr = g.createRadialGradient(x, y, 0, x, y, r * 2.2);
+      gr.addColorStop(0, accent); gr.addColorStop(1, "transparent");
+      g.globalAlpha = Math.min(1, 0.15 + 0.85 * gain * env);
+      g.fillStyle = gr;
+      g.beginPath(); g.arc(x, y, r * 2.2, 0, 6.2832); g.fill();
+    }
+    g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
     if (st.frozen > 0.5) {  // lock
       g.strokeStyle = text; g.fillStyle = text;
       g.beginPath(); g.arc(14, 11, 4, Math.PI, 0); g.stroke();
       g.fillRect(9, 11, 10, 8);
     }
     // Texture window.
-    const [t, tw, th] = sizeCanvas(gv.shape);
+    const sh = BleepView.fit(gv.shape), t = sh.g, tw = sh.w, th2 = sh.h;
+    if (!tw) return;
     t.strokeStyle = accent;
     t.lineWidth = 2;
+    BleepView.glow(t, accent, 6);
     t.beginPath();
     for (let x = 0; x <= tw; x++) {
-      const y = th - 2 - windowAt(tex, x / tw) * (th - 4);
+      const y = th2 - 2 - windowAt(tex, x / tw) * (th2 - 4);
       x ? t.lineTo(x, y) : t.moveTo(x, y);
     }
     t.stroke();
+    t.shadowBlur = 0;
   }
 
   function setParam(view, id, units) {
@@ -92,15 +123,31 @@
     view.api.setParam(id, v);
   }
 
+  if (!document.getElementById("gr-style")) {
+    const st = document.createElement("style");
+    st.id = "gr-style";
+    st.textContent = ".bleep-view.gr .bv-knob{width:58px}.bleep-view.gr .bv-knob svg{width:40px;height:40px}.bleep-view.gr .bv-sec-knobs{gap:2px 0}.bleep-view.gr .bv-label{font-size:9px;letter-spacing:.04em}";
+    document.head.appendChild(st);
+  }
+
   BleepViews.register("grains", {
-    top: true,
+    layout: [
+      { title: "Position", params: ["position", "size", "pitch"] },
+      { title: "Cloud", params: ["density", "texture"] },
+      { title: "Scatter", params: ["spread", "pitchjitter", "reverse"] },
+      { title: "Space", params: ["feedback", "blur"] },
+      { title: "Mix", params: ["mix"] },
+      { title: "Mode", params: ["mode", "sync", "buffer", "pitchquant", "maxgrains", "freeze", "seed"] },
+    ],
     template:
-      '<div class="bv-panel"><canvas class="gr-wave" style="height:90px;cursor:crosshair;touch-action:none"></canvas>' +
+      '<div class="bv-panel" style="width:100%;flex:1 1 100%"><canvas class="gr-wave" style="height:112px;cursor:crosshair;touch-action:none"></canvas>' +
       '<div style="display:flex;gap:8px;align-items:center;margin-top:6px">' +
-      '<canvas class="gr-shape" style="width:80px;height:28px;flex:none"></canvas>' +
+      '<canvas class="gr-shape" style="width:90px;height:28px;flex:none" title="Grain window (Texture)"></canvas>' +
       '<span class="gr-info" style="flex:1;color:var(--muted)"></span>' +
       '<button class="bv-button gr-keep" hidden>Keep frozen buffer</button></div></div>',
     afterBuild(view, el) {
+      view.root.classList.add("gr");
+      BleepView.loop(view.root, (t) => { if (view.gr.last) draw(view, view.gr.last, t); });
       const gv = (view.gr = {
         wave: el.querySelector(".gr-wave"), shape: el.querySelector(".gr-shape"),
         info: el.querySelector(".gr-info"), keep: el.querySelector(".gr-keep"),
@@ -151,7 +198,7 @@
         view.api.setData(view.node.data);
       }
       view.gr.info.textContent = (st.grains || 0) + " grains" + (frozen ? " · frozen" : "") + (kept ? " · kept" : "");
-      draw(view, st);
+      view.gr.last = st;
     },
   });
 })();

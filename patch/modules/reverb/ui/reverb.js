@@ -80,16 +80,82 @@
     }
   }
 
+  // The "tank": rings spreading from the centre, one per round trip of the room
+  // (period follows Size), each fading at the room's T60; Diffusion thickens them
+  // into a haze, Mod Depth wobbles them, the wet level lights them.
+  function ripple(view, t) {
+    const c = view.root.querySelector(".rv-tank");
+    if (!c) return;
+    const { g, w, h } = BleepView.fit(c);
+    if (!w || !h) return;
+    const st = view.lastState || {}, th = BleepView.theme(view.root);
+    const size = view.value(st, "size"), diff = view.value(st, "diffusion");
+    const mod = view.value(st, "modDepth"), rate = 0.05 + 8 * view.value(st, "modRate");
+    const T = t60(view.value(st, "decay")), frozen = !!st.frozen;
+    const tail = frozen || !isFinite(T) ? 1e9 : Math.min(T, 12);
+    const wet = Math.min(1, (st.env || 0) * 2 + 0.25);
+    const period = 0.28 + 0.9 * size, speed = (Math.min(w, h) * 0.5 * 1.1) / (2.2 + 4 * size);
+    const cx = w / 2, cy = h / 2, rMax = Math.hypot(w, h) / 2;
+    g.globalCompositeOperation = "lighter";
+    const k0 = Math.floor(t / period);
+    for (let k = k0; k > k0 - 14; k--) {
+      const age = t - k * period;
+      const a = Math.exp(-6.9 * age / tail);
+      if (a < 0.02) continue;
+      const r = 6 + age * speed * 1.6;
+      if (r > rMax) continue;
+      const first = k === k0 ? 0 : 1;
+      const layers = 1 + Math.round(diff * 3);
+      for (let j = 0; j < layers; j++) {
+        const jitter = j ? (Math.sin(k * 12.9898 + j * 78.233) * 43758.5453 % 1) * diff * 10 : 0;
+        const wob = mod * 4 * Math.sin(t * rate * 2 + k + j);
+        g.beginPath();
+        g.ellipse(cx, cy, Math.max(1, r + jitter + wob), Math.max(1, (r + jitter + wob) * 0.62), 0, 0, 6.2832);
+        g.strokeStyle = th.accent;
+        g.globalAlpha = Math.min(1, a * wet * (j ? 0.45 : 0.9) * (0.5 + 0.5 * (1 - first * 0.0)));
+        g.lineWidth = 1 + diff * (j ? 2.5 : 1) * 1.2;
+        BleepView.glow(g, th.accent, 6 + diff * 8);
+        g.stroke();
+      }
+    }
+    g.globalAlpha = 1; g.shadowBlur = 0;
+    const gr = g.createRadialGradient(cx, cy, 0, cx, cy, 14);
+    gr.addColorStop(0, th.text); gr.addColorStop(1, "transparent");
+    g.fillStyle = gr; g.globalAlpha = 0.5 + 0.5 * wet;
+    g.beginPath(); g.arc(cx, cy, 14, 0, 6.2832); g.fill();
+    g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+  }
+
+  if (!document.getElementById("rv-style")) {
+    const st = document.createElement("style");
+    st.id = "rv-style";
+    st.textContent = ".bleep-view.rv .bv-knob{width:64px}.bleep-view.rv .bv-knob svg{width:42px;height:42px}" +
+      ".bleep-view.rv .bv-panel h2{text-transform:none}";
+    document.head.appendChild(st);
+  }
+
   BleepViews.register("reverb", {
+    hideParams: ["freeze"],  // the Freeze button below replaces the latch
+    layout: [
+      { title: "Room", params: ["size", "decay", "preDelay", "diffusion"] },
+      { title: "Tone", params: ["damping", "bass", "tone"] },
+      { title: "Motion", params: ["modRate", "modDepth"] },
+      { title: "Output", params: ["width", "mix"] },
+      { title: "Mode", params: ["preSync", "quality", "clearOnPlay", "seed"] },
+    ],
     template:
-      '<div class="bv-panel"><h2>Decay <span class="rv-label" style="float:right;font-weight:normal"></span></h2>' +
-      '<canvas class="rv-decay" style="height:84px;width:100%"></canvas>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;width:100%">' +
+      '<div class="bv-panel" style="flex:2 1 380px"><h2>Decay <span class="rv-label" style="float:right;font-weight:normal"></span></h2>' +
+      '<canvas class="rv-decay" style="height:78px;width:100%"></canvas>' +
       '<div style="display:flex;gap:8px;align-items:center;margin-top:6px">' +
-      '<button class="rv-freeze" title="Latching freeze (ORed with the Freeze gate)">◉ Freeze</button>' +
-      '<span style="flex:1"></span><span style="font-size:11px">wet</span>' +
-      '<div style="width:80px;height:6px;border:1px solid var(--line)"><div class="rv-meter" style="height:100%;width:0;background:var(--accent)"></div></div>' +
-      "</div></div>",
+      '<button class="bv-button rv-freeze" title="Latching freeze (ORed with the Freeze gate)">◉ Freeze</button>' +
+      '<span style="flex:1"></span><span style="font-size:11px;color:var(--muted)">wet</span>' +
+      '<div style="width:90px;height:6px;border:1px solid var(--line);border-radius:3px;overflow:hidden"><div class="rv-meter" style="height:100%;width:0;background:var(--accent)"></div></div>' +
+      '</div></div>' +
+      '<div class="bv-panel" style="flex:1 1 200px;padding:0;overflow:hidden;position:relative">' +
+      '<canvas class="rv-tank" style="height:100%;min-height:120px;width:100%"></canvas></div></div>',
     afterBuild(view, el) {
+      view.root.classList.add("rv");
       const btn = el.querySelector(".rv-freeze");
       btn.addEventListener("click", () => {
         const v = (view.node.params.freeze ?? 0) >= 0.5 ? 0 : 1;
@@ -98,6 +164,7 @@
         view.api.setParam("freeze", v);
         draw(view, view.lastState);
       });
+      BleepView.loop(view.root, (t) => ripple(view, t));
     },
     onState(st, view) {
       view.lastState = st;

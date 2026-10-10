@@ -6,7 +6,7 @@
 // the engine with api.setData.
 (function () {
   "use strict";
-  const N = 8, CELLS = 64, CELL = 54, LEFT = 18, TOP = 16, ARROWS = 44, FOOT = 24, MIN_P = -24, MAX_P = 36;
+  const N = 8, CELLS = 64, CELL = 44, LEFT = 18, TOP = 16, ARROWS = 44, FOOT = 24, MIN_P = -24, MAX_P = 36;
   // Same order and notes as patch/common/dsp/Scales.h.
   const SCALES = [
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [0, 2, 4, 5, 7, 9, 11], [0, 2, 3, 5, 7, 8, 10], [0, 2, 3, 5, 7, 8, 11],
@@ -345,7 +345,15 @@
 
   BleepViews.register("cartesian-sequencer", {
     top: true,
-    width: 600,
+    side: true,
+    width: 940,
+    layout: [
+      { title: "Walk", params: ["mode", "xrate", "yrate", "xdirection", "ydirection"] },
+      { title: "Grid", params: ["columns", "rows", "seed"] },
+      { title: "Position", params: ["x", "y", "modslew", "sample"] },
+      { title: "Feel", params: ["gatelength", "swing"] },
+      { title: "Pitch", params: ["root", "scale", "octave"] },
+    ],
     template: `<div class="bv-panel cart-panel">
       <div class="cart-tools">
         <span class="cart-layers"></span>

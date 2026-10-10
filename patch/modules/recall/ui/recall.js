@@ -99,6 +99,7 @@
     [a.x1, a.x2, a.x3].forEach((arr, k) => {
       if (!arr) return;
       g.strokeStyle = k === 0 ? accent : k === 1 ? text : muted; g.lineWidth = k === 0 ? 2 : 1.25;
+      g.shadowColor = accent; g.shadowBlur = k === 0 ? 8 : 0;
       g.beginPath();
       arr.forEach((v, i) => {
         const x = 14 + (i / 32) * xw;
@@ -106,6 +107,7 @@
         g.lineTo(x + xw / 32, y(v));
       });
       g.stroke();
+      g.shadowBlur = 0;
     });
     // distribution preview
     const spread = view.value(st, "xspread"), bias = view.value(st, "xbias");
@@ -141,7 +143,12 @@
 
   BleepViews.register("recall", {
     top: true,
-    width: 380,
+    width: 1000,
+    layout: [
+      { title: "T · gates", params: ["tmode", "tloop", "tbias", "tjitter", "trecall", "gatelength"] },
+      { title: "X · voltages", params: ["xsource", "xmode", "xrange", "xloop", "xspread", "xbias", "xsteps", "xrecall"] },
+      { title: "Clock & pitch", params: ["sync", "rate", "root", "scale", "seed"] },
+    ],
     template: `<div class="bv-panel" style="flex:1 1 100%">
       <canvas style="width:100%;height:124px"></canvas>
       <div class="rc-tools">

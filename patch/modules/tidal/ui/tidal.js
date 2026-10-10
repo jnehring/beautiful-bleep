@@ -128,7 +128,15 @@
   const choiceText = (view, id) => view.type.params.find((x) => x.id === id).choices[units(view, id)];
 
   BleepViews.register("tidal", {
-    template: '<div class="bv-panel"><h2>Outputs</h2><canvas class="tidal-scope" style="height:96px"></canvas>' +
+    top: true,
+    width: 900,
+    layout: [
+      { title: "Mode", params: ["mode", "range", "polarity"] },
+      { title: "Rate", params: ["freq", "sync"] },
+      { title: "Slope", params: ["skew", "curve", "smooth"] },
+      { title: "Relation", params: ["relation", "ratio", "spread"] },
+    ],
+    template: '<div class="bv-panel"><h2>Outputs</h2><canvas class="tidal-scope" style="height:100px;width:100%"></canvas>' +
       '<div class="tidal-legend" style="display:flex;gap:10px;font-size:11px;opacity:.8"></div></div>',
     afterBuild(view, el) {
       const legend = el.querySelector(".tidal-legend");
@@ -167,11 +175,7 @@
 
       const c = view.root.querySelector(".tidal-scope");
       if (!c || !c.clientWidth) return;
-      const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-      if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
-      const g = c.getContext("2d");
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      g.clearRect(0, 0, w, h);
+      const { g, w, h } = BleepView.fit(c);
       const css = getComputedStyle(view.root);
       const accent = css.getPropertyValue("--accent").trim() || "#60a5fa";
       const { out, span, bipolar } = render(q, w);
@@ -186,7 +190,8 @@
       for (let k = 3; k >= 0; k--) {
         const tr = out[k];
         g.globalAlpha = 1 - k * 0.22;
-        g.lineWidth = k === 0 ? 2 : 1.25;
+        g.lineWidth = k === 0 ? 2.2 : 1.3;
+        BleepView.glow(g, accent, k === 0 ? 10 : 5);
         g.beginPath();
         for (let i = 0; i < tr.length; i++) {
           const px = (i / (tr.length - 1)) * w;
@@ -194,13 +199,15 @@
         }
         g.stroke();
       }
-      g.globalAlpha = 1;
-      if (st && typeof st.phase === "number" && q.mode === 1) {
-        const a = out[0], i = Math.min(a.length - 1, Math.round((st.phase / span) * (a.length - 1)));
+      g.globalAlpha = 1; g.shadowBlur = 0;
+      if (q.mode === 1 || !(st && typeof st.phase === "number")) {
+        const a = out[0], live = st && typeof st.phase === "number" ? st.phase / span : (performance.now() / 4000) % 1;
+        const i = Math.min(a.length - 1, Math.round(live * (a.length - 1)));
         g.fillStyle = css.getPropertyValue("--text");
+        BleepView.glow(g, accent, 14);
         g.beginPath();
-        g.arc((i / (a.length - 1)) * w, y(a[i]), 3.5, 0, Math.PI * 2);
-        g.fill();
+        g.arc((i / (a.length - 1)) * w, y(a[i]), 4, 0, Math.PI * 2);
+        g.fill(); g.shadowBlur = 0;
       }
     },
   });

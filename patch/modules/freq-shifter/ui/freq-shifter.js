@@ -39,48 +39,73 @@
     g.stroke();
   }
 
+  const xOf = (f, w) => Math.log(Math.max(f, 20) / 20) / Math.log(1000) * w;
+
   BleepViews.register("freq-shifter", {
+    width: 800,
+    layout: [
+      { title: "Shift", params: ["shift", "fine", "range", "sync"] },
+      { title: "Feedback", params: ["feedback", "fbDelay"] },
+      { title: "Stereo / Quality", params: ["spread", "antiAlias"] },
+      { title: "Output", params: ["mix"] },
+    ],
     template:
       '<div class="bv-panel"><h2>Spectrum <span class="fs-shift" style="float:right;font-weight:normal"></span></h2>' +
-      '<div style="display:flex;gap:8px;align-items:center">' +
-      '<canvas class="fs-spectrum" style="flex:1;height:80px;min-width:0"></canvas>' +
-      '<canvas class="fs-dial" style="width:56px;height:56px;flex:none"></canvas></div></div>',
+      '<div style="display:flex;gap:10px;align-items:center">' +
+      '<canvas class="fs-spectrum" style="flex:1;height:130px;min-width:0"></canvas>' +
+      '<canvas class="fs-dial" style="width:84px;height:84px;flex:none"></canvas></div></div>',
     onState(st, view) {
-      const css = getComputedStyle(view.root);
-      const accent = css.getPropertyValue("--accent"), line = css.getPropertyValue("--line");
-      const muted = css.getPropertyValue("--muted") || line, text = css.getPropertyValue("--text");
+      const th = BleepView.theme(view.root);
+      const accent = th.accent, line = th.line, muted = th.muted || th.line, text = th.text;
       const sync = setting(view, "sync");
+      const shift = view.value(st, "shift") * 2 - 1;
+      const range = RANGES[setting(view, "range")];
+      let hzNow = shift * range + (view.value(st, "fine") * 20 - 10);
+      if (st && typeof st.shiftHz === "number") hzNow = st.shiftHz;
       const label = view.root.querySelector(".fs-shift");
       if (label) {
-        const shift = (view.value(st, "shift") * 2 - 1);
         if (sync > 0) label.textContent = (shift >= 0 ? "▲ " : "▼ ") + "1 cycle / " + SYNC[sync];
-        else {
-          const hz = st && typeof st.shiftHz === "number" ? st.shiftHz
-            : shift * RANGES[setting(view, "range")] + (view.value(st, "fine") * 20 - 10);
-          label.textContent = (hz > 0 ? "+" : "") + hzText(hz);
-        }
+        else label.textContent = (hzNow > 0 ? "+" : "") + hzText(hzNow);
       }
       const sc = view.root.querySelector(".fs-spectrum");
       if (sc && sc.clientWidth) {
-        const { g, w, h } = canvas(sc);
-        g.strokeStyle = line;
-        g.lineWidth = 1;
+        const { g, w, h } = BleepView.fit(sc);
+        g.strokeStyle = line; g.lineWidth = 1; g.globalAlpha = 0.5;
         g.beginPath();
-        for (const f of [100, 1000, 10000]) {
-          const x = Math.log(f / 20) / Math.log(1000) * w;
-          g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, h);
-        }
-        g.stroke();
+        for (const f of [100, 1000, 10000]) { const x = Math.round(xOf(f, w)) + 0.5; g.moveTo(x, 0); g.lineTo(x, h); }
+        g.stroke(); g.globalAlpha = 1;
         const arrays = (st && st.arrays) || {};
-        if (arrays.spectrumIn) curve(g, arrays.spectrumIn, w, h, muted, 1);
-        if (arrays.spectrumOut) curve(g, arrays.spectrumOut, w, h, accent, 2);
+        if (arrays.spectrumIn || arrays.spectrumOut) {
+          if (arrays.spectrumIn) curve(g, arrays.spectrumIn, w, h, muted, 1);
+          if (arrays.spectrumOut) { BleepView.glow(g, accent, 10); curve(g, arrays.spectrumOut, w, h, accent, 2); g.shadowBlur = 0; }
+        } else {
+          // No live data: the partials of a 110 Hz tone (grey) and where the shift puts them (every
+          // line moves by the same number of hertz, so the harmonic ratios break), with the feedback echoes.
+          const fb = Math.abs(view.value(st, "feedback") * 2 - 1), mix = view.value(st, "mix");
+          const shiftHz = sync > 0 ? 40 * (shift >= 0 ? 1 : -1) : hzNow;
+          for (let n = 1; n <= 40; n++) {
+            const f0 = 110 * n, amp = 1 / Math.pow(n, 0.8), x0 = xOf(f0, w);
+            g.strokeStyle = muted; g.globalAlpha = 0.5 * (1 - 0.5 * mix); g.lineWidth = 1;
+            g.beginPath(); g.moveTo(x0, h - 2); g.lineTo(x0, h - 2 - amp * (h - 10)); g.stroke();
+            for (let r = 1; r <= 3; r++) {
+              const f = f0 + shiftHz * r, a = amp * Math.pow(fb, r - 1) * (r === 1 ? mix : mix * fb);
+              if (a < 0.02 || f < 20 || f > 20000) continue;
+              const x = xOf(f, w);
+              g.globalAlpha = 0.9 / r; g.strokeStyle = accent; g.lineWidth = 2;
+              BleepView.glow(g, accent, 8);
+              g.beginPath(); g.moveTo(x, h - 2); g.lineTo(x, h - 2 - a * (h - 10)); g.stroke();
+              g.shadowBlur = 0;
+              if (r === 1) { g.globalAlpha = 0.18; g.lineWidth = 1; g.strokeStyle = text; g.beginPath(); g.moveTo(x0, h - 2 - amp * (h - 10)); g.lineTo(x, h - 2 - a * (h - 10)); g.stroke(); }
+            }
+          }
+          g.globalAlpha = 1; g.lineWidth = 1;
+        }
       }
       const dc = view.root.querySelector(".fs-dial");
       if (dc && dc.clientWidth) {
-        const { g, w, h } = canvas(dc);
-        const r = Math.min(w, h) / 2 - 5, cx = w / 2, cy = h / 2;
-        g.strokeStyle = line;
-        g.lineWidth = 1;
+        const { g, w, h } = BleepView.fit(dc);
+        const r = Math.min(w, h) / 2 - 6, cx = w / 2, cy = h / 2;
+        g.strokeStyle = line; g.lineWidth = 1.5;
         g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
         const dot = (phase, colour, size) => {
           if (typeof phase !== "number") return;
@@ -88,8 +113,16 @@
           g.fillStyle = colour;
           g.beginPath(); g.arc(cx + r * Math.cos(a), cy + r * Math.sin(a), size, 0, Math.PI * 2); g.fill();
         };
+        // No live phases: a dot that turns with the shift direction.
+        const t = performance.now() / 1000, hasPhase = st && typeof st.phaseL === "number";
+        const pl = hasPhase ? st.phaseL : (t * hzNow / Math.max(2, Math.abs(hzNow)) * 0.5) % 1;
+        const trail = hasPhase ? 0 : 1;
+        if (trail) for (let k = 1; k < 9; k++) { g.globalAlpha = 0.35 - 0.04 * k; dot(pl - Math.sign(hzNow || 1) * k * 0.012, accent, 3.5); }
+        g.globalAlpha = 1;
+        BleepView.glow(g, accent, 8);
+        dot(pl, accent, 4);
+        g.shadowBlur = 0;
         dot(st && st.phaseR, text, 3);
-        dot(st && st.phaseL, accent, 4);
       }
     },
   });

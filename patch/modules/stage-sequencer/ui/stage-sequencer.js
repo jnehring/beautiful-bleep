@@ -299,7 +299,13 @@
 
   BleepViews.register("stage-sequencer", {
     top: true,
-    width: 600,
+    side: true,
+    width: 1040,
+    layout: [
+      { title: "Sequence", params: ["rate", "stages", "mode", "phrase"] },
+      { title: "Pitch", params: ["root", "scale", "octave", "seed"] },
+      { title: "Feel", params: ["gatelength", "slidetime", "accent", "swing"] },
+    ],
     template: `<div class="bv-panel stg-panel">
       <div class="stg-tools">
         <button class="stg-rand" title="Randomize the chosen lanes (one undo step)">Randomize</button>

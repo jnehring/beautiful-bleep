@@ -278,13 +278,21 @@
   }
 
   BleepViews.register("xy-scope", {
-    top: true,
-    width: 400,
+    side: true,
+    width: 820,
+    layout: [
+      { title: "Input", params: ["mode", "xgain", "ygain", "timebase", "trigger"] },
+      { title: "Beam", params: ["phosphor", "persistence", "focus", "intensity", "character"] },
+      { title: "Still gate", params: ["tolerance"] },
+    ],
     template:
       "<style>" +
       ".xy{display:flex;flex-direction:column;gap:6px;flex:1 1 100%}" +
-      ".xy-bezel{background:#151917;border-radius:16px;padding:9px;box-shadow:inset 0 1px 3px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.04)}" +
-      ".xy canvas{display:block;width:100%;aspect-ratio:5/4;border-radius:11px;background:#040806}" +
+      ".xy-bezel{position:relative;background:linear-gradient(#1b201e,#101412);border-radius:18px;padding:10px;" +
+      "box-shadow:inset 0 1px 3px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.04),0 0 32px color-mix(in srgb,var(--accent) 14%,transparent)}" +
+      ".xy-bezel::after{content:'';position:absolute;left:10px;right:10px;top:10px;height:42%;border-radius:12px 12px 60% 60%/12px 12px 30% 30%;" +
+      "background:linear-gradient(rgba(255,255,255,.07),transparent);pointer-events:none}" +
+      ".xy canvas{display:block;width:100%;aspect-ratio:5/4;border-radius:12px;background:#040806;box-shadow:inset 0 0 22px rgba(0,0,0,.9)}" +
       ".xy-read{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:11px;" +
       "font-variant-numeric:tabular-nums;color:var(--muted)}" +
       ".xy-read b{color:var(--text);font-weight:600}" +

@@ -10,24 +10,23 @@
     return Math.round((view.node.params[id] ?? p.default) * (p.steps - 1));
   };
 
-  function canvas(c) {
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-    if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
-    return { g, w, h };
-  }
+  const canvas = (c) => BleepView.fit(c);
 
   BleepViews.register("resonator", {
-    settingsTop: true,  // the model first: it decides what Structure does
+    width: 900,
+    layout: [
+      { title: "Body", params: ["model", "modes", "polyphony"] },
+      { title: "Tuning", params: ["frequency", "structure"] },
+      { title: "Tone", params: ["brightness", "damping", "position"] },
+      { title: "Excitation", params: ["exciter", "inputgain"] },
+      { title: "Strum / Output", params: ["strumsource", "seed", "width", "dry"] },
+    ],
     template:
-      '<div class="bv-panel"><h2>Body</h2><canvas class="res-body" style="height:72px"></canvas>' +
+      '<div class="bv-panel"><h2>Body</h2><canvas class="res-body" style="height:88px"></canvas>' +
       '<canvas class="res-voices" style="height:14px;margin-top:4px"></canvas></div>',
     onState(st, view) {
-      const css = getComputedStyle(view.root);
-      const accent = css.getPropertyValue("--accent"), line = css.getPropertyValue("--line");
-      const text = css.getPropertyValue("--text");
+      const th = BleepView.theme(view.root);
+      const accent = th.accent, line = th.line, text = th.text;
       const arrays = (st && st.arrays) || {};
       const model = choice(view, "model");  // 0 Modal, 1 Sympathetic, 2 String
       const body = view.root.querySelector(".res-body");
@@ -37,15 +36,17 @@
           // The string, its excitation point and the two pickups.
           const pos = view.value(st, "position");
           const y = h / 2, x0 = 8, x1 = w - 8, at = (p) => x0 + (x1 - x0) * p;
-          const level = Math.min(1, ((st && st["voiceEnergy" + (((st && st.active) || 0) + 1)]) || 0) * 4);
+          const energy = (st && st["voiceEnergy" + (((st && st.active) || 0) + 1)]) || 0;
+          const level = st && "active" in st ? Math.min(1, energy * 4) : 0.5 + 0.4 * Math.sin(performance.now() / 180);
           g.strokeStyle = accent; g.lineWidth = 2;
+          BleepView.glow(g, accent, 10);
           g.beginPath();
           for (let x = x0; x <= x1; x++) {
             const u = (x - x0) / (x1 - x0);
             const yy = y - Math.sin(Math.PI * u) * level * (h / 2 - 6);
             x === x0 ? g.moveTo(x, yy) : g.lineTo(x, yy);
           }
-          g.stroke(); g.lineWidth = 1;
+          g.stroke(); g.lineWidth = 1; g.shadowBlur = 0;
           g.fillStyle = line;
           g.fillRect(x0 - 3, y - 10, 3, 20); g.fillRect(x1, y - 10, 3, 20);
           const marker = (p, label) => {
@@ -57,6 +58,27 @@
           };
           marker(pos, "excite / L");
           marker(1 - pos, "R");
+        } else if (!(arrays.modeHz && arrays.modeHz.length)) {
+          // No live modes: the partials the knobs describe (Frequency = f0, Structure stretches them,
+          // Position notches the ones with a node at the strike point, Brightness tilts the amplitudes).
+          g.strokeStyle = line; g.globalAlpha = 0.5;
+          g.beginPath(); g.moveTo(0, h - 2); g.lineTo(w, h - 2); g.stroke(); g.globalAlpha = 1;
+          const f0 = 261.6 * Math.pow(2, view.units("frequency") / 12 + (view.value(st, "frequency") * 96 - 48 - view.units("frequency")) / 12);
+          const str = view.value(st, "structure"), br = view.value(st, "brightness"), dm = view.value(st, "damping"), pos = view.value(st, "position");
+          const x = (hz) => (Math.log(Math.max(hz, 16) / 16) / Math.log(20000 / 16)) * w, t = performance.now() / 1000;
+          g.strokeStyle = accent; g.lineWidth = model === 1 ? 3 : 2;
+          for (let n = 1; n <= 40; n++) {
+            const hz = f0 * Math.pow(n, 1 + 0.5 * str) * (1 + 0.02 * str * n);
+            if (hz > 20000) break;
+            const a = Math.pow(n, -(2.4 - 2 * br)) * Math.abs(Math.sin(Math.PI * n * pos)) * 1.4;
+            if (a < 0.01) continue;
+            const ring = Math.exp(-n * dm * 0.35) * (0.8 + 0.2 * Math.sin(t * 2 + n));
+            g.globalAlpha = 0.25 + 0.75 * ring;
+            BleepView.glow(g, accent, 8);
+            const xx = x(hz);
+            g.beginPath(); g.moveTo(xx, h - 2); g.lineTo(xx, h - 2 - Math.min(1, a) * (h - 8)); g.stroke();
+          }
+          g.shadowBlur = 0; g.globalAlpha = 1; g.lineWidth = 1;
         } else if (arrays.modeHz && arrays.modeHz.length) {
           g.strokeStyle = line;
           g.beginPath(); g.moveTo(0, h - 2); g.lineTo(w, h - 2); g.stroke();
@@ -71,9 +93,10 @@
             const ringing = Math.min(1, arrays.modeLevel[k] / maxLevel);
             g.globalAlpha = 0.25 + 0.75 * Math.sqrt(ringing);
             const xx = x(arrays.modeHz[k]);
+            BleepView.glow(g, accent, 8);
             g.beginPath(); g.moveTo(xx, h - 2); g.lineTo(xx, h - 2 - a * (h - 6)); g.stroke();
           }
-          g.globalAlpha = 1; g.lineWidth = 1;
+          g.shadowBlur = 0; g.globalAlpha = 1; g.lineWidth = 1;
         }
       }
       const dots = view.root.querySelector(".res-voices");

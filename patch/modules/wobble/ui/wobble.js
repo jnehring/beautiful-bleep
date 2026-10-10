@@ -30,11 +30,7 @@
   function draw(view, st) {
     const c = view.wobble && view.wobble.canvas;
     if (!c || !c.clientWidth) return;
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
+    const { g, w, h } = BleepView.fit(c);
     const css = getComputedStyle(view.root);
     const accent = css.getPropertyValue("--accent").trim(), line = css.getPropertyValue("--line").trim();
     const muted = css.getPropertyValue("--muted").trim(), text = css.getPropertyValue("--text").trim();
@@ -72,8 +68,11 @@
       g.stroke();
     };
     trace(a.stepped, muted, 1, true);
+    BleepView.glow(g, text, 4);
     trace(a.smooth, text, 1.5, false);
-    trace(a.wobble, accent, 2, false);
+    BleepView.glow(g, accent, 12);
+    trace(a.wobble, accent, 2.2, false);
+    g.shadowBlur = 0;
     if (a.burst) {
       g.fillStyle = accent;
       a.burst.forEach((v, i) => { if (v > 0.5) g.fillRect((i / (a.burst.length - 1)) * w, h - 10, 1.5, 8); });
@@ -86,7 +85,14 @@
 
   BleepViews.register("wobble", {
     top: true,
-    template: '<div class="bv-panel"><h2>Last four steps</h2><canvas class="wobble-scope" style="width:100%;height:110px"></canvas></div>',
+    width: 820,
+    layout: [
+      { title: "Clock", params: ["rate", "sync"] },
+      { title: "Smoothing", params: ["smooth", "wobble", "chaos"] },
+      { title: "Bursts", params: ["burst", "burstsize"] },
+      { title: "Output", params: ["level", "polarity", "seed"] },
+    ],
+    template: '<div class="bv-panel"><h2>Last four steps</h2><canvas class="wobble-scope" style="width:100%;height:120px"></canvas></div>',
     afterBuild(view, el) {
       view.wobble = { canvas: el.querySelector("canvas") };
       requestAnimationFrame(() => draw(view, null));

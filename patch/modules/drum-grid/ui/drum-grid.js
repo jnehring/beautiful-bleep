@@ -65,7 +65,7 @@
   /// Cell size from the room the grid has: columns fill the width, rows follow.
   function layout(view) {
     const avail = view.dg.scroll.clientWidth || STEPS * MIN_COL;
-    const COL = Math.max(MIN_COL, avail / STEPS), ROW = Math.round(clamp(COL * 1.25, 20, 48));
+    const COL = Math.max(MIN_COL, avail / STEPS), ROW = Math.round(clamp(COL * 1.1, 16, 19));
     view.root.style.setProperty("--dg-row", ROW + "px");
     return { COL, ROW, W: COL * STEPS, H: RULER + TRACKS * ROW };
   }
@@ -352,7 +352,7 @@
   }
 
   const STYLE = `
-    .dg-panel { flex: 1 1 100%; min-width: 0; position: relative; --dg-row: 20px; }
+    .dg-panel { flex: 1 1 100%; min-width: 0; position: relative; }
     .dg-tools { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; font-size: 11px; color: var(--muted); }
     .dg-tools button, .dg-menu button { background: var(--panel); color: var(--text); border: 1px solid var(--line);
       border-radius: 6px; padding: 2px 8px; font: inherit; font-size: 11px; cursor: pointer; }
@@ -395,7 +395,11 @@
 
   BleepViews.register("drum-grid", {
     top: true,
-    width: 660,
+    width: 900,
+    layout: [
+      { title: "Clock", params: ["source", "rate", "ppqn", "switch"] },
+      { title: "Level", params: ["tempo", "gatelength", "swing", "velocity"] },
+    ],
     resizable: true,
     template: `<div class="bv-panel dg-panel">
       <div class="dg-slots"></div>

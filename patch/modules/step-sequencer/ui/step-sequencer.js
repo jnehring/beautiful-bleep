@@ -225,7 +225,13 @@
 
   BleepViews.register("step-sequencer", {
     top: true,
-    width: 600,
+    width: 900,
+    layout: [
+      { title: "Clock", params: ["rate", "length", "direction"] },
+      { title: "Feel", params: ["gatelength", "swing"] },
+      { title: "Pitch", params: ["root", "scale", "octave"] },
+      { title: "Variation", params: ["variation", "varrange", "harmony", "seed"] },
+    ],
     template: `<div class="bv-panel seq-panel">
       <div class="seq-tools">
         <button class="seq-rand" title="New gates, pitches and velocities (one undo step)">Randomize all</button>

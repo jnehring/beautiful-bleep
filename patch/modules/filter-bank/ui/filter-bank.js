@@ -7,7 +7,7 @@
 // FilterBankModule::liveArrays: env, gain, freq.
 (function () {
   "use strict";
-  const BANDS = 10, H = 150, SLIDER = [6, 96], METER = [102, 124], LABEL = 136, WINDOW = 146;
+  const BANDS = 10, H = 104, SLIDER = [5, 64], METER = [70, 86], LABEL = 98, WINDOW = 102;
   const E = Math.log(60 / 72) / Math.log(0.75);  // the Level knob's skew (FilterBankModule.cpp)
   const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
   const PRESETS = {
@@ -45,14 +45,11 @@
     const c = view.fb && view.fb.canvas;
     if (!c || !c.clientWidth) return;
     const st = view.fb.state || {}, arrays = st.arrays || {};
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth;
-    if (c.width !== w * dpr) { c.width = w * dpr; c.height = H * dpr; }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, H);
-    const css = getComputedStyle(view.root);
-    const accent = css.getPropertyValue("--accent"), line = css.getPropertyValue("--line");
-    const muted = css.getPropertyValue("--muted") || line, text = css.getPropertyValue("--text");
+    c.style.height = H + "px";
+    const { g, w } = BleepView.fit(c);
+    if (!w) return;
+    const th = BleepView.theme(view.root);
+    const accent = th.accent, line = th.line, muted = th.muted || th.line, text = th.text;
     const col = w / BANDS, tuning = setting(view, "tuning");
     const sy = (x) => SLIDER[1] - clamp(x, 0, 1) * (SLIDER[1] - SLIDER[0]);
     g.strokeStyle = line;
@@ -63,10 +60,16 @@
       const x0 = k * col + 3, bw = col - 6;
       const knob = view.node.params[id(k)] ?? view.type.params.find((p) => p.id === id(k)).default;
       const eff = view.value(st, id(k));
-      g.fillStyle = accent;
-      g.globalAlpha = 0.85;
+      const gr = g.createLinearGradient(0, sy(knob), 0, SLIDER[1]);
+      gr.addColorStop(0, accent); gr.addColorStop(1, "transparent");
+      g.fillStyle = gr;
+      g.globalAlpha = 0.8;
       g.fillRect(x0, sy(knob), bw, SLIDER[1] - sy(knob));
       g.globalAlpha = 1;
+      g.fillStyle = accent;
+      BleepView.glow(g, accent, 8);
+      g.fillRect(x0, sy(knob) - 1, bw, 2);
+      g.shadowBlur = 0;
       if (Math.abs(eff - knob) > 0.002) {  // modulated: the value really used
         g.fillStyle = text;
         g.fillRect(x0 - 1, sy(eff) - 1, bw + 2, 2);
@@ -79,6 +82,8 @@
       }
       const env = arrays.env ? clamp(arrays.env[k], 0, 1) : 0;
       g.fillStyle = muted;
+      g.globalAlpha = 0.25; g.fillRect(x0, METER[0], bw, METER[1] - METER[0]); g.globalAlpha = 1;
+      g.fillStyle = text;
       g.fillRect(x0, METER[1] - env * (METER[1] - METER[0]), bw, env * (METER[1] - METER[0]));
       g.fillStyle = muted;
       g.fillText(label(arrays.freq ? arrays.freq[k] : 0, tuning), x0 + bw / 2, LABEL);
@@ -88,11 +93,13 @@
     if (width < 9.99) {
       const flat = 0.5 * (width - 1), centre = 9 * scan, xOf = (b) => (b + 0.5) * col;
       g.strokeStyle = accent;
-      g.lineWidth = 2;
+      g.lineWidth = 3;
+      BleepView.glow(g, accent, 8);
       g.beginPath();
       g.moveTo(xOf(clamp(centre - flat - 1, -0.5, 9.5)), WINDOW);
       g.lineTo(xOf(clamp(centre + flat + 1, -0.5, 9.5)), WINDOW);
       g.stroke();
+      g.shadowBlur = 0;
       g.lineWidth = 1;
     }
   }
@@ -128,6 +135,14 @@
   }
 
   BleepViews.register("filter-bank", {
+    width: 900,
+    layout: [
+      { title: "Tuning", params: ["tuning", "root", "scale", "spacing", "shift"] },
+      { title: "Bands", params: ["q", "slope", "edgeBands"] },
+      { title: "Shape", params: ["tilt", "oddEven", "scan", "width"] },
+      { title: "Envelope / Vocoder", params: ["attack", "release", "vocode", "envFrom"] },
+      { title: "Output", params: ["stereo", "jacks", "mix"] },
+    ],
     top: true,
     hideParams: ["level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "level10"],  // the slider bank edits them
     template: '<div class="bv-panel"><h2>Bands <select class="fb-presets" style="float:right">' +

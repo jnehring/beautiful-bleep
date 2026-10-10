@@ -128,16 +128,24 @@
       g.globalAlpha = 1;
     }
 
-    // The sweep over one cycle.
-    g.strokeStyle = accent;
-    g.lineWidth = 2;
-    g.beginPath();
+    // The sweep over one cycle: a glowing line over a faint gradient down to the floor.
     const n = 160;
+    const fill = g.createLinearGradient(0, top, 0, bottom);
+    fill.addColorStop(0, accent + "55"); fill.addColorStop(1, accent + "00");
+    g.fillStyle = fill;
+    g.beginPath(); g.moveTo(x(0), bottom);
+    for (let i = 0; i <= n; i++) { const p = i / n; g.lineTo(x(p), y(lawHz(m.start, m.stop, position(p, m.dir), m.lin))); }
+    g.lineTo(x(1), bottom); g.closePath(); g.fill();
+    g.strokeStyle = accent;
+    g.lineWidth = 2.2;
+    BleepView.glow(g, accent, 10);
+    g.beginPath();
     for (let i = 0; i <= n; i++) {
       const p = i / n, yy = y(lawHz(m.start, m.stop, position(p, m.dir), m.lin));
       i ? g.lineTo(x(p), yy) : g.moveTo(x(p), yy);
     }
     g.stroke();
+    g.shadowBlur = 0;
 
     // Handles at Start and Stop.
     sg.handles = [];
@@ -152,10 +160,18 @@
       g.beginPath(); g.arc(hd.x, hd.y, 3.5, 0, 2 * Math.PI); g.fill(); g.stroke();
     }
 
-    // The live position: a bright dot at the real frequency (Pitch and Drift included).
+    // The live position: a bright dot at the real frequency (Pitch and Drift included), with a short comet tail.
     const hz = st && typeof st.hz === "number" ? st.hz : null;
     if (hz !== null && typeof st.p === "number") {
       const px = x(clamp(st.p, 0, 1)), py = y(hz);
+      const tail = sg.tail || (sg.tail = []);
+      if (!tail.length || tail[tail.length - 1][2] !== st) { tail.push([px, py, st]); if (tail.length > 18) tail.shift(); }
+      for (let i = 1; i < tail.length; i++) {
+        if (Math.abs(tail[i][0] - tail[i - 1][0]) > w * 0.3) continue;  // a wrap, not a line
+        g.strokeStyle = text; g.globalAlpha = (i / tail.length) * 0.6; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(tail[i - 1][0], tail[i - 1][1]); g.lineTo(tail[i][0], tail[i][1]); g.stroke();
+      }
+      g.globalAlpha = 1; g.lineWidth = 1;
       g.fillStyle = accent;
       g.globalAlpha = 0.25;
       g.beginPath(); g.arc(px, py, 7, 0, 2 * Math.PI); g.fill();
@@ -224,8 +240,14 @@
   }
 
   BleepViews.register("sweep-generator", {
-    top: true,
+    width: 940,
     hideParams: ["waveform"],  // the icon row sets it
+    layout: [
+      { title: "Sweep", params: ["start", "stop", "time", "symmetry", "direction", "law", "retrace", "burstcount"] },
+      { title: "Markers", params: ["markers", "marker1", "marker2", "marker3", "markerwidth"] },
+      { title: "Output", params: ["level", "drift", "fm"] },
+      { title: "Trigger", params: ["mode", "sweepsync", "phasereset", "warmup", "seed"] },
+    ],
     template:
       "<style>" +
       ".sg-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:2px 0 4px}" +
@@ -235,7 +257,7 @@
       ".sg-waves{display:flex;gap:3px;flex-wrap:wrap}" +
       ".sg-waves .bv-button{padding:2px 4px;line-height:0}" +
       ".sg-waves svg{width:24px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}" +
-      ".sg-plot{height:130px!important;touch-action:none}" +
+      ".sg-plot{height:116px!important;touch-action:none;background:rgba(0,0,0,.28);border-radius:4px}" +
       "</style>" +
       '<div class="bv-panel"><h2>Sweep</h2><canvas class="sg-plot"></canvas>' +
       '<div class="sg-head"><span class="sg-readout"></span><span class="sg-summary"></span><span class="sg-waves"></span></div></div>',

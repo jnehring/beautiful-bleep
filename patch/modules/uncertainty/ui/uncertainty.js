@@ -10,7 +10,7 @@
                  ["quant2", "Quant 2", 0, 1], ["stored", "Stored", -1, 1], ["integrated", "Integrated", -1, 1]];
   const INTERVALS = [0, 1, 2, 5, 7, 12];
   const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-  const LANE_H = 30, SIDE = 92;
+  const LANE_H = 26, SIDE = 232;
   const setting = (view, id) => {
     const p = view.type.params.find((x) => x.id === id);
     return Math.round(p.min + (view.node.params[id] ?? p.default) * (p.max - p.min));
@@ -32,11 +32,7 @@
   function draw(view, st) {
     const c = view.unc && view.unc.canvas;
     if (!c || !c.clientWidth) return;
-    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
-    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
+    const { g, w, h } = BleepView.fit(c);
     const css = getComputedStyle(view.root);
     const accent = css.getPropertyValue("--accent").trim(), line = css.getPropertyValue("--line").trim();
     const muted = css.getPropertyValue("--muted").trim();
@@ -60,9 +56,10 @@
       const arr = a[key];
       if (arr && arr.length) {
         g.strokeStyle = accent; g.lineWidth = 1.5;
+        BleepView.glow(g, accent, 6);
         g.beginPath();
         arr.forEach((v, i) => { const x = (i / (arr.length - 1)) * lw; i ? g.lineTo(x, y(v)) : g.moveTo(x, y(v)); });
-        g.stroke();
+        g.stroke(); g.shadowBlur = 0;
       }
       g.fillStyle = muted;
       g.fillText(label, 3, top + 9);
@@ -73,41 +70,49 @@
       }
     });
 
-    // Stored: distribution (analytic) and scatter of (value, next value).
+    // Stored: distribution (analytic) and scatter of (value, next value), side by side.
     const x0 = w - SIDE, shape = setting(view, "shape"), dist = units(view, st, "distribution");
-    const bins = new Array(24).fill(0);
+    const BW = 104, bins = new Array(24).fill(0);
     for (let i = 0; i < 2400; i++) bins[Math.min(23, Math.floor(((shapeStored((i + 0.5) / 2400, shape, dist) + 1) / 2) * 24))]++;
-    const peak = Math.max(...bins), hTop = 4, hBot = 4 + 2 * LANE_H - 8;
-    g.fillStyle = accent; g.globalAlpha = 0.7;
+    const peak = Math.max(...bins), hTop = 4, hBot = LANES.length * LANE_H - 10;
+    const bg = g.createLinearGradient(0, hTop, 0, hBot);
+    bg.addColorStop(0, accent); bg.addColorStop(1, "transparent");
+    g.fillStyle = bg; g.globalAlpha = 0.85;
     bins.forEach((b, i) => {
       const bh = (b / peak) * (hBot - hTop);
-      g.fillRect(x0 + (i / 24) * SIDE, hBot - bh, SIDE / 24 - 1, bh);
+      g.fillRect(x0 + (i / 24) * BW, hBot - bh, BW / 24 - 1, bh);
     });
     g.globalAlpha = 1;
     const cur = a.stored && a.stored.length ? a.stored[a.stored.length - 1] : null;
     if (cur !== null) {
-      g.fillStyle = muted;
-      g.fillRect(x0 + ((cur + 1) / 2) * SIDE - 1, hTop, 2, hBot - hTop);
+      g.fillStyle = "#fff"; BleepView.glow(g, accent, 8);
+      g.fillRect(x0 + ((cur + 1) / 2) * BW - 1, hTop, 2, hBot - hTop); g.shadowBlur = 0;
     }
     g.fillStyle = muted; g.fillText("distribution", x0, hBot + 9);
-    const sTop = 2 * LANE_H + 8, size = Math.min(SIDE, 3 * LANE_H - 16);
+    const sx = x0 + BW + 20, sTop = hTop, size = hBot - hTop;
     g.strokeStyle = line;
-    g.strokeRect(x0 + 0.5, sTop + 0.5, size, size);
+    g.strokeRect(sx + 0.5, sTop + 0.5, size, size);
     const sc = a.scatter;
     if (sc && sc.length > 1) {
-      g.fillStyle = accent;
+      g.fillStyle = accent; BleepView.glow(g, accent, 4);
       for (let i = 0; i + 1 < sc.length; i++) {
         if (sc[i] === 0 && sc[i + 1] === 0) continue;  // not filled yet
-        const px = x0 + ((sc[i] + 1) / 2) * size, py = sTop + size - ((sc[i + 1] + 1) / 2) * size;
+        const px = sx + ((sc[i] + 1) / 2) * size, py = sTop + size - ((sc[i + 1] + 1) / 2) * size;
         g.fillRect(px - 1.5, py - 1.5, 3, 3);
       }
+      g.shadowBlur = 0;
     }
-    g.fillStyle = muted; g.fillText("value → next", x0, sTop + size + 10);
+    g.fillStyle = muted; g.fillText("value → next", sx, hBot + 9);
   }
 
   BleepViews.register("uncertainty", {
     top: true,
-    width: 400,
+    width: 1060,
+    layout: [
+      { title: "Fluctuating", params: ["f1rate", "f1spread", "f2rate", "f2spread", "fsync"] },
+      { title: "Quantized", params: ["qsync", "qrate", "q1bits", "q1interval", "q2bits", "q2interval", "q2divide"] },
+      { title: "Stored", params: ["storesync", "storerate", "shape", "distribution", "correlation", "integrate", "seed"] },
+    ],
     template: `<div class="bv-panel" style="flex:1 1 100%"><canvas class="unc-scope" style="width:100%;height:${LANES.length * LANE_H + 4}px"></canvas></div>`,
     afterBuild(view, el) {
       view.unc = { canvas: el.querySelector("canvas") };
