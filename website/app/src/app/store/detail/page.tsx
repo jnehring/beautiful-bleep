@@ -33,6 +33,7 @@ function DetailView() {
     <section>
       <p><a href="/store/">← Bleep Store</a></p>
       <h2>{data.title} <small className="muted">{data.kind} · {data.slug}</small></h2>
+      {data.kind === "module" && <p><a href={`/modules/${encodeURIComponent(data.slug)}/`}>Read the documentation →</a></p>}
       {data.releases.map((r) => (
         <div key={r.version} className="release">
           <h3>{r.version} <small className="muted">{r.channel} · published {day(r.published_at)} · {r.files} {r.files === 1 ? "file" : "files"}, {size(r.bytes)}</small></h3>
