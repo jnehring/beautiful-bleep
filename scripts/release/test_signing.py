@@ -22,7 +22,7 @@ def entries_of(files, exec_=()):
 
 
 class World:
-    """A root, an issuer and one developer, the way the registry sets them up."""
+    """A root, an issuer and one developer, the way the store sets them up."""
 
     def __init__(self, publisher="acme", scopes=("module",), first_party=False, not_before=T0, not_after=T0 + YEAR):
         self.root, self.issuer, self.dev = (Ed25519PrivateKey.generate() for _ in range(3))
@@ -105,7 +105,7 @@ class Verify(unittest.TestCase):
         other = World()
         self.assertEqual(w.check(w.signed(), roots=[other.root_pub]).status, "invalid")
         forged = w.signed()
-        forged["chain"][1] = other.dev_cert  # a developer cert from another registry
+        forged["chain"][1] = other.dev_cert  # a developer cert from another store
         self.assertEqual(w.check(forged).status, "invalid")
         # an attacker mints their own issuer and developer under their own root
         self.assertEqual(w.check(other.signed(), roots=[w.root_pub]).status, "invalid")

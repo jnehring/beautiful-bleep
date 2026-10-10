@@ -8,6 +8,7 @@ release is visible to clients only when the index changes.
 import hashlib
 import io
 import json
+import re
 import tempfile
 import zipfile
 from typing import Literal
@@ -86,6 +87,36 @@ def _own_draft(row: Release, token: ApiToken) -> None:
     """Only the token that started a draft continues it."""
     if row.created_by_token != token.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This draft was started with another token")
+
+
+TYPE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}(/[a-z0-9][a-z0-9-]{0,62})?$")
+
+
+def _module_meta(db: Session, slug: str, package) -> tuple[list[str], int]:
+    """The node types and engine ABI a module package declares in its module.json, after the store's rules for them.
+
+    A module may only provide node types nobody else provides, and a third-party module (id "acme/fuzz") only types in
+    its own namespace ("acme/…"): otherwise a signed module could take over "oscillator" on every board."""
+    try:
+        meta = json.loads(zipfile.ZipFile(package).read("module.json"))
+        types, abi = meta["types"], meta["requires"]["engineAbi"]
+    except (KeyError, ValueError, TypeError, zipfile.BadZipFile) as e:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"module.json must list `types` and `requires.engineAbi`: {e}")
+    if not isinstance(types, list) or not types or len(types) > 64 or not all(isinstance(t, str) and TYPE_ID.match(t) for t in types) \
+            or len(set(types)) != len(types) or not isinstance(abi, int):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "module.json: `types` is a list of node type ids, `requires.engineAbi` an integer")
+    owner = _signed_id(slug).partition("/")[0] if "/" in _signed_id(slug) else None
+    if owner and not all(t.startswith(owner + "/") for t in types):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"node types of {_signed_id(slug)!r} must start with '{owner}/'")
+    taken = {t for r in _published(db, "module") if r.slug != slug for f in r.files for t in f.get("types", [])}
+    clash = sorted(set(types) & taken)
+    if clash:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"node type(s) already provided by another module: {', '.join(clash)}")
+    return types, abi
+
+
+def _types(r: Release) -> list[str]:
+    return sorted({t for f in r.files if f["uploaded"] for t in f.get("types", [])})
 
 
 def _key(r: Release, path: str = "") -> str:
@@ -182,9 +213,13 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
                 raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Not a valid package: {e}")
             if actual != declared["contentDigest"]:
                 raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "The files in the package are not the ones that were signed")
+            if kind == "module":
+                spool.seek(0)
+                declared = {**declared, "types": (meta := _module_meta(db, slug, spool))[0]}
+                row.requires = {**row.requires, "engineAbi": meta[1]}
         spool.seek(0)
         storage.put(_key(row, path), spool)
-    row.files = [{**f, "uploaded": True} if f["path"] == path else f for f in row.files]
+    row.files = [{**declared, "uploaded": True} if f["path"] == path else f for f in row.files]
     if row.status == "published":
         storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()
@@ -220,7 +255,7 @@ def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = 
 def _entry(r: Release) -> dict:
     return {
         "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
-        "notes": r.notes, "requires": r.requires, "published": r.published_at.isoformat(),
+        "notes": r.notes, "requires": r.requires, "types": _types(r), "published": r.published_at.isoformat(),
         "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform", "contentDigest", "signer", "signature") if f.get(k) is not None}
                   for f in r.files if f["uploaded"]],
     }
@@ -232,6 +267,8 @@ def write_index(db: Session, storage: Storage) -> dict:
     for r in _published(db):  # ascending, so later rows are newer
         for channel in ("stable", "beta") if r.channel == "stable" else ("beta",):
             channels[channel][r.kind + "s"][r.slug] = {"version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json"}
+            if r.kind == "module":  # which node types a module provides: clients find the package for a type without downloading any
+                channels[channel]["modules"][r.slug]["types"] = _types(r)
     index = {"format": 1, "generated": now().isoformat(), "channels": channels}
     storage.put("v1/index.json", io.BytesIO(json.dumps(index, indent=1).encode()), "application/json")
     return index

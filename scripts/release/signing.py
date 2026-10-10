@@ -51,7 +51,7 @@ def main(argv=None) -> int:
     sub.add_parser("vector")
     a = ap.parse_args(argv)
 
-    if a.cmd == "init-registry":  # the registry's one-time setup: the root (keep it offline) and an issuer under it
+    if a.cmd == "init-registry":  # the store's one-time setup: the root (keep it offline) and an issuer under it
         d = Path(a.dir)
         d.mkdir(parents=True, exist_ok=True)
         root, issuer = Ed25519PrivateKey.generate(), Ed25519PrivateKey.generate()
@@ -59,7 +59,7 @@ def main(argv=None) -> int:
         save_key(root, d / "root.key")
         save_key(issuer, d / "issuer.key")
         (d / "root.pub").write_text(public_bytes(root).hex() + "\n")
-        tbs = new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep registry issuer", scopes=["issue"],
+        tbs = new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep store issuer", scopes=["issue"],
                       not_before=now, not_after=now + a.days * 86400)
         (d / "issuer.cert").write_text(json.dumps(make_cert(root, None, tbs), indent=1))
         env = (f"BLEEP_ROOT_PUBLIC_KEYS={(d / 'root.pub').read_text().strip()}\n"
@@ -67,7 +67,7 @@ def main(argv=None) -> int:
                f"BLEEP_ISSUER_CERT={json.dumps(json.loads((d / 'issuer.cert').read_text()), separators=(',', ':'))}\n")
         (d / "registry.env").write_text(env)
         (d / "registry.env").chmod(0o600)
-        print(f"{d}/root.key: move it offline (your keystore) and delete this copy; the registry never needs it.\n"
+        print(f"{d}/root.key: move it offline (your keystore) and delete this copy; the store never needs it.\n"
               f"{d}/root.pub: goes into the apps and plugins too.\n"
               f"{d}/registry.env: the three lines for website/.env (root PUBLIC key, issuer key and certificate).")
     elif a.cmd == "issue-kit":
@@ -87,7 +87,7 @@ def main(argv=None) -> int:
         key = load_key(a.name + ".key")
         body = {"format": 1, "publisher": a.publisher, "name": a.display_name or a.publisher, "publicKey": b64(public_bytes(key))}
         Path(a.name + ".csr").write_text(json.dumps({"request": body, "signature": b64(key.sign(CERT_DOMAIN + b"request\n" + canonical(body)))}, indent=1))
-        print(f"{a.name}.csr: send it to the registry")
+        print(f"{a.name}.csr: send it to the store")
     elif a.cmd == "issue":
         csr = json.loads(Path(a.csr).read_text())
         pub = base64.b64decode(csr["request"]["publicKey"])

@@ -56,6 +56,12 @@ def declare(path, data, *, slug="bleep-patch", version="0.1.0", platform="macos-
     return {"path": path, "sha256": sha.hex(), "bytes": len(data), "platform": platform, "signature": sig}
 
 
+def module_files(types, abi=1, wasm=b"\x00asm\x01\x00\x00\x00"):
+    """The files of a module package with a module.json that declares these node types."""
+    meta = {"name": "Fuzz", "types": types, "requires": {"engineAbi": abi}}
+    return {"module.json": json.dumps(meta).encode(), "module.wasm": wasm}
+
+
 def module_zip(files, kit, slug, version, tamper=False):
     """A .bleepmod and its declaration: files {path: bytes}; tamper changes a file after signing."""
     entries = {p: (hashlib.sha256(c).digest(), False) for p, c in files.items()}
@@ -327,7 +333,7 @@ def test_developer_scope_decides_what_may_be_signed(client, make_admin, capsys):
 def test_signed_module_package_flow_and_entry(client, make_admin, capsys, storage):
     token = new_token(capsys, "acme")
     kit = PKI.kit("acme", scopes=("module",))
-    files = {"module.json": b"{}", "module.wasm": b"\x00asm\x01\x00\x00\x00"}
+    files = module_files(["acme/fuzz"])
     data, decl = module_zip(files, kit, "acme.fuzz", "1.0.0")
     h = {"Authorization": f"Bearer {token}"}
     assert post_release(client, token, "acme.fuzz", "1.0.0", [decl], kind="module").status_code == 201
@@ -337,6 +343,9 @@ def test_signed_module_package_flow_and_entry(client, make_admin, capsys, storag
     entry = json.loads(storage.objects["v1/modules/acme.fuzz/1.0.0/entry.json"])
     f = entry["files"][0]
     assert f["signer"]["publisher"] == "acme" and f["contentDigest"] == decl["contentDigest"] and f["signature"]["chain"]
+    assert entry["types"] == ["acme/fuzz"] and entry["requires"]["engineAbi"] == 1
+    index = json.loads(storage.objects["v1/index.json"])["channels"]["stable"]["modules"]["acme.fuzz"]
+    assert index["types"] == ["acme/fuzz"]  # a client finds the package of a node type from the index alone
     assert "token" not in json.dumps(entry)  # who uploaded stays in the database
     # what a client does with the entry and the downloaded file
     res = signing.verify(signing.read_entries(io.BytesIO(data)), f["signature"], kind="module", id_="acme/fuzz", version="1.0.0",
@@ -347,7 +356,7 @@ def test_signed_module_package_flow_and_entry(client, make_admin, capsys, storag
 def test_package_that_is_not_what_was_signed_is_refused(client, make_admin, capsys):
     token = new_token(capsys, "acme")
     kit = PKI.kit("acme", scopes=("module",))
-    data, decl = module_zip({"module.json": b"{}", "module.wasm": b"\x00asm"}, kit, "acme.fuzz", "1.0.0", tamper=True)
+    data, decl = module_zip(module_files(["acme/fuzz"], wasm=b"\x00asm"), kit, "acme.fuzz", "1.0.0", tamper=True)
     h = {"Authorization": f"Bearer {token}"}
     assert post_release(client, token, "acme.fuzz", "1.0.0", [decl], kind="module").status_code == 201  # the declaration is fine …
     r = client.put(f"/api/registry/module/acme.fuzz/releases/1.0.0/files/{decl['path']}", content=data, headers=h)
@@ -420,3 +429,40 @@ def test_developer_create_prints_a_kit_that_signs(client, capsys, make_admin):
     assert signing.verify(entries, doc, kind="module", id_="acme/x", version="1.0.0", roots=settings.roots).status == "signed"
     with pytest.raises(SystemExit):
         cli.main(["developer-create", "Bad Name"])
+
+
+def release_module(client, token, kit, slug, version, files):
+    """Declares, uploads and publishes a module package; returns the upload response (the step the store checks the package at)."""
+    h = {"Authorization": f"Bearer {token}"}
+    data, decl = module_zip(files, kit, slug, version)
+    assert post_release(client, token, slug, version, [decl], kind="module").status_code == 201
+    up = client.put(f"/api/registry/module/{slug}/releases/{version}/files/{decl['path']}", content=data, headers=h)
+    if up.status_code == 204:
+        assert client.post(f"/api/registry/module/{slug}/releases/{version}/publish", headers=h).status_code == 200
+    return up
+
+
+def test_module_types_are_published_and_cannot_be_taken_over(client, make_admin, capsys):
+    ours = new_token(capsys)  # bleep
+    theirs = new_token(capsys, "acme")
+    bleep_kit, acme_kit = PKI.first_party, PKI.kit("acme", scopes=("module",))
+    assert release_module(client, ours, bleep_kit, "oscillator", "1.0.0", module_files(["oscillator"])).status_code == 204
+    # a third party may not provide a type that exists, nor one outside its namespace
+    up = release_module(client, theirs, acme_kit, "acme.copy", "1.0.0", module_files(["oscillator"]))
+    assert up.status_code == 422 and "must start with 'acme/'" in up.json()["detail"]
+    up = release_module(client, theirs, acme_kit, "acme.copy", "1.0.1", module_files(["acme/oscillator"]))
+    assert up.status_code == 204
+    # nor may another of our modules provide the same type name
+    up = release_module(client, ours, bleep_kit, "oscillator2", "1.0.0", module_files(["oscillator"]))
+    assert up.status_code == 409 and "already provided" in up.json()["detail"]
+    # a new version of the module itself may keep its own types
+    assert release_module(client, ours, bleep_kit, "oscillator", "1.0.1", module_files(["oscillator", "oscillator-sub"])).status_code == 204
+
+
+def test_module_json_must_declare_types_and_abi(client, make_admin, capsys):
+    token = new_token(capsys)
+    for bad in ({"name": "x"}, {"types": [], "requires": {"engineAbi": 1}}, {"types": ["Bad Name"], "requires": {"engineAbi": 1}},
+                {"types": ["a", "a"], "requires": {"engineAbi": 1}}, {"types": ["a"], "requires": {"engineAbi": "1"}}, {"types": "a", "requires": {"engineAbi": 1}}):
+        files = {"module.json": json.dumps(bad).encode(), "module.wasm": b"\x00asm"}
+        up = release_module(client, token, PKI.first_party, "mod-" + str(abs(hash(json.dumps(bad)))), "1.0.0", files)
+        assert up.status_code == 422, bad

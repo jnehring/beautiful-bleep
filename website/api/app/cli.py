@@ -121,9 +121,9 @@ def token_revoke(args: argparse.Namespace) -> None:
 
 
 def developer_create(args: argparse.Namespace) -> None:
-    """Issues a developer key: a new key pair and a certificate from the registry's issuer, as one JSON "kit" on stdout.
+    """Issues a developer key: a new key pair and a certificate from the store's issuer, as one JSON "kit" on stdout.
 
-    The kit holds the developer's private key. Hand it over privately; the registry keeps only the key id.
+    The kit holds the developer's private key. Hand it over privately; the store keeps only the key id.
     """
     if not settings.issuer_key or not settings.issuer_cert:
         sys.exit("Set BLEEP_ISSUER_KEY and BLEEP_ISSUER_CERT (scripts/release/signing.py init-registry makes them)")

@@ -7,12 +7,12 @@
     scripts/release/release.py --list
 
 What it does, per plugin: finds the build in build/patch (run scripts/build/build-patch.sh first, or
-pass --build), asks the registry for the published versions, counts the next version at the
+pass --build), asks the store for the published versions, counts the next version at the
 level you ask for, zips the build, uploads it and publishes it. A release is one machine's
 build: the zip is named for this platform. Versions are immutable, but a published version can gain
 builds for platforms it lacks: build on the other machine and run
     scripts/release/release.py --all --add-platform 0.1.0 --registry ...   (or "latest": each plugin's newest version)
-The registry refuses a platform the version already has; existing files never change.
+The store refuses a platform the version already has; existing files never change.
 
 Levels (what is counted up; the rest of the number is kept):
     x      next major                  1.4.2 -> 2.0.0
@@ -22,9 +22,13 @@ Levels (what is counted up; the rest of the number is kept):
 With nothing published yet, x, 0.x and 0.0.x all give 0.1.0; 1.x gives 1.0.0.
 
 Registry URL: --registry or $BLEEP_REGISTRY_URL (the website's address; the API is under /api).
+Modules: `release.py --modules --level patch` releases the packaged modules (build/store/modules, made by
+package-module.py; `--package` makes them first). Each module counts its own version; one whose content did not change
+since its newest published version is skipped, so only what changed is released.
+
 Signing: every release file is signed with the developer's signing kit (--kit, or $BLEEP_SIGNING_KIT; doc/specs/signing.md;
-an admin makes one with `python -m app.cli developer-create`). The kit is checked against the registry's root keys before anything
-is uploaded, and the registry checks every signature again: without a valid key the release fails.
+an admin makes one with `python -m app.cli developer-create`). The kit is checked against the store's root keys before anything
+is uploaded, and the store checks every signature again: without a valid key the release fails.
 Token: a release token an admin created with
     docker compose exec api python -m app.cli token-create NAME
 read from $BLEEP_RELEASE_TOKEN or --token-file. It is never accepted as an argument, which would
@@ -88,7 +92,7 @@ def next_version(level: str, published: list[str]) -> str:
     return "0.1.0" if version == (0, 0, 0) else ".".join(map(str, version))
 
 
-# ---- registry API -------------------------------------------------------------
+# ---- store API -------------------------------------------------------------
 
 class RegistryError(Exception):
     pass
@@ -96,7 +100,8 @@ class RegistryError(Exception):
 
 class Registry:
     def __init__(self, url: str, token: str | None):
-        self.base = url.rstrip("/") + "/api/registry"
+        self.site = url.rstrip("/")
+        self.base = self.site + "/api/registry"
         self.token = token
 
     def _request(self, method: str, path: str, body=None, data=None, length=None):
@@ -125,20 +130,32 @@ class Registry:
     def check_token(self) -> None:
         self._request("GET", "/token")
 
-    def versions(self, slug: str) -> list[str]:
-        return [v["version"] for v in self._request("GET", f"/plugin/{slug}/versions")]
+    def versions(self, slug: str, kind: str = "plugin") -> list[str]:
+        return [v["version"] for v in self._request("GET", f"/{kind}/{slug}/versions")]
+
+    def entry(self, slug: str, version: str, kind: str = "plugin") -> dict | None:
+        """The published entry.json of a release (what clients read), or None if there is none."""
+        try:
+            with urllib.request.urlopen(f"{self.site}/registry/v1/{kind}s/{slug}/{version}/entry.json") as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+            raise RegistryError(f"GET entry.json of {slug} {version}: {e.code}") from None
+        except urllib.error.URLError as e:
+            raise RegistryError(f"cannot reach {self.site}: {e.reason}") from None
 
     def roots(self) -> list[bytes]:
         return [bytes.fromhex(k) for k in self._request("GET", "/roots")["roots"]]
 
-    def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict]) -> None:
-        base = f"/plugin/{slug}/releases"
+    def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict], kind: str = "plugin") -> None:
+        base = f"/{kind}/{slug}/releases"
         self._request("POST", base, {"version": version, "channel": channel, "title": title, "notes": notes, "files": [f["declaration"] for f in files]})
         self._upload(base, version, files)
         self._request("POST", f"{base}/{version}/publish")
 
     def add_platform(self, slug: str, version: str, files: list[dict]) -> None:
-        """Adds this machine's build to a published release (the registry refuses a platform it already has)."""
+        """Adds this machine's build to a published release (the store refuses a platform it already has)."""
         base = f"/plugin/{slug}/releases/{version}"
         self._request("POST", f"{base}/platforms", {"files": [f["declaration"] for f in files]})
         self._upload(f"/plugin/{slug}/releases", version, files)
@@ -147,7 +164,7 @@ class Registry:
         for f in files:
             z = f["path"]
             with z.open("rb") as fh:
-                self._request("PUT", f"{base}/{version}/files/{z.name}", data=fh, length=z.stat().st_size)
+                self._request("PUT", f"{base}/{version}/files/{f['declaration']['path']}", data=fh, length=z.stat().st_size)
 
 
 # ---- packaging ----------------------------------------------------------------
@@ -198,7 +215,7 @@ def load_kit(path: str | None) -> dict | None:
 
 
 def sign_file(zip_path: Path, slug: str, version: str, plat: str, kit: dict, roots: list[bytes]) -> dict:
-    """The file's declaration for the registry, signed with the kit and checked against the registry's roots first."""
+    """The file's declaration for the store, signed with the kit and checked against the store's roots first."""
     sha = bytes.fromhex(sha256(zip_path))
     entries = signing.entries_for_file(zip_path.name, sha)
     doc = signing.sign_with_kit(entries, kit, "plugin", slug, version, plat)
@@ -207,6 +224,75 @@ def sign_file(zip_path: Path, slug: str, version: str, plat: str, kit: dict, roo
         sys.exit(f"{slug}: the signing kit is not valid for this release: {result.status}: {result.reason or 'see doc/specs/signing.md'}")
     return {"path": zip_path, "declaration": {"path": zip_path.name, "sha256": sha.hex(), "bytes": zip_path.stat().st_size,
                                               "platform": plat, "signature": doc}}
+
+
+def sign_package(pkg: Path, slug: str, version: str, kit: dict, roots: list[bytes]) -> dict:
+    """The declaration of a module package: signed over the files inside it (the zip itself may be repacked)."""
+    entries = signing.read_entries(pkg)
+    doc = signing.sign_with_kit(entries, kit, "module", slug, version, "any")
+    result = signing.verify(entries, doc, kind="module", id_=slug, version=version, platform="any", roots=roots)
+    if result.status != "signed":
+        sys.exit(f"{slug}: the signing kit is not valid for modules: {result.status}: {result.reason or 'see doc/specs/signing.md'}")
+    return {"path": pkg, "declaration": {"path": f"{slug}-{version}.bleepmod", "sha256": sha256(pkg), "bytes": pkg.stat().st_size,
+                                         "platform": "any", "contentDigest": signing.content_digest(entries).hex(), "signature": doc}}
+
+
+def release_modules(args, registry: "Registry", kit: dict | None) -> int:
+    pdir = args.packages
+    if args.package:
+        r = subprocess.run([sys.executable, str(ROOT / "scripts" / "release" / "package-module.py"), "--out", str(pdir), *args.plugins])
+        if r.returncode != 0:
+            return r.returncode
+    available = sorted(p.stem for p in pdir.glob("*.bleepmod"))
+    names = args.plugins or available
+    missing = [n for n in names if n not in available]
+    if missing or not names:
+        sys.exit(f"no package for {', '.join(missing) or 'any module'} in {pdir} (scripts/release/package-module.py, or --package)")
+    plan = []  # (slug, package, newest published, new version or None when unchanged)
+    try:
+        if registry.token:
+            registry.check_token()
+        roots = registry.roots() if kit is not None else []
+        for slug in names:
+            pkg = pdir / f"{slug}.bleepmod"
+            digest = signing.content_digest(signing.read_entries(pkg)).hex()
+            published = sorted(registry.versions(slug, "module"), key=parse_version)
+            newest = registry.entry(slug, published[-1], "module") if published else None
+            same = newest is not None and any(f.get("contentDigest") == digest for f in newest["files"])
+            plan.append((slug, pkg, published[-1] if published else None, None if same and not args.force else next_version(args.level, published)))
+    except RegistryError as e:
+        sys.exit(str(e))
+    if kit is not None:
+        probe = signing.entries_for_file("probe", b"\0" * 32)
+        who = signing.verify(probe, signing.sign_with_kit(probe, kit, "module", names[0], "0.0.1", "any"), kind="module",
+                             id_=names[0], version="0.0.1", platform="any", roots=roots)
+        if who.status != "signed":
+            sys.exit(f"The signing kit is not valid for modules: {who.status}: {who.reason or 'see doc/specs/signing.md'}")
+        print(f"Signing as {who.publisher} (key {who.key_id})")
+    todo = [p for p in plan if p[3]]
+    print(f"Store {args.registry}, modules, channel {args.channel}, level {args.level}: {len(todo)} to release, {len(plan) - len(todo)} unchanged")
+    for slug, pkg, old, new in plan:
+        print(f"  {slug:22} {(old or 'none'):>8} -> {new or 'unchanged'}")
+    if args.dry_run or not todo:
+        print("Dry run: nothing uploaded." if args.dry_run else "Nothing to release.")
+        return 0
+    if not args.yes and input("Release these? [y/N] ").strip().lower() != "y":
+        print("Cancelled.")
+        return 1
+    done = 0
+    for slug, pkg, _, version in todo:
+        try:
+            title = json.loads(zipfile.ZipFile(pkg).read("module.json")).get("name", slug)
+            registry.release(slug, version, args.channel, title, args.notes, [sign_package(pkg, slug, version, kit, roots)], kind="module")
+        except RegistryError as e:
+            print(f"  {slug} {version}: FAILED: {e}", file=sys.stderr)
+            if done:
+                print(f"  ({done} released before the failure; versions are immutable, so run again to release the rest)", file=sys.stderr)
+            return 1
+        done += 1
+        print(f"  {slug} {version}: published ({pkg.stat().st_size / 1024:.0f} KB)")
+    print(f"Index: {args.registry.rstrip('/')}/registry/v1/index.json")
+    return 0
 
 
 # ---- main ---------------------------------------------------------------------
@@ -229,6 +315,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("plugins", nargs="*", metavar="PLUGIN", help="plugin ids: " + ", ".join(PLUGINS))
     ap.add_argument("--all", action="store_true", help="release every plugin")
     ap.add_argument("--list", action="store_true", help="list the plugins and exit")
+    ap.add_argument("--modules", action="store_true", help="release packaged modules instead of plugins (names: module slugs; default: all)")
+    ap.add_argument("--package", action="store_true", help="with --modules: run package-module.py first")
+    ap.add_argument("--packages", type=Path, default=ROOT / "build" / "store" / "modules", help="where the .bleepmod packages are")
+    ap.add_argument("--force", action="store_true", help="with --modules: release even if the content did not change")
     ap.add_argument("--level", help="x, 1.x, 1.4.x, major, minor or patch (required unless --add-platform)")
     ap.add_argument("--add-platform", metavar="VERSION|latest", help="add this machine's build to the published VERSION instead of releasing a new one")
     ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL"), help="the website's URL (or $BLEEP_REGISTRY_URL)")
@@ -246,7 +336,24 @@ def main(argv: list[str] | None = None) -> int:
     if args.list:
         for slug, (title, _) in PLUGINS.items():
             print(f"{slug:22} {title}")
+        print(f"modules: {len(list(args.packages.glob('*.bleepmod')))} packaged in {args.packages} (--modules)")
         return 0
+    if args.modules:
+        if args.all:
+            ap.error("--modules releases every packaged module unless you name some; --all is for plugins")
+        if not args.level:
+            ap.error("--level is required: x, 1.x, 1.4.x, major, minor or patch")
+        if not args.registry:
+            ap.error("--registry (or $BLEEP_REGISTRY_URL) is required")
+        try:
+            next_version(args.level, [])
+        except ValueError as e:
+            ap.error(str(e))
+        registry = Registry(args.registry, None if args.dry_run else read_token(args))
+        kit = load_kit(args.kit)
+        if kit is None and not args.dry_run:
+            sys.exit("A signing kit is required: pass --kit FILE or set $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
+        return release_modules(args, registry, kit)
     names = list(PLUGINS) if args.all else args.plugins
     if not names or (args.all and args.plugins):
         ap.error("name the plugins to release, or use --all")

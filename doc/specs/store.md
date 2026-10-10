@@ -1,6 +1,6 @@
-# Registry and release system
+# Bleep Store and release system
 
-Plugins, modules and presets are managed in one place, the **registry**. Everything that installs, updates or loads one of them (the standalone app, the website's Bleep Board, the release pipeline) talks to the registry and nothing else.
+Plugins, modules and presets are managed in one place, the **Bleep Store**. Everything that installs, updates or loads one of them (the standalone app, the website's Bleep Board, the release pipeline) talks to the store and nothing else.
 
 | Kind | What it is | Who loads it | Form |
 |---|---|---|---|
@@ -8,14 +8,16 @@ Plugins, modules and presets are managed in one place, the **registry**. Everyth
 | **Module** | A node type on the board: its DSP, view and docs | The engine in the plugins, the app and the browser | `.bleepmod` package |
 | **Preset** | A patch (a whole board) or a cell (a subgraph, with its panel) | The board | `.bleeppreset` file (JSON) |
 
+*Naming:* the store was first called the registry, and its technical names keep that word: the URL path `/registry/v1/`, `BLEEP_REGISTRY_URL`, `/api/registry`, the `bleep-registry` bucket. In prose it is the Bleep Store, "the store" after the first mention.
+
 Plugins and modules are **code**: signed by their developer, immutable. Presets are **data**: published by anyone with an account. How code is signed and checked is in [`signing.md`](signing.md); what a module is to the engine, in [`module-abi.md`](module-abi.md).
 
 ## Decisions
 
 - **Modules are WebAssembly everywhere** (web and native), hosted by an embedded wasm runtime in the engine. See 4.2.
-- **The registry is part of the website stack** (Caddy, the FastAPI `website/api` and its Postgres), hosted locally for now and moved with the stack later. No separate infrastructure.
+- **The store is part of the website stack** (Caddy, the FastAPI `website/api` and its Postgres), hosted locally for now and moved with the stack later. No separate infrastructure.
 - **Everything the shop distributes as code is signed**, by its developer's own key under our root (see [`signing.md`](signing.md)). Apps refuse unsigned modules and plugins unless the user switches on *Allow unsigned modules* or *Allow unsigned plugins* in the settings.
-- **Modules and plugins reach the user three ways:** from the registry on demand, through two **bundles** the setup offers (*default modules*, *default plugins*), or by copying files into a folder (section 5a).
+- **Modules and plugins reach the user three ways:** from the store on demand, through two **bundles** the setup offers (*default modules*, *default plugins*), or by copying files into a folder (section 5a).
 - **Everything is free.** There is no licence-key or entitlement logic anywhere.
 - **Downloading needs no login**: browsing, installing plugins, modules and presets, and update checks are anonymous. **Sharing a preset needs an account** (the existing `website/api` accounts).
 
@@ -29,7 +31,7 @@ The wasm-per-module work is the seed of the system: the module package is that f
 
 ## 2. Common to every artifact
 
-Every entry in the registry has the same envelope:
+Every entry in the store has the same envelope:
 
 ```json
 {
@@ -49,9 +51,9 @@ Every entry in the registry has the same envelope:
 
 - **Immutable and content-addressed.** A published `id@version` never changes; a fix is a new version. Files are named by sha256 in storage, so caches never go stale.
 - **`engineAbi`** is an integer bumped when the module ABI (specified in [`module-abi.md`](module-abi.md); the C interface in `patch/web/src/WebShim.cpp`) changes incompatibly. Hosts refuse modules they cannot run and the Software Center explains why.
-- **Signing.** Every file of a plugin or module entry has a developer signature (`files[].signature`: a chain root > registry issuer > developer, over the content hash, kind, id, version and platform), checked by the registry on upload and by every host before it loads or installs. `index.json` and the revocation list carry the registry issuer's signature, a rising `serial` and an expiry. Details, the settings and a test vector in [`signing.md`](signing.md).
+- **Signing.** Every file of a plugin or module entry has a developer signature (`files[].signature`: a chain root > store issuer > developer, over the content hash, kind, id, version and platform), checked by the store on upload and by every host before it loads or installs. `index.json` and the revocation list carry the store issuer's signature, a rising `serial` and an expiry. Details, the settings and a test vector in [`signing.md`](signing.md).
 
-## 3. The registry
+## 3. The store
 
 It lives in the website stack. Published files are objects in a **SeaweedFS** bucket (`storage` service, data on the `registry-data` volume; S3 API, so moving to AWS S3, R2 or similar later is a change of endpoint; MinIO was considered but no longer publishes images). The bucket is public-read and Caddy proxies `/registry/*` to it, so downloads are cacheable and run no app code; the API owns what is dynamic.
 
@@ -112,13 +114,13 @@ Modules are statically linked into the plugins today. For the app to install, up
 | Sandbox: safe to run modules from other people | no | **yes** (no syscalls, own memory) | n/a |
 | Updating a module without updating the plugin | yes | **yes** | no |
 
-**Decision: wasm everywhere.** The engine gets a `WasmModuleHost` (embedded WAMR or wasmtime, AOT-compiled at install time and cached per machine) that implements the same `Module` interface the static modules do. First-party modules are *also* kept statically linked in the plugin as the offline default, so a fresh install works with no network and the registry copy only overrides when newer. Third-party modules are wasm-only.
+**Decision: wasm everywhere.** The engine gets a `WasmModuleHost` (embedded WAMR or wasmtime, AOT-compiled at install time and cached per machine) that implements the same `Module` interface the static modules do. First-party modules are *also* kept statically linked in the plugin as the offline default, so a fresh install works with no network and the store copy only overrides when newer. Third-party modules are wasm-only.
 
 **Gate, first answer (Verb, Apple M-series, Live 12; `patch/wasm-host/`).** Wasmtime (Cranelift JIT) costs about 1.2× the native module in a standalone benchmark and 1.5 to 1.7× through the plugin, copies around each 32-sample chunk included (3.2 % of a core against 1.9 %), and loads in 44 ms; the output matches the native build to about 1e-6. The wasm3 interpreter costs ten times Wasmtime (32.5 % of a core), so it is only a fallback for very light modules. Both run in Live, which allows the executable memory Wasmtime needs. Consequences: **Wasmtime is the runtime**; wasm3 stays an option for trusted, cheap modules; a host without executable memory gets the native copy (a plugin cannot "try and fall back": Wasmtime is killed, not refused, so the runtime is chosen from the host's entitlements or a setting before any code is compiled). Still to run: the heaviest modules (Grains, Delay Network, Modal Voice). If one costs more than about 2× native, it stays static-only and is also offered as a native package (the `platform` field in `files` already allows per-platform files). Not yet tested: other DAWs, Windows, Linux.
 
 ### 4.3 Resolution on the board
 
-A board file lists the node types it uses. On load, a host resolves each type: bundled → installed → registry (browser: fetch; app: offer to install; plugin in Live: use the installed set and show a placeholder node for a missing type, never download inside an audio host).
+A board file lists the node types it uses. On load, a host resolves each type: bundled → installed → store (browser: fetch; app: offer to install; plugin in Live: use the installed set and show a placeholder node for a missing type, never download inside an audio host).
 
 ## 5. Plugins
 
@@ -126,7 +128,7 @@ Plugins are installed by the Software Center, not hot-loaded:
 
 - Artifacts: a signed and notarised installer per OS (`.pkg`, `.msi`, `.zip` for Linux) containing all formats of one plugin, or the whole bundle.
 - Install paths are the system's (`/Library/Audio/Plug-Ins/VST3`, …). **Live must not be running** while a loaded plugin is replaced (the README warns of crashes); the app checks for Live and asks the user to quit it first.
-- The registry entry says which formats and OS versions each file supports. Third-party Bus receiver plugins can be listed with a download link (not hosted by us) so the Software Center is one place for everything that works with the Bus.
+- The store entry says which formats and OS versions each file supports. Third-party Bus receiver plugins can be listed with a download link (not hosted by us) so the Software Center is one place for everything that works with the Bus.
 - A plugin states the module `engineAbi` range it can host, so the app can warn when a module needs a newer plugin.
 
 ## 5a. Bundles, first run, and manual installs
@@ -142,7 +144,7 @@ Installing a bundle installs its members, each verified on its own. A bundle upd
 
 **First run.** When the app is installed (the installer's last page, or the first launch for a download without an installer), a setup assistant asks, with sizes and both pre-ticked:
 
-1. **Download the default module bundle** (the modules from the registry, into the registry folder below).
+1. **Download the default module bundle** (the modules from the store, into the store folder below).
 2. **Install the default plugin bundle** (all VST3 bridges into the system plugin folder). If Live is running it asks to quit it first, as in section 5.
 
 Declining either is fine: the app works, a missing module is a placeholder node with an *Install* button, and the Software Center keeps a "Default modules are not installed" banner until it is done. **Offline:** an offline installer carries both bundles. First-party modules also stay statically linked in the plugins (4.2), so a plugin in Live works even before the module bundle is installed and never downloads anything itself.
@@ -151,11 +153,11 @@ Declining either is fine: the app works, a missing module is a placeholder node 
 
 | What | Folder | Notes |
 |---|---|---|
-| Modules from the registry | `<data>/modules/registry/<id>/<version>/` | Written by the Software Center; do not edit |
+| Modules from the store | `<data>/modules/registry/<id>/<version>/` | Written by the Software Center; do not edit |
 | Modules by hand | `<data>/modules/local/` | A `.bleepmod`, or `<name>.wasm` with a `<name>.json` (the `module.json`) beside it. Read at start and when the folder changes. |
 | Plugins | The system VST3 folders | Copied by hand as usual; the Software Center lists them with their status |
 
-`<data>` is `~/Library/Application Support/Bleep` (macOS), `%APPDATA%\Bleep` (Windows), `~/.local/share/Bleep` (Linux); the settings can point at another folder. Every file in these folders goes through the same check as a download (signature, imports, ABI version); unsigned ones need *Allow unsigned modules* (or plugins) in **Settings → Security**, and the app, the plugins and the Software Center all read that setting from the one settings file. When several copies provide the same node type, the choice is: highest compatible version, then signed over unsigned, then the manual folder over the registry (`signing.md`, section 11).
+`<data>` is `~/Library/Application Support/Bleep` (macOS), `%APPDATA%\Bleep` (Windows), `~/.local/share/Bleep` (Linux); the settings can point at another folder. Every file in these folders goes through the same check as a download (signature, imports, ABI version); unsigned ones need *Allow unsigned modules* (or plugins) in **Settings → Security**, and the app, the plugins and the Software Center all read that setting from the one settings file. When several copies provide the same node type, the choice is: highest compatible version, then signed over unsigned, then the manual folder over the store (`signing.md`, section 11).
 
 ## 6. Presets
 
@@ -167,16 +169,16 @@ Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persisten
 | `cell` | One cell: its inner graph, jack names, its panel | Dropped onto the board as a cell |
 
 - Each preset lists the module types and versions it **needs**. Opening one with a missing module offers "Install 2 modules, then open" instead of loading a broken board.
-- Publishing: from the board, *Share…* (needs an account; browsing and downloading never do), a title, tags, a licence (default CC-BY, CC0 allowed), optional audio preview. The API validates the schema, checks all referenced types exist in the registry, enforces a size limit and per-user rate limit, and rejects anything that is not pure data.
+- Publishing: from the board, *Share…* (needs an account; browsing and downloading never do), a title, tags, a licence (default CC-BY, CC0 allowed), optional audio preview. The API validates the schema, checks all referenced types exist in the store, enforces a size limit and per-user rate limit, and rejects anything that is not pure data.
 - Versions: re-publishing creates a new version; installed copies show "update available". Local edits to an installed preset are kept as a fork.
 - Moderation: report button, takedown by an admin (the existing `admin` role) sets the preset's state to unlisted; the file stays but is no longer served in search.
-- The factory presets move out of `factory-presets.json` into the registry's `bleep` author, so the app, the website and the plugins all show the same library. A small set stays bundled for offline.
+- The factory presets move out of `factory-presets.json` into the store's `bleep` author, so the app, the website and the plugins all show the same library. A small set stays bundled for offline.
 
 ## 7. Release process
 
 Single source: the repository. CI builds and publishes; nobody uploads by hand.
 
-1. **Version.** Every plugin and module has its own version, counted by the registry: `scripts/release/release.py --level x|1.x|1.1.x|major|minor|patch` takes the newest published version and counts up at that level (built for plugins; see `doc/release.md`). A module's `module.json` carries the version once modules are released.
+1. **Version.** Every plugin and module has its own version, counted by the store: `scripts/release/release.py --level x|1.x|1.1.x|major|minor|patch` takes the newest published version and counts up at that level (built for plugins; see `doc/release.md`). A module's `module.json` carries the version once modules are released.
 2. **Detect what changed.** Hash the module's folder plus the `patch/common/dsp/` headers it includes (and `engine/` ABI). If the hash differs from the last release, the module needs a new version, and CI fails if its `version` was not bumped.
 3. **Build and test** (existing CI): the DSP tests, the module harness, the wasm build, then the harness against the wasm. Plugins: the macOS/Windows/Linux matrix, signing and notarisation.
 4. **Package and sign** (`scripts/package-module.py`, `scripts/package-plugin.sh`, `scripts/release/signing.py sign`): produce the artifacts and the `entry.json` files, each file signed with the publisher's key.
@@ -184,14 +186,14 @@ Single source: the repository. CI builds and publishes; nobody uploads by hand.
 6. **Publish.** Copy staged files into the immutable paths, then write `index.json` last, signed, in one atomic replace. A release is visible only when the index changes; rollback is putting the previous index back.
 7. **Channels.** `beta` index first for testers; promoting to `stable` is a new index, not a rebuild.
 
-`scripts/release/release.py` is built for plugins (steps 4 to 6 in a simpler form: a draft release, size- and hash-checked uploads, publish, index regenerated). It authenticates with an **admin-created release token** (`python -m app.cli token-create`), not with the storage credentials, so the machine that releases never holds S3 keys. Built since: adding the build of another platform to a published release (`--add-platform`), and **signing**: `release.py` signs every file with the developer's kit and checks it against the registry's root keys before uploading; the registry verifies every signature, binds a token to a publisher, records who uploaded and refuses a release without a valid key (`signing.md`, section 10). Not built yet: change detection, staging, a signed index and revocation list, modules.
+`scripts/release/release.py` is built for plugins (steps 4 to 6 in a simpler form: a draft release, size- and hash-checked uploads, publish, index regenerated). It authenticates with an **admin-created release token** (`python -m app.cli token-create`), not with the storage credentials, so the machine that releases never holds S3 keys. Built since: adding the build of another platform to a published release (`--add-platform`), and **signing**: `release.py` signs every file with the developer's kit and checks it against the store's root keys before uploading; the store verifies every signature, binds a token to a publisher, records who uploaded and refuses a release without a valid key (`signing.md`, section 10). Not built yet: change detection, staging, a signed index and revocation list, modules.
 
 ## 8. Website
 
 - **Docker no longer builds wasm.** The `web` stage of `website/Dockerfile` is removed. The site image contains only the Next.js static export and the board UI.
 - **Modules load from the registry.** `bleep-web.js` fetches `index.json` (cached) and then `modules/<id>/<version>/<id>.bleepmod` on demand, from the CDN, exactly as it loads `.wasm` today.
 - **Pinned for reproducibility.** The site build commits a `web-lock.json` (module id → version → sha256) so a given site release always runs the module set it was tested with; updating it is a normal commit (`scripts/release/release.py --update-web-lock`). A newer module reaches the website when the lock is bumped, never silently.
-- The board UI and `patch/web/js/` (graph runner, worklet) are versioned with the site and declare the `engineAbi` they implement. The site's module catalog and docs pages read the registry entries at build time instead of `patch/modules/*/module.json` from the repo, with the repo as a fallback in development.
+- The board UI and `patch/web/js/` (graph runner, worklet) are versioned with the site and declare the `engineAbi` they implement. The site's module catalog and docs pages read the store entries at build time instead of `patch/modules/*/module.json` from the repo, with the repo as a fallback in development.
 - Preset browser on the site: read-only listing from `presets/index.json`, *Open in Bleep Board* and *Open in the app* (`bleep://preset/<author>/<slug>`).
 
 ## 9. Standalone app sections
@@ -207,7 +209,7 @@ The app gets a left rail with:
 | **Devices** | Audio device, MIDI ports, Link, connected Audio Bridges and which Live instances are seen (today under File → Settings; it deserves a page because it is the first thing that goes wrong) |
 | **Docs** | Module manuals and the guide, offline from installed packages (each package carries its docs), with search |
 
-Settings (account, channel, registry URL for self-hosting, install locations) is a dialog, not a section. Not planned: a built-in shop, a patch store with payments.
+Settings (account, channel, store URL for self-hosting, install locations) is a dialog, not a section. Not planned: a built-in shop, a patch store with payments.
 
 Software Center and Library overlap on presets. The split: *Software Center* is about things you install and keep updated (it lists presets you installed); *Library* is where you find, rate and publish them.
 
@@ -233,7 +235,7 @@ patch/app/SoftwareCenter.*     the installer logic (UI is board-style web UI lik
 ## 11. Order of work
 
 1. **Schemas and package format.** `module.json` gets `version`, `requires`, `types`. `package-module.py` produces `.bleepmod` from the existing wasm output. Validate all current modules.
-2. **Registry v0.** The SeaweedFS service and the Caddy route (done in the compose file); `release.py` publishes into the bucket. The website reads from it; remove the `web` stage from the Dockerfile; add `web-lock.json`.
+2. **Store v0.** The SeaweedFS service and the Caddy route (done in the compose file); `release.py` publishes into the bucket. The website reads from it; remove the `web` stage from the Dockerfile; add `web-lock.json`.
 3. **Wasm host in the engine** and the CPU gate from 4.2. Decide per module: static-only or installable.
 4. **Software Center** in the app with Modules and Plugins; update check at start.
 5. **Plugin release pipeline**: signing, notarisation, installers.

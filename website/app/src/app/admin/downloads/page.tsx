@@ -21,7 +21,7 @@ function DownloadsTab() {
   if (!data) return <p>Loading…</p>;
   return (
     <section>
-      <p className="muted">What the registry offers for download. Everything is free and needs no login.</p>
+      <p className="muted">What the store offers for download. Everything is free and needs no login.</p>
       <Group title="Plugins" kind="plugin" items={data.plugins} />
       <Group title="Modules" kind="module" items={data.modules} />
       <Group title="Presets" kind="preset" items={data.presets} />

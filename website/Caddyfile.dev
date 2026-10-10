@@ -33,7 +33,7 @@
 		reverse_proxy api:8000
 	}
 
-	# Registry downloads: the public-read bucket in SeaweedFS, anonymous, no app code in the path.
+	# Store downloads: the public-read bucket in SeaweedFS, anonymous, no app code in the path.
 	# Releases are immutable (versioned paths) except index.json, which must revalidate.
 	handle /registry/* {
 		@index path /registry/v1/index.json /registry/v1/presets/index.json

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 """Package signing for modules and plugins: the reference implementation of doc/specs/signing.md.
 
-This library is used by the registry (website/api: it checks every release), by scripts/release/signing.py
+This library is used by the store (website/api: it checks every release), by scripts/release/signing.py
 (the command line for developers and admins) and by scripts/release.py. Needs the `cryptography` package.
 
 A PACKAGE is a .bleepmod / .zip or a folder; the signature is META/signature.json inside it. The
@@ -300,7 +300,7 @@ def test_vector() -> dict:
     issuer = Ed25519PrivateKey.from_private_bytes(bytes([2]) * 32)
     dev = Ed25519PrivateKey.from_private_bytes(bytes([3]) * 32)
     t0, t1 = 1_760_000_000, 1_760_000_000 + 365 * 86400
-    issuer_cert = make_cert(root, None, new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep registry issuer",
+    issuer_cert = make_cert(root, None, new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep store issuer",
                                                 scopes=["issue"], not_before=t0, not_after=t1))
     dev_cert = make_cert(issuer, issuer_cert, new_tbs("developer", public_bytes(dev), publisher="acme", name="Acme Audio",
                                                       scopes=["module"], not_before=t0, not_after=t1))

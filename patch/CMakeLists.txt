@@ -43,11 +43,6 @@ option(BLEEP_PATCH_UI_DEV "Development builds: serve the board UI from the sourc
 # Spec §5.2: VST3 only, Ableton Live only (for now).
 set(BLEEP_PATCH_FORMATS "VST3" CACHE STRING "Plugin formats (JUCE names)")
 set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.9)")
-# Spike: Verb run from its .wasm inside the plugins (engine/WasmModule.cpp, patch/wasm-host/README.md). Off unless all
-# three are set: the Wasmtime C API folder, a wasm3 checkout and build/web/modules/modules/reverb.wasm.
-set(BLEEP_PATCH_WASMTIME_DIR "" CACHE PATH "Wasmtime C API (wasmtime-vX-<target>-c-api) for the wasm Verb spike")
-set(BLEEP_PATCH_WASM3_DIR "" CACHE PATH "wasm3 checkout for the wasm Verb spike")
-set(BLEEP_PATCH_WASM_VERB "" CACHE FILEPATH "reverb.wasm for the wasm Verb spike")
 option(BLEEP_PATCH_BUILD_APP "Build the standalone Bleep Patch app" ON)
 option(BLEEP_PATCH_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
@@ -278,31 +273,6 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/module-views.json" "[${module_views}]\n"
 list(APPEND BLEEP_BOARD_UI "${CMAKE_CURRENT_BINARY_DIR}/module-views.json")
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
 
-set(BLEEP_WASM_SPIKE OFF)
-if (BLEEP_PATCH_WASMTIME_DIR AND BLEEP_PATCH_WASM3_DIR AND BLEEP_PATCH_WASM_VERB)
-    set(BLEEP_WASM_SPIKE ON)
-    message(STATUS "Wasm Verb spike: Wasmtime + wasm3 + ${BLEEP_PATCH_WASM_VERB}")
-    set(m3 "${BLEEP_PATCH_WASM3_DIR}/source")
-    add_library(bleep_wasm3 STATIC
-        "${m3}/m3_bind.c" "${m3}/m3_code.c" "${m3}/m3_compile.c" "${m3}/m3_core.c" "${m3}/m3_env.c" "${m3}/m3_exec.c"
-        "${m3}/m3_function.c" "${m3}/m3_info.c" "${m3}/m3_module.c" "${m3}/m3_parse.c" "${m3}/m3_validate.c")
-    target_include_directories(bleep_wasm3 PUBLIC "${m3}")
-    target_compile_options(bleep_wasm3 PRIVATE -w)
-    target_compile_definitions(bleep_wasm3 PRIVATE d_m3HasTracer=0)
-    juce_add_binary_data(bleep_wasm_assets HEADER_NAME WasmAssets.h NAMESPACE WasmAssets SOURCES "${BLEEP_PATCH_WASM_VERB}")
-    add_library(bleep_wasmtime STATIC IMPORTED)
-    set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_PATCH_WASMTIME_DIR}/lib/libwasmtime.a"
-        INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_PATCH_WASMTIME_DIR}/include")
-    if (APPLE)
-        set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
-    endif ()
-    if (TARGET bleep_module_harness)  # the harness then runs the wasm Verbs too
-        target_sources(bleep_module_harness PRIVATE engine/WasmModule.cpp)
-        target_compile_definitions(bleep_module_harness PRIVATE BLEEP_WASM_SPIKE=1)
-        target_link_libraries(bleep_module_harness PRIVATE bleep_wasm_assets bleep_wasm3 bleep_wasmtime)
-    endif ()
-endif ()
-
 # bleep_add_plugin(TARGET <t> PRODUCT <name> CODE <4 chars> KIND <PortKind>
 #                  [SYNTH] [MIDI_OUT] [VST3_CATEGORIES ...])
 function(bleep_add_plugin)
@@ -332,10 +302,6 @@ function(bleep_add_plugin)
         NEEDS_WEBVIEW2 ${webview2}
         VST3_CATEGORIES ${P_VST3_CATEGORIES}
         COPY_PLUGIN_AFTER_BUILD ${BLEEP_PATCH_COPY_PLUGINS})
-    if (BLEEP_WASM_SPIKE)
-        target_sources(${P_TARGET} PRIVATE engine/WasmModule.cpp)
-        target_link_libraries(${P_TARGET} PRIVATE bleep_wasm_assets bleep_wasm3 bleep_wasmtime)
-    endif ()
     target_sources(${P_TARGET} PRIVATE
         ${BLEEP_ENGINE_SOURCES}
         board/BoardWindow.cpp

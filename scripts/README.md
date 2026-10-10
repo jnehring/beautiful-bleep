@@ -10,7 +10,7 @@ what every script does and its options.
 | [`run/`](run/) | Running things during development | `run-app.sh`, `reload-live.sh`, `run-website.sh`, `ui-server.py` |
 | [`docs/`](docs/) | Generating documentation | `build-docs.py`, `module-screenshots.py` |
 | [`check/`](check/) | Checks that CI runs | `check-repo.py`, `check-api-docs.py` |
-| [`release/`](release/) | Signing and publishing to the registry, with their tests | `release.py`, `signing.py`, `test_release.py`, `test_signing.py` |
+| [`release/`](release/) | Signing and publishing to the store, with their tests | `release.py`, `signing.py`, `test_release.py`, `test_signing.py` |
 | [`experiments/`](experiments/) | Spikes that are not part of the build | `wasm-spike.sh` |
 
 A new script goes in the folder of what it is for; add a folder only when none fits. Paths to a script in docs, CI

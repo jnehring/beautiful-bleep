@@ -1,6 +1,6 @@
 # Run the website and create the admin user
 
-The website is five containers (`website/docker-compose.yml`): the static site behind Caddy, the API (FastAPI), PostgreSQL and the registry's object storage (SeaweedFS, with a one-shot `storage-init` that creates the bucket). Details of the API are in `website/README.md`.
+The website is five containers (`website/docker-compose.yml`): the static site behind Caddy, the API (FastAPI), PostgreSQL and the store's object storage (SeaweedFS, with a one-shot `storage-init` that creates the bucket). Details of the API are in `website/README.md`.
 
 ## First start
 
@@ -14,10 +14,10 @@ Edit `website/.env`:
 |---|---|
 | `POSTGRES_PASSWORD` | Required. Password of the database user |
 | `BLEEP_ADMIN_EMAIL`, `BLEEP_ADMIN_PASSWORD` | The first admin, created when the API starts if no user has that email. The password needs 10 to 128 characters |
-| `S3_ACCESS_KEY`, `S3_SECRET_KEY` | Required secret for the registry storage; the API writes releases with it |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY` | Required secret for the store storage; the API writes releases with it |
 | `BLEEP_COOKIE_SECURE` | `false` for plain `http://localhost`; `true` when the site is served over HTTPS |
 | `BLEEP_SITE_PORT` | Optional, default 8080 |
-| `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY`, `BLEEP_ISSUER_CERT` | The registry's signing keys (see [Signing keys](#signing-keys)). Without the root public key the registry refuses every release |
+| `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY`, `BLEEP_ISSUER_CERT` | The store's signing keys (see [Signing keys](#signing-keys)). Without the root public key the store refuses every release |
 | `BLEEP_REQUIRE_SIGNATURES` | Default `true`: a release without a valid developer signature is refused. Only turn it off for local experiments |
 
 Then start it:
@@ -59,17 +59,17 @@ docker compose exec api python -m app.cli demote you@example.com        # make a
 docker compose exec api python -m app.cli set-password you@example.com  # prompts; ends their sessions
 ```
 
-Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days N] [--publisher P]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create`, `developer-list`, `developer-revoke` (see [release.md](release.md); the keys the registry needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
+Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days N] [--publisher P]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create`, `developer-list`, `developer-revoke` (see [release.md](release.md); the keys the store needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
 
 Run these from `website/`. The password is typed at a prompt, never given as an argument.
 
 ## Signing keys
 
-The registry only accepts signed releases (the rules are in [signing.md](../specs/signing.md)). Three values in `website/.env` tell it whom to trust and let it issue developer keys:
+The store only accepts signed releases (the rules are in [signing.md](../specs/signing.md)). Three values in `website/.env` tell it whom to trust and let it issue developer keys:
 
 | Variable | What | Secret? |
 |---|---|---|
-| `BLEEP_ROOT_PUBLIC_KEYS` | The root **public** key (hex; two, comma separated, while a root is being replaced). The registry checks every release against it, and the apps and plugins will carry the same key | No |
+| `BLEEP_ROOT_PUBLIC_KEYS` | The root **public** key (hex; two, comma separated, while a root is being replaced). The store checks every release against it, and the apps and plugins will carry the same key | No |
 | `BLEEP_ISSUER_KEY` | The issuer's private key (PEM on one line, newlines written as `\n`). It issues developer keys | **Yes** |
 | `BLEEP_ISSUER_CERT` | The issuer's certificate (JSON on one line), signed by the root | No |
 
@@ -89,7 +89,7 @@ It writes `root.key` and `root.pub` (the root), `issuer.key` and `issuer.cert` (
 
 2. **Secure the root key.** Put `root.key` into your keystore, check that you can read it back, then delete it from `~/bleep-registry-keys`. Keep `root.pub` (it is public; the apps will be built with it).
 
-3. **Give the registry its part.** Append the three lines to the website config, restrict the file, then delete `registry.env` (it duplicates the issuer key). The first `echo` matters: if `website/.env` does not end with a newline, the first appended line would be glued to the last one (for example onto `S3_SECRET_KEY`, which also breaks the storage login) and the root key would never be read:
+3. **Give the store its part.** Append the three lines to the website config, restrict the file, then delete `registry.env` (it duplicates the issuer key). The first `echo` matters: if `website/.env` does not end with a newline, the first appended line would be glued to the last one (for example onto `S3_SECRET_KEY`, which also breaks the storage login) and the root key would never be read:
 
 ```bash
 { echo; cat ~/bleep-registry-keys/registry.env; } >> website/.env
@@ -137,7 +137,7 @@ docker compose exec api python -m app.cli developer-create acme --scopes module 
 docker compose exec api python -m app.cli token-create "acme" --publisher acme > acme.token
 ```
 
-7. **Release** with `--kit`: see [release.md](release.md). `scripts/release/release.py ... --dry-run` with the kit checks it against the registry first.
+7. **Release** with `--kit`: see [release.md](release.md). `scripts/release/release.py ... --dry-run` with the kit checks it against the store first.
 
 ### 2. Reuse existing keys
 
@@ -151,7 +151,7 @@ chmod 600 website/.env
 ```
 
 3. **Restore the database** from your backup if you can (see Notes below). The `developers` table lists the keys that were issued and which are revoked. Signatures verify without it, since the chain inside each one proves it was issued by your issuer. But in a **new empty database**, `developer-list` is empty, and keys revoked earlier are no longer refused. There is no command yet to add or revoke a key the database does not know, so restore the database if any key was revoked. Release tokens live in the database too: restore it, or make new tokens.
-4. **Start the API** (`scripts/run/run-website.sh`) and check that the registry trusts your root:
+4. **Start the API** (`scripts/run/run-website.sh`) and check that the store trusts your root:
 
 ```bash
 curl -s localhost:8080/api/registry/roots
@@ -159,7 +159,7 @@ curl -s localhost:8080/api/registry/roots
 
 The key must be the one in `root.pub`.
 
-5. **Check that the issuer matches the root** by letting an existing kit sign a dry run. A kit from the old site is checked against the registry's roots before anything is built or uploaded:
+5. **Check that the issuer matches the root** by letting an existing kit sign a dry run. A kit from the old site is checked against the store's roots before anything is built or uploaded:
 
 ```bash
 scripts/release/release.py --all --level patch --registry http://localhost:8080 --kit ~/.bleep-signing-kit.json --dry-run

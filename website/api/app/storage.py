@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Where registry files live: an S3 bucket (SeaweedFS in Compose); a dict in tests."""
+"""Where store files live: an S3 bucket (SeaweedFS in Compose); a dict in tests."""
 from typing import BinaryIO, Protocol
 
 from .config import settings

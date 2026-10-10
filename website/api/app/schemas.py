@@ -87,7 +87,7 @@ class FileIn(BaseModel):
     bytes: int = Field(ge=0)
     platform: str = Field(default="any", max_length=32, pattern=r"^[a-z0-9_-]+$")
     # Signing (doc/specs/signing.md): a module's content hash over the files inside its package (a plugin file's is its own
-    # sha256) and the developer's signature document. Required unless the registry runs with require_signatures off.
+    # sha256) and the developer's signature document. Required unless the store runs with require_signatures off.
     contentDigest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     signature: dict | None = None
 
