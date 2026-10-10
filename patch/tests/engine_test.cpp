@@ -1081,6 +1081,12 @@ float peakAfter(FakePort& p, int blocks, int from, std::function<void(int)> befo
 
 void cellPlugins() {
     g_test = "cell plugins";
+    {   // the ABI versions: the engine says its minor, and `supports` compares it
+        auto* probe = new Engine();
+        EXPECT(probe->abiMinor() == kAbiMinor && probe->supports(0) && !probe->supports(kAbiMinor + 1));
+        probe->release();
+        EXPECT(juce::String(kAbiTag).startsWith("bleep-engine-abi-"));
+    }
     const auto warm = factoryPreset("Warm Saws");
     const auto empty = factoryPreset("Empty FX");
     EXPECT(warm.isNotEmpty() && empty.isNotEmpty());

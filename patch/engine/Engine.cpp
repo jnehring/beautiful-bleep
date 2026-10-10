@@ -1036,6 +1036,7 @@ void setEnv(const char* value) {
 /// Stands in when another build owns the process's engine.
 class MismatchEngine final : public IEngine {
 public:
+    int abiMinor() const noexcept override { return 0; }
     void retain() noexcept override { ++refs_; }
     void release() noexcept override {
         if (--refs_ == 0) delete this;

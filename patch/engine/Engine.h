@@ -48,6 +48,7 @@ public:
     static constexpr int kUndoLimit = 200;
 
     // ---- IEngine -----------------------------------------------------------
+    int abiMinor() const noexcept override { return kAbiMinor; }
     void retain() noexcept override;
     void release() noexcept override;
     int registerInstance(PortKind kind) noexcept override;

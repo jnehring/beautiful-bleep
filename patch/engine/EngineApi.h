@@ -10,8 +10,15 @@
 // loaded for as long as the process runs.
 //
 // Because the engine may live in another binary, this interface uses only
-// plain types: no JUCE classes, no std::string, no exceptions. Binaries from
-// different builds refuse to share (kAbiTag differs) and report it.
+// plain types: no JUCE classes, no std::string, no exceptions.
+//
+// Versions (doc/specs/engine-abi.md): the MAJOR number (kAbiTag) changes when
+// the layout breaks: a method is inserted or removed, a struct that crosses
+// binaries changes. Binaries of different majors refuse to share and say so.
+// The MINOR number (kAbiMinor) counts additions: new methods go at the END of
+// IEngine, below the destructor, never above it, and bump the minor. Binaries
+// of the same major share; a plugin checks `engine.supports(minor)` before it
+// calls a method that came later than its major's first release.
 #pragma once
 
 #include "Module.h"
@@ -21,8 +28,10 @@
 
 namespace bleep::engine {
 
-/// Changes whenever this interface or the data it passes changes.
-constexpr const char* kAbiTag = "bleep-engine-abi-7";
+/// The MAJOR version: changes whenever the layout of this interface or the data it passes changes.
+constexpr const char* kAbiTag = "bleep-engine-abi-8";
+/// The MINOR version: methods added at the end of IEngine since this major's first release (0 at the start).
+constexpr int kAbiMinor = 0;
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port
@@ -59,6 +68,11 @@ enum class PortState {
 
 class IEngine {
 public:
+    /// The minor version of the engine's binary. Always the first method: its place never changes.
+    virtual int abiMinor() const noexcept = 0;
+    /// Whether the engine has everything up to minor version `minor` (a plugin newer than the engine asks first).
+    bool supports(int minor) const noexcept { return abiMinor() >= minor; }
+
     // ---- lifetime ([non-RT], message thread) ------------------------------
     virtual void retain() noexcept = 0;
     virtual void release() noexcept = 0;
@@ -123,6 +137,9 @@ public:
 
 protected:
     virtual ~IEngine() = default;
+
+    // Methods added after this major's first release (minor 1 and up) go BELOW this line, in order, each with the
+    // minor that introduced it in its comment: "[minor 1]", after a `public:`. Never insert above the destructor.
 };
 
 /// Finds the process's engine or creates it in this binary. Retained; call
