@@ -86,6 +86,10 @@ class FileIn(BaseModel):
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     bytes: int = Field(ge=0)
     platform: str = Field(default="any", max_length=32, pattern=r"^[a-z0-9_-]+$")
+    # Signing (doc/specs/signing.md): a module's content hash over the files inside its package (a plugin file's is its own
+    # sha256) and the developer's signature document. Required unless the registry runs with require_signatures off.
+    contentDigest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    signature: dict | None = None
 
     @field_validator("path")
     @classmethod
@@ -143,6 +147,8 @@ class DownloadFileOut(BaseModel):
     sha256: str
     platform: str
     uploaded: bool
+    signer: dict | None = None        # {"publisher", "keyId"} of the developer signature
+    uploaded_by: str | None = None    # the name of the release token that declared the file
 
 
 class DownloadReleaseOut(DownloadItemOut):

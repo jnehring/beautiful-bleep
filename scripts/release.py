@@ -22,6 +22,9 @@ Levels (what is counted up; the rest of the number is kept):
 With nothing published yet, x, 0.x and 0.0.x all give 0.1.0; 1.x gives 1.0.0.
 
 Registry URL: --registry or $BLEEP_REGISTRY_URL (the website's address; the API is under /api).
+Signing: every release file is signed with the developer's signing kit (--kit, or $BLEEP_SIGNING_KIT; doc/specs/signing.md;
+an admin makes one with `python -m app.cli developer-create`). The kit is checked against the registry's root keys before anything
+is uploaded, and the registry checks every signature again: without a valid key the release fails.
 Token: a release token an admin created with
     docker compose exec api python -m app.cli token-create NAME
 read from $BLEEP_RELEASE_TOKEN or --token-file. It is never accepted as an argument, which would
@@ -42,6 +45,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "website" / "api"))
+from app import signing  # noqa: E402
 
 # slug -> (title, artefact path under the build dir; {cfg} = build configuration)
 PLUGINS = {
@@ -118,23 +123,26 @@ class Registry:
     def versions(self, slug: str) -> list[str]:
         return [v["version"] for v in self._request("GET", f"/plugin/{slug}/versions")]
 
-    def release(self, slug: str, version: str, channel: str, title: str, notes: str, zips: list[Path], platform_id: str) -> None:
-        files = [{"path": z.name, "sha256": sha256(z), "bytes": z.stat().st_size, "platform": platform_id} for z in zips]
+    def roots(self) -> list[bytes]:
+        return [bytes.fromhex(k) for k in self._request("GET", "/roots")["roots"]]
+
+    def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict]) -> None:
         base = f"/plugin/{slug}/releases"
-        self._request("POST", base, {"version": version, "channel": channel, "title": title, "notes": notes, "files": files})
-        for z in zips:
-            with z.open("rb") as f:
-                self._request("PUT", f"{base}/{version}/files/{z.name}", data=f, length=z.stat().st_size)
+        self._request("POST", base, {"version": version, "channel": channel, "title": title, "notes": notes, "files": [f["declaration"] for f in files]})
+        self._upload(base, version, files)
         self._request("POST", f"{base}/{version}/publish")
 
-    def add_platform(self, slug: str, version: str, zips: list[Path], platform_id: str) -> None:
+    def add_platform(self, slug: str, version: str, files: list[dict]) -> None:
         """Adds this machine's build to a published release (the registry refuses a platform it already has)."""
-        files = [{"path": z.name, "sha256": sha256(z), "bytes": z.stat().st_size, "platform": platform_id} for z in zips]
         base = f"/plugin/{slug}/releases/{version}"
-        self._request("POST", f"{base}/platforms", {"files": files})
-        for z in zips:
-            with z.open("rb") as f:
-                self._request("PUT", f"{base}/files/{z.name}", data=f, length=z.stat().st_size)
+        self._request("POST", f"{base}/platforms", {"files": [f["declaration"] for f in files]})
+        self._upload(f"/plugin/{slug}/releases", version, files)
+
+    def _upload(self, base: str, version: str, files: list[dict]) -> None:
+        for f in files:
+            z = f["path"]
+            with z.open("rb") as fh:
+                self._request("PUT", f"{base}/{version}/files/{z.name}", data=fh, length=z.stat().st_size)
 
 
 # ---- packaging ----------------------------------------------------------------
@@ -179,6 +187,23 @@ def make_zip(src: Path, out: Path) -> None:
             z.write(src, src.name)
 
 
+def load_kit(path: str | None) -> dict | None:
+    path = path or os.environ.get("BLEEP_SIGNING_KIT")
+    return json.loads(Path(path).expanduser().read_text()) if path else None
+
+
+def sign_file(zip_path: Path, slug: str, version: str, plat: str, kit: dict, roots: list[bytes]) -> dict:
+    """The file's declaration for the registry, signed with the kit and checked against the registry's roots first."""
+    sha = bytes.fromhex(sha256(zip_path))
+    entries = signing.entries_for_file(zip_path.name, sha)
+    doc = signing.sign_with_kit(entries, kit, "plugin", slug, version, plat)
+    result = signing.verify(entries, doc, kind="plugin", id_=slug, version=version, platform=plat, roots=roots)
+    if result.status != "signed":
+        sys.exit(f"{slug}: the signing kit is not valid for this release: {result.status}: {result.reason or 'see doc/specs/signing.md'}")
+    return {"path": zip_path, "declaration": {"path": zip_path.name, "sha256": sha.hex(), "bytes": zip_path.stat().st_size,
+                                              "platform": plat, "signature": doc}}
+
+
 # ---- main ---------------------------------------------------------------------
 
 def read_token(args: argparse.Namespace) -> str:
@@ -203,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--add-platform", metavar="VERSION|latest", help="add this machine's build to the published VERSION instead of releasing a new one")
     ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL"), help="the website's URL (or $BLEEP_REGISTRY_URL)")
     ap.add_argument("--token-file", help="file holding the release token (or $BLEEP_RELEASE_TOKEN)")
+    ap.add_argument("--kit", help="the developer's signing kit (or $BLEEP_SIGNING_KIT)")
     ap.add_argument("--channel", choices=("stable", "beta"), default="stable")
     ap.add_argument("--notes", default="", help="release notes")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build" / "patch")
@@ -243,6 +269,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.build:
         subprocess.run([str(ROOT / "scripts" / "build-patch.sh")], check=True)
     registry = Registry(args.registry, None if args.dry_run else read_token(args))
+    kit = load_kit(args.kit)
+    if kit is None and not args.dry_run:
+        sys.exit("A signing kit is required: pass --kit FILE or set $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
 
     plan = []
     try:
@@ -260,8 +289,16 @@ def main(argv: list[str] | None = None) -> int:
                 plan.append((slug, artefact, published, target))
             else:
                 plan.append((slug, artefact, published, next_version(args.level, published)))
+        roots = registry.roots() if kit is not None else []
     except RegistryError as e:
         sys.exit(str(e))
+    if kit is not None:  # fail before anything is built or uploaded: is this kit valid, and for plugins?
+        probe = signing.entries_for_file("probe", b"\0" * 32)
+        who = signing.verify(probe, signing.sign_with_kit(probe, kit, "plugin", names[0], "0.0.1", "any"), kind="plugin",
+                             id_=names[0], version="0.0.1", platform="any", roots=roots)
+        if who.status != "signed":
+            sys.exit(f"The signing kit is not valid for plugins: {who.status}: {who.reason or 'see doc/specs/signing.md'}")
+        print(f"Signing as {who.publisher} (key {who.key_id})")
 
     plat = platform_id()
     print(f"Registry {args.registry}, " + (f"adding platform {plat} to {args.add_platform}" if args.add_platform
@@ -281,10 +318,11 @@ def main(argv: list[str] | None = None) -> int:
         zip_path = out_dir / f"{slug}-{version}-{plat}.zip"
         try:
             make_zip(artefact, zip_path)
+            files = [sign_file(zip_path, slug, version, plat, kit, roots)]
             if args.add_platform:
-                registry.add_platform(slug, version, [zip_path], plat)
+                registry.add_platform(slug, version, files)
             else:
-                registry.release(slug, version, args.channel, PLUGINS[slug][0], args.notes, [zip_path], plat)
+                registry.release(slug, version, args.channel, PLUGINS[slug][0], args.notes, files)
         except (RegistryError, subprocess.CalledProcessError) as e:
             print(f"  {slug} {version}: FAILED: {e}", file=sys.stderr)
             if done:

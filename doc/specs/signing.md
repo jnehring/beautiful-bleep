@@ -28,7 +28,18 @@ root key            offline, held by Brilliant Bleep; its public key is built in
 
 - **Why an issuer between root and developers.** The root key never goes online. The registry can then issue and renew developer certificates day to day with a key that can be thrown away and replaced if it leaks, and the root signs a new issuer certificate.
 - **Brilliant Bleep's own releases** are signed by a developer key like any other, with the publisher `bleep` and the `firstParty` flag, which alone allows ids without a namespace (`reverb`, not `acme/fuzz`).
-- **The developer's private key never leaves their machine.** The registry never sees it, so it cannot lose it.
+- **The developer's private key** is made by the admin today and handed over (section 10); the registry keeps only its key id. Once developers outside the team publish, they make their own and send only a request.
+
+**Where each key lives.**
+
+| Key | Where | Why there |
+|---|---|---|
+| Root, private | **Offline**: the owner's keystore, with a backup. Not in the repository, not in `website/.env`, not on the server. Needed only to certify a new issuer or to revoke one. | If the root leaked, every app and plugin that has its public key would have to be updated. A server is the most likely thing to be broken into, so it must not hold the one key that cannot be replaced. |
+| Root, public | `BLEEP_ROOT_PUBLIC_KEYS` in `website/.env` (the registry checks releases against it) and built into the apps and plugins | It is public; two keys during a rotation. |
+| Issuer, private, and its certificate | `BLEEP_ISSUER_KEY`, `BLEEP_ISSUER_CERT` in `website/.env` | The registry needs it to issue developer keys. If it leaks, the root revokes it and certifies a new one: nothing already installed has to change. |
+| Developer, private | The developer's machine or CI, as the kit the admin handed over | Only they can sign as them. |
+
+`scripts/signing.py init-registry DIR` makes the root and the issuer in one go and writes `registry.env` with the three lines for `website/.env`; `root.key` is then moved to the keystore and the copy deleted.
 
 ## 3. Primitives
 
@@ -145,19 +156,29 @@ Package signatures say who built a file. The registry additionally signs `index.
 
 ## 10. How a developer gets a key and signs
 
+**Today: the admin issues the key and hands it over.** There is no developer self-service yet.
+
 ```
-1.  scripts/signing.py keygen acme                 → acme.key (private), acme.pub          on the developer's machine
-2.  scripts/signing.py request acme --publisher acme → acme.csr   public key, publisher, name, signed by the key itself (proof of possession)
-3.  upload acme.csr on the website, signed in      (the registry's issuer signs it after the checks below)
-4.  download acme.cert                              the chain [issuer certificate, developer certificate]
-5.  scripts/signing.py sign fuzz.bleepmod --key acme.key --cert acme.cert --kind module --id acme/fuzz --version 1.0.0
-6.  scripts/release.py … --sign                     uploads the signed package; the registry verifies it (below)
+admin      docker compose exec api python -m app.cli developer-create acme --scopes module [--days 365] > acme.kit.json
+admin      docker compose exec api python -m app.cli token-create "acme CI" --publisher acme > token
+           (hand both over privately: the kit is the developer's private key and certificate)
+developer  scripts/signing.py sign fuzz.bleepmod --kit acme.kit.json --kind module --id acme/fuzz --version 1.0.0
+developer  scripts/release.py … --kit acme.kit.json --token-file token      (Bleep's own plugins: the "bleep" kit and an unrestricted token)
 ```
 
-- **Account and checks.** Requests need a website account with a confirmed e-mail address. A **module** scope is granted automatically for a publisher name nobody holds. The **plugin** scope and the `bleep` namespace are granted by an admin only. The registry reserves names that look like ours or like existing publishers.
+- **The trade-off.** The admin generates the key, so the admin has seen it. That is fine for a handful of people the admin knows; the registry stores only the key id, scopes and expiry (table `developers`), never the key. A developer who wants a key nobody else has seen uses the request flow, which the tool already has (`keygen`, `request`, then the admin runs `issue`), and later the website will take the request directly.
+- **Account and checks (when the website does it).** A website account with a confirmed e-mail address. A **module** scope is granted automatically for a publisher name nobody holds; the **plugin** scope and the `bleep` namespace by an admin only. Names that look like ours or like existing publishers are reserved.
+- **Revoking.** `python -m app.cli developer-revoke KEY_ID`: releases signed with that key are refused from then on. Publishing the signed revocation list to clients (section 8) is not built yet.
 - **Key custody.** `keygen` writes the private key as a PKCS#8 PEM, encrypted with a passphrase when `BLEEP_KEY_PASSPHRASE` is set, mode 0600. The recommendation is a passphrase, kept in the OS keychain; a CI system holds it as a secret. A developer who loses the key requests a new one; the old certificate is revoked if there is any doubt. Hardware keys (a YubiKey with Ed25519, or a cloud KMS that offers it) work through the same interface: the tool only needs a signing function.
 - **One key per developer or team.** Whoever holds the key can publish as the publisher. A team uses one key held in CI, or several keys, each with its own certificate under the same publisher.
-- **The registry verifies on upload** (the draft step of `release.py`): every package must carry a signature that verifies under the rules above, and its `id`/`version`/`platform` must be the ones in the entry. The shop publishes nothing unsigned. Packages that are not in the shop (a developer's own test builds) can still be signed locally (next section), so the same verification path runs everywhere.
+- **What the registry enforces on every release** (built; `website/api/app/routers/registry.py`):
+  1. **Every file needs a valid signature, or the release fails.** Verified under section 7 against the root keys and the revoked developer keys. With no root key configured the registry refuses everything (fail closed); `BLEEP_REQUIRE_SIGNATURES=false` exists for local experiments only.
+  2. **A token releases for one publisher.** A release token has a `publisher` (default `bleep`); the signature's publisher must be the same, or the request is refused. One release has one publisher, and a platform added later must be signed by the same one.
+  3. **A signed module package must be the one that was signed.** The release declares the content hash; when the file arrives, the registry opens the zip and recomputes it.
+  4. **Who uploaded is recorded.** Each file stores the token that declared it (shown by name in the admin's download details, never in the public `entry.json`) and the signer's publisher and key id. Only that token may continue a draft: upload files, replace the draft or publish it.
+  5. **`scripts/release.py` checks first.** Before building or uploading, it signs a probe with the kit and verifies it against the registry's root keys (`GET /api/registry/roots`), so a wrong or expired kit fails at once instead of after a 100 MB upload.
+
+  The shop publishes nothing unsigned. Packages that are not in the shop (a developer's own test builds) can still be signed locally, so the same verification path runs everywhere.
 
 ## 11. In the apps
 
@@ -168,7 +189,7 @@ Package signatures say who built a file. The registry additionally signs `index.
 | Module loader in the engine (`WasmModuleHost`) | When a module file is first used, and again when the file's hash changes | Verifies before the file is compiled, never after. Refuses per section 7. The result is cached with the file's hash, so the audio thread is never involved. |
 | Software Center (module and plugin installs, updates) | Before anything is written to the install folders | Downloads to a temporary folder, verifies, then moves. A refusal says why in the user's words. |
 | Plugin check at startup | The app and the Bleep plugins look at the Bleep plugins in the system folders | Recomputes the installer's installed-file record and compares it with what the Software Center recorded; a plugin that was changed afterwards, or that Bleep did not install, is shown as *not verified*. This is detection, not prevention: Live loads whatever is in its folder. |
-| Registry upload | On `POST …/releases` | Verifies; refuses unsigned or invalid. |
+| Registry upload | On `POST …/releases`, at the file upload, and when a platform is added | Verifies; refuses unsigned, invalid, revoked or for the wrong publisher (built). |
 | Website | Build and download pages | Shows the publisher and key id of every entry. |
 
 **Manual installs.** Dropping a `.bleepmod` (or a `.wasm` with a `module.json` next to it) into the modules folder works the same as installing from the registry: the folder is read at start and when it changes, each file is verified, and the node types it provides appear. A file in a folder that is not signed, or not signed by a trusted publisher, needs **Allow unsigned modules**. Plugins copied by hand into a system plugin folder are untouched by Live's loading, but the Software Center and the startup check list them as *unsigned* or *not verified*, and the Bleep plugins refuse to **install or connect to** an unsigned Bleep plugin (a bridge, a bus receiver) unless **Allow unsigned plugins** is on.
@@ -234,7 +255,8 @@ All three run the same test vector in their tests.
 
 ## 16. Not decided yet
 
-- The shop's first-party signing and the **root key ceremony**: who holds it, the offline machine, the backup (a paper copy in two places is the usual answer).
+- The **root key ceremony** is decided in outline: generated on an offline machine, held in the owner's keystore with a backup, used only to certify or revoke an issuer. Still open: a second person or device that can recover it, and a written rotation drill.
+- **Publishing the revocation list** to clients, signed by the issuer (the registry already refuses revoked keys itself).
 - Whether `community` (third-party, signed, not reviewed by us) is a separate release channel from `stable`, or all signed modules appear in one list with the publisher shown.
 - The plugin scope review: what we check before an admin grants it.
 - Whether the installers also carry the content-addressed file list of the installed plugin (what the startup check compares), or the Software Center keeps it only locally.

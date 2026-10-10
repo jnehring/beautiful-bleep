@@ -57,7 +57,7 @@ docker compose exec api python -m app.cli demote you@example.com        # make a
 docker compose exec api python -m app.cli set-password you@example.com  # prompts; ends their sessions
 ```
 
-Release tokens for `scripts/release.py` come from the same console: `token-create NAME [--days N]`, `token-list`, `token-revoke ID` (see [release.md](release.md)).
+Release tokens for `scripts/release.py` come from the same console: `token-create NAME [--days N] [--publisher P]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create`, `developer-list`, `developer-revoke` (see [release.md](release.md); the keys the registry needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
 
 Run these from `website/`. The password is typed at a prompt, never given as an argument.
 

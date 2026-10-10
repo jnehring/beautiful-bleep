@@ -9,6 +9,7 @@ import hashlib
 import io
 import json
 import tempfile
+import zipfile
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
@@ -16,18 +17,75 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from .. import signing
+from ..config import settings
 from ..db import get_db
 from ..deps import require_release_token
-from ..models import ApiToken, Release, now
-from ..schemas import PlatformIn, ReleaseIn, ReleaseOut
+from ..models import ApiToken, Developer, Release, now
+from ..schemas import FileIn, PlatformIn, ReleaseIn, ReleaseOut
 from ..storage import Storage, get_storage
 
 router = APIRouter(prefix="/api/registry", tags=["registry"])
 
 Kind = Literal["plugin", "module"]
-Slug = Path(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")
+# A third-party id "acme/fuzz" has the slug "acme.fuzz" (a "/" does not fit in a URL path segment).
+Slug = Path(pattern=r"^[a-z0-9][a-z0-9-]{0,62}(\.[a-z0-9][a-z0-9-]{0,62})?$")
 VersionPath = Path(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}$")
 MAX_FILE_BYTES = 1024 * 1024 * 1024
+
+
+def _signed_id(slug: str) -> str:
+    return slug.replace(".", "/", 1)
+
+
+def _revocations(db: Session) -> dict:
+    keys = db.scalars(select(Developer.key_id).where(Developer.revoked_at.is_not(None)))
+    return {"revokedKeys": [{"keyId": k} for k in keys], "revokedArtifacts": []}
+
+
+def _check_files(db: Session, token: ApiToken, kind: str, slug: str, version: str, files: list[FileIn]) -> list[dict]:
+    """The files of a release as stored: every one signed by a developer this token may release for, or the request fails.
+
+    The signature must verify for (kind, id, version, platform, content hash) against the root keys in the settings and
+    the revocations; the signer's publisher must be the token's (a token without one releases for "bleep" only); and
+    all files of one release have one publisher. Records who signed, and which token declared each file.
+    """
+    if not settings.require_signatures:
+        return [{**f.model_dump(), "uploaded": False, "token": token.id} for f in files]
+    roots = settings.roots
+    if not roots:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "The registry has no root key configured (BLEEP_ROOT_PUBLIC_KEYS)")
+    allowed = token.publisher or "bleep"
+    crl = _revocations(db)
+    out = []
+    publishers = set()
+    for f in files:
+        if f.signature is None:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: a signature is required")
+        if kind == "module" and not f.path.endswith((".bleepmod", ".zip")):
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: a module is a .bleepmod package")
+        digest = bytes.fromhex(f.contentDigest) if kind == "module" and f.contentDigest else None
+        if kind == "module" and digest is None:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: contentDigest is required")
+        content = digest if digest is not None else signing.entries_for_file(f.path, bytes.fromhex(f.sha256))
+        result = signing.verify(content, f.signature, kind=kind, id_=_signed_id(slug), version=version, platform=f.platform,
+                                roots=roots, now=int(now().timestamp()), crl=crl)
+        if result.status != "signed":
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: signature {result.status}: {result.reason or 'not valid'}")
+        if result.publisher != allowed:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, f"This token may release for {allowed!r}, the signature is by {result.publisher!r}")
+        publishers.add(result.publisher)
+        out.append({**f.model_dump(exclude={"signature"}), "contentDigest": f.contentDigest, "signature": f.signature,
+                    "signer": {"publisher": result.publisher, "keyId": result.key_id}, "uploaded": False, "token": token.id})
+    if len(publishers) > 1:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "All files of a release must be signed by one publisher")
+    return out
+
+
+def _own_draft(row: Release, token: ApiToken) -> None:
+    """Only the token that started a draft continues it."""
+    if row.created_by_token != token.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "This draft was started with another token")
 
 
 def _key(r: Release, path: str = "") -> str:
@@ -48,6 +106,12 @@ def _published(db: Session, kind: str | None = None, slug: str | None = None) ->
     if slug:
         q = q.where(Release.slug == slug)
     return list(db.scalars(q.order_by(Release.major, Release.minor, Release.patch)))
+
+
+@router.get("/roots")
+def roots():
+    """The root public keys this registry trusts (public; scripts/release.py checks a signing kit against them before uploading)."""
+    return {"roots": [k.hex() for k in settings.roots], "requireSignatures": settings.require_signatures}
 
 
 @router.get("/token")
@@ -75,8 +139,10 @@ def create_release(kind: Kind, body: ReleaseIn, slug: str = Slug, db: Session = 
     if row is None:
         row = Release(kind=kind, slug=slug, version=body.version, major=major, minor=minor, patch=patch)
         db.add(row)
+    else:
+        _own_draft(row, token)  # a draft is replaced only by the token that started it
     row.channel, row.title, row.notes, row.requires = body.channel, body.title, body.notes, body.requires
-    row.files = [{**f.model_dump(), "uploaded": False} for f in body.files]
+    row.files = _check_files(db, token, kind, slug, body.version, body.files)
     row.created_by_token = token.id
     try:
         db.commit()
@@ -89,11 +155,13 @@ def create_release(kind: Kind, body: ReleaseIn, slug: str = Slug, db: Session = 
 @router.put("/{kind}/{slug}/releases/{version}/files/{path:path}", status_code=status.HTTP_204_NO_CONTENT)
 async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug, version: str = VersionPath,
                       db: Session = Depends(get_db), storage: Storage = Depends(get_storage),
-                      _: ApiToken = Depends(require_release_token)):
+                      token: ApiToken = Depends(require_release_token)):
     row = _find(db, kind, slug, version)
     declared = next((f for f in row.files if f["path"] == path), None)
     if declared is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "File is not part of this release")
+    if declared.get("token", token.id) != token.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "This file was declared with another token")
     if row.status != "draft" and declared["uploaded"]:  # a published release only takes files still pending (a platform added later)
         raise HTTPException(status.HTTP_409_CONFLICT, "Release is already published")
     digest, size = hashlib.sha256(), 0
@@ -106,6 +174,14 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
             spool.write(chunk)
         if size != declared["bytes"] or digest.hexdigest() != declared["sha256"]:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Size or SHA-256 does not match the declaration")
+        if declared.get("contentDigest") and settings.require_signatures:
+            spool.seek(0)  # the files inside a module package must be the ones that were signed
+            try:
+                actual = signing.content_digest(signing.read_entries(spool)).hex()
+            except (ValueError, zipfile.BadZipFile) as e:
+                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Not a valid package: {e}")
+            if actual != declared["contentDigest"]:
+                raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "The files in the package are not the ones that were signed")
         spool.seek(0)
         storage.put(_key(row, path), spool)
     row.files = [{**f, "uploaded": True} if f["path"] == path else f for f in row.files]
@@ -116,7 +192,7 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
 
 @router.post("/{kind}/{slug}/releases/{version}/platforms", response_model=ReleaseOut)
 def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = VersionPath,
-                 db: Session = Depends(get_db), _: ApiToken = Depends(require_release_token)):
+                 db: Session = Depends(get_db), token: ApiToken = Depends(require_release_token)):
     """Declares files for platforms a published release lacks (built on another machine). Existing files never change;
     each file shows in entry.json once it is uploaded, so clients never see a half-uploaded platform file."""
     row = _find(db, kind, slug, version)
@@ -132,7 +208,11 @@ def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = 
         if f.path in paths:
             raise HTTPException(status.HTTP_409_CONFLICT, f"File {f.path} already exists in this release")
     pending = {f.path for f in body.files}
-    row.files = [f for f in row.files if f["uploaded"] or f["path"] not in pending] + [{**f.model_dump(), "uploaded": False} for f in body.files]
+    declared = _check_files(db, token, kind, slug, version, body.files)
+    owner = next((f["signer"]["publisher"] for f in row.files if f.get("signer")), None)
+    if owner and any(f["signer"]["publisher"] != owner for f in declared if f.get("signer")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, f"A platform of this release must be signed by {owner!r}, like its other files")
+    row.files = [f for f in row.files if f["uploaded"] or f["path"] not in pending] + declared
     db.commit()
     return row
 
@@ -141,7 +221,8 @@ def _entry(r: Release) -> dict:
     return {
         "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
         "notes": r.notes, "requires": r.requires, "published": r.published_at.isoformat(),
-        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform")} for f in r.files if f["uploaded"]],
+        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform", "contentDigest", "signer", "signature") if f.get(k) is not None}
+                  for f in r.files if f["uploaded"]],
     }
 
 
@@ -158,8 +239,9 @@ def write_index(db: Session, storage: Storage) -> dict:
 
 @router.post("/{kind}/{slug}/releases/{version}/publish", response_model=ReleaseOut)
 def publish(kind: Kind, slug: str = Slug, version: str = VersionPath, db: Session = Depends(get_db),
-            storage: Storage = Depends(get_storage), _: ApiToken = Depends(require_release_token)):
+            storage: Storage = Depends(get_storage), token: ApiToken = Depends(require_release_token)):
     row = _find(db, kind, slug, version)
+    _own_draft(row, token)
     if row.status == "published":
         raise HTTPException(status.HTTP_409_CONFLICT, "Already published")
     missing = [f["path"] for f in row.files if not f["uploaded"]]
