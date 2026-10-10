@@ -228,11 +228,14 @@ void AppController::syncPorts() {
         wants.push_back({"midi-out:" + out->getName(), out->getName(), {}, false, false, true});
 
     std::vector<std::unique_ptr<MidiPort>> midi;
+    std::vector<const decltype(wants)::value_type*> midiWants;
     for (const auto& w : wants) {
+        // A port that already exists stays where it is until the swap below: moving it out of midiPorts_ here would leave
+        // an empty entry for the audio thread, which iterates that list.
+        bool exists = false;
+        for (const auto& old : midiPorts_) exists = exists || (old && old->id == w.id);
         std::unique_ptr<MidiPort> p;
-        for (auto& old : midiPorts_)
-            if (old && old->id == w.id) p = std::move(old);
-        if (!p) {
+        if (!exists) {
             p = std::make_unique<MidiPort>();
             p->id = w.id;
             p->name = w.name;
@@ -248,17 +251,24 @@ void AppController::syncPorts() {
             if (w.in) p->inHandle = addInstance(PortKind::MidiIn, w.id + ":in", w.name);
             if (w.out) p->outHandle = addInstance(PortKind::MidiOut, w.id + ":out", w.name);
         }
-        p->sharedOutput = w.out && !w.isVirtual ? devices_.getDefaultMidiOutput() : nullptr;
-        midi.push_back(std::move(p));
+        midi.push_back(std::move(p));  // null: the existing port, taken over below
+        midiWants.push_back(&w);
     }
 
     if (linkHandle_ == 0) linkHandle_ = addInstance(PortKind::Link, "link", "Link");
 
+    juce::MidiOutput* sharedOutput = devices_.getDefaultMidiOutput();
     std::vector<std::unique_ptr<AudioPort>> oldAudio;
     std::vector<std::unique_ptr<MidiPort>> oldMidi;
     {
         const juce::SpinLock::ScopedLockType lock(portsLock_);
         const juce::SpinLock::ScopedLockType midiLock(midiLock_);
+        for (size_t i = 0; i < midi.size(); ++i) {  // the ports that stay, now that nothing else iterates the list
+            if (!midi[i])
+                for (auto& old : midiPorts_)
+                    if (old && old->id == midiWants[i]->id) midi[i] = std::move(old);
+            if (midi[i]) midi[i]->sharedOutput = midiWants[i]->out && !midiWants[i]->isVirtual ? sharedOutput : nullptr;
+        }
         oldAudio = std::move(audioPorts_);
         oldMidi = std::move(midiPorts_);
         audioPorts_ = std::move(audio);
