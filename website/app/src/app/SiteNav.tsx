@@ -18,7 +18,7 @@ export default function SiteNav() {
           {(Object.keys(AUDIENCES) as Audience[]).map((a) => (
             <a key={a} href={AUDIENCES[a].home} aria-current={a === current ? "true" : undefined}>{AUDIENCES[a].title}</a>
           ))}
-          <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Bleep Board</a>
+          <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Play</a>
           <a href="/store/" aria-current={path.startsWith("/store") ? "true" : undefined}>Bleep Store</a>
         </nav>
         <nav className="account" aria-label="Account">
