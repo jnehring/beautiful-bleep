@@ -242,6 +242,77 @@ void testModule(const ModuleSpec& spec, bool verbose) {
                     100.0 * r.cpu / std::max(r.seconds, 1e-9));
 }
 
+
+#ifdef BLEEP_WASM_SPIKE
+/// The wasm Verbs (engine/WasmModule.cpp) must sound exactly like the native one: same input, same knobs,
+/// 2 s in 128-sample blocks (the wasm host cuts them into 32-sample chunks). Wasm does not fuse multiply-adds
+/// the way the native build may, so the tolerance is small but not zero.
+void wasmParity(const char* wasmType, bool changeKnobs) {
+    const ModuleSpec* nativeSpec = Registry::get().find("reverb");
+    const ModuleSpec* wasmSpec = Registry::get().find(wasmType);
+    if (!nativeSpec || !wasmSpec) return;
+    auto a = Registry::get().create("reverb");
+    auto b = Registry::get().create(wasmType);
+    a->prepare(48000.0);
+    b->prepare(48000.0);
+    const int blocks = 750, n = 128;
+    const size_t np = nativeSpec->params.size();
+    std::vector<std::vector<float>> params(np, std::vector<float>(n));
+    std::vector<const float*> paramPtrs(np);
+    std::vector<float> inL(n), inR(n), zeros(n, 0.0f);
+    const float* inputs[4] = {inL.data(), inR.data(), zeros.data(), zeros.data()};
+    const bool connected[4] = {true, true, false, false};
+    std::vector<std::vector<float>> outA(5, std::vector<float>(n)), outB(5, std::vector<float>(n));
+    float* oa[5], *ob[5];
+    for (int j = 0; j < 5; ++j) { oa[j] = outA[(size_t)j].data(); ob[j] = outB[(size_t)j].data(); }
+    Transport t;
+    t.playing = true;
+    std::minstd_rand rng(7);
+    std::uniform_real_distribution<float> noise(-1.0f, 1.0f);
+    double worst = 0.0, peak = 0.0;
+    for (int blk = 0; blk < blocks; ++blk) {
+        if (changeKnobs && blk % 100 == 50)  // new settings in the middle of the run
+            for (size_t i = 0; i < np; ++i) {
+                const float k = std::uniform_real_distribution<float>(0.0f, 1.0f)(rng);
+                { a->setKnob((int)i, k); b->setKnob((int)i, k); }
+            }
+        for (size_t i = 0; i < np; ++i) {
+            const float v = a->knob((int)i);
+            std::fill(params[i].begin(), params[i].end(), v);
+            paramPtrs[i] = params[i].data();
+        }
+        for (int i = 0; i < n; ++i) {
+            const float env = std::exp(-(float)(((blk * n + i) % 24000)) / 2000.0f);
+            inL[(size_t)i] = noise(rng) * env * 0.5f;
+            inR[(size_t)i] = noise(rng) * env * 0.5f;
+        }
+        t.samplePos = (int64_t)blk * n;
+        ProcessContext c;
+        c.numSamples = n;
+        c.transport = &t;
+        c.ppqPerSample = t.bpm / 60.0 / 48000.0;
+        c.ppqStart = c.ppqPerSample * (double)t.samplePos;
+        c.params = paramPtrs.data();
+        c.inputs = inputs;
+        c.inputConnected = connected;
+        bool outConn[5] = {true, true, true, true, true};
+        c.outputConnected = outConn;
+        c.outputs = oa;
+        a->process(c);
+        c.outputs = ob;
+        b->process(c);
+        for (int j = 0; j < 5; ++j)
+            for (int i = 0; i < n; ++i) {
+                worst = std::max(worst, (double)std::fabs(outA[(size_t)j][(size_t)i] - outB[(size_t)j][(size_t)i]));
+                peak = std::max(peak, (double)std::fabs(outA[(size_t)j][(size_t)i]));
+            }
+    }
+    std::printf("  %s vs reverb%s: max difference %.3g (peak %.3g)\n", wasmType, changeKnobs ? " with knob changes" : "", worst, peak);
+    CHECK(peak > 1e-4, "%s: the reference is silent, the check proves nothing", wasmType);
+    CHECK(worst < 1e-3 * std::max(peak, 1.0), "%s differs from reverb by %g", wasmType, worst);
+}
+#endif
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -257,6 +328,12 @@ int main(int argc, char** argv) {
         testModule(*spec, !only.empty());
         ++count;
     }
+#ifdef BLEEP_WASM_SPIKE
+    for (const char* type : {"reverb-wasmtime", "reverb-wasm3"}) {
+        wasmParity(type, false);
+        wasmParity(type, true);
+    }
+#endif
     std::printf("module harness: %d module types, %d failures\n", count, g_failures);
     return g_failures == 0 ? 0 : 1;
 }
