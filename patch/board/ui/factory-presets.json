@@ -15,7 +15,8 @@
     {"name":"Sequencers","blurb":"Note sources that follow the transport: patch Notes into any Voice Cell."},
     {"name":"Effects","blurb":"Stereo insert effects: patch In L/R from any sound and take Out L/R onwards."},
     {"name":"Modulators","blurb":"Control, gate and trigger sources for everything else on the board: LFOs, randomness, envelopes and rhythms."},
-    {"name":"Generative","blurb":"Self-playing patches: press play and they make music on their own, in time with the transport. Out L/R out."}
+    {"name":"Generative","blurb":"Self-playing patches: press play and they make music on their own, in time with the transport. Out L/R out."},
+    {"name":"Test","blurb":"Presets for trying things out by hand in a host."}
   ],
   "presets": [
     {
@@ -4877,6 +4878,38 @@
           {"id":"k22","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k23","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k24","from":{"node":"ci","jack":"clock"},"to":{"node":"bender","jack":"clock"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Live Test: Verb", "category": "Test",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Test",
+        "description": "A pentatonic melody that plays with the transport, through Verb (medium room). Move Size, Decay and Mix while it plays; Mix at 100 % leaves only the tail.",
+        "tags": ["test","reverb"],
+        "nodes": [
+          {"id":"root","type":"cell","name":"Live Test: Verb","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"stepse","type":"step-sequencer","name":"Step Sequencer","x":340,"y":40,"parent":"root","params":{"length":0.225806,"rate":0.461538,"root":0,"scale":0.6875,"octave":0.5,"gatelength":0.444444},"data":{"steps":[{"g":1,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":7,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":4,"v":100},{"g":1,"p":9,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":2,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}},
+          {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"root","params":{"shape":0.4}},
+          {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"root","params":{"attack":0.250439,"decay":0.469903,"sustain":0.1,"release":0.435862}},
+          {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"root","params":{}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":1240,"y":40,"parent":"root","params":{"size":0.6,"decay":0.489157,"preDelay":0.308006,"diffusion":0.8,"damping":0.45,"mix":0.5}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"stepse","jack":"pitch"},"to":{"node":"oscill","jack":"pitch"},"amount":1},
+          {"id":"k2","from":{"node":"stepse","jack":"gate"},"to":{"node":"adsr","jack":"gate"},"amount":1},
+          {"id":"k3","from":{"node":"stepse","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
+          {"id":"k4","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k8","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
+          {"id":"k9","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
+          {"id":"k10","from":{"node":"ci","jack":"clock"},"to":{"node":"stepse","jack":"clock"},"amount":1}
         ]
       }
     }
