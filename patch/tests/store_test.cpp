@@ -205,7 +205,34 @@ void testPolicy() {
 }
 }  // namespace
 
-int main() {
+/// bleep_store_test --live URL ROOT_HEX: the client against a running store (not part of ctest): installs a module and a plugin into a temp folder.
+int live(const std::string& url, const std::string& rootHex) {
+    const juce::File data = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-store-live-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
+    Settings s;
+    s.storeUrl = url;
+    Client client(s, data, {fromHex(rootHex)}, (juce::int64)std::time(nullptr));
+    Index index;
+    std::string error;
+    CHECK(client.fetchIndex(index, error), "index: %s", error.c_str());
+    std::printf("index: %zu modules, %zu plugins\n", index.modules.size(), index.plugins.size());
+    InstalledModule m;
+    for (const char* slug : {"oscillator", "filter", "wavetable-osc"}) {
+        const bool ok = client.install(slug, m, error);
+        CHECK(ok && m.allowed && m.result.status == "signed", "install %s: %s (%s)", slug, error.c_str(), m.result.status.c_str());
+        if (ok) std::printf("%s %s: %s by %s, %zu types\n", slug, m.version.c_str(), m.result.status.c_str(), m.result.publisher.c_str(), m.types.size());
+    }
+    std::vector<std::string> names;
+    const juce::File vst3 = data.getChildFile("vst3");
+    const bool ok = client.installPlugin("bleep-midi-in", vst3, names, error);
+    CHECK(ok, "install plugin: %s", error.c_str());
+    if (ok) std::printf("plugin: %s -> %s\n", names.empty() ? "?" : names[0].c_str(), vst3.getFullPathName().toRawUTF8());
+    CHECK(ok && vst3.getChildFile("Bleep MIDI In.vst3/Contents/MacOS/Bleep MIDI In").existsAsFile(), "the plugin binary is there");
+    std::printf("live test: %d failures (data in %s)\n", failures, data.getFullPathName().toRawUTF8());
+    return failures == 0 ? 0 : 1;
+}
+
+int main(int argc, char** argv) {
+    if (argc == 4 && std::string(argv[1]) == "--live") return live(argv[2], argv[3]);
     const juce::File dir(BLEEP_STORE_FIXTURES);
     testVector();
     testCanonical();
