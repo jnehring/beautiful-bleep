@@ -38,8 +38,20 @@ Verb imports nothing but `env.emscripten_notify_memory_growth`: no WASI, no file
 - Live allows what Wasmtime needs. Hosts without that entitlement need the interpreter fallback (or ship the
   module native). Windows and Linux have no such restriction.
 
+## In Live 12 (the plugins, since the spike was built into them)
+
+`BLEEP_PATCH_WASMTIME_DIR`, `BLEEP_PATCH_WASM3_DIR` and `BLEEP_PATCH_WASM_VERB` (see `patch/CMakeLists.txt`) add two node types to the plugins, **Verb (wasm, Wasmtime)** and **Verb (wasm, wasm3)**, which run the embedded `reverb.wasm` through `patch/engine/WasmModule.cpp`. In Live 12 on an Apple M-series (one instance, 48 kHz; the log is `~/Library/Bleep Patch/wasm-test.log`):
+
+| | per sample | share of a core |
+|---|---|---|
+| native Verb (harness) | about 400 ns | 1.9 % |
+| Wasmtime | 660 to 680 ns | 3.2 % |
+| wasm3 | about 6780 ns | 32.5 % |
+
+Both load and run in Live, so the host allows Wasmtime's executable memory. The harness (`bleep_module_harness`, with the spike on) also compares both wasm Verbs with the native one on the same input and random knob changes: the largest difference is 7e-7 on a peak of 0.43.
+
 ## Not done
 
-Other modules (this spike hardcodes Verb's jacks), a module inside the real plugin in Live, Windows/Linux runs,
+Other modules (this spike hardcodes Verb's jacks), other DAWs, Windows/Linux runs,
 modules that use `juce_core` (they are built with wasm exceptions, which wasm3 does not support), per-block time limits
 (Wasmtime epochs / fuel), and a versioned ABI document.
