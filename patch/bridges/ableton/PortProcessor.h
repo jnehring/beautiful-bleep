@@ -19,7 +19,31 @@
 
 namespace bleep::patch {
 
-class PortProcessor : public juce::AudioProcessor, private juce::Timer {
+/// One of the 16 automatable parameters of a cell plugin: its name follows the preset's panel.
+class SlotParameter : public juce::AudioParameterFloat {
+public:
+    SlotParameter(int slot)
+        : juce::AudioParameterFloat(juce::ParameterID("p" + juce::String(slot + 1), 1), "Param " + juce::String(slot + 1), 0.0f, 1.0f, 0.0f),
+          fallback_("Param " + juce::String(slot + 1)) {}
+    juce::String getName(int maxLen) const override {
+        const juce::SpinLock::ScopedLockType lock(lock_);
+        return (shown_.isNotEmpty() ? shown_ : fallback_).substring(0, maxLen);
+    }
+    void setShownName(const juce::String& n) {
+        const juce::SpinLock::ScopedLockType lock(lock_);
+        shown_ = n;
+    }
+    juce::String shownName() const {
+        const juce::SpinLock::ScopedLockType lock(lock_);
+        return shown_;
+    }
+
+private:
+    mutable juce::SpinLock lock_;
+    juce::String shown_, fallback_;
+};
+
+class PortProcessor : public juce::AudioProcessor, private juce::Timer, private juce::AudioProcessorParameter::Listener {
 public:
     explicit PortProcessor(engine::PortKind kind);
     ~PortProcessor() override;
@@ -61,6 +85,9 @@ public:
 
 private:
     void timerCallback() override;
+    void parameterValueChanged(int index, float value) override;
+    void parameterGestureChanged(int, bool) override {}
+    void pollSlots();
     static BusesProperties busesFor(engine::PortKind kind);
 
     engine::PortKind kind_;
@@ -77,6 +104,14 @@ private:
     std::atomic<int> latency_{0};
     int64_t fallbackPos_ = 0;
     uint64_t seenGeneration_ = 0;
+    static constexpr int kSlots = 16;
+    std::array<SlotParameter*, kSlots> slots_{};
+    struct Mapped { juce::String node, param; };
+    std::array<Mapped, kSlots> mapping_{};
+    std::array<std::atomic<bool>, kSlots> slotDirty_{};   ///< the host moved it: the knob follows
+    bool ignoring_ = false;                               ///< we are setting it ourselves
+    uint64_t slotsGeneration_ = ~0ull;
+    int slotTick_ = 0;
     bool stateRestored_ = false;   ///< setStateInformation ran: a saved set, not a fresh instance
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PortProcessor)

@@ -456,7 +456,7 @@ void registerPortModules(Registry& r) {
     }
     {
         ModuleSpec s = portSpec("audio-insert", "Audio Insert", PortKind::AudioInsert,
-                                "A track's audio through the board and back (Bleep Audio Insert).");
+                                "A track's audio through the board and back (Bleep FX).");
         s.outputs = {{"l", "Send L", Signal::Audio, true}, {"r", "Send R", Signal::Audio, true}};
         s.inputs = {{"l", "Return L", Signal::Audio}, {"r", "Return R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, false); });

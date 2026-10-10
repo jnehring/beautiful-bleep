@@ -1042,6 +1042,8 @@ void panelSources() {
 // ---------------------------------------------------------------------------------
 // Cell plugins (Bleep Instrument, Bleep FX): a preset cell next to the port node.
 
+namespace {
+
 /// A factory preset as the plugin hands it to the engine: its document plus name and panels.
 juce::String factoryPreset(const char* name) {
     const auto presets = board::fromJson(juce::File(BLEEP_FACTORY_PRESETS).loadFileAsString());
@@ -1113,6 +1115,12 @@ void cellPlugins() {
         const juce::String firstNode = (*init["board"]["nodes"].getArray())[(init["board"]["nodes"].size() - 1)]["id"].toString();
         EXPECT(ui("setParam", ("[\"" + firstNode + "\",\"nope\",0.5]").toRawUTF8()).isVoid());
         EXPECT(ui("liveState", "[[]]").hasProperty("nodes"));
+        // The automatable knobs: the cell's panel controls, at most 16, each naming a real node and knob.
+        const auto knobs = ui("cellParams", "[]");
+        EXPECT(knobs.isArray() && knobs.size() >= 4 && knobs.size() <= 16);
+        for (int i = 0; i < knobs.size(); ++i)
+            EXPECT(board::findNode(e->board(), knobs[i]["node"].toString()) != nullptr && knobs[i]["name"].toString().isNotEmpty() &&
+                   (double)knobs[i]["value"] >= 0.0 && (double)knobs[i]["value"] <= 1.0);
         FakePort p(*e, inst);
         MidiEvent on;
         on.offset = 0;
@@ -1197,6 +1205,8 @@ void cellPlugins() {
         e->release();
     }
 }
+
+}  // namespace
 
 int main() {
     juce::ScopedJuceInitialiser_GUI juce;

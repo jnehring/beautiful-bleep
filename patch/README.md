@@ -8,6 +8,12 @@ on the board. In Live you add only:
 | Plugin | Live device | On the board |
 |---|---|---|
 | **Bleep Patch** | audio effect | required once per set; stores and opens the board; 16 macros |
+| **Bleep MIDI In** | instrument | notes, pitch, gate, velocity, CCs from a MIDI track |
+| **Bleep MIDI Out** | instrument (VST3 MIDI out) | notes, gate/pitch, CCs and bend to another track |
+| **Bleep Audio In** | audio effect | the track's audio |
+| **Bleep Audio Out** | instrument | board audio on its own track |
+| **Bleep Instrument** | instrument | one instrument preset (its panel in the window): MIDI in, its cell, audio out |
+| **Bleep FX** | audio effect | one effect preset (its panel in the window), the track's audio through its cell and back, dry/wet |
 | **Bleep Audio Bridge** | audio effect | connects Live to the standalone Bleep Patch app (spec §11.3) |
 
 ```bash

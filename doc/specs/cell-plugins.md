@@ -221,3 +221,13 @@ A host automation write is stored in an atomic per slot; the editor-independent 
 6. `note-router`, ghost cables.
 7. Rename and remove Audio Insert; release script and docs.
 8. Tests: `uiCall` round trip, parameter mapping, editor opens in the plugin test (`bridge_plugin_test`), `note-router`.
+
+## 12. Phase 3 status
+
+Built (commits `9b70a1d` and after):
+
+- **Panel in the plugin window** (11.1, 11.2): `IEngine::uiCall` (ABI 7); the board page's plugin mode (`?panelOf=` in a browser, `init.plugin` in a plugin); `PanelView` (a web view in the editor) and a bar with ◀ ▶, the preset menu, *Open Board* and Dry/Wet. The window is resizable and the panel scales to it; the first size comes from the panel's grid. The window no longer opens the board. If the panel is gone, the page builds one from the cell, once.
+- **16 parameters** (11.4): `SlotParameter` p1…p16 on both plugins; `Engine` answers `cellParams` (controls marked `expose`, else the first 16 dials and sliders of the panel); a 30 Hz message-thread timer carries host automation to the knobs and knob moves back to the host, and updates the names. No `expose` flag is set by any generated panel yet, so the fallback picks the first 16.
+- **Rename** (11.5): *Bleep Audio Insert* is **Bleep FX** (`BleepFx`, code `BpFx`, `PortKind::AudioInsert` inside); `release.py`, READMEs and `specs.md` follow.
+
+Not built, and not tried in Live: the web view inside Live's plugin window (the risk named in 11.2: rendering, keyboard focus, close and reopen, two instances), the browser overlay (the native menu stays), the three hand-written presets in the library, `note-router` for open hi-hats, ghost cables.

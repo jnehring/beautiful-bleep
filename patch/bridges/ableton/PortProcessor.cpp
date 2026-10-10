@@ -6,6 +6,8 @@
 
 #include "Board.h"
 
+#include <cmath>
+
 namespace bleep::patch {
 
 using engine::PortKind;
@@ -20,7 +22,7 @@ const char* productName(PortKind k) {
         case PortKind::AudioIn: return "Bleep Audio In";
         case PortKind::AudioOut: return "Bleep Audio Out";
         case PortKind::Instrument: return "Bleep Instrument";
-        case PortKind::AudioInsert: return "Bleep Audio Insert";
+        case PortKind::AudioInsert: return "Bleep FX";
         case PortKind::AudioBridge:  // Bleep Audio Bridge and Link nodes belong to the standalone app
         case PortKind::Link:
         case PortKind::MidiDevice:
@@ -55,12 +57,66 @@ PortProcessor::PortProcessor(PortKind kind)
         mix_ = new juce::AudioParameterFloat(juce::ParameterID("mix", 1), "Dry/Wet", 0.0f, 1.0f, 1.0f);
         addParameter(mix_);
     }
+    if (loadsPresets())
+        for (int k = 0; k < kSlots; ++k) {
+            slots_[(size_t)k] = new SlotParameter(k);
+            slotDirty_[(size_t)k] = false;
+            addParameter(slots_[(size_t)k]);
+            slots_[(size_t)k]->addListener(this);
+        }
     midiIn_.resize(engine::kMaxMidiEvents);
     midiOut_.resize(engine::kMaxMidiEvents);
-    startTimerHz(4);
+    startTimerHz(loadsPresets() ? 30 : 4);
 }
 
-PortProcessor::~PortProcessor() { stopTimer(); }
+PortProcessor::~PortProcessor() {
+    stopTimer();
+    for (auto* p : slots_)
+        if (p) p->removeListener(this);
+}
+
+void PortProcessor::parameterValueChanged(int index, float) {
+    // Any thread. Our own writes (the knob moved, a set loaded) do not come back as the host's.
+    if (ignoring_) return;
+    for (int k = 0; k < kSlots; ++k)
+        if (slots_[(size_t)k] && slots_[(size_t)k]->getParameterIndex() == index) slotDirty_[(size_t)k] = true;
+}
+
+/// The 16 parameters follow the cell's knobs both ways (cell-plugins.md §11.4). Message thread.
+void PortProcessor::pollSlots() {
+    auto call = [&](const char* method, const juce::String& args) {
+        const size_t len = engine().uiCall(handle(), method, args.toRawUTF8(), nullptr, 0);
+        std::string out(len, '\0');
+        if (len > 0) engine().uiCall(handle(), "__last", "[]", out.data(), len);
+        return juce::JSON::parse(juce::String::fromUTF8(out.data(), (int)len));
+    };
+    // The host moved a parameter: set its knob.
+    for (int k = 0; k < kSlots; ++k)
+        if (slotDirty_[(size_t)k].exchange(false) && mapping_[(size_t)k].node.isNotEmpty())
+            call("setParam", "[\"" + mapping_[(size_t)k].node + "\",\"" + mapping_[(size_t)k].param + "\"," +
+                                 juce::String(slots_[(size_t)k]->get(), 6) + "]");
+    // The knobs: which ones, what they are called, and where they stand now (a knob moved on the panel).
+    if (++slotTick_ < 6 && slotsGeneration_ == engine().boardGeneration()) return;
+    slotTick_ = 0;
+    slotsGeneration_ = engine().boardGeneration();
+    const auto list = call("cellParams", "[]");
+    bool titles = false;
+    ignoring_ = true;
+    for (int k = 0; k < kSlots; ++k) {
+        const auto& e = list.isArray() && k < list.size() ? list[k] : juce::var();
+        Mapped m{e["node"].toString(), e["param"].toString()};
+        const juce::String name = e["name"].toString();
+        if (slots_[(size_t)k]->shownName() != name) {
+            slots_[(size_t)k]->setShownName(name);
+            titles = true;
+        }
+        mapping_[(size_t)k] = m;
+        if (m.node.isNotEmpty() && !slotDirty_[(size_t)k] && std::fabs(slots_[(size_t)k]->get() - (float)(double)e["value"]) > 1e-4f)
+            slots_[(size_t)k]->setValueNotifyingHost((float)(double)e["value"]);
+    }
+    ignoring_ = false;
+    if (titles) updateHostDisplay(ChangeDetails().withParameterInfoChanged(true));
+}
 
 const juce::String PortProcessor::getName() const { return productName(kind_); }
 
@@ -238,9 +294,11 @@ void PortProcessor::setStateInformation(const void* data, int sizeInBytes) {
     auto xml = getXmlFromBinary(data, sizeInBytes);
     if (!xml || !xml->hasTagName("BleepPort")) return;
     engine().restoreInstanceId(handle(), xml->getStringAttribute("id").toRawUTF8());
+    ignoring_ = true;  // a saved value is not the host moving the knob
     for (auto* p : getParameters())
         if (auto* f = dynamic_cast<juce::AudioParameterFloat*>(p); f && xml->hasAttribute(f->paramID))
             *f = (float)xml->getDoubleAttribute(f->paramID);
+    ignoring_ = false;
     stateRestored_ = true;
     if (loadsPresets())
         if (auto* p = xml->getChildByName("Preset")) {
@@ -276,6 +334,7 @@ juce::String PortProcessor::presetName() const {
 }
 
 void PortProcessor::timerCallback() {
+    if (loadsPresets() && stateRestored_) pollSlots();
     // A new instance starts with a preset; a saved set (setStateInformation ran) keeps what it had, even nothing.
     if (loadsPresets() && !stateRestored_) {
         stateRestored_ = true;

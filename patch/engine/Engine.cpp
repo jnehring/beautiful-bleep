@@ -367,6 +367,54 @@ size_t Engine::cellPreset(int handle, char* out, size_t capacity) noexcept {
     return result.size();
 }
 
+/// The knobs of the instance's cell that the host can automate: the controls of its panel marked `expose`, or
+/// else its first 16 dials and sliders, in panel order. [{node, param, name, value}]
+juce::var Engine::cellParams(int handle) {
+    juce::Array<juce::var> list;
+    auto s = slotShared(handle);
+    const auto* port = s && hasBoard() ? board::findNodeByPort(board_, juce::String(s->id)) : nullptr;
+    const juce::String cell = port ? board::attachedCell(board_, port->getProperty("id").toString()) : juce::String();
+    if (cell.isEmpty()) return juce::var(list);
+    const juce::var* panel = nullptr;
+    if (const auto* panels = board_["panels"].getArray())
+        for (const auto& q : *panels)
+            if (q["cell"].toString() == cell) { panel = &q; break; }
+    if (panel == nullptr) return juce::var(list);
+    struct Pick { juce::String node, param, name; };
+    std::vector<Pick> exposed, fallback;
+    if (const auto* controls = (*panel)["controls"].getArray())
+        for (const auto& c : *controls) {
+            const juce::String type = c["type"].toString();
+            if (type != "dial" && type != "slider") continue;
+            const auto* wires = c["wire"].getArray();
+            if (wires == nullptr || wires->isEmpty()) continue;
+            const juce::String ref = (*wires)[0]["param"].toString();
+            const int dot = ref.indexOf(".");
+            if (dot <= 0) continue;
+            Pick p{ref.substring(0, dot), ref.substring(dot + 1), c["label"].toString()};
+            (c["expose"] ? exposed : fallback).push_back(p);
+        }
+    auto& chosen = exposed.empty() ? fallback : exposed;
+    for (const auto& p : chosen) {
+        if ((int)list.size() >= 16) break;
+        const auto* node = board::findNode(board_, p.node);
+        if (node == nullptr) continue;
+        const ModuleSpec* spec = Registry::get().find(node->getProperty("type").toString().toStdString());
+        const int i = spec ? spec->paramIndex(p.param.toStdString()) : -1;
+        if (i < 0) continue;
+        double value = spec->params[(size_t)i].defaultNormalised();
+        if (const auto* params = node->getProperty("params").getDynamicObject())
+            if (params->hasProperty(juce::Identifier(p.param))) value = params->getProperty(juce::Identifier(p.param));
+        auto* o = new juce::DynamicObject();
+        o->setProperty("node", p.node);
+        o->setProperty("param", p.param);
+        o->setProperty("name", p.name.isNotEmpty() ? p.name : node->getProperty("name").toString() + " " + juce::String(spec->params[(size_t)i].name));
+        o->setProperty("value", value);
+        list.add(juce::var(o));
+    }
+    return juce::var(list);
+}
+
 juce::var Engine::uiMessage() const {
     auto* o = new juce::DynamicObject();
     o->setProperty("board", hasBoard() ? board_ : juce::var());
@@ -392,6 +440,7 @@ juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var&
         return r;
     }
     if (m == "board") return uiMessage();
+    if (m == "cellParams") return cellParams(handle);
     if (m == "pluginCell") {  // {cell: id}: JSON results are objects or arrays, never a bare string
         juce::String cell;
         if (auto s = slotShared(handle); s && hasBoard())

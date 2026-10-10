@@ -84,7 +84,7 @@ Bleep Patch is a family of small, Eurorack-inspired building blocks that make Ab
 
 All blocks live on one shared canvas per Live set, the **Bleep Board**. On the board, modules are **nodes** and patch cables are directed connections between them. Nodes can be grouped into **cells**, which nest and can be copied. A **Voice Cell** turns one synthesizer voice into a polyphonic instrument.
 
-The board connects to Live through **ports**: small plugins that users drop onto tracks (*Bleep MIDI In*, *Bleep MIDI Out*, *Bleep Audio In*, *Bleep Audio Out*, *Bleep Instrument*, *Bleep Audio Insert*). Each port appears as a node on the board. Together, the ports form the **Ableton bridge**. Later bridges (OSC, CV, VCV Rack) connect the board to other worlds the same way.
+The board connects to Live through **ports**: small plugins that users drop onto tracks (*Bleep MIDI In*, *Bleep MIDI Out*, *Bleep Audio In*, *Bleep Audio Out*, *Bleep Instrument*, *Bleep FX*). Each port appears as a node on the board. Together, the ports form the **Ableton bridge**. Later bridges (OSC, CV, VCV Rack) connect the board to other worlds the same way.
 
 **Every Live set that uses Bleep Patch requires exactly one *Bleep Patch* plugin**, loaded anywhere in the set (any track, including the master). It is the main plugin: it stores the board and opens it (section 5.4).
 
@@ -167,8 +167,8 @@ The board's DSP runs in a **shared engine**: a process-wide singleton inside the
   - an input port writes block *N*; the engine consumes it in block *N+1*;
   - the engine's output for block *N* is read by output ports in block *N+1*.
   - So a signal from an input port to an output port is delayed by up to two blocks. Within the board, signals are sample-accurate (except feedback, section 7.5).
-- **Latency in samples, reported to Live.** Block sizes can vary, so the engine pads the path through the board to a **fixed latency in samples**, `L = 2 × maximum block size` (e.g. 256 samples at a 128-sample buffer, about 5.8 ms at 44.1 kHz). Output ports (*Audio Out*, *Bleep Instrument*, *Audio Insert*) report `L` to Live as their plugin latency, and Live's delay compensation then lines their audio up with the rest of the set:
-  - **Audio Insert:** fully compensated, like any plugin with latency.
+- **Latency in samples, reported to Live.** Block sizes can vary, so the engine pads the path through the board to a **fixed latency in samples**, `L = 2 × maximum block size` (e.g. 256 samples at a 128-sample buffer, about 5.8 ms at 44.1 kHz). Output ports (*Audio Out*, *Bleep Instrument*, *Bleep FX*) report `L` to Live as their plugin latency, and Live's delay compensation then lines their audio up with the rest of the set:
+  - **Bleep FX:** fully compensated, like any plugin with latency.
   - **Audio Out** fed from *Audio In* or *MIDI In*: Live delays all other tracks by `L`, so the board's output lines up with its sources.
   - **Board-internal clocks** run on the timestamps of the input data they belong to, so transport-synced modules stay on the grid after compensation.
   - `L` changes only when the buffer size or sample rate changes, never during playback or export.
@@ -228,8 +228,8 @@ Modules aren't plugins, so their knobs aren't host parameters. Proposal: the **B
 |---|---|---|
 | Live MIDI track → board | Yes | **Bleep MIDI In** port (section 6) |
 | Board → MIDI notes/CC for any instrument | Yes | **Bleep MIDI Out** port. Another MIDI track uses "MIDI From: [track] → [plugin]", monitoring set to "In". |
-| Live audio → board | Yes | **Bleep Audio In** or **Bleep Audio Insert** port |
-| Board → Live audio | Yes | **Bleep Audio Out**, **Bleep Instrument** or **Bleep Audio Insert** port |
+| Live audio → board | Yes | **Bleep Audio In** or **Bleep FX** port |
+| Board → Live audio | Yes | **Bleep Audio Out**, **Bleep Instrument** or **Bleep FX** port |
 | Live automation → board | Yes | Macros on the **Bleep Patch** plugin (section 5.7) |
 | Board → Brilliant Bleep / Bleep Bus plugins | Yes | Bleep Bus (section 5.5) |
 | Board → Live / third-party parameters (v1) | Workaround | MIDI Out to a virtual loopback port (IAC on macOS, loopMIDI on Windows), MIDI-mapped in Live. 7-bit, main-thread rate, overrides automation. |
@@ -254,8 +254,8 @@ In Live, users can only add the plugins in this section. Each port appears autom
 | **Bleep MIDI Out** | Instrument (VST3 only) | Inputs: `notes`; mono `pitch` + `gate` + `velocity`; up to 8 `control` → CC; one `control` → pitch bend (14-bit) | Another track records or plays from it via "MIDI From". |
 | **Bleep Audio In** | Audio effect (passes audio through) | Outputs: `audio` L, R | Taps the track's audio at its position in the chain. |
 | **Bleep Audio Out** | Instrument | Inputs: `audio` L, R | A sound source on its own track, so board audio gets a normal mixer channel, sends and effects. Typical use: a poly synth built on the board. |
-| **Bleep Instrument** | Instrument | Outputs: same as Bleep MIDI In. Inputs: `audio` L, R | MIDI In and Audio Out in one plugin, so a board synth sits on one track with normal record-arm and monitoring. Its plugin window can show a panel (section 9.7). Reports its latency like Audio Out. |
-| **Bleep Audio Insert** | Audio effect | Outputs: `audio` L, R (dry signal). Inputs: `audio` L, R (return) | Routes the track's audio through the board and back. Dry/wet control on the plugin; the dry signal is delayed to match. With nothing patched into the return, the send passes through. Two blocks of latency (section 5.3). |
+| **Bleep Instrument** | Instrument | Outputs: same as Bleep MIDI In. Inputs: `audio` L, R | MIDI In and Audio Out in one plugin, so a board synth sits on one track with normal record-arm and monitoring. Loads one instrument cell preset ([`cell-plugins.md`](cell-plugins.md)) and opens on its panel (section 9.7); the cell is on the board, where it can be edited and cabled. Reports its latency like Audio Out. |
+| **Bleep FX** | Audio effect | Outputs: `audio` L, R (dry signal). Inputs: `audio` L, R (return) | Loads one effect cell preset ([`cell-plugins.md`](cell-plugins.md)) and routes the track's audio through it and back; it opens on the preset's panel. Dry/wet control on the plugin; the dry signal is delayed to match. With nothing patched into the return, the send passes through. Two blocks of latency (section 5.3). |
 
 **Bleep Panel** is also part of the bundle but isn't a port: it carries no signals and doesn't appear as a node (section 9.7).
 
@@ -263,7 +263,7 @@ In Live, users can only add the plugins in this section. Each port appears autom
 |---|---|---|---|
 | **Bleep Panel** | Audio effect (passes audio through) | Nothing (not a node) | Shows one panel of the board in its plugin window. Any number per set; several can show the same panel. |
 
-Every port's own plugin UI is small: the node's name, a status line (board, latency, resyncs), an *Open Board* button, and Dry/Wet for the Audio Insert. Port-specific settings (MIDI channel, CC numbers, transpose) are knobs and settings of the port's node, in its module view on the board.
+Every port's own plugin UI is small: the node's name, a status line (board, latency, resyncs), an *Open Board* button, and Dry/Wet for Bleep FX. Port-specific settings (MIDI channel, CC numbers, transpose) are knobs and settings of the port's node, in its module view on the board.
 
 **Port nodes on the board:**
 - can be renamed (the name is shown in both the board and the plugin UI);
@@ -616,7 +616,7 @@ The board has its own undo/redo stack covering all edits: adding, removing, movi
 Audio is a first-class signal type on the board from v1, because the engine runs in one process and passes audio between nodes like any other signal. This enables, without extra tracks or sends:
 
 - **Synthesis:** oscillators, filters and amps on the board, played and heard through Bleep Instrument (or Bleep MIDI In plus Bleep Audio Out on separate tracks).
-- **Effects:** route a track through the board with Bleep Audio Insert.
+- **Effects:** route a track through the board with Bleep FX.
 - **Routing between tracks:** Bleep Audio In on one track → Bleep Audio Out on another.
 - **Audio as modulation:** any audio signal used directly as a mod source, or through an envelope follower.
 - **Feedback loops:** e.g. Filter → Grit → back into the Filter (section 7.5).
@@ -992,7 +992,7 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 | Phase | Content |
 |---|---|
 | **0: Technical prototype** | Plugin bundle with two ports and the shared engine in Live: block claiming, port latency, timing and jitter under different buffer sizes, thread loads and offline export. Port latency reporting and Live's delay compensation. Board window as a non-host top-level window (focus, keyboard, hide/show) on macOS and Windows. Main-plugin persistence across save/load, track duplication, copy/paste between sets and undo in Live. Test MIDI ports as instrument vs. effect. |
-| **1: Core release** | Engine, board (nodes, cables, cells, floating module views, undo, cell presets), Ableton bridge (Bleep Patch with macros, MIDI In, MIDI Out, Audio In, Audio Out, Bleep Instrument, Audio Insert). Modules: Function, Utility, Random, Filter. Bus v1 spec, open SDK, developer docs, conformance suite, **Bleep Patch homepage**. Bus inputs in Grit and Cinch. |
+| **1: Core release** | Engine, board (nodes, cables, cells, floating module views, undo, cell presets), Ableton bridge (Bleep Patch with macros, MIDI In, MIDI Out, Audio In, Audio Out, Bleep Instrument, Bleep FX). Modules: Function, Utility, Random, Filter. Bus v1 spec, open SDK, developer docs, conformance suite, **Bleep Patch homepage**. Bus inputs in Grit and Cinch. |
 | **2: Synthesis and expansion** | Voice Cells, Oscillator, Multi Filter, VCA, ADSR, CV to Notes, MIDI Device (standalone); panels stage 1 (combined module views, shown in the board, in port plugin windows and in the **Bleep Panel** plugin); Oscillator, Amp/Mixer; Clock, Drift, Morph; native bus inputs across the Brilliant Bleep line; patch library on the homepage. |
 | **2b: Standalone** | The Bleep Patch app (section 11): projects, device bridge, virtual MIDI ports, Bleep Audio Bridge, Ableton Link node. |
 | **3: Live bridge** | M4L Bridge device (`live.remote~`); Extensions SDK companion tools (routing setup, render-to-automation). |
@@ -1007,7 +1007,7 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
   - deactivated devices and tracks (forum reports say a switched-off device may still be processed, so ghost detection can't rely on `process()` stopping);
   - Live's delay compensation with latent plugins on some tracks (do all tracks still get the same transport position per buffer?);
   - tempo changes, loop jumps and transport stop.
-- **Port latency compensation.** Section 5.3 relies on Live compensating the latency reported by Audio Out, Bleep Instrument and Audio Insert. Phase 0 verifies this, including during export.
+- **Port latency compensation.** Section 5.3 relies on Live compensating the latency reported by Audio Out, Bleep Instrument and Bleep FX. Phase 0 verifies this, including during export.
 - **Board persistence.** Main-plugin model (section 5.4): verify duplication, copy/paste between sets and Live's undo in phase 0.
 - **Board window.** A non-host top-level window may misbehave in some Live versions (focus, z-order, full-screen, multiple monitors).
 - **Bleep Audio Bridge deadline.** The app must process each block within one buffer, in another process (section 11.6).

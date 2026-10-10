@@ -17,7 +17,7 @@ as MIDI channels and CC numbers are in the node's view on the board.
 | **Bleep Audio In** | any track, anywhere in the chain | the track's audio at that point (*L*, *R*); the audio passes through unchanged |
 | **Bleep Audio Out** | its own MIDI track | board audio (*L*, *R*) on that track, with its own mixer channel |
 | **Bleep Instrument** | a MIDI track | MIDI In and Audio Out in one plugin: a board synth on one track |
-| **Bleep Audio Insert** | any track | *Send* (the track's audio) and *Return* (back to the track), with Dry/Wet. With nothing patched into *Return*, the audio passes through |
+| **Bleep FX** | any track | *Send* (the track's audio) and *Return* (back to the track), with Dry/Wet. With nothing patched into *Return*, the audio passes through |
 
 **Latency:** audio through the board arrives two audio buffers late. Audio
 Out, Instrument and Audio Insert report it to Live (Live's delay

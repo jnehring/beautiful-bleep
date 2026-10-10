@@ -25,7 +25,7 @@ plugins appear in Live's browser under **Plug-Ins → Bleep Patch**.
 1. Put **Bleep Patch** on any track (the master track is a good place).
    Every set that uses Bleep Patch needs exactly one. Its window opens the
    board.
-2. Put **Bleep Audio Insert** on a synth track, after the synth. It appears
+2. Put **Bleep FX** on a synth track, after the synth. It appears
    on the board by itself, named after the track.
 3. On the board, press **Tab**, type *filter* and press Enter. Drag from the
    Insert's *Send L* to the Filter's *In L*, and from the Filter's *Out L*
