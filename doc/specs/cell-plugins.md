@@ -55,7 +55,10 @@ Either key may be absent; `plays` absent means "board only". A preset may declar
 | **Drum cell** (plain, `trig` input) | all Drums, and Drum Machines that have one | `{trigger: "trig", velocity: "velocity"}`: any note triggers the sound, velocity to the velocity jack |
 | **Hi-hat cell** (`closed` and `open` inputs) | Drums/Hats | `{trigger: {"default": "closed", "44": "closed", "46": "open"}, velocity}`: the General MIDI hat notes, any other note closes |
 | **Pitched plain cell** (a `pitch` input) | Seasons Turning, Lichen Drone | `{pitch: "root"}`: the last note's pitch |
-| **Self-playing** (no note input; clocked or free-running) | Drum Machines, Generative | `{}`: MIDI is ignored, the cell plays with the transport; its Clock/Run follow it as on the board |
+| **Self-playing** (no note input; clocked or free-running) | Generative | `{}`: MIDI is ignored, the cell plays with the transport |
+| **Drum machine** (self-playing, plus a shared `notes` input) | Drum Machines | `{notes: "notes"}`: the host's MIDI stream goes to the cell's Notes input, where a **Drum Notes** module turns General MIDI drum notes (kick 35/36, snare 38/40, rim 37, clap 39, hats 42/44 and 46, toms, cowbell 56, ride, crash) into hits on top of the pattern (`p.gmDrums(...)` in the kit) |
+
+**Time:** the Instrument port node has a `clock` (24 per quarter note, only while the host plays) and a `playing` output. A cell with a shared input named `clock` gets the first, one named `run` the second, so self-playing cells follow Live's transport and start/stop.
 
 Keys: `trigger` (a jack id, or a map of MIDI note → jack with a `default`), `velocity`, `pitch`, `gate`, all optional. The kit's `checkPlays` rejects a jack the cell does not have. `cc` and `bend` mappings are not in the first version.
 

@@ -1981,9 +1981,9 @@
         "category": "Drum Machines",
         "description": "Drum Map plays a Ring kick, snare, clap and hats; move the shared X and Y inputs to travel between grooves, hold Fill for fills.",
         "tags": ["drums","drum map","generative","ring"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Map Walker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"x","name":"X","type":"control"},{"id":"y","name":"Y","type":"control"},{"id":"fill","name":"Fill","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Map Walker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"x","name":"X","type":"control"},{"id":"y","name":"Y","type":"control"},{"id":"fill","name":"Fill","type":"gate"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumma","type":"drum-map","name":"Drum Map","x":340,"y":260,"parent":"root","params":{"x":0.3,"y":0.55,"kickdensity":0.55,"snaredensity":0.5,"hatsdensity":0.65,"chaos":0.12,"swing":0.16}},
@@ -1991,7 +1991,8 @@
           {"id":"ringsn","type":"ring-snare","name":"Ring Snare","x":640,"y":260,"parent":"root","params":{"tune":0.463,"snappy":0.65,"decay":0.465127}},
           {"id":"ringcl","type":"ring-clap","name":"Ring Clap","x":640,"y":480,"parent":"root","params":{"tone":0.459504,"decay":0.457886,"level":0.6}},
           {"id":"ringha","type":"ring-hats","name":"Ring Hats","x":640,"y":700,"parent":"root","params":{"closed":0.4344,"tone":0.6,"level":0.7}},
-          {"id":"audiom","type":"audio-mixer","name":"Kit Mixer","x":1240,"y":260,"parent":"root","params":{"level2":0.78346,"pan2":0.46,"level3":0.699337,"pan3":0.575,"level4":0.726805,"pan4":0.65}}
+          {"id":"audiom","type":"audio-mixer","name":"Kit Mixer","x":1240,"y":260,"parent":"root","params":{"level2":0.78346,"pan2":0.46,"level3":0.699337,"pan3":0.575,"level4":0.726805,"pan4":0.65}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"x"},"to":{"node":"drumma","jack":"x"},"amount":0.5},
@@ -2010,7 +2011,16 @@
           {"id":"k14","from":{"node":"ringha","jack":"out"},"to":{"node":"audiom","jack":"in4l"},"amount":1},
           {"id":"k15","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k17","from":{"node":"ci","jack":"clock"},"to":{"node":"drumma","jack":"clock"},"amount":1}
+          {"id":"k17","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k18","from":{"node":"drumno","jack":"kick"},"to":{"node":"ringki","jack":"trig"},"amount":1},
+          {"id":"k19","from":{"node":"drumno","jack":"snare"},"to":{"node":"ringsn","jack":"trig"},"amount":1},
+          {"id":"k20","from":{"node":"drumno","jack":"clap"},"to":{"node":"ringcl","jack":"trig"},"amount":1},
+          {"id":"k21","from":{"node":"drumno","jack":"hat"},"to":{"node":"ringha","jack":"closed"},"amount":1},
+          {"id":"k22","from":{"node":"drumno","jack":"open"},"to":{"node":"ringha","jack":"open"},"amount":1},
+          {"id":"k23","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringki","jack":"velocity"},"amount":1},
+          {"id":"k24","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringsn","jack":"velocity"},"amount":1},
+          {"id":"k25","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringha","jack":"velocity"},"amount":1},
+          {"id":"k26","from":{"node":"ci","jack":"clock"},"to":{"node":"drumma","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2022,9 +2032,9 @@
         "category": "Drum Machines",
         "description": "A Gate Sequencer with probabilities and ratchets plays Macro Osc's Kick, Snare and Metal models and a Perc Voice FM blip. Shared input Fill.",
         "tags": ["drums","gate sequencer","macro osc","synthetic"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Macro Foundry","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"fill","name":"Fill","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Macro Foundry","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"fill","name":"Fill","type":"gate"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"gatese","type":"gate-sequencer","name":"Gate Sequencer","x":340,"y":260,"parent":"root","params":{"swing":0.12,"ratchetdecay":0.3},"data":{"tracks":[{"mute":false,"steps":[{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100}]},{"mute":false,"steps":[{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":48},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":124},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":3,"rs":1,"n":0,"c":[0,0],"v":90},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100}]},{"mute":false,"steps":[{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":3,"rs":1,"n":0,"c":[0,0],"v":90},{"on":1,"p":100,"l":50,"t":0,"r":2,"rs":0,"n":0,"c":[0,0],"v":90},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":1,"p":100,"l":50,"t":0,"r":3,"rs":1,"n":0,"c":[0,0],"v":90}]},{"mute":false,"steps":[{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[1,12],"v":90},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":96},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[1,12],"v":90},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":0,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":100},{"on":1,"p":45,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[0,0],"v":80},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110},{"on":1,"p":100,"l":50,"t":0,"r":1,"rs":0,"n":0,"c":[4,0],"v":110}]}]}},
@@ -2032,7 +2042,8 @@
           {"id":"macroo2","type":"macro-osc","name":"Snare","x":640,"y":260,"parent":"root","params":{"model":0.933333,"octave":0.375,"coarse":0.708333,"tone":0.6,"shape":0.45,"blend":0.55,"decay":0.413638,"level":0.8}},
           {"id":"macroo3","type":"macro-osc","name":"Metal","x":640,"y":480,"parent":"root","params":{"model":1,"tone":0.75,"shape":0.5,"blend":0.2,"decay":0.265144,"level":0.6}},
           {"id":"percvo","type":"perc-voice","name":"FM Blip","x":640,"y":700,"parent":"root","params":{"engine":0,"pitch":0.583401,"tone":0.45,"morph":0.6,"click":0.2,"decay":0.319841,"sweep":0.2,"level":0.6}},
-          {"id":"audiom","type":"audio-mixer","name":"Kit Mixer","x":1240,"y":260,"parent":"root","params":{"level2":0.78346,"pan2":0.475,"level3":0.672441,"pan3":0.625,"level4":0.646113,"pan4":0.325}}
+          {"id":"audiom","type":"audio-mixer","name":"Kit Mixer","x":1240,"y":260,"parent":"root","params":{"level2":0.78346,"pan2":0.475,"level3":0.672441,"pan3":0.625,"level4":0.646113,"pan4":0.325}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"fill"},"to":{"node":"gatese","jack":"fill"},"amount":1},
@@ -2051,7 +2062,17 @@
           {"id":"k14","from":{"node":"percvo","jack":"r"},"to":{"node":"audiom","jack":"in4r"},"amount":1},
           {"id":"k15","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k17","from":{"node":"ci","jack":"clock"},"to":{"node":"gatese","jack":"clock"},"amount":1}
+          {"id":"k17","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k18","from":{"node":"drumno","jack":"kick"},"to":{"node":"macroo","jack":"trig"},"amount":1},
+          {"id":"k19","from":{"node":"drumno","jack":"snare"},"to":{"node":"macroo2","jack":"trig"},"amount":1},
+          {"id":"k20","from":{"node":"drumno","jack":"hat"},"to":{"node":"macroo3","jack":"trig"},"amount":1},
+          {"id":"k21","from":{"node":"drumno","jack":"open"},"to":{"node":"macroo3","jack":"trig"},"amount":1},
+          {"id":"k22","from":{"node":"drumno","jack":"clap"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k23","from":{"node":"drumno","jack":"velocity"},"to":{"node":"macroo","jack":"accent"},"amount":1},
+          {"id":"k24","from":{"node":"drumno","jack":"velocity"},"to":{"node":"macroo2","jack":"accent"},"amount":1},
+          {"id":"k25","from":{"node":"drumno","jack":"velocity"},"to":{"node":"macroo3","jack":"accent"},"amount":1},
+          {"id":"k26","from":{"node":"drumno","jack":"velocity"},"to":{"node":"percvo","jack":"accent"},"amount":1},
+          {"id":"k27","from":{"node":"ci","jack":"clock"},"to":{"node":"gatese","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2063,9 +2084,9 @@
         "category": "Drum Machines",
         "description": "Rhythm Bank's four related even rhythms play a skin, a wood block, a bar and a shaker from Perc Voices, in a small room. Shared input Pattern browses grooves.",
         "tags": ["drums","percussion","euclidean","rhythm bank","organic"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Euclid Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"pat","name":"Pattern","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Euclid Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"pat","name":"Pattern","type":"control"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"rhythm","type":"rhythm-bank","name":"Rhythm Bank","x":340,"y":260,"parent":"root","params":{"pattern":0.291339,"family":0,"output":1}},
@@ -2074,7 +2095,8 @@
           {"id":"percvo3","type":"perc-voice","name":"Bar","x":640,"y":480,"parent":"root","params":{"engine":0,"pitch":0.714225,"tone":0.6,"morph":0.35,"decay":0.431814,"sweep":0,"level":0.5}},
           {"id":"percvo4","type":"perc-voice","name":"Shaker","x":640,"y":700,"parent":"root","params":{"engine":1,"pitch":0.957884,"tone":1,"morph":0.9,"decay":0.259328,"click":0,"sweep":0,"level":0.55}},
           {"id":"audiom","type":"audio-mixer","name":"Garden Mixer","x":1240,"y":260,"parent":"root","params":{"pan1":0.5,"send1":0.267318,"level2":0.754845,"pan2":0.3,"send2":0.5,"level3":0.699337,"pan3":0.7,"send3":0.54646,"level4":0.646113,"pan4":0.575,"send4":0.373891,"return":0.646113}},
-          {"id":"reverb","type":"reverb","name":"Room","x":1240,"y":480,"parent":"root","params":{"size":0.3,"decay":0.316003,"damping":0.5,"mix":1}}
+          {"id":"reverb","type":"reverb","name":"Room","x":1240,"y":480,"parent":"root","params":{"size":0.3,"decay":0.316003,"damping":0.5,"mix":1}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"pat"},"to":{"node":"rhythm","jack":"pattern"},"amount":0.5},
@@ -2096,7 +2118,13 @@
           {"id":"k17","from":{"node":"reverb","jack":"wetR"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k18","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k19","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k20","from":{"node":"ci","jack":"clock"},"to":{"node":"rhythm","jack":"clock"},"amount":1}
+          {"id":"k20","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k21","from":{"node":"drumno","jack":"kick"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k22","from":{"node":"drumno","jack":"snare"},"to":{"node":"percvo2","jack":"trig"},"amount":1},
+          {"id":"k23","from":{"node":"drumno","jack":"clap"},"to":{"node":"percvo3","jack":"trig"},"amount":1},
+          {"id":"k24","from":{"node":"drumno","jack":"hat"},"to":{"node":"percvo4","jack":"trig"},"amount":1},
+          {"id":"k25","from":{"node":"drumno","jack":"open"},"to":{"node":"percvo4","jack":"trig"},"amount":1},
+          {"id":"k26","from":{"node":"ci","jack":"clock"},"to":{"node":"rhythm","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2108,9 +2136,9 @@
         "category": "Drum Machines",
         "description": "Drum Grid electro: syncopated Punch kick, snare and clap on the backbeat, busy hats, cowbell and a zapping tom; two patterns.",
         "tags": ["drums","electro","808","drum grid","breakdance"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Electro Pop-Lock","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Electro Pop-Lock","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.08},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Snare","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Open Hat","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Cowbell","mute":false,"solo":false},{"name":"Zap","mute":false,"solo":false},{"name":"Rim","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Pop","length":16,"steps":["X.....x...X..x..","....X.......X...","x.xxx.xxx.xxx.x.","..............x.","....x.......x...","..x....x..x.....","...........x....",""]},{"name":"Lock","length":16,"steps":["X.....x...X.x...","....X.......X..x","xxx.xxx.xxx.xx..","...x..........x.","....x.......x...","..x.....x.x...x.","...x.......x...x",".......x.....x.."]},null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2123,7 +2151,8 @@
           {"id":"punchr","type":"punch-rim","name":"Punch Rim","x":940,"y":480,"parent":"root","params":{"tune":0.625,"level":0.55}},
           {"id":"audiom","type":"audio-mixer","name":"Drums Mixer","x":1240,"y":40,"parent":"root","params":{"level2":0.754845,"pan2":0.475,"level3":0.726805,"pan3":0.6,"level4":0.754845,"pan4":0.54,"limiter":0}},
           {"id":"audiom2","type":"audio-mixer","name":"Perc Mixer","x":1240,"y":480,"parent":"root","params":{"level1":0.699337,"pan1":0.325,"level2":0.672441,"pan2":0.7,"level3":0.672441,"pan3":0.65,"limiter":0}},
-          {"id":"audiom3","type":"audio-mixer","name":"Master","x":1540,"y":260,"parent":"root","params":{}}
+          {"id":"audiom3","type":"audio-mixer","name":"Master","x":1540,"y":260,"parent":"root","params":{}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"punchk","jack":"trig"},"amount":1},
@@ -2154,8 +2183,24 @@
           {"id":"k26","from":{"node":"audiom2","jack":"outr"},"to":{"node":"audiom3","jack":"in2r"},"amount":1},
           {"id":"k27","from":{"node":"audiom3","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k28","from":{"node":"audiom3","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k29","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
-          {"id":"k30","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1}
+          {"id":"k29","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k30","from":{"node":"drumno","jack":"kick"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k31","from":{"node":"drumno","jack":"snare"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k32","from":{"node":"drumno","jack":"clap"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k33","from":{"node":"drumno","jack":"hat"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k34","from":{"node":"drumno","jack":"open"},"to":{"node":"punchh","jack":"open"},"amount":1},
+          {"id":"k35","from":{"node":"drumno","jack":"bell"},"to":{"node":"ringco","jack":"trig"},"amount":1},
+          {"id":"k36","from":{"node":"drumno","jack":"tom"},"to":{"node":"ringto","jack":"trig"},"amount":1},
+          {"id":"k37","from":{"node":"drumno","jack":"rim"},"to":{"node":"punchr","jack":"trig"},"amount":1},
+          {"id":"k38","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k39","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k40","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k41","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchh","jack":"velocity"},"amount":1},
+          {"id":"k42","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringco","jack":"velocity"},"amount":1},
+          {"id":"k43","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringto","jack":"velocity"},"amount":1},
+          {"id":"k44","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchr","jack":"velocity"},"amount":1},
+          {"id":"k45","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k46","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1}
         ]
       }
     },
@@ -2167,9 +2212,9 @@
         "category": "Drum Machines",
         "description": "Minimal techno on a Drum Grid: a dry Punch kick, off-beat Ring hats and a syncopated rim sent into a tempo-synced dub echo and a dark room.",
         "tags": ["drums","techno","minimal","dub","drum grid","effects"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Concrete Minimal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Concrete Minimal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.2,"gatelength":0.191919},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Open Hat","mute":false,"solo":false},{"name":"Rim","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Low Tom","mute":false,"solo":false},{"name":"High Tom","mute":false,"solo":false},{"name":"Perc","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Floor","length":16,"steps":["X...X...X...X...","..x...x...x...x.","..............x.","...x..x....x..x.","","","",""]},{"name":"Ceiling","length":16,"steps":["X...X...X...X...","x.x.x.x.x.x.x.x.","..x...x...x.....","...x..x..x.x..x.","............x...","","",""]},null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2179,7 +2224,8 @@
           {"id":"punchc","type":"punch-clap","name":"Punch Clap","x":640,"y":700,"parent":"root","params":{"tone":0.333333,"decay":0.597641,"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Kit Mixer","x":1240,"y":260,"parent":"root","params":{"level2":0.672441,"pan2":0.6,"send2":0.179755,"level3":0.699337,"pan3":0.375,"send3":0.754845,"level4":0.646113,"pan4":0.55,"send4":0.595159,"return":0.699337}},
           {"id":"zonede","type":"zone-delay","name":"Dub Echo","x":1240,"y":480,"parent":"root","params":{"zone":0.5,"time":0.62,"feedback":0.5,"tone":0.325,"diffuse":0.2,"mix":1,"sync":1}},
-          {"id":"reverb","type":"reverb","name":"Room","x":1540,"y":480,"parent":"root","params":{"size":0.55,"decay":0.41569,"damping":0.65,"tone":0.35,"mix":0.3}}
+          {"id":"reverb","type":"reverb","name":"Room","x":1540,"y":480,"parent":"root","params":{"size":0.55,"decay":0.41569,"damping":0.65,"tone":0.35,"mix":0.3}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"punchk","jack":"trig"},"amount":1},
@@ -2203,9 +2249,19 @@
           {"id":"k19","from":{"node":"reverb","jack":"r"},"to":{"node":"audiom","jack":"returnr"},"amount":1},
           {"id":"k20","from":{"node":"audiom","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k21","from":{"node":"audiom","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k22","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
-          {"id":"k23","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1},
-          {"id":"k24","from":{"node":"ci","jack":"clock"},"to":{"node":"zonede","jack":"clock"},"amount":1}
+          {"id":"k22","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k23","from":{"node":"drumno","jack":"kick"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k24","from":{"node":"drumno","jack":"hat"},"to":{"node":"ringha","jack":"closed"},"amount":1},
+          {"id":"k25","from":{"node":"drumno","jack":"open"},"to":{"node":"ringha","jack":"open"},"amount":1},
+          {"id":"k26","from":{"node":"drumno","jack":"rim"},"to":{"node":"ringri","jack":"trig"},"amount":1},
+          {"id":"k27","from":{"node":"drumno","jack":"clap"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k28","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k29","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringha","jack":"velocity"},"amount":1},
+          {"id":"k30","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringri","jack":"velocity"},"amount":1},
+          {"id":"k31","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k32","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k33","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1},
+          {"id":"k34","from":{"node":"ci","jack":"clock"},"to":{"node":"zonede","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2217,9 +2273,9 @@
         "category": "Drum Machines",
         "description": "A two-bar breakbeat (kick, ghosted snare, ride) through Bender, which repeats, reverses and reshuffles slices by chance. Shared inputs Chaos and Glitch.",
         "tags": ["drums","jungle","breakbeat","glitch","bender"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Break Shredder","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"chaos","name":"Chaos","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Break Shredder","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"chaos","name":"Chaos","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.08},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Snare","mute":false,"solo":false},{"name":"Ride","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Low Tom","mute":false,"solo":false},{"name":"High Tom","mute":false,"solo":false},{"name":"Perc","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Break","length":32,"steps":["X.x.......xx....X.x.......x.....","....X..x.x..X..x....X..x.x....X.","x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.","..............x...............xx"]},{"name":"Roller","length":32,"steps":["X.........X.....X.x.......x.....","....X..x.x.xX..x.x..X..x.x..X.xx","x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.","..x...x...x...x...x...x...x...x."]},null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2228,7 +2284,8 @@
           {"id":"punchc","type":"punch-cymbal","name":"Punch Cymbal","x":640,"y":480,"parent":"root","params":{"voice":1,"decay":0.373448,"tone":0.6,"crunch":0.35,"level":0.45}},
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":700,"parent":"root","params":{"closed":0.39232,"crunch":0.5,"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Kit Mixer","x":940,"y":260,"parent":"root","params":{"level2":0.78346,"pan2":0.475,"level3":0.646113,"pan3":0.65,"level4":0.646113,"pan4":0.35}},
-          {"id":"bender","type":"bender","name":"Bender","x":1240,"y":260,"parent":"root","params":{"chance":0.22,"repeats":0.2,"bendvar":0.3,"slice":0.25,"corrupt":0.4,"sync":0.65,"mode":0.75,"bendsteps":0.333333}}
+          {"id":"bender","type":"bender","name":"Bender","x":1240,"y":260,"parent":"root","params":{"chance":0.22,"repeats":0.2,"bendvar":0.3,"slice":0.25,"corrupt":0.4,"sync":0.65,"mode":0.75,"bendsteps":0.333333}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"punchk","jack":"trig"},"amount":1},
@@ -2249,9 +2306,19 @@
           {"id":"k16","from":{"node":"audiom","jack":"outr"},"to":{"node":"bender","jack":"r"},"amount":1},
           {"id":"k17","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k19","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
-          {"id":"k20","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1},
-          {"id":"k21","from":{"node":"ci","jack":"clock"},"to":{"node":"bender","jack":"clock"},"amount":1}
+          {"id":"k19","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k20","from":{"node":"drumno","jack":"kick"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k21","from":{"node":"drumno","jack":"snare"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k22","from":{"node":"drumno","jack":"ride"},"to":{"node":"punchc","jack":"trig"},"amount":1},
+          {"id":"k23","from":{"node":"drumno","jack":"hat"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k24","from":{"node":"drumno","jack":"open"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k25","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k26","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k27","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchc","jack":"velocity"},"amount":1},
+          {"id":"k28","from":{"node":"drumno","jack":"velocity"},"to":{"node":"punchh","jack":"velocity"},"amount":1},
+          {"id":"k29","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k30","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1},
+          {"id":"k31","from":{"node":"ci","jack":"clock"},"to":{"node":"bender","jack":"clock"},"amount":1}
         ]
       }
     },
@@ -2263,9 +2330,9 @@
         "category": "Drum Machines",
         "description": "Lo-fi boom-bap: a lazy swung Ring kit through a saturated ladder low-pass and a light bit crush, over a bed of tape hiss.",
         "tags": ["drums","lo-fi","hip hop","boom bap","dusty"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Dusty Tape Kit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Dusty Tape Kit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":340,"y":260,"parent":"root","params":{"swing":0.4,"velocity":0.6},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Snare","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Rim","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Low Tom","mute":false,"solo":false},{"name":"High Tom","mute":false,"solo":false},{"name":"Perc","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Nod","length":32,"steps":["X.........x.....X.x.......x..x..","....X.......X.......X.......X..x","x.x.x.xxx.x.x.x.x.x.x.xxx.x.x.x.","..............x.......x........."]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
@@ -2276,7 +2343,8 @@
           {"id":"noise","type":"noise","name":"Tape Hiss","x":340,"y":700,"parent":"root","params":{"colour":0.65,"level":1}},
           {"id":"audiom","type":"audio-mixer","name":"Kit Mixer","x":940,"y":260,"parent":"root","params":{"level2":0.78346,"pan2":0.525,"level3":0.672441,"pan3":0.625,"level4":0.726805,"pan4":0.35,"return":0.074371}},
           {"id":"filter","type":"filter","name":"Dark Tone","x":1240,"y":260,"parent":"root","params":{"cutoff":0.759585,"resonance":0.1,"drive":0.35,"type":0.5}},
-          {"id":"bender","type":"bender","name":"Crusher","x":1540,"y":260,"parent":"root","params":{"chance":0,"corrupt":0.22,"mix":0.7,"mode":0,"corruptwhen":1}}
+          {"id":"bender","type":"bender","name":"Crusher","x":1540,"y":260,"parent":"root","params":{"chance":0,"corrupt":0.22,"mix":0.7,"mode":0,"corruptwhen":1}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringki","jack":"trig"},"amount":1},
@@ -2299,8 +2367,18 @@
           {"id":"k18","from":{"node":"filter","jack":"r"},"to":{"node":"bender","jack":"r"},"amount":1},
           {"id":"k19","from":{"node":"bender","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k20","from":{"node":"bender","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k21","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
-          {"id":"k22","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1}
+          {"id":"k21","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k22","from":{"node":"drumno","jack":"kick"},"to":{"node":"ringki","jack":"trig"},"amount":1},
+          {"id":"k23","from":{"node":"drumno","jack":"snare"},"to":{"node":"ringsn","jack":"trig"},"amount":1},
+          {"id":"k24","from":{"node":"drumno","jack":"hat"},"to":{"node":"ringha","jack":"closed"},"amount":1},
+          {"id":"k25","from":{"node":"drumno","jack":"open"},"to":{"node":"ringha","jack":"closed"},"amount":1},
+          {"id":"k26","from":{"node":"drumno","jack":"rim"},"to":{"node":"ringri","jack":"trig"},"amount":1},
+          {"id":"k27","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringki","jack":"velocity"},"amount":1},
+          {"id":"k28","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringsn","jack":"velocity"},"amount":1},
+          {"id":"k29","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringha","jack":"velocity"},"amount":1},
+          {"id":"k30","from":{"node":"drumno","jack":"velocity"},"to":{"node":"ringri","jack":"velocity"},"amount":1},
+          {"id":"k31","from":{"node":"ci","jack":"clock"},"to":{"node":"drumgr","jack":"clock"},"amount":1},
+          {"id":"k32","from":{"node":"ci","jack":"run"},"to":{"node":"drumgr","jack":"run"},"amount":1}
         ]
       }
     },
@@ -2312,9 +2390,9 @@
         "category": "Drum Machines",
         "description": "Rotating Div turns the 16th-note clock into /2 … /7 cycles on kick, hats, conga, clave, cowbell and clap: polyrhythms that realign every four bars. Shared input Rotate.",
         "tags": ["drums","polyrhythm","rotating divider","percussion"],
-        "plays": {"instrument":{"notes":{}}},
+        "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
-          {"id":"root","type":"cell","name":"Gear Train","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"rot","name":"Rotate","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
+          {"id":"root","type":"cell","name":"Gear Train","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"rot","name":"Rotate","type":"control"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"rotati","type":"rotating-divider","name":"Rotating Div","x":340,"y":260,"parent":"root","params":{"set":0,"output":1,"realign":0.75,"sync":1}},
@@ -2326,7 +2404,8 @@
           {"id":"ringcl","type":"ring-clap","name":"Ring Clap","x":940,"y":40,"parent":"root","params":{"tone":0.528321,"decay":0.5,"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Drums Mixer","x":1240,"y":40,"parent":"root","params":{"level2":0.646113,"pan2":0.65,"level3":0.726805,"pan3":0.3,"level4":0.646113,"pan4":0.55,"limiter":0}},
           {"id":"audiom2","type":"audio-mixer","name":"Perc Mixer","x":1240,"y":480,"parent":"root","params":{"level1":0.699337,"pan1":0.725,"level2":0.620354,"pan2":0.425,"limiter":0}},
-          {"id":"audiom3","type":"audio-mixer","name":"Master","x":1540,"y":260,"parent":"root","params":{}}
+          {"id":"audiom3","type":"audio-mixer","name":"Master","x":1540,"y":260,"parent":"root","params":{}},
+          {"id":"drumno","type":"drum-notes","name":"MIDI Drums","x":340,"y":480,"parent":"root","params":{}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"rot"},"to":{"node":"rotati","jack":"rotate"},"amount":0.25},
@@ -2349,7 +2428,15 @@
           {"id":"k18","from":{"node":"audiom2","jack":"outr"},"to":{"node":"audiom3","jack":"in2r"},"amount":1},
           {"id":"k19","from":{"node":"audiom3","jack":"outl"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k20","from":{"node":"audiom3","jack":"outr"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k21","from":{"node":"ci","jack":"clock"},"to":{"node":"rotati","jack":"clock"},"amount":1}
+          {"id":"k21","from":{"node":"ci","jack":"notes"},"to":{"node":"drumno","jack":"notes"},"amount":1},
+          {"id":"k22","from":{"node":"drumno","jack":"kick"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k23","from":{"node":"drumno","jack":"hat"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k24","from":{"node":"drumno","jack":"open"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k25","from":{"node":"drumno","jack":"tom"},"to":{"node":"percvo","jack":"trig"},"amount":1},
+          {"id":"k26","from":{"node":"drumno","jack":"rim"},"to":{"node":"ringri","jack":"trig"},"amount":1},
+          {"id":"k27","from":{"node":"drumno","jack":"bell"},"to":{"node":"ringco","jack":"trig"},"amount":1},
+          {"id":"k28","from":{"node":"drumno","jack":"clap"},"to":{"node":"ringcl","jack":"trig"},"amount":1},
+          {"id":"k29","from":{"node":"ci","jack":"clock"},"to":{"node":"rotati","jack":"clock"},"amount":1}
         ]
       }
     },

@@ -2406,9 +2406,10 @@
     dev = !!m.dev;
     standalone = !!m.standalone;
     {  // the preset browser: whole patches (spec §11.5); in a plugin their port nodes map onto the set's ports
-      await BleepPresetBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone });
+      await BleepPresetBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin });
       $("presets").hidden = false;
       $("presets").addEventListener("click", () => BleepPresetBrowser.open());
+      if (m.plugin) BleepPresetBrowser.open();  // an instrument or FX window opens on its presets
     }
     await loadFactoryPresets();
     await loadFactoryPanels();

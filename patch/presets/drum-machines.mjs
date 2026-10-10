@@ -61,6 +61,7 @@ function mapWalker() {
     .cable(map, "hats", hats, "closed").cable(map, "hatsvel", hats, "velocity");
   toMixer(p, kick, mix, 1); toMixer(p, snare, mix, 2); toMixer(p, clap, mix, 3); toMixer(p, hats, mix, 4);
   p.stereo(mix, p.cout, { from: ["outl", "outr"] });
+  p.gmDrums({ kick: [kick, "trig"], snare: [snare, "trig"], clap: [clap, "trig"], hat: [hats, "closed"], open: [hats, "open"] });
   return p;
 }
 
@@ -96,6 +97,7 @@ function macroFoundry() {
   toMixer(p, kick, mix, 1); toMixer(p, snare, mix, 2); toMixer(p, metal, mix, 3);
   p.stereo(blip, mix, { to: ["in4l", "in4r"] });
   p.stereo(mix, p.cout, { from: ["outl", "outr"] });
+  p.gmDrums({ kick: [kick, "trig"], snare: [snare, "trig"], hat: [metal, "trig"], open: [metal, "trig"], clap: [blip, "trig"] });
   return p;
 }
 
@@ -124,6 +126,7 @@ function euclidGarden() {
   [skin, wood, bar, shaker].forEach((v, i) => p.stereo(v, mix, { to: [`in${i + 1}l`, `in${i + 1}r`] }));
   p.stereo(mix, room, { from: ["sendl", "sendr"] }).stereo(room, mix, { from: ["wetL", "wetR"], to: ["returnl", "returnr"] })
     .stereo(mix, p.cout, { from: ["outl", "outr"] });
+  p.gmDrums({ kick: [skin, "trig"], snare: [wood, "trig"], clap: [bar, "trig"], hat: [shaker, "trig"], open: [shaker, "trig"] });
   return p;
 }
 
@@ -164,6 +167,8 @@ function electroPopLock() {
   p.stereo(mixA, master, { from: ["outl", "outr"], to: ["in1l", "in1r"] })
     .stereo(mixB, master, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
     .stereo(master, p.cout, { from: ["outl", "outr"] });
+  p.gmDrums({ kick: [kick, "trig"], snare: [snare, "trig"], clap: [clap, "trig"], hat: [hats, "closed"], open: [hats, "open"],
+              bell: [bell, "trig"], tom: [zap, "trig"], rim: [rim, "trig"] });
   return p;
 }
 
@@ -197,6 +202,7 @@ function concreteMinimal() {
   toMixer(p, kick, mix, 1); toMixer(p, hats, mix, 2); toMixer(p, rim, mix, 3); toMixer(p, clap, mix, 4);
   p.stereo(mix, echo, { from: ["sendl", "sendr"] }).stereo(echo, room).stereo(room, mix, { to: ["returnl", "returnr"] })
     .stereo(mix, p.cout, { from: ["outl", "outr"] });
+  p.gmDrums({ kick: [kick, "trig"], hat: [hats, "closed"], open: [hats, "open"], rim: [rim, "trig"], clap: [clap, "trig"] });
   return p;
 }
 
@@ -229,6 +235,7 @@ function breakShredder() {
     .cable(p.cin, "chaos", bend, "chance", 0.5).cable(p.cin, "glitch", bend, "glitch");
   toMixer(p, kick, mix, 1); toMixer(p, snare, mix, 2); toMixer(p, ride, mix, 3); toMixer(p, hats, mix, 4);
   p.stereo(mix, bend, { from: ["outl", "outr"] }).stereo(bend, p.cout);
+  p.gmDrums({ kick: [kick, "trig"], snare: [snare, "trig"], ride: [ride, "trig"], hat: [hats, "closed"], open: [hats, "closed"] });
   return p;
 }
 
@@ -262,6 +269,7 @@ function dustyTapeKit() {
   toMixer(p, kick, mix, 1); toMixer(p, snare, mix, 2); toMixer(p, hats, mix, 3); toMixer(p, rim, mix, 4);
   p.cable(hiss, "pink", mix, "returnl").cable(hiss, "pink", mix, "returnr");  // hiss bed on the return
   p.stereo(mix, tone, { from: ["outl", "outr"] }).stereo(tone, crush).stereo(crush, p.cout);
+  p.gmDrums({ kick: [kick, "trig"], snare: [snare, "trig"], hat: [hats, "closed"], open: [hats, "closed"], rim: [rim, "trig"] });
   return p;
 }
 
@@ -293,6 +301,8 @@ function gearTrain() {
   p.stereo(mixA, master, { from: ["outl", "outr"], to: ["in1l", "in1r"] })
     .stereo(mixB, master, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
     .stereo(master, p.cout, { from: ["outl", "outr"] });
+  p.gmDrums({ kick: [kick, "trig"], hat: [hats, "closed"], open: [hats, "closed"], tom: [conga, "trig"], rim: [clave, "trig"],
+              bell: [bell, "trig"], clap: [clap, "trig"] });
   return p;
 }
 

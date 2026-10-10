@@ -17,10 +17,17 @@ namespace bleep::patch {
 
 class PanelView : public juce::Component, private juce::Timer {
 public:
+    /// What the preset browser in the page needs: the presets this plugin can play, the current one, and loading one.
+    struct Presets {
+        std::function<juce::var()> list;  ///< [{name, category, description, tags, current}]
+        std::function<void(const juce::String&)> load;
+    };
     /// `onSize` is told the panel's natural size in pixels once the page has laid it out.
-    PanelView(engine::IEngine& engine, int handle, std::function<void(int, int)> onSize);
+    PanelView(engine::IEngine& engine, int handle, Presets presets, std::function<void(int, int)> onSize);
     ~PanelView() override;
     void resized() override;
+    /// Opens the preset browser over the panel.
+    void showPresets();
 
 private:
     class Web;
@@ -29,6 +36,7 @@ private:
 
     engine::IEngine& engine_;
     int handle_;
+    Presets presets_;
     std::function<void(int, int)> onSize_;
     std::unique_ptr<Web> web_;
     std::set<juce::String> watched_;

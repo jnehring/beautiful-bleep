@@ -9464,6 +9464,93 @@
     ]
   },
   {
+    "type": "drum-notes",
+    "name": "Drum Notes",
+    "category": "Utility",
+    "colour": "#c084fc",
+    "description": "General MIDI drum notes in; a trigger per drum out (kick, snare, rim, clap, hats, tom, cowbell, ride, crash) and the hit's velocity.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [],
+    "inputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "kick",
+        "name": "Kick",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "snare",
+        "name": "Snare",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "rim",
+        "name": "Rim",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "clap",
+        "name": "Clap",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "hat",
+        "name": "Closed Hat",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "open",
+        "name": "Open Hat",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "tom",
+        "name": "Tom",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "bell",
+        "name": "Cowbell",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "ride",
+        "name": "Ride",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "crash",
+        "name": "Crash",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "dual-filter",
     "name": "Dual Filter",
     "category": "Audio",
@@ -28363,6 +28450,18 @@
         "name": "CC 8",
         "type": "control",
         "bipolar": false
+      },
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "playing",
+        "name": "Playing",
+        "type": "gate",
+        "bipolar": false
       }
     ]
   },
@@ -28900,7 +28999,7 @@
     "name": "Audio Insert",
     "category": "Ports",
     "colour": "#60a5fa",
-    "description": "A track's audio through the board and back (Bleep Audio Insert).",
+    "description": "A track's audio through the board and back (Bleep FX).",
     "port": "audio-insert",
     "creatable": false,
     "standaloneOnly": false,

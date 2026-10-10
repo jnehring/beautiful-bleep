@@ -5,6 +5,9 @@
 //   My patches     the user's own, saved from the current board (native "presets"/"savePreset" kind "patches")
 //
 // Loading replaces the board (native "loadPatch"; the standalone app asks about unsaved changes first).
+//
+// In Bleep Instrument and Bleep FX (host.cells) it lists the cell presets the plugin can play instead
+// (native "cellPresets", by category) and loading one replaces the plugin's cell (native "loadCellPreset").
 (function () {
   "use strict";
   let host = null;            // {board(), apply(message)} from board.js
@@ -12,6 +15,7 @@
   let mine = [];              // [{name, preset}]
   let group = "all";          // "all", "mine" or a module type
   let query = "";
+  let cells = [];             // plugin mode: [{name, category, description, tags, current}]
   let root = null, listEl, groupsEl, searchEl, saveRow;
 
   const el = (tag, cls, text) => {
@@ -35,8 +39,19 @@
     mine = (await native("presets", "patches")) || [];
   }
 
+  async function loadCells() {
+    cells = (await native("cellPresets")) || [];
+  }
+
   /// The patches shown: the group's, filtered by the search words (name, module, tags, description).
   function visible() {
+    if (host.cells) {
+      const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+      return cells.filter((c) => (group === "all" || c.category === group) &&
+        words.every((w) => [c.name, c.category, (c.tags || []).join(" "), c.description || ""].join(" ").toLowerCase().includes(w)))
+        .map((c) => ({ name: c.name, moduleName: c.category, current: c.current, cell: true,
+                       preset: { tags: c.tags, description: c.description } }));
+    }
     const mineItems = mine.map((p) => ({ name: p.name, own: true, moduleName: "My patch", preset: p.preset }));
     let list = group === "mine" ? mineItems : group === "all" ? demos.concat(mineItems)
       : demos.filter((d) => d.module === group);
@@ -58,6 +73,14 @@
       b.addEventListener("click", () => { group = id; render(); });
       groupsEl.appendChild(b);
     };
+    if (host.cells) {
+      add("all", "All presets", cells.length);
+      groupsEl.appendChild(el("div", "pb-sep", "Categories"));
+      const cats = new Map();
+      for (const c of cells) cats.set(c.category, (cats.get(c.category) || 0) + 1);
+      for (const [name, n] of cats) add(name, name, n);
+      return;
+    }
     add("all", "All patches", demos.length + mine.length);
     add("mine", "My patches", mine.length);
     groupsEl.appendChild(el("div", "pb-sep", "Demos by module"));
@@ -77,7 +100,7 @@
       return;
     }
     for (const p of items) {
-      const card = el("div", "pb-card");
+      const card = el("div", "pb-card" + (p.current ? " current" : ""));
       const head = el("div", "pb-card-head");
       head.appendChild(el("span", "pb-name", p.name));
       head.appendChild(el("span", "pb-chip", p.moduleName));
@@ -96,7 +119,7 @@
         });
         foot.appendChild(del);
       }
-      const load = el("button", "pb-load", "Load");
+      const load = el("button", "pb-load", p.current ? "Loaded" : "Load");
       load.addEventListener("click", (e) => { e.stopPropagation(); loadPatch(p); });
       foot.appendChild(load);
       card.appendChild(foot);
@@ -127,6 +150,11 @@
   }
 
   async function loadPatch(p) {
+    if (p.cell) {
+      close();
+      await native("loadCellPreset", p.name);
+      return;
+    }
     const src = p.preset;
     const board = { format: 1, id: uuid(), nodes: clone(src.nodes), cables: clone(src.cables) };
     if (host.mapPorts) mapPorts(board);
@@ -158,14 +186,14 @@
     const head = el("div", "pb-head");
     head.appendChild(el("span", "pb-title", "Presets"));
     searchEl = el("input", "pb-search");
-    searchEl.placeholder = "Search patches";
+    searchEl.placeholder = host.cells ? "Search presets" : "Search patches";
     searchEl.spellcheck = false;
     searchEl.autocomplete = "off";
     searchEl.addEventListener("input", () => { query = searchEl.value; renderList(); });
     head.appendChild(searchEl);
     const saveBtn = el("button", "", "Save current patch…");
     saveBtn.addEventListener("click", showSave);
-    head.appendChild(saveBtn);
+    if (!host.cells) head.appendChild(saveBtn);
     const closeBtn = el("button", "pb-close", "✕");
     closeBtn.title = "Close (Esc)";
     closeBtn.addEventListener("click", close);
@@ -200,7 +228,8 @@
 
   async function open() {
     if (!host) return;
-    await loadMine();
+    if (host.cells) await loadCells();
+    else await loadMine();
     render();
     root.hidden = false;
     searchEl.focus();
@@ -214,10 +243,10 @@
   }
 
   window.BleepPresetBrowser = {
-    /// host: {board(): the current board, apply(message): show the engine's answer}
+    /// host: {board(): the current board, apply(message): show the engine's answer, cells: list cell presets}
     async init(h) {
       host = h;
-      await loadDemos();
+      if (!host.cells) await loadDemos();
       build();
       onNative("openPresets", open);
     },

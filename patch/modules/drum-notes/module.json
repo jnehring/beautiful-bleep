@@ -1,0 +1,10 @@
+{
+  "name": "Drum Notes",
+  "slug": "drum-notes",
+  "tagline": "General MIDI drum notes in; a trigger per drum out.",
+  "colour": "#c084fc",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/drum-notes.md"
+}

@@ -149,6 +149,26 @@ export class Preset {
     this.root.outputs.push({ id, name, type });
     return this;
   }
+  /// Lets the host's MIDI play the cell's drums: a shared Notes input into a Drum Notes module, whose General MIDI
+  /// triggers (kick, snare, rim, clap, hat, open, tom, bell, ride, crash) go to the given [node, jack] targets.
+  /// The cell keeps playing its own pattern; the notes add hits.
+  gmDrums(targets, at = [0, 2]) {
+    this.input("notes", "Notes", "notes");
+    const router = this.add("drum-notes", at, {}, { name: "MIDI Drums" });
+    this.cable(this.cin, "notes", router, "notes");
+    const velocityJacks = new Set();
+    for (const [drum, [node, jack]] of Object.entries(targets)) {
+      this.cable(router, drum, node, jack);
+      // A voice whose velocity the pattern patches also gets the key's velocity (it adds while a key sounds).
+      const vel = this.cables.find((c) => c.to.node === node.id && (c.to.jack === "velocity" || c.to.jack === "accent"));
+      if (vel) velocityJacks.add(`${node.id}.${vel.to.jack}`);
+    }
+    for (const key of velocityJacks) {
+      const [id, jack] = key.split(".");
+      this.cable(router, "velocity", this.nodes.find((n) => n.id === id), jack);
+    }
+    return this;
+  }
   /// Out L / Out R audio outputs (plain cells; Voice Cells have them already).
   stereoOut() { return this.output("l", "Out L").output("r", "Out R"); }
   stereoIn() { return this.input("l", "In L", "audio").input("r", "In R", "audio"); }
@@ -296,6 +316,7 @@ const HAT_NOTES = { default: "closed", 44: "closed", 46: "open" };
 ///   instrument: { notes: "voice" }  a Voice Cell: notes feed its voice allocator
 ///               { notes: {trigger?, velocity?, pitch?, gate?} }  a plain cell: MIDI notes drive these cell inputs
 ///                    (`trigger` is a jack id, or {default, "<midi note>": jack} for a cell with several);
+///                    {notes: jack}  a cell input of type notes gets the notes stream itself (a drum machine's MIDI drums)
 ///                    {} is a cell that plays by itself, with the transport
 ///   effect:     { in: [jack ids], out: [jack ids], tail: seconds }
 /// Derived from the root's jacks; `p.plays(…)` overrides it. Returns undefined for board-only cells.
@@ -313,6 +334,8 @@ export function derivePlays(doc, category) {
   }
   const has = (id) => ins.some((j) => j.id === id);
   const notes = {};
+  const notesIn = ins.find((j) => j.type === "notes");
+  if (notesIn) notes.notes = notesIn.id;  // a cell that takes the host's notes itself (gmDrums)
   if (has("closed") && has("open")) notes.trigger = HAT_NOTES;
   else if (has("trig")) notes.trigger = "trig";
   if (notes.trigger && has("velocity")) notes.velocity = "velocity";
@@ -335,11 +358,11 @@ export function checkPlays(name, doc, plays) {
     if (root.type === "voice-cell" ? notes !== "voice" : typeof notes !== "object")
       throw new Error(`${name}: plays › instrument › notes is "voice" for a Voice Cell and an object for a plain cell`);
     if (notes !== "voice") {
-      for (const k of Object.keys(notes)) if (!["trigger", "velocity", "pitch", "gate"].includes(k))
+      for (const k of Object.keys(notes)) if (!["trigger", "velocity", "pitch", "gate", "notes"].includes(k))
         throw new Error(`${name}: plays › instrument › notes › ${k} is not a note target`);
       const t = notes.trigger;
       for (const id of typeof t === "object" ? Object.values(t) : t ? [t] : []) need(ins, id, "trigger");
-      for (const k of ["velocity", "pitch", "gate"]) if (notes[k]) need(ins, notes[k], k);
+      for (const k of ["velocity", "pitch", "gate", "notes"]) if (notes[k]) need(ins, notes[k], k);
     }
     if (![...outs].some((id) => root.outputs.find((j) => j.id === id).type === "audio") && root.type !== "voice-cell")
       throw new Error(`${name}: an instrument needs an audio output`);

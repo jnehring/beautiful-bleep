@@ -29,8 +29,8 @@ private:
     bool navigated_ = false;
 };
 
-PanelView::PanelView(engine::IEngine& engine, int handle, std::function<void(int, int)> onSize)
-    : engine_(engine), handle_(handle), onSize_(std::move(onSize)) {
+PanelView::PanelView(engine::IEngine& engine, int handle, Presets presets, std::function<void(int, int)> onSize)
+    : engine_(engine), handle_(handle), presets_(std::move(presets)), onSize_(std::move(onSize)) {
     auto options = juce::WebBrowserComponent::Options{}
                        .withNativeIntegrationEnabled()
                        .withKeepPageLoadedWhenBrowserIsHidden()
@@ -50,6 +50,13 @@ PanelView::PanelView(engine::IEngine& engine, int handle, std::function<void(int
     for (const char* name : {"savePreset", "deletePreset", "copyText", "pasteText", "loadPatch"})
         options = options.withNativeFunction(name, [](const juce::Array<juce::var>&, Completion done) { done({}); });
     options = options
+                  .withNativeFunction("cellPresets", [this](const juce::Array<juce::var>&, Completion done) {
+                      done(presets_.list ? presets_.list() : juce::var(juce::Array<juce::var>()));
+                  })
+                  .withNativeFunction("loadCellPreset", [this](const juce::Array<juce::var>& a, Completion done) {
+                      if (presets_.load) presets_.load(a[0].toString());
+                      done({});
+                  })
                   .withNativeFunction("watch", [this](const juce::Array<juce::var>& a, Completion done) {
                       watched_.clear();
                       if (const auto* ids = a[0].getArray())
@@ -71,6 +78,10 @@ PanelView::PanelView(engine::IEngine& engine, int handle, std::function<void(int
 }
 
 PanelView::~PanelView() { stopTimer(); }
+
+void PanelView::showPresets() {
+    if (pageReady_) web_->emitEventIfBrowserIsVisible("openPresets", juce::var());
+}
 
 void PanelView::resized() { web_->setBounds(getLocalBounds()); }
 

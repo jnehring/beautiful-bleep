@@ -32,6 +32,8 @@ public:
     enum { Channel, Cc1 };
     enum { Notes, Pitch, Gate, Velocity, Trigger, Pressure, Bend, Mod, CcOut1 };
     enum { InL, InR };  // Instrument only
+    /// Instrument only: the host's time as a clock and a run gate, for cells that play by themselves.
+    static constexpr int ClockOut = CcOut1 + kNumCcs, PlayingOut = ClockOut + 1;
 
     MidiInModule(const ModuleSpec& s, bool audioOut) : Module(s), audioOut_(audioOut) {}
 
@@ -72,6 +74,11 @@ public:
             c.outputs[Bend][i] = bend_;
             c.outputs[Mod][i] = mod_;
             for (int k = 0; k < kNumCcs; ++k) c.outputs[CcOut1 + k][i] = cc_[k];
+            if (audioOut_) {
+                const bool playing = c.transport->playing;
+                c.outputs[ClockOut][i] = playing && std::fmod(c.ppqAt(i) * 24.0, 1.0) < 0.5 ? 1.0f : 0.0f;
+                c.outputs[PlayingOut][i] = playing ? 1.0f : 0.0f;
+            }
         }
     }
 
@@ -414,6 +421,8 @@ void registerPortModules(Registry& r) {
         s.params = {ParamSpec::choice("channel", "Channel", channels, 0)};
         for (auto& p : ccParams()) s.params.push_back(p);
         s.outputs = midiInOutputs();
+        s.outputs.push_back({"clock", "Clock", Signal::Gate, false});
+        s.outputs.push_back({"playing", "Playing", Signal::Gate, false});
         s.inputs = {{"l", "Audio L", Signal::Audio}, {"r", "Audio R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MidiInModule>(spec, true); });
     }

@@ -57,7 +57,7 @@ patch/
   plugin contains the engine code. The first Bleep plugin loaded creates the
   engine and publishes it in the process (`BLEEP_PATCH_ENGINE`); the others
   use that instance. The binary that created it pins itself so it is never
-  unloaded. Binaries from another build refuse to share and say so. The plugins agree on a major and a minor version of the engine interface: [`doc/specs/engine-abi.md`](../doc/specs/engine-abi.md).
+  unloaded. Binaries of another engine major refuse to share and say so. The plugins agree on a major and a minor version of the engine interface: [`doc/specs/engine-abi.md`](../doc/specs/engine-abi.md).
 - **Ticks.** For every host block the first plugin to run claims the block
   and runs the compiled board. Plugins exchange their block with the engine
   through small tagged rings: a signal from an input port to an output port

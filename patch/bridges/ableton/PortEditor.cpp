@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "PortEditor.h"
+#include "Board.h"
 #include "PresetLibrary.h"
 
 namespace bleep::patch {
@@ -33,7 +34,10 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
 
     openBoard_.onClick = [this] { processor_.engine().openBoard(processor_.handle()); };
     addAndMakeVisible(openBoard_);
-    preset_.onClick = [this] { showPresets(); };
+    preset_.onClick = [this] {
+        if (panel_) panel_->showPresets();
+        else showPresets();
+    };
     addChildComponent(preset_);
     preset_.setVisible(p.loadsPresets());
     replace_.onClick = [this] { processor_.engine().replaceBoardWith(processor_.handle()); };
@@ -56,7 +60,26 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
         status_.setVisible(false);
         name_.setVisible(false);
         preset_.setVisible(true);
-        panel_ = std::make_unique<PanelView>(processor_.engine(), processor_.handle(), [this](int w, int h) {
+        PanelView::Presets presets;
+        presets.list = [this] {
+            juce::Array<juce::var> out;
+            const auto current = processor_.presetName();
+            for (const auto& e : PresetLibrary::forKind(processor_.kind())) {
+                auto* o = new juce::DynamicObject();
+                o->setProperty("name", e.name);
+                o->setProperty("category", e.category);
+                o->setProperty("description", e.description);
+                o->setProperty("tags", engine::board::fromJson(e.json)["tags"]);
+                o->setProperty("current", e.name == current);
+                out.add(juce::var(o));
+            }
+            return juce::var(out);
+        };
+        presets.load = [this](const juce::String& name) {
+            processor_.loadPreset(name);
+            preset_.setButtonText(name);
+        };
+        panel_ = std::make_unique<PanelView>(processor_.engine(), processor_.handle(), std::move(presets), [this](int w, int h) {
             juce::MessageManager::callAsync([safe = juce::Component::SafePointer<PortEditor>(this), w, h] {
                 if (safe == nullptr) return;
                 safe->panelW_ = w;

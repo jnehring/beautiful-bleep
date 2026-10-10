@@ -97,6 +97,8 @@ struct FakePort {
     int handle;
     std::vector<float> in[2], out[2];
     std::vector<MidiEvent> midiIn, midiOut;
+    bool playing = false;  ///< the host's transport
+    double bpm = 120.0;
     FakePort(Engine& e, int h) : engine(e), handle(h) {
         for (auto& b : in) b.assign(kBlock, 0.0f);
         for (auto& b : out) b.assign(kBlock, 0.0f);
@@ -110,6 +112,10 @@ struct FakePort {
         io.numSamples = kBlock;
         io.transport.sampleRate = kRate;
         io.transport.samplePos = samplePos;
+        io.transport.playing = playing;
+        io.transport.bpm = bpm;
+        io.transport.ppq = (double)samplePos / kRate * bpm / 60.0;
+        io.transport.ppqValid = true;
         io.audioIn = ins;
         io.numAudioIn = 2;
         io.audioOut = outs;
@@ -1079,6 +1085,65 @@ float peakAfter(FakePort& p, int blocks, int from, std::function<void(int)> befo
     return peak;
 }
 
+/// A drum machine in an Instrument plays with the host's transport: Clock and Run come from the port node.
+void cellPluginsFollowHost() {
+    g_test = "cell plugins follow the host";
+    for (const char* name : {"Map Walker", "Electro Pop-Lock"}) {
+        auto* e = new Engine();
+        const int inst = e->registerInstance(PortKind::Instrument);
+        setPreset(*e, inst, factoryPreset(name));
+        const auto cell = cellOf(*e, inst);
+        const auto port = portNode(*e, inst);
+        EXPECT(cell.isNotEmpty());
+        bool clock = false, run = false;
+        for (const auto& c : *e->board()["cables"].getArray()) {
+            if (c["from"]["node"].toString() != port) continue;
+            clock |= c["from"]["jack"].toString() == "clock" && c["to"]["node"].toString() == cell && c["to"]["jack"].toString() == "clock";
+            run |= c["from"]["jack"].toString() == "playing" && c["to"]["node"].toString() == cell && c["to"]["jack"].toString() == "run";
+        }
+        EXPECT(clock);
+        EXPECT(run == (juce::String(name) == "Electro Pop-Lock"));
+        FakePort p(*e, inst);
+        const float stopped = peakAfter(p, 300, 8);
+        EXPECT(stopped < 0.0001f);  // a stopped transport plays nothing
+        p.playing = true;
+        const float playing = peakAfter(p, 1200, 8);
+        EXPECT(playing > 0.01f && std::isfinite(playing));
+        e->unregisterInstance(inst);
+        e->collectGarbage();
+        e->release();
+    }
+    // The host's MIDI plays the drums too: General MIDI notes trigger the kit, the transport stays stopped.
+    for (const char* name : {"Map Walker", "Macro Foundry", "Euclid Garden", "Electro Pop-Lock", "Concrete Minimal",
+                             "Break Shredder", "Dusty Tape Kit", "Gear Train"}) {
+        auto* e = new Engine();
+        const int inst = e->registerInstance(PortKind::Instrument);
+        setPreset(*e, inst, factoryPreset(name));
+        FakePort p(*e, inst);
+        const float idle = peakAfter(p, 200, 8);
+        EXPECT(idle < 0.0001f || juce::String(name) == "Dusty Tape Kit");  // the tape hiss never stops
+        bool wired = false;
+        for (const auto& c : *e->board()["cables"].getArray())
+            wired |= c["from"]["node"].toString() == portNode(*e, inst) && c["from"]["jack"].toString() == "notes";
+        EXPECT(wired);
+        for (int note : {36, 38, 42}) {
+            MidiEvent on;
+            on.offset = 0;
+            on.size = 3;
+            on.bytes[0] = 0x90;
+            on.bytes[1] = (uint8_t)note;
+            on.bytes[2] = 110;
+            FakePort q(*e, inst);
+            const float hit = peakAfter(q, 120, 4, [&](int b) { if (b == 0) q.midiIn.push_back(on); });
+            if (!(hit > std::max(0.005f, idle * 1.1f))) std::printf("%s: note %d gave peak %f, idle %f\n", name, note, hit, idle);
+            EXPECT(hit > std::max(0.005f, idle * 1.1f) && std::isfinite(hit));
+        }
+        e->unregisterInstance(inst);
+        e->collectGarbage();
+        e->release();
+    }
+}
+
 void cellPlugins() {
     g_test = "cell plugins";
     {   // the ABI versions: the engine says its minor, and `supports` compares it
@@ -1232,6 +1297,7 @@ int main() {
     drumGrid();
     drumNodes();
     cellPlugins();
+    cellPluginsFollowHost();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;
 }

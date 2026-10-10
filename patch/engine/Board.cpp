@@ -703,8 +703,16 @@ void attachHost(juce::var& doc, const juce::String& portNodeId, const juce::Stri
             else if (t["default"].isString()) wire(portNodeId, "trigger", cellId, t["default"].toString());
             for (const char* k : {"velocity", "pitch", "gate"})
                 if (notes[k].isString()) wire(portNodeId, k, cellId, notes[k].toString());
+            if (notes["notes"].isString()) wire(portNodeId, "notes", cellId, notes["notes"].toString());  // the stream itself
             outs = audioJacks(rootVar, "outputs");
         }
+        // A cell that plays in time follows the host: its Clock and Run come from the transport.
+        if (const auto* ins = root->getProperty("inputs").getArray())
+            for (const auto& in : *ins) {
+                const auto id = in["id"].toString();
+                if (id == "clock") wire(portNodeId, "clock", cellId, id);
+                else if (id == "run") wire(portNodeId, "playing", cellId, id);
+            }
     }
     for (int i = 0; i < outs.size() && i < 2; ++i) wire(cellId, outs[i], portNodeId, i == 0 ? "l" : "r");
     if (outs.size() == 1) wire(cellId, outs[0], portNodeId, "r");
