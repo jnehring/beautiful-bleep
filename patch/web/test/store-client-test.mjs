@@ -78,9 +78,7 @@ await test("it reads the same hash as Python for the same zip", async () => {
   const bytes = makeZip("hash.bleepmod", files);
   const jsHash = Store.hex(await Store.contentDigest((await Store.readZip(bytes)).entries));
   writeFileSync(join(tmp, "hash.bleepmod"), bytes);
-  const pyHash = py(`import sys; sys.path.insert(0, ${JSON.stringify(join(ROOT, "website", "api"))})
-from pathlib import Path; from app import signing
-print(signing.content_digest(signing.read_entries(Path(sys.argv[1]))).hex(), end='')`, join(tmp, "hash.bleepmod"));
+  const pyHash = signing("digest", join(tmp, "hash.bleepmod")).trim();
   assert.equal(jsHash, pyHash);
 });
 
@@ -158,6 +156,28 @@ with zipfile.ZipFile(sys.argv[1], "a") as z:
   const z = await Store.readZip(bad);
   await assert.rejects(Store.contentDigest(z.entries), /bad path/);
   await assert.rejects(Store.readZip(new Uint8Array([1, 2, 3])), /not a zip/);
+});
+
+await test("the shared fixtures: every package gets the verdict Python gave it (patch/tests/store-fixtures)", async () => {
+  const dir = join(ROOT, "patch", "tests", "store-fixtures");
+  const spec = JSON.parse(readFileSync(join(dir, "cases.json"), "utf8"));
+  const roots = { main: [Store.fromHex(spec.roots.main)], other: [Store.fromHex(spec.roots.other)], none: [] };
+  assert.ok(spec.cases.length > 20);
+  for (const c of spec.cases) {
+    let got;
+    let zip;
+    try {
+      zip = await Store.readZip(new Uint8Array(readFileSync(join(dir, c.file))));
+      await Store.contentDigest(zip.entries);
+    } catch (e) { got = "refused"; }
+    if (!got) {
+      let doc = zip.signature;
+      const r = await Store.verify(zip.entries, doc, { kind: c.kind, id: c.id, version: c.version, platform: c.platform, roots: roots[c.roots], now: c.now, crl: c.crl });
+      got = r.status;
+      if (c.publisher) assert.equal(r.publisher, c.publisher, c.name);
+    }
+    assert.equal(got, c.expect, c.name);
+  }
 });
 
 await test("fetchModule: the whole path through the index, the entry and the package", async () => {

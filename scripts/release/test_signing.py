@@ -216,5 +216,45 @@ class Vector(unittest.TestCase):
         self.assertEqual(v["signature"], "5019b69bf480dae36510479a2c4bbeab84e94477efcdd4ec3dc1528ef6f2644471e89b42c0ac69b4ff617bac7da69e4b817717e2f99e6526d4be2c10e1a72c0b")
 
 
+FIXTURES = Path(__file__).resolve().parent.parent.parent / "patch" / "tests" / "store-fixtures"
+
+
+class Fixtures(unittest.TestCase):
+    """The packages in patch/tests/store-fixtures are made by `signing.py fixture`; this implementation, the JavaScript one
+    (patch/web/test/store-client-test.mjs) and the C++ one (patch/tests/store_test.cpp) must give each its verdict."""
+
+    def test_committed_fixtures_are_what_the_generator_makes(self):
+        import importlib.util
+        import subprocess
+        with tempfile.TemporaryDirectory() as d:
+            subprocess.run([sys.executable, str(Path(__file__).parent / "signing.py"), "fixture", d], check=True, capture_output=True)
+            for f in sorted(Path(d).iterdir()):
+                self.assertEqual(f.read_bytes(), (FIXTURES / f.name).read_bytes(), f.name)
+            self.assertEqual(sorted(p.name for p in Path(d).iterdir()), sorted(p.name for p in FIXTURES.iterdir()))
+
+    def test_every_case_gets_its_verdict(self):
+        spec = json.loads((FIXTURES / "cases.json").read_text())
+        roots = {"main": [bytes.fromhex(spec["roots"]["main"])], "other": [bytes.fromhex(spec["roots"]["other"])], "none": []}
+        self.assertGreater(len(spec["cases"]), 20)
+        for c in spec["cases"]:
+            pkg = FIXTURES / c["file"]
+            try:
+                entries = s.read_entries(pkg)
+                s.content_digest(entries)
+            except ValueError:
+                got = "refused"
+            else:
+                try:
+                    doc = s.read_doc(pkg)
+                    r = s.verify(entries, doc, kind=c["kind"], id_=c["id"], version=c["version"], platform=c["platform"], roots=roots[c["roots"]],
+                                 now=c["now"], crl=c["crl"])
+                    got = r.status
+                    if c["publisher"]:
+                        self.assertEqual(r.publisher, c["publisher"], c["name"])
+                except (ValueError, KeyError):  # a signature document that is not even JSON
+                    got = "invalid"
+            self.assertEqual(got, c["expect"], c["name"])
+
+
 if __name__ == "__main__":
     unittest.main()

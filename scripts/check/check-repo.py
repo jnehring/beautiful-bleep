@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SOURCE_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".js", ".ts", ".tsx", ".css", ".py", ".cmake", ".sh"}
-SKIP_DIRS = {"build", "node_modules", ".next", "out", ".git", "public"}
+SKIP_DIRS = {"build", "node_modules", ".next", "out", ".git", "public", "third_party"}  # third_party: code with its own licence
 GENERATED = {"next-env.d.ts"}
 problems: list[str] = []
 

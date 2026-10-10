@@ -248,10 +248,10 @@ signature (64 bytes)   5019b69bf480dae36510479a2c4bbeab84e94477efcdd4ec3dc1528ef
 | Where | With |
 |---|---|
 | The store (API), release tooling, CI | Python: `cryptography` (Ed25519, SHA-256), see `scripts/release/signing.py`. The website API will import the same module. |
-| Engine, plugins and app (C++) | A small public-domain Ed25519 implementation (Monocypher, one source file) and `juce::SHA256`: no OpenSSL, no system dependency in an audio plugin. |
+| Engine, plugins and app (C++) | `patch/store/` (`Verify`, `Package`): Monocypher for Ed25519 (`patch/third_party/`, public domain / BSD-2) and `juce::SHA256` from `juce_cryptography`: no OpenSSL, no system dependency in an audio plugin. Built and tested; the install flow around it is not. |
 | Browser (Bleep Board) | WebCrypto Ed25519 where it exists, `@noble/ed25519` otherwise. |
 
-All three run the same test vector in their tests.
+All three are tested against the same packages: `scripts/release/signing.py fixture` writes a deterministic set (`patch/tests/store-fixtures/`: signed in several ways, tampered, expired, revoked, outside a namespace, unreadable, with the verdict each must get in `cases.json`), and `test_signing.py` (Python), `patch/web/test/store-client-test.mjs` (JavaScript) and `patch/tests/store_test.cpp` (C++, `ctest -R patch.store`) all check them, together with the content hash of the test vector above and the canonical JSON bytes. A change to the rules changes the generator, and the three tests tell which implementation is behind.
 
 ## 16. Not decided yet
 

@@ -4,7 +4,7 @@
 //
 // Finds the package of a node type in the store's index, downloads it, checks its signature chain against the root
 // public keys, and hands out the module's .wasm. The same code runs in node (the tests) and checks the same things
-// as website/api/app/signing.py: the test vector in doc/specs/signing.md section 14 must give the same results.
+// as the Python reference (scripts/release/signing.py): the test vector in doc/specs/signing.md section 14 must give the same results.
 //
 //   BleepStore.configure({ base: "/registry/v1/", roots: [Uint8Array …], allowUnsigned: false })
 //   const manifest = await BleepStore.manifest();        // { types: {type → slug}, modules: {slug → {version, types, …}} }
@@ -107,7 +107,10 @@
       else if (method === 8) body = await inflateRaw(raw);
       else throw new Error("unsupported compression in " + name);
       if (body.length !== usize) throw new Error("size mismatch in " + name);
-      if (name === "META/signature.json") { signature = JSON.parse(dec.decode(body)); continue; }
+      if (name === "META/signature.json") {  // a signature that is not JSON is a package with an invalid signature, not an unreadable one
+        try { signature = JSON.parse(dec.decode(body)); } catch (e) { signature = {}; }
+        continue;
+      }
       files.set(name, body);
       entries.set(name, { sha: await sha256(body), exec: (madeBy >> 8) === 3 && ((ext >>> 16) & 0o111) !== 0 });
     }

@@ -27,6 +27,95 @@ from app.signing import *  # noqa: E402,F401,F403
 from app.signing import (CERT_DOMAIN, KINDS, SIGNATURE_PATH, Ed25519PrivateKey, _verify_sig, b64, canonical, decide,  # noqa: E402,F401
                          issue_kit, key_id, load_key, make_cert, new_tbs, public_bytes, read_doc, read_entries, save_key,
                          sign, sign_with_kit, test_vector, verify, write_doc)
+from app import signing  # noqa: E402
+
+
+def make_fixtures(out: Path) -> None:
+    """Deterministic packages with the verdict each must get: the same files test the Python, JavaScript and C++ implementations
+    (patch/tests/store-fixtures/, cases.json). Fixed keys and dates, so regenerating changes nothing."""
+    import hashlib
+    import zipfile
+    t0 = 1_760_000_000
+    t1 = t0 + 365 * 86400
+    key = lambda n: Ed25519PrivateKey.from_private_bytes(bytes([n]) * 32)  # noqa: E731
+    root, issuer, acme, bleep, other = (key(n) for n in (1, 2, 3, 4, 5))
+    issuer_cert = make_cert(root, None, new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Fixture issuer", scopes=["issue"], not_before=t0, not_after=t1))
+    chain = lambda k, **kw: [issuer_cert, make_cert(issuer, issuer_cert, new_tbs("developer", public_bytes(k), not_before=t0, not_after=t1, **kw))]  # noqa: E731
+    acme_chain = chain(acme, publisher="acme", name="Acme Audio", scopes=["module"])
+    bleep_chain = chain(bleep, publisher="bleep", name="Bleep", scopes=["module", "plugin"], first_party=True)
+    files = {"module.json": b'{"name":"Fuzz","types":["acme/fuzz"],"requires":{"engineAbi":1}}\n', "module.wasm": b"\x00asm\x01\x00\x00\x00", "ui/fuzz.js": b"// view\n"}
+    entries = lambda f: {p: (hashlib.sha256(c).digest(), False) for p, c in f.items()}  # noqa: E731
+
+    def make_zip(path: Path, f: dict, doc=None, stored=False, extra=None, raw_signature=None):
+        method = zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED
+        with zipfile.ZipFile(path, "w", method) as z:
+            members = dict(f)
+            if doc is not None:
+                members["META/signature.json"] = (json.dumps(doc, indent=1, sort_keys=True) + "\n").encode()
+            if raw_signature is not None:
+                members["META/signature.json"] = raw_signature
+            for name in sorted(members):
+                info = zipfile.ZipInfo(name, (2020, 1, 1, 0, 0, 0))
+                info.compress_type = method
+                info.external_attr = 0o100644 << 16
+                z.writestr(info, members[name])
+            for info, data in (extra or []):
+                z.writestr(info, data)
+
+    out.mkdir(parents=True, exist_ok=True)
+    for old in out.glob("*"):
+        old.unlink()
+    good = sign(entries(files), acme, acme_chain, "module", "acme/fuzz", "1.0.0")
+    cases = []
+
+    def case(name, expect, *, doc=None, f=None, stored=False, extra=None, raw=None, kind="module", id="acme/fuzz", version="1.0.0", platform="any",
+             now=t0 + 100, roots="main", crl=None, publisher=None, signed_doc=True):
+        make_zip(out / f"{name}.bleepmod", f if f is not None else files, doc if doc is not None else (good if signed_doc and raw is None else None),
+                 stored=stored, extra=extra, raw_signature=raw)
+        cases.append({"name": name, "file": f"{name}.bleepmod", "kind": kind, "id": id, "version": version, "platform": platform, "now": now,
+                      "roots": roots, "crl": crl, "expect": expect, "publisher": publisher})
+
+    case("signed", "signed", publisher="acme")
+    case("signed-stored", "signed", stored=True, publisher="acme")
+    case("unsigned", "unsigned", signed_doc=False)
+    case("tampered-wasm", "invalid", f={**files, "module.wasm": files["module.wasm"] + b"\x00"})
+    case("extra-file", "invalid", f={**files, "ui/evil.js": b"x"})
+    case("missing-file", "invalid", f={k: v for k, v in files.items() if k != "ui/fuzz.js"})
+    case("wrong-id", "invalid", id="acme/other")
+    case("wrong-version", "invalid", version="1.0.1")
+    case("wrong-platform", "invalid", platform="macos-arm64")
+    case("wrong-kind", "invalid", kind="plugin")
+    case("expired", "expired", now=t1 + 1)
+    case("not-yet-valid", "expired", now=t0 - 1)
+    case("other-root", "invalid", roots="other")
+    case("no-root", "invalid", roots="none")
+    case("revoked-key", "revoked", crl={"revokedKeys": [{"keyId": key_id(public_bytes(acme))}], "revokedArtifacts": []})
+    case("revoked-issuer", "revoked", crl={"revokedKeys": [{"keyId": key_id(public_bytes(issuer))}], "revokedArtifacts": []})
+    case("revoked-release", "revoked", crl={"revokedKeys": [], "revokedArtifacts": [
+        {"kind": "module", "id": "acme/fuzz", "version": "1.0.0", "digest": content_digest(entries(files)).hex()}]})
+    # a developer outside their namespace, and the first-party exception
+    bare = sign(entries(files), acme, acme_chain, "module", "fuzz", "1.0.0")
+    case("bare-id-by-third-party", "invalid", doc=bare, id="fuzz")
+    first = sign(entries(files), bleep, bleep_chain, "module", "reverb", "1.0.0")
+    case("bare-id-first-party", "signed", doc=first, id="reverb", publisher="bleep")
+    plugin_file = {"installer.pkg": b"pretend installer"}
+    plugin_doc = sign(entries(plugin_file), bleep, bleep_chain, "plugin", "bleep-patch", "1.2.3", "macos-arm64")
+    case("plugin-signed", "signed", f=plugin_file, doc=plugin_doc, kind="plugin", id="bleep-patch", version="1.2.3", platform="macos-arm64", publisher="bleep")
+    case("plugin-by-module-only-key", "invalid", f=plugin_file, doc=sign(entries(plugin_file), acme, acme_chain, "plugin", "acme/p", "1.0.0"), kind="plugin", id="acme/p")
+    forged = json.loads(json.dumps(good))
+    forged["chain"][1]["tbs"]["scopes"] = ["module", "plugin"]
+    case("forged-certificate", "invalid", doc=forged)
+    case("garbage-signature", "invalid", raw=b"this is not json")
+    case("empty-signature", "invalid", doc={})
+    # packages the reader must refuse before any signature is looked at
+    link = zipfile.ZipInfo("link", (2020, 1, 1, 0, 0, 0))
+    link.create_system = 3
+    link.external_attr = 0o120777 << 16
+    case("symlink", "refused", extra=[(link, b"module.wasm")])
+    case("unsafe-path", "refused", f={**files, "../evil": b"x"})
+    (out / "cases.json").write_text(json.dumps({
+        "about": "generated by scripts/release/signing.py fixture; every implementation must give each package its verdict",
+        "roots": {"main": public_bytes(root).hex(), "other": public_bytes(other).hex()}, "cases": cases}, indent=1) + "\n")
 
 
 def main(argv=None) -> int:
@@ -48,6 +137,8 @@ def main(argv=None) -> int:
     for a in ("--kind", "--id", "--version"):
         p.add_argument(a, required=True)
     p.add_argument("--platform", default="any"); p.add_argument("--allow-unsigned", action="store_true")
+    p = sub.add_parser("digest"); p.add_argument("package")
+    p = sub.add_parser("fixture"); p.add_argument("dir", nargs="?", default=str(ROOT / "patch" / "tests" / "store-fixtures"))
     sub.add_parser("vector")
     a = ap.parse_args(argv)
 
@@ -118,6 +209,11 @@ def main(argv=None) -> int:
         ok, why = decide(res, a.kind, {a.kind: a.allow_unsigned})
         print(("OK: " if ok else "REFUSED: ") + why)
         return 0 if ok else 1
+    elif a.cmd == "fixture":
+        make_fixtures(Path(a.dir))
+        print(f"fixtures written to {a.dir}")
+    elif a.cmd == "digest":  # the content hash of a package, as signed (signing.md section 4)
+        print(signing.content_digest(read_entries(Path(a.package))).hex())
     else:
         print(json.dumps(test_vector(), indent=1))
     return 0
