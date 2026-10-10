@@ -151,3 +151,73 @@ The spike showed that **the existing ports already are the host side**. An insta
 - **A fix found on the way:** an Audio Insert's send and return were one node, so the way through the board counted as a cycle and got the 32-sample feedback delay: wet arrived 32 samples after the dry the plugin delays. The compiler now splits the node into send and return (`audio-return`), so a pass-through returns exactly two blocks later. This fixes the old Audio Insert too.
 - **Known gaps:** hi-hat cells (`closed`/`open`) get every note on the default jack, so open hats are not reachable yet; the three presets in `factory-presets.js` are not in the plugins' library yet; cables of a replaced cell are dropped, not kept as ghosts (decided, not built); the instance's window shows no panel yet.
 - **Tests:** `bleep_engine_tests` `cellPlugins` (an Instrument alone in the set plays a note; state round trip; Bleep Patch arriving; replacing a preset; an FX returns audio two blocks later).
+
+## 11. Phase 3 design: the plugin window
+
+### 11.1 What the window shows
+
+```
+┌ Bleep Instrument ─────────────────────────────────────────────┐
+│ ◀ ▶  Warm Saws ▾    ·  Synthesizers          Open Board  ⋯   │  top bar (native JUCE, 32 px)
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+│                  the preset's panel                           │  web view: panels.js on the cell's panel
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+```
+
+- The top bar is native: ◀ ▶ step through the plugin's presets, the name opens the **browser** (a web overlay, section 11.3), *Open Board* opens the board scrolled to the cell, ⋯ holds *Reset panel*, *Revert to preset*, *Rename*. Bleep FX adds Dry/Wet there, Bleep Instrument a Volume.
+- The panel is the cell's own panel (`board.panels` entry with `cell` = the cell). The window **opens on it**. It is sized to the panel (`cols × rows × 20 px`, plus the bar) and not resizable in the first version; a panel bigger than the screen scrolls.
+- No panel found (the user deleted it): the window offers *Build panel from cell* (the board's code), so it is never empty.
+- The window no longer opens the board by itself (today's behaviour); *Open Board* does. (Old spec §9.1 opened it with the window; with a panel to play, that would be in the way.)
+
+### 11.2 How the panel gets its data (the one hard part)
+
+A plugin's editor cannot use the engine's web view: the engine may live in **another plugin's binary** (the first Bleep plugin loaded creates it), and JUCE objects must not cross binaries, which is why `IEngine` uses plain types only. So the editor makes **its own** `WebBrowserComponent` (from its own binary and its own copy of `board/ui`, which already holds `panels.js`, the module views and the bridge) and talks to the engine through a JSON call on the ABI:
+
+```cpp
+// IEngine, ABI tag 7
+virtual size_t uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept = 0;
+```
+
+`Engine::uiCall` is a table of the same handlers `BoardView` already registers as native functions, and `BoardView` is rewritten to use it, so board and plugin window share one set of handlers. The plugin window needs only: `panel` (the instance's cell with its panel, the node types its controls use: `describeTypes`), `setParam`, `beginGesture`, `perform`, `command`, `setData`, `watch`, `liveState` (polled by a 30 Hz timer in the editor and pushed to the page as the board window does), and the preset calls. It does not get `commit` or `loadPatch`: the panel edits knobs, not the graph.
+
+New page `plugin-panel.html` + `plugin-panel.js`: loads `panels.js` and the module views, implements the `host` object `BleepPanels.create` wants (`node`, `param`, `value`, `set`, `begin`, `view`, `refreshView`) on top of `native("setParam", …)`, and shows nothing but the panel. Smaller than `board.js` by an order of magnitude; no board code is loaded.
+
+*Risk to check first:* a `WebBrowserComponent` (WKWebView) inside Live's VST3 plugin window. JUCE 8 supports it, but focus, keyboard (the panel's Keyboard control) and resizing in Live need a quick spike before the rest is built (step 1 of 11.7).
+
+### 11.3 Preset browser
+
+An overlay in the same web page, reusing `preset-browser.js`: category tree, search over name, tags and description, description on hover, filtered by `plays` for the plugin's role. It lists factory presets (compiled in), then user and store ones as they appear (phase 5). Picking one calls `uiCall("loadPreset", {name})` → `setCellPreset(..., replace=true)`. In the first version the native menu stays as the fallback.
+
+The three presets in `factory-presets.js` (Basic Poly, Punch Machine, Ring Machine) become part of the library: the build writes them, with their panels and `plays`, into `factory-presets.json` too (the board hides the duplicates by name).
+
+### 11.4 Parameters
+
+16 host parameters `p1…p16`, always the same ids and names "Param 1…16" so automation keeps its meaning across presets (spec §5 / section 5). They are taken, in order, from the controls of the preset's panel that are marked `"expose": true` in the panel document (new optional field; the generated panels mark their first 16 dials and sliders, hand-written panels choose). The mapping `param slot → (node, knob)` is rebuilt when the cell or panel changes; titles update with `kParamTitlesChanged`.
+
+A host automation write is stored in an atomic per slot; the editor-independent processor timer (30 Hz, message thread) applies changed ones with `uiCall("setParam")`. A panel knob move updates the slot, so the host sees the change. The first version applies automation at 30 Hz, which is smooth for knobs; sample-accurate parameter control is not a goal.
+
+### 11.5 Names, ids and the old plugins
+
+- **Bleep Instrument** keeps `PluginCode BpIn`, so old sets still find it. **Bleep FX** is a new product, `BpFx` (target `BleepFx`, `PortKind::AudioInsert` inside), and replaces *Bleep Audio Insert* (`BpAs`), which is deleted in the same phase (this *is* the old phase 4: nothing else is left to remove, because the new plugins are the old ports with presets).
+- Both stay `IS_SYNTH` (Instrument, with a MIDI input) and effect (FX); VST3 categories `Instrument Synth` and `Fx`.
+- `release.py`: `bleep-audio-insert` → `bleep-fx`; docs and READMEs updated.
+- **Existing sets:** an old *Audio Insert* shows as a missing plugin (no migration); an old *Instrument* without a saved preset stays empty (no default is loaded into a saved set).
+
+### 11.6 Known gaps closed in this phase
+
+- **Open hi-hats:** `attachHost` feeds the default jack only. Cells with several triggers get a small engine module, `note-router` (a node: `notes` in, one trigger out per mapped note), cabled by `attachHost`; the manifest's `{default, "46": "open"}` is its configuration.
+- **Ghost cables:** replacing a cell keeps the cables that touched jacks of the old cell as cables to a ghost endpoint (same id), and reconnects them when a jack with that id comes back.
+- **Preset library:** the three hand-written presets (11.3).
+
+### 11.7 Build order
+
+1. **Spike:** an editor with a `WebBrowserComponent` showing a static panel page, in Live. Gate: renders, takes mouse and keyboard, survives close/reopen and two instances.
+2. `uiCall` on the ABI, `BoardView` moved onto it; the board window unchanged for the user.
+3. `plugin-panel.html/js`, the editor with top bar and panel, *Reset panel*.
+4. The 16 parameters and `expose`.
+5. Browser overlay, the three extra presets.
+6. `note-router`, ghost cables.
+7. Rename and remove Audio Insert; release script and docs.
+8. Tests: `uiCall` round trip, parameter mapping, editor opens in the plugin test (`bridge_plugin_test`), `note-router`.
