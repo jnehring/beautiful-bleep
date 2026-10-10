@@ -4,7 +4,7 @@ Plugins, modules and presets are managed in one place, the **Bleep Store**. Ever
 
 | Kind | What it is | Who loads it | Form |
 |---|---|---|---|
-| **Plugin** | Something you load in Ableton: Bleep Patch, the ports, later Bus receivers | Live, the app's Software Center installs it | Installer per platform and format (VST3, AU, CLAP) |
+| **Plugin** | Something you load in Ableton: Bleep Patch, the ports, later Bus receivers | Live, the app's Store section installs it | Installer per platform and format (VST3, AU, CLAP) |
 | **Module** | A node type on the board: its DSP, view and docs | The engine in the plugins, the app and the browser | `.bleepmod` package |
 | **Preset** | A patch (a whole board) or a cell (a subgraph, with its panel) | The board | `.bleeppreset` file (JSON) |
 
@@ -50,7 +50,7 @@ Every entry in the store has the same envelope:
 ```
 
 - **Immutable and content-addressed.** A published `id@version` never changes; a fix is a new version. Files are named by sha256 in storage, so caches never go stale.
-- **`engineAbi`** is an integer bumped when the module ABI (specified in [`module-abi.md`](module-abi.md); the C interface in `patch/web/src/WebShim.cpp`) changes incompatibly. Hosts refuse modules they cannot run and the Software Center explains why.
+- **`engineAbi`** is an integer bumped when the module ABI (specified in [`module-abi.md`](module-abi.md); the C interface in `patch/web/src/WebShim.cpp`) changes incompatibly. Hosts refuse modules they cannot run and the Store section explains why.
 - **Signing.** Every file of a plugin or module entry has a developer signature (`files[].signature`: a chain root > store issuer > developer, over the content hash, kind, id, version and platform), checked by the store on upload and by every host before it loads or installs. `index.json` and the revocation list carry the store issuer's signature, a rising `serial` and an expiry. Details, the settings and a test vector in [`signing.md`](signing.md).
 
 ## 3. The store
@@ -114,9 +114,9 @@ Modules are statically linked into the plugins today. For the app to install, up
 | Sandbox: safe to run modules from other people | no | **yes** (no syscalls, own memory) | n/a |
 | Updating a module without updating the plugin | yes | **yes** | no |
 
-**Decision: wasm everywhere.** The engine gets a `WasmModuleHost` (embedded WAMR or wasmtime, AOT-compiled at install time and cached per machine) that implements the same `Module` interface the static modules do. First-party modules are *also* kept statically linked in the plugin as the offline default, so a fresh install works with no network and the store copy only overrides when newer. Third-party modules are wasm-only.
+**Decision: wasm everywhere.** The engine gets a `WasmModuleHost` (embedded WAMR or wasmtime, AOT-compiled at install time and cached per machine) that implements the same `Module` interface the static modules do. **The apps and plugins ship without modules** (decided): every module, first-party or not, is installed from the store, so there is one path and one set of rules. Offline, the installer carries the default module bundle. The native sources stay in the repository: the tests run them as the reference the wasm builds are compared with, and a module that turns out too heavy as wasm may later get a native package for its platform.
 
-**Gate, first answer (Verb, Apple M-series, Live 12; `patch/wasm-host/`).** Wasmtime (Cranelift JIT) costs about 1.2× the native module in a standalone benchmark and 1.5 to 1.7× through the plugin, copies around each 32-sample chunk included (3.2 % of a core against 1.9 %), and loads in 44 ms; the output matches the native build to about 1e-6. The wasm3 interpreter costs ten times Wasmtime (32.5 % of a core), so it is only a fallback for very light modules. Both run in Live, which allows the executable memory Wasmtime needs. Consequences: **Wasmtime is the runtime**; wasm3 stays an option for trusted, cheap modules; a host without executable memory gets the native copy (a plugin cannot "try and fall back": Wasmtime is killed, not refused, so the runtime is chosen from the host's entitlements or a setting before any code is compiled). Still to run: the heaviest modules (Grains, Delay Network, Modal Voice). If one costs more than about 2× native, it stays static-only and is also offered as a native package (the `platform` field in `files` already allows per-platform files). Not yet tested: other DAWs, Windows, Linux.
+**Gate, first answer (Verb, Apple M-series, Live 12; `patch/wasm-host/`).** Wasmtime (Cranelift JIT) costs about 1.2× the native module in a standalone benchmark and 1.5 to 1.7× through the plugin, copies around each 32-sample chunk included (3.2 % of a core against 1.9 %), and loads in 44 ms; the output matches the native build to about 1e-6. The wasm3 interpreter costs ten times Wasmtime (32.5 % of a core), so it is only a fallback for very light modules. Both run in Live, which allows the executable memory Wasmtime needs. Consequences: **Wasmtime is the runtime**; wasm3 stays an option for trusted, cheap modules; a host without executable memory runs only what wasm3 can carry (cheap modules; the rest show as unavailable: **open**, section 12) (a plugin cannot "try and fall back": Wasmtime is killed, not refused, so the runtime is chosen from the host's entitlements or a setting before any code is compiled). Still to run: the heaviest modules (Grains, Delay Network, Modal Voice). If one costs more than about 2× native, it stays static-only and is also offered as a native package (the `platform` field in `files` already allows per-platform files). Not yet tested: other DAWs, Windows, Linux.
 
 ### 4.3 Resolution on the board
 
@@ -124,11 +124,11 @@ A board file lists the node types it uses. On load, a host resolves each type: b
 
 ## 5. Plugins
 
-Plugins are installed by the Software Center, not hot-loaded:
+Plugins are installed from the Store section of the app, not hot-loaded:
 
 - Artifacts: a signed and notarised installer per OS (`.pkg`, `.msi`, `.zip` for Linux) containing all formats of one plugin, or the whole bundle.
 - Install paths are the system's (`/Library/Audio/Plug-Ins/VST3`, …). **Live must not be running** while a loaded plugin is replaced (the README warns of crashes); the app checks for Live and asks the user to quit it first.
-- The store entry says which formats and OS versions each file supports. Third-party Bus receiver plugins can be listed with a download link (not hosted by us) so the Software Center is one place for everything that works with the Bus.
+- The store entry says which formats and OS versions each file supports. Third-party Bus receiver plugins can be listed with a download link (not hosted by us) so the Store section is one place for everything that works with the Bus.
 - A plugin states the module `engineAbi` range it can host, so the app can warn when a module needs a newer plugin.
 
 ## 5a. Bundles, first run, and manual installs
@@ -140,24 +140,24 @@ Plugins are installed by the Software Center, not hot-loaded:
 | `default-modules` | Every first-party module (80 today, about 25 MB of wasm) | What the board offers out of the box, one tick instead of 80 installs |
 | `default-plugins` | Every Bleep VST3: Bleep Patch, the port plugins (MIDI In, MIDI Out, Audio In, Audio Out), Bleep Instrument and Audio Insert | The plugins Live needs; they must all be the same version, because they share one engine |
 
-Installing a bundle installs its members, each verified on its own. A bundle update is a new bundle version; the Software Center shows "Update all" and installs only the members that changed.
+Installing a bundle installs its members, each verified on its own. A bundle update is a new bundle version; the Store section shows "Update all" and installs only the members that changed.
 
 **First run.** When the app is installed (the installer's last page, or the first launch for a download without an installer), a setup assistant asks, with sizes and both pre-ticked:
 
 1. **Download the default module bundle** (the modules from the store, into the store folder below).
 2. **Install the default plugin bundle** (all VST3 bridges into the system plugin folder). If Live is running it asks to quit it first, as in section 5.
 
-Declining either is fine: the app works, a missing module is a placeholder node with an *Install* button, and the Software Center keeps a "Default modules are not installed" banner until it is done. **Offline:** an offline installer carries both bundles. First-party modules also stay statically linked in the plugins (4.2), so a plugin in Live works even before the module bundle is installed and never downloads anything itself.
+Declining either is fine: the app works, a missing module is a placeholder node with an *Install* button, and the Store section keeps a "Default modules are not installed" banner until it is done. **Offline:** an offline installer carries both bundles. The apps ship without modules (4.2), so until the module bundle is installed a board shows placeholder nodes. A plugin in Live never downloads anything on its own: modules are installed from the Store section of the app or of the plugin window, on a non-audio thread.
 
 **Manual installs.** Everything can also be copied by hand:
 
 | What | Folder | Notes |
 |---|---|---|
-| Modules from the store | `<data>/modules/registry/<id>/<version>/` | Written by the Software Center; do not edit |
+| Modules from the store | `<data>/modules/registry/<id>/<version>/` | Written by the Store section; do not edit |
 | Modules by hand | `<data>/modules/local/` | A `.bleepmod`, or `<name>.wasm` with a `<name>.json` (the `module.json`) beside it. Read at start and when the folder changes. |
-| Plugins | The system VST3 folders | Copied by hand as usual; the Software Center lists them with their status |
+| Plugins | The system VST3 folders | Copied by hand as usual; the Store section lists them with their status |
 
-`<data>` is `~/Library/Application Support/Bleep` (macOS), `%APPDATA%\Bleep` (Windows), `~/.local/share/Bleep` (Linux); the settings can point at another folder. Every file in these folders goes through the same check as a download (signature, imports, ABI version); unsigned ones need *Allow unsigned modules* (or plugins) in **Settings → Security**, and the app, the plugins and the Software Center all read that setting from the one settings file. When several copies provide the same node type, the choice is: highest compatible version, then signed over unsigned, then the manual folder over the store (`signing.md`, section 11).
+`<data>` is `~/Library/Application Support/Bleep` (macOS), `%APPDATA%\Bleep` (Windows), `~/.local/share/Bleep` (Linux); the settings can point at another folder. Every file in these folders goes through the same check as a download (signature, imports, ABI version); unsigned ones need *Allow unsigned modules* (or plugins) in **Settings → Security**, and the app, the plugins and the Store section all read that setting from the one settings file. When several copies provide the same node type, the choice is: highest compatible version, then signed over unsigned, then the manual folder over the store (`signing.md`, section 11).
 
 ## 6. Presets
 
@@ -196,24 +196,23 @@ Single source: the repository. CI builds and publishes; nobody uploads by hand.
 - The board UI and `patch/web/js/` (graph runner, worklet) are versioned with the site and declare the `engineAbi` they implement. The site's module catalog and docs pages read the store entries at build time instead of `patch/modules/*/module.json` from the repo, with the repo as a fallback in development.
 - Preset browser on the site: read-only listing from `presets/index.json`, *Open in Bleep Board* and *Open in the app* (`bleep://preset/<author>/<slug>`).
 
-## 9. Standalone app sections
+## 9. The two sections: Store and Board
 
-The app gets a left rail with:
+The standalone app and the window of every Bleep plugin have the same two sections, switched at the top:
 
-| Section | What it does |
-|---|---|
-| **Home** | Recent projects, new project, what's new, updates available (one badge across the app), the audio and bridge status in one line |
-| **Bleep Patch** | The board, as today |
-| **Library** | Your presets and projects on disk, the community presets (browse, search, preview, install, rate), *Share…* for your own, updates for installed ones |
-| **Software Center** | Plugins, Modules, Presets tabs: installed / available / updates; Install, Update, Uninstall; dependency prompts ("this preset needs …"); release channel switch; disk use |
-| **Devices** | Audio device, MIDI ports, Link, connected Audio Bridges and which Live instances are seen (today under File → Settings; it deserves a page because it is the first thing that goes wrong) |
-| **Docs** | Module manuals and the guide, offline from installed packages (each package carries its docs), with search |
+| Section | For | What is in it |
+|---|---|---|
+| **Board** | Creating patches | The board (nodes, cables, cells, panels, module views, undo), loading and saving projects and presets, the transport. What the app and the plugin show today |
+| **Store** | Managing what is on this machine | **Modules**, **Plugins** and **Presets** tabs: installed, available and updates; Install, Update, Remove; the two default bundles; the release channel; disk use. **Security**: *Allow unsigned modules*, *Allow unsigned plugins*, trusted developers. In the app also **Devices** (audio device, MIDI ports, Link, connected plugins), and the account for sharing presets and the store URL (for self-hosting) |
 
-Settings (account, channel, store URL for self-hosting, install locations) is a dialog, not a section. Not planned: a built-in shop, a patch store with payments.
+- **A missing module** on the board is a placeholder node with an *Install* button that opens the Store section at that module.
+- **In a plugin window**, the Store installs modules and presets (outside the audio thread); *Plugins* only lists what is installed and what is newer, and says "close Live, then update with the Bleep Patch app", because replacing a plugin Live has loaded can crash it.
+- **The web board** has no Store section: it installs the modules a board needs by itself, checks them, and keeps them in the browser's cache. It has no plugins to manage and presets come from the site.
+- **Docs:** module manuals are read from the installed packages (each carries its docs) and open from a module's node or from its card in the Store.
 
-Software Center and Library overlap on presets. The split: *Software Center* is about things you install and keep updated (it lists presets you installed); *Library* is where you find, rate and publish them.
+Not planned: a built-in shop, a patch store with payments.
 
-Local state in `~/Library/Application Support/Bleep/` (and equivalents): `installed.json` (id, version, sha256, channel, source), `modules/<id>/<version>/`, `presets/`, a cache of `index.json`. Uninstall removes the version directory; the board's nodes of an uninstalled type show as missing, never delete the board.
+Local state in `~/Library/Application Support/Bleep/` (and equivalents), read by the app and by every plugin: `settings.json` (the Security settings, channel, store URL), `installed.json` (id, version, sha256, channel, source, signer), `modules/<source>/<id>/<version>/`, `presets/`, a cache of `index.json`. Remove deletes the version folder; the board's nodes of a removed type show as missing, a board is never changed by it.
 
 ## 10. Repository layout
 
@@ -237,14 +236,31 @@ patch/app/SoftwareCenter.*     the installer logic (UI is board-style web UI lik
 1. **Schemas and package format.** `module.json` gets `version`, `requires`, `types`. `package-module.py` produces `.bleepmod` from the existing wasm output. Validate all current modules.
 2. **Store v0.** The SeaweedFS service and the Caddy route (done in the compose file); `release.py` publishes into the bucket. The website reads from it; remove the `web` stage from the Dockerfile; add `web-lock.json`.
 3. **Wasm host in the engine** and the CPU gate from 4.2. Decide per module: static-only or installable.
-4. **Software Center** in the app with Modules and Plugins; update check at start.
+4. **The Store section** in the app and the plugin window, with Modules, Plugins and Presets; the update check at start (13 has the steps).
 5. **Plugin release pipeline**: signing, notarisation, installers.
 6. **Presets**: the schema with `needs`, local Library, then the `/api/presets` endpoints, the Postgres migration, device-code login and *Share…*.
 
 ## 12. Open questions
 
-- **Wasm for native modules** (4.2): confirm the direction after the CPU numbers.
+- **Hosts that forbid executable memory** (4.2, 13): with every module a wasm package, such a DAW can only run what wasm3 carries. Options: accept it (a message that names the DAW and the missing entitlement), keep a native build of the cheap-to-port modules as packages for that platform, or ship a second plugin build with the modules compiled in. Needs a decision before M6.
 - **Release credentials.** `release.py` uses a release token (revocable, expiring, listed with last use), so S3 credentials stay on the server.
 - **Third-party modules.** Opened by the signing design: any developer with an account can get a key and publish modules under their own namespace (`acme/fuzz`); modules are sandboxed, plugins are reviewed before the plugin scope is granted. Open: whether signed third-party modules sit in a separate `community` channel or in one list with the publisher shown.
 - **Signing keys.** The chain, key custody for the offline root and the online issuer, and the settings are in [`signing.md`](signing.md) (sections 2, 10 and 16). The root key ceremony is still to be decided.
 - **Naming:** the product name, package extensions and the `bleep://` scheme are placeholders like the rest of the project's names.
+
+## 13. Moving the apps and plugins to store modules: work plan
+
+Done: the module packages (`package-module.py`), their release and signing, the store reading each module's node types, and the **web board**, which installs and verifies its modules from the store (`patch/web/js/store-client.js`, tested against the Python tools). Left: the standalone app and the plugins, which today compile the modules in.
+
+What is known about the 80 modules, from their sources and the browser build: all 80 build to standalone wasm and pass the ABI check. **26** use `juce_core` and wasm exceptions (Wasmtime only; wasm3 cannot run them). **4** read the harmony bus (chord-quantizer, harmony-master, quantizer-suite, step-sequencer), **6** use the per-voice index (beat-oscillator, chart-recorder, macro-osc, pulse-generator, test-oscillator, wave-analyzer), **4** load sample files (grains, sampler, splice, wavetable-osc). Those 14 need an ABI addition before they can leave the apps (`module-abi.md`, section 9). Cells, Voice Cells and the port nodes stay in the engine: only the DSP nodes become wasm.
+
+| Step | What | Done when |
+|---|---|---|
+| **M1 The gate** | A `WasmModuleHost` (Wasmtime) in the engine, used first by `bleep_module_harness`: every module runs natively and as wasm on the same inputs and knob changes. ABI additions for harmony bus, voice index and media | Per module: maximum difference within rounding and CPU relative to native. All 80 pass, or the list of those that do not and why. The heaviest (Grains, Delay Network, Modal Voice; a 16-voice Voice Cell) are within about 2× native |
+| **M2 Store client in C++** | HTTP with `juce::URL`, Ed25519 and SHA-256 (Monocypher, vendored), the same checks as `signing.py` and `store-client.js`, the install folders and `installed.json`, the shared `settings.json` | The test vector and a package signed by the Python tools give the same verdicts; an install from a store on another port works end to end |
+| **M3 Dynamic registry** | `Registry` becomes append-only and thread-safe (modules keep references to their specs, so a spec never moves or goes away); the type list the UI shows refreshes after an install; installed modules load at start | Installing a module while a board is open adds its node type without a restart |
+| **M4 Store and Board** | The two sections in the board UI, shared by the app and the plugins, with native functions for install, update, remove, progress and the Security settings | Section 9 works in the app and in a plugin window in Live |
+| **M5 First run** | The setup assistant with the two default bundles, the installers, the plugin bundle install (app only, Live closed) | A clean machine reaches a working board with one click per bundle |
+| **M6 Remove the modules from the apps** | The CMake option that compiles modules in is off for shipped builds; the plugins lose the module code; the tests keep it as the reference | The plugins are small, load no module code, and the same boards sound the same |
+
+Risks, in the order they bite: a **wasm instance per voice** (a 16-voice cell with five modules is 80 instances of 1 to 2 MB each); **hosts that forbid executable memory** (Wasmtime would be killed; the choice of runtime must be made before any code is compiled); the **26 exception-using modules** cannot fall back to wasm3; **start-up time** (compile lazily on first use, cache compiled code per machine, keyed by the package hash); **first run offline**. M1 decides most of these, which is why nothing is removed from the apps before it passes.

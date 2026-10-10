@@ -187,12 +187,12 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
 | Place | When | What it does |
 |---|---|---|
 | Module loader in the engine (`WasmModuleHost`) | When a module file is first used, and again when the file's hash changes | Verifies before the file is compiled, never after. Refuses per section 7. The result is cached with the file's hash, so the audio thread is never involved. |
-| Software Center (module and plugin installs, updates) | Before anything is written to the install folders | Downloads to a temporary folder, verifies, then moves. A refusal says why in the user's words. |
-| Plugin check at startup | The app and the Bleep plugins look at the Bleep plugins in the system folders | Recomputes the installer's installed-file record and compares it with what the Software Center recorded; a plugin that was changed afterwards, or that Bleep did not install, is shown as *not verified*. This is detection, not prevention: Live loads whatever is in its folder. |
+| Store section (module and plugin installs, updates) | Before anything is written to the install folders | Downloads to a temporary folder, verifies, then moves. A refusal says why in the user's words. |
+| Plugin check at startup | The app and the Bleep plugins look at the Bleep plugins in the system folders | Recomputes the installer's installed-file record and compares it with what the Store section recorded; a plugin that was changed afterwards, or that Bleep did not install, is shown as *not verified*. This is detection, not prevention: Live loads whatever is in its folder. |
 | Store upload | On `POST …/releases`, at the file upload, and when a platform is added | Verifies; refuses unsigned, invalid, revoked or for the wrong publisher (built). |
 | Website | Build and download pages | Shows the publisher and key id of every entry. |
 
-**Manual installs.** Dropping a `.bleepmod` (or a `.wasm` with a `module.json` next to it) into the modules folder works the same as installing from the store: the folder is read at start and when it changes, each file is verified, and the node types it provides appear. A file in a folder that is not signed, or not signed by a trusted publisher, needs **Allow unsigned modules**. Plugins copied by hand into a system plugin folder are untouched by Live's loading, but the Software Center and the startup check list them as *unsigned* or *not verified*, and the Bleep plugins refuse to **install or connect to** an unsigned Bleep plugin (a bridge, a bus receiver) unless **Allow unsigned plugins** is on.
+**Manual installs.** Dropping a `.bleepmod` (or a `.wasm` with a `module.json` next to it) into the modules folder works the same as installing from the store: the folder is read at start and when it changes, each file is verified, and the node types it provides appear. A file in a folder that is not signed, or not signed by a trusted publisher, needs **Allow unsigned modules**. Plugins copied by hand into a system plugin folder are untouched by Live's loading, but the Store section and the startup check list them as *unsigned* or *not verified*, and the Bleep plugins refuse to **install or connect to** an unsigned Bleep plugin (a bridge, a bus receiver) unless **Allow unsigned plugins** is on.
 
 **Settings → Security.**
 
@@ -259,4 +259,4 @@ All three run the same test vector in their tests.
 - **Publishing the revocation list** to clients, signed by the issuer (the store already refuses revoked keys itself).
 - Whether `community` (third-party, signed, not reviewed by us) is a separate release channel from `stable`, or all signed modules appear in one list with the publisher shown.
 - The plugin scope review: what we check before an admin grants it.
-- Whether the installers also carry the content-addressed file list of the installed plugin (what the startup check compares), or the Software Center keeps it only locally.
+- Whether the installers also carry the content-addressed file list of the installed plugin (what the startup check compares), or the Store section keeps it only locally.
