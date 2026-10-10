@@ -24,11 +24,12 @@ juce::String resource(const char* filename) {
 
 juce::Array<PresetEntry> load(const char* role) {
     juce::Array<PresetEntry> list;
-    const auto presets = engine::board::fromJson(resource("factory-presets.json"));
     const auto panels = engine::board::fromJson(resource("factory-panels.json"));
-    const auto* all = presets["presets"].getArray();
-    if (all == nullptr) return list;
-    for (const auto& p : *all) {
+    // The compiled presets, then the three written by hand in factory-presets.js (the board reads that file itself).
+    juce::Array<juce::var> all;
+    for (const char* file : {"factory-presets.json", "hand-written-presets.json"})
+        if (const auto* ps = engine::board::fromJson(resource(file))["presets"].getArray()) all.addArray(*ps);
+    for (const auto& p : all) {
         const juce::var preset = p["preset"];
         if (!preset["plays"].hasProperty(role)) continue;
         juce::var doc = engine::board::fromJson(engine::board::toJson(preset));

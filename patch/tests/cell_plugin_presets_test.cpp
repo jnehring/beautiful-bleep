@@ -10,7 +10,7 @@
 //   effect      noise goes in for one second, then silence: the output must be finite, below
 //               kPeakLimit, and silent after `tail` seconds (plus a little).
 //
-//   bleep_cell_plugin_presets <factory-presets.json> [-v] [name ...]
+//   bleep_cell_plugin_presets <presets.json> [<more.json> ...] [-v] [name ...]
 #include "Board.h"
 #include "Program.h"
 #include "Registry.h"
@@ -308,28 +308,32 @@ void check(const juce::var& entry, bool verbose) {
 
 int main(int argc, char** argv) {
     bool verbose = false;
-    juce::String file;
+    std::vector<juce::String> files;
     std::set<juce::String> only;
     for (int i = 1; i < argc; ++i) {
         const juce::String a(argv[i]);
         if (a == "-v") verbose = true;
-        else if (file.isEmpty()) file = a;
+        else if (a.endsWithIgnoreCase(".json")) files.push_back(a);
         else only.insert(a);
     }
-    const juce::var doc =
-        juce::JSON::parse(juce::File::getCurrentWorkingDirectory().getChildFile(file).loadFileAsString());
-    const auto* presets = doc["presets"].getArray();
-    if (presets == nullptr || presets->isEmpty()) {
-        std::printf("%s: no presets\n", file.toRawUTF8());
-        return 1;
-    }
     int count = 0, withPlays = 0;
-    for (const auto& entry : *presets) {
-        ++count;
-        if (!entry["preset"].hasProperty("plays")) continue;
-        ++withPlays;
-        if (!only.empty() && !only.count(entry["name"].toString())) continue;
-        check(entry, verbose);
+    std::set<juce::String> names;
+    for (const auto& file : files) {
+        const juce::var doc =
+            juce::JSON::parse(juce::File::getCurrentWorkingDirectory().getChildFile(file).loadFileAsString());
+        const auto* presets = doc["presets"].getArray();
+        if (presets == nullptr || presets->isEmpty()) {
+            std::printf("%s: no presets\n", file.toRawUTF8());
+            return 1;
+        }
+        for (const auto& entry : *presets) {
+            ++count;
+            if (!names.insert(entry["name"].toString()).second) fail(entry["name"].toString(), "name used twice");
+            if (!entry["preset"].hasProperty("plays")) continue;
+            ++withPlays;
+            if (!only.empty() && !only.count(entry["name"].toString())) continue;
+            check(entry, verbose);
+        }
     }
     std::printf("%d of %d presets load as a plugin, %d problems\n", withPlays, count, g_failures);
     return g_failures == 0 && withPlays > 0 ? 0 : 1;

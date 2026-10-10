@@ -34,6 +34,7 @@ const OUT = fileURLToPath(new URL("../board/ui/factory-presets.json", import.met
 const PANELS = fileURLToPath(new URL("../board/ui/factory-panels.json", import.meta.url));
 const PANEL_BUILD = fileURLToPath(new URL("../board/ui/panel-build.js", import.meta.url));
 const DEMOS = fileURLToPath(new URL("../board/ui/demo-patches.json", import.meta.url));
+const HAND_OUT = fileURLToPath(new URL("../board/ui/hand-written-presets.json", import.meta.url));
 const DEMO_DIR = new URL("./demos/", import.meta.url);
 const HAND_WRITTEN = fileURLToPath(new URL("../board/ui/factory-presets.js", import.meta.url));
 
@@ -153,6 +154,14 @@ function panels(doc) {
   return result;
 }
 
+/// The presets of factory-presets.js as JSON, for the plugins' preset library (the board reads the .js itself):
+/// one preset per line.
+function formatHandWritten() {
+  const line = (v) => JSON.stringify(v);
+  return ["{", `  "format": 1,`, `  "presets": [`,
+    handWritten().map((p) => "    " + line({ name: p.name, category: p.category, preset: p.preset })).join(",\n"), "  ]", "}", ""].join("\n");
+}
+
 /// One control per line: readable diffs.
 function formatPanels(all) {
   const line = (v) => JSON.stringify(v);
@@ -212,7 +221,7 @@ if (arg === "--reference") {
     const demos = option("--only") ? [] : await compileDemos();
     const demoText = formatDemos(demos);
     if (arg === "--check") {
-      const stale = [[OUT, text], [PANELS, panelText], ...(option("--only") ? [] : [[DEMOS, demoText]])].filter(([file, want]) => {
+      const stale = [[OUT, text], [PANELS, panelText], ...(option("--only") ? [] : [[DEMOS, demoText], [HAND_OUT, formatHandWritten()]])].filter(([file, want]) => {
         let old = "";
         try { old = readFileSync(file, "utf8"); } catch {}
         return old !== want;
@@ -225,6 +234,7 @@ if (arg === "--reference") {
       writeFileSync(OUT, text);
       writeFileSync(PANELS, panelText);
       writeFileSync(DEMOS, demoText);
+      writeFileSync(HAND_OUT, formatHandWritten());
     } else writeFileSync(option("--out"), text);
     const extra = handWritten();
     const count = (name) => doc.presets.filter((p) => p.category === name).length +
