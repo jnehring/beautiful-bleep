@@ -51,7 +51,12 @@ from app import signing  # noqa: E402
 # slug -> (title, artefact path under the build dir; {cfg} = build configuration)
 PLUGINS = {
     "bleep-patch": ("Bleep Patch (VST3)", "BleepPatch_artefacts/{cfg}/VST3/Bleep Patch.vst3"),
-    "bleep-audio-bridge": ("Bleep Audio Bridge (VST3)", "BleepAudioBridge_artefacts/{cfg}/VST3/Bleep Audio Bridge.vst3"),
+    "bleep-midi-in": ("Bleep MIDI In (VST3)", "BleepMidiIn_artefacts/{cfg}/VST3/Bleep MIDI In.vst3"),
+    "bleep-midi-out": ("Bleep MIDI Out (VST3)", "BleepMidiOut_artefacts/{cfg}/VST3/Bleep MIDI Out.vst3"),
+    "bleep-audio-in": ("Bleep Audio In (VST3)", "BleepAudioIn_artefacts/{cfg}/VST3/Bleep Audio In.vst3"),
+    "bleep-audio-out": ("Bleep Audio Out (VST3)", "BleepAudioOut_artefacts/{cfg}/VST3/Bleep Audio Out.vst3"),
+    "bleep-instrument": ("Bleep Instrument (VST3)", "BleepInstrument_artefacts/{cfg}/VST3/Bleep Instrument.vst3"),
+    "bleep-audio-insert": ("Bleep Audio Insert (VST3)", "BleepAudioInsert_artefacts/{cfg}/VST3/Bleep Audio Insert.vst3"),
     "bleep-patch-app": ("Bleep Patch (standalone app)", "BleepPatchApp_artefacts/{cfg}/Bleep Patch.app"),
 }
 

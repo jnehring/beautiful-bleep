@@ -207,7 +207,7 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
 
 ## 12. Bundles
 
-A **bundle** is a registry entry of `kind: "bundle"` with no files: a signed list of `(kind, id, version, contentDigest)` members, published and signed like any other entry (publisher `bleep`). Installing one installs its members, each verified on its own. `default-modules` lists every first-party module; `default-plugins` lists every Bleep VST3 (Bleep Patch, the four port plugins, Instrument, Audio Insert, Audio Bridge), as `registry.md` section 5a describes.
+A **bundle** is a registry entry of `kind: "bundle"` with no files: a signed list of `(kind, id, version, contentDigest)` members, published and signed like any other entry (publisher `bleep`). Installing one installs its members, each verified on its own. `default-modules` lists every first-party module; `default-plugins` lists every Bleep VST3 (Bleep Patch, the four port plugins, Instrument, Audio Insert), as `registry.md` section 5a describes.
 
 ## 13. Decisions and alternatives
 

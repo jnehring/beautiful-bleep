@@ -2,7 +2,7 @@
 
 ## Releasing plugins to the registry
 
-`scripts/release/release.py` publishes plugins (`bleep-patch`, `bleep-audio-bridge`, `bleep-patch-app`) to the registry in the website stack. Modules are not released this way yet.
+`scripts/release/release.py` publishes plugins to the registry in the website stack: `bleep-patch`, the port plugins (`bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`), `bleep-instrument`, `bleep-audio-insert` and the standalone app `bleep-patch-app` (`--list` shows them). The Audio Bridge is no longer on the list. Modules are not released this way yet.
 
 **One-time: a release token.** An admin creates it on the website (Admin → Release tokens; shown once), or from the command line (it is shown once; put it in a file only you can read):
 

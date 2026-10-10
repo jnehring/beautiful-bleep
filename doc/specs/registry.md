@@ -4,7 +4,7 @@ Plugins, modules and presets are managed in one place, the **registry**. Everyth
 
 | Kind | What it is | Who loads it | Form |
 |---|---|---|---|
-| **Plugin** | Something you load in Ableton: Bleep Patch, the ports, the Audio Bridge, later Bus receivers | Live, the app's Software Center installs it | Installer per platform and format (VST3, AU, CLAP) |
+| **Plugin** | Something you load in Ableton: Bleep Patch, the ports, later Bus receivers | Live, the app's Software Center installs it | Installer per platform and format (VST3, AU, CLAP) |
 | **Module** | A node type on the board: its DSP, view and docs | The engine in the plugins, the app and the browser | `.bleepmod` package |
 | **Preset** | A patch (a whole board) or a cell (a subgraph, with its panel) | The board | `.bleeppreset` file (JSON) |
 
@@ -136,7 +136,7 @@ Plugins are installed by the Software Center, not hot-loaded:
 | Bundle | Members | Why |
 |---|---|---|
 | `default-modules` | Every first-party module (80 today, about 25 MB of wasm) | What the board offers out of the box, one tick instead of 80 installs |
-| `default-plugins` | Every Bleep VST3: Bleep Patch, the port plugins (MIDI In, MIDI Out, Audio In, Audio Out), Bleep Instrument, Audio Insert and the Audio Bridge | The plugins Live needs; they must all be the same version, because they share one engine |
+| `default-plugins` | Every Bleep VST3: Bleep Patch, the port plugins (MIDI In, MIDI Out, Audio In, Audio Out), Bleep Instrument and Audio Insert | The plugins Live needs; they must all be the same version, because they share one engine |
 
 Installing a bundle installs its members, each verified on its own. A bundle update is a new bundle version; the Software Center shows "Update all" and installs only the members that changed.
 
