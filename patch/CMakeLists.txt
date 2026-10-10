@@ -318,6 +318,19 @@ function(bleep_add_plugin)
         # Never ship these builds: they read the UI from this machine's source tree.
         target_compile_definitions(${P_TARGET} PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     endif ()
+    # Modules register themselves with a static initialiser (BLEEP_REGISTER_MODULE). JUCE puts the sources in a
+    # static library, and a linker drops archive members nothing references: the plugin would offer only the modules
+    # Registry.cpp registers by hand. Link the whole archive into each plugin format.
+    foreach (fmt IN LISTS BLEEP_PATCH_FORMATS)
+        if (APPLE)
+            target_link_options(${P_TARGET}_${fmt} PRIVATE "LINKER:-force_load,$<TARGET_FILE:${P_TARGET}>")
+        elseif (MSVC)
+            target_link_options(${P_TARGET}_${fmt} PRIVATE "/WHOLEARCHIVE:$<TARGET_FILE:${P_TARGET}>")
+        else ()
+            target_link_libraries(${P_TARGET}_${fmt} PRIVATE
+                "-Wl,--whole-archive" "$<TARGET_FILE:${P_TARGET}>" "-Wl,--no-whole-archive")
+        endif ()
+    endforeach ()
     target_link_libraries(${P_TARGET}
         PRIVATE
             bleep_board_web
