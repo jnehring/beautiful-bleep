@@ -119,7 +119,7 @@ public:
     }
 
     void setData(const std::string& json) override {
-        if (json == lastJson_) return;
+        if (json == lastJson_ && !missing_.load()) return;  // a reel that was missing is asked for again when its data comes again
         lastJson_ = json;
         releaseLoaded();
         const ReelData d = parse(juce::JSON::parse(juce::String(json)));
@@ -127,7 +127,7 @@ public:
         msg->serial = ++serial_;
         msg->markers = d.markers;
         msg->current = d.current;
-        if (d.reel != reelId_) {
+        if (d.reel != reelId_ || (missing_.load() && !d.reel.empty())) {
             const std::string previous = reelId_;
             reelId_ = d.reel;
             if (!d.reel.empty() && pendingExport_) {  // the reel we just saved: already in memory

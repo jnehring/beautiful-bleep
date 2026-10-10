@@ -166,10 +166,10 @@ public:
     }
 
     void setData(const std::string& json) override {
-        if (json == lastJson_) return;
+        if (json == lastJson_ && !missing_.load()) return;  // a clip that was missing is asked for again when its data comes again
         lastJson_ = json;
         data_ = parse(juce::JSON::parse(juce::String(json)));
-        if (data_.clip != clipId_) {
+        if (data_.clip != clipId_ || missing_.load()) {
             clipId_ = data_.clip;
             clip_.reset();
             peaks_.assign(kBins, 0.0f);

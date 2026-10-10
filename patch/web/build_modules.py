@@ -232,7 +232,7 @@ def main():
             if slug not in only and slug not in manifest["unavailable"] and slug not in manifest["modules"]:
                 manifest["unavailable"][slug] = why
     # The node types of each file come from the file itself.
-    node = subprocess.run(["node", str(PATCH / "web/test/list-types.mjs"), str(out)], capture_output=True, text=True)
+    node = subprocess.run(["node", "--experimental-wasm-exnref", str(PATCH / "web/test/list-types.mjs"), str(out)], capture_output=True, text=True)
     if node.returncode != 0:
         sys.exit(node.stderr)
     for slug, types in json.loads(node.stdout).items():

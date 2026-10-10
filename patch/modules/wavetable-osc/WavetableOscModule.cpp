@@ -53,7 +53,10 @@ public:
     }
     void startAll() {
 #ifdef __EMSCRIPTEN__
-        return;  // the browser build has no threads: banks are built when first used (ensure)
+        // No threads in the wasm build: build every bank now, in prepare (never in process), so that a bank picked later
+        // is there. Skipping this left a bank chosen after prepare unbuilt, and the module stayed on the previous one.
+        for (int i = 0; i < wt::kNumFactoryBanks; ++i) ensure(i);
+        return;
 #endif
         std::lock_guard<std::mutex> l(lock_);
         if (worker_.joinable()) return;
@@ -166,7 +169,7 @@ public:
     void reset() override { dsp_.reset(); }
 
     void setData(const std::string& json) override {
-        if (json == data_) return;
+        if (json == data_ && !userError_.load(std::memory_order_relaxed)) return;  // a file that was missing is asked for again
         data_ = json;
         const UserData d = parseData(juce::JSON::parse(juce::String(json)));
         std::vector<std::vector<float>> cycles;

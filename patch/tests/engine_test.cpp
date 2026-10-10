@@ -152,7 +152,7 @@ void sanitising() {
              cable("u", "out", "inner", "x"), cable("u", "out", "f", "cutoff", 0.2)}),
         &warnings);
     const auto model = board::parse(d);
-    EXPECT(model.node("x") == nullptr);
+    EXPECT(model.node("x") != nullptr && model.node("x")->spec == nullptr);  // a module that is not installed: the node waits as a placeholder
     EXPECT(model.node("p") != nullptr && model.node("p")->parent.empty());  // ports live on the top level
     int cellIns = 0, cellOuts = 0;
     for (const auto& n : model.nodes) {
@@ -160,7 +160,7 @@ void sanitising() {
         cellOuts += n.type == kCellOut && n.parent == "c";
     }
     EXPECT(cellIns == 1 && cellOuts == 1);
-    EXPECT(model.cables.size() == 1);  // unknown jack, unknown node, cell border and duplicate dropped
+    EXPECT(model.cables.size() == 2);  // unknown jack, cell border and duplicate dropped; the placeholder's cable kept as it was
     if (!model.cables.empty()) EXPECT_NEAR(model.cables[0].amount, -0.5, 1e-6);
     EXPECT(!warnings.isEmpty());
     // Params are filled with defaults.

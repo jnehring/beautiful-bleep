@@ -130,7 +130,7 @@ def check_abi(data: bytes) -> list[str]:
 
 def spec_json(wasm_file: Path) -> str:
     """The module's own description of its node types, as one line of JSON (patch/web/test/spec-json.mjs)."""
-    r = subprocess.run(["node", str(ROOT / "patch" / "web" / "test" / "spec-json.mjs"), str(wasm_file)], capture_output=True, text=True)
+    r = subprocess.run(["node", "--experimental-wasm-exnref", str(ROOT / "patch" / "web" / "test" / "spec-json.mjs"), str(wasm_file)], capture_output=True, text=True)
     if r.returncode != 0:
         raise ValueError("cannot read the node types out of the .wasm: " + (r.stderr.strip().splitlines() or ["node failed"])[-1])
     return r.stdout.strip()

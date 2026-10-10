@@ -80,15 +80,19 @@ public:
 
     void setData(const std::string& json) override {
         const std::string id = juce::JSON::parse(juce::String(json)).getProperty("frozen", juce::String()).toString().toStdString();
-        if (id == clipId_) return;
+        if (id == clipId_ && !clipMissing_) return;  // a clip that was missing is asked for again when its data comes again
         clipId_ = id;
+        clipMissing_ = false;
         if (id.empty()) {
             clip_ = nullptr;
             handoff_.publish(nullptr);
             return;
         }
         auto clip = atRate(media::load(id), sampleRate_);
-        if (!clip) return;  // missing file: keep recording live
+        if (!clip) {  // missing file: keep recording live
+            clipMissing_ = true;
+            return;
+        }
         if (lastExport_ && sameAudio(*clip, *lastExport_)) return;  // the buffer we just saved: already playing
         clip_ = clip;
         handoff_.publish(clip);
@@ -213,6 +217,7 @@ private:
     const MediaClip* activeClip_ = nullptr;          // audio thread
     const float* clipChannels_[2] = {nullptr, nullptr};
     std::string clipId_;                              // message thread
+    bool clipMissing_ = false;                        // message thread: the clip was asked for and is not there yet
     std::shared_ptr<const MediaClip> clip_, lastExport_;
     std::atomic<bool> frozen_{false}, playingClip_{false};
     std::atomic<int> dotCount_{0};

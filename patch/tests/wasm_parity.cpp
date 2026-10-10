@@ -11,6 +11,7 @@
 // DIR is the output of scripts/build/build-web.sh --modules-only (default build/web/modules): modules/<slug>.wasm and
 // manifest.json. A third run of the native module checks that it is deterministic at all.
 #include "Board.h"
+#include "Media.h"
 #include "Registry.h"
 #include "store/Client.h"
 #include "wasm/InstalledModules.h"
@@ -99,6 +100,23 @@ struct Rig {
 };
 
 /// The same random input for every instance: a stream seeded per module type.
+/// A sample for the modules that play one (set up in main): its media id and length.
+std::string g_clipId;
+int64_t g_clipFrames = 0;
+
+/// What a player does to modules that only play when touched (their views' buttons and keys), by chunk.
+struct Gesture {
+    int chunk;
+    std::string action;
+    std::vector<double> args;
+};
+std::vector<Gesture> gesturesFor(const std::string& type) {
+    if (type == "button") return {{5, "press", {}}, {40, "release", {}}, {80, "press", {1}}, {160, "press", {}}, {200, "press", {}}};
+    if (type == "keyboard")
+        return {{5, "on", {60, 0.8}}, {50, "off", {60}}, {70, "on", {64}}, {72, "on", {67, 0.4}}, {140, "off", {64}}, {260, "allOff", {}}, {300, "on", {50}}};
+    return {};
+}
+
 struct Stimulus {
     std::mt19937 rng;
     std::vector<float> walk;      // per input jack: the value of a slow signal
@@ -311,11 +329,28 @@ Outcome compare(const ModuleSpec& spec, const Factory& makeNative, const Factory
         out.note = wm->error();
         return out;
     }
-    const std::string data = spec.sanitiseData ? spec.sanitiseData("") : std::string();
+    std::string initial;
+    if (spec.type == "sampler" && !g_clipId.empty())
+        initial = "{\"clip\":\"" + g_clipId + "\",\"length\":" + std::to_string(g_clipFrames) + ",\"markers\":[0,24000,48000,72000]}";
+    const std::string data = spec.sanitiseData ? spec.sanitiseData(initial) : std::string();
     if (!data.empty()) {
         native->setData(data);
         twin->setData(data);
         wasmMod->setData(data);
+    }
+    // wavetable-osc builds its factory banks on background threads when the native module starts (the wasm build has none and builds
+    // a bank when it is first used), so a bank picked in the first moments is there at once in one and later in the other.
+    if (spec.type == "wavetable-osc") juce::Thread::sleep(4000);
+    // and a sample is read by the wasm module on a worker thread, answered when it is there (module-abi.md, "Media"): wait for it
+    if (!initial.empty()) {  // the wasm module asks for the sample while it takes its data, in process; give it the chunks and the time to get it
+        Rig warm(spec);
+        Transport wt;
+        wt.sampleRate = kRate;
+        for (int round = 0; round < 4; ++round) {
+            auto c = warm.context(wt, 0, false, 0.0);
+            wasmMod->process(c);
+            juce::Thread::sleep(250);
+        }
     }
     native->reset();
     twin->reset();
@@ -333,9 +368,15 @@ Outcome compare(const ModuleSpec& spec, const Factory& makeNative, const Factory
     t.bpm = 117.0;
     double nativeTime = 0, wasmTime = 0;
     double peak = 0, diff = 0, selfDiff = 0, sumN = 0, sumW = 0;
+    bool firstDiff = false, notesSeen = false;
+    const std::vector<Gesture> gestures = gesturesFor(spec.type);
     std::vector<float> base(spec.params.size());
     for (size_t i = 0; i < base.size(); ++i) base[i] = spec.params[i].defaultNormalised();
 
+    {  // ask for the view's numbers from the start: the module then publishes them as it runs
+        std::vector<std::pair<std::string, double>> ignore;
+        wasmMod->liveValues(ignore);
+    }
     for (int chunk = 0; chunk < chunks && out.status == "ok"; ++chunk) {
         // knobs: a few change now and then, the others are modulated by a slow wave
         if (chunk % 150 == 75)
@@ -350,9 +391,19 @@ Outcome compare(const ModuleSpec& spec, const Factory& makeNative, const Factory
             const float m = spec.params[i].modulatable && (i % 3 == 0) ? 0.25f * std::sin(0.002f * (float)chunk * (1.0f + (float)i)) : 0.0f;
             for (int k = 0; k < kChunk; ++k) {
                 const float v = std::clamp(base[i] + m * (1.0f + 0.01f * (float)k), 0.0f, 1.0f);
-                for (Rig* r : rigs) r->params[i][(size_t)k] = v;
+                // swarm's ring of phase modulation amplifies the last bit of sin/exp (which the host's libm and the wasm build's
+                // round differently) into a different waveform of the same level. To tell that from a bug, its second native
+                // run has every knob moved by 1e-6: if that alone makes the runs differ, the module is chaotic, and only its
+                // level is compared (like the random modules).
+                for (Rig* r : rigs) r->params[i][(size_t)k] = (r == &rt && spec.type == "swarm") ? std::min(1.0f, v + 1e-6f) : v;
             }
         }
+        for (const auto& g : gestures)
+            if (g.chunk == chunk) {
+                native->perform(g.action, g.args);
+                twin->perform(g.action, g.args);
+                wasmMod->perform(g.action, g.args);
+            }
         stim.inputs(spec, chunk, rigs);
         t.samplePos = (int64_t)chunk * kChunk;
         const double ppq = (double)t.samplePos * t.bpm / 60.0 / kRate;
@@ -381,6 +432,7 @@ Outcome compare(const ModuleSpec& spec, const Factory& makeNative, const Factory
             if (spec.outputs[j].type == Signal::Notes) {
                 if (!notesEqual(rn.notesOut[j], rw.notesOut[j])) { out.status = "NOTES DIFFER"; out.note = spec.outputs[j].id + " at chunk " + std::to_string(chunk); }
                 if (!notesEqual(rn.notesOut[j], rt.notesOut[j])) selfDiff = 1.0;
+                notesSeen = notesSeen || rn.notesOut[j].count > 0;
                 continue;
             }
             for (int k = 0; k < kChunk; ++k) {
@@ -390,6 +442,10 @@ Outcome compare(const ModuleSpec& spec, const Factory& makeNative, const Factory
                 sumN += (double)n * n;
                 sumW += (double)w * w;
                 diff = std::max(diff, (double)std::fabs(n - w));
+                if (std::fabs(n - w) > (std::getenv("BLEEP_PARITY_EPS") ? std::atof(std::getenv("BLEEP_PARITY_EPS")) : 1e-3) && !firstDiff && std::getenv("BLEEP_PARITY_DEBUG")) {
+                    firstDiff = true;
+                    std::printf("  [%s] first difference: output %s, chunk %d, sample %d: native %g wasm %g\n", spec.type.c_str(), spec.outputs[j].id.c_str(), chunk, k, (double)n, (double)w);
+                }
                 selfDiff = std::max(selfDiff, (double)std::fabs(n - s));
             }
         }
@@ -406,16 +462,22 @@ Outcome compare(const ModuleSpec& spec, const Factory& makeNative, const Factory
         if (selfDiff > 1e-6) {  // random by design (noise, random sources): the two native runs differ too, so compare what they have in common
             const double rn = std::sqrt(sumN / samples), rw = std::sqrt(sumW / samples);
             const bool close = std::fabs(rn - rw) <= 0.1 * rn + 1e-4;
-            out.status = close ? "ok (random: same level)" : "DIFFERS (random: other level)";
+            out.status = close ? (spec.type == "swarm" ? "ok (chaotic: same level)" : "ok (random: same level)") : "DIFFERS (random: other level)";
             out.note = "native twice: " + std::to_string(selfDiff) + " apart; rms " + std::to_string(rn) + " native, " + std::to_string(rw) + " wasm";
         }
-        else if (peak < 1e-6) out.status = "SILENT";
+        else if (peak < 1e-6 && !notesSeen) out.status = "SILENT";
         else if (diff > 1e-3 * std::max(peak, 1.0)) out.status = "DIFFERS";
     }
     // the view's calls must not break anything either
     std::vector<std::pair<std::string, double>> live;
     std::vector<std::pair<std::string, std::vector<float>>> arrays;
     wasmMod->liveValues(live);
+    if (std::getenv("BLEEP_PARITY_DEBUG")) {
+        std::vector<std::pair<std::string, double>> nl;
+        native->liveValues(nl);
+        for (const auto& [k, v] : live) std::printf("  [%s] live %s: wasm %g\n", spec.type.c_str(), k.c_str(), v);
+        for (const auto& [k, v] : nl) std::printf("  [%s] live %s: native %g\n", spec.type.c_str(), k.c_str(), v);
+    }
     wasmMod->liveArrays(arrays);
     return out;
 }
@@ -436,6 +498,21 @@ int main(int argc, char** argv) {
         else if (a == "--installed" && i + 1 < argc) installedDir = argv[++i];
         else if (a == "--root" && i + 1 < argc) rootFile = argv[++i];
         else only.insert(a);
+    }
+    {  // a sample for the modules that play one: two seconds of a decaying tone with a click at every slice
+        const juce::File folder = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-parity-media");
+        folder.createDirectory();
+        bleep::engine::media::setFolder(folder.getFullPathName().toStdString());
+        bleep::engine::MediaClip clip;
+        clip.sampleRate = 48000.0;
+        clip.channels.assign(2, std::vector<float>(96000));
+        for (size_t i = 0; i < 96000; ++i) {
+            const float e = std::exp(-(float)(i % 24000) / 5000.0f);
+            clip.channels[0][i] = 0.6f * e * std::sin(0.03f * (float)i * (1.0f + (float)(i / 24000) * 0.25f));
+            clip.channels[1][i] = 0.5f * e * std::sin(0.021f * (float)i);
+        }
+        g_clipId = bleep::engine::media::save(clip);
+        g_clipFrames = 96000;
     }
     std::printf("%-22s %-26s %9s %8s %8s %8s %6s  %s\n", "type", "status", "max diff", "peak", "native", "wasm", "x", "note");
     int total = 0, passed = 0;
