@@ -26,16 +26,23 @@ Then start it:
 scripts/run/run-website.sh          # or: cd website && docker compose up --build -d
 ```
 
-Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **not the board's WebAssembly modules**. Those are built on the host and mounted into the site container (read-only), so changing the site never recompiles them:
+Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **no modules**. The Bleep Board at `/board/` installs its modules by itself, from the Bleep Store of the same site, the first time a board needs one: it reads `/registry/v1/index.json`, downloads the module's package, checks its signature in the browser and only then runs it. A visitor needs nothing installed. Until modules have been released to the store, the board runs but stays silent ("cannot load …" in its status line).
+
+Getting modules into the store takes three steps, all on your machine (the signing keys are in [Signing keys](#signing-keys) below):
 
 ```bash
-scripts/build/build-web.sh --docker --modules-only   # in the Emscripten Docker image: no local emsdk needed
-scripts/build/build-web.sh --modules-only            # or with a local Emscripten SDK (emcc on the PATH)
+scripts/build/build-web.sh --docker --modules-only   # compile every module to .wasm (Emscripten in Docker: no local emsdk needed)
 ```
 
-The first run compiles every module (slow; on Apple Silicon the image runs emulated). Later runs rebuild only the modules whose files changed (the compiler's dependency list is hashed in `build/web/modules/.cache/`); an unchanged run takes seconds. To force a full rebuild, delete `build/web/modules/.cache`. `BLEEP_WEB_ONLY=oscillator,filter` builds just those and keeps the rest of the manifest.
+```bash
+scripts/release/package-module.py                    # one signed-ready .bleepmod per module, in build/store/modules
+```
 
-Without `build/web/modules`, the site runs but the Bleep Board at `/board/` has no modules. `BLEEP_WEB_MODULES` in `website/.env` points compose at another folder. (This is temporary: modules will come from the registry.)
+```bash
+scripts/release/release.py --modules --level patch --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json
+```
+
+The first build compiles every module (slow; on Apple Silicon the image runs emulated); later builds recompile only the modules whose files changed (the compiler's dependency list is hashed in `build/web/modules/.cache/`; delete that folder to force a full rebuild, `BLEEP_WEB_ONLY=oscillator,filter` builds just those). `release.py --modules` releases only the modules whose package content changed since their newest published version, so running it again after a small change releases that one module.
 
 Other commands: `scripts/run/run-website.sh down | logs | rebuild`.
 

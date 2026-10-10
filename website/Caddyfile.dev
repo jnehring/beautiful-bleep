@@ -8,21 +8,7 @@
 	header @markdown Content-Type "text/markdown; charset=utf-8"
 	header /llms.txt Content-Type "text/plain; charset=utf-8"
 
-	# Bleep Board (patch/web): wasm modules stream-compile with the right type;
-	# the build names no file by hash yet, so revalidate instead of immutable.
-	# The modules are not part of the image: they come from the folder mounted at /srv/play-modules
-	# (scripts/build/build-web.sh --modules-only).
-	handle /play/manifest.json {
-		root * /srv/play-modules
-		uri strip_prefix /play
-		header Cache-Control "no-cache"
-		file_server
-	}
-	handle /play/modules/* {
-		root * /srv/play-modules
-		uri strip_prefix /play
-		file_server
-	}
+	# Bleep Board (patch/web): its modules come from the Bleep Store below (signed packages, checked in the browser).
 
 	@wasm path *.wasm
 	header @wasm Content-Type "application/wasm"
@@ -35,12 +21,14 @@
 
 	# Store downloads: the public-read bucket in SeaweedFS, anonymous, no app code in the path.
 	# Releases are immutable (versioned paths) except index.json, which must revalidate.
-	handle /registry/* {
-		@index path /registry/v1/index.json /registry/v1/presets/index.json
+	# handle_path strips /registry before anything else runs (a `uri strip_prefix` would run after `rewrite`, and the
+	# bucket key would be registry/v1/…); the paths below are therefore without the prefix.
+	handle_path /registry/* {
+		@index path /v1/index.json /v1/presets/index.json
 		header @index Cache-Control "no-cache"
-		header !@index Cache-Control "public, max-age=31536000, immutable"
-		uri strip_prefix /registry
-		rewrite * /bleep-registry{uri}
+		@versioned not path /v1/index.json /v1/presets/index.json
+		header @versioned Cache-Control "public, max-age=31536000, immutable"
+		rewrite * /bleep-registry{path}
 		reverse_proxy storage:8333
 	}
 

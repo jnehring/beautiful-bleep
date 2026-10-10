@@ -3,8 +3,9 @@
 // bleep-web.js — the browser engine, main-thread side. Takes the place of the
 // native plugin behind the board UI: board-demo.js keeps the document (undo,
 // presets, …) and tells BleepWeb about every change; BleepWeb loads the
-// module wasm files a board needs, one by one and on demand, and sends the
-// board to the AudioWorklet (worklet.js), which makes the sound.
+// module wasm files a board needs, one by one and on demand, from the Bleep
+// Store (store-client.js: signed packages, checked here before they run), and
+// sends the board to the AudioWorklet (worklet.js), which makes the sound.
 //
 // Audio starts on the first click (browsers require a gesture); until then
 // the board runs as the silent demo.
@@ -27,15 +28,9 @@
 
   const post = (m) => node && node.port.postMessage(m);
 
-  async function fetchModule(slug) {
-    if (!loading.has(slug)) {
-      loading.set(slug, (async () => {
-        const entry = manifest.modules[slug];
-        const res = await fetch(url(manifest.base ? manifest.base + entry.file : entry.file));
-        if (!res.ok) throw new Error(`${entry.file}: ${res.status}`);
-        return res.arrayBuffer();  // compiled inside the worklet (a Module does not cross to it everywhere)
-      })());
-    }
+  /// The module's package from the store, verified. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
+  function fetchModule(slug) {
+    if (!loading.has(slug)) loading.set(slug, BleepStore.fetchModule(slug));
     return loading.get(slug);
   }
 
@@ -50,11 +45,12 @@
     for (const slug of need) {
       sent.add(slug);
       try {
-        const bytes = await fetchModule(slug);
-        post({ cmd: "module", slug, bytes: bytes.slice(0), types: manifest.modules[slug].types });
-        setStatus(`loaded ${slug}.wasm (${Math.round(manifest.modules[slug].bytes / 1024)} KB)`);
+        const m = await fetchModule(slug);
+        post({ cmd: "module", slug, bytes: m.wasm.slice(0), types: manifest.modules[slug].types });
+        setStatus(`installed ${slug} ${m.version} from the Bleep Store (signed by ${m.publisher}, ${Math.round(m.bytes / 1024)} KB)`);
       } catch (e) {
         sent.delete(slug);
+        loading.delete(slug);
         setStatus(`cannot load ${slug}: ${e.message}`);
       }
     }
@@ -86,7 +82,12 @@
     async start() {
       if (ctx) { await ctx.resume(); return; }
       setStatus("starting audio…");
-      manifest = await (await fetch(url("manifest.json"))).json();
+      try {
+        manifest = await BleepStore.manifest();
+      } catch (e) {
+        setStatus(`cannot reach the Bleep Store: ${e.message}`);
+        throw e;
+      }
       ctx = new AudioContext({ latencyHint: "interactive" });
       await ctx.audioWorklet.addModule(url("js/worklet.js"));
       node = new AudioWorkletNode(ctx, "bleep-processor", { numberOfInputs: 0, outputChannelCount: [2] });

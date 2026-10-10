@@ -1,4 +1,6 @@
 build/
+# ... but not the folder of build scripts
+!/scripts/build/
 cmake-build-*/
 .DS_Store
 *.swp

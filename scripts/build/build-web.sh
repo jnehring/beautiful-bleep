@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 # Builds the browser version of the board (Bleep Board): one .wasm per module,
-# the board UI and the web engine, as a static folder.
+# the board UI and the web engine, as a static folder. The board does not load the
+# .wasm files from this folder: it installs its modules from the Bleep Store, as
+# signed packages (scripts/release/package-module.py, release.py --modules). The
+# .wasm files are the input of that packaging.
 #
 #   scripts/build/build-web.sh [out-dir]              everything; default: build/web/site
 #   scripts/build/build-web.sh --no-modules [out-dir] only the board UI and the web engine (seconds, no
 #                                               Emscripten or JUCE needed; what the website image does)
 #   scripts/build/build-web.sh --modules-only [out-dir]  only modules/*.wasm and manifest.json; default
-#                                               build/web/modules (the website mounts that folder)
+#                                               build/web/modules (what package-module.py packages)
 #   add --docker (first) to run the build in the Emscripten Docker image instead of a local emsdk:
 #   scripts/build/build-web.sh --docker --modules-only
 #   python3 -m http.server -d build/web/site 8000
@@ -75,7 +78,7 @@ python3 - "$OUT/index.html" <<'PY'
 import sys
 p = sys.argv[1]
 s = open(p).read()
-tag = '<script src="js/bleep-web.js"></script>\n  '
+tag = '<script src="js/store-client.js"></script>\n  <script src="js/bleep-web.js"></script>\n  '
 assert '<script src="board-demo.js"></script>' in s
 open(p, 'w').write(s.replace('<script src="board-demo.js"></script>', tag + '<script src="board-demo.js"></script>', 1))
 PY

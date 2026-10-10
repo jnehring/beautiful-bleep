@@ -51,7 +51,6 @@ services:
     image: caddy:2-alpine
     volumes:
       - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
-      - ${BLEEP_WEB_MODULES:-../build/web/modules}:/srv/play-modules:ro
     depends_on:
       - dev
       - api
