@@ -210,14 +210,15 @@
         return { settings: { storeUrl: "https://store.example", channel: "stable", allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
                  hasRoots: true, installed: st.installed,
                  index: { ok: st.indexOk, error: "", modules: st.indexOk ? slugs().map((slug) => ({ slug, version: slug.length % 4 === 0 ? "0.2.0" : "0.1.0", types: [slug] })) : [] },
-                 busy: st.busy };
+                 busy: st.busy, pluginJob: st.job || { state: "idle", message: "", ok: false } };
       },
       refresh() { setTimeout(() => (st.indexOk = true), 500); },
       install(slug) { work(slug, "installing", () => { st.installed = st.installed.filter((m) => m.slug !== slug).concat(pick(slug, 0)); }); },
       installAll() { const have = new Set(st.installed.map((m) => m.slug)); for (const slug of slugs()) if (!have.has(slug)) this.install(slug); },
       remove(slug) { work(slug, "removing", () => { st.installed = st.installed.filter((m) => m.slug !== slug); }); },
       settings(v) { if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-store-first-run", v.firstRunDone); } },
-      plugins() { return ["Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep Audio Insert"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
+      installPlugins() { st.job = { state: "running", message: "Installing bleep-patch…", ok: false }; setTimeout(() => { st.job = { state: "done", message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW.", ok: true }; }, 1500); },
+      plugins() { return ["Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
     };
   })() : null;
 
@@ -296,7 +297,7 @@
         case "storeInstallAll": if (demoStore) demoStore.installAll(); return null;
         case "storeRemove": if (demoStore) demoStore.remove(a[0]); return null;
         case "storeSettings": if (demoStore) demoStore.settings(a[0]); return null;
-        case "storeInstallPlugins": return { ok: true, installed: 7, message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW." };
+        case "storeInstallPlugins": if (demoStore) demoStore.installPlugins(); return { started: true };
         case "storePlugins": return demoStore ? demoStore.plugins() : [];
         case "watch": watched = a[0] || []; if (window.BleepWeb) BleepWeb.watch(watched); return null;
         case "command": if (window.BleepWeb) BleepWeb.command(a[0], a[1], a[2]); return null;

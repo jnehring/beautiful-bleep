@@ -45,7 +45,20 @@
      "version": "0.1.0"
     }
    },
-   "plugins": {}
+   "plugins": {
+    "test-plugin": {
+     "entry": "plugins/test-plugin/0.4.0/entry.json",
+     "version": "0.4.0"
+    },
+    "test-plugin-tampered": {
+     "entry": "plugins/test-plugin-tampered/0.4.0/entry.json",
+     "version": "0.4.0"
+    },
+    "test-plugin-unsigned": {
+     "entry": "plugins/test-plugin-unsigned/0.4.0/entry.json",
+     "version": "0.4.0"
+    }
+   }
   },
   "stable": {
    "modules": {
@@ -92,7 +105,20 @@
      "version": "0.1.0"
     }
    },
-   "plugins": {}
+   "plugins": {
+    "test-plugin": {
+     "entry": "plugins/test-plugin/0.4.0/entry.json",
+     "version": "0.4.0"
+    },
+    "test-plugin-tampered": {
+     "entry": "plugins/test-plugin-tampered/0.4.0/entry.json",
+     "version": "0.4.0"
+    },
+    "test-plugin-unsigned": {
+     "entry": "plugins/test-plugin-unsigned/0.4.0/entry.json",
+     "version": "0.4.0"
+    }
+   }
   }
  },
  "format": 1,

@@ -94,11 +94,25 @@ void testClient(const juce::File& fixtures) {
         Settings s;
         s.storeUrl = juce::URL(fixtures.getChildFile(site)).toString(false).toStdString();
         s.allowUnsigned.module = allowUnsigned;
+        s.allowUnsigned.plugin = allowUnsigned;
         return Client(s, data, roots, now);
     };
     InstalledModule m;
     std::string error;
 
+    {  // plugins: downloaded, checked against the same rules, unpacked into the plugin folder
+        const juce::File vst3 = data.getChildFile("vst3");
+        std::vector<std::string> names;
+        CHECK(client("site").installPlugin("test-plugin", vst3, names, error) && names.size() == 1 && names[0] == "Test Plugin.vst3", "install a plugin: %s", error.c_str());
+        CHECK(vst3.getChildFile("Test Plugin.vst3/Contents/Info.plist").existsAsFile(), "the bundle is unpacked");
+        names.clear();
+        CHECK(!client("site").installPlugin("test-plugin-unsigned", vst3, names, error) && error.find("Allow unsigned plugins") != std::string::npos, "an unsigned plugin is refused: %s", error.c_str());
+        CHECK(!vst3.getChildFile("Unsigned Plugin.vst3").exists(), "and not unpacked");
+        CHECK(!client("site", true).installPlugin("test-plugin-tampered", vst3, names, error) && error.find("invalid") != std::string::npos, "a tampered plugin is refused even if unsigned is allowed: %s", error.c_str());
+        CHECK(!client("site").installPlugin("no-such-plugin", vst3, names, error), "an unknown plugin: %s", error.c_str());
+        Index withPlugins;
+        CHECK(client("site").fetchIndex(withPlugins, error) && withPlugins.plugins.size() == 3, "the index lists the plugins");
+    }
     Index index;
     CHECK(client("site").fetchIndex(index, error), "index: %s", error.c_str());
     CHECK(index.modules.size() == 6 && index.find("good") && index.find("good")->version == "1.2.0", "the index lists six modules");

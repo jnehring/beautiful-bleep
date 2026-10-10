@@ -32,12 +32,23 @@ struct Settings {
 /// ~/Library/Application Support/Bleep (macOS), %APPDATA%\Bleep (Windows), ~/.local/share/Bleep (Linux).
 juce::File defaultDataDir();
 
+/// `macos-arm64`, `windows-x86_64`, ...: the platform names of the store's plugin files (scripts/release/release.py platform_id).
+std::string platformId();
+/// The VST3 folder of this user (no administrator rights needed).
+juce::File userPluginFolder();
+/// Is Ableton Live running? Replacing a plugin it has loaded can crash it.
+bool abletonLiveRunning();
+
 struct IndexModule {
     std::string slug, version, entry;   ///< entry: path of entry.json under /registry/v1/
     std::vector<std::string> types;
 };
+struct IndexPlugin {
+    std::string slug, version, entry;
+};
 struct Index {
     std::vector<IndexModule> modules;
+    std::vector<IndexPlugin> plugins;   ///< the VST3 plugins (and the app); `bleep-patch-app` is not one to install into a DAW
     const IndexModule* find(const std::string& slug) const;
     /// The module that provides a node type, or null.
     const IndexModule* providing(const std::string& type) const;
@@ -62,6 +73,9 @@ public:
     /// Downloads, checks and installs the newest version of a module; older versions are removed after it worked.
     bool install(const std::string& slug, InstalledModule& out, std::string& error) const;
     bool remove(const std::string& slug, std::string& error) const;
+    /// Downloads a plugin from the store for this platform, checks its signature (kind "plugin") and the settings, and puts the
+    /// .vst3 bundle(s) it holds into `folder`, replacing what is there. `names` receives the bundle names. Live must be closed (the caller checks).
+    bool installPlugin(const std::string& slug, const juce::File& folder, std::vector<std::string>& names, std::string& error) const;
     /// Every module in the data folder (the newest version of each), verified. Nothing is loaded.
     std::vector<InstalledModule> installed() const;
     /// The module.wasm and spec.json of an installed module, for the engine; checked again against its signature here.

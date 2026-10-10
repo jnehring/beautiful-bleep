@@ -165,6 +165,38 @@ void ModuleStore::removeAsync(const std::string& slug, std::function<void(bool, 
     }).detach();
 }
 
+void ModuleStore::installPluginsAsync() {
+    {
+        std::lock_guard<std::mutex> l(mutex_);
+        if (pluginJob_.state == "running") return;
+        pluginJob_ = {"running", "Reading the Bleep Store…", false};
+    }
+    auto finish = [this](bool ok, std::string message) {
+        std::lock_guard<std::mutex> l(mutex_);
+        pluginJob_ = {"done", std::move(message), ok};
+    };
+    std::thread([this, finish] {
+        if (store::abletonLiveRunning()) { finish(false, "Ableton Live is running. Close it first: replacing a plugin that Live has loaded can crash it."); return; }
+        const auto c = client();
+        store::Index index;
+        std::string error;
+        if (!c->fetchIndex(index, error)) { finish(false, error); return; }
+        const juce::File folder = store::userPluginFolder();
+        int installed = 0;
+        std::string problems;
+        for (const auto& p : index.plugins) {
+            if (p.slug == "bleep-patch-app") continue;  // the app is not a plugin
+            { std::lock_guard<std::mutex> l(mutex_); pluginJob_.message = "Installing " + p.slug + "…"; }
+            std::vector<std::string> names;
+            std::string e;
+            if (c->installPlugin(p.slug, folder, names, e)) installed += (int)names.size();
+            else problems += (problems.empty() ? "" : "; ") + e;
+        }
+        if (installed == 0 && problems.empty()) problems = "the store has no plugins";
+        finish(problems.empty(), std::to_string(installed) + " plugins installed into " + folder.getFullPathName().toStdString() + (problems.empty() ? ". Rescan plugins in your DAW." : "; not installed: " + problems));
+    }).detach();
+}
+
 void ModuleStore::installAllAsync(std::function<void(bool, std::string)> done) {
     std::thread([this, done = std::move(done)] {
         const auto c = client();
@@ -233,6 +265,11 @@ juce::var ModuleStore::status() {
     auto* busy = new juce::DynamicObject();
     for (const auto& [slug, what] : busy_) busy->setProperty(juce::Identifier(juce::String(slug)), juce::String(what));
     o->setProperty("busy", juce::var(busy));
+    auto* job = new juce::DynamicObject();
+    job->setProperty("state", juce::String(pluginJob_.state));
+    job->setProperty("message", juce::String(pluginJob_.message));
+    job->setProperty("ok", pluginJob_.ok);
+    o->setProperty("pluginJob", juce::var(job));
     return juce::var(o);
 }
 

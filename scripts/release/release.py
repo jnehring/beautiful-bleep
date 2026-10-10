@@ -52,6 +52,14 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
 from app import signing  # noqa: E402
 
+def store_config() -> dict:
+    """config/store.json: where the store is and whom it trusts, the one place the apps' build and these scripts read."""
+    try:
+        return json.loads((ROOT / "config" / "store.json").read_text())
+    except (OSError, ValueError):
+        return {}
+
+
 # slug -> (title, artefact path under the build dir; {cfg} = build configuration)
 PLUGINS = {
     "bleep-patch": ("Bleep Patch (VST3)", "BleepPatch_artefacts/{cfg}/VST3/Bleep Patch.vst3"),
@@ -60,7 +68,7 @@ PLUGINS = {
     "bleep-audio-in": ("Bleep Audio In (VST3)", "BleepAudioIn_artefacts/{cfg}/VST3/Bleep Audio In.vst3"),
     "bleep-audio-out": ("Bleep Audio Out (VST3)", "BleepAudioOut_artefacts/{cfg}/VST3/Bleep Audio Out.vst3"),
     "bleep-instrument": ("Bleep Instrument (VST3)", "BleepInstrument_artefacts/{cfg}/VST3/Bleep Instrument.vst3"),
-    "bleep-audio-insert": ("Bleep Audio Insert (VST3)", "BleepAudioInsert_artefacts/{cfg}/VST3/Bleep Audio Insert.vst3"),
+    "bleep-fx": ("Bleep FX (VST3)", "BleepFx_artefacts/{cfg}/VST3/Bleep FX.vst3"),
     "bleep-patch-app": ("Bleep Patch (standalone app)", "BleepPatchApp_artefacts/{cfg}/Bleep Patch.app"),
 }
 
@@ -321,7 +329,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--force", action="store_true", help="with --modules: release even if the content did not change")
     ap.add_argument("--level", help="x, 1.x, 1.4.x, major, minor or patch (required unless --add-platform)")
     ap.add_argument("--add-platform", metavar="VERSION|latest", help="add this machine's build to the published VERSION instead of releasing a new one")
-    ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL"), help="the website's URL (or $BLEEP_REGISTRY_URL)")
+    ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL") or store_config().get("storeUrl"),
+                    help="the website's URL (or $BLEEP_REGISTRY_URL; default: storeUrl of config/store.json)")
     ap.add_argument("--token-file", help="file holding the release token (or $BLEEP_RELEASE_TOKEN)")
     ap.add_argument("--kit", help="the developer's signing kit (or $BLEEP_SIGNING_KIT)")
     ap.add_argument("--channel", choices=("stable", "beta"), default="stable")

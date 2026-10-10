@@ -131,6 +131,28 @@
     body.appendChild(el("div", "st-note", "Plugins are installed from the Bleep Patch app, with Live closed: replacing a plugin that Live has loaded can crash it. The plugin family is installed together (the default plugin bundle)."));
     const list = el("div", "st-list");
     body.appendChild(list);
+    if (host.standalone) {
+      const bar = el("div", "st-bar");
+      const msg = el("span", "st-why");
+      const btn = el("button", "primary", "Install or update the default plugins");
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        const r = await native("storeInstallPlugins");
+        if (r.started) {
+          for (let i = 0; i < 900; i++) {
+            await new Promise((res) => setTimeout(res, 500));
+            const s = await native("storeStatus");
+            msg.textContent = s.pluginJob.message;
+            if (s.pluginJob.state === "done") break;
+          }
+        } else msg.textContent = r.message;
+        btn.disabled = false;
+        message = msg.textContent;  // kept under the header when the list is drawn again
+        if (tab === "plugins") render();
+      });
+      bar.append(btn, msg);
+      body.insertBefore(bar, list);
+    }
     native("storePlugins").then((plugins) => {
       list.innerHTML = "";
       const head = el("div", "st-row st-head plugins");
@@ -283,7 +305,15 @@
       const lines = [];
       if (plugBox && plugBox.checked) {
         const r = await native("storeInstallPlugins");
-        lines.push(r.message);
+        if (r.started) {  // downloaded from the store, on another thread
+          for (let i = 0; i < 900; i++) {
+            await new Promise((res) => setTimeout(res, 500));
+            status = await native("storeStatus");
+            result.textContent = lines.concat(status.pluginJob.message).join("\n");
+            if (status.pluginJob.state === "done") break;
+          }
+          lines.push(status.pluginJob.message);
+        } else lines.push(r.message);
         result.textContent = lines.join("\n");
       }
       if (modBox.checked) {

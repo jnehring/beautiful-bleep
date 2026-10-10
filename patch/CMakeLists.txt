@@ -348,15 +348,35 @@ juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb S
 
 # Modules installed from the Bleep Store (doc/specs/store.md): the wasm module host, the store client and signature checks.
 # With BLEEP_PATCH_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Store section.
-# The store's root public keys (hex, one per line) are in store/root-keys.txt, if it exists.
-set(BLEEP_PATCH_STORE_URL "" CACHE STRING "The Bleep Store's address (the website) the apps and plugins start with")
-set(BLEEP_PATCH_STORE_ROOTS "" CACHE STRING "The store's root public keys (hex, comma separated), besides store/root-keys.txt")
-set(BLEEP_STORE_ROOTS "${BLEEP_PATCH_STORE_ROOTS}")
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/store/root-keys.txt")
-    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/store/root-keys.txt" BLEEP_STORE_ROOT_LINES REGEX "^[0-9a-fA-F]+$")
-    list(JOIN BLEEP_STORE_ROOT_LINES "," BLEEP_STORE_ROOTS)
-    if (BLEEP_PATCH_STORE_ROOTS)
+# Where the store is and whom it trusts: config/store.json, the one place (read by the apps' build and by scripts/release).
+# BLEEP_PATCH_STORE_URL and BLEEP_PATCH_STORE_ROOTS (hex, comma separated) override it for one build.
+set(BLEEP_PATCH_STORE_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/../config/store.json" CACHE FILEPATH "The store configuration the apps and plugins are built with")
+set(BLEEP_PATCH_STORE_URL "" CACHE STRING "Overrides storeUrl of the store configuration")
+set(BLEEP_PATCH_STORE_ROOTS "" CACHE STRING "Root public keys (hex, comma separated) besides rootKeys of the store configuration")
+set(BLEEP_STORE_URL_BAKED "")
+set(BLEEP_STORE_ROOTS "")
+if (EXISTS "${BLEEP_PATCH_STORE_CONFIG}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${BLEEP_PATCH_STORE_CONFIG}")
+    file(READ "${BLEEP_PATCH_STORE_CONFIG}" store_config)
+    string(JSON BLEEP_STORE_URL_BAKED ERROR_VARIABLE err GET "${store_config}" storeUrl)
+    string(JSON n ERROR_VARIABLE err LENGTH "${store_config}" rootKeys)
+    if (NOT err AND n GREATER 0)
+        math(EXPR last "${n} - 1")
+        foreach (i RANGE ${last})
+            string(JSON key GET "${store_config}" rootKeys ${i})
+            list(APPEND BLEEP_STORE_ROOT_LIST "${key}")
+        endforeach ()
+        list(JOIN BLEEP_STORE_ROOT_LIST "," BLEEP_STORE_ROOTS)
+    endif ()
+endif ()
+if (BLEEP_PATCH_STORE_URL)
+    set(BLEEP_STORE_URL_BAKED "${BLEEP_PATCH_STORE_URL}")
+endif ()
+if (BLEEP_PATCH_STORE_ROOTS)
+    if (BLEEP_STORE_ROOTS)
         set(BLEEP_STORE_ROOTS "${BLEEP_STORE_ROOTS},${BLEEP_PATCH_STORE_ROOTS}")
+    else ()
+        set(BLEEP_STORE_ROOTS "${BLEEP_PATCH_STORE_ROOTS}")
     endif ()
 endif ()
 function(bleep_use_store target)
@@ -379,8 +399,8 @@ function(bleep_use_store target)
         target_compile_definitions(${target} PRIVATE BLEEP_NO_BUNDLED_MODULES=1)
     endif ()
     target_compile_definitions(${target} PRIVATE BLEEP_WASM_MODULES=1 "BLEEP_STORE_ROOTS=\"${BLEEP_STORE_ROOTS}\"")
-    if (BLEEP_PATCH_STORE_URL)
-        target_compile_definitions(${target} PRIVATE "BLEEP_STORE_URL=\"${BLEEP_PATCH_STORE_URL}\"")
+    if (BLEEP_STORE_URL_BAKED)
+        target_compile_definitions(${target} PRIVATE "BLEEP_STORE_URL=\"${BLEEP_STORE_URL_BAKED}\"")
     endif ()
     target_link_libraries(${target} PRIVATE bleep_wasmtime juce::juce_cryptography)
 endfunction()
@@ -470,7 +490,7 @@ bleep_add_plugin(TARGET BleepAudioOut PRODUCT "Bleep Audio Out" CODE BpAo KIND A
     VST3_CATEGORIES Instrument Tools)
 bleep_add_plugin(TARGET BleepInstrument PRODUCT "Bleep Instrument" CODE BpIn KIND Instrument SYNTH
     VST3_CATEGORIES Instrument Synth)
-bleep_add_plugin(TARGET BleepAudioInsert PRODUCT "Bleep Audio Insert" CODE BpAs KIND AudioInsert
+bleep_add_plugin(TARGET BleepFx PRODUCT "Bleep FX" CODE BpFx KIND AudioInsert
     VST3_CATEGORIES Fx Tools)
 
 # Opens the real board window on a real engine for a few seconds (not in ctest).

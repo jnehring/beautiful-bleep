@@ -39,6 +39,10 @@ public:
     /// Installs every module the store offers that is not installed (the default module bundle).
     void installAllAsync(std::function<void(bool, std::string)> done = {});
 
+    /// Installs the plugin bundle (every VST3 plugin the store has for this platform) into the user's VST3 folder, on a worker
+    /// thread. Refused while Ableton Live runs. The outcome is `pluginJob` in status().
+    void installPluginsAsync();
+
     store::Settings settings() const;
     void setSettings(const store::Settings& s);   ///< saves them; modules already loaded stay as they are until the next start
     juce::File dataDir() const { return dataDir_; }
@@ -72,6 +76,7 @@ private:
     std::string indexError_;
     bool haveIndex_ = false;
     std::map<std::string, std::string> busy_;
+    struct PluginJob { std::string state = "idle", message; bool ok = false; } pluginJob_;   // idle | running | done
     std::atomic<bool> started_{false};
     std::map<std::string, std::string> viewFiles_;   // file name → the package it is in
 };

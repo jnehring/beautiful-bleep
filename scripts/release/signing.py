@@ -123,7 +123,7 @@ def make_fixtures(out: Path) -> None:
         meta = {"name": slug, "slug": slug, "types": types, "requires": {"engineAbi": 1}}
         return {"module.json": (json.dumps(meta) + "\n").encode(), "module.wasm": b"\x00asm\x01\x00\x00\x00" + note.encode(), "ui/view.js": b"// view\n"}
 
-    def site(root_dir: Path, modules: list[dict]) -> None:
+    def site(root_dir: Path, modules: list[dict], plugins: list[dict] = ()) -> None:
         v1 = root_dir / "registry" / "v1"
         mods = {}
         for m in modules:
@@ -148,8 +148,29 @@ def make_fixtures(out: Path) -> None:
             (d / "entry.json").write_text(json.dumps({"kind": "module", "id": slug, "version": version, "channel": "stable", "title": slug, "notes": "",
                                                        "requires": {"engineAbi": 1}, "types": sorted(m["types"]), "files": [entry_file]}, indent=1, sort_keys=True) + "\n")
             mods[slug] = {"version": version, "entry": f"modules/{slug}/{version}/entry.json", "types": sorted(m["types"])}
+        plugs = {}
+        for pl in plugins:  # a plugin: one zip per platform holding the .vst3 bundle, signed as a single file (signing.md section 4)
+            slug, version = pl["slug"], pl["version"]
+            d = v1 / "plugins" / slug / version
+            d.mkdir(parents=True, exist_ok=True)
+            entry_files = []
+            for plat in ("macos-arm64", "macos-x86_64", "windows-x86_64", "linux-x86_64"):
+                path = f"{slug}-{version}-{plat}.zip"
+                make_zip(d / path, {f"{pl['bundle']}/Contents/MacOS/{pl['bundle'][:-5]}": b"pretend plugin code", f"{pl['bundle']}/Contents/Info.plist": b"<plist/>"})
+                data = (d / path).read_bytes()
+                sha = hashlib.sha256(data).digest()
+                f = {"path": path, "sha256": sha.hex(), "bytes": len(data), "platform": plat}
+                if pl.get("sign", "bleep") is not None:
+                    other_sha = hashlib.sha256(b"something else").digest()
+                    doc = sign(entries_for_file(path, other_sha if pl.get("tampered") else sha), bleep, bleep_chain, "plugin", slug, version, plat)
+                    f["signature"] = doc
+                    f["signer"] = {"publisher": doc["chain"][1]["tbs"]["publisher"], "keyId": doc["keyId"]}
+                entry_files.append(f)
+            (d / "entry.json").write_text(json.dumps({"kind": "plugin", "id": slug, "version": version, "channel": "stable", "title": slug, "notes": "",
+                                                       "requires": {}, "types": [], "files": entry_files}, indent=1, sort_keys=True) + "\n")
+            plugs[slug] = {"version": version, "entry": f"plugins/{slug}/{version}/entry.json"}
         (v1 / "index.json").write_text(json.dumps({"format": 1, "generated": "2025-10-09T00:00:00+00:00", "channels": {
-            "stable": {"plugins": {}, "modules": mods}, "beta": {"plugins": {}, "modules": mods}}}, indent=1, sort_keys=True) + "\n")
+            "stable": {"plugins": plugs, "modules": mods}, "beta": {"plugins": plugs, "modules": mods}}}, indent=1, sort_keys=True) + "\n")
 
     site(out / "site", [
         {"slug": "good", "version": "1.2.0", "types": ["good"]},
@@ -158,6 +179,10 @@ def make_fixtures(out: Path) -> None:
         {"slug": "bad-download", "version": "0.1.0", "types": ["bad-download"], "bad_sha": True},
         {"slug": "tampered", "version": "0.1.0", "types": ["tampered"], "signed_files": module_files("tampered", ["tampered"], "other code")},
         {"slug": "forged", "version": "0.1.0", "types": ["forged"], "sign": "forger"},
+    ], plugins=[
+        {"slug": "test-plugin", "version": "0.4.0", "bundle": "Test Plugin.vst3"},
+        {"slug": "test-plugin-unsigned", "version": "0.4.0", "bundle": "Unsigned Plugin.vst3", "sign": None},
+        {"slug": "test-plugin-tampered", "version": "0.4.0", "bundle": "Tampered Plugin.vst3", "tampered": True},
     ])
     site(out / "site2", [{"slug": "good", "version": "1.3.0", "types": ["good", "good-extra"]}])  # the same store a release later
     (out / "cases.json").write_text(json.dumps({

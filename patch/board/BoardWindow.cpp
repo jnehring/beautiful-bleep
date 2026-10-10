@@ -109,49 +109,30 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
 #if defined(BLEEP_WASM_MODULES)
-/// The folder the system's VST3 plugins are installed into by this user.
-juce::File userVst3Folder() {
-#if JUCE_MAC
-    return juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile("Library/Audio/Plug-Ins/VST3");
-#elif JUCE_WINDOWS
-    return juce::File::getSpecialLocation(juce::File::globalApplicationsDirectory).getParentDirectory().getChildFile("Program Files/Common Files/VST3");
-#else
-    return juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile(".vst3");
-#endif
-}
-
-bool abletonLiveRunning() {
-    juce::ChildProcess p;
-#if JUCE_WINDOWS
-    if (!p.start("tasklist /FI \"IMAGENAME eq Ableton Live*\"")) return false;
-    return p.readAllProcessOutput().containsIgnoreCase("Ableton Live");
-#else
-    if (!p.start("pgrep -f \"Ableton Live\"")) return false;
-    return p.readAllProcessOutput().trim().isNotEmpty();
-#endif
-}
-
-/// The default plugin bundle (doc/specs/store.md 5a): the VST3 plugins that came with the app, copied into the user's VST3 folder.
-/// Live must be closed: replacing a plugin that Live has loaded can crash it.
+/// The default plugin bundle (doc/specs/store.md 5a). An offline installer carries the plugins in the app (Contents/Resources/Plugins
+/// on macOS, Plugins next to the app elsewhere): those are copied into the user's VST3 folder. Otherwise they are downloaded from the
+/// store, which checks their signatures. Live must be closed: replacing a plugin that Live has loaded can crash it.
 juce::var installPluginBundle() {
     auto* r = new juce::DynamicObject();
     juce::var result(r);
     r->setProperty("ok", false);
+    r->setProperty("started", false);
 #if JUCE_MAC
     const auto source = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getChildFile("Contents/Resources/Plugins");
 #else
     const auto source = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory().getChildFile("Plugins");
 #endif
     const auto bundles = source.findChildFiles(juce::File::findFilesAndDirectories, false, "*.vst3");
-    if (bundles.isEmpty()) {
-        r->setProperty("message", "This copy of Bleep Patch carries no plugins. Download the full installer from the website.");
+    if (bundles.isEmpty()) {  // online: the store does it, on another thread; the window polls status().pluginJob
+        bleep::engine::ModuleStore::instance().installPluginsAsync();
+        r->setProperty("started", true);
         return result;
     }
-    if (abletonLiveRunning()) {
+    if (bleep::store::abletonLiveRunning()) {
         r->setProperty("message", "Ableton Live is running. Close it first: replacing a plugin that Live has loaded can crash it.");
         return result;
     }
-    const auto target = userVst3Folder();
+    const auto target = bleep::store::userPluginFolder();
     target.createDirectory();
     int n = 0;
     for (const auto& b : bundles) {
@@ -167,7 +148,6 @@ juce::var installPluginBundle() {
         ++n;
     }
     r->setProperty("ok", true);
-    r->setProperty("installed", n);
     r->setProperty("message", juce::String(n) + " plugins installed into " + target.getFullPathName() + ". Rescan plugins in your DAW.");
     return result;
 }
@@ -185,7 +165,7 @@ juce::var installedPlugins() {
     folders.add(juce::File("/usr/lib/vst3"));
 #endif
     juce::Array<juce::var> list;
-    for (const char* name : {"Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep Audio Insert"}) {
+    for (const char* name : {"Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"}) {
         auto* o = new juce::DynamicObject();
         o->setProperty("name", name);
         o->setProperty("installed", false);

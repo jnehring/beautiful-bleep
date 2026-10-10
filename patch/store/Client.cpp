@@ -75,6 +75,42 @@ bool readFile(const juce::File& f, std::vector<uint8_t>& out) {
 
 // ---- settings --------------------------------------------------------------------------------------------
 
+std::string platformId() {
+#if JUCE_MAC
+    const char* os = "macos";
+#elif JUCE_WINDOWS
+    const char* os = "windows";
+#else
+    const char* os = "linux";
+#endif
+#if JUCE_ARM
+    return std::string(os) + "-arm64";
+#else
+    return std::string(os) + "-x86_64";
+#endif
+}
+
+juce::File userPluginFolder() {
+#if JUCE_MAC
+    return juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile("Library/Audio/Plug-Ins/VST3");
+#elif JUCE_WINDOWS
+    return juce::File::getSpecialLocation(juce::File::globalApplicationsDirectory).getParentDirectory().getChildFile("Program Files/Common Files/VST3");
+#else
+    return juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile(".vst3");
+#endif
+}
+
+bool abletonLiveRunning() {
+    juce::ChildProcess p;
+#if JUCE_WINDOWS
+    if (!p.start("tasklist /FI \"IMAGENAME eq Ableton Live*\"")) return false;
+    return p.readAllProcessOutput().containsIgnoreCase("Ableton Live");
+#else
+    if (!p.start("pgrep -f \"Ableton Live\"")) return false;
+    return p.readAllProcessOutput().trim().isNotEmpty();
+#endif
+}
+
 juce::File defaultDataDir() {
     if (const char* dir = std::getenv("BLEEP_DATA_DIR"); dir && *dir) return juce::File(dir);  // tests and development: another folder
 #if JUCE_MAC
@@ -155,6 +191,14 @@ bool Client::fetchIndex(Index& out, std::string& error) const {
             out.modules.push_back(std::move(m));
         }
     else { error = "the store's index has no modules for the channel " + settings_.channel; return false; }
+    if (auto* o = json["channels"][juce::Identifier(juce::String(settings_.channel))]["plugins"].getDynamicObject())
+        for (const auto& p : o->getProperties()) {
+            IndexPlugin x;
+            x.slug = p.name.toString().toStdString();
+            x.version = str(p.value["version"]);
+            x.entry = str(p.value["entry"]);
+            out.plugins.push_back(std::move(x));
+        }
     return true;
 }
 
@@ -219,6 +263,63 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
     // the newest version is the only one that stays
     for (const auto& old : finalDir.getParentDirectory().findChildFiles(juce::File::findDirectories, false))
         if (old != finalDir && versionKey(old.getFileName().toStdString()) < versionKey(version)) old.deleteRecursively();
+    return true;
+}
+
+bool Client::installPlugin(const std::string& slug, const juce::File& folder, std::vector<std::string>& names, std::string& error) const {
+    Index index;
+    if (!fetchIndex(index, error)) return false;
+    const IndexPlugin* p = nullptr;
+    for (const auto& x : index.plugins) if (x.slug == slug) p = &x;
+    if (!p) { error = "the store has no plugin " + slug; return false; }
+    juce::var entry;
+    if (!fetchJson(url(p->entry), entry, error)) return false;
+    const std::string platform = platformId();
+    juce::var file;
+    if (auto* files = entry["files"].getArray())
+        for (const auto& f : *files)
+            if (str(f["platform"]) == platform) file = f;
+    if (!file.isObject()) { error = slug + " has no build for " + platform; return false; }
+    const std::string version = str(entry["version"]), path = str(file["path"]);
+    if (path.empty() || path.find('/') != std::string::npos || path.find("..") != std::string::npos) { error = "a bad file name in the entry"; return false; }
+    std::vector<uint8_t> bytes;
+    if (!fetchBytes(url(p->entry.substr(0, p->entry.rfind('/') + 1) + path), bytes, error)) return false;
+    const Digest sha = sha256(bytes.data(), bytes.size());
+    if (toHex(sha.data(), 32) != str(file["sha256"])) { error = "the download is not the file the store lists"; return false; }
+    Digest digest;
+    if (!contentDigest(singleFile(path, sha), digest, error)) return false;
+    Context c;
+    c.kind = "plugin";
+    c.id = signedId(slug);
+    c.version = version;
+    c.platform = platform;
+    c.roots = roots_;
+    c.now = now_;
+    const juce::var signature = file["signature"];
+    const Result result = verify(digest, signature.isObject() ? &signature : nullptr, c);
+    std::string why;
+    if (!decide(result, "plugin", settings_.allowUnsigned, why)) { error = slug + " " + version + " is not installed: " + why; return false; }
+
+    const juce::File temp = dataDir_.getChildFile("tmp").getChildFile(juce::String(slug) + "-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
+    if (!temp.createDirectory().wasOk()) { error = "cannot write to " + temp.getFullPathName().toStdString(); return false; }
+    juce::MemoryInputStream in(bytes.data(), bytes.size(), false);
+    juce::ZipFile zip(in);
+    if (!zip.uncompressTo(temp, true).wasOk()) { temp.deleteRecursively(); error = "cannot unpack " + path; return false; }
+    const auto bundles = temp.findChildFiles(juce::File::findFilesAndDirectories, false, "*.vst3");
+    if (bundles.isEmpty()) { temp.deleteRecursively(); error = path + " holds no .vst3"; return false; }
+#if JUCE_MAC || JUCE_LINUX
+    for (const auto& b : bundles)  // a zip may not carry the execute bit
+        for (const auto& f : b.getChildFile(JUCE_MAC ? "Contents/MacOS" : "Contents").findChildFiles(juce::File::findFiles, true))
+            f.setExecutePermission(true);
+#endif
+    folder.createDirectory();
+    for (const auto& b : bundles) {
+        const juce::File dest = folder.getChildFile(b.getFileName());
+        if (dest.exists() && !dest.deleteRecursively()) { temp.deleteRecursively(); error = "cannot replace " + dest.getFullPathName().toStdString(); return false; }
+        if (!b.moveFileTo(dest)) { temp.deleteRecursively(); error = "cannot move " + b.getFileName().toStdString() + " into " + folder.getFullPathName().toStdString(); return false; }
+        names.push_back(dest.getFileName().toStdString());
+    }
+    temp.deleteRecursively();
     return true;
 }
 
