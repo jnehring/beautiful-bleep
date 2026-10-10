@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 Role = Literal["admin", "user"]
+LICENSE_PATTERN = r"^[A-Za-z0-9.+() -]+$"  # an SPDX id or expression, e.g. "GPL-3.0-or-later" or "MIT AND AGPL-3.0-only"
 Password = Field(min_length=10, max_length=128)
 
 
@@ -99,11 +100,25 @@ class FileIn(BaseModel):
         return v
 
 
+class OriginIn(BaseModel):
+    """The code a module is ported from (patch/modules/README.md, "Ported code and licences")."""
+    name: str = Field(max_length=120)
+    author: str = Field(max_length=120)
+    url: str = Field(max_length=300, pattern=r"^https?://\S+$")  # shown as a link: http(s) only
+    license: str = Field(max_length=120, pattern=LICENSE_PATTERN)
+    copyright: str = Field(max_length=300)
+    changes: str = Field(default="", max_length=500)
+
+
 class ReleaseIn(BaseModel):
     version: str = Field(pattern=r"^\d{1,4}\.\d{1,5}\.\d{1,6}$")
     channel: Literal["stable", "beta"] = "stable"
     title: str = Field(default="", max_length=120)
     notes: str = Field(default="", max_length=20000)
+    summary: str = Field(default="", max_length=280)
+    category: str = Field(default="", max_length=64)
+    license: str = Field(default="", max_length=120, pattern=r"^$|" + LICENSE_PATTERN)
+    origin: OriginIn | None = None
     requires: dict = Field(default_factory=dict)
     files: list[FileIn] = Field(min_length=1, max_length=64)
 
@@ -129,6 +144,9 @@ class StoreItemOut(BaseModel):
     version: str
     channel: str
     title: str
+    summary: str
+    category: str
+    image_url: str | None             # the screenshot, a path on the store's host; None: the page draws a placeholder
     notes: str
     files: int
     bytes: int
@@ -137,6 +155,7 @@ class StoreItemOut(BaseModel):
 
 class StoreListOut(BaseModel):
     items: list[StoreItemOut]
+    categories: list[str]             # every category of the entries matching kind and search, for the filter
     total: int
     page: int
     page_size: int
@@ -158,6 +177,7 @@ class StoreReleaseOut(BaseModel):
     files: int
     bytes: int
     published_at: datetime | None
+    license: str
     requires: dict
     file_list: list[StoreFileOut]
 
@@ -166,4 +186,9 @@ class StoreDetailOut(BaseModel):
     kind: str
     slug: str
     title: str
+    summary: str
+    category: str
+    image_url: str | None
+    license: str                      # of the newest release; "" = not stated
+    origin: dict                      # what the newest release is ported from, {} = original work
     releases: list[StoreReleaseOut]

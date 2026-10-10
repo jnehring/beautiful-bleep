@@ -73,6 +73,17 @@ set(BLEEP_PATCH_ONLY_MODULES "" CACHE STRING "Build only these modules (empty: a
 if (BLEEP_PATCH_ONLY_MODULES)
     list(FILTER BLEEP_MODULES INCLUDE REGEX "^(${BLEEP_PATCH_ONLY_MODULES})$")
 endif ()
+# A module ported from copyleft code (GPL, LGPL, AGPL, MPL) keeps that licence and is never compiled into the apps
+# and plugins: it ships only as an optional .wasm module from the Bleep Store. Tests and tools still build it
+# (they are not distributed).
+set(BLEEP_COPYLEFT_MODULES)
+foreach (m IN LISTS BLEEP_MODULES)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/module.json" module_json)
+    string(JSON module_license ERROR_VARIABLE no_license GET "${module_json}" license)
+    if (NOT no_license AND module_license MATCHES "GPL|MPL")
+        list(APPEND BLEEP_COPYLEFT_MODULES "${m}")
+    endif ()
+endforeach ()
 add_library(bleep_patch_dsp INTERFACE)
 target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)
@@ -132,13 +143,17 @@ set(BLEEP_ENGINE_SOURCES
 # modules: those come from the Bleep Store, as .wasm files installed on the machine (doc/specs/store.md). Tests and
 # tools always compile the modules in (they are the reference the wasm builds are held to: bleep_wasm_parity).
 set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_ENGINE_SOURCES})
+set(BLEEP_APP_MODULE_SOURCES)  # the same without the copyleft modules
 foreach (m IN LISTS BLEEP_MODULES)
     file(GLOB module_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
     list(APPEND BLEEP_ENGINE_SOURCES ${module_sources})
+    if (NOT m IN_LIST BLEEP_COPYLEFT_MODULES)
+        list(APPEND BLEEP_APP_MODULE_SOURCES ${module_sources})
+    endif ()
 endforeach ()
 option(BLEEP_PATCH_BUNDLE_MODULES "Compile the modules into the apps and the plugins (default: only without the wasm module host)" OFF)
 if (BLEEP_PATCH_BUNDLE_MODULES OR NOT BLEEP_PATCH_WASMTIME_DIR)
-    set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_ENGINE_SOURCES})
+    set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_APP_ENGINE_SOURCES} ${BLEEP_APP_MODULE_SOURCES})
     set(BLEEP_APP_BUNDLES_MODULES TRUE)
 else ()
     set(BLEEP_APP_BUNDLES_MODULES FALSE)

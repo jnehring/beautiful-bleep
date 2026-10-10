@@ -9,10 +9,10 @@
                                                             also sign each package with the kit and put it into DATA/modules/local,
                                                             the folder the apps read modules copied by hand from (for tests and development)
 
-A package is a zip of: module.json (the module folder's, plus `types` and `requires.engineAbi`), module.wasm (built by
+A package is a zip of: module.json (the module folder's, plus `types`, `requires.engineAbi`, and the `summary` and `category` of the store's tile), module.wasm (built by
 scripts/build/build-web.sh --modules-only), spec.json (the node types' descriptions, read from the .wasm with node: a host
 lists a module's node types from it without compiling the module), the module's view scripts (ui/*.js) and its docs
-(doc/*.md, *.png).
+(doc/*.md, *.png), and its LICENSE when it has one. `license` (default MIT) and `origin` (the code it is ported from) stay in module.json.
 The version is not in the package: the store counts it, so the content hash says whether the code changed.
 
 Before packaging, the .wasm is checked against doc/specs/module-abi.md: only the allowed imports, and every export of the
@@ -138,11 +138,22 @@ def spec_json(wasm_file: Path) -> str:
 
 def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
     """The files of a module's package: {path inside the zip: bytes}. `spec` is spec_json()."""
-    types = [t["type"] for t in json.loads(spec)]
+    described = json.loads(spec)
+    types = [t["type"] for t in described]
     meta = json.loads((folder / "module.json").read_text())
     meta["types"] = types
+    # What the store's tile shows: the module's tagline and category, else those of its first node type.
+    meta["summary"] = meta.get("tagline") or described[0].get("description", "")
+    meta.setdefault("category", described[0].get("category", ""))
     meta["requires"] = {"engineAbi": ENGINE_ABI}
+    # Licence and provenance travel with the package (patch/modules/README.md, "Ported code and licences").
+    meta.setdefault("license", "MIT")
+    origin = meta.get("origin")
+    if origin:
+        meta["summary"] = f"{meta['summary'].rstrip()} Based on {origin['name']} by {origin['author']} ({origin['license']})."
     files = {"module.json": (json.dumps(meta, indent=1, ensure_ascii=False) + "\n").encode(), "module.wasm": wasm, "spec.json": (spec + "\n").encode()}
+    if (folder / "LICENSE").is_file():
+        files["LICENSE"] = (folder / "LICENSE").read_bytes()
     for sub, suffixes in (("ui", (".js",)), ("doc", (".md", ".png"))):
         for f in sorted((folder / sub).glob("*")) if (folder / sub).is_dir() else []:
             if f.suffix in suffixes:

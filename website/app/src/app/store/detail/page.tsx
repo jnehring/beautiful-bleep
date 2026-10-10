@@ -3,13 +3,15 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/auth";
+import { StoreImage } from "../StoreImage";
 
 type File = { path: string; bytes: number; sha256: string; platform: string; uploaded: boolean };
+type Origin = { name: string; author: string; url: string; license: string; copyright: string; changes?: string };
 type Release = {
-  version: string; channel: string; files: number; bytes: number; notes: string;
+  version: string; license: string; channel: string; files: number; bytes: number; notes: string;
   requires: Record<string, unknown>; published_at: string | null; file_list: File[];
 };
-type Detail = { kind: string; slug: string; title: string; releases: Release[] };
+type Detail = { kind: string; slug: string; title: string; summary: string; category: string; image_url: string | null; license: string; origin: Origin | Record<string, never>; releases: Release[] };
 
 const day = (s: string | null, none = "—") => (s ? s.slice(0, 10) : none);
 const size = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} B`);
@@ -32,11 +34,25 @@ function DetailView() {
   return (
     <section>
       <p><a href="/store/">← Bleep Store</a></p>
-      <h2>{data.title} <small className="muted">{data.kind} · {data.slug}</small></h2>
-      {data.kind === "module" && <p><a href={`/modules/${encodeURIComponent(data.slug)}/`}>Read the documentation →</a></p>}
+      <div className="detail-head">
+        <StoreImage kind={data.kind} title={data.title} src={data.image_url} large />
+        <div>
+          <h2>{data.title} <small className="muted">{data.kind} · {data.slug}</small></h2>
+          {data.category && <p><span className="tag">{data.category.replace(/\//g, " › ")}</span></p>}
+          <p>{data.summary || <span className="muted">No description yet.</span>}</p>
+          <p>License: {data.license ? <strong>{data.license}</strong> : <span className="muted">not stated</span>}</p>
+          {"name" in data.origin && (
+            <p className="muted">
+              Based on <a href={data.origin.url} rel="noopener noreferrer">{data.origin.name}</a> by {data.origin.author} ({data.origin.license}).
+              {" "}{data.origin.copyright}{data.origin.changes ? ` Changes: ${data.origin.changes}` : ""}
+            </p>
+          )}
+          {data.kind === "module" && <p><a href={`/modules/${encodeURIComponent(data.slug)}/`}>Read the documentation →</a></p>}
+        </div>
+      </div>
       {data.releases.map((r) => (
         <div key={r.version} className="release">
-          <h3>{r.version} <small className="muted">{r.channel} · published {day(r.published_at)} · {r.files} {r.files === 1 ? "file" : "files"}, {size(r.bytes)}</small></h3>
+          <h3>{r.version} <small className="muted">{r.channel} · {r.license || "license not stated"} · published {day(r.published_at)} · {r.files} {r.files === 1 ? "file" : "files"}, {size(r.bytes)}</small></h3>
           {r.notes && <p>{r.notes}</p>}
           {Object.keys(r.requires).length > 0 && <p className="muted">Requires: <code>{JSON.stringify(r.requires)}</code></p>}
           <div className="scroll"><table>

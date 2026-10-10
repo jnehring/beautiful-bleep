@@ -14,6 +14,7 @@ import zipfile
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -23,7 +24,7 @@ from ..config import settings
 from ..db import get_db
 from ..deps import require_release_token
 from ..models import ApiToken, Developer, Release, now
-from ..schemas import FileIn, PlatformIn, ReleaseIn, ReleaseOut
+from ..schemas import FileIn, OriginIn, PlatformIn, ReleaseIn, ReleaseOut
 from ..storage import Storage, get_storage
 
 router = APIRouter(prefix="/api/registry", tags=["registry"])
@@ -115,6 +116,22 @@ def _module_meta(db: Session, slug: str, package) -> tuple[list[str], int]:
     return types, abi
 
 
+def _check_licence(row: Release, package) -> None:
+    """The licence and origin a module release declares must be the ones in the signed package's module.json (a missing
+    licence there is MIT, like package-module.py): the store's detail view must not say something else than the package."""
+    package.seek(0)
+    meta = json.loads(zipfile.ZipFile(package).read("module.json"))
+    try:  # the same shape the release's origin was stored in (defaults filled in)
+        origin = OriginIn(**meta["origin"]).model_dump() if meta.get("origin") else None
+    except (ValidationError, TypeError) as e:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"module.json: origin is not valid: {e}")
+    if (row.license, row.origin or None) != (meta.get("license", "MIT"), origin):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            "The release's license and origin must match the package's module.json "
+                            f"(release: {row.license or 'none'}, package: {meta.get('license', 'MIT')})")
+    package.seek(0)
+
+
 def _types(r: Release) -> list[str]:
     return sorted({t for f in r.files if f["uploaded"] for t in f.get("types", [])})
 
@@ -173,6 +190,8 @@ def create_release(kind: Kind, body: ReleaseIn, slug: str = Slug, db: Session = 
     else:
         _own_draft(row, token)  # a draft is replaced only by the token that started it
     row.channel, row.title, row.notes, row.requires = body.channel, body.title, body.notes, body.requires
+    row.summary, row.category = body.summary, body.category
+    row.license, row.origin = body.license, body.origin.model_dump() if body.origin else {}
     row.files = _check_files(db, token, kind, slug, body.version, body.files)
     row.created_by_token = token.id
     try:
@@ -217,9 +236,42 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
                 spool.seek(0)
                 declared = {**declared, "types": (meta := _module_meta(db, slug, spool))[0]}
                 row.requires = {**row.requires, "engineAbi": meta[1]}
+                _check_licence(row, spool)
         spool.seek(0)
         storage.put(_key(row, path), spool)
     row.files = [{**declared, "uploaded": True} if f["path"] == path else f for f in row.files]
+    if row.status == "published":
+        storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
+    db.commit()
+
+
+IMAGE_TYPES = {"image/png": (b"\x89PNG\r\n\x1a\n", "png"), "image/jpeg": (b"\xff\xd8\xff", "jpg"), "image/webp": (b"RIFF", "webp")}
+MAX_IMAGE_BYTES = 1024 * 1024
+
+
+@router.put("/{kind}/{slug}/releases/{version}/image", status_code=status.HTTP_204_NO_CONTENT)
+async def upload_image(kind: Kind, request: Request, slug: str = Slug, version: str = VersionPath,
+                       db: Session = Depends(get_db), storage: Storage = Depends(get_storage),
+                       token: ApiToken = Depends(require_release_token)):
+    """The screenshot of an entry's tile (PNG, JPEG or WebP, up to 1 MB). Display metadata, not code, so it is not signed
+    and may be replaced, also after publishing, by the token that created the release."""
+    row = _find(db, kind, slug, version)
+    if row.created_by_token != token.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "This release was created with another token")
+    content_type = request.headers.get("content-type", "").split(";")[0].strip().lower()
+    if content_type not in IMAGE_TYPES:
+        raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "The image is a PNG, JPEG or WebP")
+    data = b""
+    async for chunk in request.stream():
+        data += chunk
+        if len(data) > MAX_IMAGE_BYTES:
+            raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "The image is larger than 1 MB")
+    magic, ext = IMAGE_TYPES[content_type]
+    if not data.startswith(magic) or (ext == "webp" and data[8:12] != b"WEBP"):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"This is not a {ext.upper()} file")
+    name = f"image.{ext}"
+    storage.put(_key(row, name), io.BytesIO(data), content_type)
+    row.image = name
     if row.status == "published":
         storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()
@@ -255,18 +307,23 @@ def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = 
 def _entry(r: Release) -> dict:
     return {
         "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
-        "notes": r.notes, "requires": r.requires, "types": _types(r), "published": r.published_at.isoformat(),
+        "summary": r.summary, "category": r.category, "license": r.license, "origin": r.origin or None, "image": r.image or None, "notes": r.notes, "requires": r.requires, "types": _types(r), "published": r.published_at.isoformat(),
         "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform", "contentDigest", "signer", "signature") if f.get(k) is not None}
                   for f in r.files if f["uploaded"]],
     }
 
 
 def write_index(db: Session, storage: Storage) -> dict:
-    """v1/index.json: per channel, the newest version of every plugin and module. beta also sees stable releases."""
+    """v1/index.json: per channel, the newest version of every plugin and module, with its title, summary, category and image. beta also sees stable releases."""
     channels: dict = {"stable": {"plugins": {}, "modules": {}}, "beta": {"plugins": {}, "modules": {}}}
     for r in _published(db):  # ascending, so later rows are newer
         for channel in ("stable", "beta") if r.channel == "stable" else ("beta",):
-            channels[channel][r.kind + "s"][r.slug] = {"version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json"}
+            channels[channel][r.kind + "s"][r.slug] = {
+                "version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json",
+                # what the apps' store tiles show, so one request to the index is enough
+                "title": r.title or r.slug, "summary": r.summary, "category": r.category,
+                **({"image": f"{r.kind}s/{r.slug}/{r.version}/{r.image}"} if r.image else {}),
+            }
             if r.kind == "module":  # which node types a module provides: clients find the package for a type without downloading any
                 channels[channel]["modules"][r.slug]["types"] = _types(r)
     index = {"format": 1, "generated": now().isoformat(), "channels": channels}

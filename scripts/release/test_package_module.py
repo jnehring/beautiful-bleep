@@ -102,6 +102,17 @@ class Package(unittest.TestCase):
         self.assertNotIn("version", meta)  # the store counts the version; the content hash must not depend on it
         self.assertEqual(files["module.wasm"], self.wasm)
 
+    def test_licence_and_origin_travel_with_the_package(self):
+        self.assertEqual(json.loads(self.files()["module.json"])["license"], "MIT")  # none declared: MIT
+        origin = {"name": "Foo", "author": "A. Author", "url": "https://x.y/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}
+        (self.folder / "module.json").write_text(json.dumps({"name": "Fuzz", "slug": "fuzz", "tagline": "Fuzzes.", "license": "GPL-3.0-or-later", "origin": origin}))
+        (self.folder / "LICENSE").write_text("GNU GENERAL PUBLIC LICENSE")
+        files = self.files()
+        meta = json.loads(files["module.json"])
+        self.assertEqual((meta["license"], meta["origin"]), ("GPL-3.0-or-later", origin))
+        self.assertEqual(meta["summary"], "Fuzzes. Based on Foo by A. Author (GPL-3.0-or-later).")
+        self.assertEqual(files["LICENSE"], b"GNU GENERAL PUBLIC LICENSE")
+
     def test_same_inputs_same_bytes(self):
         a, b = self.dir / "a.bleepmod", self.dir / "b.bleepmod"
         pm.write_zip(self.files(), a)

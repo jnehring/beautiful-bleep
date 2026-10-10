@@ -1019,4 +1019,4 @@ The Ableton bridge (section 6) is the first bridge. Further bridges connect the 
 
 ## 21. Legal note on inspiration
 
-The modules are inspired by general concepts common in modular synthesis. No module reproduces a specific hardware module's panel layout, name, branding or exact feature combination. Where open-source firmware is used as a reference, its license is checked per file and respected.
+The modules are inspired by general concepts common in modular synthesis. No module reproduces a specific hardware module's panel layout, name, branding or exact feature combination. Where open-source firmware or plugin code is used as a reference or ported, its license is checked per file and respected: the module names the source in `module.json` (`origin`) and in its doc, keeps the original license (copyleft stays copyleft) and ships the license text. The rules are in `patch/modules/README.md`, "Ported code and licences", and CI enforces them.

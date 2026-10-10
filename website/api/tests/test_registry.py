@@ -220,6 +220,65 @@ def test_store_lists_published_without_login(client, make_admin):
     assert client.get("/api/store?page=0").status_code == 422
 
 
+PNG = b"\x89PNG\r\n\x1a\n" + b"\0" * 16
+
+
+def test_store_tile_metadata_and_image(client, make_admin, storage):
+    token = make_token(client, make_admin)
+    h = {"Authorization": f"Bearer {token}"}
+    data = b"zipdata"
+    body = {"version": "0.1.0", "summary": "Slow waves for everything that moves.", "category": "Modulation",
+            "files": [declare("lfo-0.1.0.zip", data, slug="lfo", version="0.1.0")]}
+    assert client.post("/api/registry/plugin/lfo/releases", json=body, headers=h).status_code == 201
+    client.put("/api/registry/plugin/lfo/releases/0.1.0/files/lfo-0.1.0.zip", content=data, headers=h)
+    image = "/api/registry/plugin/lfo/releases/0.1.0/image"
+    assert client.put(image, content=PNG, headers={**h, "Content-Type": "image/png"}).status_code == 204
+    assert client.put(image, content=b"nope", headers={**h, "Content-Type": "image/png"}).status_code == 422
+    assert client.put(image, content=PNG, headers={**h, "Content-Type": "text/html"}).status_code == 415
+    assert client.put(image, content=PNG + b"\0" * (1024 * 1024), headers={**h, "Content-Type": "image/png"}).status_code == 413
+    assert client.post("/api/registry/plugin/lfo/releases/0.1.0/publish", headers=h).status_code == 200
+    assert storage.objects["v1/plugins/lfo/0.1.0/image.png"] == PNG
+    entry = json.loads(storage.objects["v1/plugins/lfo/0.1.0/entry.json"])
+    assert (entry["summary"], entry["category"], entry["image"]) == ("Slow waves for everything that moves.", "Modulation", "image.png")
+    item = client.get("/api/store").json()["items"][0]
+    assert item["image_url"] == "/registry/v1/plugins/lfo/0.1.0/image.png" and item["category"] == "Modulation"
+    assert client.get("/api/store/plugin/lfo").json()["image_url"] == item["image_url"]
+    tile = json.loads(storage.objects["v1/index.json"])["channels"]["stable"]["plugins"]["lfo"]  # the apps read their tiles from the index
+    assert (tile["summary"], tile["category"], tile["image"]) == ("Slow waves for everything that moves.", "Modulation", "plugins/lfo/0.1.0/image.png")
+
+
+def test_store_detail_shows_licence_and_origin(client, make_admin, storage):
+    token = make_token(client, make_admin)
+    h = {"Authorization": f"Bearer {token}"}
+    origin = {"name": "Foo", "author": "A. Author", "url": "https://example.org/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}
+    body = {"version": "0.1.0", "license": "GPL-3.0-or-later", "origin": origin, "files": [declare("fuzz.zip", b"x", slug="fuzz", version="0.1.0")]}
+    assert client.post("/api/registry/plugin/fuzz/releases", json=body, headers=h).status_code == 201
+    client.put("/api/registry/plugin/fuzz/releases/0.1.0/files/fuzz.zip", content=b"x", headers=h)
+    assert client.post("/api/registry/plugin/fuzz/releases/0.1.0/publish", headers=h).status_code == 200
+    detail = client.get("/api/store/plugin/fuzz").json()
+    assert (detail["license"], detail["origin"]["name"], detail["releases"][0]["license"]) == ("GPL-3.0-or-later", "Foo", "GPL-3.0-or-later")
+    entry = json.loads(storage.objects["v1/plugins/fuzz/0.1.0/entry.json"])
+    assert (entry["license"], entry["origin"]["url"]) == ("GPL-3.0-or-later", "https://example.org/foo")
+    assert "license" not in client.get("/api/store").json()["items"][0]  # not on the tile
+    bad = {**body, "version": "0.2.0", "origin": {**origin, "url": "javascript:alert(1)"}}
+    assert client.post("/api/registry/plugin/fuzz/releases", json=bad, headers=h).status_code == 422
+
+
+def test_store_filters_by_category_and_searches_the_summary(client, make_admin):
+    token = make_token(client, make_admin)
+    h = {"Authorization": f"Bearer {token}"}
+    for slug, summary, category in (("lfo", "Slow waves", "Modulation"), ("osc", "A triangle core", "Sources"), ("plain", "", "")):
+        body = {"version": "0.1.0", "summary": summary, "category": category, "files": [declare(f"{slug}.zip", b"x", slug=slug, version="0.1.0")]}
+        assert client.post(f"/api/registry/plugin/{slug}/releases", json=body, headers=h).status_code == 201
+        client.put(f"/api/registry/plugin/{slug}/releases/0.1.0/files/{slug}.zip", content=b"x", headers=h)
+        client.post(f"/api/registry/plugin/{slug}/releases/0.1.0/publish", headers=h)
+    everything = client.get("/api/store").json()
+    assert everything["categories"] == ["Modulation", "Sources"] and everything["total"] == 3
+    assert [i["slug"] for i in client.get("/api/store?category=Sources").json()["items"]] == ["osc"]
+    assert [i["slug"] for i in client.get("/api/store?q=triangle").json()["items"]] == ["osc"]
+    assert next(i for i in everything["items"] if i["slug"] == "plain")["image_url"] is None
+
+
 def test_store_detail_is_public_and_hides_drafts(client, make_admin):
     token = make_token(client, make_admin)
     assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
@@ -260,8 +319,8 @@ def new_token(capsys, publisher=None):
     return capsys.readouterr().out.strip().splitlines()[-1]
 
 
-def post_release(client, token, slug, version, files, kind="plugin"):
-    return client.post(f"/api/registry/{kind}/{slug}/releases", json={"version": version, "files": files},
+def post_release(client, token, slug, version, files, kind="plugin", **extra):
+    return client.post(f"/api/registry/{kind}/{slug}/releases", json={"version": version, "files": files, **extra},
                        headers={"Authorization": f"Bearer {token}"})
 
 
@@ -341,7 +400,7 @@ def test_signed_module_package_flow_and_entry(client, make_admin, capsys, storag
     files = module_files(["acme/fuzz"])
     data, decl = module_zip(files, kit, "acme.fuzz", "1.0.0")
     h = {"Authorization": f"Bearer {token}"}
-    assert post_release(client, token, "acme.fuzz", "1.0.0", [decl], kind="module").status_code == 201
+    assert post_release(client, token, "acme.fuzz", "1.0.0", [decl], kind="module", license="MIT").status_code == 201
     url = "/api/registry/module/acme.fuzz/releases/1.0.0"
     assert client.put(f"{url}/files/{decl['path']}", content=data, headers=h).status_code == 204
     assert client.post(f"{url}/publish", headers=h).status_code == 200
@@ -428,11 +487,14 @@ def test_developer_create_prints_a_kit_that_signs(client, capsys, make_admin):
         cli.main(["developer-create", "Bad Name"])
 
 
-def release_module(client, token, kit, slug, version, files):
-    """Declares, uploads and publishes a module package; returns the upload response (the step the store checks the package at)."""
+def release_module(client, token, kit, slug, version, files, **declared):
+    """Declares, uploads and publishes a module package; returns the upload response (the step the store checks the package at).
+    The release declares the package's own licence and origin (what release.py does) unless `declared` says otherwise."""
     h = {"Authorization": f"Bearer {token}"}
     data, decl = module_zip(files, kit, slug, version)
-    assert post_release(client, token, slug, version, [decl], kind="module").status_code == 201
+    meta = json.loads(files["module.json"]) if files["module.json"].startswith(b"{") else {}
+    declared = {"license": meta.get("license", "MIT"), "origin": meta.get("origin"), **declared}
+    assert post_release(client, token, slug, version, [decl], kind="module", **declared).status_code == 201
     up = client.put(f"/api/registry/module/{slug}/releases/{version}/files/{decl['path']}", content=data, headers=h)
     if up.status_code == 204:
         assert client.post(f"/api/registry/module/{slug}/releases/{version}/publish", headers=h).status_code == 200
@@ -454,6 +516,21 @@ def test_module_types_are_published_and_cannot_be_taken_over(client, make_admin,
     assert up.status_code == 409 and "already provided" in up.json()["detail"]
     # a new version of the module itself may keep its own types
     assert release_module(client, ours, bleep_kit, "oscillator", "1.0.1", module_files(["oscillator", "oscillator-sub"])).status_code == 204
+
+
+def test_a_module_release_must_declare_the_licence_of_its_package(client, make_admin, capsys):
+    token = new_token(capsys)
+    kit = PKI.first_party
+    origin = {"name": "Foo", "author": "A", "url": "https://example.org/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}
+    gpl = {**json.loads(module_files(["pitch"])["module.json"]), "license": "GPL-3.0-or-later", "origin": origin}
+    files = {**module_files(["pitch"]), "module.json": json.dumps(gpl).encode()}
+    assert release_module(client, token, kit, "pitch", "1.0.0", files).status_code == 204
+    detail = client.get("/api/store/module/pitch").json()
+    assert (detail["license"], detail["origin"]["name"]) == ("GPL-3.0-or-later", "Foo")
+    # a release that says MIT for a GPL package, or leaves the origin out, is refused at the upload
+    up = release_module(client, token, kit, "pitch", "1.0.1", files, license="MIT")
+    assert up.status_code == 422 and "must match the package's module.json" in up.json()["detail"]
+    assert release_module(client, token, kit, "pitch", "1.0.2", files, origin=None).status_code == 422
 
 
 def test_module_json_must_declare_types_and_abi(client, make_admin, capsys):

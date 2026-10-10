@@ -52,8 +52,10 @@ class FakeStore:
     def versions(self, slug, kind="plugin"): return list(self.published.get(slug, {}))
     def entry(self, slug, version, kind="plugin"): return self.published.get(slug, {}).get(version)
 
-    def release(self, slug, version, channel, title, notes, files, kind="plugin"):
+    def release(self, slug, version, channel, title, notes, files, kind="plugin", summary="", category="", image=None, license="", origin=None):
+        self.licenses = getattr(self, "licenses", {}) | {slug: (license, origin)}
         self.released.append((slug, version, kind, title, files[0]["declaration"]))
+        self.tiles = getattr(self, "tiles", {}) | {slug: (summary, category, image)}
 
 
 class ReleaseModules(unittest.TestCase):
@@ -75,8 +77,10 @@ class ReleaseModules(unittest.TestCase):
 
     def make(self, slug, code):
         with zipfile.ZipFile(self.dir / f"{slug}.bleepmod", "w") as z:
-            z.writestr("module.json", json.dumps({"name": slug.title(), "slug": slug}))
+            z.writestr("module.json", json.dumps({"name": slug.title(), "slug": slug, "summary": f"About {slug}.", "category": "Sources"}))
             z.writestr("module.wasm", code)
+            if slug == "alpha":
+                z.writestr("doc/alpha.png", b"\x89PNG\r\n\x1a\nalpha")
         self.digests[slug] = signing.content_digest(signing.read_entries(self.dir / f"{slug}.bleepmod")).hex()
 
     def run_release(self, published, *names, force=False, dry=False, level="patch"):
@@ -124,6 +128,15 @@ class ReleaseModules(unittest.TestCase):
                              roots=[self.root_pub])
         self.assertEqual(res.status, "signed")
         self.assertEqual(decl["sha256"], release.sha256(self.dir / "alpha.bleepmod"))
+
+    def test_the_tile_is_summary_category_and_screenshot_of_the_package(self):
+        _, store, _ = self.run_release({}, "alpha", "beta", level="x")
+        self.assertEqual(store.tiles["alpha"], ("About alpha.", "Sources", b"\x89PNG\r\n\x1a\nalpha"))
+        self.assertEqual(store.tiles["beta"], ("About beta.", "Sources", None))  # no screenshot: the store draws a placeholder
+
+    def test_the_licence_of_the_package_goes_to_the_store(self):
+        _, store, _ = self.run_release({}, "alpha", level="x")
+        self.assertEqual(store.licenses["alpha"], ("MIT", None))  # a package that states none is MIT (package-module.py)
 
     def test_a_dry_run_releases_nothing(self):
         code, store, out = self.run_release({}, dry=True)

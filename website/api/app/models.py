@@ -92,6 +92,11 @@ class Release(Base):
     status: Mapped[str] = mapped_column(String(16), default="draft")  # draft | published
     title: Mapped[str] = mapped_column(String(120), default="")
     notes: Mapped[str] = mapped_column(Text, default="")
+    summary: Mapped[str] = mapped_column(String(280), default="")  # one or two sentences for the store's tile
+    category: Mapped[str] = mapped_column(String(64), default="")  # "Sources", "Modulation", …; empty if the entry has none
+    image: Mapped[str] = mapped_column(String(32), default="")  # file name of the screenshot next to entry.json, "" = placeholder
+    license: Mapped[str] = mapped_column(String(120), default="")  # SPDX id or expression of the release; "" = not stated
+    origin: Mapped[dict] = mapped_column(JSON, default=dict)  # {name, author, url, license, copyright, changes?} of the code it is ported from; {} = original work
     requires: Mapped[dict] = mapped_column(JSON, default=dict)
     # [{path, sha256, bytes, platform, uploaded}]
     files: Mapped[list] = mapped_column(JSON, default=list)

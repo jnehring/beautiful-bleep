@@ -73,6 +73,42 @@ PLUGINS = {
 }
 
 
+# slug -> (what the store's tile says, its category); the plugins' screenshots are doc/store/<slug>.png when there is one
+PLUGIN_TILES = {
+    "bleep-patch": ("The modular patch board as a plugin: build instruments and effects from modules, inside your DAW.", "Plugins"),
+    "bleep-midi-in": ("Brings MIDI from your DAW onto a Bleep board, as a port.", "Ports"),
+    "bleep-midi-out": ("Sends MIDI from a Bleep board back to your DAW, as a port.", "Ports"),
+    "bleep-audio-in": ("Brings audio from a DAW track onto a Bleep board, as a port.", "Ports"),
+    "bleep-audio-out": ("Sends audio from a Bleep board back to a DAW track, as a port.", "Ports"),
+    "bleep-instrument": ("A Bleep board played as an instrument: MIDI in, audio out.", "Plugins"),
+    "bleep-fx": ("A Bleep board as an effect: audio in, audio out.", "Plugins"),
+    "bleep-patch-app": ("Bleep Patch as a standalone app, with the Bleep Store to install modules and plugins.", "Apps"),
+}
+
+
+# What the store's detail view says about a plugin's licence: the sources are MIT, but the binaries are built with JUCE
+# (AGPLv3, or a commercial JUCE licence: change this if you hold one), and the app includes Ableton Link (GPL), doc/operations/release.md.
+PLUGIN_LICENSES = {"bleep-patch-app": "GPL-3.0-or-later AND AGPL-3.0-only"}
+PLUGIN_LICENSE_DEFAULT = "AGPL-3.0-only"
+
+
+def image_type(data: bytes) -> str:
+    return "image/png" if data.startswith(b"\x89PNG") else "image/jpeg" if data.startswith(b"\xff\xd8") else "image/webp"
+
+
+def plugin_image(slug: str) -> bytes | None:
+    f = ROOT / "doc" / "store" / f"{slug}.png"
+    return f.read_bytes() if f.exists() else None
+
+
+def module_image(pkg: Path, slug: str) -> bytes | None:
+    """The screenshot in a module package: doc/<slug>.png, else the first doc/*.png."""
+    with zipfile.ZipFile(pkg) as z:
+        pngs = sorted(n for n in z.namelist() if n.startswith("doc/") and n.endswith(".png"))
+        pick = f"doc/{slug}.png" if f"doc/{slug}.png" in pngs else (pngs[0] if pngs else None)
+        return z.read(pick) if pick else None
+
+
 # ---- versions -----------------------------------------------------------------
 
 def parse_version(v: str) -> tuple[int, int, int]:
@@ -112,8 +148,10 @@ class Registry:
         self.base = self.site + "/api/registry"
         self.token = token
 
-    def _request(self, method: str, path: str, body=None, data=None, length=None):
+    def _request(self, method: str, path: str, body=None, data=None, length=None, content_type=None):
         headers = {}
+        if content_type:
+            headers["Content-Type"] = content_type
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
         if body is not None:
@@ -156,10 +194,17 @@ class Registry:
     def roots(self) -> list[bytes]:
         return [bytes.fromhex(k) for k in self._request("GET", "/roots")["roots"]]
 
-    def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict], kind: str = "plugin") -> None:
+    def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict], kind: str = "plugin",
+                summary: str = "", category: str = "", image: bytes | None = None,
+                license: str = "", origin: dict | None = None) -> None:
+        """`summary`, `category` and `image` (a PNG, JPEG or WebP, up to 1 MB) are what the store's tile shows."""
         base = f"/{kind}/{slug}/releases"
-        self._request("POST", base, {"version": version, "channel": channel, "title": title, "notes": notes, "files": [f["declaration"] for f in files]})
+        self._request("POST", base, {"version": version, "channel": channel, "title": title, "notes": notes, "summary": summary,
+                                     "category": category, "license": license, "origin": origin or None,
+                                     "files": [f["declaration"] for f in files]})
         self._upload(base, version, files)
+        if image:
+            self._request("PUT", f"{base}/{version}/image", data=image, length=len(image), content_type=image_type(image))
         self._request("POST", f"{base}/{version}/publish")
 
     def add_platform(self, slug: str, version: str, files: list[dict]) -> None:
@@ -290,8 +335,10 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
     done = 0
     for slug, pkg, _, version in todo:
         try:
-            title = json.loads(zipfile.ZipFile(pkg).read("module.json")).get("name", slug)
-            registry.release(slug, version, args.channel, title, args.notes, [sign_package(pkg, slug, version, kit, roots)], kind="module")
+            meta = json.loads(zipfile.ZipFile(pkg).read("module.json"))
+            registry.release(slug, version, args.channel, meta.get("name", slug), args.notes, [sign_package(pkg, slug, version, kit, roots)],
+                             kind="module", summary=meta.get("summary", ""), category=meta.get("category", ""), image=module_image(pkg, slug),
+                             license=meta.get("license", "MIT"), origin=meta.get("origin"))
         except RegistryError as e:
             print(f"  {slug} {version}: FAILED: {e}", file=sys.stderr)
             if done:
@@ -443,7 +490,9 @@ def main(argv: list[str] | None = None) -> int:
             if args.add_platform:
                 registry.add_platform(slug, version, files)
             else:
-                registry.release(slug, version, args.channel, PLUGINS[slug][0], args.notes, files)
+                summary, category = PLUGIN_TILES.get(slug, ("", ""))
+                registry.release(slug, version, args.channel, PLUGINS[slug][0], args.notes, files, summary=summary, category=category,
+                                 image=plugin_image(slug), license=PLUGIN_LICENSES.get(slug, PLUGIN_LICENSE_DEFAULT))
         except (RegistryError, subprocess.CalledProcessError) as e:
             print(f"  {slug} {version}: FAILED: {e}", file=sys.stderr)
             if done:
