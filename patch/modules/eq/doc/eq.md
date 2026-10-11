@@ -1,5 +1,7 @@
 # EQ
 
+![EQ in the module view](eq.png)
+
 ## Introduction
 
 The EQ turns parts of the spectrum up or down: more bass, less mud around 300 Hz, a cut of harsh 3 kHz, more air above 8 kHz. It has four bands, a low shelf, two *bell* bands in the middle and a high shelf, in stereo.

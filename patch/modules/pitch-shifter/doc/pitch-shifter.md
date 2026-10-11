@@ -1,5 +1,7 @@
 # Pitch Shifter
 
+![Pitch Shifter in the module view](pitch-shifter.png)
+
 ## Introduction
 
 The Pitch Shifter moves a sound up or down by a musical interval and keeps its rhythm: a vocal an octave up, a pad a fifth down, a guitar doubled at +12 and −12. Unlike the [Freq Shifter](freq-shifter.md), which adds a fixed number of hertz and breaks harmony, the Pitch Shifter multiplies every frequency by the same ratio, so chords stay chords.

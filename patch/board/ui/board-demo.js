@@ -84,7 +84,10 @@
 
   function paramText(p, v) {
     if (p.kind === "bool") return v >= 0.5 ? "On" : "Off";
-    const x = p.min + v * (p.max - p.min);
+    // The knob's value in its own units, as ParamSpec::fromNormalised (exponential and skewed knobs included).
+    let x = p.min + v * (p.max - p.min);
+    if (p.map === "exp") x = p.min * Math.pow(p.max / p.min, v);
+    else if (p.map === "skew") x = v <= 0 ? p.min : p.min + (p.max - p.min) * Math.exp(Math.log(v) / (Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min))));
     if (p.kind === "choice") return p.choices[Math.round(x - p.min)] || "";
     if (p.kind === "int") return String(Math.round(x));
     return x.toFixed(2);

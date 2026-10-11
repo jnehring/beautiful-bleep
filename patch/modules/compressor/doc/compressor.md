@@ -1,5 +1,7 @@
 # Compressor
 
+![Compressor in the module view](compressor.png)
+
 ## Introduction
 
 A compressor turns loud parts of a sound down, so the difference between loud and quiet gets smaller. Used lightly, it makes a bass or a vocal sit evenly in a mix; used hard, it makes drums punch and pumps; with a very high ratio it is a **limiter** that keeps a signal below a ceiling, for instance inside a feedback loop or on the output of a patch.

@@ -1,5 +1,7 @@
 # Phaser
 
+![Phaser in the module view](phaser.png)
+
 ## Introduction
 
 The Phaser makes the slow, swooshing sweep of the 70s: notches that travel up and down through the spectrum. It's best on sustained sounds with a lot of harmonics, like pads, strings, electric piano and guitar, and on drums and noise, where the sweep is easy to hear.

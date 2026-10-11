@@ -1,5 +1,7 @@
 # Chorus
 
+![Chorus in the module view](chorus.png)
+
 ## Introduction
 
 The Chorus makes one sound into several: it mixes the input with copies of itself that are delayed by a few milliseconds, with the delay time swinging up and down. The slightly changing delay detunes the copies against the original, which sounds like several players, or a wide, shimmering instrument. Set to a very short delay with feedback it becomes a **flanger**, with the sweeping comb-filter whoosh of jet planes and tape machines.

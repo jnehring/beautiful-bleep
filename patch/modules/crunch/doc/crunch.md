@@ -1,5 +1,7 @@
 # Crunch
 
+![Crunch in the module view](crunch.png)
+
 ## Introduction
 
 Crunch dirties up a sound in two ways. **Drive** is analogue-style overdrive: from a slight warmth through crunchy guitar-amp distortion to a square-wave fuzz. **Bits** and **Rate Red.** are digital: they throw away resolution and sample rate until the sound turns into the grit of a 90s sampler, an old game console or a broken phone. Use them separately or together.
