@@ -28,6 +28,14 @@ ctest --test-dir build/patch -R demo      # every demo patch loads and makes sou
 | Panels | [`panels.mjs`](panels.mjs) → `../board/ui/factory-panels.json` | Hand-written front panels for cell presets (so far Punch Machine), keyed by preset name: tabs, a few knobs per module, mixer faders, loaded module panels. Checked against the preset when built; see [`doc/specs/panels.md`](../../doc/specs/panels.md) §6. `node patch/presets/panels-gallery.mjs out.html [name …]` draws them. |
 | Checks | `kit.mjs`, `bleep_dump_types --check-presets` | The kit rejects unknown modules, knobs, choices, jacks, out-of-range values and incompatible cables while building; the ctest runs every preset through the engine's `board::sanitise` and fails on any warning or anything dropped. |
 
+## Dependencies (`needs`)
+
+A preset can list the modules it requires: `"needs": { "<module slug>": { "min": "1.2.0", "max": "2.0.0" } }`
+(both versions optional, inclusive). Presets saved from the board get it automatically, `min` being the module
+version installed at the time; add `max` by hand. Loading a preset or placing a cell whose modules are missing or too old
+asks to download them from the Bleep Store first (spec: [`doc/specs/store.md`](../../doc/specs/store.md) section 6).
+Factory presets leave it out.
+
 ## What a preset can be loaded as (`plays`)
 
 Bleep Instrument and Bleep FX load one cell preset each (spec:

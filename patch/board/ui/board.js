@@ -954,7 +954,7 @@
 
   /// Adds a module, an empty cell or a cell preset at world position (x, y).
   /// `link` (from a cable dropped on empty canvas) is connected to the new node.
-  function addAt(what, x, y, link) {
+  function addAt(what, x, y, link, checked) {
     if (!board) return;
     // Don't land exactly on another node (e.g. several adds at the canvas centre).
     for (let i = 0; i < 20 && nodesAt(level()).some((n) => Math.abs(n.x - x) < 40 && Math.abs(n.y - y) < 40); i++) {
@@ -977,6 +977,13 @@
                        params: {}, inputs: [], outputs: [] });
         b.nodes.push({ id: uid("ci"), type: "cell-in", name: "Cell In", x: 40, y: 120, parent: newId, params: {} });
         b.nodes.push({ id: uid("co"), type: "cell-out", name: "Cell Out", x: 640, y: 120, parent: newId, params: {} });
+    if (what.preset && !checked && window.BleepStoreView) {  // modules the preset needs: offer to install them first
+      const q = presets.find((r) => r.key === what.preset);
+      if (q) {
+        BleepStoreView.ensureNeeds(q.preset, q.name).then((ok) => { if (ok) addAt(what, x, y, link, true); });
+        return;
+      }
+    }
       } else {
         const t = types[what.type];
         if (!t) return false;
@@ -1685,6 +1692,8 @@
       delete q.open;
       for (const c of q.controls) {
         for (const w of c.wire || []) for (const k of ["param", "jack", "command"]) if (w[k]) w[k] = ref(w[k]);
+    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(nodes) : {};
+    if (Object.keys(needs).length) preset.needs = needs;
         if (c.source) c.source.out = [].concat(c.source.out).map(ref);
         if (c.node) c.node = key(c.node);
         if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;

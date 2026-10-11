@@ -69,7 +69,17 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
                 o->setProperty("name", e.name);
                 o->setProperty("category", e.category);
                 o->setProperty("description", e.description);
-                o->setProperty("tags", engine::board::fromJson(e.json)["tags"]);
+                const auto doc = engine::board::fromJson(e.json);
+                o->setProperty("tags", doc["tags"]);
+                o->setProperty("needs", doc["needs"]);   // modules the preset requires (doc/specs/store.md section 6)
+                juce::Array<juce::var> nodes;            // just the node types: the page works out which modules provide them
+                if (const auto* all = doc["nodes"].getArray())
+                    for (const auto& n : *all) {
+                        auto* t = new juce::DynamicObject();
+                        t->setProperty("type", n["type"]);
+                        nodes.add(juce::var(t));
+                    }
+                o->setProperty("nodes", nodes);
                 o->setProperty("current", e.name == current);
                 out.add(juce::var(o));
             }

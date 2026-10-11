@@ -175,7 +175,13 @@ Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persisten
 | `patch` | A whole board: nodes, cables, panels, settings | Opens as a project, or merges into the current board |
 | `cell` | One cell: its inner graph, jack names, its panel | Dropped onto the board as a cell |
 
-- Each preset lists the module types and versions it **needs**. Opening one with a missing module offers "Install 2 modules, then open" instead of loading a broken board.
+- **Dependencies.** A preset, cell or patch, may carry `needs`: the modules it requires, by module slug, each with an optional inclusive `min` and `max` version:
+
+  ```json
+  "needs": { "lfo": { "min": "1.2.0" }, "reverb": { "min": "2.0.0", "max": "2.9.9" } }
+  ```
+
+  Saving a preset from the board writes `needs` for every module its node types come from, with `min` set to the version installed at that moment; an author adds `max` by hand. Before a preset is loaded or placed (the preset browser, *Add → Cell*), the board checks `needs` and, without a version, every module that provides one of its node types. If something is missing or too old, a dialog lists it and offers **Download n from the Bleep Store**, then loads; *Load anyway* keeps placeholder nodes, *Cancel* loads nothing. Versions the store cannot supply are listed with the reason and cannot be fixed by the dialog: the store offers only the newest version of a module, so a `max` below it, a local copy of a module, or a module the store does not have can only be loaded anyway. Factory presets carry no `needs` (the default module bundle covers them). The check runs in the app and in plugin windows (installing happens off the audio thread); the web board installs the types a board uses by itself (section 8).
 - Publishing: from the board, *Share…* (needs an account; browsing and downloading never do), a title, tags, a licence (default CC-BY, CC0 allowed), optional audio preview. The API validates the schema, checks all referenced types exist in the store, enforces a size limit and per-user rate limit, and rejects anything that is not pure data.
 - Versions: re-publishing creates a new version; installed copies show "update available". Local edits to an installed preset are kept as a fork.
 - Moderation: report button, takedown by an admin (the existing `admin` role) sets the preset's state to unlisted; the file stays but is no longer served in search.

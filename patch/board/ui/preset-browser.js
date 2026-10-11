@@ -50,7 +50,7 @@
       return cells.filter((c) => (group === "all" || c.category === group) &&
         words.every((w) => [c.name, c.category, (c.tags || []).join(" "), c.description || ""].join(" ").toLowerCase().includes(w)))
         .map((c) => ({ name: c.name, moduleName: c.category, current: c.current, cell: true,
-                       preset: { tags: c.tags, description: c.description } }));
+                       preset: { tags: c.tags, description: c.description, needs: c.needs, nodes: c.nodes } }));
     }
     const mineItems = mine.map((p) => ({ name: p.name, own: true, moduleName: "My patch", preset: p.preset }));
     let list = group === "mine" ? mineItems : group === "all" ? demos.concat(mineItems)
@@ -150,6 +150,7 @@
   }
 
   async function loadPatch(p) {
+    if (window.BleepStoreView && p.preset && !(await BleepStoreView.ensureNeeds(p.preset, p.name))) return;
     if (p.cell) {
       close();
       await native("loadCellPreset", p.name);
@@ -171,6 +172,8 @@
     const board = host.board();
     if (!name || !board) return;
     const preset = { format: 1, description: desc, tags: [], nodes: clone(board.nodes), cables: clone(board.cables) };
+    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(preset.nodes) : {};
+    if (Object.keys(needs).length) preset.needs = needs;
     mine = (await native("savePreset", name, preset, "patches")) || [];
     saveRow.hidden = true;
     for (const i of saveRow.querySelectorAll("input")) i.value = "";

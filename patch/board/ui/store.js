@@ -12,7 +12,7 @@
   let category = "";          // the modules' category filter, "" = all
   let message = "";           // the last thing that went wrong or right, shown under the header
   let poll = null;
-  let host = null;
+  let host = {};
   let root, body, tabsEl, noteEl, summaryEl;
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
@@ -298,21 +298,136 @@
     document.body.appendChild(root);
   }
 
+  /// Installs a module from the store and waits for it (the native side works on another thread). True if it is loaded now.
+  async function installSlug(slug) {
+    await native("storeInstall", slug);
+    for (let i = 0; i < 300; i++) {
+      await new Promise((r) => setTimeout(r, 400));
+      status = await native("storeStatus");
+      if (!status.busy[slug]) break;
+    }
+    if (host.onTypes) await host.onTypes();
+    return status.installed.some((x) => x.slug === slug && x.loaded);
+  }
+
+  /// The store's status with its index read (asks the native side to fetch it if it has not yet).
+  async function statusWithIndex() {
+    status = await native("storeStatus");
+    if (!status.index.ok) { await native("storeRefresh"); await new Promise((r) => setTimeout(r, 900)); status = await native("storeStatus"); }
+    return status;
+  }
+
   /// Installs the module that provides a node type (the Install button of a placeholder on the board). True if it is there now.
   async function installType(type) {
     message = "";
-    status = await native("storeStatus");
-    if (!status.index.ok) { await native("storeRefresh"); await new Promise((r) => setTimeout(r, 900)); status = await native("storeStatus"); }
+    await statusWithIndex();
     const m = status.index.modules.find((x) => (x.types || []).includes(type));
     if (!m) { message = status.index.ok ? "the store has no module for " + type : "the store cannot be reached: " + status.index.error; return false; }
-    await native("storeInstall", m.slug);
-    for (let i = 0; i < 300; i++) {  // wait for the install: the native side does it on another thread
-      await new Promise((r) => setTimeout(r, 400));
-      status = await native("storeStatus");
-      if (!status.busy[m.slug]) break;
+    return installSlug(m.slug);
+  }
+
+  // ---- Dependencies of presets (doc/specs/store.md section 6) ----------------------------------------------------------
+  // A preset (a cell or a whole patch) may carry  needs: { "<module slug>": { min: "1.2.0", max: "1.9.0" } }  (both optional and
+  // inclusive). Whatever it lists is checked, and so is every module that provides one of its node types, with no version limit.
+
+  const cmp = (a, b) => (newer(a, b) ? 1 : newer(b, a) ? -1 : 0);
+  const inRange = (v, n) => (!n.min || cmp(v, n.min) >= 0) && (!n.max || cmp(v, n.max) <= 0);
+  const rangeText = (n) => (n.min && n.max ? `${n.min} to ${n.max}` : n.min ? `${n.min} or newer` : n.max ? `up to ${n.max}` : "any version");
+
+  /// What a preset needs: Map slug → { min, max } from its `needs` plus the modules behind its node types.
+  function neededBy(preset) {
+    const need = new Map();
+    for (const [slug, r] of Object.entries(preset.needs || {})) need.set(slug, { min: (r && r.min) || "", max: (r && r.max) || "" });
+    const provider = new Map();
+    for (const m of status.installed.concat(status.index.modules)) for (const t of m.types || []) if (!provider.has(t)) provider.set(t, m.slug);
+    for (const n of preset.nodes || []) {
+      const slug = provider.get(n.type);
+      if (slug && !need.has(slug)) need.set(slug, { min: "", max: "" });
     }
-    if (host.onTypes) await host.onTypes();
-    return status.installed.some((x) => x.slug === m.slug && x.loaded);
+    return need;
+  }
+
+  /// One verdict per needed module: ok, install (missing), update (too old), or a reason it cannot be met.
+  function judge(slug, n) {
+    const have = status.installed.find((m) => m.slug === slug && m.loaded) || status.installed.find((m) => m.slug === slug);
+    const offer = status.index.modules.find((m) => m.slug === slug);
+    const row = { slug, need: n, have: have && have.version, offer: offer && offer.version };
+    if (have && have.loaded && inRange(have.version, n)) return Object.assign(row, { action: "ok" });
+    if (have && have.source === "local") return Object.assign(row, { action: "blocked", why: `your local copy (${have.version}) is outside ${rangeText(n)}` });
+    if (!status.index.ok && !(have && have.loaded)) return Object.assign(row, { action: "blocked", why: "the store cannot be reached" });
+    if (have && have.loaded && n.max && cmp(have.version, n.max) > 0) {
+      // The store keeps only the newest version, so a too-new module cannot be replaced by an older one.
+      return Object.assign(row, { action: "blocked", why: `installed ${have.version} is newer than ${n.max}` });
+    }
+    if (!offer) return Object.assign(row, { action: "blocked", why: have ? "the store has no newer version" : "the store does not have it" });
+    if (!inRange(offer.version, n)) return Object.assign(row, { action: "blocked", why: `the store has ${offer.version}, the preset needs ${rangeText(n)}` });
+    if (have && have.loaded) return Object.assign(row, { action: "update" });
+    if (have) return Object.assign(row, { action: "blocked", why: have.why || "installed but not allowed to load" });
+    return Object.assign(row, { action: "install" });
+  }
+
+  /// Before a preset is loaded or placed: if modules it needs are missing or too old, asks to install them from the store.
+  /// Resolves true to go on loading (also with "Load anyway": the board keeps placeholders), false when the user cancels.
+  async function ensureNeeds(preset, name) {
+    if (!preset) return true;
+    await statusWithIndex();
+    const rows = [...neededBy(preset)].map(([slug, n]) => judge(slug, n)).filter((r) => r.action !== "ok");
+    if (!rows.length) return true;
+    return new Promise((resolve) => {
+      const back = el("div", "st-modal");
+      const card = el("div", "st-card");
+      card.appendChild(el("h2", "", `"${name || "This preset"}" needs modules`));
+      const list = el("div", "st-list");
+      for (const r of rows) {
+        const line = r.action === "install" ? `not installed${r.offer ? ", store has " + r.offer : ""}`
+          : r.action === "update" ? `installed ${r.have}, store has ${r.offer}` : r.why;
+        const row = el("div", "st-row single");
+        row.appendChild(el("b", "", r.slug));
+        row.appendChild(el("span", "", `  needs ${rangeText(r.need)}: ${line}`));
+        list.appendChild(row);
+      }
+      card.appendChild(list);
+      const result = el("div", "st-message");
+      card.appendChild(result);
+      const fixable = rows.filter((r) => r.action === "install" || r.action === "update");
+      const buttons = el("div", "st-bar");
+      const cancel = el("button", "", "Cancel");
+      const anyway = el("button", "", "Load anyway");
+      const go = el("button", "primary", `Download ${fixable.length} from the Bleep Store`);
+      buttons.append(cancel);
+      buttons.append(anyway);
+      if (fixable.length) buttons.append(go);
+      card.appendChild(buttons);
+      back.appendChild(card);
+      document.body.appendChild(back);
+      const done = (v) => { back.remove(); resolve(v); };
+      cancel.addEventListener("click", () => done(false));
+      anyway.addEventListener("click", () => done(true));
+      go.addEventListener("click", async () => {
+        go.disabled = anyway.disabled = cancel.disabled = true;
+        const failed = [];
+        for (const r of fixable) {
+          result.textContent = `Installing ${r.slug}…`;
+          if (!(await installSlug(r.slug))) failed.push(r.slug);
+        }
+        if (!failed.length) { done(true); return; }
+        result.textContent = `Could not install ${failed.join(", ")}. ${message || "See the Store section."}`;
+        anyway.disabled = cancel.disabled = false;
+        anyway.textContent = "Load anyway";
+      });
+    });
+  }
+
+  /// The `needs` to write into a preset that is being saved: the modules its node types come from, at least the version installed now.
+  async function needsFor(nodes) {
+    status = await native("storeStatus");
+    const out = {};
+    const need = neededBy({ nodes });
+    for (const [slug] of need) {
+      const have = status.installed.find((m) => m.slug === slug);
+      if (have && have.version) out[slug] = { min: have.version };
+    }
+    return out;
   }
 
   /// The setup assistant (doc/specs/store.md 5a): once, on the first launch, offers the two default bundles. Either may be declined.
@@ -391,6 +506,8 @@
 
   window.BleepStoreView = {
     installType,
+    ensureNeeds,
+    needsFor,
     lastMessage: () => message,
     async init(options) {
       host = options || {};
