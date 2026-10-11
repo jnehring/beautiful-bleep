@@ -1,5 +1,6 @@
 ---
 title: Conformance
+description: The open test host and validator for checking a Bleep Bus implementation.
 order: 20
 ---
 

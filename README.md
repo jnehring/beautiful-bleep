@@ -25,6 +25,7 @@ All scripts live in [`scripts/`](scripts/), one folder per kind of work, and wor
 | | [`run-website.sh`](scripts/run/run-website.sh) | Runs the website in Docker on http://localhost:8080: `up` (default), `down`, `logs`, `rebuild` |
 | | [`ui-server.py`](scripts/run/ui-server.py) | Serves the board UI in a browser with a fake engine: `scripts/run/ui-server.py`, then open http://localhost:8765 |
 | [`docs/`](scripts/docs/) | [`build-docs.py`](scripts/docs/build-docs.py) | Writes the single-file docs per audience (module manuals one file per category) and `llms.txt` (also run by the website build) |
+| | [`build-help-index.py`](scripts/docs/build-help-index.py) | Writes the board's Help section: the tiles (`help-articles.json`, from the `title:` and `description:` of every article in `website/content/`) and the search index over the articles and module manuals (`help-search.json`), both in `patch/board/ui/`. Run it after changing a doc; `--check` verifies the files |
 | | [`module-screenshots.py`](scripts/docs/module-screenshots.py) | Screenshots every module's view into its `doc/<type>.png` (needs `ui-server.py` running and Playwright) |
 | [`check/`](scripts/check/) | [`check-api-docs.py`](scripts/check/check-api-docs.py) | Checks that every function in `bleep_bus.h` is documented in the API reference |
 | | [`check-repo.py`](scripts/check/check-repo.py) | Checks the dependency rules between `bus/`, `patch/` and `website/`, SPDX headers and LICENSE files |

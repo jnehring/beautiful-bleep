@@ -354,6 +354,11 @@ public:
                 .withNativeFunction("pasteText", [](const juce::Array<juce::var>&, Completion done) {
                     done(juce::SystemClipboard::getTextFromClipboard());
                 })
+                .withNativeFunction("openUrl", [](const juce::Array<juce::var>& a, Completion done) {  // the Help section's tiles
+                    const auto address = a[0].toString();
+                    done((address.startsWithIgnoreCase("http://") || address.startsWithIgnoreCase("https://"))
+                         && juce::URL(address).launchInDefaultBrowser());
+                })
                 .withNativeFunction("settings", [](const juce::Array<juce::var>& a, Completion done) {
                     done(style().onSettings ? style().onSettings(a[0].toString(), a[1]) : juce::var());
                 })

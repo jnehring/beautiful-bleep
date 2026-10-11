@@ -1,5 +1,6 @@
 ---
 title: Lifecycle
+description: Which calls to make in the constructor, audio callback, state and UI code.
 order: 2
 ---
 

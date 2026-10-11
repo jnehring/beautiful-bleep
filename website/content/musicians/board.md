@@ -1,5 +1,6 @@
 ---
 title: The board
+description: Everything about the board: adding modules, patching cables, grouping and panels.
 order: 1
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Port functions
+description: Add the named inputs and outputs of an endpoint.
 order: 5
 ---
 

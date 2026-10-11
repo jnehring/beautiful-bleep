@@ -1,5 +1,6 @@
 ---
 title: Naming
+description: Namespaces and how the shared-memory segment is named.
 order: 1
 ---
 

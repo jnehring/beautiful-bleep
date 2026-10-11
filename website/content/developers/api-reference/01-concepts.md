@@ -1,5 +1,6 @@
 ---
 title: Concepts
+description: Bus, endpoint, output and the other terms the API is built on.
 order: 1
 ---
 

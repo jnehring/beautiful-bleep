@@ -374,6 +374,23 @@ body.in-store #undo, body.in-store #redo { display: none; }
 #settings h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 #settings .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
 #settings .st-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+#help { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
+#help h2 { margin: 0; font-size: 18px; font-weight: 600; }
+#help h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+#help .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
+#help .st-message:not(:empty) { margin: 0 0 10px; color: var(--warn); }
+#help .hp-address, #help .hp-empty { color: var(--muted); }
+#help .hp-search { box-sizing: border-box; width: 100%; max-width: 420px; margin: 0 0 6px; background: var(--panel); border: 1px solid var(--line); color: var(--text); padding: 7px 10px; border-radius: 5px; font: inherit; }
+#help .hp-hits { display: flex; flex-direction: column; gap: 6px; max-width: 760px; margin-top: 12px; }
+#help .hp-hit { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 9px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; color: var(--text); font: inherit; cursor: pointer; }
+#help .hp-hit:hover { background: var(--panel-2); border-color: var(--accent); }
+#help .hp-group { margin-left: 10px; font-weight: 400; font-size: 11px; color: var(--muted); }
+#help mark { background: transparent; color: var(--accent); font-weight: 600; }
+#help .hp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+#help .hp-tile { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font: inherit; cursor: pointer; }
+#help .hp-tile:hover { background: var(--panel-2); border-color: var(--accent); }
+#help .hp-title { font-weight: 600; }
+#help .hp-desc { color: var(--muted); font-size: 12px; line-height: 1.4; }
 #settings .st-tabs button { border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-bottom: 2px solid transparent; border-radius: 0; }
 #settings .st-tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
 #settings .st-message:not(:empty) { margin: 0 0 10px; color: var(--warn); }

@@ -2444,3 +2444,4 @@
   }
   start();
 })();
+    if (m.store && window.BleepHelpView) await BleepHelpView.init();

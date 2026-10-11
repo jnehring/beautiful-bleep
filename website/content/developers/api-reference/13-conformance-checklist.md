@@ -1,5 +1,6 @@
 ---
 title: Conformance checklist
+description: What to check before calling a plugin Bleep Bus compatible.
 order: 13
 ---
 

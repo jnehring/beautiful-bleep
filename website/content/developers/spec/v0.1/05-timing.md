@@ -1,5 +1,6 @@
 ---
 title: Timing
+description: The fixed one-block latency that makes parallel tracks render identically.
 order: 5
 ---
 

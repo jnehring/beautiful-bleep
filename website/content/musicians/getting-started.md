@@ -1,5 +1,6 @@
 ---
 title: Getting started
+description: Set up Bleep Patch in Ableton Live: the board, modules, cables and ports.
 order: 0
 ---
 

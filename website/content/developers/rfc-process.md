@@ -1,5 +1,6 @@
 ---
 title: RFC process
+description: How to propose a change to the Bleep Bus standard.
 order: 30
 ---
 

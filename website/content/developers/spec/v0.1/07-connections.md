@@ -1,5 +1,6 @@
 ---
 title: Connections and state
+description: Cable rules and the text format used to save them.
 order: 7
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Host notes and pitfalls
+description: Quirks of Ableton Live, Bitwig and other hosts, and how to avoid pitfalls.
 order: 12
 ---
 

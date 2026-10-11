@@ -420,3 +420,4 @@
     },
   };
 })();
+      if (window.BleepHelpView) window.BleepHelpView.hide();

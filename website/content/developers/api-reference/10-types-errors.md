@@ -1,5 +1,6 @@
 ---
 title: Types, constants and errors
+description: Constants, types and error codes in one table.
 order: 10
 ---
 

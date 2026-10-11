@@ -1,5 +1,6 @@
 ---
 title: Connection functions
+description: Create, change and remove cables between outputs and inputs.
 order: 7
 ---
 

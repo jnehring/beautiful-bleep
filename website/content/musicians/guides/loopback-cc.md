@@ -1,5 +1,6 @@
 ---
 title: Modulating any Live parameter (loopback workaround)
+description: Modulate any Live parameter with a virtual MIDI port until the Max for Live bridge exists.
 order: 21
 ---
 

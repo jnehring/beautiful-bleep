@@ -1,5 +1,6 @@
 ---
 title: C++ and JUCE helpers
+description: The header-only C++ wrapper and the JUCE helpers.
 order: 11
 ---
 

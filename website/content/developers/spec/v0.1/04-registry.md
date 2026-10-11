@@ -1,5 +1,6 @@
 ---
 title: Registry
+description: How endpoints register, get their UID and are reclaimed when dead.
 order: 4
 ---
 

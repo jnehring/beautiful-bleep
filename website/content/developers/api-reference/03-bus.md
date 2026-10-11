@@ -1,5 +1,6 @@
 ---
 title: Bus functions
+description: Open, close and configure the shared-memory bus.
 order: 3
 ---
 

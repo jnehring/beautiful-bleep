@@ -1,5 +1,6 @@
 ---
 title: Layout
+description: Byte layout of the shared-memory structures.
 order: 2
 ---
 

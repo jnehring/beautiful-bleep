@@ -1,5 +1,6 @@
 ---
 title: Ways to use Bleep
+description: Plugin, app or browser: the three places to use Bleep and how much effort each level takes.
 order: -1
 ---
 

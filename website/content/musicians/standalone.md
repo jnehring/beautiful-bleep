@@ -1,5 +1,6 @@
 ---
 title: The standalone app
+description: Use Bleep without a DAW: audio setup, projects and settings of the app.
 order: 3
 ---
 

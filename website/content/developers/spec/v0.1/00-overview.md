@@ -1,5 +1,6 @@
 ---
 title: Bleep Bus specification v0.1
+description: The Bleep Bus specification, exact enough to implement without the SDK.
 order: 0
 ---
 

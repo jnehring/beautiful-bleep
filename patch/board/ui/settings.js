@@ -218,6 +218,7 @@
     },
     async show() {
       if (window.BleepStoreView) window.BleepStoreView.hide();
+      if (window.BleepHelpView) window.BleepHelpView.hide();
       document.body.classList.add("in-store");
       root.hidden = false;
       document.getElementById("sec-settings").classList.add("on");

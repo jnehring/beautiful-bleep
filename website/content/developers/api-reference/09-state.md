@@ -1,5 +1,6 @@
 ---
 title: State functions
+description: Save and restore cables with a plugin's state.
 order: 9
 ---
 

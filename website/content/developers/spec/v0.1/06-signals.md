@@ -1,5 +1,6 @@
 ---
 title: Signals
+description: Signal types and virtual volts.
 order: 6
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Endpoint functions
+description: Register a plugin instance and keep its stable UID.
 order: 4
 ---
 

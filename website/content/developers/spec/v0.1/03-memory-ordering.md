@@ -1,5 +1,6 @@
 ---
 title: Memory ordering
+description: Atomics and the locks that protect the rest of the segment.
 order: 3
 ---
 

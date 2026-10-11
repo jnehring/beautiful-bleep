@@ -1,5 +1,6 @@
 ---
 title: Ports
+description: The small plugins you add to tracks in Live to connect them to the board.
 order: 2
 ---
 

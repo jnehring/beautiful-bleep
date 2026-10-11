@@ -1,5 +1,6 @@
 ---
 title: Discovery functions
+description: List endpoints, outputs and connections to build source menus.
 order: 8
 ---
 

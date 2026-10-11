@@ -1,5 +1,6 @@
 ---
 title: Routing MIDI Out in Live
+description: Send MIDI from the board to another instrument track in Live.
 order: 20
 ---
 

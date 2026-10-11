@@ -1,5 +1,6 @@
 ---
 title: Audio-thread functions
+description: The real-time calls: begin a block, read inputs, write outputs.
 order: 6
 ---
 

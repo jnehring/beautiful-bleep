@@ -1,5 +1,6 @@
 ---
 title: Versioning and extensions
+description: How versions match and how the standard can be extended.
 order: 8
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: API reference
+description: The complete SDK reference for plugin developers, and how to read it.
 order: 0
 ---
 

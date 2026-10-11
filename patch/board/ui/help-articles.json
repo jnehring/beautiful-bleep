@@ -1,0 +1,206 @@
+[
+ {
+  "group": "Musicians",
+  "title": "Ways to use Bleep",
+  "description": "Plugin, app or browser: the three places to use Bleep and how much effort each level takes.",
+  "path": "/docs/musicians/overview/"
+ },
+ {
+  "group": "Musicians",
+  "title": "Getting started",
+  "description": "Set up Bleep Patch in Ableton Live: the board, modules, cables and ports.",
+  "path": "/docs/musicians/getting-started/"
+ },
+ {
+  "group": "Musicians",
+  "title": "The board",
+  "description": "Everything about the board: adding modules, patching cables, grouping and panels.",
+  "path": "/docs/musicians/board/"
+ },
+ {
+  "group": "Musicians",
+  "title": "Ports",
+  "description": "The small plugins you add to tracks in Live to connect them to the board.",
+  "path": "/docs/musicians/ports/"
+ },
+ {
+  "group": "Musicians",
+  "title": "The standalone app",
+  "description": "Use Bleep without a DAW: audio setup, projects and settings of the app.",
+  "path": "/docs/musicians/standalone/"
+ },
+ {
+  "group": "Musicians",
+  "title": "Voice Cells",
+  "description": "Turn one patched synth voice into a polyphonic instrument with up to 16 voices.",
+  "path": "/docs/musicians/voice-cells/"
+ },
+ {
+  "group": "Guides",
+  "title": "Routing MIDI Out in Live",
+  "description": "Send MIDI from the board to another instrument track in Live.",
+  "path": "/docs/musicians/guides/midi-out-routing/"
+ },
+ {
+  "group": "Guides",
+  "title": "Modulating any Live parameter (loopback workaround)",
+  "description": "Modulate any Live parameter with a virtual MIDI port until the Max for Live bridge exists.",
+  "path": "/docs/musicians/guides/loopback-cc/"
+ },
+ {
+  "group": "Developers",
+  "title": "Quickstart",
+  "description": "A minimal Bleep Bus sender and receiver in 15 minutes.",
+  "path": "/docs/developers/quickstart/"
+ },
+ {
+  "group": "Developers",
+  "title": "Conformance",
+  "description": "The open test host and validator for checking a Bleep Bus implementation.",
+  "path": "/docs/developers/conformance/"
+ },
+ {
+  "group": "Developers",
+  "title": "RFC process",
+  "description": "How to propose a change to the Bleep Bus standard.",
+  "path": "/docs/developers/rfc-process/"
+ },
+ {
+  "group": "API reference",
+  "title": "API reference",
+  "description": "The complete SDK reference for plugin developers, and how to read it.",
+  "path": "/docs/developers/api-reference/00-overview/"
+ },
+ {
+  "group": "API reference",
+  "title": "Concepts",
+  "description": "Bus, endpoint, output and the other terms the API is built on.",
+  "path": "/docs/developers/api-reference/01-concepts/"
+ },
+ {
+  "group": "API reference",
+  "title": "Lifecycle",
+  "description": "Which calls to make in the constructor, audio callback, state and UI code.",
+  "path": "/docs/developers/api-reference/02-lifecycle/"
+ },
+ {
+  "group": "API reference",
+  "title": "Bus functions",
+  "description": "Open, close and configure the shared-memory bus.",
+  "path": "/docs/developers/api-reference/03-bus/"
+ },
+ {
+  "group": "API reference",
+  "title": "Endpoint functions",
+  "description": "Register a plugin instance and keep its stable UID.",
+  "path": "/docs/developers/api-reference/04-endpoints/"
+ },
+ {
+  "group": "API reference",
+  "title": "Port functions",
+  "description": "Add the named inputs and outputs of an endpoint.",
+  "path": "/docs/developers/api-reference/05-ports/"
+ },
+ {
+  "group": "API reference",
+  "title": "Audio-thread functions",
+  "description": "The real-time calls: begin a block, read inputs, write outputs.",
+  "path": "/docs/developers/api-reference/06-audio/"
+ },
+ {
+  "group": "API reference",
+  "title": "Connection functions",
+  "description": "Create, change and remove cables between outputs and inputs.",
+  "path": "/docs/developers/api-reference/07-connections/"
+ },
+ {
+  "group": "API reference",
+  "title": "Discovery functions",
+  "description": "List endpoints, outputs and connections to build source menus.",
+  "path": "/docs/developers/api-reference/08-discovery/"
+ },
+ {
+  "group": "API reference",
+  "title": "State functions",
+  "description": "Save and restore cables with a plugin's state.",
+  "path": "/docs/developers/api-reference/09-state/"
+ },
+ {
+  "group": "API reference",
+  "title": "Types, constants and errors",
+  "description": "Constants, types and error codes in one table.",
+  "path": "/docs/developers/api-reference/10-types-errors/"
+ },
+ {
+  "group": "API reference",
+  "title": "C++ and JUCE helpers",
+  "description": "The header-only C++ wrapper and the JUCE helpers.",
+  "path": "/docs/developers/api-reference/11-cpp-juce/"
+ },
+ {
+  "group": "API reference",
+  "title": "Host notes and pitfalls",
+  "description": "Quirks of Ableton Live, Bitwig and other hosts, and how to avoid pitfalls.",
+  "path": "/docs/developers/api-reference/12-host-notes/"
+ },
+ {
+  "group": "API reference",
+  "title": "Conformance checklist",
+  "description": "What to check before calling a plugin Bleep Bus compatible.",
+  "path": "/docs/developers/api-reference/13-conformance-checklist/"
+ },
+ {
+  "group": "Specification",
+  "title": "Bleep Bus specification v0.1",
+  "description": "The Bleep Bus specification, exact enough to implement without the SDK.",
+  "path": "/docs/developers/spec/v0.1/00-overview/"
+ },
+ {
+  "group": "Specification",
+  "title": "Naming",
+  "description": "Namespaces and how the shared-memory segment is named.",
+  "path": "/docs/developers/spec/v0.1/01-naming/"
+ },
+ {
+  "group": "Specification",
+  "title": "Layout",
+  "description": "Byte layout of the shared-memory structures.",
+  "path": "/docs/developers/spec/v0.1/02-layout/"
+ },
+ {
+  "group": "Specification",
+  "title": "Memory ordering",
+  "description": "Atomics and the locks that protect the rest of the segment.",
+  "path": "/docs/developers/spec/v0.1/03-memory-ordering/"
+ },
+ {
+  "group": "Specification",
+  "title": "Registry",
+  "description": "How endpoints register, get their UID and are reclaimed when dead.",
+  "path": "/docs/developers/spec/v0.1/04-registry/"
+ },
+ {
+  "group": "Specification",
+  "title": "Timing",
+  "description": "The fixed one-block latency that makes parallel tracks render identically.",
+  "path": "/docs/developers/spec/v0.1/05-timing/"
+ },
+ {
+  "group": "Specification",
+  "title": "Signals",
+  "description": "Signal types and virtual volts.",
+  "path": "/docs/developers/spec/v0.1/06-signals/"
+ },
+ {
+  "group": "Specification",
+  "title": "Connections and state",
+  "description": "Cable rules and the text format used to save them.",
+  "path": "/docs/developers/spec/v0.1/07-connections/"
+ },
+ {
+  "group": "Specification",
+  "title": "Versioning and extensions",
+  "description": "How versions match and how the standard can be extended.",
+  "path": "/docs/developers/spec/v0.1/08-versioning/"
+ }
+]
