@@ -379,11 +379,12 @@
       card.appendChild(el("h2", "", `"${name || "This preset"}" needs modules`));
       const list = el("div", "st-list");
       for (const r of rows) {
-        const line = r.action === "install" ? `not installed${r.offer ? ", store has " + r.offer : ""}`
-          : r.action === "update" ? `installed ${r.have}, store has ${r.offer}` : r.why;
+        const ver = r.need.min || r.need.max ? ` (needs ${rangeText(r.need)})` : "";
+        const line = r.action === "install" ? `not installed${r.offer ? `, store has ${r.offer}` : ""}${ver}`
+          : r.action === "update" ? `installed ${r.have}, store has ${r.offer}${ver}` : r.why;
         const row = el("div", "st-row single");
         row.appendChild(el("b", "", r.slug));
-        row.appendChild(el("span", "", `  needs ${rangeText(r.need)}: ${line}`));
+        row.appendChild(el("span", "", ` – ${line}`));
         list.appendChild(row);
       }
       card.appendChild(list);
