@@ -25,7 +25,7 @@ import panelsByPreset, { checkPanels } from "./panels.mjs";
 
 // Category files, in Add-menu order.
 const CATEGORIES = [
-  "synthesizers", "basses", "leads", "pads", "plucks-and-mallets",
+  "synthesizers", "basses", "leads", "pads", "plucks-and-mallets", "feedback-pings",
   "drum-machines", "drum-kicks", "drum-snares-and-claps", "drum-hats-and-cymbals", "drum-toms-and-percussion",
   "drum-fx", "sequencers", "effects", "processors", "modulators", "generative", "starters", "test",
 ];
@@ -116,6 +116,19 @@ function formatDemos(patches) {
     }).join(",\n"), "  ]", "}", ""].join("\n");
 }
 
+/// A dial wired to a cell input is a jack the panel feeds, and it doesn't keep its position in the app. For these
+/// presets each such dial goes straight to the knob its input modulates, which has a value of its own.
+function wireDialsToKnobs(doc, preset, root) {
+  for (const c of doc.controls) {
+    const w = (c.wire || []).find((q) => q.cell);
+    if (!w || c.type !== "dial") continue;
+    const cab = preset.cables.find((k) => k.from.jack === w.cell && preset.nodes.find((n) => n.id === k.from.node)?.type === "cell-in"
+      && types[preset.nodes.find((n) => n.id === k.to.node).type].params.some((p) => p.id === k.to.jack));
+    if (!cab) throw new Error(`${preset.nodes[0].name}: input '${w.cell}' modulates no knob, so its dial can't be wired to one`);
+    c.wire = [{ param: `${cab.to.node}.${cab.to.jack}` }];
+  }
+}
+
 /// A panel for every cell preset without a hand-written one: the board's
 /// "Build panel from cell" (board/ui/panel-build.js) run on the preset, so the
 /// factory cells and the command give the same draft (panels.md §6).
@@ -132,6 +145,7 @@ function generatedPanels(all) {
     const nodes = preset.nodes.filter((n) => n !== root && (!isBoundary(n) || n.type === "voice-out" || n.type === "cell-out"))
       .sort((a, b) => a.x - b.x || a.y - b.y);
     const doc = build(root, { nodes, types, inputsOf, cables: preset.cables });
+    if (preset.category === "Feedback & Pings") wireDialsToKnobs(doc, preset, root);
     doc.id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     out[name] = [doc];
   }
