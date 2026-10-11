@@ -64,7 +64,9 @@
     !((n.type === "cell-in" || n.type === "cell-out") && board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type));
   const isStructural = (n) => n.type === "cell" || isBoundary(n);  // a Voice Cell has a view: its settings
   /// Ports the user adds and deletes (MIDI Device); the others come from Live (spec §6).
-  const isFixedPort = (n) => isPort(n) && !typeOf(n).creatable;
+  /// In the standalone app the app's own ports (audio, MIDI, Link) may be deleted and added again from the Add menu.
+  const isFixedPort = (n) => isPort(n) && !typeOf(n).creatable && !(standalone && APP_PORTS.has(typeOf(n).port));
+  const APP_PORTS = new Set(["audio-in", "audio-out", "midi-in", "midi-out", "link"]);
   const VOICE_IN = [{ id: "notes", name: "Notes", type: "notes" }];
   const VOICE_OUT = [{ id: "l", name: "Out L", type: "audio" }, { id: "r", name: "Out R", type: "audio" }];
   const compatible = (a, b) => (a === "notes") === (b === "notes");
@@ -302,6 +304,7 @@
       if (!here) a.addEventListener("click", () => leaveTo(depth));
       c.appendChild(a);
     };
+    if (!path.length) return;  // at the top level the Board tab already says where we are
     crumb("Board", 0);
     path.forEach((id, i) => {
       c.appendChild(el("span", "sep", "›"));
@@ -836,6 +839,7 @@
     if (ev.target.closest(".popover") || ev.target.closest(".vwin")) return;
     canvas.focus();
     hidePopovers();
+    if (ev.button === 0) closeUnpinnedViews();  // a click elsewhere closes views that are not pinned
     if (ev.button === 1 || (ev.button === 0 && (spaceDown || ev.altKey))) return startPan(ev);
     if (ev.button !== 0) return;
     selCable = null;
@@ -982,7 +986,8 @@
         const node = { id: newId, type: t.type, name: t.name, x: Math.round(x), y: Math.round(y), parent: lvl, params };
         if (t.port) {  // a port the user adds (MIDI Device): the app follows it by this id
           if (lvl) return false;  // ports live on the top level (spec §6)
-          node.port = uid("mdev-");
+          node.port = what.port || uid("mdev-");  // an app port (standalone): the one the user picked
+          if (what.port && what.name) node.name = node.track = what.name;
         }
         b.nodes.push(node);
         if (t.memoryHeavy && lvl && insideVoiceCell(lvl, b))
@@ -1183,8 +1188,18 @@
       return [...subs, ...factory, ...(factory.length && own.length ? ["-"] : []), ...own, ...(del.length ? ["-", ...del] : [])];
     };
     cells.push(...sortPresets(tree, true));
-    return [{ label: "Module", items: cats },
-            { label: "Cell", items: cells }];
+    const menu = [{ label: "Module", items: cats }, { label: "Cell", items: cells }];
+    // The standalone app's own ports that are not on the board (audio channels, MIDI, Link).
+    if (standalone && !level()) {
+      const free = Object.entries(ports)
+        .filter(([id, p]) => APP_PORTS.has(p.kind) && !board.nodes.some((n) => n.port === id))
+        .map(([id, p]) => ({ id, p, t: Object.values(types).find((t) => t.port === p.kind) }))
+        .filter((e) => e.t);
+      if (free.length)
+        menu.push({ label: "Port", items: free.map(({ id, p, t }) => ({
+          label: p.kind === "link" ? t.name : `${p.track || t.name} · ${t.name}`, run: place({ type: t.type, port: id, name: p.track || t.name }) })) });
+    }
+    return menu;
   }
 
   // ------------------------------------------------------------------ menus
@@ -1818,7 +1833,7 @@
     help.title = "Documentation";
     help.hidden = true;
     const pin = el("button", "pin", "📌");
-    pin.title = "Keep open when opening other views or entering and leaving cells";
+    pin.title = pinTitle(false);
     const close = el("button", "", "×");
     close.title = "Close (Esc)";
     head.append(help, pin, close);
@@ -1853,7 +1868,7 @@
     front(win);
 
     win.addEventListener("pointerdown", () => front(win));
-    pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); });
+    pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); pin.title = pinTitle(v.pinned); });
     help.addEventListener("click", () => {
       const open = doc.hidden;
       doc.hidden = !open;
@@ -2094,7 +2109,7 @@
     const fullBtn = el("button", "", "⤢");
     fullBtn.title = "Fill the canvas";
     const pin = el("button", "pin on", "📌");
-    pin.title = "Keep open when opening other views or entering and leaving cells";
+    pin.title = pinTitle(true);
     const close = el("button", "", "×");
     close.title = "Close (Esc)";
     const title = el("span", "v-title", doc0.name);
@@ -2191,7 +2206,7 @@
       draw();
     });
     window.addEventListener("resize", fit);
-    pin.addEventListener("click", () => { entry.pinned = !entry.pinned; pin.classList.toggle("on", entry.pinned); });
+    pin.addEventListener("click", () => { entry.pinned = !entry.pinned; pin.classList.toggle("on", entry.pinned); pin.title = pinTitle(entry.pinned); });
     close.addEventListener("click", () => closeView(key));
     head.addEventListener("pointerdown", (e) => {
       if (e.target.closest("button") || state.full) return;
@@ -2225,6 +2240,9 @@
     v.win.remove();
     views.delete(id);
     watch();
+  }
+  function pinTitle(on) {
+    return (on ? "Pinned: stays open" : "Not pinned: closes") + " when opening other views or entering and leaving cells (click to " + (on ? "unpin" : "pin") + ")";
   }
   function closeUnpinnedViews() { for (const [id, v] of [...views]) if (!v.pinned) closeView(id); }
   function closeTopView() {
@@ -2400,7 +2418,8 @@
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
-    if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone });
+    if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
+    if (m.settings && window.BleepSettingsView) await BleepSettingsView.init({ store: !!m.store });
     pluginMode = !!m.plugin || !!panelOf;
     document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
