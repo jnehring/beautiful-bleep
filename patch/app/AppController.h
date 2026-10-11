@@ -40,12 +40,10 @@ public:
     /// Asks to save unsaved changes, then calls `then` (unless cancelled).
     void confirmDiscard(std::function<void()> then);
 
-    // Settings, for the settings window.
-    juce::AudioDeviceManager& devices() noexcept { return devices_; }
-    LinkClock& clock() noexcept { return clock_; }
-    int virtualPorts() const noexcept { return virtualPorts_; }
+    // Settings: the board window's Settings section calls settingsCall (BoardWindowStyle::onSettings).
     void setVirtualPorts(int n);
     void setLinkEnabled(bool on);
+    juce::var settingsCall(const juce::String& fn, const juce::var& arg);
 
     // ---- juce::AudioIODeviceCallback ----------------------------------------
     void audioDeviceIOCallbackWithContext(const float* const* inputs, int numInputs, float* const* outputs,
@@ -110,6 +108,7 @@ private:
     bool dirty() const;
     void updateTitle();
     void showSettings();
+    juce::var settingsState();
     void saveSettings();
 
     engine::IEngine* iengine_ = nullptr;
@@ -123,7 +122,6 @@ private:
     std::unique_ptr<bridge::BridgeServer> bridge_;
     LinkClock clock_;
     std::unique_ptr<juce::FileChooser> chooser_;
-    juce::Component::SafePointer<juce::DialogWindow> settingsWindow_;
 
     // Ports: changed on the message thread under both locks. Audio threads only
     // try portsLock_ (they never wait); MIDI input threads take midiLock_ and

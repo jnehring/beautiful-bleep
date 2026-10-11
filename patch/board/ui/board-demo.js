@@ -210,7 +210,7 @@
     return {
       status() {
         if (!st.installed) st.installed = slugs().slice(0, 14).map(pick);
-        return { settings: { storeUrl: "https://store.example", channel: "stable", allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
+        return { settings: { storeUrl: "https://store.example", channel: st.channel || "stable", allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
                  hasRoots: true, installed: st.installed,
                  index: { ok: st.indexOk, error: "", modules: st.indexOk ? slugs().map((slug) => ({ slug, version: slug.length % 4 === 0 ? "0.2.0" : "0.1.0", types: [slug] })) : [] },
                  busy: st.busy, pluginJob: st.job || { state: "idle", message: "", ok: false } };
@@ -219,11 +219,31 @@
       install(slug) { work(slug, "installing", () => { st.installed = st.installed.filter((m) => m.slug !== slug).concat(pick(slug, 0)); }); },
       installAll() { const have = new Set(st.installed.map((m) => m.slug)); for (const slug of slugs()) if (!have.has(slug)) this.install(slug); },
       remove(slug) { work(slug, "removing", () => { st.installed = st.installed.filter((m) => m.slug !== slug); }); },
-      settings(v) { if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-store-first-run", v.firstRunDone); } },
+      settings(v) { if (v && v.channel) st.channel = v.channel; if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-store-first-run", v.firstRunDone); } },
       installPlugins() { st.job = { state: "running", message: "Installing bleep-patch…", ok: false }; setTimeout(() => { st.job = { state: "done", message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW.", ok: true }; }, 1500); },
       plugins() { return ["Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
     };
   })() : null;
+
+  // A pretend Settings section's state (audio, MIDI, Link), for working on its looks.
+  const demoSettingsState = { audio: { types: ["CoreAudio"], type: "CoreAudio", outputs: ["MacBook Speakers", "Scarlett 2i2"], inputs: ["MacBook Microphone", "Scarlett 2i2"],
+      output: "Scarlett 2i2", input: "Scarlett 2i2", running: true, rate: 48000, rates: [44100, 48000, 96000], buffer: 256, buffers: [64, 128, 256, 512, 1024],
+      latencyMs: 9.4, xruns: 0, cpu: 0.07, outputChannels: [{ name: "Out 1", on: true }, { name: "Out 2", on: true }, { name: "Out 3", on: false }, { name: "Out 4", on: false }],
+      inputChannels: [{ name: "In 1", on: true }, { name: "In 2", on: true }] },
+    midi: { inputs: [{ id: "a", name: "Launchkey Mini", on: true }, { id: "b", name: "IAC Driver Bus 1", on: false }], outputs: [{ id: "a", name: "Launchkey Mini" }], output: "a", virtualPorts: 2 },
+    link: { available: true, enabled: true, peers: 1, tempo: 120 } };
+  function demoSettings(fn, arg) {
+    const s = demoSettingsState;
+    if (fn === "audio") {
+      for (const k of ["type", "output", "input", "rate", "buffer"]) if (arg[k] !== undefined) s.audio[k] = arg[k];
+      for (const k of ["outputChannels", "inputChannels"]) if (arg[k]) s.audio[k].forEach((c, i) => (c.on = !!arg[k][i]));
+    } else if (fn === "midiInput") { const d = s.midi.inputs.find((x) => x.id === arg.id); if (d) d.on = arg.on; }
+    else if (fn === "midiOutput") s.midi.output = arg.id;
+    else if (fn === "virtualPorts") s.midi.virtualPorts = arg.n;
+    else if (fn === "link") s.link.enabled = arg.on;
+    else if (fn === "tempo") s.link.tempo = arg.bpm;
+    return JSON.parse(JSON.stringify(s));
+  }
 
   window.BleepDemo = {
     listen: (e, f) => (listeners[e] = listeners[e] || []).push(f),
@@ -233,7 +253,7 @@
           types = await (await fetch("demo-types.json")).json();
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
-          return Object.assign(message(), { types, dev: true, standalone: true }, demoStore ? { store: true } : {});
+          return Object.assign(message(), { types, dev: true, standalone: true, settings: true }, demoStore ? { store: true } : {});
         case "commit":
           pushUndo();
           board = sanitise(clone(a[0]));
@@ -294,6 +314,8 @@
           return null;
         }
         case "types": return types;
+        case "settings": return demoSettings(a[0], a[1]);
+        case "storeRevealData": return null;
         case "storeStatus": return demoStore ? demoStore.status() : null;
         case "storeRefresh": if (demoStore) demoStore.refresh(); return null;
         case "storeInstall": if (demoStore) demoStore.install(a[0]); return null;

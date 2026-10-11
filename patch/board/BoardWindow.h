@@ -21,6 +21,9 @@ struct BoardWindowStyle {
     /// replaces its project with it (asking about unsaved changes first); without it the patch is
     /// committed to the board as an ordinary edit.
     std::function<void(const juce::var& board, double tempo, const juce::String& name)> onLoadPatch;
+    /// The standalone app's Settings section (audio, MIDI, Link): the page calls it with a name and an argument and gets the
+    /// settings state back. Without it the page has no Settings section.
+    std::function<juce::var(const juce::String& fn, const juce::var& arg)> onSettings;
 };
 
 /// Call before the board window is first opened.
@@ -31,5 +34,7 @@ void setBoardWindowTitle(const juce::String& title);
 juce::DocumentWindow* boardWindow();
 /// Shows the page's preset browser (standalone app: File → Presets).
 void openPresetBrowser();
+/// Shows the page's Settings section (standalone app: File → Settings).
+void openSettings();
 
 }  // namespace bleep::engine

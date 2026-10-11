@@ -255,6 +255,7 @@ public:
                     r.getDynamicObject()->setProperty("types", board::describeTypes());
                     r.getDynamicObject()->setProperty("status", engine_.statusLine());
                     r.getDynamicObject()->setProperty("standalone", engine_.standalone());
+                    r.getDynamicObject()->setProperty("settings", style().onSettings != nullptr);
 #if defined(BLEEP_WASM_MODULES)
                     r.getDynamicObject()->setProperty("store", true);  // the Store section is offered
 #endif
@@ -353,6 +354,9 @@ public:
                 .withNativeFunction("pasteText", [](const juce::Array<juce::var>&, Completion done) {
                     done(juce::SystemClipboard::getTextFromClipboard());
                 })
+                .withNativeFunction("settings", [](const juce::Array<juce::var>& a, Completion done) {
+                    done(style().onSettings ? style().onSettings(a[0].toString(), a[1]) : juce::var());
+                })
                 .withNativeFunction("watch", [this](const juce::Array<juce::var>& a, Completion done) {
                     watched_.clear();
                     if (auto* ids = a[0].getArray())
@@ -383,12 +387,19 @@ public:
             .withNativeFunction("storeSettings", [](const juce::Array<juce::var>& a, Completion done) {
                 auto s = ModuleStore::instance().settings();
                 if (a[0]["firstRunDone"].isBool()) s.firstRunDone = (bool)a[0]["firstRunDone"];
+                if (a[0]["channel"].isString()) s.channel = a[0]["channel"].toString().toStdString();
+                if (a[0]["storeUrl"].isString() && a[0]["storeUrl"].toString().isNotEmpty())
+                    s.storeUrl = a[0]["storeUrl"].toString().toStdString();
                 const juce::var allow = a[0]["allowUnsigned"];
                 if (allow.isObject()) {
                     s.allowUnsigned.module = (bool)allow["module"];
                     s.allowUnsigned.plugin = (bool)allow["plugin"];
                 }
                 ModuleStore::instance().setSettings(s);
+                done({});
+            })
+            .withNativeFunction("storeRevealData", [](const juce::Array<juce::var>&, Completion done) {
+                ModuleStore::instance().dataDir().revealToUser();
                 done({});
             })
             .withNativeFunction("storePlugins", [](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); })
@@ -455,6 +466,10 @@ public:
 
     void showPresets() {
         if (pageReady_) web_->emitEventIfBrowserIsVisible("openPresets", juce::var());
+    }
+
+    void showSettings() {
+        if (pageReady_) web_->emitEventIfBrowserIsVisible("openSettings", juce::var());
     }
 
     void focus(const juce::String& nodeId) {
@@ -555,6 +570,10 @@ void setBoardWindowStyle(const BoardWindowStyle& s) { style() = s; }
 
 void openPresetBrowser() {
     if (g_window) static_cast<BoardWindow*>(g_window)->view().showPresets();
+}
+
+void openSettings() {
+    if (g_window) static_cast<BoardWindow*>(g_window)->view().showSettings();
 }
 
 void setBoardWindowTitle(const juce::String& title) {

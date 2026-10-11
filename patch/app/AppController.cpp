@@ -20,46 +20,6 @@ constexpr const char* kVirtualPrefix = "Bleep Patch ";
 
 juce::String projectName(const juce::File& f) { return f == juce::File() ? juce::String("Untitled") : f.getFileNameWithoutExtension(); }
 
-/// The settings window: audio device, MIDI devices, the app's MIDI ports, Link.
-class SettingsComponent : public juce::Component {
-public:
-    explicit SettingsComponent(AppController& app)
-        : app_(app), selector_(app.devices(), 0, 32, 0, 32, true, true, false, false) {
-        addAndMakeVisible(selector_);
-        portsLabel_.setText("Bleep Patch MIDI ports", juce::dontSendNotification);
-        addAndMakeVisible(portsLabel_);
-        ports_.setRange(0, 8, 1);
-        ports_.setValue(app.virtualPorts(), juce::dontSendNotification);
-        ports_.setSliderStyle(juce::Slider::IncDecButtons);
-        ports_.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 40, 22);
-        ports_.onValueChange = [this] { app_.setVirtualPorts((int)ports_.getValue()); };
-        addAndMakeVisible(ports_);
-        link_.setButtonText(LinkClock::available() ? "Ableton Link" : "Ableton Link (not in this build)");
-        link_.setEnabled(LinkClock::available());
-        link_.setToggleState(app.clock().enabled(), juce::dontSendNotification);
-        link_.onClick = [this] { app_.setLinkEnabled(link_.getToggleState()); };
-        addAndMakeVisible(link_);
-        setSize(560, 620);
-    }
-    void resized() override {
-        auto r = getLocalBounds().reduced(12);
-        auto bottom = r.removeFromBottom(64);
-        selector_.setBounds(r);
-        auto row = bottom.removeFromTop(28);
-        portsLabel_.setBounds(row.removeFromLeft(220));
-        ports_.setBounds(row.removeFromLeft(120));
-        bottom.removeFromTop(6);
-        link_.setBounds(bottom.removeFromTop(28).removeFromLeft(320));
-    }
-
-private:
-    AppController& app_;
-    juce::AudioDeviceSelectorComponent selector_;
-    juce::Label portsLabel_;
-    juce::Slider ports_;
-    juce::ToggleButton link_;
-};
-
 }  // namespace
 
 // ---- lifetime --------------------------------------------------------------------------
@@ -123,7 +83,6 @@ AppController::~AppController() {
 #if JUCE_MAC
     juce::MenuBarModel::setMacMainMenu(nullptr);
 #endif
-    if (settingsWindow_) delete settingsWindow_.getComponent();
     engine_->setStatusProvider({});
     engine_->unregisterInstance(main_);
     iengine_->release();
@@ -158,6 +117,7 @@ void AppController::start(const juce::String& commandLine) {
         loadPatch(board, tempo, name);
     };
     style.menu = this;
+    style.onSettings = [this](const juce::String& fn, const juce::var& arg) { return settingsCall(fn, arg); };
     engine::setBoardWindowStyle(style);  // before openBoard creates the window
     engine_->openBoard(main_);
     if (auto* w = engine::boardWindow()) w->addKeyListener(commands_.getKeyMappings());
@@ -685,7 +645,7 @@ void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandI
             info.setInfo(u8("Save As…"), "Save the project as", "File", 0);
             info.addDefaultKeypress('s', cmd | juce::ModifierKeys::shiftModifier);
             break;
-        case cmdSettings: info.setInfo(u8("Settings…"), "Audio, MIDI and Link", "File", 0); info.addDefaultKeypress(',', cmd); break;
+        case cmdSettings: info.setInfo(u8("Settings…"), "Audio, MIDI, Link, the Store and Security", "File", 0); info.addDefaultKeypress(',', cmd); break;
         case cmdPlay:
             info.setInfo(clock_.playing() ? "Stop" : "Play", "Start or stop the transport", "Transport", 0);
             info.addDefaultKeypress(juce::KeyPress::returnKey, cmd);
@@ -729,19 +689,156 @@ bool AppController::perform(const InvocationInfo& info) {
     }
 }
 
-void AppController::showSettings() {
-    if (settingsWindow_) {
-        settingsWindow_->toFront(true);
-        return;
+void AppController::showSettings() { engine::openSettings(); }
+
+// ---- the Settings section of the board window ------------------------------------------------
+
+namespace {
+juce::var namesOf(const juce::StringArray& names) {
+    juce::Array<juce::var> a;
+    for (const auto& n : names) a.add(n);
+    return a;
+}
+juce::var numbersOf(const juce::Array<double>& v) {
+    juce::Array<juce::var> a;
+    for (auto n : v) a.add(n);
+    return a;
+}
+juce::var numbersOf(const juce::Array<int>& v) {
+    juce::Array<juce::var> a;
+    for (auto n : v) a.add(n);
+    return a;
+}
+juce::var channelsOf(const juce::StringArray& names, const juce::BigInteger& on) {
+    juce::Array<juce::var> a;
+    for (int i = 0; i < names.size(); ++i) {
+        auto* c = new juce::DynamicObject();
+        c->setProperty("name", names[i]);
+        c->setProperty("on", on[i]);
+        a.add(juce::var(c));
     }
-    juce::DialogWindow::LaunchOptions o;
-    o.content.setOwned(new SettingsComponent(*this));
-    o.dialogTitle = "Settings";
-    o.dialogBackgroundColour = juce::Colour(0xff1d2027);
-    o.escapeKeyTriggersCloseButton = true;
-    o.useNativeTitleBar = true;
-    o.resizable = true;
-    settingsWindow_ = o.launchAsync();
+    return a;
+}
+juce::BigInteger bitsOf(const juce::var& flags, int count) {
+    juce::BigInteger b;
+    if (auto* a = flags.getArray())
+        for (int i = 0; i < a->size() && i < count; ++i) b.setBit(i, (bool)(*a)[i]);
+    return b;
+}
+}  // namespace
+
+juce::var AppController::settingsState() {
+    auto* o = new juce::DynamicObject();
+
+    auto* audio = new juce::DynamicObject();
+    juce::StringArray types;
+    for (auto* t : devices_.getAvailableDeviceTypes()) types.add(t->getTypeName());
+    audio->setProperty("types", namesOf(types));
+    audio->setProperty("type", devices_.getCurrentAudioDeviceType());
+    if (auto* type = devices_.getCurrentDeviceTypeObject()) {
+        audio->setProperty("outputs", namesOf(type->getDeviceNames(false)));
+        audio->setProperty("inputs", namesOf(type->getDeviceNames(true)));
+    }
+    const auto setup = devices_.getAudioDeviceSetup();
+    audio->setProperty("output", setup.outputDeviceName);
+    audio->setProperty("input", setup.inputDeviceName);
+    if (auto* d = devices_.getCurrentAudioDevice()) {
+        const double rate = d->getCurrentSampleRate();
+        audio->setProperty("running", true);
+        audio->setProperty("rate", rate);
+        audio->setProperty("rates", numbersOf(d->getAvailableSampleRates()));
+        audio->setProperty("buffer", d->getCurrentBufferSizeSamples());
+        audio->setProperty("buffers", numbersOf(d->getAvailableBufferSizes()));
+        audio->setProperty("latencyMs", 1000.0 * (d->getOutputLatencyInSamples() + d->getInputLatencyInSamples()) / std::max(1.0, rate));
+        audio->setProperty("xruns", d->getXRunCount());
+        audio->setProperty("outputChannels", channelsOf(d->getOutputChannelNames(), d->getActiveOutputChannels()));
+        audio->setProperty("inputChannels", channelsOf(d->getInputChannelNames(), d->getActiveInputChannels()));
+    } else {
+        audio->setProperty("running", false);
+    }
+    audio->setProperty("cpu", devices_.getCpuUsage());
+    o->setProperty("audio", juce::var(audio));
+
+    auto* midi = new juce::DynamicObject();
+    juce::Array<juce::var> ins, outs;
+    for (const auto& d : juce::MidiInput::getAvailableDevices()) {
+        if (d.name.startsWith(kVirtualPrefix)) continue;
+        auto* e = new juce::DynamicObject();
+        e->setProperty("id", d.identifier);
+        e->setProperty("name", d.name);
+        e->setProperty("on", devices_.isMidiInputDeviceEnabled(d.identifier));
+        ins.add(juce::var(e));
+    }
+    for (const auto& d : juce::MidiOutput::getAvailableDevices()) {
+        if (d.name.startsWith(kVirtualPrefix)) continue;
+        auto* e = new juce::DynamicObject();
+        e->setProperty("id", d.identifier);
+        e->setProperty("name", d.name);
+        outs.add(juce::var(e));
+    }
+    midi->setProperty("inputs", ins);
+    midi->setProperty("outputs", outs);
+    midi->setProperty("output", devices_.getDefaultMidiOutputIdentifier());
+    midi->setProperty("virtualPorts", virtualPorts_);
+    o->setProperty("midi", juce::var(midi));
+
+    auto* link = new juce::DynamicObject();
+    link->setProperty("available", LinkClock::available());
+    link->setProperty("enabled", clock_.enabled());
+    link->setProperty("peers", clock_.peers());
+    link->setProperty("tempo", clock_.tempo());
+    o->setProperty("link", juce::var(link));
+    return juce::var(o);
+}
+
+/// What the page's Settings section asks for. Returns the new state, plus `error` when the audio device refused.
+juce::var AppController::settingsCall(const juce::String& fn, const juce::var& arg) {
+    juce::String error;
+    if (fn == "audio") {
+        if (arg["type"].isString() && arg["type"].toString() != devices_.getCurrentAudioDeviceType())
+            devices_.setCurrentAudioDeviceType(arg["type"].toString(), true);
+        auto setup = devices_.getAudioDeviceSetup();
+        if (arg["output"].isString() && arg["output"].toString() != setup.outputDeviceName) {
+            setup.outputDeviceName = arg["output"].toString();
+            setup.useDefaultOutputChannels = true;
+        }
+        if (arg["input"].isString() && arg["input"].toString() != setup.inputDeviceName) {
+            setup.inputDeviceName = arg["input"].toString();
+            setup.useDefaultInputChannels = true;
+        }
+        if (!arg["rate"].isVoid()) setup.sampleRate = (double)arg["rate"];
+        if (!arg["buffer"].isVoid()) setup.bufferSize = (int)arg["buffer"];
+        if (arg["outputChannels"].isArray()) {
+            setup.outputChannels = bitsOf(arg["outputChannels"], 64);
+            setup.useDefaultOutputChannels = false;
+        }
+        if (arg["inputChannels"].isArray()) {
+            setup.inputChannels = bitsOf(arg["inputChannels"], 64);
+            setup.useDefaultInputChannels = false;
+        }
+        error = devices_.setAudioDeviceSetup(setup, true);
+        if (error.isEmpty() && !arg["buffer"].isVoid())
+            if (auto* d = devices_.getCurrentAudioDevice(); d && d->getCurrentBufferSizeSamples() != (int)arg["buffer"])
+                error = "The device runs at " + juce::String(d->getCurrentBufferSizeSamples()) + " samples, not " +
+                        juce::String((int)arg["buffer"]) + ": it does not offer that buffer size with this input and output.";
+    } else if (fn == "midiInput") {
+        devices_.setMidiInputDeviceEnabled(arg["id"].toString(), (bool)arg["on"]);
+    } else if (fn == "midiOutput") {
+        devices_.setDefaultMidiOutputDevice(arg["id"].toString());
+        syncPorts();
+        saveSettings();
+    } else if (fn == "virtualPorts") {
+        setVirtualPorts((int)arg["n"]);
+    } else if (fn == "link") {
+        setLinkEnabled((bool)arg["on"]);
+        commands_.commandStatusChanged();
+    } else if (fn == "tempo") {
+        clock_.setTempo(juce::jlimit(20.0, 400.0, (double)arg["bpm"]));
+        saveSettings();
+    }
+    auto state = settingsState();
+    if (error.isNotEmpty()) state.getDynamicObject()->setProperty("error", error);
+    return state;
 }
 
 }  // namespace bleep::app

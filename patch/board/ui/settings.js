@@ -1,0 +1,236 @@
+// SPDX-License-Identifier: MIT
+// settings.js — the Settings section of the standalone app's board window: audio device, MIDI and Link, the Store's channel and
+// address, and Security (what may load unsigned). Settings are applied as they are changed; there is no Save button.
+//
+//   BleepSettingsView.init({ store })   once, when the native side offers settings (native "init" says so)
+//   show() / hide()                     the header's Settings button; File → Settings opens it too
+(function () {
+  "use strict";
+  let state = null;           // native "settings", "get"
+  let store = null;           // native "storeStatus", when the app has a store
+  let tab = "audio";
+  let message = "";
+  let root, body, tabsEl, noteEl, poll = null, hasStore = false;
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+
+  /// `force`: the user did something, draw it. Without it (the refresh timer) a focused control is left alone: redrawing a
+  /// dropdown while its menu is open cancels the choice.
+  async function load(force) {
+    state = await native("settings", "get", null);
+    if (hasStore) store = await native("storeStatus");
+    render(force);
+  }
+
+  /// Applies one change; the native side answers with the new state (and `error` when the audio device refused).
+  async function change(fn, arg) {
+    const next = await native("settings", fn, arg);
+    if (next) { state = next; message = next.error || ""; }
+    render(true);
+  }
+
+  async function storeChange(patch) {
+    await native("storeSettings", patch);
+    store = await native("storeStatus");
+    render(true);
+  }
+
+  function row(label, control, hint) {
+    const r = el("label", "se-row");
+    r.appendChild(el("span", "se-label", label));
+    r.appendChild(control);
+    if (hint) r.appendChild(el("span", "se-hint", hint));
+    body.appendChild(r);
+    return r;
+  }
+
+  function select(options, value, onChange, format) {
+    const s = el("select");
+    for (const o of options) {
+      const opt = el("option", "", format ? format(o) : o);
+      opt.value = o;
+      s.appendChild(opt);
+    }
+    s.value = value;
+    s.addEventListener("change", () => onChange(s.value));
+    return s;
+  }
+
+  function checkbox(label, on, onChange) {
+    const r = el("label", "se-check");
+    const b = el("input");
+    b.type = "checkbox";
+    b.checked = !!on;
+    b.addEventListener("change", () => onChange(b.checked));
+    r.appendChild(b);
+    r.appendChild(el("span", "", label));
+    return r;
+  }
+
+  function channels(list, key) {
+    const wrap = el("div", "se-channels");
+    list.forEach((c, i) => wrap.appendChild(checkbox(c.name, c.on, (on) => {
+      const flags = list.map((x, j) => (j === i ? on : x.on));
+      change("audio", { [key]: flags });
+    })));
+    return wrap;
+  }
+
+  function renderAudio() {
+    const a = state.audio;
+    if (a.types.length > 1) row("Driver", select(a.types, a.type, (v) => change("audio", { type: v })));
+    row("Output", select(["", ...(a.outputs || [])], a.output, (v) => change("audio", { output: v }), (v) => v || "None"));
+    row("Input", select(["", ...(a.inputs || [])], a.input, (v) => change("audio", { input: v }), (v) => v || "None"));
+    if (!a.running) {
+      body.appendChild(el("div", "st-note bad", "No audio device is running. Pick an output above."));
+      return;
+    }
+    row("Sample rate", select(a.rates, a.rate, (v) => change("audio", { rate: +v }), (v) => (+v / 1000) + " kHz"));
+    row("Buffer size", select(a.buffers, a.buffer, (v) => change("audio", { buffer: +v }), (v) => v + " samples (" + (1000 * v / a.rate).toFixed(1) + " ms)"));
+    if (a.outputChannels.length > 2) { body.appendChild(el("h3", "", "Output channels")); body.appendChild(channels(a.outputChannels, "outputChannels")); }
+    if (a.inputChannels.length > 2) { body.appendChild(el("h3", "", "Input channels")); body.appendChild(channels(a.inputChannels, "inputChannels")); }
+    body.appendChild(el("h3", "", "Right now"));
+    body.appendChild(el("div", "st-row single", `Latency ${a.latencyMs.toFixed(1)} ms · CPU ${(a.cpu * 100).toFixed(0)}% · dropouts ${a.xruns < 0 ? "not reported" : a.xruns}`));
+  }
+
+  function renderMidi() {
+    const m = state.midi, l = state.link;
+    body.appendChild(el("h3", "", "Inputs"));
+    if (!m.inputs.length) body.appendChild(el("div", "st-empty", "No MIDI inputs found."));
+    for (const d of m.inputs) body.appendChild(checkbox(d.name, d.on, (on) => change("midiInput", { id: d.id, on })));
+    row("Output", select(["", ...m.outputs.map((d) => d.id)], m.output, (v) => change("midiOutput", { id: v }),
+                         (v) => (m.outputs.find((d) => d.id === v) || { name: "None" }).name));
+    const n = el("input");
+    n.type = "number"; n.min = 0; n.max = 8; n.value = m.virtualPorts;
+    n.addEventListener("change", () => change("virtualPorts", { n: Math.max(0, Math.min(8, +n.value || 0)) }));
+    row("Bleep Patch MIDI ports", n, "Virtual ports other programs can connect to.");
+    body.appendChild(el("h3", "", "Sync"));
+    if (!l.available) body.appendChild(el("div", "st-note", "This build has no Ableton Link."));
+    else {
+      body.appendChild(checkbox("Ableton Link", l.enabled, (on) => change("link", { on })));
+      body.appendChild(el("div", "st-row single", l.enabled ? `${l.peers} other ${l.peers === 1 ? "app" : "apps"} on the network` : "Off"));
+    }
+    const t = el("input");
+    t.type = "number"; t.min = 20; t.max = 400; t.step = 0.1; t.value = l.tempo.toFixed(1);
+    t.addEventListener("change", () => change("tempo", { bpm: +t.value }));
+    row("Tempo", t, l.enabled && l.peers ? "Shared with the Link peers." : "Used when no one else sets it.");
+  }
+
+  function renderStore() {
+    if (!hasStore || !store) { body.appendChild(el("div", "st-empty", "This build has no Bleep Store.")); return; }
+    const s = store.settings;
+    row("Channel", select(["stable", "beta"], s.channel, (v) => storeChange({ channel: v })), "Beta has newer modules that are less tested.");
+    body.appendChild(el("div", "st-note", s.storeUrl + (store.index.ok ? "" : " (not reached)")));
+    const url = el("input");
+    url.type = "text"; url.value = s.storeUrl; url.spellcheck = false;
+    const advanced = el("details", "se-advanced");
+    advanced.appendChild(el("summary", "", "Advanced"));
+    body.appendChild(advanced);
+    const urlRow = el("label", "se-row");
+    urlRow.appendChild(el("span", "se-label", "Store address"));
+    urlRow.appendChild(url);
+    urlRow.appendChild(el("span", "se-hint", "For a self-hosted or development store. Takes effect at the next start."));
+    advanced.appendChild(urlRow);
+    url.addEventListener("change", () => storeChange({ storeUrl: url.value.trim() }));
+    const bar = el("div", "st-bar");
+    const check = el("button", "", "Check for updates");
+    check.addEventListener("click", async () => { check.disabled = true; await native("storeRefresh"); setTimeout(() => load(true), 600); });
+    bar.appendChild(check);
+    const reveal = el("button", "", "Show data folder");
+    reveal.addEventListener("click", () => native("storeRevealData"));
+    bar.appendChild(reveal);
+    body.appendChild(bar);
+    body.appendChild(el("div", "st-row single", "Data folder: " + store.dataDir));
+    body.appendChild(el("div", "st-row single", store.index.ok ? `${store.index.modules.length} modules in the store · ${store.installed.length} installed` : "The store has not been reached yet" + (store.index.error ? ": " + store.index.error : "")));
+  }
+
+  function renderSecurity() {
+    if (!hasStore || !store) { body.appendChild(el("div", "st-empty", "This build has no Bleep Store.")); return; }
+    const s = store.settings;
+    body.appendChild(el("div", "st-note", "Modules and plugins from the Bleep Store are signed by their developer. Anything unsigned stays off unless you allow it here. A broken or revoked signature is never loaded."));
+    const toggle = (key, title, warning) => {
+      const r = checkbox(title, s.allowUnsigned[key], (on) => {
+        if (on && !window.confirm(warning)) { load(true); return; }
+        storeChange({ allowUnsigned: Object.assign({}, s.allowUnsigned, { [key]: on }) });
+      });
+      r.classList.add("st-toggle");
+      body.appendChild(r);
+    };
+    toggle("module", "Allow unsigned modules",
+      "Unsigned modules run in a sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise.\n\nOnly enable this for modules you trust or have built yourself. Turn it on?");
+    toggle("plugin", "Allow unsigned plugins",
+      "Unsigned plugins are programs that run with all your rights inside your DAW.\n\nOnly enable this for software you trust. Turn it on?");
+    body.appendChild(el("h3", "", "Developers you have installed from"));
+    const seen = new Map();
+    for (const m of store.installed) if (m.status === "signed") seen.set(m.publisher, (seen.get(m.publisher) || 0) + 1);
+    if (!seen.size) body.appendChild(el("div", "st-empty", "None yet."));
+    for (const [publisher, n] of seen) body.appendChild(el("div", "st-row single", `${publisher}: ${n} module${n === 1 ? "" : "s"}`));
+  }
+
+  function render(force) {
+    if (!root || !state) return;
+    if (!force && root.contains(document.activeElement) && /^(INPUT|SELECT)$/.test(document.activeElement.tagName)) return;
+    body.innerHTML = "";
+    for (const b of tabsEl.children) b.classList.toggle("on", b.dataset.tab === tab);
+    noteEl.textContent = message;
+    ({ audio: renderAudio, midi: renderMidi, store: renderStore, security: renderSecurity })[tab]();
+  }
+
+  function build() {
+    root = el("section");
+    root.id = "settings";
+    root.hidden = true;
+    const head = el("div", "st-head-line");
+    head.appendChild(el("h2", "", "Settings"));
+    root.appendChild(head);
+    tabsEl = el("div", "st-tabs");
+    const tabs = [["audio", "Audio"], ["midi", "MIDI and sync"]];
+    if (hasStore) tabs.push(["store", "Store"], ["security", "Security"]);
+    for (const [id, label] of tabs) {
+      const b = el("button", "", label);
+      b.dataset.tab = id;
+      b.addEventListener("click", () => { tab = id; message = ""; render(true); });
+      tabsEl.appendChild(b);
+    }
+    root.appendChild(tabsEl);
+    noteEl = el("div", "st-message");
+    root.appendChild(noteEl);
+    body = el("div", "st-body");
+    root.appendChild(body);
+    document.body.appendChild(root);
+  }
+
+  window.BleepSettingsView = {
+    async init(options) {
+      hasStore = !!(options && options.store);
+      build();
+      const header = document.getElementById("sections");
+      header.hidden = false;
+      const btn = document.getElementById("sec-settings");
+      btn.hidden = false;
+      btn.addEventListener("click", () => window.BleepSettingsView.show());
+      document.getElementById("sec-board").addEventListener("click", () => window.BleepSettingsView.hide());
+      onNative("openSettings", () => window.BleepSettingsView.show());
+    },
+    async show() {
+      if (window.BleepStoreView) window.BleepStoreView.hide();
+      document.body.classList.add("in-store");
+      root.hidden = false;
+      document.getElementById("sec-settings").classList.add("on");
+      document.getElementById("sec-board").classList.remove("on");
+      await load(true);
+      // The readouts (CPU, dropouts, Link peers) move: refresh while the section is open and nothing is being edited.
+      if (!poll) poll = setInterval(() => { if (!root.hidden) load(false); }, 1500);
+    },
+    hide() {
+      if (root.hidden) return;
+      root.hidden = true;
+      document.getElementById("sec-settings").classList.remove("on");
+      if (poll) { clearInterval(poll); poll = null; }
+    },
+  };
+})();

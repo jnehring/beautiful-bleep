@@ -349,8 +349,11 @@
       header.hidden = false;
       document.getElementById("sec-board").addEventListener("click", () => window.BleepStoreView.hide());
       document.getElementById("sec-store").addEventListener("click", () => window.BleepStoreView.show());
+      // The standalone app has Security in its Settings section; plugin windows keep it here.
+      if (host.settings) tabsEl.querySelector('[data-tab="security"]').remove();
     },
     async show() {
+      if (window.BleepSettingsView && document.getElementById("settings")) window.BleepSettingsView.hide();
       document.body.classList.add("in-store");
       root.hidden = false;
       document.getElementById("sec-store").classList.add("on");
