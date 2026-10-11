@@ -1,6 +1,6 @@
 # Bleep
 
-Modular-style control for Ableton Live, built on an open protocol.
+A modular sound engine as a plugin (Ableton Live), a standalone app and in the browser, built on an open protocol.
 Everything in this repository is MIT-licensed.
 
 | Folder | What | Start here |

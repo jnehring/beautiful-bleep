@@ -227,8 +227,8 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
             }
             o->setProperty("parent", parent);
             o->setProperty("muted", (bool)n.getProperty("muted", false));
-            auto* params = new juce::DynamicObject();
             o->removeProperty("missing");  // its module is here (again)
+            auto* params = new juce::DynamicObject();
             const juce::var savedParams = n["params"];
             for (const auto& p : spec->params) {
                 float v = p.defaultNormalised();
@@ -823,6 +823,10 @@ juce::var describeTypes() {
             }
             o->setProperty("min", p.min);
             o->setProperty("max", p.max);
+            o->setProperty("def", p.def);
+            o->setProperty("format", formatName(p.format));
+            o->setProperty("decimals", p.decimals);
+            if (!p.label.empty()) o->setProperty("label", juce::String(p.label));
             // How units map to 0..1 (ParamSpec::toNormalised), for tools that write
             // values in units, e.g. the factory preset build (patch/presets).
             if (p.map == ParamSpec::Map::Exponential) o->setProperty("map", "exp");
@@ -863,6 +867,7 @@ juce::var describeTypes() {
             t->setProperty("buttons", buttons);
         }
         if (s->memoryHeavy) t->setProperty("memoryHeavy", true);
+        if (s->groupColumns) t->setProperty("groupColumns", true);
         if (s->harmony != HarmonyRole::None)
             t->setProperty("harmony", s->harmony == HarmonyRole::Writer ? "writer" : "reader");
         types.add(juce::var(t));
@@ -872,7 +877,3 @@ juce::var describeTypes() {
 
 }  // namespace board
 }  // namespace bleep::engine
-            o->setProperty("def", p.def);
-            o->setProperty("format", formatName(p.format));
-            o->setProperty("decimals", p.decimals);
-            if (!p.label.empty()) o->setProperty("label", juce::String(p.label));

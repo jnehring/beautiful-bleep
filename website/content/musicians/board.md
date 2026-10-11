@@ -12,7 +12,7 @@ Bleep plugin's window (it opens with the window, or comes to the front).
 
 **Add** (top left, or right-click on empty space) opens the Add menu:
 
-- **Module ›** one submenu per category: *Sources*, *Modulation*, *Audio*,
+- **Module ›** one submenu per category: *Sources*, *Modulation*, *Audio*, *Effects*,
   *Utility*.
 - **Cell ›** *New Cell*, *New Voice Cell*, and your cell presets by category
   (*Synthesizers › Basic Poly* comes with Bleep Patch).

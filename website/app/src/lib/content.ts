@@ -27,7 +27,7 @@ export type ModuleMeta = {
 };
 
 /** The board's Add menu order. "Drums/Ring" is Module › Drums › Ring. */
-export const CATEGORIES = ["Sources", "Modulation", "Audio", "Utility", "Controllers", "Sequencing", "Drums/Ring", "Drums/Punch"];
+export const CATEGORIES = ["Sources", "Modulation", "Audio", "Effects", "Utility", "Controllers", "Sequencing", "Drums/Ring", "Drums/Punch"];
 export const categoryTitle = (c: string) => c.replace("/", " · ");
 export const categorySlug = (c: string) => c.toLowerCase().replace(/[^a-z]+/g, "-");
 const categoryRank = (c: string) => (CATEGORIES.includes(c) ? CATEGORIES.indexOf(c) : CATEGORIES.length);

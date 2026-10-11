@@ -177,6 +177,8 @@ struct ModuleSpec {
     /// Large buffers (delays, samplers): the board warns before putting one
     /// into a Voice Cell, where memory multiplies by the number of voices.
     bool memoryHeavy = false;
+    /// Knob groups sit side by side as columns (knobs stacked within each) instead of rows.
+    bool groupColumns = false;
     HarmonyRole harmony = HarmonyRole::None;
     /// Modules with node data (board document "data"): JSON in (may be empty
     /// or broken), valid JSON out, including the defaults for a new node.
@@ -189,11 +191,6 @@ struct ModuleSpec {
 
 // ---- inline implementation -------------------------------------------------
 
-inline const char* signalName(Signal s) noexcept {
-    switch (s) {
-        case Signal::Gate: return "gate";
-        case Signal::Trigger: return "trigger";
-        case Signal::Pitch: return "pitch";
 inline const char* formatName(ParamSpec::Format f) noexcept {
     switch (f) {
         case ParamSpec::Format::Seconds: return "seconds";
@@ -216,6 +213,11 @@ inline bool formatFromName(const std::string& name, ParamSpec::Format& out) noex
     return false;
 }
 
+inline const char* signalName(Signal s) noexcept {
+    switch (s) {
+        case Signal::Gate: return "gate";
+        case Signal::Trigger: return "trigger";
+        case Signal::Pitch: return "pitch";
         case Signal::Audio: return "audio";
         case Signal::Notes: return "notes";
         case Signal::Control: break;
@@ -232,11 +234,6 @@ inline bool signalFromName(const std::string& n, Signal& out) noexcept {
     return false;
 }
 
-inline const char* portKindName(PortKind k) noexcept {
-    switch (k) {
-        case PortKind::Patch: return "patch";
-        case PortKind::MidiIn: return "midi-in";
-        case PortKind::MidiOut: return "midi-out";
 inline bool portKindFromName(const std::string& n, PortKind& out) noexcept {
     for (PortKind k : {PortKind::None, PortKind::Patch, PortKind::MidiIn, PortKind::MidiOut, PortKind::AudioIn, PortKind::AudioOut, PortKind::Instrument,
                        PortKind::AudioInsert, PortKind::AudioBridge, PortKind::Link, PortKind::MidiDevice})
@@ -247,6 +244,11 @@ inline bool portKindFromName(const std::string& n, PortKind& out) noexcept {
     return false;
 }
 
+inline const char* portKindName(PortKind k) noexcept {
+    switch (k) {
+        case PortKind::Patch: return "patch";
+        case PortKind::MidiIn: return "midi-in";
+        case PortKind::MidiOut: return "midi-out";
         case PortKind::AudioIn: return "audio-in";
         case PortKind::AudioOut: return "audio-out";
         case PortKind::Instrument: return "instrument";

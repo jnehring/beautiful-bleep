@@ -4,9 +4,11 @@
 
 ## Introduction
 
-Four rows that make a signal smaller, bigger, upside down or shifted. With
-nothing patched, a row is a knob you set by hand, so the Attenuverter is also
-four macro controls: one row can feed many destinations with the same value.
+Four rows that make a signal smaller, bigger, upside down or shifted. In the
+module view each row is a column of two knobs: *Scale* on top, *Offset* below.
+With nothing patched, a row is a knob you set by hand, so the Attenuverter is
+also four macro controls: one row can feed many destinations with the same
+value.
 
 ## How does it work?
 

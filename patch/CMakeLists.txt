@@ -595,6 +595,19 @@ if (BLEEP_PATCH_BUILD_APP)
         juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
 endif ()
 
+# The preset library of Bleep Instrument and Bleep FX (the presets compiled into the plugins).
+if (BLEEP_PATCH_BUILD_TESTS)
+    juce_add_console_app(bleep_preset_library_test PRODUCT_NAME "Bleep Preset Library Test")
+    target_sources(bleep_preset_library_test PRIVATE tests/preset_library_test.cpp bridges/ableton/PresetLibrary.cpp
+        ${BLEEP_ENGINE_SOURCES})
+    target_include_directories(bleep_preset_library_test PRIVATE ${BLEEP_ENGINE_INCLUDES}
+        "${CMAKE_CURRENT_SOURCE_DIR}/bridges/ableton")
+    target_compile_definitions(bleep_preset_library_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_preset_library_test PRIVATE bleep_patch_dsp bleep_board_web juce::juce_events
+        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+    add_test(NAME patch.preset-library COMMAND bleep_preset_library_test)
+endif ()
+
 # Integration test: the built Bleep Audio Bridge VST3 against the app's bridge server.
 if (BLEEP_PATCH_BUILD_TESTS)
     juce_add_console_app(bleep_bridge_plugin_test PRODUCT_NAME "Bleep Bridge Plugin Test")
@@ -609,16 +622,3 @@ if (BLEEP_PATCH_BUILD_TESTS)
     add_test(NAME patch.bridge-plugin COMMAND bleep_bridge_plugin_test
         "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepAudioBridge_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>")
 endif ()
-# The preset library of Bleep Instrument and Bleep FX (the presets compiled into the plugins).
-if (BLEEP_PATCH_BUILD_TESTS)
-    juce_add_console_app(bleep_preset_library_test PRODUCT_NAME "Bleep Preset Library Test")
-    target_sources(bleep_preset_library_test PRIVATE tests/preset_library_test.cpp bridges/ableton/PresetLibrary.cpp
-        ${BLEEP_ENGINE_SOURCES})
-    target_include_directories(bleep_preset_library_test PRIVATE ${BLEEP_ENGINE_INCLUDES}
-        "${CMAKE_CURRENT_SOURCE_DIR}/bridges/ableton")
-    target_compile_definitions(bleep_preset_library_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_preset_library_test PRIVATE bleep_patch_dsp bleep_board_web juce::juce_events
-        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
-    add_test(NAME patch.preset-library COMMAND bleep_preset_library_test)
-endif ()
-

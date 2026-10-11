@@ -11,6 +11,7 @@ export const AUDIENCES = {
     match: ["/docs/musicians/", "/modules/"],
     bundles: ["user-docs-full.md"],
     menu: [
+      { title: "Ways to use Bleep", href: "/docs/musicians/overview/", match: ["/docs/musicians/overview/"] },
       { title: "Getting started", href: "/docs/musicians/getting-started/", match: ["/docs/musicians/getting-started/"] },
       { title: "Modules", href: "/modules/", match: ["/modules/", "/docs/musicians/modules/"] },
       { title: "Guides", href: "/docs/musicians/guides/midi-out-routing/", match: ["/docs/musicians/guides/"] },

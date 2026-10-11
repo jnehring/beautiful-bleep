@@ -80,6 +80,8 @@ S3 bucket `bleep-registry` (SeaweedFS)  →  Caddy proxies it read-only at /regi
 | Preset files | Same bucket under `presets/` | The API after validation |
 | Preset metadata (title, tags, author, versions, downloads, reports, state) | Postgres, new Alembic migration | The API |
 
+**What a tile shows.** Every plugin, module and preset has a title, a `summary` (up to 280 characters), a `category` and an optional screenshot, as metadata of its release: `entry.json` carries `summary`, `category` and `image` (the file name next to it, `image.png`, `.jpg` or `.webp`). `release.py` takes them from the module package (its `module.json` and `doc/<slug>.png`) and, for plugins, from `PLUGIN_TILES` and `doc/store/<slug>.png`, and uploads the image with `PUT /api/registry/<kind>/<id>/releases/<version>/image` (PNG, JPEG or WebP up to 1 MB; display data, so not signed, and replaceable by the token that made the release). Without a screenshot the store draws a placeholder in the colour of the kind. `GET /api/store` returns them with `image_url` and the `categories` of the matching entries, and filters by `category`.
+
 `GET /registry/v1/index.json` is the one call a client needs at start. It lists, per id, the newest version per channel, so an update check is one small request with an `ETag`. The API only ever sees preset search and publishing, so a stopped API doesn't stop installs of plugins and modules.
 
 **Login in the app.** The app has no browser cookie. *Sign in* opens the website's login page for a one-time device code (like `gh auth login`): the app shows a code, the user confirms it on the site, and the app stores a personal access token in the OS keychain. The token only allows publishing and managing the user's own presets. Not signed in, the app works fully except *Share…*.
@@ -98,6 +100,8 @@ module.wasm          the DSP, standalone, C ABI (no JUCE, no JS glue)
 ui/<type>.js         the module's custom view (optional)
 doc/<type>.md, .png  user documentation and screenshot
 ```
+
+`summary` (one or two sentences, from the module's `tagline`, else its first node type's description) and `category` ("Sources", "Modulation", …, from the module's node types) are filled in by the package step. The store shows them, with the screenshot, on the module's tile.
 
 `types[]` replaces the generated `manifest.json` "types → module" map: one package can provide several node types (the drum modules do).
 

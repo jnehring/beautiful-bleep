@@ -47,11 +47,13 @@ void registerAttenuverterModule(Registry& r) {
     s.description = "Four rows of scale and offset; unpatched rows are manual constants.";
     for (int k = 1; k <= kAttenuverterRows; ++k) {
         const std::string n = std::to_string(k);
-        s.params.push_back(ParamSpec::number("scale" + n, "Scale " + n, -2.0f, 2.0f, 1.0f));
-        s.params.push_back(ParamSpec::number("offset" + n, "Offset " + n, -1.0f, 1.0f, 0.0f));
+        const std::string ch = "Ch " + n;
+        s.params.push_back(ParamSpec::number("scale" + n, "Scale " + n, -2.0f, 2.0f, 1.0f).inGroup(ch));
+        s.params.push_back(ParamSpec::number("offset" + n, "Offset " + n, -1.0f, 1.0f, 0.0f).inGroup(ch));
         s.inputs.push_back({"in" + n, "In " + n, Signal::Control});
         s.outputs.push_back({"out" + n, "Out " + n, Signal::Control, true});
     }
+    s.groupColumns = true;
     s.params.push_back(ParamSpec::choice("clip", "Clip", {"Off", "Soft", "Hard"}, 0));
     s.outputs.push_back({"sum", "Sum", Signal::Control, true});
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AttenuverterModule>(spec); });

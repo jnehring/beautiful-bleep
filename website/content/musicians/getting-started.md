@@ -5,9 +5,16 @@ order: 0
 
 # Getting started with Bleep Patch
 
+This page is for Ableton Live. Bleep also runs as a [standalone app and in
+your browser](overview.md).
+
 Bleep Patch makes Ableton Live feel modular. All modules live on one canvas
 per set, the **Bleep Board**. You connect them with cables, and small plugins
 called **ports** connect the board to your tracks.
+
+Just want a sound? Put **Bleep Instrument** on a MIDI track or **Bleep FX** on
+an audio track and pick a preset. No patching needed; see
+[ways to use Bleep](overview.md).
 
 ## Install
 

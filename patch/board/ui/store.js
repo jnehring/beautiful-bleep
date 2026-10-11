@@ -9,6 +9,7 @@
   let status = null;          // native "storeStatus"
   let tab = "modules";
   let query = "";
+  let category = "";          // the modules' category filter, "" = all
   let message = "";           // the last thing that went wrong or right, shown under the header
   let poll = null;
   let host = null;
@@ -45,8 +46,40 @@
     for (const m of status.index.modules) by.set(m.slug, Object.assign(by.get(m.slug) || { slug: m.slug }, { offered: m }));
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
     return [...by.values()]
-      .filter((r) => words.every((w) => (r.slug + " " + ((r.installed || r.offered).types || []).join(" ")).toLowerCase().includes(w)))
+      .filter((r) => !category || (r.offered && r.offered.category) === category)
+      .filter((r) => words.every((w) => (r.slug + " " + ((r.installed || r.offered).types || []).join(" ") + " " + tileText(r.offered)).toLowerCase().includes(w)))
       .sort((a, b) => a.slug.localeCompare(b.slug));
+  }
+
+  const tileText = (e) => (e ? [e.title, e.summary, e.category].join(" ") : "");
+
+  /// The picture of a tile: the screenshot from the store, or a placeholder with the first letter when there is none (or it cannot load).
+  function picture(src, name, kind) {
+    const box = el("div", "st-pic " + kind);
+    const placeholder = () => { box.innerHTML = ""; box.appendChild(el("span", "", (name || "?").trim().charAt(0).toUpperCase())); };
+    if (!src) { placeholder(); return box; }
+    const img = el("img");
+    img.loading = "lazy";
+    img.alt = name + " screenshot";
+    img.addEventListener("error", placeholder);
+    img.src = src;
+    box.appendChild(img);
+    return box;
+  }
+
+  /// A tile: picture, kind and category tags, title, description, and a line and buttons the caller fills in.
+  function tile(kind, e, fallbackName) {
+    const t = el("div", "st-tile");
+    t.appendChild(picture(e && e.imageUrl, (e && e.title) || fallbackName, kind));
+    const b = el("div", "st-tile-body");
+    const tags = el("div", "st-tags");
+    tags.appendChild(el("span", "st-tag " + kind, kind));
+    if (e && e.category) tags.appendChild(el("span", "st-tag", e.category.replace(/\//g, " › ")));
+    b.appendChild(tags);
+    b.appendChild(el("div", "st-name", (e && e.title) || fallbackName));
+    b.appendChild(el("div", "st-summary", (e && e.summary) || "No description yet."));
+    t.appendChild(b);
+    return { tile: t, body: b };
   }
 
   const newer = (a, b) => {  // is version a newer than b
@@ -84,47 +117,54 @@
       body.appendChild(el("div", "st-note warn", "The default modules are not installed. Boards show placeholders until they are."));
     if (!status.hasRoots)
       body.appendChild(el("div", "st-note warn", "This build trusts no developer keys, so nothing from the store can be verified. Add the store's root key (see doc/operations/website.md)."));
-    const list = el("div", "st-list");
+    const cats = [...new Set(status.index.modules.map((m) => m.category).filter(Boolean))].sort();
+    if (category && !cats.includes(category)) category = "";
+    if (cats.length) {
+      const chips = el("div", "st-chips");
+      for (const c of ["", ...cats]) {
+        const chip = el("button", "st-chip" + (c === category ? " on" : ""), c ? c.replace(/\//g, " › ") : "All categories");
+        chip.addEventListener("click", () => { category = c; render(); });
+        chips.appendChild(chip);
+      }
+      body.appendChild(chips);
+    }
+    const list = el("div", "st-tiles");
     body.appendChild(list);
     renderModulesList(list);
   }
 
   function renderModulesList(list) {
     list.innerHTML = "";
-    const head = el("div", "st-row st-head");
-    for (const t of ["Module", "Installed", "In the store", "Signature", ""]) head.appendChild(el("span", "", t));
-    list.appendChild(head);
     for (const r of rows()) {
-      const row = el("div", "st-row");
+      const e = r.offered || null;
       const types = (r.installed || r.offered).types || [];
-      const name = el("span", "st-name", r.slug);
-      name.title = types.join(", ");
-      row.appendChild(name);
-      row.appendChild(el("span", "st-ver", r.installed ? r.installed.version + (r.installed.source === "local" ? " (local)" : "") : "—"));
-      row.appendChild(el("span", "st-ver", r.offered ? r.offered.version : "—"));
-      const sig = el("span", "st-sig");
-      if (r.installed) sig.appendChild(badge(r.installed));
-      if (r.installed && !r.installed.loaded && r.installed.allowed === false) sig.appendChild(el("span", "st-why", r.installed.why));
-      row.appendChild(sig);
-      const actions = el("span", "st-actions");
+      const { tile: t, body: b } = tile("module", e, r.slug);
+      t.title = types.join(", ");
+      const info = el("div", "st-info");
+      info.appendChild(el("span", "st-ver", (r.installed ? "installed " + r.installed.version + (r.installed.source === "local" ? " (local)" : "") : "not installed") +
+                                              (e ? " · store " + e.version : "")));
+      if (r.installed) info.appendChild(badge(r.installed));
+      if (r.installed && !r.installed.loaded && r.installed.allowed === false) info.appendChild(el("span", "st-why", r.installed.why));
+      b.appendChild(info);
+      const actions = el("div", "st-actions");
       const busy = status.busy[r.slug];
       if (busy) actions.appendChild(el("span", "st-busy", busy + "…"));
       else {
         if (r.offered && (!r.installed || (r.installed.source !== "local" && newer(r.offered.version, r.installed.version)))) {
-          const b = el("button", r.installed ? "" : "primary", r.installed ? "Update" : "Install");
-          b.addEventListener("click", () => act("storeInstall", r.slug));
-          actions.appendChild(b);
+          const btn = el("button", r.installed ? "" : "primary", r.installed ? "Update" : "Install");
+          btn.addEventListener("click", () => act("storeInstall", r.slug));
+          actions.appendChild(btn);
         }
         if (r.installed && r.installed.source === "registry") {
-          const b = el("button", "", "Remove");
-          b.addEventListener("click", () => act("storeRemove", r.slug));
-          actions.appendChild(b);
+          const btn = el("button", "", "Remove");
+          btn.addEventListener("click", () => act("storeRemove", r.slug));
+          actions.appendChild(btn);
         }
       }
-      row.appendChild(actions);
-      list.appendChild(row);
+      b.appendChild(actions);
+      list.appendChild(t);
     }
-    if (!list.querySelector(".st-row:not(.st-head)")) list.appendChild(el("div", "st-empty", "No modules match."));
+    if (!list.firstChild) list.appendChild(el("div", "st-empty", "No modules match."));
   }
 
   function renderPlugins() {
@@ -155,31 +195,42 @@
     }
     native("storePlugins").then((plugins) => {
       list.innerHTML = "";
-      const head = el("div", "st-row st-head plugins");
-      for (const t of ["Plugin", "Installed", "Where"]) head.appendChild(el("span", "", t));
-      list.appendChild(head);
-      for (const p of plugins || []) {
-        const row = el("div", "st-row plugins");
-        row.appendChild(el("span", "st-name", p.name));
-        row.appendChild(el("span", "st-ver", p.installed ? "yes" : "no"));
-        row.appendChild(el("span", "st-why", p.path || ""));
-        list.appendChild(row);
+      list.className = "st-tiles";
+      const local = new Map((plugins || []).map((p) => [p.name, p]));
+      const offered = status.index.plugins || [];
+      // What the store offers (the app itself is not a plugin to install into a DAW); else what is known to be installable.
+      const entries = offered.filter((p) => p.slug !== "bleep-patch-app").map((p) => ({ e: p, name: (p.title || p.slug).replace(/\s*\(VST3\)$/, "") }));
+      for (const p of plugins || []) if (!entries.some((x) => x.name === p.name)) entries.push({ e: null, name: p.name });
+      for (const { e, name } of entries) {
+        const { tile: t, body: b } = tile("plugin", e ? Object.assign({}, e, { title: name }) : null, name);
+        const here = local.get(name);
+        const info = el("div", "st-info");
+        info.appendChild(el("span", "st-ver", (here && here.installed ? "installed" : "not installed") + (e ? " · store " + e.version : "")));
+        if (here && here.path) info.appendChild(el("span", "st-why", here.path));
+        b.appendChild(info);
+        list.appendChild(t);
       }
     });
   }
 
   function renderPresets() {
     body.appendChild(el("div", "st-note", "Your presets: cells and patches you saved. Add → Cell lists the cells; the Presets button on the board loads patches."));
-    const list = el("div", "st-list");
+    const list = el("div");
     body.appendChild(list);
     Promise.all([native("presets", "cells"), native("presets", "patches")]).then(([cells, patches]) => {
       list.innerHTML = "";
-      const group = (title, items) => {
-        list.appendChild(el("div", "st-row st-head single", `${title} (${(items || []).length})`));
-        for (const p of items || []) list.appendChild(el("div", "st-row single", p.name));
+      const group = (title, kind, items) => {
+        list.appendChild(el("h3", "", `${title} (${(items || []).length})`));
+        const grid = el("div", "st-tiles");
+        for (const p of items || []) {
+          const d = (p.preset && p.preset.description) || p.description || "";
+          const cat = p.category || (p.preset && p.preset.category) || "";
+          grid.appendChild(tile("preset", { title: p.name, summary: d, category: cat || kind }, p.name).tile);
+        }
+        list.appendChild(grid);
       };
-      group("Cells", cells);
-      group("Patches", patches);
+      group("Cells", "cell", cells);
+      group("Patches", "patch", patches);
     });
   }
 
