@@ -55,7 +55,7 @@ static void registerCrunchModule(Registry& r) {
     ModuleSpec s;
     s.type = "crunch";
     s.name = "Crunch";
-    s.category = "Audio";
+    s.category = "Effects";
     s.colour = "#dc2626";
     s.description = "Overdrive, bit crusher and sample-rate reducer in one, with a tone low-pass: "
                     "from warm saturation to broken digital grit.";

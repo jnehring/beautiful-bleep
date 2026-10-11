@@ -8564,7 +8564,7 @@
   {
     "type": "chorus",
     "name": "Chorus",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#14b8a6",
     "description": "Stereo chorus (two swinging delay voices per side) or flanger (one, with feedback). Rate, depth, delay and feedback can all be modulated.",
     "port": "",
@@ -8916,7 +8916,7 @@
   {
     "type": "compressor",
     "name": "Compressor",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#64748b",
     "description": "Stereo compressor and limiter: soft knee, peak or RMS detector, sidechain input, parallel mix and a gain reduction output you can patch.",
     "port": "",
@@ -9098,7 +9098,7 @@
   {
     "type": "crunch",
     "name": "Crunch",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#dc2626",
     "description": "Overdrive, bit crusher and sample-rate reducer in one, with a tone low-pass: from warm saturation to broken digital grit.",
     "port": "",
@@ -9219,7 +9219,7 @@
   {
     "type": "delay-network",
     "name": "Delay Net",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#0ea5e9",
     "description": "Up to eight delay lines feeding each other: scattered, jittered and reversed taps, a character in every feedback pass, and Parallel, Chain, Ring or Mesh routing.",
     "port": "",
@@ -10668,7 +10668,7 @@
   {
     "type": "eq",
     "name": "EQ",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#0ea5e9",
     "description": "Four-band parametric equaliser: low shelf, two peaking bands, high shelf. Frequency and gain of every band can be modulated.",
     "port": "",
@@ -11933,7 +11933,7 @@
   {
     "type": "freq-shifter",
     "name": "Freq Shifter",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#65a30d",
     "description": "Single-sideband frequency shifter: barber-pole phasing, bells and spirals with feedback, opposite shifts left/right, tempo sync, quadrature LFO out.",
     "port": "",
@@ -17261,7 +17261,7 @@
   {
     "type": "phaser",
     "name": "Phaser",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#f97316",
     "description": "Stereo phaser: 2 to 12 swept allpass stages, feedback in both polarities, a stereo LFO offset. Mixed with the dry signal it makes moving notches.",
     "port": "",
@@ -17404,7 +17404,7 @@
   {
     "type": "pitch-shifter",
     "name": "Pitch Shifter",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#c026d3",
     "description": "Shifts the pitch of audio by a musical interval, two crossfading delay heads, with drift for tape flutter and feedback for climbing spirals. Put it before a reverb for a shimmer.",
     "port": "",
@@ -20844,7 +20844,7 @@
   {
     "type": "reverb",
     "name": "Verb",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#f0abfc",
     "description": "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates click-free; small rooms to endless pads, infinite decay and Freeze.",
     "port": "",
@@ -28573,7 +28573,7 @@
   {
     "type": "zone-delay",
     "name": "Zone Delay",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#3b82f6",
     "description": "Stereo delay from tuned combs to 20-second loops: five time zones, tape or crossfade time changes, loop characters, diffusion, Reverse, Hold and Ping-Pong.",
     "port": "",

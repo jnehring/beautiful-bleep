@@ -164,7 +164,7 @@ static void registerFreqShifterModule(Registry& r) {
     ModuleSpec s;
     s.type = "freq-shifter";
     s.name = "Freq Shifter";
-    s.category = "Audio";
+    s.category = "Effects";
     s.colour = "#65a30d";
     s.description = "Single-sideband frequency shifter: barber-pole phasing, bells and spirals with feedback, "
                     "opposite shifts left/right, tempo sync, quadrature LFO out.";

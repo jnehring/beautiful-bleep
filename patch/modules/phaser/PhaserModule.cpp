@@ -61,7 +61,7 @@ static void registerPhaserModule(Registry& r) {
     ModuleSpec s;
     s.type = "phaser";
     s.name = "Phaser";
-    s.category = "Audio";
+    s.category = "Effects";
     s.colour = "#f97316";
     s.description = "Stereo phaser: 2 to 12 swept allpass stages, feedback in both polarities, "
                     "a stereo LFO offset. Mixed with the dry signal it makes moving notches.";
