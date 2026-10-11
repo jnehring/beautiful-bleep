@@ -164,7 +164,6 @@ void AppController::start(const juce::String& commandLine) {
 
     const auto file = juce::File::getCurrentWorkingDirectory().getChildFile(commandLine.unquoted().trim());
     if (commandLine.isNotEmpty() && file.existsAsFile()) openProject(file);
-    else if (juce::File last(settings_->getValue("lastProject")); !smoke_ && last.existsAsFile()) openProject(last);
     startTimerHz(10);
 }
 
@@ -575,7 +574,6 @@ bool AppController::openProject(const juce::File& file) {
     engine_->reconcileNow();
     project_ = file;
     savedGeneration_ = engine_->boardGeneration();
-    settings_->setValue("lastProject", file.getFullPathName());
     if (doc["tempo"].isDouble() || doc["tempo"].isInt()) clock_.setTempo((double)doc["tempo"]);
     updateTitle();
     return true;
@@ -613,7 +611,6 @@ bool AppController::saveProject(const juce::File& file) {
     }
     project_ = file;
     savedGeneration_ = engine_->boardGeneration();
-    settings_->setValue("lastProject", file.getFullPathName());
     updateTitle();
     return true;
 }
