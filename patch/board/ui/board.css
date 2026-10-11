@@ -178,6 +178,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-head .help.on { border-color: var(--accent); }
 .v-head .spacer { flex: 1; }
 .v-body { max-height: 70vh; overflow-y: auto; }
+.vwin.port { width: fit-content; min-width: 260px; max-width: min(520px, calc(100vw - 24px)); }
 .vwin.doc { width: 560px; }
 .vwin.wiring { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; }
 .vwin.wiring .v-head { grid-column: 1 / -1; }

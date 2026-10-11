@@ -1928,6 +1928,7 @@
     // Next to the node, inside the canvas.
     const ne = nodesEl.querySelector(`[data-id="${id}"]`);
     const r = canvas.getBoundingClientRect();
+    else if (isPort(n)) win.classList.add("port");   // In/Out nodes have a few controls: fit them
     let x = 40, y = 40;
     if (ne) { const nr = ne.getBoundingClientRect(); x = nr.right - r.left + 16; y = nr.top - r.top; }
     x = Math.max(8, Math.min(x, r.width - win.offsetWidth - 10));
