@@ -2392,7 +2392,7 @@
           {"id":"noise","type":"noise","name":"Noise","x":340,"y":40,"parent":"root","params":{"colour":0.5}},
           {"id":"adsr","type":"adsr","name":"Ping","x":340,"y":260,"parent":"root","params":{"attack":0,"decay":0.284429,"sustain":0,"release":0.218145,"velamount":1}},
           {"id":"vca","type":"vca","name":"Burst","x":640,"y":40,"parent":"root","params":{}},
-          {"id":"wavean","type":"wave-analyzer","name":"Wave Analyzer","x":940,"y":40,"parent":"root","params":{"frequency":0.372219,"gain":0.8,"drift":0.2,"bandwidth":0,"mode":0}},
+          {"id":"wavean","type":"wave-analyzer","name":"Wave Analyzer","x":940,"y":40,"parent":"root","params":{"frequency":0.372219,"gain":0.9,"drift":0.2,"bandwidth":0,"mode":0}},
           {"id":"adsr2","type":"adsr","name":"Amp Env","x":1240,"y":260,"parent":"root","params":{"attack":0,"decay":0.5955,"sustain":1,"release":0.634426,"velamount":0.3}},
           {"id":"vca2","type":"vca","name":"VCA","x":1540,"y":260,"parent":"root","params":{}}
         ],

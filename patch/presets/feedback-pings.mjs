@@ -178,7 +178,7 @@ function partialPick() {
     tags: ["ping", "wave analyzer", "partial", "hainbach"],
   }).settings({ voices: 8, spread: 0.3 }).input("gain", "Gain");
   const b = burst(p, [0, 0], 0.03);
-  const wa = p.add("wave-analyzer", [2, 0], { frequency: 261.63, gain: 28, drift: 0.2, bandwidth: "3 Hz", mode: "Manual" });
+  const wa = p.add("wave-analyzer", [2, 0], { frequency: 261.63, gain: 34, drift: 0.2, bandwidth: "3 Hz", mode: "Manual" });
   p.cable(b, "l", wa, "in").cable(p.vin, "pitch", wa, "pitch").cable(p.cin, "gain", wa, "gain", 0.2);
   ampEnvelope(p, { node: wa, jack: "band" }, [3, 1], AMP(0.9, 2));
   return p;
