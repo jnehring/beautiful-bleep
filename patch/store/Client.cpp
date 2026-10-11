@@ -3,6 +3,9 @@
 #include "Client.h"
 
 #include <algorithm>
+#include <map>
+#include <mutex>
+#include <set>
 #include <ctime>
 #include <cstring>
 
@@ -186,6 +189,8 @@ bool Client::fetchIndex(Index& out, std::string& error) const {
             m.slug = p.name.toString().toStdString();
             m.version = str(p.value["version"]);
             m.entry = str(p.value["entry"]);
+            m.title = str(p.value["title"]); m.summary = str(p.value["summary"]);
+            m.category = str(p.value["category"]); m.image = str(p.value["image"]);
             if (auto* t = p.value["types"].getArray())
                 for (const auto& x : *t) m.types.push_back(str(x));
             out.modules.push_back(std::move(m));
@@ -197,6 +202,8 @@ bool Client::fetchIndex(Index& out, std::string& error) const {
             x.slug = p.name.toString().toStdString();
             x.version = str(p.value["version"]);
             x.entry = str(p.value["entry"]);
+            x.title = str(p.value["title"]); x.summary = str(p.value["summary"]);
+            x.category = str(p.value["category"]); x.image = str(p.value["image"]);
             out.plugins.push_back(std::move(x));
         }
     return true;
@@ -330,9 +337,62 @@ bool Client::remove(const std::string& slug, std::string& error) const {
     return true;
 }
 
-std::vector<InstalledModule> Client::installed() const {
+namespace {
+
+/// What installed() worked out about a package, kept so the Store view does not read and verify every module again on each look.
+/// Process-wide: a Client is made anew for every request. A hit needs the same file (size, modification times of it and its
+/// signature sidecar) and the same trust (roots, Settings → Security). An entry is served at any age; when cacheStale() says one
+/// is old, a worker thread repeats the checks with installed(true), so a signature that has expired is noticed without anyone
+/// waiting. contentOf() never uses the cache: loading a module is always checked in full.
+struct CachedCheck {
+    InstalledModule module;
+    juce::Time at;
+};
+std::mutex cacheMutex;
+std::map<std::string, CachedCheck> cache;
+constexpr int kCacheMillis = 5 * 60 * 1000;
+
+}  // namespace
+
+bool Client::cacheStale() {
+    std::lock_guard<std::mutex> l(cacheMutex);
+    for (const auto& [key, c] : cache)
+        if ((juce::Time::getCurrentTime() - c.at).inMilliseconds() >= kCacheMillis) return true;
+    return false;
+}
+
+namespace {
+
+std::string fileStamp(const juce::File& f) {
+    return std::to_string(f.getSize()) + "@" + std::to_string(f.getLastModificationTime().toMilliseconds());
+}
+
+}  // namespace
+
+std::vector<InstalledModule> Client::installed(bool recheck) const {
     std::vector<InstalledModule> out;
+    std::string trust = std::string(settings_.allowUnsigned.module ? "m" : "-") + (settings_.allowUnsigned.plugin ? "p" : "-");
+    for (const auto& r : roots_) {
+        uint64_t h = 1469598103934665603ull;
+        for (uint8_t b : r) h = (h ^ b) * 1099511628211ull;
+        trust += "|" + std::to_string(h);
+    }
+    std::set<std::string> seen;
     auto consider = [&](const juce::File& file, const std::string& slug, const std::string& version, const std::string& source) {
+        const std::string key = file.getFullPathName().toStdString() + "|" + slug + "|" + version + "|" + fileStamp(file) + "|" +
+                                fileStamp(file.withFileExtension("sig.json")) + "|" + trust;
+        seen.insert(key);
+        {
+            std::lock_guard<std::mutex> l(cacheMutex);
+            auto it = cache.find(key);
+            if (!recheck && it != cache.end()) {
+                InstalledModule hit = it->second.module;
+                hit.source = source;
+                hit.file = file;
+                out.push_back(std::move(hit));
+                return;
+            }
+        }
         std::vector<uint8_t> bytes;
         InstalledModule m;
         std::string error;
@@ -347,6 +407,10 @@ std::vector<InstalledModule> Client::installed() const {
         }
         m.source = source;
         m.file = file;
+        {
+            std::lock_guard<std::mutex> l(cacheMutex);
+            cache[key] = {m, juce::Time::getCurrentTime()};
+        }
         out.push_back(std::move(m));
     };
     // from the store: <slug>/<version>/<slug>-<version>.bleepmod, the newest version of each
@@ -365,6 +429,10 @@ std::vector<InstalledModule> Client::installed() const {
         const auto dash = name.rfind('-');
         const std::string slug = dash == std::string::npos ? name : name.substr(0, dash), version = dash == std::string::npos ? "" : name.substr(dash + 1);
         consider(f, slug, versionKey(version) >= 0 ? version : "0.0.0", "local");
+    }
+    {   // forget what is no longer installed
+        std::lock_guard<std::mutex> l(cacheMutex);
+        for (auto it = cache.begin(); it != cache.end();) it = seen.count(it->first) ? std::next(it) : cache.erase(it);
     }
     return out;
 }

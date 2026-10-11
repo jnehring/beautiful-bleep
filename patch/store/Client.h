@@ -41,10 +41,12 @@ bool abletonLiveRunning();
 
 struct IndexModule {
     std::string slug, version, entry;   ///< entry: path of entry.json under /registry/v1/
+    std::string title, summary, category, image;   ///< the tile: image is a path under /registry/v1/, empty without a screenshot
     std::vector<std::string> types;
 };
 struct IndexPlugin {
     std::string slug, version, entry;
+    std::string title, summary, category, image;
 };
 struct Index {
     std::vector<IndexModule> modules;
@@ -77,7 +79,10 @@ public:
     /// .vst3 bundle(s) it holds into `folder`, replacing what is there. `names` receives the bundle names. Live must be closed (the caller checks).
     bool installPlugin(const std::string& slug, const juce::File& folder, std::vector<std::string>& names, std::string& error) const;
     /// Every module in the data folder (the newest version of each), verified. Nothing is loaded.
-    std::vector<InstalledModule> installed() const;
+    /// From the cache where the package is unchanged; `recheck` verifies every package again (a worker thread's job: see cacheStale).
+    std::vector<InstalledModule> installed(bool recheck = false) const;
+    /// Has a cached check grown old enough to be repeated with installed(true)?
+    static bool cacheStale();
     /// The module.wasm and spec.json of an installed module, for the engine; checked again against its signature here.
     /// `spec` stays empty if the package has none.
     bool contentOf(const InstalledModule& module, std::vector<uint8_t>& wasm, std::string& spec, std::string& error) const;
@@ -85,8 +90,10 @@ public:
     juce::File modulesFolder(const std::string& source) const;
     const Settings& settings() const { return settings_; }
 
-private:
+    /// The address of a path under /registry/v1/ (an index entry's image, say).
     juce::String url(const std::string& path) const;
+
+private:
     bool check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,
                InstalledModule& out, std::string& error) const;
 

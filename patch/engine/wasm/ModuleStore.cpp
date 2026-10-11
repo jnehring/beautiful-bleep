@@ -141,6 +141,14 @@ void ModuleStore::refreshIndexAsync(std::function<void()> done) {
     }).detach();
 }
 
+void ModuleStore::recheckInstalledAsync() {
+    if (rechecking_.exchange(true)) return;
+    std::thread([this] {
+        client()->installed(true);
+        rechecking_ = false;
+    }).detach();
+}
+
 void ModuleStore::installAsync(const std::string& slug, std::function<void(bool, std::string)> done) {
     setBusy(slug, "installing");
     std::thread([this, slug, done = std::move(done)] {
@@ -237,6 +245,7 @@ void ModuleStore::installAllAsync(std::function<void(bool, std::string)> done) {
 
 juce::var ModuleStore::status() {
     const auto c = client();
+    if (store::Client::cacheStale()) recheckInstalledAsync();
     std::lock_guard<std::mutex> l(mutex_);
     auto* o = new juce::DynamicObject();
     auto* s = new juce::DynamicObject();
@@ -260,17 +269,34 @@ juce::var ModuleStore::status() {
     auto* idx = new juce::DynamicObject();
     idx->setProperty("ok", haveIndex_);
     idx->setProperty("error", juce::String(indexError_));
+    // The tile of an entry: what the store says about it, and where its screenshot is (an absolute address, or empty).
+    auto tile = [&c](auto* x, const auto& e) {
+        x->setProperty("title", juce::String(e.title.empty() ? e.slug : e.title));
+        x->setProperty("summary", juce::String(e.summary));
+        x->setProperty("category", juce::String(e.category));
+        x->setProperty("imageUrl", e.image.empty() ? juce::String() : c->url(e.image));
+    };
     juce::Array<juce::var> offered;
     for (const auto& m : index_.modules) {
         auto* x = new juce::DynamicObject();
         x->setProperty("slug", juce::String(m.slug));
         x->setProperty("version", juce::String(m.version));
+        tile(x, m);
         juce::Array<juce::var> types;
         for (const auto& t : m.types) types.add(juce::String(t));
         x->setProperty("types", types);
         offered.add(juce::var(x));
     }
     idx->setProperty("modules", offered);
+    juce::Array<juce::var> plugins;
+    for (const auto& p : index_.plugins) {
+        auto* x = new juce::DynamicObject();
+        x->setProperty("slug", juce::String(p.slug));
+        x->setProperty("version", juce::String(p.version));
+        tile(x, p);
+        plugins.add(juce::var(x));
+    }
+    idx->setProperty("plugins", plugins);
     o->setProperty("index", juce::var(idx));
     auto* busy = new juce::DynamicObject();
     for (const auto& [slug, what] : busy_) busy->setProperty(juce::Identifier(juce::String(slug)), juce::String(what));

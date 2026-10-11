@@ -33,6 +33,8 @@ public:
     juce::var status();
 
     void refreshIndexAsync(std::function<void()> done = {});
+    /// Repeats the signature checks of the installed modules on a worker thread (the Store view serves the earlier result meanwhile).
+    void recheckInstalledAsync();
     /// Installs (or updates) a module and registers its node types. `done(ok, message)` on the message thread.
     void installAsync(const std::string& slug, std::function<void(bool, std::string)> done = {});
     void removeAsync(const std::string& slug, std::function<void(bool, std::string)> done = {});
@@ -78,6 +80,7 @@ private:
     std::map<std::string, std::string> busy_;
     struct PluginJob { std::string state = "idle", message; bool ok = false; } pluginJob_;   // idle | running | done
     std::atomic<bool> started_{false};
+    std::atomic<bool> rechecking_{false};
     /// The view scripts and docs of the installed modules by file name, read from the packages once (every request to the
     /// window used to verify and unpack all of them). Dropped when the set of installed modules changes.
     void buildViewCache() const;
