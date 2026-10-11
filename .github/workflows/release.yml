@@ -2,18 +2,17 @@
 #
 # Builds the plugins on macOS, Linux and Windows and releases them to the Bleep registry: the
 # macOS job publishes the new version, the others add their platform to it afterwards.
-# DISABLED for now: it has no trigger. To enable it, replace `on:` with the commented
-# `workflow_dispatch` block (and set the repository secret BLEEP_RELEASE_TOKEN and the variable
-# BLEEP_REGISTRY_URL), then run it from the Actions tab.
+# Manual runs only (Actions tab -> Run workflow); it never runs automatically. Set the repository
+# secret BLEEP_RELEASE_TOKEN and the variable BLEEP_REGISTRY_URL before running it.
 name: Release
 
-on: {}
-#  workflow_dispatch:
-#    inputs:
-#      level:
-#        description: Version level (x, 1.x, 1.4.x, major, minor, patch)
-#        required: true
-#        default: patch
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: Version level (x, 1.x, 1.4.x, major, minor, patch)
+        required: true
+        default: patch
 
 env:
   BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
