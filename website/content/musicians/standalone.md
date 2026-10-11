@@ -6,13 +6,15 @@ order: 3
 # The Bleep Patch app
 
 The board without a DAW: for playing and sound design on its own, or next to
-Live. Open the app, add modules with Tab, and patch as in Live. Projects are
+Live. It is one of [three places to use Bleep](overview.md) (plugin, app, web). Open the app, add modules with Tab, and patch as in Live. Projects are
 saved as `.bleepboard` files (File → Save).
 
 ## Audio
 
-Choose your audio interface in **File → Settings**. Its inputs and outputs are
-nodes on the board: *In 1/2*, *Out 1/2* and so on.
+Choose your audio interface in **File → Settings**. A new board starts with just
+*In 1/2* and *Out 1/2*. More pairs of your interface, the MIDI ports and the
+Link node are there when you need them: **Add → Port**. Delete the ones you
+don't use.
 
 ## A MIDI keyboard
 
@@ -24,7 +26,7 @@ cell's *Out L/R* into *Out 1/2*. MIDI Device also has mono *Pitch*, *Gate*,
 ## MIDI to and from Live
 
 The app has its own MIDI ports, **Bleep Patch 1** and **Bleep Patch 2** (more in
-Settings). No loopback tool needed.
+Settings). No loopback tool needed. Add their nodes from **Add → Port**.
 
 - **Play the app from Live:** on a MIDI track, set *MIDI To* to *Bleep Patch 1*.
   On the board, the *Bleep Patch 1* MIDI In node gets the notes.

@@ -24,6 +24,11 @@
 namespace bleep::engine {
 
 namespace {
+/// The ports the standalone app creates itself (not the bridges to Live).
+bool appOwnsPort(PortKind k) {
+    return k == PortKind::AudioIn || k == PortKind::AudioOut || k == PortKind::MidiIn || k == PortKind::MidiOut ||
+           k == PortKind::Link;
+}
 
 /// Non-ASCII text (·, —, …) must reach juce::String as UTF-8.
 inline juce::String u8(const char* text) { return juce::String::fromUTF8(text); }
@@ -503,7 +508,7 @@ juce::var Engine::commit(const juce::var& edited, const juce::String& label) {
         bool restored = false;
         for (const auto& n : *oldNodes) {
             const auto* spec = Registry::get().find(n["type"].toString().toStdString());
-            if (spec && spec->userCreatable) continue;  // e.g. MIDI Device: the user may delete it
+            if (spec && (spec->userCreatable || (standalone_ && appOwnsPort(spec->port)))) continue;  // the user may delete it
             if (n["port"].toString().isNotEmpty() && board::findNode(clean, n["id"].toString()) == nullptr) {
                 clean["nodes"].getArray()->add(n);
                 restored = true;
@@ -634,6 +639,13 @@ void Engine::setAmount(const juce::String& cableId, float amount) {
     recompile();
 }
 
+void Engine::modulesChanged() {
+    if (!hasBoard()) return;
+    board_ = board::sanitise(board_);  // nodes that were placeholders get their module's parameters and data
+    recompile();
+    generation_.fetch_add(1);
+}
+
 void Engine::recompile() {
     std::map<std::string, std::shared_ptr<PortSlot>> ports;
     for (const auto& s : instances_)
@@ -671,6 +683,9 @@ void Engine::reconcile(bool force) {
     if (!hasBoard()) return;
     bool changed = false;
     int inputs = 0, outputs = 0;
+    // The standalone app starts an empty board with just In 1/2 and Out 1/2; the other ports (MIDI, Link, more audio
+    // channels) are added from the Add menu, and may be deleted again.
+    const bool emptyBoard = board_["nodes"].getArray() == nullptr || board_["nodes"].getArray()->isEmpty();
     for (const auto& s : instances_) {
         if (s->kind == PortKind::Patch && (s->handle != mainHandle_ || standalone_)) continue;
         if (s->kind == PortKind::MidiDevice) continue;  // its node comes first; the app follows it
@@ -685,6 +700,7 @@ void Engine::reconcile(bool force) {
             continue;
         }
         if (!force && !s->restored && nowMs() - s->registeredAt < 500.0) continue;  // wait for setState
+        if (standalone_ && appOwnsPort(s->kind) && !(emptyBoard && (s->id == "device-in-1" || s->id == "device-out-1"))) continue;
         const ModuleSpec* spec = Registry::get().forPort(s->kind);
         if (spec == nullptr) continue;
         const bool toTrack = (sendsToTrack(s->kind) && s->kind != PortKind::Instrument &&
@@ -707,13 +723,6 @@ void Engine::reconcileNow() { reconcile(true); }
 
 void Engine::timerCallback() {
     applySampleRate();
-void Engine::modulesChanged() {
-    if (!hasBoard()) return;
-    board_ = board::sanitise(board_);  // nodes that were placeholders get their module's parameters and data
-    recompile();
-    generation_.fetch_add(1);
-}
-
     collectGarbage();
     reconcile(false);
     pollModuleData();

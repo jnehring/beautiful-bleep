@@ -12,7 +12,9 @@ plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
   the app data folder). Loading one replaces the project, sets the tempo and
   starts the transport (spec §11.5).
 - **Audio device:** File → Settings. Pairs of input and output channels are
-  *In 1/2*, *Out 1/2*, … nodes on the board.
+  *In 1/2*, *Out 1/2*, … ports. An empty board starts with *In 1/2* and
+  *Out 1/2* only; the other ports (more audio pairs, MIDI, Link) are added
+  from Add → Port and may be deleted (documented in `board/ui/<port>.md`).
 - **MIDI:** the app creates its own MIDI ports, *Bleep Patch 1* … *n* (number
   in Settings, default 2). Each is a MIDI In and a MIDI Out node; in Live,
   choose them under *MIDI From* / *MIDI To*. MIDI inputs enabled in Settings
