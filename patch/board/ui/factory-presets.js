@@ -122,9 +122,29 @@
                           "............x...", "x.....x.......x.", "...x.....x..x...", "..x.......x....."]),
   ]);
 
+  // Each preset's help (the "?" on its cell): plain text, paragraphs separated by a blank line (see presets/kit.mjs normaliseHelp).
+  const withHelp = (preset, text) => Object.assign(preset, { help: { text } });
+
   window.BleepFactoryPresets = [
-    { name: "Basic Poly", category: "Synthesizers", preset: basicPoly },
-    { name: "Punch Machine", category: "Drum Machines", preset: punchMachine },
-    { name: "Ring Machine", category: "Drum Machines", preset: ringMachine },
+    { name: "Basic Poly", category: "Synthesizers", preset: withHelp(basicPoly,
+      "The starter synth: one Oscillator into a Multi Filter (SVF Saturating) and a VCA, with an ADSR for the filter and one for the " +
+      "amplitude, and the filter following the keyboard by half.\n\n" +
+      "Patch Notes into the cell and take Out L/R. Its two shared inputs are Cutoff (a modulation source into the filter cutoff) and " +
+      "Bend (a pitch source, scaled to plus or minus two semitones).\n\n" +
+      "Open the cell and change the oscillator or the filter type to make it your own, then save it with Save as preset.") },
+    { name: "Punch Machine", category: "Drum Machines", preset: withHelp(punchMachine,
+      "A complete drum machine that plays by itself: a Drum Grid with eight tracks (Kick, Snare, Closed Hat, Open Hat, Clap, two Toms and " +
+      "a Rim shot) drives the Punch drum modules, which are mixed and panned into Out L/R. It comes with two patterns, Punch Four " +
+      "(four on the floor) and Punch Break (a broken beat).\n\n" +
+      "Press play in your host or the app: the grid follows the transport. To use another clock or start and stop it by hand, patch " +
+      "a trigger into Clock and a gate into Run. Take Out L/R to an Audio Out.\n\n" +
+      "Open the Drum Grid to switch patterns or draw your own steps, and open the mixers to rebalance the kit.") },
+    { name: "Ring Machine", category: "Drum Machines", preset: withHelp(ringMachine,
+      "A complete drum machine that plays by itself, like Punch Machine but built from the Ring drum modules, with a cowbell on the last " +
+      "track. A Drum Grid sends gates and velocities to the voices, three mixers balance and pan them, and the sum goes to Out L/R. " +
+      "Its patterns are Ring Groove (laid back) and Ring Toms (a tom beat).\n\n" +
+      "It follows the transport. Patch a trigger into Clock and a gate into Run if you want to drive it yourself, and take Out L/R " +
+      "to an Audio Out.\n\n" +
+      "Open the Drum Grid to edit the patterns, or mute and solo single tracks to play the kit in parts.") },
   ];
 })();

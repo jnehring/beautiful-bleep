@@ -15,6 +15,12 @@ function bongoGarden() {
   const p = cell("Bongo Garden", {
     description: "Random gates tossed between three pinged low pass gates, each tuned to a fresh D minor pentatonic note: a west-coast hand-drum garden that keeps shifting. Shared input Density.",
     tags: ["generative", "west coast", "percussion", "pentatonic", "low pass gate"],
+    help: "A Recall module makes random gates that a Coin Toss tosses between three pinged low pass gates. Each " +
+      "drum samples a fresh D minor pentatonic note from a Quantizer Suite, fed by Uncertainty curves. " +
+      "Drums are mixed in stereo with a send to a small reverb.\n\n" +
+      "Press play: it makes sound on its own from Out L/R. The Density input raises the gate bias of " +
+      "Recall, so more means more hits. It follows the transport.\n\n" +
+      "Tip: lower Density for a sparse pattern, and pitch the whole garden by editing the quantizer root.",
   }).input("dens", "Density").stereoOut();
   const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.42, trecall: 0.6, tloop: 16, tjitter: 0.08, sync: "1/16", seed: 7 });
   const coin = p.add("coin-toss", [0, 1], { prob1: 0.55, prob2: 0.5, memory1: 0.3, seed: 11 });
@@ -50,6 +56,12 @@ function turingStrings() {
   const p = cell("Turing Strings", {
     description: "A Shift Register melody in A Dorian plucks a string Resonator while a sine bass echoes the same bits four steps later, through a dotted-eighth delay network. Shared input Lock (frozen ↔ mutating).",
     tags: ["generative", "turing machine", "shift register", "plucked", "string", "delay"],
+    help: "A Shift Register (8 bits, A Dorian) plucks a two-voice string Resonator on its bit 1. Another bit " +
+      "triggers a sine bass through a low pass gate, so the bass echoes the melody later. A dotted-eighth " +
+      "Delay Network and a reverb finish it.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Lock input is added to the Lock knob: up freezes " +
+      "the pattern, down lets it mutate. It follows the transport.\n\n" +
+      "Tip: freeze the pattern when you like it, then ride Lock for variation.",
   }).input("lock", "Lock").stereoOut();
   const sr = p.add("shift-register", [0, 0], { lock: 0.85, length: 8, sync: "1/8", octaves: 2, root: "A", scale: "Dorian", seed: 23, gatelength: 0.4 });
   const res = p.add("resonator", [1, 0], { model: "String", polyphony: "2", frequency: -12, structure: 0.4, brightness: 0.55, damping: 0.55, position: 0.25, exciter: 0.7 });
@@ -74,6 +86,12 @@ function tapeLoopChoir() {
   const p = cell("Tape Loop Choir", {
     description: "Four soft voices of a D♭ major-seven chord, each swelling on its own free-running loop of 18 to 29 seconds so they never line up the same way twice, into a wobbling tape delay and a long hall.",
     tags: ["generative", "ambient", "eno", "tape loops", "slow"],
+    help: "Four soft voices make a D flat major seven chord. Each is gated by its own free LFO loop of 18 to 29 " +
+      "seconds, so the swells never line up the same way twice. The sum goes through a dark filter, a " +
+      "wobbling tape delay and a long hall.\n\n" +
+      "Press play: it plays on its own from Out L/R, and has no inputs. The loops run freely and are not " +
+      "tied to the tempo.\n\n" +
+      "Tip: use it as a bed under a slow lead or just as ambient background.",
   }).stereoOut();
   const voices = [  // coarse (semitones from C4), loop length (s), LFO phase, pan
     [-4, 23.3, 0, -0.6], [1, 18.1, 120, 0.3], [5, 29.1, 250, -0.2], [12, 25.7, 60, 0.65],
@@ -101,6 +119,12 @@ function windChimes() {
   const p = cell("Wind Chimes", {
     description: "Gusts of chance triggers strike two bell-like Modal Voices tuned to F major pentatonic, slow organic movement on where they are struck, in a wide reverb. Shared input Wind (more strikes).",
     tags: ["generative", "chimes", "bells", "modal", "ambient", "pentatonic"],
+    help: "A Recall module makes sparse chance triggers that strike two Modal Voices. A Quantizer Suite tunes " +
+      "each to F major pentatonic, and organic LFOs vary where on the bar they are struck. A reverb makes " +
+      "the space.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Wind input is added to the trigger bias: more " +
+      "means more chimes. It follows the transport.\n\n" +
+      "Tip: raise Wind in gusts and lower it for stillness.",
   }).input("wind", "Wind").stereoOut();
   const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.16, tjitter: 0.7, sync: "1/16", seed: 42 });
   const gust = p.add("organic-lfos", [0, 1], { rate: 0.05, spread: 0.6, drift: 0.5, seed: 5 });
@@ -131,6 +155,12 @@ function acidWeather() {
   const p = cell("Acid Weather", {
     description: "A generative techno loop: Drum Map kick, clap and hats with a touch of chaos, and a Polymeter Seq acid line in A minor through a resonant diode ladder whose cutoff drifts like weather. Shared input Cutoff.",
     tags: ["generative", "techno", "acid", "drums", "loop"],
+    help: "A Drum Map drives Punch kick, clap and hats with a touch of chaos, and a Polymeter Seq plays an A " +
+      "minor acid line through a Diode Ladder filter. A slow random LFO moves the cutoff like weather, and " +
+      "a dotted delay is on a send.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Cutoff input is added to the filter cutoff, which " +
+      "also follows the acid line envelope. It follows the transport.\n\n" +
+      "Tip: raise Cutoff slowly for a build.",
   }).input("cut", "Cutoff").stereoOut();
   const dm = p.add("drum-map", [0, 0], { x: 0.3, y: 0.6, kickdensity: 0.55, snaredensity: 0.4, hatsdensity: 0.65, chaos: 0.25, chaosrate: "Every 2 bars", swing: 0.54, seed: 17 });
   const kick = p.add("punch-kick", [1, 0], { tune: 48, decay: 0.45, drive: 0.35 });
@@ -164,6 +194,12 @@ function seasonsTurning() {
   const p = cell("Seasons Turning", {
     description: "A Harmony Master (bus D) walks a repeating loop of four D minor seventh chords, two bars each: a saw pad holds the chord tones, a plucked bass follows the chord's bass note, and a Pluck arpeggio traces the chord. Shared input Root (transposes everything).",
     tags: ["generative", "chords", "progression", "arpeggio", "harmony"],
+    help: "A Random module walks a four-step loop of chord degrees on a Harmony Master (D minor sevenths, Bus " +
+      "D). Three saw oscillators play the chord tones through a ladder filter, a plucked bass follows the " +
+      "chord's bass note, and a Pluck arpeggio is snapped to the chord via a Quantizer Suite.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Root input, a pitch, transposes the chords. It " +
+      "follows the transport.\n\n" +
+      "Tip: patch a keyboard or sequencer pitch into Root to change key.",
   }).input("root", "Root", "pitch").stereoOut();
   const walk = p.add("random", [0, 0], { sync: "2 bars", length: "4 steps", loop: 1, spread: 1, seed: 12 }, { name: "Chord Walk" });
   const hm = p.add("harmony-master", [1, 0], { source: "Manual", key: "D", scale: "Natural Minor", quality: "Diatonic Seventh",
@@ -206,6 +242,12 @@ function lichenDrone() {
   const p = cell("Lichen Drone", {
     description: "A twelve-voice Swarm on a C minor ninth, breathing through a scale-tuned Filter Bank; eight related Organic LFOs slowly move its spread, cross-FM and the bank's scan and shift. Shared input Root (pitch).",
     tags: ["generative", "drone", "ambient", "swarm", "evolving"],
+    help: "A twelve-voice Swarm plays a C minor ninth chord through a scale-tuned Filter Bank and a long " +
+      "reverb. Eight related Organic LFOs slowly move the spread, cross-FM, scan, shift and width, so the " +
+      "drone evolves.\n\n" +
+      "Press play: it plays on its own from Out L/R and is not tied to the tempo. The Root input, a pitch, " +
+      "moves the Swarm and the Filter Bank together.\n\n" +
+      "Tip: change Root slowly with a glide for drone modulations.",
   }).input("root", "Root", "pitch").stereoOut();
   const life = p.add("organic-lfos", [0, 1], { rate: 0.025, spread: 0.7, drift: 0.6, twist: 0.3, seed: 8 });
   const sw = p.add("swarm", [1, 0], { octave: -1, chord: "Minor 9", count: 12, spread: 0.45, range: 3, detune: 14, drift: 0.55,
@@ -229,6 +271,11 @@ function primeMarimba() {
   const p = cell("Prime Marimba", {
     description: "Four Modal Voice marimba bars on C minor-seventh chord tones, struck every 2, 3, 5 and 7 sixteenths; a slow random rotates which bar gets which prime, so the polyrhythm turns over every four bars.",
     tags: ["generative", "polyrhythm", "marimba", "mallets", "modal"],
+    help: "A Rotating Divider outputs triggers every 2, 3, 5 and 7 sixteenths. Each strikes a Modal Voice " +
+      "marimba bar tuned to a C minor seventh chord tone. A slow random rotates which bar gets which prime " +
+      "every four bars.\n\n" +
+      "Press play: it plays on its own from Out L/R and has no inputs. It follows the transport.\n\n" +
+      "Tip: it works well as a background layer under pads and bass.",
   }).stereoOut();
   const div = p.add("rotating-divider", [0, 1], { set: "Primes", base: "1/16", output: "Trigger", rotate: 4, sync: "Next Bar" });
   const turn = p.add("random", [0, 2], { sync: "4 bars", spread: 1, length: "8 steps", loop: 0.5, seed: 21 }, { name: "Turn" });
@@ -253,6 +300,12 @@ function pollenCloud() {
   const p = cell("Pollen Cloud", {
     description: "Sparse Lydian plucks from a Macro Osc feed Grains, which scatters them back at wandering positions, an octave or a fifth away, with feedback and blur: a slowly shimmering cloud. Shared input Density.",
     tags: ["generative", "granular", "ambient", "cloud", "shimmer"],
+    help: "Random notes on 8ths, quantized to E Lydian, are played by a plucked Macro Osc at coin-toss moments. " +
+      "Grains records the plucks and scatters them at moving positions, an octave or a fifth away, with " +
+      "feedback and blur.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Density input is added to the Grains density: more " +
+      "means a thicker cloud. It follows the transport.\n\n" +
+      "Tip: lower Density for sparse clouds with space between grains.",
   }).input("dens", "Density").stereoOut();
   const notes = p.add("random", [0, 0], { sync: "1/8", spread: 0.8, loop: 0.4, length: "16 steps", seed: 3 }, { name: "Notes" });
   const gate = p.add("coin-toss", [0, 1], { prob1: 0.35, seed: 19 });
@@ -277,6 +330,12 @@ function synapseClicks() {
   const p = cell("Synapse Clicks", {
     description: "Two Neurons firing at each other, nudged by slow organic drift, play metallic FM clicks, a modal knock, noise ticks and a rim; Bender glitches the mix and a scattered delay smears it. Shared input Excite (fires faster).",
     tags: ["generative", "glitch", "percussion", "neuron", "idm"],
+    help: "Two Neurons fire at each other. Their spikes and logic outputs trigger an FM click, a modal knock, " +
+      "noise ticks and a clave. Organic LFOs nudge them, a Bender glitches the mix and a scattered Delay " +
+      "Network smears it.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Excite input is added to one neuron, making it " +
+      "fire faster. The neurons run freely; only the Bender slices follow the transport.\n\n" +
+      "Tip: raise Excite for denser, busier rhythms.",
   }).input("exc", "Excite").stereoOut();
   const nr = p.add("neuron", [0, 0], { aw1: 0.75, bw1: 0.95, aleak: 0.2, bleak: 0.35, apulse: 0.02, bpulse: 0.02 });
   const drift = p.add("organic-lfos", [0, 1], { rate: 0.08, spread: 0.6, seed: 13 });

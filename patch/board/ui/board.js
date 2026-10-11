@@ -373,6 +373,15 @@
       pb.addEventListener("click", (ev) => { ev.stopPropagation(); cellPanels(ev, n); });
       head.appendChild(pb);
     }
+    if (isCellLike(n) && n.help && n.help.text) {
+      const hb = el("button", "n-help" + (hasPanel(n) ? "" : " first"), "?");
+      hb.title = "Help for this cell";
+      hb.setAttribute("aria-label", "Help for " + n.name);
+      hb.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+      hb.addEventListener("dblclick", (ev) => ev.stopPropagation());
+      hb.addEventListener("click", (ev) => { ev.stopPropagation(); showCellHelp(n, hb); });
+      head.appendChild(hb);
+    }
     e.appendChild(head);
     if (missingModule) {  // the module of this node is not on this machine: the node waits, with its settings, and its cables are kept
       const note = el("div", "n-missing", n.type);
@@ -884,6 +893,27 @@
     }
     applyCam();
   }, { passive: false });
+  $("navbar").addEventListener("pointerdown", (ev) => ev.stopPropagation());
+  $("navbar").addEventListener("contextmenu", (ev) => { ev.preventDefault(); ev.stopPropagation(); });
+  function navStep(what) {
+    const c = cam(), r = canvas.getBoundingClientRect(), step = 120;
+    if (what === "zoom-in" || what === "zoom-out") {
+      const z = Math.min(2, Math.max(0.2, c.z * (what === "zoom-in" ? 1.25 : 0.8)));
+      c.x = r.width / 2 - (r.width / 2 - c.x) * (z / c.z);
+      c.y = r.height / 2 - (r.height / 2 - c.y) * (z / c.z);
+      c.z = z;
+    } else {
+      if (what === "left") c.x += step;
+      if (what === "right") c.x -= step;
+      if (what === "up") c.y += step;
+      if (what === "down") c.y -= step;
+    }
+    applyCam();
+  }
+  $("navbar").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-nav]");
+    if (b) navStep(b.dataset.nav);
+  });
   const trackPointer = (ev) => {
     const r = canvas.getBoundingClientRect();
     pointer = { x: ev.clientX - r.left, y: ev.clientY - r.top };
@@ -1284,10 +1314,37 @@
       items.push({ label: "New panel", run: () => newPanel(n.id) });
       items.push({ label: "Build panel from cell", run: () => buildPanel(n.id) });
     }
+  /// The help of a cell (its `help: {text, images}` metadata, copied from the preset): paragraphs, then the images, in a popover
+  /// under the "?" button. Built from nodes: the text is never parsed as markup.
+  function showCellHelp(n, anchor) {
+    hidePopovers();
+    const pop = $("help-pop");
+    pop.innerHTML = "";
+    pop.appendChild(el("div", "h-title", n.name));
+    for (const para of n.help.text.split(/\n\s*\n/)) pop.appendChild(el("p", "", para.replace(/\s*\n\s*/g, " ")));
+    for (const im of n.help.images || []) {
+      const fig = el("figure", "h-fig");
+      const img = el("img");
+      img.src = im.src;
+      img.alt = im.alt || "";
+      img.addEventListener("error", () => fig.remove());  // a missing picture leaves the text alone
+      fig.appendChild(img);
+      if (im.caption) fig.appendChild(el("figcaption", "", im.caption));
+      pop.appendChild(fig);
+    }
+    pop.hidden = false;
+    const r = anchor.getBoundingClientRect(), host = pop.offsetParent ? pop.offsetParent.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: innerHeight };
+    const x = Math.min(r.left - host.left, Math.max(0, host.width - pop.offsetWidth - 8));
+    const y = Math.min(r.bottom - host.top + 4, Math.max(0, host.height - pop.offsetHeight - 8));
+    pop.style.left = Math.max(0, x) + "px";
+    pop.style.top = Math.max(0, y) + "px";
+  }
+
     if (isCellLike(n)) items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
     items.push("-");
+    $("help-pop").hidden = true;
     items.push({ label: "Cut", key: "⌘X", run: cut, disabled: !canDuplicate() });
     items.push({ label: "Copy", key: "⌘C", run: copy, disabled: !canDuplicate() });
     items.push({ label: "Paste", key: "⌘V", run: () => paste() });
@@ -1697,6 +1754,7 @@
         if (c.source) c.source.out = [].concat(c.source.out).map(ref);
         if (c.node) c.node = key(c.node);
         if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;
+    if (cell.help && cell.help.text) preset.help = clone(cell.help);
       }
       (b.panels || (b.panels = [])).push(q);
     }
@@ -1737,6 +1795,8 @@
     const left = path[depth];
     path = path.slice(0, depth);
     sel.clear();
+    if (preset.help && preset.help.text) root.help = clone(preset.help);
+    else delete root.help;
     if (left) sel.add(left);
     trace = null;
     closeUnpinnedViews();
@@ -2359,7 +2419,7 @@
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteSelection(); return; }
     if (e.key === "Escape") {
       if (window.BleepPresetBrowser && BleepPresetBrowser.close()) return;
-      if (!$("menu").hidden || !$("cable-pop").hidden) return hidePopovers();
+      if (!$("menu").hidden || !$("cable-pop").hidden || !$("help-pop").hidden) return hidePopovers();
       if (trace) { trace = null; return render(); }
       if (closeTopView()) return;
       if (path.length) return leaveTo(path.length - 1);
@@ -2367,6 +2427,8 @@
       return;
     }
     if (k === "f") return fit();
+    const nav = { "+": "zoom-in", "=": "zoom-in", "-": "zoom-out", ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" }[e.key];
+    if (nav) { e.preventDefault(); return navStep(nav); }
     if (k === "p" && !cmd) { const r = $("panels").getBoundingClientRect(); return panelsMenu({ clientX: r.left, clientY: r.bottom + 4 }); }
     if (k === "t") return toggleTrace();
     if (k === "m") return toggleMute();

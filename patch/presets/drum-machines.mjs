@@ -45,6 +45,12 @@ function mapWalker() {
   const p = cell("Map Walker", {
     description: "Drum Map plays a Ring kick, snare, clap and hats; move the shared X and Y inputs to travel between grooves, hold Fill for fills.",
     tags: ["drums", "drum map", "generative", "ring"],
+  help: "Drum Map holds a landscape of grooves and fires a Ring Kick, Ring Snare, Ring Clap (on the snare " +
+         "accent) and Ring Hats. The kit runs through a small mixer to Out L/R.\n\n" +
+         "Start the transport, then patch Out L/R to your output. X and Y are shared inputs, each at half " +
+         "strength into Drum Map, so an LFO or knob there moves you through the grooves. Hold a gate on Fill " +
+         "for fills.\n\n" +
+         "Tip: slow an LFO into X while Y sits still for a groove that evolves over minutes.",
   }).input("x", "X").input("y", "Y").input("fill", "Fill", "gate").stereoOut();
   const map = p.add("drum-map", [0, 1], { x: 0.3, y: 0.55, kickdensity: 0.55, snaredensity: 0.5, hatsdensity: 0.65,
                                           chaos: 0.12, swing: 0.54 });
@@ -70,6 +76,12 @@ function macroFoundry() {
   const p = cell("Macro Foundry", {
     description: "A Gate Sequencer with probabilities and ratchets plays Macro Osc's Kick, Snare and Metal models and a Perc Voice FM blip. Shared input Fill.",
     tags: ["drums", "gate sequencer", "macro osc", "synthetic"],
+  help: "A Gate Sequencer with four 32-step tracks plays three Macro Osc voices (Kick, Snare and Metal " +
+         "models) and a Perc Voice FM blip, mixed in a Kit Mixer. Some steps are coin flips, some are " +
+         "ratchets.\n\n" +
+         "Run the transport and take Out L/R to your output. The Fill input is a gate: while it is high, the " +
+         "steps marked as fill-only also play.\n\n" +
+         "Tip: send a gate to Fill every fourth bar, or tap it by hand, to get a busier last bar.",
   }).input("fill", "Fill", "gate").stereoOut();
   const seq = p.add("gate-sequencer", [0, 1], { swing: 0.53, ratchetdecay: 0.3 }, {
     data: gateTracks([
@@ -106,6 +118,12 @@ function euclidGarden() {
   const p = cell("Euclid Garden", {
     description: "Rhythm Bank's four related even rhythms play a skin, a wood block, a bar and a shaker from Perc Voices, in a small room. Shared input Pattern browses grooves.",
     tags: ["drums", "percussion", "euclidean", "rhythm bank", "organic"],
+  help: "Rhythm Bank (even family, trigger output) turns one pattern number into four related rhythms. They " +
+         "play four Perc Voices: a modal skin, a modal wood block, an FM bar and a noise shaker. The mixer " +
+         "sends a little of each to a small Room reverb.\n\n" +
+         "Run the transport and patch Out L/R. The shared Pattern input, at half strength, picks the groove: " +
+         "turn a knob or step a sequencer into it.\n\n" +
+         "Tip: change Pattern only now and then; neighbouring numbers give a related feel.",
   }).input("pat", "Pattern").stereoOut();
   const bank = p.add("rhythm-bank", [0, 1], { pattern: 37, family: "Even", output: "Trigger" });
   const skin = p.add("perc-voice", [1, 0], { engine: "Modal", pitch: 72, tone: 0.33, morph: 0.2, decay: 0.5, sweep: 0.35,
@@ -135,6 +153,12 @@ function electroPopLock() {
   const p = cell("Electro Pop-Lock", {
     description: "Drum Grid electro: syncopated Punch kick, snare and clap on the backbeat, busy hats, cowbell and a zapping tom; two patterns.",
     tags: ["drums", "electro", "808", "drum grid", "breakdance"],
+  help: "A Drum Grid with eight tracks (kick, snare, closed and open hat, clap, cowbell, zap tom, rim) " +
+         "triggers Punch drums plus a Ring Cowbell and a Ring Tom bent hard for the zap. Two patterns, Pop and " +
+         "Lock, are stored in the grid.\n\n" +
+         "Run the transport and patch Out L/R. Switch between Pop and Lock in the Drum Grid; swing is set " +
+         "slightly above straight.\n\n" +
+         "Tip: use Pop for the verse and Lock for the busier break.",
   }).stereoOut();
   const grid = p.add("drum-grid", [0, 1], { swing: 0.52 }, {
     data: drumGrid(["Kick", "Snare", "Closed Hat", "Open Hat", "Clap", "Cowbell", "Zap", "Rim"], [
@@ -177,6 +201,11 @@ function concreteMinimal() {
   const p = cell("Concrete Minimal", {
     description: "Minimal techno on a Drum Grid: a dry Punch kick, off-beat Ring hats and a syncopated rim sent into a tempo-synced dub echo and a dark room.",
     tags: ["drums", "techno", "minimal", "dub", "drum grid", "effects"],
+  help: "A Drum Grid plays a Punch kick, Ring hats (closed and open), a Ring rim and a Punch clap. The mixer " +
+         "sends mostly the rim, and some clap and hats, into a Zone Delay synced to the transport, then a dark " +
+         "Room reverb that returns to the mix.\n\n" +
+         "Run the transport and patch Out L/R. Patterns are Floor and Ceiling, picked in the Drum Grid.\n\n" +
+         "Tip: turn up the rim's send on the Kit Mixer for a deeper dub wash.",
   }).stereoOut();
   const grid = p.add("drum-grid", [0, 1], { swing: 0.55, gatelength: 0.2 }, {
     data: drumGrid(["Kick", "Closed Hat", "Open Hat", "Rim", "Clap", "Low Tom", "High Tom", "Perc"], [
@@ -211,6 +240,11 @@ function breakShredder() {
   const p = cell("Break Shredder", {
     description: "A two-bar breakbeat (kick, ghosted snare, ride) through Bender, which repeats, reverses and reshuffles slices by chance. Shared inputs Chaos and Glitch.",
     tags: ["drums", "jungle", "breakbeat", "glitch", "bender"],
+  help: "A Drum Grid plays a two-bar break (Punch kick and snare, ride, closed hats) with a Roller variation. " +
+         "The mixed kit then goes through Bender, which repeats, reverses and shuffles 1/16 slices by chance.\n\n" +
+         "Run the transport and patch Out L/R. The Chaos input, at half strength, drives Bender's chance of " +
+         "mangling a slice. Send a trigger to Glitch to force a glitch on demand.\n\n" +
+         "Tip: keep Chaos low and tap Glitch before a bar line.",
   }).input("chaos", "Chaos").input("glitch", "Glitch", "trigger").stereoOut();
   const grid = p.add("drum-grid", [0, 1], { swing: 0.52 }, {
     data: drumGrid(["Kick", "Snare", "Ride", "Closed Hat", "Clap", "Low Tom", "High Tom", "Perc"], [
@@ -244,6 +278,11 @@ function dustyTapeKit() {
   const p = cell("Dusty Tape Kit", {
     description: "Lo-fi boom-bap: a lazy swung Ring kit through a saturated ladder low-pass and a light bit crush, over a bed of tape hiss.",
     tags: ["drums", "lo-fi", "hip hop", "boom bap", "dusty"],
+  help: "A swung Drum Grid (one 32-step pattern, Nod) plays a Ring kick, snare, closed hats and rim. The mix " +
+         "passes a Ladder Tanh low-pass at about 3.8 kHz, then Bender in Crush mode, with pink noise added as " +
+         "tape hiss.\n\n" +
+         "Run the transport and patch Out L/R. There are no inputs; the sound is shaped inside the cell.\n\n" +
+         "Tip: lower the filter cutoff for a muddier sample feel, or raise Bender's mix to crush it harder.",
   }).stereoOut();
   const grid = p.add("drum-grid", [0, 1], { swing: 0.6, velocity: 0.6 }, {
     data: drumGrid(["Kick", "Snare", "Closed Hat", "Rim", "Clap", "Low Tom", "High Tom", "Perc"], [
@@ -278,6 +317,12 @@ function gearTrain() {
   const p = cell("Gear Train", {
     description: "Rotating Div turns the 16th-note clock into /2 … /7 cycles on kick, hats, conga, clave, cowbell and clap: polyrhythms that realign every four bars. Shared input Rotate.",
     tags: ["drums", "polyrhythm", "rotating divider", "percussion"],
+  help: "Rotating Div divides the clock into /2 to /7 cycles, and each cycle plays one sound: punch kick, " +
+         "hats, a modal conga, a clave, a cowbell and a clap. The cycles drift against each other and realign " +
+         "every four bars.\n\n" +
+         "Run the transport and patch Out L/R. The shared Rotate input, at a quarter strength, shifts which " +
+         "divisions feed the outputs.\n\n" +
+         "Tip: automate Rotate slowly and the polyrhythm keeps changing shape without losing the pulse.",
   }).input("rot", "Rotate").stereoOut();
   const div = p.add("rotating-divider", [0, 1], { set: "Integers", output: "Trigger", realign: "4 bars", sync: "Next Bar" });
   const kick = p.add("punch-kick", [1, 0], { tune: 50, decay: 0.5, drive: 0.25 });

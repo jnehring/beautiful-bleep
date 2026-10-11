@@ -7,6 +7,11 @@ function diodeSquelch() {
   const p = voice("Diode Squelch", {
     description: "Saw through a screaming diode ladder with a snappy filter envelope; harder notes open it further like a 303 accent, and legato notes slide. Shared input Cutoff.",
     tags: ["mono", "acid", "303", "squelch"],
+    help: "A saw into a Diode Ladder Tanh filter at 220 Hz with high resonance and a short filter " +
+      "envelope. Velocity also pushes the cutoff up, like an accent. The cell is mono with Legato mode " +
+      "and a short glide on overlapping notes.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter; sweep it by hand or with an LFO.\n\n" +
+      "Tip: play overlapping notes to hear slides, and vary velocity for accents.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.06, glidemode: "Legato only" }).input("cut", "Cutoff");
   const osc = p.add("oscillator", [0, 0], { shape: 0.67 });
   const envf = envelope(p, [0, 1], { attack: 0.001, decay: 0.18, sustain: 0, release: 0.12, velamount: 0.8 }, "Filter Env");
@@ -23,6 +28,10 @@ function abyssSub() {
   const p = voice("Abyss Sub", {
     description: "A sine an octave below the key with a whisper of triangle for audibility on small speakers, softly saturated: deep, clean sub bass.",
     tags: ["mono", "sub", "808", "deep"],
+    help: "An Oscillator one octave below the key, mostly sine with a little triangle, into a Ladder Tanh " +
+      "filter at 900 Hz with some drive. The note stays steady while held.\n\n" +
+      "Notes in, Out L/R. No shared inputs. The cell is mono with a very short glide.\n\n" +
+      "Tip: play in the lowest octaves and keep other instruments out of that range.",
   }).settings({ voices: 1, mode: "Mono", glide: 0.03 });
   const osc = p.add("oscillator", [0, 0], { octave: "-1", shape: 0 });
   const flt = p.add("filter", [1, 0], { cutoff: 900, resonance: 0, drive: 0.25, keytrack: 0.5, type: "Ladder Tanh" });
@@ -37,6 +46,11 @@ function reesePressure() {
   const p = voice("Reese Pressure", {
     description: "Dual Osc saws detuned 14 cents apart into a ladder whose cutoff drifts on a slow LFO and opens with aftertouch: the rolling drum-and-bass reese. Shared input Cutoff.",
     tags: ["mono", "reese", "dnb", "detuned", "dark"],
+    help: "A Dual Osc with two saws detuned against each other into a Ladder Tanh filter. A slow Drift LFO " +
+      "moves the cutoff, and aftertouch (pressure) opens it further. Notes are mono and legato with a " +
+      "short glide.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
+      "Tip: hold long notes so the beating between the saws and the LFO has time to roll.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.08 }).input("cut", "Cutoff");
   const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, shapeB: 0.67, octaveB: 0, fineA: -7, fineB: 7, balance: 0.5, drift: 0.3, width: 0.6 });
   const lfo = p.add("lfo", [0, 1], { rate: 0.18 }, { name: "Drift LFO" });
@@ -53,6 +67,11 @@ function ratioThump() {
   const p = voice("Ratio Thump", {
     description: "Macro Osc in FM mode: a 1:1 modulator whose index snaps down after each attack, with a little feedback grit. Punchy, woody digital bass. Shared input Index.",
     tags: ["mono", "fm", "digital", "punchy"],
+    help: "A Macro Osc in FM mode. An envelope moves its Shape (the FM index) up at the start of each note " +
+      "and lets it fall, which gives a punchy, woody thump. Mono, with no glide.\n\n" +
+      "Notes in, Out L/R. The shared input Index adds to the same FM index, so patch a knob or LFO " +
+      "there for brighter or growlier notes.\n\n" +
+      "Tip: short, staccato notes give the sharpest attack.",
   }).settings({ voices: 1, mode: "Mono", glide: 0 }).input("idx", "Index");
   const fm = p.add("macro-osc", [0, 0], { model: "FM", tone: 0.15, shape: 0.15, blend: 0.2, level: 0.8 });
   const envi = envelope(p, [0, 1], { attack: 0.001, decay: 0.15, sustain: 0.1, release: 0.1, velamount: 0.7 }, "Index Env");
@@ -66,6 +85,12 @@ function foldGrowl() {
   const p = voice("Fold Growl", {
     description: "The Folder's internal sine folded hard on every attack and by aftertouch, rounded off by a ladder: a snarling, West Coast growl bass. Shared input Fold.",
     tags: ["mono", "wavefolder", "growl", "west coast"],
+    help: "The Wavefolder's own internal oscillator is folded harder at the start of each note by an " +
+      "envelope and by aftertouch, then smoothed by a Ladder Tanh filter at 1.4 kHz. Mono, legato, " +
+      "short glide.\n\n" +
+      "Notes in, Out L/R. The shared input Fold adds to the fold amount, so a knob or LFO there makes " +
+      "the growl more or less aggressive.\n\n" +
+      "Tip: slide between notes and lean on the key for pressure to push the fold.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.05 }).input("fold", "Fold");
   const wf = p.add("wavefolder", [0, 0], { fold: 0.25, symmetry: 0.15, wave: 0.2, spread: 0.2, source: "Internal", level: 0.8 });
   const envw = envelope(p, [0, 1], { attack: 0.002, decay: 0.35, sustain: 0.3, release: 0.2, velamount: 0.6 }, "Fold Env");
@@ -81,6 +106,11 @@ function pocketPluck() {
   const p = voice("Pocket Pluck", {
     description: "Narrow pulse and sub square through a saturating state-variable low-pass with a short, velocity-sensitive pluck: a round funk and house bass.",
     tags: ["mono", "analog", "pluck", "funk", "house"],
+    help: "A narrow pulse wave (pulse width 0.3) and its sub oscillator mixed into an SVF Saturating " +
+      "(Rough) low-pass at 260 Hz. A short filter envelope, scaled by velocity, plucks it open on each " +
+      "note.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter. The cell is mono.\n\n" +
+      "Tip: short notes with varied velocity give a funky, bouncing line.",
   }).settings({ voices: 1, mode: "Mono" }).input("cut", "Cutoff");
   const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.3 });
   const envf = envelope(p, [0, 1], { attack: 0.001, decay: 0.22, sustain: 0.05, release: 0.1, velamount: 0.7 }, "Filter Env");
@@ -96,6 +126,11 @@ function eighthWobble() {
   const p = voice("Eighth Wobble", {
     description: "Wavetable Osc on the FM bank with a sub, through a resonant ladder whose cutoff wobbles in eighth notes with the transport. Shared inputs Cutoff and Table.",
     tags: ["mono", "wobble", "dubstep", "wavetable", "tempo"],
+    help: "A Wavetable Osc on the FM bank with a sub, into a resonant Ladder Hyperbolic filter at 180 Hz. " +
+      "A triangle LFO synced to 1/8 notes moves the cutoff, so it wobbles with the tempo.\n\n" +
+      "Notes in, Out L/R. Cutoff moves the filter and Table moves the wavetable X position. The LFO " +
+      "follows the transport; patch a clock into the cell's Clock input to override that.\n\n" +
+      "Tip: hold single low notes and turn Table for different wobble timbres.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.04 }).input("cut", "Cutoff").input("tbl", "Table");
   const wt = p.add("wavetable-osc", [0, 0], { bank: "FM", x: 0.35, y: 0.4, subLevel: 0.5, stereo: 0.1 });
   const lfo = p.add("lfo", [0, 1], { rate: 4, sync: "1/8", wave: "Triangle" }, { name: "Wobble LFO" });
@@ -111,6 +146,11 @@ function talkboxLow() {
   const p = voice("Talkbox Low", {
     description: "Formant Osc an octave down with its resonant peak swept by an envelope and pressure, so each note says \"yow\": a talking, vocal bass. Shared input Formant.",
     tags: ["mono", "formant", "talking", "vocal", "funk"],
+    help: "A Formant Osc one octave down whose formant peak is swept by an envelope on each note and by " +
+      "aftertouch, giving a talking \"yow\" shape. Mono, legato, with a glide of 0.07.\n\n" +
+      "Notes in, Out L/R. The shared input Formant moves the peak, so a knob or LFO there changes the " +
+      "vowel colour.\n\n" +
+      "Tip: play short funk lines and slide between notes.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.07 }).input("fmt", "Formant");
   const fo = p.add("formant-osc", [0, 0], { octave: -1, formant: 0.5, narrow: 0.6, body: 0.8, spread: 0.2 });
   const envf = envelope(p, [0, 1], { attack: 0.03, decay: 0.3, sustain: 0.2, release: 0.2, velamount: 0.6 }, "Formant Env");
@@ -125,6 +165,12 @@ function tornSync() {
   const p = voice("Torn Sync Bass", {
     description: "Dual Osc hard-synced to a core an octave below; an envelope tears the synced core's pitch down on every note, under a driven low-pass. Shared input Sync Sweep.",
     tags: ["mono", "sync", "aggressive", "electro"],
+    help: "A Dual Osc with hard sync on and both oscillators an octave down. An envelope drops the synced " +
+      "oscillator's pitch tuning on every note, which tears the tone, then a Ladder Nonlinear Stages " +
+      "filter at 2.2 kHz with drive.\n\n" +
+      "Notes in, Out L/R. The shared input Sync Sweep adds to the same tuning, so turning it changes " +
+      "how bright and metallic the sync sounds.\n\n" +
+      "Tip: sweep Sync Sweep slowly while holding a note.",
   }).settings({ voices: 1, mode: "Mono", glide: 0.02 }).input("sweep", "Sync Sweep");
   const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, shapeB: 1, octaveA: -1, octaveB: -1, sync: 1, balance: 0.2, tuneA: 3 });
   const envs = envelope(p, [0, 1], { attack: 0.001, decay: 0.25, sustain: 0.05, release: 0.1, velamount: 0.6 }, "Sync Env");
@@ -140,6 +186,12 @@ function vactrolRubber() {
   const p = voice("Vactrol Rubber", {
     description: "A slightly FM'd triangle pinged through a Low Pass Gate and held open by the gate: rubbery, bouncy bass that darkens as it fades, no envelope needed.",
     tags: ["lpg", "rubber", "west coast", "pluck"],
+    help: "A triangle Oscillator with a little FM from a sine one octave above, going through a Low Pass " +
+      "Gate. Each note triggers a ping and the gate level stays open while held, so the sound closes " +
+      "and darkens like a vactrol. There is no separate envelope. Two voices, Poly mode.\n\n" +
+      "Notes in, Out L/R. No shared inputs.\n\n" +
+      "Tip: short notes give rubbery plucks, held notes stay open longer; harder velocity opens the " +
+      "gate more.",
   }).settings({ voices: 2, mode: "Poly" });
   const osc = p.add("oscillator", [0, 0], { shape: 0.33, fm: 0.12 }, { name: "Carrier" });
   const mod = p.add("oscillator", [0, 1], { shape: 0, octave: "+1" }, { name: "Modulator" });

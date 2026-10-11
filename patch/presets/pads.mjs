@@ -7,6 +7,11 @@ function velvetStrings() {
   const p = voice("Velvet Strings", {
     description: "Two saws a few cents apart, each voice drifting at its own rate, into a soft ladder that swells open: a lush analog string pad. Shared input Cutoff.",
     tags: ["pad", "strings", "analog", "lush"],
+    help: "Two saws detuned by -8 and +8 cents, with a drifting LFO on the second one and different drift " +
+      "rates for each voice. They feed a Ladder Linear filter at 900 Hz that a slow envelope swells " +
+      "open. Eight voices.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
+      "Tip: play slow chords and let the attack swell in, then raise Cutoff for a brighter section.",
   }).settings({ voices: 8, spread: 0.6 }).input("cut", "Cutoff");
   const o1 = p.add("oscillator", [0, 0], { fine: -8 }, { name: "Saw 1" });
   const o2 = p.add("oscillator", [0, 1], { fine: 8 }, { name: "Saw 2" });
@@ -26,6 +31,11 @@ function swarmNebula() {
   const p = voice("Swarm Nebula", {
     description: "Ten Swarm oscillators bloom from unison into stacked fifths while Organic LFOs breathe on spread, warp and filter: a wide, living cloud. Shared input Bloom.",
     tags: ["pad", "cloud", "wide", "evolving"],
+    help: "A Swarm of ten oscillators in Fifths mode, with long glide so the stack blooms out of unison. " +
+      "Organic LFOs modulate spread, warp and filter cutoff slowly, and every new note reshuffles the " +
+      "Swarm. An SVF Multimode filter at 2.6 kHz follows.\n\n" +
+      "Notes in, Out L/R. The shared input Bloom adds to the Swarm's spread.\n\n" +
+      "Tip: hold one chord for a while and move Bloom.",
   }).settings({ voices: 6, spread: 0.3 }).input("bloom", "Bloom");
   const sw = p.add("swarm", [0, 0], { chord: "Fifths", count: 10, spread: 0.45, detune: 14, drift: 0.5, width: 1, glide: 1.5, crossfm: 0.04 });
   const org = p.add("organic-lfos", [0, 1], { rate: 0.08, spread: 0.6, drift: 0.4 });
@@ -42,6 +52,11 @@ function aetherChoir() {
   const p = voice("Aether Choir", {
     description: "Additive Osc with a chorus on its partials and a comb that sweeps slowly through them, differently per voice: an airy organ-choir. Shared input Air.",
     tags: ["pad", "choir", "additive", "airy"],
+    help: "An Additive Osc with 24 partials, a chorus on the partials and a comb filter whose phase is " +
+      "swept by a slow LFO, different for each voice. It sounds like an airy organ-choir. Eight " +
+      "voices.\n\n" +
+      "Notes in, Out L/R. The shared input Air adds to both the spectral tilt and the chorus amount.\n\n" +
+      "Tip: play wide chords and move Air for more chorus and brightness.",
   }).settings({ voices: 8, spread: 0.4 }).input("air", "Air");
   const add = p.add("additive-osc", [0, 0], { partials: 24, tilt: -6, oddEven: 0.25, comb: 0.5, combSpacing: 5,
     chorus: 18, chorusRate: 0.4, width: 0.7 });
@@ -58,6 +73,11 @@ function tidalTables() {
   const p = voice("Tidal Tables", {
     description: "Wavetable Osc on the Spectra bank, scanned along a spiral by a slow tide LFO and offset per voice, through a gentle ladder. Shared input Scan.",
     tags: ["pad", "wavetable", "morphing", "digital"],
+    help: "A Wavetable Osc on the Spectra bank, scanned along a Spiral path by a very slow LFO. Each voice " +
+      "is offset a little by its random value. A Ladder Linear filter at 4.2 kHz follows.\n\n" +
+      "Notes in, Out L/R. The shared input Scan adds to the scan position, so a knob or LFO there " +
+      "changes which part of the table you hear.\n\n" +
+      "Tip: hold a chord for a minute and slowly turn Scan.",
   }).settings({ voices: 8, spread: 0.5 }).input("scan", "Scan");
   const wt = p.add("wavetable-osc", [0, 0], { bank: "Spectra", path: "Spiral", scan: 0.3, stereo: 0.3, subLevel: 0.15 });
   const tide = p.add("lfo", [0, 1], { rate: 0.05, wave: "Triangle" }, { name: "Tide" });
@@ -73,6 +93,10 @@ function monasteryVowels() {
   const p = voice("Monastery Vowels", {
     description: "Macro Osc's Vowel model: each voice drifts through its own vowels with a slow vibrato fading in, a little breath on top: a formant choir. Shared input Vowel.",
     tags: ["pad", "choir", "formant", "vocal"],
+    help: "A Macro Osc in Vowel mode. A slow random LFO drifts each voice's vowel, with a vibrato that " +
+      "fades in and a 1-Pole Low-pass at 5.5 kHz. Eight voices spread wide.\n\n" +
+      "Notes in, Out L/R. The shared input Vowel adds to the vowel position of all voices.\n\n" +
+      "Tip: play open chords and raise Vowel to change the vowel.",
   }).settings({ voices: 8, spread: 0.7 }).input("vowel", "Vowel");
   const mo = p.add("macro-osc", [0, 0], { model: "Vowel", tone: 0.35, shape: 0.6, blend: 0.15, level: 0.7 });
   const drift = p.add("lfo", [0, 1], { rate: 0.09, wave: "Random Smooth" }, { name: "Vowel Drift" });
@@ -90,6 +114,11 @@ function pulseWidthHaze() {
   const p = voice("Pulse Width Haze", {
     description: "Two pulse waves whose widths sweep in opposite phase, at a slightly different speed per voice, into a warm ladder: a shimmering PWM pad. Shared input Cutoff.",
     tags: ["pad", "pwm", "analog", "vintage"],
+    help: "Two pulse Oscillators detuned by -4 and +4 cents. One LFO sweeps their widths in opposite " +
+      "directions, with a slightly different speed per voice. A Ladder Tanh filter at 1.4 kHz follows. " +
+      "Eight voices.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
+      "Tip: play a held chord, and slowly raise Cutoff to hear the PWM shimmer open up.",
   }).settings({ voices: 8, spread: 0.7 }).input("cut", "Cutoff");
   const o1 = p.add("oscillator", [0, 0], { shape: 1, fine: -4 }, { name: "Pulse 1" });
   const o2 = p.add("oscillator", [0, 1], { shape: 1, fine: 4 }, { name: "Pulse 2" });
@@ -108,6 +137,11 @@ function abyssalDrone() {
   const p = voice("Abyssal Drone", {
     description: "Dual Osc saw over a triangle an octave down, lightly folded, into a low resonant ladder that Organic LFOs open and close over many seconds: a dark drone. Shared input Cutoff.",
     tags: ["pad", "drone", "dark", "ambient"],
+    help: "A Dual Osc with a saw and a triangle one octave down, lightly folded, into a low resonant " +
+      "Ladder Tanh filter at 260 Hz. Organic LFOs move the fold and cutoff over many seconds. Attack " +
+      "and release are very long.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
+      "Tip: hold one or two low notes and leave it running; raise Cutoff for more movement.",
   }).settings({ voices: 4, spread: 0.5 }).input("cut", "Cutoff");
   const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, shapeB: 0.33, octaveB: -1, balance: 0.5, fold: 0.15, drift: 0.4, width: 0.6 });
   const org = p.add("organic-lfos", [0, 1], { rate: 0.03, spread: 0.4, drift: 0.5 });
@@ -124,6 +158,11 @@ function bowedCrystal() {
   const p = voice("Bowed Crystal", {
     description: "Modal Voice bows an inharmonic glass body that swells in after a soft mallet ting; a slow LFO wanders the bow position and aftertouch bows harder. Shared input Brightness.",
     tags: ["pad", "glassy", "bell", "physical"],
+    help: "A Modal Voice bows an inharmonic glass-like body, with a soft mallet strike at note start. A " +
+      "slow LFO moves the bow position and aftertouch bows harder. The Modal Voice has its own " +
+      "envelope, so there is no ADSR in the patch.\n\n" +
+      "Notes in, Out L/R. The shared input Brightness adds to the Modal Voice brightness.\n\n" +
+      "Tip: hold a note for a few seconds to hear the bow swell, then lean on the key.",
   }).settings({ voices: 8, spread: 0.6 }).input("bright", "Brightness");
   const mv = p.add("modal-voice", [1, 0], { bow: 0.65, bowTimbre: 0.3, strike: 0.25, strikeTimbre: 0.2, contour: 0.1,
     geometry: 0.85, brightness: 0.7, damping: 0.25, position: 0.3, space: 0 });
@@ -140,6 +179,11 @@ function satinSevenths() {
   const p = voice("Satin Sevenths", {
     description: "Chord Osc spreads an open major seventh over the stereo field with a chorus-like detune, through a phaser that sweeps slowly: an ensemble pad for one-finger chords. Shared input Cutoff.",
     tags: ["pad", "chords", "ensemble", "lush"],
+    help: "A Chord Osc plays an open Major 7 chord from each key, detuned and spread in stereo. It passes " +
+      "through a slowly swept Phaser and a Ladder Linear low-pass at 3.5 kHz. Four voices.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the final low-pass.\n\n" +
+      "Tip: play single notes for instant chords and raise " +
+      "Cutoff to open the sound up.",
   }).settings({ voices: 4 }).input("cut", "Cutoff");
   const chord = p.add("chord-osc", [0, 0], { chord: "Major 7", voices: 4, voicing: "Open", detune: 12, stereo: 0.8, shape: 0.6 });
   const sweep = p.add("lfo", [0, 1], { rate: 0.12, wave: "Triangle" }, { name: "Phaser Sweep" });
@@ -156,6 +200,12 @@ function desertWind() {
   const p = voice("Desert Wind", {
     description: "Pink noise through a pair of resonant band-passes tuned to the note, gusting and turning as Organic LFOs move them: a pitched wind texture. Shared input Howl (resonance).",
     tags: ["pad", "texture", "noise", "wind"],
+    help: "Pink Noise through a Dual Filter, two resonant band-passes in parallel, tuned to the note " +
+      "pitch. Organic LFOs move the cutoff and the gap between the bands, and a second pass gusts the " +
+      "level.\n\n" +
+      "Notes in, Out L/R. The shared input Howl adds to the resonance of both bands, so higher values " +
+      "make the pitch clearer.\n\n" +
+      "Tip: hold one note and raise Howl until a whistling tone appears.",
   }).settings({ voices: 6, spread: 0.8 }).input("howl", "Howl");
   const nz = p.add("noise", [0, 0], { colour: -0.3 });
   const org = p.add("organic-lfos", [0, 1], { rate: 0.15, spread: 0.7, drift: 0.6 });

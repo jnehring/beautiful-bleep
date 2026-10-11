@@ -8,6 +8,10 @@ function liveTestVerb() {
   const p = cell("Live Test: Verb", {
     description: "A pentatonic melody that plays with the transport, through Verb (medium room). Move Size, Decay and Mix while it plays; Mix at 100 % leaves only the tail.",
     tags: ["test", "reverb"],
+    help: "A Step Sequencer plays a C major pentatonic melody with the transport, through an Oscillator and the Verb module. " +
+      "It has no inputs; take Out L/R.\n\n" +
+      "Press play in the host and the melody starts. Open the cell to change the Verb's Size, Decay and Mix.\n\n" +
+      "Tip: set Mix to 100 % to hear only the tail.",
   }).stereoOut();
   const m = melody(p, [0, 0], [0, ".", 7, ".", 4, 9, ".", 2], { rate: "1/8", shape: 0.4, root: "C", scale: "Major Pentatonic",
     env: { attack: 0.005, decay: 0.3, sustain: 0.1, release: 0.3 } });

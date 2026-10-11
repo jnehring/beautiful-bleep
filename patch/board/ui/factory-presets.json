@@ -30,6 +30,7 @@
         "category": "Synthesizers",
         "description": "Two saws detuned ±7 cents into a saturating transistor ladder, with a soft filter envelope and slow release.",
         "tags": ["poly","analog","warm","chords"],
+        "help": {"text":"Two Oscillators (saws) detuned by -7 and +7 cents feed a Ladder Tanh filter at 700 Hz with a little drive. A filter envelope opens it on each note and the amp release is slow.\n\nPatch a keyboard or sequencer into Notes in and take Out L/R. Cutoff (shared input) moves the filter, so an LFO or knob there makes it breathe.\n\nTip: play wide chords; the 8 voices are spread across the stereo field."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Warm Saws","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.4},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -75,6 +76,7 @@
         "category": "Synthesizers",
         "description": "Square wave and sub octave through a 1-pole low-pass, organ-style on/off envelope and a shared vibrato LFO.",
         "tags": ["poly","organ","keys","vintage"],
+        "help": {"text":"A square Oscillator plus its sub-octave go through a 1-Pole Low-pass at 3.2 kHz. The amp envelope is organ-style (instant attack, full sustain, short release) and a Vibrato LFO at 6.2 Hz fades in on pitch.\n\nPlay Notes in, take Out L/R. There are no shared inputs; the vibrato is built in and applies to every voice.\n\nTip: velocity does not change the level here, so play it like a drawbar organ and balance it with a mixer after Out L/R."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Combo Organ","x":0,"y":0,"parent":"","params":{"voices":0.6},"inputs":[],"outputs":[]},
@@ -114,6 +116,7 @@
         "category": "Synthesizers",
         "description": "Detuned saw pair from Dual Osc into a ladder whose envelope swells in with the notes: synth brass stabs and swells.",
         "tags": ["poly","brass","analog","stabs"],
+        "help": {"text":"A Dual Osc gives two saws, the second 9 cents sharp, with a little drift, into a Ladder Tanh filter. A filter envelope with a 70 ms attack makes each note swell open like a brass stab.\n\nNotes in, Out L/R. No shared inputs. Harder velocity opens the filter further, so the playing dynamics change the brightness.\n\nTip: play short, hard chords for stabs, or hold notes and let the filter settle for a section sound."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Brass Section","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[],"outputs":[]},
@@ -155,6 +158,7 @@
         "category": "Synthesizers",
         "description": "Wavetable Osc on the Digital bank: each note sweeps through the table, a stereo-detuned bright poly. Shared input Position.",
         "tags": ["poly","wavetable","digital","bright"],
+        "help": {"text":"A Wavetable Osc on the Digital bank. An envelope sweeps its X position on every note, so each one starts at one timbre and travels through the table. Stereo detune widens it, and a filter at 9 kHz sits behind it.\n\nNotes in, Out L/R. The shared input Position moves the table's Y axis, so patch a LFO, knob or sequencer there to change which part of the table the sweep plays.\n\nTip: slowly modulate Position for a different tone each bar."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Table Sweep","x":0,"y":0,"parent":"","params":{"voices":0.466667},"inputs":[{"id":"pos","name":"Position","type":"control"}],"outputs":[]},
@@ -197,6 +201,7 @@
         "category": "Synthesizers",
         "description": "Dual Osc as a two-operator FM piano: a sine modulator an octave up whose index decays with each note, harder with velocity.",
         "tags": ["poly","fm","keys","electric piano"],
+        "help": {"text":"A Dual Osc as two-operator FM: a sine carrier with a sine modulator one octave up. An envelope raises the FM depth at the start of each note and lets it fall, which gives the bell-like tine attack and mellow tail.\n\nNotes in, Out L/R. No shared inputs. The amp and index envelopes both respond to velocity.\n\nTip: play softly for a clean tone, hard for a bright, clangy attack."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"FM Tines","x":0,"y":0,"parent":"","params":{"voices":0.6},"inputs":[],"outputs":[]},
@@ -234,6 +239,7 @@
         "category": "Synthesizers",
         "description": "Chord Osc stacks a minor seventh on every key into a resonant low-pass with a short envelope: dub-techno chord stabs.",
         "tags": ["poly","chords","stabs","dub","techno"],
+        "help": {"text":"A Chord Osc plays a Minor 7 chord (Drop 2 voicing, 4 notes) from every key, slightly detuned and spread in stereo, into a resonant SVF Multimode filter at 380 Hz. A short filter envelope plucks it open.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter, so a knob or LFO there gives the classic filter-swept dub stab.\n\nTip: play single notes and send Out L/R into a delay or reverb."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Dub Chords","x":0,"y":0,"parent":"","params":{"voices":0.2},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -276,6 +282,7 @@
         "category": "Synthesizers",
         "description": "Formant Osc whose resonant peak glides up with each note and settles: glassy, vocal keys with stereo spread.",
         "tags": ["poly","formant","vocal","glassy"],
+        "help": {"text":"A Formant Osc whose formant peak is pushed up by an envelope at each note and then settles back. The result is a vocal, glassy tone, spread in stereo, with a slow release.\n\nNotes in, Out L/R. No shared inputs. The cell's own Formant Env sets the sweep; velocity and sustain shape the amp.\n\nTip: hold chords in the middle of the keyboard, where the formant sounds the most voice-like."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Glass Voice","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[],"outputs":[]},
@@ -314,6 +321,7 @@
         "category": "Synthesizers",
         "description": "Macro Osc in Phase Warp: each note starts bright and relaxes towards a sine, like a phase-distortion digital keyboard.",
         "tags": ["poly","digital","keys","phase distortion"],
+        "help": {"text":"A Macro Osc in Phase Warp mode, in the style of phase-distortion synths. An envelope raises the tone and shape on each note, so it starts bright and relaxes towards a plain sine.\n\nNotes in, Out L/R. No shared inputs. Velocity scales how much the envelope warps the wave.\n\nTip: play hard for a sharp, metallic attack and soft for a nearly pure tone."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Phase Warp Keys","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[],"outputs":[]},
@@ -352,6 +360,7 @@
         "category": "Synthesizers",
         "description": "Swarm in unison: eight drifting, detuned oscillators per note spread across the stereo field, through a bright low-pass.",
         "tags": ["poly","supersaw","trance","wide"],
+        "help": {"text":"A Swarm in Unison mode stacks eight drifting saws per note, detuned by 22 cents and spread across the stereo field, then an SVF Multimode low-pass at 5 kHz.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter, so a knob or LFO there closes and opens the sound.\n\nTip: play simple octaves or fifths. With six voices the stack gets thick quickly."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Hyper Saw","x":0,"y":0,"parent":"","params":{"voices":0.333333},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -389,6 +398,7 @@
         "category": "Basses",
         "description": "Saw through a screaming diode ladder with a snappy filter envelope; harder notes open it further like a 303 accent, and legato notes slide. Shared input Cutoff.",
         "tags": ["mono","acid","303","squelch"],
+        "help": {"text":"A saw into a Diode Ladder Tanh filter at 220 Hz with high resonance and a short filter envelope. Velocity also pushes the cutoff up, like an accent. The cell is mono with Legato mode and a short glide on overlapping notes.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter; sweep it by hand or with an LFO.\n\nTip: play overlapping notes to hear slides, and vary velocity for accents."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Diode Squelch","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.385811,"glidemode":1},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -432,6 +442,7 @@
         "category": "Basses",
         "description": "A sine an octave below the key with a whisper of triangle for audibility on small speakers, softly saturated: deep, clean sub bass.",
         "tags": ["mono","sub","808","deep"],
+        "help": {"text":"An Oscillator one octave below the key, mostly sine with a little triangle, into a Ladder Tanh filter at 900 Hz with some drive. The note stays steady while held.\n\nNotes in, Out L/R. No shared inputs. The cell is mono with a very short glide.\n\nTip: play in the lowest octaves and keep other instruments out of that range."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Abyss Sub","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0.332316},"inputs":[],"outputs":[]},
@@ -469,6 +480,7 @@
         "category": "Basses",
         "description": "Dual Osc saws detuned 14 cents apart into a ladder whose cutoff drifts on a slow LFO and opens with aftertouch: the rolling drum-and-bass reese. Shared input Cutoff.",
         "tags": ["mono","reese","dnb","detuned","dark"],
+        "help": {"text":"A Dual Osc with two saws detuned against each other into a Ladder Tanh filter. A slow Drift LFO moves the cutoff, and aftertouch (pressure) opens it further. Notes are mono and legato with a short glide.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter.\n\nTip: hold long notes so the beating between the saws and the LFO has time to roll."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Reese Pressure","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.410467},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -510,6 +522,7 @@
         "category": "Basses",
         "description": "Macro Osc in FM mode: a 1:1 modulator whose index snaps down after each attack, with a little feedback grit. Punchy, woody digital bass. Shared input Index.",
         "tags": ["mono","fm","digital","punchy"],
+        "help": {"text":"A Macro Osc in FM mode. An envelope moves its Shape (the FM index) up at the start of each note and lets it fall, which gives a punchy, woody thump. Mono, with no glide.\n\nNotes in, Out L/R. The shared input Index adds to the same FM index, so patch a knob or LFO there for brighter or growlier notes.\n\nTip: short, staccato notes give the sharpest attack."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Ratio Thump","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0},"inputs":[{"id":"idx","name":"Index","type":"control"}],"outputs":[]},
@@ -548,6 +561,7 @@
         "category": "Basses",
         "description": "The Folder's internal sine folded hard on every attack and by aftertouch, rounded off by a ladder: a snarling, West Coast growl bass. Shared input Fold.",
         "tags": ["mono","wavefolder","growl","west coast"],
+        "help": {"text":"The Wavefolder's own internal oscillator is folded harder at the start of each note by an envelope and by aftertouch, then smoothed by a Ladder Tanh filter at 1.4 kHz. Mono, legato, short glide.\n\nNotes in, Out L/R. The shared input Fold adds to the fold amount, so a knob or LFO there makes the growl more or less aggressive.\n\nTip: slide between notes and lean on the key for pressure to push the fold."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Fold Growl","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.370957},"inputs":[{"id":"fold","name":"Fold","type":"control"}],"outputs":[]},
@@ -592,6 +606,7 @@
         "category": "Basses",
         "description": "Narrow pulse and sub square through a saturating state-variable low-pass with a short, velocity-sensitive pluck: a round funk and house bass.",
         "tags": ["mono","analog","pluck","funk","house"],
+        "help": {"text":"A narrow pulse wave (pulse width 0.3) and its sub oscillator mixed into an SVF Saturating (Rough) low-pass at 260 Hz. A short filter envelope, scaled by velocity, plucks it open on each note.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter. The cell is mono.\n\nTip: short notes with varied velocity give a funky, bouncing line."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Pocket Pluck","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -635,6 +650,7 @@
         "category": "Basses",
         "description": "Wavetable Osc on the FM bank with a sub, through a resonant ladder whose cutoff wobbles in eighth notes with the transport. Shared inputs Cutoff and Table.",
         "tags": ["mono","wobble","dubstep","wavetable","tempo"],
+        "help": {"text":"A Wavetable Osc on the FM bank with a sub, into a resonant Ladder Hyperbolic filter at 180 Hz. A triangle LFO synced to 1/8 notes moves the cutoff, so it wobbles with the tempo.\n\nNotes in, Out L/R. Cutoff moves the filter and Table moves the wavetable X position. The LFO follows the transport; patch a clock into the cell's Clock input to override that.\n\nTip: hold single low notes and turn Table for different wobble timbres."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Eighth Wobble","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.353553},"inputs":[{"id":"cut","name":"Cutoff","type":"control"},{"id":"tbl","name":"Table","type":"control"}],"outputs":[]},
@@ -676,6 +692,7 @@
         "category": "Basses",
         "description": "Formant Osc an octave down with its resonant peak swept by an envelope and pressure, so each note says \"yow\": a talking, vocal bass. Shared input Formant.",
         "tags": ["mono","formant","talking","vocal","funk"],
+        "help": {"text":"A Formant Osc one octave down whose formant peak is swept by an envelope on each note and by aftertouch, giving a talking \"yow\" shape. Mono, legato, with a glide of 0.07.\n\nNotes in, Out L/R. The shared input Formant moves the peak, so a knob or LFO there changes the vowel colour.\n\nTip: play short funk lines and slide between notes."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Talkbox Low","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.398832},"inputs":[{"id":"fmt","name":"Formant","type":"control"}],"outputs":[]},
@@ -716,6 +733,7 @@
         "category": "Basses",
         "description": "Dual Osc hard-synced to a core an octave below; an envelope tears the synced core's pitch down on every note, under a driven low-pass. Shared input Sync Sweep.",
         "tags": ["mono","sync","aggressive","electro"],
+        "help": {"text":"A Dual Osc with hard sync on and both oscillators an octave down. An envelope drops the synced oscillator's pitch tuning on every note, which tears the tone, then a Ladder Nonlinear Stages filter at 2.2 kHz with drive.\n\nNotes in, Out L/R. The shared input Sync Sweep adds to the same tuning, so turning it changes how bright and metallic the sync sounds.\n\nTip: sweep Sync Sweep slowly while holding a note."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Torn Sync Bass","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0.304531},"inputs":[{"id":"sweep","name":"Sync Sweep","type":"control"}],"outputs":[]},
@@ -758,6 +776,7 @@
         "category": "Basses",
         "description": "A slightly FM'd triangle pinged through a Low Pass Gate and held open by the gate: rubbery, bouncy bass that darkens as it fades, no envelope needed.",
         "tags": ["lpg","rubber","west coast","pluck"],
+        "help": {"text":"A triangle Oscillator with a little FM from a sine one octave above, going through a Low Pass Gate. Each note triggers a ping and the gate level stays open while held, so the sound closes and darkens like a vactrol. There is no separate envelope. Two voices, Poly mode.\n\nNotes in, Out L/R. No shared inputs.\n\nTip: short notes give rubbery plucks, held notes stay open longer; harder velocity opens the gate more."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vactrol Rubber","x":0,"y":0,"parent":"","params":{"voices":0.066667,"mode":0},"inputs":[],"outputs":[]},
@@ -792,6 +811,7 @@
         "category": "Leads",
         "description": "Two slightly detuned saws into a warm ladder with a vibrato that fades in on held notes; legato notes glide. Shared inputs Cutoff and Bend (±2 semitones).",
         "tags": ["mono","lead","analog","vibrato","classic"],
+        "help": {"text":"Two saws detuned by -5 and +5 cents into a Ladder Tanh filter at 1.1 kHz. A Vibrato LFO at 5.6 Hz fades in over a held note. Mono, legato, with glide on overlapping notes.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter. Bend bends the pitch of both saws by up to 2 semitones, so patch a pitch-bend source there.\n\nTip: hold notes for a moment before the vibrato blooms, and play legato to hear the glide."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vibrato Bloom","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.370957,"glidemode":1},"inputs":[{"id":"cut","name":"Cutoff","type":"control"},{"id":"bend","name":"Bend","type":"control"}],"outputs":[]},
@@ -842,6 +862,7 @@
         "category": "Leads",
         "description": "A slowly swept PWM square whose width and brightness follow aftertouch; the shared Mod input adds vibrato depth, as a mod wheel would. Shared inputs Mod and Cutoff.",
         "tags": ["mono","lead","pwm","expressive","pressure"],
+        "help": {"text":"A square Oscillator whose pulse width is swept by a slow LFO and shifted by aftertouch. Pressure also opens the SVF Multimode filter. A second LFO provides vibrato, scaled by the Mod input.\n\nNotes in, Out L/R. The shared input Mod sets vibrato depth, like a mod wheel; Cutoff moves the filter.\n\nTip: lean on the key after striking it and listen to the width and brightness open."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Pressure Pulse","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.332316},"inputs":[{"id":"mod","name":"Mod","type":"control"},{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -888,6 +909,7 @@
         "category": "Leads",
         "description": "Dual Osc in hard sync: an envelope rips the synced core's pitch up and a slow LFO keeps it tearing while held, into a driven filter. Shared input Sync Sweep.",
         "tags": ["mono","lead","sync","aggressive","rock"],
+        "help": {"text":"A Dual Osc in hard sync. An envelope pushes the synced oscillator's tuning up on each note and a slow LFO keeps it moving while held. The result goes through a driven Ladder Hyperbolic filter at 4.5 kHz. Mono, legato.\n\nNotes in, Out L/R. The shared input Sync Sweep adds to the sync tuning, so a knob or mod wheel there changes the screaming harmonics.\n\nTip: hold a note and raise Sync Sweep slowly."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Sync Scream","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.353553},"inputs":[{"id":"sweep","name":"Sync Sweep","type":"control"}],"outputs":[]},
@@ -932,6 +954,7 @@
         "category": "Leads",
         "description": "Macro Osc in FM mode at a bell-like ratio, its index bright on the strike and mellowing as the note rings: a chiming bell lead for slow melodies.",
         "tags": ["lead","fm","bell","chime"],
+        "help": {"text":"A Macro Osc in FM mode. An envelope raises the Shape on each strike and lets it fall as the note rings out, and a vibrato fades in late. Three voices with some stereo spread, and a long ring-out.\n\nNotes in, Out L/R. No shared inputs. Velocity increases the strike brightness.\n\nTip: play slow, spaced notes so the tails can overlap."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Carillon Lead","x":0,"y":0,"parent":"","params":{"voices":0.133333,"spread":0.3},"inputs":[],"outputs":[]},
@@ -971,6 +994,7 @@
         "category": "Leads",
         "description": "The Folder's internal triangle folded more with velocity and aftertouch while a slow LFO bends its symmetry: a glassy-to-gnarly West Coast lead. Shared input Fold.",
         "tags": ["mono","lead","wavefolder","west coast","expressive"],
+        "help": {"text":"The Wavefolder's internal triangle is folded more by velocity and aftertouch, while a slow LFO bends the symmetry. A 1-Pole Low-pass at 7 kHz rounds it off. Mono, legato.\n\nNotes in, Out L/R. The shared input Fold adds to the fold amount.\n\nTip: play soft for a smooth tone, hard or with pressure for a harsher, more folded one."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Origami Lead","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.353553},"inputs":[{"id":"fold","name":"Fold","type":"control"}],"outputs":[]},
@@ -1016,6 +1040,7 @@
         "category": "Leads",
         "description": "Macro Osc's sung-vowel model: each note opens from \"o\" towards \"a\", with a delayed vibrato and a touch of breath. A wordless solo voice. Shared input Vowel.",
         "tags": ["mono","lead","vocal","formant","choir"],
+        "help": {"text":"A Macro Osc in Vowel mode. An envelope moves the vowel on each note and a vibrato fades in over the held note. The amp has a slow attack, so notes swell in. Mono, legato, glide 0.08.\n\nNotes in, Out L/R. The shared input Vowel adds to the vowel position, so a knob or LFO there changes the vowel directly.\n\nTip: play long legato phrases and turn Vowel as you go."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vowel Diva","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.410467},"inputs":[{"id":"vow","name":"Vowel","type":"control"}],"outputs":[]},
@@ -1056,6 +1081,7 @@
         "category": "Leads",
         "description": "A rounded triangle-and-saw blend that slides slowly to every new note, theremin-like with a gentle vibrato: for long, singing portamento lines. Shared input Bend (±12 semitones).",
         "tags": ["mono","lead","glide","portamento","theremin"],
+        "help": {"text":"An Oscillator with a mix of triangle and saw into an SVF Atanh Damping filter at 2.4 kHz, with a gentle vibrato. Glide is always on, so every note slides in from the last one. Mono.\n\nNotes in, Out L/R. The shared input Bend bends the pitch by up to 12 semitones, which suits a ribbon, a pitch-bend wheel or an LFO.\n\nTip: play wide intervals and let the portamento do the phrasing."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Slide Ribbon","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5,"glide":0.545619,"glidemode":0},"inputs":[{"id":"bend","name":"Bend","type":"control"}],"outputs":[]},
@@ -1095,6 +1121,7 @@
         "category": "Leads",
         "description": "A raw, unfiltered 12.5 % pulse whose width flips with the tempo in sixteenths and a quick delayed vibrato: a game-console chiptune lead.",
         "tags": ["mono","lead","chiptune","8-bit","retro"],
+        "help": {"text":"A narrow pulse Oscillator with no filter. A square LFO flips the pulse width in sixteenth notes and a quick vibrato fades in. The amp has a linear VCA and ignores velocity, like a console chiptune voice. Mono.\n\nNotes in, Out L/R. No shared inputs. The width flip follows the transport; patch a clock into the Clock input to override it.\n\nTip: play fast arpeggios for the classic chip sound."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"8-Bit Hero","x":0,"y":0,"parent":"","params":{"voices":0,"mode":0.5},"inputs":[],"outputs":[]},
@@ -1131,6 +1158,7 @@
         "category": "Leads",
         "description": "Swarm in unison: six detuned, drifting saws per note spread wide, through a resonant low-pass with a filter envelope: a buzzing, huge trance lead. Shared input Cutoff.",
         "tags": ["lead","supersaw","unison","trance","wide"],
+        "help": {"text":"A Swarm in Unison mode with six detuned saws per note, spread wide, into an SVF Saturating (Rough) low-pass at 2.5 kHz. A filter envelope opens it on each note. Two voices, legato, short glide.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter.\n\nTip: play single-note melodies, as the stack is already thick, and sweep Cutoff for builds."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Unison Hornet","x":0,"y":0,"parent":"","params":{"voices":0.066667,"mode":1,"glide":0.332316},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -1174,6 +1202,7 @@
         "category": "Leads",
         "description": "A soft triangle with pink breath noise band-passed at the note, a slow attack and pressure-controlled breathiness: an airy, flute-like lead. Shared input Breath.",
         "tags": ["mono","lead","flute","breathy","organic"],
+        "help": {"text":"A soft triangle Oscillator plus pink Noise band-passed at the note pitch for breath. Pressure and the Breath input set how much breath you hear. A slow attack gives a flute-like entry. Mono, legato.\n\nNotes in, Out L/R. The shared input Breath adds to the breath level.\n\nTip: raise Breath for a noisier, airier sound or lean on the key with aftertouch."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Bamboo Breath","x":0,"y":0,"parent":"","params":{"voices":0,"mode":1,"glide":0.304531},"inputs":[{"id":"breath","name":"Breath","type":"control"}],"outputs":[]},
@@ -1221,6 +1250,7 @@
         "category": "Pads",
         "description": "Two saws a few cents apart, each voice drifting at its own rate, into a soft ladder that swells open: a lush analog string pad. Shared input Cutoff.",
         "tags": ["pad","strings","analog","lush"],
+        "help": {"text":"Two saws detuned by -8 and +8 cents, with a drifting LFO on the second one and different drift rates for each voice. They feed a Ladder Linear filter at 900 Hz that a slow envelope swells open. Eight voices.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter.\n\nTip: play slow chords and let the attack swell in, then raise Cutoff for a brighter section."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Velvet Strings","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.6},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -1269,6 +1299,7 @@
         "category": "Pads",
         "description": "Ten Swarm oscillators bloom from unison into stacked fifths while Organic LFOs breathe on spread, warp and filter: a wide, living cloud. Shared input Bloom.",
         "tags": ["pad","cloud","wide","evolving"],
+        "help": {"text":"A Swarm of ten oscillators in Fifths mode, with long glide so the stack blooms out of unison. Organic LFOs modulate spread, warp and filter cutoff slowly, and every new note reshuffles the Swarm. An SVF Multimode filter at 2.6 kHz follows.\n\nNotes in, Out L/R. The shared input Bloom adds to the Swarm's spread.\n\nTip: hold one chord for a while and move Bloom."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Swarm Nebula","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.3},"inputs":[{"id":"bloom","name":"Bloom","type":"control"}],"outputs":[]},
@@ -1311,6 +1342,7 @@
         "category": "Pads",
         "description": "Additive Osc with a chorus on its partials and a comb that sweeps slowly through them, differently per voice: an airy organ-choir. Shared input Air.",
         "tags": ["pad","choir","additive","airy"],
+        "help": {"text":"An Additive Osc with 24 partials, a chorus on the partials and a comb filter whose phase is swept by a slow LFO, different for each voice. It sounds like an airy organ-choir. Eight voices.\n\nNotes in, Out L/R. The shared input Air adds to both the spectral tilt and the chorus amount.\n\nTip: play wide chords and move Air for more chorus and brightness."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Aether Choir","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.4},"inputs":[{"id":"air","name":"Air","type":"control"}],"outputs":[]},
@@ -1349,6 +1381,7 @@
         "category": "Pads",
         "description": "Wavetable Osc on the Spectra bank, scanned along a spiral by a slow tide LFO and offset per voice, through a gentle ladder. Shared input Scan.",
         "tags": ["pad","wavetable","morphing","digital"],
+        "help": {"text":"A Wavetable Osc on the Spectra bank, scanned along a Spiral path by a very slow LFO. Each voice is offset a little by its random value. A Ladder Linear filter at 4.2 kHz follows.\n\nNotes in, Out L/R. The shared input Scan adds to the scan position, so a knob or LFO there changes which part of the table you hear.\n\nTip: hold a chord for a minute and slowly turn Scan."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Tidal Tables","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[{"id":"scan","name":"Scan","type":"control"}],"outputs":[]},
@@ -1389,6 +1422,7 @@
         "category": "Pads",
         "description": "Macro Osc's Vowel model: each voice drifts through its own vowels with a slow vibrato fading in, a little breath on top: a formant choir. Shared input Vowel.",
         "tags": ["pad","choir","formant","vocal"],
+        "help": {"text":"A Macro Osc in Vowel mode. A slow random LFO drifts each voice's vowel, with a vibrato that fades in and a 1-Pole Low-pass at 5.5 kHz. Eight voices spread wide.\n\nNotes in, Out L/R. The shared input Vowel adds to the vowel position of all voices.\n\nTip: play open chords and raise Vowel to change the vowel."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Monastery Vowels","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.7},"inputs":[{"id":"vowel","name":"Vowel","type":"control"}],"outputs":[]},
@@ -1430,6 +1464,7 @@
         "category": "Pads",
         "description": "Two pulse waves whose widths sweep in opposite phase, at a slightly different speed per voice, into a warm ladder: a shimmering PWM pad. Shared input Cutoff.",
         "tags": ["pad","pwm","analog","vintage"],
+        "help": {"text":"Two pulse Oscillators detuned by -4 and +4 cents. One LFO sweeps their widths in opposite directions, with a slightly different speed per voice. A Ladder Tanh filter at 1.4 kHz follows. Eight voices.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter.\n\nTip: play a held chord, and slowly raise Cutoff to hear the PWM shimmer open up."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Pulse Width Haze","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.7},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -1474,6 +1509,7 @@
         "category": "Pads",
         "description": "Dual Osc saw over a triangle an octave down, lightly folded, into a low resonant ladder that Organic LFOs open and close over many seconds: a dark drone. Shared input Cutoff.",
         "tags": ["pad","drone","dark","ambient"],
+        "help": {"text":"A Dual Osc with a saw and a triangle one octave down, lightly folded, into a low resonant Ladder Tanh filter at 260 Hz. Organic LFOs move the fold and cutoff over many seconds. Attack and release are very long.\n\nNotes in, Out L/R. The shared input Cutoff moves the filter.\n\nTip: hold one or two low notes and leave it running; raise Cutoff for more movement."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Abyssal Drone","x":0,"y":0,"parent":"","params":{"voices":0.2,"spread":0.5},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -1515,6 +1551,7 @@
         "category": "Pads",
         "description": "Modal Voice bows an inharmonic glass body that swells in after a soft mallet ting; a slow LFO wanders the bow position and aftertouch bows harder. Shared input Brightness.",
         "tags": ["pad","glassy","bell","physical"],
+        "help": {"text":"A Modal Voice bows an inharmonic glass-like body, with a soft mallet strike at note start. A slow LFO moves the bow position and aftertouch bows harder. The Modal Voice has its own envelope, so there is no ADSR in the patch.\n\nNotes in, Out L/R. The shared input Brightness adds to the Modal Voice brightness.\n\nTip: hold a note for a few seconds to hear the bow swell, then lean on the key."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Bowed Crystal","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.6},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
@@ -1547,6 +1584,7 @@
         "category": "Pads",
         "description": "Chord Osc spreads an open major seventh over the stereo field with a chorus-like detune, through a phaser that sweeps slowly: an ensemble pad for one-finger chords. Shared input Cutoff.",
         "tags": ["pad","chords","ensemble","lush"],
+        "help": {"text":"A Chord Osc plays an open Major 7 chord from each key, detuned and spread in stereo. It passes through a slowly swept Phaser and a Ladder Linear low-pass at 3.5 kHz. Four voices.\n\nNotes in, Out L/R. The shared input Cutoff moves the final low-pass.\n\nTip: play single notes for instant chords and raise Cutoff to open the sound up."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Satin Sevenths","x":0,"y":0,"parent":"","params":{"voices":0.2},"inputs":[{"id":"cut","name":"Cutoff","type":"control"}],"outputs":[]},
@@ -1590,6 +1628,7 @@
         "category": "Pads",
         "description": "Pink noise through a pair of resonant band-passes tuned to the note, gusting and turning as Organic LFOs move them: a pitched wind texture. Shared input Howl (resonance).",
         "tags": ["pad","texture","noise","wind"],
+        "help": {"text":"Pink Noise through a Dual Filter, two resonant band-passes in parallel, tuned to the note pitch. Organic LFOs move the cutoff and the gap between the bands, and a second pass gusts the level.\n\nNotes in, Out L/R. The shared input Howl adds to the resonance of both bands, so higher values make the pitch clearer.\n\nTip: hold one note and raise Howl until a whistling tone appears."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Desert Wind","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.8},"inputs":[{"id":"howl","name":"Howl","type":"control"}],"outputs":[]},
@@ -1634,6 +1673,7 @@
         "category": "Plucks & Mallets",
         "description": "Modal Voice strikes a wooden bar: soft felt mallets that harden and brighten with velocity, a warm, short ring. Shared input Brightness.",
         "tags": ["mallet","marimba","physical","wood"],
+        "help": {"text":"A Modal Voice set to a struck wooden bar: a fairly hard strike with a low damping value, so it gives a warm, short ring. Velocity both strikes harder and raises the strike timbre, so soft notes sound like felt and hard ones like harder mallets.\n\nPatch a keyboard or sequencer into Notes in and take Out L/R. The Brightness input raises the bar's brightness, so a mod wheel or an LFO patched there makes it darker or brighter.\n\nTry playing a soft line, then a hard one, and hear the tone change as well as the level."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Rosewood Marimba","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.4},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
@@ -1664,6 +1704,7 @@
         "category": "Plucks & Mallets",
         "description": "Modal Voice strikes long-ringing metal bars, with a motor tremolo on the amp: a mellow vibraphone; velocity hardens the mallet. Shared input Tremolo Rate.",
         "tags": ["mallet","vibraphone","physical","jazz"],
+        "help": {"text":"A Modal Voice on a bar with low damping, so the ring is long. An LFO named Motor (about 5 Hz) modulates a VCA after the voice, which gives the vibraphone motor tremolo. Velocity adds a little hardness to the mallet.\n\nPlay it from Notes in and take Out L/R. Tremolo Rate input speeds up or slows down the Motor LFO.\n\nTry sending a slow LFO into Tremolo Rate for a motor that speeds up and slows down, and hold chords to hear the bars overlap."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Midnight Vibraphone","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.5},"inputs":[{"id":"motor","name":"Tremolo Rate","type":"control"}],"outputs":[]},
@@ -1699,6 +1740,7 @@
         "category": "Plucks & Mallets",
         "description": "Resonator's String model plucked near the end on every note, odd and even partials split left and right; velocity plucks brighter and the strings ring on after release. Shared input Brightness.",
         "tags": ["pluck","harp","string","physical"],
+        "help": {"text":"A Resonator in String model, plucked through its strum input by every note. The odd and even partial outputs go to the left and right sides, which spreads each string across the stereo field. Velocity makes the pluck brighter, and the amp release is long, so the strings ring on.\n\nNotes in plays it, Out L/R takes the sound. Brightness input adds to the Resonator's brightness.\n\nPlay fast arpeggios, or sweep Brightness from a slow LFO for strings that open and close."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Celtic Harp","x":0,"y":0,"parent":"","params":{"voices":0.733333},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
@@ -1735,6 +1777,7 @@
         "category": "Plucks & Mallets",
         "description": "Macro Osc's plucked string picked hard near the bridge, starting a shade sharp and settling, with a vibrato that fades in on held notes: a koto-like pluck.",
         "tags": ["pluck","koto","string","eastern"],
+        "help": {"text":"A Macro Osc in Pluck model, triggered by each note. A short Press envelope bends the pitch from a little sharp down to the note, and a Vibrato LFO fades in slowly, so only held notes get vibrato. Velocity sets the accent of the pluck.\n\nPatch Notes in and take Out L/R. It has no shared inputs, so open the cell to change Tone, Shape or Decay on the Macro Osc.\n\nHold a note for a second or two to hear the vibrato come in, and shorten the Decay of the Press envelope for a straighter pluck."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Silk Koto","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[],"outputs":[]},
@@ -1776,6 +1819,7 @@
         "category": "Plucks & Mallets",
         "description": "Perc Voice strikes metal tines (bar partials) with a soft click and a short, woody ring; velocity is the accent and every voice is struck a little differently.",
         "tags": ["pluck","kalimba","percussive","tines"],
+        "help": {"text":"A Perc Voice in Modal engine, tuned to bar partials, with a soft click and a quick damp. Velocity is the accent, and a small amount of the Random output on Morph makes every note slightly different.\n\nPlay it from Notes in, take Out L/R. The Decay input lengthens or shortens the ring of the tines.\n\nTry a high Decay for a ringing music-box-like kalimba, a low one for a dry thumb piano, or play repeated notes to hear the voices vary."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Thumb Kalimba","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.4},"inputs":[{"id":"decay","name":"Decay","type":"control"}],"outputs":[]},
@@ -1805,6 +1849,7 @@
         "category": "Plucks & Mallets",
         "description": "Perc Voice's FM engine between membrane and bar ratios, a bright attack that mellows into a hollow ring: a steel drum; harder hits are brighter.",
         "tags": ["mallet","steel drum","fm","tropical"],
+        "help": {"text":"A Perc Voice in FM engine with a Warm drive, positioned between membrane and bar ratios: a bright attack that mellows into a hollow ring. Velocity sets the accent and pushes Morph up a little, so harder hits are brighter.\n\nNotes in plays it, Out L/R takes the sound. The Brightness input adds to Morph.\n\nPlay two-note intervals in the middle of the keyboard and push Brightness up for a sharper, more metallic pan."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Island Steelpan","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
@@ -1834,6 +1879,7 @@
         "category": "Plucks & Mallets",
         "description": "Macro Osc's two-operator FM at an inharmonic 3.5 ratio, struck by each note with a long decay that darkens as it fades; velocity raises the index. Shared input Index.",
         "tags": ["mallet","bell","fm","metallic"],
+        "help": {"text":"A Macro Osc in FM model at an inharmonic 3.5 ratio, struck by every note with a 4 second decay and an amp release of 3 seconds. Velocity raises both the accent and the FM index, so harder notes are brighter.\n\nPlay from Notes in and take Out L/R. The Index input adds to the Macro Osc's Shape, which sets the FM index here.\n\nTry low notes with a high Index for a big temple bell, or a gentle Index and high notes for a glassy chime."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Temple FM Bell","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[{"id":"index","name":"Index","type":"control"}],"outputs":[]},
@@ -1870,6 +1916,7 @@
         "category": "Plucks & Mallets",
         "description": "A lightly folded, FM'd Dual Osc pinged through a resonant Low Pass Gate whose light also opens the folder: the woody West-coast bongo. Shared inputs Brightness and Decay.",
         "tags": ["pluck","west coast","lpg","bongo"],
+        "help": {"text":"A Dual Osc (a lightly folded triangle with a little FM) goes through a Low Pass Gate in Both mode. Each note pings the gate, and the gate's light output also opens the oscillator's folder, so the tone is brightest at the start. Velocity sets how hard the ping is.\n\nPatch Notes in and take Out L/R. Brightness input opens the gate's filter, and Decay input stretches its response, i.e. how long it takes to close.\n\nTurn Decay up for longer, more tonal strikes, or down for tight, dry bongo slaps."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vactrol Bongo","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.4},"inputs":[{"id":"bright","name":"Brightness","type":"control"},{"id":"decay","name":"Decay","type":"control"}],"outputs":[]},
@@ -1902,6 +1949,7 @@
         "category": "Plucks & Mallets",
         "description": "Macro Osc's Modal model an octave up, hard and bright with slightly stretched modes: the plinking comb of a music box; velocity is the strike.",
         "tags": ["mallet","music box","bright","toy"],
+        "help": {"text":"A Macro Osc in Modal model, set an octave up, hard and bright, quality High. Each note triggers it, and velocity is the accent. The amp envelope keeps the voice alive for a 1.5 second release.\n\nPlay it from Notes in, take Out L/R. It has no shared inputs; open the cell to change the Macro Osc's Tone, Shape or Decay.\n\nPlay simple melodies in the lower half of the keyboard, since the whole voice already sits an octave up."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Music Box Tines","x":0,"y":0,"parent":"","params":{"voices":0.733333,"spread":0.5},"inputs":[],"outputs":[]},
@@ -1936,6 +1984,7 @@
         "category": "Plucks & Mallets",
         "description": "A short noise burst, louder and brighter with velocity, hammers a stiff metal string in the Resonator: a ringing hammered dulcimer. Shared input Brightness.",
         "tags": ["mallet","dulcimer","string","physical"],
+        "help": {"text":"A very short Noise burst (a VCA opened by a 12 ms Hammer envelope) goes through a filter (Hammer Tone) into a Resonator in Modal model. The Resonator has a stiff structure, so it rings like a metal string. Velocity makes the burst louder and brighter.\n\nPatch Notes in and take Out L/R. The Brightness input adds to the Resonator's brightness.\n\nPlay repeated notes with different velocities to hear the hammer, and try raising Brightness for a more metallic ring."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Hammered Dulcimer","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.4},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
@@ -1983,6 +2032,7 @@
         "category": "Feedback & Pings",
         "description": "A pulse generator's edge rings a resonance tuned by the note: clean, glassy test-bench pings, longer and brighter with velocity. Shared input Damping.",
         "tags": ["ping","pulse","lab","hainbach"],
+        "help": {"text":"A Pulse Generator fires one very short pulse per note, and its Ring output rings at the note's pitch as a clean, glassy ping. An amp envelope shapes it. Velocity adds to the pulse amplitude, so harder notes ring brighter and longer.\n\nPatch Notes in and take Out L/R. The Damping input adds to the Pulse Generator's ring damping.\n\nRaise Damping for short blips and lower it for sustained, bell-like test tones."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Lab Ping","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.3},"inputs":[{"id":"damp","name":"Damping","type":"control"}],"outputs":[]},
@@ -2018,6 +2068,7 @@
         "category": "Feedback & Pings",
         "description": "Wide pulses ring a low, quickly damped resonance: tuned thumps like knuckles on a metal cabinet. Velocity hits harder.",
         "tags": ["ping","pulse","thump","hainbach"],
+        "help": {"text":"A Pulse Generator with wide pulses rings a low, quickly damped resonance, tuned by the note. The result is a short tuned thump, a bit like knuckles on a metal cabinet. Velocity hits harder.\n\nNotes in plays it and Out L/R takes the sound. There are no shared inputs; open the cell to change the pulse width or ring damping.\n\nPlay it in the low octaves as a tuned kick or tom, and use a sequencer for patterns."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Bench Thump","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.2},"inputs":[],"outputs":[]},
@@ -2052,6 +2103,7 @@
         "category": "Feedback & Pings",
         "description": "Every note fires a burst of six pulses that ring a high resonance, smeared into a tape loop with a wobble: a stuttering, chattering ping. Shared input Feedback.",
         "tags": ["ping","burst","tape","hainbach"],
+        "help": {"text":"Each note makes the Pulse Generator fire a burst of six pulses 28 ms apart. They ring a high resonance into a Zone Delay with 70% feedback, a dark tone and some wobble, so the ping stutters and smears.\n\nPatch Notes in and take Out L/R. The Feedback input adds to the Zone Delay's feedback, so the loop gets longer.\n\nSend a slow LFO to Feedback to let the repeats bloom and die, but keep single notes short, as the loop can run on."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Ratchet Ping","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.4},"inputs":[{"id":"fb","name":"Feedback","type":"control"}],"outputs":[]},
@@ -2091,6 +2143,7 @@
         "category": "Feedback & Pings",
         "description": "A noise burst kicks a state-variable filter whose resonance is almost closed: a pure, whistling sine at the note that blooms and dies. Shared input Resonance.",
         "tags": ["ping","filter","self-oscillation","hainbach"],
+        "help": {"text":"A short noise burst excites a State Variable filter with resonance set very high, close to self-oscillation, and the filter tracks the keyboard. The result is a nearly pure sine at the note's pitch that blooms and fades.\n\nPatch Notes in and take Out L/R. The Resonance input adds a small amount to the resonance, so it can push the filter nearer to oscillation.\n\nTry a slow envelope or LFO on Resonance, or play a chord to hear several whistles at once."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Filter Whistle","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.3},"inputs":[{"id":"res","name":"Resonance","type":"control"}],"outputs":[]},
@@ -2133,6 +2186,7 @@
         "category": "Feedback & Pings",
         "description": "A single click rings a Ladder Tanh filter at full resonance: the fat, saturating sine of a self-oscillating ladder, struck rather than held. Velocity drives it harder into the tanh.",
         "tags": ["ping","filter","ladder","hainbach"],
+        "help": {"text":"A single click from the Pulse Generator (Ring off) hits a Ladder Tanh filter with resonance almost fully up, so it rings as a self-oscillating sine that follows the keyboard. The amp envelope keeps the tail short.\n\nPatch Notes in and take Out L/R. There are no shared inputs. Velocity pushes into the filter's drive, so harder notes are fatter and more saturated.\n\nPlay with varying velocity to change how fat and saturated each snap is."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Ladder Snap","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.25},"inputs":[],"outputs":[]},
@@ -2171,6 +2225,7 @@
         "category": "Feedback & Pings",
         "description": "A noise burst enters a band-pass filter whose output goes through a tuned comb and straight back into the filter on a feedback cable: a loop that rings, squeals and settles at the note. Shared input Loop Amount.",
         "tags": ["feedback","loop","comb","hainbach"],
+        "help": {"text":"A noise burst enters a Band Pass filter. Its output goes to a Zone Delay comb, tuned to the note, and the comb feeds back into the filter on a feedback cable (55%). The result rings, squeals and settles at the note. A limiter before the output catches overload.\n\nPatch Notes in and take Out L/R. The Loop Amount input adds to the comb's feedback.\n\nRaise Loop Amount carefully for longer, screechier loops, and watch your monitor level."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Looped Bandpass","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.3},"inputs":[{"id":"loop","name":"Loop Amount","type":"control"}],"outputs":[]},
@@ -2222,6 +2277,7 @@
         "category": "Feedback & Pings",
         "description": "A noise burst in Zone Delay's tuned comb with 95% feedback: Karplus-Strong plucks that ring in feedback, darker as Tone falls. Velocity is the pluck. Shared input Brightness.",
         "tags": ["feedback","karplus","comb","hainbach"],
+        "help": {"text":"A noise burst goes into a Zone Delay used as a single tuned comb with 95% feedback, tuned to the note: a Karplus-Strong pluck. The Tone setting is a little dark, so the string loses highs as it rings. Velocity makes the burst louder.\n\nNotes in plays it, Out L/R takes the sound. The Brightness input adds to Tone.\n\nRaise Brightness for a bright, steel-like string, or lower it for a dull, nylon-like one."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Comb String","x":0,"y":0,"parent":"","params":{"voices":0.6,"spread":0.4},"inputs":[{"id":"tone","name":"Brightness","type":"control"}],"outputs":[]},
@@ -2266,6 +2322,7 @@
         "category": "Feedback & Pings",
         "description": "A click in a tuned comb with wobble, diffusion and a rough Character on the loop: the pitch sags and shimmers like a damaged tape string. Shared input Wobble.",
         "tags": ["feedback","comb","tape","hainbach"],
+        "help": {"text":"A pulse ping goes into a Zone Delay comb with 93% feedback and a rough Character, plus diffusion and wobble. The wobble modulates the delay time, so the pitch sags and shimmers like a damaged tape string.\n\nPatch Notes in and take Out L/R. The Wobble input adds to the Zone Delay's wobble.\n\nPush Wobble up for seasick pitch and play short notes, or leave it low for a quieter, steadier comb."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Warped Comb","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.5},"inputs":[{"id":"wobble","name":"Wobble","type":"control"}],"outputs":[]},
@@ -2306,6 +2363,7 @@
         "category": "Feedback & Pings",
         "description": "Test Oscillator with its loop gain just below 100%, kicked by each note: a lamp-stabilised sine that rings like a tuned drum and bounces as it dies. Velocity is the kick. Shared input Loop Gain.",
         "tags": ["ping","test oscillator","drum","hainbach"],
+        "help": {"text":"A Test Oscillator with its loop gain just below 100%, kicked by each note. It rings as a stable sine that decays and bounces, like a tuned bench drum. The note sets the pitch, and velocity shapes the amp level.\n\nPatch Notes in and take Out L/R. The Loop Gain input adds to the oscillator's loop gain, which makes it ring longer.\n\nPlay low notes for kick drums. Raise Loop Gain a little for longer tails, but beyond 100% it turns into a hum."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Loop Kick","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.2},"inputs":[{"id":"gain","name":"Loop Gain","type":"control"}],"outputs":[]},
@@ -2340,6 +2398,7 @@
         "category": "Feedback & Pings",
         "description": "Test Oscillator with loop gain over unity: a lamp-stabilised sine that warms up and hums while the key is held, pinged at the start. Mains hum underneath. Shared input Drift.",
         "tags": ["drone","test oscillator","hum","hainbach"],
+        "help": {"text":"A Test Oscillator with loop gain over 100% and a 50 Hz mains hum, kicked once by each note. It warms up and sustains a sine while the key is held. A small Verb adds space and a limiter sits at the output.\n\nPatch Notes in and take Out L/R. Hold keys to get a drone. The Drift input adds to the oscillator's drift.\n\nRaise Drift for a wandering, unstable pitch, and hold a few low notes for an old lab hum."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Lamp Hum","x":0,"y":0,"parent":"","params":{"voices":0.2,"spread":0.2},"inputs":[{"id":"drift","name":"Drift","type":"control"}],"outputs":[]},
@@ -2382,6 +2441,7 @@
         "category": "Feedback & Pings",
         "description": "A noise burst through Wave Analyzer's 3 Hz band-pass tuned by the note: only a single narrow partial survives, ringing out as a bare, slightly wavering sine. Shared input Gain.",
         "tags": ["ping","wave analyzer","partial","hainbach"],
+        "help": {"text":"A noise burst goes through a Wave Analyzer set to a very narrow 3 Hz band, tuned by the note. Only one partial survives, so it rings as a bare, slightly wavering sine. Its band output goes through the amp envelope.\n\nPatch Notes in and take Out L/R. The Gain input adds to the analyzer's gain, which controls how loud the narrow band is.\n\nPlay intervals or chords for several pure sines, and raise Gain if the notes are too quiet."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Partial Pick","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[{"id":"gain","name":"Gain","type":"control"}],"outputs":[]},
@@ -2424,6 +2484,7 @@
         "category": "Feedback & Pings",
         "description": "A tuned ping is fed into a Delay Net in Mesh routing with feedback over 100%: the room builds on the ping, squeals and is held down by the envelope. Shared input Feedback.",
         "tags": ["feedback","delay network","runaway","hainbach"],
+        "help": {"text":"A pinger fires a tuned pulse into a Delay Network in Mesh routing with feedback over 100%. The room builds on itself and squeals, and the amp envelope, with a limiter after it, keeps it under control.\n\nPatch Notes in and take Out L/R. The Feedback input adds to the network's feedback.\n\nPlay short, low notes and expect a loud, unstable result. Lower Feedback to calm the room."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Runaway Room","x":0,"y":0,"parent":"","params":{"voices":0.2,"spread":0.5},"inputs":[{"id":"fb","name":"Feedback","type":"control"}],"outputs":[]},
@@ -2466,6 +2527,7 @@
         "category": "Feedback & Pings",
         "description": "A pulse knocks the Resonator's plate model: metallic, inharmonic rings at the note with a bright start. Structure sets how clangorous the plate is. Shared input Structure.",
         "tags": ["ping","resonator","plate","hainbach"],
+        "help": {"text":"A short pulse knocks the Resonator in Modal model, with a rather high Structure for inharmonic, metallic rings. The note tunes the resonator. Velocity makes the tone brighter.\n\nPatch Notes in and take Out L/R. The Structure input adds to the Resonator's structure, i.e. how clangorous the plate is.\n\nTry sweeping Structure while you play to move from a tuned bell to a harsh sheet of metal."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Plate Knock","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.4},"inputs":[{"id":"structure","name":"Structure","type":"control"}],"outputs":[]},
@@ -2506,6 +2568,7 @@
         "category": "Feedback & Pings",
         "description": "Noise pinged through a Low Pass Gate with the vactrol response in the loop, into a string-model Resonator: soft, organic knocks that bloom into a note. Velocity opens the gate wider.",
         "tags": ["ping","low pass gate","resonator","hainbach"],
+        "help": {"text":"Noise is pinged through a Low Pass Gate (with the slow vactrol response) into a String-model Resonator tuned by the note. The gate opens and closes softly, so the knock blooms into a tone. Velocity sets how far the gate opens.\n\nPatch Notes in and take Out L/R. There are no shared inputs; open the cell to change the gate's response or the resonator's damping.\n\nPlay soft and hard notes to hear the difference. The harder ones open the gate wider."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Vactrol Knock","x":0,"y":0,"parent":"","params":{"voices":0.466667,"spread":0.3},"inputs":[],"outputs":[]},
@@ -2545,6 +2608,7 @@
         "category": "Feedback & Pings",
         "description": "A noise burst pings two Resonators a fifth apart, each feeding the other over feedback cables: a self-answering two-note ring that blooms sympathetically. Shared input Damping.",
         "tags": ["feedback","resonator","fifth","hainbach"],
+        "help": {"text":"A noise burst pings two Modal Resonators, Root and Fifth (7 semitones up). Each is also fed back into the other at 45%, so they answer each other and ring sympathetically. Root and Fifth go to the output through separate amps.\n\nPatch Notes in and take Out L/R. The Damping input adds to the damping of both resonators.\n\nRaise Damping to make the exchange shorter and tighter. Lower it for a ring that builds up on repeated notes."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Cross-fed Fifth","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.6},"inputs":[{"id":"damp","name":"Damping","type":"control"}],"outputs":[]},
@@ -2600,6 +2664,7 @@
         "category": "Feedback & Pings",
         "description": "A band-passed noise burst rattles the Resonator's sympathetic strings, which sing at the note's overtones: a contact-mic scrape on a bowl of strings. Shared input Brightness.",
         "tags": ["ping","resonator","sympathetic","hainbach"],
+        "help": {"text":"A noise burst is filtered by a Band Pass filter (the Scrape) and strikes the Resonator in Sympathetic model, whose strings sing at the overtones of the note. Velocity opens the Scrape filter, so harder notes scrape brighter.\n\nPatch Notes in and take Out L/R. The Brightness input adds to the Resonator's brightness.\n\nRaise Brightness for a brighter, more metallic scrape, and play chords to excite several string sets."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Sympathetic Rattle","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.6},"inputs":[{"id":"bright","name":"Brightness","type":"control"}],"outputs":[]},
@@ -2646,6 +2711,7 @@
         "category": "Feedback & Pings",
         "description": "A pinged pulse drives Modal Voice's plate body in a big room through its external input: a thunder-sheet clang that rings at the note. Shared input Space.",
         "tags": ["ping","modal","plate","hainbach"],
+        "help": {"text":"A pulse ping goes into Modal Voice's external input (strike is off, so it has no hit of its own). The plate body with a big room rings at the note, like a thunder sheet. The Modal Voice gate follows the key.\n\nPatch Notes in and take Out L/R. The Space input adds to the room size, so the clang gets bigger.\n\nRaise Space for a cavernous sheet, or lower it for a tight, dry clang."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Metal Sheet","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.5},"inputs":[{"id":"space","name":"Space","type":"control"}],"outputs":[]},
@@ -2678,6 +2744,7 @@
         "category": "Feedback & Pings",
         "description": "A struck bell resonance goes into a frequency shifter with feedback: each repeat climbs a few Hz, so the ping curls into inharmonic spirals. Shared input Shift.",
         "tags": ["feedback","frequency shifter","bell","hainbach"],
+        "help": {"text":"A pulse pings a Modal Resonator, and its odd and even outputs go into a Frequency Shifter with 78% feedback. Each repeat is shifted up by a few Hz, so the bell curls into inharmonic spirals. A limiter sits before the output.\n\nPatch Notes in and take Out L/R. The Shift input adds to the frequency shift amount.\n\nMove Shift for faster or slower spirals, and keep notes short, as the feedback tail is long."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Spiral Bell","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.5},"inputs":[{"id":"shift","name":"Shift","type":"control"}],"outputs":[]},
@@ -2723,6 +2790,7 @@
         "category": "Feedback & Pings",
         "description": "A ping into a near-infinite Verb: the room keeps the hiss and the note, and the envelope lets it bloom and hang in the air. A long release. Shared input Decay.",
         "tags": ["feedback","reverb","bloom","hainbach"],
+        "help": {"text":"A pinged pulse enters a very long Verb (40 second decay, 100% mix, wide) and the room holds onto the hiss and the note. The amp envelope has a long release, so the sound blooms and hangs. A limiter is at the output.\n\nPatch Notes in and take Out L/R. The Decay input adds to the reverb's decay time.\n\nPlay single notes and let them ring. Lower Decay if the tail gets in the way of the next note."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Hiss Bloom","x":0,"y":0,"parent":"","params":{"voices":0.2,"spread":0.6},"inputs":[{"id":"decay","name":"Decay","type":"control"}],"outputs":[]},
@@ -2765,6 +2833,7 @@
         "category": "Feedback & Pings",
         "description": "A pitched ping drops into a slow tape loop with 88% feedback, dark Tone and a lurching wobble: each repeat is duller and slightly flat, the way a worn loop forgets. Shared input Feedback.",
         "tags": ["feedback","tape","echo","hainbach"],
+        "help": {"text":"A pitched ping goes into a Zone Delay in Tape time mode, with 88% feedback, dark Tone, and a lot of wobble. Each repeat is duller and slightly out of tune, as in a worn tape loop. A limiter is on the output.\n\nPatch Notes in and take Out L/R. The Feedback input adds to the delay feedback.\n\nRaise Feedback for repeats that last, or send a slow LFO there for a loop that breathes."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Tape Loop Ping","x":0,"y":0,"parent":"","params":{"voices":0.333333,"spread":0.5},"inputs":[{"id":"fb","name":"Feedback","type":"control"}],"outputs":[]},
@@ -2807,6 +2876,7 @@
         "category": "Drum Machines",
         "description": "Drum Map plays a Ring kick, snare, clap and hats; move the shared X and Y inputs to travel between grooves, hold Fill for fills.",
         "tags": ["drums","drum map","generative","ring"],
+        "help": {"text":"Drum Map holds a landscape of grooves and fires a Ring Kick, Ring Snare, Ring Clap (on the snare accent) and Ring Hats. The kit runs through a small mixer to Out L/R.\n\nStart the transport, then patch Out L/R to your output. X and Y are shared inputs, each at half strength into Drum Map, so an LFO or knob there moves you through the grooves. Hold a gate on Fill for fills.\n\nTip: slow an LFO into X while Y sits still for a groove that evolves over minutes."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Map Walker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"x","name":"X","type":"control"},{"id":"y","name":"Y","type":"control"},{"id":"fill","name":"Fill","type":"gate"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -2858,6 +2928,7 @@
         "category": "Drum Machines",
         "description": "A Gate Sequencer with probabilities and ratchets plays Macro Osc's Kick, Snare and Metal models and a Perc Voice FM blip. Shared input Fill.",
         "tags": ["drums","gate sequencer","macro osc","synthetic"],
+        "help": {"text":"A Gate Sequencer with four 32-step tracks plays three Macro Osc voices (Kick, Snare and Metal models) and a Perc Voice FM blip, mixed in a Kit Mixer. Some steps are coin flips, some are ratchets.\n\nRun the transport and take Out L/R to your output. The Fill input is a gate: while it is high, the steps marked as fill-only also play.\n\nTip: send a gate to Fill every fourth bar, or tap it by hand, to get a busier last bar."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Macro Foundry","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"fill","name":"Fill","type":"gate"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -2910,6 +2981,7 @@
         "category": "Drum Machines",
         "description": "Rhythm Bank's four related even rhythms play a skin, a wood block, a bar and a shaker from Perc Voices, in a small room. Shared input Pattern browses grooves.",
         "tags": ["drums","percussion","euclidean","rhythm bank","organic"],
+        "help": {"text":"Rhythm Bank (even family, trigger output) turns one pattern number into four related rhythms. They play four Perc Voices: a modal skin, a modal wood block, an FM bar and a noise shaker. The mixer sends a little of each to a small Room reverb.\n\nRun the transport and patch Out L/R. The shared Pattern input, at half strength, picks the groove: turn a knob or step a sequencer into it.\n\nTip: change Pattern only now and then; neighbouring numbers give a related feel."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Euclid Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"pat","name":"Pattern","type":"control"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -2962,6 +3034,7 @@
         "category": "Drum Machines",
         "description": "Drum Grid electro: syncopated Punch kick, snare and clap on the backbeat, busy hats, cowbell and a zapping tom; two patterns.",
         "tags": ["drums","electro","808","drum grid","breakdance"],
+        "help": {"text":"A Drum Grid with eight tracks (kick, snare, closed and open hat, clap, cowbell, zap tom, rim) triggers Punch drums plus a Ring Cowbell and a Ring Tom bent hard for the zap. Two patterns, Pop and Lock, are stored in the grid.\n\nRun the transport and patch Out L/R. Switch between Pop and Lock in the Drum Grid; swing is set slightly above straight.\n\nTip: use Pop for the verse and Lock for the busier break."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Electro Pop-Lock","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3038,6 +3111,7 @@
         "category": "Drum Machines",
         "description": "Minimal techno on a Drum Grid: a dry Punch kick, off-beat Ring hats and a syncopated rim sent into a tempo-synced dub echo and a dark room.",
         "tags": ["drums","techno","minimal","dub","drum grid","effects"],
+        "help": {"text":"A Drum Grid plays a Punch kick, Ring hats (closed and open), a Ring rim and a Punch clap. The mixer sends mostly the rim, and some clap and hats, into a Zone Delay synced to the transport, then a dark Room reverb that returns to the mix.\n\nRun the transport and patch Out L/R. Patterns are Floor and Ceiling, picked in the Drum Grid.\n\nTip: turn up the rim's send on the Kit Mixer for a deeper dub wash."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Concrete Minimal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3099,6 +3173,7 @@
         "category": "Drum Machines",
         "description": "A two-bar breakbeat (kick, ghosted snare, ride) through Bender, which repeats, reverses and reshuffles slices by chance. Shared inputs Chaos and Glitch.",
         "tags": ["drums","jungle","breakbeat","glitch","bender"],
+        "help": {"text":"A Drum Grid plays a two-bar break (Punch kick and snare, ride, closed hats) with a Roller variation. The mixed kit then goes through Bender, which repeats, reverses and shuffles 1/16 slices by chance.\n\nRun the transport and patch Out L/R. The Chaos input, at half strength, drives Bender's chance of mangling a slice. Send a trigger to Glitch to force a glitch on demand.\n\nTip: keep Chaos low and tap Glitch before a bar line."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Break Shredder","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"chaos","name":"Chaos","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3156,6 +3231,7 @@
         "category": "Drum Machines",
         "description": "Lo-fi boom-bap: a lazy swung Ring kit through a saturated ladder low-pass and a light bit crush, over a bed of tape hiss.",
         "tags": ["drums","lo-fi","hip hop","boom bap","dusty"],
+        "help": {"text":"A swung Drum Grid (one 32-step pattern, Nod) plays a Ring kick, snare, closed hats and rim. The mix passes a Ladder Tanh low-pass at about 3.8 kHz, then Bender in Crush mode, with pink noise added as tape hiss.\n\nRun the transport and patch Out L/R. There are no inputs; the sound is shaped inside the cell.\n\nTip: lower the filter cutoff for a muddier sample feel, or raise Bender's mix to crush it harder."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Dusty Tape Kit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"},{"id":"run","name":"Run","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3216,6 +3292,7 @@
         "category": "Drum Machines",
         "description": "Rotating Div turns the 16th-note clock into /2 … /7 cycles on kick, hats, conga, clave, cowbell and clap: polyrhythms that realign every four bars. Shared input Rotate.",
         "tags": ["drums","polyrhythm","rotating divider","percussion"],
+        "help": {"text":"Rotating Div divides the clock into /2 to /7 cycles, and each cycle plays one sound: punch kick, hats, a modal conga, a clave, a cowbell and a clap. The cycles drift against each other and realign every four bars.\n\nRun the transport and patch Out L/R. The shared Rotate input, at a quarter strength, shifts which divisions feed the outputs.\n\nTip: automate Rotate slowly and the polyrhythm keeps changing shape without losing the pulse."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Gear Train","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"rot","name":"Rotate","type":"control"},{"id":"notes","name":"Notes","type":"notes"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3274,6 +3351,7 @@
         "category": "Drums/Kicks",
         "description": "A long, round 808-style boom: a low sine with a gentle pitch drop and a hint of drive.",
         "tags": ["drums","one-shot","kick","808","sub"],
+        "help": {"text":"A Ring Kick: a low sine with a gentle pitch sweep, little tone and a touch of drive. Decay is long (1.8 s) and Tune is 45 Hz.\n\nPatch a trigger into Trig and Out L/R to the output. A signal into Velocity sets how hard it hits.\n\nTip: keep other bass out of its way, it rings into the next beat."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Boom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3299,6 +3377,7 @@
         "category": "Drums/Kicks",
         "description": "A short, punchy 909-style kick with a fast sweep and a clicky attack.",
         "tags": ["drums","one-shot","kick","909","house"],
+        "help": {"text":"A Punch Kick: a fast pitch sweep with a high Attack setting for a clicky front, and moderate drive. Decay is short (0.45 s).\n\nPatch a trigger into Trig and take Out L/R. Velocity scales the hit.\n\nTip: play it on every quarter note for a house pulse, then lengthen Decay to leave room for a bass."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Punch","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3324,6 +3403,7 @@
         "category": "Drums/Kicks",
         "description": "A hard, driven kick through a saturating ladder filter: thick, warehouse-ready.",
         "tags": ["drums","one-shot","kick","techno","distorted"],
+        "help": {"text":"A Punch Kick with heavy drive and a high Attack, run into a Ladder Tanh filter at 4.5 kHz with some drive of its own. The saturation thickens the body.\n\nPatch a trigger into Trig and Out L/R to your output. Velocity sets the level.\n\nTip: lower the filter cutoff to darken it, or raise Drive for more grit."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Techno Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3352,6 +3432,7 @@
         "category": "Drums/Kicks",
         "description": "A very low, long kick that dives into the sub range, low-passed to pure weight.",
         "tags": ["drums","one-shot","kick","sub","boom"],
+        "help": {"text":"A Ring Kick tuned to 34 Hz with a long 2.6 s decay and a deep sweep (0.8), no tone or drive, then a 300 Hz low-pass so only weight is left.\n\nPatch a trigger into Trig and Out L/R. Velocity scales it.\n\nTip: play it sparingly, on a downbeat or a drop. It is mostly felt on big speakers."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Sub Drop","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3380,6 +3461,7 @@
         "category": "Drums/Kicks",
         "description": "A short, bright click kick on top of a rounder body kick: punch and weight together.",
         "tags": ["drums","one-shot","kick","layered"],
+        "help": {"text":"Two Kick layers in one mixer: a short, bright Punch Kick click (6 dB down, Tune 70 Hz) and a rounder Ring Kick body at 48 Hz.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: raise the click layer's level for more attack, or lower it to keep just the body."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Layered Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3409,6 +3491,7 @@
         "category": "Drums/Kicks",
         "description": "The Macro Osc kick model, darkened and crunched by a driven ladder filter.",
         "tags": ["drums","one-shot","kick","lo-fi","dusty"],
+        "help": {"text":"A Macro Osc in its Kick model, two octaves down, into a Ladder Tanh filter at 1.8 kHz with drive. The filter darkens it and adds crunch.\n\nPatch a trigger into Trig and Out L/R to the output. Velocity feeds the oscillator's accent.\n\nTip: the Macro Osc's Tone and Shape knobs change the character a lot; try them before reaching for the filter."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Lo-Fi Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3437,6 +3520,7 @@
         "category": "Drums/Kicks",
         "description": "A modal drum head tuned low: an acoustic-leaning kick with a soft beater click.",
         "tags": ["drums","one-shot","kick","acoustic","modal"],
+        "help": {"text":"A Perc Voice in its Modal engine, tuned to 50 Hz with a bend sweep and a click control for the beater. Damping shortens the ring.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the voice's accent.\n\nTip: raise Click for a harder beater, or lower Damp for a longer, more drum-like tail."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Membrane Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3463,6 +3547,7 @@
         "category": "Drums/Kicks",
         "description": "A fully driven kick, wavefolded and low-passed: the distorted hardcore thump.",
         "tags": ["drums","one-shot","kick","gabber","hardcore","distorted"],
+        "help": {"text":"A fully driven Punch Kick (Drive at max, long sweep) into a Wavefolder, a 5 kHz low-pass and a Linear VCA that trims the level.\n\nPatch a trigger into Trig and Out L/R. Velocity sets the level.\n\nTip: it is very loud. Lower the Trim gain before it meets the rest of the mix, and raise Fold for more bite."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Gabber Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3497,6 +3582,7 @@
         "category": "Drums/Kicks",
         "description": "A warm, mid-length kick, rolled off above 2.5 kHz for deep house and dub.",
         "tags": ["drums","one-shot","kick","deep house","dub"],
+        "help": {"text":"A Ring Kick at 52 Hz with a medium 0.6 s decay and some tone, then a 2.5 kHz low-pass that removes the click and leaves a warm thump.\n\nPatch a trigger into Trig and take Out L/R. Velocity scales it.\n\nTip: open the low-pass a little if it gets lost under pads and chords."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Deep Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3525,6 +3611,7 @@
         "category": "Drums/Kicks",
         "description": "An FM kick: a low carrier with a fast-falling index for a rubbery, electronic thud.",
         "tags": ["drums","one-shot","kick","fm","electro"],
+        "help": {"text":"A Perc Voice in its FM engine at 45 Hz. The sweep is fairly strong (0.7), so the pitch and the FM index fall quickly into a rubbery thud.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the voice's accent.\n\nTip: raise Morph to make the thud more metallic."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"FM Kick","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3551,6 +3638,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A classic 808-style snare: two tuned heads and a short burst of noise.",
         "tags": ["drums","one-shot","snare","808"],
+        "help": {"text":"A Ring Snare: two tuned heads at 180 Hz plus a short noise burst. Snappy sets how much noise there is.\n\nPatch a trigger into Trig and take Out L/R. A signal into Velocity changes the level of each hit.\n\nTip: lower Snappy for a drier, more tonal snare."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3576,6 +3664,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A bright, snappy 909-style snare with plenty of rattle.",
         "tags": ["drums","one-shot","snare","909","house"],
+        "help": {"text":"A Punch Snare at 200 Hz with a high Tone and a lot of Snappy, so the noise rattle is prominent. Decay is short (0.3 s).\n\nPatch a trigger into Trig and Out L/R. Velocity scales the hit.\n\nTip: play ghost notes with a low Velocity between the backbeats."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3601,6 +3690,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A low, long snare with a quiet clap underneath for width and body.",
         "tags": ["drums","one-shot","snare","layered","fat"],
+        "help": {"text":"Two layers: a Punch Snare at 160 Hz with a 0.45 s decay, and a Ring Clap 8 dB down underneath it.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both layers.\n\nTip: raise the clap layer's level in the mixer to widen the hit."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Fat Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3630,6 +3720,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A snappy snare into a big, damped room: an arena backbeat.",
         "tags": ["drums","one-shot","snare","reverb","big"],
+        "help": {"text":"A Punch Snare with a long 0.5 s decay into a Reverb with a big size and damped tail, 35 percent mix.\n\nPatch a trigger into Trig and Out L/R to the output. Velocity sets the hit strength.\n\nTip: the reverb tail fills gaps, so it works best on sparse backbeats; lower the reverb mix for busier patterns."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Big Room Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3658,6 +3749,7 @@
         "category": "Drums/Snares & Claps",
         "description": "The Macro Osc snare model: a synthetic snare with a tight, papery body.",
         "tags": ["drums","one-shot","snare","synthetic"],
+        "help": {"text":"A Macro Osc in its Snare model, an octave down, with tone and shape set for a papery body. Blend mixes the noise.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the oscillator's accent.\n\nTip: open the Macro Osc and sweep Shape and Blend to move between a tight crack and a soft slap."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Macro Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3683,6 +3775,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A noise-bank snare: a cloud of filtered noise with a sharp click and almost no tone.",
         "tags": ["drums","one-shot","snare","noise","electro"],
+        "help": {"text":"A Perc Voice in the Noise Bank engine at 220 Hz with a strong Click and a short decay. It is mostly filtered noise, with very little tone.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the voice's accent.\n\nTip: raise Pitch for a thinner, hissier snare and lower Damp for a brighter one."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Noise Snare","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3709,6 +3802,7 @@
         "category": "Drums/Snares & Claps",
         "description": "An 808-style handclap: four quick noise bursts and a short tail.",
         "tags": ["drums","one-shot","clap","808"],
+        "help": {"text":"A Ring Clap: four quick noise bursts, followed by a short tail. Tone sets the filter at 1.1 kHz.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: raise Spread for a looser, sloppier clap."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3734,6 +3828,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A brighter, tighter 909-style handclap.",
         "tags": ["drums","one-shot","clap","909","house"],
+        "help": {"text":"A Punch Clap: four close bursts, filtered at 1.5 kHz, with a slightly longer tail.\n\nPatch a trigger into Trig and Out L/R. Velocity scales the hit.\n\nTip: layer it with a snare on the same trigger for a house backbeat."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3759,6 +3854,7 @@
         "category": "Drums/Snares & Claps",
         "description": "Two differently tuned claps panned hard left and right: a wide, crowd-like clap.",
         "tags": ["drums","one-shot","clap","stereo","wide"],
+        "help": {"text":"Two claps in one mixer: a Punch Clap panned left (1.4 kHz, four bursts) and a Ring Clap panned right (1.7 kHz, five bursts). The different tunings and spacings make a stereo spread.\n\nPatch a trigger into Trig and use both Out L and Out R. Velocity reaches both.\n\nTip: keep both outputs connected, or the width is lost."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Wide Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3788,6 +3884,7 @@
         "category": "Drums/Snares & Claps",
         "description": "A clap in a small, live room.",
         "tags": ["drums","one-shot","clap","reverb"],
+        "help": {"text":"A Punch Clap (1.3 kHz, 0.4 s decay) into a small Reverb with moderate damping and 30 percent mix, as if clapped in a live room.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: raise the reverb mix for a more distant clap."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Room Clap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3816,6 +3913,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "808-style hi-hats from six square waves: Closed and Open, and Closed cuts the open hat.",
         "tags": ["drums","one-shot","hats","808"],
+        "help": {"text":"A Ring Hats module: six square waves through a filter. It has two trigger inputs, Closed and Open. A Closed trigger also cuts a ringing open hat.\n\nPatch one trigger into Closed and another into Open, then Out L/R. Velocity scales both.\n\nTip: put the open hat on the off-beats and closed hats on the other 8ths or 16ths."},
         "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3842,6 +3940,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Crisp 909-style hi-hats with a little crunch: Closed and Open, and Closed cuts the open hat.",
         "tags": ["drums","one-shot","hats","909","house"],
+        "help": {"text":"A Punch Hats module with a Crunch control for a slightly gritty edge. Closed is 0.05 s and Open 0.45 s. A Closed trigger cuts the open hat.\n\nPatch triggers into Closed and Open, and take Out L/R. Velocity sets the level.\n\nTip: raise Crunch for a dirtier, more lo-fi feel."},
         "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3868,6 +3967,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Very short, bright hats high-passed at 7 kHz: ticks for fast patterns.",
         "tags": ["drums","one-shot","hats","tight","minimal"],
+        "help": {"text":"A Punch Hats module with a very short closed time (0.025 s), a bright Tone and a high Tune, followed by a 7 kHz high-pass that removes the body.\n\nPatch triggers into Closed and Open and take Out L/R. Velocity scales the hit.\n\nTip: use it on fast 16ths or 32nds, where a longer hat would blur."},
         "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Tight Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3897,6 +3997,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Detuned, fully crunched hats with a long, washy open hat.",
         "tags": ["drums","one-shot","hats","dirty","lo-fi"],
+        "help": {"text":"A Punch Hats module tuned down three semitones with Crunch at maximum and a long Open time (0.9 s). The open hat washes out; Closed still cuts it.\n\nPatch triggers into Closed and Open and take Out L/R. Velocity sets the level.\n\nTip: use open hats sparingly, since they run on for most of a bar."},
         "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Trashy Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3923,6 +4024,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Hats from two noise-bank voices, high-passed; Closed chokes the open hat.",
         "tags": ["drums","one-shot","hats","noise"],
+        "help": {"text":"Two Perc Voices in the Noise Bank engine, one short for Closed (0.04 s) and one longer for Open (0.4 s), then a 5 kHz high-pass. The Closed trigger also chokes the open voice.\n\nPatch triggers into Closed and Open and take Out L/R. Velocity feeds both voices.\n\nTip: raise the Pitch of either voice for a thinner, hissier hat."},
         "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Noise Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3958,6 +4060,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "Hats from the Macro Osc metal model: clangy, ring-modulated and inharmonic.",
         "tags": ["drums","one-shot","hats","metallic","industrial"],
+        "help": {"text":"Two Macro Osc voices in the Metal model, two octaves up: one very short for Closed (0.05 s), one long for Open (0.5 s). The sound is clangy and inharmonic.\n\nPatch triggers into Closed and Open and take Out L/R. Velocity feeds both. There is no choke here, so a closed hit does not cut the open one.\n\nTip: change Shape on each voice to taste."},
         "plays": {"instrument":{"notes":{"trigger":{"44":"closed","46":"open","default":"closed"},"velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Metal Hats","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"closed","name":"Closed","type":"trigger"},{"id":"open","name":"Open","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -3987,6 +4090,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "A bright crash cymbal with a three-second wash.",
         "tags": ["drums","one-shot","cymbal","crash"],
+        "help": {"text":"A Punch Cymbal in its Crash voice with a 3 second decay, bright tone and some crunch.\n\nPatch a trigger into Trig and Out L/R to your output. Velocity scales the hit.\n\nTip: play it on the first beat of a new section, and shorten Decay if it smears into the next bar."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Crash","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4012,6 +4116,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "A ride cymbal: a defined ping over a long, quiet shimmer.",
         "tags": ["drums","one-shot","cymbal","ride"],
+        "help": {"text":"A Punch Cymbal in its Ride voice: a defined ping with a long, quiet shimmer over a 2.5 s decay.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: play steady 8ths with varying Velocity so the bell-like ping stays in front."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Ride","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4037,6 +4142,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "An 808-style cymbal: square-wave metal with a long, hissy decay.",
         "tags": ["drums","one-shot","cymbal","808"],
+        "help": {"text":"A Ring Cymbal: square-wave metal with a long 3 s decay and noisy hiss. Tone shifts the brightness.\n\nPatch a trigger into Trig and Out L/R. Velocity scales it.\n\nTip: it is great for accents on the 1; lower Decay for something closer to a hat."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Cymbal","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4062,6 +4168,7 @@
         "category": "Drums/Hats & Cymbals",
         "description": "A small, high, short crash for accents.",
         "tags": ["drums","one-shot","cymbal","splash","accent"],
+        "help": {"text":"A Punch Cymbal on its Crash voice, tuned five semitones up with a short 0.9 s decay, high Tone and crunch.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: use it for quick accents at the end of a fill, where a full crash would be too much."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Splash","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4087,6 +4194,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A deep 808-style tom with a soft pitch bend; retune it for high, mid and low toms.",
         "tags": ["drums","one-shot","tom","808"],
+        "help": {"text":"A Ring Tom at 90 Hz with a gentle pitch bend, a 0.6 s decay and a little noise.\n\nPatch a trigger into Trig and Out L/R. Velocity scales the hit.\n\nTip: use three copies tuned to different Tune values for high, mid and low toms."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"808 Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4112,6 +4220,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A punchy 909-style mid tom with a strong pitch bend.",
         "tags": ["drums","one-shot","tom","909"],
+        "help": {"text":"A Punch Tom at 140 Hz with a strong pitch bend (0.5), a 0.45 s decay and a bit of noise.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: lower Tune for a floor tom, or lengthen Bend for more drop."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"909 Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4137,6 +4246,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "An FM syn-tom with a steep downward sweep: the classic electronic pew.",
         "tags": ["drums","one-shot","tom","fm","syndrum","80s"],
+        "help": {"text":"A Perc Voice in its FM engine at 120 Hz with a steep downward sweep (0.8). The pitch falls fast, giving the classic electronic pew.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the voice's accent.\n\nTip: play a descending run of hits with falling Velocity for the 80s fill."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Syn Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4163,6 +4273,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A low, long floor tom in a small room.",
         "tags": ["drums","one-shot","tom","floor","reverb"],
+        "help": {"text":"A Punch Tom at 70 Hz with a 1 s decay and extra noise, into a small Reverb with 20 percent mix.\n\nPatch a trigger into Trig and take Out L/R. Velocity scales the hit.\n\nTip: let it ring on a downbeat after a fill; the reverb will add a little air."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Floor Tom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4191,6 +4302,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A modal conga: a warm, slightly bending skin with a palm slap.",
         "tags": ["drums","one-shot","percussion","conga","latin","modal"],
+        "help": {"text":"A Perc Voice in its Modal engine at 220 Hz. Click is the palm slap; Sweep gives the skin a small pitch bend; Damp shortens the ring.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the voice's accent.\n\nTip: add a second one with a lower Pitch for a high/low pair."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Conga","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4217,6 +4329,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "An 808-style cowbell: two detuned square waves through a band-pass.",
         "tags": ["drums","one-shot","percussion","cowbell","808"],
+        "help": {"text":"A Ring Cowbell: two detuned square waves through a band-pass filter. Decay is short (0.4 s).\n\nPatch a trigger into Trig and take Out L/R. Velocity scales it.\n\nTip: shorten Decay for a dry 808 clank, lengthen it for an open bell."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Cowbell","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4242,6 +4355,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A short, woody clave click.",
         "tags": ["drums","one-shot","percussion","clave","latin"],
+        "help": {"text":"A Ring Rim set to its Clave voice: a short woody click at the default tune. Decay is turned up to 1.\n\nPatch a trigger into Trig and Out L/R. Velocity sets the level.\n\nTip: it suits 3-2 or 2-3 clave patterns; change Tune to get a higher or lower block."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Clave","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4267,6 +4381,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A sharp, short rimshot.",
         "tags": ["drums","one-shot","percussion","rim"],
+        "help": {"text":"A Punch Rim: a sharp, short click with a little body. Decay is set to 1.2.\n\nPatch a trigger into Trig and take Out L/R. Velocity scales it.\n\nTip: use it in place of the snare on quiet verses."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Rimshot","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4292,6 +4407,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "A short burst of high noise-bank grains, high-passed: a shaker for 16ths.",
         "tags": ["drums","one-shot","percussion","shaker","noise"],
+        "help": {"text":"A Perc Voice in the Noise Bank engine at 3.5 kHz with a very short 0.09 s decay, then a 4 kHz high-pass. A 5 dB gain keeps it present.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the voice's accent.\n\nTip: play steady 16ths and vary Velocity for a natural shake."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Shaker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4321,6 +4437,7 @@
         "category": "Drums/Toms & Percussion",
         "description": "Jingles from a bright open hat over a quiet, low clave for the skin.",
         "tags": ["drums","one-shot","percussion","tambourine"],
+        "help": {"text":"Two layers: a Punch Hats open hat for the jingles (bright, Tone high) and a quiet Ring Rim on its Clave voice, tuned down, for the skin.\n\nTrig feeds the open input of the hat and the rim together. Patch a trigger there and take Out L/R. Velocity reaches both.\n\nTip: play it on the off-beats, where it fits like a tambourine on 2 and 4."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Tambourine","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4350,6 +4467,7 @@
         "category": "Drums/FX",
         "description": "A short FM zap: a high pitch that falls to nothing in 150 ms.",
         "tags": ["drums","one-shot","fx","zap","electro"],
+        "help": {"text":"A Perc Voice in its FM engine at 1.5 kHz, with Sweep at maximum and a 0.15 s decay. The pitch falls away quickly.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the voice's accent.\n\nTip: lower Sweep for a shorter blip, or raise Decay for a longer descent."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Zap","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4376,6 +4494,7 @@
         "category": "Drums/FX",
         "description": "A longer, brighter FM sweep into a wide space: a sci-fi laser shot.",
         "tags": ["drums","one-shot","fx","laser","sci-fi"],
+        "help": {"text":"A Perc Voice in its FM engine starting at 2.5 kHz with Sweep at maximum and a 0.35 s decay, then a Reverb for space.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the level.\n\nTip: raise Morph for a harsher shot, or lower the reverb mix to keep it dry."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Laser","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4405,6 +4524,7 @@
         "category": "Drums/FX",
         "description": "The Macro Osc metal model, ringing for most of a second: a clangy industrial hit.",
         "tags": ["drums","one-shot","fx","metallic","industrial"],
+        "help": {"text":"A Macro Osc in its Metal model with a decay of 0.8 s. Tone and Shape set how clangy and inharmonic it sounds.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the accent.\n\nTip: lower the Macro Osc's Octave for heavier, more industrial hits."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Metal Hit","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4430,6 +4550,7 @@
         "category": "Drums/FX",
         "description": "A struck modal bell an octave up, into a hall.",
         "tags": ["drums","one-shot","fx","bell","modal"],
+        "help": {"text":"A Modal Voice struck once, an octave up (Coarse 12), with Geometry and Brightness fairly high and moderate damping, into a Hall reverb.\n\nPatch a trigger into Trig (it feeds the voice's strike) and take Out L/R. Velocity sets the strike strength.\n\nTip: vary Coarse to tune the bell, and use Velocity for brightness."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Bell","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4459,6 +4580,7 @@
         "category": "Drums/FX",
         "description": "A metallic modal bar with a rimshot strike: a hard, ringing anvil.",
         "tags": ["drums","one-shot","fx","metallic","anvil"],
+        "help": {"text":"Two layers: a Perc Voice in its Modal engine at 700 Hz with strong click for the metal bar, and a Punch Rim for the strike.\n\nOne Trig fires both. Patch a trigger there and take Out L/R. Velocity reaches both.\n\nTip: lower Damp for a longer ring, raise Pitch for a smaller anvil."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Anvil","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4489,6 +4611,7 @@
         "category": "Drums/FX",
         "description": "A short burst of dust, wavefolded and band-passed: digital crackle for glitchy fills.",
         "tags": ["drums","one-shot","fx","glitch","noise"],
+        "help": {"text":"A Macro Osc in its Dust model (octave up, short 0.12 s decay) through a Wavefolder, a band-pass at 2 kHz and a trimmed VCA. The result is a crackle.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the oscillator's accent.\n\nTip: fire it in bursts of 16ths at the end of a bar, and raise Fold for harsher crackle."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Glitch Burst","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4523,6 +4646,7 @@
         "category": "Drums/FX",
         "description": "A rim click rings a bank of modal resonators: a tuned, wide, glassy hit.",
         "tags": ["drums","one-shot","fx","resonator","modal","tuned"],
+        "help": {"text":"A Ring Rim click on its Rim voice is fed into a Resonator in Modal mode. The click excites the resonator, which rings at the pitch set by Frequency; Structure and Brightness shape the timbre.\n\nPatch a trigger into Trig and take Out L/R. Velocity sets the click strength.\n\nTip: change the resonator's Frequency to play a different tuned hit."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Struck Resonator","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4550,6 +4674,7 @@
         "category": "Drums/FX",
         "description": "A deep, driven boom with a crash on top, into a big hall: a transition hit.",
         "tags": ["drums","one-shot","fx","impact","cinematic","transition"],
+        "help": {"text":"Two layers: a deep Ring Kick boom (32 Hz, 3 s decay, full sweep, driven) and a Punch Cymbal crash, 8 dB down. A big Hall reverb joins them.\n\nPatch a trigger into Trig and Out L/R. Velocity reaches both layers.\n\nTip: trigger it once at a section change, and turn the reverb mix down if it clouds the next downbeat."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Impact","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4582,6 +4707,7 @@
         "category": "Drums/FX",
         "description": "A falling noise-bank whoosh into a long space: a downlifter on every hit.",
         "tags": ["drums","one-shot","fx","noise","sweep","transition"],
+        "help": {"text":"A Perc Voice in its Noise Bank engine starting at 1.5 kHz, with Sweep at maximum and a 1.5 s decay, so the noise falls. A big Reverb extends it.\n\nPatch a trigger into Trig and take Out L/R. Velocity feeds the voice's accent.\n\nTip: trigger it on the last beat of a bar so the downlift lands on the next downbeat."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Noise Sweep","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4611,6 +4737,7 @@
         "category": "Drums/FX",
         "description": "A tiny, pure FM blip: a short tonal tick for percussive melodies.",
         "tags": ["drums","one-shot","fx","blip","tonal"],
+        "help": {"text":"A Perc Voice in its FM engine at 1.2 kHz with a 0.05 s decay and a small sweep. It makes a short tonal tick.\n\nPatch a trigger into Trig and Out L/R. Velocity feeds the voice's accent.\n\nTip: change Pitch from a sequencer between hits to play percussive melodies."},
         "plays": {"instrument":{"notes":{"trigger":"trig","velocity":"velocity"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Blip","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trig","type":"trigger"},{"id":"velocity","name":"Velocity","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4637,6 +4764,7 @@
         "category": "Sequencers",
         "description": "A 16-step A Phrygian acid line with ties for slides and loud accents: play a mono Voice Cell with Legato and Glide. Shared inputs Transpose and Reset.",
         "tags": ["sequencer","acid","bass","step sequencer","phrygian"],
+        "help": {"text":"A Step Sequencer with 16 steps in A Phrygian, two octaves down. Ties hold a note into the next step and the louder steps carry high velocity, so accents come from the pattern itself. Gate length is 55 percent with a little swing.\n\nPatch Notes into a Voice Cell set to one voice, Legato mode and some Glide: the ties then become slides. Pitch and Gate outputs are there if you want to drive your own oscillator and envelope. Transpose shifts the whole line; a trigger into Reset restarts it. It follows the transport unless you patch Clock.\n\nTip: send Notes to a resonant filtered voice and move Transpose by a few semitones between sections."},
         "nodes": [
           {"id":"root","type":"cell","name":"Acid Sermon","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"rst","name":"Reset","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4661,6 +4789,7 @@
         "category": "Sequencers",
         "description": "A two-bar E minor bassline bouncing between octaves, moving to C in the second bar: disco and house bass. Shared input Transpose follows a key change or a chord sequencer.",
         "tags": ["sequencer","bass","octave","house","disco"],
+        "help": {"text":"A 32-step Step Sequencer in E natural minor, two octaves down. The line alternates a note with its octave above; in the second bar it moves up to C with the same bounce. Gates are short (35 percent) with a slight swing, and the velocities accent every other step.\n\nPatch Notes into a Voice Cell for a house or disco bass; Pitch and Gate outputs are also available. Transpose follows a key change, for instance from a chord sequencer or a Quantizer. It follows the transport unless you patch Clock.\n\nTip: a short decay on the bass voice keeps the bounce tight."},
         "nodes": [
           {"id":"root","type":"cell","name":"Octave Bounce","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4684,6 +4813,7 @@
         "category": "Sequencers",
         "description": "Harmony Master plays Am7 – Fmaj7 – Cmaj7 – G7, two bars each, as sustained chords (and the chord root on Root) on harmony Bus D. Shared inputs Transpose and Reset.",
         "tags": ["sequencer","chords","progression","harmony","pads"],
+        "help": {"text":"A Harmony Master in Progression mode plays Am7, Fmaj7, Cmaj7 and G7, two bars each, as seventh chords one octave down. It also publishes the chord on harmony Bus D, so modules set to follow Bus D hear the same changes.\n\nPatch Notes into a polyphonic Voice Cell (a pad or keys) to play the chords. The Root output carries the chord root as pitch: patch it into a bass voice. A pitch into Transpose moves the key; a trigger into Reset returns to the first chord. It follows the transport unless you patch Clock.\n\nTip: give the pad voice a slow attack and release for sustained chords."},
         "nodes": [
           {"id":"root","type":"cell","name":"Night Drive Changes","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"rst","name":"Reset","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"root","name":"Root","type":"pitch"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4706,6 +4836,7 @@
         "category": "Sequencers",
         "description": "A D Dorian progression (Dm – G – Dm – C) from Harmony Master on Bus D, arpeggiated by Quantizer Suite as seventh chords over two octaves, up and down in 16ths.",
         "tags": ["sequencer","arpeggio","arp","dorian","harmony"],
+        "help": {"text":"A Harmony Master walks D Dorian chords (Dm, G, Dm, C, four beats each) on Bus D. Its chord root feeds a Quantizer Suite in Arp mode, which arpeggiates seventh chords over two octaves, up and down, from the transport.\n\nPatch Notes into any Voice Cell; the Pitch output carries the arpeggio as pitch too, but there is no Gate output. A pitch into Transpose shifts the chord progression. Follows the transport unless you patch Clock.\n\nTip: a plucky voice with a short decay shows the chord changes best."},
         "nodes": [
           {"id":"root","type":"cell","name":"Cascade Arp","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4729,6 +4860,7 @@
         "category": "Sequencers",
         "description": "A Turing-machine melody: an 8-bit Shift Register that mutates now and then, quantized to E minor pentatonic over two octaves. Shared inputs Lock (frozen ↔ random) and Transpose.",
         "tags": ["sequencer","generative","shift register","turing","lead"],
+        "help": {"text":"An 8-bit Shift Register (Turing machine) clocked on 16ths, quantized to E minor pentatonic over two octaves. At each step the bit that comes back round is kept or flipped by chance, set by Lock; CV to Notes turns the pitch into notes, with bit 1 as the gate.\n\nPatch Notes into a Voice Cell. Pitch and Gate outputs are also available. The Lock input is added to the Lock knob: up freezes the loop, down makes it fully random. Transpose shifts the key. Follows the transport unless you patch Clock.\n\nTip: let it mutate, then push Lock up when you like the loop."},
         "nodes": [
           {"id":"root","type":"cell","name":"Turing Spiral","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"lock","name":"Lock","type":"control"},{"id":"tr","name":"Transpose","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4756,6 +4888,7 @@
         "category": "Sequencers",
         "description": "Polymeter Seq in F Dorian: rhythm 16, notes 5, octaves 7, gates 12 and chances 9 steps long, so the line keeps turning over for hundreds of bars. Shared input Transpose.",
         "tags": ["sequencer","polymeter","generative","dorian"],
+        "help": {"text":"A Polymeter Seq in F Dorian with six tracks of different lengths: rhythm 16 steps, notes 5, octaves 7, gates 12, chances 9, plus a ratchet track. Because the lengths do not divide each other, the combined line takes hundreds of bars to repeat.\n\nPatch Notes into a Voice Cell; Pitch and Gate outputs are also available. Transpose shifts the key. It follows the transport unless you patch Clock.\n\nTip: open the Polymeter Seq and change one track's length to hear how the repeat length changes."},
         "nodes": [
           {"id":"root","type":"cell","name":"Clockwork Polymeter","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4779,6 +4912,7 @@
         "category": "Sequencers",
         "description": "Stage Seq in C harmonic minor: eight stages of held notes, repeats, a ratchet and two slides make a one-bar riff with a four-bar phrase. Shared inputs Transpose and Hold.",
         "tags": ["sequencer","stage sequencer","riff","harmonic minor"],
+        "help": {"text":"A Stage Sequencer with eight stages in C harmonic minor. Each stage has a pitch, a number of pulses and a gate mode: held notes, repeats, one ratchet and two slides. Together they make a one-bar riff that unfolds as a four-bar phrase.\n\nPatch Notes into a Voice Cell; use Legato and Glide for the slides. Pitch and Gate outputs are also available. A pitch into Transpose shifts the riff. While a gate is high on Hold, the current stage keeps repeating instead of moving on. Follows the transport unless you patch Clock.\n\nTip: hold a stage with a button or an LFO square for stutter fills."},
         "nodes": [
           {"id":"root","type":"cell","name":"Staircase Phrase","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"},{"id":"hold","name":"Hold","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4803,6 +4937,7 @@
         "category": "Sequencers",
         "description": "Cartesian Seq in F Lydian walks a 4 × 3 grid of bright broken chords: a twelve-step figure that shifts against the bar; Mod rises through the grid. Shared input Transpose.",
         "tags": ["sequencer","cartesian","lydian","pluck","melodic"],
+        "help": {"text":"A Cartesian Seq walking a small 4 by 3 corner of its grid in F Lydian: the X axis steps on 16ths across four columns and the Y axis moves a row each time X wraps. A twelve-step figure against a 16-step bar makes it shift against the bar.\n\nPatch Notes into a Voice Cell for plucks. Pitch and Gate outputs are also available, and Mod, a value that rises through the grid, can go into a filter cutoff or another knob. Transpose shifts the key. Follows the transport unless you patch Clock.\n\nTip: use Mod on a cutoff so the sound opens as the figure walks on."},
         "nodes": [
           {"id":"root","type":"cell","name":"Lattice Walker","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"tr","name":"Transpose","type":"pitch"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"},{"id":"mod","name":"Mod","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4826,6 +4961,7 @@
         "category": "Sequencers",
         "description": "A random melodic walk: Random steps on each 8th, quantized to D Dorian, with a looping coin deciding which 8ths play. Shared inputs Loop (new ↔ repeating) and Transpose.",
         "tags": ["sequencer","random","generative","dorian","melody"],
+        "help": {"text":"A random melody built from modules: an LFO square gives 8th clocks, Random picks a value on each clock, a Quantizer snaps it to D Dorian, and a looping Coin Toss decides which 8ths actually play.\n\nPatch Notes into a Voice Cell; Pitch and Gate outputs are also available. The Loop input is added to the Random Loop knob: higher repeats the recent notes, lower gives new ones. Transpose shifts the key. The 8th clock follows the transport.\n\nTip: raise Loop until a phrase you like repeats."},
         "nodes": [
           {"id":"root","type":"cell","name":"Wandering Monk","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"loop","name":"Loop","type":"control"},{"id":"tr","name":"Transpose","type":"pitch"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4858,6 +4994,7 @@
         "category": "Sequencers",
         "description": "Recall draws random 16th-note gates and A minor pentatonic notes that keep echoing their recent past: half new, half remembered. Shared inputs Memory (more = repeats) and Reset.",
         "tags": ["sequencer","recall","generative","random","pentatonic"],
+        "help": {"text":"A Recall module on 16ths makes random gates (T1) and random pitches (X1) in A minor pentatonic, and CV to Notes turns them into notes. Both are drawn partly from their own recent past, so phrases return in changed form.\n\nPatch Notes into a Voice Cell; Pitch and Gate outputs are also available. The Memory input is added to both Recall knobs: more means more repeats, up to a locked loop. A trigger into Reset restarts the loop. Follows the transport unless you patch Clock.\n\nTip: sweep Memory up slowly, then down again to let new notes in."},
         "nodes": [
           {"id":"root","type":"cell","name":"Deja Vu Line","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"mem","name":"Memory","type":"control"},{"id":"rst","name":"Reset","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"pitch"},{"id":"gate","name":"Gate","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -4886,6 +5023,7 @@
         "category": "Effects",
         "description": "A gentle high-pass keeps the lows out of a big, dark hall with 40 ms pre-delay and a six-second tail. Shared inputs Mix and Freeze.",
         "tags": ["reverb","hall","ambient","space"],
+        "help": {"text":"A 1-pole high-pass at 160 Hz feeds a Reverb with a large size, a six-second decay, 40 ms pre-delay and slow modulation. The high-pass keeps low end out of the tail so the hall stays clear. The reverb is 30 percent wet.\n\nPatch a sound into In L/R and take Out L/R onwards. The Mix input is added to the reverb's Mix knob. A gate into Freeze holds the current tail as an endless wash.\n\nTip: freeze a chord for a moment, then release it to let the hall decay."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":8}},
         "nodes": [
           {"id":"root","type":"cell","name":"Cathedral Hall","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4914,6 +5052,7 @@
         "category": "Effects",
         "description": "Tempo-synced dotted-eighth echoes that bounce left and right, darker with every pass, into a short room. Shared inputs Feedback and Tone.",
         "tags": ["delay","ping-pong","dub","tempo"],
+        "help": {"text":"A Zone Delay in transport sync with a dotted eighth time, set to ping-pong so repeats alternate left and right, each pass darker, into a short Room reverb. Always-on constant keeps the ping-pong switched on.\n\nPatch a sound into In L/R and take Out L/R onwards. The Feedback input is added to the delay's Feedback knob and Tone to its Tone. The delay time follows the transport tempo.\n\nTip: send a sparse, dry part through it and ride Feedback up for dub throws."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":8}},
         "nodes": [
           {"id":"root","type":"cell","name":"Dub Ping-Pong","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"fb","name":"Feedback","type":"control"},{"id":"tone","name":"Tone","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4945,6 +5084,7 @@
         "category": "Effects",
         "description": "Grains pitched up an octave with octave-and-fifth jitter feed back into a long reverb: a shimmering halo above anything. Shared inputs Mix and Freeze.",
         "tags": ["shimmer","granular","ambient","reverb"],
+        "help": {"text":"Grains pitches the sound up an octave with octave-and-fifth jitter and feeds itself back with blur, into a long Reverb (9 s decay). The result is a bright halo of high voices above the original.\n\nPatch a sound into In L/R and take Out L/R onwards. Mix is added to both the Grains and the Reverb mix, so one input fades the whole effect. A gate into Freeze freezes both Grains and the reverb tail. Plays a long tail, so allow time after the sound stops.\n\nTip: use it on sustained pads or single notes; busy material turns into mush."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":14}},
         "nodes": [
           {"id":"root","type":"cell","name":"Shimmer Cloud","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -4975,6 +5115,7 @@
         "category": "Effects",
         "description": "A short tape-style delay whose head drifts with wow, flutter and a slow LFO: warm chorus and seasick tape wobble. Shared input Depth.",
         "tags": ["chorus","tape","wobble","lo-fi","modulation"],
+        "help": {"text":"A Zone Delay in its tape zone with a short time, light feedback and wobble. A slow LFO named Wow also moves the delay time, so the pitch drifts like a worn tape head. Half wet, it reads as chorus.\n\nPatch a sound into In L/R and take Out L/R onwards. The Depth input is added to the delay's Wobble knob: more means a seasick sway. It does not follow the transport.\n\nTip: it suits electric piano, guitar and pads; raise Depth for lo-fi warble."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":6}},
         "nodes": [
           {"id":"root","type":"cell","name":"Worn Tape Chorus","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"depth","name":"Depth","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5001,6 +5142,7 @@
         "category": "Effects",
         "description": "A resonant tanh ladder swept up and down by a triangle locked to half notes: a tempo auto-filter for pads, chords and loops. Shared inputs Cutoff and Depth.",
         "tags": ["filter","auto-filter","tempo","wah"],
+        "help": {"text":"A Ladder Tanh filter with resonance and a touch of drive, with a triangle LFO locked to half notes sweeping its cutoff. A Multiplier named Depth scales the sweep before it reaches the cutoff.\n\nPatch a sound into In L/R and take Out L/R onwards. Cutoff is added to the filter cutoff, moving the centre of the sweep. Depth is added to the Multiplier's Y input, scaling how far the LFO sweeps. The LFO follows the transport tempo.\n\nTip: put it on chords or a full drum loop and set Cutoff so the sweep opens on the downbeat."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Half-Note Wah","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"cut","name":"Cutoff","type":"control"},{"id":"depth","name":"Depth","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5030,6 +5172,7 @@
         "category": "Effects",
         "description": "A frequency shifter with tight feedback: phaser notches that rise forever, turning in opposite directions in the two ears. Shared input Speed.",
         "tags": ["phaser","barber-pole","frequency shifter","stereo"],
+        "help": {"text":"A Frequency Shifter with strong feedback and a tiny fine shift. Each pass moves the spectrum a little more, so the phaser notches seem to rise forever. Spread is at maximum, so left and right shift in opposite directions.\n\nPatch a sound into In L/R and take Out L/R onwards. The Speed input is added to the shifter's Fine knob, so more Speed moves the notches faster. It does not follow the transport.\n\nTip: best on sustained sounds with plenty of harmonics, like strings, pads or noise."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
         "nodes": [
           {"id":"root","type":"cell","name":"Barber Pole","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"speed","name":"Speed","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5054,6 +5197,7 @@
         "category": "Effects",
         "description": "Bender catches sixteenth-note slices by chance and repeats, reverses and re-pitches them in octaves: seeded glitches that come back every loop. Shared inputs Chance and Glitch.",
         "tags": ["glitch","stutter","repeat","tempo"],
+        "help": {"text":"A Bender on 16th-note slices (Shuffle mode). At each slice there is a chance it is caught, repeated up to four times, reversed or bent in octaves. The seed makes the glitches repeat each loop. Slice timing follows the transport.\n\nPatch a sound into In L/R and take Out L/R onwards. The Chance input is added to the Chance knob. A trigger into Glitch forces an immediate glitch, for instance from a button or a clock.\n\nTip: use it on drums or a rhythmic loop and raise Chance only for fills."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Stutter Engine","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"chance","name":"Chance","type":"control"},{"id":"glitch","name":"Glitch","type":"trigger"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5080,6 +5224,7 @@
         "category": "Effects",
         "description": "A touch of wavefolding, constant sample-rate and bit crushing and a dull low-pass: a worn, crunchy sampler sound. Shared input Grit.",
         "tags": ["lo-fi","crush","distortion","saturation"],
+        "help": {"text":"Three stages in a row: a Wavefolder with a small fold, a Bender in Crush mode with corruption always on (bit and sample-rate crushing), and a dull 1-pole low-pass at 4.5 kHz.\n\nPatch a sound into In L/R and take Out L/R onwards. The Grit input is added to the Wavefolder's Fold and to the Crusher's Corrupt knob together, so one control makes everything dirtier. It does not follow the transport.\n\nTip: run a clean drum loop through it and push Grit for a worn sampler sound."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Bit Rot","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"grit","name":"Grit","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5111,6 +5256,7 @@
         "category": "Effects",
         "description": "Ten narrow band-passes tuned to C minor pentatonic, a slow window scanning across them: drums and noise turn into ringing, tuned chords. Shared input Scan.",
         "tags": ["filter bank","resonant","tuned","spectral"],
+        "help": {"text":"A Filter Bank with ten narrow band-passes tuned to C minor pentatonic. A slow LFO named Drift moves its Scan window across them, and odd and even bands go to different sides. Whatever you feed it comes out as ringing tuned chords.\n\nPatch a sound into In L/R and take Out L/R onwards. The Scan input is added to the Scan knob, moving the window yourself. The effect is 60 percent wet.\n\nTip: it works best on drums, noise and other sounds with lots of broadband energy."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Pentatonic Prism","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"scan","name":"Scan","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5137,6 +5283,7 @@
         "category": "Effects",
         "description": "A VCA chopped on sixteenths by a synced square with softened edges: rhythmic trance gate for pads and drones. Shared input Depth.",
         "tags": ["gate","tremolo","rhythmic","tempo"],
+        "help": {"text":"A synced LFO square on 16ths, softened by a short slew, controls a VCA's gain. A Multiplier named Depth sets how much the square closes the gate, so the sound is chopped rhythmically into a trance gate.\n\nPatch a sound into In L/R and take Out L/R onwards. The Depth input is added to the Multiplier's Y input: higher means deeper chopping. The LFO follows the transport tempo.\n\nTip: use it on a pad or drone and automate Depth for builds."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Sixteenth Chopper","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"depth","name":"Depth","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5167,6 +5314,7 @@
         "category": "Processors",
         "description": "The reverb's tail is pitched up an octave and fed back into it, so every echo climbs: a halo of ever higher voices above the sound. A limiter keeps the loop bounded. Shared inputs Mix, Shimmer (loop amount) and Freeze.",
         "tags": ["shimmer","reverb","octave","ambient","pitch"],
+        "help": {"text":"A Reverb whose wet signal goes through a Pitch Shifter (up 12 semitones), a Shimmer VCA and a Loop Limiter compressor, then back into the reverb. Each echo is an octave higher than the last; the limiter keeps the loop from running away.\n\nPatch a sound into In L/R and take Out L/R onwards. Mix is added to the reverb mix, Shimmer to the loop gain (more means more climbing echoes), and a gate into Freeze holds the tail. The tail is long, about 20 seconds.\n\nTip: play single sustained notes and raise Shimmer slowly."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":20}},
         "nodes": [
           {"id":"root","type":"cell","name":"Shimmer Verb","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"shimmer","name":"Shimmer","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5204,6 +5352,7 @@
         "category": "Processors",
         "description": "The same loop, but a fifth up: each echo moves to the next fifth, so the halo is open and suspended rather than bright. A longer window keeps it smooth. Shared inputs Mix, Shimmer and Freeze.",
         "tags": ["shimmer","reverb","fifth","ambient","pitch"],
+        "help": {"text":"The same loop as Shimmer Verb: the reverb's wet signal passes through a Pitch Shifter, a gain stage and a limiter before returning. Here the shift is a fifth (7 semitones) with a longer window, so the repeats stack into open fifths.\n\nPatch a sound into In L/R and take Out L/R onwards. Mix is added to the reverb mix, Shimmer to the loop gain, and a gate into Freeze holds the tail. The tail is long, about 22 seconds.\n\nTip: with Shimmer low it adds a soft ghost fifth; with it high the tail becomes a wide suspended chord."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":22}},
         "nodes": [
           {"id":"root","type":"cell","name":"Fifth Shimmer","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"mix","name":"Mix","type":"control"},{"id":"shimmer","name":"Shimmer","type":"control"},{"id":"freeze","name":"Freeze","type":"gate"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5241,6 +5390,7 @@
         "category": "Processors",
         "description": "A copy of the sound an octave down, with its top taken off, mixed under the original: a bass, a lead or a kick gets a floor. Shared input Sub (the amount of the lower octave).",
         "tags": ["octave","bass","pitch","sub"],
+        "help": {"text":"A Pitch Shifter drops a copy of the sound one octave, a 1-pole low-pass at 400 Hz rounds its top off, and a VCA named Sub sets its level. The result is mixed under the original, which passes through unchanged.\n\nPatch a sound into In L/R and take Out L/R onwards. The Sub input is added to the Sub gain: more adds more low octave. It works best on one note at a time, as a pitch shifter does not follow chords cleanly.\n\nTip: use it on a mono bass line or a lead, and keep Sub moderate to avoid clipping."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
         "nodes": [
           {"id":"root","type":"cell","name":"Sub Octaver","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"sub","name":"Sub","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5273,6 +5423,7 @@
         "category": "Processors",
         "description": "Two copies, a few cents sharp and flat, each wandering a little, plus a light chorus: a single voice or lead becomes a small ensemble. Shared input Spread (the detune).",
         "tags": ["doubler","vocal","chorus","pitch","wide"],
+        "help": {"text":"Two Pitch Shifters, one 9 cents sharp and one 9 cents flat, each with a little drift, plus a light Chorus. The dry sound and both copies go into the chorus, which makes the result wider.\n\nPatch a sound into In L/R and take Out L/R onwards. The Spread input is added to both shifters' Fine knobs in opposite directions, widening the detune. It does not follow the transport.\n\nTip: works well on a single voice, a lead or a mono synth that needs width."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
         "nodes": [
           {"id":"root","type":"cell","name":"Vocal Doubler","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"spread","name":"Spread","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5308,6 +5459,7 @@
         "category": "Processors",
         "description": "A short, resonant flanger on a slow sweep: the whoosh of a jet passing over drums, noise or a full mix. Shared inputs Rate and Feedback.",
         "tags": ["flanger","modulation","jet","sweep"],
+        "help": {"text":"A Chorus module in Flanger mode: short delay (2.2 ms), deep modulation, strong feedback and a slow rate (0.12 Hz). The sweep gives a jet-like whoosh.\n\nPatch a sound into In L/R and take Out L/R onwards. Rate is added to the flanger's Rate knob and Feedback to its Feedback knob. It does not follow the transport.\n\nTip: put it on drums or a full mix; raise Feedback for a more metallic sound."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
         "nodes": [
           {"id":"root","type":"cell","name":"Jet Flanger","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"rate","name":"Rate","type":"control"},{"id":"fb","name":"Feedback","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5333,6 +5485,7 @@
         "category": "Processors",
         "description": "Eight allpass stages sweeping slowly and wide, the right ear half a cycle behind the left: notches that travel through a pad, strings or an electric piano. Shared inputs Speed and Feedback.",
         "tags": ["phaser","modulation","pad","sweep","stereo"],
+        "help": {"text":"A Phaser with eight allpass stages, a slow rate (0.08 Hz), wide depth and spread at maximum, so the right ear is half a cycle behind the left. Notches travel through the sound.\n\nPatch a sound into In L/R and take Out L/R onwards. Speed is added to the Rate knob and Feedback to the Feedback knob. It does not follow the transport.\n\nTip: suits pads, strings and electric piano; raise Feedback for a more vocal sweep."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
         "nodes": [
           {"id":"root","type":"cell","name":"Slow Phaser","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"speed","name":"Speed","type":"control"},{"id":"fb","name":"Feedback","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5358,6 +5511,7 @@
         "category": "Processors",
         "description": "Patch a kick or any rhythmic sound into Sidechain and the sound on In L/R is pushed down with every hit, then swells back: the pumping of dance music. Shared inputs Sidechain, Depth (lowers the threshold) and Release.",
         "tags": ["sidechain","compressor","pump","ducking","dance"],
+        "help": {"text":"A Compressor with a high ratio, a low threshold and a 3 ms attack, driven by a sidechain key. Whatever you patch into Sidechain pushes the sound on In L/R down, then it swells back over a 220 ms release.\n\nPatch the sound to be ducked into In L/R, a kick or any rhythmic sound into Sidechain, and take Out L/R onwards. Depth is added to the threshold (more means deeper ducking) and Release to the release time.\n\nTip: patch a kick into Sidechain and a pad into In L/R for classic dance pumping."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Pump Duck","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"key","name":"Sidechain","type":"audio"},{"id":"depth","name":"Depth","type":"control"},{"id":"release","name":"Release","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5384,6 +5538,7 @@
         "category": "Processors",
         "description": "Five bits, a quarter of the sample rate, a drive and a band-limiting EQ: music through a failing radio or a 90s sampler. Shared input Damage.",
         "tags": ["lo-fi","bitcrusher","radio","distortion"],
+        "help": {"text":"A Crunch module (5 bits, quarter sample rate, drive) followed by an EQ that cuts lows and highs and boosts the mids. Together this sounds like a small, failing radio.\n\nPatch a sound into In L/R and take Out L/R onwards. The Damage input is subtracted from Bits and added to Rate, so one control wrecks both. It does not follow the transport.\n\nTip: try it on a full mix, then bring Damage up for dropouts."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Broken Radio","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"damage","name":"Damage","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5412,6 +5567,7 @@
         "category": "Processors",
         "description": "Everything below 500 Hz and above 3 kHz removed, a bump in the middle and a touch of drive: a voice or a drum loop down the line. Shared input Drive.",
         "tags": ["telephone","eq","band-pass","lo-fi"],
+        "help": {"text":"An EQ cuts everything below about 700 Hz and above 3 kHz and lifts the middle, followed by a Crunch module for a little drive. This narrow band is the sound of a voice or loop down the line.\n\nPatch a sound into In L/R and take Out L/R onwards. The Drive input is added to the Crunch Drive knob.\n\nTip: use it on a vocal or a drum loop and bring in Drive for distortion."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Telephone","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"drive","name":"Drive","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5439,6 +5595,7 @@
         "category": "Processors",
         "description": "The speed errors of a worn tape machine: a slow wow and a quick flutter wobble the pitch by a few cents, with a darker top, a little saturation and drift. Shared inputs Wow and Flutter (the depth of each).",
         "tags": ["tape","wow","flutter","vibrato","lo-fi","pitch"],
+        "help": {"text":"Three LFOs (a slow sine, a wandering random, a fast random) modulate the pitch of a Pitch Shifter by a few cents. A Multiplier sets their depth. An EQ rolls off the top and a Crunch stage adds saturation, like tape.\n\nPatch a sound into In L/R and take Out L/R onwards. The Wow input is added to the depth of the slow motion and Flutter to the depth of the fast one. It does not follow the transport.\n\nTip: use it on pads or keys and keep the depths low for realism."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":1}},
         "nodes": [
           {"id":"root","type":"cell","name":"Wow & Flutter","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"wow","name":"Wow","type":"control"},{"id":"flutter","name":"Flutter","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5479,6 +5636,7 @@
         "category": "Modulators",
         "description": "Four tempo-locked LFOs from one Quad LFO, at a quarter, a half, one and two bars: sines and triangles that always meet on the downbeat. Shared input Hold.",
         "tags": ["lfo","tempo","sync","quad"],
+        "help": {"text":"A Quad LFO in Divide mode with sync on. Four LFOs run at a quarter, a half, one and two bars (sine, triangle, sine, triangle), so all four meet on the downbeat.\n\nThere is no audio. Patch 1/4, 1/2, 1 Bar and 2 Bars into any knob or cutoff you want to move. A gate into Hold freezes the four outputs. It follows the transport.\n\nTip: put the slow outputs on filter cutoff and the fast ones on pan or amplitude."},
         "nodes": [
           {"id":"root","type":"cell","name":"Tempo Quartet","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"hold","name":"Hold","type":"gate"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"q","name":"1/4","type":"control"},{"id":"h","name":"1/2","type":"control"},{"id":"b1","name":"1 Bar","type":"control"},{"id":"b2","name":"2 Bars","type":"control"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5503,6 +5661,7 @@
         "category": "Modulators",
         "description": "Four slow organic LFOs that wander like a living group, plus their sum: subtle analog drift for cutoffs, pans and detune. Shared input Speed.",
         "tags": ["lfo","organic","slow","drift","ambient"],
+        "help": {"text":"An Organic LFOs module: four slow, related LFOs that wander without repeating, plus their sum. Rate is 0.06 Hz.\n\nThere is no audio. Patch Drift 1 to 4 and Sum into any knobs, such as cutoff, pan or detune; they are control signals. The Speed input is added to the rate. It does not follow the transport.\n\nTip: give each oscillator its own Drift output for subtle analog-like detune."},
         "nodes": [
           {"id":"root","type":"cell","name":"Drift Pack","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"speed","name":"Speed","type":"control"}],"outputs":[{"id":"d1","name":"Drift 1","type":"control"},{"id":"d2","name":"Drift 2","type":"control"},{"id":"d3","name":"Drift 3","type":"control"},{"id":"d4","name":"Drift 4","type":"control"},{"id":"sum","name":"Sum","type":"control"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5527,6 +5686,7 @@
         "category": "Modulators",
         "description": "One random stream on quarter notes in three shapes: stepped sample-and-hold, a smooth walk and a springy wobble, plus burst triggers. Shared input Clock.",
         "tags": ["random","sample and hold","smooth","tempo"],
+        "help": {"text":"A Wobble module clocked on quarter notes. Stepped is sample-and-hold, Smooth glides between values, Wobble adds springy overshoot, and Burst fires triggers.\n\nThere is no audio. Patch Stepped, Smooth or Wobble into any knob, and Burst into a trigger input. A trigger into Clock replaces the quarter-note clock; otherwise it follows the transport.\n\nTip: use Stepped on a filter for classic random pings and Smooth on pan."},
         "nodes": [
           {"id":"root","type":"cell","name":"Random Walkers","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"step","name":"Stepped","type":"control"},{"id":"smooth","name":"Smooth","type":"control"},{"id":"wob","name":"Wobble","type":"control"},{"id":"burst","name":"Burst","type":"trigger"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5550,6 +5710,7 @@
         "category": "Modulators",
         "description": "A Tidal slope looping every two bars with a slow rise and quick fall, in four phase-shifted copies for staggered swells. Shared inputs Restart and Skew.",
         "tags": ["envelope","cycle","tempo","slope"],
+        "help": {"text":"A Tidal module: a looping slope over two bars with a slow rise and quick fall. It has four outputs, each phase-shifted, and a trigger at the end of each cycle.\n\nThere is no audio. Patch Tide A to D into knobs for staggered swells and End into a trigger input. A gate into Restart restarts the slope; Skew is added to the Skew knob and moves the peak. It follows the transport.\n\nTip: use Tide A on a filter and Tide C on volume for movements that peak at different times."},
         "nodes": [
           {"id":"root","type":"cell","name":"Tide Cycler","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"restart","name":"Restart","type":"gate"},{"id":"skew","name":"Skew","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"a","name":"Tide A","type":"control"},{"id":"b","name":"Tide B","type":"control"},{"id":"c","name":"Tide C","type":"control"},{"id":"d","name":"Tide D","type":"control"},{"id":"end","name":"End","type":"trigger"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5576,6 +5737,7 @@
         "category": "Modulators",
         "description": "A two-bar breathing loop that never stops, and a six-second exponential swell each time Trigger fires: slow movement for pads and drones.",
         "tags": ["envelope","swell","slow","breathing"],
+        "help": {"text":"Two Shape Envs. Breath is a looping Breathing shape over two bars; Bloom is a one-shot Exp swell lasting six seconds that starts when Trigger fires. Fade is the inverted Bloom, End a trigger when Bloom finishes.\n\nThere is no audio. Patch Breath for constant movement, and a trigger into Trigger to start Bloom. Breath follows the transport; Bloom is time-based.\n\nTip: Bloom on a filter cutoff and Fade on a reverb mix gives a swell that dries as it opens."},
         "nodes": [
           {"id":"root","type":"cell","name":"Breath & Bloom","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"trig","name":"Trigger","type":"trigger"}],"outputs":[{"id":"breath","name":"Breath","type":"control"},{"id":"bloom","name":"Bloom","type":"control"},{"id":"fade","name":"Fade","type":"control"},{"id":"end","name":"Bloom End","type":"trigger"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5600,6 +5762,7 @@
         "category": "Modulators",
         "description": "Six-way randomness from Uncertainty: two slow fluctuating curves, eighth-note quantized steps in fifths and a bell-shaped value stored every half note. Shared input Clock.",
         "tags": ["random","turing","stepped","tempo"],
+        "help": {"text":"An Uncertainty module producing several kinds of randomness: two slowly fluctuating curves, eighth-note steps in fifths, and a bell-shaped value stored every half note, plus a trigger when it is stored.\n\nThere is no audio. Patch Fluct 1, Fluct 2, Steps or Stored into any knob, and Store Trig into a trigger input. A trigger into Clock replaces the 8th clock for the Steps output; otherwise it follows the transport.\n\nTip: Steps into the pitch of an oscillator gives a random pattern in fifths."},
         "nodes": [
           {"id":"root","type":"cell","name":"Fog of Chance","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"f1","name":"Fluct 1","type":"control"},{"id":"f2","name":"Fluct 2","type":"control"},{"id":"q1","name":"Steps","type":"control"},{"id":"st","name":"Stored","type":"control"},{"id":"stt","name":"Store Trig","type":"trigger"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5624,6 +5787,7 @@
         "category": "Modulators",
         "description": "Two leaky neurons that fire and inhibit each other: a steady gate, an irregular one, their XOR and A's charging ramp. Shared input Excite speeds them up.",
         "tags": ["gates","chaotic","rhythm","neuron"],
+        "help": {"text":"A Neuron module: two leaky neurons that charge and fire, each inhibiting the other. Gate A is regular, Gate B less so, XOR is high when only one fires, and Ramp is the charging level of A.\n\nThere is no audio. Patch the gates into envelope gate or trigger inputs and Ramp into any knob. The Excite input is added to both neurons and makes them fire faster. It does not follow the transport.\n\nTip: use Gate A on a kick and XOR on a hat for a rhythm that never quite repeats."},
         "nodes": [
           {"id":"root","type":"cell","name":"Synapse Gates","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"excite","name":"Excite","type":"control"}],"outputs":[{"id":"a","name":"Gate A","type":"gate"},{"id":"b","name":"Gate B","type":"gate"},{"id":"x","name":"XOR","type":"gate"},{"id":"ramp","name":"Ramp","type":"control"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5648,6 +5812,7 @@
         "category": "Modulators",
         "description": "A six-stage Segments envelope on the Gate input: a snap up, a dip, a slow bloom to a held sustain, then a two-stage fall. Shared input Stretch scales every time.",
         "tags": ["envelope","multi-stage","segments","gate"],
+        "help": {"text":"A Segments envelope with six stages: a quick snap up, a dip, a slow bloom to a sustain, then a two-stage fall. A hold stage waits while the gate is high and the fall starts when it goes low.\n\nThere is no audio. Patch a gate into Gate, then Contour into any knob; Inverted is the mirror and End a trigger when finished. Stretch is added to the time scale and slows or speeds every stage.\n\nTip: use Contour on a filter and Inverted on a reverb send, so one gate moves two things."},
         "nodes": [
           {"id":"root","type":"cell","name":"Contour Chain","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"gate","name":"Gate","type":"gate"},{"id":"stretch","name":"Stretch","type":"control"}],"outputs":[{"id":"out","name":"Contour","type":"control"},{"id":"inv","name":"Inverted","type":"control"},{"id":"end","name":"End","type":"trigger"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5671,6 +5836,7 @@
         "category": "Modulators",
         "description": "Sixteenth and eighth clocks through weighted coins that repeat every 16 tosses: two probabilistic gate streams and the accents where both land. Shared input Chance.",
         "tags": ["gates","probability","rhythm","tempo"],
+        "help": {"text":"Two LFO square clocks (16ths and 8ths) go through Coin Toss, which decides at each tick whether a gate is passed. The pattern repeats every 16 tosses. A Logic AND provides accents where both land.\n\nThere is no audio. Patch Sixteenths, Eighths or Accents into trigger or gate inputs, for example drum voices. The Chance input is added to both probabilities. The clocks follow the transport.\n\nTip: Sixteenths on a hat, Eighths on a clap and Accents on a kick."},
         "nodes": [
           {"id":"root","type":"cell","name":"Coin Flip Rhythm","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"chance","name":"Chance","type":"control"}],"outputs":[{"id":"s16","name":"Sixteenths","type":"gate"},{"id":"s8","name":"Eighths","type":"gate"},{"id":"acc","name":"Accents","type":"gate"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5701,6 +5867,7 @@
         "category": "Modulators",
         "description": "Macro movement locked to the bars: a smoothed rise over four bars, an up-and-down arc over the same four, and a pulse at the start of each phrase.",
         "tags": ["macro","sweep","tempo","build-up"],
+        "help": {"text":"Macro movement locked to the transport. Rise is a saw over four bars, slewed to be smooth. Arc is a Function that rises and falls over the same four bars. Phrase is a trigger at the start of each cycle.\n\nThere is no audio and no inputs. Patch Rise on a filter or a volume for a build, Arc on something that should peak mid-phrase, and Phrase into a trigger input. It follows the transport.\n\nTip: use Rise on a filter cutoff and Phrase to restart a sequencer or envelope."},
         "nodes": [
           {"id":"root","type":"cell","name":"Four-Bar Arc","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"rise","name":"Rise","type":"control"},{"id":"arc","name":"Arc","type":"control"},{"id":"phrase","name":"Phrase","type":"trigger"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
@@ -5725,6 +5892,7 @@
         "category": "Generative",
         "description": "Random gates tossed between three pinged low pass gates, each tuned to a fresh D minor pentatonic note: a west-coast hand-drum garden that keeps shifting. Shared input Density.",
         "tags": ["generative","west coast","percussion","pentatonic","low pass gate"],
+        "help": {"text":"A Recall module makes random gates that a Coin Toss tosses between three pinged low pass gates. Each drum samples a fresh D minor pentatonic note from a Quantizer Suite, fed by Uncertainty curves. Drums are mixed in stereo with a send to a small reverb.\n\nPress play: it makes sound on its own from Out L/R. The Density input raises the gate bias of Recall, so more means more hits. It follows the transport.\n\nTip: lower Density for a sparse pattern, and pitch the whole garden by editing the quantizer root."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Bongo Garden","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5786,6 +5954,7 @@
         "category": "Generative",
         "description": "A Shift Register melody in A Dorian plucks a string Resonator while a sine bass echoes the same bits four steps later, through a dotted-eighth delay network. Shared input Lock (frozen ↔ mutating).",
         "tags": ["generative","turing machine","shift register","plucked","string","delay"],
+        "help": {"text":"A Shift Register (8 bits, A Dorian) plucks a two-voice string Resonator on its bit 1. Another bit triggers a sine bass through a low pass gate, so the bass echoes the melody later. A dotted-eighth Delay Network and a reverb finish it.\n\nPress play: it plays on its own from Out L/R. The Lock input is added to the Lock knob: up freezes the pattern, down lets it mutate. It follows the transport.\n\nTip: freeze the pattern when you like it, then ride Lock for variation."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Turing Strings","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"lock","name":"Lock","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5830,6 +5999,7 @@
         "category": "Generative",
         "description": "Four soft voices of a D♭ major-seven chord, each swelling on its own free-running loop of 18 to 29 seconds so they never line up the same way twice, into a wobbling tape delay and a long hall.",
         "tags": ["generative","ambient","eno","tape loops","slow"],
+        "help": {"text":"Four soft voices make a D flat major seven chord. Each is gated by its own free LFO loop of 18 to 29 seconds, so the swells never line up the same way twice. The sum goes through a dark filter, a wobbling tape delay and a long hall.\n\nPress play: it plays on its own from Out L/R, and has no inputs. The loops run freely and are not tied to the tempo.\n\nTip: use it as a bed under a slow lead or just as ambient background."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Tape Loop Choir","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5892,6 +6062,7 @@
         "category": "Generative",
         "description": "Gusts of chance triggers strike two bell-like Modal Voices tuned to F major pentatonic, slow organic movement on where they are struck, in a wide reverb. Shared input Wind (more strikes).",
         "tags": ["generative","chimes","bells","modal","ambient","pentatonic"],
+        "help": {"text":"A Recall module makes sparse chance triggers that strike two Modal Voices. A Quantizer Suite tunes each to F major pentatonic, and organic LFOs vary where on the bar they are struck. A reverb makes the space.\n\nPress play: it plays on its own from Out L/R. The Wind input is added to the trigger bias: more means more chimes. It follows the transport.\n\nTip: raise Wind in gusts and lower it for stillness."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Wind Chimes","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"wind","name":"Wind","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -5941,6 +6112,7 @@
         "category": "Generative",
         "description": "A generative techno loop: Drum Map kick, clap and hats with a touch of chaos, and a Polymeter Seq acid line in A minor through a resonant diode ladder whose cutoff drifts like weather. Shared input Cutoff.",
         "tags": ["generative","techno","acid","drums","loop"],
+        "help": {"text":"A Drum Map drives Punch kick, clap and hats with a touch of chaos, and a Polymeter Seq plays an A minor acid line through a Diode Ladder filter. A slow random LFO moves the cutoff like weather, and a dotted delay is on a send.\n\nPress play: it plays on its own from Out L/R. The Cutoff input is added to the filter cutoff, which also follows the acid line envelope. It follows the transport.\n\nTip: raise Cutoff slowly for a build."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Acid Weather","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"cut","name":"Cutoff","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -6002,6 +6174,7 @@
         "category": "Generative",
         "description": "A Harmony Master (bus D) walks a repeating loop of four D minor seventh chords, two bars each: a saw pad holds the chord tones, a plucked bass follows the chord's bass note, and a Pluck arpeggio traces the chord. Shared input Root (transposes everything).",
         "tags": ["generative","chords","progression","arpeggio","harmony"],
+        "help": {"text":"A Random module walks a four-step loop of chord degrees on a Harmony Master (D minor sevenths, Bus D). Three saw oscillators play the chord tones through a ladder filter, a plucked bass follows the chord's bass note, and a Pluck arpeggio is snapped to the chord via a Quantizer Suite.\n\nPress play: it plays on its own from Out L/R. The Root input, a pitch, transposes the chords. It follows the transport.\n\nTip: patch a keyboard or sequencer pitch into Root to change key."},
         "plays": {"instrument":{"notes":{"pitch":"root"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Seasons Turning","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"root","name":"Root","type":"pitch"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -6065,6 +6238,7 @@
         "category": "Generative",
         "description": "A twelve-voice Swarm on a C minor ninth, breathing through a scale-tuned Filter Bank; eight related Organic LFOs slowly move its spread, cross-FM and the bank's scan and shift. Shared input Root (pitch).",
         "tags": ["generative","drone","ambient","swarm","evolving"],
+        "help": {"text":"A twelve-voice Swarm plays a C minor ninth chord through a scale-tuned Filter Bank and a long reverb. Eight related Organic LFOs slowly move the spread, cross-FM, scan, shift and width, so the drone evolves.\n\nPress play: it plays on its own from Out L/R and is not tied to the tempo. The Root input, a pitch, moves the Swarm and the Filter Bank together.\n\nTip: change Root slowly with a glide for drone modulations."},
         "plays": {"instrument":{"notes":{"pitch":"root"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Lichen Drone","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"root","name":"Root","type":"pitch"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -6107,6 +6281,7 @@
         "category": "Generative",
         "description": "Four Modal Voice marimba bars on C minor-seventh chord tones, struck every 2, 3, 5 and 7 sixteenths; a slow random rotates which bar gets which prime, so the polyrhythm turns over every four bars.",
         "tags": ["generative","polyrhythm","marimba","mallets","modal"],
+        "help": {"text":"A Rotating Divider outputs triggers every 2, 3, 5 and 7 sixteenths. Each strikes a Modal Voice marimba bar tuned to a C minor seventh chord tone. A slow random rotates which bar gets which prime every four bars.\n\nPress play: it plays on its own from Out L/R and has no inputs. It follows the transport.\n\nTip: it works well as a background layer under pads and bass."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Prime Marimba","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -6150,6 +6325,7 @@
         "category": "Generative",
         "description": "Sparse Lydian plucks from a Macro Osc feed Grains, which scatters them back at wandering positions, an octave or a fifth away, with feedback and blur: a slowly shimmering cloud. Shared input Density.",
         "tags": ["generative","granular","ambient","cloud","shimmer"],
+        "help": {"text":"Random notes on 8ths, quantized to E Lydian, are played by a plucked Macro Osc at coin-toss moments. Grains records the plucks and scatters them at moving positions, an octave or a fifth away, with feedback and blur.\n\nPress play: it plays on its own from Out L/R. The Density input is added to the Grains density: more means a thicker cloud. It follows the transport.\n\nTip: lower Density for sparse clouds with space between grains."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Pollen Cloud","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"dens","name":"Density","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -6191,6 +6367,7 @@
         "category": "Generative",
         "description": "Two Neurons firing at each other, nudged by slow organic drift, play metallic FM clicks, a modal knock, noise ticks and a rim; Bender glitches the mix and a scattered delay smears it. Shared input Excite (fires faster).",
         "tags": ["generative","glitch","percussion","neuron","idm"],
+        "help": {"text":"Two Neurons fire at each other. Their spikes and logic outputs trigger an FM click, a modal knock, noise ticks and a clave. Organic LFOs nudge them, a Bender glitches the mix and a scattered Delay Network smears it.\n\nPress play: it plays on its own from Out L/R. The Excite input is added to one neuron, making it fire faster. The neurons run freely; only the Bender slices follow the transport.\n\nTip: raise Excite for denser, busier rhythms."},
         "plays": {"instrument":{"notes":{}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Synapse Clicks","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"exc","name":"Excite","type":"control"},{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -6242,6 +6419,7 @@
         "category": "Starters",
         "description": "A blank Voice Cell: notes in, nothing inside yet. Open the board and patch your own voice between Voice In and Voice Out.",
         "tags": ["starter","empty"],
+        "help": {"text":"A Voice Cell with nothing inside except a cable that keeps the voice alive while a key is held, so it is silent.\n\nOpen the cell, add your modules, and cable Voice In (pitch, gate, trigger, velocity) into them and into Voice Out. Patch Notes in and take Out L/R.\n\nTip: an Oscillator from the pitch jack, into a VCA opened by an ADSR, is the smallest voice."},
         "plays": {"instrument":{"notes":"voice"}},
         "nodes": [
           {"id":"root","type":"voice-cell","name":"Empty Instrument","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[]},
@@ -6263,6 +6441,7 @@
         "category": "Starters",
         "description": "A blank effect: the audio passes straight through. Open the board and put your own modules between In and Out.",
         "tags": ["starter","empty"],
+        "help": {"text":"A stereo effect cell with nothing inside: In L/R are cabled straight to Out L/R, so audio passes unchanged.\n\nPatch audio into In L/R and take Out L/R. Open the cell and put your own modules between In and Out.\n\nTip: remove the straight pass-through cables once your own chain is cabled in."},
         "plays": {"effect":{"in":["l","r"],"out":["l","r"],"tail":0}},
         "nodes": [
           {"id":"root","type":"cell","name":"Empty FX","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
@@ -6283,6 +6462,7 @@
         "category": "Test",
         "description": "A pentatonic melody that plays with the transport, through Verb (medium room). Move Size, Decay and Mix while it plays; Mix at 100 % leaves only the tail.",
         "tags": ["test","reverb"],
+        "help": {"text":"A Step Sequencer plays a C major pentatonic melody with the transport, through an Oscillator and the Verb module. It has no inputs; take Out L/R.\n\nPress play in the host and the melody starts. Open the cell to change the Verb's Size, Decay and Mix.\n\nTip: set Mix to 100 % to hear only the tail."},
         "nodes": [
           {"id":"root","type":"cell","name":"Live Test: Verb","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},

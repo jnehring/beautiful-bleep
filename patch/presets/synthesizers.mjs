@@ -8,6 +8,11 @@ function warmSaws() {
   const p = voice("Warm Saws", {
     description: "Two saws detuned ±7 cents into a saturating transistor ladder, with a soft filter envelope and slow release.",
     tags: ["poly", "analog", "warm", "chords"],
+    help: "Two Oscillators (saws) detuned by -7 and +7 cents feed a Ladder Tanh filter at 700 Hz with a " +
+      "little drive. A filter envelope opens it on each note and the amp release is slow.\n\n" +
+      "Patch a keyboard or sequencer into Notes in and take Out L/R. Cutoff (shared input) moves the " +
+      "filter, so an LFO or knob there makes it breathe.\n\n" +
+      "Tip: play wide chords; the 8 voices are spread across the stereo field.",
   }).settings({ voices: 8, spread: 0.4 }).input("cut", "Cutoff");
   const o1 = p.add("oscillator", [0, 0], { fine: -7 }, { name: "Saw 1" });
   const o2 = p.add("oscillator", [0, 1], { fine: 7 }, { name: "Saw 2" });
@@ -25,6 +30,13 @@ function comboOrgan() {
   const p = voice("Combo Organ", {
     description: "Square wave and sub octave through a 1-pole low-pass, organ-style on/off envelope and a shared vibrato LFO.",
     tags: ["poly", "organ", "keys", "vintage"],
+    help: "A square Oscillator plus its sub-octave go through a 1-Pole Low-pass at 3.2 kHz. The amp " +
+      "envelope is organ-style (instant attack, full sustain, short release) and a Vibrato LFO at 6.2 " +
+      "Hz fades in on pitch.\n\n" +
+      "Play Notes in, take Out L/R. There are no shared inputs; the vibrato is built in and applies to " +
+      "every voice.\n\n" +
+      "Tip: velocity does not change the level here, so play it like a drawbar organ and balance " +
+      "it with a mixer after Out L/R.",
   }).settings({ voices: 10 });
   const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.5 });
   const vib = p.add("lfo", [0, 1], { rate: 6.2, fade: 0.15 }, { name: "Vibrato" });
@@ -40,6 +52,12 @@ function brassSection() {
   const p = voice("Brass Section", {
     description: "Detuned saw pair from Dual Osc into a ladder whose envelope swells in with the notes: synth brass stabs and swells.",
     tags: ["poly", "brass", "analog", "stabs"],
+    help: "A Dual Osc gives two saws, the second 9 cents sharp, with a little drift, into a Ladder Tanh " +
+      "filter. A filter envelope with a 70 ms attack makes each note swell open like a brass stab.\n\n" +
+      "Notes in, Out L/R. No shared inputs. Harder velocity opens the filter further, so the playing " +
+      "dynamics change the brightness.\n\n" +
+      "Tip: play short, hard chords for stabs, or hold notes and let the filter settle for a section " +
+      "sound.",
   }).settings({ voices: 8, spread: 0.3 });
   const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, shapeB: 0.67, octaveB: 0, fineB: 9, balance: 0.5, drift: 0.25 });
   const envf = envelope(p, [0, 1], { attack: 0.07, decay: 0.6, sustain: 0.55, release: 0.25, velamount: 0.7 }, "Filter Env");
@@ -55,6 +73,12 @@ function tableSweep() {
   const p = voice("Table Sweep", {
     description: "Wavetable Osc on the Digital bank: each note sweeps through the table, a stereo-detuned bright poly. Shared input Position.",
     tags: ["poly", "wavetable", "digital", "bright"],
+    help: "A Wavetable Osc on the Digital bank. An envelope sweeps its X position on every note, so each " +
+      "one starts at one timbre and travels through the table. Stereo detune widens it, and a " +
+      "filter at 9 kHz sits behind it.\n\n" +
+      "Notes in, Out L/R. The shared input Position moves the table's Y axis, so patch a LFO, knob or " +
+      "sequencer there to change which part of the table the sweep plays.\n\n" +
+      "Tip: slowly modulate Position for a different tone each bar.",
   }).settings({ voices: 8 }).input("pos", "Position");
   const wt = p.add("wavetable-osc", [0, 0], { bank: "Digital", x: 0.1, y: 0.3, stereo: 0.25, subLevel: 0.2 });
   const envx = envelope(p, [0, 1], { attack: 0.002, decay: 1.2, sustain: 0.2, release: 0.8, velamount: 0.4 }, "Table Env");
@@ -70,6 +94,11 @@ function fmTines() {
   const p = voice("FM Tines", {
     description: "Dual Osc as a two-operator FM piano: a sine modulator an octave up whose index decays with each note, harder with velocity.",
     tags: ["poly", "fm", "keys", "electric piano"],
+    help: "A Dual Osc as two-operator FM: a sine carrier with a sine modulator one octave up. An envelope " +
+      "raises the FM depth at the start of each note and lets it fall, which gives the bell-like tine " +
+      "attack and mellow tail.\n\n" +
+      "Notes in, Out L/R. No shared inputs. The amp and index envelopes both respond to velocity.\n\n" +
+      "Tip: play softly for a clean tone, hard for a bright, clangy attack.",
   }).settings({ voices: 10 });
   const osc = p.add("dual-osc", [0, 0], { shapeA: 0, shapeB: 0, octaveB: 1, fmDepth: 0.05, balance: 0, drift: 0.05 });
   const envi = envelope(p, [0, 1], { attack: 0.001, decay: 0.7, sustain: 0.05, release: 0.3, velamount: 0.9 }, "Index Env");
@@ -83,6 +112,12 @@ function dubChords() {
   const p = voice("Dub Chords", {
     description: "Chord Osc stacks a minor seventh on every key into a resonant low-pass with a short envelope: dub-techno chord stabs.",
     tags: ["poly", "chords", "stabs", "dub", "techno"],
+    help: "A Chord Osc plays a Minor 7 chord (Drop 2 voicing, 4 notes) from every key, slightly detuned " +
+      "and spread in stereo, into a resonant SVF Multimode filter at 380 Hz. A short filter envelope " +
+      "plucks it open.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter, so a knob or LFO there gives the " +
+      "classic filter-swept dub stab.\n\n" +
+      "Tip: play single notes and send Out L/R into a delay or reverb.",
   }).settings({ voices: 4 }).input("cut", "Cutoff");
   const chord = p.add("chord-osc", [0, 0], { chord: "Minor 7", voices: 4, voicing: "Drop 2", detune: 6, stereo: 0.5, shape: 0.67 });
   const envf = envelope(p, [0, 1], { attack: 0.001, decay: 0.22, sustain: 0, release: 0.2, velamount: 0.6 }, "Filter Env");
@@ -98,6 +133,11 @@ function glassVoice() {
   const p = voice("Glass Voice", {
     description: "Formant Osc whose resonant peak glides up with each note and settles: glassy, vocal keys with stereo spread.",
     tags: ["poly", "formant", "vocal", "glassy"],
+    help: "A Formant Osc whose formant peak is pushed up by an envelope at each note and then settles " +
+      "back. The result is a vocal, glassy tone, spread in stereo, with a slow release.\n\n" +
+      "Notes in, Out L/R. No shared inputs. The cell's own Formant Env sets the sweep; velocity and " +
+      "sustain shape the amp.\n\n" +
+      "Tip: hold chords in the middle of the keyboard, where the formant sounds the most voice-like.",
   }).settings({ voices: 8, spread: 0.5 });
   const fo = p.add("formant-osc", [0, 0], { formant: 1.5, narrow: 0.5, body: 0.6, spread: 0.4 });
   const envf = envelope(p, [0, 1], { attack: 0.02, decay: 0.9, sustain: 0.4, release: 0.8 }, "Formant Env");
@@ -112,6 +152,10 @@ function phaseWarpKeys() {
   const p = voice("Phase Warp Keys", {
     description: "Macro Osc in Phase Warp: each note starts bright and relaxes towards a sine, like a phase-distortion digital keyboard.",
     tags: ["poly", "digital", "keys", "phase distortion"],
+    help: "A Macro Osc in Phase Warp mode, in the style of phase-distortion synths. An envelope raises the " +
+      "tone and shape on each note, so it starts bright and relaxes towards a plain sine.\n\n" +
+      "Notes in, Out L/R. No shared inputs. Velocity scales how much the envelope warps the wave.\n\n" +
+      "Tip: play hard for a sharp, metallic attack and soft for a nearly pure tone.",
   }).settings({ voices: 8, spread: 0.3 });
   const osc = p.add("macro-osc", [0, 0], { model: "Phase Warp", tone: 0.3, shape: 0.2, blend: 0.3, level: 0.8 });
   const envw = envelope(p, [0, 1], { attack: 0.001, decay: 0.6, sustain: 0.2, release: 0.4, velamount: 0.6 }, "Warp Env");
@@ -125,6 +169,11 @@ function hyperSaw() {
   const p = voice("Hyper Saw", {
     description: "Swarm in unison: eight drifting, detuned oscillators per note spread across the stereo field, through a bright low-pass.",
     tags: ["poly", "supersaw", "trance", "wide"],
+    help: "A Swarm in Unison mode stacks eight drifting saws per note, detuned by 22 cents and spread " +
+      "across the stereo field, then an SVF Multimode low-pass at 5 kHz.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter, so a knob or LFO there closes and " +
+      "opens the sound.\n\n" +
+      "Tip: play simple octaves or fifths. With six voices the stack gets thick quickly.",
   }).settings({ voices: 6 }).input("cut", "Cutoff");
   const sw = p.add("swarm", [0, 0], { chord: "Unison", count: 8, detune: 22, drift: 0.3, width: 0.9, glide: 0 });
   const flt = p.add("filter", [1, 0], { cutoff: 5000, resonance: 0.1, keytrack: 0.3, type: "SVF Multimode" });

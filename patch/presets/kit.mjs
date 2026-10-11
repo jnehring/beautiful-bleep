@@ -65,6 +65,24 @@ function resolveParam(where, p, v) {
   return normalise(p, v);
 }
 
+/// A preset's help (the "?" on its cell): `"text"` or `{text, images: [{src, alt, caption?}]}`. The text is plain, paragraphs
+/// separated by a blank line; an image's `src` is a file in board/ui/ named help-*.png (served flat; checked by build.mjs).
+export function normaliseHelp(name, help) {
+  if (help === undefined || help === "") return undefined;
+  const h = typeof help === "string" ? { text: help } : help;
+  if (typeof h.text !== "string" || !h.text.trim()) throw new Error(`${name}: help needs a text`);
+  const out = { text: h.text.trim() };
+  if (h.images && h.images.length) {
+    out.images = h.images.map((im) => {
+      if (!im || typeof im.src !== "string" || !/^help-[\w.-]+\.(png|jpe?g|gif|svg|webp)$/i.test(im.src))
+        throw new Error(`${name}: a help image needs a src like "help-<name>.png"`);
+      if (typeof im.alt !== "string" || !im.alt) throw new Error(`${name}: help image ${im.src} needs an alt text`);
+      return { src: im.src, alt: im.alt, ...(im.caption ? { caption: im.caption } : {}) };
+    });
+  }
+  return out;
+}
+
 const GRID_X = 300, GRID_Y = 220;  // one layout column / row on the board
 
 /// Builds one preset. `kind`: "voice" (a Voice Cell: notes in, audio out),
@@ -78,6 +96,7 @@ export class Preset {
     this.name = name;
     this.description = opts.description || "";
     this.tags = opts.tags || [];
+    this.help = normaliseHelp(name, opts.help);
     this.empty = !!opts.empty;  // a starter: a voice cell may stay silent
     this.playsOverride = undefined;
     this.nodes = [];
@@ -264,6 +283,7 @@ export class Preset {
   /// The finished preset document (as saved in .bleepcell files), checked.
   build(category) {
     if (!this.description) throw new Error(`${this.name}: needs a description`);
+    if (!this.help && this.kind !== "patch") throw new Error(`${this.name}: needs help (opts.help: what it is, how to play or patch it)`);
     if (this.kind === "patch") return this.#buildPatch();
     this.#wireTempo();
     if (this.kind === "voice") {
@@ -275,7 +295,7 @@ export class Preset {
         throw new Error(`${this.name}: output '${j.name}' isn't patched inside`);
     if (this.kind === "cell" && !this.root.outputs.length) throw new Error(`${this.name}: a cell preset needs an output`);
     const doc = { format: 1, root: "root", category, description: this.description, tags: this.tags,
-                  nodes: this.nodes, cables: this.cables };
+                  ...(this.help ? { help: this.help } : {}), nodes: this.nodes, cables: this.cables };
     const plays = this.playsOverride === undefined ? derivePlays(doc, category) : this.playsOverride || undefined;
     if (plays) {
       checkPlays(this.name, doc, plays);

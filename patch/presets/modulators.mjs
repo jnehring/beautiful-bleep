@@ -21,6 +21,11 @@ function tempoQuartet() {
   const p = cell("Tempo Quartet", {
     description: "Four tempo-locked LFOs from one Quad LFO, at a quarter, a half, one and two bars: sines and triangles that always meet on the downbeat. Shared input Hold.",
     tags: ["lfo", "tempo", "sync", "quad"],
+    help: "A Quad LFO in Divide mode with sync on. Four LFOs run at a quarter, a half, one and two bars (sine, " +
+      "triangle, sine, triangle), so all four meet on the downbeat.\n\n" +
+      "There is no audio. Patch 1/4, 1/2, 1 Bar and 2 Bars into any knob or cutoff you want to move. A gate " +
+      "into Hold freezes the four outputs. It follows the transport.\n\n" +
+      "Tip: put the slow outputs on filter cutoff and the fast ones on pan or amplitude.",
   }).input("hold", "Hold", "gate")
     .output("q", "1/4", "control").output("h", "1/2", "control").output("b1", "1 Bar", "control").output("b2", "2 Bars", "control");
   const q = p.add("quad-lfo", [0, 0], { mode: "Divide", sync: true, rate1: quadNote("1/1"),
@@ -36,6 +41,11 @@ function driftPack() {
   const p = cell("Drift Pack", {
     description: "Four slow organic LFOs that wander like a living group, plus their sum: subtle analog drift for cutoffs, pans and detune. Shared input Speed.",
     tags: ["lfo", "organic", "slow", "drift", "ambient"],
+    help: "An Organic LFOs module: four slow, related LFOs that wander without repeating, plus their sum. Rate " +
+      "is 0.06 Hz.\n\n" +
+      "There is no audio. Patch Drift 1 to 4 and Sum into any knobs, such as cutoff, pan or detune; they " +
+      "are control signals. The Speed input is added to the rate. It does not follow the transport.\n\n" +
+      "Tip: give each oscillator its own Drift output for subtle analog-like detune.",
   }).input("speed", "Speed")
     .output("d1", "Drift 1", "control").output("d2", "Drift 2", "control").output("d3", "Drift 3", "control")
     .output("d4", "Drift 4", "control").output("sum", "Sum", "control");
@@ -51,6 +61,11 @@ function randomWalkers() {
   const p = cell("Random Walkers", {
     description: "One random stream on quarter notes in three shapes: stepped sample-and-hold, a smooth walk and a springy wobble, plus burst triggers. Shared input Clock.",
     tags: ["random", "sample and hold", "smooth", "tempo"],
+    help: "A Wobble module clocked on quarter notes. Stepped is sample-and-hold, Smooth glides between values, " +
+      "Wobble adds springy overshoot, and Burst fires triggers.\n\n" +
+      "There is no audio. Patch Stepped, Smooth or Wobble into any knob, and Burst into a trigger input. A " +
+      "trigger into Clock replaces the quarter-note clock; otherwise it follows the transport.\n\n" +
+      "Tip: use Stepped on a filter for classic random pings and Smooth on pan.",
   }).input("clock", "Clock", "trigger")
     .output("step", "Stepped", "control").output("smooth", "Smooth", "control").output("wob", "Wobble", "control")
     .output("burst", "Burst", "trigger");
@@ -66,6 +81,12 @@ function tideCycler() {
   const p = cell("Tide Cycler", {
     description: "A Tidal slope looping every two bars with a slow rise and quick fall, in four phase-shifted copies for staggered swells. Shared inputs Restart and Skew.",
     tags: ["envelope", "cycle", "tempo", "slope"],
+    help: "A Tidal module: a looping slope over two bars with a slow rise and quick fall. It has four outputs, " +
+      "each phase-shifted, and a trigger at the end of each cycle.\n\n" +
+      "There is no audio. Patch Tide A to D into knobs for staggered swells and End into a trigger input. A " +
+      "gate into Restart restarts the slope; Skew is added to the Skew knob and moves the peak. It follows " +
+      "the transport.\n\n" +
+      "Tip: use Tide A on a filter and Tide C on volume for movements that peak at different times.",
   }).input("restart", "Restart", "gate").input("skew", "Skew")
     .output("a", "Tide A", "control").output("b", "Tide B", "control").output("c", "Tide C", "control")
     .output("d", "Tide D", "control").output("end", "End", "trigger");
@@ -82,6 +103,12 @@ function breathAndBloom() {
   const p = cell("Breath & Bloom", {
     description: "A two-bar breathing loop that never stops, and a six-second exponential swell each time Trigger fires: slow movement for pads and drones.",
     tags: ["envelope", "swell", "slow", "breathing"],
+    help: "Two Shape Envs. Breath is a looping Breathing shape over two bars; Bloom is a one-shot Exp swell " +
+      "lasting six seconds that starts when Trigger fires. Fade is the inverted Bloom, End a trigger when " +
+      "Bloom finishes.\n\n" +
+      "There is no audio. Patch Breath for constant movement, and a trigger into Trigger to start Bloom. " +
+      "Breath follows the transport; Bloom is time-based.\n\n" +
+      "Tip: Bloom on a filter cutoff and Fade on a reverb mix gives a swell that dries as it opens.",
   }).input("trig", "Trigger", "trigger")
     .output("breath", "Breath", "control").output("bloom", "Bloom", "control").output("fade", "Fade", "control")
     .output("end", "Bloom End", "trigger");
@@ -98,6 +125,13 @@ function fogOfChance() {
   const p = cell("Fog of Chance", {
     description: "Six-way randomness from Uncertainty: two slow fluctuating curves, eighth-note quantized steps in fifths and a bell-shaped value stored every half note. Shared input Clock.",
     tags: ["random", "turing", "stepped", "tempo"],
+    help: "An Uncertainty module producing several kinds of randomness: two slowly fluctuating curves, " +
+      "eighth-note steps in fifths, and a bell-shaped value stored every half note, plus a trigger when it " +
+      "is stored.\n\n" +
+      "There is no audio. Patch Fluct 1, Fluct 2, Steps or Stored into any knob, and Store Trig into a " +
+      "trigger input. A trigger into Clock replaces the 8th clock for the Steps output; otherwise it " +
+      "follows the transport.\n\n" +
+      "Tip: Steps into the pitch of an oscillator gives a random pattern in fifths.",
   }).input("clock", "Clock", "trigger")
     .output("f1", "Fluct 1", "control").output("f2", "Fluct 2", "control").output("q1", "Steps", "control")
     .output("st", "Stored", "control").output("stt", "Store Trig", "trigger");
@@ -114,6 +148,11 @@ function synapseGates() {
   const p = cell("Synapse Gates", {
     description: "Two leaky neurons that fire and inhibit each other: a steady gate, an irregular one, their XOR and A's charging ramp. Shared input Excite speeds them up.",
     tags: ["gates", "chaotic", "rhythm", "neuron"],
+    help: "A Neuron module: two leaky neurons that charge and fire, each inhibiting the other. Gate A is " +
+      "regular, Gate B less so, XOR is high when only one fires, and Ramp is the charging level of A.\n\n" +
+      "There is no audio. Patch the gates into envelope gate or trigger inputs and Ramp into any knob. The " +
+      "Excite input is added to both neurons and makes them fire faster. It does not follow the transport.\n\n" +
+      "Tip: use Gate A on a kick and XOR on a hat for a rhythm that never quite repeats.",
   }).input("excite", "Excite")
     .output("a", "Gate A", "gate").output("b", "Gate B", "gate").output("x", "XOR", "gate").output("ramp", "Ramp", "control");
   const n = p.add("neuron", [0, 0], { apulse: 0.06, bpulse: 0.04, aleak: 0.3 });
@@ -127,6 +166,11 @@ function contourChain() {
   const p = cell("Contour Chain", {
     description: "A six-stage Segments envelope on the Gate input: a snap up, a dip, a slow bloom to a held sustain, then a two-stage fall. Shared input Stretch scales every time.",
     tags: ["envelope", "multi-stage", "segments", "gate"],
+    help: "A Segments envelope with six stages: a quick snap up, a dip, a slow bloom to a sustain, then a " +
+      "two-stage fall. A hold stage waits while the gate is high and the fall starts when it goes low.\n\n" +
+      "There is no audio. Patch a gate into Gate, then Contour into any knob; Inverted is the mirror and " +
+      "End a trigger when finished. Stretch is added to the time scale and slows or speeds every stage.\n\n" +
+      "Tip: use Contour on a filter and Inverted on a reverb send, so one gate moves two things.",
   }).input("gate", "Gate", "gate").input("stretch", "Stretch")
     .output("out", "Contour", "control").output("inv", "Inverted", "control").output("end", "End", "trigger");
   const s = p.add("segments", [0, 0], {
@@ -149,6 +193,11 @@ function coinFlipRhythm() {
   const p = cell("Coin Flip Rhythm", {
     description: "Sixteenth and eighth clocks through weighted coins that repeat every 16 tosses: two probabilistic gate streams and the accents where both land. Shared input Chance.",
     tags: ["gates", "probability", "rhythm", "tempo"],
+    help: "Two LFO square clocks (16ths and 8ths) go through Coin Toss, which decides at each tick whether a " +
+      "gate is passed. The pattern repeats every 16 tosses. A Logic AND provides accents where both land.\n\n" +
+      "There is no audio. Patch Sixteenths, Eighths or Accents into trigger or gate inputs, for example " +
+      "drum voices. The Chance input is added to both probabilities. The clocks follow the transport.\n\n" +
+      "Tip: Sixteenths on a hat, Eighths on a clap and Accents on a kick.",
   }).input("chance", "Chance")
     .output("s16", "Sixteenths", "gate").output("s8", "Eighths", "gate").output("acc", "Accents", "gate");
   const c16 = p.add("lfo", [0, 0], { wave: "Square", sync: "1/16", polarity: "Unipolar", pw: 0.4 }, { name: "Clock 1/16" });
@@ -167,6 +216,12 @@ function fourBarArc() {
   const p = cell("Four-Bar Arc", {
     description: "Macro movement locked to the bars: a smoothed rise over four bars, an up-and-down arc over the same four, and a pulse at the start of each phrase.",
     tags: ["macro", "sweep", "tempo", "build-up"],
+    help: "Macro movement locked to the transport. Rise is a saw over four bars, slewed to be smooth. Arc is a " +
+      "Function that rises and falls over the same four bars. Phrase is a trigger at the start of each " +
+      "cycle.\n\n" +
+      "There is no audio and no inputs. Patch Rise on a filter or a volume for a build, Arc on something " +
+      "that should peak mid-phrase, and Phrase into a trigger input. It follows the transport.\n\n" +
+      "Tip: use Rise on a filter cutoff and Phrase to restart a sequencer or envelope.",
   }).output("rise", "Rise", "control").output("arc", "Arc", "control").output("phrase", "Phrase", "trigger");
   const saw = p.add("lfo", [0, 0], { wave: "Saw Up", sync: "4 bars", polarity: "Unipolar" }, { name: "Ramp" });
   const slew = p.add("utility", [1, 0], { slew: 0.25 }, { name: "Smooth" });

@@ -17,10 +17,10 @@
 // The board also shows the hand-written presets in ../board/ui/factory-presets.js
 // (Basic Poly, the drum machines and single drum sounds) in the same categories;
 // names must be unique across both.
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
-import { reference, types, derivePlays, checkPlays } from "./kit.mjs";
+import { reference, types, derivePlays, checkPlays, normaliseHelp } from "./kit.mjs";
 import panelsByPreset, { checkPanels } from "./panels.mjs";
 
 // Category files, in Add-menu order.
@@ -46,8 +46,17 @@ function handWritten() {
 }
 
 /// The presets in factory-presets.js carry their `plays` by hand; it must equal what the kit derives from their jacks.
+/// A preset's help is present and every image it names is a file in board/ui/.
+function checkHelp(name, preset) {
+  if (!normaliseHelp(name, preset.help)) throw new Error(`'${name}' needs help`);
+  for (const im of preset.help.images || [])
+    if (!existsSync(fileURLToPath(new URL("../board/ui/" + im.src, import.meta.url))))
+      throw new Error(`'${name}': help image ${im.src} is not in patch/board/ui/`);
+}
+
 function checkHandWritten() {
   for (const p of handWritten()) {
+    checkHelp(p.name, p.preset);
     const want = derivePlays(p.preset, p.category);
     if (JSON.stringify(p.preset.plays) !== JSON.stringify(want))
       throw new Error(`factory-presets.js: '${p.name}' needs "plays": ${JSON.stringify(want)} in its preset`);
@@ -65,7 +74,9 @@ async function compile(only) {
       const p = typeof make === "function" ? make() : make;
       if (names.has(p.name)) throw new Error(`two presets are called '${p.name}' (here or in factory-presets.js)`);
       names.add(p.name);
-      presets.push({ name: p.name, category: cat.name, preset: p.build(cat.name) });
+      const preset = p.build(cat.name);
+      checkHelp(p.name, preset);
+      presets.push({ name: p.name, category: cat.name, preset });
     }
   }
   return { categories, presets };

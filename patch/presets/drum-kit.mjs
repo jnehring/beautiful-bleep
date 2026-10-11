@@ -25,8 +25,8 @@ export const effect = (type, name, values) => ({ type, name, values });
 
 /// A drum cell. `hats`: inputs Closed and Open instead of Trig. `patch(p, nodes)`
 /// adds cables; `nodes` holds the layers, then the effects.
-export function drum(name, { description, tags, hats = false, layers, effects = [], patch }) {
-  const p = cell(name, { description, tags: ["drums", "one-shot", ...tags] });
+export function drum(name, { description, tags, help, hats = false, layers, effects = [], patch }) {
+  const p = cell(name, { description, help, tags: ["drums", "one-shot", ...tags] });
   if (hats) p.input("closed", "Closed", "trigger").input("open", "Open", "trigger");
   else p.input("trig", "Trig", "trigger");
   p.input("velocity", "Velocity", "control").stereoOut();

@@ -7,6 +7,11 @@ function vibratoBloom() {
   const p = voice("Vibrato Bloom", {
     description: "Two slightly detuned saws into a warm ladder with a vibrato that fades in on held notes; legato notes glide. Shared inputs Cutoff and Bend (±2 semitones).",
     tags: ["mono", "lead", "analog", "vibrato", "classic"],
+    help: "Two saws detuned by -5 and +5 cents into a Ladder Tanh filter at 1.1 kHz. A Vibrato LFO at 5.6 " +
+      "Hz fades in over a held note. Mono, legato, with glide on overlapping notes.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter. Bend bends the pitch of both saws " +
+      "by up to 2 semitones, so patch a pitch-bend source there.\n\n" +
+      "Tip: hold notes for a moment before the vibrato blooms, and play legato to hear the glide.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.05, glidemode: "Legato only" }).input("cut", "Cutoff").input("bend", "Bend");
   const o1 = p.add("oscillator", [0, 0], { fine: -5 }, { name: "Saw 1" });
   const o2 = p.add("oscillator", [0, 1], { fine: 5 }, { name: "Saw 2" });
@@ -26,6 +31,12 @@ function pressurePulse() {
   const p = voice("Pressure Pulse", {
     description: "A slowly swept PWM square whose width and brightness follow aftertouch; the shared Mod input adds vibrato depth, as a mod wheel would. Shared inputs Mod and Cutoff.",
     tags: ["mono", "lead", "pwm", "expressive", "pressure"],
+    help: "A square Oscillator whose pulse width is swept by a slow LFO and shifted by aftertouch. " +
+      "Pressure also opens the SVF Multimode filter. A second LFO provides vibrato, scaled by the Mod " +
+      "input.\n\n" +
+      "Notes in, Out L/R. The shared input Mod sets vibrato depth, like a mod wheel; Cutoff moves the " +
+      "filter.\n\n" +
+      "Tip: lean on the key after striking it and listen to the width and brightness open.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.03 }).input("mod", "Mod").input("cut", "Cutoff");
   const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.5 });
   const pwm = p.add("lfo", [0, 1], { rate: 0.7 }, { name: "PWM LFO" });
@@ -45,6 +56,12 @@ function syncScream() {
   const p = voice("Sync Scream", {
     description: "Dual Osc in hard sync: an envelope rips the synced core's pitch up and a slow LFO keeps it tearing while held, into a driven filter. Shared input Sync Sweep.",
     tags: ["mono", "lead", "sync", "aggressive", "rock"],
+    help: "A Dual Osc in hard sync. An envelope pushes the synced oscillator's tuning up on each note and " +
+      "a slow LFO keeps it moving while held. The result goes through a driven Ladder Hyperbolic " +
+      "filter at 4.5 kHz. Mono, legato.\n\n" +
+      "Notes in, Out L/R. The shared input Sync Sweep adds to the sync tuning, so a knob or mod wheel " +
+      "there changes the screaming harmonics.\n\n" +
+      "Tip: hold a note and raise Sync Sweep slowly.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.04 }).input("sweep", "Sync Sweep");
   const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, octaveB: 0, sync: 1, balance: 0, tuneA: 7, drift: 0.15 });
   const envs = envelope(p, [0, 1], { attack: 0.001, decay: 0.6, sustain: 0.25, release: 0.3, velamount: 0.6 }, "Sync Env");
@@ -61,6 +78,11 @@ function carillonLead() {
   const p = voice("Carillon Lead", {
     description: "Macro Osc in FM mode at a bell-like ratio, its index bright on the strike and mellowing as the note rings: a chiming bell lead for slow melodies.",
     tags: ["lead", "fm", "bell", "chime"],
+    help: "A Macro Osc in FM mode. An envelope raises the Shape on each strike and lets it fall as the " +
+      "note rings out, and a vibrato fades in late. Three voices with some stereo spread, and a long " +
+      "ring-out.\n\n" +
+      "Notes in, Out L/R. No shared inputs. Velocity increases the strike brightness.\n\n" +
+      "Tip: play slow, spaced notes so the tails can overlap.",
   }).settings({ voices: 3, spread: 0.3 });
   const fm = p.add("macro-osc", [0, 0], { model: "FM", tone: 0.85, shape: 0.25, blend: 0.05, level: 0.8 });
   const envi = envelope(p, [0, 1], { attack: 0.001, decay: 1.2, sustain: 0.15, release: 0.8, velamount: 0.8 }, "Index Env");
@@ -75,6 +97,10 @@ function origamiLead() {
   const p = voice("Origami Lead", {
     description: "The Folder's internal triangle folded more with velocity and aftertouch while a slow LFO bends its symmetry: a glassy-to-gnarly West Coast lead. Shared input Fold.",
     tags: ["mono", "lead", "wavefolder", "west coast", "expressive"],
+    help: "The Wavefolder's internal triangle is folded more by velocity and aftertouch, while a slow LFO " +
+      "bends the symmetry. A 1-Pole Low-pass at 7 kHz rounds it off. Mono, legato.\n\n" +
+      "Notes in, Out L/R. The shared input Fold adds to the fold amount.\n\n" +
+      "Tip: play soft for a smooth tone, hard or with pressure for a harsher, more folded one.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.04 }).input("fold", "Fold");
   const wf = p.add("wavefolder", [0, 0], { fold: 0.2, wave: 0.5, spread: 0.4, source: "Internal", level: 0.75 });
   const envw = envelope(p, [0, 1], { attack: 0.01, decay: 0.6, sustain: 0.4, release: 0.3, velamount: 0.8 }, "Fold Env");
@@ -91,6 +117,11 @@ function vowelDiva() {
   const p = voice("Vowel Diva", {
     description: "Macro Osc's sung-vowel model: each note opens from \"o\" towards \"a\", with a delayed vibrato and a touch of breath. A wordless solo voice. Shared input Vowel.",
     tags: ["mono", "lead", "vocal", "formant", "choir"],
+    help: "A Macro Osc in Vowel mode. An envelope moves the vowel on each note and a vibrato fades in over " +
+      "the held note. The amp has a slow attack, so notes swell in. Mono, legato, glide 0.08.\n\n" +
+      "Notes in, Out L/R. The shared input Vowel adds to the vowel position, so a knob or LFO there " +
+      "changes the vowel directly.\n\n" +
+      "Tip: play long legato phrases and turn Vowel as you go.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.08 }).input("vow", "Vowel");
   const vo = p.add("macro-osc", [0, 0], { model: "Vowel", tone: 0.55, shape: 0.5, blend: 0.15, level: 0.8 });
   const envv = envelope(p, [0, 1], { attack: 0.25, decay: 0.8, sustain: 0.3, release: 0.4, velamount: 0.3 }, "Vowel Env");
@@ -106,6 +137,11 @@ function slideRibbon() {
   const p = voice("Slide Ribbon", {
     description: "A rounded triangle-and-saw blend that slides slowly to every new note, theremin-like with a gentle vibrato: for long, singing portamento lines. Shared input Bend (±12 semitones).",
     tags: ["mono", "lead", "glide", "portamento", "theremin"],
+    help: "An Oscillator with a mix of triangle and saw into an SVF Atanh Damping filter at 2.4 kHz, with " +
+      "a gentle vibrato. Glide is always on, so every note slides in from the last one. Mono.\n\n" +
+      "Notes in, Out L/R. The shared input Bend bends the pitch by up to 12 semitones, which suits a " +
+      "ribbon, a pitch-bend wheel or an LFO.\n\n" +
+      "Tip: play wide intervals and let the portamento do the phrasing.",
   }).settings({ voices: 1, mode: "Mono", glide: 0.3, glidemode: "Always" }).input("bend", "Bend");
   const osc = p.add("oscillator", [0, 0], { shape: 0.45 });
   const vib = p.add("lfo", [0, 1], { rate: 6, fade: 0.4 }, { name: "Vibrato" });
@@ -121,6 +157,12 @@ function eightBitHero() {
   const p = voice("8-Bit Hero", {
     description: "A raw, unfiltered 12.5 % pulse whose width flips with the tempo in sixteenths and a quick delayed vibrato: a game-console chiptune lead.",
     tags: ["mono", "lead", "chiptune", "8-bit", "retro"],
+    help: "A narrow pulse Oscillator with no filter. A square LFO flips the pulse width in sixteenth notes " +
+      "and a quick vibrato fades in. The amp has a linear VCA and ignores velocity, like a console " +
+      "chiptune voice. Mono.\n\n" +
+      "Notes in, Out L/R. No shared inputs. The width flip follows the transport; patch a clock into " +
+      "the Clock input to override it.\n\n" +
+      "Tip: play fast arpeggios for the classic chip sound.",
   }).settings({ voices: 1, mode: "Mono" });
   const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.18 });
   const flip = p.add("lfo", [0, 1], { rate: 8, sync: "1/16", wave: "Square" }, { name: "Duty Flip" });
@@ -135,6 +177,11 @@ function unisonHornet() {
   const p = voice("Unison Hornet", {
     description: "Swarm in unison: six detuned, drifting saws per note spread wide, through a resonant low-pass with a filter envelope: a buzzing, huge trance lead. Shared input Cutoff.",
     tags: ["lead", "supersaw", "unison", "trance", "wide"],
+    help: "A Swarm in Unison mode with six detuned saws per note, spread wide, into an SVF Saturating " +
+      "(Rough) low-pass at 2.5 kHz. A filter envelope opens it on each note. Two voices, legato, short " +
+      "glide.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
+      "Tip: play single-note melodies, as the stack is already thick, and sweep Cutoff for builds.",
   }).settings({ voices: 2, mode: "Legato", glide: 0.03 }).input("cut", "Cutoff");
   const sw = p.add("swarm", [0, 0], { chord: "Unison", count: 6, detune: 16, drift: 0.25, width: 1, glide: 0 });
   const envf = envelope(p, [0, 1], { attack: 0.003, decay: 0.4, sustain: 0.6, release: 0.3, velamount: 0.5 }, "Filter Env");
@@ -150,6 +197,11 @@ function bambooBreath() {
   const p = voice("Bamboo Breath", {
     description: "A soft triangle with pink breath noise band-passed at the note, a slow attack and pressure-controlled breathiness: an airy, flute-like lead. Shared input Breath.",
     tags: ["mono", "lead", "flute", "breathy", "organic"],
+    help: "A soft triangle Oscillator plus pink Noise band-passed at the note pitch for breath. Pressure " +
+      "and the Breath input set how much breath you hear. A slow attack gives a flute-like entry. " +
+      "Mono, legato.\n\n" +
+      "Notes in, Out L/R. The shared input Breath adds to the breath level.\n\n" +
+      "Tip: raise Breath for a noisier, airier sound or lean on the key with aftertouch.",
   }).settings({ voices: 1, mode: "Legato", glide: 0.02 }).input("breath", "Breath");
   const osc = p.add("oscillator", [0, 0], { shape: 0.3 }, { name: "Tone" });
   const noise = p.add("noise", [0, 1], { colour: -0.2, level: 1 });
