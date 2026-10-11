@@ -35,7 +35,7 @@ button:disabled { opacity: .4; cursor: default; }
 kbd { font: inherit; font-size: 11px; color: var(--muted); }
 
 /* ---- top bar */
-#top { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--panel);
+#top { display: flex; align-items: center; gap: 8px; padding: 0 10px; height: 41px; box-sizing: border-box; background: var(--panel);
        border-bottom: 1px solid var(--line); flex: none; }
 #crumbs { display: flex; align-items: center; gap: 4px; font-weight: 600; }
 #crumbs a { color: var(--muted); cursor: pointer; text-decoration: none; }
@@ -343,17 +343,17 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pb-empty { color: var(--muted); padding: 30px; text-align: center; }
 
 /* ---- Store section (store.js) ---- */
-.sections { display: inline-flex; align-items: flex-end; gap: 2px; align-self: stretch; margin: -6px 28px -7px 0; }
+.sections { display: inline-flex; align-items: flex-end; gap: 2px; align-self: flex-end; margin: 0 28px -1px 0; }
 .sections button { border: 1px solid transparent; border-bottom: 0; border-radius: 7px 7px 0 0; background: transparent;
-                   color: var(--muted); padding: 0 16px; margin: 0; height: 30px; position: relative; }
+                   color: var(--muted); padding: 0 16px; margin: 0; height: 32px; position: relative; }
 .sections button:hover { color: var(--text); background: var(--panel-2); }
-.sections button.on { background: var(--canvas); color: var(--text); border-color: var(--line); height: 31px; font-weight: 600; }
+.sections button.on { background: var(--canvas); color: var(--text); border-color: var(--line); height: 33px; font-weight: 600; }
 body.in-store .sections button.on { background: var(--bg); }
 #undo, #redo { display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px; }
 #undo svg, #redo svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 body.in-store #main, body.in-store #crumbs, body.in-store #add, body.in-store #panels, body.in-store #presets,
 body.in-store #undo, body.in-store #redo { display: none; }
-#store { position: absolute; top: 36px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
+#store { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
 #store h2 { margin: 0; font-size: 18px; font-weight: 600; }
 #store h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 #store .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
@@ -369,7 +369,7 @@ body.in-store #undo, body.in-store #redo { display: none; }
 #store button.primary { background: var(--accent); color: #07201d; border-color: var(--accent); font-weight: 600; }
 #store button:disabled { opacity: .5; cursor: default; }
 /* ---- Settings section (settings.js): the Store section's look ---- */
-#settings { position: absolute; top: 36px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
+#settings { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
 #settings h2 { margin: 0; font-size: 18px; font-weight: 600; }
 #settings h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 #settings .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
