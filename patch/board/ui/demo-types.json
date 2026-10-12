@@ -16998,6 +16998,46 @@
     ]
   },
   {
+    "type": "patchbay-in",
+    "name": "Patch Bay In",
+    "category": "Utility",
+    "colour": "#a78bfa",
+    "description": "Collects signals into one bundle cable: every input you patch adds a channel, and a free one is always left.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "bundle",
+        "name": "Bundle",
+        "type": "patchbay",
+        "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "patchbay-out",
+    "name": "Patch Bay Out",
+    "category": "Utility",
+    "colour": "#a78bfa",
+    "description": "Splits a bundle cable back into its channels, named like the signals that go in at the other end.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [],
+    "inputs": [
+      {
+        "id": "bundle",
+        "name": "Bundle",
+        "type": "patchbay",
+        "bipolar": true
+      }
+    ],
+    "outputs": []
+  },
+  {
     "type": "perc-voice",
     "name": "Perc Voice",
     "category": "Sources",
@@ -28102,6 +28142,94 @@
     ]
   },
   {
+    "type": "wheel",
+    "name": "Wheel",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "A pitch or mod wheel as a control signal; springs back to the middle.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "value",
+        "name": "Value",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "min",
+        "name": "Min",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "def": -1.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "max",
+        "name": "Max",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "smooth",
+        "name": "Smooth",
+        "kind": "float",
+        "default": 0.250000029802322,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.019999999552965,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.200000002980232
+      },
+      {
+        "id": "spring",
+        "name": "Spring",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "control",
+        "bipolar": true
+      }
+    ]
+  },
+  {
     "type": "wobble",
     "name": "Wobble",
     "category": "Modulation",
@@ -28315,6 +28443,100 @@
         "name": "Compare",
         "type": "gate",
         "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "xy-pad",
+    "name": "XY Pad",
+    "category": "Controllers",
+    "colour": "#fda4af",
+    "description": "Two control signals from one point on a pad.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "x",
+        "name": "X",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "y",
+        "name": "Y",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "min",
+        "name": "Min",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "max",
+        "name": "Max",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "smooth",
+        "name": "Smooth",
+        "kind": "float",
+        "default": 0.250000029802322,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.019999999552965,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.200000002980232
+      }
+    ],
+    "inputs": [],
+    "outputs": [
+      {
+        "id": "x",
+        "name": "X",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "y",
+        "name": "Y",
+        "type": "control",
+        "bipolar": true
       }
     ]
   },
@@ -29866,7 +30088,22 @@
     "port": "audio-in",
     "creatable": false,
     "standaloneOnly": false,
-    "params": [],
+    "params": [
+      {
+        "id": "gain",
+        "name": "Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": -24.0,
+        "max": 24.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
+      }
+    ],
     "inputs": [],
     "outputs": [
       {
@@ -29892,7 +30129,24 @@
     "port": "audio-out",
     "creatable": false,
     "standaloneOnly": false,
-    "params": [],
+    "params": [
+      {
+        "id": "volume",
+        "name": "Volume",
+        "kind": "float",
+        "default": 0.812651991844177,
+        "steps": 0,
+        "modulatable": true,
+        "min": -60.0,
+        "max": 6.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "map": "skew",
+        "centre": -12.0
+      }
+    ],
     "inputs": [
       {
         "id": "l",
@@ -30102,7 +30356,7 @@
     "name": "Macros",
     "category": "Ports",
     "colour": "#f6c35b",
-    "description": "The 16 automatable macros of the Bleep Patch plugin.",
+    "description": "The 16 automatable macros of the Bleep Board plugin.",
     "port": "patch",
     "creatable": false,
     "standaloneOnly": false,

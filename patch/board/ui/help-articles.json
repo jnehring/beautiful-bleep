@@ -1,14 +1,20 @@
 [
  {
   "group": "Musicians",
+  "title": "Glossary",
+  "description": "The words used across Beautiful Bleep: board, module, cell, Bleep plugin, Bleep App, Bleep Play and more.",
+  "path": "/docs/musicians/glossary/"
+ },
+ {
+  "group": "Musicians",
   "title": "Ways to use Bleep",
-  "description": "Plugin, app or browser: the three places to use Bleep and how much effort each level takes.",
+  "description": "Bleep plugin, Bleep App or Bleep Play: the three places to use Beautiful Bleep and how much effort each level takes.",
   "path": "/docs/musicians/overview/"
  },
  {
   "group": "Musicians",
   "title": "Getting started",
-  "description": "Set up Bleep Patch in Ableton Live: the board, modules, cables and ports.",
+  "description": "Set up Beautiful Bleep in Ableton Live: the board, modules, cables and ports.",
   "path": "/docs/musicians/getting-started/"
  },
  {
@@ -37,6 +43,12 @@
  },
  {
   "group": "Guides",
+  "title": "Connecting plugin, app and web",
+  "description": "Send audio, MIDI and tempo between Live, the Bleep App and Bleep Play, and what each connection costs in delay.",
+  "path": "/docs/musicians/guides/connecting/"
+ },
+ {
+  "group": "Guides",
   "title": "Routing MIDI Out in Live",
   "description": "Send MIDI from the board to another instrument track in Live.",
   "path": "/docs/musicians/guides/midi-out-routing/"
@@ -46,6 +58,12 @@
   "title": "Modulating any Live parameter (loopback workaround)",
   "description": "Modulate any Live parameter with a virtual MIDI port until the Max for Live bridge exists.",
   "path": "/docs/musicians/guides/loopback-cc/"
+ },
+ {
+  "group": "Guides",
+  "title": "Process what your computer plays",
+  "description": "Take the sound of your music player, browser or video call into the Bleep App with the System node, on macOS, Windows and Linux.",
+  "path": "/docs/musicians/guides/system-audio/"
  },
  {
   "group": "Developers",
