@@ -538,6 +538,7 @@
       if (status && !status.index.ok) native("storeRefresh").then(() => setTimeout(refresh, 600));
     },
     hide() {
+      if (!root) return;  // init() never ran (no store in this host)
       document.body.classList.remove("in-store");
       root.hidden = true;
       document.getElementById("sec-board").classList.add("on");
