@@ -13,6 +13,7 @@ export const AUDIENCES = {
     menu: [
       { title: "Ways to use Bleep", href: "/docs/musicians/overview/", match: ["/docs/musicians/overview/"] },
       { title: "Getting started", href: "/docs/musicians/getting-started/", match: ["/docs/musicians/getting-started/"] },
+      { title: "Glossary", href: "/docs/musicians/glossary/", match: ["/docs/musicians/glossary/"] },
       { title: "Modules", href: "/modules/", match: ["/modules/", "/docs/musicians/modules/"] },
       { title: "Guides", href: "/docs/musicians/guides/midi-out-routing/", match: ["/docs/musicians/guides/"] },
     ],

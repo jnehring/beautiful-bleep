@@ -436,7 +436,7 @@ function(bleep_add_plugin)
     # Live refuses VST3 instruments without an event input bus, so every
     # instrument takes MIDI in (and ignores it where it has no use).
     juce_add_plugin(${P_TARGET}
-        COMPANY_NAME "Bleep Patch"   # Live groups VST3 plugins by this vendor name
+        COMPANY_NAME "Beautiful Bleep"   # Live groups VST3 plugins by this vendor name
         COMPANY_WEBSITE "https://brilliantbleep.com"
         BUNDLE_ID "com.brilliantbleep.patch.${lower}"
         PLUGIN_MANUFACTURER_CODE BrBp
@@ -525,7 +525,7 @@ endif ()
 
 # ---- Bleep Audio Bridge (spec §11.3): Live's side of the standalone app ------------
 juce_add_plugin(BleepAudioBridge
-    COMPANY_NAME "Bleep Patch"
+    COMPANY_NAME "Beautiful Bleep"
     COMPANY_WEBSITE "https://brilliantbleep.com"
     BUNDLE_ID "com.brilliantbleep.patch.audiobridge"
     PLUGIN_MANUFACTURER_CODE BrBp
