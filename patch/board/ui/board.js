@@ -1820,6 +1820,7 @@
   /// input that already carries the same source. `keep` leaves the positions alone (a brand-new cell).
   function moveIntoCell(b, inside, cellId, keep) {
     const cell = nodeById(cellId, b);
+    const vout = cell.type === "voice-cell" ? b.nodes.find((n) => n.parent === cellId && n.type === "voice-out") : null;
     const cin = b.nodes.find((n) => n.parent === cellId && n.type === "cell-in");
     const cout = b.nodes.find((n) => n.parent === cellId && n.type === "cell-out");
     const kids = b.nodes.filter((n) => inside.has(n.id));
@@ -1837,10 +1838,31 @@
     cell.outputs = cell.outputs || [];
     const inputs = new Map(), outputs = new Map();
     const next = [];
+    const cins = new Set(b.nodes.filter((n) => n.parent === cellId && n.type === "cell-in").map((n) => n.id));
+    const couts = new Set(b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out").map((n) => n.id));
+    const touched = new Set();  // cell jacks whose cables were joined through
+    const joined = new Set();   // inner cables from a cell input / into a cell output that the moved nodes now replace
     for (const c of b.cables) {
       const fi = inside.has(c.from.node), ti = inside.has(c.to.node);
       if (fi === ti) { next.push(c); continue; }
-      if (c.from.node === cellId || c.to.node === cellId) continue;   // between the cell and its new content: no way in
+      if (c.from.node === cellId || c.to.node === cellId) {
+        // Between the cell and its new content: the content now sits behind the jack, so join straight through it:
+        // module → cell input → inner target becomes module → inner target (and the same for outputs).
+        if (ti && c.to.node !== cellId) {  // the cell's output jack feeds a node that moved inside
+          for (const o of b.cables) if (!inside.has(o.from.node) && couts.has(o.to.node) && o.to.jack === c.from.jack) {
+            next.push({ id: uid("k"), from: clone(o.from), to: clone(c.to), amount: o.amount * c.amount });
+            joined.add(o.id);
+            touched.add(c.from.jack);
+          }
+        } else if (fi && c.from.node !== cellId) {  // a node that moved inside feeds the cell's input jack
+          for (const o of b.cables) if (cins.has(o.from.node) && o.from.jack === c.to.jack && !inside.has(o.to.node)) {
+            next.push({ id: uid("k"), from: clone(c.from), to: clone(o.to), amount: c.amount * o.amount });
+            joined.add(o.id);
+            touched.add(c.to.jack);
+          }
+        }
+        continue;
+      }
       const key = c.from.node + "|" + c.from.jack;
       const src = nodeById(c.from.node, b);
       if (ti) {  // entering
@@ -1856,6 +1878,13 @@
           }
         }
         next.push({ id: c.id, from: { node: cin.id, jack: inputs.get(key) }, to: clone(c.to), amount: c.amount });
+      } else if (vout && outType(src, c.from.jack) === "audio") {  // a Voice Cell's audio leaves over Voice Out, not a Cell Out
+        const ch = /(^|[^a-z])(r|right)$/i.test(c.from.jack) || /(^|[^a-z])(r|right)$/i.test(jackName(src, c.from.jack, true)) ? "r" : "l";
+        if (!outputs.has(key)) {
+          outputs.set(key, ch);
+          next.push({ id: uid("k"), from: clone(c.from), to: { node: vout.id, jack: ch }, amount: 1 });
+        }
+        next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
       } else {  // leaving
         if (!cout) continue;
         if (!outputs.has(key)) {
@@ -1867,7 +1896,10 @@
         next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
       }
     }
-    b.cables = next;
+    b.cables = next.filter((c) => !joined.has(c.id));
+    // A cell jack nothing uses any more (the moved nodes took over its cables) goes away.
+    cell.inputs = cell.inputs.filter((j) => !touched.has(j.id) || b.cables.some((c) => (c.to.node === cellId && c.to.jack === j.id) || (cins.has(c.from.node) && c.from.jack === j.id)));
+    cell.outputs = cell.outputs.filter((j) => !touched.has(j.id) || b.cables.some((c) => (c.from.node === cellId && c.from.jack === j.id) || (couts.has(c.to.node) && c.to.jack === j.id)));
   }
 
   /// Add → right-click → Create cell (⌘G, spec §8.1) or Create voice cell (`kind` "voice", spec §8.3.3): the
