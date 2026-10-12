@@ -1,0 +1,10 @@
+{
+  "name": "Monitor",
+  "slug": "monitor",
+  "tagline": "See what is on a cable: a MIDI event table, an audio meter, a CV readout and a gate meter.",
+  "colour": "#7dd3fc",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/monitor.md"
+}

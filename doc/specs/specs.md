@@ -289,7 +289,7 @@ All signals use **virtual volts** (section 18), so they map one to one to CV and
 | `trigger` | single-sample pulse at a sample offset | green, dashed |
 | `pitch` | float, 1.0 = 1 octave (1 V/oct), 0.0 = C4 | blue |
 | `audio` | float, per sample | red |
-| `notes` | polyphonic event stream: note on/off with pitch, velocity, per-note pressure, release velocity | purple, thick |
+| `notes` | polyphonic event stream: note on/off with pitch, velocity, per-note pressure, release velocity; also control changes, program changes, bend, channel pressure and realtime messages (a module ignores what it does not know) | purple, thick |
 
 All types except `notes` are written per sample, so audio-rate modulation is always possible.
 
@@ -741,6 +741,7 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **Audio Mixer** | Four stereo channels: level (dB), pan, mute/solo, send; return, master, limiter, meters | Several sound sources into one stereo pair. See `doc/specs/modules/audio-mixer.md`. |
 | **Crossfader** | Stereo A/B blend, equal-power or linear | Dry/wet and source morphing under modulation. See `doc/specs/modules/crossfader.md`. |
 | **Level Meter** | Stereo peak and RMS meters, peak hold, clip lights; audio thru; Level and Clip outputs | See how loud a signal is anywhere in the patch, and use the loudness as modulation. See `doc/specs/modules/level-meter.md`. |
+| **Monitor** | MIDI event table with filters and held notes; audio, CV and gate meters; everything passes through | See what is on a cable: notes, CCs, program changes, levels, values and pulses. See `doc/specs/modules/monitor.md`. |
 | **Dial** | One big knob as a control signal: Min/Max range, detents, smoothing | A macro or selector by hand. See `doc/specs/modules/dial.md`. |
 | **Button** | A pad: gate (momentary or toggle), press and release triggers, toggle | Starts, resets and mutes by hand; the toggle is saved. See `doc/specs/modules/button.md`. |
 | **Keyboard** | Three octaves to play with the mouse or the computer keyboard; hold | *Notes* plays a Voice Cell; mono pitch, gate, velocity, trigger with priority and glide. See `doc/specs/modules/keyboard.md`. |

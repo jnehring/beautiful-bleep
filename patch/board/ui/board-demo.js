@@ -95,6 +95,44 @@
     return x.toFixed(2);
   }
 
+  /// A stand-in for the Monitor's live state: a slow arpeggio with a CC sweep, an LFO, a gate and a beat.
+  const monitorRuns = new Map();
+  function monitorDemo(id, now) {
+    let r = monitorRuns.get(id);
+    if (!r) monitorRuns.set(id, (r = { count: 0, log: [], held: new Set(), step: -1, gates: 0, ccAt: 0 }));
+    const log = (e) => { r.log.push(e); r.count++; if (r.log.length > 64) r.log.shift(); };
+    const step = Math.floor(now * 3);   // a note every third of a second
+    const arp = [60, 64, 67, 72, 67, 64];
+    if (step !== r.step) {
+      const off = r.step >= 0 ? arp[r.step % arp.length] : -1;
+      if (off >= 0) { log([1, 0, off, 0]); r.held.delete(off); }
+      const on = arp[step % arp.length];
+      log([0, 0, on, 70 + ((step * 17) % 50)]);
+      r.held.add(on);
+      if (step % 6 === 0) log([4, 0, (step / 6) % 8, 0]);
+      if (step % 4 === 0) log([5, 0, 0, Math.round(Math.sin(now) * 3000)]);
+      if (r.step >= 0 && step % 6 === 3) r.gates++;
+      r.step = step;
+    }
+    if (now - r.ccAt > 0.12) { r.ccAt = now; log([3, 0, 74, Math.round(64 + 63 * Math.sin(now * 0.8))]); }
+    const words = [0, 0, 0, 0];
+    for (const k of r.held) words[k >> 5] |= 1 << (k & 31);
+    const flat = [r.count & 0xffffff];
+    for (const e of r.log) flat.push(...e);
+    const beat = Math.exp(-((now * 2) % 1) * 4), swell = 0.6 + 0.5 * Math.sin(now * 0.4);
+    const cv = Math.sin(now * 1.1) * 0.8, gateHigh = (now * 2) % 1 < 0.3;
+    return {
+      midi: flat,
+      state: {
+        held0: words[0] >>> 0, held1: words[1] >>> 0, held2: words[2] >>> 0, held3: words[3] >>> 0,
+        peakL: beat * swell, peakR: beat * swell * 0.8, rmsL: beat * swell * 0.45, rmsR: beat * swell * 0.36,
+        clipL: +(beat * swell > 1), clipR: 0,
+        cv, cvLo: cv - 0.02, cvHi: cv + 0.02,
+        gate: +gateHigh, gateAny: 0, gateCount: Math.floor(now * 2), gateLength: 0.15, gateRate: 2, gateDuty: 0.3,
+      },
+    };
+  }
+
   const played = {};  // node → what perform() played: {held, pressed, released, notes}
   let t = 0;
   const lastOut = new Map();
@@ -167,6 +205,13 @@
         Object.assign(entry, { peakL: pk[0], peakR: pk[1], rmsL: pk[0] * 0.45, rmsR: pk[1] * 0.45,
                                clipL: +(pk[0] > 1), clipR: +(pk[1] > 1), stereo: +stereo });
         Object.assign(outputs, { l: pk[0], r: pk[1], clip: +(pk[0] > 1), level: Math.max(0, 1 + 20 * Math.log10(pk[0] * 0.45 + 1e-9) / 60) });
+      }
+      if (n.type === "monitor") {
+        const m = monitorDemo(n.id, t);
+        const has = (jack) => board.cables.some((c) => c.to.node === n.id && c.to.jack === jack);
+        Object.assign(entry, m.state, { notesPatched: +has("notes"), audioPatched: +(has("l") || has("r")), stereo: +has("r"),
+                                        cvPatched: +has("cv"), gatePatched: +has("gate") });
+        entry.arrays = { midi: m.midi };
       }
       // Activity (the cables' pulse): how far each output moved since the last frame.
       entry.activity = {};

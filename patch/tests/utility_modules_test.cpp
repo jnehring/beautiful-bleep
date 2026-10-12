@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <map>
 #include <set>
 #include <string>
@@ -42,9 +43,11 @@ struct Rig {
     std::vector<const float*> pp, ip;
     std::vector<float*> op;
     std::unique_ptr<bool[]> connected;
-    std::vector<NoteBuffer> notes;
+    std::vector<NoteBuffer> notes, notesOutBuf;
     std::vector<const NoteBuffer*> np;
+    std::vector<NoteBuffer*> nop;
     Transport transport;
+    PortIO* port = nullptr;  ///< port nodes: the host block for the tick
 
     explicit Rig(const std::string& type) : m(Registry::get().create(type)) {
         const auto& s = m->spec();
@@ -52,6 +55,8 @@ struct Rig {
         inputs.assign(s.inputs.size(), std::vector<float>(kChunk, 0.0f));
         outputs.assign(s.outputs.size(), std::vector<float>(kChunk, 0.0f));
         notes.resize(s.inputs.size());
+        notesOutBuf.resize(s.outputs.size());
+        for (auto& b : notesOutBuf) nop.push_back(&b);
         connected.reset(new bool[s.inputs.size() + 1]());
         for (size_t i = 0; i < s.params.size(); ++i) set(s.params[i].id, s.params[i].def);
         for (auto& v : params) pp.push_back(v.data());
@@ -89,6 +94,8 @@ struct Rig {
         c.inputs = ip.data();
         c.inputConnected = connected.get();
         c.notesIn = np.data();
+        c.notesOut = nop.data();
+        c.port = port;
         c.outputs = op.data();
         c.ppqPerSample = transport.bpm / 60.0 / kRate;
         for (int k = 0; k < chunks; ++k) {
@@ -105,7 +112,7 @@ struct Rig {
 
 void specs() {
     const char* types[] = {"attenuverter", "cv-mixer", "audio-mixer", "multiplier", "crossfader",
-                           "logic",        "quantizer", "switch",     "notes-to-cv", "level-meter"};
+                           "logic",        "quantizer", "switch",     "notes-to-cv", "level-meter", "monitor"};
     for (const char* t : types) {
         g_test = t;
         const ModuleSpec* s = Registry::get().find(t);
@@ -301,6 +308,199 @@ void notesToCv() {
     r.connected[(size_t)in] = false;
     r.run();
     EXPECT(r.out("gate", 0) == 0.0f);
+
+    // Events it does not know are ignored: a CC, a program change, a bend, a clock must not
+    // move the pressure output or the gate.
+    Rig q("notes-to-cv");
+    const int qin = q.m->spec().inputIndex("notes");
+    q.connected[(size_t)qin] = true;
+    for (int type : {(int)NoteEvent::Cc, (int)NoteEvent::Program, (int)NoteEvent::Bend,
+                     (int)NoteEvent::ChannelPressure, (int)NoteEvent::System}) {
+        NoteEvent e;
+        e.type = (uint8_t)type;
+        e.note = 60;
+        e.value = 0.9f;
+        e.offset = 0;
+        q.notes[(size_t)qin].push(e);
+    }
+    q.run();
+    EXPECT(q.out("pressure") == 0.0f && q.out("gate") == 0.0f && q.out("trigger", 0) == 0.0f);
+}
+
+void midiInEvents() {
+    g_test = "midi in events";
+    Rig r("midi-in");
+    auto frame = std::make_unique<PortFrame>();
+    PortIO io;
+    io.in = frame.get();
+    r.port = &io;
+    r.transport.playing = false;
+    auto midi = [&](int offset, int status, int d1, int d2, int size = 3) {
+        MidiEvent& e = frame->midi[frame->numMidi++];
+        e.offset = offset;
+        e.bytes[0] = (uint8_t)status;
+        e.bytes[1] = (uint8_t)d1;
+        e.bytes[2] = (uint8_t)d2;
+        e.size = (uint8_t)size;
+    };
+    midi(0, 0x91, 60, 100);            // note on, channel 2
+    midi(1, 0xb3, 74, 64);             // CC 74 = 64 on channel 4
+    midi(2, 0xc9, 33, 0, 2);           // program change 33 on channel 10
+    midi(3, 0xe0, 0x00, 0x00);         // pitch bend, fully down
+    midi(4, 0xd0, 127, 0, 2);          // channel pressure
+    midi(5, 0xa1, 60, 51);             // poly pressure
+    midi(6, 0xf8, 0, 0, 1);            // clock
+    midi(7, 0xfa, 0, 0, 1);            // start
+    midi(8, 0x81, 60, 0);              // note off
+    r.run();
+    const NoteBuffer& n = r.notesOutBuf[(size_t)r.m->spec().outputIndex("notes")];
+    EXPECT(n.count == 9);
+    if (n.count == 9) {
+        EXPECT(n.events[0].type == NoteEvent::On && n.events[0].channel == 1 && n.events[0].note == 60);
+        EXPECT(n.events[1].type == NoteEvent::Cc && n.events[1].channel == 3 && n.events[1].note == 74);
+        EXPECT_NEAR(n.events[1].value, 64.0 / 127.0, 1e-6);
+        EXPECT(n.events[2].type == NoteEvent::Program && n.events[2].channel == 9 && n.events[2].note == 33);
+        EXPECT(n.events[3].type == NoteEvent::Bend);
+        EXPECT_NEAR(n.events[3].value, -1.0, 1e-6);
+        EXPECT(n.events[4].type == NoteEvent::ChannelPressure);
+        EXPECT_NEAR(n.events[4].value, 1.0, 1e-6);
+        EXPECT(n.events[5].type == NoteEvent::Pressure && n.events[5].note == 60);
+        EXPECT(n.events[6].type == NoteEvent::System && n.events[6].note == 0xf8 && n.events[6].offset == 6);
+        EXPECT(n.events[7].type == NoteEvent::System && n.events[7].note == 0xfa);
+        EXPECT(n.events[8].type == NoteEvent::Off);
+    }
+    // The mono outputs still follow as before.
+    EXPECT_NEAR(r.out("bend"), -1.0, 1e-6);
+    EXPECT_NEAR(r.out("cc1"), 0.0, 1e-6);
+
+    // A flood of controllers never crowds out notes: the last kNoteReserve slots are for them.
+    std::memset(static_cast<void*>(frame.get()->midi), 0, sizeof(frame->midi));
+    frame->numMidi = 0;
+    for (int i = 0; i < 60; ++i) midi(0, 0xb0, 1, i & 127);
+    midi(1, 0x90, 62, 90);
+    r.run();
+    int cc = 0, on = 0;
+    for (int k = 0; k < n.count; ++k) {
+        cc += n.events[k].type == NoteEvent::Cc;
+        on += n.events[k].type == NoteEvent::On;
+    }
+    EXPECT(on == 1 && cc == kMaxNotesPerChunk - kNoteReserve);
+}
+
+void monitor() {
+    g_test = "monitor node";
+    Rig r("monitor");
+    auto live = [&] {
+        std::vector<std::pair<std::string, double>> v;
+        r.m->liveValues(v);
+        return std::map<std::string, double>(v.begin(), v.end());
+    };
+    auto midi = [&] {
+        std::vector<std::pair<std::string, std::vector<float>>> a;
+        r.m->liveArrays(a);
+        for (auto& x : a)
+            if (x.first == "midi") return x.second;
+        return std::vector<float>();
+    };
+    const int in = r.m->spec().inputIndex("notes");
+    const int out = r.m->spec().outputIndex("notes");
+    auto push = [&](uint8_t type, uint8_t ch, int32_t note, float value, int16_t offset = 0) {
+        NoteEvent e;
+        e.type = type;
+        e.channel = ch;
+        e.note = note;
+        e.value = value;
+        e.offset = offset;
+        r.notes[(size_t)in].push(e);
+    };
+
+    // Unpatched: nothing logged, the view is told.
+    r.run();
+    EXPECT(live()["notesPatched"] == 0.0 && midi().size() == 1 && midi()[0] == 0.0f);
+
+    // Events are logged in order, with their data in MIDI units, and pass through unchanged.
+    r.connected[(size_t)in] = true;
+    push(NoteEvent::On, 1, 64, 1.0f, 3);
+    push(NoteEvent::On, 1, 67, 0.5f, 4);
+    push(NoteEvent::Cc, 2, 74, 0.5f, 5);
+    push(NoteEvent::Bend, 0, 0, -1.0f, 6);
+    push(NoteEvent::Program, 9, 33, 0.0f, 7);
+    push(NoteEvent::System, 0, 0xf8, 0.0f, 8);
+    r.run();
+    const NoteBuffer& passed = r.notesOutBuf[(size_t)out];
+    EXPECT(passed.count == 6 && passed.events[0].note == 64 && passed.events[0].offset == 3 &&
+           passed.events[2].type == NoteEvent::Cc && passed.events[5].note == 0xf8);
+    auto m = midi();
+    EXPECT(m.size() == 1 + 6 * 4 && m[0] == 6.0f);
+    EXPECT(m[1] == 0 && m[2] == 1 && m[3] == 64 && m[4] == 127);        // note on, channel 2 (1-based), velocity 127
+    EXPECT(m[5] == 0 && m[8] == 64);                                    // 0.5 → 64
+    EXPECT(m[9] == 3 && m[10] == 2 && m[11] == 74 && m[12] == 64);      // CC 74 = 64 on channel 3
+    EXPECT(m[13] == 5 && m[16] == -8192);                               // bend −1
+    EXPECT(m[17] == 4 && m[19] == 33);                                  // program
+    EXPECT(m[21] == 7 && m[23] == 0xf8);                                // clock
+    auto v = live();
+    EXPECT(v["notesPatched"] == 1.0);
+    EXPECT(((uint32_t)v["held2"] >> 0 & 1u) == 1u && ((uint32_t)v["held2"] >> 3 & 1u) == 1u);  // notes 64 and 67 held
+    EXPECT(r.notesOutBuf[(size_t)out].count == 6);
+
+    // A note off ends the note; All Notes Off ends the rest.
+    push(NoteEvent::Off, 1, 64, 0.0f);
+    r.run();
+    EXPECT(((uint32_t)live()["held2"] >> 0 & 1u) == 0u && ((uint32_t)live()["held2"] >> 3 & 1u) == 1u);
+    push(NoteEvent::Cc, 0, 123, 0.0f);
+    r.run();
+    EXPECT((uint32_t)live()["held2"] == 0u);
+    EXPECT(midi()[0] == 8.0f);
+
+    // Unknown event types are passed on but not logged.
+    push(200, 0, 1, 1.0f);
+    r.run();
+    EXPECT(midi()[0] == 8.0f && r.notesOutBuf[(size_t)out].count == 1);
+
+    // Audio: peak, stereo, pass-through.
+    r.patch("l", 0.5f);
+    r.inputs[(size_t)r.m->spec().inputIndex("l")][3] = -0.8f;
+    r.run();
+    v = live();
+    EXPECT(v["audioPatched"] == 1.0 && v["stereo"] == 0.0);
+    EXPECT_NEAR(v["peakL"], 0.8, 1e-6);
+    EXPECT(r.out("l") == 0.5f && r.out("l", 3) == -0.8f && r.out("r") == 0.5f);
+
+    // CV: value, and the range since the last read (a short spike is not lost).
+    r.patch("cv", 0.25f);
+    r.inputs[(size_t)r.m->spec().inputIndex("cv")][5] = 0.9f;
+    r.inputs[(size_t)r.m->spec().inputIndex("cv")][6] = -0.4f;
+    r.run();
+    v = live();
+    EXPECT(v["cvPatched"] == 1.0);
+    EXPECT_NEAR(v["cv"], 0.25, 1e-6);
+    EXPECT_NEAR(v["cvHi"], 0.9, 1e-6);
+    EXPECT_NEAR(v["cvLo"], -0.4, 1e-6);
+    EXPECT(r.out("cv", 5) == 0.9f);
+    r.run();
+    v = live();
+    EXPECT_NEAR(v["cvHi"], 0.9, 1e-6);  // the second chunk repeats the spike
+    r.patch("cv", 0.1f);
+    r.run();
+    live();
+    v = live();
+    EXPECT_NEAR(v["cvHi"], 0.1, 1e-6);
+    EXPECT_NEAR(v["cvLo"], 0.1, 1e-6);
+
+    // Gate: a one-sample trigger lights the lamp once and counts.
+    r.patch("gate", 0.0f);
+    r.inputs[(size_t)r.m->spec().inputIndex("gate")][10] = 1.0f;
+    r.run();
+    v = live();
+    EXPECT(v["gatePatched"] == 1.0 && v["gate"] == 0.0 && v["gateAny"] == 1.0 && v["gateCount"] == 1.0);
+    EXPECT(r.out("gate", 10) == 1.0f && r.out("gate", 11) == 0.0f);
+    r.inputs[(size_t)r.m->spec().inputIndex("gate")][10] = 0.0f;
+    r.run();
+    EXPECT(live()["gateAny"] == 0.0);
+    r.patch("gate", 1.0f);
+    r.run();
+    v = live();
+    EXPECT(v["gate"] == 1.0 && v["gateCount"] == 2.0);
 }
 
 void audioMixer() {
@@ -389,6 +589,8 @@ int main() {
     quantizer();
     switchNode();
     notesToCv();
+    midiInEvents();
+    monitor();
     audioMixer();
     levelMeter();
     if (g_failures) {

@@ -31,7 +31,8 @@ function utf8Encode(text) {
   return Uint8Array.from(out);
 }
 const NOTE_SIZE = 16;  // sizeof(NoteEvent)
-export const NOTE_ON = 0, NOTE_OFF = 1, NOTE_PRESSURE = 2;
+export const NOTE_ON = 0, NOTE_OFF = 1, NOTE_PRESSURE = 2, NOTE_CC = 3, NOTE_PROGRAM = 4, NOTE_BEND = 5,
+  NOTE_CHANNEL_PRESSURE = 6, NOTE_SYSTEM = 7;
 
 function writeNote(v, at, e) {
   v.setUint8(at, e.type ?? 0);

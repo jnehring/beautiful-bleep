@@ -51,7 +51,7 @@ public:
                 const NoteEvent& ev = notes->events[e];
                 if (ev.type == NoteEvent::On) dsp_.noteOn(ev.channel, ev.note, ev.pitch, ev.value, p);
                 else if (ev.type == NoteEvent::Off) dsp_.noteOff(ev.channel, ev.note, ev.value, p);
-                else dsp_.pressure(ev.channel, ev.note, ev.value, p);
+                else if (ev.type == NoteEvent::Pressure) dsp_.pressure(ev.channel, ev.note, ev.value, p);
             }
             p.glide = value(c, Glide, i);
             dsp_.tick(p, f);

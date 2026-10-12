@@ -16350,6 +16350,118 @@
     ]
   },
   {
+    "type": "monitor",
+    "name": "Monitor",
+    "category": "Utility",
+    "colour": "#7dd3fc",
+    "description": "Shows what is on a cable: a MIDI event table, an audio meter, a CV readout and a gate meter. Everything passes through.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "response",
+        "name": "Response",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "min": 0.009999999776483,
+        "max": 2.0,
+        "def": 0.300000011920929,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.300000011920929
+      },
+      {
+        "id": "floor",
+        "name": "Floor",
+        "kind": "choice",
+        "default": 0.600000023841858,
+        "steps": 6,
+        "modulatable": false,
+        "choices": [
+          "-24 dB",
+          "-36 dB",
+          "-48 dB",
+          "-60 dB",
+          "-72 dB",
+          "-96 dB"
+        ],
+        "min": 0.0,
+        "max": 5.0,
+        "def": 3.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": true
+      },
+      {
+        "id": "l",
+        "name": "Audio L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Audio R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "cv",
+        "name": "CV",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "l",
+        "name": "Audio L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Audio R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "cv",
+        "name": "CV",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "neuron",
     "name": "Neuron",
     "category": "Modulation",

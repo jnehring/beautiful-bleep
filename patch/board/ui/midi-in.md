@@ -22,6 +22,7 @@ A new board in the app has no MIDI node. Add one from **Add → Port**, or use
 
 - **Play a Voice Cell:** *Notes* into the cell's *Notes* input.
 - **Play a mono synth:** *Pitch* into an oscillator, *Gate* into an ADSR.
+- **See what the controller sends:** *Notes* into a *Monitor*: every note, controller number and program change in a table.
 - **Knobs from a controller:** set a *CC* number to the controller's number and
   patch its output wherever a control signal is useful.
 
@@ -38,7 +39,7 @@ A new board in the app has no MIDI node. Add one from **Add → Port**, or use
 
 | Output | Signal | What it does |
 |---|---|---|
-| Notes | notes | All notes, for Voice Cells |
+| Notes | notes | All notes, for Voice Cells; also the controllers, program changes, bend, pressure and clock, for a *Monitor* |
 | Pitch | pitch | Pitch of the latest note |
 | Gate | gate | High while a note is held |
 | Velocity | control | Velocity of the latest note |

@@ -62,6 +62,14 @@ public:
             c.outputs[Trigger][i] = 0.0f;
             while (cursor_ < in.numMidi && in.midi[cursor_].offset <= c.offset + i) {
                 const MidiEvent& e = in.midi[cursor_++];
+                if (e.size == 1 && e.bytes[0] >= 0xf8) {  // realtime: clock, start, continue, stop; no channel
+                    NoteEvent n;
+                    n.type = NoteEvent::System;
+                    n.offset = (int16_t)i;
+                    n.note = e.bytes[0];
+                    notes.pushController(n);
+                    continue;
+                }
                 if (e.size < 2) continue;
                 const int status = e.bytes[0] & 0xf0, ch = e.bytes[0] & 0x0f;
                 if (channel != 0 && ch != channel - 1) continue;
@@ -113,9 +121,25 @@ private:
             if (held_ > 0 && stack_[held_ - 1] == d1) pressure_ = n.value;
         } else if (status == 0xd0) {
             pressure_ = (float)d1 / 127.0f;
+            n.type = NoteEvent::ChannelPressure;
+            n.note = 0;
+            n.value = pressure_;
+            notes.pushController(n);
         } else if (status == 0xe0) {
             bend_ = ((float)((d2 << 7) | d1) - 8192.0f) / 8192.0f;
+            n.type = NoteEvent::Bend;
+            n.note = 0;
+            n.value = bend_;
+            notes.pushController(n);
+        } else if (status == 0xc0) {
+            n.type = NoteEvent::Program;
+            n.pitch = 0.0f;
+            notes.pushController(n);
         } else if (status == 0xb0) {
+            n.type = NoteEvent::Cc;
+            n.pitch = 0.0f;
+            n.value = (float)d2 / 127.0f;
+            notes.pushController(n);
             if (d1 == 1) mod_ = (float)d2 / 127.0f;
             for (int k = 0; k < kNumCcs; ++k)
                 if (ccNumbers[k] == d1) cc_[k] = (float)d2 / 127.0f;

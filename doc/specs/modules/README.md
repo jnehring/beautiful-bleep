@@ -42,6 +42,7 @@ section 21): no hardware names in the files, the UI or the docs.
 | Button | [button.md](button.md) | Implemented |
 | Keyboard | [keyboard.md](keyboard.md) | Implemented |
 | Level Meter | [level-meter.md](level-meter.md) | Implemented |
+| Monitor | [monitor.md](monitor.md) | Implemented |
 
 The eurorack-inspired set:
 

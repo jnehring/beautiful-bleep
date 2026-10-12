@@ -22,17 +22,32 @@ namespace bleep::engine {
 
 constexpr int kChunk = 32;            ///< engine sub-block; also the feedback delay (spec §7.5)
 constexpr int kMaxNotesPerChunk = 64;
+constexpr int kNoteReserve = 16;      ///< slots of a notes buffer kept free of controller events
 constexpr int kNumMacros = 16;
 
 /// One event of the `notes` signal type. Pitch in virtual volts (1.0 = 1 octave, 0 = C4).
+///
+/// On, Off and Pressure play notes. The other types carry the rest of MIDI so a
+/// module can show or use it (the Monitor); they reuse `note` and `value`, and the
+/// layout stays 16 bytes. A module must ignore types it does not know: test for
+/// the types it handles, never "anything else".
 struct NoteEvent {
-    enum Type : uint8_t { On, Off, Pressure };
+    enum Type : uint8_t {
+        On,
+        Off,
+        Pressure,         ///< polyphonic key pressure: `note`, `value` 0..1
+        Cc,               ///< control change: `note` = controller 0..127, `value` = data / 127
+        Program,          ///< program change: `note` = program 0..127
+        Bend,             ///< pitch bend: `value` −1..+1
+        ChannelPressure,  ///< channel pressure: `value` 0..1
+        System,           ///< realtime message: `note` = status byte (0xF8 clock, 0xFA start, 0xFB continue, 0xFC stop)
+    };
     uint8_t type = On;
     uint8_t channel = 0;  ///< 0..15
     int16_t offset = 0;   ///< sample inside the chunk
-    int32_t note = 60;    ///< MIDI note number: identifies the note
+    int32_t note = 60;    ///< MIDI note number: identifies the note (see Type for the others)
     float pitch = 0.0f;
-    float value = 0.0f;   ///< velocity (On/Off) or pressure, 0..1
+    float value = 0.0f;   ///< velocity (On/Off) or pressure, 0..1 (see Type for the others)
 };
 
 struct NoteBuffer {
@@ -41,6 +56,13 @@ struct NoteBuffer {
     void clear() noexcept { count = 0; }
     bool push(const NoteEvent& e) noexcept {
         if (count >= kMaxNotesPerChunk) return false;
+        events[count++] = e;
+        return true;
+    }
+    /// Pushes a controller-type event (anything but On/Off/Pressure) only while
+    /// kNoteReserve slots stay free, so a flood of CCs never crowds out notes.
+    bool pushController(const NoteEvent& e) noexcept {
+        if (count >= kMaxNotesPerChunk - kNoteReserve) return false;
         events[count++] = e;
         return true;
     }
