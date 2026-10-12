@@ -10,7 +10,9 @@
 //                          makeModule(type, name) adds a Dial, Button or Keyboard module to the board and returns its id.
 //     ctx.scope()          [{id, name, type, depth, params: [def], outputs: [{id, name}], view}]: the modules a control may show
 //     ctx.module(id)       a board node by id, or undefined
-//     ctx.reveal(id)       opens a module's stack on the board and selects it
+//     ctx.reveal(id)       goes to a module on the board (its stack, or the Panel cell) and selects it
+//     ctx.edit(label, fn(b))  edits the whole board document in one undo step
+//     ctx.removeControl(panelId, controlId)  removes a control made by panel-wiring, with its module and channel
 //     ctx.host()           the host BleepPanels.create wants
 //   ed.rebuild()           the document changed: draw again
 //   ed.destroy()
@@ -29,16 +31,9 @@
     ["meter", "Meter", [2, 8]], ["label", "Label", [14, 2]], ["section", "Section", [16, 10]],
     ["view", "Module view", [24, 14]], ["panel", "Load panel", [20, 12]],
   ];
-  // A Dial, Fader, Button or Keys control is made together with a module on the board, which is wired there with cables.
-  const MODULE = {
-    dial: ["dial", "Dial", (id) => [{ param: id + ".value" }]],
-    slider: ["dial", "Fader", (id) => [{ param: id + ".value" }]],
-    wheel: ["wheel", "Wheel", (id) => [{ param: id + ".value" }], { spring: true }],
-    select: ["dial", "Select", (id) => [{ param: id + ".value" }], { options: ["A", "B", "C"] }],
-    xy: ["xy-pad", "XY Pad", (id) => [{ param: id + ".x", axis: "x" }, { param: id + ".y", axis: "y" }]],
-    button: ["button", "Button", (id) => [{ press: id }]],
-    keys: ["keyboard", "Keyboard", (id) => [{ keyboard: id }]],
-  };
+  // What the Add list offers: elements that do not drive anything. A control that does (a dial, a dropdown, a toggle, Keys, a
+  // meter) is made by right-clicking the thing it controls on the board: "Create panel control" (panel-wiring.js).
+  const FREE = ["label", "section", "view", "panel"];
   /// The board module a control is made with: its wire's (or meter source's) node.
   const nodeOf = (c) => {
     if (c.type === "meter") return c.source && c.source.out && [].concat(c.source.out)[0] ? [].concat(c.source.out)[0].split(".")[0] : null;
@@ -82,7 +77,6 @@
   function mount(body, ctx) {
     let selected = null;         // control id
     let tab = null;
-    let addQuery = "";           // the Add list's search
     let live = null;             // the BleepPanels instance
 
     const root = el("div", "pe");
@@ -107,28 +101,12 @@
     /// The id of the board module a control was made with (not a knob wired directly, as on older panels).
     const moduleOf = (c) => { const id = nodeOf(c), n = id && ctx.module(id); return n && CONTROL_MODULES.has(n.type) ? id : null; };
 
-    /// Makes the board module a control of `type` is made with, and points `target` (the control) at it.
-    function attach(type, make, target) {
-      if (type === "meter") {
-        const m = make("level-meter", "Meter");
-        if (m) target.source = { out: [m + ".l", m + ".r"] };
-        return;
-      }
-      const spec = MODULE[type];
-      const m = spec && make(spec[0], spec[1]);
-      if (!m) return;
-      target.wire = spec[2](m);
-      for (const [k, v] of Object.entries(spec[3] || {})) if (target[k] === undefined) target[k] = JSON.parse(JSON.stringify(v));
-      if (type === "select") make.set(m, "steps", target.options.length / 24);
-    }
     function addControl(type, extra = {}) {
       let id;
-      ctx.mutate("add " + type, (p, all, makeModule) => {
+      ctx.mutate("add " + type, (p) => {
         const more = { ...extra };
         if (type === "label") more.text = more.text || "Label";
         if (type === "section") { more.text = more.text || "Section"; more.colour = more.colour || "#8b92a3"; }
-        attach(type, makeModule, more);
-        if (!more.label && (MODULE[type] || type === "meter") && type !== "keys") more.label = type === "meter" ? "Meter" : MODULE[type][1];
         id = placeControl(p, type, more, tab).id;
       });
       selected = id;
@@ -138,7 +116,7 @@
     // ------------------------------------------------------------------ bar
     function drawBar() {
       bar.innerHTML = "";
-      bar.append(el("span", "pe-hint", "Drag to move, corner to resize · Delete removes · ⌘D duplicates · Dials, buttons and keys are modules on the board: cable them there"));
+      bar.append(el("span", "pe-hint", "Drag to move, corner to resize · Delete removes · ⌘D duplicates · New dials, dropdowns and toggles: right-click what they control on the board"));
     }
 
     // ----------------------------------------------------------------- centre
@@ -265,25 +243,25 @@
     function drawSide() {
       side.innerHTML = "";
       side.append(el("h4", "", "Add"));
-      const find = el("input", "pe-search");
-      find.placeholder = "Search elements";
-      find.value = addQuery;
-      const pal = el("div", "pe-palette");
-      const drawPalette = () => {
-        pal.innerHTML = "";
-        const rows = PALETTE.filter(([type, name]) => (!addQuery || name.toLowerCase().includes(addQuery)))
-          .sort((a, b) => a[1].localeCompare(b[1]));
-        for (const [type, name] of rows) {
-          const b = el("button", "pe-pal", name);
-          b.addEventListener("click", () => addControl(type, defaults(type)));
-          pal.append(b);
-        }
-        if (!rows.length) pal.append(el("div", "pe-empty", "Nothing here"));
-      };
-      find.addEventListener("input", () => { addQuery = find.value.trim().toLowerCase(); drawPalette(); });
-      find.addEventListener("keydown", (e) => e.stopPropagation());
-      side.append(find, pal);
-      drawPalette();
+      for (const [type, name] of PALETTE.filter(([t]) => FREE.includes(t))) {
+        const b = el("button", "pe-pal", name);
+        b.addEventListener("click", () => addControl(type, defaults(type)));
+        side.append(b);
+      }
+      side.append(el("p", "pe-note", "Dials, dropdowns, toggles, Keys and meters: right-click what they control on the board and choose “Create panel control”."));
+      // Every control of the panel, with what it drives.
+      side.append(el("h4", "", "Controls"));
+      const list = el("div", "pe-list");
+      for (const c of doc().controls) {
+        if (FREE.includes(c.type)) continue;   // labels, sections, module views and loaded panels are not controls of anything
+        const t = c.target && ctx.module(c.target.node);
+        const row = el("div", "pe-knob" + (c.id === selected ? " wired" : ""), c.label || c.type);
+        row.append(el("small", "", t ? `${t.name} › ${c.target.param || c.target.jack}` : c.type));
+        row.addEventListener("click", () => { selected = c.id; drawOverlay(); drawSide(); drawInsp(); });
+        list.append(row);
+      }
+      if (!list.children.length) list.append(el("div", "pe-empty", "None yet"));
+      side.append(list);
     }
     function defaults(type) {
       if (type === "view") { const n = ctx.scope().find((q) => q.view); return n ? { node: n.id, size: [24, 14] } : {}; }
@@ -340,17 +318,28 @@
         field(insp, "Colour", col);
       }
       if (["dial", "slider", "button", "wheel", "select", "xy", "meter"].includes(c.type)) field(insp, "Label", text(c.label, (v) => change("label", (t) => (t.label = v))));
-      const mid = moduleOf(c);
-      if (mid) {
-        const m = ctx.module(mid);
-        insp.append(el("p", "pe-note", m ? `Board module: ${m.name}. Cable its output on the board.` : "Its board module is gone."));
-        if (m) {
-          const sb = el("button", "pe-pal", "Show on the board");
-          sb.addEventListener("click", () => ctx.reveal(mid));
-          insp.append(sb);
+      if (c.target) {   // made by "Create panel control": a module in the Panel cell, wired to what it controls
+        const t = ctx.module(c.target.node), m = c.module && ctx.module(c.module);
+        insp.append(el("p", "pe-note", t ? `Controls ${t.name} › ${c.target.param || c.target.jack}, through ${m ? m.name : "a module that is gone"} in the Panel cell.` : "What it controls is gone."));
+        const sb = el("button", "pe-pal", "Show its module on the board");
+        sb.addEventListener("click", () => ctx.reveal(c.module));
+        insp.append(sb);
+        const rb = el("button", "pe-pal", "Remove the control and its module");
+        rb.addEventListener("click", () => remove());
+        insp.append(rb);
+      } else {
+        const mid = moduleOf(c);
+        if (mid) {
+          const m = ctx.module(mid);
+          insp.append(el("p", "pe-note", m ? `Board module: ${m.name}. Cable its output on the board.` : "Its board module is gone."));
+          if (m) {
+            const sb = el("button", "pe-pal", "Show on the board");
+            sb.addEventListener("click", () => ctx.reveal(mid));
+            insp.append(sb);
+          }
         }
       }
-      if (c.type === "select" && Array.isArray(c.options)) {
+      if (c.type === "select" && Array.isArray(c.options) && !c.target) {
         const o = text(c.options.join(", "), (v) => {
           const list = v.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 24);
           if (list.length < 2) return drawInsp();
@@ -415,6 +404,7 @@
       const acts = el("div", "pe-acts");
       const dup = el("button", "", "Duplicate");
       dup.addEventListener("click", duplicate);
+      if (c.target || moduleOf(c)) dup.hidden = true;   // a control with a module is made again on the board
       const del = el("button", "", "Delete");
       del.addEventListener("click", remove);
       acts.append(dup, del);
@@ -475,11 +465,10 @@
     // ------------------------------------------------------------ keyboard
     function duplicate() {
       const c = control(selected);
-      if (!c) return;
+      if (!c || c.target || moduleOf(c)) return;   // a control with a module is made again on the board, not copied
       let id;
-      ctx.mutate("duplicate", (p, all, makeModule) => {
+      ctx.mutate("duplicate", (p) => {
         const copy = JSON.parse(JSON.stringify(c));
-        if (moduleOf(c)) attach(c.type, makeModule, copy);   // a copy has a module of its own
         copy.id = id = nextId(p);
         copy.at = freeSpot(p, c.size);
         p.controls.push(copy);
@@ -489,9 +478,10 @@
     }
     function remove() {
       if (!selected) return;
-      const id = selected;
+      const id = selected, c = control(id);
       selected = null;
-      ctx.mutate("delete control", (p) => { p.controls = p.controls.filter((c) => c.id !== id); });
+      if (c && c.target && c.module) return ctx.removeControl(doc().id, id);   // its module, its channel and what they left go with it
+      ctx.mutate("delete control", (p) => { p.controls = p.controls.filter((q) => q.id !== id); });
     }
     root.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;

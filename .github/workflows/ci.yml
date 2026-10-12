@@ -71,6 +71,8 @@ jobs:
           node-version: 22
       - run: scripts/build/build-web.sh build/web/site
       - run: node patch/web/test/graph-test.mjs build/web/site
+      - run: node patch/web/test/patchbay-test.mjs
+      - run: node patch/web/test/panel-wiring-test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: bleep-board-web

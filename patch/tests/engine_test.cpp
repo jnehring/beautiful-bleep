@@ -1177,6 +1177,15 @@ void cellPlugins() {
             EXPECT(voiceCell && bays);
             EXPECT(board::findNode(e->board(), cell)->getProperty("name").toString() == "Warm Saws");
             EXPECT(e->board()["panels"].isArray() && e->board()["panels"].size() >= 1);
+            // The panel's wires name nodes of the placed cell: a Keys control plays the Keyboard that came with it.
+            bool keysFound = false;
+            for (const auto& q : *e->board()["panels"].getArray())
+                for (const auto& c : *q["controls"].getArray())
+                    if (c["type"].toString() == "keys") {
+                        const auto id = (*c["wire"].getArray())[0]["keyboard"].toString();
+                        keysFound = board::findNode(e->board(), id) != nullptr && board::findNode(e->board(), id)->getProperty("type").toString() == "keyboard";
+                    }
+            EXPECT(keysFound);
             EXPECT(board::parse(e->board()).nodes.size() > 4);
         }
         // What a plugin window's web view asks: the board page's native calls as JSON.

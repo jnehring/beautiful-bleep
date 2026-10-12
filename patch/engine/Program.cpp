@@ -281,7 +281,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
         real.push_back(&n);
         std::vector<Resolved> found;
         for (const auto& p : n.spec->params)
-            if (p.modulatable) resolveInto(n.id, p.id, 1.0f, 0, found);
+            if (p.drivable()) resolveInto(n.id, p.id, 1.0f, 0, found);
         for (size_t j = 0; j < n.spec->inputs.size(); ++j) resolveInput(n, *n.spec, j, found);
         if (n.type == kVoiceCell) {  // its jacks are on the node, not in the registry spec
             for (const auto& j : n.cellInputs) resolveInto(n.id, j.id, 1.0f, 0, found);
@@ -386,7 +386,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
         for (const auto& p : spec.params) {
             st.paramBuffers.push_back(std::make_unique<float[]>(kChunk));
             std::vector<Source> sources;
-            if (p.modulatable) {
+            if (p.drivable()) {
                 std::vector<Resolved> found;
                 resolveInto(n.id, p.id, 1.0f, 0, found);
                 for (const auto& r : found)
@@ -499,6 +499,7 @@ void Program::runChunk(const ProcessContext& chunk) noexcept {
                         buf[s] = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
                     }
                 }
+                if (mod.spec().params[i].cableable) mod.setDriven((int)i, sources.empty() ? -1.0f : buf[0]);   // a setting is read once per block
                 auto& d = mod.paramDisplay((int)i);
                 d.value.store(buf[m - 1], std::memory_order_relaxed);
                 d.active.store(!sources.empty(), std::memory_order_relaxed);

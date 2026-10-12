@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "Registry.h"
 
+#include <set>
+
 #include <algorithm>
 
 namespace bleep::engine {
@@ -119,7 +121,65 @@ Registry::Registry() {
     add(vout, nullptr);
 }
 
+namespace {
+/// Settings a cable may drive (ParamSpec::cableable): the ones a panel sets, as a Dial, a dropdown or a toggle module cabled in
+/// through a patch bay. Each is read through Module::setting() at the start of a block, so a change takes effect live. A setting
+/// whose module only reads it when it prepares (a buffer size, the number of voices) does not belong here.
+const std::set<std::pair<std::string, std::string>>& cableableSettings() {
+    static const std::set<std::pair<std::string, std::string>> list = {
+    {"bender", "corruptwhen"},
+    {"chorus", "mode"},
+    {"coin-toss", "link"},
+    {"coin-toss", "mode1"},
+    {"filter", "type"},
+    {"filter-bank", "tuning"},
+    {"freq-shifter", "range"},
+    {"function", "cycle"},
+    {"function", "sync"},
+    {"harmony-master", "advance"},
+    {"harmony-master", "bus"},
+    {"harmony-master", "key"},
+    {"harmony-master", "octave"},
+    {"harmony-master", "quality"},
+    {"harmony-master", "scale"},
+    {"harmony-master", "source"},
+    {"lfo", "polarity"},
+    {"lfo", "sync"},
+    {"lfo", "wave"},
+    {"macro-osc", "quality"},
+    {"oscillator", "octave"},
+    {"phaser", "stages"},
+    {"punch-clap", "bursts"},
+    {"punch-cymbal", "voice"},
+    {"quad-lfo", "mode"},
+    {"quad-lfo", "wave2"},
+    {"quantizer", "root"},
+    {"quantizer", "rounding"},
+    {"quantizer", "scale"},
+    {"random", "quantize"},
+    {"reverb", "freeze"},
+    {"ring-clap", "bursts"},
+    {"ring-rim", "voice"},
+    {"shape-env", "mode"},
+    {"shape-env", "sync"},
+    {"tidal", "polarity"},
+    {"tidal", "range"},
+    {"tidal", "sync"},
+    {"uncertainty", "q1interval"},
+    {"uncertainty", "storesync"},
+    {"utility", "mode"},
+    {"vca", "response"},
+    {"wavefolder", "source"},
+    {"wobble", "sync"},
+    {"zone-delay", "sync"},
+    };
+    return list;
+}
+}  // namespace
+
 void Registry::add(ModuleSpec spec, Factory factory) {
+    for (auto& p : spec.params)
+        if (!p.modulatable && cableableSettings().count({spec.type, p.id})) p.cableable = true;
     Entry e{std::make_unique<ModuleSpec>(std::move(spec)), std::move(factory)};
     const auto old = std::find_if(order_.begin(), order_.end(), [&](const ModuleSpec* s) { return s->type == e.spec->type; });
     if (old != order_.end()) *old = e.spec.get();  // a new version takes the old one's place in the lists

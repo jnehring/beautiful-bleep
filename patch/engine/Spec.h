@@ -55,6 +55,9 @@ struct ParamSpec {
     std::vector<std::string> choiceGroups;  ///< optional: each choice's heading in the dropdown
     bool modulatable = true;     ///< a knob (input jack) or a plain setting;
                                  ///< choices and integers can be modulatable too (stepped knobs)
+    bool cableable = false;      ///< a setting (not modulatable) that a cable may still drive: the module reads it through
+                                 ///< Module::setting(), which gives the driven value (set in Registry.cpp, cableableSettings)
+    bool drivable() const noexcept { return modulatable || cableable; }  ///< can a cable end here?
     std::string group;           ///< optional heading the module view groups knobs under
     ShowIf show;                 ///< optional: only shown while another setting is in range
     std::string namesBy;         ///< optional: the shown name is names[value of this setting]

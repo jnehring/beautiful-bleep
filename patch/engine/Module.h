@@ -202,8 +202,14 @@ public:
     float value(const ProcessContext& c, int i, int s) const noexcept {
         return spec_.params[(size_t)i].fromNormalised(c.params[i][s]);
     }
-    /// A non-modulated setting in its own units.
-    float setting(int i) const noexcept { return spec_.params[(size_t)i].fromNormalised(knob(i)); }
+    /// A setting in its own units: the knob, or, when a cable drives it (ParamSpec::cableable), the value the compiler worked out
+    /// at the start of this block (the knob plus the cables). Modules read settings through this, once per block.
+    float setting(int i) const noexcept {
+        const float driven = driven_[(size_t)i].load(std::memory_order_relaxed);
+        return spec_.params[(size_t)i].fromNormalised(driven >= 0.0f ? driven : knob(i));
+    }
+    /// [audio thread, the compiler] The driven value of a cableable setting (normalised), or -1 when no cable drives it.
+    void setDriven(int i, float normalised) noexcept { driven_[(size_t)i].store(normalised, std::memory_order_relaxed); }
 
     // ---- live values for the UI (audio thread writes, UI reads) ------------
     struct Display {
@@ -231,6 +237,7 @@ private:
 
     const ModuleSpec& spec_;
     std::unique_ptr<std::atomic<float>[]> knobs_;
+    std::unique_ptr<std::atomic<float>[]> driven_;   // see setting()
     std::unique_ptr<Display[]> paramDisplay_;
     std::unique_ptr<Display[]> outputDisplay_;
 };
@@ -238,10 +245,12 @@ private:
 inline Module::Module(const ModuleSpec& spec)
     : spec_(spec),
       knobs_(new std::atomic<float>[spec.params.size() + 1]),
+      driven_(new std::atomic<float>[spec.params.size() + 1]),
       paramDisplay_(new Display[spec.params.size() + 1]),
       outputDisplay_(new Display[spec.outputs.size() + 1]) {
     for (size_t i = 0; i < spec.params.size(); ++i) {
         knobs_[i].store(spec.params[i].defaultNormalised());
+        driven_[i].store(-1.0f);
         paramDisplay_[i].value.store(spec.params[i].defaultNormalised());
     }
 }

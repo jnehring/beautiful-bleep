@@ -4,6 +4,7 @@
 // button.md, keyboard.md): their specs, performance gestures from the view
 // (Module::perform) and the node data, run through the Module API.
 #include "Board.h"
+#include "Program.h"
 #include "Engine.h"
 #include "Registry.h"
 
@@ -300,6 +301,20 @@ void patchbays() {
         std::printf("sanitise: nodes %d -> %d, cables %d -> %d, panels %d -> %d\n", doc["nodes"].size(), clean["nodes"].size(),
                     doc["cables"].size(), clean["cables"].size(), doc["panels"].size(), clean["panels"].size());
         for (const auto& w : warnings) std::printf("  warning: %s\n", w.toRawUTF8());
+        // What the compiler runs: no bays, one plain cable per channel, and a Voice Cell's shared inputs for what enters it.
+        const BoardModel flat = flattenPatchbays(board::parse(clean));
+        int bays = 0, voiceInputs = 0;
+        for (const auto& n : flat.nodes) {
+            bays += n.type == kPatchbayIn || n.type == kPatchbayOut;
+            if (n.type == kVoiceCell) voiceInputs += (int)n.cellInputs.size();
+        }
+        std::printf("flattened: nodes %zu, cables %zu, bays left %d, voice cell inputs %d\n", flat.nodes.size(), flat.cables.size(), bays, voiceInputs);
+        for (const auto& n : flat.nodes)
+            if (n.type == "filter" || n.type == "reverb") {
+                std::printf("  into %s (%s):", n.id.c_str(), n.type.c_str());
+                for (const auto& c : flat.cables) if (c.to.node == n.id || (n.parent != "" && c.to.jack.rfind("bay~", 0) == 0 && false)) std::printf(" %s.%s->%s", c.from.node.c_str(), c.from.jack.c_str(), c.to.jack.c_str());
+                std::printf("\n");
+            }
         // The same through a real engine, as the app does it: commit the edit into the board, which compiles it.
         auto* e = new Engine();
         e->registerInstance(PortKind::Patch);
@@ -313,6 +328,33 @@ void patchbays() {
         const auto result = e->commit(edited, "add");
         std::printf("engine commit: nodes %d -> %d (added %d)\n", before, result["nodes"].size(), doc["nodes"].size());
         e->release();
+    }
+    {  // a cable into a setting (ParamSpec::cableable): a Dial picks the filter's Type, and it is back on the knob without the cable
+        const ModuleSpec* filter = Registry::get().find("filter");
+        const int typeIndex = filter ? filter->paramIndex("type") : -1;
+        EXPECT(typeIndex >= 0 && filter->params[(size_t)typeIndex].cableable && filter->params[(size_t)typeIndex].drivable());
+        auto build = [&](bool cabled) {
+            BoardModel m;
+            NodeModel d = node("d", "dial"), f = node("f", "filter");
+            for (const auto& p : d.spec->params) d.params[p.id] = p.defaultNormalised();
+            d.params["value"] = 0.5f;   // halfway: the 13th of 25 types
+            d.params["smooth"] = 0.0f;
+            for (const auto& p : f.spec->params) f.params[p.id] = p.defaultNormalised();
+            f.params["type"] = 0.0f;
+            m.nodes = {d, f};
+            if (cabled) m.cables = {cable("k1", "d", "out", "f", "type")};
+            return m;
+        };
+        for (bool cabled : {true, false}) {
+            std::map<std::string, std::shared_ptr<Module>> modules;
+            auto program = Program::compile(build(cabled), modules, {}, 48000.0);
+            Transport tr;
+            tr.sampleRate = 48000.0;
+            program->run(tr, kChunk, true);
+            program->run(tr, kChunk, false);
+            const float want = cabled ? 12.0f : 0.0f;
+            EXPECT(modules.count("f") && typeIndex >= 0 && std::fabs(modules["f"]->setting(typeIndex) - want) < 0.5f);
+        }
     }
     {  // bays in a row: the channel follows through both
         BoardModel m;

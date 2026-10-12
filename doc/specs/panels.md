@@ -227,3 +227,34 @@ Every control that carries a signal is made together with a module on the board,
 The module goes inside the panel's cell (a Keyboard next to the cell, since its notes go into the cell's Notes jack), or on the board for a board panel. The modules of one panel do not sit loose on the board: they form a **stack**, folded to a header (▦ *panel name*, *n* modules) until you click it. Open, the stack shows the modules one below the other, with all their jacks; folded, cables to them end at the header. Drag the header to move the stack. The panel remembers which modules it made (`modules`) and where its stack is, per level (`groups`: `{ "@board": {x, y}, "<cell id>": {x, y} }`); the modules' own x and y are not used. In the panel editor, *Show on the board* opens the stack and selects the module. Label, Section, Module view and Load panel have no module of their own. Deleting a control leaves its module on the board; duplicating one makes a new module. Panels from before this (a control wired straight to a knob, a jack or a cell input) keep working, but can no longer be re-wired in the editor.
 
 **In a factory preset** (Warm Saws is the first). The dials a panel sets directly are Dial modules too, kept in a cell called *Panel* inside the preset, so they do not clutter the synth. The dials of one module meet in a [Patch Bay In](modules/patchbay.md) inside the Panel cell, and one bundle cable per module leaves the cell; next to the module, a Patch Bay Out hands the channels to its knobs (the knobs are parked at 0 and each cable carries 100 %, so the value is what the knob had). Knobs that are settings, not modulation destinations, stay direct. The Keyboard (and a Level Meter for the Out meter) are modules of the preset's own cell, in a stack beside the synth. The build adds all this to the generated panel: [`panelCell`](../../patch/presets/panels.mjs) and the preset's `panelEdits` entry. Nothing in a preset is hidden: every control is a knob it sets itself or a module you can open.
+
+## Making a panel control
+
+A panel control is always **made from the thing it controls**. Right-click a knob or a setting in a module's view, or a jack on a node, and choose **Create panel control** (`patch/board/ui/panel-wiring.js`). The menu offers what fits what you clicked:
+
+| You right-click | You can make |
+|---|---|
+| a knob | Dial, Fader |
+| a choice setting (filter Type) | Dropdown, Dial (stepped) |
+| a whole-number setting | Dial, Fader, Dropdown |
+| a toggle setting | Toggle |
+| a gate or trigger input | Button, Toggle |
+| a control or pitch input | Dial, Fader |
+| a notes input | Keys |
+| an output | Meter |
+
+Every time, the same thing happens, in one undo step:
+
+1. The panel for the node's cell is found, or made (a panel for the nearest plain cell around the node, or for the board).
+2. The panel's **Panel cell** is found, or made: a cell called *Panel* next to the cell's other nodes. Everything a control needs is inside it.
+3. The control's module goes into the Panel cell: a **Dial** (Dial, Fader, Dropdown; its Steps follow the choices), a **Button** (Button, or Toggle with its *Mode* on Toggle and its state saved in the node's data), a **Keyboard** (Keys) or a **Level Meter**.
+4. A **Patch Bay In** in the Panel cell collects the module's signal on a channel of the bay of the *target module*: one bay per module, however many controls it has. One bundle cable leaves the Panel cell for it.
+5. Next to the target, in its cell, a **Patch Bay Out** gets the bundle and cables the channel into the knob, setting or jack. Where the target is in a Voice Cell the bundle goes in through a shared input of type `patchbay` of that cell, and out of its Cell In to the bay.
+6. A knob or setting is **parked at 0** and the cable carries the module's value at 100 %, so the effective value is what the control says. The module starts with the knob's old value, so nothing changes in the sound.
+7. The control is placed on the panel. It remembers what it controls (`target: {node, param|jack}`), its module (`module`) and its channel (`channel`); the panel remembers its Panel cell (`panelCell`) and its bays (`bays`).
+
+A target that already has a panel control shows *Show panel control* and *Remove panel control* in the menu instead. Removing a control (from the menu or in the panel editor) removes its module and channel, gives the knob the value the control had, and removes a bay that has no channel left, the bundle's way into any Voice Cells, and the Panel cell when nothing is left in it.
+
+**Settings are driven by cables too.** A choice, whole-number or toggle setting a cable may drive is `cableable` (`ParamSpec`; the list is `cableableSettings` in `Registry.cpp`: filter Type, chorus Mode, and so on). The engine works out the driven value once per block and `Module::setting()` returns it. A setting that its module only reads when it prepares (a buffer size, the number of voices) is not on the list, and the menu offers nothing for it.
+
+**The panel editor** shows every control of the panel in a list (what it is, what it drives), and lets you add what is not connected to anything: labels, sections, module views and loaded panels. It no longer makes dials, dropdowns, toggles, Keys or meters; those come from the board. A control made this way shows what it controls and can show its module on the board or be removed with it. Old panels, with controls wired straight to knobs or in a stack, keep working.

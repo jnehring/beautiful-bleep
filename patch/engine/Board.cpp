@@ -75,7 +75,7 @@ bool BoardModel::inputType(const NodeModel& n, const std::string& jack, Signal& 
         type = n.spec->inputs[(size_t)i].type;
         return true;
     }
-    if (const int p = n.spec->paramIndex(jack); p >= 0 && n.spec->params[(size_t)p].modulatable) {
+    if (const int p = n.spec->paramIndex(jack); p >= 0 && n.spec->params[(size_t)p].drivable()) {
         type = Signal::Control;
         return true;
     }
@@ -661,13 +661,38 @@ juce::String insertPreset(juce::var& doc, const juce::var& presetIn, double x, d
             o->setProperty("id", pmap[q["id"].toString()]);
             if (q["cell"].toString().isNotEmpty()) o->setProperty("cell", key(q["cell"].toString()));
             o->removeProperty("open");
+            // the modules a panel made (a stack), its Panel cell and its bays, by target module
+            if (auto* modules = q["modules"].getArray())
+                for (auto& m : *modules) m = juce::var(key(m.toString()));
+            if (q["panelCell"].toString().isNotEmpty()) o->setProperty("panelCell", key(q["panelCell"].toString()));
+            for (const char* field : {"bays", "groups"})
+                if (auto* old = q[field].getDynamicObject()) {
+                    auto* mapped = new juce::DynamicObject();
+                    for (const auto& prop : old->getProperties()) {
+                        juce::var value = prop.value;
+                        if (auto* v = value.getDynamicObject(); v && std::strcmp(field, "bays") == 0) {
+                            for (const char* f : {"in", "out"}) v->setProperty(f, key(v->getProperty(f).toString()));
+                            if (auto* path = v->getProperty("path").getArray())
+                                for (auto& id : *path) id = juce::var(key(id.toString()));
+                        }
+                        mapped->setProperty(juce::Identifier(key(prop.name.toString())), value);
+                    }
+                    o->setProperty(field, juce::var(mapped));
+                }
             if (auto* controls = q["controls"].getArray())
                 for (auto& c : *controls) {
                     auto* co = c.getDynamicObject();
                     if (auto* wires = c["wire"].getArray())
-                        for (auto& w : *wires)
+                        for (auto& w : *wires) {
                             for (const char* k : {"param", "jack", "command"})
                                 if (w[k].toString().isNotEmpty()) w.getDynamicObject()->setProperty(k, ref(w[k].toString()));
+                            for (const char* k : {"press", "keyboard"})   // a Button or Keyboard module: just its id
+                                if (w[k].toString().isNotEmpty()) w.getDynamicObject()->setProperty(k, key(w[k].toString()));
+                        }
+                    // a control made with panel-wiring.js: what it controls and the module it is made with
+                    if (auto* target = c["target"].getDynamicObject())
+                        if (target->hasProperty("node")) target->setProperty("node", key(target->getProperty("node").toString()));
+                    if (c["module"].toString().isNotEmpty()) co->setProperty("module", key(c["module"].toString()));
                     if (auto* src = c["source"].getDynamicObject()) {
                         juce::Array<juce::var> outs;
                         const auto& o2 = c["source"]["out"];
@@ -818,7 +843,8 @@ juce::var describeTypes() {
             o->setProperty("kind", kind);
             o->setProperty("default", p.defaultNormalised());
             o->setProperty("steps", p.numSteps());
-            o->setProperty("modulatable", p.modulatable);
+            o->setProperty("modulatable", p.drivable());   // a cable can end here, on a knob or a cableable setting
+            o->setProperty("cableable", p.cableable);
             if (!p.choices.empty()) {
                 juce::Array<juce::var> c;
                 for (const auto& x : p.choices) c.add(juce::String(x));

@@ -457,7 +457,9 @@
   /// Opens the stack a module is in and selects it (from the panel editor).
   function revealPanelModule(id) {
     const q = ownerOf(id), n = nodeById(id);
-    if (!q || !n) return;
+    if (!n) return;
+    if (!q) return goToNode(id);   // a control made with panel-wiring: its module is in the Panel cell
+    
     const lvl = n.parent || "";
     if (level() !== lvl && lvl && !path.length) enterCell(lvl);
     if (level() !== lvl) return;
@@ -607,6 +609,13 @@
     e.addEventListener("contextmenu", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
+      // On a jack (or a patched knob): make a panel control for it.
+      const row = ev.target.closest(".jack");
+      if (row && row.dataset.jack !== "+") {
+        const target = row.classList.contains("param") ? { param: row.dataset.jack } : { jack: row.dataset.jack, dir: row.classList.contains("in") ? "in" : "out" };
+        const items = controlMenuItems(n.id, target);
+        if (items.length) return showMenu(ev, items);
+      }
       if (!sel.has(n.id)) { sel.clear(); sel.add(n.id); renderSelection(); }
       showNodeMenu(n, ev);
     });
@@ -1978,6 +1987,9 @@
       q.id = pmap.get(q.id);
       if (q.cell) q.cell = key(q.cell);
       if (q.modules) q.modules = q.modules.map(key);
+      // A panel made with panel-wiring.js: its Panel cell, its bays (by target module: the bays and the jack the bundle uses) and each control's target and module.
+      if (q.panelCell) q.panelCell = key(q.panelCell);
+      if (q.bays) q.bays = Object.fromEntries(Object.entries(q.bays).map(([t, v]) => [key(t), { ...v, in: key(v.in), out: key(v.out), path: (v.path || []).map(key) }]));
       if (q.groups) {
         q.groups = Object.fromEntries(Object.entries(q.groups).map(([k, g]) => [key(k), g]));
         // Open unless the stack is long: a placed preset is there to be looked at, but not as a wall of nodes.
@@ -1991,6 +2003,8 @@
           for (const k of ["press", "keyboard"]) if (w[k]) w[k] = key(w[k]);
         }
         if (c.source) c.source.out = [].concat(c.source.out).map(ref);
+        if (c.target) c.target.node = key(c.target.node);
+        if (c.module) c.module = key(c.module);
         if (c.node) c.node = key(c.node);
         if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;
       }
@@ -2088,7 +2102,7 @@
   /// What a module view (or a panel) calls to change node `id`.
   function makeApi(id) {
     return {
-      knobMenu: (pid, ev) => addToPanelMenu(id, pid, ev),
+      knobMenu: (pid, ev) => { const items = controlMenuItems(id, { param: pid }); if (items.length) showMenu(ev, items); },
       setParam: (pid, v) => {
         const m = nodeById(id);
         if (m) m.params[pid] = v;
@@ -2287,32 +2301,48 @@
     }
     showMenu(ev, items);
   }
-  /// Right-click on a knob: put a control for it on a panel that can reach the node.
-  function addToPanelMenu(nodeId, pid, ev) {
+  // ---- panel controls that are modules (panel-wiring.js) ------------------------------------------------------------
+  /// What `panel-wiring.js` needs: the types, new ids, and where a new control goes on its panel.
+  const wiringEnv = () => ({ types, uid, place: (q, type, extra) => BleepPanelEditor.placeControl(q, type, extra, q.tabs && q.tabs[0] ? q.tabs[0].id : null) });
+  /// The right-click menu of anything that takes (or gives) a signal: make a panel control for it, or show/remove the one it has.
+  function controlMenuItems(nodeId, target) {
     const n = nodeById(nodeId);
-    if (!n) return;
-    const inside = (cellId) => { for (let m = n; m; m = nodeById(m.parent)) if (m.id === cellId) return true; return false; };
-    const reach = panelList().filter((q) => !q.for && (!q.cell || inside(q.cell)));
-    const items = reach.map((q) => ({ label: q.cell ? `${q.name} (${nodeById(q.cell).name})` : q.name, run: () => addKnobToPanel(q.id, nodeId, pid) }));
-    if (items.length) items.push("-");
-    const cell = nodeById(n.parent);
-    if (cell && isCellLike(cell)) items.push({ label: `New panel for “${cell.name}”`, run: async () => { const id = await newPanel(cell.id, true); if (id) addKnobToPanel(id, nodeId, pid); } });
-    items.push({ label: "New board panel", run: async () => { const id = await newPanel("", true); if (id) addKnobToPanel(id, nodeId, pid); } });
-    showMenu(ev, [{ label: "Add to panel", items }]);
+    if (!n || !window.BleepPanelWiring || BleepPanelWiring.belongsToPanel(board, n)) return [];
+    const have = BleepPanelWiring.controlFor(board, n, target);
+    if (have) return [
+      { label: "Show panel control", run: () => { if (!panelOpen(have.panel.id)) togglePanel(have.panel.id); } },
+      { label: "Remove panel control", run: () => removePanelControl(have.panel.id, have.control.id) },
+    ];
+    const kinds = BleepPanelWiring.kindsFor(types, n, target);
+    if (!kinds.length) return [];
+    return [{ label: "Create panel control", items: kinds.map((k) => ({ label: k.label, run: () => createPanelControl(nodeId, target, k.kind) })) }];
   }
-  async function addKnobToPanel(panelId, nodeId, pid) {
-    const n = nodeById(nodeId), def = n && typeOf(n).params.find((q) => q.id === pid);
-    if (!def) return;
-    const type = def.kind === "bool" ? "button" : def.kind === "choice" && def.choices && def.choices.length > 7 ? "select" : "dial";
-    let name = "";
-    await edit("add to panel", (b) => {
-      const q = (b.panels || []).find((x) => x.id === panelId);
-      if (!q) return false;
-      name = q.name;
-      const tab = q.tabs && q.tabs[0] ? q.tabs[0].id : null;
-      BleepPanelEditor.placeControl(q, type, { label: def.name, wire: [{ param: `${nodeId}.${pid}` }] }, tab);
+  function createPanelControl(nodeId, target, kind) {
+    let made = null;
+    const done = edit("create panel control", (b) => {
+      const n = nodeById(nodeId, b);
+      made = n ? BleepPanelWiring.create(b, wiringEnv(), n, target, kind) : { error: "the module is gone" };
+      if (made.error) return false;
     });
-    notice(`Added “${def.name}” to the panel “${name}”`);
+    Promise.resolve(done).then(() => {
+      if (!made || made.error) return notice(`Could not create the panel control: ${made ? made.error : "nothing happened"}.`);
+      notice(`Added “${made.control.label}” to the panel “${made.panel.name}”; its ${made.module.name === made.control.label ? "module" : made.module.type} is in the Panel cell.`);
+    });
+  }
+  function removePanelControl(panelId, controlId) {
+    edit("remove panel control", (b) => { if (!BleepPanelWiring.remove(b, panelId, controlId)) return false; });
+  }
+  /// Goes to a node: into the cells around it, selected and in the middle.
+  function goToNode(id) {
+    const n = nodeById(id);
+    if (!n) return;
+    path = pathTo(id);
+    sel.clear();
+    sel.add(id);
+    trace = null;
+    closeUnpinnedViews();
+    render();
+    centreOn(n);
   }
   /// A first panel for a cell, built from what is inside it.
   async function buildPanel(cellId) {
@@ -2367,6 +2397,17 @@
       command: (id, cmd, v) => native("command", id, cmd, v),
       source: (sid, v) => native("setParam", sid, "value", v),
       press: (sid, down) => native("perform", sid, down ? "press" : "release", []),
+      // A Button module in Toggle mode: its new state is saved in its data, as its own view does, then pressed and released.
+      toggle: (id) => {
+        const m = nodeById(id);
+        if (!m) return;
+        const next = !(m.data && m.data.on);
+        m.data = { on: next };
+        const api = makeApi(id);
+        api.setData(m.data);
+        api.perform("press", next ? 1 : 0);
+        api.perform("release");
+      },
       note: (sid, action, args) => native("perform", sid, action, args),
       save: (pid, cid, x) => edit("panel control", (b) => {
         const q = (b.panels || []).find((r) => r.id === pid), c = q && q.controls.find((r) => r.id === cid);
@@ -2477,6 +2518,8 @@
           }),
           scope: () => panelScope(panelById(panelId) || doc),
           module: (id) => nodeById(id),
+          edit: (label, fn) => edit(label, fn),
+          removeControl: (panelId, controlId) => removePanelControl(panelId, controlId),
           reveal: revealPanelModule,
           host: () => panelHost(panelById(panelId) || doc, []),
           editPanel: (id) => openPanel(id, { edit: true }),

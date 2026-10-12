@@ -13,6 +13,7 @@
 //               value(nodeId, pid) → normalised 0…1
 //               set(nodeId, pid, v)      a knob moved
 //               begin()                  a drag starts (undo step)
+//               toggle(nodeId)           flip a Button module in Toggle mode (and save its state)
 //               view(nodeId) → {root, update(state), refresh(node)} | null
 //               refreshView(nodeId, view) }
 //     opts    { edit: true   controls don't react and views are placeholders (the editor draws over them)
@@ -309,9 +310,25 @@
       if (w) {
         const pulses = w.ts.filter((t) => t.kind === "jack" && (t.jtype === "trigger" || t.jtype === "gate"));
         const cmds = w.commands;
+        // A toggle (`toggle`: a Button module in Toggle mode): a press flips it, and the lamp shows what the module says.
+        const flips = c.toggle ? cmds.filter((t) => t.kind === "press") : [];
+        if (flips.length) {
+          const state = () => { const m = host.node(flips[0].sid, bound); return !!(m && m.data && m.data.on); };
+          lamp.classList.toggle("on", state());
+          widgets.push({
+            update: (live) => { const ns = live && live.nodes && live.nodes[flips[0].sid]; if (ns && typeof ns.on === "number") lamp.classList.toggle("on", ns.on > 0.5); },
+            refresh: () => lamp.classList.toggle("on", state()),
+          });
+        }
         e.addEventListener("pointerdown", (ev) => {
           if (ev.button !== 0) return;
           ev.stopPropagation();
+          if (flips.length) {   // not held: the new state is saved with the board, like the Button's own view does
+            host.begin();
+            for (const t of flips) host.toggle(t.sid);
+            lamp.classList.toggle("on", !lamp.classList.contains("on"));
+            return;
+          }
           if (pulses.length || cmds.length) {   // a trigger or gate, or a module's button: held while pressed
             e.setPointerCapture(ev.pointerId);
             for (const t of pulses) host.press(t.sid, true);
@@ -325,6 +342,7 @@
           w.end();
         });
         const up = () => {
+          if (flips.length) return;
           for (const t of pulses) host.press(t.sid, false);
           for (const t of cmds) t.kind === "press" ? host.press(t.sid, false) : host.command(t.id, t.cmd, 0);
           if (pulses.length || cmds.length) lamp.classList.remove("on");
