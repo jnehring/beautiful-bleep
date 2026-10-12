@@ -21,6 +21,7 @@
   const cams = new Map();      // level → {x, y, z}
   const sel = new Set();       // selected node ids
   let selCable = null;
+  let hoverCable = null;   // id of the cable under the pointer; drawn on top in the highlight colour
   let trace = null;            // Set of node ids, or null
   let live = null;             // latest "state" event
   const scopes = new Map();    // "node|jack" → {canvas, hist, head, bipolar}
@@ -33,7 +34,6 @@
   let dev = false;
   let standalone = false;      // the standalone app: MIDI Device is offered
   let shownFor = null;         // the board whose start panel has been opened
-  let learnCb = null;          // the panel editor waits for a knob to move (Learn)
 
   const $ = (id) => document.getElementById(id);
   const canvas = $("canvas"), world = $("world"), nodesEl = $("nodes"), cablesEl = $("cables");
@@ -62,22 +62,70 @@
   /// A cell may have several Cell Ins and Cell Outs (to lay cables out as you like), but keeps at least one of each.
   const isFixedBoundary = (n) => isBoundary(n) &&
     !((n.type === "cell-in" || n.type === "cell-out") && board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type));
-  const isStructural = (n) => n.type === "cell" || isBoundary(n);  // a Voice Cell has a view: its settings
+  const isBay = (n) => n.type === "patchbay-in" || n.type === "patchbay-out";
+  const isStructural = (n) => n.type === "cell" || isBoundary(n) || isBay(n);  // a Voice Cell has a view: its settings
   /// Ports the user adds and deletes (MIDI Device); the others come from Live (spec §6).
   /// In the standalone app the app's own ports (audio, MIDI, Link) may be deleted and added again from the Add menu.
   const isFixedPort = (n) => isPort(n) && !typeOf(n).creatable && !(standalone && APP_PORTS.has(typeOf(n).port));
   const APP_PORTS = new Set(["audio-in", "audio-out", "midi-in", "midi-out", "link"]);
   const VOICE_IN = [{ id: "notes", name: "Notes", type: "notes" }];
   const VOICE_OUT = [{ id: "l", name: "Out L", type: "audio" }, { id: "r", name: "Out R", type: "audio" }];
-  const compatible = (a, b) => (a === "notes") === (b === "notes");
+  const compatible = (a, b) => (a === "notes") === (b === "notes") && (a === "patchbay") === (b === "patchbay");
+
+  // ---- patch bays (doc/specs/modules/patchbay.md) ------------------------------------------------------------
+  // A Patch Bay In has a channel (c1, c2 …) for every input that has a cable, and one free one: patching it adds the
+  // next. A Patch Bay Out has the channels of the Patch Bay In its bundle comes from, with the same names.
+  const isChannel = (jack) => /^c\d+$/.test(jack);
+  /// The Patch Bay In that feeds the bundle arriving at (node, jack), over cell outputs and inputs.
+  function bundleSource(node, jack, b = board, depth = 0) {
+    if (depth > 64) return null;
+    for (const c of b.cables.filter((k) => k.to.node === node && k.to.jack === jack)) {
+      const from = nodeById(c.from.node, b);
+      if (!from) continue;
+      if (from.type === "patchbay-in") return from;
+      if (from.type === "cell") {
+        for (const o of b.nodes.filter((m) => m.type === "cell-out" && m.parent === from.id)) {
+          const r = bundleSource(o.id, c.from.jack, b, depth + 1);
+          if (r) return r;
+        }
+      } else if (from.type === "cell-in") {
+        const r = bundleSource(from.parent, c.from.jack, b, depth + 1);
+        if (r) return r;
+      }
+    }
+    return null;
+  }
+  /// The channels of a Patch Bay In that are patched: [{id, name, type}] by number, named after what is patched in.
+  function bayChannels(n, b = board) {
+    const ids = [...new Set(b.cables.filter((c) => c.to.node === n.id && isChannel(c.to.jack)).map((c) => c.to.jack))]
+      .sort((x, y) => Number(x.slice(1)) - Number(y.slice(1)));
+    return ids.map((id) => {
+      const c = b.cables.find((k) => k.to.node === n.id && k.to.jack === id);
+      const src = nodeById(c.from.node, b);
+      if (!src) return { id, name: id, type: "control" };
+      const out = outputsOf(src, b).find((o) => o.id === c.from.jack);
+      return { id, name: `${src.name} - ${out ? out.name : c.from.jack}`, type: (out && out.type) || "control" };
+    });
+  }
+  function bayInputs(n, b) {   // the channels and the free one
+    const chans = bayChannels(n, b);
+    const next = chans.length ? Number(chans[chans.length - 1].id.slice(1)) + 1 : 1;
+    return chans.concat([{ id: "c" + next, name: "free", type: "control" }]);
+  }
+  function bayOutputs(n, b) {
+    const src = bundleSource(n.id, "bundle", b);
+    return src ? bayChannels(src, b) : [];
+  }
 
   function outputsOf(n, b = board) {
+    if (n.type === "patchbay-out") return bayOutputs(n, b);
     if (n.type === "cell") return n.outputs || [];
     if (n.type === "voice-cell") return VOICE_OUT.concat(n.outputs || []);  // spec §8.3.1
     if (n.type === "cell-in") { const c = nodeById(n.parent, b); return c ? c.inputs || [] : []; }
     return typeOf(n).outputs;
   }
   function inputsOf(n, b = board) {
+    if (n.type === "patchbay-in") return bayInputs(n, b);
     if (n.type === "cell") return n.inputs || [];
     if (n.type === "voice-cell") return VOICE_IN.concat(n.inputs || []);
     if (n.type === "cell-out") { const c = nodeById(n.parent, b); return c ? c.outputs || [] : []; }
@@ -319,7 +367,106 @@
     nodesEl.innerHTML = "";
     scopes.clear();
     if (!board) return;
-    for (const n of nodesAt(level())) nodesEl.appendChild(nodeElement(n));
+    const groups = new Map();
+    for (const n of nodesAt(level())) {
+      const q = ownerOf(n.id);
+      if (!q) { nodesEl.appendChild(nodeElement(n)); continue; }
+      const k = groupKey(q, level());
+      if (!groups.has(k)) groups.set(k, { q, nodes: [] });
+      groups.get(k).nodes.push(n);
+    }
+    for (const [k, g] of groups) renderGroup(k, g);
+  }
+
+  // The modules a panel's controls were made with (panel.modules) sit in one stack per panel and level, folded to
+  // its header until opened; panel.groups[level] says where the stack is. Their own x and y are not used.
+  const groupOpen = new Set();   // "panelId|level" of the stacks that are open
+  const kGroupHead = 30, kGroupGap = 8;
+  const ownerOf = (nodeId) => panelList().find((q) => (q.modules || []).includes(nodeId)) || null;
+  const groupKey = (q, lvl) => q.id + "|" + lvl;
+  // panel.groups is keyed by level: a cell's id, or "@board" for the top level (a JSON key can't be empty).
+  const levelKey = (lvl) => lvl || "@board";
+  const groupAt = (q, lvl) => (q.groups && q.groups[levelKey(lvl)]) || { x: 40, y: 40 };
+
+  function renderGroup(key, g) {
+    const open = groupOpen.has(key), at = groupAt(g.q, level());
+    const h = el("div", "pgroup" + (open ? " open" : ""));
+    h.dataset.key = key;
+    h.dataset.members = " " + g.nodes.map((n) => n.id).join(" ") + " ";
+    h.style.left = at.x + "px";
+    h.style.top = at.y + "px";
+    h.append(el("span", "pg-arrow", open ? "▾" : "▸"), el("span", "pg-title", "▦ " + g.q.name),
+             el("small", "", `${g.nodes.length} module${g.nodes.length === 1 ? "" : "s"}`));
+    h.title = `Modules made for the controls of the panel “${g.q.name}”. Click to ${open ? "fold" : "open"}, drag to move.`;
+    nodesEl.appendChild(h);
+    if (open) {
+      let y = at.y + kGroupHead + kGroupGap;
+      for (const n of g.nodes) {
+        const e = nodeElement(n);
+        e.classList.add("grouped");
+        e.style.left = at.x + "px";
+        e.style.top = y + "px";
+        nodesEl.appendChild(e);
+        y += e.offsetHeight + kGroupGap;
+      }
+    }
+    h.addEventListener("pointerdown", (ev) => onGroupPointerDown(ev, h, key, g));
+  }
+
+  function onGroupPointerDown(ev, h, key, g) {
+    if (ev.button !== 0) return;
+    ev.stopPropagation();
+    canvas.focus();
+    hidePopovers();
+    const start = { x: ev.clientX, y: ev.clientY }, c = cam(), lvl = level(), at0 = groupAt(g.q, lvl);
+    const ids = new Set(g.nodes.map((n) => n.id));
+    const members = [...nodesEl.querySelectorAll(".node.grouped")].filter((e) => ids.has(e.dataset.id))
+      .map((e) => ({ e, x: parseFloat(e.style.left), y: parseFloat(e.style.top) }));
+    let moved = false, dx = 0, dy = 0;
+    const move = (m) => {
+      dx = Math.round((m.clientX - start.x) / c.z);
+      dy = Math.round((m.clientY - start.y) / c.z);
+      if (!moved && Math.hypot(dx, dy) < 3) return;
+      moved = true;
+      h.style.left = at0.x + dx + "px";
+      h.style.top = at0.y + dy + "px";
+      for (const o of members) { o.e.style.left = o.x + dx + "px"; o.e.style.top = o.y + dy + "px"; }
+      renderCables();
+      positionCablePop();
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      if (moved) {
+        edit("move panel modules", (b) => {
+          const q = panelById(g.q.id, b);
+          if (!q) return false;
+          (q.groups || (q.groups = {}))[levelKey(lvl)] = { x: at0.x + dx, y: at0.y + dy };
+        });
+      } else {
+        groupOpen.has(key) ? groupOpen.delete(key) : groupOpen.add(key);
+        renderNodes();
+        renderCables();
+      }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  /// Opens the stack a module is in and selects it (from the panel editor).
+  function revealPanelModule(id) {
+    const q = ownerOf(id), n = nodeById(id);
+    if (!q || !n) return;
+    const lvl = n.parent || "";
+    if (level() !== lvl && lvl && !path.length) enterCell(lvl);
+    if (level() !== lvl) return;
+    groupOpen.add(groupKey(q, lvl));
+    renderNodes();
+    sel.clear();
+    sel.add(id);
+    renderSelection();
+    renderCables();
+    centreOn(groupAt(q, lvl));
   }
 
   function jackRow(n, jack, name, type, dir, extraClass) {
@@ -333,7 +480,7 @@
     else {
       const sc = el("canvas", "scope");
       row.append(el("span", "jl", name), sc, dot);
-      if (type !== "notes") scopes.set(n.id + "|" + jack, { canvas: sc, hist: new Float32Array(40), head: 0 });
+      if (type !== "notes" && type !== "patchbay") scopes.set(n.id + "|" + jack, { canvas: sc, hist: new Float32Array(40), head: 0 });
     }
     return row;
   }
@@ -472,7 +619,12 @@
   /// Centre of a jack's dot, in world coordinates.
   function jackPos(nodeId, jack, dir) {
     const row = nodesEl.querySelector(`.jack.${dir}[data-node="${nodeId}"][data-jack="${CSS.escape(jack)}"]`);
-    if (!row) return null;
+    if (!row) {   // in a folded stack: the cable ends at its header
+      const h = nodesEl.querySelector(`.pgroup[data-members*=" ${nodeId} "]`);
+      if (!h) return null;
+      const r = h.getBoundingClientRect();
+      return toWorld(dir === "out" ? r.right : r.left, r.top + r.height / 2);
+    }
     const d = row.querySelector(".dot").getBoundingClientRect();
     return toWorld(d.left + d.width / 2, d.top + d.height / 2);
   }
@@ -487,12 +639,31 @@
   const pulses = new Map();   // cable id → {path, node, jack}
   const pulseLevel = new Map();  // "node|jack" → smoothed 0..1
 
+  const cableHighlight = "#ffffff";   // hovered and selected cables
+
+  // Draws a highlighted copy of the cable at the end of the SVG: on top of all other cables, and it
+  // never moves the element under the pointer (which would end the hover).
+  function setHoverCable(id, path) {
+    hoverCable = id;
+    cablesEl.querySelectorAll(".cable.hover").forEach((e) => e.remove());
+    if (!id || !path) return;
+    const o = path.cloneNode(false);
+    o.classList.remove("ghost", "dim", "selected");
+    o.classList.add("hover");
+    o.style.setProperty("--c", cableHighlight);
+    cablesEl.append(o);
+  }
+
   function renderCables() {
     cablesEl.innerHTML = "";
     pulses.clear();
     if (!board) return;
     const here = new Set(nodesAt(level()).map((n) => n.id));
-    for (const c of board.cables) {
+    // The selected cable is drawn last, so it lies on top of the others.
+    const ordered = [...board.cables.filter((c) => c.id !== selCable), ...board.cables.filter((c) => c.id === selCable)];
+    if (hoverCable && !board.cables.some((c) => c.id === hoverCable)) hoverCable = null;
+    let hoverPath = null;
+    for (const c of ordered) {
       if (!here.has(c.from.node) || !here.has(c.to.node)) continue;
       const a = jackPos(c.from.node, c.from.jack, "out"), b = jackPos(c.to.node, c.to.jack, "in");
       if (!a || !b) continue;
@@ -505,7 +676,7 @@
       p.style.setProperty("--c", signalColour(type));
       if (isGhost(src) || isGhost(dst)) p.classList.add("ghost");
       if (trace && !(trace.has(src.id) && trace.has(dst.id))) p.classList.add("dim");
-      if (c.id === selCable) p.classList.add("selected");
+      if (c.id === selCable) { p.classList.add("selected"); p.style.setProperty("--c", cableHighlight); }
       const hit = document.createElementNS(SVGNS, "path");
       hit.setAttribute("d", d);
       hit.setAttribute("class", "cable-hit");
@@ -513,6 +684,8 @@
       const title = document.createElementNS(SVGNS, "title");
       title.textContent = `${src.name} › ${jackName(src, c.from.jack, true)}  →  ${dst.name} › ${jackName(dst, c.to.jack, false)}  (${Math.round(c.amount * 100)}%)`;
       hit.appendChild(title);
+      hit.addEventListener("pointerenter", () => { if (!drag) setHoverCable(c.id, p); });
+      hit.addEventListener("pointerleave", () => setHoverCable(null));
       hit.addEventListener("pointerdown", (ev) => {
         ev.stopPropagation();
         selCable = c.id;
@@ -532,7 +705,9 @@
         pulses.set(c.id, { path: glow, key: c.from.node + "|" + c.from.jack });
       }
       cablesEl.append(hit);
+      if (c.id === hoverCable) hoverPath = p;
     }
+    if (hoverPath) setHoverCable(hoverCable, hoverPath);
     if (!selCable) $("cable-pop").hidden = true;
   }
 
@@ -611,7 +786,7 @@
 
     const start = { x: ev.clientX, y: ev.clientY };
     const c = cam();
-    const moving = [...sel].map((id) => nodeById(id)).filter(Boolean);
+    const moving = [...sel].map((id) => nodeById(id)).filter((m) => m && !ownerOf(m.id));   // a panel's modules sit in their stack
     const origin = moving.map((m) => ({ id: m.id, x: m.x, y: m.y }));
     let moved = false;
     const move = (e) => {
@@ -661,8 +836,6 @@
     markTargets(true);
     const a = jackPos(nodeId, jack, "out");
     const move = (e) => {
-      const b = toWorld(e.clientX, e.clientY);
-      tmp.setAttribute("d", cablePath(a, b));
       const over = document.elementFromPoint(e.clientX, e.clientY);
       // The port a drop would reach: a knob in a view or an input jack that accepts this cable.
       const port = over && (over.closest(".bv-target.drop-ok") || over.closest(".jack.in.drop-ok"));
@@ -825,7 +998,7 @@
           const src = nodeById(d.from.node, b);
           const id = uid("o");
           cell.outputs = cell.outputs || [];
-          cell.outputs.push({ id, name: jackName(src, d.from.jack, true), type: d.type });
+          cell.outputs.push({ id, name: src.type === "patchbay-in" ? src.name : jackName(src, d.from.jack, true), type: d.type });
           connect(b, d.from, { node: n.id, jack: id }, 1);
         });
       }
@@ -977,6 +1150,7 @@
       sel.clear();
       before.forEach((id) => sel.add(id));
       for (const n of nodesAt(level())) {
+        if (ownerOf(n.id)) continue;
         const ne = nodesEl.querySelector(`[data-id="${n.id}"]`);
         const h = ne ? ne.offsetHeight : 60;
         if (n.x < b.x && n.x + NODE_W > a.x && n.y < b.y && n.y + h > a.y) sel.add(n.id);
@@ -1003,6 +1177,13 @@
   /// `link` (from a cable dropped on empty canvas) is connected to the new node.
   function addAt(what, x, y, link, checked) {
     if (!board) return;
+    if (what.preset && !checked && window.BleepStoreView) {  // modules the preset needs: offer to install them first
+      const q = presets.find((r) => r.key === what.preset);
+      if (q) {
+        BleepStoreView.ensureNeeds(q.preset, q.name).then((ok) => { if (ok) addAt(what, x, y, link, true); });
+        return;
+      }
+    }
     // Don't land exactly on another node (e.g. several adds at the canvas centre).
     for (let i = 0; i < 20 && nodesAt(level()).some((n) => Math.abs(n.x - x) < 40 && Math.abs(n.y - y) < 40); i++) {
       x += 36;
@@ -1024,13 +1205,6 @@
                        params: {}, inputs: [], outputs: [] });
         b.nodes.push({ id: uid("ci"), type: "cell-in", name: "Cell In", x: 40, y: 120, parent: newId, params: {} });
         b.nodes.push({ id: uid("co"), type: "cell-out", name: "Cell Out", x: 640, y: 120, parent: newId, params: {} });
-    if (what.preset && !checked && window.BleepStoreView) {  // modules the preset needs: offer to install them first
-      const q = presets.find((r) => r.key === what.preset);
-      if (q) {
-        BleepStoreView.ensureNeeds(q.preset, q.name).then((ok) => { if (ok) addAt(what, x, y, link, true); });
-        return;
-      }
-    }
       } else {
         const t = types[what.type];
         if (!t) return false;
@@ -1056,6 +1230,25 @@
       sel.clear();
       sel.add(newId);
     });
+  }
+
+  /// A Dial, Button or Keyboard module for a panel control, in `b`: inside the panel's cell (a Keyboard next to it,
+  /// since its notes go in through the cell's Notes jack), or on the board. Returns its id.
+  function addControlModule(b, panel, type, name) {
+    const t = types[type];
+    if (!t) return null;
+    const cell = panel.cell && nodeById(panel.cell, b);
+    let lvl = cell ? cell.id : "";
+    if (cell && type === "keyboard") lvl = cell.parent || "";
+    const mine = b.nodes.filter((n) => (n.parent || "") === lvl && !(b.panels || []).some((q2) => (q2.modules || []).includes(n.id)));
+    const id = uid("n");
+    const params = {};
+    for (const p of t.params) params[p.id] = p.default;
+    b.nodes.push({ id, type: t.type, name: name || t.name, x: 0, y: 0, parent: lvl, params });
+    (panel.modules || (panel.modules = [])).push(id);
+    if (!panel.groups) panel.groups = {};
+    if (!panel.groups[levelKey(lvl)]) panel.groups[levelKey(lvl)] = { x: 40, y: mine.length ? Math.max(...mine.map((n) => n.y)) + 170 : 40 };
+    return id;
   }
 
   /// A Voice Cell with its fixed nodes and a starter voice (spec §8.3.3):
@@ -1310,27 +1503,6 @@
     sm.style.left = Math.max(4, x) + "px";
     sm.style.top = Math.max(4, Math.min(rr.top - r.top - 4, canvas.clientHeight - sm.offsetHeight - 8)) + "px";
   }
-  function hidePopovers() {
-    closeSubmenus(0);
-    $("menu").hidden = true;
-    $("cable-pop").hidden = true;
-    if (searchState) closeSearch();
-  }
-
-  function showNodeMenu(n, ev) {
-    const many = sel.size > 1;
-    const items = [];
-    if (!isStructural(n)) items.push({ label: views.has(n.id) ? "Close view" : "Open view", run: () => toggleView(n.id) });
-    if (isCellLike(n)) {
-      const mine = panelsOfCell(n.id);
-      for (const p of mine) {
-        const suffix = mine.length > 1 ? " “" + p.name + "”" : "";
-        items.push({ label: (panelOpen(p.id) ? "Close panel" : "Open panel") + suffix, run: () => togglePanel(p.id) });
-        items.push({ label: "Edit panel" + suffix, run: () => openPanel(p.id, { edit: true }) });
-      }
-      items.push({ label: "New panel", run: () => newPanel(n.id) });
-      items.push({ label: "Build panel from cell", run: () => buildPanel(n.id) });
-    }
   /// The help of a cell (its `help: {text, images}` metadata, copied from the preset): paragraphs, then the images, in a popover
   /// under the "?" button. Built from nodes: the text is never parsed as markup.
   function showCellHelp(n, anchor) {
@@ -1357,11 +1529,32 @@
     pop.style.top = Math.max(0, y) + "px";
   }
 
+  function hidePopovers() {
+    closeSubmenus(0);
+    $("menu").hidden = true;
+    $("cable-pop").hidden = true;
+    $("help-pop").hidden = true;
+    if (searchState) closeSearch();
+  }
+
+  function showNodeMenu(n, ev) {
+    const many = sel.size > 1;
+    const items = [];
+    if (!isStructural(n)) items.push({ label: views.has(n.id) ? "Close view" : "Open view", run: () => toggleView(n.id) });
+    if (isCellLike(n)) {
+      const mine = panelsOfCell(n.id);
+      for (const p of mine) {
+        const suffix = mine.length > 1 ? " “" + p.name + "”" : "";
+        items.push({ label: (panelOpen(p.id) ? "Close panel" : "Open panel") + suffix, run: () => togglePanel(p.id) });
+        items.push({ label: "Edit panel" + suffix, run: () => openPanel(p.id, { edit: true }) });
+      }
+      items.push({ label: "New panel", run: () => newPanel(n.id) });
+      items.push({ label: "Build panel from cell", run: () => buildPanel(n.id) });
+    }
     if (isCellLike(n)) items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
     items.push("-");
-    $("help-pop").hidden = true;
     items.push({ label: "Cut", key: "⌘X", run: cut, disabled: !canDuplicate() });
     items.push({ label: "Copy", key: "⌘C", run: copy, disabled: !canDuplicate() });
     items.push({ label: "Paste", key: "⌘V", run: () => paste() });
@@ -1745,15 +1938,19 @@
     const ids = new Set(nodes.map((n) => n.id));
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
     const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
+    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(nodes) : {};
+    if (Object.keys(needs).length) preset.needs = needs;
     const mine = panelsWithLoaded(panelList().filter((p) => p.cell && ids.has(p.cell)));
     if (mine.length) preset.panels = clone(mine).map((p) => { delete p.open; return p; });
     if (description) preset.description = description;
+    if (cell.help && cell.help.text) preset.help = clone(cell.help);
     const saved = await native("savePreset", name, preset);
     if (saved) setPresets(saved);
   }
 
   /// Panels copied into the board (a placed preset, a paste, a duplicate): new ids, pointing at the new nodes.
   /// `map`: old node id → new. Panels of cells that weren't copied are left out.
+  /// Stacks of a placed preset's panels start open: it is there to be looked at.
   function addPanels(b, list, map) {
     if (!list || !list.length) return;
     const pmap = new Map(list.map((q) => [q.id, uid("p")]));
@@ -1763,15 +1960,22 @@
       if (q.cell && !map.has(q.cell)) continue;
       q.id = pmap.get(q.id);
       if (q.cell) q.cell = key(q.cell);
+      if (q.modules) q.modules = q.modules.map(key);
+      if (q.groups) {
+        q.groups = Object.fromEntries(Object.entries(q.groups).map(([k, g]) => [key(k), g]));
+        // Open unless the stack is long: a placed preset is there to be looked at, but not as a wall of nodes.
+        for (const k of Object.keys(q.groups))
+          if (b.nodes.filter((n) => (q.modules || []).includes(n.id) && (n.parent || "") === k).length <= 8) groupOpen.add(groupKey(q, k));
+      }
       delete q.open;
       for (const c of q.controls) {
-        for (const w of c.wire || []) for (const k of ["param", "jack", "command"]) if (w[k]) w[k] = ref(w[k]);
-    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(nodes) : {};
-    if (Object.keys(needs).length) preset.needs = needs;
+        for (const w of c.wire || []) {
+          for (const k of ["param", "jack", "command"]) if (w[k]) w[k] = ref(w[k]);
+          for (const k of ["press", "keyboard"]) if (w[k]) w[k] = key(w[k]);
+        }
         if (c.source) c.source.out = [].concat(c.source.out).map(ref);
         if (c.node) c.node = key(c.node);
         if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;
-    if (cell.help && cell.help.text) preset.help = clone(cell.help);
       }
       (b.panels || (b.panels = [])).push(q);
     }
@@ -1791,6 +1995,8 @@
     }
     root.x = Math.round(x);
     root.y = Math.round(y);
+    if (preset.help && preset.help.text) root.help = clone(preset.help);
+    else delete root.help;
     for (const c of tmp.cables)
       if (map.has(c.from.node) && map.has(c.to.node))
         b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
@@ -1812,8 +2018,6 @@
     const left = path[depth];
     path = path.slice(0, depth);
     sel.clear();
-    if (preset.help && preset.help.text) root.help = clone(preset.help);
-    else delete root.help;
     if (left) sel.add(left);
     trace = null;
     closeUnpinnedViews();
@@ -1869,7 +2073,6 @@
     return {
       knobMenu: (pid, ev) => addToPanelMenu(id, pid, ev),
       setParam: (pid, v) => {
-        if (learnCb && learnCb(id, pid)) learnCb = null;   // the panel editor's Learn
         const m = nodeById(id);
         if (m) m.params[pid] = v;
         native("setParam", id, pid, v);
@@ -1931,6 +2134,7 @@
     const bv = BleepView.create(t, clone(n), api);
     const hook = BleepViews.get(t.type);
     if (hook && hook.width) win.style.width = hook.width + "px";
+    else if (isPort(n)) win.classList.add("port");   // In/Out nodes have a few controls: fit them
     if (!n.params) n.params = {};
     body.append(bv.root, doc);
     $("views").appendChild(win);
@@ -1945,7 +2149,6 @@
     // Next to the node, inside the canvas.
     const ne = nodesEl.querySelector(`[data-id="${id}"]`);
     const r = canvas.getBoundingClientRect();
-    else if (isPort(n)) win.classList.add("port");   // In/Out nodes have a few controls: fit them
     let x = 40, y = 40;
     if (ne) {
       // Beside the node, never over it: its ports must stay reachable.
@@ -2249,18 +2452,16 @@
           mutate: (label, fn) => edit(label, (b) => {
             const q = (b.panels || []).find((x) => x.id === panelId);
             if (!q) return false;
-            fn(q, b.panels);
+            {
+              const make = (type, name) => addControlModule(b, q, type, name);
+              make.set = (id, pid, v) => { const n = nodeById(id, b); if (n) n.params[pid] = v; };   // v: normalised
+              fn(q, b.panels, make);
+            }
           }),
           scope: () => panelScope(panelById(panelId) || doc),
-          jacks: () => {
-            const c = doc.cell && nodeById(doc.cell);
-            if (!c) return [];
-            return inputsOf(c).map((j) => ({ id: j.id, name: j.name, type: j.type }))
-              .filter((j) => j.type !== "audio")
-              .map((j) => (j.type === "notes" ? { id: "notes", name: "Notes (plays the cell)", type: "notes" } : j));
-          },
+          module: (id) => nodeById(id),
+          reveal: revealPanelModule,
           host: () => panelHost(panelById(panelId) || doc, []),
-          learn: (cb) => { learnCb = cb; },
           editPanel: (id) => openPanel(id, { edit: true }),
         });
       } else {
@@ -2335,7 +2536,7 @@
   function closeView(id) {
     const v = views.get(id);
     if (!v) return;
-    if (v.panelId) { learnCb = null; v.destroy(); }
+    if (v.panelId) v.destroy();
     v.win.remove();
     views.delete(id);
     watch();
@@ -2521,6 +2722,7 @@
     await loadModuleViews(typeList);
     if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
     if (m.settings && window.BleepSettingsView) await BleepSettingsView.init({ store: !!m.store });
+    if (m.store && window.BleepHelpView) await BleepHelpView.init();
     pluginMode = !!m.plugin || !!panelOf;
     document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
@@ -2545,4 +2747,3 @@
   }
   start();
 })();
-    if (m.store && window.BleepHelpView) await BleepHelpView.init();

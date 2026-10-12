@@ -21,6 +21,7 @@
   --sig-pitch: #60a5fa;
   --sig-audio: #ff6b6b;
   --sig-notes: #a78bfa;
+  --sig-patchbay: #e5e7eb;
   font: 13px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
   color-scheme: dark;
 }
@@ -120,6 +121,8 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .cable.trigger { stroke-dasharray: 5 4; }
 .cable.ghost, .cable.dim { opacity: .2; }
 .cable.selected { stroke-width: 4; opacity: 1; filter: drop-shadow(0 0 3px var(--c)); }
+.cable.hover { opacity: 1; stroke-width: 3.4; filter: drop-shadow(0 0 3px var(--c)); }
+.cable.notes.hover { stroke-width: 5; }
 .cable.temp { stroke-dasharray: 6 4; opacity: .8; }
 /* Signal pulse: faint light travelling from output to input while the signal moves. */
 .cable-pulse { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; pointer-events: none;
@@ -218,11 +221,6 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 /* ---- front panels (panels.js, doc/specs/panels.md) ---- */
 .n-panel { margin-left: auto; background: none; border: 0; padding: 0 2px; color: var(--muted); font-size: 14px; cursor: pointer; }
 .n-panel:hover { color: var(--accent); }
-.pwin { width: auto; max-width: calc(100% - 16px); }
-.pwin .v-body { max-height: calc(100vh - 140px); overflow: auto; }
-.bp-root { padding: 0; }
-.bp-tabs { display: flex; gap: 2px; padding: 6px 10px 0; border-bottom: 1px solid var(--line); }
-.bp-tabs button { background: none; border: 0; border-radius: 6px 6px 0 0; padding: 5px 14px; color: var(--muted); cursor: pointer; }
 .n-help { background: none; border: 1px solid var(--muted); border-radius: 50%; width: 15px; height: 15px; padding: 0; margin-left: 4px;
   color: var(--muted); font-size: 10px; line-height: 13px; font-weight: 600; cursor: pointer; flex: none; }
 .n-help.first { margin-left: auto; }
@@ -233,6 +231,11 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 #help-pop .h-fig { margin: 4px 0 8px; }
 #help-pop .h-fig img { max-width: 100%; border-radius: 4px; display: block; }
 #help-pop figcaption { color: var(--muted); font-size: 11px; margin-top: 3px; }
+.pwin { width: auto; max-width: calc(100% - 16px); }
+.pwin .v-body { max-height: calc(100vh - 140px); overflow: auto; }
+.bp-root { padding: 0; }
+.bp-tabs { display: flex; gap: 2px; padding: 6px 10px 0; border-bottom: 1px solid var(--line); }
+.bp-tabs button { background: none; border: 0; border-radius: 6px 6px 0 0; padding: 5px 14px; color: var(--muted); cursor: pointer; }
 .bp-tabs button.on { background: var(--panel-2); color: var(--text); box-shadow: inset 0 -2px var(--accent); }
 .bp-stage { position: relative; }
 .bp-c { position: absolute; box-sizing: border-box; user-select: none; }
@@ -302,7 +305,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pe-field input, .pe-field select, .pe-search { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; width: 100%; box-sizing: border-box; }
 .pe-xy { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 6px; }
 .pe-acts { display: flex; gap: 6px; margin-top: 8px; }
-.pe-list { margin-top: 6px; }
+.pe-list, .pe-palette { margin-top: 6px; }
 .pe-node { padding: 3px 6px; cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; gap: 6px; }
 .pe-node:hover, .pe-knob:hover { background: var(--panel-3); }
 .pe-node small { color: var(--muted); }
@@ -388,11 +391,6 @@ body.in-store #undo, body.in-store #redo { display: none; }
 #store button.primary { background: var(--accent); color: #07201d; border-color: var(--accent); font-weight: 600; }
 #store button:disabled { opacity: .5; cursor: default; }
 /* ---- Settings section (settings.js): the Store section's look ---- */
-#settings { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
-#settings h2 { margin: 0; font-size: 18px; font-weight: 600; }
-#settings h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-#settings .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
-#settings .st-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 #help { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
 #help h2 { margin: 0; font-size: 18px; font-weight: 600; }
 #help h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
@@ -410,6 +408,11 @@ body.in-store #undo, body.in-store #redo { display: none; }
 #help .hp-tile:hover { background: var(--panel-2); border-color: var(--accent); }
 #help .hp-title { font-weight: 600; }
 #help .hp-desc { color: var(--muted); font-size: 12px; line-height: 1.4; }
+#settings { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
+#settings h2 { margin: 0; font-size: 18px; font-weight: 600; }
+#settings h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+#settings .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
+#settings .st-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 #settings .st-tabs button { border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-bottom: 2px solid transparent; border-radius: 0; }
 #settings .st-tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
 #settings .st-message:not(:empty) { margin: 0 0 10px; color: var(--warn); }
@@ -497,3 +500,11 @@ select:focus-visible { border-color: var(--accent) !important; }
 .sel-item.current { color: var(--accent); }
 .sel-item.disabled { opacity: .5; }
 .sel-group { padding: 6px 10px 2px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+
+/* A panel's modules, folded into one stack on the board */
+.pgroup { position: absolute; width: var(--node-w); box-sizing: border-box; height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 10px;
+  background: var(--panel-2); border: 1px dashed var(--muted); border-radius: 8px; cursor: grab; user-select: none; font-size: 12px; }
+.pgroup.open { border-style: solid; }
+.pgroup small { margin-left: auto; color: var(--muted); }
+.pgroup .pg-arrow { color: var(--muted); }
+.node.grouped { border-left-style: dashed; }
