@@ -16,10 +16,7 @@ on a Live track.
 The idea is one setting, the **Board** menu on the plugins, plus one switch in
 the app and one button in the browser.
 
-```
-   Live (plugins)  ══ shared memory ══▶  App  ◀══ WebSocket on this computer ══  Bleep Play
-                     very small delay    (hub)         a little more delay
-```
+![Live plugins connect to the app through shared memory; Bleep Play in the browser connects to the app over a WebSocket. The app is the hub in the middle.](/img/connecting-overview.svg)
 
 The app sits in the middle. Live and the browser both talk to it, never to
 each other directly. That is why the app has to be running for any of this.

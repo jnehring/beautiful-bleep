@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 210" role="img" aria-labelledby="t d">
+  <title id="t">How Live, the app and Bleep Play connect</title>
+  <desc id="d">Live plugins connect to the app through shared memory with very small delay. Bleep Play in the browser connects to the app over a WebSocket on this computer with a little more delay. The app is the hub in the middle.</desc>
+  <style>
+    :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; } }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--fg); }
+    .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+    .hub { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .name { font-size: 20px; font-weight: 650; text-anchor: middle; }
+    .sub { font-size: 13px; fill: var(--muted); text-anchor: middle; }
+    .link { stroke: var(--accent); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .head { fill: var(--accent); }
+    .cap { font-size: 13px; font-weight: 600; text-anchor: middle; }
+    .capsub { font-size: 12.5px; fill: var(--muted); text-anchor: middle; }
+  </style>
+  <rect width="760" height="210" rx="14" fill="var(--bg)"/>
+
+  <!-- Live plugins -->
+  <rect class="box" x="24" y="62" width="180" height="86" rx="12"/>
+  <text class="name" x="114" y="100">Live</text>
+  <text class="sub" x="114" y="124">Bleep plugins</text>
+
+  <!-- App hub -->
+  <rect class="hub" x="290" y="62" width="180" height="86" rx="12"/>
+  <text class="name" x="380" y="100">App</text>
+  <text class="sub" x="380" y="124">the hub</text>
+
+  <!-- Bleep Play -->
+  <rect class="box" x="556" y="62" width="180" height="86" rx="12"/>
+  <text class="name" x="646" y="100">Bleep Play</text>
+  <text class="sub" x="646" y="124">in your browser</text>
+
+  <!-- Live <-> App -->
+  <path class="link" d="M212 105 H282"/>
+  <path class="head" d="M212 105 l9 -6 v12 z"/>
+  <path class="head" d="M282 105 l-9 -6 v12 z"/>
+  <text class="cap" x="247" y="46">shared memory</text>
+  <text class="capsub" x="247" y="168">very small delay</text>
+
+  <!-- App <-> Play -->
+  <path class="link" d="M478 105 H548"/>
+  <path class="head" d="M478 105 l9 -6 v12 z"/>
+  <path class="head" d="M548 105 l-9 -6 v12 z"/>
+  <text class="cap" x="513" y="46">WebSocket</text>
+  <text class="capsub" x="513" y="168">a little more delay</text>
+
+  <text class="capsub" x="380" y="196">Everything stays on this computer (127.0.0.1)</text>
+</svg>
