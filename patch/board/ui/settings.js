@@ -276,6 +276,7 @@
       header.hidden = false;
       const btn = document.getElementById("sec-settings");
       btn.hidden = false;
+      if (!hasStore) document.getElementById("sec-store").hidden = true;  // no store in this build: nothing to open
       btn.addEventListener("click", () => window.BleepSettingsView.show());
       document.getElementById("sec-board").addEventListener("click", () => window.BleepSettingsView.hide());
       onNative("openSettings", () => window.BleepSettingsView.show());
@@ -294,6 +295,8 @@
     hide() {
       if (root.hidden) return;
       root.hidden = true;
+      document.body.classList.remove("in-store");
+      document.getElementById("sec-board").classList.add("on");
       document.getElementById("sec-settings").classList.remove("on");
       if (poll) { clearInterval(poll); poll = null; }
     },
