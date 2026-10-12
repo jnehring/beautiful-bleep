@@ -47,6 +47,13 @@ set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.
 # https://github.com/bytecodealliance/wasmtime/releases (wasmtime-v<version>-<target>-c-api). With it, the test
 # bleep_wasm_parity runs every module as native and as wasm and compares them (store.md section 13, M1).
 set(BLEEP_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
+# Default: the Wasmtime that scripts/experiments fetched into <build>/wasm-spike, so the apps get the Store without a flag.
+foreach (_wt "${CMAKE_BINARY_DIR}/wasm-spike/wasmtime" "${CMAKE_CURRENT_SOURCE_DIR}/../build/wasm-spike/wasmtime")
+    if (NOT BLEEP_WASMTIME_DIR AND EXISTS "${_wt}/lib/libwasmtime.a")
+        get_filename_component(_wt "${_wt}" ABSOLUTE)
+        set(BLEEP_WASMTIME_DIR "${_wt}" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity" FORCE)
+    endif ()
+endforeach ()
 option(BLEEP_BUILD_APP "Build the standalone Bleep App" ON)
 option(BLEEP_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
