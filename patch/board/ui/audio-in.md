@@ -15,6 +15,11 @@ is processed: what arrives is what you patch on.
 A new board in the app starts with *In 1/2* and *Out 1/2*. More pairs are in
 **Add → Port**; you can delete the node when you don't need it.
 
+In the app there is one more *Audio In*: **System**, the sound your computer
+plays (a music player, a browser). Turn on *System audio* in Settings → Audio,
+then add *System* from **Add → Port**; it works like any other input. Bleep Patch's own sound is
+left out of it, so patching *System* to an *Audio Out* does not feed back.
+
 ## How to use it?
 
 - **Process an instrument or a microphone:** patch *L* and *R* into an effect

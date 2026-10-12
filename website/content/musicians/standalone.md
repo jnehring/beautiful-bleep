@@ -17,6 +17,32 @@ Choose your audio interface in **File → Settings**. A new board starts with ju
 Link node are there when you need them: **Add → Port**. Delete the ones you
 don't use.
 
+## What your computer plays
+
+The **System** node carries everything your computer plays: a music player, a
+browser, a video call. Patch it into effects, or into an *Audio Out* to
+process it. No virtual audio driver is needed.
+
+Turn it on in **File → Settings → Audio → System audio → Capture what this
+computer plays**. It is off until you do, because capturing sound needs your
+permission. Then add the node from **Add → Port**, like the other inputs.
+
+- **Your own sound is left out** by default, so patching *System* to an output
+  does not feed back. Where the system cannot do that (Linux, older Windows),
+  play Bleep Patch to a different output than the one you capture.
+- **macOS 14.2 or later.** The first time, macOS asks to allow Bleep Patch to
+  record system audio. If *System* stays silent, allow it under *System Settings
+  → Privacy & Security → Screen & System Audio Recording*.
+- **Windows 10 or later.** Leaving your own sound out needs Windows 10 build
+  20348 or later.
+- **Linux** with PulseAudio or PipeWire. Settings lists the outputs you can
+  capture.
+
+The capture adds about 40 ms of delay. It is meant for processing and
+recording, not for playing live against it. More, with the setup for each system
+and what to do when it stays silent: [Process what your computer
+plays](guides/system-audio.md).
+
 ## A MIDI keyboard
 
 Add **MIDI Device** (*Add → Module → Sources*), click it and choose your

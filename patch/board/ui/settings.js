@@ -87,6 +87,7 @@
     row("Input", select(["", ...(a.inputs || [])], a.input, (v) => change("audio", { input: v }), (v) => v || "None"));
     if (!a.running) {
       body.appendChild(el("div", "st-note bad", "No audio device is running. Pick an output above."));
+      renderSystem();
       return;
     }
     row("Sample rate", select(a.rates, a.rate, (v) => change("audio", { rate: +v }), (v) => (+v / 1000) + " kHz"));
@@ -95,6 +96,35 @@
     if (a.inputChannels.length > 2) { body.appendChild(el("h3", "", "Input channels")); body.appendChild(channels(a.inputChannels, "inputChannels")); }
     body.appendChild(el("h3", "", "Right now"));
     body.appendChild(el("div", "st-row single", `Latency ${a.latencyMs.toFixed(1)} ms · CPU ${(a.cpu * 100).toFixed(0)}% · dropouts ${a.xruns < 0 ? "not reported" : a.xruns}`));
+    renderSystem();
+  }
+
+  /// What the computer plays, as a System node on the board (doc/specs/system-audio.md). Shown with the audio device,
+  /// also when no device runs: the capture does not need one.
+  function renderSystem() {
+    const s = state.system;
+    if (!s) return;
+    body.appendChild(el("h3", "", "System audio"));
+    if (!s.supported) { body.appendChild(el("div", "st-note", s.reason)); return; }
+    body.appendChild(checkbox("Capture what this computer plays", s.enabled, (on) => change("systemAudio", { on })));
+    if (!s.enabled) {
+      body.appendChild(el("div", "st-note", "Adds a System port with the sound of your music player, browser or video call: put its node on the board from Add → Port. Nothing is captured until you turn this on."));
+      return;
+    }
+    const exclude = checkbox("Leave out Bleep Patch's own sound", s.exclude && s.canExclude, (on) => change("systemAudio", { exclude: on }));
+    exclude.querySelector("input").disabled = !s.canExclude;
+    body.appendChild(exclude);
+    if (!s.canExclude) body.appendChild(el("div", "st-note", "This system cannot leave Bleep Patch out of the capture. Patching System to an output that you capture gives feedback: play Bleep Patch to another output."));
+    if ((s.sources || []).length) {
+      row("Output to capture", select(["", ...s.sources.map((d) => d.id)], s.source, (v) => change("systemAudio", { source: v }),
+                                      (v) => (s.sources.find((d) => d.id === v) || { name: "Default output" }).name));
+    }
+    if (s.error) body.appendChild(el("div", "st-note bad", s.error));
+    else if (s.running) {
+      body.appendChild(el("div", "st-row single", `Capturing at ${(s.rate / 1000).toFixed(1)} kHz · ${s.excluding ? "Bleep Patch's own sound left out" : "Bleep Patch's own sound included"} · ${s.signal ? "signal" : "silent"}`));
+      if (s.problem) body.appendChild(el("div", "st-note bad", s.problem));
+      else if (!s.signal && s.hint) body.appendChild(el("div", "st-note", s.hint));
+    }
   }
 
   function renderMidi() {

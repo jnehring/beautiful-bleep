@@ -56,6 +56,8 @@ AppController::AppController() {
     juce::MenuBarModel::setMacMainMenu(this);
 #endif
     scratch_.assign(engine::kMaxHostBlock, 0.0f);
+    systemL_.assign(engine::kMaxHostBlock, 0.0f);
+    systemR_.assign(engine::kMaxHostBlock, 0.0f);
     handles_.reserve(128);
     ios_.reserve(128);
 }
@@ -65,6 +67,7 @@ AppController::~AppController() {
     devices_.removeAudioCallback(this);
     devices_.removeMidiInputDeviceCallback({}, this);
     devices_.closeAudioDevice();
+    system_.reset();
     bridge_.reset();
     {
         const juce::SpinLock::ScopedLockType lock(portsLock_);
@@ -95,6 +98,9 @@ void AppController::start(const juce::String& commandLine) {
     devices_.addChangeListener(this);
     devices_.addAudioCallback(this);
     devices_.addMidiInputDeviceCallback({}, this);
+    systemEnabled_ = forceSystem_ || (!smoke_ && settings_->getBoolValue("systemAudio", false));
+    systemExclude_ = settings_->getBoolValue("systemAudioExclude", true);
+    systemSource_ = settings_->getValue("systemAudioSource");
     clock_.enable(!smoke_ && settings_->getBoolValue("link", true));
     clock_.setTempo(settings_->getDoubleValue("tempo", 120.0));
 
@@ -106,7 +112,7 @@ void AppController::start(const juce::String& commandLine) {
         },
         [this](std::vector<int>&, std::vector<engine::BlockIO*>&) { sendMidi(); });
 
-    syncPorts();
+    applySystemAudio();  // syncPorts() inside
     newProject();
 
     engine::BoardWindowStyle style;
@@ -170,6 +176,17 @@ void AppController::syncPorts() {
             if (p->handle == 0) p->handle = addInstance(input ? PortKind::AudioIn : PortKind::AudioOut, p->id, name);
             audio.push_back(std::move(p));
         }
+    }
+
+    if (system_) {  // what the computer plays: one more pair of inputs
+        auto p = std::make_unique<AudioPort>();
+        p->input = true;
+        p->system = true;
+        p->id = "system-in";
+        for (auto& old : audioPorts_)
+            if (old && old->id == p->id) std::swap(p->handle, old->handle);
+        if (p->handle == 0) p->handle = addInstance(PortKind::AudioIn, p->id, "System");
+        audio.push_back(std::move(p));
     }
 
     // MIDI: the app's own ports, enabled hardware inputs, the default hardware output.
@@ -255,6 +272,78 @@ void AppController::setLinkEnabled(bool on) {
     saveSettings();
 }
 
+// ---- System Audio ----------------------------------------------------------------------------------
+
+void AppController::applySystemAudio() {
+    std::unique_ptr<SystemAudio> next;
+    systemError_ = {};
+    if (systemEnabled_) {
+        next = SystemAudio::create();
+        if (!next) {
+            systemError_ = SystemAudio::unsupportedReason();
+            if (systemError_.isEmpty()) systemError_ = "System audio capture is not available.";
+        } else {
+            SystemAudioOptions options;
+            options.excludeOwnProcess = systemExclude_;
+            options.source = systemSource_.toStdString();
+            const auto error = next->start(options);
+            if (!error.empty()) {
+                systemError_ = juce::String::fromUTF8(error.c_str());
+                next.reset();
+            }
+        }
+    }
+    std::unique_ptr<SystemAudio> old;
+    {
+        const juce::SpinLock::ScopedLockType lock(portsLock_);
+        old = std::move(system_);
+        system_ = std::move(next);
+    }
+    old.reset();  // joins the capture thread: not under the lock
+    syncPorts();
+}
+
+juce::var AppController::systemAudioState() {
+    auto* o = new juce::DynamicObject();
+    const auto reason = SystemAudio::unsupportedReason();
+    o->setProperty("supported", reason.empty());
+    o->setProperty("reason", juce::String::fromUTF8(reason.c_str()));
+    o->setProperty("canExclude", SystemAudio::canExclude());
+    o->setProperty("enabled", systemEnabled_);
+    o->setProperty("exclude", systemExclude_);
+    o->setProperty("source", systemSource_);
+
+    // The list of outputs asks the sound server: not at every refresh of the Settings page.
+    const auto now = juce::Time::getMillisecondCounter();
+    if (reason.empty() && (systemSourcesAt_ == 0 || now - systemSourcesAt_ > 15000)) {
+        systemSources_ = SystemAudio::sources();
+        systemSourcesAt_ = (juce::int64)now;
+    }
+    juce::Array<juce::var> sources;
+    for (const auto& [id, name] : systemSources_) {
+        auto* e = new juce::DynamicObject();
+        e->setProperty("id", juce::String::fromUTF8(id.c_str()));
+        e->setProperty("name", juce::String::fromUTF8(name.c_str()));
+        sources.add(juce::var(e));
+    }
+    o->setProperty("sources", sources);
+
+    o->setProperty("running", system_ != nullptr);
+    if (system_) {
+        const float peak = system_->ring().takePeak();  // since Settings last looked
+        o->setProperty("rate", system_->sampleRate());
+        o->setProperty("excluding", system_->excluding());
+        o->setProperty("signal", peak > 1.0e-4f);
+        const auto problem = system_->problem();
+        o->setProperty("problem", juce::String::fromUTF8(problem.c_str()));
+    }
+    o->setProperty("error", systemError_);
+#if JUCE_MAC
+    o->setProperty("hint", u8("Silent? macOS asks once for permission. Allow Bleep Patch under System Settings → Privacy & Security → Screen & System Audio Recording (System Audio Recording Only)."));
+#endif
+    return juce::var(o);
+}
+
 void AppController::changeListenerCallback(juce::ChangeBroadcaster*) {
     saveSettings();
     syncPorts();
@@ -271,6 +360,12 @@ juce::String AppController::report() const {
     r << "audio device: " << (devices_.getCurrentAudioDevice() ? devices_.getCurrentAudioDevice()->getName() : "none")
       << "\nown MIDI ports seen by the system: " << ownPorts.joinIntoString(", ")
       << "\nbridge server: " << (bridge_ && bridge_->ok() ? "ok" : "failed")
+      << "\nsystem audio: "
+      << (system_ ? juce::String("capturing at ") + juce::String(system_->sampleRate(), 0) + " Hz" +
+                        (system_->excluding() ? ", own sound left out" : ", own sound included") + ", frames " +
+                        juce::String((juce::int64)system_->ring().head()) + ", peak " + juce::String(system_->ring().takePeak(), 4) +
+                        ", underruns " + juce::String(systemReader_.underruns()) + ", overruns " + juce::String(systemReader_.overruns())
+                  : (systemError_.isNotEmpty() ? systemError_ : juce::String(systemEnabled_ ? "off" : "off (not enabled)")))
       << "\nLink: " << (LinkClock::available() ? "built in" : "not built in")
       << "\nboard nodes: " << nodes.joinIntoString(", ")
       << "\nengine ticks: " << (juce::int64)engine_->ticks()
@@ -282,6 +377,9 @@ void AppController::saveSettings() {
     if (smoke_) return;
     if (auto xml = devices_.createStateXml()) settings_->setValue("audioDevice", xml.get());
     settings_->setValue("virtualMidiPorts", virtualPorts_);
+    if (!forceSystem_) settings_->setValue("systemAudio", systemEnabled_);  // --system-audio is for this run only
+    settings_->setValue("systemAudioExclude", systemExclude_);
+    settings_->setValue("systemAudioSource", systemSource_);
     settings_->setValue("link", clock_.enabled());
     settings_->setValue("tempo", clock_.tempo());
     settings_->saveIfNeeded();
@@ -293,6 +391,7 @@ void AppController::audioDeviceAboutToStart(juce::AudioIODevice* device) {
     sampleRate_ = device->getCurrentSampleRate();
     latencyMicros_ = (int64_t)(1.0e6 * device->getOutputLatencyInSamples() / std::max(1.0, sampleRate_.load()));
     const int block = device->getCurrentBufferSizeSamples();
+    blockSize_ = block;
     for (auto& p : audioPorts_) engine_->prepare(p->handle, sampleRate_, block);
     for (auto& m : midiPorts_) {
         if (m->inHandle) engine_->prepare(m->inHandle, sampleRate_, block);
@@ -392,7 +491,21 @@ void AppController::audioDeviceIOCallbackWithContext(const float* const* inputs,
         p->io = {};
         p->io.numSamples = numSamples;
         p->io.transport = t;
-        if (p->input) {
+        if (p->system) {
+            if (!system_) continue;
+            // The capture has its own clock and sample rate: read it at the device's.
+            const double in = system_->sampleRate();
+            if (std::fabs(in - systemReaderIn_) > 0.5 || std::fabs(sampleRate_ - systemReaderOut_) > 0.5) {
+                systemReaderIn_ = in;
+                systemReaderOut_ = sampleRate_;
+                systemReader_.prepare(in, sampleRate_, blockSize_);
+            }
+            systemReader_.process(system_->ring(), systemL_.data(), systemR_.data(), numSamples);
+            p->in[0] = systemL_.data();
+            p->in[1] = systemR_.data();
+            p->io.audioIn = p->in;
+            p->io.numAudioIn = 2;
+        } else if (p->input) {
             if (p->channel >= numInputs) continue;
             p->in[0] = inputs[p->channel];
             p->in[1] = p->channel + 1 < numInputs ? inputs[p->channel + 1] : inputs[p->channel];
@@ -488,6 +601,7 @@ void AppController::syncDeviceNodes() {
 
 void AppController::timerCallback() {
     if (bridge_) bridge_->poll();
+    if (system_) system_->poll();
     syncDeviceNodes();
     // The Link node's settings (spec §11.4).
     const auto& board = engine_->board();
@@ -788,6 +902,7 @@ juce::var AppController::settingsState() {
     link->setProperty("peers", clock_.peers());
     link->setProperty("tempo", clock_.tempo());
     o->setProperty("link", juce::var(link));
+    o->setProperty("system", systemAudioState());
     return juce::var(o);
 }
 
@@ -821,6 +936,14 @@ juce::var AppController::settingsCall(const juce::String& fn, const juce::var& a
             if (auto* d = devices_.getCurrentAudioDevice(); d && d->getCurrentBufferSizeSamples() != (int)arg["buffer"])
                 error = "The device runs at " + juce::String(d->getCurrentBufferSizeSamples()) + " samples, not " +
                         juce::String((int)arg["buffer"]) + ": it does not offer that buffer size with this input and output.";
+    } else if (fn == "systemAudio") {
+        if (!arg["on"].isVoid()) systemEnabled_ = (bool)arg["on"];
+        if (!arg["exclude"].isVoid()) systemExclude_ = (bool)arg["exclude"];
+        if (arg["source"].isString()) systemSource_ = arg["source"].toString();
+        if (arg["refresh"]) systemSourcesAt_ = 0;
+        saveSettings();
+        applySystemAudio();
+        error = systemError_;
     } else if (fn == "midiInput") {
         devices_.setMidiInputDeviceEnabled(arg["id"].toString(), (bool)arg["on"]);
     } else if (fn == "midiOutput") {

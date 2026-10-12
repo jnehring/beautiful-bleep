@@ -15,6 +15,10 @@ plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
   *In 1/2*, *Out 1/2*, … ports. An empty board starts with *In 1/2* and
   *Out 1/2* only; the other ports (more audio pairs, MIDI, Link) are added
   from Add → Port and may be deleted (documented in `board/ui/<port>.md`).
+- **System audio:** File → Settings → Audio → *System audio* puts what the computer plays on the board
+  as the *System* node (an Audio In). macOS 14.2+ (Core Audio tap), Windows (WASAPI loopback), Linux
+  (PulseAudio / PipeWire monitor, needs libpulse at build time). Off by default; the app's own sound is
+  left out where the system can ([system-audio.md](../../doc/specs/system-audio.md)).
 - **MIDI:** the app creates its own MIDI ports, *Bleep Patch 1* … *n* (number
   in Settings, default 2). Each is a MIDI In and a MIDI Out node; in Live,
   choose them under *MIDI From* / *MIDI To*. MIDI inputs enabled in Settings
@@ -29,6 +33,11 @@ plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
 
 Development: `"Bleep Patch.app/Contents/MacOS/Bleep Patch" --smoke` starts
 without audio inputs and without Link, prints what it set up and quits.
+Add `--system-audio` to capture what the computer plays for that run (not saved);
+the report then says how many frames arrived and the peak level, so play
+something while it runs. On macOS start it through LaunchServices, or the system
+audio permission is not the app's and the capture stays silent:
+`open -W --stdout out.txt "Bleep Patch.app" --args --smoke --system-audio`.
 
 ## Ableton Link and the license
 

@@ -15,7 +15,8 @@ public:
         controller_ = std::make_unique<bleep::app::AppController>();
         const bool smoke = commandLine.contains("--smoke");
         controller_->setSmokeTest(smoke);
-        controller_->start(smoke ? juce::String() : commandLine);
+        controller_->setForceSystemAudio(commandLine.contains("--system-audio"));
+        controller_->start(smoke ? juce::String() : commandLine.replace("--system-audio", "").trim());
         if (smoke)
             juce::Timer::callAfterDelay(4000, [this] {
                 std::printf("%s\n", controller_->report().toRawUTF8());

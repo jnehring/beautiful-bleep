@@ -99,6 +99,9 @@ if (BLEEP_PATCH_BUILD_TESTS)
     add_executable(bleep_patch_utility_tests tests/test_utility_dsp.cpp)
     target_link_libraries(bleep_patch_utility_tests PRIVATE bleep_patch_dsp)
     add_test(NAME patch.utility-dsp COMMAND bleep_patch_utility_tests)
+    # System Audio's ring and drift-compensating reader (app/SystemAudioBuffer.h, doc/specs/system-audio.md): pure C++.
+    add_executable(bleep_system_audio_test tests/system_audio_test.cpp)
+    add_test(NAME patch.system-audio COMMAND bleep_system_audio_test)
     # DSP tests next to the code they test: common/dsp/tests/*.cpp and
     # modules/<name>/tests/*.cpp, one executable (and one ctest) per file.
     file(GLOB dsp_test_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common/dsp/tests/*.cpp")
@@ -561,6 +564,28 @@ if (BLEEP_PATCH_BUILD_APP)
         include("${link_SOURCE_DIR}/AbletonLinkConfig.cmake")
     endif ()
 
+    # System Audio (doc/specs/system-audio.md): one backend per platform; Linux needs libpulse, without it the stub.
+    set(BLEEP_SYSTEM_AUDIO_SOURCES app/SystemAudioStub.cpp)
+    set(BLEEP_SYSTEM_AUDIO_LIBS)
+    if (APPLE)
+        set(BLEEP_SYSTEM_AUDIO_SOURCES app/SystemAudioMac.mm)
+        set_source_files_properties(app/SystemAudioMac.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+    elseif (WIN32)
+        set(BLEEP_SYSTEM_AUDIO_SOURCES app/SystemAudioWin.cpp)
+        set(BLEEP_SYSTEM_AUDIO_LIBS ole32 mmdevapi)
+    elseif (UNIX)
+        find_package(PkgConfig QUIET)
+        if (PkgConfig_FOUND)
+            pkg_check_modules(BLEEP_PULSE QUIET IMPORTED_TARGET libpulse)
+        endif ()
+        if (BLEEP_PULSE_FOUND)
+            set(BLEEP_SYSTEM_AUDIO_SOURCES app/SystemAudioLinux.cpp)
+            set(BLEEP_SYSTEM_AUDIO_LIBS PkgConfig::BLEEP_PULSE)
+        else ()
+            message(STATUS "libpulse not found: the app is built without System Audio (install libpulse-dev)")
+        endif ()
+    endif ()
+
     juce_add_gui_app(BleepPatchApp
         PRODUCT_NAME "Bleep Patch"
         COMPANY_NAME "Brilliant Bleep"
@@ -569,10 +594,11 @@ if (BLEEP_PATCH_BUILD_APP)
         DOCUMENT_EXTENSIONS bleepboard
         MICROPHONE_PERMISSION_ENABLED TRUE
         MICROPHONE_PERMISSION_TEXT "Bleep Patch uses audio inputs as Audio In nodes on the board."
-        PLIST_TO_MERGE "<plist><dict><key>NSLocalNetworkUsageDescription</key><string>Bleep Patch uses Ableton Link to share tempo and beat with other apps on your network.</string></dict></plist>")
+        PLIST_TO_MERGE "<plist><dict><key>NSLocalNetworkUsageDescription</key><string>Bleep Patch uses Ableton Link to share tempo and beat with other apps on your network.</string><key>NSAudioCaptureUsageDescription</key><string>Bleep Patch can capture what your computer plays and put it on the board as the System node.</string></dict></plist>")
     target_sources(BleepPatchApp PRIVATE
         app/Main.cpp
         app/AppController.cpp
+        ${BLEEP_SYSTEM_AUDIO_SOURCES}
         bridges/standalone/LinkClock.cpp
         board/BoardWindow.cpp
         ${BLEEP_APP_ENGINE_SOURCES}
@@ -592,7 +618,11 @@ if (BLEEP_PATCH_BUILD_APP)
         bleep_board_web bleep_patch_dsp
         juce::juce_audio_utils juce::juce_gui_extra
         $<$<BOOL:${BLEEP_PATCH_LINK}>:Ableton::Link>
+        ${BLEEP_SYSTEM_AUDIO_LIBS}
         juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
+    if (APPLE)
+        target_link_libraries(BleepPatchApp PRIVATE "-framework CoreAudio" "-framework Foundation")
+    endif ()
 endif ()
 
 # The preset library of Bleep Instrument and Bleep FX (the presets compiled into the plugins).

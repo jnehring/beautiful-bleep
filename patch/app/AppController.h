@@ -12,6 +12,7 @@
 #include "BridgeServer.h"
 #include "Engine.h"
 #include "LinkClock.h"
+#include "SystemAudio.h"
 
 #include <juce_audio_utils/juce_audio_utils.h>
 
@@ -35,6 +36,8 @@ public:
     void start(const juce::String& commandLine);
     /// --smoke: no audio inputs, no Link, no saved settings; report() after a few seconds.
     void setSmokeTest(bool on) noexcept { smoke_ = on; }
+    /// --system-audio: capture what the computer plays for this run, whatever the saved settings say (not saved).
+    void setForceSystemAudio(bool on) noexcept { forceSystem_ = on; }
     juce::String report() const;
     void openFromCommandLine(const juce::String& commandLine);
     /// Asks to save unsaved changes, then calls `then` (unless cancelled).
@@ -70,6 +73,7 @@ private:
         int handle = 0;
         bool input = false;
         int channel = 0;  ///< first of the pair, among the device's active channels
+        bool system = false;  ///< the System port: what the computer plays, not a channel of the device (system-audio.md)
         engine::BlockIO io;
         const float* in[2] = {nullptr, nullptr};
         float* out[2] = {nullptr, nullptr};
@@ -109,6 +113,9 @@ private:
     void updateTitle();
     void showSettings();
     juce::var settingsState();
+    juce::var systemAudioState();
+    /// Starts, restarts or stops System Audio capture to match systemEnabled_ and friends, then updates the ports.
+    void applySystemAudio();
     void saveSettings();
 
     engine::IEngine* iengine_ = nullptr;
@@ -135,6 +142,18 @@ private:
     std::vector<int> handles_;
     std::vector<engine::BlockIO*> ios_;
     std::vector<float> scratch_;
+
+    // System Audio (doc/specs/system-audio.md): what the computer plays, as one more audio port. system_ changes under
+    // portsLock_; the reader and its buffers belong to the audio callback.
+    std::unique_ptr<SystemAudio> system_;
+    SystemAudioReader systemReader_;
+    std::vector<float> systemL_, systemR_;
+    double systemReaderIn_ = 0.0, systemReaderOut_ = 0.0;
+    std::atomic<int> blockSize_{512};
+    bool systemEnabled_ = false, systemExclude_ = true, forceSystem_ = false;
+    juce::String systemSource_, systemError_;
+    std::vector<std::pair<std::string, std::string>> systemSources_;
+    juce::int64 systemSourcesAt_ = 0;
     int virtualPorts_ = 2;
 
     std::atomic<double> quantum_{4.0};

@@ -57,6 +57,7 @@
 &emsp;&emsp;[11.4 Ableton Link](#114-ableton-link)<br>
 &emsp;&emsp;[11.5 Preset browser](#115-preset-browser)<br>
 &emsp;&emsp;[11.6 Limits and open questions](#116-limits-and-open-questions)<br>
+&emsp;&emsp;[11.7 System audio](#117-system-audio)<br>
 [12. First module set](#12-first-module-set)<br>
 [13. Native support in Brilliant Bleep plugins](#13-native-support-in-brilliant-bleep-plugins)<br>
 [14. Positioning](#14-positioning)<br>
@@ -643,6 +644,7 @@ The **Bleep Patch app** runs the engine, the board, modules, cells and panels wi
 | MIDI to and from Live, other apps and hardware | The app's own virtual MIDI ports | 11.2 |
 | Audio to and from Live | **Bleep Audio Bridge** plugin on any track in Live | 11.3 |
 | Tempo, beat, start/stop | **Ableton Link** | 11.4 |
+| What the computer plays | **System audio**: the *System* node | 11.7 |
 
 A Live set either has its board in Bleep Patch (section 6) or works with the app through Bleep Audio Bridge. Both can be used at the same time; they are separate boards.
 
@@ -701,6 +703,10 @@ The same button is in the plugins' board window and the web board. In a plugin, 
 - **Cross-process deadline.** Processing in another process within one block is soft real-time. Phase 0 measures misses at small buffer sizes and under load.
 - **One host at a time.** The app accepts bridges from one host process at a time.
 - **Two boards.** A Live set with Bleep Patch and the app are separate boards; cables don't cross between them (except via MIDI ports and bridges).
+
+### 11.7 System audio
+
+The app can take in **what the computer plays** (a music player, a browser, a call) as the *System* node, an *Audio In* named after it, with the operating system's own capture API and no virtual audio driver: a Core Audio process tap on macOS 14.2+, WASAPI loopback on Windows, a PulseAudio/PipeWire monitor on Linux. It is off until the user turns it on in Settings; the app's own sound is left out of the capture where the platform can do that, so *System* patched to an *Audio Out* does not feed back. Standalone app only. The full specification, with the platform backends, the clock-drift handling and the open points, is [system-audio.md](system-audio.md).
 
 ## 12. First module set
 
