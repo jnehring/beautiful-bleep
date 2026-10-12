@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cmake -S patch -B build/patch -DBLEEP_PATCH_BUILD_PLUGINS=OFF
+      - run: cmake -S patch -B build/patch -DBLEEP_BUILD_PLUGINS=OFF
       - run: cmake --build build/patch
       - run: ctest --test-dir build/patch --output-on-failure
 
@@ -90,7 +90,7 @@ jobs:
       - run: ctest --test-dir build -C Release --output-on-failure
       - uses: actions/upload-artifact@v4
         with:
-          name: bleep-patch-${{ matrix.os }}
+          name: beautiful-bleep-${{ matrix.os }}
           path: |
             build/patch/*_artefacts/Release/VST3
             build/patch/*_artefacts/Release/Standalone

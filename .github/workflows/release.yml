@@ -43,6 +43,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev \
             libfreetype-dev libfontconfig1-dev libgl1-mesa-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev
-      - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_PATCH_FORMATS=VST3
+      - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
       - run: cmake --build build/patch --config Release --parallel
       - run: python scripts/release/release.py --all --add-platform latest --yes

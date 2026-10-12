@@ -82,7 +82,7 @@ everywhere. Dropping a WAV on one cell of the grid replaces just that cell
 (its first cycle). Silent or unreadable files are rejected and the bank stays
 as it was.
 
-The file is kept in the Bleep Patch media folder; the board stores only its
+The file is kept in the Beautiful Bleep media folder; the board stores only its
 id. Importing switches *Bank* to *User*. With nothing imported, *User* plays
 a sine.
 

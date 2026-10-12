@@ -48,7 +48,7 @@ def pki(monkeypatch):
     return p
 
 
-def declare(path, data, *, slug="bleep-patch", version="0.1.0", platform="macos-arm64", kit=None, kind="plugin"):
+def declare(path, data, *, slug="bleep-board", version="0.1.0", platform="macos-arm64", kit=None, kind="plugin"):
     """A file declaration for a release, signed like scripts/release/release.py does."""
     kit = kit or PKI.first_party
     sha = hashlib.sha256(data).digest()
@@ -86,7 +86,7 @@ def make_token(client, make_admin):
     return r.json()["token"]
 
 
-def release(client, token, slug="bleep-patch", version="0.1.0", data=b"zipdata", publish=True, channel="stable"):
+def release(client, token, slug="bleep-board", version="0.1.0", data=b"zipdata", publish=True, channel="stable"):
     h = {"Authorization": f"Bearer {token}"}
     body = {"version": version, "channel": channel, "files": [declare(f"{slug}-{version}.zip", data, slug=slug, version=version)]}
     r = client.post(f"/api/registry/plugin/{slug}/releases", json=body, headers=h)
@@ -113,10 +113,10 @@ def test_only_admins_create_tokens(client, make_admin):
 
 def test_release_needs_a_token(client, make_admin):
     body = {"version": "0.1.0", "files": [{"path": "a.zip", "sha256": "0" * 64, "bytes": 1}]}
-    assert client.post("/api/registry/plugin/bleep-patch/releases", json=body).status_code == 401
-    assert client.post("/api/registry/plugin/bleep-patch/releases", json=body, headers={"Authorization": "Bearer nope"}).status_code == 401
+    assert client.post("/api/registry/plugin/bleep-board/releases", json=body).status_code == 401
+    assert client.post("/api/registry/plugin/bleep-board/releases", json=body, headers={"Authorization": "Bearer nope"}).status_code == 401
     login_as_admin(client, make_admin)  # a login cookie is not enough
-    assert client.post("/api/registry/plugin/bleep-patch/releases", json=body).status_code == 401
+    assert client.post("/api/registry/plugin/bleep-board/releases", json=body).status_code == 401
 
 
 def test_revoked_token_stops_working(client, make_admin):
@@ -132,12 +132,12 @@ def test_release_flow_writes_files_entry_and_index(client, make_admin, storage):
     token = make_token(client, make_admin)
     r = release(client, token)
     assert r.status_code == 200 and r.json()["status"] == "published"
-    assert storage.objects["v1/plugins/bleep-patch/0.1.0/bleep-patch-0.1.0.zip"] == b"zipdata"
-    entry = json.loads(storage.objects["v1/plugins/bleep-patch/0.1.0/entry.json"])
+    assert storage.objects["v1/plugins/bleep-board/0.1.0/bleep-board-0.1.0.zip"] == b"zipdata"
+    entry = json.loads(storage.objects["v1/plugins/bleep-board/0.1.0/entry.json"])
     assert entry["version"] == "0.1.0" and entry["files"][0]["platform"] == "macos-arm64"
     index = json.loads(storage.objects["v1/index.json"])
-    assert index["channels"]["stable"]["plugins"]["bleep-patch"]["version"] == "0.1.0"
-    assert client.get("/api/registry/plugin/bleep-patch/versions").json()[0]["version"] == "0.1.0"  # anonymous
+    assert index["channels"]["stable"]["plugins"]["bleep-board"]["version"] == "0.1.0"
+    assert client.get("/api/registry/plugin/bleep-board/versions").json()[0]["version"] == "0.1.0"  # anonymous
 
 
 def test_versions_must_increase(client, make_admin):
@@ -146,7 +146,7 @@ def test_versions_must_increase(client, make_admin):
     assert release(client, token, version="1.2.0").status_code == 409
     assert release(client, token, version="1.1.9").status_code == 409
     assert release(client, token, version="1.2.1").status_code == 200
-    assert [v["version"] for v in client.get("/api/registry/plugin/bleep-patch/versions").json()] == ["1.2.0", "1.2.1"]
+    assert [v["version"] for v in client.get("/api/registry/plugin/bleep-board/versions").json()] == ["1.2.0", "1.2.1"]
 
 
 def test_upload_is_checked_and_publish_needs_all_files(client, make_admin, storage):
@@ -170,8 +170,8 @@ def test_beta_channel_is_only_in_the_beta_index(client, make_admin, storage):
     release(client, token, version="1.0.0")
     release(client, token, version="1.1.0", channel="beta")
     ch = json.loads(storage.objects["v1/index.json"])["channels"]
-    assert ch["stable"]["plugins"]["bleep-patch"]["version"] == "1.0.0"
-    assert ch["beta"]["plugins"]["bleep-patch"]["version"] == "1.1.0"
+    assert ch["stable"]["plugins"]["bleep-board"]["version"] == "1.0.0"
+    assert ch["beta"]["plugins"]["bleep-board"]["version"] == "1.1.0"
 
 
 def test_rejects_bad_paths(client, make_admin):
@@ -204,14 +204,14 @@ def test_token_check(client, make_admin):
 
 def test_store_lists_published_without_login(client, make_admin):
     token = make_token(client, make_admin)
-    assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
-    assert release(client, token, "bleep-patch", "0.2.0").status_code == 200
-    assert release(client, token, "bleep-patch", "0.3.0", publish=False).status_code == 201
+    assert release(client, token, "bleep-board", "0.1.0").status_code == 200
+    assert release(client, token, "bleep-board", "0.2.0").status_code == 200
+    assert release(client, token, "bleep-board", "0.3.0", publish=False).status_code == 201
     assert release(client, token, "other-fx", "1.0.0").status_code == 200
     r = client.get("/api/store")  # public: no login
     assert r.status_code == 200
     body = r.json()
-    assert body["total"] == 2 and [(i["slug"], i["version"]) for i in body["items"]] == [("bleep-patch", "0.2.0"), ("other-fx", "1.0.0")]
+    assert body["total"] == 2 and [(i["slug"], i["version"]) for i in body["items"]] == [("bleep-board", "0.2.0"), ("other-fx", "1.0.0")]
     assert client.get("/api/store?kind=module").json()["total"] == 0
     assert client.get("/api/store?kind=preset").json()["items"] == []
     assert [i["slug"] for i in client.get("/api/store?q=OTHER").json()["items"]] == ["other-fx"]
@@ -281,14 +281,14 @@ def test_store_filters_by_category_and_searches_the_summary(client, make_admin):
 
 def test_store_detail_is_public_and_hides_drafts(client, make_admin):
     token = make_token(client, make_admin)
-    assert release(client, token, "bleep-patch", "0.1.0").status_code == 200
-    assert release(client, token, "bleep-patch", "0.2.0", publish=False).status_code == 201
-    r = client.get("/api/store/plugin/bleep-patch")
+    assert release(client, token, "bleep-board", "0.1.0").status_code == 200
+    assert release(client, token, "bleep-board", "0.2.0", publish=False).status_code == 201
+    r = client.get("/api/store/plugin/bleep-board")
     assert r.status_code == 200
     assert [x["version"] for x in r.json()["releases"]] == ["0.1.0"]
     f = r.json()["releases"][0]["file_list"][0]
     assert f["uploaded"] is True and f["signer"]["publisher"] == "bleep" and "uploaded_by" not in f
-    assert client.get("/api/store/module/bleep-patch").status_code == 404
+    assert client.get("/api/store/module/bleep-board").status_code == 404
     assert client.get("/api/store/bogus/x").status_code == 422
 
 
@@ -296,19 +296,19 @@ def test_platform_can_be_added_to_a_published_release(client, make_admin, storag
     token = make_token(client, make_admin)
     h = {"Authorization": f"Bearer {token}"}
     assert release(client, token).status_code == 200
-    url = "/api/registry/plugin/bleep-patch/releases/0.1.0"
+    url = "/api/registry/plugin/bleep-board/releases/0.1.0"
     data = b"linuxzip"
-    f = declare("bleep-patch-0.1.0-linux-x86_64.zip", data, platform="linux-x86_64")
+    f = declare("bleep-board-0.1.0-linux-x86_64.zip", data, platform="linux-x86_64")
     assert client.post(url + "/platforms", json={"files": [declare(f["path"], data, platform="macos-arm64")]}, headers=h).status_code == 409
     assert client.post(url + "/platforms", json={"files": [f]}, headers=h).status_code == 200
-    entry_key = "v1/plugins/bleep-patch/0.1.0/entry.json"
+    entry_key = "v1/plugins/bleep-board/0.1.0/entry.json"
     assert [x["platform"] for x in json.loads(storage.objects[entry_key])["files"]] == ["macos-arm64"]  # not until uploaded
     assert client.put(url + "/files/" + f["path"], content=data, headers=h).status_code == 204
     assert [x["platform"] for x in json.loads(storage.objects[entry_key])["files"]] == ["macos-arm64", "linux-x86_64"]
     assert client.put(url + "/files/" + f["path"], content=data, headers=h).status_code == 409  # uploaded files never change
-    assert client.put(url + "/files/bleep-patch-0.1.0.zip", content=b"other", headers=h).status_code == 409
+    assert client.put(url + "/files/bleep-board-0.1.0.zip", content=b"other", headers=h).status_code == 409
     assert client.post(url + "/platforms", json={"files": [f]}, headers=h).status_code == 409
-    assert client.post("/api/registry/plugin/bleep-patch/releases/9.9.9/platforms", json={"files": [f]}, headers=h).status_code == 404
+    assert client.post("/api/registry/plugin/bleep-board/releases/9.9.9/platforms", json={"files": [f]}, headers=h).status_code == 404
 
 
 # ---- signing (doc/specs/signing.md): the registry refuses releases without a valid developer signature
@@ -327,26 +327,26 @@ def post_release(client, token, slug, version, files, kind="plugin", **extra):
 def test_unsigned_release_is_refused(client, make_admin):
     token = make_token(client, make_admin)
     data = b"zipdata"
-    f = declare("bleep-patch-0.1.0.zip", data)
+    f = declare("bleep-board-0.1.0.zip", data)
     del f["signature"]
-    r = post_release(client, token, "bleep-patch", "0.1.0", [f])
+    r = post_release(client, token, "bleep-board", "0.1.0", [f])
     assert r.status_code == 422 and "signature is required" in r.json()["detail"]
-    assert client.get("/api/registry/plugin/bleep-patch/versions").json() == []
+    assert client.get("/api/registry/plugin/bleep-board/versions").json() == []
 
 
 def test_a_signature_is_only_good_for_what_it_signed(client, make_admin):
     token = make_token(client, make_admin)
     data = b"zipdata"
-    ok = declare("bleep-patch-0.1.0.zip", data)
+    ok = declare("bleep-board-0.1.0.zip", data)
     for name, f, slug, version in (
-        ("other version", ok, "bleep-patch", "0.2.0"),
+        ("other version", ok, "bleep-board", "0.2.0"),
         ("other plugin", ok, "bleep-audio-bridge", "0.1.0"),
-        ("other platform", {**ok, "platform": "windows-x86_64"}, "bleep-patch", "0.1.0"),
-        ("other bytes", {**ok, "sha256": hashlib.sha256(b"different").hexdigest()}, "bleep-patch", "0.1.0"),
+        ("other platform", {**ok, "platform": "windows-x86_64"}, "bleep-board", "0.1.0"),
+        ("other bytes", {**ok, "sha256": hashlib.sha256(b"different").hexdigest()}, "bleep-board", "0.1.0"),
     ):
         r = post_release(client, token, slug, version, [f])
         assert r.status_code == 422 and "invalid" in r.json()["detail"], name
-    assert post_release(client, token, "bleep-patch", "0.1.0", [ok]).status_code == 201
+    assert post_release(client, token, "bleep-board", "0.1.0", [ok]).status_code == 201
 
 
 def test_a_signature_from_another_registry_is_refused(client, make_admin):
@@ -355,14 +355,14 @@ def test_a_signature_from_another_registry_is_refused(client, make_admin):
     cert = signing.make_cert(root, None, signing.new_tbs("issuer", signing.public_bytes(issuer), publisher="bleep", scopes=["issue"],
                                                          not_before=0, not_after=2**33))
     evil = signing.issue_kit(issuer, cert, "bleep", scopes=("module", "plugin"), first_party=True)
-    r = post_release(client, token, "bleep-patch", "0.1.0", [declare("bleep-patch-0.1.0.zip", b"x", kit=evil)])
+    r = post_release(client, token, "bleep-board", "0.1.0", [declare("bleep-board-0.1.0.zip", b"x", kit=evil)])
     assert r.status_code == 422
 
 
 def test_no_root_key_means_no_releases(client, make_admin, monkeypatch):
     token = make_token(client, make_admin)
     monkeypatch.setattr(settings, "root_public_keys", "")
-    assert post_release(client, token, "bleep-patch", "0.1.0", [declare("bleep-patch-0.1.0.zip", b"x")]).status_code == 503
+    assert post_release(client, token, "bleep-board", "0.1.0", [declare("bleep-board-0.1.0.zip", b"x")]).status_code == 503
 
 
 def test_token_may_only_release_for_its_publisher(client, make_admin, capsys):
@@ -373,11 +373,11 @@ def test_token_may_only_release_for_its_publisher(client, make_admin, capsys):
     plain = new_token(capsys)                       # no publisher: ours (bleep) only
     acme = new_token(capsys, "acme")
     data = b"zipdata"
-    mine = [declare("bleep-patch-0.1.0.zip", data)]
+    mine = [declare("bleep-board-0.1.0.zip", data)]
     theirs = [declare("acme.fuzz-0.1.0.zip", data, slug="acme.fuzz", kit=acme_kit)]
-    assert post_release(client, plain, "bleep-patch", "0.1.0", mine).status_code == 201
+    assert post_release(client, plain, "bleep-board", "0.1.0", mine).status_code == 201
     assert post_release(client, plain, "acme.fuzz", "0.1.0", theirs).status_code == 403   # a bleep token cannot publish for acme
-    assert post_release(client, acme, "bleep-patch", "0.2.0", [declare("bleep-patch-0.2.0.zip", data, version="0.2.0")]).status_code == 403
+    assert post_release(client, acme, "bleep-board", "0.2.0", [declare("bleep-board-0.2.0.zip", data, version="0.2.0")]).status_code == 403
     assert post_release(client, acme, "acme.fuzz", "0.1.0", theirs).status_code == 201
     # and acme cannot sign a bare id, or an id in another namespace
     other = declare("evil-0.1.0.zip", data, slug="evil.fuzz", kit=acme_kit)
@@ -450,12 +450,12 @@ def test_revoked_developer_key_is_refused(client, make_admin, capsys):
 def test_only_the_uploading_token_continues_a_draft(client, make_admin, capsys):
     a, b = new_token(capsys), new_token(capsys)
     data = b"zipdata"
-    f = declare("bleep-patch-0.1.0.zip", data)
-    assert post_release(client, a, "bleep-patch", "0.1.0", [f]).status_code == 201
+    f = declare("bleep-board-0.1.0.zip", data)
+    assert post_release(client, a, "bleep-board", "0.1.0", [f]).status_code == 201
     hb = {"Authorization": f"Bearer {b}"}
-    url = "/api/registry/plugin/bleep-patch/releases/0.1.0"
+    url = "/api/registry/plugin/bleep-board/releases/0.1.0"
     assert client.put(f"{url}/files/{f['path']}", content=data, headers=hb).status_code == 403
-    assert post_release(client, b, "bleep-patch", "0.1.0", [f]).status_code == 403   # nor replace it
+    assert post_release(client, b, "bleep-board", "0.1.0", [f]).status_code == 403   # nor replace it
     assert client.post(f"{url}/publish", headers=hb).status_code == 403
     ha = {"Authorization": f"Bearer {a}"}
     assert client.put(f"{url}/files/{f['path']}", content=data, headers=ha).status_code == 204
@@ -467,7 +467,7 @@ def test_added_platform_must_be_signed_by_the_same_publisher(client, make_admin,
     h = {"Authorization": f"Bearer {token}"}
     assert release(client, token).status_code == 200
     other = PKI.kit("bleep2", scopes=("plugin",), first_party=True)  # may sign bare ids, but is not "bleep"
-    r = client.post("/api/registry/plugin/bleep-patch/releases/0.1.0/platforms", headers=h,
+    r = client.post("/api/registry/plugin/bleep-board/releases/0.1.0/platforms", headers=h,
                     json={"files": [declare("x-linux.zip", b"y", platform="linux-x86_64", kit=other)]})
     assert r.status_code == 403  # a token for bleep, a signature by another
 

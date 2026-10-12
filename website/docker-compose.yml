@@ -8,14 +8,14 @@
 #
 # Later this stack moves into the Brilliant Bleep site's Compose stack.
 # Own project name: the folder name "website" collides with the Brilliant Bleep site.
-name: bleep-patch-site
+name: beautiful-bleep-site
 
 services:
   site:
     build:
       context: ..
       dockerfile: website/Dockerfile
-    image: bleep-patch-site:latest
+    image: beautiful-bleep-site:latest
     ports:
       - "${BLEEP_SITE_PORT:-8080}:80"
     depends_on:
@@ -25,7 +25,7 @@ services:
 
   api:
     build: api
-    image: bleep-patch-api:latest
+    image: beautiful-bleep-api:latest
     environment:
       BLEEP_DATABASE_URL: postgresql+psycopg://bleep:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in website/.env}@db:5432/bleep
       # Secure cookies need HTTPS. Plain http://localhost needs false; set true behind TLS.

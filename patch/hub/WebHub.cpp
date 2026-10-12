@@ -127,7 +127,7 @@ bool WebHub::serve(const std::string& rawPath, HttpResponse& out) {
     std::string path = rawPath.substr(0, rawPath.find('?'));
     if (path == "/health") {
         out.contentType = "application/json";
-        out.body = "{\"app\":\"bleep-patch\",\"protocol\":1}";
+        out.body = "{\"app\":\"bleep-app\",\"protocol\":1}";
         out.headers.emplace_back("Access-Control-Allow-Origin", "*");
         return true;
     }

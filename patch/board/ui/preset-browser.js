@@ -2,7 +2,7 @@
 // preset-browser.js — the preset browser (spec §11.5; standalone app, plugins and web): whole patches to load.
 //
 //   Demo patches   five per advanced module (demo-patches.json, built from patch/presets/demos)
-//   My patches     the user's own, saved from the current board (native "presets"/"savePreset" kind "patches")
+//   My patches     the user's own, saved from the current board (native "presets"/"savePreset" kind "boards")
 //
 // Loading replaces the board (native "loadPatch"; the standalone app asks about unsaved changes first).
 //
@@ -36,7 +36,7 @@
     }
   }
   async function loadMine() {
-    mine = (await native("presets", "patches")) || [];
+    mine = (await native("presets", "boards")) || [];
   }
 
   async function loadCells() {
@@ -114,7 +114,7 @@
         del.addEventListener("click", async (e) => {
           e.stopPropagation();
           if (del.dataset.sure !== "1") { del.dataset.sure = "1"; del.textContent = "Sure?"; setTimeout(() => { del.dataset.sure = ""; del.textContent = "Delete"; }, 2500); return; }
-          mine = (await native("deletePreset", p.name, "patches")) || [];
+          mine = (await native("deletePreset", p.name, "boards")) || [];
           render();
         });
         foot.appendChild(del);
@@ -174,7 +174,7 @@
     const preset = { format: 1, description: desc, tags: [], nodes: clone(board.nodes), cables: clone(board.cables) };
     const needs = window.BleepStoreView ? await BleepStoreView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
-    mine = (await native("savePreset", name, preset, "patches")) || [];
+    mine = (await native("savePreset", name, preset, "boards")) || [];
     saveRow.hidden = true;
     for (const i of saveRow.querySelectorAll("input")) i.value = "";
     group = "mine";

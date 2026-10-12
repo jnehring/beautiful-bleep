@@ -4,7 +4,7 @@ The VST3 plugins that Ableton Live loads are all built from `patch/CMakeLists.tx
 
 | Plugin | CMake target |
 |---|---|
-| Bleep Board | `BleepPatch` |
+| Bleep Board | `BleepBoard` |
 | Bleep MIDI In | `BleepMidiIn` |
 | Bleep MIDI Out | `BleepMidiOut` |
 | Bleep Audio In | `BleepAudioIn` |
@@ -31,11 +31,11 @@ scripts/build-patch.sh --install                      # also copy the VST3s to ~
 
 ```bash
 cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release \
-    -DBLEEP_JUCE_DIR=/path/to/JUCE -DBLEEP_PATCH_FORMATS=VST3 -DBLEEP_PATCH_COPY_PLUGINS=OFF
+    -DBLEEP_JUCE_DIR=/path/to/JUCE -DBLEEP_FORMATS=VST3 -DBLEEP_COPY_PLUGINS=OFF
 cmake --build build/patch --config Release --parallel
 ```
 
-Only some plugins: add `--target BleepMidiIn_VST3 --target BleepPatch_VST3` (target name plus `_VST3`) to the build command. Build all of them if the engine major (`kAbiTag`) changed; otherwise the ones you rebuilt work next to the old ones.
+Only some plugins: add `--target BleepMidiIn_VST3 --target BleepBoard_VST3` (target name plus `_VST3`) to the build command. Build all of them if the engine major (`kAbiTag`) changed; otherwise the ones you rebuilt work next to the old ones.
 
 The bundles end up in `build/patch/<Target>_artefacts/Release/VST3/`, for example `build/patch/BleepMidiIn_artefacts/Release/VST3/Bleep MIDI In.vst3`.
 

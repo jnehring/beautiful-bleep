@@ -27,7 +27,46 @@ std::string defaultFolder() {
     const char* home = std::getenv("HOME");
 #endif
     std::filesystem::path p = home ? home : ".";
-    return (p / "Music" / "Bleep Patch" / "Media").string();
+    return (p / "Music" / "Beautiful Bleep" / "Media").string();
+}
+
+namespace fs = std::filesystem;
+
+/// Moves `from` to `to` without overwriting: a folder is merged child by child.
+void moveNoClobber(const fs::path& from, const fs::path& to) {
+    std::error_code ec;
+    if (!fs::exists(from, ec)) return;
+    if (!fs::exists(to, ec)) {
+        fs::create_directories(to.parent_path(), ec);
+        fs::rename(from, to, ec);
+        if (!ec) return;
+    }
+    if (fs::is_directory(from, ec) && fs::is_directory(to, ec)) {
+        std::vector<fs::path> kids;
+        for (const auto& e : fs::directory_iterator(from, ec)) kids.push_back(e.path());
+        for (const auto& k : kids) moveNoClobber(k, to / k.filename());
+        fs::remove(from, ec);  // only succeeds when empty
+    }
+}
+
+fs::path homeDir() {
+#ifdef _WIN32
+    const char* home = std::getenv("USERPROFILE");
+#else
+    const char* home = std::getenv("HOME");
+#endif
+    return home ? fs::path(home) : fs::path(".");
+}
+
+fs::path appDataDir() {  // as juce::File::userApplicationDataDirectory
+#if defined(_WIN32)
+    const char* a = std::getenv("APPDATA");
+    return a ? fs::path(a) : homeDir() / "AppData" / "Roaming";
+#elif defined(__APPLE__)
+    return homeDir() / "Library" / "Application Support";
+#else
+    return homeDir() / ".config";
+#endif
 }
 
 uint32_t u16(const uint8_t* p) { return (uint32_t)p[0] | ((uint32_t)p[1] << 8); }
@@ -52,6 +91,33 @@ std::string hashId(const std::vector<uint8_t>& bytes) {
 }
 
 }  // namespace
+
+void migrateLegacyFolders() {
+    static std::mutex lock;
+    std::lock_guard<std::mutex> guard(lock);
+    std::error_code ec;
+    const fs::path oldData = appDataDir() / "Bleep Patch", newData = appDataDir() / "Beautiful Bleep";
+    if (fs::exists(oldData, ec)) {
+        // Whole boards: Patches/*.bleeppatch -> Boards/*.bleeppreset (the content is the same JSON).
+        if (fs::is_directory(oldData / "Patches", ec)) {
+            fs::create_directories(newData / "Boards", ec);
+            std::vector<fs::path> files;
+            for (const auto& e : fs::directory_iterator(oldData / "Patches", ec))
+                if (e.path().extension() == ".bleeppatch") files.push_back(e.path());
+            for (const auto& f : files) {
+                fs::path to = newData / "Boards" / f.filename();
+                to.replace_extension(".bleeppreset");
+                if (!fs::exists(to, ec)) fs::rename(f, to, ec);
+            }
+            fs::remove(oldData / "Patches", ec);  // only when empty
+        }
+        // The app's settings file was named after the app.
+        if (fs::exists(oldData / "Bleep Patch.settings", ec))
+            moveNoClobber(oldData / "Bleep Patch.settings", oldData / "Bleep App.settings");
+        moveNoClobber(oldData, newData);
+    }
+    moveNoClobber(homeDir() / "Music" / "Bleep Patch", homeDir() / "Music" / "Beautiful Bleep");
+}
 
 void setFolder(const std::string& path) {
     std::lock_guard<std::mutex> l(g_lock);

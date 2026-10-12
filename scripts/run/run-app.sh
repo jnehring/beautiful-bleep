@@ -16,7 +16,7 @@
 #               build's cached choice, else download JUCE 8.0.9)
 #
 # A running app is asked to quit first (it may ask you to save); the script
-# never force-quits it. Output: build/patch/BleepPatchApp_artefacts/<Config>/
+# never force-quits it. Output: build/patch/BleepApp_artefacts/<Config>/
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-APP="$BUILD_DIR/BleepPatchApp_artefacts/$CONFIG/Bleep App.app"
+APP="$BUILD_DIR/BleepApp_artefacts/$CONFIG/Bleep App.app"
 BIN="$APP/Contents/MacOS/Bleep App"
 
 if [[ $BUILD == 1 ]]; then
@@ -51,10 +51,10 @@ if [[ $BUILD == 1 ]]; then
     [[ -n "$JUCE_DIR" ]] && JUCE_ARG=(-DBLEEP_JUCE_DIR="$JUCE_DIR")
     cmake -S "$ROOT/patch" -B "$BUILD_DIR" ${GENERATOR[@]+"${GENERATOR[@]}"} ${JUCE_ARG[@]+"${JUCE_ARG[@]}"} \
         -DCMAKE_BUILD_TYPE="$CONFIG" \
-        -DBLEEP_PATCH_FORMATS=VST3 \
-        -DBLEEP_PATCH_BUILD_APP=ON \
-        -DBLEEP_PATCH_UI_DEV="$UI_DEV" >/dev/null
-    cmake --build "$BUILD_DIR" --config "$CONFIG" --target BleepPatchApp --parallel
+        -DBLEEP_FORMATS=VST3 \
+        -DBLEEP_BUILD_APP=ON \
+        -DBLEEP_UI_DEV="$UI_DEV" >/dev/null
+    cmake --build "$BUILD_DIR" --config "$CONFIG" --target BleepApp --parallel
 fi
 
 if [[ ! -x "$BIN" ]]; then

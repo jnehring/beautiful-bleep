@@ -2,13 +2,13 @@
 
 The standalone app (spec §11): the same engine, board and modules as the
 plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
-`build/patch/BleepPatchApp_artefacts/<Config>/Bleep App.app`.
+`build/patch/BleepApp_artefacts/<Config>/Bleep App.app`.
 
 - **Projects:** File → New / Open / Save (`.bleepboard`). The app reopens the
   last project.
 - **Presets:** File → Presets… (⌘P) or the *Presets* button opens the preset
   browser: five demo boards for every advanced module (*Demos by module*) and
-  your own boards (*Save current board…*, kept in `Bleep Patch/Patches/` in
+  your own boards (*Save current board…*, kept in `Beautiful Bleep/Boards/` in
   the app data folder). Loading one replaces the project, sets the tempo and
   starts the transport (spec §11.5).
 - **Audio device:** File → Settings. Pairs of input and output channels are
@@ -54,7 +54,7 @@ via GPLv3). A closed-source build needs a license from Ableton
 (link-devs@ableton.com), or build without Link:
 
 ```bash
-cmake -S patch -B build/patch -DBLEEP_PATCH_LINK=OFF
+cmake -S patch -B build/patch -DBLEEP_LINK=OFF
 ```
 
 Without Link the app uses an internal clock (Transport → Play/Stop, tempo

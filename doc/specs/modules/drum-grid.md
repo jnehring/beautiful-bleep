@@ -241,7 +241,7 @@ become `.`, short strings are padded with `.`, long ones cut at 32, missing
 tracks/slots are padded, Length is clamped to 1–32, `current` to 0–15.
 
 **Pattern library file** — one JSON file per preset, extension `.bleepdrums`,
-in `<user app data>/Bleep Patch/Drum Patterns/` (next to `Cells/`):
+in `<user app data>/Beautiful Bleep/Drum Patterns/` (next to `Cells/`):
 
 ```json
 { "name": "Four on the Floor",

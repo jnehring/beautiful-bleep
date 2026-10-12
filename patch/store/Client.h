@@ -16,7 +16,7 @@ namespace bleep::store {
 
 /// The settings the app and every plugin share (<data>/settings.json).
 #ifndef BLEEP_STORE_URL
-#define BLEEP_STORE_URL "https://store.bleep.invalid"   // the site's address, put in at build time (CMake: BLEEP_PATCH_STORE_URL)
+#define BLEEP_STORE_URL "https://store.bleep.invalid"   // the site's address, put in at build time (CMake: BLEEP_STORE_URL)
 #endif
 
 struct Settings {
@@ -50,7 +50,7 @@ struct IndexPlugin {
 };
 struct Index {
     std::vector<IndexModule> modules;
-    std::vector<IndexPlugin> plugins;   ///< the VST3 plugins (and the app); `bleep-patch-app` is not one to install into a DAW
+    std::vector<IndexPlugin> plugins;   ///< the VST3 plugins (and the app); `bleep-app` is not one to install into a DAW
     const IndexModule* find(const std::string& slug) const;
     /// The module that provides a node type, or null.
     const IndexModule* providing(const std::string& type) const;

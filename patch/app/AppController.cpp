@@ -4,6 +4,7 @@
 #include <future>
 
 #include "BoardWindow.h"
+#include "Media.h"
 
 namespace bleep::app {
 
@@ -27,9 +28,10 @@ juce::String projectName(const juce::File& f) { return f == juce::File() ? juce:
 // ---- lifetime --------------------------------------------------------------------------
 
 AppController::AppController() {
+    engine::media::migrateLegacyFolders();  // before the settings file is opened
     juce::PropertiesFile::Options o;
     o.applicationName = "Bleep App";
-    o.folderName = "Bleep Patch";
+    o.folderName = "Beautiful Bleep";
     o.filenameSuffix = ".settings";
     o.osxLibrarySubFolder = "Application Support";
     settings_ = std::make_unique<juce::PropertiesFile>(o);

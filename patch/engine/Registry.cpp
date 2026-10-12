@@ -22,7 +22,7 @@ Registry& Registry::instance() {
 const Registry& Registry::get() { return instance(); }
 
 Registry::Registry() {
-#ifndef BLEEP_NO_BUNDLED_MODULES  // the apps and plugins get their modules from the Bleep Store (CMake: BLEEP_PATCH_BUNDLE_MODULES)
+#ifndef BLEEP_NO_BUNDLED_MODULES  // the apps and plugins get their modules from the Bleep Store (CMake: BLEEP_BUNDLE_MODULES)
     registerOscillatorModule(*this);
     registerNoiseModule(*this);
     registerFunctionModule(*this);

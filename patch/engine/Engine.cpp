@@ -54,8 +54,9 @@ bool sendsToTrack(PortKind k) {
 // ---- lifetime ------------------------------------------------------------------
 
 Engine::Engine() {
+    media::migrateLegacyFolders();
     media::setFolder(juce::File::getSpecialLocation(juce::File::userMusicDirectory)
-                         .getChildFile("Bleep Patch").getChildFile("Media").getFullPathName().toStdString());
+                         .getChildFile("Beautiful Bleep").getChildFile("Media").getFullPathName().toStdString());
 #if defined(BLEEP_WASM_MODULES)
     {  // the modules installed on this machine (doc/specs/store.md): registered before any board is loaded
         auto& store = ModuleStore::instance();
@@ -1018,7 +1019,7 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
 
 namespace {
 
-constexpr const char* kEnvName = "BLEEP_PATCH_ENGINE";
+constexpr const char* kEnvName = "BLEEP_ENGINE";
 
 juce::String abiTag() {
     return juce::String(kAbiTag) + "/" + juce::String((int)sizeof(BlockIO)) + "/" +

@@ -220,7 +220,7 @@ int main() {
             EXPECT(contains(all, "Cross-Origin-Opener-Policy: same-origin\r\n"));
             EXPECT(contains(all, "Cross-Origin-Embedder-Policy: require-corp\r\n"));
             EXPECT(contains(all, "Cross-Origin-Resource-Policy: same-origin\r\n"));
-            if (p == "/health") EXPECT(all.find("200 OK") != std::string::npos && all.find("{\"app\":\"bleep-patch\",\"protocol\":1}") != std::string::npos);
+            if (p == "/health") EXPECT(all.find("200 OK") != std::string::npos && all.find("{\"app\":\"bleep-app\",\"protocol\":1}") != std::string::npos);
             if (p == "/") EXPECT(all.find("200 OK") != std::string::npos && all.find("<html>board</html>") != std::string::npos);
             if (p == "/nope") EXPECT(all.find("404") != std::string::npos);
         }

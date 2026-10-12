@@ -1,6 +1,6 @@
 # Build the standalone app
 
-The standalone app is `BleepPatchApp` in `patch/CMakeLists.txt` (spec §11): the board in its own window, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server. The product is named **Bleep App**.
+The standalone app is `BleepApp` in `patch/CMakeLists.txt` (spec §11): the board in its own window, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server. The product is named **Bleep App**.
 
 ## Prerequisites
 
@@ -21,24 +21,24 @@ scripts/run/run-app.sh --ui-dev              # reads the board UI from patch/ (e
 
 The script builds only the app target, in `build/patch/`. A running copy is asked to quit first and is never force-quit.
 
-The result is `build/patch/BleepPatchApp_artefacts/Release/Bleep App.app`.
+The result is `build/patch/BleepApp_artefacts/Release/Bleep App.app`.
 
 ## Build without the script, or on Windows
 
 ```bash
 cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_JUCE_DIR=/path/to/JUCE
-cmake --build build/patch --config Release --target BleepPatchApp --parallel
+cmake --build build/patch --config Release --target BleepApp --parallel
 ```
 
-The Windows executable ends up in `build/patch/BleepPatchApp_artefacts/Release/`.
+The Windows executable ends up in `build/patch/BleepApp_artefacts/Release/`.
 
 ## Options
 
 | CMake option | Default | Effect |
 |---|---|---|
-| `BLEEP_PATCH_BUILD_APP` | ON | Build the standalone app |
-| `BLEEP_PATCH_LINK` | ON | Include Ableton Link. **This makes the app binary GPL.** Turn it off for a build that must stay MIT |
-| `BLEEP_PATCH_UI_DEV` | OFF | Development only: the UI comes from the source tree. Never ship |
+| `BLEEP_BUILD_APP` | ON | Build the standalone app |
+| `BLEEP_LINK` | ON | Include Ableton Link. **This makes the app binary GPL.** Turn it off for a build that must stay MIT |
+| `BLEEP_UI_DEV` | OFF | Development only: the UI comes from the source tree. Never ship |
 | `BLEEP_LINK_DIR` | unset | Use a local Link checkout instead of downloading it |
 
 ## Checks before you hand a build to anyone

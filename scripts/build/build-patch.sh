@@ -52,9 +52,9 @@ cmake -S "$ROOT/patch" -B "$BUILD_DIR" ${GENERATOR[@]+"${GENERATOR[@]}"} \
     -DCMAKE_BUILD_TYPE="$CONFIG" \
     ${LAUNCHER[@]+"${LAUNCHER[@]}"} \
     -DBLEEP_JUCE_DIR="$JUCE_DIR" \
-    -DBLEEP_PATCH_FORMATS=VST3 \
-    -DBLEEP_PATCH_COPY_PLUGINS="$INSTALL" \
-    -DBLEEP_PATCH_UI_DEV="$UI_DEV"
+    -DBLEEP_FORMATS=VST3 \
+    -DBLEEP_COPY_PLUGINS="$INSTALL" \
+    -DBLEEP_UI_DEV="$UI_DEV"
 cmake --build "$BUILD_DIR" --config "$CONFIG" --parallel
 
 if [[ $TEST == 1 ]]; then

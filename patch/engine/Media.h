@@ -5,8 +5,8 @@
 // audio lives as a WAV file in one media folder on the computer
 // (doc/specs/modules/splice.md §7), shared by every set:
 //
-//   macOS    ~/Music/Bleep Patch/Media/<id>.wav
-//   Windows  %USERPROFILE%\Music\Bleep Patch\Media\<id>.wav
+//   macOS    ~/Music/Beautiful Bleep/Media/<id>.wav
+//   Windows  %USERPROFILE%\Music\Beautiful Bleep\Media\<id>.wav
 //
 // Ids are content hashes, so importing the same file twice stores it once and
 // a copied board keeps working on any computer that has the media folder.
@@ -41,6 +41,14 @@ namespace media {
 /// may point it at a temporary folder.
 void setFolder(const std::string& path);
 std::string folder();
+
+/// One-time move of the data folders from their old name, "Bleep Patch", to
+/// "Beautiful Bleep": the app-data folder (Cells, Drum Patterns, the settings
+/// file, whole boards: Patches/*.bleeppatch become Boards/*.bleeppreset) and
+/// ~/Music/Bleep Patch (the media folder). Nothing is overwritten: a file that
+/// exists under the new name stays, and the old one is left where it is.
+/// Safe to call any number of times, from any binary, before the folders are used.
+void migrateLegacyFolders();
 
 /// Decodes a WAV file in memory (PCM 8/16/24/32 bit, float 32/64 bit, any
 /// channel count). Returns null on anything it can't read.

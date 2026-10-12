@@ -8,15 +8,15 @@
 #   cmake --build build/patch
 #
 # Options:
-#   BLEEP_PATCH_BUILD_PLUGINS   build the plugins (needs JUCE)                ON
-#   BLEEP_PATCH_BUILD_TESTS     build the DSP and engine tests                 ON
+#   BLEEP_BUILD_PLUGINS   build the plugins (needs JUCE)                ON
+#   BLEEP_BUILD_TESTS     build the DSP and engine tests                 ON
 #   BLEEP_JUCE_DIR              local JUCE checkout; empty = FetchContent
-#   BLEEP_PATCH_COPY_PLUGINS    copy plugins to the user plugin folders       OFF
-#   BLEEP_PATCH_UI_DEV          plugins read the board UI from the source tree OFF
+#   BLEEP_COPY_PLUGINS    copy plugins to the user plugin folders       OFF
+#   BLEEP_UI_DEV          plugins read the board UI from the source tree OFF
 #                               (edit HTML/CSS/JS, reopen the board)
-#   BLEEP_PATCH_FORMATS         plugin formats                               "VST3"
-#   BLEEP_PATCH_BUILD_APP       build the standalone app (spec §11)            ON
-#   BLEEP_PATCH_LINK            include Ableton Link in the app (GPLv2+)        ON
+#   BLEEP_FORMATS         plugin formats                               "VST3"
+#   BLEEP_BUILD_APP       build the standalone app (spec §11)            ON
+#   BLEEP_LINK            include Ableton Link in the app (GPLv2+)        ON
 #   BLEEP_LINK_DIR              local Ableton Link checkout; empty = FetchContent
 cmake_minimum_required(VERSION 3.22)
 
@@ -24,31 +24,31 @@ if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum macOS version")
 endif ()
 
-project(BleepPatch VERSION 0.2.0 LANGUAGES C CXX)
+project(BleepBoard VERSION 0.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(BLEEP_PATCH_BUILD_PLUGINS "Build the Bleep plugins (needs JUCE)" ON)
-option(BLEEP_PATCH_BUILD_TESTS "Build the DSP and engine tests" ON)
-option(BLEEP_PATCH_LIGHT_TESTS "Tests only: DSP tests, module harness and type dump (juce_core only, no plugins)" OFF)
-if (BLEEP_PATCH_LIGHT_TESTS)
-    set(BLEEP_PATCH_BUILD_TESTS ON)
-    set(BLEEP_PATCH_BUILD_PLUGINS OFF)
-    set(BLEEP_PATCH_BUILD_APP OFF)
+option(BLEEP_BUILD_PLUGINS "Build the Bleep plugins (needs JUCE)" ON)
+option(BLEEP_BUILD_TESTS "Build the DSP and engine tests" ON)
+option(BLEEP_LIGHT_TESTS "Tests only: DSP tests, module harness and type dump (juce_core only, no plugins)" OFF)
+if (BLEEP_LIGHT_TESTS)
+    set(BLEEP_BUILD_TESTS ON)
+    set(BLEEP_BUILD_PLUGINS OFF)
+    set(BLEEP_BUILD_APP OFF)
 endif ()
-option(BLEEP_PATCH_COPY_PLUGINS "Copy built plugins into the user's plugin folders" OFF)
-option(BLEEP_PATCH_UI_DEV "Development builds: serve the board UI from the source tree instead of the embedded copy" OFF)
+option(BLEEP_COPY_PLUGINS "Copy built plugins into the user's plugin folders" OFF)
+option(BLEEP_UI_DEV "Development builds: serve the board UI from the source tree instead of the embedded copy" OFF)
 # Spec §5.2: VST3 only, Ableton Live only (for now).
-set(BLEEP_PATCH_FORMATS "VST3" CACHE STRING "Plugin formats (JUCE names)")
+set(BLEEP_FORMATS "VST3" CACHE STRING "Plugin formats (JUCE names)")
 set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.9)")
 # The wasm module host (engine/wasm/, doc/specs/module-abi.md): needs the Wasmtime C API, from
 # https://github.com/bytecodealliance/wasmtime/releases (wasmtime-v<version>-<target>-c-api). With it, the test
 # bleep_wasm_parity runs every module as native and as wasm and compares them (store.md section 13, M1).
-set(BLEEP_PATCH_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
-option(BLEEP_PATCH_BUILD_APP "Build the standalone Bleep App" ON)
-option(BLEEP_PATCH_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
+set(BLEEP_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
+option(BLEEP_BUILD_APP "Build the standalone Bleep App" ON)
+option(BLEEP_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
 
 # The bus, as a third party would consume it.
@@ -69,9 +69,9 @@ endforeach ()
 list(SORT BLEEP_MODULES)
 # Optional: build only some modules (a list of folder names), e.g. while
 # several people add modules to one tree at the same time.
-set(BLEEP_PATCH_ONLY_MODULES "" CACHE STRING "Build only these modules (empty: all)")
-if (BLEEP_PATCH_ONLY_MODULES)
-    list(FILTER BLEEP_MODULES INCLUDE REGEX "^(${BLEEP_PATCH_ONLY_MODULES})$")
+set(BLEEP_ONLY_MODULES "" CACHE STRING "Build only these modules (empty: all)")
+if (BLEEP_ONLY_MODULES)
+    list(FILTER BLEEP_MODULES INCLUDE REGEX "^(${BLEEP_ONLY_MODULES})$")
 endif ()
 # A module ported from copyleft code (GPL, LGPL, AGPL, MPL) keeps that licence and is never compiled into the apps
 # and plugins: it ships only as an optional .wasm module from the Bleep Store. Tests and tools still build it
@@ -84,21 +84,21 @@ foreach (m IN LISTS BLEEP_MODULES)
         list(APPEND BLEEP_COPYLEFT_MODULES "${m}")
     endif ()
 endforeach ()
-add_library(bleep_patch_dsp INTERFACE)
-target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
+add_library(bleep_dsp INTERFACE)
+target_include_directories(bleep_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/common")
 foreach (m IN LISTS BLEEP_MODULES)
-    target_include_directories(bleep_patch_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/dsp")
+    target_include_directories(bleep_dsp INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/dsp")
 endforeach ()
-target_compile_features(bleep_patch_dsp INTERFACE cxx_std_17)
+target_compile_features(bleep_dsp INTERFACE cxx_std_17)
 
-if (BLEEP_PATCH_BUILD_TESTS)
+if (BLEEP_BUILD_TESTS)
     enable_testing()
-    add_executable(bleep_patch_dsp_tests tests/test_dsp.cpp)
-    target_link_libraries(bleep_patch_dsp_tests PRIVATE bleep_patch_dsp)
-    add_test(NAME patch.dsp COMMAND bleep_patch_dsp_tests)
-    add_executable(bleep_patch_utility_tests tests/test_utility_dsp.cpp)
-    target_link_libraries(bleep_patch_utility_tests PRIVATE bleep_patch_dsp)
-    add_test(NAME patch.utility-dsp COMMAND bleep_patch_utility_tests)
+    add_executable(bleep_dsp_tests tests/test_dsp.cpp)
+    target_link_libraries(bleep_dsp_tests PRIVATE bleep_dsp)
+    add_test(NAME patch.dsp COMMAND bleep_dsp_tests)
+    add_executable(bleep_utility_tests tests/test_utility_dsp.cpp)
+    target_link_libraries(bleep_utility_tests PRIVATE bleep_dsp)
+    add_test(NAME patch.utility-dsp COMMAND bleep_utility_tests)
     # System Audio's ring and drift-compensating reader (app/SystemAudioBuffer.h, doc/specs/system-audio.md): pure C++.
     add_executable(bleep_system_audio_test tests/system_audio_test.cpp)
     add_test(NAME patch.system-audio COMMAND bleep_system_audio_test)
@@ -112,12 +112,12 @@ if (BLEEP_PATCH_BUILD_TESTS)
     foreach (t IN LISTS dsp_test_sources)
         get_filename_component(name "${t}" NAME_WE)
         add_executable(bleep_${name} "${t}")
-        target_link_libraries(bleep_${name} PRIVATE bleep_patch_dsp)
+        target_link_libraries(bleep_${name} PRIVATE bleep_dsp)
         add_test(NAME patch.${name} COMMAND bleep_${name})
     endforeach ()
 endif ()
 
-if (NOT BLEEP_PATCH_BUILD_PLUGINS AND NOT BLEEP_PATCH_BUILD_TESTS)
+if (NOT BLEEP_BUILD_PLUGINS AND NOT BLEEP_BUILD_TESTS)
     return()
 endif ()
 
@@ -142,7 +142,7 @@ set(BLEEP_ENGINE_SOURCES
     engine/Program.cpp
     engine/Registry.cpp
     engine/VoiceCell.cpp)
-# What the apps and the plugins are built from. With the wasm module host (BLEEP_PATCH_WASMTIME_DIR) they carry no
+# What the apps and the plugins are built from. With the wasm module host (BLEEP_WASMTIME_DIR) they carry no
 # modules: those come from the Bleep Store, as .wasm files installed on the machine (doc/specs/store.md). Tests and
 # tools always compile the modules in (they are the reference the wasm builds are held to: bleep_wasm_parity).
 set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_ENGINE_SOURCES})
@@ -154,8 +154,8 @@ foreach (m IN LISTS BLEEP_MODULES)
         list(APPEND BLEEP_APP_MODULE_SOURCES ${module_sources})
     endif ()
 endforeach ()
-option(BLEEP_PATCH_BUNDLE_MODULES "Compile the modules into the apps and the plugins (default: only without the wasm module host)" OFF)
-if (BLEEP_PATCH_BUNDLE_MODULES OR NOT BLEEP_PATCH_WASMTIME_DIR)
+option(BLEEP_BUNDLE_MODULES "Compile the modules into the apps and the plugins (default: only without the wasm module host)" OFF)
+if (BLEEP_BUNDLE_MODULES OR NOT BLEEP_WASMTIME_DIR)
     set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_APP_ENGINE_SOURCES} ${BLEEP_APP_MODULE_SOURCES})
     set(BLEEP_APP_BUNDLES_MODULES TRUE)
 else ()
@@ -171,7 +171,7 @@ set(BLEEP_BRIDGE_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/bridges/standalone")
 # The web hub (doc/specs/bridges.md §10): WebSocket server and the app's web peers.
 include(hub/hub.cmake)
 
-if (BLEEP_PATCH_BUILD_TESTS)
+if (BLEEP_BUILD_TESTS)
     # Every module type on a real compiled board: random knobs and inputs,
     # finite outputs, data round trips (tests/module_harness.cpp). juce_core only.
     juce_add_console_app(bleep_module_harness PRODUCT_NAME "Bleep Module Harness")
@@ -183,7 +183,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
     endforeach ()
     target_include_directories(bleep_module_harness PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_module_harness PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_module_harness PRIVATE bleep_patch_dsp juce::juce_core
+    target_link_libraries(bleep_module_harness PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.modules COMMAND bleep_module_harness)
 
@@ -197,10 +197,10 @@ if (BLEEP_PATCH_BUILD_TESTS)
     target_link_libraries(bleep_store_test PRIVATE juce::juce_core juce::juce_cryptography juce::juce_recommended_config_flags)
     add_test(NAME patch.store COMMAND bleep_store_test)
 
-    if (BLEEP_PATCH_WASMTIME_DIR)
+    if (BLEEP_WASMTIME_DIR)
         add_library(bleep_wasmtime STATIC IMPORTED)
-        set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_PATCH_WASMTIME_DIR}/lib/libwasmtime.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_PATCH_WASMTIME_DIR}/include")
+        set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_WASMTIME_DIR}/lib/libwasmtime.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_WASMTIME_DIR}/include")
         if (APPLE)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
@@ -221,7 +221,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
         # WebAssembly never fuses a multiply and an add; the native reference must not either, or a phase accumulator drifts
         # by rounding alone and every oscillator "differs".
         target_compile_options(bleep_wasm_parity PRIVATE -ffp-contract=off)
-        target_link_libraries(bleep_wasm_parity PRIVATE bleep_patch_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
+        target_link_libraries(bleep_wasm_parity PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
     endif ()
 
@@ -236,7 +236,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
     endforeach ()
     target_include_directories(bleep_demo_patches PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_demo_patches PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_demo_patches PRIVATE bleep_patch_dsp juce::juce_core
+    target_link_libraries(bleep_demo_patches PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.demo-patches COMMAND bleep_demo_patches
         "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-patches.json")
@@ -252,7 +252,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
     endforeach ()
     target_include_directories(bleep_cell_plugin_presets PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_cell_plugin_presets PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_cell_plugin_presets PRIVATE bleep_patch_dsp juce::juce_core
+    target_link_libraries(bleep_cell_plugin_presets PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.cell-plugin-presets COMMAND bleep_cell_plugin_presets
         "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json"
@@ -269,12 +269,12 @@ if (BLEEP_PATCH_BUILD_TESTS)
     endforeach ()
     target_include_directories(bleep_engine_features PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_engine_features PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_engine_features PRIVATE bleep_patch_dsp juce::juce_core
+    target_link_libraries(bleep_engine_features PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.engine-features COMMAND bleep_engine_features)
 endif ()
 
-if (BLEEP_PATCH_BUILD_TESTS AND NOT BLEEP_PATCH_LIGHT_TESTS)
+if (BLEEP_BUILD_TESTS AND NOT BLEEP_LIGHT_TESTS)
     juce_add_console_app(bleep_engine_tests PRODUCT_NAME "Bleep Engine Tests")
     target_sources(bleep_engine_tests PRIVATE tests/engine_test.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_engine_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
@@ -282,7 +282,7 @@ if (BLEEP_PATCH_BUILD_TESTS AND NOT BLEEP_PATCH_LIGHT_TESTS)
         BLEEP_FACTORY_PRESETS="${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json"
         BLEEP_FACTORY_PANELS="${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-panels.json")
     target_link_libraries(bleep_engine_tests PRIVATE
-        bleep_patch_dsp juce::juce_events
+        bleep_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.engine COMMAND bleep_engine_tests)
 
@@ -291,7 +291,7 @@ if (BLEEP_PATCH_BUILD_TESTS AND NOT BLEEP_PATCH_LIGHT_TESTS)
     target_include_directories(bleep_utility_module_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_utility_module_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
     target_link_libraries(bleep_utility_module_tests PRIVATE
-        bleep_patch_dsp juce::juce_events
+        bleep_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.utility-modules COMMAND bleep_utility_module_tests)
 
@@ -300,7 +300,7 @@ if (BLEEP_PATCH_BUILD_TESTS AND NOT BLEEP_PATCH_LIGHT_TESTS)
     target_include_directories(bleep_controller_module_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_controller_module_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
     target_link_libraries(bleep_controller_module_tests PRIVATE
-        bleep_patch_dsp juce::juce_events
+        bleep_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.controller-modules COMMAND bleep_controller_module_tests)
 
@@ -310,12 +310,12 @@ if (BLEEP_PATCH_BUILD_TESTS AND NOT BLEEP_PATCH_LIGHT_TESTS)
     target_include_directories(bleep_bridge_tests PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES})
     target_compile_definitions(bleep_bridge_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
     target_link_libraries(bleep_bridge_tests PRIVATE
-        bleep_patch_dsp juce::juce_events
+        bleep_dsp juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.bridge COMMAND bleep_bridge_tests)
 endif ()
 
-if (BLEEP_PATCH_BUILD_TESTS)
+if (BLEEP_BUILD_TESTS)
     # Writes the node types for the board UI's browser demo (board/ui/demo-types.json).
     juce_add_console_app(bleep_dump_types PRODUCT_NAME "Bleep Dump Types")
     target_sources(bleep_dump_types PRIVATE tests/dump_types.cpp engine/Board.cpp engine/Registry.cpp
@@ -326,7 +326,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
     endforeach ()
     target_include_directories(bleep_dump_types PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_dump_types PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_dump_types PRIVATE bleep_patch_dsp juce::juce_core
+    target_link_libraries(bleep_dump_types PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.ui-types COMMAND bleep_dump_types --check
         "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-types.json")
@@ -335,7 +335,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
         "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json")
 endif ()
 
-if (NOT BLEEP_PATCH_BUILD_PLUGINS)
+if (NOT BLEEP_BUILD_PLUGINS)
     return()
 endif ()
 
@@ -369,17 +369,17 @@ list(APPEND BLEEP_BOARD_UI "${CMAKE_CURRENT_BINARY_DIR}/module-views.json")
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
 
 # Modules installed from the Bleep Store (doc/specs/store.md): the wasm module host, the store client and signature checks.
-# With BLEEP_PATCH_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Store section.
+# With BLEEP_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Store section.
 # Where the store is and whom it trusts: config/store.json, the one place (read by the apps' build and by scripts/release).
-# BLEEP_PATCH_STORE_URL and BLEEP_PATCH_STORE_ROOTS (hex, comma separated) override it for one build.
-set(BLEEP_PATCH_STORE_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/../config/store.json" CACHE FILEPATH "The store configuration the apps and plugins are built with")
-set(BLEEP_PATCH_STORE_URL "" CACHE STRING "Overrides storeUrl of the store configuration")
-set(BLEEP_PATCH_STORE_ROOTS "" CACHE STRING "Root public keys (hex, comma separated) besides rootKeys of the store configuration")
+# BLEEP_STORE_URL and BLEEP_STORE_ROOTS (hex, comma separated) override it for one build.
+set(BLEEP_STORE_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/../config/store.json" CACHE FILEPATH "The store configuration the apps and plugins are built with")
+set(BLEEP_STORE_URL "" CACHE STRING "Overrides storeUrl of the store configuration")
+set(BLEEP_STORE_ROOTS "" CACHE STRING "Root public keys (hex, comma separated) besides rootKeys of the store configuration")
 set(BLEEP_STORE_URL_BAKED "")
 set(BLEEP_STORE_ROOTS "")
-if (EXISTS "${BLEEP_PATCH_STORE_CONFIG}")
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${BLEEP_PATCH_STORE_CONFIG}")
-    file(READ "${BLEEP_PATCH_STORE_CONFIG}" store_config)
+if (EXISTS "${BLEEP_STORE_CONFIG}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${BLEEP_STORE_CONFIG}")
+    file(READ "${BLEEP_STORE_CONFIG}" store_config)
     string(JSON BLEEP_STORE_URL_BAKED ERROR_VARIABLE err GET "${store_config}" storeUrl)
     string(JSON n ERROR_VARIABLE err LENGTH "${store_config}" rootKeys)
     if (NOT err AND n GREATER 0)
@@ -391,24 +391,24 @@ if (EXISTS "${BLEEP_PATCH_STORE_CONFIG}")
         list(JOIN BLEEP_STORE_ROOT_LIST "," BLEEP_STORE_ROOTS)
     endif ()
 endif ()
-if (BLEEP_PATCH_STORE_URL)
-    set(BLEEP_STORE_URL_BAKED "${BLEEP_PATCH_STORE_URL}")
+if (BLEEP_STORE_URL)
+    set(BLEEP_STORE_URL_BAKED "${BLEEP_STORE_URL}")
 endif ()
-if (BLEEP_PATCH_STORE_ROOTS)
+if (BLEEP_STORE_ROOTS)
     if (BLEEP_STORE_ROOTS)
-        set(BLEEP_STORE_ROOTS "${BLEEP_STORE_ROOTS},${BLEEP_PATCH_STORE_ROOTS}")
+        set(BLEEP_STORE_ROOTS "${BLEEP_STORE_ROOTS},${BLEEP_STORE_ROOTS}")
     else ()
-        set(BLEEP_STORE_ROOTS "${BLEEP_PATCH_STORE_ROOTS}")
+        set(BLEEP_STORE_ROOTS "${BLEEP_STORE_ROOTS}")
     endif ()
 endif ()
 function(bleep_use_store target)
-    if (NOT BLEEP_PATCH_WASMTIME_DIR)
+    if (NOT BLEEP_WASMTIME_DIR)
         return()
     endif ()
     if (NOT TARGET bleep_wasmtime)
         add_library(bleep_wasmtime STATIC IMPORTED)
-        set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_PATCH_WASMTIME_DIR}/lib/libwasmtime.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_PATCH_WASMTIME_DIR}/include")
+        set_target_properties(bleep_wasmtime PROPERTIES IMPORTED_LOCATION "${BLEEP_WASMTIME_DIR}/lib/libwasmtime.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${BLEEP_WASMTIME_DIR}/include")
         if (APPLE)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
@@ -446,7 +446,7 @@ function(bleep_add_plugin)
         PLUGIN_CODE ${P_CODE}
         PRODUCT_NAME "${P_PRODUCT}"
         VERSION ${PROJECT_VERSION}
-        FORMATS ${BLEEP_PATCH_FORMATS}
+        FORMATS ${BLEEP_FORMATS}
         IS_SYNTH ${P_SYNTH}
         NEEDS_MIDI_INPUT ${P_SYNTH}
         NEEDS_MIDI_OUTPUT ${P_MIDI_OUT}
@@ -455,7 +455,7 @@ function(bleep_add_plugin)
         NEEDS_WEB_BROWSER TRUE
         NEEDS_WEBVIEW2 ${webview2}
         VST3_CATEGORIES ${P_VST3_CATEGORIES}
-        COPY_PLUGIN_AFTER_BUILD ${BLEEP_PATCH_COPY_PLUGINS})
+        COPY_PLUGIN_AFTER_BUILD ${BLEEP_COPY_PLUGINS})
     target_sources(${P_TARGET} PRIVATE
         ${BLEEP_APP_ENGINE_SOURCES}
         board/BoardWindow.cpp
@@ -472,14 +472,14 @@ function(bleep_add_plugin)
         JUCE_VST3_CAN_REPLACE_VST2=0)
     target_compile_definitions(${P_TARGET} PRIVATE BLEEP_PORT_KIND=${P_KIND})
     bleep_use_store(${P_TARGET})
-    if (BLEEP_PATCH_UI_DEV)
+    if (BLEEP_UI_DEV)
         # Never ship these builds: they read the UI from this machine's source tree.
         target_compile_definitions(${P_TARGET} PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     endif ()
     # Modules register themselves with a static initialiser (BLEEP_REGISTER_MODULE). JUCE puts the sources in a
     # static library, and a linker drops archive members nothing references: the plugin would offer only the modules
     # Registry.cpp registers by hand. Link the whole archive into each plugin format.
-    foreach (fmt IN LISTS BLEEP_PATCH_FORMATS)
+    foreach (fmt IN LISTS BLEEP_FORMATS)
         if (APPLE)
             target_link_options(${P_TARGET}_${fmt} PRIVATE "LINKER:-force_load,$<TARGET_FILE:${P_TARGET}>")
         elseif (MSVC)
@@ -492,7 +492,7 @@ function(bleep_add_plugin)
     target_link_libraries(${P_TARGET}
         PRIVATE
             bleep_board_web
-            bleep_patch_dsp
+            bleep_dsp
             juce::juce_audio_utils
             juce::juce_gui_extra
         PUBLIC
@@ -501,7 +501,7 @@ function(bleep_add_plugin)
             juce::juce_recommended_warning_flags)
 endfunction()
 
-bleep_add_plugin(TARGET BleepPatch PRODUCT "Bleep Board" CODE BpPa KIND Patch
+bleep_add_plugin(TARGET BleepBoard PRODUCT "Bleep Board" CODE BpBo KIND Patch
     VST3_CATEGORIES Fx Tools)
 bleep_add_plugin(TARGET BleepMidiIn PRODUCT "Bleep MIDI In" CODE BpMi KIND MidiIn SYNTH
     VST3_CATEGORIES Instrument Tools)
@@ -517,13 +517,13 @@ bleep_add_plugin(TARGET BleepFx PRODUCT "Bleep FX" CODE BpFx KIND AudioInsert
     VST3_CATEGORIES Fx Tools)
 
 # Opens the real board window on a real engine for a few seconds (not in ctest).
-if (BLEEP_PATCH_BUILD_TESTS)
+if (BLEEP_BUILD_TESTS)
     juce_add_gui_app(bleep_board_smoke PRODUCT_NAME "Bleep Board Smoke")
     target_sources(bleep_board_smoke PRIVATE tests/board_smoke.cpp board/BoardWindow.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_board_smoke PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_board_smoke PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
         BLEEP_BOARD_SMOKE_TEST=1 "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
-    target_link_libraries(bleep_board_smoke PRIVATE bleep_board_web bleep_patch_dsp juce::juce_gui_extra juce::juce_audio_devices
+    target_link_libraries(bleep_board_smoke PRIVATE bleep_board_web bleep_dsp juce::juce_gui_extra juce::juce_audio_devices
         juce::juce_recommended_config_flags)
 endif ()
 
@@ -536,12 +536,12 @@ juce_add_plugin(BleepAudioBridge
     PLUGIN_CODE BpAb
     PRODUCT_NAME "Bleep Audio Bridge"
     VERSION ${PROJECT_VERSION}
-    FORMATS ${BLEEP_PATCH_FORMATS}
+    FORMATS ${BLEEP_FORMATS}
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
     VST3_CATEGORIES Fx Tools
-    COPY_PLUGIN_AFTER_BUILD ${BLEEP_PATCH_COPY_PLUGINS})
+    COPY_PLUGIN_AFTER_BUILD ${BLEEP_COPY_PLUGINS})
 target_sources(BleepAudioBridge PRIVATE bridges/standalone/AudioBridgeProcessor.cpp ${BLEEP_BRIDGE_CLIENT_SOURCES})
 target_include_directories(BleepAudioBridge PRIVATE ${BLEEP_BRIDGE_INCLUDES})
 target_compile_definitions(BleepAudioBridge PUBLIC JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
@@ -551,8 +551,8 @@ target_link_libraries(BleepAudioBridge
     PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
 
 # ---- the standalone app (spec §11) -------------------------------------------------
-if (BLEEP_PATCH_BUILD_APP)
-    if (BLEEP_PATCH_LINK)
+if (BLEEP_BUILD_APP)
+    if (BLEEP_LINK)
         if (BLEEP_LINK_DIR)
             set(link_SOURCE_DIR "${BLEEP_LINK_DIR}")
         else ()
@@ -590,16 +590,16 @@ if (BLEEP_PATCH_BUILD_APP)
         endif ()
     endif ()
 
-    juce_add_gui_app(BleepPatchApp
+    juce_add_gui_app(BleepApp
         PRODUCT_NAME "Bleep App"
-        COMPANY_NAME "Brilliant Bleep"
+        COMPANY_NAME "Beautiful Bleep"
         BUNDLE_ID "com.brilliantbleep.patch.app"
         VERSION ${PROJECT_VERSION}
         DOCUMENT_EXTENSIONS bleepboard
         MICROPHONE_PERMISSION_ENABLED TRUE
         MICROPHONE_PERMISSION_TEXT "Bleep App uses audio inputs as Audio In nodes on the board."
         PLIST_TO_MERGE "<plist><dict><key>NSLocalNetworkUsageDescription</key><string>Bleep App uses Ableton Link to share tempo and beat with other apps on your network.</string><key>NSAudioCaptureUsageDescription</key><string>Beautiful Bleep can capture what your computer plays and put it on the board as the System node.</string></dict></plist>")
-    target_sources(BleepPatchApp PRIVATE
+    target_sources(BleepApp PRIVATE
         app/Main.cpp
         app/AppController.cpp
         ${BLEEP_SYSTEM_AUDIO_SOURCES}
@@ -608,50 +608,50 @@ if (BLEEP_PATCH_BUILD_APP)
         ${BLEEP_APP_ENGINE_SOURCES}
         ${BLEEP_BRIDGE_SERVER_SOURCES}
         ${BLEEP_HUB_SOURCES})
-    target_include_directories(BleepPatchApp PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES} ${BLEEP_HUB_INCLUDES}
+    target_include_directories(BleepApp PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES} ${BLEEP_HUB_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/app")
-    target_compile_definitions(BleepPatchApp PRIVATE
+    target_compile_definitions(BleepApp PRIVATE
         JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
-        JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:BleepPatchApp,JUCE_PRODUCT_NAME>"
-        JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BleepPatchApp,JUCE_VERSION>"
-        BLEEP_PATCH_LINK=$<BOOL:${BLEEP_PATCH_LINK}>)
-    bleep_use_store(BleepPatchApp)
-    if (BLEEP_PATCH_UI_DEV)
-        target_compile_definitions(BleepPatchApp PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
+        JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:BleepApp,JUCE_PRODUCT_NAME>"
+        JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BleepApp,JUCE_VERSION>"
+        BLEEP_LINK=$<BOOL:${BLEEP_LINK}>)
+    bleep_use_store(BleepApp)
+    if (BLEEP_UI_DEV)
+        target_compile_definitions(BleepApp PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     endif ()
-    target_link_libraries(BleepPatchApp PRIVATE
-        bleep_board_web bleep_patch_dsp
+    target_link_libraries(BleepApp PRIVATE
+        bleep_board_web bleep_dsp
         juce::juce_audio_utils juce::juce_gui_extra
-        $<$<BOOL:${BLEEP_PATCH_LINK}>:Ableton::Link>
+        $<$<BOOL:${BLEEP_LINK}>:Ableton::Link>
         ${BLEEP_SYSTEM_AUDIO_LIBS}
         juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
     if (APPLE)
-        target_link_libraries(BleepPatchApp PRIVATE "-framework CoreAudio" "-framework Foundation")
+        target_link_libraries(BleepApp PRIVATE "-framework CoreAudio" "-framework Foundation")
     endif ()
 endif ()
 
 # The preset library of Bleep Instrument and Bleep FX (the presets compiled into the plugins).
-if (BLEEP_PATCH_BUILD_TESTS)
+if (BLEEP_BUILD_TESTS)
     juce_add_console_app(bleep_preset_library_test PRODUCT_NAME "Bleep Preset Library Test")
     target_sources(bleep_preset_library_test PRIVATE tests/preset_library_test.cpp bridges/ableton/PresetLibrary.cpp
         ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_preset_library_test PRIVATE ${BLEEP_ENGINE_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/bridges/ableton")
     target_compile_definitions(bleep_preset_library_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
-    target_link_libraries(bleep_preset_library_test PRIVATE bleep_patch_dsp bleep_board_web juce::juce_events
+    target_link_libraries(bleep_preset_library_test PRIVATE bleep_dsp bleep_board_web juce::juce_events
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.preset-library COMMAND bleep_preset_library_test)
 endif ()
 
 # Integration test: the built Bleep Audio Bridge VST3 against the app's bridge server.
-if (BLEEP_PATCH_BUILD_TESTS)
+if (BLEEP_BUILD_TESTS)
     juce_add_console_app(bleep_bridge_plugin_test PRODUCT_NAME "Bleep Bridge Plugin Test")
     target_sources(bleep_bridge_plugin_test PRIVATE tests/bridge_plugin_test.cpp ${BLEEP_ENGINE_SOURCES}
         ${BLEEP_BRIDGE_SERVER_SOURCES})
     target_include_directories(bleep_bridge_plugin_test PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES})
     target_compile_definitions(bleep_bridge_plugin_test PRIVATE
         JUCE_PLUGINHOST_VST3=1 JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_MODAL_LOOPS_PERMITTED=1)
-    target_link_libraries(bleep_bridge_plugin_test PRIVATE bleep_patch_dsp juce::juce_audio_processors
+    target_link_libraries(bleep_bridge_plugin_test PRIVATE bleep_dsp juce::juce_audio_processors
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_dependencies(bleep_bridge_plugin_test BleepAudioBridge_VST3)
     add_test(NAME patch.bridge-plugin COMMAND bleep_bridge_plugin_test
@@ -664,7 +664,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
     target_include_directories(bleep_port_plugin_test PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES})
     target_compile_definitions(bleep_port_plugin_test PRIVATE
         JUCE_PLUGINHOST_VST3=1 JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_MODAL_LOOPS_PERMITTED=1)
-    target_link_libraries(bleep_port_plugin_test PRIVATE bleep_patch_dsp juce::juce_audio_processors
+    target_link_libraries(bleep_port_plugin_test PRIVATE bleep_dsp juce::juce_audio_processors
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_dependencies(bleep_port_plugin_test BleepAudioIn_VST3 BleepAudioOut_VST3 BleepMidiIn_VST3 BleepMidiOut_VST3)
     # A stand-in for Live's plugins for trying the app and a browser by hand (not a test).

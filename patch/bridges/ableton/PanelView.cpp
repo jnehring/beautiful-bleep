@@ -70,7 +70,7 @@ PanelView::PanelView(engine::IEngine& engine, int handle, Presets presets, std::
 #if JUCE_WINDOWS
     options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
                   .withWinWebView2Options(juce::WebBrowserComponent::Options::WinWebView2{}.withUserDataFolder(
-                      juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("BleepPatchWebView")));
+                      juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("BleepWebView")));
 #endif
     web_ = std::make_unique<Web>(options);
     addAndMakeVisible(*web_);

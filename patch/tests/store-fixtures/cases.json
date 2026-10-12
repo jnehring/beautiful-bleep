@@ -281,7 +281,7 @@
    "name": "plugin-signed",
    "file": "plugin-signed.bleepmod",
    "kind": "plugin",
-   "id": "bleep-patch",
+   "id": "bleep-board",
    "version": "1.2.3",
    "platform": "macos-arm64",
    "now": 1760000100,

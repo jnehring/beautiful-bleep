@@ -199,7 +199,7 @@
       const local = new Map((plugins || []).map((p) => [p.name, p]));
       const offered = status.index.plugins || [];
       // What the store offers (the app itself is not a plugin to install into a DAW); else what is known to be installable.
-      const entries = offered.filter((p) => p.slug !== "bleep-patch-app").map((p) => ({ e: p, name: (p.title || p.slug).replace(/\s*\(VST3\)$/, "") }));
+      const entries = offered.filter((p) => p.slug !== "bleep-app").map((p) => ({ e: p, name: (p.title || p.slug).replace(/\s*\(VST3\)$/, "") }));
       for (const p of plugins || []) if (!entries.some((x) => x.name === p.name)) entries.push({ e: null, name: p.name });
       for (const { e, name } of entries) {
         const { tile: t, body: b } = tile("plugin", e ? Object.assign({}, e, { title: name }) : null, name);
@@ -217,7 +217,7 @@
     body.appendChild(el("div", "st-note", "Your presets: cells and boards you saved. Add → Cell lists the cells; the Presets button on the board loads boards."));
     const list = el("div");
     body.appendChild(list);
-    Promise.all([native("presets", "cells"), native("presets", "patches")]).then(([cells, patches]) => {
+    Promise.all([native("presets", "cells"), native("presets", "boards")]).then(([cells, boards]) => {
       list.innerHTML = "";
       const group = (title, kind, items) => {
         list.appendChild(el("h3", "", `${title} (${(items || []).length})`));
@@ -230,7 +230,7 @@
         list.appendChild(grid);
       };
       group("Cells", "cell", cells);
-      group("Patches", "patch", patches);
+      group("Boards", "patch", boards);
     });
   }
 

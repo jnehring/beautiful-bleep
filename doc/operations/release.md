@@ -2,7 +2,7 @@
 
 ## Releasing plugins to the store
 
-`scripts/release/release.py` publishes plugins to the store in the website stack: `bleep-patch`, the port plugins (`bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`), `bleep-instrument`, `bleep-fx` and the standalone app `bleep-patch-app` (`--list` shows them). The Audio Bridge is no longer on the list. Modules are not released this way yet.
+`scripts/release/release.py` publishes plugins to the store in the website stack: `bleep-board`, the port plugins (`bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`), `bleep-instrument`, `bleep-fx` and the standalone app `bleep-app` (`--list` shows them). The Audio Bridge is no longer on the list. Modules are not released this way yet.
 
 **One-time: a release token.** An admin creates it on the website (Admin → Release tokens; shown once), or from the command line (it is shown once; put it in a file only you can read):
 
@@ -37,7 +37,7 @@ docker compose exec api python -m app.cli developer-revoke KEY_ID
 2. Run, for one plugin, several, or all:
 
 ```bash
-scripts/release/release.py bleep-patch --level 1.x --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json
+scripts/release/release.py bleep-board --level 1.x --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json
 scripts/release/release.py --all --level patch --registry http://localhost:8080 --token-file ~/.bleep-release-token --kit ~/.bleep-signing-kit.json --dry-run
 ```
 
@@ -63,9 +63,9 @@ Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation
 ## The manual release (until CI does it)
 
 1. **Check main is green.** CI (`.github/workflows/ci.yml`) builds and tests the bus, the plugins (macOS, Windows), Bleep Play and the website.
-2. **Set the version.** The product version is `project(BleepPatch VERSION …)` in `patch/CMakeLists.txt`; the plugins and the app take it from there. The bus has its own version in `bus/CMakeLists.txt` (it follows the spec version). Commit the bump.
+2. **Set the version.** The product version is `project(BleepBoard VERSION …)` in `patch/CMakeLists.txt`; the plugins and the app take it from there. The bus has its own version in `bus/CMakeLists.txt` (it follows the spec version). Commit the bump.
 3. **Tag.** `git tag plugin-vX.Y.Z && git push origin plugin-vX.Y.Z`.
-4. **Take the build from CI.** The `plugins` job uploads `bleep-patch-macos-latest` and `bleep-patch-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `scripts/build/build-patch.sh`.
+4. **Take the build from CI.** The `plugins` job uploads `beautiful-bleep-macos-latest` and `beautiful-bleep-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `scripts/build/build-patch.sh`.
 5. **Sign for the operating system.** (The store signature above is separate and happens in `release.py`.) Not automated. macOS builds need a Developer ID signature and notarization to open without a Gatekeeper warning; Windows builds are unsigned. Do this before publishing.
 6. **Publish.** Attach the signed files to a GitHub release for the tag, with the changelog, and release them to the store (above).
 7. **Website.** The site is deployed by rebuilding its containers (see [website.md](website.md)); deployment from CI is not set up yet (a note in the `website` job says so).

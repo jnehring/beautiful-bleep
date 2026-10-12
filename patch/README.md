@@ -59,7 +59,7 @@ patch/
 
 - **One engine per process.** JUCE builds one plugin per binary, so every
   plugin contains the engine code. The first Bleep plugin loaded creates the
-  engine and publishes it in the process (`BLEEP_PATCH_ENGINE`); the others
+  engine and publishes it in the process (`BLEEP_ENGINE`); the others
   use that instance. The binary that created it pins itself so it is never
   unloaded. Binaries of another engine major refuse to share and say so. The plugins agree on a major and a minor version of the engine interface: [`doc/specs/engine-abi.md`](../doc/specs/engine-abi.md).
 - **Ticks.** For every host block the first plugin to run claims the block
@@ -72,6 +72,14 @@ patch/
   flattened, cycles get a 32-sample feedback delay) and keeps the undo stack.
 - **Ports** appear on the board on their own, can't be deleted there, and
   turn into ghosts when their plugin is gone or inactive.
+
+## Data folders
+
+User data lives in `Beautiful Bleep/` (the app-data folder: `Cells/`, `Drum Patterns/`, `Boards/`,
+the app's settings) and `~/Music/Beautiful Bleep/Media/`. Before 0.2 these were called `Bleep Patch`,
+and whole boards were `Patches/*.bleeppatch`. The engine and the app move the old folders over on
+start (`media::migrateLegacyFolders()` in `engine/Media.cpp`): a board becomes `Boards/*.bleeppreset`,
+and a file that already exists under the new name is kept (the old one stays where it was).
 
 ## Working on the board UI
 

@@ -99,8 +99,8 @@ def make_fixtures(out: Path) -> None:
     first = sign(entries(files), bleep, bleep_chain, "module", "reverb", "1.0.0")
     case("bare-id-first-party", "signed", doc=first, id="reverb", publisher="bleep")
     plugin_file = {"installer.pkg": b"pretend installer"}
-    plugin_doc = sign(entries(plugin_file), bleep, bleep_chain, "plugin", "bleep-patch", "1.2.3", "macos-arm64")
-    case("plugin-signed", "signed", f=plugin_file, doc=plugin_doc, kind="plugin", id="bleep-patch", version="1.2.3", platform="macos-arm64", publisher="bleep")
+    plugin_doc = sign(entries(plugin_file), bleep, bleep_chain, "plugin", "bleep-board", "1.2.3", "macos-arm64")
+    case("plugin-signed", "signed", f=plugin_file, doc=plugin_doc, kind="plugin", id="bleep-board", version="1.2.3", platform="macos-arm64", publisher="bleep")
     case("plugin-by-module-only-key", "invalid", f=plugin_file, doc=sign(entries(plugin_file), acme, acme_chain, "plugin", "acme/p", "1.0.0"), kind="plugin", id="acme/p")
     forged = json.loads(json.dumps(good))
     forged["chain"][1]["tbs"]["scopes"] = ["module", "plugin"]

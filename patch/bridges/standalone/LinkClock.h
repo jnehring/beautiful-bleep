@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //
 // LinkClock — the standalone app's musical time (spec §11.4): Ableton Link
-// when it's built in (BLEEP_PATCH_LINK), otherwise an internal clock with the
+// when it's built in (BLEEP_LINK), otherwise an internal clock with the
 // same interface. Link itself is GPLv2-or-later; see patch/app/README.md.
 #pragma once
 

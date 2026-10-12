@@ -5,7 +5,7 @@
 
 #include <cstdio>
 
-class BleepPatchApplication : public juce::JUCEApplication {
+class BleepApplication : public juce::JUCEApplication {
 public:
     const juce::String getApplicationName() override { return "Bleep App"; }
     const juce::String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
@@ -37,4 +37,4 @@ private:
     std::unique_ptr<bleep::app::AppController> controller_;
 };
 
-START_JUCE_APPLICATION(BleepPatchApplication)
+START_JUCE_APPLICATION(BleepApplication)

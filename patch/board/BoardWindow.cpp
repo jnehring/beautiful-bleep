@@ -8,7 +8,7 @@
 //              setParam(node, param, v) setAmount(cable, v) setData(node, data) watch([nodeIds])
 //              perform(node, action, [args])   (Button presses, Keyboard keys: not saved)
 //              presets(kind?) savePreset(name, preset, kind?) deletePreset(name, kind?)
-//              (kind: "cell", the default, "drums" for Drum Grid patterns, or "patches" for whole boards)
+//              (kind: "cell", the default, "drums" for Drum Grid patterns, or "boards" for whole boards)
 //              loadPatch(board, tempo, name)   the preset browser: replace the project with a patch
 //              copyText(text) pasteText()   the system clipboard (board copy & paste)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
@@ -189,13 +189,13 @@ struct PresetKind {
 
 PresetKind presetKind(const juce::var& kind) {
     if (kind.toString() == "drums") return {"Drum Patterns", ".bleepdrums"};
-    if (kind.toString() == "patches") return {"Patches", ".bleeppatch"};
+    if (kind.toString() == "boards") return {"Boards", ".bleeppreset"};
     return {"Cells", ".bleepcell"};
 }
 
 juce::File presetFolder(const PresetKind& k) {
     return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-        .getChildFile("Bleep Patch").getChildFile(k.folder);
+        .getChildFile("Beautiful Bleep").getChildFile(k.folder);
 }
 
 juce::File presetFile(const juce::String& name, const PresetKind& k) {
@@ -413,7 +413,7 @@ public:
 #if JUCE_WINDOWS
         options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
                       .withWinWebView2Options(juce::WebBrowserComponent::Options::WinWebView2{}.withUserDataFolder(
-                          juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("BleepPatchWebView")));
+                          juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("BleepWebView")));
 #endif
         web_ = std::make_unique<WebView>(options);
         addAndMakeVisible(*web_);

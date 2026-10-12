@@ -78,7 +78,7 @@ licence terms. `scripts/check/check-repo.py` enforces all of it in CI.
 ## Building and testing
 
 ```bash
-cmake -S patch -B build/light -G Ninja -DBLEEP_PATCH_LIGHT_TESTS=ON   # juce_core only, no plugins
+cmake -S patch -B build/light -G Ninja -DBLEEP_LIGHT_TESTS=ON   # juce_core only, no plugins
 cmake --build build/light && ctest --test-dir build/light
 build/light/bleep_module_harness_artefacts/Release/bleep_module_harness <type>   # one module, with CPU use
 ```

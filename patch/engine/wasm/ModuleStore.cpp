@@ -203,7 +203,7 @@ void ModuleStore::installPluginsAsync() {
         int installed = 0;
         std::string problems;
         for (const auto& p : index.plugins) {
-            if (p.slug == "bleep-patch-app") continue;  // the app is not a plugin
+            if (p.slug == "bleep-app") continue;  // the app is not a plugin
             { std::lock_guard<std::mutex> l(mutex_); pluginJob_.message = "Installing " + p.slug + "…"; }
             std::vector<std::string> names;
             std::string e;

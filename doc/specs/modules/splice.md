@@ -228,7 +228,7 @@ JSON:
 1. **Board media folder.** A place for audio files referenced by the board:
    - App: `<name>.bleepboard.media/` next to the project file.
    - Plugin in Live: Live's project folder isn't known reliably, so media go
-     to a user media library (`~/Music/Bleep Patch/Media/<board id>/`), named
+     to a user media library (`~/Music/Beautiful Bleep/Media/<board id>/`), named
      by content hash; *Collect media* in the board menu copies them into a
      chosen folder. Option *Embed small reels* stores reels under 10 s as
      FLAC-compressed base64 in the plugin state, so short loops travel with the set.

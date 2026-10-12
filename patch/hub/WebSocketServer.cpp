@@ -506,7 +506,7 @@ void WebSocketServer::runSession(std::shared_ptr<Connection> conn) {
         HttpResponse r;
         if (req.path == "/health") {
             r.contentType = "application/json";
-            r.body = "{\"app\":\"bleep-patch\",\"protocol\":1}";
+            r.body = "{\"app\":\"bleep-app\",\"protocol\":1}";
         } else if (!options_.http || !options_.http(req.path, r)) {
             return fail(404);
         }

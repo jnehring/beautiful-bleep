@@ -158,7 +158,7 @@ This is the contract between the parts; code and tests follow it.
 
 ### 10.2 Web link: transport and framing
 
-- `ws://127.0.0.1:<port>/ws` (default `47100`). `GET /` serves the board page (§4.1) with `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`; `GET /health` returns `{"app":"bleep-patch","protocol":1}`.
+- `ws://127.0.0.1:<port>/ws` (default `47100`). `GET /` serves the board page (§4.1) with `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`; `GET /health` returns `{"app":"bleep-app","protocol":1}`.
 - `Origin` is checked at the handshake: the page the app serves (`http://127.0.0.1:<port>`, `http://localhost:<port>`) is always allowed; any other origin needs the pairing dialog of §4 (the handshake waits up to 30 s for the answer, then answers `403`).
 - Text frames are JSON objects `{"op": "...", ...}`. Binary frames are audio (below). All numbers are little-endian.
 - Binary **audio packet**: `u8 kind (=1)`, `u8 channel`, `u16 frames` (1 to 2048), `u32 seq`, `i64 sampleTime` (the sender's running frame counter at the first frame), then `float32` planar left, then right (2 × `frames` values). Header 16 bytes. Packets are sent in the sender's block size (the web sends 128-frame packets, the app sends one packet per host block).
