@@ -158,7 +158,7 @@
     const q = ensurePanel(b, env, scope);
     const panelCell = ensurePanelCell(b, env, q, scope);
     const def = target.param ? paramOf(types, n, target.param) : null;
-    const label = target.param ? `${n.name} ${def.name}` : `${n.name} ${(jackOf(types, n, target.jack, target.dir || "in") || {}).name || target.jack}`;
+    const label = target.param ? def.name : (jackOf(types, n, target.jack, target.dir || "in") || {}).name || target.jack;   // the target's own title
     const old = def ? (n.params && target.param in n.params ? n.params[target.param] : def.default) : 0.5;   // the knob's value, normalised
     const steps = def && def.kind !== "float" ? (def.kind === "bool" ? 2 : def.kind === "choice" ? def.choices.length : def.steps || 0) : 0;
     // The Dial snaps to at most 24 steps; a longer list (filter types) stays continuous: the setting rounds to the nearest choice.

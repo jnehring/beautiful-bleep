@@ -334,6 +334,10 @@
     renderCrumbs();
     $("cell-close").hidden = path.length === 0;
     renderNodes();
+    for (const [id, v] of views) {  // a rename changes the titles of open views
+      const n = nodeById(id), t = v.win.querySelector(".v-title");
+      if (n && t && n.name !== t.textContent) t.textContent = n.name;
+    }
     applyCam();  // before the cables: their positions are measured on screen
     renderCables();
     $("undo").disabled = !canUndo;
@@ -706,6 +710,13 @@
         ev.stopPropagation();
         if (ev.button !== 0) return;   // the right button is the cable menu
         sel.clear();
+        if ((ev.shiftKey || ev.ctrlKey || ev.metaKey) && selCable) {   // shift-, ctrl- or ⌘-click adds the cable to the selection, or takes it out
+          if (c.id === selCable) { selCable = selMore.size ? [...selMore][0] : null; selMore.delete(selCable); }
+          else selMore.has(c.id) ? selMore.delete(c.id) : selMore.add(c.id);
+        } else {
+          clearCableSel();
+          selCable = c.id;
+        }
         renderSelection();
         renderCables();
         if (selCable && !selMore.size) showCablePop(board.cables.find((k) => k.id === selCable));
@@ -718,13 +729,6 @@
         if (!isCableSel(c.id)) { sel.clear(); clearCableSel(); selCable = c.id; renderSelection(); renderCables(); }
         showCableMenu(ev);
       });
-        if ((ev.shiftKey || ev.ctrlKey || ev.metaKey) && selCable) {   // shift-, ctrl- or ⌘-click adds the cable to the selection, or takes it out
-          if (c.id === selCable) { selCable = selMore.size ? [...selMore][0] : null; selMore.delete(selCable); }
-          else selMore.has(c.id) ? selMore.delete(c.id) : selMore.add(c.id);
-        } else {
-          clearCableSel();
-          selCable = c.id;
-        }
       cablesEl.append(p);
       if (!p.classList.contains("ghost") && !p.classList.contains("dim")) {
         const glow = document.createElementNS(SVGNS, "path");
@@ -1068,6 +1072,13 @@
     if (b.cables.some((c) => c.from.node === from.node && c.from.jack === from.jack &&
                              c.to.node === to.node && c.to.jack === to.jack)) return;
     b.cables.push({ id: uid("k"), from, to, amount });
+    // A panel-element module (Dial, Button …) that still has its default name takes the title of what it now drives.
+    const src = nodeById(from.node, b), dst = nodeById(to.node, b);
+    if (src && dst && src !== dst && typeOf(src).category === "Controllers" &&
+        new RegExp("^" + typeOf(src).name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "( \\d+)?$").test(src.name)) {
+      const name = jackName(dst, to.jack, false);
+      if (name && name !== to.jack) src.name = name;
+    }
   }
 
   function dropCable(d, e) {
@@ -1167,6 +1178,7 @@
   canvas.addEventListener("contextmenu", (ev) => {
     if (ev.target.closest(".node") || ev.target.closest(".vwin")) return;
     ev.preventDefault();
+    if (ev.ctrlKey && ev.button === 0) return;   // ctrl-drag on a Mac (a cable band): not the menu
     const r = canvas.getBoundingClientRect();
     const at = { x: ev.clientX - r.left, y: ev.clientY - r.top };
     showMenu(ev, [
@@ -1178,7 +1190,6 @@
       { label: "Fit to window", key: "F", run: fit },
     ]);
   });
-    if (ev.ctrlKey && ev.button === 0) return;   // ctrl-drag on a Mac (a cable band): not the menu
   canvas.addEventListener("wheel", (ev) => {
     if (ev.target.closest(".vwin") || ev.target.closest(".popover")) return;
     ev.preventDefault();
@@ -1266,6 +1277,8 @@
     const sx = ev.clientX - r.left, sy = ev.clientY - r.top;
     const band = $("band");
     const before = new Set(sel);
+    const cableMode = ev.ctrlKey || ev.metaKey;
+    let picked = keepCables.join();
     const move = (e) => {
       const x = e.clientX - r.left, y = e.clientY - r.top;
       Object.assign(band.style, { left: Math.min(sx, x) + "px", top: Math.min(sy, y) + "px",
@@ -1277,8 +1290,6 @@
       before.forEach((id) => sel.add(id));
       for (const n of nodesAt(level())) {
         if (ownerOf(n.id)) continue;
-    const cableMode = ev.ctrlKey || ev.metaKey;
-    let picked = keepCables.join();
         const ne = nodesEl.querySelector(`[data-id="${n.id}"]`);
         const h = ne ? ne.offsetHeight : 60;
         if (!cableMode && n.x < b.x && n.x + NODE_W > a.x && n.y < b.y && n.y + h > a.y) sel.add(n.id);
@@ -1295,6 +1306,7 @@
       renderSelection();
     };
     const up = () => {
+      if (selCable && !selMore.size) showCablePop(board.cables.find((k) => k.id === selCable));
       band.hidden = true;
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
@@ -1306,7 +1318,6 @@
   // ---------------------------------------------------------- adding things
   function addAtCentre(what) {
     const r = canvas.getBoundingClientRect();
-      if (selCable && !selMore.size) showCablePop(board.cables.find((k) => k.id === selCable));
     const w = toWorld(r.left + r.width / 2, r.top + r.height / 2);
     addAt(what, w.x - NODE_W / 2, w.y - 40);
   }
@@ -2411,7 +2422,11 @@
     win.dataset.node = id;
     win.style.setProperty("--accent", n.colour || t.colour || "#4fd1c5");
     const head = el("div", "v-head");
-    head.append(el("span", "v-title", n.name), el("span", "v-sub", t.name), el("span", "spacer"));
+    const vTitle = el("span", "v-title", n.name);
+    const pen = el("button", "pen", "✎");
+    pen.title = "Rename";
+    pen.setAttribute("aria-label", "Rename " + n.name);
+    head.append(vTitle, pen, el("span", "v-sub", t.name), el("span", "spacer"));
     const help = el("button", "help", "?");
     help.title = "Documentation";
     help.hidden = true;
@@ -2479,6 +2494,31 @@
     });
     doc.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });  // the page must not navigate
     close.addEventListener("click", () => closeView(id));
+    pen.addEventListener("click", () => {
+      const cur = nodeById(id);
+      if (!cur) return;
+      const input = el("input", "n-rename v-rename");
+      input.value = cur.name;
+      input.maxLength = 63;
+      vTitle.replaceWith(input);
+      input.focus();
+      input.select();
+      let done = false;
+      const finish = (save) => {
+        if (done) return;
+        done = true;
+        const name = input.value.trim();
+        input.replaceWith(vTitle);
+        if (save && name && name !== cur.name) edit("rename", (b) => { nodeById(id, b).name = name; });
+      };
+      input.addEventListener("keydown", (e) => {
+        e.stopPropagation();
+        if (e.key === "Enter") finish(true);
+        if (e.key === "Escape") finish(false);
+      });
+      input.addEventListener("blur", () => finish(true));
+      input.addEventListener("pointerdown", (e) => e.stopPropagation());
+    });
     if (hook && hook.resizable) {  // drag the lower right corner to change the width
       const grip = el("div", "v-grip");
       grip.title = "Drag to resize";

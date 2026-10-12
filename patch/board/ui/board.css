@@ -165,7 +165,8 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 #cable-pop .v { font-variant-numeric: tabular-nums; width: 40px; text-align: right; }
 
 /* ---- floating module views (spec §9.4) */
-#views { position: absolute; inset: 0; pointer-events: none; }
+/* its own stacking context: the windows' ever-growing z-index must never climb over menus and popovers (z-index 20+) */
+#views { position: absolute; inset: 0; pointer-events: none; z-index: 7; }
 .vwin { position: absolute; pointer-events: auto; width: 760px; max-width: calc(100vw - 24px); background: var(--panel); border: 1px solid var(--line);
         border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); overflow: hidden; }
 .vwin.front { z-index: 5; }
@@ -175,6 +176,9 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; background: var(--panel-2);
           border-bottom: 1px solid var(--line); cursor: move; }
 .v-title { font-weight: 600; color: var(--accent); }
+.v-head .pen { opacity: .5; font-size: 12px; }
+.v-head .pen:hover { opacity: 1; }
+.v-rename { width: 140px; flex: none; }
 .v-sub { color: var(--muted); font-size: 11px; }
 .v-head button { background: none; border: 0; padding: 0 4px; color: var(--muted); }
 .v-head button:hover { color: var(--text); }
