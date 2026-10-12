@@ -12,11 +12,17 @@
   let client = null, pill = null, label = null, mod = null;
   const opened = new Map();   // node id → "audio" | "midi": Remote nodes this page has opened
 
-  /// The page the app serves is on 127.0.0.1: its socket is the same host. Anywhere else the default (127.0.0.1:47100).
-  function socketUrl() {
+  /// The page the app serves talks to its own host; a page from anywhere else (the website, a Docker container on
+  /// localhost:8080) talks to the app's default address. Only the app answers /health with its name.
+  async function socketUrl() {
     const here = location;
-    const local = here.protocol === "http:" && (here.hostname === "127.0.0.1" || here.hostname === "localhost");
-    return local ? `ws://${here.host}/ws` : undefined;
+    if (here.protocol !== "http:") return undefined;
+    try {
+      const r = await fetch("/health", { cache: "no-store" });
+      const j = r.ok ? await r.json() : null;
+      if (j && j.app === "bleep-patch") return `ws://${here.host}/ws`;
+    } catch (e) { /* not the app */ }
+    return undefined;
   }
 
   function show(text, bad) {
@@ -64,10 +70,10 @@
     show("connecting…");
     try {
       mod = await import(url("js/bridge-client.js"));
-      client = await W.connectBridge({ url: socketUrl(), name: "Web: " + (navigator.userAgent.match(/(Firefox|Edg|Chrome|Safari)/) || ["Browser"])[0] });
+      client = await W.connectBridge({ url: await socketUrl(), name: "Web: " + (navigator.userAgent.match(/(Firefox|Edg|Chrome|Safari)/) || ["Browser"])[0] });
       client.on("status", ({ state, code }) => {
         if (state === "open") { pill.textContent = "⇄ Connected"; show(`${client.mode === "low" ? "Low" : "Safe"} latency${client.modeNote ? " · " + client.modeNote : ""}`); }
-        else if (state === "retrying" || state === "connecting" || state === "handshake") show("connecting…");
+        else if (state === "retrying" || state === "connecting" || state === "handshake") show("connecting… If the Bleep app asks whether to allow this page, answer there.");
         else if (state === "denied" || state === "failed" || state === "closed") {
           pill.textContent = "⇄ Connect to app";
           pill.disabled = false;
