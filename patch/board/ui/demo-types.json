@@ -9217,6 +9217,351 @@
     ]
   },
   {
+    "type": "cv-to-midi",
+    "name": "CV to MIDI",
+    "category": "Utility",
+    "colour": "#7dd3fc",
+    "description": "Four lanes that turn control signals into MIDI control changes (CC), 7 or 14 bit, sent only when the value moves.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "cc1",
+        "name": "CC 1",
+        "kind": "int",
+        "default": 0.007874015718699,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 1"
+      },
+      {
+        "id": "channel1",
+        "name": "Channel 1",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 16,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 16.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 1"
+      },
+      {
+        "id": "min1",
+        "name": "Min 1",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 0.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 1"
+      },
+      {
+        "id": "max1",
+        "name": "Max 1",
+        "kind": "int",
+        "default": 1.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 127.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 1"
+      },
+      {
+        "id": "cc2",
+        "name": "CC 2",
+        "kind": "int",
+        "default": 0.582677185535431,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 74.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 2"
+      },
+      {
+        "id": "channel2",
+        "name": "Channel 2",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 16,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 16.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 2"
+      },
+      {
+        "id": "min2",
+        "name": "Min 2",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 0.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 2"
+      },
+      {
+        "id": "max2",
+        "name": "Max 2",
+        "kind": "int",
+        "default": 1.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 127.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 2"
+      },
+      {
+        "id": "cc3",
+        "name": "CC 3",
+        "kind": "int",
+        "default": 0.559055089950562,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 71.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 3"
+      },
+      {
+        "id": "channel3",
+        "name": "Channel 3",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 16,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 16.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 3"
+      },
+      {
+        "id": "min3",
+        "name": "Min 3",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 0.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 3"
+      },
+      {
+        "id": "max3",
+        "name": "Max 3",
+        "kind": "int",
+        "default": 1.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 127.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 3"
+      },
+      {
+        "id": "cc4",
+        "name": "CC 4",
+        "kind": "int",
+        "default": 0.716535449028015,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 91.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 4"
+      },
+      {
+        "id": "channel4",
+        "name": "Channel 4",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 16,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 16.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 4"
+      },
+      {
+        "id": "min4",
+        "name": "Min 4",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 0.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 4"
+      },
+      {
+        "id": "max4",
+        "name": "Max 4",
+        "kind": "int",
+        "default": 1.0,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 127.0,
+        "format": "integer",
+        "decimals": 2,
+        "group": "Lane 4"
+      },
+      {
+        "id": "range",
+        "name": "Input Range",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "0 … +1",
+          "−1 … +1"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "resolution",
+        "name": "Resolution",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "7 bit",
+          "14 bit (CC 0–31)"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "rate",
+        "name": "Max Rate",
+        "kind": "float",
+        "default": 0.191919192671776,
+        "steps": 0,
+        "modulatable": false,
+        "cableable": false,
+        "min": 10.0,
+        "max": 1000.0,
+        "def": 200.0,
+        "format": "number",
+        "decimals": 0,
+        "label": "/s"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in1",
+        "name": "In 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in2",
+        "name": "In 2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in3",
+        "name": "In 3",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "in4",
+        "name": "In 4",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      }
+    ],
+    "buttons": [
+      {
+        "id": "resend",
+        "name": "Resend",
+        "momentary": false
+      }
+    ],
+    "groupColumns": true
+  },
+  {
     "type": "delay-network",
     "name": "Delay Net",
     "category": "Effects",
@@ -10662,6 +11007,156 @@
         "name": "Sub",
         "type": "audio",
         "bipolar": true
+      }
+    ]
+  },
+  {
+    "type": "envelope-follower",
+    "name": "Envelope Follower",
+    "category": "Modulation",
+    "colour": "#f0abfc",
+    "description": "Turns the loudness of audio, or the movement of a CV, into a smooth control signal with its own attack and release, plus a threshold gate.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "attack",
+        "name": "Attack",
+        "kind": "float",
+        "default": 0.450464427471161,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.009999999776483,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.019999999552965
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "kind": "float",
+        "default": 0.452466011047363,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 5.0,
+        "def": 0.200000002980232,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.300000011920929
+      },
+      {
+        "id": "gain",
+        "name": "Gain",
+        "kind": "float",
+        "default": 0.125,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 8.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "×"
+      },
+      {
+        "id": "threshold",
+        "name": "Threshold",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.300000011920929,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "detector",
+        "name": "Detector",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Peak",
+          "RMS"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "rectify",
+        "name": "Rectify",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Full",
+          "Positive",
+          "Negative",
+          "None (signed)"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "detector",
+          "min": 0,
+          "max": 0
+        }
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "env",
+        "name": "Env",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "inverted",
+        "name": "Inverted",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
       }
     ]
   },

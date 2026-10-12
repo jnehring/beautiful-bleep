@@ -206,6 +206,15 @@
                                clipL: +(pk[0] > 1), clipR: +(pk[1] > 1), stereo: +stereo });
         Object.assign(outputs, { l: pk[0], r: pk[1], clip: +(pk[0] > 1), level: Math.max(0, 1 + 20 * Math.log10(pk[0] * 0.45 + 1e-9) / 60) });
       }
+      if (n.type === "cv-to-midi") {
+        for (let k = 1; k <= 4; k++) entry["lane" + k] = Math.round(63.5 + 63.5 * Math.sin(t * (0.6 + 0.35 * k) + k));
+      }
+      if (n.type === "envelope-follower") {
+        // A drum pattern followed: a fast attack and a slower release, accents on every third hit.
+        const k = Math.floor(t * 3), ph = (t * 3) % 1, hit = k % 3 === 0 ? 0.95 : 0.55;
+        const env = hit * (ph < 0.06 ? ph / 0.06 : Math.exp(-(ph - 0.06) * 4));
+        Object.assign(outputs, { env, inverted: Math.max(0, 1 - env), gate: +(env > (n.params.threshold ?? 0.3)) });
+      }
       if (n.type === "monitor") {
         const m = monitorDemo(n.id, t);
         const has = (jack) => board.cables.some((c) => c.to.node === n.id && c.to.jack === jack);

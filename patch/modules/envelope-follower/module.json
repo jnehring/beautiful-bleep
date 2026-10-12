@@ -1,0 +1,10 @@
+{
+  "name": "Envelope Follower",
+  "slug": "envelope-follower",
+  "tagline": "Follows the loudness of audio or the movement of a CV, with its own attack and release.",
+  "colour": "#f0abfc",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/envelope-follower.md"
+}

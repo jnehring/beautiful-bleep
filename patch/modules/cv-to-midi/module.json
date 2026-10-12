@@ -1,0 +1,10 @@
+{
+  "name": "CV to MIDI",
+  "slug": "cv-to-midi",
+  "tagline": "Four CV lanes in, MIDI control changes out: 7 or 14 bit, rate limited, only when the value moves.",
+  "colour": "#7dd3fc",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/cv-to-midi.md"
+}

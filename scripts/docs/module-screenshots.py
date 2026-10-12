@@ -19,6 +19,8 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 MODULES = ROOT / "patch" / "modules"
 # Types that share a folder with their kit (Ring Drums, Punch Drums): type prefix → folder.
 KITS = {"ring-": "ring-drums", "punch-": "punch-drums"}
+# Views that draw history need to run a while before the shot (milliseconds).
+SETTLE = {"envelope-follower": 8500}
 # Types that are board plumbing (ports, cells), not modules with a folder.
 PLUMBING = {"Ports", "Cells"}
 
@@ -65,7 +67,7 @@ def main() -> int:
                 print("FAILED", t["type"], errors[:1])
                 page.close()
                 continue
-            page.wait_for_timeout(400)
+            page.wait_for_timeout(SETTLE.get(t["type"], 400))
             doc = out / "doc"
             doc.mkdir(exist_ok=True)
             page.locator(".vwin").first.screenshot(path=str(doc / (t["type"] + ".png")))
