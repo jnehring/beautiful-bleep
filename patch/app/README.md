@@ -19,13 +19,18 @@ plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
   as the *System* node (an Audio In). macOS 14.2+ (Core Audio tap), Windows (WASAPI loopback), Linux
   (PulseAudio / PipeWire monitor, needs libpulse at build time). Off by default; the app's own sound is
   left out where the system can ([system-audio.md](../../doc/specs/system-audio.md)).
-- **MIDI:** the app creates its own MIDI ports, *Bleep Patch 1* … *n* (number
+- **MIDI:** the app creates its own MIDI ports, *Bleep App 1* … *n* (number
   in Settings, default 2). Each is a MIDI In and a MIDI Out node; in Live,
   choose them under *MIDI From* / *MIDI To*. MIDI inputs enabled in Settings
   and the default MIDI output appear as nodes too.
 - **Ableton Link:** Transport → Ableton Link. The *Link* node puts tempo,
   beat, bar, clock and start/stop on the board; its *Quantum* and *Start/Stop
   Sync* settings apply to the app. Transport → Play/Stop (⌘↩).
+- **Web connection:** File → Settings → Web turns on a link for Bleep Play pages and for Bleep plugins in Live whose
+  *Board* is *Bleep Play* (doc/specs/bridges.md). It listens on 127.0.0.1 only, port 47100, and is off until you turn it
+  on. `BLEEP_WEB_PORT=<port>` turns it on for one run, and `BLEEP_WEB_ROOT=<folder>` makes the app serve Bleep Play
+  from the folder `scripts/build/build-web.sh` wrote. Plugins with *Board = Bleep App* need no setting: they
+  appear on the app's board as the same nodes they would be in Live.
 - **Bleep Audio Bridge:** put the plugin on any track in Live while the app
   runs; each one is a node with *Send* and *Return*. While bridges are
   connected, Live's audio blocks drive the app and the app's own audio device

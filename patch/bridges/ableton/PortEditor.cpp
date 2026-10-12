@@ -51,6 +51,15 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
         addAndMakeVisible(mix_);
     }
 
+    if (auto* board = p.boardParameter()) {
+        boardLabel_.setText("Board", juce::dontSendNotification);
+        boardLabel_.setColour(juce::Label::textColourId, kText);
+        addAndMakeVisible(boardLabel_);
+        board_.addItemList({"This set", "Bleep App", "Bleep Play"}, 1);
+        boardAttachment_ = std::make_unique<juce::ComboBoxParameterAttachment>(*board, board_);
+        addAndMakeVisible(board_);
+    }
+
     if (plugin()) {
         // Bleep Instrument and Bleep FX (cell-plugins.md §11): a bar and the cell's panel; the board opens on request.
         for (auto* b : {&prev_, &next_}) addAndMakeVisible(*b);
@@ -104,9 +113,10 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
         setResizable(true, true);
         setSize(560, 500);
     } else {
-        setSize(400, p.mixParameter() ? 188 : 156);
-        // Spec §9.1: opening a plugin window opens the board, or brings it forward.
-        processor_.engine().editorOpened(processor_.handle());
+        setSize(400, (p.mixParameter() ? 188 : 156) + (p.boardParameter() ? 34 : 0));
+        // Spec §9.1: opening a plugin window opens the board, or brings it forward. A bridged plugin has its
+        // board somewhere else.
+        if (!p.bridged()) processor_.engine().editorOpened(processor_.handle());
     }
     timerCallback();
     startTimerHz(4);
@@ -145,8 +155,16 @@ void PortEditor::resized() {
     openBoard_.setBounds(top.removeFromRight(110));
     title_.setBounds(top);
     r.removeFromTop(8);
-    name_.setBounds(r.removeFromTop(26));
-    r.removeFromTop(8);
+    if (board_.isVisible()) {
+        auto row = r.removeFromTop(26);
+        boardLabel_.setBounds(row.removeFromLeft(56));
+        board_.setBounds(row);
+        r.removeFromTop(8);
+    }
+    if (name_.isVisible()) {
+        name_.setBounds(r.removeFromTop(26));
+        r.removeFromTop(8);
+    }
     if (preset_.isVisible()) {
         preset_.setBounds(r.removeFromTop(26));
         r.removeFromTop(8);
@@ -190,11 +208,39 @@ void PortEditor::showPresets() {
     });
 }
 
+namespace {
+juce::String bridgeStatus(PortProcessor& p) {
+    using Status = bridge::BridgeClient::Status;
+    const bool web = p.board() == bridge::Board::Web;
+    const char* other = web ? "Bleep Play" : "the Bleep App";
+    switch (p.bridgeClient().status()) {
+        case Status::Connected: {
+            juce::String s = juce::String("Talks to ") + other + (web ? " through the app" : "") + ".";
+            if (p.reportsLatency())
+                s << "\nLatency " << p.bridgeClient().latencySamples() << " samples"
+                  << (p.bridgeClient().extraLatency() > 0 ? " (including the web round trip)" : "");
+            if (p.bridgeClient().drops() > 0) s << " - late blocks " << (int)p.bridgeClient().drops();
+            return s;
+        }
+        case Status::AppNotRunning: return "The Bleep App is not running. Nothing is sent.";
+        case Status::OtherHost: return "The Bleep App is connected to another host.";
+        case Status::NoFreeSlot: return "The Bleep App has no free bridge slot.";
+        case Status::VersionMismatch: return "The Bleep App is another version. Update both and restart Live.";
+    }
+    return {};
+}
+}  // namespace
+
 void PortEditor::timerCallback() {
     auto& e = processor_.engine();
     char text[256];
     e.statusText(processor_.handle(), text, sizeof text);
-    status_.setText(juce::String::fromUTF8(text), juce::dontSendNotification);
+    const bool bridged = processor_.bridged();
+    status_.setText(bridged ? bridgeStatus(processor_) : juce::String::fromUTF8(text), juce::dontSendNotification);
+    if (!plugin() && openBoard_.isVisible() == bridged) {
+        openBoard_.setVisible(!bridged);
+        resized();
+    }
     if (!name_.hasKeyboardFocus(true)) {
         e.nodeName(processor_.handle(), text, sizeof text);
         name_.setText(juce::String::fromUTF8(text), false);
@@ -205,8 +251,8 @@ void PortEditor::timerCallback() {
         if (name.isNotEmpty()) preset_.setButtonText(name);
     }
     const auto state = e.state(processor_.handle());
-    // Bleep Patch has no node of its own, apart from its macros.
-    name_.setVisible(!plugin() && processor_.kind() != PortKind::Patch);
+    // Bleep Board has no node of its own, apart from its macros.
+    name_.setVisible(!plugin() && processor_.kind() != PortKind::Patch && !bridged);
     const bool inactiveMain = state == PortState::InactiveMain;
     if (replace_.isVisible() != inactiveMain) {
         replace_.setVisible(inactiveMain);

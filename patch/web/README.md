@@ -1,4 +1,4 @@
-# Bleep Board in the browser
+# Bleep Play
 
 The board, running completely in the visitor's browser. No server, no plugin.
 Build with `scripts/build/build-web.sh` (needs the Emscripten SDK; `--no-modules` and `--modules-only` build the
@@ -59,6 +59,98 @@ keyboard and Web MIDI play MIDI In.
 - The engine is JavaScript for now, not a `core.wasm`: `Board.cpp` and
   `Engine.cpp` are JUCE-heavy. It can move to wasm later without changing the
   module files or the UI contract.
+
+## The bridge to the app
+
+The board can join the Bleep App (and, through it, Live) over a WebSocket on `127.0.0.1`: audio and MIDI both
+ways, and the app's tempo and beat. The wire format is `doc/specs/bridges.md` §10; this is the browser side.
+Nothing connects until the page calls `BleepWeb.connectBridge()` (or `connectToApp()` from a button).
+
+```
+main thread                       Worker (bridge-worker.js)        AudioWorklet (worklet.js)
+-----------                       -------------------------        -------------------------
+bridge-client.js  ── text ──────► owns the WebSocket               bridge-worklet.js
+  channels, sync follower,        pings, reconnect + backoff         BridgeEndpoint: jitter readers,
+  MIDI epochs, latency report ◄── forwards text messages             MIDI queues, RemoteBinding
+                                  audio packets ◄──► rings ◄──────►  (graph.js nodes read/write it)
+```
+
+| File | What |
+|---|---|
+| `js/bridge-protocol.js` | Pure functions: audio packet encode/decode, JSON message builders and validators, hub clock estimator, beat extrapolation, MIDI epoch rule. |
+| `js/bridge-ring.js` | `AudioRing` (planar stereo ring on an `ArrayBuffer` or `SharedArrayBuffer`, counters with `Atomics`), `JitterReader` (§10.4: target fill, ratio nudge, underrun/overrun, resampling), `Packetizer`. |
+| `js/bridge-worker.js` | The Worker. `BridgeWorkerCore` holds the logic and takes its environment as arguments (tests run it with a fake socket). |
+| `js/bridge-worklet.js` | `BridgeEndpoint`, `RemoteBinding`, and the stand-alone `bleep-bridge` AudioWorkletProcessor. |
+| `js/bridge-client.js` | `BridgeClient`, `connectToApp()`, `explainFailure()`. |
+| `js/bridge-types.js` | The node types `remote-audio` and `remote-midi` (`REMOTE_TYPES`). |
+
+**Two paths, one API.** When the page is cross-origin isolated (the app serves it with COOP/COEP, §4.1) the mode is
+`low`: the Worker writes received audio into a `SharedArrayBuffer` ring that the worklet reads, and drains the ring
+the worklet writes; target fill 16 ms. Otherwise the client falls back to `safe` (`client.mode`, `client.modeNote`):
+the Worker posts `Float32Array` chunks to the worklet over a `MessagePort` (still not through main-thread JavaScript),
+target fill 64 ms. The worklet code above the rings does not know which one it has.
+
+**Remote nodes in the board.** A board node is bound to a channel by `node.remote = <channel key>` (any port-type
+node, or `remote-audio` / `remote-midi`). Bound, a node carries what the hub sends on its outputs and sends what is
+patched into its inputs to the hub, instead of playing to the local speakers or the computer keyboard:
+
+| Channel `port` | Node type (`nodeTypeForChannel`) | Does |
+|---|---|---|
+| `audio-in` | `audio-in` | outputs carry what Live sent |
+| `midi-in` | `midi-in` | outputs follow Live's MIDI |
+| `instrument` | `instrument` | MIDI outputs from Live; audio inputs go back to Live |
+| `audio-out` | `audio-out` | inputs go to Live (not to the local speakers) |
+| `midi-out` | `midi-out` | the `notes` input goes to Live |
+| `audio-insert` | `audio-insert` | outputs = the track's audio, inputs = the return |
+| `remote` | `remote-audio`, `remote-midi` | a node the page opened itself (`openChannel`) |
+
+A channel that is offline (the peer is gone, or the link dropped) gives silence; the node and its cables stay.
+Edits to `graph.js` are small and marked `[bridge]`: `Engine.bridge`, `PortNode.setRemote/remote/remoteMidi`, the
+`kind` of a bound node, `setNotesIn` and one line in `setBoard`. `worklet.js` connects the endpoint and forwards
+the `bridge` / `bridge-port` messages. The board UI has to know the two new types (`REMOTE_TYPES`) and create nodes
+for announced channels (the `channels` event).
+
+```js
+const bridge = await BleepWeb.connectBridge({ name: "Chrome", mode: "low" });   // starts audio, attaches, connects
+bridge.on("channels", (list) => …);       // [{ch, kind, dir, key, name, port, source, online, latency, reactive}]
+bridge.on("status", ({ state }) => …);    // idle connecting handshake open retrying failed denied closed
+bridge.openChannel({ key: "node-7", kind: "midi", dir: "fromWeb", name: "Sequencer" });
+bridge.sendMidi("node-7", [[null, 0x90, 60, 100]], { lookaheadBeats: 0.1 });    // null beat = now + lookahead
+bridge.getBeat(); bridge.getTempo(); bridge.playing; bridge.leader; bridge.epoch;
+bridge.requestTempo(128); bridge.requestPlay(true);
+```
+
+`connectToApp({ port })` is the *Connect to app* button: it resolves `{ ok, message, client }` and, when it fails
+from a page the app does not serve, explains why (Safari blocks `ws://127.0.0.1` from a secure page; Chrome may ask
+for local network access) and points at the app's own page, `http://127.0.0.1:47100/`.
+
+**The board page.** `js/bridge-ui.js` adds the *Connect to app* button (next to *Start audio*) to the web build: it
+connects, turns every Live port the hub announces into a port node named *Live: track* (`BleepDemo.mirrorPort` in
+`board-demo.js`; the node stays as a ghost when the port goes away) and opens a channel for every *Remote Audio* /
+*Remote MIDI* node on the board. The page does not need the Bleep Store to do this: without it only the built-in
+ports and the remote nodes run. `BleepWeb.debugBridge()` returns what the worklet's endpoint holds (channels, which node
+is bound to which key, the peak of what a bound node sends) when a channel stays silent.
+
+The app serves this page itself when `BLEEP_WEB_ROOT` points at the folder `scripts/build/build-web.sh` wrote (or the
+folder is `Contents/Resources/web` in the app bundle): `BLEEP_WEB_ROOT=build/web/site BLEEP_WEB_PORT=47100 "Bleep App"`.
+`GET /status` on the app lists the connected boards and, per channel, the jitter buffer's fill and under- and overruns.
+
+**Try it.** With the app running and *Web connection* on:
+
+```
+node patch/web/test/bridge-smoke.mjs          # hello → prints welcome, channels, sync; "no hub" when nothing listens
+```
+
+then open `http://127.0.0.1:47100/` (the app's own page: isolated, Low latency) and press *Connect to app*.
+
+**Tests** (plain `node`, no build, no network):
+
+```
+node patch/web/test/bridge-protocol-test.mjs   # packets, messages, clock, sync, epochs
+node patch/web/test/bridge-ring-test.mjs       # ±200 ppm for 10 minutes, steps, underrun/overrun, resampling
+node patch/web/test/bridge-client-test.mjs     # fake hub: hello → welcome → channels → MIDI → reconnect, audio through the Worker
+node patch/web/test/bridge-engine-test.mjs     # remote nodes in the graph runner
+```
 
 ## Hosting
 

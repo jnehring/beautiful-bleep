@@ -12,6 +12,7 @@
 #include "BridgeServer.h"
 #include "Engine.h"
 #include "LinkClock.h"
+#include "WebHub.h"
 #include "SystemAudio.h"
 
 #include <juce_audio_utils/juce_audio_utils.h>
@@ -19,6 +20,7 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <set>
 #include <vector>
 
 namespace bleep::app {
@@ -117,15 +119,27 @@ private:
     /// Starts, restarts or stops System Audio capture to match systemEnabled_ and friends, then updates the ports.
     void applySystemAudio();
     void saveSettings();
+    /// Settings → Web connection: starts or stops the hub to match webEnabled_ and webPort_.
+    void applyWeb();
+    juce::var webState();
+    bool askPairing(const std::string& origin);
 
     engine::IEngine* iengine_ = nullptr;
     engine::Engine* engine_ = nullptr;
     int main_ = 0;
     int linkHandle_ = 0;
 
+    bool forceWeb_ = false;   ///< BLEEP_WEB_PORT: on for this run only
+    bool webEnabled_ = false;
+    int webPort_ = 47100;
+    juce::String webError_;
+    juce::CriticalSection originsLock_;
+    std::set<std::string> allowedOrigins_;
+
     juce::AudioDeviceManager devices_;
     juce::ApplicationCommandManager commands_;
     std::unique_ptr<juce::PropertiesFile> settings_;
+    std::unique_ptr<hub::WebHub> hub_;              ///< the web link (doc/specs/bridges.md); declared before bridge_: it outlives it
     std::unique_ptr<bridge::BridgeServer> bridge_;
     LinkClock clock_;
     std::unique_ptr<juce::FileChooser> chooser_;

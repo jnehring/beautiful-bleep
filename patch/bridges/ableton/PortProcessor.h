@@ -11,6 +11,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#include "BridgeClient.h"
 #include "EngineApi.h"
 
 #include <array>
@@ -58,6 +59,12 @@ public:
     void loadPreset(const juce::String& name);
     juce::String presetName() const;
     bool reportsLatency() const noexcept;
+    /// Bleep MIDI In/Out and Audio In/Out can talk to another board: the app's or a browser's (bridges.md §1).
+    bool canBridge() const noexcept;
+    juce::AudioParameterChoice* boardParameter() const noexcept { return boardChoice_; }
+    bridge::Board board() const noexcept;
+    bool bridged() const noexcept { return board() != bridge::Board::ThisSet; }
+    bridge::BridgeClient& bridgeClient() noexcept { return client_; }
 
     // ---- juce::AudioProcessor ----------------------------------------------
     const juce::String getName() const override;
@@ -88,6 +95,7 @@ private:
     void parameterValueChanged(int index, float value) override;
     void parameterGestureChanged(int, bool) override {}
     void pollSlots();
+    void applyBoard();
     static BusesProperties busesFor(engine::PortKind kind);
 
     engine::PortKind kind_;
@@ -95,6 +103,12 @@ private:
 
     std::array<juce::AudioParameterFloat*, engine::kNumMacros> macros_{};
     juce::AudioParameterFloat* mix_ = nullptr;
+    juce::AudioParameterChoice* boardChoice_ = nullptr;   ///< This set / App / Web
+    bridge::BridgeClient client_;
+    std::vector<bridge::Midi> bridgeMidiIn_, bridgeMidiOut_;
+    juce::AudioBuffer<float> bridgeRet_;
+    juce::String track_;
+    int appliedBoard_ = -1;                         ///< what the engine and the client were last told
     float macroValues_[engine::kNumMacros] = {};
 
     std::vector<engine::MidiEvent> midiIn_, midiOut_;

@@ -16,7 +16,7 @@ namespace {
 
 const char* productName(PortKind k) {
     switch (k) {
-        case PortKind::Patch: return "Bleep Patch";
+        case PortKind::Patch: return "Bleep Board";
         case PortKind::MidiIn: return "Bleep MIDI In";
         case PortKind::MidiOut: return "Bleep MIDI Out";
         case PortKind::AudioIn: return "Bleep Audio In";
@@ -64,6 +64,14 @@ PortProcessor::PortProcessor(PortKind kind)
             addParameter(slots_[(size_t)k]);
             slots_[(size_t)k]->addListener(this);
         }
+    if (canBridge()) {
+        // Not automatable: it re-plumbs the plugin, it isn't a knob.
+        boardChoice_ = new juce::AudioParameterChoice(juce::ParameterID("board", 1), "Board", juce::StringArray{"This set", "App", "Web"}, 0,
+                                                juce::AudioParameterChoiceAttributes().withAutomatable(false));
+        addParameter(boardChoice_);
+        bridgeMidiIn_.resize(bridge::kMaxMidi);
+        bridgeMidiOut_.resize(bridge::kMaxMidi);
+    }
     midiIn_.resize(engine::kMaxMidiEvents);
     midiOut_.resize(engine::kMaxMidiEvents);
     startTimerHz(loadsPresets() ? 30 : 4);
@@ -129,6 +137,14 @@ bool PortProcessor::reportsLatency() const noexcept {
     return kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument || kind_ == PortKind::AudioInsert;
 }
 
+bool PortProcessor::canBridge() const noexcept {
+    return kind_ == PortKind::MidiIn || kind_ == PortKind::MidiOut || kind_ == PortKind::AudioIn || kind_ == PortKind::AudioOut;
+}
+
+bridge::Board PortProcessor::board() const noexcept {
+    return boardChoice_ ? (bridge::Board)boardChoice_->getIndex() : bridge::Board::ThisSet;
+}
+
 bool PortProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
     const auto out = layouts.getMainOutputChannelSet();
     if (out != juce::AudioChannelSet::mono() && out != juce::AudioChannelSet::stereo()) return false;
@@ -138,7 +154,9 @@ bool PortProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
 
 void PortProcessor::prepareToPlay(double sampleRate, int maxBlock) {
     engine().prepare(handle(), sampleRate, maxBlock);
-    latency_ = reportsLatency() ? engine().latencySamples() : 0;
+    client_.prepare(sampleRate, maxBlock);
+    bridgeRet_.setSize(2, juce::jmax(maxBlock, 1));
+    latency_ = reportsLatency() ? (bridged() ? client_.latencySamples() : engine().latencySamples()) : 0;
     setLatencySamples(latency_);
     board_.setSize(2, juce::jmax(maxBlock, 1));
     delay_.setSize(2, kMaxDelay + engine::kMaxHostBlock);
@@ -171,6 +189,58 @@ void PortProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuff
     const float* inPtrs[2] = {audio.getReadPointer(0), audio.getReadPointer(juce::jmin(1, outs - 1))};
     float* outPtrs[2] = {audio.getWritePointer(0), audio.getWritePointer(juce::jmin(1, outs - 1))};
     float* boardPtrs[2] = {nullptr, nullptr};
+
+    if (bridged()) {
+        // The other side is the app's board or a browser's: hand the block over and play back what returns.
+        bridge::BridgeClient::Block b;
+        b.numSamples = n;
+        b.numChannels = juce::jmax(1, juce::jmin(2, outs));
+        b.transport.sampleRate = io.transport.sampleRate;
+        b.transport.samplePos = io.transport.samplePos;
+        b.transport.bpm = io.transport.bpm;
+        b.transport.ppq = io.transport.ppq;
+        b.transport.ppqValid = io.transport.ppqValid ? 1 : 0;
+        b.transport.playing = io.transport.playing ? 1 : 0;
+        b.offline = isNonRealtime();
+        int count = 0;
+        if (kind_ == PortKind::MidiIn)
+            for (const auto m : midi) {
+                if (count >= bridge::kMaxMidi) break;
+                const auto msg = m.getMessage();
+                if (msg.getRawDataSize() > 3 || msg.isSysEx()) continue;
+                auto& e = bridgeMidiIn_[(size_t)count++];
+                e.offset = m.samplePosition;
+                e.size = (uint8_t)msg.getRawDataSize();
+                std::memcpy(e.bytes, msg.getRawData(), e.size);
+            }
+        b.midiIn = kind_ == PortKind::MidiIn ? bridgeMidiIn_.data() : nullptr;
+        b.numMidiIn = count;
+        b.midiOut = kind_ == PortKind::MidiOut ? bridgeMidiOut_.data() : nullptr;
+        if (kind_ == PortKind::AudioIn) b.in = inPtrs;
+        float* retPtrs[2] = {nullptr, nullptr};
+        if (kind_ == PortKind::AudioOut) {
+            retPtrs[0] = outPtrs[0];
+            retPtrs[1] = outPtrs[1];
+            b.ret = retPtrs;
+        }
+        const bool got = client_.exchange(b);
+        switch (kind_) {
+            case PortKind::MidiIn: audio.clear(); break;
+            case PortKind::MidiOut:
+                audio.clear();
+                midi.clear();
+                for (int i = 0; i < b.numMidiOut; ++i)
+                    midi.addEvent(bridgeMidiOut_[(size_t)i].bytes, bridgeMidiOut_[(size_t)i].size,
+                                  juce::jlimit(0, juce::jmax(0, n - 1), bridgeMidiOut_[(size_t)i].offset));
+                break;
+            case PortKind::AudioOut:
+                midi.clear();
+                if (!got) audio.clear();
+                break;
+            default: break;  // Audio In: the track's audio passes through
+        }
+        return;
+    }
 
     if (kind_ == PortKind::Patch) {
         for (int k = 0; k < engine::kNumMacros; ++k) macroValues_[k] = macros_[(size_t)k]->get();
@@ -272,6 +342,7 @@ void PortProcessor::getStateInformation(juce::MemoryBlock& dest) {
     root.setAttribute("id", id);
     for (auto* p : getParameters())
         if (auto* f = dynamic_cast<juce::AudioParameterFloat*>(p)) root.setAttribute(f->paramID, f->get());
+    if (boardChoice_) root.setAttribute("board", boardChoice_->getIndex());
     if (loadsPresets()) {
         // The cell as it is on the board, edits included; Bleep Patch's board holds it too (the board wins on restore).
         const size_t len = engine().cellPreset(handle(), nullptr, 0);
@@ -299,6 +370,7 @@ void PortProcessor::setStateInformation(const void* data, int sizeInBytes) {
         if (auto* f = dynamic_cast<juce::AudioParameterFloat*>(p); f && xml->hasAttribute(f->paramID))
             *f = (float)xml->getDoubleAttribute(f->paramID);
     ignoring_ = false;
+    if (boardChoice_ && xml->hasAttribute("board")) *boardChoice_ = xml->getIntAttribute("board", 0);
     stateRestored_ = true;
     if (loadsPresets())
         if (auto* p = xml->getChildByName("Preset")) {
@@ -316,6 +388,8 @@ void PortProcessor::setStateInformation(const void* data, int sizeInBytes) {
 void PortProcessor::updateTrackProperties(const TrackProperties& properties) {
     // Called on the message thread by Live's VST3 host.
     const auto name = properties.name.value_or(juce::String());
+    track_ = name;
+    if (bridged()) client_.setIdentity(client_.identity(), name.toStdString());
     const auto colour = properties.colour.value_or(juce::Colours::transparentBlack);
     engine().setTrack(handle(), name.toRawUTF8(), colour.getARGB());
 }
@@ -333,14 +407,41 @@ juce::String PortProcessor::presetName() const {
     return engine::board::fromJson(juce::String::fromUTF8(json.data(), (int)len))["name"].toString();
 }
 
+/// The Board menu changed (or the plugin was just loaded): tell the engine and the bridge. Message thread.
+void PortProcessor::applyBoard() {
+    const int b = boardChoice_ ? boardChoice_->getIndex() : 0;
+    if (b == appliedBoard_) return;
+    appliedBoard_ = b;
+    // A bridged plugin has no node of its own on this set's board: its node turns into a ghost, cables kept.
+    if (engine().supports(1)) engine().setBridged(handle(), b != 0);
+    char id[64];
+    engine().instanceId(handle(), id, sizeof id);
+    client_.setIdentity(b != 0 ? id : "", track_.toStdString());
+    client_.setPort((uint32_t)kind_, (bridge::Board)b);
+    if (reportsLatency()) {
+        latency_ = b != 0 ? client_.latencySamples() : engine().latencySamples();
+        setLatencySamples(latency_);
+    }
+}
+
 void PortProcessor::timerCallback() {
+    if (boardChoice_) {
+        applyBoard();
+        if (bridged()) {
+            client_.poll();
+            if (reportsLatency() && client_.latencySamples() != latency_.load()) {
+                latency_ = client_.latencySamples();  // the app's share of a web round trip changed
+                setLatencySamples(latency_);
+            }
+        }
+    }
     if (loadsPresets() && stateRestored_) pollSlots();
     // A new instance starts with a preset; a saved set (setStateInformation ran) keeps what it had, even nothing.
     if (loadsPresets() && !stateRestored_) {
         stateRestored_ = true;
         if (engine().cellPreset(handle(), nullptr, 0) == 0) loadPreset(PresetLibrary::defaultName(kind_));
     }
-    if (reportsLatency()) {
+    if (reportsLatency() && !bridged()) {
         const int l = engine().latencySamples();
         if (l != latency_.load()) {
             latency_ = l;

@@ -16,13 +16,17 @@ namespace bleep::bridge {
 
 class BridgeClient {
 public:
-    enum class Status { AppNotRunning, Connected, OtherHost, NoFreeSlot };
+    enum class Status { AppNotRunning, Connected, OtherHost, NoFreeSlot, VersionMismatch };
 
     BridgeClient();
     ~BridgeClient();
 
     /// [message thread] The bridge's stable ID and its track name.
     void setIdentity(const std::string& id, const std::string& track);
+    const std::string& identity() const noexcept { return id_; }
+    /// [message thread] Which port plugin this is (an engine::PortKind value; AudioBridge for the Bleep Audio Bridge)
+    /// and which board is on the other side. A change is seen by the app at once.
+    void setPort(uint32_t portKind, Board board);
     void prepare(double sampleRate, int maxBlock);
     /// [message thread] Call a few times per second.
     Status poll();
@@ -30,12 +34,31 @@ public:
     uint32_t drops() const noexcept;
     /// Another live bridge uses the same ID (a duplicated device): pick a new one.
     bool idTaken() const noexcept { return idTaken_; }
-    int latencySamples() const noexcept { return 2 * maxBlock_; }
+    int latencySamples() const noexcept { return 2 * maxBlock_ + extraLatency(); }
+    /// What the app asks the plugin to add (Bleep Play in the loop); 0 without one.
+    int extraLatency() const noexcept;
 
     /// [RT] Hands this block to the app and fills `ret` with the app's return
     /// for the block two blocks ago. Returns false if there is none.
     bool process(const float* const* in, float* const* ret, int numChannels, int numSamples, const Transport& t,
                  bool offline) noexcept;
+
+    /// What a port plugin hands over and takes back in one block. Null pointers mean "none": Audio In has no
+    /// return, Audio Out sends no audio, MIDI ports carry no audio.
+    struct Block {
+        const float* const* in = nullptr;   ///< the track's audio (Audio In, Audio Insert, Bridge)
+        float* const* ret = nullptr;        ///< board audio for the track, filled with the return of two blocks ago
+        int numChannels = 2;
+        int numSamples = 0;
+        Transport transport;
+        bool offline = false;
+        const Midi* midiIn = nullptr;       ///< the track's MIDI (MIDI In, Instrument)
+        int numMidiIn = 0;
+        Midi* midiOut = nullptr;            ///< MIDI for the track (MIDI Out), room for kMaxMidi
+        int numMidiOut = 0;                 ///< written: events returned for this block
+    };
+    /// [RT] The general form of process(). Returns false if the app's return for this block is missing.
+    bool exchange(Block& b) noexcept;
 
 private:
     void disconnect();
@@ -48,6 +71,9 @@ private:
     std::atomic<int> slot_{-1};
     std::atomic<Status> status_{Status::AppNotRunning};
     std::string id_, track_;
+    uint32_t portKind_ = 0;
+    Board board_ = Board::App;
+    bool portChanged_ = false;
     bool trackChanged_ = false;
     bool idTaken_ = false;
     int maxBlock_ = 512;

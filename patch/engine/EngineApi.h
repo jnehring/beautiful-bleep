@@ -31,7 +31,7 @@ namespace bleep::engine {
 /// The MAJOR version: changes whenever the layout of this interface or the data it passes changes.
 constexpr const char* kAbiTag = "bleep-engine-abi-8";
 /// The MINOR version: methods added at the end of IEngine since this major's first release (0 at the start).
-constexpr int kAbiMinor = 0;
+constexpr int kAbiMinor = 1;
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port
@@ -140,6 +140,11 @@ protected:
 
     // Methods added after this major's first release (minor 1 and up) go BELOW this line, in order, each with the
     // minor that introduced it in its comment: "[minor 1]", after a `public:`. Never insert above the destructor.
+
+public:
+    /// [minor 1] The plugin's other side is not this set's board (Board = App or Web, doc/specs/bridges.md §1): the
+    /// instance stays registered, but its node becomes a ghost and gets no node of its own. Message thread.
+    virtual void setBridged(int handle, bool bridged) noexcept = 0;
 };
 
 /// Finds the process's engine or creates it in this binary. Retained; call

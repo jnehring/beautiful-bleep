@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 #include "AppController.h"
 
+#include <future>
+
 #include "BoardWindow.h"
 
 namespace bleep::app {
@@ -69,6 +71,7 @@ AppController::~AppController() {
     devices_.closeAudioDevice();
     system_.reset();
     bridge_.reset();
+    hub_.reset();
     {
         const juce::SpinLock::ScopedLockType lock(portsLock_);
         const juce::SpinLock::ScopedLockType midiLock(midiLock_);
@@ -104,13 +107,53 @@ void AppController::start(const juce::String& commandLine) {
     clock_.enable(!smoke_ && settings_->getBoolValue("link", true));
     clock_.setTempo(settings_->getDoubleValue("tempo", 120.0));
 
+    // The web link (doc/specs/bridges.md): off until the user turns it on in Settings.
+    webEnabled_ = !smoke_ && settings_->getBoolValue("webEnabled", false);
+    webPort_ = juce::jlimit(1024, 65535, settings_->getIntValue("webPort", 47100));
+    // BLEEP_WEB_PORT=<port> turns the link on for this run, whatever the saved settings say (tests, demos; not saved).
+    if (const char* env = std::getenv("BLEEP_WEB_PORT"); env != nullptr && *env != 0) {
+        forceWeb_ = true;
+        webEnabled_ = true;
+        webPort_ = juce::jlimit(1024, 65535, std::atoi(env));
+    }
+    for (const auto& line : juce::StringArray::fromLines(settings_->getValue("webOrigins")))
+        if (line.isNotEmpty()) allowedOrigins_.insert(line.toStdString());
+    hub::WebHub::Callbacks hubCallbacks;
+    hubCallbacks.askPairing = [this](const std::string& origin) { return askPairing(origin); };
+    hubCallbacks.allowedOrigins = [this] {
+        const juce::CriticalSection::ScopedLockType lock(originsLock_);
+        return allowedOrigins_;
+    };
+    hubCallbacks.rememberOrigin = [this](const std::string& origin) {
+        {
+            const juce::CriticalSection::ScopedLockType lock(originsLock_);
+            allowedOrigins_.insert(origin);
+        }
+        juce::MessageManager::callAsync([this] { saveSettings(); });
+    };
+    hubCallbacks.request = [this](double tempo, int play) {
+        // The leader decides (§5): a request only counts while the app's own clock is the leader.
+        juce::MessageManager::callAsync([this, tempo, play] {
+            if (bridge_ && bridge_->driving()) return;
+            if (tempo >= 20.0 && tempo <= 400.0) clock_.setTempo(tempo);
+            if (play >= 0) clock_.setPlaying(play == 1);
+        });
+    };
+    hubCallbacks.leader = [this] { return std::string(clock_.enabled() ? "link" : "app"); };
+    hub_ = std::make_unique<hub::WebHub>(*engine_, hubCallbacks);
+
     // Bleep Audio Bridge: Live's blocks drive MIDI and Link too while bridges are connected.
     bridge_ = std::make_unique<bridge::BridgeServer>(
         *engine_,
         [this](const engine::Transport& t, int n, std::vector<int>& handles, std::vector<engine::BlockIO*>& ios) {
             buildControlPorts(t, n, handles, ios);
         },
-        [this](std::vector<int>&, std::vector<engine::BlockIO*>&) { sendMidi(); });
+        [this](std::vector<int>& handles, std::vector<engine::BlockIO*>& ios) {
+            if (hub_) hub_->after(handles, ios);
+            sendMidi();
+        });
+    bridge_->setRelay(hub_.get());
+    applyWeb();
 
     applySystemAudio();  // syncPorts() inside
     newProject();
@@ -382,6 +425,16 @@ void AppController::saveSettings() {
     settings_->setValue("systemAudioSource", systemSource_);
     settings_->setValue("link", clock_.enabled());
     settings_->setValue("tempo", clock_.tempo());
+    if (!forceWeb_) {
+        settings_->setValue("webEnabled", webEnabled_);
+        settings_->setValue("webPort", webPort_);
+    }
+    {
+        const juce::CriticalSection::ScopedLockType lock(originsLock_);
+        juce::StringArray lines;
+        for (const auto& o : allowedOrigins_) lines.add(juce::String(o));
+        settings_->setValue("webOrigins", lines.joinIntoString("\n"));
+    }
     settings_->saveIfNeeded();
 }
 
@@ -461,6 +514,7 @@ void AppController::buildControlPorts(const engine::Transport& t, int n, std::ve
         handles.push_back(linkHandle_);
         ios.push_back(&linkIo_);
     }
+    if (hub_ && hub_->running()) hub_->collect(t, n, handles, ios);  // Bleep Play pages' nodes
 }
 
 void AppController::sendMidi() {
@@ -524,6 +578,7 @@ void AppController::audioDeviceIOCallbackWithContext(const float* const* inputs,
     buildControlPorts(t, numSamples, handles_, ios_);
     if (handles_.empty()) return;
     engine_->processAll(handles_.data(), ios_.data(), (int)handles_.size());
+    if (hub_ && hub_->running()) hub_->after(handles_, ios_);
     sendMidi();
 }
 
@@ -601,6 +656,7 @@ void AppController::syncDeviceNodes() {
 
 void AppController::timerCallback() {
     if (bridge_) bridge_->poll();
+    if (hub_ && hub_->running()) hub_->poll();
     if (system_) system_->poll();
     syncDeviceNodes();
     // The Link node's settings (spec §11.4).
@@ -662,7 +718,7 @@ void AppController::loadPatch(const juce::var& board, double tempo, const juce::
         project_ = juce::File();  // a patch is a starting point: Save asks for a new file
         savedGeneration_ = engine_->boardGeneration();
         if (tempo >= 20.0 && tempo <= 400.0) clock_.setTempo(tempo);
-        if (!clock_.playing()) clock_.setPlaying(true);  // demo patches play with the transport
+        if (!clock_.playing()) clock_.setPlaying(true);  // demo boards play with the transport
         commands_.commandStatusChanged();
         updateTitle();
         juce::ignoreUnused(name);
@@ -751,7 +807,7 @@ void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandI
         case cmdNew: info.setInfo("New", "New project", "File", 0); info.addDefaultKeypress('n', cmd); break;
         case cmdOpen: info.setInfo(u8("Open…"), "Open a project", "File", 0); info.addDefaultKeypress('o', cmd); break;
         case cmdPresets:
-            info.setInfo(u8("Presets…"), "Browse the demo patches and your own patches", "File", 0);
+            info.setInfo(u8("Presets…"), "Browse the demo boards and your own boards", "File", 0);
             info.addDefaultKeypress('p', cmd);
             break;
         case cmdSave: info.setInfo("Save", "Save the project", "File", 0); info.addDefaultKeypress('s', cmd); break;
@@ -903,7 +959,65 @@ juce::var AppController::settingsState() {
     link->setProperty("tempo", clock_.tempo());
     o->setProperty("link", juce::var(link));
     o->setProperty("system", systemAudioState());
+    o->setProperty("web", webState());
     return juce::var(o);
+}
+
+// ---- the web link (Settings → Web connection) ---------------------------------------------------------------
+
+juce::var AppController::webState() {
+    auto* o = new juce::DynamicObject();
+    o->setProperty("enabled", webEnabled_);
+    o->setProperty("running", hub_ && hub_->running());
+    o->setProperty("port", webPort_);
+    o->setProperty("error", webError_);
+    juce::Array<juce::var> origins;
+    {
+        const juce::CriticalSection::ScopedLockType lock(originsLock_);
+        for (const auto& s : allowedOrigins_) origins.add(juce::String(s));
+    }
+    o->setProperty("origins", origins);
+    o->setProperty("page", hub_ && hub_->running() ? "http://127.0.0.1:" + juce::String(hub_->port()) + "/" : juce::String());
+    if (hub_) o->setProperty("link", hub_->status());
+    return juce::var(o);
+}
+
+void AppController::applyWeb() {
+    if (!hub_) return;
+    webError_ = {};
+    if (hub_->running() && (!webEnabled_ || hub_->port() != webPort_)) hub_->stop();
+    if (webEnabled_ && !hub_->running()) {
+        // Where the board page lives: a folder the user set, or the one next to the app (scripts/build/build-web.sh).
+        std::string root;
+        if (const char* env = std::getenv("BLEEP_WEB_ROOT"); env && *env) root = env;
+        else {
+            const auto bundled = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getChildFile("Contents/Resources/web");
+            if (bundled.isDirectory()) root = bundled.getFullPathName().toStdString();
+        }
+        if (!hub_->start(webPort_, root)) {
+            webError_ = "Port " + juce::String(webPort_) + " is taken. Pick another one.";
+            webEnabled_ = false;
+        }
+    }
+}
+
+/// An origin the app doesn't know asks to connect (§4). Called on a handshake thread: it waits for the answer.
+bool AppController::askPairing(const std::string& origin) {
+    auto answer = std::make_shared<std::promise<bool>>();
+    auto future = answer->get_future();
+    juce::MessageManager::callAsync([origin, answer] {
+        juce::AlertWindow::showAsync(
+            juce::MessageBoxOptions()
+                .withIconType(juce::MessageBoxIconType::QuestionIcon)
+                .withTitle("Connect Bleep Play?")
+                .withMessage(juce::String(origin) + " wants to connect to Bleep App on this computer. It will be able to send and "
+                             "receive audio and MIDI and see your tempo. Allow only pages you opened yourself.")
+                .withButton("Allow")
+                .withButton("Deny"),
+            [answer](int result) { answer->set_value(result == 1); });
+    });
+    // The handshake waits up to 30 s (bridges.md §10.2); a dialog nobody answers is a denial.
+    return future.wait_for(std::chrono::seconds(30)) == std::future_status::ready && future.get();
 }
 
 /// What the page's Settings section asks for. Returns the new state, plus `error` when the audio device refused.
@@ -957,6 +1071,18 @@ juce::var AppController::settingsCall(const juce::String& fn, const juce::var& a
         commands_.commandStatusChanged();
     } else if (fn == "tempo") {
         clock_.setTempo(juce::jlimit(20.0, 400.0, (double)arg["bpm"]));
+        saveSettings();
+    } else if (fn == "web") {
+        if (!arg["on"].isVoid()) webEnabled_ = (bool)arg["on"];
+        if (!arg["port"].isVoid()) webPort_ = juce::jlimit(1024, 65535, (int)arg["port"]);
+        applyWeb();
+        saveSettings();
+        error = webError_;
+    } else if (fn == "webForget") {
+        {
+            const juce::CriticalSection::ScopedLockType lock(originsLock_);
+            allowedOrigins_.erase(arg["origin"].toString().toStdString());
+        }
         saveSettings();
     }
     auto state = settingsState();

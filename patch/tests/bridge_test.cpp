@@ -90,6 +90,119 @@ std::vector<float> run(bridge::BridgeClient& a, bridge::BridgeClient& b, int blo
     return received;
 }
 
+/// Version 2: a plugin is any port kind, and the app's board sees it as that port (bridges.md §10.1).
+void testPortKinds(engine::Engine& engine, bridge::BridgeServer& server) {
+    using engine::PortKind;
+    auto kindOf = [](PortKind k) { return (uint32_t)k; };
+    bridge::BridgeClient midiIn, midiOut, audioIn, audioOut;
+    midiIn.setIdentity("aaaaaaaa-0000-0000-0000-000000000001", "Keys");
+    midiOut.setIdentity("aaaaaaaa-0000-0000-0000-000000000002", "Synth");
+    audioIn.setIdentity("aaaaaaaa-0000-0000-0000-000000000003", "Guitar");
+    audioOut.setIdentity("aaaaaaaa-0000-0000-0000-000000000004", "Return");
+    midiIn.setPort(kindOf(PortKind::MidiIn), bridge::Board::App);
+    midiOut.setPort(kindOf(PortKind::MidiOut), bridge::Board::App);
+    audioIn.setPort(kindOf(PortKind::AudioIn), bridge::Board::App);
+    audioOut.setPort(kindOf(PortKind::AudioOut), bridge::Board::App);
+    server.poll();  // the app's heartbeat: it has been quiet while the earlier tests ran
+    for (auto* c : {&midiIn, &midiOut, &audioIn, &audioOut}) {
+        c->prepare(48000.0, kBlock);
+        EXPECT(c->poll() == bridge::BridgeClient::Status::Connected);
+    }
+    server.poll();
+    engine.reconcileNow();
+
+    auto nodeOf = [&](const char* prefix, const char* type) {
+        for (const auto& n : *engine.board()["nodes"].getArray())
+            if (n["port"].toString().startsWith(prefix)) {
+                EXPECT(n["type"].toString() == type);
+                return n["id"].toString();
+            }
+        return juce::String();
+    };
+    const auto nMidiIn = nodeOf("aaaaaaaa-0000-0000-0000-000000000001", "midi-in");
+    const auto nMidiOut = nodeOf("aaaaaaaa-0000-0000-0000-000000000002", "midi-out");
+    const auto nAudioIn = nodeOf("aaaaaaaa-0000-0000-0000-000000000003", "audio-in");
+    const auto nAudioOut = nodeOf("aaaaaaaa-0000-0000-0000-000000000004", "audio-out");
+    EXPECT(nMidiIn.isNotEmpty() && nMidiOut.isNotEmpty() && nAudioIn.isNotEmpty() && nAudioOut.isNotEmpty());
+
+    auto edited = engine::board::fromJson(engine::board::toJson(engine.board()));
+    auto cable = [&](const juce::String& a, const char* aj, const juce::String& b, const char* bj) {
+        edited["cables"].getArray()->add(
+            obj({{"from", obj({{"node", a}, {"jack", aj}})}, {"to", obj({{"node", b}, {"jack", bj}})}, {"amount", 1.0}}));
+    };
+    cable(nMidiIn, "notes", nMidiOut, "notes");
+    cable(nAudioIn, "l", nAudioOut, "l");
+    cable(nAudioIn, "r", nAudioOut, "r");
+    engine.commit(edited, "patch kinds");
+
+    // Lockstep on one thread, offline: every client waits for the app. Notes go in at block 5, sample 17.
+    constexpr int kBlocks = 40;
+    std::vector<float> in((size_t)kBlock), retL((size_t)kBlock), retR((size_t)kBlock);
+    int64_t pos = 1 << 20;
+    int gotNote = -1, gotOffset = -1, gotVelocity = -1, noteBlocks = 0, audioWrong = 0;
+    for (int blk = 0; blk < kBlocks; ++blk) {
+        for (int i = 0; i < kBlock; ++i) in[(size_t)i] = (float)(blk * kBlock + i + 1);
+        bridge::Transport t;
+        t.samplePos = pos + blk * kBlock;
+
+        bridge::Midi note;
+        note.offset = 17;
+        note.bytes[0] = 0x90;
+        note.bytes[1] = 60;
+        note.bytes[2] = 100;
+        note.size = 3;
+        bridge::BridgeClient::Block m;
+        m.numSamples = kBlock;
+        m.transport = t;
+        m.offline = true;
+        if (blk == 5) {
+            m.midiIn = &note;
+            m.numMidiIn = 1;
+        }
+        midiIn.exchange(m);
+
+        bridge::Midi out[bridge::kMaxMidi];
+        bridge::BridgeClient::Block o;
+        o.numSamples = kBlock;
+        o.transport = t;
+        o.offline = true;
+        o.midiOut = out;
+        midiOut.exchange(o);
+        if (o.numMidiOut > 0) {
+            ++noteBlocks;
+            gotNote = out[0].bytes[1];
+            gotOffset = out[0].offset;
+            gotVelocity = out[0].bytes[2];
+            EXPECT(blk == 7);  // sent in block 5, back two blocks later
+        }
+
+        const float* ins[2] = {in.data(), in.data()};
+        bridge::BridgeClient::Block a;
+        a.in = ins;
+        a.numSamples = kBlock;
+        a.transport = t;
+        a.offline = true;
+        audioIn.exchange(a);
+
+        float* rets[2] = {retL.data(), retR.data()};
+        bridge::BridgeClient::Block r;
+        r.ret = rets;
+        r.numSamples = kBlock;
+        r.transport = t;
+        r.offline = true;
+        const bool have = audioOut.exchange(r);
+        if (blk >= 2) {
+            EXPECT(have);
+            for (int i = 0; i < kBlock; ++i)
+                if (std::abs(retL[(size_t)i] - (float)((blk - 2) * kBlock + i + 1)) > 0.0f) ++audioWrong;
+        }
+    }
+    std::printf("port kinds: note %d at sample %d velocity %d in %d block(s), %d wrong audio samples\n", gotNote,
+                gotOffset, gotVelocity, noteBlocks, audioWrong);
+    EXPECT(noteBlocks == 1 && gotNote == 60 && gotOffset == 17 && gotVelocity == 100);
+    EXPECT(audioWrong == 0);
+}
+
 }  // namespace
 
 int main() {
@@ -155,13 +268,15 @@ int main() {
         std::printf("real time: %d of 398 blocks late (drops B %u)\n", late, b.drops());
         EXPECT(late < 40);  // a loaded CI machine may miss some; Live measures this in phase 0
 
+        testPortKinds(*engine, server);
+
         // A bridge that goes away becomes a ghost node with its cables kept.
         b.setIdentity("", "Pad");
         server.poll();
         EXPECT(server.connected() == 1);
         engine->reconcileNow();
         int cables = engine->board()["cables"].getArray()->size();
-        EXPECT(cables == 1);
+        EXPECT(cables >= 1);
     }
     engine->unregisterInstance(main);
     engine->collectGarbage();

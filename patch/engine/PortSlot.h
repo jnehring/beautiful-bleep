@@ -69,7 +69,9 @@ struct PortSlot {
     uint32_t trackColour = 0;
     double registeredAt = 0.0;      ///< ms, for the settle delay before a node appears
     bool restored = false;          ///< setState has run (or the settle delay passed)
-    std::string savedBoard;         ///< Bleep Patch: the board it loaded or last saved
+    bool remote = false;            ///< standalone app: stands in for a plugin or Bleep Play somewhere else (Engine::registerRemoteInstance)
+    bool bridged = false;           ///< Live: the plugin talks to another board (IEngine::setBridged)
+    std::string savedBoard;         ///< Bleep Board: the board it loaded or last saved
     std::string presetJson;         ///< cell plugins: the preset as the plugin loaded it (name, plays, panels …)
 
     // Audio thread of this plugin.

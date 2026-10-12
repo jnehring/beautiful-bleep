@@ -72,6 +72,7 @@ public:
     void setCellPreset(int handle, const char* json, size_t length, bool replace) noexcept override;
     size_t cellPreset(int handle, char* out, size_t capacity) noexcept override;
     size_t uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept override;
+    void setBridged(int handle, bool bridged) noexcept override;
 
     // ---- for the board window (message thread) ----------------------------
     bool hasBoard() const noexcept { return mainHandle_ != 0 || implicit_; }
@@ -112,6 +113,9 @@ public:
     bool standalone() const noexcept { return standalone_; }
     /// Replaces the board's status line (device, Link, transport).
     void setStatusProvider(std::function<juce::String()> provider) { statusProvider_ = std::move(provider); }
+    /// Registers an instance that stands for a port plugin in Live or Bleep Play: its node appears on the app's
+    /// board whatever its kind (a Live Audio In is the app's Audio In), and the app drives it with processAll().
+    int registerRemoteInstance(PortKind kind) noexcept;
     /// Processes one block for several ports at once, from one thread. Every
     /// port's output is the board's output for this same block (no latency
     /// inside the engine). Only for a process with a single driving thread,

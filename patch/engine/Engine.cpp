@@ -112,6 +112,20 @@ int Engine::registerInstance(PortKind kind) noexcept {
     return handle;
 }
 
+int Engine::registerRemoteInstance(PortKind kind) noexcept {
+    const int handle = registerInstance(kind);
+    if (auto s = slotShared(handle)) s->remote = true;
+    return handle;
+}
+
+void Engine::setBridged(int handle, bool bridged) noexcept {
+    auto s = slotShared(handle);
+    if (!s || s->bridged == bridged) return;
+    s->bridged = bridged;
+    recompile();  // the node is a ghost while its plugin talks to another board
+    if (ui_) ui_->boardChanged();
+}
+
 void Engine::unregisterInstance(int handle) noexcept {
     if (handle <= 0 || handle >= kMaxInstances) return;
     table_[handle].store(nullptr, std::memory_order_release);
@@ -649,7 +663,7 @@ void Engine::modulesChanged() {
 void Engine::recompile() {
     std::map<std::string, std::shared_ptr<PortSlot>> ports;
     for (const auto& s : instances_)
-        if (s->kind != PortKind::Patch || s->handle == mainHandle_) ports[s->id] = s;
+        if ((s->kind != PortKind::Patch || s->handle == mainHandle_) && !s->bridged) ports[s->id] = s;
     std::unique_ptr<Program> next;
     if (hasBoard()) {
         BoardModel model = board::parse(board_);
@@ -688,7 +702,8 @@ void Engine::reconcile(bool force) {
     const bool emptyBoard = board_["nodes"].getArray() == nullptr || board_["nodes"].getArray()->isEmpty();
     for (const auto& s : instances_) {
         if (s->kind == PortKind::Patch && (s->handle != mainHandle_ || standalone_)) continue;
-        if (s->kind == PortKind::MidiDevice) continue;  // its node comes first; the app follows it
+        if (s->kind == PortKind::MidiDevice && !s->remote) continue;  // its node comes first; the app follows it
+        if (s->bridged) continue;                                      // its other side is another board
         auto* existing = board::findNodeByPort(board_, juce::String(s->id));
         if (existing != nullptr) {
             // Keep the last known track on the node, so ghosts still say where they were.
@@ -700,7 +715,7 @@ void Engine::reconcile(bool force) {
             continue;
         }
         if (!force && !s->restored && nowMs() - s->registeredAt < 500.0) continue;  // wait for setState
-        if (standalone_ && appOwnsPort(s->kind) && !(emptyBoard && (s->id == "device-in-1" || s->id == "device-out-1"))) continue;
+        if (standalone_ && appOwnsPort(s->kind) && !s->remote && !(emptyBoard && (s->id == "device-in-1" || s->id == "device-out-1"))) continue;
         const ModuleSpec* spec = Registry::get().forPort(s->kind);
         if (spec == nullptr) continue;
         const bool toTrack = (sendsToTrack(s->kind) && s->kind != PortKind::Instrument &&
@@ -1078,6 +1093,7 @@ public:
     void setCellPreset(int, const char*, size_t, bool) noexcept override {}
     size_t cellPreset(int, char*, size_t) noexcept override { return 0; }
     size_t uiCall(int, const char*, const char*, char*, size_t) noexcept override { return 0; }
+    void setBridged(int, bool) noexcept override {}
 
 private:
     int refs_ = 1;

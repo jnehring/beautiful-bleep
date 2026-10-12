@@ -1,6 +1,6 @@
 ---
 title: Ways to use Bleep
-description: Plugin, app or browser: the three places to use Bleep and how much effort each level takes.
+description: Bleep plugin, Bleep App or Bleep Play: the three places to use Beautiful Bleep and how much effort each level takes.
 order: -1
 ---
 
@@ -13,34 +13,39 @@ can use it at three levels of effort.
 
 | | What it is | Best for |
 |---|---|---|
-| **Plugin** | VST3 plugins for your DAW (Ableton Live today). See [ports](ports.md) | Making music inside a DAW project |
-| **App** | The [standalone app](standalone.md): the board without a DAW | Playing, sound design, live use next to a DAW |
-| **Web** | [Play](/board/) in your browser, no install | Trying things out, sharing a patch |
+| **Bleep plugin** | VST3 plugins for your DAW (Ableton Live today). See [ports](ports.md) | Making music inside a DAW project |
+| **Bleep App** | The [standalone app](standalone.md): the board without a DAW | Playing, sound design, live use next to a DAW |
+| **Bleep Play** | [Bleep Play](/board/) in your browser, no install | Trying things out, sharing a project |
 
-All three run the same board, the same modules and the same patch files, so a
-patch made in one place opens in the others. (The web version does not have
+All three run the same board, the same modules and the same project files, so a
+project made in one place opens in the others. (Bleep Play does not have
 every module yet; the board page lists what is missing.)
 
 ### Connecting them
 
-The places are meant to work together: MIDI, audio and tempo can travel
-between them. **What works today:**
+The places work together: MIDI, audio and tempo can travel between them, and
+you choose where in the place you are. The plugins have a **Board** menu
+(*This set*, *Bleep App* or *Bleep Play*), the Bleep App has a *Web* switch in
+Settings, and Bleep Play has a **Connect to app** button. The Bleep App sits in the
+middle, on your computer. **What works:**
 
-| | Plugin ⇄ App | Web |
-|---|---|---|
-| **MIDI** | The app's own MIDI ports, *Bleep Patch 1/2* | Computer keyboard and Web MIDI devices |
-| **Audio** | *Bleep Audio Bridge* on a Live track | Not connected to the other two yet |
-| **Tempo and transport** | Ableton Link | Not connected yet |
+| | Plugin ⇄ App | App ⇄ Play | Plugin ⇄ Play (through the app) |
+|---|---|---|---|
+| **MIDI** | Board menu on MIDI In/Out, or the app's MIDI ports | Remote MIDI nodes | Board menu: *Bleep Play* |
+| **Audio** | Board menu on Audio In/Out, or *Bleep Audio Bridge* | Remote Audio nodes | Board menu: *Bleep Play* |
+| **Tempo and transport** | Live leads; Ableton Link | Bleep Play follows the app | Bleep Play follows Live |
 
-Connecting the web board to the app and to Live (an effect built in the
-browser, played in Live through a plugin) is planned, not built.
+Audio between the plugin and the app is two buffers late; through Bleep Play
+it is a little more. [Connecting plugin, app and Bleep Play](guides/connecting.md)
+has the numbers, the setup and some recipes. Another computer, or Bleep Play
+without the app, is planned, not built.
 
 ## Three ways to play
 
 Whichever place you are in, you choose how to start:
 
 - **Instrument.** Pick a preset such as *Warm Saws*, play it with MIDI. For
-  when you want a sound, not a patch. In Live this is **Bleep Instrument**.
+  when you want a sound, not a board. In Live this is **Bleep Instrument**.
 - **Audio effect.** Pick a preset such as *Dub Ping-Pong*, send audio
   through it. In Live this is **Bleep FX**.
 - **Bleep patch.** The whole board: every module, every cable, your own
@@ -48,16 +53,16 @@ Whichever place you are in, you choose how to start:
   your tracks.
 
 These are not three different systems. An instrument or an effect preset is a
-small patch (a *cell*) on the same board as everything else. The simple modes
+small *cell* on the same board as everything else. The simple modes
 are a shortcut: you can try presets without ever touching a cable, and when you
-want more, open the board, edit the preset's patch, cable it to other parts,
+want more, open the board, edit the preset's cell, cable it to other parts,
 and save it as your own.
 
-| | Instrument | Audio effect | Bleep patch |
+| | Instrument | Audio effect | Full board |
 |---|---|---|---|
-| **Plugin** | Bleep Instrument | Bleep FX | Bleep Patch and the [ports](ports.md) |
-| **App** | Planned | Planned | Yes |
-| **Web** | Planned | Planned | Yes |
+| **Bleep plugin** | Bleep Instrument | Bleep FX | Bleep Board and the [ports](ports.md) |
+| **Bleep App** | Planned | Planned | Yes |
+| **Bleep Play** | Planned | Planned | Yes |
 
 In the plugins, Instrument and FX open on the preset's panel (knobs and
 sliders) rather than on the board. **Open Board** shows the preset as a cell
@@ -65,5 +70,5 @@ on the board. Cables between several plugins need Bleep Patch in the set,
 because the board is saved there.
 
 Next: [Getting started in Live](getting-started.md), the
-[standalone app](standalone.md), or [Play](/board/) in your
+[Bleep App](standalone.md), or [Bleep Play](/board/) in your
 browser.

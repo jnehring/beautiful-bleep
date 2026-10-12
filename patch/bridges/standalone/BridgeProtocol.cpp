@@ -58,7 +58,14 @@ bool processAlive(int pid) noexcept {
 
 // ---- shared memory ---------------------------------------------------------------
 
+namespace {
+thread_local bool g_incompatible = false;
+}
+
+bool SharedMemory::lastOpenWasIncompatible() noexcept { return g_incompatible; }
+
 SharedMemory* SharedMemory::open(bool create) {
+    g_incompatible = false;
     const size_t size = sizeof(Shared);
     auto* m = new SharedMemory();
     m->owner_ = create;
@@ -119,6 +126,7 @@ SharedMemory* SharedMemory::open(bool create) {
         std::atomic_thread_fence(std::memory_order_release);
         s.magic = kMagic;  // last: the segment is ready
     } else if (s.magic != kMagic || s.version != kVersion || s.layoutSize != size) {
+        g_incompatible = true;
         delete m;
         return nullptr;
     }

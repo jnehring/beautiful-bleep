@@ -168,6 +168,9 @@ set(BLEEP_BRIDGE_CLIENT_SOURCES ${BLEEP_BRIDGE_PROTOCOL_SOURCES} bridges/standal
 set(BLEEP_BRIDGE_SERVER_SOURCES ${BLEEP_BRIDGE_PROTOCOL_SOURCES} bridges/standalone/BridgeServer.cpp)
 set(BLEEP_BRIDGE_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/bridges/standalone")
 
+# The web hub (doc/specs/bridges.md §10): WebSocket server and the app's web peers.
+include(hub/hub.cmake)
+
 if (BLEEP_PATCH_BUILD_TESTS)
     # Every module type on a real compiled board: random knobs and inputs,
     # finite outputs, data round trips (tests/module_harness.cpp). juce_core only.
@@ -459,8 +462,9 @@ function(bleep_add_plugin)
         bridges/ableton/PortProcessor.cpp
         bridges/ableton/PortEditor.cpp
         bridges/ableton/PanelView.cpp
-        bridges/ableton/PresetLibrary.cpp)
-    target_include_directories(${P_TARGET} PRIVATE ${BLEEP_ENGINE_INCLUDES}
+        bridges/ableton/PresetLibrary.cpp
+        ${BLEEP_BRIDGE_CLIENT_SOURCES})
+    target_include_directories(${P_TARGET} PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/bridges/ableton")
     target_compile_definitions(${P_TARGET} PUBLIC
         JUCE_WEB_BROWSER=1
@@ -602,8 +606,9 @@ if (BLEEP_PATCH_BUILD_APP)
         bridges/standalone/LinkClock.cpp
         board/BoardWindow.cpp
         ${BLEEP_APP_ENGINE_SOURCES}
-        ${BLEEP_BRIDGE_SERVER_SOURCES})
-    target_include_directories(BleepPatchApp PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES}
+        ${BLEEP_BRIDGE_SERVER_SOURCES}
+        ${BLEEP_HUB_SOURCES})
+    target_include_directories(BleepPatchApp PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES} ${BLEEP_HUB_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/app")
     target_compile_definitions(BleepPatchApp PRIVATE
         JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
@@ -651,4 +656,28 @@ if (BLEEP_PATCH_BUILD_TESTS)
     add_dependencies(bleep_bridge_plugin_test BleepAudioBridge_VST3)
     add_test(NAME patch.bridge-plugin COMMAND bleep_bridge_plugin_test
         "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepAudioBridge_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>")
+
+    # The Board menu of the port plugins: Audio In/Out and MIDI In/Out talking to the app.
+    juce_add_console_app(bleep_port_plugin_test PRODUCT_NAME "Bleep Port Plugin Test")
+    target_sources(bleep_port_plugin_test PRIVATE tests/port_plugin_test.cpp ${BLEEP_ENGINE_SOURCES}
+        ${BLEEP_BRIDGE_SERVER_SOURCES})
+    target_include_directories(bleep_port_plugin_test PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES})
+    target_compile_definitions(bleep_port_plugin_test PRIVATE
+        JUCE_PLUGINHOST_VST3=1 JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_MODAL_LOOPS_PERMITTED=1)
+    target_link_libraries(bleep_port_plugin_test PRIVATE bleep_patch_dsp juce::juce_audio_processors
+        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+    add_dependencies(bleep_port_plugin_test BleepAudioIn_VST3 BleepAudioOut_VST3 BleepMidiIn_VST3 BleepMidiOut_VST3)
+    # A stand-in for Live's plugins for trying the app and a browser by hand (not a test).
+    juce_add_console_app(bleep_bridge_probe PRODUCT_NAME "Bleep Bridge Probe")
+    target_sources(bleep_bridge_probe PRIVATE tests/bridge_probe.cpp ${BLEEP_BRIDGE_CLIENT_SOURCES})
+    target_include_directories(bleep_bridge_probe PRIVATE ${BLEEP_BRIDGE_INCLUDES})
+    target_compile_definitions(bleep_bridge_probe PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_bridge_probe PRIVATE juce::juce_core
+        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+
+    add_test(NAME patch.port-plugins COMMAND bleep_port_plugin_test
+        "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepAudioIn_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>"
+        "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepAudioOut_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>"
+        "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepMidiIn_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>"
+        "$<GENEX_EVAL:$<TARGET_PROPERTY:BleepMidiOut_VST3,JUCE_PLUGIN_ARTEFACT_FILE>>")
 endif ()

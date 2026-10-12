@@ -4,12 +4,16 @@
 // runs the graph (graph.js) and the module wasm files it is sent. All board
 // edits arrive as messages from bleep-web.js on the main thread.
 import { Engine } from "./graph.js";
+import { bridgeEndpoint } from "./bridge-worklet.js";  // [bridge] the web link to the app, see README
 
 class BleepProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.engine = new Engine(sampleRate);
     this.engine.onError = (message) => this.port.postMessage({ cmd: "error", message });
+    // [bridge] remote nodes (graph.js) read and write the endpoint; MIDI delays count in engine samples
+    this.engine.bridge = bridgeEndpoint();
+    this.engine.bridge.now = () => this.engine.samplePos;
     this.frames = 0;
     this.board = null;
     this.port.onmessage = (e) => this.#message(e.data);
@@ -35,6 +39,14 @@ class BleepProcessor extends AudioWorkletProcessor {
         case "cc": e.midi.cc[m.number] = m.value; break;
         case "bend": e.midi.bend = m.value; break;
         case "tempo": e.bpm = m.bpm; break;
+        case "bridge-port": e.bridge.connect(m.port); break;  // [bridge] the Worker's MessagePort
+        case "bridge": e.bridge.message(m, (x) => this.port.postMessage(x)); break;  // [bridge]
+        case "bridge-debug": {  // [bridge] what the endpoint and the bound nodes hold, for finding out why a channel is silent
+          const b = e.bridge, side = (map) => [...map.entries()].map(([k, v]) => ({ key: k, ch: v.ch, online: v.online, mode: v.mode, owner: v.owner !== undefined ? v.owner !== null : undefined }));
+          this.port.postMessage({ cmd: "bridge-debug", ins: side(b.ins), outs: side(b.outs), stats: b.stats,
+            bound: e.steps.filter((st) => st.host && st.host.remote).map((st) => ({ id: st.id, key: st.host.remote.key, kind: st.host.remote.kind, peakIn: st.host.remote.peakIn })) });
+          break;
+        }
       }
     } catch (err) {
       this.port.postMessage({ cmd: "error", message: String(err && err.stack || err) });

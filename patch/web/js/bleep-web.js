@@ -65,8 +65,10 @@
     setTypes(list) { types = list; post({ cmd: "types", types }); },
     setBoard(b) {
       board = b;
+      W.boardDoc = b;
+      if (W.onBoardSet) W.onBoardSet(b);  // [bridge]
       if (!node) return;
-      post({ cmd: "board", board: b });
+      post({ cmd: "board", board: W.mapBoard ? W.mapBoard(b) : b });  // [bridge] Remote nodes carry their channel key
       ensureModules();
     },
     setKnob: (id, param, value) => post({ cmd: "knob", node: id, param, value }),
@@ -82,11 +84,15 @@
     async start() {
       if (ctx) { await ctx.resume(); return; }
       setStatus("starting audio…");
+      let storeDown = "";
       try {
         manifest = await BleepStore.manifest();
       } catch (e) {
-        setStatus(`cannot reach the Bleep Store: ${e.message}`);
-        throw e;
+        // [bridge] Without the store the board still runs its built-in ports (the web link to the app needs no module):
+        // modules stay unavailable until it can be reached.
+        manifest = { modules: {}, types: {}, unavailable: [] };
+        storeDown = `cannot reach the Bleep Store: ${e.message}`;
+        setStatus(storeDown);
       }
       ctx = new AudioContext({ latencyHint: "interactive" });
       await ctx.audioWorklet.addModule(url("js/worklet.js"));
@@ -100,8 +106,8 @@
       post({ cmd: "types", types });
       post({ cmd: "watch", nodes: watched });
       W.running = true;
-      if (board) { post({ cmd: "board", board }); await ensureModules(); }
-      setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms`);
+      if (board) { post({ cmd: "board", board: W.mapBoard ? W.mapBoard(board) : board }); await ensureModules(); }
+      setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms` + (storeDown ? ` · ${storeDown}` : ""));
     },
     /// The board a visitor starts with: a playable keyboard synth.
     /// `node` and `cable` are board-demo.js's helpers.
@@ -183,6 +189,29 @@
   W.midiDevices = async function () {
     try { await W.enableMidi(); } catch (e) { return []; }
     return midiNames();
+  };
+
+  // ---- [bridge] the web link to the app (bridge-client.js; see "The bridge to the app" in the README) ------
+  // Loaded on demand, so a page that never connects never fetches it. Needs a click (it starts audio).
+  W.bridge = null;
+  /// What the worklet's endpoint and the bound nodes hold (for finding out why a channel is silent).
+  W.debugBridge = () => new Promise((resolve) => {
+    const h = (e) => { if (e.data && e.data.cmd === "bridge-debug") { node.port.removeEventListener("message", h); resolve(e.data); } };
+    node.port.addEventListener("message", h);
+    post({ cmd: "bridge-debug" });
+  });
+  /// The types of Remote Audio / Remote MIDI, for the board UI's Add menu (board-demo.js adds them to its list).
+  W.remoteTypes = async () => (await import(url("js/bridge-types.js"))).REMOTE_TYPES;
+  /// A Remote node is bound to the channel it opened under its own id.
+  W.mapBoard = (b) => ({ ...b, nodes: b.nodes.map((n) => ((n.type === "remote-audio" || n.type === "remote-midi") && !n.remote ? { ...n, remote: n.id } : n)) });
+  W.connectBridge = async function (options = {}) {
+    const m = await import(url("js/bridge-client.js"));
+    if (!ctx) await W.start();
+    if (!W.bridge) W.bridge = new m.BridgeClient(options);
+    post({ cmd: "types", types: m.REMOTE_TYPES });  // Remote Audio / Remote MIDI nodes for the engine
+    W.bridge.attachAudio(node, ctx);
+    W.bridge.connect();
+    return W.bridge;
   };
 
   // ---- the "start audio" button -----------------------------------------------------

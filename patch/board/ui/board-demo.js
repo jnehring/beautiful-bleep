@@ -75,6 +75,8 @@
       const t = typeOf(n.type);
       if (n.port && t && t.port === "midi-device")
         ports[n.port] = { kind: "midi-device", track: n.device || "", live: true, main: false };
+      // [bridge] a Live port mirrored in an earlier visit: a ghost until the web link announces it again
+      else if (n.port && n.port.startsWith("link:") && !ports[n.port]) ports[n.port] = { kind: n.type, track: n.name, live: false, main: false };
     }
   }
   const message = () => (syncPorts(), { board, ports, canUndo: undo.length > 0, canRedo: redo.length > 0,
@@ -221,7 +223,7 @@
       remove(slug) { work(slug, "removing", () => { st.installed = st.installed.filter((m) => m.slug !== slug); }); },
       settings(v) { if (v && v.channel) st.channel = v.channel; if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-store-first-run", v.firstRunDone); } },
       installPlugins() { st.job = { state: "running", message: "Installing bleep-patch…", ok: false }; setTimeout(() => { st.job = { state: "done", message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW.", ok: true }; }, 1500); },
-      plugins() { return ["Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
+      plugins() { return ["Bleep Board", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
     };
   })() : null;
 
@@ -245,12 +247,39 @@
     return JSON.parse(JSON.stringify(s));
   }
 
+  /// [bridge] A Live port (Board = Bleep Play) the hub announced becomes a port node of this board, bound to its channel key:
+  /// it stays when the port goes away (a ghost, cables kept), as in the plugins (doc/specs/bridges.md §6).
+  function mirrorPort(info) {
+    if (!board || !typeOf(info.type)) return;
+    ports[info.id] = { kind: info.type, track: info.name, live: !!info.live, main: false };
+    let n = board.nodes.find((x) => x.port === info.id);
+    if (!n) {
+      const toTrack = info.type === "audio-out" || info.type === "midi-out";
+      // Below everything that is there: inputs on the left, outputs on the right, one row each.
+      const row = board.nodes.filter((x) => x.port && x.port.startsWith("link:") && (x.type === "audio-out" || x.type === "midi-out") === toTrack).length;
+      const below = board.nodes.length ? Math.max(...board.nodes.map((x) => x.y)) + 150 : 40;
+      n = node("link-" + info.id.slice(5).replace(/[^A-Za-z0-9]/g, "").slice(-20), info.type, info.name, toTrack ? 760 : 40, below + 110 * row,
+               { port: info.id, track: info.name, remote: info.key, colour: "#60a5fa" });
+      board.nodes.push(n);
+      save();
+      if (window.BleepWeb) BleepWeb.setBoard(board);
+    } else if (n.track !== info.name) {
+      n.track = info.name;
+      n.name = info.name;
+      save();
+    }
+    emit("board", message());
+  }
+
   window.BleepDemo = {
+    mirrorPort,
     listen: (e, f) => (listeners[e] = listeners[e] || []).push(f),
     async call(name, a) {
       switch (name) {
         case "init":
           types = await (await fetch("demo-types.json")).json();
+          // [bridge] Remote Audio and Remote MIDI come with the web link (patch/web/js/bridge-types.js), not with the engine's list.
+          if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
           return Object.assign(message(), { types, dev: true, standalone: true, settings: true }, demoStore ? { store: true } : {});

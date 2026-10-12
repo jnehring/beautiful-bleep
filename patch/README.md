@@ -1,6 +1,6 @@
 # Bleep Patch
 
-The shared engine, the **Bleep Board** and the plugins you add in Ableton
+The shared engine, the **board** and the Bleep plugins you add in Ableton
 Live (spec: [`doc/specs/specs.md`](../doc/specs/specs.md)). Modules (**Function**,
 **Random**, **Utility**, **Filter**) are not plugins any more: they are nodes
 on the board. In Live you add only:
@@ -14,7 +14,11 @@ on the board. In Live you add only:
 | **Bleep Audio Out** | instrument | board audio on its own track |
 | **Bleep Instrument** | instrument | one instrument preset (its panel in the window): MIDI in, its cell, audio out |
 | **Bleep FX** | audio effect | one effect preset (its panel in the window), the track's audio through its cell and back, dry/wet |
-| **Bleep Audio Bridge** | audio effect | connects Live to the standalone Bleep Patch app (spec §11.3) |
+| **Bleep Audio Bridge** | audio effect | connects Live to the standalone Bleep App (spec §11.3) |
+
+MIDI In/Out and Audio In/Out also have a **Board** menu (*This set*, *Bleep App*, *Bleep Play*): with the app or a
+Bleep Play the plugin talks to that board, not this set's (doc/specs/bridges.md, and *Connecting plugin, app and web*
+in the user docs). Try it without Live: `build/patch/bleep_bridge_probe_artefacts/Release/bleep_bridge_probe audio-in,audio-out web`.
 
 ```bash
 scripts/build/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
@@ -27,7 +31,7 @@ VST3 only, Ableton Live only for now (spec §5.2). The script builds into
 It also builds the standalone **Bleep Patch app** (spec §11): the board without
 a DAW, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server.
 See [`app/README.md`](app/README.md). Its preset browser (File → Presets…) loads
-whole demo patches, five per advanced module.
+whole demo boards, five per advanced module.
 
 ## Layout
 
@@ -38,7 +42,7 @@ patch/
 ├── app/              the standalone app: AppController (device, MIDI ports, Link, projects), Main
 ├── bridges/ableton/  the plugins: PortProcessor (one class for all of them) and its small editor
 ├── bridges/standalone/  Bleep Audio Bridge: shared-memory protocol, plugin (client), app side (server), Link clock
-├── presets/          factory cell presets and the demo patches (presets/demos/), compiled into board/ui
+├── presets/          factory cell presets and the demo boards (presets/demos/), compiled into board/ui
 ├── modules/<name>/
 │   ├── dsp/          the module's DSP (<Name>Dsp.h, no JUCE)
 │   ├── <Name>Module.cpp   the node: params, jacks, process()
@@ -63,8 +67,7 @@ patch/
   through small tagged rings: a signal from an input port to an output port
   takes exactly two blocks, whatever order Live runs the tracks in. Output
   ports report that latency to Live.
-- **The board** is a JSON document owned by the engine and saved in Bleep
-  Patch's state. The page edits a copy and commits it; the engine sanitises
+- **The board** is a JSON document owned by the engine and saved in Bleep Board's state. The page edits a copy and commits it; the engine sanitises
   it (`engine/Board.cpp`), compiles it (`engine/Program.cpp`: cells are
   flattened, cycles get a 32-sample feedback delay) and keeps the undo stack.
 - **Ports** appear on the board on their own, can't be deleted there, and

@@ -8,10 +8,12 @@ Every Bleep plugin is its own compiled file, but a set has one engine (`specs.md
 
 | | Changes when | Builds that differ |
 |---|---|---|
-| **Major** (`kAbiTag`, `bleep-engine-abi-N`, plus the sizes of `BlockIO`, `MidiEvent`, `Transport` and a pointer) | A method is inserted or removed, a shared struct changes, a type changes | Refuse to share. The plugin shows "Another version of Bleep Patch is loaded." |
+| **Major** (`kAbiTag`, `bleep-engine-abi-N`, plus the sizes of `BlockIO`, `MidiEvent`, `Transport` and a pointer) | A method is inserted or removed, a shared struct changes, a type changes | Refuse to share. The plugin shows "Another version of Bleep Board is loaded." |
 | **Minor** (`kAbiMinor`, `IEngine::abiMinor()`) | A method is **added at the end** of `IEngine` | Share. Old plugin on a new engine: fine. New plugin on an old engine: it asks `engine.supports(minor)` before it calls the new method, and does without it. |
 
 The minor is the first method of `IEngine` and never moves, so a plugin can always read it. A minor starts at 0 with every major.
+
+**Minors so far** (of `bleep-engine-abi-8`): **1** `setBridged(handle, bool)`: a plugin whose Board is the app or Bleep Play (doc/specs/bridges.md) tells the engine that its node is a ghost on this set's board. A plugin checks `supports(1)` before calling it; without it the node stays live and receives nothing.
 
 ## Rules for changing `IEngine`
 

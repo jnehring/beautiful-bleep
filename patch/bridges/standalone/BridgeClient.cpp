@@ -17,6 +17,12 @@ void BridgeClient::setIdentity(const std::string& id, const std::string& track) 
     track_ = track;
 }
 
+void BridgeClient::setPort(uint32_t portKind, Board board) {
+    portChanged_ |= portKind != portKind_ || board != board_;
+    portKind_ = portKind;
+    board_ = board;
+}
+
 void BridgeClient::prepare(double sampleRate, int maxBlock) {
     sampleRate_ = sampleRate;
     maxBlock_ = std::max(1, std::min(maxBlock, kMaxBlock));
@@ -26,6 +32,12 @@ uint32_t BridgeClient::drops() const noexcept {
     Shared* s = shared_.load();
     const int k = slot_.load();
     return s && k >= 0 ? s->slots[k].drops.load() : 0;
+}
+
+int BridgeClient::extraLatency() const noexcept {
+    Shared* s = shared_.load();
+    const int k = slot_.load();
+    return s && k >= 0 ? std::max(0, s->slots[k].extraLatency.load()) : 0;
 }
 
 void BridgeClient::disconnect() {
@@ -62,6 +74,8 @@ bool BridgeClient::claimSlot() {
         slot.drops.store(0);
         slot.maxBlock.store(maxBlock_);
         slot.sampleRateMilli.store((int64_t)(sampleRate_ * 1000.0));
+        slot.portKind.store(portKind_);
+        slot.board.store((uint32_t)board_);
         for (auto& f : slot.out) f.block = -1;
         slot.generation.fetch_add(1);
         slot_.store(k);
@@ -80,6 +94,7 @@ BridgeClient::Status BridgeClient::poll() {
     if (!s) {
         if (id_.empty()) return status_ = Status::AppNotRunning;
         memory_.reset(SharedMemory::open(false));
+        if (!memory_ && SharedMemory::lastOpenWasIncompatible()) return status_ = Status::VersionMismatch;
         if (!memory_ || nowMs() - memory_->get()->appHeartbeatMs.load() > kAliveMs) {
             memory_.reset();
             return status_ = Status::AppNotRunning;
@@ -113,10 +128,12 @@ BridgeClient::Status BridgeClient::poll() {
         slot.ownerHeartbeatMs.store(nowMs());
         slot.maxBlock.store(maxBlock_);
         slot.sampleRateMilli.store((int64_t)(sampleRate_ * 1000.0));
-        if (trackChanged_) {
+        if (trackChanged_ || portChanged_) {
             copyString(slot.track, sizeof slot.track, track_);
+            slot.portKind.store(portKind_);
+            slot.board.store((uint32_t)board_);
             slot.generation.fetch_add(1);
-            trackChanged_ = false;
+            trackChanged_ = portChanged_ = false;
         }
     }
     return status_ = Status::Connected;
@@ -124,11 +141,24 @@ BridgeClient::Status BridgeClient::poll() {
 
 bool BridgeClient::process(const float* const* in, float* const* ret, int numChannels, int numSamples,
                            const Transport& t, bool offline) noexcept {
+    Block b;
+    b.in = in;
+    b.ret = ret;
+    b.numChannels = numChannels;
+    b.numSamples = numSamples;
+    b.transport = t;
+    b.offline = offline;
+    return exchange(b);
+}
+
+bool BridgeClient::exchange(Block& b) noexcept {
+    b.numMidiOut = 0;
     Shared* s = shared_.load(std::memory_order_acquire);
     const int k = slot_.load(std::memory_order_acquire);
     if (!s || k < 0 || status_.load() != Status::Connected) return false;
     Slot& slot = s->slots[k];
-    const int n = std::min(numSamples, kMaxBlock);
+    const int n = std::min(b.numSamples, kMaxBlock);
+    const int channels = std::max(1, std::min(b.numChannels, 2));
 
     // Which host block is this? Same claiming as inside Live (spec §5.3).
     const int64_t T = s->ticks.load(std::memory_order_acquire);
@@ -146,9 +176,13 @@ bool BridgeClient::process(const float* const* in, float* const* ret, int numCha
     Frame& f = slot.in[c % kRing];
     f.beginWrite(c);
     f.numSamples = n;
-    f.numChannels = std::min(numChannels, 2);
-    f.transport = t;
-    for (int ch = 0; ch < 2; ++ch) std::memcpy(f.audio[ch], in[std::min(ch, numChannels - 1)], sizeof(float) * (size_t)n);
+    f.numChannels = b.in ? channels : 0;
+    f.transport = b.transport;
+    if (b.in)
+        for (int ch = 0; ch < 2; ++ch) std::memcpy(f.audio[ch], b.in[std::min(ch, channels - 1)], sizeof(float) * (size_t)n);
+    f.numMidi = 0;
+    for (int i = 0; i < b.numMidiIn && f.numMidi < kMaxMidi; ++i)
+        if (b.midiIn[i].offset >= 0 && b.midiIn[i].offset < n) f.midi[f.numMidi++] = b.midiIn[i];
     f.endWrite();
     slot.lastBlock.store(c, std::memory_order_release);
 
@@ -161,19 +195,22 @@ bool BridgeClient::process(const float* const* in, float* const* ret, int numCha
     const int64_t want = c - 2;
     if (want < 0) return false;
     const Frame& o = slot.out[want % kRing];
-    if (offline) {
+    if (b.offline) {
         // Not real time: wait for the app, so exports include it.
         const int64_t until = nowMs() + 2000;
         while (s->doneBlock.load(std::memory_order_acquire) < want && nowMs() < until)
             std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
-    int got = 0;
-    float* r = numChannels > 1 ? ret[1] : ret[0];
-    if (!readFrame(o, want, ret[0], r, n, got)) {
+    int got = 0, midi = 0;
+    float* left = b.ret ? b.ret[0] : nullptr;
+    float* right = b.ret ? (channels > 1 ? b.ret[1] : b.ret[0]) : nullptr;
+    if (!readFrame(o, want, left, right, n, got, nullptr, b.midiOut, &midi)) {
         slot.drops.fetch_add(1, std::memory_order_relaxed);
         return false;
     }
-    for (int ch = 0; ch < std::min(numChannels, 2); ++ch) std::fill(ret[ch] + got, ret[ch] + numSamples, 0.0f);
+    if (b.ret)
+        for (int ch = 0; ch < channels; ++ch) std::fill(b.ret[ch] + got, b.ret[ch] + b.numSamples, 0.0f);
+    b.numMidiOut = b.midiOut ? midi : 0;
     return true;
 }
 

@@ -33,7 +33,7 @@ class PortNode {
   setKnob(i, v) { this.knobs[i] = v; }
   setConnected() {}
   setTransport() {}
-  setNotesIn() {}
+  setNotesIn(i, events) { if (this.remote) this.remote.notesIn(i, events); }  // [bridge] notes to the hub
   notesOut(jack) { return this.spec.outputs[jack].type === "notes" ? this.notes : []; }
   setData() {}
   perform() {}
@@ -45,7 +45,8 @@ class PortNode {
   destroy() {}
 
   process(n) {
-    const kind = this.spec.type;
+    const kind = this.remote ? this.remote.kind : this.spec.type;  // [bridge] a bound node is not a local speaker/keyboard
+    if (this.remote) this.remote.run(this, n);                       // [bridge]
     const v = this.views;
     if (kind === "audio-out" || kind === "instrument") {
       // Mono into both sides, as a track would.
@@ -61,7 +62,7 @@ class PortNode {
   }
 
   #midi(n) {
-    const midi = this.engine.midi;
+    const midi = this.remoteMidi || this.engine.midi;  // [bridge] a bound node follows the hub's MIDI
     const idx = (id) => this.spec.outputs.findIndex((o) => o.id === id);
     const fill = (id, value) => { const k = idx(id); if (k >= 0) v_fill(this.views.outputs, k, value, n); };
     const held = midi.held;
@@ -82,6 +83,15 @@ class PortNode {
       if (j < 0) continue;
       const p = this.spec.params.findIndex((q) => q.id === "cc" + k);
       const ccNumber = p >= 0 ? Math.round(this.spec.params[p].min + (this.knobs[p] ?? 0) * (this.spec.params[p].max - this.spec.params[p].min)) : k;
+    this.remote = null;       // [bridge] a RemoteBinding (bridge-worklet.js) while the node is bound to a web-link channel
+    this.remoteMidi = null;   // [bridge] the MIDI state of that binding
+  }
+  /// [bridge] `node.remote` = the key of a web-link channel (doc/specs/bridges.md §10): the node then carries what
+  /// the hub sends / sends its inputs to the hub, instead of the local speakers and keyboard.
+  setRemote(key) {
+    if (this.remote && this.remote.key === key) return;
+    this.remote = key && this.engine.bridge ? this.engine.bridge.bind(this, key) : null;
+    if (!this.remote) this.remoteMidi = null;
       v_fill(this.views.outputs, j, midi.cc[ccNumber] ?? 0, n);
     }
   }
@@ -197,6 +207,7 @@ export class Engine {
         const k = s.inputs.findIndex((i) => i.id === id);
         if (k < 0 || !s.inputs[k].normal) return;
         id = s.inputs[k].normal;
+    this.bridge = null;   // [bridge] a BridgeEndpoint (bridge-worklet.js), set by worklet.js; null = no web link
       }
     };
 
@@ -307,6 +318,7 @@ export class Engine {
     try {
       const host = new ModuleInstance(mod, this.sampleRate, n.type);
       host.connectedIn = new Uint8Array(s.inputs.length);
+      if (entry.host.setRemote) entry.host.setRemote(n.remote || null);  // [bridge]
       return host;
     } catch (e) {  // one broken module must not stop the board
       this.onError?.(`${n.type}: ${e.message}`);

@@ -78,7 +78,7 @@ python3 - "$OUT/index.html" <<'PY'
 import sys
 p = sys.argv[1]
 s = open(p).read()
-tag = '<script src="js/store-client.js"></script>\n  <script src="js/bleep-web.js"></script>\n  '
+tag = '<script src="js/store-client.js"></script>\n  <script src="js/bleep-web.js"></script>\n  <script src="js/bridge-ui.js"></script>\n  '
 assert '<script src="board-demo.js"></script>' in s
 open(p, 'w').write(s.replace('<script src="board-demo.js"></script>', tag + '<script src="board-demo.js"></script>', 1))
 PY

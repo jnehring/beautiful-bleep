@@ -137,7 +137,7 @@
     const n = el("input");
     n.type = "number"; n.min = 0; n.max = 8; n.value = m.virtualPorts;
     n.addEventListener("change", () => change("virtualPorts", { n: Math.max(0, Math.min(8, +n.value || 0)) }));
-    row("Bleep Patch MIDI ports", n, "Virtual ports other programs can connect to.");
+    row("Bleep App MIDI ports", n, "Virtual ports other programs can connect to.");
     body.appendChild(el("h3", "", "Sync"));
     if (!l.available) body.appendChild(el("div", "st-note", "This build has no Ableton Link."));
     else {
@@ -148,6 +148,40 @@
     t.type = "number"; t.min = 20; t.max = 400; t.step = 0.1; t.value = l.tempo.toFixed(1);
     t.addEventListener("change", () => change("tempo", { bpm: +t.value }));
     row("Tempo", t, l.enabled && l.peers ? "Shared with the Link peers." : "Used when no one else sets it.");
+  }
+
+  /// The web link (doc/specs/bridges.md §4): Bleep Play pages and Live ports with Board = Bleep Play talk to this app.
+  function renderWeb() {
+    const w = state.web;
+    if (!w) { body.appendChild(el("div", "st-empty", "This build has no web connection.")); return; }
+    body.appendChild(checkbox("Let Bleep Play pages connect to this app", w.enabled, (on) => change("web", { on })));
+    if (!w.enabled) {
+      body.appendChild(el("div", "st-note", "Off by default. When on, the app listens on this computer only (127.0.0.1): Bleep Play can send and receive audio and MIDI through it, and Bleep plugins in Live with Board = Bleep Play are relayed to it."));
+    }
+    const port = el("input");
+    port.type = "number"; port.min = 1024; port.max = 65535; port.value = w.port;
+    port.addEventListener("change", () => change("web", { port: Math.max(1024, Math.min(65535, +port.value || 47100)) }));
+    row("Port", port, "Takes effect at once.");
+    if (w.error) body.appendChild(el("div", "st-note bad", w.error));
+    if (w.running) {
+      body.appendChild(el("div", "st-row single", "Listening. Open " + w.page + " for the board served by this app (lowest latency), or press Connect to app on the website."));
+      const peers = (w.link && w.link.peers) || [];
+      body.appendChild(el("h3", "", "Connected boards"));
+      if (!peers.length) body.appendChild(el("div", "st-empty", "None."));
+      for (const p of peers) body.appendChild(el("div", "st-row single", `${p.name} · ${p.mode === "low" ? "low latency" : "safe"} · ${p.channels} channel${p.channels === 1 ? "" : "s"}`));
+      if (w.link && (w.link.lateEvents || w.link.staleEvents))
+        body.appendChild(el("div", "st-note", `MIDI from the web: ${w.link.lateEvents} late, ${w.link.staleEvents} dropped after a tempo change or jump.`));
+    }
+    body.appendChild(el("h3", "", "Pages you allowed"));
+    if (!w.origins.length) body.appendChild(el("div", "st-empty", "None. A page that is not served by this app asks first."));
+    for (const o of w.origins) {
+      const r = el("div", "st-row");
+      r.appendChild(el("span", "", o));
+      const b = el("button", "", "Forget");
+      b.addEventListener("click", () => change("webForget", { origin: o }));
+      r.appendChild(b);
+      body.appendChild(r);
+    }
   }
 
   function renderStore() {
@@ -207,7 +241,7 @@
     body.innerHTML = "";
     for (const b of tabsEl.children) b.classList.toggle("on", b.dataset.tab === tab);
     noteEl.textContent = message;
-    ({ audio: renderAudio, midi: renderMidi, store: renderStore, security: renderSecurity })[tab]();
+    ({ audio: renderAudio, midi: renderMidi, web: renderWeb, store: renderStore, security: renderSecurity })[tab]();
   }
 
   function build() {
@@ -218,7 +252,7 @@
     head.appendChild(el("h2", "", "Settings"));
     root.appendChild(head);
     tabsEl = el("div", "st-tabs");
-    const tabs = [["audio", "Audio"], ["midi", "MIDI and sync"]];
+    const tabs = [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"]];
     if (hasStore) tabs.push(["store", "Store"], ["security", "Security"]);
     for (const [id, label] of tabs) {
       const b = el("button", "", label);

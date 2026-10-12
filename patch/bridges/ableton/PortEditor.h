@@ -32,6 +32,9 @@ private:
     juce::TextEditor name_;
     juce::TextButton prev_{"<"}, next_{">"}, preset_{"Preset"}, openBoard_{"Open Board"}, replace_{"Replace current board"};
     juce::Slider mix_;
+    juce::Label boardLabel_;
+    juce::ComboBox board_;   ///< Bleep MIDI In/Out and Audio In/Out: whose board is on the other side
+    std::unique_ptr<juce::ComboBoxParameterAttachment> boardAttachment_;
     std::unique_ptr<juce::SliderParameterAttachment> mixAttachment_;
     std::unique_ptr<PanelView> panel_;   ///< Bleep Instrument and Bleep FX: the cell's panel
     int panelW_ = 0, panelH_ = 0;
