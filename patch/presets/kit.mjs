@@ -216,13 +216,68 @@ export class Preset {
     }
   }
 
+  /// A plain cell inside this one, with its Cell In and Cell Out, at `at` ([column, row]). `outputs`/`inputs` are its jacks
+  /// ({id, name, type}). Returns {cell, cin, cout}; build what is in it with `within(cell, () => …)`.
+  subcell(id, name, at, { inputs = [], outputs = [] } = {}) {
+    if (this.ids.has(id)) throw new Error(`${this.name}: '${id}' is used twice`);
+    const node = { id, type: "cell", name, x: 40 + (at[0] + 1) * GRID_X, y: 40 + at[1] * GRID_Y, parent: this.parent, params: {}, inputs, outputs };
+    this.ids.add(id);
+    this.nodes.push(node);
+    const bound = (suffix, type, label, x) => {
+      const n = { id: id + suffix, type, name: label, x, y: 40, parent: id, params: {} };
+      this.ids.add(n.id);
+      this.nodes.push(n);
+      return n;
+    };
+    return { cell: node, cin: bound("_ci", "cell-in", "Cell In", 40), cout: bound("_co", "cell-out", "Cell Out", 40 + 6 * GRID_X) };
+  }
+  /// Everything added inside `fn` goes into `cell` (a node from subcell()).
+  within(cell, fn) {
+    const before = this.parent;
+    this.parent = cell.id;
+    try { fn(); } finally { this.parent = before; }
+    return this;
+  }
+  /// Places a node anywhere on its cell's canvas, in pixels (add() takes grid columns and rows).
+  place(n, x, y) { n.x = x; n.y = y; return n; }
+
+  /// A finished preset (a Voice Cell, say) as a cell inside this one, at `at` ([column, row] in this cell), named `name`.
+  /// Its nodes get the prefix "v_" (so "oscill" is "v_oscill"). Returns the new cell's node, to cable.
+  embed(inner, at, name) {
+    const doc = inner.build("");
+    const map = new Map(doc.nodes.map((n) => [n.id, "v_" + n.id]));
+    for (const n of JSON.parse(JSON.stringify(doc.nodes))) {
+      const isRoot = n.id === doc.root;
+      n.id = map.get(n.id);
+      n.parent = isRoot ? this.root.id : map.get(n.parent);
+      if (isRoot) { n.x = 40 + (at[0] + 1) * GRID_X; n.y = 40 + at[1] * GRID_Y; if (name) n.name = name; }
+      this.ids.add(n.id);
+      this.nodes.push(n);
+    }
+    for (const c of doc.cables)
+      this.cables.push({ ...c, id: "v_" + c.id, from: { ...c.from, node: map.get(c.from.node) }, to: { ...c.to, node: map.get(c.to.node) } });
+    return this.nodes.find((n) => n.id === map.get(doc.root));
+  }
+
+  #cellOf(n) { return this.nodes.find((q) => q.id === n.parent) || this.root; }
+
   #outType(n, jack) {
-    if (n.type === "cell-in") return (this.root.inputs.find((j) => j.id === jack) || {}).type;
+    if (n.type === "cell-in") return (this.#cellOf(n).inputs.find((j) => j.id === jack) || {}).type;
+    if (n.type === "patchbay-out" && /^c\d+$/.test(jack)) return "control";   // the channels of a bay: any signal but notes
+    if (n.type === "cell" || n.type === "voice-cell") {   // a cell inside this one: its own jacks, and a Voice Cell's Out L/R
+      const j = (n.outputs || []).concat(n.type === "voice-cell" ? types[n.type].outputs : []).find((o) => o.id === jack);
+      return j && j.type;
+    }
     const j = types[n.type].outputs.find((o) => o.id === jack);
     return j && j.type;
   }
   #inType(n, jack) {
-    if (n.type === "cell-out") return (this.root.outputs.find((j) => j.id === jack) || {}).type;
+    if (n.type === "cell-out") return (this.#cellOf(n).outputs.find((j) => j.id === jack) || {}).type;
+    if (n.type === "patchbay-in" && /^c\d+$/.test(jack)) return "control";
+    if (n.type === "cell" || n.type === "voice-cell") {
+      const j = (n.inputs || []).concat(n.type === "voice-cell" ? types[n.type].inputs : []).find((i) => i.id === jack);
+      return j && j.type;
+    }
     const t = types[n.type];
     const j = t.inputs.find((i) => i.id === jack);
     if (j) return j.type;

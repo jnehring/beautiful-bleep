@@ -36,6 +36,9 @@ section 21): no hardware names in the files, the UI or the docs.
 | Ring Drums | [ring-drums.md](ring-drums.md) | Implemented |
 | Punch Drums | [punch-drums.md](punch-drums.md) | Implemented |
 | Dial | [dial.md](dial.md) | Implemented |
+| Wheel | [wheel.md](wheel.md) | Implemented |
+| XY Pad | [xy-pad.md](xy-pad.md) | Implemented |
+| Patch Bay In / Out | [patchbay.md](patchbay.md) | Implemented |
 | Button | [button.md](button.md) | Implemented |
 | Keyboard | [keyboard.md](keyboard.md) | Implemented |
 | Level Meter | [level-meter.md](level-meter.md) | Implemented |

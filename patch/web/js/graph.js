@@ -15,7 +15,61 @@
 
 import { CHUNK, ModuleInstance } from "./module-host.js";
 
-const STRUCTURAL = new Set(["cell", "cell-in", "cell-out", "voice-cell", "voice-in", "voice-out"]);
+const STRUCTURAL = new Set(["cell", "cell-in", "cell-out", "voice-cell", "voice-in", "voice-out", "patchbay-in", "patchbay-out"]);
+
+/// The board with every patch bay chain replaced by plain cables (Program.cpp flattenPatchbays): a source into a Patch Bay
+/// In channel, a bundle cable (over cell outputs and inputs, other bays), out of the same channel of a Patch Bay Out.
+export function flattenPatchbays(board) {
+  const isBay = (n) => n && (n.type === "patchbay-in" || n.type === "patchbay-out");
+  if (!board.nodes.some(isBay)) return board;
+  const byId = new Map(board.nodes.map((n) => [n.id, n]));
+  const bundleSource = (node, jack, depth = 0) => {
+    if (depth > 64) return null;
+    for (const c of board.cables) {
+      if (c.to.node !== node || c.to.jack !== jack) continue;
+      const from = byId.get(c.from.node);
+      if (!from) continue;
+      if (from.type === "patchbay-in") return from;
+      if (from.type === "cell") {
+        for (const o of board.nodes) {
+          if (o.type !== "cell-out" || o.parent !== from.id) continue;
+          const r = bundleSource(o.id, c.from.jack, depth + 1);
+          if (r) return r;
+        }
+      } else if (from.type === "cell-in") {
+        const r = bundleSource(from.parent, c.from.jack, depth + 1);
+        if (r) return r;
+      }
+    }
+    return null;
+  };
+  const channelSources = (bayOut, jack, scale, depth, out) => {
+    if (depth > 16) return;
+    const bayIn = bundleSource(bayOut, "bundle");
+    if (!bayIn) return;
+    for (const c of board.cables) {
+      if (c.to.node !== bayIn.id || c.to.jack !== jack) continue;
+      if (byId.get(c.from.node)?.type === "patchbay-out") channelSources(c.from.node, c.from.jack, scale * c.amount, depth + 1, out);
+      else out.push({ from: c.from, amount: scale * c.amount });
+    }
+  };
+  const cables = [];
+  for (const c of board.cables) {
+    if (isBay(byId.get(c.to.node))) continue;
+    if (byId.get(c.from.node)?.type === "patchbay-out") {
+      const sources = [];
+      channelSources(c.from.node, c.from.jack, 1, 0, sources);
+      sources.forEach((s, k) => cables.push({ id: `${c.id}~${k}`, from: s.from, to: c.to, amount: s.amount * c.amount }));
+      continue;
+    }
+    const src = byId.get(c.from.node);
+    if (src && isBay(src)) continue;   // a bundle out of a bay
+    if (src && src.type === "cell" && (src.outputs || []).some((o) => o.id === c.from.jack && o.type === "patchbay")) continue;  // a bundle between cells
+    if (src && src.type === "cell-in" && (byId.get(src.parent)?.inputs || []).some((o) => o.id === c.from.jack && o.type === "patchbay")) continue;
+    cables.push(c);
+  }
+  return { ...board, nodes: board.nodes.filter((n) => !isBay(n)), cables };
+}
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 /// A host-side node: the ports of the browser build (audio out, MIDI in, …).
@@ -28,6 +82,15 @@ class PortNode {
     this.views = { params: f(spec.params.length), inputs: f(spec.inputs.length), outputs: f(spec.outputs.length) };
     this.notes = [];
     this.knobs = spec.params.map((p) => p.default);
+    this.remote = null;       // [bridge] a RemoteBinding (bridge-worklet.js) while the node is bound to a web-link channel
+    this.remoteMidi = null;   // [bridge] the MIDI state of that binding
+  }
+  /// [bridge] `node.remote` = the key of a web-link channel (doc/specs/bridges.md §10): the node then carries what
+  /// the hub sends / sends its inputs to the hub, instead of the local speakers and keyboard.
+  setRemote(key) {
+    if (this.remote && this.remote.key === key) return;
+    this.remote = key && this.engine.bridge ? this.engine.bridge.bind(this, key) : null;
+    if (!this.remote) this.remoteMidi = null;
   }
   get memory() { return null; }
   setKnob(i, v) { this.knobs[i] = v; }
@@ -41,7 +104,7 @@ class PortNode {
   live() { return { values: {}, arrays: {} }; }
   takeData() { return null; }
   paramText() { return ""; }
-  reset() {}
+  reset() { this.level = undefined; }
   destroy() {}
 
   process(n) {
@@ -52,13 +115,30 @@ class PortNode {
       // Mono into both sides, as a track would.
       const l = v.inputs.subarray(0, CHUNK);
       const r = this.connectedIn[1] ? v.inputs.subarray(CHUNK, 2 * CHUNK) : l;
+      // Audio Out's Volume knob (dB, skewed like a mixer fader; the bottom is silence), smoothed against clicks.
+      const vol = this.spec.params.findIndex((q) => q.id === "volume");
       for (let s = 0; s < n; ++s) {
-        this.engine.outL[this.engine.outPos + s] += l[s];
-        this.engine.outR[this.engine.outPos + s] += r[s];
+        const g = vol >= 0 ? this.#smooth(this.#gain(vol, v.params[vol * CHUNK + s])) : 1;
+        this.engine.outL[this.engine.outPos + s] += l[s] * g;
+        this.engine.outR[this.engine.outPos + s] += r[s] * g;
       }
     }
     if (this.spec.outputs.length && (kind === "midi-in" || kind === "midi-device" || kind === "instrument")) this.#midi(n);
     // audio-in, link, macros: silent outputs for now.
+  }
+
+  /// A level knob's linear gain from its normalised value (ParamSpec::fromNormalised, then dB → gain).
+  #gain(i, x) {
+    const p = this.spec.params[i];
+    let db = p.min + (p.max - p.min) * x;
+    if (p.map === "skew") db = x <= 0 ? p.min : p.min + (p.max - p.min) * Math.exp(Math.log(x) / (Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min))));
+    if (Math.abs(db) < 0.005) db = 0;  // the default passes the signal unchanged
+    return db <= -60 + 1e-3 ? 0 : Math.pow(10, db / 20);
+  }
+
+  #smooth(target) {
+    this.level = this.level === undefined ? target : this.level + (target - this.level) * 0.002;
+    return this.level;
   }
 
   #midi(n) {
@@ -83,15 +163,6 @@ class PortNode {
       if (j < 0) continue;
       const p = this.spec.params.findIndex((q) => q.id === "cc" + k);
       const ccNumber = p >= 0 ? Math.round(this.spec.params[p].min + (this.knobs[p] ?? 0) * (this.spec.params[p].max - this.spec.params[p].min)) : k;
-    this.remote = null;       // [bridge] a RemoteBinding (bridge-worklet.js) while the node is bound to a web-link channel
-    this.remoteMidi = null;   // [bridge] the MIDI state of that binding
-  }
-  /// [bridge] `node.remote` = the key of a web-link channel (doc/specs/bridges.md §10): the node then carries what
-  /// the hub sends / sends its inputs to the hub, instead of the local speakers and keyboard.
-  setRemote(key) {
-    if (this.remote && this.remote.key === key) return;
-    this.remote = key && this.engine.bridge ? this.engine.bridge.bind(this, key) : null;
-    if (!this.remote) this.remoteMidi = null;
       v_fill(this.views.outputs, j, midi.cc[ccNumber] ?? 0, n);
     }
   }
@@ -136,6 +207,7 @@ export class Engine {
     this.feedback = [];
     this.midi = new MidiState();
     this.bpm = 120;
+    this.bridge = null;   // [bridge] a BridgeEndpoint (bridge-worklet.js), set by worklet.js; null = no web link
     this.playing = true;
     this.samplePos = 0;
     this.outL = new Float32Array(CHUNK);
@@ -168,7 +240,8 @@ export class Engine {
 
   // ---- compiling ---------------------------------------------------------------
 
-  setBoard(board) {
+  setBoard(boardIn) {
+    const board = flattenPatchbays(boardIn);
     this.board = board;
     const byId = new Map(board.nodes.map((n) => [n.id, n]));
     const into = new Map();  // "node|jack" → cables
@@ -207,7 +280,6 @@ export class Engine {
         const k = s.inputs.findIndex((i) => i.id === id);
         if (k < 0 || !s.inputs[k].normal) return;
         id = s.inputs[k].normal;
-    this.bridge = null;   // [bridge] a BridgeEndpoint (bridge-worklet.js), set by worklet.js; null = no web link
       }
     };
 
@@ -246,6 +318,7 @@ export class Engine {
       }
       const s = spec(n);
       s.params.forEach((p, i) => entry.host.setKnob(i, n.params?.[p.id] ?? p.default));
+      if (entry.host.setRemote) entry.host.setRemote(n.remote || null);  // [bridge]
       if (entry.host.sanitiseData) {
         // Node data goes through the module's own sanitiser: valid JSON with the defaults for a new node.
         const clean = entry.host.sanitiseData(n.data === undefined ? "" : JSON.stringify(n.data));
@@ -318,7 +391,6 @@ export class Engine {
     try {
       const host = new ModuleInstance(mod, this.sampleRate, n.type);
       host.connectedIn = new Uint8Array(s.inputs.length);
-      if (entry.host.setRemote) entry.host.setRemote(n.remote || null);  // [bridge]
       return host;
     } catch (e) {  // one broken module must not stop the board
       this.onError?.(`${n.type}: ${e.message}`);

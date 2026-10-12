@@ -1,27 +1,43 @@
 // SPDX-License-Identifier: MIT
 // Synthesizers: general-purpose polyphonic Voice Cells. Notes in, Out L/R.
 // (Basic Poly, the starter synth, lives in ../board/ui/factory-presets.js.)
-import { voice, category, ampEnvelope, envelope, semis } from "./kit.mjs";
+import { voice, cell, category, ampEnvelope, envelope, semis } from "./kit.mjs";
 
-// Two detuned saws into a tanh ladder: the classic warm poly.
+// Two detuned saws into a tanh ladder: the classic warm poly, built as a demonstrator. The voice is a Voice Cell inside a
+// plain cell, so a Keyboard can play it beside the cell's Notes input. The panel's dials are Dial modules in a Panel cell,
+// which sends them to the module they control through one patch bay each (the panel build adds them, see panels.mjs).
+function warmSawsVoice() {
+  const p = voice("Voice", {
+    description: "The voice of Warm Saws.",
+    help: "Two detuned saws into a Ladder Tanh filter, with a soft filter envelope and a slow release.",
+  }).settings({ voices: 8, spread: 0.4 });
+  const o1 = p.add("oscillator", [3, 0], { fine: -7 }, { name: "Saw 1" });
+  const o2 = p.add("oscillator", [3, 1], { fine: 7 }, { name: "Saw 2" });
+  const envf = envelope(p, [3, 2], { attack: 0.01, decay: 0.8, sustain: 0.35, release: 0.6, velamount: 0.6 }, "Filter Env");
+  const flt = p.add("filter", [5, 0], { cutoff: 700, resonance: 0.25, drive: 0.2, keytrack: 0.4, type: "Ladder Tanh" });
+  p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch").cable(p.vin, "pitch", flt, "pitch")
+    .cable(o1, "out", flt, "l", 0.6).cable(o2, "out", flt, "l", 0.6).cable(envf, "env", flt, "cutoff", 0.3);
+  ampEnvelope(p, { node: flt, stereo: true }, [7, 1], { attack: 0.006, decay: 0.5, sustain: 0.8, release: 0.7 });
+  p.place(p.vout, 40 + 10 * 300, 40);
+  return p;
+}
+
 function warmSaws() {
-  const p = voice("Warm Saws", {
+  const p = cell("Warm Saws", {
     description: "Two saws detuned ±7 cents into a saturating transistor ladder, with a soft filter envelope and slow release.",
     tags: ["poly", "analog", "warm", "chords"],
-    help: "Two Oscillators (saws) detuned by -7 and +7 cents feed a Ladder Tanh filter at 700 Hz with a " +
-      "little drive. A filter envelope opens it on each note and the amp release is slow.\n\n" +
-      "Patch a keyboard or sequencer into Notes in and take Out L/R. Cutoff (shared input) moves the " +
-      "filter, so an LFO or knob there makes it breathe.\n\n" +
-      "Tip: play wide chords; the 8 voices are spread across the stereo field.",
-  }).settings({ voices: 8, spread: 0.4 }).input("cut", "Cutoff");
-  const o1 = p.add("oscillator", [0, 0], { fine: -7 }, { name: "Saw 1" });
-  const o2 = p.add("oscillator", [0, 1], { fine: 7 }, { name: "Saw 2" });
-  const envf = envelope(p, [0, 2], { attack: 0.01, decay: 0.8, sustain: 0.35, release: 0.6, velamount: 0.6 }, "Filter Env");
-  const flt = p.add("filter", [1, 0], { cutoff: 700, resonance: 0.25, drive: 0.2, keytrack: 0.4, type: "Ladder Tanh" });
-  p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch")
-    .cable(o1, "out", flt, "l", 0.6).cable(o2, "out", flt, "l", 0.6).cable(p.vin, "pitch", flt, "pitch")
-    .cable(envf, "env", flt, "cutoff", 0.3).cable(p.cin, "cut", flt, "cutoff", 0.5);
-  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.006, decay: 0.5, sustain: 0.8, release: 0.7 });
+    help: "A Keyboard and Notes in play the Voice Cell, which holds the sound: two Oscillators (saws) detuned by -7 and +7 " +
+      "cents feed a Ladder Tanh filter at 700 Hz with a little drive. A filter envelope opens it on each note and the amp " +
+      "release is slow. Eight voices are spread across the stereo field.\n\n" +
+      "Open the Panel cell: every dial of the panel is a Dial module there, collected by a Patch Bay per module (Saw 1, " +
+      "Saw 2, Filter Env, Multi Filter, Amp Env). One bundle cable per module goes into the Voice Cell, where a Patch Bay " +
+      "Out next to the module cables the dials to its knobs. The wheel bends both saws by two semitones.\n\n" +
+      "Tip: play wide chords.",
+  }).input("notes", "Notes", "notes").stereoOut();
+  const keys = p.add("keyboard", [0, 0], {}, { name: "Keys" });
+  const vc = p.embed(warmSawsVoice(), [2, 1], "Voice");
+  p.cable(p.cin, "notes", vc, "notes").cable(keys, "notes", vc, "notes").stereo(vc, p.cout);
+  p.place(p.cout, 40 + 5 * 300, 40 + 1 * 220);
   return p;
 }
 

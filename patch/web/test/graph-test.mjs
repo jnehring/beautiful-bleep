@@ -90,3 +90,15 @@ assert.ok(Math.abs(f - 523) <= 3, "Dial at full, amount 0.5 on Coarse (±12 st):
   console.log("step-sequencer (juce_core module): ok, step", a, "→", b);
 }
 console.log("all tests passed");
+
+// Audio Out's Volume knob: -6 dB halves the level (skewed knob, set in its own units → normalised by hand).
+{
+  const p = types.find((t) => t.type === "audio-out").params.find((q) => q.id === "volume");
+  const norm = Math.pow((-6.0206 - p.min) / (p.max - p.min), Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min)));
+  engine.setBoard({ format: 1, id: "t", nodes: [node("osc", "oscillator"), node("out", "audio-out", { volume: norm }, { port: "p" })],
+    cables: [cable("c1", "osc", "sine", "out", "l")] });
+  run(0.2);
+  const pk = run(0.2).reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  assert.ok(pk > 0.48 && pk < 0.52, `volume -6 dB peak ${pk}`);
+  console.log("audio-out volume: ok");
+}

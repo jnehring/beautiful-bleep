@@ -58,7 +58,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8765)
     args = ap.parse_args()
-    print(f"Bleep Board UI on http://localhost:{args.port}  (Ctrl-C to stop)")
+    print(f"Board UI on http://localhost:{args.port}  (Ctrl-C to stop)")
     http.server.ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()
 
 

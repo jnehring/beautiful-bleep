@@ -209,3 +209,21 @@ Stage 1 can ship before the editor exists: factory panels are plain data, writte
 
 - **Two controls, one knob.** A knob wired from two panels: both follow it (last mover wins). Probably fine; nothing to design unless it feels wrong.
 - **Wires into cell presets from outside.** A board panel that wires into a cell that is later replaced by another preset loses its wires on the new nodes' ids. Wire by name, or keep the wire and warn?
+
+## Panels add modules to the board
+
+Every control that carries a signal is made together with a module on the board, and the panel only draws and drives that module. You cable the module's outputs on the board like any other module. There is no Wiring view.
+
+| Control | Board module | Wire in the panel file |
+|---|---|---|
+| Dial, Fader | Dial | `{ "param": "<id>.value" }` |
+| Wheel | Wheel (springs back to the middle) | `{ "param": "<id>.value" }`, `"spring": true` |
+| XY pad | XY Pad | `{ "param": "<id>.x", "axis": "x" }`, `{ "param": "<id>.y", "axis": "y" }` |
+| Select | Dial with *Steps* = number of options | `{ "param": "<id>.value" }`, `"options": ["A", "B", "C"]` |
+| Button | Button | `{ "press": "<id>" }` |
+| Keys | Keyboard | `{ "keyboard": "<id>" }` |
+| Meter | Level Meter (cable audio into it) | `"source": { "out": ["<id>.l", "<id>.r"] }` |
+
+The module goes inside the panel's cell (a Keyboard next to the cell, since its notes go into the cell's Notes jack), or on the board for a board panel. The modules of one panel do not sit loose on the board: they form a **stack**, folded to a header (▦ *panel name*, *n* modules) until you click it. Open, the stack shows the modules one below the other, with all their jacks; folded, cables to them end at the header. Drag the header to move the stack. The panel remembers which modules it made (`modules`) and where its stack is, per level (`groups`: `{ "@board": {x, y}, "<cell id>": {x, y} }`); the modules' own x and y are not used. In the panel editor, *Show on the board* opens the stack and selects the module. Label, Section, Module view and Load panel have no module of their own. Deleting a control leaves its module on the board; duplicating one makes a new module. Panels from before this (a control wired straight to a knob, a jack or a cell input) keep working, but can no longer be re-wired in the editor.
+
+**In a factory preset** (Warm Saws is the first). The dials a panel sets directly are Dial modules too, kept in a cell called *Panel* inside the preset, so they do not clutter the synth. The dials of one module meet in a [Patch Bay In](modules/patchbay.md) inside the Panel cell, and one bundle cable per module leaves the cell; next to the module, a Patch Bay Out hands the channels to its knobs (the knobs are parked at 0 and each cable carries 100 %, so the value is what the knob had). Knobs that are settings, not modulation destinations, stay direct. The Keyboard (and a Level Meter for the Out meter) are modules of the preset's own cell, in a stack beside the synth. The build adds all this to the generated panel: [`panelCell`](../../patch/presets/panels.mjs) and the preset's `panelEdits` entry. Nothing in a preset is hidden: every control is a knob it sets itself or a module you can open.

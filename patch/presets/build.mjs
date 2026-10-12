@@ -21,7 +21,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { reference, types, derivePlays, checkPlays, normaliseHelp } from "./kit.mjs";
-import panelsByPreset, { checkPanels } from "./panels.mjs";
+import panelsByPreset, { checkPanels, panelEdits } from "./panels.mjs";
 
 // Category files, in Add-menu order.
 const CATEGORIES = [
@@ -143,20 +143,34 @@ function wireDialsToKnobs(doc, preset, root) {
 /// A panel for every cell preset without a hand-written one: the board's
 /// "Build panel from cell" (board/ui/panel-build.js) run on the preset, so the
 /// factory cells and the command give the same draft (panels.md §6).
+/// Controller modules inside a cell are the panel's own controls (panels.md), not modules to draw knobs for.
+const CONTROLLERS = new Set(["dial", "wheel", "xy-pad", "button", "keyboard"]);
 function generatedPanels(all) {
   const sandbox = { window: {} };
   vm.runInNewContext(readFileSync(PANEL_BUILD, "utf8"), sandbox);
   const { build } = sandbox.window.BleepPanelBuild;
   const isBoundary = (n) => ["cell-in", "cell-out", "voice-in", "voice-out"].includes(n.type);
-  const inputsOf = (n) => n.type === "voice-cell" ? [{ id: "notes", name: "Notes", type: "notes" }, ...(n.inputs || [])] : n.inputs || [];
+  // bundle jacks (patch bays) are not controls
+  const inputsOf = (n) => (n.type === "voice-cell" ? [{ id: "notes", name: "Notes", type: "notes" }] : []).concat((n.inputs || []).filter((j) => j.type !== "patchbay"));
   const out = {};
   for (const { name, preset } of all) {
     if (panelsByPreset[name] || !preset.root) continue;
-    const root = preset.nodes.find((n) => n.id === preset.root);
-    const nodes = preset.nodes.filter((n) => n !== root && (!isBoundary(n) || n.type === "voice-out" || n.type === "cell-out"))
+    const outer = preset.nodes.find((n) => n.id === preset.root);
+    // A plain cell around a Voice Cell, with its own controllers beside it: the panel is the Voice Cell's, for the wrapper.
+    const wrapped = outer.type === "cell" ? preset.nodes.find((n) => n.type === "voice-cell" && n.parent === outer.id) : null;
+    const root = wrapped || outer;
+    const inside = new Set(wrapped ? [wrapped.id] : []);
+    if (wrapped) for (let grew = true; grew;) { grew = false; for (const n of preset.nodes) if (inside.has(n.parent) && !inside.has(n.id)) { inside.add(n.id); grew = true; } }
+    const nodes = preset.nodes.filter((n) => n !== root && (!wrapped || inside.has(n.id)) && !CONTROLLERS.has(n.type) && (!isBoundary(n) || n.type === "voice-out" || n.type === "cell-out"))
       .sort((a, b) => a.x - b.x || a.y - b.y);
     const doc = build(root, { nodes, types, inputsOf, cables: preset.cables });
+    if (wrapped) {   // the panel belongs to the wrapper: its name, title and cell
+      doc.cell = outer.id;
+      doc.name = outer.name;
+      for (const c of doc.controls) if (c.type === "label" && c.style === "title") c.text = outer.name;
+    }
     if (preset.category === "Feedback & Pings") wireDialsToKnobs(doc, preset, root);
+    if (panelEdits[name]) panelEdits[name](doc, preset);
     doc.id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     out[name] = [doc];
   }
@@ -241,8 +255,8 @@ if (arg === "--reference") {
       process.exit(0);
     }
     const doc = await compile(option("--only"));
+    const panelText = formatPanels(panels(doc));   // first: a panel may add the modules its controls are made with to its preset
     const text = format(doc);
-    const panelText = formatPanels(panels(doc));
     const demos = option("--only") ? [] : await compileDemos();
     const demoText = formatDemos(demos);
     if (arg === "--check") {

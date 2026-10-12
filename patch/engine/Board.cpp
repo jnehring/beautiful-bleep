@@ -16,6 +16,10 @@ const NodeModel* BoardModel::node(const std::string& nodeId) const noexcept {
 }
 
 bool BoardModel::outputType(const NodeModel& n, const std::string& jack, Signal& type) const noexcept {
+    if (n.type == kPatchbayOut && isBayChannel(jack)) {  // a channel's type is the signal that goes in at the other end
+        type = Signal::Control;
+        return true;
+    }
     const std::vector<CellJack>* jacks = nullptr;
     if (n.type == kCell) jacks = &n.cellOutputs;
     else if (n.type == kVoiceCell) {
@@ -43,6 +47,10 @@ bool BoardModel::outputType(const NodeModel& n, const std::string& jack, Signal&
 }
 
 bool BoardModel::inputType(const NodeModel& n, const std::string& jack, Signal& type) const noexcept {
+    if (n.type == kPatchbayIn && isBayChannel(jack)) {  // any signal but notes
+        type = Signal::Control;
+        return true;
+    }
     const std::vector<CellJack>* jacks = nullptr;
     if (n.type == kCell) jacks = &n.cellInputs;
     else if (n.type == kVoiceCell) {

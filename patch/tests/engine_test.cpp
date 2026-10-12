@@ -455,9 +455,9 @@ void standaloneDriver() {
     auto* e = new Engine();
     e->setStandalone(true);
     const int main = e->registerInstance(PortKind::Patch);
-    const int ain = e->registerInstance(PortKind::AudioIn);
-    const int aout = e->registerInstance(PortKind::AudioOut);
-    const int link = e->registerInstance(PortKind::Link);
+    const int ain = e->registerRemoteInstance(PortKind::AudioIn);
+    const int aout = e->registerRemoteInstance(PortKind::AudioOut);
+    const int link = e->registerRemoteInstance(PortKind::Link);
     e->reconcileNow();
     int macros = 0;
     for (const auto& n : *e->board()["nodes"].getArray()) macros += n["type"].toString() == "macros";
@@ -515,8 +515,8 @@ struct VoiceRig {
     VoiceRig() {
         e->setStandalone(true);
         main = e->registerInstance(PortKind::Patch);
-        midi = e->registerInstance(PortKind::MidiIn);
-        out = e->registerInstance(PortKind::AudioOut);
+        midi = e->registerRemoteInstance(PortKind::MidiIn);
+        out = e->registerRemoteInstance(PortKind::AudioOut);
         e->reconcileNow();
         pMidi = new FakePort(*e, midi);
         pOut = new FakePort(*e, out);
@@ -735,7 +735,7 @@ void stepSequencer() {
     auto* e = new Engine();
     e->setStandalone(true);
     const int main = e->registerInstance(PortKind::Patch);
-    const int out = e->registerInstance(PortKind::AudioOut);
+    const int out = e->registerRemoteInstance(PortKind::AudioOut);
     e->reconcileNow();
     FakePort pOut(*e, out);
     juce::Array<juce::var> steps;
@@ -822,7 +822,7 @@ void drumGrid() {
     auto* e = new Engine();
     e->setStandalone(true);
     const int main = e->registerInstance(PortKind::Patch);
-    const int out = e->registerInstance(PortKind::AudioOut);
+    const int out = e->registerRemoteInstance(PortKind::AudioOut);
     e->reconcileNow();
     FakePort pOut(*e, out);
     juce::Array<juce::var> rows{"xxxxxxxxxxxxxxxx", "XXXXXXXXXXXXXXXX"};
@@ -1167,7 +1167,14 @@ void cellPlugins() {
         const auto cell = cellOf(*e, inst);
         EXPECT(cell.isNotEmpty());
         if (cell.isNotEmpty()) {
-            EXPECT(board::findNode(e->board(), cell)->getProperty("type").toString() == "voice-cell");
+            // Warm Saws is a plain cell around a Voice Cell, with a Keyboard beside it and patch bays for its panel's dials.
+            EXPECT(board::findNode(e->board(), cell)->getProperty("type").toString() == "cell");
+            bool voiceCell = false, bays = false;
+            for (const auto& n : *e->board()["nodes"].getArray()) {
+                voiceCell |= n["type"].toString() == "voice-cell";
+                bays |= n["type"].toString() == "patchbay-out";
+            }
+            EXPECT(voiceCell && bays);
             EXPECT(board::findNode(e->board(), cell)->getProperty("name").toString() == "Warm Saws");
             EXPECT(e->board()["panels"].isArray() && e->board()["panels"].size() >= 1);
             EXPECT(board::parse(e->board()).nodes.size() > 4);
@@ -1240,12 +1247,12 @@ void cellPlugins() {
         // A second state restore does not stack another cell on top.
         setPreset(*e, inst, snapshot, false);
         int cells = 0;
-        for (const auto& n : *e->board()["nodes"].getArray()) cells += n["type"].toString() == "voice-cell";
+        for (const auto& n : *e->board()["nodes"].getArray()) cells += n["parent"].toString().isEmpty() && (n["type"].toString() == "voice-cell" || n["type"].toString() == "cell");
         EXPECT(cells == 1);
         // Choosing another preset replaces the cell.
         setPreset(*e, inst, factoryPreset("Reese Pressure"), true);
         cells = 0;
-        for (const auto& n : *e->board()["nodes"].getArray()) cells += n["type"].toString() == "voice-cell";
+        for (const auto& n : *e->board()["nodes"].getArray()) cells += n["parent"].toString().isEmpty() && (n["type"].toString() == "voice-cell" || n["type"].toString() == "cell");
         EXPECT(cells == 1);
         EXPECT(board::findNode(e->board(), cellOf(*e, inst))->getProperty("name").toString() == "Reese Pressure");
         e->unregisterInstance(inst);

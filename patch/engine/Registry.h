@@ -17,6 +17,8 @@ namespace bleep::engine {
 constexpr const char* kCell = "cell";
 constexpr const char* kCellIn = "cell-in";
 constexpr const char* kCellOut = "cell-out";
+constexpr const char* kPatchbayIn = "patchbay-in";    ///< sources in, one bundle out (doc/specs/modules/patchbay.md)
+constexpr const char* kPatchbayOut = "patchbay-out";  ///< one bundle in, the same channels out
 /// Voice Cells (spec §8.3): the cell is a real node; Voice In/Out are structural.
 constexpr const char* kVoiceCell = "voice-cell";
 constexpr const char* kVoiceIn = "voice-in";

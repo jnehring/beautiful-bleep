@@ -249,7 +249,8 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) only.insert(argv[i]);
     int count = 0;
     for (const ModuleSpec* spec : Registry::get().all()) {
-        if (spec->port != PortKind::None || !spec->userCreatable || spec->type == "harness-source") continue;
+        // The patch bays are flattened into plain cables before compiling: they have no step to run.
+        if (spec->port != PortKind::None || !spec->userCreatable || spec->type == "harness-source" || spec->type == kPatchbayIn || spec->type == kPatchbayOut) continue;
         // Cells and their boundary nodes compile to no step of their own.
         if (spec->type == kCell || spec->type == kVoiceCell || spec->type == kCellIn || spec->type == kCellOut)
             continue;

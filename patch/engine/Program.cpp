@@ -60,6 +60,136 @@ BoardModel splitInserts(const BoardModel& in) {
 
 }  // namespace
 
+bool hasPatchbays(const BoardModel& board) {
+    for (const auto& n : board.nodes)
+        if (n.type == kPatchbayIn || n.type == kPatchbayOut) return true;
+    return false;
+}
+
+BoardModel flattenPatchbays(const BoardModel& in) {
+    std::map<std::string, const NodeModel*> byId;
+    for (const auto& n : in.nodes) byId[n.id] = &n;
+    auto isBay = [&](const std::string& id) {
+        auto it = byId.find(id);
+        return it != byId.end() && (it->second->type == kPatchbayIn || it->second->type == kPatchbayOut);
+    };
+    auto typeOf = [&](const std::string& id) {
+        auto it = byId.find(id);
+        return it == byId.end() ? std::string() : it->second->type;
+    };
+    // The Patch Bay In whose bundle arrives at (node, jack): over cell outputs and inputs, however deep.
+    std::function<const NodeModel*(const std::string&, const std::string&, int)> bundleSource;
+    bundleSource = [&](const std::string& node, const std::string& jack, int depth) -> const NodeModel* {
+        if (depth > 64) return nullptr;
+        for (const auto& c : in.cables) {
+            if (c.to.node != node || c.to.jack != jack) continue;
+            const std::string& from = c.from.node;
+            const std::string t = typeOf(from);
+            if (t == kPatchbayIn) return byId[from];
+            if (t == kCell) {  // out of a cell: the cable into the same jack of its Cell Out
+                for (const auto& n : in.nodes)
+                    if (n.type == kCellOut && n.parent == from)
+                        if (const NodeModel* r = bundleSource(n.id, c.from.jack, depth + 1)) return r;
+            } else if (t == kCellIn) {  // into a cell: the cable into that jack of the cell
+                const NodeModel* cell = byId.count(byId[from]->parent) ? byId[byId[from]->parent] : nullptr;
+                if (cell)
+                    if (const NodeModel* r = bundleSource(cell->id, c.from.jack, depth + 1)) return r;
+            }
+        }
+        return nullptr;
+    };
+    struct Source {
+        Endpoint from;
+        float amount;
+    };
+    // What feeds channel `jack` of a Patch Bay Out: the real outputs behind it (bays chain).
+    std::function<void(const std::string&, const std::string&, float, int, std::vector<Source>&)> channelSources;
+    channelSources = [&](const std::string& bayOut, const std::string& jack, float scale, int depth, std::vector<Source>& out) {
+        if (depth > 16) return;
+        const NodeModel* bayIn = bundleSource(bayOut, "bundle", 0);
+        if (!bayIn) return;
+        for (const auto& c : in.cables) {
+            if (c.to.node != bayIn->id || c.to.jack != jack) continue;
+            if (typeOf(c.from.node) == kPatchbayOut) channelSources(c.from.node, c.from.jack, scale * c.amount, depth + 1, out);
+            else out.push_back({c.from, scale * c.amount});
+        }
+    };
+    // The Voice Cell a node is in ("" for none): signals reach its voices only through its shared inputs.
+    auto voiceOf = [&](const std::string& id) {
+        auto it = byId.find(id);
+        std::string p = it == byId.end() ? std::string() : it->second->parent;
+        for (int depth = 0; !p.empty() && depth < 64; ++depth) {
+            auto q = byId.find(p);
+            if (q == byId.end()) break;
+            if (q->second->type == kVoiceCell) return p;
+            p = q->second->parent;
+        }
+        return std::string();
+    };
+    BoardModel out;
+    out.id = in.id;
+    for (const auto& n : in.nodes)
+        if (!isBay(n.id)) {
+            out.nodes.push_back(n);
+            auto& jacks = out.nodes.back();   // bundles are not signals: a cell's patchbay jacks go with the bundle cables
+            auto drop = [](std::vector<CellJack>& list) {
+                list.erase(std::remove_if(list.begin(), list.end(), [](const CellJack& j) { return j.type == Signal::Patchbay; }), list.end());
+            };
+            drop(jacks.cellInputs);
+            drop(jacks.cellOutputs);
+        }
+    auto outNode = [&](const std::string& id) -> NodeModel* {
+        for (auto& n : out.nodes)
+            if (n.id == id) return &n;
+        return nullptr;
+    };
+    Signal t{};
+    for (const auto& c : in.cables) {
+        if (isBay(c.to.node)) continue;
+        if (typeOf(c.from.node) == kPatchbayOut) {
+            std::vector<Source> sources;
+            channelSources(c.from.node, c.from.jack, 1.0f, 0, sources);
+            int k = 0;
+            for (const auto& s : sources) {
+                const std::string dstVoice = voiceOf(c.to.node), srcVoice = voiceOf(s.from.node);
+                if (dstVoice == srcVoice) {
+                    CableModel nc;
+                    nc.id = c.id + "~" + std::to_string(k++);
+                    nc.from = s.from;
+                    nc.to = c.to;
+                    nc.amount = s.amount * c.amount;
+                    out.cables.push_back(std::move(nc));
+                } else if (!dstVoice.empty() && srcVoice.empty()) {
+                    // Into a Voice Cell: the channel becomes a shared input of the cell, and inside, its Cell In feeds the knob.
+                    NodeModel* voiceCell = outNode(dstVoice);
+                    const NodeModel* cellIn = nullptr;
+                    for (const auto& n : out.nodes)
+                        if (n.type == kCellIn && n.parent == dstVoice) cellIn = &n;
+                    if (!voiceCell || !cellIn) continue;
+                    const std::string jack = "bay~" + c.id + "~" + std::to_string(k++);
+                    voiceCell->cellInputs.push_back({jack, jack, Signal::Control});
+                    CableModel into, inside;
+                    into.id = c.id + "~in" + jack;
+                    into.from = s.from;
+                    into.to = {dstVoice, jack};
+                    into.amount = s.amount;
+                    inside.id = c.id + "~out" + jack;
+                    inside.from = {cellIn->id, jack};
+                    inside.to = c.to;
+                    inside.amount = c.amount;
+                    out.cables.push_back(std::move(into));
+                    out.cables.push_back(std::move(inside));
+                }   // out of a Voice Cell: its voices have no output to a bay's channel
+            }
+            continue;
+        }
+        const NodeModel* src = byId.count(c.from.node) ? byId[c.from.node] : nullptr;
+        if (src && in.outputType(*src, c.from.jack, t) && t == Signal::Patchbay) continue;  // a bundle between cells
+        out.cables.push_back(c);
+    }
+    return out;
+}
+
 std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
                                           std::map<std::string, std::shared_ptr<Module>>& modules,
                                           const std::map<std::string, std::shared_ptr<PortSlot>>& ports,
@@ -68,9 +198,12 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
     const std::string root = scope ? scope->root : std::string();
     program->sampleRate_ = sampleRate;
     const auto& reg = Registry::get();
+    BoardModel flat;
+    if (hasPatchbays(boardIn)) flat = flattenPatchbays(boardIn);
+    const BoardModel& bayless = hasPatchbays(boardIn) ? flat : boardIn;
     BoardModel split;
-    if (hasInsert(boardIn)) split = splitInserts(boardIn);
-    const BoardModel& board = hasInsert(boardIn) ? split : boardIn;
+    if (hasInsert(bayless)) split = splitInserts(bayless);
+    const BoardModel& board = hasInsert(bayless) ? split : bayless;
 
     std::map<std::string, const NodeModel*> byId;
     std::map<std::string, std::vector<const NodeModel*>> cellOutOf;  // cell id → its Cell Out nodes

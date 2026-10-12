@@ -9,8 +9,9 @@ Live, it is the audio of the track that carries a *Bleep Audio In* plugin.
 ## How does it work?
 
 The node has two outputs, *L* and *R*, carrying the input signal. With a single
-input channel (a microphone on input 1), both sides carry the same signal. Nothing
-is processed: what arrives is what you patch on.
+input channel (a microphone on input 1), both sides carry the same signal. The
+**Gain** dial turns the signal up or down before it is patched on (−24 to +24 dB,
+0 dB leaves it unchanged); nothing else is processed.
 
 A new board in the app starts with *In 1/2* and *Out 1/2*. More pairs are in
 **Add → Port**; you can delete the node when you don't need it.
@@ -28,6 +29,12 @@ left out of it, so patching *System* to an *Audio Out* does not feed back.
   monitoring down first.
 
 ## Reference
+
+### Knobs and settings
+
+| Control | Range | Default |
+|---|---|---|
+| Gain | −24 dB … +24 dB | 0 dB |
 
 ### Outputs
 

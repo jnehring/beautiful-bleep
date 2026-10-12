@@ -257,6 +257,8 @@ public:
     /// Audio In: outputs only. Audio Out: inputs only. Insert: both.
     AudioPortModule(const ModuleSpec& s, bool fromTrack, bool toTrack) : Module(s), from_(fromTrack), to_(toTrack) {}
 
+    void reset() override { gain_ = -1.0f; }
+
     void process(const ProcessContext& c) override {
         if (from_) {
             const PortFrame* in = c.port ? c.port->in : nullptr;
@@ -270,19 +272,45 @@ public:
                 std::copy(src, src + n, c.outputs[ch]);
                 std::fill(c.outputs[ch] + n, c.outputs[ch] + c.numSamples, 0.0f);
             }
+            if (hasLevel()) applyLevel(c, c.outputs[0], c.outputs[1], c.outputs[0], c.outputs[1]);
         }
         if (to_ && c.port && c.port->out) {
             // An Insert with nothing patched into its return passes the send through.
             const bool through = from_ && !c.inputConnected[0];
             const float* l = through ? c.outputs[0] : c.inputs[0];
             const float* r = through ? c.outputs[1] : (c.inputConnected[1] ? c.inputs[1] : l);  // mono → both
-            std::copy(l, l + c.numSamples, c.port->out->audio[0] + c.offset);
-            std::copy(r, r + c.numSamples, c.port->out->audio[1] + c.offset);
+            float* outL = c.port->out->audio[0] + c.offset;
+            float* outR = c.port->out->audio[1] + c.offset;
+            if (hasLevel()) {
+                applyLevel(c, l, r, outL, outR);
+            } else {
+                std::copy(l, l + c.numSamples, outL);
+                std::copy(r, r + c.numSamples, outR);
+            }
         }
     }
 
 private:
+    /// Audio In (Gain) and Audio Out (Volume) have one level knob in dB; Insert and Bridge have none.
+    bool hasLevel() const noexcept { return !spec().params.empty(); }
+
+    /// Scales l/r into outL/outR (which may be the same buffers) by the knob, smoothed so moving it does not click.
+    void applyLevel(const ProcessContext& c, const float* l, const float* r, float* outL, float* outR) noexcept {
+        constexpr float kFloorDb = -60.0f, kSmooth = 0.002f;  // the bottom of the knob is silence
+        for (int i = 0; i < c.numSamples; ++i) {
+            float db = value(c, 0, i);
+            if (std::fabs(db) < 0.005f) db = 0.0f;  // the default must pass the signal bit for bit
+            const float target = db <= kFloorDb + 1e-3f ? 0.0f : std::pow(10.0f, db / 20.0f);
+            gain_ = gain_ < 0.0f ? target : gain_ + (target - gain_) * kSmooth;
+            if (std::fabs(target - gain_) < 1e-6f) gain_ = target;
+            const float a = l[i] * gain_, b = r[i] * gain_;
+            outL[i] = a;
+            outR[i] = b;
+        }
+    }
+
     bool from_, to_;
+    float gain_ = -1.0f;  ///< smoothed linear gain; negative until the first block
 };
 
 /// The return half of an Audio Insert (or Bridge): board audio to the track. With nothing patched into
@@ -455,11 +483,16 @@ void registerPortModules(Registry& r) {
     }
     {
         ModuleSpec s = portSpec("audio-in", "Audio In", PortKind::AudioIn, "The track's audio (Bleep Audio In).");
+        s.params = {ParamSpec::number("gain", "Gain", -24.0f, 24.0f, 0.0f, "dB", 1)};
         s.outputs = {{"l", "L", Signal::Audio, true}, {"r", "R", Signal::Audio, true}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, true, false); });
     }
     {
         ModuleSpec s = portSpec("audio-out", "Audio Out", PortKind::AudioOut, "Board audio to a track (Bleep Audio Out).");
+        // Like a mixer fader: 0 dB sits at about 80 % of the travel, the bottom is silence.
+        s.params = {ParamSpec::number("volume", "Volume", -60.0f, 6.0f, 0.0f, "dB", 1)};
+        s.params[0].map = ParamSpec::Map::Skew;
+        s.params[0].centre = -12.0f;
         s.inputs = {{"l", "L", Signal::Audio}, {"r", "R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, false, true); });
     }

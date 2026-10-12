@@ -15,14 +15,14 @@
 namespace bleep::engine {
 
 /// Signal types (spec §7.1). All but `notes` are one float per sample.
-enum class Signal { Control, Gate, Trigger, Pitch, Audio, Notes };
+enum class Signal { Control, Gate, Trigger, Pitch, Audio, Notes, Patchbay };
 
 const char* signalName(Signal s) noexcept;
 bool signalFromName(const std::string& name, Signal& out) noexcept;
 
-/// Cable compatibility (spec §7.4): notes only connect to notes.
+/// Cable compatibility (spec §7.4): notes only connect to notes, and a patch bay's bundle only to a bundle.
 inline bool compatible(Signal from, Signal to) noexcept {
-    return (from == Signal::Notes) == (to == Signal::Notes);
+    return (from == Signal::Notes) == (to == Signal::Notes) && (from == Signal::Patchbay) == (to == Signal::Patchbay);
 }
 
 /// Shows a knob, setting or jack only while another setting's value (in its
@@ -220,13 +220,14 @@ inline const char* signalName(Signal s) noexcept {
         case Signal::Pitch: return "pitch";
         case Signal::Audio: return "audio";
         case Signal::Notes: return "notes";
+        case Signal::Patchbay: return "patchbay";
         case Signal::Control: break;
     }
     return "control";
 }
 
 inline bool signalFromName(const std::string& n, Signal& out) noexcept {
-    for (Signal s : {Signal::Control, Signal::Gate, Signal::Trigger, Signal::Pitch, Signal::Audio, Signal::Notes})
+    for (Signal s : {Signal::Control, Signal::Gate, Signal::Trigger, Signal::Pitch, Signal::Audio, Signal::Notes, Signal::Patchbay})
         if (n == signalName(s)) {
             out = s;
             return true;

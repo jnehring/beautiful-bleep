@@ -183,6 +183,10 @@
           if (jtype) out.push({ kind: "jack", jtype, sid, lo: w.mod ? lo : lo, hi, def: { kind: "float", name, min: lo, max: hi, default: 0 } });
         } else if (w.notes) {
           out.push({ kind: "notes", sid });
+        } else if (w.keyboard) {   // a Keyboard module on the board
+          if (host.node(w.keyboard, bound)) out.push({ kind: "notes", sid: w.keyboard });
+        } else if (w.press) {   // a Button module on the board
+          if (host.node(w.press, bound)) out.push({ kind: "press", sid: w.press });
         } else if (w.command) {
           const [key, cmd] = split(w.command), node = host.node(key, bound);
           if (node) out.push({ kind: "command", id: node.id, cmd });
@@ -231,7 +235,7 @@
       };
       // The gesture ends: a jack-driven control saves where it was left (a spring control doesn't).
       const end = () => {
-        if (c.spring) move(home(lead));
+        if (c.spring) move(lead.kind === "param" ? (lead.hi === lead.lo ? 0 : clamp01((lead.def.default - lead.lo) / (lead.hi - lead.lo))) : home(lead));
         else if (dirty) o.save(x);
         dirty = false;
       };
@@ -252,7 +256,7 @@
         e.title = (c.wire || []).length ? "Not connected: the module or jack is gone" : "Not wired";
         return null;
       }
-      if (!ts.length) { if (!opts.edit) return { ts: [], all, commands: all.filter((t) => t.kind === "command"), move() {}, end() {}, get: () => 0, def: { default: 0 }, steps: 0 }; return null; }
+      if (!ts.length) { if (!opts.edit) return { ts: [], all, commands: all.filter((t) => t.kind === "command" || t.kind === "press"), move() {}, end() {}, get: () => 0, def: { default: 0 }, steps: 0 }; return null; }
       const d = driver(c, bound, panel, ts, {
         initial: () => c.value, save: (x) => host.save(panel.id, c.id, x),
         paint: (x, units, def) => { paint(x); e.title = `${c.label || def.name}: ${show(def, units)}`; },
@@ -311,7 +315,7 @@
           if (pulses.length || cmds.length) {   // a trigger or gate, or a module's button: held while pressed
             e.setPointerCapture(ev.pointerId);
             for (const t of pulses) host.press(t.sid, true);
-            for (const t of cmds) host.command(t.id, t.cmd, 1);
+            for (const t of cmds) t.kind === "press" ? host.press(t.sid, true) : host.command(t.id, t.cmd, 1);
             lamp.classList.add("on");
             return;
           }
@@ -322,7 +326,7 @@
         });
         const up = () => {
           for (const t of pulses) host.press(t.sid, false);
-          for (const t of cmds) host.command(t.id, t.cmd, 0);
+          for (const t of cmds) t.kind === "press" ? host.press(t.sid, false) : host.command(t.id, t.cmd, 0);
           if (pulses.length || cmds.length) lamp.classList.remove("on");
         };
         e.addEventListener("pointerup", up);
@@ -371,11 +375,13 @@
       e.append(sel);
       const ts = targets(c, bound, panel);
       const def = ts.length && ts[0].kind === "param" && ts[0].def;
-      if (def && def.choices) def.choices.forEach((name, i) => sel.append(new Option(name, i)));
-      const w = wire(c, bound, e, (v) => { if (def && def.choices) sel.value = String(Math.round(v * (def.choices.length - 1))); }, panel);
-      if (w && def && def.choices) {
+      // The choices: a knob's own, or the options of a Dial module in steps (`options`).
+      const names = def && def.choices ? def.choices : Array.isArray(c.options) && c.options.length > 1 ? c.options : null;
+      if (names) names.forEach((name, i) => sel.append(new Option(name, i)));
+      const w = wire(c, bound, e, (v) => { if (names) sel.value = String(Math.round(v * (names.length - 1))); }, panel);
+      if (w && names) {
         sel.addEventListener("pointerdown", (ev) => ev.stopPropagation());
-        sel.addEventListener("change", () => { host.begin(); w.move(Number(sel.value) / Math.max(1, def.choices.length - 1)); });
+        sel.addEventListener("change", () => { host.begin(); w.move(Number(sel.value) / Math.max(1, names.length - 1)); });
       } else sel.disabled = true;
       return e;
     }
@@ -437,7 +443,7 @@
         nodes.set(note, k);
       }
       const ts = targets(c, bound, panel).filter((t) => t.kind === "notes");
-      if (!ts.length) { e.classList.add("dead"); e.title = "Not wired: this keyboard plays a Voice Cell"; return e; }
+      if (!ts.length) { e.classList.add("dead"); e.title = "Not connected: its Keyboard module is gone"; return e; }
       if (opts.edit) return e;
       let held = null;
       const press = (k, ev) => {

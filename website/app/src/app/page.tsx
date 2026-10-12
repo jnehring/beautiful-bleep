@@ -26,7 +26,7 @@ export default function Home() {
       <div className="grid">
         <div className="card"><h3>Instrument</h3><p>Pick a preset, play it with MIDI.</p></div>
         <div className="card"><h3>Audio effect</h3><p>Pick a preset, send audio through it.</p></div>
-        <div className="card"><h3>Bleep patch</h3><p>The whole board: your modules, your cables.</p></div>
+        <div className="card"><h3>Full board</h3><p>The whole board: your modules, your cables.</p></div>
       </div>
       <p>
         Instruments and effects are small patches on the same board, so you can open one, change it and cable it to

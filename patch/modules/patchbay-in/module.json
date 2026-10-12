@@ -1,0 +1,10 @@
+{
+  "name": "Patch Bay In",
+  "slug": "patchbay-in",
+  "tagline": "Collects signals into one bundle cable: every input you patch adds a channel, and a free one is always left.",
+  "colour": "#a78bfa",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/patchbay-in.md"
+}

@@ -3,6 +3,7 @@
 // Node-level tests for the controller modules (doc/specs/modules/dial.md,
 // button.md, keyboard.md): their specs, performance gestures from the view
 // (Module::perform) and the node data, run through the Module API.
+#include "Board.h"
 #include "Engine.h"
 #include "Registry.h"
 
@@ -87,7 +88,7 @@ int count(const std::vector<float>& b) {
 }
 
 void specs() {
-    for (const char* t : {"dial", "button", "keyboard"}) {
+    for (const char* t : {"dial", "button", "keyboard", "wheel", "xy-pad"}) {
         g_test = t;
         const ModuleSpec* s = Registry::get().find(t);
         EXPECT(s != nullptr);
@@ -134,6 +135,173 @@ void dial() {
     EXPECT(s.out("out") > 0.9f && s.out("out") < 1.0f);
     s.run(1500);  // 1 s
     EXPECT_NEAR(s.out("out"), 0.0, 1e-3);
+}
+
+void wheel() {
+    g_test = "wheel";
+    Rig r("wheel");
+    r.set("smooth", 0.0f);
+    r.run();  // centred by default: a bipolar wheel at rest outputs 0
+    EXPECT_NEAR(r.out("out"), 0.0, 1e-5);
+    r.set("value", 1.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), 1.0, 1e-5);
+    r.set("value", 0.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), -1.0, 1e-5);
+    r.set("min", 0.0f);  // a mod wheel: 0..1
+    r.set("value", 0.25f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), 0.25, 1e-5);
+    r.set("max", 0.0f);  // reversed
+    r.set("min", 1.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out"), 0.75, 1e-5);
+    Rig s("wheel");  // smoothing: no glide at the start, a glide after a change
+    s.set("value", 1.0f);
+    s.run();
+    EXPECT_NEAR(s.out("out", 0), 1.0, 1e-5);
+    s.set("smooth", 0.1f);
+    s.set("value", 0.5f);
+    s.run();
+    EXPECT(s.out("out") > 0.0f && s.out("out") < 1.0f);
+    s.run(1500);
+    EXPECT_NEAR(s.out("out"), 0.0, 1e-3);
+}
+
+void xyPad() {
+    g_test = "xy-pad";
+    Rig r("xy-pad");
+    r.set("smooth", 0.0f);
+    r.set("x", 0.25f);
+    r.set("y", 0.75f);
+    r.run();
+    EXPECT_NEAR(r.out("x"), 0.25, 1e-5);
+    EXPECT_NEAR(r.out("y"), 0.75, 1e-5);
+    r.set("min", -1.0f);  // both axes share the range
+    r.run();
+    EXPECT_NEAR(r.out("x"), -0.5, 1e-5);
+    EXPECT_NEAR(r.out("y"), 0.5, 1e-5);
+    Rig s("xy-pad");
+    s.set("x", 1.0f);
+    s.run();
+    EXPECT_NEAR(s.out("x", 0), 1.0, 1e-5);  // no glide at the start
+    s.set("smooth", 0.1f);
+    s.set("x", 0.0f);
+    s.run();
+    EXPECT(s.out("x") > 0.9f && s.out("x") < 1.0f);
+    s.run(1500);
+    EXPECT_NEAR(s.out("x"), 0.0, 1e-3);
+}
+
+
+// Patch bays (doc/specs/modules/patchbay.md): the compiler runs plain cables.
+void patchbays() {
+    g_test = "patchbays";
+    auto node = [](const std::string& id, const char* type, const std::string& parent = "") {
+        NodeModel n;
+        n.id = id;
+        n.type = type;
+        n.parent = parent;
+        n.spec = Registry::get().find(type);
+        return n;
+    };
+    auto cable = [](const std::string& id, const char* fn, const char* fj, const char* tn, const char* tj, float amount = 1.0f) {
+        CableModel c;
+        c.id = id;
+        c.from = {fn, fj};
+        c.to = {tn, tj};
+        c.amount = amount;
+        return c;
+    };
+    {  // dial → bay in c1 → bundle → bay out c1 → filter cutoff
+        BoardModel m;
+        m.nodes = {node("d", "dial"), node("a", kPatchbayIn), node("b", kPatchbayOut), node("f", "filter")};
+        m.cables = {cable("k1", "d", "out", "a", "c1", 0.5f), cable("k2", "a", "bundle", "b", "bundle"),
+                    cable("k3", "b", "c1", "f", "cutoff", 0.5f)};
+        EXPECT(hasPatchbays(m));
+        const BoardModel flat = flattenPatchbays(m);
+        EXPECT(flat.nodes.size() == 2 && flat.cables.size() == 1);
+        if (flat.cables.size() == 1) {
+            EXPECT(flat.cables[0].from.node == "d" && flat.cables[0].from.jack == "out");
+            EXPECT(flat.cables[0].to.node == "f" && flat.cables[0].to.jack == "cutoff");
+            EXPECT_NEAR(flat.cables[0].amount, 0.25, 1e-6);
+        }
+    }
+    {  // two channels, the bundle goes through a cell: in a "panel" cell, out of its Cell Out, into a bay out beside the filter
+        BoardModel m;
+        NodeModel panel = node("p", kCell);
+        panel.cellOutputs = {{"saw", "Saw", Signal::Patchbay}};
+        m.nodes = {node("d1", "dial", "p"), node("d2", "dial", "p"), node("a", kPatchbayIn, "p"), node("co", kCellOut, "p"),
+                   panel, node("b", kPatchbayOut), node("f", "filter")};
+        m.cables = {cable("k1", "d1", "out", "a", "c1"), cable("k2", "d2", "out", "a", "c2"), cable("k3", "a", "bundle", "co", "saw"),
+                    cable("k4", "p", "saw", "b", "bundle"), cable("k5", "b", "c1", "f", "cutoff"), cable("k6", "b", "c2", "f", "resonance")};
+        const BoardModel flat = flattenPatchbays(m);
+        EXPECT(flat.cables.size() == 2);
+        for (const auto& c : flat.cables) {
+            EXPECT(c.to.node == "f");
+            EXPECT((c.to.jack == "cutoff" && c.from.node == "d1") || (c.to.jack == "resonance" && c.from.node == "d2"));
+        }
+        // bundles are a cable type of their own
+        EXPECT(!compatible(Signal::Patchbay, Signal::Control) && compatible(Signal::Patchbay, Signal::Patchbay));
+    }
+    {  // sanitise keeps the cables of a real board document: channels, a bundle through a cell's Cell Out, a bundle in
+        const char* json = R"({"format":1,"id":"t","nodes":[
+          {"id":"p","type":"cell","name":"Panel","x":0,"y":0,"parent":"","params":{},"inputs":[],"outputs":[{"id":"saw","name":"Saw","type":"patchbay"}]},
+          {"id":"pci","type":"cell-in","name":"Cell In","x":0,"y":0,"parent":"p","params":{}},
+          {"id":"pco","type":"cell-out","name":"Cell Out","x":0,"y":0,"parent":"p","params":{}},
+          {"id":"d","type":"dial","name":"Dial","x":0,"y":0,"parent":"p","params":{}},
+          {"id":"a","type":"patchbay-in","name":"Saw bay","x":0,"y":0,"parent":"p","params":{}},
+          {"id":"b","type":"patchbay-out","name":"Saw bay","x":0,"y":0,"parent":"","params":{}},
+          {"id":"f","type":"filter","name":"Filter","x":0,"y":0,"parent":"","params":{}}],
+          "cables":[
+          {"id":"k1","from":{"node":"d","jack":"out"},"to":{"node":"a","jack":"c1"},"amount":1},
+          {"id":"k2","from":{"node":"a","jack":"bundle"},"to":{"node":"pco","jack":"saw"},"amount":1},
+          {"id":"k3","from":{"node":"p","jack":"saw"},"to":{"node":"b","jack":"bundle"},"amount":1},
+          {"id":"k4","from":{"node":"b","jack":"c1"},"to":{"node":"f","jack":"cutoff"},"amount":1},
+          {"id":"k5","from":{"node":"d","jack":"out"},"to":{"node":"b","jack":"bundle"},"amount":1},
+          {"id":"k6","from":{"node":"b","jack":"c1"},"to":{"node":"f","jack":"in"},"amount":1}]})";
+        juce::StringArray warnings;
+        const auto clean = board::sanitise(board::fromJson(json), &warnings);
+        // k5 (a control into a bundle input) and k6 (not a jack of the filter) are dropped; the rest stays
+        EXPECT(clean["cables"].size() == 4);
+        const BoardModel model = board::parse(clean);
+        const BoardModel flat = flattenPatchbays(model);
+        bool direct = false;
+        for (const auto& c : flat.cables) direct |= c.from.node == "d" && c.to.node == "f" && c.to.jack == "cutoff";
+        EXPECT(direct);
+        EXPECT(flat.nodes.size() == model.nodes.size() - 2);
+    }
+    {  // into a Voice Cell: the bundle enters its shared input; the channel becomes a shared input of its own
+        BoardModel m;
+        NodeModel voiceCell = node("v", kVoiceCell);
+        voiceCell.cellInputs = {{"saw", "Saw", Signal::Patchbay}};
+        m.nodes = {node("d", "dial"), node("a", kPatchbayIn), voiceCell, node("vci", kCellIn, "v"), node("b", kPatchbayOut, "v"),
+                   node("o", "oscillator", "v")};
+        m.cables = {cable("k1", "d", "out", "a", "c1", 0.5f), cable("k2", "a", "bundle", "v", "saw"),
+                    cable("k3", "vci", "saw", "b", "bundle"), cable("k4", "b", "c1", "o", "fine", 0.5f)};
+        const BoardModel flat = flattenPatchbays(m);
+        const NodeModel* v = flat.node("v");
+        EXPECT(v && v->cellInputs.size() == 1 && v->cellInputs[0].type == Signal::Control);
+        EXPECT(flat.cables.size() == 2);
+        if (v && v->cellInputs.size() == 1 && flat.cables.size() == 2) {
+            const std::string jack = v->cellInputs[0].id;
+            for (const auto& c : flat.cables) {
+                if (c.to.node == "v") EXPECT(c.from.node == "d" && c.to.jack == jack && std::fabs(c.amount - 0.5f) < 1e-6);
+                else EXPECT(c.from.node == "vci" && c.from.jack == jack && c.to.node == "o" && c.to.jack == "fine" && std::fabs(c.amount - 0.5f) < 1e-6);
+            }
+        }
+    }
+    {  // bays in a row: the channel follows through both
+        BoardModel m;
+        m.nodes = {node("d", "dial"), node("a1", kPatchbayIn), node("b1", kPatchbayOut), node("a2", kPatchbayIn),
+                   node("b2", kPatchbayOut), node("f", "filter")};
+        m.cables = {cable("k1", "d", "out", "a1", "c1"), cable("k2", "a1", "bundle", "b1", "bundle"),
+                    cable("k3", "b1", "c1", "a2", "c1"), cable("k4", "a2", "bundle", "b2", "bundle"),
+                    cable("k5", "b2", "c1", "f", "cutoff")};
+        const BoardModel flat = flattenPatchbays(m);
+        EXPECT(flat.cables.size() == 1 && flat.cables[0].from.node == "d" && flat.cables[0].to.node == "f");
+    }
 }
 
 void button() {
@@ -232,6 +400,9 @@ void keyboard() {
 int main() {
     specs();
     dial();
+    wheel();
+    xyPad();
+    patchbays();
     button();
     keyboard();
     if (g_failures) {

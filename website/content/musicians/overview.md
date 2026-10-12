@@ -6,8 +6,8 @@ order: -1
 
 # Ways to use Bleep
 
-Bleep is one sound engine you can reach in three places, and in each place you
-can use it at three levels of effort.
+Beautiful Bleep is one sound engine you can reach in three places, and in each
+place you can use it at three levels of effort.
 
 ## Three places
 

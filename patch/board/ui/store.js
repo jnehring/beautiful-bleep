@@ -523,6 +523,7 @@
     },
     async show() {
       if (window.BleepSettingsView && document.getElementById("settings")) window.BleepSettingsView.hide();
+      if (window.BleepHelpView) window.BleepHelpView.hide();
       document.body.classList.add("in-store");
       root.hidden = false;
       document.getElementById("sec-store").classList.add("on");
@@ -538,4 +539,3 @@
     },
   };
 })();
-      if (window.BleepHelpView) window.BleepHelpView.hide();

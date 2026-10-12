@@ -1,0 +1,10 @@
+{
+  "name": "XY Pad",
+  "slug": "xy-pad",
+  "tagline": "Two control signals from one touch: drag a point over a pad, X and Y come out of two jacks.",
+  "colour": "#fda4af",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/xy-pad.md"
+}

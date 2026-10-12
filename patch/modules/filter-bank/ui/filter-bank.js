@@ -142,15 +142,30 @@
       { title: "Shape", params: ["tilt", "oddEven", "scan", "width"] },
       { title: "Envelope / Vocoder", params: ["attack", "release", "vocode", "envFrom"] },
       { title: "Output", params: ["stereo", "jacks", "mix"] },
+      // The slider bank draws the levels; these knobs are the cable targets (and amounts).
+      { title: "Levels", params: Array.from({ length: 10 }, (_, k) => "level" + (k + 1)) },
     ],
     top: true,
-    hideParams: ["level1", "level2", "level3", "level4", "level5", "level6", "level7", "level8", "level9", "level10"],  // the slider bank edits them
     template: '<div class="bv-panel"><h2>Bands <select class="fb-presets" style="float:right">' +
       '<option value="">Presets…</option>' + Object.keys(PRESETS).map((n) => `<option>${n}</option>`).join("") +
-      '</select></h2><canvas class="fb-bank" style="height:' + H + 'px;width:100%;cursor:ns-resize"></canvas></div>',
+      '</select></h2><div class="fb-wrap" style="position:relative"><canvas class="fb-bank" style="height:' + H + 'px;width:100%;cursor:ns-resize;display:block"></canvas></div>' +
+      // Cable drop zones over the ten sliders: inert until a cable is in hand (the board marks .bv-target.drop-ok).
+      '<style>.fb-slot{position:absolute;top:0;height:' + SLIDER[1] + 'px;pointer-events:none;border-radius:3px}' +
+      '.fb-slot.drop-ok{pointer-events:auto;background:rgba(255,255,255,.06);outline:1px dashed var(--accent)}' +
+      '.fb-slot.drop-hover{background:rgba(255,255,255,.2)}</style></div>',
     afterBuild(view, el) {
       view.fb = { canvas: el.querySelector(".fb-bank"), state: null };
       attach(view, view.fb.canvas);
+      const wrap = el.querySelector(".fb-wrap");
+      for (let k = 0; k < BANDS; k++) {  // one cable target per band level
+        const slot = document.createElement("div");
+        slot.className = "bv-target fb-slot";
+        slot.dataset.param = id(k);
+        slot.title = "Level " + (k + 1);
+        slot.style.left = k * 100 / BANDS + "%";
+        slot.style.width = 100 / BANDS + "%";
+        wrap.appendChild(slot);
+      }
       const sel = el.querySelector(".fb-presets");
       sel.addEventListener("change", () => {
         const levels = PRESETS[sel.value];

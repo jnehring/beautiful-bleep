@@ -1,0 +1,10 @@
+{
+  "name": "Wheel",
+  "slug": "wheel",
+  "tagline": "A pitch or mod wheel as a control signal: drag it, and it springs back to the middle when you let go.",
+  "colour": "#fda4af",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/wheel.md"
+}

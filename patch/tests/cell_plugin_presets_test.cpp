@@ -192,6 +192,7 @@ juce::var withHost(const juce::var& preset, const juce::var& root, bool effect, 
             if (notes["velocity"].isString()) wire("velocity", notes["velocity"].toString());
             if (notes["pitch"].isString()) wire("pitch", notes["pitch"].toString());
             if (notes["gate"].isString()) wire("gate", notes["gate"].toString());
+            if (notes["notes"].isString()) wire("notes", notes["notes"].toString());  // the note stream itself
             outs = audioJacks(root, "outputs");
         }
     }
@@ -281,7 +282,12 @@ void check(const juce::var& entry, bool verbose) {
         } else {
             const auto& notes = plays["instrument"]["notes"];
             const bool selfPlaying = notes.getDynamicObject() != nullptr && notes.getDynamicObject()->getProperties().size() == 0;
-            const bool pitchOnly = !selfPlaying && notes.getDynamicObject() != nullptr && !notes.hasProperty("trigger");
+            // A note stream into a cell with a Voice Cell or a Notes to CV inside is played by notes (a drum machine's stream is not).
+            bool takesNotes = false;
+            if (const auto* ns = preset["nodes"].getArray())
+                for (const auto& n : *ns) takesNotes |= n["type"].toString() == "voice-cell" || n["type"].toString() == "notes-to-cv";
+            const bool noteStream = notes.hasProperty("notes") && takesNotes;
+            const bool pitchOnly = !selfPlaying && notes.getDynamicObject() != nullptr && !notes.hasProperty("trigger") && !noteStream;
             const double seconds = selfPlaying || pitchOnly ? 12.0 : kNoteOff + kRelease;
             const Probe p = render(board, seconds);
             if (!p.finite) fail(name + as, "output is not finite");

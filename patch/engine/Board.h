@@ -32,6 +32,14 @@
 
 namespace bleep::engine {
 
+/// A patch bay's channel jack: "c1", "c2" … (the bay's other jack is "bundle").
+inline bool isBayChannel(const std::string& jack) {
+    if (jack.size() < 2 || jack[0] != 'c') return false;
+    for (size_t i = 1; i < jack.size(); ++i)
+        if (jack[i] < '0' || jack[i] > '9') return false;
+    return true;
+}
+
 struct CellJack {
     std::string id, name;
     Signal type = Signal::Control;
@@ -66,6 +74,12 @@ struct BoardModel {
     bool outputType(const NodeModel& node, const std::string& jack, Signal& type) const noexcept;
     bool inputType(const NodeModel& node, const std::string& jack, Signal& type) const noexcept;
 };
+
+/// The board the compiler runs: every chain through a patch bay (a source into a Patch Bay In channel, a bundle cable,
+/// possibly through cell jacks and other bays, out of the same channel of a Patch Bay Out) becomes one plain cable,
+/// and the bays and bundle cables are gone.
+BoardModel flattenPatchbays(const BoardModel& board);
+bool hasPatchbays(const BoardModel& board);
 
 namespace board {
 
