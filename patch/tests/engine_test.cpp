@@ -244,7 +244,7 @@ void compileCellsAndFeedback() {
     EXPECT_NEAR(eff, std::max(0.0f, knob - 0.5f), 1e-4);
 }
 
-/// Bleep Patch + Audio In + Audio Out: an impulse arrives exactly two blocks later.
+/// Bleep Board + Audio In + Audio Out: an impulse arrives exactly two blocks later.
 void latencyAndClaiming() {
     g_test = "latency";
     auto* e = new Engine();
@@ -411,11 +411,11 @@ void persistenceAndDuplicates() {
     EXPECT(functions == 1);
     EXPECT(audioIns == 2);  // the original, plus a new node for the duplicate
 
-    // A second Bleep Patch is inactive and keeps its own copy.
+    // A second Bleep Board is inactive and keeps its own copy.
     const int second = e->registerInstance(PortKind::Patch);
     EXPECT(e->state(second) == PortState::InactiveMain);
     EXPECT(e->state(main) == PortState::Ok);
-    // Deleting the main removes the board; the other Bleep Patch takes over.
+    // Deleting the main removes the board; the other Bleep Board takes over.
     e->unregisterInstance(main);
     EXPECT(e->state(second) == PortState::Ok);
     for (int h : {ain, dup, second}) e->unregisterInstance(h);
@@ -1224,7 +1224,7 @@ void cellPlugins() {
         e->collectGarbage();
         e->release();
     }
-    // Restoring: with Bleep Patch (its board is saved) the board's copy wins; without, the snapshot builds the cell.
+    // Restoring: with Bleep Board (its board is saved) the board's copy wins; without, the snapshot builds the cell.
     {
         auto* e = new Engine();
         const int inst = e->registerInstance(PortKind::Instrument);
@@ -1233,7 +1233,7 @@ void cellPlugins() {
         bool kept = false;
         for (const auto& n : *e->board()["nodes"].getArray()) kept |= n["name"].toString() == "Edited Node";
         EXPECT(cell.isNotEmpty() && kept);
-        // Bleep Patch arrives: its board replaces the implicit one, and the cell comes back with the port node.
+        // Bleep Board arrives: its board replaces the implicit one, and the cell comes back with the port node.
         const int main = e->registerInstance(PortKind::Patch);
         e->reconcileNow();
         EXPECT(cellOf(*e, inst).isNotEmpty());

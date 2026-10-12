@@ -1,4 +1,4 @@
-# Bleep Patch
+# Beautiful Bleep: engine, board and plugins
 
 The shared engine, the **board** and the Bleep plugins you add in Ableton
 Live (spec: [`doc/specs/specs.md`](../doc/specs/specs.md)). Modules (**Function**,
@@ -7,7 +7,7 @@ on the board. In Live you add only:
 
 | Plugin | Live device | On the board |
 |---|---|---|
-| **Bleep Patch** | audio effect | required once per set; stores and opens the board; 16 macros |
+| **Bleep Board** | audio effect | required once per set; stores and opens the board; 16 macros |
 | **Bleep MIDI In** | instrument | notes, pitch, gate, velocity, CCs from a MIDI track |
 | **Bleep MIDI Out** | instrument (VST3 MIDI out) | notes, gate/pitch, CCs and bend to another track |
 | **Bleep Audio In** | audio effect | the track's audio |
@@ -28,7 +28,7 @@ scripts/build/build-patch.sh --install                 # also copy the plugins i
 VST3 only, Ableton Live only for now (spec §5.2). The script builds into
 `build/patch/`, then runs the DSP tests, the engine tests and the bridge tests.
 
-It also builds the standalone **Bleep Patch app** (spec §11): the board without
+It also builds the standalone **Bleep App** (spec §11): the board without
 a DAW, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server.
 See [`app/README.md`](app/README.md). Its preset browser (File → Presets…) loads
 whole demo boards, five per advanced module.

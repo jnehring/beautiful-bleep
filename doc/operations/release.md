@@ -62,7 +62,7 @@ Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation
 
 ## The manual release (until CI does it)
 
-1. **Check main is green.** CI (`.github/workflows/ci.yml`) builds and tests the bus, the plugins (macOS, Windows), the web board and the website.
+1. **Check main is green.** CI (`.github/workflows/ci.yml`) builds and tests the bus, the plugins (macOS, Windows), Bleep Play and the website.
 2. **Set the version.** The product version is `project(BleepPatch VERSION …)` in `patch/CMakeLists.txt`; the plugins and the app take it from there. The bus has its own version in `bus/CMakeLists.txt` (it follows the spec version). Commit the bump.
 3. **Tag.** `git tag plugin-vX.Y.Z && git push origin plugin-vX.Y.Z`.
 4. **Take the build from CI.** The `plugins` job uploads `bleep-patch-macos-latest` and `bleep-patch-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `scripts/build/build-patch.sh`.

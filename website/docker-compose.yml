@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# The Bleep Patch website: static files behind Caddy, plus the accounts API and its database.
+# The Beautiful Bleep website: static files behind Caddy, plus the accounts API and its database.
 #
 #   cp website/.env.example website/.env      # then set the passwords
 #   docker compose -f website/docker-compose.yml --env-file website/.env up --build -d

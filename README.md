@@ -6,8 +6,8 @@ Everything in this repository is MIT-licensed.
 | Folder | What | Start here |
 |---|---|---|
 | [`bus/`](bus/) | **Bleep Bus**: the open standard. C library, C++/JUCE helpers, examples, conformance suite | [Quickstart](website/content/developers/quickstart.md) |
-| [`patch/`](patch/) | **Bleep Patch**: the shared engine, the Bleep Board and the plugins you add in Live (Bleep Patch and the ports); modules (Function, Random, Utility, Filter) run on the board | [Getting started](website/content/musicians/getting-started.md) |
-| [`website/`](website/) | The Bleep Patch homepage and **all documentation** (`website/content/`) | [Spec v0.1](website/content/developers/spec/v0.1/00-overview.md) |
+| [`patch/`](patch/) | **Beautiful Bleep**: the shared engine, the board and the Bleep plugins you add in Live (Bleep Board and the ports); modules (Function, Random, Utility, Filter) run on the board | [Getting started](website/content/musicians/getting-started.md) |
+| [`website/`](website/) | The Beautiful Bleep homepage and **all documentation** (`website/content/`) | [Spec v0.1](website/content/developers/spec/v0.1/00-overview.md) |
 | [`doc/`](doc/) | The specifications (`doc/specs/`) and internal operations docs (`doc/operations/`: build, release, website) | [Index](doc/README.md) |
 | [`scripts/`](scripts/) | Build, run, check, docs and release scripts (below) | |
 
@@ -20,7 +20,7 @@ All scripts live in [`scripts/`](scripts/), one folder per kind of work, and wor
 | [`build/`](scripts/build/) | [`build-bus.sh`](scripts/build/build-bus.sh) | Builds Bleep Bus (library, examples, conformance suite) into `build/bus/` and runs its tests. Options: `--debug`, `--clean`, `--no-test` |
 | | [`build-patch.sh`](scripts/build/build-patch.sh) | Builds the plugins as VST3 into `build/patch/` and runs the DSP, engine and headless-host tests. Options: `--juce <dir>` (or `BLEEP_JUCE_DIR`; otherwise JUCE 8.0.9 is downloaded), `--install`, `--ui-dev`, `--debug`, `--clean`, `--no-test` |
 | | [`build-web.sh`](scripts/build/build-web.sh) | Builds the board for the browser: one `.wasm` per module and the web engine (`--no-modules`, `--modules-only`, `--docker`) |
-| [`run/`](scripts/run/) | [`run-app.sh`](scripts/run/run-app.sh) | Builds only the standalone Bleep Patch app and starts it with its console output: `scripts/run/run-app.sh [project.bleepboard]`. Options: `--debug`, `--ui-dev`, `--no-build`, `--smoke`, `--juce <dir>` |
+| [`run/`](scripts/run/) | [`run-app.sh`](scripts/run/run-app.sh) | Builds only the standalone Bleep App and starts it with its console output: `scripts/run/run-app.sh [project.bleepboard]`. Options: `--debug`, `--ui-dev`, `--no-build`, `--smoke`, `--juce <dir>` |
 | | [`reload-live.sh`](scripts/run/reload-live.sh) | macOS: rebuilds the plugins, quits Ableton Live, replaces the VST3s and reopens a test set: `scripts/run/reload-live.sh ~/Music/test.als [build options]` |
 | | [`run-website.sh`](scripts/run/run-website.sh) | Runs the website in Docker on http://localhost:8080: `up` (default), `down`, `logs`, `rebuild` |
 | | [`ui-server.py`](scripts/run/ui-server.py) | Serves the board UI in a browser with a fake engine: `scripts/run/ui-server.py`, then open http://localhost:8765 |

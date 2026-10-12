@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// board.js — the Bleep Board (spec §9): canvas, Add menu, patching, cells,
+// board.js — the board (spec §9): canvas, Add menu, patching, cells,
 // floating module views, undo and keyboard shortcuts.
 //
 // The engine owns the board document; this page edits a copy and commits it
@@ -10,7 +10,7 @@
   "use strict";
 
   // ------------------------------------------------------------------ state
-  let board = null;            // the board document, or null (no Bleep Patch)
+  let board = null;            // the board document, or null (no Bleep Board)
   let types = {};              // type → description
   let typeList = [];
   let ports = {};              // port id → {kind, track, live, main}
@@ -334,7 +334,7 @@
     const empty = $("empty");
     if (!board) {
       empty.hidden = false;
-      empty.textContent = "No board in this set. Add Bleep Patch to any track in Live.";
+      empty.textContent = "No board in this set. Add Bleep Board to any track in Live.";
     } else if (!nodesAt(level()).length) {
       empty.hidden = false;
       empty.textContent = "Double-click or press Tab to add a module.";
@@ -2727,7 +2727,7 @@
     document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
     standalone = !!m.standalone;
-    {  // the preset browser: whole patches (spec §11.5); in a plugin their port nodes map onto the set's ports
+    {  // the preset browser: whole boards (spec §11.5); in a plugin their port nodes map onto the set's ports
       await BleepPresetBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin });
       $("presets").hidden = false;
       $("presets").addEventListener("click", () => BleepPresetBrowser.open());

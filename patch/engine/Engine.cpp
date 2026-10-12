@@ -106,7 +106,7 @@ int Engine::registerInstance(PortKind kind) noexcept {
     table_[handle].store(s.get(), std::memory_order_release);
     if (kind == PortKind::Patch && mainHandle_ == 0) {
         mainHandle_ = handle;
-        implicit_ = false;  // Bleep Patch takes over from the board cell plugins kept on their own
+        implicit_ = false;  // Bleep Board takes over from the board cell plugins kept on their own
         setBoard(board::create(), true);
     }
     return handle;
@@ -133,7 +133,7 @@ void Engine::unregisterInstance(int handle) noexcept {
                                     [&](const auto& s) { return s->handle == handle; }),
                      instances_.end());
     if (handle == mainHandle_) {
-        // Deleting Bleep Patch removes the board from the set (spec §5.4).
+        // Deleting Bleep Board removes the board from the set (spec §5.4).
         clearBoard();
         promoteMain();
     } else {
@@ -217,8 +217,8 @@ void Engine::statusText(int handle, char* out, int capacity) noexcept {
     juce::String text;
     switch (state(handle)) {
         case PortState::InactiveMain: text = "Inactive: this set already has a board."; break;
-        case PortState::NoBoard: text = "No board in this set. Add Bleep Patch."; break;
-        case PortState::VersionMismatch: text = "Another version of Bleep Patch is loaded."; break;
+        case PortState::NoBoard: text = "No board in this set. Add Bleep Board."; break;
+        case PortState::VersionMismatch: text = "Another version of Bleep Board is loaded."; break;
         case PortState::Ok: {
             const int l = latencySamples();
             text = "Board running";
@@ -838,7 +838,7 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
 juce::String Engine::statusLine() const {
     juce::String s;
     if (statusProvider_) return statusProvider_();
-    if (!hasBoard()) return "No board in this set. Add Bleep Patch.";
+    if (!hasBoard()) return "No board in this set. Add Bleep Board.";
     s << "Latency " << const_cast<Engine*>(this)->latencySamples() << u8(" smp · ") << juce::String(sampleRate_ / 1000.0, 1)
       << " kHz";
     return s;
@@ -1073,7 +1073,7 @@ public:
     void prepare(int, double, int) noexcept override {}
     PortState state(int) noexcept override { return PortState::VersionMismatch; }
     void statusText(int, char* out, int capacity) noexcept override {
-        copyOut("Another version of Bleep Patch is loaded. Restart Live after updating.", out, capacity);
+        copyOut("Another version of Bleep Board is loaded. Restart Live after updating.", out, capacity);
     }
     void nodeName(int, char* out, int capacity) noexcept override { copyOut({}, out, capacity); }
     void setNodeName(int, const char*) noexcept override {}

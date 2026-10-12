@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# Bleep Patch — the shared engine, the board and the plugins users add in
+# Beautiful Bleep — the shared engine, the board and the plugins users add in
 # Live (spec §6). Uses Bleep Bus only through its public API, exactly like a
 # third-party plugin.
 #
@@ -30,7 +30,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(BLEEP_PATCH_BUILD_PLUGINS "Build the Bleep Patch plugins (needs JUCE)" ON)
+option(BLEEP_PATCH_BUILD_PLUGINS "Build the Bleep plugins (needs JUCE)" ON)
 option(BLEEP_PATCH_BUILD_TESTS "Build the DSP and engine tests" ON)
 option(BLEEP_PATCH_LIGHT_TESTS "Tests only: DSP tests, module harness and type dump (juce_core only, no plugins)" OFF)
 if (BLEEP_PATCH_LIGHT_TESTS)
@@ -47,7 +47,7 @@ set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.
 # https://github.com/bytecodealliance/wasmtime/releases (wasmtime-v<version>-<target>-c-api). With it, the test
 # bleep_wasm_parity runs every module as native and as wasm and compares them (store.md section 13, M1).
 set(BLEEP_PATCH_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
-option(BLEEP_PATCH_BUILD_APP "Build the standalone Bleep Patch app" ON)
+option(BLEEP_PATCH_BUILD_APP "Build the standalone Bleep App" ON)
 option(BLEEP_PATCH_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
 
@@ -225,7 +225,7 @@ if (BLEEP_PATCH_BUILD_TESTS)
             juce::juce_recommended_config_flags)
     endif ()
 
-    # The demo patches (patch/presets/demos, compiled to board/ui/demo-patches.json) load without a
+    # The demo boards (patch/presets/demos, compiled to board/ui/demo-patches.json) load without a
     # warning and make sound (tests/demo_patches_test.cpp). juce_core only.
     juce_add_console_app(bleep_demo_patches PRODUCT_NAME "Bleep Demo Patches")
     target_sources(bleep_demo_patches PRIVATE tests/demo_patches_test.cpp engine/Board.cpp engine/Program.cpp
@@ -501,7 +501,7 @@ function(bleep_add_plugin)
             juce::juce_recommended_warning_flags)
 endfunction()
 
-bleep_add_plugin(TARGET BleepPatch PRODUCT "Bleep Patch" CODE BpPa KIND Patch
+bleep_add_plugin(TARGET BleepPatch PRODUCT "Bleep Board" CODE BpPa KIND Patch
     VST3_CATEGORIES Fx Tools)
 bleep_add_plugin(TARGET BleepMidiIn PRODUCT "Bleep MIDI In" CODE BpMi KIND MidiIn SYNTH
     VST3_CATEGORIES Instrument Tools)
@@ -591,14 +591,14 @@ if (BLEEP_PATCH_BUILD_APP)
     endif ()
 
     juce_add_gui_app(BleepPatchApp
-        PRODUCT_NAME "Bleep Patch"
+        PRODUCT_NAME "Bleep App"
         COMPANY_NAME "Brilliant Bleep"
         BUNDLE_ID "com.brilliantbleep.patch.app"
         VERSION ${PROJECT_VERSION}
         DOCUMENT_EXTENSIONS bleepboard
         MICROPHONE_PERMISSION_ENABLED TRUE
-        MICROPHONE_PERMISSION_TEXT "Bleep Patch uses audio inputs as Audio In nodes on the board."
-        PLIST_TO_MERGE "<plist><dict><key>NSLocalNetworkUsageDescription</key><string>Bleep Patch uses Ableton Link to share tempo and beat with other apps on your network.</string><key>NSAudioCaptureUsageDescription</key><string>Bleep Patch can capture what your computer plays and put it on the board as the System node.</string></dict></plist>")
+        MICROPHONE_PERMISSION_TEXT "Bleep App uses audio inputs as Audio In nodes on the board."
+        PLIST_TO_MERGE "<plist><dict><key>NSLocalNetworkUsageDescription</key><string>Bleep App uses Ableton Link to share tempo and beat with other apps on your network.</string><key>NSAudioCaptureUsageDescription</key><string>Beautiful Bleep can capture what your computer plays and put it on the board as the System node.</string></dict></plist>")
     target_sources(BleepPatchApp PRIVATE
         app/Main.cpp
         app/AppController.cpp

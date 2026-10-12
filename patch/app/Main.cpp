@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 //
-// The Bleep Patch app (spec §11): the board without a DAW.
+// The Bleep App (spec §11): the board without a DAW.
 #include "AppController.h"
 
 #include <cstdio>
 
 class BleepPatchApplication : public juce::JUCEApplication {
 public:
-    const juce::String getApplicationName() override { return "Bleep Patch"; }
+    const juce::String getApplicationName() override { return "Bleep App"; }
     const juce::String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
     bool moreThanOneInstanceAllowed() override { return false; }
 

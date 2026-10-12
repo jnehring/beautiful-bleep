@@ -62,27 +62,27 @@ def store_config() -> dict:
 
 # slug -> (title, artefact path under the build dir; {cfg} = build configuration)
 PLUGINS = {
-    "bleep-patch": ("Bleep Patch (VST3)", "BleepPatch_artefacts/{cfg}/VST3/Bleep Patch.vst3"),
+    "bleep-patch": ("Bleep Board (VST3)", "BleepPatch_artefacts/{cfg}/VST3/Bleep Board.vst3"),
     "bleep-midi-in": ("Bleep MIDI In (VST3)", "BleepMidiIn_artefacts/{cfg}/VST3/Bleep MIDI In.vst3"),
     "bleep-midi-out": ("Bleep MIDI Out (VST3)", "BleepMidiOut_artefacts/{cfg}/VST3/Bleep MIDI Out.vst3"),
     "bleep-audio-in": ("Bleep Audio In (VST3)", "BleepAudioIn_artefacts/{cfg}/VST3/Bleep Audio In.vst3"),
     "bleep-audio-out": ("Bleep Audio Out (VST3)", "BleepAudioOut_artefacts/{cfg}/VST3/Bleep Audio Out.vst3"),
     "bleep-instrument": ("Bleep Instrument (VST3)", "BleepInstrument_artefacts/{cfg}/VST3/Bleep Instrument.vst3"),
     "bleep-fx": ("Bleep FX (VST3)", "BleepFx_artefacts/{cfg}/VST3/Bleep FX.vst3"),
-    "bleep-patch-app": ("Bleep Patch (standalone app)", "BleepPatchApp_artefacts/{cfg}/Bleep Patch.app"),
+    "bleep-patch-app": ("Bleep App (standalone app)", "BleepPatchApp_artefacts/{cfg}/Bleep App.app"),
 }
 
 
 # slug -> (what the store's tile says, its category); the plugins' screenshots are doc/store/<slug>.png when there is one
 PLUGIN_TILES = {
-    "bleep-patch": ("The modular patch board as a plugin: build instruments and effects from modules, inside your DAW.", "Plugins"),
+    "bleep-patch": ("The Beautiful Bleep board as a plugin: build instruments and effects from modules, inside your DAW.", "Plugins"),
     "bleep-midi-in": ("Brings MIDI from your DAW onto a Bleep board, as a port.", "Ports"),
     "bleep-midi-out": ("Sends MIDI from a Bleep board back to your DAW, as a port.", "Ports"),
     "bleep-audio-in": ("Brings audio from a DAW track onto a Bleep board, as a port.", "Ports"),
     "bleep-audio-out": ("Sends audio from a Bleep board back to a DAW track, as a port.", "Ports"),
     "bleep-instrument": ("A Bleep board played as an instrument: MIDI in, audio out.", "Plugins"),
     "bleep-fx": ("A Bleep board as an effect: audio in, audio out.", "Plugins"),
-    "bleep-patch-app": ("Bleep Patch as a standalone app, with the Bleep Store to install modules and plugins.", "Apps"),
+    "bleep-patch-app": ("Bleep App is the standalone app, with the Bleep Store to install modules and plugins.", "Apps"),
 }
 
 
@@ -241,7 +241,7 @@ def find_artefact(slug: str, build_dir: Path, cfg: str) -> Path | None:
     if path.exists():
         return path
     if slug == "bleep-patch-app":  # Windows and Linux standalone builds have no .app
-        for name in ("Bleep Patch.exe", "Bleep Patch"):
+        for name in ("Bleep App.exe", "Bleep App"):
             alt = path.with_name(name)
             if alt.exists():
                 return alt

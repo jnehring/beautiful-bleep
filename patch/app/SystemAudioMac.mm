@@ -159,7 +159,7 @@ private:
             }
             CATapDescription* description = [[CATapDescription alloc] initStereoGlobalTapButExcludeProcesses:excluded];
             NSUUID* tapUuid = [NSUUID UUID];
-            description.name = @"Bleep Patch system audio";
+            description.name = @"Bleep App system audio";
             description.UUID = tapUuid;
             description.privateTap = YES;
             description.muteBehavior = CATapUnmuted;
@@ -175,14 +175,14 @@ private:
             auto formatAddress = address(kAudioTapPropertyFormat);
             if (AudioObjectGetPropertyData(tap_, &formatAddress, 0, nullptr, &size, &format) != noErr ||
                 format.mFormatID != kAudioFormatLinearPCM || !(format.mFormatFlags & kAudioFormatFlagIsFloat)) {
-                return "The system audio tap has a format Bleep Patch cannot read.";
+                return "The system audio tap has a format Bleep App cannot read.";
             }
             channels_ = (int)format.mChannelsPerFrame;
             planar_ = (format.mFormatFlags & kAudioFormatFlagIsNonInterleaved) != 0;
             if (channels_ < 1) return "The system audio tap has no channels.";
 
             NSDictionary* aggregate = @{
-                @kAudioAggregateDeviceNameKey : @"Bleep Patch system audio",
+                @kAudioAggregateDeviceNameKey : @"Bleep App system audio",
                 @kAudioAggregateDeviceUIDKey : [[NSUUID UUID] UUIDString],
                 @kAudioAggregateDeviceMainSubDeviceKey : outputUid,
                 @kAudioAggregateDeviceIsPrivateKey : @YES,

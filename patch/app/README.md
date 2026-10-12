@@ -1,14 +1,14 @@
-# Bleep Patch app
+# Bleep App
 
 The standalone app (spec §11): the same engine, board and modules as the
 plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
-`build/patch/BleepPatchApp_artefacts/<Config>/Bleep Patch.app`.
+`build/patch/BleepPatchApp_artefacts/<Config>/Bleep App.app`.
 
 - **Projects:** File → New / Open / Save (`.bleepboard`). The app reopens the
   last project.
 - **Presets:** File → Presets… (⌘P) or the *Presets* button opens the preset
-  browser: five demo patches for every advanced module (*Demos by module*) and
-  your own patches (*Save current patch…*, kept in `Bleep Patch/Patches/` in
+  browser: five demo boards for every advanced module (*Demos by module*) and
+  your own boards (*Save current board…*, kept in `Bleep Patch/Patches/` in
   the app data folder). Loading one replaces the project, sets the tempo and
   starts the transport (spec §11.5).
 - **Audio device:** File → Settings. Pairs of input and output channels are
@@ -36,13 +36,13 @@ plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
   connected, Live's audio blocks drive the app and the app's own audio device
   is silent. Latency: two blocks, reported to Live.
 
-Development: `"Bleep Patch.app/Contents/MacOS/Bleep Patch" --smoke` starts
+Development: `"Bleep App.app/Contents/MacOS/Bleep App" --smoke` starts
 without audio inputs and without Link, prints what it set up and quits.
 Add `--system-audio` to capture what the computer plays for that run (not saved);
 the report then says how many frames arrived and the peak level, so play
 something while it runs. On macOS start it through LaunchServices, or the system
 audio permission is not the app's and the capture stays silent:
-`open -W --stdout out.txt "Bleep Patch.app" --args --smoke --system-audio`.
+`open -W --stdout out.txt "Bleep App.app" --args --smoke --system-audio`.
 
 ## Ableton Link and the license
 

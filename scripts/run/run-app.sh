@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# Builds the standalone Bleep Patch app (spec §11) and starts it, with its
+# Builds the standalone Bleep App (spec §11) and starts it, with its
 # console output in this terminal. Only the app is built, not the plugins.
 #
 #   scripts/run/run-app.sh [--debug] [--ui-dev] [--no-build] [--smoke]
@@ -41,8 +41,8 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-APP="$BUILD_DIR/BleepPatchApp_artefacts/$CONFIG/Bleep Patch.app"
-BIN="$APP/Contents/MacOS/Bleep Patch"
+APP="$BUILD_DIR/BleepPatchApp_artefacts/$CONFIG/Bleep App.app"
+BIN="$APP/Contents/MacOS/Bleep App"
 
 if [[ $BUILD == 1 ]]; then
     GENERATOR=()
@@ -63,14 +63,14 @@ if [[ ! -x "$BIN" ]]; then
 fi
 
 # Quit a running copy politely: it keeps the virtual MIDI ports and the bridge segment.
-if [[ "$(uname)" == "Darwin" ]] && pgrep -f "Bleep Patch.app/Contents/MacOS/Bleep Patch" >/dev/null; then
-    echo "Asking the running Bleep Patch app to quit…"
+if [[ "$(uname)" == "Darwin" ]] && pgrep -f "Bleep App.app/Contents/MacOS/Bleep App" >/dev/null; then
+    echo "Asking the running Bleep App to quit…"
     osascript -e 'tell application id "com.brilliantbleep.patch.app" to quit' >/dev/null 2>&1 || true
     for _ in $(seq 1 60); do
-        pgrep -f "Bleep Patch.app/Contents/MacOS/Bleep Patch" >/dev/null || break
+        pgrep -f "Bleep App.app/Contents/MacOS/Bleep App" >/dev/null || break
         sleep 0.5
     done
-    if pgrep -f "Bleep Patch.app/Contents/MacOS/Bleep Patch" >/dev/null; then
+    if pgrep -f "Bleep App.app/Contents/MacOS/Bleep App" >/dev/null; then
         echo "The app is still running (unsaved changes?). Quit it, then run this again." >&2
         exit 1
     fi

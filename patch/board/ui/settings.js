@@ -111,17 +111,17 @@
       body.appendChild(el("div", "st-note", "Adds a System port with the sound of your music player, browser or video call: put its node on the board from Add → Port. Nothing is captured until you turn this on."));
       return;
     }
-    const exclude = checkbox("Leave out Bleep Patch's own sound", s.exclude && s.canExclude, (on) => change("systemAudio", { exclude: on }));
+    const exclude = checkbox("Leave out Bleep App's own sound", s.exclude && s.canExclude, (on) => change("systemAudio", { exclude: on }));
     exclude.querySelector("input").disabled = !s.canExclude;
     body.appendChild(exclude);
-    if (!s.canExclude) body.appendChild(el("div", "st-note", "This system cannot leave Bleep Patch out of the capture. Patching System to an output that you capture gives feedback: play Bleep Patch to another output."));
+    if (!s.canExclude) body.appendChild(el("div", "st-note", "This system cannot leave Bleep App out of the capture. Patching System to an output that you capture gives feedback: play Bleep App to another output."));
     if ((s.sources || []).length) {
       row("Output to capture", select(["", ...s.sources.map((d) => d.id)], s.source, (v) => change("systemAudio", { source: v }),
                                       (v) => (s.sources.find((d) => d.id === v) || { name: "Default output" }).name));
     }
     if (s.error) body.appendChild(el("div", "st-note bad", s.error));
     else if (s.running) {
-      body.appendChild(el("div", "st-row single", `Capturing at ${(s.rate / 1000).toFixed(1)} kHz · ${s.excluding ? "Bleep Patch's own sound left out" : "Bleep Patch's own sound included"} · ${s.signal ? "signal" : "silent"}`));
+      body.appendChild(el("div", "st-row single", `Capturing at ${(s.rate / 1000).toFixed(1)} kHz · ${s.excluding ? "Bleep App's own sound left out" : "Bleep App's own sound included"} · ${s.signal ? "signal" : "silent"}`));
       if (s.problem) body.appendChild(el("div", "st-note bad", s.problem));
       else if (!s.signal && s.hint) body.appendChild(el("div", "st-note", s.hint));
     }

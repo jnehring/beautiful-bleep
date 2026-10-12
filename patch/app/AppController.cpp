@@ -18,7 +18,7 @@ inline juce::String u8(const char* text) { return juce::String::fromUTF8(text); 
 enum Command { cmdNew = 1, cmdOpen, cmdPresets, cmdSave, cmdSaveAs, cmdSettings, cmdPlay, cmdLink };
 
 constexpr const char* kProjectSuffix = ".bleepboard";
-constexpr const char* kVirtualPrefix = "Bleep Patch ";
+constexpr const char* kVirtualPrefix = "Bleep App ";
 
 juce::String projectName(const juce::File& f) { return f == juce::File() ? juce::String("Untitled") : f.getFileNameWithoutExtension(); }
 
@@ -28,7 +28,7 @@ juce::String projectName(const juce::File& f) { return f == juce::File() ? juce:
 
 AppController::AppController() {
     juce::PropertiesFile::Options o;
-    o.applicationName = "Bleep Patch";
+    o.applicationName = "Bleep App";
     o.folderName = "Bleep Patch";
     o.filenameSuffix = ".settings";
     o.osxLibrarySubFolder = "Application Support";
@@ -160,7 +160,7 @@ void AppController::start(const juce::String& commandLine) {
 
     engine::BoardWindowStyle style;
     style.alwaysOnTop = false;
-    style.title = u8("Untitled — Bleep Patch");
+    style.title = u8("Untitled — Bleep App");
     style.onClose = [] { juce::JUCEApplication::getInstance()->systemRequestedQuit(); };
     style.onLoadPatch = [this](const juce::var& board, double tempo, const juce::String& name) {
         loadPatch(board, tempo, name);
@@ -382,7 +382,7 @@ juce::var AppController::systemAudioState() {
     }
     o->setProperty("error", systemError_);
 #if JUCE_MAC
-    o->setProperty("hint", u8("Silent? macOS asks once for permission. Allow Bleep Patch under System Settings → Privacy & Security → Screen & System Audio Recording (System Audio Recording Only)."));
+    o->setProperty("hint", u8("Silent? macOS asks once for permission. Allow Bleep App under System Settings → Privacy & Security → Screen & System Audio Recording (System Audio Recording Only)."));
 #endif
     return juce::var(o);
 }
@@ -677,7 +677,7 @@ void AppController::timerCallback() {
 bool AppController::dirty() const { return engine_->boardGeneration() != savedGeneration_; }
 
 void AppController::updateTitle() {
-    const juce::String title = projectName(project_) + (dirty() ? u8(" •") : "") + u8(" — Bleep Patch");
+    const juce::String title = projectName(project_) + (dirty() ? u8(" •") : "") + u8(" — Bleep App");
     if (title == lastTitle_) return;
     lastTitle_ = title;
     engine::setBoardWindowTitle(title);
@@ -696,7 +696,7 @@ bool AppController::openProject(const juce::File& file) {
     const auto doc = juce::JSON::parse(file.loadFileAsString());
     if (!doc["board"].isObject()) {
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Can't open project",
-                                               file.getFullPathName() + " is not a Bleep Patch project.");
+                                               file.getFullPathName() + " is not a Bleep App project.");
         return false;
     }
     const auto json = engine::board::toJson(doc["board"]).toStdString();
@@ -731,7 +731,7 @@ bool AppController::saveProject(const juce::File& file) {
     engine_->saveBoard(main_, json.data(), len);
     auto* o = new juce::DynamicObject();
     o->setProperty("format", 1);
-    o->setProperty("app", "Bleep Patch");
+    o->setProperty("app", "Bleep App");
     o->setProperty("tempo", clock_.tempo());
     o->setProperty("board", juce::JSON::parse(juce::String::fromUTF8(json.data(), (int)json.size())));
     if (!file.replaceWithText(juce::JSON::toString(juce::var(o)))) {
@@ -754,7 +754,7 @@ void AppController::saveAs(std::function<void()> then) {
     const auto start = project_ != juce::File() ? project_
                                                : juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
                                                      .getChildFile("Untitled" + juce::String(kProjectSuffix));
-    chooser_ = std::make_unique<juce::FileChooser>("Save Bleep Patch project", start, "*" + juce::String(kProjectSuffix));
+    chooser_ = std::make_unique<juce::FileChooser>("Save Bleep App project", start, "*" + juce::String(kProjectSuffix));
     chooser_->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::warnAboutOverwriting,
                           [this, then](const juce::FileChooser& c) {
                               auto f = c.getResult();
@@ -835,7 +835,7 @@ bool AppController::perform(const InvocationInfo& info) {
         case cmdOpen:
             confirmDiscard([this] {
                 chooser_ = std::make_unique<juce::FileChooser>(
-                    "Open Bleep Patch project", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+                    "Open Bleep App project", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
                     "*" + juce::String(kProjectSuffix));
                 chooser_->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
                                       [this](const juce::FileChooser& c) {

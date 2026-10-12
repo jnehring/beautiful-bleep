@@ -88,7 +88,7 @@ const GRID_X = 300, GRID_Y = 220;  // one layout column / row on the board
 /// Builds one preset. `kind`: "voice" (a Voice Cell: notes in, audio out),
 /// "cell" (an ordinary cell with the jacks it declares) or "patch" (a whole
 /// board: modules at the top level, `p.out` the Out 1/2 port, `p.midi` the
-/// Bleep Patch 1 MIDI input; see patch()).
+/// Bleep App 1 MIDI input; see patch()).
 export class Preset {
   constructor(kind, name, opts = {}) {
     if (kind !== "voice" && kind !== "cell" && kind !== "patch") throw new Error(`${name}: kind must be 'voice', 'cell' or 'patch'`);
@@ -130,10 +130,10 @@ export class Preset {
     return n;
   }
 
-  /// Patches: the MIDI input "Bleep Patch 1" (notes, pitch, gate, CCs), added when first used.
+  /// Patches: the MIDI input "Bleep App 1" (notes, pitch, gate, CCs), added when first used.
   get midi() {
     if (this.kind !== "patch") throw new Error(`${this.name}: only patches have a MIDI input`);
-    if (!this._midi) this._midi = this.#port("midi", "midi-in", "Bleep Patch 1", "vmidi-1:in", [-1, 0]);
+    if (!this._midi) this._midi = this.#port("midi", "midi-in", "Bleep App 1", "vmidi-1:in", [-1, 0]);
     return this._midi;
   }
 
@@ -319,7 +319,7 @@ export class Preset {
 
 export const voice = (name, opts) => new Preset("voice", name, opts);
 export const cell = (name, opts) => new Preset("cell", name, opts);
-/// A demo patch: a whole board that plays by itself with the transport (or from `p.midi`) into `p.out`.
+/// A demo board: a whole board that plays by itself with the transport (or from `p.midi`) into `p.out`.
 /// opts: {module: the type it demonstrates, description, tags, tempo}.
 export const patch = (name, opts) => new Preset("patch", name, opts);
 

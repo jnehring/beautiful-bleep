@@ -344,7 +344,7 @@ void PortProcessor::getStateInformation(juce::MemoryBlock& dest) {
         if (auto* f = dynamic_cast<juce::AudioParameterFloat*>(p)) root.setAttribute(f->paramID, f->get());
     if (boardChoice_) root.setAttribute("board", boardChoice_->getIndex());
     if (loadsPresets()) {
-        // The cell as it is on the board, edits included; Bleep Patch's board holds it too (the board wins on restore).
+        // The cell as it is on the board, edits included; Bleep Board's board holds it too (the board wins on restore).
         const size_t len = engine().cellPreset(handle(), nullptr, 0);
         if (len > 0) {
             std::string json(len, '\0');
@@ -448,7 +448,7 @@ void PortProcessor::timerCallback() {
             setLatencySamples(l);
         }
     }
-    // Board edits change the set: Bleep Patch stores the board (spec §5.4).
+    // Board edits change the set: Bleep Board stores the board (spec §5.4).
     if (kind_ == PortKind::Patch && engine().state(handle()) == engine::PortState::Ok) {
         const uint64_t g = engine().boardGeneration();
         if (g != seenGeneration_) {

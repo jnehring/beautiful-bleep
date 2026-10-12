@@ -9,7 +9,7 @@ Hosts that exist: the browser (`patch/web/js/module-host.js`). A native host for
 - `engineAbi` is one integer. **ABI 1 is everything in this document.**
 - A change is *compatible* if a host that knows version N still runs every module of version N: new optional exports, new fields in the spec JSON that hosts may ignore. It is *incompatible* otherwise: a changed signature or layout, a changed meaning, a removed export. Incompatible changes bump the integer; compatible ones do not, and get a note under "History" below.
 - A module states the version it was built for in `module.json` (`requires.engineAbi`). **Proposed:** the file also exports `bleep_abi_version() → i32`, so a host can check the file itself and a file cannot lie about its package. A module without that export is ABI 1.
-- A host supports a **range** and refuses modules outside it with a message that says which (never a crash). The Store section explains it ("this module needs Bleep Patch 1.3").
+- A host supports a **range** and refuses modules outside it with a message that says which (never a crash). The Store section explains it ("this module needs Bleep App 1.3").
 
 ## 2. The file
 

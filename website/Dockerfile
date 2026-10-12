@@ -8,7 +8,7 @@
 #
 #   docker compose -f website/docker-compose.yml up --build
 
-# Bleep Board: the board UI and the web engine (scripts/build/build-web.sh --no-modules), served at
+# Bleep Play: the board UI and the web engine (scripts/build/build-web.sh --no-modules), served at
 # /play/. The modules (.wasm) are not built here: they are served from a folder mounted into the
 # container (website/docker-compose.yml), built once with scripts/build/build-web.sh --modules-only,
 # and later come from the registry.

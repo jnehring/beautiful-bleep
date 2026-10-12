@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
 #
-# Builds the Bleep Patch plugins (Bleep Patch, the six ports and Bleep Audio Bridge) as
+# Builds the Bleep plugins (Bleep Board, the six ports and Bleep Audio Bridge) as
 # VST3, then runs the DSP, engine and bridge tests.
 #
 #   scripts/build/build-patch.sh [--debug] [--clean] [--no-test] [--install]
@@ -62,7 +62,7 @@ if [[ $TEST == 1 ]]; then
 fi
 
 echo
-echo "Bleep Patch built (VST3):"
+echo "Bleep plugins built (VST3):"
 for app in "$BUILD_DIR"/*_artefacts/"$CONFIG"/*.app; do
     [[ -e "$app" ]] && echo "  ${app#$ROOT/}   (standalone app)"
 done

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 //
-// PortProcessor — every plugin users add in Live (spec §6): Bleep Patch and
+// PortProcessor — every plugin users add in Live (spec §6): Bleep Board and
 // the ports of the Ableton bridge. One class, configured by PortKind; each
 // plugin binary is this class with a different BLEEP_PORT_KIND.
 //
 // The plugin itself does little: it hands its host block to the shared
 // engine and plays back what the engine returns. The board lives in the
-// engine; Bleep Patch stores it in its state.
+// engine; Bleep Board stores it in its state.
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>

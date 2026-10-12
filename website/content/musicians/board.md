@@ -4,7 +4,7 @@ description: Everything about the board: adding modules, patching cables, groupi
 order: 1
 ---
 
-# The Bleep Board
+# The board
 
 One canvas per Live set with every module, port and cable. Open it from any
 Bleep plugin's window (it opens with the window, or comes to the front).
@@ -16,7 +16,7 @@ Bleep plugin's window (it opens with the window, or comes to the front).
 - **Module ›** one submenu per category: *Sources*, *Modulation*, *Audio*, *Effects*,
   *Utility*.
 - **Cell ›** *New Cell*, *New Voice Cell*, and your cell presets by category
-  (*Synthesizers › Basic Poly* comes with Bleep Patch).
+  (*Synthesizers › Basic Poly* comes with Beautiful Bleep).
 
 Tab (or a double-click on empty space) opens a search at the cursor instead.
 See [Voice Cells](voice-cells.md) for polyphonic synths.
@@ -65,7 +65,7 @@ them (📌) to keep them open when you enter or leave cells.
 | ⌘D / ⌘⇧D | Duplicate / duplicate with incoming cables |
 | Delete | Remove the selection (not ports) |
 | Esc | Close a view, leave a cell, clear the selection |
-| F | Fit the patch to the window |
+| F | Fit the board to the window |
 | T | Trace: highlight what feeds and is fed by the selection |
 | M | Mute: the node's outputs fall silent |
 | ⌘Z / ⌘⇧Z | Undo / redo |

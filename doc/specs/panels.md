@@ -54,7 +54,7 @@ A control has an ordered list of **wires**. Each wire connects the control to on
 | **Notes** | `{ "notes": "cell" }` | Plays the Voice Cell as if the notes came in through its Notes input. Merged with whatever is cabled in. |
 | **Module jack** | `{ "jack": "env.gate" }` | Feeds an input jack of a module inside the cell (a Button into an envelope's Gate). |
 | **Module command** | `{ "command": "grid.clear" }` | Presses a module's button (Clear, Strum). |
-| **Port** (later) | `{ "port": …}` | A Bleep Patch macro, or a parameter of an external plugin through the bus. |
+| **Port** (later) | `{ "port": …}` | A Bleep Board macro, or a parameter of an external plugin through the bus. |
 
 Node ids refer to nodes of the board (in a preset: of the cell). A panel wires into any depth of its cell, including nested cells.
 

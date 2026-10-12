@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //
 // Bleep Audio Bridge (spec §11.3): a VST3 audio effect for Live that connects
-// its track to the running Bleep Patch app. It needs no engine of its own:
+// its track to the running Bleep App. It needs no engine of its own:
 // BridgeClient hands each block to the app and plays back the app's return.
 #include "BridgeClient.h"
 
@@ -219,18 +219,18 @@ private:
         juce::String s;
         switch (processor_.client().status()) {
             case BridgeClient::Status::Connected:
-                s << "Connected to the Bleep Patch app" << (processor_.track().isNotEmpty() ? " as \"" + processor_.track() + "\"" : "")
+                s << "Connected to the Bleep App" << (processor_.track().isNotEmpty() ? " as \"" + processor_.track() + "\"" : "")
                   << ".\nLatency " << processor_.latency() << " samples";
                 if (processor_.client().drops() > 0) s << u8(" · late blocks ") << (int)processor_.client().drops();
                 break;
             case BridgeClient::Status::AppNotRunning:
-                s = "The Bleep Patch app is not running. The track passes through.";
+                s = "The Bleep App is not running. The track passes through.";
                 break;
             case BridgeClient::Status::OtherHost:
-                s = "The Bleep Patch app is connected to another host.";
+                s = "The Bleep App is connected to another host.";
                 break;
             case BridgeClient::Status::NoFreeSlot:
-                s = "The Bleep Patch app has no free bridge slot.";
+                s = "The Bleep App has no free bridge slot.";
                 break;
         }
         status_.setText(s, juce::dontSendNotification);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // store.js — the Store section of the board window (doc/specs/store.md section 9): what is installed on this machine, what the
-// Bleep Store offers, and the Security settings. The board is the other section. Not in the web board: it installs by itself.
+// Bleep Store offers, and the Security settings. The board is the other section. Not in Bleep Play: it installs by itself.
 //
 //   BleepStoreView.init({ onTypes })   once, when the native side has a store (native "init" says so)
 //   show() / hide()                    the header's Board and Store buttons
@@ -168,7 +168,7 @@
   }
 
   function renderPlugins() {
-    body.appendChild(el("div", "st-note", "Plugins are installed from the Bleep Patch app, with Live closed: replacing a plugin that Live has loaded can crash it. The plugin family is installed together (the default plugin bundle)."));
+    body.appendChild(el("div", "st-note", "Plugins are installed from the Bleep App, with Live closed: replacing a plugin that Live has loaded can crash it. The plugin family is installed together (the default plugin bundle)."));
     const list = el("div", "st-list");
     body.appendChild(list);
     if (host.standalone) {
@@ -214,7 +214,7 @@
   }
 
   function renderPresets() {
-    body.appendChild(el("div", "st-note", "Your presets: cells and patches you saved. Add → Cell lists the cells; the Presets button on the board loads patches."));
+    body.appendChild(el("div", "st-note", "Your presets: cells and boards you saved. Add → Cell lists the cells; the Presets button on the board loads boards."));
     const list = el("div");
     body.appendChild(list);
     Promise.all([native("presets", "cells"), native("presets", "patches")]).then(([cells, patches]) => {
@@ -437,7 +437,7 @@
     if (status.settings.firstRunDone) return;
     const back = el("div", "st-modal");
     const card = el("div", "st-card");
-    card.appendChild(el("h2", "", "Set up Bleep Patch"));
+    card.appendChild(el("h2", "", "Set up Beautiful Bleep"));
     card.appendChild(el("p", "", "Modules are installed on this machine, from the Bleep Store. Until they are, a board shows placeholders where they belong. You can do this later from the Store section."));
     const mods = el("label", "st-toggle");
     const modBox = el("input");

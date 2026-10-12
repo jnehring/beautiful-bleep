@@ -165,7 +165,7 @@ juce::var installedPlugins() {
     folders.add(juce::File("/usr/lib/vst3"));
 #endif
     juce::Array<juce::var> list;
-    for (const char* name : {"Bleep Patch", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"}) {
+    for (const char* name : {"Bleep Board", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"}) {
         auto* o = new juce::DynamicObject();
         o->setProperty("name", name);
         o->setProperty("installed", false);
@@ -324,7 +324,7 @@ public:
                     // Connected controllers for the MIDI Device module (standalone, spec §12).
                     juce::Array<juce::var> names;
                     for (const auto& d : juce::MidiInput::getAvailableDevices())
-                        if (!d.name.startsWith("Bleep Patch ")) names.add(d.name);
+                        if (!d.name.startsWith("Bleep App ")) names.add(d.name);
                     done(names);
                 })
                 .withNativeFunction("presets", [](const juce::Array<juce::var>& a, Completion done) {

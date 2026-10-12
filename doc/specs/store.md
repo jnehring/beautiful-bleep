@@ -1,10 +1,10 @@
 # Bleep Store and release system
 
-Plugins, modules and presets are managed in one place, the **Bleep Store**. Everything that installs, updates or loads one of them (the standalone app, the website's Bleep Board, the release pipeline) talks to the store and nothing else.
+Plugins, modules and presets are managed in one place, the **Bleep Store**. Everything that installs, updates or loads one of them (the standalone app, Bleep Play, the release pipeline) talks to the store and nothing else.
 
 | Kind | What it is | Who loads it | Form |
 |---|---|---|---|
-| **Plugin** | Something you load in Ableton: Bleep Patch, the ports, later Bus receivers | Live, the app's Store section installs it | Installer per platform and format (VST3, AU, CLAP) |
+| **Plugin** | Something you load in Ableton: Bleep Board, the ports, later Bus receivers | Live, the app's Store section installs it | Installer per platform and format (VST3, AU, CLAP) |
 | **Module** | A node type on the board: its DSP, view and docs | The engine in the plugins, the app and the browser | `.bleepmod` package |
 | **Preset** | A patch (a whole board) or a cell (a subgraph, with its panel) | The board | `.bleeppreset` file (JSON) |
 
@@ -142,7 +142,7 @@ Plugins are installed from the Store section of the app, not hot-loaded:
 | Bundle | Members | Why |
 |---|---|---|
 | `default-modules` | Every first-party module (80 today, about 25 MB of wasm) | What the board offers out of the box, one tick instead of 80 installs |
-| `default-plugins` | Every Bleep VST3: Bleep Patch, the port plugins (MIDI In, MIDI Out, Audio In, Audio Out), Bleep Instrument and Audio Insert | The plugins Live needs; they must all be the same version, because they share one engine |
+| `default-plugins` | Every Bleep VST3: Bleep Board, the port plugins (MIDI In, MIDI Out, Audio In, Audio Out), Bleep Instrument and Audio Insert | The plugins Live needs; they must all be the same version, because they share one engine |
 
 Installing a bundle installs its members, each verified on its own. A bundle update is a new bundle version; the Store section shows "Update all" and installs only the members that changed.
 
@@ -181,7 +181,7 @@ Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persisten
   "needs": { "lfo": { "min": "1.2.0" }, "reverb": { "min": "2.0.0", "max": "2.9.9" } }
   ```
 
-  Saving a preset from the board writes `needs` for every module its node types come from, with `min` set to the version installed at that moment; an author adds `max` by hand. Before a preset is loaded or placed (the preset browser, *Add → Cell*), the board checks `needs` and, without a version, every module that provides one of its node types. If something is missing or too old, a dialog lists it and offers **Download n from the Bleep Store**, then loads; *Load anyway* keeps placeholder nodes, *Cancel* loads nothing. Versions the store cannot supply are listed with the reason and cannot be fixed by the dialog: the store offers only the newest version of a module, so a `max` below it, a local copy of a module, or a module the store does not have can only be loaded anyway. Factory presets carry no `needs` (the default module bundle covers them). The check runs in the app and in plugin windows (installing happens off the audio thread); the web board installs the types a board uses by itself (section 8).
+  Saving a preset from the board writes `needs` for every module its node types come from, with `min` set to the version installed at that moment; an author adds `max` by hand. Before a preset is loaded or placed (the preset browser, *Add → Cell*), the board checks `needs` and, without a version, every module that provides one of its node types. If something is missing or too old, a dialog lists it and offers **Download n from the Bleep Store**, then loads; *Load anyway* keeps placeholder nodes, *Cancel* loads nothing. Versions the store cannot supply are listed with the reason and cannot be fixed by the dialog: the store offers only the newest version of a module, so a `max` below it, a local copy of a module, or a module the store does not have can only be loaded anyway. Factory presets carry no `needs` (the default module bundle covers them). The check runs in the app and in plugin windows (installing happens off the audio thread); Bleep Play installs the types a board uses by itself (section 8).
 - Publishing: from the board, *Share…* (needs an account; browsing and downloading never do), a title, tags, a licence (default CC-BY, CC0 allowed), optional audio preview. The API validates the schema, checks all referenced types exist in the store, enforces a size limit and per-user rate limit, and rejects anything that is not pure data.
 - Versions: re-publishing creates a new version; installed copies show "update available". Local edits to an installed preset are kept as a fork.
 - Moderation: report button, takedown by an admin (the existing `admin` role) sets the preset's state to unlisted; the file stays but is no longer served in search.
@@ -207,7 +207,7 @@ Single source: the repository. CI builds and publishes; nobody uploads by hand.
 - **Modules load from the registry.** `bleep-web.js` fetches `index.json` (cached) and then `modules/<id>/<version>/<id>.bleepmod` on demand, from the CDN, exactly as it loads `.wasm` today.
 - **Pinned for reproducibility.** The site build commits a `web-lock.json` (module id → version → sha256) so a given site release always runs the module set it was tested with; updating it is a normal commit (`scripts/release/release.py --update-web-lock`). A newer module reaches the website when the lock is bumped, never silently.
 - The board UI and `patch/web/js/` (graph runner, worklet) are versioned with the site and declare the `engineAbi` they implement. The site's module catalog and docs pages read the store entries at build time instead of `patch/modules/*/module.json` from the repo, with the repo as a fallback in development.
-- Preset browser on the site: read-only listing from `presets/index.json`, *Open in Bleep Board* and *Open in the app* (`bleep://preset/<author>/<slug>`).
+- Preset browser on the site: read-only listing from `presets/index.json`, *Open in Bleep Play* and *Open in the app* (`bleep://preset/<author>/<slug>`).
 
 ## 9. The two sections: Store and Board
 
@@ -219,8 +219,8 @@ The standalone app and the window of every Bleep plugin have the same two sectio
 | **Store** | Managing what is on this machine | **Modules**, **Plugins** and **Presets** tabs: installed, available and updates; Install, Update, Remove; the two default bundles; the release channel; disk use. **Security**: *Allow unsigned modules*, *Allow unsigned plugins*, trusted developers. In the app also **Devices** (audio device, MIDI ports, Link, connected plugins), and the account for sharing presets and the store URL (for self-hosting) |
 
 - **A missing module** on the board is a placeholder node with an *Install* button that opens the Store section at that module.
-- **In a plugin window**, the Store installs modules and presets (outside the audio thread); *Plugins* only lists what is installed and what is newer, and says "close Live, then update with the Bleep Patch app", because replacing a plugin Live has loaded can crash it.
-- **The web board** has no Store section: it installs the modules a board needs by itself, checks them, and keeps them in the browser's cache. It has no plugins to manage and presets come from the site.
+- **In a plugin window**, the Store installs modules and presets (outside the audio thread); *Plugins* only lists what is installed and what is newer, and says "close Live, then update with the Bleep App", because replacing a plugin Live has loaded can crash it.
+- **Bleep Play** has no Store section: it installs the modules a board needs by itself, checks them, and keeps them in the browser's cache. It has no plugins to manage and presets come from the site.
 - **Docs:** module manuals are read from the installed packages (each carries its docs) and open from a module's node or from its card in the Store.
 
 Not planned: a built-in shop, a patch store with payments.
@@ -263,7 +263,7 @@ patch/app/SoftwareCenter.*     the installer logic (UI is board-style web UI lik
 
 ## 13. Moving the apps and plugins to store modules: work plan
 
-Done: the module packages (`package-module.py`), their release and signing, the store reading each module's node types, and the **web board**, which installs and verifies its modules from the store (`patch/web/js/store-client.js`, tested against the Python tools). Left: the standalone app and the plugins, which today compile the modules in.
+Done: the module packages (`package-module.py`), their release and signing, the store reading each module's node types, and the **Bleep Play**, which installs and verifies its modules from the store (`patch/web/js/store-client.js`, tested against the Python tools). Left: the standalone app and the plugins, which today compile the modules in.
 
 What is known about the 80 modules, from their sources and the browser build: all 80 build to standalone wasm and pass the ABI check. **26** use `juce_core` and wasm exceptions (Wasmtime only; wasm3 cannot run them). **4** read the harmony bus (chord-quantizer, harmony-master, quantizer-suite, step-sequencer), **6** use the per-voice index (beat-oscillator, chart-recorder, macro-osc, pulse-generator, test-oscillator, wave-analyzer), **4** load sample files (grains, sampler, splice, wavetable-osc). Those 14 need an ABI addition before they can leave the apps (`module-abi.md`, section 9). Cells, Voice Cells and the port nodes stay in the engine: only the DSP nodes become wasm.
 

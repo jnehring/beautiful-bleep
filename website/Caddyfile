@@ -9,7 +9,7 @@
 	header @markdown Content-Type "text/markdown; charset=utf-8"
 	header /llms.txt Content-Type "text/plain; charset=utf-8"
 
-	# Bleep Board (patch/web): its modules come from the Bleep Store below (signed packages, checked in the browser).
+	# Bleep Play (patch/web): its modules come from the Bleep Store below (signed packages, checked in the browser).
 
 	@wasm path *.wasm
 	header @wasm Content-Type "application/wasm"

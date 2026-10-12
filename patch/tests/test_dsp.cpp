@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Unit tests for the Bleep Patch DSP cores. No JUCE, no bus: pure C++.
+// Unit tests for the Beautiful Bleep DSP cores. No JUCE, no bus: pure C++.
 #include "../modules/adsr/dsp/AdsrDsp.h"
 #include "../modules/drum-grid/dsp/DrumGridDsp.h"
 #include "../modules/filter/dsp/FilterDsp.h"

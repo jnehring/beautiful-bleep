@@ -30,7 +30,7 @@ public:
         }
         loop_ = pa_threaded_mainloop_new();
         if (!loop_) return "The sound server could not be reached.";
-        context_ = pa_context_new(pa_threaded_mainloop_get_api(loop_), "Bleep Patch");
+        context_ = pa_context_new(pa_threaded_mainloop_get_api(loop_), "Bleep App");
         if (!context_) return fail("The sound server could not be reached.");
         pa_context_set_state_callback(context_, [](pa_context*, void* self) {
             pa_threaded_mainloop_signal(static_cast<PulseSystemAudio*>(self)->loop_, 0);
@@ -173,7 +173,7 @@ std::vector<std::pair<std::string, std::string>> SystemAudio::sources() {
     SourceQuery query;
     pa_mainloop* loop = pa_mainloop_new();
     if (!loop) return {};
-    pa_context* context = pa_context_new(pa_mainloop_get_api(loop), "Bleep Patch");
+    pa_context* context = pa_context_new(pa_mainloop_get_api(loop), "Bleep App");
     if (context && pa_context_connect(context, nullptr, PA_CONTEXT_NOFLAGS, nullptr) >= 0) {
         bool asked = false;
         const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(2);

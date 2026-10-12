@@ -1,16 +1,16 @@
 ---
 title: Getting started
-description: Set up Bleep Patch in Ableton Live: the board, modules, cables and ports.
+description: Set up Beautiful Bleep in Ableton Live: the board, modules, cables and ports.
 order: 0
 ---
 
-# Getting started with Bleep Patch
+# Getting started with Beautiful Bleep
 
 This page is for Ableton Live. Bleep also runs as a [standalone app and in
 your browser](overview.md).
 
-Bleep Patch makes Ableton Live feel modular. All modules live on one canvas
-per set, the **Bleep Board**. You connect them with cables, and small plugins
+Beautiful Bleep makes Ableton Live feel modular. All modules live on one canvas
+per set, the **board**. You connect them with cables, and small plugins
 called **ports** connect the board to your tracks.
 
 Just want a sound? Put **Bleep Instrument** on a MIDI track or **Bleep FX** on
@@ -21,17 +21,17 @@ an audio track and pick a preset. No patching needed; see
 
 Copy the `.vst3` files to your plugin folder, then rescan plugins in Live
 (Settings → Plug-Ins, with "Use VST3 Plug-In System Folders" on). The
-plugins appear in Live's browser under **Plug-Ins → Bleep Patch**.
+plugins appear in Live's browser under **Plug-Ins → Beautiful Bleep**.
 
 | | VST3 folder |
 |---|---|
 | macOS | `~/Library/Audio/Plug-Ins/VST3` |
 | Windows | `C:\Program Files\Common Files\VST3` |
 
-## Your first patch (5 minutes)
+## Your first board (5 minutes)
 
-1. Put **Bleep Patch** on any track (the master track is a good place).
-   Every set that uses Bleep Patch needs exactly one. Its window opens the
+1. Put **Bleep Board** on any track (the master track is a good place).
+   Every set that uses Bleep Board needs exactly one. Its window opens the
    board.
 2. Put **Bleep FX** on a synth track, after the synth. It appears
    on the board by itself, named after the track.
@@ -55,7 +55,7 @@ See [the board](board.md) for patching, cells and shortcuts, and
   Live. You can't delete them on the board; when a track is deactivated or
   the plugin is removed, its node turns into a grey *ghost* and keeps its
   cables.
-- **The board is saved in Bleep Patch.** A second Bleep Patch in the same set
+- **The board is saved in Bleep Board.** A second Bleep Board in the same set
   stays inactive and shows a warning.
 - **Latency.** Audio that goes from Live into the board and back is two
   audio buffers late. The output ports report this to Live, so Live's delay

@@ -97,9 +97,9 @@ a sine.
 - **PWM anything:** *Warp Mode* Squash, an LFO on *Warp*.
 - **Bass:** *Sub Level* 50 %.
 
-## Demo patches
+## Demo boards
 
-Five whole patches show what Wavetable Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Wavetable Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole boards show what Wavetable Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Wavetable Osc* under *Demos by module*; loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|

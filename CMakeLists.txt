@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 #
 # Builds everything: the bus, its conformance suite and examples, and the
-# Bleep Patch modules. Each folder also builds on its own (see its README).
+# Beautiful Bleep modules. Each folder also builds on its own (see its README).
 #
 #   cmake -S . -B build -DBLEEP_JUCE_DIR=/path/to/JUCE
 #   cmake --build build && ctest --test-dir build

@@ -313,7 +313,7 @@ public:
     }
 };
 
-// ---- Bleep Patch: macros -----------------------------------------------------------
+// ---- Bleep Board: macros -----------------------------------------------------------
 
 class MacrosModule final : public Module {
 public:
@@ -500,7 +500,7 @@ void registerPortModules(Registry& r) {
     }
     {
         ModuleSpec s = portSpec("macros", "Macros", PortKind::Patch,
-                                "The 16 automatable macros of the Bleep Patch plugin.");
+                                "The 16 automatable macros of the Bleep Board plugin.");
         s.colour = "#f6c35b";
         for (int k = 1; k <= kNumMacros; ++k)
             s.outputs.push_back({"m" + std::to_string(k), "Macro " + std::to_string(k), Signal::Control, false});

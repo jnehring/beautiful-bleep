@@ -3,7 +3,7 @@
 ## Introduction
 
 Notes and controllers from a MIDI source into the board. In the standalone app,
-the app's own MIDI ports (*Bleep Patch 1*, *Bleep Patch 2*, more in Settings)
+the app's own MIDI ports (*Bleep App 1*, *Bleep App 2*, more in Settings)
 and every enabled hardware MIDI input can have a *MIDI In* node. In Live, it is
 the MIDI of the track that carries a *Bleep MIDI In* plugin.
 
@@ -16,7 +16,7 @@ choose. *Channel* picks one MIDI channel, or *All*.
 
 A new board in the app has no MIDI node. Add one from **Add → Port**, or use
 *MIDI Device* to read a hardware controller directly. In Live, set a track's
-*MIDI To* to *Bleep Patch 1* to play the app.
+*MIDI To* to *Bleep App 1* to play the app.
 
 ## How to use it?
 

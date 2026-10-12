@@ -59,7 +59,7 @@ jobs:
       - run: ctest --test-dir build/patch --output-on-failure
 
   web:
-    name: Bleep Board in the browser (WebAssembly)
+    name: Bleep Play (WebAssembly)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

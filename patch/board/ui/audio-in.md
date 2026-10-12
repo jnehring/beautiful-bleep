@@ -17,7 +17,7 @@ A new board in the app starts with *In 1/2* and *Out 1/2*. More pairs are in
 
 In the app there is one more *Audio In*: **System**, the sound your computer
 plays (a music player, a browser). Turn on *System audio* in Settings → Audio,
-then add *System* from **Add → Port**; it works like any other input. Bleep Patch's own sound is
+then add *System* from **Add → Port**; it works like any other input. Bleep App's own sound is
 left out of it, so patching *System* to an *Audio Out* does not feed back.
 
 ## How to use it?

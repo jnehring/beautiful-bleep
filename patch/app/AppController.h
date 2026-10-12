@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// AppController — the standalone Bleep Patch app (spec §11): owns the engine,
+// AppController — the standalone Bleep App (spec §11): owns the engine,
 // the audio device, the app's own MIDI ports, Ableton Link, the Bleep Audio
 // Bridge server and the project file, and drives the engine:
 //

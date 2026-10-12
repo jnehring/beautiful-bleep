@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 #
-# The Bleep Patch API (FastAPI). Build context: website/api.
+# The Beautiful Bleep API (FastAPI). Build context: website/api.
 FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /srv

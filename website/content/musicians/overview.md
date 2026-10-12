@@ -48,8 +48,8 @@ Whichever place you are in, you choose how to start:
   when you want a sound, not a board. In Live this is **Bleep Instrument**.
 - **Audio effect.** Pick a preset such as *Dub Ping-Pong*, send audio
   through it. In Live this is **Bleep FX**.
-- **Bleep patch.** The whole board: every module, every cable, your own
-  patch. In Live this is **Bleep Patch**, with ports that connect the board to
+- **Full board.** Every module, every cable, your own
+  project. In Live this is the **Bleep Board** plugin, with ports that connect the board to
   your tracks.
 
 These are not three different systems. An instrument or an effect preset is a
@@ -66,7 +66,7 @@ and save it as your own.
 
 In the plugins, Instrument and FX open on the preset's panel (knobs and
 sliders) rather than on the board. **Open Board** shows the preset as a cell
-on the board. Cables between several plugins need Bleep Patch in the set,
+on the board. Cables between several plugins need the Bleep Board plugin in the set,
 because the board is saved there.
 
 Next: [Getting started in Live](getting-started.md), the

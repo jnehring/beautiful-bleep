@@ -4,9 +4,9 @@ Status: built. Checked end to end on macOS 14.4 (in the app) and Linux (the back
 
 ## 1. What it is
 
-A **System** node for the board of the Bleep Patch app. Its outputs *L* and *R* carry the mix of everything the computer plays to its speakers. Patch it into modules, record it, process it live.
+A **System** node for the board of the Bleep App. Its outputs *L* and *R* carry the mix of everything the computer plays to its speakers. Patch it into modules, record it, process it live.
 
-- **Standalone app only.** Not in the plugins (a DAW has its own routing) and not in the web board.
+- **Standalone app only.** Not in the plugins (a DAW has its own routing) and not in Bleep Play.
 - **Off until asked.** *Settings → Audio → System audio → Capture what this computer plays*. Capturing needs a permission on macOS and is private information on every system, so nothing is captured before the user turns it on. Turning it on adds the *System* port to **Add → Port**; the node is placed from there, like *In 3/4* (a new board starts with *In 1/2* and *Out 1/2* only).
 - **A normal audio input.** The node is an *Audio In* node with the name *System* and the ID `system-in`: same ports, same *Gain* dial, same documentation (`audio-in.md`). Projects keep their cables to it; when the capture is off or fails, the node is a ghost like any port that is gone (`specs.md` §6).
 - **No driver, no aggregate device.** The operating system's own capture API is used on each platform (§6).
@@ -23,9 +23,9 @@ A **System** node for the board of the Bleep Patch app. Its outputs *L* and *R* 
 
 If the app plays to the speakers and captures the speakers, then a cable from *System* to an *Audio Out* makes a loop: what comes out is captured, played, captured again.
 
-- **Default: the app's own sound is left out of the capture** (*Leave out Bleep Patch's own sound*, on). The capture then holds everything except this process.
+- **Default: the app's own sound is left out of the capture** (*Leave out Bleep App's own sound*, on). The capture then holds everything except this process.
 - **macOS** leaves the process out with the tap itself (§6.1). **Windows** with process loopback in *exclude* mode (§6.2). **Linux** cannot: a monitor carries the whole sink. There the setting is disabled, with a note: play the app to another output than the one you capture.
-- **When the exclusion could not be set up** (older Windows; on macOS before the app has played any sound and Core Audio knows the process), the capture runs without it, and the status line says *Bleep Patch's own sound included*. On macOS the app tries again every moment until the process is known, and swaps the capture in without a gap that matters.
+- **When the exclusion could not be set up** (older Windows; on macOS before the app has played any sound and Core Audio knows the process), the capture runs without it, and the status line says *Bleep App's own sound included*. On macOS the app tries again every moment until the process is known, and swaps the capture in without a gap that matters.
 - Turning the setting off captures everything, including the app. Useful for recording the app's own output together with the rest.
 
 ## 4. In the app
@@ -37,9 +37,9 @@ If the app plays to the speakers and captures the speakers, then a cable from *S
 | Control | Meaning |
 |---|---|
 | Capture what this computer plays | On: start capturing and offer the *System* port. Off: stop; a *System* node already on the board becomes a ghost |
-| Leave out Bleep Patch's own sound | §3. Disabled where the platform cannot |
+| Leave out Bleep App's own sound | §3. Disabled where the platform cannot |
 | Output to capture | Linux: the sinks' monitors the sound server lists; *Default output* follows the system's default. Not shown elsewhere |
-| Status line | *Capturing at 48.0 kHz · Bleep Patch's own sound left out · signal* (or *silent*) |
+| Status line | *Capturing at 48.0 kHz · Bleep App's own sound left out · signal* (or *silent*) |
 | Hint | While silent, on macOS: where the permission is |
 | Error | Why capturing did not start (permission, no sound server, no output device), or what broke later |
 
@@ -125,7 +125,7 @@ Build: `ole32` and `mmdevapi` are linked; the process-loopback code needs `audio
 ## 8. Tests and checks
 
 - **Unit (`patch/tests/system_audio_test.cpp`, no JUCE):** the reader on a sine through the ring, at equal rates, 44.1 and 96 kHz into 48 kHz, ±300 ppm clock drift for 20 s, and bursty delivery. Checks: no dropout or overflow, no click (largest sample-to-sample step stays within a 440 Hz sine's), the pitch holds within about a cent; start and run-dry behaviour; overflow skip; channel mapping and the peak indicator.
-- **In the app, macOS 14.4 (done):** `"Bleep Patch.app" --smoke --system-audio` while `afplay` plays a system sound: the report shows frames arriving at 48 kHz with the peak of the sound (0.21 for *Glass*), no underruns or overruns, own sound left out. The permission belongs to the app only when it is launched by LaunchServices (`open -W --stdout out.txt "Bleep Patch.app" --args --smoke --system-audio`); started from a shell, macOS credits the shell's parent app, which has no usage text, and the tap delivers silence.
+- **In the app, macOS 14.4 (done):** `"Bleep App.app" --smoke --system-audio` while `afplay` plays a system sound: the report shows frames arriving at 48 kHz with the peak of the sound (0.21 for *Glass*), no underruns or overruns, own sound left out. The permission belongs to the app only when it is launched by LaunchServices (`open -W --stdout out.txt "Bleep App.app" --args --smoke --system-audio`); started from a shell, macOS credits the shell's parent app, which has no usage text, and the tap delivers silence.
 - **Linux backend (done):** built against `libpulse` 16 in a container with a PulseAudio server and a null sink; a 440 Hz tone played to the sink arrives at the right level and pitch (441 Hz in a 2 s test, the start-up settling of the reader), no underruns, and `sources()` lists the sink's monitor. PipeWire (`pipewire-pulse`) was not run.
 - **Windows:** compiled with MinGW-w64 (the device loopback path against its headers, the process-loopback path against Microsoft's documented declarations), never run: see §10.
 - **By hand, still to do:** with the exclusion on, route the app's own output to the speakers and patch *System* to *Audio Out*: no feedback. Change the default output while capturing.
@@ -134,7 +134,7 @@ Build: `ole32` and `mmdevapi` are linked; the process-loopback code needs `audio
 
 - **Choosing one program** (capture just the browser): Core Audio and Windows process loopback can; the setting would be a program list.
 - **Choosing the output to capture** on macOS and Windows (only Linux has the list).
-- **System audio in the plugins or the web board.** The plugins have the DAW; the browser can ask for tab audio by itself (`getDisplayMedia`), which is a different feature.
+- **System audio in the plugins or Bleep Play.** The plugins have the DAW; the browser can ask for tab audio by itself (`getDisplayMedia`), which is a different feature.
 - **Video, microphone mixing, per-process gain.**
 
 ## 10. Open questions

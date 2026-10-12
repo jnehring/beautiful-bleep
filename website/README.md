@@ -1,4 +1,4 @@
-# Bleep Patch website
+# Beautiful Bleep website
 
 Homepage and documentation. `content/` holds all docs as small Markdown files,
 split into two separate documentations: `musicians/` and `developers/`

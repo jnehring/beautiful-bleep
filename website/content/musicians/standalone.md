@@ -4,7 +4,7 @@ description: Use Bleep without a DAW: audio setup, projects and settings of the 
 order: 3
 ---
 
-# The Bleep Patch app
+# The Bleep App
 
 The board without a DAW: for playing and sound design on its own, or next to
 Live. It is one of [three places to use Bleep](overview.md) (plugin, app, web). Open the app, add modules with Tab, and patch as in Live. Projects are
@@ -29,8 +29,8 @@ permission. Then add the node from **Add → Port**, like the other inputs.
 
 - **Your own sound is left out** by default, so patching *System* to an output
   does not feed back. Where the system cannot do that (Linux, older Windows),
-  play Bleep Patch to a different output than the one you capture.
-- **macOS 14.2 or later.** The first time, macOS asks to allow Bleep Patch to
+  play Bleep App to a different output than the one you capture.
+- **macOS 14.2 or later.** The first time, macOS asks to allow Bleep App to
   record system audio. If *System* stays silent, allow it under *System Settings
   → Privacy & Security → Screen & System Audio Recording*.
 - **Windows 10 or later.** Leaving your own sound out needs Windows 10 build
@@ -52,13 +52,13 @@ cell's *Out L/R* into *Out 1/2*. MIDI Device also has mono *Pitch*, *Gate*,
 
 ## MIDI to and from Live
 
-The app has its own MIDI ports, **Bleep Patch 1** and **Bleep Patch 2** (more in
+The app has its own MIDI ports, **Bleep App 1** and **Bleep App 2** (more in
 Settings). No loopback tool needed. Add their nodes from **Add → Port**.
 
-- **Play the app from Live:** on a MIDI track, set *MIDI To* to *Bleep Patch 1*.
-  On the board, the *Bleep Patch 1* MIDI In node gets the notes.
-- **Play Live from the app:** patch into the *Bleep Patch 1* MIDI Out node; on a
-  MIDI track in Live, set *MIDI From* to *Bleep Patch 1* and *Monitor* to *In*.
+- **Play the app from Live:** on a MIDI track, set *MIDI To* to *Bleep App 1*.
+  On the board, the *Bleep App 1* MIDI In node gets the notes.
+- **Play Live from the app:** patch into the *Bleep App 1* MIDI Out node; on a
+  MIDI track in Live, set *MIDI From* to *Bleep App 1* and *Monitor* to *In*.
 
 ## Audio to and from Live: Bleep Audio Bridge
 

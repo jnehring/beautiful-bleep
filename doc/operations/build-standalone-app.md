@@ -1,6 +1,6 @@
 # Build the standalone app
 
-The standalone app is `BleepPatchApp` in `patch/CMakeLists.txt` (spec §11): the board in its own window, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server. The product is named **Bleep Patch**.
+The standalone app is `BleepPatchApp` in `patch/CMakeLists.txt` (spec §11): the board in its own window, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server. The product is named **Bleep App**.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ scripts/run/run-app.sh --ui-dev              # reads the board UI from patch/ (e
 
 The script builds only the app target, in `build/patch/`. A running copy is asked to quit first and is never force-quit.
 
-The result is `build/patch/BleepPatchApp_artefacts/Release/Bleep Patch.app`.
+The result is `build/patch/BleepPatchApp_artefacts/Release/Bleep App.app`.
 
 ## Build without the script, or on Windows
 

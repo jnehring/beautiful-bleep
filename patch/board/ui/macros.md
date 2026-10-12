@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The 16 automatable controls of the *Bleep Patch* plugin in Live. Automate them
+The 16 automatable controls of the *Bleep Board* plugin in Live. Automate them
 in Live and use them anywhere on the board.
 
 ## How does it work?

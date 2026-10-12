@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import SiteNav from "./SiteNav";
 
 export const metadata: Metadata = {
-  title: "Bleep Patch — a modular sound engine for plugin, app and web",
+  title: "Beautiful Bleep — a modular sound engine for plugin, app and web",
   description: "One modular engine as a plugin in Ableton Live, a standalone app and in your browser. Play a preset or patch your own.",
 };
 

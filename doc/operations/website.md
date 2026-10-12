@@ -26,7 +26,7 @@ Then start it:
 scripts/run/run-website.sh          # or: cd website && docker compose up --build -d
 ```
 
-Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **no modules**. The Bleep Board at `/board/` installs its modules by itself, from the Bleep Store of the same site, the first time a board needs one: it reads `/registry/v1/index.json`, downloads the module's package, checks its signature in the browser and only then runs it. A visitor needs nothing installed. Until modules have been released to the store, the board runs but stays silent ("cannot load …" in its status line).
+Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **no modules**. Bleep Play at `/board/` installs its modules by itself, from the Bleep Store of the same site, the first time a board needs one: it reads `/registry/v1/index.json`, downloads the module's package, checks its signature in the browser and only then runs it. A visitor needs nothing installed. Until modules have been released to the store, the board runs but stays silent ("cannot load …" in its status line).
 
 Getting modules into the store takes three steps, all on your machine (the signing keys are in [Signing keys](#signing-keys) below):
 

@@ -145,7 +145,7 @@ private:
     juce::var uiDispatch(int handle, const juce::String& method, const juce::var& args);
     juce::var uiMessage() const;
     juce::var cellParams(int handle);
-    /// Cell plugins in a set without Bleep Patch get a board of their own, dropped when the last one leaves.
+    /// Cell plugins in a set without Bleep Board get a board of their own, dropped when the last one leaves.
     void updateImplicitBoard();
     /// Puts the instance's preset next to its port node (replacing a cell that is there).
     void attachPreset(PortSlot& slot, const juce::String& portNodeId);
@@ -159,7 +159,7 @@ private:
     std::atomic<PortSlot*> table_[kMaxInstances] = {};
     int mainHandle_ = 0;
     std::string uiLast_;       ///< the last uiCall result, for callers whose buffer was too small
-    bool implicit_ = false;    ///< a board kept for cell plugins while there is no Bleep Patch
+    bool implicit_ = false;    ///< a board kept for cell plugins while there is no Bleep Board
     double sampleRate_ = 48000.0;              ///< message thread: what modules are prepared for
     std::atomic<double> pendingRate_{0.0};     ///< set by prepare() on any thread, applied by the timer
     std::atomic<int> maxBlock_{0};             ///< largest host block of any plugin (never shrinks)

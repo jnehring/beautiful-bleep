@@ -14,7 +14,7 @@ Goal: any of the three can send and receive MIDI, audio and sync to any other, c
 
 ## 1. The idea: a port names the board on its other side
 
-Every Bleep plugin in Live already is a hole between a track and a board (`specs.md` §6). Today that board is always *this set's* Bleep Patch. The new setting says **which board is on the other side**:
+Every Bleep plugin in Live already is a hole between a track and a board (`specs.md` §6). Today that board is always *this set's* Bleep Board. The new setting says **which board is on the other side**:
 
 | Board | Meaning |
 |---|---|

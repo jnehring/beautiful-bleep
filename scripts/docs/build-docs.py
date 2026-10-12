@@ -130,10 +130,10 @@ def main() -> int:
     bundles = {
         "quickstart-full.md": ("", [dev / "quickstart.md"]),
         "api-reference-full.md": ("", sorted((dev / "api-reference").glob("*.md"))),
-        "user-docs-full.md": ("Bleep Patch user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
+        "user-docs-full.md": ("Beautiful Bleep user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
     }
     # The module manuals are too many for one file: one per category.
-    module_bundles = {f"modules-{category_slug(c)}-full.md": (f"Bleep Patch modules: {c.replace('/', ' · ')}", docs)
+    module_bundles = {f"modules-{category_slug(c)}-full.md": (f"Beautiful Bleep modules: {c.replace('/', ' · ')}", docs)
                       for c, docs in module_docs_by_category().items()}
     bundles.update(module_bundles)
     for spec_dir in sorted((dev / "spec").iterdir()):
@@ -160,10 +160,10 @@ def main() -> int:
     base = args.base_url.rstrip("/")
     specs = [n for n in bundles if n.startswith("spec-")]
     llms = [
-        "# Bleep Bus / Bleep Patch",
+        "# Bleep Bus / Beautiful Bleep",
         "",
         "> Bleep Bus is an open (MIT) protocol and C SDK for sending per-sample control signals",
-        "> between audio plugins through shared memory. Bleep Patch is a family of modular-style",
+        "> between audio plugins through shared memory. Beautiful Bleep is a family of modular-style",
         "> plugins for Ableton Live built on it.",
         "",
         f"Current spec version: {version} (experimental).",

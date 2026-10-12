@@ -4,7 +4,7 @@ The VST3 plugins that Ableton Live loads are all built from `patch/CMakeLists.tx
 
 | Plugin | CMake target |
 |---|---|
-| Bleep Patch | `BleepPatch` |
+| Bleep Board | `BleepPatch` |
 | Bleep MIDI In | `BleepMidiIn` |
 | Bleep MIDI Out | `BleepMidiOut` |
 | Bleep Audio In | `BleepAudioIn` |
@@ -51,7 +51,7 @@ The bundles end up in `build/patch/<Target>_artefacts/Release/VST3/`, for exampl
    done
    ```
 
-3. Start Live. If a plugin is missing, rescan: Settings → Plug-Ins, with "Use VST3 Plug-In System Folders" on, then *Rescan*. The plugins appear under **Plug-Ins → Bleep Patch**.
+3. Start Live. If a plugin is missing, rescan: Settings → Plug-Ins, with "Use VST3 Plug-In System Folders" on, then *Rescan*. The plugins appear under **Plug-Ins → Beautiful Bleep**.
 
 On Windows the folder is `C:\Program Files\Common Files\VST3`.
 

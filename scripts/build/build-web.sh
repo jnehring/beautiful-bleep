@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
-# Builds the browser version of the board (Bleep Board): one .wasm per module,
+# Builds the browser version of the board (the board): one .wasm per module,
 # the board UI and the web engine, as a static folder. The board does not load the
 # .wasm files from this folder: it installs its modules from the Bleep Store, as
 # signed packages (scripts/release/package-module.py, release.py --modules). The

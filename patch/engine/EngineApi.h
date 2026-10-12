@@ -54,16 +54,16 @@ struct BlockIO {
     int midiOutCapacity = 0;
     int numMidiOut = 0;            ///< written by the engine
     bool boardAudioValid = false;  ///< written by the engine: audioOut carries board data
-    // Bleep Patch only: the 16 macro values, 0..1.
+    // Bleep Board only: the 16 macro values, 0..1.
     const float* macros = nullptr;
 };
 
 /// Status of a plugin instance, for its editor.
 enum class PortState {
     Ok,
-    NoBoard,           ///< no active Bleep Patch in this set
-    InactiveMain,      ///< a second Bleep Patch: shows a warning, does nothing
-    VersionMismatch,   ///< another build of Bleep Patch owns the engine
+    NoBoard,           ///< no active Bleep Board in this set
+    InactiveMain,      ///< a second Bleep Board: shows a warning, does nothing
+    VersionMismatch,   ///< another build of Bleep Board owns the engine
 };
 
 class IEngine {
@@ -100,7 +100,7 @@ public:
     // ---- audio ([RT]) ------------------------------------------------------
     virtual void process(int handle, BlockIO& io) noexcept = 0;
 
-    // ---- Bleep Patch: the board ([non-RT]) ---------------------------------
+    // ---- Bleep Board: the board ([non-RT]) ---------------------------------
     /// Serialises the board (JSON). Returns the full length; writes at most
     /// `capacity` bytes (call with capacity 0 to measure). Inactive mains
     /// return their own saved copy.
@@ -122,7 +122,7 @@ public:
     /// cell appears on the board next to the instance's port node, cabled as `plays` says (spec
     /// cell-plugins.md §1). With `replace` false a cell that is already there stays (restoring a saved
     /// set: the board's copy, with its edits, wins). With no board in the set, the engine keeps a board
-    /// of its own for these plugins until Bleep Patch is added.
+    /// of its own for these plugins until Bleep Board is added.
     virtual void setCellPreset(int handle, const char* json, size_t length, bool replace) noexcept = 0;
     /// The instance's preset as it is now on the board, edits included (for the plugin state).
     /// Returns the full length; writes at most `capacity` bytes. Empty if none was loaded.
