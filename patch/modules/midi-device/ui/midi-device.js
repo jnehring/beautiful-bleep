@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-// MIDI Device view: live bars for what the keyboard/controller sends (pitch bend,
-// mod wheel, pressure, velocity and the eight CC outputs), then the channel and
-// the CC numbers in the order of the CC outputs.
+// MIDI Device view: the controller to read, live bars for what it sends (pitch
+// bend, mod wheel, pressure, velocity and the eight CC outputs), then the
+// channel and the CC numbers in the order of the CC outputs.
 (function () {
   "use strict";
   const style = document.createElement("style");
-  style.textContent = ".md-cv{height:96px!important}";
+  style.textContent = ".md-cv{height:96px!important}.md-pick{align-self:start}";
   document.head.appendChild(style);
   const BARS = [["bend", "bend", true], ["mod", "mod"], ["pressure", "press"], ["velocity", "vel"],
     ["cc1", "CC1"], ["cc2", "CC2"], ["cc3", "CC3"], ["cc4", "CC4"], ["cc5", "CC5"], ["cc6", "CC6"], ["cc7", "CC7"], ["cc8", "CC8"]];
@@ -33,15 +33,25 @@
   }
   BleepViews.register("midi-device", {
     width: 700,
-    template: '<div class="bv-panel"><h2>Live</h2><canvas class="md-cv"></canvas></div>',
+    template: '<div class="bv-panel md-pick"><h2>Controller</h2><select class="device" style="width:100%"></select></div>' +
+      '<div class="bv-panel"><h2>Live</h2><canvas class="md-cv"></canvas></div>',
     layout: [
       { title: "Input", params: ["channel"] },
       { title: "CC outputs 1-4", params: ["cc1", "cc2", "cc3", "cc4"] },
       { title: "CC outputs 5-8", params: ["cc5", "cc6", "cc7", "cc8"] },
     ],
-    afterBuild(view, custom) {
+    async afterBuild(view, custom) {
       const cv = custom.querySelector("canvas");
       BleepView.loop(view.root, () => draw(view, cv));
+      // The controller this node reads (standalone app, spec §12).
+      const select = custom.querySelector(".device");
+      const names = (await native("midiDevices")) || [];
+      const current = view.node.device || "";
+      select.appendChild(new Option("— choose a controller —", ""));
+      for (const n of names) select.appendChild(new Option(n, n));
+      if (current && !names.includes(current)) select.appendChild(new Option(current + " (not connected)", current));
+      select.value = current;
+      select.addEventListener("change", () => view.api.setNodeProperty("device", select.value));
     },
     onState(st, view) { view._st = st; },
   });
