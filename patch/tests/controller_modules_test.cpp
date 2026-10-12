@@ -8,6 +8,7 @@
 #include "Registry.h"
 
 #include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <set>
 #include <string>
@@ -291,6 +292,27 @@ void patchbays() {
                 else EXPECT(c.from.node == "vci" && c.from.jack == jack && c.to.node == "o" && c.to.jack == "fine" && std::fabs(c.amount - 0.5f) < 1e-6);
             }
         }
+    }
+    if (const char* path = std::getenv("BLEEP_SANITISE_DOC")) {  // a debugging aid: what sanitise keeps of a board file
+        juce::StringArray warnings;
+        const auto doc = board::fromJson(juce::File(path).loadFileAsString());
+        const auto clean = board::sanitise(doc, &warnings);
+        std::printf("sanitise: nodes %d -> %d, cables %d -> %d, panels %d -> %d\n", doc["nodes"].size(), clean["nodes"].size(),
+                    doc["cables"].size(), clean["cables"].size(), doc["panels"].size(), clean["panels"].size());
+        for (const auto& w : warnings) std::printf("  warning: %s\n", w.toRawUTF8());
+        // The same through a real engine, as the app does it: commit the edit into the board, which compiles it.
+        auto* e = new Engine();
+        e->registerInstance(PortKind::Patch);
+        e->reconcileNow();
+        juce::var edited = board::fromJson(board::toJson(e->board()));
+        const int before = edited["nodes"].size();
+        for (const auto& n : *doc["nodes"].getArray()) edited["nodes"].getArray()->add(n);
+        for (const auto& c : *doc["cables"].getArray()) edited["cables"].getArray()->add(c);
+        if (!edited["panels"].isArray()) edited.getDynamicObject()->setProperty("panels", juce::Array<juce::var>());
+        for (const auto& q : *doc["panels"].getArray()) edited["panels"].getArray()->add(q);
+        const auto result = e->commit(edited, "add");
+        std::printf("engine commit: nodes %d -> %d (added %d)\n", before, result["nodes"].size(), doc["nodes"].size());
+        e->release();
     }
     {  // bays in a row: the channel follows through both
         BoardModel m;

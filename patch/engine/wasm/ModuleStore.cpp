@@ -131,11 +131,20 @@ void ModuleStore::refreshIndexAsync(std::function<void()> done) {
         store::Index index;
         std::string error;
         const bool ok = c->fetchIndex(index, error);
+        store::Index saved;
+        int64_t savedAt = 0;
+        std::string savedError;
+        // The store was not reached: the copy of its index from the last time that worked is better than nothing.
+        const bool useSaved = !ok && c->loadCachedIndex(saved, savedAt, savedError);
         {
             std::lock_guard<std::mutex> l(mutex_);
-            haveIndex_ = ok;
+            cacheTried_ = true;
+            haveIndex_ = ok || useSaved;
+            indexFromCache_ = useSaved;
+            indexAt_ = useSaved ? savedAt : 0;
             indexError_ = ok ? "" : error;
             if (ok) index_ = std::move(index);
+            else if (useSaved) index_ = std::move(saved);
         }
         if (done) post(done);
     }).detach();
@@ -247,6 +256,17 @@ juce::var ModuleStore::status() {
     const auto c = client();
     if (store::Client::cacheStale()) recheckInstalledAsync();
     std::lock_guard<std::mutex> l(mutex_);
+    if (!cacheTried_) {   // the first look: the index saved the last time the store answered, until it is fetched again
+        cacheTried_ = true;
+        store::Index saved;
+        int64_t savedAt = 0;
+        std::string savedError;
+        if (c->loadCachedIndex(saved, savedAt, savedError)) {
+            index_ = std::move(saved);
+            haveIndex_ = indexFromCache_ = true;
+            indexAt_ = savedAt;
+        }
+    }
     auto* o = new juce::DynamicObject();
     auto* s = new juce::DynamicObject();
     s->setProperty("storeUrl", juce::String(settings_.storeUrl));
@@ -268,6 +288,8 @@ juce::var ModuleStore::status() {
     o->setProperty("installed", installed);
     auto* idx = new juce::DynamicObject();
     idx->setProperty("ok", haveIndex_);
+    idx->setProperty("cached", indexFromCache_);   // true: the copy saved on disk, the store has not answered since
+    idx->setProperty("cachedAt", (juce::int64)indexAt_);
     idx->setProperty("error", juce::String(indexError_));
     // The tile of an entry: what the store says about it, and where its screenshot is (an absolute address, or empty).
     auto tile = [&c](auto* x, const auto& e) {

@@ -446,7 +446,22 @@ public:
               "fetch('no-such-module.md').then(r => window.__noDoc = r.status, () => window.__noDoc = 'rejected'); "
               "return 1; })()",
               [](const juce::var&) {});
-        later(4000,
+        // Place cell presets the way the Add menu does (the store check first), and see what the board keeps.
+        later(5000,
+              "(function(){ const q = window.__findPreset('Combo Organ'); window.__t0 = Date.now(); "
+              "window.__ens = 'pending'; "
+              "native('storeStatus').then(s => { window.__st = JSON.stringify({keys: Object.keys(s), installed: (s.installed||[]).length, "
+              "index: s.index && {ok: s.index.ok, error: s.index.error, modules: (s.index.modules||[]).length}}); }, e => window.__st = 'rejected ' + e); "
+              "BleepStoreView.ensureNeeds(q.preset, q.name).then(v => window.__ens = 'resolved ' + v + ' after ' + (Date.now() - window.__t0) + ' ms', "
+              "e => window.__ens = 'rejected ' + (e && e.message || e)); "
+              "return JSON.stringify(['Warm Saws', 'Combo Organ', 'Brass Section'].map(window.__addPreset)); })()",
+              [](const juce::var& v) { std::printf("board smoke: add presets: %s\n", v.toString().toRawUTF8()); });
+        later(11000,
+              "JSON.stringify({cells: window.__board().nodes.filter(n => n.type === 'cell' || n.type === 'voice-cell').map(n => n.name), "
+              "ensure: window.__ens, status: window.__st, errors: window.__errors || [], notice: (document.querySelector('.board-notice') || {}).textContent || null, "
+              "modal: !!document.querySelector('.st-modal')})",
+              [](const juce::var& v) { std::printf("board smoke: after adding presets: %s\n", v.toString().toRawUTF8()); });
+        later(12000,
               "JSON.stringify({nodes: document.querySelectorAll('.node').length, "
               "committed: window.__smoke || 0, voiceCells: window.__voiceCells || 0, "
               "cables: window.__voiceCables || 0, errors: window.__errors || [], "

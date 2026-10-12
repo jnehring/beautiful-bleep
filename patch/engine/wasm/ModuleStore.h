@@ -77,6 +77,9 @@ private:
     store::Index index_;
     std::string indexError_;
     bool haveIndex_ = false;
+    bool indexFromCache_ = false;   ///< the index is the copy saved on disk: the store was not reached
+    int64_t indexAt_ = 0;           ///< unix seconds the saved index was fetched
+    bool cacheTried_ = false;
     std::map<std::string, std::string> busy_;
     struct PluginJob { std::string state = "idle", message; bool ok = false; } pluginJob_;   // idle | running | done
     std::atomic<bool> started_{false};

@@ -178,11 +178,11 @@ juce::String Client::url(const std::string& path) const {
 
 juce::File Client::modulesFolder(const std::string& source) const { return dataDir_.getChildFile("modules").getChildFile(source); }
 
-bool Client::fetchIndex(Index& out, std::string& error) const {
-    juce::var json;
-    if (!fetchJson(url("index.json"), json, error)) return false;
+namespace {
+/// The channel's modules and plugins out of the store's index.json.
+bool parseIndex(const juce::var& json, const std::string& channel, Index& out, std::string& error) {
     out = Index{};
-    const juce::var modules = json["channels"][juce::Identifier(juce::String(settings_.channel))]["modules"];
+    const juce::var modules = json["channels"][juce::Identifier(juce::String(channel))]["modules"];
     if (auto* o = modules.getDynamicObject())
         for (const auto& p : o->getProperties()) {
             IndexModule m;
@@ -195,8 +195,8 @@ bool Client::fetchIndex(Index& out, std::string& error) const {
                 for (const auto& x : *t) m.types.push_back(str(x));
             out.modules.push_back(std::move(m));
         }
-    else { error = "the store's index has no modules for the channel " + settings_.channel; return false; }
-    if (auto* o = json["channels"][juce::Identifier(juce::String(settings_.channel))]["plugins"].getDynamicObject())
+    else { error = "the store's index has no modules for the channel " + channel; return false; }
+    if (auto* o = json["channels"][juce::Identifier(juce::String(channel))]["plugins"].getDynamicObject())
         for (const auto& p : o->getProperties()) {
             IndexPlugin x;
             x.slug = p.name.toString().toStdString();
@@ -207,6 +207,36 @@ bool Client::fetchIndex(Index& out, std::string& error) const {
             out.plugins.push_back(std::move(x));
         }
     return true;
+}
+}  // namespace
+
+bool Client::fetchIndex(Index& out, std::string& error) const {
+    juce::var json;
+    if (!fetchJson(url("index.json"), json, error)) return false;
+    if (!parseIndex(json, settings_.channel, out, error)) return false;
+    // Keep what was fetched, so the next start (or no network) still knows the store. A failure to write is not the store's fault.
+    const auto file = dataDir_.getChildFile("cache").getChildFile("index.json");
+    if (file.getParentDirectory().createDirectory().wasOk()) {
+        auto* o = new juce::DynamicObject();
+        o->setProperty("storeUrl", juce::String(settings_.storeUrl));
+        o->setProperty("channel", juce::String(settings_.channel));
+        o->setProperty("fetchedAt", (juce::int64)now_);
+        o->setProperty("index", json);
+        file.replaceWithText(juce::JSON::toString(juce::var(o)));
+    }
+    return true;
+}
+
+bool Client::loadCachedIndex(Index& out, int64_t& fetchedAt, std::string& error) const {
+    const auto file = dataDir_.getChildFile("cache").getChildFile("index.json");
+    if (!file.existsAsFile()) { error = "no saved copy of the store's index"; return false; }
+    const juce::var doc = juce::JSON::parse(file);
+    if (!doc.isObject() || str(doc["storeUrl"]) != settings_.storeUrl || str(doc["channel"]) != settings_.channel) {
+        error = "the saved index is from another store or channel";   // the address was changed in the settings
+        return false;
+    }
+    fetchedAt = (int64_t)doc["fetchedAt"];
+    return parseIndex(doc["index"], settings_.channel, out, error);
 }
 
 bool Client::check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,

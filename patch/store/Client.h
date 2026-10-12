@@ -71,7 +71,11 @@ public:
     /// `roots`: the pinned root public keys. `now`: unix seconds (the device clock; tests pass a fixed one).
     Client(Settings settings, juce::File dataDir, std::vector<std::vector<uint8_t>> roots, int64_t now = 0);
 
+    /// Fetches the index from the store. Every index that was fetched is kept in the data folder (cache/index.json), so the
+    /// store works offline: see loadCachedIndex.
     bool fetchIndex(Index& out, std::string& error) const;
+    /// The index as it was last fetched from this store address and channel; `fetchedAt`: unix seconds. False when there is none.
+    bool loadCachedIndex(Index& out, int64_t& fetchedAt, std::string& error) const;
     /// Downloads, checks and installs the newest version of a module; older versions are removed after it worked.
     bool install(const std::string& slug, InstalledModule& out, std::string& error) const;
     bool remove(const std::string& slug, std::string& error) const;

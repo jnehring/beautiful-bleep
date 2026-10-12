@@ -11,6 +11,7 @@
 
   // ------------------------------------------------------------------ state
   let board = null;            // the board document, or null (no Bleep Board)
+  let hasStore = false;        // the app has a module store (the native side's init says so); without one, nothing is checked against it
   let types = {};              // type → description
   let typeList = [];
   let ports = {};              // port id → {kind, track, live, main}
@@ -1177,10 +1178,22 @@
   /// `link` (from a cable dropped on empty canvas) is connected to the new node.
   function addAt(what, x, y, link, checked) {
     if (!board) return;
-    if (what.preset && !checked && window.BleepStoreView) {  // modules the preset needs: offer to install them first
+    if (what.preset && !checked && hasStore && window.BleepStoreView) {  // modules the preset needs: offer to install them first
       const q = presets.find((r) => r.key === what.preset);
       if (q) {
-        BleepStoreView.ensureNeeds(q.preset, q.name).then((ok) => { if (ok) addAt(what, x, y, link, true); });
+        BleepStoreView.ensureNeeds(q.preset, q.name).then(
+          (ok) => {
+            if (!ok) return;
+            // The store only knows the modules it lists or has installed. A preset may use module types this app has never
+            // heard of (a newer module, one not installed on this machine): say so, the board keeps them as placeholders.
+            const unknown = [...new Set((q.preset.nodes || []).map((n) => n.type))].filter((t) => !types[t]);
+            if (unknown.length) notice(`“${q.name}” uses modules this app doesn't have: ${unknown.join(", ")}. They show as “not installed”.`);
+            addAt(what, x, y, link, true);
+          },
+          (e) => {   // the store check itself failed or did not answer: the preset is still wanted
+            notice(`Could not check the store for “${q.name}” (${e && e.message ? e.message : e}); adding it without.`);
+            addAt(what, x, y, link, true);
+          });
         return;
       }
     }
@@ -1190,7 +1203,7 @@
       y += 36;
     }
     let newId = null;
-    edit("add", (b) => {
+    const placed = edit("add", (b) => {
       const lvl = level();
       if (what.preset) {
         const p = presets.find((q) => q.key === what.preset);
@@ -1230,6 +1243,10 @@
       sel.clear();
       sel.add(newId);
     });
+    // The app answers every edit with the board it kept: say so when it did not keep what was just placed.
+    Promise.resolve(placed).then(() => {
+      if (newId && board && !nodeById(newId)) notice(`The app did not keep the ${what.preset ? "cell" : "module"} you added. Check the Store section for modules that failed to load.`);
+    }).catch((e) => notice(`Could not add it: ${e && e.message ? e.message : e}`));
   }
 
   /// A Dial, Button or Keyboard module for a panel control, in `b`: inside the panel's cell (a Keyboard next to it,
@@ -2679,6 +2696,17 @@
   window.addEventListener("resize", () => { renderCables(); positionCablePop(); });
 
   window.__board = () => board;  // for tests/board_smoke.cpp
+  window.__errors = window.__errors || [];  // what the page reported, for tests/board_smoke.cpp
+  window.addEventListener("error", (e) => window.__errors.push(String(e.message)));
+  window.addEventListener("unhandledrejection", (e) => window.__errors.push("rejected: " + (e.reason && e.reason.message ? e.reason.message : e.reason)));
+  /// The Add menu's "Cell › … › name", for tests/board_smoke.cpp.
+  window.__findPreset = (name) => presets.find((r) => r.name === name);
+  window.__addPreset = (name) => {
+    const q = presets.find((r) => r.name === name);
+    if (!q) return "no preset " + name;
+    addAt({ preset: q.key }, 200 + 60 * (window.__added = (window.__added || 0) + 1), 120);
+    return "asked for " + name;
+  };
 
   // ------------------------------------------------------------------ start
   /// Module views (modules/<name>/ui/*.js, served flat): loads the scripts
@@ -2714,12 +2742,20 @@
     render();
   }
 
+  // A script error in the board page used to stay in the web view's console, where nobody looks: show it.
+  window.addEventListener("error", (e) => {
+    if (/ResizeObserver/.test(e.message || "")) return;
+    notice(`Board error: ${e.message || "script error"}${e.filename ? ` (${e.filename.split("/").pop()}:${e.lineno})` : ""}`);
+  });
+  window.addEventListener("unhandledrejection", (e) => notice(`Board error: ${e.reason && e.reason.message ? e.reason.message : e.reason}`));
+
   async function start() {
     const m = await native("init");
     if (!m) return;
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
+    hasStore = !!m.store;
     if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
     if (m.settings && window.BleepSettingsView) await BleepSettingsView.init({ store: !!m.store });
     if (m.store && window.BleepHelpView) await BleepHelpView.init();

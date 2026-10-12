@@ -113,6 +113,8 @@
     body.appendChild(top);
     if (!status.index.ok)
       body.appendChild(el("div", "st-note bad", status.index.error ? "The Bleep Store cannot be reached: " + status.index.error : "Reading the Bleep Store…"));
+    if (status.index.ok && status.index.cached)   // offline: the list the store gave the last time it answered
+      body.appendChild(el("div", "st-note", `The Bleep Store was not reached. This is the list saved ${status.index.cachedAt ? new Date(status.index.cachedAt * 1000).toLocaleString() : "earlier"}.`));
     if (!status.installed.length && status.index.ok)
       body.appendChild(el("div", "st-note warn", "The default modules are not installed. Boards show placeholders until they are."));
     if (!status.hasRoots)
@@ -269,7 +271,7 @@
     body.innerHTML = "";
     for (const b of tabsEl.children) b.classList.toggle("on", b.dataset.tab === tab);
     const n = status.installed.length;
-    summaryEl.textContent = `${n} module${n === 1 ? "" : "s"} installed · ${status.index.ok ? status.index.modules.length + " in the store" : "store not reached"}`;
+    summaryEl.textContent = `${n} module${n === 1 ? "" : "s"} installed · ${status.index.ok ? status.index.modules.length + (status.index.cached ? " in the saved store list" : " in the store") : "store not reached"}`;
     noteEl.textContent = message;
     ({ modules: renderModules, plugins: renderPlugins, presets: renderPresets, security: renderSecurity })[tab]();
   }
@@ -370,7 +372,11 @@
   /// Resolves true to go on loading (also with "Load anyway": the board keeps placeholders), false when the user cancels.
   async function ensureNeeds(preset, name) {
     if (!preset) return true;
-    await statusWithIndex();
+    // Placing a preset must work offline: look at the modules installed here and at the store index if it is already
+    // loaded, never wait for the network. (An index that is not loaded yet is fetched in the background, for next time.)
+    // If even the local status does not answer, the caller places the preset anyway.
+    status = await Promise.race([native("storeStatus"), new Promise((_, no) => setTimeout(() => no(new Error("the app did not answer in time")), 5000))]);
+    if (!status.index.ok) native("storeRefresh").catch(() => {});
     const rows = [...neededBy(preset)].map(([slug, n]) => judge(slug, n)).filter((r) => r.action !== "ok");
     if (!rows.length) return true;
     return new Promise((resolve) => {

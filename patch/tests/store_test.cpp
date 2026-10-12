@@ -118,6 +118,28 @@ void testClient(const juce::File& fixtures) {
     CHECK(index.modules.size() == 6 && index.find("good") && index.find("good")->version == "1.2.0", "the index lists six modules");
     CHECK(index.providing("acme/fuzz") && index.providing("acme/fuzz")->slug == "acme.fuzz" && !index.providing("nothing"), "a type finds its module");
 
+    {  // the index is kept on disk, so the store still lists its modules when it can't be reached
+        Index saved;
+        int64_t at = 0;
+        CHECK(client("site").loadCachedIndex(saved, at, error), "a fetched index is saved: %s", error.c_str());
+        CHECK(saved.modules.size() == 6 && saved.find("good") && saved.find("good")->version == "1.2.0" && at == now, "the saved copy is the index, with the time");
+        Settings gone;   // the same data folder, a store that does not answer
+        gone.storeUrl = juce::URL(fixtures.getChildFile("no-such-site")).toString(false).toStdString();
+        Client offline(gone, data, roots, now);
+        Index none, fromDisk;
+        CHECK(!offline.fetchIndex(none, error), "an unreachable store gives no index");
+        CHECK(!offline.loadCachedIndex(fromDisk, at, error) && error.find("another store") != std::string::npos,
+              "a copy saved for another store address is not used: %s", error.c_str());
+        Settings beta;
+        beta.storeUrl = client("site").settings().storeUrl;
+        beta.channel = "beta";
+        CHECK(!Client(beta, data, roots, now).loadCachedIndex(fromDisk, at, error), "nor one saved for another channel");
+        CHECK(client("site").loadCachedIndex(fromDisk, at, error) && fromDisk.modules.size() == 6, "a new client of the same store reads it");
+        Settings same;
+        same.storeUrl = client("site").settings().storeUrl;
+        CHECK(!Client(same, data.getChildFile("elsewhere"), roots, now).loadCachedIndex(fromDisk, at, error), "no copy, no index");
+    }
+
     CHECK(client("site").install("good", m, error), "install good: %s", error.c_str());
     CHECK(m.result.status == "signed" && m.result.publisher == "bleep" && m.version == "1.2.0" && m.file.existsAsFile() && m.file.withFileExtension("sig.json").existsAsFile(),
           "good is installed with its signature kept beside it");
