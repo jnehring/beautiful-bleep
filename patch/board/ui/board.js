@@ -115,7 +115,7 @@
   function bayInputs(n, b) {   // the channels and the free one
     const chans = bayChannels(n, b);
     const next = chans.length ? Number(chans[chans.length - 1].id.slice(1)) + 1 : 1;
-    return chans.concat([{ id: "c" + next, name: "free", type: "control" }]);
+    return chans.concat([{ id: "c" + next, name: "free", type: "control" }]).map((c) => ({ ...c, type: "any" }));
   }
   function bayOutputs(n, b) {
     const src = bundleSource(n.id, "bundle", b);

@@ -22,6 +22,7 @@
   --sig-audio: #ff6b6b;
   --sig-notes: #a78bfa;
   --sig-patchbay: #e5e7eb;
+  --sig-any: #f472b6;   /* patch bay inlets: they take any cable but notes */
   font: 13px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
   color-scheme: dark;
 }
