@@ -148,7 +148,7 @@ static void registerResonatorModule(Registry& r) {
     ModuleSpec s;
     s.type = "resonator";
     s.name = "Resonator";
-    s.category = "Audio";
+    s.category = "Effects";
     s.colour = "#0891b2";
     s.description = "A tuned resonant body that rings when something hits it: modal (string, bar, plate, bell), "
                     "sympathetic strings or a plucked string. Feed it audio or strum it; up to four voices.";

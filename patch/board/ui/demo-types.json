@@ -12653,7 +12653,7 @@
   {
     "type": "grains",
     "name": "Grains",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#2563eb",
     "description": "Granular processor: records its input and plays it back as a seeded cloud of grains. Freeze holds the buffer; Feedback and Blur build endless textures.",
     "port": "",
@@ -20569,7 +20569,7 @@
   {
     "type": "resonator",
     "name": "Resonator",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#0891b2",
     "description": "A tuned resonant body that rings when something hits it: modal (string, bar, plate, bell), sympathetic strings or a plucked string. Feed it audio or strum it; up to four voices.",
     "port": "",
@@ -24602,7 +24602,7 @@
   {
     "type": "splice",
     "name": "Splice",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#0284c7",
     "description": "Tape-style sampler and looper: record onto a reel, cut it into splices, play them at any speed and break them into windows, from micro-loops to clouds. Drop a WAV file on the reel to import it.",
     "port": "",
@@ -27494,7 +27494,7 @@
   {
     "type": "wavefolder",
     "name": "Folder",
-    "category": "Audio",
+    "category": "Effects",
     "colour": "#10b981",
     "description": "Stereo six-stage wavefolder with tap crossfade, symmetry and an internal oscillator, anti-aliased for audio.",
     "port": "",

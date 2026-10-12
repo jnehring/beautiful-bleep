@@ -398,7 +398,7 @@ static void registerSpliceModule(Registry& r) {
     ModuleSpec s;
     s.type = "splice";
     s.name = "Splice";
-    s.category = "Audio";
+    s.category = "Effects";
     s.colour = "#0284c7";
     s.description = "Tape-style sampler and looper: record onto a reel, cut it into splices, play them at any speed "
                     "and break them into windows, from micro-loops to clouds. Drop a WAV file on the reel to import it.";
