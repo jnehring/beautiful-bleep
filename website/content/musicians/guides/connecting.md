@@ -63,11 +63,18 @@ Two things make the delay mostly invisible in a song:
    | **Bleep App** | The board in the running app |
    | **Bleep Play** | Bleep Play that has joined (through the app) |
 
-3. **In the browser:** open the board and press **⇄ Connect to app**.
+3. **In the browser:** open the board and press **⇄ Connect to app** (next to
+   *Start audio*). The button is in the current web build only: a copy of the
+   board built earlier does not have it. Rebuild with
+   `scripts/build/build-web.sh --no-modules`.
 
 For the lowest delay, **open the board from the app** instead of the website:
 the Web section of the app's Settings shows the address
-(`http://127.0.0.1:47100/`). That page can use a faster path between the
+(`http://127.0.0.1:47100/`). The app serves the board page from the folder named
+by the `BLEEP_WEB_ROOT` environment variable (the folder `build-web.sh` wrote,
+`build/web/site`), for example
+`BLEEP_WEB_ROOT=build/web/site "Bleep Patch.app/Contents/MacOS/Bleep Patch"`.
+Without it the app shows only a placeholder page at that address. That page can use a faster path between the
 browser and its audio engine, which is what *Low latency* means. The website's
 page works too, in *Safe* mode, with more delay and a little more headroom.
 Safari does not let a website talk to an app on your computer, so use the

@@ -24,7 +24,10 @@ bool supportedKind(engine::PortKind k) {
         case engine::PortKind::Instrument:
         case engine::PortKind::AudioInsert:
         case engine::PortKind::AudioBridge: return true;
-        default: return false;
+        case engine::PortKind::None:
+        case engine::PortKind::Patch:
+        case engine::PortKind::Link:
+        case engine::PortKind::MidiDevice: return false;
     }
 }
 

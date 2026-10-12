@@ -421,7 +421,12 @@ void testSync(engine::Engine& engine, WebHub& hub, int port) {
     EXPECT(waitFor([&] { web.pump(5); return web.firstText("welcome").isObject(); }));
     const auto welcomeEpoch = (int)web.firstText("welcome")["epoch"];
     for (int blk = 0; blk < 10; ++blk) driveApp(engine, hub, transportAt(8.0 + blk * 0.0027));
-    EXPECT(waitFor([&] { web.pump(5); return web.firstText("sync").isObject(); }));
+    // The sync thread may have sent one before these blocks ran (the earlier test left the clock at beat 10): wait for one after.
+    EXPECT(waitFor([&] {
+        web.pump(5);
+        const auto all = web.allText("sync");
+        return !all.empty() && (double)all.back()["beat"] >= 8.0 && (double)all.back()["beat"] < 8.1;
+    }));
     const auto s1 = web.allText("sync").back();
     EXPECT(std::fabs((double)s1["tempo"] - 120.0) < 1e-6);
     EXPECT((bool)s1["playing"]);

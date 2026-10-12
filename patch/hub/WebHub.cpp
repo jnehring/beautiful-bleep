@@ -72,6 +72,15 @@ engine::Transport toEngine(const bridge::Transport& t) {
 }
 }  // namespace
 
+/// The audio device's thread must never wait for another thread, but the tables behind m_ are only held for a few
+/// microseconds (a packet pushed, a message parsed): trying for a moment nearly always gets the lock, where a single
+/// try loses the block (and with it MIDI, whose note-off would then never arrive).
+static bool lockBriefly(std::unique_lock<std::mutex>& lock) noexcept {
+    for (int i = 0; i < 4000; ++i)
+        if (lock.try_lock()) return true;
+    return false;
+}
+
 double WebHub::hubMs() const noexcept { return juce::Time::getMillisecondCounterHiRes(); }
 
 int WebHub::port() const noexcept { return server_ ? server_->boundPort() : 0; }
@@ -604,8 +613,7 @@ int WebHub::pullDue(Channel& ch, const engine::Transport& t, int n, Midi* out, i
 void WebHub::slotBlock(int slot, Block& b) noexcept {
     const engine::Transport et = toEngine(b.transport);
     observe(et, b.numSamples, true);
-    std::unique_lock<std::mutex> lock(m_, std::try_to_lock);
-    if (!lock.owns_lock()) return;
+    std::unique_lock<std::mutex> lock(m_);  // the bridge thread is the app's own, not Live's: it may wait the few µs
     SlotInfo& s = slots_[slot];
     lastBlock_ = b.numSamples;
     float tmpL[bridge::kMaxBlock], tmpR[bridge::kMaxBlock];
@@ -699,8 +707,8 @@ void WebHub::poll() {
 
 void WebHub::collect(const engine::Transport& t, int n, std::vector<int>& handles, std::vector<engine::BlockIO*>& ios) {
     observe(t, n, false);
-    std::unique_lock<std::mutex> lock(m_, std::try_to_lock);
-    if (!lock.owns_lock()) return;
+    std::unique_lock<std::mutex> lock(m_, std::defer_lock);
+    if (!lockBriefly(lock)) return;
     sinkRate_ = t.sampleRate > 0.0 ? t.sampleRate : sinkRate_;
     lastBlock_ = n;
     inBlock_.store(true);
@@ -738,8 +746,8 @@ void WebHub::after(std::vector<int>&, std::vector<engine::BlockIO*>&) {
         std::atomic<bool>& flag;
         ~Done() { flag.store(false); }
     } done{inBlock_};
-    std::unique_lock<std::mutex> lock(m_, std::try_to_lock);
-    if (!lock.owns_lock()) return;
+    std::unique_lock<std::mutex> lock(m_, std::defer_lock);
+    if (!lockBriefly(lock)) return;
     for (auto& cp : channels_) {
         if (!cp || !cp->active || cp->handle == 0 || !cp->ioReady) continue;
         Channel& ch = *cp;
