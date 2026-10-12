@@ -664,9 +664,17 @@
       const b = toWorld(e.clientX, e.clientY);
       tmp.setAttribute("d", cablePath(a, b));
       const over = document.elementFromPoint(e.clientX, e.clientY);
-      const knob = over && over.closest(".bv-target.drop-ok");
-      for (const t of document.querySelectorAll(".drop-hover")) if (t !== knob) t.classList.remove("drop-hover");
-      if (knob) knob.classList.add("drop-hover");
+      // The port a drop would reach: a knob in a view or an input jack that accepts this cable.
+      const port = over && (over.closest(".bv-target.drop-ok") || over.closest(".jack.in.drop-ok"));
+      for (const t of document.querySelectorAll(".drop-hover")) if (t !== port) t.classList.remove("drop-hover");
+      let b = toWorld(e.clientX, e.clientY);
+      if (port) {
+        port.classList.add("drop-hover");
+        // The cable end snaps onto the port.
+        const r = (port.querySelector(".dot") || port).getBoundingClientRect();
+        b = toWorld(r.left + r.width / 2, r.top + r.height / 2);
+      }
+      tmp.setAttribute("d", cablePath(a, b));
       springOpen(over);
     };
     const up = (e) => {
@@ -705,7 +713,7 @@
   function viewInputs(id, v, on) {
     const old = v.win.querySelector(".v-ins");
     if (old) {
-      v.win.style.left = v.win.offsetLeft + old.offsetWidth + "px";
+      v.win.style.left = v.win.offsetLeft + (v.shift || 0) + "px";
       v.win.style.width = v.ownWidth;
       v.win.classList.remove("wiring");
       old.remove();
@@ -723,7 +731,16 @@
     v.win.classList.add("wiring");
     v.win.insertBefore(strip, v.win.querySelector(".v-body"));
     v.win.style.width = w + strip.offsetWidth + "px";
-    v.win.style.left = v.win.offsetLeft - strip.offsetWidth + "px";
+    // Grow to the left, but never over the module itself: its ports must stay free.
+    const left0 = v.win.offsetLeft;
+    let left = Math.max(8, left0 - strip.offsetWidth);
+    const ne = nodesEl.querySelector(`[data-id="${id}"]`);
+    if (ne) {
+      const nodeRight = ne.getBoundingClientRect().right - canvas.getBoundingClientRect().left;
+      if (left0 >= nodeRight) left = Math.max(left, nodeRight + 8);
+    }
+    v.shift = left0 - left;
+    v.win.style.left = left + "px";
   }
 
   // While a cable is in hand, resting on a module opens its view, so the
@@ -1930,9 +1947,21 @@
     const r = canvas.getBoundingClientRect();
     else if (isPort(n)) win.classList.add("port");   // In/Out nodes have a few controls: fit them
     let x = 40, y = 40;
-    if (ne) { const nr = ne.getBoundingClientRect(); x = nr.right - r.left + 16; y = nr.top - r.top; }
+    if (ne) {
+      // Beside the node, never over it: its ports must stay reachable.
+      // Right if it fits, else left, else (a window as wide as the canvas) below or above.
+      const nr = ne.getBoundingClientRect(), w = win.offsetWidth, h = win.offsetHeight, gap = 16;
+      const nl = nr.left - r.left, nrt = nr.right - r.left, nt = nr.top - r.top, nb = nr.bottom - r.top;
+      y = nt;
+      if (nrt + gap + w <= r.width - 10) x = nrt + gap;
+      else if (nl - gap - w >= 8) x = nl - gap - w;
+      else {
+        x = nl;
+        y = nb + gap + h <= r.height - 8 || nt - gap - h < 8 ? nb + gap : nt - gap - h;
+      }
+    }
     x = Math.max(8, Math.min(x, r.width - win.offsetWidth - 10));
-    y = Math.max(8, Math.min(y, r.height - 200));
+    y = Math.max(8, Math.min(y, r.height - Math.min(win.offsetHeight, 200)));
     win.style.left = x + "px";
     win.style.top = y + "px";
     front(win);

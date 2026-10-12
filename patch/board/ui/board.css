@@ -108,6 +108,9 @@ kbd { font: inherit; font-size: 11px; color: var(--muted); }
 .jack.add .dot { border-style: dashed; }
 .jack.drop-ok .dot { box-shadow: 0 0 0 4px rgba(255, 255, 255, .25); }
 .jack.drop-no { opacity: .3; }
+/* The port a drop would reach right now: the dot swells with a ring, the label lights up. */
+.jack.drop-hover .dot { background: var(--c, #fff); transform: scale(1.5); box-shadow: 0 0 0 4px rgba(255, 255, 255, .55), 0 0 10px var(--c, #fff); }
+.jack.drop-hover .jl { color: var(--text); }
 canvas.scope { width: 34px; height: 12px; flex: none; }
 .zoomed-out .jack .jl, .zoomed-out canvas.scope { visibility: hidden; }
 
