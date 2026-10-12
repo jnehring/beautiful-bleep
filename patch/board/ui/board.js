@@ -21,7 +21,11 @@
   let path = [];               // ids of the cells we're inside
   const cams = new Map();      // level → {x, y, z}
   const sel = new Set();       // selected node ids
-  let selCable = null;
+  let selCable = null;         // the cable the popover is for; with selMore, the selected cables (shift-click adds)
+  const selMore = new Set();
+  const clearCableSel = () => { selCable = null; selMore.clear(); };
+  const isCableSel = (id) => id === selCable || selMore.has(id);
+  const selectedCableIds = () => (selCable ? [selCable, ...selMore] : []);
   let hoverCable = null;   // id of the cable under the pointer; drawn on top in the highlight colour
   let trace = null;            // Set of node ids, or null
   let live = null;             // latest "state" event
@@ -223,6 +227,8 @@
     if (pluginMode) syncPluginPanel();
     for (const id of [...sel]) if (!nodeById(id)) sel.delete(id);
     if (selCable && !(board && board.cables.some((c) => c.id === selCable))) selCable = null;
+    for (const id of [...selMore]) if (!(board && board.cables.some((c) => c.id === id))) selMore.delete(id);
+    if (!selCable && selMore.size) { selCable = [...selMore][0]; selMore.delete(selCable); }
     for (const [id, v] of views) {
       if (v.panelId) {
         const d = panelById(v.panelId);
@@ -670,7 +676,7 @@
     if (!board) return;
     const here = new Set(nodesAt(level()).map((n) => n.id));
     // The selected cable is drawn last, so it lies on top of the others.
-    const ordered = [...board.cables.filter((c) => c.id !== selCable), ...board.cables.filter((c) => c.id === selCable)];
+    const ordered = [...board.cables.filter((c) => !isCableSel(c.id)), ...board.cables.filter((c) => isCableSel(c.id))];
     if (hoverCable && !board.cables.some((c) => c.id === hoverCable)) hoverCable = null;
     let hoverPath = null;
     for (const c of ordered) {
@@ -686,7 +692,7 @@
       p.style.setProperty("--c", signalColour(type));
       if (isGhost(src) || isGhost(dst)) p.classList.add("ghost");
       if (trace && !(trace.has(src.id) && trace.has(dst.id))) p.classList.add("dim");
-      if (c.id === selCable) { p.classList.add("selected"); p.style.setProperty("--c", cableHighlight); }
+      if (isCableSel(c.id)) { p.classList.add("selected"); p.style.setProperty("--c", cableHighlight); }
       const hit = document.createElementNS(SVGNS, "path");
       hit.setAttribute("d", d);
       hit.setAttribute("class", "cable-hit");
@@ -698,12 +704,27 @@
       hit.addEventListener("pointerleave", () => setHoverCable(null));
       hit.addEventListener("pointerdown", (ev) => {
         ev.stopPropagation();
-        selCable = c.id;
+        if (ev.button !== 0) return;   // the right button is the cable menu
         sel.clear();
         renderSelection();
         renderCables();
-        showCablePop(c);
+        if (selCable && !selMore.size) showCablePop(board.cables.find((k) => k.id === selCable));
+        else $("cable-pop").hidden = true;
       });
+      hit.addEventListener("contextmenu", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (ev.ctrlKey && ev.button === 0) return;   // ctrl-click on a Mac: a selection click, not the menu
+        if (!isCableSel(c.id)) { sel.clear(); clearCableSel(); selCable = c.id; renderSelection(); renderCables(); }
+        showCableMenu(ev);
+      });
+        if ((ev.shiftKey || ev.ctrlKey || ev.metaKey) && selCable) {   // shift-, ctrl- or ⌘-click adds the cable to the selection, or takes it out
+          if (c.id === selCable) { selCable = selMore.size ? [...selMore][0] : null; selMore.delete(selCable); }
+          else selMore.has(c.id) ? selMore.delete(c.id) : selMore.add(c.id);
+        } else {
+          clearCableSel();
+          selCable = c.id;
+        }
       cablesEl.append(p);
       if (!p.classList.contains("ghost") && !p.classList.contains("dim")) {
         const glow = document.createElementNS(SVGNS, "path");
@@ -756,10 +777,65 @@
     pop.style.left = m.x - pop.offsetWidth / 2 + "px";
     pop.style.top = m.y + 14 + "px";
   }
-  function removeCable(id) {
-    selCable = null;
+  function removeCable(id) { removeCables([id]); }
+  function removeCables(ids) {
+    clearCableSel();
     $("cable-pop").hidden = true;
-    edit("delete cable", (b) => { b.cables = b.cables.filter((c) => c.id !== id); });
+    edit(ids.length > 1 ? "delete cables" : "delete cable", (b) => { b.cables = b.cables.filter((c) => !ids.includes(c.id)); });
+  }
+
+  // ---- create patch bay: the selected cables become the channels of one bundle (doc/specs/modules/patchbay.md) -------
+  /// The selected cables a bay can carry: any signal but notes, and not a bundle already.
+  function bayableCables() {
+    const ids = selectedCableIds();
+    return board.cables.filter((c) => {
+      if (!ids.includes(c.id)) return false;
+      const src = nodeById(c.from.node);
+      const t = src && outType(src, c.from.jack);
+      return t && t !== "notes" && t !== "patchbay";
+    });
+  }
+  function showCableMenu(ev) {
+    const n = selectedCableIds().length, ok = bayableCables().length;
+    showMenu(ev, [
+      { label: "Create patch bay", run: createPatchBay, disabled: !ok },
+      "-",
+      { label: n > 1 ? "Delete " + n + " cables" : "Delete cable", key: "⌫", run: () => removeCables(selectedCableIds()) },
+    ]);
+  }
+  /// Every distinct source output becomes a channel of a new Patch Bay In (left of the destinations), the bundle goes
+  /// to a new Patch Bay Out, and each destination is wired from that channel with its old amount.
+  function createPatchBay() {
+    const picked = bayableCables().map((c) => c.id);
+    if (!picked.length) return;
+    clearCableSel();
+    $("cable-pop").hidden = true;
+    edit("create patch bay", (b) => {
+      const cables = b.cables.filter((c) => picked.includes(c.id));
+      const mean = (ids, k) => ids.reduce((a, id) => a + nodeById(id, b)[k], 0) / ids.length;
+      const srcIds = [...new Set(cables.map((c) => c.from.node))], dstIds = [...new Set(cables.map((c) => c.to.node))];
+      const lvl = level();
+      // In just right of the sources, Out just left of the destinations, never on top of each other.
+      const inX = Math.round(Math.max(...srcIds.map((id) => nodeById(id, b).x)) + 200);
+      const outX = Math.round(Math.max(inX + 200, Math.min(...dstIds.map((id) => nodeById(id, b).x)) - 200));
+      const bin = { id: uid("n"), type: "patchbay-in", name: types["patchbay-in"].name, x: inX, y: Math.round(mean(srcIds, "y")), parent: lvl, params: {} };
+      const bout = { id: uid("n"), type: "patchbay-out", name: types["patchbay-out"].name, x: outX, y: Math.round(mean(dstIds, "y")), parent: lvl, params: {} };
+      b.nodes.push(bin, bout);
+      const chan = new Map();
+      b.cables = b.cables.filter((c) => !picked.includes(c.id));
+      for (const c of cables) {
+        const key = c.from.node + "|" + c.from.jack;
+        if (!chan.has(key)) {
+          chan.set(key, "c" + (chan.size + 1));
+          b.cables.push({ id: uid("k"), from: clone(c.from), to: { node: bin.id, jack: chan.get(key) }, amount: 1 });
+        }
+        b.cables.push({ id: uid("k"), from: { node: bout.id, jack: chan.get(key) }, to: clone(c.to), amount: c.amount });
+      }
+      b.cables.push({ id: uid("k"), from: { node: bin.id, jack: "bundle" }, to: { node: bout.id, jack: "bundle" }, amount: 1 });
+      sel.clear();
+      sel.add(bin.id);
+      sel.add(bout.id);
+    });
   }
 
   // ----------------------------------------------------------- node dragging
@@ -784,7 +860,7 @@
     ev.stopPropagation();
     canvas.focus();
     hidePopovers();
-    selCable = null;
+    clearCableSel();
     if (ev.shiftKey) {
       sel.has(n.id) ? sel.delete(n.id) : sel.add(n.id);
     } else if (!sel.has(n.id)) {
@@ -1076,11 +1152,12 @@
     if (ev.button === 0) closeUnpinnedViews();  // a click elsewhere closes views that are not pinned
     if (ev.button === 1 || (ev.button === 0 && (spaceDown || ev.altKey))) return startPan(ev);
     if (ev.button !== 0) return;
-    selCable = null;
+    const keepCables = ev.shiftKey ? selectedCableIds() : [];
+    clearCableSel();
     if (!ev.shiftKey) sel.clear();
     renderSelection();
     renderCables();
-    startBand(ev);
+    startBand(ev, keepCables);
   });
   canvas.addEventListener("dblclick", (ev) => {
     if (ev.target.closest(".node") || ev.target.closest(".vwin") || ev.target.closest(".popover")) return;
@@ -1101,6 +1178,7 @@
       { label: "Fit to window", key: "F", run: fit },
     ]);
   });
+    if (ev.ctrlKey && ev.button === 0) return;   // ctrl-drag on a Mac (a cable band): not the menu
   canvas.addEventListener("wheel", (ev) => {
     if (ev.target.closest(".vwin") || ev.target.closest(".popover")) return;
     ev.preventDefault();
@@ -1170,7 +1248,20 @@
     window.addEventListener("pointerup", up);
   }
 
-  function startBand(ev) {
+  /// The cables drawn through the world rectangle (a, b): any point along the cable inside it counts.
+  function cablesInRect(a, b) {
+    const ids = [];
+    for (const h of cablesEl.querySelectorAll(".cable-hit")) {
+      const len = h.getTotalLength();
+      for (let d = 0; d <= len + 8; d += 8) {
+        const p = h.getPointAtLength(Math.min(d, len));
+        if (p.x >= a.x && p.x <= b.x && p.y >= a.y && p.y <= b.y) { ids.push(h.dataset.id); break; }
+      }
+    }
+    return ids;
+  }
+  /// A band over cables and no node selects the cables; hold ctrl/⌘ to pick cables even over nodes.
+  function startBand(ev, keepCables = []) {
     const r = canvas.getBoundingClientRect();
     const sx = ev.clientX - r.left, sy = ev.clientY - r.top;
     const band = $("band");
@@ -1186,9 +1277,20 @@
       before.forEach((id) => sel.add(id));
       for (const n of nodesAt(level())) {
         if (ownerOf(n.id)) continue;
+    const cableMode = ev.ctrlKey || ev.metaKey;
+    let picked = keepCables.join();
         const ne = nodesEl.querySelector(`[data-id="${n.id}"]`);
         const h = ne ? ne.offsetHeight : 60;
-        if (n.x < b.x && n.x + NODE_W > a.x && n.y < b.y && n.y + h > a.y) sel.add(n.id);
+        if (!cableMode && n.x < b.x && n.x + NODE_W > a.x && n.y < b.y && n.y + h > a.y) sel.add(n.id);
+      }
+      // Nodes first: cables only when the band holds none (or ctrl/⌘ is down), so a band never mixes the two.
+      const ids = sel.size > before.size || (before.size && !cableMode) ? [] : cablesInRect(a, b);
+      const all = [...new Set([...keepCables, ...ids])];
+      if (all.join() !== picked) {
+        picked = all.join();
+        clearCableSel();
+        all.forEach((id, i) => (i ? selMore.add(id) : (selCable = id)));
+        renderCables();
       }
       renderSelection();
     };
@@ -1204,6 +1306,7 @@
   // ---------------------------------------------------------- adding things
   function addAtCentre(what) {
     const r = canvas.getBoundingClientRect();
+      if (selCable && !selMore.size) showCablePop(board.cables.find((k) => k.id === selCable));
     const w = toWorld(r.left + r.width / 2, r.top + r.height / 2);
     addAt(what, w.x - NODE_W / 2, w.y - 40);
   }
@@ -1666,7 +1769,7 @@
     !board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type && !doomed.has(m.id));
 
   function deleteSelection(label = "delete") {
-    if (selCable) return removeCable(selCable);
+    if (selCable) return removeCables(selectedCableIds());
     const doomed = new Set();
     for (const n of selectedNodes()) {
       if (isFixedPort(n) || isFixedBoundary(n) ||  // spec §6, §8.3.1
@@ -1754,7 +1857,7 @@
 
   function cut() {
     if (!copy()) return;
-    selCable = null;
+    clearCableSel();
     deleteSelection("cut");
   }
 
@@ -1802,7 +1905,7 @@
                           to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
       addPanels(b, Array.isArray(clip.panels) ? clip.panels : [], map);
       sel.clear();
-      selCable = null;
+      clearCableSel();
       roots.forEach((n) => sel.add(map.get(n.id)));
     });
   }
@@ -2874,7 +2977,7 @@
       if (trace) { trace = null; return render(); }
       if (closeTopView()) return;
       if (path.length) return leaveTo(path.length - 1);
-      sel.clear(); selCable = null; renderSelection(); renderCables();
+      sel.clear(); clearCableSel(); renderSelection(); renderCables();
       return;
     }
     if (k === "f") return fit();
