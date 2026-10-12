@@ -46,8 +46,15 @@ them (📌) to keep them open when you enter or leave cells.
 
 ## Cells
 
-- Select nodes and press **⌘G** to put them into a cell. Cables that cross
-  the new border become the cell's jacks.
+- **Add → Cell → New Cell** or **New Voice Cell** places an empty cell.
+- Select nodes, right-click and choose **Create cell** (**⌘G**) or **Create
+  voice cell**. Cables that cross the new border become the cell's jacks.
+- Drag nodes onto a cell to move them into it; the cell lights up when it
+  takes them. Cables to the rest of the board become cell jacks (an input
+  that already carries the same signal is reused).
+- Inside a cell, right-click a node → **Remove from cell** moves it out next to
+  the cell; its cables are rerouted over cell jacks. Cables to *Voice In* and
+  *Voice Out* can't be kept.
 - Double-click a cell to enter it; **Esc** or the path at the top leads back
   out. Inside, *Cell In* and *Cell Out* are the cell's jacks: drop a cable on
   their *new input* / *new output* row to add one.
@@ -61,7 +68,7 @@ them (📌) to keep them open when you enter or leave cells.
 | Key | Action |
 |---|---|
 | Tab, double-click | Add a module |
-| ⌘G / ⌘⇧G | Group into a cell / ungroup |
+| ⌘G / ⌘⇧G | Create a cell from the selection / ungroup |
 | ⌘D / ⌘⇧D | Duplicate / duplicate with incoming cables |
 | Delete | Remove the selection (not ports) |
 | Esc | Close a view, leave a cell, clear the selection |

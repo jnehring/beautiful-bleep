@@ -799,10 +799,31 @@
     const moving = [...sel].map((id) => nodeById(id)).filter((m) => m && !ownerOf(m.id));   // a panel's modules sit in their stack
     const origin = moving.map((m) => ({ id: m.id, x: m.x, y: m.y }));
     let moved = false;
+    // Dropping on a cell moves what is dragged into it (the cell under the pointer, if it may take them).
+    const movers = moving.filter((m) => !isPort(m) && !isBoundary(m));
+    let dropCell = null;
+    const setDropCell = (id) => {
+      if (id === dropCell) return;
+      if (dropCell) { const o = nodesEl.querySelector(`[data-id="${dropCell}"]`); if (o) o.classList.remove("drop-target"); }
+      dropCell = id;
+      if (id) { const o = nodesEl.querySelector(`[data-id="${id}"]`); if (o) o.classList.add("drop-target"); }
+    };
+    const cellUnder = (e) => {
+      if (!movers.length) return null;
+      for (const hit of document.elementsFromPoint(e.clientX, e.clientY)) {
+        const ne = hit.closest && hit.closest(".node.cell");
+        const t = ne && nodeById(ne.dataset.id);
+        if (!t || !isCellLike(t) || movers.some((m) => m.id === t.id)) continue;
+        if ((t.type === "voice-cell" || insideVoiceCell(t.id)) && !canEnterVoice(movers)) return null;
+        return t.id;
+      }
+      return null;
+    };
     const move = (e) => {
       const dx = (e.clientX - start.x) / c.z, dy = (e.clientY - start.y) / c.z;
       if (!moved && Math.hypot(dx, dy) < 3) return;
       moved = true;
+      setDropCell(cellUnder(e));
       origin.forEach((o) => {
         const m = nodeById(o.id);
         m.x = Math.round(o.x + dx);
@@ -813,10 +834,14 @@
       renderCables();
       positionCablePop();
     };
-    const up = () => {
+    const up = (e) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
-      if (moved) {
+      const target = moved ? cellUnder(e) : null;
+      setDropCell(null);
+      if (target) {
+        edit("move into cell", (b) => { moveIntoCell(b, new Set(movers.map((m) => m.id)), target, false); sel.clear(); });
+      } else if (moved) {
         commit(clone(board), "move");  // positions were updated in place while dragging
       } else if (!ev.shiftKey && !isStructural(n)) {
         toggleView(n.id);
@@ -1564,7 +1589,6 @@
   }
 
   function showNodeMenu(n, ev) {
-    const many = sel.size > 1;
     const items = [];
     if (!isStructural(n)) items.push({ label: views.has(n.id) ? "Close view" : "Open view", run: () => toggleView(n.id) });
     if (isCellLike(n)) {
@@ -1585,7 +1609,9 @@
     items.push({ label: "Copy", key: "⌘C", run: copy, disabled: !canDuplicate() });
     items.push({ label: "Paste", key: "⌘V", run: () => paste() });
     items.push({ label: "Duplicate", key: "⌘D", run: () => duplicate(false), disabled: !canDuplicate() });
-    items.push({ label: many ? "Group into cell" : "Put into cell", key: "⌘G", run: group, disabled: !canGroup() });
+    items.push({ label: "Create cell", key: "⌘G", run: () => group(), disabled: !canGroup() });
+    items.push({ label: "Create voice cell", run: () => group("voice"), disabled: !canGroupVoice() });
+    if (level() && !isPort(n) && !isBoundary(n)) items.push({ label: "Remove from cell", run: removeFromCell });
     if (n.type === "cell") {
       items.push({ label: "Ungroup", key: "⌘⇧G", run: () => ungroup(n.id) });
       items.push({ label: "Make Voice Cell", run: () => makeVoiceCell(n.id), disabled: insideVoiceCell(n.parent) });
@@ -1781,53 +1807,155 @@
     });
   }
 
-  /// ⌘G (spec §8.1): the selection moves into a new cell; cables that cross
-  /// the new border become cell jacks.
-  function group() {
+  /// True when `nodes` may live inside a Voice Cell: no ports, no Voice Cells, nothing inside them that isn't allowed.
+  const canEnterVoice = (nodes) => nodes.every((n) => !isPort(n) && n.type !== "voice-cell" &&
+    !(isCellLike(n) && descendants(n.id).some((d) => d.type === "voice-cell" || isPort(d))));
+  const canGroupVoice = () => {
     const picked = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
-    if (!picked.length) return;
-    if (insideVoiceCell(level()) && picked.some((n) => n.type === "voice-cell")) return;
-    edit("group", (b) => {
-      const inside = new Set(picked.map((n) => n.id));
-      const lvl = level();
-      const xs = picked.map((n) => n.x), ys = picked.map((n) => n.y);
-      const x0 = Math.min(...xs), y0 = Math.min(...ys);
-      const cellId = uid("c"), inId = uid("ci"), outId = uid("co");
-      const cell = { id: cellId, type: "cell", name: "Cell", x: x0, y: y0, parent: lvl, params: {}, inputs: [], outputs: [] };
-      b.nodes.push(cell,
-        { id: inId, type: "cell-in", name: "Cell In", x: x0 - 260, y: y0, parent: cellId, params: {} },
-        { id: outId, type: "cell-out", name: "Cell Out", x: Math.max(...xs) + 260, y: y0, parent: cellId, params: {} });
-      for (const n of b.nodes) if (inside.has(n.id)) n.parent = cellId;
-      const inputs = new Map(), outputs = new Map();
-      const next = [];
-      for (const c of b.cables) {
-        const fi = inside.has(c.from.node), ti = inside.has(c.to.node);
-        if (fi === ti) { next.push(c); continue; }
-        if (ti) {  // entering: one cell input per source
-          const key = c.from.node + "|" + c.from.jack;
-          if (!inputs.has(key)) {
-            const src = nodeById(c.from.node, b);
+    return picked.length > 0 && !insideVoiceCell(level()) && canEnterVoice(picked);
+  };
+
+  /// Moves the nodes `inside` into the cell `cellId` (all in `b`, all currently on one level) and ports the
+  /// cables that cross the border: each becomes a cell input or output (one per source), reusing a cell
+  /// input that already carries the same source. `keep` leaves the positions alone (a brand-new cell).
+  function moveIntoCell(b, inside, cellId, keep) {
+    const cell = nodeById(cellId, b);
+    const cin = b.nodes.find((n) => n.parent === cellId && n.type === "cell-in");
+    const cout = b.nodes.find((n) => n.parent === cellId && n.type === "cell-out");
+    const kids = b.nodes.filter((n) => inside.has(n.id));
+    if (!keep) {  // right of what is already in the cell, keeping the selection's own layout
+      const old = b.nodes.filter((n) => n.parent === cellId && !isBoundary(n));
+      const ox = old.length ? Math.max(...old.map((n) => n.x)) + NODE_W + 60 : 320;
+      const oy = old.length ? Math.min(...old.map((n) => n.y)) : 120;
+      const kx = Math.min(...kids.map((n) => n.x)), ky = Math.min(...kids.map((n) => n.y));
+      for (const n of kids) { n.x = ox + n.x - kx; n.y = oy + n.y - ky; }
+      const edge = Math.max(...kids.map((n) => n.x)) + NODE_W + 60;   // the cell's outputs make room
+      for (const n of b.nodes) if (n.parent === cellId && (n.type === "cell-out" || n.type === "voice-out") && n.x < edge) n.x = edge;
+    }
+    for (const n of kids) n.parent = cellId;
+    cell.inputs = cell.inputs || [];
+    cell.outputs = cell.outputs || [];
+    const inputs = new Map(), outputs = new Map();
+    const next = [];
+    for (const c of b.cables) {
+      const fi = inside.has(c.from.node), ti = inside.has(c.to.node);
+      if (fi === ti) { next.push(c); continue; }
+      if (c.from.node === cellId || c.to.node === cellId) continue;   // between the cell and its new content: no way in
+      const key = c.from.node + "|" + c.from.jack;
+      const src = nodeById(c.from.node, b);
+      if (ti) {  // entering
+        if (!cin) continue;
+        if (!inputs.has(key)) {
+          const same = b.cables.find((o) => o.to.node === cellId && o.from.node === c.from.node && o.from.jack === c.from.jack);
+          if (same) inputs.set(key, same.to.jack);
+          else {
             const jack = { id: uid("i"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
             cell.inputs.push(jack);
             inputs.set(key, jack.id);
             next.push({ id: uid("k"), from: clone(c.from), to: { node: cellId, jack: jack.id }, amount: 1 });
           }
-          next.push({ id: c.id, from: { node: inId, jack: inputs.get(key) }, to: clone(c.to), amount: c.amount });
-        } else {  // leaving: one cell output per source
-          const key = c.from.node + "|" + c.from.jack;
-          if (!outputs.has(key)) {
-            const src = nodeById(c.from.node, b);
-            const jack = { id: uid("o"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
-            cell.outputs.push(jack);
-            outputs.set(key, jack.id);
-            next.push({ id: uid("k"), from: clone(c.from), to: { node: outId, jack: jack.id }, amount: 1 });
+        }
+        next.push({ id: c.id, from: { node: cin.id, jack: inputs.get(key) }, to: clone(c.to), amount: c.amount });
+      } else {  // leaving
+        if (!cout) continue;
+        if (!outputs.has(key)) {
+          const jack = { id: uid("o"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
+          cell.outputs.push(jack);
+          outputs.set(key, jack.id);
+          next.push({ id: uid("k"), from: clone(c.from), to: { node: cout.id, jack: jack.id }, amount: 1 });
+        }
+        next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
+      }
+    }
+    b.cables = next;
+  }
+
+  /// Add → right-click → Create cell (⌘G, spec §8.1) or Create voice cell (`kind` "voice", spec §8.3.3): the
+  /// selection moves into a new cell; cables that cross the new border become cell jacks.
+  function group(kind) {
+    const voice = kind === "voice";
+    const picked = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
+    if (!picked.length) return;
+    if (insideVoiceCell(level()) && picked.some((n) => n.type === "voice-cell")) return;
+    if (voice && !canGroupVoice()) return;
+    edit(voice ? "create voice cell" : "group", (b) => {
+      const inside = new Set(picked.map((n) => n.id));
+      const lvl = level();
+      const xs = picked.map((n) => n.x), ys = picked.map((n) => n.y);
+      const x0 = Math.min(...xs), y0 = Math.min(...ys), x1 = Math.max(...xs);
+      const cellId = uid(voice ? "vc" : "c");
+      const params = voice ? Object.fromEntries(types["voice-cell"].params.map((p) => [p.id, p.default])) : {};
+      const bnd = (id, type, name, x, y) => ({ id, type, name, x, y, parent: cellId, params: {} });
+      b.nodes.push({ id: cellId, type: voice ? "voice-cell" : "cell", name: voice ? "Voice Cell" : "Cell", x: x0, y: y0, parent: lvl,
+                     params, inputs: [], outputs: [] },
+        bnd(uid("ci"), "cell-in", "Cell In", x0 - 260, voice ? y0 + 260 : y0),
+        bnd(uid("co"), "cell-out", "Cell Out", x1 + 260, voice ? y0 + 260 : y0));
+      if (voice) b.nodes.push(bnd(uid("vi"), "voice-in", "Voice In", x0 - 260, y0), bnd(uid("vo"), "voice-out", "Voice Out", x1 + 260, y0));
+      moveIntoCell(b, inside, cellId, true);
+      sel.clear();
+      sel.add(cellId);
+    });
+  }
+
+  /// Right-click → Remove from cell: the selected nodes inside the current cell move to the board level next
+  /// to the cell. Cables through the border are rerouted over new cell jacks, or joined where they passed
+  /// through a jack (as in ungroup). Cables to Voice In / Voice Out can't be kept.
+  function removeFromCell() {
+    const cellId = level();
+    const picked = selectedNodes().filter((n) => n.parent === cellId && !isPort(n) && !isBoundary(n));
+    if (!cellId || !picked.length) return;
+    edit("remove from cell", (b) => {
+      const cell = nodeById(cellId, b);
+      if (!cell) return false;
+      const out = new Set(picked.map((n) => n.id));
+      const kx = Math.min(...picked.map((n) => n.x)), ky = Math.min(...picked.map((n) => n.y));
+      for (const n of b.nodes) if (out.has(n.id)) {
+        n.parent = cell.parent || "";
+        n.x = cell.x + NODE_W + 80 + n.x - kx;
+        n.y = cell.y + n.y - ky;
+      }
+      const cins = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-in");
+      const couts = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out");
+      const cinIds = new Set(cins.map((n) => n.id)), coutIds = new Set(couts.map((n) => n.id));
+      cell.inputs = cell.inputs || [];
+      cell.outputs = cell.outputs || [];
+      const inputs = new Map(), outputs = new Map();
+      const next = [];
+      for (const c of b.cables) {
+        const fo = out.has(c.from.node), to = out.has(c.to.node);
+        if (fo === to) { next.push(c); continue; }
+        const key = c.from.node + "|" + c.from.jack;
+        const src = nodeById(c.from.node, b);
+        if (to) {  // from the cell's inside to a moved node
+          if (cinIds.has(c.from.node)) {  // it came in over a cell input: join the outer cables
+            for (const o of b.cables.filter((o) => o.to.node === cellId && o.to.jack === c.from.jack))
+              next.push({ id: uid("k"), from: clone(o.from), to: clone(c.to), amount: o.amount * c.amount });
+          } else if (!isBoundary(src) && couts[0]) {  // leaves the cell over a new cell output
+            if (!outputs.has(key)) {
+              const jack = { id: uid("o"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
+              cell.outputs.push(jack);
+              outputs.set(key, jack.id);
+              next.push({ id: uid("k"), from: clone(c.from), to: { node: couts[0].id, jack: jack.id }, amount: 1 });
+            }
+            next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
           }
-          next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
+        } else {  // from a moved node to the cell's inside
+          if (coutIds.has(c.to.node)) {  // it left over a cell output: join the outer cables
+            for (const o of b.cables.filter((o) => o.from.node === cellId && o.from.jack === c.to.jack))
+              next.push({ id: uid("k"), from: clone(c.from), to: clone(o.to), amount: c.amount * o.amount });
+          } else if (!isBoundary(nodeById(c.to.node, b)) && cins[0]) {  // enters the cell over a new cell input
+            if (!inputs.has(key)) {
+              const jack = { id: uid("i"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
+              cell.inputs.push(jack);
+              inputs.set(key, jack.id);
+              next.push({ id: uid("k"), from: clone(c.from), to: { node: cellId, jack: jack.id }, amount: 1 });
+            }
+            next.push({ id: c.id, from: { node: cins[0].id, jack: inputs.get(key) }, to: clone(c.to), amount: c.amount });
+          }
         }
       }
       b.cables = next;
       sel.clear();
-      sel.add(cellId);
     });
   }
 
