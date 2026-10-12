@@ -77,6 +77,35 @@ The first time a page from anywhere else connects, the app asks whether to allow
 it. Allow only pages you opened yourself. You can forget them again in
 Settings → Web.
 
+## Which plugins do I need?
+
+Only four of the [port plugins](../ports.md) can talk to the app or Bleep Play:
+**Bleep MIDI In**, **MIDI Out**, **Audio In** and **Audio Out**. They are the
+ones with a **Board** menu. Pick the plugin for what should travel, then set
+its Board to *Bleep App* (a patch in the app) or *Bleep Play* (the browser).
+
+| You want | Put this on a track | Board |
+|---|---|---|
+| **MIDI from Live to the board** (Live's notes play a synth in the app or browser) | **Bleep MIDI In** on a MIDI track | *Bleep App* or *Bleep Play* |
+| **MIDI from the board to Live** (a board sequencer plays an instrument in Live) | **Bleep MIDI Out** on a MIDI track, routed to your instrument ([how](midi-out-routing.md)) | *Bleep App* or *Bleep Play* |
+| **Audio from a Live track to the board** (an effect, a sampler or analysis) | **Bleep Audio In** on that track | *Bleep App* or *Bleep Play* |
+| **Audio from the board back into Live** (the sound of a synth or an effect) | **Bleep Audio Out** on its own MIDI track | *Bleep App* or *Bleep Play* |
+| **Sync** (tempo, beat, play and stop) | Nothing extra: any one of the four plugins above carries it | |
+
+A few things follow from that:
+
+- **Audio and MIDI are separate.** A browser synth played from Live needs two
+  plugins: MIDI In for the notes and Audio Out for the sound. A browser effect
+  needs Audio In and Audio Out.
+- **Sync has no plugin of its own.** As soon as one plugin with a Board other
+  than *This set* is connected, Live leads the tempo and transport, and the app
+  and Bleep Play follow it (see [Tempo and transport](#tempo-and-transport)).
+- **The other port plugins stay in Live.** *Bleep Board*, *Bleep Instrument* and
+  *Bleep FX* have no Board menu: they always use the board of this set. Put
+  *Bleep Board* once per set if you want macros as usual.
+
+The [recipes](#recipes) below walk through the common combinations.
+
 ## What you see
 
 **On the app's board**, a plugin with *Board = Bleep App* appears as the
