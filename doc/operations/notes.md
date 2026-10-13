@@ -14,7 +14,7 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 
 ## One-time setup (all three)
 
-- A **release token** (shown once) and a **signing kit** from the website stack; see "Releasing plugins to the store" in [release.md](release.md):
+- A **release token** (shown once) and a **signing kit** from the website stack; see "Releasing plugins to the store" in [release.md](release.md). Do this once: if `~/.bleep-release-token` and `~/.bleep-signing-kit.json` already exist, skip it (the token lasts 90 days, the kit's certificate 365 by default):
 
   ```bash
   cd website
@@ -24,13 +24,11 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
   ```
 
 - `pip install cryptography` (release.py and signing.py need it).
-- Put the shared options in the environment so the commands below stay short:
+- **In every new shell**, before a release, put the shared options in the environment so the commands below stay short. The `export`s only last for that shell; in a fresh terminal `release.py` stops with "A release token is required":
 
   ```bash
-  # the store (website address; the API is under /api)
-  export BLEEP_REGISTRY_URL=http://localhost:8080
-  export BLEEP_RELEASE_TOKEN=$(cat ~/.bleep-release-token)
-  export BLEEP_SIGNING_KIT=~/.bleep-signing-kit.json
+  # the store (website address; the API is under /api), the token and the signing kit
+  export BLEEP_REGISTRY_URL=http://localhost:8080 BLEEP_RELEASE_TOKEN=$(cat ~/.bleep-release-token) BLEEP_SIGNING_KIT=~/.bleep-signing-kit.json
   ```
 
 - Always rehearse first: add `--dry-run` (no token needed, changes nothing).
@@ -99,14 +97,53 @@ The product version is `project(BleepBoard VERSION …)` in `patch/CMakeLists.tx
 
 ## Modules
 
-Modules are WebAssembly (`.bleepmod` packages). One `.wasm` build, one package and one release serve the web board, the standalone app and the plugins, so local and web stay in sync. The native apps load the same `.wasm` files through Wasmtime; `build-web.sh` is the only module build. Building needs emcc (`source emsdk_env.sh`), python3 and node, or Docker:
+Modules are WebAssembly (`.bleepmod` packages). One `.wasm` build, one package and one release serve the web board, the standalone app and the plugins, so local and web stay in sync. The native apps load the same `.wasm` files through Wasmtime; `build-web.sh` is the only module build. Building needs emcc (the Emscripten SDK), python3 and node, or Docker.
+
+**Local emsdk (recommended, fast).** The SDK lives next to the repository, in `../emsdk`, pinned to 4.0.10 like CI and the Docker image. One-time install:
+
+```bash
+git clone https://github.com/emscripten-core/emsdk.git ../emsdk
+```
+
+```bash
+../emsdk/emsdk install 4.0.10 && ../emsdk/emsdk activate 4.0.10
+```
+
+In **every new shell**, before building (it only puts `emcc` on the `PATH` of that shell; run the build in the same terminal):
+
+```bash
+source ../emsdk/emsdk_env.sh
+```
+
+Then:
 
 ```bash
 # build/web/modules/*.wasm + manifest.json
 scripts/build/build-web.sh --modules-only
-# same, in the Emscripten image (no local emsdk)
+```
+
+**One module only** (or a few): name the module folders in `BLEEP_WEB_ONLY`, comma separated (the names under `patch/modules/`). The other modules already in `build/web/modules` stay in the manifest. The Docker variant passes the variable through too.
+
+```bash
+BLEEP_WEB_ONLY=reverb scripts/build/build-web.sh --modules-only
+```
+
+```bash
+BLEEP_WEB_ONLY=reverb,filter scripts/build/build-web.sh --modules-only
+```
+
+Then package and release just that module (see below): `package-module.py reverb`, `release.py --modules reverb --level patch`. Modules that use `juce_core` need the one-time JUCE build described above, which a single-module run triggers by itself.
+
+The emsdk brings its own Node and Python, which come first on the `PATH` in that shell. If conda's Python gets in the way, run `conda deactivate` first. The first build also clones JUCE into `build/web/JUCE` and compiles `juce_core` once.
+
+**Docker (no local install, slow on Apple Silicon).** The `emscripten/emsdk` image is `amd64`, so on an M-series Mac every compiler call runs under x86 emulation. Use it where there is no emsdk, e.g. on a machine you only release from:
+
+```bash
+# same build, in the Emscripten image
 scripts/build/build-web.sh --docker --modules-only
 ```
+
+The per-module cache is in `build/web/modules/.cache`. Use one method (local or Docker) consistently: the cache key includes the compiler command and paths, so switching probably rebuilds every module.
 
 **Skip the tests:** none of the module steps (`build-web.sh`, `package-module.py`, `release.py --modules`) run a test suite, so there is nothing to skip. Packaging does check each `.wasm` against the module ABI, and that check can't be turned off.
 
@@ -130,10 +167,6 @@ scripts/release/release.py --modules reverb --level minor
 ```
 
 `--package` runs `package-module.py` first; leave it out to release what is already in `build/store/modules/`.
-
-Only if the native build has no Wasmtime (`BLEEP_WASMTIME_DIR` unset and no `build/wasm-spike/wasmtime`) are the modules compiled into the app and plugins as C++; then a module change also needs a native rebuild and release.
-
-To try a module in the app without the store, `package-module.py --install DATA --kit KIT` signs the packages and puts them into `DATA/modules/local`, the folder the apps read hand-copied modules from.
 
 ## Web board
 
