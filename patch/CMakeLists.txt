@@ -230,6 +230,18 @@ if (BLEEP_BUILD_TESTS)
         target_compile_options(bleep_wasm_parity PRIVATE -ffp-contract=off)
         target_link_libraries(bleep_wasm_parity PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
+        # The Transport module as a .wasm asks the host through its mailbox (tests/wasm_host_control_test.cpp). Not a ctest either.
+        juce_add_console_app(bleep_wasm_host_control_test PRODUCT_NAME "Bleep Wasm Host Control Test")
+        target_sources(bleep_wasm_host_control_test PRIVATE tests/wasm_host_control_test.cpp ${BLEEP_WASM_HOST_SOURCES} engine/Board.cpp
+            engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+        foreach (m IN LISTS BLEEP_MODULES)
+            file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+            target_sources(bleep_wasm_host_control_test PRIVATE ${s})
+        endforeach ()
+        target_include_directories(bleep_wasm_host_control_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+        target_compile_definitions(bleep_wasm_host_control_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+        target_link_libraries(bleep_wasm_host_control_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
+            juce::juce_recommended_config_flags)
     endif ()
 
     # The demo boards (patch/presets/demos, compiled to board/ui/demo-patches.json) load without a

@@ -12,6 +12,7 @@
 //
 // Build: scripts/build/build-web.sh, which passes -DBLEEP_WEB_REGISTER=<fn> for
 // modules that register by hand and relies on BLEEP_REGISTER_MODULE otherwise.
+#include "HostControl.h"
 #include "Registry.h"
 #include "dsp/Harmony.h"
 
@@ -481,6 +482,11 @@ BLEEP_EXPORT void bleep_set_voice(void* h, int voice) { static_cast<Instance*>(h
 /// a chunk and, for a module that writes (spec "harmony": "writer"), the result out after it.
 BLEEP_EXPORT void* bleep_harmony_ptr(void* h) { return static_cast<Instance*>(h)->harmony.data(); }
 BLEEP_EXPORT int bleep_harmony_size() { return (int)sizeof(bleep::dsp::HarmonyState[bleep::dsp::kHarmonyBuses]); }
+
+/// The mailbox of the Transport module (engine/HostControl.h): the requests it makes of the host, and the host's status.
+/// The host copies the status in before a block and takes the requests out after it. `size` is the struct's size in bytes.
+BLEEP_EXPORT void* bleep_host_ptr(void*) { return &bleep::engine::hostControl(); }
+BLEEP_EXPORT int bleep_host_size() { return (int)sizeof(bleep::engine::HostControl); }
 
 /// Runs `numSamples` (≤ kChunk) samples. Returns 0 on success.
 BLEEP_EXPORT int bleep_process(void* h, int numSamples) { return guarded<int>(2, [&]() -> int {

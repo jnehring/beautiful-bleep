@@ -11,9 +11,10 @@ other modules only *read* the transport (`Transport` in `Module.h`); this one
 asks the host to *change* it.
 
 Only the standalone app can do that (it owns the clock, `specs.md` section
-11.4). In Live the host's transport leads; in the browser there is none. There
-the module still sends MIDI clock out and shows the host's tempo, but its
-requests go nowhere.
+11.4), whether the module is compiled in or installed from the store as a
+`.wasm` file (4.1). In Live the host's transport leads; in the browser there is
+none. There the module still sends MIDI clock out and shows the host's tempo,
+but its requests go nowhere.
 
 ## 2. Jacks
 
@@ -75,6 +76,14 @@ leads: the requests are dropped.
   If the board also has a *Link* node, its *Start/Stop Sync* wins.
 - **Play** and **Stop** act at once on the rising edge or the button.
 
+As a `.wasm` file the module has a mailbox of its own in its memory (the same
+`HostControl` struct, 40 bytes with a fixed layout) and exports its address as
+`bleep_host_ptr` (an optional export of module ABI 1, `module-abi.md`, "Host
+mailbox"). `WasmModule` copies the host's status into it before each block
+and, after the block, moves the requests into the process's mailbox and
+clears them. A host that does not know the export simply ignores the
+requests.
+
 ### 4.2 MIDI clock out
 
 With *MIDI Clock Out* on and the transport running, the module sends 24 clock
@@ -127,6 +136,7 @@ Only knob and setting values; no node data.
 
 - `engine/HostControl.h` (new): the request mailbox and the host's status.
 - `AppController::applyHostControl()` (new): a 100 Hz timer answering it.
+- `bleep_host_ptr` / `bleep_host_size` in `WebShim.cpp`, and `WasmModule::hostToModule()` / `hostFromModule()`: the mailbox for the `.wasm` build.
 - `LinkClock::setPlaying(on, fromStart)`: continue without going back to the first beat.
 - *MIDI Out* sends `NoteEvent::System` as single-byte realtime messages, and ignores other event types it cannot express (it used to send them as key pressure).
 
@@ -137,6 +147,8 @@ Only knob and setting values; no node data.
 - Clock out: Start, then 24 pulses per beat; the pulses are evenly spaced; Continue away from the start; Stop once; silent when off; Stop when switched off; no burst after a loop jump.
 - Clock in: a steady clock gives its tempo after a beat and reports once; jitter washes out; a tempo change is followed; a gap starts afresh; a clock beyond 400 BPM is ignored.
 - Tap tempo and its reset.
+
+`patch/tests/wasm_host_control_test.cpp` (needs `transport.wasm`): the module as a `.wasm` file puts its requests into the host's mailbox (Link and its start/stop on load, no tempo on load, a tempo change, Play and the button) and takes the host's status.
 
 ## 9. Later
 

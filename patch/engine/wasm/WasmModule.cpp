@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #include "WasmModule.h"
 
+#include "HostControl.h"
 #include "Media.h"
 #include "dsp/Harmony.h"
 
@@ -241,6 +242,7 @@ void WasmModule::prepare(double sampleRate) {
     fnPerform_ = need("bleep_perform"); fnCommand_ = need("bleep_command"); fnLive_ = need("bleep_live"); fnText_ = need("bleep_text");
     fnTakeData_ = need("bleep_take_data"); fnNotesIn_ = need("bleep_notes_in_ptr"); fnNotesOut_ = need("bleep_notes_out_ptr");
     fnSetVoice_ = need("bleep_set_voice"); fnHarmony_ = need("bleep_harmony_ptr");  // the last two are optional additions
+    fnHost_ = need("bleep_host_ptr");  // optional: the Transport module's mailbox
     for (int f : {create, params, inputs, outputs, inConn, outConn, error, fnProcess_, fnSetKnob_, fnTransport_, fnReset_, fnScratch_, fnSetData_,
                   fnPerform_, fnCommand_, fnLive_, fnText_, fnTakeData_, fnNotesIn_, fnNotesOut_})
         if (f < 0) return fail("the module lacks an export of the ABI");
@@ -257,6 +259,8 @@ void WasmModule::prepare(double sampleRate) {
     inConnectedPtr_ = (uint32_t)inst_->call(inConn, {h});
     outConnectedPtr_ = (uint32_t)inst_->call(outConn, {h});
     harmonyPtr_ = fnHarmony_ >= 0 ? (uint32_t)inst_->call(fnHarmony_, {h}) : 0;
+    hostPtr_ = fnHost_ >= 0 ? (uint32_t)inst_->call(fnHost_, {h}) : 0;
+    if (hostPtr_ != 0 && (size_t)hostPtr_ + sizeof(HostControlWire) > inst_->memorySize()) hostPtr_ = 0;  // not a mailbox we can read: ignored
     const size_t np = spec().params.size(), ni = spec().inputs.size(), no = spec().outputs.size();
     const size_t mem = inst_->memorySize();  // memory only grows: what is inside now stays inside
     const bool inside = (size_t)paramsPtr_ + std::max<size_t>(np, 1) * kChunk * 4 <= mem && (size_t)inputsPtr_ + std::max<size_t>(ni, 1) * kChunk * 4 <= mem &&
@@ -399,6 +403,7 @@ void WasmModule::process(const ProcessContext& c) {
         inst_->call(fnSetVoice_, {h, (int32_t)c.voice});
     }
     const Transport& t = *c.transport;
+    hostToModule();
     const bool writesHarmony = spec().harmony == HarmonyRole::Writer;
     for (int off = 0; off < c.numSamples; off += kChunk) {
         const int n = std::min(kChunk, c.numSamples - off);
@@ -444,11 +449,41 @@ void WasmModule::process(const ProcessContext& c) {
         }
         if (writesHarmony && harmonyPtr_ && c.harmony) std::memcpy(c.harmony, mem + harmonyPtr_, sizeof(dsp::HarmonyState) * dsp::kHarmonyBuses);
     }
+    hostFromModule();
     sinceSnapshot_ += c.numSamples;
     if (sinceSnapshot_ >= kSnapshotEvery) {
         sinceSnapshot_ = 0;
         snapshot();
     }
+}
+
+// ---- the Transport module's mailbox (HostControl.h) ---------------------------------------------
+
+void WasmModule::hostToModule() {
+    if (hostPtr_ == 0) return;
+    const HostControl& host = hostControl();
+    HostControlWire wire;
+    std::memcpy(&wire, inst_->memory() + hostPtr_, sizeof wire);
+    wire.hosted = host.hosted.load(std::memory_order_relaxed);
+    wire.linkAvailable = host.linkAvailable.load(std::memory_order_relaxed);
+    wire.linkEnabled = host.linkEnabled.load(std::memory_order_relaxed);
+    wire.linkPeers = host.linkPeers.load(std::memory_order_relaxed);
+    std::memcpy(inst_->memory() + hostPtr_, &wire, sizeof wire);
+}
+
+void WasmModule::hostFromModule() {
+    if (hostPtr_ == 0) return;
+    HostControlWire wire;
+    std::memcpy(&wire, inst_->memory() + hostPtr_, sizeof wire);
+    if (wire.tempo <= 0.0 && wire.play == HostControl::kNone && wire.link == HostControl::kNone && wire.startStopSync == HostControl::kNone) return;
+    HostControl& host = hostControl();
+    if (wire.tempo > 0.0) host.tempo.store(wire.tempo, std::memory_order_relaxed);
+    if (wire.play >= HostControl::Stop && wire.play <= HostControl::Continue) host.play.store(wire.play, std::memory_order_relaxed);
+    if (wire.link == 0 || wire.link == 1) host.link.store(wire.link, std::memory_order_relaxed);
+    if (wire.startStopSync == 0 || wire.startStopSync == 1) host.startStopSync.store(wire.startStopSync, std::memory_order_relaxed);
+    wire.tempo = 0.0;  // taken
+    wire.play = wire.link = wire.startStopSync = HostControl::kNone;
+    std::memcpy(inst_->memory() + hostPtr_, &wire, sizeof wire);
 }
 
 void WasmModule::snapshot() {

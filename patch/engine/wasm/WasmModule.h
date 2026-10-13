@@ -85,6 +85,8 @@ private:
     char* scratch(int size);                       // `size` bytes in the module's memory for a string going in
     void fail(const std::string& why);
     void bypass(const ProcessContext& c);
+    void hostToModule();                           // audio thread: the host's status into the module's mailbox (HostControl.h)
+    void hostFromModule();                         // audio thread: the module's requests out to the host
 
     std::shared_ptr<WasmPackage> package_;
     std::unique_ptr<wasm::Instance> inst_;
@@ -95,8 +97,8 @@ private:
 
     // exports, resolved once per instance
     int fnProcess_ = -1, fnSetKnob_ = -1, fnTransport_ = -1, fnReset_ = -1, fnScratch_ = -1, fnSetData_ = -1, fnPerform_ = -1,
-        fnCommand_ = -1, fnLive_ = -1, fnText_ = -1, fnTakeData_ = -1, fnSetVoice_ = -1, fnNotesIn_ = -1, fnNotesOut_ = -1, fnHarmony_ = -1;
-    uint32_t handle_ = 0, paramsPtr_ = 0, inputsPtr_ = 0, outputsPtr_ = 0, inConnectedPtr_ = 0, outConnectedPtr_ = 0, harmonyPtr_ = 0;
+        fnCommand_ = -1, fnLive_ = -1, fnText_ = -1, fnTakeData_ = -1, fnSetVoice_ = -1, fnNotesIn_ = -1, fnNotesOut_ = -1, fnHarmony_ = -1, fnHost_ = -1;
+    uint32_t handle_ = 0, paramsPtr_ = 0, inputsPtr_ = 0, outputsPtr_ = 0, inConnectedPtr_ = 0, outConnectedPtr_ = 0, harmonyPtr_ = 0, hostPtr_ = 0;
     std::vector<uint32_t> notesInPtr_, notesOutPtr_;   // per jack (0: not a notes jack)
     std::vector<float> lastKnob_;
     int lastVoice_ = -2;

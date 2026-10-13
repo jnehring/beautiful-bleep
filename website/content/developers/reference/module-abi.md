@@ -65,6 +65,7 @@ bleep_destroy(h)
 | `bleep_set_transport` | `(h, bpm: f64, ppq: f64, playing: i32, samplePos: i64)` | Before each chunk. `ppq` is the position at the chunk start in quarter notes. The module is told the transport **started** when `playing` goes from 0 to 1 between two calls (a host that restarts the transport without stopping it calls once with 0 first). |
 | `bleep_set_voice` | `(h, voice: i32)` | *Optional.* Inside a Voice Cell: the voice this instance plays (`ProcessContext::voice`); −1 outside. Call after `create` and when it changes. |
 | `bleep_harmony_ptr`, `bleep_harmony_size` | `(h) → ptr`, `() → i32` | *Optional.* The board-wide harmony buses (section 5). |
+| `bleep_host_ptr`, `bleep_host_size` | `(h) → ptr`, `() → i32` | *Optional.* The mailbox of a module that asks the host to change the transport (section 5). |
 | `bleep_process` | `(h, numSamples: i32) → i32` | Runs `numSamples` (1 to 32) samples. Returns 0, or non-zero when the call was refused or failed (the outputs are then unspecified and the host should bypass). |
 | `bleep_notes_in_ptr`, `bleep_notes_out_ptr` | `(h, jack: i32) → ptr` | The note buffer of a `notes` jack (section 5). |
 | `bleep_note_event_size` | `() → i32` | 16. The host checks it. |
@@ -103,6 +104,21 @@ Rows have 32 floats even for the last, shorter chunk; the first `numSamples` are
 
 **Harmony buses** (modules whose spec says `"harmony": "writer"` or `"reader"`). `bleep_harmony_ptr(h)` is the address of `dsp::kHarmonyBuses` (4) `HarmonyState` records in the module's memory, `bleep_harmony_size()` their total size (`HarmonyState` is plain data, 16 bytes: `valid`, `key`, `chordRoot`, `bass`, `scale`, `chord`, `quality`, `degree`, `serial`, laid out as the C++ struct). The host copies the board's buses in before every chunk and, for a **writer**, copies them back out after it; every writer runs before every reader on the board, as natively.
 
+**Host mailbox** (the Transport module). A module cannot change the transport: it reads it. A module that must ask for a change (a new tempo, play and stop, Ableton Link on or off) writes the request into a record in its own memory, and `bleep_host_ptr(h)` is the address of that record, `bleep_host_size()` its size (40 bytes, little endian, no padding):
+
+| Offset | Type | Field | Direction | Meaning |
+|---|---|---|---|---|
+| 0 | `f64` | `tempo` | module → host | A requested tempo in BPM; 0 = no request. |
+| 8 | `i32` | `play` | module → host | 0 stop, 1 start from the beginning, 2 continue; −1 = no request. |
+| 12 | `i32` | `link` | module → host | 1 Link on, 0 off; −1 = no request. |
+| 16 | `i32` | `startStopSync` | module → host | 1 Link start/stop sync on, 0 off; −1 = no request. |
+| 20 | `i32` | `hosted` | host → module | 1 when the host acts on requests (the standalone app); 0 in plugins and the browser. |
+| 24 | `i32` | `linkAvailable` | host → module | 1 when the host has Ableton Link. |
+| 28 | `i32` | `linkEnabled` | host → module | 1 when Link is on. |
+| 32 | `i32` | `linkPeers` | host → module | The number of Link peers. |
+
+A host that answers requests writes the four status fields before each block and, after the block, takes the requests and sets them back to "no request" (0 and −1). A host that does not know the export, or does not act on requests, leaves the record alone and the module still runs: its requests go nowhere. A request that is not yet taken is replaced by a newer one.
+
 **Strings** are UTF-8. Numbers crossing through the scratch buffer are little endian and aligned as stated.
 
 ## 5a. Media
@@ -135,7 +151,7 @@ The host **must not block** to answer: these calls come from inside `bleep_set_d
 
 ## 9. Not in ABI 1
 
-What a native module can do today and a wasm module cannot, yet: the port nodes (audio and MIDI in and out; they are not DSP modules and stay in the engine) and the Link tempo. The harmony buses, the per-voice index, the transport-start event and sample files were missing from the first version of the shim and are now optional exports and imports (sections 4, 5 and 5a), added as compatible changes.
+What a native module can do today and a wasm module cannot, yet: the port nodes (audio and MIDI in and out; they are not DSP modules and stay in the engine) and the Link tempo (a module can read the tempo, and ask for changes through the host mailbox). The harmony buses, the per-voice index, the transport-start event, sample files and the host mailbox were missing from the first version of the shim and are now optional exports and imports (sections 4, 5 and 5a), added as compatible changes.
 
 ## 10. Conformance
 
