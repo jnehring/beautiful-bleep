@@ -31,8 +31,8 @@
     ["meter", "Meter", [2, 8]], ["label", "Label", [14, 2]], ["section", "Section", [16, 10]],
     ["view", "Module view", [24, 14]], ["panel", "Load panel", [20, 12]],
   ];
-  // What the Add list offers: elements that do not drive anything. A control that does (a dial, a dropdown, a toggle, Keys, a
-  // meter) is made by right-clicking the thing it controls on the board: "Create panel control" (panel-wiring.js).
+  // What the Add list offers: elements that do not drive anything. A control that does (a dial, a toggle, Keys, a meter) is
+  // made by right-clicking its controller module on the board: "Add to panel" (panel-wiring.js).
   const FREE = ["label", "section", "view", "panel"];
   /// The board module a control is made with: its wire's (or meter source's) node.
   const nodeOf = (c) => {
@@ -75,7 +75,9 @@
   }
 
   function mount(body, ctx) {
-    let selected = null;         // control id
+    let selected = null;         // the lead control id (the one the inspector shows)
+    const multi = new Set();     // every selected control id (includes the lead)
+    const setSel = (ids, lead) => { multi.clear(); for (const i of ids) multi.add(i); selected = lead !== undefined ? lead : ids[ids.length - 1] || null; };
     let tab = null;
     let live = null;             // the BleepPanels instance
 
@@ -109,21 +111,21 @@
         if (type === "section") { more.text = more.text || "Section"; more.colour = more.colour || "#8b92a3"; }
         id = placeControl(p, type, more, tab).id;
       });
-      selected = id;
+      setSel([id]);
       return id;
     }
 
     // ------------------------------------------------------------------ bar
     function drawBar() {
       bar.innerHTML = "";
-      bar.append(el("span", "pe-hint", "Drag to move, corner to resize · Delete removes · ⌘D duplicates · New dials, dropdowns and toggles: right-click what they control on the board"));
+      bar.append(el("span", "pe-hint", "Drag to move, corner to resize · Shift-click or drag a rectangle to select several · Delete removes · ⌘D duplicates · New dials, wheels and buttons: right-click the module on the board and choose Add to panel"));
     }
 
     // ----------------------------------------------------------------- centre
     function drawCentre() {
       centre.innerHTML = "";
       const p = doc();
-      live = BleepPanels.create(ctx.panels(), p.id, ctx.host(), { edit: true, tab, onTab: (t) => { tab = t; selected = control(selected) && onTab(control(selected)) ? selected : null; drawOverlay(); drawSide(); drawInsp(); } });
+      live = BleepPanels.create(ctx.panels(), p.id, ctx.host(), { edit: true, tab, onTab: (t) => { tab = t; setSel([...multi].filter((i) => control(i) && onTab(control(i)))); drawOverlay(); drawSide(); drawInsp(); } });
       const tabs = p.tabs || [];
       if (tabs.length && !tabs.some((t) => t.id === tab)) tab = tabs[0].id;
       if (!tabs.length) tab = null;
@@ -139,12 +141,14 @@
       const p = doc();
       for (const c of p.controls) {
         if (!onTab(c)) continue;
-        const h = el("div", "pe-hit" + (c.id === selected ? " sel" : "") + (c.type === "section" ? " bg" : ""));
+        const h = el("div", "pe-hit" + (multi.has(c.id) ? " sel" : "") + (c.type === "section" ? " bg" : ""));
         place(h, c);
         h.dataset.id = c.id;
         const grip = el("b", "pe-grip");
         h.append(grip);
-        h.addEventListener("pointerdown", (ev) => startMove(ev, c, h));
+        // A section is only grabbed by its title strip, so a rectangle can be drawn (and controls picked) inside it.
+        const grab = c.type === "section" ? h.appendChild(el("div", "pe-sec-head")) : h;
+        grab.addEventListener("pointerdown", (ev) => startMove(ev, c, h));
         grip.addEventListener("pointerdown", (ev) => startResize(ev, c, h));
         stage.append(h);
       }
@@ -161,9 +165,9 @@
       return `${n.name} › ${d ? d.name : pid}`;
     }
 
-    function select(id) {
-      selected = id;
-      stage().querySelectorAll(".pe-hit").forEach((h) => h.classList.toggle("sel", h.dataset.id === id));
+    function select(ids, lead) {
+      setSel([].concat(ids), lead);
+      stage().querySelectorAll(".pe-hit").forEach((h) => h.classList.toggle("sel", multi.has(h.dataset.id)));
       drawSide();
       drawInsp();
     }
@@ -173,12 +177,26 @@
       if (ev.button !== 0) return;
       ev.stopPropagation();
       root.focus();
-      select(c.id);
+      if (ev.shiftKey) {   // shift-click adds to or removes from the selection
+        const ids = new Set(multi);
+        if (ids.has(c.id)) ids.delete(c.id); else ids.add(c.id);
+        select([...ids], ids.has(c.id) ? c.id : [...ids].pop() || null);
+        return;
+      }
+      const was = multi.has(c.id) && multi.size > 1;   // dragging one of several moves them all
+      if (!was) select(c.id);
+      else selected = c.id;
       const p = doc();
       // A section carries the controls standing on it.
-      const group = c.type === "section" ? p.controls.filter((q) => q.id !== c.id && onTab(q) && q.type !== "section" && inside(rect(q), rect(c))) : [];
+      const moving = new Map();
+      for (const id of was ? multi : [c.id]) {
+        const m = control(id);
+        if (!m) continue;
+        moving.set(id, m);
+        if (m.type === "section") for (const q of p.controls) if (q.id !== id && onTab(q) && q.type !== "section" && inside(rect(q), rect(m))) moving.set(q.id, q);
+      }
       const start = { x: ev.clientX, y: ev.clientY };
-      const orig = [c, ...group].map((q) => ({ q, at: [...q.at] }));
+      const orig = [...moving.values()].map((q) => ({ q, at: [...q.at] }));
       let dx = 0, dy = 0, moved = false;
       h.setPointerCapture(ev.pointerId);
       const move = (m) => {
@@ -196,8 +214,8 @@
       const up = () => {
         h.removeEventListener("pointermove", move);
         h.removeEventListener("pointerup", up);
-        if (!moved) return;
-        ctx.mutate("move " + (c.label || c.type), (pp) => {
+        if (!moved) { if (was) select(c.id); return; }   // a plain click on one of several keeps only that one
+        ctx.mutate("move " + (was ? multi.size + " controls" : c.label || c.type), (pp) => {
           for (const o of orig) {
             const t = pp.controls.find((q) => q.id === o.q.id);
             if (t) t.at = [clamp(o.at[0] + dx, 0, pp.cols - t.size[0]), Math.max(0, o.at[1] + dy)];
@@ -248,20 +266,34 @@
         b.addEventListener("click", () => addControl(type, defaults(type)));
         side.append(b);
       }
-      side.append(el("p", "pe-note", "Dials, dropdowns, toggles, Keys and meters: right-click what they control on the board and choose “Create panel control”."));
+      side.append(el("p", "pe-note", "Dials, wheels, buttons, Keys and meters: right-click the module on the board and choose “Add to panel”."));
       // Every control of the panel, with what it drives.
       side.append(el("h4", "", "Controls"));
       const list = el("div", "pe-list");
       for (const c of doc().controls) {
         if (FREE.includes(c.type)) continue;   // labels, sections, module views and loaded panels are not controls of anything
         const t = c.target && ctx.module(c.target.node);
-        const row = el("div", "pe-knob" + (c.id === selected ? " wired" : ""), c.label || c.type);
+        const row = el("div", "pe-knob" + (multi.has(c.id) ? " wired" : ""), c.label || c.type);
+        row.dataset.id = c.id;
         row.append(el("small", "", t ? `${t.name} › ${c.target.param || c.target.jack}` : c.type));
-        row.addEventListener("click", () => { selected = c.id; drawOverlay(); drawSide(); drawInsp(); });
+        row.addEventListener("click", (ev) => {
+          if (ev.shiftKey) { const ids = new Set(multi); if (ids.has(c.id)) ids.delete(c.id); else ids.add(c.id); setSel([...ids], ids.has(c.id) ? c.id : undefined); }
+          else setSel([c.id]);
+          if (c.tab && c.tab !== tab && live) { tab = c.tab; live.setTab(tab); }
+          drawOverlay(); drawSide(); drawInsp();
+          reveal(c.id);
+        });
         list.append(row);
       }
       if (!list.children.length) list.append(el("div", "pe-empty", "None yet"));
       side.append(list);
+    }
+    /// Scrolls the centre so a control sits in the middle of the view.
+    function reveal(id) {
+      const h = live && live.stage.querySelector(`.pe-hit[data-id="${id}"]`);
+      if (!h) return;
+      const a = h.getBoundingClientRect(), b = centre.getBoundingClientRect();
+      centre.scrollTo({ left: centre.scrollLeft + (a.left + a.width / 2) - (b.left + b.width / 2), top: centre.scrollTop + (a.top + a.height / 2) - (b.top + b.height / 2), behavior: "smooth" });
     }
     function defaults(type) {
       if (type === "view") { const n = ctx.scope().find((q) => q.view); return n ? { node: n.id, size: [24, 14] } : {}; }
@@ -300,6 +332,7 @@
 
     function drawInsp() {
       insp.innerHTML = "";
+      if (multi.size > 1) return multiSettings();
       const c = control(selected);
       if (!c) return panelSettings();
       insp.append(el("h4", "", c.type[0].toUpperCase() + c.type.slice(1)));
@@ -318,7 +351,7 @@
         field(insp, "Colour", col);
       }
       if (["dial", "slider", "button", "wheel", "select", "xy", "meter"].includes(c.type)) field(insp, "Label", text(c.label, (v) => change("label", (t) => (t.label = v))));
-      if (c.target) {   // made by "Create panel control": a module in the Panel cell, wired to what it controls
+      if (c.target) {   // made by an older version: a module in the Panel cell, wired to what it controls
         const t = ctx.module(c.target.node), m = c.module && ctx.module(c.module);
         insp.append(el("p", "pe-note", t ? `Controls ${t.name} › ${c.target.param || c.target.jack}, through ${m ? m.name : "a module that is gone"} in the Panel cell.` : "What it controls is gone."));
         const sb = el("button", "pe-pal", "Show its module on the board");
@@ -411,6 +444,37 @@
       insp.append(acts);
     }
 
+    /// Evenly spaces the selected controls along one axis: the outermost two stay, the gaps between all are made equal.
+    function align(axis) {
+      const i = axis === "x" ? 0 : 1;
+      ctx.mutate("align " + multi.size + " controls", (p) => {
+        const cs = p.controls.filter((c) => multi.has(c.id)).sort((a, b) => a.at[i] - b.at[i]);
+        if (cs.length < 3) return;
+        const first = cs[0].at[i], last = cs[cs.length - 1];
+        const span = last.at[i] + last.size[i] - first;
+        const gap = Math.max(0, (span - cs.reduce((n, c) => n + c.size[i], 0)) / (cs.length - 1));   // never overlap; the panel grows if the row needs more room
+        let pos = first;
+        for (const c of cs) { c.at[i] = Math.max(0, Math.round(pos)); pos += c.size[i] + gap; }
+        fit(p);
+      });
+    }
+    function multiSettings() {
+      insp.append(el("h4", "", multi.size + " controls"));
+      insp.append(el("p", "pe-note", "Align spaces the selection evenly between its outermost controls (three or more)."));
+      const acts = el("div", "pe-acts");
+      for (const [axis, name, tip] of [["x", "Align ↔", "Even spacing left to right"], ["y", "Align ↕", "Even spacing top to bottom"]]) {
+        const b = el("button", "", name);
+        b.title = tip;
+        b.disabled = multi.size < 3;
+        b.addEventListener("click", () => align(axis));
+        acts.append(b);
+      }
+      insp.append(acts);
+      const del = el("button", "pe-pal", "Delete all");
+      del.addEventListener("click", remove);
+      insp.append(del);
+    }
+
     function panelSettings() {
       const p = doc();
       insp.append(el("h4", "", "Panel"));
@@ -474,29 +538,72 @@
         p.controls.push(copy);
         fit(p);
       });
-      selected = id;
+      setSel([id]);
     }
     function remove() {
       if (!selected) return;
-      const id = selected, c = control(id);
-      selected = null;
-      if (c && c.target && c.module) return ctx.removeControl(doc().id, id);   // its module, its channel and what they left go with it
-      ctx.mutate("delete control", (p) => { p.controls = p.controls.filter((q) => q.id !== id); });
+      const ids = new Set(multi);
+      setSel([]);
+      const owned = [...ids].map(control).filter((c) => c && c.target && c.module);
+      ctx.mutate("delete " + (ids.size > 1 ? ids.size + " controls" : "control"), (p) => {
+        p.controls = p.controls.filter((q) => !ids.has(q.id) || (q.target && q.module));
+      });
+      for (const c of owned) ctx.removeControl(doc().id, c.id);   // its module, its channel and what they left go with it
     }
     root.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
       const c = control(selected);
-      if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); e.stopPropagation(); remove(); }
+      if (e.key === "Escape") { setSel([]); drawOverlay(); drawSide(); drawInsp(); }
+      else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); e.stopPropagation(); remove(); }
       else if ((e.metaKey || e.ctrlKey) && e.key === "d") { e.preventDefault(); e.stopPropagation(); duplicate(); }
       else if (c && e.key.startsWith("Arrow")) {
         e.preventDefault(); e.stopPropagation();
         const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-        change("move", (t, p) => { t.at = [clamp(t.at[0] + d[0], 0, p.cols - t.size[0]), Math.max(0, t.at[1] + d[1])]; fit(p); });
+        ctx.mutate("move", (p) => {
+          for (const t of p.controls) if (multi.has(t.id)) t.at = [clamp(t.at[0] + d[0], 0, p.cols - t.size[0]), Math.max(0, t.at[1] + d[1])];
+          fit(p);
+        });
       }
       if (!(e.metaKey || e.ctrlKey)) e.stopPropagation();   // the board's one-letter shortcuts stay out of the editor
     });
-    centre.addEventListener("pointerdown", (e) => {   // empty space: nothing selected
-      if (!e.target.closest(".pe-hit")) { selected = null; drawOverlay(); drawSide(); drawInsp(); }
+    // Empty space: a click clears the selection, a drag draws a rectangle that selects what it touches (shift adds).
+    centre.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || e.target.closest(".pe-hit") || !live || !live.stage.contains(e.target)) {
+        if (e.button === 0 && !e.target.closest(".pe-hit") && !(live && live.stage.contains(e.target))) { setSel([]); drawOverlay(); drawSide(); drawInsp(); }
+        return;
+      }
+      root.focus();
+      const st = live.stage, sr = () => st.getBoundingClientRect();
+      const x0 = e.clientX - sr().left, y0 = e.clientY - sr().top;
+      const base = e.shiftKey ? new Set(multi) : new Set();
+      const box = el("div", "pe-marquee");
+      let dragging = false;
+      const move = (m) => {
+        const x1 = m.clientX - sr().left, y1 = m.clientY - sr().top;
+        if (!dragging && Math.abs(x1 - x0) + Math.abs(y1 - y0) < 4) return;
+        if (!dragging) { dragging = true; st.append(box); }
+        const r = { x: Math.min(x0, x1), y: Math.min(y0, y1), w: Math.abs(x1 - x0), h: Math.abs(y1 - y0) };
+        Object.assign(box.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px" });
+        const ids = new Set(base);
+        for (const c of doc().controls) {
+          if (!onTab(c)) continue;
+          const q = { x: c.at[0] * U, y: c.at[1] * U, w: c.size[0] * U, h: c.size[1] * U };
+          if (c.type === "section" ? inside(q, r) : hits(q, r)) ids.add(c.id);
+        }
+        setSel([...ids]);
+        st.querySelectorAll(".pe-hit").forEach((h) => h.classList.toggle("sel", multi.has(h.dataset.id)));
+      };
+      const up = () => {
+        centre.removeEventListener("pointermove", move);
+        centre.removeEventListener("pointerup", up);
+        centre.releasePointerCapture && centre.hasPointerCapture(e.pointerId) && centre.releasePointerCapture(e.pointerId);
+        box.remove();
+        if (!dragging && !e.shiftKey) setSel([]);
+        drawOverlay(); drawSide(); drawInsp();
+      };
+      centre.setPointerCapture(e.pointerId);
+      centre.addEventListener("pointermove", move);
+      centre.addEventListener("pointerup", up);
     });
 
     function build() {
@@ -508,7 +615,7 @@
     build();
     return {
       rebuild() {
-        if (selected && !control(selected)) selected = null;
+        setSel([...multi].filter((i) => control(i)), control(selected) ? selected : undefined);
         build();
       },
       update: (s) => { if (live) live.update(s); },

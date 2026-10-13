@@ -247,7 +247,8 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .bp-c { position: absolute; box-sizing: border-box; user-select: none; }
 .bp-c[hidden] { display: none; }
 .bp-text { font-size: 20px; font-weight: 600; line-height: 40px; letter-spacing: .02em; }
-.bp-section { border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
+.bp-section { border: 1px solid var(--line); border-radius: 8px; background: transparent; z-index: 0; }
+.bp-c:not(.bp-section) { z-index: 1; }
 .bp-section > span { position: absolute; left: 10px; top: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--c); }
 .bp-c > i { position: absolute; left: -4px; right: -4px; bottom: 0; text-align: center; font-style: normal; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bp-dial, .bp-slider, .bp-wheel { cursor: ns-resize; touch-action: none; }
@@ -281,18 +282,22 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pwin.full { left: 0 !important; top: 0 !important; width: 100% !important; height: 100%; max-width: none; border-radius: 0; z-index: 900; display: flex; flex-direction: column; }
 .pwin.full .v-body { flex: 1; max-height: none; overflow: hidden; display: grid; place-items: center; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }  /* the track is the window's size, so a taller panel is scaled around its centre */
 .pwin.full .bp-root { transform-origin: center center; }
-.pwin.editing { width: min(1180px, calc(100% - 16px)); }
-.pwin.editing .v-body { max-height: calc(100vh - 120px); overflow: hidden; }
+.pwin.editing { width: calc(100% - 16px); }
+.pwin.editing .v-title { cursor: text; }
+.pwin .v-title .n-rename { width: 16em; }
+.pwin.editing .v-body { max-height: none; overflow: hidden; }
+.pwin .v-grip { display: none; }
+.pwin.editing .v-grip { display: block; z-index: 3; }
 
 /* ---- panel editor ---- */
-.pe { display: flex; flex-direction: column; height: min(78vh, 760px); outline: none; }
+.pe { display: flex; flex-direction: column; height: var(--pe-h, calc(100vh - 150px)); min-height: 380px; outline: none; }
 .pe-bar { display: flex; align-items: center; gap: 12px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
 .pe-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .pe-seg button { border: 0; border-radius: 0; background: none; padding: 3px 12px; }
 .pe-seg button.on { background: var(--accent); color: #0b0d10; }
 .pe-hint { font-size: 11px; color: var(--muted); }
 .pe-main { flex: 1; display: flex; min-height: 0; }
-.pe-side, .pe-insp { width: 210px; flex: none; overflow: auto; padding: 8px; font-size: 12px; }
+.pe-side, .pe-insp { width: clamp(240px, 22%, 360px); flex: none; overflow: auto; padding: 8px; font-size: 12px; }
 .pe-side { border-right: 1px solid var(--line); }
 .pe-insp { border-left: 1px solid var(--line); }
 .pe-centre { flex: 1; overflow: auto; padding: 12px; background: var(--bg, #15171c); }
@@ -301,7 +306,10 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pe-hit { position: absolute; box-sizing: border-box; cursor: move; outline: 1px dashed transparent; z-index: 5; }
 .pe-hit:hover { outline-color: var(--muted); }
 .pe-hit.sel { outline: 2px solid var(--accent); }
-.pe-hit.bg { z-index: 1; }
+.pe-hit.bg { z-index: 1; pointer-events: none; outline: 1px dashed var(--line); }
+.pe-hit.bg .pe-grip, .pe-sec-head { pointer-events: auto; }
+.pe-sec-head { position: absolute; left: 0; right: 0; top: 0; height: 28px; cursor: move; }
+.pe-marquee { position: absolute; z-index: 10; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); pointer-events: none; }
 .pe-grip { position: absolute; right: -4px; bottom: -4px; width: 10px; height: 10px; background: var(--accent); border-radius: 2px; cursor: nwse-resize; display: none; }
 .pe-hit.sel .pe-grip { display: block; }
 .pe-chip { position: absolute; left: 0; right: 0; top: -2px; transform: translateY(-100%); background: var(--panel-3); color: var(--text); font-size: 10px; border-radius: 4px; padding: 1px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
