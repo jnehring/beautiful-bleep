@@ -1,3 +1,9 @@
+---
+title: Engine ABI
+description: How Bleep plugins in one process share a single engine, and the rules for changing its interface.
+order: 30
+---
+
 # The engine ABI: how Bleep plugins share one engine
 
 Every Bleep plugin is its own compiled file, but a set has one engine (`specs.md` §5.3). The first plugin loaded creates it and publishes it in the process; the others find it and call it through `IEngine` (`patch/engine/EngineApi.h`).

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// store.js — the Store section of the board window (doc/specs/store.md section 9): what is installed on this machine, what the
+// store.js — the Store section of the board window (developers/reference/store.md section 9): what is installed on this machine, what the
 // Bleep Store offers, and the Security settings. The board is the other section. Not in Bleep Play: it installs by itself.
 //
 //   BleepStoreView.init({ onTypes })   once, when the native side has a store (native "init" says so)
@@ -328,7 +328,7 @@
     return installSlug(m.slug);
   }
 
-  // ---- Dependencies of presets (doc/specs/store.md section 6) ----------------------------------------------------------
+  // ---- Dependencies of presets (developers/reference/store.md section 6) ----------------------------------------------------------
   // A preset (a cell or a whole patch) may carry  needs: { "<module slug>": { min: "1.2.0", max: "1.9.0" } }  (both optional and
   // inclusive). Whatever it lists is checked, and so is every module that provides one of its node types, with no version limit.
 
@@ -437,7 +437,7 @@
     return out;
   }
 
-  /// The setup assistant (doc/specs/store.md 5a): once, on the first launch, offers the two default bundles. Either may be declined.
+  /// The setup assistant (developers/reference/store.md 5a): once, on the first launch, offers the two default bundles. Either may be declined.
   async function firstRun() {
     status = await native("storeStatus");
     if (status.settings.firstRunDone) return;

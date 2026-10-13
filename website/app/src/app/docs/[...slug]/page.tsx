@@ -11,14 +11,19 @@ const SECTION_TITLES: Record<string, string> = {
   "musicians/modules": "Modules",
   "musicians/guides": "Guides",
   developers: "Start here",
-  "developers/api-reference": "API reference",
+  "developers/api-reference": "Bleep Bus: API reference",
+  "developers/modules": "Modules",
+  "developers/plugins": "Plugins",
+  "developers/app": "Standalone app",
+  "developers/web": "Web",
+  "developers/reference": "Reference",
 };
 
 function sectionTitle(section: string): string {
   const cat = section.match(/^musicians\/modules\/(\d+)-/);  // one section per module category
   if (cat) return `Modules · ${CATEGORIES[Number(cat[1])] ? categoryTitle(CATEGORIES[Number(cat[1])]) : "Other"}`;
   const spec = section.match(/^developers\/spec\/(.+)$/);
-  return SECTION_TITLES[section] ?? (spec ? `Spec ${spec[1]}` : section);
+  return SECTION_TITLES[section] ?? (spec ? `Bleep Bus: spec ${spec[1]}` : section);
 }
 
 // The module pages are many; the sidebar lists a category only while one of its modules is open ("All modules" links the rest).

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     s3_bucket: str = "bleep-registry"
     s3_access_key: str = ""
     s3_secret_key: str = ""
-    # Code signing (doc/specs/signing.md). The root PUBLIC keys (hex, comma separated; two during a rotation) are all the
+    # Code signing (website/content/developers/reference/signing.md). The root PUBLIC keys (hex, comma separated; two during a rotation) are all the
     # store needs to check releases: the root private key must never be here. The issuer key (PEM) and its certificate
     # (JSON) are only for `python -m app.cli developer-create`.
     root_public_keys: str = ""

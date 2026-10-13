@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Client.h — the Bleep Store from the app and the plugins (doc/specs/store.md, signing.md): read its index, install and remove
+// Client.h — the Bleep Store from the app and the plugins (developers/reference/store.md, signing.md): read its index, install and remove
 // modules on this machine, list what is installed. Everything here blocks (network, disk): call it from a worker thread,
 // never from the audio thread.
 #pragma once
@@ -23,7 +23,7 @@ struct Settings {
     std::string storeUrl = BLEEP_STORE_URL;  ///< the site's address; the store lives under /registry/v1/
     std::string channel = "stable";
     AllowUnsigned allowUnsigned;                           ///< Settings → Security
-    bool firstRunDone = false;                             ///< the setup assistant has been answered (doc/specs/store.md 5a)
+    bool firstRunDone = false;                             ///< the setup assistant has been answered (developers/reference/store.md 5a)
 
     static Settings load(const juce::File& dataDir);       ///< defaults for what is missing
     bool save(const juce::File& dataDir) const;

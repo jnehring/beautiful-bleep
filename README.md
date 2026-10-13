@@ -30,7 +30,7 @@ All scripts live in [`scripts/`](scripts/), one folder per kind of work, and wor
 | [`check/`](scripts/check/) | [`check-api-docs.py`](scripts/check/check-api-docs.py) | Checks that every function in `bleep_bus.h` is documented in the API reference |
 | | [`check-repo.py`](scripts/check/check-repo.py) | Checks the dependency rules between `bus/`, `patch/` and `website/`, SPDX headers and LICENSE files |
 | [`release/`](scripts/release/) | [`release.py`](scripts/release/release.py) | Signs and publishes plugins to the registry, or adds a platform build to a published release ([release.md](doc/operations/release.md)) |
-| | [`signing.py`](scripts/release/signing.py) | Keys, certificates, signing and verifying packages ([signing.md](doc/specs/signing.md)) |
+| | [`signing.py`](scripts/release/signing.py) | Keys, certificates, signing and verifying packages ([signing.md](website/content/developers/reference/signing.md)) |
 | | `test_release.py`, `test_signing.py` | Their unit tests: `cd scripts/release && python3 -m unittest test_release test_signing` |
 | [`experiments/`](scripts/experiments/) | [`wasm-spike.sh`](scripts/experiments/wasm-spike.sh) | Runs the Verb module's `.wasm` in Wasmtime and wasm3 next to the native build ([patch/wasm-host](patch/wasm-host/README.md)) |
 

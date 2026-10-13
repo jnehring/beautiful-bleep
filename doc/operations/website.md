@@ -72,7 +72,7 @@ Run these from `website/`. The password is typed at a prompt, never given as an 
 
 ## Signing keys
 
-The store only accepts signed releases (the rules are in [signing.md](../specs/signing.md)). Three values in `website/.env` tell it whom to trust and let it issue developer keys:
+The store only accepts signed releases (the rules are in [signing.md](../../website/content/developers/reference/signing.md)). Three values in `website/.env` tell it whom to trust and let it issue developer keys:
 
 | Variable | What | Secret? |
 |---|---|---|

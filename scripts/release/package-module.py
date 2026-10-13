@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Packages board modules as .bleepmod files for the Bleep Store (doc/specs/store.md section 4.1).
+"""Packages board modules as .bleepmod files for the Bleep Store (website/content/developers/reference/store.md section 4.1).
 
     scripts/release/package-module.py                       every module that has a built .wasm
     scripts/release/package-module.py reverb filter         just these
@@ -15,7 +15,7 @@ lists a module's node types from it without compiling the module), the module's 
 (doc/*.md, *.png), and its LICENSE when it has one. `license` (default MIT) and `origin` (the code it is ported from) stay in module.json.
 The version is not in the package: the store counts it, so the content hash says whether the code changed.
 
-Before packaging, the .wasm is checked against doc/specs/module-abi.md: only the allowed imports, and every export of the
+Before packaging, the .wasm is checked against website/content/developers/reference/module-abi.md: only the allowed imports, and every export of the
 ABI present. The zip is reproducible (sorted files, fixed dates), so packaging the same inputs twice gives the same bytes.
 """
 import argparse
@@ -31,7 +31,7 @@ from app import signing  # noqa: E402
 
 ENGINE_ABI = 1
 
-# doc/specs/module-abi.md, section 2 (imports) and 4 (exports)
+# website/content/developers/reference/module-abi.md, section 2 (imports) and 4 (exports)
 ALLOWED_IMPORTS = {
     ("env", "emscripten_notify_memory_growth"),
     ("env", "bleep_media_info"), ("env", "bleep_media_read"),  # sample files, answered by the host (module-abi.md, "Media")
@@ -116,7 +116,7 @@ def read_wasm(data: bytes) -> tuple[list[tuple[str, str]], list[str]]:
 
 
 def check_abi(data: bytes) -> list[str]:
-    """What is wrong with this module file under doc/specs/module-abi.md (empty: nothing)."""
+    """What is wrong with this module file under website/content/developers/reference/module-abi.md (empty: nothing)."""
     try:
         imports, exports = read_wasm(data)
     except (ValueError, IndexError) as e:
@@ -146,7 +146,7 @@ def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
     meta["summary"] = meta.get("tagline") or described[0].get("description", "")
     meta.setdefault("category", described[0].get("category", ""))
     meta["requires"] = {"engineAbi": ENGINE_ABI}
-    # Licence and provenance travel with the package (patch/modules/README.md, "Ported code and licences").
+    # Licence and provenance travel with the package (website/content/developers/modules/02-writing-a-module.md, "Ported code and licences").
     meta.setdefault("license", "MIT")
     origin = meta.get("origin")
     if origin:

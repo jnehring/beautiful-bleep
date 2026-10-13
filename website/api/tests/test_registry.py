@@ -311,7 +311,7 @@ def test_platform_can_be_added_to_a_published_release(client, make_admin, storag
     assert client.post("/api/registry/plugin/bleep-board/releases/9.9.9/platforms", json={"files": [f]}, headers=h).status_code == 404
 
 
-# ---- signing (doc/specs/signing.md): the registry refuses releases without a valid developer signature
+# ---- signing (website/content/developers/reference/signing.md): the registry refuses releases without a valid developer signature
 
 def new_token(capsys, publisher=None):
     from app import cli

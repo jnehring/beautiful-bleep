@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //
 // Verify.h — what the apps and plugins check before they run or install a module or a plugin
-// (doc/specs/signing.md). The same rules as scripts/release/signing.py and patch/web/js/store-client.js; the packages in
+// (developers/reference/signing.md). The same rules as scripts/release/signing.py and patch/web/js/store-client.js; the packages in
 // patch/tests/store-fixtures give all three the same verdicts.
 #pragma once
 

@@ -26,7 +26,7 @@ Modules: `release.py --modules --level patch` releases the packaged modules (bui
 package-module.py; `--package` makes them first). Each module counts its own version; one whose content did not change
 since its newest published version is skipped, so only what changed is released.
 
-Signing: every release file is signed with the developer's signing kit (--kit, or $BLEEP_SIGNING_KIT; doc/specs/signing.md;
+Signing: every release file is signed with the developer's signing kit (--kit, or $BLEEP_SIGNING_KIT; website/content/developers/reference/signing.md;
 an admin makes one with `python -m app.cli developer-create`). The kit is checked against the store's root keys before anything
 is uploaded, and the store checks every signature again: without a valid key the release fails.
 Token: a release token an admin created with
@@ -274,7 +274,7 @@ def sign_file(zip_path: Path, slug: str, version: str, plat: str, kit: dict, roo
     doc = signing.sign_with_kit(entries, kit, "plugin", slug, version, plat)
     result = signing.verify(entries, doc, kind="plugin", id_=slug, version=version, platform=plat, roots=roots)
     if result.status != "signed":
-        sys.exit(f"{slug}: the signing kit is not valid for this release: {result.status}: {result.reason or 'see doc/specs/signing.md'}")
+        sys.exit(f"{slug}: the signing kit is not valid for this release: {result.status}: {result.reason or 'see website/content/developers/reference/signing.md'}")
     return {"path": zip_path, "declaration": {"path": zip_path.name, "sha256": sha.hex(), "bytes": zip_path.stat().st_size,
                                               "platform": plat, "signature": doc}}
 
@@ -285,7 +285,7 @@ def sign_package(pkg: Path, slug: str, version: str, kit: dict, roots: list[byte
     doc = signing.sign_with_kit(entries, kit, "module", slug, version, "any")
     result = signing.verify(entries, doc, kind="module", id_=slug, version=version, platform="any", roots=roots)
     if result.status != "signed":
-        sys.exit(f"{slug}: the signing kit is not valid for modules: {result.status}: {result.reason or 'see doc/specs/signing.md'}")
+        sys.exit(f"{slug}: the signing kit is not valid for modules: {result.status}: {result.reason or 'see website/content/developers/reference/signing.md'}")
     return {"path": pkg, "declaration": {"path": f"{slug}-{version}.bleepmod", "sha256": sha256(pkg), "bytes": pkg.stat().st_size,
                                          "platform": "any", "contentDigest": signing.content_digest(entries).hex(), "signature": doc}}
 
@@ -320,7 +320,7 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
         who = signing.verify(probe, signing.sign_with_kit(probe, kit, "module", names[0], "0.0.1", "any"), kind="module",
                              id_=names[0], version="0.0.1", platform="any", roots=roots)
         if who.status != "signed":
-            sys.exit(f"The signing kit is not valid for modules: {who.status}: {who.reason or 'see doc/specs/signing.md'}")
+            sys.exit(f"The signing kit is not valid for modules: {who.status}: {who.reason or 'see website/content/developers/reference/signing.md'}")
         print(f"Signing as {who.publisher} (key {who.key_id})")
     todo = [p for p in plan if p[3]]
     print(f"Store {args.registry}, modules, channel {args.channel}, level {args.level}: {len(todo)} to release, {len(plan) - len(todo)} unchanged")
@@ -465,7 +465,7 @@ def main(argv: list[str] | None = None) -> int:
         who = signing.verify(probe, signing.sign_with_kit(probe, kit, "plugin", names[0], "0.0.1", "any"), kind="plugin",
                              id_=names[0], version="0.0.1", platform="any", roots=roots)
         if who.status != "signed":
-            sys.exit(f"The signing kit is not valid for plugins: {who.status}: {who.reason or 'see doc/specs/signing.md'}")
+            sys.exit(f"The signing kit is not valid for plugins: {who.status}: {who.reason or 'see website/content/developers/reference/signing.md'}")
         print(f"Signing as {who.publisher} (key {who.key_id})")
 
     plat = platform_id()

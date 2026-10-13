@@ -12,7 +12,7 @@
 // Because the engine may live in another binary, this interface uses only
 // plain types: no JUCE classes, no std::string, no exceptions.
 //
-// Versions (doc/specs/engine-abi.md): the MAJOR number (kAbiTag) changes when
+// Versions (developers/reference/engine-abi.md): the MAJOR number (kAbiTag) changes when
 // the layout breaks: a method is inserted or removed, a struct that crosses
 // binaries changes. Binaries of different majors refuse to share and say so.
 // The MINOR number (kAbiMinor) counts additions: new methods go at the END of

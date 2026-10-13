@@ -1,8 +1,14 @@
+---
+title: Signing
+description: How modules and plugins are signed and verified: chain of trust, content hash, certificates, test vector.
+order: 10
+---
+
 # Signing modules and plugins
 
 Everything the shop distributes as **code** is signed: modules (WebAssembly, see [`module-abi.md`](module-abi.md)) and plugins (installers for the VST3 family). A signature says two things: **who** published it, and that **not one byte has changed** since. Every developer has a private key of their own and signs with it; the user's apps check the signature before loading and refuse code that is unsigned unless the user has switched that on in the settings.
 
-The reference implementation is [`scripts/release/signing.py`](../../scripts/release/signing.py) with its tests in [`scripts/release/test_signing.py`](../../scripts/release/test_signing.py). This document is the specification; where they differ, fix whichever is wrong. Section 14 has a test vector other implementations must reproduce.
+The reference implementation is `scripts/release/signing.py` with its tests in `scripts/release/test_signing.py`. This document is the specification; where they differ, fix whichever is wrong. Section 14 has a test vector other implementations must reproduce.
 
 ## 1. What it protects, and what it does not
 

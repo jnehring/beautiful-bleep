@@ -94,7 +94,7 @@ No registration step: **a preset with `plays` appears in the right plugin.**
 | Source | Where | Notes |
 |---|---|---|
 | Factory | `factory-presets.json`, compiled into the plugin binary | always there, offline |
-| Store | `<data>/presets/` (`.bleeppreset`, `preset.type: "cell"`, `store.md` §6) | after install; scanned at start and on folder change |
+| Store | `<data>/presets/` (`.bleeppreset`, `preset.type: "cell"`, `website/content/developers/reference/store.md` §6) | after install; scanned at start and on folder change |
 | User | `<app data>/Beautiful Bleep/Cells/*.bleepcell` | under "User" |
 
 Each plugin lists only presets whose `plays` contains its role and whose `needs` modules are available; one with a missing module is greyed with "Install 2 modules". Both plugins carry the whole factory file and filter at run time (new `PortKind::CellInstrument` / `CellEffect`).

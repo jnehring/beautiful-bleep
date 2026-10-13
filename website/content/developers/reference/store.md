@@ -1,3 +1,9 @@
+---
+title: Bleep Store
+description: Plugins, modules and presets in one store: packages, releases, bundles and how the apps load them.
+order: 20
+---
+
 # Bleep Store and release system
 
 Plugins, modules and presets are managed in one place, the **Bleep Store**. Everything that installs, updates or loads one of them (the standalone app, Bleep Play, the release pipeline) talks to the store and nothing else.

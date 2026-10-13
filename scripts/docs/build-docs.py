@@ -3,7 +3,7 @@
 """Builds the single-file documentation versions and llms.txt.
 
 Docs are written as small Markdown files in website/content/<audience>/
-(musicians/, developers/; the spec lives in developers/spec/<version>/).
+(musicians/, developers/; the Bleep Bus spec lives in developers/spec/<version>/).
 The module manuals live with the modules, in patch/modules/<name>/doc/, and
 belong to the musicians' docs.
 This script concatenates them per audience (ordered by the `order:` front
@@ -128,10 +128,13 @@ def main() -> int:
 
     dev = CONTENT / "developers"
     bundles = {
+        "developer-overview-full.md": ("", [dev / "overview.md"]),
         "quickstart-full.md": ("", [dev / "quickstart.md"]),
         "api-reference-full.md": ("", sorted((dev / "api-reference").glob("*.md"))),
         "user-docs-full.md": ("Beautiful Bleep user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
     }
+    for key, title in (("modules", "modules"), ("plugins", "plugins"), ("app", "the standalone app"), ("web", "Bleep Play and the web"), ("reference", "reference: ABIs, signing and the store")):
+        bundles[f"developer-{key}-full.md"] = (f"Beautiful Bleep developer documentation: {title}", sorted((dev / key).glob("*.md")))
     # The module manuals are too many for one file: one per category.
     module_bundles = {f"modules-{category_slug(c)}-full.md": (f"Beautiful Bleep modules: {c.replace('/', ' · ')}", docs)
                       for c, docs in module_docs_by_category().items()}
@@ -176,6 +179,12 @@ def main() -> int:
     for s in specs:
         llms.append(f"- [Specification {s[5:-8]}]({base}/v{version}/{s}): shared-memory layout, memory ordering, timing rules")
     llms += [
+        f"- [Overview]({base}/v{version}/developer-overview-full.md): which guide is for which developer, and how the pieces fit",
+        f"- [Module developers]({base}/v{version}/developer-modules-full.md): writing, packaging and publishing a board module",
+        f"- [Plugin developers]({base}/v{version}/developer-plugins-full.md): the Bleep plugins in Live",
+        f"- [Standalone app]({base}/v{version}/developer-app-full.md): building and extending the Bleep App",
+        f"- [Web]({base}/v{version}/developer-web-full.md): Bleep Play, the board in the browser",
+        f"- [Reference]({base}/v{version}/developer-reference-full.md): module ABI, signing, the store, the engine ABI",
         "",
         "## Musicians",
         "",

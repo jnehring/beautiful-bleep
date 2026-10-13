@@ -1,7 +1,7 @@
 ---
-title: Quickstart
+title: Bleep Bus quickstart
 description: A minimal Bleep Bus sender and receiver in 15 minutes.
-order: 0
+order: 10
 ---
 
 # Bleep Bus quickstart

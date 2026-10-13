@@ -1,8 +1,14 @@
+---
+title: Module ABI
+description: The contract between a host and a module: one standalone WebAssembly file, its exports, buffers and versioning.
+order: 0
+---
+
 # Module ABI (version 1)
 
-The contract between a **host** (the engine in the plugins and the app, the browser's worklet, the tests) and a **module**, a standalone WebAssembly file. It is what `engineAbi` in the store's `requires` (see [`store.md`](store.md)) counts. This document describes the interface that exists today in [`patch/web/src/WebShim.cpp`](../../patch/web/src/WebShim.cpp), which every one of the 80 module files in the browser build already implements, plus what a host must do around it. Items marked **proposed** are not in the code yet.
+The contract between a **host** (the engine in the plugins and the app, the browser's worklet, the tests) and a **module**, a standalone WebAssembly file. It is what `engineAbi` in the store's `requires` (see [`store.md`](store.md)) counts. This document describes the interface that exists today in `patch/web/src/WebShim.cpp`, which every one of the 80 module files in the browser build already implements, plus what a host must do around it. Items marked **proposed** are not in the code yet.
 
-Hosts that exist: the browser (`patch/web/js/module-host.js`). A native host for the plugins and the app is the next step. A spike that ran modules inside the plugins with Wasmtime and wasm3 (commit `70c3314`) was removed again; its measurements are in [`patch/wasm-host/README.md`](../../patch/wasm-host/README.md). The conformance test in section 10 is for every host.
+Hosts that exist: the browser (`patch/web/js/module-host.js`). A native host for the plugins and the app is the next step. A spike that ran modules inside the plugins with Wasmtime and wasm3 (commit `70c3314`) was removed again; its measurements are in `patch/wasm-host/README.md`. The conformance test in section 10 is for every host.
 
 ## 1. Versioning
 
