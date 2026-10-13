@@ -1,5 +1,7 @@
 # Arpeggiator
 
+![Arpeggiator in the module view](arpeggiator.png)
+
 ## Introduction
 
 The Arpeggiator plays the notes you hold **one at a time**, in a pattern, in
