@@ -1,5 +1,7 @@
 # Delay
 
+![Delay in the module view](delay.png)
+
 ## Introduction
 
 Delay is a simple stereo echo. Each side has its own time, either free in

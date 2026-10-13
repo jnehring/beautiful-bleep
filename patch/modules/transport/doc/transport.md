@@ -1,5 +1,7 @@
 # Transport
 
+![Transport in the module view](transport.png)
+
 ## Introduction
 
 Transport is the control panel for the song's clock. Set the tempo, switch
