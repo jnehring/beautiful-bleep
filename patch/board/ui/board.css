@@ -82,6 +82,8 @@ kbd { font: inherit; font-size: 11px; color: var(--muted); }
 .node.selected { border-color: var(--sel); box-shadow: 0 0 0 1px var(--sel); }
 .node.port.selected { border-left-color: var(--accent); }
 .node.ghost { opacity: .5; border-style: dashed; }
+.node.bypassed { border-style: dashed; }
+.node.bypassed .n-title { opacity: .6; }
 .node.muted .n-head { text-decoration: line-through; color: var(--muted); }
 .node.dim { opacity: .25; }
 .node.flash { animation: flash 1.2s ease-out; }
@@ -235,6 +237,10 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .n-help { background: none; border: 1px solid var(--muted); border-radius: 50%; width: 15px; height: 15px; padding: 0; margin-left: 4px;
   color: var(--muted); font-size: 10px; line-height: 13px; font-weight: 600; cursor: pointer; flex: none; }
 .n-help.first { margin-left: auto; }
+.n-bypass { margin-left: auto; background: none; border: 0; padding: 0 2px; color: var(--muted); font-size: 13px; cursor: pointer; }
+.n-bypass:hover { color: var(--text, inherit); }
+.n-bypass.on { color: var(--accent); text-shadow: 0 0 6px var(--accent); }
+.n-bypass ~ .n-panel, .n-bypass ~ .n-help { margin-left: 4px; }
 .n-help:hover { color: var(--accent); border-color: var(--accent); }
 #help-pop { width: 320px; max-height: 70vh; overflow-y: auto; padding: 10px 12px; font-size: 12px; line-height: 1.45; white-space: normal; }
 #help-pop .h-title { font-weight: 600; margin-bottom: 6px; }

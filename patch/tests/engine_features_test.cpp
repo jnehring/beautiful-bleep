@@ -106,6 +106,35 @@ void registerTestModules(Registry& r) {
     rd.type = "test-reader";
     rd.harmony = HarmonyRole::Reader;
     r.add(rd, [](const ModuleSpec& s) { return std::make_unique<ProbeModule>(s); });
+
+    // Audio modules for the bypass tests: a source with two audio outputs (1, 2), an effect with stereo audio in
+    // and out (writes 0.5, and a control output), a mono-in effect with two audio outs, and a sink that records.
+    ModuleSpec as;
+    as.type = "test-audio-src";
+    as.name = "Audio Src";
+    as.outputs = {{"a", "A", Signal::Audio}, {"b", "B", Signal::Audio}};
+    r.add(as, [](const ModuleSpec& s) { return std::make_unique<ConstModule>(s); });
+
+    ModuleSpec fx;
+    fx.type = "test-audio-fx";
+    fx.name = "Audio Fx";
+    fx.params = p.params;  // ProbeModule reads its first setting
+    fx.inputs = {{"l", "In L", Signal::Audio}, {"r", "In R", Signal::Audio}};
+    fx.outputs = {{"l", "Out L", Signal::Audio}, {"r", "Out R", Signal::Audio}, {"env", "Env", Signal::Control}};
+    r.add(fx, [](const ModuleSpec& s) { return std::make_unique<ProbeModule>(s); });
+
+    ModuleSpec mono = fx;
+    mono.type = "test-audio-mono";
+    mono.inputs = {{"in", "In", Signal::Audio}};
+    mono.outputs = {{"l", "Out L", Signal::Audio}, {"r", "Out R", Signal::Audio}};
+    r.add(mono, [](const ModuleSpec& s) { return std::make_unique<ProbeModule>(s); });
+
+    ModuleSpec sink;
+    sink.type = "test-audio-sink";
+    sink.name = "Audio Sink";
+    sink.params = p.params;
+    sink.inputs = {{"l", "L", Signal::Audio}, {"r", "R", Signal::Audio}};
+    r.add(sink, [](const ModuleSpec& s) { return std::make_unique<ProbeModule>(s); });
 }
 BLEEP_REGISTER_MODULE(registerTestModules);
 
@@ -121,8 +150,9 @@ juce::var cable(const juce::String& id, const juce::String& fn, const juce::Stri
     return obj({{"id", id}, {"from", obj({{"node", fn}, {"jack", fj}})}, {"to", obj({{"node", tn}, {"jack", tj}})},
                 {"amount", 1.0}});
 }
-juce::var node(const juce::String& id, const juce::String& type, juce::var params = {}) {
-    return obj({{"id", id}, {"type", type}, {"params", params.isObject() ? params : juce::var(new juce::DynamicObject())}});
+juce::var node(const juce::String& id, const juce::String& type, juce::var params = {}, bool bypassed = false) {
+    return obj({{"id", id}, {"type", type}, {"params", params.isObject() ? params : juce::var(new juce::DynamicObject())},
+                {"bypassed", bypassed}});
 }
 
 struct Compiled {
@@ -330,7 +360,50 @@ void missingModules() {
     EXPECT(bad["nodes"].getArray()->size() == 0);
 }
 
+void bypass() {
+    g_test = "bypass";
+    // src (audio 1, 2) → fx → sink. Running: the effect writes 0.5 to both outputs.
+    const juce::Array<juce::var> wires{cable("1", "src", "a", "fx", "l"), cable("2", "src", "b", "fx", "r"),
+                                       cable("3", "fx", "l", "sink", "l"), cable("4", "fx", "r", "sink", "r")};
+    auto on = compile({node("src", "test-audio-src"), node("fx", "test-audio-fx"), node("sink", "test-audio-sink")}, wires);
+    runOnce(*on.program);
+    EXPECT(on.probe("fx")->ranAt > 0);
+    EXPECT(on.probe("sink")->in[0] == 0.5f && on.probe("sink")->in[1] == 0.5f);
+
+    // Bypassed: the module does not run and its audio inputs reach its audio outputs, in order.
+    auto off = compile({node("src", "test-audio-src"), node("fx", "test-audio-fx", {}, true), node("sink", "test-audio-sink")}, wires);
+    runOnce(*off.program);
+    EXPECT(off.probe("fx")->ranAt == 0);
+    EXPECT(off.probe("sink")->in[0] == 1.0f && off.probe("sink")->in[1] == 2.0f);
+    runOnce(*off.program);  // and again, with the state kept between chunks
+    EXPECT(off.probe("sink")->in[0] == 1.0f && off.probe("sink")->in[1] == 2.0f);
+
+    // A control output of a bypassed module is silent (0), not a stale value.
+    auto env = compile({node("src", "test-audio-src"), node("fx", "test-audio-fx", {}, true), node("q", "test-probe")},
+                       {cable("1", "src", "a", "fx", "l"), cable("2", "fx", "env", "q", "a")});
+    runOnce(*env.program);
+    EXPECT(env.probe("q")->in[0] == 0.0f);
+
+    // One audio input and two audio outputs: both outputs follow the input.
+    auto mono = compile({node("src", "test-audio-src"), node("m", "test-audio-mono", {}, true), node("sink", "test-audio-sink")},
+                        {cable("1", "src", "b", "m", "in"), cable("2", "m", "l", "sink", "l"), cable("3", "m", "r", "sink", "r")});
+    runOnce(*mono.program);
+    EXPECT(mono.probe("m")->ranAt == 0);
+    EXPECT(mono.probe("sink")->in[0] == 2.0f && mono.probe("sink")->in[1] == 2.0f);
+
+    // A module without audio in and out ignores the flag and keeps running.
+    auto ctl = compile({node("p", "test-probe", {}, true)}, {});
+    runOnce(*ctl.program);
+    EXPECT(ctl.probe("p")->ranAt > 0);
+
+    // Switching bypass off again brings the module back.
+    auto back = compile({node("src", "test-audio-src"), node("fx", "test-audio-fx", {}, false), node("sink", "test-audio-sink")}, wires);
+    runOnce(*back.program);
+    EXPECT(back.probe("sink")->in[0] == 0.5f);
+}
+
 int main() {
+    bypass();
     normalledInputs();
     missingModules();
     outputFlags();

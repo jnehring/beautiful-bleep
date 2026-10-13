@@ -377,6 +377,17 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
                     program->slots_.push_back(st.port);
             }
         }
+        if (n->bypassed && spec.port == PortKind::None) {
+            std::vector<int> ins, outs;
+            for (size_t j = 0; j < spec.inputs.size(); ++j)
+                if (spec.inputs[j].type == Signal::Audio) ins.push_back((int)j);
+            for (size_t k = 0; k < spec.outputs.size(); ++k)
+                if (spec.outputs[k].type == Signal::Audio) outs.push_back((int)k);
+            if (!ins.empty() && !outs.empty()) {
+                st.bypassed = true;
+                for (size_t k = 0; k < outs.size(); ++k) st.bypassRoute.emplace_back(ins[std::min(k, ins.size() - 1)], outs[k]);
+            }
+        }
         program->steps_.push_back(std::move(st));
     }
 
@@ -535,7 +546,14 @@ void Program::runChunk(const ProcessContext& chunk) noexcept {
             ctx.notesOut = st.notesOutPtrs.data();
             ctx.outputConnected = st.outConnected.get();
             ctx.port = st.port ? &st.io : nullptr;
-            mod.process(ctx);
+            if (st.bypassed) {
+                for (auto& ob : st.outputBuffers)
+                    if (ob) std::fill_n(ob.get(), m, 0.0f);
+                for (const auto& [in, out] : st.bypassRoute)
+                    std::copy_n(st.inputPtrs[in], m, st.outputBuffers[out].get());
+            } else {
+                mod.process(ctx);
+            }
 
             for (size_t k = 0; k < st.outputBuffers.size(); ++k) {
                 auto& d = mod.outputDisplay((int)k);

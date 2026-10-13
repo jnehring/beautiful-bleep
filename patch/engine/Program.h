@@ -34,6 +34,8 @@ public:
         std::shared_ptr<Module> module;
         std::shared_ptr<PortSlot> port;   ///< port nodes; null for modules and ghosts
         bool portWritesOut = false;       ///< the node writes audio/MIDI back to its plugin
+        bool bypassed = false;            ///< audio in goes to audio out; the module does not run
+        std::vector<std::pair<int, int>> bypassRoute;  ///< (input jack, output jack) pairs: the n-th audio in feeds the n-th audio out
         PortIO io;
 
         std::vector<std::vector<Source>> paramSources;   ///< per param

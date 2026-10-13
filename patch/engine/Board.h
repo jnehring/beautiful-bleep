@@ -48,6 +48,7 @@ struct CellJack {
 struct NodeModel {
     std::string id, type, name, parent, port;
     bool muted = false;
+    bool bypassed = false;                ///< audio modules: the input audio goes straight to the output, unprocessed
     const ModuleSpec* spec = nullptr;
     std::map<std::string, float> params;  ///< normalised
     std::string data;                     ///< node data as compact JSON (empty if none)

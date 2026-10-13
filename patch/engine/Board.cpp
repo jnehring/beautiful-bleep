@@ -417,6 +417,7 @@ BoardModel parse(const juce::var& doc) {
             node.parent = sstr(n, "parent");
             node.port = sstr(n, "port");
             node.muted = (bool)n.getProperty("muted", false);
+            node.bypassed = (bool)n.getProperty("bypassed", false);
             node.spec = reg.find(node.type);
             if (node.spec)
                 for (const auto& p : node.spec->params)

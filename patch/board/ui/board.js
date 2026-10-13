@@ -508,6 +508,7 @@
     if (isBoundary(n)) e.classList.add("boundary");
     if (isGhost(n)) e.classList.add("ghost");
     if (n.muted) e.classList.add("muted");
+    if (n.bypassed) e.classList.add("bypassed");
     if (sel.has(n.id)) e.classList.add("selected");
     if (trace && !trace.has(n.id)) e.classList.add("dim");
     e.style.left = n.x + "px";
@@ -525,6 +526,16 @@
     if (missingModule) { e.classList.add("missing"); sub = "not installed"; }
     if (n.name === sub) sub = t.name;
     if (sub) head.appendChild(el("span", "n-sub", sub));
+    if (canBypass(n)) {
+      const bb = el("button", "n-bypass" + (n.bypassed ? "" : " on"), "⏻");   // a power switch: lit = the module runs
+      bb.title = n.bypassed ? "Bypassed: the audio passes through. Click to switch the module on." : "On. Click to bypass (pass the audio through unprocessed).";
+      bb.setAttribute("aria-label", "Power " + n.name);
+      bb.setAttribute("aria-pressed", n.bypassed ? "false" : "true");
+      bb.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+      bb.addEventListener("dblclick", (ev) => ev.stopPropagation());
+      bb.addEventListener("click", (ev) => { ev.stopPropagation(); toggleBypass(n.id); });
+      head.appendChild(bb);
+    }
     if (hasPanel(n)) {
       const pb = el("button", "n-panel", "▦");
       pb.title = "Open the front panel";
@@ -1957,6 +1968,7 @@
     if (isCellLike(n)) items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
+    if (canBypass(n)) items.push({ label: n.bypassed ? "Switch on (end bypass)" : "Bypass", run: () => toggleBypass(n.id) });
     items.push("-");
     items.push({ label: "Cut", key: "⌘X", run: cut, disabled: !canDuplicate() });
     items.push({ label: "Copy", key: "⌘C", run: copy, disabled: !canDuplicate() });
@@ -2034,6 +2046,18 @@
       b.nodes = b.nodes.filter((n) => !doomed.has(n.id));
       b.cables = b.cables.filter((c) => !doomed.has(c.from.node) && !doomed.has(c.to.node));
     });
+  }
+
+  /// A module with audio in and audio out can be bypassed: its input audio goes straight to its output.
+  function canBypass(n) {
+    if (isPort(n) || isCellLike(n) || isStructural(n) || !types[n.type]) return false;
+    return inputsOf(n).some((j) => j.type === "audio") && outputsOf(n).some((j) => j.type === "audio");
+  }
+  function toggleBypass(id) {
+    const n = nodeById(id);
+    if (!n || !canBypass(n)) return;
+    const on = !n.bypassed;
+    edit(on ? "bypass" : "end bypass", (b) => { nodeById(id, b).bypassed = on; });
   }
 
   function toggleMute() {
