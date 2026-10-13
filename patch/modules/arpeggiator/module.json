@@ -1,0 +1,10 @@
+{
+  "name": "Arpeggiator",
+  "slug": "arpeggiator",
+  "tagline": "Held notes in, one note at a time out: nine patterns over up to four octaves, with latch, swing and clock.",
+  "colour": "#f6a04d",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/arpeggiator.md"
+}

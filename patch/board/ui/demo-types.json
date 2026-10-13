@@ -6596,6 +6596,199 @@
     ]
   },
   {
+    "type": "arpeggiator",
+    "name": "Arpeggiator",
+    "category": "Sequencing",
+    "colour": "#f6a04d",
+    "description": "Plays the held notes one at a time in a pattern over up to four octaves. Notes out plays a Voice Cell.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "gatelength",
+        "name": "Gate Length",
+        "kind": "float",
+        "default": 0.494949489831924,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.009999999776483,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "swing",
+        "name": "Swing",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.5,
+        "max": 0.75,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.692307710647583,
+        "steps": 14,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1/1",
+          "1/2",
+          "1/4.",
+          "1/4",
+          "1/4T",
+          "1/8.",
+          "1/8",
+          "1/8T",
+          "1/16.",
+          "1/16",
+          "1/16T",
+          "1/32.",
+          "1/32",
+          "1/32T"
+        ],
+        "min": 0.0,
+        "max": 13.0,
+        "def": 9.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "pattern",
+        "name": "Pattern",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 9,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Up",
+          "Down",
+          "Up-Down",
+          "Down-Up",
+          "Up & Down",
+          "Played",
+          "Random",
+          "Converge",
+          "Diverge"
+        ],
+        "min": 0.0,
+        "max": 8.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "octaves",
+        "name": "Octaves",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 4.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "latch",
+        "name": "Latch",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "On"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 999.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": true
+      },
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "trigger",
+        "name": "Trigger",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "beat-oscillator",
     "name": "Beat Oscillator",
     "category": "Sources",
