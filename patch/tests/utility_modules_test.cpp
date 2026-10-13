@@ -2,9 +2,10 @@
 //
 // Node-level tests for the utility modules (doc/specs/modules/attenuverter.md,
 // cv-mixer.md, audio-mixer.md, multiplier.md, crossfader.md, logic.md,
-// quantizer.md, switch.md, notes-to-cv.md): their specs, normalling of
+// quantizer.md, switch.md, notes-to-cv.md, transport.md, delay.md): their specs, normalling of
 // unpatched jacks, node data and note input, run through the Module API.
 #include "Engine.h"
+#include "HostControl.h"
 #include "Registry.h"
 
 #include <cmath>
@@ -577,6 +578,167 @@ void levelMeter() {
     EXPECT(r.out("level") == 0.0f);
 }
 
+NoteEvent systemEvent(int status, int offset = 0) {
+    NoteEvent e;
+    e.type = NoteEvent::System;
+    e.note = status;
+    e.offset = (int16_t)offset;
+    return e;
+}
+
+void midiOutRealtime() {
+    g_test = "midi out realtime";
+    Rig r("midi-out");
+    auto frame = std::make_unique<PortFrame>();
+    PortIO io;
+    io.out = frame.get();
+    r.port = &io;
+    NoteBuffer& in = r.notes[(size_t)r.m->spec().inputIndex("notes")];
+    in.push(systemEvent(0xf8, 3));
+    NoteEvent cc;
+    cc.type = NoteEvent::Cc;
+    cc.note = 74;
+    cc.value = 0.5f;
+    cc.offset = 4;
+    in.push(cc);  // not expressed: used to go out as key pressure
+    NoteEvent on;
+    on.type = NoteEvent::On;
+    on.note = 60;
+    on.value = 1.0f;
+    on.offset = 5;
+    in.push(on);
+    r.run();
+    EXPECT(frame->numMidi == 2);
+    if (frame->numMidi == 2) {
+        EXPECT(frame->midi[0].size == 1 && frame->midi[0].bytes[0] == 0xf8 && frame->midi[0].offset == 3);
+        EXPECT(frame->midi[1].size == 3 && (frame->midi[1].bytes[0] & 0xf0) == 0x90 && frame->midi[1].offset == 5);
+    }
+}
+
+void transportNode() {
+    g_test = "transport node";
+    HostControl& hc = hostControl();
+    auto drain = [&] { hc.takeTempo(); hc.takePlay(); hc.takeLink(); hc.takeStartStopSync(); };
+    drain();
+    Rig r("transport");
+    r.transport.ppqValid = true;
+    const int notesIn = r.m->spec().inputIndex("notes");
+    NoteBuffer& outNotes = r.notesOutBuf[(size_t)r.m->spec().outputIndex("notes")];
+
+    // Loading: Link and its start/stop are sent, the tempo is not.
+    r.run();
+    EXPECT(hc.takeLink() == 1 && hc.takeStartStopSync() == 1);
+    EXPECT(hc.takeTempo() == 0.0);
+    r.run();
+    EXPECT(hc.takeLink() == HostControl::kNone);
+    // Changing knobs and settings.
+    r.set("tempo", 90.0f);
+    r.set("link", 0.0f);
+    r.run();
+    EXPECT_NEAR(hc.takeTempo(), 90.0, 0.01);
+    EXPECT(hc.takeLink() == 0);
+    // Play and Stop triggers (rising edges), and the buttons.
+    r.patch("play", 1.0f);
+    r.run(2);
+    EXPECT(hc.takePlay() == HostControl::Start);
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::kNone);  // held high: no new edge
+    r.unpatch("play");
+    r.patch("stop", 1.0f);
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::Stop);
+    r.unpatch("stop");
+    r.transport.playing = false;
+    r.m->command("playstop", 1.0f);
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::Start);
+    r.transport.playing = true;
+    r.m->command("playstop", 1.0f);
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::Stop);
+    // Outputs read the host's transport.
+    r.transport.bpm = 130.0;
+    r.run();
+    EXPECT_NEAR(r.out("tempo"), 1.3, 1e-5);
+    EXPECT_NEAR(r.out("playing"), 1.0, 1e-6);
+
+    // MIDI clock out: Start with the first block, then 24 pulses per beat (1000 samples at 120 BPM).
+    r.transport.bpm = 120.0;
+    r.transport.ppq = 0.0;
+    r.set("midiout", 1.0f);
+    int starts = 0, clocks = 0;
+    const int chunks = 100;  // 3200 samples
+    for (int k = 0; k < chunks; ++k) {
+        r.run();
+        for (int i = 0; i < outNotes.count; ++i) {
+            if (outNotes.events[i].type != NoteEvent::System) continue;
+            starts += outNotes.events[i].note == 0xfa;
+            clocks += outNotes.events[i].note == 0xf8;
+            if (k == 0 && i == 0) EXPECT(outNotes.events[i].note == 0xfa);
+        }
+    }
+    EXPECT(starts == 1);
+    EXPECT(clocks == 4);  // positions 0, 1000, 2000, 3000
+    r.transport.playing = false;
+    r.run();
+    EXPECT(outNotes.count == 1 && outNotes.events[0].note == 0xfc);
+    r.set("midiout", 0.0f);
+    r.transport.playing = true;
+    r.run(3);
+    EXPECT(outNotes.count == 0);
+    r.transport.playing = false;
+
+    // MIDI clock in: start, stop and the tempo of a 120 BPM clock.
+    drain();
+    r.set("midiin", 1.0f);
+    r.patch("notes", 0.0f);
+    r.notes[(size_t)notesIn].push(systemEvent(0xfa));
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::Start);
+    r.notes[(size_t)notesIn].push(systemEvent(0xfb));
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::Continue);
+    r.notes[(size_t)notesIn].push(systemEvent(0xfc));
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::Stop);
+    drain();
+    int pulse = 0;
+    for (int k = 0; k < 1500; ++k) {  // 60 pulses
+        for (; pulse * 1000 < (k + 1) * kChunk; ++pulse) r.notes[(size_t)notesIn].push(systemEvent(0xf8, pulse * 1000 - k * kChunk));
+        r.run();
+    }
+    EXPECT_NEAR(hc.takeTempo(), 120.0, 0.3);
+    // Off: the same events do nothing.
+    r.set("midiin", 0.0f);
+    r.notes[(size_t)notesIn].push(systemEvent(0xfa));
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::kNone);
+    // Tap.
+    drain();
+    r.m->command("tap", 1.0f);
+    r.run();
+    for (int k = 0; k < 24000 / kChunk - 1; ++k) r.run();
+    r.m->command("tap", 1.0f);
+    r.run();
+    const double tapped = hc.takeTempo();
+    EXPECT(tapped > 100.0 && tapped < 130.0);  // half a second apart, to within a block
+}
+
+void delayNode() {
+    g_test = "delay node";
+    Rig r("delay");
+    r.set("mix", 1.0f);
+    r.set("feedback", 0.0f);
+    r.set("timel", 10.0f);
+    r.set("timer", 10.0f);
+    r.patch("l", 0.5f);  // R unpatched: follows L
+    r.run(1);
+    EXPECT_NEAR(r.out("l"), 0.0, 1e-6);  // nothing back yet
+    r.run(60);
+    EXPECT_NEAR(r.out("l"), 0.5, 1e-4);
+    EXPECT_NEAR(r.out("r"), 0.5, 1e-4);
+}
+
 }  // namespace
 
 int main() {
@@ -593,6 +755,9 @@ int main() {
     monitor();
     audioMixer();
     levelMeter();
+    midiOutRealtime();
+    transportNode();
+    delayNode();
     if (g_failures) {
         std::printf("%d failure(s)\n", g_failures);
         return 1;

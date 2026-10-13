@@ -10148,6 +10148,255 @@
     "groupColumns": true
   },
   {
+    "type": "delay",
+    "name": "Delay",
+    "category": "Effects",
+    "colour": "#5b8def",
+    "description": "A simple stereo delay: free or tempo-synced times for each side, feedback with low and high cut, and a ping-pong mode.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "timel",
+        "name": "Time L",
+        "kind": "float",
+        "default": 0.750408589839935,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 2000.0,
+        "def": 300.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp",
+        "show": {
+          "param": "sync",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "timer",
+        "name": "Time R",
+        "kind": "float",
+        "default": 0.750408589839935,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 2000.0,
+        "def": 300.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp",
+        "show": {
+          "param": "sync",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "feedback",
+        "name": "Feedback",
+        "kind": "float",
+        "default": 0.400000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.400000005960464,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "lowcut",
+        "name": "Low Cut",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 20.0,
+        "max": 2000.0,
+        "def": 20.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp"
+      },
+      {
+        "id": "highcut",
+        "name": "High Cut",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 500.0,
+        "max": 20000.0,
+        "def": 20000.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp"
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Free",
+          "Tempo"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "ratel",
+        "name": "Rate L",
+        "kind": "choice",
+        "default": 0.384615391492844,
+        "steps": 14,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1/32",
+          "1/16T",
+          "1/16",
+          "1/16.",
+          "1/8T",
+          "1/8",
+          "1/8.",
+          "1/4T",
+          "1/4",
+          "1/4.",
+          "1/2T",
+          "1/2",
+          "1/2.",
+          "1/1"
+        ],
+        "min": 0.0,
+        "max": 13.0,
+        "def": 5.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "sync",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "rater",
+        "name": "Rate R",
+        "kind": "choice",
+        "default": 0.384615391492844,
+        "steps": 14,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1/32",
+          "1/16T",
+          "1/16",
+          "1/16.",
+          "1/8T",
+          "1/8",
+          "1/8.",
+          "1/4T",
+          "1/4",
+          "1/4.",
+          "1/2T",
+          "1/2",
+          "1/2.",
+          "1/1"
+        ],
+        "min": 0.0,
+        "max": 13.0,
+        "def": 5.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "sync",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Stereo",
+          "Ping-Pong"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "memoryHeavy": true
+  },
+  {
     "type": "delay-network",
     "name": "Delay Net",
     "category": "Effects",
@@ -28692,6 +28941,141 @@
         "name": "End",
         "type": "trigger",
         "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "transport",
+    "name": "Transport",
+    "category": "Utility",
+    "colour": "#ff9f43",
+    "description": "Sets the tempo, switches Ableton Link on and off, sends and follows MIDI clock, and plays and stops the song. In the standalone app; elsewhere it shows the host's tempo.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "tempo",
+        "name": "Tempo",
+        "kind": "float",
+        "default": 0.263157904148102,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 20.0,
+        "max": 400.0,
+        "def": 120.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "BPM"
+      },
+      {
+        "id": "link",
+        "name": "Link",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2
+      },
+      {
+        "id": "startstop",
+        "name": "Link Start/Stop",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2
+      },
+      {
+        "id": "midiin",
+        "name": "MIDI Clock In",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2
+      },
+      {
+        "id": "midiout",
+        "name": "MIDI Clock Out",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "play",
+        "name": "Play",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "stop",
+        "name": "Stop",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "notes",
+        "name": "MIDI In",
+        "type": "notes",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "notes",
+        "name": "MIDI Out",
+        "type": "notes",
+        "bipolar": false
+      },
+      {
+        "id": "playing",
+        "name": "Playing",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "tempo",
+        "name": "Tempo",
+        "type": "control",
+        "bipolar": false
+      }
+    ],
+    "buttons": [
+      {
+        "id": "playstop",
+        "name": "Play / Stop",
+        "momentary": false
+      },
+      {
+        "id": "tap",
+        "name": "Tap",
+        "momentary": false
       }
     ]
   },

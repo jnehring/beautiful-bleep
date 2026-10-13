@@ -11,6 +11,7 @@
 
 #include "BridgeServer.h"
 #include "Engine.h"
+#include "HostControl.h"
 #include "LinkClock.h"
 #include "WebHub.h"
 #include "SystemAudio.h"
@@ -121,6 +122,8 @@ private:
     void saveSettings();
     /// Settings → Web connection: starts or stops the hub to match webEnabled_ and webPort_.
     void applyWeb();
+    /// The Transport module's requests (engine/HostControl.h): tempo, play and stop, Link. About every 10 ms.
+    void applyHostControl();
     juce::var webState();
     bool askPairing(const std::string& origin);
 
@@ -169,6 +172,11 @@ private:
     std::vector<std::pair<std::string, std::string>> systemSources_;
     juce::int64 systemSourcesAt_ = 0;
     int virtualPorts_ = 2;
+
+    struct HostTimer final : juce::Timer {
+        std::function<void()> tick;
+        void timerCallback() override { if (tick) tick(); }
+    } hostTimer_;
 
     std::atomic<double> quantum_{4.0};
     std::atomic<double> sampleRate_{48000.0};

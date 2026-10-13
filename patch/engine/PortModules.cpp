@@ -215,15 +215,27 @@ public:
             e.size = 3;
         };
 
+        auto sendRealtime = [&](int offset, int status) {
+            if (out == nullptr || out->numMidi >= kMaxMidiEvents || status < 0xf8) return;
+            MidiEvent& e = out->midi[out->numMidi++];
+            e.offset = c.offset + offset;
+            e.bytes[0] = (uint8_t)status;
+            e.size = 1;
+        };
+
         // Polyphonic notes pass straight through.
         if (const NoteBuffer* notes = c.notesIn[Notes]) {
             for (int k = 0; k < notes->count; ++k) {
                 const NoteEvent& n = notes->events[k];
+                if (n.type == NoteEvent::System) {  // clock, start, continue, stop: one byte, no channel
+                    sendRealtime(n.offset, n.note);
+                    continue;
+                }
                 const int note = n.note + transpose;
                 const int v = (int)std::lround(n.value * 127.0f);
                 if (n.type == NoteEvent::On) send(n.offset, 0x90, note, std::max(1, v));
                 else if (n.type == NoteEvent::Off) send(n.offset, 0x80, note, v);
-                else send(n.offset, 0xa0, note, v);
+                else if (n.type == NoteEvent::Pressure) send(n.offset, 0xa0, note, v);
             }
         }
 

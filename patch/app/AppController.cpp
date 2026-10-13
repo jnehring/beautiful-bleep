@@ -68,6 +68,8 @@ AppController::AppController() {
 
 AppController::~AppController() {
     stopTimer();
+    hostTimer_.stopTimer();
+    engine::hostControl().hosted = false;
     devices_.removeAudioCallback(this);
     devices_.removeMidiInputDeviceCallback({}, this);
     devices_.closeAudioDevice();
@@ -176,6 +178,9 @@ void AppController::start(const juce::String& commandLine) {
     const auto file = juce::File::getCurrentWorkingDirectory().getChildFile(commandLine.unquoted().trim());
     if (commandLine.isNotEmpty() && file.existsAsFile()) openProject(file);
     startTimerHz(10);
+    engine::hostControl().hosted = true;
+    hostTimer_.tick = [this] { applyHostControl(); };
+    hostTimer_.startTimerHz(100);
 }
 
 void AppController::openFromCommandLine(const juce::String& commandLine) {
@@ -654,6 +659,25 @@ void AppController::syncDeviceNodes() {
     }
     for (auto& g : gone)
         if (g) removeInstance(g->inHandle);  // the node was deleted
+}
+
+void AppController::applyHostControl() {
+    auto& hc = engine::hostControl();
+    hc.linkAvailable = LinkClock::available();
+    hc.linkEnabled = clock_.enabled();
+    hc.linkPeers = clock_.peers();
+    const int link = hc.takeLink(), sync = hc.takeStartStopSync(), play = hc.takePlay();
+    const double tempo = hc.takeTempo();
+    // While Live drives the app through Bleep Audio Bridge, Live is the leader (as for web requests): the requests are dropped.
+    if (bridge_ && bridge_->driving()) return;
+    // Link on or off from a board is not remembered as the app's own setting (File → Settings keeps that).
+    if (link >= 0) clock_.enable(link == 1);
+    if (sync >= 0) clock_.setStartStopSync(sync == 1);
+    if (tempo >= 20.0 && tempo <= 400.0) clock_.setTempo(tempo);
+    if (play == engine::HostControl::Stop) clock_.setPlaying(false);
+    else if (play == engine::HostControl::Start) clock_.setPlaying(true, true);
+    else if (play == engine::HostControl::Continue) clock_.setPlaying(true, false);
+    if (play >= 0) commands_.commandStatusChanged();  // the Transport menu's Play / Stop
 }
 
 void AppController::timerCallback() {

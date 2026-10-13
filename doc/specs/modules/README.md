@@ -96,6 +96,8 @@ The eurorack-inspired set:
 | Wavetable Osc | [wavetable-oscillator.md](wavetable-oscillator.md) | Implemented |
 | Wobble | [wobble.md](wobble.md) | Implemented |
 | Zone Delay | [zone-delay.md](zone-delay.md) | Implemented |
+| Delay | [delay.md](delay.md) | Implemented |
+| Transport | [transport.md](transport.md) | Implemented |
 | Analog Drums | [analog-drums.md](analog-drums.md) | Not built: Ring Drums and Punch Drums cover it |
 | Drum + Mod | [drum-modulator.md](drum-modulator.md) | Not built: the drum modules, LFO, ADSR and Random cover it |
 | Sequential Switch | [sequential-switch.md](sequential-switch.md) | Not built: Switch covers it |

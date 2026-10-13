@@ -25,7 +25,8 @@ public:
     double tempo() const noexcept;
     void setTempo(double bpm);
     bool playing() const noexcept;
-    void setPlaying(bool on);
+    /// `fromStart`: starting also goes back to the first beat (a stopped transport that carries on does not).
+    void setPlaying(bool on, bool fromStart = true);
 
     /// [audio thread] Musical time at the start of a block that will be heard
     /// `latencyMicros` from now. Advances the internal clock by numSamples.

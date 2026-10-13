@@ -84,13 +84,14 @@ bool LinkClock::playing() const noexcept {
     return impl_->playing;
 }
 
-void LinkClock::setPlaying(bool on) {
-    if (on && !impl_->playing) impl_->restart = true;
+void LinkClock::setPlaying(bool on, bool fromStart) {
+    if (on && fromStart && !impl_->playing) impl_->restart = true;
     impl_->playing = on;
 #if BLEEP_LINK
     if (impl_->enabled && impl_->startStopSync) {
         auto state = impl_->link.captureAppSessionState();
-        state.setIsPlayingAndRequestBeatAtTime(on, impl_->link.clock().micros(), 0.0, 4.0);
+        if (on && !fromStart) state.setIsPlaying(true, impl_->link.clock().micros());
+        else state.setIsPlayingAndRequestBeatAtTime(on, impl_->link.clock().micros(), 0.0, 4.0);
         impl_->link.commitAppSessionState(state);
     }
 #endif

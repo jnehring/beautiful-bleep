@@ -1,0 +1,10 @@
+{
+  "name": "Delay",
+  "slug": "delay",
+  "tagline": "A simple stereo delay: free or synced times per side, feedback with low and high cut, and a ping-pong mode.",
+  "colour": "#5b8def",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/delay.md"
+}
