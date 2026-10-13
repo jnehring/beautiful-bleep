@@ -333,7 +333,7 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
         print("Cancelled.")
         return 1
     done = 0
-    for slug, pkg, _, version in todo:
+    for slug, pkg, old, version in todo:
         try:
             meta = json.loads(zipfile.ZipFile(pkg).read("module.json"))
             registry.release(slug, version, args.channel, meta.get("name", slug), args.notes, [sign_package(pkg, slug, version, kit, roots)],
@@ -345,7 +345,7 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
                 print(f"  ({done} released before the failure; versions are immutable, so run again to release the rest)", file=sys.stderr)
             return 1
         done += 1
-        print(f"  {slug} {version}: published ({pkg.stat().st_size / 1024:.0f} KB)")
+        print(f"  {slug} {old or 'none'} -> {version}: published ({pkg.stat().st_size / 1024:.0f} KB)")
     print(f"Index: {args.registry.rstrip('/')}/registry/v1/index.json")
     return 0
 
@@ -482,7 +482,8 @@ def main(argv: list[str] | None = None) -> int:
 
     out_dir = ROOT / "build" / "release"
     done = 0
-    for slug, artefact, _, version in plan:
+    for slug, artefact, published, version in plan:
+        old = published[-1] if published else "none"
         zip_path = out_dir / f"{slug}-{version}-{plat}.zip"
         try:
             make_zip(artefact, zip_path)
@@ -499,7 +500,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  ({done} released before the failure; versions are immutable, so run again to release the rest)", file=sys.stderr)
             return 1
         done += 1
-        print(f"  {slug} {version}: published ({zip_path.stat().st_size / 1e6:.1f} MB)")
+        print(f"  {slug} {old} -> {version}: published ({zip_path.stat().st_size / 1e6:.1f} MB)")
     print(f"Index: {args.registry.rstrip('/')}/registry/v1/index.json")
     return 0
 
