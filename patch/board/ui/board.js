@@ -666,7 +666,9 @@
   function setHoverCable(id, path) {
     hoverCable = id;
     cablesEl.querySelectorAll(".cable.hover").forEach((e) => e.remove());
-    if (!id || !path) return;
+    if (!id || !path) return hideMeter();
+    const cable = board && board.cables.find((k) => k.id === id);
+    if (cable) showMeter(cable); else hideMeter();
     const o = path.cloneNode(false);
     o.classList.remove("ghost", "dim", "selected");
     o.classList.add("hover");
@@ -706,9 +708,8 @@
       hit.appendChild(title);
       hit.addEventListener("pointerenter", () => { if (!drag) setHoverCable(c.id, p); });
       hit.addEventListener("pointerleave", () => setHoverCable(null));
-      hit.addEventListener("pointerdown", (ev) => {
-        ev.stopPropagation();
-        if (ev.button !== 0) return;   // the right button is the cable menu
+      hit.addEventListener("pointermove", (ev) => { hit.style.cursor = cableEndAt(ev, a, b) ? "grab" : ""; });
+      const selectCable = (ev) => {
         sel.clear();
         if ((ev.shiftKey || ev.ctrlKey || ev.metaKey) && selCable) {   // shift-, ctrl- or ⌘-click adds the cable to the selection, or takes it out
           if (c.id === selCable) { selCable = selMore.size ? [...selMore][0] : null; selMore.delete(selCable); }
@@ -721,6 +722,25 @@
         renderCables();
         if (selCable && !selMore.size) showCablePop(board.cables.find((k) => k.id === selCable));
         else $("cable-pop").hidden = true;
+      };
+      hit.addEventListener("pointerdown", (ev) => {
+        ev.stopPropagation();
+        if (ev.button !== 0) return;   // the right button is the cable menu
+        const end = ev.shiftKey || ev.ctrlKey || ev.metaKey ? null : cableEndAt(ev, a, b);
+        if (!end) return selectCable(ev);
+        // Near one end of the cable: dragging picks that end up (the input end onto another output, the output end onto
+        // another input); a click without moving selects the cable as usual.
+        const x0 = ev.clientX, y0 = ev.clientY;
+        const stop = () => { window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); };
+        const mv = (e) => {
+          if (Math.hypot(e.clientX - x0, e.clientY - y0) < 4) return;
+          stop();
+          if (end === "from") startSourceDrag(e, c);
+          else startCableDrag(e, c.from.node, c.from.jack, c);
+        };
+        const up = () => { stop(); selectCable(ev); };
+        window.addEventListener("pointermove", mv);
+        window.addEventListener("pointerup", up);
       });
       hit.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
@@ -743,7 +763,17 @@
       if (c.id === hoverCable) hoverPath = p;
     }
     if (hoverPath) setHoverCable(hoverCable, hoverPath);
+    else if (!drag) hideMeter();
     if (!selCable) $("cable-pop").hidden = true;
+  }
+
+  const kGrabRadius = 16;   // px: how close to a cable's end a drag picks that end up
+  /// Which end of the cable (from → "from", to → "to") the pointer is near, if any.
+  function cableEndAt(ev, a, b) {
+    const w = toWorld(ev.clientX, ev.clientY), z = cam().z;
+    if (Math.hypot(w.x - a.x, w.y - a.y) * z <= kGrabRadius) return "from";
+    if (Math.hypot(w.x - b.x, w.y - b.y) * z <= kGrabRadius) return "to";
+    return null;
   }
 
   // ------------------------------------------------------------ cable popover
@@ -781,6 +811,136 @@
     pop.style.left = m.x - pop.offsetWidth / 2 + "px";
     pop.style.top = m.y + 14 + "px";
   }
+  // ------------------------------------------------------- cable activity meter
+  // While the pointer rests on a cable, a small meter at its input end shows what travels through it: a level meter
+  // for audio, a graph for control and pitch, a step trace for gates, ticks for triggers and notes.
+  const kMeterW = 120, kMeterN = 60;   // px wide; samples kept (60 at 30 Hz: two seconds)
+  const meterKind = (t) => t === "audio" ? "audio" : t === "control" || t === "pitch" ? "graph" : t === "gate" ? "gate"
+                         : t === "trigger" || t === "notes" ? "event" : "bar";
+  let meter = null;   // {id, node, jack, kind, el, cv, label, colour, hist, head, level, peak, hold, v}
+
+  function showMeter(c) {
+    if (meter && meter.id === c.id) return positionMeter();
+    hideMeter();
+    const src = nodeById(c.from.node);
+    if (!src) return;
+    const type = outType(src, c.from.jack) || "control", kind = meterKind(type);
+    const e = el("div", "cable-meter");
+    e.style.setProperty("--c", signalColour(type));
+    const cv = el("canvas");
+    const h = kind === "graph" ? 40 : kind === "audio" || kind === "bar" ? 10 : 22;
+    cv.style.width = kMeterW + "px";
+    cv.style.height = h + "px";
+    const label = el("span", "cm-val");
+    e.append(cv, label);
+    canvas.append(e);
+    const ns = live && live.nodes && live.nodes[c.from.node];
+    const v0 = (ns && ns.outputs && ns.outputs[c.from.jack]) || 0;
+    meter = { id: c.id, node: c.from.node, jack: c.from.jack, kind, el: e, cv, label, colour: getComputedStyle(e).getPropertyValue("--c") || "#888",
+              hist: new Float32Array(kMeterN).fill(kind === "graph" || kind === "gate" ? v0 : 0), head: 0, level: 0, peak: 0, hold: 0, v: v0 };
+    positionMeter();
+    drawMeter();
+  }
+  function hideMeter() {
+    if (!meter) return;
+    meter.el.remove();
+    meter = null;
+  }
+  /// Sits above-left of the cable's input end: the cable arrives horizontally from the left, so that corner is free.
+  function positionMeter() {
+    if (!meter) return;
+    const c = board && board.cables.find((x) => x.id === meter.id);
+    const b = c && jackPos(c.to.node, c.to.jack, "in");
+    if (!b) return hideMeter();
+    const p = toCanvas(b.x, b.y), e = meter.el;
+    const top = p.y - e.offsetHeight - 10;
+    e.style.left = Math.max(4, p.x - e.offsetWidth - 10) + "px";
+    e.style.top = (top < 4 ? p.y + 12 : top) + "px";
+  }
+
+  /// One state tick (30 Hz) for the hovered cable's source output.
+  function feedMeter(ns) {
+    const m = meter;
+    if (!m || !ns) return;
+    const v = ns.outputs && m.jack in ns.outputs ? ns.outputs[m.jack] : 0;
+    const act = (ns.activity && ns.activity[m.jack]) || 0;   // how far the signal swung since the last tick
+    m.v = v;
+    if (m.kind === "audio") {
+      const amp = act / 2;   // peak amplitude of a signal swinging around zero
+      const f = amp > 1e-5 ? Math.min(1, Math.max(0, (20 * Math.log10(amp) + 60) / 60)) : 0;   // −60 … 0 dB
+      m.level = f > m.level ? f : m.level * 0.88;
+      if (m.level >= m.peak) { m.peak = m.level; m.hold = 20; } else if (m.hold-- <= 0) m.peak = Math.max(m.level, m.peak - 0.02);
+      m.amp = amp;
+    } else if (m.kind === "bar") {
+      const f = Math.min(1, Math.sqrt(act / 0.5));
+      m.level = f > m.level ? f : m.level * 0.9;
+    } else {
+      m.hist[m.head] = m.kind === "graph" ? v : m.kind === "gate" ? (v > 0.5 ? 1 : 0) : act > 1e-4 ? 1 : 0;
+      m.head = (m.head + 1) % kMeterN;
+    }
+    drawMeter();
+  }
+
+  function drawMeter() {
+    const m = meter;
+    if (!m) return;
+    const c = m.cv, w = kMeterW, h = parseFloat(c.style.height);
+    const dpr = window.devicePixelRatio || 1;
+    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    const g = c.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = "rgba(255,255,255,.08)";
+    const col = m.colour.trim();
+    let text = "";
+    if (m.kind === "audio" || m.kind === "bar") {
+      g.fillRect(0, 0, w, h);
+      const x = m.level * w;
+      if (m.kind === "audio") {   // quiet in the signal colour, hot above −12 dB amber, above −3 dB red
+        const amber = 48 / 60 * w, red = 57 / 60 * w;
+        g.fillStyle = col; g.fillRect(0, 0, Math.min(x, amber), h);
+        if (x > amber) { g.fillStyle = "#f6c35b"; g.fillRect(amber, 0, Math.min(x, red) - amber, h); }
+        if (x > red) { g.fillStyle = "#ff4d4d"; g.fillRect(red, 0, x - red, h); }
+        g.fillStyle = "#fff"; g.fillRect(Math.min(w - 2, m.peak * w), 0, 2, h);
+        const db = m.amp > 1e-5 ? 20 * Math.log10(m.amp) : -Infinity;
+        text = db === -Infinity || db < -59 ? "−∞ dB" : (db > 0 ? "+" : "") + db.toFixed(0).replace("-", "−") + " dB";
+      } else {
+        g.fillStyle = col; g.fillRect(0, 0, x, h);
+        text = m.level > 0.02 ? "active" : "idle";
+      }
+    } else if (m.kind === "graph") {
+      let lo = Infinity, hi = -Infinity;
+      for (const x of m.hist) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
+      if (hi - lo < 1e-3) { lo -= 0.5; hi += 0.5; }
+      const y = (x) => h - 2 - (x - lo) / (hi - lo) * (h - 4);
+      if (lo < 0 && hi > 0) {   // the zero line
+        g.fillRect(0, y(0), w, 1);
+      }
+      g.strokeStyle = col; g.lineWidth = 1.5; g.lineJoin = "round";
+      g.beginPath();
+      for (let i = 0; i < kMeterN; i++) {
+        const px = i / (kMeterN - 1) * w, py = y(m.hist[(m.head + i) % kMeterN]);
+        i ? g.lineTo(px, py) : g.moveTo(px, py);
+      }
+      g.stroke();
+      text = m.v.toFixed(2);
+    } else if (m.kind === "gate") {   // high stretches as blocks
+      g.fillRect(0, h - 1, w, 1);
+      g.fillStyle = col;
+      const step = w / kMeterN;
+      for (let i = 0; i < kMeterN; i++) if (m.hist[(m.head + i) % kMeterN]) g.fillRect(i * step, 3, Math.ceil(step), h - 6);
+      text = m.v > 0.5 ? "high" : "low";
+    } else {   // trigger and notes: a tick for every tick of the clock that carried an event
+      g.fillRect(0, h - 1, w, 1);
+      g.fillStyle = col;
+      const step = w / kMeterN;
+      let n = 0;
+      for (let i = 0; i < kMeterN; i++) if (m.hist[(m.head + i) % kMeterN]) { n++; g.fillRect(i * step, 2, Math.max(2, step - 1), h - 4); }
+      text = n ? n + "×" : "idle";
+    }
+    m.label.textContent = text;
+  }
+
   function removeCable(id) { removeCables([id]); }
   function removeCables(ids) {
     clearCableSel();
@@ -936,6 +1096,7 @@
 
   function startCableDrag(ev, nodeId, jack, movingCable) {
     ev.preventDefault();
+    setHoverCable(null);
     const n = nodeById(nodeId);
     const type = outType(n, jack) || "control";
     const tmp = document.createElementNS(SVGNS, "path");
@@ -943,11 +1104,7 @@
     tmp.style.setProperty("--c", signalColour(type));
     cablesEl.appendChild(tmp);
     drag = { from: { node: nodeId, jack }, type, moving: movingCable || null, tmp };
-    if (movingCable) {
-      // Hide the cable we're moving.
-      const hit = cablesEl.querySelector(`.cable-hit[data-id="${movingCable.id}"]`);
-      if (hit && hit.previousSibling) hit.previousSibling.style.display = "none";
-    }
+    if (movingCable) hideCableEls(movingCable.id);
     markTargets(true);
     const a = jackPos(nodeId, jack, "out");
     const move = (e) => {
@@ -980,19 +1137,101 @@
     window.addEventListener("pointerup", up);
   }
 
+  /// Hides the drawn cable (path, pulse and hit area) that is being moved.
+  function hideCableEls(id) {
+    const hit = cablesEl.querySelector(`.cable-hit[data-id="${id}"]`);
+    for (let e = hit && hit.previousElementSibling; e && (e.classList.contains("cable-pulse") || e.classList.contains("cable") && !e.classList.contains("hover")); e = e.previousElementSibling) {
+      e.style.display = "none";
+      if (e.classList.contains("cable")) break;
+    }
+  }
+
   function markTargets(on) {
-    for (const [id, v] of views) viewInputs(id, v, on);
-    for (const row of document.querySelectorAll("#nodes .jack.in, #views .jack.in")) {
+    const reverse = on && drag.reverse;   // an output end is in hand: output jacks are the targets
+    if (!reverse) for (const [id, v] of views) viewInputs(id, v, on);
+    for (const row of document.querySelectorAll("#nodes .jack, #views .jack")) {
       row.classList.remove("drop-ok", "drop-no");
-      if (!on) continue;
-      if (row.dataset.jack === "+") { row.classList.add("drop-ok"); continue; }
+      if (!on) { row.classList.remove("drop-hover"); continue; }
+      if (row.classList.contains("in") === reverse) continue;
+      if (!reverse && row.dataset.jack === "+") { row.classList.add("drop-ok"); continue; }
       const n = nodeById(row.dataset.node);
-      row.classList.add(n && compatible(drag.type, row.dataset.type) && n.id !== drag.from.node ? "drop-ok" : "drop-no");
+      const ok = reverse ? n && row.dataset.jack !== "+" && compatible(row.dataset.type, drag.destType) && n.id !== drag.to.node
+                         : n && compatible(drag.type, row.dataset.type) && n.id !== drag.from.node;
+      row.classList.add(ok ? "drop-ok" : "drop-no");
     }
     for (const k of document.querySelectorAll(".bv-target")) {
-      k.classList.toggle("drop-ok", on && drag.type !== "notes");
+      k.classList.toggle("drop-ok", on && !reverse && drag.type !== "notes");
       if (!on) k.classList.remove("drop-hover");
     }
+  }
+
+  /// The output end of an existing cable in hand: drop it on another output jack (or a module, to pick one of its outputs).
+  function startSourceDrag(ev, cable) {
+    ev.preventDefault();
+    setHoverCable(null);
+    const dst = nodeById(cable.to.node);
+    const dj = dst && inputsOf(dst).find((j) => j.id === cable.to.jack);
+    const type = outType(nodeById(cable.from.node), cable.from.jack) || "control";
+    const tmp = document.createElementNS(SVGNS, "path");
+    tmp.setAttribute("class", `cable temp ${type}`);
+    tmp.style.setProperty("--c", signalColour(type));
+    cablesEl.appendChild(tmp);
+    drag = { reverse: true, from: cable.from, to: cable.to, type, destType: dj ? dj.type : "control", moving: cable, tmp };
+    hideCableEls(cable.id);
+    markTargets(true);
+    const fixed = jackPos(cable.to.node, cable.to.jack, "in");
+    const move = (e) => {
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      const port = over && over.closest(".jack.out.drop-ok");
+      for (const t of document.querySelectorAll(".drop-hover")) if (t !== port) t.classList.remove("drop-hover");
+      let a = toWorld(e.clientX, e.clientY);
+      if (port) {
+        port.classList.add("drop-hover");
+        const r = (port.querySelector(".dot") || port).getBoundingClientRect();
+        a = toWorld(r.left + r.width / 2, r.top + r.height / 2);
+      }
+      tmp.setAttribute("d", cablePath(a, fixed));
+    };
+    const up = (e) => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      tmp.remove();
+      const d = drag;
+      drag = null;
+      dropSource(d, e);
+      markTargets(false);
+    };
+    move(ev);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  function dropSource(d, e) {
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const old = d.moving;
+    const rewire = (n, jack) => {
+      if (n.id === old.from.node && jack === old.from.jack) return render();   // back where it was
+      edit("reconnect", (b) => {
+        b.cables = b.cables.filter((c) => c.id !== old.id);
+        connect(b, { node: n.id, jack }, d.to, old.amount);
+      });
+    };
+    const row = target && target.closest(".jack.out");
+    if (row) {
+      const n = nodeById(row.dataset.node);
+      if (!n || row.dataset.jack === "+" || n.id === d.to.node || !compatible(row.dataset.type, d.destType)) return render();
+      return rewire(n, row.dataset.jack);
+    }
+    const nodeEl = target && target.closest(".node");
+    if (nodeEl && nodeEl.dataset.id !== d.to.node) {
+      const n = nodeById(nodeEl.dataset.id);
+      const items = outputsOf(n).filter((j) => compatible(j.type, d.destType));
+      if (!items.length) return render();
+      return showMenu(e, items.map((j) => ({ label: j.name, key: j.type, run: () => rewire(n, j.id) })));
+    }
+    // Empty canvas: a dropped cable end is deleted, as with the input end.
+    if (target && canvas.contains(target) && !target.closest(".vwin")) return edit("disconnect", (b) => { b.cables = b.cables.filter((c) => c.id !== old.id); });
+    render();
   }
 
   // While a cable is in hand, open views show the module's input jacks in a
@@ -2965,6 +3204,7 @@
     }
     for (const { path, key } of pulses.values())
       path.style.setProperty("--act", (pulseLevel.get(key) || 0).toFixed(2));
+    if (meter) feedMeter(nodes[meter.node]);
   }
 
   let portsKey = "";

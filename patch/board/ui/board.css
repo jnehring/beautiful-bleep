@@ -133,6 +133,11 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .cable.notes + .cable-pulse { stroke-width: 4; }
 @keyframes cable-pulse { from { stroke-dashoffset: 80; } to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .cable-pulse { animation: none; stroke-dasharray: none; opacity: calc(var(--act, 0) * .25); } }
+/* Activity meter at the input end of the hovered cable. */
+.cable-meter { position: absolute; z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 3px; padding: 5px 7px;
+               background: var(--panel); border: 1px solid var(--c, var(--line)); border-radius: 6px; box-shadow: 0 2px 8px rgba(0, 0, 0, .3); }
+.cable-meter canvas { display: block; }
+.cable-meter .cm-val { font-size: 10px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
 .cable-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
 
 /* ---- popovers */
