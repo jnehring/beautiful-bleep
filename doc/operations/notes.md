@@ -24,11 +24,11 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
   ```
 
 - `pip install cryptography` (release.py and signing.py need it).
-- **In every new shell**, before a release, put the shared options in the environment so the commands below stay short. The `export`s only last for that shell; in a fresh terminal `release.py` stops with "A release token is required":
+- **In every new shell**, before a release, put the shared options in the environment so the commands below stay short. The `export` only lasts for that shell. The token is passed with `--token-file` (it picks the `blp_…` token out of the file, so the two-line output of `token-create` works as saved); without it `release.py` stops with "A release token is required":
 
   ```bash
-  # the store (website address; the API is under /api), the token and the signing kit
-  export BLEEP_REGISTRY_URL=http://localhost:8080 BLEEP_RELEASE_TOKEN=$(cat ~/.bleep-release-token) BLEEP_SIGNING_KIT=~/.bleep-signing-kit.json
+  # the store (website address; the API is under /api) and the signing kit
+  export BLEEP_REGISTRY_URL=http://localhost:8080 BLEEP_SIGNING_KIT=~/.bleep-signing-kit.json
   ```
 
 - Always rehearse first: add `--dry-run` (no token needed, changes nothing).
@@ -58,7 +58,7 @@ Release and upload:
 
 ```bash
 scripts/release/release.py bleep-app --level patch --dry-run
-scripts/release/release.py bleep-app --level patch --notes "what changed"
+scripts/release/release.py bleep-app --level patch --notes "what changed" --token-file ~/.bleep-release-token
 ```
 
 - The app includes Ableton Link, which makes the binary GPL (`-DBLEEP_LINK=OFF` for an MIT build). Never ship a `BLEEP_UI_DEV=ON` build.
@@ -86,11 +86,11 @@ Bundles end up in `build/patch/<Target>_artefacts/Release/VST3/`. Plugins share 
 Release and upload (`--list` shows the ids):
 
 ```bash
-scripts/release/release.py bleep-board --level 1.x
+scripts/release/release.py bleep-board --level 1.x --token-file ~/.bleep-release-token
 scripts/release/release.py --all --level patch --dry-run
-scripts/release/release.py --all --level patch --notes "what changed"
+scripts/release/release.py --all --level patch --notes "what changed" --token-file ~/.bleep-release-token
 # runs build-patch.sh first
-scripts/release/release.py --all --build --level patch
+scripts/release/release.py --all --build --level patch --token-file ~/.bleep-release-token
 ```
 
 The product version is `project(BleepBoard VERSION …)` in `patch/CMakeLists.txt`; plugins and app take it from there. For a tagged release also tag `plugin-vX.Y.Z` (see "The manual release" in [release.md](release.md)).
@@ -161,9 +161,9 @@ Release and upload. Each module counts its own version, and a module whose conte
 ```bash
 scripts/release/release.py --modules --package --level patch --dry-run
 # all changed modules
-scripts/release/release.py --modules --package --level patch
+scripts/release/release.py --modules --package --level patch --token-file ~/.bleep-release-token
 # one module
-scripts/release/release.py --modules reverb --level minor
+scripts/release/release.py --modules reverb --level minor --token-file ~/.bleep-release-token
 ```
 
 `--package` runs `package-module.py` first; leave it out to release what is already in `build/store/modules/`.
