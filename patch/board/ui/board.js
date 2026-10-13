@@ -337,6 +337,7 @@
     for (const [id, v] of views) {  // a rename changes the titles of open views
       const n = nodeById(id), t = v.win.querySelector(".v-title");
       if (n && t && n.name !== t.textContent) t.textContent = n.name;
+      if (n && v.power) setPowerButton(v.power, n);
     }
     applyCam();  // before the cables: their positions are measured on screen
     renderCables();
@@ -526,16 +527,6 @@
     if (missingModule) { e.classList.add("missing"); sub = "not installed"; }
     if (n.name === sub) sub = t.name;
     if (sub) head.appendChild(el("span", "n-sub", sub));
-    if (canBypass(n)) {
-      const bb = el("button", "n-bypass" + (n.bypassed ? "" : " on"), "⏻");   // a power switch: lit = the module runs
-      bb.title = n.bypassed ? "Bypassed: the audio passes through. Click to switch the module on." : "On. Click to bypass (pass the audio through unprocessed).";
-      bb.setAttribute("aria-label", "Power " + n.name);
-      bb.setAttribute("aria-pressed", n.bypassed ? "false" : "true");
-      bb.addEventListener("pointerdown", (ev) => ev.stopPropagation());
-      bb.addEventListener("dblclick", (ev) => ev.stopPropagation());
-      bb.addEventListener("click", (ev) => { ev.stopPropagation(); toggleBypass(n.id); });
-      head.appendChild(bb);
-    }
     if (hasPanel(n)) {
       const pb = el("button", "n-panel", "▦");
       pb.title = "Open the front panel";
@@ -2053,6 +2044,12 @@
     if (isPort(n) || isCellLike(n) || isStructural(n) || !types[n.type]) return false;
     return inputsOf(n).some((j) => j.type === "audio") && outputsOf(n).some((j) => j.type === "audio");
   }
+  function setPowerButton(b, n) {
+    b.classList.toggle("on", !n.bypassed);
+    b.title = n.bypassed ? "Bypassed: the audio passes through. Click to switch the module on." : "On. Click to bypass (pass the audio through unprocessed).";
+    b.setAttribute("aria-label", "Power " + n.name);
+    b.setAttribute("aria-pressed", n.bypassed ? "false" : "true");
+  }
   function toggleBypass(id) {
     const n = nodeById(id);
     if (!n || !canBypass(n)) return;
@@ -2706,6 +2703,12 @@
     close.title = "Close (Esc)";
     head.append(help, pin, close);
     const body = el("div", "v-body");
+    const power = canBypass(n) ? el("button", "power", "⏻") : null;   // a power switch: lit = the module runs
+    if (power) {
+      setPowerButton(power, n);
+      power.addEventListener("click", () => toggleBypass(id));
+      head.appendChild(power);
+    }
     const doc = el("div", "v-doc");
     doc.hidden = true;
     win.append(head, body);
@@ -2717,7 +2720,7 @@
     if (!n.params) n.params = {};
     body.append(bv.root, doc);
     $("views").appendChild(win);
-    const v = { win, bv, pinned: false };
+    const v = { win, bv, pinned: false, power };
     moduleDoc(t.type).then((md) => {
       if (md === null) return;
       help.hidden = false;
