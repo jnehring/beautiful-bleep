@@ -84,7 +84,7 @@ private:
 
 }  // namespace
 
-void registerDrumNotesModule(Registry& r) {
+static void registerDrumNotesModule(Registry& r) {
     ModuleSpec s;
     s.type = "drum-notes";
     s.name = "Drum Notes";
