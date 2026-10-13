@@ -11,6 +11,7 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 - [Plugins](#plugins-vst3)
 - [Modules](#modules)
 - [Web board](#web-board)
+- [Website (dev and production)](#website-dev-and-production)
 
 ## One-time setup (all three)
 
@@ -184,3 +185,62 @@ python3 -m http.server -d build/web/site 8000
 ```
 
 The website is deployed by rebuilding its containers (see [website.md](website.md)); deploying from CI is not set up yet. A change to the board UI needs a website deploy; a change to a module needs only the module release.
+
+## Website (dev and production)
+
+The site is the docs and homepage (`website/app`, Next.js, static export), the board UI, and the store backend: Caddy, the API (FastAPI), PostgreSQL and the store's storage (SeaweedFS). All of it runs with Docker Compose from `website/`. The image has the board UI but **no modules**; they come from the store (see [Modules](#modules)). Details, the admin user and the signing keys: [website.md](website.md).
+
+One-time: copy the config and fill it in (database password, first admin, storage keys, signing keys):
+
+```bash
+cp website/.env.example website/.env
+```
+
+**Production** (static export behind Caddy, built into the image; about a minute):
+
+```bash
+# build the images and start everything: http://localhost:8080
+scripts/run/run-website.sh
+```
+
+```bash
+# after changing website/content, website/app, the board UI or module docs: rebuild and restart
+scripts/run/run-website.sh up
+```
+
+```bash
+# rebuild from scratch, without Docker's layer cache
+scripts/run/run-website.sh rebuild
+```
+
+```bash
+# follow the logs
+scripts/run/run-website.sh logs
+```
+
+```bash
+# stop (the database and the store keep their data; `docker compose down -v` in website/ deletes it)
+scripts/run/run-website.sh down
+```
+
+On a real server set `BLEEP_COOKIE_SECURE=true` (the site is served over HTTPS) and `BLEEP_SITE_PORT` if 8080 is taken. Deploying is rebuilding the containers on the server; deploying from CI is not set up yet. A module release needs no website deploy.
+
+**Development** (`next dev` with hot reload behind the same Caddy routes, no image rebuild; needs Docker Compose 2.24+):
+
+```bash
+docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env up
+```
+
+Open http://localhost:8080. After editing `website/content` or a module's `doc/`, regenerate the docs:
+
+```bash
+docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env restart dev
+```
+
+After editing the board UI (`patch/board`, `patch/web`), rebuild it into the site:
+
+```bash
+docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env run --rm play
+```
+
+**Without Docker** (docs and pages only, no API or store): `cd website/app && npm install`, then `npm run dev` (http://localhost:3000) or `npm run build` (static export to `website/app/out/`).
