@@ -2366,6 +2366,13 @@
 
   // ------------------------------------------------------- floating views
   let viewZ = 1;
+  /// Puts a floating window at (x, y), keeping its title bar inside the canvas so it can always be grabbed.
+  function placeWin(win, x, y) {
+    const head = win.querySelector(".v-head"), hh = head ? head.offsetHeight : 28, keep = 80;
+    win.style.left = Math.max(keep - win.offsetWidth, Math.min(x, canvas.clientWidth - keep)) + "px";
+    win.style.top = Math.max(0, Math.min(y, canvas.clientHeight - hh)) + "px";
+  }
+  window.addEventListener("resize", () => { for (const v of views.values()) placeWin(v.win, v.win.offsetLeft, v.win.offsetTop); });
   // Opening a view replaces the other unpinned ones; pinned views stay.
   function toggleView(id) {
     if (views.has(id)) return closeView(id);
@@ -2537,7 +2544,7 @@
     head.addEventListener("pointerdown", (e) => {
       if (e.target.closest("button")) return;
       const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
-      const move = (m) => { win.style.left = m.clientX - sx + "px"; win.style.top = m.clientY - sy + "px"; };
+      const move = (m) => placeWin(win, m.clientX - sx, m.clientY - sy);
       const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
@@ -2874,7 +2881,7 @@
     head.addEventListener("pointerdown", (e) => {
       if (e.target.closest("button") || state.full) return;
       const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
-      const move = (m) => { win.style.left = m.clientX - sx + "px"; win.style.top = m.clientY - sy + "px"; };
+      const move = (m) => placeWin(win, m.clientX - sx, m.clientY - sy);
       const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
