@@ -290,6 +290,7 @@
   }
 
   BleepViews.register("shape-env", {
+    partNames: ["Shape"],
     top: true,
     width: 820,
     layout: [

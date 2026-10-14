@@ -120,6 +120,7 @@
   }
 
   BleepViews.register("zone-delay", {
+    partNames: ["Zones and echoes"],
     hideParams: ["zone"],
     layout: [
       { title: "Time", params: ["time", "glide"] },

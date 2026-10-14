@@ -189,6 +189,7 @@
     .cq-row span { color: var(--muted); }`;
 
   BleepViews.register("chord-quantizer", {
+    partNames: ["Chord"],
     width: 900,
     layout: [
       { title: "Source", params: ["mode", "root", "scale", "harmony", "hysteresis"] },

@@ -131,6 +131,7 @@
   }
 
   BleepViews.register("delay-network", {
+    parts: [{ id: "taps", name: "Taps", select: ".bv-panel:has(.dn-timeline)" }, { id: "routing", name: "Routing and freeze", select: ".bv-panel:has(.dn-routing)" }],
     layout: [
       { title: "Time & taps", params: ["time", "taps", "scatter", "jitter", "reverse"] },
       { title: "Repeats", params: ["feedback", "character", "tone", "width"] },

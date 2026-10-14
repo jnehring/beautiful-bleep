@@ -384,7 +384,7 @@ Notes and per-voice signals live on two levels: outside, one `notes` cable carri
 | Shared inputs | any but `notes` | optional | The same signal for every voice (an LFO, a cutoff macro, pitch bend) |
 | Shared outputs | `control`, `audio` | optional | Summed over the voices |
 
-**Inside**, two fixed nodes that can't be deleted, plus *Cell In* / *Cell Out* for the shared jacks:
+**Inside**, two fixed nodes that can't be deleted, plus a *Cell Out* for the shared outputs. The shared inputs leave over *Voice In* itself (its **+** jack makes a new one, as on a Cell In); a new Voice Cell has no *Cell In*, and one an older board has keeps working and may be deleted:
 
 *Voice In* — outputs, per voice:
 
@@ -437,6 +437,7 @@ Notes and per-voice signals live on two levels: outside, one `notes` cable carri
 4. **Play it from outside.** Click the cell: its view shows the voice settings and the cell controls; dots on the node show which voices play.
 5. **Reuse.** Right-click → *Save as preset*, with a name and a category (e.g. *Synthesizers*). The preset appears under *Add → Cell → Synthesizers*, next to the factory presets.
 6. **Convert.** Right-click on an ordinary cell → *Make Voice Cell* adds *Voice In* and *Voice Out*; the cell's existing jacks become shared jacks.
+7. **Unbuild.** Right-click a cell or Voice Cell → *Unbuild cell* (⌘⇧G) moves its contents into the patch and joins the cables through its jacks. For a Voice Cell the per-voice signals and *Active* are lost.
 
 **Factory preset *Basic Poly*** (*Add → Cell → Synthesizers*): Oscillator → Multi Filter → VCA, one ADSR for the filter, one for the VCA, 8 voices, with shared inputs *Cutoff* and *Bend*.
 
@@ -506,8 +507,8 @@ A **module view** is a module's full UI: its knobs, switches, mod rings, scopes 
 - **Pinning:** a pinned view stays open when the user enters or leaves cells.
 - **Linking:** a thin line connects an open view to its node while either is hovered.
 - **Mod rings:** dropping a cable on a knob in a view modulates that knob (section 9.5).
-
 - **Presets:** a module that has factory presets (`board/ui/module-presets.json`, written in units in `patch/presets/modules/<type>.mjs`) shows the same **preset bar** above its controls: previous / next, a menu (**Factory**, read-only, and **User**) and Save. A preset is `{params: {id: 0…1}, data?}`; a factory preset lists only the knobs it sets and the rest follow their defaults. A user preset stores every knob, plus the node's `data` when it has any, in the native library `module:<type>` (`<app data>/Beautiful Bleep/Module Presets/<type>/*.bleepmodule`). Loading one is a single undo step and never touches cables. Factory names can't be reused for user presets. Modules without a preset file (the Patch Bay, meters, mixers, controllers, samplers) get no bar.
+
 Module view sketch:
 
 ```

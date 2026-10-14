@@ -24,6 +24,11 @@ Gain starts at **0 %** (closed). Modulation adds to the knob, so an envelope
 patched at 100 % amount opens the VCA from silence to full volume and closes
 it again.
 
+**Range** sets how far the amplifier can go: 100 % (the default), 200 % or
+400 %. It multiplies the result, so the Gain knob and envelopes keep their
+meaning (100 % on the knob, or a full envelope, is now 2× or 4× the input, up to
++12 dB). Use it to lift a quiet signal; mind the level after it.
+
 If only *In L* is patched, it feeds both channels. A mono oscillator then comes
 out on both sides.
 

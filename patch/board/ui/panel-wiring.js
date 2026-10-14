@@ -1,219 +1,142 @@
 // SPDX-License-Identifier: MIT
-// panel-wiring.js — panel controls that are modules (doc/specs/panels.md, "Panels add modules to the board").
+// panel-wiring.js — "Add to panel" (doc/specs/panels.md): put a knob, or a controller module, on a panel.
 //
-// Right-click anything that takes a cable → "Create panel control": a Dial, a Button or a Keyboard module goes
-// into the panel's own *Panel cell*, and its signal reaches the target through a patch bay: one Patch Bay In in the
-// Panel cell per target module, one bundle cable out of the cell, one Patch Bay Out next to the target. The control on
-// the panel shows and drives that module. These functions edit a board document (`b`); they do no drawing.
+// Right-click a knob → Add to panel ▸ a panel, or a new one: a control wired straight to the knob. Right-click a controller
+// module (Dial, Wheel, XY Pad, Button, Keyboard, Level Meter) → the same: a control that draws and drives the module. Every
+// panel of the board is offered. These functions edit a board
+// document (`b`); they do no drawing.
 //
-//   BleepPanelWiring.kindsFor(types, node, target)        [{kind, label}] the controls that can drive this target
-//   BleepPanelWiring.create(b, env, node, target, kind)   adds the control; returns {panel, control} or {error}
-//   BleepPanelWiring.remove(b, panelId, controlId)        takes the control, its module and what it leaves behind away
-//   BleepPanelWiring.controlFor(b, node, target)          the control that already drives this target, or null
+//   BleepPanelWiring.panelsFor(b)                          the panels a control can go on: all of them
+//   BleepPanelWiring.addKnob(b, env, node, paramId, where) a control wired to the knob; `where` is a panel id or "new"
+//   BleepPanelWiring.knobControls(b, node, paramId)        [{panel, control}] the controls wired to this knob
+//   BleepPanelWiring.addModule(b, env, node, where)        a control for a controller module on the board
+//   BleepPanelWiring.moduleControls(b, node)               [{panel, control}] the controls that show this module
+//   BleepPanelWiring.addView(b, env, node, part, where)    the module's view, or one part of it (a display, a section of knobs, the
+//                                                          buttons: {id, name, kind, knobs} from BleepView.partsOf), as a Module view control
+//   BleepPanelWiring.viewControls(b, node)                 [{panel, control, part}] the Module view controls that show this node
+//   BleepPanelWiring.remove(b, panelId, controlId)         takes a control away (older panels: with the module they made)
 //
-//   target: { param: "cutoff" } (a knob or a setting) or { jack: "gate", dir: "in" | "out" }
-//   env:    { types, uid(prefix), place(panel, type, extra) → control }
+//   env: { types, uid(prefix), place(panel, type, extra) → control, knobControl(node, param) → the control for a knob,
+//          hasView(node) → bool (structural nodes have none) }
 //
-// A panel control made here carries `target: {node, param|jack}` and `module: <id>` (what it is wired through); the panel
-// remembers its Panel cell (`panelCell`) and, per target module, the bay (`bays[nodeId] = {in, out, jack, path}`).
+// Panels made before this carried `target: {node, param|jack}` and `module` (a module in a Panel cell, `panelCell`, `bays`).
+// They keep working; only `remove` still knows about them.
 (function () {
   "use strict";
   const clone = (x) => JSON.parse(JSON.stringify(x));
-  const ROW = 90, COLUMN = 600, GAP = 300;
-
-  // ---------------------------------------------------------------- what can drive what
-  const paramOf = (types, node, id) => ((types[node.type] || {}).params || []).find((p) => p.id === id);
-  const jackOf = (types, node, id, dir) => {
-    const t = types[node.type] || {};
-    const list = node.type === "cell" || node.type === "voice-cell" ? (dir === "in" ? node.inputs : node.outputs) || [] : dir === "in" ? t.inputs || [] : t.outputs || [];
-    const base = node.type === "voice-cell" ? (dir === "in" ? [{ id: "notes", type: "notes", name: "Notes" }] : [{ id: "l", type: "audio" }, { id: "r", type: "audio" }]) : [];
-    return base.concat(list).find((j) => j.id === id);
-  };
-
-  function kindsFor(types, node, target) {
-    if (target.param) {
-      const p = paramOf(types, node, target.param);
-      if (!p) return [];
-      if (!p.modulatable) return [];   // a setting no cable can drive
-      if (p.kind === "bool") return [{ kind: "toggle", label: "Toggle" }];
-      if (p.kind === "choice") return [{ kind: "select", label: "Dropdown" }, { kind: "dial", label: "Dial (stepped)" }];
-      if (p.kind === "int") return [{ kind: "dial", label: "Dial" }, { kind: "slider", label: "Fader" }, { kind: "select", label: "Dropdown" }];
-      return [{ kind: "dial", label: "Dial" }, { kind: "slider", label: "Fader" }];
-    }
-    const j = jackOf(types, node, target.jack, target.dir || "in");
-    if (!j) return [];
-    if (target.dir === "out") return j.type === "notes" ? [] : [{ kind: "meter", label: "Meter" }];
-    if (j.type === "notes") return [{ kind: "keys", label: "Keys" }];
-    if (j.type === "gate" || j.type === "trigger") return [{ kind: "button", label: "Button" }, { kind: "toggle", label: "Toggle" }];
-    if (j.type === "control" || j.type === "pitch") return [{ kind: "dial", label: "Dial" }, { kind: "slider", label: "Fader" }];
-    return [];
-  }
 
   // ---------------------------------------------------------------- the board document
   const node = (b, id) => b.nodes.find((n) => n.id === id);
   const panelOf = (b, id) => (b.panels || []).find((q) => q.id === id);
-  const kids = (b, parent) => b.nodes.filter((n) => (n.parent || "") === (parent || ""));
 
   /// The cell a panel for `n` belongs to: the nearest plain cell around it, else the board ("").
   function scopeOf(b, n) {
     for (let p = node(b, n.parent); p; p = node(b, p.parent)) if (p.type === "cell") return p.id;
     return "";
   }
-  /// The cells between the scope and the node, outermost first (Voice Cells and cells inside them).
-  function pathTo(b, n, scope) {
-    const chain = [];
-    for (let p = node(b, n.parent); p && p.id !== scope; p = node(b, p.parent)) chain.unshift(p.id);
-    return chain;
-  }
-  /// A free place below everything at a level.
-  function freeBelow(b, parent, x = 40) {
-    const at = kids(b, parent);
-    return { x, y: at.length ? Math.max(...at.map((n) => n.y)) + 200 : 40 };
-  }
-
-  function ensurePanel(b, env, scope) {
-    let q = (b.panels || []).find((p) => !p.for && (p.cell || "") === scope);
-    if (q) return q;
+  /// Every panel of the board that shows modules (not the module panels): wires name nodes by id, so any of them can hold a control for any node.
+  const panelsFor = (b) => (b.panels || []).filter((q) => !q.for);
+  /// A new empty panel for a scope, named after its cell and numbered when the name is taken.
+  function newPanel(b, env, scope) {
     const cellNode = scope ? node(b, scope) : null;
-    q = { id: env.uid("p"), name: cellNode ? cellNode.name : "Panel", ...(scope ? { cell: scope } : {}), cols: 40, rows: 24,
-          controls: [{ id: "c1", type: "label", at: [1, 0], size: [24, 2], text: cellNode ? cellNode.name : "Panel", style: "title" }] };
+    const base = cellNode ? cellNode.name : "Panel";
+    let name = base;
+    for (let i = 2; (b.panels || []).some((q) => q.name === name); i++) name = `${base} ${i}`;
+    const q = { id: env.uid("p"), name, ...(scope ? { cell: scope } : {}), cols: 40, rows: 24,
+                controls: [{ id: "c1", type: "label", at: [1, 0], size: [24, 2], text: name, style: "title" }] };
     (b.panels || (b.panels = [])).push(q);
     return q;
   }
-
-  /// The Panel cell of a panel: its modules and bays. Made on first use, below the cell's other nodes.
-  function ensurePanelCell(b, env, q, scope) {
-    let cell = q.panelCell && node(b, q.panelCell);
-    if (cell) return cell;
-    const at = freeBelow(b, scope);
-    cell = { id: env.uid("c"), type: "cell", name: "Panel", x: at.x, y: at.y, parent: scope, params: {}, inputs: [], outputs: [] };
-    b.nodes.push(cell,
-      { id: env.uid("ci"), type: "cell-in", name: "Cell In", x: 40, y: 40, parent: cell.id, params: {} },
-      { id: env.uid("co"), type: "cell-out", name: "Cell Out", x: 1000, y: 40, parent: cell.id, params: {} });
-    q.panelCell = cell.id;
-    return cell;
-  }
-  const boundary = (b, cellId, type) => b.nodes.find((n) => n.type === type && n.parent === cellId);
-
-  const newNode = (env, type, name, parent, x, y, params = {}) => {
-    const t = env.types[type], n = { id: env.uid("n"), type, name, x, y, parent, params: {} };
-    for (const p of t.params) n.params[p.id] = p.id in params ? params[p.id] : p.default;
-    return n;
-  };
-  const cableOf = (env, from, fj, to, tj, amount = 1) => ({ id: env.uid("k"), from: { node: from, jack: fj }, to: { node: to, jack: tj }, amount });
-  /// A knob's range is linear for these Dial knobs: units → 0…1.
-  const norm = (def, v) => (def.max > def.min ? (v - def.min) / (def.max - def.min) : 0);
-
-  /// The Patch Bay In (Panel cell), the bundle out of the cell, any Voice Cells in between, and the Patch Bay Out beside the target.
-  function ensureBay(b, env, q, panelCell, target, scope) {
-    q.bays = q.bays || {};
-    if (q.bays[target.id] && node(b, q.bays[target.id].in) && node(b, q.bays[target.id].out)) return q.bays[target.id];
-    const column = Object.keys(q.bays).length;
-    const jack = "b_" + target.id;
-    const bayIn = newNode(env, "patchbay-in", target.name, panelCell.id, 340 + column * COLUMN, 40);
-    const bayOut = newNode(env, "patchbay-out", target.name, target.parent, Math.max(20, target.x - GAP), target.y);
-    b.nodes.push(bayIn, bayOut);
-    panelCell.outputs.push({ id: jack, name: target.name, type: "patchbay" });
-    const co = boundary(b, panelCell.id, "cell-out");
-    co.x = Math.max(co.x, 340 + column * COLUMN + 400);
-    b.cables.push(cableOf(env, bayIn.id, "bundle", co.id, jack));
-    // The bundle's way: the Panel cell's output, into each cell around the target (a shared input of type patchbay), and out
-    // of that cell's Cell In to the next, to the bay beside the target.
-    const chain = pathTo(b, target, scope);
-    let from = { node: panelCell.id, jack };
-    for (const cellId of chain) {
-      const c = node(b, cellId);
-      c.inputs = c.inputs || [];
-      c.inputs.push({ id: jack, name: target.name, type: "patchbay" });
-      b.cables.push(cableOf(env, from.node, from.jack, c.id, jack));
-      const ci = boundary(b, c.id, "cell-in");
-      from = { node: ci.id, jack };
-    }
-    b.cables.push(cableOf(env, from.node, from.jack, bayOut.id, "bundle"));
-    return (q.bays[target.id] = { in: bayIn.id, out: bayOut.id, jack, path: chain });
-  }
-  const nextChannel = (b, bayInId) => {
-    const used = b.cables.filter((c) => c.to.node === bayInId).map((c) => Number(c.to.jack.slice(1)));
-    return "c" + (Math.max(0, ...used) + 1);
-  };
-
-  // ---------------------------------------------------------------- create
-  function controlFor(b, n, target) {
-    for (const q of b.panels || [])
-      for (const c of q.controls)
-        if (c.target && c.target.node === n.id && (c.target.param || "") === (target.param || "") && (c.target.jack || "") === (target.jack || "")) return { panel: q, control: c };
-    return null;
+  /// The panel `where` names ("new": a fresh one for the node's cell), or an error.
+  function target(b, env, n, where) {
+    if (where === "new") return { panel: newPanel(b, env, scopeOf(b, n)) };
+    const q = panelsFor(b).find((x) => x.id === where);
+    return q ? { panel: q } : { error: "that panel cannot show this" };
   }
 
-  /// The modules of a Panel cell (the controls' own modules, the bays) are not things to make panel controls for.
+  /// The modules of a Panel cell (made by older panels) are not things to put on a panel.
   const belongsToPanel = (b, n) => n.type === "patchbay-in" || n.type === "patchbay-out" ||
     (b.panels || []).some((q) => q.panelCell && (n.id === q.panelCell || n.parent === q.panelCell));
 
-  function create(b, env, n, target, kind) {
-    const types = env.types;
-    if (belongsToPanel(b, n)) return { error: "that module is part of the Panel cell" };
-    if (!kindsFor(types, n, target).some((k) => k.kind === kind)) return { error: "no such control for this" };
-    if (controlFor(b, n, target)) return { error: "it already has a panel control" };
-    const scope = scopeOf(b, n);
-    const q = ensurePanel(b, env, scope);
-    const panelCell = ensurePanelCell(b, env, q, scope);
-    const def = target.param ? paramOf(types, n, target.param) : null;
-    const label = target.param ? def.name : (jackOf(types, n, target.jack, target.dir || "in") || {}).name || target.jack;   // the target's own title
-    const old = def ? (n.params && target.param in n.params ? n.params[target.param] : def.default) : 0.5;   // the knob's value, normalised
-    const steps = def && def.kind !== "float" ? (def.kind === "bool" ? 2 : def.kind === "choice" ? def.choices.length : def.steps || 0) : 0;
-    // The Dial snaps to at most 24 steps; a longer list (filter types) stays continuous: the setting rounds to the nearest choice.
-    const dialSteps = steps > 24 ? 0 : steps;
-    const dialDef = (id) => types.dial.params.find((p) => p.id === id);
+  // ---------------------------------------------------------------- a controller already on the board
+  // The controllers a panel can show: right-click one on the board → "Add to panel". The control draws and drives the module
+  // itself; there is no target and no Panel cell. You cable the module's outputs on the board like any other module.
+  const SHOWN_AS = {
+    dial: (m) => ({ type: "dial", wire: [{ param: `${m.id}.value` }] }),
+    wheel: (m) => ({ type: "wheel", spring: true, wire: [{ param: `${m.id}.value` }] }),
+    button: (m) => ({ type: "button", wire: [{ press: m.id }], ...((m.params || {}).mode === 1 ? { toggle: true } : {}) }),
+    "xy-pad": (m) => ({ type: "xy", size: [12, 10], wire: [{ param: `${m.id}.x`, axis: "x" }, { param: `${m.id}.y`, axis: "y" }] }),
+    keyboard: (m) => ({ type: "keys", octaves: 3, from: "C3", wire: [{ keyboard: m.id }] }),
+    "level-meter": (m) => ({ type: "meter", source: { out: [`${m.id}.l`, `${m.id}.r`] } }),
+  };
+  const canAddModule = (b, n) => !!SHOWN_AS[n.type] && !belongsToPanel(b, n);
 
-    let mod, ctl = { label, target: { node: n.id, ...(target.param ? { param: target.param } : { jack: target.jack }) } };
-    const modAt = (bay, row) => ({ x: bay ? bay.x - GAP : 40, y: bay ? bay.y + row * ROW : 40 });
-    // Keys and meters are not signals a bay can carry: a notes jack takes the Keyboard through the Panel cell's own output.
-    if (kind === "keys") {
-      if ((n.parent || "") !== scope) return { error: "Keys can go on a note input of the panel's own cell" };
-      mod = newNode(env, "keyboard", "Keys", panelCell.id, 40, 40 + 3 * ROW);
-      const jack = "n_" + n.id;
-      panelCell.outputs.push({ id: jack, name: "Notes", type: "notes" });
-      const co = boundary(b, panelCell.id, "cell-out");
-      b.nodes.push(mod);
-      b.cables.push(cableOf(env, mod.id, "notes", co.id, jack), cableOf(env, panelCell.id, jack, n.id, target.jack));
-      ctl = { ...ctl, type: "keys", octaves: 3, from: "C3", wire: [{ keyboard: mod.id }], module: mod.id, jack };
-    } else if (kind === "meter") {
-      if ((n.parent || "") !== scope) return { error: "a meter needs a module of the panel's own cell" };
-      mod = newNode(env, "level-meter", `${n.name} meter`, panelCell.id, 40, 40 + 4 * ROW);
-      const jackIn = "m_" + n.id;
-      panelCell.inputs.push({ id: jackIn, name: label, type: "audio" });
-      const ci = boundary(b, panelCell.id, "cell-in");
-      b.nodes.push(mod);
-      b.cables.push(cableOf(env, n.id, target.jack, panelCell.id, jackIn), cableOf(env, ci.id, jackIn, mod.id, "l"), cableOf(env, ci.id, jackIn, mod.id, "r"));
-      ctl = { ...ctl, type: "meter", source: { out: [`${mod.id}.l`, `${mod.id}.r`] }, module: mod.id, jack: jackIn };
-    } else {
-      const bay = ensureBay(b, env, q, panelCell, n, scope);
-      const bayIn = node(b, bay.in), bayOut = node(b, bay.out);
-      const channel = nextChannel(b, bayIn.id);
-      const row = Number(channel.slice(1)) - 1;
-      const at = modAt(bayIn, row);
-      if (kind === "toggle" || kind === "button") {
-        const on = !!def && old > 0.5;
-        mod = newNode(env, "button", label, panelCell.id, at.x, at.y, { mode: kind === "toggle" ? 1 : 0 });
-        if (kind === "toggle") mod.data = { on };
-        ctl = { ...ctl, type: "button", wire: [{ press: mod.id }], module: mod.id, ...(kind === "toggle" ? { toggle: true } : {}) };
-        b.nodes.push(mod);
-        b.cables.push(cableOf(env, mod.id, kind === "toggle" ? "toggle" : "gate", bayIn.id, channel));
-      } else {
-        const params = { value: old, min: norm(dialDef("min"), 0), max: norm(dialDef("max"), 1), smooth: 0, steps: norm(dialDef("steps"), dialSteps) };
-        mod = newNode(env, "dial", label, panelCell.id, at.x, at.y, params);
-        ctl = { ...ctl, type: kind === "select" ? "select" : kind === "slider" ? "slider" : "dial", wire: [{ param: `${mod.id}.value` }], module: mod.id };
-        if (kind === "select") ctl.options = def.kind === "choice" ? def.choices.slice() : Array.from({ length: steps || 3 }, (_, i) => String(i));
-        b.nodes.push(mod);
-        b.cables.push(cableOf(env, mod.id, "out", bayIn.id, channel));
-      }
-      // The bay's output carries it to the target; a knob is parked at 0, so the effective value is the module's.
-      b.cables.push(cableOf(env, bayOut.id, channel, n.id, target.param || target.jack));
-      if (target.param) n.params[target.param] = 0;
-      ctl.channel = channel;
-    }
-    const placed = env.place(q, ctl.type, ctl);
-    return { panel: q, control: placed, module: mod };
+  /// The controls that show this module: made by "Add to panel" (no target), on any panel.
+  function moduleControls(b, n) {
+    const out = [];
+    for (const q of b.panels || []) for (const c of q.controls) if (c.module === n.id && !c.target) out.push({ panel: q, control: c });
+    return out;
+  }
+
+  function addModule(b, env, n, where) {
+    if (!canAddModule(b, n)) return { error: "this module cannot go on a panel" };
+    const t = target(b, env, n, where);
+    if (t.error) return t;
+    if (t.panel.controls.some((c) => c.module === n.id && !c.target)) return { error: "it is on that panel already" };
+    const ctl = { label: n.name, ...SHOWN_AS[n.type](n), module: n.id };
+    return { panel: t.panel, control: env.place(t.panel, ctl.type, ctl), module: n };
+  }
+
+  // ---------------------------------------------------------------- a module's view, or a part of it
+  // Any module with a view can go on a panel whole, or as one of its parts: the display of Grains, the curve of Function, the
+  // drawing of an ADSR, a section of knobs, the button bar. Both are Module view controls ({type: "view", node, part?}); the
+  // panel shows the module's real view (or the part alone), so it is as live there as in the module's window. Nothing is
+  // added to the board.
+  const canAddView = (b, env, n) => !belongsToPanel(b, n) && !!env.types[n.type] && (!env.hasView || env.hasView(n));
+
+  /// The Module view controls that show this node: [{panel, control, part: part id or null}].
+  function viewControls(b, n) {
+    const out = [];
+    for (const q of b.panels || []) for (const c of q.controls) if (c.type === "view" && c.node === n.id) out.push({ panel: q, control: c, part: c.part || null });
+    return out;
+  }
+
+  /// A box for a part that fits what is in it (grid units; one unit is 20 px).
+  function partSize(part) {
+    if (!part) return [24, 14];
+    if (part.kind === "buttons") return [16, 3];
+    if (part.kind === "controls") { const n = Math.max(1, part.knobs || 1); return [Math.max(8, 4 * Math.min(n, 6) + 2), 8 * Math.ceil(n / 6)]; }
+    return [24, 10];
+  }
+
+  function addView(b, env, n, part, where) {
+    if (!canAddView(b, env, n)) return { error: "this module has no view to show" };
+    const t = target(b, env, n, where);
+    if (t.error) return t;
+    const id = part ? part.id : null;
+    if (t.panel.controls.some((c) => c.type === "view" && c.node === n.id && (c.part || null) === id)) return { error: "it is on that panel already" };
+    const ctl = { label: part ? `${n.name} · ${part.name}` : n.name, node: n.id, ...(part ? { part: part.id } : {}), size: partSize(part) };
+    return { panel: t.panel, control: env.place(t.panel, "view", ctl), module: n };
+  }
+
+  // ---------------------------------------------------------------- a knob
+  const knobWire = (n, paramId) => `${n.id}.${paramId}`;
+  const knobControls = (b, n, paramId) => {
+    const out = [];
+    for (const q of b.panels || []) for (const c of q.controls) if ((c.wire || [])[0] && c.wire[0].param === knobWire(n, paramId) && !c.module) out.push({ panel: q, control: c });
+    return out;
+  };
+
+  /// A control wired straight to the knob: it is the knob, both move together.
+  function addKnob(b, env, n, paramId, where) {
+    if (belongsToPanel(b, n)) return { error: "that module is part of a Panel cell" };
+    const def = ((env.types[n.type] || {}).params || []).find((p) => p.id === paramId);
+    if (!def) return { error: "no such knob" };
+    const t = target(b, env, n, where);
+    if (t.error) return t;
+    if (t.panel.controls.some((c) => (c.wire || [])[0] && c.wire[0].param === knobWire(n, paramId))) return { error: "it is on that panel already" };
+    const ctl = env.knobControl(n, def);
+    return { panel: t.panel, control: env.place(t.panel, ctl.type, ctl), module: n };
   }
 
   // ---------------------------------------------------------------- remove
@@ -222,7 +145,8 @@
     const c = q && q.controls.find((x) => x.id === controlId);
     if (!c) return false;
     q.controls = q.controls.filter((x) => x.id !== controlId);
-    const mod = c.module && node(b, c.module);
+    // "Add to panel" controls have no target: the module is the user's own and stays on the board.
+    const mod = c.target && c.module && node(b, c.module);
     const target = c.target && node(b, c.target.node);
     if (mod) {
       if (c.channel && q.bays && q.bays[c.target.node]) {
@@ -274,7 +198,7 @@
     b.cables = b.cables.filter((k) => k.to.jack !== jack && k.from.jack !== jack);
   }
 
-  const api = { kindsFor, create, remove, controlFor, scopeOf, belongsToPanel, _clone: clone };
+  const api = { remove, addModule, moduleControls, addKnob, knobControls, addView, viewControls, canAddView, panelsFor, canAddModule, scopeOf, belongsToPanel, _clone: clone };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else window.BleepPanelWiring = api;
 })();

@@ -99,6 +99,7 @@
   }
 
   BleepViews.register("perc-voice", {
+    parts: [{ id: "hit", name: "Hit", select: ".bv-panel > div:nth-child(1)" }, { id: "partials", name: "Partials", select: ".bv-panel > div:nth-child(2)" }],
     width: 1000,
     layout: [
       { title: "Engine & level", params: ["engine", "level", "track", "drive", "seed"] },

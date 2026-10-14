@@ -228,33 +228,37 @@ The module goes inside the panel's cell (a Keyboard next to the cell, since its 
 
 **In a factory preset** (Warm Saws is the first). The dials a panel sets directly are Dial modules too, kept in a cell called *Panel* inside the preset, so they do not clutter the synth. The dials of one module meet in a [Patch Bay In](modules/patchbay.md) inside the Panel cell, and one bundle cable per module leaves the cell; next to the module, a Patch Bay Out hands the channels to its knobs (the knobs are parked at 0 and each cable carries 100 %, so the value is what the knob had). Knobs that are settings, not modulation destinations, stay direct. The Keyboard (and a Level Meter for the Out meter) are modules of the preset's own cell, in a stack beside the synth. The build adds all this to the generated panel: [`panelCell`](../../patch/presets/panels.mjs) and the preset's `panelEdits` entry. Nothing in a preset is hidden: every control is a knob it sets itself or a module you can open.
 
+## Parts of a module view
+
+Any module with a view can go on a panel whole, or as one **part** of its view: the display of Grains, the curve of Function, the drawing of an ADSR, one section of knobs, the button bar. It is a Module view control with a `part`: `{ "type": "view", "node": "env", "part": "d:envelope" }`. The panel shows the module's real view with everything but that part hidden, so the part is as live and as editable there as in the module's own window; nothing is added to the board.
+
+**How to add one.** Right-click the module on the board → *Add to panel ▸ Whole module view*, or one of its parts, then a panel or *New panel*. Or right-click the part where you see it, in the module's window or in another panel: *Add “Envelope” to panel*. A controller module (Dial, Button, Keyboard …) also has *As control*. What a panel already has is left out of its list; *Remove from panel* takes it away again. In the panel editor a Module view control has a **Part** menu (*The whole view* or a part); changing the module resets it.
+
+**What the parts are** (`BleepView.partsOf(type)`, [`bleep-view.js`](../../patch/common/ui/bleep-view.js)):
+
+| Id | Part | Named by |
+|---|---|---|
+| `d:<slug>` | a display: every top-level element of the module's template | the hook's `partNames` / `parts`, else the element's `<h2>`, else *Display* |
+| `s:<slug>` | a titled section of knobs (the view's `layout`, or the ParamSpec groups) | its title |
+| `b:buttons` | the module's button bar | — |
+
+A module view can name its displays with `partNames: ["Pattern grid"]` (in the order of the template's top-level elements) or declare them with `parts: [{ id, name, select }]` where one element holds several (Dual Osc: *Scope*, *Fold curve*; Reverb: *Decay*, *Reverb tank*; Bender, Delay Net, Macro Osc, Multiplier, Formant Osc, Perc Voice, Modal Voice). `select` is a CSS selector inside the custom section. Every module has at least its knob sections; modules with a display have it named.
+
+A part that is gone (a module whose view changed) shows as a dead box, and the rest of the panel works. A part that hides itself in some modes (Additive Osc's drawn spectrum, a Sampler's layers) is empty then.
+
 ## Making a panel control
 
-A panel control is always **made from the thing it controls**. Right-click a knob or a setting in a module's view, or a jack on a node, and choose **Create panel control** (`patch/board/ui/panel-wiring.js`). The menu offers what fits what you clicked:
+A board can have **any number of panels**: several for one cell, and one for the board. A control is added with **Add to panel ▸** (`patch/board/ui/panel-wiring.js`), in one undo step. The submenu lists every panel of the board (a cell's panels as *Cell: panel*) and **New panel**. A new panel is named after the cell (*Synth*, *Synth 2* …), opens in the editor, and starts with a title. A panel that already has a control for the thing is left out of the list; its menu shows *Show on panel* and *Remove from panel* (a list when there are several).
 
-| You right-click | You can make |
+| You right-click | You get |
 |---|---|
-| a knob | Dial, Fader |
-| a choice setting (filter Type) | Dropdown, Dial (stepped) |
-| a whole-number setting | Dial, Fader, Dropdown |
-| a toggle setting | Toggle |
-| a gate or trigger input | Button, Toggle |
-| a control or pitch input | Dial, Fader |
-| a notes input | Keys |
-| an output | Meter |
+| a knob or setting (on the node, or in its module view) | the control that suits it (`knobControl` in `panel-build.js`: Dial, Dropdown for a long list, Button for a toggle), **wired straight to the knob** (a *Set* wire: control and knob move together) |
+| a controller module on the board (Dial, Wheel, XY Pad, Button, Keyboard, Level Meter) | a control that draws and drives that module, wired as in the table above; you cable the module on the board like any other |
 
-Every time, the same thing happens, in one undo step:
+Adding a control changes nothing on the board: no module, no cable. Removing it (menu or panel editor) takes only the control away; the knob or module stays where it is.
 
-1. The panel for the node's cell is found, or made (a panel for the nearest plain cell around the node, or for the board).
-2. The panel's **Panel cell** is found, or made: a cell called *Panel* next to the cell's other nodes. Everything a control needs is inside it.
-3. The control's module goes into the Panel cell: a **Dial** (Dial, Fader, Dropdown; its Steps follow the choices), a **Button** (Button, or Toggle with its *Mode* on Toggle and its state saved in the node's data), a **Keyboard** (Keys) or a **Level Meter**.
-4. A **Patch Bay In** in the Panel cell collects the module's signal on a channel of the bay of the *target module*: one bay per module, however many controls it has. One bundle cable leaves the Panel cell for it.
-5. Next to the target, in its cell, a **Patch Bay Out** gets the bundle and cables the channel into the knob, setting or jack. Where the target is in a Voice Cell the bundle goes in through a shared input of type `patchbay` of that cell, and out of its Cell In to the bay.
-6. A knob or setting is **parked at 0** and the cable carries the module's value at 100 %, so the effective value is what the control says. The module starts with the knob's old value, so nothing changes in the sound.
-7. The control is placed on the panel. It remembers what it controls (`target: {node, param|jack}`), its module (`module`) and its channel (`channel`); the panel remembers its Panel cell (`panelCell`) and its bays (`bays`).
-
-A target that already has a panel control shows *Show panel control* and *Remove panel control* in the menu instead. Removing a control (from the menu or in the panel editor) removes its module and channel, gives the knob the value the control had, and removes a bay that has no channel left, the bundle's way into any Voice Cells, and the Panel cell when nothing is left in it.
+Panels made before this kept their modules in a Panel cell, wired to a knob through patch bays (`target`, `channel`, `panelCell`, `bays`). They keep working, and removing such a control still removes its module, its channel and what they left behind. There is no longer a way to make one.
 
 **Settings are driven by cables too.** A choice, whole-number or toggle setting a cable may drive is `cableable` (`ParamSpec`; the list is `cableableSettings` in `Registry.cpp`: filter Type, chorus Mode, and so on). The engine works out the driven value once per block and `Module::setting()` returns it. A setting that its module only reads when it prepares (a buffer size, the number of voices) is not on the list, and the menu offers nothing for it.
 
-**The panel editor** shows every control of the panel in a list (what it is, what it drives), and lets you add what is not connected to anything: labels, sections, module views and loaded panels. It no longer makes dials, dropdowns, toggles, Keys or meters; those come from the board. A control made this way shows what it controls and can show its module on the board or be removed with it. Old panels, with controls wired straight to knobs or in a stack, keep working.
+**The panel editor** shows every control of the panel in a list (what it is, what it drives), and lets you add what is not connected to anything: labels, sections, module views and loaded panels. It does not make dials, wheels, buttons, Keys or meters; those come from the board (*Add to panel*). A control made this way shows what it controls and can show its module on the board or be removed with it. Old panels, with controls wired straight to knobs or in a stack, keep working.

@@ -30,6 +30,9 @@ bool BoardModel::outputType(const NodeModel& n, const std::string& jack, Signal&
         jacks = &n.cellOutputs;
     } else if (n.type == kCellIn) {
         if (const auto* cell = node(n.parent)) jacks = &cell->cellInputs;
+    } else if (n.type == kVoiceIn && n.spec && n.spec->outputIndex(jack) < 0) {
+        // A Voice Cell's shared inputs also leave over Voice In (a Voice Cell needs no Cell In).
+        if (const auto* cell = node(n.parent)) jacks = &cell->cellInputs;
     }
     if (jacks) {
         for (const auto& j : *jacks)
@@ -317,11 +320,12 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
         }
     }
     // Every cell has at least one Cell In and one Cell Out (more are fine, to lay out cables); a Voice Cell has
-    // exactly one Voice In and Voice Out.
+    // exactly one Voice In and Voice Out, and no Cell In is added to it (one it already has stays).
     for (const auto& cellId : cells) {
         if (ids.count(cellId) == 0) continue;
         std::vector<const char*> boundaries{kCellIn, kCellOut};
         if (typeOf(cellId) == kVoiceCell) {
+            boundaries.erase(boundaries.begin());  // a Voice Cell's shared inputs come in over Voice In
             boundaries.push_back(kVoiceIn);
             boundaries.push_back(kVoiceOut);
         }

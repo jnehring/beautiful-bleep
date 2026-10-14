@@ -192,6 +192,7 @@
   }
 
   BleepViews.register("macro-osc", {
+    parts: [{ id: "models", name: "Model picker", select: ".mo-grid" }, { id: "scopes", name: "Scope and spectrum", select: ".mo-side" }],
     width: 1010,
     layout: [
       { title: "Model", params: ["model", "tone", "shape", "blend"] },

@@ -146,6 +146,7 @@
   }
 
   BleepViews.register("bender", {
+    parts: [{ id: "segments", name: "Segments", select: ".bv-panel:has(.bd-strip)" }, { id: "repeat", name: "Repeat shape", select: ".bv-panel:has(.bd-shape)" }],
     layout: [
       { title: "Segment", params: ["time", "chance", "repeats", "sync", "now", "seed"] },
       { title: "Bend", params: ["bend", "bendvar", "bendsteps", "slice"] },

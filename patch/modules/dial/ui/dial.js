@@ -61,6 +61,7 @@
   }
 
   BleepViews.register("dial", {
+    partNames: ["Dial"],
     side: true,
     hideParams: ["value"],
     layout: [

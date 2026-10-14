@@ -162,9 +162,9 @@ BoardModel flattenPatchbays(const BoardModel& in) {
                 } else if (!dstVoice.empty() && srcVoice.empty()) {
                     // Into a Voice Cell: the channel becomes a shared input of the cell, and inside, its Cell In feeds the knob.
                     NodeModel* voiceCell = outNode(dstVoice);
-                    const NodeModel* cellIn = nullptr;
+                    const NodeModel* cellIn = nullptr;  // a Cell In, or else the Voice In, which carries shared inputs too
                     for (const auto& n : out.nodes)
-                        if (n.type == kCellIn && n.parent == dstVoice) cellIn = &n;
+                        if ((n.type == kCellIn || (n.type == kVoiceIn && !cellIn)) && n.parent == dstVoice) cellIn = &n;
                     if (!voiceCell || !cellIn) continue;
                     const std::string jack = "bay~" + c.id + "~" + std::to_string(k++);
                     voiceCell->cellInputs.push_back({jack, jack, Signal::Control});
@@ -246,10 +246,13 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
             if (s == byId.end()) continue;
             const NodeModel& src = *s->second;
             const float amount = scale * c.amount;
-            if (src.type == kVoiceIn || (src.type == kCellIn && scope && src.parent == root)) {
-                if (const float* b = external(src.type == kVoiceIn ? src.id : root, c.from.jack))
+            // Voice In also hands out the cell's shared inputs, which are not among its per-voice outputs.
+            const bool sharedViaVoiceIn = src.type == kVoiceIn && reg.find(kVoiceIn)->outputIndex(c.from.jack) < 0;
+            const bool cellInLike = src.type == kCellIn || sharedViaVoiceIn;
+            if ((src.type == kVoiceIn && !sharedViaVoiceIn) || (cellInLike && scope && src.parent == root)) {
+                if (const float* b = external(src.type == kVoiceIn && !sharedViaVoiceIn ? src.id : root, c.from.jack))
                     out.push_back({src.id, c.from.jack, amount, b});
-            } else if (src.type == kCellIn) {
+            } else if (cellInLike) {
                 resolveInto(src.parent, c.from.jack, amount, depth + 1, out);
             } else if (src.type == kCell) {
                 if (auto co = cellOutOf.find(src.id); co != cellOutOf.end())

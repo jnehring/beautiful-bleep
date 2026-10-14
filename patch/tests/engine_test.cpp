@@ -614,6 +614,30 @@ void voiceCells() {
         EXPECT((int)live["nodes"]["vc"]["voices"] == 3);
     }
     {
+        // A shared input arrives over Voice In (a Voice Cell has no Cell In): Dial → cell input → every voice.
+        VoiceRig rig;
+        rig.build(voiceParams(2, 0, 0), [](juce::Array<juce::var>& n, juce::Array<juce::var>& c) {
+            n.add(node("dial", "dial"));
+        });
+        auto doc = copyOf(rig.e->board());
+        for (auto& n : *doc["nodes"].getArray())
+            if (n["id"].toString() == "vc")
+                n.getDynamicObject()->setProperty(
+                    "inputs", juce::Array<juce::var>{obj({{"id", "mod"}, {"name", "Mod"}, {"type", "control"}})});
+        rig.e->commit(doc, "shared input");
+        doc = copyOf(rig.e->board());  // the cables need the jack, so they come in a second commit
+        doc["cables"].getArray()->add(cable("dial", "out", "vc", "mod"));
+        doc["cables"].getArray()->add(cable("vi", "mod", "vo", "l"));
+        rig.e->commit(doc, "shared input cables");
+        int cellIns = 0;
+        for (const auto& n : *rig.e->board()["nodes"].getArray()) cellIns += n["type"].toString() == "cell-in";
+        EXPECT(cellIns == 0);  // the sanitiser does not add one
+        rig.block({{0x90, 60, 100}});
+        float v = 0.0f;
+        for (int b = 0; b < 100; ++b) v = rig.block();
+        EXPECT_NEAR(v, 0.5, 1e-3);
+    }
+    {
         VoiceRig rig;
         rig.build(voiceParams(2, 4, 0), pitchVoice);  // 2 voices, stealing: none
         rig.block({{0x90, 64, 100}, {0x90, 67, 100}, {0x90, 72, 100}});

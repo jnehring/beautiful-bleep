@@ -149,5 +149,5 @@
     return { name: cell.name, cell: cell.id, cols, rows, controls };
   }
 
-  window.BleepPanelBuild = { build, EMBED, FACE };
+  window.BleepPanelBuild = { build, knobControl, EMBED, FACE };
 })();

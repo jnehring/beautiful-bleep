@@ -44,6 +44,7 @@
   }
 
   BleepViews.register("multiplier", {
+    parts: [{ id: "section-1", name: "Section 1", select: ".mu-grid > .bv-panel:nth-child(1)" }, { id: "section-2", name: "Section 2", select: ".mu-grid > .bv-panel:nth-child(2)" }],
     template: '<div class="mu-grid"><div class="bv-panel"><h2>Section 1: X1 x Y1</h2><canvas class="mu-cv" data-k="1"></canvas></div>' +
               '<div class="bv-panel"><h2>Section 2: X2 x Y2</h2><canvas class="mu-cv" data-k="2"></canvas></div></div>',
     side: true,

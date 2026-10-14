@@ -221,6 +221,7 @@
   }
 
   BleepViews.register("splice", {
+    partNames: ["Reel and zoom"],
     layout: [
       { title: "Playback", params: ["speed", "loop", "endmode", "sync"] },
       { title: "Windows", params: ["window", "position", "overlap", "pick", "fade"] },

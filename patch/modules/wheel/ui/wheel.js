@@ -25,6 +25,7 @@
   }
 
   BleepViews.register("wheel", {
+    partNames: ["Wheel"],
     side: true,
     hideParams: ["value"],
     layout: [

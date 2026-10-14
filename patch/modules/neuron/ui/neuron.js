@@ -95,6 +95,7 @@
   }
 
   BleepViews.register("neuron", {
+    partNames: ["Membranes"],
     top: true,
     width: 920,
     layout: [

@@ -44,6 +44,15 @@ struct Biquad {
         }
         return {b0 / a0, b1 / a0, b2 / a0, a1 / a0, a2 / a0};
     }
+
+    /// Magnitude in dB at `hz`: |H(e^jw)| from the coefficients (for the view's curve).
+    double magnitudeDb(double hz, double sampleRate) const noexcept {
+        const double w = 2.0 * 3.14159265358979323846 * hz / sampleRate;
+        const double c1 = std::cos(w), s1 = std::sin(w), c2 = std::cos(2 * w), s2 = std::sin(2 * w);
+        const double nr = b0 + b1 * c1 + b2 * c2, ni = -(b1 * s1 + b2 * s2);
+        const double dr = 1 + a1 * c1 + a2 * c2, di = -(a1 * s1 + a2 * s2);
+        return 10.0 * std::log10(std::max((nr * nr + ni * ni) / std::max(dr * dr + di * di, 1e-30), 1e-30));
+    }
 };
 
 /// Four bands on one channel. Coefficients are redesigned only when a band changed.

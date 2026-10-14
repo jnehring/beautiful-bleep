@@ -1,102 +1,125 @@
 // SPDX-License-Identifier: MIT
-// Panel controls as modules (board/ui/panel-wiring.js): create and remove them on a board document.
-// usage: node panel-wiring-test.mjs [out.json]   (a board with the controls in it, for the engine's sanitiser)
+// Panel controls that show a controller module (board/ui/panel-wiring.js): add them to a panel and remove them again.
+// usage: node panel-wiring-test.mjs
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync, writeFileSync } from "node:fs";
 
 const W = createRequire(import.meta.url)("../../board/ui/panel-wiring.js");
-const types = Object.fromEntries(JSON.parse(readFileSync(new URL("../../board/ui/demo-types.json", import.meta.url))).map((t) => [t.type, t]));
 let n = 0;
 const env = {
-  types,
   uid: (p) => p + ++n,
+  types: { filter: { params: [{ id: "cutoff", name: "Cutoff", kind: "float" }] } },
+  knobControl: (n, p) => ({ type: "dial", label: p.name, wire: [{ param: `${n.id}.${p.id}` }] }),
   place: (q, type, extra) => { const c = { id: "c" + (q.controls.length + 1), type, at: [q.controls.length, 0], size: [4, 4], ...extra }; q.controls.push(c); return c; },
 };
-const node = (id, type, parent = "", extra = {}) => {
-  const params = {};
-  for (const p of types[type]?.params || []) params[p.id] = p.default;
-  return { id, type, name: type, x: 400, y: 100, parent, params, ...extra };
-};
-// A cell "W" with a Voice Cell "V" (a filter and an oscillator in it) and a Reverb beside it.
+const node = (id, type, parent = "", extra = {}) => ({ id, type, name: type, x: 0, y: 0, parent, params: {}, ...extra });
+// A cell "W" with a Dial, a Toggle Button, a Keyboard, a Level Meter, a Wheel and a Filter in it, and a Dial on the board itself.
 const board = () => ({ format: 1, id: "t", panels: [], cables: [], nodes: [
-  node("W", "cell", "", { name: "Synth", inputs: [{ id: "notes", name: "Notes", type: "notes" }], outputs: [] }),
-  node("Wi", "cell-in", "W"), node("Wo", "cell-out", "W"),
-  node("V", "voice-cell", "W", { name: "Voice", inputs: [], outputs: [] }),
-  node("Vi", "cell-in", "V"), node("Vo", "cell-out", "V"), node("Vvi", "voice-in", "V"), node("Vvo", "voice-out", "V"),
-  node("F", "filter", "V", { name: "Filter" }), node("O", "oscillator", "V", { name: "Osc", x: 100 }),
-  node("R", "reverb", "W", { name: "Reverb" }),
+  node("W", "cell", "", { name: "Synth", inputs: [], outputs: [] }),
+  node("D", "dial", "W", { name: "Macro", params: { value: 0.3 } }),
+  node("B", "button", "W", { name: "Hold", params: { mode: 1 } }),
+  node("K", "keyboard", "W"), node("M", "level-meter", "W"), node("S", "wheel", "W"), node("X", "xy-pad", "W"),
+  node("F", "filter", "W"),
+  node("D2", "dial", "", { name: "Top" }),
 ] });
-const count = (b, type) => b.nodes.filter((x) => x.type === type).length;
-
-// what can drive what
-assert.deepEqual(W.kindsFor(types, node("F", "filter"), { param: "cutoff" }).map((k) => k.kind), ["dial", "slider"]);
-assert.deepEqual(W.kindsFor(types, node("F", "filter"), { param: "type" }).map((k) => k.kind), ["select", "dial"]);   // a cableable setting
-assert.deepEqual(W.kindsFor(types, node("R", "reverb"), { param: "freeze" }).map((k) => k.kind), ["toggle"]);
-assert.deepEqual(W.kindsFor(types, node("V", "voice-cell"), { jack: "notes", dir: "in" }).map((k) => k.kind), ["keys"]);
-assert.deepEqual(W.kindsFor(types, node("R", "reverb"), { jack: "freeze", dir: "in" }).map((k) => k.kind), ["button", "toggle"]);
-assert.deepEqual(W.kindsFor(types, node("F", "filter"), { param: "doesnotexist" }), []);
+const at = (b, id) => b.nodes.find((x) => x.id === id);
 
 const b = board();
-const F = b.nodes.find((x) => x.id === "F"), R = b.nodes.find((x) => x.id === "R"), V = b.nodes.find((x) => x.id === "V");
-const cutoffBefore = F.params.cutoff;
+assert.ok(W.canAddModule(b, at(b, "D")));
+assert.ok(!W.canAddModule(b, at(b, "F")), "a filter is not a controller");
 
-// a knob of a module inside a Voice Cell: Panel cell beside it, bundle into the Voice Cell, bay beside the filter
-let r = W.create(b, env, F, { param: "cutoff" }, "dial");
+// a Dial goes onto its cell's panel, which is made on the way
+let r = W.addModule(b, env, at(b, "D"), "new");
 assert.ok(r.control && r.panel, JSON.stringify(r));
+assert.equal(r.panel.cell, "W");
+assert.equal(r.control.type, "dial");
+assert.deepEqual(r.control.wire, [{ param: "D.value" }]);
+assert.equal(r.control.module, "D");
+assert.equal(r.control.label, "Macro");
+assert.equal(r.control.target, undefined, "it drives its own module, not a knob behind it");
+assert.equal(at(b, "D").params.value, 0.3, "the module is left as it was");
+assert.equal(b.nodes.length, 9, "no module is made");
+assert.equal(b.cables.length, 0, "no cable is made");
+assert.equal(W.moduleControls(b, at(b, "D")).length, 1);
+assert.ok(W.addModule(b, env, at(b, "D"), r.panel.id).error, "it is on that panel already");
+
+// the other controllers, on the same panel
 const q = r.panel;
-assert.equal(q.cell, "W");
-const panelCell = b.nodes.find((x) => x.id === q.panelCell);
-assert.ok(panelCell && panelCell.parent === "W" && panelCell.type === "cell");
-assert.equal(count(b, "patchbay-in"), 1);
-assert.equal(count(b, "patchbay-out"), 1);
-assert.equal(b.nodes.find((x) => x.type === "patchbay-in").parent, panelCell.id);
-assert.equal(b.nodes.find((x) => x.type === "patchbay-out").parent, "V");     // next to the filter, inside the Voice Cell
-assert.ok(V.inputs.some((j) => j.type === "patchbay"), "the Voice Cell takes the bundle");
-assert.ok(panelCell.outputs.some((j) => j.type === "patchbay"));
-assert.equal(F.params.cutoff, 0, "the knob is parked at 0");
-const dial = b.nodes.find((x) => x.type === "dial");
-assert.equal(dial.params.value, cutoffBefore, "the dial holds the knob's value");
-assert.equal(dial.parent, panelCell.id);
-assert.deepEqual(r.control.wire, [{ param: `${dial.id}.value` }]);
-assert.equal(r.control.target.param, "cutoff");
+assert.deepEqual(W.addModule(b, env, at(b, "B"), q.id).control.wire, [{ press: "B" }]);
+assert.equal(W.moduleControls(b, at(b, "B"))[0].control.toggle, true, "a Button in Toggle mode");
+assert.deepEqual(W.addModule(b, env, at(b, "K"), q.id).control.wire, [{ keyboard: "K" }]);
+assert.deepEqual(W.addModule(b, env, at(b, "M"), q.id).control.source, { out: ["M.l", "M.r"] });
+assert.equal(W.addModule(b, env, at(b, "S"), q.id).control.type, "wheel");
+assert.deepEqual(W.addModule(b, env, at(b, "X"), q.id).control.wire, [{ param: "X.x", axis: "x" }, { param: "X.y", axis: "y" }]);
+assert.equal(b.panels.length, 1, "one panel for the cell");
 
-// the same control twice is refused; a second knob of the module shares the bay
-assert.ok(W.create(b, env, F, { param: "cutoff" }, "dial").error);
-r = W.create(b, env, F, { param: "resonance" }, "slider");
-assert.ok(r.control);
-assert.equal(count(b, "patchbay-in"), 1, "one bay per module");
-assert.equal(b.cables.filter((c) => c.to.node === b.nodes.find((x) => x.type === "patchbay-in").id).length, 2);
+// a controller on the board itself gets the board's panel
+r = W.addModule(b, env, at(b, "D2"), "new");
+assert.equal(r.panel.cell, undefined);
+assert.equal(b.panels.length, 2);
 
-// a setting: a dropdown through a Dial with steps
-r = W.create(b, env, F, { param: "type" }, "select");
-assert.ok(r.control && r.control.type === "select" && r.control.options.length === 25, JSON.stringify(r.control));
-const typeDial = b.nodes.find((x) => x.id === r.control.module);
-assert.equal(typeDial.params.steps, 0, "25 choices are more than a Dial's 24 steps: continuous, the setting rounds");
+// several panels: every panel is offered for every node
+const second = W.addModule(b, env, at(b, "D"), "new");
+assert.equal(second.panel.name, "Synth 2", "a second panel for the cell is numbered");
+assert.equal(second.panel.controls.length, 2, "its title and the control");
+assert.deepEqual(W.panelsFor(b).map((x) => x.id).sort(), [q.id, second.panel.id, r.panel.id].sort(), "every panel is offered");
+assert.equal(W.moduleControls(b, at(b, "D")).length, 2, "one control on each panel");
+assert.ok(W.addModule(b, env, at(b, "D"), "nope").error);
+assert.ok(W.addModule(b, env, at(b, "D2"), q.id).control, "a cell's panel can show a module outside the cell");
+assert.ok(W.remove(b, q.id, W.moduleControls(b, at(b, "D2")).find((h) => h.panel.id === q.id).control.id));
 
-// a toggle in the cell itself (no Voice Cell in between)
-r = W.create(b, env, R, { param: "freeze" }, "toggle");
-assert.ok(r.control && r.control.toggle && r.control.type === "button");
-const toggle = b.nodes.find((x) => x.id === r.control.module);
-assert.equal(toggle.type, "button");
-assert.equal(toggle.params.mode, 1);
-assert.deepEqual(toggle.data, { on: false });
-assert.equal(count(b, "patchbay-in"), 2);
-assert.equal(b.nodes.filter((x) => x.type === "patchbay-out" && x.parent === "W").length, 1);
+// a knob: a control wired straight to it, on whichever panel
+const k = W.addKnob(b, env, at(b, "F"), "cutoff", second.panel.id);
+assert.deepEqual(k.control.wire, [{ param: "F.cutoff" }]);
+assert.equal(W.knobControls(b, at(b, "F"), "cutoff").length, 1);
+assert.ok(W.addKnob(b, env, at(b, "F"), "cutoff", second.panel.id).error, "once per panel");
+assert.ok(W.addKnob(b, env, at(b, "F"), "cutoff", q.id).control, "but on another panel too");
+assert.ok(W.addKnob(b, env, at(b, "F"), "nope", q.id).error);
+assert.ok(W.remove(b, q.id, W.knobControls(b, at(b, "F"), "cutoff").find((h) => h.panel.id === q.id).control.id));
+assert.equal(W.knobControls(b, at(b, "F"), "cutoff").length, 1);
+assert.ok(at(b, "F"), "the module is untouched");
+assert.ok(W.remove(b, second.panel.id, second.control.id));
 
-// Keys on the Voice Cell's notes input
-r = W.create(b, env, V, { jack: "notes", dir: "in" }, "keys");
-assert.ok(r.control && r.control.type === "keys", JSON.stringify(r));
-assert.ok(b.cables.some((c) => c.to.node === "V" && c.to.jack === "notes"));
+// removing the control keeps the module
+assert.ok(W.remove(b, q.id, W.moduleControls(b, at(b, "D"))[0].control.id));
+assert.equal(W.moduleControls(b, at(b, "D")).length, 0);
+assert.ok(at(b, "D") && b.nodes.length === 9, "the module stays on the board");
 
-if (process.argv[2]) writeFileSync(process.argv[2], JSON.stringify(b));
+// a control from before (a module in a Panel cell, wired to a knob): removing it takes the module with it
+const old = board();
+old.nodes.push(node("PC", "cell", "W", { name: "Panel" }), node("PD", "dial", "PC"));
+old.panels.push({ id: "p9", name: "Old", cell: "W", cols: 40, rows: 24, panelCell: "PC",
+  controls: [{ id: "c2", type: "dial", at: [0, 0], size: [4, 4], label: "Cutoff", target: { node: "F", param: "cutoff" }, module: "PD", wire: [{ param: "PD.value" }] }] });
+assert.ok(!W.canAddModule(old, at(old, "PD")), "modules of a Panel cell are not offered");
+assert.ok(W.remove(old, "p9", "c2"));
+assert.equal(at(old, "PD"), undefined);
+assert.equal(at(old, "PC"), undefined, "an empty Panel cell goes too");
 
-// remove: the knobs come back to what the controls were set to, and everything the controls made goes
-dial.params.value = 0.8;
-for (const q2 of b.panels) for (const c of [...q2.controls]) if (c.module) assert.ok(W.remove(b, q2.id, c.id));
-assert.equal(F.params.cutoff, 0.8, "the knob takes the dial's value back");
-for (const type of ["patchbay-in", "patchbay-out", "dial", "button", "keyboard"]) assert.equal(count(b, type), 0, type);
-assert.equal(b.nodes.some((x) => x.id === q.panelCell), false, "an empty Panel cell is removed");
-assert.equal(V.inputs.length, 0);
-assert.equal(b.cables.length, 0);
+// a module's view, whole or in parts (no module, no cable; one control per panel and part)
+{
+  const v = board();
+  const venv = { ...env, hasView: () => true };
+  const F = at(v, "F");
+  assert.ok(W.canAddView(v, venv, F));
+  assert.ok(!W.canAddView(v, { ...venv, hasView: () => false }, F), "a node without a view");
+  const whole = W.addView(v, venv, F, null, "new");
+  assert.ok(whole.control && whole.panel, JSON.stringify(whole));
+  assert.equal(whole.panel.cell, "W");
+  assert.deepEqual([whole.control.type, whole.control.node, whole.control.part], ["view", "F", undefined]);
+  assert.ok(W.addView(v, venv, F, null, whole.panel.id).error, "the whole view is on that panel already");
+  const disp = { id: "d:response", name: "Response", kind: "display" }, sec = { id: "s:cutoff", name: "Cutoff", kind: "controls", knobs: 3 };
+  const a = W.addView(v, venv, F, disp, whole.panel.id), c = W.addView(v, venv, F, sec, whole.panel.id);
+  assert.equal(a.control.part, "d:response");
+  assert.equal(a.control.label, "filter · Response");
+  assert.deepEqual(a.control.size, [24, 10]);
+  assert.deepEqual(c.control.size, [14, 8], "a section is as wide as its knobs");
+  assert.ok(W.addView(v, venv, F, disp, whole.panel.id).error, "a part once per panel");
+  assert.equal(W.viewControls(v, F).length, 3);
+  assert.deepEqual(W.viewControls(v, F).map((h) => h.part), [null, "d:response", "s:cutoff"]);
+  assert.ok(W.addView(v, venv, F, disp, "new").control, "but on another panel too");
+  assert.ok(W.remove(v, whole.panel.id, a.control.id));
+  assert.equal(W.viewControls(v, F).length, 3);
+  assert.equal(v.nodes.length, 9, "no module is made");
+  assert.equal(v.cables.length, 0);
+}
 console.log("panel-wiring: ok");

@@ -10,6 +10,7 @@
 //                          makeModule(type, name) adds a Dial, Button or Keyboard module to the board and returns its id.
 //     ctx.scope()          [{id, name, type, depth, params: [def], outputs: [{id, name}], view}]: the modules a control may show
 //     ctx.module(id)       a board node by id, or undefined
+//     ctx.parts(nodeId)    [{id, name, kind}] the parts of a module's view a Module view control can show alone (BleepView.partsOf)
 //     ctx.reveal(id)       goes to a module on the board (its stack, or the Panel cell) and selects it
 //     ctx.edit(label, fn(b))  edits the whole board document in one undo step
 //     ctx.removeControl(panelId, controlId)  removes a control made by panel-wiring, with its module and channel
@@ -390,8 +391,22 @@
         const s = el("select", "");
         for (const n of ctx.scope().filter((q) => q.view)) s.append(new Option(n.name, n.id));
         s.value = c.node || "";
-        s.addEventListener("change", () => change("module", (t) => (t.node = s.value)));
+        s.addEventListener("change", () => change("module", (t) => { t.node = s.value; delete t.part; }));
         field(insp, "Module", s);
+        const parts = ctx.parts ? ctx.parts(c.node) : [];
+        if (parts.length) {
+          const ps = el("select", "");
+          ps.append(new Option("The whole view", ""));
+          for (const q of parts) ps.append(new Option(q.name, q.id));
+          ps.value = c.part || "";
+          ps.addEventListener("change", () => change("part", (t) => {
+            const q = parts.find((x) => x.id === ps.value);
+            if (q) t.part = q.id; else delete t.part;
+            if (!t.label || t.label === ctx.module(t.node).name || t.label.startsWith(ctx.module(t.node).name + " · "))
+              t.label = q ? `${ctx.module(t.node).name} · ${q.name}` : ctx.module(t.node).name;
+          }));
+          field(insp, "Part", ps);
+        }
       }
       if (c.type === "panel") {
         const s = el("select", "");

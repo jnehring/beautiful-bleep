@@ -376,6 +376,7 @@
     .bv-button.on { border-color: var(--accent); background: var(--accent); color: var(--panel); }`;
 
   BleepViews.register("chart-recorder", {
+    partNames: ["Chart"],
     top: true,
     width: 1040,
     layout: [

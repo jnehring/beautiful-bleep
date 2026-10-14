@@ -120,6 +120,7 @@
   }
 
   BleepViews.register("dual-osc", {
+    parts: [{ id: "scope", name: "Scope", select: ".dosc-row > div:nth-child(1)" }, { id: "fold", name: "Fold curve", select: ".dosc-row > div:nth-child(2)" }],
     width: 920,
     layout: [
       { title: "Osc A", params: ["octaveA", "tuneA", "fineA", "shapeA", "widthA"] },

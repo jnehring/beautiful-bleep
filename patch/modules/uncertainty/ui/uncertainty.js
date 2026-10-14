@@ -106,6 +106,7 @@
   }
 
   BleepViews.register("uncertainty", {
+    partNames: ["Scopes"],
     top: true,
     width: 1060,
     layout: [

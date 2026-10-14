@@ -247,6 +247,7 @@
   }
 
   BleepViews.register("sampler", {
+    partNames: ["Waveform and slices"],
     width: 900,
     layout: [
       { title: "Sample", params: ["start", "end", "position", "loopfade", "positionmode", "mode", "loopstyle"] },

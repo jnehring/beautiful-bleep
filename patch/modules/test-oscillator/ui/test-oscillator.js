@@ -221,6 +221,7 @@
   }
 
   BleepViews.register("test-oscillator", {
+    partNames: ["Dial and scopes"],
     width: 900,
     hideParams: ["freq", "range"],
     layout: [

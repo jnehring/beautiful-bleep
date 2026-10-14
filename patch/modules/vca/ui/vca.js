@@ -13,13 +13,13 @@
     if (!w || !h) return;
     const th = BleepView.theme(view.root), st = view._st;
     const x = view.value(st, "gain"), expo = view.units("response") === 1;
-    const gain = expo ? x * x * x : x;
+    const rng = [1, 2, 4][view.units("range")] || 1, gain = (expo ? x * x * x : x) * rng;
     const split = Math.min(w * 0.38, 190), pad = 8;
     // left: gain law
     const px = pad + 4, pw = split - pad * 2 - 4, py = 8, phh = h - 20;
     g.strokeStyle = th.line; g.lineWidth = 1; g.strokeRect(px + 0.5, py + 0.5, pw, phh);
-    const Y = (v) => py + (1 - v) * phh, XX = (v) => px + v * pw;
-    const law = (e) => { g.beginPath(); for (let i = 0; i <= 40; i++) { const v = i / 40, y = Y(e ? v * v * v : v); i ? g.lineTo(XX(v), y) : g.moveTo(XX(v), y); } g.stroke(); };
+    const Y = (v) => py + (1 - Math.min(v / rng, 1)) * phh, XX = (v) => px + v * pw;
+    const law = (e) => { g.beginPath(); for (let i = 0; i <= 40; i++) { const v = i / 40, y = Y((e ? v * v * v : v) * rng); i ? g.lineTo(XX(v), y) : g.moveTo(XX(v), y); } g.stroke(); };
     g.strokeStyle = th.line; g.lineWidth = 1.5; law(!expo);
     g.strokeStyle = th.accent; g.lineWidth = 2; BleepView.glow(g, th.accent, 8); law(expo); g.shadowBlur = 0;
     g.strokeStyle = th.muted; g.setLineDash([2, 3]); g.beginPath(); g.moveTo(XX(x), Y(0)); g.lineTo(XX(x), Y(gain)); g.lineTo(XX(0), Y(gain)); g.stroke(); g.setLineDash([]);
@@ -35,7 +35,7 @@
       g.stroke();
     };
     sine(1, th.line, 1.5);
-    BleepView.glow(g, th.accent, 12); sine(gain, th.accent, 2); g.shadowBlur = 0;
+    BleepView.glow(g, th.accent, 12); sine(Math.min(gain, 1.4), th.accent, 2); g.shadowBlur = 0;
     const db = gain < 0.0005 ? "-inf" : (20 * Math.log10(gain)).toFixed(1);
     g.fillStyle = th.text; g.font = "11px system-ui, sans-serif"; g.textAlign = "right";
     g.fillText(`${db} dB`, sx + sw, 14);
@@ -45,7 +45,7 @@
   BleepViews.register("vca", {
     template: '<div class="bv-panel"><h2>Gain</h2><canvas class="vca-cv"></canvas></div>',
     side: true,
-    layout: [{ title: "Amplifier", params: ["gain", "response"] }],
+    layout: [{ title: "Amplifier", params: ["gain", "response", "range"] }],
     afterBuild(view, custom) {
       const cv = custom.querySelector("canvas");
       BleepView.loop(view.root, (t) => draw(view, cv, t));

@@ -1167,6 +1167,25 @@
         "def": 1.0,
         "format": "choice",
         "decimals": 2
+      },
+      {
+        "id": "range",
+        "name": "Range",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "100 %",
+          "200 %",
+          "400 %"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -4187,6 +4206,25 @@
         "def": 0.0,
         "format": "choice",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -4403,6 +4441,25 @@
         ],
         "min": 0.0,
         "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
         "def": 0.0,
         "format": "choice",
         "decimals": 2
@@ -6733,6 +6790,25 @@
         "def": 1.0,
         "format": "integer",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -7748,6 +7824,25 @@
         "max": 999.0,
         "def": 1.0,
         "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
         "decimals": 2
       }
     ],
@@ -9263,9 +9358,327 @@
     ]
   },
   {
+    "type": "clock-divider",
+    "name": "Clock Div",
+    "category": "Sequencing/Clock",
+    "colour": "#e9b44c",
+    "description": "Eight clock dividers of one base clock, each output with its own division from /1 to /64.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "div1",
+        "name": "Div 1",
+        "kind": "int",
+        "default": 0.015873016789556,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 2.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "div2",
+        "name": "Div 2",
+        "kind": "int",
+        "default": 0.031746033579111,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 3.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "div3",
+        "name": "Div 3",
+        "kind": "int",
+        "default": 0.047619048506021,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 4.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "div4",
+        "name": "Div 4",
+        "kind": "int",
+        "default": 0.063492067158222,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 5.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "div5",
+        "name": "Div 5",
+        "kind": "int",
+        "default": 0.079365082085133,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 6.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "div6",
+        "name": "Div 6",
+        "kind": "int",
+        "default": 0.111111111938953,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 8.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "div7",
+        "name": "Div 7",
+        "kind": "int",
+        "default": 0.238095238804817,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 16.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "div8",
+        "name": "Div 8",
+        "kind": "int",
+        "default": 0.492063492536545,
+        "steps": 64,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 64.0,
+        "def": 32.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "width",
+        "name": "Width",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.009999999776483,
+        "max": 0.990000009536743,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2,
+        "show": {
+          "param": "output",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "base",
+        "name": "Base",
+        "kind": "choice",
+        "default": 0.692307710647583,
+        "steps": 14,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1/1",
+          "1/2",
+          "1/4.",
+          "1/4",
+          "1/4T",
+          "1/8.",
+          "1/8",
+          "1/8T",
+          "1/16.",
+          "1/16",
+          "1/16T",
+          "1/32.",
+          "1/32",
+          "1/32T"
+        ],
+        "min": 0.0,
+        "max": 13.0,
+        "def": 9.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "realign",
+        "name": "Realign",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Never",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "output",
+        "name": "Output",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Gate",
+          "Trigger"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "gatelength",
+        "name": "Gate Length",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Division",
+          "Base Step"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "output",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out1",
+        "name": "Out 1",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "out2",
+        "name": "Out 2",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "out3",
+        "name": "Out 3",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "out4",
+        "name": "Out 4",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "out5",
+        "name": "Out 5",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "out6",
+        "name": "Out 6",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "out7",
+        "name": "Out 7",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "out8",
+        "name": "Out 8",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "coin-toss",
     "name": "Coin Toss",
-    "category": "Utility/Converters",
+    "category": "Utility/Logic & Routing",
     "colour": "#7c3aed",
     "description": "Sends each gate to A or B by a weighted, seeded coin. Two channels: independent, nested or opposed.",
     "port": "",
@@ -9487,7 +9900,7 @@
   {
     "type": "compressor",
     "name": "Compressor",
-    "category": "Effects/Space & Time",
+    "category": "Effects/Dynamics & EQ",
     "colour": "#64748b",
     "description": "Stereo compressor and limiter: soft knee, peak or RMS detector, sidechain input, parallel mix and a gain reduction output you can patch.",
     "port": "",
@@ -9678,7 +10091,7 @@
   {
     "type": "crunch",
     "name": "Crunch",
-    "category": "Effects/Dynamics & EQ",
+    "category": "Effects/Distortion",
     "colour": "#dc2626",
     "description": "Overdrive, bit crusher and sample-rate reducer in one, with a tone low-pass: from warm saturation to broken digital grit.",
     "port": "",
@@ -9805,7 +10218,7 @@
   {
     "type": "cv-to-midi",
     "name": "CV to MIDI",
-    "category": "Utility/Logic & Routing",
+    "category": "Utility/Converters",
     "colour": "#7dd3fc",
     "description": "Four lanes that turn control signals into MIDI control changes (CC), 7 or 14 bit, sent only when the value moves.",
     "port": "",
@@ -10150,7 +10563,7 @@
   {
     "type": "delay",
     "name": "Delay",
-    "category": "Effects/Distortion",
+    "category": "Effects/Space & Time",
     "colour": "#5b8def",
     "description": "A simple stereo delay: free or tempo-synced times for each side, feedback with low and high cut, and a ping-pong mode.",
     "port": "",
@@ -11019,6 +11432,25 @@
         "max": 127.0,
         "def": 42.0,
         "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
         "decimals": 2
       }
     ],
@@ -12064,7 +12496,7 @@
   {
     "type": "eq",
     "name": "EQ",
-    "category": "Effects/Space & Time",
+    "category": "Effects/Dynamics & EQ",
     "colour": "#0ea5e9",
     "description": "Four-band parametric equaliser: low shelf, two peaking bands, high shelf. Frequency and gain of every band can be modulated.",
     "port": "",
@@ -13382,7 +13814,7 @@
   {
     "type": "freq-shifter",
     "name": "Freq Shifter",
-    "category": "Effects/Dynamics & EQ",
+    "category": "Effects/Movement",
     "colour": "#65a30d",
     "description": "Single-sideband frequency shifter: barber-pole phasing, bells and spirals with feedback, opposite shifts left/right, tempo sync, quadrature LFO out.",
     "port": "",
@@ -13996,6 +14428,25 @@
         "def": 46.0,
         "format": "integer",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -14132,7 +14583,7 @@
   {
     "type": "grains",
     "name": "Grains",
-    "category": "Effects/Movement",
+    "category": "Effects/Textures",
     "colour": "#2563eb",
     "description": "Granular processor: records its input and plays it back as a seeded cloud of grains. Freeze holds the buffer; Feedback and Blur build endless textures.",
     "port": "",
@@ -17998,7 +18449,7 @@
   {
     "type": "monitor",
     "name": "Monitor",
-    "category": "Utility/Logic & Routing",
+    "category": "Utility/Metering",
     "colour": "#7dd3fc",
     "description": "Shows what is on a cable: a MIDI event table, an audio meter, a CV readout and a gate meter. Everything passes through.",
     "port": "",
@@ -18112,7 +18563,7 @@
   {
     "type": "neuron",
     "name": "Neuron",
-    "category": "Modulation/LFOs",
+    "category": "Modulation/Random",
     "colour": "#c026d3",
     "description": "Two leaky integrate-and-fire neurons. In 1 is a bias, In 3 hears the other neuron: a rhythm out of the box.",
     "port": "",
@@ -18559,7 +19010,7 @@
   {
     "type": "organic-lfos",
     "name": "Organic LFOs",
-    "category": "Modulation/Random",
+    "category": "Modulation/LFOs",
     "colour": "#bef264",
     "description": "Eight slow LFOs that move like a group of living things: related, never quite in step, the same on every render.",
     "port": "",
@@ -18790,7 +19241,7 @@
   {
     "type": "patchbay-in",
     "name": "Patch Bay In",
-    "category": "Utility/Metering",
+    "category": "Utility/Logic & Routing",
     "colour": "#a78bfa",
     "description": "Collects signals into one bundle cable: every input you patch adds a channel, and a free one is always left.",
     "port": "",
@@ -18830,7 +19281,7 @@
   {
     "type": "perc-voice",
     "name": "Perc Voice",
-    "category": "Sources/Generators",
+    "category": "Sources/Voices",
     "colour": "#fdba74",
     "description": "One percussion voice from kick to bell: Tone walks the partials from sine through membrane and bar to metal; FM, Modal and Noise Bank engines; Click, Sweep, Decay and Damp shape the hit.",
     "port": "",
@@ -19104,7 +19555,7 @@
   {
     "type": "phaser",
     "name": "Phaser",
-    "category": "Effects/Textures",
+    "category": "Effects/Movement",
     "colour": "#f97316",
     "description": "Stereo phaser: 2 to 12 swept allpass stages, feedback in both polarities, a stereo LFO offset. Mixed with the dry signal it makes moving notches.",
     "port": "",
@@ -19625,6 +20076,25 @@
         "def": 1.0,
         "format": "integer",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -19707,7 +20177,7 @@
   {
     "type": "pulse-generator",
     "name": "Pulse Generator",
-    "category": "Sources/Voices",
+    "category": "Sources/Generators",
     "colour": "#facc15",
     "description": "A lab pulse generator: exactly timed pulses with delay, width, slewed edges, bursts and double pulses. Its edges ring like a badly terminated cable: clicks, pings and small drums.",
     "port": "",
@@ -22475,6 +22945,25 @@
         "def": 1.0,
         "format": "integer",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -22557,7 +23046,7 @@
   {
     "type": "resonator",
     "name": "Resonator",
-    "category": "Effects/Movement",
+    "category": "Effects/Textures",
     "colour": "#0891b2",
     "description": "A tuned resonant body that rings when something hits it: modal (string, bar, plate, bell), sympathetic strings or a plucked string. Feed it audio or strum it; up to four voices.",
     "port": "",
@@ -22846,7 +23335,7 @@
   {
     "type": "reverb",
     "name": "Verb",
-    "category": "Effects/Textures",
+    "category": "Effects/Space & Time",
     "colour": "#f0abfc",
     "description": "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates click-free; small rooms to endless pads, infinite decay and Freeze.",
     "port": "",
@@ -23189,7 +23678,7 @@
   {
     "type": "rhythm-bank",
     "name": "Rhythm Bank",
-    "category": "Sequencing/Clock",
+    "category": "Sequencing/Drum",
     "colour": "#f08a5d",
     "description": "Four related rhythms from a pattern number. Turn Pattern to browse grooves; modulate it to develop a part.",
     "port": "",
@@ -23523,6 +24012,25 @@
         "def": 0.0,
         "format": "choice",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -23587,7 +24095,7 @@
   {
     "type": "rotating-divider",
     "name": "Rotating Div",
-    "category": "Sequencing/Drum",
+    "category": "Sequencing/Clock",
     "colour": "#f4a259",
     "description": "Eight clock dividers of one base clock. Rotate shifts the set of divisions across the outputs.",
     "port": "",
@@ -23778,6 +24286,25 @@
           "min": 0,
           "max": 0
         }
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -24712,9 +25239,200 @@
     "memoryHeavy": true
   },
   {
+    "type": "saturator",
+    "name": "Saturator",
+    "category": "Effects/Distortion",
+    "colour": "#f59e0b",
+    "description": "Warm, organic saturation without the digital edge: tube, tape or diode curves, a frequency-dependent drive, power-supply sag and slow drift.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "drive",
+        "name": "Drive",
+        "kind": "float",
+        "default": 0.400000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.400000005960464,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "bias",
+        "name": "Bias",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "color",
+        "name": "Color",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "sag",
+        "name": "Sag",
+        "kind": "float",
+        "default": 0.300000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.300000011920929,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "age",
+        "name": "Age",
+        "kind": "float",
+        "default": 0.200000002980232,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.200000002980232,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "tone",
+        "name": "Tone",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 500.0,
+        "max": 20000.0,
+        "def": 20000.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp"
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "character",
+        "name": "Character",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Tube",
+          "Tape",
+          "Diode"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "quality",
+        "name": "Quality",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Eco (2×)",
+          "Normal (4×)"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
     "type": "segments",
     "name": "Segments",
-    "category": "Modulation/Random",
+    "category": "Modulation/Envelopes",
     "colour": "#ca8a04",
     "description": "A chain of up to 8 ramp, step and hold segments: any envelope, or with a loop, an LFO of any shape.",
     "port": "",
@@ -26322,6 +27040,25 @@
         "def": 1.0,
         "format": "integer",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -26440,7 +27177,7 @@
   {
     "type": "six-slopes",
     "name": "Six Slopes",
-    "category": "Modulation/Envelopes",
+    "category": "Modulation/Slopes",
     "colour": "#d97706",
     "description": "Six slope generators with shared controls: Harmonics spreads their rates over overtone or undertone ratios.",
     "port": "",
@@ -26747,7 +27484,7 @@
   {
     "type": "splice",
     "name": "Splice",
-    "category": "Effects/Space & Time",
+    "category": "Audio/Sampling",
     "colour": "#0284c7",
     "description": "Tape-style sampler and looper: record onto a reel, cut it into splices, play them at any speed and break them into windows, from micro-loops to clouds. Drop a WAV file on the reel to import it.",
     "port": "",
@@ -27400,6 +28137,25 @@
         "def": 1.0,
         "format": "integer",
         "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -27488,7 +28244,7 @@
   {
     "type": "swarm",
     "name": "Swarm",
-    "category": "Controllers/Performance",
+    "category": "Sources/Chords",
     "colour": "#facc15",
     "description": "A cloud of up to 16 oscillators spread over a chord or scale: blooms from unison into the chord, drifts, cross-modulates and fills the stereo field.",
     "port": "",
@@ -27900,7 +28656,7 @@
   {
     "type": "sweep-generator",
     "name": "Sweep Generator",
-    "category": "Sources/Chords",
+    "category": "Sources/Generators",
     "colour": "#fb923c",
     "description": "A function generator that glides from Start to Stop: risers, sirens, tone bursts, and a sweep ramp, pitch and marker triggers for gear that follows it.",
     "port": "",
@@ -28394,7 +29150,7 @@
   {
     "type": "test-oscillator",
     "name": "Test Oscillator",
-    "category": "Sources/Generators",
+    "category": "Sources/Oscillators",
     "colour": "#f59e0b",
     "description": "A lamp-stabilised sine from a self-oscillating loop: it bounces, warms up and hums; below 100 % it rings when kicked.",
     "port": "",
@@ -28883,6 +29639,25 @@
           "min": 1,
           "max": 1
         }
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
       }
     ],
     "inputs": [
@@ -29082,7 +29857,7 @@
   {
     "type": "uncertainty",
     "name": "Uncertainty",
-    "category": "Modulation/Slopes",
+    "category": "Modulation/Random",
     "colour": "#db2777",
     "description": "Six random generators: two fluctuating curves, two quantized steps, a shaped and correlated stored value and its integral.",
     "port": "",
@@ -29901,7 +30676,7 @@
   {
     "type": "wavefolder",
     "name": "Folder",
-    "category": "Audio/Sampling",
+    "category": "Effects/Distortion",
     "colour": "#10b981",
     "description": "Stereo six-stage wavefolder with tap crossfade, symmetry and an internal oscillator, anti-aliased for audio.",
     "port": "",
@@ -30541,7 +31316,7 @@
   {
     "type": "wheel",
     "name": "Wheel",
-    "category": "Controllers/Panel",
+    "category": "Controllers/Performance",
     "colour": "#fda4af",
     "description": "A pitch or mod wheel as a control signal; springs back to the middle.",
     "port": "",
@@ -30861,7 +31636,7 @@
   {
     "type": "xy-pad",
     "name": "XY Pad",
-    "category": "Controllers/Performance",
+    "category": "Controllers/Panel",
     "colour": "#fda4af",
     "description": "Two control signals from one point on a pad.",
     "port": "",
@@ -31223,7 +31998,7 @@
   {
     "type": "zone-delay",
     "name": "Zone Delay",
-    "category": "Effects/Distortion",
+    "category": "Effects/Space & Time",
     "colour": "#3b82f6",
     "description": "Stereo delay from tuned combs to 20-second loops: five time zones, tape or crossfade time changes, loop characters, diffusion, Reverse, Hold and Ping-Pong.",
     "port": "",
@@ -32065,7 +32840,7 @@
   {
     "type": "midi-device",
     "name": "MIDI Device",
-    "category": "Sources/Oscillators",
+    "category": "Controllers/Performance",
     "colour": "#38bdf8",
     "description": "A connected MIDI controller: notes for Voice Cells, plus pitch, gate, velocity and CCs.",
     "port": "midi-device",

@@ -309,6 +309,7 @@
     .mm-menu .mm-label { width: 90px; }`;
 
   BleepViews.register("matrix-mixer", {
+    partNames: ["Matrix"],
     side: true,
     width: 900,
     // The grid is the editor for the crosspoint gains and the mutes; they stay modulatable through cables.

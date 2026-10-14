@@ -278,6 +278,7 @@
   }
 
   BleepViews.register("xy-scope", {
+    partNames: ["Screen"],
     side: true,
     width: 820,
     layout: [

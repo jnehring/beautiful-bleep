@@ -131,6 +131,7 @@
   }
 
   BleepViews.register("grains", {
+    partNames: ["Grain display"],
     layout: [
       { title: "Position", params: ["position", "size", "pitch"] },
       { title: "Cloud", params: ["density", "texture"] },

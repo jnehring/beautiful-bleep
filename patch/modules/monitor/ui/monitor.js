@@ -288,6 +288,7 @@
 
   // ---- the view ---------------------------------------------------------------------------------
   BleepViews.register("monitor", {
+    partNames: ["Monitor"],
     width: 820,
     top: true,
     layout: [{ title: "Audio meter", params: ["response", "floor"] }],

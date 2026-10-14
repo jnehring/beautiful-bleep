@@ -129,6 +129,7 @@
   }
 
   BleepViews.register("beat-oscillator", {
+    partNames: ["Beat display"],
     width: 760,
     layout: [
       { title: "Carrier", params: ["carrier", "beat", "fine"] },

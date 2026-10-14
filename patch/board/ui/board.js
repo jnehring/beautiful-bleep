@@ -65,7 +65,8 @@
   const isCellLike = (n) => n.type === "cell" || n.type === "voice-cell";
   const isBoundary = (n) => n.type === "cell-in" || n.type === "cell-out" || n.type === "voice-in" || n.type === "voice-out";
   /// A cell may have several Cell Ins and Cell Outs (to lay cables out as you like), but keeps at least one of each.
-  const isFixedBoundary = (n) => isBoundary(n) &&
+  const inVoiceCell = (n) => { const c = nodeById(n.parent); return !!c && c.type === "voice-cell"; };
+  const isFixedBoundary = (n) => isBoundary(n) && !(n.type === "cell-in" && inVoiceCell(n)) &&  // a Voice Cell's inputs come in over Voice In
     !((n.type === "cell-in" || n.type === "cell-out") && board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type));
   const isBay = (n) => n.type === "patchbay-in" || n.type === "patchbay-out";
   const isStructural = (n) => n.type === "cell" || isBoundary(n) || isBay(n);  // a Voice Cell has a view: its settings
@@ -127,6 +128,7 @@
     if (n.type === "cell") return n.outputs || [];
     if (n.type === "voice-cell") return VOICE_OUT.concat(n.outputs || []);  // spec §8.3.1
     if (n.type === "cell-in") { const c = nodeById(n.parent, b); return c ? c.inputs || [] : []; }
+    if (n.type === "voice-in") { const c = nodeById(n.parent, b); return typeOf(n).outputs.concat(c ? c.inputs || [] : []); }  // a Voice Cell has no Cell In
     return typeOf(n).outputs;
   }
   function inputsOf(n, b = board) {
@@ -608,7 +610,7 @@
       });
       outs.appendChild(more);
     }
-    if (n.type === "cell-in") outs.appendChild(jackRow(n, "+", "new input", "control", "out", "add"));
+    if (n.type === "cell-in" || n.type === "voice-in") outs.appendChild(jackRow(n, "+", "new input", "control", "out", "add"));
     body.append(ins, outs);
     e.appendChild(body);
 
@@ -621,11 +623,10 @@
     e.addEventListener("contextmenu", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      // On a jack (or a patched knob): make a panel control for it.
-      const row = ev.target.closest(".jack");
-      if (row && row.dataset.jack !== "+") {
-        const target = row.classList.contains("param") ? { param: row.dataset.jack } : { jack: row.dataset.jack, dir: row.classList.contains("in") ? "in" : "out" };
-        const items = controlMenuItems(n.id, target);
+      // On a knob row of the node: add it to a panel.
+      const row = ev.target.closest(".jack.param");
+      if (row) {
+        const items = knobMenuItems(n.id, row.dataset.jack);
         if (items.length) return showMenu(ev, items);
       }
       if (!sel.has(n.id)) { sel.clear(); sel.add(n.id); renderSelection(); }
@@ -1011,7 +1012,7 @@
     if (dot) {
       ev.stopPropagation();
       const row = dot.closest(".jack");
-      if (row.classList.contains("out") && (row.dataset.jack !== "+" || n.type === "cell-in")) return startCableDrag(ev, n.id, row.dataset.jack);
+      if (row.classList.contains("out") && (row.dataset.jack !== "+" || n.type === "cell-in" || n.type === "voice-in")) return startCableDrag(ev, n.id, row.dataset.jack);
       if (row.classList.contains("in")) {
         // Pick up the last cable into this jack and move its end (spec §9.5).
         const into = cablesInto(n.id, row.dataset.jack);
@@ -1672,7 +1673,7 @@
     b.nodes.push({ id, type: "voice-cell", name: "Voice Cell", x: Math.round(x), y: Math.round(y), parent: lvl,
                    params, inputs: [], outputs: [] },
       n(vin, "voice-in", "Voice In", 40, 60), n(vout, "voice-out", "Voice Out", 900, 80),
-      n(uid("ci"), "cell-in", "Cell In", 40, 460), n(uid("co"), "cell-out", "Cell Out", 900, 460),
+      n(uid("co"), "cell-out", "Cell Out", 900, 460),
       n(osc, "oscillator", "Oscillator", 320, 40), n(env, "adsr", "ADSR", 320, 260), n(amp, "vca", "VCA", 620, 80));
     const k = (fn, fj, tn, tj) => ({ id: uid("k"), from: { node: fn, jack: fj }, to: { node: tn, jack: tj }, amount: 1 });
     b.cables.push(k(vin, "pitch", osc, "pitch"), k(vin, "gate", env, "gate"), k(vin, "trigger", env, "retrig"),
@@ -1957,6 +1958,7 @@
       items.push({ label: "Build panel from cell", run: () => buildPanel(n.id) });
     }
     if (isCellLike(n)) items.push({ label: "Enter cell", key: "dbl-click", run: () => enterCell(n.id) });
+    items.push(...controllerMenuItems(n));
     items.push({ label: "Rename", run: () => startRename(n, nodesEl.querySelector(`[data-id="${n.id}"]`)) });
     if (!isStructural(n)) items.push({ label: n.muted ? "Unmute" : "Mute", key: "M", run: toggleMute });
     if (canBypass(n)) items.push({ label: n.bypassed ? "Switch on (end bypass)" : "Bypass", run: () => toggleBypass(n.id) });
@@ -1968,8 +1970,8 @@
     items.push({ label: "Create cell", key: "⌘G", run: () => group(), disabled: !canGroup() });
     items.push({ label: "Create voice cell", run: () => group("voice"), disabled: !canGroupVoice() });
     if (level() && !isPort(n) && !isBoundary(n)) items.push({ label: "Remove from cell", run: removeFromCell });
+    if (isCellLike(n)) items.push({ label: "Unbuild cell", key: "⌘⇧G", run: () => ungroup(n.id), disabled: insideVoiceCell(n.parent) && n.type === "voice-cell" });
     if (n.type === "cell") {
-      items.push({ label: "Ungroup", key: "⌘⇧G", run: () => ungroup(n.id) });
       items.push({ label: "Make Voice Cell", run: () => makeVoiceCell(n.id), disabled: insideVoiceCell(n.parent) });
     }
     if (isCellLike(n)) items.push({ label: "Save as preset…", run: () => savePreset(n) });
@@ -2026,7 +2028,7 @@
     const doomed = new Set();
     for (const n of selectedNodes()) {
       if (isFixedPort(n) || isFixedBoundary(n) ||  // spec §6, §8.3.1
-          (isBoundary(n) && doomedBoundary(n, doomed))) continue;
+          (isBoundary(n) && !(n.type === "cell-in" && inVoiceCell(n)) && doomedBoundary(n, doomed))) continue;
       doomed.add(n.id);
       if (isCellLike(n)) descendants(n.id).forEach((d) => doomed.add(d.id));
     }
@@ -2195,7 +2197,8 @@
   function moveIntoCell(b, inside, cellId, keep) {
     const cell = nodeById(cellId, b);
     const vout = cell.type === "voice-cell" ? b.nodes.find((n) => n.parent === cellId && n.type === "voice-out") : null;
-    const cin = b.nodes.find((n) => n.parent === cellId && n.type === "cell-in");
+    const cin = b.nodes.find((n) => n.parent === cellId && n.type === "cell-in") ||
+                b.nodes.find((n) => n.parent === cellId && n.type === "voice-in");   // a Voice Cell's shared inputs leave over Voice In
     const cout = b.nodes.find((n) => n.parent === cellId && n.type === "cell-out");
     const kids = b.nodes.filter((n) => inside.has(n.id));
     if (!keep) {  // right of what is already in the cell, keeping the selection's own layout
@@ -2212,7 +2215,7 @@
     cell.outputs = cell.outputs || [];
     const inputs = new Map(), outputs = new Map();
     const next = [];
-    const cins = new Set(b.nodes.filter((n) => n.parent === cellId && n.type === "cell-in").map((n) => n.id));
+    const cins = new Set(b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-in" || n.type === "voice-in")).map((n) => n.id));
     const couts = new Set(b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out").map((n) => n.id));
     const touched = new Set();  // cell jacks whose cables were joined through
     const joined = new Set();   // inner cables from a cell input / into a cell output that the moved nodes now replace
@@ -2294,8 +2297,8 @@
       const bnd = (id, type, name, x, y) => ({ id, type, name, x, y, parent: cellId, params: {} });
       b.nodes.push({ id: cellId, type: voice ? "voice-cell" : "cell", name: voice ? "Voice Cell" : "Cell", x: x0, y: y0, parent: lvl,
                      params, inputs: [], outputs: [] },
-        bnd(uid("ci"), "cell-in", "Cell In", x0 - 260, voice ? y0 + 260 : y0),
         bnd(uid("co"), "cell-out", "Cell Out", x1 + 260, voice ? y0 + 260 : y0));
+      if (!voice) b.nodes.push(bnd(uid("ci"), "cell-in", "Cell In", x0 - 260, y0));
       if (voice) b.nodes.push(bnd(uid("vi"), "voice-in", "Voice In", x0 - 260, y0), bnd(uid("vo"), "voice-out", "Voice Out", x1 + 260, y0));
       moveIntoCell(b, inside, cellId, true);
       sel.clear();
@@ -2320,7 +2323,7 @@
         n.x = cell.x + NODE_W + 80 + n.x - kx;
         n.y = cell.y + n.y - ky;
       }
-      const cins = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-in");
+      const cins = b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-in" || n.type === "voice-in"));
       const couts = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out");
       const cinIds = new Set(cins.map((n) => n.id)), coutIds = new Set(couts.map((n) => n.id));
       cell.inputs = cell.inputs || [];
@@ -2365,15 +2368,16 @@
     });
   }
 
-  /// ⌘⇧G: the cell's contents move out; cables through its jacks are joined.
+  /// ⌘⇧G, right-click → Unbuild cell: the cell's contents move out into the patch; cables through its jacks are joined.
+  /// A Voice Cell is unbuilt too: Voice In's per-voice signals and Voice Out's Active are lost, its shared inputs and audio join through.
   function ungroup(cellId) {
-    edit("ungroup", (b) => {
+    edit("unbuild cell", (b) => {
       const cell = nodeById(cellId, b);
-      if (!cell || cell.type !== "cell") return false;
-      const cins = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-in");
-      const couts = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out");
+      if (!cell || !isCellLike(cell)) return false;
+      const cins = b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-in" || n.type === "voice-in"));
+      const couts = b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-out" || n.type === "voice-out"));
       const cinIds = new Set(cins.map((n) => n.id)), coutIds = new Set(couts.map((n) => n.id));
-      const kids = b.nodes.filter((n) => n.parent === cellId && n.type !== "cell-in" && n.type !== "cell-out");
+      const kids = b.nodes.filter((n) => n.parent === cellId && !isBoundary(n));
       const kx = Math.min(...kids.map((k) => k.x), Infinity), ky = Math.min(...kids.map((k) => k.y), Infinity);
       for (const k of kids) {
         k.parent = cell.parent || "";
@@ -2643,7 +2647,9 @@
   /// What a module view (or a panel) calls to change node `id`.
   function makeApi(id) {
     return {
-      knobMenu: (pid, ev) => { const items = controlMenuItems(id, { param: pid }); if (items.length) showMenu(ev, items); },
+      knobMenu: (pid, ev) => { const items = knobMenuItems(id, pid); if (items.length) showMenu(ev, items); },
+      // Right-click on a part of the view (a display, a section of knobs, the buttons) or on its background: "Add to panel".
+      partMenu: (partId, ev) => { const m = nodeById(id), items = m ? panelMenuFor(m, partId) : []; if (items.length) showMenu(ev, items); },
       setParam: (pid, v) => {
         const m = nodeById(id);
         if (m) m.params[pid] = v;
@@ -2701,14 +2707,14 @@
     pin.title = pinTitle(false);
     const close = el("button", "", "×");
     close.title = "Close (Esc)";
-    head.append(help, pin, close);
-    const body = el("div", "v-body");
     const power = canBypass(n) ? el("button", "power", "⏻") : null;   // a power switch: lit = the module runs
     if (power) {
       setPowerButton(power, n);
       power.addEventListener("click", () => toggleBypass(id));
       head.appendChild(power);
     }
+    head.append(help, pin, close);
+    const body = el("div", "v-body");
     const doc = el("div", "v-doc");
     doc.hidden = true;
     win.append(head, body);
@@ -2879,30 +2885,80 @@
   }
   // ---- panel controls that are modules (panel-wiring.js) ------------------------------------------------------------
   /// What `panel-wiring.js` needs: the types, new ids, and where a new control goes on its panel.
-  const wiringEnv = () => ({ types, uid, place: (q, type, extra) => BleepPanelEditor.placeControl(q, type, extra, q.tabs && q.tabs[0] ? q.tabs[0].id : null) });
-  /// The right-click menu of anything that takes (or gives) a signal: make a panel control for it, or show/remove the one it has.
-  function controlMenuItems(nodeId, target) {
-    const n = nodeById(nodeId);
-    if (!n || !window.BleepPanelWiring || BleepPanelWiring.belongsToPanel(board, n)) return [];
-    const have = BleepPanelWiring.controlFor(board, n, target);
-    if (have) return [
-      { label: "Show panel control", run: () => { if (!panelOpen(have.panel.id)) togglePanel(have.panel.id); } },
-      { label: "Remove panel control", run: () => removePanelControl(have.panel.id, have.control.id) },
-    ];
-    const kinds = BleepPanelWiring.kindsFor(types, n, target);
-    if (!kinds.length) return [];
-    return [{ label: "Create panel control", items: kinds.map((k) => ({ label: k.label, run: () => createPanelControl(nodeId, target, k.kind) })) }];
+  const wiringEnv = () => ({ types, uid, hasView: (n) => !isStructural(n), knobControl: BleepPanelBuild.knobControl, place: (q, type, extra) => BleepPanelEditor.placeControl(q, type, extra, q.tabs && q.tabs[0] ? q.tabs[0].id : null) });
+  /// The panels a control can go on (those that already have it are left out), then "New panel".
+  /// `have`: [{panel, control}] the controls it has; `add(where)`: makes one on a panel id or "new".
+  const panelTitle = (q) => { const c = q.cell && nodeById(q.cell); return c && c.name !== q.name ? `${c.name}: ${q.name}` : q.name; };
+  function panelChoices(have, add) {
+    const onIt = new Set(have.map((h) => h.panel.id));
+    const free = BleepPanelWiring.panelsFor(board).filter((q) => !onIt.has(q.id));
+    return [...free.map((q) => ({ label: panelTitle(q), run: () => add(q.id) })), ...(free.length ? ["-"] : []), { label: "New panel", run: () => add("new") }];
   }
-  function createPanelControl(nodeId, target, kind) {
+  /// "Show on panel" and "Remove from panel" for what a node already has on panels: [{panel, control, what}].
+  function panelExtras(have) {
+    const items = [];
+    const show = (q) => () => { if (!panelOpen(q.id)) togglePanel(q.id); };
+    const panels = [...new Map(have.map((h) => [h.panel.id, h.panel])).values()];
+    if (panels.length === 1) items.push({ label: `Show on panel “${panels[0].name}”`, run: show(panels[0]) });
+    else if (panels.length) items.push({ label: "Show on panel", items: panels.map((q) => ({ label: panelTitle(q), run: show(q) })) });
+    const drop = (h) => () => removePanelControl(h.panel.id, h.control.id);
+    const name = (h) => (h.what ? `${h.what} · ` : "") + panelTitle(h.panel);
+    if (have.length === 1) items.push({ label: `Remove from panel “${have[0].panel.name}”${have[0].what ? ` (${have[0].what})` : ""}`, run: drop(have[0]) });
+    else if (have.length) items.push({ label: "Remove from panel", items: have.map((h) => ({ label: name(h), run: drop(h) })) });
+    return items;
+  }
+  /// "Add to panel ▸" for a knob, and, for what is already on panels, show and remove.
+  function panelMenuItems(n, have, add) {
+    return [{ label: "Add to panel", items: panelChoices(have, add) }, ...panelExtras(have)];
+  }
+  /// Right-click a module (on the board, or in its view): "Add to panel ▸" its control (a controller module: Dial, Button, Keyboard …),
+  /// the whole module view, or one of its parts. `focus`: the part under the pointer in a view (it is offered first), null: the view's
+  /// background, undefined: the board.
+  function panelMenuFor(n, focus) {
+    if (!window.BleepPanelWiring) return [];
+    const env = wiringEnv();
+    const asControl = BleepPanelWiring.canAddModule(board, n), asView = BleepPanelWiring.canAddView(board, env, n);
+    if (!asControl && !asView) return [];
+    const haveControl = asControl ? BleepPanelWiring.moduleControls(board, n).map((h) => ({ ...h, what: "control" })) : [];
+    const haveView = asView ? BleepPanelWiring.viewControls(board, n).map((h) => ({ ...h, what: h.part ? (partList(n).find((p) => p.id === h.part) || { name: "part" }).name : "whole view" })) : [];
+    const control = () => ({ label: "As control", items: panelChoices(haveControl, (where) => addToPanel(n.id, where, (b, m) => BleepPanelWiring.addModule(b, env, m, where))) });
+    const view = (part) => ({
+      label: part ? (part.kind === "controls" ? `Knobs: ${part.name}` : part.name) : "Whole module view",
+      items: panelChoices(haveView.filter((h) => h.part === (part ? part.id : null)), (where) => addToPanel(n.id, where, (b, m) => BleepPanelWiring.addView(b, env, m, part, where))),
+    });
+    const parts = asView ? partList(n) : [];
+    let items;
+    const focused = parts.find((p) => p.id === focus);
+    if (focused) items = [{ ...view(focused), label: `Add “${focused.name}” to panel` }, { ...view(null), label: "Add whole module view to panel" }];
+    else {
+      const sub = [];
+      if (asControl) sub.push(control());
+      if (asView) sub.push(view(null), ...(parts.length ? ["-", ...parts.map(view)] : []));
+      items = [{ label: "Add to panel", items: sub }];
+    }
+    return [...items, ...panelExtras([...haveControl, ...haveView])];
+  }
+  /// The parts of a module's view a panel can show alone.
+  const partList = (n) => (window.BleepView && BleepView.partsOf ? BleepView.partsOf(typeOf(n)) : []);
+  /// A module on the board: its control, its view or a part of it.
+  const controllerMenuItems = (n) => panelMenuFor(n);
+  /// A knob (or setting) of a module: a control wired straight to it.
+  function knobMenuItems(nodeId, paramId) {
+    const n = nodeById(nodeId);
+    if (!n || !window.BleepPanelWiring || BleepPanelWiring.belongsToPanel(board, n) || !(types[n.type] || {}).params.some((p) => p.id === paramId)) return [];
+    return panelMenuItems(n, BleepPanelWiring.knobControls(board, n, paramId), (where) => addToPanel(nodeId, where, (b, m) => BleepPanelWiring.addKnob(b, wiringEnv(), m, paramId, where)));
+  }
+  function addToPanel(nodeId, where, make) {
     let made = null;
-    const done = edit("create panel control", (b) => {
+    const done = edit("add to panel", (b) => {
       const n = nodeById(nodeId, b);
-      made = n ? BleepPanelWiring.create(b, wiringEnv(), n, target, kind) : { error: "the module is gone" };
+      made = n ? make(b, n) : { error: "the module is gone" };
       if (made.error) return false;
     });
     Promise.resolve(done).then(() => {
-      if (!made || made.error) return notice(`Could not create the panel control: ${made ? made.error : "nothing happened"}.`);
-      notice(`Added “${made.control.label}” to the panel “${made.panel.name}”; its ${made.module.name === made.control.label ? "module" : made.module.type} is in the Panel cell.`);
+      if (!made || made.error) return notice(`Could not add it to the panel: ${made ? made.error : "nothing happened"}.`);
+      notice(`Added “${made.control.label}” to the panel “${made.panel.name}”.`);
+      if (where === "new" && !pluginMode) openPanel(made.panel.id, { edit: true });
     });
   }
   function removePanelControl(panelId, controlId) {
@@ -3049,12 +3105,55 @@
     const close = el("button", "", "×");
     close.title = "Close (Esc)";
     const title = el("span", "v-title", doc0.name);
+    // In edit mode a click on the title renames the panel.
+    title.addEventListener("click", () => {
+      if (!state.edit || title.querySelector("input")) return;
+      const input = el("input", "n-rename");
+      input.value = panelById(panelId).name;
+      input.maxLength = 63;
+      title.textContent = "";
+      title.append(input);
+      input.focus();
+      input.select();
+      let done = false;
+      const finish = (save) => {
+        if (done) return;
+        done = true;
+        const name = input.value.trim();
+        title.textContent = panelById(panelId).name;
+        if (save && name && name !== panelById(panelId).name)
+          edit("rename panel", (b) => { const q = (b.panels || []).find((x) => x.id === panelId); if (!q) return false; q.name = name; });
+      };
+      input.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
+      input.addEventListener("blur", () => finish(true));
+      input.addEventListener("pointerdown", (e) => e.stopPropagation());
+    });
     const sub = el("span", "v-sub", doc0.cell && nodeById(doc0.cell) ? nodeById(doc0.cell).name : doc0.for ? "Module panel" : "Board");
     tools.append(editBtn, fullBtn);
     head.append(title, sub, el("span", "spacer"), tools, pin, close);
     const body = el("div", "v-body");
     win.append(head, body);
     $("views").appendChild(win);
+    // In edit mode the window is resized from its lower right corner (width and height); the size is kept while editing.
+    const grip = el("div", "v-grip");
+    grip.title = "Drag to resize";
+    win.appendChild(grip);
+    grip.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      grip.setPointerCapture(e.pointerId);
+      const sx = e.clientX, sy = e.clientY, w0 = win.offsetWidth, h0 = body.offsetHeight;
+      const maxW = canvas.clientWidth - win.offsetLeft - 8;
+      const move = (m) => {
+        state.w = Math.max(640, Math.min(maxW, w0 + m.clientX - sx));
+        state.h = Math.max(380, h0 + m.clientY - sy);
+        win.style.width = state.w + "px";
+        win.style.setProperty("--pe-h", state.h + "px");
+      };
+      const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); };
+      grip.addEventListener("pointermove", move);
+      grip.addEventListener("pointerup", up);
+    });
 
     const fit = () => {
       if (!play) return;
@@ -3075,6 +3174,12 @@
       body.innerHTML = "";
       state.json = layoutOf(doc);
       win.classList.toggle("editing", state.edit);
+      if (state.edit) {
+        win.style.width = state.w ? state.w + "px" : "";
+        if (state.h) win.style.setProperty("--pe-h", state.h + "px");
+        if (win.offsetLeft + win.offsetWidth > canvas.clientWidth) win.style.left = Math.max(8, canvas.clientWidth - win.offsetWidth - 8) + "px";   // not cut off at the right edge
+      } else win.style.removeProperty("--pe-h");
+      title.title = state.edit ? "Click to rename the panel" : "";
       win.classList.toggle("full", state.full && !state.edit);
       editBtn.classList.toggle("on", state.edit);
       fullBtn.classList.toggle("on", state.full);
@@ -3094,6 +3199,7 @@
           }),
           scope: () => panelScope(panelById(panelId) || doc),
           module: (id) => nodeById(id),
+          parts: (id) => { const n = nodeById(id); return n && !isStructural(n) ? partList(n) : []; },
           edit: (label, fn) => edit(label, fn),
           removeControl: (panelId, controlId) => removePanelControl(panelId, controlId),
           reveal: revealPanelModule,
@@ -3276,7 +3382,7 @@
     if (!board) return;
     if (cmd && k === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
     if (cmd && k === "y") { e.preventDefault(); redo(); return; }
-    if (cmd && k === "g") { e.preventDefault(); e.shiftKey ? selectedNodes().filter((n) => n.type === "cell").forEach((n) => ungroup(n.id)) : group(); return; }
+    if (cmd && k === "g") { e.preventDefault(); e.shiftKey ? selectedNodes().filter(isCellLike).forEach((n) => ungroup(n.id)) : group(); return; }
     if (cmd && k === "d") { e.preventDefault(); duplicate(e.shiftKey); return; }
     if (cmd && k === "a") { e.preventDefault(); selectAll(); return; }
     if (cmd && k === "c") { e.preventDefault(); copy(); return; }

@@ -18,6 +18,7 @@
   }
 
   BleepViews.register("button", {
+    partNames: ["Pad"],
     side: true,
     layout: [{ title: "Behaviour", params: ["mode"] }],
     template:

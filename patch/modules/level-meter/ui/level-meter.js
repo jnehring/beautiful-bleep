@@ -113,6 +113,7 @@
   }
 
   BleepViews.register("level-meter", {
+    partNames: ["Meters"],
     layout: [
       { title: "Detector", params: ["detector", "response"] },
       { title: "Scale", params: ["floor", "hold"] },

@@ -54,9 +54,21 @@ static void shelvesReachTheirGain() {
     EXPECT_NEAR(gainDb(b, 1000.0), 0.0, 0.5);
 }
 
+static void magnitudeMatchesTheFilter() {
+    TEST("the response the view draws equals the level measured through the filters");
+    EqBand b[4] = {{EqBand::LowShelf, 150.0f, 7.0f, 0.7f}, {EqBand::Peak, 500.0f, -6.0f, 2.0f},
+                   {EqBand::Peak, 3000.0f, 11.0f, 0.8f}, {EqBand::HighShelf, 7000.0f, -5.0f, 0.7f}};
+    for (double hz : {40.0, 150.0, 500.0, 1200.0, 3000.0, 9000.0}) {
+        double db = 0.0;
+        for (const auto& band : b) db += Biquad::design(band, kSr).magnitudeDb(hz, kSr);
+        EXPECT_NEAR(db, gainDb(b, hz), 0.05);
+    }
+}
+
 int main() {
     flatIsAWire();
     bellBoostsAtItsFrequency();
     shelvesReachTheirGain();
+    magnitudeMatchesTheFilter();
     return bleep::test::finish("eq");
 }

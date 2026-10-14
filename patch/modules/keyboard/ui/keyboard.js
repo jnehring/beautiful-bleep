@@ -101,6 +101,7 @@
   }
 
   BleepViews.register("keyboard", {
+    partNames: ["Keys"],
     layout: [
       { title: "Play", params: ["octave", "hold", "priority"] },
       { title: "Touch", params: ["velocity", "glide"] },

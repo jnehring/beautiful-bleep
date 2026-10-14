@@ -211,6 +211,7 @@
     const n = layout.length;  // the level joins the last card: compact
     if (n > 1 && layout[n - 1].title === "Out") { const a = layout[n - 2]; layout = layout.slice(0, n - 2).concat([{ title: a.title + " · Out", params: a.params.concat(layout[n - 1].params) }]); }
     BleepViews.register(type, Object.assign({
+      partNames: ["Scope"],
       template: '<div class="bdk"><canvas></canvas><div class="bdk-cap"><span class="bdk-l"></span><span class="bdk-r"></span></div></div>',
       side: true,
       layout,

@@ -115,6 +115,7 @@
   }
 
   BleepViews.register("chord-osc", {
+    partNames: ["Chord"],
     width: 900,
     layout: [
       { title: "Pitch", params: ["octave", "tune", "glide", "seed"] },

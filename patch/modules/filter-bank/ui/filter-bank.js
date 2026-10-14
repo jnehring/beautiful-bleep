@@ -135,6 +135,7 @@
   }
 
   BleepViews.register("filter-bank", {
+    partNames: ["Bands"],
     width: 900,
     layout: [
       { title: "Tuning", params: ["tuning", "root", "scale", "spacing", "shift"] },

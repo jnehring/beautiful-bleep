@@ -257,6 +257,7 @@
     .hm-tools { grid-column: 1 / -1; display: flex; gap: 6px; justify-content: flex-end; }`;
 
   BleepViews.register("harmony-master", {
+    partNames: ["Chord and progression"],
     width: 880,
     layout: [
       { title: "Source", params: ["source", "key", "scale", "policy"] },

@@ -573,11 +573,13 @@
       const node = host.node(c.node, bound);
       if (opts.edit) {   // the editor draws a placeholder: a live view per rebuild is heavy
         e.classList.add("placeholder");
-        e.append(el("span", "", node ? `${node.name} view` : "view: module missing"));
+        e.append(el("span", "", node ? (c.part && c.label) || `${node.name} view` : "view: module missing"));
         return e;
       }
       const v = node ? host.view(node.id) : null;
       if (!v) { e.classList.add("dead"); return e; }
+      // A part of the view (a display, a section of knobs, the buttons) alone; one that is gone shows as a dead box.
+      if (c.part && !(v.showOnly && v.showOnly(c.part))) { e.classList.add("dead"); e.append(el("i", "", "Part missing")); return e; }
       embedded.add(node.id);
       e.append(v.root);
       widgets.push({

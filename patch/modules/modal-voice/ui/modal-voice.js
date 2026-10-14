@@ -123,6 +123,7 @@
   }
 
   BleepViews.register("modal-voice", {
+    parts: [{ id: "exciter", name: "Exciter", select: ".bv-panel > div:nth-child(1)" }, { id: "body", name: "Body", select: ".bv-panel > div:nth-child(2)" }],
     width: 940,
     layout: [
       { title: "Bow", params: ["bow", "bowTimbre"] },

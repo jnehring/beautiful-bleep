@@ -2,12 +2,16 @@
 // EQ node (doc/eq.md): low shelf, two bells and a high shelf, stereo.
 #include "EqDsp.h"
 #include "Registry.h"
+#include "dsp/SpectrumTap.h"
 
 #include <algorithm>
+#include <array>
+#include <atomic>
 
 namespace bleep::engine {
 namespace {
 
+using patch::Biquad;
 using patch::EqBand;
 using patch::EqDsp;
 
@@ -31,6 +35,32 @@ public:
         dsp_[1].reset();
     }
 
+    /// For the view: the audio going in and out (log-spaced dB, 20 Hz ... 20 kHz) and the response of
+    /// the bands as they are right now, modulation included, on the same bins. "bands" is
+    /// (hz, gain dB, Q) per band, then the level in dB.
+    void liveArrays(std::vector<std::pair<std::string, std::vector<float>>>& out) const override {
+        std::vector<float> in(kBins), wet(kBins), curve(kBins), bands(kShown);
+        tap_.spectrum(false, sampleRate_, in);
+        tap_.spectrum(true, sampleRate_, wet);
+        for (int i = 0; i < kShown; ++i) bands[(size_t)i] = shown_[(size_t)i].load(std::memory_order_relaxed);
+        Biquad filters[EqDsp::kBands];
+        for (int k = 0; k < EqDsp::kBands; ++k) {
+            const EqBand b{kKinds[k], bands[(size_t)(3 * k)], bands[(size_t)(3 * k + 1)], bands[(size_t)(3 * k + 2)]};
+            filters[k] = Biquad::design(b, sampleRate_);
+        }
+        for (int i = 0; i < kBins; ++i) {
+            const double hz = 20.0 * std::pow(1000.0, (i + 0.5) / kBins);
+            double db = bands[kShown - 1];
+            for (int k = 0; k < EqDsp::kBands; ++k)
+                if (bands[(size_t)(3 * k + 1)] != 0.0f) db += filters[k].magnitudeDb(hz, sampleRate_);
+            curve[(size_t)i] = (float)db;
+        }
+        out.emplace_back("spectrumIn", std::move(in));
+        out.emplace_back("spectrumOut", std::move(wet));
+        out.emplace_back("curve", std::move(curve));
+        out.emplace_back("bands", std::move(bands));
+    }
+
     void process(const ProcessContext& c) override {
         const float* inR = c.inputConnected[InR] ? c.inputs[InR] : c.inputs[InL];
         EqBand bands[EqDsp::kBands];
@@ -44,14 +74,26 @@ public:
                 dsp_[0].setBands(bands);
                 dsp_[1].setBands(bands);
                 level = std::pow(10.0f, value(c, Level, i) * 0.05f);
+                for (int k = 0; k < EqDsp::kBands; ++k) {
+                    shown_[(size_t)(3 * k)].store(bands[k].hz, std::memory_order_relaxed);
+                    shown_[(size_t)(3 * k + 1)].store(bands[k].gainDb, std::memory_order_relaxed);
+                    shown_[(size_t)(3 * k + 2)].store(bands[k].q, std::memory_order_relaxed);
+                }
+                shown_[kShown - 1].store(value(c, Level, i), std::memory_order_relaxed);
             }
             c.outputs[OutL][i] = dsp_[0].tick(c.inputs[InL][i]) * level;
             c.outputs[OutR][i] = dsp_[1].tick(inR[i]) * level;
+            tap_.push(0.5f * (c.inputs[InL][i] + inR[i]), 0.5f * (c.outputs[OutL][i] + c.outputs[OutR][i]));
         }
     }
 
 private:
+    static constexpr int kBins = 128;
+    static constexpr int kShown = 3 * EqDsp::kBands + 1;
+    static constexpr EqBand::Kind kKinds[EqDsp::kBands] = {EqBand::LowShelf, EqBand::Peak, EqBand::Peak, EqBand::HighShelf};
     EqDsp dsp_[2];
+    dsp::SpectrumTap tap_;
+    std::array<std::atomic<float>, kShown> shown_{};  // what the audio thread last used, for the view
 };
 
 }  // namespace

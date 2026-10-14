@@ -35,6 +35,7 @@
   }
 
   BleepViews.register("organic-lfos", {
+    partNames: ["Rates and motion"],
     top: true,
     layout: [
       { title: "Rate", params: ["rate", "lock", "anchor"] },
