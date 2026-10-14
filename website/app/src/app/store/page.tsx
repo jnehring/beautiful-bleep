@@ -35,6 +35,10 @@ export default function StorePage() {
     return () => { current = false; };
   }, [kind, category, q, page]);
 
+  const cats = data?.categories ?? [];
+  const topCats = [...new Set(cats.map((c) => c.split("/")[0]))].sort();
+  const top = category.split("/")[0];
+  const subCats = top ? cats.filter((c) => c.startsWith(top + "/")) : [];
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1;
   return (
     <div className="admin">
@@ -47,15 +51,19 @@ export default function StorePage() {
             <button key={k} type="button" aria-pressed={kind === k} onClick={() => { setKind(k); setCategory(""); setPage(1); }}>{label}</button>
           ))}
         </div>
+        {topCats.length > 0 && (
+          <select aria-label="Filter by category" value={top} onChange={(e) => { setCategory(e.target.value); setPage(1); }}>
+            <option value="">Any category</option>
+            {topCats.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
+        {subCats.length > 0 && (
+          <select aria-label="Filter by subcategory" value={category === top ? "" : category} onChange={(e) => { setCategory(e.target.value || top); setPage(1); }}>
+            <option value="">All of {top}</option>
+            {subCats.map((c) => <option key={c} value={c}>{c.slice(top.length + 1)}</option>)}
+          </select>
+        )}
       </div>
-      {data && (data.categories?.length ?? 0) > 0 && (
-        <div className="store-bar" role="group" aria-label="Filter by category">
-          <button type="button" aria-pressed={category === ""} onClick={() => { setCategory(""); setPage(1); }}>Any category</button>
-          {(data.categories ?? []).map((c) => (
-            <button key={c} type="button" aria-pressed={category === c} onClick={() => { setCategory(c); setPage(1); }}>{c.replace(/\//g, " › ")}</button>
-          ))}
-        </div>
-      )}
       {error ? <p className="error" role="alert">{error}</p> : !data ? <p>Loading…</p> : data.items.length === 0 ? <p className="muted">Nothing found.</p> : (
         <>
           <ul className="tiles">{data.items.map((i) => (

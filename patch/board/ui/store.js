@@ -46,7 +46,7 @@
     for (const m of status.index.modules) by.set(m.slug, Object.assign(by.get(m.slug) || { slug: m.slug }, { offered: m }));
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
     return [...by.values()]
-      .filter((r) => !category || (r.offered && r.offered.category) === category)
+      .filter((r) => !category || (r.offered && (r.offered.category === category || (r.offered.category || "").startsWith(category + "/"))))
       .filter((r) => words.every((w) => (r.slug + " " + ((r.installed || r.offered).types || []).join(" ") + " " + tileText(r.offered)).toLowerCase().includes(w)))
       .sort((a, b) => a.slug.localeCompare(b.slug));
   }
@@ -122,13 +122,22 @@
     const cats = [...new Set(status.index.modules.map((m) => m.category).filter(Boolean))].sort();
     if (category && !cats.includes(category)) category = "";
     if (cats.length) {
-      const chips = el("div", "st-chips");
-      for (const c of ["", ...cats]) {
-        const chip = el("button", "st-chip" + (c === category ? " on" : ""), c ? c.replace(/\//g, " › ") : "All categories");
-        chip.addEventListener("click", () => { category = c; render(); });
-        chips.appendChild(chip);
-      }
-      body.appendChild(chips);
+      const bar = el("div", "st-chips");
+      const select = (label, value, options, onChange) => {
+        const sel = el("select", "st-select");
+        sel.setAttribute("aria-label", label);
+        for (const [v, text] of options) sel.appendChild(Object.assign(el("option", "", text), { value: v }));
+        sel.value = value;
+        sel.addEventListener("change", () => onChange(sel.value));
+        bar.appendChild(sel);
+      };
+      const top = category.split("/")[0];
+      const tops = [...new Set(cats.map((c) => c.split("/")[0]))];
+      select("Category", top, [["", "All categories"], ...tops.map((c) => [c, c])], (v) => { category = v; render(); });
+      const subs = top ? cats.filter((c) => c.startsWith(top + "/")) : [];
+      if (subs.length)
+        select("Subcategory", category === top ? "" : category, [["", "All of " + top], ...subs.map((c) => [c, c.slice(top.length + 1)])], (v) => { category = v || top; render(); });
+      body.appendChild(bar);
     }
     const list = el("div", "st-tiles");
     body.appendChild(list);

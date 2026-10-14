@@ -93,6 +93,7 @@ button.linklike { background: none; border: 0; padding: 0; font: inherit; color:
 .store-bar input { flex: 1 1 200px; padding: 8px 10px; font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
 .store-bar [role="group"] { display: flex; gap: 6px; flex-wrap: wrap; }
 .admin button[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.store-bar select { padding: 8px 10px; font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
 .admin button[disabled] { opacity: .5; cursor: default; }
 .tiles { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .tile { display: flex; flex-direction: column; height: 100%; color: var(--fg); text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }

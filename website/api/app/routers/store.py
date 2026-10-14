@@ -49,7 +49,7 @@ def listing(
     needle = q.strip().lower()
     found = [_item(r) for r in newest.values()
              if not needle or needle in " ".join((r.title or "", r.slug, r.summary, r.category)).lower()]
-    items = [i for i in found if not category or i.category == category]
+    items = [i for i in found if not category or i.category == category or i.category.startswith(category + "/")]
     items.sort(key=lambda i: (i.title.lower(), i.slug))
     start = (page - 1) * page_size
     return StoreListOut(items=items[start:start + page_size], categories=sorted({i.category for i in found if i.category}),
