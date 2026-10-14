@@ -82,6 +82,7 @@ The eurorack-inspired set:
 | Resonator | [resonator.md](resonator.md) | Implemented |
 | Verb | [reverb.md](reverb.md) | Implemented |
 | Rhythm Bank | [rhythm-bank.md](rhythm-bank.md) | Implemented |
+| Clock Div | [clock-divider.md](clock-divider.md) | Implemented |
 | Rotating Div | [rotating-divider.md](rotating-divider.md) | Implemented |
 | Segments | [segments.md](segments.md) | Implemented |
 | Shape Env | [shape-envelope.md](shape-envelope.md) | Implemented |

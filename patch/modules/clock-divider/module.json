@@ -1,0 +1,11 @@
+{
+  "name": "Clock Div",
+  "slug": "clock-divider",
+  "tagline": "Eight clock dividers, each with its own division from /1 to /64, locked to the song or to a clock you patch in.",
+  "colour": "#e9b44c",
+  "category": "Sequencing/Clock",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/clock-divider.md"
+}
