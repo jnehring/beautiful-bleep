@@ -45,6 +45,23 @@ def _revocations(db: Session) -> dict:
     return {"revokedKeys": [{"keyId": k} for k in keys], "revokedArtifacts": []}
 
 
+def write_revocations(db: Session, storage: Storage) -> dict | None:
+    """v1/revocations.json: the revoked developer keys, signed with the issuer key (signing.md section 8). The serial rises with every
+    change, so a client keeps the newest and a mirror cannot hand back an older list. Nothing is written when the store has no issuer key."""
+    if not settings.issuer_key or not settings.issuer_cert:
+        return None
+    keys = sorted(_revocations(db)["revokedKeys"], key=lambda k: k["keyId"])
+    prev = storage.get("v1/revocations.json")
+    old = json.loads(prev) if prev else {}
+    if prev and [k["keyId"] for k in keys] == [k["keyId"] for k in old.get("revokedKeys", [])]:
+        return old  # nothing changed: the list stays, with its serial
+    stamp = int(now().timestamp())
+    crl = signing.make_crl(signing.key_from_pem(settings.issuer_key.replace("\\n", "\n")), json.loads(settings.issuer_cert),
+                           serial=max(stamp, int(old.get("serial", 0)) + 1), issued=stamp, revoked_keys=[k["keyId"] for k in keys])
+    storage.put("v1/revocations.json", io.BytesIO(json.dumps(crl, indent=1).encode()), "application/json")
+    return crl
+
+
 def _check_files(db: Session, token: ApiToken, kind: str, slug: str, version: str, files: list[FileIn]) -> list[dict]:
     """The files of a release as stored: every one signed by a developer this token may release for, or the request fails.
 
@@ -328,6 +345,7 @@ def write_index(db: Session, storage: Storage) -> dict:
                 channels[channel]["modules"][r.slug]["types"] = _types(r)
     index = {"format": 1, "generated": now().isoformat(), "channels": channels}
     storage.put("v1/index.json", io.BytesIO(json.dumps(index, indent=1).encode()), "application/json")
+    write_revocations(db, storage)  # the list changes when a key is revoked; it is only written again then
     return index
 
 

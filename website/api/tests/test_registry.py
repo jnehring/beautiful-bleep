@@ -447,6 +447,35 @@ def test_revoked_developer_key_is_refused(client, make_admin, capsys):
     assert r.status_code == 422 and "revoked" in r.json()["detail"]
 
 
+def test_revoking_a_key_publishes_a_signed_list(client, make_admin, capsys, storage):
+    from app import cli
+    from app.db import SessionLocal
+    from app.models import Developer, now
+    kit = PKI.kit("acme", scopes=("plugin",))
+    with SessionLocal() as db:
+        db.add(Developer(publisher="acme", key_id=kit["keyId"], scopes=["plugin"], not_after=now()))
+        db.commit()
+    roots = [signing.public_bytes(PKI.root)]
+    from app.routers.registry import write_revocations
+    with SessionLocal() as db:
+        write_revocations(db, storage)  # what every publish does with the index
+    first = json.loads(storage.objects["v1/revocations.json"])  # empty: nobody is revoked yet
+    assert signing.verify_crl(first, roots)["revokedKeys"] == []
+
+    cli.main(["developer-revoke", kit["keyId"]])
+    second = json.loads(storage.objects["v1/revocations.json"])
+    body = signing.verify_crl(second, roots)
+    assert body and [k["keyId"] for k in body["revokedKeys"]] == [kit["keyId"]]
+    assert second["serial"] > first["serial"], "the serial rises, so a client can refuse an older list"
+
+    cli.main(["developer-revoke", kit["keyId"]])  # nothing new: the list and its serial stay
+    assert json.loads(storage.objects["v1/revocations.json"])["serial"] == second["serial"]
+
+    assert signing.verify_crl(second, [signing.public_bytes(Ed25519PrivateKey.generate())]) is None, "another root's list is refused"
+    second["revokedKeys"] = []
+    assert signing.verify_crl(second, roots) is None, "an edited list is refused"
+
+
 def test_only_the_uploading_token_continues_a_draft(client, make_admin, capsys):
     a, b = new_token(capsys), new_token(capsys)
     data = b"zipdata"

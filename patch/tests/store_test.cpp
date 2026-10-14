@@ -234,6 +234,52 @@ void testClient(const juce::File& fixtures) {
     data.deleteRecursively();
 }
 
+void testRevocations(const juce::File& fixtures) {  // signing.md section 8: the store's signed list reaches the client and is applied offline
+    const juce::var spec = juce::JSON::parse(fixtures.getChildFile("cases.json"));
+    const std::vector<std::vector<uint8_t>> roots = {fromHex(spec["roots"]["main"].toString().toStdString())};
+    const int64_t now = (juce::int64)spec["siteNow"];
+    const juce::File tmp = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-crl-test-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
+    const juce::File data = tmp.getChildFile("data"), served = tmp.getChildFile("site/registry/v1");
+    served.createDirectory();
+    auto client = [&](const juce::File& site) {
+        Settings s;
+        s.storeUrl = juce::URL(site).toString(false).toStdString();
+        return Client(s, data, roots, now);
+    };
+    auto serve = [&](const char* list) { fixtures.getChildFile("crl").getChildFile(list).copyFileTo(served.getChildFile("revocations.json")); };
+    auto acme = [&] {
+        for (const auto& i : client(fixtures.getChildFile("site")).installed()) if (i.slug == "acme.fuzz") return i;
+        return InstalledModule{};
+    };
+    InstalledModule m;
+    std::string error;
+    bool changed = false;
+    CHECK(client(fixtures.getChildFile("site")).install("acme.fuzz", m, error) && acme().allowed, "acme.fuzz installs: %s", error.c_str());
+    CHECK(client(fixtures.getChildFile("site")).revocationSerial() == 0, "no list yet");
+
+    Client c = client(tmp.getChildFile("site"));
+    CHECK(!c.fetchRevocations(changed, error) && !changed, "no list in the store is not a list");
+    serve("forged.json");  // the highest serial, but an issuer of another root
+    CHECK(!c.fetchRevocations(changed, error) && !changed && error.find("not trusted") != std::string::npos, "a list of another root is refused: %s", error.c_str());
+    CHECK(c.revocationSerial() == 0 && acme().allowed, "and changes nothing");
+
+    serve("revokes-acme.json");
+    CHECK(c.fetchRevocations(changed, error) && changed && c.revocationSerial() == 7, "the list is taken: %s", error.c_str());
+    const InstalledModule revoked = acme();
+    CHECK(!revoked.allowed && revoked.result.status == "revoked", "a module signed with a revoked key is not allowed any more (the check cache does not hide it): %s", revoked.why.c_str());
+    std::vector<uint8_t> wasm;
+    std::string text;
+    Package files;
+    CHECK(!c.contentOf(m, wasm, text, error) && !c.filesOf(m, files, error), "and is not loaded or served");
+    CHECK(client(fixtures.getChildFile("site")).revocationSerial() == 7 && !acme().allowed, "a new Client applies the kept list without any network");
+    CHECK(!client(fixtures.getChildFile("site")).install("acme.fuzz", m, error) && error.find("revoked") != std::string::npos, "and does not install it again: %s", error.c_str());
+    CHECK(client(fixtures.getChildFile("site")).install("good", m, error), "other publishers are not affected: %s", error.c_str());
+
+    serve("older-empty.json");  // a mirror holding back an old list
+    CHECK(c.fetchRevocations(changed, error) && !changed && c.revocationSerial() == 7 && !acme().allowed, "an older list does not take revocations back");
+    tmp.deleteRecursively();
+}
+
 void testPolicy() {
     std::string why;
     Result signedBy, unsignedR, bad, expired;
@@ -284,6 +330,7 @@ int main(int argc, char** argv) {
     testCanonical();
     testFixtures(dir);
     testClient(dir);
+    testRevocations(dir);
     testPolicy();
     std::printf("store test: %d checks, %d failures\n", checks, failures);
     return failures == 0 ? 0 : 1;

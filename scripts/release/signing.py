@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT / "website" / "api"))
 from app.signing import *  # noqa: E402,F401,F403
 from app.signing import (CERT_DOMAIN, KINDS, SIGNATURE_PATH, Ed25519PrivateKey, _verify_sig, b64, canonical, decide,  # noqa: E402,F401
                          issue_kit, key_id, load_key, make_cert, new_tbs, public_bytes, read_doc, read_entries, save_key,
-                         sign, sign_with_kit, test_vector, verify, write_doc)
+                         make_crl, sign, sign_with_kit, test_vector, verify, write_doc)
 from app import signing  # noqa: E402
 
 
@@ -118,6 +118,15 @@ def make_fixtures(out: Path) -> None:
     other_issuer_cert = make_cert(other, None, new_tbs("issuer", public_bytes(other_issuer), publisher="bleep", name="Other issuer", scopes=["issue"], not_before=t0, not_after=t1))
     other_chain = [other_issuer_cert, make_cert(other_issuer, other_issuer_cert, new_tbs("developer", public_bytes(bleep), publisher="bleep", name="Forger",
                                                                                          scopes=["module"], first_party=True, not_before=t0, not_after=t1))]
+
+    # revocation lists (signing.md section 8), for the clients' tests: one that revokes acme's key, an older empty one (a rollback),
+    # and one signed by an issuer of another root (not to be believed, though its serial is the highest)
+    crl_dir = out / "crl"
+    crl_dir.mkdir(parents=True, exist_ok=True)
+    for name, doc in (("revokes-acme", make_crl(issuer, issuer_cert, serial=7, issued=t0 + 50, revoked_keys=[key_id(public_bytes(acme))])),
+                      ("older-empty", make_crl(issuer, issuer_cert, serial=3, issued=t0 + 10)),
+                      ("forged", make_crl(other_issuer, other_issuer_cert, serial=99, issued=t0 + 60, revoked_keys=[key_id(public_bytes(bleep))]))):
+        (crl_dir / f"{name}.json").write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n")
 
     def module_files(slug: str, types: list[str], note: str = "") -> dict:
         meta = {"name": slug, "slug": slug, "types": types, "requires": {"engineAbi": 1}}

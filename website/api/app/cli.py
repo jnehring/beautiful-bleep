@@ -27,7 +27,9 @@ from . import signing
 from .config import settings
 from .db import SessionLocal
 from .models import ApiToken, Developer, User, UserSession, now
+from .routers import registry
 from .security import hash_password, hash_token
+from .storage import get_storage
 
 
 def _find(db, email: str) -> User:
@@ -165,6 +167,10 @@ def developer_revoke(args: argparse.Namespace) -> None:
         dev.revoked_at = now()
         db.commit()
         print(f"Key {dev.key_id} of {dev.publisher} revoked: releases signed with it are refused from now on")
+        if registry.write_revocations(db, get_storage()):
+            print("The signed revocation list (v1/revocations.json) is published: apps pick it up the next time they look")
+        else:
+            print("No issuer key is set (BLEEP_ISSUER_KEY, BLEEP_ISSUER_CERT): the revocation list was not published")
 
 
 def main(argv: list[str] | None = None) -> None:

@@ -7,6 +7,8 @@
 
 #include "Verify.h"
 
+#include <optional>
+
 #include <juce_core/juce_core.h>
 
 #include <string>
@@ -82,6 +84,13 @@ public:
     /// Downloads a plugin from the store for this platform, checks its signature (kind "plugin") and the settings, and puts the
     /// .vst3 bundle(s) it holds into `folder`, replacing what is there. `names` receives the bundle names. Live must be closed (the caller checks).
     bool installPlugin(const std::string& slug, const juce::File& folder, std::vector<std::string>& names, std::string& error) const;
+    /// The store's signed revocation list (signing.md section 8): fetched from v1/revocations.json, checked against the pinned roots, and
+    /// kept in cache/revocations.json if its serial is higher than that of the list in use. `changed` says that it was. A list with
+    /// a lower or equal serial is not an error: it is ignored, so a mirror cannot take revocations back. Every Client made afterwards
+    /// applies the kept list when it verifies, with no network, and installed() notices it (the cache is keyed on its serial).
+    bool fetchRevocations(bool& changed, std::string& error) const;
+    /// The serial of the revocation list in use; 0 when the store has never given one.
+    int64_t revocationSerial() const { return revocations_ ? revocations_->serial : 0; }
     /// Every module in the data folder (the newest version of each), verified. Nothing is loaded.
     /// From the cache where the package is unchanged; `recheck` verifies every package again (a worker thread's job: see cacheStale).
     std::vector<InstalledModule> installed(bool recheck = false) const;
@@ -104,10 +113,13 @@ private:
     bool check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,
                InstalledModule& out, std::string& error) const;
 
+    std::optional<Revocations> loadRevocations() const;
+
     Settings settings_;
     juce::File dataDir_;
     std::vector<std::vector<uint8_t>> roots_;
     int64_t now_;
+    mutable std::optional<Revocations> revocations_;  ///< the kept list, checked again against the roots whenever a Client is made
 };
 
 }  // namespace bleep::store

@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "issued": 1760000060,
+ "issuer": {
+  "issuer": "7599776c3085e3f9da0d13071eb0b4ab",
+  "signature": "KAuCre3jgCy3iuL6fQN+Yn9oYOsMrgcFVU4yzPLctfaAVr2FdmfGdda/UpipxHjEe8sF8UPzd/ld5uhtCgFUAw==",
+  "tbs": {
+   "firstParty": false,
+   "format": 1,
+   "keyId": "72456720412037a6b339f884ce6d91bb",
+   "name": "Other issuer",
+   "notAfter": 1791536000,
+   "notBefore": 1760000000,
+   "publicKey": "iodf/x6zhFFXes1a/uQFRWVo3XyJ4JCGOgVXvHr0nxc=",
+   "publisher": "bleep",
+   "scopes": [
+    "issue"
+   ],
+   "serial": 1,
+   "type": "issuer"
+  }
+ },
+ "revokedArtifacts": [],
+ "revokedKeys": [
+  {
+   "keyId": "c5b940ed3f65c391965de8295fc5d25f"
+  }
+ ],
+ "serial": 99,
+ "signature": "Xns+8QNrCW2ebDVmOx1dcrMUx1yk1FWDV2qs1nAIgO+UvkbUqLB6IeBjmeDGsb//Fn9TJjhwd5oKALw+Z9zDCA=="
+}

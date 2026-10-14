@@ -58,8 +58,13 @@ struct Revocations {
     struct Artifact { std::string kind, id, version, digest; };
     std::vector<std::string> keys;     ///< key ids
     std::vector<Artifact> artifacts;
+    int64_t serial = 0;                ///< rises with every list the store signs; a client keeps the highest
     static Revocations fromJson(const juce::var& json);
 };
+
+/// signing.md section 8: the store's signed list. True if its issuer certificate is signed by one of the pinned roots and the issuer's
+/// signature over the list holds; `out` is then the list. Validity dates are not looked at: a list can only take trust away.
+bool verifyRevocations(const juce::var& doc, const std::vector<std::vector<uint8_t>>& roots, Revocations& out, std::string& error);
 
 struct Context {
     std::string kind, id, version, platform = "any";

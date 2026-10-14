@@ -146,6 +146,36 @@ class Result(NamedTuple):
     reason: str = ""
 
 
+# ---- revocation list (signing.md section 8) -------------------------------------------------
+
+def make_crl(issuer: Ed25519PrivateKey, issuer_cert: dict, *, serial: int, issued: int, revoked_keys=(), revoked_artifacts=()) -> dict:
+    """The signed revocation list: the issuer's Ed25519 over CRL_DOMAIN + canonical(body), with the issuer certificate attached so
+    a client can check it against its pinned root and nothing else. `serial` rises with every list."""
+    body = {"format": 1, "serial": serial, "issued": issued,
+            "revokedKeys": [{"keyId": k} for k in sorted(set(revoked_keys))],
+            "revokedArtifacts": sorted(revoked_artifacts, key=lambda a: (a["kind"], a["id"], a["version"], a["digest"]))}
+    return {**body, "issuer": issuer_cert, "signature": b64(issuer.sign(CRL_DOMAIN + canonical(body)))}
+
+
+def verify_crl(doc: dict, roots: list[bytes]) -> dict | None:
+    """The body of a revocation list if the issuer's signature holds and the issuer certificate is one of a pinned root's, else None.
+    Validity dates are not checked: a list can only take trust away, so one from a lapsed issuer is still worth applying."""
+    try:
+        cert = doc["issuer"]
+        tbs = cert["tbs"]
+        issuer_pub = base64.b64decode(tbs["publicKey"])
+        if tbs["type"] != "issuer" or "issue" not in tbs["scopes"] or tbs["keyId"] != key_id(issuer_pub):
+            return None
+        if not any(cert["issuer"] == key_id(r) and _check_cert(cert, r) for r in roots):
+            return None
+        body = {k: doc[k] for k in ("format", "serial", "issued", "revokedKeys", "revokedArtifacts")}
+        if body["format"] != 1 or not isinstance(body["serial"], int) or not _verify_sig(issuer_pub, base64.b64decode(doc["signature"]), CRL_DOMAIN + canonical(body)):
+            return None
+        return body
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def _verify_sig(public: bytes, signature: bytes, message: bytes) -> bool:
     try:
         Ed25519PublicKey.from_public_bytes(public).verify(signature, message)

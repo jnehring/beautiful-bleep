@@ -123,6 +123,29 @@ Revocations Revocations::fromJson(const juce::var& json) {
     return r;
 }
 
+bool verifyRevocations(const juce::var& doc, const std::vector<std::vector<uint8_t>>& roots, Revocations& out, std::string& error) {
+    auto bad = [&](const char* why) { error = std::string("the revocation list is not trusted: ") + why; return false; };
+    if (!doc.isObject() || (int)doc["format"] != 1) return bad("unknown format");
+    const juce::var cert = doc["issuer"], tbs = cert["tbs"];
+    std::vector<uint8_t> issuerPub, sig;
+    if (!tbs.isObject() || !b64(tbs["publicKey"], issuerPub) || issuerPub.size() != 32) return bad("malformed issuer certificate");
+    const std::vector<uint8_t>* root = nullptr;
+    for (const auto& r : roots)
+        if (r.size() == 32 && keyId(r.data()) == str(cert["issuer"])) root = &r;
+    if (!root || !checkCert(cert, *root)) return bad("the issuer certificate is not signed by a trusted root");
+    if (str(tbs["type"]) != "issuer" || str(tbs["keyId"]) != keyId(issuerPub.data()) || !hasScope(tbs, "issue")) return bad("bad issuer certificate");
+    auto* body = new juce::DynamicObject();
+    juce::var bodyVar(body);
+    for (const char* k : {"format", "serial", "issued", "revokedKeys", "revokedArtifacts"}) body->setProperty(k, doc[k]);
+    std::vector<uint8_t> message;
+    append(message, "BLEEP-CRL-1\n");
+    append(message, canonical(bodyVar));
+    if (!b64(doc["signature"], sig) || !check(sig, issuerPub, message)) return bad("the signature does not match the list");
+    out = Revocations::fromJson(doc);
+    out.serial = (juce::int64)doc["serial"];
+    return true;
+}
+
 Result verify(const Digest& digest, const juce::var* signature, const Context& c) {
     if (!signature) return Result{};
     const juce::var& doc = *signature;

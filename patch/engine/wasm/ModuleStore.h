@@ -63,6 +63,8 @@ public:
     void configure(juce::File dataDir, std::vector<std::vector<uint8_t>> extraRoots);
 
 private:
+    /// Looks for a newer signed revocation list (signing.md section 8) and has the installed modules checked again if there is one.
+    void fetchRevocations(const store::Client& c);
     ModuleStore() = default;
     std::unique_ptr<store::Client> client() const;
     void registerInstalled(const std::string& slug);   // message thread

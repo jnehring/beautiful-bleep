@@ -168,7 +168,35 @@ const IndexModule* Index::providing(const std::string& type) const {
 
 Client::Client(Settings settings, juce::File dataDir, std::vector<std::vector<uint8_t>> roots, int64_t now)
     : settings_(std::move(settings)), dataDir_(std::move(dataDir)), roots_(std::move(roots)),
-      now_(now ? now : (int64_t)std::time(nullptr)) {}
+      now_(now ? now : (int64_t)std::time(nullptr)) {
+    revocations_ = loadRevocations();
+}
+
+std::optional<Revocations> Client::loadRevocations() const {
+    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.json");
+    if (!file.existsAsFile()) return std::nullopt;
+    Revocations list;
+    std::string error;
+    if (!verifyRevocations(juce::JSON::parse(file), roots_, list, error)) return std::nullopt;  // a saved list that no longer checks (other roots) is no list
+    return list;
+}
+
+bool Client::fetchRevocations(bool& changed, std::string& error) const {
+    changed = false;
+    juce::var doc;
+    if (!fetchJson(url("revocations.json"), doc, error)) return false;
+    Revocations list;
+    if (!verifyRevocations(doc, roots_, list, error)) return false;
+    if (list.serial <= revocationSerial()) return true;
+    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.json");
+    if (!file.getParentDirectory().createDirectory().wasOk() || !file.replaceWithText(juce::JSON::toString(doc))) {
+        error = "cannot save the revocation list";
+        return false;
+    }
+    revocations_ = std::move(list);
+    changed = true;
+    return true;
+}
 
 juce::String Client::url(const std::string& path) const {
     juce::String base(settings_.storeUrl);
@@ -251,6 +279,7 @@ bool Client::check(const std::vector<uint8_t>& bytes, const std::string& slug, c
     c.version = version;
     c.roots = roots_;
     c.now = now_;
+    c.revocations = revocations_ ? &*revocations_ : nullptr;
     const juce::var* doc = signatureDoc && !signatureDoc->isVoid() ? signatureDoc : (pkg.hasSignature ? &pkg.signature : nullptr);
     out.result = verify(digest, doc, c);
     out.allowed = decide(out.result, "module", settings_.allowUnsigned, out.why);
@@ -332,6 +361,7 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
     c.platform = platform;
     c.roots = roots_;
     c.now = now_;
+    c.revocations = revocations_ ? &*revocations_ : nullptr;
     const juce::var signature = file["signature"];
     const Result result = verify(digest, signature.isObject() ? &signature : nullptr, c);
     std::string why;
@@ -402,6 +432,7 @@ std::string fileStamp(const juce::File& f) {
 std::vector<InstalledModule> Client::installed(bool recheck) const {
     std::vector<InstalledModule> out;
     std::string trust = std::string(settings_.allowUnsigned.module ? "m" : "-") + (settings_.allowUnsigned.plugin ? "p" : "-");
+    trust += "|crl" + std::to_string(revocationSerial());  // a new revocation list makes every earlier verdict stale
     for (const auto& r : roots_) {
         uint64_t h = 1469598103934665603ull;
         for (uint8_t b : r) h = (h ^ b) * 1099511628211ull;

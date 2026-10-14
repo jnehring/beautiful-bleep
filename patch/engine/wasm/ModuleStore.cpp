@@ -82,8 +82,22 @@ void ModuleStore::start() {
     const auto c = client();
     const auto reports = loadInstalledModules(Registry::instance(), *c);
     std::fprintf(stderr, "[store] %zu installed modules checked and registered in %u ms\n", reports.size(), juce::Time::getMillisecondCounter() - started);
+    std::thread([this] { fetchRevocations(*client()); }).detach();  // the list kept from the last time was applied above; this looks for a newer one
     std::lock_guard<std::mutex> l(mutex_);
     reports_ = reports;
+}
+
+void ModuleStore::fetchRevocations(const store::Client& c) {
+    bool changed = false;
+    std::string error;
+    if (!c.fetchRevocations(changed, error)) {
+        std::fprintf(stderr, "[store] no revocation list: %s\n", error.c_str());  // offline, or the store has none yet: what was kept stays in force
+        return;
+    }
+    if (changed) {
+        std::fprintf(stderr, "[store] revocation list %lld: installed modules are checked again\n", (long long)c.revocationSerial());
+        recheckInstalledAsync();  // already registered node types stay until the next start; nothing revoked loads or installs from now on
+    }
 }
 
 void ModuleStore::registerInstalled(const std::string& slug) {
@@ -131,6 +145,7 @@ void ModuleStore::refreshIndexAsync(std::function<void()> done) {
         store::Index index;
         std::string error;
         const bool ok = c->fetchIndex(index, error);
+        if (ok) fetchRevocations(*c);
         store::Index saved;
         int64_t savedAt = 0;
         std::string savedError;
