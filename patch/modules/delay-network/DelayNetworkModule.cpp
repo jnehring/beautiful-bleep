@@ -135,7 +135,7 @@ static void registerDelayNetworkModule(Registry& r) {
     ModuleSpec s;
     s.type = "delay-network";
     s.name = "Delay Net";
-    s.category = "Effects";
+    s.category = "Effects/Space & Time";
     s.colour = "#0ea5e9";
     s.description = "Up to eight delay lines feeding each other: scattered, jittered and reversed taps, a character in "
                     "every feedback pass, and Parallel, Chain, Ring or Mesh routing.";

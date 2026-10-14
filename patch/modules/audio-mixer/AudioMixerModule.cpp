@@ -110,7 +110,7 @@ void registerAudioMixerModule(Registry& r) {
     ModuleSpec s;
     s.type = "audio-mixer";
     s.name = "Audio Mixer";
-    s.category = "Audio";
+    s.category = "Audio/Mixing";
     s.colour = "#fb7185";
     s.description = "Four stereo channels with level, pan, mute, solo and a send; return, master and limiter.";
     for (int k = 1; k <= kMixerChannels; ++k) {

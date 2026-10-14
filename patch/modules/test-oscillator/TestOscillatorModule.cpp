@@ -158,7 +158,7 @@ static void registerTestOscillatorModule(Registry& r) {
     ModuleSpec s;
     s.type = "test-oscillator";
     s.name = "Test Oscillator";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#f59e0b";
     s.description = "A lamp-stabilised sine from a self-oscillating loop: it bounces, warms up and hums; below 100 % it rings when kicked.";
     ParamSpec settle = ParamSpec::exponential("settle", "Settle", 0.005f, 2.0f, 0.25f);

@@ -95,7 +95,7 @@ static void registerCvToMidiModule(Registry& r) {
     ModuleSpec s;
     s.type = "cv-to-midi";
     s.name = "CV to MIDI";
-    s.category = "Utility";
+    s.category = "Utility/Converters";
     s.colour = "#7dd3fc";
     s.description = "Four lanes that turn control signals into MIDI control changes (CC), "
                     "7 or 14 bit, sent only when the value moves.";

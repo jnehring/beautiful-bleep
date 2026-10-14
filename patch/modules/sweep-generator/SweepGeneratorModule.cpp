@@ -123,7 +123,7 @@ static void registerSweepGeneratorModule(Registry& r) {
     ModuleSpec s;
     s.type = "sweep-generator";
     s.name = "Sweep Generator";
-    s.category = "Sources";
+    s.category = "Sources/Generators";
     s.colour = "#fb923c";
     s.description = "A function generator that glides from Start to Stop: risers, sirens, tone bursts, and a sweep "
                     "ramp, pitch and marker triggers for gear that follows it.";

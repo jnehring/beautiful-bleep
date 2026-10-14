@@ -181,7 +181,7 @@ static void registerShapeEnvModule(Registry& r) {
     ModuleSpec s;
     s.type = "shape-env";
     s.name = "Shape Env";
-    s.category = "Modulation";
+    s.category = "Modulation/Envelopes";
     s.colour = "#fda4af";
     s.description = "Envelope and LFO that plays shapes from a library of 96, plus 8 you draw: one-shot, gated or looped.";
     std::vector<std::string> names, groups, sync;

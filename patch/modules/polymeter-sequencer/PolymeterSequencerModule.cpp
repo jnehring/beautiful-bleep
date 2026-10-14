@@ -233,7 +233,7 @@ static void registerPolymeterSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "polymeter-sequencer";
     s.name = "Polymeter Seq";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Melodic";
     s.colour = "#f59e6b";
     s.description = "A step split into six tracks (trigger, note, octave, gate, probability, ratchet), each with its own length and division.";
     std::vector<std::string> rates, roots, scales;

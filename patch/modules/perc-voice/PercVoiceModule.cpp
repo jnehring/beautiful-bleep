@@ -124,7 +124,7 @@ static void registerPercVoiceModule(Registry& r) {
     ModuleSpec s;
     s.type = "perc-voice";
     s.name = "Perc Voice";
-    s.category = "Sources";
+    s.category = "Sources/Voices";
     s.colour = "#fdba74";
     s.description = "One percussion voice from kick to bell: Tone walks the partials from sine through membrane and bar to "
                     "metal; FM, Modal and Noise Bank engines; Click, Sweep, Decay and Damp shape the hit.";

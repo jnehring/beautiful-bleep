@@ -88,7 +88,7 @@ static void registerQuadLfoModule(Registry& r) {
     ModuleSpec s;
     s.type = "quad-lfo";
     s.name = "Quad LFO";
-    s.category = "Modulation";
+    s.category = "Modulation/LFOs";
     s.colour = "#ea580c";
     s.description = "Four LFOs: independent, in quadrature, spread in phase or divided from one rate. Free, synced or clocked.";
     const std::vector<std::string> waves = {"Sine", "Triangle", "Saw Up", "Saw Down", "Square", "Random Step", "Random Smooth"};

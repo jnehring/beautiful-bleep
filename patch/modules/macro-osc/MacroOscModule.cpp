@@ -159,7 +159,7 @@ static void registerMacroOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "macro-osc";
     s.name = "Macro Osc";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#38bdf8";
     s.description = "Sixteen synthesis models behind one Model knob and three macro knobs: analog pair, fold, FM, phase "
                     "warp, grains, harmonics, wavetables, chords, vowels, noise, dust, string, modal, kick, snare, metal. "

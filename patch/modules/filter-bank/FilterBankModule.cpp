@@ -124,7 +124,7 @@ static void registerFilterBankModule(Registry& r) {
     ModuleSpec s;
     s.type = "filter-bank";
     s.name = "Filter Bank";
-    s.category = "Audio";
+    s.category = "Audio/Filters";
     s.colour = "#eab308";
     s.description = "Ten fixed band-pass filters: per-band levels, tilt, odd/even, a scanning window, "
                     "band and envelope outputs, and a built-in vocoder via the sidechain.";

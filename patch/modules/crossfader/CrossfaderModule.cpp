@@ -34,7 +34,7 @@ void registerCrossfaderModule(Registry& r) {
     ModuleSpec s;
     s.type = "crossfader";
     s.name = "Crossfader";
-    s.category = "Audio";
+    s.category = "Audio/Mixing";
     s.colour = "#fb7185";
     s.description = "Blends two stereo signals with one knob, equal-power or linear.";
     s.params = {ParamSpec::number("fade", "Fade", 0.0f, 1.0f, 0.5f),

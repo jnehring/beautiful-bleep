@@ -42,7 +42,7 @@ static void registerXyPadModule(Registry& r) {
     ModuleSpec s;
     s.type = "xy-pad";
     s.name = "XY Pad";
-    s.category = "Controllers";
+    s.category = "Controllers/Panel";
     s.colour = "#fda4af";
     s.description = "Two control signals from one point on a pad.";
     s.params = {ParamSpec::percent("x", "X", 0.0f, 1.0f, 0.5f),

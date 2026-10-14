@@ -62,7 +62,7 @@ static void registerChorusModule(Registry& r) {
     ModuleSpec s;
     s.type = "chorus";
     s.name = "Chorus";
-    s.category = "Effects";
+    s.category = "Effects/Movement";
     s.colour = "#14b8a6";
     s.description = "Stereo chorus (two swinging delay voices per side) or flanger (one, with feedback). "
                     "Rate, depth, delay and feedback can all be modulated.";

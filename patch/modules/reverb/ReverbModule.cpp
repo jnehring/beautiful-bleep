@@ -118,7 +118,7 @@ static void registerReverbModule(Registry& r) {
     ModuleSpec s;
     s.type = "reverb";
     s.name = "Verb";
-    s.category = "Effects";
+    s.category = "Effects/Space & Time";
     s.colour = "#f0abfc";
     s.description = "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates "
                     "click-free; small rooms to endless pads, infinite decay and Freeze.";

@@ -44,7 +44,7 @@ void registerUtilityModule(Registry& r) {
     ModuleSpec s;
     s.type = "utility";
     s.name = "Utility";
-    s.category = "Utility";
+    s.category = "Utility/Signal";
     s.colour = "#a78bfa";
     s.description = "The glue: attenuverter, offset, mixer, rectify/fold/quantize, S&H, slew, comparator.";
     s.params = {ParamSpec::number("scalex", "Scale X", -1.0f, 1.0f, 1.0f),

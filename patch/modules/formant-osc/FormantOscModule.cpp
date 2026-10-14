@@ -77,7 +77,7 @@ static void registerFormantOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "formant-osc";
     s.name = "Formant Osc";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#e879f9";
     s.description = "Pulse-formant oscillator: a resonant peak that sweeps through zero, vocal and filter-like with no filter.";
     s.params = {ParamSpec::steppedInt("octave", "Octave", -4, 4, 0).inGroup("Pitch"),

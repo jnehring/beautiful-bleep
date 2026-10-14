@@ -42,7 +42,7 @@ void registerNoiseModule(Registry& r) {
     ModuleSpec s;
     s.type = "noise";
     s.name = "Noise";
-    s.category = "Sources";
+    s.category = "Sources/Generators";
     s.colour = "#cbd5e1";
     s.description = "White, pink, brown and blue noise. Colour sweeps from dark brown to bright violet.";
     s.params = {ParamSpec::percent("colour", "Colour", -1.0f, 1.0f, 0.0f),

@@ -120,7 +120,7 @@ void registerKeyboardModule(Registry& r) {
     ModuleSpec s;
     s.type = "keyboard";
     s.name = "Keyboard";
-    s.category = "Controllers";
+    s.category = "Controllers/Performance";
     s.colour = "#fda4af";
     s.description = "Play notes with the mouse or the computer keyboard. Notes out plays a Voice Cell.";
     s.params = {ParamSpec::percent("velocity", "Velocity", 0.01f, 1.0f, 0.8f),

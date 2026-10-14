@@ -178,7 +178,7 @@ void registerStepSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "step-sequencer";
     s.name = "Step Sequencer";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Melodic";
     s.colour = "#f6c453";
     s.description = "Up to 32 steps of gate, pitch and velocity, quantized to a scale. Notes out plays a Voice Cell.";
     std::vector<std::string> rates, roots, scales;

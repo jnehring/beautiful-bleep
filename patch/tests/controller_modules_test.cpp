@@ -95,7 +95,7 @@ void specs() {
         const ModuleSpec* s = Registry::get().find(t);
         EXPECT(s != nullptr);
         if (!s) continue;
-        EXPECT(s->category == "Controllers");
+        EXPECT(s->category.rfind("Controllers/", 0) == 0);
         std::set<std::string> ids;
         for (const auto& p : s->params) EXPECT(ids.insert(p.id).second);
         for (const auto& j : s->inputs) EXPECT(ids.insert(j.id).second);

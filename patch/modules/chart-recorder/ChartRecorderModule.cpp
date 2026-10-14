@@ -249,7 +249,7 @@ static void registerChartRecorderModule(Registry& r) {
     ModuleSpec s;
     s.type = "chart-recorder";
     s.name = "Chart Recorder";
-    s.category = "Modulation";
+    s.category = "Modulation/Followers";
     s.colour = "#a3e635";
     s.description = "A sprung pen draws the input onto a looping paper strip; the strip replays as modulation, at any speed or backwards.";
     auto response = ParamSpec::exponential("response", "Response", 0.001f, 2.0f, 0.05f);

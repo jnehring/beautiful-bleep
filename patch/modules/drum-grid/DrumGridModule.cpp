@@ -210,7 +210,7 @@ void registerDrumGridModule(Registry& r) {
     ModuleSpec s;
     s.type = "drum-grid";
     s.name = "Drum Grid";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Drum";
     s.colour = "#fb923c";
     s.description = "8 drum tracks × up to 32 steps (off, on, accent), 16 pattern slots, gate, accent and velocity out per track.";
     std::vector<std::string> rates, ppqn;

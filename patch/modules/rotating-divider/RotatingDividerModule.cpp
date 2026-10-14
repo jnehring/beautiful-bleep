@@ -127,7 +127,7 @@ static void registerRotatingDividerModule(Registry& r) {
     ModuleSpec s;
     s.type = "rotating-divider";
     s.name = "Rotating Div";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Clock";
     s.colour = "#f4a259";
     s.description = "Eight clock dividers of one base clock. Rotate shifts the set of divisions across the outputs.";
     std::vector<std::string> rates;

@@ -209,7 +209,7 @@ static void registerGateSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "gate-sequencer";
     s.name = "Gate Sequencer";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Drum";
     s.colour = "#d4e157";
     s.description = "Four tracks of 32 deep steps: probability, ratchets, nudge and conditions. Each track has its own length and rate.";
     std::vector<std::string> rates;

@@ -68,7 +68,7 @@ void registerLfoModule(Registry& r) {
     ModuleSpec s;
     s.type = "lfo";
     s.name = "LFO";
-    s.category = "Modulation";
+    s.category = "Modulation/LFOs";
     s.colour = "#7dd3fc";
     s.description = "Low-frequency oscillator: classic waves, free or locked to the bars, with a fade-in.";
     std::vector<std::string> sync;

@@ -74,7 +74,7 @@ static void registerCoinTossModule(Registry& r) {
     ModuleSpec s;
     s.type = "coin-toss";
     s.name = "Coin Toss";
-    s.category = "Utility";
+    s.category = "Utility/Logic & Routing";
     s.colour = "#7c3aed";
     s.description = "Sends each gate to A or B by a weighted, seeded coin. Two channels: independent, nested or opposed.";
     std::vector<std::string> loops;

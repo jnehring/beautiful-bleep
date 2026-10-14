@@ -42,7 +42,7 @@ void registerAttenuverterModule(Registry& r) {
     ModuleSpec s;
     s.type = "attenuverter";
     s.name = "Attenuverter";
-    s.category = "Utility";
+    s.category = "Utility/Signal";
     s.colour = "#c4b5fd";
     s.description = "Four rows of scale and offset; unpatched rows are manual constants.";
     for (int k = 1; k <= kAttenuverterRows; ++k) {

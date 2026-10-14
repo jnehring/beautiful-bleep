@@ -41,7 +41,7 @@ static void registerWheelModule(Registry& r) {
     ModuleSpec s;
     s.type = "wheel";
     s.name = "Wheel";
-    s.category = "Controllers";
+    s.category = "Controllers/Performance";
     s.colour = "#fda4af";
     s.description = "A pitch or mod wheel as a control signal; springs back to the middle.";
     s.params = {ParamSpec::percent("value", "Value", 0.0f, 1.0f, 0.5f),

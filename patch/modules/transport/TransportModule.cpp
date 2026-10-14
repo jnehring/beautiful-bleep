@@ -144,7 +144,7 @@ static void registerTransportModule(Registry& r) {
     ModuleSpec s;
     s.type = "transport";
     s.name = "Transport";
-    s.category = "Utility";
+    s.category = "Sequencing/Clock";
     s.colour = "#ff9f43";
     s.description = "Sets the tempo, switches Ableton Link on and off, sends and follows MIDI clock, and plays and stops "
                     "the song. In the standalone app; elsewhere it shows the host's tempo.";

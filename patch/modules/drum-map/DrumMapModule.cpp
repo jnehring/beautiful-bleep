@@ -211,7 +211,7 @@ static void registerDrumMapModule(Registry& r) {
     ModuleSpec s;
     s.type = "drum-map";
     s.name = "Drum Map";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Drum";
     s.colour = "#f08a4b";
     s.description = "Kick, snare and hats from a map of patterns: move X and Y to travel between rhythms, Density to thin or fill.";
     std::vector<std::string> rates;

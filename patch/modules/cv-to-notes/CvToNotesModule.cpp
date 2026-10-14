@@ -79,7 +79,7 @@ void registerCvToNotesModule(Registry& r) {
     ModuleSpec s;
     s.type = "cv-to-notes";
     s.name = "CV to Notes";
-    s.category = "Utility";
+    s.category = "Utility/Converters";
     s.colour = "#a78bfa";
     s.description = "Pitch and gate in, notes out: lets a sequencer or any mono source play a Voice Cell.";
     s.params = {ParamSpec::percent("velocity", "Velocity", 0.0f, 1.0f, 0.8f)};

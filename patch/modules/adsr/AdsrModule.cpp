@@ -50,7 +50,7 @@ void registerAdsrModule(Registry& r) {
     ModuleSpec s;
     s.type = "adsr";
     s.name = "ADSR";
-    s.category = "Modulation";
+    s.category = "Modulation/Envelopes";
     s.colour = "#fbbf24";
     s.description = "Attack, decay, sustain, release. Active stays high while the envelope runs: patch it into a Voice Cell's Voice Out.";
     s.params = {ParamSpec::seconds("attack", "Attack", 0.001f, 10.0f, 0.2f, 0.005f),

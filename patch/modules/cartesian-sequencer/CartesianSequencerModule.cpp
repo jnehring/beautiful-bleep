@@ -198,7 +198,7 @@ static void registerCartesianSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "cartesian-sequencer";
     s.name = "Cartesian Seq";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Melodic";
     s.colour = "#e8c547";
     s.description = "An 8 × 8 grid of notes walked by two playheads, or picked by X and Y. Notes out plays a Voice Cell.";
     std::vector<std::string> rates, yRates{"Wrap", "Off"}, roots, scales;

@@ -131,7 +131,7 @@ static void registerUncertaintyModule(Registry& r) {
     ModuleSpec s;
     s.type = "uncertainty";
     s.name = "Uncertainty";
-    s.category = "Modulation";
+    s.category = "Modulation/Random";
     s.colour = "#db2777";
     s.description = "Six random generators: two fluctuating curves, two quantized steps, a shaped and correlated "
                     "stored value and its integral.";

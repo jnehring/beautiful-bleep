@@ -116,7 +116,7 @@ static void registerWobbleModule(Registry& r) {
     ModuleSpec s;
     s.type = "wobble";
     s.name = "Wobble";
-    s.category = "Modulation";
+    s.category = "Modulation/Random";
     s.colour = "#34d399";
     s.description = "One random stream in three shapes: Stepped jumps, Smooth glides, Wobble overshoots and rings.";
     std::vector<std::string> sync;

@@ -126,7 +126,7 @@ static void registerBeatOscillatorModule(Registry& r) {
     ModuleSpec s;
     s.type = "beat-oscillator";
     s.name = "Beat Oscillator";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#e879f9";
     s.description = "Two high carriers mixed down to their difference: a heterodyne tone that sweeps from kilohertz to a slow "
                     "pulse. Pull makes them lock and stutter, Drift makes them wander.";

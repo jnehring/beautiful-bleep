@@ -170,7 +170,7 @@ static void registerShiftRegisterModule(Registry& r) {
     ModuleSpec s;
     s.type = "shift-register";
     s.name = "Shift Register";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Generative";
     s.colour = "#dc2626";
     s.description = "A looping register of bits. Lock moves from frozen through mutating to random; "
                     "the outputs echo the pattern canon-like.";

@@ -78,7 +78,7 @@ static void registerTidalModule(Registry& r) {
     ModuleSpec s;
     s.type = "tidal";
     s.name = "Tidal";
-    s.category = "Modulation";
+    s.category = "Modulation/Slopes";
     s.colour = "#60a5fa";
     s.description = "Slope oscillator from minute-long swells to audio rate: loop, AD or AR, with four related outputs.";
     std::vector<std::string> sync, ratios;

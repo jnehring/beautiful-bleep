@@ -99,7 +99,7 @@ static void registerArpeggiatorModule(Registry& r) {
     ModuleSpec s;
     s.type = "arpeggiator";
     s.name = "Arpeggiator";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Melodic";
     s.colour = "#f6a04d";
     s.description = "Plays the held notes one at a time in a pattern over up to four octaves. Notes out plays a Voice Cell.";
     std::vector<std::string> rates, patterns;

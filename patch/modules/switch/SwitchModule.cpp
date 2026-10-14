@@ -85,7 +85,7 @@ void registerSwitchModule(Registry& r) {
     ModuleSpec s;
     s.type = "switch";
     s.name = "Switch";
-    s.category = "Utility";
+    s.category = "Utility/Logic & Routing";
     s.colour = "#c4b5fd";
     s.description = "Sequential switch: 8 inputs to one output and one input to 8 outputs, stepped by triggers, "
                     "the transport or Select.";

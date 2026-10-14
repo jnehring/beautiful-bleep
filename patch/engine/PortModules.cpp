@@ -494,7 +494,7 @@ void registerPortModules(Registry& r) {
         // Standalone only (spec §12): the user adds it and picks a controller; the app feeds it.
         ModuleSpec s = portSpec("midi-device", "MIDI Device", PortKind::MidiDevice,
                                 "A connected MIDI controller: notes for Voice Cells, plus pitch, gate, velocity and CCs.");
-        s.category = "Sources";
+        s.category = "Controllers/Performance";
         s.colour = "#38bdf8";
         s.userCreatable = true;
         s.standaloneOnly = true;

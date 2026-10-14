@@ -88,7 +88,7 @@ static void registerSixSlopesModule(Registry& r) {
     ModuleSpec s;
     s.type = "six-slopes";
     s.name = "Six Slopes";
-    s.category = "Modulation";
+    s.category = "Modulation/Slopes";
     s.colour = "#d97706";
     s.description = "Six slope generators with shared controls: Harmonics spreads their rates over overtone or undertone ratios.";
     std::vector<std::string> sync;

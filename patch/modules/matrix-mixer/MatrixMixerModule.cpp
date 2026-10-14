@@ -190,7 +190,7 @@ static void registerMatrixMixerModule(Registry& r) {
     ModuleSpec s;
     s.type = "matrix-mixer";
     s.name = "Matrix Mixer";
-    s.category = "Utility";
+    s.category = "Utility/Signal";
     s.colour = "#4f46e5";
     s.description = "Up to 8 inputs × 8 outputs, a bipolar gain at every crosspoint. Snapshots store whole matrices; Morph blends two.";
     for (int i = 1; i <= kMmSize; ++i)

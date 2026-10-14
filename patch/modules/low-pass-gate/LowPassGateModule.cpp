@@ -135,7 +135,7 @@ static void registerLowPassGateModule(Registry& r) {
     ModuleSpec s;
     s.type = "low-pass-gate";
     s.name = "Low Pass Gate";
-    s.category = "Audio";
+    s.category = "Audio/Filters";
     s.colour = "#4ade80";
     s.description = "Filter and VCA in one, opened by a modelled vactrol: fast to open, slow and darkening to close. "
                     "Ping it for an organic pluck; Active frees a Voice Cell's voice.";

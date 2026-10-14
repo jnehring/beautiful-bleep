@@ -85,7 +85,7 @@ static void registerChordOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "chord-osc";
     s.name = "Chord Osc";
-    s.category = "Sources";
+    s.category = "Sources/Chords";
     s.colour = "#22d3ee";
     s.description = "One pitch in, a whole chord out: up to six oscillators on a chromatic or diatonic chord, "
                     "with inversion, voicing, latch, detune and stereo spread.";

@@ -26,9 +26,9 @@ export type ModuleMeta = {
   category: string;   // one of CATEGORIES, or "Other"
 };
 
-/** The board's Add menu order. "Drums/Ring" is Module › Drums › Ring. */
-export const CATEGORIES = ["Sources", "Modulation", "Audio", "Effects", "Utility", "Controllers", "Sequencing", "Drums/Ring", "Drums/Punch"];
-export const categoryTitle = (c: string) => c.replace("/", " · ");
+/** Every category path, in the order of the board's Add menu groups. "Drums/Ring" is Module › Drums › Ring. */
+export const CATEGORIES = ["Sources/Oscillators", "Sources/Chords", "Sources/Voices", "Sources/Generators", "Modulation/Envelopes", "Modulation/Slopes", "Modulation/LFOs", "Modulation/Random", "Modulation/Followers", "Audio/Filters", "Audio/Mixing", "Audio/Sampling", "Audio/Mangling", "Effects/Space & Time", "Effects/Movement", "Effects/Dynamics & EQ", "Effects/Distortion", "Effects/Textures", "Utility/Signal", "Utility/Logic & Routing", "Utility/Harmony", "Utility/Converters", "Utility/Metering", "Controllers/Panel", "Controllers/Performance", "Sequencing/Melodic", "Sequencing/Drum", "Sequencing/Generative", "Sequencing/Clock", "Drums/Ring", "Drums/Punch"];
+export const categoryTitle = (c: string) => c.replace(/\//g, " · ");
 export const categorySlug = (c: string) => c.toLowerCase().replace(/[^a-z]+/g, "-");
 const categoryRank = (c: string) => (CATEGORIES.includes(c) ? CATEGORIES.indexOf(c) : CATEGORIES.length);
 

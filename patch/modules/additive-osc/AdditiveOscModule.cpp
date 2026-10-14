@@ -142,7 +142,7 @@ static void registerAdditiveOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "additive-osc";
     s.name = "Additive Osc";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#a3e635";
     s.description = "64 sine partials shaped by tilt, odd/even, stretch, comb and chorus, or a drawn spectrum. Never aliases.";
     ParamSpec decay = ParamSpec::seconds("decay", "Decay", 0.01f, AdditiveOscDsp::kSustain, 1.0f, AdditiveOscDsp::kSustain);

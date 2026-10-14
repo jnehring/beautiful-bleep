@@ -86,7 +86,7 @@ void registerButtonModule(Registry& r) {
     ModuleSpec s;
     s.type = "button";
     s.name = "Button";
-    s.category = "Controllers";
+    s.category = "Controllers/Panel";
     s.colour = "#fda4af";
     s.description = "A pad to press: gate while held (or toggled), triggers on press and release.";
     s.params = {ParamSpec::choice("mode", "Mode", {"Momentary", "Toggle"}, 0)};

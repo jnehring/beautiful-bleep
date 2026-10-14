@@ -129,7 +129,7 @@ static void registerZoneDelayModule(Registry& r) {
     ModuleSpec s;
     s.type = "zone-delay";
     s.name = "Zone Delay";
-    s.category = "Effects";
+    s.category = "Effects/Space & Time";
     s.colour = "#3b82f6";
     s.description = "Stereo delay from tuned combs to 20-second loops: five time zones, tape or crossfade time changes, "
                     "loop characters, diffusion, Reverse, Hold and Ping-Pong.";

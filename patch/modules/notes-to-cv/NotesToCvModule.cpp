@@ -78,7 +78,7 @@ void registerNotesToCvModule(Registry& r) {
     ModuleSpec s;
     s.type = "notes-to-cv";
     s.name = "Notes to CV";
-    s.category = "Utility";
+    s.category = "Utility/Converters";
     s.colour = "#c084fc";
     s.description = "Notes in; pitch, gate, trigger, velocity and pressure out, with note priority and glide.";
     std::vector<std::string> channels{"All"};

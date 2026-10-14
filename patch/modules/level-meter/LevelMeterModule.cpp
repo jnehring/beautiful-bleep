@@ -89,7 +89,7 @@ void registerLevelMeterModule(Registry& r) {
     ModuleSpec s;
     s.type = "level-meter";
     s.name = "Level Meter";
-    s.category = "Utility";
+    s.category = "Utility/Metering";
     s.colour = "#c4b5fd";
     s.description = "Stereo peak and RMS meters with clip lights. The audio passes through; Level puts the loudness on a cable.";
     s.params = {ParamSpec::seconds("response", "Response", 0.01f, 2.0f, 0.3f, 0.3f),

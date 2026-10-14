@@ -18,7 +18,7 @@ static void registerPatchbayInModule(Registry& r) {
     ModuleSpec s;
     s.type = "patchbay-in";
     s.name = "Patch Bay In";
-    s.category = "Utility";
+    s.category = "Utility/Logic & Routing";
     s.colour = "#a78bfa";
     s.description = "Collects signals into one bundle cable: every input you patch adds a channel, and a free one is always left.";
     s.inputs = {};

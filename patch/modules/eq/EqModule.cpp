@@ -60,7 +60,7 @@ static void registerEqModule(Registry& r) {
     ModuleSpec s;
     s.type = "eq";
     s.name = "EQ";
-    s.category = "Effects";
+    s.category = "Effects/Dynamics & EQ";
     s.colour = "#0ea5e9";
     s.description = "Four-band parametric equaliser: low shelf, two peaking bands, high shelf. "
                     "Frequency and gain of every band can be modulated.";

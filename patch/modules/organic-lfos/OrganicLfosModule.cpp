@@ -73,7 +73,7 @@ static void registerOrganicLfosModule(Registry& r) {
     ModuleSpec s;
     s.type = "organic-lfos";
     s.name = "Organic LFOs";
-    s.category = "Modulation";
+    s.category = "Modulation/LFOs";
     s.colour = "#bef264";
     s.description = "Eight slow LFOs that move like a group of living things: related, never quite in step, the same on every render.";
     s.params = {ParamSpec::hertz("rate", "Rate", 0.002f, 20.0f, 0.2f),

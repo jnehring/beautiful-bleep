@@ -51,7 +51,7 @@ void registerLogicModule(Registry& r) {
     ModuleSpec s;
     s.type = "logic";
     s.name = "Logic";
-    s.category = "Utility";
+    s.category = "Utility/Logic & Routing";
     s.colour = "#86efac";
     s.description = "AND, OR, XOR and friends for gates, plus a flip-flop and edge triggers.";
     s.params = {ParamSpec::number("threshold", "Threshold", -1.0f, 1.0f, 0.5f),

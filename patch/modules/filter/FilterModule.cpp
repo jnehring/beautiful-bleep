@@ -55,7 +55,7 @@ void registerFilterModule(Registry& r) {
     ModuleSpec s;
     s.type = "filter";
     s.name = "Multi Filter";
-    s.category = "Audio";
+    s.category = "Audio/Filters";
     s.colour = "#f472b6";
     s.description = "Stereo multimode filter: 25 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger), "
                     "LP/BP/HP/notch morph, drive, key tracking, envelope out.";

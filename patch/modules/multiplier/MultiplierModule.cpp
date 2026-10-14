@@ -52,7 +52,7 @@ void registerMultiplierModule(Registry& r) {
     ModuleSpec s;
     s.type = "multiplier";
     s.name = "Multiplier";
-    s.category = "Utility";
+    s.category = "Utility/Signal";
     s.colour = "#c4b5fd";
     s.description = "Two four-quadrant multipliers: ring modulation, or one modulator scaling another.";
     s.params = {ParamSpec::number("biasx1", "Bias X1", -1.0f, 1.0f, 0.0f),

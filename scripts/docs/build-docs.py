@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 CONTENT = ROOT / "website" / "content"
 MODULES = ROOT / "patch" / "modules"
 HEADER = ROOT / "bus" / "include" / "bleep_bus.h"
-CATEGORIES = ["Sources", "Modulation", "Audio", "Effects", "Utility", "Controllers", "Sequencing", "Drums/Ring", "Drums/Punch"]  # the board's Add menu order
+CATEGORIES = ["Sources/Oscillators", "Sources/Chords", "Sources/Voices", "Sources/Generators", "Modulation/Envelopes", "Modulation/Slopes", "Modulation/LFOs", "Modulation/Random", "Modulation/Followers", "Audio/Filters", "Audio/Mixing", "Audio/Sampling", "Audio/Mangling", "Effects/Space & Time", "Effects/Movement", "Effects/Dynamics & EQ", "Effects/Distortion", "Effects/Textures", "Utility/Signal", "Utility/Logic & Routing", "Utility/Harmony", "Utility/Converters", "Utility/Metering", "Controllers/Panel", "Controllers/Performance", "Sequencing/Melodic", "Sequencing/Drum", "Sequencing/Generative", "Sequencing/Clock", "Drums/Ring", "Drums/Punch"]  # the board's Add menu order
 TOKEN_BUDGET = 80_000  # concept §9.3: beyond this, simplify the API or split the audience
 
 

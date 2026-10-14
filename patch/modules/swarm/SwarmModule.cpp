@@ -101,7 +101,7 @@ static void registerSwarmModule(Registry& r) {
     ModuleSpec s;
     s.type = "swarm";
     s.name = "Swarm";
-    s.category = "Sources";
+    s.category = "Sources/Chords";
     s.colour = "#facc15";
     s.description = "A cloud of up to 16 oscillators spread over a chord or scale: blooms from unison into the chord, "
                     "drifts, cross-modulates and fills the stereo field.";

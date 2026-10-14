@@ -149,7 +149,7 @@ static void registerNeuronModule(Registry& r) {
     ModuleSpec s;
     s.type = "neuron";
     s.name = "Neuron";
-    s.category = "Modulation";
+    s.category = "Modulation/Random";
     s.colour = "#c026d3";
     s.description = "Two leaky integrate-and-fire neurons. In 1 is a bias, In 3 hears the other neuron: a rhythm out of the box.";
     struct Defaults {

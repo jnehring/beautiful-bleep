@@ -18,7 +18,7 @@ static void registerPatchbayOutModule(Registry& r) {
     ModuleSpec s;
     s.type = "patchbay-out";
     s.name = "Patch Bay Out";
-    s.category = "Utility";
+    s.category = "Utility/Logic & Routing";
     s.colour = "#a78bfa";
     s.description = "Splits a bundle cable back into its channels, named like the signals that go in at the other end.";
     s.inputs = {{"bundle", "Bundle", Signal::Patchbay}};

@@ -202,7 +202,7 @@ static void registerStageSequencerModule(Registry& r) {
     ModuleSpec s;
     s.type = "stage-sequencer";
     s.name = "Stage Seq";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Melodic";
     s.colour = "#e3a73b";
     s.description = "Up to 16 stages, each a pitch held for 1–8 pulses with its own gate mode, slide and accent.";
     std::vector<std::string> rates, roots, scales;

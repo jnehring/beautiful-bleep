@@ -158,7 +158,7 @@ static void registerSegmentsModule(Registry& r) {
     ModuleSpec s;
     s.type = "segments";
     s.name = "Segments";
-    s.category = "Modulation";
+    s.category = "Modulation/Envelopes";
     s.colour = "#ca8a04";
     s.description = "A chain of up to 8 ramp, step and hold segments: any envelope, or with a loop, an LFO of any shape.";
     // A new module is an ADSR (segments.md 4.6); unused segments are Ramp 250 ms → 0.

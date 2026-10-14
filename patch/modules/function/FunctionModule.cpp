@@ -58,7 +58,7 @@ void registerFunctionModule(Registry& r) {
     ModuleSpec s;
     s.type = "function";
     s.name = "Function";
-    s.category = "Modulation";
+    s.category = "Modulation/Slopes";
     s.colour = "#4fd1c5";
     s.description = "Rise/fall slope generator: LFO, envelope or slew, with four related outputs.";
     s.params = {ParamSpec::seconds("rise", "Rise", 0.001f, 10.0f, 0.25f, 0.25f),

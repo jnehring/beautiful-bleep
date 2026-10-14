@@ -136,7 +136,7 @@ static void registerWavefolderModule(Registry& r) {
     ModuleSpec s;
     s.type = "wavefolder";
     s.name = "Folder";
-    s.category = "Effects";
+    s.category = "Effects/Distortion";
     s.colour = "#10b981";
     s.description = "Stereo six-stage wavefolder with tap crossfade, symmetry and an internal oscillator, "
                     "anti-aliased for audio.";

@@ -163,7 +163,7 @@ static void registerBenderModule(Registry& r) {
     ModuleSpec s;
     s.type = "bender";
     s.name = "Bender";
-    s.category = "Audio";
+    s.category = "Audio/Mangling";
     s.colour = "#d8b4fe";
     s.description = "Glitches by chance: repeats, re-pitches, reverses, slices and corrupts pieces of the input. "
                     "Seeded by the song position, so a glitch you like comes back every time.";

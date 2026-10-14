@@ -34,7 +34,7 @@ void registerVcaModule(Registry& r) {
     ModuleSpec s;
     s.type = "vca";
     s.name = "VCA";
-    s.category = "Audio";
+    s.category = "Audio/Mixing";
     s.colour = "#fb7185";
     s.description = "Stereo amplifier. Patch an envelope into Gain; Gain starts at 0, so the envelope opens it fully.";
     s.params = {ParamSpec::percent("gain", "Gain", 0.0f, 1.0f, 0.0f),

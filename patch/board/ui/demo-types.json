@@ -2,7 +2,7 @@
   {
     "type": "oscillator",
     "name": "Oscillator",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#5eead4",
     "description": "Triangle-core oscillator: waveform morph, through-zero FM, hard sync and a sub octave.",
     "port": "",
@@ -167,7 +167,7 @@
   {
     "type": "noise",
     "name": "Noise",
-    "category": "Sources",
+    "category": "Sources/Generators",
     "colour": "#cbd5e1",
     "description": "White, pink, brown and blue noise. Colour sweeps from dark brown to bright violet.",
     "port": "",
@@ -240,7 +240,7 @@
   {
     "type": "function",
     "name": "Function",
-    "category": "Modulation",
+    "category": "Modulation/Slopes",
     "colour": "#4fd1c5",
     "description": "Rise/fall slope generator: LFO, envelope or slew, with four related outputs.",
     "port": "",
@@ -392,7 +392,7 @@
   {
     "type": "lfo",
     "name": "LFO",
-    "category": "Modulation",
+    "category": "Modulation/LFOs",
     "colour": "#7dd3fc",
     "description": "Low-frequency oscillator: classic waves, free or locked to the bars, with a fade-in.",
     "port": "",
@@ -597,7 +597,7 @@
   {
     "type": "random",
     "name": "Random",
-    "category": "Modulation",
+    "category": "Modulation/Random",
     "colour": "#f6a85b",
     "description": "Seeded stepped randomness. Loop moves from always new to a locked loop.",
     "port": "",
@@ -781,7 +781,7 @@
   {
     "type": "adsr",
     "name": "ADSR",
-    "category": "Modulation",
+    "category": "Modulation/Envelopes",
     "colour": "#fbbf24",
     "description": "Attack, decay, sustain, release. Active stays high while the envelope runs: patch it into a Voice Cell's Voice Out.",
     "port": "",
@@ -909,7 +909,7 @@
   {
     "type": "filter",
     "name": "Multi Filter",
-    "category": "Audio",
+    "category": "Audio/Filters",
     "colour": "#f472b6",
     "description": "Stereo multimode filter: 25 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger), LP/BP/HP/notch morph, drive, key tracking, envelope out.",
     "port": "",
@@ -1129,7 +1129,7 @@
   {
     "type": "vca",
     "name": "VCA",
-    "category": "Audio",
+    "category": "Audio/Mixing",
     "colour": "#fb7185",
     "description": "Stereo amplifier. Patch an envelope into Gain; Gain starts at 0, so the envelope opens it fully.",
     "port": "",
@@ -1201,7 +1201,7 @@
   {
     "type": "utility",
     "name": "Utility",
-    "category": "Utility",
+    "category": "Utility/Signal",
     "colour": "#a78bfa",
     "description": "The glue: attenuverter, offset, mixer, rectify/fold/quantize, S&H, slew, comparator.",
     "port": "",
@@ -1346,7 +1346,7 @@
   {
     "type": "cv-to-notes",
     "name": "CV to Notes",
-    "category": "Utility",
+    "category": "Utility/Converters",
     "colour": "#a78bfa",
     "description": "Pitch and gate in, notes out: lets a sequencer or any mono source play a Voice Cell.",
     "port": "",
@@ -1394,7 +1394,7 @@
   {
     "type": "notes-to-cv",
     "name": "Notes to CV",
-    "category": "Utility",
+    "category": "Utility/Converters",
     "colour": "#c084fc",
     "description": "Notes in; pitch, gate, trigger, velocity and pressure out, with note priority and glide.",
     "port": "",
@@ -1563,7 +1563,7 @@
   {
     "type": "attenuverter",
     "name": "Attenuverter",
-    "category": "Utility",
+    "category": "Utility/Signal",
     "colour": "#c4b5fd",
     "description": "Four rows of scale and offset; unpatched rows are manual constants.",
     "port": "",
@@ -1773,7 +1773,7 @@
   {
     "type": "cv-mixer",
     "name": "CV Mixer",
-    "category": "Utility",
+    "category": "Utility/Signal",
     "colour": "#c4b5fd",
     "description": "Four bipolar channels combined by sum, average, max, min or a scan across them.",
     "port": "",
@@ -1969,7 +1969,7 @@
   {
     "type": "multiplier",
     "name": "Multiplier",
-    "category": "Utility",
+    "category": "Utility/Signal",
     "colour": "#c4b5fd",
     "description": "Two four-quadrant multipliers: ring modulation, or one modulator scaling another.",
     "port": "",
@@ -2124,7 +2124,7 @@
   {
     "type": "logic",
     "name": "Logic",
-    "category": "Utility",
+    "category": "Utility/Logic & Routing",
     "colour": "#86efac",
     "description": "AND, OR, XOR and friends for gates, plus a flip-flop and edge triggers.",
     "port": "",
@@ -2276,7 +2276,7 @@
   {
     "type": "quantizer",
     "name": "Quantizer",
-    "category": "Utility",
+    "category": "Utility/Harmony",
     "colour": "#93c5fd",
     "description": "Snaps a pitch to the notes of a scale: any modulator becomes a melody.",
     "port": "",
@@ -2466,7 +2466,7 @@
   {
     "type": "switch",
     "name": "Switch",
-    "category": "Utility",
+    "category": "Utility/Logic & Routing",
     "colour": "#c4b5fd",
     "description": "Sequential switch: 8 inputs to one output and one input to 8 outputs, stepped by triggers, the transport or Select.",
     "port": "",
@@ -2897,7 +2897,7 @@
   {
     "type": "audio-mixer",
     "name": "Audio Mixer",
-    "category": "Audio",
+    "category": "Audio/Mixing",
     "colour": "#fb7185",
     "description": "Four stereo channels with level, pan, mute, solo and a send; return, master and limiter.",
     "port": "",
@@ -3465,7 +3465,7 @@
   {
     "type": "crossfader",
     "name": "Crossfader",
-    "category": "Audio",
+    "category": "Audio/Mixing",
     "colour": "#fb7185",
     "description": "Blends two stereo signals with one knob, equal-power or linear.",
     "port": "",
@@ -3549,7 +3549,7 @@
   {
     "type": "level-meter",
     "name": "Level Meter",
-    "category": "Utility",
+    "category": "Utility/Metering",
     "colour": "#c4b5fd",
     "description": "Stereo peak and RMS meters with clip lights. The audio passes through; Level puts the loudness on a cable.",
     "port": "",
@@ -3677,7 +3677,7 @@
   {
     "type": "dial",
     "name": "Dial",
-    "category": "Controllers",
+    "category": "Controllers/Panel",
     "colour": "#fda4af",
     "description": "One big knob as a control signal, scaled to a range, smooth or in steps.",
     "port": "",
@@ -3770,7 +3770,7 @@
   {
     "type": "button",
     "name": "Button",
-    "category": "Controllers",
+    "category": "Controllers/Panel",
     "colour": "#fda4af",
     "description": "A pad to press: gate while held (or toggled), triggers on press and release.",
     "port": "",
@@ -3827,7 +3827,7 @@
   {
     "type": "keyboard",
     "name": "Keyboard",
-    "category": "Controllers",
+    "category": "Controllers/Performance",
     "colour": "#fda4af",
     "description": "Play notes with the mouse or the computer keyboard. Notes out plays a Voice Cell.",
     "port": "",
@@ -3950,7 +3950,7 @@
   {
     "type": "step-sequencer",
     "name": "Step Sequencer",
-    "category": "Sequencing",
+    "category": "Sequencing/Melodic",
     "colour": "#f6c453",
     "description": "Up to 32 steps of gate, pitch and velocity, quantized to a scale. Notes out plays a Voice Cell.",
     "port": "",
@@ -4258,7 +4258,7 @@
   {
     "type": "drum-grid",
     "name": "Drum Grid",
-    "category": "Sequencing",
+    "category": "Sequencing/Drum",
     "colour": "#fb923c",
     "description": "8 drum tracks × up to 32 steps (off, on, accent), 16 pattern slots, gate, accent and velocity out per track.",
     "port": "",
@@ -6227,7 +6227,7 @@
   {
     "type": "additive-osc",
     "name": "Additive Osc",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#a3e635",
     "description": "64 sine partials shaped by tilt, odd/even, stretch, comb and chorus, or a drawn spectrum. Never aliases.",
     "port": "",
@@ -6598,7 +6598,7 @@
   {
     "type": "arpeggiator",
     "name": "Arpeggiator",
-    "category": "Sequencing",
+    "category": "Sequencing/Melodic",
     "colour": "#f6a04d",
     "description": "Plays the held notes one at a time in a pattern over up to four octaves. Notes out plays a Voice Cell.",
     "port": "",
@@ -6791,7 +6791,7 @@
   {
     "type": "beat-oscillator",
     "name": "Beat Oscillator",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#e879f9",
     "description": "Two high carriers mixed down to their difference: a heterodyne tone that sweeps from kilohertz to a slow pulse. Pull makes them lock and stutter, Drift makes them wander.",
     "port": "",
@@ -7055,7 +7055,7 @@
   {
     "type": "bender",
     "name": "Bender",
-    "category": "Audio",
+    "category": "Audio/Mangling",
     "colour": "#d8b4fe",
     "description": "Glitches by chance: repeats, re-pitches, reverses, slices and corrupts pieces of the input. Seeded by the song position, so a glitch you like comes back every time.",
     "port": "",
@@ -7396,7 +7396,7 @@
   {
     "type": "cartesian-sequencer",
     "name": "Cartesian Seq",
-    "category": "Sequencing",
+    "category": "Sequencing/Melodic",
     "colour": "#e8c547",
     "description": "An 8 × 8 grid of notes walked by two playheads, or picked by X and Y. Notes out plays a Voice Cell.",
     "port": "",
@@ -7848,7 +7848,7 @@
   {
     "type": "chart-recorder",
     "name": "Chart Recorder",
-    "category": "Modulation",
+    "category": "Modulation/Followers",
     "colour": "#a3e635",
     "description": "A sprung pen draws the input onto a looping paper strip; the strip replays as modulation, at any speed or backwards.",
     "port": "",
@@ -8243,7 +8243,7 @@
   {
     "type": "chord-osc",
     "name": "Chord Osc",
-    "category": "Sources",
+    "category": "Sources/Chords",
     "colour": "#22d3ee",
     "description": "One pitch in, a whole chord out: up to six oscillators on a chromatic or diatonic chord, with inversion, voicing, latch, detune and stereo spread.",
     "port": "",
@@ -8687,7 +8687,7 @@
   {
     "type": "chord-quantizer",
     "name": "Chord Quantizer",
-    "category": "Utility",
+    "category": "Utility/Harmony",
     "colour": "#9f8cf7",
     "description": "One pitch in, a voiced chord out: four pitches and notes. Voice Leading picks the inversion that moves least.",
     "port": "",
@@ -9119,7 +9119,7 @@
   {
     "type": "chorus",
     "name": "Chorus",
-    "category": "Effects",
+    "category": "Effects/Movement",
     "colour": "#14b8a6",
     "description": "Stereo chorus (two swinging delay voices per side) or flanger (one, with feedback). Rate, depth, delay and feedback can all be modulated.",
     "port": "",
@@ -9265,7 +9265,7 @@
   {
     "type": "coin-toss",
     "name": "Coin Toss",
-    "category": "Utility",
+    "category": "Utility/Converters",
     "colour": "#7c3aed",
     "description": "Sends each gate to A or B by a weighted, seeded coin. Two channels: independent, nested or opposed.",
     "port": "",
@@ -9487,7 +9487,7 @@
   {
     "type": "compressor",
     "name": "Compressor",
-    "category": "Effects",
+    "category": "Effects/Space & Time",
     "colour": "#64748b",
     "description": "Stereo compressor and limiter: soft knee, peak or RMS detector, sidechain input, parallel mix and a gain reduction output you can patch.",
     "port": "",
@@ -9678,7 +9678,7 @@
   {
     "type": "crunch",
     "name": "Crunch",
-    "category": "Effects",
+    "category": "Effects/Dynamics & EQ",
     "colour": "#dc2626",
     "description": "Overdrive, bit crusher and sample-rate reducer in one, with a tone low-pass: from warm saturation to broken digital grit.",
     "port": "",
@@ -9805,7 +9805,7 @@
   {
     "type": "cv-to-midi",
     "name": "CV to MIDI",
-    "category": "Utility",
+    "category": "Utility/Logic & Routing",
     "colour": "#7dd3fc",
     "description": "Four lanes that turn control signals into MIDI control changes (CC), 7 or 14 bit, sent only when the value moves.",
     "port": "",
@@ -10150,7 +10150,7 @@
   {
     "type": "delay",
     "name": "Delay",
-    "category": "Effects",
+    "category": "Effects/Distortion",
     "colour": "#5b8def",
     "description": "A simple stereo delay: free or tempo-synced times for each side, feedback with low and high cut, and a ping-pong mode.",
     "port": "",
@@ -10399,7 +10399,7 @@
   {
     "type": "delay-network",
     "name": "Delay Net",
-    "category": "Effects",
+    "category": "Effects/Space & Time",
     "colour": "#0ea5e9",
     "description": "Up to eight delay lines feeding each other: scattered, jittered and reversed taps, a character in every feedback pass, and Parallel, Chain, Ring or Mesh routing.",
     "port": "",
@@ -10752,7 +10752,7 @@
   {
     "type": "drum-map",
     "name": "Drum Map",
-    "category": "Sequencing",
+    "category": "Sequencing/Drum",
     "colour": "#f08a4b",
     "description": "Kick, snare and hats from a map of patterns: move X and Y to travel between rhythms, Density to thin or fill.",
     "port": "",
@@ -11120,7 +11120,7 @@
   {
     "type": "drum-notes",
     "name": "Drum Notes",
-    "category": "Utility",
+    "category": "Utility/Converters",
     "colour": "#c084fc",
     "description": "General MIDI drum notes in; a trigger per drum out (kick, snare, rim, clap, hats, tom, cowbell, ride, crash) and the hit's velocity.",
     "port": "",
@@ -11207,7 +11207,7 @@
   {
     "type": "dual-filter",
     "name": "Dual Filter",
-    "category": "Audio",
+    "category": "Audio/Filters",
     "colour": "#f9a8d4",
     "description": "Two morphing state-variable filters under one Cutoff, pulled apart by Spread: serial, parallel or stereo; formant pairs, wide band-passes, stereo filtering.",
     "port": "",
@@ -11500,7 +11500,7 @@
   {
     "type": "dual-osc",
     "name": "Dual Osc",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#2dd4bf",
     "description": "Two analog cores with B → A FM, sync and a stereo wavefolder: a complete complex-oscillator voice.",
     "port": "",
@@ -11914,7 +11914,7 @@
   {
     "type": "envelope-follower",
     "name": "Envelope Follower",
-    "category": "Modulation",
+    "category": "Modulation/Followers",
     "colour": "#f0abfc",
     "description": "Turns the loudness of audio, or the movement of a CV, into a smooth control signal with its own attack and release, plus a threshold gate.",
     "port": "",
@@ -12064,7 +12064,7 @@
   {
     "type": "eq",
     "name": "EQ",
-    "category": "Effects",
+    "category": "Effects/Space & Time",
     "colour": "#0ea5e9",
     "description": "Four-band parametric equaliser: low shelf, two peaking bands, high shelf. Frequency and gain of every band can be modulated.",
     "port": "",
@@ -12283,7 +12283,7 @@
   {
     "type": "filter-bank",
     "name": "Filter Bank",
-    "category": "Audio",
+    "category": "Audio/Filters",
     "colour": "#eab308",
     "description": "Ten fixed band-pass filters: per-band levels, tilt, odd/even, a scanning window, band and envelope outputs, and a built-in vocoder via the sidechain.",
     "port": "",
@@ -13104,7 +13104,7 @@
   {
     "type": "formant-osc",
     "name": "Formant Osc",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#e879f9",
     "description": "Pulse-formant oscillator: a resonant peak that sweeps through zero, vocal and filter-like with no filter.",
     "port": "",
@@ -13382,7 +13382,7 @@
   {
     "type": "freq-shifter",
     "name": "Freq Shifter",
-    "category": "Effects",
+    "category": "Effects/Dynamics & EQ",
     "colour": "#65a30d",
     "description": "Single-sideband frequency shifter: barber-pole phasing, bells and spirals with feedback, opposite shifts left/right, tempo sync, quadrature LFO out.",
     "port": "",
@@ -13618,7 +13618,7 @@
   {
     "type": "gate-sequencer",
     "name": "Gate Sequencer",
-    "category": "Sequencing",
+    "category": "Sequencing/Drum",
     "colour": "#d4e157",
     "description": "Four tracks of 32 deep steps: probability, ratchets, nudge and conditions. Each track has its own length and rate.",
     "port": "",
@@ -14132,7 +14132,7 @@
   {
     "type": "grains",
     "name": "Grains",
-    "category": "Effects",
+    "category": "Effects/Movement",
     "colour": "#2563eb",
     "description": "Granular processor: records its input and plays it back as a seeded cloud of grains. Freeze holds the buffer; Feedback and Blur build endless textures.",
     "port": "",
@@ -14501,7 +14501,7 @@
   {
     "type": "harmony-master",
     "name": "Harmony Master",
-    "category": "Utility",
+    "category": "Utility/Harmony",
     "colour": "#9333ea",
     "description": "The board's key, scale and chord, from the knobs, a progression or played chords. Followers quantize to it.",
     "port": "",
@@ -14910,7 +14910,7 @@
   {
     "type": "low-pass-gate",
     "name": "Low Pass Gate",
-    "category": "Audio",
+    "category": "Audio/Filters",
     "colour": "#4ade80",
     "description": "Filter and VCA in one, opened by a modelled vactrol: fast to open, slow and darkening to close. Ping it for an organic pluck; Active frees a Voice Cell's voice.",
     "port": "",
@@ -15123,7 +15123,7 @@
   {
     "type": "macro-osc",
     "name": "Macro Osc",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#38bdf8",
     "description": "Sixteen synthesis models behind one Model knob and three macro knobs: analog pair, fold, FM, phase warp, grains, harmonics, wavetables, chords, vowels, noise, dust, string, modal, kick, snare, metal. Aux carries a second voice; Trigger strikes a built-in decay and low-pass gate.",
     "port": "",
@@ -15503,7 +15503,7 @@
   {
     "type": "matrix-mixer",
     "name": "Matrix Mixer",
-    "category": "Utility",
+    "category": "Utility/Signal",
     "colour": "#4f46e5",
     "description": "Up to 8 inputs × 8 outputs, a bipolar gain at every crosspoint. Snapshots store whole matrices; Morph blends two.",
     "port": "",
@@ -17413,7 +17413,7 @@
   {
     "type": "meta-mod",
     "name": "Meta Mod",
-    "category": "Audio",
+    "category": "Audio/Mangling",
     "colour": "#84cc16",
     "description": "Carrier meets modulator: one knob morphs through crossfade, fold, analog and digital ring, bitwise, comparator, vocoder and Chebyshev; an internal oscillator fills in for a missing input.",
     "port": "",
@@ -17646,7 +17646,7 @@
   {
     "type": "modal-voice",
     "name": "Modal Voice",
-    "category": "Sources",
+    "category": "Sources/Voices",
     "colour": "#14b8a6",
     "description": "Physical-modelling instrument: bow, breath, mallet or any audio drive a modal body (string, bar, plate, bell) in a small room. Active frees a Voice Cell's voice.",
     "port": "",
@@ -17998,7 +17998,7 @@
   {
     "type": "monitor",
     "name": "Monitor",
-    "category": "Utility",
+    "category": "Utility/Logic & Routing",
     "colour": "#7dd3fc",
     "description": "Shows what is on a cable: a MIDI event table, an audio meter, a CV readout and a gate meter. Everything passes through.",
     "port": "",
@@ -18112,7 +18112,7 @@
   {
     "type": "neuron",
     "name": "Neuron",
-    "category": "Modulation",
+    "category": "Modulation/LFOs",
     "colour": "#c026d3",
     "description": "Two leaky integrate-and-fire neurons. In 1 is a bias, In 3 hears the other neuron: a rhythm out of the box.",
     "port": "",
@@ -18559,7 +18559,7 @@
   {
     "type": "organic-lfos",
     "name": "Organic LFOs",
-    "category": "Modulation",
+    "category": "Modulation/Random",
     "colour": "#bef264",
     "description": "Eight slow LFOs that move like a group of living things: related, never quite in step, the same on every render.",
     "port": "",
@@ -18790,7 +18790,7 @@
   {
     "type": "patchbay-in",
     "name": "Patch Bay In",
-    "category": "Utility",
+    "category": "Utility/Metering",
     "colour": "#a78bfa",
     "description": "Collects signals into one bundle cable: every input you patch adds a channel, and a free one is always left.",
     "port": "",
@@ -18810,7 +18810,7 @@
   {
     "type": "patchbay-out",
     "name": "Patch Bay Out",
-    "category": "Utility",
+    "category": "Utility/Logic & Routing",
     "colour": "#a78bfa",
     "description": "Splits a bundle cable back into its channels, named like the signals that go in at the other end.",
     "port": "",
@@ -18830,7 +18830,7 @@
   {
     "type": "perc-voice",
     "name": "Perc Voice",
-    "category": "Sources",
+    "category": "Sources/Generators",
     "colour": "#fdba74",
     "description": "One percussion voice from kick to bell: Tone walks the partials from sine through membrane and bar to metal; FM, Modal and Noise Bank engines; Click, Sweep, Decay and Damp shape the hit.",
     "port": "",
@@ -19104,7 +19104,7 @@
   {
     "type": "phaser",
     "name": "Phaser",
-    "category": "Effects",
+    "category": "Effects/Textures",
     "colour": "#f97316",
     "description": "Stereo phaser: 2 to 12 swept allpass stages, feedback in both polarities, a stereo LFO offset. Mixed with the dry signal it makes moving notches.",
     "port": "",
@@ -19254,7 +19254,7 @@
   {
     "type": "pitch-shifter",
     "name": "Pitch Shifter",
-    "category": "Effects",
+    "category": "Effects/Movement",
     "colour": "#c026d3",
     "description": "Shifts the pitch of audio by a musical interval, two crossfading delay heads, with drift for tape flutter and feedback for climbing spirals. Put it before a reverb for a shimmer.",
     "port": "",
@@ -19382,7 +19382,7 @@
   {
     "type": "polymeter-sequencer",
     "name": "Polymeter Seq",
-    "category": "Sequencing",
+    "category": "Sequencing/Melodic",
     "colour": "#f59e6b",
     "description": "A step split into six tracks (trigger, note, octave, gate, probability, ratchet), each with its own length and division.",
     "port": "",
@@ -19707,7 +19707,7 @@
   {
     "type": "pulse-generator",
     "name": "Pulse Generator",
-    "category": "Sources",
+    "category": "Sources/Voices",
     "colour": "#facc15",
     "description": "A lab pulse generator: exactly timed pulses with delay, width, slewed edges, bursts and double pulses. Its edges ring like a badly terminated cable: clicks, pings and small drums.",
     "port": "",
@@ -20166,7 +20166,7 @@
   {
     "type": "quad-lfo",
     "name": "Quad LFO",
-    "category": "Modulation",
+    "category": "Modulation/LFOs",
     "colour": "#ea580c",
     "description": "Four LFOs: independent, in quadrature, spread in phase or divided from one rate. Free, synced or clocked.",
     "port": "",
@@ -20749,7 +20749,7 @@
   {
     "type": "quantizer-suite",
     "name": "Quantizer Suite",
-    "category": "Utility",
+    "category": "Utility/Harmony",
     "colour": "#7cb7f5",
     "description": "Four quantizers: scale with a note mask, transpose in the scale, arpeggiate, or follow a Harmony Master. Unpatched inputs take the previous channel's.",
     "port": "",
@@ -22117,7 +22117,7 @@
   {
     "type": "recall",
     "name": "Recall",
-    "category": "Sequencing",
+    "category": "Sequencing/Generative",
     "colour": "#e11d48",
     "description": "Random gates (T) and random voltages (X) on one clock. Recall repeats the recent past, up to a locked loop you can capture.",
     "port": "",
@@ -22557,7 +22557,7 @@
   {
     "type": "resonator",
     "name": "Resonator",
-    "category": "Effects",
+    "category": "Effects/Movement",
     "colour": "#0891b2",
     "description": "A tuned resonant body that rings when something hits it: modal (string, bar, plate, bell), sympathetic strings or a plucked string. Feed it audio or strum it; up to four voices.",
     "port": "",
@@ -22846,7 +22846,7 @@
   {
     "type": "reverb",
     "name": "Verb",
-    "category": "Effects",
+    "category": "Effects/Textures",
     "colour": "#f0abfc",
     "description": "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates click-free; small rooms to endless pads, infinite decay and Freeze.",
     "port": "",
@@ -23189,7 +23189,7 @@
   {
     "type": "rhythm-bank",
     "name": "Rhythm Bank",
-    "category": "Sequencing",
+    "category": "Sequencing/Clock",
     "colour": "#f08a5d",
     "description": "Four related rhythms from a pattern number. Turn Pattern to browse grooves; modulate it to develop a part.",
     "port": "",
@@ -23587,7 +23587,7 @@
   {
     "type": "rotating-divider",
     "name": "Rotating Div",
-    "category": "Sequencing",
+    "category": "Sequencing/Drum",
     "colour": "#f4a259",
     "description": "Eight clock dividers of one base clock. Rotate shifts the set of divisions across the outputs.",
     "port": "",
@@ -23860,7 +23860,7 @@
   {
     "type": "sampler",
     "name": "Sampler",
-    "category": "Audio",
+    "category": "Audio/Sampling",
     "colour": "#0d9488",
     "description": "Polyphonic sample player and slicer: load a WAV, cut it into slices by hand, by transients or into beats, and play it from notes or triggers with up to 16 playheads, play modes, an envelope and a filter.",
     "port": "",
@@ -24714,7 +24714,7 @@
   {
     "type": "segments",
     "name": "Segments",
-    "category": "Modulation",
+    "category": "Modulation/Random",
     "colour": "#ca8a04",
     "description": "A chain of up to 8 ramp, step and hold segments: any envelope, or with a loop, an LFO of any shape.",
     "port": "",
@@ -25540,7 +25540,7 @@
   {
     "type": "shape-env",
     "name": "Shape Env",
-    "category": "Modulation",
+    "category": "Modulation/Envelopes",
     "colour": "#fda4af",
     "description": "Envelope and LFO that plays shapes from a library of 96, plus 8 you draw: one-shot, gated or looped.",
     "port": "",
@@ -25997,7 +25997,7 @@
   {
     "type": "shift-register",
     "name": "Shift Register",
-    "category": "Sequencing",
+    "category": "Sequencing/Generative",
     "colour": "#dc2626",
     "description": "A looping register of bits. Lock moves from frozen through mutating to random; the outputs echo the pattern canon-like.",
     "port": "",
@@ -26440,7 +26440,7 @@
   {
     "type": "six-slopes",
     "name": "Six Slopes",
-    "category": "Modulation",
+    "category": "Modulation/Envelopes",
     "colour": "#d97706",
     "description": "Six slope generators with shared controls: Harmonics spreads their rates over overtone or undertone ratios.",
     "port": "",
@@ -26747,7 +26747,7 @@
   {
     "type": "splice",
     "name": "Splice",
-    "category": "Effects",
+    "category": "Effects/Space & Time",
     "colour": "#0284c7",
     "description": "Tape-style sampler and looper: record onto a reel, cut it into splices, play them at any speed and break them into windows, from micro-loops to clouds. Drop a WAV file on the reel to import it.",
     "port": "",
@@ -27156,7 +27156,7 @@
   {
     "type": "stage-sequencer",
     "name": "Stage Seq",
-    "category": "Sequencing",
+    "category": "Sequencing/Melodic",
     "colour": "#e3a73b",
     "description": "Up to 16 stages, each a pitch held for 1–8 pulses with its own gate mode, slide and accent.",
     "port": "",
@@ -27488,7 +27488,7 @@
   {
     "type": "swarm",
     "name": "Swarm",
-    "category": "Sources",
+    "category": "Controllers/Performance",
     "colour": "#facc15",
     "description": "A cloud of up to 16 oscillators spread over a chord or scale: blooms from unison into the chord, drifts, cross-modulates and fills the stereo field.",
     "port": "",
@@ -27900,7 +27900,7 @@
   {
     "type": "sweep-generator",
     "name": "Sweep Generator",
-    "category": "Sources",
+    "category": "Sources/Chords",
     "colour": "#fb923c",
     "description": "A function generator that glides from Start to Stop: risers, sirens, tone bursts, and a sweep ramp, pitch and marker triggers for gear that follows it.",
     "port": "",
@@ -28394,7 +28394,7 @@
   {
     "type": "test-oscillator",
     "name": "Test Oscillator",
-    "category": "Sources",
+    "category": "Sources/Generators",
     "colour": "#f59e0b",
     "description": "A lamp-stabilised sine from a self-oscillating loop: it bounces, warms up and hums; below 100 % it rings when kicked.",
     "port": "",
@@ -28658,7 +28658,7 @@
   {
     "type": "tidal",
     "name": "Tidal",
-    "category": "Modulation",
+    "category": "Modulation/Slopes",
     "colour": "#60a5fa",
     "description": "Slope oscillator from minute-long swells to audio rate: loop, AD or AR, with four related outputs.",
     "port": "",
@@ -28947,7 +28947,7 @@
   {
     "type": "transport",
     "name": "Transport",
-    "category": "Utility",
+    "category": "Sequencing/Clock",
     "colour": "#ff9f43",
     "description": "Sets the tempo, switches Ableton Link on and off, sends and follows MIDI clock, and plays and stops the song. In the standalone app; elsewhere it shows the host's tempo.",
     "port": "",
@@ -29082,7 +29082,7 @@
   {
     "type": "uncertainty",
     "name": "Uncertainty",
-    "category": "Modulation",
+    "category": "Modulation/Slopes",
     "colour": "#db2777",
     "description": "Six random generators: two fluctuating curves, two quantized steps, a shaped and correlated stored value and its integral.",
     "port": "",
@@ -29513,7 +29513,7 @@
   {
     "type": "wave-analyzer",
     "name": "Wave Analyzer",
-    "category": "Audio",
+    "category": "Audio/Filters",
     "colour": "#22d3ee",
     "description": "A very narrow tunable band-pass: pick single partials out of a sound, sweep them into a spectrum, or lock onto the strongest one and follow it.",
     "port": "",
@@ -29901,7 +29901,7 @@
   {
     "type": "wavefolder",
     "name": "Folder",
-    "category": "Effects",
+    "category": "Audio/Sampling",
     "colour": "#10b981",
     "description": "Stereo six-stage wavefolder with tap crossfade, symmetry and an internal oscillator, anti-aliased for audio.",
     "port": "",
@@ -30173,7 +30173,7 @@
   {
     "type": "wavetable-osc",
     "name": "Wavetable Osc",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#818cf8",
     "description": "2-D wavetable oscillator: an 8 × 8 grid of band-limited cycles, paths, phase warps and your own WAV tables.",
     "port": "",
@@ -30541,7 +30541,7 @@
   {
     "type": "wheel",
     "name": "Wheel",
-    "category": "Controllers",
+    "category": "Controllers/Panel",
     "colour": "#fda4af",
     "description": "A pitch or mod wheel as a control signal; springs back to the middle.",
     "port": "",
@@ -30634,7 +30634,7 @@
   {
     "type": "wobble",
     "name": "Wobble",
-    "category": "Modulation",
+    "category": "Modulation/Random",
     "colour": "#34d399",
     "description": "One random stream in three shapes: Stepped jumps, Smooth glides, Wobble overshoots and rings.",
     "port": "",
@@ -30861,7 +30861,7 @@
   {
     "type": "xy-pad",
     "name": "XY Pad",
-    "category": "Controllers",
+    "category": "Controllers/Performance",
     "colour": "#fda4af",
     "description": "Two control signals from one point on a pad.",
     "port": "",
@@ -30960,7 +30960,7 @@
   {
     "type": "xy-scope",
     "name": "XY Scope",
-    "category": "Utility",
+    "category": "Utility/Metering",
     "colour": "#4ade80",
     "description": "An oscilloscope for X against Y: Lissajous figures that stand still when two oscillators lock, with Phase, Correlation, Ratio and a Still gate as outputs.",
     "port": "",
@@ -31223,7 +31223,7 @@
   {
     "type": "zone-delay",
     "name": "Zone Delay",
-    "category": "Effects",
+    "category": "Effects/Distortion",
     "colour": "#3b82f6",
     "description": "Stereo delay from tuned combs to 20-second loops: five time zones, tape or crossfade time changes, loop characters, diffusion, Reverse, Hold and Ping-Pong.",
     "port": "",
@@ -32065,7 +32065,7 @@
   {
     "type": "midi-device",
     "name": "MIDI Device",
-    "category": "Sources",
+    "category": "Sources/Oscillators",
     "colour": "#38bdf8",
     "description": "A connected MIDI controller: notes for Voice Cells, plus pitch, gate, velocity and CCs.",
     "port": "midi-device",

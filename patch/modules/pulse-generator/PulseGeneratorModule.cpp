@@ -136,7 +136,7 @@ static void registerPulseGeneratorModule(Registry& r) {
     ModuleSpec s;
     s.type = "pulse-generator";
     s.name = "Pulse Generator";
-    s.category = "Sources";
+    s.category = "Sources/Generators";
     s.colour = "#facc15";
     s.description = "A lab pulse generator: exactly timed pulses with delay, width, slewed edges, bursts and double "
                     "pulses. Its edges ring like a badly terminated cable: clicks, pings and small drums.";

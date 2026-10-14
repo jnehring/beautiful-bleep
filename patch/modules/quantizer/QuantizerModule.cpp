@@ -91,7 +91,7 @@ void registerQuantizerModule(Registry& r) {
     ModuleSpec s;
     s.type = "quantizer";
     s.name = "Quantizer";
-    s.category = "Utility";
+    s.category = "Utility/Harmony";
     s.colour = "#93c5fd";
     s.description = "Snaps a pitch to the notes of a scale: any modulator becomes a melody.";
     std::vector<std::string> scales;

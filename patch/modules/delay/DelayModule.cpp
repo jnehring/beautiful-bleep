@@ -66,7 +66,7 @@ static void registerDelayModule(Registry& r) {
     ModuleSpec s;
     s.type = "delay";
     s.name = "Delay";
-    s.category = "Effects";
+    s.category = "Effects/Space & Time";
     s.colour = "#5b8def";
     s.description = "A simple stereo delay: free or tempo-synced times for each side, feedback with low and high cut, "
                     "and a ping-pong mode.";

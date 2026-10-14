@@ -88,7 +88,7 @@ static void registerDrumNotesModule(Registry& r) {
     ModuleSpec s;
     s.type = "drum-notes";
     s.name = "Drum Notes";
-    s.category = "Utility";
+    s.category = "Utility/Converters";
     s.colour = "#c084fc";
     s.description = "General MIDI drum notes in; a trigger per drum out (kick, snare, rim, clap, hats, tom, cowbell, ride, crash) and the hit's velocity.";
     s.inputs = {{"notes", "Notes", Signal::Notes}};

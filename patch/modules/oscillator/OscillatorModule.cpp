@@ -51,7 +51,7 @@ void registerOscillatorModule(Registry& r) {
     ModuleSpec s;
     s.type = "oscillator";
     s.name = "Oscillator";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#5eead4";
     s.description = "Triangle-core oscillator: waveform morph, through-zero FM, hard sync and a sub octave.";
     ParamSpec coarse = ParamSpec::number("coarse", "Coarse", -12.0f, 12.0f, 0.0f, "st", 1);

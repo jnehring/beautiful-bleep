@@ -69,7 +69,7 @@ static void registerCompressorModule(Registry& r) {
     ModuleSpec s;
     s.type = "compressor";
     s.name = "Compressor";
-    s.category = "Effects";
+    s.category = "Effects/Dynamics & EQ";
     s.colour = "#64748b";
     s.description = "Stereo compressor and limiter: soft knee, peak or RMS detector, sidechain input, "
                     "parallel mix and a gain reduction output you can patch.";

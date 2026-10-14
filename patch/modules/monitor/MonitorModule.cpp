@@ -225,7 +225,7 @@ static void registerMonitorModule(Registry& r) {
     ModuleSpec s;
     s.type = "monitor";
     s.name = "Monitor";
-    s.category = "Utility";
+    s.category = "Utility/Metering";
     s.colour = "#7dd3fc";
     s.description = "Shows what is on a cable: a MIDI event table, an audio meter, a CV readout and a gate meter. Everything passes through.";
     s.params = {ParamSpec::seconds("response", "Response", 0.01f, 2.0f, 0.3f, 0.3f),

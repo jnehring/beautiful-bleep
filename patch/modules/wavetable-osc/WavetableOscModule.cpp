@@ -325,7 +325,7 @@ static void registerWavetableOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "wavetable-osc";
     s.name = "Wavetable Osc";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#818cf8";
     s.description = "2-D wavetable oscillator: an 8 × 8 grid of band-limited cycles, paths, phase warps and your own WAV tables.";
     std::vector<std::string> banks{"User"};

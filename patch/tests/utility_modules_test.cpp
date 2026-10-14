@@ -119,7 +119,7 @@ void specs() {
         const ModuleSpec* s = Registry::get().find(t);
         EXPECT(s != nullptr);
         if (!s) continue;
-        EXPECT(s->category == "Utility" || s->category == "Audio");
+        EXPECT(s->category.rfind("Utility/", 0) == 0 || s->category.rfind("Audio/", 0) == 0);
         // Knobs are inputs too (spec §7.3): ids must not clash with jacks.
         std::set<std::string> ids;
         for (const auto& p : s->params) EXPECT(ids.insert(p.id).second);

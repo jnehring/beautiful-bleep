@@ -49,7 +49,7 @@ static void registerEnvelopeFollowerModule(Registry& r) {
     ModuleSpec s;
     s.type = "envelope-follower";
     s.name = "Envelope Follower";
-    s.category = "Modulation";
+    s.category = "Modulation/Followers";
     s.colour = "#f0abfc";
     s.description = "Turns the loudness of audio, or the movement of a CV, into a smooth control signal "
                     "with its own attack and release, plus a threshold gate.";

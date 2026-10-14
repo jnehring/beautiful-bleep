@@ -66,7 +66,7 @@ static void registerDualFilterModule(Registry& r) {
     ModuleSpec s;
     s.type = "dual-filter";
     s.name = "Dual Filter";
-    s.category = "Audio";
+    s.category = "Audio/Filters";
     s.colour = "#f9a8d4";
     s.description = "Two morphing state-variable filters under one Cutoff, pulled apart by Spread: "
                     "serial, parallel or stereo; formant pairs, wide band-passes, stereo filtering.";

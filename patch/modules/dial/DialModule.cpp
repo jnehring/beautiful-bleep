@@ -42,7 +42,7 @@ void registerDialModule(Registry& r) {
     ModuleSpec s;
     s.type = "dial";
     s.name = "Dial";
-    s.category = "Controllers";
+    s.category = "Controllers/Panel";
     s.colour = "#fda4af";
     s.description = "One big knob as a control signal, scaled to a range, smooth or in steps.";
     s.params = {ParamSpec::percent("value", "Value", 0.0f, 1.0f, 0.5f),

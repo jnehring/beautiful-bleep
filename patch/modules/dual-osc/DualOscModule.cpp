@@ -144,7 +144,7 @@ static void registerDualOscModule(Registry& r) {
     ModuleSpec s;
     s.type = "dual-osc";
     s.name = "Dual Osc";
-    s.category = "Sources";
+    s.category = "Sources/Oscillators";
     s.colour = "#2dd4bf";
     s.description = "Two analog cores with B → A FM, sync and a stereo wavefolder: a complete complex-oscillator voice.";
     auto tune = [](const char* id, const char* name) { return ParamSpec::number(id, name, -12.0f, 12.0f, 0.0f, "st", 1); };

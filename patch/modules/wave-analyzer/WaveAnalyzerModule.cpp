@@ -159,7 +159,7 @@ static void registerWaveAnalyzerModule(Registry& r) {
     ModuleSpec s;
     s.type = "wave-analyzer";
     s.name = "Wave Analyzer";
-    s.category = "Audio";
+    s.category = "Audio/Filters";
     s.colour = "#22d3ee";
     s.description = "A very narrow tunable band-pass: pick single partials out of a sound, sweep them into a "
                     "spectrum, or lock onto the strongest one and follow it.";

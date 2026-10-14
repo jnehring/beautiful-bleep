@@ -213,7 +213,7 @@ static void registerHarmonyMasterModule(Registry& r) {
     ModuleSpec s;
     s.type = "harmony-master";
     s.name = "Harmony Master";
-    s.category = "Utility";
+    s.category = "Utility/Harmony";
     s.colour = "#9333ea";
     s.description = "The board's key, scale and chord, from the knobs, a progression or played chords. Followers quantize to it.";
     std::vector<std::string> roots, scales, qualities{"Diatonic Triad", "Diatonic Seventh"}, groups{"Diatonic", "Diatonic"};

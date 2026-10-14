@@ -230,7 +230,7 @@ static void registerGrainsModule(Registry& r) {
     ModuleSpec s;
     s.type = "grains";
     s.name = "Grains";
-    s.category = "Effects";
+    s.category = "Effects/Textures";
     s.colour = "#2563eb";
     s.description = "Granular processor: records its input and plays it back as a seeded cloud of grains. "
                     "Freeze holds the buffer; Feedback and Blur build endless textures.";

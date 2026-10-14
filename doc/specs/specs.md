@@ -532,7 +532,7 @@ Module view sketch:
 ### 9.6 Editing and cells
 
 - **Add** from the **Add menu** (the top bar's *Add* button or right-click on empty space):
-  - *Module ›* one submenu per category (*Sources*, *Modulation*, *Audio*, *Utility*, *Drums*) with its modules; a category with a slash nests, e.g. *Drums/Ring* is *Drums › Ring ›*;
+  - *Module ›* one submenu per category (*Sources*, *Modulation*, *Audio*, *Effects*, *Utility*, *Controllers*, *Sequencing*, *Drums*), each split into subcategories with its modules; a category with a slash nests, e.g. *Sequencing/Drum* is *Sequencing › Drum ›* and *Drums/Ring* is *Drums › Ring ›*;
   - *Cell ›* *New Cell*, *New Voice Cell*, and one submenu per preset category (*Synthesizers ›* *Basic Poly*, …, then the user's own categories).
   Tab or a double-click on empty space opens a search field at the cursor. Under *Cell ›*, each category of the user's own presets also has *Delete preset ›*.
 - **Rename** with a double-click on the title.

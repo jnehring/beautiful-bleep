@@ -223,7 +223,7 @@ static void registerRecallModule(Registry& r) {
     ModuleSpec s;
     s.type = "recall";
     s.name = "Recall";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Generative";
     s.colour = "#e11d48";
     s.description = "Random gates (T) and random voltages (X) on one clock. Recall repeats the recent past, "
                     "up to a locked loop you can capture.";

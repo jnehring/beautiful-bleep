@@ -51,7 +51,7 @@ void registerCvMixerModule(Registry& r) {
     ModuleSpec s;
     s.type = "cv-mixer";
     s.name = "CV Mixer";
-    s.category = "Utility";
+    s.category = "Utility/Signal";
     s.colour = "#c4b5fd";
     s.description = "Four bipolar channels combined by sum, average, max, min or a scan across them.";
     for (int k = 1; k <= kCvMixerChannels; ++k) {

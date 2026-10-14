@@ -53,7 +53,7 @@ void registerRandomModule(Registry& r) {
     ModuleSpec s;
     s.type = "random";
     s.name = "Random";
-    s.category = "Modulation";
+    s.category = "Modulation/Random";
     s.colour = "#f6a85b";
     s.description = "Seeded stepped randomness. Loop moves from always new to a locked loop.";
     std::vector<std::string> sync;

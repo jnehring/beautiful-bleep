@@ -1315,7 +1315,7 @@
     b.cables.push({ id: uid("k"), from, to, amount });
     // A panel-element module (Dial, Button …) that still has its default name takes the title of what it now drives.
     const src = nodeById(from.node, b), dst = nodeById(to.node, b);
-    if (src && dst && src !== dst && typeOf(src).category === "Controllers" &&
+    if (src && dst && src !== dst && typeOf(src).category.startsWith("Controllers/") &&
         new RegExp("^" + typeOf(src).name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "( \\d+)?$").test(src.name)) {
       const name = jackName(dst, to.jack, false);
       if (name && name !== to.jack) src.name = name;

@@ -56,7 +56,7 @@ static void registerPitchShifterModule(Registry& r) {
     ModuleSpec s;
     s.type = "pitch-shifter";
     s.name = "Pitch Shifter";
-    s.category = "Effects";
+    s.category = "Effects/Movement";
     s.colour = "#c026d3";
     s.description = "Shifts the pitch of audio by a musical interval, two crossfading delay heads, with drift "
                     "for tape flutter and feedback for climbing spirals. Put it before a reverb for a shimmer.";

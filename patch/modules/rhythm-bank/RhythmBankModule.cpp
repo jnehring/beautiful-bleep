@@ -116,7 +116,7 @@ static void registerRhythmBankModule(Registry& r) {
     ModuleSpec s;
     s.type = "rhythm-bank";
     s.name = "Rhythm Bank";
-    s.category = "Sequencing";
+    s.category = "Sequencing/Drum";
     s.colour = "#f08a5d";
     s.description = "Four related rhythms from a pattern number. Turn Pattern to browse grooves; modulate it to develop a part.";
     std::vector<std::string> lengths, rates;

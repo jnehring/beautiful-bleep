@@ -172,7 +172,7 @@ static void registerModalVoiceModule(Registry& r) {
     ModuleSpec s;
     s.type = "modal-voice";
     s.name = "Modal Voice";
-    s.category = "Sources";
+    s.category = "Sources/Voices";
     s.colour = "#14b8a6";
     s.description = "Physical-modelling instrument: bow, breath, mallet or any audio drive a modal body (string, bar, "
                     "plate, bell) in a small room. Active frees a Voice Cell's voice.";

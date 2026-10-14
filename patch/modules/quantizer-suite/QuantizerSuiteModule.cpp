@@ -161,7 +161,7 @@ static void registerQuantizerSuiteModule(Registry& r) {
     ModuleSpec s;
     s.type = "quantizer-suite";
     s.name = "Quantizer Suite";
-    s.category = "Utility";
+    s.category = "Utility/Harmony";
     s.colour = "#7cb7f5";
     s.description = "Four quantizers: scale with a note mask, transpose in the scale, arpeggiate, or follow a Harmony Master. "
                     "Unpatched inputs take the previous channel's.";

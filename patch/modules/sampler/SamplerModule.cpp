@@ -409,7 +409,7 @@ static void registerSamplerModule(Registry& r) {
     ModuleSpec s;
     s.type = "sampler";
     s.name = "Sampler";
-    s.category = "Audio";
+    s.category = "Audio/Sampling";
     s.colour = "#0d9488";
     s.description = "Polyphonic sample player and slicer: load a WAV, cut it into slices by hand, by transients or into "
                     "beats, and play it from notes or triggers with up to 16 playheads, play modes, an envelope and a filter.";

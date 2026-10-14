@@ -130,7 +130,7 @@ static void registerMetaModModule(Registry& r) {
     ModuleSpec s;
     s.type = "meta-mod";
     s.name = "Meta Mod";
-    s.category = "Audio";
+    s.category = "Audio/Mangling";
     s.colour = "#84cc16";
     s.description = "Carrier meets modulator: one knob morphs through crossfade, fold, analog and digital ring, bitwise, "
                     "comparator, vocoder and Chebyshev; an internal oscillator fills in for a missing input.";

@@ -127,7 +127,7 @@ static void registerXyScopeModule(Registry& r) {
     ModuleSpec s;
     s.type = "xy-scope";
     s.name = "XY Scope";
-    s.category = "Utility";
+    s.category = "Utility/Metering";
     s.colour = "#4ade80";
     s.description = "An oscilloscope for X against Y: Lissajous figures that stand still when two oscillators lock, "
                     "with Phase, Correlation, Ratio and a Still gate as outputs.";

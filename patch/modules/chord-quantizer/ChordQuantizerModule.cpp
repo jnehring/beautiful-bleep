@@ -111,7 +111,7 @@ static void registerChordQuantizerModule(Registry& r) {
     ModuleSpec s;
     s.type = "chord-quantizer";
     s.name = "Chord Quantizer";
-    s.category = "Utility";
+    s.category = "Utility/Harmony";
     s.colour = "#9f8cf7";
     s.description = "One pitch in, a voiced chord out: four pitches and notes. Voice Leading picks the inversion that moves least.";
     std::vector<std::string> chords, stacks, roots, scales;
