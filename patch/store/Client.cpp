@@ -238,6 +238,11 @@ bool parseIndex(const juce::var& json, const std::string& channel, Index& out, s
 }
 }  // namespace
 
+bool versionNewer(const std::string& a, const std::string& b) {
+    const long long x = versionKey(a), y = versionKey(b);
+    return x >= 0 && y >= 0 && x > y;
+}
+
 bool Client::fetchIndex(Index& out, std::string& error) const {
     juce::var json;
     if (!fetchJson(url("index.json"), json, error)) return false;

@@ -271,6 +271,38 @@ void ModuleStore::installAllAsync(std::function<void(bool, std::string)> done) {
     }).detach();
 }
 
+void ModuleStore::updateAllAsync(std::function<void(bool, std::string)> done) {
+    setBusy("*", "updating");   // as in installAllAsync: keeps the Store view polling for the whole run
+    std::thread([this, done = std::move(done)] {
+        const auto c = client();
+        store::Index index;
+        std::string error;
+        if (!c->fetchIndex(index, error)) { post([this, done, error] { setBusy("*", ""); if (done) done(false, error); }); return; }
+        std::map<std::string, std::string> have;   // slug → version, of the modules that came from the store
+        for (const auto& m : c->installed())
+            if (m.source == "registry") have[m.slug] = m.version;
+        int ok = 0, failed = 0;
+        std::string lastError;
+        for (const auto& m : index.modules) {
+            const auto it = have.find(m.slug);
+            if (it == have.end() || !store::versionNewer(m.version, it->second)) continue;
+            setBusy(m.slug, "updating");
+            store::InstalledModule installed;
+            std::string e;
+            if (c->install(m.slug, installed, e)) {
+                ++ok;
+                post([this, slug = m.slug] { registerInstalled(slug); });
+            } else { ++failed; lastError = e; }
+            setBusy(m.slug, "");
+        }
+        post([this, done, ok, failed, lastError] {
+            if (onTypesChanged) onTypesChanged();
+            setBusy("*", "");
+            if (done) done(failed == 0, std::to_string(ok) + " updated" + (failed ? ", " + std::to_string(failed) + " failed: " + lastError : std::string()));
+        });
+    }).detach();
+}
+
 juce::var ModuleStore::status() {
     const auto c = client();
     if (store::Client::cacheStale()) recheckInstalledAsync();

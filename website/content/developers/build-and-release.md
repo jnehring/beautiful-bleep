@@ -32,13 +32,14 @@ The commands for the things we ship: the standalone app, the plugins, the module
   ```
 
 - `pip install cryptography` (release.py and signing.py need it).
-- **In every new shell**, before a release, put the shared options in the environment so the commands below stay short. The `export` only lasts for that shell. The token is passed with `--token-file` (it picks the `blp_…` token out of the file, so the two-line output of `token-create` works as saved); without it `release.py` stops with "A release token is required":
+- **In every new shell**, before a release, put the shared options in the environment so the commands below stay short. The `export` only lasts for that shell, so a release in a fresh terminal stops with "A signing kit is required" until you run it again. The token is passed with `--token-file` (it picks the `blp_…` token out of the file, so the two-line output of `token-create` works as saved); without it `release.py` stops with "A release token is required":
 
   ```bash
   # the store (website address; the API is under /api) and the signing kit
   export BLEEP_REGISTRY_URL=http://localhost:8080 BLEEP_SIGNING_KIT=~/.bleep-signing-kit.json
   ```
 
+- Or skip the `export` and pass the options on every command: `--registry http://localhost:8080 --kit ~/.bleep-signing-kit.json --token-file ~/.bleep-release-token`. Keep the whole command on one line (or end each line but the last with `\`), otherwise the shell runs the next line as a separate command and fails with "command not found: --kit".
 - Always rehearse first: add `--dry-run` (no token needed, changes nothing).
 - `--level` says what to count up: `patch` (1.4.2 → 1.4.3), `minor` (→ 1.5.0), `major` (→ 2.0.0). Each plugin and each module has its own counter.
 

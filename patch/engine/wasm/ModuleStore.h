@@ -40,6 +40,8 @@ public:
     void removeAsync(const std::string& slug, std::function<void(bool, std::string)> done = {});
     /// Installs every module the store offers that is not installed (the default module bundle).
     void installAllAsync(std::function<void(bool, std::string)> done = {});
+    /// Updates every module installed from the store for which the store offers a newer version (local modules stay as they are).
+    void updateAllAsync(std::function<void(bool, std::string)> done = {});
 
     /// Installs the plugin bundle (every VST3 plugin the store has for this platform) into the user's VST3 folder, on a worker
     /// thread. Refused while Ableton Live runs. The outcome is `pluginJob` in status().

@@ -392,6 +392,10 @@ public:
                 ModuleStore::instance().installAllAsync();
                 done({});
             })
+            .withNativeFunction("storeUpdateAll", [](const juce::Array<juce::var>&, Completion done) {
+                ModuleStore::instance().updateAllAsync();
+                done({});
+            })
             .withNativeFunction("storeRemove", [](const juce::Array<juce::var>& a, Completion done) {
                 ModuleStore::instance().removeAsync(a[0].toString().toStdString());
                 done({});

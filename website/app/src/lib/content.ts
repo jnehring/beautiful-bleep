@@ -6,10 +6,29 @@
 // website/ depends on this.
 import fs from "node:fs";
 import path from "node:path";
-import { marked } from "marked";
+import { Marked } from "marked";
 import { AUDIENCES, type Audience } from "./audiences";
 
 export { AUDIENCES, type Audience };
+
+/** Markdown to HTML. Headings get GitHub-style ids (marked does not add them), so `#section` links
+ *  and tables of contents jump to the heading; repeated titles get -1, -2 ... like on GitHub. */
+function renderMarkdown(body: string): string {
+  const seen = new Map<string, number>();
+  const md = new Marked({
+    renderer: {
+      heading({ tokens, depth }) {
+        const inner = this.parser.parseInline(tokens);
+        const base = inner.replace(/<[^>]*>/g, "").replace(/&[a-z#0-9]+;/gi, "").toLowerCase()
+          .replace(/[^\p{L}\p{N}\s_-]/gu, "").trim().replace(/\s/g, "-");
+        const n = seen.get(base) ?? 0;
+        seen.set(base, n + 1);
+        return `<h${depth} id="${n ? `${base}-${n}` : base}">${inner}</h${depth}>\n`;
+      },
+    },
+  });
+  return md.parse(body, { async: false }) as string;
+}
 
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const CONTENT = path.join(ROOT, "website", "content");
@@ -80,7 +99,7 @@ function moduleDocs(): Doc[] {
     .filter((m) => fs.existsSync(path.join(MODULES, m.folder, m.doc)))
     .map((m) => {
       const { body } = parse(path.join(MODULES, m.folder, m.doc));
-      const html = rewriteAssets(rewriteModuleLinks(marked.parse(body, { async: false }) as string), m.folder);
+      const html = rewriteAssets(rewriteModuleLinks(renderMarkdown(body)), m.folder);
       return {
         slug: ["musicians", "modules", m.slug], audience: "musicians" as Audience, title: m.name,
         order: 1000, section: moduleSection(m.category), html,
@@ -103,7 +122,7 @@ export function allDocs(): Doc[] {
         title: meta.title ?? slug[slug.length - 1],
         order: Number(meta.order ?? 1000),
         section: slug.slice(0, -1).join("/"),
-        html: rewriteLinks(marked.parse(body, { async: false }) as string, slug),
+        html: rewriteLinks(renderMarkdown(body), slug),
       };
     })
     .concat(moduleDocs())

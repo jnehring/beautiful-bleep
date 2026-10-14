@@ -40,6 +40,8 @@ std::string platformId();
 juce::File userPluginFolder();
 /// Is Ableton Live running? Replacing a plugin it has loaded can crash it.
 bool abletonLiveRunning();
+/// Is version `a` newer than version `b` ("1.2.3" form; anything else is never newer)?
+bool versionNewer(const std::string& a, const std::string& b);
 
 struct IndexModule {
     std::string slug, version, entry;   ///< entry: path of entry.json under /registry/v1/

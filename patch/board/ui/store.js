@@ -88,6 +88,17 @@
     return false;
   };
 
+  /// The modules installed from the store for which the store offers a newer version: [{ slug, title, have, offer }].
+  function updatesOf(st) {
+    const out = [];
+    for (const o of st.index.modules) {
+      const i = st.installed.find((m) => m.slug === o.slug);
+      if (i && i.source !== "local" && o.version && i.version && newer(o.version, i.version))
+        out.push({ slug: o.slug, title: o.title || o.slug, have: i.version, offer: o.version });
+    }
+    return out;
+  }
+
   function badge(m) {
     const [text, cls] = STATUS[m.status] || [m.status, "warn"];
     const b = el("span", "st-badge " + cls, m.status === "signed" ? "signed by " + m.publisher : text);
@@ -110,6 +121,12 @@
     all.disabled = !missing;
     all.addEventListener("click", () => act("storeInstallAll"));
     top.appendChild(all);
+    const updates = updatesOf(status);
+    if (updates.length) {
+      const upd = el("button", "primary", `Update all (${updates.length})`);
+      upd.addEventListener("click", () => act("storeUpdateAll"));
+      top.appendChild(upd);
+    }
     body.appendChild(top);
     if (!status.index.ok)
       body.appendChild(el("div", "st-note bad", status.index.error ? "The Bleep Store cannot be reached: " + status.index.error : "Reading the Bleep Store…"));
@@ -521,6 +538,54 @@
     });
   }
 
+  /// On every start of the standalone app, after the setup assistant: asks the store what is new and offers to install the updates.
+  async function updatesPrompt() {
+    status = await native("storeStatus");
+    if (!status.settings.firstRunDone) return;   // the setup assistant is on screen, or was left for later
+    await native("storeRefresh");
+    for (let i = 0; i < 40; i++) {  // the native side reads the index on another thread; a saved copy does not count as an answer
+      await new Promise((r) => setTimeout(r, 400));
+      status = await native("storeStatus");
+      if ((status.index.ok && !status.index.cached) || status.index.error) break;
+    }
+    if (!status.index.ok || status.index.cached) return;
+    const updates = updatesOf(status);
+    if (!updates.length) return;
+    const back = el("div", "st-modal");
+    const card = el("div", "st-card");
+    card.appendChild(el("h2", "", updates.length === 1 ? "A module update is available" : `${updates.length} module updates are available`));
+    const shown = updates.slice(0, 8).map((u) => `${u.title}  ${u.have} → ${u.offer}`);
+    if (updates.length > shown.length) shown.push(`and ${updates.length - shown.length} more`);
+    card.appendChild(el("p", "", "The Bleep Store has newer versions of modules you have installed. Install them now?"));
+    card.appendChild(el("div", "st-message", shown.join("\n")));
+    const result = el("div", "st-message");
+    card.appendChild(result);
+    const buttons = el("div", "st-bar");
+    const later = el("button", "", "Not now");
+    const go = el("button", "primary", updates.length === 1 ? "Update" : "Update all");
+    buttons.append(later, go);
+    card.appendChild(buttons);
+    back.appendChild(card);
+    document.body.appendChild(back);
+    later.addEventListener("click", () => back.remove());   // asked again at the next start
+    go.addEventListener("click", async () => {
+      go.disabled = later.disabled = true;
+      result.textContent = "Updating…";
+      await native("storeUpdateAll");
+      for (let i = 0; i < 900; i++) {
+        await new Promise((r) => setTimeout(r, 500));
+        status = await native("storeStatus");
+        if (!status.busy["*"]) break;
+      }
+      const left = updatesOf(status).length;
+      await refresh();
+      if (!left) { back.remove(); return; }
+      result.textContent = `${left} could not be updated. Try again from the Store section.`;
+      later.disabled = false;
+      later.textContent = "Close";
+    });
+  }
+
   window.BleepStoreView = {
     installType,
     ensureNeeds,
@@ -529,7 +594,10 @@
     async init(options) {
       host = options || {};
       build();
-      setTimeout(firstRun, 600);
+      setTimeout(async () => {
+        await firstRun();
+        if (host.standalone) await updatesPrompt();
+      }, 600);
       const header = document.getElementById("sections");
       header.hidden = false;
       document.getElementById("sec-board").addEventListener("click", () => window.BleepStoreView.hide());

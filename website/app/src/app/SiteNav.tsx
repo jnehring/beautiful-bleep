@@ -13,7 +13,7 @@ export default function SiteNav() {
   return (
     <>
       <header className="site">
-        <a className="brand" href="/">Beautiful Bleep</a>
+        <a className="brand" href="/"><img src="/logo.svg" alt="" width={28} height={28} />Beautiful Bleep</a>
         <nav aria-label="Main">
           {(Object.keys(AUDIENCES) as Audience[]).map((a) => (
             <a key={a} href={AUDIENCES[a].home} aria-current={a === current ? "true" : undefined}>{AUDIENCES[a].title}</a>

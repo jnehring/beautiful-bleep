@@ -260,20 +260,28 @@
   const demoStore = new URLSearchParams(location.search).has("store") ? (() => {
     const slugs = () => types.filter((t) => !t.internal).map((t) => t.type).slice(0, 60);
     const st = { installed: null, busy: {}, indexOk: false, allow: { module: false, plugin: false }, firstRunDone: store.get("bleep-demo-store-first-run", false) };
-    const pick = (slug, i) => ({ slug, version: "0.1.0", source: i % 11 === 10 ? "local" : "registry", status: i % 11 === 10 ? "unsigned" : "signed", publisher: "bleep",
+    const offered = (slug) => (slug.length % 4 === 0 ? "0.2.0" : "0.1.0");
+    const pick = (slug, i, version = "0.1.0") => ({ slug, version, source: i % 11 === 10 ? "local" : "registry", status: i % 11 === 10 ? "unsigned" : "signed", publisher: "bleep",
                                  allowed: i % 11 !== 10, why: i % 11 === 10 ? "unsigned: allowed only with Security → Allow unsigned modules" : "", loaded: i % 11 !== 10, types: [slug] });
     const work = (slug, what, then) => { st.busy[slug] = what; setTimeout(() => { delete st.busy[slug]; then(); }, 900); };
     return {
       status() {
-        if (!st.installed) st.installed = slugs().slice(0, 14).map(pick);
+        if (!st.installed) st.installed = slugs().slice(0, 14).map((slug, i) => pick(slug, i));
         return { settings: { storeUrl: "https://store.example", channel: st.channel || "stable", allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
                  hasRoots: true, installed: st.installed,
-                 index: { ok: st.indexOk, error: "", modules: st.indexOk ? slugs().map((slug) => ({ slug, version: slug.length % 4 === 0 ? "0.2.0" : "0.1.0", types: [slug] })) : [] },
+                 index: { ok: st.indexOk, error: "", modules: st.indexOk ? slugs().map((slug) => ({ slug, version: offered(slug), types: [slug] })) : [] },
                  busy: st.busy, pluginJob: st.job || { state: "idle", message: "", ok: false } };
       },
       refresh() { setTimeout(() => (st.indexOk = true), 500); },
-      install(slug) { work(slug, "installing", () => { st.installed = st.installed.filter((m) => m.slug !== slug).concat(pick(slug, 0)); }); },
+      install(slug) { work(slug, "installing", () => { st.installed = st.installed.filter((m) => m.slug !== slug).concat(pick(slug, 0, offered(slug))); }); },
       installAll() { const have = new Set(st.installed.map((m) => m.slug)); for (const slug of slugs()) if (!have.has(slug)) this.install(slug); },
+      updateAll() {
+        const have = new Map(st.installed.map((m) => [m.slug, m]));
+        const todo = slugs().filter((slug) => { const m = have.get(slug); return m && m.source !== "local" && m.version !== offered(slug); });
+        st.busy["*"] = "updating";   // as the native side: the view polls until the whole run is done
+        todo.forEach((slug) => this.install(slug));
+        setTimeout(() => delete st.busy["*"], 1100);
+      },
       remove(slug) { work(slug, "removing", () => { st.installed = st.installed.filter((m) => m.slug !== slug); }); },
       settings(v) { if (v && v.channel) st.channel = v.channel; if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-store-first-run", v.firstRunDone); } },
       installPlugins() { st.job = { state: "running", message: "Installing bleep-board…", ok: false }; setTimeout(() => { st.job = { state: "done", message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW.", ok: true }; }, 1500); },
@@ -403,6 +411,7 @@
         case "storeRefresh": if (demoStore) demoStore.refresh(); return null;
         case "storeInstall": if (demoStore) demoStore.install(a[0]); return null;
         case "storeInstallAll": if (demoStore) demoStore.installAll(); return null;
+        case "storeUpdateAll": if (demoStore) demoStore.updateAll(); return null;
         case "storeRemove": if (demoStore) demoStore.remove(a[0]); return null;
         case "storeSettings": if (demoStore) demoStore.settings(a[0]); return null;
         case "storeInstallPlugins": if (demoStore) demoStore.installPlugins(); return { started: true };

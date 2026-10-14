@@ -614,6 +614,8 @@ if (BLEEP_BUILD_APP)
         COMPANY_NAME "Beautiful Bleep"
         BUNDLE_ID "com.brilliantbleep.patch.app"
         VERSION ${PROJECT_VERSION}
+        ICON_BIG "${CMAKE_CURRENT_SOURCE_DIR}/app/icons/icon-1024.png"
+        ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/app/icons/icon-512.png"
         DOCUMENT_EXTENSIONS bleepboard
         MICROPHONE_PERMISSION_ENABLED TRUE
         MICROPHONE_PERMISSION_TEXT "Bleep App uses audio inputs as Audio In nodes on the board."
