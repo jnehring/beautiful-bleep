@@ -23,6 +23,10 @@ The module watches the *Gate* and the *Pitch* inputs:
   mono or legato Voice Cell glides without restarting its envelopes; a poly
   cell plays the new note on another voice.
 
+**No pitch cable?** When nothing is patched into *Pitch*, the *Note* knob
+sets the note instead. Patch only a gate (a clock, a button, a drum pattern) and
+CV to Notes plays that one note on every gate.
+
 Pitch changes smaller than a semitone don't start a new note. Only one note
 sounds at a time.
 
@@ -45,7 +49,11 @@ sounds at a time.
 
 | Knob | Range | Default |
 |---|---|---|
+| Note | 0 – 127 (MIDI note) | 60 (C4) |
 | Velocity | 0 – 100 % | 80 % |
+
+- **Note:** the note to play while *Pitch* has no cable. It is ignored as soon
+  as a cable is patched into *Pitch*. It is a modulation destination.
 
 - **Velocity:** the velocity of each new note, read at the moment the note
   starts. It's a modulation destination: patch a Random or an LFO onto it for
@@ -55,7 +63,7 @@ sounds at a time.
 
 | Input | Signal | What it does |
 |---|---|---|
-| Pitch | pitch, 1 V/oct | the note's pitch; 0.0 = C4, +1.0 = one octave up; notes are limited to MIDI 0 – 127 |
+| Pitch | pitch, 1 V/oct | the note's pitch (when unpatched, the *Note* knob is used); 0.0 = C4, +1.0 = one octave up; notes are limited to MIDI 0 – 127 |
 | Gate | gate | high (≥ 0.5) plays a note, low releases it |
 
 ### Outputs

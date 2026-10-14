@@ -11,7 +11,7 @@ namespace {
 
 class CvToNotesModule final : public Module {
 public:
-    enum { Velocity };
+    enum { Velocity, Note };
     enum { Pitch, Gate };
     enum { Notes };
 
@@ -27,7 +27,9 @@ public:
         out.clear();
         for (int i = 0; i < c.numSamples; ++i) {
             const bool high = c.inputs[Gate][i] >= 0.5f;
-            const float pitch = c.inputs[Pitch][i];
+            // No pitch cable: the Note knob sets the note (0.0 = C4 = 60).
+            const float pitch = c.inputConnected[Pitch] ? c.inputs[Pitch][i]
+                                                        : (std::clamp(std::lround(value(c, Note, i)), 0l, 127l) - 60) / 12.0f;
             const int note = std::clamp(60 + (int)std::lround(pitch * 12.0f), 0, 127);
             if (high && !high_) {
                 on(out, i, note, pitch, value(c, Velocity, i));
@@ -82,7 +84,8 @@ void registerCvToNotesModule(Registry& r) {
     s.category = "Utility/Converters";
     s.colour = "#a78bfa";
     s.description = "Pitch and gate in, notes out: lets a sequencer or any mono source play a Voice Cell.";
-    s.params = {ParamSpec::percent("velocity", "Velocity", 0.0f, 1.0f, 0.8f)};
+    s.params = {ParamSpec::percent("velocity", "Velocity", 0.0f, 1.0f, 0.8f),
+                ParamSpec::integer("note", "Note", 0, 127, 60)};
     s.inputs = {{"pitch", "Pitch", Signal::Pitch}, {"gate", "Gate", Signal::Gate}};
     s.outputs = {{"notes", "Notes", Signal::Notes, false}};
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<CvToNotesModule>(spec); });
