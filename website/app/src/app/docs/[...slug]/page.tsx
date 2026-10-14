@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { AUDIENCES, CATEGORIES, allDocs, categoryTitle, docsFor, findDoc, modulesByCategory } from "@/lib/content";
+import { AUDIENCES, CATEGORIES, allDocs, categoryTitle, docsFor, findDoc } from "@/lib/content";
 import { notFound } from "next/navigation";
 
 export function generateStaticParams() {
@@ -61,12 +61,6 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             <ul><li><a href="/store/?kind=module">All modules</a></li></ul>
           </>
         )}
-        <h4>Single files</h4>
-        <ul>
-          {[...audience.bundles, ...(doc.audience === "musicians" ? modulesByCategory().map((g) => `modules-${g.slug}-full.md`) : [])].map((b) => (
-            <li key={b}><a href={`/docs/${b}`}>{b}</a></li>
-          ))}
-        </ul>
       </nav>
       <article dangerouslySetInnerHTML={{ __html: doc.html }} />
     </div>

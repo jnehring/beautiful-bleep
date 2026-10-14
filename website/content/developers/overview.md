@@ -32,4 +32,4 @@ A **module** lives on the board: it has jacks, knobs and a view, and it is proce
 
 ## For coding assistants
 
-Every audience has single-file versions of its documentation and an `llms.txt` index; see "Single files" in the sidebar.
+Every audience has single-file versions of its documentation and an `llms.txt` index; see `/docs/llms.txt`.
