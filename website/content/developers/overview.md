@@ -19,19 +19,7 @@ Everything here is MIT-licensed. Pick the guide that matches what you want to bu
 
 ## How the pieces fit
 
-```
-                      Bleep Bus (open protocol, shared memory)
-                                 │  between any plugins
- ┌───────────────────────────────┼───────────────────────────────┐
- │  Bleep plugins in Live        │   Bleep App (standalone)      │   Bleep Play (browser)
- │  Board, MIDI/Audio ports,     │   same engine, own MIDI ports │   board UI + engine in JS,
- │  Instrument, FX               │   Link, Audio Bridge server   │   AudioWorklet
- └───────────────┬───────────────┴───────────────┬───────────────┴───────────┬───────
-                 │        one engine and board per process (native)          │
-                 └──────────────── modules: one .wasm per module ────────────┘
-                                           ▲
-                          Bleep Store: signed modules, plugins, presets
-```
+![Bleep plugins in Live, the Bleep App and Bleep Play in the browser each run an engine and board. They load modules, one .wasm file each, installed from the Bleep Store. The Bleep Bus is a separate open protocol between any plugins.](/img/developer-overview.svg)
 
 - **Modules** are the nodes on the board (oscillators, filters, sequencers). Each is a standalone WebAssembly file, so the same module runs in the plugins, the app and the browser. They are installed from the Bleep Store.
 - **Plugins** are the VST3s you add in Live. A set has one engine; the first plugin loaded creates it and the others share it. Ports connect a track to the board.

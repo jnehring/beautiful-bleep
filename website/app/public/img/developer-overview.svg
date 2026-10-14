@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-labelledby="t d">
+  <title id="t">How the pieces of Beautiful Bleep fit together</title>
+  <desc id="d">Three hosts sit side by side: the Bleep plugins in Live, the standalone Bleep App and Bleep Play in the browser. Below them is one engine and board per process, then the modules, one .wasm file each, which are installed from the Bleep Store as signed packages. The Bleep Bus, an open protocol over shared memory between any plugins, sits apart at the top.</desc>
+  <style>
+    :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; } }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--fg); }
+    .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+    .hub { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .sep { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; }
+    .name { font-size: 18px; font-weight: 650; text-anchor: middle; }
+    .sub { font-size: 13px; fill: var(--muted); text-anchor: middle; }
+    .l { text-anchor: start; }
+    .link { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .thin { stroke: var(--line); stroke-width: 2; fill: none; }
+    .head { fill: var(--accent); }
+    .cap { font-size: 13px; font-weight: 600; text-anchor: middle; }
+  </style>
+  <rect width="760" height="420" rx="14" fill="var(--bg)"/>
+
+  <!-- Bleep Bus, separate -->
+  <rect class="sep" x="24" y="16" width="712" height="52" rx="12"/>
+  <text class="name" x="380" y="40">Bleep Bus</text>
+  <text class="sub" x="380" y="58">open protocol over shared memory, between any plugins, separate from everything below</text>
+
+  <!-- Hosts -->
+  <rect class="box" x="24" y="96" width="224" height="92" rx="12"/>
+  <text class="name" x="136" y="122">Bleep plugins in Live</text>
+  <text class="sub" x="136" y="144">Board, MIDI/Audio ports,</text>
+  <text class="sub" x="136" y="162">Instrument, FX</text>
+
+  <rect class="box" x="268" y="96" width="224" height="92" rx="12"/>
+  <text class="name" x="380" y="122">Bleep App</text>
+  <text class="sub" x="380" y="144">same engine, own MIDI ports,</text>
+  <text class="sub" x="380" y="162">Link, Audio Bridge server</text>
+
+  <rect class="box" x="512" y="96" width="224" height="92" rx="12"/>
+  <text class="name" x="624" y="122">Bleep Play (browser)</text>
+  <text class="sub" x="624" y="144">board UI + engine in JS,</text>
+  <text class="sub" x="624" y="162">AudioWorklet</text>
+
+  <!-- Engine band -->
+  <path class="thin" d="M136 188 V220 M380 188 V220 M624 188 V220"/>
+  <rect class="hub" x="24" y="220" width="712" height="48" rx="12"/>
+  <text class="name" x="380" y="241">Engine and board</text>
+  <text class="sub" x="380" y="259">one per process (native)</text>
+
+  <!-- Modules band -->
+  <path class="thin" d="M136 268 V296 M380 268 V296 M624 268 V296"/>
+  <rect class="box" x="24" y="296" width="712" height="48" rx="12"/>
+  <text class="name" x="380" y="317">Modules</text>
+  <text class="sub" x="380" y="335">one .wasm file per module, the same file in plugins, app and browser</text>
+
+  <!-- Store -->
+  <path class="link" d="M380 372 V350"/>
+  <path class="head" d="M380 344 l-6 10 h12 z"/>
+  <rect class="hub" x="170" y="372" width="420" height="36" rx="12"/>
+  <text class="cap" x="380" y="395">Bleep Store: signed modules, plugins, presets</text>
+</svg>

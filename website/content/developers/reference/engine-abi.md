@@ -33,9 +33,7 @@ The engine's code is in the **first Bleep plugin loaded** in the process; it pin
 
 ## Two contracts, two numbers
 
-```
-plugin  ──(IEngine: this document)──▶  engine  ──(module ABI: module-abi.md)──▶  module
-```
+![A plugin talks to the engine through IEngine; the engine talks to a module through the module ABI. A plugin never talks to a module directly.](/img/engine-contracts.svg)
 
 A plugin never talks to a module. It talks to the engine, and the engine runs the modules. So there are two contracts, each with its own version:
 

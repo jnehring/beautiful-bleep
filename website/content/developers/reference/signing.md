@@ -24,13 +24,7 @@ It does **not** make a module safe by itself: a signed module is the work of an 
 
 ## 2. The chain of trust
 
-```
-root key            offline, held by Brilliant Bleep; its public key is built into every app and plugin
-  └─ issuer key     online, in the store; certified by the root (valid for years, revocable)
-       └─ developer key     one per developer (or per team), made on the developer's own machine;
-            │                certified by the issuer after the developer has an account
-            └─ signature    over one package: a module, or one platform file of a plugin
-```
+![Chain of trust: the offline root key certifies the issuer key, which certifies a developer key, which makes the signature over one package.](/img/signing-chain.svg)
 
 - **Why an issuer between root and developers.** The root key never goes online. The store can then issue and renew developer certificates day to day with a key that can be thrown away and replaced if it leaks, and the root signs a new issuer certificate.
 - **Brilliant Bleep's own releases** are signed by a developer key like any other, with the publisher `bleep` and the `firstParty` flag, which alone allows ids without a namespace (`reverb`, not `acme/fuzz`).
