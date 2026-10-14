@@ -4,10 +4,12 @@
 # Builds the Bleep plugins (Bleep Board, the six ports and Bleep Audio Bridge) as
 # VST3, then runs the DSP, engine and bridge tests.
 #
-#   scripts/build/build-patch.sh [--debug] [--clean] [--no-test] [--install]
+#   scripts/build/build-patch.sh [--debug] [--clean] [--no-test] [--plugins-only] [--install]
 #                  [--juce <dir>] [--ui-dev]
 #
 #   --juce     local JUCE checkout (default: $BLEEP_JUCE_DIR, else download JUCE 8.0.9)
+#   --plugins-only  no tests: skips the test targets, which compile every module in
+#              (the plugins load the modules the app installed, from the Store data folder)
 #   --install  copy the plugins into the user plugin folders
 #              (macOS: ~/Library/Audio/Plug-Ins/VST3)
 #   --ui-dev   plugins read the board UI from patch/ instead of the embedded copy:
@@ -21,6 +23,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR="$ROOT/build/patch"
 CONFIG=Release
 TEST=1
+BUILD_TESTS=ON
 INSTALL=OFF
 UI_DEV=OFF
 JUCE_DIR="${BLEEP_JUCE_DIR:-}"
@@ -30,10 +33,11 @@ while [[ $# -gt 0 ]]; do
         --debug) CONFIG=Debug ;;
         --clean) rm -rf "$BUILD_DIR" ;;
         --no-test) TEST=0 ;;
+        --plugins-only) TEST=0; BUILD_TESTS=OFF ;;
         --install) INSTALL=ON ;;
         --ui-dev) UI_DEV=ON ;;
         --juce) JUCE_DIR="$2"; shift ;;
-        -h|--help) sed -n '3,18p' "$0"; exit 0 ;;
+        -h|--help) sed -n '3,20p' "$0"; exit 0 ;;
         *) echo "unknown option: $1" >&2; exit 2 ;;
     esac
     shift
@@ -53,6 +57,7 @@ cmake -S "$ROOT/patch" -B "$BUILD_DIR" ${GENERATOR[@]+"${GENERATOR[@]}"} \
     ${LAUNCHER[@]+"${LAUNCHER[@]}"} \
     -DBLEEP_JUCE_DIR="$JUCE_DIR" \
     -DBLEEP_FORMATS=VST3 \
+    -DBLEEP_BUILD_TESTS="$BUILD_TESTS" \
     -DBLEEP_COPY_PLUGINS="$INSTALL" \
     -DBLEEP_UI_DEV="$UI_DEV"
 cmake --build "$BUILD_DIR" --config "$CONFIG" --parallel
