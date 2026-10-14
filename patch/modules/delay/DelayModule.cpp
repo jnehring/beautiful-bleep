@@ -12,7 +12,7 @@ using patch::DelayParams;
 
 class DelayModule final : public Module {
 public:
-    enum { TimeL, TimeR, Feedback, LowCut, HighCut, Mix, Sync, RateL, RateR, Mode };
+    enum { TimeL, TimeR, Feedback, LowCut, HighCut, Mix, Sync, RateL, RateR, Mode, Link };
     enum { InL, InR };
     enum { OutL, OutR };
 
@@ -30,18 +30,19 @@ public:
 
     void process(const ProcessContext& c) override {
         const bool sync = setting(Sync) >= 0.5f;
+        const bool link = setting(Link) >= 0.5f;  // Link: the right side follows the left
         DelayParams p;
         p.pingPong = setting(Mode) >= 0.5f;
         const double bpm = c.transport ? c.transport->bpm : 120.0;
         if (sync) {
             p.timeL = (float)dsp::beatsToSeconds(patch::delayRateBeats((int)setting(RateL)), bpm);
-            p.timeR = (float)dsp::beatsToSeconds(patch::delayRateBeats((int)setting(RateR)), bpm);
+            p.timeR = (float)dsp::beatsToSeconds(patch::delayRateBeats((int)setting(link ? RateL : RateR)), bpm);
         }
         const float* inR = c.inputConnected[InR] ? c.inputs[InR] : c.inputs[InL];
         for (int i = 0; i < c.numSamples; ++i) {
             if (!sync) {
                 p.timeL = value(c, TimeL, i) * 0.001f;
-                p.timeR = value(c, TimeR, i) * 0.001f;
+                p.timeR = value(c, link ? TimeL : TimeR, i) * 0.001f;
             }
             if (fresh_) {
                 dsp_.snapTimes(p);
@@ -82,7 +83,8 @@ static void registerDelayModule(Registry& r) {
                 ParamSpec::choice("sync", "Sync", {"Free", "Tempo"}, 0),
                 ParamSpec::choice("ratel", "Rate L", rates, 5).when("sync", 1, 1),
                 ParamSpec::choice("rater", "Rate R", rates, 5).when("sync", 1, 1),
-                ParamSpec::choice("mode", "Mode", {"Stereo", "Ping-Pong"}, 0)};
+                ParamSpec::choice("mode", "Mode", {"Stereo", "Ping-Pong"}, 0),
+                ParamSpec::toggle("link", "Link L/R", false)};
     s.inputs = {{"l", "In L", Signal::Audio}, {"r", "In R", Signal::Audio}};
     s.outputs = {{"l", "Out L", Signal::Audio, true}, {"r", "Out R", Signal::Audio, true}};
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<DelayModule>(spec); });

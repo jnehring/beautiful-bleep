@@ -21,6 +21,8 @@ after the filters, so every echo is a little quieter than the one before.
 - **Tempo:** *Rate L* and *Rate R* are note values (1/32 … 1/1, straight, dotted
   `.` and triplet `T`) at the song's tempo. Change the tempo and the echoes
   follow.
+- **Link L/R:** with this on, the right side uses the left side's time (or rate),
+  in both Free and Tempo. Turn one knob and both sides follow.
 - **Stereo:** both sides are independent. A mono source patched into *In L* only
   is heard in both ears, and with different times on the two sides you get a
   wide stereo echo.
@@ -61,6 +63,7 @@ never click. Turn *Time* quickly for a classic dub effect.
 | Rate L | 1/32 … 1/1 | 1/8 |
 | Rate R | 1/32 … 1/1 | 1/8 |
 | Mode | Stereo, Ping-Pong | Stereo |
+| Link L/R | Off, On | Off |
 
 *Time* shows with *Sync* on *Free*, *Rate* with *Sync* on *Tempo*. The longest
 time is 4 seconds.
