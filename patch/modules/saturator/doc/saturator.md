@@ -1,5 +1,7 @@
 # Saturator
 
+![Saturator in the module view](saturator.png)
+
 ## Introduction
 
 Saturator adds warmth and harmonics without the brittle, fizzy edge that digital distortion usually has. It is a small model of an analogue gain stage: a smooth curve, a frequency-dependent drive, a power supply that gives way under load and parts that slowly drift. Use it from a hint of warmth on a bus to a thick amp-like crunch.
