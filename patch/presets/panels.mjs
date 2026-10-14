@@ -270,6 +270,7 @@ export const panelEdits = {
     const out = doc.controls.find((c) => c.type === "section" && c.text === "Out");
     doc.controls.push({ id: "c50", type: "section", at: [out.at[0] + out.size[0] + 1, out.at[1]], size: [7, 12], text: "Bend", colour: "#fda4af" },
                       { id: "c51", type: "wheel", label: "Bend", at: [out.at[0] + out.size[0] + 3, out.at[1] + 2], size: [3, 8], spring: true, wire: [{ param: `${wheel.id}.value` }] });
+    doc.cols = Math.max(doc.cols, out.at[0] + out.size[0] + 1 + 7);   // room for the Bend section, whatever the generated width
     // The Keys play the Keyboard next to the Voice Cell; the Out meter reads a Level Meter after it.
     keysControl.wire = [{ keyboard: keys.id }];
     const lm = { id: "level", type: "level-meter", name: "Out", x: 0, y: 0, parent: preset.root, params: {} };

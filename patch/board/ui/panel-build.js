@@ -64,11 +64,11 @@
     return { w: width, h: y + rowH };
   }
 
-  /// The control that suits a knob: a button for a toggle, a select for a long list, a dial otherwise.
+  /// The control that suits a knob: a button for a toggle, a select for a choice, a dial otherwise.
   function knobControl(node, p) {
     const c = { wire: [{ param: `${node.id}.${p.id}` }], label: p.name.length > 12 ? p.name.replace(/ (Time|Amount|Level)$/, "") : p.name };
     if (p.kind === "bool") return { type: "button", ...c };
-    if (p.kind === "choice") return { type: p.choices.length > 7 ? "select" : "dial", ...c };
+    if (p.kind === "choice") return { type: "select", ...c };
     return { type: "dial", ...c };
   }
 
