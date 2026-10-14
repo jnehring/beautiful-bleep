@@ -376,6 +376,7 @@
     // loaded, never wait for the network. (An index that is not loaded yet is fetched in the background, for next time.)
     // If even the local status does not answer, the caller places the preset anyway.
     status = await Promise.race([native("storeStatus"), new Promise((_, no) => setTimeout(() => no(new Error("the app did not answer in time")), 5000))]);
+    if (!status) return true;  // no store behind this board (the browser demo): place the preset anyway
     if (!status.index.ok) native("storeRefresh").catch(() => {});
     const rows = [...neededBy(preset)].map(([slug, n]) => judge(slug, n)).filter((r) => r.action !== "ok");
     if (!rows.length) return true;
