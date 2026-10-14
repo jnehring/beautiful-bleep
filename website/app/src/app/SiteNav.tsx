@@ -2,9 +2,9 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { api, useUser } from "@/lib/auth";
-import { AUDIENCES, audienceOf, isActive, type Audience } from "@/lib/audiences";
+import { AUDIENCES, audienceOf, isActive, isModulesPath, type Audience } from "@/lib/audiences";
 
-/** Main menu (Musicians, Developers) and, below it, the current audience's submenu. */
+/** Main menu (Musicians, Developers, Modules, …) and, below it, the current audience's submenu. */
 export default function SiteNav() {
   const path = usePathname() ?? "/";
   const current = audienceOf(path);
@@ -19,7 +19,7 @@ export default function SiteNav() {
             <a key={a} href={AUDIENCES[a].home} aria-current={a === current ? "true" : undefined}>{AUDIENCES[a].title}</a>
           ))}
           <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Play</a>
-          <a href="/store/" aria-current={path.startsWith("/store") ? "true" : undefined}>Bleep Store</a>
+          <a href="/store/" aria-current={path.startsWith("/store") || isModulesPath(path) ? "true" : undefined}>Bleep Store</a>
         </nav>
         <nav className="account" aria-label="Account">
           {user ? (

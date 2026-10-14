@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 import { modules, modulesByCategory } from "@/lib/content";
-import { CategoryLinks } from "./ModuleCatalog";
 
 export default function Home() {
   return (
@@ -34,8 +33,7 @@ export default function Home() {
         <a href="/docs/musicians/overview/">what works today</a>.
       </p>
       <h2>Modules</h2>
-      <p>{modules().length} modules in {modulesByCategory().length} categories. <a href="/modules/">See them all</a>.</p>
-      <CategoryLinks base="/modules/" />
+      <p>{modules().length} modules in {modulesByCategory().length} categories, with their manuals, in the <a href="/store/?kind=module">Bleep Store</a>.</p>
       <h2>Open technology</h2>
       <p>
         The cables run on <strong>Bleep Bus</strong>, an open, MIT-licensed protocol with a C SDK, a conformance

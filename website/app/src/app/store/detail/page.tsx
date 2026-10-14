@@ -29,8 +29,14 @@ function DetailView() {
   useEffect(() => {
     api<Detail>("GET", `/store/${encodeURIComponent(kind)}/${encodeURIComponent(slug)}`).then(setData, (e) => setError(e.message));
   }, [kind, slug]);
+  const [doc, setDoc] = useState("");
+  useEffect(() => {
+    if (kind !== "module") return;
+    fetch(`/module-docs/${encodeURIComponent(slug)}`).then((r) => (r.ok ? r.text() : "")).then((h) => setDoc(h.replace(/^\s*<h1[^>]*>.*?<\/h1>/s, "")), () => setDoc(""));
+  }, [kind, slug]);
   if (error) return <p className="error" role="alert">{error}</p>;
   if (!data) return <p>Loading…</p>;
+  const latest = data.releases.find((r) => r.channel === "stable") ?? data.releases[0];
   return (
     <section>
       <p><a href="/store/">← Bleep Store</a></p>
@@ -47,9 +53,17 @@ function DetailView() {
               {" "}{data.origin.copyright}{data.origin.changes ? ` Changes: ${data.origin.changes}` : ""}
             </p>
           )}
-          {data.kind === "module" && <p><a href={`/modules/${encodeURIComponent(data.slug)}/`}>Read the documentation →</a></p>}
         </div>
       </div>
+      {latest && (
+        <dl className="facts" aria-label="Key facts">
+          <div><dt>Version</dt><dd>{latest.version}{latest.channel !== "stable" && ` ${latest.channel}`}</dd></div>
+          <div><dt>File size</dt><dd>{size(latest.bytes)}</dd></div>
+          <div><dt>License</dt><dd>{latest.license || data.license || "not stated"}</dd></div>
+        </dl>
+      )}
+      {doc && <article className="module-doc" dangerouslySetInnerHTML={{ __html: doc }} />}
+      {data.releases.length > 0 && <h2>Releases</h2>}
       {data.releases.map((r) => (
         <div key={r.version} className="release">
           <h3>{r.version} <small className="muted">{r.channel} · {r.license || "license not stated"} · published {day(r.published_at)} · {r.files} {r.files === 1 ? "file" : "files"}, {size(r.bytes)}</small></h3>

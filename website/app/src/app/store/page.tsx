@@ -16,6 +16,7 @@ const KIND_LABEL: Record<string, string> = { plugin: "Plugin", module: "Module",
 /** The Bleep Store: everything published for download, free and without a login. */
 export default function StorePage() {
   const [kind, setKind] = useState("");
+  useEffect(() => { const k = new URLSearchParams(window.location.search).get("kind"); if (k) setKind(k); }, []);
   const [text, setText] = useState("");
   const [category, setCategory] = useState("");
   const [q, setQ] = useState("");

@@ -110,3 +110,8 @@ button.linklike { background: none; border: 0; padding: 0; font: inherit; color:
 .detail-head { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; margin: 12px 0 24px; }
 .detail-head > div:last-child { flex: 1 1 280px; }
 .pager { display: flex; gap: 16px; align-items: center; justify-content: center; margin: 16px 0; }
+.facts { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 24px; }
+.facts > div { flex: 1 1 140px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.facts dt { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.facts dd { margin: 2px 0 0; font-weight: 600; }
+.module-doc { margin: 0 0 32px; }
