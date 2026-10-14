@@ -80,7 +80,7 @@ scripts/build/build-patch.sh --no-test
 scripts/build/build-patch.sh --install
 ```
 
-**Skip the tests:** `--no-test`, as in the second command above. `release.py --build` always runs the tests (it has no way to skip them), so for a release without tests build first with `build-patch.sh --no-test` and leave `--build` off.
+**Skip the tests:** `--no-test`, as in the second command above. `release.py --build` runs `build-patch.sh --plugins-only` (no tests, no test targets), so after a `build-patch.sh --plugins-only` run it has nothing left to compile. Run the tests separately with plain `build-patch.sh` before a release.
 
 **Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the signed `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`store::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; to not build them either:
 

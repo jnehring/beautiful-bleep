@@ -384,7 +384,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--notes", default="", help="release notes")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build" / "patch")
     ap.add_argument("--config", default="Release", help="build configuration of the artefacts (default Release)")
-    ap.add_argument("--build", action="store_true", help="run scripts/build/build-patch.sh first (builds and tests)")
+    ap.add_argument("--build", action="store_true", help="run scripts/build/build-patch.sh --plugins-only first (no tests: the test targets compile every module in)")
     ap.add_argument("--dry-run", action="store_true", help="show what would be released; change nothing")
     ap.add_argument("-y", "--yes", action="store_true", help="do not ask for confirmation")
     args = ap.parse_args(argv)
@@ -435,7 +435,7 @@ def main(argv: list[str] | None = None) -> int:
             ap.error(str(e))
 
     if args.build:
-        subprocess.run([str(ROOT / "scripts" / "build" / "build-patch.sh")], check=True)
+        subprocess.run([str(ROOT / "scripts" / "build" / "build-patch.sh"), "--plugins-only"], check=True)
     registry = Registry(args.registry, None if args.dry_run else read_token(args))
     kit = load_kit(args.kit)
     if kit is None and not args.dry_run:
