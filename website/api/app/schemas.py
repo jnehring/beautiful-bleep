@@ -147,6 +147,8 @@ class StoreItemOut(BaseModel):
     summary: str
     category: str
     image_url: str | None             # the screenshot, a path on the store's host; None: the page draws a placeholder
+    rating_average: float | None = None
+    rating_count: int = 0
     notes: str
     files: int
     bytes: int
@@ -189,6 +191,191 @@ class StoreDetailOut(BaseModel):
     summary: str
     category: str
     image_url: str | None
+    rating_average: float | None = None
+    rating_count: int = 0
     license: str                      # of the newest release; "" = not stated
     origin: dict                      # what the newest release is ported from, {} = original work
     releases: list[StoreReleaseOut]
+
+
+# --- Sign-in of the app, personal tokens -------------------------------------------------------------------------
+
+class DeviceStartIn(BaseModel):
+    client_name: str = Field(default="Bleep", max_length=80)
+
+
+class DeviceStartOut(BaseModel):
+    device_code: str                  # secret of the app, for polling
+    user_code: str                    # what the user types or confirms on the site
+    verification_url: str             # path on the site
+    expires_in: int
+    interval: int                     # seconds between polls
+
+
+class DevicePollIn(BaseModel):
+    device_code: str = Field(max_length=200)
+
+
+class DevicePollOut(BaseModel):
+    status: Literal["pending", "approved", "denied"]
+    token: str | None = None          # once, when approved
+    user: UserOut | None = None
+
+
+class DeviceApproveIn(BaseModel):
+    user_code: str = Field(max_length=20)
+    approve: bool = True
+
+
+class DeviceInfoOut(BaseModel):
+    client_name: str
+
+
+class UserTokenIn(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    expires_in_days: int | None = Field(default=None, ge=1, le=3650)
+
+
+class UserTokenOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    prefix: str
+    scope: str
+    created_at: datetime
+    expires_at: datetime | None
+    last_used_at: datetime | None
+
+
+class UserTokenCreated(UserTokenOut):
+    token: str
+
+
+# --- Presets -----------------------------------------------------------------------------------------------------
+
+PresetType = Literal["patch", "cell"]
+PRESET_LICENSES = ("CC-BY-4.0", "CC0-1.0")
+
+
+class PresetIn(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+    summary: str = Field(default="", max_length=280)
+    type: PresetType
+    slug: str | None = Field(default=None, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]*$")  # default: from the title; an existing one makes a new version
+    tags: list[str] = Field(default_factory=list, max_length=10)
+    license: Literal["CC-BY-4.0", "CC0-1.0"] = "CC-BY-4.0"
+    preset: dict
+
+    @field_validator("title")
+    @classmethod
+    def _title(cls, v: str) -> str:
+        return _clean_name(v)
+
+    @field_validator("tags")
+    @classmethod
+    def _tags(cls, v: list[str]) -> list[str]:
+        out = []
+        for t in v:
+            t = t.strip().lower()
+            if not t or len(t) > 30 or not all(c.isalnum() or c in " -_" for c in t):
+                raise ValueError("tags are up to 30 letters, digits, spaces, - or _")
+            if t not in out:
+                out.append(t)
+        return out
+
+
+class PresetPatchIn(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=120)
+    summary: str | None = Field(default=None, max_length=280)
+    tags: list[str] | None = Field(default=None, max_length=10)
+    state: Literal["listed", "unlisted"] | None = None
+
+
+class PresetVersionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    version: int
+    bytes: int
+    sha256: str
+    needs: dict
+    created_at: datetime
+
+
+class PresetOut(BaseModel):
+    id: int
+    author: str                       # handle
+    author_name: str
+    slug: str
+    address: str                      # author/slug, the slug of this entry in the store and for comments and ratings
+    title: str
+    summary: str
+    type: str
+    tags: list[str]
+    license: str
+    state: str
+    downloads: int
+    version: int                      # newest
+    bytes: int
+    created_at: datetime
+    updated_at: datetime
+    rating_average: float | None
+    rating_count: int
+    versions: list[PresetVersionOut] | None = None  # only in the detail
+
+
+class PresetListOut(BaseModel):
+    items: list[PresetOut]
+    total: int
+    page: int
+    page_size: int
+
+
+# --- Comments, ratings, reports ----------------------------------------------------------------------------------
+
+class CommentIn(BaseModel):
+    body: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("body")
+    @classmethod
+    def _body(cls, v: str) -> str:
+        return _clean_name(v)
+
+
+class CommentOut(BaseModel):
+    id: int
+    user_id: int
+    author: str
+    body: str
+    created_at: datetime
+    mine: bool = False
+
+
+class CommentListOut(BaseModel):
+    items: list[CommentOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class RatingIn(BaseModel):
+    stars: int = Field(ge=1, le=5)
+
+
+class RatingOut(BaseModel):
+    average: float | None
+    count: int
+    mine: int | None = None           # the caller's own rating when logged in
+
+
+class ReportIn(BaseModel):
+    reason: str = Field(default="", max_length=500)
+
+
+class ReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    target: str
+    target_id: int
+    reporter_id: int | None
+    reason: str
+    created_at: datetime
+    resolved_at: datetime | None

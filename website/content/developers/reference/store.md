@@ -77,8 +77,19 @@ S3 bucket `bleep-registry` (SeaweedFS)  →  Caddy proxies it read-only at /regi
 ├── POST /api/presets                         publish a version (login)
 ├── DELETE/PATCH /api/presets/<id>            own presets (login); admin may unlist any
 ├── POST /api/presets/<id>/report             report (anonymous or login)
-└── POST /api/tokens, GET /api/tokens         personal access tokens for the app (login)
+├── GET/POST/DELETE /api/tokens               personal access tokens of the user (cookie login)
+├── POST /api/auth/device                     app starts a sign-in: device_code (secret), user_code, interval
+├── POST /api/auth/device/token               app polls; the personal token comes once, when approved
+├── GET  /api/auth/device/<code>, POST /api/auth/device/approve   the site's /device/ page (cookie login)
+├── GET  /api/presets/<author>/<slug>/file    the .bleeppreset (anonymous, counts the download)
+├── GET/POST /api/social/<kind>/<slug>/comments    list (public), comment (login); slug of a preset is author/slug
+├── GET/PUT/DELETE /api/social/<kind>/<slug>/rating   average and count (public); 1-5 stars, one per user (login)
+├── DELETE /api/social/comments/<id>          the author or an admin; POST …/<id>/report reports it
+└── GET /api/admin/reports, POST …/<id>/resolve   reports of presets and comments (admin)
 ```
+
+**Who may do what.** Reading (browsing, downloading, comments, ratings) is anonymous. Sharing, commenting and rating need a login: the website's session cookie, or `Authorization: Bearer blu_…`, the personal token of the app. Such a token works only on these store endpoints, never on the account, profile or admin endpoints. A cookie-authenticated write whose `Origin` is another site is refused (`BLEEP_ALLOWED_ORIGINS` lists extra hosts for a dev server). Comments and ratings belong to the entry (plugin, module or preset), not to one version; nobody rates their own preset; a comment is up to 2000 characters, at most 5 a minute per user.
+
 
 | Part | Where | Written by |
 |---|---|---|
@@ -90,7 +101,7 @@ S3 bucket `bleep-registry` (SeaweedFS)  →  Caddy proxies it read-only at /regi
 
 `GET /registry/v1/index.json` is the one call a client needs at start. It lists, per id, the newest version per channel, so an update check is one small request with an `ETag`. The API only ever sees preset search and publishing, so a stopped API doesn't stop installs of plugins and modules.
 
-**Login in the app.** The app has no browser cookie. *Sign in* opens the website's login page for a one-time device code (like `gh auth login`): the app shows a code, the user confirms it on the site, and the app stores a personal access token in the OS keychain. The token only allows publishing and managing the user's own presets. Not signed in, the app works fully except *Share…*.
+**Login in the app.** The app has no browser cookie. *Sign in* opens the website's login page for a one-time device code (like `gh auth login`): the app shows a code, the user confirms it on the site, and the app stores a personal access token in the OS keychain. The token only allows publishing and managing the user's own presets. Not signed in, the app works fully except *Share…*. **How it is built.** `patch/store/Account.{h,cpp}` does the device flow and the authenticated calls on a worker thread; the page reaches it through the native function `account` (`patch/board/ui/account.js`, used by the Store section's *Account* tab, *Share…* on the Presets tab and in the patch browser). The token is kept per store address: macOS Keychain (service `Bleep Store`), Windows Credential Manager, elsewhere a file in the data folder readable by the user only (`account.json`); with `BLEEP_DATA_DIR` set (tests, development) always that file, so a test never touches the real login. The app and the plugins share it, so one sign-in covers both; macOS asks once when a DAW first reads an item the app created (*Always Allow*). The page can only call `/api/…` of the configured store. A token the site revoked (account page) is dropped at the next check, and *Sign out* revokes it at the store (`DELETE /api/tokens/self`; `GET /api/tokens/self` says whose it is). Bleep Play has no token: it is a page of the site and uses the session cookie, so it only asks `/api/auth/me` and sends people to `/login/`. `scripts/check/account-live.py` runs the real HTTP stack against a local API.
 
 **Moving later.** Everything is addressed by one base URL (`registry` in the app's settings and the site's config), so moving the stack into the Brilliant Bleep Compose stack or behind a CDN changes configuration, not code.
 

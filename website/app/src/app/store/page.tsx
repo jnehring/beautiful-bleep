@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/auth";
 import { StoreImage } from "./StoreImage";
+import { Stars } from "./Social";
 
 type Item = {
   kind: string; slug: string; version: string; channel: string; title: string; summary: string; category: string; image_url: string | null;
+  rating_average: number | null; rating_count: number;
   notes: string; files: number; bytes: number; published_at: string | null;
 };
 type Page = { items: Item[]; categories: string[]; total: number; page: number; page_size: number };
@@ -43,7 +45,7 @@ export default function StorePage() {
   return (
     <div className="admin">
       <h1>Bleep Store</h1>
-      <p className="muted">Plugins, modules and presets. Everything is free and needs no login.</p>
+      <p className="muted">Plugins, modules and presets. Everything is free and needs no login. <a href="/store/share/">Share a preset</a> (needs an account).</p>
       <div className="store-bar">
         <input type="search" placeholder="Search" aria-label="Search the store" value={text} onChange={(e) => setText(e.target.value)} />
         <div role="group" aria-label="Filter by type">
@@ -75,6 +77,7 @@ export default function StorePage() {
                   <strong>{i.title}</strong>
                   <span className="tile-summary">{i.summary || "No description yet."}</span>
                   <small className="muted">{i.version}{i.channel !== "stable" && ` ${i.channel}`}</small>
+                  <Stars average={i.rating_average} count={i.rating_count} />
                 </span>
               </a>
             </li>

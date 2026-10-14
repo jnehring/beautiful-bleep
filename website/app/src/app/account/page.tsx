@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import { api, useUser, type User } from "@/lib/auth";
 
+type Token = { id: number; name: string; prefix: string; created_at: string; last_used_at: string | null };
 type Notice = { ok: boolean; text: string } | null;
 
 export default function AccountPage() {
   const user = useUser();
   const [profileNote, setProfileNote] = useState<Notice>(null);
   const [passwordNote, setPasswordNote] = useState<Notice>(null);
+  const [tokens, setTokens] = useState<Token[]>([]);
+  useEffect(() => { if (user) api<Token[]>("GET", "/tokens").then(setTokens, () => setTokens([])); }, [user]);
 
   useEffect(() => {
     if (user === null) window.location.href = "/login/";
@@ -57,6 +60,14 @@ export default function AccountPage() {
         {passwordNote && <p className={passwordNote.ok ? "ok" : "error"} role="status">{passwordNote.text}</p>}
         <button type="submit">Change password</button>
       </form>
+      <h2>Signed-in apps</h2>
+      <p className="muted">Apps and plugins you signed in to Bleep. Remove one to sign it out.</p>
+      {tokens.length === 0 ? <p className="muted">None.</p> : (
+        <ul>{tokens.map((t) => (
+          <li key={t.id}>{t.name} <small className="muted">· last used {t.last_used_at ? t.last_used_at.slice(0, 10) : "never"}</small>{" "}
+            <button type="button" className="linklike" onClick={async () => { await api("DELETE", `/tokens/${t.id}`); setTokens(tokens.filter((x) => x.id !== t.id)); }}>Remove</button></li>
+        ))}</ul>
+      )}
     </div>
   );
 }

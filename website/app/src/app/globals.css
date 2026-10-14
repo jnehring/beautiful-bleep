@@ -127,3 +127,20 @@ button.linklike { background: none; border: 0; padding: 0; font: inherit; color:
 .download-note { max-width: 760px; border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; }
 .download-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .download-row .play-button small { font-weight: 400; font-size: .8rem; opacity: .8; }
+
+/* Ratings and comments of a store entry */
+.rate { display: flex; align-items: center; gap: 4px; }
+.admin .rate button { padding: 2px 8px; font-size: 1.2rem; line-height: 1; border-radius: 8px; }
+.admin .rate button[aria-pressed="true"] { background: var(--card); color: var(--accent); border-color: var(--accent); }
+.rate small { margin-left: 8px; }
+.comment-form { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin: 12px 0; }
+.comment-form textarea { width: 100%; padding: 8px 10px; font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+.admin .comment-form button { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.comments { list-style: none; padding: 0; }
+.comments li { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.comments p { margin: 4px 0; }
+.comment-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.comments button.linklike { margin-right: 12px; font-size: .85rem; }
+.auth select { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+.auth button { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.auth button.linklike { border: 0; padding: 0; background: none; color: var(--accent); border-radius: 0; }

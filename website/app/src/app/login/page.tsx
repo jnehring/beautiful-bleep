@@ -12,7 +12,8 @@ export default function LoginPage() {
     setBusy(true); setError("");
     try {
       await api("POST", "/auth/login", { email: f.get("email"), password: f.get("password") });
-      window.location.href = "/account/";
+      const next = new URLSearchParams(window.location.search).get("next");
+      window.location.href = next && /^\/(?!\/)/.test(next) ? next : "/account/";  // only a path on this site
     } catch (err) {
       setError((err as Error).message); setBusy(false);
     }

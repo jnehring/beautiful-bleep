@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     # A release without a valid signature is refused. Only turn this off for local experiments.
     require_signatures: bool = True
 
+    # Hosts besides the API's own that may send cookie-authenticated writes (comma separated host[:port]), e.g. a dev server.
+    allowed_origins: str = ""
+
+    @property
+    def allowed_origin_hosts(self) -> list[str]:
+        return [h.strip() for h in self.allowed_origins.split(",") if h.strip()]
+
     @property
     def roots(self) -> list[bytes]:
         return [bytes.fromhex(k.strip()) for k in self.root_public_keys.split(",") if k.strip()]

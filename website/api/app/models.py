@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -22,6 +22,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     display_name: Mapped[str] = mapped_column(String(60))
     bio: Mapped[str] = mapped_column(Text, default="")
+    handle: Mapped[str | None] = mapped_column(String(40), unique=True, index=True)  # the author part of a preset's address; set on first publish
     role: Mapped[str] = mapped_column(String(16), default="user")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
@@ -103,3 +104,125 @@ class Release(Base):
     created_by_token: Mapped[int | None] = mapped_column(ForeignKey("api_tokens.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class UserToken(Base):
+    """A personal access token: how the app and the plugins act for a user. Like sessions, only the SHA-256 is stored."""
+
+    __tablename__ = "user_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(80))
+    prefix: Mapped[str] = mapped_column(String(12))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    scope: Mapped[str] = mapped_column(String(16), default="store")  # store: publish and manage own presets, comment, rate
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship()
+
+
+class DeviceCode(Base):
+    """A sign-in of the app (device flow): the app holds `device_hash`, the user confirms `user_code` on the site."""
+
+    __tablename__ = "device_codes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    device_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    user_code: Mapped[str] = mapped_column(String(9), unique=True)  # XXXX-XXXX
+    client_name: Mapped[str] = mapped_column(String(80), default="")
+    status: Mapped[str] = mapped_column(String(16), default="pending")  # pending | approved | denied | used
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Preset(Base):
+    """A shared preset (data, not code): metadata here, one `.bleeppreset` file per version in the store bucket."""
+
+    __tablename__ = "presets"
+    __table_args__ = (UniqueConstraint("author_id", "slug", name="uq_presets_author_slug"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    slug: Mapped[str] = mapped_column(String(64))
+    title: Mapped[str] = mapped_column(String(120))
+    summary: Mapped[str] = mapped_column(String(280), default="")
+    type: Mapped[str] = mapped_column(String(8))  # patch | cell
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    license: Mapped[str] = mapped_column(String(120), default="CC-BY-4.0")
+    state: Mapped[str] = mapped_column(String(16), default="listed")  # listed | unlisted (taken down by an admin or the author)
+    downloads: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+    author: Mapped[User] = relationship()
+    versions: Mapped[list["PresetVersion"]] = relationship(
+        back_populates="preset", cascade="all, delete-orphan", order_by="PresetVersion.version.desc()")
+
+    @property
+    def address(self) -> str:
+        return f"{self.author.handle}/{self.slug}"
+
+
+class PresetVersion(Base):
+    __tablename__ = "preset_versions"
+    __table_args__ = (UniqueConstraint("preset_id", "version", name="uq_preset_versions"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    preset_id: Mapped[int] = mapped_column(ForeignKey("presets.id", ondelete="CASCADE"), index=True)
+    version: Mapped[int] = mapped_column()
+    bytes: Mapped[int] = mapped_column()
+    sha256: Mapped[str] = mapped_column(String(64))
+    needs: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+    preset: Mapped[Preset] = relationship(back_populates="versions")
+
+
+class Comment(Base):
+    """A comment on a store entry. It belongs to the entry (kind, slug), not to one version of it."""
+
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16))
+    slug: Mapped[str] = mapped_column(String(140))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+    user: Mapped[User] = relationship()
+
+
+class Rating(Base):
+    """One 1-5 star rating per user and store entry; rating again changes it."""
+
+    __tablename__ = "ratings"
+    __table_args__ = (
+        UniqueConstraint("kind", "slug", "user_id", name="uq_ratings_user_entry"),
+        CheckConstraint("stars BETWEEN 1 AND 5", name="ck_ratings_stars"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), index=True)
+    slug: Mapped[str] = mapped_column(String(140), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    stars: Mapped[int] = mapped_column()
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class Report(Base):
+    """A report of a preset or a comment, for an admin to look at."""
+
+    __tablename__ = "reports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    target: Mapped[str] = mapped_column(String(16))  # preset | comment
+    target_id: Mapped[int] = mapped_column()
+    reporter_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    reason: Mapped[str] = mapped_column(String(500), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

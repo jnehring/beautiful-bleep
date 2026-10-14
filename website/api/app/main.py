@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: MIT
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 
 from .config import settings
 from .db import SessionLocal
 from .models import User
-from .routers import admin, auth, profile, registry, store, tokens
+from .deps import COOKIE, same_origin
+from .routers import admin, auth, moderation, presets, profile, registry, social, store, tokens, user_tokens
 from .security import hash_password
 
 
@@ -30,10 +32,24 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Beautiful Bleep API", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+
+
+@app.middleware("http")
+async def refuse_cross_site_writes(request: Request, call_next):
+    """CSRF: the session cookie is SameSite=Lax; on top of that a write that carries it must come from this site."""
+    if request.method not in ("GET", "HEAD", "OPTIONS") and COOKIE in request.cookies and not same_origin(request):
+        return JSONResponse({"detail": "Cross-site request refused"}, status_code=403)
+    return await call_next(request)
+
+
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(admin.router)
 app.include_router(tokens.router)
+app.include_router(user_tokens.router)
+app.include_router(presets.router)
+app.include_router(social.router)
+app.include_router(moderation.router)
 app.include_router(store.router)
 app.include_router(registry.router)
 
