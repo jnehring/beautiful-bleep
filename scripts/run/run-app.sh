@@ -76,5 +76,12 @@ if [[ "$(uname)" == "Darwin" ]] && pgrep -f "Bleep App.app/Contents/MacOS/Bleep 
     fi
 fi
 
+# The binary is started directly, not through `open`, so register the bundle with
+# LaunchServices first; otherwise the Dock shows a generic icon.
+if [[ "$(uname)" == "Darwin" ]]; then
+    touch "$APP"
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" >/dev/null 2>&1 || true
+fi
+
 echo "Starting ${APP#$ROOT/} ($CONFIG$([[ $UI_DEV == ON ]] && echo ", UI from source"))"
 exec "$BIN" ${APP_ARGS[@]+"${APP_ARGS[@]}"}
