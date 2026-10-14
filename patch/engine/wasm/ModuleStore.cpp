@@ -225,11 +225,14 @@ void ModuleStore::installPluginsAsync() {
 }
 
 void ModuleStore::installAllAsync(std::function<void(bool, std::string)> done) {
+    // "*" keeps the Store view polling for the whole run (not only while a module is being fetched), so it redraws and asks for the
+    // node types again when the last one is in. Set here, before the thread starts: the view looks right after this call returns.
+    setBusy("*", "installing");
     std::thread([this, done = std::move(done)] {
         const auto c = client();
         store::Index index;
         std::string error;
-        if (!c->fetchIndex(index, error)) { if (done) post([done, error] { done(false, error); }); return; }
+        if (!c->fetchIndex(index, error)) { post([this, done, error] { setBusy("*", ""); if (done) done(false, error); }); return; }
         std::set<std::string> have;
         for (const auto& m : c->installed()) have.insert(m.slug);
         int ok = 0, failed = 0;
@@ -247,6 +250,7 @@ void ModuleStore::installAllAsync(std::function<void(bool, std::string)> done) {
         }
         post([this, done, ok, failed, lastError] {
             if (onTypesChanged) onTypesChanged();
+            setBusy("*", "");
             if (done) done(failed == 0, std::to_string(ok) + " installed" + (failed ? ", " + std::to_string(failed) + " failed: " + lastError : std::string()));
         });
     }).detach();
@@ -340,10 +344,11 @@ void ModuleStore::buildViewCache() const {
     const auto c = const_cast<ModuleStore*>(this)->client();
     for (const auto& m : c->installed()) {
         if (!m.allowed) continue;
-        juce::MemoryBlock block;
         store::Package pkg;
         std::string error;
-        if (!m.file.loadFileAsData(block) || !store::readPackage((const uint8_t*)block.getData(), block.getSize(), pkg, error)) continue;
+        // installed() may answer from its cache (keyed on size and time of the file): the files served to the board's web view
+        // come from bytes checked against the signature now, like the wasm does.
+        if (!c->filesOf(m, pkg, error)) continue;
         for (const auto& [path, data] : pkg.files) {
             const bool ui = path.rfind("ui/", 0) == 0, doc = path.rfind("doc/", 0) == 0;
             if (!ui && !doc) continue;

@@ -467,15 +467,19 @@ std::vector<InstalledModule> Client::installed(bool recheck) const {
     return out;
 }
 
-bool Client::contentOf(const InstalledModule& module, std::vector<uint8_t>& wasm, std::string& spec, std::string& error) const {
+bool Client::filesOf(const InstalledModule& module, Package& pkg, std::string& error) const {
     std::vector<uint8_t> bytes;
     if (!readFile(module.file, bytes)) { error = "cannot read " + module.file.getFullPathName().toStdString(); return false; }
     InstalledModule again;
     const juce::var sig = sidecarSignature(module.file);
     if (!check(bytes, module.slug, module.version, &sig, again, error)) return false;
     if (!again.allowed) { error = again.why; return false; }
+    return readPackage(bytes.data(), bytes.size(), pkg, error);
+}
+
+bool Client::contentOf(const InstalledModule& module, std::vector<uint8_t>& wasm, std::string& spec, std::string& error) const {
     Package pkg;
-    if (!readPackage(bytes.data(), bytes.size(), pkg, error)) return false;
+    if (!filesOf(module, pkg, error)) return false;
     auto it = pkg.files.find("module.wasm");
     if (it == pkg.files.end()) { error = "the package has no module.wasm"; return false; }
     wasm = it->second;

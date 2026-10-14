@@ -7,6 +7,7 @@
 #include "store/Verify.h"
 
 #include <cstdio>
+#include <cstring>
 
 using namespace bleep::store;
 
@@ -170,6 +171,29 @@ void testClient(const juce::File& fixtures) {
         ((uint8_t*)block.getData())[block.getSize() / 2] ^= 0x55;
         by["good"]->file.replaceWithData(block.getData(), block.getSize());
         CHECK(!client("site").contentOf(*by["good"], wasm, spec, error), "a package changed on disk is not loaded");
+
+        // the same, but with the size and the modification time put back: installed() answers from its cache and still says
+        // "allowed", so what serves the files of a package (ui/, doc/) must not rely on it
+        const InstalledModule fuzz = *by["acme.fuzz"];
+        Package files;
+        CHECK(fuzz.allowed && client("site").filesOf(fuzz, files, error) && files.files.count("module.wasm"), "the files of an installed module: %s", error.c_str());
+        const juce::Time stamp = fuzz.file.getLastModificationTime();
+        juce::MemoryBlock fuzzBytes;
+        fuzz.file.loadFileAsData(fuzzBytes);
+        {   // rename ui/view.js to ui/view.jt in the local header and the central directory: same size, other content (the paths are signed)
+            auto* data = (uint8_t*)fuzzBytes.getData();
+            int renamed = 0;
+            for (size_t at = 0; at + 7 <= fuzzBytes.getSize(); ++at)
+                if (std::memcmp(data + at, "view.js", 7) == 0) { data[at + 6] = 't'; ++renamed; }
+            CHECK(renamed == 2, "the file name is in the zip twice");
+        }
+        CHECK(fuzz.file.replaceWithData(fuzzBytes.getData(), fuzzBytes.getSize()) && fuzz.file.setLastModificationTime(stamp), "tamper with acme.fuzz");
+        bool cachedAllowed = false;
+        for (const auto& i : client("site").installed()) if (i.slug == "acme.fuzz") cachedAllowed = i.allowed;
+        CHECK(cachedAllowed, "installed() still answers from its cache (the premise of this test)");
+        Package tampered;
+        CHECK(!client("site").filesOf(fuzz, tampered, error) && tampered.files.empty(), "a tampered package gives no files, whatever the cache says");
+        CHECK(!client("site").contentOf(fuzz, wasm, spec, error), "nor wasm");
     }
 
     // a release later: the newest version stays, the old one goes

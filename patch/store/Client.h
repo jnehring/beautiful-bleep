@@ -90,6 +90,9 @@ public:
     /// The module.wasm and spec.json of an installed module, for the engine; checked again against its signature here.
     /// `spec` stays empty if the package has none.
     bool contentOf(const InstalledModule& module, std::vector<uint8_t>& wasm, std::string& spec, std::string& error) const;
+    /// Every file of an installed module (ui/, doc/, ...), from the bytes that were checked against its signature just now.
+    /// Anything that serves or runs a file of a package takes it from here, not from installed(): that may answer from the cache.
+    bool filesOf(const InstalledModule& module, Package& out, std::string& error) const;
 
     juce::File modulesFolder(const std::string& source) const;
     const Settings& settings() const { return settings_; }
