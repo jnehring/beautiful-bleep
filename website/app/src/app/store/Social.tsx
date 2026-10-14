@@ -22,12 +22,15 @@ export function Social({ kind, slug }: { kind: string; slug: string }) {
   const [rating, setRating] = useState<Rating | null>(null);
   const [comments, setComments] = useState<Comments | null>(null);
   const [page, setPage] = useState(1);
-  const [error, setError] = useState("");
+  const [error, setError] = useState("");          // a failed action: rating, posting, deleting
+  const [loadError, setLoadError] = useState("");    // the rating or the comments could not be loaded
   const [text, setText] = useState("");
 
   const load = useCallback(() => {
-    api<Rating>("GET", `${path}/rating`).then(setRating, (e) => setError(e.message));
-    api<Comments>("GET", `${path}/comments?page=${page}`).then(setComments, (e) => setError(e.message));
+    // A bare "Not Found" is the server not knowing the route: it runs an older version than this page.
+    const fail = (e: Error) => setLoadError(e.message === "Not Found" ? "Ratings and comments are not available on this server yet (it needs an update)." : e.message);
+    api<Rating>("GET", `${path}/rating`).then((r) => { setRating(r); setLoadError(""); }, fail);
+    api<Comments>("GET", `${path}/comments?page=${page}`).then((c) => { setComments(c); setLoadError(""); }, fail);
   }, [path, page]);
   useEffect(load, [load, user]);
 
@@ -58,6 +61,7 @@ export function Social({ kind, slug }: { kind: string; slug: string }) {
         </div>
       ) : user === null && <p className="muted"><a href="/login/">Log in</a> to rate and comment.</p>}
       {error && <p className="error" role="alert">{error}</p>}
+      {loadError && <p className="error" role="alert">{loadError}</p>}
 
       <h2>Comments {comments && <small className="muted">({comments.total})</small>}</h2>
       {user && (
@@ -66,7 +70,7 @@ export function Social({ kind, slug }: { kind: string; slug: string }) {
           <button type="submit">Post</button>
         </form>
       )}
-      {comments && comments.items.length === 0 && <p className="muted">No comments yet.</p>}
+      {comments && comments.items.length === 0 && <p className="muted">No comments yet.{user ? " Be the first to write one." : ""}</p>}
       <ul className="comments">
         {comments?.items.map((c) => (
           <li key={c.id}>
