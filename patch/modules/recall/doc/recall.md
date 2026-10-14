@@ -122,7 +122,7 @@ Five whole patches show what Recall does. In the standalone app open **File → 
 
 *X Source External* with nothing at *X Clock* draws on every tick.
 
-The knobs, *T Mode* and the two loop lengths are modulation destinations.
+The knobs and the two loop lengths are modulation destinations; *T Mode* is a dropdown a cable can drive.
 
 ### Inputs
 

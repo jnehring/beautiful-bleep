@@ -60,7 +60,7 @@ public:
         for (int i = 0; i < c.numSamples; ++i) {
             p.pitch = value(c, Octave, i) + value(c, Coarse, i) / 12.0f + value(c, Fine, i) / 1200.0f + c.inputs[Pitch][i];
             p.count = value(c, Count, i);
-            p.set = (int)value(c, Chord, i);
+            p.set = (int)setting(Chord);
             p.spread = value(c, Spread, i);
             p.range = (int)value(c, Range, i);
             p.warp = value(c, Warp, i);
@@ -110,7 +110,7 @@ static void registerSwarmModule(Registry& r) {
         sets.emplace_back(patch::swarmSet(i).name);
         groups.emplace_back(i < 16 ? "Chords" : "Scales");
     }
-    ParamSpec chord = ParamSpec::stepped("chord", "Chord", sets, patch::kSwarmMinor7);
+    ParamSpec chord = ParamSpec::choice("chord", "Chord", sets, patch::kSwarmMinor7);
     chord.choiceGroups = std::move(groups);
     s.params = {ParamSpec::steppedInt("octave", "Octave", -4, 4, 0).inGroup("Pitch"),
                 ParamSpec::number("coarse", "Coarse", -12.0f, 12.0f, 0.0f, "st", 1).inGroup("Pitch"),

@@ -90,6 +90,12 @@
   "path": "/docs/developers/rfc-process/"
  },
  {
+  "group": "Developers",
+  "title": "Build, release and upload",
+  "description": "Build and publish the standalone app, the plugins, the modules and the web board, and run the website, with copy-paste commands.",
+  "path": "/docs/developers/build-and-release/"
+ },
+ {
   "group": "API reference",
   "title": "API reference",
   "description": "The complete SDK reference for plugin developers, and how to read it.",

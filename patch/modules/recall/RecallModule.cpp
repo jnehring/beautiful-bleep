@@ -242,7 +242,7 @@ static void registerRecallModule(Registry& r) {
                 ParamSpec::percent("xrecall", "X Recall", 0.0f, 1.0f, 0.0f).inGroup("X"),
                 ParamSpec::hertz("rate", "Rate", 0.1f, 40.0f, 4.0f).when("sync", 0, 0),
                 ParamSpec::choice("sync", "Sync", sync, 11),
-                ParamSpec::stepped("tmode", "T Mode", {"Coin", "Chance", "Ratchet", "Drums"}, 0),
+                ParamSpec::choice("tmode", "T Mode", {"Coin", "Chance", "Ratchet", "Drums"}, 0),
                 ParamSpec::steppedInt("tloop", "T Loop", 1, 16, 8),
                 ParamSpec::choice("xsource", "X Source", {"Tick", "T1", "T2", "External"}, 0),
                 ParamSpec::choice("xmode", "X Mode", {"Independent", "Sorted"}, 0),

@@ -48,10 +48,10 @@ public:
         for (int i = 0; i < c.numSamples; ++i) {
             p.pitch = c.inputs[Pitch][i];
             p.tune = value(c, Tune, i);
-            p.chord = (int)value(c, Chord, i);
-            p.stack = (int)value(c, Stack, i);
+            p.chord = (int)setting(Chord);
+            p.stack = (int)setting(Stack);
             p.inversion = (int)value(c, Inversion, i);
-            p.voicing = (int)value(c, Voicing, i);
+            p.voicing = (int)setting(Voicing);
             p.voices = (int)value(c, Voices, i);
             p.shape = value(c, Shape, i);
             p.pulseWidth = value(c, PulseWidth, i);
@@ -98,10 +98,10 @@ static void registerChordOscModule(Registry& r) {
     for (int v = 0; v <= dsp::VoicingWide; ++v) voicings.emplace_back(dsp::voicingName(v));
     ParamSpec inversion = ParamSpec::steppedInt("inversion", "Inversion", -4, 4, 0);
     s.params = {ParamSpec::number("tune", "Tune", -100.0f, 100.0f, 0.0f, "ct", 0),
-                ParamSpec::stepped("chord", "Chord", chords, dsp::ChordMajor).when("mode", 0, 0),
-                ParamSpec::stepped("stack", "Chord", stacks, dsp::StackTriad).when("mode", 1, 1),
+                ParamSpec::choice("chord", "Chord", chords, dsp::ChordMajor).when("mode", 0, 0),
+                ParamSpec::choice("stack", "Chord", stacks, dsp::StackTriad).when("mode", 1, 1),
                 inversion,
-                ParamSpec::stepped("voicing", "Voicing", voicings, 0),
+                ParamSpec::choice("voicing", "Voicing", voicings, 0),
                 ParamSpec::steppedInt("voices", "Voices", 1, 6, 4),
                 ParamSpec::percent("shape", "Shape", 0.0f, 1.0f, 2.0f / 3.0f),
                 ParamSpec::percent("pw", "Pulse Width", 0.05f, 0.95f, 0.5f),

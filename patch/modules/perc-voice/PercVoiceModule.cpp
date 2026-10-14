@@ -58,7 +58,7 @@ public:
             if (trig || (hit && i == 0)) {
                 if (i & 7) read(c, i, p);
                 PercHit h;
-                h.engine = (patch::PercEngine)std::clamp((int)value(c, Engine, i), 0, 2);
+                h.engine = (patch::PercEngine)std::clamp((int)setting(Engine), 0, 2);
                 h.accent = trig && accentPatched ? std::clamp(c.inputs[Accent][i], 0.0f, 1.0f) : 0.7f;
                 h.pitch = std::isfinite(pitchIn) ? pitchIn : 0.0f;
                 dsp_.strike(h, p);
@@ -138,7 +138,7 @@ static void registerPercVoiceModule(Registry& r) {
                 ParamSpec::percent("sweep", "Sweep", 0.0f, 1.0f, 0.4f),
                 ParamSpec::percent("spread", "Spread", 0.0f, 1.0f, 0.2f),
                 ParamSpec::percent("level", "Level", 0.0f, 1.0f, 0.8f),
-                ParamSpec::stepped("engine", "Engine", {"FM", "Modal", "Noise Bank"}, 1),
+                ParamSpec::choice("engine", "Engine", {"FM", "Modal", "Noise Bank"}, 1),
                 ParamSpec::toggle("track", "Track", false),
                 ParamSpec::choice("drive", "Drive", {"Clean", "Warm", "Hot"}, 0),
                 ParamSpec::integer("seed", "Seed", 0, 999, 1)};

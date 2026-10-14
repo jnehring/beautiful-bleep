@@ -69,8 +69,8 @@ public:
         notes.clear();
         patch::CqOutputs o;
         for (int i = 0; i < c.numSamples; ++i) {
-            p.chord = (int)value(c, Chord, i);
-            p.stack = (int)value(c, Stack, i);
+            p.chord = (int)setting(Chord);
+            p.stack = (int)setting(Stack);
             p.inversion = (int)value(c, Inversion, i);
             p.strum = value(c, Strum, i);
             p.velocity = value(c, Velocity, i);
@@ -121,8 +121,8 @@ static void registerChordQuantizerModule(Registry& r) {
     for (const auto& sc : dsp::scales()) scales.emplace_back(sc.name);
     auto hysteresis = ParamSpec::percent("hysteresis", "Hysteresis", 0.0f, 0.5f, 0.1f);
     hysteresis.modulatable = false;
-    s.params = {ParamSpec::stepped("chord", "Chord", chords, dsp::ChordMajor).when("mode", 0, 0),
-                ParamSpec::stepped("stack", "Chord", stacks, dsp::StackTriad).when("mode", 1, 1),
+    s.params = {ParamSpec::choice("chord", "Chord", chords, dsp::ChordMajor).when("mode", 0, 0),
+                ParamSpec::choice("stack", "Chord", stacks, dsp::StackTriad).when("mode", 1, 1),
                 ParamSpec::steppedInt("inversion", "Inversion", -3, 3, 0),
                 ParamSpec::seconds("strum", "Strum", 0.0f, 0.1f, 0.03f, 0.0f),
                 ParamSpec::percent("velocity", "Velocity", 0.01f, 1.0f, 0.8f),

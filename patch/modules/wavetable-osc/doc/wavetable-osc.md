@@ -18,8 +18,8 @@ stays clean from sub-bass to the top of the keyboard.
 **Pitch.** C4 × 2^(Octave + Coarse/12 + Fine/1200 + Pitch), then the *FM*
 input: linear and through zero, ±4× at *FM Depth* 100 %.
 
-**Banks.** *Bank* chooses the grid (it is a stepped knob, so it can be
-modulated; changes crossfade over 10 ms):
+**Banks.** *Bank* chooses the grid (a dropdown a cable can drive; changes
+crossfade over 10 ms):
 
 | Bank | X | Y |
 |---|---|---|
@@ -131,8 +131,8 @@ Five whole boards show what Wavetable Osc does. In the standalone app open **Fil
 | Warp Mode | Bend, Sync, Mirror, Squash, Steps | Bend |
 | Quality | Normal (1×), High (2×) | Normal |
 
-All knobs, *Bank* included, are modulation destinations; the settings are
-not.
+All knobs are modulation destinations; the settings are not, except
+*Bank*, which a cable can drive.
 
 ### Inputs
 

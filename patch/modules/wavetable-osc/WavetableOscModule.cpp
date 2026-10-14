@@ -250,7 +250,7 @@ public:
     void process(const ProcessContext& c) override {
         dsp_.setOversampling(setting(Quality) >= 0.5f ? 2 : 1);
         const WavetableBank* user = user_.get();
-        const int sel = (int)value(c, BankSel, 0);
+        const int sel = (int)setting(BankSel);
         const WavetableBank* bank = sel <= 0 ? (user ? user : &sineBank()) : FactoryBanks::get().ready(sel - 1);
         if (bank != nullptr) {  // a factory bank still being built: keep the current one
             dsp_.setBank(bank);
@@ -333,7 +333,7 @@ static void registerWavetableOscModule(Registry& r) {
     s.params = {ParamSpec::steppedInt("octave", "Octave", -4, 4, 0).inGroup("Pitch"),
                 ParamSpec::number("coarse", "Coarse", -12.0f, 12.0f, 0.0f, "st", 1).inGroup("Pitch"),
                 ParamSpec::number("fine", "Fine", -100.0f, 100.0f, 0.0f, "ct", 0).inGroup("Pitch"),
-                ParamSpec::stepped("bank", "Bank", banks, 1).inGroup("Table"),
+                ParamSpec::choice("bank", "Bank", banks, 1).inGroup("Table"),
                 ParamSpec::percent("x", "X", 0.0f, 1.0f, 0.0f).inGroup("Table").when("path", 0, 0),
                 ParamSpec::percent("y", "Y", 0.0f, 1.0f, 0.0f).inGroup("Table").when("path", 0, 0),
                 ParamSpec::percent("scan", "Scan", 0.0f, 1.0f, 0.0f).inGroup("Table").when("path", 1, 5),

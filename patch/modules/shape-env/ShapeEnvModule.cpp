@@ -143,7 +143,7 @@ public:
         patch::ShapeEnvFrame f;
         for (int i = 0; i < c.numSamples; ++i) {
             p.time = value(c, Time, i);
-            p.shape = (int)value(c, Shape, i);
+            p.shape = (int)setting(Shape);
             p.morph = value(c, Morph, i);
             p.level = value(c, Level, i);
             p.velAmount = value(c, VelAmount, i);
@@ -195,7 +195,7 @@ static void registerShapeEnvModule(Registry& r) {
         groups.emplace_back("User");
     }
     for (int i = 0; i < ShapeEnvDsp::kSyncChoices; ++i) sync.emplace_back(ShapeEnvDsp::syncName(i));
-    auto shape = ParamSpec::stepped("shape", "Shape", names, 0);
+    auto shape = ParamSpec::choice("shape", "Shape", names, 0);
     shape.choiceGroups = groups;
     s.params = {ParamSpec::seconds("time", "Time", 0.001f, 60.0f, 0.5f, 0.5f),
                 shape,

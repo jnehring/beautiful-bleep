@@ -44,7 +44,7 @@ the chord root, and the chord is stacked from scale steps: in C major a
 shows the chord found and its degree (ii, V, …).
 
 **Latch.** With a cable in *Latch*, the module takes the pitch and the four
-stepped knobs (*Chord*, *Inversion*, *Voicing*, *Voices*) only at each pulse
+stepped settings (*Chord*, *Inversion*, *Voicing*, *Voices*) only at each pulse
 and holds the chord until the next one. *Tune*, *Shape*, *Detune* and the
 others stay live. Until the first pulse it plays as if unlatched.
 
@@ -117,9 +117,9 @@ Five whole patches show what Chord Osc does. In the standalone app open **File �
   Minor 7, Half-diminished, Diminished 7, Minor-major 7, 7sus4, Add9, Minor
   add9, 6/9, Major 9, Minor 9, Dominant 9, Quartal. In *Scale* mode a stack of
   scale steps: Single, Fifth, Triad, Sus2, Sus4, Sixth, Seventh, Add9, Ninth,
-  Quartal. Each mode has its own knob; both are stepped, so a cable moves them
-  from step to step.
-- **Inversion**, **Voicing**, **Voices:** stepped knobs, see *How does it
+  Quartal. Each mode has its own dropdown; a cable moves them from entry to entry,
+  read once per audio block.
+- **Inversion**, **Voices:** stepped knobs; **Voicing:** a dropdown a cable can drive, see *How does it
   work?*.
 - **Shape:** sine → triangle → saw → square for every voice, as the
   Oscillator's *Shape*.

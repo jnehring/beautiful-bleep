@@ -121,7 +121,7 @@ Five whole patches show what Swarm does. In the standalone app open **File → P
 - **Chord:** Unison, Octaves, Fifths, Sus2, Sus4, Major, Minor, Major 7,
   Minor 7, Dominant 7, Minor 9, Major 9, Add 9, Quartal (stacked fourths),
   Quintal (stacked fifths), Cluster (three semitones), then every scale:
-  Chromatic, Major, Natural Minor, …, Hirajoshi. A stepped knob: a cable moves
+  Chromatic, Major, Natural Minor, …, Hirajoshi. A dropdown: a cable moves
   it from entry to entry.
 - **Seed:** chooses start phases, glide times, the drift walks, pan jitter
   and the *Random* pattern. The same seed always sounds the same.

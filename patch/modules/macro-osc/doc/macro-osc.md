@@ -32,8 +32,8 @@ the centre of their filter, for the drums the body pitch (C4 is a mid tom,
 Dust, Kick, Snare, Metal) the *FM* input moves *Tone* instead (FM Depth 100 %
 and a +1 signal = the whole knob).
 
-**Changing models.** *Model* is a stepped knob: modulation snaps to the
-nearest model. A change crossfades over 5 ms, both models running, so a
+**Changing models.** *Model* is a dropdown a cable can drive: the cable snaps to the
+nearest model, read once per audio block. A change crossfades over 5 ms, both models running, so a
 Step Sequencer or a Random can play the models like notes without clicks. A
 change asked for during a fade follows when the fade ends. Every model keeps
 its state while another one plays, so a ringing string carries on when you

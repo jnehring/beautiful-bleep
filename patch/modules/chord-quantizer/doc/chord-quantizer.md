@@ -88,8 +88,8 @@ Five whole patches show what Chord Quantizer does. In the standalone app open **
 | Strum | 0 – 100 ms | 0 |
 | Velocity | 1 – 100 % | 80 % |
 
-Every knob is a modulation destination. *Chord* shows the table in Chromatic
-and the scale stacks in Diatonic.
+Every knob is a modulation destination. *Chord* is a dropdown (a cable can
+drive it) that shows the table in Chromatic and the scale stacks in Diatonic.
 
 ### Settings
 

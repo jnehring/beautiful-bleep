@@ -71,7 +71,7 @@ public:
         MacroOscParams p;
         for (int i = 0; i < c.numSamples; ++i) {
             if (i == 0 || (i & 7) == 0) {  // the skewed / stepped knobs every 8 samples
-                p.model = (int)value(c, Model, i);
+                p.model = (int)setting(Model);
                 p.decay = value(c, Decay, i);
                 p.level = value(c, Level, i);
                 p.gateColour = value(c, GateColour, i);
@@ -167,7 +167,7 @@ static void registerMacroOscModule(Registry& r) {
     const std::vector<std::string> models = {"VA Pair", "Fold",       "FM",   "Phase Warp", "Grain", "Harmonic",
                                              "Table",   "Chord",      "Vowel", "Noise Band", "Dust",  "Pluck",
                                              "Modal",   "Kick",       "Snare", "Metal"};
-    ParamSpec model = ParamSpec::stepped("model", "Model", models, 0).inGroup("Model");
+    ParamSpec model = ParamSpec::choice("model", "Model", models, 0).inGroup("Model");
     model.choiceGroups = {"Pitched", "Pitched", "Pitched", "Pitched", "Pitched", "Pitched", "Pitched", "Pitched",
                           "Pitched", "Noise",   "Noise",   "Struck",  "Struck",  "Struck",  "Struck",  "Struck"};
     s.params = {

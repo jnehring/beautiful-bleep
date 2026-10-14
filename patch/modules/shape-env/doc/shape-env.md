@@ -18,7 +18,7 @@ bounces, stutters, irregular gates) are one click away.
 ## How does it work?
 
 **Choosing.** *Shape* picks one of 104: 0–95 are the library, 96–103 your
-own (*User 1 … 8*). The knob shows the shape's name. **Browse** opens a grid
+own (*User 1 … 8*). The dropdown shows the shape's name. **Browse** opens a grid
 of thumbnails grouped by family; hover one to see it big, click to choose it.
 With the view focused, ← and → step through the shapes.
 
@@ -113,8 +113,8 @@ Five whole patches show what Shape Env does. In the standalone app open **File �
 | Vel Amount | 0 – 100 % | 0 % |
 | Skew | −1 … +1 | 0 |
 
-Every knob is a modulation destination (a cable on *Shape* steps through the
-library).
+Every knob is a modulation destination; a cable on the *Shape* dropdown steps
+through the library.
 
 ### Settings
 

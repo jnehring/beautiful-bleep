@@ -124,7 +124,7 @@ Five whole patches show what Perc Voice does. In the standalone app open **File 
   left, even partials right (the fundamental stays centred). *FM*: the two
   sides are detuned by up to ±8 cents.
 - **Level:** the output level.
-- **Engine:** FM, Modal or Noise Bank. A stepped knob, so it can be sequenced;
+- **Engine:** FM, Modal or Noise Bank. A dropdown a cable can drive, so it can be sequenced;
   it is read at each hit, and a sounding hit finishes with its own engine.
 - **Track:** off: the *Pitch* input is read at each hit; on: it is followed
   live.
