@@ -180,16 +180,23 @@ juce::var installedPlugins() {
 #endif
 
 // Presets: one JSON file per preset, shared by all sets. Cell presets (spec
-// §8.1), Drum Grid patterns (doc/specs/modules/drum-grid.md §4.6) and whole
-// patches (the preset browser, spec §11.5), by kind.
+// §8.1), Drum Grid patterns (doc/specs/modules/drum-grid.md §4.6), whole
+// patches (the preset browser, spec §11.5) and the user presets of each module
+// (kind "module:<type>", Module Presets/<type>/), by kind.
 struct PresetKind {
-    const char* folder;
-    const char* extension;
+    juce::String folder;
+    juce::String extension;
 };
 
 PresetKind presetKind(const juce::var& kind) {
-    if (kind.toString() == "drums") return {"Drum Patterns", ".bleepdrums"};
-    if (kind.toString() == "boards") return {"Boards", ".bleeppreset"};
+    const auto k = kind.toString();
+    if (k == "drums") return {"Drum Patterns", ".bleepdrums"};
+    if (k == "boards") return {"Boards", ".bleeppreset"};
+    if (k.startsWith("module:")) {
+        // The module's type is a folder name: keep it to a slug, so a kind can never leave Module Presets/.
+        const auto type = k.fromFirstOccurrenceOf("module:", false, false).retainCharacters("abcdefghijklmnopqrstuvwxyz0123456789-");
+        if (type.isNotEmpty()) return {"Module Presets/" + type, ".bleepmodule"};
+    }
     return {"Cells", ".bleepcell"};
 }
 
@@ -205,7 +212,7 @@ juce::File presetFile(const juce::String& name, const PresetKind& k) {
 
 juce::var presetList(const PresetKind& k) {
     juce::Array<juce::var> list;
-    auto files = presetFolder(k).findChildFiles(juce::File::findFiles, false, juce::String("*") + k.extension);
+    auto files = presetFolder(k).findChildFiles(juce::File::findFiles, false, "*" + k.extension);
     files.sort();
     for (const auto& f : files) {
         const auto v = juce::JSON::parse(f.loadFileAsString());

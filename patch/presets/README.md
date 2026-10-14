@@ -17,6 +17,31 @@ ctest --test-dir build/patch -R factory   # the engine loads every preset withou
 ctest --test-dir build/patch -R demo      # every demo board loads and makes sound
 ```
 
+## Module presets
+
+The third kind: presets of **one module**, shown as the preset bar in that module's view (*Factory* and *User*;
+spec: [`doc/specs/specs.md`](../../doc/specs/specs.md) section 9.4). They live in [`modules/<type>.mjs`](modules/),
+ten to twenty per module, in units, and [`build-modules.mjs`](build-modules.mjs) compiles them into
+[`../board/ui/module-presets.json`](../board/ui/module-presets.json).
+
+```bash
+node patch/presets/build-modules.mjs                    # write module-presets.json
+node patch/presets/build-modules.mjs --check            # CI: the JSON is current
+node patch/presets/build-modules.mjs --only filter,lfo  # check just these (writes nothing)
+```
+
+```js
+// modules/filter.mjs: [name, knobs in units, description]; knobs it does not list follow the module's defaults
+export default [
+  ["Moog Bass", { type: "Ladder Tanh", cutoff: 260, resonance: 0.55, drive: 0.3 }, "Fat ladder low-pass with some bite."],
+];
+```
+
+The build rejects unknown knobs, values outside a knob's range, unknown choices, duplicate names or identical presets and
+fewer than ten or more than twenty presets. A module without a file has no preset bar (the Patch Bay, meters, mixers,
+controllers, samplers). Factory presets are read-only; the user's own live in the native library `module:<type>`
+(`<app data>/Beautiful Bleep/Module Presets/<type>/`, one `.bleepmodule` file each) and keep every knob plus the node's `data`.
+
 ## How the preset system fits together
 
 | Piece | Where | What |

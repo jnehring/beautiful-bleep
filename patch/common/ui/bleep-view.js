@@ -29,6 +29,11 @@
 //   view.update(nodeState)        live values: { params: {id: {v, e, a, t}}, outputs }
 //   view.refresh(node)            the node changed (cables, values from undo)
 //
+// Presets: a module with factory presets (module-presets.json, built from patch/presets/modules)
+// gets a preset bar above its controls, the same for every module: previous / next, a menu with
+// the Factory presets (read-only) and the user's own, and Save. User presets live in the
+// "module:<type>" library of api.presets / savePreset / deletePreset: {format, params, data?}.
+//
 // A module adds its own displays with BleepViews.register(type, hooks):
 //   template   HTML for the custom section
 //   top        false: the controls come before the custom section (default: after it)
@@ -43,6 +48,20 @@
 //              Without a layout the module's ParamSpec groups become the sections.
 //   hideParams   ids of knobs/settings the custom section replaces (they stay
 //                modulatable through cables, just not drawn twice)
+//   parts      names (and, where the template alone does not say, selectors) for the displays
+//              of the custom section, so a panel can show one alone:
+//                [{ id: "display", name: "Grain display", select: ".bv-panel" }, ...]
+//              Without it every top-level element of the template is a part, named after its
+//              <h2> (the text before " · "), else "Display".
+//   partNames  names for those top-level elements, in order, instead of the <h2>s: ["Pattern grid"]
+//
+// Parts (panels show them alone, spec panels.md "Parts of a module view"): the displays of the
+// custom section ("d:<slug>"), each titled section of knobs ("s:<slug>") and the button bar
+// ("b:buttons"). BleepView.partsOf(type) → [{id, name, kind, knobs}] lists them without building
+// a view; view.parts is the built ones, view.showOnly(id) hides everything but one (it stays
+// laid out, so a display that measures its siblings keeps drawing) and fills the view's box.
+// api.partMenu(partId | null, event) (optional) is called on a right-click on a part, or on the
+// view's background.
 //   afterBuild(view, customElement)
 //   onState(nodeState, view)
 //   onRefresh(view)    the node changed (undo, another edit)
@@ -108,6 +127,266 @@
     return () => dragging;
   }
 
+  // ---- parts: what a panel can show of a view on its own
+  const slug = (t) => String(t).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "x";
+  const shortTitle = (t) => String(t).split(/\s[·—–:]\s/)[0].trim();
+  const notStyle = (e) => e.tagName !== "STYLE" && e.tagName !== "SCRIPT";
+  /// The top-level elements of a template, without building a view.
+  function templateKids(html) {
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    return [...t.content.children].filter(notStyle);
+  }
+  const uniqueId = (taken, base) => { let id = base, i = 2; while (taken.has(id)) id = base + "-" + i++; taken.add(id); return id; };
+  /// The displays of the custom section: {id, name, select?, index?}; index -1 is the section itself.
+  function displayParts(h, taken) {
+    if (!h) return [];
+    if (h.parts) return h.parts.map((d) => ({ id: uniqueId(taken, "d:" + d.id), name: d.name, select: d.select, kind: "display" }));
+    const kids = h.template ? templateKids(h.template) : [];
+    if (!kids.length) return h.template ? [{ id: uniqueId(taken, "d:display"), name: "Display", index: -1, kind: "display" }] : [];
+    // the <h2>'s own text, not what its buttons and selects add to it
+    const own = (t) => [...t.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").trim();
+    const names = kids.map((k, i) => {
+      if (h.partNames && h.partNames[i]) return h.partNames[i];
+      const t = k.tagName === "H2" ? k : k.querySelector("h2");
+      return t && own(t) ? shortTitle(own(t)) : "";
+    });
+    return kids.map((k, i) => {
+      const name = names[i] || (kids.length > 1 ? "Display " + (i + 1) : "Display");
+      return { id: uniqueId(taken, "d:" + slug(name)), name, index: i, kind: "display" };
+    });
+  }
+  /// The titled sections of knobs: [{id, name, knobs}] in the order the view lays them out.
+  function sectionParts(type, h, taken) {
+    const out = [];
+    const add = (name, ids) => { if (name && ids.length) out.push({ id: uniqueId(taken, "s:" + slug(name)), name, kind: "controls", knobs: ids.length }); };
+    const hide = new Set((h && h.hideParams) || []);
+    const known = new Set(type.params.map((p) => p.id));
+    if (h && h.layout) for (const l of h.layout) add(l.title, l.params.filter((id) => known.has(id) && !hide.has(id)));
+    else {
+      const groups = new Map();
+      for (const p of type.params) if (p.group && !hide.has(p.id) && (p.kind === "float" || p.modulatable)) groups.set(p.group, (groups.get(p.group) || 0) + 1);
+      for (const [g, n] of groups) add(g, new Array(n));
+    }
+    return out;
+  }
+  /// Everything of this module's view a panel can show alone: [{id, name, kind: "display" | "controls" | "buttons", knobs?}].
+  function partsOf(type) {
+    const h = hooks[type.type], taken = new Set();
+    const out = [...displayParts(h, taken), ...sectionParts(type, h, taken)];
+    if (type.buttons && type.buttons.length) out.push({ id: "b:buttons", name: "Buttons", kind: "buttons" });
+    return out.map(({ id, name, kind, knobs }) => ({ id, name, kind, ...(knobs ? { knobs } : {}) }));
+  }
+
+
+  // ---- presets
+  // Factory presets are written in units and compiled to normalised values by patch/presets/build-modules.mjs;
+  // a preset lists only the knobs it sets (the rest follow the module's defaults).
+  let factoryDoc = { modules: {} }, factoryLoad = null;
+  function loadFactoryPresets() {
+    if (!factoryLoad)
+      factoryLoad = fetch("module-presets.json").then((r) => (r.ok ? r.json() : null))
+        .then((d) => { if (d && d.modules) factoryDoc = d; }).catch(() => {});
+    return factoryLoad;
+  }
+  loadFactoryPresets();
+  const factoryOf = (type) => factoryDoc.modules[type] || [];
+  const userKind = (type) => "module:" + type;
+  const userCache = new Map();    // module type → the user's presets [{name, preset}], as last read
+  const lastLoaded = new Map();   // node id → {origin: "factory" | "user", name}: what the node was set from
+  const sameValue = (a, b) => Math.abs(a - b) < 5e-4;
+  const clone = (x) => JSON.parse(JSON.stringify(x));
+  let openMenu = null;            // the one preset menu on screen
+
+  function closeMenu() {
+    if (!openMenu) return;
+    openMenu.el.remove();
+    document.removeEventListener("pointerdown", openMenu.away, true);
+    document.removeEventListener("keydown", openMenu.key, true);
+    openMenu = null;
+  }
+
+  /// The preset bar of a view: view.presets = {el, update()} (null without factory presets).
+  function makePresetBar(view, type, applyPreset) {
+    const bar = el("div", "bv-presets");
+    const prev = el("button", "bv-pbtn", "‹"), next = el("button", "bv-pbtn", "›");
+    const pick = el("button", "bv-ppick");
+    const label = el("span", "bv-pname"), mark = el("span", "bv-pmark");
+    pick.append(label, mark, el("span", "bv-pcaret", "▾"));
+    const save = el("button", "bv-pbtn bv-psave", "Save");
+    prev.title = "Previous preset"; next.title = "Next preset"; pick.title = "Presets";
+    bar.append(prev, pick, next, save);
+
+    const factory = () => factoryOf(type.type).map((p) => ({ origin: "factory", name: p.name, params: p.params, description: p.description }));
+    const user = () => (userCache.get(type.type) || []).map((p) => ({ origin: "user", name: p.name, params: p.preset.params || {}, data: p.preset.data, description: p.preset.description }));
+    const all = () => factory().concat(user());
+    const matches = (p) => type.params.every((q) => sameValue(view.node.params[q.id] ?? q.default, q.id in p.params ? p.params[q.id] : q.default));
+    /// The preset the node is set to: the one it was loaded from (if the knobs still agree, else modified), or any that agrees.
+    function current() {
+      const list = all(), seen = lastLoaded.get(view.node.id);
+      const from = seen && list.find((p) => p.origin === seen.origin && p.name === seen.name);
+      if (from) return { preset: from, modified: !matches(from) };
+      const hit = list.find(matches);
+      return hit ? { preset: hit, modified: false } : { preset: null, modified: false };
+    }
+    function update() {
+      const c = current();
+      label.textContent = c.preset ? c.preset.name : "Custom";
+      label.classList.toggle("bv-pnone", !c.preset);
+      mark.textContent = c.modified ? "●" : "";
+      mark.title = c.modified ? "Changed since loaded" : "";
+      pick.classList.toggle("bv-pmod", c.modified);
+      // Save: a changed user preset is overwritten; anything else asks for a name.
+      save.title = c.preset && c.preset.origin === "user" ? (c.modified ? "Overwrite “" + c.preset.name + "”" : "Save as a new preset…") : "Save as a new preset…";
+      save.classList.toggle("bv-pdirty", c.modified && !!c.preset && c.preset.origin === "user");
+    }
+    function load(p) {
+      lastLoaded.set(view.node.id, { origin: p.origin, name: p.name });
+      applyPreset(p);
+      update();
+    }
+    function step(d) {
+      const list = all();
+      if (!list.length) return;
+      const c = current();
+      const i = c.preset ? list.findIndex((p) => p.origin === c.preset.origin && p.name === c.preset.name) : -1;
+      load(list[i < 0 ? (d > 0 ? 0 : list.length - 1) : (i + d + list.length) % list.length]);
+    }
+    prev.addEventListener("click", () => refreshUser().then(() => step(-1)));
+    next.addEventListener("click", () => refreshUser().then(() => step(1)));
+    async function refreshUser() {
+      if (!view.api.presets) return;
+      try {
+        const list = await view.api.presets(userKind(type.type));
+        if (Array.isArray(list)) userCache.set(type.type, list.filter((p) => p && typeof p.name === "string" && p.preset && p.preset.params));
+      } catch (e) { /* the library is unavailable: factory presets only */ }
+    }
+
+    // ---- saving
+    function snapshot() {
+      const params = {};
+      for (const q of type.params) params[q.id] = view.node.params[q.id] ?? q.default;
+      const out = { format: 1, params };
+      if (view.node.data !== undefined && view.node.data !== null) out.data = clone(view.node.data);
+      return out;
+    }
+    async function store(name, existing) {
+      if (!view.api.savePreset) return "Presets cannot be saved here.";
+      const preset = snapshot();
+      if (existing && existing.description) preset.description = existing.description;
+      const list = await view.api.savePreset(userKind(type.type), name, preset);
+      if (!Array.isArray(list)) return "The preset could not be saved.";
+      userCache.set(type.type, list.filter((p) => p && p.preset && p.preset.params));
+      lastLoaded.set(view.node.id, { origin: "user", name });
+      update();
+      return "";
+    }
+    save.addEventListener("click", async () => {
+      await refreshUser();
+      const c = current();
+      if (c.preset && c.preset.origin === "user" && c.modified) {
+        const err = await store(c.preset.name, c.preset);
+        if (err) showMenu(err);
+      } else showMenu(null, true);
+    });
+
+    // ---- the menu (attached to the page, so a window's scrolling does not clip it)
+    async function showMenu(notice, saving) {
+      closeMenu();
+      await refreshUser();
+      const menu = el("div", "bv-pmenu");
+      menu.style.setProperty("--accent", getComputedStyle(view.root).getPropertyValue("--accent"));
+      const c = current();
+      const isCurrent = (p) => c.preset && c.preset.origin === p.origin && c.preset.name === p.name;
+      const item = (p) => {
+        const row = el("div", "bv-pitem" + (isCurrent(p) ? " on" : ""));
+        row.append(el("span", "bv-pitem-name", p.name));
+        if (p.description) row.title = p.description;
+        row.addEventListener("click", () => { closeMenu(); load(p); });
+        return row;
+      };
+      const fac = factory();
+      menu.append(el("div", "bv-phead", "Factory"));
+      for (const p of fac) menu.appendChild(item(p));
+      menu.append(el("div", "bv-phead", "User"));
+      const mine = user();
+      if (!mine.length) menu.append(el("div", "bv-pempty", "Nothing saved yet. Use Save to keep the current settings."));
+      for (const p of mine) {
+        const row = item(p);
+        const del = el("button", "bv-pdel", "×");
+        del.title = "Delete preset";
+        del.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          if (!del.classList.contains("sure")) {
+            del.classList.add("sure"); del.textContent = "Delete?";
+            setTimeout(() => { del.classList.remove("sure"); del.textContent = "×"; }, 3000);
+            return;
+          }
+          const list = await view.api.deletePreset(userKind(type.type), p.name);
+          if (Array.isArray(list)) userCache.set(type.type, list.filter((q) => q && q.preset && q.preset.params));
+          const seen = lastLoaded.get(view.node.id);
+          if (seen && seen.origin === "user" && seen.name === p.name) lastLoaded.delete(view.node.id);
+          update();
+          showMenu();
+        });
+        row.appendChild(del);
+        menu.appendChild(row);
+      }
+      // Footer: save under a name, back to the defaults.
+      const foot = el("div", "bv-pfoot");
+      const form = el("form", "bv-pform");
+      const input = el("input", "bv-pinput");
+      input.placeholder = "Name of a new preset";
+      input.maxLength = 60;
+      input.value = saving && c.preset && c.preset.origin === "user" ? c.preset.name : "";
+      const go = el("button", "bv-pbtn", "Save");
+      go.type = "submit";
+      const msg = el("div", "bv-pmsg", notice || "");
+      form.append(input, go);
+      let replace = "";
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = input.value.trim();
+        if (!name) { msg.textContent = "Give the preset a name."; return; }
+        if (fac.some((p) => p.name.toLowerCase() === name.toLowerCase())) { msg.textContent = "“" + name + "” is a factory preset and cannot be replaced. Pick another name."; return; }
+        const old = mine.find((p) => p.name.toLowerCase() === name.toLowerCase());
+        if (old && replace !== name.toLowerCase() && !(c.preset && c.preset.origin === "user" && c.preset.name === old.name)) {
+          replace = name.toLowerCase();
+          msg.textContent = "“" + old.name + "” exists. Save again to replace it.";
+          return;
+        }
+        const err = await store(old ? old.name : name, old);
+        if (err) msg.textContent = err;
+        else closeMenu();
+      });
+      input.addEventListener("input", () => { msg.textContent = ""; replace = ""; });
+      const init = el("button", "bv-pbtn bv-pinit", "Reset to defaults");
+      init.addEventListener("click", () => { closeMenu(); lastLoaded.delete(view.node.id); applyPreset({ params: {} }); update(); });
+      foot.append(form, msg, init);
+      menu.appendChild(foot);
+
+      document.body.appendChild(menu);
+      const r = pick.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8)) + "px";
+      const below = innerHeight - r.bottom - 12;
+      menu.style.top = r.bottom + 4 + "px";
+      menu.style.maxHeight = Math.max(160, below) + "px";
+      const away = (e) => { if (!menu.contains(e.target) && !pick.contains(e.target) && !save.contains(e.target)) closeMenu(); };
+      const key = (e) => { if (e.key === "Escape") { e.stopPropagation(); closeMenu(); } };
+      document.addEventListener("pointerdown", away, true);
+      document.addEventListener("keydown", key, true);
+      openMenu = { el: menu, away, key, owner: pick };
+      const sel = menu.querySelector(".bv-pitem.on");
+      if (sel) sel.scrollIntoView({ block: "nearest" });
+      if (saving) input.focus();
+    }
+    // The user's presets, read once per module type, so a node set to one of them shows its name straight away.
+    if (!userCache.has(type.type)) refreshUser().then(update);
+    pick.addEventListener("click", () => (openMenu && openMenu.owner === pick ? closeMenu() : showMenu()));
+    update();
+    return { el: bar, update };
+  }
+
   function create(type, node, api) {
     const root = el("div", "bleep-view");
     root.style.setProperty("--accent", type.colour || "#4fd1c5");
@@ -145,6 +424,7 @@
       view.node.params[id] = v;
       api.setParam(id, v);
       if (drivers.has(id)) applyLayout();
+      if (view.presets) view.presets.update();
     }
     /// Shows, hides and renames knobs and settings after a mode change.
     function applyLayout() {
@@ -369,6 +649,7 @@
     if (h && h.side) root.classList.add("bv-side");
 
     // ---- buttons (ModuleSpec::buttons): momentary ones also send 0 on release
+    let buttonsEl = null;
     if (type.buttons && type.buttons.length && api.command) {
       const bar = el("section", "bv-buttons");
       for (const b of type.buttons) {
@@ -392,12 +673,81 @@
         bar.appendChild(btn);
       }
       root.insertBefore(bar, root.querySelector(".bv-description"));
+      buttonsEl = bar;
     }
     applyLayout();
 
-    if (h && h.template) customEl.innerHTML = h.template;
+    let tplKids = [];
+    if (h && h.template) { customEl.innerHTML = h.template; tplKids = [...customEl.children].filter(notStyle); }
     if (h && h.afterBuild) h.afterBuild(view, customEl);
+
+    // ---- parts (see the header): the elements a panel can show alone
+    view.parts = new Map();
+    const taken = new Set();
+    for (const d of displayParts(h, taken)) {
+      const e = d.select ? customEl.querySelector(d.select) : d.index === -1 ? customEl : tplKids[d.index];
+      if (e) view.parts.set(d.id, { ...d, el: e });
+    }
+    for (const sp of sectionParts(type, h, taken)) {
+      const e = [...controlsEl.querySelectorAll(".bv-sec")].find((x) => { const t = x.querySelector(".bv-sec-title"); return t && t.textContent === sp.name; });
+      if (e) view.parts.set(sp.id, { ...sp, el: e });
+    }
     if (!customEl.childElementCount) customEl.remove();
+    if (buttonsEl) view.parts.set("b:buttons", { id: "b:buttons", name: "Buttons", kind: "buttons", el: buttonsEl });
+
+    /// Hides everything but one part (it stays laid out, only invisible, so displays that measure
+    /// their neighbours keep drawing) and lets the part fill the view's box. False: no such part.
+    view.showOnly = (id) => {
+      const part = view.parts.get(id);
+      if (!part || !root.contains(part.el)) return false;
+      root.classList.add("bv-part");
+      for (let e = part.el; e !== root; e = e.parentElement) {
+        e.classList.add("bv-path");
+        for (const sib of e.parentElement.children) if (sib !== e && notStyle(sib)) sib.classList.add("bv-off");
+      }
+      // a lone canvas takes the box's height instead of its own
+      const canvases = part.el.tagName === "CANVAS" ? [part.el] : part.el.querySelectorAll("canvas");
+      if (canvases.length === 1 && (canvases[0] === part.el || canvases[0].parentElement === part.el)) canvases[0].classList.add("bv-fill");
+      return true;
+    };
+
+    // ---- right-click: "Add to panel" for the part under the pointer, else for the view
+    if (api.partMenu) {
+      const partMenu = (id) => (e) => {
+        if (e.defaultPrevented || e.target.closest("input, select, textarea")) return;
+        e.preventDefault();
+        e.stopPropagation();
+        api.partMenu(id, e);
+      };
+      for (const [id, part] of view.parts) part.el.addEventListener("contextmenu", partMenu(id));
+      root.addEventListener("contextmenu", partMenu(null));
+    }
+
+    // ---- presets: a bar above the controls for modules with factory presets (same for all)
+    /// Sets every knob and setting from a preset {params: {id: 0..1}, data?}; knobs it does not list go to their defaults.
+    view.applyPreset = (preset) => {
+      api.beginGesture();
+      for (const p of type.params) {
+        const v = preset.params && p.id in preset.params ? preset.params[p.id] : p.default;
+        setParam(p.id, v);
+      }
+      if (preset.data !== undefined && preset.data !== null && api.setData) {
+        view.node.data = clone(preset.data);
+        api.setData(view.node.data);
+      }
+      for (const k of view.knobs.values()) k.draw();
+      for (const s of view.settings.values()) s.draw();
+      applyLayout();
+      if (h && h.onRefresh) h.onRefresh(view);
+    };
+    view.presets = null;
+    const addPresetBar = () => {
+      if (view.presets || !factoryOf(type.type).length || !type.params.length) return;
+      view.presets = makePresetBar(view, type, view.applyPreset);
+      root.insertBefore(view.presets.el, stage);
+    };
+    addPresetBar();
+    if (!view.presets) loadFactoryPresets().then(addPresetBar);
 
     view.update = (st) => {
       if (!st) return;
@@ -425,6 +775,7 @@
       for (const s of view.settings.values()) s.draw();
       applyLayout();
       if (h && h.onRefresh) h.onRefresh(view);
+      if (view.presets) view.presets.update();
     };
     /// Effective value of a param (modulated if active), for custom displays.
     view.value = (st, id) => {
@@ -500,5 +851,5 @@
     return () => cancelAnimationFrame(id);
   }
 
-  window.BleepView = { create, mediaDrop, fit, theme, glow, loop };
+  window.BleepView = { create, partsOf, mediaDrop, fit, theme, glow, loop };
 })();

@@ -23,6 +23,7 @@ jobs:
       - run: node patch/web/test/store-client-test.mjs
       - run: python3 scripts/check/check-api-docs.py
       - run: node patch/presets/build.mjs --check
+      - run: node patch/presets/build-modules.mjs --check
       - run: python3 scripts/docs/build-docs.py --out build/docs
       - uses: actions/upload-artifact@v4
         with:

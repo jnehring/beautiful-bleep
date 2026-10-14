@@ -62,3 +62,45 @@
            text-align: center; cursor: pointer; }
 .bv-drop.over { border-color: var(--accent); color: var(--text); background: var(--panel-3); }
 .bv-drop.busy { opacity: .5; pointer-events: none; }
+
+/* Parts (bleep-view.js showOnly): one display, section or button bar of a view fills its box; the rest stays laid out but invisible. */
+.bleep-view.bv-part { height: 100%; box-sizing: border-box; position: relative; overflow: hidden; padding: 0; gap: 0; }
+.bleep-view.bv-part .bv-path { flex: 1 1 0; min-height: 0; min-width: 0; display: flex; flex-direction: column; flex-wrap: nowrap; gap: 0; }
+.bleep-view.bv-part .bv-path:is(.bv-sec, .bv-buttons) { flex: 0 1 auto; align-self: flex-start; max-width: 100%; }
+.bleep-view.bv-part .bv-path.bv-buttons { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+.bleep-view.bv-part .bv-off { position: absolute; left: 0; top: 0; width: 100%; visibility: hidden; pointer-events: none; }
+.bleep-view.bv-part .bv-fill { flex: 1 1 0; height: 0 !important; min-height: 0; }
+.bleep-view.bv-part canvas.bv-fill:only-child { width: 100%; }
+
+/* Preset bar (bleep-view.js makePresetBar) and its menu, the same in every module view. */
+.bv-presets { display: flex; align-items: center; gap: 4px; }
+.bv-pbtn { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+           padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; line-height: 1.2; }
+.bv-pbtn:hover { border-color: var(--accent); }
+.bv-ppick { flex: 0 1 240px; min-width: 150px; display: flex; align-items: center; gap: 6px; text-align: left; background: var(--panel-2);
+            color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+.bv-ppick:hover { border-color: var(--accent); }
+.bv-pname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bv-pnone { color: var(--muted); font-style: italic; }
+.bv-pmark { color: var(--accent); font-size: 9px; }
+.bv-pcaret { color: var(--muted); font-size: 10px; }
+.bv-psave { margin-left: 4px; }
+.bv-psave.bv-pdirty { background: var(--accent); color: #0d1014; border-color: var(--accent); }
+.bv-pmenu { position: fixed; z-index: 1000; width: 280px; overflow-y: auto; background: var(--panel); color: var(--text);
+            border: 1px solid var(--line); border-radius: 8px; padding: 4px; font-size: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
+.bv-phead { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 7px 8px 3px; }
+.bv-pitem { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+.bv-pitem:hover { background: var(--panel-3); }
+.bv-pitem.on { color: var(--accent); background: var(--panel-2); }
+.bv-pitem-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bv-pdel { background: none; border: 0; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; padding: 0 3px; }
+.bv-pdel:hover, .bv-pdel.sure { color: var(--warn); }
+.bv-pempty { color: var(--muted); padding: 3px 8px 5px; }
+.bv-pfoot { border-top: 1px solid var(--line); margin-top: 5px; padding: 7px 4px 3px; display: flex; flex-direction: column; gap: 6px; }
+.bv-pform { display: flex; gap: 4px; }
+.bv-pinput { flex: 1; min-width: 0; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+             padding: 3px 7px; font: inherit; font-size: 12px; }
+.bv-pinput:focus { outline: none; border-color: var(--accent); }
+.bv-pmsg { color: var(--warn); font-size: 11px; }
+.bv-pmsg:empty { display: none; }
+.bv-pinit { align-self: flex-start; color: var(--muted); }

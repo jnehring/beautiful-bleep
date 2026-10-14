@@ -45,6 +45,29 @@ Click a node to open its view: knobs, settings and its own displays. Views
 float over the board; open as many as you like, drag them by the title, pin
 them (📌) to keep them open when you enter or leave cells.
 
+### Module presets
+
+Most modules with sound-shaping knobs (oscillators, filters, effects,
+envelopes, drums, …) have a **preset bar** at the top of their view. It looks
+the same in every module:
+
+- **‹ ›** step to the previous or next preset. The name in the middle opens the
+  list, which has two parts: **Factory** presets that ship with Beautiful Bleep,
+  and **User** presets that you saved yourself. A dot (●) next to the name means
+  you changed a knob after loading the preset.
+- **Save** keeps the current settings as a preset of your own: type a name and
+  press Enter. If the loaded preset is one of yours and you changed it, **Save**
+  overwrites it. In the menu, **×** (click twice) deletes one of your presets.
+- **Factory presets can't be changed or deleted.** To build on one, load it,
+  change it and save it under a new name.
+- **Reset to defaults** (at the bottom of the list) puts every knob back.
+
+A preset sets the module's own knobs and settings, never its cables. Modules
+that keep a pattern or other content in their view (sequencers, for example)
+save that content in your own presets too. Modules like the Patch Bay, meters
+and mixers have no presets. Your presets are shared by all your boards and
+live next to your cell presets (in the folder *Module Presets*).
+
 ## Cells
 
 - **Add → Cell → New Cell** or **New Voice Cell** places an empty cell.

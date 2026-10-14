@@ -507,6 +507,7 @@ A **module view** is a module's full UI: its knobs, switches, mod rings, scopes 
 - **Linking:** a thin line connects an open view to its node while either is hovered.
 - **Mod rings:** dropping a cable on a knob in a view modulates that knob (section 9.5).
 
+- **Presets:** a module that has factory presets (`board/ui/module-presets.json`, written in units in `patch/presets/modules/<type>.mjs`) shows the same **preset bar** above its controls: previous / next, a menu (**Factory**, read-only, and **User**) and Save. A preset is `{params: {id: 0…1}, data?}`; a factory preset lists only the knobs it sets and the rest follow their defaults. A user preset stores every knob, plus the node's `data` when it has any, in the native library `module:<type>` (`<app data>/Beautiful Bleep/Module Presets/<type>/*.bleepmodule`). Loading one is a single undo step and never touches cables. Factory names can't be reused for user presets. Modules without a preset file (the Patch Bay, meters, mixers, controllers, samplers) get no bar.
 Module view sketch:
 
 ```

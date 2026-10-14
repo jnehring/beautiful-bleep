@@ -45,7 +45,7 @@ export function denormalise(p, x) {
 
 /// One knob value in units → normalised. Floats and ints take numbers in
 /// units; choices take the choice's name (or its index); toggles take booleans.
-function resolveParam(where, p, v) {
+export function resolveParam(where, p, v) {
   if (v && typeof v === "object" && "raw" in v) return v.raw;
   if (p.kind === "choice") {
     let i = typeof v === "number" ? v : p.choices.indexOf(v);
