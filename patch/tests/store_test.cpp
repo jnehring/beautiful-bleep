@@ -3,11 +3,15 @@
 // The store's checks in C++ (patch/store, developers/reference/signing.md): every package in patch/tests/store-fixtures must get the
 // verdict the Python reference gave it (scripts/release/signing.py fixture), and the pieces underneath (content hash,
 // canonical JSON) must give Python's exact bytes. patch/web/test/store-client-test.mjs runs the same cases in JavaScript.
+#include "store/Account.h"
 #include "store/Client.h"
 #include "store/Verify.h"
 
 #include <cstdio>
 #include <cstring>
+#if !JUCE_WINDOWS
+#include <sys/stat.h>
+#endif
 
 using namespace bleep::store;
 
@@ -280,6 +284,110 @@ void testRevocations(const juce::File& fixtures) {  // signing.md section 8: the
     tmp.deleteRecursively();
 }
 
+
+/// The sign-in against a pretend store: the device flow, the token in the token store, authenticated calls, revocation.
+void testAccount() {
+    const juce::File dir = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-account-test");
+    dir.deleteRecursively();
+    dir.createDirectory();
+    Settings s;
+    s.storeUrl = "https://store.example/";
+    s.save(dir);
+
+    struct Fake {
+        int polls = 0;
+        bool revoked = false, down = false;
+        std::vector<HttpRequest> seen;
+    } fake;
+    auto json = [](const char* text) { return std::string(text); };
+    Transport transport = [&](const HttpRequest& r) -> HttpResponse {
+        fake.seen.push_back(r);
+        if (fake.down) return {};
+        const std::string path = r.url.substr(std::string("https://store.example").size());
+        if (path == "/api/auth/device" && r.method == "POST")
+            return {201, json(R"({"device_code":"dev-secret","user_code":"ABCD-EFGH","verification_url":"/device/","expires_in":600,"interval":5})")};
+        if (path == "/api/auth/device/token") {
+            if (r.body.find("dev-secret") == std::string::npos) return {410, json(R"({"detail":"expired"})")};
+            if (++fake.polls < 3) return {200, json(R"({"status":"pending"})")};
+            return {200, json(R"({"status":"approved","token":"blu_secret","user":{"display_name":"Ann","email":"a@example.com"}})")};
+        }
+        if (r.bearer != "blu_secret" || fake.revoked) return {401, json(R"({"detail":"Not signed in"})")};
+        if (path == "/api/tokens/self" && r.method == "GET") return {200, json(R"({"display_name":"Ann","email":"a@example.com"})")};
+        if (path == "/api/tokens/self" && r.method == "DELETE") { fake.revoked = true; return {204, ""}; }
+        if (path == "/api/presets" && r.method == "POST") {
+            std::string compact;   // JUCE writes `"title": ""`
+            for (char c : r.body) if (c != ' ') compact += c;
+            if (compact.find("\"title\":\"\"") != std::string::npos)
+                return {422, json(R"({"detail":[{"loc":["body","title"],"msg":"String should have at least 1 character"}]})")};
+            return {201, json(R"({"address":"ann/warm-pad","version":1})")};
+        }
+        return {404, json(R"({"detail":"No such thing"})")};
+    };
+    Account account(dir, transport, makeFileTokenStore(dir));
+
+    juce::var st = account.status();
+    CHECK(!(bool)st["signedIn"] && st["storeUrl"].toString() == "https://store.example", "starts signed out");
+    CHECK(account.pollSignIn()["state"].toString() == "none", "no flow, nothing to poll");
+    CHECK(account.call("GET", "/api/presets", juce::var())["status"].toString() == "401", "a call without a login is refused here, no network");
+    CHECK(fake.seen.empty(), "nothing was sent");
+
+    const juce::var start = account.startSignIn("Bleep Standalone");
+    CHECK(start["userCode"].toString() == "ABCD-EFGH" && start["url"].toString() == "https://store.example/device/?code=ABCD-EFGH", "start: %s",
+          juce::JSON::toString(start).toRawUTF8());
+    CHECK(fake.seen.back().body.find("Bleep Standalone") != std::string::npos, "the app's name is sent");
+    CHECK((bool)account.status()["pending"].isObject(), "pending shows in the status");
+    CHECK(account.pollSignIn()["state"].toString() == "pending", "poll 1 pending");
+    CHECK(account.pollSignIn()["state"].toString() == "pending", "poll 2 pending");
+    const juce::var done = account.pollSignIn();
+    CHECK(done["state"].toString() == "approved" && (bool)done["signedIn"] && done["name"].toString() == "Ann", "approved: %s", juce::JSON::toString(done).toRawUTF8());
+    CHECK(!done["pending"].isObject(), "no longer pending");
+    CHECK(!dir.getChildFile("settings.json").loadFileAsString().contains("blu_secret"), "the token is not in settings.json");
+    CHECK(makeFileTokenStore(dir)->load("https://store.example") == "blu_secret", "the token is kept for the store address");
+#if !JUCE_WINDOWS
+    struct stat info;
+    CHECK(::stat(dir.getChildFile("account.json").getFullPathName().toRawUTF8(), &info) == 0 && (info.st_mode & 077) == 0, "the token file is owner-only");
+#endif
+
+    // another Account of this machine (a plugin next to the app) finds the same login
+    Account other(dir, transport, makeFileTokenStore(dir));
+    CHECK((bool)other.status(true)["signedIn"] && other.status()["name"].toString() == "Ann", "a second instance is signed in too");
+
+    const juce::var shared = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":"Warm Pad","type":"patch","preset":{"nodes":[{}]}})"));
+    CHECK((int)shared["status"] == 201 && shared["body"]["address"].toString() == "ann/warm-pad", "shared: %s", juce::JSON::toString(shared).toRawUTF8());
+    CHECK(fake.seen.back().bearer == "blu_secret" && fake.seen.back().url == "https://store.example/api/presets", "the token goes in the header");
+    const juce::var bad = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":""})"));
+    CHECK((int)bad["status"] == 422 && bad["error"].toString() == "title: String should have at least 1 character", "the store's reason: %s", bad["error"].toString().toRawUTF8());
+    const size_t sent = fake.seen.size();
+    for (const char* path : {"https://evil.example/api/x", "/other", "/api/../x", "/api/a://b"})
+        CHECK((int)account.call("GET", path, juce::var())["status"] == 0, "refused: %s", path);
+    CHECK(account.call("TRACE", "/api/presets", juce::var())["error"].isString() && fake.seen.size() == sent, "only the store's API, only known methods");
+
+    fake.down = true;   // the store is down: still signed in, shown as offline
+    juce::var offline = account.status(true);
+    CHECK((bool)offline["signedIn"] && (bool)offline["offline"], "offline keeps the token");
+    fake.down = false;
+    fake.revoked = true;   // revoked on the site's account page
+    CHECK(!(bool)account.status(true)["signedIn"], "a revoked token signs this machine out");
+    CHECK(makeFileTokenStore(dir)->load("https://store.example").empty(), "and is forgotten");
+
+    // sign in again, then sign out: the token is revoked at the store
+    fake.revoked = false;
+    fake.polls = 0;
+    account.startSignIn("Bleep");
+    for (int i = 0; i < 3; ++i) account.pollSignIn();
+    CHECK((bool)account.status()["signedIn"], "signed in again");
+    CHECK(!(bool)account.signOut()["signedIn"] && fake.revoked, "sign out revokes the token at the store");
+    CHECK(account.call("GET", "/api/presets", juce::var())["error"].toString() == "Not signed in", "signed out");
+
+    // the flow can be cancelled and expires with the store's answer
+    account.startSignIn("Bleep");
+    account.cancelSignIn();
+    CHECK(account.pollSignIn()["state"].toString() == "none", "cancelled");
+    fake.down = true;
+    CHECK(account.startSignIn("Bleep")["error"].toString().startsWith("cannot reach"), "no store, no code");
+    dir.deleteRecursively();
+}
+
 void testPolicy() {
     std::string why;
     Result signedBy, unsignedR, bad, expired;
@@ -298,6 +406,47 @@ void testPolicy() {
 }  // namespace
 
 /// bleep_store_test --live URL ROOT_HEX: the client against a running store (not part of ctest): installs a module and a plugin into a temp folder.
+
+/// Against a running store API: the real HTTP stack, a real device sign-in that someone confirms on the site. Prints
+/// `CODE <user code>` and waits (up to 60 s) for the confirmation, then shares a preset, rates and comments, signs out.
+/// scripts/check/account-live.py drives it.
+int accountLive(const std::string& url, const std::string& dataDir) {
+    const juce::File data(dataDir);
+    data.createDirectory();
+    Settings s;
+    s.storeUrl = url;
+    s.save(data);
+    Account account(data);   // real transport; the token store is the file one because the driver sets BLEEP_DATA_DIR
+    const juce::var start = account.startSignIn("Account live test");
+    CHECK(start["userCode"].toString().isNotEmpty(), "start: %s", juce::JSON::toString(start).toRawUTF8());
+    std::printf("CODE %s\n", start["userCode"].toString().toRawUTF8());
+    std::fflush(stdout);
+    juce::var r;
+    for (int i = 0; i < 60; ++i) {
+        r = account.pollSignIn();
+        if (r["state"].toString() != "pending" && r["state"].toString() != "error") break;
+        juce::Thread::sleep(1000);
+    }
+    CHECK(r["state"].toString() == "approved" && (bool)r["signedIn"], "sign-in: %s", juce::JSON::toString(r).toRawUTF8());
+    CHECK((bool)account.status(true)["signedIn"], "the token works");
+    const juce::var shared = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":"Live Pad","type":"patch","tags":["live"],"preset":{"nodes":[{"id":"a"}],"cables":[]}})"));
+    CHECK((int)shared["status"] == 201, "share: %s", juce::JSON::toString(shared).toRawUTF8());
+    const juce::var again = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":"Live Pad","slug":"live-pad","type":"patch","preset":{"nodes":[{"id":"b"}]}})"));
+    CHECK((int)again["status"] == 201 && (int)again["body"]["version"] == 2, "new version: %s", juce::JSON::toString(again).toRawUTF8());
+    const juce::var bad = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":"x","type":"patch","preset":{"nodes":[]}})"));
+    CHECK((int)bad["status"] == 422 && bad["error"].toString().isNotEmpty(), "refused: %s", juce::JSON::toString(bad).toRawUTF8());
+    const juce::var comment = account.call("POST", "/api/social/preset/" + shared["body"]["address"].toString().toStdString() + "/comments", juce::JSON::parse(R"({"body":"first"})"));
+    CHECK((int)comment["status"] == 201, "comment: %s", juce::JSON::toString(comment).toRawUTF8());
+    const juce::var own = account.call("PUT", "/api/social/preset/" + shared["body"]["address"].toString().toStdString() + "/rating", juce::JSON::parse(R"({"stars":5})"));
+    CHECK((int)own["status"] == 403, "no rating of your own preset (PUT): %s", juce::JSON::toString(own).toRawUTF8());
+    const juce::var del = account.call("DELETE", "/api/social/comments/" + juce::String((int)comment["body"]["id"]).toStdString(), juce::var());
+    CHECK((int)del["status"] == 204, "DELETE: %s", juce::JSON::toString(del).toRawUTF8());
+    CHECK(!(bool)account.signOut()["signedIn"], "signed out");
+    CHECK((int)account.call("GET", "/api/presets", juce::var())["status"] == 401, "nothing is sent without a login");
+    std::printf("account live: %d checks, %d failures\n", checks, failures);
+    return failures == 0 ? 0 : 1;
+}
+
 int live(const std::string& url, const std::string& rootHex) {
     const juce::File data = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-store-live-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
     Settings s;
@@ -325,6 +474,7 @@ int live(const std::string& url, const std::string& rootHex) {
 
 int main(int argc, char** argv) {
     if (argc == 4 && std::string(argv[1]) == "--live") return live(argv[2], argv[3]);
+    if (argc == 4 && std::string(argv[1]) == "--account-live") return accountLive(argv[2], argv[3]);
     const juce::File dir(BLEEP_STORE_FIXTURES);
     testVector();
     testCanonical();
@@ -332,6 +482,7 @@ int main(int argc, char** argv) {
     testClient(dir);
     testRevocations(dir);
     testPolicy();
+    testAccount();
     std::printf("store test: %d checks, %d failures\n", checks, failures);
     return failures == 0 ? 0 : 1;
 }

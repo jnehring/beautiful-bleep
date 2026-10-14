@@ -196,12 +196,17 @@ if (BLEEP_BUILD_TESTS)
 
     # The store's checks (signing.md): the packages of patch/tests/store-fixtures get the verdicts Python gave them.
     juce_add_console_app(bleep_store_test PRODUCT_NAME "Bleep Store Test")
-    target_sources(bleep_store_test PRIVATE tests/store_test.cpp store/Verify.cpp store/Package.cpp store/Client.cpp
+    target_sources(bleep_store_test PRIVATE tests/store_test.cpp store/Verify.cpp store/Package.cpp store/Client.cpp store/Account.cpp
         third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
     target_include_directories(bleep_store_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
     target_compile_definitions(bleep_store_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
         "BLEEP_STORE_FIXTURES=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/store-fixtures\"")
     target_link_libraries(bleep_store_test PRIVATE juce::juce_core juce::juce_cryptography juce::juce_recommended_config_flags)
+    if (APPLE)
+        target_link_libraries(bleep_store_test PRIVATE "-framework Security" "-framework CoreFoundation")  # the keychain (store/Account.cpp)
+    elseif (WIN32)
+        target_link_libraries(bleep_store_test PRIVATE advapi32)  # the Credential Manager
+    endif ()
     add_test(NAME patch.store COMMAND bleep_store_test)
 
     if (BLEEP_WASMTIME_DIR)
@@ -212,7 +217,7 @@ if (BLEEP_BUILD_TESTS)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
         set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp
-            engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp store/Package.cpp store/Client.cpp
+            engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp store/Package.cpp store/Client.cpp store/Account.cpp
             third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
         # wasm files (scripts/build/build-web.sh --modules-only).
@@ -434,7 +439,10 @@ function(bleep_use_store target)
     endif ()
     target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
         engine/wasm/WasmRegistry.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp
-        store/Package.cpp store/Client.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
+        store/Package.cpp store/Client.cpp store/Account.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
+    if (WIN32)
+        target_link_libraries(${target} PRIVATE advapi32)  # the Credential Manager (store/Account.cpp)
+    endif ()
     target_include_directories(${target} PRIVATE engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
     if (NOT BLEEP_APP_BUNDLES_MODULES)
         target_compile_definitions(${target} PRIVATE BLEEP_NO_BUNDLED_MODULES=1)

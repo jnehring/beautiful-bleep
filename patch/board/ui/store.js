@@ -253,13 +253,62 @@
         for (const p of items || []) {
           const d = (p.preset && p.preset.description) || p.description || "";
           const cat = p.category || (p.preset && p.preset.category) || "";
-          grid.appendChild(tile("preset", { title: p.name, summary: d, category: cat || kind }, p.name).tile);
+          const { tile: t, body: b } = tile("preset", { title: p.name, summary: d, category: cat || kind }, p.name);
+          if (window.BleepAccount && BleepAccount.enabled && p.preset) {
+            const share = el("button", "", "Share…");
+            share.title = "Publish it in the Bleep Store (needs an account)";
+            share.addEventListener("click", async () => {
+              const done = await BleepAccount.share(kind === "cell" ? "cells" : "boards", p.name, p.preset);
+              if (done) { message = `Shared as ${done.address} (version ${done.version}).`; render(); }
+            });
+            b.appendChild(share);
+          }
+          grid.appendChild(t);
         }
         list.appendChild(grid);
       };
       group("Cells", "cell", cells);
       group("Boards", "patch", boards);
     });
+  }
+
+  /// The login to the Bleep Store: needed to share presets (comments and ratings are on the website, with the same account).
+  function renderAccount() {
+    const box = el("div", "st-account");
+    body.appendChild(box);
+    const draw = (st) => {
+      box.innerHTML = "";
+      if (st.signedIn) {
+        box.appendChild(el("div", "st-note", "Signed in as " + (st.name || st.email || "you") + (st.email && st.name ? " (" + st.email + ")" : "") + (st.offline ? " · the store could not be reached just now" : "") + "."));
+        box.appendChild(el("div", "st-note", "You can share presets from the Presets tab. Comments and ratings are on the store's pages, with the same account."));
+        const row = el("div", "ac-row");
+        const site = el("button", "", "My account on the website");
+        site.addEventListener("click", () => BleepAccount.open(st.storeUrl + "/account/"));
+        const out = el("button", "", "Sign out");
+        out.addEventListener("click", async () => draw(await BleepAccount.signOut()));
+        row.append(site, out);
+        box.appendChild(row);
+        return;
+      }
+      box.appendChild(el("div", "st-note", st.playLogin
+        ? "Log in on the website to share presets."
+        : "Sign in to share presets in the Bleep Store, comment and rate. The website shows a page where you confirm the code below; nothing is typed here, and your password never reaches this app."));
+      const code = el("div", "ac-code");
+      const msg = el("div", "ac-msg");
+      box.append(code, msg);
+      const row = el("div", "ac-row");
+      const go = el("button", "ac-primary", st.playLogin ? "Log in on the website" : "Sign in…");
+      go.addEventListener("click", async () => {
+        if (st.playLogin) { BleepAccount.open(st.storeUrl + "/login/"); return; }
+        go.disabled = true;
+        const r = await BleepAccount.signIn((c) => { code.textContent = c.userCode; msg.textContent = "Waiting for you to confirm it in the browser…"; });
+        if (r && r.error !== undefined) { go.disabled = false; code.textContent = ""; msg.className = "ac-msg bad"; msg.textContent = r.error; return; }
+        draw(await BleepAccount.status(false));
+      });
+      row.appendChild(go);
+      box.appendChild(row);
+    };
+    BleepAccount.status(true).then(draw);
   }
 
   function renderSecurity() {
@@ -299,7 +348,7 @@
     const n = status.installed.length;
     summaryEl.textContent = `${n} module${n === 1 ? "" : "s"} installed · ${status.index.ok ? status.index.modules.length + (status.index.cached ? " in the saved store list" : " in the store") : "store not reached"}`;
     noteEl.textContent = message;
-    ({ modules: renderModules, plugins: renderPlugins, presets: renderPresets, security: renderSecurity })[tab]();
+    ({ modules: renderModules, plugins: renderPlugins, presets: renderPresets, account: renderAccount, security: renderSecurity })[tab]();
   }
 
   function build() {
@@ -312,7 +361,7 @@
     head.appendChild(summaryEl);
     root.appendChild(head);
     tabsEl = el("div", "st-tabs");
-    for (const [id, label] of [["modules", "Modules"], ["plugins", "Plugins"], ["presets", "Presets"], ["security", "Security"]]) {
+    for (const [id, label] of [["modules", "Modules"], ["plugins", "Plugins"], ["presets", "Presets"], ["account", "Account"], ["security", "Security"]]) {
       const b = el("button", "", label);
       b.dataset.tab = id;
       b.addEventListener("click", () => { tab = id; render(); });

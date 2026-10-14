@@ -532,3 +532,18 @@ select:focus-visible { border-color: var(--accent) !important; }
 .pgroup small { margin-left: auto; color: var(--muted); }
 .pgroup .pg-arrow { color: var(--muted); }
 .node.grouped { border-left-style: dashed; }
+
+/* Sign-in and Share… (account.js) */
+.ac-back { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, .55); display: flex; align-items: center; justify-content: center; }
+.ac-box { width: min(420px, 92vw); background: var(--panel, #1b1e25); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+.ac-box h3 { margin: 0 0 10px; }
+.ac-box label { display: block; margin: 10px 0; font-size: 12px; color: var(--muted); }
+.ac-box input, .ac-box textarea, .ac-box select { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 8px; font: inherit; color: var(--text); background: var(--bg, #15171c); border: 1px solid var(--line); border-radius: 6px; }
+.ac-note { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.ac-code { margin: 14px 0 4px; text-align: center; font: 600 28px/1.2 ui-monospace, Menlo, monospace; letter-spacing: .12em; }
+.ac-msg { min-height: 18px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.ac-msg.bad { color: #e2706a; }
+.ac-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.ac-primary { background: var(--accent); color: var(--bg, #15171c); border-color: var(--accent); font-weight: 600; }
+#store .st-account { max-width: 520px; }
+#store .st-account .ac-code { text-align: left; }

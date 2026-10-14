@@ -118,6 +118,11 @@
           render();
         });
         foot.appendChild(del);
+        if (window.BleepAccount && BleepAccount.enabled) {   // the apps with a store, and Play
+          const share = el("button", "pb-del", "Share…");
+          share.addEventListener("click", (e) => { e.stopPropagation(); BleepAccount.share("boards", p.name, p.preset); });
+          foot.appendChild(share);
+        }
       }
       const load = el("button", "pb-load", p.current ? "Loaded" : "Load");
       load.addEventListener("click", (e) => { e.stopPropagation(); loadPatch(p); });

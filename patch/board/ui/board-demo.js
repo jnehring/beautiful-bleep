@@ -333,6 +333,35 @@
     emit("board", message());
   }
 
+  /// Bleep Play is a page of the website, so its login is the website's session cookie (the apps use a token: patch/store/Account.cpp).
+  /// Logging in happens on the site; here the page only asks who is logged in and calls the store's API as them.
+  async function demoAccount(op, x, y, z) {
+    const out = (u) => ({ signedIn: !!u, name: u ? u.display_name : "", email: u ? u.email : "", storeUrl: location.origin, playLogin: true });
+    const me = async () => {
+      try { const r = await fetch("/api/auth/me", { credentials: "same-origin" }); return r.ok ? await r.json() : null; } catch (e) { return null; }
+    };
+    switch (op) {
+      case "status": case "cancel": return out(await me());
+      case "poll": return { state: "none" };
+      case "start": return { error: "Log in on the website" };
+      case "signOut":
+        await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => {});
+        return out(null);
+      case "call": {
+        if (typeof y !== "string" || !y.startsWith("/api/") || y.includes("..")) return { status: 0, error: "not a call to the store" };
+        try {
+          const r = await fetch(y, { method: x, credentials: "same-origin", headers: z ? { "Content-Type": "application/json" } : undefined, body: z ? JSON.stringify(z) : undefined });
+          let body = null;
+          try { body = await r.json(); } catch (e) { /* no body */ }
+          const d = body && body.detail;
+          const error = r.ok ? "" : typeof d === "string" ? d : Array.isArray(d) && d[0] ? ((d[0].loc || []).slice(-1)[0] + ": " + d[0].msg) : "The store answered " + r.status;
+          return { status: r.status, body, error };
+        } catch (e) { return { status: 0, body: null, error: "cannot reach the store" }; }
+      }
+    }
+    return null;
+  }
+
   window.BleepDemo = {
     mirrorPort,
     listen: (e, f) => (listeners[e] = listeners[e] || []).push(f),
@@ -344,7 +373,7 @@
           if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
-          return Object.assign(message(), { types, dev: true, standalone: true, settings: true }, demoStore ? { store: true } : {});
+          return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoStore ? { store: true } : {});
         case "commit":
           pushUndo();
           board = sanitise(clone(a[0]));
@@ -405,6 +434,7 @@
           return null;
         }
         case "types": return types;
+        case "account": return demoAccount(a[0], a[1], a[2], a[3]);
         case "settings": return demoSettings(a[0], a[1]);
         case "storeRevealData": return null;
         case "storeStatus": return demoStore ? demoStore.status() : null;

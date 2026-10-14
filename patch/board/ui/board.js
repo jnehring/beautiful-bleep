@@ -3482,6 +3482,7 @@
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
     hasStore = !!m.store;
+    if (m.account && window.BleepAccount) { BleepAccount.enabled = true; BleepAccount.client = m.standalone ? "Bleep Standalone" : "Bleep plugin"; }
     if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
     if (m.settings && window.BleepSettingsView) await BleepSettingsView.init({ store: !!m.store });
     if (m.store && window.BleepHelpView) await BleepHelpView.init();

@@ -20,9 +20,14 @@
 #include "Engine.h"
 #if defined(BLEEP_WASM_MODULES)
 #include "wasm/ModuleStore.h"
+#include "store/Account.h"
 #endif
 
 #include "BoardWeb.h"
+
+#include <atomic>
+#include <memory>
+#include <thread>
 
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_gui_extra/juce_gui_extra.h>
@@ -248,6 +253,26 @@ private:
 
 BoardWindowStyle& style();
 
+#if defined(BLEEP_WASM_MODULES)
+/// The store login of this process (the app, or the plugin instance; they share the token in the keychain).
+store::Account& storeAccount() {
+    static store::Account account(bleep::engine::ModuleStore::instance().dataDir());
+    return account;
+}
+
+/// The page's `account` calls (board/ui/account.js): what the user may do with their login. Blocks on the network: worker thread only.
+juce::var runAccount(const juce::String& op, const juce::var& x, const juce::var& y, const juce::var& z) {
+    auto& account = storeAccount();
+    if (op == "status") return account.status((bool)x);
+    if (op == "start") return account.startSignIn(x.toString().toStdString());
+    if (op == "poll") return account.pollSignIn();
+    if (op == "cancel") { account.cancelSignIn(); return account.status(false); }
+    if (op == "signOut") return account.signOut();
+    if (op == "call") return account.call(x.toString().toStdString(), y.toString().toStdString(), z);
+    return {};
+}
+#endif
+
 class BoardView : public juce::Component, private juce::Timer {
 public:
     explicit BoardView(Engine& engine) : engine_(engine) {
@@ -265,6 +290,7 @@ public:
                     r.getDynamicObject()->setProperty("settings", style().onSettings != nullptr);
 #if defined(BLEEP_WASM_MODULES)
                     r.getDynamicObject()->setProperty("store", true);  // the Store section is offered
+                    r.getDynamicObject()->setProperty("account", true);  // and the login to it (sharing presets)
 #endif
 #if defined(BLEEP_UI_DEV_ROOT)
                     r.getDynamicObject()->setProperty("dev", true);
@@ -418,6 +444,15 @@ public:
                 ModuleStore::instance().dataDir().revealToUser();
                 done({});
             })
+            .withNativeFunction("account", [this](const juce::Array<juce::var>& a, Completion done) {
+                // The network runs on a worker thread; the answer goes back to the page from the message thread.
+                const juce::var op = a[0], x = a[1], y = a[2], z = a[3];
+                auto alive = alive_;
+                std::thread([=, done = std::move(done)]() mutable {
+                    const juce::var result = runAccount(op.toString(), x, y, z);
+                    juce::MessageManager::callAsync([alive, done = std::move(done), result] { if (alive->load()) done(result); });
+                }).detach();
+            })
             .withNativeFunction("storePlugins", [](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); })
             .withNativeFunction("storeInstallPlugins", [](const juce::Array<juce::var>&, Completion done) { done(installPluginBundle()); });
 #endif
@@ -486,7 +521,7 @@ public:
     }
 #endif
 
-    ~BoardView() override { stopTimer(); }
+    ~BoardView() override { alive_->store(false); stopTimer(); }
 
     void resized() override { web_->setBounds(getLocalBounds()); }
     void paint(juce::Graphics& g) override { g.fillAll(juce::Colour(0xff15171c)); }
@@ -532,6 +567,7 @@ private:
     Engine& engine_;
     std::unique_ptr<WebView> web_;
     std::set<juce::String> watched_;
+    std::shared_ptr<std::atomic<bool>> alive_ = std::make_shared<std::atomic<bool>>(true);   // for answers that arrive after the view is gone
     juce::String focus_;
     bool pageReady_ = false;  ///< the page called init(): events can be delivered
 };
