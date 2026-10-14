@@ -922,6 +922,22 @@
       {"name":"Eighth Base Pulses","description":"A slower base clock with long gates.","params":{"set":0.666667,"rotate":0.0625,"base":0.461538,"width":0.704082}},
       {"name":"Triplet Fibonacci","description":"Triplet base with base-step gates for skittering hits.","params":{"set":0.833333,"rotate":0.125,"base":0.769231,"gatelength":1}}
     ],
+    "saturator": [
+      {"name":"Subtle Warmth","description":"A hint of even harmonics on anything.","params":{"drive":0.2,"bias":0.6}},
+      {"name":"Bus Glue","description":"Soft, compressed tape-like cohesion for a mix bus.","params":{"drive":0.35,"bias":0.55,"sag":0.5,"age":0.15,"character":0.5,"color":0.425}},
+      {"name":"Tape Drums","description":"Rounded transients and a fatter body for drum loops.","params":{"drive":0.5,"sag":0.55,"character":0.5,"color":0.4,"tone":0.837935,"level":0.475}},
+      {"name":"Tube Crunch","description":"Amp-like crunch with edge in the upper mids.","params":{"drive":0.7,"bias":0.625,"sag":0.4,"age":0.25,"color":0.7,"tone":0.673621,"level":0.425}},
+      {"name":"Fat Bass","description":"Thick low end that stays smooth on top.","params":{"drive":0.55,"bias":0.6,"sag":0.35,"age":0.1,"color":0.2,"tone":0.485719,"level":0.45,"mix":0.75}},
+      {"name":"Sub Weight","description":"Even-harmonic weight under a sub.","params":{"bias":0.75,"sag":0.2,"age":0.1,"color":0.1,"tone":0.347242,"level":0.45,"mix":0.6}},
+      {"name":"Diode Bite","description":"Edgy, vocal asymmetry.","params":{"drive":0.45,"character":1,"color":0.65,"tone":0.751607,"level":0.45}},
+      {"name":"Vocal Heat","description":"Gentle presence and density for a voice.","params":{"drive":0.3,"bias":0.575,"sag":0.4,"age":0.3,"character":1,"color":0.575,"tone":0.861523}},
+      {"name":"Breathing Pad","description":"Slow drift makes a held chord shimmer and breathe.","params":{"drive":0.35,"bias":0.65,"sag":0.4,"age":0.85,"character":0.5,"tone":0.783537}},
+      {"name":"Loose Gear","description":"Everything wanders a little, like old hardware.","params":{"drive":0.5,"bias":0.6,"sag":0.6,"age":1,"tone":0.812098,"level":0.45}},
+      {"name":"Sagging Supply","description":"Hard hits squash and bloom.","params":{"drive":0.6,"bias":0.65,"sag":1,"age":0.3,"color":0.55,"level":0.45}},
+      {"name":"Fuzz Wall","description":"Thick, compressed, anti-aliased fuzz.","params":{"drive":1,"bias":0.7,"sag":0.7,"age":0.3,"character":1,"color":0.6,"tone":0.527507,"level":0.3}},
+      {"name":"Parallel Grit","description":"Hard-driven copy blended under the clean signal.","params":{"drive":0.8,"bias":0.65,"sag":0.4,"color":0.65,"tone":0.715409,"mix":0.35}},
+      {"name":"Eco Warmth","description":"Light on CPU for many instances.","params":{"drive":0.3,"bias":0.575,"quality":0}}
+    ],
     "segments": [
       {"name":"Classic Pluck","description":"Instant attack, exponential fall: the all-round plucked envelope.","params":{"count":0.142857,"time1":0.23853,"time2":0.5,"level2":0.5,"shape2":0.8}},
       {"name":"Soft Pad","description":"Slow swell, a gentle settle and a long fade.","params":{"count":0.285714,"time1":0.601964,"shape1":0.35,"time2":0.591784,"level2":0.9,"shape2":0.5,"time3":0.648173,"shape3":0.7}},

@@ -1,0 +1,10 @@
+{
+  "name": "Saturator",
+  "slug": "saturator",
+  "tagline": "Organic saturation that does not sound digital: tube, tape and diode curves, anti-aliased, with colour, sag and drift.",
+  "colour": "#f59e0b",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/saturator.md"
+}
