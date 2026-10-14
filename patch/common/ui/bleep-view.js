@@ -165,7 +165,7 @@
     if (h && h.layout) for (const l of h.layout) add(l.title, l.params.filter((id) => known.has(id) && !hide.has(id)));
     else {
       const groups = new Map();
-      for (const p of type.params) if (p.group && !hide.has(p.id) && (p.kind === "float" || p.modulatable)) groups.set(p.group, (groups.get(p.group) || 0) + 1);
+      for (const p of type.params) if (p.group && !hide.has(p.id) && (p.kind === "float" || (p.modulatable && !p.cableable))) groups.set(p.group, (groups.get(p.group) || 0) + 1);
       for (const [g, n] of groups) add(g, new Array(n));
     }
     return out;
@@ -217,7 +217,7 @@
     prev.title = "Previous preset"; next.title = "Next preset"; pick.title = "Presets";
     bar.append(prev, pick, next, save);
 
-    const factory = () => factoryOf(type.type).map((p) => ({ origin: "factory", name: p.name, params: p.params, description: p.description }));
+    const factory = () => factoryOf(type.type).map((p) => ({ origin: "factory", name: p.name, params: p.params, data: p.data, description: p.description }));
     const user = () => (userCache.get(type.type) || []).map((p) => ({ origin: "user", name: p.name, params: p.preset.params || {}, data: p.preset.data, description: p.preset.description }));
     const all = () => factory().concat(user());
     const matches = (p) => type.params.every((q) => sameValue(view.node.params[q.id] ?? q.default, q.id in p.params ? p.params[q.id] : q.default));
@@ -587,7 +587,7 @@
     const items = new Map();   // param id → its knob or setting box
     for (const p of type.params) {
       if (hidden.has(p.id)) continue;
-      if (p.kind === "float" || p.modulatable) {  // stepped knobs are knobs too
+      if (p.kind === "float" || (p.modulatable && !p.cableable)) {  // stepped knobs are knobs too; a cableable setting stays a setting
         const k = makeKnob(p);
         view.knobs.set(p.id, k);
         items.set(p.id, k.box);
