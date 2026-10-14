@@ -292,10 +292,11 @@
     .pm-scroll canvas { display: block; touch-action: none; cursor: crosshair; }`;
 
   BleepViews.register("polymeter-sequencer", {
+    partNames: ["Tracks"],
     top: true,
     width: 900,
     layout: [
-      { title: "Clock & patterns", params: ["rate", "slots", "patternchange", "seed"] },
+      { title: "Clock & patterns", params: ["syncto", "rate", "slots", "patternchange", "seed"] },
       { title: "Gate", params: ["swing", "gatescale", "probbias", "ratchetamt", "velocity", "spread"] },
       { title: "Pitch", params: ["root", "scale", "octave"] },
     ],

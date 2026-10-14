@@ -97,6 +97,9 @@ Every knob is a modulation destination.
 | Octave | −3 … +3 | 0 |
 | Seed | 0 – 999 | 1 |
 | Harmony | Off, Bus A – Bus D: follow a Harmony Master (its key becomes the root, its scale replaces Scale) | Off |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored.
 
 ### Inputs
 

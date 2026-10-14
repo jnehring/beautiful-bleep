@@ -128,10 +128,11 @@
     .sr-panel canvas { display: block; cursor: pointer; touch-action: none; width: 100%; height: ${H}px; }`;
 
   BleepViews.register("shift-register", {
+    partNames: ["Register"],
     top: true,
     width: 900,
     layout: [
-      { title: "Clock & source", params: ["sync", "rate", "source", "combine", "seed"] },
+      { title: "Clock & source", params: ["syncto", "sync", "rate", "source", "combine", "seed"] },
       { title: "Register", params: ["length", "lock"] },
       { title: "Output", params: ["level", "gatelength"] },
       { title: "Mixer", params: ["w1", "w2", "w3", "w4", "w5", "w6"] },

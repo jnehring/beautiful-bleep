@@ -132,7 +132,7 @@
     width: 900,
     layout: [
       { title: "Mode", params: ["mode", "range", "polarity"] },
-      { title: "Rate", params: ["freq", "sync"] },
+      { title: "Rate", params: ["freq", "sync", "syncto"] },
       { title: "Slope", params: ["skew", "curve", "smooth"] },
       { title: "Relation", params: ["relation", "ratio", "spread"] },
     ],

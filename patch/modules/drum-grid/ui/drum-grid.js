@@ -394,10 +394,11 @@
     .dg-field input { width: 120px; }`;
 
   BleepViews.register("drum-grid", {
+    partNames: ["Drum grid"],
     top: true,
     width: 900,
     layout: [
-      { title: "Clock", params: ["source", "rate", "ppqn", "switch"] },
+      { title: "Clock", params: ["syncto", "source", "rate", "ppqn", "switch"] },
       { title: "Level", params: ["tempo", "gatelength", "swing", "velocity"] },
     ],
     resizable: true,

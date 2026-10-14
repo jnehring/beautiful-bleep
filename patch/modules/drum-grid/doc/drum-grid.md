@@ -86,6 +86,9 @@ Every knob is a modulation destination.
 | Rate | 1/4 … 1/32, dotted (.) and triplet (T) | 1/16 |
 | Clock PPQN | 1 per step, 2, 4, 24, 48 | 1 per step |
 | Switch | At End, Immediate | At End |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored. With *Transport*, the *Source* setting still picks the song position or the internal tempo.
 
 ### Inputs
 

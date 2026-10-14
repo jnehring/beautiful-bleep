@@ -3,6 +3,7 @@
 // `notes` stream played one at a time; timing from the transport or a clock.
 #include "ArpeggiatorDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <atomic>
 #include <string>
@@ -14,7 +15,7 @@ using patch::ArpeggiatorDsp;
 
 class ArpeggiatorModule final : public Module {
 public:
-    enum { GateLength, Swing, Rate, Pattern, Octaves, Latch, Seed };
+    enum { GateLength, Swing, Rate, Pattern, Octaves, Latch, Seed, SyncTo };
     enum { Notes, Clock, Reset };
     enum { NotesOut, Pitch, Gate, Velocity, Trigger };
 
@@ -67,7 +68,7 @@ public:
             p.swing = value(c, Swing, i);
             t.started = c.transportStarted && i == 0;
             t.ppq = c.ppqAt(i);
-            dsp_.tick(p, c.inputs[Clock][i], c.inputConnected[Clock], c.inputs[Reset][i], t, o,
+            dsp_.tick(p, c.inputs[Clock][i], dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]), c.inputs[Reset][i], t, o,
                       [&](bool on, int note, float pitch, float velocity) {
                           NoteEvent ev;
                           ev.type = on ? NoteEvent::On : NoteEvent::Off;
@@ -111,7 +112,8 @@ static void registerArpeggiatorModule(Registry& r) {
                 ParamSpec::choice("pattern", "Pattern", patterns, 0),
                 ParamSpec::integer("octaves", "Octaves", 1, patch::kArpMaxOctaves, 1),
                 ParamSpec::choice("latch", "Latch", {"Off", "On"}, 0),
-                ParamSpec::integer("seed", "Seed", 0, 999, 1)};
+                ParamSpec::integer("seed", "Seed", 0, 999, 1),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"notes", "Notes", Signal::Notes}, {"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}};
     s.outputs = {{"notes", "Notes", Signal::Notes, false},       {"pitch", "Pitch", Signal::Pitch, true},
                  {"gate", "Gate", Signal::Gate, false},          {"velocity", "Velocity", Signal::Control, false},

@@ -320,6 +320,29 @@ static void clockFallbackAndRestart() {
     EXPECT(!t.empty() && t[0].e.n == 0 && t[0].e.stepSamples == 1000.0);
 }
 
+static void syncTo() {
+    TEST("sync to");
+    // Auto follows the Clock jack; Clock and Transport force the mode.
+    EXPECT(!clockSynced(SyncAuto, false));
+    EXPECT(clockSynced(SyncAuto, true));
+    EXPECT(clockSynced(SyncClock, false));
+    EXPECT(clockSynced(SyncClock, true));
+    EXPECT(!clockSynced(SyncTransport, false));
+    EXPECT(!clockSynced(SyncTransport, true));
+    EXPECT(seqSyncNames().size() == 3 && seqSyncNames()[SyncTransport] == "Transport");
+    // Forced Transport with pulses on the jack: the transport steps, the pulses are ignored.
+    SeqClock c = fresh();
+    const auto s = steps(run(c, 24000, [](int64_t i, SeqClockInput& in) {
+        in.clocked = clockSynced(SyncTransport, true);
+        in.clock = i % 1000 == 0 ? 1.0f : 0.0f;
+        in.running = true;
+        in.started = i == 0;
+        in.bpm = 120.0;
+        in.ppq = (double)i / 48000.0 * 2.0;  // 2 beats per second
+    }));
+    EXPECT(s.size() == 4 && s[1].e.stepSamples == 6000.0);  // 1 beat = 4 steps of 0.25 beats, not 24 pulses
+}
+
 int main() {
     noteValueTable();
     transportRates();
@@ -331,5 +354,6 @@ int main() {
     gates();
     ratio();
     clockFallbackAndRestart();
+    syncTo();
     return bleep::test::finish("seqclock");
 }

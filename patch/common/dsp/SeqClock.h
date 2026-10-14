@@ -25,8 +25,30 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 namespace bleep::dsp {
+
+/// The "Sync To" setting every sequencer has: what drives its steps.
+///  Auto       Clock mode while the Clock jack is patched, else the transport
+///             (the behaviour before the setting existed, and the default).
+///  Clock      always Clock mode: only pulses on the Clock jack step it.
+///  Transport  always the transport (or the module's own free/tempo timing);
+///             a patched Clock jack is ignored.
+enum SeqSync : int { SyncAuto = 0, SyncClock = 1, SyncTransport = 2 };
+
+/// The choice names of the Sync To setting, in SeqSync order.
+inline const std::vector<std::string>& seqSyncNames() {
+    static const std::vector<std::string> names{"Auto", "Clock", "Transport"};
+    return names;
+}
+
+/// True when the sequencer runs in Clock mode: the value to use in place of
+/// "Clock jack patched". `sync` is the Sync To setting (SeqSync).
+inline bool clockSynced(int sync, bool clockPatched) noexcept {
+    return sync == SyncClock || (sync != SyncTransport && clockPatched);
+}
 
 /// Delay of odd steps as a share of a step: Swing knob 0.5…0.75 → 0…0.5.
 inline float swingAmount(float swing) noexcept { return (std::clamp(swing, 0.5f, 0.75f) - 0.5f) * 2.0f; }

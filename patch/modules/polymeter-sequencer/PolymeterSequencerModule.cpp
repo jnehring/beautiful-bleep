@@ -5,6 +5,7 @@
 #include "PolymeterSequencerDsp.h"
 #include "Handoff.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -135,7 +136,7 @@ std::string sanitiseData(const std::string& json) {
 
 class PolymeterSequencerModule final : public Module {
 public:
-    enum { GateScale, ProbBias, RatchetAmt, Swing, Velocity, Spread, Rate, Root, Scale, Octave, SlotsUsed, PatternChange, Seed };
+    enum { GateScale, ProbBias, RatchetAmt, Swing, Velocity, Spread, Rate, Root, Scale, Octave, SlotsUsed, PatternChange, Seed, SyncTo };
     enum { Clock, Reset, Transpose, Pattern, Hold };
     enum { Notes, Pitch, Gate, VelocityOut, Trigger, Bar, TrackEnds };
 
@@ -182,7 +183,7 @@ public:
         t.running = tr.playing && tr.ppqValid;
         t.bpm = tr.bpm;
         patch::PolyInputs in;
-        in.clockPatched = c.inputConnected[Clock];
+        in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         in.patternPatched = c.inputConnected[Pattern];
         in.dataSlot = dataSlot_.load();
         NoteBuffer& notes = *c.notesOut[Notes];
@@ -252,7 +253,8 @@ static void registerPolymeterSequencerModule(Registry& r) {
                 ParamSpec::integer("octave", "Octave", -3, 3, 0),
                 ParamSpec::integer("slots", "Slots used", 1, kPolySlots, 1),
                 ParamSpec::choice("patternchange", "Pattern Change", {"Immediate", "Next track end", "Next full cycle", "Next bar"}, 3),
-                ParamSpec::integer("seed", "Seed", 0, 999, 1)};
+                ParamSpec::integer("seed", "Seed", 0, 999, 1),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"clock", "Clock", Signal::Trigger},
                 {"reset", "Reset", Signal::Trigger},
                 {"transpose", "Transpose", Signal::Pitch},

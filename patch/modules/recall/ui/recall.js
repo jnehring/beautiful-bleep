@@ -142,12 +142,13 @@
     .rc-tools button.on { border-color: var(--accent); background: var(--accent); color: var(--panel); }`;
 
   BleepViews.register("recall", {
+    partNames: ["Loops"],
     top: true,
     width: 1000,
     layout: [
       { title: "T · gates", params: ["tmode", "tloop", "tbias", "tjitter", "trecall", "gatelength"] },
       { title: "X · voltages", params: ["xsource", "xmode", "xrange", "xloop", "xspread", "xbias", "xsteps", "xrecall"] },
-      { title: "Clock & pitch", params: ["sync", "rate", "root", "scale", "seed"] },
+      { title: "Clock & pitch", params: ["syncto", "sync", "rate", "root", "scale", "seed"] },
     ],
     template: `<div class="bv-panel" style="flex:1 1 100%">
       <canvas style="width:100%;height:124px"></canvas>

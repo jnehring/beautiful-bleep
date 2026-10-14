@@ -6,6 +6,7 @@
 #include "Handoff.h"
 #include "RecallDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -79,7 +80,7 @@ std::string sanitiseData(const std::string& json) {
 class RecallModule final : public Module {
 public:
     enum { TBias, TJitter, TRecall, GateLength, XSpread, XBias, XSteps, XRecall, Rate,
-           Sync, TMode, TLoop, XSource, XMode, XRange, XLoop, Root, Scale, Seed };
+           Sync, TMode, TLoop, XSource, XMode, XRange, XLoop, Root, Scale, Seed, SyncTo };
     enum { Clock, Reset, XClock };
     enum { T1, T2, ClockOut, X1, X2, X3, XTrig };
     enum { CaptureT, CaptureX };  // buttons
@@ -146,7 +147,7 @@ public:
             publishCapture(s, s == 0 ? dsp_.tSnapshot() : dsp_.xSnapshot(), s == 0 ? kRecallT : kRecallX);
         });
         patch::RecallInput in;
-        in.clockPatched = c.inputConnected[Clock];
+        in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         in.xClockPatched = c.inputConnected[XClock];
         in.running = c.transport->playing && c.transport->ppqValid;
         in.bpm = c.transport->bpm;
@@ -249,7 +250,8 @@ static void registerRecallModule(Registry& r) {
                 ParamSpec::steppedInt("xloop", "X Loop", 1, 16, 8),
                 ParamSpec::choice("root", "Root", roots, 0),
                 ParamSpec::choice("scale", "Scale", scales, 1),
-                ParamSpec::integer("seed", "Seed", 0, 999, 1)};
+                ParamSpec::integer("seed", "Seed", 0, 999, 1),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}, {"xclock", "X Clock", Signal::Trigger}};
     s.outputs = {{"t1", "T1", Signal::Gate, false},         {"t2", "T2", Signal::Gate, false},
                  {"clock", "Clock", Signal::Trigger, false}, {"x1", "X1", Signal::Control, true},

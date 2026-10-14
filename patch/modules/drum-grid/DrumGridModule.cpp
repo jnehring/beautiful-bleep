@@ -4,6 +4,7 @@
 // and velocity out per track.
 #include "DrumGridDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -114,7 +115,7 @@ GridBank parseBank(const juce::var& data) {
 
 class DrumGridModule final : public Module {
 public:
-    enum { Tempo, GateLength, Swing, Velocity, Source, Rate, Ppqn, Switch };
+    enum { Tempo, GateLength, Swing, Velocity, Source, Rate, Ppqn, Switch, SyncTo };
     enum { Clock, Run, Reset, Pattern };
     static constexpr int kAccent = kGridTracks * 3, kStepClock = kAccent + 1, kEnd = kAccent + 2, kRunning = kAccent + 3;
 
@@ -161,7 +162,7 @@ public:
         t.running = tr.playing && tr.ppqValid;
         t.bpm = tr.bpm;
         patch::GridInputs in;
-        in.clockPatched = c.inputConnected[Clock];
+        in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         in.runPatched = c.inputConnected[Run];
         in.patternPatched = c.inputConnected[Pattern];
         patch::GridOutputs o;
@@ -223,7 +224,8 @@ void registerDrumGridModule(Registry& r) {
                 ParamSpec::choice("source", "Source", {"Transport", "Tempo"}, 0),
                 ParamSpec::choice("rate", "Rate", rates, 7),
                 ParamSpec::choice("ppqn", "Clock PPQN", ppqn, 0),
-                ParamSpec::choice("switch", "Switch", {"At End", "Immediate"}, 0)};
+                ParamSpec::choice("switch", "Switch", {"At End", "Immediate"}, 0),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"clock", "Clock", Signal::Trigger},
                 {"run", "Run", Signal::Gate},
                 {"reset", "Reset", Signal::Trigger},

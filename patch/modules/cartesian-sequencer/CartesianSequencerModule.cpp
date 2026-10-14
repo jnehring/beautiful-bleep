@@ -4,6 +4,7 @@
 // and CV out.
 #include "CartesianSequencerDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -90,7 +91,7 @@ std::string sanitiseData(const std::string& json) {
 class CartesianSequencerModule final : public Module {
 public:
     enum { GateLength, Swing, X, Y, ModSlew, Columns, Rows, Mode, XRate, YRate, XDirection, YDirection, Sample,
-           Root, Scale, Octave, Seed };
+           Root, Scale, Octave, Seed, SyncTo };
     enum { XClock, YClock, Reset, Transpose };
     enum { Notes, Pitch, Gate, Velocity, Mod, Trigger, XPos, YPos, RowEnd, GridEnd };
 
@@ -147,8 +148,8 @@ public:
         t.running = tr.playing && tr.ppqValid;
         t.bpm = tr.bpm;
         patch::CartInputs in;
-        in.xPatched = c.inputConnected[XClock];
-        in.yPatched = c.inputConnected[YClock];
+        in.xPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[XClock]);
+        in.yPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[YClock]);
         NoteBuffer& notes = *c.notesOut[Notes];
         notes.clear();
         patch::CartOutputs o;
@@ -225,7 +226,8 @@ static void registerCartesianSequencerModule(Registry& r) {
                 ParamSpec::choice("root", "Root", roots, 0),
                 ParamSpec::choice("scale", "Scale", scales, 1),
                 ParamSpec::integer("octave", "Octave", -3, 3, 0),
-                ParamSpec::integer("seed", "Seed", 0, 999, 1)};
+                ParamSpec::integer("seed", "Seed", 0, 999, 1),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"xclock", "X Clock", Signal::Trigger},
                 JackSpec{"yclock", "Y Clock", Signal::Trigger}.when("mode", 0, 0),
                 {"reset", "Reset", Signal::Trigger},

@@ -131,6 +131,9 @@ Every knob is a modulation destination.
 | Slots used | 1 – 8 | 1 |
 | Pattern Change | Immediate, Next track end, Next full cycle, Next bar | Next bar |
 | Seed | 0 – 999 | 1 |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored.
 
 ### Inputs
 

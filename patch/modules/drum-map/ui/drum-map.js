@@ -211,13 +211,14 @@
     .dm-tools button.on { border-color: var(--accent); color: var(--accent); }`;
 
   BleepViews.register("drum-map", {
+    partNames: ["Map and lanes"],
     top: true,
     width: 900,
     hideParams: ["x", "y"],  // the pad is the X / Y control
     layout: [
       { title: "Density", params: ["kickdensity", "snaredensity", "hatsdensity", "fillamount"] },
       { title: "Feel", params: ["chaos", "accent", "swing", "notelength"] },
-      { title: "Clock", params: ["rate", "length", "chaosrate", "seed"] },
+      { title: "Clock", params: ["syncto", "rate", "length", "chaosrate", "seed"] },
       { title: "Output notes", params: ["kicknote", "snarenote", "hatsnote"] },
     ],
     template: `<div class="bv-panel dm-panel">

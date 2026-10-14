@@ -148,6 +148,9 @@ position and the cycle's phase.
 | Sync | Free, 8 bars … 1/32T (straight, dotted, triplet) | Free |
 | Ratio | ÷16, ÷8, ÷6, ÷4, ÷3, ÷2, ×1, ×2, ×3, ×4, ×6, ×8, ×16 | ×1 |
 | Polarity (Loop) | Bipolar, Unipolar | Bipolar |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored. With *Transport*, *Sync* still picks a note value or free running.
 
 ### Inputs
 

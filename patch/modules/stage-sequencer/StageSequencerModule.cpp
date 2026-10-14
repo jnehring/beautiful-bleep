@@ -3,6 +3,7 @@
 // data, pulses from the transport or a clock, notes and CV out.
 #include "StageSequencerDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -96,7 +97,7 @@ std::string sanitiseData(const std::string& json) {
 
 class StageSequencerModule final : public Module {
 public:
-    enum { GateLength, SlideTime, Accent, Swing, Stages, Rate, Mode, Phrase, Root, Scale, Octave, Seed };
+    enum { GateLength, SlideTime, Accent, Swing, Stages, Rate, Mode, Phrase, Root, Scale, Octave, Seed, SyncTo };
     enum { Clock, Reset, Hold, Transpose };
     enum { Notes, Pitch, Gate, Velocity, AccentOut, Trigger, StageOut, StageStart, End };
 
@@ -151,7 +152,7 @@ public:
         t.running = tr.playing && tr.ppqValid;
         t.bpm = tr.bpm;
         patch::StageInputs in;
-        in.clockPatched = c.inputConnected[Clock];
+        in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         NoteBuffer& notes = *c.notesOut[Notes];
         notes.clear();
         patch::StageOutputs o;
@@ -221,7 +222,8 @@ static void registerStageSequencerModule(Registry& r) {
                 ParamSpec::choice("root", "Root", roots, 0),
                 ParamSpec::choice("scale", "Scale", scales, 1),
                 ParamSpec::integer("octave", "Octave", -3, 3, 0),
-                ParamSpec::integer("seed", "Seed", 0, 999, 1)};
+                ParamSpec::integer("seed", "Seed", 0, 999, 1),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"clock", "Clock", Signal::Trigger},
                 {"reset", "Reset", Signal::Trigger},
                 {"hold", "Hold", Signal::Gate},

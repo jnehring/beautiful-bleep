@@ -65,7 +65,9 @@ on; the pattern keeps its place.
 | Octaves | 1 … 4 | 1 |
 | Latch | Off, On | Off |
 | Seed | 0 … 999 | 1 |
+| Sync To | Auto, Clock, Transport | Auto |
 
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored.
 - **Seed:** only used by *Random*.
 
 ### Inputs

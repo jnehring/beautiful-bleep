@@ -3,6 +3,7 @@
 // bits. The start pattern and the Combo mask live in the node's data; the view
 // loads the pattern or toggles live bits through Module::command.
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 #include "ShiftRegisterDsp.h"
 
 #include <juce_core/juce_core.h>
@@ -45,7 +46,7 @@ std::string sanitiseData(const std::string& json) {
 
 class ShiftRegisterModule final : public Module {
 public:
-    enum { Lock, Rate, Level, GateLength, W1, W2, W3, W4, W5, W6, Length, Sync, Source, Combine, Octaves, Root, Scale, Seed };
+    enum { Lock, Rate, Level, GateLength, W1, W2, W3, W4, W5, W6, Length, Sync, Source, Combine, Octaves, Root, Scale, Seed, SyncTo };
     enum { Clock, Reset, Data, Transpose };
     enum { Voltage, Pitch, Bit1, Combo = Bit1 + 8, Mix, Step, Loop };
     enum CommandIndex { LoadCommand, ToggleCommand };
@@ -108,7 +109,7 @@ public:
             else if (cmd.index == ToggleCommand) dsp_.toggle((int)std::lround(cmd.value));
         });
         patch::ShiftRegisterInput in;
-        in.clockPatched = c.inputConnected[Clock];
+        in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         in.running = c.transport->playing && c.transport->ppqValid;
         in.bpm = c.transport->bpm;
         patch::ShiftRegisterFrame f;
@@ -194,6 +195,7 @@ static void registerShiftRegisterModule(Registry& r) {
     s.params.push_back(ParamSpec::choice("root", "Root", roots, 0));
     s.params.push_back(ParamSpec::choice("scale", "Scale", scales, 12));
     s.params.push_back(ParamSpec::integer("seed", "Seed", 0, 999, 1));
+    s.params.push_back(ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto));
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}, {"data", "Data", Signal::Gate},
                 {"transpose", "Transpose", Signal::Pitch}};
     s.outputs = {{"voltage", "Voltage", Signal::Control, false}, {"pitch", "Pitch", Signal::Pitch, true}};

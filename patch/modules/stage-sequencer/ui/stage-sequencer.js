@@ -298,11 +298,12 @@
     .stg-scroll canvas { display: block; touch-action: none; cursor: crosshair; }`;
 
   BleepViews.register("stage-sequencer", {
+    partNames: ["Stages"],
     top: true,
     side: true,
     width: 1040,
     layout: [
-      { title: "Sequence", params: ["rate", "stages", "mode", "phrase"] },
+      { title: "Sequence", params: ["syncto", "rate", "stages", "mode", "phrase"] },
       { title: "Pitch", params: ["root", "scale", "octave", "seed"] },
       { title: "Feel", params: ["gatelength", "slidetime", "accent", "swing"] },
     ],

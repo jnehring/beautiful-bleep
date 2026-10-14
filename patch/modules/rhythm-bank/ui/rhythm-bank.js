@@ -130,10 +130,11 @@
   }
 
   BleepViews.register("rhythm-bank", {
+    partNames: ["Pattern"],
     top: true,
     width: 900,
     layout: [
-      { title: "Clock & family", params: ["rate", "length", "family", "change"] },
+      { title: "Clock & family", params: ["syncto", "rate", "length", "family", "change"] },
       { title: "Pattern · rotate · width", params: ["pattern", "rotate1", "rotate2", "rotate3", "rotate4", "width"] },
       { title: "Outputs", params: ["output", "grid", "complement", "mute1", "mute2", "mute3", "mute4"] },
     ],

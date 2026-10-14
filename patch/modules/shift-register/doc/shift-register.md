@@ -114,7 +114,9 @@ Five whole patches show what Shift Register does. In the standalone app open **F
 | Root | C … B | C |
 | Scale | the Step Sequencer's scales | Minor Pentatonic |
 | Seed | 0 – 999 | 1 |
+| Sync To | Auto, Clock, Transport | Auto |
 
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored. With *Transport* (or Auto and nothing patched), the *Sync* setting still picks a note value or free running.
 - **Lock:** the chance the returning bit is kept: flip chance = (1 − Lock) / 2.
 - **Rate:** steps per second when *Sync* is *Free* and *Clock* is unpatched.
 - **Level:** scales *Voltage*.

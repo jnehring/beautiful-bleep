@@ -119,6 +119,9 @@ Every knob is a modulation destination.
 | Dice | New every loop, Repeat every 2 / 4 / 8, Fixed | New every loop |
 | Seed | 0 – 999 | 1 |
 | Note 1 … 4 | 0 – 127 | 36, 38, 42, 46 |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored.
 
 ### Inputs
 

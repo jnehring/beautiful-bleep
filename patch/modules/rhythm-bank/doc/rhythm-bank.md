@@ -87,6 +87,9 @@ Five whole patches show what Rhythm Bank does. In the standalone app open **File
 | Grid | Snap, Free (Poly) | Snap |
 | Mute 1 … 4 | on / off | off |
 | Output | Gate, Trigger | Gate |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored.
 
 ### Inputs
 

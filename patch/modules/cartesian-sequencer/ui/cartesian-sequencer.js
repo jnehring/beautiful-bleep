@@ -344,11 +344,12 @@
     .cart-menu button:disabled { color: var(--muted); cursor: default; }`;
 
   BleepViews.register("cartesian-sequencer", {
+    partNames: ["Grid"],
     top: true,
     side: true,
     width: 940,
     layout: [
-      { title: "Walk", params: ["mode", "xrate", "yrate", "xdirection", "ydirection"] },
+      { title: "Walk", params: ["syncto", "mode", "xrate", "yrate", "xdirection", "ydirection"] },
       { title: "Grid", params: ["columns", "rows", "seed"] },
       { title: "Position", params: ["x", "y", "modslew", "sample"] },
       { title: "Feel", params: ["gatelength", "swing"] },

@@ -3,6 +3,7 @@
 // related outputs, smoothing or folding, 1 V/oct, sync and clock following.
 #include "TidalDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <atomic>
 
@@ -13,7 +14,7 @@ using patch::TidalDsp;
 
 class TidalModule final : public Module {
 public:
-    enum { Frequency, Skew, Curve, Smooth, Spread, Mode, Range, Relation, Sync, Ratio, Polarity };
+    enum { Frequency, Skew, Curve, Smooth, Spread, Mode, Range, Relation, Sync, Ratio, Polarity, SyncTo };
     enum { Trig, Clock, Pitch };
     enum { A, B, C, D, Rise, End };
 
@@ -44,7 +45,7 @@ public:
         patch::TidalTime t;
         t.running = tr.playing && tr.ppqValid;
         t.bpm = tr.bpm;
-        const bool clockPatched = c.inputConnected[Clock];
+        const bool clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         patch::TidalFrame f;
         for (int i = 0; i < c.numSamples; ++i) {
             p.freq = c.params[Frequency][i];  // normalised: the Range maps it
@@ -95,7 +96,8 @@ static void registerTidalModule(Registry& r) {
                 ParamSpec::choice("relation", "Relation", {"Ratio", "Phase", "Level", "Harmonic"}, 1),
                 ParamSpec::choice("sync", "Sync", sync, 0),
                 ParamSpec::choice("ratio", "Ratio", ratios, 6),
-                ParamSpec::choice("polarity", "Polarity", {"Bipolar", "Unipolar"}, 0).when("mode", 1, 1)};
+                ParamSpec::choice("polarity", "Polarity", {"Bipolar", "Unipolar"}, 0).when("mode", 1, 1),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"trig", "Trig", Signal::Gate}, {"clock", "Clock", Signal::Trigger}, {"pitch", "Pitch", Signal::Pitch}};
     s.outputs = {{"a", "A", Signal::Control, true},     {"b", "B", Signal::Control, true},
                  {"c", "C", Signal::Control, true},     {"d", "D", Signal::Control, true},

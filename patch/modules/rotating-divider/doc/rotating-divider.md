@@ -87,6 +87,9 @@ Five whole patches show what Rotating Div does. In the standalone app open **Fil
 | Realign | Never, 1, 2, 4, 8 bars | Never |
 | Output | Gate, Trigger | Gate |
 | Gate Length | Division, Base Step | Division |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored.
 
 ### Inputs
 

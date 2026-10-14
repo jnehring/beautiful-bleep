@@ -5,6 +5,7 @@
 #include "DrumMapDsp.h"
 #include "Handoff.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -77,7 +78,7 @@ std::string sanitiseData(const std::string& json) {
 class DrumMapModule final : public Module {
 public:
     enum { X, Y, KickDensity, SnareDensity, HatsDensity, FillAmount, Chaos, Accent, Swing, NoteLength,
-           Length, Rate, ChaosRate, Seed, KickNote, SnareNote, HatsNote };
+           Length, Rate, ChaosRate, Seed, KickNote, SnareNote, HatsNote, SyncTo };
     enum { Clock, Reset, Fill };
     enum { Kick, Snare, Hats, KickAcc, SnareAcc, HatsAcc, KickVel, SnareVel, HatsVel, Notes, Step, End };
 
@@ -152,7 +153,7 @@ public:
         t.running = tr.playing && tr.ppqValid;
         t.bpm = tr.bpm;
         patch::DrumInputs in;
-        in.clockPatched = c.inputConnected[Clock];
+        in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         NoteBuffer& notes = *c.notesOut[Notes];
         notes.clear();
         patch::DrumOutputs o;
@@ -232,7 +233,8 @@ static void registerDrumMapModule(Registry& r) {
                 ParamSpec::integer("seed", "Seed", 0, 999, 1),
                 ParamSpec::integer("kicknote", "Kick Note", 0, 127, 36),
                 ParamSpec::integer("snarenote", "Snare Note", 0, 127, 38),
-                ParamSpec::integer("hatsnote", "Hats Note", 0, 127, 42)};
+                ParamSpec::integer("hatsnote", "Hats Note", 0, 127, 42),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}, {"fill", "Fill", Signal::Gate}};
     s.outputs = {{"kick", "Kick", Signal::Trigger, false},
                  {"snare", "Snare", Signal::Trigger, false},

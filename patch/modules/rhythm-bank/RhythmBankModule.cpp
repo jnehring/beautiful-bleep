@@ -3,6 +3,7 @@
 // from a Family and a Pattern number, stepped by the transport or a clock.
 #include "RhythmBankDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <array>
 #include <atomic>
@@ -16,7 +17,7 @@ using patch::RhythmBankDsp;
 class RhythmBankModule final : public Module {
 public:
     enum { Pattern, Rotate1, Rotate2, Rotate3, Rotate4, Width, Family, Length, Rate, Complement, Change, Grid, Mute1,
-           Mute2, Mute3, Mute4, Output };
+           Mute2, Mute3, Mute4, Output, SyncTo };
     enum { Clock, Reset };
     enum { Out1, Out2, Out3, Out4, Any, Accent, Cycle };
 
@@ -73,7 +74,7 @@ public:
         for (int j = 0; j < kRbOutputs; ++j) p.mute[j] = setting(Mute1 + j) >= 0.5f;
         const Transport& tr = *c.transport;
         patch::RbInput in;
-        in.clocked = c.inputConnected[Clock];
+        in.clocked = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         in.running = tr.playing && tr.ppqValid;
         in.bpm = tr.bpm;
         patch::RbOutputs o;
@@ -137,6 +138,7 @@ static void registerRhythmBankModule(Registry& r) {
     for (int j = 1; j <= kRbOutputs; ++j)
         s.params.push_back(ParamSpec::toggle("mute" + std::to_string(j), "Mute " + std::to_string(j), false));
     s.params.push_back(ParamSpec::choice("output", "Output", {"Gate", "Trigger"}, 0));
+    s.params.push_back(ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto));
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}};
     for (int j = 1; j <= kRbOutputs; ++j)
         s.outputs.push_back({"out" + std::to_string(j), "Out " + std::to_string(j), Signal::Gate, false});

@@ -3,6 +3,7 @@
 // one base clock; Rotate shifts the set of divisions across the outputs.
 #include "RotatingDividerDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -40,7 +41,7 @@ std::string sanitiseData(const std::string& json) {
 
 class RotatingDividerModule final : public Module {
 public:
-    enum { Rotate, Width, Set, RotateMode, Sync, Base, Realign, Output, GateLength };
+    enum { Rotate, Width, Set, RotateMode, Sync, Base, Realign, Output, GateLength, SyncTo };
     enum { Clock, Reset };
     enum { Out1 = 0, Stair = kRdOutputs, Align };
 
@@ -87,7 +88,7 @@ public:
         p.custom = custom;
         const Transport& tr = *c.transport;
         patch::RdInput in;
-        in.clocked = c.inputConnected[Clock];
+        in.clocked = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         in.running = tr.playing && tr.ppqValid;
         in.ppqPerSample = c.ppqPerSample;
         in.bpm = tr.bpm;
@@ -140,7 +141,8 @@ static void registerRotatingDividerModule(Registry& r) {
                 ParamSpec::choice("base", "Base", rates, 9),
                 ParamSpec::choice("realign", "Realign", {"Never", "1 bar", "2 bars", "4 bars", "8 bars"}, 0),
                 ParamSpec::choice("output", "Output", {"Gate", "Trigger"}, 0),
-                ParamSpec::choice("gatelength", "Gate Length", {"Division", "Base Step"}, 0).when("output", 0, 0)};
+                ParamSpec::choice("gatelength", "Gate Length", {"Division", "Base Step"}, 0).when("output", 0, 0),
+                ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto)};
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}};
     for (int k = 0; k < kRdOutputs; ++k)
         s.outputs.push_back({"out" + std::to_string(k + 1), "Out " + std::to_string(k + 1), Signal::Gate, false});

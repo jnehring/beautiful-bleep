@@ -116,6 +116,9 @@ Five whole patches show what Recall does. In the standalone app open **File → 
 | Root | C … B | C |
 | Scale | the Step Sequencer's scales | Major |
 | Seed | 0 – 999 | 1 |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored. It applies to *Clock*; *X Clock* keeps its own job as the external X source.
 
 *X Source External* with nothing at *X Clock* draws on every tick.
 

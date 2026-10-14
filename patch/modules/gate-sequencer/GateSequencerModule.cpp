@@ -3,6 +3,7 @@
 // steps from the node's data, gates, triggers, velocities and notes out.
 #include "GateSequencerDsp.h"
 #include "Registry.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -108,7 +109,7 @@ std::string sanitiseData(const std::string& json) {
 class GateSequencerModule final : public Module {
 public:
     enum { Chance1, Chance2, Chance3, Chance4, NudgeDepth, RatchetDecay, Swing,
-           Length1, Length2, Length3, Length4, Rate1, Rate2, Rate3, Rate4, Dice, Seed, Note1, Note2, Note3, Note4 };
+           Length1, Length2, Length3, Length4, Rate1, Rate2, Rate3, Rate4, Dice, Seed, Note1, Note2, Note3, Note4, SyncTo };
     enum { Clock, Reset, Fill, Mute1 };
     enum { Gate1 = 0, Trig1 = 4, Vel1 = 8, Notes = 12, Cycle = 13 };
 
@@ -160,7 +161,7 @@ public:
         t.running = tr.playing && tr.ppqValid;
         t.bpm = tr.bpm;
         patch::GateInputs in;
-        in.clockPatched = c.inputConnected[Clock];
+        in.clockPatched = dsp::clockSynced((int)setting(SyncTo), c.inputConnected[Clock]);
         NoteBuffer& notes = *c.notesOut[Notes];
         notes.clear();
         patch::GateOutputs o;
@@ -230,6 +231,7 @@ static void registerGateSequencerModule(Registry& r) {
     s.params.push_back(ParamSpec::integer("seed", "Seed", 0, 999, 1));
     for (int t = 1; t <= 4; ++t)
         s.params.push_back(ParamSpec::integer("note" + std::to_string(t), "Note " + std::to_string(t), 0, 127, notes[t - 1]));
+    s.params.push_back(ParamSpec::choice("syncto", "Sync To", dsp::seqSyncNames(), dsp::SyncAuto));
     s.inputs = {{"clock", "Clock", Signal::Trigger}, {"reset", "Reset", Signal::Trigger}, {"fill", "Fill", Signal::Gate}};
     for (int t = 1; t <= 4; ++t) s.inputs.push_back({"mute" + std::to_string(t), "Mute " + std::to_string(t), Signal::Gate});
     for (int t = 1; t <= 4; ++t) s.outputs.push_back({"gate" + std::to_string(t), "Gate " + std::to_string(t), Signal::Gate, false});

@@ -128,6 +128,9 @@ Every knob is a modulation destination.
 | Scale | the Step Sequencer's scales | Major |
 | Octave | −3 … +3 | 0 |
 | Seed | 0 – 999 | 1 |
+| Sync To | Auto, Clock, Transport | Auto |
+
+- **Sync To:** what steps the module. *Auto*: the clock pulses while *Clock* is patched, otherwise the transport. *Clock*: only the pulses step it. *Transport*: the song position steps it, and a patched *Clock* is ignored.
 
 ### Inputs
 

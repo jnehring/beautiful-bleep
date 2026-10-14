@@ -224,10 +224,11 @@
     .seq-scroll canvas { display: block; touch-action: none; cursor: crosshair; }`;
 
   BleepViews.register("step-sequencer", {
+    partNames: ["Step lanes"],
     top: true,
     width: 900,
     layout: [
-      { title: "Clock", params: ["rate", "length", "direction"] },
+      { title: "Clock", params: ["syncto", "rate", "length", "direction"] },
       { title: "Feel", params: ["gatelength", "swing"] },
       { title: "Pitch", params: ["root", "scale", "octave"] },
       { title: "Variation", params: ["variation", "varrange", "harmony", "seed"] },
