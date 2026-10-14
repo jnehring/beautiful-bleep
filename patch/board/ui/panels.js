@@ -259,7 +259,8 @@
       }
       if (!ts.length) { if (!opts.edit) return { ts: [], all, commands: all.filter((t) => t.kind === "command" || t.kind === "press"), move() {}, end() {}, get: () => 0, def: { default: 0 }, steps: 0 }; return null; }
       const d = driver(c, bound, panel, ts, {
-        initial: () => c.value, save: (x) => host.save(panel.id, c.id, x),
+        // The board keeps the saved copy; keep this control's value current too, as a refresh re-reads it.
+        initial: () => c.value, save: (x) => { c.value = x; host.save(panel.id, c.id, x); },
         paint: (x, units, def) => { paint(x); e.title = `${c.label || def.name}: ${show(def, units)}`; },
       });
       if (opts.edit) return null;
