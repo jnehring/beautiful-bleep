@@ -7,6 +7,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -41,6 +42,24 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class Pinning(unittest.TestCase):
+    def test_roots_come_from_the_store_configuration(self):
+        key = "ab" * 32
+        with mock.patch.object(release, "store_config", lambda: {"rootKeys": [key]}), mock.patch.dict("os.environ", {"BLEEP_STORE_ROOTS": ""}):
+            self.assertEqual(release.pinned_roots(), [bytes.fromhex(key)])
+        with mock.patch.object(release, "store_config", lambda: {}), mock.patch.dict("os.environ", {"BLEEP_STORE_ROOTS": ""}):
+            with self.assertRaises(SystemExit):
+                release.pinned_roots()
+
+    def test_plain_http_is_for_localhost_only(self):
+        release.Registry("https://store.example", "t")
+        release.Registry("http://localhost:8080", "t")
+        release.Registry("http://127.0.0.1:8080", "t")
+        for url in ("http://store.example", "ftp://store.example", "store.example"):
+            with self.assertRaises(release.RegistryError):
+                release.Registry(url, "t")
+
+
 class FakeStore:
     """The few calls release_modules makes; `published` is {slug: {version: entry.json}}."""
 
@@ -48,7 +67,6 @@ class FakeStore:
         self.published, self.token, self.released = published, "t", []
 
     def check_token(self): pass
-    def roots(self): return [self.root_pub]
     def versions(self, slug, kind="plugin"): return list(self.published.get(slug, {}))
     def entry(self, slug, version, kind="plugin"): return self.published.get(slug, {}).get(version)
 
@@ -89,7 +107,7 @@ class ReleaseModules(unittest.TestCase):
         args = argparse.Namespace(packages=self.dir, package=False, plugins=list(names), level=level, channel="stable", notes="", force=force,
                                   dry_run=dry, yes=True, registry="http://store")
         out = io.StringIO()
-        with redirect_stdout(out):
+        with redirect_stdout(out), mock.patch.object(release, "pinned_roots", lambda: [self.root_pub]):
             code = release.release_modules(args, store, self.kit)
         return code, store, out.getvalue()
 

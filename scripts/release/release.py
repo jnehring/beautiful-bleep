@@ -44,6 +44,7 @@ import shutil
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -58,6 +59,21 @@ def store_config() -> dict:
         return json.loads((ROOT / "config" / "store.json").read_text())
     except (OSError, ValueError):
         return {}
+
+
+def pinned_roots() -> list[bytes]:
+    """The root keys this release trusts: rootKeys of config/store.json (plus $BLEEP_STORE_ROOTS, hex, comma separated), the same
+    ones the apps are built with. They are never taken from the registry being published to: a registry that names its own root
+    could accept anything."""
+    keys = list(store_config().get("rootKeys") or [])
+    keys += [k.strip() for k in os.environ.get("BLEEP_STORE_ROOTS", "").split(",") if k.strip()]
+    try:
+        roots = [bytes.fromhex(k) for k in keys]
+    except ValueError:
+        raise SystemExit("release: a root key in config/store.json or $BLEEP_STORE_ROOTS is not hex")
+    if not roots or any(len(r) != 32 for r in roots):
+        raise SystemExit("release: no (valid) rootKeys in config/store.json; the signing kit cannot be checked without pinned roots")
+    return roots
 
 
 # slug -> (title, artefact path under the build dir; {cfg} = build configuration)
@@ -144,6 +160,9 @@ class RegistryError(Exception):
 
 class Registry:
     def __init__(self, url: str, token: str | None):
+        parts = urllib.parse.urlsplit(url)
+        if parts.scheme != "https" and not (parts.scheme == "http" and parts.hostname in ("localhost", "127.0.0.1", "::1")):
+            raise RegistryError(f"{url}: the registry must be https (plain http only for localhost): the token would travel in the clear")
         self.site = url.rstrip("/")
         self.base = self.site + "/api/registry"
         self.token = token
@@ -190,9 +209,6 @@ class Registry:
             raise RegistryError(f"GET entry.json of {slug} {version}: {e.code}") from None
         except urllib.error.URLError as e:
             raise RegistryError(f"cannot reach {self.site}: {e.reason}") from None
-
-    def roots(self) -> list[bytes]:
-        return [bytes.fromhex(k) for k in self._request("GET", "/roots")["roots"]]
 
     def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict], kind: str = "plugin",
                 summary: str = "", category: str = "", image: bytes | None = None,
@@ -305,7 +321,7 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
     try:
         if registry.token:
             registry.check_token()
-        roots = registry.roots() if kit is not None else []
+        roots = pinned_roots() if kit is not None else []
         for slug in names:
             pkg = pdir / f"{slug}.bleepmod"
             digest = signing.content_digest(signing.read_entries(pkg)).hex()
@@ -457,7 +473,7 @@ def main(argv: list[str] | None = None) -> int:
                 plan.append((slug, artefact, published, target))
             else:
                 plan.append((slug, artefact, published, next_version(args.level, published)))
-        roots = registry.roots() if kit is not None else []
+        roots = pinned_roots() if kit is not None else []
     except RegistryError as e:
         sys.exit(str(e))
     if kit is not None:  # fail before anything is built or uploaded: is this kit valid, and for plugins?

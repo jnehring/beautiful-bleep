@@ -176,7 +176,7 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
   2. **A token releases for one publisher.** A release token has a `publisher` (default `bleep`); the signature's publisher must be the same, or the request is refused. One release has one publisher, and a platform added later must be signed by the same one.
   3. **A signed module package must be the one that was signed.** The release declares the content hash; when the file arrives, the store opens the zip and recomputes it.
   4. **Who uploaded is recorded.** Each file stores the token that declared it (shown by name in the admin's download details, never in the public `entry.json`) and the signer's publisher and key id. Only that token may continue a draft: upload files, replace the draft or publish it.
-  5. **`scripts/release/release.py` checks first.** Before building or uploading, it signs a probe with the kit and verifies it against the store's root keys (`GET /api/registry/roots`), so a wrong or expired kit fails at once instead of after a 100 MB upload.
+  5. **`scripts/release/release.py` checks first.** Before building or uploading, it signs a probe with the kit and verifies it against the root keys pinned in `config/store.json` (never the ones the registry reports, which could be anything), so a wrong or expired kit fails at once instead of after a 100 MB upload.
 
   The shop publishes nothing unsigned. Packages that are not in the shop (a developer's own test builds) can still be signed locally, so the same verification path runs everywhere.
 

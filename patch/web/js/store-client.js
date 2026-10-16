@@ -172,7 +172,7 @@
 
   // ---- the store ------------------------------------------------------------------------------------
 
-  const config = { base: "/registry/v1/", roots: null, rootsUrl: "/api/registry/roots", channel: "stable", allowUnsigned: { module: false, plugin: false }, crl: null };
+  const config = { base: "/registry/v1/", roots: null, channel: "stable", allowUnsigned: { module: false, plugin: false }, crl: null };
   let indexPromise = null;
   const packages = new Map();
 
@@ -186,7 +186,9 @@
   }
 
   async function roots() {
-    if (!config.roots) config.roots = (await getJSON(config.rootsUrl)).roots.map(fromHex);
+    // The roots are pinned: build-web.sh bakes the rootKeys of config/store.json into js/store-roots.js. They are never fetched from the
+    // server that serves the packages: that server could name its own root and sign anything.
+    if (!config.roots || !config.roots.length) throw new Error("no pinned store root keys: the store cannot be trusted");
     return config.roots;
   }
 

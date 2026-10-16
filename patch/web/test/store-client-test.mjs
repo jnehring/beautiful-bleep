@@ -204,6 +204,11 @@ await test("fetchModule: the whole path through the index, the entry and the pac
     assert.deepEqual([...new Uint8Array(got.wasm)], [...wasm]);
     assert.equal([got.version, got.publisher, got.status].join(), "1.0.0,bleep,signed");
     assert.equal(got.meta.name, "Verb");
+    // no pinned roots: nothing is fetched from the server to trust instead
+    Store.configure({ roots: null });
+    await assert.rejects(Store.fetchModule("reverb"), /no pinned store root keys/);
+    assert.ok(!Object.keys(served).some((u) => u.includes("roots")) && !Store.config.rootsUrl, "the roots are never asked from the store");
+    Store.configure({ roots: [root] });
     // a download that is not the file the entry lists
     served[base + "modules/reverb/1.0.0/reverb-1.0.0.bleepmod"] = new Uint8Array([...pkg.slice(0, -1), pkg[pkg.length - 1] ^ 1]);
     Store.configure({});  // forgets the verified copy
