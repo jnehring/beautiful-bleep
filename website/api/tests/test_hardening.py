@@ -126,3 +126,11 @@ def test_production_start_refuses_placeholder_secrets(monkeypatch):
     monkeypatch.setattr(settings, "cookie_secure", False)
     monkeypatch.setattr(settings, "admin_password", "change-me")
     main.refuse_placeholder_secrets()  # local development may use them
+
+
+def test_project_bodies_may_be_bigger_than_other_json():
+    from app import main
+    from app.routers.projects import MAX_BYTES
+
+    assert main.body_limit("/api/projects") >= MAX_BYTES * 4 + 64 * 1024  # the endpoint's own 413 decides, not the middleware
+    assert main.body_limit("/api/presets") == main.MAX_BODY
