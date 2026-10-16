@@ -27,6 +27,8 @@
 
 #include <atomic>
 #include <memory>
+#include <random>
+#include <string>
 #include <thread>
 
 #include <juce_audio_devices/juce_audio_devices.h>
@@ -276,12 +278,29 @@ juce::var runAccount(const juce::String& op, const juce::var& x, const juce::var
 class BoardView : public juce::Component, private juce::Timer {
 public:
     explicit BoardView(Engine& engine) : engine_(engine) {
+        // The page's scripts are not all the app's own: installed modules ship views (modules/<name>/ui/*.js) that run in the same page.
+        // So that they cannot call the native functions below, a secret that only the page's first script learns (the user script hands
+        // it over once, to the top frame, and board/ui/bleep-bridge.js keeps it in a closure) must come with every call; `gated` drops
+        // the others. The raw JUCE message channel is reachable from any script in the page, the secret is what it is not.
+        secret_ = makeSecret();
+        auto gated = [this](auto fn) {
+            return [this, fn = std::move(fn)](const juce::Array<juce::var>& a, Completion done) {
+                if (a.isEmpty() || !a.getReference(0).isString() || !secretMatches(a.getReference(0).toString().toStdString())) {
+                    done({});
+                    return;
+                }
+                juce::Array<juce::var> rest;
+                for (int i = 1; i < a.size(); ++i) rest.add(a.getReference(i));
+                fn(rest, std::move(done));
+            };
+        };
         auto options =
             juce::WebBrowserComponent::Options{}
                 .withNativeIntegrationEnabled()
+                .withUserScript(bootScript())
                 .withKeepPageLoadedWhenBrowserIsHidden()
                 .withResourceProvider([](const juce::String& url) { return resource(url); })
-                .withNativeFunction("init", [this](const juce::Array<juce::var>&, Completion done) {
+                .withNativeFunction("init", gated([this](const juce::Array<juce::var>&, Completion done) {
                     pageReady_ = true;
                     auto r = boardMessage();
                     r.getDynamicObject()->setProperty("types", board::describeTypes());
@@ -299,45 +318,45 @@ public:
 #endif
                     done(r);
                     if (focus_.isNotEmpty()) sendFocus();
-                })
-                .withNativeFunction("commit", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("commit", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.commit(a[0], a[1].toString());
                     done(boardMessage());
-                })
-                .withNativeFunction("loadPatch", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("loadPatch", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     if (style().onLoadPatch) style().onLoadPatch(a[0], (double)a[1], a[2].toString());
                     else engine_.commit(a[0], "Load " + a[2].toString());
                     done(boardMessage());
-                })
-                .withNativeFunction("undo", [this](const juce::Array<juce::var>&, Completion done) {
+                }))
+                .withNativeFunction("undo", gated([this](const juce::Array<juce::var>&, Completion done) {
                     engine_.undo();
                     done(boardMessage());
-                })
-                .withNativeFunction("redo", [this](const juce::Array<juce::var>&, Completion done) {
+                }))
+                .withNativeFunction("redo", gated([this](const juce::Array<juce::var>&, Completion done) {
                     engine_.redo();
                     done(boardMessage());
-                })
-                .withNativeFunction("beginGesture", [this](const juce::Array<juce::var>&, Completion done) {
+                }))
+                .withNativeFunction("beginGesture", gated([this](const juce::Array<juce::var>&, Completion done) {
                     engine_.beginGesture();
                     done(boardMessage());
-                })
-                .withNativeFunction("setParam", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("setParam", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.setParam(a[0].toString(), a[1].toString(), (float)a[2]);
                     done({});
-                })
-                .withNativeFunction("setAmount", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("setAmount", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.setAmount(a[0].toString(), (float)a[1]);
                     done({});
-                })
-                .withNativeFunction("setData", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("setData", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.setData(a[0].toString(), a[1]);
                     done({});
-                })
-                .withNativeFunction("command", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("command", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.command(a[0].toString(), a[1].toString(), (float)a[2]);
                     done({});
-                })
-                .withNativeFunction("importMedia", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("importMedia", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     // a[0]: file name, a[1]: the file's bytes as base64 (the page reads dropped files).
                     juce::MemoryOutputStream decoded;
                     if (!juce::Base64::convertFromBase64(decoded, a[1].toString())) {
@@ -347,25 +366,25 @@ public:
                         return;
                     }
                     done(engine_.importMedia(a[0].toString(), decoded.getMemoryBlock()));
-                })
-                .withNativeFunction("exportMedia", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("exportMedia", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     done(engine_.exportMedia(a[0].toString(), a[1].toString()));
-                })
-                .withNativeFunction("perform", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("perform", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     engine_.perform(a[0].toString(), a[1].toString(), a[2]);
                     done({});
-                })
-                .withNativeFunction("midiDevices", [](const juce::Array<juce::var>&, Completion done) {
+                }))
+                .withNativeFunction("midiDevices", gated([](const juce::Array<juce::var>&, Completion done) {
                     // Connected controllers for the MIDI Device module (standalone, spec §12).
                     juce::Array<juce::var> names;
                     for (const auto& d : juce::MidiInput::getAvailableDevices())
                         if (!d.name.startsWith("Bleep App ")) names.add(d.name);
                     done(names);
-                })
-                .withNativeFunction("presets", [](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("presets", gated([](const juce::Array<juce::var>& a, Completion done) {
                     done(presetList(presetKind(a[0])));
-                })
-                .withNativeFunction("savePreset", [](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("savePreset", gated([](const juce::Array<juce::var>& a, Completion done) {
                     const auto kind = presetKind(a[2]);
                     const auto file = presetFile(a[0].toString(), kind);
                     auto* o = new juce::DynamicObject();
@@ -376,59 +395,59 @@ public:
                         file.replaceWithText(juce::JSON::toString(juce::var(o)));
                     }
                     done(presetList(kind));
-                })
-                .withNativeFunction("deletePreset", [](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("deletePreset", gated([](const juce::Array<juce::var>& a, Completion done) {
                     const auto kind = presetKind(a[1]);
                     presetFile(a[0].toString(), kind).deleteFile();
                     done(presetList(kind));
-                })
-                .withNativeFunction("copyText", [](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("copyText", gated([](const juce::Array<juce::var>& a, Completion done) {
                     juce::SystemClipboard::copyTextToClipboard(a[0].toString());
                     done({});
-                })
-                .withNativeFunction("pasteText", [](const juce::Array<juce::var>&, Completion done) {
+                }))
+                .withNativeFunction("pasteText", gated([](const juce::Array<juce::var>&, Completion done) {
                     done(juce::SystemClipboard::getTextFromClipboard());
-                })
-                .withNativeFunction("openUrl", [](const juce::Array<juce::var>& a, Completion done) {  // the Help section's tiles
+                }))
+                .withNativeFunction("openUrl", gated([](const juce::Array<juce::var>& a, Completion done) {  // the Help section's tiles
                     const auto address = a[0].toString();
                     done((address.startsWithIgnoreCase("http://") || address.startsWithIgnoreCase("https://"))
                          && juce::URL(address).launchInDefaultBrowser());
-                })
-                .withNativeFunction("settings", [](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("settings", gated([](const juce::Array<juce::var>& a, Completion done) {
                     done(style().onSettings ? style().onSettings(a[0].toString(), a[1]) : juce::var());
-                })
-                .withNativeFunction("watch", [this](const juce::Array<juce::var>& a, Completion done) {
+                }))
+                .withNativeFunction("watch", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     watched_.clear();
                     if (auto* ids = a[0].getArray())
                         for (const auto& id : *ids) watched_.insert(id.toString());
                     done({});
-                });
+                }));
 #if defined(BLEEP_WASM_MODULES)
         using bleep::engine::ModuleStore;
         options = options
-            .withNativeFunction("types", [](const juce::Array<juce::var>&, Completion done) { done(board::describeTypes()); })
-            .withNativeFunction("storeStatus", [](const juce::Array<juce::var>&, Completion done) { done(ModuleStore::instance().status()); })
-            .withNativeFunction("storeRefresh", [](const juce::Array<juce::var>&, Completion done) {
+            .withNativeFunction("types", gated([](const juce::Array<juce::var>&, Completion done) { done(board::describeTypes()); }))
+            .withNativeFunction("storeStatus", gated([](const juce::Array<juce::var>&, Completion done) { done(ModuleStore::instance().status()); }))
+            .withNativeFunction("storeRefresh", gated([](const juce::Array<juce::var>&, Completion done) {
                 ModuleStore::instance().refreshIndexAsync();
                 done({});
-            })
-            .withNativeFunction("storeInstall", [](const juce::Array<juce::var>& a, Completion done) {
+            }))
+            .withNativeFunction("storeInstall", gated([](const juce::Array<juce::var>& a, Completion done) {
                 ModuleStore::instance().installAsync(a[0].toString().toStdString());
                 done({});
-            })
-            .withNativeFunction("storeInstallAll", [](const juce::Array<juce::var>&, Completion done) {
+            }))
+            .withNativeFunction("storeInstallAll", gated([](const juce::Array<juce::var>&, Completion done) {
                 ModuleStore::instance().installAllAsync();
                 done({});
-            })
-            .withNativeFunction("storeUpdateAll", [](const juce::Array<juce::var>&, Completion done) {
+            }))
+            .withNativeFunction("storeUpdateAll", gated([](const juce::Array<juce::var>&, Completion done) {
                 ModuleStore::instance().updateAllAsync();
                 done({});
-            })
-            .withNativeFunction("storeRemove", [](const juce::Array<juce::var>& a, Completion done) {
+            }))
+            .withNativeFunction("storeRemove", gated([](const juce::Array<juce::var>& a, Completion done) {
                 ModuleStore::instance().removeAsync(a[0].toString().toStdString());
                 done({});
-            })
-            .withNativeFunction("storeSettings", [](const juce::Array<juce::var>& a, Completion done) {
+            }))
+            .withNativeFunction("storeSettings", gated([](const juce::Array<juce::var>& a, Completion done) {
                 // Module UI scripts run in this page and can call this too. What weakens the store's checks (signatures off, a
                 // different store, which also receives the account token) is therefore confirmed in a native dialog the page cannot answer.
                 const auto before = ModuleStore::instance().settings();
@@ -471,12 +490,12 @@ public:
                         if (result == 2) ModuleStore::instance().setSettings(s, error);  // buttons count from 1 in the order added; Deny is the default
                         done({});
                     });
-            })
-            .withNativeFunction("storeRevealData", [](const juce::Array<juce::var>&, Completion done) {
+            }))
+            .withNativeFunction("storeRevealData", gated([](const juce::Array<juce::var>&, Completion done) {
                 ModuleStore::instance().dataDir().revealToUser();
                 done({});
-            })
-            .withNativeFunction("account", [this](const juce::Array<juce::var>& a, Completion done) {
+            }))
+            .withNativeFunction("account", gated([this](const juce::Array<juce::var>& a, Completion done) {
                 // The network runs on a worker thread; the answer goes back to the page from the message thread.
                 const juce::var op = a[0], x = a[1], y = a[2], z = a[3];
                 auto alive = alive_;
@@ -484,9 +503,9 @@ public:
                     const juce::var result = runAccount(op.toString(), x, y, z);
                     juce::MessageManager::callAsync([alive, done = std::move(done), result] { if (alive->load()) done(result); });
                 }).detach();
-            })
-            .withNativeFunction("storePlugins", [](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); })
-            .withNativeFunction("storeInstallPlugins", [](const juce::Array<juce::var>&, Completion done) { done(installPluginBundle()); });
+            }))
+            .withNativeFunction("storePlugins", gated([](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); }))
+            .withNativeFunction("storeInstallPlugins", gated([](const juce::Array<juce::var>&, Completion done) { done(installPluginBundle()); }));
 #endif
 #if JUCE_WINDOWS
         options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
@@ -555,6 +574,34 @@ public:
 
     ~BoardView() override { alive_->store(false); stopTimer(); }
 
+    /// Random 256 bits as hex, from the operating system's generator.
+    static std::string makeSecret() {
+        std::random_device rd;
+        std::string out;
+        static const char* hex = "0123456789abcdef";
+        for (int i = 0; i < 32; ++i) {
+            const auto b = (unsigned char)(rd() & 0xff);
+            out += hex[b >> 4];
+            out += hex[b & 15];
+        }
+        return out;
+    }
+    bool secretMatches(const std::string& given) const {
+        unsigned diff = given.size() == secret_.size() ? 0u : 1u;  // no early exit on the first difference
+        for (size_t i = 0; i < secret_.size() && i < given.size(); ++i) diff |= (unsigned)(secret_[i] ^ given[i]);
+        return diff == 0;
+    }
+    /// Runs before the page's own scripts, in the top frame only (a frame a script adds must learn nothing): a getter that gives the secret
+    /// out once. A reloaded page gets a new getter. In the board smoke test it also asks for an unsealed page.
+    juce::String bootScript() const {
+        juce::String js = "(function(){if(window.top!==window)return;var s=\"" + juce::String(secret_) +
+                          "\";Object.defineProperty(window,\"__bleepBoot\",{configurable:true,value:function(){var r=s;s=null;return r;}});})();";
+#if defined(BLEEP_BOARD_SMOKE_TEST)
+        js += "window.__BLEEP_NO_SEAL__=true;";
+#endif
+        return js;
+    }
+
     void resized() override { web_->setBounds(getLocalBounds()); }
     void paint(juce::Graphics& g) override { g.fillAll(juce::Colour(0xff15171c)); }
 
@@ -603,6 +650,7 @@ private:
     Engine& engine_;
     std::unique_ptr<WebView> web_;
     std::set<juce::String> watched_;
+    std::string secret_;  // what every native call from the page has to carry (see the constructor)
     std::shared_ptr<std::atomic<bool>> alive_ = std::make_shared<std::atomic<bool>>(true);   // for answers that arrive after the view is gone
     juce::String focus_;
     bool pageReady_ = false;  ///< the page called init(): events can be delivered

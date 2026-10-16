@@ -10,6 +10,8 @@
 // (native "cellPresets", by category) and loading one replaces the plugin's cell (native "loadCellPreset").
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, onNative, priv: P } = window.BleepSeal;
   let host = null;            // {board(), apply(message)} from board.js
   let demos = [];             // [{name, module, moduleName, preset}]
   let mine = [];              // [{name, preset}]
@@ -121,9 +123,9 @@
           render();
         });
         foot.appendChild(del);
-        if (window.BleepAccount && BleepAccount.enabled) {   // the apps with a store, and Play
+        if (P.BleepAccount && P.BleepAccount.enabled) {   // the apps with a store, and Play
           const share = el("button", "pb-del", "Share…");
-          share.addEventListener("click", (e) => { e.stopPropagation(); BleepAccount.share("boards", p.name, p.preset); });
+          share.addEventListener("click", (e) => { e.stopPropagation(); P.BleepAccount.share("boards", p.name, p.preset); });
           foot.appendChild(share);
         }
       }
@@ -158,7 +160,7 @@
   }
 
   async function loadPatch(p) {
-    if (window.BleepStoreView && p.preset && !(await BleepStoreView.ensureNeeds(p.preset, p.name))) return;
+    if (P.BleepStoreView && p.preset && !(await P.BleepStoreView.ensureNeeds(p.preset, p.name))) return;
     if (p.cell) {
       close();
       await native("loadCellPreset", p.name);
@@ -182,7 +184,7 @@
     const board = host.board();
     if (!name || !board) return;
     const preset = { format: 1, description: desc, tags: [], nodes: clone(board.nodes), cables: clone(board.cables) };
-    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(preset.nodes) : {};
+    const needs = P.BleepStoreView ? await P.BleepStoreView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     mine = (await native("savePreset", name, preset, "boards")) || [];
     setCurrent({ name, source: "user", preset });
@@ -256,7 +258,7 @@
     return true;
   }
 
-  window.BleepPresetBrowser = {
+  P.BleepPresetBrowser = {
     /// host: {board(): the current board, apply(message): show the engine's answer, cells: list cell presets}
     async init(h) {
       host = h;

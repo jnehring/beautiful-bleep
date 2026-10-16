@@ -74,8 +74,9 @@
 //                             is on screen; stops by itself once it is removed
 (function () {
   "use strict";
-  const hooks = {};
-  window.BleepViews = { register: (type, h) => (hooks[type] = h), get: (type) => hooks[type] || null };
+  const hooks = new Map();
+  // The first registration of a type stays: a view script loaded later (an installed module's) cannot take over another module's view.
+  window.BleepViews = { register: (type, h) => { if (!hooks.has(type)) hooks.set(type, h); }, get: (type) => hooks.get(type) || null };
 
   const NS = "http://www.w3.org/2000/svg";
   const el = (tag, cls, text) => {
@@ -172,7 +173,7 @@
   }
   /// Everything of this module's view a panel can show alone: [{id, name, kind: "display" | "controls" | "buttons", knobs?}].
   function partsOf(type) {
-    const h = hooks[type.type], taken = new Set();
+    const h = hooks.get(type.type), taken = new Set();
     const out = [...displayParts(h, taken), ...sectionParts(type, h, taken)];
     if (type.buttons && type.buttons.length) out.push({ id: "b:buttons", name: "Buttons", kind: "buttons" });
     return out.map(({ id, name, kind, knobs }) => ({ id, name, kind, ...(knobs ? { knobs } : {}) }));
@@ -392,7 +393,7 @@
     root.style.setProperty("--accent", type.colour || "#4fd1c5");
     const customEl = el("section", "bv-custom");
     const stage = el("div", "bv-stage");  // the custom display and the controls
-    const h = hooks[type.type];
+    const h = hooks.get(type.type);
     root.appendChild(stage);
     if (type.description) root.appendChild(el("p", "bv-description", type.description));
 

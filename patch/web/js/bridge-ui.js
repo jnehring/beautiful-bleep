@@ -9,6 +9,7 @@
   "use strict";
   if (window.__JUCE__ || !window.BleepWeb) return;
   const W = window.BleepWeb;
+  const seal = window.BleepSeal;  // the page's lock (common/ui/bleep-bridge.js): the demo engine is only reachable through it once the board has sealed
   const url = (p) => new URL(p, document.baseURI).href;
   let client = null, mod = null;
   const ui = W.bridgeUI = { connected: false, busy: false, text: "", bad: false, connect: () => connect(), onChange: null };
@@ -63,8 +64,9 @@
     for (const [key, e] of byKey) {
       const c = e.channels[0];
       const type = mod.nodeTypeForChannel(c);
-      if (type && window.BleepDemo && BleepDemo.mirrorPort)
-        BleepDemo.mirrorPort({ id: "link:" + key, key, type, name: c.name || "Live", live: e.online });
+      const demo = seal && seal.demo();
+      if (type && demo && demo.mirrorPort)
+        demo.mirrorPort({ id: "link:" + key, key, type, name: c.name || "Live", live: e.online });
     }
   }
 

@@ -6,6 +6,8 @@
 //   show() / hide()                     the header's Settings button; File → Settings opens it too
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, onNative, priv: P } = window.BleepSeal;
   let state = null;           // native "settings", "get"
   let store = null;           // native "storeStatus", when the app has a store
   let tab = "audio";
@@ -268,7 +270,7 @@
     document.body.appendChild(root);
   }
 
-  window.BleepSettingsView = {
+  P.BleepSettingsView = {
     async init(options) {
       hasStore = !!(options && options.store);
       build();
@@ -277,13 +279,13 @@
       const btn = document.getElementById("sec-settings");
       btn.hidden = false;
       if (!hasStore) document.getElementById("sec-store").hidden = true;  // no store in this build: nothing to open
-      btn.addEventListener("click", () => window.BleepSettingsView.show());
-      document.getElementById("sec-board").addEventListener("click", () => window.BleepSettingsView.hide());
-      onNative("openSettings", () => window.BleepSettingsView.show());
+      btn.addEventListener("click", () => P.BleepSettingsView.show());
+      document.getElementById("sec-board").addEventListener("click", () => P.BleepSettingsView.hide());
+      onNative("openSettings", () => P.BleepSettingsView.show());
     },
     async show() {
-      if (window.BleepStoreView) window.BleepStoreView.hide();
-      if (window.BleepHelpView) window.BleepHelpView.hide();
+      if (P.BleepStoreView) P.BleepStoreView.hide();
+      if (P.BleepHelpView) P.BleepHelpView.hide();
       document.body.classList.add("in-store");
       root.hidden = false;
       document.getElementById("sec-settings").classList.add("on");

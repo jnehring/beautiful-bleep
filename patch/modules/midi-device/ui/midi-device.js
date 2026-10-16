@@ -45,7 +45,7 @@
       BleepView.loop(view.root, () => draw(view, cv));
       // The controller this node reads (standalone app, spec §12).
       const select = custom.querySelector(".device");
-      const names = (await native("midiDevices")) || [];
+      const names = (await view.api.midiDevices()) || [];
       const current = view.node.device || "";
       select.appendChild(new Option("— choose a controller —", ""));
       for (const n of names) select.appendChild(new Option(n, n));

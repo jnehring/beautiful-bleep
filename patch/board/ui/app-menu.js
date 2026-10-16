@@ -9,6 +9,8 @@
 //   BleepAppMenu.init({ nativeMenu, version })
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, onNative, priv: P } = window.BleepSeal;
   const DOCS = "/docs/musicians/getting-started/";
   const SITE = "https://brilliantbleep.com";
   const el = (tag, cls, text) => {
@@ -79,10 +81,10 @@
     bar.setAttribute("aria-label", "Menu bar");
     const menus = [
       ["File", [
-        ["Presets…", () => window.BleepPresetBrowser && BleepPresetBrowser.open(), () => !!window.BleepPresetBrowser],
-        ["Save as Preset…", () => window.BleepPresetBrowser && BleepPresetBrowser.save(), () => !!window.BleepPresetBrowser],
+        ["Presets…", () => P.BleepPresetBrowser && P.BleepPresetBrowser.open(), () => !!P.BleepPresetBrowser],
+        ["Save as Preset…", () => P.BleepPresetBrowser && P.BleepPresetBrowser.save(), () => !!P.BleepPresetBrowser],
         null,
-        ["Settings…", () => window.BleepSettingsView.show(), () => !!(window.BleepSettingsView && document.getElementById("sec-settings") && !document.getElementById("sec-settings").hidden)],
+        ["Settings…", () => P.BleepSettingsView.show(), () => !!(P.BleepSettingsView && document.getElementById("sec-settings") && !document.getElementById("sec-settings").hidden)],
       ]],
       ["Help", [
         ["Documentation", showDocs, () => true],
@@ -126,7 +128,7 @@
     document.getElementById("top").prepend(bar);
   }
 
-  window.BleepAppMenu = {
+  P.BleepAppMenu = {
     init(opts) {
       version = opts.version || "";
       if (!opts.nativeMenu) build();

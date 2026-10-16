@@ -10,6 +10,8 @@
 //   BleepSideMenu.init({ mode: "app" | "plugin" | "web", board(): the current board })
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, onNative, priv: P } = window.BleepSeal;
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -158,7 +160,7 @@
   const SOURCES = { factory: "Factory preset", store: "Bleep Store", user: "User preset" };
 
   function storeLink(c) {
-    const acct = window.BleepAccount;
+    const acct = P.BleepAccount;
     const base = (acct && acct.last && acct.last.storeUrl) || "";
     return c.address && base ? base + "/store/detail/?kind=preset&slug=" + encodeURIComponent(c.address) : "";
   }
@@ -179,32 +181,32 @@
 
   async function drawPreset() {
     if (!refs.pName) return;
-    const c = window.BleepPresetBrowser && BleepPresetBrowser.current();
+    const c = P.BleepPresetBrowser && P.BleepPresetBrowser.current();
     refs.pName.textContent = c ? c.name : "No preset loaded";
     refs.pName.classList.toggle("none", !c);
     refs.pSource.textContent = c ? SOURCES[c.source] || c.source : "A board you built yourself";
     let url = "";
     if (c && c.source === "store" && c.address) {
-      if (window.BleepAccount && BleepAccount.status) { try { await BleepAccount.status(false); } catch (e) { /* offline */ } }
+      if (P.BleepAccount && P.BleepAccount.status) { try { await P.BleepAccount.status(false); } catch (e) { /* offline */ } }
       url = storeLink(c);
     }
     refs.pLink.hidden = !url;
     refs.pLink.dataset.url = url;
-    const can = !!(window.BleepAccount && BleepAccount.enabled);
+    const can = !!(P.BleepAccount && P.BleepAccount.enabled);
     refs.upload.hidden = !can;
   }
 
   async function upload() {
     const b = host && host.board();
-    if (!b || !window.BleepAccount) return;
-    const c = BleepPresetBrowser.current();
+    if (!b || !P.BleepAccount) return;
+    const c = P.BleepPresetBrowser.current();
     const base = c && c.preset ? c.preset : {};
     const preset = { format: 1, description: base.description || "", tags: base.tags || [],
       nodes: JSON.parse(JSON.stringify(b.nodes)), cables: JSON.parse(JSON.stringify(b.cables)) };
     if (base.tempo) preset.tempo = base.tempo;
-    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(preset.nodes) : {};
+    const needs = P.BleepStoreView ? await P.BleepStoreView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
-    const done = await BleepAccount.share("boards", (c && c.name) || "My patch", preset);
+    const done = await P.BleepAccount.share("boards", (c && c.name) || "My patch", preset);
     refs.pNote.textContent = done ? `Shared as ${done.address}.` : "";
   }
 
@@ -218,7 +220,7 @@
     if (on) { poll(); tick(); drawPreset(); timer = setInterval(() => { poll(); tick(); }, 1000); }
   }
 
-  window.BleepSideMenu = {
+  P.BleepSideMenu = {
     init(opts) {
       host = opts;
       mode = opts.mode;
@@ -236,7 +238,7 @@
       buildTransport();
       buildPreset();
       drawTransport();
-      if (window.BleepPresetBrowser) BleepPresetBrowser.onChange(drawPreset);
+      if (P.BleepPresetBrowser) P.BleepPresetBrowser.onChange(drawPreset);
       if (mode === "plugin") onNative("state", (s) => {   // Live's transport comes with the engine's state events
         if (s && s.transport) { t.bpm = num(s.transport.bpm, t.bpm); t.playing = !!s.transport.playing; if (root.classList.contains("open")) drawTransport(); }
       });

@@ -11,6 +11,8 @@
 //   BleepAccount.share(kind, name, preset)  the Share… dialog; kind is "cells" or "boards" (the local preset kinds)
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, priv: P } = window.BleepSeal;
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -155,5 +157,5 @@
     });
   }
 
-  const api = window.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, onChange: (f) => listeners.add(f), open, get last() { return last; } };
+  const api = P.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, onChange: (f) => listeners.add(f), open, get last() { return last; } };
 })();

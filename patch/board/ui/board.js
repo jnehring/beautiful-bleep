@@ -8,6 +8,8 @@
 // so they get one undo step per drag.
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, onNative, priv: P, seal, testHooks } = window.BleepSeal;
 
   // ------------------------------------------------------------------ state
   let board = null;            // the board document, or null (no Bleep Board)
@@ -550,15 +552,15 @@
     if (missingModule) {  // the module of this node is not on this machine: the node waits, with its settings, and its cables are kept
       const note = el("div", "n-missing", n.type);
       e.appendChild(note);
-      if (window.BleepStoreView) {
+      if (P.BleepStoreView) {
         const b = el("button", "n-install", "Install");
         b.addEventListener("pointerdown", (ev) => ev.stopPropagation());
         b.addEventListener("click", async (ev) => {
           ev.stopPropagation();
           b.disabled = true;
           b.textContent = "Installing…";
-          const ok = await window.BleepStoreView.installType(n.type);
-          if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (window.BleepStoreView.lastMessage() || "not found in the store"); }
+          const ok = await P.BleepStoreView.installType(n.type);
+          if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (P.BleepStoreView.lastMessage() || "not found in the store"); }
         });
         e.appendChild(b);
       }
@@ -1568,10 +1570,10 @@
   /// `link` (from a cable dropped on empty canvas) is connected to the new node.
   function addAt(what, x, y, link, checked) {
     if (!board) return;
-    if (what.preset && !checked && hasStore && window.BleepStoreView) {  // modules the preset needs: offer to install them first
+    if (what.preset && !checked && hasStore && P.BleepStoreView) {  // modules the preset needs: offer to install them first
       const q = presets.find((r) => r.key === what.preset);
       if (q) {
-        BleepStoreView.ensureNeeds(q.preset, q.name).then(
+        P.BleepStoreView.ensureNeeds(q.preset, q.name).then(
           (ok) => {
             if (!ok) return;
             // The store only knows the modules it lists or has installed. A preset may use module types this app has never
@@ -2503,7 +2505,7 @@
     const ids = new Set(nodes.map((n) => n.id));
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
     const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
-    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(nodes) : {};
+    const needs = P.BleepStoreView ? await P.BleepStoreView.needsFor(nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     const mine = panelsWithLoaded(panelList().filter((p) => p.cell && ids.has(p.cell)));
     if (mine.length) preset.panels = clone(mine).map((p) => { delete p.open; return p; });
@@ -2647,7 +2649,9 @@
 
   /// What a module view (or a panel) calls to change node `id`.
   function makeApi(id) {
-    return {
+    // A module view may only touch the libraries of its own kind: "drums" (Drum Grid patterns) and "module:<type>" (its presets), never the user's boards and cells.
+    const viewKind = (kind) => typeof kind === "string" && /^(drums|module:[A-Za-z0-9._-]{1,64})$/.test(kind);
+    return Object.freeze({
       knobMenu: (pid, ev) => { const items = knobMenuItems(id, pid); if (items.length) showMenu(ev, items); },
       // Right-click on a part of the view (a display, a section of knobs, the buttons) or on its background: "Add to panel".
       partMenu: (partId, ev) => { const m = nodeById(id), items = m ? panelMenuFor(m, partId) : []; if (items.length) showMenu(ev, items); },
@@ -2677,15 +2681,17 @@
       // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
       perform: (action, ...args) => native("perform", id, action, args),
       // Preset libraries shared by all sets, e.g. Drum Grid patterns ("drums").
-      presets: async (kind) => (await native("presets", kind)) || [],
-      savePreset: async (kind, name, preset) => (await native("savePreset", name, preset, kind)) || [],
-      deletePreset: async (kind, name) => (await native("deletePreset", name, kind)) || [],
+      presets: async (kind) => (viewKind(kind) && (await native("presets", kind))) || [],
+      savePreset: async (kind, name, preset) => (viewKind(kind) && (await native("savePreset", name, preset, kind))) || [],
+      deletePreset: async (kind, name) => (viewKind(kind) && (await native("deletePreset", name, kind))) || [],
+      // The MIDI inputs the app sees (MIDI Device's controller list).
+      midiDevices: async () => (await native("midiDevices")) || [],
       setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
       cablesInto: (pid) => cablesInto(id, pid).map((c) => {
         const src = nodeById(c.from.node);
         return { id: c.id, amount: c.amount, label: src ? `${src.name} › ${jackName(src, c.from.jack, true)}` : "?" };
       }),
-    };
+    });
   }
 
   function openView(id) {
@@ -3394,7 +3400,7 @@
     if (e.key === "Tab") { e.preventDefault(); openSearch(pointer.x, pointer.y); return; }
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteSelection(); return; }
     if (e.key === "Escape") {
-      if (window.BleepPresetBrowser && BleepPresetBrowser.close()) return;
+      if (P.BleepPresetBrowser && P.BleepPresetBrowser.close()) return;
       if (!$("menu").hidden || !$("cable-pop").hidden || !$("help-pop").hidden) return hidePopovers();
       if (trace) { trace = null; return render(); }
       if (closeTopView()) return;
@@ -3423,24 +3429,29 @@
   $("redo").addEventListener("click", redo);
   window.addEventListener("resize", () => { renderCables(); positionCablePop(); });
 
-  window.__board = () => board;  // for tests/board_smoke.cpp
-  window.__errors = window.__errors || [];  // what the page reported, for tests/board_smoke.cpp
-  window.addEventListener("error", (e) => window.__errors.push(String(e.message)));
-  window.addEventListener("unhandledrejection", (e) => window.__errors.push("rejected: " + (e.reason && e.reason.message ? e.reason.message : e.reason)));
-  /// The Add menu's "Cell › … › name", for tests/board_smoke.cpp.
-  window.__findPreset = (name) => presets.find((r) => r.name === name);
-  window.__addPreset = (name) => {
-    const q = presets.find((r) => r.name === name);
-    if (!q) return "no preset " + name;
-    addAt({ preset: q.key }, 200 + 60 * (window.__added = (window.__added || 0) + 1), 120);
-    return "asked for " + name;
-  };
+  // Test hooks (tests/board_smoke.cpp drives the page from outside). They hand out the board and place presets, so a release build
+  // does not define them: BleepSeal.testHooks is only true when the smoke-test build asked for an unsealed page.
+  if (testHooks) {
+    window.__board = () => board;
+    window.__errors = window.__errors || [];  // what the page reported, for tests/board_smoke.cpp
+    window.addEventListener("error", (e) => window.__errors.push(String(e.message)));
+    window.addEventListener("unhandledrejection", (e) => window.__errors.push("rejected: " + (e.reason && e.reason.message ? e.reason.message : e.reason)));
+    /// The Add menu's "Cell › … › name", for tests/board_smoke.cpp.
+    window.__findPreset = (name) => presets.find((r) => r.name === name);
+    window.__addPreset = (name) => {
+      const q = presets.find((r) => r.name === name);
+      if (!q) return "no preset " + name;
+      addAt({ preset: q.key }, 200 + 60 * (window.__added = (window.__added || 0) + 1), 120);
+      return "asked for " + name;
+    };
+  }
 
   // ------------------------------------------------------------------ start
   /// Module views (modules/<name>/ui/*.js, served flat): loads the scripts
   /// listed in module-views.json that the page doesn't load yet. Without the
   /// list, tries <type>.js for every module type.
   async function loadModuleViews(list) {
+    seal();  // from here on the page runs code that is not the app's own: take the bridge and the privileged globals out of reach
     const loaded = new Set([...document.scripts].map((s) => s.src.split("/").pop()));
     let names = null;
     try {
@@ -3484,22 +3495,22 @@
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
     hasStore = !!m.store;
-    if (m.account && window.BleepAccount) { BleepAccount.enabled = true; BleepAccount.client = m.standalone ? "Bleep Standalone" : "Bleep plugin"; }
-    if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
-    if (m.settings && window.BleepSettingsView) await BleepSettingsView.init({ store: !!m.store });
-    if (m.store && window.BleepHelpView) await BleepHelpView.init();
+    if (m.account && P.BleepAccount) { P.BleepAccount.enabled = true; P.BleepAccount.client = m.standalone ? "Bleep Standalone" : "Bleep plugin"; }
+    if (m.store && P.BleepStoreView) await P.BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
+    if (m.settings && P.BleepSettingsView) await P.BleepSettingsView.init({ store: !!m.store });
+    if (m.store && P.BleepHelpView) await P.BleepHelpView.init();
     pluginMode = !!m.plugin || !!panelOf;
     document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
     standalone = !!m.standalone;
     {  // the preset browser: whole boards (spec §11.5); in a plugin their port nodes map onto the set's ports
-      await BleepPresetBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin });
+      await P.BleepPresetBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin });
       $("presets").hidden = false;
-      $("presets").addEventListener("click", () => BleepPresetBrowser.open());
-      if (m.plugin) BleepPresetBrowser.open();  // an instrument or FX window opens on its presets
+      $("presets").addEventListener("click", () => P.BleepPresetBrowser.open());
+      if (m.plugin) P.BleepPresetBrowser.open();  // an instrument or FX window opens on its presets
     }
-    BleepAppMenu.init({ nativeMenu: !!m.nativeMenu, version: m.version || "" });
-    BleepSideMenu.init({ mode: m.plugin ? "plugin" : window.BleepWeb ? "web" : "app", board: () => board });
+    P.BleepAppMenu.init({ nativeMenu: !!m.nativeMenu, version: m.version || "" });
+    P.BleepSideMenu.init({ mode: m.plugin ? "plugin" : window.BleepWeb ? "web" : "app", board: () => board });
     await loadFactoryPresets();
     await loadFactoryPanels();
     setPresets((await native("presets")) || []);
@@ -3507,7 +3518,7 @@
     applyMessage(m);
     {  // Bleep Play opened from a store preset: /play/index.html?preset=author/slug
       const shared = new URLSearchParams(location.search).get("preset");
-      if (shared && !pluginMode) BleepPresetBrowser.loadShared(shared).catch((e) => notice(e.message));
+      if (shared && !pluginMode) P.BleepPresetBrowser.loadShared(shared).catch((e) => notice(e.message));
     }
     // Fit once the canvas has its size (the window may still be opening).
     let fitted = false;
@@ -3516,5 +3527,6 @@
       renderCables();
     }).observe(canvas);
   }
+  seal();  // every script of the app is loaded and has what it needs: from here on no script runs that the app did not ship (module views come after)
   start();
 })();

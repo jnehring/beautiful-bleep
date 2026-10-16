@@ -8,6 +8,8 @@
 //   show() / hide()           the header's Help button
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, priv: P } = window.BleepSeal;
   let articles = null;        // help-articles.json: [{group, title, description, path}]
   let index = null;           // help-search.json: [{group, title, path, text}]
   let query = "";
@@ -147,18 +149,18 @@
     document.body.appendChild(root);
   }
 
-  window.BleepHelpView = {
+  P.BleepHelpView = {
     async init() {
       build();
       document.getElementById("sections").hidden = false;
       const btn = document.getElementById("sec-help");
       btn.hidden = false;
-      btn.addEventListener("click", () => window.BleepHelpView.show());
-      document.getElementById("sec-board").addEventListener("click", () => window.BleepHelpView.hide());
+      btn.addEventListener("click", () => P.BleepHelpView.show());
+      document.getElementById("sec-board").addEventListener("click", () => P.BleepHelpView.hide());
     },
     async show() {
-      if (window.BleepStoreView) window.BleepStoreView.hide();
-      if (window.BleepSettingsView && document.getElementById("settings")) window.BleepSettingsView.hide();
+      if (P.BleepStoreView) P.BleepStoreView.hide();
+      if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.hide();
       document.body.classList.add("in-store");
       root.hidden = false;
       document.getElementById("sec-help").classList.add("on");

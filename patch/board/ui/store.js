@@ -6,6 +6,8 @@
 //   show() / hide()                    the header's Board and Store buttons
 (function () {
   "use strict";
+  // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
+  const { native, priv: P } = window.BleepSeal;
   let status = null;          // native "storeStatus"
   let tab = "modules";
   let query = "";
@@ -254,11 +256,11 @@
           const d = (p.preset && p.preset.description) || p.description || "";
           const cat = p.category || (p.preset && p.preset.category) || "";
           const { tile: t, body: b } = tile("preset", { title: p.name, summary: d, category: cat || kind }, p.name);
-          if (window.BleepAccount && BleepAccount.enabled && p.preset) {
+          if (P.BleepAccount && P.BleepAccount.enabled && p.preset) {
             const share = el("button", "", "Share…");
             share.title = "Publish it in the Bleep Store (needs an account)";
             share.addEventListener("click", async () => {
-              const done = await BleepAccount.share(kind === "cell" ? "cells" : "boards", p.name, p.preset);
+              const done = await P.BleepAccount.share(kind === "cell" ? "cells" : "boards", p.name, p.preset);
               if (done) { message = `Shared as ${done.address} (version ${done.version}).`; render(); }
             });
             b.appendChild(share);
@@ -283,9 +285,9 @@
         box.appendChild(el("div", "st-note", "You can share presets from the Presets tab. Comments and ratings are on the store's pages, with the same account."));
         const row = el("div", "ac-row");
         const site = el("button", "", "My account on the website");
-        site.addEventListener("click", () => BleepAccount.open(st.storeUrl + "/account/"));
+        site.addEventListener("click", () => P.BleepAccount.open(st.storeUrl + "/account/"));
         const out = el("button", "", "Sign out");
-        out.addEventListener("click", async () => draw(await BleepAccount.signOut()));
+        out.addEventListener("click", async () => draw(await P.BleepAccount.signOut()));
         row.append(site, out);
         box.appendChild(row);
         return;
@@ -299,16 +301,16 @@
       const row = el("div", "ac-row");
       const go = el("button", "ac-primary", st.playLogin ? "Log in on the website" : "Sign in…");
       go.addEventListener("click", async () => {
-        if (st.playLogin) { BleepAccount.open(st.storeUrl + "/login/"); return; }
+        if (st.playLogin) { P.BleepAccount.open(st.storeUrl + "/login/"); return; }
         go.disabled = true;
-        const r = await BleepAccount.signIn((c) => { code.textContent = c.userCode; msg.textContent = "Waiting for you to confirm it in the browser…"; });
+        const r = await P.BleepAccount.signIn((c) => { code.textContent = c.userCode; msg.textContent = "Waiting for you to confirm it in the browser…"; });
         if (r && r.error !== undefined) { go.disabled = false; code.textContent = ""; msg.className = "ac-msg bad"; msg.textContent = r.error; return; }
-        draw(await BleepAccount.status(false));
+        draw(await P.BleepAccount.status(false));
       });
       row.appendChild(go);
       box.appendChild(row);
     };
-    BleepAccount.status(true).then(draw);
+    P.BleepAccount.status(true).then(draw);
   }
 
   function renderSecurity() {
@@ -580,7 +582,7 @@
           return;
         }
         await native("storeInstallAll");
-        window.BleepStoreView.show();
+        P.BleepStoreView.show();
         await refresh();
       }
       await finish();
@@ -635,7 +637,7 @@
     });
   }
 
-  window.BleepStoreView = {
+  P.BleepStoreView = {
     installType,
     ensureNeeds,
     needsFor,
@@ -649,14 +651,14 @@
       }, 600);
       const header = document.getElementById("sections");
       header.hidden = false;
-      document.getElementById("sec-board").addEventListener("click", () => window.BleepStoreView.hide());
-      document.getElementById("sec-store").addEventListener("click", () => window.BleepStoreView.show());
+      document.getElementById("sec-board").addEventListener("click", () => P.BleepStoreView.hide());
+      document.getElementById("sec-store").addEventListener("click", () => P.BleepStoreView.show());
       // The standalone app has Security in its Settings section; plugin windows keep it here.
       if (host.settings) tabsEl.querySelector('[data-tab="security"]').remove();
     },
     async show() {
-      if (window.BleepSettingsView && document.getElementById("settings")) window.BleepSettingsView.hide();
-      if (window.BleepHelpView) window.BleepHelpView.hide();
+      if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.hide();
+      if (P.BleepHelpView) P.BleepHelpView.hide();
       document.body.classList.add("in-store");
       root.hidden = false;
       document.getElementById("sec-store").classList.add("on");
