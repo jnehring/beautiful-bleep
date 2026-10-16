@@ -34,6 +34,35 @@ std::vector<uint8_t> readFile(const juce::File& f) {
     return std::vector<uint8_t>((const uint8_t*)block.getData(), (const uint8_t*)block.getData() + block.getSize());
 }
 
+/// A one-entry zip whose directory claims `usize` bytes for `csize` stored bytes (method 8 = deflate, 0 = stored).
+std::vector<uint8_t> craftedZip(uint16_t method, uint32_t csize, uint32_t usize, size_t realBytes) {
+    std::vector<uint8_t> z;
+    auto p16 = [&](uint32_t v) { z.push_back(v & 255); z.push_back((v >> 8) & 255); };
+    auto p32 = [&](uint32_t v) { p16(v & 0xffff); p16(v >> 16); };
+    const std::string name = "module.wasm";
+    p32(0x04034b50); p16(20); p16(0); p16(method); p16(0); p16(0); p32(0); p32(csize); p32(usize); p16((uint32_t)name.size()); p16(0);
+    z.insert(z.end(), name.begin(), name.end());
+    z.insert(z.end(), realBytes, 0);
+    const size_t dir = z.size();
+    p32(0x02014b50); p16(20); p16(20); p16(0); p16(method); p16(0); p16(0); p32(0); p32(csize); p32(usize); p16((uint32_t)name.size());
+    p16(0); p16(0); p16(0); p16(0); p32(0); p32(0);
+    z.insert(z.end(), name.begin(), name.end());
+    const size_t dirSize = z.size() - dir;
+    p32(0x06054b50); p16(0); p16(0); p16(1); p16(1); p32((uint32_t)dirSize); p32((uint32_t)dir); p16(0);
+    return z;
+}
+
+void testPackageLimits() {  // a zip's own sizes must not make us allocate
+    Package pkg;
+    std::string error;
+    auto zip = craftedZip(8, 10, 0x7FFFFFF0u, 10);
+    CHECK(!readPackage(zip.data(), zip.size(), pkg, error) && error.find("too large") != std::string::npos, "a 2 GB claim for 10 bytes is refused: %s", error.c_str());
+    zip = craftedZip(8, 10, 100000, 10);
+    CHECK(!readPackage(zip.data(), zip.size(), pkg, error), "a ratio deflate cannot reach is refused: %s", error.c_str());
+    zip = craftedZip(0, 4, 4, 4);
+    CHECK(readPackage(zip.data(), zip.size(), pkg, error) && pkg.files.count("module.wasm") == 1, "a small honest package still reads: %s", error.c_str());
+}
+
 void testVector() {  // signing.md section 14: the content hash of three fixed files
     Entries e;
     auto add = [&](const char* path, const std::string& content) { e[path] = FileInfo{sha256((const uint8_t*)content.data(), content.size()), false}; };
@@ -485,6 +514,7 @@ int main(int argc, char** argv) {
     if (argc == 4 && std::string(argv[1]) == "--account-live") return accountLive(argv[2], argv[3]);
     const juce::File dir(BLEEP_STORE_FIXTURES);
     testVector();
+    testPackageLimits();
     testCanonical();
     testFixtures(dir);
     testClient(dir);

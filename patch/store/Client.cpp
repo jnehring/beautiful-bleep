@@ -13,22 +13,28 @@
 namespace bleep::store {
 namespace {
 
-bool fetchBytes(const juce::String& address, std::vector<uint8_t>& out, std::string& error) {
+constexpr size_t kMaxJsonBytes = size_t(16) << 20;      // an index, an entry, a list
+constexpr size_t kMaxPackageBytes = size_t(1024) << 20;  // a module or a plugin
+
+bool fetchBytes(const juce::String& address, std::vector<uint8_t>& out, std::string& error, size_t maxBytes = kMaxPackageBytes) {
     int status = 0;
     const juce::URL url(address);
     auto stream = url.createInputStream(juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
                                             .withConnectionTimeoutMs(15000).withStatusCode(&status).withNumRedirectsToFollow(5));
     if (!stream) { error = "cannot reach " + address.toStdString(); return false; }
     if (status >= 400) { error = address.toStdString() + ": " + std::to_string(status); return false; }
+    const auto announced = stream->getTotalLength();
+    if (announced > 0 && (uint64_t)announced > maxBytes) { error = address.toStdString() + " is too large"; return false; }
     juce::MemoryBlock block;
-    stream->readIntoMemoryBlock(block);
+    stream->readIntoMemoryBlock(block, (juce::int64)maxBytes + 1);  // one byte more than allowed shows an endless answer
+    if (block.getSize() > maxBytes) { error = address.toStdString() + " is too large"; return false; }
     out.assign((const uint8_t*)block.getData(), (const uint8_t*)block.getData() + block.getSize());
     return true;
 }
 
 bool fetchJson(const juce::String& address, juce::var& out, std::string& error) {
     std::vector<uint8_t> bytes;
-    if (!fetchBytes(address, bytes, error)) return false;
+    if (!fetchBytes(address, bytes, error, kMaxJsonBytes)) return false;
     out = juce::JSON::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(bytes.data()), (int)bytes.size()));
     if (out.isVoid()) { error = address.toStdString() + " is not JSON"; return false; }
     return true;

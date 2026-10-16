@@ -24,6 +24,11 @@ bool safePath(const std::string& p) {
     return true;
 }
 
+// What a package may unpack to. The sizes come from the zip's own directory, so they are checked before anything is allocated.
+constexpr size_t kMaxEntries = 10000;
+constexpr size_t kMaxEntryBytes = size_t(512) << 20;
+constexpr size_t kMaxTotalBytes = size_t(1024) << 20;
+
 }  // namespace
 
 Digest sha256(const uint8_t* data, size_t size) {
@@ -82,6 +87,8 @@ bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& er
         if (u32(data + i) == 0x06054b50) { eocd = i; break; }
     if (eocd < 0) { error = "not a zip file"; return false; }
     const int count = u16(data + eocd + 10);
+    if ((size_t)count > kMaxEntries) { error = "too many files in the package"; return false; }
+    size_t total = 0;
     size_t at = u32(data + eocd + 16);
     for (int n = 0; n < count; ++n) {
         if (at + 46 > size || u32(data + at) != 0x02014b50) { error = "bad zip directory"; return false; }
@@ -93,6 +100,11 @@ bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& er
         at += 46u + nameLen + extraLen + commentLen;
         if (!name.empty() && name.back() == '/') continue;
         if (csize == 0xFFFFFFFFu || usize == 0xFFFFFFFFu) { error = "zip64 is not supported"; return false; }
+        // Deflate cannot do better than about 1032:1, so a bigger claim is a lie meant to make us allocate.
+        if (usize > kMaxEntryBytes || (method == 8 && (uint64_t)usize > (uint64_t)csize * 1100 + 1024)) { error = "file too large in package: " + name; return false; }
+        if (method == 0 && usize != csize) { error = "size mismatch in " + name; return false; }
+        total += usize;
+        if (total > kMaxTotalBytes) { error = "the package unpacks to too much"; return false; }
         if ((madeBy >> 8) == 3 && (ext >> 28) == 0xA) { error = "symlink in package: " + name; return false; }
         if (out.files.count(name) || (name == "META/signature.json" && out.hasSignature)) { error = "duplicate file in package: " + name; return false; }
         if ((size_t)local + 30 > size || u32(data + local) != 0x04034b50) { error = "bad zip entry: " + name; return false; }
