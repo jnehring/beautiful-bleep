@@ -17,7 +17,7 @@ The reference implementation is `scripts/release/signing.py` with its tests in `
 | A file changed after publishing (on the CDN, in a cache, on disk) | The signature covers a hash of every file in the package. |
 | Someone else publishing under another developer's or our name | Only a developer's own key signs their ids; a certificate binds the key to a publisher name and namespace. |
 | A signature moved to another module, another version, another platform | The signed statement contains the kind, id, version and platform. |
-| A stolen developer key | Certificates expire; the library revokes a key or a single release, and clients check a signed revocation list. |
+| A stolen developer key | Certificates expire, and only the library can date a signature (section 6a), so a stolen key cannot publish once its certificate has lapsed. The library revokes a key or a single release, and clients check a signed revocation list. |
 | The library (or its storage) being hacked | The attacker cannot make a developer signature. They can still withhold updates or serve old ones, which the signed `index.json` (section 9) limits. |
 
 It does **not** make a module safe by itself: a signed module is the work of an identified developer, nothing more. Modules also run in a sandbox (the ABI gives them no files, no network, a memory cap and a time limit). **Plugins are native code with the user's full rights; a signature only tells whose code it is.** It also cannot stop Ableton from loading some other VST3 the user put in the plugin folder: enforcement for plugins happens where Bleep installs and checks them (section 11).
@@ -46,7 +46,7 @@ It does **not** make a module safe by itself: a signed module is the work of an 
 - **Signatures: Ed25519** (RFC 8032): 32-byte public keys, 64-byte signatures, deterministic, fast, no parameters to get wrong.
 - **Hash: SHA-256.**
 - A **key id** is the first 16 bytes of the SHA-256 of the 32-byte public key, as 32 hex characters.
-- Every signed message starts with a **domain string** (`BLEEP-CONTENT-1\n`, `BLEEP-SIG-1\n`, `BLEEP-CERT-1\n`, `BLEEP-CRL-1\n`), so a signature made for one purpose can never be accepted for another.
+- Every signed message starts with a **domain string** (`BLEEP-CONTENT-1\n`, `BLEEP-SIG-1\n`, `BLEEP-CERT-1\n`, `BLEEP-CRL-1\n`, `BLEEP-PUB-1\n`), so a signature made for one purpose can never be accepted for another.
 - Variable-length fields in a message are **length-prefixed** (`lp(x)` = 4-byte big-endian length, then the bytes), so two different field lists can never produce the same bytes.
 - JSON that is signed (certificates, the revocation list) is first turned into **canonical** UTF-8: keys sorted, no whitespace.
 - Why not RSA, PGP or X.509: smaller, a format we fully control, no ASN.1 parser in the audio plugin, and no trust in the operating system's certificate library (see 13).
@@ -104,15 +104,38 @@ The **signature document** is stored as `META/signature.json` inside every packa
 
 The chain is carried with the signature so verification needs **no network**: only the pinned root public key(s) and, optionally, the latest revocation list.
 
+## 6a. The publication receipt
+
+A developer certificate lasts at most a year, but a release published while it was valid should not stop working when it lapses. So the library **dates** every release it publishes with a **receipt**, made by the issuer key (which is online anyway: it signs `index.json` and the revocation list), never by the developer:
+
+```
+message = "BLEEP-PUB-1\n" ‖ lp(kind) ‖ lp(id) ‖ lp(version) ‖ lp(platform) ‖ lp(signerKeyId) ‖ lp(contentDigest) ‖ u64(publishedAt)
+signature = Ed25519-sign(issuerPrivateKey, message)
+```
+
+`publishedAt` is Unix seconds (big-endian u64) from the library server's clock. The receipt document:
+
+```json
+{ "format": 1, "algorithm": "ed25519", "issuerKeyId": "<issuer key id>",
+  "publishedAt": 1770000000, "signature": "<base64 of the 64 bytes>" }
+```
+
+- It binds the same fields as the developer signature (section 5), so a receipt for one release is useless for any other content, version, platform or key. As in section 5, **the verifier takes `kind`, `id`, `version`, `platform` and the digest from the artifact and its entry, never from the receipt.**
+- It needs no certificate of its own: the issuer certificate is already in the signature document's chain, and `issuerKeyId` must match it.
+- **Where it lives.** `entry.json` repeats it per file (`files[].publication`) next to `files[].signature`. The client stores it beside the installed file: `<name>.publication.json` (for a plugin installer, which is a single file, and for a module file), or `META/publication.json` inside a `.bleepmod`, which like `META/signature.json` is never part of the content hash. The receipt is not part of what the developer signed, so a platform added later gets its own.
+- **When the library issues it.** When it accepts the file of a published release: it first runs the full verification of section 7 with `now` set to the server clock (so the developer certificate must be valid right now and the key must not be revoked), then signs the receipt. The files of a draft get their receipts when the release is published; a platform added to a published release gets its receipt when that file is accepted. The library refuses to issue a receipt if its clock lies outside the developer certificate's validity.
+- **The library's clock is a security input.** The server must keep its time synchronised (NTP). The library also never issues a receipt with a `publishedAt` earlier than the newest one it has issued, so a clock that jumps back cannot date a release into the past; it refuses to publish until the clock has caught up.
+- **Re-signing.** A developer who re-signs a release after a key revocation (section 8) gets a new receipt, with a new `publishedAt`, for the new signature. A receipt is never reused for another signature.
+
 ## 7. Verification
 
-`verify(package, signatureDocument, kind, id, version, platform, roots, now, revocationList)` returns one of:
+`verify(package, signatureDocument, publicationReceipt?, kind, id, version, platform, roots, now, revocationList)` returns one of:
 
 | Status | Meaning |
 |---|---|
-| `signed` | Everything below passed. Carries the publisher and key id. |
+| `signed` | Everything below passed. Carries the publisher and key id, and `publishedAt` when a receipt was used. |
 | `unsigned` | There is no signature document. |
-| `expired` | Everything passed except that a certificate is outside its validity period. |
+| `expired` | Everything passed except that a certificate is outside its validity period (and there is no receipt that dates the release inside it). |
 | `revoked` | Valid, but the key (or the issuer, or this exact release) is on the revocation list. |
 | `invalid` | Anything else: the signature, a certificate, the namespace, the scope, a malformed document. |
 
@@ -125,9 +148,25 @@ Steps, in this order; the first failure decides:
 5. The certificate's `scopes` contain `kind`.
 6. **Namespace:** `id` starts with `<publisher>/`; only a `firstParty` certificate may sign an id without a `/`.
 7. The signature verifies over the message of section 5, with the content digest recomputed from the files.
-8. Validity periods of both certificates contain `now`: otherwise `expired`. (This comes last on purpose: an old release by a developer whose certificate has since lapsed is old, not forged.)
+8. **Validity.** The time `t` at which both certificates must be valid depends on the receipt:
+   - **No receipt:** `t = now`. A certificate outside its period gives `expired`. (Manual installs, local libraries and the output of `signing.py sign` have no receipt.)
+   - **Receipt present:** it must verify against the issuer key of the chain over the message of section 6a, with the fields taken from the artifact, and its `issuerKeyId` must be the chain's issuer; otherwise `invalid`. Then `t = publishedAt`. A certificate not valid at `t` gives `invalid`: a library that dated a release outside the developer's certificate has a bug or a leaked issuer key, not a lapsed developer. `publishedAt` is **not** compared with `now`; the device clock plays no part.
+
+   (This comes last on purpose: an old release by a developer whose certificate has since lapsed is old, not forged. With a receipt it is `signed`; without one it is `expired`, never `invalid`.)
 
 Verification never throws on bad input; malformed documents are `invalid`.
+
+What the receipt changes, and what it does not:
+
+| Case | Result |
+|---|---|
+| A legitimate release, the certificate lapsed a year later | `signed` (receipt) |
+| An attacker signs new content with a stolen key before the certificate lapses | Accepted by the library until the key is revoked, and valid against `now` for a sideload (as before). |
+| The same attack after the certificate lapsed | The library refuses the upload, so there is no receipt; without one: `expired`. |
+| An old receipt is replayed on new content | `invalid` (the digest differs). |
+| The receipt is stripped from an old release | `expired` once the certificate has lapsed: fails closed. |
+| `publishedAt` is changed | `invalid` (the issuer's signature). |
+| A leaked issuer key | Can backdate receipts, but could already certify any developer. Handled by revoking the issuer (section 8). |
 
 **Whether to load.** The settings decide, for modules and plugins separately (`allowUnsigned.module`, `allowUnsigned.plugin`, both off by default):
 
@@ -144,11 +183,11 @@ Verification never throws on bad input; malformed documents are `invalid`.
 ## 8. Revocation, expiry and rotation
 
 - **The revocation list** is `v1/revocations.json`, next to `index.json` (at a fixed address: the index does not reference it yet). It holds `format` (1), `serial` (rising), `issued`, `revokedKeys` (`keyId`: everything signed under that key, or under any certificate it issued) and `revokedArtifacts` (`kind`, `id`, `version`, `digest`), then `issuer` (the issuer certificate, so verifying needs only the pinned roots) and `signature`: the issuer's Ed25519 over `"BLEEP-CRL-1\n" ‖ canonical(the five fields above)`. The library writes it with the index and when a key is revoked (`developer-revoke`), and only when it changed; the serial is the time, or one more than the last, whichever is higher. The C++ client (`Client::fetchRevocations`) fetches it at start and with the index, checks the issuer certificate against the pinned roots, keeps the list with the highest `serial` in `cache/revocations.json`, and applies it offline from then on, when it verifies, installs and loads. A list with a lower or equal serial is ignored, so a mirror cannot take revocations back. A list can only take trust away, so the issuer certificate's validity dates are not checked. A client that has never fetched one still verifies; it just cannot know about revocations. A module that is already loaded stays registered until the next start; nothing revoked installs or loads after the list arrives.
-- **A stolen developer key:** revoke the key. Everything signed with it stops loading; the developer gets a new key and re-signs the releases that are still good (signing is cheap, and the content did not change).
+- **A stolen developer key:** revoke the key. Everything signed with it stops loading; the developer gets a new key and re-signs the releases that are still good (signing is cheap, and the content did not change); the library issues new receipts for them (section 6a).
 - **A bad release:** revoke that `(id, version, digest)`; other versions are untouched.
-- **A leaked issuer key:** the root signs a revocation for the issuer's key id and a new issuer certificate; developer certificates are reissued by the new issuer (the developers' keys do not change, so their packages do not need re-signing, only the chain inside the signature has to be replaced; the client treats a chain whose issuer is revoked as `revoked` and the library serves the repaired signature in `entry.json`).
+- **A leaked issuer key:** the root signs a revocation for the issuer's key id and a new issuer certificate; developer certificates are reissued by the new issuer (the developers' keys do not change, so their packages do not need re-signing, only the chain inside the signature has to be replaced; the client treats a chain whose issuer is revoked as `revoked` and the library serves the repaired signature in `entry.json`). Receipts made by the revoked issuer are `revoked` with the rest of its chain; the new issuer re-issues the receipts of the releases that are still good, together with the repaired signatures.
 - **Root rotation:** apps carry up to two root public keys. A new app release adds the next root; later it drops the old one. The root key is generated and used on an offline machine only.
-- **Time** comes from the device clock. A device with a wrong clock sees `expired` (and can allow unsigned), never `signed`-by-mistake for something forged. Registry-served metadata (`index.json`, with `generated` and `expires`) lets a client notice a stale clock.
+- **Time** matters on the device only for packages without a receipt. For those it comes from the device clock: a device with a wrong clock sees `expired` (and can allow unsigned), never `signed`-by-mistake for something forged. For packages with a receipt the device clock plays no part; the library's clock does (section 6a). Registry-served metadata (`index.json`, with `generated` and `expires`) lets a client notice a stale clock.
 
 ## 9. The library's own signature
 
@@ -169,6 +208,7 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
 - **The trade-off.** The admin generates the key, so the admin has seen it. That is fine for a handful of people the admin knows; the library stores only the key id, scopes and expiry (table `developers`), never the key. A developer who wants a key nobody else has seen uses the request flow, which the tool already has (`keygen`, `request`, then the admin runs `issue`), and later the website will take the request directly.
 - **Account and checks (when the website does it).** A website account with a confirmed e-mail address. A **module** scope is granted automatically for a publisher name nobody holds; the **plugin** scope and the `bleep` namespace by an admin only. Names that look like ours or like existing publishers are reserved.
 - **Revoking.** `python -m app.cli developer-revoke KEY_ID`: releases signed with that key are refused from then on. The signed revocation list (section 8) is published with it; the C++ client applies it, Bleep Play (the browser client) does not fetch it yet.
+- **Renewing.** A certificate that is about to lapse is renewed (same key, new validity period) before the next release. **Releases that are already published do not have to be re-signed or re-uploaded**: their receipts keep them `signed`.
 - **Key custody.** `keygen` writes the private key as a PKCS#8 PEM, encrypted with a passphrase when `BLEEP_KEY_PASSPHRASE` is set, mode 0600. The recommendation is a passphrase, kept in the OS keychain; a CI system holds it as a secret. A developer who loses the key requests a new one; the old certificate is revoked if there is any doubt. Hardware keys (a YubiKey with Ed25519, or a cloud KMS that offers it) work through the same interface: the tool only needs a signing function.
 - **One key per developer or team.** Whoever holds the key can publish as the publisher. A team uses one key held in CI, or several keys, each with its own certificate under the same publisher.
 - **What the library enforces on every release** (built; `website/api/app/routers/registry.py`):
@@ -176,7 +216,8 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
   2. **A token releases for one publisher.** A release token has a `publisher` (default `bleep`); the signature's publisher must be the same, or the request is refused. One release has one publisher, and a platform added later must be signed by the same one.
   3. **A signed module package must be the one that was signed.** The release declares the content hash; when the file arrives, the library opens the zip and recomputes it.
   4. **Who uploaded is recorded.** Each file stores the token that declared it (shown by name in the admin's download details, never in the public `entry.json`) and the signer's publisher and key id. Only that token may continue a draft: upload files, replace the draft or publish it.
-  5. **`scripts/release/release.py` checks first.** Before building or uploading, it signs a probe with the kit and verifies it against the root keys pinned in `config/library.json` (never the ones the registry reports, which could be anything), so a wrong or expired kit fails at once instead of after a 100 MB upload.
+  5. **Receipts.** Each accepted file gets a publication receipt (section 6a), after a verification at the server's current time. A file signed with a lapsed certificate is refused at upload.
+  6. **`scripts/release/release.py` checks first.** Before building or uploading, it signs a probe with the kit and verifies it against the root keys pinned in `config/library.json` (never the ones the registry reports, which could be anything), so a wrong or expired kit fails at once instead of after a 100 MB upload.
 
   The shop publishes nothing unsigned. Packages that are not in the shop (a developer's own test builds) can still be signed locally, so the same verification path runs everywhere.
 
@@ -186,9 +227,9 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
 
 | Place | When | What it does |
 |---|---|---|
-| Module loader in the engine (`WasmModuleHost`) | When a module file is first used, and again when the file's hash changes | Verifies before the file is compiled, never after. Refuses per section 7. The result is cached with the file's hash, so the audio thread is never involved. |
-| Library section (module and plugin installs, updates) | Before anything is written to the install folders | Downloads to a temporary folder, verifies, then moves. A refusal says why in the user's words. |
-| Plugin check at startup | The app and the Bleep plugins look at the Bleep plugins in the system folders | Recomputes the installer's installed-file record and compares it with what the Library section recorded; a plugin that was changed afterwards, or that Bleep did not install, is shown as *not verified*. This is detection, not prevention: Live loads whatever is in its folder. |
+| Module loader in the engine (`WasmModuleHost`) | When a module file is first used, and again when the file's hash changes | Verifies (with the stored receipt, if there is one) before the file is compiled, never after. Refuses per section 7. The result is cached with the file's hash, so the audio thread is never involved. |
+| Library section (module and plugin installs, updates) | Before anything is written to the install folders | Downloads to a temporary folder, verifies (signature and receipt), then moves both into place. A refusal says why in the user's words. |
+| Plugin check at startup | The app and the Bleep plugins look at the Bleep plugins in the system folders | Recomputes the installer's installed-file record and compares it with what the Library section recorded (which also keeps the installer's receipt); a plugin that was changed afterwards, or that Bleep did not install, is shown as *not verified*. This is detection, not prevention: Live loads whatever is in its folder. |
 | Library upload | On `POST …/releases`, at the file upload, and when a platform is added | Verifies; refuses unsigned, invalid, revoked or for the wrong publisher (built). |
 | Website | Build and download pages | Shows the publisher and key id of every entry. |
 
@@ -199,7 +240,7 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
 - **Allow unsigned modules** (off). Switching it on shows: "Unsigned modules run in a sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise. Only enable this for modules you trust or have built yourself."
 - **Allow unsigned plugins** (off). Switching it on shows: "Unsigned plugins are programs that run with all your rights inside your DAW. Only enable this for software you trust."
 - **Trusted developers**: the developers whose keys are in the chain of what you have installed, with a way to remove one (it stops everything they signed from loading). *Advanced:* add a **local root key**, so a developer can test their own signed modules, which carry a certificate issued by their own local library or `signing.py init-registry`, without allowing everything that is unsigned.
-- A status line per installed module and plugin: *Signed by acme* (key id on hover), *Unsigned*, *Expired*, *Revoked*; refused items stay listed with the reason.
+- A status line per installed module and plugin: *Signed by acme* (key id on hover, and the publication date when a receipt was used), *Unsigned*, *Expired* (only code without a receipt), *Revoked*; refused items stay listed with the reason.
 
 **On the board.** A node whose module was refused becomes a placeholder with the reason ("this module is unsigned: enable it in the settings"), never a deletion, as for a missing module in `library.md` section 4.3. Nothing is ever downloaded or verified on the audio thread, and a plugin in Live uses only what is already installed.
 
@@ -218,7 +259,7 @@ A **bundle** is a library entry of `kind: "bundle"` with no files: a signed list
 | Developer keys made by the library or by the developer? | By the developer. | The library cannot lose or leak what it never has; proof of possession is in the request. |
 | One signature algorithm only? | Yes, Ed25519; a new one means a new `format`. | No algorithm negotiation, no downgrade. |
 | Trust on first use for developers without the library? | No. | A local root key (section 11) covers the legitimate case explicitly. |
-| Timestamps? | Not used: no trusted time source offline. Expiry is checked against the device clock, and the index is the freshness anchor. | Keeps verification offline and simple; the cost is that an expired developer needs a renewed certificate. |
+| Timestamps? | The library dates every release it publishes with a receipt signed by the issuer (section 6a); clients check the developer certificate at that time. No timestamp authority, and no trusted clock on the device. Code without a receipt is checked against the device clock, and the index is the freshness anchor. | Without it every release would expire with its developer's certificate and have to be re-signed each year, without giving up offline verification. The issuer is already trusted and online; a receipt is one more thing it signs. The cost: the library's clock is a security input. |
 
 ## 14. Test vector
 
@@ -241,6 +282,16 @@ contentDigest          39f61d45e3115066a934dabca6cf83c346420153e85d6d58841033d62
 signature (64 bytes)   5019b69bf480dae36510479a2c4bbeab84e94477efcdd4ec3dc1528ef6f2644471e89b42c0ac69b4ff617bac7da69e4b817717e2f99e6526d4be2c10e1a72c0b
 ```
 
+The publication receipt (section 6a) for the same package, signed by the issuer key with `publishedAt` = 1765000000 (inside the certificate's period): expected, in hex:
+
+```
+publishedAt            1765000000
+message                424c4545502d5055422d310a000000066d6f64756c650000000961636d652f66757a7a00000005312e302e3000000003616e790000002062363265383637666132663333616665363264356436623136343265313632310000002039f61d45e3115066a934dabca6cf83c346420153e85d6d58841033d62d0c1f08000000006933c340
+signature (64 bytes)   3d68e3df76c2bcc347f69e3205bdc1b029220445989dec47da111791f2f2e22c3aea53b88e625611c9d8924a2511e970c9284527e46ab1e78f120f3c21d20504
+```
+
+`signing.py vector` prints them and the unit test pins them. With `now` = 1800000000, after `notAfter`, the package verifies as `signed` with the receipt and as `expired` without it.
+
 `scripts/release/signing.py vector` prints these and the 123-byte message; the unit test pins them. The digest and the message were also recomputed from this text alone, without the implementation.
 
 ## 15. Implementation
@@ -253,7 +304,25 @@ signature (64 bytes)   5019b69bf480dae36510479a2c4bbeab84e94477efcdd4ec3dc1528ef
 
 All three are tested against the same packages: `scripts/release/signing.py fixture` writes a deterministic set (`patch/tests/library-fixtures/`: signed in several ways, tampered, expired, revoked, outside a namespace, unreadable, with the verdict each must get in `cases.json`), and `test_signing.py` (Python), `patch/web/test/library-client-test.mjs` (JavaScript) and `patch/tests/library_test.cpp` (C++, `ctest -R patch.library`) all check them, together with the content hash of the test vector above and the canonical JSON bytes. A change to the rules changes the generator, and the three tests tell which implementation is behind.
 
+The fixtures for receipts (section 6a), each with the verdict all three must give:
+
+| Case | Expected |
+|---|---|
+| Certificate lapsed at `now`, valid receipt | `signed` |
+| Certificate lapsed at `now`, no receipt | `expired` |
+| Receipt for another digest, version, platform or key id | `invalid` |
+| Receipt signature altered, or `publishedAt` altered | `invalid` |
+| Receipt signed by a key that is not the chain's issuer | `invalid` |
+| Receipt dated before `notBefore` or after `notAfter` | `invalid` |
+| Valid receipt, key on the revocation list | `revoked` |
+| Valid receipt, `now` far in the past or the future | `signed` (the device clock is irrelevant) |
+
 ## 16. Not decided yet
+
+- **Publication receipts (section 6a) are built in the reference library and tools** (`website/api/app/signing.py`, `scripts/release/signing.py receipt`, the fixtures' `receiptCases`) and in the registry (`routers/registry.py`: receipts are issued at publish, and when a platform added later is uploaded; `entry.json` carries `files[].publication`). The JavaScript client (`patch/web/js/library-client.js`) verifies them against the same fixtures; the C++ client (`patch/library/`: `verify` takes the receipt; `Client` keeps it beside the installed package as `<name>.publication.json` and reads it again whenever the folder is checked) passes them too. Not built: keeping the receipt of an installed plugin installer (the startup check of section 11). Until the clients know them, a client ignores a receipt and behaves as before (`expired` after the lapse), so clients ship first and the library starts issuing receipts afterwards. The signature document (`format` 1) does not change, so no format bump is needed in v0.1.
+- **Backfill of receipts** (built): `python -m app.cli receipts-backfill [--dry-run]` verifies each stored file as of the release's recorded `published_at` and signs a receipt with that time, then rewrites the release's `entry.json`. Files that already have a receipt are left alone, so it can be repeated. A file whose certificate was not valid at that time, whose key is revoked, or that another issuer certified cannot get a valid receipt; the command lists those, and their developers re-sign them once.
+- Whether the receipt should also be listed in `index.json`, so a mirror cannot serve a release without one. Stripping it already fails closed, so this would only be an optimisation.
+- A proper procedure for issuing developer keys and release tokens (section 10 is the admin-run version today). Certificates stay at most 365 days until it exists.
 
 - The **root key ceremony** is decided in outline: generated on an offline machine, held in the owner's keystore with a backup, used only to certify or revoke an issuer. Still open: a second person or device that can recover it, and a written rotation drill.
 - **Revocation in the browser client** (`library-client.js` takes a list, but does not fetch one), and `revokedArtifacts`: the list can carry them, the library has no command that adds one yet.

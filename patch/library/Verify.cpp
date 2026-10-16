@@ -146,7 +146,7 @@ bool verifyRevocations(const juce::var& doc, const std::vector<std::vector<uint8
     return true;
 }
 
-Result verify(const Digest& digest, const juce::var* signature, const Context& c) {
+Result verify(const Digest& digest, const juce::var* signature, const Context& c, const juce::var* receipt) {
     if (!signature) return Result{};
     const juce::var& doc = *signature;
     if (!doc.isObject() || (int)doc["format"] != 1 || str(doc["algorithm"]) != "ed25519") return invalid("unknown signature format");
@@ -197,9 +197,32 @@ Result verify(const Digest& digest, const juce::var* signature, const Context& c
     lp(message, who.keyId);
     lp(message, digest.data(), digest.size());
     if (!b64(doc["signature"], sig) || !check(sig, devPub, message)) return invalid("the signature does not match the content");
+    // validity comes last: an expired signer is not an attack, just old. A receipt moves the moment that counts from now to publishedAt.
+    int64_t at = c.now;
+    if (receipt) {
+        const juce::var& rc = *receipt;
+        const juce::var p = rc["publishedAt"];
+        if (!rc.isObject() || (int)rc["format"] != 1 || str(rc["algorithm"]) != "ed25519" || str(rc["issuerKeyId"]) != str(it["keyId"]) ||
+            !(p.isInt() || p.isInt64()) || (juce::int64)p < 0)
+            return invalid("bad publication receipt");
+        at = (juce::int64)p;
+        std::vector<uint8_t> pubMessage, pubSig;
+        append(pubMessage, "BLEEP-PUB-1\n");
+        lp(pubMessage, c.kind);
+        lp(pubMessage, c.id);
+        lp(pubMessage, c.version);
+        lp(pubMessage, c.platform);
+        lp(pubMessage, who.keyId);
+        lp(pubMessage, digest.data(), digest.size());
+        for (int shift = 56; shift >= 0; shift -= 8) pubMessage.push_back((uint8_t)((uint64_t)at >> shift));  // u64, big endian
+        if (!b64(rc["signature"], pubSig) || !check(pubSig, issuerPub, pubMessage)) return invalid("the publication receipt does not match the release");
+        who.publishedAt = at;
+    }
     for (const juce::var* t : {&it, &dt}) {
         const int64_t from = (juce::int64)(*t)["notBefore"], until = (juce::int64)(*t)["notAfter"];
-        if (!(from <= c.now && c.now <= until)) return with("expired", "the certificate is outside its validity period");
+        if (from <= at && at <= until) continue;
+        if (receipt) return invalid("the publication receipt dates the release outside the certificate's validity period");
+        return with("expired", "the certificate is outside its validity period");
     }
     return who;
 }

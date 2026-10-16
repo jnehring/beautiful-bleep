@@ -119,6 +119,63 @@ void testFixtures(const juce::File& dir) {
     std::printf("  %d fixture packages checked\n", n);
 }
 
+void testReceipts(const juce::File& dir) {  // signing.md section 6a
+    const juce::var spec = juce::JSON::parse(dir.getChildFile("cases.json"));
+    const std::vector<std::vector<uint8_t>> roots = {fromHex(spec["roots"]["main"].toString().toStdString())};
+    auto* cases = spec["receiptCases"].getArray();
+    CHECK(cases && cases->size() > 15, "no receipt cases");
+    int n = 0;
+    for (const auto& c : *cases) {
+        const std::string name = c["name"].toString().toStdString(), expect = c["expect"].toString().toStdString();
+        const auto bytes = readFile(dir.getChildFile(c["file"].toString()));
+        Package pkg;
+        Digest digest;
+        std::string error;
+        CHECK(readPackage(bytes.data(), bytes.size(), pkg, error) && contentDigest(pkg.entries, digest, error) && pkg.hasSignature, "%s: package: %s", name.c_str(), error.c_str());
+        Context ctx;
+        ctx.kind = c["kind"].toString().toStdString();
+        ctx.id = c["id"].toString().toStdString();
+        ctx.version = c["version"].toString().toStdString();
+        ctx.platform = c["platform"].toString().toStdString();
+        ctx.roots = roots;
+        ctx.now = (juce::int64)c["now"];
+        Revocations crl;
+        if (c["crl"].isObject()) { crl = Revocations::fromJson(c["crl"]); ctx.revocations = &crl; }
+        const juce::var receipt = c["receipt"];
+        const Result r = verify(digest, &pkg.signature, ctx, receipt.isVoid() ? nullptr : &receipt);
+        CHECK(r.status == expect, "%s: got %s (%s), expected %s", name.c_str(), r.status.c_str(), r.reason.c_str(), expect.c_str());
+        ++n;
+    }
+    std::printf("  %d receipt cases checked\n", n);
+
+    {   // installing: the receipt is kept beside the package, and keeps it signed after the certificate has lapsed
+        const int64_t lapsed = (juce::int64)spec["siteNow"] + 5 * 365 * 86400;
+        const juce::File data = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-receipt-test-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
+        Settings s;
+        s.libraryUrl = juce::URL(dir.getChildFile("site")).toString(false).toStdString();
+        const Client client(s, data, roots, lapsed);
+        InstalledModule m;
+        std::string error;
+        CHECK(client.install("acme.fuzz", m, error), "installs five years after the certificate lapsed: %s", error.c_str());
+        CHECK(m.result.status == "signed" && m.result.publishedAt == (juce::int64)spec["siteNow"], "signed, dated by the receipt (%s)", m.result.status.c_str());
+        CHECK(m.file.withFileExtension("publication.json").existsAsFile(), "the receipt is kept beside the package");
+        auto find = [&](bool recheck) {
+            for (const auto& i : client.installed(recheck)) if (i.slug == "acme.fuzz") return i;
+            return InstalledModule{};
+        };
+        CHECK(find(true).allowed && find(true).result.status == "signed", "and it is still signed when the folder is read again");
+        std::vector<uint8_t> wasm;
+        std::string specJson;
+        CHECK(client.contentOf(find(true), wasm, specJson, error), "its content loads: %s", error.c_str());
+        m.file.withFileExtension("publication.json").deleteFile();  // without the receipt, only the device clock counts
+        const InstalledModule without = find(true);
+        CHECK(without.result.status == "expired" && !without.allowed, "without the receipt it is expired (%s)", without.result.status.c_str());
+        m.file.withFileExtension("publication.json").replaceWithText("{\"format\":1}");
+        CHECK(find(true).result.status == "invalid", "a damaged receipt makes it invalid");
+        data.deleteRecursively();
+    }
+}
+
 void testClient(const juce::File& fixtures) {
     const juce::var spec = juce::JSON::parse(fixtures.getChildFile("cases.json"));
     const std::vector<std::vector<uint8_t>> roots = {fromHex(spec["roots"]["main"].toString().toStdString())};
@@ -517,6 +574,7 @@ int main(int argc, char** argv) {
     testPackageLimits();
     testCanonical();
     testFixtures(dir);
+    testReceipts(dir);
     testClient(dir);
     testRevocations(dir);
     testPolicy();

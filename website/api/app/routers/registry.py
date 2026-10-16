@@ -11,6 +11,7 @@ import json
 import re
 import tempfile
 import zipfile
+from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
@@ -99,6 +100,93 @@ def _check_files(db: Session, token: ApiToken, kind: str, slug: str, version: st
     if len(publishers) > 1:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "All files of a release must be signed by one publisher")
     return out
+
+
+def _content(kind: str, f: dict):
+    """What a file's signature is over: the package's content digest (modules) or the single file (plugins)."""
+    if kind == "module" and f.get("contentDigest"):
+        return bytes.fromhex(f["contentDigest"])
+    return signing.entries_for_file(f["path"], bytes.fromhex(f["sha256"]))
+
+
+def _receipts_enabled() -> bool:
+    return bool(settings.require_signatures and settings.issuer_key and settings.issuer_cert and settings.roots)
+
+
+def _newest_receipt(db: Session) -> int:
+    """The latest publishedAt this registry has issued: a receipt is never dated earlier (signing.md section 6a)."""
+    return max((f["publication"]["publishedAt"] for files in db.scalars(select(Release.files)) for f in files if f.get("publication")), default=0)
+
+
+def _date_files(db: Session, kind: str, slug: str, version: str, files: list[dict], paths: set[str] | None = None) -> list[dict]:
+    """Gives the files that have none a publication receipt, after verifying each as of this server's clock (signing.md section 6a).
+    A file whose certificate has lapsed, whose key was revoked or whose signature does not hold gets none and the request fails."""
+    if not _receipts_enabled():
+        return files
+    issuer = signing.key_from_pem(settings.issuer_key.replace("\\n", "\n"))
+    crl, newest = _revocations(db), _newest_receipt(db)
+    out = []
+    for f in files:
+        if f.get("publication") or (paths is not None and f["path"] not in paths) or not f.get("signature"):
+            out.append(f)
+            continue
+        try:
+            receipt = signing.issue_receipt(issuer, _content(kind, f), f["signature"], kind=kind, id_=_signed_id(slug), version=version,
+                                            platform=f["platform"], roots=settings.roots, now=int(now().timestamp()), crl=crl, newest=newest)
+        except signing.ClockError as e:
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, f"{f['path']}: {e}")
+        except ValueError as e:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f['path']}: {e}")
+        newest = receipt["publishedAt"]
+        out.append({**f, "publication": receipt})
+    return out
+
+
+def backfill_receipts(db: Session, storage: Storage, *, dry_run: bool = False) -> tuple[list[str], list[str]]:
+    """Gives the files of releases published before receipts existed a receipt dated at the release's recorded publish time
+    (signing.md section 16). Returns (dated, skipped), one line each.
+
+    Each file is verified as of that time, not now: a file whose certificate was not valid then, whose key is revoked, or that
+    was certified by another issuer than this registry's gets no receipt and is listed; its developer re-signs it once. Files
+    that have a receipt are left alone, so the job can be repeated. Rewrites entry.json of every release it changed."""
+    if not _receipts_enabled():
+        raise ValueError("Set BLEEP_ISSUER_KEY, BLEEP_ISSUER_CERT and BLEEP_ROOT_PUBLIC_KEYS (and leave BLEEP_REQUIRE_SIGNATURES on)")
+    issuer = signing.key_from_pem(settings.issuer_key.replace("\\n", "\n"))
+    issuer_id = signing.key_id(signing.public_bytes(issuer))
+    crl = _revocations(db)
+    dated, skipped = [], []
+    for row in _published(db):
+        changed, files = False, []
+        for f in row.files:
+            label = f"{row.kind} {row.slug} {row.version} {f['path']}"
+            if not f["uploaded"] or f.get("publication") or not f.get("signature"):
+                files.append(f)
+                continue
+            at = row.published_at if row.published_at.tzinfo else row.published_at.replace(tzinfo=timezone.utc)
+            at = int(at.timestamp())
+            res = signing.verify(_content(row.kind, f), f["signature"], kind=row.kind, id_=_signed_id(row.slug), version=row.version,
+                                 platform=f["platform"], roots=settings.roots, now=at, crl=crl)
+            if res.status != "signed":
+                skipped.append(f"{label}: {res.status} when it was published{': ' + res.reason if res.reason else ''}")
+            elif f["signature"]["chain"][0]["tbs"]["keyId"] != issuer_id:
+                skipped.append(f"{label}: certified by another issuer than this registry's")
+            else:
+                f = {**f, "publication": signing.make_receipt(issuer, kind=row.kind, id_=_signed_id(row.slug), version=row.version, platform=f["platform"],
+                                                              signer_key_id=f["signature"]["keyId"], digest=bytes(_digest(row.kind, f)), published_at=at)}
+                dated.append(f"{label}: published {datetime.fromtimestamp(at, timezone.utc):%Y-%m-%d %H:%M} UTC")
+                changed = True
+            files.append(f)
+        if changed and not dry_run:
+            row.files = files
+            storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
+    if not dry_run:
+        db.commit()
+    return dated, skipped
+
+
+def _digest(kind: str, f: dict) -> bytes:
+    content = _content(kind, f)
+    return content if isinstance(content, (bytes, bytearray)) else signing.content_digest(content)
 
 
 def _own_draft(row: Release, token: ApiToken) -> None:
@@ -257,7 +345,8 @@ async def upload_file(kind: Kind, request: Request, path: str, slug: str = Slug,
         spool.seek(0)
         storage.put(_key(row, path), spool)
     row.files = [{**declared, "uploaded": True} if f["path"] == path else f for f in row.files]
-    if row.status == "published":
+    if row.status == "published":  # a platform added later: dated now, when the library accepts the file
+        row.files = _date_files(db, kind, slug, version, row.files, {path})
         storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()
 
@@ -325,7 +414,7 @@ def _entry(r: Release) -> dict:
     return {
         "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
         "summary": r.summary, "category": r.category, "license": r.license, "origin": r.origin or None, "image": r.image or None, "notes": r.notes, "requires": r.requires, "types": _types(r), "published": r.published_at.isoformat(),
-        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform", "contentDigest", "signer", "signature") if f.get(k) is not None}
+        "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform", "contentDigest", "signer", "signature", "publication") if f.get(k) is not None}
                   for f in r.files if f["uploaded"]],
     }
 
@@ -362,6 +451,7 @@ def publish(kind: Kind, slug: str = Slug, version: str = VersionPath, db: Sessio
     newest = max(((r.major, r.minor, r.patch) for r in _published(db, kind, slug)), default=None)
     if newest is not None and (row.major, row.minor, row.patch) <= newest:
         raise HTTPException(status.HTTP_409_CONFLICT, f"A version up to {'.'.join(map(str, newest))} was published meanwhile")
+    row.files = _date_files(db, kind, slug, version, row.files)  # before anything changes: a failure leaves the draft as it was
     row.status, row.published_at = "published", now()
     storage.put(_key(row, "entry.json"), io.BytesIO(json.dumps(_entry(row), indent=1).encode()), "application/json")
     db.commit()

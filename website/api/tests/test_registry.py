@@ -491,6 +491,131 @@ def test_only_the_uploading_token_continues_a_draft(client, make_admin, capsys):
     assert client.post(f"{url}/publish", headers=ha).status_code == 200
 
 
+# ---- publication receipts (signing.md section 6a)
+
+def verify_entry_file(entry_file, content, kind, id_, version, now):
+    return signing.verify(content, entry_file["signature"], kind=kind, id_=id_, version=version, platform=entry_file["platform"],
+                          roots=settings.roots, now=now, receipt=entry_file.get("publication"))
+
+
+def test_a_published_file_has_a_receipt_that_outlives_the_certificate(client, make_admin, storage):
+    token = make_token(client, make_admin)
+    assert release(client, token, data=b"zipdata").status_code == 200
+    f = json.loads(storage.objects["v1/plugins/bleep-board/0.1.0/entry.json"])["files"][0]
+    pub = f["publication"]
+    assert pub["issuerKeyId"] == f["signature"]["chain"][0]["tbs"]["keyId"] and abs(pub["publishedAt"] - int(__import__("time").time())) < 60
+    content = signing.entries_for_file(f["path"], bytes.fromhex(f["sha256"]))
+    lapse = f["signature"]["chain"][1]["tbs"]["notAfter"]
+    assert verify_entry_file(f, content, "plugin", "bleep-board", "0.1.0", lapse + 10 * 365 * 86400).status == "signed"
+    assert verify_entry_file({**f, "publication": None}, content, "plugin", "bleep-board", "0.1.0", lapse + 1).status == "expired"
+
+
+def test_receipts_of_one_registry_never_go_back_in_time(client, make_admin, storage, monkeypatch):
+    token = make_token(client, make_admin)
+    assert release(client, token, version="0.1.0").status_code == 200
+    first = json.loads(storage.objects["v1/plugins/bleep-board/0.1.0/entry.json"])["files"][0]["publication"]["publishedAt"]
+    import datetime
+    back = datetime.datetime.fromtimestamp(first - 2, datetime.timezone.utc)  # the clock jumps back, but stays inside the kit's validity
+    monkeypatch.setattr("app.routers.registry.now", lambda: back)
+    r = release(client, token, version="0.2.0")
+    assert r.status_code == 503 and "earlier" in r.text
+    assert "v1/plugins/bleep-board/0.2.0/entry.json" not in storage.objects  # the draft stays a draft
+    assert first > 0
+
+
+def test_a_lapsed_certificate_gets_no_release_and_no_receipt(client, make_admin):
+    token = make_token(client, make_admin)
+    old = signing.issue_kit(PKI.issuer, PKI.issuer_cert, "bleep", scopes=("plugin",), first_party=True, days=1,
+                            now=int(__import__("time").time()) - 3 * 86400)  # lapsed two days ago
+    data = b"zipdata"
+    r = client.post("/api/registry/plugin/bleep-board/releases", headers={"Authorization": f"Bearer {token}"},
+                    json={"version": "0.1.0", "files": [declare("bleep-board-0.1.0.zip", data, kit=old)]})
+    assert r.status_code == 422 and "expired" in r.text
+
+
+def test_a_platform_added_later_is_dated_when_its_file_arrives(client, make_admin, storage):
+    token = make_token(client, make_admin)
+    h = {"Authorization": f"Bearer {token}"}
+    assert release(client, token).status_code == 200
+    url = "/api/registry/plugin/bleep-board/releases/0.1.0"
+    data = b"linuxzip"
+    f = declare("bleep-board-0.1.0-linux-x86_64.zip", data, platform="linux-x86_64")
+    assert client.post(url + "/platforms", json={"files": [f]}, headers=h).status_code == 200
+    assert client.put(url + "/files/" + f["path"], content=data, headers=h).status_code == 204
+    files = {x["platform"]: x for x in json.loads(storage.objects["v1/plugins/bleep-board/0.1.0/entry.json"])["files"]}
+    assert files["macos-arm64"]["publication"] and files["linux-x86_64"]["publication"]
+    assert files["linux-x86_64"]["publication"]["publishedAt"] >= files["macos-arm64"]["publication"]["publishedAt"]
+
+
+def strip_receipts(storage, slug="bleep-board", version="0.1.0", kind="plugin", published_at=None):
+    """Makes a release look like one published before receipts existed."""
+    from app.db import SessionLocal
+    from app.models import Release
+    with SessionLocal() as db:
+        row = db.scalar(__import__("sqlalchemy").select(Release).where(Release.slug == slug, Release.version == version))
+        row.files = [{k: v for k, v in f.items() if k != "publication"} for f in row.files]
+        if published_at is not None:
+            row.published_at = published_at
+        db.commit()
+    key = f"v1/{kind}s/{slug}/{version}/entry.json"
+    entry = json.loads(storage.objects[key])
+    for f in entry["files"]:
+        f.pop("publication", None)
+    storage.objects[key] = json.dumps(entry).encode()
+    return key
+
+
+def test_backfill_dates_old_releases_as_of_their_publish_time(client, make_admin, storage, capsys):
+    from app import cli
+    token = make_token(client, make_admin)
+    assert release(client, token).status_code == 200
+    key = strip_receipts(storage)
+    capsys.readouterr()
+    cli.main(["receipts-backfill", "--dry-run"])
+    assert "1 file(s) would get a receipt" in capsys.readouterr().out
+    assert "publication" not in json.loads(storage.objects[key])["files"][0]  # a dry run changes nothing
+    cli.main(["receipts-backfill"])
+    assert "1 file(s) got a receipt" in capsys.readouterr().out
+    f = json.loads(storage.objects[key])["files"][0]
+    content = signing.entries_for_file(f["path"], bytes.fromhex(f["sha256"]))
+    lapse = f["signature"]["chain"][1]["tbs"]["notAfter"]
+    assert verify_entry_file(f, content, "plugin", "bleep-board", "0.1.0", lapse + 5 * 365 * 86400).status == "signed"
+    cli.main(["receipts-backfill"])  # repeatable
+    out = capsys.readouterr().out
+    assert "0 file(s) got a receipt" in out and "cannot be dated" not in out
+
+
+def test_backfill_lists_what_it_cannot_date(client, make_admin, storage, capsys):
+    import datetime
+    from app import cli
+    token = make_token(client, make_admin)
+    assert release(client, token).status_code == 200
+    long_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)  # before the kit's certificate began
+    key = strip_receipts(storage, published_at=long_ago)
+    capsys.readouterr()
+    cli.main(["receipts-backfill"])
+    out = capsys.readouterr().out
+    assert "0 file(s) got a receipt" in out and "1 file(s) cannot be dated" in out and "bleep-board 0.1.0" in out and "expired when it was published" in out
+    assert "publication" not in json.loads(storage.objects[key])["files"][0]
+
+
+def test_backfill_does_not_date_a_revoked_key(client, make_admin, storage, capsys):
+    from app import cli
+    token = make_token(client, make_admin)
+    assert release(client, token).status_code == 200
+    key = strip_receipts(storage)
+    from app.db import SessionLocal
+    from app.models import Developer, now as db_now
+    with SessionLocal() as db:
+        db.add(Developer(publisher="bleep", key_id=PKI.first_party["keyId"], scopes=["module", "plugin"], first_party=True,
+                         not_after=db_now(), revoked_at=db_now()))
+        db.commit()
+    capsys.readouterr()
+    cli.main(["receipts-backfill"])
+    assert "revoked when it was published" in capsys.readouterr().out
+    assert "publication" not in json.loads(storage.objects[key])["files"][0]
+
+
 def test_added_platform_must_be_signed_by_the_same_publisher(client, make_admin, capsys):
     token = new_token(capsys)
     h = {"Authorization": f"Bearer {token}"}

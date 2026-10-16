@@ -6,6 +6,13 @@
    "contentDigest": "4ad319a358b65b9c04fce763b1a534c5053f8d4d29dcee6a96eee74416d4b2d5",
    "path": "acme.fuzz-1.0.0.bleepmod",
    "platform": "any",
+   "publication": {
+    "algorithm": "ed25519",
+    "format": 1,
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "ql4uc0OZtHVTQeMr9gU2ZsaBwvpIfXf+d0Q1FCYdF9Xrp8hCxVDEvmUAHBopPhWIiLG2almEZnXZ3TF+ZEacAA=="
+   },
    "sha256": "2ca934564f6422830ce253b216fba924a03d177dbd9ffa531b9c367489aa0bf1",
    "signature": {
     "algorithm": "ed25519",

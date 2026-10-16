@@ -94,6 +94,16 @@ juce::var sidecarSignature(const juce::File& package) {
     return f.existsAsFile() ? juce::JSON::parse(f) : juce::var();
 }
 
+/// The library's publication receipt of an installed package, beside it like the signature (signing.md section 6a): <name>.publication.json.
+/// Void if there is none; the package is then judged by the device clock.
+juce::var sidecarReceipt(const juce::File& package) {
+    const juce::File f = package.withFileExtension("publication.json");
+    return f.existsAsFile() ? juce::JSON::parse(f) : juce::var();
+}
+
+/// A document from the entry or a sidecar, or null if it is absent (void). Anything present is judged, so a malformed one is invalid.
+const juce::var* present(const juce::var& v) { return v.isVoid() ? nullptr : &v; }
+
 bool readFile(const juce::File& f, std::vector<uint8_t>& out) {
     juce::MemoryBlock block;
     if (!f.loadFileAsData(block)) return false;
@@ -300,7 +310,7 @@ bool Client::loadCachedIndex(Index& out, int64_t& fetchedAt, std::string& error)
 }
 
 bool Client::check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,
-                   InstalledModule& out, std::string& error) const {
+                   const juce::var* receiptDoc, InstalledModule& out, std::string& error) const {
     Package pkg;
     if (!readPackage(bytes.data(), bytes.size(), pkg, error)) return false;
     Digest digest;
@@ -313,7 +323,7 @@ bool Client::check(const std::vector<uint8_t>& bytes, const std::string& slug, c
     c.now = now_;
     c.revocations = revocations_ ? &*revocations_ : nullptr;
     const juce::var* doc = signatureDoc && !signatureDoc->isVoid() ? signatureDoc : (pkg.hasSignature ? &pkg.signature : nullptr);
-    out.result = verify(digest, doc, c);
+    out.result = verify(digest, doc, c, receiptDoc && !receiptDoc->isVoid() ? receiptDoc : nullptr);
     out.allowed = decide(out.result, "module", settings_.allowUnsigned, out.why);
     out.slug = slug;
     out.version = version;
@@ -342,7 +352,8 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
     if (!fetchBytes(url(dir + path), bytes, error)) return false;
     const Digest sha = sha256(bytes.data(), bytes.size());
     if (toHex(sha.data(), 32) != str(file["sha256"])) { error = "the download is not the file the library lists"; return false; }
-    if (!check(bytes, slug, version, &file["signature"], out, error)) return false;
+    const juce::var publication = file["publication"];
+    if (!check(bytes, slug, version, &file["signature"], &publication, out, error)) return false;
     out.source = "registry";
     if (!out.allowed) { error = slug + " " + version + " is not installed: " + out.why; return false; }
 
@@ -355,6 +366,11 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
     if (file["signature"].isObject() && !tempFile.withFileExtension("sig.json").replaceWithText(juce::JSON::toString(file["signature"]))) {
         temp.deleteRecursively();
         error = "cannot write the signature";
+        return false;
+    }
+    if (publication.isObject() && !tempFile.withFileExtension("publication.json").replaceWithText(juce::JSON::toString(publication))) {
+        temp.deleteRecursively();
+        error = "cannot write the publication receipt";
         return false;
     }
     finalDir.deleteRecursively();  // the same version again (a repair)
@@ -400,7 +416,8 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
     c.now = now_;
     c.revocations = revocations_ ? &*revocations_ : nullptr;
     const juce::var signature = file["signature"];
-    const Result result = verify(digest, signature.isObject() ? &signature : nullptr, c);
+    const juce::var publication = file["publication"];
+    const Result result = verify(digest, signature.isObject() ? &signature : nullptr, c, present(publication));
     std::string why;
     if (!decide(result, "plugin", settings_.allowUnsigned, why)) { error = slug + " " + version + " is not installed: " + why; return false; }
 
@@ -479,7 +496,7 @@ std::vector<InstalledModule> Client::installed(bool recheck) const {
     std::set<std::string> seen;
     auto consider = [&](const juce::File& file, const std::string& slug, const std::string& version, const std::string& source) {
         const std::string key = file.getFullPathName().toStdString() + "|" + slug + "|" + version + "|" + fileStamp(file) + "|" +
-                                fileStamp(file.withFileExtension("sig.json")) + "|" + trust;
+                                fileStamp(file.withFileExtension("sig.json")) + "|" + fileStamp(file.withFileExtension("publication.json")) + "|" + trust;
         seen.insert(key);
         {
             std::lock_guard<std::mutex> l(cacheMutex);
@@ -495,8 +512,8 @@ std::vector<InstalledModule> Client::installed(bool recheck) const {
         std::vector<uint8_t> bytes;
         InstalledModule m;
         std::string error;
-        const juce::var sig = sidecarSignature(file);
-        if (!readFile(file, bytes) || !check(bytes, slug, version, &sig, m, error)) {
+        const juce::var sig = sidecarSignature(file), receipt = sidecarReceipt(file);
+        if (!readFile(file, bytes) || !check(bytes, slug, version, &sig, &receipt, m, error)) {
             m.slug = slug;
             m.version = version;
             m.result.status = "invalid";
@@ -540,8 +557,8 @@ bool Client::filesOf(const InstalledModule& module, Package& pkg, std::string& e
     std::vector<uint8_t> bytes;
     if (!readFile(module.file, bytes)) { error = "cannot read " + module.file.getFullPathName().toStdString(); return false; }
     InstalledModule again;
-    const juce::var sig = sidecarSignature(module.file);
-    if (!check(bytes, module.slug, module.version, &sig, again, error)) return false;
+    const juce::var sig = sidecarSignature(module.file), receipt = sidecarReceipt(module.file);
+    if (!check(bytes, module.slug, module.version, &sig, &receipt, again, error)) return false;
     if (!again.allowed) { error = again.why; return false; }
     return readPackage(bytes.data(), bytes.size(), pkg, error);
 }

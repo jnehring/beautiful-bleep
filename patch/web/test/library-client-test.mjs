@@ -180,6 +180,48 @@ await test("the shared fixtures: every package gets the verdict Python gave it (
   }
 });
 
+await test("the shared receipt fixtures: every publication receipt gets the verdict Python gave it", async () => {
+  const dir = join(ROOT, "patch", "tests", "library-fixtures");
+  const spec = JSON.parse(readFileSync(join(dir, "cases.json"), "utf8"));
+  const mainRoot = [Library.fromHex(spec.roots.main)];
+  assert.ok(spec.receiptCases.length > 15);
+  for (const c of spec.receiptCases) {
+    const zip = await Library.readZip(new Uint8Array(readFileSync(join(dir, c.file))));
+    const r = await Library.verify(zip.entries, zip.signature, { kind: c.kind, id: c.id, version: c.version, platform: c.platform, roots: mainRoot, now: c.now, crl: c.crl, receipt: c.receipt });
+    assert.equal(r.status, c.expect, c.name);
+  }
+});
+
+await test("fetchModule: a receipt keeps a release signed after its certificate lapsed; without it the module is refused", async () => {
+  const dir = join(ROOT, "patch", "tests", "library-fixtures");
+  const spec = JSON.parse(readFileSync(join(dir, "cases.json"), "utf8"));
+  const pkg = new Uint8Array(readFileSync(join(dir, "signed.bleepmod")));
+  const sha = Library.hex(new Uint8Array(await crypto.subtle.digest("SHA-256", pkg)));
+  const sigDoc = (await Library.readZip(pkg)).signature;
+  const receipt = spec.receiptCases.find((c) => c.name === "receipt-valid").receipt;
+  const base = "http://library/registry/v1/";
+  const served = {
+    [base + "index.json"]: { format: 1, channels: { stable: { modules: { "acme.fuzz": { version: "1.0.0", entry: "modules/acme.fuzz/1.0.0/entry.json", types: ["acme/fuzz"] } } } } },
+    [base + "modules/acme.fuzz/1.0.0/entry.json"]: { id: "acme.fuzz", version: "1.0.0", files: [{ path: "p.bleepmod", sha256: sha, bytes: pkg.length, platform: "any", signature: sigDoc, publication: receipt }] },
+    [base + "modules/acme.fuzz/1.0.0/p.bleepmod"]: pkg,
+  };
+  const realFetch = globalThis.fetch, realNow = Date.now;
+  globalThis.fetch = async (url) => (served[url] === undefined ? new Response("no", { status: 404 }) : new Response(served[url] instanceof Uint8Array ? served[url] : JSON.stringify(served[url])));
+  Date.now = () => (spec.siteNow + 5 * 365 * 86400) * 1000;  // five years after the fixture certificates lapsed
+  try {
+    Library.configure({ base, roots: [Library.fromHex(spec.roots.main)], allowUnsigned: { module: false, plugin: false } });
+    const got = await Library.fetchModule("acme.fuzz");
+    assert.equal([got.publisher, got.status].join(), "acme,signed");
+    delete served[base + "modules/acme.fuzz/1.0.0/entry.json"].files[0].publication;
+    Library.configure({});
+    await assert.rejects(Library.fetchModule("acme.fuzz"), /not loaded: expired/);
+  } finally {
+    globalThis.fetch = realFetch;
+    Date.now = realNow;
+    Library.configure({ roots: null });
+  }
+});
+
 await test("fetchModule: the whole path through the index, the entry and the package", async () => {
   const pkg = makeZip("library.bleepmod", files, { kit: "bleep" });
   const sha = Library.hex(new Uint8Array(await crypto.subtle.digest("SHA-256", pkg)));

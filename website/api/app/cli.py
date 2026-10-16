@@ -11,6 +11,7 @@
     python -m app.cli developer-create PUBLISHER [--scopes module,plugin] [--first-party] [--days N]   > kit.json
     python -m app.cli developer-list
     python -m app.cli developer-revoke KEY_ID
+    python -m app.cli receipts-backfill [--dry-run]
 
 In Compose:  docker compose exec api python -m app.cli list
 """
@@ -173,6 +174,23 @@ def developer_revoke(args: argparse.Namespace) -> None:
             print("No issuer key is set (BLEEP_ISSUER_KEY, BLEEP_ISSUER_CERT): the revocation list was not published")
 
 
+def receipts_backfill(args: argparse.Namespace) -> None:
+    """Dates the releases that were published before the library issued publication receipts (signing.md section 6a)."""
+    with SessionLocal() as db:
+        try:
+            dated, skipped = registry.backfill_receipts(db, get_storage(), dry_run=args.dry_run)
+        except ValueError as e:
+            sys.exit(str(e))
+    verb = "would get" if args.dry_run else "got"
+    print(f"{len(dated)} file(s) {verb} a receipt" + (":" if dated else ""))
+    for line in dated:
+        print("  " + line)
+    if skipped:
+        print(f"{len(skipped)} file(s) cannot be dated; their developers must sign them again:")
+        for line in skipped:
+            print("  " + line)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli", description=__doc__.split("\n")[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -203,6 +221,9 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("developer-revoke", help="revoke a developer key")
     p.add_argument("key_id")
     p.set_defaults(run=developer_revoke)
+    p = sub.add_parser("receipts-backfill", help="give releases published before receipts existed a publication receipt")
+    p.add_argument("--dry-run", action="store_true", help="only list what would happen")
+    p.set_defaults(run=receipts_backfill)
     args = parser.parse_args(argv)
     args.run(args)
 

@@ -113,7 +113,7 @@ public:
 
 private:
     bool check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,
-               InstalledModule& out, std::string& error) const;
+               const juce::var* receiptDoc, InstalledModule& out, std::string& error) const;
 
     std::optional<Revocations> loadRevocations() const;
 

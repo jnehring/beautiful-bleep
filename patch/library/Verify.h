@@ -52,6 +52,7 @@ std::string canonical(const juce::var& value);
 struct Result {
     std::string status = "unsigned";  ///< signed | unsigned | expired | revoked | invalid
     std::string publisher, keyId, root, reason;
+    int64_t publishedAt = 0;          ///< when the library published it, if a publication receipt dated the release (signing.md section 6a)
 };
 
 struct Revocations {
@@ -74,7 +75,9 @@ struct Context {
 };
 
 /// signing.md section 7. `signature` null: the package carries none. Never throws on bad input.
-Result verify(const Digest& digest, const juce::var* signature, const Context& context);
+/// `receipt`: the library's publication receipt for the file (entry.json files[].publication, kept beside the installed file), or null.
+/// With one the certificates must have been valid when the library published it (signing.md section 6a), and `context.now` plays no part.
+Result verify(const Digest& digest, const juce::var* signature, const Context& context, const juce::var* receipt = nullptr);
 
 struct AllowUnsigned {
     bool module = false, plugin = false;

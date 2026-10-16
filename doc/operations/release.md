@@ -28,7 +28,8 @@ docker compose exec api python -m app.cli developer-list
 docker compose exec api python -m app.cli developer-revoke KEY_ID
 ```
 
-   The kit holds the private key and a certificate (valid 365 days by default; make a new one before it lapses). A developer outside the team gets their own kit and token: `developer-create acme --scopes module`, `token-create "acme" --publisher acme`, both handed over privately.
+   The kit holds the private key and a certificate (valid 365 days by default; make a new one before you want to publish again once it has lapsed. Releases that are already published keep working: the library dated each one with a publication receipt, so nothing has to be re-signed). A developer outside the team gets their own kit and token: `developer-create acme --scopes module`, `token-create "acme" --publisher acme`, both handed over privately.
+   Receipts make the library's clock a security input: keep the server's time synchronised (NTP). A clock that jumps back makes publishing fail (503) until it has caught up. Releases published before receipts existed get theirs once, with `docker compose exec api python -m app.cli receipts-backfill --dry-run` and then without `--dry-run`; it lists the files it cannot date, and those are signed again by their developers ([signing.md](../../website/content/developers/modules/signing.md), section 6a).
 4. Pass the kit to every release: `--kit ~/.bleep-signing-kit.json` or `$BLEEP_SIGNING_KIT`.
 
 **Release:**

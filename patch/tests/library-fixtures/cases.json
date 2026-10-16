@@ -368,5 +368,384 @@
    "expect": "refused",
    "publisher": null
   }
+ ],
+ "receiptCases": [
+  {
+   "name": "receipt-valid",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "i1l24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "signed"
+  },
+  {
+   "name": "receipt-after-lapse",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1791536001,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "i1l24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "signed"
+  },
+  {
+   "name": "no-receipt-after-lapse",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1791536001,
+   "roots": "main",
+   "crl": null,
+   "receipt": null,
+   "expect": "expired"
+  },
+  {
+   "name": "receipt-clock-far-past",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1725440000,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "i1l24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "signed"
+  },
+  {
+   "name": "receipt-clock-far-future",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 2106896000,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "i1l24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "signed"
+  },
+  {
+   "name": "receipt-other-digest",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "tvtcO/yIerp6UURC2UfEBLoB9AMrvbOeUmcwNd14rKfrmpTZAuB1ZzEnqkKOmVMzI3xF9LRFdq2397qTr/4HDw=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-other-version",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "IyGF4harCiubhKZWhhxXjyOHv6MOnn/xTdqb2PgnTjSBbW+fsgY09aYHkusQhGpcAv5ixw2mb9L/JBQ+iFGSBg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-other-id",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "JGludHBW1RB7sEdg++s0PoB0CdYBHFpkM0RJgN2GPz3LIZKtwnCNNQRr8IySaHskOs1zDeKb+PujX5iKSRxyAA=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-other-platform",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "E93Ffp8pc+kJW0bTq3P8IleqlVm0J5ncRiAicavpAWTdAcQMdMjBiMTIXZoKf6pWPZnaxO9Bir7f7z4XwHBFCA=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-other-kind",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "Hp5H0+8X5wsLjfvBUWCNMis4t+X6IpqR9jy6IflUOgR1gU7XLFFDLmrfzUsLH7beu/zNc8eLEoOfBvkY+AZQCg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-other-signer",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "nEB+urzIG45y9hQ7u2twtrt/fLT2thufSZrRl9LmOpwKw+46g1Heg8Prpu/+WCYfCfqw7+qp2jswwmqLq/JZCA=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-signature-altered",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "ill24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-published-at-altered",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000101,
+    "signature": "i1l24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-not-by-chain-issuer",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "72456720412037a6b339f884ce6d91bb",
+    "publishedAt": 1760000100,
+    "signature": "dPrgGC+9tdwAZhvVMsczhtoeGUhgVDTlx1zo96JQgpH5hum7/egy+wiyppIGouKRVRExkmCBHzQ6HsmCyacHDg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-issuer-id-forged",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "dPrgGC+9tdwAZhvVMsczhtoeGUhgVDTlx1zo96JQgpH5hum7/egy+wiyppIGouKRVRExkmCBHzQ6HsmCyacHDg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-before-not-before",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1759999999,
+    "signature": "lES6JyvJkQwVDT0tJ1xgetgZ2WKS1WEAbJ3818kT2a8gPnbAp2pObwegOYr2mZ+ku40wB7yGqIGHsvwzSCcPBg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-after-not-after",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1791536001,
+    "signature": "Dlljui3LgjKfWz5LPnluaA3HBkaqEGSlhv/ybD81PzobvJD+kxLj8VkDwfRq0tLC6Jab9+1zxaWIVlRN4MWaBw=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-malformed",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-published-at-not-a-number",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1760000100,
+   "roots": "main",
+   "crl": null,
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": "soon",
+    "signature": "i1l24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "invalid"
+  },
+  {
+   "name": "receipt-key-revoked",
+   "file": "signed.bleepmod",
+   "kind": "module",
+   "id": "acme/fuzz",
+   "version": "1.0.0",
+   "platform": "any",
+   "now": 1791536001,
+   "roots": "main",
+   "crl": {
+    "revokedKeys": [
+     {
+      "keyId": "b62e867fa2f33afe62d5d6b1642e1621"
+     }
+    ],
+    "revokedArtifacts": []
+   },
+   "receipt": {
+    "format": 1,
+    "algorithm": "ed25519",
+    "issuerKeyId": "6a3803d5f059902a1c6dafbc9ba47292",
+    "publishedAt": 1760000100,
+    "signature": "i1l24GpO2+wuoCe27WqJaWH6SZ2ygdYSwpH9UqIgncuo6jersJUBmjVYSi8EFsmaVA9iFK8UYllPCPMGhiXeAg=="
+   },
+   "expect": "revoked"
+  }
  ]
 }

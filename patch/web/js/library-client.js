@@ -128,7 +128,9 @@
 
   /// content: a Map of entries (see contentDigest) or the 32-byte digest itself.
   /// roots: Uint8Array public keys. crl: { revokedKeys: [{keyId}], revokedArtifacts: [{kind,id,version,digest}] }.
-  async function verify(content, doc, { kind, id, version, platform = "any", roots, now = Math.floor(Date.now() / 1000), crl = null }) {
+  /// receipt: the library's publication receipt for this file (entry.json files[].publication, signing.md section 6a), or null.
+  /// With one the certificates must have been valid when the library published the file, and the device clock plays no part.
+  async function verify(content, doc, { kind, id, version, platform = "any", roots, now = Math.floor(Date.now() / 1000), crl = null, receipt = null }) {
     if (doc == null) return result("unsigned");
     try {
       if (doc.format !== 1 || doc.algorithm !== "ed25519") return result("invalid", { reason: "unknown signature format" });
@@ -155,8 +157,25 @@
       const message = concat(enc.encode("BLEEP-SIG-1\n"), lp(enc.encode(kind)), lp(enc.encode(id)), lp(enc.encode(version)), lp(enc.encode(platform)),
                              lp(enc.encode(dt.keyId)), lp(digest));
       if (!(await verifySignature(devPub, fromB64(doc.signature), message))) return result("invalid", { reason: "the signature does not match the content" });
-      for (const t of [it, dt]) if (!(t.notBefore <= now && now <= t.notAfter)) return { ...who, status: "expired", reason: "the certificate is outside its validity period" };
-      return who;
+      // validity comes last: an expired signer is not an attack, just old. A receipt moves the moment that counts from now to publishedAt.
+      let at = now, dated = 0;
+      if (receipt != null) {
+        const p = receipt.publishedAt;
+        if (receipt.format !== 1 || receipt.algorithm !== "ed25519" || receipt.issuerKeyId !== it.keyId || typeof p !== "number" || !Number.isSafeInteger(p) || p < 0)
+          return result("invalid", { reason: "bad publication receipt" });
+        const stamp = new Uint8Array(8);
+        new DataView(stamp.buffer).setBigUint64(0, BigInt(p));
+        const pubMessage = concat(enc.encode("BLEEP-PUB-1\n"), lp(enc.encode(kind)), lp(enc.encode(id)), lp(enc.encode(version)), lp(enc.encode(platform)),
+                                  lp(enc.encode(dt.keyId)), lp(digest), stamp);
+        if (!(await verifySignature(issuerPub, fromB64(receipt.signature), pubMessage))) return result("invalid", { reason: "the publication receipt does not match the release" });
+        at = dated = p;
+      }
+      for (const t of [it, dt]) {
+        if (t.notBefore <= at && at <= t.notAfter) continue;
+        if (receipt != null) return result("invalid", { reason: "the publication receipt dates the release outside the certificate's validity period" });
+        return { ...who, status: "expired", reason: "the certificate is outside its validity period" };
+      }
+      return { ...who, publishedAt: dated };
     } catch (e) {
       return result("invalid", { reason: "malformed signature: " + e.message });
     }
@@ -217,7 +236,7 @@
         if (hex(await sha256(bytes)) !== file.sha256) throw new Error(`${slug}: the download is not the file the library lists`);
         const zip = await readZip(bytes);
         const checked = await verify(zip.entries, file.signature || zip.signature, {
-          kind: "module", id: signedId(slug), version: entry.version, platform: "any", roots: await roots(), crl: config.crl });
+          kind: "module", id: signedId(slug), version: entry.version, platform: "any", roots: await roots(), crl: config.crl, receipt: file.publication || null });
         const [ok, why] = decide(checked, "module", config.allowUnsigned);
         if (!ok) throw new Error(`${slug} ${entry.version} is not loaded: ${why}`);
         const wasm = zip.files.get("module.wasm");
