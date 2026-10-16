@@ -128,6 +128,29 @@
     }
   }
 
+  /// A file offered for download by the board's own code (Download Project): the one script-made click that is let through. The anchor
+  /// is made here, in the closure; a view script cannot add an element to `trusted`, so it cannot make its own downloads this way.
+  const trusted = new WeakSet();
+  const doc = win.document || null;
+  const makeElement = doc && doc.createElement ? doc.createElement.bind(doc) : null;
+  const createObjectURL = win.URL && win.URL.createObjectURL ? win.URL.createObjectURL.bind(win.URL) : null;
+  const revokeObjectURL = win.URL && win.URL.revokeObjectURL ? win.URL.revokeObjectURL.bind(win.URL) : null;
+  const BlobCtor = win.Blob || null;
+  const later = win.setTimeout ? win.setTimeout.bind(win) : null;
+  function download(text, name, type) {
+    if (!makeElement || !createObjectURL || !BlobCtor || !doc.body) return false;
+    const a = makeElement("a");
+    const url = createObjectURL(new BlobCtor([String(text)], { type: type || "application/octet-stream" }));
+    a.href = url;
+    a.download = String(name);
+    trusted.add(a);
+    doc.body.appendChild(a);
+    a.click();
+    a.remove();
+    if (later && revokeObjectURL) later(() => revokeObjectURL(url), 10000);
+    return true;
+  }
+
   /// Script-made input (el.click(), dispatchEvent(new MouseEvent(...))) cannot be the user: the dialogs that
   /// install, remove, share or sign in are only ever answered by real events. File inputs are the one exception
   /// (the view helpers open their chooser with input.click(); the browser still wants the user's own gesture then).
@@ -136,6 +159,7 @@
     const stop = (e) => {
       if (e.isTrusted) return;
       const t = e.target;
+      if (t && trusted.has(t)) return;
       if (t && t.tagName === "INPUT" && t.type === "file") return;
       e.stopImmediatePropagation();
       e.preventDefault();
@@ -144,7 +168,7 @@
   }
 
   let sealed = false;
-  const priv = noSeal ? win : Object.create(null);  // BleepAccount, BleepStoreView, ... of the board's own scripts
+  const priv = noSeal ? win : Object.create(null);  // BleepAccount, BleepLibraryView, ... of the board's own scripts
   const seal = () => {
     if (sealed || noSeal) return;
     sealed = true;
@@ -162,5 +186,5 @@
   };
 
   if (noSeal) { win.native = native; win.onNative = onNative; }  // the smoke test calls them from outside
-  Object.defineProperty(win, "BleepSeal", { value: Object.freeze({ native, onNative, priv, seal, demo: getDemo, testHooks: noSeal }), configurable: true, writable: true });
+  Object.defineProperty(win, "BleepSeal", { value: Object.freeze({ native, onNative, priv, seal, download, demo: getDemo, testHooks: noSeal }), configurable: true, writable: true });
 })();

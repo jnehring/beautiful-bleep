@@ -2,7 +2,7 @@
 // settings.js — the Settings section of the standalone app's board window: audio device, MIDI and Link, the Library's channel and
 // address, and Security (what may load unsigned). Settings are applied as they are changed; there is no Save button.
 //
-//   BleepSettingsView.init({ library })   once, when the native side offers settings (native "init" says so)
+//   P.BleepSettingsView.init({ library })   once, when the native side offers settings (native "init" says so)
 //   show() / hide()                     the header's Settings button; File → Settings opens it too
 (function () {
   "use strict";
@@ -274,32 +274,22 @@
     async init(options) {
       hasLibrary = !!(options && options.library);
       build();
-      const header = document.getElementById("sections");
-      header.hidden = false;
-      const btn = document.getElementById("sec-settings");
-      btn.hidden = false;
-      if (!hasLibrary) document.getElementById("sec-library").hidden = true;  // no library in this build: nothing to open
-      btn.addEventListener("click", () => P.BleepSettingsView.show());
-      document.getElementById("sec-board").addEventListener("click", () => P.BleepSettingsView.hide());
+      P.BleepModal.mount(root, () => P.BleepSettingsView.hide());
       onNative("openSettings", () => P.BleepSettingsView.show());
     },
-    async show() {
+    /// `which`: the tab to show ("audio", "midi", "web", "library", "security"); without it the last one.
+    async show(which) {
       if (P.BleepLibraryView) P.BleepLibraryView.hide();
       if (P.BleepHelpView) P.BleepHelpView.hide();
-      document.body.classList.add("in-library");
-      root.hidden = false;
-      document.getElementById("sec-settings").classList.add("on");
-      document.getElementById("sec-board").classList.remove("on");
+      if (typeof which === "string") { tab = which; message = ""; }
+      P.BleepModal.toggle(root, true);
       await load(true);
       // The readouts (CPU, dropouts, Link peers) move: refresh while the section is open and nothing is being edited.
       if (!poll) poll = setInterval(() => { if (!root.hidden) load(false); }, 1500);
     },
     hide() {
       if (root.hidden) return;
-      root.hidden = true;
-      document.body.classList.remove("in-library");
-      document.getElementById("sec-board").classList.add("on");
-      document.getElementById("sec-settings").classList.remove("on");
+      P.BleepModal.toggle(root, false);
       if (poll) { clearInterval(poll); poll = null; }
     },
   };

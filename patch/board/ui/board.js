@@ -225,7 +225,7 @@
     }
     if (m.ports) ports = m.ports;
     if ("canUndo" in m) { canUndo = m.canUndo; canRedo = m.canRedo; }
-    if (m.status) $("status").textContent = m.status;
+    if (m.status) setAudio(m.status);
     // Leave cells that no longer exist.
     while (path.length && !nodeById(path[path.length - 1])) path.pop();
     if (pluginMode) syncPluginPanel();
@@ -345,8 +345,7 @@
     }
     applyCam();  // before the cables: their positions are measured on screen
     renderCables();
-    $("undo").disabled = !canUndo;
-    $("redo").disabled = !canRedo;
+    P.BleepAppMenu.refresh();
     const empty = $("empty");
     if (!board) {
       empty.hidden = false;
@@ -368,7 +367,6 @@
       if (!here) a.addEventListener("click", () => leaveTo(depth));
       c.appendChild(a);
     };
-    if (!path.length) return;  // at the top level the Board tab already says where we are
     crumb("Board", 0);
     path.forEach((id, i) => {
       c.appendChild(el("span", "sep", "›"));
@@ -1778,10 +1776,6 @@
     e.stopPropagation();
   });
   $("search-input").addEventListener("blur", () => setTimeout(() => { if (searchState) closeSearch(); }, 100));
-  $("panels").addEventListener("click", () => {
-    const r = $("panels").getBoundingClientRect();
-    panelsMenu({ clientX: r.left, clientY: r.bottom + 4 });
-  });
 
   /// Types this board offers (MIDI Device only in the standalone app, spec §12).
   const offered = (t) => t.creatable && (!t.standaloneOnly || standalone) &&
@@ -3356,7 +3350,7 @@
   let portsKey = "";
   onNative("state", (s) => {
     live = s;
-    if (s && s.status) $("status").textContent = s.status;
+    if (s && s.status) setAudio(s.status);
     if (!board || !s || !s.nodes) return;
     for (const [key, sc] of scopes) {
       const [node, jack] = key.split("|");
@@ -3389,6 +3383,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === " " && !editing()) spaceDown = true;
     if (editing()) return;
+    if (document.querySelector(".modal-back:not([hidden])")) return;   // a dialog is open: the board's keys wait
     const cmd = e.metaKey || e.ctrlKey;
     const k = e.key.toLowerCase();
     if (cmd && k === "r") { e.preventDefault(); location.reload(); return; }  // UI dev builds
@@ -3405,7 +3400,7 @@
     if (e.key === "Tab") { e.preventDefault(); openSearch(pointer.x, pointer.y); return; }
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteSelection(); return; }
     if (e.key === "Escape") {
-      if (P.BleepPresetBrowser && P.BleepPresetBrowser.close()) return;
+      if (P.BleepProjectBrowser && P.BleepProjectBrowser.close()) return;
       if (!$("menu").hidden || !$("cable-pop").hidden || !$("help-pop").hidden) return hidePopovers();
       if (trace) { trace = null; return render(); }
       if (closeTopView()) return;
@@ -3416,7 +3411,7 @@
     if (k === "f") return fit();
     const nav = { "+": "zoom-in", "=": "zoom-in", "-": "zoom-out", ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" }[e.key];
     if (nav) { e.preventDefault(); return navStep(nav); }
-    if (k === "p" && !cmd) { const r = $("panels").getBoundingClientRect(); return panelsMenu({ clientX: r.left, clientY: r.bottom + 4 }); }
+    if (k === "p" && !cmd) return panelsMenu({ clientX: 12, clientY: 48 });
     if (k === "t") return toggleTrace();
     if (k === "m") return toggleMute();
     if (e.key === "Enter") {
@@ -3429,10 +3424,27 @@
 
   async function undo() { applyMessage(await native("undo")); }
   async function redo() { applyMessage(await native("redo")); }
-  $("undo").addEventListener("click", undo);
   $("cell-close").addEventListener("click", () => { if (path.length) leaveTo(path.length - 1); });
-  $("redo").addEventListener("click", redo);
-  window.addEventListener("resize", () => { renderCables(); positionCablePop(); });
+
+  /// The audio indicator: the engine's status line ("Demo · no audio · latency 256 smp") is its tooltip; a hollow dot means no audio.
+  function setAudio(text) {
+    const b = $("audio");
+    b.title = text + (document.getElementById("settings") ? " (click for the audio settings)" : "");
+    b.classList.toggle("off", /no audio|not running|stopped|suspended|no device/i.test(text));
+  }
+  $("audio").addEventListener("click", () => { if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.show("audio"); });
+
+  // The menu bar's commands (app-menu.js); the file commands of the app are the native side's.
+  const hasSel = () => selectedNodes();
+  P.BleepAppMenu.register({
+    "edit.undo": undo, "edit.redo": redo,
+    "edit.cut": cut, "edit.copy": copy, "edit.paste": () => paste(),
+    "edit.duplicate": () => duplicate(false), "edit.delete": () => deleteSelection(), "edit.selectAll": selectAll,
+    "edit.group": () => group(), "edit.ungroup": () => hasSel().filter(isCellLike).forEach((n) => ungroup(n.id)),
+    "edit.add": () => { const r = canvas.getBoundingClientRect(); openSearch(r.width / 2, r.height / 2); },
+    "view.panels": (anchor) => panelsMenu(anchor), "view.fit": fit, "view.trace": toggleTrace,
+    "view.zoomIn": () => navStep("zoom-in"), "view.zoomOut": () => navStep("zoom-out"),
+  }, { "edit.undo": () => canUndo, "edit.redo": () => canRedo });  window.addEventListener("resize", () => { renderCables(); positionCablePop(); });
 
   // Test hooks (tests/board_smoke.cpp drives the page from outside). They hand out the board and place presets, so a release build
   // does not define them: BleepSeal.testHooks is only true when the smoke-test build asked for an unsealed page.
@@ -3509,10 +3521,8 @@
     dev = !!m.dev;
     standalone = !!m.standalone;
     {  // the preset browser: whole boards (spec §11.5); in a plugin their port nodes map onto the set's ports
-      await P.BleepPresetBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin });
-      $("presets").hidden = false;
-      $("presets").addEventListener("click", () => P.BleepPresetBrowser.open());
-      if (m.plugin) P.BleepPresetBrowser.open();  // an instrument or FX window opens on its presets
+      await P.BleepProjectBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin });
+      if (m.plugin) P.BleepProjectBrowser.open();  // an instrument or FX window opens on its presets
     }
     P.BleepAppMenu.init({ nativeMenu: !!m.nativeMenu, version: m.version || "" });
     P.BleepSideMenu.init({ mode: m.plugin ? "plugin" : window.BleepWeb ? "web" : "app", board: () => board });
@@ -3523,7 +3533,7 @@
     applyMessage(m);
     {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug
       const shared = new URLSearchParams(location.search).get("preset");
-      if (shared && !pluginMode) P.BleepPresetBrowser.loadShared(shared).catch((e) => notice(e.message));
+      if (shared && !pluginMode) P.BleepProjectBrowser.loadShared(shared).catch((e) => notice(e.message));
     }
     // Fit once the canvas has its size (the window may still be opening).
     let fitted = false;

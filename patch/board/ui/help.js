@@ -4,7 +4,7 @@
 // the same ranking as the website's search box). A click opens the page on the site in the browser. The site is the Library's
 // address, so Help is offered where the Library is.
 //
-//   BleepHelpView.init()      once, when the native side has a library (native "init" says so)
+//   P.BleepHelpView.init()      once, when the native side has a library (native "init" says so)
 //   show() / hide()           the header's Help button
 (function () {
   "use strict";
@@ -152,26 +152,18 @@
   P.BleepHelpView = {
     async init() {
       build();
-      document.getElementById("sections").hidden = false;
-      const btn = document.getElementById("sec-help");
-      btn.hidden = false;
-      btn.addEventListener("click", () => P.BleepHelpView.show());
-      document.getElementById("sec-board").addEventListener("click", () => P.BleepHelpView.hide());
+      P.BleepModal.mount(root, () => P.BleepHelpView.hide());
     },
     async show() {
       if (P.BleepLibraryView) P.BleepLibraryView.hide();
       if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.hide();
-      document.body.classList.add("in-library");
-      root.hidden = false;
-      document.getElementById("sec-help").classList.add("on");
-      document.getElementById("sec-board").classList.remove("on");
+      P.BleepModal.toggle(root, true);
       await load();
       searchEl.focus();
     },
     hide() {
       if (!root || root.hidden) return;
-      root.hidden = true;
-      document.getElementById("sec-help").classList.remove("on");
+      P.BleepModal.toggle(root, false);
     },
   };
 })();

@@ -2,7 +2,7 @@
 // library.js — the Library section of the board window (developers/modules/library.md section 9): what is installed on this machine, what the
 // Bleep Library offers, and the Security settings. The board is the other section. Not in Bleep Play: it installs by itself.
 //
-//   BleepLibraryView.init({ onTypes })   once, when the native side has a library (native "init" says so)
+//   P.BleepLibraryView.init({ onTypes })   once, when the native side has a library (native "init" says so)
 //   show() / hide()                    the header's Board and Library buttons
 (function () {
   "use strict";
@@ -244,10 +244,10 @@
   }
 
   function renderPresets() {
-    body.appendChild(el("div", "st-note", "Your presets: cells and boards you saved. Add → Cell lists the cells; the Presets button on the board loads boards."));
+    body.appendChild(el("div", "st-note", "What you saved: cell presets and projects. Add → Cell lists the cells; File → Open Project… loads a project."));
     const list = el("div");
     body.appendChild(list);
-    Promise.all([native("presets", "cells"), native("presets", "boards")]).then(([cells, boards]) => {
+    Promise.all([native("presets", "cells"), P.BleepProjectBrowser ? P.BleepProjectBrowser.mineList() : []]).then(([cells, boards]) => {
       list.innerHTML = "";
       const group = (title, kind, items) => {
         list.appendChild(el("h3", "", `${title} (${(items || []).length})`));
@@ -260,7 +260,8 @@
             const share = el("button", "", "Share…");
             share.title = "Publish it in the Bleep Library (needs an account)";
             share.addEventListener("click", async () => {
-              const done = await P.BleepAccount.share(kind === "cell" ? "cells" : "boards", p.name, p.preset);
+              const preset = kind === "cell" || !P.BleepProjectBrowser ? p.preset : await P.BleepProjectBrowser.mineLoad(p);
+              const done = await P.BleepAccount.share(kind === "cell" ? "cells" : "boards", p.name, preset);
               if (done) { message = `Shared as ${done.address} (version ${done.version}).`; render(); }
             });
             b.appendChild(share);
@@ -270,7 +271,7 @@
         list.appendChild(grid);
       };
       group("Cells", "cell", cells);
-      group("Boards", "patch", boards);
+      group("Projects", "patch", boards);
     });
   }
 
@@ -645,33 +646,24 @@
     async init(options) {
       host = options || {};
       build();
+      P.BleepModal.mount(root, () => P.BleepLibraryView.hide());
       setTimeout(async () => {
         await firstRun();
         if (host.standalone) await updatesPrompt();
       }, 600);
-      const header = document.getElementById("sections");
-      header.hidden = false;
-      document.getElementById("sec-board").addEventListener("click", () => P.BleepLibraryView.hide());
-      document.getElementById("sec-library").addEventListener("click", () => P.BleepLibraryView.show());
       // The standalone app has Security in its Settings section; plugin windows keep it here.
       if (host.settings) tabsEl.querySelector('[data-tab="security"]').remove();
     },
     async show() {
       if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.hide();
       if (P.BleepHelpView) P.BleepHelpView.hide();
-      document.body.classList.add("in-library");
-      root.hidden = false;
-      document.getElementById("sec-library").classList.add("on");
-      document.getElementById("sec-board").classList.remove("on");
+      P.BleepModal.toggle(root, true);
       await refresh();
       if (status && !status.index.ok) native("libraryRefresh").then(() => setTimeout(refresh, 600));
     },
     hide() {
       if (!root) return;  // init() never ran (no library in this host)
-      document.body.classList.remove("in-library");
-      root.hidden = true;
-      document.getElementById("sec-board").classList.add("on");
-      document.getElementById("sec-library").classList.remove("on");
+      P.BleepModal.toggle(root, false);
     },
   };
 })();

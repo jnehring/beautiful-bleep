@@ -8,7 +8,8 @@
 //              setParam(node, param, v) setAmount(cable, v) setData(node, data) watch([nodeIds])
 //              perform(node, action, [args])   (Button presses, Keyboard keys: not saved)
 //              presets(kind?) savePreset(name, preset, kind?) deletePreset(name, kind?)
-//              (kind: "cell", the default, "drums" for Drum Grid patterns, or "boards" for whole boards)
+//              (kind: "cell", the default, "drums" for Drum Grid patterns, or "projects" for whole projects: the
+//              board with its panels, as {name, preset: {nodes, cables, panels, description, tags, tempo, needs}})
 //              loadPatch(board, tempo, name)   the preset browser: replace the project with a patch
 //              copyText(text) pasteText()   the system clipboard (board copy & paste)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
@@ -198,7 +199,7 @@ struct PresetKind {
 PresetKind presetKind(const juce::var& kind) {
     const auto k = kind.toString();
     if (k == "drums") return {"Drum Patterns", ".bleepdrums"};
-    if (k == "boards") return {"Boards", ".bleeppreset"};
+    if (k == "projects") return {"Projects", ".bleepboard"};
     if (k.startsWith("module:")) {
         // The module's type is a folder name: keep it to a slug, so a kind can never leave Module Presets/.
         const auto type = k.fromFirstOccurrenceOf("module:", false, false).retainCharacters("abcdefghijklmnopqrstuvwxyz0123456789-");
@@ -212,6 +213,56 @@ juce::File presetFolder(const PresetKind& k) {
         .getChildFile("Beautiful Bleep").getChildFile(k.folder);
 }
 
+// Projects (spec §11.5) are the standalone app's project files: {format, app, name, description, tags, tempo, needs, board}.
+// The page sees one flat object, the board with description, tags, tempo and needs next to its nodes, cables and panels.
+bool isProjectKind(const juce::var& kind) { return kind.toString() == "projects"; }
+
+const char* const kProjectMeta[] = {"description", "tags", "tempo", "needs"};
+
+juce::var projectToFlat(const juce::var& doc) {
+    auto* flat = new juce::DynamicObject();
+    if (auto* board = doc["board"].getDynamicObject())
+        for (const auto& p : board->getProperties()) flat->setProperty(p.name, p.value);
+    for (const auto* key : kProjectMeta)
+        if (doc.hasProperty(key)) flat->setProperty(key, doc[key]);
+    return juce::var(flat);
+}
+
+juce::var flatToProject(const juce::String& name, const juce::var& flat) {
+    auto* board = new juce::DynamicObject();
+    if (auto* f = flat.getDynamicObject())
+        for (const auto& p : f->getProperties()) {
+            bool meta = false;
+            for (const auto* key : kProjectMeta) meta = meta || p.name.toString() == key;
+            if (!meta) board->setProperty(p.name, p.value);
+        }
+    auto* doc = new juce::DynamicObject();
+    doc->setProperty("format", 2);
+    doc->setProperty("app", "Bleep");
+    doc->setProperty("name", name);
+    for (const auto* key : kProjectMeta)
+        if (flat.hasProperty(key)) doc->setProperty(key, flat[key]);
+    doc->setProperty("board", juce::var(board));
+    return juce::var(doc);
+}
+
+/// Board presets of older versions (Boards/*.bleeppreset, {name, preset}) become projects; the old files stay where they are.
+void migrateBoardPresets() {
+    static bool done = false;
+    if (done) return;
+    done = true;
+    const auto data = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory).getChildFile("Beautiful Bleep");
+    const auto projects = data.getChildFile("Projects");
+    for (const auto& f : data.getChildFile("Boards").findChildFiles(juce::File::findFiles, false, "*.bleeppreset")) {
+        const auto v = juce::JSON::parse(f.loadFileAsString());
+        if (!v["name"].isString() || !v["preset"].isObject()) continue;
+        const auto to = projects.getChildFile(f.getFileNameWithoutExtension() + ".bleepboard");
+        if (to.existsAsFile()) continue;
+        projects.createDirectory();
+        to.replaceWithText(juce::JSON::toString(flatToProject(v["name"].toString(), v["preset"])));
+    }
+}
+
 juce::File presetFile(const juce::String& name, const PresetKind& k) {
     const auto safe = juce::File::createLegalFileName(name.trim()).substring(0, 80);
     return safe.isEmpty() ? juce::File() : presetFolder(k).getChildFile(safe + k.extension);
@@ -222,7 +273,15 @@ juce::var presetList(const PresetKind& k) {
     auto files = presetFolder(k).findChildFiles(juce::File::findFiles, false, "*" + k.extension);
     files.sort();
     for (const auto& f : files) {
-        const auto v = juce::JSON::parse(f.loadFileAsString());
+        auto v = juce::JSON::parse(f.loadFileAsString());
+        if (k.extension == ".bleepboard") {   // a project file: show it as {name, preset}
+            if (!v["board"].isObject()) continue;
+            auto* o = new juce::DynamicObject();
+            o->setProperty("name", v["name"].isString() ? v["name"] : juce::var(f.getFileNameWithoutExtension()));
+            o->setProperty("preset", projectToFlat(v));
+            list.add(juce::var(o));
+            continue;
+        }
         if (v["name"].isString() && v["preset"].isObject()) list.add(v);
     }
     return list;
@@ -382,17 +441,25 @@ public:
                     done(names);
                 }))
                 .withNativeFunction("presets", gated([](const juce::Array<juce::var>& a, Completion done) {
+                    if (isProjectKind(a[0])) migrateBoardPresets();
                     done(presetList(presetKind(a[0])));
                 }))
                 .withNativeFunction("savePreset", gated([](const juce::Array<juce::var>& a, Completion done) {
                     const auto kind = presetKind(a[2]);
                     const auto file = presetFile(a[0].toString(), kind);
-                    auto* o = new juce::DynamicObject();
-                    o->setProperty("name", a[0].toString());
-                    o->setProperty("preset", a[1]);
+                    juce::var doc;
+                    if (isProjectKind(a[2])) {
+                        migrateBoardPresets();
+                        doc = flatToProject(a[0].toString(), a[1]);
+                    } else {
+                        auto* o = new juce::DynamicObject();
+                        o->setProperty("name", a[0].toString());
+                        o->setProperty("preset", a[1]);
+                        doc = juce::var(o);
+                    }
                     if (file != juce::File()) {
                         file.getParentDirectory().createDirectory();
-                        file.replaceWithText(juce::JSON::toString(juce::var(o)));
+                        file.replaceWithText(juce::JSON::toString(doc));
                     }
                     done(presetList(kind));
                 }))
@@ -412,6 +479,10 @@ public:
                     const auto address = a[0].toString();
                     done((address.startsWithIgnoreCase("http://") || address.startsWithIgnoreCase("https://"))
                          && juce::URL(address).launchInDefaultBrowser());
+                }))
+                .withNativeFunction("setMenu", gated([](const juce::Array<juce::var>& a, Completion done) {
+                    if (style().onMenu) style().onMenu(a[0]);
+                    done({});
                 }))
                 .withNativeFunction("settings", gated([](const juce::Array<juce::var>& a, Completion done) {
                     done(style().onSettings ? style().onSettings(a[0].toString(), a[1]) : juce::var());

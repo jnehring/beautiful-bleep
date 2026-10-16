@@ -43,6 +43,12 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
     __JUCE__: { backend, initialisationData: { __juce__functions: [] }, postMessage(o) { win.webkit.messageHandlers.__JUCE__.postMessage(o); } },
     webkit: { messageHandlers: { __JUCE__: { postMessage(o) { posted.push(o); } } } },
   };
+  // a document that can make an anchor, for download()
+  const clicked = [];
+  win.document = { body: { appendChild() {} }, createElement: (tag) => ({ tagName: tag.toUpperCase(), click() { clicked.push(this); }, remove() {} }) };
+  win.Blob = class { constructor(parts, opts) { this.parts = parts; this.type = opts && opts.type; } };
+  win.URL = { createObjectURL: () => "blob:x", revokeObjectURL() {} };
+  win.setTimeout = () => 0;
   win.window = win;
   if (noSeal) win.__BLEEP_NO_SEAL__ = true;
   let taken = false;
@@ -52,7 +58,7 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
   const run = (code) => vm.runInContext(code, ctx);
   /// What the native side does: answer a posted "__juce__invoke" with a completion event.
   const answer = (msg, result) => backend.emitByBackend("__juce__complete", JSON.stringify({ promiseId: JSON.parse(msg).payload.resultId, result }));
-  return { win, ctx, posted, events, backend, run, answer };
+  return { win, ctx, posted, events, backend, run, answer, clicked };
 }
 
 // ---- 1. the board's own calls: secret first, results come back, events arrive
@@ -170,6 +176,7 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
 // ---- 3. synthetic input is dropped, real and file-input clicks pass
 {
   const p = makePage();
+  const { download } = p.win.BleepSeal;
   p.win.BleepSeal.seal();
   const clicks = p.events.filter(([t, , cap]) => t === "click" && cap === true);
   ok(clicks.length === 1, "a capture-phase click guard is installed");
@@ -181,6 +188,12 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
   ok(!real.stopped && !real.prevented, "a real click passes");
   const file = mk(false, { tagName: "INPUT", type: "file" }); guard(file);
   ok(!file.stopped, "input.click() on a file input passes");
+  // Download Project: the anchor the bridge makes passes, an anchor a view script makes does not
+  ok(download("{}", "a.bleepboard", "application/json") === true && p.clicked.length === 1, "download() clicks an anchor");
+  const mine = mk(false, p.clicked[0]); guard(mine);
+  ok(!mine.stopped && !mine.prevented, "the anchor made by download() passes the guard");
+  const foreign = mk(false, { tagName: "A", href: "blob:evil", download: "x.exe" }); guard(foreign);
+  ok(foreign.stopped && foreign.prevented, "an anchor made by a view script is stopped");
   for (const t of ["mousedown", "pointerdown", "keydown", "submit", "dblclick"]) ok(p.events.some(([x, , c]) => x === t && c === true), "guard for " + t);
 }
 
@@ -199,7 +212,7 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
 // ---- 5. no module view script touches the bridge or the board's private objects
 {
   const forbidden = [/\bnative\s*\(/, /\bonNative\b/, /__JUCE__/, /BleepSeal/, /\bwebkit\b/, /chrome\.webview/, /window\.parent|window\.top|\bparent\.|\btop\./,
-    /\bBleep(Account|LibraryView|SettingsView|AppMenu|SideMenu|PresetBrowser|HelpView|Demo|Web)\b/, /\bpostMessage\b/, /\bcreateElement\(\s*["'](iframe|object|embed)/, /\bnew Function\b|\beval\s*\(/];
+    /\bBleep(Account|LibraryView|SettingsView|AppMenu|SideMenu|PresetBrowser|ProjectBrowser|Modal|HelpView|Demo|Web)\b/, /\bpostMessage\b/, /\bcreateElement\(\s*["'](iframe|object|embed)/, /\bnew Function\b|\beval\s*\(/];
   const dir = path.join(patch, "modules");
   let files = 0;
   for (const m of fs.readdirSync(dir)) {
@@ -213,12 +226,38 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
   }
   ok(files > 50, "module view scripts were found (" + files + ")");
   // the board's privileged objects live in `priv`, never on window
-  const names = ["BleepAccount", "BleepLibraryView", "BleepSettingsView", "BleepAppMenu", "BleepSideMenu", "BleepPresetBrowser", "BleepHelpView"];
+  const names = ["BleepAccount", "BleepLibraryView", "BleepSettingsView", "BleepAppMenu", "BleepSideMenu", "BleepProjectBrowser", "BleepModal", "BleepHelpView"];
   for (const f of fs.readdirSync(path.join(patch, "board/ui")).filter((x) => x.endsWith(".js"))) {
     const src = read("board/ui/" + f).replace(/^\s*\/\/.*$/gm, "");
     for (const n of names) ok(!new RegExp("window\\." + n + "\\b").test(src), `board/ui/${f}: window.${n} (use the private namespace P.${n})`);
     ok(!/window\.native\b|window\.onNative\b/.test(src), `board/ui/${f}: window.native`);
   }
+  // no privileged object is used by its bare name either (it would be a window global): only P.<name>, or defined in a closure
+  for (const f of fs.readdirSync(path.join(patch, "board/ui")).filter((x) => x.endsWith(".js"))) {
+    const src = read("board/ui/" + f).replace(/^\s*\/\/.*$/gm, "").replace(/\/\/.*$/gm, "");
+    for (const n of names) ok(!new RegExp("(?<![\\w.])" + n + "\\s*[.=\\[(]").test(src), `board/ui/${f}: bare ${n} (use P.${n})`);
+    ok(!/window\.(BleepModal|BleepProjectBrowser|BleepPresetBrowser)\b/.test(src), `board/ui/${f}: window.<browser/modal>`);
+  }
+  // the project/modal/menu code is loaded before board.js (which seals), takes its handles from BleepSeal and registers only in P
+  for (const [f, n] of [["project-browser.js", "BleepProjectBrowser"], ["modal.js", "BleepModal"], ["app-menu.js", "BleepAppMenu"]]) {
+    const src = read("board/ui/" + f);
+    ok(/window\.BleepSeal/.test(src) && new RegExp("\\bP\\." + n + "\\s*=").test(src), `board/ui/${f} registers P.${n} from BleepSeal`);
+    ok(!/window\.native|\bwindow\.__JUCE__/.test(src), `board/ui/${f} does not use the raw bridge`);
+    const html0 = read("board/ui/index.html");
+    ok(html0.indexOf(f) > 0 && html0.indexOf(f) < html0.indexOf('src="board.js"'), `${f} is loaded before board.js seals`);
+  }
+  ok(!fs.existsSync(path.join(patch, "board/ui/preset-browser.js")), "the old preset browser is gone");
+  // native side: every native function is gated by the per-process secret (a new one that is not would be open to view scripts)
+  {
+    const cpp = read("board/BoardWindow.cpp");
+    const all = (cpp.match(/\.withNativeFunction\(/g) || []).length;
+    const gatedCount = (cpp.match(/\.withNativeFunction\(\s*"[A-Za-z0-9_]+"\s*,\s*gated\(/g) || []).length;
+    ok(all > 30 && all === gatedCount, `every withNativeFunction is wrapped in gated(): ${gatedCount} of ${all}`);
+    for (const n of ["setMenu", "presets", "savePreset", "deletePreset", "loadPatch"])
+      ok(new RegExp('withNativeFunction\\(\\s*"' + n + '"\\s*,\\s*gated\\(').test(cpp), `native ${n} is gated`);
+  }
+  // module views reach the preset natives only through the view api, limited to their own kinds
+  ok(/viewKind\(kind\)/.test(read("board/ui/board.js")) && !/viewKind\([^)]*\)[^\n]*"projects"/.test(read("board/ui/board.js")), "the view api's preset kinds exclude projects");
   ok(/BleepSeal/.test(read("board/ui/board.js")) && /seal\(\);/.test(read("board/ui/board.js")), "board.js seals before it loads module views");
   const html = read("board/ui/index.html");
   ok(html.indexOf("bleep-bridge.js") > 0 && html.indexOf("bleep-bridge.js") < html.indexOf("board-demo.js"), "the bridge is the first script");

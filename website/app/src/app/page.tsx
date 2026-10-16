@@ -30,7 +30,7 @@ export default function Home() {
       </div>
       <p>
         The same board, modules and project files work in all three, and all three can exchange audio, MIDI and tempo.
-        See <a href="/docs/musicians/start/ways-to-use/">what works today</a>.
+        See <a href="/docs/musicians/start/ways-to-use/">Ways to use Beautiful Bleep</a>.
       </p>
 
       <h2>Modules</h2>

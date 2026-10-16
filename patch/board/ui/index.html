@@ -17,19 +17,9 @@
 </head>
 <body>
   <header id="top">
-    <span id="sections" class="sections" hidden>
-      <button id="sec-board" class="on" title="Create patches">Board</button>
-      <button id="sec-library" title="Modules, plugins and presets on this machine">Library</button>
-      <button id="sec-settings" title="Audio, MIDI, Link, the Library and Security" hidden>Settings</button>
-      <button id="sec-help" title="The documentation, in your browser" hidden>Help</button>
-    </span>
     <nav id="crumbs" aria-label="Location"></nav>
-    <button id="panels" title="Panels (P)">Panels</button>
-    <button id="presets" title="Browse demo boards and your own (⌘P in the app)">Presets</button>
     <span class="spacer"></span>
-    <button id="undo" title="Undo (⌘Z)" aria-label="Undo"><svg viewBox="0 0 16 16"><path d="M5.5 3 2.5 6l3 3"/><path d="M3 6h6.5a4 4 0 0 1 0 8H6"/></svg></button>
-    <button id="redo" title="Redo (⌘⇧Z)" aria-label="Redo"><svg viewBox="0 0 16 16"><path d="M10.5 3l3 3-3 3"/><path d="M13 6H6.5a4 4 0 0 0 0 8H10"/></svg></button>
-    <span id="status"></span>
+    <button id="audio" class="audio" title="Audio" aria-label="Audio status"><span class="dot"></span></button>
   </header>
   <div id="main">
     <button id="side-toggle" class="side-toggle" title="Menu: connect, transport, preset" aria-label="Menu" aria-controls="side-menu" aria-expanded="false" hidden><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12"/></svg></button>
@@ -83,8 +73,9 @@
   <script src="panel-editor.js"></script>
   <script src="panel-build.js"></script>
   <script src="factory-presets.js"></script>
-  <script src="preset-browser.js"></script>
+  <script src="project-browser.js"></script>
   <script src="account.js"></script>
+  <script src="modal.js"></script>
   <script src="side-menu.js"></script>
   <script src="app-menu.js"></script>
   <script src="library.js"></script>

@@ -6,9 +6,9 @@ plugins, without a DAW. Built by `scripts/build/build-patch.sh` as
 
 - **Projects:** File → New / Open / Save (`.bleepboard`). The app reopens the
   last project.
-- **Presets:** File → Presets… (⌘P) or the *Presets* button opens the preset
-  browser: five demo boards for every advanced module (*Demos by module*) and
-  your own boards (*Save current board…*, kept in `Beautiful Bleep/Boards/` in
+- **Projects from the browser:** File → Open Project… (⌘P) opens the project
+  browser: five demo projects for every advanced module (*Demos by module*) and
+  your own (*Save to My Projects…*, kept in `Beautiful Bleep/Projects/` in
   the app data folder). Loading one replaces the project, sets the tempo and
   starts the transport (spec §11.5).
 - **Audio device:** File → Settings. Pairs of input and output channels are
