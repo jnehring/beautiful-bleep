@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "Board.h"
+#include "../common/SafeJson.h"
 
 #include <cmath>
 #include <cstring>
@@ -140,7 +141,8 @@ juce::String toJson(const juce::var& doc) { return juce::JSON::toString(doc, tru
 
 juce::var fromJson(const juce::String& json) {
     juce::var v;
-    if (json.isNotEmpty() && juce::JSON::parse(json, v).wasOk()) return v;
+    // saved state comes from the host project: refuse absurd nesting before JUCE parses it
+    if (json.isNotEmpty() && !bleep::safejson::exceedsDepth(json, bleep::safejson::kProjectMaxDepth) && juce::JSON::parse(json, v).wasOk()) return v;
     return {};
 }
 

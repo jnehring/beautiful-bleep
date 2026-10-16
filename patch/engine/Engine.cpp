@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "Engine.h"
+#include "../common/SafeJson.h"
 
 #include "Media.h"
 #include "VoiceCell.h"
@@ -507,7 +508,7 @@ juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var&
 size_t Engine::uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept {
     if (method == nullptr) return 0;
     if (juce::String(method) != "__last") {
-        const juce::var args = juce::JSON::parse(juce::String::fromUTF8(argsJson ? argsJson : "[]"));
+        const juce::var args = bleep::safejson::parse(juce::String::fromUTF8(argsJson ? argsJson : "[]"));
         uiLast_ = board::toJson(uiDispatch(handle, method, args)).toStdString();
     }
     if (out && capacity > 0) std::memcpy(out, uiLast_.data(), std::min(capacity, uiLast_.size()));
