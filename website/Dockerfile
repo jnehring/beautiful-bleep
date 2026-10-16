@@ -17,7 +17,7 @@ FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18
 RUN apk add --no-cache bash python3
 WORKDIR /repo
 COPY patch/CMakeLists.txt patch/CMakeLists.txt
-COPY config/store.json config/store.json
+COPY config/library.json config/library.json
 COPY patch/board patch/board
 COPY patch/common patch/common
 COPY patch/modules patch/modules
