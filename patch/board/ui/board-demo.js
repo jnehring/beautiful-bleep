@@ -371,6 +371,8 @@
         case "init":
           types = await (await fetch("demo-types.json")).json();
           // [bridge] Remote Audio and Remote MIDI come with the web link (patch/web/js/bridge-types.js), not with the engine's list.
+          // Released modules the list above does not know yet: their node types come from the library's packages.
+          if (window.BleepWeb && BleepWeb.libraryTypes) types = types.concat(await BleepWeb.libraryTypes(types));
           if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }

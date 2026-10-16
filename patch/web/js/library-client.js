@@ -302,8 +302,10 @@
         if (!ok) throw new Error(`${slug} ${entry.version} is not loaded: ${why}`);
         const wasm = zip.files.get("module.wasm");
         if (!wasm) throw new Error(`${slug}: the package has no module.wasm`);
+        const specFile = zip.files.get("spec.json");  // the node types the module describes (the board UI's type list entries)
         return { wasm: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength), version: entry.version, publisher: checked.publisher,
-                 status: checked.status, meta: JSON.parse(dec.decode(zip.files.get("module.json"))), bytes: bytes.length };
+                 status: checked.status, meta: JSON.parse(dec.decode(zip.files.get("module.json"))), bytes: bytes.length,
+                 spec: specFile ? JSON.parse(dec.decode(specFile)) : null };
       })());
       packages.get(slug).catch(() => packages.delete(slug));  // a failed download is tried again next time
     }

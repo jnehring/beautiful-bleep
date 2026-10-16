@@ -73,12 +73,28 @@
     }
   }
 
+  /// The node types of released modules that the board's own list (demo-types.json) does not have yet, from the packages' spec.json:
+  /// a module released to the library shows up in the Add-module picker without a new site build. Each package is downloaded and
+  /// checked like any other (and kept for when a node needs it); one that fails to load is left out. Never throws.
+  async function libraryTypes(known) {
+    try {
+      const m = await BleepLibrary.manifest();
+      const have = new Set(known.map((t) => t.type));
+      const slugs = Object.keys(m.modules).filter((slug) => (m.modules[slug].types || []).some((t) => !have.has(t)));
+      const found = await Promise.all(slugs.map((slug) => fetchModule(slug).then((r) => (r.spec || []).filter((t) => !have.has(t.type)), () => [])));
+      return found.flat();
+    } catch (e) {
+      return [];
+    }
+  }
+
   function setStatus(text) {
     W.status = text;
     if (W.onStatus) W.onStatus(text);
   }
 
   Object.assign(W, {
+    libraryTypes,
     setTypes(list) { types = list; post({ cmd: "types", types }); },
     setBoard(b) {
       board = b;

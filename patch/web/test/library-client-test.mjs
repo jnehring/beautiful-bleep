@@ -47,7 +47,7 @@ ${extra}`, path, stored ? "1" : "0");
   return new Uint8Array(readFileSync(path));
 }
 const wasm = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
-const files = { "module.json": '{"name":"Verb","types":["reverb"],"requires":{"engineAbi":1}}\n', "module.wasm": wasm, "ui/reverb.js": "// view\n" };
+const files = { "module.json": '{"name":"Verb","types":["reverb"],"requires":{"engineAbi":1}}\n', "module.wasm": wasm, "spec.json": '[{"type":"reverb","name":"Verb"}]\n', "ui/reverb.js": "// view\n" };
 const ctx = (over = {}) => ({ kind: "module", id: "reverb", version: "1.0.0", roots: [root], ...over });
 const check = async (bytes, over) => { const z = await Library.readZip(bytes); return Library.verify(z.entries, z.signature, ctx(over)); };
 
@@ -246,6 +246,7 @@ await test("fetchModule: the whole path through the index, the entry and the pac
     assert.deepEqual([...new Uint8Array(got.wasm)], [...wasm]);
     assert.equal([got.version, got.publisher, got.status].join(), "1.0.0,bleep,signed");
     assert.equal(got.meta.name, "Verb");
+    assert.deepEqual(got.spec, [{ type: "reverb", name: "Verb" }]);  // the node types, for the board's Add-module list
     // no pinned roots: nothing is fetched from the server to trust instead
     Library.configure({ roots: null });
     await assert.rejects(Library.fetchModule("reverb"), /no pinned library root keys/);
