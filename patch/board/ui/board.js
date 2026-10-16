@@ -226,6 +226,7 @@
     if (m.ports) ports = m.ports;
     if ("canUndo" in m) { canUndo = m.canUndo; canRedo = m.canRedo; }
     if (m.status) setAudio(m.status);
+    if (!path.length) return;  // at the top level there is nothing to show: the board is the only place
     // Leave cells that no longer exist.
     while (path.length && !nodeById(path[path.length - 1])) path.pop();
     if (pluginMode) syncPluginPanel();
