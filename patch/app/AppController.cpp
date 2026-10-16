@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "AppController.h"
+#include "../common/SafeJson.h"
 
 #include <future>
 
@@ -719,7 +720,7 @@ void AppController::newProject() {
 }
 
 bool AppController::openProject(const juce::File& file) {
-    const auto doc = juce::JSON::parse(file.loadFileAsString());
+    const auto doc = bleep::safejson::parse(file.loadFileAsString(), bleep::safejson::kProjectMaxDepth);
     if (!doc["board"].isObject()) {
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Can't open project",
                                                file.getFullPathName() + " is not a Bleep App project.");
@@ -759,7 +760,7 @@ bool AppController::saveProject(const juce::File& file) {
     o->setProperty("format", 1);
     o->setProperty("app", "Bleep App");
     o->setProperty("tempo", clock_.tempo());
-    o->setProperty("board", juce::JSON::parse(juce::String::fromUTF8(json.data(), (int)json.size())));
+    o->setProperty("board", bleep::safejson::parse(juce::String::fromUTF8(json.data(), (int)json.size())));
     if (!file.replaceWithText(juce::JSON::toString(juce::var(o)))) {
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon, "Can't save project",
                                                "Could not write " + file.getFullPathName());
@@ -1044,9 +1045,10 @@ bool AppController::askPairing(const std::string& origin) {
                 .withTitle("Connect Bleep Play?")
                 .withMessage(juce::String(origin) + " wants to connect to Bleep App on this computer. It will be able to send and "
                              "receive audio and MIDI and see your tempo. Allow only pages you opened yourself.")
-                .withButton("Allow")
-                .withButton("Deny"),
-            [answer](int result) { answer->set_value(result == 1); });
+                .withButton("Deny")      // first: the default (Return); result 1
+                .withButton("Allow")     // second: result 2, the only one that allows
+                .withButton("Not now"),  // last: result 0, what Escape and a closed window give; counts as a denial
+            [answer](int result) { answer->set_value(result == 2); });
     });
     // The handshake waits up to 30 s (bridges.md §10.2); a dialog nobody answers is a denial.
     return future.wait_for(std::chrono::seconds(30)) == std::future_status::ready && future.get();

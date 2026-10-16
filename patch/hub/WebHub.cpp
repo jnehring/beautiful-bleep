@@ -2,6 +2,7 @@
 #include "WebHub.h"
 
 #include "Sha1Base64.h"
+#include "../common/SafeJson.h"
 
 #include <algorithm>
 #include <cmath>
@@ -125,11 +126,27 @@ bool WebHub::allowOrigin(const std::string& origin) {
     const std::string selfName = "http://localhost:" + std::to_string(boundPort_);
     if (origin == self || origin == selfName) return true;
     if (cb_.allowedOrigins && cb_.allowedOrigins().count(origin) != 0) return true;
-    if (cb_.askPairing && cb_.askPairing(origin)) {
-        if (cb_.rememberOrigin) cb_.rememberOrigin(origin);
-        return true;
+    if (!cb_.askPairing) return false;
+    {
+        std::lock_guard<std::mutex> lock(pairMutex_);
+        const double now = hubMs();
+        for (auto it = denied_.begin(); it != denied_.end();) it = it->second <= now ? denied_.erase(it) : std::next(it);
+        if (denied_.count(origin) != 0) return false;  // said no recently
+        if (pairingPending_) return false;             // a question is already on screen: no pile of dialogs
+        pairingPending_ = true;
     }
-    return false;
+    const bool allowed = cb_.askPairing(origin);
+    {
+        std::lock_guard<std::mutex> lock(pairMutex_);
+        pairingPending_ = false;
+        if (!allowed) {
+            if (denied_.size() >= 256) denied_.clear();
+            denied_[origin] = hubMs() + cb_.pairingDenyMs;
+        }
+    }
+    if (!allowed) return false;
+    if (cb_.rememberOrigin) cb_.rememberOrigin(origin);
+    return true;
 }
 
 bool WebHub::serve(const std::string& rawPath, HttpResponse& out) {
@@ -173,7 +190,7 @@ WebHub::Peer* WebHub::peerOf(uint64_t connId) {
 }
 
 void WebHub::onText(Connection& c, const std::string& text) {
-    const juce::var msg = juce::JSON::parse(juce::String(text));
+    const juce::var msg = bleep::safejson::parse(juce::String(text));
     if (!msg.isObject()) return;
     const juce::String op = msg["op"].toString();
     if (op == "hello") return handleHello(c, msg);

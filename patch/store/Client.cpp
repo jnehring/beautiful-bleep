@@ -2,6 +2,7 @@
 #include <cctype>
 #include <cstdlib>
 #include "Client.h"
+#include "../common/SafeJson.h"
 
 #include <algorithm>
 #include <map>
@@ -35,7 +36,7 @@ bool fetchBytes(const juce::String& address, std::vector<uint8_t>& out, std::str
 bool fetchJson(const juce::String& address, juce::var& out, std::string& error) {
     std::vector<uint8_t> bytes;
     if (!fetchBytes(address, bytes, error, kMaxJsonBytes)) return false;
-    out = juce::JSON::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(bytes.data()), (int)bytes.size()));
+    out = bleep::safejson::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(bytes.data()), (int)bytes.size()));
     if (out.isVoid()) { error = address.toStdString() + " is not JSON"; return false; }
     return true;
 }
@@ -81,7 +82,7 @@ std::vector<std::string> typesOf(const Package& p) {
     std::vector<std::string> out;
     auto it = p.files.find("module.json");
     if (it == p.files.end()) return out;
-    const juce::var meta = juce::JSON::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(it->second.data()), (int)it->second.size()));
+    const juce::var meta = bleep::safejson::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(it->second.data()), (int)it->second.size()));
     if (auto* a = meta["types"].getArray())
         for (const auto& t : *a) out.push_back(str(t));
     return out;
@@ -91,7 +92,7 @@ std::vector<std::string> typesOf(const Package& p) {
 /// else what the package carries. Void if there is none.
 juce::var sidecarSignature(const juce::File& package) {
     const juce::File f = package.withFileExtension("sig.json");
-    return f.existsAsFile() ? juce::JSON::parse(f) : juce::var();
+    return f.existsAsFile() ? bleep::safejson::parse(f) : juce::var();
 }
 
 bool readFile(const juce::File& f, std::vector<uint8_t>& out) {
@@ -173,7 +174,7 @@ bool storeUrlAllowed(const std::string& url, std::string& why) {
 
 Settings Settings::load(const juce::File& dataDir) {
     Settings s;
-    const juce::var v = juce::JSON::parse(dataDir.getChildFile("settings.json"));
+    const juce::var v = bleep::safejson::parse(dataDir.getChildFile("settings.json"));
     if (!v.isObject()) return s;
     if (v["storeUrl"].isString()) s.storeUrl = str(v["storeUrl"]);
     if (v["channel"].isString()) s.channel = str(v["channel"]);
@@ -238,7 +239,7 @@ std::optional<Revocations> Client::loadRevocations() const {
     if (!file.existsAsFile()) return std::nullopt;
     Revocations list;
     std::string error;
-    if (!verifyRevocations(juce::JSON::parse(file), roots_, list, error)) return std::nullopt;  // a saved list that no longer checks (other roots) is no list
+    if (!verifyRevocations(bleep::safejson::parse(file), roots_, list, error)) return std::nullopt;  // a saved list that no longer checks (other roots) is no list
     if (list.serial < highestRevocationSerial()) return std::nullopt;                          // an older list put back: rolled back, not trusted
     keepRevocationSerial(list.serial);
     return list;
@@ -327,7 +328,7 @@ bool Client::fetchIndex(Index& out, std::string& error) const {
 bool Client::loadCachedIndex(Index& out, int64_t& fetchedAt, std::string& error) const {
     const auto file = dataDir_.getChildFile("cache").getChildFile("index.json");
     if (!file.existsAsFile()) { error = "no saved copy of the store's index"; return false; }
-    const juce::var doc = juce::JSON::parse(file);
+    const juce::var doc = bleep::safejson::parse(file);
     if (!doc.isObject() || str(doc["storeUrl"]) != settings_.storeUrl || str(doc["channel"]) != settings_.channel) {
         error = "the saved index is from another store or channel";   // the address was changed in the settings
         return false;

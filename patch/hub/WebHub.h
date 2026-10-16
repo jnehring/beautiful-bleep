@@ -35,6 +35,8 @@ public:
     struct Callbacks {
         /// An origin that isn't the app's own page wants to connect. May block (the pairing dialog); empty: deny.
         std::function<bool(const std::string& origin)> askPairing;
+        /// How long a denied (or unanswered, or turned-away-because-another-dialog-was-open) origin stays denied without asking again.
+        double pairingDenyMs = 5.0 * 60.0 * 1000.0;
         /// Origins the user allowed before, and a way to remember a new one.
         std::function<std::set<std::string>()> allowedOrigins;
         std::function<void(const std::string& origin)> rememberOrigin;
@@ -130,6 +132,9 @@ private:
     void run() override;  // sync
 
     bool allowOrigin(const std::string& origin);
+    std::mutex pairMutex_;                  ///< guards the two below
+    bool pairingPending_ = false;           ///< one pairing question at a time; others are denied at once
+    std::map<std::string, double> denied_;  ///< origin -> hubMs() until which it stays denied
     bool serve(const std::string& path, HttpResponse& out);
     void handleHello(Connection& c, const juce::var& msg);
     void handleOpen(Connection& c, const juce::var& msg);

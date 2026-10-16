@@ -3,6 +3,7 @@
 // The store's checks in C++ (patch/store, developers/reference/signing.md): every package in patch/tests/store-fixtures must get the
 // verdict the Python reference gave it (scripts/release/signing.py fixture), and the pieces underneath (content hash,
 // canonical JSON) must give Python's exact bytes. patch/web/test/store-client-test.mjs runs the same cases in JavaScript.
+#include "common/SafeJson.h"
 #include "store/Account.h"
 #include "store/Client.h"
 #include "store/Verify.h"
@@ -552,10 +553,45 @@ int live(const std::string& url, const std::string& rootHex) {
     return failures == 0 ? 0 : 1;
 }
 
+/// The nesting guard in front of juce::JSON::parse (patch/common/SafeJson.h).
+void testSafeJson() {
+    namespace sj = bleep::safejson;
+    const auto rep = [](const char* s, int n) { std::string r; for (int i = 0; i < n; ++i) r += s; return r; };
+    const auto deepArray = [&](int n) { return rep("[", n) + rep("]", n); };
+    const auto deepObject = [&](int n) { return rep("{\"a\":", n) + "1" + rep("}", n); };
+    const auto over = [](const std::string& s, int limit = sj::kDefaultMaxDepth) { return sj::exceedsDepth(s.data(), s.size(), limit); };
+
+    CHECK(!over(deepArray(64)) && over(deepArray(65)), "array limit is exact");
+    CHECK(!over(deepObject(64)) && over(deepObject(65)), "object limit is exact");
+    CHECK(over(rep("[", 100000)) && over(rep("{\"a\":", 100000)), "unclosed deep input is refused");
+    CHECK(!over(deepArray(128), sj::kProjectMaxDepth) && over(deepArray(129), sj::kProjectMaxDepth), "project limit");
+    CHECK(!over("[\"" + rep("[", 500) + "\"]"), "brackets inside a string do not count");
+    CHECK(!over("[\"\\\"" + rep("[", 500) + "\"]"), "an escaped quote does not end the string");
+    CHECK(!over("['" + rep("[", 500) + "']"), "single-quoted strings are strings too");
+    CHECK(over("['\"', " + rep("[", 70) + "]"), "a double quote inside single quotes does not hide what follows");
+    CHECK(over("[\"'\", " + rep("[", 70) + "]"), "a single quote inside double quotes does not hide what follows");
+    CHECK(!over("/* " + rep("[", 500) + " */ [1]") && !over("// " + rep("[", 500) + "\n[1]"), "comments do not count");
+    CHECK(over("/* \" */ " + rep("[", 70)), "a quote in a comment does not open a string");
+    CHECK(!over("{\"a\":[{\"b\":[1,2,{\"c\":[[]]}]},{\"d\":{}}],\"e\":\"]]]]\"}"), "legit nested data passes");
+    CHECK(!over("]]]]]" + deepArray(60)), "stray closers do not go negative");
+
+    CHECK(sj::parse(juce::String(deepArray(10))).isArray(), "parse passes shallow data");
+    CHECK(sj::parse(juce::String("{\"a\":[1,2,{\"b\":\"x\"}]}"))["a"][2]["b"].toString() == "x", "parse keeps content");
+    CHECK(sj::parse(juce::String(rep("[", 100000))).isVoid(), "parse refuses 100000 deep arrays");
+    CHECK(sj::parse(juce::String(deepObject(5000))).isVoid(), "parse refuses 5000 deep objects");
+    const std::string deep = rep("[", 100000);
+    CHECK(sj::parseUtf8(deep.data(), deep.size()).isVoid(), "parseUtf8 refuses too");
+    const auto tmp = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-safejson-test.json");
+    tmp.replaceWithText(juce::String(deep));
+    CHECK(sj::parse(tmp).isVoid(), "parse(File) refuses too");
+    tmp.deleteFile();
+}
+
 int main(int argc, char** argv) {
     if (argc == 4 && std::string(argv[1]) == "--live") return live(argv[2], argv[3]);
     if (argc == 4 && std::string(argv[1]) == "--account-live") return accountLive(argv[2], argv[3]);
     const juce::File dir(BLEEP_STORE_FIXTURES);
+    testSafeJson();
     testVector();
     testPackageLimits();
     testCanonical();

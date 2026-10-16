@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <deque>
 #include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -101,6 +102,8 @@ public:
         /// /health and /ws are handled by the server first. Runs on a connection thread.
         std::function<bool(const std::string& path, HttpResponse&)> http;
         size_t maxQueuedBytes = 8u << 20;  ///< per-connection outgoing queue before binary frames are dropped
+        size_t maxSessions = 32;           ///< concurrent connections (one thread each); more are answered 503 and closed
+        size_t maxSessionsPerOrigin = 8;   ///< concurrent connections that carry the same Origin header
     };
 
     /// Callbacks run on the connection's reader thread.
@@ -116,6 +119,7 @@ public:
     static constexpr size_t kMaxPayload = 4u << 20;
     static constexpr size_t kMaxHeaderBytes = 16u << 10;
     static constexpr int kHandshakeTimeoutMs = 5000;
+    static constexpr size_t kReadChunk = 64u << 10;  ///< payload buffers grow by this much as bytes arrive, not by the announced length
 
     WebSocketServer(Options options, Listener& listener);
     ~WebSocketServer();
@@ -145,6 +149,8 @@ private:
     std::thread acceptThread_;
     std::mutex sessionsMutex_;
     std::vector<Session> sessions_;
+    std::mutex originsMutex_;
+    std::map<std::string, size_t> originCounts_;  ///< live sessions per Origin header
 };
 
 }  // namespace bleep::hub

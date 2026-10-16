@@ -2,6 +2,7 @@
 #include "Account.h"
 
 #include "Client.h"
+#include "../common/SafeJson.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -78,17 +79,17 @@ class FileTokenStore : public TokenStore {
 public:
     explicit FileTokenStore(juce::File dir) : file_(dir.getChildFile("account.json")) {}
     std::string load(const std::string& account) override {
-        const juce::var v = juce::JSON::parse(file_);
+        const juce::var v = bleep::safejson::parse(file_);
         return v.isObject() ? str(v[juce::Identifier(juce::String(account))]) : std::string();
     }
     bool save(const std::string& account, const std::string& token) override {
-        juce::var v = juce::JSON::parse(file_);
+        juce::var v = bleep::safejson::parse(file_);
         if (!v.isObject()) v = object({});
         v.getDynamicObject()->setProperty(juce::Identifier(juce::String(account)), juce::String(token));
         return write(juce::JSON::toString(v));
     }
     void clear(const std::string& account) override {
-        juce::var v = juce::JSON::parse(file_);
+        juce::var v = bleep::safejson::parse(file_);
         if (!v.isObject()) return;
         v.getDynamicObject()->removeProperty(juce::Identifier(juce::String(account)));
         write(juce::JSON::toString(v));
@@ -232,7 +233,7 @@ std::string Account::send(const std::string& method, const std::string& path, co
     out = transport_(r);
     if (out.status == 0) return "cannot reach " + base();
     if (out.status >= 400) {
-        const std::string d = detailOf(juce::JSON::parse(juce::String(out.body)));
+        const std::string d = detailOf(bleep::safejson::parse(juce::String(out.body)));
         return d.empty() ? "the store answered " + std::to_string(out.status) : d;
     }
     return {};
@@ -251,7 +252,7 @@ juce::var Account::status(bool verify) {
     if (!token.empty() && verify) {
         HttpResponse r;
         send("GET", "/api/tokens/self", juce::var(), token, r);
-        if (r.status == 200) remember(juce::JSON::parse(juce::String(r.body)));
+        if (r.status == 200) remember(bleep::safejson::parse(juce::String(r.body)));
         else if (r.status == 401) { tokens_->clear(account); token.clear(); }   // revoked on the site (or expired)
         else offline = true;                                                      // keep the token: the store may be down
     }
@@ -268,7 +269,7 @@ juce::var Account::startSignIn(const std::string& clientName) {
     HttpResponse r;
     const std::string error = send("POST", "/api/auth/device", object({{"client_name", juce::String(clientName)}}), {}, r);
     if (!error.empty()) return object({{"error", juce::String(error)}});
-    const juce::var d = juce::JSON::parse(juce::String(r.body));
+    const juce::var d = bleep::safejson::parse(juce::String(r.body));
     if (str(d["device_code"]).empty() || str(d["user_code"]).empty()) return object({{"error", "the store gave no code"}});
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -292,7 +293,7 @@ juce::var Account::pollSignIn() {
     const std::string error = send("POST", "/api/auth/device/token", object({{"device_code", juce::String(deviceCode)}}), {}, r);
     if (r.status == 410) { cancelSignIn(); return object({{"state", "expired"}}); }
     if (!error.empty()) return object({{"state", "error"}, {"error", juce::String(error)}});   // keep polling: the network may be back
-    const juce::var d = juce::JSON::parse(juce::String(r.body));
+    const juce::var d = bleep::safejson::parse(juce::String(r.body));
     const std::string state = str(d["status"]);
     if (state == "approved") {
         const std::string token = str(d["token"]);
@@ -341,7 +342,7 @@ juce::var Account::call(const std::string& method, const std::string& path, cons
         tokens_->clear(account);
         error = "You were signed out; sign in again";
     }
-    return object({{"status", r.status}, {"body", juce::JSON::parse(juce::String(r.body))}, {"error", juce::String(error)}});
+    return object({{"status", r.status}, {"body", bleep::safejson::parse(juce::String(r.body))}, {"error", juce::String(error)}});
 }
 
 }  // namespace bleep::store

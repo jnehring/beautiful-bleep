@@ -346,6 +346,66 @@ int main() {
         server.reset();
     }
 
+    // Resource limits: a session cap, a per-origin cap, and payloads that are not allocated up front.
+    {
+        Echo e3;
+        WebSocketServer::Options o3;
+        o3.port = 0;
+        o3.maxSessions = 4;
+        o3.maxSessionsPerOrigin = 2;
+        o3.allowOrigin = [](const std::string&) { return true; };
+        WebSocketServer capped(o3, e3);
+        EXPECT(capped.start());
+        const int p3 = capped.boundPort();
+        // per origin: two live, the third is refused with 503, another origin still gets in
+        Client a, b, c3, other;
+        EXPECT(a.connect(p3) && a.handshake("http://same.example", p3) == 101);
+        EXPECT(b.connect(p3) && b.handshake("http://same.example", p3) == 101);
+        EXPECT(c3.connect(p3) && c3.handshake("http://same.example", p3) == 503);
+        EXPECT(other.connect(p3) && other.handshake("http://other.example", p3) == 101);
+        // closing one frees the slot
+        b.close();
+        EXPECT(waitFor([&] { return e3.closes.load() >= 1; }));
+        std::unique_ptr<Client> again;
+        EXPECT(waitFor([&] {
+            auto t = std::make_unique<Client>();
+            if (!t->connect(p3) || t->handshake("http://same.example", p3) != 101) return false;
+            again = std::move(t);
+            return true;
+        }));
+        // total cap: four sessions are live (a, other, again + one idle socket); the fifth gets 503 before any thread
+        Client idle;
+        EXPECT(idle.connect(p3));
+        EXPECT(waitFor([&] {
+            Client probe;
+            if (!probe.connect(p3)) return false;
+            std::string head;
+            probe.sendRaw("GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n");
+            return probe.readHead(head, 1000) == 503;
+        }));
+        capped.stop();
+    }
+    {
+        // a frame announcing 4 MB with no body behind it: the session ends when the peer goes, the server stays healthy
+        Echo e4;
+        WebSocketServer::Options o4;
+        o4.port = 0;
+        WebSocketServer srv(o4, e4);
+        EXPECT(srv.start());
+        const int p4 = srv.boundPort();
+        for (int i = 0; i < 8; ++i) {
+            Client liar;
+            EXPECT(liar.connect(p4) && liar.handshake("", p4) == 101);
+            liar.sendHeaderOnly(2, WebSocketServer::kMaxPayload);
+        }
+        Client ok;
+        EXPECT(ok.connect(p4) && ok.handshake("", p4) == 101);
+        ok.sendFrame(1, "still here");
+        Frame f;
+        EXPECT(ok.readFrame(f) && f.op == 1 && f.payload == "still here");
+        srv.stop();
+    }
+
     std::printf(g_failures ? "%d failure(s)\n" : "websocket test passed\n", g_failures);
     return g_failures ? 1 : 0;
 }

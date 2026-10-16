@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "Verify.h"
+#include "../common/SafeJson.h"
 
 #include <juce_cryptography/juce_cryptography.h>
 
@@ -126,7 +127,7 @@ bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& er
         if (body.size() != usize) { error = "size mismatch in " + name; return false; }
         if (name == "META/signature.json") {
             out.hasSignature = true;
-            out.signature = juce::JSON::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(body.data()), (int)body.size()));
+            out.signature = bleep::safejson::parse(juce::String::fromUTF8(reinterpret_cast<const char*>(body.data()), (int)body.size()));
             continue;
         }
         FileInfo info;

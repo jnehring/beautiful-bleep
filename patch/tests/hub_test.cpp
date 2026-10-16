@@ -9,7 +9,9 @@
 #include "WebHub.h"
 #include "WsTestClient.h"
 
+#include <atomic>
 #include <cstdio>
+#include <set>
 #include <cstring>
 #include <thread>
 
@@ -480,6 +482,83 @@ void testHelloIdBound(WebHub& hub, int port) {
     EXPECT(waitFor([&] { owner.pump(5); return owner.closed; }));
 }
 
+/// Text nested 100000 deep must not blow the reader's stack; the link stays usable afterwards.
+void testDeepJson(WebHub& hub, int port) {
+    (void)hub;
+    Web web;
+    EXPECT(web.connect(port, "Deep"));
+    EXPECT(waitFor([&] { web.pump(5); return web.firstText("welcome").isObject(); }));
+    web.c.sendFrame(1, std::string(100000, '['));
+    web.c.sendFrame(1, std::string(100000, '{'));
+    web.c.sendFrame(1, "{\"op\":\"ping\",\"t\":" + std::string(100000, '[') + std::string(100000, ']') + "}");
+    web.send(obj({{"op", "ping"}, {"t", 7}}));
+    EXPECT(waitFor([&] { web.pump(5); return web.firstText("pong").isObject(); }));
+    EXPECT((int)web.firstText("pong")["t"] == 7);
+    web.c.close();
+}
+
+/// Pairing: one question at a time, a denial is remembered, Allow is remembered by the app (rememberOrigin).
+void testPairing(engine::Engine& engine) {
+    std::atomic<int> asked{0};
+    std::atomic<bool> release{false}, answer{false};
+    std::mutex m;
+    std::set<std::string> remembered;
+    WebHub::Callbacks cb;
+    cb.leader = [] { return std::string("app"); };
+    cb.pairingDenyMs = 400;
+    cb.askPairing = [&](const std::string&) {
+        ++asked;
+        waitFor([&] { return release.load(); }, 5000);
+        return answer.load();
+    };
+    cb.allowedOrigins = [&] {
+        std::lock_guard<std::mutex> lock(m);
+        return remembered;
+    };
+    cb.rememberOrigin = [&](const std::string& o) {
+        std::lock_guard<std::mutex> lock(m);
+        remembered.insert(o);
+    };
+    WebHub hub(engine, cb);
+    EXPECT(hub.start(0, ""));
+    const int port = hub.port();
+
+    int firstStatus = -1;
+    Client first;
+    EXPECT(first.connect(port));
+    std::thread t([&] { firstStatus = first.handshake("http://one.example", port); });
+    EXPECT(waitFor([&] { return asked.load() == 1; }));
+    // a second unknown origin while the dialog is up: refused at once, no second question
+    Client second;
+    EXPECT(second.connect(port));
+    const int64_t t0 = nowMs();
+    EXPECT(second.handshake("http://two.example", port) == 403);
+    EXPECT(nowMs() - t0 < 1500);
+    EXPECT(asked.load() == 1);
+    // the user says no
+    answer = false;
+    release = true;
+    t.join();
+    EXPECT(firstStatus == 403);
+    // asking again right away: denied without a question
+    Client third;
+    EXPECT(third.connect(port));
+    EXPECT(third.handshake("http://one.example", port) == 403);
+    EXPECT(asked.load() == 1);
+    // after the memory runs out it asks again, and Allow lets it in and remembers it
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    answer = true;
+    Client fourth;
+    EXPECT(fourth.connect(port));
+    EXPECT(fourth.handshake("http://one.example", port) == 101);
+    EXPECT(asked.load() == 2);
+    {
+        std::lock_guard<std::mutex> lock(m);
+        EXPECT(remembered.count("http://one.example") == 1 && remembered.count("http://two.example") == 0);
+    }
+    hub.stop();
+}
+
 int main() {
     juce::ScopedJuceInitialiser_GUI juce;
     const juce::String ns = "h" + juce::String(juce::Random::getSystemRandom().nextInt(99999));
@@ -504,8 +583,10 @@ int main() {
         testSync(*engine, hub, port);
         testLiveSlots(*engine, hub, server, port);
         testHelloIdBound(hub, port);
+        testDeepJson(hub, port);
         hub.stop();
     }
+    testPairing(*engine);
     engine->unregisterInstance(main);
     engine->collectGarbage();
     engine->release();

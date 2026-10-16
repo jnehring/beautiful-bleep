@@ -65,6 +65,7 @@ const char* statusText(int s) {
         case 404: return "Not Found";
         case 405: return "Method Not Allowed";
         case 426: return "Upgrade Required";
+        case 503: return "Service Unavailable";
         case 431: return "Request Header Fields Too Large";
         case 408: return "Request Timeout";
         default: return "Error";
@@ -422,6 +423,19 @@ void WebSocketServer::acceptLoop() {
         ::setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof yes);
 #endif
         reap(false);
+        {
+            size_t live;
+            {
+                std::lock_guard<std::mutex> lock(sessionsMutex_);
+                live = sessions_.size();
+            }
+            if (live >= options_.maxSessions) {  // refuse cleanly rather than grow threads without bound
+                static const char busy[] = "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+                ::send(fd, busy, sizeof busy - 1, BLEEP_SEND_FLAGS);
+                BLEEP_CLOSESOCKET(fd);
+                continue;
+            }
+        }
         std::shared_ptr<Connection> conn(new Connection(fd, nextId_++, options_.maxQueuedBytes));
         auto done = std::make_shared<std::atomic<bool>>(false);
         Session s{conn, std::thread([this, conn, done] {
@@ -456,6 +470,19 @@ void WebSocketServer::runSession(std::shared_ptr<Connection> conn) {
         c.drainAndClose();
     };
 
+    // The Origin this session counts against (released however the session ends).
+    std::string originSlot;
+    struct OriginRelease {
+        WebSocketServer& s;
+        const std::string& origin;
+        ~OriginRelease() {
+            if (origin.empty()) return;
+            std::lock_guard<std::mutex> lock(s.originsMutex_);
+            auto it = s.originCounts_.find(origin);
+            if (it != s.originCounts_.end() && --it->second == 0) s.originCounts_.erase(it);
+        }
+    } originRelease{*this, originSlot};
+
     // 1. Request head, within the handshake timeout and size limit.
     const int64_t deadline = nowMs() + kHandshakeTimeoutMs;
     size_t end;
@@ -489,6 +516,12 @@ void WebSocketServer::runSession(std::shared_ptr<Connection> conn) {
             lower(*conn_h).find("upgrade") == std::string::npos)
             return fail(400);
         if (const std::string* origin = req.find("origin")) {
+            {
+                std::lock_guard<std::mutex> lock(originsMutex_);
+                if (originCounts_[*origin] >= options_.maxSessionsPerOrigin) return fail(503);
+                ++originCounts_[*origin];
+            }
+            originSlot = *origin;
             if (!options_.allowOrigin || !options_.allowOrigin(*origin)) return fail(403);
             c.origin_ = *origin;
         }
@@ -553,8 +586,15 @@ void WebSocketServer::runSession(std::shared_ptr<Connection> conn) {
         }
         uint8_t mask[4];
         if (!c.readExact(mask, 4)) break;
-        std::string payload((size_t)len, '\0');
-        if (len && !c.readExact(&payload[0], (size_t)len)) break;
+        std::string payload;  // grown chunk by chunk: a peer announcing 4 MB must send it before we hold it
+        bool short_ = false;
+        for (size_t have = 0; have < (size_t)len;) {
+            const size_t n = std::min(kReadChunk, (size_t)len - have);
+            payload.resize(have + n);
+            if (!c.readExact(&payload[have], n)) { short_ = true; break; }
+            have += n;
+        }
+        if (short_) break;
         for (size_t i = 0; i < payload.size(); ++i) payload[i] = (char)((uint8_t)payload[i] ^ mask[i & 3]);
 
         if (op == 0x8) {
