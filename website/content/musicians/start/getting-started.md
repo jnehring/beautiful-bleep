@@ -28,6 +28,9 @@ plugins appear in Live's browser under **Plug-Ins → Beautiful Bleep**.
 | macOS | `~/Library/Audio/Plug-Ins/VST3` |
 | Windows | `C:\Program Files\Common Files\VST3` |
 
+The plugins are not signed with a paid certificate. If your system or DAW
+refuses to load them, see [Installing unsigned builds](unsigned-builds.md).
+
 ## What next
 
 - [Your first sound](first-sound.md): a preset, no cables.
