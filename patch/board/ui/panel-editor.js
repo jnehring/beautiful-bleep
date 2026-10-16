@@ -15,6 +15,7 @@
 //     ctx.edit(label, fn(b))  edits the whole board document in one undo step
 //     ctx.removeControl(panelId, controlId)  removes a control made by panel-wiring, with its module and channel
 //     ctx.host()           the host BleepPanels.create wants
+//     ctx.menu(ev, items)  shows the board's context menu at the pointer: items are {label, key?, disabled?, run | items} or "-"
 //   ed.rebuild()           the document changed: draw again
 //   ed.destroy()
 (function () {
@@ -35,6 +36,10 @@
   // What the Add list offers: elements that do not drive anything. A control that does (a dial, a toggle, Keys, a meter) is
   // made by right-clicking its controller module on the board: "Add to panel" (panel-wiring.js).
   const FREE = ["label", "section", "view", "panel"];
+  // What the Add list shows: only the ones that need no module. Module views are added from the module on the board.
+  const ADD = ["label", "section"];
+  const GRID = 2;   // "Snap to grid" rounds positions to multiples of this many units
+  let clipboard = null;   // controls copied in any panel editor
   /// The board module a control is made with: its wire's (or meter source's) node.
   const nodeOf = (c) => {
     if (c.type === "meter") return c.source && c.source.out && [].concat(c.source.out)[0] ? [].concat(c.source.out)[0].split(".")[0] : null;
@@ -56,13 +61,28 @@
       p.rows = Math.max(p.rows, need);
     }
   }
-  /// The first free place for a control of `size` on `tab` (sections don't count); below everything if it is too wide.
+  // New controls are laid out like text: left to right under the panel's title label, on slots 5 units apart (a dial and a gap),
+  // and onto the next row once a row is full. A slot that has a control under it is skipped.
+  const FLOW = { x0: 1, step: 5, width: 36, gap: 1 };
+  /// The row under the standard title label of the panel (the label on top of every tab), or 0 when it has none.
+  function flowTop(p, tab) {
+    const t = p.controls.filter((c) => c.type === "label" && c.style === "title" && (!c.tab || c.tab === tab)).sort((a, b) => a.at[1] - b.at[1])[0];
+    return t ? t.at[1] + t.size[1] + FLOW.gap : 0;
+  }
+  /// The first free slot for a control of `size` on `tab` (sections don't count); below everything if it is too wide for a row.
   function freeSpotIn(p, size, tab) {
-    const solid = p.controls.filter((c) => c.type !== "section" && (!c.tab || c.tab === tab)).map(rectOf);
-    for (let y = 0; y < 400; y++)
-      for (let x = 0; x + size[0] <= p.cols - 1; x++)
-        if (!solid.some((r) => overlap({ x, y, w: size[0], h: size[1] }, r))) return [x, y];
-    return [0, Math.max(0, ...solid.map((r) => r.y + r.h))];
+    const solid = p.controls.filter((c) => c.type !== "section" && (!c.tab || c.tab === tab)).map(rectOf).map((r) => ({ ...r, w: r.w + FLOW.gap, h: r.h + FLOW.gap }));
+    const right = Math.min(p.cols - 1, FLOW.x0 + FLOW.width), top = flowTop(p, tab);
+    for (let y = top; y < 400; y++)
+      for (let x = FLOW.x0; x + size[0] <= right; x += FLOW.step)
+        if (!solid.some((r) => overlap({ x, y, w: size[0] + FLOW.gap, h: size[1] + FLOW.gap }, r))) return [x, y];
+    return [FLOW.x0, Math.max(top, ...solid.map((r) => r.y + r.h))];
+  }
+  /// Names a panel; the title label every new panel starts with (it shows the name) follows.
+  function renamePanel(q, name) {
+    const old = q.name;
+    q.name = name;
+    for (const c of q.controls) if (c.type === "label" && c.style === "title" && c.text === old) c.text = name;
   }
   const nextIdIn = (p) => { let n = 1; while (p.controls.some((c) => c.id === "c" + n)) n++; return "c" + n; };
   /// Puts a new control on the panel (used by the editor and by "Add to panel"); returns it.
@@ -119,7 +139,7 @@
     // ------------------------------------------------------------------ bar
     function drawBar() {
       bar.innerHTML = "";
-      bar.append(el("span", "pe-hint", "Drag to move, corner to resize · Shift-click or drag a rectangle to select several · Delete removes · ⌘D duplicates · New dials, wheels and buttons: right-click the module on the board and choose Add to panel"));
+      bar.append(el("span", "pe-hint", "Drag to move, corner to resize · Shift-click or drag a rectangle to select several · Type to set the title · Right-click for align, copy, paste and delete · New dials, wheels and buttons: right-click the module on the board and choose Add to panel"));
     }
 
     // ----------------------------------------------------------------- centre
@@ -151,6 +171,12 @@
         const grab = c.type === "section" ? h.appendChild(el("div", "pe-sec-head")) : h;
         grab.addEventListener("pointerdown", (ev) => startMove(ev, c, h));
         grip.addEventListener("pointerdown", (ev) => startResize(ev, c, h));
+        h.addEventListener("contextmenu", (ev) => {
+          ev.preventDefault(); ev.stopPropagation();
+          root.focus({ preventScroll: true });
+          if (!multi.has(c.id)) select(c.id);
+          menu(ev, true);
+        });
         stage.append(h);
       }
     }
@@ -177,7 +203,7 @@
     function startMove(ev, c, h) {
       if (ev.button !== 0) return;
       ev.stopPropagation();
-      root.focus();
+      root.focus({ preventScroll: true });
       if (ev.shiftKey) {   // shift-click adds to or removes from the selection
         const ids = new Set(multi);
         if (ids.has(c.id)) ids.delete(c.id); else ids.add(c.id);
@@ -262,12 +288,12 @@
     function drawSide() {
       side.innerHTML = "";
       side.append(el("h4", "", "Add"));
-      for (const [type, name] of PALETTE.filter(([t]) => FREE.includes(t))) {
+      for (const [type, name] of PALETTE.filter(([t]) => ADD.includes(t))) {
         const b = el("button", "pe-pal", name);
         b.addEventListener("click", () => addControl(type, defaults(type)));
         side.append(b);
       }
-      side.append(el("p", "pe-note", "Dials, wheels, buttons, Keys and meters: right-click the module on the board and choose “Add to panel”."));
+      side.append(el("p", "pe-note", "Dials, wheels, buttons, Keys, meters and module views: right-click the module on the board and choose “Add to panel”."));
       // Every control of the panel, with what it drives.
       side.append(el("h4", "", "Controls"));
       const list = el("div", "pe-list");
@@ -329,16 +355,34 @@
       i.addEventListener("change", () => apply(clamp(Math.round(Number(i.value) || 0), min, max)));
       return i;
     };
+    // Typing in a title shows at once in the panel; it is kept when the field is left (or the selection changes).
+    let titleInput = null;   // the inspector's title field: typing with a label, a section or the panel selected goes here
+    let pending = null;      // saves a title that was typed and not yet kept
+    const flush = () => { const f = pending; pending = null; if (f) f(); };
+    const titleField = (value, keep, show) => {
+      const i = text(value, (v) => { pending = null; keep(v); });
+      i.addEventListener("input", () => { pending = () => keep(i.value); show(i.value); });
+      titleInput = i;
+      return i;
+    };
+    const showText = (id, v) => {
+      const e = live && live.elements.get(id), c = control(id);
+      if (!e || !c) return;
+      if (c.type === "section") { const s = e.querySelector("span"); if (s) s.textContent = v; } else e.textContent = v;
+    };
+    const keepText = (id, v) => ctx.mutate("title", (p) => { const t = p.controls.find((q) => q.id === id); if (t) t.text = v; });
     const change = (name, fn) => ctx.mutate(name, (p) => { const t = p.controls.find((q) => q.id === selected); if (t) fn(t, p); });
 
     function drawInsp() {
+      flush();
+      titleInput = null;
       insp.innerHTML = "";
       if (multi.size > 1) return multiSettings();
       const c = control(selected);
       if (!c) return panelSettings();
       insp.append(el("h4", "", c.type[0].toUpperCase() + c.type.slice(1)));
       if (c.type === "label") {
-        field(insp, "Text", text(c.text, (v) => change("text", (t) => (t.text = v))));
+        field(insp, "Title", titleField(c.text, (v) => keepText(c.id, v), (v) => showText(c.id, v)));
         const s = el("select", "");
         for (const [v, n] of [["", "Title"], ["caption", "Caption"]]) s.append(new Option(n, v));
         s.value = c.style === "caption" ? "caption" : "";
@@ -346,7 +390,7 @@
         field(insp, "Style", s);
       }
       if (c.type === "section") {
-        field(insp, "Title", text(c.text, (v) => change("title", (t) => (t.text = v))));
+        field(insp, "Title", titleField(c.text, (v) => keepText(c.id, v), (v) => showText(c.id, v)));
         const col = el("input", ""); col.type = "color"; col.value = c.colour || "#8b92a3";
         col.addEventListener("change", () => change("colour", (t) => (t.colour = col.value)));
         field(insp, "Colour", col);
@@ -473,6 +517,68 @@
         fit(p);
       });
     }
+    const picked = () => doc().controls.filter((c) => multi.has(c.id));
+    /// Rounds the position of the selection to the grid.
+    function snap() {
+      ctx.mutate("snap to grid", (p) => {
+        for (const c of p.controls) if (multi.has(c.id)) c.at = [clamp(Math.round(c.at[0] / GRID) * GRID, 0, Math.max(0, p.cols - c.size[0])), Math.max(0, Math.round(c.at[1] / GRID) * GRID)];
+        fit(p);
+      });
+    }
+    /// Lines the selection up on one row ("h": the same height) or one column ("v"), through the middle of the group.
+    function lineUp(dir) {
+      const i = dir === "h" ? 1 : 0;
+      ctx.mutate(dir === "h" ? "align horizontally" : "align vertically", (p) => {
+        const cs = p.controls.filter((c) => multi.has(c.id));
+        if (cs.length < 2) return;
+        const mid = cs.reduce((n, c) => n + c.at[i] + c.size[i] / 2, 0) / cs.length;
+        for (const c of cs) c.at[i] = Math.max(0, Math.round(mid - c.size[i] / 2));
+        fit(p);
+      });
+    }
+    /// What can be copied: not a control made with a module of the board (that is made again on the board).
+    const copyable = () => picked().filter((c) => !c.target && !moduleOf(c));
+    function copy() {
+      const cs = copyable();
+      if (cs.length) clipboard = JSON.parse(JSON.stringify(cs));
+    }
+    /// Puts the copies on the panel: at `at` (grid units) when the pointer was on empty space, else on the next free slot.
+    function paste(at) {
+      if (!clipboard) return;
+      const ids = [];
+      ctx.mutate("paste", (p) => {
+        const x0 = Math.min(...clipboard.map((c) => c.at[0])), y0 = Math.min(...clipboard.map((c) => c.at[1]));
+        const size = [Math.max(...clipboard.map((c) => c.at[0] + c.size[0])) - x0, Math.max(...clipboard.map((c) => c.at[1] + c.size[1])) - y0];
+        const spot = at ? [clamp(at[0], 0, Math.max(0, p.cols - size[0])), Math.max(0, at[1])] : freeSpot(p, size);
+        for (const src of clipboard) {
+          const copy = JSON.parse(JSON.stringify(src));
+          copy.id = nextId(p);
+          copy.at = [spot[0] + src.at[0] - x0, spot[1] + src.at[1] - y0];
+          if (tab) copy.tab = tab; else delete copy.tab;
+          p.controls.push(copy);
+          ids.push(copy.id);
+        }
+        fit(p);
+      });
+      select(ids);
+    }
+    /// The right-click menu: over a control (`onControl`) or over empty space, where it also knows where to paste.
+    function menu(ev, onControl) {
+      const sr = live.stage.getBoundingClientRect();
+      const at = onControl ? null : [Math.round((ev.clientX - sr.left) / U), Math.round((ev.clientY - sr.top) / U)];
+      const items = [];
+      if (multi.size) {
+        items.push({ label: "Align", items: [
+          { label: "Snap to grid", run: snap },
+          { label: "Align horizontally", disabled: multi.size < 2, run: () => lineUp("h") },
+          { label: "Align vertically", disabled: multi.size < 2, run: () => lineUp("v") },
+        ] }, "-");
+        items.push({ label: "Copy", key: "⌘C", disabled: !copyable().length, run: copy });
+      }
+      items.push({ label: "Paste", key: "⌘V", disabled: !clipboard, run: () => paste(at) });
+      if (multi.size) items.push("-", { label: "Delete", key: "⌫", run: remove });
+      ctx.menu(ev, items);
+    }
     function multiSettings() {
       insp.append(el("h4", "", multi.size + " controls"));
       insp.append(el("p", "pe-note", "Align spaces the selection evenly between its outermost controls (three or more)."));
@@ -493,7 +599,8 @@
     function panelSettings() {
       const p = doc();
       insp.append(el("h4", "", "Panel"));
-      field(insp, "Name", text(p.name, (v) => ctx.mutate("rename panel", (q) => (q.name = v || q.name))));
+      const show = (v) => { for (const c of p.controls) if (c.type === "label" && c.style === "title" && c.text === p.name) showText(c.id, v || p.name); };
+      field(insp, "Title", titleField(p.name, (v) => ctx.mutate("rename panel", (q) => renamePanel(q, v || q.name)), show));
       if (!p.for) {
         const s = el("select", "");
         for (const [v, n] of [["", "Off"], ["window", "In a window"], ["full", "Full screen"]]) s.append(new Option(n, v));
@@ -570,6 +677,8 @@
       const c = control(selected);
       if (e.key === "Escape") { setSel([]); drawOverlay(); drawSide(); drawInsp(); }
       else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); e.stopPropagation(); remove(); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === "c") { e.preventDefault(); e.stopPropagation(); copy(); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === "v") { e.preventDefault(); e.stopPropagation(); paste(); }
       else if ((e.metaKey || e.ctrlKey) && e.key === "d") { e.preventDefault(); e.stopPropagation(); duplicate(); }
       else if (c && e.key.startsWith("Arrow")) {
         e.preventDefault(); e.stopPropagation();
@@ -579,7 +688,18 @@
           fit(p);
         });
       }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.length === 1 && titleInput && multi.size <= 1 && (!c || c.type === "label" || c.type === "section")) {
+        // Typing with a label, a section or the panel selected sets its title: the letter lands in the title field, replacing the old one.
+        titleInput.focus();
+        titleInput.select();
+      }
       if (!(e.metaKey || e.ctrlKey)) e.stopPropagation();   // the board's one-letter shortcuts stay out of the editor
+    });
+    centre.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      if (e.target.closest(".pe-hit") || !live) return;
+      root.focus({ preventScroll: true });
+      if (live.stage.contains(e.target)) { setSel([]); drawOverlay(); drawSide(); drawInsp(); menu(e, false); }
     });
     // Empty space: a click clears the selection, a drag draws a rectangle that selects what it touches (shift adds).
     centre.addEventListener("pointerdown", (e) => {
@@ -587,7 +707,7 @@
         if (e.button === 0 && !e.target.closest(".pe-hit") && !(live && live.stage.contains(e.target))) { setSel([]); drawOverlay(); drawSide(); drawInsp(); }
         return;
       }
-      root.focus();
+      root.focus({ preventScroll: true });
       const st = live.stage, sr = () => st.getBoundingClientRect();
       const x0 = e.clientX - sr().left, y0 = e.clientY - sr().top;
       const base = e.shiftKey ? new Set(multi) : new Set();
@@ -638,5 +758,5 @@
     };
   }
 
-  window.BleepPanelEditor = { mount, placeControl, sizeOf };
+  window.BleepPanelEditor = { mount, placeControl, sizeOf, renamePanel };
 })();

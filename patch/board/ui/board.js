@@ -1864,8 +1864,9 @@
     fillMenu(m, items, 0);
     const r = canvas.getBoundingClientRect();
     m.hidden = false;
-    m.style.left = Math.max(4, Math.min(ev.clientX - r.left, canvas.clientWidth - m.offsetWidth - 8)) + "px";
-    m.style.top = Math.max(4, Math.min(ev.clientY - r.top, canvas.clientHeight - m.offsetHeight - 8)) + "px";
+    // The canvas is clipped, not scrolled, yet the browser may scroll it to reveal a focused panel window: positions follow its scroll.
+    m.style.left = Math.max(4, Math.min(ev.clientX - r.left, canvas.clientWidth - m.offsetWidth - 8)) + canvas.scrollLeft + "px";
+    m.style.top = Math.max(4, Math.min(ev.clientY - r.top, canvas.clientHeight - m.offsetHeight - 8)) + canvas.scrollTop + "px";
   }
   const submenus = [];
   function closeSubmenus(depth) {
@@ -1907,8 +1908,8 @@
     const r = canvas.getBoundingClientRect(), rr = row.getBoundingClientRect();
     let x = rr.right - r.left + 2;
     if (x + sm.offsetWidth > canvas.clientWidth - 4) x = rr.left - r.left - sm.offsetWidth - 2;
-    sm.style.left = Math.max(4, x) + "px";
-    sm.style.top = Math.max(4, Math.min(rr.top - r.top - 4, canvas.clientHeight - sm.offsetHeight - 8)) + "px";
+    sm.style.left = Math.max(4, x) + canvas.scrollLeft + "px";
+    sm.style.top = Math.max(4, Math.min(rr.top - r.top - 4, canvas.clientHeight - sm.offsetHeight - 8)) + canvas.scrollTop + "px";
   }
   /// The help of a cell (its `help: {text, images}` metadata, copied from the preset): paragraphs, then the images, in a popover
   /// under the "?" button. Built from nodes: the text is never parsed as markup.
@@ -3122,7 +3123,7 @@
         const name = input.value.trim();
         title.textContent = panelById(panelId).name;
         if (save && name && name !== panelById(panelId).name)
-          edit("rename panel", (b) => { const q = (b.panels || []).find((x) => x.id === panelId); if (!q) return false; q.name = name; });
+          edit("rename panel", (b) => { const q = (b.panels || []).find((x) => x.id === panelId); if (!q) return false; BleepPanelEditor.renamePanel(q, name); });
       };
       input.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
       input.addEventListener("blur", () => finish(true));
@@ -3204,6 +3205,7 @@
           removeControl: (panelId, controlId) => removePanelControl(panelId, controlId),
           reveal: revealPanelModule,
           host: () => panelHost(panelById(panelId) || doc, []),
+          menu: (ev, items) => showMenu(ev, items),
           editPanel: (id) => openPanel(id, { edit: true }),
         });
       } else {
