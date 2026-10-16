@@ -45,6 +45,7 @@ section 21): no hardware names in the files, the UI or the docs.
 | Level Meter | [level-meter.md](level-meter.md) | Implemented |
 | Monitor | [monitor.md](monitor.md) | Implemented |
 | Envelope Follower | [envelope-follower.md](envelope-follower.md) | Implemented |
+| Limiter | [limiter.md](limiter.md) | Implemented |
 | CV to MIDI | [cv-to-midi.md](cv-to-midi.md) | Implemented |
 
 The eurorack-inspired set:

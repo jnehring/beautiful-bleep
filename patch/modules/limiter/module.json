@@ -1,0 +1,10 @@
+{
+  "name": "Limiter",
+  "slug": "limiter",
+  "tagline": "Brickwall stereo limiter: nothing passes the ceiling. Lookahead, release, input gain and a gain reduction output.",
+  "colour": "#64748b",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/limiter.md"
+}
