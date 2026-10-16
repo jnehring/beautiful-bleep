@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+#include <cctype>
 #include <cstdlib>
 #include "Client.h"
 
@@ -42,6 +43,26 @@ long long versionKey(const std::string& v) {
     if (std::sscanf(v.c_str(), "%d.%d.%d%c", &a, &b, &c, &extra) != 3) return -1;
     return ((long long)a << 40) | ((long long)b << 20) | c;
 }
+
+/// A slug or version becomes a folder name: no separators, no "..", nothing that could leave the modules folder.
+bool safeSlug(const std::string& s) {
+    if (s.empty() || s.size() > 100 || !std::isalnum((unsigned char)s[0]) || s.find("..") != std::string::npos) return false;
+    for (const char c : s)
+        if (!(std::islower((unsigned char)c) || std::isdigit((unsigned char)c) || c == '.' || c == '-')) return false;
+    return true;
+}
+
+bool safeVersion(const std::string& v) {  // exactly "1.2.3"
+    int dots = 0;
+    if (v.empty() || v.size() > 32 || v.front() == '.' || v.back() == '.') return false;
+    for (const char c : v) {
+        if (c == '.') { if (++dots > 2) return false; }
+        else if (!std::isdigit((unsigned char)c)) return false;
+    }
+    return dots == 2 && v.find("..") == std::string::npos;
+}
+
+bool isInside(const juce::File& child, const juce::File& root) { return child != root && child.isAChildOf(root); }
 
 std::string signedId(const std::string& slug) {  // "acme.fuzz" in URLs is "acme/fuzz" in signatures
     std::string id = slug;
@@ -307,6 +328,8 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
             if (str(f["platform"]) == "any") file = f;
     if (!file.isObject()) { error = "the entry of " + slug + " lists no package"; return false; }
     const std::string version = str(entry["version"]), path = str(file["path"]);
+    if (!safeSlug(slug)) { error = "a bad module name: " + slug; return false; }
+    if (!safeVersion(version)) { error = "a bad version in the entry of " + slug; return false; }
     if (path.empty() || path.find('/') != std::string::npos || path.find("..") != std::string::npos) { error = "a bad file name in the entry"; return false; }
     const std::string dir = m->entry.substr(0, m->entry.rfind('/') + 1);
     std::vector<uint8_t> bytes;
@@ -318,6 +341,7 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
     if (!out.allowed) { error = slug + " " + version + " is not installed: " + out.why; return false; }
 
     const juce::File finalDir = modulesFolder("registry").getChildFile(juce::String(slug)).getChildFile(juce::String(version));
+    if (!isInside(finalDir, modulesFolder("registry"))) { error = "a bad install path for " + slug; return false; }
     const juce::File temp = dataDir_.getChildFile("tmp").getChildFile(juce::String(slug) + "-" + juce::String(version) + "-" + juce::String::toHexString(juce::Random::getSystemRandom().nextInt()));
     if (!temp.createDirectory().wasOk()) { error = "cannot write to " + temp.getFullPathName().toStdString(); return false; }
     const juce::File tempFile = temp.getChildFile(juce::String(slug) + "-" + juce::String(version) + ".bleepmod");
@@ -352,6 +376,8 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
             if (str(f["platform"]) == platform) file = f;
     if (!file.isObject()) { error = slug + " has no build for " + platform; return false; }
     const std::string version = str(entry["version"]), path = str(file["path"]);
+    if (!safeSlug(slug)) { error = "a bad module name: " + slug; return false; }
+    if (!safeVersion(version)) { error = "a bad version in the entry of " + slug; return false; }
     if (path.empty() || path.find('/') != std::string::npos || path.find("..") != std::string::npos) { error = "a bad file name in the entry"; return false; }
     std::vector<uint8_t> bytes;
     if (!fetchBytes(url(p->entry.substr(0, p->entry.rfind('/') + 1) + path), bytes, error)) return false;
@@ -397,6 +423,7 @@ bool Client::installPlugin(const std::string& slug, const juce::File& folder, st
 
 bool Client::remove(const std::string& slug, std::string& error) const {
     const juce::File dir = modulesFolder("registry").getChildFile(juce::String(slug));
+    if (!safeSlug(slug) || !isInside(dir, modulesFolder("registry"))) { error = "not a module name: " + slug; return false; }
     if (!dir.isDirectory()) { error = slug + " is not installed"; return false; }
     if (!dir.deleteRecursively()) { error = "cannot remove " + slug; return false; }
     return true;

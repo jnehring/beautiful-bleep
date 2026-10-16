@@ -1184,13 +1184,13 @@ size_t bb_save_connections(bb_endpoint* ep, void* out, size_t cap) {
             if (conn->state != BB_SLOT_ACTIVE) continue;
             char line[160];
             size_t n = 0;
-            size_t len = strlen(rec->name);
+            size_t len = strnlen(rec->name, BB_PORT_NAME_BYTES - 1);
             memcpy(line + n, rec->name, len);
             n += len;
             line[n++] = '\t';
             for (int shift = 60; shift >= 0; shift -= 4) line[n++] = "0123456789abcdef"[(conn->source_uid >> shift) & 0xfu];
             line[n++] = '\t';
-            len = strlen(conn->output_name);
+            len = strnlen(conn->output_name, BB_PORT_NAME_BYTES - 1);
             memcpy(line + n, conn->output_name, len);
             n += len;
             line[n++] = '\t';

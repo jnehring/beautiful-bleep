@@ -212,6 +212,14 @@ void testClient(const juce::File& fixtures) {
 
     CHECK(client("site").remove("good", error), "remove: %s", error.c_str());
     CHECK(!client("site").remove("good", error), "removing twice is an error");
+    {   // a slug is a folder name, never a path
+        const juce::File outside = data.getChildFile("outside");
+        outside.createDirectory();
+        outside.getChildFile("keep.txt").replaceWithText("x");
+        CHECK(!client("site").remove("../../outside", error) && outside.getChildFile("keep.txt").existsAsFile(), "remove refuses a path: %s", error.c_str());
+        CHECK(!client("site").remove("..", error) && !client("site").remove("a/b", error) && !client("site").remove("", error), "remove refuses .., a/b and nothing");
+        outside.deleteRecursively();
+    }
 
     // copied by hand: the file name says the version the signature is checked for
     const juce::File local = data.getChildFile("modules/local");
