@@ -295,7 +295,7 @@
       latencyMs: 9.4, xruns: 0, cpu: 0.07, outputChannels: [{ name: "Out 1", on: true }, { name: "Out 2", on: true }, { name: "Out 3", on: false }, { name: "Out 4", on: false }],
       inputChannels: [{ name: "In 1", on: true }, { name: "In 2", on: true }] },
     midi: { inputs: [{ id: "a", name: "Launchkey Mini", on: true }, { id: "b", name: "IAC Driver Bus 1", on: false }], outputs: [{ id: "a", name: "Launchkey Mini" }], output: "a", virtualPorts: 2 },
-    link: { available: true, enabled: true, peers: 1, tempo: 120 } };
+    link: { available: true, enabled: true, peers: 1, tempo: 120, playing: true } };
   function demoSettings(fn, arg) {
     const s = demoSettingsState;
     if (fn === "audio") {
@@ -306,6 +306,7 @@
     else if (fn === "virtualPorts") s.midi.virtualPorts = arg.n;
     else if (fn === "link") s.link.enabled = arg.on;
     else if (fn === "tempo") s.link.tempo = arg.bpm;
+    else if (fn === "play") s.link.playing = !!arg.on;
     return JSON.parse(JSON.stringify(s));
   }
 
@@ -469,8 +470,16 @@
           store.set(presetKey(a[1]), list);
           return list;
         }
-        case "copyText": store.set("bleep-demo-clipboard", String(a[0])); return null;
-        case "pasteText": return store.get("bleep-demo-clipboard", "");
+        // The system clipboard, as in the app and the plugin, so a copy pastes across the web, standalone and plugin boards.
+        // The page-local copy is the fallback where the browser refuses clipboard access.
+        case "copyText": {
+          store.set("bleep-demo-clipboard", String(a[0]));
+          try { await navigator.clipboard.writeText(String(a[0])); } catch (e) { /* denied or insecure context */ }
+          return null;
+        }
+        case "pasteText": {
+          try { return await navigator.clipboard.readText(); } catch (e) { return store.get("bleep-demo-clipboard", ""); }
+        }
         case "resetDemo":
           board = demoBoard(); undo = []; redo = []; save(); if (window.BleepWeb) BleepWeb.setBoard(board);
           setTimeout(() => emit("board", message()));
