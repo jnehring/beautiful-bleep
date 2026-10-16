@@ -11,7 +11,7 @@ Bleep plugin's window (it opens with the window, or comes to the front).
 
 ## Adding things
 
-**Add** (top left, or right-click on empty space) opens the Add menu:
+Right-click on empty space opens the **Add** menu:
 
 - **Module ›** one submenu per category: *Sources*, *Modulation*, *Audio*, *Effects*,
   *Utility*, *Controllers*, *Sequencing* and *Drums*. Each has subcategories, e.g.

@@ -396,7 +396,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 body.in-store .sections button.on { background: var(--bg); }
 #undo, #redo { display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px; }
 #undo svg, #redo svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-body.in-store #side-toggle, body.in-store #side-menu, body.in-store #main, body.in-store #crumbs, body.in-store #add, body.in-store #panels, body.in-store #presets,
+body.in-store #side-toggle, body.in-store #side-menu, body.in-store #main, body.in-store #crumbs, body.in-store #panels, body.in-store #presets,
 body.in-store #undo, body.in-store #redo { display: none; }
 #store { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
 #store h2 { margin: 0; font-size: 18px; font-weight: 600; }

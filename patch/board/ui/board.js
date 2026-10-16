@@ -1776,10 +1776,6 @@
     e.stopPropagation();
   });
   $("search-input").addEventListener("blur", () => setTimeout(() => { if (searchState) closeSearch(); }, 100));
-  $("add").addEventListener("click", (ev) => {
-    const r = $("add").getBoundingClientRect();
-    showMenu({ clientX: r.left, clientY: r.bottom + 4 }, addMenu(null));
-  });
   $("panels").addEventListener("click", () => {
     const r = $("panels").getBoundingClientRect();
     panelsMenu({ clientX: r.left, clientY: r.bottom + 4 });
