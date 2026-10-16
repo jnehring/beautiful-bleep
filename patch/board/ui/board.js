@@ -1012,6 +1012,11 @@
     if (dot) {
       ev.stopPropagation();
       const row = dot.closest(".jack");
+      if (ev.altKey && row.classList.contains("out")) {
+        // Alt-drag: pick up the last cable out of this jack by its output end and move it to another output.
+        const outOf = board.cables.filter((c) => c.from.node === n.id && c.from.jack === row.dataset.jack);
+        if (outOf.length) return startSourceDrag(ev, outOf[outOf.length - 1]);
+      }
       if (row.classList.contains("out") && (row.dataset.jack !== "+" || n.type === "cell-in" || n.type === "voice-in")) return startCableDrag(ev, n.id, row.dataset.jack);
       if (row.classList.contains("in")) {
         // Pick up the last cable into this jack and move its end (spec §9.5).
@@ -2642,7 +2647,7 @@
   function toggleView(id) {
     if (views.has(id)) return closeView(id);
     closeUnpinnedViews();
-    openView(id);
+    openView(id, { centre: true });
   }
 
   /// What a module view (or a panel) calls to change node `id`.
@@ -2688,7 +2693,8 @@
     };
   }
 
-  function openView(id) {
+  /// `opts.centre`: a view opened by hand lands in the middle of the canvas; one a cable opens sits beside its node.
+  function openView(id, opts = {}) {
     const n = nodeById(id);
     if (!n || isStructural(n)) return;
     const t = typeOf(n);
@@ -2752,8 +2758,9 @@
         y = nb + gap + h <= r.height - 8 || nt - gap - h < 8 ? nb + gap : nt - gap - h;
       }
     }
+    if (opts.centre) { x = (r.width - win.offsetWidth) / 2; y = (r.height - win.offsetHeight) / 2; }
     x = Math.max(8, Math.min(x, r.width - win.offsetWidth - 10));
-    y = Math.max(8, Math.min(y, r.height - Math.min(win.offsetHeight, 200)));
+    y = Math.max(8, opts.centre ? Math.min(y, r.height - win.offsetHeight - 8) : Math.min(y, r.height - Math.min(win.offsetHeight, 200)));
     win.style.left = x + "px";
     win.style.top = y + "px";
     front(win);
@@ -3177,7 +3184,9 @@
       win.classList.toggle("editing", state.edit);
       if (state.edit) {
         win.style.width = state.w ? state.w + "px" : "";
-        if (state.h) win.style.setProperty("--pe-h", state.h + "px");
+        // Unless resized by hand, the editor fills the canvas below its title bar (not the whole browser window).
+        win.style.setProperty("--pe-h", (state.h || Math.max(380, canvas.clientHeight - head.offsetHeight - 24)) + "px");
+        win.style.top = Math.max(8, Math.min(win.offsetTop, canvas.clientHeight - win.offsetHeight - 8)) + "px";
         if (win.offsetLeft + win.offsetWidth > canvas.clientWidth) win.style.left = Math.max(8, canvas.clientWidth - win.offsetWidth - 8) + "px";   // not cut off at the right edge
       } else win.style.removeProperty("--pe-h");
       title.title = state.edit ? "Click to rename the panel" : "";
