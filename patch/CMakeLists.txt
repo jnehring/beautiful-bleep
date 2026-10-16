@@ -101,7 +101,13 @@ target_compile_features(bleep_dsp INTERFACE cxx_std_17)
 
 if (BLEEP_BUILD_TESTS)
     enable_testing()
-    add_executable(bleep_dsp_tests tests/test_dsp.cpp)
+    add_executable(bleep_dsp_tests tests/test_dsp.cpp
+        tests/dsp/dsp_test.h
+        tests/dsp/filter_tests.cpp
+        tests/dsp/module_tests.cpp
+        tests/dsp/sequencer_tests.cpp
+        tests/dsp/drum_tests.cpp
+        tests/dsp/grid_tests.cpp)
     target_link_libraries(bleep_dsp_tests PRIVATE bleep_dsp)
     add_test(NAME patch.dsp COMMAND bleep_dsp_tests)
     add_executable(bleep_utility_tests tests/test_utility_dsp.cpp)
@@ -302,7 +308,13 @@ endif ()
 
 if (BLEEP_BUILD_TESTS AND NOT BLEEP_LIGHT_TESTS)
     juce_add_console_app(bleep_engine_tests PRODUCT_NAME "Bleep Engine Tests")
-    target_sources(bleep_engine_tests PRIVATE tests/engine_test.cpp ${BLEEP_ENGINE_SOURCES})
+    target_sources(bleep_engine_tests PRIVATE tests/engine_test.cpp
+        tests/engine/engine_test.h
+        tests/engine/document_tests.cpp
+        tests/engine/host_tests.cpp
+        tests/engine/voice_tests.cpp
+        tests/engine/cellplugin_tests.cpp
+        ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_engine_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_engine_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
         BLEEP_FACTORY_PRESETS="${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json"
