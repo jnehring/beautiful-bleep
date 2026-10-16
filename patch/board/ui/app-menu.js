@@ -16,7 +16,7 @@
   "use strict";
   // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
   const { native, onNative, priv: P } = window.BleepSeal;
-  const DOCS = "/docs/musicians/start/getting-started/";
+  const DOCS = "/docs/musicians/overview/";
   const SITE = "https://brilliantbleep.com";
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
