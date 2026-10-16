@@ -446,8 +446,16 @@ public:
                 if (s.allowUnsigned.module && !before.allowUnsigned.module) risk << "Allow unsigned modules: code nobody has vouched for will run.\n";
                 if (s.allowUnsigned.plugin && !before.allowUnsigned.plugin) risk << "Allow unsigned plugins: unverified native code can be installed.\n";
                 if (s.storeUrl != before.storeUrl) risk << "Use another store: " << juce::String(s.storeUrl) << "\n";
+                std::string urlProblem;
+                if (!store::storeUrlAllowed(s.storeUrl, urlProblem)) {
+                    auto* e = new juce::DynamicObject();
+                    e->setProperty("error", juce::String(urlProblem));
+                    done(juce::var(e));
+                    return;
+                }
                 if (risk.isEmpty()) {
-                    ModuleStore::instance().setSettings(s);
+                    std::string error;
+                    ModuleStore::instance().setSettings(s, error);
                     done({});
                     return;
                 }
@@ -459,7 +467,8 @@ public:
                         .withButton("Deny")
                         .withButton("Allow"),
                     [s, done = std::move(done)](int result) mutable {
-                        if (result == 2) ModuleStore::instance().setSettings(s);  // buttons count from 1 in the order added; Deny is the default
+                        std::string error;
+                        if (result == 2) ModuleStore::instance().setSettings(s, error);  // buttons count from 1 in the order added; Deny is the default
                         done({});
                     });
             })

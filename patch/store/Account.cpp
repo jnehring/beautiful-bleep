@@ -223,6 +223,7 @@ std::string Account::base() const {
 /// Sends one request; returns the store's error message (empty when it answered 2xx).
 std::string Account::send(const std::string& method, const std::string& path, const juce::var& body, const std::string& token,
                           HttpResponse& out) const {
+    if (std::string why; !storeUrlAllowed(base(), why)) { out = {}; return why; }   // never a token or sign-in over plain http to another host
     HttpRequest r;
     r.method = method;
     r.url = base() + path;

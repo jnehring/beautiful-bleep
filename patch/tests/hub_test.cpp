@@ -60,6 +60,7 @@ struct Web {
     std::vector<juce::var> texts;
     std::vector<std::vector<float>> audio[256];   ///< per channel: packets (left then right)
     std::map<int, int> audioSeen;
+    bool closed = false;   ///< the hub sent a close frame
     int epoch = 0;   ///< the newest epoch the hub announced (welcome, sync, flush): what a sequencer stamps its MIDI with
     bool connect(int port, const std::string& name) {
         if (!c.connect(port)) return false;
@@ -85,6 +86,7 @@ struct Web {
     void pump(int ms = 1) {
         Frame f;
         while (c.readFrame(f, ms)) {
+            if (f.op == 8) closed = true;
             if (f.op == 1) {
                 texts.push_back(juce::JSON::parse(juce::String(f.payload)));
                 const auto& m = texts.back();
@@ -455,6 +457,29 @@ void testSync(engine::Engine& engine, WebHub& hub, int port) {
 
 }  // namespace
 
+/// A hello with another origin's id is refused and does not close that board; the same origin may replace its own link.
+void testHelloIdBound(WebHub& hub, int port) {
+    (void)hub;
+    Web owner;
+    EXPECT(owner.connect(port, "Owner"));
+    EXPECT(waitFor([&] { owner.pump(5); return owner.firstText("welcome").isObject(); }));
+    // another allowed origin (localhost instead of 127.0.0.1) claims the same id
+    Web thief;
+    EXPECT(thief.c.connect(port));
+    EXPECT(thief.c.handshake("http://localhost:" + std::to_string(port), port) == 101);
+    thief.send(obj({{"op", "hello"}, {"v", 1}, {"id", "web-Owner"}, {"name", "Thief"}, {"sampleRate", 48000}, {"mode", "low"}}));
+    EXPECT(waitFor([&] { thief.pump(5); return thief.firstText("error").isObject(); }));
+    EXPECT(thief.firstText("error")["code"].toString() == "id-in-use");
+    EXPECT(!thief.firstText("welcome").isObject());
+    owner.pump(50);
+    EXPECT(!owner.closed);
+    // the same origin replaces its own link
+    Web again;
+    EXPECT(again.connect(port, "Owner"));
+    EXPECT(waitFor([&] { again.pump(5); return again.firstText("welcome").isObject(); }));
+    EXPECT(waitFor([&] { owner.pump(5); return owner.closed; }));
+}
+
 int main() {
     juce::ScopedJuceInitialiser_GUI juce;
     const juce::String ns = "h" + juce::String(juce::Random::getSystemRandom().nextInt(99999));
@@ -478,6 +503,7 @@ int main() {
         testWebNodes(*engine, hub, port);
         testSync(*engine, hub, port);
         testLiveSlots(*engine, hub, server, port);
+        testHelloIdBound(hub, port);
         hub.stop();
     }
     engine->unregisterInstance(main);

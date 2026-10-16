@@ -222,11 +222,25 @@ void WebHub::handleHello(Connection& c, const juce::var& msg) {
         return;
     }
     std::shared_ptr<Connection> replaced;
+    bool refused = false;
     {
-        std::lock_guard<std::mutex> lock(m_);
+        std::unique_lock<std::mutex> lock(m_);
         const std::string id = msg["id"].toString().toStdString();
         for (auto& [cid, p] : peers_)
-            if (p.id == id && cid != c.id()) replaced = p.conn;  // the same board came back: the old link is stale
+            if (p.id == id && cid != c.id()) {
+                // The id belongs to the origin that first used it: another page must not close that board's link by claiming its id.
+                if (p.conn && p.conn->origin() != c.origin()) {
+                    refused = true;
+                    break;
+                }
+                replaced = p.conn;  // the same board came back: the old link is stale
+            }
+        if (refused) {
+            lock.unlock();
+            c.sendText(json(object({{"op", "error"}, {"code", "id-in-use"}})));
+            c.close(1008);
+            return;
+        }
         Peer p;
         p.connId = c.id();
         p.conn = c.shared_from_this();

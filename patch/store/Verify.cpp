@@ -10,11 +10,14 @@
 namespace bleep::store {
 namespace {
 
-void lp(std::vector<uint8_t>& out, const uint8_t* data, size_t size) {
+/// A 32-bit big-endian length, then the bytes. False (nothing written) if the length does not fit: a truncated prefix would sign other bytes.
+bool lp(std::vector<uint8_t>& out, const uint8_t* data, size_t size) {
+    if ((uint64_t)size > 0xFFFFFFFFull) return false;
     for (int s = 24; s >= 0; s -= 8) out.push_back((uint8_t)(size >> s));
     out.insert(out.end(), data, data + size);
+    return true;
 }
-void lp(std::vector<uint8_t>& out, const std::string& s) { lp(out, reinterpret_cast<const uint8_t*>(s.data()), s.size()); }
+bool lp(std::vector<uint8_t>& out, const std::string& s) { return lp(out, reinterpret_cast<const uint8_t*>(s.data()), s.size()); }
 void append(std::vector<uint8_t>& out, const std::string& s) { out.insert(out.end(), s.begin(), s.end()); }
 
 std::string str(const juce::var& v) { return v.isString() ? v.toString().toStdString() : std::string(); }
@@ -38,10 +41,14 @@ bool check(const std::vector<uint8_t>& signature, const std::vector<uint8_t>& pu
     return signature.size() == 64 && pub.size() == 32 && crypto_ed25519_check(signature.data(), pub.data(), message.data(), message.size()) == 0;
 }
 
-bool checkCert(const juce::var& cert, const std::vector<uint8_t>& signerPub) {
+bool canonicalize(std::string& out, const juce::var& v);
+
+bool checkCert(const juce::var& cert, const std::vector<uint8_t>& signerPub, std::string& reason) {
     std::vector<uint8_t> sig, message;
     append(message, "BLEEP-CERT-1\n");
-    append(message, canonical(cert["tbs"]));
+    std::string text;
+    if (!canonicalize(text, cert["tbs"])) { reason = "a certificate holds a value that cannot be signed (a fraction or a number that is too large)"; return false; }
+    append(message, text);
     return b64(cert["signature"], sig) && check(sig, signerPub, message);
 }
 
@@ -81,34 +88,45 @@ void quote(std::string& out, const std::string& s) {
     out += '"';
 }
 
-void emit(std::string& out, const juce::var& v) {
+bool emit(std::string& out, const juce::var& v) {
     if (v.isVoid()) out += "null";
     else if (v.isBool()) out += (bool)v ? "true" : "false";
     else if (v.isInt() || v.isInt64()) out += std::to_string((long long)(juce::int64)v);
     else if (v.isDouble()) {
         const double d = (double)v;
-        if (d == std::floor(d) && std::fabs(d) < 9e15) out += std::to_string((long long)d);
-        else out += "0";  // signed objects hold no fractions
+        // Signed objects hold whole numbers only; anything else would have to be written as something it is not.
+        if (std::isfinite(d) && d == std::floor(d) && std::fabs(d) < 9e15) out += std::to_string((long long)d);
+        else return false;
     }
     else if (v.isString()) quote(out, v.toString().toStdString());
     else if (auto* a = v.getArray()) {
         out += '[';
-        for (int i = 0; i < a->size(); ++i) { if (i) out += ','; emit(out, (*a)[i]); }
+        for (int i = 0; i < a->size(); ++i) { if (i) out += ','; if (!emit(out, (*a)[i])) return false; }
         out += ']';
     } else if (auto* o = v.getDynamicObject()) {
         std::vector<std::pair<std::string, juce::var>> items;
         for (const auto& p : o->getProperties()) items.push_back({p.name.toString().toStdString(), p.value});
         std::sort(items.begin(), items.end(), [](const auto& a, const auto& b) { return a.first < b.first; });  // bytewise
         out += '{';
-        for (size_t i = 0; i < items.size(); ++i) { if (i) out += ','; quote(out, items[i].first); out += ':'; emit(out, items[i].second); }
+        for (size_t i = 0; i < items.size(); ++i) { if (i) out += ','; quote(out, items[i].first); out += ':'; if (!emit(out, items[i].second)) return false; }
         out += '}';
-    }
+    } else return false;  // binary, a method: nothing a signature covers
+    return true;
+}
+}  // namespace
+
+namespace {
+bool canonicalize(std::string& out, const juce::var& value) {
+    out.clear();
+    if (emit(out, value)) return true;
+    out.clear();
+    return false;
 }
 }  // namespace
 
 std::string canonical(const juce::var& value) {
     std::string out;
-    emit(out, value);
+    canonicalize(out, value);   // refused: empty (a signed text is never empty)
     return out;
 }
 
@@ -132,14 +150,17 @@ bool verifyRevocations(const juce::var& doc, const std::vector<std::vector<uint8
     const std::vector<uint8_t>* root = nullptr;
     for (const auto& r : roots)
         if (r.size() == 32 && keyId(r.data()) == str(cert["issuer"])) root = &r;
-    if (!root || !checkCert(cert, *root)) return bad("the issuer certificate is not signed by a trusted root");
+    std::string why;
+    if (!root || !checkCert(cert, *root, why)) return bad(why.empty() ? "the issuer certificate is not signed by a trusted root" : why.c_str());
     if (str(tbs["type"]) != "issuer" || str(tbs["keyId"]) != keyId(issuerPub.data()) || !hasScope(tbs, "issue")) return bad("bad issuer certificate");
     auto* body = new juce::DynamicObject();
     juce::var bodyVar(body);
     for (const char* k : {"format", "serial", "issued", "revokedKeys", "revokedArtifacts"}) body->setProperty(k, doc[k]);
     std::vector<uint8_t> message;
     append(message, "BLEEP-CRL-1\n");
-    append(message, canonical(bodyVar));
+    std::string bodyText;
+    if (!canonicalize(bodyText, bodyVar)) return bad("it holds a value that cannot be signed");
+    append(message, bodyText);
     if (!b64(doc["signature"], sig) || !check(sig, issuerPub, message)) return bad("the signature does not match the list");
     out = Revocations::fromJson(doc);
     out.serial = (juce::int64)doc["serial"];
@@ -162,9 +183,10 @@ Result verify(const Digest& digest, const juce::var* signature, const Context& c
     const std::vector<uint8_t>* root = nullptr;
     for (const auto& r : c.roots)
         if (r.size() == 32 && keyId(r.data()) == str(issuerCert["issuer"])) root = &r;
-    if (!root || !checkCert(issuerCert, *root)) return invalid("the issuer certificate is not signed by a trusted root");
+    std::string certWhy;
+    if (!root || !checkCert(issuerCert, *root, certWhy)) return invalid(certWhy.empty() ? "the issuer certificate is not signed by a trusted root" : certWhy);
     if (str(it["type"]) != "issuer" || str(it["keyId"]) != keyId(issuerPub.data()) || !hasScope(it, "issue")) return invalid("bad issuer certificate");
-    if (str(devCert["issuer"]) != str(it["keyId"]) || !checkCert(devCert, issuerPub)) return invalid("the developer certificate is not signed by the issuer");
+    if (str(devCert["issuer"]) != str(it["keyId"]) || !checkCert(devCert, issuerPub, certWhy)) return invalid(certWhy.empty() ? "the developer certificate is not signed by the issuer" : certWhy);
     if (str(dt["type"]) != "developer" || str(dt["keyId"]) != keyId(devPub.data()) || str(doc["keyId"]) != str(dt["keyId"])) return invalid("bad developer certificate");
 
     Result who;
@@ -190,12 +212,9 @@ Result verify(const Digest& digest, const juce::var* signature, const Context& c
 
     std::vector<uint8_t> message, sig;
     append(message, "BLEEP-SIG-1\n");
-    lp(message, c.kind);
-    lp(message, c.id);
-    lp(message, c.version);
-    lp(message, c.platform);
-    lp(message, who.keyId);
-    lp(message, digest.data(), digest.size());
+    if (!(lp(message, c.kind) && lp(message, c.id) && lp(message, c.version) && lp(message, c.platform) && lp(message, who.keyId)
+          && lp(message, digest.data(), digest.size())))
+        return invalid("a signed field is too long");
     if (!b64(doc["signature"], sig) || !check(sig, devPub, message)) return invalid("the signature does not match the content");
     for (const juce::var* t : {&it, &dt}) {
         const int64_t from = (juce::int64)(*t)["notBefore"], until = (juce::int64)(*t)["notAfter"];

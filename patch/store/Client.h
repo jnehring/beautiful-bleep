@@ -21,6 +21,10 @@ namespace bleep::store {
 #define BLEEP_STORE_URL "https://store.bleep.invalid"   // the site's address, put in at build time (CMake: BLEEP_STORE_URL)
 #endif
 
+/// May this address be used for the store? https anywhere; plain http only for the machine itself (localhost, 127.0.0.1, [::1],
+/// *.localhost), since the token and the index would travel in cleartext; file: (a local folder, tests). `why` says what is wrong.
+bool storeUrlAllowed(const std::string& url, std::string& why);
+
 struct Settings {
     std::string storeUrl = BLEEP_STORE_URL;  ///< the site's address; the store lives under /registry/v1/
     std::string channel = "stable";
@@ -116,6 +120,8 @@ private:
                InstalledModule& out, std::string& error) const;
 
     std::optional<Revocations> loadRevocations() const;
+    int64_t highestRevocationSerial() const;
+    void keepRevocationSerial(int64_t serial) const;
 
     Settings settings_;
     juce::File dataDir_;

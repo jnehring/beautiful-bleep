@@ -54,10 +54,12 @@ store::Settings ModuleStore::settings() const {
     return settings_;
 }
 
-void ModuleStore::setSettings(const store::Settings& s) {
+bool ModuleStore::setSettings(const store::Settings& s, std::string& error) {
+    if (!store::storeUrlAllowed(s.storeUrl, error)) return false;   // not saved
     std::lock_guard<std::mutex> l(mutex_);
     settings_ = s;
     settings_.save(dataDir_);
+    return true;
 }
 
 std::unique_ptr<store::Client> ModuleStore::client() const {
@@ -71,6 +73,10 @@ void ModuleStore::start() {
         std::lock_guard<std::mutex> l(mutex_);
         if (dataDir_ == juce::File()) dataDir_ = store::defaultDataDir();
         settings_ = store::Settings::load(dataDir_);
+        if (std::string why; !store::storeUrlAllowed(settings_.storeUrl, why)) {
+            std::fprintf(stderr, "[store] %s: %s; using the default store\n", settings_.storeUrl.c_str(), why.c_str());
+            settings_.storeUrl = store::Settings().storeUrl;
+        }
         for (auto& r : bakedRoots()) roots_.push_back(std::move(r));
         // a developer's own root (signing.md section 11: "Trusted developers"): added in the data folder, never in the code
         const juce::var extra = juce::JSON::parse(dataDir_.getChildFile("settings.json"));
@@ -401,11 +407,23 @@ void ModuleStore::buildViewCache() const {
             if (!ui && !doc) continue;
             const std::string name = path.substr(ui ? 3 : 4);
             if (name.empty() || name.find('/') != std::string::npos) continue;
-            viewFiles_.emplace(name, data);
-            if (ui && name.size() > 3 && name.substr(name.size() - 3) == ".js") names.add("\"" + juce::String(name) + "\"");
+            // The page loads these by their bare names, so a name is one file for the whole app: a module cannot take over a name
+            // another module already provides, and a name outside [A-Za-z0-9._-] never reaches the page.
+            const bool plain = name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-") == std::string::npos;
+            if (!plain || name.find("..") != std::string::npos) {
+                std::fprintf(stderr, "[store] %s: %s skipped (unsafe file name)\n", m.slug.c_str(), path.c_str());
+                continue;
+            }
+            if (!viewFiles_.emplace(name, data).second) {
+                std::fprintf(stderr, "[store] %s: %s skipped (the name is already provided by another file)\n", m.slug.c_str(), path.c_str());
+                continue;
+            }
+            if (ui && name.size() > 3 && name.substr(name.size() - 3) == ".js") names.add(juce::String(name));
         }
     }
-    viewScripts_ = ("[" + names.joinIntoString(", ") + "]\n").toStdString();
+    juce::Array<juce::var> list;
+    for (const auto& n : names) list.add(n);
+    viewScripts_ = (juce::JSON::toString(juce::var(list), true) + "\n").toStdString();
     viewCacheBuilt_ = true;
     std::fprintf(stderr, "[store] %zu view and doc files of the installed modules read in %u ms\n", viewFiles_.size(), juce::Time::getMillisecondCounter() - started);
 }

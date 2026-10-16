@@ -48,7 +48,7 @@ public:
     void installPluginsAsync();
 
     store::Settings settings() const;
-    void setSettings(const store::Settings& s);   ///< saves them; modules already loaded stay as they are until the next start
+    bool setSettings(const store::Settings& s, std::string& error);   ///< saves them; modules already loaded stay as they are until the next start
     juce::File dataDir() const { return dataDir_; }
 
     /// A view script or doc file (ui/<name>, doc/<name>) of an installed module, for the board window; by file name.

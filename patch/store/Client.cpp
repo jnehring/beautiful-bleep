@@ -152,6 +152,25 @@ juce::File defaultDataDir() {
 #endif
 }
 
+bool storeUrlAllowed(const std::string& url, std::string& why) {
+    const juce::String u = juce::String(url).trim();
+    if (u.startsWithIgnoreCase("https://") || u.startsWithIgnoreCase("file:")) return true;
+    if (u.startsWithIgnoreCase("http://")) {
+        juce::String rest = u.substring(7);
+        const int end = rest.indexOfAnyOf("/?#");
+        const juce::String authority = (end < 0 ? rest : rest.substring(0, end)).toLowerCase();
+        juce::String host = authority;
+        if (authority.containsChar('@')) { why = "the store address must not contain a user name"; return false; }
+        if (authority.startsWithChar('[')) host = authority.upToFirstOccurrenceOf("]", true, false);
+        else host = authority.upToFirstOccurrenceOf(":", false, false);
+        if (host == "localhost" || host == "127.0.0.1" || host == "[::1]" || host.endsWith(".localhost")) return true;
+        why = "the store address must use https (plain http is only accepted for localhost): the sign-in would travel unprotected";
+        return false;
+    }
+    why = "the store address must start with https://";
+    return false;
+}
+
 Settings Settings::load(const juce::File& dataDir) {
     Settings s;
     const juce::var v = juce::JSON::parse(dataDir.getChildFile("settings.json"));
@@ -199,12 +218,29 @@ Client::Client(Settings settings, juce::File dataDir, std::vector<std::vector<ui
     revocations_ = loadRevocations();
 }
 
+/// The highest serial ever accepted, kept apart from the list itself (cache/revocations.serial): putting an older, validly signed
+/// list back into the cache must not take revocations back.
+int64_t Client::highestRevocationSerial() const {
+    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.serial");
+    if (!file.existsAsFile()) return 0;
+    return std::max<int64_t>(0, file.loadFileAsString().trim().getLargeIntValue());
+}
+
+void Client::keepRevocationSerial(int64_t serial) const {
+    if (serial <= highestRevocationSerial()) return;
+    const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.serial");
+    file.getParentDirectory().createDirectory();
+    file.replaceWithText(juce::String(serial));
+}
+
 std::optional<Revocations> Client::loadRevocations() const {
     const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.json");
     if (!file.existsAsFile()) return std::nullopt;
     Revocations list;
     std::string error;
     if (!verifyRevocations(juce::JSON::parse(file), roots_, list, error)) return std::nullopt;  // a saved list that no longer checks (other roots) is no list
+    if (list.serial < highestRevocationSerial()) return std::nullopt;                          // an older list put back: rolled back, not trusted
+    keepRevocationSerial(list.serial);
     return list;
 }
 
@@ -214,12 +250,13 @@ bool Client::fetchRevocations(bool& changed, std::string& error) const {
     if (!fetchJson(url("revocations.json"), doc, error)) return false;
     Revocations list;
     if (!verifyRevocations(doc, roots_, list, error)) return false;
-    if (list.serial <= revocationSerial()) return true;
+    if (list.serial <= revocationSerial() || list.serial < highestRevocationSerial()) return true;   // not newer than the list in use, or older than one seen: ignored
     const auto file = dataDir_.getChildFile("cache").getChildFile("revocations.json");
     if (!file.getParentDirectory().createDirectory().wasOk() || !file.replaceWithText(juce::JSON::toString(doc))) {
         error = "cannot save the revocation list";
         return false;
     }
+    keepRevocationSerial(list.serial);
     revocations_ = std::move(list);
     changed = true;
     return true;

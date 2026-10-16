@@ -83,6 +83,30 @@ void testCanonical() {
     CHECK(canonical(v) == expected, "canonical JSON differs:\n   got      %s\n   expected %s", canonical(v).c_str(), expected.c_str());
 }
 
+void testCanonicalRefuses() {
+    auto obj = [](const juce::var& v) { auto* o = new juce::DynamicObject(); o->setProperty("n", v); return juce::var(o); };
+    CHECK(canonical(obj(juce::var(1.5))).empty(), "a fraction is refused, not written as 0");
+    CHECK(canonical(obj(juce::var(9.5e15))).empty(), "a number above 9e15 is refused");
+    CHECK(canonical(obj(juce::var(std::nan("")))).empty(), "NaN is refused");
+    CHECK(canonical(obj(juce::var(3.0))) == "{\"n\":3}", "a whole double still reads as an integer");
+    CHECK(canonical(juce::var()) == "null", "null stays null");
+    // a signed certificate with a fractional field is invalid, never verified as if the field were 0
+    Digest d{};
+    juce::var sig = juce::JSON::parse(R"({"format":1,"algorithm":"ed25519","keyId":"x","chain":[{"issuer":"x","tbs":{"n":1.5},"signature":""},{"issuer":"x","tbs":{"n":1},"signature":""}],"signature":""})");
+    Context ctx;
+    ctx.kind = "module"; ctx.id = "x";
+    const Result r = verify(d, &sig, ctx);
+    CHECK(r.status == "invalid", "an unusable certificate is invalid: %s", r.status.c_str());
+}
+
+void testStoreUrl() {
+    std::string why;
+    for (const char* ok : {"https://store.example", "http://localhost:8080", "http://127.0.0.1", "http://[::1]:8080/x", "http://a.localhost", "HTTP://LOCALHOST"})
+        CHECK(storeUrlAllowed(ok, why), "allowed: %s", ok);
+    for (const char* bad : {"http://store.example", "http://localhost.evil.com", "http://localhost@evil.com", "ftp://x", "store.example", ""})
+        CHECK(!storeUrlAllowed(bad, why) && !why.empty(), "refused: %s", bad);
+}
+
 void testFixtures(const juce::File& dir) {
     const juce::var spec = juce::JSON::parse(dir.getChildFile("cases.json"));
     std::map<std::string, std::vector<std::vector<uint8_t>>> roots;
@@ -318,6 +342,12 @@ void testRevocations(const juce::File& fixtures) {  // signing.md section 8: the
 
     serve("older-empty.json");  // a mirror holding back an old list
     CHECK(c.fetchRevocations(changed, error) && !changed && c.revocationSerial() == 7 && !acme().allowed, "an older list does not take revocations back");
+    // a local rollback: an older, validly signed list copied over the cache is not trusted either
+    fixtures.getChildFile("crl").getChildFile("older-empty.json").copyFileTo(data.getChildFile("cache").getChildFile("revocations.json"));
+    CHECK(client(fixtures.getChildFile("site")).revocationSerial() == 0, "a list put back over the cache with a lower serial is not loaded");
+    serve("revokes-acme.json");
+    Client c2 = client(tmp.getChildFile("site"));
+    CHECK(c2.fetchRevocations(changed, error) && changed && c2.revocationSerial() == 7 && !acme().allowed, "the real list is taken again: %s", error.c_str());
     tmp.deleteRecursively();
 }
 
@@ -394,6 +424,19 @@ void testAccount() {
     CHECK(fake.seen.back().bearer == "blu_secret" && fake.seen.back().url == "https://store.example/api/presets", "the token goes in the header");
     const juce::var bad = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":""})"));
     CHECK((int)bad["status"] == 422 && bad["error"].toString() == "title: String should have at least 1 character", "the store's reason: %s", bad["error"].toString().toRawUTF8());
+    {   // plain http to a host other than this machine: no token and no sign-in is sent
+        Settings plain = Settings::load(dir);
+        plain.storeUrl = "http://store.example";
+        plain.save(dir);
+        makeFileTokenStore(dir)->save("http://store.example", "blu_secret");   // even with a token on file
+        const size_t before = fake.seen.size();
+        CHECK((int)account.call("GET", "/api/presets", juce::var())["status"] == 0 && account.startSignIn("Bleep")["error"].isString() && fake.seen.size() == before,
+              "nothing is sent over plain http");
+        Settings back = plain;
+        back.storeUrl = "https://store.example/";
+        back.save(dir);
+        makeFileTokenStore(dir)->clear("http://store.example");
+    }
     const size_t sent = fake.seen.size();
     for (const char* path : {"https://evil.example/api/x", "/other", "/api/../x", "/api/a://b"})
         CHECK((int)account.call("GET", path, juce::var())["status"] == 0, "refused: %s", path);
@@ -516,6 +559,8 @@ int main(int argc, char** argv) {
     testVector();
     testPackageLimits();
     testCanonical();
+    testCanonicalRefuses();
+    testStoreUrl();
     testFixtures(dir);
     testClient(dir);
     testRevocations(dir);
