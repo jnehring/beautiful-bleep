@@ -69,6 +69,8 @@ for m in "$PATCH"/modules/*/; do
     [ -d "$m$sub" ] && cp "$m$sub"/* "$OUT"/ 2>/dev/null || true
   done
 done
+# The Help menu's Info shows the version of the project.
+sed -n 's/^project(BleepBoard VERSION \([0-9.]*\).*/{"version":"\1"}/p' "$PATCH/CMakeLists.txt" > "$OUT/version.json"
 ( cd "$PATCH/modules" && ls */ui/*.js 2>/dev/null | xargs -n1 basename | sort | python3 -c \
   'import json,sys; print(json.dumps([l.strip() for l in sys.stdin]))' ) > "$OUT/module-views.json"
 

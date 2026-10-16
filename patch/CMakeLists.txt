@@ -25,6 +25,7 @@ if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
 endif ()
 
 project(BleepBoard VERSION 0.2.0 LANGUAGES C CXX)
+add_compile_definitions(BLEEP_VERSION="${PROJECT_VERSION}")  # the Help menu's Info
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

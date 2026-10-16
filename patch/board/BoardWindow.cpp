@@ -288,6 +288,8 @@ public:
                     r.getDynamicObject()->setProperty("status", engine_.statusLine());
                     r.getDynamicObject()->setProperty("standalone", engine_.standalone());
                     r.getDynamicObject()->setProperty("settings", style().onSettings != nullptr);
+                    r.getDynamicObject()->setProperty("nativeMenu", style().menu != nullptr);  // the File and Help menus are the app's own
+                    r.getDynamicObject()->setProperty("version", BLEEP_VERSION);
 #if defined(BLEEP_WASM_MODULES)
                     r.getDynamicObject()->setProperty("store", true);  // the Store section is offered
                     r.getDynamicObject()->setProperty("account", true);  // and the login to it (sharing presets)
@@ -538,6 +540,10 @@ public:
         if (pageReady_) web_->emitEventIfBrowserIsVisible("openSettings", juce::var());
     }
 
+    void showMenu(const juce::String& what) {
+        if (pageReady_) web_->emitEventIfBrowserIsVisible("menu", what);
+    }
+
     void focus(const juce::String& nodeId) {
         focus_ = nodeId;
         sendFocus();
@@ -641,6 +647,10 @@ void openPresetBrowser() {
 
 void openSettings() {
     if (g_window) static_cast<BoardWindow*>(g_window)->view().showSettings();
+}
+
+void openBoardMenu(const juce::String& what) {
+    if (g_window) static_cast<BoardWindow*>(g_window)->view().showMenu(what);
 }
 
 void setBoardWindowTitle(const juce::String& title) {

@@ -16,7 +16,7 @@ namespace {
 inline juce::String u8(const char* text) { return juce::String::fromUTF8(text); }
 
 
-enum Command { cmdNew = 1, cmdOpen, cmdPresets, cmdSave, cmdSaveAs, cmdSettings, cmdPlay, cmdLink };
+enum Command { cmdNew = 1, cmdOpen, cmdPresets, cmdSave, cmdSaveAs, cmdSettings, cmdDocs, cmdAbout, cmdPlay, cmdLink };
 
 constexpr const char* kProjectSuffix = ".bleepboard";
 constexpr const char* kVirtualPrefix = "Bleep App ";
@@ -803,7 +803,7 @@ void AppController::confirmDiscard(std::function<void()> then) {
 
 // ---- menus ------------------------------------------------------------------------------------
 
-juce::StringArray AppController::getMenuBarNames() { return {"File", "Transport"}; }
+juce::StringArray AppController::getMenuBarNames() { return {"File", "Help"}; }
 
 juce::PopupMenu AppController::getMenuForIndex(int index, const juce::String&) {
     juce::PopupMenu m;
@@ -817,14 +817,15 @@ juce::PopupMenu AppController::getMenuForIndex(int index, const juce::String&) {
         m.addSeparator();
         m.addCommandItem(&commands_, cmdSettings);
     } else {
-        m.addCommandItem(&commands_, cmdPlay);
-        m.addCommandItem(&commands_, cmdLink);
+        m.addCommandItem(&commands_, cmdDocs);
+        m.addSeparator();
+        m.addCommandItem(&commands_, cmdAbout);
     }
     return m;
 }
 
 void AppController::getAllCommands(juce::Array<juce::CommandID>& c) {
-    c.addArray({cmdNew, cmdOpen, cmdPresets, cmdSave, cmdSaveAs, cmdSettings, cmdPlay, cmdLink});
+    c.addArray({cmdNew, cmdOpen, cmdPresets, cmdSave, cmdSaveAs, cmdSettings, cmdDocs, cmdAbout, cmdPlay, cmdLink});
 }
 
 void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandInfo& info) {
@@ -842,6 +843,8 @@ void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandI
             info.addDefaultKeypress('s', cmd | juce::ModifierKeys::shiftModifier);
             break;
         case cmdSettings: info.setInfo(u8("Settings…"), "Audio, MIDI, Link, the Store and Security", "File", 0); info.addDefaultKeypress(',', cmd); break;
+        case cmdDocs: info.setInfo("Documentation", "Open the getting-started guide in your browser", "Help", 0); break;
+        case cmdAbout: info.setInfo("Info", "About Bleep", "Help", 0); break;
         case cmdPlay:
             info.setInfo(clock_.playing() ? "Stop" : "Play", "Start or stop the transport", "Transport", 0);
             info.addDefaultKeypress(juce::KeyPress::returnKey, cmd);
@@ -873,6 +876,8 @@ bool AppController::perform(const InvocationInfo& info) {
         case cmdSave: save(); return true;
         case cmdSaveAs: saveAs(); return true;
         case cmdSettings: showSettings(); return true;
+        case cmdDocs: engine::openBoardMenu("docs"); return true;
+        case cmdAbout: engine::openBoardMenu("about"); return true;
         case cmdPlay:
             clock_.setPlaying(!clock_.playing());
             commands_.commandStatusChanged();
@@ -983,12 +988,12 @@ juce::var AppController::settingsState() {
     link->setProperty("enabled", clock_.enabled());
     link->setProperty("peers", clock_.peers());
     link->setProperty("tempo", clock_.tempo());
+    link->setProperty("playing", clock_.playing());
     o->setProperty("link", juce::var(link));
     o->setProperty("system", systemAudioState());
     o->setProperty("web", webState());
     return juce::var(o);
 }
-    link->setProperty("playing", clock_.playing());
 
 // ---- the web link (Settings → Web connection) ---------------------------------------------------------------
 
@@ -1099,14 +1104,14 @@ juce::var AppController::settingsCall(const juce::String& fn, const juce::var& a
     } else if (fn == "tempo") {
         clock_.setTempo(juce::jlimit(20.0, 400.0, (double)arg["bpm"]));
         saveSettings();
+    } else if (fn == "play") {
+        clock_.setPlaying((bool)arg["on"], true);
+        commands_.commandStatusChanged();
     } else if (fn == "web") {
         if (!arg["on"].isVoid()) webEnabled_ = (bool)arg["on"];
         if (!arg["port"].isVoid()) webPort_ = juce::jlimit(1024, 65535, (int)arg["port"]);
         applyWeb();
         saveSettings();
-    } else if (fn == "play") {
-        clock_.setPlaying((bool)arg["on"], true);
-        commands_.commandStatusChanged();
         error = webError_;
     } else if (fn == "webForget") {
         {

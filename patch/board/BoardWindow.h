@@ -36,5 +36,7 @@ juce::DocumentWindow* boardWindow();
 void openPresetBrowser();
 /// Shows the page's Settings section (standalone app: File → Settings).
 void openSettings();
+/// A Help menu entry of the app ("docs" or "about"): the page answers it.
+void openBoardMenu(const juce::String& what);
 
 }  // namespace bleep::engine

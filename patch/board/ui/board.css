@@ -575,3 +575,21 @@ select:focus-visible { border-color: var(--accent) !important; }
 #side-menu .sm-psource { margin: 2px 0 10px; font-size: 12px; color: var(--muted); }
 #side-menu .sm-link { display: block; margin-bottom: 10px; color: var(--sel); font-size: 12px; }
 #side-menu button:disabled, #side-menu input:disabled { opacity: .5; cursor: default; }
+
+/* The File and Help menus of the browser and plugin boards (app-menu.js); the standalone app has them natively. */
+.am-bar { display: flex; align-items: center; gap: 2px; }
+.am-menu { position: relative; }
+.am-title { border-color: transparent; background: transparent; padding: 4px 9px; }
+.am-title:hover, .am-title[aria-expanded="true"] { background: var(--panel-3); }
+.am-list { position: absolute; z-index: 60; left: 0; top: 100%; min-width: 170px; padding: 4px; background: var(--panel);
+           border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45); display: flex; flex-direction: column; }
+.am-list[hidden] { display: none; }
+.am-item { text-align: left; border-color: transparent; background: transparent; padding: 5px 10px; white-space: nowrap; }
+.am-item:hover, .am-item:focus-visible { background: var(--panel-3); }
+.am-sep { height: 1px; margin: 4px 2px; background: var(--line); }
+.am-about { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(10, 11, 14, .6); }
+.am-box { width: 260px; padding: 26px 24px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+          background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 40px rgba(0, 0, 0, .5); }
+.am-logo { width: 96px; height: 96px; margin-bottom: 6px; }
+.am-name { font-size: 16px; font-weight: 600; }
+.am-version { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; min-height: 1.2em; margin-bottom: 10px; }
