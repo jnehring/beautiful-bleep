@@ -42,6 +42,13 @@ public:
     virtual bool read(const std::string& id, int32_t channel, float* dst, int64_t frames) = 0;
 };
 
+/// Limits on what a module (untrusted code) may take from the host.
+constexpr size_t kMaxModuleBytes = size_t(32) << 20;   ///< a larger file is not compiled
+constexpr int64_t kMaxTableElements = 100000;          ///< per table
+constexpr int64_t kMaxTables = 8;
+constexpr int kDefaultBudgetMs = 250;                  ///< how long one call into a module may run before it is stopped (a trap)
+constexpr int kInitBudgetMs = 5000;                    ///< _initialize
+
 /// A compiled module file. Compile once per file and process; instantiate as often as needed (thread-safe).
 class Compiled {
 public:
@@ -72,6 +79,10 @@ public:
     /// Calls an export that returns an i32, or nothing (0). A trap sets failed() and returns 0.
     int32_t call(int fn, std::initializer_list<Arg> args = {}) noexcept;
     float callF32(int fn, std::initializer_list<Arg> args = {}) noexcept;
+
+    /// The time one call into the module may take (to the next millisecond tick, give or take one). A call that takes longer
+    /// is stopped with a trap: failed() is set and lastError() says so. Default: kDefaultBudgetMs.
+    void setBudgetMs(int ms) noexcept;
 
     /// Who answers bleep_media_info / bleep_media_read. None: every clip is missing. Must outlive the instance.
     void setMedia(MediaHandler* handler) noexcept;

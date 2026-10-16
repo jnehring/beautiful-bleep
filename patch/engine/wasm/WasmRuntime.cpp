@@ -3,16 +3,56 @@
 
 #include <wasmtime.h>
 
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <cstdio>
 #include <cstring>
 #include <mutex>
 #include <set>
+#include <thread>
 #include <utility>
 
 namespace bleep::engine::wasm {
 namespace {
 
+// Epoch interruption: one thread adds a tick to the engine every kTickMs; a call into a module gets a deadline of some ticks
+// (Instance::setBudgetMs) and traps when it runs past it. That is what stops a module that loops forever.
+constexpr int kTickMs = 1;
+
+wasm_engine_t* makeEngine() {
+    wasm_config_t* config = wasm_config_new();
+    wasmtime_config_epoch_interruption_set(config, true);
+    return wasm_engine_new_with_config(config);  // takes the config
+}
+
+/// Ticks the engine until the process ends; stopped and joined by its destructor (static destruction at exit).
+struct Ticker {
+    explicit Ticker(wasm_engine_t* e) : thread_([this, e] {
+        std::unique_lock<std::mutex> lock(m_);
+        auto next = std::chrono::steady_clock::now();
+        for (;;) {  // against the clock, not by sleeping a fixed time: a late wake-up does not make the ticks slower
+            next += std::chrono::milliseconds(kTickMs);
+            if (cv_.wait_until(lock, next, [this] { return stop_; })) return;
+            wasmtime_engine_increment_epoch(e);
+        }
+    }) {}
+    ~Ticker() {
+        { std::lock_guard<std::mutex> l(m_); stop_ = true; }
+        cv_.notify_one();
+        thread_.join();
+    }
+    std::mutex m_;
+    std::condition_variable cv_;
+    bool stop_ = false;
+    std::thread thread_;
+};
+
 wasm_engine_t* engine() {
-    static wasm_engine_t* e = wasm_engine_new();  // one per process
+    static wasm_engine_t* e = makeEngine();  // one per process
+    static Ticker ticker(e);                 // after the engine: stopped before the process lets go of it (the engine itself is never freed)
+    (void)ticker;
     return e;
 }
 
@@ -24,6 +64,14 @@ std::string message(wasmtime_error_t* e, wasm_trap_t* t) {
     if (e) wasmtime_error_delete(e);
     if (t) wasm_trap_delete(t);
     return text;
+}
+
+/// The text of a trap; a call that ran out of its time budget says so.
+std::string trapText(wasm_trap_t* trap) {
+    wasmtime_trap_code_t code;
+    const bool interrupted = wasmtime_trap_code(trap, &code) && code == WASMTIME_TRAP_CODE_INTERRUPT;
+    std::string text = message(nullptr, trap);
+    return interrupted ? "stopped: the call ran longer than its time limit" : text;
 }
 
 // ---- the imports a module may have (module-abi.md section 2), as stubs (section 8) ---------------------
@@ -76,7 +124,9 @@ wasm_trap_t* stubCall(void* env, wasmtime_caller_t* caller, const wasmtime_val_t
         case Stub::FdWrite:                          // accepts and drops its bytes
             if (nargs == 4 && (mem = callerMemory(caller, &size))) {
                 uint32_t total = 0;
-                for (int32_t i = 0; i < args[2].of.i32; ++i) {
+                // a host call cannot be interrupted: bound its work (a module has no business writing more than a few vectors)
+                const int32_t count = std::min<int32_t>(std::max<int32_t>(args[2].of.i32, 0), 1024);
+                for (int32_t i = 0; i < count; ++i) {
                     uint32_t len = 0;
                     const uint32_t at = (uint32_t)args[1].of.i32 + (uint32_t)i * 8 + 4;
                     if ((size_t)at + 4 <= size) std::memcpy(&len, mem + at, 4);
@@ -145,6 +195,10 @@ Compiled::Compiled() : impl(new Impl) {}
 Compiled::~Compiled() = default;
 
 std::shared_ptr<Compiled> Compiled::compile(const uint8_t* bytes, size_t size, std::string& error) {
+    if (size > kMaxModuleBytes) {
+        error = "the module is too large (" + std::to_string(size >> 20) + " MiB; the limit is " + std::to_string(kMaxModuleBytes >> 20) + " MiB)";
+        return nullptr;
+    }
     std::shared_ptr<Compiled> c(new Compiled);
     if (auto* e = wasmtime_module_new(engine(), bytes, size, &c->impl->module)) {
         error = "cannot compile: " + message(e, nullptr);
@@ -179,6 +233,7 @@ struct Instance::Impl {
     MediaHandler* media = nullptr;
     std::vector<wasmtime_func_t> funcs;
     std::vector<size_t> results;
+    uint64_t budgetTicks = kDefaultBudgetMs / kTickMs;
     ~Impl() { if (store) wasmtime_store_delete(store); }
 };
 
@@ -191,7 +246,8 @@ std::unique_ptr<Instance> Instance::create(std::shared_ptr<const Compiled> modul
     m.module = module;
     m.store = wasmtime_store_new(engine(), &m, nullptr);  // the callbacks find the instance (its media handler) through the store
     m.cx = wasmtime_store_context(m.store);
-    wasmtime_store_limiter(m.store, (int64_t)maxMemory, -1, 1, -1, 1);
+    // memory, table elements (one table can hold at most this many), instances, tables, memories
+    wasmtime_store_limiter(m.store, (int64_t)maxMemory, kMaxTableElements, 1, kMaxTables, 1);
 
     wasmtime_linker_t* linker = wasmtime_linker_new(engine());
     wasm_importtype_vec_t imports;
@@ -217,6 +273,7 @@ std::unique_ptr<Instance> Instance::create(std::shared_ptr<const Compiled> modul
     wasm_importtype_vec_delete(&imports);
     wasm_trap_t* trap = nullptr;
     if (ok) {
+        wasmtime_context_set_epoch_deadline(m.cx, kInitBudgetMs / kTickMs + 1);  // the start function runs here
         if (auto* e = wasmtime_linker_instantiate(linker, m.cx, module->impl->module, &m.instance, &trap)) {
             error = "instantiate: " + message(e, nullptr);
             ok = false;
@@ -235,7 +292,9 @@ std::unique_ptr<Instance> Instance::create(std::shared_ptr<const Compiled> modul
     m.memory = mem.of.memory;
     const int init = inst->find("_initialize");
     if (init >= 0) {
+        inst->setBudgetMs(kInitBudgetMs);
         inst->call(init);
+        inst->setBudgetMs(kDefaultBudgetMs);
         if (inst->failed()) {
             error = "_initialize: " + inst->lastError();
             return nullptr;
@@ -249,6 +308,8 @@ MediaHandler* mediaOf(wasmtime_caller_t* caller) {
     return static_cast<Instance::Impl*>(wasmtime_context_get_data(wasmtime_caller_context(caller)))->media;
 }
 }  // namespace
+
+void Instance::setBudgetMs(int ms) noexcept { impl->budgetTicks = (uint64_t)std::max(ms, kTickMs) / kTickMs + 1; }  // +1: the first tick comes at any moment
 
 void Instance::setMedia(MediaHandler* handler) noexcept { impl->media = handler; }
 
@@ -282,9 +343,11 @@ size_t fill(wasmtime_val_t* in, std::initializer_list<Arg> args) {
 }  // namespace
 
 int32_t Instance::call(int fn, std::initializer_list<Arg> args) noexcept {
+    if (failed_) return 0;  // a stopped or trapped instance runs no more code
     wasmtime_val_t in[8], out[1];
     const size_t n = fill(in, args);
     wasm_trap_t* trap = nullptr;
+    wasmtime_context_set_epoch_deadline(impl->cx, impl->budgetTicks);
     if (auto* e = wasmtime_func_call(impl->cx, &impl->funcs[(size_t)fn], in, n, out, impl->results[(size_t)fn], &trap)) {
         failed_ = true;
         error_ = message(e, trap);
@@ -292,16 +355,18 @@ int32_t Instance::call(int fn, std::initializer_list<Arg> args) noexcept {
     }
     if (trap) {
         failed_ = true;
-        error_ = message(nullptr, trap);
+        error_ = trapText(trap);
         return 0;
     }
     return impl->results[(size_t)fn] ? out[0].of.i32 : 0;
 }
 
 float Instance::callF32(int fn, std::initializer_list<Arg> args) noexcept {
+    if (failed_) return 0.0f;
     wasmtime_val_t in[8], out[1];
     const size_t n = fill(in, args);
     wasm_trap_t* trap = nullptr;
+    wasmtime_context_set_epoch_deadline(impl->cx, impl->budgetTicks);
     if (auto* e = wasmtime_func_call(impl->cx, &impl->funcs[(size_t)fn], in, n, out, 1, &trap)) {
         failed_ = true;
         error_ = message(e, trap);
@@ -309,7 +374,7 @@ float Instance::callF32(int fn, std::initializer_list<Arg> args) noexcept {
     }
     if (trap) {
         failed_ = true;
-        error_ = message(nullptr, trap);
+        error_ = trapText(trap);
         return 0.0f;
     }
     return out[0].of.f32;

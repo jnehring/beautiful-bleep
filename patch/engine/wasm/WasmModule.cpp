@@ -10,9 +10,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <condition_variable>
 #include <deque>
 #include <functional>
 #include <map>
+#include <mutex>
+#include <set>
 #include <thread>
 
 namespace bleep::engine {
@@ -20,6 +23,7 @@ namespace {
 
 static_assert(kChunk == 32, "the module ABI's chunk (bleep_chunk(), module-abi.md section 5) is the engine's");
 constexpr size_t kSnapshotReserve = 1 << 20;   // live values and data are copied into buffers of this size: no allocation on the audio thread
+constexpr int kAudioBudgetMs = 100;            // one call into the module on the audio thread: a module that takes longer is stopped and bypassed
 constexpr int kSnapshotEvery = 2048;           // samples between two looks at what the view asked for
 
 std::string cString(wasm::Instance& inst, uint32_t ptr) {
@@ -43,34 +47,31 @@ public:
         return service;
     }
 
-    /// The clip if it is in memory. Otherwise: starts reading it, remembers that `who` wants it, returns null.
+    ~MediaService() {
+        {
+            std::lock_guard<std::mutex> l(mutex_);
+            stop_ = true;
+        }
+        wake_.notify_one();
+        worker_.join();
+    }
+
+    /// The clip if it is in memory. Otherwise: queues a request for the worker (one thread, a small fixed queue; a request that
+    /// does not fit is dropped and comes again with the next ask), remembers that `who` wants it, returns null.
+    /// Nothing here allocates: the queue is a fixed array.
     std::shared_ptr<const MediaClip> find(const std::string& id, void* who) {
+        if (!media::validId(id)) return nullptr;  // a module can ask for any string
         std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
         if (!lock.owns_lock()) return nullptr;  // a worker is storing a clip: ask again with the next data
         if (auto it = cache_.find(id); it != cache_.end()) return it->second;
         if (failed_.count(id)) return nullptr;
-        wants_[id].insert(who);
-        if (!loading_.count(id)) {
-            loading_.insert(id);
-            std::thread([this, id] {
-                auto clip = media::load(id);  // the media folder, on this worker thread
-                std::vector<std::function<void()>> notify;
-                {
-                    std::lock_guard<std::mutex> l(mutex_);
-                    loading_.erase(id);
-                    if (clip) {
-                        cache_[id] = clip;
-                        order_.push_back(id);
-                        while (order_.size() > 16) { cache_.erase(order_.front()); order_.pop_front(); }  // clips live on in the modules that copied them
-                    } else {
-                        failed_.insert(id);
-                    }
-                    for (void* who : wants_[id])
-                        if (auto l2 = listeners_.find(who); l2 != listeners_.end()) notify.push_back(l2->second);
-                    wants_.erase(id);
-                    for (auto& f : notify) f();  // under the lock: a module cannot go away while it is told
-                }
-            }).detach();
+        for (size_t i = 0; i < queued_; ++i)
+            if (queue_[i].who == who && id == queue_[i].id) return nullptr;  // already asked
+        if (queued_ < kQueue && id.size() < sizeof queue_[0].id) {
+            Request& r = queue_[queued_++];
+            std::memcpy(r.id, id.c_str(), id.size() + 1);
+            r.who = who;
+            wake_.notify_one();
         }
         return nullptr;
     }
@@ -83,15 +84,61 @@ public:
         std::lock_guard<std::mutex> l(mutex_);
         listeners_.erase(who);
         for (auto& [id, set] : wants_) set.erase(who);
+        for (size_t i = 0; i < queued_;)  // its requests go too
+            if (queue_[i].who == who) { queue_[i] = queue_[--queued_]; } else ++i;
     }
 
 private:
+    static constexpr size_t kQueue = 8;          // requests waiting for the worker
+    static constexpr size_t kMaxFailed = 256;    // ids that could not be loaded; beyond that the list starts over
+    struct Request { char id[32]; void* who; };
+
+    MediaService() : worker_([this] { run(); }) {}
+
+    void run() {
+        std::unique_lock<std::mutex> lock(mutex_);
+        for (;;) {
+            wake_.wait(lock, [this] { return stop_ || queued_ > 0; });
+            if (stop_) return;
+            const Request r = queue_[0];
+            queue_[0] = queue_[--queued_];
+            const std::string id = r.id;
+            std::vector<std::function<void()>> notify;
+            if (cache_.count(id)) {
+                if (auto l = listeners_.find(r.who); l != listeners_.end()) l->second();  // it came while the request waited
+                continue;
+            }
+            if (failed_.count(id)) continue;
+            wants_[id].insert(r.who);
+            lock.unlock();
+            auto clip = media::load(id);  // the media folder, on this worker thread
+            lock.lock();
+            if (clip) {
+                cache_[id] = clip;
+                order_.push_back(id);
+                while (order_.size() > 16) { cache_.erase(order_.front()); order_.pop_front(); }  // clips live on in the modules that copied them
+            } else {
+                if (failed_.size() >= kMaxFailed) failed_.clear();
+                failed_.insert(id);
+            }
+            for (void* who : wants_[id])
+                if (auto l2 = listeners_.find(who); l2 != listeners_.end()) notify.push_back(l2->second);
+            wants_.erase(id);
+            for (auto& f : notify) f();  // under the lock: a module cannot go away while it is told
+        }
+    }
+
     std::mutex mutex_;
+    std::condition_variable wake_;
+    bool stop_ = false;
+    Request queue_[kQueue];
+    size_t queued_ = 0;
     std::map<std::string, std::shared_ptr<const MediaClip>> cache_;
     std::deque<std::string> order_;
-    std::set<std::string> loading_, failed_;
+    std::set<std::string> failed_;
     std::map<std::string, std::set<void*>> wants_;
     std::map<void*, std::function<void()>> listeners_;
+    std::thread worker_;  // last: starts running when everything above exists
 };
 
 }  // namespace
@@ -231,6 +278,7 @@ void WasmModule::prepare(double sampleRate) {
     if (!module) return fail(err);
     inst_ = wasm::Instance::create(module, err);
     if (!inst_) return fail(err);
+    inst_->setBudgetMs(wasm::kInitBudgetMs);  // bleep_create may allocate a lot; from the first block on, calls are held to kAudioBudgetMs
     media_ = std::make_unique<Media>(*this);
     inst_->setMedia(media_.get());
     MediaService::get().listen(this, [this] { replayData(); });
@@ -282,6 +330,7 @@ void WasmModule::prepare(double sampleRate) {
     lastKnob_.assign(np, std::nanf(""));  // forces the first sync
     lastVoice_ = -2;
     sinceSnapshot_ = 0;
+    inst_->setBudgetMs(kAudioBudgetMs);
     ok_.store(true);
     drain();
 }

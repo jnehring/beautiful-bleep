@@ -50,8 +50,15 @@ The spike was also built into the plugins for a while (commit `70c3314`: two ext
 
 Both load and run in Live, so the host allows Wasmtime's executable memory. Its harness check also compared both wasm Verbs with the native one on the same input and random knob changes: the largest difference is 7e-7 on a peak of 0.43.
 
+## Limits on a module (patch/engine/wasm/WasmRuntime.h)
+
+Modules are untrusted code. Every call into one is held to a time budget by Wasmtime epoch interruption (one ticker thread adds a tick per millisecond):
+100 ms on the audio thread (`bleep_process`, `bleep_set_data`, ...), 5 s for `_initialize` and `bleep_create`. A call over its budget traps,
+the instance is marked failed and the node is bypassed (silence), with the reason as its error. The host lets a module use 64 MiB of memory,
+100000 table elements in at most 8 tables, and the file may not exceed 32 MiB. `fd_write` looks at no more than 1024 vectors per call.
+Sample requests of a module (`MediaService`) go through one worker thread with a queue of 8 and accept only valid media ids.
+
 ## Not done
 
 Other modules (this spike hardcodes Verb's jacks), other DAWs, Windows/Linux runs,
-modules that use `juce_core` (they are built with wasm exceptions, which wasm3 does not support), per-block time limits
-(Wasmtime epochs / fuel), and a versioned ABI document.
+modules that use `juce_core` (they are built with wasm exceptions, which wasm3 does not support), and a versioned ABI document.

@@ -7,9 +7,11 @@
 #include "HostControl.h"
 #include "wasm/SpecJson.h"
 #include "wasm/WasmModule.h"
+#include "wasm/WasmRuntime.h"
 
 #include <juce_core/juce_core.h>
 
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 
@@ -98,9 +100,96 @@ struct Rig {
     }
 };
 
+// ---- the runtime's limits on untrusted code (WasmRuntime.h), with tiny hand-written modules ----------------------
+
+/// Exports `memory` and two functions, () -> (): 0 `spin` loops forever, 1 `ok` returns. `tableMin` > 0 adds a table of that many elements.
+std::vector<uint8_t> tinyModule(uint32_t tableMin = 0) {
+    std::vector<uint8_t> m = {0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,
+                              0x01, 0x04, 0x01, 0x60, 0x00, 0x00,        // type () -> ()
+                              0x03, 0x03, 0x02, 0x00, 0x00};              // two functions of that type
+    if (tableMin) {
+        std::vector<uint8_t> t = {0x01, 0x70, 0x00};                      // one funcref table, no maximum, min as LEB128
+        for (uint32_t v = tableMin;;) {
+            uint8_t b = v & 0x7f;
+            v >>= 7;
+            t.push_back(v ? (b | 0x80) : b);
+            if (!v) break;
+        }
+        m.push_back(0x04);
+        m.push_back((uint8_t)t.size());
+        m.insert(m.end(), t.begin(), t.end());
+    }
+    const uint8_t rest[] = {0x05, 0x03, 0x01, 0x00, 0x01,                                              // one memory, a page
+                            0x07, 0x16, 0x03, 0x06, 'm', 'e', 'm', 'o', 'r', 'y', 0x02, 0x00,         // exports
+                            0x04, 's', 'p', 'i', 'n', 0x00, 0x00, 0x02, 'o', 'k', 0x00, 0x01,
+                            0x0a, 0x0c, 0x02, 0x07, 0x00, 0x03, 0x40, 0x0c, 0x00, 0x0b, 0x0b,        // spin: loop { br 0 }
+                            0x02, 0x00, 0x0b};                                                         // ok: nothing
+    m.insert(m.end(), std::begin(rest), std::end(rest));
+    return m;
+}
+
+void runtimeLimits() {
+    namespace w = bleep::engine::wasm;
+    std::string error;
+    const auto bytes = tinyModule();
+    auto compiled = w::Compiled::compile(bytes.data(), bytes.size(), error);
+    EXPECT(compiled != nullptr);
+    if (!compiled) { std::printf("  %s\n", error.c_str()); return; }
+    auto inst = w::Instance::create(compiled, error);
+    EXPECT(inst != nullptr);
+    if (!inst) return;
+    const int spin = inst->find("spin"), ok = inst->find("ok");
+
+    // A call that returns is untouched.
+    inst->call(ok);
+    EXPECT(!inst->failed());
+
+    // A loop that never ends is stopped within its budget, and the instance is marked failed (and runs nothing more).
+    inst->setBudgetMs(30);
+    const auto t0 = std::chrono::steady_clock::now();
+    inst->call(spin);
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+    EXPECT(inst->failed());
+    EXPECT(ms >= 20 && ms < 500);
+    EXPECT(inst->lastError().find("time limit") != std::string::npos);
+    const auto t1 = std::chrono::steady_clock::now();
+    inst->call(spin);  // already failed: returns at once
+    const double again = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t1).count();
+    EXPECT(again < 5);
+    std::printf("  endless loop stopped after %.1f ms (budget 30)\n", ms);
+
+    // Another instance of the same module is not affected.
+    auto other = w::Instance::create(compiled, error);
+    EXPECT(other && !other->failed());
+
+    // Overhead of the epoch checks on ordinary calls.
+    if (other) {
+        const int f = other->find("ok");
+        const auto t2 = std::chrono::steady_clock::now();
+        for (int i = 0; i < 100000; ++i) other->call(f);
+        std::printf("  100000 trivial calls: %.1f ms\n", std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t2).count());
+        EXPECT(!other->failed());
+    }
+
+    // Too many table elements: the module does not instantiate.
+    const auto big = tinyModule(1000000);
+    auto bigCompiled = w::Compiled::compile(big.data(), big.size(), error);
+    EXPECT(bigCompiled != nullptr);
+    if (bigCompiled) EXPECT(w::Instance::create(bigCompiled, error) == nullptr);
+    const auto small = tinyModule(1000);
+    auto smallCompiled = w::Compiled::compile(small.data(), small.size(), error);
+    EXPECT(smallCompiled && w::Instance::create(smallCompiled, error) != nullptr);
+
+    // A module file over the size limit is refused before compiling.
+    const std::vector<uint8_t> huge(w::kMaxModuleBytes + 1, 0);
+    error.clear();
+    EXPECT(w::Compiled::compile(huge.data(), huge.size(), error) == nullptr && error.find("too large") != std::string::npos);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
+    runtimeLimits();
     const juce::File file = argc > 1 ? juce::File::getCurrentWorkingDirectory().getChildFile(argv[1])
                                      : juce::File::getCurrentWorkingDirectory().getChildFile("build/web/modules/modules/transport.wasm");
     juce::MemoryBlock block;
