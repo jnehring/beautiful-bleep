@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
     r.run(2);
     EXPECT(hc.takePlay() == HostControl::Start);
     r.transport.playing = true;
-    r.module->command("playstop", 1.0f);
+    r.module->command("stop", 1.0f);
     r.run();
     EXPECT(hc.takePlay() == HostControl::Stop);
     // The host's status reaches the module (a second module of the same file keeps its own mailbox).

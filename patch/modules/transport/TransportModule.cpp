@@ -14,10 +14,10 @@ namespace {
 
 class TransportModule final : public Module {
 public:
-    enum { Tempo, Link, StartStopSync, MidiIn, MidiOut };
+    enum { Tempo, Link, MidiIn, MidiOut };
     enum { PlayIn, StopIn, NotesIn };
     enum { NotesOut, Playing, TempoOut };
-    enum { PlayStopButton, TapButton };
+    enum { PlayButton, StopButton, TapButton };
 
     using Module::Module;
 
@@ -50,7 +50,8 @@ public:
 
         // Settings that describe how the board wants the host set up: sent on the first block and when they change.
         sendIfChanged(hc.link, sentLink_, setting(Link) >= 0.5f ? 1 : 0);
-        sendIfChanged(hc.startStopSync, sentSync_, setting(StartStopSync) >= 0.5f ? 1 : 0);
+        // Link start/stop sync is always on: the transport is one thing for every peer.
+        sendIfChanged(hc.startStopSync, sentSync_, 1);
         // The tempo knob is a gesture, not a state: loading a board must not override the project's tempo.
         const double knobTempo = value(c, Tempo, c.numSamples - 1);
         if (sentTempo_ < 0.0) sentTempo_ = knobTempo;
@@ -60,7 +61,8 @@ public:
         }
 
         pollCommands([&](const Command& cmd) {
-            if (cmd.index == PlayStopButton) hc.play.store(tr.playing ? HostControl::Stop : HostControl::Start);
+            if (cmd.index == PlayButton) { if (!tr.playing) hc.play.store(HostControl::Start); }
+            else if (cmd.index == StopButton) hc.play.store(HostControl::Stop);
             else if (cmd.index == TapButton) tapTempo(hc, samples_);
         });
 
@@ -150,14 +152,13 @@ static void registerTransportModule(Registry& r) {
                     "the song. In the standalone app; elsewhere it shows the host's tempo.";
     s.params = {ParamSpec::number("tempo", "Tempo", 20.0f, 400.0f, 120.0f, "BPM", 1),
                 ParamSpec::toggle("link", "Link", true),
-                ParamSpec::toggle("startstop", "Link Start/Stop", true),
                 ParamSpec::toggle("midiin", "MIDI Clock In", false),
                 ParamSpec::toggle("midiout", "MIDI Clock Out", false)};
     s.inputs = {{"play", "Play", Signal::Trigger}, {"stop", "Stop", Signal::Trigger}, {"notes", "MIDI In", Signal::Notes}};
     s.outputs = {{"notes", "MIDI Out", Signal::Notes, false},
                  {"playing", "Playing", Signal::Gate, false},
                  {"tempo", "Tempo", Signal::Control, false}};
-    s.buttons = {{"playstop", "Play / Stop", false}, {"tap", "Tap", false}};
+    s.buttons = {{"play", "Play", false}, {"stop", "Stop", false}, {"tap", "Tap", false}};
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<TransportModule>(spec); });
 }
 

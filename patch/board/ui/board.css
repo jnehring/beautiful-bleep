@@ -559,12 +559,12 @@ select:focus-visible { border-color: var(--accent) !important; }
 @media (prefers-reduced-motion: reduce) { #side-menu, #side-menu.open { transition: none; } }
 #side-menu .sm-sec { padding: 14px 14px 12px; border-bottom: 1px solid var(--line); }
 #side-menu h3 { margin: 0 0 10px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-#side-menu .sm-row { display: flex; align-items: flex-end; gap: 10px; }
+#side-menu .sm-row { display: flex; align-items: flex-end; gap: 6px; }
 #side-menu .sm-field { display: flex; flex-direction: column; gap: 3px; flex: 1; color: var(--muted); font-size: 11px; position: relative; }
 #side-menu .sm-bpm { width: 100%; padding-right: 34px; }
 #side-menu .sm-unit { position: absolute; right: 8px; bottom: 6px; font-size: 10px; pointer-events: none; }
-#side-menu .sm-play { min-width: 82px; }
-#side-menu .sm-play.on { color: var(--accent); border-color: var(--accent); }
+#side-menu .sm-play { min-width: 54px; padding-left: 8px; padding-right: 8px; }
+#side-menu .sm-play.on { background: var(--accent); color: #0d1014; border-color: var(--accent); }
 #side-menu .sm-wide { width: 100%; }
 #side-menu .sm-wide.on { color: var(--accent); border-color: var(--accent); }
 #side-menu .sm-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; }

@@ -2,7 +2,7 @@
 // side-menu.js — the board's side menu, collapsed by default (plugin, standalone app and browser).
 //
 //   Connect to App   the browser only: the button that joins this page to the Bleep App (web/js/bridge-ui.js)
-//   Transport        start/stop, tempo and sync. The app drives its own clock (native "settings" play/tempo/link),
+//   Transport        play and stop (Play lights while it plays), tempo and sync. The app drives its own clock (native "settings" play/tempo/link),
 //                    a plugin only shows Live's transport, the browser drives its worklet (BleepWeb.setTempo/setPlaying)
 //                    and can follow the app once connected.
 //   Preset           the name and source of the loaded preset (factory, store with link, user), and Upload to store.
@@ -54,9 +54,11 @@
   function buildTransport() {
     const s = section("Transport");
     const row = el("div", "sm-row");
-    refs.play = el("button", "sm-play");
-    refs.play.addEventListener("click", () => setPlaying(!t.playing));
-    row.appendChild(refs.play);
+    refs.play = el("button", "sm-play", "▶ Play");
+    refs.play.addEventListener("click", () => { if (!t.playing) setPlaying(true); });
+    refs.stop = el("button", "sm-play", "■ Stop");
+    refs.stop.addEventListener("click", () => setPlaying(false));
+    row.append(refs.play, refs.stop);
     refs.bpm = el("input", "sm-bpm");
     refs.bpm.type = "number"; refs.bpm.min = 20; refs.bpm.max = 400; refs.bpm.step = 0.1;
     refs.bpm.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") refs.bpm.blur(); });
@@ -126,9 +128,9 @@
   function drawTransport() {
     if (!refs.play) return;
     const locked = mode === "plugin";
-    refs.play.textContent = t.playing ? "■ Stop" : "▶ Start";
     refs.play.classList.toggle("on", t.playing);
     refs.play.disabled = locked;
+    refs.stop.disabled = locked;
     refs.bpm.disabled = locked;
     if (document.activeElement !== refs.bpm) refs.bpm.value = (+t.bpm).toFixed(1);
     if (mode === "plugin") {

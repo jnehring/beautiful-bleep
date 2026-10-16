@@ -21,8 +21,8 @@ want. The tempo stays what you set; loading a board does not change it, so a
 project keeps its own tempo. With Link on, the tempo is shared with the other
 Link apps and devices, and they can change it too.
 
-**Link.** *Link* turns Ableton Link on or off. With *Link Start/Stop* on,
-playing and stopping is shared as well. Link needs an app built with it; without,
+**Link.** *Link* turns Ableton Link on or off. Playing and
+stopping is always shared with the other Link apps. Link needs an app built with it; without,
 the switch has no effect and the app runs on its own clock.
 
 **MIDI clock out.** With *MIDI Clock Out* on, Transport sends 24 pulses per beat
@@ -35,7 +35,8 @@ the tempo from it; it settles after about a beat and follows changes within a
 bar. Start, Continue and Stop from the device start and stop your song. This
 sets the tempo, but does not line up the beats exactly: for that, use Link.
 
-**Play and Stop.** The *Play / Stop* button toggles. A trigger in *Play* starts a
+**Play and Stop.** The *Play* button starts a stopped song and lights up while it
+plays; the *Stop* button stops it. A trigger in *Play* starts a
 stopped song from the beginning, a trigger in *Stop* stops it. Patch a Button
 or a pad to either.
 
@@ -63,10 +64,10 @@ clock settings on: that makes a loop.
 |---|---|---|
 | Tempo | 20 … 400 BPM | 120 |
 | Link | Off, On | On |
-| Link Start/Stop | Off, On | On |
 | MIDI Clock In | Off, On | Off |
 | MIDI Clock Out | Off, On | Off |
-| Play / Stop | button | |
+| Play | button | |
+| Stop | button | |
 | Tap | button | |
 
 If the board also has a *Link* node, its *Start/Stop Sync* setting decides.

@@ -649,11 +649,14 @@ void transportNode() {
     EXPECT(hc.takePlay() == HostControl::Stop);
     r.unpatch("stop");
     r.transport.playing = false;
-    r.m->command("playstop", 1.0f);
+    r.m->command("play", 1.0f);
     r.run();
     EXPECT(hc.takePlay() == HostControl::Start);
     r.transport.playing = true;
-    r.m->command("playstop", 1.0f);
+    r.m->command("play", 1.0f);  // already running: nothing
+    r.run();
+    EXPECT(hc.takePlay() == HostControl::kNone);
+    r.m->command("stop", 1.0f);
     r.run();
     EXPECT(hc.takePlay() == HostControl::Stop);
     // Outputs read the host's transport.

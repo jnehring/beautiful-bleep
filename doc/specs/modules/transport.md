@@ -47,11 +47,10 @@ but its requests go nowhere.
 | Setting | Values | Default |
 |---|---|---|
 | Link | Off, On | On |
-| Link Start/Stop | Off, On | On |
 | MIDI Clock In | Off, On | Off |
 | MIDI Clock Out | Off, On | Off |
 
-**Buttons:** *Play / Stop* (starts a stopped transport, stops a running one) and *Tap* (tap tempo).
+**Buttons:** *Play* (starts a stopped transport; lit while it runs), *Stop* and *Tap* (tap tempo).
 
 ## 4. Behaviour
 
@@ -69,8 +68,8 @@ leads: the requests are dropped.
   incoming MIDI clock, never when the board loads, so a project's saved tempo
   survives. The knob itself does not follow the tempo set elsewhere (Link
   peers, MIDI clock); the module view shows the tempo that is actually running.
-- **Link** and **Link Start/Stop** describe how the board wants the app set up.
-  They are sent on the first block and when they change. Link on is only
+- **Link** describes how the board wants the app set up; Link start/stop sync is
+  always on. Both are sent on the first block and when *Link* changes. Link on is only
   possible when the app was built with Link (`HostControl::linkAvailable`). The
   setting is not stored as the app's own preference (File → Settings keeps that).
   If the board also has a *Link* node, its *Start/Stop Sync* wins.
@@ -124,7 +123,10 @@ the host is really doing, whoever changed it.
 
 ## 5. Module view
 
-The generic module view (knobs, settings, the two buttons). `liveValues`:
+The generic module view (knobs, settings, buttons) with a hook (`ui/transport.js`)
+that shows the running state: the Tempo knob and its value follow the tempo
+that is really running (Link peers, MIDI clock, the app's own control), and
+*Play* is lit while the transport plays. `liveValues`:
 `bpm`, `playing`, `hosted` (a host answers requests), `linkAvailable`,
 `linkEnabled`, `peers`, `clockIn` (a MIDI clock arrived in the last half second).
 
