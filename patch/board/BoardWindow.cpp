@@ -429,7 +429,10 @@ public:
                 done({});
             })
             .withNativeFunction("storeSettings", [](const juce::Array<juce::var>& a, Completion done) {
-                auto s = ModuleStore::instance().settings();
+                // Module UI scripts run in this page and can call this too. What weakens the store's checks (signatures off, a
+                // different store, which also receives the account token) is therefore confirmed in a native dialog the page cannot answer.
+                const auto before = ModuleStore::instance().settings();
+                auto s = before;
                 if (a[0]["firstRunDone"].isBool()) s.firstRunDone = (bool)a[0]["firstRunDone"];
                 if (a[0]["channel"].isString()) s.channel = a[0]["channel"].toString().toStdString();
                 if (a[0]["storeUrl"].isString() && a[0]["storeUrl"].toString().isNotEmpty())
@@ -439,8 +442,26 @@ public:
                     s.allowUnsigned.module = (bool)allow["module"];
                     s.allowUnsigned.plugin = (bool)allow["plugin"];
                 }
-                ModuleStore::instance().setSettings(s);
-                done({});
+                juce::String risk;
+                if (s.allowUnsigned.module && !before.allowUnsigned.module) risk << "Allow unsigned modules: code nobody has vouched for will run.\n";
+                if (s.allowUnsigned.plugin && !before.allowUnsigned.plugin) risk << "Allow unsigned plugins: unverified native code can be installed.\n";
+                if (s.storeUrl != before.storeUrl) risk << "Use another store: " << juce::String(s.storeUrl) << "\n";
+                if (risk.isEmpty()) {
+                    ModuleStore::instance().setSettings(s);
+                    done({});
+                    return;
+                }
+                juce::AlertWindow::showAsync(
+                    juce::MessageBoxOptions()
+                        .withIconType(juce::MessageBoxIconType::WarningIcon)
+                        .withTitle("Change the store's safety settings?")
+                        .withMessage(risk + "\nChoose Allow only if you asked for this.")
+                        .withButton("Deny")
+                        .withButton("Allow"),
+                    [s, done = std::move(done)](int result) mutable {
+                        if (result == 2) ModuleStore::instance().setSettings(s);  // buttons count from 1 in the order added; Deny is the default
+                        done({});
+                    });
             })
             .withNativeFunction("storeRevealData", [](const juce::Array<juce::var>&, Completion done) {
                 ModuleStore::instance().dataDir().revealToUser();
