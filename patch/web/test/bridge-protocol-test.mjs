@@ -3,7 +3,7 @@
 // Pure node, no dependencies:  node patch/web/test/bridge-protocol-test.mjs
 import assert from "node:assert/strict";
 import {
-  ClockEstimator, HEADER_BYTES, MAX_PACKET_FRAMES, ProtocolError, SyncFollower, decodeAudioPacket, encodeAudioPacket, epochAccepts, msg,
+  ClockEstimator, HEADER_BYTES, MAX_PACKET_FRAMES, ProtocolError, SyncFollower, decodeAudioPacket, encodeAudioPacket, epochAccepts, isAllowedSocketUrl, msg,
   midiDueWebMs, nodeTypeForChannel, normaliseChannel, parseFromHub, parseToHub, seqGap, text, validateFromHub, validateToHub,
 } from "../js/bridge-protocol.js";
 
@@ -183,6 +183,20 @@ const throwsProto = (f, what) => { checks++; assert.throws(f, (e) => e instanceo
   f.setEpoch(7); f.setEpoch(6);
   ok(f.epoch === 7, "setEpoch only moves forward");
   ok(midiDueWebMs({ toWeb: (t) => t - 1000 }, 5000, 16) === 4016, "MIDI is due at its hub time plus the audio delay");
+}
+
+// ---- socket URLs and message bounds -------------------------------------------------------------------------------
+{
+  const none = { loc: null };
+  for (const u of ["ws://127.0.0.1:47100/ws", "ws://localhost:1/ws", "ws://[::1]:47100/ws", "wss://localhost/ws"]) ok(isAllowedSocketUrl(u, none), u);
+  for (const u of ["ws://evil.example/ws", "ws://127.0.0.1.evil.example/ws", "http://127.0.0.1/ws", "javascript:1", "", "ws://192.168.1.5/ws", "ws://localhost@evil.example/"])
+    ok(!isAllowedSocketUrl(u, none), u);
+  ok(isAllowedSocketUrl("ws://evil.example/ws", { ...none, allowRemote: true }), "explicit option allows a remote host");
+  ok(!isAllowedSocketUrl("http://evil.example/ws", { ...none, allowRemote: true }), "still only ws/wss");
+  ok(isAllowedSocketUrl("ws://192.168.1.5:47100/ws", { loc: { protocol: "http:", host: "192.168.1.5:47100" } }), "the page's own host");
+  throwsProto(() => parseFromHub("x".repeat(300 * 1024)), "oversized text");
+  throwsProto(() => parseFromHub(JSON.stringify({ op: "channels", list: Array.from({ length: 300 }, (_, i) => ({ ch: i % 256, kind: "audio", dir: "toWeb", key: "k" + i })) })), "too many channels");
+  throwsProto(() => parseFromHub(JSON.stringify({ op: "channel", ch: 1, kind: "audio", dir: "toWeb", key: "k".repeat(5000) })), "huge key");
 }
 
 console.log(`bridge-protocol-test: ${checks} checks passed`);

@@ -15,7 +15,7 @@
 // The logic lives in BridgeWorkerCore, which takes its environment (WebSocket, timers, post) as arguments:
 // the same code runs in the Worker and under node in the tests.
 
-import { ClockEstimator, ProtocolError, decodeAudioPacket, encodeAudioPacket, parseFromHub, seqGap, text, msg } from "./bridge-protocol.js";
+import { ClockEstimator, ProtocolError, decodeAudioPacket, encodeAudioPacket, isAllowedSocketUrl, parseFromHub, seqGap, text, msg } from "./bridge-protocol.js";
 import { AudioRing, Packetizer, nextPow2 } from "./bridge-ring.js";
 
 export const DEFAULTS = {
@@ -62,7 +62,7 @@ export class BridgeWorkerCore {
 
   #start(m) {
     this.#stop(null);
-    this.cfg = { url: m.url, hello: m.hello, mode: m.mode === "low" && m.shared ? "low" : "safe", shared: !!m.shared && m.mode === "low",
+    this.cfg = { url: m.url, allowRemote: !!m.allowRemote, hello: m.hello, mode: m.mode === "low" && m.shared ? "low" : "safe", shared: !!m.shared && m.mode === "low",
       sampleRate: m.sampleRate || 48000, targetMs: m.targetMs || this.o.targetMs };
     this.stopped = false;
     this.attempt = 0;
@@ -75,6 +75,7 @@ export class BridgeWorkerCore {
     this.#status(this.reconnects ? "retrying" : "connecting");
     let ws;
     try {
+      if (!isAllowedSocketUrl(this.cfg.url, { allowRemote: this.cfg.allowRemote, loc: this.env.location })) throw new Error("the web link only connects to the app on this computer");
       ws = new this.env.WebSocket(this.cfg.url);
     } catch (e) {  // e.g. a mixed-content SecurityError: the page can never connect, retrying is pointless
       this.#post({ type: "error", code: "socket", message: String(e && e.message || e) });
@@ -179,6 +180,7 @@ export class BridgeWorkerCore {
   }
 
   #onBinary(data) {
+    if (data && data.byteLength > 16 + 8 * 2048) { this.stats.bad++; return; }  // more than the largest packet
     let p;
     try { p = decodeAudioPacket(data); } catch { this.stats.bad++; return; }
     const entry = this.inbound.get(p.channel);

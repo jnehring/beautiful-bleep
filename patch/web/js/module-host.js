@@ -69,10 +69,15 @@ function wasiImports(getMemory) {
   };
 }
 
+const C_STRING_MAX = 4096;  // a module's error text is short; an unterminated string must not be scanned to the end of the memory
+
 function cString(memory, ptr) {
   const bytes = new Uint8Array(memory.buffer);
+  if (!Number.isInteger(ptr) || ptr < 0 || ptr >= bytes.length) return "(invalid string pointer)";
+  const limit = Math.min(bytes.length, ptr + C_STRING_MAX);
   let end = ptr;
-  while (bytes[end]) ++end;
+  while (end < limit && bytes[end]) ++end;
+  if (end === limit && end < bytes.length && bytes[end]) return utf8Decode(bytes.subarray(ptr, end)) + "… (unterminated)";
   return utf8Decode(bytes.subarray(ptr, end));
 }
 

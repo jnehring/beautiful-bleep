@@ -10,6 +10,7 @@ plugin the page runs against board-demo.js, a fake engine (no audio).
 import argparse
 import http.server
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -24,7 +25,27 @@ def dirs():  # looked up per request, so a new module ui/ folder is served witho
     return [PATCH / "board" / "ui", PATCH / "common" / "ui"] + [m / sub for m in modules() for sub in ("ui", "doc") if (m / sub).is_dir()]
 
 
+# The same policy as the browser build (scripts/build/build-web.sh), minus WebAssembly: the demo engine here is plain JavaScript.
+CSP = ("default-src 'self'; script-src 'self'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; "
+       "img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'self'")
+
+
+def host_allowed(header):
+    """Host header check against DNS rebinding: only this computer's names, with or without a numeric port."""
+    m = re.fullmatch(r"(localhost|127\.0\.0\.1|\[::1\])(?::\d{1,5})?", (header or "").strip().lower())
+    return m is not None
+
+
 class Handler(http.server.SimpleHTTPRequestHandler):
+    # Checked before anything is served (GET and HEAD alike): a rebinding page reaches this server under another name.
+    def parse_request(self):
+        if not super().parse_request():
+            return False
+        if not host_allowed(self.headers.get("Host")):
+            self.send_error(403, "Forbidden host")
+            return False
+        return True
+
     def translate_path(self, path):
         name = path.split("?", 1)[0].lstrip("/") or "index.html"
         if "/" in name or ".." in name:
@@ -51,6 +72,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Security-Policy", CSP)
+        self.send_header("X-Content-Type-Options", "nosniff")
         super().end_headers()
 
 

@@ -58,7 +58,7 @@ if [ "$MODULES" = 1 ]; then
   JUCE="${BLEEP_JUCE_DIR:-}"
   if [ -z "$JUCE" ]; then
     JUCE="$ROOT/build/web/JUCE"
-    [ -d "$JUCE/modules/juce_core" ] || git clone -q --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git "$JUCE"
+    [ -d "$JUCE/modules/juce_core" ] || { git clone -q --depth 1 --branch 8.0.9 https://github.com/juce-framework/JUCE.git "$JUCE" && [ "$(git -C "$JUCE" rev-parse HEAD)" = f72bad64d29715216226685810c5196bd0d79d77 ] || { echo "JUCE 8.0.9 is not the pinned commit" >&2; exit 1; }; }
   fi
   python3 "$PATCH/web/build_modules.py" --out "$OUT" --juce "$JUCE" ${BLEEP_WEB_ONLY:+--only "$BLEEP_WEB_ONLY"}
 fi
@@ -94,6 +94,15 @@ p = sys.argv[1]
 s = open(p).read()
 tag = '<script src="js/store-client.js"></script>\n  <script src="js/store-roots.js"></script>\n  <script src="js/bleep-web.js"></script>\n  <script src="js/bridge-ui.js"></script>\n  '
 assert '<script src="board-demo.js"></script>' in s
-open(p, 'w').write(s.replace('<script src="board-demo.js"></script>', tag + '<script src="board-demo.js"></script>', 1))
+s = s.replace('<script src="board-demo.js"></script>', tag + '<script src="board-demo.js"></script>', 1)
+# Content-Security-Policy for the browser build: no inline script and no eval anywhere in the UI; 'wasm-unsafe-eval' only because the
+# modules are WebAssembly. connect-src: the page's own origin (store, registry, account API) and the app's web link on this computer.
+csp = ("default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; "
+       "connect-src 'self' ws://127.0.0.1:* ws://localhost:*; "
+       "img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'self'")
+meta = '<meta http-equiv="Content-Security-Policy" content="%s">\n  ' % csp
+marker = '<meta name="viewport"'
+assert marker in s
+open(p, 'w').write(s.replace(marker, meta + marker, 1))
 PY
 echo "Built $OUT ($(du -sh "$OUT" | cut -f1)); serve it with: python3 -m http.server -d $OUT 8000"

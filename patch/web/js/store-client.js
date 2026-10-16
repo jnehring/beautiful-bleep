@@ -172,8 +172,10 @@
 
   // ---- the store ------------------------------------------------------------------------------------
 
-  const config = { base: "/registry/v1/", roots: null, channel: "stable", allowUnsigned: { module: false, plugin: false }, crl: null };
+  const config = { base: "/registry/v1/", roots: null, channel: "stable", allowUnsigned: { module: false, plugin: false }, crl: null,
+                   revocations: true, storage: null };  // revocations: fetch the signed list (signing.md section 8); crl: a list given by hand
   let indexPromise = null;
+  let crlPromise = null;
   const packages = new Map();
 
   const abs = (p) => (typeof document !== "undefined" ? new URL(p, document.baseURI).href : p);
@@ -190,6 +192,65 @@
     // server that serves the packages: that server could name its own root and sign anything.
     if (!config.roots || !config.roots.length) throw new Error("no pinned store root keys: the store cannot be trusted");
     return config.roots;
+  }
+
+  // ---- the revocation list (BLEEP-CRL-1, signing.md section 8) ------------------------------------------
+
+  const CRL_SERIAL_KEY = "bleep.store.crl.serial", CRL_LIST_KEY = "bleep.store.crl.list";
+  const store = () => {
+    if (config.storage) return config.storage;
+    try { return typeof localStorage !== "undefined" ? localStorage : null; } catch (e) { return null; }
+  };
+  const remember = (k, v) => { try { const st = store(); if (st) st.setItem(k, v); } catch (e) { /* private window or blocked storage: no memory */ } };
+  const recall = (k) => { try { const st = store(); return st ? st.getItem(k) : null; } catch (e) { return null; } };
+
+  /// The body of a revocation list if the issuer's signature holds and the issuer certificate is one of the roots', else null.
+  /// Validity dates are not checked: a list can only take trust away.
+  async function verifyCrl(doc, rootKeys) {
+    try {
+      const cert = doc.issuer, tbs = cert.tbs;
+      const issuerPub = fromB64(tbs.publicKey);
+      if (tbs.type !== "issuer" || !tbs.scopes.includes("issue") || tbs.keyId !== (await keyId(issuerPub))) return null;
+      let root = null;
+      for (const r of rootKeys) if ((await keyId(r)) === cert.issuer) root = r;
+      if (!root || !(await checkCert(cert, root))) return null;
+      const body = { format: doc.format, serial: doc.serial, issued: doc.issued, revokedKeys: doc.revokedKeys, revokedArtifacts: doc.revokedArtifacts };
+      if (body.format !== 1 || !Number.isSafeInteger(body.serial) || !Array.isArray(body.revokedKeys) || !Array.isArray(body.revokedArtifacts)) return null;
+      if (!(await verifySignature(issuerPub, fromB64(doc.signature), concat(enc.encode("BLEEP-CRL-1\n"), enc.encode(canonical(body)))))) return null;
+      return { ...body, issuer: cert, signature: doc.signature };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// The list to apply, or null: fetched from the registry and checked against the pinned roots; the highest serial seen is remembered
+  /// and a lower one (a rollback) is ignored in favour of the remembered list. Never throws: with no list (offline, none published)
+  /// the store still loads, as in the native client.
+  async function revocations() {
+    if (config.crl) return config.crl;
+    if (!config.revocations) return null;
+    if (!crlPromise) {
+      crlPromise = (async () => {
+        let rootKeys;
+        try { rootKeys = await roots(); } catch (e) { return null; }
+        const seen = Number(recall(CRL_SERIAL_KEY));
+        let best = null;
+        try {
+          const saved = recall(CRL_LIST_KEY);
+          if (saved) best = await verifyCrl(JSON.parse(saved), rootKeys);  // a saved list that no longer checks (other roots) is no list
+        } catch (e) { best = null; }
+        try {
+          const fetched = await verifyCrl(await getJSON(config.base + "revocations.json"), rootKeys);
+          if (fetched && (!best || fetched.serial >= best.serial) && !(fetched.serial < seen)) {
+            best = fetched;
+            remember(CRL_SERIAL_KEY, String(fetched.serial));
+            remember(CRL_LIST_KEY, JSON.stringify(fetched));
+          }
+        } catch (e) { /* offline or no list published: use what was remembered */ }
+        return best;
+      })();
+    }
+    return crlPromise;
   }
 
   /// { types: {type id → slug}, modules: {slug → {version, entry, types}} } from the store's index.
@@ -217,7 +278,7 @@
         if (hex(await sha256(bytes)) !== file.sha256) throw new Error(`${slug}: the download is not the file the store lists`);
         const zip = await readZip(bytes);
         const checked = await verify(zip.entries, file.signature || zip.signature, {
-          kind: "module", id: signedId(slug), version: entry.version, platform: "any", roots: await roots(), crl: config.crl });
+          kind: "module", id: signedId(slug), version: entry.version, platform: "any", roots: await roots(), crl: await revocations() });
         const [ok, why] = decide(checked, "module", config.allowUnsigned);
         if (!ok) throw new Error(`${slug} ${entry.version} is not loaded: ${why}`);
         const wasm = zip.files.get("module.wasm");
@@ -232,8 +293,8 @@
 
   const BleepStore = {
     /// Changing roots, the revocation list or the unsigned setting forgets what was verified under the old ones.
-    configure(o) { Object.assign(config, o); indexPromise = null; packages.clear(); return BleepStore; },
-    config, manifest, fetchModule,
+    configure(o) { Object.assign(config, o); indexPromise = null; crlPromise = null; packages.clear(); return BleepStore; },
+    config, manifest, fetchModule, revocations,
     // for tests and other tools
     canonical, contentDigest, readZip, verify, decide, keyId, hex, fromHex, fromB64,
   };

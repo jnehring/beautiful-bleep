@@ -13,6 +13,20 @@ export const AUDIO_PACKET_KIND = 1;
 export const HEADER_BYTES = 16;
 export const MAX_PACKET_FRAMES = 2048;
 export const QUANTUM = 128;
+export const MAX_TEXT_BYTES = 256 * 1024;  // a JSON message from the hub is a few hundred bytes; anything this big is not one
+export const MAX_EVENTS = 8192;            // MIDI events in one message
+
+/// May the web link open this WebSocket URL? Only ws:/wss: to this computer (127.0.0.1, localhost, [::1]) or to the host the page itself
+/// came from, unless `allowRemote` says otherwise: a page must not be pointed at an arbitrary server that then feeds it messages.
+export function isAllowedSocketUrl(url, { allowRemote = false, loc = globalThis.location } = {}) {
+  let u;
+  try { u = new URL(url); } catch { return false; }
+  if (u.protocol !== "ws:" && u.protocol !== "wss:") return false;
+  if (allowRemote) return true;
+  const host = u.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  if (host === "127.0.0.1" || host === "localhost" || host === "::1") return true;
+  return !!(loc && loc.host && (loc.protocol === "http:" || loc.protocol === "https:") && u.host === loc.host);
+}
 
 export class ProtocolError extends Error {
   constructor(message, code = "malformed") { super(message); this.name = "ProtocolError"; this.code = code; }
@@ -95,6 +109,7 @@ const inRange = (lo, hi) => (v) => isInt(v) && v >= lo && v <= hi;
 const oneOf = (...xs) => (v) => xs.includes(v);
 const isU32 = inRange(0, 0xffffffff);
 const isCh = inRange(0, 255);
+const shortStr = (v) => isStr(v) && v.length <= 1024;
 
 export const KINDS = ["audio", "midi"];
 export const OPEN_DIRS = ["fromWeb", "toWeb", "both"];
@@ -102,15 +117,15 @@ export const PORTS = ["audio-in", "audio-out", "midi-in", "midi-out", "instrumen
 export const LEADERS = ["live", "link", "app", "web"];
 
 /// [[beat, status, d1, d2], …]: beat ≥ 0 or the sentinel -1 (as soon as possible).
-const isEvents = (ev) => Array.isArray(ev) && ev.every((e) => Array.isArray(e) && e.length === 4 && isNum(e[0]) && (e[0] >= 0 || e[0] === -1) &&
+const isEvents = (ev) => Array.isArray(ev) && ev.length <= MAX_EVENTS && ev.every((e) => Array.isArray(e) && e.length === 4 && isNum(e[0]) && (e[0] >= 0 || e[0] === -1) &&
   inRange(0, 255)(e[1]) && inRange(0, 127)(e[2]) && inRange(0, 127)(e[3]));
 
 // field: [validator, required]
 const req = (f) => [f, true], opt = (f) => [f, false];
 
 const CHANNEL_FIELDS = {
-  ch: req(isCh), kind: req(oneOf(...KINDS)), dir: req(oneOf("toWeb", "fromWeb")), key: req(isStr),
-  name: opt(isStr), port: opt(oneOf(...PORTS)), source: opt(oneOf("live", "app")), online: opt(isBool),
+  ch: req(isCh), kind: req(oneOf(...KINDS)), dir: req(oneOf("toWeb", "fromWeb")), key: req(shortStr),
+  name: opt(shortStr), port: opt(oneOf(...PORTS)), source: opt(oneOf("live", "app")), online: opt(isBool),
   latency: opt((v) => isNum(v) && v >= 0), reactive: opt(isBool),
 };
 
@@ -136,7 +151,7 @@ const FROM_HUB = {
   sync: { epoch: req(isU32), tempo: req((v) => isNum(v) && v > 0), beat: req(isNum), playing: req(isBool), quantum: req(isNum),
     leader: req(oneOf(...LEADERS)), hub: req(isNum) },
   flush: { epoch: req(isU32) },
-  channels: { list: req((l) => Array.isArray(l) && l.every((c) => isObj(c) && checkFields(c, CHANNEL_FIELDS) === null)) },
+  channels: { list: req((l) => Array.isArray(l) && l.length <= 256 && l.every((c) => isObj(c) && checkFields(c, CHANNEL_FIELDS) === null)) },
   ping: { t: req(isNum) },  // SPEC GAP: not in the tables; the web answers it with a pong if the hub ever sends one
 };
 
@@ -164,6 +179,7 @@ export const validateFromHub = (m) => validate(m, FROM_HUB, "hub→web");
 /// A text frame from the hub → validated message. Throws ProtocolError (code "unknown-op" for ops this
 /// version does not know: callers should ignore those for forward compatibility).
 export function parseFromHub(text) {
+  if (typeof text !== "string" || text.length > MAX_TEXT_BYTES) throw new ProtocolError("message too large");
   let m;
   try { m = JSON.parse(text); } catch { throw new ProtocolError("not JSON"); }
   return validateFromHub(m);

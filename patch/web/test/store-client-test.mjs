@@ -231,6 +231,90 @@ await test("fetchModule: the whole path through the index, the entry and the pac
   }
 });
 
+await test("revocation list: fetched, verified, rollback refused, fetch failure tolerated, revoked key refused", async () => {
+  const pkg = makeZip("crl.bleepmod", files, { kit: "bleep" });
+  const sha = Store.hex(new Uint8Array(await crypto.subtle.digest("SHA-256", pkg)));
+  const sigDoc = (await Store.readZip(pkg)).signature;
+  const devKeyId = sigDoc.keyId;
+  const mkCrl = (serial, keys) => JSON.parse(py(`
+import sys, json
+sys.path.insert(0, sys.argv[1])
+import signing
+reg = sys.argv[2]
+cert = json.load(open(reg + "/issuer.cert"))
+doc = signing.make_crl(signing.load_key(reg + "/issuer.key"), cert, serial=int(sys.argv[3]), issued=1, revoked_keys=json.loads(sys.argv[4]))
+print(json.dumps(doc))`, join(ROOT, "scripts", "release"), join(tmp, "reg"), String(serial), JSON.stringify(keys)));
+  const forged = JSON.parse(py(`
+import sys, json
+sys.path.insert(0, sys.argv[1])
+import signing
+reg = sys.argv[2]
+cert = json.load(open(reg + "/issuer.cert"))
+doc = signing.make_crl(signing.load_key(reg + "/issuer.key"), cert, serial=50, issued=1)
+doc["revokedKeys"] = [{"keyId": "x"}]
+print(json.dumps(doc))`, join(ROOT, "scripts", "release"), join(tmp, "reg")));
+  const base = "http://store/registry/v1/";
+  const served = {
+    [base + "index.json"]: { format: 1, channels: { stable: { modules: { reverb: { version: "1.0.0", entry: "modules/reverb/1.0.0/entry.json", types: ["reverb"] } } } } },
+    [base + "modules/reverb/1.0.0/entry.json"]: { id: "reverb", version: "1.0.0", files: [{ path: "p.bleepmod", sha256: sha, bytes: pkg.length, platform: "any", signature: sigDoc }] },
+    [base + "modules/reverb/1.0.0/p.bleepmod"]: pkg,
+  };
+  const mem = new Map();
+  const storage = { getItem: (k) => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, v) };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const body = served[url];
+    if (body === undefined) return new Response("no", { status: 404 });
+    return new Response(body instanceof Uint8Array ? body : JSON.stringify(body));
+  };
+  const cfg = () => Store.configure({ base, roots: [root], storage, crl: null, revocations: true });
+  try {
+    // no list published (404): loads
+    cfg();
+    assert.equal((await Store.fetchModule("reverb")).status, "signed");
+    // a forged list (signature does not match the body) is ignored
+    served[base + "revocations.json"] = forged;
+    cfg();
+    assert.equal((await Store.fetchModule("reverb")).status, "signed");
+    assert.equal(mem.size, 0);
+    // a list signed under another root is ignored
+    cfg(); Store.configure({ roots: [other] });
+    assert.equal(await Store.revocations(), null);
+    // a good list that revokes the key: refused
+    served[base + "revocations.json"] = mkCrl(7, [devKeyId]);
+    cfg();
+    await assert.rejects(Store.fetchModule("reverb"), /not loaded: revoked/);
+    assert.equal(mem.get("bleep.store.crl.serial"), "7");
+    // rollback: an older empty list is served, the remembered one still applies
+    served[base + "revocations.json"] = mkCrl(3, []);
+    cfg();
+    await assert.rejects(Store.fetchModule("reverb"), /not loaded: revoked/);
+    assert.equal(mem.get("bleep.store.crl.serial"), "7");
+    // offline: the remembered list still applies
+    delete served[base + "revocations.json"];
+    cfg();
+    await assert.rejects(Store.fetchModule("reverb"), /not loaded: revoked/);
+    // a newer list that no longer revokes it
+    served[base + "revocations.json"] = mkCrl(8, []);
+    cfg();
+    assert.equal((await Store.fetchModule("reverb")).status, "signed");
+    assert.equal(mem.get("bleep.store.crl.serial"), "8");
+    // broken storage does not break loading
+    globalThis.fetch = async (url) => { if (url.endsWith("revocations.json")) throw new TypeError("offline"); return new Response(JSON.stringify(served[url]) ); };
+    served[base + "modules/reverb/1.0.0/p.bleepmod"] = pkg;
+    globalThis.fetch = async (url) => {
+      if (url.endsWith("revocations.json")) throw new TypeError("offline");
+      const body = served[url];
+      return body === undefined ? new Response("no", { status: 404 }) : new Response(body instanceof Uint8Array ? body : JSON.stringify(body));
+    };
+    Store.configure({ base, roots: [root], storage: { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } }, crl: null });
+    assert.equal((await Store.fetchModule("reverb")).status, "signed");
+  } finally {
+    globalThis.fetch = realFetch;
+    Store.configure({ storage: null, crl: null });
+  }
+});
+
 rmSync(tmp, { recursive: true, force: true });
 let failed = 0;
 for (const [name, err] of results) {

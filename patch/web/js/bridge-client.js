@@ -14,7 +14,7 @@
 // collector sits in the audio path. This class is the protocol state on the main thread: channels, the sync
 // follower, the MIDI epoch rule, latency reports. It takes the Worker as a factory, so tests run it with a fake.
 
-import { ClockEstimator, ProtocolError, SyncFollower, epochAccepts, midiDueWebMs, msToBeats, msg, normaliseChannel, nodeTypeForChannel,
+import { ClockEstimator, ProtocolError, isAllowedSocketUrl, SyncFollower, epochAccepts, midiDueWebMs, msToBeats, msg, normaliseChannel, nodeTypeForChannel,
   parseFromHub, text, QUANTUM } from "./bridge-protocol.js";
 
 export { REMOTE_TYPES } from "./bridge-types.js";
@@ -51,11 +51,12 @@ export function loadId(storage) {
 const wallClock = () => performance.timeOrigin + performance.now();  // the same in every thread, which is what the Worker's pings use
 
 export class BridgeClient {
-  /// options: url, name, mode ("low" | "safe"), id, lookaheadMs, sampleRate, workerFactory, workerUrl, storage, env, now
+  /// options: url, allowRemote, name, mode ("low" | "safe"), id, lookaheadMs, sampleRate, workerFactory, workerUrl, storage, env, now
   constructor(options = {}) {
     const env = options.env || {};
     const g = globalThis;
     this.url = options.url || DEFAULT_URL;
+    this.allowRemote = !!options.allowRemote;  // explicit: the default refuses every WebSocket URL that is not on this computer
     this.name = options.name || (g.navigator && g.navigator.userAgent ? "Web browser" : "Web");
     this.id = options.id || loadId(options.storage !== undefined ? options.storage : (() => { try { return g.localStorage; } catch { return null; } })());
     this.requestedMode = options.mode === "safe" ? "safe" : "low";
@@ -130,9 +131,13 @@ export class BridgeClient {
   }
 
   connect() {
+    if (!isAllowedSocketUrl(this.url, { allowRemote: this.allowRemote })) {
+      this.#setStatus("failed", { reason: "the web link only connects to the app on this computer", code: "url" });
+      return;
+    }
     const w = this.#ensureWorker();
     this.#setStatus("connecting");
-    w.postMessage({ type: "connect", url: this.url, mode: this.mode, shared: this.mode === "low", sampleRate: this.sampleRate,
+    w.postMessage({ type: "connect", url: this.url, allowRemote: this.allowRemote, mode: this.mode, shared: this.mode === "low", sampleRate: this.sampleRate,
       targetMs: TARGET_MS,
       hello: text(msg.hello({ id: this.id, name: this.name, sampleRate: this.sampleRate, quantum: QUANTUM, mode: this.mode })) });
   }

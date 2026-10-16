@@ -9,14 +9,28 @@
 (function () {
   "use strict";
   const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const safeUrl = (u) => (/^\s*javascript:/i.test(u) ? "#" : u);
+  // Allow-list: http(s), mailto, #fragments and relative paths; anything else (javascript:, data:, vbscript:, …) becomes "#".
+  // Control characters and whitespace are stripped first, as browsers ignore them inside a scheme ("java\tscript:").
+  // The input is already HTML-escaped (esc), so a decoded "&colon;" cannot appear: "&" stays "&amp;".
+  const safeUrl = (u) => {
+    const v = u.replace(/[\u0000-\u0020\u007f-\u009f\u00a0\u1680\u180e\u2000-\u200f\u2028-\u202f\u205f-\u2064\u3000\ufeff]/g, "");
+    if (!v) return "#";
+    const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(v);
+    if (scheme) return /^(https?|mailto)$/i.test(scheme[1]) ? v : "#";
+    if (/^[\\/]{2}/.test(v)) return "#";  // protocol-relative: another host, not a path of the docs
+    return v;
+  };
+  const isExternal = (u) => /^https?:/i.test(u);
 
   function inline(s) {
     const codes = [];
     s = s.replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
     s = esc(s)
-      .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, src) => `<img src="${safeUrl(src)}" alt="${alt}" onerror="this.remove()">`)
-      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, href) => `<a href="${safeUrl(href)}">${t}</a>`)
+      .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, src) => `<img src="${safeUrl(src)}" alt="${alt}" loading="lazy">`)
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, href) => {
+        const u = safeUrl(href);
+        return `<a href="${u}"${isExternal(u) ? ' target="_blank" rel="noopener noreferrer"' : ""}>${t}</a>`;
+      })
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
       .replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, "$1<em>$2</em>")
       .replace(/(^|[^_\w])_([^_\s][^_]*?)_(?![_\w])/g, "$1<em>$2</em>");
