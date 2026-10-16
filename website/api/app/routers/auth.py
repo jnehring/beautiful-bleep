@@ -2,7 +2,7 @@
 from datetime import timedelta, timezone
 from urllib.parse import quote
 
-from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Request, Response, status
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from ..config import settings
 from ..db import get_db
 from ..deps import COOKIE, get_current_user
 from .. import mail
+from .. import ratelimit
 from ..models import EmailToken, User, UserSession, now
 from ..schemas import EmailTokenIn, ForgotPasswordIn, LoginIn, RegisterIn, ResetPasswordIn, UserOut
 from ..security import hash_password, hash_token, new_session_token, verify_password
@@ -66,7 +67,14 @@ def _use_token(db: Session, token: str, purpose: str) -> User:
     return db.get(User, row.user_id)
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+# Each costs an argon2 hash or an email, so they are limited per address; a login also per account, counting failures only.
+_register_ip = ratelimit.limiter(10, 3600)
+_login_ip = ratelimit.limiter(60, 600)
+_login_account = ratelimit.limiter(10, 900)
+_forgot_ip = ratelimit.limiter(10, 3600)
+
+
+@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(ratelimit.by_ip(_register_ip))])
 def register(body: RegisterIn, response: Response, tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = User(
         email=body.email.lower(), password_hash=hash_password(body.password),
@@ -84,11 +92,16 @@ def register(body: RegisterIn, response: Response, tasks: BackgroundTasks, db: S
 
 
 @router.post("/login", response_model=UserOut)
-def login(body: LoginIn, response: Response, db: Session = Depends(get_db)):
-    user = db.scalar(select(User).where(User.email == body.email.lower()))
+def login(body: LoginIn, request: Request, response: Response, db: Session = Depends(get_db)):
+    email = body.email.lower()
+    if not _login_ip.hit(ratelimit.client_ip(request)) or _login_account.blocked(email):
+        raise ratelimit.too_many(_login_account.window)
+    user = db.scalar(select(User).where(User.email == email))
     ok = verify_password(body.password, user.password_hash if user else None)
     if not (ok and user and user.is_active):
+        _login_account.hit(email)  # only wrong passwords count: an attacker cannot lock the owner out of a good session
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Wrong email or password")
+    _login_account.reset(email)
     _start_session(db, user, response)
     return user
 
@@ -124,9 +137,12 @@ def resend_verification(tasks: BackgroundTasks, user: User = Depends(get_current
 
 
 @router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
-def forgot_password(body: ForgotPasswordIn, tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    """Always the same answer, so the form cannot be used to find out which emails are registered."""
-    user = db.scalar(select(User).where(User.email == body.email.lower()))
+def forgot_password(body: ForgotPasswordIn, request: Request, tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Always the same answer, so the form cannot be used to find out which emails are registered (a mail per account is already held back by _issue_token)."""
+    email = body.email.lower()
+    if not _forgot_ip.hit(ratelimit.client_ip(request)):
+        raise ratelimit.too_many(_forgot_ip.window)
+    user = db.scalar(select(User).where(User.email == email))
     if user and user.is_active:
         token = _issue_token(db, user, "reset", timedelta(minutes=settings.reset_minutes))
         if token:

@@ -4,9 +4,10 @@ import secrets
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from .. import ratelimit
 from ..db import get_db
 from ..deps import get_current_user
 from ..models import DeviceCode, User, UserToken, now
@@ -42,12 +43,20 @@ def _new_token(db: Session, user: User, name: str, expires_days: int | None = No
     return row, token
 
 
+_device_start = ratelimit.limiter(10, 600)
+_device_poll = ratelimit.limiter(120, 60)  # the app polls every POLL_SECONDS (5): 12 a minute per sign-in
+_device_lookup = ratelimit.limiter(30, 60)  # guessing user codes
+MAX_PENDING_CODES = 2000  # all addresses together: the table cannot be filled
+
+
 # --- Device flow ---------------------------------------------------------------------------------------------------
 
-@router.post("/api/auth/device", response_model=DeviceStartOut, status_code=status.HTTP_201_CREATED)
+@router.post("/api/auth/device", response_model=DeviceStartOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(ratelimit.by_ip(_device_start))])
 def device_start(body: DeviceStartIn, db: Session = Depends(get_db)):
     """The app asks for a code. It shows `user_code`, opens `verification_url` and polls `/api/auth/device/token`."""
     db.execute(delete(DeviceCode).where(DeviceCode.expires_at < now() - timedelta(hours=1)))
+    if (db.scalar(select(func.count()).select_from(DeviceCode).where(DeviceCode.status == "pending", DeviceCode.expires_at > now())) or 0) >= MAX_PENDING_CODES:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Too many sign-ins are waiting; try again in a few minutes")
     device_code = secrets.token_urlsafe(32)
     for _ in range(5):
         code = _user_code()
@@ -66,7 +75,7 @@ def _aware(moment):
     return moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
 
 
-@router.post("/api/auth/device/token", response_model=DevicePollOut)
+@router.post("/api/auth/device/token", response_model=DevicePollOut, dependencies=[Depends(ratelimit.by_ip(_device_poll))])
 def device_poll(body: DevicePollIn, db: Session = Depends(get_db)):
     """The token comes once, to the first poll after the user approved; later polls find the code used up."""
     row = db.scalar(select(DeviceCode).where(DeviceCode.device_hash == hash_token(body.device_code)))
@@ -85,7 +94,7 @@ def device_poll(body: DevicePollIn, db: Session = Depends(get_db)):
     return DevicePollOut(status="approved", token=token, user=UserOut.model_validate(user))
 
 
-@router.get("/api/auth/device/{user_code}", response_model=DeviceInfoOut)
+@router.get("/api/auth/device/{user_code}", response_model=DeviceInfoOut, dependencies=[Depends(ratelimit.by_ip(_device_lookup))])
 def device_info(user_code: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     """For the confirmation page: which app is asking."""
     row = db.scalar(select(DeviceCode).where(DeviceCode.user_code == _normal(user_code), DeviceCode.status == "pending"))
@@ -94,7 +103,7 @@ def device_info(user_code: str, db: Session = Depends(get_db), _: User = Depends
     return DeviceInfoOut(client_name=row.client_name)
 
 
-@router.post("/api/auth/device/approve", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/api/auth/device/approve", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(ratelimit.by_ip(_device_lookup))])
 def device_approve(body: DeviceApproveIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """The logged-in user confirms (or refuses) the code an app shows."""
     row = db.scalar(select(DeviceCode).where(DeviceCode.user_code == _normal(body.user_code), DeviceCode.status == "pending"))

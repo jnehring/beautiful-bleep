@@ -22,6 +22,15 @@ def schema():
     Base.metadata.drop_all(engine)
 
 
+@pytest.fixture(autouse=True)
+def fresh_limits():
+    from app import ratelimit
+
+    ratelimit.reset_all()
+    yield
+    ratelimit.reset_all()
+
+
 @pytest.fixture
 def client():
     return TestClient(app)
