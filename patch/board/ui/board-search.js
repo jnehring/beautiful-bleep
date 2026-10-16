@@ -31,7 +31,7 @@
         for (const t of env.typeList)
           if (env.offered(t) && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
             out.push({ label: t.name === "Cell" ? "New Cell" : t.name === "Voice Cell" ? "New Voice Cell" : t.name,
-                       sub: t.category.replace(/\//g, " › "), what: { type: t.type } });
+                       sub: t.category.replace(/\//g, " › "), hint: t.description, what: { type: t.type } });
         if (!link)  // presets: every word in the name, category, tags or description
           for (const p of env.presets()) {
             const d = p.preset || {};
@@ -54,7 +54,7 @@
           row.addEventListener("pointerdown", (e) => { e.preventDefault(); chooseSearch(i); });
           list.appendChild(row);
         });
-        // The active preset's description, under the list.
+        // The active item's description, under the list.
         const active = searchState.items[searchState.active], hint = $("search-hint");
         hint.textContent = (active && active.hint) || "";
         hint.hidden = !hint.textContent;
