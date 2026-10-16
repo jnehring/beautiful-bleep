@@ -2,8 +2,13 @@
 #
 # Builds the plugins on macOS, Linux and Windows and releases them to the Bleep registry: the
 # macOS job publishes the new version, the others add their platform to it afterwards.
-# Manual runs only (Actions tab -> Run workflow); it never runs automatically. Set the repository
-# secret BLEEP_RELEASE_TOKEN and the variable BLEEP_REGISTRY_URL before running it.
+# Manual runs only (Actions tab -> Run workflow); it never runs automatically.
+#
+# Setup (Settings -> Environments -> New environment "release", with required reviewers):
+#   variable BLEEP_REGISTRY_URL    the website's https address
+#   secret   BLEEP_RELEASE_TOKEN   the store's release token
+#   secret   BLEEP_SIGNING_KIT     the developer's signing kit, the whole JSON file (signing.md)
+# The secrets are only handed to the release step of a job that was approved, never to the build.
 name: Release
 
 on:
@@ -14,18 +19,41 @@ on:
         required: true
         default: patch
 
-env:
-  BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
-  BLEEP_RELEASE_TOKEN: ${{ secrets.BLEEP_RELEASE_TOKEN }}
+permissions:
+  contents: read
 
 jobs:
   release-macos:
     name: Release (macos-arm64)
     runs-on: macos-14
+    environment: release
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      # No secrets in the build: it fetches and compiles other people's code (JUCE, Link).
       - run: scripts/build/build-patch.sh
-      - run: python3 scripts/release/release.py --all --level "${{ inputs.level }}" --yes
+      - name: Check the version level
+        env:
+          LEVEL: ${{ inputs.level }}
+        run: |
+          [[ "$LEVEL" =~ ^(x|[0-9]+\.x|[0-9]+\.[0-9]+\.x|major|minor|patch)$ ]] || { echo "bad version level"; exit 1; }
+      - name: Write the signing kit
+        env:
+          KIT: ${{ secrets.BLEEP_SIGNING_KIT }}
+        run: |
+          umask 077
+          printf '%s' "$KIT" > "$RUNNER_TEMP/signing-kit.json"
+      - name: Release
+        env:
+          LEVEL: ${{ inputs.level }}
+          BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
+          BLEEP_RELEASE_TOKEN: ${{ secrets.BLEEP_RELEASE_TOKEN }}
+          BLEEP_SIGNING_KIT: ${{ runner.temp }}/signing-kit.json
+        run: python3 scripts/release/release.py --all --level "$LEVEL" --yes
+      - name: Remove the signing kit
+        if: always()
+        run: rm -f "$RUNNER_TEMP/signing-kit.json"
 
   add-platform:
     name: Add platform (${{ matrix.os }})
@@ -35,8 +63,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    environment: release
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - name: Linux build dependencies
         if: runner.os == 'Linux'
         run: |
@@ -45,4 +76,21 @@ jobs:
             libfreetype-dev libfontconfig1-dev libgl1-mesa-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev
       - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
       - run: cmake --build build/patch --config Release --parallel
-      - run: python scripts/release/release.py --all --add-platform latest --yes
+      - name: Write the signing kit
+        shell: bash
+        env:
+          KIT: ${{ secrets.BLEEP_SIGNING_KIT }}
+        run: |
+          umask 077
+          printf '%s' "$KIT" > "$RUNNER_TEMP/signing-kit.json"
+      - name: Add the platform
+        shell: bash
+        env:
+          BLEEP_REGISTRY_URL: ${{ vars.BLEEP_REGISTRY_URL }}
+          BLEEP_RELEASE_TOKEN: ${{ secrets.BLEEP_RELEASE_TOKEN }}
+          BLEEP_SIGNING_KIT: ${{ runner.temp }}/signing-kit.json
+        run: python scripts/release/release.py --all --add-platform latest --yes
+      - name: Remove the signing kit
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/signing-kit.json"

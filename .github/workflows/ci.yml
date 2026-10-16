@@ -10,12 +10,18 @@ name: CI
 on:
   workflow_dispatch:
 
+# Nothing here writes to the repository.
+permissions:
+  contents: read
+
 jobs:
   rules:
     name: Repository rules and docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - run: python3 scripts/check/check-repo.py
       - run: python3 -m pip install cryptography
       - run: python3 -m unittest test_release test_signing test_package_module
@@ -25,7 +31,7 @@ jobs:
       - run: node patch/presets/build.mjs --check
       - run: node patch/presets/build-modules.mjs --check
       - run: python3 scripts/docs/build-docs.py --out build/docs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: docs-single-files
           path: build/docs
@@ -34,7 +40,9 @@ jobs:
     name: Website container
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - run: docker compose -f website/docker-compose.yml build
 
   bus:
@@ -45,7 +53,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - run: cmake -S bus -B build/bus -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build/bus --config Release
       - run: ctest --test-dir build/bus -C Release --output-on-failure
@@ -54,7 +64,9 @@ jobs:
     name: Patch DSP tests (Linux)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - run: cmake -S patch -B build/patch -DBLEEP_BUILD_PLUGINS=OFF
       - run: cmake --build build/patch
       - run: ctest --test-dir build/patch --output-on-failure
@@ -63,18 +75,20 @@ jobs:
     name: Bleep Play (WebAssembly)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: mymindstorm/setup-emsdk@v14
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
         with:
           version: 4.0.10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
       - run: scripts/build/build-web.sh build/web/site
       - run: node patch/web/test/graph-test.mjs build/web/site
       - run: node patch/web/test/patchbay-test.mjs
       - run: node patch/web/test/panel-wiring-test.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: bleep-board-web
           path: build/web/site
@@ -87,11 +101,13 @@ jobs:
         os: [macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release --parallel
       - run: ctest --test-dir build -C Release --output-on-failure
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: beautiful-bleep-${{ matrix.os }}
           path: |
@@ -102,16 +118,18 @@ jobs:
     name: Website
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
         working-directory: website/app
       - run: npm run build
         working-directory: website/app
       # Deployment to the Brilliant Bleep server is added once the domain is decided.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: website
           path: website/app/out
