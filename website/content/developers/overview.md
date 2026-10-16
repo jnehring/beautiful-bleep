@@ -24,7 +24,8 @@ Everything here is MIT-licensed. Pick the guide that matches what you want to bu
 |---|---|
 | **Bleep Bus** | The open protocol: [quickstart](bleep-bus/quickstart.md), [API reference](api-reference/00-overview.md), [specification](spec/v0.1/00-overview.md), [conformance](bleep-bus/conformance.md), [RFC process](bleep-bus/rfc-process.md) |
 | **Modules** | Writing, packaging and publishing a board module, and the contracts a module meets: ABI, signing, the library |
-| **Contribute** | Working on Bleep itself: [build and release](contribute/build-and-release.md), [configuration](contribute/configuration.md), the [engine ABI](contribute/engine-abi.md), and the plugins, app and web build |
+| **Developer setup** | [Install the tools](setup/overview.md) for modules, plugins, the app, Bleep Play and the website, then [build and release](setup/build-and-release.md) |
+| **Contribute** | Working on Bleep itself: [configuration](contribute/configuration.md), the [engine ABI](contribute/engine-abi.md), and the plugins, app and web build |
 
 ## How the pieces fit
 

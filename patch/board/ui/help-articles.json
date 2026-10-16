@@ -306,9 +306,21 @@
   "path": "/docs/developers/modules/publishing/"
  },
  {
+  "group": "Developer setup",
+  "title": "Developer setup",
+  "description": "Set up your computer to write modules, change the plugins, the app or Bleep Play, or work on the website: tools, one-time steps and a check that everything works.",
+  "path": "/docs/developers/setup/overview/"
+ },
+ {
+  "group": "Developer setup",
+  "title": "Build, release and upload",
+  "description": "Build and publish the standalone app, the plugins, the modules and the web board, and run the website, with copy-paste commands.",
+  "path": "/docs/developers/setup/build-and-release/"
+ },
+ {
   "group": "Contribute",
   "title": "Contribute",
-  "description": "Work on Bleep itself: the plugins, the standalone app, Bleep Play, and how to build, release and configure them.",
+  "description": "Work on Bleep itself: the plugins, the standalone app, Bleep Play, and how to configure them.",
   "path": "/docs/developers/contribute/overview/"
  },
  {
@@ -316,12 +328,6 @@
   "title": "Engine ABI",
   "description": "How Bleep plugins in one process share a single engine, and the rules for changing its interface.",
   "path": "/docs/developers/contribute/engine-abi/"
- },
- {
-  "group": "Contribute",
-  "title": "Build, release and upload",
-  "description": "Build and publish the standalone app, the plugins, the modules and the web board, and run the website, with copy-paste commands.",
-  "path": "/docs/developers/contribute/build-and-release/"
  },
  {
   "group": "Contribute",

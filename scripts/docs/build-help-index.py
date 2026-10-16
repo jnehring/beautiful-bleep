@@ -40,6 +40,7 @@ GROUPS = {  # folder under website/content -> heading, in the order of the secti
     "developers/api-reference": "API reference",
     "developers/spec": "Specification",
     "developers/modules": "Module developers",
+    "developers/setup": "Developer setup",
     "developers/contribute": "Contribute",
     "developers/plugins": "Plugin developers",
     "developers/app": "Standalone app developers",

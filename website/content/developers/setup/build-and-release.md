@@ -1,12 +1,12 @@
 ---
 title: Build, release and upload
 description: Build and publish the standalone app, the plugins, the modules and the web board, and run the website, with copy-paste commands.
-order: 40
+order: 20
 ---
 
 # Build, release and upload
 
-The commands for the things we ship: the standalone app, the plugins, the modules and the web board, plus running the website. More detail: [building the standalone app](https://github.com/brilliantbleep/bleep/blob/main/doc/operations/build-standalone-app.md), [rebuilding the Live plugins](https://github.com/brilliantbleep/bleep/blob/main/doc/operations/rebuild-live-plugins.md) and [releasing](https://github.com/brilliantbleep/bleep/blob/main/doc/operations/release.md). All commands run from the repository root (`bleep-patch/`).
+The commands for the things we ship: the standalone app, the plugins, the modules and the web board, plus running the website. More detail: [building the standalone app](https://github.com/brilliantbleep/bleep/blob/main/doc/operations/build-standalone-app.md), [rebuilding the Live plugins](https://github.com/brilliantbleep/bleep/blob/main/doc/operations/rebuild-live-plugins.md) and [releasing](https://github.com/brilliantbleep/bleep/blob/main/doc/operations/release.md). All commands run from the repository root (`bleep-patch/`). Install the tools first: [Developer setup](overview.md).
 
 "Release" and "upload" are one step: `scripts/release/release.py` zips the build, signs it, uploads it to the library and publishes it. Versions are immutable, so a fix is a new version.
 
@@ -18,6 +18,7 @@ The commands for the things we ship: the standalone app, the plugins, the module
 - [Plugins](#plugins-vst3)
 - [Modules](#modules)
 - [Web board](#web-board)
+- [Rebuild Bleep Play in the running website](#rebuild-bleep-play-in-the-running-website)
 - [Website (dev and production)](#website-dev-and-production)
 
 ## One-time setup (all three)
@@ -164,7 +165,7 @@ The per-module cache is in `build/web/modules/.cache`. Use one method (local or 
 
 **Skip the tests:** none of the module steps (`build-web.sh`, `package-module.py`, `release.py --modules`) run a test suite, so there is nothing to skip. Packaging does check each `.wasm` against the module ABI, and that check can't be turned off.
 
-Package (checks each `.wasm` against `website/content/developers/reference/module-abi.md`, writes reproducible zips to `build/library/modules/`):
+Package (checks each `.wasm` against `website/content/developers/modules/module-abi.md`, writes reproducible zips to `build/library/modules/`):
 
 ```bash
 # every module with a built .wasm
@@ -201,6 +202,28 @@ python3 -m http.server -d build/web/site 8000
 ```
 
 The website is deployed by rebuilding its containers (see [website.md](https://github.com/brilliantbleep/bleep/blob/main/doc/operations/website.md)); deploying from CI is not set up yet. A change to the board UI needs a website deploy; a change to a module needs only the module release.
+
+## Rebuild Bleep Play in the running website
+
+`build-web.sh` writes the board UI to `build/web/site` and nothing more: a website that is already running does not see it. Its `/play/` files come from inside the website stack, so what you do depends on how the stack runs. Either way, only the board UI and the web engine (`patch/board`, `patch/web`) are involved. Modules are not part of the site; they come from the library.
+
+**Dev stack** (`docker-compose.dev.yml`, see [below](#website-dev-and-production)). The one-shot `play` service runs `build-web.sh --no-modules` itself and copies the result into `website/app/public/play`, which `next dev` serves. You do not need to run `build-web.sh` first. With the stack up:
+
+```bash
+docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env run --rm play
+```
+
+Reload http://localhost:8080/play/ (hard reload if the old UI stays).
+
+**Production stack** (`run-website.sh`). The site container is read-only and its files are baked into the image, so copying `build/web/site` into it does not work (and would be lost on the next restart). The image build runs `build-web.sh --no-modules` itself; rebuild the image and recreate the container:
+
+```bash
+scripts/run/run-website.sh up
+```
+
+Only the changed layers run again; the database and the library keep their data. Then open http://localhost:8080/play/.
+
+If you ran `build-web.sh` only to check the result (`python3 -m http.server -d build/web/site 8000`), that is a separate preview and has no effect on either stack.
 
 ## Website (dev and production)
 
