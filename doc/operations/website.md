@@ -15,7 +15,7 @@ Edit `website/.env`:
 | `POSTGRES_PASSWORD` | Required. Password of the database user |
 | `BLEEP_ADMIN_EMAIL`, `BLEEP_ADMIN_PASSWORD` | The first admin, created when the API starts if no user has that email. The password needs 10 to 128 characters |
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY` | Required secret for the store storage; the API writes releases with it |
-| `BLEEP_COOKIE_SECURE` | `false` for plain `http://localhost`; `true` when the site is served over HTTPS |
+| `BLEEP_COOKIE_SECURE` | defaults to `true` (HTTPS); set `false` only for plain `http://localhost` development |
 | `BLEEP_SITE_PORT` | Optional, default 8080 |
 | `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY`, `BLEEP_ISSUER_CERT` | The store's signing keys (see [Signing keys](#signing-keys)). Without the root public key the store refuses every release |
 | `BLEEP_REQUIRE_SIGNATURES` | Default `true`: a release without a valid developer signature is refused. Only turn it off for local experiments |
@@ -181,5 +181,6 @@ If you only have an old kit and lost the `.env`, you cannot recover the issuer k
 - **Database password is fixed at first start.** Postgres keeps the password it was created with in the `db-data` volume. If you change `POSTGRES_PASSWORD` later, either change it inside Postgres or delete the volume: `docker compose down -v` (this deletes all accounts).
 - **Back up the database** with `docker compose exec db pg_dump -U bleep bleep > backup.sql`.
 - **Updates:** `git pull && scripts/run/run-website.sh`. The API applies database migrations when it starts.
+- **Security headers:** the Caddyfile sends a CSP (pages: same-origin plus inline script/style for Next's export; `/registry/*`: `default-src 'none'; sandbox`), HSTS, `nosniff`, `X-Frame-Options: DENY`, a Referrer-Policy and a Permissions-Policy. Bleep Play's origin list (`ws://127.0.0.1:*` for the app bridge, `'wasm-unsafe-eval'` for the modules) is in the CSP: extend it there if the page needs another origin. `Caddyfile.dev` has none (`next dev` needs `eval`).
 - **HTTPS:** the Caddyfile serves plain HTTP on port 80. For a public site put TLS in front (or change the site address in the Caddyfile so Caddy gets a certificate) and set `BLEEP_COOKIE_SECURE=true`.
 - There is no login rate limiting, email verification or password reset yet.

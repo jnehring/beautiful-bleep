@@ -1,8 +1,31 @@
 # SPDX-License-Identifier: MIT
 # Serves the static export of website/app.
+# Plain HTTP on :80 on purpose: TLS ends in front of this container (a load balancer or reverse proxy). Serve the site only
+# over HTTPS, and set BLEEP_COOKIE_SECURE=true for the API.
 :80 {
 	root * /srv
 	encode zstd gzip
+
+	# Security headers on every response.
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), geolocation=(), payment=(), usb=()"
+		# Only honoured by browsers when the site was reached over HTTPS.
+		Strict-Transport-Security "max-age=31536000"
+		# Nobody frames the site (clickjacking on /device/ and /account).
+		X-Frame-Options "DENY"
+	}
+
+	# The pages: no framing, no plugins, no <base>, forms and scripts from here. Next's static export writes inline scripts and
+	# styles, so those need 'unsafe-inline'; wasm-unsafe-eval is for Bleep Play compiling the signed modules; ws://127.0.0.1 is its
+	# bridge to the Bleep App on the same computer.
+	@pages not path /registry/*
+	header @pages Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+
+	# Store files are data, never pages: whatever a release uploaded cannot run script in the site's origin (it shares the session cookie's origin).
+	@registry path /registry/*
+	header @registry Content-Security-Policy "default-src 'none'; sandbox"
 
 	# Single-file docs and llms.txt are plain text for humans and coding assistants.
 	@markdown path *.md

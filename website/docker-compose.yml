@@ -28,8 +28,8 @@ services:
     image: beautiful-bleep-api:latest
     environment:
       BLEEP_DATABASE_URL: postgresql+psycopg://bleep:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in website/.env}@db:5432/bleep
-      # Secure cookies need HTTPS. Plain http://localhost needs false; set true behind TLS.
-      BLEEP_COOKIE_SECURE: ${BLEEP_COOKIE_SECURE:-false}
+      # Secure cookies need HTTPS: the default is on. Plain http://localhost development sets BLEEP_COOKIE_SECURE=false in website/.env.
+      BLEEP_COOKIE_SECURE: ${BLEEP_COOKIE_SECURE:-true}
       BLEEP_ADMIN_EMAIL: ${BLEEP_ADMIN_EMAIL:-}
       BLEEP_ADMIN_PASSWORD: ${BLEEP_ADMIN_PASSWORD:-}
       # Outgoing email (registration confirmation, password reset). Without BLEEP_SMTP_HOST the messages are only logged.
