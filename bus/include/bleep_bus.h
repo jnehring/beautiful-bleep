@@ -36,6 +36,10 @@
  *  [non-RT]  May lock, allocate or block for a short time. MUST NOT be called
  *            from the audio thread.
  *  An endpoint's [RT] functions MUST be called from one thread at a time.
+ *  bb_add_output / bb_add_input publish the new port to the audio thread with
+ *  release/acquire ordering, so adding ports while audio runs is safe. There
+ *  is no safe removal: bb_unregister_instance (which frees the ports) MUST NOT
+ *  overlap any [RT] call on that endpoint; stop audio processing first.
  *
  * ---------------------------------------------------------------------------
  * Minimal sender

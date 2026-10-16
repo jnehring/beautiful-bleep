@@ -145,6 +145,7 @@ struct bb_bus {
 struct bb_output {
     bb_endpoint* ep;
     uint32_t index;
+    uint32_t incarnation;   /* shm record incarnation this handle was allocated with */
     int written;            /* written during the current block */
 };
 
@@ -173,10 +174,14 @@ struct bb_endpoint {
     bb_block_state cur;
     bb_block_state prev;
     int in_block;
+    /* Port arrays are read by the audio thread without a lock. Writers store
+     * the pointer, then publish the count with release semantics; readers load
+     * the count with acquire semantics. Removal is not supported while audio
+     * runs (see bleep_bus.h). */
     bb_output* outputs[BB_MAX_PORTS_PER_ENDPOINT];
-    uint32_t num_outputs;
+    uint32_t num_outputs;   /* atomic (bb_load32/bb_store32) */
     bb_input* inputs[BB_MAX_PORTS_PER_ENDPOINT];
-    uint32_t num_inputs;
+    uint32_t num_inputs;    /* atomic (bb_load32/bb_store32) */
 };
 
 static const float bb_zeros[BB_MAX_BLOCK_SAMPLES];
@@ -328,9 +333,12 @@ bb_bus* bb_bus_open(uint32_t spec_version, const char* bus_namespace, bb_error* 
     }
     bus->shm = shm;
     bus->hdr = hdr;
-    bus->endpoints = (bb_shm_endpoint*)((char*)shm.base + hdr->endpoints_offset);
-    bus->inputs = (bb_shm_input*)((char*)shm.base + hdr->inputs_offset);
-    bus->outputs = (bb_shm_output*)((char*)shm.base + hdr->outputs_offset);
+    /* Use the compile-time layout constants, not hdr->*_offset: bb_check_header
+     * validated those values, but a hostile peer could rewrite them in shared
+     * memory between the check and now (double fetch). */
+    bus->endpoints = (bb_shm_endpoint*)((char*)shm.base + BB_LAYOUT_ENDPOINTS_OFFSET);
+    bus->inputs = (bb_shm_input*)((char*)shm.base + BB_LAYOUT_INPUTS_OFFSET);
+    bus->outputs = (bb_shm_output*)((char*)shm.base + BB_LAYOUT_OUTPUTS_OFFSET);
     bus->pid = bb_platform_pid();
     memcpy(bus->ns, ns, strlen(ns) + 1);
     bb_set_err(err, BB_OK);
@@ -636,7 +644,7 @@ bb_output* bb_add_output(bb_endpoint* ep, const char* name, bb_signal_type type,
     bb_store64(&rec->endpoint_uid, ep->uid);
     rec->name_hash = bb_fnv1a64(name);
     bb_store64(&rec->blocks_written, 0);
-    bb_inc32(&rec->incarnation);
+    uint32_t incarnation = bb_inc32(&rec->incarnation);
     rec->signal_type = (uint32_t)type;
     rec->polarity = (uint32_t)polarity;
     bb_copy_display(rec->name, sizeof(rec->name), name);
@@ -646,7 +654,13 @@ bb_output* bb_add_output(bb_endpoint* ep, const char* name, bb_signal_type type,
 
     out->ep = ep;
     out->index = (uint32_t)index;
-    ep->outputs[ep->num_outputs++] = out;
+    out->incarnation = incarnation;
+    {
+        uint32_t n = ep->num_outputs; /* only mutated by the (single) control thread */
+        ep->outputs[n] = out;
+        bb_fence_release();
+        bb_store32(&ep->num_outputs, n + 1u); /* publish the pointer before the count */
+    }
     bb_set_err(err, BB_OK);
     return out;
 }
@@ -711,7 +725,12 @@ bb_input* bb_add_input(bb_endpoint* ep, const char* name, bb_signal_type type, b
     in->index = (uint32_t)index;
     in->cached_seq = 1u; /* odd: forces the first identity load */
     for (uint32_t c = 0; c < BB_MAX_CONNECTIONS_PER_INPUT; ++c) in->cache[c].out_index = -1;
-    ep->inputs[ep->num_inputs++] = in;
+    {
+        uint32_t n = ep->num_inputs;
+        ep->inputs[n] = in;
+        bb_fence_release();
+        bb_store32(&ep->num_inputs, n + 1u);
+    }
     bb_set_err(err, BB_OK);
     return in;
 }
@@ -719,6 +738,12 @@ bb_input* bb_add_input(bb_endpoint* ep, const char* name, bb_signal_type type, b
 /* ========================================================================
  * 4. Audio thread (RT: no locks, no allocation)
  * ===================================================================== */
+
+/* Lock-free variant of bb_owns_record_locked for the audio thread. */
+static int bb_owns_endpoint(const bb_endpoint* ep) {
+    const bb_shm_endpoint* rec = &ep->bus->endpoints[ep->index];
+    return bb_load32(&rec->state) == BB_SLOT_ACTIVE && bb_load64(&rec->uid) == ep->uid;
+}
 
 void bb_begin_block(bb_endpoint* ep, const bb_block_info* info) {
     if (!ep || !info) return;
@@ -731,14 +756,21 @@ void bb_begin_block(bb_endpoint* ep, const bb_block_info* info) {
     ep->cur.sample_rate = info->sample_rate;
     ep->cur.time_ns = info->host_time_ns ? info->host_time_ns : bb_platform_now_ns();
     ep->in_block = 1;
-    for (uint32_t i = 0; i < ep->num_outputs; ++i) ep->outputs[i]->written = 0;
-    bb_store64(&ep->bus->endpoints[ep->index].last_block_ns, ep->cur.time_ns);
+    uint32_t nout = bb_load32(&ep->num_outputs);
+    for (uint32_t i = 0; i < nout; ++i) ep->outputs[i]->written = 0;
+    if (bb_owns_endpoint(ep)) bb_store64(&ep->bus->endpoints[ep->index].last_block_ns, ep->cur.time_ns);
 }
 
 void bb_write_output(bb_output* out, const float* samples, uint32_t num_samples) {
     if (!out || !out->ep->in_block) return;
     bb_endpoint* ep = out->ep;
     bb_shm_output* rec = &ep->bus->outputs[out->index];
+    /* The record may have been reaped and reallocated to another endpoint (or
+     * rewritten by a hostile peer): writing then would put two writers on one
+     * seqlock. Verify ownership first and fail quietly. */
+    if (bb_load32(&rec->state) != BB_SLOT_ACTIVE || bb_load64(&rec->endpoint_uid) != ep->uid ||
+        bb_load32(&rec->incarnation) != out->incarnation)
+        return;
     uint32_t n = ep->cur.num_samples;
     if (num_samples < n) n = num_samples;
 
@@ -771,7 +803,8 @@ void bb_write_output(bb_output* out, const float* samples, uint32_t num_samples)
 
 void bb_end_block(bb_endpoint* ep) {
     if (!ep || !ep->in_block) return;
-    for (uint32_t i = 0; i < ep->num_outputs; ++i) {
+    uint32_t nout = bb_load32(&ep->num_outputs);
+    for (uint32_t i = 0; i < nout; ++i) {
         bb_output* out = ep->outputs[i];
         if (!out->written) bb_write_output(out, bb_zeros, ep->cur.num_samples);
     }
@@ -1071,6 +1104,7 @@ uint32_t bb_list_outputs(bb_bus* bus, bb_output_info* dest, uint32_t capacity) {
     for (uint32_t i = 0; i < BB_MAX_OUTPUTS; ++i) {
         const bb_shm_output* o = &bus->outputs[i];
         if (bb_load32(&o->state) != BB_SLOT_ACTIVE) continue;
+        if (o->endpoint_index >= BB_MAX_ENDPOINTS) continue; /* hostile/corrupt record */
         if (dest && count < capacity) {
             bb_output_info* d = &dest[count];
             const bb_shm_endpoint* e = &bus->endpoints[o->endpoint_index];

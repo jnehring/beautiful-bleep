@@ -1022,6 +1022,130 @@ static void check_hostile_values(void) {
 }
 
 /* A peer that dies at seq-odd must not leave the cable table unreadable. */
+static bb_shm_output* raw_find_output(raw_map* m, uint64_t uid, const char* name) {
+    bb_shm_output* t = (bb_shm_output*)((char*)m->base + BB_LAYOUT_OUTPUTS_OFFSET);
+    for (uint32_t i = 0; i < BB_MAX_OUTPUTS; ++i)
+        if (t[i].state == BB_SLOT_ACTIVE && t[i].endpoint_uid == uid && strncmp(t[i].name, name, BB_PORT_NAME_BYTES) == 0)
+            return &t[i];
+    return NULL;
+}
+
+/* Table offsets are validated once at open; rewriting them afterwards must
+ * not move the library's pointers (double fetch). */
+static void check_hostile_offsets_after_open(void) {
+    pair p;
+    CHECK(make_pair(&p, 1.0f));
+    raw_map m;
+    CHECK(raw_open(g_ns, 0, &m));
+    if (g_current_failed || !m.base) {
+        free_pair(&p);
+        return;
+    }
+    bb_shm_header* h = (bb_shm_header*)m.base;
+    uint64_t eo = h->endpoints_offset, io = h->inputs_offset, oo = h->outputs_offset;
+    h->endpoints_offset = 0xfffffff0u;
+    h->inputs_offset = 0x7fffffffffffull;
+    h->outputs_offset = 8;
+    bb_error err = BB_OK;
+    CHECK(bb_bus_open(BB_SPEC_VERSION, g_ns, &err) == NULL); /* a fresh open rejects it ... */
+    CHECK_EQ_INT(err, BB_ERR_CORRUPT);
+    /* ... while the already-open handle keeps working. */
+    const uint32_t n = 128;
+    uint64_t t = 1000000000ull;
+    int64_t pos = 0;
+    for (int c = 0; c < 3; ++c, pos += n, t += 2666666ull) {
+        write_block(p.writer, p.out, pos, n, 1, t, 0.5f);
+        float first = read_block(p.reader, p.in, pos, n, 1, t, NULL, NULL);
+        if (c > 0) CHECK_NEAR(first, 0.5, 0.0);
+    }
+    CHECK(bb_list_outputs(p.bus, NULL, 0) >= 1);
+    h->endpoints_offset = eo;
+    h->inputs_offset = io;
+    h->outputs_offset = oo;
+    raw_close(&m);
+    free_pair(&p);
+}
+
+/* An output record whose endpoint_index is out of range is skipped, not used
+ * as an index. */
+static void check_hostile_endpoint_index(void) {
+    pair p;
+    CHECK(make_pair(&p, 1.0f));
+    raw_map m;
+    CHECK(raw_open(g_ns, 0, &m));
+    if (g_current_failed || !m.base) {
+        free_pair(&p);
+        return;
+    }
+    bb_shm_output* rec = raw_find_output(&m, bb_endpoint_uid(p.writer), "out");
+    CHECK(rec != NULL);
+    if (rec) {
+        uint32_t before = bb_list_outputs(p.bus, NULL, 0);
+        uint32_t saved = rec->endpoint_index;
+        rec->endpoint_index = 0xffffffffu;
+        bb_output_info oi[BB_MAX_OUTPUTS];
+        uint32_t n = bb_list_outputs(p.bus, oi, BB_MAX_OUTPUTS);
+        CHECK_EQ_INT(n, before - 1);
+        rec->endpoint_index = BB_MAX_ENDPOINTS;
+        n = bb_list_outputs(p.bus, oi, BB_MAX_OUTPUTS);
+        CHECK_EQ_INT(n, before - 1);
+        (void)bb_list_endpoints(p.bus, NULL, 0);
+        rec->endpoint_index = saved;
+        CHECK_EQ_INT(bb_list_outputs(p.bus, NULL, 0), before);
+    }
+    raw_close(&m);
+    free_pair(&p);
+}
+
+/* If another endpoint now owns the writer's output record (reaped and
+ * reallocated, or claimed by a hostile peer) the old writer must not touch
+ * the slot: two writers would break the seqlock. */
+static void check_output_ownership(void) {
+    pair p;
+    CHECK(make_pair(&p, 1.0f));
+    raw_map m;
+    CHECK(raw_open(g_ns, 0, &m));
+    if (g_current_failed || !m.base) {
+        free_pair(&p);
+        return;
+    }
+    bb_shm_output* rec = raw_find_output(&m, bb_endpoint_uid(p.writer), "out");
+    CHECK(rec != NULL);
+    if (rec) {
+        const uint32_t n = 64;
+        uint64_t t = 1000000000ull;
+        int64_t pos = 0;
+        write_block(p.writer, p.out, pos, n, 1, t, 0.25f);
+        uint64_t written = rec->blocks_written;
+        CHECK(written >= 1);
+
+        uint64_t uid = rec->endpoint_uid;
+        rec->endpoint_uid = uid ^ 0x1234ull; /* someone else's output now */
+        for (int c = 1; c <= 3; ++c) write_block(p.writer, p.out, pos + c * n, n, 1, t + c * 1333333ull, 0.75f);
+        CHECK_EQ_INT(rec->blocks_written, written);
+        for (uint32_t i = 0; i < BB_OUTPUT_SLOTS; ++i)
+            CHECK(rec->slots[i].samples[0] != 0.75f);
+        rec->endpoint_uid = uid;
+
+        uint32_t inc = rec->incarnation;
+        rec->incarnation = inc + 1u; /* record was reallocated */
+        write_block(p.writer, p.out, pos + 4 * n, n, 1, t + 4 * 1333333ull, 0.75f);
+        CHECK_EQ_INT(rec->blocks_written, written);
+        rec->incarnation = inc;
+
+        uint32_t st = rec->state;
+        rec->state = BB_SLOT_FREE;
+        write_block(p.writer, p.out, pos + 5 * n, n, 1, t + 5 * 1333333ull, 0.75f);
+        CHECK_EQ_INT(rec->blocks_written, written);
+        rec->state = st;
+
+        write_block(p.writer, p.out, pos + 6 * n, n, 1, t + 6 * 1333333ull, 0.75f); /* ownership restored */
+        CHECK(rec->blocks_written > written);
+    }
+    raw_close(&m);
+    free_pair(&p);
+}
+
 static void check_seq_odd_recovery(void) {
     pair p;
     CHECK(make_pair(&p, 1.0f));
@@ -1343,6 +1467,9 @@ static int mode_run(const char* ns_arg) {
     run_check("patching: cables edited from another handle", check_cross_handle_patching);
     run_check("hostile peer: NaN/Inf values and unterminated names", check_hostile_values);
     run_check("hostile peer: odd seqlock left by a dead writer", check_seq_odd_recovery);
+    run_check("hostile peer: table offsets rewritten after open", check_hostile_offsets_after_open);
+    run_check("hostile peer: out-of-range endpoint_index", check_hostile_endpoint_index);
+    run_check("hostile peer: two writers claiming one output", check_output_ownership);
 #if BB_HAVE_POSIX
     run_check("open: a crashed initializer is recovered", check_init_crash_recovery);
     run_check("timing: real threads in random order", check_latency_threads);

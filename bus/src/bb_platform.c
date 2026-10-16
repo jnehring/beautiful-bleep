@@ -167,7 +167,10 @@ uint64_t bb_platform_now_ns(void) {
 uint32_t bb_platform_pid(void) { return (uint32_t)getpid(); }
 
 int bb_platform_pid_alive(uint32_t pid) {
-    if (pid == 0) return 0;
+    /* pid 0 / a negative pid_t would probe our process group or every process;
+     * values above INT32_MAX cannot be real PIDs. Such records are invalid,
+     * never probe them. */
+    if (pid == 0 || pid > 0x7fffffffu) return 0;
     if (kill((pid_t)pid, 0) == 0) return 1;
     return errno == EPERM; /* exists, owned by someone else */
 }
