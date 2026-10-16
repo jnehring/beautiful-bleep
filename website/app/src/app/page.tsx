@@ -42,6 +42,7 @@ export default function Home() {
           <h3><a href="/docs/musicians/overview/">For musicians</a></h3>
           <p>Install, make a first sound, learn to patch, connect plugin, app and browser.</p>
           <ul>
+            <li><a href="/board/">Play</a></li>
             <li><a href="/docs/musicians/start/first-sound/">Your first sound</a></li>
             <li><a href="/docs/musicians/learn/first-patch/">Your first patch</a></li>
           </ul>
@@ -50,7 +51,7 @@ export default function Home() {
           <h3><a href="/docs/developers/overview/">For developers</a></h3>
           <p>
             The cables run on <strong>Bleep Bus</strong>, an open, MIT-licensed protocol with a C SDK, a conformance suite and a public
-            specification. Anyone can build plugins that send or receive bus signals, or write modules for the board.
+            specification. Anyone can build modules.
           </p>
           <ul>
             <li><a href="/docs/developers/bleep-bus/quickstart/">Bleep Bus quickstart</a></li>
