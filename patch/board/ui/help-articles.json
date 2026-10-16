@@ -298,5 +298,11 @@
   "title": "Engine ABI",
   "description": "How Bleep plugins in one process share a single engine, and the rules for changing its interface.",
   "path": "/docs/developers/reference/engine-abi/"
+ },
+ {
+  "group": "Reference",
+  "title": "Configuration (.env)",
+  "description": "Every setting in website/.env: what it does, its default, and what a production installation needs.",
+  "path": "/docs/developers/reference/configuration/"
  }
 ]
