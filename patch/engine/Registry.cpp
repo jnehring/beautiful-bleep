@@ -73,11 +73,13 @@ Registry::Registry() {
     in.name = "Cell In";
     in.category = "Cells";
     in.colour = "#9aa3b5";
+    in.description = "The cell's input: what you patch into this jack of the cell arrives here, inside.";
     in.userCreatable = true;  // inside a cell, as many as you like (the UI offers them there only)
     add(in, nullptr);
     ModuleSpec out = in;
     out.type = kCellOut;
     out.name = "Cell Out";
+    out.description = "The cell's output: what you patch into this jack leaves the cell through a jack of the same name.";
     add(out, nullptr);
 
     // Voice Cells (spec §8.3). The cell's jacks: Notes, Out L/R, plus its shared jacks.
