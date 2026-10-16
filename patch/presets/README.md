@@ -17,6 +17,12 @@ ctest --test-dir build/patch -R factory   # the engine loads every preset withou
 ctest --test-dir build/patch -R demo      # every demo board loads and makes sound
 ```
 
+## Cables into a VCA's Gain
+
+The VCA's Gain knob runs 0 – 400 %, and a cable amount is a share of a knob's whole range. Presets are written as if the
+knob still ended at unity: the builder (`kit.mjs`, `cable()`) scales every amount into a VCA's *Gain* by `VCA_GAIN_SHARE`
+(0.25), so `p.cable(env, "env", amp, "gain")` still opens the VCA exactly to 100 %. Write amounts as "share of unity".
+
 ## Module presets
 
 The third kind: presets of **one module**, shown as the preset bar in that module's view (*Factory* and *User*;

@@ -1131,7 +1131,7 @@
     "name": "VCA",
     "category": "Audio/Mixing",
     "colour": "#fb7185",
-    "description": "Stereo amplifier. Patch an envelope into Gain; Gain starts at 0, so the envelope opens it fully.",
+    "description": "Stereo amplifier. Patch an envelope into Gain; Gain starts at 0 and goes up to 400 %.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -1145,7 +1145,7 @@
         "modulatable": true,
         "cableable": false,
         "min": 0.0,
-        "max": 1.0,
+        "max": 4.0,
         "def": 0.0,
         "format": "percent",
         "decimals": 2
@@ -1165,25 +1165,6 @@
         "min": 0.0,
         "max": 1.0,
         "def": 1.0,
-        "format": "choice",
-        "decimals": 2
-      },
-      {
-        "id": "range",
-        "name": "Range",
-        "kind": "choice",
-        "default": 0.0,
-        "steps": 3,
-        "modulatable": false,
-        "cableable": false,
-        "choices": [
-          "100 %",
-          "200 %",
-          "400 %"
-        ],
-        "min": 0.0,
-        "max": 2.0,
-        "def": 0.0,
         "format": "choice",
         "decimals": 2
       }
@@ -1384,6 +1365,20 @@
         "max": 1.0,
         "def": 0.800000011920929,
         "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "note",
+        "name": "Note",
+        "kind": "int",
+        "default": 0.472440958023071,
+        "steps": 128,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 127.0,
+        "def": 60.0,
+        "format": "integer",
         "decimals": 2
       }
     ],
@@ -8367,7 +8362,7 @@
         "default": 0.086956523358822,
         "steps": 24,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Unison",
           "Fifth",
@@ -8412,7 +8407,7 @@
         "default": 0.222222223877907,
         "steps": 10,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Single",
           "Fifth",
@@ -8457,7 +8452,7 @@
         "default": 0.0,
         "steps": 6,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Close",
           "Drop 2",
@@ -8796,7 +8791,7 @@
         "default": 0.086956523358822,
         "steps": 24,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Unison",
           "Fifth",
@@ -8841,7 +8836,7 @@
         "default": 0.222222223877907,
         "steps": 10,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Single",
           "Fifth",
@@ -10776,6 +10771,20 @@
         "max": 1.0,
         "def": 0.0,
         "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "link",
+        "name": "Link L/R",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
         "decimals": 2
       }
     ],
@@ -15588,7 +15597,7 @@
         "default": 0.0,
         "steps": 16,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "VA Pair",
           "Fold",
@@ -19432,7 +19441,7 @@
         "default": 0.5,
         "steps": 3,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "FM",
           "Modal",
@@ -22773,7 +22782,7 @@
         "default": 0.0,
         "steps": 4,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Coin",
           "Chance",
@@ -26288,7 +26297,7 @@
         "default": 0.0,
         "steps": 104,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Click",
           "Snap",
@@ -28320,7 +28329,7 @@
         "default": 0.25,
         "steps": 33,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "Unison",
           "Octaves",
@@ -29759,20 +29768,6 @@
         "decimals": 2
       },
       {
-        "id": "startstop",
-        "name": "Link Start/Stop",
-        "kind": "bool",
-        "default": 1.0,
-        "steps": 2,
-        "modulatable": false,
-        "cableable": false,
-        "min": 0.0,
-        "max": 1.0,
-        "def": 1.0,
-        "format": "toggle",
-        "decimals": 2
-      },
-      {
         "id": "midiin",
         "name": "MIDI Clock In",
         "kind": "bool",
@@ -29843,8 +29838,13 @@
     ],
     "buttons": [
       {
-        "id": "playstop",
-        "name": "Play / Stop",
+        "id": "play",
+        "name": "Play",
+        "momentary": false
+      },
+      {
+        "id": "stop",
+        "name": "Stop",
         "momentary": false
       },
       {
@@ -31009,7 +31009,7 @@
         "default": 0.090909093618393,
         "steps": 12,
         "modulatable": true,
-        "cableable": false,
+        "cableable": true,
         "choices": [
           "User",
           "Analog",

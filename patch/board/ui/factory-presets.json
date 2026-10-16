@@ -106,7 +106,7 @@
           {"id":"v_k12","from":{"node":"v_vi","jack":"velocity"},"to":{"node":"v_adsr2","jack":"velocity"},"amount":1},
           {"id":"v_k13","from":{"node":"v_filter","jack":"l"},"to":{"node":"v_vca","jack":"l"},"amount":1},
           {"id":"v_k14","from":{"node":"v_filter","jack":"r"},"to":{"node":"v_vca","jack":"r"},"amount":1},
-          {"id":"v_k15","from":{"node":"v_adsr2","jack":"env"},"to":{"node":"v_vca","jack":"gain"},"amount":1},
+          {"id":"v_k15","from":{"node":"v_adsr2","jack":"env"},"to":{"node":"v_vca","jack":"gain"},"amount":0.25},
           {"id":"v_k16","from":{"node":"v_adsr2","jack":"active"},"to":{"node":"v_vo","jack":"active"},"amount":1},
           {"id":"v_k17","from":{"node":"v_vca","jack":"l"},"to":{"node":"v_vo","jack":"l"},"amount":1},
           {"id":"v_k18","from":{"node":"v_vca","jack":"r"},"to":{"node":"v_vo","jack":"r"},"amount":1},
@@ -225,7 +225,7 @@
           {"id":"k8","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k10","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -267,7 +267,7 @@
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -310,7 +310,7 @@
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k15","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -348,7 +348,7 @@
           {"id":"k7","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k8","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k9","from":{"node":"dualos","jack":"a"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k10","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k10","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k11","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k12","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -391,7 +391,7 @@
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k15","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -430,7 +430,7 @@
           {"id":"k8","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k9","from":{"node":"forman","jack":"outL"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k10","from":{"node":"forman","jack":"outR"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -469,7 +469,7 @@
           {"id":"k8","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"macroo","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -507,7 +507,7 @@
           {"id":"k7","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k9","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k11","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k12","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -551,7 +551,7 @@
           {"id":"k12","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -589,7 +589,7 @@
           {"id":"k7","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k9","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k11","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k12","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -631,7 +631,7 @@
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -670,7 +670,7 @@
           {"id":"k8","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"macroo","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -715,7 +715,7 @@
           {"id":"k13","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k16","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k16","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k17","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k19","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -759,7 +759,7 @@
           {"id":"k12","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -801,7 +801,7 @@
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -842,7 +842,7 @@
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"forman","jack":"outL"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"forman","jack":"outR"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -885,7 +885,7 @@
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k14","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k15","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -971,7 +971,7 @@
           {"id":"k17","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k18","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k19","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k20","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k20","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k21","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k22","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k23","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1018,7 +1018,7 @@
           {"id":"k13","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k16","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k16","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k17","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k19","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1063,7 +1063,7 @@
           {"id":"k12","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1103,7 +1103,7 @@
           {"id":"k8","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"macroo","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1149,7 +1149,7 @@
           {"id":"k13","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k16","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k16","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k17","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k19","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1190,7 +1190,7 @@
           {"id":"k9","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"macroo","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k12","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k12","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k13","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1230,7 +1230,7 @@
           {"id":"k8","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k10","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1267,7 +1267,7 @@
           {"id":"k5","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k6","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k7","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k9","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k10","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1311,7 +1311,7 @@
           {"id":"k12","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1338,7 +1338,7 @@
           {"id":"noise","type":"noise","name":"Noise","x":340,"y":260,"parent":"root","params":{"colour":0.4,"level":1}},
           {"id":"filter","type":"filter","name":"Breath Band","x":640,"y":260,"parent":"root","params":{"cutoff":0.372424,"resonance":0.75,"keytrack":1,"type":0.041667}},
           {"id":"lfo","type":"lfo","name":"Vibrato","x":340,"y":480,"parent":"root","params":{"rate":0.724862,"fade":0.467517}},
-          {"id":"vca","type":"vca","name":"Breath Level","x":940,"y":480,"parent":"root","params":{"gain":0.35}},
+          {"id":"vca","type":"vca","name":"Breath Level","x":940,"y":480,"parent":"root","params":{"gain":0.0875}},
           {"id":"filter2","type":"filter","name":"Tone LP","x":640,"y":40,"parent":"root","params":{"cutoff":0.747679,"resonance":0.1,"keytrack":0.4,"type":0.208333}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":940,"y":40,"parent":"root","params":{"attack":0.424589,"decay":0.469903,"sustain":0.9,"release":0.420385,"velamount":0.4}},
           {"id":"vca2","type":"vca","name":"VCA","x":1240,"y":40,"parent":"root","params":{}}
@@ -1349,8 +1349,8 @@
           {"id":"k3","from":{"node":"noise","jack":"pink"},"to":{"node":"filter","jack":"l"},"amount":1},
           {"id":"k4","from":{"node":"vi","jack":"pitch"},"to":{"node":"filter","jack":"pitch"},"amount":1},
           {"id":"k5","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k6","from":{"node":"vi","jack":"pressure"},"to":{"node":"vca","jack":"gain"},"amount":0.4},
-          {"id":"k7","from":{"node":"ci","jack":"breath"},"to":{"node":"vca","jack":"gain"},"amount":0.5},
+          {"id":"k6","from":{"node":"vi","jack":"pressure"},"to":{"node":"vca","jack":"gain"},"amount":0.1},
+          {"id":"k7","from":{"node":"ci","jack":"breath"},"to":{"node":"vca","jack":"gain"},"amount":0.125},
           {"id":"k8","from":{"node":"oscill","jack":"out"},"to":{"node":"filter2","jack":"l"},"amount":0.6},
           {"id":"k9","from":{"node":"vca","jack":"l"},"to":{"node":"filter2","jack":"l"},"amount":0.6},
           {"id":"k10","from":{"node":"vi","jack":"pitch"},"to":{"node":"filter2","jack":"pitch"},"amount":1},
@@ -1359,7 +1359,7 @@
           {"id":"k13","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k14","from":{"node":"filter2","jack":"l"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"filter2","jack":"r"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k16","from":{"node":"adsr","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k16","from":{"node":"adsr","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k17","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k18","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k19","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1408,7 +1408,7 @@
           {"id":"k15","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k16","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k17","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k18","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k18","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k19","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k20","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k21","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1451,7 +1451,7 @@
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k14","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k14","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k15","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1490,7 +1490,7 @@
           {"id":"k8","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k9","from":{"node":"additi","jack":"outL"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k10","from":{"node":"additi","jack":"outR"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1531,7 +1531,7 @@
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k13","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1573,7 +1573,7 @@
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k13","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1618,7 +1618,7 @@
           {"id":"k12","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k13","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1660,7 +1660,7 @@
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1737,7 +1737,7 @@
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"filter2","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"filter2","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k14","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k14","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k15","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1763,7 +1763,7 @@
           {"id":"noise","type":"noise","name":"Noise","x":340,"y":40,"parent":"root","params":{"colour":0.35}},
           {"id":"organi","type":"organic-lfos","name":"Organic LFOs","x":340,"y":260,"parent":"root","params":{"rate":0.468765,"spread":0.85,"drift":0.6}},
           {"id":"dualfi","type":"dual-filter","name":"Dual Filter","x":640,"y":40,"parent":"root","params":{"cutoff":0.372219,"spread":0.6,"res1":0.85,"res2":0.8,"mode1":0.333,"mode2":0.333,"keyTrack":1,"routing":0.333333}},
-          {"id":"vca","type":"vca","name":"Gusts","x":940,"y":40,"parent":"root","params":{"gain":0.7}},
+          {"id":"vca","type":"vca","name":"Gusts","x":940,"y":40,"parent":"root","params":{"gain":0.175}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":1240,"y":260,"parent":"root","params":{"attack":0.752105,"decay":0.60917,"sustain":0.9,"release":0.727579,"velamount":0.3}},
           {"id":"vca2","type":"vca","name":"VCA","x":1540,"y":260,"parent":"root","params":{}}
         ],
@@ -1776,13 +1776,13 @@
           {"id":"k6","from":{"node":"ci","jack":"howl"},"to":{"node":"dualfi","jack":"res2"},"amount":0.15},
           {"id":"k7","from":{"node":"dualfi","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k8","from":{"node":"dualfi","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k9","from":{"node":"organi","jack":"out3"},"to":{"node":"vca","jack":"gain"},"amount":0.3},
+          {"id":"k9","from":{"node":"organi","jack":"out3"},"to":{"node":"vca","jack":"gain"},"amount":0.075},
           {"id":"k10","from":{"node":"vi","jack":"gate"},"to":{"node":"adsr","jack":"gate"},"amount":1},
           {"id":"k11","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k12","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k17","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1838,7 +1838,7 @@
           {"id":"vo","type":"voice-out","name":"Voice Out","x":2140,"y":40,"parent":"root","params":{}},
           {"id":"modalv","type":"modal-voice","name":"Modal Voice","x":640,"y":40,"parent":"root","params":{"strike":0.85,"strikeTimbre":0.5,"geometry":0.55,"brightness":0.62,"damping":0.22,"position":0.25,"space":0}},
           {"id":"lfo","type":"lfo","name":"Motor","x":640,"y":260,"parent":"root","params":{"rate":0.729654}},
-          {"id":"vca","type":"vca","name":"Tremolo","x":940,"y":40,"parent":"root","params":{"gain":0.75,"response":0}}
+          {"id":"vca","type":"vca","name":"Tremolo","x":940,"y":40,"parent":"root","params":{"gain":0.1875,"response":0}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"vi","jack":"pitch"},"to":{"node":"modalv","jack":"pitch"},"amount":1},
@@ -1846,7 +1846,7 @@
           {"id":"k3","from":{"node":"vi","jack":"trigger"},"to":{"node":"modalv","jack":"strike"},"amount":1},
           {"id":"k4","from":{"node":"vi","jack":"velocity"},"to":{"node":"modalv","jack":"velocity"},"amount":1},
           {"id":"k5","from":{"node":"vi","jack":"velocity"},"to":{"node":"modalv","jack":"strikeTimbre"},"amount":0.2},
-          {"id":"k6","from":{"node":"lfo","jack":"sine"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
+          {"id":"k6","from":{"node":"lfo","jack":"sine"},"to":{"node":"vca","jack":"gain"},"amount":0.0625},
           {"id":"k7","from":{"node":"ci","jack":"motor"},"to":{"node":"lfo","jack":"rate"},"amount":0.2},
           {"id":"k8","from":{"node":"modalv","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k9","from":{"node":"modalv","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
@@ -1886,7 +1886,7 @@
           {"id":"k7","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k8","from":{"node":"resona","jack":"odd"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k9","from":{"node":"resona","jack":"even"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k11","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k12","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -1928,7 +1928,7 @@
           {"id":"k10","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"macroo","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2025,7 +2025,7 @@
           {"id":"k7","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k8","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k9","from":{"node":"macroo","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k10","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k11","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k12","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2093,7 +2093,7 @@
           {"id":"k5","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k6","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k7","from":{"node":"macroo","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k9","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k10","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2129,7 +2129,7 @@
           {"id":"k2","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k3","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k4","from":{"node":"noise","jack":"white"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"vi","jack":"velocity"},"to":{"node":"filter","jack":"cutoff"},"amount":0.15},
           {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"resona","jack":"in"},"amount":1},
@@ -2141,7 +2141,7 @@
           {"id":"k14","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k15","from":{"node":"resona","jack":"odd"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"resona","jack":"even"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k17","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k17","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k18","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k19","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k20","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2177,7 +2177,7 @@
           {"id":"k6","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k7","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k8","from":{"node":"pulseg","jack":"ring"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k9","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k9","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k10","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k11","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2212,7 +2212,7 @@
           {"id":"k5","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k6","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k7","from":{"node":"pulseg","jack":"ring"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k9","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k10","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2252,7 +2252,7 @@
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"zonede","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"zonede","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k13","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2287,7 +2287,7 @@
           {"id":"k2","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k3","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k4","from":{"node":"noise","jack":"white"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"vi","jack":"pitch"},"to":{"node":"filter","jack":"pitch"},"amount":1},
           {"id":"k8","from":{"node":"ci","jack":"res"},"to":{"node":"filter","jack":"resonance"},"amount":0.03},
@@ -2295,7 +2295,7 @@
           {"id":"k10","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"filter","jack":"l"},"to":{"node":"vca2","jack":"l"},"amount":1},
-          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2334,7 +2334,7 @@
           {"id":"k8","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2371,7 +2371,7 @@
           {"id":"k2","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k3","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k4","from":{"node":"noise","jack":"white"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"vi","jack":"pitch"},"to":{"node":"filter","jack":"pitch"},"amount":1},
           {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"zonede","jack":"l"},"amount":1},
@@ -2384,7 +2384,7 @@
           {"id":"k15","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k16","from":{"node":"zonede","jack":"l"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k17","from":{"node":"zonede","jack":"r"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k18","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k18","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k19","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k20","from":{"node":"vca2","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k21","from":{"node":"vca2","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
@@ -2421,7 +2421,7 @@
           {"id":"k2","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k3","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k4","from":{"node":"noise","jack":"white"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"zonede","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"zonede","jack":"r"},"amount":1},
           {"id":"k8","from":{"node":"vi","jack":"pitch"},"to":{"node":"zonede","jack":"pitch"},"amount":1},
@@ -2431,7 +2431,7 @@
           {"id":"k12","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k13","from":{"node":"zonede","jack":"l"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"zonede","jack":"r"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k17","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2472,7 +2472,7 @@
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"zonede","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"zonede","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2507,7 +2507,7 @@
           {"id":"k5","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k6","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k7","from":{"node":"testos","jack":"sine"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k9","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k10","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2544,7 +2544,7 @@
           {"id":"k5","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k6","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k7","from":{"node":"testos","jack":"sine"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k8","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k9","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k10","from":{"node":"vca","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"vca","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
@@ -2585,7 +2585,7 @@
           {"id":"k2","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k3","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k4","from":{"node":"noise","jack":"white"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"wavean","jack":"in"},"amount":1},
           {"id":"k7","from":{"node":"vi","jack":"pitch"},"to":{"node":"wavean","jack":"pitch"},"amount":1},
           {"id":"k8","from":{"node":"ci","jack":"gain"},"to":{"node":"wavean","jack":"gain"},"amount":0.2},
@@ -2593,7 +2593,7 @@
           {"id":"k10","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr2","jack":"retrig"},"amount":1},
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"wavean","jack":"band"},"to":{"node":"vca2","jack":"l"},"amount":1},
-          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2634,7 +2634,7 @@
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"delayn","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"delayn","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k13","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
@@ -2677,7 +2677,7 @@
           {"id":"k10","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k11","from":{"node":"resona","jack":"odd"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"resona","jack":"even"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k13","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k14","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2717,7 +2717,7 @@
           {"id":"k8","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k9","from":{"node":"resona","jack":"odd"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k10","from":{"node":"resona","jack":"even"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k13","from":{"node":"vca","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2754,7 +2754,7 @@
           {"id":"k2","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k3","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k4","from":{"node":"noise","jack":"white"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"resona","jack":"in"},"amount":1},
           {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"resona2","jack":"in"},"amount":1},
           {"id":"k8","from":{"node":"vi","jack":"pitch"},"to":{"node":"resona","jack":"pitch"},"amount":1},
@@ -2768,13 +2768,13 @@
           {"id":"k16","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k17","from":{"node":"resona","jack":"odd"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"resona","jack":"even"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k19","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k19","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k20","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k21","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k22","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1},
           {"id":"k23","from":{"node":"resona2","jack":"odd"},"to":{"node":"vca3","jack":"l"},"amount":1},
           {"id":"k24","from":{"node":"resona2","jack":"even"},"to":{"node":"vca3","jack":"r"},"amount":1},
-          {"id":"k25","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca3","jack":"gain"},"amount":1},
+          {"id":"k25","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca3","jack":"gain"},"amount":0.25},
           {"id":"k26","from":{"node":"vca3","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k27","from":{"node":"vca3","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
         ]
@@ -2809,7 +2809,7 @@
           {"id":"k2","from":{"node":"vi","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k3","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k4","from":{"node":"noise","jack":"white"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"vi","jack":"velocity"},"to":{"node":"filter","jack":"cutoff"},"amount":0.15},
           {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"resona","jack":"in"},"amount":1},
@@ -2820,7 +2820,7 @@
           {"id":"k13","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr2","jack":"velocity"},"amount":1},
           {"id":"k14","from":{"node":"resona","jack":"odd"},"to":{"node":"vca2","jack":"l"},"amount":1},
           {"id":"k15","from":{"node":"resona","jack":"even"},"to":{"node":"vca2","jack":"r"},"amount":1},
-          {"id":"k16","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k16","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k17","from":{"node":"adsr2","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k18","from":{"node":"vca2","jack":"l"},"to":{"node":"vo","jack":"l"},"amount":1},
           {"id":"k19","from":{"node":"vca2","jack":"r"},"to":{"node":"vo","jack":"r"},"amount":1}
@@ -2897,7 +2897,7 @@
           {"id":"k11","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k12","from":{"node":"freqsh","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k13","from":{"node":"freqsh","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k14","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k14","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k15","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k16","from":{"node":"vca","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k17","from":{"node":"vca","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
@@ -2940,7 +2940,7 @@
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"reverb","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"reverb","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k13","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
@@ -2983,7 +2983,7 @@
           {"id":"k9","from":{"node":"vi","jack":"velocity"},"to":{"node":"adsr","jack":"velocity"},"amount":1},
           {"id":"k10","from":{"node":"zonede","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k11","from":{"node":"zonede","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k12","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k13","from":{"node":"adsr","jack":"active"},"to":{"node":"vo","jack":"active"},"amount":1},
           {"id":"k14","from":{"node":"vca","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k15","from":{"node":"vca","jack":"r"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
@@ -3681,7 +3681,7 @@
           {"id":"punchk","type":"punch-kick","name":"Kick","x":340,"y":40,"parent":"root","params":{"tune":0.5,"decay":0.648556,"sweep":0.9,"attack":1,"drive":1}},
           {"id":"wavefo","type":"wavefolder","name":"Folder","x":940,"y":40,"parent":"root","params":{"fold":0.35,"source":0.5}},
           {"id":"filter","type":"filter","name":"Low-pass","x":1240,"y":40,"parent":"root","params":{"cutoff":0.799313,"resonance":0.1}},
-          {"id":"vca","type":"vca","name":"Trim","x":1540,"y":40,"parent":"root","params":{"gain":0.7,"response":0}}
+          {"id":"vca","type":"vca","name":"Trim","x":1540,"y":40,"parent":"root","params":{"gain":0.175,"response":0}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"punchk","jack":"trig"},"amount":1},
@@ -4745,7 +4745,7 @@
           {"id":"macroo","type":"macro-osc","name":"Dust","x":340,"y":40,"parent":"root","params":{"model":0.666667,"octave":0.625,"tone":0.9,"shape":0.5,"decay":0.333884}},
           {"id":"wavefo","type":"wavefolder","name":"Folder","x":940,"y":40,"parent":"root","params":{"fold":0.5,"source":0.5}},
           {"id":"filter","type":"filter","name":"Band-pass","x":1240,"y":40,"parent":"root","params":{"cutoff":0.666667,"resonance":0.4,"mode":0.333333}},
-          {"id":"vca","type":"vca","name":"Trim","x":1540,"y":40,"parent":"root","params":{"gain":0.4,"response":0}}
+          {"id":"vca","type":"vca","name":"Trim","x":1540,"y":40,"parent":"root","params":{"gain":0.1,"response":0}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"trig"},"to":{"node":"macroo","jack":"trig"},"amount":1},
@@ -5416,7 +5416,7 @@
           {"id":"lfo","type":"lfo","name":"Chop","x":340,"y":260,"parent":"root","params":{"wave":0.666667,"sync":0.222222,"polarity":1,"pw":0.555556}},
           {"id":"utilit","type":"utility","name":"Soften","x":640,"y":260,"parent":"root","params":{"slew":0.282669}},
           {"id":"multip","type":"multiplier","name":"Depth","x":940,"y":260,"parent":"root","params":{"biasy1":0.875}},
-          {"id":"vca","type":"vca","name":"VCA","x":640,"y":40,"parent":"root","params":{"gain":0.25,"response":0}}
+          {"id":"vca","type":"vca","name":"VCA","x":640,"y":40,"parent":"root","params":{"gain":0.0625,"response":0}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"lfo","jack":"out"},"to":{"node":"utilit","jack":"x"},"amount":1},
@@ -5424,7 +5424,7 @@
           {"id":"k3","from":{"node":"ci","jack":"depth"},"to":{"node":"multip","jack":"y1"},"amount":0.25},
           {"id":"k4","from":{"node":"ci","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
           {"id":"k5","from":{"node":"ci","jack":"r"},"to":{"node":"vca","jack":"r"},"amount":1},
-          {"id":"k6","from":{"node":"multip","jack":"out1"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k6","from":{"node":"multip","jack":"out1"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k8","from":{"node":"vca","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
         ]
@@ -5445,7 +5445,7 @@
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"reverb","type":"reverb","name":"Verb","x":640,"y":40,"parent":"root","params":{"size":0.85,"decay":0.630219,"preDelay":0.308006,"damping":0.35,"modDepth":0.35,"tone":0.55,"mix":0.5}},
-          {"id":"vca","type":"vca","name":"Shimmer","x":940,"y":260,"parent":"root","params":{"gain":0.35}},
+          {"id":"vca","type":"vca","name":"Shimmer","x":940,"y":260,"parent":"root","params":{"gain":0.0875}},
           {"id":"pitchs","type":"pitch-shifter","name":"Pitch Shifter","x":1240,"y":260,"parent":"root","params":{"pitch":0.75,"window":0.568061,"drift":0.12,"mix":1}},
           {"id":"compre","type":"compressor","name":"Loop Limiter","x":1540,"y":260,"parent":"root","params":{"threshold":0.85,"ratio":1,"attack":0.23299,"release":0.468999,"knee":0.125}}
         ],
@@ -5463,7 +5463,7 @@
           {"id":"k11","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k13","from":{"node":"ci","jack":"mix"},"to":{"node":"reverb","jack":"mix"},"amount":0.5},
-          {"id":"k14","from":{"node":"ci","jack":"shimmer"},"to":{"node":"vca","jack":"gain"},"amount":0.5},
+          {"id":"k14","from":{"node":"ci","jack":"shimmer"},"to":{"node":"vca","jack":"gain"},"amount":0.125},
           {"id":"k15","from":{"node":"ci","jack":"freeze"},"to":{"node":"reverb","jack":"freeze"},"amount":1}
         ]
       }
@@ -5483,7 +5483,7 @@
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"reverb","type":"reverb","name":"Verb","x":640,"y":40,"parent":"root","params":{"size":0.85,"decay":0.662311,"preDelay":0.308006,"damping":0.35,"modDepth":0.35,"tone":0.55,"mix":0.5}},
-          {"id":"vca","type":"vca","name":"Shimmer","x":940,"y":260,"parent":"root","params":{"gain":0.3}},
+          {"id":"vca","type":"vca","name":"Shimmer","x":940,"y":260,"parent":"root","params":{"gain":0.075}},
           {"id":"pitchs","type":"pitch-shifter","name":"Pitch Shifter","x":1240,"y":260,"parent":"root","params":{"pitch":0.645833,"window":0.686821,"drift":0.12,"mix":1}},
           {"id":"compre","type":"compressor","name":"Loop Limiter","x":1540,"y":260,"parent":"root","params":{"threshold":0.85,"ratio":1,"attack":0.23299,"release":0.468999,"knee":0.125}}
         ],
@@ -5501,7 +5501,7 @@
           {"id":"k11","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k12","from":{"node":"reverb","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k13","from":{"node":"ci","jack":"mix"},"to":{"node":"reverb","jack":"mix"},"amount":0.5},
-          {"id":"k14","from":{"node":"ci","jack":"shimmer"},"to":{"node":"vca","jack":"gain"},"amount":0.5},
+          {"id":"k14","from":{"node":"ci","jack":"shimmer"},"to":{"node":"vca","jack":"gain"},"amount":0.125},
           {"id":"k15","from":{"node":"ci","jack":"freeze"},"to":{"node":"reverb","jack":"freeze"},"amount":1}
         ]
       }
@@ -5522,7 +5522,7 @@
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"pitchs","type":"pitch-shifter","name":"Pitch Shifter","x":340,"y":260,"parent":"root","params":{"pitch":0.25,"window":0.387762,"mix":1}},
           {"id":"filter","type":"filter","name":"Round Off","x":640,"y":260,"parent":"root","params":{"cutoff":0.433677,"type":0.208333}},
-          {"id":"vca","type":"vca","name":"Sub","x":940,"y":260,"parent":"root","params":{"gain":0.6}}
+          {"id":"vca","type":"vca","name":"Sub","x":940,"y":260,"parent":"root","params":{"gain":0.15}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"pitchs","jack":"l"},"amount":1},
@@ -5535,7 +5535,7 @@
           {"id":"k8","from":{"node":"vca","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
           {"id":"k9","from":{"node":"ci","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k10","from":{"node":"ci","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1},
-          {"id":"k11","from":{"node":"ci","jack":"sub"},"to":{"node":"vca","jack":"gain"},"amount":0.5}
+          {"id":"k11","from":{"node":"ci","jack":"sub"},"to":{"node":"vca","jack":"gain"},"amount":0.125}
         ]
       }
     },
@@ -6153,19 +6153,19 @@
         "cables": [
           {"id":"k1","from":{"node":"lfo","jack":"square"},"to":{"node":"adsr","jack":"gate"},"amount":1},
           {"id":"k2","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k3","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k3","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k4","from":{"node":"vca","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k5","from":{"node":"lfo2","jack":"square"},"to":{"node":"adsr2","jack":"gate"},"amount":1},
           {"id":"k6","from":{"node":"oscill2","jack":"out"},"to":{"node":"vca2","jack":"l"},"amount":1},
-          {"id":"k7","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":1},
+          {"id":"k7","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
           {"id":"k8","from":{"node":"vca2","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
           {"id":"k9","from":{"node":"lfo3","jack":"square"},"to":{"node":"adsr3","jack":"gate"},"amount":1},
           {"id":"k10","from":{"node":"oscill3","jack":"out"},"to":{"node":"vca3","jack":"l"},"amount":1},
-          {"id":"k11","from":{"node":"adsr3","jack":"env"},"to":{"node":"vca3","jack":"gain"},"amount":1},
+          {"id":"k11","from":{"node":"adsr3","jack":"env"},"to":{"node":"vca3","jack":"gain"},"amount":0.25},
           {"id":"k12","from":{"node":"vca3","jack":"l"},"to":{"node":"audiom","jack":"in3l"},"amount":1},
           {"id":"k13","from":{"node":"lfo4","jack":"square"},"to":{"node":"adsr4","jack":"gate"},"amount":1},
           {"id":"k14","from":{"node":"oscill4","jack":"out"},"to":{"node":"vca4","jack":"l"},"amount":1},
-          {"id":"k15","from":{"node":"adsr4","jack":"env"},"to":{"node":"vca4","jack":"gain"},"amount":1},
+          {"id":"k15","from":{"node":"adsr4","jack":"env"},"to":{"node":"vca4","jack":"gain"},"amount":0.25},
           {"id":"k16","from":{"node":"vca4","jack":"l"},"to":{"node":"audiom","jack":"in4l"},"amount":1},
           {"id":"k17","from":{"node":"audiom","jack":"outl"},"to":{"node":"filter","jack":"l"},"amount":1},
           {"id":"k18","from":{"node":"audiom","jack":"outr"},"to":{"node":"filter","jack":"r"},"amount":1},
@@ -6273,7 +6273,7 @@
           {"id":"k15","from":{"node":"lfo","jack":"out"},"to":{"node":"filter","jack":"cutoff"},"amount":0.12},
           {"id":"k16","from":{"node":"ci","jack":"cut"},"to":{"node":"filter","jack":"cutoff"},"amount":0.4},
           {"id":"k17","from":{"node":"filter","jack":"l"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k18","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k18","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k19","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
           {"id":"k20","from":{"node":"punchc","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
           {"id":"k21","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in3l"},"amount":1},
@@ -6602,7 +6602,7 @@
           {"id":"k2","from":{"node":"stepse","jack":"gate"},"to":{"node":"adsr","jack":"gate"},"amount":1},
           {"id":"k3","from":{"node":"stepse","jack":"trigger"},"to":{"node":"adsr","jack":"retrig"},"amount":1},
           {"id":"k4","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
-          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
           {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
           {"id":"k7","from":{"node":"vca","jack":"l"},"to":{"node":"reverb","jack":"r"},"amount":1},
           {"id":"k8","from":{"node":"reverb","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},

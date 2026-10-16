@@ -292,6 +292,9 @@ export class Preset {
     if (!tt) throw new Error(`${this.#where(to)}: no input or modulatable knob '${toJack}'`);
     if (!compatible(ft, tt)) throw new Error(`${this.name}: ${from.name}.${fromJack} (${ft}) can't feed ${to.name}.${toJack} (${tt})`);
     if (!(amount >= -1 && amount <= 1)) throw new Error(`${this.name}: cable amount ${amount} is outside −1…+1`);
+    // The VCA's Gain knob runs 0 – 400 %, and a cable amount is a share of the knob's whole range. Presets are written for
+    // "1 = open to unity" (the old 0 – 100 % knob), so an amount into a VCA's Gain is scaled to a quarter of the range.
+    if (to.type === "vca" && toJack === "gain") amount *= VCA_GAIN_SHARE;
     const id = `k${this.cables.length + 1}`;
     this.cables.push({ id, from: { node: from.id, jack: fromJack }, to: { node: to.id, jack: toJack },
                        amount: Math.round(amount * 1e6) / 1e6 });
@@ -451,6 +454,9 @@ export function checkPlays(name, doc, plays) {
 }
 
 // ------------------------------------------------------------ small helpers
+
+/// One full unit of VCA gain as a share of the Gain knob's 0 – 400 % range.
+const VCA_GAIN_SHARE = 0.25;
 
 /// Pitch in 1 V/oct for a cable amount: semitones → the amount on a pitch input.
 export const semis = (n) => n / 12;
