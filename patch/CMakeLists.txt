@@ -152,6 +152,10 @@ endif ()
 set(BLEEP_ENGINE_SOURCES
     engine/Board.cpp
     engine/Engine.cpp
+    engine/EngineBoard.cpp
+    engine/EngineEdit.cpp
+    engine/EngineCompile.cpp
+    engine/EngineAudio.cpp
     engine/Media.cpp
     engine/PortModules.cpp
     engine/Program.cpp
