@@ -98,6 +98,8 @@ jobs:
       - run: node patch/web/test/preset-index-test.mjs
       - run: node patch/web/test/media-test.mjs
       - run: node patch/web/test/play-wrap-test.mjs
+      - run: node patch/web/test/voices-test.mjs build/web/site
+      - run: node patch/web/test/play-presets-test.mjs build/web/site
         with:
           name: bleep-board-web
           path: build/web/site

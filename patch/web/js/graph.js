@@ -11,9 +11,11 @@
 // source's previous chunk (spec §7.5).
 //
 // No DOM and no Web Audio here: it runs in an AudioWorklet and under node.
-// Not ported yet: Voice Cells, Link, Macros, host MIDI out, media.
+// Voice Cells are expanded into one plain cell per voice before compiling (voices.js).
+// Not ported yet: Link, Macros, host MIDI out, media.
 
 import { CHUNK, ModuleInstance } from "./module-host.js";
+import { expandVoiceCells, VoiceAllocNode } from "./voices.js";
 
 /// A bypassed module with audio in and audio out: [input, output] pairs (the n-th audio in feeds the n-th audio out,
 /// the last in feeds the rest), as the native engine does. null: the module runs.
@@ -229,6 +231,10 @@ export class Engine {
     this.onError = null;  // (message) — set by the host
     this.generation = 0;
     this.pendingData = new Map();  // node id → sanitised data the UI's board does not have yet
+    this.voiceLimit = 16;          // the most voices a Voice Cell runs: every voice costs CPU all the time here (voices.js)
+    this.copies = new Map();       // a node inside a Voice Cell → the ids of its copies, one per voice
+    this.alias = new Map();        // a copy's id → the id the UI knows it by (voice 0), or null: not shown
+    this.voiceOf = new Map();      // a copy's id → {alloc, k}: it belongs to voice k of that Voice Cell's allocator
   }
 
   /// The UI's node types (demo-types.json / the manifest's specs).
@@ -252,7 +258,12 @@ export class Engine {
   // ---- compiling ---------------------------------------------------------------
 
   setBoard(boardIn) {
-    const board = flattenPatchbays(boardIn);
+    const voiced = expandVoiceCells(boardIn, this.types, this.voiceLimit);
+    for (const { type, spec } of voiced.specs) this.types.set(type, spec);
+    this.copies = voiced.copies;
+    this.alias = voiced.alias;
+    this.voiceOf = voiced.voiceOf;
+    const board = flattenPatchbays(voiced.board);
     this.board = board;
     const byId = new Map(board.nodes.map((n) => [n.id, n]));
     const into = new Map();  // "node|jack" → cables
@@ -300,7 +311,7 @@ export class Engine {
     for (const n of real) {
       const s = spec(n), found = [];
       for (const p of s.params) if (p.modulatable) resolveInto(n.id, p.id, 1, 0, found);
-      s.inputs.forEach((_, j) => resolveInput(n, s, j, found));
+      s.inputs.forEach((j, k) => { if (!j.late) resolveInput(n, s, k, found); });   // a `late` input reads the last chunk and orders nothing
       deps.set(n.id, [...new Set(found.map((f) => f.node))]);
     }
     // Harmony: every writer before every reader (Harmony Master is not ported yet, so none run).
@@ -335,7 +346,7 @@ export class Engine {
         const clean = entry.host.sanitiseData(n.data === undefined ? "" : JSON.stringify(n.data));
         if (clean !== null) {
           if (entry.dataJson !== clean) { entry.dataJson = clean; entry.host.setData(clean); }
-          if (JSON.stringify(JSON.parse(clean)) !== JSON.stringify(n.data)) this.pendingData.set(n.id, clean);
+          if (JSON.stringify(JSON.parse(clean)) !== JSON.stringify(n.data) && this.alias.get(n.id) !== null) this.pendingData.set(this.alias.get(n.id) ?? n.id, clean);
         }
       }
       kept.set(n.id, entry);
@@ -353,7 +364,7 @@ export class Engine {
       const entry = kept.get(n.id), s = spec(n);
       const st = { id: n.id, spec: s, host: entry.host, paramSources: [], inputSources: [], noteSources: [],
                    connectedIn: new Uint8Array(s.inputs.length), connectedOut: new Uint8Array(s.outputs.length),
-                   activity: new Float32Array(s.outputs.length) };
+                   activity: new Float32Array(s.outputs.length), voice: this.voiceOf.get(n.id) || null, asleep: false };
       entry.host.connectedIn = st.connectedIn;
       st.bypass = bypassRoute(n, s);
       stepsById.set(n.id, st);
@@ -395,6 +406,7 @@ export class Engine {
   #make(n, probe) {
     const s = this.types.get(n.type);
     if (!s) return null;
+    if (s.voiceAlloc) return probe ? true : new VoiceAllocNode(s, this);
     if (s.port) return probe ? true : new PortNode(s, this);
     const slug = this.slugOfType.get(n.type);
     const mod = slug && this.wasm.get(slug);
@@ -413,27 +425,34 @@ export class Engine {
 
   // ---- live edits (no recompile) ----------------------------------------------------
 
+  /// The instances of a node the UI knows: itself, or one copy per voice for a node inside a Voice Cell.
+  #ids(nodeId) { return this.copies.get(nodeId) ?? [nodeId]; }
+
   setKnob(nodeId, paramId, normalised) {
-    const e = this.instances.get(nodeId);
-    const s = e && this.types.get(e.type);
-    const i = s ? s.params.findIndex((p) => p.id === paramId) : -1;
-    if (i >= 0) e.host.setKnob(i, normalised);
+    for (const id of this.#ids(nodeId)) {
+      const e = this.instances.get(id);
+      const s = e && this.types.get(e.type);
+      const i = s ? s.params.findIndex((p) => p.id === paramId) : -1;
+      if (i >= 0) e.host.setKnob(i, normalised);
+    }
   }
   setAmount(cableId, amount) {
     for (const st of this.steps) {
       for (const lists of [st.paramSources, st.inputSources, st.noteSources])
-        for (const list of lists) for (const r of list) if (r.cable === cableId) r.amount = r.scale * amount;
+        for (const list of lists) for (const r of list) if (r.cable === cableId || String(r.cable).startsWith(cableId + "~")) r.amount = r.scale * amount;
     }
   }
-  perform(nodeId, action, args) { this.instances.get(nodeId)?.host.perform(action, args); }
-  command(nodeId, id, value) { this.instances.get(nodeId)?.host.command(id, value); }
+  perform(nodeId, action, args) { for (const id of this.#ids(nodeId)) this.instances.get(id)?.host.perform(action, args); }
+  command(nodeId, id, value) { for (const copy of this.#ids(nodeId)) this.instances.get(copy)?.host.command(id, value); }
   setData(nodeId, data) {
-    const e = this.instances.get(nodeId);
-    if (!e) return;
-    const json = JSON.stringify(data);
-    const clean = e.host.sanitiseData ? e.host.sanitiseData(json) : json;
-    e.dataJson = clean ?? json;
-    e.host.setData(e.dataJson);
+    for (const id of this.#ids(nodeId)) {
+      const e = this.instances.get(id);
+      if (!e) continue;
+      const json = JSON.stringify(data);
+      const clean = e.host.sanitiseData ? e.host.sanitiseData(json) : json;
+      e.dataJson = clean ?? json;
+      e.host.setData(e.dataJson);
+    }
   }
 
   // ---- running ----------------------------------------------------------------------
@@ -458,6 +477,13 @@ export class Engine {
     const ppq = (this.samplePos / this.sampleRate) * (this.bpm / 60);
     for (const st of this.steps) {
       const host = st.host, v = host.views, s = st.spec;
+      if (st.voice) {   // a voice that is neither held nor sounding does not run, and puts out silence
+        if (!this.instances.get(st.voice.alloc)?.host.awake(st.voice.k)) {
+          if (!st.asleep) { v.outputs.fill(0); st.asleep = true; }
+          continue;
+        }
+        st.asleep = false;
+      }
       s.params.forEach((p, i) => {
         const sources = st.paramSources[i];
         const buf = v.params;
@@ -508,6 +534,8 @@ export class Engine {
   snapshot() {
     const nodes = {};
     for (const st of this.steps) {
+      const key = this.alias.has(st.id) ? this.alias.get(st.id) : st.id;   // a node inside a Voice Cell is shown by its first voice
+      if (key === null) continue;
       const host = st.host, out = host.views.outputs, entry = { outputs: {} };
       st.spec.outputs.forEach((o, k) => { entry.outputs[o.id] = out[k * CHUNK + CHUNK - 1] ?? 0; });
       entry.activity = {};
@@ -515,7 +543,7 @@ export class Engine {
       const live = host.live();
       Object.assign(entry, live.values);
       Object.assign(entry, live.arrays);
-      if (this.watched.has(st.id)) {
+      if (this.watched.has(key)) {
         entry.params = {};
         st.spec.params.forEach((p, i) => {
           const v = host.knobs[i] ?? p.default;
@@ -525,8 +553,8 @@ export class Engine {
       }
       const taken = host.takeData();
       if (taken !== null) entry.data = taken;
-      else if (this.pendingData.has(st.id)) entry.data = this.pendingData.get(st.id);
-      nodes[st.id] = entry;
+      else if (this.pendingData.has(key)) entry.data = this.pendingData.get(key);
+      nodes[key] = entry;
     }
     this.pendingData.clear();
     return { nodes };

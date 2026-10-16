@@ -50,7 +50,8 @@ keyboard and Web MIDI play MIDI In.
   is guarded so a C++ exception never reaches the audio thread.
 - Node data (`sanitiseData`) runs inside the module: a new node's defaults come
   back to the board document through the engine's `state` message.
-- Not ported yet: Voice Cells, Harmony Master/bus (modules run, but no shared
+- Voice Cells run (`js/voices.js`): the board is expanded before compiling, one plain cell per voice plus an allocator; a voice that is
+  neither held nor sounding is not run. Not ported yet: Harmony Master/bus (modules run, but no shared
   bus), Link, Macros, audio input, host MIDI out, and the media folder
   (Splice, Grains and Wavetable Osc import find no files; Media.cpp is linked
   so they build; an IndexedDB store is the next step). Modules that start

@@ -8,7 +8,7 @@
 //   effect       a source ──► the cell ──► Audio Out        the source is a self-playing instrument preset (Play has no audio input yet)
 //
 // `plan(preset, role)` says whether a preset can be played this way and which cables the wiring needs; the board code builds the board.
-// Not supported yet: Voice Cell instruments (Play's engine has no voices: doc/specs/specs.md §8.3) and the audio input of the browser.
+// Voice Cells play: the web engine runs one copy of the voice per note (patch/web/js/voices.js). Not supported yet: the audio input of the browser.
 // No DOM here.
 (function () {
   "use strict";
@@ -22,17 +22,18 @@
 
   /// How to play `preset` as `role` ("instrument" or "effect"):
   ///   {ok: true, role, midi: [{from, to}], out: [jack, jack], in: [jack, jack], notes: [string]}   midi: MIDI In output → cell input
-  ///   {ok: false, reason: "voices" | "role" | "jacks", message}
+  ///   {ok: false, reason: "role" | "jacks", message}
   function plan(preset, role) {
     const plays = preset && preset.plays && preset.plays[role];
     const root = preset && rootOf(preset);
     if (!plays || !root) return { ok: false, reason: "role", message: `This preset is not an ${role}.` };
-    if ((preset.nodes || []).some((n) => n.type === "voice-cell"))   // the root, or one inside the cell
-      return { ok: false, reason: "voices", message: "This instrument plays with voices (several notes at once), which Bleep Play does not have yet." };
-    const out = audioOut(root);
+    const voice = root.type === "voice-cell";   // a Voice Cell as the root has the fixed jacks notes, l and r
+    const out = voice ? ["l", "r"] : audioOut(root);
     if (!out.length) return { ok: false, reason: "jacks", message: "This preset has no audio output." };
     const have = new Set(jacks(root.inputs));
+    if (voice) have.add("notes");
     const notes = [];
+    if (voice && role === "instrument" && plays.notes === "voice") return { ok: true, role, midi: [{ from: "notes", to: "notes" }], in: [], out, notes };
     if (role === "effect") {
       const inputs = (plays.in || []).filter((j) => have.has(j));
       if (!inputs.length) return { ok: false, reason: "jacks", message: "This effect has no audio input." };

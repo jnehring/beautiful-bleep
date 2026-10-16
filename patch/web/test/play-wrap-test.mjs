@@ -27,13 +27,14 @@ assert.deepEqual(plain(W.plan(find("Bongo Garden"), "instrument").midi), []);   
 const eff = plain(W.plan(find("Cathedral Hall"), "effect"));
 assert.deepEqual([eff.ok, eff.in, eff.out], [true, ["l", "r"], ["l", "r"]]);
 
-// refusals: a voice cell, the wrong role, a missing jack
+// a Voice Cell as the root takes the notes; one inside a plain cell is reached through that cell's notes jack
 const hasVoices = (p) => p.preset.nodes.some((n) => n.type === "voice-cell");
 const voiceCell = factory.find((p) => p.preset.plays && p.preset.plays.instrument && p.preset.nodes.find((n) => n.id === p.preset.root).type === "voice-cell");
+assert.deepEqual(plain(W.plan(voiceCell.preset, "instrument")), { ok: true, role: "instrument", midi: [{ from: "notes", to: "notes" }], in: [], out: ["l", "r"], notes: [] });
 const nested = factory.find((p) => p.preset.plays && p.preset.plays.instrument && p.preset.nodes.find((n) => n.id === p.preset.root).type === "cell" && hasVoices(p));
-assert.equal(W.plan(nested.preset, "instrument").reason, "voices", nested.name);   // a Voice Cell inside a plain cell
-const voice = plain(W.plan(voiceCell.preset, "instrument"));
-assert.deepEqual([voice.ok, voice.reason], [false, "voices"]);
+assert.deepEqual(plain(W.plan(nested.preset, "instrument").midi), [{ from: "notes", to: "notes" }], nested.name);
+
+// refusals: the wrong role, a missing jack
 assert.equal(W.plan(find("808 Boom"), "effect").reason, "role");
 assert.equal(W.plan(find("Cathedral Hall"), "instrument").reason, "role");
 assert.equal(W.plan(null, "instrument").reason, "role");
@@ -44,24 +45,24 @@ const noIn = JSON.parse(JSON.stringify(find("Cathedral Hall")));
 noIn.plays.effect.in = ["x"];
 assert.equal(W.plan(noIn, "effect").reason, "jacks");
 
-// every factory preset with `plays`: voice cells are refused, all others are playable and every cable ends on a jack the cell has
+// every factory preset with `plays` is playable, and every cable ends on a jack the cell has (a Voice Cell's notes, l and r are fixed)
 let playable = 0, voices = 0;
 for (const p of factory) {
   for (const role of ["instrument", "effect"]) {
     if (!p.preset.plays || !p.preset.plays[role]) continue;
     const root = p.preset.nodes.find((n) => n.id === p.preset.root);
     const r = W.plan(p.preset, role);
-    if (hasVoices(p)) { assert.equal(r.reason, "voices", p.name); voices++; continue; }
     assert.ok(r.ok, `${p.name}: ${r.message}`);
-    const ins = new Set(root.inputs.map((j) => j.id)), outs = new Set(root.outputs.map((j) => j.id));
+    const fixed = root.type === "voice-cell" ? ["notes"] : [];
+    const ins = new Set([...root.inputs.map((j) => j.id), ...fixed]), outs = new Set([...root.outputs.map((j) => j.id), ...(fixed.length ? ["l", "r"] : [])]);
     for (const c of r.midi) assert.ok(ins.has(c.to), `${p.name}: ${c.to}`);
     for (const j of r.in) assert.ok(ins.has(j), `${p.name}: in ${j}`);
     assert.ok(r.out.length >= 1 && r.out.every((j) => outs.has(j)), `${p.name}: out`);
     playable++;
+    if (hasVoices(p)) voices++;
   }
 }
-assert.equal(voices, factory.filter((p) => p.preset.plays && (p.preset.plays.instrument || p.preset.plays.effect) && hasVoices(p)).length);
-assert.ok(playable >= 50 && voices >= 60, `${playable} playable, ${voices} with voices`);
+assert.ok(playable >= 150 && voices >= 60, `${playable} playable, ${voices} with voices`);
 
 // sources for an effect: self-playing instruments only
 const src = W.sources(factory).map((s) => s.name);
@@ -69,4 +70,4 @@ assert.ok(src.includes("Bongo Garden") && src.includes("Wind Chimes"));
 assert.ok(!src.includes("808 Boom") && !src.includes("Cathedral Hall"));
 assert.ok(src.length >= 4, src.join(", "));
 
-console.log(`play-wrap-test: ok (${playable} playable, ${voices} need voices, ${src.length} effect sources)`);
+console.log(`play-wrap-test: ok (${playable} playable, ${voices} of them with voices, ${src.length} effect sources)`);

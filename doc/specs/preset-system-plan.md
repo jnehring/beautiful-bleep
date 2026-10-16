@@ -247,12 +247,15 @@ the browser (`patch/web/README.md`). A web instrument is the plugin's wrapper do
   (`patch/web/test/play-wrap-test.mjs` runs it over every factory preset). The preset's panel comes with it.
 - [play-keys.js](../../patch/board/ui/play-keys.js): an on-screen piano (two octaves, octave buttons, touch and mouse) under an instrument.
 - Pages `/instruments/` and `/effects/` list the factory presets with *Play it* (static, from `factory-presets.json`); the Play page links to them.
-- Today 68 of 138 instruments and all 21 effects can be played; the other 70 instruments need voices.
+- **Voices** ([voices.js](../../patch/web/js/voices.js), wired into `graph.js`): a Voice Cell is expanded before the board is compiled, into
+  one plain cell per voice (copies of everything inside) plus an allocator that ports `engine/VoiceCell.cpp` (round robin / lowest free /
+  same note, stealing, mono and legato, glide, spread, compensation). The patch bay bundles of the factory voice presets resolve through the
+  copies. A voice that is neither held nor sounding is not run. `Engine.voiceLimit` caps the voices. All 138 instruments and 21 effects can be
+  played (`patch/web/test/voices-test.mjs`, `play-presets-test.mjs`, with the real modules from the built site).
+- **CPU:** measured in node on a laptop, Warm Saws with three notes held runs at about 2× real time (the Multi Filter is most of it), a drum
+  at about 30×. A big chord on a phone may not keep up; the real limit is the browser's, which nobody has measured yet.
 
 **Not built**
-- **Voices (the big one).** 70 instruments use a Voice Cell, and Play's engine has none (`patch/web/js/graph.js`: "Not ported yet: Voice
-  Cells"). It needs the voice allocator and per-voice copies of the cell's modules in the JS graph runner (the counterpart of
-  `engine/VoiceCell.cpp`), and a build with the Emscripten SDK to test it.
 - **Audio input** for effects (a dropped file, the microphone): `PortNode` has silent `audio-in` outputs; it needs an AudioWorklet input.
   Until then an effect plays through a built-in self-playing instrument.
 - **Drum maps:** a preset that maps keys to different jacks (hats: closed, open) plays one sound for every key.
