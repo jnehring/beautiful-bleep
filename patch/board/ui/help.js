@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 // help.js — the Help section of the board window: one tile per article of the documentation (help-articles.json, written by
 // scripts/docs/build-help-index.py from the site's content folder) and a search over the articles and the module manuals (help-search.json,
-// the same ranking as the website's search box). A click opens the page on the site in the browser. The site is the Store's
-// address, so Help is offered where the Store is.
+// the same ranking as the website's search box). A click opens the page on the site in the browser. The site is the Library's
+// address, so Help is offered where the Library is.
 //
-//   BleepHelpView.init()      once, when the native side has a store (native "init" says so)
+//   BleepHelpView.init()      once, when the native side has a library (native "init" says so)
 //   show() / hide()           the header's Help button
 (function () {
   "use strict";
@@ -13,7 +13,7 @@
   let articles = null;        // help-articles.json: [{group, title, description, path}]
   let index = null;           // help-search.json: [{group, title, path, text}]
   let query = "";
-  let siteUrl = "";           // the site's address, from the Store's settings
+  let siteUrl = "";           // the site's address, from the Library's settings
   let message = "";
   let root, body, noteEl, addressEl, searchEl;
   const el = (tag, cls, text) => {
@@ -69,8 +69,8 @@
   async function load() {
     if (!articles) articles = await fetchJson("help-articles.json", "help articles");
     if (!index) index = await fetchJson("help-search.json", "search index");
-    const status = await native("storeStatus");
-    siteUrl = ((status && status.settings && status.settings.storeUrl) || "").replace(/\/+$/, "");
+    const status = await native("libraryStatus");
+    siteUrl = ((status && status.settings && status.settings.libraryUrl) || "").replace(/\/+$/, "");
     render();
   }
 
@@ -159,9 +159,9 @@
       document.getElementById("sec-board").addEventListener("click", () => P.BleepHelpView.hide());
     },
     async show() {
-      if (P.BleepStoreView) P.BleepStoreView.hide();
+      if (P.BleepLibraryView) P.BleepLibraryView.hide();
       if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.hide();
-      document.body.classList.add("in-store");
+      document.body.classList.add("in-library");
       root.hidden = false;
       document.getElementById("sec-help").classList.add("on");
       document.getElementById("sec-board").classList.remove("on");

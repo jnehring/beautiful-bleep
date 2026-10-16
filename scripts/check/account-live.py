@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""The app's sign-in against a real API: starts website/api on a scratch database, runs `bleep_store_test --account-live` (the real HTTP
-stack of patch/store/Account.cpp), and confirms the device code as a user on the site, the way a browser would.
+"""The app's sign-in against a real API: starts website/api on a scratch database, runs `bleep_library_test --account-live` (the real HTTP
+stack of patch/library/Account.cpp), and confirms the device code as a user on the site, the way a browser would.
 
-    scripts/check/account-live.py [path to bleep_store_test]
+    scripts/check/account-live.py [path to bleep_library_test]
 """
 import os
 import subprocess
@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 API = ROOT / "website" / "api"
 PORT = 8765
-BIN = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "build/patch/bleep_store_test_artefacts/bleep_store_test"
+BIN = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "build/patch/bleep_library_test_artefacts/bleep_library_test"
 
 
 def main() -> int:

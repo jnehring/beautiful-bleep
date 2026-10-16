@@ -22,7 +22,7 @@ def entries_of(files, exec_=()):
 
 
 class World:
-    """A root, an issuer and one developer, the way the store sets them up."""
+    """A root, an issuer and one developer, the way the library sets them up."""
 
     def __init__(self, publisher="acme", scopes=("module",), first_party=False, not_before=T0, not_after=T0 + YEAR):
         self.root, self.issuer, self.dev = (Ed25519PrivateKey.generate() for _ in range(3))
@@ -105,7 +105,7 @@ class Verify(unittest.TestCase):
         other = World()
         self.assertEqual(w.check(w.signed(), roots=[other.root_pub]).status, "invalid")
         forged = w.signed()
-        forged["chain"][1] = other.dev_cert  # a developer cert from another store
+        forged["chain"][1] = other.dev_cert  # a developer cert from another library
         self.assertEqual(w.check(forged).status, "invalid")
         # an attacker mints their own issuer and developer under their own root
         self.assertEqual(w.check(other.signed(), roots=[w.root_pub]).status, "invalid")
@@ -145,6 +145,84 @@ class Verify(unittest.TestCase):
         bad = copy.deepcopy(w.signed())
         bad["signature"] = "AAAA"
         self.assertEqual(w.check(bad).status, "invalid")
+
+
+class Receipts(unittest.TestCase):
+    """Publication receipts (signing.md section 6a)."""
+
+    def setUp(self):
+        self.w = World()
+        self.doc = self.w.signed()
+        self.entries = entries_of(self.w.files)
+        self.args = dict(kind="module", id_="acme/fuzz", version="1.0.0", platform="any", roots=[self.w.root_pub])
+
+    def issue(self, now=T0 + 100, **kw):
+        return s.issue_receipt(self.w.issuer, self.entries, self.doc, now=now, **{**self.args, **kw})
+
+    def test_a_receipt_keeps_a_lapsed_release_signed(self):
+        receipt = self.issue()
+        late = T0 + YEAR + 5 * YEAR
+        self.assertEqual(self.w.check(self.doc, now=late).status, "expired")
+        r = s.verify(self.entries, self.doc, now=late, receipt=receipt, **self.args)
+        self.assertEqual((r.status, r.published_at), ("signed", T0 + 100))
+
+    def test_the_device_clock_plays_no_part(self):
+        receipt = self.issue()
+        for now in (0, T0 - 1, T0 + 100, T0 + YEAR + 1, 2 ** 40):
+            self.assertEqual(s.verify(self.entries, self.doc, now=now, receipt=receipt, **self.args).status, "signed", now)
+
+    def test_a_receipt_is_bound_to_the_release(self):
+        receipt = self.issue()
+        for change in (dict(version="1.0.1"), dict(id_="acme/other"), dict(platform="macos-arm64"), dict(kind="plugin")):
+            r = s.verify(self.entries, self.doc, now=T0 + 100, receipt=receipt, **{**self.args, **change})
+            self.assertEqual(r.status, "invalid", change)
+        other = entries_of({**self.w.files, "ui/a.js": b"2"})
+        self.assertEqual(s.verify(other, self.doc, now=T0 + 100, receipt=receipt, **self.args).status, "invalid")
+
+    def test_a_receipt_cannot_be_edited_or_made_by_anyone_else(self):
+        receipt = self.issue()
+        self.assertEqual(s.verify(self.entries, self.doc, now=T0, receipt={**receipt, "publishedAt": T0 + 101}, **self.args).status, "invalid")
+        for bad in ({**receipt, "publishedAt": "soon"}, {**receipt, "publishedAt": True}, {**receipt, "publishedAt": -1},
+                    {**receipt, "format": 2}, {**receipt, "algorithm": "rsa"}, {"format": 1}, {}):
+            self.assertEqual(s.verify(self.entries, self.doc, now=T0, receipt=bad, **self.args).status, "invalid", bad)
+        stranger = Ed25519PrivateKey.generate()
+        fake = s.make_receipt(stranger, kind="module", id_="acme/fuzz", version="1.0.0", platform="any", signer_key_id=self.doc["keyId"],
+                              digest=s.content_digest(self.entries), published_at=T0 + 100)
+        self.assertEqual(s.verify(self.entries, self.doc, now=T0, receipt={**fake, "issuerKeyId": receipt["issuerKeyId"]}, **self.args).status, "invalid")
+        self.assertEqual(s.verify(self.entries, self.doc, now=T0, receipt=fake, **self.args).status, "invalid")
+
+    def test_dated_outside_the_certificate_is_invalid_not_expired(self):
+        for at in (T0 - 1, T0 + YEAR + 1):
+            r = s.make_receipt(self.w.issuer, kind="module", id_="acme/fuzz", version="1.0.0", platform="any", signer_key_id=self.doc["keyId"],
+                               digest=s.content_digest(self.entries), published_at=at)
+            self.assertEqual(s.verify(self.entries, self.doc, now=T0 + 100, receipt=r, **self.args).status, "invalid", at)
+
+    def test_stripping_the_receipt_fails_closed(self):
+        self.issue()
+        self.assertEqual(s.verify(self.entries, self.doc, now=T0 + YEAR + 1, receipt=None, **self.args).status, "expired")
+
+    def test_revocation_still_wins(self):
+        receipt = self.issue()
+        crl = {"revokedKeys": [{"keyId": self.doc["keyId"]}], "revokedArtifacts": []}
+        self.assertEqual(s.verify(self.entries, self.doc, now=T0 + 100, receipt=receipt, crl=crl, **self.args).status, "revoked")
+
+    def test_the_library_issues_only_for_what_is_signed_right_now(self):
+        lapsed = World(not_before=T0 - 2 * YEAR, not_after=T0 - YEAR)  # a certificate that ended before now
+        with self.assertRaises(ValueError):
+            s.issue_receipt(lapsed.issuer, entries_of(lapsed.files), lapsed.signed(), now=T0 + 100, **{**self.args, "roots": [lapsed.root_pub]})
+        with self.assertRaises(ValueError):  # a tampered package
+            s.issue_receipt(self.w.issuer, entries_of({**self.w.files, "ui/a.js": b"x"}), self.doc, now=T0 + 100, **self.args)
+        with self.assertRaises(ValueError):  # no signature
+            s.issue_receipt(self.w.issuer, self.entries, None, now=T0 + 100, **self.args)
+        with self.assertRaises(ValueError):  # revoked
+            self.issue(crl={"revokedKeys": [{"keyId": self.doc["keyId"]}], "revokedArtifacts": []})
+        with self.assertRaises(ValueError):  # not our issuer
+            s.issue_receipt(Ed25519PrivateKey.generate(), self.entries, self.doc, now=T0 + 100, **self.args)
+
+    def test_a_clock_that_jumped_back_dates_nothing(self):
+        self.assertEqual(self.issue(now=T0 + 200, newest=T0 + 200)["publishedAt"], T0 + 200)
+        with self.assertRaises(ValueError):
+            self.issue(now=T0 + 199, newest=T0 + 200)
 
 
 class Decide(unittest.TestCase):
@@ -214,14 +292,16 @@ class Vector(unittest.TestCase):
         v = s.test_vector()
         self.assertEqual(v["contentDigest"], "39f61d45e3115066a934dabca6cf83c346420153e85d6d58841033d62d0c1f08")
         self.assertEqual(v["signature"], "5019b69bf480dae36510479a2c4bbeab84e94477efcdd4ec3dc1528ef6f2644471e89b42c0ac69b4ff617bac7da69e4b817717e2f99e6526d4be2c10e1a72c0b")
+        self.assertEqual(v["publishedAt"], 1765000000)
+        self.assertEqual(v["publicationSignature"], "3d68e3df76c2bcc347f69e3205bdc1b029220445989dec47da111791f2f2e22c3aea53b88e625611c9d8924a2511e970c9284527e46ab1e78f120f3c21d20504")
 
 
-FIXTURES = Path(__file__).resolve().parent.parent.parent / "patch" / "tests" / "store-fixtures"
+FIXTURES = Path(__file__).resolve().parent.parent.parent / "patch" / "tests" / "library-fixtures"
 
 
 class Fixtures(unittest.TestCase):
-    """The packages in patch/tests/store-fixtures are made by `signing.py fixture`; this implementation, the JavaScript one
-    (patch/web/test/store-client-test.mjs) and the C++ one (patch/tests/store_test.cpp) must give each its verdict."""
+    """The packages in patch/tests/library-fixtures are made by `signing.py fixture`; this implementation, the JavaScript one
+    (patch/web/test/library-client-test.mjs) and the C++ one (patch/tests/library_test.cpp) must give each its verdict."""
 
     def test_committed_fixtures_are_what_the_generator_makes(self):
         import importlib.util
@@ -255,6 +335,16 @@ class Fixtures(unittest.TestCase):
                 except (ValueError, KeyError):  # a signature document that is not even JSON
                     got = "invalid"
             self.assertEqual(got, c["expect"], c["name"])
+
+    def test_every_receipt_case_gets_its_verdict(self):
+        spec = json.loads((FIXTURES / "cases.json").read_text())
+        root = [bytes.fromhex(spec["roots"]["main"])]
+        self.assertGreater(len(spec["receiptCases"]), 15)
+        for c in spec["receiptCases"]:
+            pkg = FIXTURES / c["file"]
+            r = s.verify(s.read_entries(pkg), s.read_doc(pkg), kind=c["kind"], id_=c["id"], version=c["version"], platform=c["platform"],
+                         roots=root, now=c["now"], crl=c["crl"], receipt=c["receipt"])
+            self.assertEqual(r.status, c["expect"], c["name"])
 
 
 if __name__ == "__main__":

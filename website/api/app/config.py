@@ -16,13 +16,13 @@ class Settings(BaseSettings):
     # If both are set, this admin is created on start when no user has the email yet.
     admin_email: str | None = None
     admin_password: str | None = None
-    # Store storage (S3 API). Without an endpoint, releases are kept in memory (tests).
+    # Library storage (S3 API). Without an endpoint, releases are kept in memory (tests).
     s3_endpoint: str | None = None
     s3_bucket: str = "bleep-registry"
     s3_access_key: str = ""
     s3_secret_key: str = ""
-    # Code signing (website/content/developers/reference/signing.md). The root PUBLIC keys (hex, comma separated; two during a rotation) are all the
-    # store needs to check releases: the root private key must never be here. The issuer key (PEM) and its certificate
+    # Code signing (website/content/developers/modules/signing.md). The root PUBLIC keys (hex, comma separated; two during a rotation) are all the
+    # library needs to check releases: the root private key must never be here. The issuer key (PEM) and its certificate
     # (JSON) are only for `python -m app.cli developer-create`.
     root_public_keys: str = ""
     issuer_key: str | None = None

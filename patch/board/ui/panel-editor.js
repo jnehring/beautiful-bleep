@@ -536,6 +536,22 @@
         fit(p);
       });
     }
+    /// Frames the selection in a new titled section, which then carries the controls along when it is moved.
+    function group() {
+      let id;
+      ctx.mutate("group " + multi.size + " controls", (p) => {
+        const cs = p.controls.filter((c) => multi.has(c.id));
+        if (!cs.length) return false;
+        const x0 = Math.max(0, Math.min(...cs.map((c) => c.at[0])) - 1), y0 = Math.max(0, Math.min(...cs.map((c) => c.at[1])) - 2);   // room for the title strip
+        const x1 = Math.max(...cs.map((c) => c.at[0] + c.size[0])) + 1, y1 = Math.max(...cs.map((c) => c.at[1] + c.size[1])) + 1;
+        const sec = { id: nextId(p), type: "section", at: [x0, y0], size: [x1 - x0, y1 - y0], text: "Group", colour: "#8b92a3" };
+        if (tab) sec.tab = tab;
+        id = sec.id;
+        p.controls.unshift(sec);   // behind the controls it frames
+        fit(p);
+      });
+      if (id) setSel([id]);
+    }
     /// What can be copied: not a control made with a module of the board (that is made again on the board).
     const copyable = () => picked().filter((c) => !c.target && !moduleOf(c));
     function copy() {
@@ -572,7 +588,7 @@
           { label: "Snap to grid", run: snap },
           { label: "Align horizontally", disabled: multi.size < 2, run: () => lineUp("h") },
           { label: "Align vertically", disabled: multi.size < 2, run: () => lineUp("v") },
-        ] }, "-");
+        ] }, { label: "Group", key: "⌘G", run: group }, "-");
         items.push({ label: "Copy", key: "⌘C", disabled: !copyable().length, run: copy });
       }
       items.push({ label: "Paste", key: "⌘V", disabled: !clipboard, run: () => paste(at) });
@@ -678,6 +694,7 @@
       if (e.key === "Escape") { setSel([]); drawOverlay(); drawSide(); drawInsp(); }
       else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); e.stopPropagation(); remove(); }
       else if ((e.metaKey || e.ctrlKey) && e.key === "c") { e.preventDefault(); e.stopPropagation(); copy(); }
+      else if ((e.metaKey || e.ctrlKey) && e.key === "g" && multi.size) { e.preventDefault(); e.stopPropagation(); group(); }
       else if ((e.metaKey || e.ctrlKey) && e.key === "v") { e.preventDefault(); e.stopPropagation(); paste(); }
       else if ((e.metaKey || e.ctrlKey) && e.key === "d") { e.preventDefault(); e.stopPropagation(); duplicate(); }
       else if (c && e.key.startsWith("Arrow")) {

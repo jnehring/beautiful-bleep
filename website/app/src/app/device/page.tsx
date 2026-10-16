@@ -5,7 +5,7 @@ import { api, useUser } from "@/lib/auth";
 
 type Info = { client_name: string; requested_from: string; requested_agent: string; requested_seconds_ago: number };
 
-/** Where the user confirms the code the app or plugin shows (docs: store.md, "Login in the app"). */
+/** Where the user confirms the code the app or plugin shows (docs: library.md, "Login in the app"). */
 export default function DevicePage() {
   const user = useUser();
   const [code, setCode] = useState("");
@@ -53,7 +53,7 @@ export default function DevicePage() {
           <p className="error" role="alert"><strong>Only continue if you just started this sign-in yourself, in a Bleep app on your own computer.</strong>{" "}
             Someone else can start one too and ask you to approve it: they would then act as <strong>{user.display_name}</strong>.</p>
           <p>The app calls itself <q>{info.client_name}</q> (it chose that name; it is not checked) and asks to act as <strong>{user.display_name}</strong>: share presets,
-            comment and rate in the Bleep Store. It cannot change your account or password.</p>
+            comment and rate in the Bleep Library. It cannot change your account or password.</p>
           <ul>
             <li>Started from address <code>{info.requested_from || "unknown"}</code>, {info.requested_seconds_ago < 90 ? `${info.requested_seconds_ago} seconds` : `${Math.round(info.requested_seconds_ago / 60)} minutes`} ago.</li>
             {info.requested_agent && <li>Program: <code>{info.requested_agent}</code></li>}

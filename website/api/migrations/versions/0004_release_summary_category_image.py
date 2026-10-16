@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""a release's summary, category and screenshot, shown on the store's tiles
+"""a release's summary, category and screenshot, shown on the library's tiles
 
 Revision ID: 0004
 Revises: 0003

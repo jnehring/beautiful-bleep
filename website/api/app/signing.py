@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
-"""Package signing for modules and plugins: the reference implementation of website/content/developers/reference/signing.md.
+"""Package signing for modules and plugins: the reference implementation of website/content/developers/modules/signing.md.
 
-This library is used by the store (website/api: it checks every release), by scripts/release/signing.py
+This library is used by the library (website/api: it checks every release), by scripts/release/signing.py
 (the command line for developers and admins) and by scripts/release.py. Needs the `cryptography` package.
 
 A PACKAGE is a .bleepmod / .zip or a folder; the signature is META/signature.json inside it. The
@@ -27,6 +27,7 @@ CONTENT_DOMAIN = b"BLEEP-CONTENT-1\n"
 SIGNATURE_DOMAIN = b"BLEEP-SIG-1\n"
 CERT_DOMAIN = b"BLEEP-CERT-1\n"
 CRL_DOMAIN = b"BLEEP-CRL-1\n"
+PUBLICATION_DOMAIN = b"BLEEP-PUB-1\n"
 SIGNATURE_PATH = "META/signature.json"
 KINDS = ("module", "plugin")
 PUBLISHER = re.compile(r"[a-z0-9][a-z0-9-]{0,38}")
@@ -172,6 +173,46 @@ def sign(entries, key: Ed25519PrivateKey, chain: list[dict], kind: str, id_: str
     return {"format": 1, "algorithm": "ed25519", "keyId": signer, "chain": chain, "signature": b64(sig)}
 
 
+# ---- publication receipts (signing.md section 6a) ---------------------------------------------
+
+class ClockError(ValueError):
+    """The server clock is earlier than a receipt already issued (signing.md section 6a): publishing waits until it has caught up."""
+
+
+def publication_message(kind: str, id_: str, version: str, platform: str, signer_key_id: str, digest: bytes, published_at: int) -> bytes:
+    return (PUBLICATION_DOMAIN + lp(kind.encode()) + lp(id_.encode()) + lp(version.encode()) + lp(platform.encode())
+            + lp(signer_key_id.encode()) + lp(digest) + struct.pack(">Q", published_at))
+
+
+def make_receipt(issuer: Ed25519PrivateKey, *, kind: str, id_: str, version: str, platform: str, signer_key_id: str,
+                 digest: bytes, published_at: int) -> dict:
+    """A publication receipt: the issuer's statement that this exact signed content was published at `published_at`."""
+    sig = issuer.sign(publication_message(kind, id_, version, platform, signer_key_id, digest, published_at))
+    return {"format": 1, "algorithm": "ed25519", "issuerKeyId": key_id(public_bytes(issuer)),
+            "publishedAt": published_at, "signature": b64(sig)}
+
+
+def issue_receipt(issuer: Ed25519PrivateKey, content, doc: dict | None, *, kind: str, id_: str, version: str, platform: str = "any",
+                  roots: list[bytes], now: int | None = None, crl: dict | None = None, newest: int = 0) -> dict:
+    """What the library does when it accepts a file: verify it as of the server's clock, then date it.
+
+    Raises ValueError if the file is not `signed` right now (so a lapsed certificate, a revoked key or a bad signature gets no receipt),
+    if the signing issuer is not this one, or if `now` is earlier than `newest`, the latest `publishedAt` already issued: a clock that
+    jumped back must not date a release into the past. `content` is the entries or the content digest.
+    """
+    now = int(time.time()) if now is None else now
+    res = verify(content, doc, kind=kind, id_=id_, version=version, platform=platform, roots=roots, now=now, crl=crl)
+    if res.status != "signed":
+        raise ValueError(f"no receipt for a release that is {res.status}" + (f": {res.reason}" if res.reason else ""))
+    if doc["chain"][0]["tbs"]["keyId"] != key_id(public_bytes(issuer)):
+        raise ValueError("the release was certified by another issuer")
+    if now < newest:
+        raise ClockError("the clock is earlier than the newest receipt: refusing to date a release into the past")
+    digest = content if isinstance(content, (bytes, bytearray)) else content_digest(content)
+    return make_receipt(issuer, kind=kind, id_=id_, version=version, platform=platform, signer_key_id=doc["keyId"],
+                        digest=bytes(digest), published_at=now)
+
+
 # ---- verify -----------------------------------------------------------------------------
 
 class Result(NamedTuple):
@@ -180,6 +221,7 @@ class Result(NamedTuple):
     key_id: str = ""
     root: str = ""         # key id of the root that vouched for it
     reason: str = ""
+    published_at: int = 0  # when the library published it, if a publication receipt dated the release (signing.md section 6a)
 
 
 # ---- revocation list (signing.md section 8) -------------------------------------------------
@@ -225,13 +267,14 @@ def _check_cert(cert: dict, signer_public: bytes) -> bool:
 
 
 def verify(content, doc: dict | None, *, kind: str, id_: str, version: str, platform: str = "any",
-           roots: list[bytes], now: int | None = None, crl: dict | None = None) -> Result:
+           roots: list[bytes], now: int | None = None, crl: dict | None = None, receipt: dict | None = None) -> Result:
     """Checks a package against the pinned root public keys. Never raises on bad input: it returns "invalid".
 
     `content` is the package's entries (see content_digest) or the 32-byte content digest itself.
 
-    Order: the signature's shape, the certificate chain (root > issuer > developer), validity period,
-    revocation, the developer's right to this kind and id, then the signature over the content.
+    Order: the signature's shape, the certificate chain (root > issuer > developer), revocation, the developer's
+    right to this kind and id, the signature over the content, then validity: at `now`, or, with a publication
+    `receipt` from the library, at the time it says (the device clock then plays no part).
     """
     now = int(time.time()) if now is None else now
     if doc is None:
@@ -271,10 +314,23 @@ def verify(content, doc: dict | None, *, kind: str, id_: str, version: str, plat
         if not _verify_sig(dev_pub, base64.b64decode(doc["signature"]),
                            signing_message(kind, id_, version, platform, dev_tbs["keyId"], digest)):
             return Result("invalid", reason="the signature does not match the content")
-        for t in (issuer_tbs, dev_tbs):  # after the checks above: an expired signer is not an attack, just old
-            if not t["notBefore"] <= now <= t["notAfter"]:
+        # validity comes last: an expired signer is not an attack, just old. A receipt moves the moment that counts from now to publishedAt.
+        at, dated = now, 0
+        if receipt is not None:
+            published = receipt["publishedAt"]
+            if (receipt["format"] != 1 or receipt["algorithm"] != "ed25519" or receipt["issuerKeyId"] != issuer_tbs["keyId"]
+                    or type(published) is not int or not 0 <= published < 2 ** 64):
+                return Result("invalid", reason="bad publication receipt")
+            if not _verify_sig(issuer_pub, base64.b64decode(receipt["signature"]),
+                               publication_message(kind, id_, version, platform, dev_tbs["keyId"], digest, published)):
+                return Result("invalid", reason="the publication receipt does not match the release")
+            at, dated = published, published
+        for t in (issuer_tbs, dev_tbs):
+            if not t["notBefore"] <= at <= t["notAfter"]:
+                if receipt is not None:  # the library dated it outside the certificate: a bug or a leaked issuer key, not a lapsed developer
+                    return Result("invalid", reason="the publication receipt dates the release outside the certificate's validity period")
                 return Result("expired", who.publisher, who.key_id, who.root, "the certificate is outside its validity period")
-        return who
+        return who._replace(published_at=dated)
     except (KeyError, TypeError, ValueError, AttributeError, IndexError) as e:
         return Result("invalid", reason=f"malformed signature: {e}")
 
@@ -397,14 +453,20 @@ def test_vector() -> dict:
     issuer = Ed25519PrivateKey.from_private_bytes(bytes([2]) * 32)
     dev = Ed25519PrivateKey.from_private_bytes(bytes([3]) * 32)
     t0, t1 = 1_760_000_000, 1_760_000_000 + 365 * 86400
-    issuer_cert = make_cert(root, None, new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep store issuer",
+    issuer_cert = make_cert(root, None, new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep library issuer",
                                                 scopes=["issue"], not_before=t0, not_after=t1))
     dev_cert = make_cert(issuer, issuer_cert, new_tbs("developer", public_bytes(dev), publisher="acme", name="Acme Audio",
                                                       scopes=["module"], not_before=t0, not_after=t1))
     files = {"module.json": b'{"name":"Fuzz"}\n', "module.wasm": b"\x00asm\x01\x00\x00\x00", "ui/fuzz.js": b"// view\n"}
     entries = {p: (hashlib.sha256(c).digest(), False) for p, c in files.items()}
     doc = sign(entries, dev, [issuer_cert, dev_cert], "module", "acme/fuzz", "1.0.0")
-    return {"root": public_bytes(root).hex(), "issuer": public_bytes(issuer).hex(), "developer": public_bytes(dev).hex(),
+    digest, dev_id, published = content_digest(entries), key_id(public_bytes(dev)), 1_765_000_000
+    receipt = make_receipt(issuer, kind="module", id_="acme/fuzz", version="1.0.0", platform="any", signer_key_id=dev_id,
+                           digest=digest, published_at=published)
+    return {"publishedAt": published,
+            "publicationMessage": publication_message("module", "acme/fuzz", "1.0.0", "any", dev_id, digest, published).hex(),
+            "publicationSignature": base64.b64decode(receipt["signature"]).hex(),
+            "root": public_bytes(root).hex(), "issuer": public_bytes(issuer).hex(), "developer": public_bytes(dev).hex(),
             "contentDigest": content_digest(entries).hex(),
             "message": signing_message("module", "acme/fuzz", "1.0.0", "any", key_id(public_bytes(dev)), content_digest(entries)).hex(),
             "signature": base64.b64decode(doc["signature"]).hex(), "developerKeyId": key_id(public_bytes(dev))}

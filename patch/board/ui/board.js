@@ -13,7 +13,7 @@
 
   // ------------------------------------------------------------------ state
   let board = null;            // the board document, or null (no Bleep Board)
-  let hasStore = false;        // the app has a module store (the native side's init says so); without one, nothing is checked against it
+  let hasLibrary = false;        // the app has a module library (the native side's init says so); without one, nothing is checked against it
   let types = {};              // type → description
   let typeList = [];
   let ports = {};              // port id → {kind, track, live, main}
@@ -552,15 +552,15 @@
     if (missingModule) {  // the module of this node is not on this machine: the node waits, with its settings, and its cables are kept
       const note = el("div", "n-missing", n.type);
       e.appendChild(note);
-      if (P.BleepStoreView) {
+      if (P.BleepLibraryView) {
         const b = el("button", "n-install", "Install");
         b.addEventListener("pointerdown", (ev) => ev.stopPropagation());
         b.addEventListener("click", async (ev) => {
           ev.stopPropagation();
           b.disabled = true;
           b.textContent = "Installing…";
-          const ok = await P.BleepStoreView.installType(n.type);
-          if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (P.BleepStoreView.lastMessage() || "not found in the store"); }
+          const ok = await P.BleepLibraryView.installType(n.type);
+          if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (P.BleepLibraryView.lastMessage() || "not found in the library"); }
         });
         e.appendChild(b);
       }
@@ -1014,6 +1014,11 @@
     if (dot) {
       ev.stopPropagation();
       const row = dot.closest(".jack");
+      if (ev.altKey && row.classList.contains("out")) {
+        // Alt-drag: pick up the last cable out of this jack by its output end and move it to another output.
+        const outOf = board.cables.filter((c) => c.from.node === n.id && c.from.jack === row.dataset.jack);
+        if (outOf.length) return startSourceDrag(ev, outOf[outOf.length - 1]);
+      }
       if (row.classList.contains("out") && (row.dataset.jack !== "+" || n.type === "cell-in" || n.type === "voice-in")) return startCableDrag(ev, n.id, row.dataset.jack);
       if (row.classList.contains("in")) {
         // Pick up the last cable into this jack and move its end (spec §9.5).
@@ -1570,20 +1575,20 @@
   /// `link` (from a cable dropped on empty canvas) is connected to the new node.
   function addAt(what, x, y, link, checked) {
     if (!board) return;
-    if (what.preset && !checked && hasStore && P.BleepStoreView) {  // modules the preset needs: offer to install them first
+    if (what.preset && !checked && hasLibrary && P.BleepLibraryView) {  // modules the preset needs: offer to install them first
       const q = presets.find((r) => r.key === what.preset);
       if (q) {
-        P.BleepStoreView.ensureNeeds(q.preset, q.name).then(
+        P.BleepLibraryView.ensureNeeds(q.preset, q.name).then(
           (ok) => {
             if (!ok) return;
-            // The store only knows the modules it lists or has installed. A preset may use module types this app has never
+            // The library only knows the modules it lists or has installed. A preset may use module types this app has never
             // heard of (a newer module, one not installed on this machine): say so, the board keeps them as placeholders.
             const unknown = [...new Set((q.preset.nodes || []).map((n) => n.type))].filter((t) => !types[t]);
             if (unknown.length) notice(`“${q.name}” uses modules this app doesn't have: ${unknown.join(", ")}. They show as “not installed”.`);
             addAt(what, x, y, link, true);
           },
-          (e) => {   // the store check itself failed or did not answer: the preset is still wanted
-            notice(`Could not check the store for “${q.name}” (${e && e.message ? e.message : e}); adding it without.`);
+          (e) => {   // the library check itself failed or did not answer: the preset is still wanted
+            notice(`Could not check the library for “${q.name}” (${e && e.message ? e.message : e}); adding it without.`);
             addAt(what, x, y, link, true);
           });
         return;
@@ -1637,7 +1642,7 @@
     });
     // The app answers every edit with the board it kept: say so when it did not keep what was just placed.
     Promise.resolve(placed).then(() => {
-      if (newId && board && !nodeById(newId)) notice(`The app did not keep the ${what.preset ? "cell" : "module"} you added. Check the Store section for modules that failed to load.`);
+      if (newId && board && !nodeById(newId)) notice(`The app did not keep the ${what.preset ? "cell" : "module"} you added. Check the Library section for modules that failed to load.`);
     }).catch((e) => notice(`Could not add it: ${e && e.message ? e.message : e}`));
   }
 
@@ -1773,10 +1778,6 @@
     e.stopPropagation();
   });
   $("search-input").addEventListener("blur", () => setTimeout(() => { if (searchState) closeSearch(); }, 100));
-  $("add").addEventListener("click", (ev) => {
-    const r = $("add").getBoundingClientRect();
-    showMenu({ clientX: r.left, clientY: r.bottom + 4 }, addMenu(null));
-  });
   $("panels").addEventListener("click", () => {
     const r = $("panels").getBoundingClientRect();
     panelsMenu({ clientX: r.left, clientY: r.bottom + 4 });
@@ -2505,7 +2506,7 @@
     const ids = new Set(nodes.map((n) => n.id));
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
     const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
-    const needs = P.BleepStoreView ? await P.BleepStoreView.needsFor(nodes) : {};
+    const needs = P.BleepLibraryView ? await P.BleepLibraryView.needsFor(nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     const mine = panelsWithLoaded(panelList().filter((p) => p.cell && ids.has(p.cell)));
     if (mine.length) preset.panels = clone(mine).map((p) => { delete p.open; return p; });
@@ -2644,7 +2645,7 @@
   function toggleView(id) {
     if (views.has(id)) return closeView(id);
     closeUnpinnedViews();
-    openView(id);
+    openView(id, { centre: true });
   }
 
   /// What a module view (or a panel) calls to change node `id`.
@@ -2694,7 +2695,8 @@
     });
   }
 
-  function openView(id) {
+  /// `opts.centre`: a view opened by hand lands in the middle of the canvas; one a cable opens sits beside its node.
+  function openView(id, opts = {}) {
     const n = nodeById(id);
     if (!n || isStructural(n)) return;
     const t = typeOf(n);
@@ -2758,8 +2760,9 @@
         y = nb + gap + h <= r.height - 8 || nt - gap - h < 8 ? nb + gap : nt - gap - h;
       }
     }
+    if (opts.centre) { x = (r.width - win.offsetWidth) / 2; y = (r.height - win.offsetHeight) / 2; }
     x = Math.max(8, Math.min(x, r.width - win.offsetWidth - 10));
-    y = Math.max(8, Math.min(y, r.height - Math.min(win.offsetHeight, 200)));
+    y = Math.max(8, opts.centre ? Math.min(y, r.height - win.offsetHeight - 8) : Math.min(y, r.height - Math.min(win.offsetHeight, 200)));
     win.style.left = x + "px";
     win.style.top = y + "px";
     front(win);
@@ -3183,7 +3186,9 @@
       win.classList.toggle("editing", state.edit);
       if (state.edit) {
         win.style.width = state.w ? state.w + "px" : "";
-        if (state.h) win.style.setProperty("--pe-h", state.h + "px");
+        // Unless resized by hand, the editor fills the canvas below its title bar (not the whole browser window).
+        win.style.setProperty("--pe-h", (state.h || Math.max(380, canvas.clientHeight - head.offsetHeight - 24)) + "px");
+        win.style.top = Math.max(8, Math.min(win.offsetTop, canvas.clientHeight - win.offsetHeight - 8)) + "px";
         if (win.offsetLeft + win.offsetWidth > canvas.clientWidth) win.style.left = Math.max(8, canvas.clientWidth - win.offsetWidth - 8) + "px";   // not cut off at the right edge
       } else win.style.removeProperty("--pe-h");
       title.title = state.edit ? "Click to rename the panel" : "";
@@ -3494,11 +3499,11 @@
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
-    hasStore = !!m.store;
+    hasLibrary = !!m.library;
     if (m.account && P.BleepAccount) { P.BleepAccount.enabled = true; P.BleepAccount.client = m.standalone ? "Bleep Standalone" : "Bleep plugin"; }
-    if (m.store && P.BleepStoreView) await P.BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
-    if (m.settings && P.BleepSettingsView) await P.BleepSettingsView.init({ store: !!m.store });
-    if (m.store && P.BleepHelpView) await P.BleepHelpView.init();
+    if (m.library && P.BleepLibraryView) await P.BleepLibraryView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
+    if (m.settings && P.BleepSettingsView) await P.BleepSettingsView.init({ library: !!m.library });
+    if (m.library && P.BleepHelpView) await P.BleepHelpView.init();
     pluginMode = !!m.plugin || !!panelOf;
     document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
@@ -3516,7 +3521,7 @@
     setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);
-    {  // Bleep Play opened from a store preset: /play/index.html?preset=author/slug
+    {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug
       const shared = new URLSearchParams(location.search).get("preset");
       if (shared && !pluginMode) P.BleepPresetBrowser.loadShared(shared).catch((e) => notice(e.message));
     }

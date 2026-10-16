@@ -9,7 +9,7 @@
 4. Every source file carries an SPDX license identifier; every top-level
    part has a LICENSE file. A module's files carry the licence its module.json
    declares (MIT when it declares none).
-5. Module provenance (website/content/developers/modules/02-writing-a-module.md, "Ported code and licences"): a
+5. Module provenance (website/content/developers/modules/writing-a-module.md, "Ported code and licences"): a
    module that is ported from other code names it in `origin`, keeps the
    original licence (copyleft stays copyleft), ships the licence text and
    credits the source in its doc.

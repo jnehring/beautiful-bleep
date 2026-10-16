@@ -15,19 +15,17 @@ Both channels are multiplied by the same gain:
 
     Out = In × gain
 
-*Gain* is a 0 – 100 % knob. With the **Linear** response, gain is the knob
-value. With **Exponential**, it is the value cubed: 50 % on the knob is
+*Gain* is a 0 – 400 % knob. With the **Linear** response, gain is the knob
+value. With **Exponential**, it is the value cubed up to 100 %: 50 % on the knob is
 about −18 dB, and the bottom of the range fades smoothly toward silence. This
-sounds more natural for fades and envelopes.
+sounds more natural for fades and envelopes. Above 100 % the curve continues
+linearly, up to 4× (+12 dB).
 
 Gain starts at **0 %** (closed). Modulation adds to the knob, so an envelope
-patched at 100 % amount opens the VCA from silence to full volume and closes
-it again.
+patched at 100 % amount sweeps the whole knob range, from silence up to 400 %,
+so use an amount of 25 % to open the VCA exactly to unity.
 
-**Range** sets how far the amplifier can go: 100 % (the default), 200 % or
-400 %. It multiplies the result, so the Gain knob and envelopes keep their
-meaning (100 % on the knob, or a full envelope, is now 2× or 4× the input, up to
-+12 dB). Use it to lift a quiet signal; mind the level after it.
+Gain above 100 % lifts a quiet signal; mind the level after it.
 
 If only *In L* is patched, it feeds both channels. A mono oscillator then comes
 out on both sides.
@@ -39,7 +37,7 @@ out on both sides.
 - **Tremolo:** turn Gain up to about 50 % and patch a Function (cycling) onto
   Gain with a small amount.
 - **Ducking:** set Gain to 100 % and patch an envelope onto Gain with a
-  *negative* amount: each trigger dips the volume.
+  *negative* amount of about −25 % (a full envelope sweeps the whole 400 %): each trigger dips the volume.
 - **Plain volume or mute:** use the knob without any cable.
 - To shape a control signal instead of audio, use **Utility**. The VCA is
   built for audio.
@@ -50,16 +48,16 @@ out on both sides.
 
 | Control | Range | Default |
 |---|---|---|
-| Gain | 0 – 100 % | 0 % |
+| Gain | 0 – 400 % | 0 % |
 | Response | Linear, Exponential | Exponential |
 
-- **Gain:** the amplification, from silence (0 %) to unity (100 %). The VCA
-  never boosts. Patch envelopes and LFOs here; the ring around the knob shows
+- **Gain:** the amplification, from silence (0 %) through unity (100 %) up to
+  4× (400 %, +12 dB). Patch envelopes and LFOs here; the ring around the knob shows
   the gain really used.
 - **Response:** how the gain value maps to volume.
   - *Linear:* volume = gain. Good for amplitude modulation at audio rate and for
     signals that should stay proportional.
-  - *Exponential:* volume = gain³ (about −60 dB to 0 dB). Fades and envelopes
+  - *Exponential:* volume = gain³ up to 100 % (about −60 dB to 0 dB), then linear. Fades and envelopes
     sound even, the way our ears expect.
 
 ### Inputs

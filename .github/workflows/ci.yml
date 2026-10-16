@@ -26,7 +26,7 @@ jobs:
       - run: python3 -m pip install cryptography==50.0.2
       - run: python3 -m unittest test_release test_signing test_package_module
         working-directory: scripts/release
-      - run: node patch/web/test/store-client-test.mjs
+      - run: node patch/web/test/library-client-test.mjs
       - run: python3 scripts/check/check-api-docs.py
       - run: node patch/presets/build.mjs --check
       - run: node patch/presets/build-modules.mjs --check

@@ -11,6 +11,7 @@
     python -m app.cli developer-create PUBLISHER [--scopes module,plugin] [--first-party --confirm] [--days 1..825] [--out FILE]
     python -m app.cli developer-list
     python -m app.cli developer-revoke KEY_ID
+    python -m app.cli receipts-backfill [--dry-run]
 
 The token and the key kit are secrets. --out FILE writes them to a file that only the owner can read (0600). Without --out they go to
 stdout, which is refused when that is a regular file other users can read (a shell redirect "> kit.json" under the default umask);
@@ -169,9 +170,9 @@ def token_revoke(args: argparse.Namespace) -> None:
 
 
 def developer_create(args: argparse.Namespace) -> None:
-    """Issues a developer key: a new key pair and a certificate from the store's issuer, as one JSON "kit" on stdout.
+    """Issues a developer key: a new key pair and a certificate from the library's issuer, as one JSON "kit" on stdout.
 
-    The kit holds the developer's private key. Hand it over privately; the store keeps only the key id.
+    The kit holds the developer's private key. Hand it over privately; the library keeps only the key id.
     --first-party (may sign ids without a namespace: ours only) needs --confirm. A publisher that already has an active key gets a warning.
     """
     _check_secret_destination(args.out)
@@ -228,6 +229,23 @@ def developer_revoke(args: argparse.Namespace) -> None:
             print("No issuer key is set (BLEEP_ISSUER_KEY, BLEEP_ISSUER_CERT): the revocation list was not published")
 
 
+def receipts_backfill(args: argparse.Namespace) -> None:
+    """Dates the releases that were published before the library issued publication receipts (signing.md section 6a)."""
+    with SessionLocal() as db:
+        try:
+            dated, skipped = registry.backfill_receipts(db, get_storage(), dry_run=args.dry_run)
+        except ValueError as e:
+            sys.exit(str(e))
+    verb = "would get" if args.dry_run else "got"
+    print(f"{len(dated)} file(s) {verb} a receipt" + (":" if dated else ""))
+    for line in dated:
+        print("  " + line)
+    if skipped:
+        print(f"{len(skipped)} file(s) cannot be dated; their developers must sign them again:")
+        for line in skipped:
+            print("  " + line)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli", description=__doc__.split("\n")[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -261,6 +279,9 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("developer-revoke", help="revoke a developer key")
     p.add_argument("key_id")
     p.set_defaults(run=developer_revoke)
+    p = sub.add_parser("receipts-backfill", help="give releases published before receipts existed a publication receipt")
+    p.add_argument("--dry-run", action="store_true", help="only list what would happen")
+    p.set_defaults(run=receipts_backfill)
     args = parser.parse_args(argv)
     args.run(args)
 

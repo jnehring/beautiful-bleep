@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Packages board modules as .bleepmod files for the Bleep Store (website/content/developers/reference/store.md section 4.1).
+"""Packages board modules as .bleepmod files for the Bleep Library (website/content/developers/modules/library.md section 4.1).
 
     scripts/release/package-module.py                       every module that has a built .wasm
     scripts/release/package-module.py reverb filter         just these
-    scripts/release/package-module.py --out DIR --web DIR   other folders (defaults: build/store/modules, build/web/modules)
+    scripts/release/package-module.py --out DIR --web DIR   other folders (defaults: build/library/modules, build/web/modules)
     scripts/release/package-module.py --install DATA --kit KIT [--version 0.1.0]
                                                             also sign each package with the kit and put it into DATA/modules/local,
                                                             the folder the apps read modules copied by hand from (for tests and development)
 
-A package is a zip of: module.json (the module folder's, plus `types`, `requires.engineAbi`, and the `summary` and `category` of the store's tile), module.wasm (built by
+A package is a zip of: module.json (the module folder's, plus `types`, `requires.engineAbi`, and the `summary` and `category` of the library's tile), module.wasm (built by
 scripts/build/build-web.sh --modules-only), spec.json (the node types' descriptions, read from the .wasm with node: a host
 lists a module's node types from it without compiling the module), the module's view scripts (ui/*.js) and its docs
 (doc/*.md, *.png), and its LICENSE when it has one. `license` (default MIT) and `origin` (the code it is ported from) stay in module.json.
-The version is not in the package: the store counts it, so the content hash says whether the code changed.
+The version is not in the package: the library counts it, so the content hash says whether the code changed.
 
-Before packaging, the .wasm is checked against website/content/developers/reference/module-abi.md: only the allowed imports, and every export of the
+Before packaging, the .wasm is checked against website/content/developers/modules/module-abi.md: only the allowed imports, and every export of the
 ABI present. The zip is reproducible (sorted files, fixed dates), so packaging the same inputs twice gives the same bytes.
 """
 import argparse
@@ -31,7 +31,7 @@ from app import signing  # noqa: E402
 
 ENGINE_ABI = 1
 
-# website/content/developers/reference/module-abi.md, section 2 (imports) and 4 (exports)
+# website/content/developers/modules/module-abi.md, section 2 (imports) and 4 (exports)
 ALLOWED_IMPORTS = {
     ("env", "emscripten_notify_memory_growth"),
     ("env", "bleep_media_info"), ("env", "bleep_media_read"),  # sample files, answered by the host (module-abi.md, "Media")
@@ -116,7 +116,7 @@ def read_wasm(data: bytes) -> tuple[list[tuple[str, str]], list[str]]:
 
 
 def check_abi(data: bytes) -> list[str]:
-    """What is wrong with this module file under website/content/developers/reference/module-abi.md (empty: nothing)."""
+    """What is wrong with this module file under website/content/developers/modules/module-abi.md (empty: nothing)."""
     try:
         imports, exports = read_wasm(data)
     except (ValueError, IndexError) as e:
@@ -142,11 +142,11 @@ def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
     types = [t["type"] for t in described]
     meta = json.loads((folder / "module.json").read_text())
     meta["types"] = types
-    # What the store's tile shows: the module's tagline and category, else those of its first node type.
+    # What the library's tile shows: the module's tagline and category, else those of its first node type.
     meta["summary"] = meta.get("tagline") or described[0].get("description", "")
     meta.setdefault("category", described[0].get("category", ""))
     meta["requires"] = {"engineAbi": ENGINE_ABI}
-    # Licence and provenance travel with the package (website/content/developers/modules/02-writing-a-module.md, "Ported code and licences").
+    # Licence and provenance travel with the package (website/content/developers/modules/writing-a-module.md, "Ported code and licences").
     meta.setdefault("license", "MIT")
     origin = meta.get("origin")
     if origin:
@@ -210,7 +210,7 @@ def install_local(package: Path, slug: str, data: Path, kit_file: Path | None, v
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("modules", nargs="*", metavar="SLUG", help="module folders (default: every one with a built .wasm)")
-    ap.add_argument("--out", type=Path, default=ROOT / "build" / "store" / "modules")
+    ap.add_argument("--out", type=Path, default=ROOT / "build" / "library" / "modules")
     ap.add_argument("--web", type=Path, default=ROOT / "build" / "web" / "modules", help="the output of build-web.sh --modules-only")
     ap.add_argument("--install", type=Path, metavar="DATA", help="also install the signed packages into DATA/modules/local")
     ap.add_argument("--kit", type=Path, help="the signing kit for --install")

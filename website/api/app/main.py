@@ -9,7 +9,7 @@ from .config import settings
 from .db import SessionLocal
 from .models import User, now
 from .deps import COOKIE, same_origin
-from .routers import admin, auth, contact, moderation, presets, profile, registry, social, store, tokens, user_tokens
+from .routers import admin, auth, contact, moderation, presets, profile, registry, social, library, tokens, user_tokens
 from .security import hash_password
 
 
@@ -137,7 +137,7 @@ app.include_router(user_tokens.router)
 app.include_router(presets.router)
 app.include_router(social.router)
 app.include_router(moderation.router)
-app.include_router(store.router)
+app.include_router(library.router)
 app.include_router(registry.router)
 
 

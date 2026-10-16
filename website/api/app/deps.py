@@ -66,22 +66,22 @@ def _bearer_user(authorization: str | None, db: Session) -> User | None:
     if scheme.lower() != "bearer" or not value:
         return None
     row = db.scalar(select(UserToken).where(UserToken.token_hash == hash_token(value.strip())))
-    if row and row.scope == "store" and row.user.is_active and row.user.email_verified and (row.expires_at is None or _aware(row.expires_at) > now()):
+    if row and row.scope == "library" and row.user.is_active and row.user.email_verified and (row.expires_at is None or _aware(row.expires_at) > now()):
         row.last_used_at = now()
         db.commit()
         return row.user
     return None
 
 
-def get_optional_store_user(
+def get_optional_library_user(
     cookie: str | None = Cookie(default=None, alias=COOKIE), authorization: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ) -> User | None:
-    """Who is acting in the store: the website's session cookie, or a personal access token of the app (`Authorization: Bearer blu_…`)."""
+    """Who is acting in the library: the website's session cookie, or a personal access token of the app (`Authorization: Bearer blu_…`)."""
     return _bearer_user(authorization, db) or _session_user(cookie, db)
 
 
-def get_store_user(user: User | None = Depends(get_optional_store_user)) -> User:
+def get_library_user(user: User | None = Depends(get_optional_library_user)) -> User:
     """Publishing, commenting and rating: a login by cookie or by personal token. Other endpoints (profile, admin) take the cookie only."""
     if user is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not logged in")

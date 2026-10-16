@@ -61,7 +61,7 @@ patch/
   plugin contains the engine code. The first Bleep plugin loaded creates the
   engine and publishes it in the process (`BLEEP_ENGINE`); the others
   use that instance. The binary that created it pins itself so it is never
-  unloaded. Binaries of another engine major refuse to share and say so. The plugins agree on a major and a minor version of the engine interface: [`website/content/developers/reference/engine-abi.md`](../website/content/developers/reference/engine-abi.md).
+  unloaded. Binaries of another engine major refuse to share and say so. The plugins agree on a major and a minor version of the engine interface: [`website/content/developers/contribute/engine-abi.md`](../website/content/developers/contribute/engine-abi.md).
 - **Ticks.** For every host block the first plugin to run claims the block
   and runs the compiled board. Plugins exchange their block with the engine
   through small tagged rings: a signal from an input port to an output port
@@ -103,4 +103,4 @@ seconds and checks the page through the real bridge (not part of ctest).
 also covered by JUCE's license (AGPLv3 or a commercial JUCE licence).
 Check that before you distribute builds.
 
-User docs: [getting started](../website/content/musicians/getting-started.md).
+User docs: [getting started](../website/content/musicians/start/getting-started.md).

@@ -99,7 +99,7 @@ class Package(unittest.TestCase):
         self.assertEqual(json.loads(files["spec.json"])[0]["type"], "fuzz")
         meta = json.loads(files["module.json"])
         self.assertEqual((meta["name"], meta["types"], meta["requires"]), ("Fuzz", ["fuzz"], {"engineAbi": 1}))
-        self.assertNotIn("version", meta)  # the store counts the version; the content hash must not depend on it
+        self.assertNotIn("version", meta)  # the library counts the version; the content hash must not depend on it
         self.assertEqual(files["module.wasm"], self.wasm)
 
     def test_licence_and_origin_travel_with_the_package(self):
@@ -130,7 +130,7 @@ class Package(unittest.TestCase):
         pm.write_zip(files, z)
         entries = signing.read_entries(z)
         self.assertEqual(signing.content_digest(entries), signing.content_digest(pm.entries_of(files)))
-        # sign it the way the store expects, and check it comes out signed
+        # sign it the way the library expects, and check it comes out signed
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
         root, issuer = Ed25519PrivateKey.generate(), Ed25519PrivateKey.generate()
         cert = signing.make_cert(root, None, signing.new_tbs("issuer", signing.public_bytes(issuer), publisher="bleep", scopes=["issue"],

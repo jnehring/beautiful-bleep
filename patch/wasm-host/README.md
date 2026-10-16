@@ -40,7 +40,7 @@ Verb imports nothing but `env.emscripten_notify_memory_growth`: no WASI, no file
 
 ## In Live 12 (the plugins)
 
-The spike was also built into the plugins for a while (commit `70c3314`: two extra node types, **Verb (wasm, Wasmtime)** and **Verb (wasm, wasm3)**, running an embedded `reverb.wasm`). It has been removed again, and the modules will run from the Bleep Store instead. What it measured, in Live 12 on an Apple M-series (one instance, 48 kHz):
+The spike was also built into the plugins for a while (commit `70c3314`: two extra node types, **Verb (wasm, Wasmtime)** and **Verb (wasm, wasm3)**, running an embedded `reverb.wasm`). It has been removed again, and the modules will run from the Bleep Library instead. What it measured, in Live 12 on an Apple M-series (one instance, 48 kHz):
 
 | | per sample | share of a core |
 |---|---|---|

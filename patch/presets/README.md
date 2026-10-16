@@ -59,7 +59,7 @@ controllers, samplers). Factory presets are read-only; the user's own live in th
 A preset can list the modules it requires: `"needs": { "<module slug>": { "min": "1.2.0", "max": "2.0.0" } }`
 (both versions optional, inclusive). Presets saved from the board get it automatically, `min` being the module
 version installed at the time; add `max` by hand. Loading a preset or placing a cell whose modules are missing or too old
-asks to download them from the Bleep Store first (spec: [`website/content/developers/reference/store.md`](../website/content/developers/reference/store.md) section 6).
+asks to download them from the Bleep Library first (spec: [`website/content/developers/modules/library.md`](../website/content/developers/modules/library.md) section 6).
 Factory presets leave it out.
 
 ## What a preset can be loaded as (`plays`)

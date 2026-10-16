@@ -4,7 +4,7 @@
 // native plugin behind the board UI: board-demo.js keeps the document (undo,
 // presets, …) and tells BleepWeb about every change; BleepWeb loads the
 // module wasm files a board needs, one by one and on demand, from the Bleep
-// Store (store-client.js: signed packages, checked here before they run), and
+// Library (library-client.js: signed packages, checked here before they run), and
 // sends the board to the AudioWorklet (worklet.js), which makes the sound.
 //
 // Audio starts on the first click (browsers require a gesture); until then
@@ -28,9 +28,9 @@
 
   const post = (m) => node && node.port.postMessage(m);
 
-  /// The module's package from the store, verified. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
+  /// The module's package from the library, verified. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
   function fetchModule(slug) {
-    if (!loading.has(slug)) loading.set(slug, BleepStore.fetchModule(slug));
+    if (!loading.has(slug)) loading.set(slug, BleepLibrary.fetchModule(slug));
     return loading.get(slug);
   }
 
@@ -47,7 +47,7 @@
       try {
         const m = await fetchModule(slug);
         post({ cmd: "module", slug, bytes: m.wasm.slice(0), types: manifest.modules[slug].types });
-        setStatus(`installed ${slug} ${m.version} from the Bleep Store (signed by ${m.publisher}, ${Math.round(m.bytes / 1024)} KB)`);
+        setStatus(`installed ${slug} ${m.version} from the Bleep Library (signed by ${m.publisher}, ${Math.round(m.bytes / 1024)} KB)`);
       } catch (e) {
         sent.delete(slug);
         loading.delete(slug);
@@ -88,15 +88,15 @@
     async start() {
       if (ctx) { await ctx.resume(); return; }
       setStatus("starting audio…");
-      let storeDown = "";
+      let libraryDown = "";
       try {
-        manifest = await BleepStore.manifest();
+        manifest = await BleepLibrary.manifest();
       } catch (e) {
-        // [bridge] Without the store the board still runs its built-in ports (the web link to the app needs no module):
+        // [bridge] Without the library the board still runs its built-in ports (the web link to the app needs no module):
         // modules stay unavailable until it can be reached.
         manifest = { modules: {}, types: {}, unavailable: [] };
-        storeDown = `cannot reach the Bleep Store: ${e.message}`;
-        setStatus(storeDown);
+        libraryDown = `cannot reach the Bleep Library: ${e.message}`;
+        setStatus(libraryDown);
       }
       ctx = new AudioContext({ latencyHint: "interactive" });
       await ctx.audioWorklet.addModule(url("js/worklet.js"));
@@ -111,7 +111,7 @@
       post({ cmd: "watch", nodes: watched });
       W.running = true;
       if (board) { post({ cmd: "board", board: W.mapBoard ? W.mapBoard(board) : board }); await ensureModules(); }
-      setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms` + (storeDown ? ` · ${storeDown}` : ""));
+      setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms` + (libraryDown ? ` · ${libraryDown}` : ""));
     },
     /// The board a visitor starts with: a playable keyboard synth.
     /// `node` and `cable` are board-demo.js's helpers.
@@ -220,16 +220,22 @@
 
   // ---- the "start audio" button -----------------------------------------------------
   window.addEventListener("DOMContentLoaded", () => {
+    // A full-screen shade with the button centred, so nobody has to look for it.
+    const shade = document.createElement("div");
+    shade.style.cssText = "position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;" +
+      "background:rgba(5,10,10,0.72);backdrop-filter:blur(2px)";
     const b = document.createElement("button");
     b.textContent = "▶ Start audio";
-    b.style.cssText = "position:fixed;z-index:50;right:16px;top:52px;padding:10px 16px;border-radius:999px;" +
-      "border:1px solid #5eead4;background:#0f1a1a;color:#5eead4;font:600 14px system-ui;cursor:pointer";
+    b.style.cssText = "padding:18px 36px;border-radius:999px;border:1px solid #5eead4;background:#0f1a1a;" +
+      "color:#5eead4;font:600 20px system-ui;cursor:pointer;box-shadow:0 0 40px rgba(94,234,212,0.25)";
     b.onclick = async () => {
       b.disabled = true;
-      try { await W.start(); W.enableMidi().catch(() => {}); b.remove(); }
+      try { await W.start(); W.enableMidi().catch(() => {}); shade.remove(); }
       catch (e) { b.disabled = false; b.textContent = "Audio failed: " + e.message; }
     };
-    document.body.appendChild(b);
+    shade.appendChild(b);
+    document.body.appendChild(shade);
+    b.focus();
   });
 
   window.BleepWeb = W;

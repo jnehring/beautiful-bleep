@@ -9,7 +9,7 @@ order: 0
 Bleep Bus lets audio plugins exchange per-sample control signals through
 named operating-system shared memory. This document specifies the bus
 exactly enough to implement it **without** the reference SDK. If you only
-want to use the bus, read the [Quickstart](../../quickstart.md)
+want to use the bus, read the [Quickstart](../../bleep-bus/quickstart.md)
 and the [API reference](../../api-reference/00-overview.md)
 instead.
 

@@ -62,10 +62,10 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
   ok(typeof native === "function" && typeof seal === "function", "BleepSeal exposes native and seal");
   ok(p.win.__bleepBoot === undefined, "the boot getter is removed from window once read");
   let got;
-  native("storeStatus", 1, { a: 2 }).then((r) => { got = r; });
+  native("libraryStatus", 1, { a: 2 }).then((r) => { got = r; });
   ok(p.posted.length === 1, "native posts one message");
   const m = JSON.parse(p.posted[0]);
-  ok(m.eventId === "__juce__invoke" && m.payload.name === "storeStatus", "message is a __juce__invoke of the named function");
+  ok(m.eventId === "__juce__invoke" && m.payload.name === "libraryStatus", "message is a __juce__invoke of the named function");
   ok(m.payload.params[0] === SECRET && m.payload.params[1] === 1 && m.payload.params[2].a === 2, "the secret is the first parameter, the arguments follow");
   ok(Number.isSafeInteger(m.payload.resultId) && m.payload.resultId > 1000, "the result id is not a small counter: " + m.payload.resultId);
   // a forged completion with a guessed id changes nothing
@@ -112,14 +112,14 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
     // the raw JUCE object: every way to post through it
     const J = window.__JUCE__;
     r.juce = [typeof J, typeof J.backend, typeof J.backend.addEventListener, typeof J.backend.emitEvent, typeof J.backend.listeners].join();
-    try { J.postMessage(JSON.stringify({ eventId: "__juce__invoke", payload: { name: "storeRemove", params: ["x"], resultId: 1 } })); } catch (e) { r.juceErr = String(e); }
-    try { J.backend.emitEvent("__juce__invoke", { name: "storeRemove", params: ["x"], resultId: 2 }); } catch (e) { r.emitErr = String(e); }
+    try { J.postMessage(JSON.stringify({ eventId: "__juce__invoke", payload: { name: "libraryRemove", params: ["x"], resultId: 1 } })); } catch (e) { r.juceErr = String(e); }
+    try { J.backend.emitEvent("__juce__invoke", { name: "libraryRemove", params: ["x"], resultId: 2 }); } catch (e) { r.emitErr = String(e); }
     try { J.backend = {}; } catch (e) { /* strict */ }
     r.juceWritable = typeof J.backend.emitByBackend !== "function";
     try { window.__JUCE__ = {}; } catch (e) { /* strict */ }
     r.windowJuceWritable = !(window.__JUCE__ && window.__JUCE__.backend && typeof window.__JUCE__.backend.emitByBackend === "function");
     // the platform's channel is still there: using it gets a message without the secret
-    window.webkit.messageHandlers.__JUCE__.postMessage(JSON.stringify({ eventId: "__juce__invoke", payload: { name: "storeRemove", params: ["x"], resultId: 3 } }));
+    window.webkit.messageHandlers.__JUCE__.postMessage(JSON.stringify({ eventId: "__juce__invoke", payload: { name: "libraryRemove", params: ["x"], resultId: 3 } }));
     // spy on everything: replace the channel, JSON, Array, Promise, Map ...
     const seen = [];
     window.webkit.messageHandlers.__JUCE__.postMessage = (o) => seen.push(o);
@@ -199,7 +199,7 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
 // ---- 5. no module view script touches the bridge or the board's private objects
 {
   const forbidden = [/\bnative\s*\(/, /\bonNative\b/, /__JUCE__/, /BleepSeal/, /\bwebkit\b/, /chrome\.webview/, /window\.parent|window\.top|\bparent\.|\btop\./,
-    /\bBleep(Account|StoreView|SettingsView|AppMenu|SideMenu|PresetBrowser|HelpView|Demo|Web)\b/, /\bpostMessage\b/, /\bcreateElement\(\s*["'](iframe|object|embed)/, /\bnew Function\b|\beval\s*\(/];
+    /\bBleep(Account|LibraryView|SettingsView|AppMenu|SideMenu|PresetBrowser|HelpView|Demo|Web)\b/, /\bpostMessage\b/, /\bcreateElement\(\s*["'](iframe|object|embed)/, /\bnew Function\b|\beval\s*\(/];
   const dir = path.join(patch, "modules");
   let files = 0;
   for (const m of fs.readdirSync(dir)) {
@@ -213,7 +213,7 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
   }
   ok(files > 50, "module view scripts were found (" + files + ")");
   // the board's privileged objects live in `priv`, never on window
-  const names = ["BleepAccount", "BleepStoreView", "BleepSettingsView", "BleepAppMenu", "BleepSideMenu", "BleepPresetBrowser", "BleepHelpView"];
+  const names = ["BleepAccount", "BleepLibraryView", "BleepSettingsView", "BleepAppMenu", "BleepSideMenu", "BleepPresetBrowser", "BleepHelpView"];
   for (const f of fs.readdirSync(path.join(patch, "board/ui")).filter((x) => x.endsWith(".js"))) {
     const src = read("board/ui/" + f).replace(/^\s*\/\/.*$/gm, "");
     for (const n of names) ok(!new RegExp("window\\." + n + "\\b").test(src), `board/ui/${f}: window.${n} (use the private namespace P.${n})`);

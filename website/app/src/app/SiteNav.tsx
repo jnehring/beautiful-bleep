@@ -20,7 +20,7 @@ export default function SiteNav() {
           ))}
           <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Play</a>
           <a href="/download/" aria-current={path.startsWith("/download") ? "true" : undefined}>Download</a>
-          <a href="/store/" aria-current={path.startsWith("/store") || isModulesPath(path) ? "true" : undefined}>Bleep Store</a>
+          <a href="/library/" aria-current={path.startsWith("/library") || isModulesPath(path) ? "true" : undefined}>Bleep Library</a>
         </nav>
         <nav className="account" aria-label="Account">
           {user ? (

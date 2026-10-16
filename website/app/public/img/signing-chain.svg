@@ -25,7 +25,7 @@
   <path class="link" d="M48 74 V121 H58"/><path class="head" d="M64 121 l-10 -6 v12 z"/>
   <rect class="box" x="64" y="92" width="580" height="58" rx="12"/>
   <text class="name l" x="84" y="116">Issuer key</text>
-  <text class="sub l" x="84" y="136">online, in the store; certified by the root; valid for years, revocable</text>
+  <text class="sub l" x="84" y="136">online, in the library; certified by the root; valid for years, revocable</text>
 
   <path class="link" d="M88 150 V197 H98"/><path class="head" d="M104 197 l-10 -6 v12 z"/>
   <rect class="box" x="104" y="168" width="580" height="58" rx="12"/>

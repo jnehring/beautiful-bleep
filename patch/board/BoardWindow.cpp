@@ -19,8 +19,8 @@
 #include "BoardResources.h"
 #include "Engine.h"
 #if defined(BLEEP_WASM_MODULES)
-#include "wasm/ModuleStore.h"
-#include "store/Account.h"
+#include "wasm/ModuleLibrary.h"
+#include "library/Account.h"
 #endif
 
 #include "BoardWeb.h"
@@ -90,7 +90,7 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
                 int size = 0;
                 if (const char* data = BoardWeb::getNamedResource(BoardWeb::namedResourceList[i], size)) embedded = juce::String::fromUTF8(data, size);
             }
-        const juce::var a = juce::JSON::parse(embedded), b = juce::JSON::parse(juce::String(bleep::engine::ModuleStore::instance().moduleViewsJson()));
+        const juce::var a = juce::JSON::parse(embedded), b = juce::JSON::parse(juce::String(bleep::engine::ModuleLibrary::instance().moduleViewsJson()));
         juce::Array<juce::var> all;
         if (auto* x = a.getArray()) all.addArray(*x);
         if (auto* y = b.getArray()) all.addArray(*y);
@@ -101,7 +101,7 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
         bool embedded = false;
         for (int i = 0; i < BoardWeb::namedResourceListSize; ++i) embedded = embedded || path == BoardWeb::originalFilenames[i];
         std::vector<uint8_t> bytes;
-        if (!embedded && bleep::engine::ModuleStore::instance().viewFile(path.toStdString(), bytes)) return bytesOf(bytes.data(), bytes.size());
+        if (!embedded && bleep::engine::ModuleLibrary::instance().viewFile(path.toStdString(), bytes)) return bytesOf(bytes.data(), bytes.size());
     }
 #endif
     for (int i = 0; i < BoardWeb::namedResourceListSize; ++i) {
@@ -116,9 +116,9 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
 #if defined(BLEEP_WASM_MODULES)
-/// The default plugin bundle (developers/reference/store.md 5a). An offline installer carries the plugins in the app (Contents/Resources/Plugins
+/// The default plugin bundle (developers/modules/library.md 5a). An offline installer carries the plugins in the app (Contents/Resources/Plugins
 /// on macOS, Plugins next to the app elsewhere): those are copied into the user's VST3 folder. Otherwise they are downloaded from the
-/// store, which checks their signatures. Live must be closed: replacing a plugin that Live has loaded can crash it.
+/// library, which checks their signatures. Live must be closed: replacing a plugin that Live has loaded can crash it.
 juce::var installPluginBundle() {
     auto* r = new juce::DynamicObject();
     juce::var result(r);
@@ -130,16 +130,16 @@ juce::var installPluginBundle() {
     const auto source = juce::File::getSpecialLocation(juce::File::currentApplicationFile).getParentDirectory().getChildFile("Plugins");
 #endif
     const auto bundles = source.findChildFiles(juce::File::findFilesAndDirectories, false, "*.vst3");
-    if (bundles.isEmpty()) {  // online: the store does it, on another thread; the window polls status().pluginJob
-        bleep::engine::ModuleStore::instance().installPluginsAsync();
+    if (bundles.isEmpty()) {  // online: the library does it, on another thread; the window polls status().pluginJob
+        bleep::engine::ModuleLibrary::instance().installPluginsAsync();
         r->setProperty("started", true);
         return result;
     }
-    if (bleep::store::abletonLiveRunning()) {
+    if (bleep::library::abletonLiveRunning()) {
         r->setProperty("message", "Ableton Live is running. Close it first: replacing a plugin that Live has loaded can crash it.");
         return result;
     }
-    const auto target = bleep::store::userPluginFolder();
+    const auto target = bleep::library::userPluginFolder();
     target.createDirectory();
     int n = 0;
     for (const auto& b : bundles) {
@@ -159,7 +159,7 @@ juce::var installPluginBundle() {
     return result;
 }
 
-/// The Bleep plugins in the system's VST3 folders (the Store section lists them; installing them is the app's job).
+/// The Bleep plugins in the system's VST3 folders (the Library section lists them; installing them is the app's job).
 juce::var installedPlugins() {
     juce::Array<juce::File> folders;
 #if JUCE_MAC
@@ -256,15 +256,15 @@ private:
 BoardWindowStyle& style();
 
 #if defined(BLEEP_WASM_MODULES)
-/// The store login of this process (the app, or the plugin instance; they share the token in the keychain).
-store::Account& storeAccount() {
-    static store::Account account(bleep::engine::ModuleStore::instance().dataDir());
+/// The library login of this process (the app, or the plugin instance; they share the token in the keychain).
+library::Account& libraryAccount() {
+    static library::Account account(bleep::engine::ModuleLibrary::instance().dataDir());
     return account;
 }
 
 /// The page's `account` calls (board/ui/account.js): what the user may do with their login. Blocks on the network: worker thread only.
 juce::var runAccount(const juce::String& op, const juce::var& x, const juce::var& y, const juce::var& z) {
-    auto& account = storeAccount();
+    auto& account = libraryAccount();
     if (op == "status") return account.status((bool)x);
     if (op == "start") return account.startSignIn(x.toString().toStdString());
     if (op == "poll") return account.pollSignIn();
@@ -310,7 +310,7 @@ public:
                     r.getDynamicObject()->setProperty("nativeMenu", style().menu != nullptr);  // the File and Help menus are the app's own
                     r.getDynamicObject()->setProperty("version", BLEEP_VERSION);
 #if defined(BLEEP_WASM_MODULES)
-                    r.getDynamicObject()->setProperty("store", true);  // the Store section is offered
+                    r.getDynamicObject()->setProperty("library", true);  // the Library section is offered
                     r.getDynamicObject()->setProperty("account", true);  // and the login to it (sharing presets)
 #endif
 #if defined(BLEEP_UI_DEV_ROOT)
@@ -423,39 +423,39 @@ public:
                     done({});
                 }));
 #if defined(BLEEP_WASM_MODULES)
-        using bleep::engine::ModuleStore;
+        using bleep::engine::ModuleLibrary;
         options = options
             .withNativeFunction("types", gated([](const juce::Array<juce::var>&, Completion done) { done(board::describeTypes()); }))
-            .withNativeFunction("storeStatus", gated([](const juce::Array<juce::var>&, Completion done) { done(ModuleStore::instance().status()); }))
-            .withNativeFunction("storeRefresh", gated([](const juce::Array<juce::var>&, Completion done) {
-                ModuleStore::instance().refreshIndexAsync();
+            .withNativeFunction("libraryStatus", gated([](const juce::Array<juce::var>&, Completion done) { done(ModuleLibrary::instance().status()); }))
+            .withNativeFunction("libraryRefresh", gated([](const juce::Array<juce::var>&, Completion done) {
+                ModuleLibrary::instance().refreshIndexAsync();
                 done({});
             }))
-            .withNativeFunction("storeInstall", gated([](const juce::Array<juce::var>& a, Completion done) {
-                ModuleStore::instance().installAsync(a[0].toString().toStdString());
+            .withNativeFunction("libraryInstall", gated([](const juce::Array<juce::var>& a, Completion done) {
+                ModuleLibrary::instance().installAsync(a[0].toString().toStdString());
                 done({});
             }))
-            .withNativeFunction("storeInstallAll", gated([](const juce::Array<juce::var>&, Completion done) {
-                ModuleStore::instance().installAllAsync();
+            .withNativeFunction("libraryInstallAll", gated([](const juce::Array<juce::var>&, Completion done) {
+                ModuleLibrary::instance().installAllAsync();
                 done({});
             }))
-            .withNativeFunction("storeUpdateAll", gated([](const juce::Array<juce::var>&, Completion done) {
-                ModuleStore::instance().updateAllAsync();
+            .withNativeFunction("libraryUpdateAll", gated([](const juce::Array<juce::var>&, Completion done) {
+                ModuleLibrary::instance().updateAllAsync();
                 done({});
             }))
-            .withNativeFunction("storeRemove", gated([](const juce::Array<juce::var>& a, Completion done) {
-                ModuleStore::instance().removeAsync(a[0].toString().toStdString());
+            .withNativeFunction("libraryRemove", gated([](const juce::Array<juce::var>& a, Completion done) {
+                ModuleLibrary::instance().removeAsync(a[0].toString().toStdString());
                 done({});
             }))
-            .withNativeFunction("storeSettings", gated([](const juce::Array<juce::var>& a, Completion done) {
-                // Module UI scripts run in this page and can call this too. What weakens the store's checks (signatures off, a
-                // different store, which also receives the account token) is therefore confirmed in a native dialog the page cannot answer.
-                const auto before = ModuleStore::instance().settings();
+            .withNativeFunction("librarySettings", gated([](const juce::Array<juce::var>& a, Completion done) {
+                // Module UI scripts run in this page and can call this too. What weakens the library's checks (signatures off, a
+                // different library, which also receives the account token) is therefore confirmed in a native dialog the page cannot answer.
+                const auto before = ModuleLibrary::instance().settings();
                 auto s = before;
                 if (a[0]["firstRunDone"].isBool()) s.firstRunDone = (bool)a[0]["firstRunDone"];
                 if (a[0]["channel"].isString()) s.channel = a[0]["channel"].toString().toStdString();
-                if (a[0]["storeUrl"].isString() && a[0]["storeUrl"].toString().isNotEmpty())
-                    s.storeUrl = a[0]["storeUrl"].toString().toStdString();
+                if (a[0]["libraryUrl"].isString() && a[0]["libraryUrl"].toString().isNotEmpty())
+                    s.libraryUrl = a[0]["libraryUrl"].toString().toStdString();
                 const juce::var allow = a[0]["allowUnsigned"];
                 if (allow.isObject()) {
                     s.allowUnsigned.module = (bool)allow["module"];
@@ -464,9 +464,9 @@ public:
                 juce::String risk;
                 if (s.allowUnsigned.module && !before.allowUnsigned.module) risk << "Allow unsigned modules: code nobody has vouched for will run.\n";
                 if (s.allowUnsigned.plugin && !before.allowUnsigned.plugin) risk << "Allow unsigned plugins: unverified native code can be installed.\n";
-                if (s.storeUrl != before.storeUrl) risk << "Use another store: " << juce::String(s.storeUrl) << "\n";
+                if (s.libraryUrl != before.libraryUrl) risk << "Use another library: " << juce::String(s.libraryUrl) << "\n";
                 std::string urlProblem;
-                if (!store::storeUrlAllowed(s.storeUrl, urlProblem)) {
+                if (!library::libraryUrlAllowed(s.libraryUrl, urlProblem)) {
                     auto* e = new juce::DynamicObject();
                     e->setProperty("error", juce::String(urlProblem));
                     done(juce::var(e));
@@ -474,25 +474,25 @@ public:
                 }
                 if (risk.isEmpty()) {
                     std::string error;
-                    ModuleStore::instance().setSettings(s, error);
+                    ModuleLibrary::instance().setSettings(s, error);
                     done({});
                     return;
                 }
                 juce::AlertWindow::showAsync(
                     juce::MessageBoxOptions()
                         .withIconType(juce::MessageBoxIconType::WarningIcon)
-                        .withTitle("Change the store's safety settings?")
+                        .withTitle("Change the library's safety settings?")
                         .withMessage(risk + "\nChoose Allow only if you asked for this.")
                         .withButton("Deny")
                         .withButton("Allow"),
                     [s, done = std::move(done)](int result) mutable {
                         std::string error;
-                        if (result == 2) ModuleStore::instance().setSettings(s, error);  // buttons count from 1 in the order added; Deny is the default
+                        if (result == 2) ModuleLibrary::instance().setSettings(s, error);  // buttons count from 1 in the order added; Deny is the default
                         done({});
                     });
             }))
-            .withNativeFunction("storeRevealData", gated([](const juce::Array<juce::var>&, Completion done) {
-                ModuleStore::instance().dataDir().revealToUser();
+            .withNativeFunction("libraryRevealData", gated([](const juce::Array<juce::var>&, Completion done) {
+                ModuleLibrary::instance().dataDir().revealToUser();
                 done({});
             }))
             .withNativeFunction("account", gated([this](const juce::Array<juce::var>& a, Completion done) {
@@ -504,8 +504,8 @@ public:
                     juce::MessageManager::callAsync([alive, done = std::move(done), result] { if (alive->load()) done(result); });
                 }).detach();
             }))
-            .withNativeFunction("storePlugins", gated([](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); }))
-            .withNativeFunction("storeInstallPlugins", gated([](const juce::Array<juce::var>&, Completion done) { done(installPluginBundle()); }));
+            .withNativeFunction("libraryPlugins", gated([](const juce::Array<juce::var>&, Completion done) { done(installedPlugins()); }))
+            .withNativeFunction("libraryInstallPlugins", gated([](const juce::Array<juce::var>&, Completion done) { done(installPluginBundle()); }));
 #endif
 #if JUCE_WINDOWS
         options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
@@ -543,13 +543,13 @@ public:
               "fetch('no-such-module.md').then(r => window.__noDoc = r.status, () => window.__noDoc = 'rejected'); "
               "return 1; })()",
               [](const juce::var&) {});
-        // Place cell presets the way the Add menu does (the store check first), and see what the board keeps.
+        // Place cell presets the way the Add menu does (the library check first), and see what the board keeps.
         later(5000,
               "(function(){ const q = window.__findPreset('Combo Organ'); window.__t0 = Date.now(); "
               "window.__ens = 'pending'; "
-              "native('storeStatus').then(s => { window.__st = JSON.stringify({keys: Object.keys(s), installed: (s.installed||[]).length, "
+              "native('libraryStatus').then(s => { window.__st = JSON.stringify({keys: Object.keys(s), installed: (s.installed||[]).length, "
               "index: s.index && {ok: s.index.ok, error: s.index.error, modules: (s.index.modules||[]).length}}); }, e => window.__st = 'rejected ' + e); "
-              "BleepStoreView.ensureNeeds(q.preset, q.name).then(v => window.__ens = 'resolved ' + v + ' after ' + (Date.now() - window.__t0) + ' ms', "
+              "BleepLibraryView.ensureNeeds(q.preset, q.name).then(v => window.__ens = 'resolved ' + v + ' after ' + (Date.now() - window.__t0) + ' ms', "
               "e => window.__ens = 'rejected ' + (e && e.message || e)); "
               "return JSON.stringify(['Warm Saws', 'Combo Organ', 'Brass Section'].map(window.__addPreset)); })()",
               [](const juce::var& v) { std::printf("board smoke: add presets: %s\n", v.toString().toRawUTF8()); });

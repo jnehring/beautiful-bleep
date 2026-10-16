@@ -1,99 +1,135 @@
 [
  {
   "group": "Musicians",
-  "title": "Glossary",
-  "description": "The words used across Beautiful Bleep: board, module, cell, Bleep plugin, Bleep App, Bleep Play and more.",
-  "path": "/docs/musicians/glossary/"
- },
- {
-  "group": "Musicians",
-  "title": "Ways to use Bleep",
-  "description": "Bleep plugin, Bleep App or Bleep Play: the three places to use Beautiful Bleep and how much effort each level takes.",
+  "title": "Musician documentation",
+  "description": "Where to start with Beautiful Bleep as a musician: install, first sound, first patch, the reference and the module manuals.",
   "path": "/docs/musicians/overview/"
  },
  {
-  "group": "Musicians",
-  "title": "Getting started",
-  "description": "Set up Beautiful Bleep in Ableton Live: the board, modules, cables and ports.",
-  "path": "/docs/musicians/getting-started/"
+  "group": "Start",
+  "title": "Ways to use Bleep",
+  "description": "Bleep plugin, Bleep App or Bleep Play: the three places to use Beautiful Bleep and how much effort each level takes.",
+  "path": "/docs/musicians/start/ways-to-use/"
  },
  {
-  "group": "Musicians",
+  "group": "Start",
+  "title": "Install in Live",
+  "description": "Install the Bleep plugins in Ableton Live and find them in the browser.",
+  "path": "/docs/musicians/start/getting-started/"
+ },
+ {
+  "group": "Start",
+  "title": "Your first sound",
+  "description": "Play a preset with Bleep Instrument or run audio through Bleep FX, with no cables, then open it on the board when you want more.",
+  "path": "/docs/musicians/start/first-sound/"
+ },
+ {
+  "group": "Start",
+  "title": "Installing unsigned builds",
+  "description": "Open the Bleep App and the VST3 plugins on macOS and Windows when the system warns that the developer is unknown.",
+  "path": "/docs/musicians/start/unsigned-builds/"
+ },
+ {
+  "group": "Learn",
+  "title": "Your first patch",
+  "description": "Five minutes on the board: add a filter, modulate its cutoff and modulate the modulator.",
+  "path": "/docs/musicians/learn/first-patch/"
+ },
+ {
+  "group": "Learn",
+  "title": "Modulation",
+  "description": "How cables move knobs: offsets, the ring and the amount chip, cable colours, and tools for following a signal.",
+  "path": "/docs/musicians/learn/modulation/"
+ },
+ {
+  "group": "Learn",
+  "title": "Cells and panels",
+  "description": "Group a patch into a cell, then give the cell a front panel so it plays like an instrument.",
+  "path": "/docs/musicians/learn/cells-and-panels/"
+ },
+ {
+  "group": "Use",
   "title": "The board",
   "description": "Everything about the board: adding modules, patching cables, grouping and panels.",
-  "path": "/docs/musicians/board/"
+  "path": "/docs/musicians/use/board/"
  },
  {
-  "group": "Musicians",
-  "title": "Ports",
-  "description": "The small plugins you add to tracks in Live to connect them to the board.",
-  "path": "/docs/musicians/ports/"
- },
- {
-  "group": "Musicians",
-  "title": "The standalone app",
-  "description": "Use Bleep without a DAW: audio setup, projects and settings of the app.",
-  "path": "/docs/musicians/standalone/"
- },
- {
-  "group": "Musicians",
+  "group": "Use",
   "title": "Voice Cells",
   "description": "Turn one patched synth voice into a polyphonic instrument with up to 16 voices.",
-  "path": "/docs/musicians/voice-cells/"
+  "path": "/docs/musicians/use/voice-cells/"
  },
  {
-  "group": "Guides",
+  "group": "Use",
+  "title": "Ports",
+  "description": "The small plugins you add to tracks in Live to connect them to the board.",
+  "path": "/docs/musicians/use/ports/"
+ },
+ {
+  "group": "Use",
+  "title": "The standalone app",
+  "description": "Use Bleep without a DAW: audio setup, projects and settings of the app.",
+  "path": "/docs/musicians/use/standalone/"
+ },
+ {
+  "group": "Connect",
   "title": "Connecting plugin, app and web",
   "description": "Send audio, MIDI and tempo between Live, the Bleep App and Bleep Play, and what each connection costs in delay.",
-  "path": "/docs/musicians/guides/connecting/"
+  "path": "/docs/musicians/connect/connecting/"
  },
  {
-  "group": "Guides",
+  "group": "Connect",
   "title": "Routing MIDI Out in Live",
   "description": "Send MIDI from the board to another instrument track in Live.",
-  "path": "/docs/musicians/guides/midi-out-routing/"
+  "path": "/docs/musicians/connect/midi-out-routing/"
  },
  {
-  "group": "Guides",
+  "group": "Connect",
   "title": "Modulating any Live parameter (loopback workaround)",
   "description": "Modulate any Live parameter with a virtual MIDI port until the Max for Live bridge exists.",
-  "path": "/docs/musicians/guides/loopback-cc/"
+  "path": "/docs/musicians/connect/loopback-cc/"
  },
  {
-  "group": "Guides",
+  "group": "Connect",
   "title": "Process what your computer plays",
   "description": "Take the sound of your music player, browser or video call into the Bleep App with the System node, on macOS, Windows and Linux.",
-  "path": "/docs/musicians/guides/system-audio/"
+  "path": "/docs/musicians/connect/system-audio/"
+ },
+ {
+  "group": "Reference",
+  "title": "Glossary",
+  "description": "The words used across Beautiful Bleep: board, module, cell, Bleep plugin, Bleep App, Bleep Play and more.",
+  "path": "/docs/musicians/reference/glossary/"
+ },
+ {
+  "group": "Reference",
+  "title": "Shortcuts",
+  "description": "Every keyboard shortcut on the board.",
+  "path": "/docs/musicians/reference/shortcuts/"
  },
  {
   "group": "Developers",
-  "title": "Developer overview",
+  "title": "Developer documentation",
   "description": "Which developer guide is for you, and how the pieces of Beautiful Bleep fit together.",
   "path": "/docs/developers/overview/"
  },
  {
-  "group": "Developers",
+  "group": "Bleep Bus",
   "title": "Bleep Bus quickstart",
   "description": "A minimal Bleep Bus sender and receiver in 15 minutes.",
-  "path": "/docs/developers/quickstart/"
+  "path": "/docs/developers/bleep-bus/quickstart/"
  },
  {
-  "group": "Developers",
+  "group": "Bleep Bus",
   "title": "Conformance",
   "description": "The open test host and validator for checking a Bleep Bus implementation.",
-  "path": "/docs/developers/conformance/"
+  "path": "/docs/developers/bleep-bus/conformance/"
  },
  {
-  "group": "Developers",
+  "group": "Bleep Bus",
   "title": "RFC process",
   "description": "How to propose a change to the Bleep Bus standard.",
-  "path": "/docs/developers/rfc-process/"
- },
- {
-  "group": "Developers",
-  "title": "Build, release and upload",
-  "description": "Build and publish the standalone app, the plugins, the modules and the web board, and run the website, with copy-paste commands.",
-  "path": "/docs/developers/build-and-release/"
+  "path": "/docs/developers/bleep-bus/rfc-process/"
  },
  {
   "group": "API reference",
@@ -235,74 +271,86 @@
  },
  {
   "group": "Module developers",
+  "title": "Module ABI",
+  "description": "The contract between a host and a module: one standalone WebAssembly file, its exports, buffers and versioning.",
+  "path": "/docs/developers/modules/module-abi/"
+ },
+ {
+  "group": "Module developers",
   "title": "Module developers",
-  "description": "What a module is, how it differs from a plugin, and the path from source folder to the Bleep Store.",
-  "path": "/docs/developers/modules/01-overview/"
+  "description": "What a module is, how it differs from a plugin, and the path from source folder to the Bleep Library.",
+  "path": "/docs/developers/modules/overview/"
+ },
+ {
+  "group": "Module developers",
+  "title": "Signing",
+  "description": "How modules and plugins are signed and verified: chain of trust, content hash, certificates, test vector.",
+  "path": "/docs/developers/modules/signing/"
+ },
+ {
+  "group": "Module developers",
+  "title": "Bleep Library",
+  "description": "Plugins, modules and presets in one library: packages, releases, bundles and how the apps load them.",
+  "path": "/docs/developers/modules/library/"
  },
  {
   "group": "Module developers",
   "title": "Writing a module",
   "description": "The module folder, module.json, registration, shared DSP and the engine features a module can use.",
-  "path": "/docs/developers/modules/02-writing-a-module/"
+  "path": "/docs/developers/modules/writing-a-module/"
  },
  {
   "group": "Module developers",
   "title": "Publishing a module",
-  "description": "Package a built module, sign it with your developer key and release it to the Bleep Store.",
-  "path": "/docs/developers/modules/03-publishing/"
+  "description": "Package a built module, sign it with your developer key and release it to the Bleep Library.",
+  "path": "/docs/developers/modules/publishing/"
+ },
+ {
+  "group": "Contribute",
+  "title": "Contribute",
+  "description": "Work on Bleep itself: the plugins, the standalone app, Bleep Play, and how to build, release and configure them.",
+  "path": "/docs/developers/contribute/overview/"
+ },
+ {
+  "group": "Contribute",
+  "title": "Engine ABI",
+  "description": "How Bleep plugins in one process share a single engine, and the rules for changing its interface.",
+  "path": "/docs/developers/contribute/engine-abi/"
+ },
+ {
+  "group": "Contribute",
+  "title": "Build, release and upload",
+  "description": "Build and publish the standalone app, the plugins, the modules and the web board, and run the website, with copy-paste commands.",
+  "path": "/docs/developers/contribute/build-and-release/"
+ },
+ {
+  "group": "Contribute",
+  "title": "Configuration (.env)",
+  "description": "Every setting in website/.env: what it does, its default, and what a production installation needs.",
+  "path": "/docs/developers/contribute/configuration/"
  },
  {
   "group": "Plugin developers",
   "title": "Plugin developers",
   "description": "Two kinds of plugin work: Bleep Bus plugins in any DAW, and the Bleep plugins in Ableton Live.",
-  "path": "/docs/developers/plugins/01-overview/"
+  "path": "/docs/developers/plugins/overview/"
  },
  {
   "group": "Plugin developers",
   "title": "Bleep plugins",
   "description": "The plugins in Live, how they share one engine, how to build and reload them, and how they are released.",
-  "path": "/docs/developers/plugins/02-bleep-plugins/"
+  "path": "/docs/developers/plugins/bleep-plugins/"
  },
  {
   "group": "Standalone app developers",
   "title": "Standalone app",
   "description": "Build, run and extend the Bleep App: the board without a DAW, with its own MIDI ports, Link and bridge server.",
-  "path": "/docs/developers/app/01-standalone-app/"
+  "path": "/docs/developers/app/standalone-app/"
  },
  {
   "group": "Web developers",
   "title": "Web developers",
   "description": "Bleep Play: the board running entirely in the browser, how it is built and hosted, and how it connects to the app.",
-  "path": "/docs/developers/web/01-bleep-play/"
- },
- {
-  "group": "Reference",
-  "title": "Module ABI",
-  "description": "The contract between a host and a module: one standalone WebAssembly file, its exports, buffers and versioning.",
-  "path": "/docs/developers/reference/module-abi/"
- },
- {
-  "group": "Reference",
-  "title": "Signing",
-  "description": "How modules and plugins are signed and verified: chain of trust, content hash, certificates, test vector.",
-  "path": "/docs/developers/reference/signing/"
- },
- {
-  "group": "Reference",
-  "title": "Bleep Store",
-  "description": "Plugins, modules and presets in one store: packages, releases, bundles and how the apps load them.",
-  "path": "/docs/developers/reference/store/"
- },
- {
-  "group": "Reference",
-  "title": "Engine ABI",
-  "description": "How Bleep plugins in one process share a single engine, and the rules for changing its interface.",
-  "path": "/docs/developers/reference/engine-abi/"
- },
- {
-  "group": "Reference",
-  "title": "Configuration (.env)",
-  "description": "Every setting in website/.env: what it does, its default, and what a production installation needs.",
-  "path": "/docs/developers/reference/configuration/"
+  "path": "/docs/developers/web/bleep-play/"
  }
 ]

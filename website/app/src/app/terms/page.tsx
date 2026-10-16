@@ -15,7 +15,7 @@ export default function TermsPage() {
       <p>Keep your password safe. You are responsible for what happens under your account. We may block accounts that break these terms.</p>
       <h2>Content you publish</h2>
       <p>
-        When you publish presets or modules in the Bleep Store, you confirm that you made them or have the right to
+        When you publish presets or modules in the Bleep Library, you confirm that you made them or have the right to
         share them, and that the licence you declare is correct. You keep your rights; the licence you choose applies
         to everyone who downloads your work. Do not upload anything illegal, harmful or infringing. We may remove
         content that breaks these rules.

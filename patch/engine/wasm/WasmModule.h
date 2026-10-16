@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// WasmModule.h — a node type whose DSP is a module .wasm (developers/reference/module-abi.md). It is a Module like the compiled-in
+// WasmModule.h — a node type whose DSP is a module .wasm (developers/modules/module-abi.md). It is a Module like the compiled-in
 // ones: the engine cannot tell the difference. One WasmPackage per file (compiled once), one WasmModule per node.
 //
 // Threads: the instance is only ever entered from the audio thread (process) or, while no audio runs, from prepare().

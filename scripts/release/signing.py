@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Command line for package signing (the library and the rules are in website/api/app/signing.py, website/content/developers/reference/signing.md).
+"""Command line for package signing (the library and the rules are in website/api/app/signing.py, website/content/developers/modules/signing.md).
 
 Admin, once:
     scripts/release/signing.py init-registry DIR                   root.key (take it offline), root.pub, issuer.key, issuer.cert
@@ -9,7 +9,9 @@ Admin, per developer (or inside the registry: docker compose exec api python -m 
                                                            acme.kit.json: the developer's private key and certificate
 Developer:
     scripts/release/signing.py sign PACKAGE --kit acme.kit.json --kind module --id acme/fuzz --version 1.0.0
-    scripts/release/signing.py verify PACKAGE --root root.pub --kind module --id acme/fuzz --version 1.0.0
+    scripts/release/signing.py verify PACKAGE --root root.pub --kind module --id acme/fuzz --version 1.0.0 [--receipt FILE]
+Library (the issuer key dates what it publishes, signing.md section 6a):
+    scripts/release/signing.py receipt PACKAGE --issuer-key issuer.key --root root.pub --kind module --id acme/fuzz --version 1.0.0
 Developer with their own key (the request flow, for later):
     scripts/release/signing.py keygen NAME | request NAME --publisher P | issue NAME.csr --issuer-key K --issuer-cert C
     scripts/release/signing.py vector                              the test vector in the spec
@@ -26,13 +28,13 @@ sys.path.insert(0, str(ROOT / "website" / "api"))
 from app.signing import *  # noqa: E402,F401,F403
 from app.signing import (CERT_DOMAIN, KINDS, SIGNATURE_PATH, Ed25519PrivateKey, _verify_sig, b64, canonical, decide,  # noqa: E402,F401
                          issue_kit, key_id, load_key, make_cert, new_tbs, public_bytes, read_doc, read_entries, save_key, write_secret,
-                         make_crl, sign, sign_with_kit, test_vector, verify, write_doc)
+                         make_crl, make_receipt, issue_receipt, sign, sign_with_kit, test_vector, verify, write_doc)
 from app import signing  # noqa: E402
 
 
 def make_fixtures(out: Path) -> None:
     """Deterministic packages with the verdict each must get: the same files test the Python, JavaScript and C++ implementations
-    (patch/tests/store-fixtures/, cases.json). Fixed keys and dates, so regenerating changes nothing."""
+    (patch/tests/library-fixtures/, cases.json). Fixed keys and dates, so regenerating changes nothing."""
     import hashlib
     import zipfile
     t0 = 1_760_000_000
@@ -113,7 +115,7 @@ def make_fixtures(out: Path) -> None:
     link.external_attr = 0o120777 << 16
     case("symlink", "refused", extra=[(link, b"module.wasm")])
     case("unsafe-path", "refused", f={**files, "../evil": b"x"})
-    # a static store (what Caddy serves under /registry/v1/) for the clients' install tests: read through file:// URLs
+    # a static library (what Caddy serves under /registry/v1/) for the clients' install tests: read through file:// URLs
     other_issuer = key(6)
     other_issuer_cert = make_cert(other, None, new_tbs("issuer", public_bytes(other_issuer), publisher="bleep", name="Other issuer", scopes=["issue"], not_before=t0, not_after=t1))
     other_chain = [other_issuer_cert, make_cert(other_issuer, other_issuer_cert, new_tbs("developer", public_bytes(bleep), publisher="bleep", name="Forger",
@@ -153,6 +155,9 @@ def make_fixtures(out: Path) -> None:
             entry_file = {"path": path, "sha256": hashlib.sha256(data).hexdigest() if not m.get("bad_sha") else "0" * 64, "bytes": len(data), "platform": "any", "contentDigest": digest}
             if doc:
                 entry_file["signature"] = doc
+                if m.get("receipt"):  # dated by the library, as the registry does at publish (signing.md section 6a)
+                    entry_file["publication"] = make_receipt(issuer, kind="module", id_=sid, version=version, platform="any", signer_key_id=doc["keyId"],
+                                                             digest=content_digest(entries(f)), published_at=t0 + 100)
                 entry_file["signer"] = {"publisher": doc["chain"][1]["tbs"]["publisher"], "keyId": doc["keyId"]}
             (d / "entry.json").write_text(json.dumps({"kind": "module", "id": slug, "version": version, "channel": "stable", "title": slug, "notes": "",
                                                        "requires": {"engineAbi": 1}, "types": sorted(m["types"]), "files": [entry_file]}, indent=1, sort_keys=True) + "\n")
@@ -183,7 +188,7 @@ def make_fixtures(out: Path) -> None:
 
     site(out / "site", [
         {"slug": "good", "version": "1.2.0", "types": ["good"]},
-        {"slug": "acme.fuzz", "version": "1.0.0", "types": ["acme/fuzz"], "sign": "acme"},
+        {"slug": "acme.fuzz", "version": "1.0.0", "types": ["acme/fuzz"], "sign": "acme", "receipt": True},
         {"slug": "unsigned-one", "version": "0.1.0", "types": ["unsigned-one"], "sign": None},
         {"slug": "bad-download", "version": "0.1.0", "types": ["bad-download"], "bad_sha": True},
         {"slug": "tampered", "version": "0.1.0", "types": ["tampered"], "signed_files": module_files("tampered", ["tampered"], "other code")},
@@ -193,10 +198,60 @@ def make_fixtures(out: Path) -> None:
         {"slug": "test-plugin-unsigned", "version": "0.4.0", "bundle": "Unsigned Plugin.vst3", "sign": None},
         {"slug": "test-plugin-tampered", "version": "0.4.0", "bundle": "Tampered Plugin.vst3", "tampered": True},
     ])
-    site(out / "site2", [{"slug": "good", "version": "1.3.0", "types": ["good", "good-extra"]}])  # the same store a release later
+    site(out / "site2", [{"slug": "good", "version": "1.3.0", "types": ["good", "good-extra"]}])  # the same library a release later
+    # publication receipts (signing.md section 6a): every case checks the package "signed.bleepmod" (acme/fuzz 1.0.0) with a receipt given here.
+    # Older clients may ignore this list; a client that knows receipts must give each its verdict.
+    acme_id, good_digest = key_id(public_bytes(acme)), content_digest(entries(files))
+    pub = t0 + 100
+
+    def receipt(**kw):
+        a = dict(kind="module", id_="acme/fuzz", version="1.0.0", platform="any", signer_key_id=acme_id, digest=good_digest, published_at=pub)
+        a.update(kw)
+        return make_receipt(issuer, **a)
+
+    def tweaked(r, **kw):
+        return {**r, **kw}
+
+    def flip(r):  # one bit of the signature
+        raw = bytearray(base64.b64decode(r["signature"]))
+        raw[0] ^= 1
+        return {**r, "signature": b64(bytes(raw))}
+
+    good_receipt = receipt()
+    receipt_cases = []
+
+    def rcase(name, expect, receipt_doc, *, now=t0 + 100, crl=None):
+        receipt_cases.append({"name": name, "file": "signed.bleepmod", "kind": "module", "id": "acme/fuzz", "version": "1.0.0", "platform": "any",
+                              "now": now, "roots": "main", "crl": crl, "receipt": receipt_doc, "expect": expect})
+
+    rcase("receipt-valid", "signed", good_receipt)
+    rcase("receipt-after-lapse", "signed", good_receipt, now=t1 + 1)
+    rcase("no-receipt-after-lapse", "expired", None, now=t1 + 1)
+    rcase("receipt-clock-far-past", "signed", good_receipt, now=t0 - 400 * 86400)
+    rcase("receipt-clock-far-future", "signed", good_receipt, now=t1 + 10 * 365 * 86400)
+    rcase("receipt-other-digest", "invalid", receipt(digest=content_digest(entries({**files, "ui/fuzz.js": b"// other\n"}))))
+    rcase("receipt-other-version", "invalid", receipt(version="1.0.1"))
+    rcase("receipt-other-id", "invalid", receipt(id_="acme/other"))
+    rcase("receipt-other-platform", "invalid", receipt(platform="macos-arm64"))
+    rcase("receipt-other-kind", "invalid", receipt(kind="plugin"))
+    rcase("receipt-other-signer", "invalid", receipt(signer_key_id=key_id(public_bytes(bleep))))
+    rcase("receipt-signature-altered", "invalid", flip(good_receipt))
+    rcase("receipt-published-at-altered", "invalid", tweaked(good_receipt, publishedAt=pub + 1))
+    rcase("receipt-not-by-chain-issuer", "invalid", make_receipt(other_issuer, kind="module", id_="acme/fuzz", version="1.0.0", platform="any",
+                                                                  signer_key_id=acme_id, digest=good_digest, published_at=pub))
+    rcase("receipt-issuer-id-forged", "invalid", tweaked(make_receipt(other_issuer, kind="module", id_="acme/fuzz", version="1.0.0", platform="any",
+                                                                       signer_key_id=acme_id, digest=good_digest, published_at=pub),
+                                                         issuerKeyId=key_id(public_bytes(issuer))))
+    rcase("receipt-before-not-before", "invalid", receipt(published_at=t0 - 1))
+    rcase("receipt-after-not-after", "invalid", receipt(published_at=t1 + 1))
+    rcase("receipt-malformed", "invalid", {"format": 1})
+    rcase("receipt-published-at-not-a-number", "invalid", tweaked(good_receipt, publishedAt="soon"))
+    rcase("receipt-key-revoked", "revoked", good_receipt, now=t1 + 1, crl={"revokedKeys": [{"keyId": acme_id}], "revokedArtifacts": []})
+
     (out / "cases.json").write_text(json.dumps({
         "about": "generated by scripts/release/signing.py fixture; every implementation must give each package its verdict",
-        "roots": {"main": public_bytes(root).hex(), "other": public_bytes(other).hex()}, "siteNow": t0 + 100, "cases": cases}, indent=1) + "\n")
+        "roots": {"main": public_bytes(root).hex(), "other": public_bytes(other).hex()}, "siteNow": t0 + 100, "cases": cases,
+        "receiptCases": receipt_cases}, indent=1) + "\n")
 
 
 def main(argv=None) -> int:
@@ -218,12 +273,20 @@ def main(argv=None) -> int:
     for a in ("--kind", "--id", "--version"):
         p.add_argument(a, required=True)
     p.add_argument("--platform", default="any"); p.add_argument("--allow-unsigned", action="store_true")
+    p.add_argument("--receipt", help="publication receipt (default: <package>.publication.json next to it, if there is one)")
+    p.add_argument("--now", type=int, help="Unix seconds to check against (default: the clock)")
+    p = sub.add_parser("receipt", help="the library's publication receipt for a signed package (signing.md section 6a)")
+    p.add_argument("package"); p.add_argument("--issuer-key", required=True); p.add_argument("--root", action="append", required=True)
+    for a_ in ("--kind", "--id", "--version"):
+        p.add_argument(a_, required=True)
+    p.add_argument("--platform", default="any"); p.add_argument("--now", type=int); p.add_argument("--newest", type=int, default=0)
+    p.add_argument("--out", help="default: <package>.publication.json")
     p = sub.add_parser("digest"); p.add_argument("package")
-    p = sub.add_parser("fixture"); p.add_argument("dir", nargs="?", default=str(ROOT / "patch" / "tests" / "store-fixtures"))
+    p = sub.add_parser("fixture"); p.add_argument("dir", nargs="?", default=str(ROOT / "patch" / "tests" / "library-fixtures"))
     sub.add_parser("vector")
     a = ap.parse_args(argv)
 
-    if a.cmd == "init-registry":  # the store's one-time setup: the root (keep it offline) and an issuer under it
+    if a.cmd == "init-registry":  # the library's one-time setup: the root (keep it offline) and an issuer under it
         d = Path(a.dir)
         d.mkdir(parents=True, exist_ok=True)
         root, issuer = Ed25519PrivateKey.generate(), Ed25519PrivateKey.generate()
@@ -231,14 +294,14 @@ def main(argv=None) -> int:
         save_key(root, d / "root.key")
         save_key(issuer, d / "issuer.key")
         (d / "root.pub").write_text(public_bytes(root).hex() + "\n")
-        tbs = new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep store issuer", scopes=["issue"],
+        tbs = new_tbs("issuer", public_bytes(issuer), publisher="bleep", name="Bleep library issuer", scopes=["issue"],
                       not_before=now, not_after=now + a.days * 86400)
         (d / "issuer.cert").write_text(json.dumps(make_cert(root, None, tbs), indent=1))
         env = (f"BLEEP_ROOT_PUBLIC_KEYS={(d / 'root.pub').read_text().strip()}\n"
                f"BLEEP_ISSUER_KEY={(d / 'issuer.key').read_text().strip().replace(chr(10), chr(92) + 'n')}\n"
                f"BLEEP_ISSUER_CERT={json.dumps(json.loads((d / 'issuer.cert').read_text()), separators=(',', ':'))}\n")
         write_secret(d / "registry.env", env)
-        print(f"{d}/root.key: move it offline (your keystore) and delete this copy; the store never needs it.\n"
+        print(f"{d}/root.key: move it offline (your keystore) and delete this copy; the library never needs it.\n"
               f"{d}/root.pub: goes into the apps and plugins too.\n"
               f"{d}/registry.env: the three lines for website/.env (root PUBLIC key, issuer key and certificate).")
     elif a.cmd == "issue-kit":
@@ -257,7 +320,7 @@ def main(argv=None) -> int:
         key = load_key(a.name + ".key")
         body = {"format": 1, "publisher": a.publisher, "name": a.display_name or a.publisher, "publicKey": b64(public_bytes(key))}
         Path(a.name + ".csr").write_text(json.dumps({"request": body, "signature": b64(key.sign(CERT_DOMAIN + b"request\n" + canonical(body)))}, indent=1))
-        print(f"{a.name}.csr: send it to the store")
+        print(f"{a.name}.csr: send it to the library")
     elif a.cmd == "issue":
         csr = json.loads(Path(a.csr).read_text())
         pub = base64.b64decode(csr["request"]["publicKey"])
@@ -284,10 +347,24 @@ def main(argv=None) -> int:
     elif a.cmd == "verify":
         pkg = Path(a.package)
         roots = [bytes.fromhex(Path(r).read_text().strip()) for r in a.root]
-        res = verify(read_entries(pkg), read_doc(pkg), kind=a.kind, id_=a.id, version=a.version, platform=a.platform, roots=roots)
+        rfile = Path(a.receipt) if a.receipt else pkg.with_name(pkg.name + ".publication.json")
+        receipt = json.loads(rfile.read_text()) if rfile.exists() else None
+        res = verify(read_entries(pkg), read_doc(pkg), kind=a.kind, id_=a.id, version=a.version, platform=a.platform, roots=roots,
+                     now=a.now, receipt=receipt)
         ok, why = decide(res, a.kind, {a.kind: a.allow_unsigned})
         print(("OK: " if ok else "REFUSED: ") + why)
         return 0 if ok else 1
+    elif a.cmd == "receipt":
+        pkg = Path(a.package)
+        roots = [bytes.fromhex(Path(r).read_text().strip()) for r in a.root]
+        try:
+            doc = issue_receipt(load_key(a.issuer_key), read_entries(pkg), read_doc(pkg), kind=a.kind, id_=a.id, version=a.version,
+                                platform=a.platform, roots=roots, now=a.now, newest=a.newest)
+        except ValueError as e:
+            sys.exit(f"no receipt: {e}")
+        out = Path(a.out) if a.out else pkg.with_name(pkg.name + ".publication.json")
+        out.write_text(json.dumps(doc, indent=1))
+        print(f"{out}: published at {doc['publishedAt']}")
     elif a.cmd == "fixture":
         make_fixtures(Path(a.dir))
         print(f"fixtures written to {a.dir}")

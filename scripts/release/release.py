@@ -7,12 +7,12 @@
     scripts/release/release.py --list
 
 What it does, per plugin: finds the build in build/patch (run scripts/build/build-patch.sh first, or
-pass --build), asks the store for the published versions, counts the next version at the
+pass --build), asks the library for the published versions, counts the next version at the
 level you ask for, zips the build, uploads it and publishes it. A release is one machine's
 build: the zip is named for this platform. Versions are immutable, but a published version can gain
 builds for platforms it lacks: build on the other machine and run
     scripts/release/release.py --all --add-platform 0.1.0 --registry ...   (or "latest": each plugin's newest version)
-The store refuses a platform the version already has; existing files never change.
+The library refuses a platform the version already has; existing files never change.
 
 Levels (what is counted up; the rest of the number is kept):
     x      next major                  1.4.2 -> 2.0.0
@@ -22,13 +22,13 @@ Levels (what is counted up; the rest of the number is kept):
 With nothing published yet, x, 0.x and 0.0.x all give 0.1.0; 1.x gives 1.0.0.
 
 Registry URL: --registry or $BLEEP_REGISTRY_URL (the website's address; the API is under /api).
-Modules: `release.py --modules --level patch` releases the packaged modules (build/store/modules, made by
+Modules: `release.py --modules --level patch` releases the packaged modules (build/library/modules, made by
 package-module.py; `--package` makes them first). Each module counts its own version; one whose content did not change
 since its newest published version is skipped, so only what changed is released.
 
-Signing: every release file is signed with the developer's signing kit (--kit, or $BLEEP_SIGNING_KIT; website/content/developers/reference/signing.md;
-an admin makes one with `python -m app.cli developer-create`). The kit is checked against the store's root keys before anything
-is uploaded, and the store checks every signature again: without a valid key the release fails.
+Signing: every release file is signed with the developer's signing kit (--kit, or $BLEEP_SIGNING_KIT; website/content/developers/modules/signing.md;
+an admin makes one with `python -m app.cli developer-create`). The kit is checked against the library's root keys before anything
+is uploaded, and the library checks every signature again: without a valid key the release fails.
 Token: a release token an admin created with
     docker compose exec api python -m app.cli token-create NAME
 read from $BLEEP_RELEASE_TOKEN or --token-file. It is never accepted as an argument, which would
@@ -53,26 +53,26 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
 from app import signing  # noqa: E402
 
-def store_config() -> dict:
-    """config/store.json: where the store is and whom it trusts, the one place the apps' build and these scripts read."""
+def library_config() -> dict:
+    """config/library.json: where the library is and whom it trusts, the one place the apps' build and these scripts read."""
     try:
-        return json.loads((ROOT / "config" / "store.json").read_text())
+        return json.loads((ROOT / "config" / "library.json").read_text())
     except (OSError, ValueError):
         return {}
 
 
 def pinned_roots() -> list[bytes]:
-    """The root keys this release trusts: rootKeys of config/store.json (plus $BLEEP_STORE_ROOTS, hex, comma separated), the same
+    """The root keys this release trusts: rootKeys of config/library.json (plus $BLEEP_LIBRARY_ROOTS, hex, comma separated), the same
     ones the apps are built with. They are never taken from the registry being published to: a registry that names its own root
     could accept anything."""
-    keys = list(store_config().get("rootKeys") or [])
-    keys += [k.strip() for k in os.environ.get("BLEEP_STORE_ROOTS", "").split(",") if k.strip()]
+    keys = list(library_config().get("rootKeys") or [])
+    keys += [k.strip() for k in os.environ.get("BLEEP_LIBRARY_ROOTS", "").split(",") if k.strip()]
     try:
         roots = [bytes.fromhex(k) for k in keys]
     except ValueError:
-        raise SystemExit("release: a root key in config/store.json or $BLEEP_STORE_ROOTS is not hex")
+        raise SystemExit("release: a root key in config/library.json or $BLEEP_LIBRARY_ROOTS is not hex")
     if not roots or any(len(r) != 32 for r in roots):
-        raise SystemExit("release: no (valid) rootKeys in config/store.json; the signing kit cannot be checked without pinned roots")
+        raise SystemExit("release: no (valid) rootKeys in config/library.json; the signing kit cannot be checked without pinned roots")
     return roots
 
 
@@ -89,7 +89,7 @@ PLUGINS = {
 }
 
 
-# slug -> (what the store's tile says, its category); the plugins' screenshots are doc/store/<slug>.png when there is one
+# slug -> (what the library's tile says, its category); the plugins' screenshots are doc/library/<slug>.png when there is one
 PLUGIN_TILES = {
     "bleep-board": ("The Beautiful Bleep board as a plugin: build instruments and effects from modules, inside your DAW.", "Plugins"),
     "bleep-midi-in": ("Brings MIDI from your DAW onto a Bleep board, as a port.", "Ports"),
@@ -98,11 +98,11 @@ PLUGIN_TILES = {
     "bleep-audio-out": ("Sends audio from a Bleep board back to a DAW track, as a port.", "Ports"),
     "bleep-instrument": ("A Bleep board played as an instrument: MIDI in, audio out.", "Plugins"),
     "bleep-fx": ("A Bleep board as an effect: audio in, audio out.", "Plugins"),
-    "bleep-app": ("Bleep App is the standalone app, with the Bleep Store to install modules and plugins.", "Apps"),
+    "bleep-app": ("Bleep App is the standalone app, with the Bleep Library to install modules and plugins.", "Apps"),
 }
 
 
-# What the store's detail view says about a plugin's licence: the sources are MIT, but the binaries are built with JUCE
+# What the library's detail view says about a plugin's licence: the sources are MIT, but the binaries are built with JUCE
 # (AGPLv3, or a commercial JUCE licence: change this if you hold one), and the app includes Ableton Link (GPL), doc/operations/release.md.
 PLUGIN_LICENSES = {"bleep-app": "GPL-3.0-or-later AND AGPL-3.0-only"}
 PLUGIN_LICENSE_DEFAULT = "AGPL-3.0-only"
@@ -113,7 +113,7 @@ def image_type(data: bytes) -> str:
 
 
 def plugin_image(slug: str) -> bytes | None:
-    f = ROOT / "doc" / "store" / f"{slug}.png"
+    f = ROOT / "doc" / "library" / f"{slug}.png"
     return f.read_bytes() if f.exists() else None
 
 
@@ -152,7 +152,7 @@ def next_version(level: str, published: list[str]) -> str:
     return "0.1.0" if version == (0, 0, 0) else ".".join(map(str, version))
 
 
-# ---- store API -------------------------------------------------------------
+# ---- library API -------------------------------------------------------------
 
 class RegistryError(Exception):
     pass
@@ -213,7 +213,7 @@ class Registry:
     def release(self, slug: str, version: str, channel: str, title: str, notes: str, files: list[dict], kind: str = "plugin",
                 summary: str = "", category: str = "", image: bytes | None = None,
                 license: str = "", origin: dict | None = None) -> None:
-        """`summary`, `category` and `image` (a PNG, JPEG or WebP, up to 1 MB) are what the store's tile shows."""
+        """`summary`, `category` and `image` (a PNG, JPEG or WebP, up to 1 MB) are what the library's tile shows."""
         base = f"/{kind}/{slug}/releases"
         self._request("POST", base, {"version": version, "channel": channel, "title": title, "notes": notes, "summary": summary,
                                      "category": category, "license": license, "origin": origin or None,
@@ -224,7 +224,7 @@ class Registry:
         self._request("POST", f"{base}/{version}/publish")
 
     def add_platform(self, slug: str, version: str, files: list[dict]) -> None:
-        """Adds this machine's build to a published release (the store refuses a platform it already has)."""
+        """Adds this machine's build to a published release (the library refuses a platform it already has)."""
         base = f"/plugin/{slug}/releases/{version}"
         self._request("POST", f"{base}/platforms", {"files": [f["declaration"] for f in files]})
         self._upload(f"/plugin/{slug}/releases", version, files)
@@ -284,13 +284,13 @@ def load_kit(path: str | None) -> dict | None:
 
 
 def sign_file(zip_path: Path, slug: str, version: str, plat: str, kit: dict, roots: list[bytes]) -> dict:
-    """The file's declaration for the store, signed with the kit and checked against the store's roots first."""
+    """The file's declaration for the library, signed with the kit and checked against the library's roots first."""
     sha = bytes.fromhex(sha256(zip_path))
     entries = signing.entries_for_file(zip_path.name, sha)
     doc = signing.sign_with_kit(entries, kit, "plugin", slug, version, plat)
     result = signing.verify(entries, doc, kind="plugin", id_=slug, version=version, platform=plat, roots=roots)
     if result.status != "signed":
-        sys.exit(f"{slug}: the signing kit is not valid for this release: {result.status}: {result.reason or 'see website/content/developers/reference/signing.md'}")
+        sys.exit(f"{slug}: the signing kit is not valid for this release: {result.status}: {result.reason or 'see website/content/developers/modules/signing.md'}")
     return {"path": zip_path, "declaration": {"path": zip_path.name, "sha256": sha.hex(), "bytes": zip_path.stat().st_size,
                                               "platform": plat, "signature": doc}}
 
@@ -301,7 +301,7 @@ def sign_package(pkg: Path, slug: str, version: str, kit: dict, roots: list[byte
     doc = signing.sign_with_kit(entries, kit, "module", slug, version, "any")
     result = signing.verify(entries, doc, kind="module", id_=slug, version=version, platform="any", roots=roots)
     if result.status != "signed":
-        sys.exit(f"{slug}: the signing kit is not valid for modules: {result.status}: {result.reason or 'see website/content/developers/reference/signing.md'}")
+        sys.exit(f"{slug}: the signing kit is not valid for modules: {result.status}: {result.reason or 'see website/content/developers/modules/signing.md'}")
     return {"path": pkg, "declaration": {"path": f"{slug}-{version}.bleepmod", "sha256": sha256(pkg), "bytes": pkg.stat().st_size,
                                          "platform": "any", "contentDigest": signing.content_digest(entries).hex(), "signature": doc}}
 
@@ -336,10 +336,10 @@ def release_modules(args, registry: "Registry", kit: dict | None) -> int:
         who = signing.verify(probe, signing.sign_with_kit(probe, kit, "module", names[0], "0.0.1", "any"), kind="module",
                              id_=names[0], version="0.0.1", platform="any", roots=roots)
         if who.status != "signed":
-            sys.exit(f"The signing kit is not valid for modules: {who.status}: {who.reason or 'see website/content/developers/reference/signing.md'}")
+            sys.exit(f"The signing kit is not valid for modules: {who.status}: {who.reason or 'see website/content/developers/modules/signing.md'}")
         print(f"Signing as {who.publisher} (key {who.key_id})")
     todo = [p for p in plan if p[3]]
-    print(f"Store {args.registry}, modules, channel {args.channel}, level {args.level}: {len(todo)} to release, {len(plan) - len(todo)} unchanged")
+    print(f"Library {args.registry}, modules, channel {args.channel}, level {args.level}: {len(todo)} to release, {len(plan) - len(todo)} unchanged")
     for slug, pkg, old, new in plan:
         print(f"  {slug:22} {(old or 'none'):>8} -> {new or 'unchanged'}")
     if args.dry_run or not todo:
@@ -388,12 +388,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--list", action="store_true", help="list the plugins and exit")
     ap.add_argument("--modules", action="store_true", help="release packaged modules instead of plugins (names: module slugs; default: all)")
     ap.add_argument("--package", action="store_true", help="with --modules: run package-module.py first")
-    ap.add_argument("--packages", type=Path, default=ROOT / "build" / "store" / "modules", help="where the .bleepmod packages are")
+    ap.add_argument("--packages", type=Path, default=ROOT / "build" / "library" / "modules", help="where the .bleepmod packages are")
     ap.add_argument("--force", action="store_true", help="with --modules: release even if the content did not change")
     ap.add_argument("--level", help="x, 1.x, 1.4.x, major, minor or patch (required unless --add-platform)")
     ap.add_argument("--add-platform", metavar="VERSION|latest", help="add this machine's build to the published VERSION instead of releasing a new one")
-    ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL") or store_config().get("storeUrl"),
-                    help="the website's URL (or $BLEEP_REGISTRY_URL; default: storeUrl of config/store.json)")
+    ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL") or library_config().get("libraryUrl"),
+                    help="the website's URL (or $BLEEP_REGISTRY_URL; default: libraryUrl of config/library.json)")
     ap.add_argument("--token-file", help="file holding the release token (or $BLEEP_RELEASE_TOKEN)")
     ap.add_argument("--kit", help="the developer's signing kit (or $BLEEP_SIGNING_KIT)")
     ap.add_argument("--channel", choices=("stable", "beta"), default="stable")
@@ -481,7 +481,7 @@ def main(argv: list[str] | None = None) -> int:
         who = signing.verify(probe, signing.sign_with_kit(probe, kit, "plugin", names[0], "0.0.1", "any"), kind="plugin",
                              id_=names[0], version="0.0.1", platform="any", roots=roots)
         if who.status != "signed":
-            sys.exit(f"The signing kit is not valid for plugins: {who.status}: {who.reason or 'see website/content/developers/reference/signing.md'}")
+            sys.exit(f"The signing kit is not valid for plugins: {who.status}: {who.reason or 'see website/content/developers/modules/signing.md'}")
         print(f"Signing as {who.publisher} (key {who.key_id})")
 
     plat = platform_id()

@@ -478,7 +478,7 @@ Notes and per-voice signals live on two levels: outside, one `notes` cable carri
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Top bar:** breadcrumb (*Board › Pad*), Add (the Add menu, section 9.6), undo/redo, CPU load, port latency.
+- **Top bar:** breadcrumb (*Board › Pad*), undo/redo, CPU load, port latency.
 - **Canvas:** nodes and cables. Inside a cell, a *Close cell* button at the top right leads back out (like Esc and the breadcrumb). Pan by dragging empty space or scrolling, zoom with pinch or ⌘-scroll.
 - **Module views** float over the canvas (section 9.4).
 

@@ -11,7 +11,7 @@
   "use strict";
   // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
   const { native, onNative, priv: P } = window.BleepSeal;
-  const DOCS = "/docs/musicians/getting-started/";
+  const DOCS = "/docs/musicians/start/getting-started/";
   const SITE = "https://brilliantbleep.com";
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
@@ -35,8 +35,8 @@
     if (window.BleepWeb) { window.open(DOCS, "_blank", "noopener"); return; }   // the browser board lives on the site itself
     let site = SITE;
     try {
-      const st = await native("storeStatus");
-      const u = st && st.settings && st.settings.storeUrl;
+      const st = await native("libraryStatus");
+      const u = st && st.settings && st.settings.libraryUrl;
       if (u) site = u.replace(/\/+$/, "");
     } catch (e) { /* the default address */ }
     await native("openUrl", site + DOCS);

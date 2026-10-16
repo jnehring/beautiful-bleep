@@ -20,4 +20,4 @@ Before you call your plugin "Bleep Bus compatible":
 - [ ] Uses stable, short port names; parameter inputs are named after the parameter.
 - [ ] `bb_conformance run` passes against the library build you ship.
 
-See [Conformance](../conformance.md) for running the suite and the validator.
+See [Conformance](../bleep-bus/conformance.md) for running the suite and the validator.

@@ -7,8 +7,8 @@ import SiteFooter from "./SiteFooter";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://brilliantbleep.com"),
-  title: "Beautiful Bleep — a modular sound engine for plugin, app and web",
-  description: "One modular engine as a plugin in Ableton Live, a standalone app and in your browser. Play a preset or patch your own.",
+  title: "Beautiful Bleep",
+  description: "A digital modular synthesizer as a plugin in Ableton Live, a standalone app and in your browser. Play a preset or patch your own.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

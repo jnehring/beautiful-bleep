@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Wasm parity: the gate for moving the apps to store modules (developers/reference/store.md section 13, M1).
+// Wasm parity: the gate for moving the apps to library modules (developers/modules/library.md section 13, M1).
 //
 // Every module type runs twice on the same input: compiled into this program, and as its module .wasm through the
 // WasmModule host. The same knobs and modulation, node data, signals on every jack, notes, transport and harmony
@@ -13,7 +13,7 @@
 #include "Board.h"
 #include "Media.h"
 #include "Registry.h"
-#include "store/Client.h"
+#include "library/Client.h"
 #include "wasm/InstalledModules.h"
 #include "wasm/SpecJson.h"
 #include "wasm/WasmModule.h"
@@ -531,8 +531,8 @@ int main(int argc, char** argv) {
         // The path the apps take: modules installed in a data folder, checked, registered, created through the registry.
         const juce::File data = juce::File::getCurrentWorkingDirectory().getChildFile(installedDir);
         std::vector<std::vector<uint8_t>> roots;
-        if (!rootFile.empty()) roots.push_back(bleep::store::fromHex(juce::File::getCurrentWorkingDirectory().getChildFile(rootFile).loadFileAsString().trim().toStdString()));
-        const bleep::store::Client client(bleep::store::Settings::load(data), data, roots);
+        if (!rootFile.empty()) roots.push_back(bleep::library::fromHex(juce::File::getCurrentWorkingDirectory().getChildFile(rootFile).loadFileAsString().trim().toStdString()));
+        const bleep::library::Client client(bleep::library::Settings::load(data), data, roots);
         // native twins first: once the registry has the installed module, create() makes that one
         struct Pair { std::unique_ptr<Module> native, twin; const ModuleSpec* spec; };
         std::map<std::string, Pair> natives;

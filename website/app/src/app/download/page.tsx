@@ -17,8 +17,13 @@ export default function DownloadPage() {
       <DownloadList />
       <p className="download-note">
         <strong>Note:</strong> you only download the app. All other VST plugins, modules and presets are installed
-        from inside the app, in its <a href="/store/">Store</a> section. Nothing else needs to be downloaded here.
-        {" "}See <a href="/docs/musicians/standalone/">the standalone app</a> for setup.
+        from inside the app, in its <a href="/library/">Library</a> section. Nothing else needs to be downloaded here.
+        {" "}See <a href="/docs/musicians/use/standalone/">the standalone app</a> for setup.
+      </p>
+      <p className="download-note">
+        <strong>Unsigned builds:</strong> the downloads are not signed with a paid developer certificate, so macOS and
+        Windows show a warning the first time you open them. It takes a few clicks to get past it:
+        {" "}see <a href="/docs/musicians/start/unsigned-builds/">Installing unsigned builds</a>.
       </p>
     </>
   );

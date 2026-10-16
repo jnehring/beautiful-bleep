@@ -74,12 +74,12 @@ services:
       BLEEP_CONTACT_TO: ${BLEEP_CONTACT_TO:-}
       BLEEP_ALLOWED_ORIGINS: ${BLEEP_ALLOWED_ORIGINS:-}
       BLEEP_PUBLIC_URL: ${BLEEP_PUBLIC_URL:-http://localhost:${BLEEP_SITE_PORT:-8080}}
-      # Preset files are written to the store bucket (S3 API).
+      # Preset files are written to the library bucket (S3 API).
       BLEEP_S3_ENDPOINT: http://storage:8333
       BLEEP_S3_BUCKET: ${BLEEP_REGISTRY_BUCKET:-bleep-registry}
       BLEEP_S3_ACCESS_KEY: ${S3_ACCESS_KEY:-bleep}
       BLEEP_S3_SECRET_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in website/.env}
-      # Code signing (website/content/developers/reference/signing.md). The root PUBLIC key decides what releases are accepted; the issuer key and
+      # Code signing (website/content/developers/modules/signing.md). The root PUBLIC key decides what releases are accepted; the issuer key and
       # certificate issue developer keys. The root PRIVATE key never belongs here.
       BLEEP_ROOT_PUBLIC_KEYS: ${BLEEP_ROOT_PUBLIC_KEYS:-}
       BLEEP_ISSUER_KEY: ${BLEEP_ISSUER_KEY:-}
@@ -117,7 +117,7 @@ services:
       retries: 20
     restart: unless-stopped
 
-  # Object storage for the store (SeaweedFS, S3 API): plugin and module releases, preset files.
+  # Object storage for the library (SeaweedFS, S3 API): plugin and module releases, preset files.
   # Anonymous clients may read (Caddy serves it at /registry/); writing needs the credentials
   # (scripts/release/release.py through the S3 port below, the API for presets).
   storage:

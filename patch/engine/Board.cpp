@@ -180,7 +180,7 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
                 continue;
             }
             if (spec == nullptr) {
-                // A module that is not installed (developers/reference/store.md, section 9): the node stays, with everything it was saved with,
+                // A module that is not installed (developers/modules/library.md, section 9): the node stays, with everything it was saved with,
                 // so the board is not damaged by opening it on a machine without that module. The compiler leaves it out, and
                 // cables to it are kept; the UI shows a placeholder. Installing the module brings the node back to life.
                 if (!ids.insert(id).second) {

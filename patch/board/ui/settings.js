@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
-// settings.js — the Settings section of the standalone app's board window: audio device, MIDI and Link, the Store's channel and
+// settings.js — the Settings section of the standalone app's board window: audio device, MIDI and Link, the Library's channel and
 // address, and Security (what may load unsigned). Settings are applied as they are changed; there is no Save button.
 //
-//   BleepSettingsView.init({ store })   once, when the native side offers settings (native "init" says so)
+//   BleepSettingsView.init({ library })   once, when the native side offers settings (native "init" says so)
 //   show() / hide()                     the header's Settings button; File → Settings opens it too
 (function () {
   "use strict";
   // The page's lock (common/ui/bleep-bridge.js): the native bridge and the board's private namespace are not on `window`.
   const { native, onNative, priv: P } = window.BleepSeal;
   let state = null;           // native "settings", "get"
-  let store = null;           // native "storeStatus", when the app has a store
+  let library = null;           // native "libraryStatus", when the app has a library
   let tab = "audio";
   let message = "";
-  let root, body, tabsEl, noteEl, poll = null, hasStore = false;
+  let root, body, tabsEl, noteEl, poll = null, hasLibrary = false;
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -24,7 +24,7 @@
   /// dropdown while its menu is open cancels the choice.
   async function load(force) {
     state = await native("settings", "get", null);
-    if (hasStore) store = await native("storeStatus");
+    if (hasLibrary) library = await native("libraryStatus");
     render(force);
   }
 
@@ -35,9 +35,9 @@
     render(true);
   }
 
-  async function storeChange(patch) {
-    await native("storeSettings", patch);
-    store = await native("storeStatus");
+  async function libraryChange(patch) {
+    await native("librarySettings", patch);
+    library = await native("libraryStatus");
     render(true);
   }
 
@@ -186,42 +186,42 @@
     }
   }
 
-  function renderStore() {
-    if (!hasStore || !store) { body.appendChild(el("div", "st-empty", "This build has no Bleep Store.")); return; }
-    const s = store.settings;
-    row("Channel", select(["stable", "beta"], s.channel, (v) => storeChange({ channel: v })), "Beta has newer modules that are less tested.");
-    body.appendChild(el("div", "st-note", s.storeUrl + (store.index.ok ? "" : " (not reached)")));
+  function renderLibrary() {
+    if (!hasLibrary || !library) { body.appendChild(el("div", "st-empty", "This build has no Bleep Library.")); return; }
+    const s = library.settings;
+    row("Channel", select(["stable", "beta"], s.channel, (v) => libraryChange({ channel: v })), "Beta has newer modules that are less tested.");
+    body.appendChild(el("div", "st-note", s.libraryUrl + (library.index.ok ? "" : " (not reached)")));
     const url = el("input");
-    url.type = "text"; url.value = s.storeUrl; url.spellcheck = false;
+    url.type = "text"; url.value = s.libraryUrl; url.spellcheck = false;
     const advanced = el("details", "se-advanced");
     advanced.appendChild(el("summary", "", "Advanced"));
     body.appendChild(advanced);
     const urlRow = el("label", "se-row");
-    urlRow.appendChild(el("span", "se-label", "Store address"));
+    urlRow.appendChild(el("span", "se-label", "Library address"));
     urlRow.appendChild(url);
-    urlRow.appendChild(el("span", "se-hint", "For a self-hosted or development store. Takes effect at the next start."));
+    urlRow.appendChild(el("span", "se-hint", "For a self-hosted or development library. Takes effect at the next start."));
     advanced.appendChild(urlRow);
-    url.addEventListener("change", () => storeChange({ storeUrl: url.value.trim() }));
+    url.addEventListener("change", () => libraryChange({ libraryUrl: url.value.trim() }));
     const bar = el("div", "st-bar");
     const check = el("button", "", "Check for updates");
-    check.addEventListener("click", async () => { check.disabled = true; await native("storeRefresh"); setTimeout(() => load(true), 600); });
+    check.addEventListener("click", async () => { check.disabled = true; await native("libraryRefresh"); setTimeout(() => load(true), 600); });
     bar.appendChild(check);
     const reveal = el("button", "", "Show data folder");
-    reveal.addEventListener("click", () => native("storeRevealData"));
+    reveal.addEventListener("click", () => native("libraryRevealData"));
     bar.appendChild(reveal);
     body.appendChild(bar);
-    body.appendChild(el("div", "st-row single", "Data folder: " + store.dataDir));
-    body.appendChild(el("div", "st-row single", store.index.ok ? `${store.index.modules.length} modules in the store · ${store.installed.length} installed` : "The store has not been reached yet" + (store.index.error ? ": " + store.index.error : "")));
+    body.appendChild(el("div", "st-row single", "Data folder: " + library.dataDir));
+    body.appendChild(el("div", "st-row single", library.index.ok ? `${library.index.modules.length} modules in the library · ${library.installed.length} installed` : "The library has not been reached yet" + (library.index.error ? ": " + library.index.error : "")));
   }
 
   function renderSecurity() {
-    if (!hasStore || !store) { body.appendChild(el("div", "st-empty", "This build has no Bleep Store.")); return; }
-    const s = store.settings;
-    body.appendChild(el("div", "st-note", "Modules and plugins from the Bleep Store are signed by their developer. Anything unsigned stays off unless you allow it here. A broken or revoked signature is never loaded."));
+    if (!hasLibrary || !library) { body.appendChild(el("div", "st-empty", "This build has no Bleep Library.")); return; }
+    const s = library.settings;
+    body.appendChild(el("div", "st-note", "Modules and plugins from the Bleep Library are signed by their developer. Anything unsigned stays off unless you allow it here. A broken or revoked signature is never loaded."));
     const toggle = (key, title, warning) => {
       const r = checkbox(title, s.allowUnsigned[key], (on) => {
         if (on && !window.confirm(warning)) { load(true); return; }
-        storeChange({ allowUnsigned: Object.assign({}, s.allowUnsigned, { [key]: on }) });
+        libraryChange({ allowUnsigned: Object.assign({}, s.allowUnsigned, { [key]: on }) });
       });
       r.classList.add("st-toggle");
       body.appendChild(r);
@@ -232,7 +232,7 @@
       "Unsigned plugins are programs that run with all your rights inside your DAW.\n\nOnly enable this for software you trust. Turn it on?");
     body.appendChild(el("h3", "", "Developers you have installed from"));
     const seen = new Map();
-    for (const m of store.installed) if (m.status === "signed") seen.set(m.publisher, (seen.get(m.publisher) || 0) + 1);
+    for (const m of library.installed) if (m.status === "signed") seen.set(m.publisher, (seen.get(m.publisher) || 0) + 1);
     if (!seen.size) body.appendChild(el("div", "st-empty", "None yet."));
     for (const [publisher, n] of seen) body.appendChild(el("div", "st-row single", `${publisher}: ${n} module${n === 1 ? "" : "s"}`));
   }
@@ -243,7 +243,7 @@
     body.innerHTML = "";
     for (const b of tabsEl.children) b.classList.toggle("on", b.dataset.tab === tab);
     noteEl.textContent = message;
-    ({ audio: renderAudio, midi: renderMidi, web: renderWeb, store: renderStore, security: renderSecurity })[tab]();
+    ({ audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity })[tab]();
   }
 
   function build() {
@@ -255,7 +255,7 @@
     root.appendChild(head);
     tabsEl = el("div", "st-tabs");
     const tabs = [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"]];
-    if (hasStore) tabs.push(["store", "Store"], ["security", "Security"]);
+    if (hasLibrary) tabs.push(["library", "Library"], ["security", "Security"]);
     for (const [id, label] of tabs) {
       const b = el("button", "", label);
       b.dataset.tab = id;
@@ -272,21 +272,21 @@
 
   P.BleepSettingsView = {
     async init(options) {
-      hasStore = !!(options && options.store);
+      hasLibrary = !!(options && options.library);
       build();
       const header = document.getElementById("sections");
       header.hidden = false;
       const btn = document.getElementById("sec-settings");
       btn.hidden = false;
-      if (!hasStore) document.getElementById("sec-store").hidden = true;  // no store in this build: nothing to open
+      if (!hasLibrary) document.getElementById("sec-library").hidden = true;  // no library in this build: nothing to open
       btn.addEventListener("click", () => P.BleepSettingsView.show());
       document.getElementById("sec-board").addEventListener("click", () => P.BleepSettingsView.hide());
       onNative("openSettings", () => P.BleepSettingsView.show());
     },
     async show() {
-      if (P.BleepStoreView) P.BleepStoreView.hide();
+      if (P.BleepLibraryView) P.BleepLibraryView.hide();
       if (P.BleepHelpView) P.BleepHelpView.hide();
-      document.body.classList.add("in-store");
+      document.body.classList.add("in-library");
       root.hidden = false;
       document.getElementById("sec-settings").classList.add("on");
       document.getElementById("sec-board").classList.remove("on");
@@ -297,7 +297,7 @@
     hide() {
       if (root.hidden) return;
       root.hidden = true;
-      document.body.classList.remove("in-store");
+      document.body.classList.remove("in-library");
       document.getElementById("sec-board").classList.add("on");
       document.getElementById("sec-settings").classList.remove("on");
       if (poll) { clearInterval(poll); poll = null; }

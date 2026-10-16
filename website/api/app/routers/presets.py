@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Presets: data that anyone with an account may share (store.md section 6). The file of every version is in the store bucket,
+"""Presets: data that anyone with an account may share (library.md section 6). The file of every version is in the library bucket,
 under `v1/presets/<author>/<slug>/<version>.bleeppreset`; the metadata is in Postgres."""
 import hashlib
 import io
@@ -13,7 +13,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from ..db import get_db
-from ..deps import get_optional_store_user, get_store_user
+from ..deps import get_optional_library_user, get_library_user
 from ..models import Comment, Preset, PresetVersion, Rating, Report, User, now
 from ..ratings import rating_summaries
 from ..schemas import PresetIn, PresetListOut, PresetOut, PresetPatchIn, PresetVersionOut, ReportIn
@@ -129,14 +129,14 @@ def _find(db: Session, author: str, slug: str, user: User | None) -> Preset:
 
 
 @router.get("/{author}/{slug}", response_model=PresetOut)
-def detail(author: str, slug: str, db: Session = Depends(get_db), user: User | None = Depends(get_optional_store_user)):
+def detail(author: str, slug: str, db: Session = Depends(get_db), user: User | None = Depends(get_optional_library_user)):
     row = _find(db, author, slug, user)
     return _out(row, rating_summaries(db, "preset", [row.address]), detail=True)
 
 
 @router.get("/{author}/{slug}/file")
 def download(author: str, slug: str, version: int | None = None, db: Session = Depends(get_db),
-             user: User | None = Depends(get_optional_store_user), storage: Storage = Depends(get_storage)):
+             user: User | None = Depends(get_optional_library_user), storage: Storage = Depends(get_storage)):
     """The `.bleeppreset` file (anonymous). Every download is counted."""
     row = _find(db, author, slug, user)
     number = version or row.versions[0].version
@@ -152,7 +152,7 @@ def download(author: str, slug: str, version: int | None = None, db: Session = D
 
 
 @router.post("", response_model=PresetOut, status_code=status.HTTP_201_CREATED)
-def publish(body: PresetIn, db: Session = Depends(get_db), user: User = Depends(get_store_user), storage: Storage = Depends(get_storage)):
+def publish(body: PresetIn, db: Session = Depends(get_db), user: User = Depends(get_library_user), storage: Storage = Depends(get_storage)):
     """Publishes a preset, or a new version of one of the caller's own (same slug)."""
     recent = db.scalar(
         select(func.count()).select_from(PresetVersion).join(Preset).where(
@@ -199,7 +199,7 @@ def _own(db: Session, preset_id: int, user: User) -> Preset:
 
 
 @router.patch("/{preset_id}", response_model=PresetOut)
-def edit(preset_id: int, body: PresetPatchIn, db: Session = Depends(get_db), user: User = Depends(get_store_user)):
+def edit(preset_id: int, body: PresetPatchIn, db: Session = Depends(get_db), user: User = Depends(get_library_user)):
     row = _own(db, preset_id, user)
     data = body.model_dump(exclude_none=True)
     if "tags" in data:
@@ -213,8 +213,8 @@ def edit(preset_id: int, body: PresetPatchIn, db: Session = Depends(get_db), use
 
 
 @router.delete("/{preset_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove(preset_id: int, db: Session = Depends(get_db), user: User = Depends(get_store_user)):
-    """Deletes the preset with its comments and ratings. The files of its versions stay in the bucket (store paths are immutable)."""
+def remove(preset_id: int, db: Session = Depends(get_db), user: User = Depends(get_library_user)):
+    """Deletes the preset with its comments and ratings. The files of its versions stay in the bucket (library paths are immutable)."""
     row = _own(db, preset_id, user)
     address = row.address
     for model in (Comment, Rating):
@@ -225,7 +225,7 @@ def remove(preset_id: int, db: Session = Depends(get_db), user: User = Depends(g
 
 
 @router.post("/{preset_id}/report", status_code=status.HTTP_204_NO_CONTENT)
-def report(preset_id: int, body: ReportIn, db: Session = Depends(get_db), user: User | None = Depends(get_optional_store_user)):
+def report(preset_id: int, body: ReportIn, db: Session = Depends(get_db), user: User | None = Depends(get_optional_library_user)):
     row = db.get(Preset, preset_id)
     if row is None or row.state != "listed":
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No such preset")

@@ -129,11 +129,11 @@ def main() -> int:
     dev = CONTENT / "developers"
     bundles = {
         "developer-overview-full.md": ("", [dev / "overview.md"]),
-        "quickstart-full.md": ("", [dev / "quickstart.md"]),
+        "quickstart-full.md": ("", [dev / "bleep-bus" / "quickstart.md"]),
         "api-reference-full.md": ("", sorted((dev / "api-reference").glob("*.md"))),
         "user-docs-full.md": ("Beautiful Bleep user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
     }
-    for key, title in (("modules", "modules"), ("plugins", "plugins"), ("app", "the standalone app"), ("web", "Bleep Play and the web"), ("reference", "reference: ABIs, signing and the store")):
+    for key, title in (("modules", "modules: writing, publishing, module ABI, signing and the library"), ("plugins", "plugins"), ("app", "the standalone app"), ("web", "Bleep Play and the web"), ("contribute", "working on Bleep itself: build, release, configuration, engine ABI")):
         bundles[f"developer-{key}-full.md"] = (f"Beautiful Bleep developer documentation: {title}", sorted((dev / key).glob("*.md")))
     # The module manuals are too many for one file: one per category.
     module_bundles = {f"modules-{category_slug(c)}-full.md": (f"Beautiful Bleep modules: {c.replace('/', ' · ')}", docs)
@@ -180,15 +180,15 @@ def main() -> int:
         llms.append(f"- [Specification {s[5:-8]}]({base}/v{version}/{s}): shared-memory layout, memory ordering, timing rules")
     llms += [
         f"- [Overview]({base}/v{version}/developer-overview-full.md): which guide is for which developer, and how the pieces fit",
-        f"- [Module developers]({base}/v{version}/developer-modules-full.md): writing, packaging and publishing a board module",
+        f"- [Module developers]({base}/v{version}/developer-modules-full.md): writing, packaging and publishing a board module, with the module ABI, signing and the library",
         f"- [Plugin developers]({base}/v{version}/developer-plugins-full.md): the Bleep plugins in Live",
         f"- [Standalone app]({base}/v{version}/developer-app-full.md): building and extending the Bleep App",
         f"- [Web]({base}/v{version}/developer-web-full.md): Bleep Play, the board in the browser",
-        f"- [Reference]({base}/v{version}/developer-reference-full.md): module ABI, signing, the store, the engine ABI",
+        f"- [Contribute]({base}/v{version}/developer-contribute-full.md): build and release, configuration, the engine ABI",
         "",
         "## Musicians",
         "",
-        f"- [User documentation]({base}/v{version}/user-docs-full.md): getting started, the board, Live routing guides",
+        f"- [User documentation]({base}/v{version}/user-docs-full.md): start, learn, use, connect and reference for the plugins, the app and Bleep Play",
     ]
     for name, (title, _) in module_bundles.items():
         llms.append(f"- [{title}]({base}/v{version}/{name}): the manuals of these modules")
