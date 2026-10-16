@@ -35,4 +35,4 @@ Cables between several plugins need **Bleep Board** in the set, because the boar
 is saved there. [Your first patch](../learn/first-patch.md) walks through it.
 
 Instruments and effects are planned for the Bleep App and Bleep Play; today
-they are Live plugins. [Ways to use Bleep](ways-to-use.md) has the table.
+they are Live plugins. [Ways to use Beautiful Bleep](ways-to-use.md) has the table.

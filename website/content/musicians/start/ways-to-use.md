@@ -1,10 +1,10 @@
 ---
-title: Ways to use Bleep
+title: Ways to use Beautiful Bleep
 description: Bleep plugin, Bleep App or Bleep Play: the three places to use Beautiful Bleep and how much effort each level takes.
 order: 1
 ---
 
-# Ways to use Bleep
+# Ways to use Beautiful Bleep
 
 Beautiful Bleep is one sound engine you can reach in three places, and in each
 place you can use it at three levels of effort.
