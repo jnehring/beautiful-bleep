@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-// VCA view: the gain law (linear, or cubed for the exponential response: about
-// -60 dB .. 0 dB) with a dot at the current (modulated) Gain, and a scope of a
+// VCA view: the gain law (linear, or cubed below 100 % for the exponential response:
+// about -60 dB .. 0 dB, then linear up to 400 %) with a dot at the current (modulated) Gain, and a scope of a
 // test tone before (ghost) and after the amplifier. Mirrors VcaModule.cpp.
 (function () {
   "use strict";
@@ -12,16 +12,16 @@
     const { g, w, h } = BleepView.fit(cv);
     if (!w || !h) return;
     const th = BleepView.theme(view.root), st = view._st;
-    const x = view.value(st, "gain"), expo = view.units("response") === 1;
-    const rng = [1, 2, 4][view.units("range")] || 1, gain = (expo ? x * x * x : x) * rng;
+    const x = view.value(st, "gain") * 4, expo = view.units("response") === 1;   // x: 0 – 4 (0 – 400 %)
+    const gain = expo && x < 1 ? x * x * x : x, rng = 4;
     const split = Math.min(w * 0.38, 190), pad = 8;
     // left: gain law
     const px = pad + 4, pw = split - pad * 2 - 4, py = 8, phh = h - 20;
     g.strokeStyle = th.line; g.lineWidth = 1; g.strokeRect(px + 0.5, py + 0.5, pw, phh);
-    const Y = (v) => py + (1 - Math.min(v / rng, 1)) * phh, XX = (v) => px + v * pw;
-    const law = (e) => { g.beginPath(); for (let i = 0; i <= 40; i++) { const v = i / 40, y = Y((e ? v * v * v : v) * rng); i ? g.lineTo(XX(v), y) : g.moveTo(XX(v), y); } g.stroke(); };
-    g.strokeStyle = th.line; g.lineWidth = 1.5; law(!expo);
-    g.strokeStyle = th.accent; g.lineWidth = 2; BleepView.glow(g, th.accent, 8); law(expo); g.shadowBlur = 0;
+    const Y = (v) => py + (1 - Math.min(v / rng, 1)) * phh, XX = (v) => px + v / 4 * pw;
+    const curve = (e) => { g.beginPath(); for (let i = 0; i <= 80; i++) { const v = i / 20, y = Y(e && v < 1 ? v * v * v : v); i ? g.lineTo(XX(v), y) : g.moveTo(XX(v), y); } g.stroke(); };
+    g.strokeStyle = th.line; g.lineWidth = 1.5; curve(!expo);
+    g.strokeStyle = th.accent; g.lineWidth = 2; BleepView.glow(g, th.accent, 8); curve(expo); g.shadowBlur = 0;
     g.strokeStyle = th.muted; g.setLineDash([2, 3]); g.beginPath(); g.moveTo(XX(x), Y(0)); g.lineTo(XX(x), Y(gain)); g.lineTo(XX(0), Y(gain)); g.stroke(); g.setLineDash([]);
     BleepView.glow(g, th.accent, 14); g.fillStyle = th.text; g.beginPath(); g.arc(XX(x), Y(gain), 4, 0, 7); g.fill(); g.shadowBlur = 0;
     g.fillStyle = th.muted; g.font = "9px system-ui, sans-serif"; g.textAlign = "center";
@@ -45,7 +45,7 @@
   BleepViews.register("vca", {
     template: '<div class="bv-panel"><h2>Gain</h2><canvas class="vca-cv"></canvas></div>',
     side: true,
-    layout: [{ title: "Amplifier", params: ["gain", "response", "range"] }],
+    layout: [{ title: "Amplifier", params: ["gain", "response"] }],
     afterBuild(view, custom) {
       const cv = custom.querySelector("canvas");
       BleepView.loop(view.root, (t) => draw(view, cv, t));
