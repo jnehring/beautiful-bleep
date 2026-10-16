@@ -154,6 +154,9 @@ class DeviceCode(Base):
     device_hash: Mapped[str] = mapped_column(String(64), unique=True)
     user_code: Mapped[str] = mapped_column(String(9), unique=True)  # XXXX-XXXX
     client_name: Mapped[str] = mapped_column(String(80), default="")
+    # Who asked: the approving user is shown it, so a code sent by someone else does not look like their own sign-in.
+    start_ip: Mapped[str] = mapped_column(String(64), default="")
+    start_agent: Mapped[str] = mapped_column(String(200), default="")
     status: Mapped[str] = mapped_column(String(16), default="pending")  # pending | approved | denied | used
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

@@ -369,7 +369,7 @@ void testAccount() {
     CHECK(fake.seen.empty(), "nothing was sent");
 
     const juce::var start = account.startSignIn("Bleep Standalone");
-    CHECK(start["userCode"].toString() == "ABCD-EFGH" && start["url"].toString() == "https://store.example/device/?code=ABCD-EFGH", "start: %s",
+    CHECK(start["userCode"].toString() == "ABCD-EFGH" && start["url"].toString() == "https://store.example/device/", "start: %s",
           juce::JSON::toString(start).toRawUTF8());
     CHECK(fake.seen.back().body.find("Bleep Standalone") != std::string::npos, "the app's name is sent");
     CHECK((bool)account.status()["pending"].isObject(), "pending shows in the status");

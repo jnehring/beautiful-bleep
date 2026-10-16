@@ -3,7 +3,7 @@
 import secrets
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
@@ -52,7 +52,7 @@ MAX_PENDING_CODES = 2000  # all addresses together: the table cannot be filled
 # --- Device flow ---------------------------------------------------------------------------------------------------
 
 @router.post("/api/auth/device", response_model=DeviceStartOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(ratelimit.by_ip(_device_start))])
-def device_start(body: DeviceStartIn, db: Session = Depends(get_db)):
+def device_start(body: DeviceStartIn, request: Request, db: Session = Depends(get_db)):
     """The app asks for a code. It shows `user_code`, opens `verification_url` and polls `/api/auth/device/token`."""
     db.execute(delete(DeviceCode).where(DeviceCode.expires_at < now() - timedelta(hours=1)))
     if (db.scalar(select(func.count()).select_from(DeviceCode).where(DeviceCode.status == "pending", DeviceCode.expires_at > now())) or 0) >= MAX_PENDING_CODES:
@@ -63,6 +63,7 @@ def device_start(body: DeviceStartIn, db: Session = Depends(get_db)):
         if db.scalar(select(DeviceCode.id).where(DeviceCode.user_code == code)) is None:
             break
     db.add(DeviceCode(device_hash=hash_token(device_code), user_code=code, client_name=body.client_name,
+                      start_ip=ratelimit.client_ip(request), start_agent=(request.headers.get("user-agent") or "")[:200],
                       expires_at=now() + timedelta(minutes=DEVICE_MINUTES)))
     db.commit()
     return DeviceStartOut(device_code=device_code, user_code=code, verification_url="/device/",
@@ -100,7 +101,8 @@ def device_info(user_code: str, db: Session = Depends(get_db), _: User = Depends
     row = db.scalar(select(DeviceCode).where(DeviceCode.user_code == _normal(user_code), DeviceCode.status == "pending"))
     if row is None or _aware(row.expires_at) < now():
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown or expired code")
-    return DeviceInfoOut(client_name=row.client_name)
+    return DeviceInfoOut(client_name=row.client_name, requested_from=row.start_ip, requested_agent=row.start_agent,
+                         requested_seconds_ago=max(0, int((now() - _aware(row.created_at)).total_seconds())))
 
 
 @router.post("/api/auth/device/approve", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(ratelimit.by_ip(_device_lookup))])

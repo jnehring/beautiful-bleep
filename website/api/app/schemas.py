@@ -204,6 +204,11 @@ class StoreDetailOut(BaseModel):
 class DeviceStartIn(BaseModel):
     client_name: str = Field(default="Bleep", max_length=80)
 
+    @field_validator("client_name")
+    @classmethod
+    def _plain(cls, v: str) -> str:  # shown on the approval page: no control characters, no line breaks, never empty
+        return " ".join("".join(c if c.isprintable() else " " for c in v).split()) or "Bleep"
+
 
 class DeviceStartOut(BaseModel):
     device_code: str                  # secret of the app, for polling
@@ -229,7 +234,10 @@ class DeviceApproveIn(BaseModel):
 
 
 class DeviceInfoOut(BaseModel):
-    client_name: str
+    client_name: str      # chosen by whoever started the sign-in: not verified
+    requested_from: str   # the address that started it
+    requested_agent: str
+    requested_seconds_ago: int
 
 
 class UserTokenIn(BaseModel):

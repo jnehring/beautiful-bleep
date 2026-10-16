@@ -274,7 +274,7 @@ juce::var Account::startSignIn(const std::string& clientName) {
         pending_ = {str(d["device_code"]), str(d["user_code"]), unixNow() + (int)d["expires_in"], std::max(2, (int)d["interval"])};
     }
     // The page takes the code from the address, so the user only has to confirm it.
-    const std::string url = base() + str(d["verification_url"]) + "?code=" + str(d["user_code"]);
+    const std::string url = base() + str(d["verification_url"]);  // no code in the address: the user types the one the app shows
     return object({{"userCode", d["user_code"]}, {"url", juce::String(url)}, {"interval", std::max(2, (int)d["interval"])},
                    {"expiresIn", d["expires_in"]}});
 }

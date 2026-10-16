@@ -24,7 +24,9 @@ def app_token(client) -> str:
     code = start.json()
     app_side = TestClient(app)
     assert app_side.post("/api/auth/device/token", json={"device_code": code["device_code"]}).json() == {"status": "pending", "token": None, "user": None}
-    assert client.get(f"/api/auth/device/{code['user_code'].lower()}").json()["client_name"] == "Bleep Standalone"
+    info = client.get(f"/api/auth/device/{code['user_code'].lower()}").json()
+    assert info["client_name"] == "Bleep Standalone"
+    assert info["requested_from"] == "testclient" and info["requested_seconds_ago"] < 60 and "requested_agent" in info  # who asked, for the one who approves
     assert client.post("/api/auth/device/approve", json={"user_code": code["user_code"]}).status_code == 204
     done = app_side.post("/api/auth/device/token", json={"device_code": code["device_code"]}).json()
     assert done["status"] == "approved" and done["token"].startswith("blu_")
@@ -223,3 +225,10 @@ def test_the_app_signs_itself_out(client):
     assert anon.delete("/api/tokens/self", headers=bearer(token)).status_code == 204
     assert anon.get("/api/tokens/self", headers=bearer(token)).status_code == 401
     assert client.get("/api/tokens").json() == []
+
+
+def test_device_client_name_is_plain_text(client):
+    register(client)
+    for sent, shown in (("Evil\n\nBleep Official\t", "Evil Bleep Official"), ("   ", "Bleep"), ("a\u202eb", "a b")):
+        start = TestClient(app).post("/api/auth/device", json={"client_name": sent}).json()
+        assert client.get(f"/api/auth/device/{start['user_code']}").json()["client_name"] == shown
