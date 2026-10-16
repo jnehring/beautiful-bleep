@@ -69,7 +69,13 @@ docker compose exec api python -m app.cli demote someone@example.com
 docker compose exec api python -m app.cli set-password someone@example.com
 ```
 
-Not in this iteration: email verification, password reset, login rate limiting.
+Email (`api/app/mail.py`): registering sends a confirmation link (`/verify-email/`; unconfirmed accounts can still log in and the
+account page offers to resend it), and `/forgot-password/` sends a one-hour, single-use reset link (`/reset-password/`) that also ends
+every session. Links hold random tokens of which only the SHA-256 is stored; one email of a kind per user per minute. `BLEEP_EMAIL_VERIFICATION=false` switches the confirmation off. Set the
+`BLEEP_SMTP_*` and `BLEEP_PUBLIC_URL` variables (see `.env.example`; Gmail needs an app password). Without `BLEEP_SMTP_HOST` the
+message, link included, is written to the API log (`docker compose logs api`), which is how to try it locally.
+
+Not in this iteration: login rate limiting.
 
 Later the service moves into the Brilliant Bleep site's Compose stack as its
 own section or subdomain. That decision is still open.

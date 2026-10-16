@@ -25,8 +25,29 @@ class User(Base):
     handle: Mapped[str | None] = mapped_column(String(40), unique=True, index=True)  # the author part of a preset's address; set on first publish
     role: Mapped[str] = mapped_column(String(16), default="user")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+    @property
+    def email_verified(self) -> bool:
+        from .config import settings
+
+        return self.email_verified_at is not None or not settings.email_verification  # switched off: nothing to confirm
+
+
+class EmailToken(Base):
+    """A single-use link sent by email (confirm the address, reset the password). Only the SHA-256 is stored."""
+
+    __tablename__ = "email_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    purpose: Mapped[str] = mapped_column(String(16))  # verify | reset
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class UserSession(Base):

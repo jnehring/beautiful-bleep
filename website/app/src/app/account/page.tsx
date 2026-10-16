@@ -10,6 +10,7 @@ export default function AccountPage() {
   const user = useUser();
   const [profileNote, setProfileNote] = useState<Notice>(null);
   const [passwordNote, setPasswordNote] = useState<Notice>(null);
+  const [verifyNote, setVerifyNote] = useState<Notice>(null);
   const [tokens, setTokens] = useState<Token[]>([]);
   useEffect(() => { if (user) api<Token[]>("GET", "/tokens").then(setTokens, () => setTokens([])); }, [user]);
 
@@ -28,6 +29,14 @@ export default function AccountPage() {
       setProfileNote({ ok: false, text: (err as Error).message });
     }
   };
+  const resendVerification = async () => {
+    try {
+      await api("POST", "/auth/resend-verification");
+      setVerifyNote({ ok: true, text: "Sent. Check your inbox." });
+    } catch (err) {
+      setVerifyNote({ ok: false, text: (err as Error).message });
+    }
+  };
   const changePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -44,6 +53,12 @@ export default function AccountPage() {
   return (
     <div className="auth">
       <h1>Your profile</h1>
+      {!user.email_verified && (
+        <p role="status">Please confirm your email address with the link we sent to {user.email}.{" "}
+          <button type="button" className="linklike" onClick={resendVerification}>Send it again</button>
+          {verifyNote && <span className={verifyNote.ok ? "ok" : "error"}> {verifyNote.text}</span>}
+        </p>
+      )}
       <form onSubmit={saveProfile}>
         <p className="muted">{user.email} · {user.role === "admin" ? "Admin" : "User"}</p>
         <label>Name<input name="display_name" defaultValue={user.display_name} maxLength={60} required /></label>

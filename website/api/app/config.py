@@ -28,6 +28,20 @@ class Settings(BaseSettings):
     # A release without a valid signature is refused. Only turn this off for local experiments.
     require_signatures: bool = True
 
+    # Outgoing email (registration confirmation, password reset). Without smtp_host nothing is sent: the message is logged instead.
+    # Gmail: smtp.gmail.com:587 with an app password (STARTTLS). smtp_from defaults to smtp_user.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None
+    # The site's public address, for the links in emails (no trailing slash).
+    public_url: str = "http://localhost:8080"
+    # false: registration sends no confirmation link and nobody is asked to confirm. Password reset emails are unaffected.
+    email_verification: bool = True
+    verify_hours: int = 48
+    reset_minutes: int = 60
+
     # Hosts besides the API's own that may send cookie-authenticated writes (comma separated host[:port]), e.g. a dev server.
     allowed_origins: str = ""
 

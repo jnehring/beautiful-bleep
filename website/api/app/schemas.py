@@ -24,6 +24,7 @@ class UserOut(BaseModel):
     bio: str
     role: Role
     is_active: bool
+    email_verified: bool
     created_at: datetime
 
 
@@ -379,3 +380,16 @@ class ReportOut(BaseModel):
     reason: str
     created_at: datetime
     resolved_at: datetime | None
+
+
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordIn(BaseModel):
+    token: str = Field(min_length=10, max_length=200)
+    new_password: str = Password
+
+
+class EmailTokenIn(BaseModel):
+    token: str = Field(min_length=10, max_length=200)

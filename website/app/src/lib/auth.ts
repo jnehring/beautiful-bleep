@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export type User = {
   id: number; email: string; display_name: string; bio: string;
-  role: "admin" | "user"; is_active: boolean; created_at: string;
+  role: "admin" | "user"; is_active: boolean; email_verified: boolean; created_at: string;
 };
 
 /** JSON call to the API. Throws Error(message) with the server's message on failure. */

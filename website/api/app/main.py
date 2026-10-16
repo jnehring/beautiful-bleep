@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from .config import settings
 from .db import SessionLocal
-from .models import User
+from .models import User, now
 from .deps import COOKIE, same_origin
 from .routers import admin, auth, moderation, presets, profile, registry, social, store, tokens, user_tokens
 from .security import hash_password
@@ -21,7 +21,7 @@ def ensure_admin() -> None:
     with SessionLocal() as db:
         if db.scalar(select(User).where(User.email == email)) is None:
             db.add(User(email=email, password_hash=hash_password(settings.admin_password),
-                        display_name="Admin", role="admin"))
+                        display_name="Admin", role="admin", email_verified_at=now()))
             db.commit()
 
 

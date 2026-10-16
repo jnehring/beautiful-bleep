@@ -32,6 +32,14 @@ services:
       BLEEP_COOKIE_SECURE: ${BLEEP_COOKIE_SECURE:-false}
       BLEEP_ADMIN_EMAIL: ${BLEEP_ADMIN_EMAIL:-}
       BLEEP_ADMIN_PASSWORD: ${BLEEP_ADMIN_PASSWORD:-}
+      # Outgoing email (registration confirmation, password reset). Without BLEEP_SMTP_HOST the messages are only logged.
+      BLEEP_EMAIL_VERIFICATION: ${BLEEP_EMAIL_VERIFICATION:-true}
+      BLEEP_SMTP_HOST: ${BLEEP_SMTP_HOST:-}
+      BLEEP_SMTP_PORT: ${BLEEP_SMTP_PORT:-587}
+      BLEEP_SMTP_USER: ${BLEEP_SMTP_USER:-}
+      BLEEP_SMTP_PASSWORD: ${BLEEP_SMTP_PASSWORD:-}
+      BLEEP_SMTP_FROM: ${BLEEP_SMTP_FROM:-}
+      BLEEP_PUBLIC_URL: ${BLEEP_PUBLIC_URL:-http://localhost:${BLEEP_SITE_PORT:-8080}}
       # Preset files are written to the store bucket (S3 API).
       BLEEP_S3_ENDPOINT: http://storage:8333
       BLEEP_S3_BUCKET: ${BLEEP_REGISTRY_BUCKET:-bleep-registry}

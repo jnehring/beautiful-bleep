@@ -25,6 +25,7 @@ export default function LoginPage() {
       <label>Password<input name="password" type="password" autoComplete="current-password" required /></label>
       {error && <p className="error" role="alert">{error}</p>}
       <button type="submit" disabled={busy}>Log in</button>
+      <p><a href="/forgot-password/">Forgot your password?</a></p>
       <p>No account yet? <a href="/register/">Register</a></p>
     </form>
   );
