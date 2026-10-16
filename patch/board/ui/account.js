@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-// account.js — the user's login to the Bleep Store and what needs it: sharing presets (developers/modules/store.md, "Login in the app").
+// account.js — the user's login to the Bleep Library and what needs it: sharing presets (developers/modules/library.md, "Login in the app").
 // Same code in the app, the plugins and Bleep Play; only what `native("account", …)` does differs:
-//   app, plugins   the device flow: a code to confirm on the website, the token kept in the OS keychain (patch/store/Account.cpp)
+//   app, plugins   the device flow: a code to confirm on the website, the token kept in the OS keychain (patch/library/Account.cpp)
 //   Bleep Play     the website's own session cookie (board-demo.js): logging in happens on the site
 //
-//   BleepAccount.status(verify)        { signedIn, name, email, storeUrl, pending?, offline? }
+//   BleepAccount.status(verify)        { signedIn, name, email, libraryUrl, pending?, offline? }
 //   BleepAccount.signIn(onCode)        the device flow; onCode({ userCode, url }) shows the code; resolves with the status or { error }
 //   BleepAccount.cancel() / signOut()
-//   BleepAccount.call(method, path, body)   a call to the store's API with the login: { status, body, error }
+//   BleepAccount.call(method, path, body)   a call to the library's API with the login: { status, body, error }
 //   BleepAccount.share(kind, name, preset)  the Share… dialog; kind is "cells" or "boards" (the local preset kinds)
 (function () {
   "use strict";
@@ -53,7 +53,7 @@
   async function signOut() { last = await native("account", "signOut"); for (const f of listeners) f(last); return last; }
   const call = (method, path, body) => native("account", "call", method, path, body === undefined ? null : body);
 
-  /// "My Pad" → "my-pad": the address name the store would make of it.
+  /// "My Pad" → "my-pad": the address name the library would make of it.
   const slugOf = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "preset";
 
   /// The Share… dialog. Resolves with { address, version } when the preset was shared, else null.
@@ -71,7 +71,7 @@
       const form = () => {
         box.innerHTML = "";
         box.appendChild(el("h3", "", "Share “" + name + "”"));
-        box.appendChild(el("div", "ac-note", "Anyone can download it from the Bleep Store. You are signed in as " + (last.name || last.email || "you") + "."));
+        box.appendChild(el("div", "ac-note", "Anyone can download it from the Bleep Library. You are signed in as " + (last.name || last.email || "you") + "."));
         const field = (label, input) => { const l = el("label", "", label); l.appendChild(input); box.appendChild(l); return input; };
         const title = field("Title", el("input")); title.value = name; title.maxLength = 120;
         const summary = field("Description", el("textarea")); summary.maxLength = 280; summary.rows = 3;
@@ -97,10 +97,10 @@
             const done = { address: r.body.address, version: r.body.version };
             box.innerHTML = "";
             box.appendChild(el("h3", "", "Shared"));
-            box.appendChild(el("div", "ac-note", "“" + r.body.title + "” is in the Bleep Store as version " + r.body.version + "."));
+            box.appendChild(el("div", "ac-note", "“" + r.body.title + "” is in the Bleep Library as version " + r.body.version + "."));
             const row2 = el("div", "ac-row");
-            const see = el("button", "", "Open in the store");
-            see.addEventListener("click", () => open(last.storeUrl + "/store/detail/?kind=preset&slug=" + encodeURIComponent(done.address)));
+            const see = el("button", "", "Open in the library");
+            see.addEventListener("click", () => open(last.libraryUrl + "/library/detail/?kind=preset&slug=" + encodeURIComponent(done.address)));
             const ok = el("button", "ac-primary", "Done");
             ok.addEventListener("click", () => close(done));
             row2.append(see, ok);
@@ -121,7 +121,7 @@
         box.appendChild(el("h3", "", "Sign in to share"));
         box.appendChild(el("div", "ac-note", last && last.playLogin
           ? "Sharing needs an account. Log in on the website, then come back here."
-          : "Sharing needs an account on the Bleep Store. Sign in: the website shows a page where you confirm the code below."));
+          : "Sharing needs an account on the Bleep Library. Sign in: the website shows a page where you confirm the code below."));
         const code = el("div", "ac-code");
         box.appendChild(code);
         box.appendChild(msg);
@@ -138,7 +138,7 @@
             }
             go.dataset.opened = "1";
             go.textContent = "I have logged in";
-            open(last.storeUrl + "/login/");
+            open(last.libraryUrl + "/login/");
             return;
           }
           go.disabled = true;

@@ -69,13 +69,13 @@ licence terms. `scripts/check/check-repo.py` enforces all of it in CI.
 - **Copyleft originals** (GPL, LGPL, AGPL, MPL) make the module keep that licence:
   `license` must equal `origin.license`. Such a module is **never compiled into the
   apps and plugins** (CMake leaves it out of them; tests and tools still build it): it
-  ships only as an optional `.wasm` module from the Bleep Store, under its own licence,
-  with its source. The store shows the licence on the module's detail view.
+  ships only as an optional `.wasm` module from the Bleep Library, under its own licence,
+  with its source. The library shows the licence on the module's detail view.
 - A module with an `origin`, or any licence other than MIT, has a `LICENSE` file in
   its folder with the full licence text and the original copyright notice. The
-  package carries it. The store's detail view shows the module's `license` and, for a port, its `origin`.
+  package carries it. The library's detail view shows the module's `license` and, for a port, its `origin`.
 - The module's doc has an `## Origin` section that names the source, links it and
-  gives the licence. The package's store summary gets "Based on <name> by <author>
+  gives the licence. The package's library summary gets "Based on <name> by <author>
   (<licence>)." added by the packager.
 - Code under no clear licence, or "all rights reserved", is not ported. Algorithms
   described in papers or books may be reimplemented freely; say so in the Origin

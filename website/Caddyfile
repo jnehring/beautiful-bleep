@@ -32,7 +32,7 @@
 	@pages not path /registry/*
 	header @pages Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 
-	# Store files are data, never pages: whatever a release uploaded cannot run script in the site's origin (it shares the session cookie's origin).
+	# Library files are data, never pages: whatever a release uploaded cannot run script in the site's origin (it shares the session cookie's origin).
 	@registry path /registry/*
 	header @registry Content-Security-Policy "default-src 'none'; sandbox"
 
@@ -41,7 +41,7 @@
 	header @markdown Content-Type "text/markdown; charset=utf-8"
 	header /llms.txt Content-Type "text/plain; charset=utf-8"
 
-	# Bleep Play (patch/web): its modules come from the Bleep Store below (signed packages, checked in the browser).
+	# Bleep Play (patch/web): its modules come from the Bleep Library below (signed packages, checked in the browser).
 
 	@wasm path *.wasm
 	header @wasm Content-Type "application/wasm"
@@ -52,7 +52,7 @@
 		reverse_proxy api:8000
 	}
 
-	# Store downloads: the public-read bucket in SeaweedFS, anonymous, no app code in the path.
+	# Library downloads: the public-read bucket in SeaweedFS, anonymous, no app code in the path.
 	# Releases are immutable (versioned paths) except index.json, which must revalidate.
 	# handle_path strips /registry before anything else runs (a `uri strip_prefix` would run after `rewrite`, and the
 	# bucket key would be registry/v1/…); the paths below are therefore without the prefix.

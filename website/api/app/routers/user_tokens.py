@@ -36,7 +36,7 @@ def _normal(code: str) -> str:
 
 def _new_token(db: Session, user: User, name: str, expires_days: int | None = None) -> tuple[UserToken, str]:
     token = "blu_" + secrets.token_urlsafe(32)
-    row = UserToken(user_id=user.id, name=name, prefix=token[:8], token_hash=hash_token(token), scope="store",
+    row = UserToken(user_id=user.id, name=name, prefix=token[:8], token_hash=hash_token(token), scope="library",
                     expires_at=now() + timedelta(days=expires_days) if expires_days else None)
     db.add(row)
     db.commit()

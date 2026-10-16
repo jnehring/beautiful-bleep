@@ -127,7 +127,7 @@ for local network access) and points at the app's own page, `http://127.0.0.1:47
 **The board page.** `js/bridge-ui.js` adds the *Connect to app* button (next to *Start audio*) to the web build: it
 connects, turns every Live port the hub announces into a port node named *Live: track* (`BleepDemo.mirrorPort` in
 `board-demo.js`; the node stays as a ghost when the port goes away) and opens a channel for every *Remote Audio* /
-*Remote MIDI* node on the board. The page does not need the Bleep Store to do this: without it only the built-in
+*Remote MIDI* node on the board. The page does not need the Bleep Library to do this: without it only the built-in
 ports and the remote nodes run. `BleepWeb.debugBridge()` returns what the worklet's endpoint holds (channels, which node
 is bound to which key, the peak of what a bound node sends) when a channel stays silent.
 

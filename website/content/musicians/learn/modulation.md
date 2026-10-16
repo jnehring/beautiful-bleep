@@ -52,4 +52,4 @@ meet this way.
 ## Next
 
 [Cells and panels](cells-and-panels.md): group a patch, then give it a front panel.
-Every module and its knobs are in the [module manuals](/store/?kind=module).
+Every module and its knobs are in the [module manuals](/library/?kind=module).

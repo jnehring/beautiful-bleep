@@ -842,7 +842,7 @@ void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandI
             info.setInfo(u8("Save As…"), "Save the project as", "File", 0);
             info.addDefaultKeypress('s', cmd | juce::ModifierKeys::shiftModifier);
             break;
-        case cmdSettings: info.setInfo(u8("Settings…"), "Audio, MIDI, Link, the Store and Security", "File", 0); info.addDefaultKeypress(',', cmd); break;
+        case cmdSettings: info.setInfo(u8("Settings…"), "Audio, MIDI, Link, the Library and Security", "File", 0); info.addDefaultKeypress(',', cmd); break;
         case cmdDocs: info.setInfo("Documentation", "Open the getting-started guide in your browser", "Help", 0); break;
         case cmdAbout: info.setInfo("Info", "About Bleep", "Help", 0); break;
         case cmdPlay:

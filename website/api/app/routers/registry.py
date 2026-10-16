@@ -47,7 +47,7 @@ def _revocations(db: Session) -> dict:
 
 def write_revocations(db: Session, storage: Storage) -> dict | None:
     """v1/revocations.json: the revoked developer keys, signed with the issuer key (signing.md section 8). The serial rises with every
-    change, so a client keeps the newest and a mirror cannot hand back an older list. Nothing is written when the store has no issuer key."""
+    change, so a client keeps the newest and a mirror cannot hand back an older list. Nothing is written when the library has no issuer key."""
     if not settings.issuer_key or not settings.issuer_cert:
         return None
     keys = sorted(_revocations(db)["revokedKeys"], key=lambda k: k["keyId"])
@@ -111,7 +111,7 @@ TYPE_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}(/[a-z0-9][a-z0-9-]{0,62})?$")
 
 
 def _module_meta(db: Session, slug: str, package) -> tuple[list[str], int]:
-    """The node types and engine ABI a module package declares in its module.json, after the store's rules for them.
+    """The node types and engine ABI a module package declares in its module.json, after the library's rules for them.
 
     A module may only provide node types nobody else provides, and a third-party module (id "acme/fuzz") only types in
     its own namespace ("acme/…"): otherwise a signed module could take over "oscillator" on every board."""
@@ -135,7 +135,7 @@ def _module_meta(db: Session, slug: str, package) -> tuple[list[str], int]:
 
 def _check_licence(row: Release, package) -> None:
     """The licence and origin a module release declares must be the ones in the signed package's module.json (a missing
-    licence there is MIT, like package-module.py): the store's detail view must not say something else than the package."""
+    licence there is MIT, like package-module.py): the library's detail view must not say something else than the package."""
     package.seek(0)
     meta = json.loads(zipfile.ZipFile(package).read("module.json"))
     try:  # the same shape the release's origin was stored in (defaults filled in)
@@ -337,7 +337,7 @@ def write_index(db: Session, storage: Storage) -> dict:
         for channel in ("stable", "beta") if r.channel == "stable" else ("beta",):
             channels[channel][r.kind + "s"][r.slug] = {
                 "version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json",
-                # what the apps' store tiles show, so one request to the index is enough
+                # what the apps' library tiles show, so one request to the index is enough
                 "title": r.title or r.slug, "summary": r.summary, "category": r.category,
                 **({"image": f"{r.kind}s/{r.slug}/{r.version}/{r.image}"} if r.image else {}),
             }

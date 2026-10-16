@@ -2,7 +2,7 @@
 
 Short version for the three things we ship. Details: [build-standalone-app.md](build-standalone-app.md), [rebuild-live-plugins.md](rebuild-live-plugins.md), [release.md](release.md). All commands run from the repository root (`bleep-patch/`).
 
-"Release" and "upload" are one step: `scripts/release/release.py` zips the build, signs it, uploads it to the store and publishes it. Versions are immutable, so a fix is a new version.
+"Release" and "upload" are one step: `scripts/release/release.py` zips the build, signs it, uploads it to the library and publishes it. Versions are immutable, so a fix is a new version.
 
 ## Contents
 
@@ -15,7 +15,7 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 
 ## One-time setup (all three)
 
-- A **release token** (shown once) and a **signing kit** from the website stack; see "Releasing plugins to the store" in [release.md](release.md). Do this once: if `~/.bleep-release-token` and `~/.bleep-signing-kit.json` already exist, skip it (the token lasts 90 days, the kit's certificate 365 by default):
+- A **release token** (shown once) and a **signing kit** from the website stack; see "Releasing plugins to the library" in [release.md](release.md). Do this once: if `~/.bleep-release-token` and `~/.bleep-signing-kit.json` already exist, skip it (the token lasts 90 days, the kit's certificate 365 by default):
 
   ```bash
   cd website
@@ -28,7 +28,7 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 - **In every new shell**, before a release, put the shared options in the environment so the commands below stay short. The `export` only lasts for that shell. The token is passed with `--token-file` (it picks the `blp_…` token out of the file, so the two-line output of `token-create` works as saved); without it `release.py` stops with "A release token is required":
 
   ```bash
-  # the store (website address; the API is under /api) and the signing kit
+  # the library (website address; the API is under /api) and the signing kit
   export BLEEP_REGISTRY_URL=http://localhost:8080 BLEEP_SIGNING_KIT=~/.bleep-signing-kit.json
   ```
 
@@ -68,7 +68,7 @@ scripts/release/release.py bleep-app --level patch --notes "what changed" --toke
 
 ## Plugins (VST3)
 
-Store ids: `bleep-board`, `bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`, `bleep-instrument`, `bleep-fx`.
+Library ids: `bleep-board`, `bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`, `bleep-instrument`, `bleep-fx`.
 
 Build (builds, runs the DSP, engine and bridge tests; the app is built in the same tree):
 
@@ -82,7 +82,7 @@ scripts/build/build-patch.sh --install
 
 **Skip the tests:** `--no-test`, as in the second command above. `release.py --build` runs `build-patch.sh --plugins-only` (no tests, no test targets), so after a `build-patch.sh --plugins-only` run it has nothing left to compile. Run the tests separately with plain `build-patch.sh` before a release.
 
-**Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the signed `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`store::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; to not build them either:
+**Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the signed `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`library::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; to not build them either:
 
 ```bash
 scripts/build/build-patch.sh --plugins-only --install
@@ -156,7 +156,7 @@ The per-module cache is in `build/web/modules/.cache`. Use one method (local or 
 
 **Skip the tests:** none of the module steps (`build-web.sh`, `package-module.py`, `release.py --modules`) run a test suite, so there is nothing to skip. Packaging does check each `.wasm` against the module ABI, and that check can't be turned off.
 
-Package (checks each `.wasm` against `website/content/developers/modules/module-abi.md`, writes reproducible zips to `build/store/modules/`):
+Package (checks each `.wasm` against `website/content/developers/modules/module-abi.md`, writes reproducible zips to `build/library/modules/`):
 
 ```bash
 # every module with a built .wasm
@@ -165,7 +165,7 @@ scripts/release/package-module.py
 scripts/release/package-module.py reverb filter
 ```
 
-Release and upload. Each module counts its own version, and a module whose content did not change since its newest published version is skipped (`--force` overrides). Both the app and the web board install modules from the store, so this one release reaches both:
+Release and upload. Each module counts its own version, and a module whose content did not change since its newest published version is skipped (`--force` overrides). Both the app and the web board install modules from the library, so this one release reaches both:
 
 ```bash
 scripts/release/release.py --modules --package --level patch --dry-run
@@ -175,11 +175,11 @@ scripts/release/release.py --modules --package --level patch --token-file ~/.ble
 scripts/release/release.py --modules reverb --level minor --token-file ~/.bleep-release-token
 ```
 
-`--package` runs `package-module.py` first; leave it out to release what is already in `build/store/modules/`.
+`--package` runs `package-module.py` first; leave it out to release what is already in `build/library/modules/`.
 
 ## Web board
 
-The board UI and web engine are built by `build-web.sh` (the modules too, unless you skip them). The board doesn't load the `.wasm` files from its own folder: it installs its modules from the store as signed packages, so a module reaches the web only through the release steps above.
+The board UI and web engine are built by `build-web.sh` (the modules too, unless you skip them). The board doesn't load the `.wasm` files from its own folder: it installs its modules from the library as signed packages, so a module reaches the web only through the release steps above.
 
 ```bash
 # the whole site: UI, web engine and modules, into build/web/site
@@ -196,7 +196,7 @@ The website is deployed by rebuilding its containers (see [website.md](website.m
 
 ## Website (dev and production)
 
-The site is the docs and homepage (`website/app`, Next.js, static export), the board UI, and the store backend: Caddy, the API (FastAPI), PostgreSQL and the store's storage (SeaweedFS). All of it runs with Docker Compose from `website/`. The image has the board UI but **no modules**; they come from the store (see [Modules](#modules)). Details, the admin user and the signing keys: [website.md](website.md).
+The site is the docs and homepage (`website/app`, Next.js, static export), the board UI, and the library backend: Caddy, the API (FastAPI), PostgreSQL and the library's storage (SeaweedFS). All of it runs with Docker Compose from `website/`. The image has the board UI but **no modules**; they come from the library (see [Modules](#modules)). Details, the admin user and the signing keys: [website.md](website.md).
 
 One-time: copy the config and fill it in (database password, first admin, storage keys, signing keys):
 
@@ -227,7 +227,7 @@ scripts/run/run-website.sh logs
 ```
 
 ```bash
-# stop (the database and the store keep their data; `docker compose down -v` in website/ deletes it)
+# stop (the database and the library keep their data; `docker compose down -v` in website/ deletes it)
 scripts/run/run-website.sh down
 ```
 
@@ -251,4 +251,4 @@ After editing the board UI (`patch/board`, `patch/web`), rebuild it into the sit
 docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env run --rm play
 ```
 
-**Without Docker** (docs and pages only, no API or store): `cd website/app && npm install`, then `npm run dev` (http://localhost:3000) or `npm run build` (static export to `website/app/out/`).
+**Without Docker** (docs and pages only, no API or library): `cd website/app && npm install`, then `npm run dev` (http://localhost:3000) or `npm run build` (static export to `website/app/out/`).

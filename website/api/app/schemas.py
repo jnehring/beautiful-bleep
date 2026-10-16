@@ -89,7 +89,7 @@ class FileIn(BaseModel):
     bytes: int = Field(ge=0)
     platform: str = Field(default="any", max_length=32, pattern=r"^[a-z0-9_-]+$")
     # Signing (website/content/developers/modules/signing.md): a module's content hash over the files inside its package (a plugin file's is its own
-    # sha256) and the developer's signature document. Required unless the store runs with require_signatures off.
+    # sha256) and the developer's signature document. Required unless the library runs with require_signatures off.
     contentDigest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     signature: dict | None = None
 
@@ -139,7 +139,7 @@ class ReleaseOut(BaseModel):
     published_at: datetime | None
 
 
-class StoreItemOut(BaseModel):
+class LibraryItemOut(BaseModel):
     kind: str
     slug: str
     version: str
@@ -147,7 +147,7 @@ class StoreItemOut(BaseModel):
     title: str
     summary: str
     category: str
-    image_url: str | None             # the screenshot, a path on the store's host; None: the page draws a placeholder
+    image_url: str | None             # the screenshot, a path on the library's host; None: the page draws a placeholder
     rating_average: float | None = None
     rating_count: int = 0
     notes: str
@@ -156,15 +156,15 @@ class StoreItemOut(BaseModel):
     published_at: datetime | None
 
 
-class StoreListOut(BaseModel):
-    items: list[StoreItemOut]
+class LibraryListOut(BaseModel):
+    items: list[LibraryItemOut]
     categories: list[str]             # every category of the entries matching kind and search, for the filter
     total: int
     page: int
     page_size: int
 
 
-class StoreFileOut(BaseModel):
+class LibraryFileOut(BaseModel):
     path: str
     bytes: int
     sha256: str
@@ -173,7 +173,7 @@ class StoreFileOut(BaseModel):
     signer: dict | None = None        # {"publisher", "keyId"} of the developer signature
 
 
-class StoreReleaseOut(BaseModel):
+class LibraryReleaseOut(BaseModel):
     version: str
     channel: str
     notes: str
@@ -182,10 +182,10 @@ class StoreReleaseOut(BaseModel):
     published_at: datetime | None
     license: str
     requires: dict
-    file_list: list[StoreFileOut]
+    file_list: list[LibraryFileOut]
 
 
-class StoreDetailOut(BaseModel):
+class LibraryDetailOut(BaseModel):
     kind: str
     slug: str
     title: str
@@ -196,7 +196,7 @@ class StoreDetailOut(BaseModel):
     rating_count: int = 0
     license: str                      # of the newest release; "" = not stated
     origin: dict                      # what the newest release is ported from, {} = original work
-    releases: list[StoreReleaseOut]
+    releases: list[LibraryReleaseOut]
 
 
 # --- Sign-in of the app, personal tokens -------------------------------------------------------------------------

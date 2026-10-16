@@ -5,7 +5,7 @@
 //   Transport        play and stop (Play lights while it plays), tempo and sync. The app drives its own clock (native "settings" play/tempo/link),
 //                    a plugin only shows Live's transport, the browser drives its worklet (BleepWeb.setTempo/setPlaying)
 //                    and can follow the app once connected.
-//   Preset           the name and source of the loaded preset (factory, store with link, user), and Upload to store.
+//   Preset           the name and source of the loaded preset (factory, library with link, user), and Upload to Library.
 //
 //   BleepSideMenu.init({ mode: "app" | "plugin" | "web", board(): the current board })
 (function () {
@@ -155,22 +155,22 @@
   }
 
   // ---------------------------------------------------------------- Preset
-  const SOURCES = { factory: "Factory preset", store: "Bleep Store", user: "User preset" };
+  const SOURCES = { factory: "Factory preset", library: "Bleep Library", user: "User preset" };
 
-  function storeLink(c) {
+  function libraryLink(c) {
     const acct = window.BleepAccount;
-    const base = (acct && acct.last && acct.last.storeUrl) || "";
-    return c.address && base ? base + "/store/detail/?kind=preset&slug=" + encodeURIComponent(c.address) : "";
+    const base = (acct && acct.last && acct.last.libraryUrl) || "";
+    return c.address && base ? base + "/library/detail/?kind=preset&slug=" + encodeURIComponent(c.address) : "";
   }
 
   function buildPreset() {
     const s = section("Preset");
     refs.pName = el("div", "sm-pname");
     refs.pSource = el("div", "sm-psource");
-    refs.pLink = el("a", "sm-link", "Open in the Bleep Store");
+    refs.pLink = el("a", "sm-link", "Open in the Bleep Library");
     refs.pLink.href = "#";
     refs.pLink.addEventListener("click", (e) => { e.preventDefault(); if (refs.pLink.dataset.url) native("openUrl", refs.pLink.dataset.url).then((ok) => { if (!ok) window.open(refs.pLink.dataset.url, "_blank", "noopener"); }); });
-    refs.upload = el("button", "sm-wide", "Upload to store");
+    refs.upload = el("button", "sm-wide", "Upload to Library");
     refs.upload.addEventListener("click", upload);
     refs.pNote = el("div", "sm-note");
     s.append(refs.pName, refs.pSource, refs.pLink, refs.upload, refs.pNote);
@@ -184,9 +184,9 @@
     refs.pName.classList.toggle("none", !c);
     refs.pSource.textContent = c ? SOURCES[c.source] || c.source : "A board you built yourself";
     let url = "";
-    if (c && c.source === "store" && c.address) {
+    if (c && c.source === "library" && c.address) {
       if (window.BleepAccount && BleepAccount.status) { try { await BleepAccount.status(false); } catch (e) { /* offline */ } }
-      url = storeLink(c);
+      url = libraryLink(c);
     }
     refs.pLink.hidden = !url;
     refs.pLink.dataset.url = url;
@@ -202,7 +202,7 @@
     const preset = { format: 1, description: base.description || "", tags: base.tags || [],
       nodes: JSON.parse(JSON.stringify(b.nodes)), cables: JSON.parse(JSON.stringify(b.cables)) };
     if (base.tempo) preset.tempo = base.tempo;
-    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(preset.nodes) : {};
+    const needs = window.BleepLibraryView ? await BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     const done = await BleepAccount.share("boards", (c && c.name) || "My patch", preset);
     refs.pNote.textContent = done ? `Shared as ${done.address}.` : "";

@@ -48,7 +48,7 @@ export default function Home() {
       </p>
 
       <h2>Modules</h2>
-      <p>{modules().length} modules in {modulesByCategory().length} categories, each with a manual, in the <a href="/store/?kind=module">Bleep Store</a>.</p>
+      <p>{modules().length} modules in {modulesByCategory().length} categories, each with a manual, in the <a href="/library/?kind=module">Bleep Library</a>.</p>
 
       <h2>Where to go next</h2>
       <div className="grid doors">

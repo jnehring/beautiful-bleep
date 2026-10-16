@@ -22,7 +22,7 @@ def entries_of(files, exec_=()):
 
 
 class World:
-    """A root, an issuer and one developer, the way the store sets them up."""
+    """A root, an issuer and one developer, the way the library sets them up."""
 
     def __init__(self, publisher="acme", scopes=("module",), first_party=False, not_before=T0, not_after=T0 + YEAR):
         self.root, self.issuer, self.dev = (Ed25519PrivateKey.generate() for _ in range(3))
@@ -105,7 +105,7 @@ class Verify(unittest.TestCase):
         other = World()
         self.assertEqual(w.check(w.signed(), roots=[other.root_pub]).status, "invalid")
         forged = w.signed()
-        forged["chain"][1] = other.dev_cert  # a developer cert from another store
+        forged["chain"][1] = other.dev_cert  # a developer cert from another library
         self.assertEqual(w.check(forged).status, "invalid")
         # an attacker mints their own issuer and developer under their own root
         self.assertEqual(w.check(other.signed(), roots=[w.root_pub]).status, "invalid")
@@ -216,12 +216,12 @@ class Vector(unittest.TestCase):
         self.assertEqual(v["signature"], "5019b69bf480dae36510479a2c4bbeab84e94477efcdd4ec3dc1528ef6f2644471e89b42c0ac69b4ff617bac7da69e4b817717e2f99e6526d4be2c10e1a72c0b")
 
 
-FIXTURES = Path(__file__).resolve().parent.parent.parent / "patch" / "tests" / "store-fixtures"
+FIXTURES = Path(__file__).resolve().parent.parent.parent / "patch" / "tests" / "library-fixtures"
 
 
 class Fixtures(unittest.TestCase):
-    """The packages in patch/tests/store-fixtures are made by `signing.py fixture`; this implementation, the JavaScript one
-    (patch/web/test/store-client-test.mjs) and the C++ one (patch/tests/store_test.cpp) must give each its verdict."""
+    """The packages in patch/tests/library-fixtures are made by `signing.py fixture`; this implementation, the JavaScript one
+    (patch/web/test/library-client-test.mjs) and the C++ one (patch/tests/library_test.cpp) must give each its verdict."""
 
     def test_committed_fixtures_are_what_the_generator_makes(self):
         import importlib.util

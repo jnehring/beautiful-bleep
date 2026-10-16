@@ -17,7 +17,7 @@
   let query = "";
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
   let root = null, listEl, groupsEl, searchEl, saveRow;
-  let current = null;         // the loaded preset for the side menu: {name, source: "factory" | "user" | "store", address?, preset}
+  let current = null;         // the loaded preset for the side menu: {name, source: "factory" | "user" | "library", address?, preset}
   const listeners = [];
   function setCurrent(c) { current = c; listeners.forEach((f) => f(current)); }
 
@@ -121,7 +121,7 @@
           render();
         });
         foot.appendChild(del);
-        if (window.BleepAccount && BleepAccount.enabled) {   // the apps with a store, and Play
+        if (window.BleepAccount && BleepAccount.enabled) {   // the apps with a library, and Play
           const share = el("button", "pb-del", "Share…");
           share.addEventListener("click", (e) => { e.stopPropagation(); BleepAccount.share("boards", p.name, p.preset); });
           foot.appendChild(share);
@@ -158,7 +158,7 @@
   }
 
   async function loadPatch(p) {
-    if (window.BleepStoreView && p.preset && !(await BleepStoreView.ensureNeeds(p.preset, p.name))) return;
+    if (window.BleepLibraryView && p.preset && !(await BleepLibraryView.ensureNeeds(p.preset, p.name))) return;
     if (p.cell) {
       close();
       await native("loadCellPreset", p.name);
@@ -170,7 +170,7 @@
     if (host.mapPorts) mapPorts(board);
     close();
     host.apply(await native("loadPatch", board, src.tempo || 0, p.name));
-    setCurrent({ name: p.name, source: p.address ? "store" : p.own ? "user" : "factory", address: p.address, preset: src });
+    setCurrent({ name: p.name, source: p.address ? "library" : p.own ? "user" : "factory", address: p.address, preset: src });
   }
 
   function showSave() {
@@ -182,7 +182,7 @@
     const board = host.board();
     if (!name || !board) return;
     const preset = { format: 1, description: desc, tags: [], nodes: clone(board.nodes), cables: clone(board.cables) };
-    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(preset.nodes) : {};
+    const needs = window.BleepLibraryView ? await BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     mine = (await native("savePreset", name, preset, "boards")) || [];
     setCurrent({ name, source: "user", preset });
@@ -268,10 +268,10 @@
     close,
     /// Opens the browser with its Save row ready (File → Save as Preset…).
     async save() { await open(); if (!host.cells) showSave(); },
-    /// Loads a preset shared in the Bleep Store, by its address ("author/slug"), as the Load button does. Throws when it cannot be fetched.
+    /// Loads a preset shared in the Bleep Library, by its address ("author/slug"), as the Load button does. Throws when it cannot be fetched.
     async loadShared(address, name) {
       const r = await fetch("/api/presets/" + address.split("/").map(encodeURIComponent).join("/") + "/file");
-      if (!r.ok) throw new Error(r.status === 404 ? "That preset is not in the Bleep Store." : "The preset could not be downloaded (" + r.status + ").");
+      if (!r.ok) throw new Error(r.status === 404 ? "That preset is not in the Bleep Library." : "The preset could not be downloaded (" + r.status + ").");
       const preset = await r.json();
       if (!preset || !Array.isArray(preset.nodes)) throw new Error("That file is not a board preset.");
       preset.cables = preset.cables || [];

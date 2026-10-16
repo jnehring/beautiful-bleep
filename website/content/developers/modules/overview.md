@@ -1,6 +1,6 @@
 ---
 title: Module developers
-description: What a module is, how it differs from a plugin, and the path from source folder to the Bleep Store.
+description: What a module is, how it differs from a plugin, and the path from source folder to the Bleep Library.
 order: 10
 ---
 
@@ -16,13 +16,13 @@ The same source is built for every host. The result is **one standalone `.wasm` 
 2. **Test it.** DSP tests per module, plus `bleep_module_harness`, which runs every module with every input fed at several sample rates and checks that outputs stay finite and bounded.
 3. **Document it.** A manual in `doc/<type>.md` with a screenshot. The board shows it behind the view's `?` button and this website shows it under Modules.
 4. **Package and sign it.** [Publishing a module](publishing.md): a `.bleepmod` package, signed by your developer key.
-5. **Release it.** To the [Bleep Store](store.md), where users and the apps install it.
+5. **Release it.** To the [Bleep Library](library.md), where users and the apps install it.
 
 ## What a module must satisfy
 
 - [Module ABI](module-abi.md): the exports, memory limits, determinism rules and versioning a host expects of the `.wasm` file.
 - [Signing](signing.md): the chain of trust the apps check before they run a module.
-- Licences: a module ported from other code keeps the original's licence and says so in `module.json`; copyleft ports ship only through the store, never inside the apps. [Writing a module](writing-a-module.md) has the rules.
+- Licences: a module ported from other code keeps the original's licence and says so in `module.json`; copyleft ports ship only through the library, never inside the apps. [Writing a module](writing-a-module.md) has the rules.
 
 ## Modules and the Bleep Bus
 

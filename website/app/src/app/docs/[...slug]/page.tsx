@@ -46,7 +46,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
         {doc.audience === "musicians" && (
           <>
             <h4>Modules</h4>
-            <ul><li><a href="/store/?kind=module">All modules</a></li></ul>
+            <ul><li><a href="/library/?kind=module">All modules</a></li></ul>
           </>
         )}
       </nav>

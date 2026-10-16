@@ -21,7 +21,7 @@
     const here = location;
     if (here.protocol !== "http:") return undefined;
     try {
-      const r = await fetch("/health", { cache: "no-store" });
+      const r = await fetch("/health", { cache: "no-library" });
       const j = r.ok ? await r.json() : null;
       if (j && j.app === "bleep-patch") return `ws://${here.host}/ws`;
     } catch (e) { /* not the app */ }

@@ -6,7 +6,7 @@
 #
 # Setup (Settings -> Environments -> New environment "release", with required reviewers):
 #   variable BLEEP_REGISTRY_URL    the website's https address
-#   secret   BLEEP_RELEASE_TOKEN   the store's release token
+#   secret   BLEEP_RELEASE_TOKEN   the library's release token
 #   secret   BLEEP_SIGNING_KIT     the developer's signing kit, the whole JSON file (signing.md)
 # The secrets are only handed to the release step of a job that was approved, never to the build.
 name: Release

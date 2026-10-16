@@ -13,7 +13,7 @@ and the warning does not mean something is wrong: the system just doesn't know
 who made them. It is a one-time step per download.
 
 You can check a download against the checksum (SHA-256) shown for it in the
-[Bleep Store](/store/plugin/bleep-app/) before you open it.
+[Bleep Library](/library/plugin/bleep-app/) before you open it.
 
 ## macOS
 

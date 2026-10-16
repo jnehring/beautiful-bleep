@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// The module's manual as an HTML fragment, for the store's detail view (static export: one file per module).
+// The module's manual as an HTML fragment, for the library's detail view (static export: one file per module).
 import { moduleDoc, modules } from "@/lib/content";
 
 export const dynamic = "force-static";

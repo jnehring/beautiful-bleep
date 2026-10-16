@@ -11,7 +11,7 @@
 
   // ------------------------------------------------------------------ state
   let board = null;            // the board document, or null (no Bleep Board)
-  let hasStore = false;        // the app has a module store (the native side's init says so); without one, nothing is checked against it
+  let hasLibrary = false;        // the app has a module library (the native side's init says so); without one, nothing is checked against it
   let types = {};              // type → description
   let typeList = [];
   let ports = {};              // port id → {kind, track, live, main}
@@ -550,15 +550,15 @@
     if (missingModule) {  // the module of this node is not on this machine: the node waits, with its settings, and its cables are kept
       const note = el("div", "n-missing", n.type);
       e.appendChild(note);
-      if (window.BleepStoreView) {
+      if (window.BleepLibraryView) {
         const b = el("button", "n-install", "Install");
         b.addEventListener("pointerdown", (ev) => ev.stopPropagation());
         b.addEventListener("click", async (ev) => {
           ev.stopPropagation();
           b.disabled = true;
           b.textContent = "Installing…";
-          const ok = await window.BleepStoreView.installType(n.type);
-          if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (window.BleepStoreView.lastMessage() || "not found in the store"); }
+          const ok = await window.BleepLibraryView.installType(n.type);
+          if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (window.BleepLibraryView.lastMessage() || "not found in the library"); }
         });
         e.appendChild(b);
       }
@@ -1573,20 +1573,20 @@
   /// `link` (from a cable dropped on empty canvas) is connected to the new node.
   function addAt(what, x, y, link, checked) {
     if (!board) return;
-    if (what.preset && !checked && hasStore && window.BleepStoreView) {  // modules the preset needs: offer to install them first
+    if (what.preset && !checked && hasLibrary && window.BleepLibraryView) {  // modules the preset needs: offer to install them first
       const q = presets.find((r) => r.key === what.preset);
       if (q) {
-        BleepStoreView.ensureNeeds(q.preset, q.name).then(
+        BleepLibraryView.ensureNeeds(q.preset, q.name).then(
           (ok) => {
             if (!ok) return;
-            // The store only knows the modules it lists or has installed. A preset may use module types this app has never
+            // The library only knows the modules it lists or has installed. A preset may use module types this app has never
             // heard of (a newer module, one not installed on this machine): say so, the board keeps them as placeholders.
             const unknown = [...new Set((q.preset.nodes || []).map((n) => n.type))].filter((t) => !types[t]);
             if (unknown.length) notice(`“${q.name}” uses modules this app doesn't have: ${unknown.join(", ")}. They show as “not installed”.`);
             addAt(what, x, y, link, true);
           },
-          (e) => {   // the store check itself failed or did not answer: the preset is still wanted
-            notice(`Could not check the store for “${q.name}” (${e && e.message ? e.message : e}); adding it without.`);
+          (e) => {   // the library check itself failed or did not answer: the preset is still wanted
+            notice(`Could not check the library for “${q.name}” (${e && e.message ? e.message : e}); adding it without.`);
             addAt(what, x, y, link, true);
           });
         return;
@@ -1640,7 +1640,7 @@
     });
     // The app answers every edit with the board it kept: say so when it did not keep what was just placed.
     Promise.resolve(placed).then(() => {
-      if (newId && board && !nodeById(newId)) notice(`The app did not keep the ${what.preset ? "cell" : "module"} you added. Check the Store section for modules that failed to load.`);
+      if (newId && board && !nodeById(newId)) notice(`The app did not keep the ${what.preset ? "cell" : "module"} you added. Check the Library section for modules that failed to load.`);
     }).catch((e) => notice(`Could not add it: ${e && e.message ? e.message : e}`));
   }
 
@@ -2504,7 +2504,7 @@
     const ids = new Set(nodes.map((n) => n.id));
     const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
     const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
-    const needs = window.BleepStoreView ? await BleepStoreView.needsFor(nodes) : {};
+    const needs = window.BleepLibraryView ? await BleepLibraryView.needsFor(nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     const mine = panelsWithLoaded(panelList().filter((p) => p.cell && ids.has(p.cell)));
     if (mine.length) preset.panels = clone(mine).map((p) => { delete p.open; return p; });
@@ -3488,11 +3488,11 @@
     typeList = m.types || [];
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
-    hasStore = !!m.store;
+    hasLibrary = !!m.library;
     if (m.account && window.BleepAccount) { BleepAccount.enabled = true; BleepAccount.client = m.standalone ? "Bleep Standalone" : "Bleep plugin"; }
-    if (m.store && window.BleepStoreView) await BleepStoreView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
-    if (m.settings && window.BleepSettingsView) await BleepSettingsView.init({ store: !!m.store });
-    if (m.store && window.BleepHelpView) await BleepHelpView.init();
+    if (m.library && window.BleepLibraryView) await BleepLibraryView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
+    if (m.settings && window.BleepSettingsView) await BleepSettingsView.init({ library: !!m.library });
+    if (m.library && window.BleepHelpView) await BleepHelpView.init();
     pluginMode = !!m.plugin || !!panelOf;
     document.body.classList.toggle("plugin", pluginMode);
     dev = !!m.dev;
@@ -3510,7 +3510,7 @@
     setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);
-    {  // Bleep Play opened from a store preset: /play/index.html?preset=author/slug
+    {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug
       const shared = new URLSearchParams(location.search).get("preset");
       if (shared && !pluginMode) BleepPresetBrowser.loadShared(shared).catch((e) => notice(e.message));
     }

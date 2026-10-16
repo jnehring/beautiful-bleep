@@ -46,9 +46,9 @@ set(BLEEP_FORMATS "VST3" CACHE STRING "Plugin formats (JUCE names)")
 set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.9)")
 # The wasm module host (engine/wasm/, developers/modules/module-abi.md): needs the Wasmtime C API, from
 # https://github.com/bytecodealliance/wasmtime/releases (wasmtime-v<version>-<target>-c-api). With it, the test
-# bleep_wasm_parity runs every module as native and as wasm and compares them (store.md section 13, M1).
+# bleep_wasm_parity runs every module as native and as wasm and compares them (library.md section 13, M1).
 set(BLEEP_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
-# Default: the Wasmtime that scripts/experiments fetched into <build>/wasm-spike, so the apps get the Store without a flag.
+# Default: the Wasmtime that scripts/experiments fetched into <build>/wasm-spike, so the apps get the Library without a flag.
 foreach (_wt "${CMAKE_BINARY_DIR}/wasm-spike/wasmtime" "${CMAKE_CURRENT_SOURCE_DIR}/../build/wasm-spike/wasmtime")
     if (NOT BLEEP_WASMTIME_DIR AND EXISTS "${_wt}/lib/libwasmtime.a")
         get_filename_component(_wt "${_wt}" ABSOLUTE)
@@ -82,7 +82,7 @@ if (BLEEP_ONLY_MODULES)
     list(FILTER BLEEP_MODULES INCLUDE REGEX "^(${BLEEP_ONLY_MODULES})$")
 endif ()
 # A module ported from copyleft code (GPL, LGPL, AGPL, MPL) keeps that licence and is never compiled into the apps
-# and plugins: it ships only as an optional .wasm module from the Bleep Store. Tests and tools still build it
+# and plugins: it ships only as an optional .wasm module from the Bleep Library. Tests and tools still build it
 # (they are not distributed).
 set(BLEEP_COPYLEFT_MODULES)
 foreach (m IN LISTS BLEEP_MODULES)
@@ -151,7 +151,7 @@ set(BLEEP_ENGINE_SOURCES
     engine/Registry.cpp
     engine/VoiceCell.cpp)
 # What the apps and the plugins are built from. With the wasm module host (BLEEP_WASMTIME_DIR) they carry no
-# modules: those come from the Bleep Store, as .wasm files installed on the machine (developers/modules/store.md). Tests and
+# modules: those come from the Bleep Library, as .wasm files installed on the machine (developers/modules/library.md). Tests and
 # tools always compile the modules in (they are the reference the wasm builds are held to: bleep_wasm_parity).
 set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_ENGINE_SOURCES})
 set(BLEEP_APP_MODULE_SOURCES)  # the same without the copyleft modules
@@ -195,20 +195,20 @@ if (BLEEP_BUILD_TESTS)
         juce::juce_recommended_config_flags)
     add_test(NAME patch.modules COMMAND bleep_module_harness)
 
-    # The store's checks (signing.md): the packages of patch/tests/store-fixtures get the verdicts Python gave them.
-    juce_add_console_app(bleep_store_test PRODUCT_NAME "Bleep Store Test")
-    target_sources(bleep_store_test PRIVATE tests/store_test.cpp store/Verify.cpp store/Package.cpp store/Client.cpp store/Account.cpp
+    # The library's checks (signing.md): the packages of patch/tests/library-fixtures get the verdicts Python gave them.
+    juce_add_console_app(bleep_library_test PRODUCT_NAME "Bleep Library Test")
+    target_sources(bleep_library_test PRIVATE tests/library_test.cpp library/Verify.cpp library/Package.cpp library/Client.cpp library/Account.cpp
         third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
-    target_include_directories(bleep_store_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
-    target_compile_definitions(bleep_store_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
-        "BLEEP_STORE_FIXTURES=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/store-fixtures\"")
-    target_link_libraries(bleep_store_test PRIVATE juce::juce_core juce::juce_cryptography juce::juce_recommended_config_flags)
+    target_include_directories(bleep_library_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+    target_compile_definitions(bleep_library_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
+        "BLEEP_LIBRARY_FIXTURES=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/library-fixtures\"")
+    target_link_libraries(bleep_library_test PRIVATE juce::juce_core juce::juce_cryptography juce::juce_recommended_config_flags)
     if (APPLE)
-        target_link_libraries(bleep_store_test PRIVATE "-framework Security" "-framework CoreFoundation")  # the keychain (store/Account.cpp)
+        target_link_libraries(bleep_library_test PRIVATE "-framework Security" "-framework CoreFoundation")  # the keychain (library/Account.cpp)
     elseif (WIN32)
-        target_link_libraries(bleep_store_test PRIVATE advapi32)  # the Credential Manager
+        target_link_libraries(bleep_library_test PRIVATE advapi32)  # the Credential Manager
     endif ()
-    add_test(NAME patch.store COMMAND bleep_store_test)
+    add_test(NAME patch.library COMMAND bleep_library_test)
 
     if (BLEEP_WASMTIME_DIR)
         add_library(bleep_wasmtime STATIC IMPORTED)
@@ -218,7 +218,7 @@ if (BLEEP_BUILD_TESTS)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
         set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp
-            engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp store/Package.cpp store/Client.cpp store/Account.cpp
+            engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp library/Package.cpp library/Client.cpp library/Account.cpp
             third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
         # wasm files (scripts/build/build-web.sh --modules-only).
@@ -393,40 +393,40 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/module-views.json" "[${module_views}]\n"
 list(APPEND BLEEP_BOARD_UI "${CMAKE_CURRENT_BINARY_DIR}/module-views.json")
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
 
-# Modules installed from the Bleep Store (developers/modules/store.md): the wasm module host, the store client and signature checks.
-# With BLEEP_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Store section.
-# Where the store is and whom it trusts: config/store.json, the one place (read by the apps' build and by scripts/release).
-# BLEEP_STORE_URL and BLEEP_STORE_ROOTS (hex, comma separated) override it for one build.
-set(BLEEP_STORE_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/../config/store.json" CACHE FILEPATH "The store configuration the apps and plugins are built with")
-set(BLEEP_STORE_URL "" CACHE STRING "Overrides storeUrl of the store configuration")
-set(BLEEP_STORE_ROOTS "" CACHE STRING "Root public keys (hex, comma separated) besides rootKeys of the store configuration")
-set(BLEEP_STORE_URL_BAKED "")
-set(BLEEP_STORE_ROOTS "")
-if (EXISTS "${BLEEP_STORE_CONFIG}")
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${BLEEP_STORE_CONFIG}")
-    file(READ "${BLEEP_STORE_CONFIG}" store_config)
-    string(JSON BLEEP_STORE_URL_BAKED ERROR_VARIABLE err GET "${store_config}" storeUrl)
-    string(JSON n ERROR_VARIABLE err LENGTH "${store_config}" rootKeys)
+# Modules installed from the Bleep Library (developers/modules/library.md): the wasm module host, the library client and signature checks.
+# With BLEEP_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Library section.
+# Where the library is and whom it trusts: config/library.json, the one place (read by the apps' build and by scripts/release).
+# BLEEP_LIBRARY_URL and BLEEP_LIBRARY_ROOTS (hex, comma separated) override it for one build.
+set(BLEEP_LIBRARY_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/../config/library.json" CACHE FILEPATH "The library configuration the apps and plugins are built with")
+set(BLEEP_LIBRARY_URL "" CACHE STRING "Overrides libraryUrl of the library configuration")
+set(BLEEP_LIBRARY_ROOTS "" CACHE STRING "Root public keys (hex, comma separated) besides rootKeys of the library configuration")
+set(BLEEP_LIBRARY_URL_BAKED "")
+set(BLEEP_LIBRARY_ROOTS "")
+if (EXISTS "${BLEEP_LIBRARY_CONFIG}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${BLEEP_LIBRARY_CONFIG}")
+    file(READ "${BLEEP_LIBRARY_CONFIG}" library_config)
+    string(JSON BLEEP_LIBRARY_URL_BAKED ERROR_VARIABLE err GET "${library_config}" libraryUrl)
+    string(JSON n ERROR_VARIABLE err LENGTH "${library_config}" rootKeys)
     if (NOT err AND n GREATER 0)
         math(EXPR last "${n} - 1")
         foreach (i RANGE ${last})
-            string(JSON key GET "${store_config}" rootKeys ${i})
-            list(APPEND BLEEP_STORE_ROOT_LIST "${key}")
+            string(JSON key GET "${library_config}" rootKeys ${i})
+            list(APPEND BLEEP_LIBRARY_ROOT_LIST "${key}")
         endforeach ()
-        list(JOIN BLEEP_STORE_ROOT_LIST "," BLEEP_STORE_ROOTS)
+        list(JOIN BLEEP_LIBRARY_ROOT_LIST "," BLEEP_LIBRARY_ROOTS)
     endif ()
 endif ()
-if (BLEEP_STORE_URL)
-    set(BLEEP_STORE_URL_BAKED "${BLEEP_STORE_URL}")
+if (BLEEP_LIBRARY_URL)
+    set(BLEEP_LIBRARY_URL_BAKED "${BLEEP_LIBRARY_URL}")
 endif ()
-if (BLEEP_STORE_ROOTS)
-    if (BLEEP_STORE_ROOTS)
-        set(BLEEP_STORE_ROOTS "${BLEEP_STORE_ROOTS},${BLEEP_STORE_ROOTS}")
+if (BLEEP_LIBRARY_ROOTS)
+    if (BLEEP_LIBRARY_ROOTS)
+        set(BLEEP_LIBRARY_ROOTS "${BLEEP_LIBRARY_ROOTS},${BLEEP_LIBRARY_ROOTS}")
     else ()
-        set(BLEEP_STORE_ROOTS "${BLEEP_STORE_ROOTS}")
+        set(BLEEP_LIBRARY_ROOTS "${BLEEP_LIBRARY_ROOTS}")
     endif ()
 endif ()
-function(bleep_use_store target)
+function(bleep_use_library target)
     if (NOT BLEEP_WASMTIME_DIR)
         return()
     endif ()
@@ -439,18 +439,18 @@ function(bleep_use_store target)
         endif ()
     endif ()
     target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
-        engine/wasm/WasmRegistry.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleStore.cpp store/Verify.cpp
-        store/Package.cpp store/Client.cpp store/Account.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
+        engine/wasm/WasmRegistry.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp
+        library/Package.cpp library/Client.cpp library/Account.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
     if (WIN32)
-        target_link_libraries(${target} PRIVATE advapi32)  # the Credential Manager (store/Account.cpp)
+        target_link_libraries(${target} PRIVATE advapi32)  # the Credential Manager (library/Account.cpp)
     endif ()
     target_include_directories(${target} PRIVATE engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
     if (NOT BLEEP_APP_BUNDLES_MODULES)
         target_compile_definitions(${target} PRIVATE BLEEP_NO_BUNDLED_MODULES=1)
     endif ()
-    target_compile_definitions(${target} PRIVATE BLEEP_WASM_MODULES=1 "BLEEP_STORE_ROOTS=\"${BLEEP_STORE_ROOTS}\"")
-    if (BLEEP_STORE_URL_BAKED)
-        target_compile_definitions(${target} PRIVATE "BLEEP_STORE_URL=\"${BLEEP_STORE_URL_BAKED}\"")
+    target_compile_definitions(${target} PRIVATE BLEEP_WASM_MODULES=1 "BLEEP_LIBRARY_ROOTS=\"${BLEEP_LIBRARY_ROOTS}\"")
+    if (BLEEP_LIBRARY_URL_BAKED)
+        target_compile_definitions(${target} PRIVATE "BLEEP_LIBRARY_URL=\"${BLEEP_LIBRARY_URL_BAKED}\"")
     endif ()
     target_link_libraries(${target} PRIVATE bleep_wasmtime juce::juce_cryptography)
 endfunction()
@@ -499,7 +499,7 @@ function(bleep_add_plugin)
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
     target_compile_definitions(${P_TARGET} PRIVATE BLEEP_PORT_KIND=${P_KIND})
-    bleep_use_store(${P_TARGET})
+    bleep_use_library(${P_TARGET})
     if (BLEEP_UI_DEV)
         # Never ship these builds: they read the UI from this machine's source tree.
         target_compile_definitions(${P_TARGET} PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
@@ -645,7 +645,7 @@ if (BLEEP_BUILD_APP)
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:BleepApp,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BleepApp,JUCE_VERSION>"
         BLEEP_LINK=$<BOOL:${BLEEP_LINK}>)
-    bleep_use_store(BleepApp)
+    bleep_use_library(BleepApp)
     if (BLEEP_UI_DEV)
         target_compile_definitions(BleepApp PRIVATE "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
     endif ()

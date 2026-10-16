@@ -24,6 +24,12 @@
   "path": "/docs/musicians/start/first-sound/"
  },
  {
+  "group": "Start",
+  "title": "Installing unsigned builds",
+  "description": "Open the Bleep App and the VST3 plugins on macOS and Windows when the system warns that the developer is unknown.",
+  "path": "/docs/musicians/start/unsigned-builds/"
+ },
+ {
   "group": "Learn",
   "title": "Your first patch",
   "description": "Five minutes on the board: add a filter, modulate its cutoff and modulate the modulator.",
@@ -272,7 +278,7 @@
  {
   "group": "Module developers",
   "title": "Module developers",
-  "description": "What a module is, how it differs from a plugin, and the path from source folder to the Bleep Store.",
+  "description": "What a module is, how it differs from a plugin, and the path from source folder to the Bleep Library.",
   "path": "/docs/developers/modules/overview/"
  },
  {
@@ -283,9 +289,9 @@
  },
  {
   "group": "Module developers",
-  "title": "Bleep Store",
-  "description": "Plugins, modules and presets in one store: packages, releases, bundles and how the apps load them.",
-  "path": "/docs/developers/modules/store/"
+  "title": "Bleep Library",
+  "description": "Plugins, modules and presets in one library: packages, releases, bundles and how the apps load them.",
+  "path": "/docs/developers/modules/library/"
  },
  {
   "group": "Module developers",
@@ -296,7 +302,7 @@
  {
   "group": "Module developers",
   "title": "Publishing a module",
-  "description": "Package a built module, sign it with your developer key and release it to the Bleep Store.",
+  "description": "Package a built module, sign it with your developer key and release it to the Bleep Library.",
   "path": "/docs/developers/modules/publishing/"
  },
  {

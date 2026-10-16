@@ -441,7 +441,7 @@ void WebSocketServer::runSession(std::shared_ptr<Connection> conn) {
         std::string out = "HTTP/1.1 " + std::to_string(r.status) + " " + statusText(r.status) + "\r\n";
         out += "Content-Type: " + r.contentType + "\r\nContent-Length: " + std::to_string(r.body.size()) + "\r\n";
         out += "Cross-Origin-Opener-Policy: same-origin\r\nCross-Origin-Embedder-Policy: require-corp\r\n";
-        out += "Cross-Origin-Resource-Policy: same-origin\r\nCache-Control: no-store\r\nConnection: close\r\n";
+        out += "Cross-Origin-Resource-Policy: same-origin\r\nCache-Control: no-library\r\nConnection: close\r\n";
         for (auto& h : r.headers) out += h.first + ": " + h.second + "\r\n";
         out += "\r\n";
         out += r.body;

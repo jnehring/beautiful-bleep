@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-labelledby="t d">
   <title id="t">How the pieces of Beautiful Bleep fit together</title>
-  <desc id="d">Three hosts sit side by side: the Bleep plugins in Live, the standalone Bleep App and Bleep Play in the browser. Below them is one engine and board per process, then the modules, one .wasm file each, which are installed from the Bleep Store as signed packages. The Bleep Bus, an open protocol over shared memory between any plugins, sits apart at the top.</desc>
+  <desc id="d">Three hosts sit side by side: the Bleep plugins in Live, the standalone Bleep App and Bleep Play in the browser. Below them is one engine and board per process, then the modules, one .wasm file each, which are installed from the Bleep Library as signed packages. The Bleep Bus, an open protocol over shared memory between any plugins, sits apart at the top.</desc>
   <style>
     :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; }
     @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; } }
@@ -51,9 +51,9 @@
   <text class="name" x="380" y="317">Modules</text>
   <text class="sub" x="380" y="335">one .wasm file per module, the same file in plugins, app and browser</text>
 
-  <!-- Store -->
+  <!-- Library -->
   <path class="link" d="M380 372 V350"/>
   <path class="head" d="M380 344 l-6 10 h12 z"/>
   <rect class="hub" x="170" y="372" width="420" height="36" rx="12"/>
-  <text class="cap" x="380" y="395">Bleep Store: signed modules, plugins, presets</text>
+  <text class="cap" x="380" y="395">Bleep Library: signed modules, plugins, presets</text>
 </svg>

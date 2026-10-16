@@ -7,4 +7,4 @@
 
 User and developer documentation (what the website shows) lives in [`website/content/`](../website/content/).
 
-The contracts for third-party developers (module ABI, signing, the store, the engine ABI) are part of the developer documentation: [`website/content/developers/reference/`](../website/content/developers/reference/).
+The contracts for third-party developers (module ABI, signing, the library, the engine ABI) are part of the developer documentation: [`website/content/developers/reference/`](../website/content/developers/reference/).

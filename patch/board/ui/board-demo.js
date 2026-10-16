@@ -256,10 +256,10 @@
     BleepWeb.onStatus = () => emit("board", message());
   }
 
-  // ---- a pretend Store (add ?store to the address): what the apps' Store section shows, for working on its looks ------------
-  const demoStore = new URLSearchParams(location.search).has("store") ? (() => {
+  // ---- a pretend Library (add ?library to the address): what the apps' Library section shows, for working on its looks ------------
+  const demoLibrary = new URLSearchParams(location.search).has("library") ? (() => {
     const slugs = () => types.filter((t) => !t.internal).map((t) => t.type).slice(0, 60);
-    const st = { installed: null, busy: {}, indexOk: false, allow: { module: false, plugin: false }, firstRunDone: store.get("bleep-demo-store-first-run", false) };
+    const st = { installed: null, busy: {}, indexOk: false, allow: { module: false, plugin: false }, firstRunDone: store.get("bleep-demo-library-first-run", false) };
     const offered = (slug) => (slug.length % 4 === 0 ? "0.2.0" : "0.1.0");
     const pick = (slug, i, version = "0.1.0") => ({ slug, version, source: i % 11 === 10 ? "local" : "registry", status: i % 11 === 10 ? "unsigned" : "signed", publisher: "bleep",
                                  allowed: i % 11 !== 10, why: i % 11 === 10 ? "unsigned: allowed only with Security → Allow unsigned modules" : "", loaded: i % 11 !== 10, types: [slug] });
@@ -267,7 +267,7 @@
     return {
       status() {
         if (!st.installed) st.installed = slugs().slice(0, 14).map((slug, i) => pick(slug, i));
-        return { settings: { storeUrl: "https://store.example", channel: st.channel || "stable", allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
+        return { settings: { libraryUrl: "https://library.example", channel: st.channel || "stable", allowUnsigned: st.allow, firstRunDone: st.firstRunDone }, dataDir: "~/Library/Application Support/Bleep",
                  hasRoots: true, installed: st.installed,
                  index: { ok: st.indexOk, error: "", modules: st.indexOk ? slugs().map((slug) => ({ slug, version: offered(slug), types: [slug] })) : [] },
                  busy: st.busy, pluginJob: st.job || { state: "idle", message: "", ok: false } };
@@ -283,7 +283,7 @@
         setTimeout(() => delete st.busy["*"], 1100);
       },
       remove(slug) { work(slug, "removing", () => { st.installed = st.installed.filter((m) => m.slug !== slug); }); },
-      settings(v) { if (v && v.channel) st.channel = v.channel; if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-store-first-run", v.firstRunDone); } },
+      settings(v) { if (v && v.channel) st.channel = v.channel; if (v && v.allowUnsigned) st.allow = v.allowUnsigned; if (v && v.firstRunDone !== undefined) { st.firstRunDone = v.firstRunDone; store.set("bleep-demo-library-first-run", v.firstRunDone); } },
       installPlugins() { st.job = { state: "running", message: "Installing bleep-board…", ok: false }; setTimeout(() => { st.job = { state: "done", message: "7 plugins installed into ~/Library/Audio/Plug-Ins/VST3. Rescan plugins in your DAW.", ok: true }; }, 1500); },
       plugins() { return ["Bleep Board", "Bleep MIDI In", "Bleep MIDI Out", "Bleep Audio In", "Bleep Audio Out", "Bleep Instrument", "Bleep FX"].map((name, i) => ({ name, installed: i < 5, path: i < 5 ? "/Library/Audio/Plug-Ins/VST3/" + name + ".vst3" : undefined })); },
     };
@@ -334,10 +334,10 @@
     emit("board", message());
   }
 
-  /// Bleep Play is a page of the website, so its login is the website's session cookie (the apps use a token: patch/store/Account.cpp).
-  /// Logging in happens on the site; here the page only asks who is logged in and calls the store's API as them.
+  /// Bleep Play is a page of the website, so its login is the website's session cookie (the apps use a token: patch/library/Account.cpp).
+  /// Logging in happens on the site; here the page only asks who is logged in and calls the Library's API as them.
   async function demoAccount(op, x, y, z) {
-    const out = (u) => ({ signedIn: !!u, name: u ? u.display_name : "", email: u ? u.email : "", storeUrl: location.origin, playLogin: true });
+    const out = (u) => ({ signedIn: !!u, name: u ? u.display_name : "", email: u ? u.email : "", libraryUrl: location.origin, playLogin: true });
     const me = async () => {
       try { const r = await fetch("/api/auth/me", { credentials: "same-origin" }); return r.ok ? await r.json() : null; } catch (e) { return null; }
     };
@@ -349,15 +349,15 @@
         await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => {});
         return out(null);
       case "call": {
-        if (typeof y !== "string" || !y.startsWith("/api/") || y.includes("..")) return { status: 0, error: "not a call to the store" };
+        if (typeof y !== "string" || !y.startsWith("/api/") || y.includes("..")) return { status: 0, error: "not a call to the Library" };
         try {
           const r = await fetch(y, { method: x, credentials: "same-origin", headers: z ? { "Content-Type": "application/json" } : undefined, body: z ? JSON.stringify(z) : undefined });
           let body = null;
           try { body = await r.json(); } catch (e) { /* no body */ }
           const d = body && body.detail;
-          const error = r.ok ? "" : typeof d === "string" ? d : Array.isArray(d) && d[0] ? ((d[0].loc || []).slice(-1)[0] + ": " + d[0].msg) : "The store answered " + r.status;
+          const error = r.ok ? "" : typeof d === "string" ? d : Array.isArray(d) && d[0] ? ((d[0].loc || []).slice(-1)[0] + ": " + d[0].msg) : "The Library answered " + r.status;
           return { status: r.status, body, error };
-        } catch (e) { return { status: 0, body: null, error: "cannot reach the store" }; }
+        } catch (e) { return { status: 0, body: null, error: "cannot reach the Library" }; }
       }
     }
     return null;
@@ -374,7 +374,7 @@
           if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
-          return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoStore ? { store: true } : {});
+          return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});
         case "commit":
           pushUndo();
           board = sanitise(clone(a[0]));
@@ -437,16 +437,16 @@
         case "types": return types;
         case "account": return demoAccount(a[0], a[1], a[2], a[3]);
         case "settings": return demoSettings(a[0], a[1]);
-        case "storeRevealData": return null;
-        case "storeStatus": return demoStore ? demoStore.status() : null;
-        case "storeRefresh": if (demoStore) demoStore.refresh(); return null;
-        case "storeInstall": if (demoStore) demoStore.install(a[0]); return null;
-        case "storeInstallAll": if (demoStore) demoStore.installAll(); return null;
-        case "storeUpdateAll": if (demoStore) demoStore.updateAll(); return null;
-        case "storeRemove": if (demoStore) demoStore.remove(a[0]); return null;
-        case "storeSettings": if (demoStore) demoStore.settings(a[0]); return null;
-        case "storeInstallPlugins": if (demoStore) demoStore.installPlugins(); return { started: true };
-        case "storePlugins": return demoStore ? demoStore.plugins() : [];
+        case "libraryRevealData": return null;
+        case "libraryStatus": return demoLibrary ? demoLibrary.status() : null;
+        case "libraryRefresh": if (demoLibrary) demoLibrary.refresh(); return null;
+        case "libraryInstall": if (demoLibrary) demoLibrary.install(a[0]); return null;
+        case "libraryInstallAll": if (demoLibrary) demoLibrary.installAll(); return null;
+        case "libraryUpdateAll": if (demoLibrary) demoLibrary.updateAll(); return null;
+        case "libraryRemove": if (demoLibrary) demoLibrary.remove(a[0]); return null;
+        case "librarySettings": if (demoLibrary) demoLibrary.settings(a[0]); return null;
+        case "libraryInstallPlugins": if (demoLibrary) demoLibrary.installPlugins(); return { started: true };
+        case "libraryPlugins": return demoLibrary ? demoLibrary.plugins() : [];
         case "watch": watched = a[0] || []; if (window.BleepWeb) BleepWeb.watch(watched); return null;
         case "command": if (window.BleepWeb) BleepWeb.command(a[0], a[1], a[2]); return null;
         case "importMedia": {

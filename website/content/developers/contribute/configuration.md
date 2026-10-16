@@ -18,7 +18,7 @@ The file holds secrets and is git-ignored: never commit it. Lines starting with 
 
 - `POSTGRES_PASSWORD` and `S3_SECRET_KEY` set to long random values.
 - `BLEEP_COOKIE_SECURE=true` and `BLEEP_PUBLIC_URL` set to the real `https://` address.
-- `BLEEP_ROOT_PUBLIC_KEYS` set and `BLEEP_REQUIRE_SIGNATURES=true`, so the store only accepts signed releases.
+- `BLEEP_ROOT_PUBLIC_KEYS` set and `BLEEP_REQUIRE_SIGNATURES=true`, so the library only accepts signed releases.
 - `BLEEP_ADMIN_PASSWORD` removed again after the first start.
 - Optionally `BLEEP_BASIC_AUTH_HASH` set, to keep an installation private while it is online.
 
@@ -59,7 +59,7 @@ Registration confirmation, password reset and the contact form send email. Witho
 
 ## Code signing
 
-The store only accepts signed releases (see [signing](../modules/signing.md) and [the store](../modules/store.md)). Create the values once with `scripts/release/signing.py init-registry ~/bleep-registry-keys` and paste the lines it writes to `registry.env`.
+The library only accepts signed releases (see [signing](../modules/signing.md) and [the library](../modules/library.md)). Create the values once with `scripts/release/signing.py init-registry ~/bleep-registry-keys` and paste the lines it writes to `registry.env`.
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -98,4 +98,4 @@ These are not in `.env.example`. They are read by the API or by scripts, mostly 
 |---|---|---|
 | `BLEEP_DATABASE_URL` | local PostgreSQL URL | Database connection. Compose builds it from `POSTGRES_PASSWORD`; set it yourself only when running the API directly (`uvicorn`, tests use in-memory SQLite). |
 | `BLEEP_KEY_PASSPHRASE` | unset | Passphrase for an encrypted developer or issuer key, read by the signing tools. |
-| `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL` | unset | Used by the release script to publish to a store. See [build and release](build-and-release.md). |
+| `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL` | unset | Used by the release script to publish to a library. See [build and release](build-and-release.md). |

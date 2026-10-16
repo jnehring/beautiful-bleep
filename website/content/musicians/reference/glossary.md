@@ -7,7 +7,7 @@ order: 1
 # Glossary
 
 **Beautiful Bleep** is the whole technology: the engine, the board, the modules,
-the plugins for your DAW, the app, the browser version, the store and the open
+the plugins for your DAW, the app, the browser version, the library and the open
 protocol. The names below are the ones used everywhere in the docs and in the
 programs.
 
@@ -19,7 +19,7 @@ The same board runs in three places. Patches, presets and modules work in all of
 |---|---|
 | **Bleep plugin** | Everything you add in your DAW (Ableton Live today): the main plugin, which stores and opens the board, and the ports. VST3. |
 | **Bleep App** | The standalone app: the board without a DAW, with its own MIDI ports and Ableton Link. |
-| **Bleep Play** | The board in your browser, with no install. Modules load from the Bleep Store on demand. |
+| **Bleep Play** | The board in your browser, with no install. Modules load from the Bleep Library on demand. |
 
 ## The board and what is on it
 
@@ -52,7 +52,7 @@ The same board runs in three places. Patches, presets and modules work in all of
 |---|---|
 | **Project** | Your own saved board (`.bleepboard`). |
 | **Preset** | Something you can share, as a `.bleeppreset` file. A **board preset** is a whole board; a **cell preset** is one cell with its panel. |
-| **Bleep Store** | Where plugins, modules and presets are installed from. Downloading needs no login; sharing a preset needs an account. |
+| **Bleep Library** | Where plugins, modules and presets are installed from. Downloading needs no login; sharing a preset needs an account. |
 
 "Patch" and "patching" stay everyday words for connecting cables. They are not
 names of a file or a product.
@@ -62,4 +62,4 @@ names of a file or a product.
 | Term | What it is |
 |---|---|
 | **Bleep Bus** | The open protocol and SDK that lets other plugins (Grit, Cinch, third-party) send and receive per-sample control signals through shared memory and join the board. |
-| **Registry** | The technical name of the Bleep Store's interface (`/registry/v1/`, `BLEEP_REGISTRY_URL`). In prose it is always the Bleep Store. |
+| **Registry** | The technical name of the Bleep Library's interface (`/registry/v1/`, `BLEEP_REGISTRY_URL`). In prose it is always the Bleep Library. |

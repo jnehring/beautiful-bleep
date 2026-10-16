@@ -33,8 +33,8 @@
     if (window.BleepWeb) { window.open(DOCS, "_blank", "noopener"); return; }   // the browser board lives on the site itself
     let site = SITE;
     try {
-      const st = await native("storeStatus");
-      const u = st && st.settings && st.settings.storeUrl;
+      const st = await native("libraryStatus");
+      const u = st && st.settings && st.settings.libraryUrl;
       if (u) site = u.replace(/\/+$/, "");
     } catch (e) { /* the default address */ }
     await native("openUrl", site + DOCS);

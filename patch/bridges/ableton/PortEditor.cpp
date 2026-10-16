@@ -80,7 +80,7 @@ PortEditor::PortEditor(PortProcessor& p) : juce::AudioProcessorEditor(p), proces
                 o->setProperty("description", e.description);
                 const auto doc = engine::board::fromJson(e.json);
                 o->setProperty("tags", doc["tags"]);
-                o->setProperty("needs", doc["needs"]);   // modules the preset requires (developers/modules/store.md section 6)
+                o->setProperty("needs", doc["needs"]);   // modules the preset requires (developers/modules/library.md section 6)
                 juce::Array<juce::var> nodes;            // just the node types: the page works out which modules provide them
                 if (const auto* all = doc["nodes"].getArray())
                     for (const auto& n : *all) {

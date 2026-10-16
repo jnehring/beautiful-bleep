@@ -5,9 +5,9 @@
 
 namespace bleep::engine {
 
-std::vector<LoadReport> loadInstalledModules(Registry& registry, const store::Client& client) {
+std::vector<LoadReport> loadInstalledModules(Registry& registry, const library::Client& client) {
     std::vector<LoadReport> reports;
-    for (const store::InstalledModule& m : client.installed()) {
+    for (const library::InstalledModule& m : client.installed()) {
         LoadReport r;
         r.slug = m.slug;
         r.version = m.version;

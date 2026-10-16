@@ -12,7 +12,7 @@ Everything here is MIT-licensed. Pick the guide that matches what you want to bu
 |---|---|
 | Make plugins talk to each other, in any DAW | [Bleep Bus quickstart](bleep-bus/quickstart.md) |
 | Add a sound, effect or utility to the board | [Modules](modules/overview.md) |
-| Check an exact contract (module ABI, signing, store) | [Module ABI](modules/module-abi.md), [Signing](modules/signing.md), [Store](modules/store.md) |
+| Check an exact contract (module ABI, signing, library) | [Module ABI](modules/module-abi.md), [Signing](modules/signing.md), [Library](modules/library.md) |
 | Work on the Bleep plugins in Ableton Live | [Plugins](plugins/overview.md) |
 | Work on the standalone Bleep App | [Standalone app](app/standalone-app.md) |
 | Work on Bleep Play, the board in the browser | [Web](web/bleep-play.md) |
@@ -23,14 +23,14 @@ Everything here is MIT-licensed. Pick the guide that matches what you want to bu
 | Section | What is in it |
 |---|---|
 | **Bleep Bus** | The open protocol: [quickstart](bleep-bus/quickstart.md), [API reference](api-reference/00-overview.md), [specification](spec/v0.1/00-overview.md), [conformance](bleep-bus/conformance.md), [RFC process](bleep-bus/rfc-process.md) |
-| **Modules** | Writing, packaging and publishing a board module, and the contracts a module meets: ABI, signing, the store |
+| **Modules** | Writing, packaging and publishing a board module, and the contracts a module meets: ABI, signing, the library |
 | **Contribute** | Working on Bleep itself: [build and release](contribute/build-and-release.md), [configuration](contribute/configuration.md), the [engine ABI](contribute/engine-abi.md), and the plugins, app and web build |
 
 ## How the pieces fit
 
-![Bleep plugins in Live, the Bleep App and Bleep Play in the browser each run an engine and board. They load modules, one .wasm file each, installed from the Bleep Store. The Bleep Bus is a separate open protocol between any plugins.](/img/developer-overview.svg)
+![Bleep plugins in Live, the Bleep App and Bleep Play in the browser each run an engine and board. They load modules, one .wasm file each, installed from the Bleep Library. The Bleep Bus is a separate open protocol between any plugins.](/img/developer-overview.svg)
 
-- **Modules** are the nodes on the board (oscillators, filters, sequencers). Each is a standalone WebAssembly file, so the same module runs in the plugins, the app and the browser. They are installed from the Bleep Store.
+- **Modules** are the nodes on the board (oscillators, filters, sequencers). Each is a standalone WebAssembly file, so the same module runs in the plugins, the app and the browser. They are installed from the Bleep Library.
 - **Plugins** are the VST3s you add in Live. A set has one engine; the first plugin loaded creates it and the others share it. Ports connect a track to the board.
 - **The app and the web build** run the same board without a DAW. The three can exchange audio, MIDI and sync through bridges.
 - **Bleep Bus** is separate from all of this: an open protocol for per-sample control signals between any audio plugins.

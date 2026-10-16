@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""a release's licence and the code it is ported from, shown on the store's detail view
+"""a release's licence and the code it is ported from, shown on the library's detail view
 
 Revision ID: 0005
 Revises: 0004

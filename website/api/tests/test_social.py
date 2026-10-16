@@ -101,10 +101,10 @@ def test_publish_versions_download_and_listing(client):
     assert anon.get("/api/presets?q=warm").json()["total"] == 1
     assert anon.get("/api/presets?type=cell").json()["total"] == 0
     assert anon.get("/api/presets?tag=pad").json()["total"] == 1
-    store = anon.get("/api/store?kind=preset").json()
-    assert store["total"] == 1 and store["items"][0]["slug"] == "ann/warm-pad" and store["categories"] == ["Patches"]
-    assert anon.get("/api/store?kind=plugin").json()["total"] == 0
-    detail = anon.get("/api/store/preset/ann/warm-pad").json()
+    library = anon.get("/api/library?kind=preset").json()
+    assert library["total"] == 1 and library["items"][0]["slug"] == "ann/warm-pad" and library["categories"] == ["Patches"]
+    assert anon.get("/api/library?kind=plugin").json()["total"] == 0
+    detail = anon.get("/api/library/preset/ann/warm-pad").json()
     assert detail["releases"][0]["file_list"][0]["path"] == "/api/presets/ann/warm-pad/file?version=2"
 
 
@@ -181,8 +181,8 @@ def test_ratings(client):
     assert cy.put(url, json={"stars": 2}).json()["average"] == 3.5
     assert ben.put(url, json={"stars": 4}).json() == {"average": 3.0, "count": 2, "mine": 4}  # rating again replaces
     assert anon.get(url).json() == {"average": 3.0, "count": 2, "mine": None}
-    assert anon.get("/api/store?kind=preset").json()["items"][0]["rating_average"] == 3.0
-    assert anon.get("/api/store/preset/ann/warm-pad").json()["rating_count"] == 2
+    assert anon.get("/api/library?kind=preset").json()["items"][0]["rating_average"] == 3.0
+    assert anon.get("/api/library/preset/ann/warm-pad").json()["rating_count"] == 2
     assert cy.delete(url).json()["count"] == 1
 
 
@@ -194,9 +194,9 @@ def test_comments_and_ratings_on_modules_and_deleting_a_preset(client):
     assert client.put("/api/social/module/acme.fuzz/rating", json={"stars": 4}).json()["count"] == 1
     assert client.post("/api/social/module/acme.fuzz/comments", json={"body": "Crunchy"}).status_code == 201
     assert client.post("/api/social/module/acme.nothing/comments", json={"body": "x"}).status_code == 404
-    items = {i["slug"]: i for i in TestClient(app).get("/api/store?kind=module").json()["items"]}
+    items = {i["slug"]: i for i in TestClient(app).get("/api/library?kind=module").json()["items"]}
     assert items["acme.fuzz"]["rating_average"] == 4.0
-    assert TestClient(app).get("/api/store/module/acme.fuzz").json()["rating_count"] == 1
+    assert TestClient(app).get("/api/library/module/acme.fuzz").json()["rating_count"] == 1
 
     pid = client.post("/api/presets", json=PRESET).json()["id"]
     ben = other_client()

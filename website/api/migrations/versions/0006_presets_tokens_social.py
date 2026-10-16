@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(80), nullable=False),
         sa.Column("prefix", sa.String(12), nullable=False),
         sa.Column("token_hash", sa.String(64), nullable=False, unique=True),
-        sa.Column("scope", sa.String(16), nullable=False, server_default="store"),
+        sa.Column("scope", sa.String(16), nullable=False, server_default="library"),
         _now(),
         sa.Column("expires_at", sa.DateTime(timezone=True)),
         sa.Column("last_used_at", sa.DateTime(timezone=True)),

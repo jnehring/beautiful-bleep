@@ -7,8 +7,8 @@ type File = { path: string; bytes: number; sha256: string; platform: string; upl
 type Release = { version: string; channel: string; file_list: File[] };
 type Detail = { releases: Release[] };
 
-/** The Bleep App is a store entry like any plugin (kind plugin, id bleep-app); its files are one build per platform. */
-const APP = "/store/plugin/bleep-app";
+/** The Bleep App is a library entry like any plugin (kind plugin, id bleep-app); its files are one build per platform. */
+const APP = "/library/plugin/bleep-app";
 const SYSTEMS = [
   { id: "macos", label: "macOS", note: "macOS 12 or later", builds: { "macos-arm64": "Apple silicon", "macos-x86_64": "Intel" } },
   { id: "windows", label: "Windows", note: "Windows 10 or later, 64-bit", builds: { "windows-x86_64": "64-bit" } },
@@ -28,7 +28,7 @@ function detect(): string {
   return "";
 }
 
-/** One row per operating system with a button per build the store has uploaded; "Coming soon" for a system without one. */
+/** One row per operating system with a button per build the library has uploaded; "Coming soon" for a system without one. */
 export default function DownloadList() {
   const [release, setRelease] = useState<Release | null | undefined>(undefined);  // undefined: loading, null: nothing published yet
   const [mine, setMine] = useState("");

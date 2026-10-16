@@ -21,7 +21,7 @@ export default function PrivacyPage() {
       <h2>Account</h2>
       <p>
         If you register we store your email address, display name, a hash of your password and the content you
-        publish in the Bleep Store (Art. 6(1)(b) GDPR). Logging in sets one session cookie, which is strictly
+        publish in the Bleep Library (Art. 6(1)(b) GDPR). Logging in sets one session cookie, which is strictly
         necessary and expires after 30 days or when you log out. We send emails only to confirm your address and to
         reset your password, through our mail provider ([provider]).
       </p>

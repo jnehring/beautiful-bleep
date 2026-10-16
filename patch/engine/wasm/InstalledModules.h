@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 //
-// InstalledModules.h — the modules installed on this machine, made known to the engine (developers/modules/store.md, M3).
+// InstalledModules.h — the modules installed on this machine, made known to the engine (developers/modules/library.md, M3).
 #pragma once
 
 #include "Registry.h"
-#include "store/Client.h"
+#include "library/Client.h"
 
 #include <string>
 #include <vector>
@@ -21,6 +21,6 @@ struct LoadReport {
 
 /// Registers the node types of every installed module that is allowed to load. Nothing is compiled yet: a module compiles
 /// when a node of its type first gets prepared. Message thread, before the audio runs or while a board is rebuilt.
-std::vector<LoadReport> loadInstalledModules(Registry& registry, const store::Client& client);
+std::vector<LoadReport> loadInstalledModules(Registry& registry, const library::Client& client);
 
 }  // namespace bleep::engine

@@ -21,7 +21,7 @@ export default function SiteFooter() {
   return (
     <footer className="site">
       <div className="footer-cols">
-        {col("Explore", [["Play", "/board/"], ["Download", "/download/"], ["Bleep Store", "/store/"], ["Documentation", "/docs/musicians/overview/"]])}
+        {col("Explore", [["Play", "/board/"], ["Download", "/download/"], ["Bleep Library", "/library/"], ["Documentation", "/docs/musicians/overview/"]])}
         {col("Project", [["About", "/about/"], ["Contact", "/contact/"], ["GitHub", GITHUB], ["Report an issue", `${GITHUB}/issues`]])}
         {col("Legal", [["Impressum", "/impressum/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]])}
       </div>

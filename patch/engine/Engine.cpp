@@ -4,7 +4,7 @@
 #include "Media.h"
 #include "VoiceCell.h"
 #if defined(BLEEP_WASM_MODULES)
-#include "wasm/ModuleStore.h"
+#include "wasm/ModuleLibrary.h"
 #endif
 
 #include <algorithm>
@@ -58,11 +58,11 @@ Engine::Engine() {
     media::setFolder(juce::File::getSpecialLocation(juce::File::userMusicDirectory)
                          .getChildFile("Beautiful Bleep").getChildFile("Media").getFullPathName().toStdString());
 #if defined(BLEEP_WASM_MODULES)
-    {  // the modules installed on this machine (developers/modules/store.md): registered before any board is loaded
-        auto& store = ModuleStore::instance();
-        store.postToMessageThread = [](std::function<void()> f) { juce::MessageManager::callAsync(std::move(f)); };
-        store.onTypesChanged = [this] { modulesChanged(); };
-        store.start();
+    {  // the modules installed on this machine (developers/modules/library.md): registered before any board is loaded
+        auto& library = ModuleLibrary::instance();
+        library.postToMessageThread = [](std::function<void()> f) { juce::MessageManager::callAsync(std::move(f)); };
+        library.onTypesChanged = [this] { modulesChanged(); };
+        library.start();
     }
 #endif
     startTimerHz(10);

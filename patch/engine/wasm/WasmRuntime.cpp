@@ -172,14 +172,14 @@ std::shared_ptr<Compiled> Compiled::compile(const uint8_t* bytes, size_t size, s
 
 struct Instance::Impl {
     std::shared_ptr<const Compiled> module;
-    wasmtime_store_t* store = nullptr;
+    wasmtime_store_t* library = nullptr;
     wasmtime_context_t* cx = nullptr;
     wasmtime_instance_t instance{};
     wasmtime_memory_t memory{};
     MediaHandler* media = nullptr;
     std::vector<wasmtime_func_t> funcs;
     std::vector<size_t> results;
-    ~Impl() { if (store) wasmtime_store_delete(store); }
+    ~Impl() { if (library) wasmtime_store_delete(library); }
 };
 
 Instance::Instance() : impl(new Impl) {}
@@ -189,9 +189,9 @@ std::unique_ptr<Instance> Instance::create(std::shared_ptr<const Compiled> modul
     std::unique_ptr<Instance> inst(new Instance);
     Impl& m = *inst->impl;
     m.module = module;
-    m.store = wasmtime_store_new(engine(), &m, nullptr);  // the callbacks find the instance (its media handler) through the store
-    m.cx = wasmtime_store_context(m.store);
-    wasmtime_store_limiter(m.store, (int64_t)maxMemory, -1, 1, -1, 1);
+    m.library = wasmtime_store_new(engine(), &m, nullptr);  // the callbacks find the instance (its media handler) through the library
+    m.cx = wasmtime_store_context(m.library);
+    wasmtime_store_limiter(m.library, (int64_t)maxMemory, -1, 1, -1, 1);
 
     wasmtime_linker_t* linker = wasmtime_linker_new(engine());
     wasm_importtype_vec_t imports;

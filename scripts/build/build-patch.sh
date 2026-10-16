@@ -9,7 +9,7 @@
 #
 #   --juce     local JUCE checkout (default: $BLEEP_JUCE_DIR, else download JUCE 8.0.9)
 #   --plugins-only  no tests: skips the test targets, which compile every module in
-#              (the plugins load the modules the app installed, from the Store data folder)
+#              (the plugins load the modules the app installed, from the Library data folder)
 #   --install  copy the plugins into the user plugin folders
 #              (macOS: ~/Library/Audio/Plug-Ins/VST3)
 #   --ui-dev   plugins read the board UI from patch/ instead of the embedded copy:

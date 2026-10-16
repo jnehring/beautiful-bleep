@@ -114,7 +114,7 @@ class Release(Base):
     status: Mapped[str] = mapped_column(String(16), default="draft")  # draft | published
     title: Mapped[str] = mapped_column(String(120), default="")
     notes: Mapped[str] = mapped_column(Text, default="")
-    summary: Mapped[str] = mapped_column(String(280), default="")  # one or two sentences for the store's tile
+    summary: Mapped[str] = mapped_column(String(280), default="")  # one or two sentences for the library's tile
     category: Mapped[str] = mapped_column(String(64), default="")  # "Sources", "Modulation", …; empty if the entry has none
     image: Mapped[str] = mapped_column(String(32), default="")  # file name of the screenshot next to entry.json, "" = placeholder
     license: Mapped[str] = mapped_column(String(120), default="")  # SPDX id or expression of the release; "" = not stated
@@ -137,7 +137,7 @@ class UserToken(Base):
     name: Mapped[str] = mapped_column(String(80))
     prefix: Mapped[str] = mapped_column(String(12))
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
-    scope: Mapped[str] = mapped_column(String(16), default="store")  # store: publish and manage own presets, comment, rate
+    scope: Mapped[str] = mapped_column(String(16), default="library")  # library: publish and manage own presets, comment, rate
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -164,7 +164,7 @@ class DeviceCode(Base):
 
 
 class Preset(Base):
-    """A shared preset (data, not code): metadata here, one `.bleeppreset` file per version in the store bucket."""
+    """A shared preset (data, not code): metadata here, one `.bleeppreset` file per version in the library bucket."""
 
     __tablename__ = "presets"
     __table_args__ = (UniqueConstraint("author_id", "slug", name="uq_presets_author_slug"),)
@@ -207,7 +207,7 @@ class PresetVersion(Base):
 
 
 class Comment(Base):
-    """A comment on a store entry. It belongs to the entry (kind, slug), not to one version of it."""
+    """A comment on a library entry. It belongs to the entry (kind, slug), not to one version of it."""
 
     __tablename__ = "comments"
 
@@ -222,7 +222,7 @@ class Comment(Base):
 
 
 class Rating(Base):
-    """One 1-5 star rating per user and store entry; rating again changes it."""
+    """One 1-5 star rating per user and library entry; rating again changes it."""
 
     __tablename__ = "ratings"
     __table_args__ = (

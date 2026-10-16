@@ -4,7 +4,7 @@
 
 Tiles: one per article in website/content. Every article needs `title:` and `description:`
 in its front matter. The board opens <site address>/docs/<slug>/ in the browser, the address
-being the Store's.
+being the Library's.
 
 Search: one entry (url, title, group, text) per article and per module manual
 (patch/modules/<name>/doc/*.md), the pages the website's own search covers; the board

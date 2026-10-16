@@ -202,28 +202,28 @@ def test_token_check(client, make_admin):
     assert client.get("/api/registry/token", headers={"Authorization": f"Bearer {token}"}).json() == {"name": "ci"}
 
 
-def test_store_lists_published_without_login(client, make_admin):
+def test_library_lists_published_without_login(client, make_admin):
     token = make_token(client, make_admin)
     assert release(client, token, "bleep-board", "0.1.0").status_code == 200
     assert release(client, token, "bleep-board", "0.2.0").status_code == 200
     assert release(client, token, "bleep-board", "0.3.0", publish=False).status_code == 201
     assert release(client, token, "other-fx", "1.0.0").status_code == 200
-    r = client.get("/api/store")  # public: no login
+    r = client.get("/api/library")  # public: no login
     assert r.status_code == 200
     body = r.json()
     assert body["total"] == 2 and [(i["slug"], i["version"]) for i in body["items"]] == [("bleep-board", "0.2.0"), ("other-fx", "1.0.0")]
-    assert client.get("/api/store?kind=module").json()["total"] == 0
-    assert client.get("/api/store?kind=preset").json()["items"] == []
-    assert [i["slug"] for i in client.get("/api/store?q=OTHER").json()["items"]] == ["other-fx"]
-    page = client.get("/api/store?page=2&page_size=1").json()
+    assert client.get("/api/library?kind=module").json()["total"] == 0
+    assert client.get("/api/library?kind=preset").json()["items"] == []
+    assert [i["slug"] for i in client.get("/api/library?q=OTHER").json()["items"]] == ["other-fx"]
+    page = client.get("/api/library?page=2&page_size=1").json()
     assert page["total"] == 2 and [i["slug"] for i in page["items"]] == ["other-fx"]
-    assert client.get("/api/store?page=0").status_code == 422
+    assert client.get("/api/library?page=0").status_code == 422
 
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\0" * 16
 
 
-def test_store_tile_metadata_and_image(client, make_admin, storage):
+def test_library_tile_metadata_and_image(client, make_admin, storage):
     token = make_token(client, make_admin)
     h = {"Authorization": f"Bearer {token}"}
     data = b"zipdata"
@@ -240,14 +240,14 @@ def test_store_tile_metadata_and_image(client, make_admin, storage):
     assert storage.objects["v1/plugins/lfo/0.1.0/image.png"] == PNG
     entry = json.loads(storage.objects["v1/plugins/lfo/0.1.0/entry.json"])
     assert (entry["summary"], entry["category"], entry["image"]) == ("Slow waves for everything that moves.", "Modulation", "image.png")
-    item = client.get("/api/store").json()["items"][0]
+    item = client.get("/api/library").json()["items"][0]
     assert item["image_url"] == "/registry/v1/plugins/lfo/0.1.0/image.png" and item["category"] == "Modulation"
-    assert client.get("/api/store/plugin/lfo").json()["image_url"] == item["image_url"]
+    assert client.get("/api/library/plugin/lfo").json()["image_url"] == item["image_url"]
     tile = json.loads(storage.objects["v1/index.json"])["channels"]["stable"]["plugins"]["lfo"]  # the apps read their tiles from the index
     assert (tile["summary"], tile["category"], tile["image"]) == ("Slow waves for everything that moves.", "Modulation", "plugins/lfo/0.1.0/image.png")
 
 
-def test_store_detail_shows_licence_and_origin(client, make_admin, storage):
+def test_library_detail_shows_licence_and_origin(client, make_admin, storage):
     token = make_token(client, make_admin)
     h = {"Authorization": f"Bearer {token}"}
     origin = {"name": "Foo", "author": "A. Author", "url": "https://example.org/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}
@@ -255,16 +255,16 @@ def test_store_detail_shows_licence_and_origin(client, make_admin, storage):
     assert client.post("/api/registry/plugin/fuzz/releases", json=body, headers=h).status_code == 201
     client.put("/api/registry/plugin/fuzz/releases/0.1.0/files/fuzz.zip", content=b"x", headers=h)
     assert client.post("/api/registry/plugin/fuzz/releases/0.1.0/publish", headers=h).status_code == 200
-    detail = client.get("/api/store/plugin/fuzz").json()
+    detail = client.get("/api/library/plugin/fuzz").json()
     assert (detail["license"], detail["origin"]["name"], detail["releases"][0]["license"]) == ("GPL-3.0-or-later", "Foo", "GPL-3.0-or-later")
     entry = json.loads(storage.objects["v1/plugins/fuzz/0.1.0/entry.json"])
     assert (entry["license"], entry["origin"]["url"]) == ("GPL-3.0-or-later", "https://example.org/foo")
-    assert "license" not in client.get("/api/store").json()["items"][0]  # not on the tile
+    assert "license" not in client.get("/api/library").json()["items"][0]  # not on the tile
     bad = {**body, "version": "0.2.0", "origin": {**origin, "url": "javascript:alert(1)"}}
     assert client.post("/api/registry/plugin/fuzz/releases", json=bad, headers=h).status_code == 422
 
 
-def test_store_filters_by_category_and_searches_the_summary(client, make_admin):
+def test_library_filters_by_category_and_searches_the_summary(client, make_admin):
     token = make_token(client, make_admin)
     h = {"Authorization": f"Bearer {token}"}
     for slug, summary, category in (("lfo", "Slow waves", "Modulation"), ("osc", "A triangle core", "Sources"), ("plain", "", "")):
@@ -272,24 +272,24 @@ def test_store_filters_by_category_and_searches_the_summary(client, make_admin):
         assert client.post(f"/api/registry/plugin/{slug}/releases", json=body, headers=h).status_code == 201
         client.put(f"/api/registry/plugin/{slug}/releases/0.1.0/files/{slug}.zip", content=b"x", headers=h)
         client.post(f"/api/registry/plugin/{slug}/releases/0.1.0/publish", headers=h)
-    everything = client.get("/api/store").json()
+    everything = client.get("/api/library").json()
     assert everything["categories"] == ["Modulation", "Sources"] and everything["total"] == 3
-    assert [i["slug"] for i in client.get("/api/store?category=Sources").json()["items"]] == ["osc"]
-    assert [i["slug"] for i in client.get("/api/store?q=triangle").json()["items"]] == ["osc"]
+    assert [i["slug"] for i in client.get("/api/library?category=Sources").json()["items"]] == ["osc"]
+    assert [i["slug"] for i in client.get("/api/library?q=triangle").json()["items"]] == ["osc"]
     assert next(i for i in everything["items"] if i["slug"] == "plain")["image_url"] is None
 
 
-def test_store_detail_is_public_and_hides_drafts(client, make_admin):
+def test_library_detail_is_public_and_hides_drafts(client, make_admin):
     token = make_token(client, make_admin)
     assert release(client, token, "bleep-board", "0.1.0").status_code == 200
     assert release(client, token, "bleep-board", "0.2.0", publish=False).status_code == 201
-    r = client.get("/api/store/plugin/bleep-board")
+    r = client.get("/api/library/plugin/bleep-board")
     assert r.status_code == 200
     assert [x["version"] for x in r.json()["releases"]] == ["0.1.0"]
     f = r.json()["releases"][0]["file_list"][0]
     assert f["uploaded"] is True and f["signer"]["publisher"] == "bleep" and "uploaded_by" not in f
-    assert client.get("/api/store/module/bleep-board").status_code == 404
-    assert client.get("/api/store/bogus/x").status_code == 422
+    assert client.get("/api/library/module/bleep-board").status_code == 404
+    assert client.get("/api/library/bogus/x").status_code == 422
 
 
 def test_platform_can_be_added_to_a_published_release(client, make_admin, storage):
@@ -517,7 +517,7 @@ def test_developer_create_prints_a_kit_that_signs(client, capsys, make_admin):
 
 
 def release_module(client, token, kit, slug, version, files, **declared):
-    """Declares, uploads and publishes a module package; returns the upload response (the step the store checks the package at).
+    """Declares, uploads and publishes a module package; returns the upload response (the step the library checks the package at).
     The release declares the package's own licence and origin (what release.py does) unless `declared` says otherwise."""
     h = {"Authorization": f"Bearer {token}"}
     data, decl = module_zip(files, kit, slug, version)
@@ -554,7 +554,7 @@ def test_a_module_release_must_declare_the_licence_of_its_package(client, make_a
     gpl = {**json.loads(module_files(["pitch"])["module.json"]), "license": "GPL-3.0-or-later", "origin": origin}
     files = {**module_files(["pitch"]), "module.json": json.dumps(gpl).encode()}
     assert release_module(client, token, kit, "pitch", "1.0.0", files).status_code == 204
-    detail = client.get("/api/store/module/pitch").json()
+    detail = client.get("/api/library/module/pitch").json()
     assert (detail["license"], detail["origin"]["name"]) == ("GPL-3.0-or-later", "Foo")
     # a release that says MIT for a GPL package, or leaves the origin out, is refused at the upload
     up = release_module(client, token, kit, "pitch", "1.0.1", files, license="MIT")
