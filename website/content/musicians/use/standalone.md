@@ -12,7 +12,8 @@ saved as `.bleepboard` files (File → Save).
 
 ## Audio
 
-Choose your audio interface in **File → Settings**. A new board starts with just
+Choose your audio interface in **File → Settings** (all its tabs are in
+[Settings](settings.md)). A new board starts with just
 *In 1/2* and *Out 1/2*. More pairs of your interface, the MIDI ports and the
 Link node are there when you need them: **Add → Port**. Delete the ones you
 don't use.

@@ -366,7 +366,12 @@ public:
                     r.getDynamicObject()->setProperty("types", board::describeTypes());
                     r.getDynamicObject()->setProperty("status", engine_.statusLine());
                     r.getDynamicObject()->setProperty("standalone", engine_.standalone());
-                    r.getDynamicObject()->setProperty("settings", style().onSettings != nullptr);
+                    // The standalone app has the full Settings section; a plugin has the library's two tabs (doc/specs/settings.md §5).
+                    bool settings = style().onSettings != nullptr;
+#if defined(BLEEP_WASM_MODULES)
+                    settings = true;
+#endif
+                    r.getDynamicObject()->setProperty("settings", settings);
                     r.getDynamicObject()->setProperty("nativeMenu", style().menu != nullptr);  // the File and Help menus are the app's own
                     r.getDynamicObject()->setProperty("version", BLEEP_VERSION);
 #if defined(BLEEP_WASM_MODULES)
@@ -489,7 +494,10 @@ public:
                     done({});
                 }))
                 .withNativeFunction("settings", gated([](const juce::Array<juce::var>& a, Completion done) {
-                    done(style().onSettings ? style().onSettings(a[0].toString(), a[1]) : juce::var());
+                    if (style().onSettings) { done(style().onSettings(a[0].toString(), a[1])); return; }
+                    auto* o = new juce::DynamicObject();  // a plugin: Live owns audio, MIDI and sync; only the library has settings
+                    o->setProperty("host", "plugin");
+                    done(juce::var(o));
                 }))
                 .withNativeFunction("watch", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     watched_.clear();
@@ -528,6 +536,7 @@ public:
                 const auto before = ModuleLibrary::instance().settings();
                 auto s = before;
                 if (a[0]["firstRunDone"].isBool()) s.firstRunDone = (bool)a[0]["firstRunDone"];
+                if (a[0]["updateCheck"].isBool()) s.updateCheck = (bool)a[0]["updateCheck"];
                 if (a[0]["channel"].isString()) s.channel = a[0]["channel"].toString().toStdString();
                 if (a[0]["libraryUrl"].isString() && a[0]["libraryUrl"].toString().isNotEmpty())
                     s.libraryUrl = a[0]["libraryUrl"].toString().toStdString();

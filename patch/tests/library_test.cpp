@@ -354,6 +354,9 @@ void testClient(const juce::File& fixtures) {
     const Settings back = Settings::load(data);
     CHECK(back.libraryUrl == s.libraryUrl && back.allowUnsigned.plugin && !back.allowUnsigned.module && back.channel == "stable", "settings come back");
     CHECK(Settings::load(data.getChildFile("nowhere")).libraryUrl == Settings().libraryUrl, "defaults when there is no file");
+    CHECK(back.updateCheck && Settings::load(data.getChildFile("nowhere")).updateCheck, "the update check is on by default");
+    s.updateCheck = false;
+    CHECK(s.save(data) && !Settings::load(data).updateCheck, "the update check switch comes back");
     data.deleteRecursively();
 }
 

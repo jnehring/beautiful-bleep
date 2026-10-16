@@ -333,6 +333,7 @@ juce::var ModuleLibrary::status() {
     allow->setProperty("plugin", settings_.allowUnsigned.plugin);
     s->setProperty("allowUnsigned", juce::var(allow));
     s->setProperty("firstRunDone", settings_.firstRunDone);
+    s->setProperty("updateCheck", settings_.updateCheck);
     o->setProperty("settings", juce::var(s));
     o->setProperty("dataDir", dataDir_.getFullPathName());
     o->setProperty("hasRoots", !roots_.empty());

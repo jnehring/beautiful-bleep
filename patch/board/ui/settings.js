@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
-// settings.js — the Settings section of the standalone app's board window: audio device, MIDI and Link, the Library's channel and
-// address, and Security (what may load unsigned). Settings are applied as they are changed; there is no Save button.
+// settings.js — the Settings section of the board window, in the standalone app, the plugins and Bleep Play (doc/specs/settings.md).
+// The host names itself in the first answer of native "settings" "get" (state.host: "app", "plugin" or "web"; no host = "app") and
+// that decides the tabs:
+//   app     Audio, MIDI and sync, Web, Library, Security
+//   plugin  Library, Security (Live owns the audio device and MIDI)
+//   web     Audio, MIDI, App, Library, Security, Data (answered by the browser: patch/web/js/web-settings.js)
+// Settings are applied as they are changed; there is no Save button.
 //
 //   P.BleepSettingsView.init({ library })   once, when the native side offers settings (native "init" says so)
 //   show() / hide()                     the header's Settings button; File → Settings opens it too
@@ -12,7 +17,14 @@
   let library = null;           // native "libraryStatus", when the app has a library
   let tab = "audio";
   let message = "";
+  let host = "";              // "app" | "plugin" | "web", known after the first "get"
   let root, body, tabsEl, noteEl, poll = null, hasLibrary = false;
+  const TABS = {
+    app: [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"], ["library", "Library"], ["security", "Security"]],
+    plugin: [["library", "Library"], ["security", "Security"]],
+    web: [["audio", "Audio"], ["midi", "MIDI"], ["app", "App"], ["library", "Library"], ["security", "Security"], ["data", "Data"]],
+  };
+  const tabsOf = () => (TABS[host] || []).filter(([id]) => hasLibrary || host === "web" || (id !== "library" && id !== "security"));
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -24,6 +36,7 @@
   /// dropdown while its menu is open cancels the choice.
   async function load(force) {
     state = await native("settings", "get", null);
+    if (state && (state.host || "app") !== host) { host = state.host || "app"; buildTabs(); }
     if (hasLibrary) library = await native("libraryStatus");
     render(force);
   }
@@ -191,6 +204,8 @@
     const s = library.settings;
     row("Channel", select(["stable", "beta"], s.channel, (v) => libraryChange({ channel: v })), "Beta has newer modules that are less tested.");
     body.appendChild(el("div", "st-note", s.libraryUrl + (library.index.ok ? "" : " (not reached)")));
+    if (host === "app") body.appendChild(checkbox("Check for module updates at start", s.updateCheck !== false, (on) => libraryChange({ updateCheck: on })));
+    if (host === "plugin") body.appendChild(el("div", "st-note", "These settings and the modules are shared with Bleep App and the other plugins: one data folder."));
     const url = el("input");
     url.type = "text"; url.value = s.libraryUrl; url.spellcheck = false;
     const advanced = el("details", "se-advanced");
@@ -237,13 +252,134 @@
     for (const [publisher, n] of seen) body.appendChild(el("div", "st-row single", `${publisher}: ${n} module${n === 1 ? "" : "s"}`));
   }
 
+  // ---- Bleep Play: what the browser can do (patch/web/js/web-settings.js) ----------------------------------------------------
+
+  const LATENCY_TEXT = { interactive: "Interactive (lowest delay)", balanced: "Balanced", playback: "Playback (fewest dropouts)" };
+
+  function renderWebAudio() {
+    const a = state.webAudio;
+    if (a.canSelectOutput) {
+      row("Output", select(["", ...a.outputs.map((o) => o.id)], a.output, (v) => change("webAudio", { output: v }),
+                           (v) => (v ? a.outputs.find((o) => o.id === v).name : "Default")));
+    } else {
+      body.appendChild(el("div", "st-note", "This browser plays to the system's default output. Chrome and Edge can pick another one."));
+    }
+    row("Latency", select(a.latencies, a.latency, (v) => change("webAudio", { latency: v }), (v) => LATENCY_TEXT[v] || v),
+        "Applies when audio starts.");
+    if (a.reload) {
+      body.appendChild(el("div", "st-note", "Audio is running with another latency. Restarting reloads this page: your board is kept, and you press Start audio again."));
+      const bar = el("div", "st-bar");
+      const b = el("button", "", "Restart audio");
+      b.addEventListener("click", () => change("webAudio", { reload: true }));
+      bar.appendChild(b);
+      body.appendChild(bar);
+    }
+    body.appendChild(el("h3", "", "Right now"));
+    body.appendChild(el("div", "st-row single", a.running
+      ? `${(a.rate / 1000).toFixed(1)} kHz · base latency ${a.baseLatencyMs.toFixed(1)} ms · output latency ${a.outputLatencyMs.toFixed(1)} ms`
+      : "Audio has not started."));
+  }
+
+  function renderWebMidi() {
+    const m = state.webMidi;
+    if (!m.supported) { body.appendChild(el("div", "st-note", "This browser has no Web MIDI (Safari does not have it).")); return; }
+    if (!m.asked) {
+      body.appendChild(el("div", "st-note", "The browser asks once whether this page may use your MIDI devices."));
+      const bar = el("div", "st-bar");
+      const b = el("button", "", "Allow MIDI access");
+      b.addEventListener("click", () => change("webMidi", { allow: true }));
+      bar.appendChild(b);
+      body.appendChild(bar);
+      return;
+    }
+    body.appendChild(el("h3", "", "Inputs"));
+    if (!m.inputs.length) body.appendChild(el("div", "st-empty", "No MIDI inputs found."));
+    for (const d of m.inputs) body.appendChild(checkbox(d.name, d.on, (on) => change("webMidi", { name: d.name, on })));
+    body.appendChild(el("div", "st-note", "A MIDI Device node on the board picks its own controller. These switches apply to boards without one."));
+  }
+
+  function renderWebApp() {
+    const a = state.webApp;
+    if (!a.available) { body.appendChild(el("div", "st-empty", "The link to Bleep App is not loaded on this page.")); return; }
+    body.appendChild(el("div", a.bad ? "st-note bad" : "st-row single", a.connected ? "Connected to Bleep App. " + a.text : (a.busy ? "Connecting… " : "Not connected. ") + a.text));
+    const bar = el("div", "st-bar");
+    const b = el("button", "", "Connect to app");
+    b.disabled = a.busy || a.connected;
+    b.addEventListener("click", () => change("webApp", { connect: true }));
+    bar.appendChild(b);
+    body.appendChild(bar);
+    body.appendChild(el("div", "st-note", "Bleep App must be running with File → Settings → Web switched on; the port is set there. Live plugins whose Board is Bleep Play reach this page through the app."));
+  }
+
+  function renderWebLibrary() {
+    const l = state.webLib;
+    row("Channel", select(l.channels, l.channel, (v) => change("webLibrary", { channel: v })), "Beta has newer modules that are less tested.");
+    webReload(l);
+  }
+
+  function renderWebSecurity() {
+    const l = state.webLib;
+    body.appendChild(el("div", "st-note", "Modules from the Bleep Library are signed by their developer. Anything unsigned stays off unless you allow it here. A broken or revoked signature is never loaded."));
+    const r = checkbox("Allow unsigned modules", l.allowUnsigned.module, (on) => {
+      if (on && !window.confirm("Unsigned modules run in the browser's sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise.\n\nOnly enable this for modules you trust or have built yourself. Turn it on?")) { load(true); return; }
+      change("webLibrary", { allowUnsigned: { module: on } });
+    });
+    r.classList.add("st-toggle");
+    body.appendChild(r);
+    body.appendChild(el("div", "st-note", "Bleep Play has no plugins, so there is no switch for unsigned plugins."));
+    webReload(l);
+  }
+
+  function webReload(l) {
+    if (!l.reload) return;
+    body.appendChild(el("div", "st-note", "The library is read when the page loads: reload to use this."));
+    const bar = el("div", "st-bar");
+    const b = el("button", "", "Reload now");
+    b.addEventListener("click", () => change("webLibrary", { reload: true }));
+    bar.appendChild(b);
+    body.appendChild(bar);
+  }
+
+  function renderWebData() {
+    body.appendChild(el("div", "st-note", "What Bleep Play keeps in this browser: your board, your saved presets and these settings. Nothing is sent anywhere."));
+    const labels = { board: ["Board", "Delete the board in this browser? The page reloads with the default board."],
+                     presets: ["Saved presets", "Delete the presets saved in this browser?"],
+                     settings: ["Settings", "Put the settings of this page back to their defaults?"],
+                     all: ["Everything", "Delete the board, the presets and the settings kept in this browser? The page reloads."] };
+    for (const kind of state.webData.kinds) {
+      const r = el("div", "st-row");
+      r.appendChild(el("span", "", labels[kind][0]));
+      const b = el("button", "", "Clear");
+      b.addEventListener("click", () => { if (window.confirm(labels[kind][1])) change("webClear", { what: kind }); });
+      r.appendChild(b);
+      body.appendChild(r);
+    }
+  }
+
   function render(force) {
     if (!root || !state) return;
     if (!force && root.contains(document.activeElement) && /^(INPUT|SELECT)$/.test(document.activeElement.tagName)) return;
     body.innerHTML = "";
     for (const b of tabsEl.children) b.classList.toggle("on", b.dataset.tab === tab);
     noteEl.textContent = message;
-    ({ audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity })[tab]();
+    if (!tabsOf().some(([id]) => id === tab)) tab = (tabsOf()[0] || ["audio"])[0];   // the audio button in a plugin: no such tab
+    for (const b of tabsEl.children) b.classList.toggle("on", b.dataset.tab === tab);
+    if (state.stored === false) body.appendChild(el("div", "st-note", "This browser does not let the page store anything: settings last until the page is closed."));
+    const shown = host === "web"
+      ? { audio: renderWebAudio, midi: renderWebMidi, app: renderWebApp, library: renderWebLibrary, security: renderWebSecurity, data: renderWebData }
+      : { audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity };
+    (shown[tab] || (() => {}))();
+  }
+
+  /// The tab buttons of this host (known after the first "get").
+  function buildTabs() {
+    tabsEl.innerHTML = "";
+    for (const [id, label] of tabsOf()) {
+      const b = el("button", "", label);
+      b.dataset.tab = id;
+      b.addEventListener("click", () => { tab = id; message = ""; render(true); });
+      tabsEl.appendChild(b);
+    }
   }
 
   function build() {
@@ -254,14 +390,6 @@
     head.appendChild(el("h2", "", "Settings"));
     root.appendChild(head);
     tabsEl = el("div", "st-tabs");
-    const tabs = [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"]];
-    if (hasLibrary) tabs.push(["library", "Library"], ["security", "Security"]);
-    for (const [id, label] of tabs) {
-      const b = el("button", "", label);
-      b.dataset.tab = id;
-      b.addEventListener("click", () => { tab = id; message = ""; render(true); });
-      tabsEl.appendChild(b);
-    }
     root.appendChild(tabsEl);
     noteEl = el("div", "st-message");
     root.appendChild(noteEl);
@@ -277,7 +405,8 @@
       P.BleepModal.mount(root, () => P.BleepSettingsView.hide());
       onNative("openSettings", () => P.BleepSettingsView.show());
     },
-    /// `which`: the tab to show ("audio", "midi", "web", "library", "security"); without it the last one.
+    /// `which`: the tab to show ("audio", "midi", "web", "library", "security", "app", "data"); without it the last one. A tab this host
+    /// does not have (the audio button in a plugin) shows the first one.
     async show(which) {
       if (P.BleepLibraryView) P.BleepLibraryView.hide();
       if (P.BleepHelpView) P.BleepHelpView.hide();

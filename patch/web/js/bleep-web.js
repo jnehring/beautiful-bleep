@@ -28,6 +28,23 @@
 
   const post = (m) => node && node.port.postMessage(m);
 
+  // ---- Settings (web-settings.js; the board's Settings section asks through board-demo.js) -----------------------------
+  let usedHint = "interactive";   // the latencyHint the AudioContext was made with
+  const S = window.BleepWebSettings ? window.BleepWebSettings.create({
+    storage: (() => { try { return window.localStorage; } catch (e) { return null; } })(),
+    audio: () => (ctx ? { rate: ctx.sampleRate, baseLatency: ctx.baseLatency, outputLatency: ctx.outputLatency, latencyHint: usedHint } : null),
+    canSelectOutput: typeof AudioContext !== "undefined" && "setSinkId" in AudioContext.prototype,
+    setSink: async (id) => { if (ctx && ctx.setSinkId) await ctx.setSinkId(id); },   // before audio starts the choice is kept and applied then
+    devices: () => (navigator.mediaDevices ? navigator.mediaDevices.enumerateDevices() : Promise.resolve([])),
+    midi: () => (midiAccess ? { supported: true, inputs: [...midiAccess.inputs.values()].map((i) => ({ id: i.id, name: i.name })) } : null),
+    midiSupported: !!navigator.requestMIDIAccess,
+    askMidi: () => W.enableMidi(),
+    bridge: () => W.bridgeUI || null,
+    library: window.BleepLibrary,
+    reload: () => location.reload(),
+  }) : null;
+  if (S) { S.applyLibrary(); W.settings = S.call; }
+
   /// The module's package from the library, verified. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
   function fetchModule(slug) {
     if (!loading.has(slug)) loading.set(slug, BleepLibrary.fetchModule(slug));
@@ -98,7 +115,9 @@
         libraryDown = `cannot reach the Bleep Library: ${e.message}`;
         setStatus(libraryDown);
       }
-      ctx = new AudioContext({ latencyHint: "interactive" });
+      usedHint = S ? S.latencyHint() : "interactive";
+      ctx = new AudioContext({ latencyHint: usedHint });
+      if (S && S.output() && ctx.setSinkId) await ctx.setSinkId(S.output()).catch(() => { /* the device is gone: the default plays */ });
       await ctx.audioWorklet.addModule(url("js/worklet.js"));
       node = new AudioWorkletNode(ctx, "bleep-processor", { numberOfInputs: 0, outputChannelCount: [2] });
       node.connect(ctx.destination);
@@ -172,7 +191,7 @@
   const wanted = () => (board ? board.nodes.filter((n) => n.type === "midi-device").map((n) => n.device).filter(Boolean) : []);
   const listens = (input) => {
     const hasNodes = board && board.nodes.some((n) => n.type === "midi-device");
-    return !hasNodes || wanted().includes(input.name);
+    return hasNodes ? wanted().includes(input.name) : !(S && S.midiIgnored(input.name));
   };
   W.enableMidi = async function () {
     if (!navigator.requestMIDIAccess) return false;

@@ -191,6 +191,7 @@ Settings Settings::load(const juce::File& dataDir) {
     s.allowUnsigned.module = v["allowUnsigned"]["module"].isBool() && (bool)v["allowUnsigned"]["module"];
     s.allowUnsigned.plugin = v["allowUnsigned"]["plugin"].isBool() && (bool)v["allowUnsigned"]["plugin"];
     s.firstRunDone = v["firstRunDone"].isBool() && (bool)v["firstRunDone"];
+    if (v["updateCheck"].isBool()) s.updateCheck = (bool)v["updateCheck"];
     return s;
 }
 
@@ -203,6 +204,7 @@ bool Settings::save(const juce::File& dataDir) const {
     o->setProperty("channel", juce::String(channel));
     o->setProperty("allowUnsigned", juce::var(allow));
     o->setProperty("firstRunDone", firstRunDone);
+    o->setProperty("updateCheck", updateCheck);
     dataDir.createDirectory();
     return dataDir.getChildFile("settings.json").replaceWithText(juce::JSON::toString(juce::var(o)));
 }

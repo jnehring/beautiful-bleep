@@ -982,6 +982,7 @@ juce::BigInteger bitsOf(const juce::var& flags, int count) {
 
 juce::var AppController::settingsState() {
     auto* o = new juce::DynamicObject();
+    o->setProperty("host", "app");
 
     auto* audio = new juce::DynamicObject();
     juce::StringArray types;

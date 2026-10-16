@@ -65,6 +65,18 @@ bridge.requestTempo(128);
 - **Browser limits.** Safari blocks `ws://127.0.0.1` from a secure page and Chrome may ask for local-network access. `connectToApp()` explains the failure and points at the app's own page, `http://127.0.0.1:47100/`.
 - **Remote nodes.** A board node bound to a channel carries what the hub sends and sends what is patched into it. *Remote Audio* and *Remote MIDI* nodes let two boards exchange audio and MIDI without Live.
 
+## Settings
+
+The board's Settings section is answered by `BleepWeb.settings` (`patch/web/js/web-settings.js`), so a page that embeds the board gets the Audio, MIDI, App, Library, Security and Data tabs without code of its own. The script loads before `bleep-web.js`, after `library-client.js` and `library-roots.js`.
+
+- **Stored** in `localStorage` under `bleep.web.settings`: `output` (a device id), `latency` (`interactive`, `balanced` or `playback`, the `AudioContext`'s `latencyHint`), `midiOff` (input names to ignore), `channel` and `allowUnsignedModule`. Saved junk is ignored, and a browser that refuses storage keeps the choices for the visit.
+- **Applied at load:** the library choices go to `BleepLibrary.configure({ channel, allowUnsigned })` once, before the library is first used, so a change needs a reload. `allowUnsigned.plugin` is always `false`.
+- **Output** uses `AudioContext.setSinkId` where the browser has it; a saved device that has gone falls back to the default.
+- **Data → Clear** removes keys by prefix: the board and presets (`bleep-demo-…`), these settings (`bleep.web.…`) and the library's caches (`bleep.library.…`). Other sites' keys are never touched.
+- **Test:** `node patch/web/test/web-settings-test.mjs` (plain Node, no build).
+
+The design, with the tabs of the app and the plugins, is `doc/specs/settings.md` in the repository. For musicians: [Settings](../../musicians/use/settings.md).
+
 ## Not yet in the browser
 
 Voice Cells, the Harmony bus, Link, Macros, audio input, host MIDI out and the media folder (Splice, Grains and Wavetable Osc import find no files) are not ported yet.

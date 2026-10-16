@@ -72,6 +72,12 @@
   "path": "/docs/musicians/use/standalone/"
  },
  {
+  "group": "Use",
+  "title": "Settings",
+  "description": "What File → Settings holds in the Bleep App, the Bleep plugins in Live and Bleep Play in the browser.",
+  "path": "/docs/musicians/use/settings/"
+ },
+ {
   "group": "Connect",
   "title": "Connecting plugin, app and web",
   "description": "Send audio, MIDI and tempo between Live, the Bleep App and Bleep Play, and what each connection costs in delay.",

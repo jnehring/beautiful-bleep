@@ -594,6 +594,7 @@
   async function updatesPrompt() {
     status = await native("libraryStatus");
     if (!status.settings.firstRunDone) return;   // the setup assistant is on screen, or was left for later
+    if (status.settings.updateCheck === false) return;   // Settings → Library → Check for module updates at start
     await native("libraryRefresh");
     for (let i = 0; i < 40; i++) {  // the native side reads the index on another thread; a saved copy does not count as an answer
       await new Promise((r) => setTimeout(r, 400));

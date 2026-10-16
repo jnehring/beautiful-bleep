@@ -452,6 +452,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 #settings .st-note { padding: 8px 11px; margin: 0 0 12px; border-left: 3px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 0 5px 5px 0; }
 #settings .st-note.bad { border-left-color: var(--warn); color: var(--text); }
 #settings .st-row.single { padding: 6px 0; color: var(--muted); }
+#settings .st-row:not(.single) { display: flex; gap: 12px; align-items: center; justify-content: space-between; max-width: 420px; padding: 4px 0; }
 #settings .st-empty { color: var(--muted); padding: 4px 0; }
 #settings .se-row { display: grid; grid-template-columns: 180px 1fr; gap: 4px 12px; align-items: center; margin: 8px 0; }
 #settings .se-hint { grid-column: 2; color: var(--muted); font-size: 12px; }

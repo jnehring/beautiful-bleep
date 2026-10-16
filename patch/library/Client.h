@@ -30,6 +30,7 @@ struct Settings {
     std::string channel = "stable";
     AllowUnsigned allowUnsigned;                           ///< Settings → Security
     bool firstRunDone = false;                             ///< the setup assistant has been answered (developers/modules/library.md 5a)
+    bool updateCheck = true;                               ///< the app asks the library for updates at every start (Settings → Library)
 
     static Settings load(const juce::File& dataDir);       ///< defaults for what is missing
     bool save(const juce::File& dataDir) const;

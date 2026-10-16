@@ -38,6 +38,7 @@ Without the script: `cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -D
 - **System audio:** what the computer plays, as a *System* node. Core Audio tap on macOS 14.2+, WASAPI loopback on Windows, PulseAudio or PipeWire monitor on Linux (needs libpulse at build time).
 - **Ableton Link:** the *Link* node puts tempo, beat, bar, clock and start/stop on the board.
 - **Bleep Audio Bridge:** each bridge plugin in Live is a node with *Send* and *Return*; while bridges are connected, Live's audio blocks drive the app.
+- **Settings:** File → Settings (⌘,) has Audio, MIDI and sync, Web, Library and Security; plugins and Bleep Play have their own tabs (design: `doc/specs/settings.md` in the repository; for musicians: [Settings](../../musicians/use/settings.md)). The module update check at start is `updateCheck` in the library's `settings.json`, shared with the plugins.
 - **Web connection:** off by default. File → Settings → Web listens on `127.0.0.1:47100` for Bleep Play pages and for plugins whose *Board* is *Bleep Play*. `BLEEP_WEB_PORT=<port>` turns it on for one run; `BLEEP_WEB_ROOT=<folder>` makes the app serve Bleep Play from a folder `scripts/build/build-web.sh` wrote.
 
 ## Checks before you hand out a build
