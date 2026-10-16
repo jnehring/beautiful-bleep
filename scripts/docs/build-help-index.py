@@ -30,15 +30,20 @@ MODULES = ROOT / "patch" / "modules"
 CATEGORIES = ["Sources/Oscillators", "Sources/Chords", "Sources/Voices", "Sources/Generators", "Modulation/Envelopes", "Modulation/Slopes", "Modulation/LFOs", "Modulation/Random", "Modulation/Followers", "Audio/Filters", "Audio/Mixing", "Audio/Sampling", "Audio/Mangling", "Effects/Space & Time", "Effects/Movement", "Effects/Dynamics & EQ", "Effects/Distortion", "Effects/Textures", "Utility/Signal", "Utility/Logic & Routing", "Utility/Harmony", "Utility/Converters", "Utility/Metering", "Controllers/Panel", "Controllers/Performance", "Sequencing/Melodic", "Sequencing/Drum", "Sequencing/Generative", "Sequencing/Clock", "Drums/Ring", "Drums/Punch"]  # the board's Add menu order
 GROUPS = {  # folder under website/content -> heading, in the order of the section
     "musicians": "Musicians",
-    "musicians/guides": "Guides",
+    "musicians/start": "Start",
+    "musicians/learn": "Learn",
+    "musicians/use": "Use",
+    "musicians/connect": "Connect",
+    "musicians/reference": "Reference",
     "developers": "Developers",
+    "developers/bleep-bus": "Bleep Bus",
     "developers/api-reference": "API reference",
     "developers/spec": "Specification",
     "developers/modules": "Module developers",
+    "developers/contribute": "Contribute",
     "developers/plugins": "Plugin developers",
     "developers/app": "Standalone app developers",
     "developers/web": "Web developers",
-    "developers/reference": "Reference",
 }
 
 

@@ -22,9 +22,9 @@ The UI is the same as in the plugins and the app. The engine is a JavaScript por
 
 ## Modules in the browser
 
-Each module folder is compiled, with a small shim, to **one standalone `.wasm`**: no JUCE glue, no Emscripten JS loader, no shared memory. `module-host.js` instantiates it with plain `WebAssembly.Module` and `Instance`, so the same code runs in an AudioWorklet and in Node (the tests). The file's contract is the [Module ABI](../reference/module-abi.md).
+Each module folder is compiled, with a small shim, to **one standalone `.wasm`**: no JUCE glue, no Emscripten JS loader, no shared memory. `module-host.js` instantiates it with plain `WebAssembly.Module` and `Instance`, so the same code runs in an AudioWorklet and in Node (the tests). The file's contract is the [Module ABI](../modules/module-abi.md).
 
-`build_modules.py` builds every folder, reads each file's node types back out, and writes `manifest.json`. The page loads a module the first time a board contains one of its types, from the [Bleep Store](../reference/store.md) of the site, and checks its signature in the browser before running it ([Signing](../reference/signing.md)).
+`build_modules.py` builds every folder, reads each file's node types back out, and writes `manifest.json`. The page loads a module the first time a board contains one of its types, from the [Bleep Store](../modules/store.md) of the site, and checks its signature in the browser before running it ([Signing](../modules/signing.md)).
 
 ## Build
 

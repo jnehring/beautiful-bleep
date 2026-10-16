@@ -256,7 +256,7 @@ std::shared_ptr<const MediaClip> import(const uint8_t* data, size_t size, const 
 
 #ifdef __wasm__
 // A module file has no disk. The host reads the media folder and hands the samples over through two imports
-// (developers/reference/module-abi.md, "Media"); a clip it does not have yet is "missing", and the host sends the module's node data
+// (developers/modules/module-abi.md, "Media"); a clip it does not have yet is "missing", and the host sends the module's node data
 // again when the clip has been read, so a module that loads in setData() simply loads again.
 extern "C" {
 __attribute__((import_module("env"), import_name("bleep_media_info")))

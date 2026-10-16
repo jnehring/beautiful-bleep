@@ -83,7 +83,7 @@ class ApiToken(Base):
 
 
 class Developer(Base):
-    """A developer key an admin issued (website/content/developers/reference/signing.md). Revoking it stops releases signed with it."""
+    """A developer key an admin issued (website/content/developers/modules/signing.md). Revoking it stops releases signed with it."""
 
     __tablename__ = "developers"
 

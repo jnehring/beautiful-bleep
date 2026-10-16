@@ -15,7 +15,7 @@ docker compose exec api python -m app.cli token-revoke ID
 
 A token releases for one publisher: without `--publisher` it is for our own releases (`bleep`); `token-create NAME --publisher acme` makes one for a developer.
 
-**One-time: signing (the store refuses unsigned releases; `scripts/release/release.py` and `signing.py` need `pip install cryptography`).** Every file is signed with a developer key; the rules are in `website/content/developers/reference/signing.md`.
+**One-time: signing (the store refuses unsigned releases; `scripts/release/release.py` and `signing.py` need `pip install cryptography`).** Every file is signed with a developer key; the rules are in `website/content/developers/modules/signing.md`.
 
 1. **Make the keys** on a trusted machine: `scripts/release/signing.py init-registry ~/bleep-registry-keys`. Move `root.key` to your keystore (and back it up), then delete the copy: the website never needs it.
 2. **Give the store its part.** Append the three lines of `registry.env` (the root *public* key, the issuer key and its certificate) to `website/.env`, each on its own line (step-by-step in [website.md](website.md#signing-keys)), then `docker compose up -d api`. Without `BLEEP_ROOT_PUBLIC_KEYS` the store refuses every release (fail closed).
@@ -76,4 +76,4 @@ The app includes Ableton Link by default, which makes that binary GPL; the VST3 
 
 ## Planned: the rest of the store
 
-`website/content/developers/reference/store.md` specifies the full system. Built so far: the object storage, the release API, tokens, signed releases (`scripts/release/release.py`, `scripts/release/signing.py`, the store's checks) for plugins. Not built: module packages and releases, a signed index and revocation list, staging, presets.
+`website/content/developers/modules/store.md` specifies the full system. Built so far: the object storage, the release API, tokens, signed releases (`scripts/release/release.py`, `scripts/release/signing.py`, the store's checks) for plugins. Not built: module packages and releases, a signed index and revocation list, staging, presets.

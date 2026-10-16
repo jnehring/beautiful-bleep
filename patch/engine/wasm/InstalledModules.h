@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// InstalledModules.h — the modules installed on this machine, made known to the engine (developers/reference/store.md, M3).
+// InstalledModules.h — the modules installed on this machine, made known to the engine (developers/modules/store.md, M3).
 #pragma once
 
 #include "Registry.h"

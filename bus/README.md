@@ -20,6 +20,6 @@ scripts/build/build-bus.sh                               # build + conformance s
 | `examples/` | minimal sender, minimal receiver, attenuverter |
 | `conformance/` | test host and validator |
 
-Docs: [quickstart](../website/content/developers/quickstart.md),
+Docs: [quickstart](../website/content/developers/bleep-bus/quickstart.md),
 [API reference](../website/content/developers/api-reference/00-overview.md),
 [specification](../website/content/developers/spec/v0.1/00-overview.md).

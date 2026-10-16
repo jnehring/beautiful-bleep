@@ -58,7 +58,7 @@ Engine::Engine() {
     media::setFolder(juce::File::getSpecialLocation(juce::File::userMusicDirectory)
                          .getChildFile("Beautiful Bleep").getChildFile("Media").getFullPathName().toStdString());
 #if defined(BLEEP_WASM_MODULES)
-    {  // the modules installed on this machine (developers/reference/store.md): registered before any board is loaded
+    {  // the modules installed on this machine (developers/modules/store.md): registered before any board is loaded
         auto& store = ModuleStore::instance();
         store.postToMessageThread = [](std::function<void()> f) { juce::MessageManager::callAsync(std::move(f)); };
         store.onTypesChanged = [this] { modulesChanged(); };

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Wasm parity: the gate for moving the apps to store modules (developers/reference/store.md section 13, M1).
+// Wasm parity: the gate for moving the apps to store modules (developers/modules/store.md section 13, M1).
 //
 // Every module type runs twice on the same input: compiled into this program, and as its module .wasm through the
 // WasmModule host. The same knobs and modulation, node data, signals on every jack, notes, transport and harmony

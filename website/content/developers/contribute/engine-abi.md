@@ -40,7 +40,7 @@ A plugin never talks to a module. It talks to the engine, and the engine runs th
 | Contract | Between | Form | Version |
 |---|---|---|---|
 | **Engine ABI** (this document) | Bleep plugins and the one engine in the process | C++ virtual interface, in-process | `kAbiTag` (major) and `kAbiMinor` |
-| **Module ABI** ([`module-abi.md`](module-abi.md)) | The engine and a `.bleepmod` (WebAssembly) | C functions exported by the `.wasm` file | `engineAbi`, one integer in the module's `requires` |
+| **Module ABI** ([`module-abi.md`](../modules/module-abi.md)) | The engine and a `.bleepmod` (WebAssembly) | C functions exported by the `.wasm` file | `engineAbi`, one integer in the module's `requires` |
 
 - **First-party modules compiled into the plugins** are not a cross-binary case: the engine creates them from the registry of *its own* binary, so the engine and the module are always the same build.
 - **Store modules (wasm)** are where the module ABI matters: the engine checks `requires.engineAbi` against the range it supports, and refuses a module outside it with a message that says which. The module host that does this is part of the engine, so it is as new as the plugin that created the engine.

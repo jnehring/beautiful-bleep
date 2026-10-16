@@ -156,7 +156,7 @@ The per-module cache is in `build/web/modules/.cache`. Use one method (local or 
 
 **Skip the tests:** none of the module steps (`build-web.sh`, `package-module.py`, `release.py --modules`) run a test suite, so there is nothing to skip. Packaging does check each `.wasm` against the module ABI, and that check can't be turned off.
 
-Package (checks each `.wasm` against `website/content/developers/reference/module-abi.md`, writes reproducible zips to `build/store/modules/`):
+Package (checks each `.wasm` against `website/content/developers/modules/module-abi.md`, writes reproducible zips to `build/store/modules/`):
 
 ```bash
 # every module with a built .wasm

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// account.js — the user's login to the Bleep Store and what needs it: sharing presets (developers/reference/store.md, "Login in the app").
+// account.js — the user's login to the Bleep Store and what needs it: sharing presets (developers/modules/store.md, "Login in the app").
 // Same code in the app, the plugins and Bleep Play; only what `native("account", …)` does differs:
 //   app, plugins   the device flow: a code to confirm on the website, the token kept in the OS keychain (patch/store/Account.cpp)
 //   Bleep Play     the website's own session cookie (board-demo.js): logging in happens on the site

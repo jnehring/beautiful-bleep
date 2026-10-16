@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Command line for package signing (the library and the rules are in website/api/app/signing.py, website/content/developers/reference/signing.md).
+"""Command line for package signing (the library and the rules are in website/api/app/signing.py, website/content/developers/modules/signing.md).
 
 Admin, once:
     scripts/release/signing.py init-registry DIR                   root.key (take it offline), root.pub, issuer.key, issuer.cert

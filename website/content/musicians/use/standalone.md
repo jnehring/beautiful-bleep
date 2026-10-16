@@ -1,13 +1,13 @@
 ---
 title: The standalone app
 description: Use Bleep without a DAW: audio setup, projects and settings of the app.
-order: 3
+order: 4
 ---
 
 # The Bleep App
 
 The board without a DAW: for playing and sound design on its own, or next to
-Live. It is one of [three places to use Bleep](overview.md) (plugin, app, web). Open the app, add modules with Tab, and patch as in Live. Projects are
+Live. It is one of [three places to use Bleep](../start/ways-to-use.md) (plugin, app, web). Open the app, add modules with Tab, and patch as in Live. Projects are
 saved as `.bleepboard` files (File → Save).
 
 ## Audio
@@ -41,7 +41,7 @@ permission. Then add the node from **Add → Port**, like the other inputs.
 The capture adds about 40 ms of delay. It is meant for processing and
 recording, not for playing live against it. More, with the setup for each system
 and what to do when it stays silent: [Process what your computer
-plays](guides/system-audio.md).
+plays](../connect/system-audio.md).
 
 ## A MIDI keyboard
 

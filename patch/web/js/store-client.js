@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 //
-// store-client.js — the Bleep Store, from the browser (developers/reference/store.md, developers/reference/signing.md).
+// store-client.js — the Bleep Store, from the browser (developers/modules/store.md, developers/modules/signing.md).
 //
 // Finds the package of a node type in the store's index, downloads it, checks its signature chain against the root
 // public keys, and hands out the module's .wasm. The same code runs in node (the tests) and checks the same things
-// as the Python reference (scripts/release/signing.py): the test vector in developers/reference/signing.md section 14 must give the same results.
+// as the Python reference (scripts/release/signing.py): the test vector in developers/modules/signing.md section 14 must give the same results.
 //
 //   BleepStore.configure({ base: "/registry/v1/", roots: [Uint8Array …], allowUnsigned: false })
 //   const manifest = await BleepStore.manifest();        // { types: {type → slug}, modules: {slug → {version, types, …}} }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// The store's checks in C++ (patch/store, developers/reference/signing.md): every package in patch/tests/store-fixtures must get the
+// The store's checks in C++ (patch/store, developers/modules/signing.md): every package in patch/tests/store-fixtures must get the
 // verdict the Python reference gave it (scripts/release/signing.py fixture), and the pieces underneath (content hash,
 // canonical JSON) must give Python's exact bytes. patch/web/test/store-client-test.mjs runs the same cases in JavaScript.
 #include "store/Account.h"

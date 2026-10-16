@@ -1,13 +1,13 @@
 ---
 title: Connecting plugin, app and web
 description: Send audio, MIDI and tempo between Live, the Bleep App and Bleep Play, and what each connection costs in delay.
-order: 6
+order: 1
 ---
 
 # Connecting plugin, app and web
 
-Bleep runs in three places: the [plugins](../ports.md) in Live, the
-[app](../standalone.md) and a board in your browser. Each has its own board.
+Bleep runs in three places: the [plugins](../use/ports.md) in Live, the
+[app](../use/standalone.md) and a board in your browser. Each has its own board.
 This page is about making them work together: a synth built in the browser and
 played from Live, an effect in the browser on a Live track, a sequencer in the
 browser that plays an instrument in Live, a patch in the app whose sound lands
@@ -86,7 +86,7 @@ Settings → Web.
 
 ## Which plugins do I need?
 
-Only four of the [port plugins](../ports.md) can talk to the app or Bleep Play:
+Only four of the [port plugins](../use/ports.md) can talk to the app or Bleep Play:
 **Bleep MIDI In**, **MIDI Out**, **Audio In** and **Audio Out**. They are the
 ones with a **Board** menu. Pick the plugin for what should travel, then set
 its Board to *Bleep App* (a patch in the app) or *Bleep Play* (the browser).

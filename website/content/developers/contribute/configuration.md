@@ -59,7 +59,7 @@ Registration confirmation, password reset and the contact form send email. Witho
 
 ## Code signing
 
-The store only accepts signed releases (see [signing](signing.md) and [the store](store.md)). Create the values once with `scripts/release/signing.py init-registry ~/bleep-registry-keys` and paste the lines it writes to `registry.env`.
+The store only accepts signed releases (see [signing](../modules/signing.md) and [the store](../modules/store.md)). Create the values once with `scripts/release/signing.py init-registry ~/bleep-registry-keys` and paste the lines it writes to `registry.env`.
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -98,4 +98,4 @@ These are not in `.env.example`. They are read by the API or by scripts, mostly 
 |---|---|---|
 | `BLEEP_DATABASE_URL` | local PostgreSQL URL | Database connection. Compose builds it from `POSTGRES_PASSWORD`; set it yourself only when running the API directly (`uvicorn`, tests use in-memory SQLite). |
 | `BLEEP_KEY_PASSPHRASE` | unset | Passphrase for an encrypted developer or issuer key, read by the signing tools. |
-| `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL` | unset | Used by the release script to publish to a store. See [build and release](../build-and-release.md). |
+| `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL` | unset | Used by the release script to publish to a store. See [build and release](build-and-release.md). |

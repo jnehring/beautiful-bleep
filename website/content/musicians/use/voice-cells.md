@@ -1,7 +1,7 @@
 ---
 title: Voice Cells
 description: Turn one patched synth voice into a polyphonic instrument with up to 16 voices.
-order: 4
+order: 2
 ---
 
 # Voice Cells: polyphonic synths

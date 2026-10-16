@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 //
-// Account.h — the user's login to the Bleep Store from the app and the plugins (developers/reference/store.md, "Login in the app"):
+// Account.h — the user's login to the Bleep Store from the app and the plugins (developers/modules/store.md, "Login in the app"):
 // the device flow, the personal token in the OS keychain, and authenticated calls to the store's API (sharing presets, comments,
 // ratings). Everything here blocks (network): call it from a worker thread, never from the audio thread or the message thread.
 #pragma once

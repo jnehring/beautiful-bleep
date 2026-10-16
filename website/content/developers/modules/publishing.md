@@ -6,7 +6,7 @@ order: 30
 
 # Publishing a module
 
-Modules are **code**, so the apps only run them if they are signed. The full rules are in [Signing](../reference/signing.md) and the store's layout in [Bleep Store](../reference/store.md); this page is the practical path.
+Modules are **code**, so the apps only run them if they are signed. The full rules are in [Signing](signing.md) and the store's layout in [Bleep Store](store.md); this page is the practical path.
 
 ## 1. Build the `.wasm` files
 
@@ -22,7 +22,7 @@ This compiles every module with Emscripten (in Docker, so no local SDK is needed
 scripts/release/package-module.py
 ```
 
-One reproducible `.bleepmod` per module, in `build/store/modules`. The packager checks each `.wasm` against the [Module ABI](../reference/module-abi.md) and adds your licence and provenance information.
+One reproducible `.bleepmod` per module, in `build/store/modules`. The packager checks each `.wasm` against the [Module ABI](module-abi.md) and adds your licence and provenance information.
 
 ## 3. Get a developer key and a token
 

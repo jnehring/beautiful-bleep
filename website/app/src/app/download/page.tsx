@@ -18,7 +18,7 @@ export default function DownloadPage() {
       <p className="download-note">
         <strong>Note:</strong> you only download the app. All other VST plugins, modules and presets are installed
         from inside the app, in its <a href="/store/">Store</a> section. Nothing else needs to be downloaded here.
-        {" "}See <a href="/docs/musicians/standalone/">the standalone app</a> for setup.
+        {" "}See <a href="/docs/musicians/use/standalone/">the standalone app</a> for setup.
       </p>
     </>
   );

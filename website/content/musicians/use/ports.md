@@ -1,7 +1,7 @@
 ---
 title: Ports
 description: The small plugins you add to tracks in Live to connect them to the board.
-order: 2
+order: 3
 ---
 
 # Ports: the plugins you add in Live
@@ -13,7 +13,7 @@ as MIDI channels and CC numbers are in the node's view on the board.
 |---|---|---|
 | **Bleep Board** | any track, once per set | *Macros*: 16 outputs you can automate and MIDI-map in Live |
 | **Bleep MIDI In** | a MIDI track | *Notes* (polyphonic), mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel*, 8 CCs |
-| **Bleep MIDI Out** | a MIDI track | inputs *Notes*, *Gate* + *Pitch* (mono), 8 CCs, *Bend*. See [routing](guides/midi-out-routing.md) |
+| **Bleep MIDI Out** | a MIDI track | inputs *Notes*, *Gate* + *Pitch* (mono), 8 CCs, *Bend*. See [routing](../connect/midi-out-routing.md) |
 | **Bleep Audio In** | any track, anywhere in the chain | the track's audio at that point (*L*, *R*); the audio passes through unchanged |
 | **Bleep Audio Out** | its own MIDI track | board audio (*L*, *R*) on that track, with its own mixer channel |
 | **Bleep Instrument** | a MIDI track | MIDI In and Audio Out in one plugin: a board synth on one track |
@@ -23,7 +23,7 @@ as MIDI channels and CC numbers are in the node's view on the board.
 menu in their window: *This set* (the default), *Bleep App* or *Web
 board*. With the app or Bleep Play, the plugin talks to that board instead
 of this set's, and has no node on this set's board. See [Connecting plugin, app
-and web](guides/connecting.md).
+and web](../connect/connecting.md).
 
 **Latency:** audio through the board arrives two audio buffers late. Audio
 Out, Instrument and Audio Insert report it to Live (Live's delay

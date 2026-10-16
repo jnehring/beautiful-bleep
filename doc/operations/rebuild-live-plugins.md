@@ -13,7 +13,7 @@ The VST3 plugins that Ableton Live loads are all built from `patch/CMakeLists.tx
 | Bleep Audio Insert | `BleepAudioInsert` |
 | Bleep Audio Bridge | `BleepAudioBridge` |
 
-The first seven share the engine and the board; Bleep Audio Bridge talks to the standalone app. Each plugin is a separate binary. Plugins share one engine when they have the same engine **major version**; a different minor is fine (see [engine-abi.md](../../website/content/developers/reference/engine-abi.md)). Rebuilding just one plugin works as long as the major has not changed since the others were built.
+The first seven share the engine and the board; Bleep Audio Bridge talks to the standalone app. Each plugin is a separate binary. Plugins share one engine when they have the same engine **major version**; a different minor is fine (see [engine-abi.md](../../website/content/developers/contribute/engine-abi.md)). Rebuilding just one plugin works as long as the major has not changed since the others were built.
 
 ## Prerequisites
 

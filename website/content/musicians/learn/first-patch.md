@@ -1,34 +1,17 @@
 ---
-title: Getting started
-description: Set up Beautiful Bleep in Ableton Live: the board, modules, cables and ports.
-order: 0
+title: Your first patch
+description: Five minutes on the board: add a filter, modulate its cutoff and modulate the modulator.
+order: 1
 ---
 
-# Getting started with Beautiful Bleep
+# Your first patch
 
-This page is for Ableton Live. Bleep also runs as a [standalone app and in
-your browser](overview.md).
+This is a five-minute tour of the board in Ableton Live. You need the plugins
+installed ([Install in Live](../start/getting-started.md)) and a synth on a track.
+The board is the same in the [Bleep App and in Bleep Play](../start/ways-to-use.md);
+only the first two steps are specific to Live.
 
-Beautiful Bleep makes Ableton Live feel modular. All modules live on one canvas
-per set, the **board**. You connect them with cables, and small plugins
-called **ports** connect the board to your tracks.
-
-Just want a sound? Put **Bleep Instrument** on a MIDI track or **Bleep FX** on
-an audio track and pick a preset. No patching needed; see
-[ways to use Bleep](overview.md).
-
-## Install
-
-Copy the `.vst3` files to your plugin folder, then rescan plugins in Live
-(Settings → Plug-Ins, with "Use VST3 Plug-In System Folders" on). The
-plugins appear in Live's browser under **Plug-Ins → Beautiful Bleep**.
-
-| | VST3 folder |
-|---|---|
-| macOS | `~/Library/Audio/Plug-Ins/VST3` |
-| Windows | `C:\Program Files\Common Files\VST3` |
-
-## Your first board (5 minutes)
+## The patch (5 minutes)
 
 1. Put **Bleep Board** on any track (the master track is a good place).
    Every set that uses Bleep Board needs exactly one. Its window opens the
@@ -46,10 +29,11 @@ plugins appear in Live's browser under **Plug-Ins → Beautiful Bleep**.
 Now modulate the modulator: add a **Random** and drag its *Out* onto
 Function's **Rise** knob.
 
-## How the board works
+You have now used the three ideas the rest of Bleep is built on: modules joined
+by cables, a knob that is also a modulation destination, and a modulator that can
+itself be modulated.
 
-See [the board](board.md) for patching, cells and shortcuts, and
-[ports](ports.md) for every plugin you can add in Live.
+## Good to know
 
 - **Ports** (MIDI In, Audio Out, …) appear on the board when you add them in
   Live. You can't delete them on the board; when a track is deactivated or
@@ -62,3 +46,9 @@ See [the board](board.md) for patching, cells and shortcuts, and
   compensation lines it up with the rest of the set.
 - **Undo.** The board has its own undo (⌘Z in the board window). Live's undo
   doesn't include board edits.
+
+## Next
+
+- [Modulation](modulation.md): what the rings, chips and cable colours mean.
+- [Cells and panels](cells-and-panels.md): keep a patch tidy and turn it into an instrument.
+- [The board](../use/board.md): the full reference for patching.

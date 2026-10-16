@@ -7,7 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Marked } from "marked";
-import { AUDIENCES, type Audience } from "./audiences";
+import { AUDIENCES, sectionRank, type Audience } from "./audiences";
 
 export { AUDIENCES, type Audience };
 
@@ -126,7 +126,7 @@ export function allDocs(): Doc[] {
       };
     })
     .concat(moduleDocs())
-    .sort((a, b) => a.section.localeCompare(b.section) || a.order - b.order || a.title.localeCompare(b.title));
+    .sort((a, b) => sectionRank(a.section) - sectionRank(b.section) || a.section.localeCompare(b.section) || a.order - b.order || a.title.localeCompare(b.title));
   for (const audience of Object.values(AUDIENCES))
     for (const item of audience.menu) {
       const target = item.href.match(/^\/docs\/(.+)\/$/)?.[1];

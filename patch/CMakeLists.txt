@@ -44,7 +44,7 @@ option(BLEEP_UI_DEV "Development builds: serve the board UI from the source tree
 # Spec §5.2: VST3 only, Ableton Live only (for now).
 set(BLEEP_FORMATS "VST3" CACHE STRING "Plugin formats (JUCE names)")
 set(BLEEP_JUCE_DIR "" CACHE PATH "Local JUCE checkout (empty: download JUCE 8.0.9)")
-# The wasm module host (engine/wasm/, developers/reference/module-abi.md): needs the Wasmtime C API, from
+# The wasm module host (engine/wasm/, developers/modules/module-abi.md): needs the Wasmtime C API, from
 # https://github.com/bytecodealliance/wasmtime/releases (wasmtime-v<version>-<target>-c-api). With it, the test
 # bleep_wasm_parity runs every module as native and as wasm and compares them (store.md section 13, M1).
 set(BLEEP_WASMTIME_DIR "" CACHE PATH "Wasmtime C API folder: builds the wasm module host and bleep_wasm_parity")
@@ -151,7 +151,7 @@ set(BLEEP_ENGINE_SOURCES
     engine/Registry.cpp
     engine/VoiceCell.cpp)
 # What the apps and the plugins are built from. With the wasm module host (BLEEP_WASMTIME_DIR) they carry no
-# modules: those come from the Bleep Store, as .wasm files installed on the machine (developers/reference/store.md). Tests and
+# modules: those come from the Bleep Store, as .wasm files installed on the machine (developers/modules/store.md). Tests and
 # tools always compile the modules in (they are the reference the wasm builds are held to: bleep_wasm_parity).
 set(BLEEP_APP_ENGINE_SOURCES ${BLEEP_ENGINE_SOURCES})
 set(BLEEP_APP_MODULE_SOURCES)  # the same without the copyleft modules
@@ -393,7 +393,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/module-views.json" "[${module_views}]\n"
 list(APPEND BLEEP_BOARD_UI "${CMAKE_CURRENT_BINARY_DIR}/module-views.json")
 juce_add_binary_data(bleep_board_web HEADER_NAME BoardWeb.h NAMESPACE BoardWeb SOURCES ${BLEEP_BOARD_UI})
 
-# Modules installed from the Bleep Store (developers/reference/store.md): the wasm module host, the store client and signature checks.
+# Modules installed from the Bleep Store (developers/modules/store.md): the wasm module host, the store client and signature checks.
 # With BLEEP_WASMTIME_DIR set, a target loads the modules found on the machine and gets the Store section.
 # Where the store is and whom it trusts: config/store.json, the one place (read by the apps' build and by scripts/release).
 # BLEEP_STORE_URL and BLEEP_STORE_ROOTS (hex, comma separated) override it for one build.

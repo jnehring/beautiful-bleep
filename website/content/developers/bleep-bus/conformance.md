@@ -35,6 +35,6 @@ the other.
 ## "Bleep Bus compatible"
 
 Plugins that pass the suite and the
-[checklist](api-reference/13-conformance-checklist.md) may use the "Bleep Bus
+[checklist](../api-reference/13-conformance-checklist.md) may use the "Bleep Bus
 compatible" badge. The protocol is free to use; the names and logo are
 trademarks of Brilliant Bleep.

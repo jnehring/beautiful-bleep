@@ -33,7 +33,7 @@ export default function PlayPage() {
       <ul className="play-steps">
         <li>Use a current Chrome, Edge, Firefox or Safari. MIDI input needs Chrome or Edge.</li>
         <li>Not available in the browser yet: Voice Cells, Link, audio input and importing audio files.</li>
-        <li>Want more? See <a href="/docs/musicians/overview/">the ways to use Bleep</a>.</li>
+        <li>Want more? See <a href="/docs/musicians/start/ways-to-use/">the ways to use Bleep</a>.</li>
       </ul>
     </>
   );

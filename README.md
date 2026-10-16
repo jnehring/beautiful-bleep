@@ -5,8 +5,8 @@ Everything in this repository is MIT-licensed.
 
 | Folder | What | Start here |
 |---|---|---|
-| [`bus/`](bus/) | **Bleep Bus**: the open standard. C library, C++/JUCE helpers, examples, conformance suite | [Quickstart](website/content/developers/quickstart.md) |
-| [`patch/`](patch/) | **Beautiful Bleep**: the shared engine, the board and the Bleep plugins you add in Live (Bleep Board and the ports); modules (Function, Random, Utility, Filter) run on the board | [Getting started](website/content/musicians/getting-started.md) |
+| [`bus/`](bus/) | **Bleep Bus**: the open standard. C library, C++/JUCE helpers, examples, conformance suite | [Quickstart](website/content/developers/bleep-bus/quickstart.md) |
+| [`patch/`](patch/) | **Beautiful Bleep**: the shared engine, the board and the Bleep plugins you add in Live (Bleep Board and the ports); modules (Function, Random, Utility, Filter) run on the board | [Getting started](website/content/musicians/start/getting-started.md) |
 | [`website/`](website/) | The Beautiful Bleep homepage and **all documentation** (`website/content/`) | [Spec v0.1](website/content/developers/spec/v0.1/00-overview.md) |
 | [`doc/`](doc/) | The specifications (`doc/specs/`) and internal operations docs (`doc/operations/`: build, release, website) | [Index](doc/README.md) |
 | [`scripts/`](scripts/) | Build, run, check, docs and release scripts (below) | |
@@ -30,7 +30,7 @@ All scripts live in [`scripts/`](scripts/), one folder per kind of work, and wor
 | [`check/`](scripts/check/) | [`check-api-docs.py`](scripts/check/check-api-docs.py) | Checks that every function in `bleep_bus.h` is documented in the API reference |
 | | [`check-repo.py`](scripts/check/check-repo.py) | Checks the dependency rules between `bus/`, `patch/` and `website/`, SPDX headers and LICENSE files |
 | [`release/`](scripts/release/) | [`release.py`](scripts/release/release.py) | Signs and publishes plugins to the registry, or adds a platform build to a published release ([release.md](doc/operations/release.md)) |
-| | [`signing.py`](scripts/release/signing.py) | Keys, certificates, signing and verifying packages ([signing.md](website/content/developers/reference/signing.md)) |
+| | [`signing.py`](scripts/release/signing.py) | Keys, certificates, signing and verifying packages ([signing.md](website/content/developers/modules/signing.md)) |
 | | `test_release.py`, `test_signing.py` | Their unit tests: `cd scripts/release && python3 -m unittest test_release test_signing` |
 | [`experiments/`](scripts/experiments/) | [`wasm-spike.sh`](scripts/experiments/wasm-spike.sh) | Runs the Verb module's `.wasm` in Wasmtime and wasm3 next to the native build ([patch/wasm-host](patch/wasm-host/README.md)) |
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //
 // ModuleStore.h — the modules of this machine as the app and the plugins see them: loaded at start, installed and removed
-// from the Store section of the board window (developers/reference/store.md, sections 5a and 9). One per process, owned by the engine.
+// from the Store section of the board window (developers/modules/store.md, sections 5a and 9). One per process, owned by the engine.
 //
 // Threads: start(), status() and the *Async calls are for the message thread. The work (network, disk) runs on a worker
 // thread; what changes the registry happens on the message thread again. Nothing here touches the audio thread.

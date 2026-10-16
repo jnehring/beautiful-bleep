@@ -114,7 +114,7 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
 using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
 #if defined(BLEEP_WASM_MODULES)
-/// The default plugin bundle (developers/reference/store.md 5a). An offline installer carries the plugins in the app (Contents/Resources/Plugins
+/// The default plugin bundle (developers/modules/store.md 5a). An offline installer carries the plugins in the app (Contents/Resources/Plugins
 /// on macOS, Plugins next to the app elsewhere): those are copied into the user's VST3 folder. Otherwise they are downloaded from the
 /// store, which checks their signatures. Live must be closed: replacing a plugin that Live has loaded can crash it.
 juce::var installPluginBundle() {

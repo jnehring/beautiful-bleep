@@ -51,7 +51,7 @@ services:
       BLEEP_S3_BUCKET: ${BLEEP_REGISTRY_BUCKET:-bleep-registry}
       BLEEP_S3_ACCESS_KEY: ${S3_ACCESS_KEY:-bleep}
       BLEEP_S3_SECRET_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in website/.env}
-      # Code signing (website/content/developers/reference/signing.md). The root PUBLIC key decides what releases are accepted; the issuer key and
+      # Code signing (website/content/developers/modules/signing.md). The root PUBLIC key decides what releases are accepted; the issuer key and
       # certificate issue developer keys. The root PRIVATE key never belongs here.
       BLEEP_ROOT_PUBLIC_KEYS: ${BLEEP_ROOT_PUBLIC_KEYS:-}
       BLEEP_ISSUER_KEY: ${BLEEP_ISSUER_KEY:-}

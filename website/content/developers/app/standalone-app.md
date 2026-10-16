@@ -52,8 +52,8 @@ On macOS, start the smoke run with `--system-audio` through LaunchServices (`ope
 ## Licences and signing
 
 - **Link is GPLv2-or-later**, so app binaries built with it are distributed under the GPL with their source. A closed-source build needs a licence from Ableton, or `-DBLEEP_LINK=OFF` (the app then uses an internal clock). JUCE is AGPLv3 or commercial.
-- No script here signs or notarises the app. A downloaded unsigned macOS build is blocked by Gatekeeper until it is signed with a Developer ID and notarised. The app is released to the [Bleep Store](../reference/store.md) like the plugins, with the store signature described in [Signing](../reference/signing.md).
+- No script here signs or notarises the app. A downloaded unsigned macOS build is blocked by Gatekeeper until it is signed with a Developer ID and notarised. The app is released to the [Bleep Store](../modules/store.md) like the plugins, with the store signature described in [Signing](../modules/signing.md).
 
 ## Modules in the app
 
-The app loads modules from the Bleep Store as signed `.wasm` files, through an embedded WebAssembly runtime. See the [Module ABI](../reference/module-abi.md) and the [Bleep Store](../reference/store.md).
+The app loads modules from the Bleep Store as signed `.wasm` files, through an embedded WebAssembly runtime. See the [Module ABI](../modules/module-abi.md) and the [Bleep Store](../modules/store.md).

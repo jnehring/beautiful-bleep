@@ -1,7 +1,7 @@
 ---
 title: Glossary
 description: The words used across Beautiful Bleep: board, module, cell, Bleep plugin, Bleep App, Bleep Play and more.
-order: -2
+order: 1
 ---
 
 # Glossary

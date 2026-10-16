@@ -14,14 +14,14 @@ You have a plugin (any format, any DAW) and want it to send or receive per-sampl
 
 | Step | Page |
 |---|---|
-| Send and receive a signal in 15 minutes | [Quickstart](../quickstart.md) |
+| Send and receive a signal in 15 minutes | [Quickstart](../bleep-bus/quickstart.md) |
 | Every function, type and error | [API reference](../api-reference/00-overview.md) |
 | Implement the protocol without the SDK | [Specification v0.1](../spec/v0.1/00-overview.md) |
-| Prove your implementation is correct | [Conformance](../conformance.md) |
-| Propose a change to the protocol | [RFC process](../rfc-process.md) |
+| Prove your implementation is correct | [Conformance](../bleep-bus/conformance.md) |
+| Propose a change to the protocol | [RFC process](../bleep-bus/rfc-process.md) |
 
 ## The Bleep plugins in Live
 
-You want to change or extend the plugins that connect Ableton Live to the board. [Bleep plugins](02-bleep-plugins.md) covers how they share one engine, how to build and reload them, and how they are released.
+You want to change or extend the plugins that connect Ableton Live to the board. [Bleep plugins](bleep-plugins.md) covers how they share one engine, how to build and reload them, and how they are released.
 
-If you want to add a new *sound* rather than a new plugin, write a [module](../modules/01-overview.md) instead: it works in the plugins, the app and the browser.
+If you want to add a new *sound* rather than a new plugin, write a [module](../modules/overview.md) instead: it works in the plugins, the app and the browser.

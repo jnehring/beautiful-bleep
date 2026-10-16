@@ -59,7 +59,7 @@ await test("canonical JSON is byte for byte what Python signs", async () => {
   assert.equal(Store.canonical(sample), python);
 });
 
-await test("the content hash of the spec's test vector", async () => {  // developers/reference/signing.md section 14
+await test("the content hash of the spec's test vector", async () => {  // developers/modules/signing.md section 14
   const vec = { "module.json": '{"name":"Fuzz"}\n', "module.wasm": new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]), "ui/fuzz.js": "// view\n" };
   const entries = new Map();
   for (const [p, c] of Object.entries(vec)) entries.set(p, { sha: new Uint8Array(await crypto.subtle.digest("SHA-256", typeof c === "string" ? new TextEncoder().encode(c) : c)), exec: false });

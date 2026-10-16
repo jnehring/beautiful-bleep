@@ -103,6 +103,6 @@ Build your plugin twice (or load two instances), put one on each of two
 tracks, and press play. Modulation arrives one block late, independent of
 track order.
 
-Next: the [API reference](api-reference/00-overview.md) for every function,
-host notes and pitfalls; the [specification](spec/v0.1/00-overview.md) if
+Next: the [API reference](../api-reference/00-overview.md) for every function,
+host notes and pitfalls; the [specification](../spec/v0.1/00-overview.md) if
 you implement the bus without the SDK.

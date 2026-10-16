@@ -9,7 +9,7 @@
 //   BleepAppMenu.init({ nativeMenu, version })
 (function () {
   "use strict";
-  const DOCS = "/docs/musicians/getting-started/";
+  const DOCS = "/docs/musicians/start/getting-started/";
   const SITE = "https://brilliantbleep.com";
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);

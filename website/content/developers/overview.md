@@ -1,7 +1,7 @@
 ---
-title: Developer overview
+title: Developer documentation
 description: Which developer guide is for you, and how the pieces of Beautiful Bleep fit together.
-order: 0
+order: -10
 ---
 
 # Build with Beautiful Bleep
@@ -10,12 +10,21 @@ Everything here is MIT-licensed. Pick the guide that matches what you want to bu
 
 | I want to… | Start here |
 |---|---|
-| Make plugins talk to each other, in any DAW | [Bleep Bus quickstart](quickstart.md) |
-| Add a sound, effect or utility to the board | [Modules](modules/01-overview.md) |
-| Work on the Bleep plugins in Ableton Live | [Plugins](plugins/01-overview.md) |
-| Work on the standalone Bleep App | [Standalone app](app/01-standalone-app.md) |
-| Work on Bleep Play, the board in the browser | [Web](web/01-bleep-play.md) |
-| Check an exact contract (ABI, signing, store) | [Reference](reference/module-abi.md) |
+| Make plugins talk to each other, in any DAW | [Bleep Bus quickstart](bleep-bus/quickstart.md) |
+| Add a sound, effect or utility to the board | [Modules](modules/overview.md) |
+| Check an exact contract (module ABI, signing, store) | [Module ABI](modules/module-abi.md), [Signing](modules/signing.md), [Store](modules/store.md) |
+| Work on the Bleep plugins in Ableton Live | [Plugins](plugins/overview.md) |
+| Work on the standalone Bleep App | [Standalone app](app/standalone-app.md) |
+| Work on Bleep Play, the board in the browser | [Web](web/bleep-play.md) |
+| Build, release or configure Bleep | [Contribute](contribute/overview.md) |
+
+## The documentation
+
+| Section | What is in it |
+|---|---|
+| **Bleep Bus** | The open protocol: [quickstart](bleep-bus/quickstart.md), [API reference](api-reference/00-overview.md), [specification](spec/v0.1/00-overview.md), [conformance](bleep-bus/conformance.md), [RFC process](bleep-bus/rfc-process.md) |
+| **Modules** | Writing, packaging and publishing a board module, and the contracts a module meets: ABI, signing, the store |
+| **Contribute** | Working on Bleep itself: [build and release](contribute/build-and-release.md), [configuration](contribute/configuration.md), the [engine ABI](contribute/engine-abi.md), and the plugins, app and web build |
 
 ## How the pieces fit
 

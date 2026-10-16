@@ -1,7 +1,7 @@
 ---
 title: Process what your computer plays
 description: Take the sound of your music player, browser or video call into the Bleep App with the System node, on macOS, Windows and Linux.
-order: 22
+order: 4
 ---
 
 # Process what your computer plays
@@ -10,7 +10,7 @@ The **System** node puts everything your computer plays onto the board: a
 music player, a browser tab, a video call, a game. Patch it into a filter, a
 reverb or a delay network, and listen to the result. Or record it.
 
-It is a feature of the [Bleep App](../standalone.md). The plugins have
+It is a feature of the [Bleep App](../use/standalone.md). The plugins have
 your DAW for this, and Bleep Play cannot see other programs.
 
 You don't need a virtual audio driver (BlackHole, Loopback, VB-Cable). Bleep App asks your operating system for the sound directly.
