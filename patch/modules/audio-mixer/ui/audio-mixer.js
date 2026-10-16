@@ -193,6 +193,7 @@
 
   BleepViews.register("audio-mixer", {
     partNames: ["Mixer strips"],
+    partSizes: [[35, 10]],
     layout: [{ title: "Send bus", params: ["sendpoint1", "sendpoint2", "sendpoint3", "sendpoint4", "return"] }],
     hideParams: [].concat(
       ...[1, 2, 3, 4].map((k) => ["level" + k, "pan" + k, "send" + k, "mute" + k, "solo" + k]),
@@ -200,6 +201,7 @@
     template:
       "<style>" +
       ".am{display:flex;gap:6px;align-items:stretch;flex:1 1 100%}" +
+      ".bleep-view.bv-part .bv-path.am{flex-direction:row;gap:6px}" +   // as a panel part the strips stay side by side
       ".am-strip{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 4px;" +
       "background:var(--panel-2,var(--panel-3));border:1px solid var(--line);border-radius:6px;min-width:0}" +
       ".am-master{flex:1 1 0;border-color:var(--accent)}" +

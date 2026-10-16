@@ -104,6 +104,7 @@
   /// A box for a part that fits what is in it (grid units; one unit is 20 px).
   function partSize(part) {
     if (!part) return [24, 14];
+    if (part.size) return part.size;
     if (part.kind === "buttons") return [16, 3];
     if (part.kind === "controls") { const n = Math.max(1, part.knobs || 1); return [Math.max(8, 4 * Math.min(n, 6) + 2), 8 * Math.ceil(n / 6)]; }
     return [24, 10];

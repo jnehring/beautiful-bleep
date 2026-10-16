@@ -54,6 +54,8 @@
 //              Without it every top-level element of the template is a part, named after its
 //              <h2> (the text before " · "), else "Display".
 //   partNames  names for those top-level elements, in order, instead of the <h2>s: ["Pattern grid"]
+//   partSizes  the box a panel gives each of them, in grid units [columns, rows], in the same order, where the
+//              default [24, 10] is too small or too big: [[35, 10]]. (With parts: a size on each entry.)
 //
 // Parts (panels show them alone, spec panels.md "Parts of a module view"): the displays of the
 // custom section ("d:<slug>"), each titled section of knobs ("s:<slug>") and the button bar
@@ -142,7 +144,7 @@
   /// The displays of the custom section: {id, name, select?, index?}; index -1 is the section itself.
   function displayParts(h, taken) {
     if (!h) return [];
-    if (h.parts) return h.parts.map((d) => ({ id: uniqueId(taken, "d:" + d.id), name: d.name, select: d.select, kind: "display" }));
+    if (h.parts) return h.parts.map((d) => ({ id: uniqueId(taken, "d:" + d.id), name: d.name, select: d.select, size: d.size, kind: "display" }));
     const kids = h.template ? templateKids(h.template) : [];
     if (!kids.length) return h.template ? [{ id: uniqueId(taken, "d:display"), name: "Display", index: -1, kind: "display" }] : [];
     // the <h2>'s own text, not what its buttons and selects add to it
@@ -154,7 +156,7 @@
     });
     return kids.map((k, i) => {
       const name = names[i] || (kids.length > 1 ? "Display " + (i + 1) : "Display");
-      return { id: uniqueId(taken, "d:" + slug(name)), name, index: i, kind: "display" };
+      return { id: uniqueId(taken, "d:" + slug(name)), name, index: i, size: h.partSizes && h.partSizes[i], kind: "display" };
     });
   }
   /// The titled sections of knobs: [{id, name, knobs}] in the order the view lays them out.
@@ -171,12 +173,12 @@
     }
     return out;
   }
-  /// Everything of this module's view a panel can show alone: [{id, name, kind: "display" | "controls" | "buttons", knobs?}].
+  /// Everything of this module's view a panel can show alone: [{id, name, kind: "display" | "controls" | "buttons", knobs?, size?}].
   function partsOf(type) {
     const h = hooks.get(type.type), taken = new Set();
     const out = [...displayParts(h, taken), ...sectionParts(type, h, taken)];
     if (type.buttons && type.buttons.length) out.push({ id: "b:buttons", name: "Buttons", kind: "buttons" });
-    return out.map(({ id, name, kind, knobs }) => ({ id, name, kind, ...(knobs ? { knobs } : {}) }));
+    return out.map(({ id, name, kind, knobs, size }) => ({ id, name, kind, ...(knobs ? { knobs } : {}), ...(size ? { size } : {}) }));
   }
 
 

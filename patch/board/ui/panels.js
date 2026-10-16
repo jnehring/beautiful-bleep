@@ -572,12 +572,19 @@
     function embeddedView(c, bound) {
       const e = el("div", "");
       const node = host.node(c.node, bound);
-      if (opts.edit) {   // the editor draws a placeholder: a live view per rebuild is heavy
+      // The editor shows the view as it stands (not live, not reacting: its overlay takes the pointer); a view that
+      // cannot be built there is a placeholder.
+      const v = node ? host.view(node.id) : null;
+      if (opts.edit && (!v || (c.part && !(v.showOnly && v.showOnly(c.part))))) {
         e.classList.add("placeholder");
         e.append(el("span", "", node ? (c.part && c.label) || `${node.name} view` : "view: module missing"));
         return e;
       }
-      const v = node ? host.view(node.id) : null;
+      if (opts.edit) {
+        e.classList.add("preview");
+        e.append(v.root);
+        return e;
+      }
       if (!v) { e.classList.add("dead"); return e; }
       // A part of the view (a display, a section of knobs, the buttons) alone; one that is gone shows as a dead box.
       if (c.part && !(v.showOnly && v.showOnly(c.part))) { e.classList.add("dead"); e.append(el("i", "", "Part missing")); return e; }

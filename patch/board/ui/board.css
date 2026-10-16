@@ -272,6 +272,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .bp-meter b { position: absolute; left: 0; right: 0; bottom: 0; background: var(--accent); }
 .bp-view { overflow: auto; border-radius: 6px; }
 .bp-view .bleep-view { width: 100%; box-sizing: border-box; }
+.bp-view.preview { pointer-events: none; overflow: hidden; }
 .bp-box { position: relative; }
 .bp-c.dead { opacity: .35; }
 .bp-unknown { border: 1px dashed var(--line); border-radius: 6px; }
