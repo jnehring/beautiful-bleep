@@ -16,7 +16,12 @@ option(BLEEP_BUS_BUILD_TESTS "Build the conformance suite and tests" ${PROJECT_I
 option(BLEEP_BUS_BUILD_EXAMPLES "Build the command-line examples" ${PROJECT_IS_TOP_LEVEL})
 
 add_library(bleep_bus STATIC
-    src/bleep_bus.c
+    src/bb_bus.c
+    src/bb_registry.c
+    src/bb_audio.c
+    src/bb_connections.c
+    src/bb_state.c
+    src/bb_internal.h
     src/bb_platform.c
     src/bb_platform.h
     include/bleep_bus.h
