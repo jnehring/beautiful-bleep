@@ -22,15 +22,21 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /data
-      - /config
+    volumes:
+      # Caddy keeps its certificates (automatic HTTPS, BLEEP_SITE_ADDRESS) and its state here; unused in plain-HTTP mode.
+      - caddy-data:/data
+      - caddy-config:/config
     build:
       context: ..
       dockerfile: website/Dockerfile
     image: beautiful-bleep-site:latest
     ports:
       - "${BLEEP_SITE_PORT:-8080}:80"
+      # Only used with automatic HTTPS (BLEEP_SITE_ADDRESS set to a domain): then BLEEP_SITE_PORT=80 and BLEEP_SITE_TLS_PORT=443.
+      - "${BLEEP_SITE_TLS_PORT:-8443}:443"
     environment:
+      # Site address for Caddy: ":80" = plain HTTP (TLS in front); a domain = Caddy gets its own certificate. See .env.example.
+      BLEEP_SITE_ADDRESS: ${BLEEP_SITE_ADDRESS:-:80}
       # Optional password for the whole site (Caddy basic auth); off while the hash is empty. See .env.example.
       BLEEP_BASIC_AUTH_USER: ${BLEEP_BASIC_AUTH_USER:-bleep}
       # An empty value would stop Caddy from starting: without a hash a placeholder hash is passed and the switch stays off.
@@ -181,3 +187,5 @@ services:
 volumes:
   db-data:
   registry-data:
+  caddy-data:
+  caddy-config:

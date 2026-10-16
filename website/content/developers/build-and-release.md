@@ -27,7 +27,7 @@ The commands for the things we ship: the standalone app, the plugins, the module
   ```bash
   cd website
   docker compose exec api python -m app.cli token-create "my laptop" --days 90 > ~/.bleep-release-token
-  docker compose exec api python -m app.cli developer-create bleep --scopes module,plugin --first-party > ~/.bleep-signing-kit.json
+  (umask 077; docker compose exec -T api python -m app.cli developer-create bleep --scopes module,plugin --first-party --confirm > ~/.bleep-signing-kit.json)
   chmod 600 ~/.bleep-release-token ~/.bleep-signing-kit.json
   ```
 

@@ -159,7 +159,7 @@ Package signatures say who built a file. The store additionally signs `index.jso
 **Today: the admin issues the key and hands it over.** There is no developer self-service yet.
 
 ```
-admin      docker compose exec api python -m app.cli developer-create acme --scopes module [--days 365] > acme.kit.json
+admin      (umask 077; docker compose exec -T api python -m app.cli developer-create acme --scopes module [--days 365] > acme.kit.json)
 admin      docker compose exec api python -m app.cli token-create "acme CI" --publisher acme > token
            (hand both over privately: the kit is the developer's private key and certificate)
 developer  scripts/release/signing.py sign fuzz.bleepmod --kit acme.kit.json --kind module --id acme/fuzz --version 1.0.0

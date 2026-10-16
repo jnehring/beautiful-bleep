@@ -516,6 +516,26 @@ def test_developer_create_prints_a_kit_that_signs(client, capsys, make_admin):
         cli.main(["developer-create", "Bad Name"])
 
 
+def test_developer_create_first_party_needs_confirm(client, make_admin, tmp_path, capsys):
+    from app import cli
+    out = tmp_path / "kit.json"
+    with pytest.raises(SystemExit) as e:
+        cli.main(["developer-create", "bleep", "--first-party", "--out", str(out)])
+    assert "--confirm" in str(e.value) and not out.exists()
+    cli.main(["developer-create", "bleep", "--first-party", "--confirm", "--out", str(out)])
+    import json
+    assert json.loads(out.read_text())["publisher"] == "bleep"
+
+
+def test_developer_create_warns_about_active_duplicate(client, make_admin, capsys):
+    from app import cli
+    cli.main(["developer-create", "acme"])
+    first = capsys.readouterr()
+    assert "Warning" not in first.err
+    cli.main(["developer-create", "acme"])
+    assert "already has 1 active key" in capsys.readouterr().err
+
+
 def release_module(client, token, kit, slug, version, files, **declared):
     """Declares, uploads and publishes a module package; returns the upload response (the step the store checks the package at).
     The release declares the package's own licence and origin (what release.py does) unless `declared` says otherwise."""

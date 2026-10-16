@@ -5,19 +5,25 @@
     python -m app.cli promote EMAIL
     python -m app.cli demote EMAIL
     python -m app.cli set-password EMAIL
-    python -m app.cli token-create NAME [--days N] [--publisher P]
+    python -m app.cli token-create NAME [--days 1..3650] [--publisher P] [--out FILE]
     python -m app.cli token-list
     python -m app.cli token-revoke ID
-    python -m app.cli developer-create PUBLISHER [--scopes module,plugin] [--first-party] [--days N]   > kit.json
+    python -m app.cli developer-create PUBLISHER [--scopes module,plugin] [--first-party --confirm] [--days 1..825] [--out FILE]
     python -m app.cli developer-list
     python -m app.cli developer-revoke KEY_ID
+
+The token and the key kit are secrets. --out FILE writes them to a file that only the owner can read (0600). Without --out they go to
+stdout, which is refused when that is a regular file other users can read (a shell redirect "> kit.json" under the default umask);
+a pipe or a terminal is fine.
 
 In Compose:  docker compose exec api python -m app.cli list
 """
 import argparse
 import getpass
 import json
+import os
 import secrets
+import stat
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -30,6 +36,45 @@ from .models import ApiToken, Developer, User, UserSession, now
 from .routers import registry
 from .security import hash_password, hash_token
 from .storage import get_storage
+
+
+def _bounded_days(low: int, high: int):
+    def parse(text: str) -> int:
+        try:
+            n = int(text)
+        except ValueError:
+            raise argparse.ArgumentTypeError(f"{text!r} is not a number of days") from None
+        if not low <= n <= high:
+            raise argparse.ArgumentTypeError(f"must be between {low} and {high} days")
+        return n
+    return parse
+
+
+def _stdout_is_readable_file() -> bool:
+    """True when stdout is a regular file that group or others can read (a pipe, a terminal, or no real stdout: False)."""
+    try:
+        st = os.fstat(sys.stdout.fileno())
+    except (OSError, ValueError, AttributeError):
+        return False
+    return stat.S_ISREG(st.st_mode) and bool(st.st_mode & 0o044)
+
+
+def _check_secret_destination(out: str | None) -> None:
+    """Call before anything is created: a secret must not end up in a world-readable file."""
+    if out is None and _stdout_is_readable_file():
+        sys.exit("Refusing to write a secret to a file that other users can read. Use --out FILE (written with mode 0600), "
+                 "or pipe the output instead of redirecting it to a file.")
+
+
+def _emit_secret(text: str, out: str | None) -> None:
+    if out is None:
+        print(text)
+        return
+    try:
+        signing.write_secret(out, text + "\n")
+    except OSError as e:
+        sys.exit(f"Cannot write {out}: {e}")
+    print(f"Written to {out} (mode 0600)", file=sys.stderr)
 
 
 def _find(db, email: str) -> User:
@@ -88,6 +133,7 @@ def set_password(args: argparse.Namespace) -> None:
 
 
 def token_create(args: argparse.Namespace) -> None:
+    _check_secret_destination(args.out)
     token = "blp_" + secrets.token_urlsafe(32)
     with SessionLocal() as db:
         db.add(ApiToken(
@@ -96,7 +142,7 @@ def token_create(args: argparse.Namespace) -> None:
         ))
         db.commit()
     print(f"Release token for {args.publisher or 'bleep'} (shown once; store it, e.g. in a file only you can read):", file=sys.stderr)
-    print(token)
+    _emit_secret(token, args.out)
 
 
 def token_list(_: argparse.Namespace) -> None:
@@ -126,7 +172,11 @@ def developer_create(args: argparse.Namespace) -> None:
     """Issues a developer key: a new key pair and a certificate from the store's issuer, as one JSON "kit" on stdout.
 
     The kit holds the developer's private key. Hand it over privately; the store keeps only the key id.
+    --first-party (may sign ids without a namespace: ours only) needs --confirm. A publisher that already has an active key gets a warning.
     """
+    _check_secret_destination(args.out)
+    if args.first_party and not args.confirm:
+        sys.exit("--first-party lets the key sign ids without a namespace (Bleep's own releases). Add --confirm if that is what you want.")
     if not (settings.issuer_key or settings.issuer_key_file) or not settings.issuer_cert:
         sys.exit("Set BLEEP_ISSUER_KEY and BLEEP_ISSUER_CERT (scripts/release/signing.py init-registry makes them)")
     scopes = [s for s in args.scopes.split(",") if s]
@@ -139,11 +189,16 @@ def developer_create(args: argparse.Namespace) -> None:
         sys.exit(str(e))
     not_after = datetime.fromtimestamp(kit["chain"][1]["tbs"]["notAfter"], timezone.utc)
     with SessionLocal() as db:
+        active = db.scalars(select(Developer).where(Developer.publisher == args.publisher, Developer.revoked_at.is_(None),
+                                                    Developer.not_after > now())).all()
+        if active:
+            print(f"Warning: {args.publisher} already has {len(active)} active key(s) ({', '.join(d.key_id for d in active)}); "
+                  "revoke the old one with developer-revoke if this replaces it.", file=sys.stderr)
         db.add(Developer(publisher=args.publisher, key_id=kit["keyId"], scopes=scopes, first_party=args.first_party, not_after=not_after))
         db.commit()
     print(f"Developer key {kit['keyId']} for {args.publisher}, valid until {not_after:%Y-%m-%d}. The kit below is a secret: hand it over privately.",
           file=sys.stderr)
-    print(json.dumps(kit, indent=1))
+    _emit_secret(json.dumps(kit, indent=1), args.out)
 
 
 def developer_list(_: argparse.Namespace) -> None:
@@ -185,18 +240,21 @@ def main(argv: list[str] | None = None) -> None:
         p.set_defaults(run=fn)
     p = sub.add_parser("token-create", help="create a release token for scripts/release/release.py")
     p.add_argument("name")
-    p.add_argument("--days", type=int, help="expire after this many days (default: never)")
+    p.add_argument("--days", type=_bounded_days(1, 3650), help="expire after this many days, 1 to 3650 (default: never)")
+    p.add_argument("--out", help="write the token to this file (mode 0600) instead of stdout")
     p.add_argument("--publisher", help="the developer this token releases for (default: bleep, our own releases)")
     p.set_defaults(run=token_create)
     sub.add_parser("token-list", help="list release tokens").set_defaults(run=token_list)
     p = sub.add_parser("token-revoke", help="delete a release token")
     p.add_argument("id", type=int)
     p.set_defaults(run=token_revoke)
-    p = sub.add_parser("developer-create", help="issue a developer key (a kit with the private key, on stdout)")
+    p = sub.add_parser("developer-create", help="issue a developer key (a kit with the private key, on stdout or --out FILE)")
     p.add_argument("publisher")
     p.add_argument("--scopes", default="module", help="module, plugin or both, comma separated (default: module)")
-    p.add_argument("--first-party", action="store_true", help="may sign ids without a namespace (ours only)")
-    p.add_argument("--days", type=int, default=365)
+    p.add_argument("--first-party", action="store_true", help="may sign ids without a namespace (ours only; needs --confirm)")
+    p.add_argument("--confirm", action="store_true", help="confirms --first-party")
+    p.add_argument("--days", type=_bounded_days(1, 825), default=365, help="validity, 1 to 825 days (default: 365)")
+    p.add_argument("--out", help="write the kit to this file (mode 0600) instead of stdout")
     p.add_argument("--name", default="")
     p.set_defaults(run=developer_create)
     sub.add_parser("developer-list", help="list issued developer keys").set_defaults(run=developer_list)

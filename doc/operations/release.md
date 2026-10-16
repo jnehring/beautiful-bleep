@@ -22,7 +22,7 @@ A token releases for one publisher: without `--publisher` it is for our own rele
 3. **Make a kit for the publisher** (our own: `bleep`, a first-party key that may sign ids without a namespace):
 
 ```bash
-docker compose exec api python -m app.cli developer-create bleep --scopes module,plugin --first-party > ~/.bleep-signing-kit.json
+(umask 077; docker compose exec -T api python -m app.cli developer-create bleep --scopes module,plugin --first-party --confirm > ~/.bleep-signing-kit.json)
 chmod 600 ~/.bleep-signing-kit.json
 docker compose exec api python -m app.cli developer-list
 docker compose exec api python -m app.cli developer-revoke KEY_ID

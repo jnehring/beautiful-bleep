@@ -102,9 +102,13 @@ def _up_to_date(cache_file, key, target):
     """True when the target exists, was built with the same key and none of its source files changed."""
     try:
         rec = json.loads(cache_file.read_text())
+        # The cache is data in the output folder: a path that leaves the repository makes it stale, it is never read.
+        for rel in rec["deps"]:
+            if not isinstance(rel, str) or Path(rel).is_absolute() or ".." in Path(rel).parts:
+                return False
         return (target.exists() and rec["key"] == key
                 and all((ROOT / rel).is_file() and _sha(ROOT / rel) == h for rel, h in rec["deps"].items()))
-    except (OSError, ValueError, KeyError):
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return False
 
 

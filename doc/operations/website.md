@@ -17,6 +17,7 @@ Edit `website/.env`:
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY` | Required secret for the store storage; the API writes releases with it |
 | `BLEEP_COOKIE_SECURE` | defaults to `true` (HTTPS); set `false` only for plain `http://localhost` development |
 | `BLEEP_SITE_PORT` | Optional, default 8080 |
+| `BLEEP_SITE_ADDRESS`, `BLEEP_SITE_TLS_PORT` | Optional automatic HTTPS, default off (`:80`, plain HTTP); see the HTTPS entry under [Notes](#notes) |
 | `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY`, `BLEEP_ISSUER_CERT` | The store's signing keys (see [Signing keys](#signing-keys)). Without the root public key the store refuses every release |
 | `BLEEP_REQUIRE_SIGNATURES` | Default `true`: a release without a valid developer signature is refused. Only turn it off for local experiments |
 
@@ -66,7 +67,7 @@ docker compose exec api python -m app.cli demote you@example.com        # make a
 docker compose exec api python -m app.cli set-password you@example.com  # prompts; ends their sessions
 ```
 
-Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days N] [--publisher P]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create`, `developer-list`, `developer-revoke` (see [release.md](release.md); the keys the store needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
+Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days 1..3650] [--publisher P] [--out FILE]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create PUBLISHER [--days 1..825] [--out FILE] [--first-party --confirm]` (warns when the publisher already has an active key), `developer-list`, `developer-revoke` (the token and the key kit are secrets: `--out FILE` writes them with mode 0600, and without `--out` the command refuses to print into a file that other users can read, as `> kit.json` under the default umask would; a pipe or terminal is fine; see [release.md](release.md); the keys the store needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
 
 Run these from `website/`. The password is typed at a prompt, never given as an argument.
 
@@ -181,6 +182,16 @@ If you only have an old kit and lost the `.env`, you cannot recover the issuer k
 - **Database password is fixed at first start.** Postgres keeps the password it was created with in the `db-data` volume. If you change `POSTGRES_PASSWORD` later, either change it inside Postgres or delete the volume: `docker compose down -v` (this deletes all accounts).
 - **Back up the database** with `docker compose exec db pg_dump -U bleep bleep > backup.sql`.
 - **Updates:** `git pull && scripts/run/run-website.sh`. The API applies database migrations when it starts.
-- **Security headers:** the Caddyfile sends a CSP (pages: same-origin plus inline script/style for Next's export; `/registry/*`: `default-src 'none'; sandbox`), HSTS, `nosniff`, `X-Frame-Options: DENY`, a Referrer-Policy and a Permissions-Policy. Bleep Play's origin list (`ws://127.0.0.1:*` for the app bridge, `'wasm-unsafe-eval'` for the modules) is in the CSP: extend it there if the page needs another origin. `Caddyfile.dev` has none (`next dev` needs `eval`).
-- **HTTPS:** the Caddyfile serves plain HTTP on port 80. For a public site put TLS in front (or change the site address in the Caddyfile so Caddy gets a certificate) and set `BLEEP_COOKIE_SECURE=true`.
+- **Security headers:** the Caddyfile sends a CSP (pages: same-origin; no inline scripts in the header policy: `website/app/scripts/csp-hashes.mjs` (run by `npm run build`, so by the Docker build) puts a `<meta>` CSP with the sha256 of each page's inline scripts into every exported page, and the browser applies header and meta together; styles keep `'unsafe-inline'`; `/registry/*`: `default-src 'none'; sandbox`), HSTS, `nosniff`, `X-Frame-Options: DENY`, a Referrer-Policy and a Permissions-Policy. Bleep Play's origin list (`ws://127.0.0.1:*` for the app bridge, `'wasm-unsafe-eval'` for the modules) is in the CSP: extend it there if the page needs another origin. `Caddyfile.dev` has none (`next dev` needs `eval`).
+- **HTTPS:** by default the Caddyfile serves plain HTTP on port 80 (`BLEEP_SITE_ADDRESS` unset = `:80`): put TLS in front and set `BLEEP_COOKIE_SECURE=true`. Alternatively Caddy can get its own Let's Encrypt certificate: point the domain's DNS at the host, open ports 80 and 443 and set in `website/.env`
+
+  ```
+  BLEEP_SITE_ADDRESS=beautifulbleep.com
+  BLEEP_SITE_PORT=80
+  BLEEP_SITE_TLS_PORT=443
+  BLEEP_COOKIE_SECURE=true
+  BLEEP_PUBLIC_URL=https://beautifulbleep.com
+  ```
+
+  then `docker compose ... up -d`. Caddy redirects HTTP to HTTPS and renews the certificate; the certificates are kept in the `caddy-data` volume (do not delete it, Let's Encrypt rate-limits new certificates). Check the Caddyfile with `docker run --rm -i caddy:2-alpine caddy validate --config - --adapter caddyfile < website/Caddyfile`.
 - There is no login rate limiting, email verification or password reset yet.
