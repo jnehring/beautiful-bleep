@@ -27,8 +27,9 @@ cmake -S bus -B build/bus && cmake --build build/bus
 | State | save/load round trip, locale-independent amounts, malformed input |
 | IPC | a second process publishes, this one reads |
 
-To test **another implementation** of the C API, link `bb_conformance.c`
-against it instead of `bleep_bus`. To test **interop** between your
+To test **another implementation** of the C API, build the sources in
+`bus/conformance/` (`bb_conformance.c` and the files it lists in
+`bus/CMakeLists.txt`) against it instead of `bleep_bus`. To test **interop** between your
 implementation and the reference, run `peer-send` from one and a reader from
 the other.
 

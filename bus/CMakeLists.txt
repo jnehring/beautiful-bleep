@@ -57,7 +57,17 @@ endif ()
 if (BLEEP_BUS_BUILD_TESTS)
     enable_testing()
     find_package(Threads REQUIRED)
-    add_executable(bb_conformance conformance/bb_conformance.c)
+    add_executable(bb_conformance
+        conformance/bb_conformance.c
+        conformance/bb_conf.h
+        conformance/harness.c
+        conformance/modes.c
+        conformance/checks_layout.c
+        conformance/checks_registry.c
+        conformance/checks_timing.c
+        conformance/checks_signals.c
+        conformance/checks_hostile.c
+        conformance/checks_process.c)
     target_link_libraries(bb_conformance PRIVATE bleep_bus Threads::Threads)
     if (NOT MSVC)
         target_link_libraries(bb_conformance PRIVATE m)
