@@ -9,7 +9,7 @@ from .config import settings
 from .db import SessionLocal
 from .models import User, now
 from .deps import COOKIE, same_origin
-from .routers import admin, auth, moderation, presets, profile, registry, social, store, tokens, user_tokens
+from .routers import admin, auth, contact, moderation, presets, profile, registry, social, store, tokens, user_tokens
 from .security import hash_password
 
 
@@ -43,6 +43,7 @@ async def refuse_cross_site_writes(request: Request, call_next):
 
 
 app.include_router(auth.router)
+app.include_router(contact.router)
 app.include_router(profile.router)
 app.include_router(admin.router)
 app.include_router(tokens.router)

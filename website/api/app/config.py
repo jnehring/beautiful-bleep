@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     smtp_user: str | None = None
     smtp_password: str | None = None
     smtp_from: str | None = None
+    # Where contact-form messages go. Defaults to smtp_user.
+    contact_to: str | None = None
     # The site's public address, for the links in emails (no trailing slash).
     public_url: str = "http://localhost:8080"
     # false: registration sends no confirmation link and nobody is asked to confirm. Password reset emails are unaffected.

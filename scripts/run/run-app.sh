@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 #
 # Builds the standalone Bleep App (spec §11) and starts it, with its
-# console output in this terminal. Only the app is built, not the plugins.
+# console output in this terminal. Only the app is built, not the plugins
+# (in build/app/, apart from build-patch.sh's build/patch/).
 #
 #   scripts/run/run-app.sh [--debug] [--ui-dev] [--no-build] [--smoke]
 #                      [--juce <dir>] [project.bleepboard]
@@ -16,11 +17,13 @@
 #               build's cached choice, else download JUCE 8.0.9)
 #
 # A running app is asked to quit first (it may ask you to save); the script
-# never force-quits it. Output: build/patch/BleepApp_artefacts/<Config>/
+# never force-quits it. Output: build/app/BleepApp_artefacts/<Config>/
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-BUILD_DIR="$ROOT/build/patch"
+# Its own build dir: build-patch.sh configures build/patch with other options (tests, ccache, ...),
+# and every change of a CMake option there recompiles. Sharing the dir made both scripts rebuild.
+BUILD_DIR="$ROOT/build/app"
 CONFIG=Release
 UI_DEV=OFF
 BUILD=1
@@ -34,7 +37,7 @@ while [[ $# -gt 0 ]]; do
         --no-build) BUILD=0 ;;
         --smoke) APP_ARGS+=(--smoke) ;;
         --juce) JUCE_DIR="$2"; shift ;;
-        -h|--help) sed -n '3,19p' "$0"; exit 0 ;;
+        -h|--help) sed -n '3,20p' "$0"; exit 0 ;;
         -*) echo "unknown option: $1" >&2; exit 2 ;;
         *) APP_ARGS+=("$(cd "$(dirname "$1")" && pwd)/$(basename "$1")") ;;  # a project file
     esac
@@ -47,9 +50,13 @@ BIN="$APP/Contents/MacOS/Bleep App"
 if [[ $BUILD == 1 ]]; then
     GENERATOR=()
     if command -v ninja >/dev/null && [[ ! -f "$BUILD_DIR/CMakeCache.txt" ]]; then GENERATOR=(-G Ninja); fi
+    LAUNCHER=()
+    if command -v ccache >/dev/null; then
+        LAUNCHER=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_OBJCXX_COMPILER_LAUNCHER=ccache)
+    fi
     JUCE_ARG=()
     [[ -n "$JUCE_DIR" ]] && JUCE_ARG=(-DBLEEP_JUCE_DIR="$JUCE_DIR")
-    cmake -S "$ROOT/patch" -B "$BUILD_DIR" ${GENERATOR[@]+"${GENERATOR[@]}"} ${JUCE_ARG[@]+"${JUCE_ARG[@]}"} \
+    cmake -S "$ROOT/patch" -B "$BUILD_DIR" ${GENERATOR[@]+"${GENERATOR[@]}"} ${JUCE_ARG[@]+"${JUCE_ARG[@]}"} ${LAUNCHER[@]+"${LAUNCHER[@]}"} \
         -DCMAKE_BUILD_TYPE="$CONFIG" \
         -DBLEEP_FORMATS=VST3 \
         -DBLEEP_BUILD_APP=ON \

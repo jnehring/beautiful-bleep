@@ -393,3 +393,18 @@ class ResetPasswordIn(BaseModel):
 
 class EmailTokenIn(BaseModel):
     token: str = Field(min_length=10, max_length=200)
+
+
+class ContactIn(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    email: EmailStr
+    message: str = Field(min_length=10, max_length=5000)
+    website: str = Field(default="", max_length=200)  # honeypot: hidden in the form, bots fill it
+
+    @field_validator("name")
+    @classmethod
+    def _name(cls, v: str) -> str:
+        v = _clean_name(v)
+        if "\n" in v or "\r" in v:
+            raise ValueError("must be one line")
+        return v

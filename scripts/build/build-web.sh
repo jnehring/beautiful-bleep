@@ -45,7 +45,11 @@ if [ "$MODULES" = 1 ]; then
   command -v emcc >/dev/null || { echo "emcc not found: install the Emscripten SDK and source emsdk_env.sh" >&2; exit 1; }
 fi
 
-[ "$UI" = 1 ] && rm -rf "$OUT"
+# A full build starts the site folder afresh, but keeps what the module build caches there
+# (modules/, manifest.json, .cache/, .juce/): wiping them recompiled every module each time.
+if [ "$UI" = 1 ] && [ -d "$OUT" ]; then
+  find "$OUT" -mindepth 1 -maxdepth 1 ! -name modules ! -name manifest.json ! -name .cache ! -name .juce -exec rm -rf {} +
+fi
 mkdir -p "$OUT/js"
 
 # 1. The modules: <out>/modules/*.wasm and <out>/manifest.json. Modules that use

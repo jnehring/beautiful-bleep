@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import SiteNav from "./SiteNav";
+import SiteFooter from "./SiteFooter";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://brilliantbleep.com"),
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <SiteNav />
         <main>{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

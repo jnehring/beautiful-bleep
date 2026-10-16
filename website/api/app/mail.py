@@ -14,7 +14,7 @@ from .config import settings
 log = logging.getLogger("bleep.mail")
 
 
-def send(to: str, subject: str, body: str) -> None:
+def send(to: str, subject: str, body: str, reply_to: str | None = None) -> None:
     sender = settings.smtp_from or settings.smtp_user
     if not (settings.smtp_host and sender):
         log.warning("Email not sent (BLEEP_SMTP_HOST is not set). To: %s\nSubject: %s\n\n%s", to, subject, body)
@@ -23,6 +23,8 @@ def send(to: str, subject: str, body: str) -> None:
     msg["From"] = f"Beautiful Bleep <{sender}>"
     msg["To"] = to
     msg["Subject"] = subject
+    if reply_to:
+        msg["Reply-To"] = reply_to
     msg.set_content(body)
     try:
         with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as smtp:
