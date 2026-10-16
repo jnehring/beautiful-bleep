@@ -2,6 +2,7 @@
 // modal.js — Library, Settings and Help open as modal dialogs over the board (the board stays visible behind them).
 //
 //   P.BleepModal.mount(root, close)   puts `root` (a section the view built) into a dialog with a ✕ button; `close()` hides the view
+//   P.BleepModal.unmount(root)        removes the dialog again (a view that is built per use)
 //   P.BleepModal.toggle(root, on)     shows or hides it (also sets root.hidden); a click on the backdrop and Esc call `close`
 (function () {
   "use strict";
@@ -35,6 +36,12 @@
       document.body.appendChild(back);
       backs.set(root, back);
       closers.set(root, close);
+    },
+    unmount(root) {
+      const back = backs.get(root);
+      if (back) back.remove();
+      backs.delete(root);
+      closers.delete(root);
     },
     toggle(root, on) {
       root.hidden = !on;

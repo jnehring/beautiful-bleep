@@ -199,13 +199,13 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-head .power.on { color: var(--accent); text-shadow: 0 0 6px var(--accent); }
 .v-body { max-height: 70vh; overflow-y: auto; }
 .vwin.port { width: fit-content; min-width: 260px; max-width: min(520px, calc(100vw - 24px)); }
-.vwin.doc { width: 560px; }
 .vwin.wiring { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; }
 .vwin.wiring .v-head { grid-column: 1 / -1; }
 .v-ins { display: flex; flex-direction: column; gap: 1px; padding: 6px 10px 6px 12px; max-width: 140px;
          border-right: 1px solid var(--line); background: var(--panel-2); }
 
 /* ---- module documentation (bleep-markdown.js) */
+.mod-doc .v-doc { padding: 0; }
 .v-doc { padding: 4px 16px 16px; font-size: 12.5px; line-height: 1.5; user-select: text; -webkit-user-select: text; }
 .v-doc h1 { font-size: 17px; margin: 10px 0 6px; color: var(--accent); }
 .v-doc h2 { font-size: 13px; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }

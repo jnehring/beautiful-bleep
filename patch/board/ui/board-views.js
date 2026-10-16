@@ -103,8 +103,6 @@
         }
         head.append(help, pin, close);
         const body = el("div", "v-body");
-        const doc = el("div", "v-doc");
-        doc.hidden = true;
         win.append(head, body);
         const api = makeApi(id);
         const bv = BleepView.create(t, clone(n), api);
@@ -112,13 +110,14 @@
         if (hook && hook.width) win.style.width = hook.width + "px";
         else if (isPort(n)) win.classList.add("port");   // In/Out nodes have a few controls: fit them
         if (!n.params) n.params = {};
-        body.append(bv.root, doc);
+        body.append(bv.root);
         $("views").appendChild(win);
-        const v = { win, bv, pinned: false, power };
+        const v = { win, bv, pinned: false, power, docRoot: null };
+        let docHtml = null;
         moduleDoc(t.type).then((md) => {
           if (md === null) return;
           help.hidden = false;
-          doc.innerHTML = BleepMarkdown.render(md);
+          docHtml = BleepMarkdown.render(md);
         });
         views.set(id, v);
 
@@ -148,19 +147,23 @@
 
         win.addEventListener("pointerdown", () => front(win));
         pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); pin.title = pinTitle(v.pinned); });
+        // The module's manual opens in a dialog over the board (modal.js), built on first use.
         help.addEventListener("click", () => {
-          const open = doc.hidden;
-          doc.hidden = !open;
-          bv.root.hidden = open;
+          if (docHtml === null) return;
+          if (!v.docRoot) {
+            const section = el("section", "mod-doc");
+            const doc = el("div", "v-doc");
+            doc.innerHTML = docHtml;
+            doc.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });  // the page must not navigate
+            section.appendChild(doc);
+            section.hidden = true;
+            v.docRoot = section;
+            P.BleepModal.mount(section, () => { P.BleepModal.toggle(section, false); help.classList.remove("on"); });
+          }
+          const open = v.docRoot.hidden;
+          P.BleepModal.toggle(v.docRoot, open);
           help.classList.toggle("on", open);
-          win.classList.toggle("doc", open);
-          help.title = open ? "Back to the controls" : "Documentation";
-          body.scrollTop = 0;
-          // The docs are wider: keep the window, and its buttons, inside the canvas.
-          const maxLeft = canvas.clientWidth - win.offsetWidth - 8;
-          if (win.offsetLeft > maxLeft) win.style.left = Math.max(8, maxLeft) + "px";
         });
-        doc.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });  // the page must not navigate
         close.addEventListener("click", () => closeView(id));
         pen.addEventListener("click", () => {
           const cur = nodeById(id);
@@ -232,6 +235,7 @@
         if (!v) return;
         if (v.panelId) v.destroy();
         v.win.remove();
+        if (v.docRoot) P.BleepModal.unmount(v.docRoot);
         views.delete(id);
         watch();
       }
