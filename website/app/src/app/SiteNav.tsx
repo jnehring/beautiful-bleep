@@ -15,10 +15,10 @@ export default function SiteNav() {
       <header className="site">
         <a className="brand" href="/"><img src="/logo.svg" alt="" width={28} height={28} />Beautiful Bleep</a>
         <nav aria-label="Main">
+          <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Play</a>
           {(Object.keys(AUDIENCES) as Audience[]).map((a) => (
             <a key={a} href={AUDIENCES[a].home} aria-current={a === current ? "true" : undefined}>{AUDIENCES[a].title}</a>
           ))}
-          <a href="/board/" aria-current={path.startsWith("/board") ? "true" : undefined}>Play</a>
           <a href="/download/" aria-current={path.startsWith("/download") ? "true" : undefined}>Download</a>
           <a href="/library/" aria-current={path.startsWith("/library") || isModulesPath(path) ? "true" : undefined}>Bleep Library</a>
         </nav>
