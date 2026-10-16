@@ -5,7 +5,7 @@
 //   Demo       five projects per advanced module (demo-patches.json, built from patch/presets/demos)
 //   Mine       the user's own. App and plugin: a folder on the computer (native "presets"/"savePreset" kind "projects").
 //              Web: the user's account on the website (/api/projects), so saving needs a login.
-//   Library    projects shared in the Bleep Library, searched there (/api/presets?type=patch) and downloaded on Load
+//   Community  projects shared in the Bleep Library, searched there (/api/presets?type=patch) and downloaded on Load
 //
 // Web only: Download Project (the `.bleepboard` file) and Open from a file. Loading replaces the board (native "loadPatch"; the
 // standalone app asks about unsaved changes first).
@@ -20,12 +20,14 @@
   let demos = [];             // [{name, module, moduleName, preset}]
   let mine = [];              // [{name, preset, id?}]
   let lib = { items: [], note: "", busy: false };   // the Library group: [{name, address, author, preset}]
-  let group = "all";          // "all", "mine", "library" or a module type
+  let group = "all";          // plugin mode: "all" or a category of cell presets
+  let view = "all";           // board mode: a view of preset-index.js ("all", "project", "cell", "instrument", "effect", "demo", "module:<type>")
+  const origins = new Set(["factory", "user"]);   // board mode: which origins show (Community needs the Library); none on shows all
   let query = "";
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
-  let root = null, listEl, groupsEl, searchEl, saveRow, saveBtn, fileInput, noteEl;
+  let root = null, listEl, groupsEl, originsEl, searchEl, saveRow, saveBtn, fileInput, noteEl;
   let signedIn = null;        // web: is there a login (null: not asked yet)
-  let current = null;         // the loaded project for the side menu: {name, source: "factory" | "user" | "library", address?, preset}
+  let current = null;         // the loaded project for the side menu: {name, source: "factory" | "user" | "community", address?, preset}
   const listeners = [];
   function setCurrent(c) { current = c; listeners.forEach((f) => f(current)); }
 
@@ -104,14 +106,14 @@
         preset: { description: i.summary, tags: i.tags }, meta: i,
       }));
     }
-    if (group === "library") { renderGroups(); renderList(); }
+    if (communityOn()) { renderGroups(); renderList(); }
   }
 
   /// A file of the Library, a project file or a bare board as the flat project the browser loads, or null.
   function toFlat(doc) {
     if (!doc || typeof doc !== "object") return null;
     if (doc.board && Array.isArray(doc.board.nodes))
-      return { name: doc.name, preset: Object.assign({}, doc.board, { description: doc.description || "", tags: doc.tags || [], tempo: doc.tempo, needs: doc.needs }) };
+      return { name: doc.name, preset: Object.assign({}, doc.board, { description: doc.description || "", tags: doc.tags || [], tempo: doc.tempo, needs: doc.needs, credits: doc.credits }) };
     if (doc.preset && Array.isArray(doc.preset.nodes))   // the Library's envelope
       return { name: doc.title, preset: Object.assign({}, doc.preset, { needs: doc.needs || doc.preset.needs, tags: doc.tags || doc.preset.tags }) };
     if (Array.isArray(doc.nodes)) return { name: doc.name, preset: doc };
@@ -122,38 +124,54 @@
     cells = (await native("cellPresets")) || [];
   }
 
-  /// The projects shown: the group's, filtered by the search words (name, module, tags, description).
-  function visible() {
-    if (host.cells) {
-      const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-      return cells.filter((c) => (group === "all" || c.category === group) &&
-        words.every((w) => [c.name, c.category, (c.tags || []).join(" "), c.description || ""].join(" ").toLowerCase().includes(w)))
-        .map((c) => ({ name: c.name, moduleName: c.category, current: c.current, cell: true,
-                       preset: { tags: c.tags, description: c.description, needs: c.needs, nodes: c.nodes } }));
-    }
-    if (group === "library") return lib.items;   // already filtered by the Library
-    const mineItems = mine.map((p) => Object.assign({}, p, { own: true, moduleName: "My project" }));
-    let list = group === "mine" ? mineItems : group === "all" ? demos.concat(mineItems)
-      : demos.filter((d) => d.module === group);
+  /// Plugin mode: the cell presets the plugin can play, filtered by the group (a category) and the search words.
+  function pluginCells() {
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-    if (words.length)
-      list = list.filter((p) => {
-        const hay = [p.name, p.moduleName, (p.preset.tags || []).join(" "), p.preset.description || ""].join(" ").toLowerCase();
-        return words.every((w) => hay.includes(w));
-      });
-    return list;
+    return cells.filter((c) => (group === "all" || c.category === group) &&
+      words.every((w) => [c.name, c.category, (c.tags || []).join(" "), c.description || ""].join(" ").toLowerCase().includes(w)))
+      .map((c) => ({ name: c.name, moduleName: c.category, current: c.current, cell: true,
+                     preset: { tags: c.tags, description: c.description, needs: c.needs, nodes: c.nodes } }));
   }
+
+  /// Every preset the board browser knows as one list of entries (preset-index.js): demos and the Library's projects, the user's own
+  /// projects and the board's cell presets. `ref` is the source object that loads it.
+  function entries() {
+    const I = window.BleepPresetIndex;
+    const out = [];
+    for (const c of host.cellPresets ? host.cellPresets() : [])
+      out.push(I.entry({ kind: "cell", origin: c.factory ? "factory" : "user", name: c.name, group: c.category, description: c.description,
+                         tags: c.tags, plays: c.plays, ref: { cellKey: c.key, name: c.name } }));
+    for (const d of demos)
+      out.push(I.entry({ kind: "demo", origin: "factory", name: d.name, group: d.moduleName, module: d.module,
+                         description: d.preset.description, tags: d.preset.tags, ref: d }));
+    for (const m of mine)
+      out.push(I.entry({ kind: "project", origin: "user", name: m.name, description: m.preset && m.preset.description,
+                         tags: m.preset && m.preset.tags, plays: m.preset && m.preset.plays, ref: Object.assign({}, m, { own: true }) }));
+    for (const l of lib.items)
+      out.push(I.entry({ kind: "project", origin: "community", name: l.name, author: l.meta && (l.meta.author_name || l.meta.author),
+                         description: l.preset && l.preset.description, tags: l.preset && l.preset.tags, served: true, ref: l }));
+    return out;
+  }
+
+  /// The entries of the chosen view and origins that match the search.
+  function visible() {
+    return window.BleepPresetIndex.select(entries(), { view, origins, query });
+  }
+
+  const KIND_LABELS = { project: "Project", cell: "Cell", demo: "Demo" };
+  /// Community presets come from the Library: they need an account (the apps with a library, Play) and a search.
+  const communityOn = () => account() && origins.has("community");
 
   function renderGroups() {
     groupsEl.innerHTML = "";
-    const add = (id, label, count) => {
-      const b = el("div", "pb-group" + (group === id ? " active" : ""));
-      b.appendChild(el("span", "", label));
-      if (count !== null) b.appendChild(el("span", "pb-count", String(count)));
-      b.addEventListener("click", () => { group = id; if (id === "library") searchLibrary(); render(); });
-      groupsEl.appendChild(b);
-    };
-    if (host.cells) {
+    if (host.cells) {   // plugin: the cell presets it can play, by category
+      const add = (id, label, count) => {
+        const b = el("div", "pb-group" + (group === id ? " active" : ""));
+        b.appendChild(el("span", "", label));
+        b.appendChild(el("span", "pb-count", String(count)));
+        b.addEventListener("click", () => { group = id; render(); });
+        groupsEl.appendChild(b);
+      };
       add("all", "All presets", cells.length);
       groupsEl.appendChild(el("div", "pb-sep", "Categories"));
       const cats = new Map();
@@ -161,46 +179,78 @@
       for (const [name, n] of cats) add(name, name, n);
       return;
     }
-    add("all", "All projects", demos.length + mine.length);
-    add("mine", "My projects", mine.length);
-    if (account()) add("library", "Library", lib.items.length || null);
+    const I = window.BleepPresetIndex;
+    const all = entries();
+    const add = (id, label) => {
+      const b = el("div", "pb-group" + (view === id ? " active" : ""));
+      b.appendChild(el("span", "", label));
+      b.appendChild(el("span", "pb-count", String(I.count(all, id, origins))));
+      b.addEventListener("click", () => { view = id; render(); });
+      groupsEl.appendChild(b);
+    };
+    add("all", "Everything");
+    add("project", "Projects");
+    if (host.cellPresets) add("cell", "Cells");
+    add("instrument", "Instruments");
+    add("effect", "Effects");
     groupsEl.appendChild(el("div", "pb-sep", "Demos by module"));
-    const mods = new Map();
-    for (const d of demos) mods.set(d.module, d.moduleName);
-    [...mods].sort((a, b) => a[1].localeCompare(b[1])).forEach(([type, name]) =>
-      add(type, name, demos.filter((d) => d.module === type).length));
+    add("demo", "All demos");
+    for (const [type, name] of I.modules(all)) add("module:" + type, name);
+  }
+
+  /// The Factory / Mine / Community switches above the list; none on shows everything.
+  function renderOrigins() {
+    originsEl.innerHTML = "";
+    if (host.cells) return;
+    for (const o of window.BleepPresetIndex.ORIGINS) {
+      if (o === "community" && !account()) continue;
+      const b = el("button", "pb-origin-switch" + (origins.has(o) ? " on" : ""), window.BleepPresetIndex.ORIGIN_LABELS[o]);
+      b.title = o === "community" ? "Presets shared in the Bleep Library" : o === "user" ? "Presets and projects you saved" : "Presets that come with the app";
+      b.addEventListener("click", () => {
+        if (origins.has(o)) origins.delete(o); else origins.add(o);
+        if (o === "community" && origins.has(o)) searchLibrary();
+        render();
+      });
+      originsEl.appendChild(b);
+    }
   }
 
   function emptyText() {
-    if (group === "library") return lib.busy ? "Searching the Library…" : lib.note || (query ? "No projects match." : "Nothing shared in the Library yet.");
-    if (group === "mine" && !query) {
+    if (communityOn() && lib.busy) return "Searching the Library…";
+    if (communityOn() && lib.note) return lib.note;
+    if (view === "cell" && !query) return "No cell presets here.";
+    if (origins.size === 1 && origins.has("user") && !query) {
       if (webMine() && signedIn === false) return "Log in on the website to keep projects in your account.";
       return "Nothing saved yet. “Save current project…” keeps the board you are working on here.";
     }
-    return "No projects match.";
+    return "Nothing matches.";
   }
 
   function renderList() {
     listEl.innerHTML = "";
-    const items = visible();
+    const items = host.cells ? pluginCells().map((p) => ({ name: p.name, group: p.moduleName, current: p.current, origin: "", plays: null, description: p.preset.description, tags: p.preset.tags || [], ref: p }))
+      : visible();
     if (!items.length) {
       listEl.appendChild(el("div", "pb-empty", emptyText()));
       return;
     }
-    for (const p of items) {
-      const card = el("div", "pb-card" + (p.current ? " current" : ""));
+    for (const e of items) {
+      const p = e.ref;
+      const card = el("div", "pb-card" + (e.current || p.current ? " current" : ""));
       const head = el("div", "pb-card-head");
-      head.appendChild(el("span", "pb-name", p.name));
-      head.appendChild(el("span", "pb-chip", p.moduleName));
+      head.appendChild(el("span", "pb-name", e.name));
+      if (e.origin) head.appendChild(el("span", "pb-badge pb-badge-" + e.origin, window.BleepPresetIndex.ORIGIN_LABELS[e.origin]));
+      head.appendChild(el("span", "pb-chip", e.kind === "project" ? (e.author ? "by " + e.author : KIND_LABELS.project) : e.group || KIND_LABELS[e.kind] || ""));
+      const as = window.BleepPresetIndex.playsAs(e);
+      if (as) head.appendChild(el("span", "pb-chip", as === "both" ? "Instrument · Effect" : as === "instrument" ? "Instrument" : "Effect"));
       card.appendChild(head);
-      if (p.preset.description) card.appendChild(el("div", "pb-desc", p.preset.description));
+      if (e.description) card.appendChild(el("div", "pb-desc", e.description));
       const foot = el("div", "pb-foot");
-      const tags = el("span", "pb-tags", (p.preset.tags || []).join(" · "));
-      foot.appendChild(tags);
+      foot.appendChild(el("span", "pb-tags", e.tags.join(" · ")));
       if (p.own) {
         const del = el("button", "pb-del", "Delete");
-        del.addEventListener("click", async (e) => {
-          e.stopPropagation();
+        del.addEventListener("click", async (ev) => {
+          ev.stopPropagation();
           if (del.dataset.sure !== "1") { del.dataset.sure = "1"; del.textContent = "Sure?"; setTimeout(() => { del.dataset.sure = ""; del.textContent = "Delete"; }, 2500); return; }
           mine = await mineDelete(p);
           render();
@@ -208,26 +258,34 @@
         foot.appendChild(del);
         if (account()) {   // the apps with a library, and Play
           const share = el("button", "pb-del", "Share…");
-          share.addEventListener("click", async (e) => {
-            e.stopPropagation();
+          share.addEventListener("click", async (ev) => {
+            ev.stopPropagation();
             try { P.BleepAccount.share("boards", p.name, await mineLoad(p)); } catch (err) { say(err.message); }
           });
           foot.appendChild(share);
         }
       }
-      const load = el("button", "pb-load", p.current ? "Loaded" : "Load");
-      load.addEventListener("click", (e) => { e.stopPropagation(); loadPatch(p); });
+      const isCell = e.kind === "cell";
+      const load = el("button", "pb-load", isCell ? "Add" : e.current || p.current ? "Loaded" : "Load");
+      load.addEventListener("click", (ev) => { ev.stopPropagation(); activate(e); });
       foot.appendChild(load);
       card.appendChild(foot);
-      card.addEventListener("dblclick", () => loadPatch(p));
+      card.addEventListener("dblclick", () => activate(e));
       listEl.appendChild(card);
     }
+  }
+
+  /// Load a project or demo, or place a cell preset on the board.
+  function activate(e) {
+    if (e.kind === "cell") { close(); host.placeCell(e.ref.cellKey); return; }
+    loadPatch(e.ref);
   }
 
   function say(text) { if (noteEl) { noteEl.textContent = text || ""; noteEl.hidden = !text; } }
 
   function render() {
     renderGroups();
+    renderOrigins();
     renderList();
     if (saveBtn) {
       saveBtn.disabled = !canSave();
@@ -282,7 +340,7 @@
     if (host.mapPorts) mapPorts(board);
     close();
     host.apply(await native("loadPatch", board, src.tempo || 0, p.name));
-    setCurrent({ name: p.name, source: p.address ? "library" : p.own ? "user" : "factory", address: p.address, preset: src });
+    setCurrent({ name: p.name, source: p.address ? "community" : p.own ? "user" : "factory", address: p.address, preset: src });
   }
 
   // ---------------------------------------------------------------- Save, download, open from a file
@@ -297,6 +355,12 @@
     const board = host.board();
     if (!board) return null;
     const preset = { format: 1, description: description || "", tags: [], nodes: clone(board.nodes), cables: clone(board.cables) };
+    // Credits: the cells' own, those the loaded project carried, and the project it was loaded from (a Library or factory one).
+    const C = window.BleepCredits;
+    const from = !current ? null : current.source === "community" && current.address ? C.library(current.name, current.address)
+      : current.source === "factory" ? C.factory(current.name) : null;
+    const made = C.merge(C.collect(preset.nodes), current && current.preset && current.preset.credits, from ? [from] : []);
+    if (made.length) preset.credits = made;
     if ((board.panels || []).length) preset.panels = clone(board.panels).map((q) => { delete q.open; return q; });
     const needs = libraryView() ? await P.BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
@@ -313,7 +377,8 @@
     setCurrent({ name, source: "user", preset });
     saveRow.hidden = true;
     for (const i of saveRow.querySelectorAll("input")) i.value = "";
-    group = "mine";
+    view = "project";
+    origins.add("user");
     render();
   }
 
@@ -322,8 +387,8 @@
     const preset = await currentProject(current && current.preset ? current.preset.description : "");
     if (!preset) return;
     const name = (current && current.name) || "Untitled";
-    const { description, tags, tempo, needs, ...board } = preset;
-    const doc = { format: 2, app: "Bleep", name, description, tags, needs, board };
+    const { description, tags, tempo, needs, credits, ...board } = preset;
+    const doc = { format: 2, app: "Bleep", name, description, tags, needs, credits, board };
     // Through the page's lock: a script-made click is otherwise dropped (common/ui/bleep-bridge.js).
     saveFile(JSON.stringify(doc, null, 1), name.replace(/[^\w .-]+/g, "_") + ".bleepboard", "application/json");
   }
@@ -355,14 +420,16 @@
     root.hidden = true;
     const box = el("div", "pb-box");
     const head = el("div", "pb-head");
-    head.appendChild(el("span", "pb-title", host.cells ? "Presets" : "Open Project"));
+    head.appendChild(el("span", "pb-title", host.cells ? "Presets" : "Presets and Projects"));
     searchEl = el("input", "pb-search");
-    searchEl.placeholder = host.cells ? "Search presets" : "Search projects";
+    searchEl.placeholder = host.cells ? "Search presets" : "Search presets and projects";
     searchEl.spellcheck = false;
     searchEl.autocomplete = "off";
     searchEl.addEventListener("input", () => {
       query = searchEl.value;
-      if (group === "library") { clearTimeout(libTimer); libTimer = setTimeout(searchLibrary, 300); } else renderList();
+      if (communityOn()) { clearTimeout(libTimer); libTimer = setTimeout(searchLibrary, 300); }
+      renderGroups();
+      renderList();
     });
     head.appendChild(searchEl);
     saveBtn = el("button", "", "Save to My Projects…");
@@ -399,8 +466,11 @@
 
     const body = el("div", "pb-body");
     groupsEl = el("div", "pb-groups");
+    const main = el("div", "pb-main");
+    originsEl = el("div", "pb-origins");
     listEl = el("div", "pb-list");
-    body.append(groupsEl, listEl);
+    main.append(originsEl, listEl);
+    body.append(groupsEl, main);
     box.appendChild(body);
     root.appendChild(box);
     root.addEventListener("pointerdown", (e) => { if (e.target === root) close(); });
@@ -413,6 +483,7 @@
     say("");
     if (host.cells) await loadCells();
     else await loadMine();
+    if (communityOn()) searchLibrary();
     render();
     root.hidden = false;
     searchEl.focus();
@@ -457,6 +528,13 @@
       if (!flat) throw new Error("That file is not a project.");
       flat.preset.cables = flat.preset.cables || [];
       await loadPatch({ name: name || flat.name || address.split("/").pop(), preset: flat.preset, address });
+    },
+    /// Loads a demo board by its name ("Grains: Frozen Cloud"), as the module pages' *Run in Play* does (Bleep Play's ?demo=).
+    /// Throws when there is no such demo.
+    async loadDemo(name) {
+      const d = demos.find((x) => x.name === name);
+      if (!d) throw new Error("There is no demo called “" + name + "”.");
+      await loadPatch(d);
     },
     isOpen: () => !!root && !root.hidden,
     /// The project the board came from, or null. `onChange(fn)` calls fn(current) after every load or save.

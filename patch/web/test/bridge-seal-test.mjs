@@ -257,7 +257,7 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
       ok(new RegExp('withNativeFunction\\(\\s*"' + n + '"\\s*,\\s*gated\\(').test(cpp), `native ${n} is gated`);
   }
   // module views reach the preset natives only through the view api, limited to their own kinds
-  ok(/viewKind\(kind\)/.test(read("board/ui/board.js")) && !/viewKind\([^)]*\)[^\n]*"projects"/.test(read("board/ui/board.js")), "the view api's preset kinds exclude projects");
+  ok(/viewKind\(kind\)/.test(read("board/ui/board-views.js")) && !/viewKind\([^)]*\)[^\n]*"projects"/.test(read("board/ui/board-views.js")), "the view api's preset kinds exclude projects");
   ok(/BleepSeal/.test(read("board/ui/board.js")) && /seal\(\);/.test(read("board/ui/board.js")), "board.js seals before it loads module views");
   const html = read("board/ui/index.html");
   ok(html.indexOf("bleep-bridge.js") > 0 && html.indexOf("bleep-bridge.js") < html.indexOf("board-demo.js"), "the bridge is the first script");

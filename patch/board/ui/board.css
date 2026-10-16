@@ -374,6 +374,13 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pb-group.active { background: var(--panel-3); color: var(--accent); }
 .pb-count { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .pb-sep { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 12px 8px 4px; }
+.pb-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.pb-origins { display: flex; gap: 6px; padding: 8px 12px 0; }
+.pb-origins:empty { display: none; }
+.pb-origin-switch { font-size: 11px; border-radius: 10px; padding: 1px 10px; color: var(--muted); background: transparent; border: 1px solid var(--line); cursor: pointer; }
+.pb-origin-switch.on { color: var(--accent); border-color: var(--accent); }
+.pb-badge { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-radius: 4px; padding: 0 5px; border: 1px solid var(--line); color: var(--muted); }
+.pb-badge-community { color: var(--accent); border-color: var(--accent); }
 .pb-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
 .pb-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
 .pb-card:hover, .pb-card.current { border-color: var(--accent); }

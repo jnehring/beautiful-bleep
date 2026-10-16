@@ -157,7 +157,7 @@
   }
 
   // ---------------------------------------------------------------- Preset
-  const SOURCES = { factory: "Demo project", library: "Bleep Library", user: "My project" };
+  const SOURCES = { factory: "Demo project", community: "Bleep Library", user: "My project" };
 
   function libraryLink(c) {
     const acct = P.BleepAccount;
@@ -186,7 +186,7 @@
     refs.pName.classList.toggle("none", !c);
     refs.pSource.textContent = c ? SOURCES[c.source] || c.source : "A board you built yourself";
     let url = "";
-    if (c && c.source === "library" && c.address) {
+    if (c && c.source === "community" && c.address) {
       if (P.BleepAccount && P.BleepAccount.status) { try { await P.BleepAccount.status(false); } catch (e) { /* offline */ } }
       url = libraryLink(c);
     }

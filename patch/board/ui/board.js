@@ -18,8 +18,6 @@
   let typeList = [];
   let ports = {};              // port id → {kind, track, live, main}
   let canUndo = false, canRedo = false;
-  let presets = [];            // [{key, name, category, factory, preset}], factory first
-  let presetOrder = [];        // factory preset categories, in menu order
   let path = [];               // ids of the cells we're inside
   const cams = new Map();      // level → {x, y, z}
   const sel = new Set();       // selected node ids
@@ -52,133 +50,18 @@
   };
   const SVGNS = "http://www.w3.org/2000/svg";
   const clone = (o) => JSON.parse(JSON.stringify(o));
+  const credits = () => window.BleepCredits;   // bleep-credits.js: the credits that travel with a copied preset
   const uid = (p) => p + Math.random().toString(36).slice(2, 10);
   const editing = () => {
     const a = document.activeElement;
     return a && (a.tagName === "INPUT" || a.tagName === "SELECT" || a.tagName === "TEXTAREA");
   };
 
-  // --------------------------------------------------------------- the model
-  const level = () => (path.length ? path[path.length - 1] : "");
-  const nodeById = (id, b = board) => (b ? b.nodes.find((n) => n.id === id) : null);
-  const nodesAt = (lvl, b = board) => (b ? b.nodes.filter((n) => (n.parent || "") === lvl) : []);
-  const typeOf = (n) => types[n.type] || { type: n.type, name: n.type, params: [], inputs: [], outputs: [] };
-  const isPort = (n) => !!typeOf(n).port;
-  const isCellLike = (n) => n.type === "cell" || n.type === "voice-cell";
-  const isBoundary = (n) => n.type === "cell-in" || n.type === "cell-out" || n.type === "voice-in" || n.type === "voice-out";
-  /// A cell may have several Cell Ins and Cell Outs (to lay cables out as you like), but keeps at least one of each.
-  const inVoiceCell = (n) => { const c = nodeById(n.parent); return !!c && c.type === "voice-cell"; };
-  const isFixedBoundary = (n) => isBoundary(n) && !(n.type === "cell-in" && inVoiceCell(n)) &&  // a Voice Cell's inputs come in over Voice In
-    !((n.type === "cell-in" || n.type === "cell-out") && board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type));
-  const isBay = (n) => n.type === "patchbay-in" || n.type === "patchbay-out";
-  const isStructural = (n) => n.type === "cell" || isBoundary(n) || isBay(n);  // a Voice Cell has a view: its settings
-  /// Ports the user adds and deletes (MIDI Device); the others come from Live (spec §6).
-  /// In the standalone app the app's own ports (audio, MIDI, Link) may be deleted and added again from the Add menu.
-  const isFixedPort = (n) => isPort(n) && !typeOf(n).creatable && !(standalone && APP_PORTS.has(typeOf(n).port));
-  const APP_PORTS = new Set(["audio-in", "audio-out", "midi-in", "midi-out", "link"]);
-  const VOICE_IN = [{ id: "notes", name: "Notes", type: "notes" }];
-  const VOICE_OUT = [{ id: "l", name: "Out L", type: "audio" }, { id: "r", name: "Out R", type: "audio" }];
-  const compatible = (a, b) => (a === "notes") === (b === "notes") && (a === "patchbay") === (b === "patchbay");
-
-  // ---- patch bays (doc/specs/modules/patchbay.md) ------------------------------------------------------------
-  // A Patch Bay In has a channel (c1, c2 …) for every input that has a cable, and one free one: patching it adds the
-  // next. A Patch Bay Out has the channels of the Patch Bay In its bundle comes from, with the same names.
-  const isChannel = (jack) => /^c\d+$/.test(jack);
-  /// The Patch Bay In that feeds the bundle arriving at (node, jack), over cell outputs and inputs.
-  function bundleSource(node, jack, b = board, depth = 0) {
-    if (depth > 64) return null;
-    for (const c of b.cables.filter((k) => k.to.node === node && k.to.jack === jack)) {
-      const from = nodeById(c.from.node, b);
-      if (!from) continue;
-      if (from.type === "patchbay-in") return from;
-      if (from.type === "cell") {
-        for (const o of b.nodes.filter((m) => m.type === "cell-out" && m.parent === from.id)) {
-          const r = bundleSource(o.id, c.from.jack, b, depth + 1);
-          if (r) return r;
-        }
-      } else if (from.type === "cell-in") {
-        const r = bundleSource(from.parent, c.from.jack, b, depth + 1);
-        if (r) return r;
-      }
-    }
-    return null;
-  }
-  /// The channels of a Patch Bay In that are patched: [{id, name, type}] by number, named after what is patched in.
-  function bayChannels(n, b = board) {
-    const ids = [...new Set(b.cables.filter((c) => c.to.node === n.id && isChannel(c.to.jack)).map((c) => c.to.jack))]
-      .sort((x, y) => Number(x.slice(1)) - Number(y.slice(1)));
-    return ids.map((id) => {
-      const c = b.cables.find((k) => k.to.node === n.id && k.to.jack === id);
-      const src = nodeById(c.from.node, b);
-      if (!src) return { id, name: id, type: "control" };
-      const out = outputsOf(src, b).find((o) => o.id === c.from.jack);
-      return { id, name: `${src.name} - ${out ? out.name : c.from.jack}`, type: (out && out.type) || "control" };
-    });
-  }
-  function bayInputs(n, b) {   // the channels and the free one
-    const chans = bayChannels(n, b);
-    const next = chans.length ? Number(chans[chans.length - 1].id.slice(1)) + 1 : 1;
-    return chans.concat([{ id: "c" + next, name: "free", type: "control" }]).map((c) => ({ ...c, type: "any" }));
-  }
-  function bayOutputs(n, b) {
-    const src = bundleSource(n.id, "bundle", b);
-    return src ? bayChannels(src, b) : [];
-  }
-
-  function outputsOf(n, b = board) {
-    if (n.type === "patchbay-out") return bayOutputs(n, b);
-    if (n.type === "cell") return n.outputs || [];
-    if (n.type === "voice-cell") return VOICE_OUT.concat(n.outputs || []);  // spec §8.3.1
-    if (n.type === "cell-in") { const c = nodeById(n.parent, b); return c ? c.inputs || [] : []; }
-    if (n.type === "voice-in") { const c = nodeById(n.parent, b); return typeOf(n).outputs.concat(c ? c.inputs || [] : []); }  // a Voice Cell has no Cell In
-    return typeOf(n).outputs;
-  }
-  function inputsOf(n, b = board) {
-    if (n.type === "patchbay-in") return bayInputs(n, b);
-    if (n.type === "cell") return n.inputs || [];
-    if (n.type === "voice-cell") return VOICE_IN.concat(n.inputs || []);
-    if (n.type === "cell-out") { const c = nodeById(n.parent, b); return c ? c.outputs || [] : []; }
-    return typeOf(n).inputs;
-  }
-  const modParams = (n) => typeOf(n).params.filter((p) => p.modulatable);  // knobs, incl. stepped ones
-  function outType(n, jack) { const j = outputsOf(n).find((o) => o.id === jack); return j ? j.type : null; }
-  function inType(n, jack) {
-    const j = inputsOf(n).find((o) => o.id === jack);
-    if (j) return j.type;
-    return modParams(n).some((p) => p.id === jack) ? "control" : null;
-  }
-  function jackName(n, jack, out) {
-    const list = out ? outputsOf(n) : inputsOf(n);
-    const j = list.find((o) => o.id === jack);
-    if (j) return shownName(n, j);
-    const p = typeOf(n).params.find((q) => q.id === jack);
-    return p ? p.name : jack;
-  }
-  const cablesInto = (node, jack, b = board) => b.cables.filter((c) => c.to.node === node && c.to.jack === jack);
-  function portInfo(n) { return n.port ? ports[n.port] : null; }
-  /// A param's value in its own units (for integer settings like Voices).
-  function paramValue(n, id) {
-    const p = typeOf(n).params.find((q) => q.id === id);
-    if (!p) return 0;
-    const v = n.params && id in n.params ? n.params[id] : p.default;
-    return Math.round(p.min + v * (p.max - p.min));
-  }
-  /// Optional type metadata: a jack or param shown only while a setting is in
-  /// range ("show"), and names that follow a setting ("names").
-  function isShown(n, item) {
-    if (!item.show) return true;
-    const v = paramValue(n, item.show.param);
-    return v >= item.show.min && v <= item.show.max;
-  }
-  function shownName(n, item) {
-    return (item.names && item.names.list[paramValue(n, item.names.by)]) || item.name;
-  }
-  /// Does changing this param change how the node's jacks look?
-  function drivesJacks(n, pid) {
-    const t = typeOf(n);
-    return [...(t.inputs || []), ...(t.outputs || [])].some((j) =>
-      (j.show && j.show.param === pid) || (j.names && j.names.by === pid));
-  }
+  // --------------------------------------------------------------- the model (board-model.js)
+  const { level, nodeById, nodesAt, typeOf, isPort, isCellLike, isBoundary, inVoiceCell, isFixedBoundary, isBay, isStructural, isFixedPort, APP_PORTS, VOICE_IN, VOICE_OUT, compatible, isChannel, bundleSource, bayChannels, bayInputs, bayOutputs, outputsOf, inputsOf, modParams, outType, inType, jackName, cablesInto, portInfo, paramValue, isShown, shownName, drivesJacks, insideVoiceCell, isGhost, descendants } = P.BoardModel.create({
+    get board() { return board; }, get types() { return types; }, get ports() { return ports; },
+    get standalone() { return standalone; }, get path() { return path; },
+  });
   /// A short notice at the bottom of the canvas.
   function notice(text) {
     let box = document.querySelector(".board-notice");
@@ -190,24 +73,6 @@
     box.classList.add("show");
     clearTimeout(notice.timer);
     notice.timer = setTimeout(() => box.classList.remove("show"), 5000);
-  }
-  function insideVoiceCell(id, b = board) {
-    for (let n = nodeById(id, b); n; n = nodeById(n.parent, b)) if (n.type === "voice-cell") return true;
-    return false;
-  }
-  function isGhost(n) {
-    if (!isPort(n)) return false;
-    const p = portInfo(n);
-    return !p || !p.live;
-  }
-  function descendants(cellId, b = board) {
-    const out = [];
-    const walk = (id) => {
-      for (const n of b.nodes)
-        if ((n.parent || "") === id) { out.push(n); if (isCellLike(n)) walk(n.id); }
-    };
-    walk(cellId);
-    return out;
   }
 
   // ---------------------------------------------------------------- backend
@@ -226,7 +91,6 @@
     if (m.ports) ports = m.ports;
     if ("canUndo" in m) { canUndo = m.canUndo; canRedo = m.canRedo; }
     if (m.status) setAudio(m.status);
-    if (!path.length) return;  // at the top level there is nothing to show: the board is the only place
     // Leave cells that no longer exist.
     while (path.length && !nodeById(path[path.length - 1])) path.pop();
     if (pluginMode) syncPluginPanel();
@@ -362,6 +226,7 @@
   function renderCrumbs() {
     const c = $("crumbs");
     c.innerHTML = "";
+    if (!path.length) return;  // at the top level there is nothing to show: the board is the only place
     const crumb = (label, depth) => {
       const here = depth === path.length;
       const a = el(here ? "span" : "a", here ? "here" : "", label);
@@ -710,7 +575,7 @@
       const title = document.createElementNS(SVGNS, "title");
       title.textContent = `${src.name} › ${jackName(src, c.from.jack, true)}  →  ${dst.name} › ${jackName(dst, c.to.jack, false)}  (${Math.round(c.amount * 100)}%)`;
       hit.appendChild(title);
-      hit.addEventListener("pointerenter", () => { if (!drag) setHoverCable(c.id, p); });
+      hit.addEventListener("pointerenter", () => { if (!cableDragging()) setHoverCable(c.id, p); });
       hit.addEventListener("pointerleave", () => setHoverCable(null));
       hit.addEventListener("pointermove", (ev) => { hit.style.cursor = cableEndAt(ev, a, b) ? "grab" : ""; });
       const selectCable = (ev) => {
@@ -767,7 +632,7 @@
       if (c.id === hoverCable) hoverPath = p;
     }
     if (hoverPath) setHoverCable(hoverCable, hoverPath);
-    else if (!drag) hideMeter();
+    else if (!cableDragging()) hideMeter();
     if (!selCable) $("cable-pop").hidden = true;
   }
 
@@ -815,196 +680,13 @@
     pop.style.left = m.x - pop.offsetWidth / 2 + "px";
     pop.style.top = m.y + 14 + "px";
   }
-  // ------------------------------------------------------- cable activity meter
-  // While the pointer rests on a cable, a small meter at its input end shows what travels through it: a level meter
-  // for audio, a graph for control and pitch, a step trace for gates, ticks for triggers and notes.
-  const kMeterW = 120, kMeterN = 60;   // px wide; samples kept (60 at 30 Hz: two seconds)
-  const meterKind = (t) => t === "audio" ? "audio" : t === "control" || t === "pitch" ? "graph" : t === "gate" ? "gate"
-                         : t === "trigger" || t === "notes" ? "event" : "bar";
-  let meter = null;   // {id, node, jack, kind, el, cv, label, colour, hist, head, level, peak, hold, v}
-
-  function showMeter(c) {
-    if (meter && meter.id === c.id) return positionMeter();
-    hideMeter();
-    const src = nodeById(c.from.node);
-    if (!src) return;
-    const type = outType(src, c.from.jack) || "control", kind = meterKind(type);
-    const e = el("div", "cable-meter");
-    e.style.setProperty("--c", signalColour(type));
-    const cv = el("canvas");
-    const h = kind === "graph" ? 40 : kind === "audio" || kind === "bar" ? 10 : 22;
-    cv.style.width = kMeterW + "px";
-    cv.style.height = h + "px";
-    const label = el("span", "cm-val");
-    e.append(cv, label);
-    canvas.append(e);
-    const ns = live && live.nodes && live.nodes[c.from.node];
-    const v0 = (ns && ns.outputs && ns.outputs[c.from.jack]) || 0;
-    meter = { id: c.id, node: c.from.node, jack: c.from.jack, kind, el: e, cv, label, colour: getComputedStyle(e).getPropertyValue("--c") || "#888",
-              hist: new Float32Array(kMeterN).fill(kind === "graph" || kind === "gate" ? v0 : 0), head: 0, level: 0, peak: 0, hold: 0, v: v0 };
-    positionMeter();
-    drawMeter();
-  }
-  function hideMeter() {
-    if (!meter) return;
-    meter.el.remove();
-    meter = null;
-  }
-  /// Sits above-left of the cable's input end: the cable arrives horizontally from the left, so that corner is free.
-  function positionMeter() {
-    if (!meter) return;
-    const c = board && board.cables.find((x) => x.id === meter.id);
-    const b = c && jackPos(c.to.node, c.to.jack, "in");
-    if (!b) return hideMeter();
-    const p = toCanvas(b.x, b.y), e = meter.el;
-    const top = p.y - e.offsetHeight - 10;
-    e.style.left = Math.max(4, p.x - e.offsetWidth - 10) + "px";
-    e.style.top = (top < 4 ? p.y + 12 : top) + "px";
-  }
-
-  /// One state tick (30 Hz) for the hovered cable's source output.
-  function feedMeter(ns) {
-    const m = meter;
-    if (!m || !ns) return;
-    const v = ns.outputs && m.jack in ns.outputs ? ns.outputs[m.jack] : 0;
-    const act = (ns.activity && ns.activity[m.jack]) || 0;   // how far the signal swung since the last tick
-    m.v = v;
-    if (m.kind === "audio") {
-      const amp = act / 2;   // peak amplitude of a signal swinging around zero
-      const f = amp > 1e-5 ? Math.min(1, Math.max(0, (20 * Math.log10(amp) + 60) / 60)) : 0;   // −60 … 0 dB
-      m.level = f > m.level ? f : m.level * 0.88;
-      if (m.level >= m.peak) { m.peak = m.level; m.hold = 20; } else if (m.hold-- <= 0) m.peak = Math.max(m.level, m.peak - 0.02);
-      m.amp = amp;
-    } else if (m.kind === "bar") {
-      const f = Math.min(1, Math.sqrt(act / 0.5));
-      m.level = f > m.level ? f : m.level * 0.9;
-    } else {
-      m.hist[m.head] = m.kind === "graph" ? v : m.kind === "gate" ? (v > 0.5 ? 1 : 0) : act > 1e-4 ? 1 : 0;
-      m.head = (m.head + 1) % kMeterN;
-    }
-    drawMeter();
-  }
-
-  function drawMeter() {
-    const m = meter;
-    if (!m) return;
-    const c = m.cv, w = kMeterW, h = parseFloat(c.style.height);
-    const dpr = window.devicePixelRatio || 1;
-    if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
-    const g = c.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, h);
-    g.fillStyle = "rgba(255,255,255,.08)";
-    const col = m.colour.trim();
-    let text = "";
-    if (m.kind === "audio" || m.kind === "bar") {
-      g.fillRect(0, 0, w, h);
-      const x = m.level * w;
-      if (m.kind === "audio") {   // quiet in the signal colour, hot above −12 dB amber, above −3 dB red
-        const amber = 48 / 60 * w, red = 57 / 60 * w;
-        g.fillStyle = col; g.fillRect(0, 0, Math.min(x, amber), h);
-        if (x > amber) { g.fillStyle = "#f6c35b"; g.fillRect(amber, 0, Math.min(x, red) - amber, h); }
-        if (x > red) { g.fillStyle = "#ff4d4d"; g.fillRect(red, 0, x - red, h); }
-        g.fillStyle = "#fff"; g.fillRect(Math.min(w - 2, m.peak * w), 0, 2, h);
-        const db = m.amp > 1e-5 ? 20 * Math.log10(m.amp) : -Infinity;
-        text = db === -Infinity || db < -59 ? "−∞ dB" : (db > 0 ? "+" : "") + db.toFixed(0).replace("-", "−") + " dB";
-      } else {
-        g.fillStyle = col; g.fillRect(0, 0, x, h);
-        text = m.level > 0.02 ? "active" : "idle";
-      }
-    } else if (m.kind === "graph") {
-      let lo = Infinity, hi = -Infinity;
-      for (const x of m.hist) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
-      if (hi - lo < 1e-3) { lo -= 0.5; hi += 0.5; }
-      const y = (x) => h - 2 - (x - lo) / (hi - lo) * (h - 4);
-      if (lo < 0 && hi > 0) {   // the zero line
-        g.fillRect(0, y(0), w, 1);
-      }
-      g.strokeStyle = col; g.lineWidth = 1.5; g.lineJoin = "round";
-      g.beginPath();
-      for (let i = 0; i < kMeterN; i++) {
-        const px = i / (kMeterN - 1) * w, py = y(m.hist[(m.head + i) % kMeterN]);
-        i ? g.lineTo(px, py) : g.moveTo(px, py);
-      }
-      g.stroke();
-      text = m.v.toFixed(2);
-    } else if (m.kind === "gate") {   // high stretches as blocks
-      g.fillRect(0, h - 1, w, 1);
-      g.fillStyle = col;
-      const step = w / kMeterN;
-      for (let i = 0; i < kMeterN; i++) if (m.hist[(m.head + i) % kMeterN]) g.fillRect(i * step, 3, Math.ceil(step), h - 6);
-      text = m.v > 0.5 ? "high" : "low";
-    } else {   // trigger and notes: a tick for every tick of the clock that carried an event
-      g.fillRect(0, h - 1, w, 1);
-      g.fillStyle = col;
-      const step = w / kMeterN;
-      let n = 0;
-      for (let i = 0; i < kMeterN; i++) if (m.hist[(m.head + i) % kMeterN]) { n++; g.fillRect(i * step, 2, Math.max(2, step - 1), h - 4); }
-      text = n ? n + "×" : "idle";
-    }
-    m.label.textContent = text;
-  }
-
-  function removeCable(id) { removeCables([id]); }
-  function removeCables(ids) {
-    clearCableSel();
-    $("cable-pop").hidden = true;
-    edit(ids.length > 1 ? "delete cables" : "delete cable", (b) => { b.cables = b.cables.filter((c) => !ids.includes(c.id)); });
-  }
-
-  // ---- create patch bay: the selected cables become the channels of one bundle (doc/specs/modules/patchbay.md) -------
-  /// The selected cables a bay can carry: any signal but notes, and not a bundle already.
-  function bayableCables() {
-    const ids = selectedCableIds();
-    return board.cables.filter((c) => {
-      if (!ids.includes(c.id)) return false;
-      const src = nodeById(c.from.node);
-      const t = src && outType(src, c.from.jack);
-      return t && t !== "notes" && t !== "patchbay";
-    });
-  }
-  function showCableMenu(ev) {
-    const n = selectedCableIds().length, ok = bayableCables().length;
-    showMenu(ev, [
-      { label: "Create patch bay", run: createPatchBay, disabled: !ok },
-      "-",
-      { label: n > 1 ? "Delete " + n + " cables" : "Delete cable", key: "⌫", run: () => removeCables(selectedCableIds()) },
-    ]);
-  }
-  /// Every distinct source output becomes a channel of a new Patch Bay In (left of the destinations), the bundle goes
-  /// to a new Patch Bay Out, and each destination is wired from that channel with its old amount.
-  function createPatchBay() {
-    const picked = bayableCables().map((c) => c.id);
-    if (!picked.length) return;
-    clearCableSel();
-    $("cable-pop").hidden = true;
-    edit("create patch bay", (b) => {
-      const cables = b.cables.filter((c) => picked.includes(c.id));
-      const mean = (ids, k) => ids.reduce((a, id) => a + nodeById(id, b)[k], 0) / ids.length;
-      const srcIds = [...new Set(cables.map((c) => c.from.node))], dstIds = [...new Set(cables.map((c) => c.to.node))];
-      const lvl = level();
-      // In just right of the sources, Out just left of the destinations, never on top of each other.
-      const inX = Math.round(Math.max(...srcIds.map((id) => nodeById(id, b).x)) + 200);
-      const outX = Math.round(Math.max(inX + 200, Math.min(...dstIds.map((id) => nodeById(id, b).x)) - 200));
-      const bin = { id: uid("n"), type: "patchbay-in", name: types["patchbay-in"].name, x: inX, y: Math.round(mean(srcIds, "y")), parent: lvl, params: {} };
-      const bout = { id: uid("n"), type: "patchbay-out", name: types["patchbay-out"].name, x: outX, y: Math.round(mean(dstIds, "y")), parent: lvl, params: {} };
-      b.nodes.push(bin, bout);
-      const chan = new Map();
-      b.cables = b.cables.filter((c) => !picked.includes(c.id));
-      for (const c of cables) {
-        const key = c.from.node + "|" + c.from.jack;
-        if (!chan.has(key)) {
-          chan.set(key, "c" + (chan.size + 1));
-          b.cables.push({ id: uid("k"), from: clone(c.from), to: { node: bin.id, jack: chan.get(key) }, amount: 1 });
-        }
-        b.cables.push({ id: uid("k"), from: { node: bout.id, jack: chan.get(key) }, to: clone(c.to), amount: c.amount });
-      }
-      b.cables.push({ id: uid("k"), from: { node: bin.id, jack: "bundle" }, to: { node: bout.id, jack: "bundle" }, amount: 1 });
-      sel.clear();
-      sel.add(bin.id);
-      sel.add(bout.id);
-    });
-  }
+  // ------------------------------------------------------- cable tools (board-cabletools.js)
+  const cableTools = P.BoardCableTools.create({
+    get board() { return board; }, get live() { return live; }, get types() { return types; },
+    $, canvas, clearCableSel, clone, edit, el, jackPos, level, nodeById, outType, sel, selectedCableIds, showMenu,
+    signalColour, toCanvas, uid,
+  });
+  const { meterShown, showMeter, hideMeter, feedMeter, removeCable, removeCables, showCableMenu, meterNode } = cableTools;
 
   // ----------------------------------------------------------- node dragging
   function onNodePointerDown(ev, n) {
@@ -1100,308 +782,13 @@
     window.addEventListener("pointerup", up);
   }
 
-  // ---------------------------------------------------------- cable dragging
-  let drag = null;  // {from: {node, jack}, type, moving: cable|null, path}
-
-  function startCableDrag(ev, nodeId, jack, movingCable) {
-    ev.preventDefault();
-    setHoverCable(null);
-    const n = nodeById(nodeId);
-    const type = outType(n, jack) || "control";
-    const tmp = document.createElementNS(SVGNS, "path");
-    tmp.setAttribute("class", `cable temp ${type}`);
-    tmp.style.setProperty("--c", signalColour(type));
-    cablesEl.appendChild(tmp);
-    drag = { from: { node: nodeId, jack }, type, moving: movingCable || null, tmp };
-    if (movingCable) hideCableEls(movingCable.id);
-    markTargets(true);
-    const a = jackPos(nodeId, jack, "out");
-    const move = (e) => {
-      const over = document.elementFromPoint(e.clientX, e.clientY);
-      // The port a drop would reach: a knob in a view or an input jack that accepts this cable.
-      const port = over && (over.closest(".bv-target.drop-ok") || over.closest(".jack.in.drop-ok"));
-      for (const t of document.querySelectorAll(".drop-hover")) if (t !== port) t.classList.remove("drop-hover");
-      let b = toWorld(e.clientX, e.clientY);
-      if (port) {
-        port.classList.add("drop-hover");
-        // The cable end snaps onto the port.
-        const r = (port.querySelector(".dot") || port).getBoundingClientRect();
-        b = toWorld(r.left + r.width / 2, r.top + r.height / 2);
-      }
-      tmp.setAttribute("d", cablePath(a, b));
-      springOpen(over);
-    };
-    const up = (e) => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      tmp.remove();
-      const d = drag;
-      drag = null;
-      dropCable(d, e);
-      endSpring(e);
-      markTargets(false);  // after the drop: it may land on a view's input strip
-    };
-    move(ev);
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  }
-
-  /// Hides the drawn cable (path, pulse and hit area) that is being moved.
-  function hideCableEls(id) {
-    const hit = cablesEl.querySelector(`.cable-hit[data-id="${id}"]`);
-    for (let e = hit && hit.previousElementSibling; e && (e.classList.contains("cable-pulse") || e.classList.contains("cable") && !e.classList.contains("hover")); e = e.previousElementSibling) {
-      e.style.display = "none";
-      if (e.classList.contains("cable")) break;
-    }
-  }
-
-  function markTargets(on) {
-    const reverse = on && drag.reverse;   // an output end is in hand: output jacks are the targets
-    if (!reverse) for (const [id, v] of views) viewInputs(id, v, on);
-    for (const row of document.querySelectorAll("#nodes .jack, #views .jack")) {
-      row.classList.remove("drop-ok", "drop-no");
-      if (!on) { row.classList.remove("drop-hover"); continue; }
-      if (row.classList.contains("in") === reverse) continue;
-      if (!reverse && row.dataset.jack === "+") { row.classList.add("drop-ok"); continue; }
-      const n = nodeById(row.dataset.node);
-      const ok = reverse ? n && row.dataset.jack !== "+" && compatible(row.dataset.type, drag.destType) && n.id !== drag.to.node
-                         : n && compatible(drag.type, row.dataset.type) && n.id !== drag.from.node;
-      row.classList.add(ok ? "drop-ok" : "drop-no");
-    }
-    for (const k of document.querySelectorAll(".bv-target")) {
-      k.classList.toggle("drop-ok", on && !reverse && drag.type !== "notes");
-      if (!on) k.classList.remove("drop-hover");
-    }
-  }
-
-  /// The output end of an existing cable in hand: drop it on another output jack (or a module, to pick one of its outputs).
-  function startSourceDrag(ev, cable) {
-    ev.preventDefault();
-    setHoverCable(null);
-    const dst = nodeById(cable.to.node);
-    const dj = dst && inputsOf(dst).find((j) => j.id === cable.to.jack);
-    const type = outType(nodeById(cable.from.node), cable.from.jack) || "control";
-    const tmp = document.createElementNS(SVGNS, "path");
-    tmp.setAttribute("class", `cable temp ${type}`);
-    tmp.style.setProperty("--c", signalColour(type));
-    cablesEl.appendChild(tmp);
-    drag = { reverse: true, from: cable.from, to: cable.to, type, destType: dj ? dj.type : "control", moving: cable, tmp };
-    hideCableEls(cable.id);
-    markTargets(true);
-    const fixed = jackPos(cable.to.node, cable.to.jack, "in");
-    const move = (e) => {
-      const over = document.elementFromPoint(e.clientX, e.clientY);
-      const port = over && over.closest(".jack.out.drop-ok");
-      for (const t of document.querySelectorAll(".drop-hover")) if (t !== port) t.classList.remove("drop-hover");
-      let a = toWorld(e.clientX, e.clientY);
-      if (port) {
-        port.classList.add("drop-hover");
-        const r = (port.querySelector(".dot") || port).getBoundingClientRect();
-        a = toWorld(r.left + r.width / 2, r.top + r.height / 2);
-      }
-      tmp.setAttribute("d", cablePath(a, fixed));
-    };
-    const up = (e) => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      tmp.remove();
-      const d = drag;
-      drag = null;
-      dropSource(d, e);
-      markTargets(false);
-    };
-    move(ev);
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  }
-
-  function dropSource(d, e) {
-    const target = document.elementFromPoint(e.clientX, e.clientY);
-    const old = d.moving;
-    const rewire = (n, jack) => {
-      if (n.id === old.from.node && jack === old.from.jack) return render();   // back where it was
-      edit("reconnect", (b) => {
-        b.cables = b.cables.filter((c) => c.id !== old.id);
-        connect(b, { node: n.id, jack }, d.to, old.amount);
-      });
-    };
-    const row = target && target.closest(".jack.out");
-    if (row) {
-      const n = nodeById(row.dataset.node);
-      if (!n || row.dataset.jack === "+" || n.id === d.to.node || !compatible(row.dataset.type, d.destType)) return render();
-      return rewire(n, row.dataset.jack);
-    }
-    const nodeEl = target && target.closest(".node");
-    if (nodeEl && nodeEl.dataset.id !== d.to.node) {
-      const n = nodeById(nodeEl.dataset.id);
-      const items = outputsOf(n).filter((j) => compatible(j.type, d.destType));
-      if (!items.length) return render();
-      return showMenu(e, items.map((j) => ({ label: j.name, key: j.type, run: () => rewire(n, j.id) })));
-    }
-    // Empty canvas: a dropped cable end is deleted, as with the input end.
-    if (target && canvas.contains(target) && !target.closest(".vwin")) return edit("disconnect", (b) => { b.cables = b.cables.filter((c) => c.id !== old.id); });
-    render();
-  }
-
-  // While a cable is in hand, open views show the module's input jacks in a
-  // strip on their left, so the cable can end there too. The window grows to
-  // the left, keeping its controls where they were.
-  function viewInputs(id, v, on) {
-    const old = v.win.querySelector(".v-ins");
-    if (old) {
-      v.win.style.left = v.win.offsetLeft + (v.shift || 0) + "px";
-      v.win.style.width = v.ownWidth;
-      v.win.classList.remove("wiring");
-      old.remove();
-    }
-    const n = nodeById(id);
-    const jacks = on && n ? inputsOf(n) : [];
-    if (!jacks.length) return;
-    const strip = el("div", "v-ins");
-    for (const j of jacks) {
-      const connected = board.cables.some((c) => c.to.node === id && c.to.jack === j.id);
-      strip.appendChild(jackRow(n, j.id, j.name, j.type, "in", connected ? "connected" : ""));
-    }
-    v.ownWidth = v.win.style.width;
-    const w = v.win.offsetWidth;
-    v.win.classList.add("wiring");
-    v.win.insertBefore(strip, v.win.querySelector(".v-body"));
-    v.win.style.width = w + strip.offsetWidth + "px";
-    // Grow to the left, but never over the module itself: its ports must stay free.
-    const left0 = v.win.offsetLeft;
-    let left = Math.max(8, left0 - strip.offsetWidth);
-    const ne = nodesEl.querySelector(`[data-id="${id}"]`);
-    if (ne) {
-      const nodeRight = ne.getBoundingClientRect().right - canvas.getBoundingClientRect().left;
-      if (left0 >= nodeRight) left = Math.max(left, nodeRight + 8);
-    }
-    v.shift = left0 - left;
-    v.win.style.left = left + "px";
-  }
-
-  // While a cable is in hand, resting on a module opens its view, so the
-  // cable can go straight onto a knob (spec §9.5). Views opened this way close
-  // again unless the cable ends in them or on their node.
-  const kSpringDelay = 250;  // ms
-  let spring = { timer: 0, node: null, opened: new Set() };
-
-  function springOpen(over) {
-    if (!drag || drag.type === "notes") return;
-    if (over && over.closest(".vwin")) { clearTimeout(spring.timer); spring.node = null; return; }
-    const ne = over && over.closest(".node");
-    const n = ne && nodeById(ne.dataset.id);
-    const id = n && n.id !== drag.from.node && !isStructural(n) && modParams(n).length ? n.id : null;
-    if (id === spring.node) return;
-    clearTimeout(spring.timer);
-    spring.node = id;
-    if (!id) return;
-    spring.timer = setTimeout(() => {
-      if (!drag || spring.node !== id) return;
-      // Only one view opened by the cable at a time.
-      for (const o of spring.opened) if (o !== id) closeView(o);
-      spring.opened = new Set([...spring.opened].filter((o) => o === id));
-      if (views.has(id)) front(views.get(id).win);
-      else { openView(id); spring.opened.add(id); }
-      markTargets(true);  // the new view's knobs
-    }, kSpringDelay);
-  }
-
-  function endSpring(e) {
-    clearTimeout(spring.timer);
-    const target = document.elementFromPoint(e.clientX, e.clientY);
-    const win = target && target.closest(".vwin");
-    const ne = target && target.closest(".node");
-    const keep = win ? win.dataset.node : ne ? ne.dataset.id : null;
-    for (const id of spring.opened) if (id !== keep) closeView(id);
-    spring = { timer: 0, node: null, opened: new Set() };
-  }
-
-  function connect(b, from, to, amount) {
-    if (b.cables.some((c) => c.from.node === from.node && c.from.jack === from.jack &&
-                             c.to.node === to.node && c.to.jack === to.jack)) return;
-    b.cables.push({ id: uid("k"), from, to, amount });
-    // A panel-element module (Dial, Button …) that still has its default name takes the title of what it now drives.
-    const src = nodeById(from.node, b), dst = nodeById(to.node, b);
-    if (src && dst && src !== dst && typeOf(src).category.startsWith("Controllers/") &&
-        new RegExp("^" + typeOf(src).name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "( \\d+)?$").test(src.name)) {
-      const name = jackName(dst, to.jack, false);
-      if (name && name !== to.jack) src.name = name;
-    }
-  }
-
-  function dropCable(d, e) {
-    const target = document.elementFromPoint(e.clientX, e.clientY);
-    const without = (b) => { if (d.moving) b.cables = b.cables.filter((c) => c.id !== d.moving.id); };
-    const amount = d.moving ? d.moving.amount : 1;
-
-    // A cable from the "+" of a Cell In: its end becomes a new cell input, named after the jack or knob it lands on.
-    if (d.from.jack === "+") {
-      const knobEl = target && target.closest(".bv-target");
-      const rowEl = target && target.closest(".jack.in");
-      const dest = knobEl ? { node: knobEl.closest(".vwin").dataset.node, jack: knobEl.dataset.param, type: "control" }
-                 : rowEl && rowEl.dataset.jack !== "+" ? { node: rowEl.dataset.node, jack: rowEl.dataset.jack, type: rowEl.dataset.type } : null;
-      if (!dest || dest.node === d.from.node || !compatible("control", dest.type)) return;
-      return edit("new cell input", (b) => {
-        const cell = nodeById(nodeById(d.from.node, b).parent, b);
-        const dn = nodeById(dest.node, b);
-        const id = uid("i");
-        cell.inputs = cell.inputs || [];
-        cell.inputs.push({ id, name: jackName(dn, dest.jack, false), type: dest.type });
-        connect(b, { node: d.from.node, jack: id }, { node: dest.node, jack: dest.jack }, 1);
-      });
-    }
-
-    // A knob in a module view (spec §9.5).
-    const knob = target && target.closest(".bv-target");
-    if (knob && d.type !== "notes") {
-      const nodeId = knob.closest(".vwin").dataset.node;
-      return edit("connect", (b) => { without(b); connect(b, d.from, { node: nodeId, jack: knob.dataset.param }, amount); });
-    }
-    // An input jack, or the "+" of a Cell Out (a new cell output).
-    const row = target && target.closest(".jack.in");
-    if (row) {
-      const n = nodeById(row.dataset.node);
-      if (row.dataset.jack === "+" && n.type === "cell-out") {
-        return edit("new cell output", (b) => {
-          without(b);
-          const cell = nodeById(n.parent, b);
-          const src = nodeById(d.from.node, b);
-          const id = uid("o");
-          cell.outputs = cell.outputs || [];
-          cell.outputs.push({ id, name: src.type === "patchbay-in" ? src.name : jackName(src, d.from.jack, true), type: d.type });
-          connect(b, d.from, { node: n.id, jack: id }, 1);
-        });
-      }
-      if (!compatible(d.type, row.dataset.type) || n.id === d.from.node && !d.moving) return d.moving ? render() : null;
-      return edit("connect", (b) => { without(b); connect(b, d.from, { node: n.id, jack: row.dataset.jack }, amount); });
-    }
-    // A node: pick one of its knobs.
-    const nodeEl = target && target.closest(".node");
-    if (nodeEl && nodeEl.dataset.id !== d.from.node) {
-      const n = nodeById(nodeEl.dataset.id);
-      if (d.moving) edit("disconnect", without);
-      return showParamPicker(n, d, e);
-    }
-    // Empty canvas: a dropped cable end is deleted; a new cable opens the search.
-    if (d.moving) return edit("disconnect", without);
-    if (target && (target === canvas || canvas.contains(target)) && !target.closest(".vwin")) {
-      const r = canvas.getBoundingClientRect();
-      openSearch(e.clientX - r.left, e.clientY - r.top, { from: d.from, type: d.type });
-    }
-  }
-
-  function showParamPicker(n, d, e) {
-    const items = [];
-    for (const j of inputsOf(n))
-      if (compatible(d.type, j.type)) items.push({ label: j.name, sub: j.type, jack: j.id });
-    if (d.type !== "notes")
-      for (const p of modParams(n)) items.push({ label: p.name, sub: "knob", jack: p.id });
-    if (!items.length) return;
-    showMenu(e, items.map((it) => ({
-      label: it.label, key: it.sub,
-      run: () => edit("connect", (b) => connect(b, d.from, { node: n.id, jack: it.jack }, 1)),
-    })));
-  }
+  // ---------------------------------------------------------- cable dragging (board-cabledrag.js)
+  const cableDrag = P.BoardCableDrag.create({
+    get board() { return board; }, $, el, uid, canvas, cablesEl, nodesEl, SVGNS, views, nodeById, typeOf, inputsOf, outputsOf, outType, jackName, compatible,
+    isStructural, modParams, signalColour, setHoverCable, jackPos, cablePath, toWorld, jackRow, edit, render, showMenu, openSearch: (...a) => openSearch(...a),
+    openView: (...a) => openView(...a), closeView: (...a) => closeView(...a), front: (...a) => front(...a),
+  });
+  const { startCableDrag, startSourceDrag, connect, isDragging: cableDragging } = cableDrag;
 
   // -------------------------------------------------------------- the canvas
   canvas.addEventListener("pointerdown", (ev) => {
@@ -1575,7 +962,7 @@
   function addAt(what, x, y, link, checked) {
     if (!board) return;
     if (what.preset && !checked && hasLibrary && P.BleepLibraryView) {  // modules the preset needs: offer to install them first
-      const q = presets.find((r) => r.key === what.preset);
+      const q = presetList().find((r) => r.key === what.preset);
       if (q) {
         P.BleepLibraryView.ensureNeeds(q.preset, q.name).then(
           (ok) => {
@@ -1602,9 +989,9 @@
     const placed = edit("add", (b) => {
       const lvl = level();
       if (what.preset) {
-        const p = presets.find((q) => q.key === what.preset);
+        const p = presetList().find((q) => q.key === what.preset);
         if (!p) return false;
-        newId = insertPreset(b, p.preset, lvl, x, y);
+        newId = insertPreset(b, p.preset, lvl, x, y, p.factory ? credits().factory(p.name) : null);
       } else if (what.type === "voice-cell") {
         newId = addVoiceCell(b, lvl, x, y);
         if (!newId) return false;
@@ -1703,80 +1090,13 @@
     });
   }
 
-  // ----------------------------------------------------------------- search
-  let searchState = null;  // {x, y, link, items, active}
-  function openSearch(x, y, link) {
-    if (!board) return;
-    const s = $("search");
-    s.hidden = false;
-    s.style.left = Math.min(x, canvas.clientWidth - 270) + "px";
-    s.style.top = Math.min(y, canvas.clientHeight - 340) + "px";
-    searchState = { x, y, link, items: [], active: 0 };
-    const input = $("search-input");
-    input.value = "";
-    renderSearch();
-    input.focus();
-  }
-  function searchItems(q) {
-    const out = [];
-    const link = searchState && searchState.link;
-    const accepts = (t) => !link || t.inputs.some((i) => compatible(link.type, i.type)) ||
-      (link.type !== "notes" && t.params.some((p) => p.modulatable && p.kind === "float"));
-    for (const t of typeList)
-      if (offered(t) && accepts(t) && (t.name + " " + t.category).toLowerCase().includes(q))
-        out.push({ label: t.name === "Cell" ? "New Cell" : t.name === "Voice Cell" ? "New Voice Cell" : t.name,
-                   sub: t.category.replace(/\//g, " › "), what: { type: t.type } });
-    if (!link)  // presets: every word in the name, category, tags or description
-      for (const p of presets) {
-        const d = p.preset || {};
-        const text = [p.name, p.category || "", d.description || "", ...(d.tags || [])].join(" ").toLowerCase();
-        if (q.split(/\s+/).every((w) => text.includes(w)))
-          out.push({ label: p.name, sub: "cell preset" + (p.category ? " · " + p.category.replace(/\//g, " › ") : ""),
-                     hint: d.description, what: { preset: p.key } });
-      }
-    return out;
-  }
-  function renderSearch() {
-    const q = $("search-input").value.trim().toLowerCase();
-    searchState.items = searchItems(q);
-    searchState.active = Math.min(searchState.active, Math.max(0, searchState.items.length - 1));
-    const list = $("search-list");
-    list.innerHTML = "";
-    searchState.items.forEach((it, i) => {
-      const row = el("div", "s-item" + (i === searchState.active ? " active" : ""));
-      row.append(el("span", "", it.label), el("span", "sub", it.sub));
-      row.addEventListener("pointerdown", (e) => { e.preventDefault(); chooseSearch(i); });
-      list.appendChild(row);
-    });
-    // The active preset's description, under the list.
-    const active = searchState.items[searchState.active], hint = $("search-hint");
-    hint.textContent = (active && active.hint) || "";
-    hint.hidden = !hint.textContent;
-    if (list.children[searchState.active]) list.children[searchState.active].scrollIntoView({ block: "nearest" });
-  }
-  function chooseSearch(i) {
-    const it = searchState && searchState.items[i];
-    const st = searchState;
-    closeSearch();
-    if (!it) return;
-    const r = canvas.getBoundingClientRect();
-    const w = toWorld(st.x + r.left, st.y + r.top);
-    addAt(it.what, w.x, w.y - 12, st.link);
-  }
-  function closeSearch() {
-    $("search").hidden = true;
-    searchState = null;
-    canvas.focus();
-  }
-  $("search-input").addEventListener("input", () => { searchState.active = 0; renderSearch(); });
-  $("search-input").addEventListener("keydown", (e) => {
-    if (e.key === "ArrowDown") { searchState.active++; renderSearch(); e.preventDefault(); }
-    else if (e.key === "ArrowUp") { searchState.active = Math.max(0, searchState.active - 1); renderSearch(); e.preventDefault(); }
-    else if (e.key === "Enter") { chooseSearch(searchState.active); e.preventDefault(); }
-    else if (e.key === "Escape" || e.key === "Tab") { closeSearch(); e.preventDefault(); }
-    e.stopPropagation();
+  // ----------------------------------------------------------------- search (board-search.js)
+  const search = P.BoardSearch.create({
+    $, el, canvas, get board() { return board; }, get typeList() { return typeList; }, presets: () => presetList(), compatible,
+    offered: (t) => offered(t), toWorld: (x, y) => toWorld(x, y), addAt: (...a) => addAt(...a),
   });
-  $("search-input").addEventListener("blur", () => setTimeout(() => { if (searchState) closeSearch(); }, 100));
+  const { open: openSearch, close: closeSearch, isOpen: searchOpen } = search;
+
 
   /// Types this board offers (MIDI Device only in the standalone app, spec §12).
   const offered = (t) => t.creatable && (!t.standaloneOnly || standalone) &&
@@ -1828,8 +1148,8 @@
     }
     // Factory categories first, in their order (factory-presets.json), then the user's, A–Z.
     const rank = (label) => {
-      const i = presetOrder.findIndex((c) => c === label || c.startsWith(label + "/"));
-      return i < 0 ? presetOrder.length : i;
+      const i = presetOrder().findIndex((c) => c === label || c.startsWith(label + "/"));
+      return i < 0 ? presetOrder().length : i;
     };
     const sortPresets = (items, top) => {
       const subs = items.filter((it) => it.items && !it.deletes)
@@ -1927,6 +1247,12 @@
       if (im.caption) fig.appendChild(el("figcaption", "", im.caption));
       pop.appendChild(fig);
     }
+    // Credits: the presets this cell was copied from (text nodes only).
+    const made = credits().merge(n.credits);
+    if (made.length) {
+      const line = el("p", "h-credits", "Based on " + made.map((c) => c.name + (c.author ? " by " + c.author : "")).join(", ") + " (" + made[0].license + ").");
+      pop.appendChild(line);
+    }
     pop.hidden = false;
     const r = anchor.getBoundingClientRect(), host = pop.offsetParent ? pop.offsetParent.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: innerHeight };
     const x = Math.min(r.left - host.left, Math.max(0, host.width - pop.offsetWidth - 8));
@@ -1940,7 +1266,7 @@
     $("menu").hidden = true;
     $("cable-pop").hidden = true;
     $("help-pop").hidden = true;
-    if (searchState) closeSearch();
+    if (searchOpen()) closeSearch();
   }
 
   function showNodeMenu(n, ev) {
@@ -2007,571 +1333,32 @@
     input.addEventListener("pointerdown", (e) => e.stopPropagation());
   }
 
-  // ------------------------------------------------------------ operations
-  function selectedNodes(b = board) { return [...sel].map((id) => nodeById(id, b)).filter(Boolean); }
-  const canDuplicate = () => selectedNodes().some((n) => !isPort(n) && !isBoundary(n));
-  const canGroup = () => selectedNodes().some((n) => !isPort(n) && !isBoundary(n));
+  // ------------------------------------------------------------ operations (board-edit.js)
+  const ops = P.BoardEdit.create({
+    get board() { return board; }, get pointer() { return pointer; }, get pointerInside() { return pointerInside; }, get selCable() { return selCable; }, get types() { return types; },
+    canvas, clearCableSel, clone, descendants, edit, inVoiceCell, inputsOf, insideVoiceCell, isBoundary,
+    isCellLike, isFixedBoundary, isFixedPort, isPort, isStructural, level, nodeById, nodesAt, outputsOf,
+    removeCables, renderSelection, sel, selectedCableIds, toWorld, uid,
+    addPanels: (...a) => addPanels(...a), panelList: (...a) => panelList(...a),
+    closeView: (...a) => closeView(...a), panelsWithLoaded: (...a) => panelsWithLoaded(...a),
+  });
+  const { selectedNodes, canDuplicate, canGroup, selectAll, deleteSelection, canBypass, setPowerButton, toggleBypass,
+          toggleMute, duplicate, copy, cut, paste } = ops;
 
-  function selectAll() {
-    sel.clear();
-    for (const n of nodesAt(level())) sel.add(n.id);
-    renderSelection();
-  }
+  // ------------------------------------------------------------ cells (board-cells.js)
+  const cells = P.BoardCells.create({
+    get types() { return types; },
+    NODE_W, clone, descendants, edit, insideVoiceCell, isBoundary, isCellLike, isPort, jackName, level, nodeById,
+    outType, sel, selectedNodes, uid,
+  });
+  const { canEnterVoice, canGroupVoice, moveIntoCell, group, removeFromCell, ungroup } = cells;
 
-  /// True when deleting n would take the last Cell In / Cell Out of its cell, counting those already doomed.
-  const doomedBoundary = (n, doomed) =>
-    !board.nodes.some((m) => m.id !== n.id && m.parent === n.parent && m.type === n.type && !doomed.has(m.id));
-
-  function deleteSelection(label = "delete") {
-    if (selCable) return removeCables(selectedCableIds());
-    const doomed = new Set();
-    for (const n of selectedNodes()) {
-      if (isFixedPort(n) || isFixedBoundary(n) ||  // spec §6, §8.3.1
-          (isBoundary(n) && !(n.type === "cell-in" && inVoiceCell(n)) && doomedBoundary(n, doomed))) continue;
-      doomed.add(n.id);
-      if (isCellLike(n)) descendants(n.id).forEach((d) => doomed.add(d.id));
-    }
-    if (!doomed.size) return;
-    for (const id of doomed) closeView(id);
-    sel.clear();
-    edit(label, (b) => {
-      b.nodes = b.nodes.filter((n) => !doomed.has(n.id));
-      b.cables = b.cables.filter((c) => !doomed.has(c.from.node) && !doomed.has(c.to.node));
-    });
-  }
-
-  /// A module with audio in and audio out can be bypassed: its input audio goes straight to its output.
-  function canBypass(n) {
-    if (isPort(n) || isCellLike(n) || isStructural(n) || !types[n.type]) return false;
-    return inputsOf(n).some((j) => j.type === "audio") && outputsOf(n).some((j) => j.type === "audio");
-  }
-  function setPowerButton(b, n) {
-    b.classList.toggle("on", !n.bypassed);
-    b.title = n.bypassed ? "Bypassed: the audio passes through. Click to switch the module on." : "On. Click to bypass (pass the audio through unprocessed).";
-    b.setAttribute("aria-label", "Power " + n.name);
-    b.setAttribute("aria-pressed", n.bypassed ? "false" : "true");
-  }
-  function toggleBypass(id) {
-    const n = nodeById(id);
-    if (!n || !canBypass(n)) return;
-    const on = !n.bypassed;
-    edit(on ? "bypass" : "end bypass", (b) => { nodeById(id, b).bypassed = on; });
-  }
-
-  function toggleMute() {
-    const ns = selectedNodes().filter((n) => !isStructural(n));
-    if (!ns.length) return;
-    const mute = !ns.every((n) => n.muted);
-    edit(mute ? "mute" : "unmute", (b) => ns.forEach((n) => (nodeById(n.id, b).muted = mute)));
-  }
-
-  /// Copies nodes (cells with their contents) with fresh ids. Returns old → new id.
-  function copyNodes(b, roots, dx, dy) {
-    const map = new Map();
-    const all = [];
-    for (const r of roots) {
-      all.push(r);
-      if (isCellLike(r)) all.push(...descendants(r.id, b));
-    }
-    for (const n of all) map.set(n.id, uid(isCellLike(n) ? "c" : "n"));
-    for (const n of all) {
-      const c = clone(n);
-      c.id = map.get(n.id);
-      if (map.has(n.parent)) c.parent = map.get(n.parent);
-      if (roots.includes(n)) { c.x += dx; c.y += dy; }
-      delete c.port;
-      b.nodes.push(c);
-    }
-    for (const c of [...b.cables])
-      if (map.has(c.from.node) && map.has(c.to.node))
-        b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
-                        to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
-    addPanels(b, panelsWithLoaded(((board && board.panels) || []).filter((q) => q.cell && map.has(q.cell))), map);
-    return map;
-  }
-
-  function duplicate(keepIncoming) {
-    const roots = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
-    if (!roots.length) return;
-    edit("duplicate", (b) => {
-      const rs = roots.map((r) => nodeById(r.id, b));
-      const map = copyNodes(b, rs, 30, 30);
-      if (keepIncoming)
-        for (const c of [...b.cables])
-          if (!map.has(c.from.node) && rs.some((r) => r.id === c.to.node))
-            b.cables.push({ id: uid("k"), from: clone(c.from), to: { node: map.get(c.to.node), jack: c.to.jack },
-                            amount: c.amount });
-      sel.clear();
-      rs.forEach((r) => sel.add(map.get(r.id)));
-    });
-  }
-
-  /// ⌘C (spec §9.6): the selection (cells with their contents) and the cables
-  /// between them go to the system clipboard as JSON, so they can be pasted
-  /// into another cell, another set or another board window.
-  const CLIP_FORMAT = "bleep-board-clip";
-  function copy() {
-    const roots = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
-    if (!roots.length) return false;
-    const nodes = [];
-    for (const r of roots) nodes.push(r, ...(isCellLike(r) ? descendants(r.id) : []));
-    const ids = new Set(nodes.map((n) => n.id));
-    const clip = {
-      format: CLIP_FORMAT, version: 1,
-      roots: roots.map((r) => r.id),
-      nodes: nodes.map((n) => { const c = clone(n); delete c.port; return c; }),
-      cables: board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone),
-      panels: clone(panelsWithLoaded(panelList().filter((q) => q.cell && ids.has(q.cell)))),
-    };
-    native("copyText", JSON.stringify(clip));
-    return true;
-  }
-
-  function cut() {
-    if (!copy()) return;
-    clearCableSel();
-    deleteSelection("cut");
-  }
-
-  /// ⌘V: the clipboard's nodes land at the pointer (or `at`, in canvas
-  /// coordinates), keeping their layout, with fresh ids; the paste is selected.
-  async function paste(at) {
-    if (!board) return;
-    let clip = null;
-    try { clip = JSON.parse(await native("pasteText")); } catch (e) { return; }
-    if (!clip || clip.format !== CLIP_FORMAT || !Array.isArray(clip.nodes) || !Array.isArray(clip.roots)) return;
-    const lvl = level();
-    const byId = new Map(clip.nodes.map((n) => [n.id, n]));
-    const known = (n) => isCellLike(n) || isBoundary(n) || !!types[n.type];
-    const roots = clip.roots.map((id) => byId.get(id)).filter((n) => n && known(n) && !isPort(n) && !isBoundary(n)
-      && !(n.type === "voice-cell" && insideVoiceCell(lvl)));  // no nesting
-    if (!roots.length) return;
-    // Each root's subtree (its contents, for cells).
-    const all = [];
-    const walk = (id) => { for (const n of clip.nodes) if (n.parent === id && known(n)) { all.push(n); if (isCellLike(n)) walk(n.id); } };
-    for (const r of roots) { all.push(r); if (isCellLike(r)) walk(r.id); }
-    // Top-left of the copied roots goes to the pointer; step aside from an exact overlap (repeated pastes).
-    const x0 = Math.min(...roots.map((n) => n.x)), y0 = Math.min(...roots.map((n) => n.y));
-    const r = canvas.getBoundingClientRect();
-    const p = at || (pointerInside ? pointer : { x: r.width / 2, y: r.height / 2 });
-    const w = toWorld(r.left + p.x, r.top + p.y);
-    let dx = Math.round(w.x - x0), dy = Math.round(w.y - y0);
-    const here = nodesAt(lvl);
-    for (let i = 0; i < 20 && roots.some((n) => here.some((m) => Math.abs(m.x - n.x - dx) < 20 && Math.abs(m.y - n.y - dy) < 20)); i++) {
-      dx += 30;
-      dy += 30;
-    }
-    edit("paste", (b) => {
-      const map = new Map(all.map((n) => [n.id, uid(isCellLike(n) ? "c" : "n")]));
-      for (const n of all) {
-        const c = clone(n);
-        c.id = map.get(n.id);
-        c.parent = roots.includes(n) ? lvl : map.get(n.parent);
-        if (roots.includes(n)) { c.x += dx; c.y += dy; }
-        delete c.port;
-        b.nodes.push(c);
-      }
-      for (const c of clip.cables || [])
-        if (c && c.from && c.to && map.has(c.from.node) && map.has(c.to.node))
-          b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
-                          to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
-      addPanels(b, Array.isArray(clip.panels) ? clip.panels : [], map);
-      sel.clear();
-      clearCableSel();
-      roots.forEach((n) => sel.add(map.get(n.id)));
-    });
-  }
-
-  /// True when `nodes` may live inside a Voice Cell: no ports, no Voice Cells, nothing inside them that isn't allowed.
-  const canEnterVoice = (nodes) => nodes.every((n) => !isPort(n) && n.type !== "voice-cell" &&
-    !(isCellLike(n) && descendants(n.id).some((d) => d.type === "voice-cell" || isPort(d))));
-  const canGroupVoice = () => {
-    const picked = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
-    return picked.length > 0 && !insideVoiceCell(level()) && canEnterVoice(picked);
-  };
-
-  /// Moves the nodes `inside` into the cell `cellId` (all in `b`, all currently on one level) and ports the
-  /// cables that cross the border: each becomes a cell input or output (one per source), reusing a cell
-  /// input that already carries the same source. `keep` leaves the positions alone (a brand-new cell).
-  function moveIntoCell(b, inside, cellId, keep) {
-    const cell = nodeById(cellId, b);
-    const vout = cell.type === "voice-cell" ? b.nodes.find((n) => n.parent === cellId && n.type === "voice-out") : null;
-    const cin = b.nodes.find((n) => n.parent === cellId && n.type === "cell-in") ||
-                b.nodes.find((n) => n.parent === cellId && n.type === "voice-in");   // a Voice Cell's shared inputs leave over Voice In
-    const cout = b.nodes.find((n) => n.parent === cellId && n.type === "cell-out");
-    const kids = b.nodes.filter((n) => inside.has(n.id));
-    if (!keep) {  // right of what is already in the cell, keeping the selection's own layout
-      const old = b.nodes.filter((n) => n.parent === cellId && !isBoundary(n));
-      const ox = old.length ? Math.max(...old.map((n) => n.x)) + NODE_W + 60 : 320;
-      const oy = old.length ? Math.min(...old.map((n) => n.y)) : 120;
-      const kx = Math.min(...kids.map((n) => n.x)), ky = Math.min(...kids.map((n) => n.y));
-      for (const n of kids) { n.x = ox + n.x - kx; n.y = oy + n.y - ky; }
-      const edge = Math.max(...kids.map((n) => n.x)) + NODE_W + 60;   // the cell's outputs make room
-      for (const n of b.nodes) if (n.parent === cellId && (n.type === "cell-out" || n.type === "voice-out") && n.x < edge) n.x = edge;
-    }
-    for (const n of kids) n.parent = cellId;
-    cell.inputs = cell.inputs || [];
-    cell.outputs = cell.outputs || [];
-    const inputs = new Map(), outputs = new Map();
-    const next = [];
-    const cins = new Set(b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-in" || n.type === "voice-in")).map((n) => n.id));
-    const couts = new Set(b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out").map((n) => n.id));
-    const touched = new Set();  // cell jacks whose cables were joined through
-    const joined = new Set();   // inner cables from a cell input / into a cell output that the moved nodes now replace
-    for (const c of b.cables) {
-      const fi = inside.has(c.from.node), ti = inside.has(c.to.node);
-      if (fi === ti) { next.push(c); continue; }
-      if (c.from.node === cellId || c.to.node === cellId) {
-        // Between the cell and its new content: the content now sits behind the jack, so join straight through it:
-        // module → cell input → inner target becomes module → inner target (and the same for outputs).
-        if (ti && c.to.node !== cellId) {  // the cell's output jack feeds a node that moved inside
-          for (const o of b.cables) if (!inside.has(o.from.node) && couts.has(o.to.node) && o.to.jack === c.from.jack) {
-            next.push({ id: uid("k"), from: clone(o.from), to: clone(c.to), amount: o.amount * c.amount });
-            joined.add(o.id);
-            touched.add(c.from.jack);
-          }
-        } else if (fi && c.from.node !== cellId) {  // a node that moved inside feeds the cell's input jack
-          for (const o of b.cables) if (cins.has(o.from.node) && o.from.jack === c.to.jack && !inside.has(o.to.node)) {
-            next.push({ id: uid("k"), from: clone(c.from), to: clone(o.to), amount: c.amount * o.amount });
-            joined.add(o.id);
-            touched.add(c.to.jack);
-          }
-        }
-        continue;
-      }
-      const key = c.from.node + "|" + c.from.jack;
-      const src = nodeById(c.from.node, b);
-      if (ti) {  // entering
-        if (!cin) continue;
-        if (!inputs.has(key)) {
-          const same = b.cables.find((o) => o.to.node === cellId && o.from.node === c.from.node && o.from.jack === c.from.jack);
-          if (same) inputs.set(key, same.to.jack);
-          else {
-            const jack = { id: uid("i"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
-            cell.inputs.push(jack);
-            inputs.set(key, jack.id);
-            next.push({ id: uid("k"), from: clone(c.from), to: { node: cellId, jack: jack.id }, amount: 1 });
-          }
-        }
-        next.push({ id: c.id, from: { node: cin.id, jack: inputs.get(key) }, to: clone(c.to), amount: c.amount });
-      } else if (vout && outType(src, c.from.jack) === "audio") {  // a Voice Cell's audio leaves over Voice Out, not a Cell Out
-        const ch = /(^|[^a-z])(r|right)$/i.test(c.from.jack) || /(^|[^a-z])(r|right)$/i.test(jackName(src, c.from.jack, true)) ? "r" : "l";
-        if (!outputs.has(key)) {
-          outputs.set(key, ch);
-          next.push({ id: uid("k"), from: clone(c.from), to: { node: vout.id, jack: ch }, amount: 1 });
-        }
-        next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
-      } else {  // leaving
-        if (!cout) continue;
-        if (!outputs.has(key)) {
-          const jack = { id: uid("o"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
-          cell.outputs.push(jack);
-          outputs.set(key, jack.id);
-          next.push({ id: uid("k"), from: clone(c.from), to: { node: cout.id, jack: jack.id }, amount: 1 });
-        }
-        next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
-      }
-    }
-    b.cables = next.filter((c) => !joined.has(c.id));
-    // A cell jack nothing uses any more (the moved nodes took over its cables) goes away.
-    cell.inputs = cell.inputs.filter((j) => !touched.has(j.id) || b.cables.some((c) => (c.to.node === cellId && c.to.jack === j.id) || (cins.has(c.from.node) && c.from.jack === j.id)));
-    cell.outputs = cell.outputs.filter((j) => !touched.has(j.id) || b.cables.some((c) => (c.from.node === cellId && c.from.jack === j.id) || (couts.has(c.to.node) && c.to.jack === j.id)));
-  }
-
-  /// Add → right-click → Create cell (⌘G, spec §8.1) or Create voice cell (`kind` "voice", spec §8.3.3): the
-  /// selection moves into a new cell; cables that cross the new border become cell jacks.
-  function group(kind) {
-    const voice = kind === "voice";
-    const picked = selectedNodes().filter((n) => !isPort(n) && !isBoundary(n));
-    if (!picked.length) return;
-    if (insideVoiceCell(level()) && picked.some((n) => n.type === "voice-cell")) return;
-    if (voice && !canGroupVoice()) return;
-    edit(voice ? "create voice cell" : "group", (b) => {
-      const inside = new Set(picked.map((n) => n.id));
-      const lvl = level();
-      const xs = picked.map((n) => n.x), ys = picked.map((n) => n.y);
-      const x0 = Math.min(...xs), y0 = Math.min(...ys), x1 = Math.max(...xs);
-      const cellId = uid(voice ? "vc" : "c");
-      const params = voice ? Object.fromEntries(types["voice-cell"].params.map((p) => [p.id, p.default])) : {};
-      const bnd = (id, type, name, x, y) => ({ id, type, name, x, y, parent: cellId, params: {} });
-      b.nodes.push({ id: cellId, type: voice ? "voice-cell" : "cell", name: voice ? "Voice Cell" : "Cell", x: x0, y: y0, parent: lvl,
-                     params, inputs: [], outputs: [] },
-        bnd(uid("co"), "cell-out", "Cell Out", x1 + 260, voice ? y0 + 260 : y0));
-      if (!voice) b.nodes.push(bnd(uid("ci"), "cell-in", "Cell In", x0 - 260, y0));
-      if (voice) b.nodes.push(bnd(uid("vi"), "voice-in", "Voice In", x0 - 260, y0), bnd(uid("vo"), "voice-out", "Voice Out", x1 + 260, y0));
-      moveIntoCell(b, inside, cellId, true);
-      sel.clear();
-      sel.add(cellId);
-    });
-  }
-
-  /// Right-click → Remove from cell: the selected nodes inside the current cell move to the board level next
-  /// to the cell. Cables through the border are rerouted over new cell jacks, or joined where they passed
-  /// through a jack (as in ungroup). Cables to Voice In / Voice Out can't be kept.
-  function removeFromCell() {
-    const cellId = level();
-    const picked = selectedNodes().filter((n) => n.parent === cellId && !isPort(n) && !isBoundary(n));
-    if (!cellId || !picked.length) return;
-    edit("remove from cell", (b) => {
-      const cell = nodeById(cellId, b);
-      if (!cell) return false;
-      const out = new Set(picked.map((n) => n.id));
-      const kx = Math.min(...picked.map((n) => n.x)), ky = Math.min(...picked.map((n) => n.y));
-      for (const n of b.nodes) if (out.has(n.id)) {
-        n.parent = cell.parent || "";
-        n.x = cell.x + NODE_W + 80 + n.x - kx;
-        n.y = cell.y + n.y - ky;
-      }
-      const cins = b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-in" || n.type === "voice-in"));
-      const couts = b.nodes.filter((n) => n.parent === cellId && n.type === "cell-out");
-      const cinIds = new Set(cins.map((n) => n.id)), coutIds = new Set(couts.map((n) => n.id));
-      cell.inputs = cell.inputs || [];
-      cell.outputs = cell.outputs || [];
-      const inputs = new Map(), outputs = new Map();
-      const next = [];
-      for (const c of b.cables) {
-        const fo = out.has(c.from.node), to = out.has(c.to.node);
-        if (fo === to) { next.push(c); continue; }
-        const key = c.from.node + "|" + c.from.jack;
-        const src = nodeById(c.from.node, b);
-        if (to) {  // from the cell's inside to a moved node
-          if (cinIds.has(c.from.node)) {  // it came in over a cell input: join the outer cables
-            for (const o of b.cables.filter((o) => o.to.node === cellId && o.to.jack === c.from.jack))
-              next.push({ id: uid("k"), from: clone(o.from), to: clone(c.to), amount: o.amount * c.amount });
-          } else if (!isBoundary(src) && couts[0]) {  // leaves the cell over a new cell output
-            if (!outputs.has(key)) {
-              const jack = { id: uid("o"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
-              cell.outputs.push(jack);
-              outputs.set(key, jack.id);
-              next.push({ id: uid("k"), from: clone(c.from), to: { node: couts[0].id, jack: jack.id }, amount: 1 });
-            }
-            next.push({ id: c.id, from: { node: cellId, jack: outputs.get(key) }, to: clone(c.to), amount: c.amount });
-          }
-        } else {  // from a moved node to the cell's inside
-          if (coutIds.has(c.to.node)) {  // it left over a cell output: join the outer cables
-            for (const o of b.cables.filter((o) => o.from.node === cellId && o.from.jack === c.to.jack))
-              next.push({ id: uid("k"), from: clone(c.from), to: clone(o.to), amount: c.amount * o.amount });
-          } else if (!isBoundary(nodeById(c.to.node, b)) && cins[0]) {  // enters the cell over a new cell input
-            if (!inputs.has(key)) {
-              const jack = { id: uid("i"), name: jackName(src, c.from.jack, true), type: outType(src, c.from.jack) || "control" };
-              cell.inputs.push(jack);
-              inputs.set(key, jack.id);
-              next.push({ id: uid("k"), from: clone(c.from), to: { node: cellId, jack: jack.id }, amount: 1 });
-            }
-            next.push({ id: c.id, from: { node: cins[0].id, jack: inputs.get(key) }, to: clone(c.to), amount: c.amount });
-          }
-        }
-      }
-      b.cables = next;
-      sel.clear();
-    });
-  }
-
-  /// ⌘⇧G, right-click → Unbuild cell: the cell's contents move out into the patch; cables through its jacks are joined.
-  /// A Voice Cell is unbuilt too: Voice In's per-voice signals and Voice Out's Active are lost, its shared inputs and audio join through.
-  function ungroup(cellId) {
-    edit("unbuild cell", (b) => {
-      const cell = nodeById(cellId, b);
-      if (!cell || !isCellLike(cell)) return false;
-      const cins = b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-in" || n.type === "voice-in"));
-      const couts = b.nodes.filter((n) => n.parent === cellId && (n.type === "cell-out" || n.type === "voice-out"));
-      const cinIds = new Set(cins.map((n) => n.id)), coutIds = new Set(couts.map((n) => n.id));
-      const kids = b.nodes.filter((n) => n.parent === cellId && !isBoundary(n));
-      const kx = Math.min(...kids.map((k) => k.x), Infinity), ky = Math.min(...kids.map((k) => k.y), Infinity);
-      for (const k of kids) {
-        k.parent = cell.parent || "";
-        if (isFinite(kx)) { k.x = cell.x + (k.x - kx); k.y = cell.y + (k.y - ky); }
-      }
-      const boundary = new Set([cellId, ...cinIds, ...coutIds]);
-      const next = b.cables.filter((c) => !boundary.has(c.from.node) && !boundary.has(c.to.node));
-      for (const outer of b.cables.filter((c) => c.to.node === cellId))
-        for (const inner of b.cables.filter((c) => cinIds.has(c.from.node) && c.from.jack === outer.to.jack))
-          next.push({ id: uid("k"), from: clone(outer.from), to: clone(inner.to), amount: outer.amount * inner.amount });
-      for (const inner of b.cables.filter((c) => coutIds.has(c.to.node)))
-        for (const outer of b.cables.filter((c) => c.from.node === cellId && c.from.jack === inner.to.jack))
-          next.push({ id: uid("k"), from: clone(inner.from), to: clone(outer.to), amount: outer.amount * inner.amount });
-      b.cables = next;
-      b.nodes = b.nodes.filter((n) => !boundary.has(n.id));
-      sel.clear();
-      kids.forEach((k) => sel.add(k.id));
-    });
-  }
-
-  // ---------------------------------------------------------- cell presets
-  /// Small inline text fields (WebViews in plugins may not support prompt()).
-  /// Resolves to the trimmed values, or null when cancelled.
-  function ask(fields, at) {
-    return new Promise((resolve) => {
-      const m = $("menu");
-      closeSubmenus(0);
-      m.innerHTML = "";
-      const box = el("div", "m-ask");
-      const inputs = fields.map((f) => {
-        box.appendChild(el("div", "m-ask-label", f.label));
-        const input = el("input", "n-rename");
-        input.value = f.value;
-        if (f.suggestions) {
-          const list = el("datalist");
-          list.id = uid("dl");
-          for (const sgg of f.suggestions) list.appendChild(new Option(sgg));
-          box.appendChild(list);
-          input.setAttribute("list", list.id);
-        }
-        box.appendChild(input);
-        return input;
-      });
-      m.appendChild(box);
-      m.hidden = false;
-      m.style.left = at.x + "px";
-      m.style.top = at.y + "px";
-      inputs[0].focus();
-      inputs[0].select();
-      let done = false;
-      const finish = (ok) => {
-        if (done) return;
-        done = true;
-        m.hidden = true;
-        canvas.focus();
-        resolve(ok ? inputs.map((i) => i.value.trim()) : null);
-      };
-      for (const input of inputs) {
-        input.addEventListener("keydown", (e) => {
-          e.stopPropagation();
-          if (e.key === "Enter") finish(true);
-          if (e.key === "Escape") finish(false);
-        });
-        input.addEventListener("pointerdown", (e) => e.stopPropagation());
-        input.addEventListener("blur", () => setTimeout(() => { if (!box.contains(document.activeElement)) finish(false); }, 0));
-      }
-    });
-  }
-
-  /// Factory presets, read-only: compiled ones (factory-presets.json, built from
-  /// patch/presets) and hand-written ones (factory-presets.js); names are unique
-  /// across both. Then the user's own (.bleepcell files), by category.
-  let compiledPresets = [];
-  async function loadFactoryPresets() {
-    try {
-      const doc = await (await fetch("factory-presets.json")).json();
-      presetOrder = (doc.categories || []).map((c) => c.name);
-      compiledPresets = doc.presets || [];
-    } catch (e) {
-      console.warn("factory-presets.json not loaded", e);
-    }
-  }
-  /// Factory panels (factory-panels.json, built from patch/presets/panels.mjs), by preset name:
-  /// they travel with the preset and are copied into the board when it is placed.
-  let panelDefs = {};
-  async function loadFactoryPanels() {
-    try {
-      panelDefs = (await (await fetch("factory-panels.json")).json()).panels || {};
-    } catch (e) {
-      console.warn("factory-panels.json not loaded", e);
-    }
-  }
-  function setPresets(user) {
-    const factory = compiledPresets.concat(window.BleepFactoryPresets || [])
-      .map((p) => Object.assign({ key: "factory:" + p.name, factory: true }, p,
-        panelDefs[p.name] ? { preset: Object.assign({}, p.preset, { panels: panelDefs[p.name] }) } : {}));
-    presets = factory.concat((user || []).map((p) => Object.assign(
-      { key: "user:" + p.name, category: (p.preset && p.preset.category) || "My Cells" }, p)));
-  }
-  function presetCategories() {
-    const byCat = new Map();
-    for (const p of presets) {
-      const cat = p.category || (p.preset && p.preset.category) || "My Cells";
-      if (!byCat.has(cat)) byCat.set(cat, []);
-      byCat.get(cat).push(p);
-    }
-    return byCat;
-  }
-
-  async function savePreset(cell) {
-    const ne = nodesEl.querySelector(`[data-id="${cell.id}"]`);
-    const r = canvas.getBoundingClientRect();
-    const at = ne ? { x: ne.getBoundingClientRect().left - r.left, y: ne.getBoundingClientRect().bottom - r.top + 6 }
-                  : { x: 40, y: 40 };
-    const cats = [...new Set(["Synthesizers", ...presetCategories().keys()])];
-    const answer = await ask([{ label: "Save cell as preset", value: cell.name },
-                              { label: "Category", value: cell.type === "voice-cell" ? "Synthesizers" : "My Cells", suggestions: cats },
-                              { label: "Description (optional)", value: "" }], at);
-    if (!answer || !answer[0]) return;
-    const [name, category, description] = answer;
-    const nodes = [cell, ...descendants(cell.id)].map(clone);
-    const ids = new Set(nodes.map((n) => n.id));
-    const cables = board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone);
-    const preset = { format: 1, root: cell.id, category: category || "My Cells", nodes, cables };
-    const needs = P.BleepLibraryView ? await P.BleepLibraryView.needsFor(nodes) : {};
-    if (Object.keys(needs).length) preset.needs = needs;
-    const mine = panelsWithLoaded(panelList().filter((p) => p.cell && ids.has(p.cell)));
-    if (mine.length) preset.panels = clone(mine).map((p) => { delete p.open; return p; });
-    if (description) preset.description = description;
-    if (cell.help && cell.help.text) preset.help = clone(cell.help);
-    const saved = await native("savePreset", name, preset);
-    if (saved) setPresets(saved);
-  }
-
-  /// Panels copied into the board (a placed preset, a paste, a duplicate): new ids, pointing at the new nodes.
-  /// `map`: old node id → new. Panels of cells that weren't copied are left out.
-  /// Stacks of a placed preset's panels start open: it is there to be looked at.
-  function addPanels(b, list, map) {
-    if (!list || !list.length) return;
-    const pmap = new Map(list.map((q) => [q.id, uid("p")]));
-    const key = (k) => (map.has(k) ? map.get(k) : k);   // "this" stays
-    const ref = (r) => { const i = r.indexOf("."); return key(r.slice(0, i)) + r.slice(i); };
-    for (const q of clone(list)) {
-      if (q.cell && !map.has(q.cell)) continue;
-      q.id = pmap.get(q.id);
-      if (q.cell) q.cell = key(q.cell);
-      if (q.modules) q.modules = q.modules.map(key);
-      // A panel made with panel-wiring.js: its Panel cell, its bays (by target module: the bays and the jack the bundle uses) and each control's target and module.
-      if (q.panelCell) q.panelCell = key(q.panelCell);
-      if (q.bays) q.bays = Object.fromEntries(Object.entries(q.bays).map(([t, v]) => [key(t), { ...v, in: key(v.in), out: key(v.out), path: (v.path || []).map(key) }]));
-      if (q.groups) {
-        q.groups = Object.fromEntries(Object.entries(q.groups).map(([k, g]) => [key(k), g]));
-        // Open unless the stack is long: a placed preset is there to be looked at, but not as a wall of nodes.
-        for (const k of Object.keys(q.groups))
-          if (b.nodes.filter((n) => (q.modules || []).includes(n.id) && (n.parent || "") === k).length <= 8) groupOpen.add(groupKey(q, k));
-      }
-      delete q.open;
-      for (const c of q.controls) {
-        for (const w of c.wire || []) {
-          for (const k of ["param", "jack", "command"]) if (w[k]) w[k] = ref(w[k]);
-          for (const k of ["press", "keyboard"]) if (w[k]) w[k] = key(w[k]);
-        }
-        if (c.source) c.source.out = [].concat(c.source.out).map(ref);
-        if (c.target) c.target.node = key(c.target.node);
-        if (c.module) c.module = key(c.module);
-        if (c.node) c.node = key(c.node);
-        if (c.type === "panel") c.panel = pmap.get(c.panel) || c.panel;
-      }
-      (b.panels || (b.panels = [])).push(q);
-    }
-  }
-
-  function insertPreset(b, preset, lvl, x, y) {
-    const tmp = { nodes: clone(preset.nodes), cables: clone(preset.cables) };
-    const root = tmp.nodes.find((n) => n.id === preset.root);
-    if (!root) return null;
-    if (root.type === "voice-cell" && insideVoiceCell(lvl, b)) return null;  // no nesting
-    const map = new Map(tmp.nodes.map((n) => [n.id, uid(isCellLike(n) ? "c" : "n")]));
-    for (const n of tmp.nodes) {
-      n.id = map.get(n.id);
-      n.parent = n === root ? lvl : map.get(n.parent) || lvl;
-      delete n.port;
-      b.nodes.push(n);
-    }
-    root.x = Math.round(x);
-    root.y = Math.round(y);
-    if (preset.help && preset.help.text) root.help = clone(preset.help);
-    else delete root.help;
-    for (const c of tmp.cables)
-      if (map.has(c.from.node) && map.has(c.to.node))
-        b.cables.push({ id: uid("k"), from: { node: map.get(c.from.node), jack: c.from.jack },
-                        to: { node: map.get(c.to.node), jack: c.to.jack }, amount: c.amount });
-    addPanels(b, preset.panels, map);
-    return root.id;
-  }
+  // ---------------------------------------------------------- cell presets (board-presets.js)
+  const cp = P.BoardPresets.create({
+    get board() { return board; }, $, el, uid, clone, canvas, nodesEl, closeSubmenus, descendants, isCellLike, insideVoiceCell, groupOpen, groupKey,
+    panelList: () => panelList(), panelsWithLoaded: (list) => panelsWithLoaded(list), credits,
+  });
+  const { setPresets, categories: presetCategories, save: savePreset, insert: insertPreset, addPanels, list: presetList, order: presetOrder } = cp;
 
   // ------------------------------------------------------------ navigation
   function enterCell(id) {
@@ -2627,683 +1414,26 @@
     render();
   }
 
-  // ------------------------------------------------------- floating views
-  let viewZ = 1;
-  /// Puts a floating window at (x, y), keeping its title bar inside the canvas so it can always be grabbed.
-  function placeWin(win, x, y) {
-    const head = win.querySelector(".v-head"), hh = head ? head.offsetHeight : 28, keep = 80;
-    win.style.left = Math.max(keep - win.offsetWidth, Math.min(x, canvas.clientWidth - keep)) + "px";
-    win.style.top = Math.max(0, Math.min(y, canvas.clientHeight - hh)) + "px";
-  }
-  window.addEventListener("resize", () => { for (const v of views.values()) placeWin(v.win, v.win.offsetLeft, v.win.offsetTop); });
-  // Opening a view replaces the other unpinned ones; pinned views stay.
-  function toggleView(id) {
-    if (views.has(id)) return closeView(id);
-    closeUnpinnedViews();
-    openView(id, { centre: true });
-  }
+  // ------------------------------------------------------- floating views (board-views.js)
+  const viewsApi = P.BoardViews.create({
+    get board() { return board; },
+    $, cablesInto, canBypass, canvas, clone, drivesJacks, edit, el, gesture, isPort, isStructural, jackName,
+    nodeById, nodesEl, removeCable, renderCables, renderNodes, savePreset,
+    setPowerButton, showMenu, toggleBypass, typeOf, views,
+    knobMenuItems: (...a) => knobMenuItems(...a), panelMenuFor: (...a) => panelMenuFor(...a),
+  });
+  const { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch } = viewsApi;
 
-  /// What a module view (or a panel) calls to change node `id`.
-  function makeApi(id) {
-    // A module view may only touch the libraries of its own kind: "drums" (Drum Grid patterns) and "module:<type>" (its presets), never the user's boards and cells.
-    const viewKind = (kind) => typeof kind === "string" && /^(drums|module:[A-Za-z0-9._-]{1,64})$/.test(kind);
-    return Object.freeze({
-      knobMenu: (pid, ev) => { const items = knobMenuItems(id, pid); if (items.length) showMenu(ev, items); },
-      // Right-click on a part of the view (a display, a section of knobs, the buttons) or on its background: "Add to panel".
-      partMenu: (partId, ev) => { const m = nodeById(id), items = m ? panelMenuFor(m, partId) : []; if (items.length) showMenu(ev, items); },
-      setParam: (pid, v) => {
-        const m = nodeById(id);
-        if (m) m.params[pid] = v;
-        native("setParam", id, pid, v);
-        if (m && m.type === "voice-cell" && pid === "voices") { renderNodes(); renderCables(); }  // ×N and the dots
-        else if (m && drivesJacks(m, pid)) { renderNodes(); renderCables(); }  // jacks shown or renamed by a mode
-      },
-      beginGesture: gesture,
-      setAmount: (cableId, v) => {
-        const c = board.cables.find((x) => x.id === cableId);
-        if (c) c.amount = v;
-        native("setAmount", cableId, v);
-      },
-      removeCable,
-      command: (cmd, value) => native("command", id, cmd, value),
-      isPatched: (jack) => board.cables.some((c) => c.to.node === id && c.to.jack === jack),
-      importMedia: (name, base64) => native("importMedia", name, base64),
-      exportMedia: (slot) => native("exportMedia", id, slot),
-      setData: (data) => {
-        const m = nodeById(id);
-        if (m) m.data = clone(data);
-        native("setData", id, data);
-      },
-      // Performance gestures (Button presses, Keyboard keys): not saved, no undo.
-      perform: (action, ...args) => native("perform", id, action, args),
-      // Preset libraries shared by all sets, e.g. Drum Grid patterns ("drums").
-      presets: async (kind) => (viewKind(kind) && (await native("presets", kind))) || [],
-      savePreset: async (kind, name, preset) => (viewKind(kind) && (await native("savePreset", name, preset, kind))) || [],
-      deletePreset: async (kind, name) => (viewKind(kind) && (await native("deletePreset", name, kind))) || [],
-      // The MIDI inputs the app sees (MIDI Device's controller list).
-      midiDevices: async () => (await native("midiDevices")) || [],
-      setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
-      cablesInto: (pid) => cablesInto(id, pid).map((c) => {
-        const src = nodeById(c.from.node);
-        return { id: c.id, amount: c.amount, label: src ? `${src.name} › ${jackName(src, c.from.jack, true)}` : "?" };
-      }),
-    });
-  }
-
-  /// `opts.centre`: a view opened by hand lands in the middle of the canvas; one a cable opens sits beside its node.
-  function openView(id, opts = {}) {
-    const n = nodeById(id);
-    if (!n || isStructural(n)) return;
-    const t = typeOf(n);
-    const win = el("div", "vwin");
-    win.dataset.node = id;
-    win.style.setProperty("--accent", n.colour || t.colour || "#4fd1c5");
-    const head = el("div", "v-head");
-    const vTitle = el("span", "v-title", n.name);
-    const pen = el("button", "pen", "✎");
-    pen.title = "Rename";
-    pen.setAttribute("aria-label", "Rename " + n.name);
-    head.append(vTitle, pen, el("span", "v-sub", t.name), el("span", "spacer"));
-    const help = el("button", "help", "?");
-    help.title = "Documentation";
-    help.hidden = true;
-    const pin = el("button", "pin", "📌");
-    pin.title = pinTitle(false);
-    const close = el("button", "", "×");
-    close.title = "Close (Esc)";
-    const power = canBypass(n) ? el("button", "power", "⏻") : null;   // a power switch: lit = the module runs
-    if (power) {
-      setPowerButton(power, n);
-      power.addEventListener("click", () => toggleBypass(id));
-      head.appendChild(power);
-    }
-    head.append(help, pin, close);
-    const body = el("div", "v-body");
-    const doc = el("div", "v-doc");
-    doc.hidden = true;
-    win.append(head, body);
-    const api = makeApi(id);
-    const bv = BleepView.create(t, clone(n), api);
-    const hook = BleepViews.get(t.type);
-    if (hook && hook.width) win.style.width = hook.width + "px";
-    else if (isPort(n)) win.classList.add("port");   // In/Out nodes have a few controls: fit them
-    if (!n.params) n.params = {};
-    body.append(bv.root, doc);
-    $("views").appendChild(win);
-    const v = { win, bv, pinned: false, power };
-    moduleDoc(t.type).then((md) => {
-      if (md === null) return;
-      help.hidden = false;
-      doc.innerHTML = BleepMarkdown.render(md);
-    });
-    views.set(id, v);
-
-    // Next to the node, inside the canvas.
-    const ne = nodesEl.querySelector(`[data-id="${id}"]`);
-    const r = canvas.getBoundingClientRect();
-    let x = 40, y = 40;
-    if (ne) {
-      // Beside the node, never over it: its ports must stay reachable.
-      // Right if it fits, else left, else (a window as wide as the canvas) below or above.
-      const nr = ne.getBoundingClientRect(), w = win.offsetWidth, h = win.offsetHeight, gap = 16;
-      const nl = nr.left - r.left, nrt = nr.right - r.left, nt = nr.top - r.top, nb = nr.bottom - r.top;
-      y = nt;
-      if (nrt + gap + w <= r.width - 10) x = nrt + gap;
-      else if (nl - gap - w >= 8) x = nl - gap - w;
-      else {
-        x = nl;
-        y = nb + gap + h <= r.height - 8 || nt - gap - h < 8 ? nb + gap : nt - gap - h;
-      }
-    }
-    if (opts.centre) { x = (r.width - win.offsetWidth) / 2; y = (r.height - win.offsetHeight) / 2; }
-    x = Math.max(8, Math.min(x, r.width - win.offsetWidth - 10));
-    y = Math.max(8, opts.centre ? Math.min(y, r.height - win.offsetHeight - 8) : Math.min(y, r.height - Math.min(win.offsetHeight, 200)));
-    win.style.left = x + "px";
-    win.style.top = y + "px";
-    front(win);
-
-    win.addEventListener("pointerdown", () => front(win));
-    pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); pin.title = pinTitle(v.pinned); });
-    help.addEventListener("click", () => {
-      const open = doc.hidden;
-      doc.hidden = !open;
-      bv.root.hidden = open;
-      help.classList.toggle("on", open);
-      win.classList.toggle("doc", open);
-      help.title = open ? "Back to the controls" : "Documentation";
-      body.scrollTop = 0;
-      // The docs are wider: keep the window, and its buttons, inside the canvas.
-      const maxLeft = canvas.clientWidth - win.offsetWidth - 8;
-      if (win.offsetLeft > maxLeft) win.style.left = Math.max(8, maxLeft) + "px";
-    });
-    doc.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });  // the page must not navigate
-    close.addEventListener("click", () => closeView(id));
-    pen.addEventListener("click", () => {
-      const cur = nodeById(id);
-      if (!cur) return;
-      const input = el("input", "n-rename v-rename");
-      input.value = cur.name;
-      input.maxLength = 63;
-      vTitle.replaceWith(input);
-      input.focus();
-      input.select();
-      let done = false;
-      const finish = (save) => {
-        if (done) return;
-        done = true;
-        const name = input.value.trim();
-        input.replaceWith(vTitle);
-        if (save && name && name !== cur.name) edit("rename", (b) => { nodeById(id, b).name = name; });
-      };
-      input.addEventListener("keydown", (e) => {
-        e.stopPropagation();
-        if (e.key === "Enter") finish(true);
-        if (e.key === "Escape") finish(false);
-      });
-      input.addEventListener("blur", () => finish(true));
-      input.addEventListener("pointerdown", (e) => e.stopPropagation());
-    });
-    if (hook && hook.resizable) {  // drag the lower right corner to change the width
-      const grip = el("div", "v-grip");
-      grip.title = "Drag to resize";
-      win.appendChild(grip);
-      grip.addEventListener("pointerdown", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        grip.setPointerCapture(e.pointerId);
-        const sx = e.clientX, w0 = win.offsetWidth, max = canvas.clientWidth - win.offsetLeft - 8;
-        const move = (m) => { win.style.width = Math.max(360, Math.min(max, w0 + m.clientX - sx)) + "px"; };
-        const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); };
-        grip.addEventListener("pointermove", move);
-        grip.addEventListener("pointerup", up);
-      });
-    }
-    head.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("button")) return;
-      const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
-      const move = (m) => placeWin(win, m.clientX - sx, m.clientY - sy);
-      const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-      window.addEventListener("pointermove", move);
-      window.addEventListener("pointerup", up);
-    });
-    watch();
-  }
-  // ----------------------------------------------------------- front panels
-  // Panels live in the board document (board.panels, doc/specs/panels.md): a cell's
-  // panel names nodes inside the cell, a board panel any node; a module panel
-  // ("for") is loaded by other panels and names its module "this".
-  const panelList = () => (board && board.panels) || [];
-  const panelById = (id, b = board) => ((b && b.panels) || []).find((q) => q.id === id);
-  const panelsOfCell = (cellId) => panelList().filter((q) => q.cell === cellId);
-  const boardPanels = () => panelList().filter((q) => !q.cell && !q.for);
-  const hasPanel = (n) => isCellLike(n) && panelsOfCell(n.id).length > 0;
-  const panelOpen = (id) => views.has("panel:" + id);
-  function togglePanel(id) {
-    if (panelOpen(id)) closeView("panel:" + id);
-    else openPanel(id);
-  }
-  /// `list` and every panel they load, directly or not.
-  function panelsWithLoaded(list) {
-    const out = new Set(list);
-    for (const q of out) for (const c of q.controls) {
-      const sub = c.type === "panel" && panelById(c.panel);
-      if (sub) out.add(sub);
-    }
-    return [...out];
-  }
-  /// Panels of cells that are gone, and module panels nobody loads, go with the edit.
-  function prunePanels(b) {
-    if (!b.panels) return;
-    const ids = new Set(b.nodes.map((n) => n.id));
-    let list = b.panels.filter((q) => !q.cell || ids.has(q.cell));
-    for (let again = true; again;) {
-      const loaded = new Set(list.flatMap((q) => q.controls.filter((c) => c.type === "panel").map((c) => c.panel)));
-      const next = list.filter((q) => !q.for || loaded.has(q.id));
-      again = next.length !== list.length;
-      list = next;
-    }
-    if (list.length) b.panels = list; else delete b.panels;
-  }
-
-  /// ▦ on a cell: its panel, or a list when it has several.
-  function cellPanels(ev, cell) {
-    const mine = panelsOfCell(cell.id);
-    if (mine.length === 1) return togglePanel(mine[0].id);
-    showMenu(ev, mine.map((q) => ({ label: q.name, run: () => togglePanel(q.id) })));
-  }
-  /// The toolbar's Panels list.
-  function panelsMenu(ev) {
-    const items = [];
-    const mine = boardPanels();
-    for (const q of mine) items.push({ label: q.name, key: q.open ? "on load" : "", run: () => togglePanel(q.id) });
-    const cellPanelItems = panelList().filter((q) => q.cell && nodeById(q.cell))
-      .map((q) => ({ label: `${nodeById(q.cell).name}: ${q.name}`, run: () => togglePanel(q.id) }));
-    if (cellPanelItems.length) items.push({ label: "Cell panels", items: cellPanelItems });
-    if (items.length) items.push("-");
-    items.push({ label: "New board panel", run: () => newPanel("") });
-    const sel1 = selectedNodes().filter(isCellLike);
-    if (sel1.length === 1) {
-      items.push({ label: `New panel for “${sel1[0].name}”`, run: () => newPanel(sel1[0].id) });
-      items.push({ label: `Build panel from “${sel1[0].name}”`, run: () => buildPanel(sel1[0].id) });
-    }
-    showMenu(ev, items);
-  }
-  // ---- panel controls that are modules (panel-wiring.js) ------------------------------------------------------------
-  /// What `panel-wiring.js` needs: the types, new ids, and where a new control goes on its panel.
-  const wiringEnv = () => ({ types, uid, hasView: (n) => !isStructural(n), knobControl: BleepPanelBuild.knobControl, place: (q, type, extra) => BleepPanelEditor.placeControl(q, type, extra, q.tabs && q.tabs[0] ? q.tabs[0].id : null) });
-  /// The panels a control can go on (those that already have it are left out), then "New panel".
-  /// `have`: [{panel, control}] the controls it has; `add(where)`: makes one on a panel id or "new".
-  const panelTitle = (q) => { const c = q.cell && nodeById(q.cell); return c && c.name !== q.name ? `${c.name}: ${q.name}` : q.name; };
-  function panelChoices(have, add) {
-    const onIt = new Set(have.map((h) => h.panel.id));
-    const free = BleepPanelWiring.panelsFor(board).filter((q) => !onIt.has(q.id));
-    return [...free.map((q) => ({ label: panelTitle(q), run: () => add(q.id) })), ...(free.length ? ["-"] : []), { label: "New panel", run: () => add("new") }];
-  }
-  /// "Show on panel" and "Remove from panel" for what a node already has on panels: [{panel, control, what}].
-  function panelExtras(have) {
-    const items = [];
-    const show = (q) => () => { if (!panelOpen(q.id)) togglePanel(q.id); };
-    const panels = [...new Map(have.map((h) => [h.panel.id, h.panel])).values()];
-    if (panels.length === 1) items.push({ label: `Show on panel “${panels[0].name}”`, run: show(panels[0]) });
-    else if (panels.length) items.push({ label: "Show on panel", items: panels.map((q) => ({ label: panelTitle(q), run: show(q) })) });
-    const drop = (h) => () => removePanelControl(h.panel.id, h.control.id);
-    const name = (h) => (h.what ? `${h.what} · ` : "") + panelTitle(h.panel);
-    if (have.length === 1) items.push({ label: `Remove from panel “${have[0].panel.name}”${have[0].what ? ` (${have[0].what})` : ""}`, run: drop(have[0]) });
-    else if (have.length) items.push({ label: "Remove from panel", items: have.map((h) => ({ label: name(h), run: drop(h) })) });
-    return items;
-  }
-  /// "Add to panel ▸" for a knob, and, for what is already on panels, show and remove.
-  function panelMenuItems(n, have, add) {
-    return [{ label: "Add to panel", items: panelChoices(have, add) }, ...panelExtras(have)];
-  }
-  /// Right-click a module (on the board, or in its view): "Add to panel ▸" its control (a controller module: Dial, Button, Keyboard …),
-  /// the whole module view, or one of its parts. `focus`: the part under the pointer in a view (it is offered first), null: the view's
-  /// background, undefined: the board.
-  function panelMenuFor(n, focus) {
-    if (!window.BleepPanelWiring) return [];
-    const env = wiringEnv();
-    const asControl = BleepPanelWiring.canAddModule(board, n), asView = BleepPanelWiring.canAddView(board, env, n);
-    if (!asControl && !asView) return [];
-    const haveControl = asControl ? BleepPanelWiring.moduleControls(board, n).map((h) => ({ ...h, what: "control" })) : [];
-    const haveView = asView ? BleepPanelWiring.viewControls(board, n).map((h) => ({ ...h, what: h.part ? (partList(n).find((p) => p.id === h.part) || { name: "part" }).name : "whole view" })) : [];
-    const control = () => ({ label: "As control", items: panelChoices(haveControl, (where) => addToPanel(n.id, where, (b, m) => BleepPanelWiring.addModule(b, env, m, where))) });
-    const view = (part) => ({
-      label: part ? (part.kind === "controls" ? `Knobs: ${part.name}` : part.name) : "Whole module view",
-      items: panelChoices(haveView.filter((h) => h.part === (part ? part.id : null)), (where) => addToPanel(n.id, where, (b, m) => BleepPanelWiring.addView(b, env, m, part, where))),
-    });
-    const parts = asView ? partList(n) : [];
-    let items;
-    const focused = parts.find((p) => p.id === focus);
-    if (focused) items = [{ ...view(focused), label: `Add “${focused.name}” to panel` }, { ...view(null), label: "Add whole module view to panel" }];
-    else {
-      const sub = [];
-      if (asControl) sub.push(control());
-      if (asView) sub.push(view(null), ...(parts.length ? ["-", ...parts.map(view)] : []));
-      items = [{ label: "Add to panel", items: sub }];
-    }
-    return [...items, ...panelExtras([...haveControl, ...haveView])];
-  }
-  /// The parts of a module's view a panel can show alone.
-  const partList = (n) => (window.BleepView && BleepView.partsOf ? BleepView.partsOf(typeOf(n)) : []);
-  /// A module on the board: its control, its view or a part of it.
-  const controllerMenuItems = (n) => panelMenuFor(n);
-  /// A knob (or setting) of a module: a control wired straight to it.
-  function knobMenuItems(nodeId, paramId) {
-    const n = nodeById(nodeId);
-    if (!n || !window.BleepPanelWiring || BleepPanelWiring.belongsToPanel(board, n) || !(types[n.type] || {}).params.some((p) => p.id === paramId)) return [];
-    return panelMenuItems(n, BleepPanelWiring.knobControls(board, n, paramId), (where) => addToPanel(nodeId, where, (b, m) => BleepPanelWiring.addKnob(b, wiringEnv(), m, paramId, where)));
-  }
-  function addToPanel(nodeId, where, make) {
-    let made = null;
-    const done = edit("add to panel", (b) => {
-      const n = nodeById(nodeId, b);
-      made = n ? make(b, n) : { error: "the module is gone" };
-      if (made.error) return false;
-    });
-    Promise.resolve(done).then(() => {
-      if (!made || made.error) return notice(`Could not add it to the panel: ${made ? made.error : "nothing happened"}.`);
-      notice(`Added “${made.control.label}” to the panel “${made.panel.name}”.`);
-      if (where === "new" && !pluginMode) openPanel(made.panel.id, { edit: true });
-    });
-  }
-  function removePanelControl(panelId, controlId) {
-    edit("remove panel control", (b) => { if (!BleepPanelWiring.remove(b, panelId, controlId)) return false; });
-  }
-  /// Goes to a node: into the cells around it, selected and in the middle.
-  function goToNode(id) {
-    const n = nodeById(id);
-    if (!n) return;
-    path = pathTo(id);
-    sel.clear();
-    sel.add(id);
-    trace = null;
-    closeUnpinnedViews();
-    render();
-    centreOn(n);
-  }
-  /// A first panel for a cell, built from what is inside it.
-  async function buildPanel(cellId) {
-    const cell = nodeById(cellId);
-    if (!cell) return;
-    const order = descendants(cellId).filter((m) => !isBoundary(m) || m.type === "voice-out" || m.type === "cell-out")
-      .sort((a, b) => a.x - b.x || a.y - b.y);
-    const doc = BleepPanelBuild.build(cell, { nodes: order, types, inputsOf, cables: board.cables });
-    doc.id = uid("p");
-    await edit("build panel", (b) => { (b.panels || (b.panels = [])).push(doc); });
-    if (!pluginMode) openPanel(doc.id);
-  }
-  async function newPanel(cellId, quiet) {
-    const cell = cellId && nodeById(cellId);
-    const id = uid("p");
-    const name = cell ? cell.name : "Panel";
-    await edit("new panel", (b) => {
-      (b.panels || (b.panels = [])).push({
-        id, name, ...(cell ? { cell: cellId } : {}), cols: 40, rows: 24,
-        controls: [{ id: "c1", type: "label", at: [1, 0], size: [24, 2], text: name, style: "title" }],
-      });
-    });
-    if (!quiet) openPanel(id, { edit: true });
-    return id;
-  }
-  /// The panel that opens with the board (panel.open: "window" or "full").
-  function openStartPanel() {
-    const q = panelList().find((x) => x.open);
-    if (q && !panelOpen(q.id)) openPanel(q.id, { full: q.open === "full" });
-  }
-
-  /// What the nodes a panel names look like to it. A module panel's own module is "this".
-  function panelHost(doc, embeddedViews) {
-    const standIn = doc.for && { id: "this", name: (types[doc.for.module] || {}).name || doc.for.module, type: doc.for.module, params: {} };
-    const lookup = (id) => (id === "this" ? standIn : nodeById(id));
-    return {
-      node: (key, bound) => (key === "this" ? bound || standIn || null : nodeById(key)),
-      param: (id, pid) => {
-        const m = lookup(id);
-        const def = m && typeOf(m).params.find((q) => q.id === pid);
-        return def ? { node: m, def } : null;
-      },
-      value: (id, pid) => {
-        const m = lookup(id), def = typeOf(m).params.find((q) => q.id === pid);
-        return (m.params && m.params[pid]) ?? def.default;
-      },
-      set: (id, pid, v) => makeApi(id).setParam(pid, v),
-      begin: gesture,
-      // A panel control wired to a cell's jack or notes drives a hidden source the engine makes (id "~panel:control:wire").
-      jackType: (panel, jack) => { const c = panel.cell && nodeById(panel.cell); const j = c && inputsOf(c).find((q) => q.id === jack); return j ? j.type : null; },
-      nodeJackType: (id, jack) => { const m = nodeById(id); return m ? inType(m, jack) : null; },
-      command: (id, cmd, v) => native("command", id, cmd, v),
-      source: (sid, v) => native("setParam", sid, "value", v),
-      press: (sid, down) => native("perform", sid, down ? "press" : "release", []),
-      // A Button module in Toggle mode: its new state is saved in its data, as its own view does, then pressed and released.
-      toggle: (id) => {
-        const m = nodeById(id);
-        if (!m) return;
-        const next = !(m.data && m.data.on);
-        m.data = { on: next };
-        const api = makeApi(id);
-        api.setData(m.data);
-        api.perform("press", next ? 1 : 0);
-        api.perform("release");
-      },
-      note: (sid, action, args) => native("perform", sid, action, args),
-      save: (pid, cid, x) => edit("panel control", (b) => {
-        const q = (b.panels || []).find((r) => r.id === pid), c = q && q.controls.find((r) => r.id === cid);
-        if (!c) return false;
-        c.value = x;
-      }),
-      view: (id) => {
-        const m = nodeById(id);
-        if (!m || isStructural(m)) return null;
-        if (!m.params) m.params = {};
-        const bv = BleepView.create(typeOf(m), clone(m), makeApi(id));
-        embeddedViews.push({ id, bv });
-        return bv;
-      },
-      refreshView: (id, bv) => { const m = nodeById(id); if (m) bv.refresh(m); },
-    };
-  }
-  /// What the editor may wire: the nodes of the panel's cell (or the whole board), in tree order.
-  function panelScope(doc) {
-    if (doc.for) {
-      const t = types[doc.for.module] || { name: doc.for.module, params: [], outputs: [] };
-      return [{ id: "this", name: t.name, type: t.type, depth: 0, params: t.params, outputs: t.outputs, inputs: t.inputs || [], buttons: t.buttons || [], view: true }];
-    }
-    const out = [];
-    const walk = (parent, depth) => {
-      for (const n of nodesAt(parent)) {
-        if (isBoundary(n) || isPort(n)) continue;
-        const t = typeOf(n);
-        if (t.params.length || t.outputs.length || n.type === "voice-cell") out.push({ id: n.id, name: n.name, type: t.type, depth, params: t.params, outputs: outputsOf(n), inputs: inputsOf(n).filter((j) => j.type !== "audio" && j.type !== "notes"), buttons: t.buttons || [], view: !isStructural(n) });
-        if (isCellLike(n)) walk(n.id, depth + 1);
-      }
-    };
-    if (doc.cell) {
-      const root = nodeById(doc.cell);
-      if (!root) return [];
-      if (typeOf(root).params.length) out.push({ id: root.id, name: root.name, type: root.type, depth: 0, params: typeOf(root).params, outputs: outputsOf(root), view: false });
-      walk(doc.cell, 1);
-    } else walk("", 0);
-    return out;
-  }
-
-  /// The panel as drawn: what moving a control (its saved "value") does not change.
-  const layoutOf = (doc) => JSON.stringify(doc, (k, v) => (k === "value" ? undefined : v));
-
-  /// A panel in a floating window: played, or (✎) edited. ⤢ fills the canvas.
-  function openPanel(panelId, opts = {}) {
-    const doc0 = panelById(panelId);
-    if (!doc0) return;
-    const key = "panel:" + panelId;
-    if (views.has(key)) { front(views.get(key).win); if (opts.edit) views.get(key).setEdit(true); return; }
-    const state = { edit: !!opts.edit || !!doc0.for, full: !!opts.full, tab: null, json: "" };
-    let play = null, editor = null, embeddedViews = [];
-    const win = el("div", "vwin pwin");
-    win.dataset.node = key;
-    const head = el("div", "v-head");
-    const tools = el("span", "pwin-tools");
-    const editBtn = el("button", "", "✎");
-    editBtn.title = "Edit the panel";
-    const fullBtn = el("button", "", "⤢");
-    fullBtn.title = "Fill the canvas";
-    const pin = el("button", "pin on", "📌");
-    pin.title = pinTitle(true);
-    const close = el("button", "", "×");
-    close.title = "Close (Esc)";
-    const title = el("span", "v-title", doc0.name);
-    // In edit mode a click on the title renames the panel.
-    title.addEventListener("click", () => {
-      if (!state.edit || title.querySelector("input")) return;
-      const input = el("input", "n-rename");
-      input.value = panelById(panelId).name;
-      input.maxLength = 63;
-      title.textContent = "";
-      title.append(input);
-      input.focus();
-      input.select();
-      let done = false;
-      const finish = (save) => {
-        if (done) return;
-        done = true;
-        const name = input.value.trim();
-        title.textContent = panelById(panelId).name;
-        if (save && name && name !== panelById(panelId).name)
-          edit("rename panel", (b) => { const q = (b.panels || []).find((x) => x.id === panelId); if (!q) return false; BleepPanelEditor.renamePanel(q, name); });
-      };
-      input.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
-      input.addEventListener("blur", () => finish(true));
-      input.addEventListener("pointerdown", (e) => e.stopPropagation());
-    });
-    const sub = el("span", "v-sub", doc0.cell && nodeById(doc0.cell) ? nodeById(doc0.cell).name : doc0.for ? "Module panel" : "Board");
-    tools.append(editBtn, fullBtn);
-    head.append(title, sub, el("span", "spacer"), tools, pin, close);
-    const body = el("div", "v-body");
-    win.append(head, body);
-    $("views").appendChild(win);
-    // In edit mode the window is resized from its lower right corner (width and height); the size is kept while editing.
-    const grip = el("div", "v-grip");
-    grip.title = "Drag to resize";
-    win.appendChild(grip);
-    grip.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      grip.setPointerCapture(e.pointerId);
-      const sx = e.clientX, sy = e.clientY, w0 = win.offsetWidth, h0 = body.offsetHeight;
-      const maxW = canvas.clientWidth - win.offsetLeft - 8;
-      const move = (m) => {
-        state.w = Math.max(640, Math.min(maxW, w0 + m.clientX - sx));
-        state.h = Math.max(380, h0 + m.clientY - sy);
-        win.style.width = state.w + "px";
-        win.style.setProperty("--pe-h", state.h + "px");
-      };
-      const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); };
-      grip.addEventListener("pointermove", move);
-      grip.addEventListener("pointerup", up);
-    });
-
-    const fit = () => {
-      if (!play) return;
-      const r = play.root;
-      r.style.transform = "";
-      if (state.full) {
-        const s = Math.min(body.clientWidth / r.offsetWidth, body.clientHeight / r.offsetHeight, 3);
-        r.style.transform = `scale(${Math.max(0.2, s)})`;
-      }
-    };
-    const draw = () => {
-      const doc = panelById(panelId);
-      if (!doc) return;
-      title.textContent = doc.name;
-      if (play) { play.destroy(); play = null; }
-      if (editor) { editor.destroy(); editor = null; }
-      embeddedViews = [];
-      body.innerHTML = "";
-      state.json = layoutOf(doc);
-      win.classList.toggle("editing", state.edit);
-      if (state.edit) {
-        win.style.width = state.w ? state.w + "px" : "";
-        // Unless resized by hand, the editor fills the canvas below its title bar (not the whole browser window).
-        win.style.setProperty("--pe-h", (state.h || Math.max(380, canvas.clientHeight - head.offsetHeight - 24)) + "px");
-        win.style.top = Math.max(8, Math.min(win.offsetTop, canvas.clientHeight - win.offsetHeight - 8)) + "px";
-        if (win.offsetLeft + win.offsetWidth > canvas.clientWidth) win.style.left = Math.max(8, canvas.clientWidth - win.offsetWidth - 8) + "px";   // not cut off at the right edge
-      } else win.style.removeProperty("--pe-h");
-      title.title = state.edit ? "Click to rename the panel" : "";
-      win.classList.toggle("full", state.full && !state.edit);
-      editBtn.classList.toggle("on", state.edit);
-      fullBtn.classList.toggle("on", state.full);
-      fullBtn.hidden = !!doc.for;
-      if (state.edit) {
-        editor = BleepPanelEditor.mount(body, {
-          doc: () => panelById(panelId) || doc,
-          panels: () => panelList(),
-          mutate: (label, fn) => edit(label, (b) => {
-            const q = (b.panels || []).find((x) => x.id === panelId);
-            if (!q) return false;
-            {
-              const make = (type, name) => addControlModule(b, q, type, name);
-              make.set = (id, pid, v) => { const n = nodeById(id, b); if (n) n.params[pid] = v; };   // v: normalised
-              fn(q, b.panels, make);
-            }
-          }),
-          scope: () => panelScope(panelById(panelId) || doc),
-          module: (id) => nodeById(id),
-          parts: (id) => { const n = nodeById(id); return n && !isStructural(n) ? partList(n) : []; },
-          edit: (label, fn) => edit(label, fn),
-          removeControl: (panelId, controlId) => removePanelControl(panelId, controlId),
-          reveal: revealPanelModule,
-          host: () => panelHost(panelById(panelId) || doc, []),
-          menu: (ev, items) => showMenu(ev, items),
-          editPanel: (id) => openPanel(id, { edit: true }),
-        });
-      } else {
-        const host = panelHost(doc, embeddedViews);
-        play = BleepPanels.create(panelList(), panelId, host, { tab: state.tab, onTab: (t) => { state.tab = t; fit(); } });
-        body.append(play.root);
-        if (!state.full) win.style.width = Math.min(play.root.offsetWidth + 2, canvas.clientWidth - 16) + "px";
-        fit();
-      }
-      watch();
-    };
-    const entry = {
-      win, pinned: true, panelId,
-      setEdit: (on) => { state.edit = on; state.full = state.full && !on; draw(); },
-      nodes: () => (play && !state.edit ? play.nodeIds() : []),
-      destroy: () => { if (play) play.destroy(); },
-      bv: {
-        update: (s) => { if (play) play.update(s); },
-        refresh: (doc) => {
-          if (layoutOf(doc) !== state.json) { if (editor) { state.json = layoutOf(doc); title.textContent = doc.name; editor.rebuild(); } else draw(); return; }
-          if (play) {
-            for (const e of embeddedViews) { const m = nodeById(e.id); if (m) e.bv.refresh(m); }
-            play.refresh();
-          }
-        },
-      },
-    };
-    views.set(key, entry);
-    const r = canvas.getBoundingClientRect();
-    win.style.left = "8px";
-    win.style.top = "56px";
-    draw();
-    if (!state.full) {
-      win.style.left = Math.max(8, (r.width - win.offsetWidth) / 2) + "px";
-    }
-    front(win);
-    win.addEventListener("pointerdown", () => front(win));
-    editBtn.addEventListener("click", () => entry.setEdit(!state.edit));
-    fullBtn.addEventListener("click", () => {
-      state.full = !state.full;
-      if (state.full) state.edit = false;
-      draw();
-    });
-    window.addEventListener("resize", fit);
-    pin.addEventListener("click", () => { entry.pinned = !entry.pinned; pin.classList.toggle("on", entry.pinned); pin.title = pinTitle(entry.pinned); });
-    close.addEventListener("click", () => closeView(key));
-    head.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("button") || state.full) return;
-      const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
-      const move = (m) => placeWin(win, m.clientX - sx, m.clientY - sy);
-      const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-      window.addEventListener("pointermove", move);
-      window.addEventListener("pointerup", up);
-    });
-  }
-
-  /// A module's documentation (modules/<name>/doc/<type>.md), or null if it has none.
-  const docs = new Map();
-  function moduleDoc(type) {
-    if (!docs.has(type))
-      docs.set(type, fetch(encodeURIComponent(type) + ".md")
-        .then((r) => (r.ok ? r.text() : null))
-        .then((md) => (md && md.trim() ? md : null))
-        .catch(() => null));
-    return docs.get(type);
-  }
-  function front(win) {
-    for (const w of document.querySelectorAll(".vwin")) w.classList.remove("front");
-    win.classList.add("front");
-    win.style.zIndex = ++viewZ;
-  }
-  function closeView(id) {
-    const v = views.get(id);
-    if (!v) return;
-    if (v.panelId) v.destroy();
-    v.win.remove();
-    views.delete(id);
-    watch();
-  }
-  function pinTitle(on) {
-    return (on ? "Pinned: stays open" : "Not pinned: closes") + " when opening other views or entering and leaving cells (click to " + (on ? "unpin" : "pin") + ")";
-  }
-  function closeUnpinnedViews() { for (const [id, v] of [...views]) if (!v.pinned) closeView(id); }
-  function closeTopView() {
-    let top = null;
-    for (const [id, v] of views) if (!top || +v.win.style.zIndex > +views.get(top).win.style.zIndex) top = id;
-    if (top) closeView(top);
-    return !!top;
-  }
-  function watch() {
-    native("watch", [...views].flatMap(([id, v]) => (v.panelId ? v.nodes() : [id])));
-  }
+  // ----------------------------------------------------------- front panels (board-panels.js)
+  const panelsApi = P.BoardPanels.create({
+    get board() { return board; }, get path() { return path; }, set path(v) { path = v; }, get pluginMode() { return pluginMode; }, get trace() { return trace; }, set trace(v) { trace = v; }, get types() { return types; },
+    $, addControlModule, canvas, centreOn, clone, edit, closeUnpinnedViews, closeView, descendants, el, front, gesture,
+    inType, inputsOf, isBoundary, isCellLike, isPort, isStructural, makeApi, nodeById, nodesAt, notice, outputsOf,
+    pathTo, pinTitle, placeWin, render, revealPanelModule, sel, selectedNodes, showMenu, typeOf, uid, views, watch,
+  });
+  const { panelList, panelById, panelsOfCell, hasPanel, panelOpen, togglePanel, panelsWithLoaded, prunePanels,
+          cellPanels, panelsMenu, panelMenuFor, knobMenuItems, goToNode, buildPanel, newPanel, openStartPanel,
+          openPanel, controllerMenuItems } = panelsApi;
 
   // ------------------------------------------------------------ live state
   function drawScope(s, v) {
@@ -3345,7 +1475,7 @@
     }
     for (const { path, key } of pulses.values())
       path.style.setProperty("--act", (pulseLevel.get(key) || 0).toFixed(2));
-    if (meter) feedMeter(nodes[meter.node]);
+    if (meterShown()) feedMeter(nodes[meterNode()]);
   }
 
   let portsKey = "";
@@ -3430,10 +1560,11 @@
   /// The audio indicator: the engine's status line ("Demo · no audio · latency 256 smp") is its tooltip; a hollow dot means no audio.
   function setAudio(text) {
     const b = $("audio");
-    b.title = text + (document.getElementById("settings") ? " (click for the audio settings)" : "");
+    b.title = text + (document.getElementById("settings") && !pluginMode ? " (click for the audio settings)" : "");
     b.classList.toggle("off", /no audio|not running|stopped|suspended|no device/i.test(text));
   }
-  $("audio").addEventListener("click", () => { if (P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.show("audio"); });
+  // In a plugin Live owns the audio device: the indicator opens nothing there.
+  $("audio").addEventListener("click", () => { if (!pluginMode && P.BleepSettingsView && document.getElementById("settings")) P.BleepSettingsView.show("audio"); });
 
   // The menu bar's commands (app-menu.js); the file commands of the app are the native side's.
   const hasSel = () => selectedNodes();
@@ -3455,9 +1586,9 @@
     window.addEventListener("error", (e) => window.__errors.push(String(e.message)));
     window.addEventListener("unhandledrejection", (e) => window.__errors.push("rejected: " + (e.reason && e.reason.message ? e.reason.message : e.reason)));
     /// The Add menu's "Cell › … › name", for tests/board_smoke.cpp.
-    window.__findPreset = (name) => presets.find((r) => r.name === name);
+    window.__findPreset = (name) => presetList().find((r) => r.name === name);
     window.__addPreset = (name) => {
-      const q = presets.find((r) => r.name === name);
+      const q = presetList().find((r) => r.name === name);
       if (!q) return "no preset " + name;
       addAt({ preset: q.key }, 200 + 60 * (window.__added = (window.__added || 0) + 1), 120);
       return "asked for " + name;
@@ -3522,19 +1653,26 @@
     dev = !!m.dev;
     standalone = !!m.standalone;
     {  // the preset browser: whole boards (spec §11.5); in a plugin their port nodes map onto the set's ports
-      await P.BleepProjectBrowser.init({ board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin });
+      await P.BleepProjectBrowser.init({
+        board: () => board, apply: applyMessage, mapPorts: !standalone, cells: !!m.plugin,
+        // The cell presets of the Add menu, for the browser, and placing one as the menu does.
+        cellPresets: () => presetList().map((q) => ({ key: q.key, name: q.name, factory: !!q.factory, category: q.category || (q.preset && q.preset.category) || "My Cells",
+                                                 description: q.preset && q.preset.description, tags: q.preset && q.preset.tags, plays: q.preset && q.preset.plays })),
+        placeCell: (key) => addAtCentre({ preset: key }),
+      });
       if (m.plugin) P.BleepProjectBrowser.open();  // an instrument or FX window opens on its presets
     }
     P.BleepAppMenu.init({ nativeMenu: !!m.nativeMenu, version: m.version || "" });
     P.BleepSideMenu.init({ mode: m.plugin ? "plugin" : window.BleepWeb ? "web" : "app", board: () => board });
-    await loadFactoryPresets();
-    await loadFactoryPanels();
+    await cp.load();
     setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);
-    {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug
-      const shared = new URLSearchParams(location.search).get("preset");
+    {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug, or from a module's demo: ?demo=Grains: Frozen Cloud
+      const q = new URLSearchParams(location.search);
+      const shared = q.get("preset"), demo = q.get("demo");
       if (shared && !pluginMode) P.BleepProjectBrowser.loadShared(shared).catch((e) => notice(e.message));
+      else if (demo && !pluginMode) P.BleepProjectBrowser.loadDemo(demo).catch((e) => notice(e.message));
     }
     // Fit once the canvas has its size (the window may still be opening).
     let fitted = false;

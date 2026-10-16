@@ -213,11 +213,11 @@ juce::File presetFolder(const PresetKind& k) {
         .getChildFile("Beautiful Bleep").getChildFile(k.folder);
 }
 
-// Projects (spec §11.5) are the standalone app's project files: {format, app, name, description, tags, tempo, needs, board}.
-// The page sees one flat object, the board with description, tags, tempo and needs next to its nodes, cables and panels.
+// Projects (spec §11.5) are the standalone app's project files: {format, app, name, description, tags, tempo, needs, credits, board}.
+// The page sees one flat object, the board with description, tags, tempo, needs and credits next to its nodes, cables and panels.
 bool isProjectKind(const juce::var& kind) { return kind.toString() == "projects"; }
 
-const char* const kProjectMeta[] = {"description", "tags", "tempo", "needs"};
+const char* const kProjectMeta[] = {"description", "tags", "tempo", "needs", "credits"};
 
 juce::var projectToFlat(const juce::var& doc) {
     auto* flat = new juce::DynamicObject();
