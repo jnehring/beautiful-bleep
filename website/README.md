@@ -27,6 +27,10 @@ docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml -
 ```
 After editing `website/content` or module docs, `docker compose ... restart dev` regenerates the docs.
 
+To keep an online installation private, set `BLEEP_BASIC_AUTH_USER` and `BLEEP_BASIC_AUTH_HASH` in `website/.env` (how to make the
+hash is in `.env.example`). Caddy then asks for that user and password on every request; leave the hash empty for no password. This
+covers `/api` and `/registry` too, so the Bleep App and Bleep Play cannot use a protected site.
+
 Set `BLEEP_SITE_PORT` to use another port. The build context is the repository
 root, because the site reads `website/content`, `patch/modules/*/module.json`,
 `bus/include` and `scripts/`.

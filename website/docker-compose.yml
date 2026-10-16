@@ -18,6 +18,10 @@ services:
     image: beautiful-bleep-site:latest
     ports:
       - "${BLEEP_SITE_PORT:-8080}:80"
+    environment:
+      # Optional password for the whole site (Caddy basic auth); off while the hash is empty. See .env.example.
+      BLEEP_BASIC_AUTH_USER: ${BLEEP_BASIC_AUTH_USER:-bleep}
+      BLEEP_BASIC_AUTH_HASH: ${BLEEP_BASIC_AUTH_HASH:-}
     depends_on:
       - api
       - storage
@@ -39,6 +43,8 @@ services:
       BLEEP_SMTP_USER: ${BLEEP_SMTP_USER:-}
       BLEEP_SMTP_PASSWORD: ${BLEEP_SMTP_PASSWORD:-}
       BLEEP_SMTP_FROM: ${BLEEP_SMTP_FROM:-}
+      BLEEP_CONTACT_TO: ${BLEEP_CONTACT_TO:-}
+      BLEEP_ALLOWED_ORIGINS: ${BLEEP_ALLOWED_ORIGINS:-}
       BLEEP_PUBLIC_URL: ${BLEEP_PUBLIC_URL:-http://localhost:${BLEEP_SITE_PORT:-8080}}
       # Preset files are written to the store bucket (S3 API).
       BLEEP_S3_ENDPOINT: http://storage:8333

@@ -6,6 +6,15 @@
 	root * /srv
 	encode zstd gzip
 
+	# Optional password for the whole site (HTTP basic auth), e.g. an installation that is online but not public yet.
+	# Off unless BLEEP_BASIC_AUTH_HASH is set in website/.env (see .env.example). Browsers ask once and then send the
+	# credentials with every request, including /api/* and /registry/*.
+	@locked expression "'{$BLEEP_BASIC_AUTH_HASH:}' != ''"
+	basic_auth @locked {
+		# The fallback is a valid hash that is never used: the block is skipped while @locked is false.
+		{$BLEEP_BASIC_AUTH_USER:bleep} {$BLEEP_BASIC_AUTH_HASH:$2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG}
+	}
+
 	# Security headers on every response.
 	header {
 		X-Content-Type-Options "nosniff"
