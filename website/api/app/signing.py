@@ -83,6 +83,40 @@ def content_digest(entries: dict[str, tuple[bytes, bool]]) -> bytes:
     return out.digest()
 
 
+MAX_MEMBER_BYTES = 512 * 1024 * 1024    # one file inside a package (plugin packages carry big binaries)
+MAX_TOTAL_BYTES = 1024 * 1024 * 1024    # all files of a package together
+MAX_RATIO = 1000                        # uncompressed / compressed, for members above RATIO_FROM (a zip bomb is far above)
+RATIO_FROM = 16 * 1024 * 1024
+MAX_META_BYTES = 1024 * 1024            # module.json, signature.json
+
+
+def check_member(info: zipfile.ZipInfo, total: int = 0, *, max_member: int | None = None, max_total: int | None = None) -> int:
+    """Refuses an oversize or bomb-like zip member before anything is decompressed; returns the running total."""
+    max_member = MAX_MEMBER_BYTES if max_member is None else max_member
+    max_total = MAX_TOTAL_BYTES if max_total is None else max_total
+    if info.file_size > max_member:
+        raise ValueError(f"{info.filename}: {info.file_size} bytes uncompressed, more than the limit of {max_member}")
+    if info.file_size > RATIO_FROM and info.file_size > MAX_RATIO * max(info.compress_size, 1):
+        raise ValueError(f"{info.filename}: compression ratio is implausibly high")
+    if total + info.file_size > max_total:
+        raise ValueError(f"package is larger than {max_total} bytes uncompressed")
+    return total + info.file_size
+
+
+def read_member(z: zipfile.ZipFile, name: str, limit: int = MAX_META_BYTES) -> bytes:
+    """One (small) member's bytes, refused when it is larger than `limit`."""
+    check_member(z.getinfo(name), max_member=limit)
+    return z.read(name)
+
+
+def _sha256_member(z: zipfile.ZipFile, info: zipfile.ZipInfo) -> bytes:
+    h = hashlib.sha256()
+    with z.open(info) as f:  # streamed: a big file is never held in memory
+        while chunk := f.read(1024 * 1024):
+            h.update(chunk)
+    return h.digest()
+
+
 def read_entries(package) -> dict[str, tuple[bytes, bool]]:
     entries: dict[str, tuple[bytes, bool]] = {}
     if isinstance(package, Path) and package.is_dir():
@@ -93,15 +127,17 @@ def read_entries(package) -> dict[str, tuple[bytes, bool]]:
                     entries[rel] = (hashlib.sha256(f.read_bytes()).digest(), os.access(f, os.X_OK))
         return entries
     with zipfile.ZipFile(package) as z:
+        total = 0
         for info in z.infolist():
             if info.is_dir() or info.filename == SIGNATURE_PATH:
                 continue
+            total = check_member(info, total)
             if (info.external_attr >> 28) == 0xA:  # a symlink
                 raise ValueError(f"symlink in package: {info.filename}")
             if info.filename in entries:
                 raise ValueError(f"duplicate file in package: {info.filename}")
             mode = info.external_attr >> 16
-            entries[info.filename] = (hashlib.sha256(z.read(info)).digest(), bool(mode & 0o111))
+            entries[info.filename] = (_sha256_member(z, info), bool(mode & 0o111))
     return entries
 
 
@@ -295,11 +331,38 @@ def load_key(path: str) -> Ed25519PrivateKey:
     return serialization.load_pem_private_key(Path(path).read_bytes(), pw.encode() if pw else None)
 
 
+def write_secret(path, data: bytes | str) -> None:
+    """Writes a secret file that is 0600 from its first byte (no moment with default permissions); an existing file is replaced."""
+    if isinstance(data, str):
+        data = data.encode()
+    path = Path(path)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    try:
+        os.fchmod(fd, 0o600)  # an older file keeps its mode through O_CREAT; fix it before the new content goes in
+        with os.fdopen(fd, "wb") as f:
+            fd = -1
+            f.write(data)
+    finally:
+        if fd >= 0:
+            os.close(fd)
+
+
 def save_key(key: Ed25519PrivateKey, path: Path) -> None:
     pw = os.environ.get("BLEEP_KEY_PASSPHRASE")
     enc = serialization.BestAvailableEncryption(pw.encode()) if pw else serialization.NoEncryption()
-    path.write_bytes(key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, enc))
-    path.chmod(0o600)
+    write_secret(path, key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, enc))
+
+
+def issuer_key_pem() -> str | None:
+    """The store's issuer key as PEM: from BLEEP_ISSUER_KEY_FILE when set (a Docker secret), else BLEEP_ISSUER_KEY (with \\n for newlines)."""
+    from .config import settings
+    if settings.issuer_key_file:
+        try:
+            return Path(settings.issuer_key_file).read_text()
+        except OSError as e:
+            if not settings.issuer_key:
+                raise ValueError(f"Cannot read the issuer key file {settings.issuer_key_file}: {e}") from e
+    return settings.issuer_key.replace("\\n", "\n") if settings.issuer_key else None
 
 
 def read_doc(package: Path) -> dict | None:
@@ -307,7 +370,7 @@ def read_doc(package: Path) -> dict | None:
         f = package / SIGNATURE_PATH
         return json.loads(f.read_text()) if f.exists() else None
     with zipfile.ZipFile(package) as z:
-        return json.loads(z.read(SIGNATURE_PATH)) if SIGNATURE_PATH in z.namelist() else None
+        return json.loads(read_member(z, SIGNATURE_PATH)) if SIGNATURE_PATH in z.namelist() else None
 
 
 def write_doc(package: Path, doc: dict) -> None:
@@ -317,6 +380,10 @@ def write_doc(package: Path, doc: dict) -> None:
         (package / SIGNATURE_PATH).write_text(text)
         return
     with zipfile.ZipFile(package) as z:  # rewrite without an older signature
+        total = 0
+        for i in z.infolist():
+            if i.filename != SIGNATURE_PATH:
+                total = check_member(i, total)
         keep = [(i, z.read(i)) for i in z.infolist() if i.filename != SIGNATURE_PATH]
     with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED) as z:
         for info, data in keep:

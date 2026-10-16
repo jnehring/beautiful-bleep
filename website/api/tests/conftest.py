@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from app import models  # noqa: E402,F401
 from app.db import Base, SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import User  # noqa: E402
+from app.models import User, now  # noqa: E402
 from app.security import hash_password  # noqa: E402
 
 
@@ -40,7 +40,7 @@ def client():
 def make_admin():
     def make(email="admin@example.com", password="admin-password-1"):
         with SessionLocal() as db:
-            db.add(User(email=email, password_hash=hash_password(password), display_name="Admin", role="admin"))
+            db.add(User(email=email, password_hash=hash_password(password), display_name="Admin", role="admin", email_verified_at=now()))
             db.commit()
         return email, password
     return make

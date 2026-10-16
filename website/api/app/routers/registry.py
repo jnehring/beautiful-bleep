@@ -48,7 +48,7 @@ def _revocations(db: Session) -> dict:
 def write_revocations(db: Session, storage: Storage) -> dict | None:
     """v1/revocations.json: the revoked developer keys, signed with the issuer key (signing.md section 8). The serial rises with every
     change, so a client keeps the newest and a mirror cannot hand back an older list. Nothing is written when the store has no issuer key."""
-    if not settings.issuer_key or not settings.issuer_cert:
+    if not (settings.issuer_key or settings.issuer_key_file) or not settings.issuer_cert:
         return None
     keys = sorted(_revocations(db)["revokedKeys"], key=lambda k: k["keyId"])
     prev = storage.get("v1/revocations.json")
@@ -56,7 +56,7 @@ def write_revocations(db: Session, storage: Storage) -> dict | None:
     if prev and [k["keyId"] for k in keys] == [k["keyId"] for k in old.get("revokedKeys", [])]:
         return old  # nothing changed: the list stays, with its serial
     stamp = int(now().timestamp())
-    crl = signing.make_crl(signing.key_from_pem(settings.issuer_key.replace("\\n", "\n")), json.loads(settings.issuer_cert),
+    crl = signing.make_crl(signing.key_from_pem(signing.issuer_key_pem()), json.loads(settings.issuer_cert),
                            serial=max(stamp, int(old.get("serial", 0)) + 1), issued=stamp, revoked_keys=[k["keyId"] for k in keys])
     storage.put("v1/revocations.json", io.BytesIO(json.dumps(crl, indent=1).encode()), "application/json")
     return crl
@@ -116,7 +116,7 @@ def _module_meta(db: Session, slug: str, package) -> tuple[list[str], int]:
     A module may only provide node types nobody else provides, and a third-party module (id "acme/fuzz") only types in
     its own namespace ("acme/…"): otherwise a signed module could take over "oscillator" on every board."""
     try:
-        meta = json.loads(zipfile.ZipFile(package).read("module.json"))
+        meta = json.loads(signing.read_member(zipfile.ZipFile(package), "module.json"))
         types, abi = meta["types"], meta["requires"]["engineAbi"]
     except (KeyError, ValueError, TypeError, zipfile.BadZipFile) as e:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"module.json must list `types` and `requires.engineAbi`: {e}")
@@ -137,7 +137,10 @@ def _check_licence(row: Release, package) -> None:
     """The licence and origin a module release declares must be the ones in the signed package's module.json (a missing
     licence there is MIT, like package-module.py): the store's detail view must not say something else than the package."""
     package.seek(0)
-    meta = json.loads(zipfile.ZipFile(package).read("module.json"))
+    try:
+        meta = json.loads(signing.read_member(zipfile.ZipFile(package), "module.json"))
+    except (KeyError, ValueError, zipfile.BadZipFile) as e:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"module.json cannot be read: {e}")
     try:  # the same shape the release's origin was stored in (defaults filled in)
         origin = OriginIn(**meta["origin"]).model_dump() if meta.get("origin") else None
     except (ValidationError, TypeError) as e:

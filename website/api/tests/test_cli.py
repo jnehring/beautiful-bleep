@@ -5,11 +5,9 @@ from app import cli
 from app.db import SessionLocal
 from app.models import User
 
+from test_api import register
+
 PW = "correct-horse-1"
-
-
-def register(client, email="a@example.com"):
-    client.post("/api/auth/register", json={"email": email, "password": PW, "display_name": "Ann"})
 
 
 def test_list(client, capsys):

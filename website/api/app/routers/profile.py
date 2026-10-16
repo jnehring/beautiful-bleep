@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..deps import COOKIE, get_current_user
-from ..models import User, UserSession
+from ..models import User, UserSession, UserToken
 from ..schemas import PasswordIn, ProfileIn, UserOut
 from ..security import hash_password, hash_token, verify_password
 
@@ -33,5 +33,6 @@ def change_password(
     user.password_hash = hash_password(body.new_password)
     # Sign out every other device.
     db.execute(delete(UserSession).where(UserSession.user_id == user.id, UserSession.token_hash != hash_token(token or "")))
+    db.execute(delete(UserToken).where(UserToken.user_id == user.id))  # personal access tokens stop working as well
     db.add(user)
     db.commit()

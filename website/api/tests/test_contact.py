@@ -13,7 +13,8 @@ def outbox(monkeypatch):
     sent = []
     monkeypatch.setattr(mail, "send", lambda to, subject, body, reply_to=None: sent.append((to, subject, body, reply_to)))
     monkeypatch.setattr(settings, "contact_to", "me@example.com")
-    contact._recent.clear()
+    contact._per_ip.reset()
+    contact._global.reset()
     return sent
 
 
@@ -39,4 +40,22 @@ def test_validation(client, outbox):
 def test_rate_limit(client, outbox):
     for _ in range(contact.LIMIT):
         assert client.post("/api/contact", json=MSG).status_code == 202
+    assert client.post("/api/contact", json=MSG).status_code == 429
+
+
+def test_one_address_does_not_block_others(client, outbox):
+    for _ in range(contact.LIMIT):
+        assert client.post("/api/contact", json=MSG).status_code == 202
+    assert client.post("/api/contact", json=MSG).status_code == 429
+    assert contact._per_ip.blocked("testclient")
+    assert not contact._per_ip.blocked("203.0.113.9")  # another visitor is unaffected
+    assert contact._per_ip.hit("203.0.113.9")
+
+
+def test_global_cap(client, outbox, monkeypatch):
+    monkeypatch.setattr(contact, "_global", contact.limiter(3, 3600))
+    for i in range(3):
+        contact._per_ip.reset()
+        assert client.post("/api/contact", json=MSG).status_code == 202
+    contact._per_ip.reset()
     assert client.post("/api/contact", json=MSG).status_code == 429

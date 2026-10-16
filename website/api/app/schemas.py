@@ -394,6 +394,10 @@ class ForgotPasswordIn(BaseModel):
     email: EmailStr
 
 
+class ResendVerificationIn(BaseModel):
+    email: EmailStr
+
+
 class ResetPasswordIn(BaseModel):
     token: str = Field(min_length=10, max_length=200)
     new_password: str = Password

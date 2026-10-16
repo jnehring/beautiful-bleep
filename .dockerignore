@@ -5,3 +5,9 @@ build
 website/app/out
 website/app/public/docs
 website/app/public/llms.txt
+
+# Secrets
+**/.env*
+**/*.key
+**/*.kit.json
+**/registry.env

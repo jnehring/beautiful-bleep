@@ -12,9 +12,12 @@
 # /play/. The modules (.wasm) are not built here: they are served from a folder mounted into the
 # container (website/docker-compose.yml), built once with scripts/build/build-web.sh --modules-only,
 # and later come from the registry.
-FROM node:22-alpine AS web
+# node:22-alpine
+FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS web
 RUN apk add --no-cache bash python3
 WORKDIR /repo
+COPY patch/CMakeLists.txt patch/CMakeLists.txt
+COPY config/store.json config/store.json
 COPY patch/board patch/board
 COPY patch/common patch/common
 COPY patch/modules patch/modules
@@ -22,7 +25,8 @@ COPY patch/web patch/web
 COPY scripts/build/build-web.sh scripts/build/build-web.sh
 RUN scripts/build/build-web.sh --no-modules /out
 
-FROM node:22-alpine AS build
+# node:22-alpine
+FROM node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS build
 RUN apk add --no-cache python3
 WORKDIR /repo
 COPY website/app/package.json website/app/package-lock.json website/app/
@@ -39,7 +43,8 @@ COPY --from=web /out website/app/public/play
 RUN --mount=type=cache,target=/repo/website/app/.next/cache \
     cd website/app && npm run build
 
-FROM caddy:2-alpine
+# caddy:2-alpine
+FROM caddy:2-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
 COPY website/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/website/app/out /srv
 EXPOSE 80

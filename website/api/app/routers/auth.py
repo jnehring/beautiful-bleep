@@ -12,8 +12,8 @@ from ..db import get_db
 from ..deps import COOKIE, get_current_user
 from .. import mail
 from .. import ratelimit
-from ..models import EmailToken, User, UserSession, now
-from ..schemas import EmailTokenIn, ForgotPasswordIn, LoginIn, RegisterIn, ResetPasswordIn, UserOut
+from ..models import EmailToken, User, UserSession, UserToken, now
+from ..schemas import EmailTokenIn, ResendVerificationIn, ForgotPasswordIn, LoginIn, RegisterIn, ResetPasswordIn, UserOut
 from ..security import hash_password, hash_token, new_session_token, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -72,6 +72,7 @@ _register_ip = ratelimit.limiter(10, 3600)
 _login_ip = ratelimit.limiter(60, 600)
 _login_account = ratelimit.limiter(10, 900)
 _forgot_ip = ratelimit.limiter(10, 3600)
+_resend_ip = ratelimit.limiter(10, 3600)
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(ratelimit.by_ip(_register_ip))])
@@ -86,9 +87,10 @@ def register(body: RegisterIn, response: Response, tasks: BackgroundTasks, db: S
     except IntegrityError:
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "That email is already registered")
-    _start_session(db, user, response)
     _queue_verification(db, user, tasks)
-    return user
+    if not settings.email_verification:  # nothing to confirm: logged in at once
+        _start_session(db, user, response)
+    return user  # otherwise no session until the link in the mail was used (email_verified is false in the answer)
 
 
 @router.post("/login", response_model=UserOut)
@@ -102,6 +104,9 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
         _login_account.hit(email)  # only wrong passwords count: an attacker cannot lock the owner out of a good session
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Wrong email or password")
     _login_account.reset(email)
+    if not user.email_verified:  # said only after the password was right, so this reveals nothing to a stranger
+        raise HTTPException(status.HTTP_403_FORBIDDEN, {
+            "code": "email_not_verified", "message": "Please confirm your email address first. We sent you a link; you can ask for a new one."})
     _start_session(db, user, response)
     return user
 
@@ -123,6 +128,8 @@ def me(user: User = Depends(get_current_user)):
 
 @router.post("/verify-email", response_model=UserOut)
 def verify_email(body: EmailTokenIn, db: Session = Depends(get_db)):
+    """Confirms the address but starts no session: whoever opens the link might not be the one who knows the password
+    (an attacker can register with a stranger's address), so logging in stays a separate step."""
     user = _use_token(db, body.token, "verify")
     if user.email_verified_at is None:
         user.email_verified_at = now()
@@ -131,8 +138,12 @@ def verify_email(body: EmailTokenIn, db: Session = Depends(get_db)):
 
 
 @router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
-def resend_verification(tasks: BackgroundTasks, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    if not user.email_verified:
+def resend_verification(body: ResendVerificationIn, request: Request, tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Public and always the same answer, so it cannot be used to find out which emails are registered (_issue_token holds back repeats)."""
+    if not _resend_ip.hit(ratelimit.client_ip(request)):
+        raise ratelimit.too_many(_resend_ip.window)
+    user = db.scalar(select(User).where(User.email == body.email.lower()))
+    if user and user.is_active and not user.email_verified:
         _queue_verification(db, user, tasks)
 
 
@@ -159,4 +170,5 @@ def reset_password(body: ResetPasswordIn, db: Session = Depends(get_db)):
     if user.email_verified_at is None:  # the link reached their inbox
         user.email_verified_at = now()
     db.execute(delete(UserSession).where(UserSession.user_id == user.id))  # whoever had the old password is out
+    db.execute(delete(UserToken).where(UserToken.user_id == user.id))  # and so are the personal access tokens
     db.commit()

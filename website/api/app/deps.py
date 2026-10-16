@@ -19,7 +19,7 @@ def get_current_user(
         row = db.scalar(
             select(UserSession).where(UserSession.token_hash == hash_token(token), UserSession.expires_at > now())
         )
-        if row and row.user.is_active:
+        if row and row.user.is_active and row.user.email_verified:
             return row.user
     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not logged in")
 
@@ -58,7 +58,7 @@ def _session_user(token: str | None, db: Session) -> User | None:
     if not token:
         return None
     row = db.scalar(select(UserSession).where(UserSession.token_hash == hash_token(token), UserSession.expires_at > now()))
-    return row.user if row and row.user.is_active else None
+    return row.user if row and row.user.is_active and row.user.email_verified else None
 
 
 def _bearer_user(authorization: str | None, db: Session) -> User | None:
@@ -66,7 +66,7 @@ def _bearer_user(authorization: str | None, db: Session) -> User | None:
     if scheme.lower() != "bearer" or not value:
         return None
     row = db.scalar(select(UserToken).where(UserToken.token_hash == hash_token(value.strip())))
-    if row and row.scope == "store" and row.user.is_active and (row.expires_at is None or _aware(row.expires_at) > now()):
+    if row and row.scope == "store" and row.user.is_active and row.user.email_verified and (row.expires_at is None or _aware(row.expires_at) > now()):
         row.last_used_at = now()
         db.commit()
         return row.user

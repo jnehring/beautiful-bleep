@@ -6,8 +6,30 @@ from app.main import ensure_admin
 PW = "correct-horse-1"
 
 
-def register(client, email="a@example.com", name="Ann"):
+def raw_register(client, email="a@example.com", name="Ann"):
+    """Only registers: with confirmation required there is no session and the address is unverified."""
     return client.post("/api/auth/register", json={"email": email, "password": PW, "display_name": name})
+
+
+def register(client, email="a@example.com", name="Ann"):
+    """Registers, marks the address confirmed and starts a session (as if the link had been used and the user had logged in)."""
+    from app.db import SessionLocal
+    from app.deps import COOKIE
+    from app.models import User, UserSession, now
+    from app.security import new_session_token
+    from datetime import timedelta
+    from sqlalchemy import select
+
+    r = raw_register(client, email, name)
+    if r.status_code == 201:
+        with SessionLocal() as db:
+            user = db.scalar(select(User).where(User.email == email.lower()))
+            user.email_verified_at = now()
+            token, token_hash = new_session_token()
+            db.add(UserSession(token_hash=token_hash, user_id=user.id, expires_at=now() + timedelta(days=1)))
+            db.commit()
+        client.cookies.set(COOKIE, token)
+    return r
 
 
 def login_as_admin(client, make_admin):
@@ -15,10 +37,17 @@ def login_as_admin(client, make_admin):
     assert client.post("/api/auth/login", json={"email": email, "password": password}).status_code == 200
 
 
-def test_register_logs_in_and_defaults_to_user_role(client):
-    r = register(client)
-    assert r.status_code == 201 and r.json()["role"] == "user"
-    assert "password" not in r.text
+def test_register_starts_no_session_while_confirmation_is_required(client):
+    r = raw_register(client)
+    assert r.status_code == 201 and r.json()["role"] == "user" and r.json()["email_verified"] is False
+    assert "password" not in r.text and "set-cookie" not in r.headers
+    assert client.get("/api/auth/me").status_code == 401
+
+
+def test_register_logs_in_when_confirmation_is_off(client, monkeypatch):
+    monkeypatch.setattr("app.config.settings.email_verification", False)
+    r = raw_register(client)
+    assert r.status_code == 201 and r.json()["email_verified"] is True
     assert client.get("/api/auth/me").json()["email"] == "a@example.com"
     cookie = r.headers["set-cookie"].lower()
     assert "httponly" in cookie and "samesite=lax" in cookie
@@ -64,6 +93,23 @@ def test_profile_edit_ignores_role_and_status(client):
 
 def test_profile_requires_login(client):
     assert client.patch("/api/me", json={"bio": "x"}).status_code == 401
+
+
+def test_change_password_revokes_personal_access_tokens(client):
+    register(client)
+    secret = client.post("/api/tokens", json={"name": "app"}).json()["token"]
+    bearer = {"Authorization": f"Bearer {secret}"}
+    assert Client_is_ok(client, bearer)
+    assert client.post("/api/me/password", json={"current_password": PW, "new_password": "another-pass-9"}).status_code == 204
+    assert not Client_is_ok(client, bearer)
+    assert client.get("/api/auth/me").status_code == 200  # this session stays
+
+
+def Client_is_ok(client, bearer):
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    return TestClient(app).post("/api/presets", json={}, headers=bearer).status_code != 401
 
 
 def test_change_password_keeps_this_session_and_drops_others(client):

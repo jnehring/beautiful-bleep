@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     # (JSON) are only for `python -m app.cli developer-create`.
     root_public_keys: str = ""
     issuer_key: str | None = None
+    issuer_key_file: str | None = None  # the issuer key from a file (a Docker secret) instead of the environment
     issuer_cert: str | None = None
     # A release without a valid signature is refused. Only turn this off for local experiments.
     require_signatures: bool = True
@@ -37,6 +38,8 @@ class Settings(BaseSettings):
     smtp_user: str | None = None
     smtp_password: str | None = None
     smtp_from: str | None = None
+    # Without smtp_host the message is only logged. The log line has recipient and subject; the body (with the one-time link) only if this is on (local development).
+    log_mail_bodies: bool = False
     # Where contact-form messages go. Defaults to smtp_user.
     contact_to: str | None = None
     # The site's public address, for the links in emails (no trailing slash).

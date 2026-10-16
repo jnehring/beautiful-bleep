@@ -17,7 +17,11 @@ log = logging.getLogger("bleep.mail")
 def send(to: str, subject: str, body: str, reply_to: str | None = None) -> None:
     sender = settings.smtp_from or settings.smtp_user
     if not (settings.smtp_host and sender):
-        log.warning("Email not sent (BLEEP_SMTP_HOST is not set). To: %s\nSubject: %s\n\n%s", to, subject, body)
+        # The body holds a one-time link: it reaches the log only on request (local development).
+        if settings.log_mail_bodies:
+            log.warning("Email not sent (BLEEP_SMTP_HOST is not set). To: %s\nSubject: %s\n\n%s", to, subject, body)
+        else:
+            log.warning("Email not sent (BLEEP_SMTP_HOST is not set). To: %s, Subject: %s", to, subject)
         return
     msg = EmailMessage()
     msg["From"] = f"Beautiful Bleep <{sender}>"

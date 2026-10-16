@@ -7,6 +7,11 @@ export type User = {
   role: "admin" | "user"; is_active: boolean; email_verified: boolean; created_at: string;
 };
 
+/** An API failure: `message` is the server's text, `code` its machine-readable marker (e.g. "email_not_verified"), if any. */
+export class ApiError extends Error {
+  constructor(message: string, public status: number, public code: string | null = null) { super(message); }
+}
+
 /** JSON call to the API. Throws Error(message) with the server's message on failure. */
 export async function api<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -17,13 +22,19 @@ export async function api<T = unknown>(method: string, path: string, body?: unkn
   });
   if (res.status === 204) return undefined as T;
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(errorMessage(data) ?? `Request failed (${res.status})`);
+  if (!res.ok) throw new ApiError(errorMessage(data) ?? `Request failed (${res.status})`, res.status, errorCode(data));
   return data as T;
+}
+
+function errorCode(data: any): string | null {
+  const c = data?.detail?.code;
+  return typeof c === "string" ? c : null;
 }
 
 function errorMessage(data: any): string | null {
   const d = data?.detail;
   if (typeof d === "string") return d;
+  if (typeof d?.message === "string") return d.message;
   if (Array.isArray(d) && d[0]?.msg) return `${String(d[0].loc?.at(-1) ?? "")}: ${d[0].msg}`.replace(/^: /, "");
   return null;
 }

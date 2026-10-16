@@ -9,9 +9,10 @@
 	# Optional password for the whole site (HTTP basic auth), e.g. an installation that is online but not public yet.
 	# Off unless BLEEP_BASIC_AUTH_HASH is set in website/.env (see .env.example). Browsers ask once and then send the
 	# credentials with every request, including /api/* and /registry/*.
-	@locked expression "'{$BLEEP_BASIC_AUTH_HASH:}' != ''"
+	# BLEEP_BASIC_AUTH_ON is "1" only when a hash is set (compose derives it); an environment variable that is set but empty does
+	# not fall back to the default in Caddy, so the hash below is always a valid one: the placeholder is never used.
+	@locked expression "'{$BLEEP_BASIC_AUTH_ON:}' == '1'"
 	basic_auth @locked {
-		# The fallback is a valid hash that is never used: the block is skipped while @locked is false.
 		{$BLEEP_BASIC_AUTH_USER:bleep} {$BLEEP_BASIC_AUTH_HASH:$2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG}
 	}
 
@@ -48,7 +49,18 @@
 	header @wasm Cache-Control "public, max-age=300, must-revalidate"
 
 	# Accounts API (website/api). Same origin as the site, so the session cookie needs no CORS.
+	# Request bodies are capped here as well as in the API: 1 MiB for everything, 1 GiB for the store's uploads (the API
+	# applies the exact per-file limits). The registry block comes first: the first matching handle wins.
+	handle /api/registry/* {
+		request_body {
+			max_size 1GiB
+		}
+		reverse_proxy api:8000
+	}
 	handle /api/* {
+		request_body {
+			max_size 1MiB
+		}
 		reverse_proxy api:8000
 	}
 

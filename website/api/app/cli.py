@@ -127,13 +127,13 @@ def developer_create(args: argparse.Namespace) -> None:
 
     The kit holds the developer's private key. Hand it over privately; the store keeps only the key id.
     """
-    if not settings.issuer_key or not settings.issuer_cert:
+    if not (settings.issuer_key or settings.issuer_key_file) or not settings.issuer_cert:
         sys.exit("Set BLEEP_ISSUER_KEY and BLEEP_ISSUER_CERT (scripts/release/signing.py init-registry makes them)")
     scopes = [s for s in args.scopes.split(",") if s]
     if not scopes or any(s not in signing.KINDS for s in scopes):
         sys.exit("--scopes is a list of: module, plugin")
     try:
-        kit = signing.issue_kit(signing.key_from_pem(settings.issuer_key.replace("\\n", "\n")), json.loads(settings.issuer_cert), args.publisher,
+        kit = signing.issue_kit(signing.key_from_pem(signing.issuer_key_pem()), json.loads(settings.issuer_cert), args.publisher,
                                 scopes=scopes, first_party=args.first_party, days=args.days, name=args.name)
     except ValueError as e:
         sys.exit(str(e))

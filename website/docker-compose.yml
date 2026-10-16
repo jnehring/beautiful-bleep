@@ -12,6 +12,18 @@ name: beautiful-bleep-site
 
 services:
   site:
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - DAC_READ_SEARCH  # Caddy reads the Caddyfile and /srv, whose mode is not world-readable
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /data
+      - /config
     build:
       context: ..
       dockerfile: website/Dockerfile
@@ -21,13 +33,22 @@ services:
     environment:
       # Optional password for the whole site (Caddy basic auth); off while the hash is empty. See .env.example.
       BLEEP_BASIC_AUTH_USER: ${BLEEP_BASIC_AUTH_USER:-bleep}
-      BLEEP_BASIC_AUTH_HASH: ${BLEEP_BASIC_AUTH_HASH:-}
+      # An empty value would stop Caddy from starting: without a hash a placeholder hash is passed and the switch stays off.
+      BLEEP_BASIC_AUTH_HASH: ${BLEEP_BASIC_AUTH_HASH:-$$2a$$14$$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG}
+      BLEEP_BASIC_AUTH_ON: ${BLEEP_BASIC_AUTH_HASH:+1}
     depends_on:
       - api
       - storage
     restart: unless-stopped
 
   api:
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
     build: api
     image: beautiful-bleep-api:latest
     environment:
@@ -38,6 +59,7 @@ services:
       BLEEP_ADMIN_PASSWORD: ${BLEEP_ADMIN_PASSWORD:-}
       # Outgoing email (registration confirmation, password reset). Without BLEEP_SMTP_HOST the messages are only logged.
       BLEEP_EMAIL_VERIFICATION: ${BLEEP_EMAIL_VERIFICATION:-true}
+      BLEEP_LOG_MAIL_BODIES: ${BLEEP_LOG_MAIL_BODIES:-false}
       BLEEP_SMTP_HOST: ${BLEEP_SMTP_HOST:-}
       BLEEP_SMTP_PORT: ${BLEEP_SMTP_PORT:-587}
       BLEEP_SMTP_USER: ${BLEEP_SMTP_USER:-}
@@ -65,7 +87,17 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:17-alpine
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:  # the entrypoint chowns the data dir, then drops to the postgres user
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    # postgres:17-alpine
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     environment:
       POSTGRES_USER: bleep
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in website/.env}
@@ -83,7 +115,14 @@ services:
   # Anonymous clients may read (Caddy serves it at /registry/); writing needs the credentials
   # (scripts/release/release.py through the S3 port below, the API for presets).
   storage:
-    image: chrislusf/seaweedfs:latest
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE  # /data is owned by the image's seaweed user; the entrypoint runs as root
+    # chrislusf/seaweedfs:4.48
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -114,7 +153,12 @@ services:
 
   # Creates the bucket once per start (idempotent).
   storage-init:
-    image: chrislusf/seaweedfs:latest
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # chrislusf/seaweedfs:4.48
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
     depends_on:
       storage:
         condition: service_healthy

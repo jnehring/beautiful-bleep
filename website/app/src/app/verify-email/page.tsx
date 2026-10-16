@@ -13,8 +13,8 @@ export default function VerifyEmailPage() {
     <div className="auth">
       <h1>Confirm your email</h1>
       {state === "working" && <p>Checking the link…</p>}
-      {state === "ok" && <p className="ok" role="status">Your email address is confirmed. <a href="/account/">Go to your account</a></p>}
-      {state !== "working" && state !== "ok" && <p className="error" role="alert">{state} Log in and ask for a new link on your <a href="/account/">account page</a>.</p>}
+      {state === "ok" && <p className="ok" role="status">Your email address is confirmed. <a href="/login/">Log in</a></p>}
+      {state !== "working" && state !== "ok" && <p className="error" role="alert">{state} Ask for a new link on the <a href="/login/">login page</a>.</p>}
     </div>
   );
 }
