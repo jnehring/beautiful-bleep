@@ -15,6 +15,17 @@
 
 import { CHUNK, ModuleInstance } from "./module-host.js";
 
+/// A bypassed module with audio in and audio out: [input, output] pairs (the n-th audio in feeds the n-th audio out,
+/// the last in feeds the rest), as the native engine does. null: the module runs.
+function bypassRoute(n, s) {
+  if (!n.bypassed) return null;
+  const ins = [], outs = [];
+  s.inputs.forEach((j, k) => { if (j.type === "audio") ins.push(k); });
+  s.outputs.forEach((o, k) => { if (o.type === "audio") outs.push(k); });
+  if (!ins.length || !outs.length) return null;
+  return outs.map((o, k) => [ins[Math.min(k, ins.length - 1)], o]);
+}
+
 const STRUCTURAL = new Set(["cell", "cell-in", "cell-out", "voice-cell", "voice-in", "voice-out", "patchbay-in", "patchbay-out"]);
 
 /// The board with every patch bay chain replaced by plain cables (Program.cpp flattenPatchbays): a source into a Patch Bay
@@ -344,6 +355,7 @@ export class Engine {
                    connectedIn: new Uint8Array(s.inputs.length), connectedOut: new Uint8Array(s.outputs.length),
                    activity: new Float32Array(s.outputs.length) };
       entry.host.connectedIn = st.connectedIn;
+      st.bypass = bypassRoute(n, s);
       stepsById.set(n.id, st);
       return st;
     });
@@ -474,7 +486,10 @@ export class Engine {
       });
       host.connectedIn = st.connectedIn;
       host.setTransport(this.bpm, ppq, this.playing, this.samplePos);
-      host.process(n);
+      if (st.bypass) {   // bypassed: the module does not run, its n-th audio input feeds its n-th audio output, the rest is silent
+        v.outputs.fill(0);
+        for (const [i, o] of st.bypass) v.outputs.set(v.inputs.subarray(i * CHUNK, i * CHUNK + n), o * CHUNK);
+      } else host.process(n);
       // Activity (the cables' pulse): how far each output moved.
       const out = host.views.outputs;
       s.outputs.forEach((o, k) => {

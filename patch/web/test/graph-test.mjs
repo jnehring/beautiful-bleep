@@ -102,3 +102,21 @@ console.log("all tests passed");
   assert.ok(pk > 0.48 && pk < 0.52, `volume -6 dB peak ${pk}`);
   console.log("audio-out volume: ok");
 }
+
+// Bypass: a bypassed effect does not run and passes its audio in to its audio out (the native engine does the same).
+{
+  const board = (bypassed) => ({ format: 1, id: "t", nodes: [node("osc", "oscillator"), node("fx", "filter", { cutoff: 0 }, { bypassed }), node("out", "audio-out", {}, { port: "p" })],
+    cables: [cable("c1", "osc", "sine", "fx", "l"), cable("c2", "fx", "l", "out", "l")] });
+  const peakOf = (x) => x.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  engine.setBoard(board(false));
+  run(0.2);
+  const filtered = peakOf(run(0.2));
+  engine.setBoard(board(true));
+  run(0.2);
+  const passed = peakOf(run(0.2));
+  assert.ok(passed > 0.9 && filtered < 0.5, `bypass: passed ${passed}, filtered ${filtered}`);
+  engine.setBoard(board(false));
+  run(0.2);
+  assert.ok(peakOf(run(0.2)) < 0.5, "bypass off again: the filter works again");
+  console.log("bypass: ok");
+}
