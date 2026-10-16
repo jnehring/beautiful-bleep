@@ -73,6 +73,8 @@ services:
       BLEEP_SMTP_FROM: ${BLEEP_SMTP_FROM:-}
       BLEEP_CONTACT_TO: ${BLEEP_CONTACT_TO:-}
       BLEEP_ALLOWED_ORIGINS: ${BLEEP_ALLOWED_ORIGINS:-}
+      # Which proxies' X-Forwarded-For the API believes (default: the private networks Docker uses; see api/Dockerfile).
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-}
       BLEEP_PUBLIC_URL: ${BLEEP_PUBLIC_URL:-http://localhost:${BLEEP_SITE_PORT:-8080}}
       # Preset files are written to the library bucket (S3 API).
       BLEEP_S3_ENDPOINT: http://storage:8333
