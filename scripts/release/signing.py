@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
 from app.signing import *  # noqa: E402,F401,F403
 from app.signing import (CERT_DOMAIN, KINDS, SIGNATURE_PATH, Ed25519PrivateKey, _verify_sig, b64, canonical, decide,  # noqa: E402,F401
-                         issue_kit, key_id, load_key, make_cert, new_tbs, public_bytes, read_doc, read_entries, save_key,
+                         issue_kit, key_id, load_key, make_cert, new_tbs, public_bytes, read_doc, read_entries, save_key, write_secret,
                          make_crl, sign, sign_with_kit, test_vector, verify, write_doc)
 from app import signing  # noqa: E402
 
@@ -237,8 +237,7 @@ def main(argv=None) -> int:
         env = (f"BLEEP_ROOT_PUBLIC_KEYS={(d / 'root.pub').read_text().strip()}\n"
                f"BLEEP_ISSUER_KEY={(d / 'issuer.key').read_text().strip().replace(chr(10), chr(92) + 'n')}\n"
                f"BLEEP_ISSUER_CERT={json.dumps(json.loads((d / 'issuer.cert').read_text()), separators=(',', ':'))}\n")
-        (d / "registry.env").write_text(env)
-        (d / "registry.env").chmod(0o600)
+        write_secret(d / "registry.env", env)
         print(f"{d}/root.key: move it offline (your keystore) and delete this copy; the store never needs it.\n"
               f"{d}/root.pub: goes into the apps and plugins too.\n"
               f"{d}/registry.env: the three lines for website/.env (root PUBLIC key, issuer key and certificate).")
@@ -247,8 +246,7 @@ def main(argv=None) -> int:
         kit = issue_kit(load_key(str(d / "issuer.key")), json.loads((d / "issuer.cert").read_text()), a.publisher,
                         scopes=a.scopes.split(","), first_party=a.first_party, days=a.days, name=a.name)
         out = d / f"{a.publisher}.kit.json"
-        out.write_text(json.dumps(kit, indent=1))
-        out.chmod(0o600)
+        write_secret(out, json.dumps(kit, indent=1))
         print(f"{out}: the developer's private key and certificate. Hand it over privately; it is a secret.")
     elif a.cmd == "keygen":
         key = Ed25519PrivateKey.generate()

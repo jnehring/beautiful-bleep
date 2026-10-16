@@ -39,7 +39,7 @@ LIVE_APP=""
 if PID="$(live_pid)" && [[ -n "$PID" ]]; then
     LIVE_APP="$(ps -o command= -p "$PID" | sed -E 's#(\.app)/Contents/MacOS/Live$#\1#')"
     echo "quitting $(basename "$LIVE_APP") …"
-    osascript -e "tell application \"$LIVE_APP\" to quit" >/dev/null 2>&1 || true
+    osascript -e 'on run argv' -e 'tell application (item 1 of argv) to quit' -e 'end run' "$LIVE_APP" >/dev/null 2>&1 || true
     waited=0
     while kill -0 "$PID" 2>/dev/null; do
         sleep 1

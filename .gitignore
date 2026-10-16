@@ -19,3 +19,10 @@ website/app/public/play
 website/.env
 __pycache__/
 .pytest_cache/
+
+# Signing keys and registry secrets
+*.key
+*.kit.json
+registry.env
+root.key
+issuer.key

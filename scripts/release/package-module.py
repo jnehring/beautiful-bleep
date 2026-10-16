@@ -152,11 +152,11 @@ def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
     if origin:
         meta["summary"] = f"{meta['summary'].rstrip()} Based on {origin['name']} by {origin['author']} ({origin['license']})."
     files = {"module.json": (json.dumps(meta, indent=1, ensure_ascii=False) + "\n").encode(), "module.wasm": wasm, "spec.json": (spec + "\n").encode()}
-    if (folder / "LICENSE").is_file():
+    if (folder / "LICENSE").is_file() and not (folder / "LICENSE").is_symlink():
         files["LICENSE"] = (folder / "LICENSE").read_bytes()
     for sub, suffixes in (("ui", (".js",)), ("doc", (".md", ".png"))):
         for f in sorted((folder / sub).glob("*")) if (folder / sub).is_dir() else []:
-            if f.suffix in suffixes:
+            if f.suffix in suffixes and f.is_file() and not f.is_symlink():  # a link could pull a file from elsewhere into the package
                 files[f"{sub}/{f.name}"] = f.read_bytes()
     return files
 

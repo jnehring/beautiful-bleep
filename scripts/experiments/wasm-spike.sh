@@ -14,17 +14,23 @@ W="$ROOT/build/wasm-spike"
 WT_VERSION=49.0.2
 mkdir -p "$W"
 case "$(uname -s)-$(uname -m)" in
-  Darwin-arm64) WT_TARGET=aarch64-macos ;;
-  Darwin-x86_64) WT_TARGET=x86_64-macos ;;
-  Linux-x86_64) WT_TARGET=x86_64-linux ;;
-  Linux-aarch64) WT_TARGET=aarch64-linux ;;
+  Darwin-arm64) WT_TARGET=aarch64-macos; WT_SHA=f7000ab1661495d09b9dc87a11b356941b4e6097f295434bcb30a8cf1393b0d5 ;;
+  Darwin-x86_64) WT_TARGET=x86_64-macos; WT_SHA=1a1fd4bcec77d65bab1bdd4c38e4168825b7679c2f105bf573c4ef1cf5e779b1 ;;
+  Linux-x86_64) WT_TARGET=x86_64-linux; WT_SHA=4818e139aeb83b7adbaaf41b267bf18992c18463ae26d1a9acdcfc63ea9eb316 ;;
+  Linux-aarch64) WT_TARGET=aarch64-linux; WT_SHA=a97a874152b5fb49c4720b39b96a71d00ba61eab5ad59976163b7ddd1a3b14c0 ;;
   *) echo "unsupported platform" >&2; exit 1 ;;
 esac
 if [ ! -d "$W/wasmtime" ]; then
   curl -fsSL -o "$W/wasmtime.tar.xz" "https://github.com/bytecodealliance/wasmtime/releases/download/v$WT_VERSION/wasmtime-v$WT_VERSION-$WT_TARGET-c-api.tar.xz"
+  # pinned: the download is only unpacked if it is the file whose hash was recorded for this version
+  echo "$WT_SHA  $W/wasmtime.tar.xz" | shasum -a 256 -c - >/dev/null || { echo "wasmtime download does not match the pinned SHA-256" >&2; rm -f "$W/wasmtime.tar.xz"; exit 1; }
   mkdir -p "$W/wasmtime" && tar xf "$W/wasmtime.tar.xz" -C "$W/wasmtime" --strip-components=1
 fi
-[ -d "$W/wasm3" ] || git clone -q --depth 1 https://github.com/wasm3/wasm3.git "$W/wasm3"
+WASM3_COMMIT=28ecb9af6d2040e474a70f7cb7f43666740141fb
+if [ ! -d "$W/wasm3" ]; then
+  git clone -q https://github.com/wasm3/wasm3.git "$W/wasm3"
+  git -C "$W/wasm3" checkout -q "$WASM3_COMMIT"
+fi
 
 SRC="$ROOT/patch"
 LIBS=""; [ "$(uname -s)" = Darwin ] && LIBS="-framework CoreFoundation -framework Security" || LIBS="-lpthread -ldl -lm"

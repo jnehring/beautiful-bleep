@@ -136,7 +136,8 @@ else ()
     include(FetchContent)
     FetchContent_Declare(juce
         GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_TAG 8.0.9
+        # 8.0.9 (pinned by commit: tags can move)
+        GIT_TAG f72bad64d29715216226685810c5196bd0d79d77
         GIT_SHALLOW TRUE)
     FetchContent_MakeAvailable(juce)
 endif ()
@@ -587,7 +588,8 @@ if (BLEEP_BUILD_APP)
             include(FetchContent)
             FetchContent_Declare(link
                 GIT_REPOSITORY https://github.com/Ableton/link.git
-                GIT_TAG Link-4.1
+                # Link-4.1 (pinned by commit: tags can move)
+                GIT_TAG 9c9091275e707ab09d09a5a608fcdb84bf0dec85
                 GIT_SHALLOW TRUE
                 GIT_SUBMODULES modules/asio-standalone
                 SOURCE_SUBDIR no-cmake-project)  # headers only: don't build Link's examples and tests
