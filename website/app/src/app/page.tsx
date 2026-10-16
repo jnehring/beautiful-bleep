@@ -5,10 +5,15 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <h1>Modular sound, wherever you make it.</h1>
+        <h1>Beautiful Bleep: a modular synthesizer you can play anywhere.</h1>
         <p>
-          One modular engine as a plugin in Ableton Live, as a standalone app and in your browser. Play a
-          ready-made instrument or effect, or patch your own with cables between small building blocks.
+          Beautiful Bleep is a digital modular synthesizer. Instead of one fixed instrument, you get small sound building
+          blocks (oscillators, filters, envelopes, effects) and connect them with virtual cables to build your own sounds.
+          Or skip the patching and play one of the ready-made instruments and effects.
+        </p>
+        <p>
+          It runs as a plugin in Ableton Live, as a standalone app and in your browser, with the same engine and the same
+          patches in all three.
         </p>
         <div className="actions">
           <a className="primary" href="/board/">Play in your browser</a>
@@ -16,25 +21,6 @@ export default function Home() {
           <a href="/docs/musicians/overview/">Read the docs</a>
         </div>
       </section>
-
-      <h2>What makes it different</h2>
-      <div className="grid">
-        <div className="card">
-          <h3>Every knob takes a cable</h3>
-          <p>Drop a cable on any knob to modulate it. A ring shows the value really used, and you can modulate the modulator.
-            <a href="/docs/musicians/learn/modulation/"> How modulation works</a>.</p>
-        </div>
-        <div className="card">
-          <h3>Play first, patch later</h3>
-          <p>Pick an instrument or effect preset and play, no cables. When you want more, open the preset on the board, change it and save it as your own.
-            <a href="/docs/musicians/start/first-sound/"> Your first sound</a>.</p>
-        </div>
-        <div className="card">
-          <h3>Patches become instruments</h3>
-          <p>Group a patch into a cell, make it a polyphonic Voice Cell, and give it a front panel of dials, faders and keys.
-            <a href="/docs/musicians/learn/cells-and-panels/"> Cells and panels</a>.</p>
-        </div>
-      </div>
 
       <h2>One engine, three places</h2>
       <div className="grid">
