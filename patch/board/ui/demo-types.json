@@ -15368,6 +15368,118 @@
     "harmony": "writer"
   },
   {
+    "type": "limiter",
+    "name": "Limiter",
+    "category": "Effects/Dynamics & EQ",
+    "colour": "#64748b",
+    "description": "Brickwall stereo limiter: nothing passes the ceiling. Lookahead, release, input gain and a gain reduction output you can patch.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "ceiling",
+        "name": "Ceiling",
+        "kind": "float",
+        "default": 0.974999964237213,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -12.0,
+        "max": 0.0,
+        "def": -0.300000011920929,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
+      },
+      {
+        "id": "release",
+        "name": "Release",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 10.0,
+        "max": 1000.0,
+        "def": 100.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp"
+      },
+      {
+        "id": "input",
+        "name": "Input",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 24.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB"
+      },
+      {
+        "id": "lookahead",
+        "name": "Lookahead",
+        "kind": "choice",
+        "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "1 ms",
+          "2 ms",
+          "5 ms"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "reduction",
+        "name": "Reduction",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "low-pass-gate",
     "name": "Low Pass Gate",
     "category": "Audio/Filters",
