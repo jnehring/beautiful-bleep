@@ -110,7 +110,10 @@ if (BLEEP_BUILD_TESTS)
         tests/dsp/grid_tests.cpp)
     target_link_libraries(bleep_dsp_tests PRIVATE bleep_dsp)
     add_test(NAME patch.dsp COMMAND bleep_dsp_tests)
-    add_executable(bleep_utility_tests tests/test_utility_dsp.cpp)
+    add_executable(bleep_utility_tests tests/test_utility_dsp.cpp
+        tests/utility/utility_test.h
+        tests/utility/mixing_tests.cpp
+        tests/utility/control_tests.cpp)
     target_link_libraries(bleep_utility_tests PRIVATE bleep_dsp)
     add_test(NAME patch.utility-dsp COMMAND bleep_utility_tests)
     # System Audio's ring and drift-compensating reader (app/SystemAudioBuffer.h, doc/specs/system-audio.md): pure C++.
@@ -149,8 +152,9 @@ else ()
 endif ()
 
 # ---- the engine (compiled into every plugin: one engine per process, spec §5.3)
+set(BLEEP_BOARD_SOURCES engine/Board.cpp engine/BoardSanitise.cpp engine/BoardPresets.cpp engine/BoardTypes.cpp)
 set(BLEEP_ENGINE_SOURCES
-    engine/Board.cpp
+    ${BLEEP_BOARD_SOURCES}
     engine/Engine.cpp
     engine/EngineBoard.cpp
     engine/EngineEdit.cpp
@@ -194,7 +198,7 @@ if (BLEEP_BUILD_TESTS)
     # Every module type on a real compiled board: random knobs and inputs,
     # finite outputs, data round trips (tests/module_harness.cpp). juce_core only.
     juce_add_console_app(bleep_module_harness PRODUCT_NAME "Bleep Module Harness")
-    target_sources(bleep_module_harness PRIVATE tests/module_harness.cpp engine/Board.cpp engine/Program.cpp
+    target_sources(bleep_module_harness PRIVATE tests/module_harness.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
         engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
@@ -234,7 +238,7 @@ if (BLEEP_BUILD_TESTS)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
         # wasm files (scripts/build/build-web.sh --modules-only).
         juce_add_console_app(bleep_wasm_parity PRODUCT_NAME "Bleep Wasm Parity")
-        target_sources(bleep_wasm_parity PRIVATE tests/wasm_parity.cpp ${BLEEP_WASM_HOST_SOURCES} engine/Board.cpp engine/Program.cpp
+        target_sources(bleep_wasm_parity PRIVATE tests/wasm_parity.cpp ${BLEEP_WASM_HOST_SOURCES} ${BLEEP_BOARD_SOURCES} engine/Program.cpp
             engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
         foreach (m IN LISTS BLEEP_MODULES)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
@@ -249,7 +253,7 @@ if (BLEEP_BUILD_TESTS)
             juce::juce_recommended_config_flags)
         # The Transport module as a .wasm asks the host through its mailbox (tests/wasm_host_control_test.cpp). Not a ctest either.
         juce_add_console_app(bleep_wasm_host_control_test PRODUCT_NAME "Bleep Wasm Host Control Test")
-        target_sources(bleep_wasm_host_control_test PRIVATE tests/wasm_host_control_test.cpp ${BLEEP_WASM_HOST_SOURCES} engine/Board.cpp
+        target_sources(bleep_wasm_host_control_test PRIVATE tests/wasm_host_control_test.cpp ${BLEEP_WASM_HOST_SOURCES} ${BLEEP_BOARD_SOURCES}
             engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
         foreach (m IN LISTS BLEEP_MODULES)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
@@ -264,7 +268,7 @@ if (BLEEP_BUILD_TESTS)
     # The demo boards (patch/presets/demos, compiled to board/ui/demo-patches.json) load without a
     # warning and make sound (tests/demo_patches_test.cpp). juce_core only.
     juce_add_console_app(bleep_demo_patches PRODUCT_NAME "Bleep Demo Patches")
-    target_sources(bleep_demo_patches PRIVATE tests/demo_patches_test.cpp engine/Board.cpp engine/Program.cpp
+    target_sources(bleep_demo_patches PRIVATE tests/demo_patches_test.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
         engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
@@ -280,7 +284,7 @@ if (BLEEP_BUILD_TESTS)
     # Every cell preset Bleep Instrument or Bleep FX can load (`plays`) is played like the plugin plays
     # it and must make sound / die away (tests/cell_plugin_presets_test.cpp). juce_core only.
     juce_add_console_app(bleep_cell_plugin_presets PRODUCT_NAME "Bleep Cell Plugin Presets")
-    target_sources(bleep_cell_plugin_presets PRIVATE tests/cell_plugin_presets_test.cpp engine/Board.cpp engine/Program.cpp
+    target_sources(bleep_cell_plugin_presets PRIVATE tests/cell_plugin_presets_test.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
         engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
@@ -297,7 +301,7 @@ if (BLEEP_BUILD_TESTS)
     # Engine features modules build on (normalling, output flags, harmony order,
     # stepped knobs, view metadata, commands, media). juce_core only.
     juce_add_console_app(bleep_engine_features PRODUCT_NAME "Bleep Engine Features")
-    target_sources(bleep_engine_features PRIVATE tests/engine_features_test.cpp engine/Board.cpp engine/Program.cpp
+    target_sources(bleep_engine_features PRIVATE tests/engine_features_test.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
         engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
@@ -360,7 +364,7 @@ endif ()
 if (BLEEP_BUILD_TESTS)
     # Writes the node types for the board UI's browser demo (board/ui/demo-types.json).
     juce_add_console_app(bleep_dump_types PRODUCT_NAME "Bleep Dump Types")
-    target_sources(bleep_dump_types PRIVATE tests/dump_types.cpp engine/Board.cpp engine/Registry.cpp
+    target_sources(bleep_dump_types PRIVATE tests/dump_types.cpp ${BLEEP_BOARD_SOURCES} engine/Registry.cpp
         engine/PortModules.cpp engine/Media.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")

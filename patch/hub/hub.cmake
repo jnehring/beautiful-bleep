@@ -7,7 +7,8 @@ set(BLEEP_HUB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hub")
 set(BLEEP_HUB_SOURCES)   # sources the app links (appended below)
 set(BLEEP_HUB_INCLUDES "${BLEEP_HUB_DIR}")
 
-list(APPEND BLEEP_HUB_SOURCES ${BLEEP_HUB_DIR}/WebSocketServer.cpp ${BLEEP_HUB_DIR}/WebHub.cpp)
+list(APPEND BLEEP_HUB_SOURCES ${BLEEP_HUB_DIR}/WebSocketServer.cpp ${BLEEP_HUB_DIR}/WebHub.cpp
+    ${BLEEP_HUB_DIR}/WebHubMessages.cpp ${BLEEP_HUB_DIR}/WebHubSlots.cpp ${BLEEP_HUB_DIR}/WebHubBoard.cpp)
 
 if (BLEEP_BUILD_TESTS)
     juce_add_console_app(bleep_websocket_tests PRODUCT_NAME "Bleep WebSocket Tests")
