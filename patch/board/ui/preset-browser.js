@@ -260,6 +260,15 @@
     },
     open,
     close,
+    /// Loads a preset shared in the Bleep Store, by its address ("author/slug"), as the Load button does. Throws when it cannot be fetched.
+    async loadShared(address, name) {
+      const r = await fetch("/api/presets/" + address.split("/").map(encodeURIComponent).join("/") + "/file");
+      if (!r.ok) throw new Error(r.status === 404 ? "That preset is not in the Bleep Store." : "The preset could not be downloaded (" + r.status + ").");
+      const preset = await r.json();
+      if (!preset || !Array.isArray(preset.nodes)) throw new Error("That file is not a board preset.");
+      preset.cables = preset.cables || [];
+      await loadPatch({ name: name || address.split("/").pop(), preset });
+    },
     isOpen: () => !!root && !root.hidden,
   };
 })();

@@ -3501,6 +3501,10 @@
     setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);
+    {  // Bleep Play opened from a store preset: /play/index.html?preset=author/slug
+      const shared = new URLSearchParams(location.search).get("preset");
+      if (shared && !pluginMode) BleepPresetBrowser.loadShared(shared).catch((e) => notice(e.message));
+    }
     // Fit once the canvas has its size (the window may still be opening).
     let fitted = false;
     new ResizeObserver(() => {

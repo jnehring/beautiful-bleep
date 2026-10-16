@@ -14,6 +14,9 @@
 //     ["Warm Low-Pass", { cutoff: 800, resonance: 0.2, type: "Ladder Tanh" }, "Optional one-line description."],
 //   ];
 //
+// A fourth entry is the node's `data`, for modules whose content is not a knob (the Step Sequencer's steps):
+// loading the preset replaces the node's data with it.
+//
 // Values are in units (Hz, seconds, semitones; choices by name; toggles as booleans), exactly as in the cell
 // presets (README.md). A preset sets only the knobs it lists: every other knob goes to the module's default
 // when it is loaded. Ten to twenty presets per module; a module without a file gets no preset bar.
@@ -34,7 +37,7 @@ export function compileModule(type, list) {
   if (list.length < MIN || list.length > MAX) throw new Error(`${type}: ${list.length} presets, want ${MIN}–${MAX}`);
   const names = new Set(), shapes = new Map(), out = [];
   for (const entry of list) {
-    const [name, values, description] = Array.isArray(entry) ? entry : [entry.name, entry.values, entry.description];
+    const [name, values, description, data] = Array.isArray(entry) ? entry : [entry.name, entry.values, entry.description, entry.data];
     if (typeof name !== "string" || !name.trim() || name.length > 40) throw new Error(`${type}: a preset name must be 1–40 characters (${JSON.stringify(name)})`);
     if (names.has(name.toLowerCase())) throw new Error(`${type}: two presets are named '${name}'`);
     names.add(name.toLowerCase());
@@ -47,11 +50,12 @@ export function compileModule(type, list) {
     }
     // a value equal to the default is dropped: it would do nothing, and the preset stays readable
     for (const [id, x] of Object.entries(params)) if (Math.abs(x - byId.get(id).default) < 1e-6) delete params[id];
-    const shape = JSON.stringify(Object.entries(params).sort());
+    if (data !== undefined && (!data || typeof data !== "object" || Array.isArray(data))) throw new Error(`${type} › ${name}: data must be an object`);
+    const shape = JSON.stringify([Object.entries(params).sort(), data ?? null]);
     if (shapes.has(shape)) throw new Error(`${type}: '${name}' sets the same values as '${shapes.get(shape)}'`);
     shapes.set(shape, name);
     if (description !== undefined && (typeof description !== "string" || description.length > 140)) throw new Error(`${type} › ${name}: the description is a string of at most 140 characters`);
-    out.push({ name, ...(description ? { description } : {}), params });
+    out.push({ name, ...(description ? { description } : {}), params, ...(data ? { data } : {}) });
   }
   return out;
 }

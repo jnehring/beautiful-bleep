@@ -48,6 +48,9 @@ function DetailView() {
           {data.category && <p><span className="tag">{data.category.replace(/\//g, " › ")}</span></p>}
           <p>{data.summary || <span className="muted">No description yet.</span>}</p>
           <p><Stars average={data.rating_average} count={data.rating_count} /></p>
+          {data.kind === "preset" && data.category === "Patches" && (
+            <p><a className="play-button" href={`/play/index.html?preset=${data.slug}`} target="_blank" rel="noopener">Open in Play</a></p>
+          )}
           <p>License: {data.license ? <strong>{data.license}</strong> : <span className="muted">not stated</span>}</p>
           {"name" in data.origin && (
             <p className="muted">
