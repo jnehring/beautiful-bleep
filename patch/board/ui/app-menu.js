@@ -123,8 +123,7 @@
     }
     document.addEventListener("pointerdown", (e) => { if (openMenu && !bar.contains(e.target)) closeMenu(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && openMenu) { openMenu.button.focus(); closeMenu(); } }, true);
-    const toggleBtn = document.getElementById("side-toggle");
-    toggleBtn.after(bar);
+    document.getElementById("top").prepend(bar);
   }
 
   window.BleepAppMenu = {
