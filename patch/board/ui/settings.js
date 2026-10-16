@@ -272,32 +272,22 @@
     async init(options) {
       hasLibrary = !!(options && options.library);
       build();
-      const header = document.getElementById("sections");
-      header.hidden = false;
-      const btn = document.getElementById("sec-settings");
-      btn.hidden = false;
-      if (!hasLibrary) document.getElementById("sec-library").hidden = true;  // no library in this build: nothing to open
-      btn.addEventListener("click", () => window.BleepSettingsView.show());
-      document.getElementById("sec-board").addEventListener("click", () => window.BleepSettingsView.hide());
+      BleepModal.mount(root, () => window.BleepSettingsView.hide());
       onNative("openSettings", () => window.BleepSettingsView.show());
     },
-    async show() {
+    /// `which`: the tab to show ("audio", "midi", "web", "library", "security"); without it the last one.
+    async show(which) {
       if (window.BleepLibraryView) window.BleepLibraryView.hide();
       if (window.BleepHelpView) window.BleepHelpView.hide();
-      document.body.classList.add("in-library");
-      root.hidden = false;
-      document.getElementById("sec-settings").classList.add("on");
-      document.getElementById("sec-board").classList.remove("on");
+      if (typeof which === "string") { tab = which; message = ""; }
+      BleepModal.toggle(root, true);
       await load(true);
       // The readouts (CPU, dropouts, Link peers) move: refresh while the section is open and nothing is being edited.
       if (!poll) poll = setInterval(() => { if (!root.hidden) load(false); }, 1500);
     },
     hide() {
       if (root.hidden) return;
-      root.hidden = true;
-      document.body.classList.remove("in-library");
-      document.getElementById("sec-board").classList.add("on");
-      document.getElementById("sec-settings").classList.remove("on");
+      BleepModal.toggle(root, false);
       if (poll) { clearInterval(poll); poll = null; }
     },
   };

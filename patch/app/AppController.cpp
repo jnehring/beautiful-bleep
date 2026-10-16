@@ -171,6 +171,7 @@ void AppController::start(const juce::String& commandLine) {
     };
     style.menu = this;
     style.onSettings = [this](const juce::String& fn, const juce::var& arg) { return settingsCall(fn, arg); };
+    style.onMenu = [this](const juce::var& menus) { setMenuModel(menus); };
     engine::setBoardWindowStyle(style);  // before openBoard creates the window
     engine_->openBoard(main_);
     if (auto* w = engine::boardWindow()) w->addKeyListener(commands_.getKeyMappings());
@@ -803,10 +804,60 @@ void AppController::confirmDiscard(std::function<void()> then) {
 
 // ---- menus ------------------------------------------------------------------------------------
 
-juce::StringArray AppController::getMenuBarNames() { return {"File", "Help"}; }
+// The page defines the menus (app-menu.js, one list for all hosts) and sends them; until then, and if it never does, File and Help.
+void AppController::setMenuModel(const juce::var& menus) {
+    const auto json = juce::JSON::toString(menus, true);
+    if (!menus.isArray() || json == menuModelJson_) return;
+    menuModelJson_ = json;
+    menuModel_ = menus;
+    menuItemsChanged();
+}
+
+juce::StringArray AppController::getMenuBarNames() {
+    juce::StringArray names;
+    if (auto* a = menuModel_.getArray())
+        for (const auto& m : *a) names.add(m["title"].toString());
+    if (names.isEmpty()) names = {"File", "Help"};
+    return names;
+}
+
+namespace {
+// The items the app performs itself (project files, native shortcuts): the rest the page answers.
+int appCommandFor(const juce::String& id) {
+    if (id == "project.new") return cmdNew;
+    if (id == "project.openFile") return cmdOpen;
+    if (id == "project.browse") return cmdPresets;
+    if (id == "project.save") return cmdSave;
+    if (id == "project.saveAs") return cmdSaveAs;
+    if (id == "file.settings") return cmdSettings;
+    if (id == "help.docs") return cmdDocs;
+    if (id == "help.about") return cmdAbout;
+    return 0;
+}
+}  // namespace
+
+void AppController::menuItemSelected(int itemId, int) {
+    const auto it = menuIds_.find(itemId);
+    if (it != menuIds_.end()) engine::openBoardMenu(it->second);
+}
 
 juce::PopupMenu AppController::getMenuForIndex(int index, const juce::String&) {
     juce::PopupMenu m;
+    if (auto* menus = menuModel_.getArray(); menus && index < menus->size()) {
+        int n = 0;
+        const int base = 1000 * (index + 1);
+        for (auto it = menuIds_.lower_bound(base); it != menuIds_.end() && it->first < base + 1000;) it = menuIds_.erase(it);
+        if (auto* items = (*menus)[index]["items"].getArray())
+            for (const auto& item : *items) {
+                if (!item.isObject()) { m.addSeparator(); continue; }
+                const auto id = item["id"].toString();
+                if (const int cmd = appCommandFor(id)) { m.addCommandItem(&commands_, cmd); continue; }
+                menuIds_[base + n] = id;
+                m.addItem(base + n, item["label"].toString(), !item.hasProperty("enabled") || (bool)item["enabled"]);
+                ++n;
+            }
+        return m;
+    }
     if (index == 0) {
         m.addCommandItem(&commands_, cmdNew);
         m.addCommandItem(&commands_, cmdOpen);
@@ -831,15 +882,15 @@ void AppController::getAllCommands(juce::Array<juce::CommandID>& c) {
 void AppController::getCommandInfo(juce::CommandID id, juce::ApplicationCommandInfo& info) {
     const auto cmd = juce::ModifierKeys::commandModifier;
     switch (id) {
-        case cmdNew: info.setInfo("New", "New project", "File", 0); info.addDefaultKeypress('n', cmd); break;
-        case cmdOpen: info.setInfo(u8("Open…"), "Open a project", "File", 0); info.addDefaultKeypress('o', cmd); break;
+        case cmdNew: info.setInfo(u8("New Project"), "New project", "File", 0); info.addDefaultKeypress('n', cmd); break;
+        case cmdOpen: info.setInfo(u8("Open Project File…"), "Open a project file", "File", 0); info.addDefaultKeypress('o', cmd); break;
         case cmdPresets:
-            info.setInfo(u8("Presets…"), "Browse the demo boards and your own boards", "File", 0);
+            info.setInfo(u8("Open Project…"), "Browse the demo projects and your own", "File", 0);
             info.addDefaultKeypress('p', cmd);
             break;
-        case cmdSave: info.setInfo("Save", "Save the project", "File", 0); info.addDefaultKeypress('s', cmd); break;
+        case cmdSave: info.setInfo(u8("Save Project"), "Save the project", "File", 0); info.addDefaultKeypress('s', cmd); break;
         case cmdSaveAs:
-            info.setInfo(u8("Save As…"), "Save the project as", "File", 0);
+            info.setInfo(u8("Save Project As…"), "Save the project as", "File", 0);
             info.addDefaultKeypress('s', cmd | juce::ModifierKeys::shiftModifier);
             break;
         case cmdSettings: info.setInfo(u8("Settings…"), "Audio, MIDI, Link, the Library and Security", "File", 0); info.addDefaultKeypress(',', cmd); break;

@@ -189,7 +189,7 @@ Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persisten
 
 | `preset.type` | Contains | Loaded as |
 |---|---|---|
-| `patch` | A whole board: nodes, cables, panels, settings | Opens as a project, or merges into the current board |
+| `patch` | A whole board: nodes, cables, panels, settings. In the apps it is a *project* shared in the Library | Opens as a project, or merges into the current board |
 | `cell` | One cell: its inner graph, jack names, its panel | Dropped onto the board as a cell |
 
 - **Dependencies.** A preset, cell or patch, may carry `needs`: the modules it requires, by module slug, each with an optional inclusive `min` and `max` version:
@@ -198,11 +198,13 @@ Two kinds, one file format (`.bleeppreset`, JSON, same schema as board persisten
   "needs": { "lfo": { "min": "1.2.0" }, "reverb": { "min": "2.0.0", "max": "2.9.9" } }
   ```
 
-  Saving a preset from the board writes `needs` for every module its node types come from, with `min` set to the version installed at that moment; an author adds `max` by hand. Before a preset is loaded or placed (the preset browser, *Add → Cell*), the board checks `needs` and, without a version, every module that provides one of its node types. If something is missing or too old, a dialog lists it and offers **Download n from the Bleep Library**, then loads; *Load anyway* keeps placeholder nodes, *Cancel* loads nothing. Versions the library cannot supply are listed with the reason and cannot be fixed by the dialog: the library offers only the newest version of a module, so a `max` below it, a local copy of a module, or a module the library does not have can only be loaded anyway. Factory presets carry no `needs` (the default module bundle covers them). The check runs in the app and in plugin windows (installing happens off the audio thread); Bleep Play installs the types a board uses by itself (section 8). **Placing a preset works offline and without a library.** An app built without the module library (modules compiled in; the native side's `init` has no `library`) does not check at all. With a library, the check looks only at the modules installed here and at the library index if it is already loaded: it never waits for the network, and if the local status does not answer within 5 seconds the preset is placed anyway, with a notice. The index is **cached on disk** (`<data folder>/cache/index.json`, with the library address, the channel and the time it was fetched): every successful fetch saves it, the first look at the library reads it, and when the library cannot be reached the saved copy is used and the Library section says so. A copy saved for another address or channel is ignored.
+  Saving a preset from the board writes `needs` for every module its node types come from, with `min` set to the version installed at that moment; an author adds `max` by hand. Before a preset or project is loaded or placed (the project browser, *Add → Cell*), the board checks `needs` and, without a version, every module that provides one of its node types. If something is missing or too old, a dialog lists it and offers **Download n from the Bleep Library**, then loads; *Load anyway* keeps placeholder nodes, *Cancel* loads nothing. Versions the library cannot supply are listed with the reason and cannot be fixed by the dialog: the library offers only the newest version of a module, so a `max` below it, a local copy of a module, or a module the library does not have can only be loaded anyway. Factory presets carry no `needs` (the default module bundle covers them). The check runs in the app and in plugin windows (installing happens off the audio thread); Bleep Play installs the types a board uses by itself (section 8). **Placing a preset works offline and without a library.** An app built without the module library (modules compiled in; the native side's `init` has no `library`) does not check at all. With a library, the check looks only at the modules installed here and at the library index if it is already loaded: it never waits for the network, and if the local status does not answer within 5 seconds the preset is placed anyway, with a notice. The index is **cached on disk** (`<data folder>/cache/index.json`, with the library address, the channel and the time it was fetched): every successful fetch saves it, the first look at the library reads it, and when the library cannot be reached the saved copy is used and the Library section says so. A copy saved for another address or channel is ignored.
 - Publishing: from the board, *Share…* (needs an account; browsing and downloading never do), a title, tags, a licence (default CC-BY, CC0 allowed), optional audio preview. The API validates the schema, checks all referenced types exist in the library, enforces a size limit and per-user rate limit, and rejects anything that is not pure data.
 - Versions: re-publishing creates a new version; installed copies show "update available". Local edits to an installed preset are kept as a fork.
 - Moderation: report button, takedown by an admin (the existing `admin` role) sets the preset's state to unlisted; the file stays but is no longer served in search.
 - The factory presets move out of `factory-presets.json` into the library's `bleep` author, so the app, the website and the plugins all show the same library. A small set stays bundled for offline.
+
+- **My projects on the website.** The board in the browser has no folder to keep a user's own projects in, so they live in the account: `GET /api/projects` (the user's list: id, name, description, tags), `GET /api/projects/{id}` (the project, the same JSON as a Library `preset`), `POST /api/projects` (`{name, preset}`, a project of that name is replaced) and `DELETE /api/projects/{id}`. They are private to the account (a login by cookie or token), limited to 200 per user and 2 MB each; publishing one for others is *Share…* (a `patch` preset). The apps keep them as `.bleepboard` files in `<app data>/Projects/`.
 
 ## 7. Release process
 
@@ -228,7 +230,7 @@ Single source: the repository. CI builds and publishes; nobody uploads by hand.
 
 ## 9. The two sections: Library and Board
 
-The standalone app and the window of every Bleep plugin have the same two sections, switched at the top:
+The board is always on screen. The Library, Settings and Help topics open as dialogs over it, from the *Library*, *File* and *Help* menus of the top bar (the Library menu offers *Open Library…* and *Upload Project to Library…*):
 
 | Section | For | What is in it |
 |---|---|---|

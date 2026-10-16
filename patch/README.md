@@ -30,8 +30,8 @@ VST3 only, Ableton Live only for now (spec §5.2). The script builds into
 
 It also builds the standalone **Bleep App** (spec §11): the board without
 a DAW, with its own MIDI ports, Ableton Link and the Bleep Audio Bridge server.
-See [`app/README.md`](app/README.md). Its preset browser (File → Presets…) loads
-whole demo boards, five per advanced module.
+See [`app/README.md`](app/README.md). Its project browser (File → Open Project…) loads
+whole demo projects, five per advanced module.
 
 ## Layout
 
@@ -75,11 +75,12 @@ patch/
 
 ## Data folders
 
-User data lives in `Beautiful Bleep/` (the app-data folder: `Cells/`, `Drum Patterns/`, `Boards/`,
+User data lives in `Beautiful Bleep/` (the app-data folder: `Cells/`, `Drum Patterns/`, `Projects/`,
 the app's settings) and `~/Music/Beautiful Bleep/Media/`. Before 0.2 these were called `Bleep Patch`,
 and whole boards were `Patches/*.bleeppatch`. The engine and the app move the old folders over on
-start (`media::migrateLegacyFolders()` in `engine/Media.cpp`): a board becomes `Boards/*.bleeppreset`,
-and a file that already exists under the new name is kept (the old one stays where it was).
+start (`media::migrateLegacyFolders()` in `engine/Media.cpp`): a board becomes `Boards/*.bleeppreset`, and the first time the project browser lists or saves projects, each
+of those becomes a `Projects/*.bleepboard` project (the `.bleeppreset` stays where it was).
+A file that already exists under the new name is kept (the old one stays where it was).
 
 ## Working on the board UI
 

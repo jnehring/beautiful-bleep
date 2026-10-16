@@ -191,7 +191,7 @@ New page `plugin-panel.html` + `plugin-panel.js`: loads `panels.js` and the modu
 
 ### 11.3 Preset browser
 
-An overlay in the same web page, reusing `preset-browser.js`: category tree, search over name, tags and description, description on hover, filtered by `plays` for the plugin's role. It lists factory presets (compiled in), then user and store ones as they appear (phase 5). Picking one calls `uiCall("loadPreset", {name})` → `setCellPreset(..., replace=true)`. In the first version the native menu stays as the fallback.
+An overlay in the same web page, reusing `project-browser.js`: category tree, search over name, tags and description, description on hover, filtered by `plays` for the plugin's role. It lists factory presets (compiled in), then user and store ones as they appear (phase 5). Picking one calls `uiCall("loadPreset", {name})` → `setCellPreset(..., replace=true)`. In the first version the native menu stays as the fallback.
 
 The three presets in `factory-presets.js` (Basic Poly, Punch Machine, Ring Machine) become part of the library: the build writes them, with their panels and `plays`, into `factory-presets.json` too (the board hides the duplicates by name).
 

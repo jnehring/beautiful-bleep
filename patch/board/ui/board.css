@@ -45,7 +45,6 @@ kbd { font: inherit; font-size: 11px; color: var(--muted); }
 #crumbs .here { color: var(--text); }
 #crumbs .sep { color: var(--line); }
 .spacer { flex: 1; }
-#status { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ---- layout */
 #main { flex: 1; display: flex; min-height: 0; }
@@ -388,17 +387,17 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pb-empty { color: var(--muted); padding: 30px; text-align: center; }
 
 /* ---- Library section (library.js) ---- */
-.sections { display: inline-flex; align-items: flex-end; gap: 2px; align-self: flex-end; margin: 0 28px -1px 0; }
-.sections button { border: 1px solid transparent; border-bottom: 0; border-radius: 7px 7px 0 0; background: transparent;
-                   color: var(--muted); padding: 0 16px; margin: 0; height: 32px; position: relative; }
-.sections button:hover { color: var(--text); background: var(--panel-2); }
-.sections button.on { background: var(--canvas); color: var(--text); border-color: var(--line); height: 33px; font-weight: 600; }
-body.in-library .sections button.on { background: var(--bg); }
-#undo, #redo { display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px; }
-#undo svg, #redo svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-body.in-library #side-toggle, body.in-library #side-menu, body.in-library #main, body.in-library #crumbs, body.in-library #panels, body.in-library #presets,
-body.in-library #undo, body.in-library #redo { display: none; }
-#library { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
+/* Library, Settings and Help are dialogs over the board (modal.js). */
+.modal-back { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; background: rgba(10, 11, 14, .6); }
+.modal-back[hidden] { display: none; }
+.modal { position: relative; box-sizing: border-box; width: min(1040px, 94vw); height: min(760px, 90vh); overflow: auto; padding: 18px 28px 32px;
+         background: var(--bg); color: var(--text); font-size: 13px; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 60px rgba(0, 0, 0, .5); }
+.modal[hidden] { display: none; }
+.modal-close { position: absolute; top: 10px; right: 12px; z-index: 1; border-color: transparent; background: transparent; color: var(--muted); padding: 3px 8px; }
+.modal-close:hover { color: var(--text); background: var(--panel-3); }
+.audio { display: inline-flex; align-items: center; border-color: transparent; background: transparent; padding: 4px 7px; }
+.audio .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.audio.off .dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
 #library h2 { margin: 0; font-size: 18px; font-weight: 600; }
 #library h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 #library .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
@@ -414,7 +413,6 @@ body.in-library #undo, body.in-library #redo { display: none; }
 #library button.primary { background: var(--accent); color: #07201d; border-color: var(--accent); font-weight: 600; }
 #library button:disabled { opacity: .5; cursor: default; }
 /* ---- Settings section (settings.js): the Library section's look ---- */
-#help { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
 #help h2 { margin: 0; font-size: 18px; font-weight: 600; }
 #help h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 #help .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
@@ -431,7 +429,6 @@ body.in-library #undo, body.in-library #redo { display: none; }
 #help .hp-tile:hover { background: var(--panel-2); border-color: var(--accent); }
 #help .hp-title { font-weight: 600; }
 #help .hp-desc { color: var(--muted); font-size: 12px; line-height: 1.4; }
-#settings { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
 #settings h2 { margin: 0; font-size: 18px; font-weight: 600; }
 #settings h3 { margin: 22px 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 #settings .st-head-line { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
@@ -582,12 +579,14 @@ body.plugin #side-toggle { display: none; }
 /* The File and Help menus of the browser and plugin boards (app-menu.js); the standalone app has them natively. */
 .am-bar { display: flex; align-items: center; gap: 2px; }
 .am-menu { position: relative; }
+.am-menu[hidden] { display: none; }
 .am-title { border-color: transparent; background: transparent; padding: 4px 9px; }
 .am-title:hover, .am-title[aria-expanded="true"] { background: var(--panel-3); }
-.am-list { position: absolute; z-index: 60; left: 0; top: 100%; min-width: 170px; padding: 4px; background: var(--panel);
+.am-list { position: absolute; z-index: 60; left: 0; top: 100%; min-width: 210px; padding: 4px; background: var(--panel);
            border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45); display: flex; flex-direction: column; }
 .am-list[hidden] { display: none; }
-.am-item { text-align: left; border-color: transparent; background: transparent; padding: 5px 10px; white-space: nowrap; }
+.am-item { display: flex; justify-content: space-between; gap: 28px; width: 100%; text-align: left; border-color: transparent; background: transparent; padding: 5px 10px; white-space: nowrap; }
+.am-key { color: var(--muted); font-size: 11px; }
 .am-item:hover, .am-item:focus-visible { background: var(--panel-3); }
 .am-sep { height: 1px; margin: 4px 2px; background: var(--line); }
 .am-about { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(10, 11, 14, .6); }

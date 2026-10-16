@@ -55,7 +55,7 @@
 &emsp;&emsp;[11.2 MIDI: the app's own MIDI ports](#112-midi-the-apps-own-midi-ports)<br>
 &emsp;&emsp;[11.3 Audio: Bleep Audio Bridge](#113-audio-bleep-audio-bridge)<br>
 &emsp;&emsp;[11.4 Ableton Link](#114-ableton-link)<br>
-&emsp;&emsp;[11.5 Preset browser](#115-preset-browser)<br>
+&emsp;&emsp;[11.5 Project browser](#115-project-browser)<br>
 &emsp;&emsp;[11.6 Limits and open questions](#116-limits-and-open-questions)<br>
 &emsp;&emsp;[11.7 System audio](#117-system-audio)<br>
 [12. First module set](#12-first-module-set)<br>
@@ -478,7 +478,7 @@ Notes and per-voice signals live on two levels: outside, one `notes` cable carri
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Top bar:** breadcrumb (*Board › Pad*), undo/redo, CPU load, port latency.
+- **Top bar:** the menu bar (*File*, *Edit*, *View*, *Library*, *Help*), the breadcrumb (*Board › Pad*) and an audio indicator (a dot, hollow when there is no audio; its tooltip is the engine's status line, a click opens *Settings → Audio*). The board is always visible: *Settings*, the *Library* and the Help topics open as dialogs over it, and Esc closes them. One list defines the menus for all hosts (`board/ui/app-menu.js`); the browser board and the plugin window draw it, the standalone app sends it to the native side and builds its native menu bar from it (the project file commands and the shortcuts ⌘N, ⌘O, ⌘P, ⌘S, ⇧⌘S and ⌘, stay native).
 - **Canvas:** nodes and cables. Inside a cell, a *Close cell* button at the top right leads back out (like Esc and the breadcrumb). Pan by dragging empty space or scrolling, zoom with pinch or ⌘-scroll.
 - **Module views** float over the canvas (section 9.4).
 
@@ -688,15 +688,18 @@ A Live set either has its board in Bleep Board (section 6) or works with the app
 - **In Live,** turn Link on (and Start Stop Sync), and Live and the app share tempo, phase and transport.
 - **License.** Ableton Link is GPLv2-or-later. Builds that include it are distributed under the GPL (compatible with JUCE under AGPLv3 and with our MIT source) with their source. A closed-source build would need a license from Ableton.
 
-### 11.5 Preset browser
+### 11.5 Project browser
 
-*File → Presets…* (⌘P) and the **Presets** button in the board's top bar open the preset browser: whole boards that load directly into the app.
+A **project** is a whole board with its panels (and tempo). It is the one thing you save and open; only cells have presets. *File → Open Project…* (⌘P) opens the project browser, with three sources as groups on the left:
+
+- **Demo** and **My projects** (below) and the **Library**: projects other people shared (searched in the Library, downloaded on *Load*).
+- *File → Save to My Projects…* adds the current board, with its panels, to *My projects*. In the app and the plugin they are files in a folder on the computer. **In the browser they are in the user's account on the website** (`/api/projects`, private to the account), so saving needs a login; without one the item is greyed out. The browser board also has *File → Download Project* (the `.bleepboard` file, the same one the app saves) and *Open Project from File…* (a project file, a Library file or a bare board), so work is never tied to the account.
 
 The same button is in the plugins' board window and Bleep Play. In a plugin, loading a patch replaces the board as one undoable edit (no tempo or transport change); the patch's *Out 1/2* nodes take over the board's existing Audio Out ports by type, and extra ones are left out, so a set without an Audio Out port hears nothing from a demo.
 
 - **Demo boards.** Five for every advanced module (every module except the basic building blocks; **Sampler** has none, because it plays a WAV file the user loads and a patch can't ship one), listed under *Demos by module*. Each plays by itself with the transport, needs no MIDI or audio input and reaches *Out 1/2*. They are written in units in `patch/presets/demos/<module>.mjs`, compiled with the cell presets into `board/ui/demo-patches.json` (`node patch/presets/build.mjs`), and described in each module's documentation under *Demo boards*. See `patch/presets/demos/README.md`.
-- **My board presets.** *Save current board…* keeps the board you are working on as one `.bleeppreset` file (`{name, preset}`, the board's nodes and cables, a description) in the app data folder, `Beautiful Bleep/Boards/`. User patches can be deleted in the browser.
-- **Browsing.** A list of groups on the left (*All board presets*, *My board presets*, one per module), cards on the right with name, description and tags; the search field matches names, modules, tags and descriptions. *Load* or a double-click loads.
+- **My projects.** *Save current project…* keeps the board you are working on, with its panels, as one `.bleepboard` project file (`{format, app, name, description, tags, tempo, needs, board}`, the same file as *File → Save*) in the app data folder, `Beautiful Bleep/Projects/`. They can be deleted in the browser. Board presets of older versions (`Boards/*.bleeppreset`) become projects the first time the folder is read.
+- **Browsing.** A list of groups on the left (*All projects*, *My projects*, one per module), cards on the right with name, description and tags; the search field matches names, modules, tags and descriptions. *Load* or a double-click loads.
 - **Loading** replaces the project: the app asks about unsaved changes first, the board becomes an untitled project (Save asks for a file), the demo's tempo is set and the transport starts. Port nodes (Out 1/2, Bleep App 1) bind to the app's own ports by their IDs; other ports come back on their own, unpatched.
 - **Checks.** `bleep_demo_patches` (ctest `patch.demo-patches`) loads every demo through `board::sanitise` without a warning, renders 12 s with the transport running and fails on silence, clipping, non-finite output or a heavy CPU load.
 

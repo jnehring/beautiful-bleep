@@ -155,7 +155,7 @@
   }
 
   // ---------------------------------------------------------------- Preset
-  const SOURCES = { factory: "Factory preset", library: "Bleep Library", user: "User preset" };
+  const SOURCES = { factory: "Demo project", library: "Bleep Library", user: "My project" };
 
   function libraryLink(c) {
     const acct = window.BleepAccount;
@@ -164,7 +164,7 @@
   }
 
   function buildPreset() {
-    const s = section("Preset");
+    const s = section("Project");
     refs.pName = el("div", "sm-pname");
     refs.pSource = el("div", "sm-psource");
     refs.pLink = el("a", "sm-link", "Open in the Bleep Library");
@@ -179,8 +179,8 @@
 
   async function drawPreset() {
     if (!refs.pName) return;
-    const c = window.BleepPresetBrowser && BleepPresetBrowser.current();
-    refs.pName.textContent = c ? c.name : "No preset loaded";
+    const c = window.BleepProjectBrowser && BleepProjectBrowser.current();
+    refs.pName.textContent = c ? c.name : "No project loaded";
     refs.pName.classList.toggle("none", !c);
     refs.pSource.textContent = c ? SOURCES[c.source] || c.source : "A board you built yourself";
     let url = "";
@@ -197,14 +197,15 @@
   async function upload() {
     const b = host && host.board();
     if (!b || !window.BleepAccount) return;
-    const c = BleepPresetBrowser.current();
+    const c = BleepProjectBrowser.current();
     const base = c && c.preset ? c.preset : {};
     const preset = { format: 1, description: base.description || "", tags: base.tags || [],
       nodes: JSON.parse(JSON.stringify(b.nodes)), cables: JSON.parse(JSON.stringify(b.cables)) };
+    if ((b.panels || []).length) preset.panels = JSON.parse(JSON.stringify(b.panels)).map((q) => { delete q.open; return q; });
     if (base.tempo) preset.tempo = base.tempo;
-    const needs = window.BleepLibraryView ? await BleepLibraryView.needsFor(preset.nodes) : {};
+    const needs = window.BleepLibraryView && document.getElementById("library") ? await BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
-    const done = await BleepAccount.share("boards", (c && c.name) || "My patch", preset);
+    const done = await BleepAccount.share("boards", (c && c.name) || "My project", preset);
     refs.pNote.textContent = done ? `Shared as ${done.address}.` : "";
   }
 
@@ -236,12 +237,14 @@
       buildTransport();
       buildPreset();
       drawTransport();
-      if (window.BleepPresetBrowser) BleepPresetBrowser.onChange(drawPreset);
+      if (window.BleepProjectBrowser) BleepProjectBrowser.onChange(drawPreset);
       if (mode === "plugin") onNative("state", (s) => {   // Live's transport comes with the engine's state events
         if (s && s.transport) { t.bpm = num(s.transport.bpm, t.bpm); t.playing = !!s.transport.playing; if (root.classList.contains("open")) drawTransport(); }
       });
       root.addEventListener("keydown", (e) => { if (e.key === "Escape") { setOpen(false); toggle.focus(); } e.stopPropagation(); });
     },
     toggle: () => setOpen(!root.classList.contains("open")),
+    /// Library → Upload Project…: shares the board as it is (BleepAccount asks to sign in when needed).
+    upload: () => upload(),
   };
 })();

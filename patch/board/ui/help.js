@@ -150,26 +150,18 @@
   window.BleepHelpView = {
     async init() {
       build();
-      document.getElementById("sections").hidden = false;
-      const btn = document.getElementById("sec-help");
-      btn.hidden = false;
-      btn.addEventListener("click", () => window.BleepHelpView.show());
-      document.getElementById("sec-board").addEventListener("click", () => window.BleepHelpView.hide());
+      BleepModal.mount(root, () => window.BleepHelpView.hide());
     },
     async show() {
       if (window.BleepLibraryView) window.BleepLibraryView.hide();
       if (window.BleepSettingsView && document.getElementById("settings")) window.BleepSettingsView.hide();
-      document.body.classList.add("in-library");
-      root.hidden = false;
-      document.getElementById("sec-help").classList.add("on");
-      document.getElementById("sec-board").classList.remove("on");
+      BleepModal.toggle(root, true);
       await load();
       searchEl.focus();
     },
     hide() {
       if (!root || root.hidden) return;
-      root.hidden = true;
-      document.getElementById("sec-help").classList.remove("on");
+      BleepModal.toggle(root, false);
     },
   };
 })();

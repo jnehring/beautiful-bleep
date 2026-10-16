@@ -24,6 +24,9 @@ struct BoardWindowStyle {
     /// The standalone app's Settings section (audio, MIDI, Link): the page calls it with a name and an argument and gets the
     /// settings state back. Without it the page has no Settings section.
     std::function<juce::var(const juce::String& fn, const juce::var& arg)> onSettings;
+    /// The page's menus (app-menu.js: [{title, items: [{id, label, key, enabled, app}|null]}]), sent at start and whenever an item's
+    /// state changes. The standalone app builds its menu bar from them; choosing a page item sends its id back (openBoardMenu).
+    std::function<void(const juce::var& menus)> onMenu;
 };
 
 /// Call before the board window is first opened.
@@ -36,7 +39,7 @@ juce::DocumentWindow* boardWindow();
 void openPresetBrowser();
 /// Shows the page's Settings section (standalone app: File → Settings).
 void openSettings();
-/// A Help menu entry of the app ("docs" or "about"): the page answers it.
+/// A menu item of the app that the page answers (its id, e.g. "edit.undo", "help.docs").
 void openBoardMenu(const juce::String& what);
 
 }  // namespace bleep::engine

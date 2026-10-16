@@ -191,6 +191,24 @@ class Preset(Base):
         return f"{self.author.handle}/{self.slug}"
 
 
+class Project(Base):
+    """A project (a whole board with its panels) a user keeps for themselves on the website: private, one row per name. The file
+    formats are the same as everywhere else (library.md); nothing is shared until the user publishes it as a preset."""
+
+    __tablename__ = "projects"
+    __table_args__ = (UniqueConstraint("user_id", "name", name="uq_projects_user_name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    description: Mapped[str] = mapped_column(String(280), default="")
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    data: Mapped[str] = mapped_column(Text)  # the project as JSON: {nodes, cables, panels, tempo, needs, ...}
+    bytes: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
 class PresetVersion(Base):
     __tablename__ = "preset_versions"
     __table_args__ = (UniqueConstraint("preset_id", "version", name="uq_preset_versions"),)

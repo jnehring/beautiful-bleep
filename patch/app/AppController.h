@@ -8,6 +8,7 @@
 //   with Live        Bleep Audio Bridge plugins wake the bridge thread, which
 //                    runs the bridges plus MIDI and Link; the device is silent
 #pragma once
+#include <map>
 
 #include "BridgeServer.h"
 #include "Engine.h"
@@ -64,13 +65,18 @@ public:
     // ---- menus and commands --------------------------------------------------
     juce::StringArray getMenuBarNames() override;
     juce::PopupMenu getMenuForIndex(int index, const juce::String& name) override;
-    void menuItemSelected(int, int) override {}
+    void menuItemSelected(int itemId, int) override;
+    /// The page's menus (BoardWindowStyle::onMenu): the menu bar is built from them.
+    void setMenuModel(const juce::var& menus);
     juce::ApplicationCommandTarget* getNextCommandTarget() override { return nullptr; }
     void getAllCommands(juce::Array<juce::CommandID>& commands) override;
     void getCommandInfo(juce::CommandID id, juce::ApplicationCommandInfo& info) override;
     bool perform(const InvocationInfo& info) override;
 
 private:
+    juce::var menuModel_;                        ///< what the page sent (setMenuModel)
+    juce::String menuModelJson_;
+    std::map<int, juce::String> menuIds_;        ///< item ID -> page command id, for the items the page answers
     struct AudioPort {
         juce::String id;
         int handle = 0;

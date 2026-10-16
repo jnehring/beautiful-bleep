@@ -50,8 +50,8 @@ The same board runs in three places. Patches, presets and modules work in all of
 
 | Term | What it is |
 |---|---|
-| **Project** | Your own saved board (`.bleepboard`). |
-| **Preset** | Something you can share, as a `.bleeppreset` file. A **board preset** is a whole board; a **cell preset** is one cell with its panel. |
+| **Project** | A whole board with its panels: what you save, open and share. Demo projects, your own and the Library's are all projects. |
+| **Preset** | A reusable cell (a **cell preset**), which can bring a panel of its own. Whole boards are projects, not presets. |
 | **Bleep Library** | Where plugins, modules and presets are installed from. Downloading needs no login; sharing a preset needs an account. |
 
 "Patch" and "patching" stay everyday words for connecting cables. They are not
