@@ -508,6 +508,7 @@ function(bleep_add_plugin)
     target_sources(${P_TARGET} PRIVATE
         ${BLEEP_APP_ENGINE_SOURCES}
         board/BoardWindow.cpp
+        board/BoardFiles.cpp
         bridges/ableton/PortProcessor.cpp
         bridges/ableton/PortEditor.cpp
         bridges/ableton/PanelView.cpp
@@ -568,7 +569,7 @@ bleep_add_plugin(TARGET BleepFx PRODUCT "Bleep FX" CODE BpFx KIND AudioInsert
 # Opens the real board window on a real engine for a few seconds (not in ctest).
 if (BLEEP_BUILD_TESTS)
     juce_add_gui_app(bleep_board_smoke PRODUCT_NAME "Bleep Board Smoke")
-    target_sources(bleep_board_smoke PRIVATE tests/board_smoke.cpp board/BoardWindow.cpp ${BLEEP_ENGINE_SOURCES})
+    target_sources(bleep_board_smoke PRIVATE tests/board_smoke.cpp board/BoardWindow.cpp board/BoardFiles.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_board_smoke PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_board_smoke PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
         BLEEP_BOARD_SMOKE_TEST=1 "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
@@ -654,9 +655,13 @@ if (BLEEP_BUILD_APP)
     target_sources(BleepApp PRIVATE
         app/Main.cpp
         app/AppController.cpp
+        app/AppControllerAudio.cpp
+        app/AppControllerProjects.cpp
+        app/AppControllerSettings.cpp
         ${BLEEP_SYSTEM_AUDIO_SOURCES}
         bridges/standalone/LinkClock.cpp
         board/BoardWindow.cpp
+        board/BoardFiles.cpp
         ${BLEEP_APP_ENGINE_SOURCES}
         ${BLEEP_BRIDGE_SERVER_SOURCES}
         ${BLEEP_HUB_SOURCES})
