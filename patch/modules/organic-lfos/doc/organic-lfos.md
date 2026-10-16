@@ -73,17 +73,42 @@ over 50 ms so it doesn't click.
 - **Different per voice:** inside a Voice Cell, add *Voice In › Random* to
   *Twist* or *Rate* so each note gets its own movement.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Organic LFOs does. In the standalone app open **File → Presets…** (⌘P) and pick *Organic LFOs* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Organic LFOs does. In the standalone app open **File → Presets…** (⌘P) and pick *Organic LFOs* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Organic LFOs: Living Pad** | *Rate* 0.09 Hz and *Drift* 40 % let four LFOs open and close the filters of a chord while four more move each voice's waveform. |
-| **Organic LFOs: Breathing in Time** | *Lock* on *Bars* with *Anchor*: LFO 1 breathes with the song, *Max* and the others open a filter and pan a plucked line over a light beat. |
-| **Organic LFOs: Brightness Peaks** | *Max* in *Unipolar* with a high *Twist* flares the cutoff of a saw arpeggio whenever one of the eight LFOs peaks; *Sum* widens the reverb. |
-| **Organic LFOs: Detuned Swarm** | Each of four saw voices is detuned by its own LFO at a lively rate and high *Drift*: a restless, chorusing swarm. |
-| **Organic LFOs: Rain of Tones** | *Twist* +1 in *Unipolar* turns fast LFOs into sharp pulses that gate four bell tones into a never-repeating shower. |
+| **Organic LFOs: Living Pad** | Eight slow, related LFOs move a four-note chord: four of them open and close the filters, four more shift each voice's waveform, and the level of each voice drifts too. Raise Drift or Spread in the view and the pad starts to breathe unevenly. |
+| **Organic LFOs: Breathing in Time** | Lock is on Bars, so LFO 1 breathes once every two bars and the other seven float loosely around the song. They open the filter of a plucked line and pan its echoes while a light beat keeps time. Try Anchor off or a higher Drift to let it slip out of step. |
+| **Organic LFOs: Brightness Peaks** | Max follows whichever of the eight LFOs is highest and drives the cutoff of a saw arpeggio, so the sound flares open every time one of them peaks. The Sum output slowly widens the reverb. Turn Twist up for sharper flares and Scatter down to make them line up. |
+| **Organic LFOs: Detuned Swarm** | Four sawtooth voices on one note are each detuned by their own LFO, running at a lively 0.6 Hz with high Drift: a restless, chorusing swarm. Try a negative Spread to slow the LFOs down along the row. |
+| **Organic LFOs: Rain of Tones** | Four bell-like tones, each gated by its own fast, sharp-peaked Organic LFO (Twist +1, Unipolar): irregular pulses fall like rain and never repeat. Move Rate or Spread to make the shower faster or more uneven. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Organic LFOs view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Living Group** | Eight related slow movers: a good default for evolving patches. |
+| **Glacial** | Extremely slow drift for long-form changes. |
+| **Gentle Breath** | Soft, breathing movement at reduced depth. |
+| **Swarm** | Faster, busier group, like insects. |
+| **Tight Family** | LFOs stay close together: subtle, related motion. |
+| **Wide Spread** | Rates spread widely from slow to quick. |
+| **Inverted Spread** | Spread reversed: the order of speeds flips. |
+| **Twisted** | Twist skews the phases so the group chases itself. |
+| **Counter Twist** | Twist the other way for opposite phase relations. |
+| **Unipolar Drift** | Positive-only values, ideal for levels and mix knobs. |
+| **Bar Locked** | Locked to the song for repeatable movement. |
+| **Restless Drift** | Maximum drift: the group wanders and never repeats. |
+| **Free Start** | Starts at random positions instead of anchored. |
+| **Different Seed** | Another family of movements from a different seed. |
+<!-- /generated -->
 
 ## Reference
 

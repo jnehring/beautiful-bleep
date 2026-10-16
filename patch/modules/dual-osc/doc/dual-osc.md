@@ -72,17 +72,43 @@ the transport starts.
 - **Two oscillators:** use *A* and *B* outputs separately; *Ring* gives A × B.
 - **Wide pad:** *Width* 60 %, a little *Fold* and *Symmetry*, *Drift* 30 %.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Dual Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Dual Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Dual Osc: Sync Lead** | B hard-syncs A (*Sync*) and a slow LFO sweeps *Tune B* for a tearing lead. |
-| **Dual Osc: Metal Bells** | B frequency-modulates A (*FM Depth*, *FM Mode* Exponential) at an odd ratio, with an envelope on the depth. |
-| **Dual Osc: Folding Bass** | A triangle bass through the stereo wavefolder: an envelope opens *Fold* on every note, *Symmetry* drifts. |
-| **Dual Osc: Drifting Pair** | Two saw cores a few cents apart with strong *Drift* and wide *Width*: a warm, breathing pad. |
-| **Dual Osc: Ring Clang** | The *Ring* output, struck by a short envelope, plays metallic percussion over a beat. |
+| **Dual Osc: Sync Lead** | Oscillator B hard-syncs oscillator A and a slow LFO sweeps Tune B, so the lead's tone rips from mellow to searing and back. Change Sync for a softer or harder grip, or pull Tune B to a fixed value to freeze the sound. |
+| **Dual Osc: Metal Bells** | Sine B frequency-modulates sine A at an odd ratio (B Tune +7 semitones) with Exponential FM, and a decaying envelope on both level and FM turns every note into a struck, clangorous bell. Try changing Tune B for different metals. |
+| **Dual Osc: Folding Bass** | A triangle bass pushed through the stereo wavefolder: an envelope opens Fold on every note so each one starts snarling and settles into a round tone. Raise Symmetry for a more even-harmonic growl. |
+| **Dual Osc: Drifting Pair** | Two saw cores a few cents apart with strong Drift and wide stereo Width: the slowly beating pair makes a warm, breathing pad. Raise Fine B or Drift for a wider, less stable sound. |
+| **Dual Osc: Ring Clang** | The Ring output multiplies the two cores into inharmonic clangs; a short envelope turns it into a metallic percussion line over a light beat. Change Tune B to retune the clang, or Octave B for a lower rumble. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Dual Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Fat Saw Pair** | Two slightly detuned saws: the classic fat analog voice. |
+| **Octave Bass** | A saw over a square sub octave for a solid bass. |
+| **Hollow Pulse Duo** | Two pulses with different widths and slight detune: hollow and wide. |
+| **Sync Lead** | Hard sync: sweep Tune A for the classic tearing lead. |
+| **Soft Sync Voice** | Gentle reversing sync: a vocal, slightly nasal colour. |
+| **FM Bell** | Sine FM with a non-integer ratio: patch an envelope on FM Depth. |
+| **Electric Piano** | Soft 1:1 FM: a warm, tine-like electric piano tone. |
+| **Brass FM** | Harmonic FM with a touch of fold: a punchy brass-like tone. |
+| **Growl** | Exponential FM from a low sine: growling, siren-like bass. |
+| **West Coast Fold** | A sine pushed into the wavefolder: bright, harmonic. Modulate Fold. |
+| **Folded Pad** | Soft waves with gentle folding and wide drift: a moving pad. |
+| **Wide Stereo Saw** | Wide, drifting saw pair for pads and chords. |
+| **Slow Growl Mod** | B in Low range as a slow vibrato-rate FM for wobbling tone. |
+| **Metallic Clang** | Strong inharmonic FM and fold: metal, gongs and noise-like hits. |
+| **Drifting Duo** | Two soft waves with strong analog drift: unstable, vintage. |
+<!-- /generated -->
 
 ## Reference
 

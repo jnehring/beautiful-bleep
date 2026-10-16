@@ -50,17 +50,41 @@ swell like a real struck object.
   brighter, too.
 - **Ping button:** fires a manual ping, for trying out *Response* and *Cell*.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Low Pass Gate does. In the standalone app open **File → Presets…** (⌘P) and pick *Low Pass Gate* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Low Pass Gate does. In the standalone app open **File → Presets…** (⌘P) and pick *Low Pass Gate* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Low Pass Gate: Pentatonic Pings** | A sequencer's trigger on *Ping* plucks a saw oscillator through the Classic *Cell*; *Response* and *Resonance* shape the pluck. |
-| **Low Pass Gate: Slow Memory Bass** | The *Slow memory* cell remembers earlier pings, so fast notes open the bass more; velocity drives the *Velocity* input. |
-| **Low Pass Gate: Vactrol Drums** | Three gates pinged from a Drum Grid turn a sine, noise and a square into kick, snare and ticks. |
-| **Low Pass Gate: Light Follower** | The *Light* output opens a filter on a saw drone so it brightens with each ping. |
-| **Low Pass Gate: Breathing Chord** | A slow LFO on *CV* opens and closes the gate over a held chord, with *Cell* on Slow memory for a darker-as-it-closes swell. |
+| **Low Pass Gate: Pentatonic Pings** | A saw oscillator is pinged by a pentatonic sequence through the gate's Classic cell: each note opens fast and darkens as it dies, like a struck wooden bar. Turn Response for shorter or longer plucks and Resonance for more ring. |
+| **Low Pass Gate: Slow Memory Bass** | The Slow memory cell remembers earlier pings, so a sub-heavy bass line opens a little more with each note that follows another quickly. Switch Cell to Fast to hear it forget. |
+| **Low Pass Gate: Vactrol Drums** | Three gates ping from a Drum Grid: a low sine for the kick, noise for the snare and a bright square for the ticks. Everything is the gate's own pluck envelope; Response sets how tight the drums are. |
+| **Low Pass Gate: Light Follower** | The gate's Light output, a ready-made pluck envelope, opens a Multi Filter on a drone, so a quiet saw pad brightens with each ping and dims again. Change Response to stretch the glow. |
+| **Low Pass Gate: Breathing Chord** | A slow LFO on the CV input opens and closes the gate over a held saw chord, with the Slow memory cell smoothing every swell into a breathing, darker-as-it-closes pad. Lower Brightness or add Resonance to change the colour. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Low Pass Gate view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Classic Pluck** | Ping it with a trigger for a natural, darkening pluck. |
+| **Short Blip** | Tight, percussive blips for rhythmic lines. |
+| **Bongo Tone** | Short resonant knock: good on sine and triangle. |
+| **Soft Mallet** | Rounded, mellow hit. |
+| **Long Decay** | Slow, ringing close with a long dark tail. |
+| **Dark Pad Gate** | Slow swells and fades from a CV. |
+| **Filter Only** | Just the low-pass: a vactrol-style filter on a steady tone. |
+| **VCA Only** | Just the amplitude gate with vactrol smoothing. |
+| **Resonant Ping** | Resonance gives the pluck a vocal, ringing pitch. |
+| **Driven Hit** | Saturated, punchy attack. |
+| **Leaky Gate** | Never fully closes: a muffled signal always leaks through. |
+| **Open Bright** | Mostly open and bright, nudged by CV. |
+| **Slow Memory Pluck** | The vactrol remembers earlier hits, so fast repeats bloom. |
+<!-- /generated -->
 
 ## Reference
 

@@ -603,3 +603,18 @@ body.plugin #side-toggle { display: none; }
 .am-logo { width: 96px; height: 96px; margin-bottom: 6px; }
 .am-name { font-size: 16px; font-weight: 600; }
 .am-version { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; min-height: 1.2em; margin-bottom: 10px; }
+
+/* ---- the on-screen piano of Bleep Play (play-keys.js) */
+.pk { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 10px 8px; }
+.pk[hidden] { display: none; }
+.pk-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 12px; }
+.pk-name { font-weight: 600; flex: 1; }
+.pk-octave, .pk-hint { color: var(--muted); }
+.pk-oct { width: 26px; }
+.pk-keys { position: relative; display: flex; height: 96px; touch-action: none; user-select: none; }
+.pk-white { flex: 1; background: #e8e8ec; border: 1px solid #222; border-radius: 0 0 4px 4px; position: relative; cursor: pointer; }
+.pk-white.on { background: var(--accent); }
+.pk-c { position: absolute; bottom: 3px; left: 4px; font-size: 10px; color: #333; pointer-events: none; }
+.pk-black { position: absolute; top: 0; width: 1.8%; height: 60%; background: #1a1a1e; border-radius: 0 0 3px 3px; cursor: pointer; z-index: 1; }
+.pk-black.on { background: var(--accent); }
+@media (max-width: 600px) { .pk-hint { display: none; } }

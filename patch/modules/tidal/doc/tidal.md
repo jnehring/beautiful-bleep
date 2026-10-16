@@ -111,17 +111,44 @@ even when Smooth delays the curve.
 - **Clocked LFO:** a sequencer's clock into *Clock*, Ratio ÷4: one cycle per
   bar that follows tempo changes and a manual clock.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Tidal does. In the standalone app open **File → Presets…** (⌘P) and pick *Tidal* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Tidal does. In the standalone app open **File → Presets…** (⌘P) and pick *Tidal* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Tidal: Slow Swell** | *Range* Slow: a tide of several seconds per cycle with a long rise (*Skew*) opens a filter and the level of a held chord. |
-| **Tidal: Circular Pan** | *Relation* Phase with *Spread* at maximum: outputs A and B are a sine and a cosine that pan two voices in opposite directions. |
-| **Tidal: Four Envelopes** | *Mode* AD with *Relation* Harmonic: one trigger gives four envelopes of different lengths on four chord tones. |
-| **Tidal: Audio Oscillator** | *Range* Audio: Tidal is the voice, played from a sequencer; *Skew* and *Smooth* drift to change the timbre. |
-| **Tidal: Clocked Ratios** | *Sync* 1 bar with *Relation* Ratio: four slopes meet again only after several bars and move a filter, a pulse shape and a mix level. |
+| **Tidal: Slow Swell** | Tidal in Slow range takes about half a minute per cycle: output A slowly opens the filter on a held chord with a long rise and a quicker fall (Skew), while output B fades the volume in and out. Try Skew and Frequency for a faster or more lopsided tide. |
+| **Tidal: Circular Pan** | With Relation on Phase and Spread at maximum, outputs A and B are a sine and a cosine of the same slope: they steer two plucked voices around the stereo field in opposite directions. Change Frequency or Curve to speed the circling up or square it off. |
+| **Tidal: Four Envelopes** | One trigger per bar fires Tidal in AD mode with Relation on Harmonic: its four outputs become four envelopes of different lengths, each opening a VCA on a different chord tone, so the chord dissolves note by note. Try Skew, Frequency or Spread to change how the tones fall away. |
+| **Tidal: Audio Oscillator** | Range Audio turns Tidal into a voice: a sequencer plays its Pitch input, Skew sweeps saw to triangle, and a slow Smooth fold adds overtones. A and B go to the left and right channels with a little Spread for width. Try Smooth and Skew by hand while it plays. |
+| **Tidal: Clocked Ratios** | Tidal locked to the song with Sync 1 bar and Relation on Ratio gives four slopes that meet again only after several bars: they sweep the filter, the pulse shape, the tone of a pad stab and the volume of a bass. Try other Sync values or Ratio to change the cycle. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Tidal view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Gentle Loop** | A plain 1 Hz triangle-like loop with four related outputs. |
+| **Slow Tide** | Minute-long swells: ambient filter and level motion. |
+| **Rising Saw** | Ramp up then quick drop: repeating risers. |
+| **Falling Saw** | Instant rise and linear fall: sidechain-like pumping. |
+| **Plucked AD** | One-shot attack and decay per trigger: a snappy envelope. |
+| **Pad AR** | Rise while held, fall on release: a soft pad envelope. |
+| **Synced Quarter** | Locked to the tempo at quarter notes. |
+| **Synced Dotted Eighth** | Dotted-eighth swells for rhythmic filter movement. |
+| **Wide Phase Outputs** | Four outputs at different phases: stereo or multi-target motion. |
+| **Harmonic Stack** | Outputs carry harmonics of the main rate: complex contours. |
+| **Ratio Cluster** | Outputs at related speeds, starting from a triplet ratio. |
+| **Level Fan** | Same rate, four different depths for scaled modulation. |
+| **Smooth Sine-ish** | Heavily smoothed slope: nearly a sine for vibrato. |
+| **Bipolar Wobble** | Centred wobble for vibrato and pitch effects. |
+| **Unipolar Pump** | Positive-only fast-attack pump for ducking. |
+| **Audio Rate Tone** | Slope oscillator at audio rate: a raw, lo-fi tone source. |
+<!-- /generated -->
 
 ## Reference
 

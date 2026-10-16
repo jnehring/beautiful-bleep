@@ -25,3 +25,26 @@ A band at 0 dB gain is bypassed, so unused bands cost nothing. The frequency and
 - **Telephone voice:** Low shelf at 800 Hz, −15 dB; High shelf at 3 kHz, −15 dB; Mid 2 at 1.5 kHz, +6 dB.
 - **Find a resonance:** boost Mid 2 +12 dB with Q 6 and sweep its frequency until the problem sticks out, then cut it.
 - **Wah:** Mid 1 +12 dB, Q 3, an envelope or LFO onto its frequency.
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the EQ view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Smile Curve** | Boosted lows and highs: instant polish. |
+| **Bass Boost** | More weight below 80 Hz. |
+| **Low Cut Lite** | Thins the lows and clears mud. |
+| **Mud Remover** | Cuts the boxy low-mids. |
+| **Presence Lift** | Brings the sound forward. |
+| **Air** | Open, airy top end. |
+| **Warm Darkness** | Rolls off the top and warms the bottom. |
+| **Vocal Clarity** | Cleans up and brightens a voice. |
+| **Telephone** | Narrow, nasal band. |
+| **Hollow Notch** | Two deep notches for a phase-like, hollow tone. |
+| **Resonant Peaks** | Narrow, ringing boosts: formant-like colour. |
+| **Kick Shaper** | Weight and click for kick drums. |
+| **Lo-Fi Radio** | Small-speaker colouration. |
+| **Tilt Down** | Dark tilt; tames harsh sources. |
+<!-- /generated -->

@@ -88,17 +88,43 @@ ring imbalance produce. Outputs stay within ±4.
 - **Dry/wet:** *Mix* blends the carrier (after *Carrier Level*) with the
   result.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Meta Mod does. In the standalone app open **File → Presets…** (⌘P) and pick *Meta Mod* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Meta Mod does. In the standalone app open **File → Presets…** (⌘P) and pick *Meta Mod* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Meta Mod: Ring Bells** | *Algorithm* 2 ring-modulates a sine melody with the internal oscillator while a slow LFO sweeps *Osc Tune* into inharmonic bells. |
-| **Meta Mod: Robot Choir** | *Algorithm* 6 (vocoder): a drum beat in *Modulator* talks through a buzzy chord in *Carrier*; *Timbre* drifts the formants. |
-| **Meta Mod: Harmonic Arpeggio** | *Algorithm* 7 (Chebyshev) turns a sine into its Nth harmonic, and a stepped Random on *Timbre* picks N for each sixteenth. |
-| **Meta Mod: Ring Bass** | A bass built inside Meta Mod: the internal oscillator is the carrier, a second oscillator the modulator, and an LFO glides *Algorithm* through ring, crossfade and fold. |
-| **Meta Mod: Bitwise Machine** | *Algorithm* 4 with *Bitwise Op* XOR combines a saw lead and a square arpeggio into gritty digital chords; *Timbre* moves the bit depth. |
+| **Meta Mod: Ring Bells** | A plain sine melody is the carrier; with nothing patched into Modulator the internal oscillator ring-modulates it, and a slow LFO sweeps Osc Tune so the plucks turn into shifting, inharmonic bells. Try Timbre towards 100 % to let the carrier bleed through, or change Osc Octave. |
+| **Meta Mod: Robot Choir** | The vocoder algorithm lets a drum beat talk through a sustained buzzy chord: every kick, snare and hat from the Modulator carves its rhythm and spectrum into the Carrier. Move Timbre to shift the formants, or change Algorithm to hear the same signals ring-modulated. |
+| **Meta Mod: Harmonic Arpeggio** | Algorithm 7 (Chebyshev) turns a pure sine into its Nth harmonic, and a stepped Random picks N for every sixteenth: the same note blurs through brighter and brighter overtones like an arpeggio inside each pitch. Turn Timbre by hand to hear single harmonics, or raise Carrier Level for a hotter sound. |
+| **Meta Mod: Ring Bass** | A bass voice made entirely inside Meta Mod: a sequencer plays its internal oscillator while a second oscillator a fifth up goes into Modulator, and a slow LFO glides Algorithm between ring, crossfade and fold. Listen for the growl when the algorithm passes the ring-mod area, then change Timbre. |
+| **Meta Mod: Bitwise Machine** | Algorithm 4 treats the carrier and modulator as integers and combines their bits: a saw lead and a square arpeggio turn into gritty, digital chords. A slow LFO lowers and raises Timbre (the bit resolution); switch Bitwise Op between XOR, AND, OR and Sum mod for different textures. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Meta Mod view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Analog Ring** | Diode-style ring modulation with the internal oscillator. |
+| **Ring Bells** | Inharmonic, bell-like sidebands from a sine carrier. |
+| **Tremolo AM** | Amplitude modulation: slow oscillator wobbles the sound. |
+| **Crossfade Blend** | Equal-power mix of carrier and modulator; sweep Timbre. |
+| **Folded Input** | Wavefolded carrier with the modulator as fold source. |
+| **Digital Ring** | Clean digital ring modulation: only sum and difference tones. |
+| **Bitwise XOR** | Gritty digital combination of two sources. |
+| **Bitwise AND** | Hollow, buzzy intersection of the two waveforms. |
+| **Comparator Edge** | Hard-edged comparator tones that follow the input. |
+| **Robot Vocoder** | Voice or drums in Modulator talk through a buzzy Carrier. |
+| **Harmonic Pick** | Chebyshev: turns a sine into its Nth harmonic; sweep Timbre. |
+| **Harmonic Shimmer** | Added harmonics blended under the dry signal. |
+| **Algorithm Drift** | Between two algorithms: modulate Algorithm for morphing. |
+| **Sub Osc Ring** | Low internal oscillator ring-modulates for growling bass. |
+| **Metallic Clang** | Mismatched diodes and a bright oscillator: clangorous metal. |
+<!-- /generated -->
 
 ## Reference
 

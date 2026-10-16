@@ -34,3 +34,26 @@ The left and right sides are separate shifters (with different drift), so the st
 ## Origin
 
 The pitch-shifting algorithm (two crossfading delay-line heads, and the Fun parameter, here called Drift) is from **PitchShifter (DaisySP)** by Electrosmith, [github.com/electro-smith/DaisySP](https://github.com/electro-smith/DaisySP), MIT licence. Bleep's version is rewritten for stereo and our delay line, with a smoothed window size, fine tuning, feedback with a soft clip and a seeded random generator, so offline renders repeat. The original licence text is in this module's `LICENSE` file.
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Pitch Shifter view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Octave Up** | Straight octave up. |
+| **Octave Down** | Straight octave down. |
+| **Octave Blend** | Octave up under the dry signal for sparkle. |
+| **Fifth Up** | Adds a perfect fifth for power-chord thickness. |
+| **Sub Octave** | Dry plus an octave below for weight. |
+| **Detune Double** | A slightly sharp copy: classic detune thickening. |
+| **Wide Detune** | Flat detune with a little drift. |
+| **Tape Flutter** | Wobbling pitch like worn tape. |
+| **Shimmer Spiral** | Climbing octaves: put it before a reverb. |
+| **Dark Descent** | Falling spiral that sinks into the dark. |
+| **Minor Third Echo** | Feedback stacks minor thirds into a diminished haze. |
+| **Chipmunk** | An octave and a fifth up: cartoon voice. |
+| **Monster** | Dark, slow, huge voice. |
+| **Granular Window** | Tiny window: choppy, grainy artefacts. |
+<!-- /generated -->

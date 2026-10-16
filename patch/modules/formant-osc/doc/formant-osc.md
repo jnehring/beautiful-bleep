@@ -66,17 +66,43 @@ identical; small values give width, larger ones two peaks, one per ear.
   pings, useful as an odd modulation source.
 - Put *Quality* on High for bright patches above C6.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Formant Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Formant Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Formant Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Formant Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Formant Osc: Wah Lead** | An LFO sweeps *Formant* over a tune like a hand on a wah pedal. |
-| **Formant Osc: Squelch Bass** | An envelope on *Formant* gives a resonant squelch with no filter; *Narrow* sets the bite. |
-| **Formant Osc: Vowel Choir** | A wide *Spread* pad with LFOs on *Formant* and *Narrow* that seems to sing changing vowels. |
-| **Formant Osc: Through Zero** | A low drone while *Formant* sweeps across zero, through a hollow ghostly moment. |
-| **Formant Osc: Chatter** | A random generator jumps *Formant* on every sixteenth over a broken beat. |
+| **Formant Osc: Wah Lead** | A slow triangle LFO sweeps Formant up and down over a simple tune, so the resonant peak wanders through the harmonics like a hand on a wah pedal. Try Narrow for a sharper peak, or Body for a fuller base. |
+| **Formant Osc: Squelch Bass** | An envelope snaps Formant upward on every bass note and lets it fall, giving the squelch of a resonant filter without any filter. Raise Narrow for more bite and shorten the envelope for a tighter pluck. |
+| **Formant Osc: Vowel Choir** | A slow chord-like line with a wide Spread and two LFOs gently moving Formant and Narrow, so the pad seems to sing different vowels in a big room. Change Roll to soften the top and Spread to widen it. |
+| **Formant Osc: Through Zero** | A low drone while Formant is swept slowly across zero, from below the pitch to far above it. The tone folds through a hollow, ghostly moment at the middle of every pass. Try FM Depth with a cable for a more metallic movement. |
+| **Formant Osc: Chatter** | A random generator jumps Formant on every sixteenth so a short repeating phrase seems to chatter in a different voice each time, over a broken beat. Lock the pattern with Loop on the Random, or change Spread to widen the chatter. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Formant Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Vowel Tone** | A sung vowel: the peak stays fixed while the note moves. |
+| **Talking Bass** | Bass with a resonant peak: put an envelope on Formant. |
+| **Wah Lead** | Sweep Formant with an LFO for a wah-pedal lead. |
+| **Filter-less Squelch** | Acid-like squelch with no filter: envelope the Formant. |
+| **Hollow Ghost** | Formant near zero: a hollow, soft pulse; sweep through it. |
+| **Reverse Formant** | Negative formant runs backwards: a different, hollow colour. |
+| **Wide Choir** | Spread and drifting reset: a wide, breathy choir pad. |
+| **Two Peaks** | Left and right ears get different formants for a two-peak sound. |
+| **Buzzy Saw** | Narrow, bright bursts: a buzzy, sawlike tone. |
+| **Soft Sine Voice** | A wide, smooth burst: mellow and almost sinelike. |
+| **Phasing Roll** | Roll moves the window; modulate it for phasing against the square. |
+| **Inharmonic Ring** | Low reset lets the formant drift: ring-modulated, bell-like colours. |
+| **FM Formant** | Open FM depth: patch an audio source to Formant FM for growling timbre. |
+| **Pinging Sub** | Very low note turns into rhythmic pings: odd modulation or percussion. |
+| **Bright Bell High** | Clean high register thanks to High quality. |
+<!-- /generated -->
 
 ## Reference
 

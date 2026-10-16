@@ -88,17 +88,44 @@ undo step. Drawn shapes are saved with the board.
 - **Your own groove:** draw a shape in *User 1*, Snap 16, Loop, Sync 1 bar:
   a step-like modulation drawn in seconds.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Shape Env does. In the standalone app open **File → Presets…** (⌘P) and pick *Shape Env* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Shape Env does. In the standalone app open **File → Presets…** (⌘P) and pick *Shape Env* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Shape Env: Pluck Morph** | A Pluck shape in One-shot mode on every note, with a slow LFO on *Morph* between neighbouring shapes. |
-| **Shape Env: Gate Pattern** | A rhythmic shape in *Loop* mode with *Sync* 1/1 chops a chord into a gate pattern; *Morph* varies it. |
-| **Shape Env: Echoing Bell** | The *Echoes 1/8* shape repeats each bell note on the beat grid with no delay effect. |
-| **Shape Env: Breathing Filter** | The *Breathing* shape in Loop mode opens a filter while *Inv* closes another one. |
-| **Shape Env: Synth Drums** | Short exp as pitch drop, Pluck as amplitude and Roll on a noise snare build drums from sine oscillators. |
+| **Shape Env: Pluck Morph** | A Shape Env triggered by every note replaces the ADSR: it plays a Pluck shape in One-shot mode, and a slow LFO on Morph blends it with its neighbours, so the notes slide between snappy and soft plucks. Browse other shapes with the Shape knob while it plays. |
+| **Shape Env: Gate Pattern** | A drawn-style gate shape looped over one bar and locked to the song chops a sustained chord into a rhythm, like a trance gate. Change Shape to another of the rhythmic patterns, or sweep Morph to blend between two of them. |
+| **Shape Env: Echoing Bell** | Shape Env plays the Echoes 1/8 shape, a burst that repeats itself on the beat grid, once per trigger from a slow melody, so every bell note comes back as a row of echoes without any delay effect. Change Sync or Skew to move the echoes, or try Ping-pong or Bounce 5. |
+| **Shape Env: Breathing Filter** | The Breathing shape loops every four seconds and opens and closes a low-pass filter on a sustained chord, while Inv, the upside-down shape, moves a second filter band the opposite way. Try other Wobbles shapes or change Time for a slower or faster breath. |
+| **Shape Env: Synth Drums** | Five Shape Envs build the drums from sine oscillators: Short exp as pitch drop and Pluck as amplitude make a kick and a tom, and the Roll shape fills out a snare of noise. Change Time or the shapes to retune and reshape each drum. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Shape Env view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Short Pluck** | Quick plucked decay for synth bass and leads. |
+| **Snappy Click** | Tiny transient: for percussive attacks or pitch snaps. |
+| **Long Exp Decay** | Slow exponential fade for sustained tails. |
+| **Organ Gate** | Held while the key is down: organ-like on and off. |
+| **ADSR Classic** | A conventional attack, decay, sustain, release contour. |
+| **Slow Pad** | Gentle swell and long release for pads. |
+| **Reverse Rise** | Rises slowly toward the end: for risers and swells. |
+| **Bounce Ball** | Bouncing, ever-quicker hits: a dropped ball. |
+| **Echo Taps** | Decaying repeats from one trigger, like a rhythmic echo. |
+| **Heartbeat** | Looping double-thump pulse at about 60 BPM. |
+| **Breathing** | Slow organic in and out for pads and filters. |
+| **Sine LFO** | Plain looping sine at 4 Hz: vibrato or tremolo. |
+| **Synced Stutter** | Rhythmic gate pattern locked to the tempo. |
+| **Swing Wobble** | Tempo-synced wobble with a shuffle feel. |
+| **Morphing Texture** | Irregular looping texture, shifted by Morph: organic movement. |
+| **Reversed Roll** | A drum roll played backwards: builds into the next beat. |
+<!-- /generated -->
 
 ## Reference
 

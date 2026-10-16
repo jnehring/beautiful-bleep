@@ -49,6 +49,27 @@ sends one short pulse every time the gate opens.
   *Inverted* is the same signal upside down.
 - **Only the positive part of an LFO:** *Rectify* = *Positive*.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Envelope Follower view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Smooth Follow** | General loudness follower for modulation. |
+| **Fast Peak** | Snappy peak tracking that catches every hit. |
+| **Drum Trigger** | Use the trigger output to fire envelopes from drums. |
+| **Ducker** | Use the inverted output to duck a pad under a kick. |
+| **Slow Swell** | Slow average level for gentle, musical movement. |
+| **RMS Level** | Smooth perceived-loudness meter. |
+| **Hot Gain** | Boosts quiet signals to a strong control range. |
+| **Gate Sense** | High threshold gate for loud passages only. |
+| **Low Threshold Gate** | Gate that opens on almost any signal. |
+| **Positive Half** | Follows only positive swings of the input. |
+| **Signed Follow** | Passes the signal with smoothing, handy for CV. |
+| **Long Tail** | Slowly falling level for lingering effects. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

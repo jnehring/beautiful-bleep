@@ -205,3 +205,55 @@ function firstSentence(file: string): string {
 export function moduleDoc(m: ModuleMeta): Doc | undefined {
   return findDoc(["musicians", "modules", m.slug]);
 }
+
+// --- Demo patches and presets of a module (built into patch/board/ui by patch/presets/build.mjs and build-modules.mjs) -------------
+
+export type ModuleDemo = { name: string; description: string; tags: string[]; order: number };
+export type ModulePreset = { name: string; description: string };
+
+let demoCache: Record<string, ModuleDemo[]> | null = null;
+let presetCache: Record<string, ModulePreset[]> | null = null;
+
+function readJson(file: string): any {
+  try { return JSON.parse(fs.readFileSync(path.join(ROOT, "patch", "board", "ui", file), "utf8")); } catch { return null; }
+}
+
+/** The demo boards of a module (its folder name is its slug), in the order of their file: the five that show what it does. */
+export function moduleDemos(slug: string): ModuleDemo[] {
+  if (!demoCache) {
+    demoCache = {};
+    for (const d of readJson("demo-patches.json")?.patches ?? []) {
+      (demoCache[d.module] ??= []).push({ name: d.name, description: d.preset?.description ?? "", tags: d.preset?.tags ?? [], order: (demoCache[d.module]?.length ?? 0) + 1 });
+    }
+  }
+  return demoCache[slug] ?? [];
+}
+
+/** The module presets (the preset bar of the module view): name and description. */
+export function modulePresets(slug: string): ModulePreset[] {
+  if (!presetCache) {
+    presetCache = {};
+    for (const [type, list] of Object.entries<any[]>(readJson("module-presets.json")?.modules ?? {}))
+      presetCache[type] = list.map((p) => ({ name: p.name, description: p.description ?? "" }));
+  }
+  return presetCache[slug] ?? [];
+}
+
+// --- Instrument and effect presets, for the pages that open them in Bleep Play (patch/board/ui/play-wrap.js has the rules) -----------
+
+export type PlayablePreset = { name: string; category: string; description: string; tags: string[]; playable: boolean; note: string };
+
+/** The factory cell presets that are instruments or effects. Voice Cell instruments are listed but not playable yet: Play has no voices. */
+export function playablePresets(role: "instrument" | "effect"): PlayablePreset[] {
+  const out: PlayablePreset[] = [];
+  for (const p of readJson("factory-presets.json")?.presets ?? []) {
+    const pre = p.preset ?? {};
+    if (!pre.plays?.[role]) continue;
+    const voices = (pre.nodes ?? []).some((n: any) => n.type === "voice-cell");   // the root, or one inside the cell
+    out.push({
+      name: p.name, category: p.category, description: pre.description ?? "", tags: pre.tags ?? [], playable: !voices,
+      note: voices ? "Plays with voices; Play does not have them yet." : "",
+    });
+  }
+  return out;
+}

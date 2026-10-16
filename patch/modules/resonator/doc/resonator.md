@@ -65,17 +65,42 @@ the input level, so both outputs pass a soft limiter.
   voices: *Voice In › Trigger* → *Strum*, *Pitch* → *Pitch*.
 - **Strum button:** fires the exciter, for trying sounds without patching.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Resonator does. In the standalone app open **File → Presets…** (⌘P) and pick *Resonator* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Resonator does. In the standalone app open **File → Presets…** (⌘P) and pick *Resonator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Resonator: Struck Bells** | The *Modal* model strummed by a sequencer, with *Structure* drifting between string, bar and bell. |
-| **Resonator: Plucked Strings** | The *String* model with four voices turns an arpeggio into a harp; try *Brightness*, *Damping* and *Position*. |
-| **Resonator: Sympathetic Drone** | A melody fed into the *Sympathetic* model makes its strings ring along; *Frequency* retunes them. |
-| **Resonator: Drum Body** | With *Strum Source* on *Input onsets* every drum hit rings the body, and a random source on *Frequency* walks its pitch. |
-| **Resonator: Noise Plate** | Noise bursts excite a *Modal* plate while LFOs move *Structure* and *Brightness*, from glass to gong. |
+| **Resonator: Struck Bells** | The Modal model rings like a bell or plate each time a sequencer strums it, tuned by the Pitch input. Structure moves from string to bar to bell, Damping decides how long they ring, and Position changes which overtones are struck. |
+| **Resonator: Plucked Strings** | The String model with four voices turns a running arpeggio into a harp: each trigger plucks a string that rings over the next. Brightness and Damping change the string, Position moves the pluck point toward the bridge. |
+| **Resonator: Sympathetic Drone** | A soft saw melody is fed into the Sympathetic model, whose strings ring along with whatever matches them: the tune turns into a shimmering sitar-like cloud. Try Frequency (in semitones) to retune the strings against the melody. |
+| **Resonator: Drum Body** | A drum beat is the exciter: Strum Source is set to Input onsets, so every kick, snare and hat hit makes the tuned body ring a note of a slow, random-walking bass line. Turn Dry up for the plain kit, or Structure for a different resonant body. |
+| **Resonator: Noise Plate** | Rhythmic bursts of filtered noise strike a plate whose Structure and Brightness drift on slow LFOs, so the metallic timbre keeps changing from rubbed glass to gong. Change the strum rate, Damping or Position to retune the surface. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Resonator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Glass Bar** | A struck bar: bell-like tuned percussion. |
+| **Hollow String** | A plucked string with a round body. |
+| **Bright Harp** | Four plucked strings: arpeggios turn harp-like. |
+| **Tuned Plate** | A metallic plate ring. |
+| **Bell Tower** | Low, long bell with many partials. |
+| **Sympathetic Drone** | Strings that ring along with a melody fed in. |
+| **Sitar Shimmer** | Buzzing sympathetic strings. |
+| **Drum Tuner** | Short tuned ring for drum loops. |
+| **Damped Marimba** | Short, woody mallet tone. |
+| **Kalimba Pluck** | Fast-decaying plucks. |
+| **Eternal String** | A very long-ringing string. |
+| **Wide Chord Body** | Four voices spread wide for chord-like clouds. |
+| **Octave Metal** | High, clangy metal, bright and inharmonic. |
+| **Onset Strummer** | Plays the string on every hit in the input; no strum cable needed. |
+<!-- /generated -->
 
 ## Reference
 

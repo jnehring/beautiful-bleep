@@ -31,6 +31,8 @@ jobs:
       - run: node patch/presets/build.mjs --check
       - run: node patch/presets/build-modules.mjs --check
       - run: python3 scripts/docs/build-docs.py --out build/docs
+      - run: node patch/presets/build-docs.mjs --check
+      - run: node patch/web/test/build-docs-test.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: docs-single-files
@@ -91,6 +93,10 @@ jobs:
       - run: node patch/web/test/bridge-seal-test.mjs
       - run: node patch/web/test/markdown-test.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - run: node patch/web/test/credits-test.mjs
+      - run: node patch/web/test/preset-index-test.mjs
+      - run: node patch/web/test/media-test.mjs
+      - run: node patch/web/test/play-wrap-test.mjs
         with:
           name: bleep-board-web
           path: build/web/site

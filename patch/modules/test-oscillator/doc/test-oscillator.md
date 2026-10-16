@@ -78,17 +78,19 @@ and lets it run free.
   waveform and the tone squeals and stutters.
 - **An envelope of the bounces:** *Lamp* into a filter's cutoff.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Test Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Test Oscillator* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Test Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Test Oscillator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Test Oscillator: Living Drone** | Three lamp-stabilised sines with long *Settle* and high *Drift* warm up and swell against each other. |
-| **Test Oscillator: Ringing Drums** | *Loop Gain* below 100 % and *Kick* from a Drum Grid make tuned drums on *Range* ×10, ×100 and ×1k. |
-| **Test Oscillator: Drum Resonator** | A drum loop in *Audio In* at 99.7 % *Loop Gain* rings as a tuned resonator that a sequencer steers with *Pitch*. |
-| **Test Oscillator: Squeal Tremolo** | A very short *Settle* and high *Loop Gain* make the lamp chase the waveform: a squealing, stuttering bass. |
-| **Test Oscillator: Bouncing Bass** | Pitch leaps make the amplitude dip and surge, and the *Lamp* output sweeps a lead filter. |
+| **Test Oscillator: Living Drone** | Three lamp-stabilised sines tuned to a root, a fifth and an octave, each with a long Settle and plenty of Drift: they warm up from flat, swell and bounce against each other, with a slow wobble on one dial. Try Loop Gain between 100 % and 150 %, or Settle at 0.1 s for faster bounces. |
+| **Test Oscillator: Ringing Drums** | With Loop Gain below 100 % the oscillator does not run: it rings when kicked, so each Drum Grid hit becomes a tuned drum, a deep kick on Range ×10, a tom on ×100 and a rim tick on ×1k. Raise Loop Gain towards 100 % for longer rings, or lower Kick for softer hits. |
+| **Test Oscillator: Drum Resonator** | A drum loop goes into Audio In of a test oscillator held just below self-oscillation at 95 %, and a sequencer steers its Pitch: the loop plays a melody through the tuned resonator. Change Loop Gain for a shorter or longer ring, or Frequency for a different key. |
+| **Test Oscillator: Squeal Tremolo** | A tiny Settle lets the lamp chase the waveform itself, and Loop Gain at 210 % clips it: the sine turns into a squealing, fluttering square-ish tone that stutters between bursts. A bass line steers the pitch; try Settle between 5 and 50 ms and Loop Gain near 150 % for gentler flutter. |
+| **Test Oscillator: Bouncing Bass** | A bass line jumps the dial of a lamp-regulated sine: each leap dips the amplitude and it surges back, a living bounce. The Lamp output follows that heat and sweeps the cutoff of a saw lead, so the lead breathes with the bass. Try Settle to change the bounce time. |
+<!-- /generated -->
 
 ## Reference
 

@@ -25,6 +25,16 @@
       /// `link` (from a cable dropped on empty canvas) is connected to the new node.
       function addAt(what, x, y, link, checked) {
         if (!s.board) return;
+        if (what.preset && !what.audioReady) {   // the audio a preset carries (a sampler's reel) goes into the media folder first
+          const q = presetList().find((r) => r.key === what.preset);
+          if (q && q.preset.media && Object.keys(q.preset.media).length) {
+            window.BleepMedia.importAll(q.preset.media, (name, data) => native("importMedia", name, data)).then((problems) => {
+              if (problems.length) notice(`Some audio of “${q.name}” could not be imported: ${problems.join("; ")}`);
+              addAt({ ...what, audioReady: true }, x, y, link, checked);
+            });
+            return;
+          }
+        }
         if (what.preset && !checked && s.hasLibrary && P.BleepLibraryView) {  // modules the preset needs: offer to install them first
           const q = presetList().find((r) => r.key === what.preset);
           if (q) {

@@ -12,7 +12,7 @@
   P.BoardPresets = {
     create(env) {
       const { $, el, uid, clone, canvas, nodesEl, closeSubmenus, descendants, isCellLike, insideVoiceCell, groupOpen, groupKey,
-              panelList, panelsWithLoaded, credits } = env;
+              panelList, panelsWithLoaded, credits, notice } = env;
       /// Small inline text fields (WebViews in plugins may not support prompt()).
       /// Resolves to the trimmed values, or null when cancelled.
       function ask(fields, at) {
@@ -126,6 +126,9 @@
         if (cell.help && cell.help.text) preset.help = clone(cell.help);
         const made = credits().collect(nodes);   // the cell's own and those of the cells inside it
         if (made.length) preset.credits = made;
+        // The audio files its modules use (a sampler's reel) go along: a preset is a copy that works on another computer.
+        const lost = await window.BleepMedia.attach(preset, nodes, (id) => native("readMedia", id));
+        if (lost.length) notice(`${lost.length === 1 ? "An audio file" : lost.length + " audio files"} of “${name}” could not be read and ${lost.length === 1 ? "is" : "are"} not in the preset.`);
         const saved = await native("savePreset", name, preset);
         if (saved) setPresets(saved);
       }

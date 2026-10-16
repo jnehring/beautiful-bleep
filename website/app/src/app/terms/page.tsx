@@ -15,9 +15,9 @@ export default function TermsPage() {
       <p>Keep your password safe. You are responsible for what happens under your account. We may block accounts that break these terms.</p>
       <h2>Content you publish</h2>
       <p>
-        When you publish presets or modules in the Bleep Library, you confirm that you made them or have the right to
-        share them, and that the licence you declare is correct. You keep your rights; the licence you choose applies
-        to everyone who downloads your work. Do not upload anything illegal, harmful or infringing. We may remove
+        When you publish presets or modules in the Bleep Library, you confirm that you made them (audio files attached to a
+        preset included) or have the right to share them, and that the licence you declare is correct. You keep your rights. Presets are shared under CC BY 4.0,
+        which lets everyone who downloads one copy and change it if they credit you; a module declares its own licence. Do not upload anything illegal, harmful or infringing. We may remove
         content that breaks these rules.
       </p>
       <h2>Liability</h2>

@@ -51,7 +51,7 @@ patch/
 │   └── module.json   metadata for the website
 ├── common/
 │   ├── dsp/          shared DSP: SVF, smoothing, counter-based randomness, tempo
-│   └── ui/           bleep-bridge.js (JUCE bridge), bleep-view.js/.css (module views), bleep-markdown.js (docs)
+│   └── ui/           bleep-bridge.js (JUCE bridge), bleep-view.js/.css (module views), bleep-markdown.js (docs), bleep-credits.js (preset credits), bleep-media.js (audio in presets)
 └── tests/            DSP, engine and bridge tests, bridge plugin test, board smoke test, type dump
 ```
 

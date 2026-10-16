@@ -97,6 +97,8 @@ public:
     /// Imports a WAV file (its bytes) into the media folder (Media.h). Returns
     /// {id, name, seconds, channels} or {error}.
     juce::var importMedia(const juce::String& name, const juce::MemoryBlock& bytes);
+    /// The WAV file of a media id as base64, for a preset that takes its audio along: {data, name} or {error}.
+    juce::var readMedia(const juce::String& id);
     /// Saves audio a module holds (Module::exportMedia) to the media folder.
     /// Returns {id, seconds, channels} or {error}.
     juce::var exportMedia(const juce::String& nodeId, const juce::String& slot);

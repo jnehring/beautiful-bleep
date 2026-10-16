@@ -31,3 +31,24 @@ Mix, rate, depth, delay and feedback can all be modulated. Modulating *Delay* wi
 ## Origin
 
 The modulated-delay voice (swinging delay with feedback, and the flanger's extra sample of delay) is from **Chorus and Flanger (DaisySP)** by Electrosmith, [github.com/electro-smith/DaisySP](https://github.com/electro-smith/DaisySP), MIT licence. Bleep's version puts both effects in one stereo module, with an LFO phase spread, cubic interpolation, feedback in both polarities and a rate in hertz. The original licence text is in this module's `LICENSE` file.
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Chorus view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Classic Chorus** | Lush, general-purpose stereo chorus. |
+| **Subtle Thicken** | Barely there doubling for synths and guitars. |
+| **Wide Ensemble** | Big, spread string-machine style width. |
+| **Slow Wash** | Very slow, deep movement for pads. |
+| **Shimmer Fast** | Quick, shallow wobble. |
+| **Vibrato** | Fully wet: pure pitch vibrato. |
+| **Tape Warble** | Seasick, wobbly detune. |
+| **Soft Flanger** | Gentle sweeping comb filter. |
+| **Jet Flanger** | Intense jet-plane sweep. |
+| **Negative Flange** | Negative feedback: hollow, nasal flanging. |
+| **Metallic Ring** | Almost static comb that rings with a pitch. |
+| **Deep Doubler** | Long delay times give a slapback-like double. |
+<!-- /generated -->

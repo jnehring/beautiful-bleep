@@ -55,6 +55,29 @@ glides from one value to the next instead of jumping.
   of steps. At 100 % the value glides over most of a step.
 - **Only positive values:** set *Bias* to +0.5 and *Spread* to 50 % for 0 … 1.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Random view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Quarter Steps** | Eight random levels per quarter-note step, mostly repeating. |
+| **Locked Loop** | A fixed eight-step pattern that repeats exactly. |
+| **Always New** | Never repeats: every step is fresh. |
+| **Melody Generator** | Locked steps snapped to semitones: patch to pitch. |
+| **Dark Walk** | Mostly low values with the occasional jump. |
+| **Bright Sparks** | High-leaning fast steps for sparkly accents. |
+| **Smooth Wander** | Free-running steps blended into a gliding random curve. |
+| **Slow Drift** | Very slow random wander for subtle movement. |
+| **Three Step Cycle** | A 3-step loop against 4/4 for polymetric feel. |
+| **Five Against Four** | Five-step quantized loop that drifts across the bar. |
+| **Narrow Wobble** | Small random variations: gentle humanizing. |
+| **Long Pattern** | A long locked sequence of 32 steps. |
+| **Slow Bar Changes** | One new value per bar for chord or key changes. |
+| **Fast Glitch** | Rapid random steps for glitchy mod. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

@@ -46,6 +46,29 @@ current level. Use it for repeated accents within one long note.
 - **Chaining:** *End* fires when the release is done. Patch it into another
   envelope's gate or a Function's *Trig* to start the next event.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the ADSR view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Classic Synth** | All-round envelope for lead and bass. |
+| **Pluck** | Instant attack, decays to nothing. |
+| **Short Stab** | Tight stab with a little tail. |
+| **Slow Pad** | Gradual fade-in and long release. |
+| **Soft Swell** | Smooth swell that stays at full level. |
+| **Organ Gate** | On-off gating with tiny declick ramps. |
+| **Bass Punch** | Punchy bass with strong velocity response. |
+| **Strings** | Bowed-style onset and soft release. |
+| **Long Bell** | Ringing decay for bells and mallets. |
+| **Reverse Pad** | Very slow rise, quick fall-off. |
+| **Plucky Filter** | Good for cutoff: a snappy sweep per note. |
+| **Velocity Dynamic** | Full velocity sensitivity for expressive playing. |
+| **Drone Hold** | Slow in, very long ghostly release. |
+| **Staccato Click** | Ultra-short blip for percussive clicks. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

@@ -455,6 +455,7 @@
           for (const ch of a[0] + ":" + (a[1] || "").length) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
           return { id: h.toString(16).padStart(16, "0").slice(-16) + ".wav", name: a[0], seconds: 0, channels: 2 };
         }
+        case "readMedia": return { error: "no audio in the demo" };
         case "exportMedia": return { error: "no audio in the demo" };
         case "midiDevices": return window.BleepWeb ? BleepWeb.midiDevices() : ["Demo Keyboard", "Demo Pads"];
         case "presets": return store.get(presetKey(a[0]), []);

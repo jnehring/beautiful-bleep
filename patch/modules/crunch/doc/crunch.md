@@ -31,3 +31,25 @@ With only *In L* patched, the signal feeds both sides.
 ## Origin
 
 The overdrive curve and its gain structure are Émilie Gillet's (Mutable Instruments, *Plaits*, 2014), the sample-rate reduction is from DaisySP's `Decimator`, both through **Overdrive and Decimator (DaisySP, from Plaits)** by Electrosmith, [github.com/electro-smith/DaisySP](https://github.com/electro-smith/DaisySP), MIT licence. Bleep's version has both in one stereo module; the Drive knob covers the useful part of Plaits' curve with level compensation, the bit crusher rounds (and takes fractional bit depths) instead of truncating, and a tone filter and output level were added. The original licence texts are in this module's `LICENSE` file.
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Crunch view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Warm Saturation** | Gentle tube-like warmth on anything. |
+| **Overdrive** | Classic mid-gain overdrive. |
+| **Fuzz Wall** | Thick, compressed fuzz with the top rolled off. |
+| **Lo-Fi Bits** | 8-bit quantisation noise, old sampler style. |
+| **Telephone Crush** | Narrow, crushed and aliased. |
+| **Rate Grinder** | Sample-rate reduction aliasing without much bit loss. |
+| **Broken Machine** | Harsh digital breakdown. |
+| **Parallel Grit** | Crunch blended under a clean signal for grit with body. |
+| **Drum Crunch** | Adds bite and crackle to drum loops. |
+| **Dark Dirt** | Heavy drive filtered dark for bass. |
+| **Bit Dust** | Subtle degradation, like a worn digital converter. |
+| **Square Wave Mangler** | Two bits turn everything into buzzing pulses. |
+| **Total Destruction** | Everything at once; keep the level low. |
+<!-- /generated -->

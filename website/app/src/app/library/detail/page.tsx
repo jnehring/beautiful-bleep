@@ -14,6 +14,10 @@ type Release = {
 };
 type Detail = { kind: string; slug: string; title: string; summary: string; category: string; image_url: string | null; rating_average: number | null; rating_count: number; license: string; origin: Origin | Record<string, never>; releases: Release[] };
 
+type UsedIn = { count: number; items: { address: string; author_name: string; title: string; type: string }[] };
+
+type Demos = { demos: { name: string; description: string; tags: string[]; order: number }[]; presets: { name: string; description: string }[] };
+
 const day = (s: string | null, none = "—") => (s ? s.slice(0, 10) : none);
 const size = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} B`);
 
@@ -29,6 +33,18 @@ function DetailView() {
   const [error, setError] = useState("");
   useEffect(() => {
     api<Detail>("GET", `/library/${encodeURIComponent(kind)}/${kind === "preset" ? slug.split("/").map(encodeURIComponent).join("/") : encodeURIComponent(slug)}`).then(setData, (e) => setError(e.message));
+  }, [kind, slug]);
+  // Presets made from this one: shared presets list the presets they were copied from, and the library finds them again here.
+  const [used, setUsed] = useState<UsedIn | null>(null);
+  useEffect(() => {
+    if (kind !== "preset") return;
+    api<UsedIn>("GET", `/presets/${slug.split("/").map(encodeURIComponent).join("/")}/used-in`).then(setUsed, () => setUsed(null));
+  }, [kind, slug]);
+  // A module's five demo boards, each of which plays by itself in Bleep Play, and its presets.
+  const [demos, setDemos] = useState<Demos | null>(null);
+  useEffect(() => {
+    if (kind !== "module") return;
+    fetch(`/module-demos/${encodeURIComponent(slug)}`).then((r) => (r.ok ? r.json() : null)).then(setDemos, () => setDemos(null));
   }, [kind, slug]);
   const [doc, setDoc] = useState("");
   useEffect(() => {
@@ -66,6 +82,32 @@ function DetailView() {
           <div><dt>File size</dt><dd>{size(latest.bytes)}</dd></div>
           <div><dt>License</dt><dd>{latest.license || data.license || "not stated"}</dd></div>
         </dl>
+      )}
+      {used && used.count > 0 && (
+        <>
+          <h2>Used in {used.count} {used.count === 1 ? "preset" : "presets"}</h2>
+          <ul>{used.items.map((i) => (
+            <li key={i.address}><a href={`/library/detail/?kind=preset&slug=${encodeURIComponent(i.address)}`}>{i.title}</a> <small className="muted">by {i.author_name}</small></li>
+          ))}</ul>
+        </>
+      )}
+      {demos && demos.demos.length > 0 && (
+        <>
+          <h2>Demo patches</h2>
+          <div className="demo-cards">{demos.demos.map((d) => (
+            <div key={d.name} className="demo-card">
+              <h3>{d.name}</h3>
+              <p>{d.description}</p>
+              <p><a className="play-button" href={`/play/index.html?demo=${encodeURIComponent(d.name)}`} target="_blank" rel="noopener">Run in Play</a></p>
+            </div>
+          ))}</div>
+        </>
+      )}
+      {demos && demos.presets.length > 0 && (
+        <>
+          <h2>Presets</h2>
+          <ul>{demos.presets.map((p) => <li key={p.name}><strong>{p.name}</strong> <span className="muted">{p.description}</span></li>)}</ul>
+        </>
       )}
       {doc && <article className="module-doc" dangerouslySetInnerHTML={{ __html: doc }} />}
       {data.releases.length > 0 && <h2>Releases</h2>}

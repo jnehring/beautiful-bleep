@@ -58,17 +58,41 @@ every render is identical.
   *W1* 0, *Hysteresis* up until it stops chattering.
 - **Audio:** *Leak* near 0 and *Cross* on *Gate* oscillates at audio rate.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Neuron does. In the standalone app open **File → Presets…** (⌘P) and pick *Neuron* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Neuron does. In the standalone app open **File → Presets…** (⌘P) and pick *Neuron* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Neuron: Self-Made Rhythm** | Neuron A fires from its bias and its *Out* inhibits B, so *A Spike*, *B Spike*, *AND* and *XOR* play kick, snare, clap and hat in an irregular groove. |
-| **Neuron: Spike Melody** | *B Out* is sampled by a quantizer on every *A Spike*, and spikes ping low pass gates: a pentatonic tune from two cells. |
-| **Neuron: Accelerando** | A slow LFO into *A In 2* speeds the firing up into a roll and below *Threshold* silences it; B answers with a tom. |
-| **Neuron: Audio-Rate Buzz** | *Leak* near 0 and *Cross* on *Gate* make the pair oscillate at audio rate; an LFO bends *W3* and *Pulse* to retune the buzz. |
-| **Neuron: Logic Drums** | Both neurons in *Compare* mode act as Schmitt triggers on clocked LFOs; *AND*, *XOR*, *OR* and *A Gate* become kick, clap, hat and snare. |
+| **Neuron: Self-Made Rhythm** | Neuron A fires regularly from its own bias; as it charges, its Out pushes Neuron B down, so B fires in irregular gaps. A Spike plays the kick, B Spike the snare and A AND B a clap over a pad: a rhythm made by two cells listening to each other. Try the Leak knobs or the W3 weights. |
+| **Neuron: Spike Melody** | Neuron A's spikes ping a pair of low pass gates, while Neuron B's saw-like Out is sampled by a quantizer on every spike: pitches from an irregular rhythm, in D minor pentatonic, through a long delay. Change the Pulse and Leak of either neuron to rewrite the tune. |
+| **Neuron: Accelerando** | A slow triangle LFO feeds Neuron A's In 2: the higher it rises, the faster A fires, so the hats and rim accelerate into a roll and fall silent as the level drops. Neuron B answers with a tom. Try a different W2 or Threshold to move where the roll starts. |
+| **Neuron: Audio-Rate Buzz** | With Leak near 0 and Cross on Gate, the two neurons chase each other so fast that their output is an audio-rate buzz. A slow LFO bends the weights and so the pitch, a filter tames it and a slow envelope shapes it into a drifting, electric drone. Nudge W3 or Pulse to retune it. |
+| **Neuron: Logic Drums** | Both neurons are in Compare mode, each a Schmitt trigger on its own clocked LFO. Their gates are combined by AND, OR and XOR into kick, clap and hats, so a few slow waves yield a changing polymetric groove. Change the Threshold of A or B to change which crossings count. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Neuron view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Default Rhythm** | Two neurons that answer each other: a rhythm with no cables. |
+| **Steady Pulse** | Two independent steady pulse trains, no cross talk. |
+| **Slow Heartbeat** | Low, slow double-thump patterns. |
+| **Fast Chatter** | Rapid spikes for glitchy triggers. |
+| **Call and Response** | B only fires after A: a delayed answer. |
+| **Mutual Silence** | Each neuron inhibits the other for alternating bursts. |
+| **Compare Gates** | Self-switching gates that settle into slow on-off patterns. |
+| **Smooth Out** | Gentle control outputs with soft slopes for modulation. |
+| **Logic Mix** | Long pulses so the AND, OR and XOR outputs show overlaps. |
+| **Gate Cross** | Neurons listen to each other's gates instead of their outputs. |
+| **Independent Pair** | No cross talk: two polyrhythmic pulses of different speeds. |
+| **Sparse Triggers** | Barely above threshold: occasional, slow triggers. |
+| **Chaotic Pair** | Strong coupling creates unpredictable patterns. |
+<!-- /generated -->
 
 ## Reference
 

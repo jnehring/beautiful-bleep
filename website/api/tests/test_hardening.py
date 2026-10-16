@@ -8,11 +8,12 @@ import pytest
 
 from app import signing
 from app.config import settings
-from app.main import MAX_BODY, body_limit
+from app.main import MAX_BODY, MAX_PRESET_BODY, body_limit
 
 
 def test_body_limits_by_path():
-    assert body_limit("/api/presets") == MAX_BODY
+    assert body_limit("/api/presets") == MAX_PRESET_BODY   # a preset may carry up to 5 MB of audio
+    assert body_limit("/api/contact") == MAX_BODY
     assert body_limit("/api/registry/plugin/p/releases") == MAX_BODY
     assert body_limit("/api/registry/plugin/p/releases/1.0.0/files/p.zip") > 1000 * 1024 * 1024
 
@@ -133,4 +134,5 @@ def test_project_bodies_may_be_bigger_than_other_json():
     from app.routers.projects import MAX_BYTES
 
     assert main.body_limit("/api/projects") >= MAX_BYTES * 4 + 64 * 1024  # the endpoint's own 413 decides, not the middleware
-    assert main.body_limit("/api/presets") == main.MAX_BODY
+    assert main.body_limit("/api/presets") > 5 * 1024 * 1024 * 4 // 3   # the audio of a preset as base64, plus its patch
+    assert main.body_limit("/api/contact") == main.MAX_BODY

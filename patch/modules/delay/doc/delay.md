@@ -47,6 +47,29 @@ never click. Turn *Time* quickly for a classic dub effect.
 - **Send effect:** *Mix* 100 % on an effect track or a send; keep the dry
   signal in the mixer.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Delay view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Eighth Echo** | A clean tempo-synced eighth-note echo. |
+| **Dotted Eighth** | The rhythmic dotted echo that fills gaps. |
+| **Tape Slap** | Short slapback with a dull top. |
+| **Ping-Pong Bounce** | Repeats bounce left and right. |
+| **Stereo Offset** | Different times per side widen the echo. |
+| **Dub Echo** | Filtered, long repeats that darken as they fade. |
+| **Triplet Ping-Pong** | Rolling triplet bounce. |
+| **Quarter Note Wash** | Spacious quarter-note repeats. |
+| **Chorus Doubler** | Very short times thicken a sound like a double-track. |
+| **Comb Resonance** | Millisecond delays with feedback ring as a metallic comb. |
+| **Long Haunt** | Slow, distant repeats for ambience. |
+| **Half Note Ping-Pong** | Wide, slow bounces. |
+| **Thin Radio Echo** | Band-limited, small-speaker echo. |
+| **Endless Repeat** | Near-infinite feedback; the filters keep it from blowing up. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

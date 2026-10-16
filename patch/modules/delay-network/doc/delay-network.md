@@ -90,17 +90,42 @@ repeat.
 - **Echo clock:** patch *Pulse* into a drum's trigger: it plays along with
   the repeats of whatever you feed in.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Delay Net does. In the standalone app open **File → Presets…** (⌘P) and pick *Delay Net* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Delay Net does. In the standalone app open **File → Presets…** (⌘P) and pick *Delay Net* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Delay Net: Ring Pad** | Six taps in *Ring* routing with a dark *Character* and high *Feedback* smear soft notes into a slowly turning pad. |
-| **Delay Net: Dotted Pluck Grid** | *Sync* on a dotted eighth and *Parallel* routing place four taps on a rhythmic grid around plucks; *Scatter* nudges them off it. |
-| **Delay Net: Reverse Mesh** | *Mesh* routing with *Reverse* and *Jitter* blooms every note into reversed clouds; a slow LFO drifts *Time*. |
-| **Delay Net: Drum Echoes** | A beat through a synced *Chain* with *Jitter* and *Scatter*: a loose, dubby shadow of the groove. |
-| **Delay Net: Overdriven Loop** | *Feedback* near its limit turns the network into a self-sustaining drone; an LFO on *Character* moves it from clean to gritty. |
+| **Delay Net: Ring Pad** | Six taps in a Ring feed each other with a dark, tape-like Character, so single soft notes smear into a slowly turning pad. Move Scatter and Width to change where the taps sit, or Routing to Chain to hear a straighter line. |
+| **Delay Net: Dotted Pluck Grid** | With Sync on a dotted eighth and Parallel routing, four taps place echoes on a rhythmic grid around a short plucked tune; Scatter nudges them off it. Try Taps, Scatter and Feedback for denser or sparser patterns. |
+| **Delay Net: Reverse Mesh** | In Mesh routing every line feeds every other, and Reverse plays part of the echoes backwards, so each note blooms into swelling, reversed clouds. Raise Jitter to blur the timing further; Time Change decides if time moves bend the pitch. |
+| **Delay Net: Drum Echoes** | A drum beat goes through a Chain of lines locked to the tempo; Jitter and Scatter make the repeats a loose, dubby shadow of the groove. Pull Mix down for a subtle effect or up for a wall of echoes. |
+| **Delay Net: Overdriven Loop** | Feedback is almost at its limit, so the network sustains into a self-holding drone around a sparse bass line; a slow LFO on Character shifts it from clean to gritty. Lower Feedback to hear it settle, or push it past 100 %. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Delay Net view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Soft Ring** | A modest four-line ring that blooms into a cloud. |
+| **Parallel Taps** | Four separate scattered echoes. |
+| **Chain Cascade** | Each line feeds the next: cascading repeats. |
+| **Mesh Cloud** | Every line feeds every other: a dense, reverb-like cloud. |
+| **Tempo Scatter** | Eighth-note grid with uneven tap spacing. |
+| **Wobbly Tape** | Jittered times and a worn character. |
+| **Reverse Bloom** | Mostly reversed repeats. |
+| **Dark Tunnel** | Long, dark repeats receding into the distance. |
+| **Bright Glimmer** | Short bright taps shimmer around the signal. |
+| **Slow Drift** | Multi-second delay lines for ambient layering. |
+| **Dirty Loop** | Saturated feedback that builds a gritty loop. |
+| **Granular Smear** | Tiny jittered lines smear into textures. |
+| **Mono Pulse** | A single plain echo line in mono. |
+| **Swell Cathedral** | Near-unity feedback: swells for ages; turn the mix down first. |
+<!-- /generated -->
 
 ## Reference
 

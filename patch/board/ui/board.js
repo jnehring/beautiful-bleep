@@ -287,6 +287,45 @@
   });
   const { setPresets, categories: presetCategories, save: savePreset, insert: insertPreset, addPanels, list: presetList, order: presetOrder } = cp;
 
+  /// Bleep Play: a factory cell preset on its own, wired as the plugins wire it (play-wrap.js). An instrument takes MIDI In, an effect a
+  /// self-playing instrument preset as its source (Play has no audio input yet). Replaces the board; throws what Play cannot do.
+  async function playCell(name, role, sourceName) {
+    const W = window.BleepPlayWrap;
+    const factory = presetList().filter((r) => r.factory);
+    const q = factory.find((r) => r.name === name);
+    if (!q) throw new Error(`There is no preset called “${name}”.`);
+    const plan = W.plan(q.preset, role);
+    if (!plan.ok) throw new Error(plan.message);
+    const b = { format: 1, id: uid("b"), nodes: [], cables: [], panels: [] };
+    // The ports the board has stay (they cannot be deleted, spec §6): the new board reuses them, so no port is added twice or comes back.
+    const ports = (board.nodes || []).filter((n) => n.port && !n.parent).map(clone);
+    const find = (type) => ports.find((n) => n.type === type);
+    const keys = find("midi-in"), speakers = find("audio-out");
+    if (!speakers || (role === "instrument" && !keys)) throw new Error(`This board has no ${!speakers ? "Audio Out" : "MIDI In"} port to play through.`);
+    ports.forEach((n, i) => { n.x = n === keys ? 20 : n === speakers ? 900 : 20; n.y = n === keys || n === speakers ? 40 : 300 + 110 * i; });
+    b.nodes.push(...ports);
+    const cable = (from, fj, to, tj) => b.cables.push({ id: uid("k"), from: { node: from, jack: fj }, to: { node: to, jack: tj }, amount: 1 });
+    let rootId;
+    if (role === "instrument") {
+      rootId = insertPreset(b, q.preset, "", 340, 40, credits().factory(q.name));
+      for (const c of plan.midi) cable(keys.id, c.from, rootId, c.to);
+    } else {
+      const sources = W.sources(factory);
+      const s = sources.find((x) => x.name === sourceName) || sources[0];
+      if (!s) throw new Error("There is no source to play through the effect.");
+      const sp = W.plan(s.preset, "instrument");
+      const sid = insertPreset(b, s.preset, "", 20, 40, credits().factory(s.name));
+      rootId = insertPreset(b, q.preset, "", 460, 40, credits().factory(q.name));
+      plan.in.forEach((j, i) => cable(sid, sp.out[Math.min(i, sp.out.length - 1)], rootId, j));
+    }
+    plan.out.forEach((j, i) => cable(rootId, j, speakers.id, i ? "r" : "l"));
+    if (plan.out.length === 1) cable(rootId, plan.out[0], speakers.id, "r");
+    applyMessage(await native("loadPatch", b, 0, q.name));
+    if (role === "instrument") window.BleepPlayKeys.show(q.name); else window.BleepPlayKeys.hide();
+    if (plan.notes.length) notice(plan.notes.join(" "));
+    fit();
+  }
+
   // ------------------------------------------------------------ navigation
   function enterCell(id) {
     path.push(id);
@@ -600,6 +639,8 @@
       const shared = q.get("preset"), demo = q.get("demo");
       if (shared && !pluginMode) P.BleepProjectBrowser.loadShared(shared).catch((e) => notice(e.message));
       else if (demo && !pluginMode) P.BleepProjectBrowser.loadDemo(demo).catch((e) => notice(e.message));
+      else if (q.get("play") && !pluginMode)   // an instrument or effect preset on its own: /play/index.html?play=Warm Saws&as=instrument
+        playCell(q.get("play"), q.get("as") === "effect" ? "effect" : "instrument", q.get("source") || "").catch((e) => notice(e.message));
     }
     // Fit once the canvas has its size (the window may still be opening).
     let fitted = false;

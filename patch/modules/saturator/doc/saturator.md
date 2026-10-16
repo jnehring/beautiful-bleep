@@ -37,3 +37,26 @@ With only *In L* patched, the signal feeds both sides.
 - **Edgy vocal:** Diode, Drive 40 %, Colour +30 %.
 - **Alive pads:** Age 80 % and a little Drive: the harmonics breathe slowly.
 - **Dynamic saturation:** an envelope or LFO on *Drive* or *Bias*.
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Saturator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Subtle Warmth** | A hint of even harmonics on anything. |
+| **Bus Glue** | Soft, compressed tape-like cohesion for a mix bus. |
+| **Tape Drums** | Rounded transients and a fatter body for drum loops. |
+| **Tube Crunch** | Amp-like crunch with edge in the upper mids. |
+| **Fat Bass** | Thick low end that stays smooth on top. |
+| **Sub Weight** | Even-harmonic weight under a sub. |
+| **Diode Bite** | Edgy, vocal asymmetry. |
+| **Vocal Heat** | Gentle presence and density for a voice. |
+| **Breathing Pad** | Slow drift makes a held chord shimmer and breathe. |
+| **Loose Gear** | Everything wanders a little, like old hardware. |
+| **Sagging Supply** | Hard hits squash and bloom. |
+| **Fuzz Wall** | Thick, compressed, anti-aliased fuzz. |
+| **Parallel Grit** | Hard-driven copy blended under the clean signal. |
+| **Eco Warmth** | Light on CPU for many instances. |
+<!-- /generated -->

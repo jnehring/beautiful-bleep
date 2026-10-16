@@ -91,17 +91,19 @@ few seconds while writing).
 - **Inside a Voice Cell:** every voice has its own pen and replay head; only
   the first voice records.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Chart Recorder does. In the standalone app open **File → Presets…** (⌘P) and pick *Chart Recorder* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Chart Recorder does. In the standalone app open **File → Presets…** (⌘P) and pick *Chart Recorder* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Chart Recorder: Pen with Momentum** | A bass envelope drawn with low *Damping* and slow *Writing Speed* overshoots, and the pen wobble sweeps the filter. |
-| **Chart Recorder: Sticky Steps** | High *Friction* turns slow LFOs into irregular steps that a Quantizer plays as a melody. |
-| **Chart Recorder: Backwards Gesture** | A live random walk is recorded on a four-bar strip, and a second voice plays it back with *Replay Speed* −1. |
-| **Chart Recorder: Loudness Contour** | *Detector* Log dB draws the drum loop's level, and an inverted *Pen* ducks a pad on every kick. |
-| **Chart Recorder: Drawn Table** | A drawn curve with *Replay Speed* 0 is scrubbed by *Offset*, so the drawing becomes a looping melody. |
+| **Chart Recorder: Pen with Momentum** | An envelope that follows a bass line is drawn by a slow pen with little damping, so the pen overshoots and wobbles around each level: that wobble sweeps the filter. Turn Writing Speed up for a tight envelope, Damping up for a lazy one, and watch the pen on the paper. |
+| **Chart Recorder: Sticky Steps** | A smooth slow LFO is drawn with a pen that sticks: it only moves once the change has built up, so Pen becomes irregular little steps that a Quantizer turns into a wandering pentatonic melody. Lower Friction for a smoother line and more notes, raise it for fewer, bigger leaps. |
+| **Chart Recorder: Backwards Gesture** | A smooth random walk is drawn live on a four-bar strip: one voice plays the live pen, and a second plays what the paper replays backwards, so the melody answers itself in reverse. Try Replay Speed 0.5 or 2, or switch Interpolation to Step. |
+| **Chart Recorder: Loudness Contour** | The drum bus is drawn as a level trace (Log dB, Response 100 ms), and an inverted Pen pumps a chord pad so it ducks on every kick. Change Detector or Response, or use the Replay output for a duck that arrives a loop later. |
+| **Chart Recorder: Drawn Table** | A curve drawn on the paper is read as a table: Replay Speed is 0 and a slow LFO on Offset scrubs through it, so the drawn shape becomes a looping melody. Draw on the paper in the view (Shift-drag for lines), or set Interpolation to Step to hear each plateau. |
+<!-- /generated -->
 
 ## Reference
 

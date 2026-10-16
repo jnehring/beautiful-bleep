@@ -89,17 +89,42 @@ start from silence and repeat exactly; Wobble restarts from *Seed* either way.
   it backwards.
 - **Ambient wash:** Zone 4, Feedback 90 %, Diffuse 80 %, Wobble 40 %.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Zone Delay does. In the standalone app open **File → Presets…** (⌘P) and pick *Zone Delay* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Zone Delay does. In the standalone app open **File → Presets…** (⌘P) and pick *Zone Delay* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Zone Delay: Dub Echo** | *Zone* 3 with *Sync* on *Transport* and a tape *Character*; a square LFO on the *Ping-Pong* gate bounces the repeats. |
-| **Zone Delay: Tuned Combs** | *Zone* 1 (Comb) tuned by the *Pitch* input, with high *Feedback*: a sequencer plays resonant, string-like rings. |
-| **Zone Delay: Vast Hold Loop** | *Zone* 5 is a multi-bar loop; LFOs on the *Hold* and *Reverse* gates freeze and flip what is in the buffer. |
-| **Zone Delay: Tape Dive** | *Time Change* *Tape* with a long *Glide* and a stepped random source on *Time*: every jump bends the echoes. |
-| **Zone Delay: Diffuse Cloud** | Full *Diffuse* and high *Feedback* in the Long zone melt the repeats of a drum groove into a cloud; *Offset* widens it. |
+| **Zone Delay: Dub Echo** | Zone 3 locked to the transport gives a warm dotted echo with a tape Character; Ping-Pong from a slow square LFO flips the repeats between a straight tail and a bouncing one. Ride Feedback and Tone to dub it live. |
+| **Zone Delay: Tuned Combs** | In the Comb zone the delay is tuned by the Pitch input, so a sequencer plays a resonant, string-like ring from short noise-free pulses of a saw. Feedback sets how long each note rings; Character shapes its colour. |
+| **Zone Delay: Vast Hold Loop** | Zone 5 is a multi-bar loop: a Hold gate from an LFO freezes the buffer for a few bars, then releases it, while Reverse flips the held phrase. Change Zone or Time to shorten the loop, or hold it by hand. |
+| **Zone Delay: Tape Dive** | A stepped random source jumps Time around in Tape mode, so every change bends the echoes up or down in pitch like a tape machine being thrown about. Lower Glide for sharper swoops, or switch Time Change to Crossfade for stepped echoes. |
+| **Zone Delay: Diffuse Cloud** | A drum groove runs through a Long-zone delay with full Diffuse and high Feedback: the first echo is clear, then the repeats melt into a reverb-like cloud behind the kit. Reduce Diffuse for distinct repeats, or try Offset for a wider image. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Zone Delay view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Tape Echo** | Classic mid-range echo with tape colour. |
+| **Dub Echo** | Tempo-synced dub repeats; ride Tone and Feedback. |
+| **Slapback** | Short single repeat. |
+| **Stereo Spread** | The right side lags the left for a wide echo. |
+| **Flanger** | In the comb zone: sweep Time with an LFO. |
+| **Tuned Comb** | Resonant ring; patch a pitch in to tune it. |
+| **Chorus Double** | Short, modulated times thicken a sound. |
+| **Diffuse Cloud** | Repeats melt into an ambient cloud. |
+| **Ambient Wash** | Long, washy feedback. |
+| **Looper** | Multi-second loop: patch Hold to keep a phrase. |
+| **Lo-Fi Loop** | A saturated, degraded loop that gets dirtier with each pass. |
+| **Crossfade Echo** | Clean time changes without pitch bending. |
+| **Tape Dive** | Slow glide: changing Time bends the echoes. |
+| **Bright Ping** | Clear and bright quick repeats. |
+<!-- /generated -->
 
 ## Reference
 

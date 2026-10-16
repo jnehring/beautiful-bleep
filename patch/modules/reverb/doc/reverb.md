@@ -85,17 +85,42 @@ meter of the wet level.
 - **Spatial effects:** an audio-rate oscillator onto *Size* turns the tail
   into a frequency-modulated cloud.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Verb does. In the standalone app open **File → Presets…** (⌘P) and pick *Verb* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Verb does. In the standalone app open **File → Presets…** (⌘P) and pick *Verb* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Verb: Cathedral** | Large *Size*, a *Decay* of 14 s, *Damping* and *Pre-delay* turn a slow melody into a huge hall. |
-| **Verb: Tight Room** | A small *Size*, short *Decay* and high *Damping* glue a drum beat like a booth. |
-| **Verb: Freeze Pad** | A square LFO on the *Freeze* gate holds the tank as an endless chord, then lets it go to catch the next phrase. |
-| **Verb: Breathing Space** | Slow LFOs on *Size*, *Decay* and *Tone* plus *Mod Depth* make the room breathe around an arpeggio. |
-| **Verb: Pre-delay Echoes** | *Pre-delay Sync* on a dotted eighth gives one clear rhythmic echo before a short, diffuse bloom. |
+| **Verb: Cathedral** | A slow, soft melody disappears into a huge room: Size and Decay are high, Damping rolls the tail dark, and Pre-delay keeps each note clear before the bloom. Try Decay and Size together, or push Mix to 100 %. |
+| **Verb: Tight Room** | A drum beat in a small, dry room: low Size, a short Decay and high Damping glue the kit together like a booth. Raise Size and Decay to move the same beat into a hall. |
+| **Verb: Freeze Pad** | A square LFO opens the Freeze gate for a couple of bars at a time, holding whatever is in the tank as an endless chord, then lets it go so the next phrase can be caught. Edit the LFO's Sync, or latch Freeze yourself. |
+| **Verb: Breathing Space** | Slow LFOs ride Size and Decay while Mod Depth swirls the tail, so the room itself seems to inhale and exhale around a gentle arpeggio. Every Verb knob modulates click-free: try patching your own LFO into Tone. |
+| **Verb: Pre-delay Echoes** | Pre-delay is locked to a dotted eighth, so a bright plucked tune is followed by one clear rhythmic echo and then a short, diffuse bloom. Change Pre-delay Sync, or lower Diffusion to hear the individual reflections. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Verb view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Small Room** | A tight room for natural ambience. |
+| **Medium Hall** | General-purpose hall. |
+| **Bright Plate** | Dense, bright and fast building plate. |
+| **Vocal Space** | Pre-delay keeps a voice clear in front. |
+| **Warm Chamber** | Dark and cozy. |
+| **Big Cathedral** | Huge stone space with a long tail. |
+| **Wide Pad** | A lush, wide wash for sustained sounds. |
+| **Shimmer Mod** | Heavy modulation gives a chorus-like shimmer. |
+| **Gated Snap** | Short, punchy burst for snares. |
+| **Dub Spring** | Sparse, metallic-sounding tail. |
+| **Dark Abyss** | Very long, dark and rumbling. |
+| **Infinite Freeze** | Practically endless; gate Freeze to hold a chord. |
+| **Mono Closet** | Very small and mono: a hint of space. |
+| **Eco Wash** | A cheaper eight-line reverb for busy patches. |
+<!-- /generated -->
 
 ## Reference
 

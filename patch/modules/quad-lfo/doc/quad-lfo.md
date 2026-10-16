@@ -85,17 +85,43 @@ to the song position, smoothed over 5 ms.
 - **Gating on the beat:** a sequencer's clock into *Clock*, Clock Ratio 4,
   Square on LFO 1: a chop that follows the clock, even a swung or manual one.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Quad LFO does. In the standalone app open **File → Presets…** (⌘P) and pick *Quad LFO* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Quad LFO does. In the standalone app open **File → Presets…** (⌘P) and pick *Quad LFO* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Quad LFO: Circular Pan** | *Quadrature* mode: *Out 1* and *Out 2* pan two lines in a circle (try the **XY** view) while *Out 3* and *Out 4* swell a pad. |
-| **Quad LFO: Polyrhythm Plucks** | *Divide* mode with falling saws at ÷1 ÷2 ÷3 ÷4 pluck the notes of a chord in a 4:3:2 pattern that lines up every twelve beats. |
-| **Quad LFO: Chord Breath** | *Phase* mode with *Spread* 90° passes one swell along the four voices of a chord, like a breath rolling up and down. |
-| **Quad LFO: Cycle Drums** | The *Cycle* outputs in *Divide* mode trigger kick, hats, clap and tom at different fractions of one rate: a slowly phasing drum pattern. |
-| **Quad LFO: Clock Chop** | A sequencer trigger patched into *Clock* with *Clock Ratio* 2 makes a square LFO chop a sustained chord on the grid while LFO 2 sweeps the filter. |
+| **Quad LFO: Circular Pan** | In Quadrature mode four sines run a quarter cycle apart. Out 1 and Out 2 pan two plucked lines in a slow circle around the listener while the other two outputs swell a pad. Switch the module's view to XY to see the circle, and change Rate 1 to spin it faster. |
+| **Quad LFO: Polyrhythm Plucks** | Divide mode runs four falling saws at x1, 1/2, 1/3 and 1/4 of one rate, each plucking a note of an A minor chord: a 4-against-3-against-2 pattern that only lines up every twelve beats. Change Divide 2-4 to remix the polyrhythm. |
+| **Quad LFO: Chord Breath** | Phase mode with Spread at 90 degrees lets four unipolar sines pass one swell along the voices of a major-seventh chord: the chord rolls up and down like a breath. Try Spread 0 (all together) or 180 (two pairs). |
+| **Quad LFO: Cycle Drums** | The Cycle outputs fire once per LFO cycle, and in Divide mode each LFO has its own fraction of the rate: kick every beat, hat every half beat, clap every third and a tom every fifth - a drum pattern that slowly phases. Change the Divide settings to rearrange it. |
+| **Quad LFO: Clock Chop** | A sequencer's step trigger is patched into Clock: LFO 1 runs one cycle per Clock Ratio pulses, here two, and a square wave chops a sustained saw chord on that grid while LFO 2 sweeps the filter. Change Clock Ratio or Pulse Width to change the rhythm of the chop. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Quad LFO view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Quadrature Sine** | Four sines 90 degrees apart: circular motion for panning or filters. |
+| **Slow Drift** | Four unrelated very slow sines: gentle, never-repeating drift. |
+| **Vibrato Pair** | Two close vibrato rates: use out1 and out2 on left and right pitch. |
+| **Wide Phase Spread** | One rate, four phases 120 degrees apart: wide stereo movement. |
+| **Triangle Cascade** | Closely staggered triangles for a rolling sweep across four targets. |
+| **Polyrhythm Divide** | Square waves divided from one rate: interlocking pulse patterns. |
+| **Synced Quarters** | Clock-locked divisions from fast to very slow, all in tempo. |
+| **Double Time Rise** | Tempo-synced rising ramps at related speeds. |
+| **Tremolo Square** | Hard on/off amplitude chop: patch out1 into a VCA. |
+| **Soft Tremolo** | Smooth classic tremolo depth for an amp. |
+| **Sample and Hold Steps** | Four random step streams at different speeds. |
+| **Random Glide** | Smooth random wandering on four outputs: organic pad motion. |
+| **Saw Pulse Mix** | Four different shapes at harmonic rates: use the sum for a complex contour. |
+| **Fast Audio-ish Wobble** | Very fast quadrature triangles for rough FM-style modulation. |
+| **Inverted Counter-Motion** | Opposed levels and phases: one rises while the other falls. |
+<!-- /generated -->
 
 ## Reference
 

@@ -57,17 +57,19 @@ time however far it jumps.
   melody or LFO into the input.
 - **Harmoniser:** Mode *Follow*, Target *Chord*, Steps 1 and 2 on B and C.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Quantizer Suite does. In the standalone app open **File → Presets…** (⌘P) and pick *Quantizer Suite* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Quantizer Suite does. In the standalone app open **File → Presets…** (⌘P) and pick *Quantizer Suite* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Quantizer Suite: Pentatonic Mask** | The note mask keeps five notes of D major, so a random line always sounds right; channel B plays the same notes an octave down. |
-| **Quantizer Suite: Four-voice Harmony** | One melody into *In A*; Transpose *Steps* 2, 4 and 7 on B, C and D make a moving four-part chord. |
-| **Quantizer Suite: Arp Machine** | Channels A and B in Arp *Mode*: a seventh chord played Up-Down over two octaves and a shuffled triad. |
-| **Quantizer Suite: Chord Followers** | Follow *Mode* on a Harmony Master bus: *Target* Chord for a lead and a harmony voice, Root for a bass line. |
-| **Quantizer Suite: Gliding Lines** | Track & Hold *Sample* with *Slew* turns a smooth random curve into two sliding F Lydian lines. |
+| **Quantizer Suite: Pentatonic Mask** | A stepped Random would wander through every note; the Quantizer Suite's note mask keeps only the five pentatonic notes of D major, so any value lands somewhere beautiful. Channel B quantizes the same notes an octave down for a bass. Click notes on and off on the keyboard in the view. |
+| **Quantizer Suite: Four-voice Harmony** | One E Dorian melody goes into In A only; the unpatched inputs inherit it, and channels B, C and D transpose it by 2, 4 and 7 scale steps, so a single line turns into a moving four-part chord. Change the Steps knobs to reshape the harmony. |
+| **Quantizer Suite: Arp Machine** | Channels A and B in Arp mode build a seventh chord and a random triad on each slow root and play them as sixteenth-note arpeggios, one up and down over two octaves, one shuffled an octave higher. Try another Order or Chord, or Span 3. |
+| **Quantizer Suite: Chord Followers** | Four channels follow a Harmony Master on bus A. A random contour is snapped to the nearest chord tone for a lead, a second channel adds the chord tone two steps above, and a third in Root mode makes a bass line from the same contour. Change a channel's Target to Scale or Chord + Scale. |
+| **Quantizer Suite: Gliding Lines** | A smooth random curve is quantized to F Lydian and held by Track & Hold, with Slew gliding between the notes; channel B follows a fifth up (Steps +4) with a longer slew. Two singing lines that slide from note to note. Raise a Slew knob for slower glides. |
+<!-- /generated -->
 
 ## Reference
 

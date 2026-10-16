@@ -263,7 +263,7 @@ class UserTokenCreated(UserTokenOut):
 # --- Presets -----------------------------------------------------------------------------------------------------
 
 PresetType = Literal["patch", "cell"]
-PRESET_LICENSES = ("CC-BY-4.0", "CC0-1.0")
+PRESET_LICENSE = "CC-BY-4.0"   # every shared preset: others may copy and change it if they credit the author
 
 
 class PresetIn(BaseModel):
@@ -272,7 +272,7 @@ class PresetIn(BaseModel):
     type: PresetType
     slug: str | None = Field(default=None, max_length=64, pattern=r"^[a-z0-9][a-z0-9-]*$")  # default: from the title; an existing one makes a new version
     tags: list[str] = Field(default_factory=list, max_length=10)
-    license: Literal["CC-BY-4.0", "CC0-1.0"] = "CC-BY-4.0"
+    license: Literal["CC-BY-4.0"] = PRESET_LICENSE   # the only choice; kept so a client can still say it
     preset: dict
 
     @field_validator("title")
@@ -328,7 +328,21 @@ class PresetOut(BaseModel):
     updated_at: datetime
     rating_average: float | None
     rating_count: int
+    used_in: int = 0                  # listed presets that name this one in their credits
     versions: list[PresetVersionOut] | None = None  # only in the detail
+
+
+class PresetUsedOut(BaseModel):
+    address: str
+    author_name: str
+    title: str
+    type: str
+    updated_at: datetime
+
+
+class PresetUsedInOut(BaseModel):
+    count: int
+    items: list[PresetUsedOut]
 
 
 class PresetListOut(BaseModel):

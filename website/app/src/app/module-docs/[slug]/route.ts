@@ -10,6 +10,7 @@ export function generateStaticParams() {
 export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const m = modules().find((x) => x.slug === slug);
-  const html = m ? (moduleDoc(m)?.html ?? "") : "";
+  // The generated demo and preset sections of the manual are left out: the library's detail view shows them as cards with Run in Play.
+  const html = (m ? (moduleDoc(m)?.html ?? "") : "").replace(/<!-- generated:(?:demos|presets) -->[\s\S]*?<!-- \/generated -->/g, "");
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
 }

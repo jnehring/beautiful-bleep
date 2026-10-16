@@ -55,6 +55,7 @@ app = FastAPI(title="Beautiful Bleep API", lifespan=lifespan, docs_url=None, red
 MAX_BODY = 1024 * 1024  # JSON bodies (presets are capped at 512 KB inside, the rest is far smaller)
 MAX_IMAGE_BODY = 2 * 1024 * 1024
 MAX_PROJECT_BODY = 3 * 1024 * 1024  # a project may be 4 x the preset size (routers/projects.py: 2 MiB) plus the JSON envelope
+MAX_PRESET_BODY = 8 * 1024 * 1024  # a preset: its patch (512 KB) and up to 5 MB of audio as base64 (routers/presets.py: clean_media)
 MAX_UPLOAD = 1024 * 1024 * 1024 + 1024 * 1024  # store files: the registry's own limit (MAX_FILE_BYTES) plus a little
 
 
@@ -66,6 +67,8 @@ def body_limit(path: str) -> int:
             return MAX_IMAGE_BODY
     if path.startswith("/api/projects"):
         return MAX_PROJECT_BODY
+    if path.startswith("/api/presets"):
+        return MAX_PRESET_BODY
     return MAX_BODY
 
 

@@ -82,17 +82,43 @@ render from the same position is always identical.
 - **One sweep per note:** Mode Triggered, a note's trigger into *Trigger*,
   *Pitch* from the keyboard: each note sweeps from its own key.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Sweep Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Sweep Generator* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Sweep Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Sweep Generator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Sweep Generator: Four-Bar Riser** | A *Ramp Up* sweep from *Start* 100 Hz to *Stop* 8 kHz over four bars (*Sweep Sync*) opens a filter, and *End* fires a crash. |
-| **Sweep Generator: Lab Sirens** | Two *Up-Down* sweeps of different *Sweep Time* wail left and right; *Law* Lin against Log changes the feel. |
-| **Sweep Generator: Climbing Bursts** | *Burst* mode plays *Burst Count* cycles at the frequency the slow sweep has reached for each sequencer step. |
-| **Sweep Generator: Marker Drums** | Three sweeps each fire *Marker* when they cross a set frequency and play a kick, a snare and a hat: a drifting polyrhythm. |
-| **Sweep Generator: Laser Plucks** | *Triggered* mode with a falling sweep makes a zap per note, and *Pitch* from the sequencer moves the sweep. |
+| **Sweep Generator: Four-Bar Riser** | A ramp wave sweeps from 100 Hz to 8 kHz in exactly four bars, locked to the song, through a low-pass that opens with it, and End fires a noise crash as it flies back. Change Start, Stop, Law or Sweep Sync to reshape the build. |
+| **Sweep Generator: Lab Sirens** | Two Up-Down triangle sweeps of different lengths, panned apart, wail over a slow bass and drift in and out of phase. Try Law Log for an even siren, Waveform Pulse for a harsher one, or a shorter Sweep Time. |
+| **Sweep Generator: Climbing Bursts** | In Burst mode the sweep climbs slowly in silence, and each step of a sequencer plays a short tone burst at whatever frequency it has reached. Over eight bars they rise from 200 Hz to 4 kHz, like a stepped frequency measurement. Try Burst Count or a different Waveform. |
+| **Sweep Generator: Marker Drums** | Three Sweep Generators of different lengths (one bar, two bars, half a note) each fire a Marker when their Up-Down sweep crosses a set frequency, striking a kick, a snare and a hat: the sweeps play a drifting polyrhythm. Change a Marker frequency or Sweep Sync to move the hits. |
+| **Sweep Generator: Laser Plucks** | Triggered mode with a falling sweep: each note of the sequencer fires one fast zap from high to low, and the note's pitch (the Pitch input) shifts where the sweep starts and ends. Lengthen Sweep Time for slower sirens, or switch Law to Lin. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Sweep Generator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Up Sweep** | A repeating four-second sine rise. |
+| **Riser 4 Bars** | Tempo-locked rise over four bars. |
+| **Falling Zap** | Short falling zap on every trigger. |
+| **Siren** | Up-down sweep: an emergency siren. |
+| **Square Siren** | Harder, buzzier siren. |
+| **Laser** | Very quick falling saw: classic laser shot. |
+| **Noise Whoosh LFO** | Sub-audio sweep: use Out as an LFO that accelerates. |
+| **Linear Rush** | Linear law rushes through the bass and lingers up high. |
+| **Tone Bursts** | Each trigger plays four cycles at the current sweep position. |
+| **Pulse Riser** | Narrow pulse rising: thin, urgent sound. |
+| **Gated Climb** | Climbs only while the gate is held. |
+| **Marker Scan** | Sine sweep that fires a trigger at three frequencies. |
+| **Glide Retrace** | Audible flyback after each sweep, like a bench sweeper. |
+| **Wobbly Bench** | Strong drift: an unstable old function generator. |
+| **Deep Fall** | Long sub drop for impacts. |
+<!-- /generated -->
 
 ## Reference
 

@@ -91,17 +91,41 @@ for a filter, a wavefold amount, a pan — a second melody for anything.
 - **Chaining:** *Row End* and *Grid End* make good clocks or resets for other
   modules; *X Pos* and *Y Pos* are handy modulation sources.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Cartesian Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Cartesian Seq* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Cartesian Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Cartesian Seq* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Cartesian Seq: Lattice Pluck** | A 4 × 3 corner of the grid in F Lydian: *X Rate* 1/16 and *Y Rate* Wrap turn a twelve-step figure against the bar. |
-| **Cartesian Seq: Bass Raster** | Eight columns by two rows of bass; each cell's *Mod* value opens the filter, and a beat plays underneath. |
-| **Cartesian Seq: Crosshair Drift** | *Mode* Cartesian: two slow LFOs on *X* and *Y* steer the crosshair over a full 8 × 8 grid, with *Sample* set to Change. |
-| **Cartesian Seq: Two Clocks** | Independent *X Rate* and *Y Rate* with *X Direction* Ping-Pong; *Row End* and *Grid End* play a hat and a kick. |
-| **Cartesian Seq: Random Walk Arp** | Random *X Direction* and *Y Direction* with a fixed *Seed* hop around the grid in Hirajoshi. |
+| **Cartesian Seq: Lattice Pluck** | A 4 × 3 corner of the grid in F Lydian: X runs every 16th, Y steps down a row at the end of each pass, so a twelve-step figure of bright broken chords turns against the bar. Change Columns, Rows or a cell's pitch and the figure follows. |
+| **Cartesian Seq: Bass Raster** | Eight columns by two rows of E minor bass under a four-on-the-floor beat. The Mod value of every cell opens the filter, so each row has its own brightness: edit the Mod column of a cell to change the accent. |
+| **Cartesian Seq: Crosshair Drift** | Cartesian mode: no clocks, two slow LFOs steer the crosshair across a full 8 × 8 grid of minor pentatonic notes, and a note sounds whenever the crosshair enters a new cell. Move X and Y by hand or change the LFO rates to wander faster or slower. |
+| **Cartesian Seq: Two Clocks** | X moves back and forth across five columns on the 8ths while Y steps a row every dotted quarter: the marimba line takes ages to repeat and never lines up with the beat. Row End ticks a hat and Grid End thumps a kick; try other Y Rate values. |
+| **Cartesian Seq: Random Walk Arp** | Both playheads move at random, so the Hirajoshi arpeggio hops around the grid in a fixed but never-obvious order (the Seed decides it). Mod swings the filter and a slow LFO lifts the whole cutoff; change Seed or the directions to deal a new tune. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Cartesian Seq view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Four by Four** | A 4 x 4 grid read left to right, row by row. |
+| **Eight by Eight** | The full grid: sixty-four steps of melody. |
+| **Single Row** | Just one row: a plain eight-step sequence. |
+| **Slow Rows** | X steps fast, Y creeps slowly: rows change every half note. |
+| **Backward Walk** | Both playheads run in reverse. |
+| **Ping-Pong Grid** | Both playheads bounce back and forth. |
+| **Random Walk** | Playheads jump about at random: a shuffled melody. |
+| **Polymetric 5x3** | Two clocks at the same rate on uneven sizes: patterns drift. |
+| **Swung Grid** | A swung four by four. |
+| **Triplet Grid** | Triplet steps across six columns. |
+| **Manual Cartesian** | Pick notes with X and Y: modulate them with LFOs. |
+| **Smooth Mod Walk** | X/Y control with a slewed mod output for a smooth line. |
+| **Low Drone Grid** | A slow, held low-octave pattern. |
+<!-- /generated -->
 
 ## Reference
 

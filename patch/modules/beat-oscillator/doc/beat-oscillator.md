@@ -101,17 +101,42 @@ Far out it spins and blurs into a ring.
 - **Melodic beat:** a sequencer into *Pitch* transposes the beat tone by octaves,
   and *Beat* (the output) gives back its pitch for a second oscillator.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Beat Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Beat Oscillator* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Beat Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Beat Oscillator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Beat Oscillator: Heterodyne Theremin** | A slow LFO sweeps *Beat* from a pulse to a whistle between two 10 kHz *Carrier*s; try the *Mixer* setting and *Drift*. |
-| **Beat Oscillator: Lurching Thump** | *Pull* at 50 % and *Beat* just past the lock edge make single sub-bass blips that bunch up and stall as *Drift* moves the pair. |
-| **Beat Oscillator: Locked Melody** | The *Lock* output gates a melody; a wobble on *Detune* drives the carriers in and out of lock. |
-| **Beat Oscillator: Warm-up Whistle** | Low *Carrier*s with *Detector* open whistle on top of the beat, and *Warm-up* slides both into tune; *Mixer* Overdriven makes a triangle beat. |
-| **Beat Oscillator: Beat Follower** | A sequencer on *Pitch* plays the beat tone, and the *Beat* output steers a second oscillator that follows the melody. |
+| **Beat Oscillator: Heterodyne Theremin** | Two 10 kHz carriers beat against each other; a slow LFO sweeps Beat from a pulse to a whistle and back, and the detector plucks only the difference tone. Try the Mixer setting (Diode or Overdriven) for a buzzier beat, or raise Drift. |
+| **Beat Oscillator: Lurching Thump** | With Pull up, the two carriers hold each other near lock, so the beat does not run steadily: it lurches in single sub-bass blips that bunch up and stall as Drift pushes the pair across the lock edge. Try nudging Beat or Drift. |
+| **Beat Oscillator: Locked Melody** | The Lock output is a gate: it goes high whenever the carriers pull into step. A slow wobble on Detune drives the pair in and out of lock, and a melody is only allowed to play while it is locked. Change Pull or Detune Range to change how often it happens. |
+| **Beat Oscillator: Warm-up Whistle** | Low carriers with the Detector opened let the sum tone whistle on top of the beat, and Warm-up makes both start flat and slide into tune while the transport runs. The Overdriven mixer turns the beat into a soft triangle. Try Detector at 0 to hear the whistle vanish. |
+| **Beat Oscillator: Beat Follower** | A sequencer drives Pitch, transposing both carriers so the difference tone plays the tune. The Beat output measures that tone and feeds an oscillator an octave up, so a second voice follows the heterodyne melody. Try Mixer Diode for more bite. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Beat Oscillator view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Lab Tone** | Classic heterodyne sine around 260 Hz, slightly alive. |
+| **Pure Low** | A steady, drift-free low sine tone, good for sub and tests. |
+| **Bright Whistle** | High beat tone around 1.2 kHz, thin and whistly. |
+| **Diode Buzz** | Brighter, buzzy beat from a diode mixer: a reedy lead. |
+| **Overdriven Triangle** | Squared-off carriers give a triangle-like beat with a little leak. |
+| **Slow Tremolo** | Beat of a few hertz: the tone swells and fades like a tremolo. |
+| **Slow Pulse** | Sub-audio beat of about one hertz; use as a smooth LFO. |
+| **Wandering Zero** | Near zero beat with strong drift: the pitch lurches unpredictably. |
+| **Locking Stutter** | Coupled carriers try to lock: uneven blips between near-silences. |
+| **Hard Lock** | Strong coupling: the beat vanishes and returns as drift moves across the lock edge. |
+| **Open Detector** | Opening the detector lets the sum tone whistle through above the beat. |
+| **Cold Valve** | Starts flat and glides into tune like a cold instrument. |
+| **Hand Capacity** | Wide Detune range: patch a slow control to it for theremin-like hand moves. |
+| **FM Siren** | Mid-high buzzing beat to patch an LFO into FM for sirens. |
+<!-- /generated -->
 
 ## Reference
 

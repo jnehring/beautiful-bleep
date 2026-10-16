@@ -73,17 +73,19 @@ over. Every hit is also a note at the voice's note number, ending after
 - The lanes show what plays right now: level bars, a threshold line per voice
   and the hits (accents bolder).
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Drum Map does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Map* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Drum Map does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Map* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Drum Map: Straight Four** | The straight corner of the map: kick on every beat, backbeat snare and eighth hats; move *X* and *Y* or the *Density* knobs. |
-| **Drum Map: Wandering Groove** | A slow LFO on *X* and a Random on *Y* walk the beat over the whole map, with *Chaos* adding ghost notes. |
-| **Drum Map: Fill Every Four** | A square LFO on the *Fill* gate adds *Fill Amount* to every density for one bar in four. |
-| **Drum Map: Half-Time Dub** | *Rate* 1/8 stretches the map into a sparse half-time beat; the snare and hats feed a delay through the mixer sends. |
-| **Drum Map: Chaos Shuffle** | *Rate* 1/16T, *Swing* and *Chaos* at 60 % make a rolling shuffle whose ghost notes change every bar. |
+| **Drum Map: Straight Four** | In the straight corner of the map (low X, low Y) the Drum Map plays a steady kick on every beat, a backbeat snare and eighth-note hats, under a pulsing bass. Move X toward broken or Y toward busy, or turn the Density knobs to thin and fill each drum. |
+| **Drum Map: Wandering Groove** | A slow LFO on X and a seeded Random on Y make the beat travel the whole map, from straight to broken and from sparse to busy, with Chaos adding ghost notes that come back identically every time. Try replacing the LFO with your own X and Y moves. |
+| **Drum Map: Fill Every Four** | A square LFO pulses the Fill gate for one bar in every four, adding Fill Amount to every Density so extra kicks, snares and sixteenth hats appear before the loop turns round. Raise Fill Amount for bigger fills, or make the LFO faster for constant fills. |
+| **Drum Map: Half-Time Dub** | Rate 1/8 stretches the two-bar map to four bars and X sits at the half-time edge: a sparse kick, a heavy snare on beat 3 and a few hats. The snare and hats feed a long delay through the mixer sends. Try Swing and Chaos for a looser feel. |
+| **Drum Map: Chaos Shuffle** | Rate 1/16T and a high Swing give a rolling shuffle, and Chaos at 60 % with a fresh nudge every bar keeps adding and dropping ghost notes around the steady backbone. Turn Chaos down for a rigid groove or set Chaos Rate to Frozen to fix one version. |
+<!-- /generated -->
 
 ## Reference
 

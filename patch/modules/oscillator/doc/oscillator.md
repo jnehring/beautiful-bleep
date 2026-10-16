@@ -54,6 +54,30 @@ resets the phase to the start of a cycle.
   ±2 semitones set the cable amount to 2/12 ≈ 17 %.
 - **Weight:** mix *Sub* in under *Out* for bass.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Oscillator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Bright Saw** | The classic sawtooth: a rich, bright starting point for any filter. |
+| **Pure Sine** | A clean sine for sub bass, tones and as an FM carrier. |
+| **Soft Triangle** | Mellow triangle with only odd, quiet harmonics. |
+| **Hollow Square** | A 50 % square: woody, clarinet-like and hollow. |
+| **Reedy Pulse** | A narrower pulse with a nasal, reed-like colour. |
+| **Thin Pulse** | Very narrow pulse: thin and buzzy, great for chiptune leads. |
+| **Sub Sine** | Two octaves down sine for deep, clean sub bass. |
+| **Fat Bass Saw** | A saw an octave down, slightly flat: pair it with a second oscillator. |
+| **Sine To Saw** | Half-way between triangle and saw: a soft, round buzz; sweep Shape with an LFO. |
+| **Octave Lead** | A bright saw-to-square blend one octave up for cutting leads. |
+| **Detuned Fifth** | Saw set a fifth up and slightly sharp: layer it with a root oscillator. |
+| **Gentle FM** | A sine with the FM input open: patch a modulator in for bell tones. |
+| **Strong FM** | Deep through-zero FM for metallic, clangorous timbres. |
+| **Sync Sweep Base** | Saw for hard sync: patch a gate or a faster oscillator into Sync and sweep Coarse. |
+| **Low Rumble** | Very low pulse: use as a drone, or slow rhythmic modulation. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

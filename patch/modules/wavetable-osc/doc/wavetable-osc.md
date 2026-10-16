@@ -109,6 +109,45 @@ Five whole boards show what Wavetable Osc does. In the standalone app open **Fil
 | **Wavetable Osc: Warp Bass** | *Warp* in *Sync* mode opened by an envelope on each note, plus *Sub Level* for weight. |
 | **Wavetable Osc: Spiral Crawl** | *Scan* crawls the *Spiral* path in the *Spectra* bank while the *X* position output opens a filter. |
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Wavetable Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Wavetable Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Wavetable Osc: Morphing Pad** | A slow triangle LFO on Scan walks the Analog bank along the Snake path, smoothly blending one cycle into the next, with a little Stereo spread. Try another Bank or Path, or switch Frame Blend to Step for stair-stepped changes. |
+| **Wavetable Osc: Vowel Talker** | The Vowel bank with X and Y pushed around by two random generators, so a short tune seems to speak in changing vowels. Set X and Y by hand to pick a single vowel, or lock the Random Loop for a repeating phrase. |
+| **Wavetable Osc: Bell Garden** | Struck notes from the Bell bank with Y moved by the note envelope: each bell starts bright and metallic and fades toward a plain tone. Try a different X position for other bell colours. |
+| **Wavetable Osc: Warp Bass** | A Digital bank bass with Warp in Sync mode, opened on every note by an envelope for a tearing, vocal attack that settles into a solid tone, plus a Sub for weight. Try other Warp Modes such as Mirror or Squash. |
+| **Wavetable Osc: Spiral Crawl** | A repeating arpeggio in the Spectra bank while Scan crawls along the Spiral path from the middle outward; the X and Y position outputs open a filter, so the table's movement shapes the whole sound. Try Columns or Diagonal paths. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Wavetable Osc view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Analog Saw** | A bright analog saw from the first bank. |
+| **Soft Sine Tri** | A round sine-to-triangle blend with a little sub. |
+| **Analog Sweep** | Scan the path across the shapes: modulate Scan for a sweeping tone. |
+| **Warm Organ** | A drawbar-style registration with light stereo width. |
+| **Vowel Voice** | A sung vowel: sweep X to change a-e-i-o-u. |
+| **Harmonic Glass** | Odd harmonics around a spectral centre: glassy and pure. |
+| **Pulse Width** | A pulse table: move X to change the width. |
+| **Sync Sweep** | Synced saw ratios inside the table: sweep X for a classic sync lead. |
+| **FM Table** | Stored FM spectra: X is index, Y is ratio. |
+| **Folded Wave** | Wavefolded cycles: bright, moving harmonics. |
+| **Bell Table** | Stretched partials: a glassy, bell-like tone. |
+| **Spectra Cloud** | Random seeded spectra with wide stereo: a textural pad. |
+| **Bent Analog** | Warp bends the cycle: a brighter, resonant tone. |
+| **Squashed PWM** | Squash gives pulse-width movement to any wave; modulate Warp. |
+| **Mirror Fold** | A mirrored read: a new even/odd balance. |
+| **Digital Crush** | Bit-reduced stepped cycles: lo-fi and gritty. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

@@ -2,7 +2,7 @@
 // bleep-markdown.js — renders the modules' documentation (modules/<name>/doc/<type>.md).
 // A small Markdown subset, enough for the docs: headings, paragraphs, lists,
 // tables, code (fenced or indented), **bold**, *italic*, `code`, links and
-// images. Images and other files sit next to the .md and are referenced by
+// images; a comment on a line of its own is dropped. Images and other files sit next to the .md and are referenced by
 // file name; the board serves every doc folder flat.
 //
 //   BleepMarkdown.render(text) → HTML string
@@ -45,12 +45,14 @@
     const out = [];
     let i = 0;
     const blank = (l) => !l.trim();
-    const startsBlock = (l) => /^(#{1,6}\s|```|\s*[-*]\s|\s*\d+\.\s|\|)/.test(l) || /^ {4}/.test(l);
+    const startsBlock = (l) => /^(#{1,6}\s|```|\s*[-*]\s|\s*\d+\.\s|\|)/.test(l) || /^ {4}/.test(l) || /^\s*<!--.*-->\s*$/.test(l);
     while (i < lines.length) {
       const line = lines[i];
       if (blank(line)) { i++; continue; }
       let m;
-      if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
+      if (/^\s*<!--.*-->\s*$/.test(line)) {   // a comment on its own line (the markers of generated sections): not shown
+        i++;
+      } else if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
         out.push(`<h${m[1].length}>${inline(m[2].trim())}</h${m[1].length}>`);
         i++;
       } else if (/^```/.test(line)) {

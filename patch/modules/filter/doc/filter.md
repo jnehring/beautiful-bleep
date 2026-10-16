@@ -138,6 +138,31 @@ it shows the quiet-signal (linear) response.
 - **Sidechain-style movement:** patch *Env* onto another module, e.g. a pad's
   cutoff or a VCA's gain with a negative amount, so it reacts to this signal.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Filter view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Warm Low-Pass** | Gentle, round low-pass for taking the fizz off a saw. |
+| **Dark Room** | A soft 6 dB slope that darkens everything without a peak. |
+| **Ladder Bass** | Fat ladder low-pass with some bite from the resonance. |
+| **Acid Squelch** | Screaming diode ladder: sweep the cutoff and add an envelope. |
+| **Self-Oscillating Ladder** | Resonance at the top makes the ladder ring as a sine; play it with Key Track. |
+| **Telephone** | Narrow band-pass: a thin, nasal voice. |
+| **Thin Air** | High-pass that leaves just the sparkle. |
+| **Rumble Cut** | Clears out the sub-bass below 90 Hz. |
+| **Notch Sweep** | A notch you can sweep for a hollow, phasing colour. |
+| **Vocal Peak** | A resonant peak with the lows and highs still intact. |
+| **Presence Boost** | Lifts the upper mids by 6 dB. |
+| **Bass Shelf** | Adds weight under 200 Hz. |
+| **Air Shelf** | A little air on top. |
+| **Slow Phaser** | Notches that sound best when you modulate the cutoff with an LFO. |
+| **Jet Flanger** | Comb filtering: sweep the cutoff slowly for a jet sound. |
+| **Gritty Drive** | Overdriven, saturating state-variable filter. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

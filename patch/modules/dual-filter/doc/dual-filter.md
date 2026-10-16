@@ -78,17 +78,41 @@ drag a marker up or down for that filter's resonance.
   low-passes through band-pass to two notches.
 - **Separate processing:** take *F1 Out* and *F2 Out* to different effects.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Dual Filter does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Filter* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Dual Filter does. In the standalone app open **File → Presets…** (⌘P) and pick *Dual Filter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Dual Filter: Vowel Pad** | Parallel band-passes with high *Res 1* and *Res 2* form a vowel pair; a slow LFO on *Spread* slides between vowels. |
-| **Dual Filter: Wide Band Bass** | *Serial* with *Mode 1* high-pass and *Mode 2* low-pass makes a band: *Cutoff* places it, *Spread* widens it, *Drive* with *Saturating* adds growl. |
-| **Dual Filter: Stereo Breath** | *Routing* on Stereo with a mono source: *Spread* places the left and right cutoffs apart, and an LFO makes the image breathe. |
-| **Dual Filter: Notch Sweep** | *Parallel (F2 inverted)* turns two band-passes into a steep notch that sweeps through a riff over a beat. |
-| **Dual Filter: Mirror Morph** | *Link* on Mirror and an LFO on *Mode 1* morph both filters from low-pass through band-pass to notch, with *Character* Saturating. |
+| **Dual Filter: Vowel Pad** | A saw pad runs through two band-pass filters in parallel, a formant pair that a slow LFO on Spread slides between vowels. Try Res 1 and Res 2 for a sharper or breathier voice. |
+| **Dual Filter: Wide Band Bass** | A growly saw bass in Serial with a high-pass on filter 1 and a low-pass on filter 2: a band whose width is Spread and whose position is Cutoff. A beat keeps time; try Spread and Drive. |
+| **Dual Filter: Stereo Breath** | One mono arpeggio goes in on the left; in Stereo routing each filter takes a channel and Spread places their cutoffs apart, so an LFO on Spread makes the image breathe left and right. Change Resonance for more ring. |
+| **Dual Filter: Notch Sweep** | Parallel with the second filter inverted turns two band-passes into a steep notch. It sweeps through a bright saw riff over a beat; Spread widens the hole in the sound. |
+| **Dual Filter: Mirror Morph** | With Link on Mirror, one slow LFO on Mode 1 morphs the pair from two low-passes through band-pass to two notches, mirrored on the other filter, while Saturating Character adds bite. Sweep Mode 1 and Mode 2 by hand. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Dual Filter view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Warm Serial LP** | Two low-passes in a row: a steep, smooth roll-off. |
+| **Wide Band-Pass** | High-pass into low-pass: an adjustable band you widen with Spread. |
+| **Formant Pair** | Two resonant band-passes side by side, like vowel formants. |
+| **Vowel Sweep** | Sweep Cutoff with an LFO for a talking vowel movement. |
+| **Stereo Split** | Left and right get different cutoffs for a wide, shifting image. |
+| **Phase Notch** | Inverted parallel sum: moving, hollow notches. |
+| **Dark Pad Filter** | Closed, soft low-pass to tuck a pad behind a mix. |
+| **Thin Radio** | Lo-fi band-limited voice. |
+| **Mirror Morph** | Linked modes move opposite ways: sweep Mode 1 to morph. |
+| **Resonant Bass** | Round, resonant low end with a bit of drive. |
+| **Acid Twin** | Squelchy two-stage low-pass; envelope on Cutoff. |
+| **Crossed Filters** | Negative spread swaps the filters: low-pass above, high-pass below. |
+| **Ringing Pair** | Highly resonant pings: pluck or noise input rings like a bell. |
+<!-- /generated -->
 
 ## Reference
 

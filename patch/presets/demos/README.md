@@ -30,7 +30,8 @@ ctest --test-dir build/light -R demo-patches                           # every d
 - Build with [`../kit.mjs`](../kit.mjs) (`patch(name, {module, tempo, description, tags})`, `p.add`, `p.cable`,
   `p.stereo`, `p.out`, `p.midi`) and the shared sources in [`../demo-kit.mjs`](../demo-kit.mjs) (`melody`, `beat`).
   Values are in units, as for the cell presets ([`../README.md`](../README.md)).
-- Document the five in the module's `doc/<type>.md` under *Demo patches*, between *How to use it?* and
-  *Reference*.
+- The module's manual (`doc/<type>.md`) lists the five under *Demo patches* and the website shows them as cards with
+  *Run in Play*. Both are generated from this folder: after changing a demo run `node patch/presets/build.mjs` and
+  `node patch/presets/build-docs.mjs` (`--check` in CI); never edit the section between the `generated` markers.
 
 Not covered: **Sampler** plays a WAV file the user loads, and a patch can't ship one, so it has no demos.

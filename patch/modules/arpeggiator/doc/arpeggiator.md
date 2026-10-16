@@ -52,6 +52,30 @@ on; the pattern keeps its place.
 - **Generative lines:** *Random* plus a clock from a Pulse Generator or a
   Rotating Divider.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Arpeggiator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Classic Up** | Held notes climb in sixteenths: the standard arpeggio. |
+| **Down Run** | Falls from the top note down across two octaves. |
+| **Up-Down Two Octaves** | Climbs and falls over two octaves without repeating the end notes. |
+| **Up and Down Repeat** | Climbs and falls, repeating the top and bottom notes. |
+| **Played Order** | Plays notes in the order you pressed them. |
+| **Staccato Pluck** | Very short gates for plucked, bouncy arpeggios. |
+| **Legato Flow** | Notes join up across three octaves: a smooth, flowing line. |
+| **Swung Sixteenths** | Shuffled sixteenths for a groovy house-style arp. |
+| **Triplet Gallop** | Eighth-note triplets that gallop upward. |
+| **Converge** | Alternates from the outside in, meeting in the middle. |
+| **Diverge** | Starts at the middle and spreads outward. |
+| **Random Sparkle** | Random notes over four octaves: glittery and unpredictable. |
+| **Latched Pad Arp** | Latch keeps the arp going after you let go. |
+| **Fast Trance** | Thirty-second notes over three octaves for a fast trance run. |
+| **Slow Quarter Walk** | A slow, spacious quarter-note walk down and up. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

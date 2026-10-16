@@ -65,17 +65,43 @@ other (*Strum Order* Up: bass first), spread over the *Strum* time.
 - **Gated chords:** patch a gate into *Gate*: notes sound only while it is
   high.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Chord Quantizer does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Quantizer* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Chord Quantizer does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Quantizer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Chord Quantizer: Smooth Pad** | *Voice Leading* on Smooth + Top and *Voicing* Spread turn a bar-long note sequence into a flowing A minor pad. |
-| **Chord Quantizer: Strummed Dorian** | *Strum* rolls open-voiced ninth chords across the four voices, with a dotted echo. |
-| **Chord Quantizer: Offbeat Stabs** | Chromatic *Mode* with *Chord* Minor 7 and a Drop 2 voicing for syncopated stabs; *Root* feeds a sine bass. |
-| **Chord Quantizer: Follow the Changes** | *Mode* Follow takes the chord from a Harmony Master progression; an LFO into *Pitch* moves the register. |
-| **Chord Quantizer: Whole-tone Pulse** | A Random walks *Pitch* through a Whole Tone scale, so every chord is augmented; an LFO gate pulses them in eighths. |
+| **Chord Quantizer: Smooth Pad** | A bar-long sequence of single notes becomes a lush A minor pad. Voice Leading on Smooth + Top picks the inversion that moves least, so the top voice glides and the chords flow instead of jumping. Try Voice Leading Off to hear the raw jumps, or Voicing Close. |
+| **Chord Quantizer: Strummed Dorian** | Plucked quarter notes in D Dorian each become an open-voiced ninth chord that is strummed across the four voices instead of arriving at once, with an echo behind it. Turn Strum up for a lazier roll, or change Strum Order to Down. |
+| **Chord Quantizer: Offbeat Stabs** | Syncopated single notes turn into short minor-seventh stabs over a root-note bass, on a broken beat. In Chromatic mode the Chord knob picks the quality: try Dominant 7, Minor add9 or Sus4, and raise Inversion for a higher voicing. |
+| **Chord Quantizer: Follow the Changes** | Mode Follow: the chord is whatever the Harmony Master's progression says (A minor 7, F, C, G), voiced as a drop-2 pad with a root bass below. A slow LFO into Pitch lifts and drops the register. Change Voicing or Anchor in the module's view. |
+| **Chord Quantizer: Whole-tone Pulse** | A wandering Random feeds Pitch; in a whole-tone scale every triad is an augmented chord, so the harmony floats without a home. An LFO gates the chords as eighth-note pulses. Switch Scale to Hirajoshi or Blues in the view for a different colour. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Chord Quantizer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Major Triads** | Plain major triads on whatever root comes in. |
+| **Minor Seventh Stabs** | Minor sevenths in Drop 2 voicing: warm, jazzy stabs. |
+| **Dominant Seventh** | Bluesy dominant chords, first inversion. |
+| **Diatonic Triads** | Triads that follow the key: major, minor and diminished as the scale dictates. |
+| **Diatonic Sevenths** | Seventh chords built from A natural minor. |
+| **Smooth Pad** | Voice leading with a wide spread for a flowing pad. |
+| **Dorian Ninths** | Open ninth chords in Dorian, gently strummed. |
+| **Suspended Air** | Unresolved sus4 chords that glide between roots. |
+| **Quartal Voicing** | Stacked fourths: modern, open and unresolved. |
+| **Power Fifths** | Two-note fifths for heavy, simple riffs. |
+| **Slow Harp Strum** | A wide strum rolling the chord upward like a harp. |
+| **Downward Strum** | Minor ninths strummed from the top down. |
+| **Whole-Tone Augmented** | Every chord is augmented: ambiguous and shimmering. |
+| **Top Voice Anchor** | Keeps the top voice near the melody while the chords change underneath. |
+| **Follow the Key** | Takes the chord from a Harmony Master (set Harmony to its bus). |
+<!-- /generated -->
 
 ## Reference
 

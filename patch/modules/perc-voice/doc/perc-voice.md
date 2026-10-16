@@ -76,17 +76,43 @@ instead). *Choke* fades everything out in 5 ms.
 The *Pitch* input adds octaves to the *Pitch* knob (1 V/oct). It is read at
 each hit unless *Track* is on.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Perc Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Perc Voice* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Perc Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Perc Voice* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Perc Voice: FM Kit** | Three voices make a kit: an *FM* kick with a long *Sweep*, a clicky snap and a *Noise Bank* hat. |
-| **Perc Voice: Tuned Toms** | With *Track* on, a sequencer's pitch tunes the *Modal* engine: a melody played on toms. |
-| **Perc Voice: Metal Bells** | High *Tone* and the *FM* engine make long inharmonic bells; try *Morph* and *Spread*. |
-| **Perc Voice: Noise Bank Shakers** | *Noise Bank* shakers and ticks with random accents on the *Accent* input. |
-| **Perc Voice: Tone Sweep** | One voice, one rhythm: LFOs walk *Tone* and *Morph* from sine to membrane, bar and metal. |
+| **Perc Voice: FM Kit** | Three Perc Voices make a whole kit: an FM kick with a long Sweep, a snappy mid voice with plenty of Click, and a hat from the Noise Bank engine. Change a voice's Tone or Decay to move between boom, tom and metal. |
+| **Perc Voice: Tuned Toms** | With Track on, the sequencer's pitch tunes the Modal engine, so a membrane voice plays a melodic line like a set of tuned toms. Decay and Damp set how much the notes ring into each other; Sweep gives each hit its dive. |
+| **Perc Voice: Metal Bells** | Tone near the top of its range and the FM engine turn the voice into a long, inharmonic bell; a slow sparse line plays it, with a second quieter bell an octave higher. Try Morph and Spread for different bell colours. |
+| **Perc Voice: Noise Bank Shakers** | Two Noise Bank voices play off-beat shakers and a rim-like tick, with random accents so no two bars are alike. Pitch sets the colour of the bank, Decay the length of the shake, and Damp how fast the highs die. |
+| **Perc Voice: Tone Sweep** | One voice plays the same rhythm while a slow LFO walks Tone from pure sine through membrane and bar to metal, then back: a single hit becomes a kick, a tom, a wood block and a clang over time. Switch Engine to hear the same sweep three ways. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Perc Voice view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Deep Kick** | Round sine kick with a downward pitch sweep. |
+| **Punchy Kick** | Short, clicky kick with a touch of drive. |
+| **Long Sub Boom** | Sub-heavy long kick: a decaying sine boom. |
+| **Tight Tom** | Membrane tom, mid-pitched. |
+| **Low Floor Tom** | Deep floor tom with longer ring. |
+| **Snare Body** | Bright snare-like hit with noisy body. |
+| **Rim Click** | Sharp, very short wooden click. |
+| **Clap Noise** | Noisy burst for claps and snaps. |
+| **Closed Hat** | Short metallic tick. |
+| **Open Hat** | Longer metallic shimmer. |
+| **Wood Block** | Dry, pitched wooden knock. |
+| **Bar Marimba** | Pitched bar sound that follows the Pitch input. |
+| **Cowbell** | Metallic FM clang. |
+| **Bell Ring** | Long inharmonic bell: play it from the Pitch input. |
+| **Zap Tom** | Extreme pitch sweep for sci-fi zaps. |
+<!-- /generated -->
 
 ## Reference
 

@@ -62,17 +62,40 @@ count wrap after 2 … 32 tosses: a fixed random rhythm that repeats. Change
 - **A fixed random pattern:** *Loop* on 8 or 16, and a Reset from the bar
   (e.g. the Step Sequencer's *End*) so it stays on the bar.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Coin Toss does. In the standalone app open **File → Presets…** (⌘P) and pick *Coin Toss* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Coin Toss does. In the standalone app open **File → Presets…** (⌘P) and pick *Coin Toss* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Coin Toss: Heads or Tails Drums** | *Probability 1* and *2* send each sixteenth to a hat, a ghost snare or an open hat (with *Memory 2* for runs) over a fixed backbeat. |
-| **Coin Toss: Trading Voices** | One melody dealt note by note to a low pluck on *A 1* and a bright one on *B 1*; *Memory 1* makes them trade in runs. |
-| **Coin Toss: Latch Layers** | *Mode* Latch on both channels: A and B are always opposite, switching the pad, arpeggio and drums on and off by bar. |
-| **Coin Toss: Looped Groove** | *Link* Shared with *Loop* at 16 tosses: nested clap and hat figures that repeat every bar. |
-| **Coin Toss: Coin on the Pitch** | The *Coin* outputs as control voltages: Toggle lifts a bell melody by a fifth, Latch opens and closes a drone's filter. |
+| **Coin Toss: Heads or Tails Drums** | A steady sixteenth-note gate is tossed twice: channel 1 sends each step to a closed hat or a quiet snare ghost note, channel 2 (with some Memory, so it comes in runs) occasionally turns it into an open hat. The kick and backbeat stay fixed, the rest never repeats. Move Probability 1 and 2. |
+| **Coin Toss: Trading Voices** | One pentatonic melody is dealt note by note to two different instruments: a round low pluck on A and a bright high one on B, panned apart. Memory makes them trade in runs instead of strictly alternating. Raise Memory 1 for longer runs, move Probability 1 towards one side. |
+| **Coin Toss: Latch Layers** | Both channels are in Latch mode, so A and B are always opposite. Channel 1 tosses once a bar and decides whether the pad or the arpeggio is muted; channel 2 independently switches the drums on or off. The song re-arranges itself. Change Mode to Trigger or Toggle, or the Seed. |
+| **Coin Toss: Looped Groove** | Link is Shared and Loop is 16 tosses: one coin decides a nested pattern, a 30 % clap and a 70 % closed hat that always contains it, and the whole random figure repeats every bar over a steady kick and bass. Change the Seed for another groove, or Loop to Off to let it wander. |
+| **Coin Toss: Coin on the Pitch** | The Coin outputs are control voltages: channel 1 in Toggle mode occasionally flips a switch that lifts a bell melody up a fifth, channel 2 in Latch mode opens or closes a low-pass filter on a drone with each toss. Nothing is gated; the coin steers the sound. Change Probability 1 to flip more often. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Coin Toss view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Fair Coin** | Each gate goes to A or B at random, half and half. |
+| **Mostly A** | Most gates go to A, B only sometimes: an occasional accent. |
+| **Mostly B** | Most gates go to B, A only now and then. |
+| **Rare Fill** | A very rare toss: a fill every so often. |
+| **Sticky Streaks** | High memory repeats the last result: long runs on one side. |
+| **Alternating Feel** | Two channels play opposite results for call-and-response. |
+| **Shared Toss** | One toss decides both channels together. |
+| **Latch Switch** | The chosen output stays on until the next toss. |
+| **Toggle Flip** | Each toss can flip the output on or off. |
+| **Loop Four** | Four tosses repeat in a loop: random but a repeating pattern. |
+| **Loop Sixteen** | A sixteen-toss pattern that repeats for a bar of variation. |
+| **Loop Three vs Eight** | Short loops give a rhythm that keeps shifting. |
+<!-- /generated -->
 
 ## Reference
 

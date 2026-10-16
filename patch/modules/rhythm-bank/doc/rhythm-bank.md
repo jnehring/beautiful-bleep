@@ -53,17 +53,19 @@ or more parts hit together (before Complement), *Cycle* fires at step 1.
 - **Accents:** *Accent* into a drum's level or a VCA.
 - **Choke groups:** *Complement* = *Avoid*: hi-hat and snare never collide.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Rhythm Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Rhythm Bank* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Rhythm Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Rhythm Bank* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Rhythm Bank: Euclid Kit** | The *Even* family spreads hits evenly for kick, snare, hats and rim; turn *Pattern* and *Rotate 1 … 4*. |
-| **Rhythm Bank: Prime Marimba** | *Prime* with *Length* Open: four plucked notes repeat every few steps and drift against each other. |
-| **Rhythm Bank: Metric Backbeat** | The *Metric* family with *Complement* on Avoid; a Random moves *Pattern* once per bar. |
-| **Rhythm Bank: Cross-Rhythms** | The *Poly* family with *Grid* on Free plays hand drums and a bell at their exact cross-rhythm positions. |
-| **Rhythm Bank: Interlocking Hats** | *Interlock* never doubles a hit, and *Complement* on Fill puts hats on every step the others leave empty. |
+| **Rhythm Bank: Euclid Kit** | In the Even family the four outputs spread different numbers of hits evenly over 16 steps: kick, snare, hats and rim lock into a lopsided but steady groove. Turn Pattern to browse related grooves or use Rotate 1-4 to shift one drum against the others. |
+| **Rhythm Bank: Prime Marimba** | With Family on Prime and Length on Open the four parts repeat every few steps (2, 3, 5, 7 ...) and slowly drift against each other, each plucking a different note of a minor pentatonic scale, so the melody never repeats the same way twice. Try other Pattern numbers for different cycle lengths. |
+| **Rhythm Bank: Metric Backbeat** | The Metric family builds a kit by metric weight: kick on the one, snare on the backbeat, hats on the off-beats. A Random steps Pattern once per bar, so the groove changes bar by bar but always from the same family. Try Complement on Avoid to stop the parts from colliding. |
+| **Rhythm Bank: Cross-Rhythms** | The Poly family plays between 2 and 9 hits per cycle across the same bar, not tied to the sixteenths: with Grid on Free the hits land at their exact positions on four hand drums and a bell. Switch Grid to Snap to hear them squared up. |
+| **Rhythm Bank: Interlocking Hats** | Interlock never lets two parts hit on the same step, and Complement on Fill makes Out 4 play every step the other three leave empty: kick, snare and rim weave around a continuous ride of hats. Try Rotate 1-4 or Pattern to reshuffle who plays where. |
+<!-- /generated -->
 
 ## Reference
 

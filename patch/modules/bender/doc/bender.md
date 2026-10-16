@@ -83,17 +83,42 @@ bar below shows the read head inside the source.
 - **In a Voice Cell:** each voice glitches on its own; with the same *Seed*
   they glitch together unless *Voice In › Random* moves a knob.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Bender does. In the standalone app open **File → Presets…** (⌘P) and pick *Bender* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Bender does. In the standalone app open **File → Presets…** (⌘P) and pick *Bender* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Bender: Stutter Beat** | Low *Chance* at a 1/16 *Sync*: now and then a slice repeats and stutters before the groove carries on. |
-| **Bender: Ratchet Arp** | *Slice* at 40 % and *Chance* at 35 % cut an arpeggio into ratchets; *Seed* picks which beats get them. |
-| **Bender: Tape-Stop Pad** | *Smear* mode with *Bend* at 0.5 and some *Bend Var*: pieces of a pad slur downward in octaves. |
-| **Bender: Shredder** | *Shuffle* mode with high *Chance* and *Corrupt* rearranges and crumbles a beat and bass line. |
-| **Bender: Glitch Triggers** | *Chance* at zero with a sequencer on the *Glitch* input: only chosen steps are glitched, and *Random* moves a filter. |
+| **Bender: Stutter Beat** | A drum loop and riff pass through Bender at 1/16 with a low Chance: now and then a slice repeats twice and stutters before the groove carries on. Raise Chance for more, or Repeats for longer stutters. |
+| **Bender: Ratchet Arp** | An arpeggio goes through Bender at 1/8 with Slice at 40 %: repeated fragments cut into ratchets while Chance picks which beats get them. Change Seed to hear another set of decisions. |
+| **Bender: Tape-Stop Pad** | A slow chord pad is re-pitched downward in Smear mode with Bend at one half and some Bend Var: pieces of the sound sag and slur like a tape machine losing speed. Try Bend Steps on Free for a continuous slide. |
+| **Bender: Shredder** | Mode Shuffle with Chance at 70 %, Corrupt at 80 % and a little Slice cuts a beat and bass line into constantly rearranged, crumbling pieces. Pull Chance down to keep the groove, or try Fold and Dropout modes. |
+| **Bender: Glitch Triggers** | Chance is zero, so Bender stays clean until a sequencer's trigger hits the Glitch input: only those steps are Folded, and the Random output jumps a filter's cutoff along with each decision. Change the sequencer steps to move the glitches. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Bender view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Stutter Repeats** | Occasional clean repeats of a sixteenth slice. |
+| **Octave Jumps** | Slices randomly hop up or down octaves. |
+| **Fifths Glitch** | Re-pitched slices in musical fifths and octaves. |
+| **Tape Stop Fall** | Occasional downward pitch dives. |
+| **Reverse Slices** | Shuffled slices that play back reversed. |
+| **Dropouts** | Pieces of the signal drop out like a bad connection. |
+| **Smear Clouds** | Smeared, blurred repeats for soft textures. |
+| **Fold Mangle** | Folded, harsher glitches. |
+| **Bit Crush Bursts** | Crushed bursts on random sixteenths. |
+| **Slicer** | Chopped, rearranged slices for rhythmic breaks. |
+| **Constant Corruption** | Always-on digital damage with occasional glitches. |
+| **Free Roll** | Unsynced rolls with wandering pitch. |
+| **Semitone Chaos** | Dense, random, chromatic glitch storm. |
+| **Half-Time Freeze** | Rare long, slowed-down grabs. |
+<!-- /generated -->
 
 ## Reference
 

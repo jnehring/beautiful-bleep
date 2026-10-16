@@ -65,17 +65,43 @@ identical.
 - **Drum rolls:** *Burst* into a drum's trigger, *Burst* 30 %, Sync 1/4.
 - **A sample and hold:** patch a signal into *Sample* and a clock into *Clock*.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Wobble does. In the standalone app open **File → Presets…** (⌘P) and pick *Wobble* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Wobble does. In the standalone app open **File → Presets…** (⌘P) and pick *Wobble* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Wobble: Wandering Melody** | *Stepped* picks a new pitch every eighth through a Quantizer in D Dorian while *Wobble* springs the filter open; try *Chaos* and *Smooth*. |
-| **Wobble: Bouncy Bass** | The *Wobble* output with a high *Wobble* amount bounces a ladder filter on a bass line at Sync 1/8. |
-| **Wobble: Burst Rolls** | *Burst* fires quick rolls into a tom, *Stepped* retunes it and *Compare* opens the hats; raise *Burst* and *Burst Size*. |
-| **Wobble: Drifting Pad** | At a slow *Rate* with *Smooth* at 100 %, the outputs drift a filter, pulse width and pitch of a held chord. |
-| **Wobble: Sampled Arp** | A slow triangle LFO in *Sample* is read on every 1/16, so *Stepped* draws a staircase that a Quantizer turns into an arpeggio. |
+| **Wobble: Wandering Melody** | Wobble's Stepped output picks a new pitch every eighth note and a Quantizer keeps them in D Dorian, while the Wobble output opens the filter with a springy overshoot. Raise Chaos to make the tune run in streaks, or lower Smooth for sharper filter jumps. |
+| **Wobble: Bouncy Bass** | A bass line goes through a ladder filter whose cutoff is bounced by Wobble's overshooting output, one new value every eighth. Try Wobble at 100 % for wilder rings or Smooth up to soften the jumps. |
+| **Wobble: Burst Rolls** | Wobble's Burst output fires quick rolls of triggers on a quarter-note grid into a tom, while Stepped retunes the tom every step and Compare gates the open hats. Turn Burst up for more rolls and Burst Size for longer ones. |
+| **Wobble: Drifting Pad** | At 0.15 Hz with Smooth at 100 %, Wobble becomes a slow wandering line: Smooth sweeps the filter, Wobble slides the pulse width of two detuned oscillators, Stepped nudges the pitch within a held chord. Try Rate and Chaos for a faster or more restless drift. |
+| **Wobble: Sampled Arp** | A slow triangle LFO is sampled by Wobble on every sixteenth through its Sample input, so the Stepped output draws a rising and falling staircase; a Quantizer turns it into an arpeggio. Change the LFO's Sync, or raise Chaos so the line breaks away from the staircase. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Wobble view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Gentle Wander** | Slow smooth random movement: gentle, subtle drift. |
+| **Classic Sample and Hold** | Use the stepped output for random sample-and-hold steps. |
+| **Lazy Steps** | Slow random jumps for evolving filter changes. |
+| **Silky Glide** | Fully smoothed glides between random values. |
+| **Springy Overshoot** | Wobble output overshoots and rings after each jump. |
+| **Jelly Wobble** | Heavy ringing wobble: gelatinous pitch and filter motion. |
+| **Synced Eighths** | Random steps locked to eighth notes. |
+| **Synced Bars** | One new value per bar: slow, tempo-locked changes. |
+| **Burst Trigger** | Frequently fires bursts of triggers: fills and rolls. |
+| **Rapid Burst Roll** | Long fast trigger rolls from the burst output. |
+| **Chaotic Stream** | Chaos adds unpredictable behavior to the stream. |
+| **Fast Jitter** | Fast small-depth jitter: adds life to pitch or pan. |
+| **Unipolar Level** | Positive-only random values: for levels and mixes. |
+| **Quiet Shimmer** | Low-depth random flutter for subtle shimmer. |
+| **Seeded Pattern** | Steps from another seed: a different random pattern. |
+<!-- /generated -->
 
 ## Reference
 

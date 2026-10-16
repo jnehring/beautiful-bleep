@@ -80,17 +80,43 @@ CPU.
 - **New variation:** press *Reshuffle* (or send a trigger) for a new random
   pattern and new glide times.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Swarm does. In the standalone app open **File → Presets…** (⌘P) and pick *Swarm* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Swarm does. In the standalone app open **File → Presets…** (⌘P) and pick *Swarm* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Swarm: Blooming Pad** | An LFO on *Spread* opens the swarm from one note into a *Minor 9* chord, and the *Spread* output opens a filter. |
-| **Swarm: Dark Cluster** | The *Cluster* chord with strong *Drift* and a little *Cross FM*: a restless low drone. |
-| **Swarm: Pentatonic Rain** | A *Major Pentatonic* swarm with *Reshuffle* fired every bar, so the notes rearrange themselves. |
-| **Swarm: Octave Super Bass** | Seven oscillators on *Octaves* with wide *Detune*: a thick unison bass over a beat. |
-| **Swarm: Glitter Fifths** | Stacked *Fifths* with *Warp* and *Cross FM* on slow LFOs: a glittering bell-like shimmer. |
+| **Swarm: Blooming Pad** | A slow LFO on Spread opens the swarm from a single note into a full Minor 9 chord and closes it again, while the Spread output also opens a filter, so the pad blooms and fades. Try other Chord entries or a higher Count. |
+| **Swarm: Dark Cluster** | A low swarm on the Cluster chord with strong Drift and a little Cross FM: dozens of close-packed pitches beat against each other into a restless, ominous drone. Lower Spread to tighten it, or raise Cross FM for a grittier texture. |
+| **Swarm: Pentatonic Rain** | The swarm spread over a Major Pentatonic scale with a plucky envelope and Reshuffle fired every bar: each bar the notes rearrange themselves, so the same rhythm rains down in a new order. Try Pattern: Random and a larger Spread. |
+| **Swarm: Octave Super Bass** | Seven oscillators on the Octaves chord with a wide Detune make a huge, thick bass that holds together over the beat. Try Fifths or a bigger Range for more weight, or reduce Detune for a cleaner tone. |
+| **Swarm: Glitter Fifths** | A bright swarm of stacked fifths with Warp pushed up and Cross FM on a slow cycle: the oscillators modulate each other into a glittering, bell-like shimmer. Move Warp and Cross FM to taste. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Swarm view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Minor Cloud** | The default pad: eight oscillators over a minor 7, gently drifting. |
+| **Unison Supersaw** | A pile of detuned voices on one note: classic wide lead or pad. |
+| **Octave Choir** | Voices spread over octaves: big, huge, simple. |
+| **Fifths Shimmer** | Stacked fifths: open and bright. |
+| **Major Bloom** | Slow glide lets the chord bloom out from the root; major 9 colour. |
+| **Dark Quartal** | Stacked fourths with a little warp: ambiguous and cold. |
+| **Pentatonic Rain** | Notes of the scale scattered randomly: soft, safe, endless. |
+| **Blues Haze** | Blues-scale swarm: gritty and a little sad. |
+| **Whole Tone Dream** | Floating, directionless whole-tone cloud. |
+| **Hirajoshi Garden** | Pentatonic Japanese scale; Outer pattern fills from the edges in. |
+| **Warped Glass** | Warp bends the oscillator shapes: glassy, metallic colour. |
+| **Cross-FM Bells** | Voices modulate each other for bell-like, inharmonic shimmer. |
+| **Cluster Wall** | Tight semitone cluster: dense, tense texture. |
+| **Chromatic Swarm** | All sixteen voices running through the chromatic scale: a insect-like storm. |
+| **Sub Swarm** | Low detuned swarm for fat, moving sub bass. |
+<!-- /generated -->
 
 ## Reference
 

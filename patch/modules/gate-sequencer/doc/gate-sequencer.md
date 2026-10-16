@@ -80,17 +80,19 @@ length, rate or note, and editing the step that's sounding all end it.
   another sequencer's *End*) and mark some steps *Fill* or *Not Fill*.
 - **Thinning and filling:** a slow LFO on *Chance 3* makes the hats breathe.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Gate Sequencer does. In the standalone app open **File → Presets…** (⌘P) and pick *Gate Sequencer* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Gate Sequencer does. In the standalone app open **File → Presets…** (⌘P) and pick *Gate Sequencer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Gate Sequencer: Broken Beat** | Ghost notes, coin-flip hits, ratchets, *Swing* and *Ratchet Decay* make a loose beat that changes every few loops (*Dice*). |
-| **Gate Sequencer: Bell Cycles** | Four tracks with *Length 1–4* of 5, 7, 9 and 11 steps each strike a bell: a slowly rearranging weave. |
-| **Gate Sequencer: Four-Note Bass** | Each track's *Note* setting and rhythm are merged on the Notes output into one mono bass line. |
-| **Gate Sequencer: Chance Rain** | Slow LFOs on *Chance 1–4* make the density of glassy drops rise and fall on four separate cycles. |
-| **Gate Sequencer: Fill and Drop** | A square LFO holds *Fill* for the last bar of four, and another on *Mute 4* drops the percussion. |
+| **Gate Sequencer: Broken Beat** | Four tracks play a kick, snare, hats and a rim: ghost notes, coin-flip hits, ratchets and a little Swing make a loose, breathing beat that changes a bit every loop. Lower a track's Chance, or pick Dice = Fixed, to tighten it. |
+| **Gate Sequencer: Bell Cycles** | Four tracks of different Lengths (5, 7, 9 and 11 steps) each strike their own bell in A minor pentatonic, so the chord of bells slowly rearranges itself. Change a Length by one step and the whole weave shifts. |
+| **Gate Sequencer: Four-Note Bass** | Each track owns a Note (A1, C2, E2, G2) and its own rhythm of hits, ties and ratchets; the Notes output merges them into one bass line that drives a mono voice. Change a track's Note setting to re-tune its part of the line. |
+| **Gate Sequencer: Chance Rain** | Every step of four tracks is armed, and slow LFOs on the Chance knobs decide how many of them fire: glassy D-minor drops thicken into a downpour and thin out again, each track on its own cycle. Turn a Chance knob by hand to hear one track's density. |
+| **Gate Sequencer: Fill and Drop** | A four-on-the-floor groove where a slow square LFO holds Fill for the last bar of every four, switching in extra hits and ratchets, and another LFO on Mute 4 drops the percussion for a while. Hold the Fill button yourself, or mute tracks, to arrange it live. |
+<!-- /generated -->
 
 ## Reference
 

@@ -81,17 +81,43 @@ late for it.
 - **Delay a gate:** External Width, Delay 125 ms: the gate comes out late and
   as long as it went in.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Pulse Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Pulse Generator* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Pulse Generator does. In the standalone app open **File → Presets…** (⌘P) and pick *Pulse Generator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Pulse Generator: Humanised Clock** | *Sync* 1/8 with some *Jitter* clocks a melody, while a second generator rings short pulses into hats. |
-| **Pulse Generator: Ringing Pings** | Triggered pulses per note excite *Ring*; the sequencer's pitch moves *Ring Freq* for glassy chimes, shaped by *Damping* and *Width*. |
-| **Pulse Generator: Pulse Drums** | Four generators in *Triggered* mode, struck by a Drum Grid: *Ring Freq* and *Damping* make a thump, a tom, a click and a tick. |
-| **Pulse Generator: Rolls and Flams** | *Burst* gives drum rolls at a 30 ms *Period*, and *Double* with a short *Delay* gives flams. |
-| **Pulse Generator: Gate Echo** | *External Width* mode delays a melody's gate by 330 ms and plays an octave-up echo voice with it. |
+| **Pulse Generator: Humanised Clock** | A Pulse Generator synced to 1/16 is the clock for a melody, while a second one rings a short pulse into hi-hat ticks. Jitter on the first one loosens the groove; try it at 0 for a rigid machine and at 40 % for a drunk one. |
+| **Pulse Generator: Ringing Pings** | A very short pulse struck once per note makes the Ring resonance ping, and the sequencer's pitch moves Ring Freq, so each note is a glassy, metallic chime. Turn Damping to change how long they ring, or Width to change their colour. |
+| **Pulse Generator: Pulse Drums** | Four Pulse Generators in Triggered mode, each struck by a Drum Grid track: Ring Freq and Damping turn the same circuit into a deep thump, a tom, a rim click and a hat. Change their Ring Freq and Damping for a whole new kit. |
+| **Pulse Generator: Rolls and Flams** | Burst fires four to eight pulses 30 ms apart for a drum roll, and Double adds a second pulse for a flam. A sparse beat triggers them, so the kit rolls in at the ends of phrases. Try Burst 16 or a longer Period. |
+| **Pulse Generator: Gate Echo** | In External Width mode the Pulse Generator is a gate delay: each gate of a slow melody comes out 330 ms later, as long as it went in, and opens a second voice an octave up. Change Delay to move the echo, and Width to see the gate length. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Pulse Generator view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Clock 1/16** | Exact 1/16 clock pulse locked to the song position. |
+| **Slow Gate** | Gentle one-second gate with softened edges: a rhythmic envelope source. |
+| **Square Wave** | A 200 Hz square tone. |
+| **Narrow Pulse** | Thin 200 Hz pulse: nasal and bright. |
+| **Click Train** | A train of 25 Hz clicks: granular and tick-like. |
+| **Cable Ping** | Short pulses ringing like a mistuned cable. |
+| **Small Drum** | Low ringing resonance: a tiny tuned drum on every beat. |
+| **Metal Tick** | High, tight ring for hat-like ticks. |
+| **Burst Triggered** | Each trigger fires eight fast pulses: a flam or roll. |
+| **Double Pulse** | Two pulses per period for flams and double clocks. |
+| **Jittery Clock** | Human-ish wobble on each pulse while the grid stays put. |
+| **Gated Pulses** | Pulses run while the gate is high: a buzzy gated tone. |
+| **Complement Gate** | Inverted pulse: high most of the time, dips on the beat. |
+| **Percent Width** | Width follows the period, so the timbre stays put as you sweep pitch. |
+| **Soft Edges** | Slewed edges round a pulse into a soft, nearly triangle tone. |
+<!-- /generated -->
 
 ## Reference
 

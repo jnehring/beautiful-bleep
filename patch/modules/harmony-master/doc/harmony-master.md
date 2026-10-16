@@ -63,17 +63,43 @@ warning and publishes nothing.
 - **A bass line:** *Root* or *Bass* into an oscillator; *Change* restarts its
   envelope at every chord change.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Harmony Master does. In the standalone app open **File → Presets…** (⌘P) and pick *Harmony Master* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Harmony Master does. In the standalone app open **File → Presets…** (⌘P) and pick *Harmony Master* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Harmony Master: Four-Chord Loop** | A *Progression* I – vi – IV – V in C, four beats per chord, drives a pad on *Tone 1 – 4* and a bass on *Bass*. |
-| **Harmony Master: Jazz Changes** | Slots with fixed roots, extended *Quality* entries and a slash bass, plucked on every *Change*. |
-| **Harmony Master: Rhythmic Changes** | *Advance* Trigger: a sequencer pulses *Next*, so the chords change in a syncopated rhythm, with the *Root* as bass. |
-| **Harmony Master: Adapting Scale** | *Scale Policy* Adapt bends A minor to harmonic minor on the E major chord; a Quantizer Suite follower plays the G♯. |
-| **Harmony Master: Wandering Key** | *Manual* source with a Random on *Degree* and a sequencer on *Transpose* that moves the key every two bars. |
+| **Harmony Master: Four-Chord Loop** | The classic I – vi – IV – V in C major runs as a progression with the transport, four beats per chord. Tone 1 – 4 feed a soft pad and Bass a sine below. Click a slot in the view to change its chord or length, or switch Quality to Diatonic Seventh. |
+| **Harmony Master: Jazz Changes** | A ii – V – I – VI progression written with fixed roots and rich qualities (minor 9, dominant 9, major 9, dominant 7♭9), one slot with a slash bass. Each change plucks the chord and the Bass output walks underneath, on a shuffle. Edit the qualities in the progression strip. |
+| **Harmony Master: Rhythmic Changes** | Advance is set to Trigger: a syncopated step sequencer pulses Next, so the chord changes exactly when you want, cycling through five minor-key chords as short stabs over a pumping root bass. Try Advance Transport to hear it follow the slot lengths instead. |
+| **Harmony Master: Adapting Scale** | In A minor the progression visits E major, whose G♯ is not in the scale. With Scale Policy on Adapt the published scale bends to A harmonic minor for that chord, so a Quantizer Suite following the bus plays the G♯ in its random pluck line. Switch Scale Policy to Keep and listen to the line lose it. |
+| **Harmony Master: Wandering Key** | Manual source: a slow stepped Random walks the Degree knob through the Mixolydian chords while a sequencer on Transpose moves the whole key up a fourth and a fifth every few bars. Each change swells in a warm pad with a root drone below. Try Quality Diatonic Triad or another Scale. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Harmony Master view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **C Major Home** | The board in C major on the tonic triad. |
+| **A Minor Home** | A natural minor, tonic triad: a sad, simple centre. |
+| **Seventh Colours** | Diatonic sevenths on the second degree: soft and jazzy. |
+| **Dorian Groove** | D Dorian with a minor seventh chord. |
+| **Lydian Lift** | A bright, floating Lydian centre. |
+| **Phrygian Tension** | E Phrygian with a minor chord: dark and tense. |
+| **Harmonic Minor Drama** | The dominant of A harmonic minor: ready to resolve. |
+| **Blues Dominant** | Dominant seventh in an A blues scale. |
+| **Pentatonic Open** | Open pentatonic sus2: nothing to resolve. |
+| **Progression Stepper** | Plays its stored progression, moving with the song. |
+| **Triggered Changes** | Steps the progression on each pulse into Next. |
+| **Chord Detector** | Follows chords you play into Notes. |
+| **Low Bass Root** | Fourth degree power chord, an octave down: a strong bass centre. |
+| **Quartal Mood** | Stacked fourths over D Dorian for modern pads. |
+| **Bus B Whole Tone** | Floating whole-tone harmony on bus B. |
+<!-- /generated -->
 
 ## Reference
 

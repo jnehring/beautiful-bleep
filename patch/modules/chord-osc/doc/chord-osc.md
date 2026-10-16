@@ -76,17 +76,43 @@ the root stays nearest the middle.
   switch between them with a sequential switch for an arpeggio that follows
   the chord.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Chord Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Chord Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Chord Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Chord Osc: Soft Minor Pads** | *Minor 7* with the *Open* voicing, *Detune*, *Stereo* and *Glide* turns a slow bass line into melting chords. |
-| **Chord Osc: Diatonic Run** | *Mode* Scale: a plain tune becomes the diatonic chord on each note, changing on the step through *Latch*. |
-| **Chord Osc: Chord Arpeggio** | The *Pitch 1–4* outputs feed a Switch and an oscillator: an arpeggio that follows the held chord. |
-| **Chord Osc: Offbeat Stabs** | Short *Dominant 9* stabs with the *Drop 2* voicing and a squarer *Shape* over a four-on-the-floor beat. |
-| **Chord Osc: FM Quartal Glow** | Sine voices in fourths with an oscillator in *FM* whose amount is moved by a slow LFO. |
+| **Chord Osc: Soft Minor Pads** | A slow bass line plays the root and Chord Osc stacks a Minor 7 on it, spread with the Open voicing, a little Detune and Stereo, and Glide so each chord melts into the next. Try other Chord types, or Inversion for different voice leading. |
+| **Chord Osc: Diatonic Run** | In Scale mode a plain melody becomes a chord progression: each note of the tune turns into the diatonic triad on that scale degree, changing exactly on the step through Latch. Change Root or Scale and the whole harmony follows. |
+| **Chord Osc: Chord Arpeggio** | The four Pitch outputs carry the chord's tones; a Switch steps through them on every sixteenth and plays an oscillator, so the arpeggio follows whatever chord Chord Osc is holding, while the full chord hums underneath. Change Chord or Voicing to re-voice the arpeggio. |
+| **Chord Osc: Offbeat Stabs** | Short dominant-ninth stabs on the off-beats, voiced Drop 2 with a squarer Shape and a snappy envelope, over a four-on-the-floor beat. Try Dominant 7, Quartal or a higher Inversion for a different punch. |
+| **Chord Osc: FM Quartal Glow** | Pure sine voices stacked in fourths, with a low oscillator in the FM input and FM Depth moved by a slow LFO: the chord shimmers between smooth and metallic. Turn Detune and Stereo up for a wider glow. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Chord Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Major Triad** | A plain major triad of saws, gently widened. |
+| **Minor Seventh** | Warm four-note minor 7 stack for pads and stabs. |
+| **Power Fifth** | Root and fifth with extra edge: rock-style power chord. |
+| **Suspended Pad** | Open, unresolved sus4 with wide stereo and a little glide. |
+| **Dream Nine** | Airy major 9 in open voicing with soft waves. |
+| **Hollow Fifths** | Stacked fourths spread wide: modern, ambiguous. |
+| **Dominant Stab** | Buzzy dominant 7 for punchy organ-like stabs. |
+| **Jazz Voicing** | Drop 2 minor 9 with near-sine tone: soft electric-piano colour. |
+| **First Inversion** | Major triad with the third in the bass. |
+| **Sine Organ** | Pure sines on a major 7: a clean drawbar-like chord. |
+| **Pulse Stack** | Narrow pulse minor chord: thin, nasal and synthetic. |
+| **Scale Harmony** | Diatonic mode: plays the matching seventh chord of A minor on each note. |
+| **Pentatonic Cloud** | Wide, forgiving cloud on D minor pentatonic. |
+| **Diminished Dread** | Symmetrical, tense diminished 7 with heavy detune. |
+| **Sub Octaves** | Detuned unison saws an octave down: thick mono-compatible bass. |
+<!-- /generated -->
 
 ## Reference
 

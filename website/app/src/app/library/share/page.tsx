@@ -26,7 +26,7 @@ export default function SharePage() {
       const tags = String(f.get("tags") ?? "").split(",").map((t) => t.trim()).filter(Boolean);
       const slug = String(f.get("slug") ?? "").trim();
       setDone(await api<Published>("POST", "/presets", {
-        title: f.get("title"), summary: f.get("summary"), type: f.get("type"), license: f.get("license"), tags, preset,
+        title: f.get("title"), summary: f.get("summary"), type: f.get("type"), tags, preset,
         ...(slug && { slug }),
       }));
     } catch (err) { setError((err as Error).message); }
@@ -49,7 +49,7 @@ export default function SharePage() {
       <label>Description<textarea name="summary" maxLength={280} rows={3} /></label>
       <label>Type<select name="type" defaultValue="patch"><option value="patch">Patch (a whole board)</option><option value="cell">Cell</option></select></label>
       <label>Tags <small>(comma separated)</small><input name="tags" /></label>
-      <label>License<select name="license" defaultValue="CC-BY-4.0"><option value="CC-BY-4.0">CC BY 4.0 (credit me)</option><option value="CC0-1.0">CC0 (public domain)</option></select></label>
+      <p className="muted">Shared presets are licensed <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer">CC BY 4.0</a>: others may copy and change them if they credit you.</p>
       <label>Address name <small>(optional; new version of an existing preset)</small><input name="slug" pattern="[a-z0-9][a-z0-9\-]*" maxLength={64} /></label>
       {error && <p className="error" role="alert">{error}</p>}
       <button type="submit" disabled={busy}>Share</button>

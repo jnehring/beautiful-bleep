@@ -46,17 +46,40 @@ play, nothing fires until the next due step.
 - **Slow modulation:** *Trigger* output of a long division into a Random or
   a Shift Register.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Clock Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Clock Div* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Clock Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Clock Div* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Clock Div: Basic Kit** | Six divisions of a 16th clock drive a small kit; *Realign* every bar keeps the odd ones landing on the downbeat. |
-| **Clock Div: Three Against Four** | Four toms on /3, /4, /5 and /7 with *Realign* off drift against each other for 420 steps. |
-| **Clock Div: Slow Chimes** | Divisions with no common factors (/5 … /29) strike six bells in a pattern that takes minutes to repeat. |
-| **Clock Div: Gate Pad** | *Gate* output with long divisions swells six chord notes in and out at different rates. |
-| **Clock Div: Half-Time Melody** | Out 1 (/2) clocks a step sequencer in half time while Out 2 (/32) resets it every two bars. |
+| **Clock Div: Basic Kit** | One 16th-note clock divided six ways: a kick every 4 steps, hats every 2, a rim every 3, a cowbell every 5 and a clap once a bar. Realign restarts the odd divisions on every downbeat so they keep landing on the one; set it to Never and listen to them drift. |
+| **Clock Div: Three Against Four** | Four tuned toms on /3, /4, /5 and /7 of an 8th-note clock, with Realign off: the pattern slides against itself and only comes round again after 420 steps. Set Realign to 1 bar and the same divisions lock to the bar line instead. |
+| **Clock Div: Slow Chimes** | Long divisions of an 8th-note clock (/5, /8, /11, /13, /19 and /29) strike six bells of a D minor-pentatonic chord. Because the numbers share no factors, the same combination of bells takes minutes to come round. Change a Div knob and that bell shifts into a new rhythm. |
+| **Clock Div: Gate Pad** | Gate output on quarter notes with Div 1 to 6 at 4, 6, 8, 12, 16 and 24: six notes of an A minor-nine chord swell in and out at different rates, so the harmony thickens and thins over a few bars. Width sets how long each note is held. |
+| **Clock Div: Half-Time Melody** | A drum beat plays at full speed while a step sequencer is clocked by Out 1 (/2) of the same 16th clock, so its melody runs in half time. Out 2 (/32) resets the sequencer every two bars, keeping it in step with the drums. Change Div 1 to 3 or 4 for a slower, odder line. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Clock Div view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Default Ladder** | A mix of even and odd divisions for polyrhythmic gates. |
+| **Powers of Two** | Classic binary divisions: everything lines up on the downbeat. |
+| **Even Grid** | Even divisions only: steady, interlocking pulses. |
+| **Odd Primes** | Primes: the outputs rarely coincide, so the rhythm takes ages to repeat. |
+| **Triggers Only** | Short triggers instead of gates, for drums and envelopes. |
+| **Short Pulses** | Narrow gates: staccato hits on every output. |
+| **Long Gates** | Nearly full-width gates that sustain between pulses. |
+| **Base Step Gates** | Every gate is one base step long, whatever the division. |
+| **Eighth Base Slow** | The base clock at eighths: a slower, more spacious set. |
+| **Triplet Base** | Triplet base clock for shuffling cross-rhythms. |
+| **Bar Realign** | Odd divisions snapped back together every bar. |
+| **Four-Bar Polyrhythm** | Complex divisions that resync every four bars. |
+<!-- /generated -->
 
 ## Reference
 

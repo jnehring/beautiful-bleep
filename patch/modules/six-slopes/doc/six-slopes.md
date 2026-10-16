@@ -89,17 +89,42 @@ while any channel moves (AR, ASR) and always in Loop and Sound.
   *Sum* into a VCA. Turn Harmonics for different chords and Tilt to the left
   for a softer tone.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Six Slopes does. In the standalone app open **File → Presets…** (⌘P) and pick *Six Slopes* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Six Slopes does. In the standalone app open **File → Presets…** (⌘P) and pick *Six Slopes* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Six Slopes: Strummed Chord** | One trigger on *Trig 1* in *AR* with *Harmonics* at +0.6 and a short *Skew*: six notes open one after another like a strum. |
-| **Six Slopes: Phasing Pulses** | *Loop* mode with a small *Harmonics* value: six slow swells drift apart and back over a chord. |
-| **Six Slopes: Bar Polyrhythm** | *Loop*, *Sync* on one bar and *Snap* on Integer: six slopes at one to six cycles per bar, locked to the song. |
-| **Six Slopes: Six-Part Percussion** | Six drum triggers fire six slopes, each shaping a different sine tone; one *Skew* and *Curve* set shapes all decays. |
-| **Six Slopes: Just Drone** | *Sound* mode with *Snap* on Just and the sequencer on *Pitch*: six oscillators in pure ratios, moved by an LFO on *Harmonics*. |
+| **Six Slopes: Strummed Chord** | One trigger per bar fires all six slopes, but Harmonics spreads their rates so each note of a six-note chord opens a moment after the last: a strum. Turn Harmonics down to bring the notes together, Skew for plucks or swells. |
+| **Six Slopes: Phasing Pulses** | In Loop mode six slopes run slightly apart (Harmonics 0.13), each swelling one chord tone, so the chord's colour drifts as the pulses phase against each other. Nudge Harmonics, Rate or Skew to change the pattern. |
+| **Six Slopes: Bar Polyrhythm** | Loop mode with Sync on one bar and Snap on Integer runs six slopes at one to six cycles per bar, locked to the song: six pentatonic notes pulsing in a polyrhythm. Try Skew for short blips and Curve for sharper decays. |
+| **Six Slopes: Six-Part Percussion** | A six-track grid fires six slopes, one per drum trigger, and each shapes a different sine tone into a synthetic toms-and-blips kit. One set of Skew and Curve knobs shapes all six decays at once. |
+| **Six Slopes: Just Drone** | In Sound mode the six slopes become audio oscillators locked to the sequencer's pitch with Snap on Just: a six-note chord in pure ratios whose spread you change with Harmonics, moved slowly by an LFO. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Six Slopes view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Overtone Cascade** | Six looping slopes at overtone ratios: rich, related motion. |
+| **Undertone Drift** | Slopes spread downward: slower and slower layers. |
+| **Unison Pulse** | All six at one rate: use the sum or stagger with triggers. |
+| **Six Plucks** | Fast attack decays on each trigger: six different plucks. |
+| **Swell Gates** | Rise, hold while gated, fall: six sustained envelopes. |
+| **Slow Breath** | Ten-second cycles: very slow evolving modulation. |
+| **Synced Eighths** | Tempo-locked slopes with overtone ratios. |
+| **Quarter Note Saws** | Rising ramps locked to the beat. |
+| **Just Intervals** | Rates snapped to just-intonation ratios: consonant polyrhythms. |
+| **Integer Ratios** | Whole-number rate ratios: layers that realign cleanly. |
+| **Bipolar Wander** | Bipolar outputs for pitch or pan wandering. |
+| **Tilted Levels** | Higher slopes louder: emphasises the faster layers. |
+| **Audio Rate Slopes** | Slopes as audio oscillators at harmonic ratios. |
+| **Sharp Curves** | Strongly curved spikes: percussive modulation. |
+<!-- /generated -->
 
 ## Reference
 

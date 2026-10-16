@@ -185,6 +185,7 @@ class Preset(Base):
     author: Mapped[User] = relationship()
     versions: Mapped[list["PresetVersion"]] = relationship(
         back_populates="preset", cascade="all, delete-orphan", order_by="PresetVersion.version.desc()")
+    credits: Mapped[list["PresetCredit"]] = relationship(cascade="all, delete-orphan")
 
     @property
     def address(self) -> str:
@@ -207,6 +208,21 @@ class Project(Base):
     bytes: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class PresetCredit(Base):
+    """One credit of a preset: it was made from the preset at `source_address` (library.md section 6). Presets are copied, not referenced,
+    so this is a label for attribution and for the source author's "used in" view; nothing loads the source. The rows are those of the
+    preset's newest version and are replaced on every publish."""
+
+    __tablename__ = "preset_credits"
+    __table_args__ = (UniqueConstraint("preset_id", "source_address", name="uq_preset_credits"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    preset_id: Mapped[int] = mapped_column(ForeignKey("presets.id", ondelete="CASCADE"), index=True)
+    source_address: Mapped[str] = mapped_column(String(130), index=True)  # author/slug, lower case
+    source_name: Mapped[str] = mapped_column(String(120), default="")
+    source_author: Mapped[str] = mapped_column(String(80), default="")
 
 
 class PresetVersion(Base):

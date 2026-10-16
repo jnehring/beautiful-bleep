@@ -66,17 +66,44 @@ ones and Integrated render the same from the same start.
   *Store*, *Correlation* +80 %: each note's value is near the last one.
 - **Random sweeps:** *Integrated* to a filter cutoff, *Correlation* +60 %.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Uncertainty does. In the standalone app open **File → Presets…** (⌘P) and pick *Uncertainty* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Uncertainty does. In the standalone app open **File → Presets…** (⌘P) and pick *Uncertainty* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Uncertainty: Random Melody** | *Quant 1* with *Q1 Bits* 3 and *Q1 Interval* 2 st, snapped to D minor pentatonic by a quantizer, plays an endless random tune. |
-| **Uncertainty: Drifting Pad** | *Fluct 1* and *Fluct 2* at different rates move the filters, waveforms and pans of a four-voice pad. |
-| **Uncertainty: Random Sweeps** | *Stored* with *Correlation* +65 % feeds *Integrated*, a random sweep on the cutoff of an arpeggio; a one-bit *Quant 2* switches the hats. |
-| **Uncertainty: Random Octaves** | *Q2 Interval* 12 st sends a fixed riff to random octaves and a one-bit *Quant 1* at 7 st adds fifths. |
-| **Uncertainty: Drunken Walk** | *Stored* with *Correlation* +85 % and *Shape* Bell wanders pitch step by step; a quantizer and pinged gates turn it into bells. |
+| **Uncertainty: Random Melody** | Quantized 1 jumps between eight levels two semitones apart on every sixteenth, and a quantizer pulls them into D minor pentatonic: a small random vocabulary the ear hears as a tune. Lower Q1 Bits for fewer notes, or change Q1 Interval and Seed for a different melody. |
+| **Uncertainty: Drifting Pad** | The two Fluctuating outputs are smooth random curves with different speeds: one opens and closes the filters of a four-voice chord, the other pans the voices together and bends their waveform. Nothing repeats. Raise F1 Rate or F2 Rate for a busier shimmer, or lower F1 Spread for a calmer pad. |
+| **Uncertainty: Random Sweeps** | Stored takes a new value every half note and Correlation keeps each close to the last; Integrated turns that into long random sweeps that open and close the filter of a saw arpeggio. A one-bit Quantized 2 switches the hats on and off. Change Correlation to make the sweeps longer or jitterier. |
+| **Uncertainty: Random Octaves** | A fixed riff plays while two Uncertainty quantizers decorate it: Quantized 2 with Interval 12 sends each note to one of four octaves, and a one-bit Quantized 1 on Interval 7 adds a fifth now and then. Try Q2 Bits 1 for a plain octave jump or Q2 Divide /1 for a new octave on every note. |
+| **Uncertainty: Drunken Walk** | Stored picks a new value on every step and with Correlation at +85 % each is close to the last, so the pitch wanders up and down like a drunken walk; a quantizer keeps it in F Lydian and pinged low pass gates turn each step into a bell. Try Correlation negative for a zig-zag, or the Shape set to Edges. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Uncertainty view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Slow Random Drift** | Two lazy fluctuating curves: gentle analogue-style drift. |
+| **Lively Fluctuation** | Faster, wider random curves for obvious movement. |
+| **Synced Fluctuation** | Fluctuations that move in step with the tempo. |
+| **Eighth Note Steps** | Two random step sequences: eighths and quarters. |
+| **Sixteenth Chaos** | Dense sixteenth-note random steps with many levels. |
+| **Octave Jumps** | Random steps in octave leaps: wild but tonal pitch jumps. |
+| **Fifths and Fourths** | Random steps in fifths and fourths: open, melodic. |
+| **Whole-Tone Walk** | Whole-tone random steps for a floating melody. |
+| **Bell Distribution** | Values cluster near the middle, with rare extremes. |
+| **Edge Seeker** | Values favour the extremes: dramatic jumps. |
+| **Biased High** | Stored value skewed upward: mostly high, occasionally low. |
+| **Correlated Walk** | Each stored value resembles the last: a gradual random walk. |
+| **Anti-Correlated** | Stored values alternate high and low: a zigzag. |
+| **Integrator Wander** | The integrated output smooths the stored value into slow glides. |
+| **Slow Store** | Everything stretched over bars for evolving ambient control. |
+| **Free Clocked Chaos** | All generators unsynced and fast: loose, jittery movement. |
+<!-- /generated -->
 
 ## Reference
 

@@ -67,6 +67,30 @@ time.
 - **Chaining:** *End* fires when the pattern starts over; use it to reset or
   advance other modules.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Step Sequencer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Straight Sixteenths** | Plain forward sixteenth notes in C major: the neutral starting point. |
+| **Tight Staccato** | Short, clipped gates in minor pentatonic for plucks and bass. |
+| **Legato Eighths** | Full-length gates in eighths so the notes run together. |
+| **Swung Shuffle** | Sixteenths with a loose swing in Dorian for a laid-back groove. |
+| **Triplet Roll** | Eighth-note triplets for a rolling, rounded feel. |
+| **Slow Pendulum** | Eight steps bouncing back and forth in Lydian: dreamy and floating. |
+| **Backward Run** | Plays the pattern in reverse for a falling line. |
+| **Short Loop Eight** | A tight eight-step loop in Phrygian for driving basslines. |
+| **Odd Five** | Five steps against a four-beat bar: the pattern keeps shifting. |
+| **Dense Random** | Thirty-second notes in random order across the whole scale. |
+| **Gentle Drift** | Notes wander a few semitones from the written pitches. |
+| **Wild Variation** | Heavy variation of up to an octave: the sequence never plays the same twice. |
+| **Blues Walk** | Dotted eighths in an A blues scale with a little swing. |
+| **Eastern Lines** | Sixteenth triplets in a Phrygian dominant scale. |
+| **Low Octave Drone** | Slow, held quarter notes two octaves down for a sub line. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

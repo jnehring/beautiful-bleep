@@ -70,17 +70,42 @@ board (the module then starts frozen on it); unfreezing lets it go.
 - **Granular delay:** Position 30 %, Spread 5 %, Mix 40 %.
 - **Scrubbing:** a slow LFO on Position while frozen.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Grains does. In the standalone app open **File → Presets…** (⌘P) and pick *Grains* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Grains does. In the standalone app open **File → Presets…** (⌘P) and pick *Grains* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Grains: Frozen Cloud** | A slow square LFO on *Freeze* holds the buffer for a few bars at a time: one moment of a phrase becomes an endless pad. |
-| **Grains: Stutter Rhythm** | *Triggered* mode synced to 1/16 chops a bass loop into a reversing, stuttering rhythm; *Position* jumps with a Random. |
-| **Grains: Shimmer Leaps** | *Pitch Quant* on octaves and fifths, a little *Pitch Jitter* and *Feedback* make a halo around a slow melody. |
-| **Grains: Melodic Cloud** | A sequencer drives the *Pitch* input of a noise cloud: the grains themselves play the tune. |
-| **Grains: Backwards Garden** | Long, mostly reversed grains scattered by *Spread* and *Blur* into a swelling reverse wash. |
+| **Grains: Frozen Cloud** | A short plucked phrase is recorded, then a slow square LFO on the Freeze gate holds the buffer for a few bars at a time: the grains turn one moment of the phrase into a wide, endless pad, and the next phrase is caught when the freeze lets go. |
+| **Grains: Stutter Rhythm** | Triggered mode with Sync on 1/16: every step fires a short, reversed-or-forward grain of a bass loop, chopping it into a stuttering rhythm. Raise Density to fire bursts. |
+| **Grains: Shimmer Leaps** | Pitch Quant on Octaves + fifths and a little Pitch Jitter turn a slow melody into a shimmering halo that climbs by fifths and octaves. Feedback keeps the glow after each note. |
+| **Grains: Melodic Cloud** | A sequencer drives the Pitch input of a frozen noise burst's grains, so the cloud itself plays the tune: a shimmering sine-like melody made of nothing but grains. |
+| **Grains: Backwards Garden** | Long grains that mostly play backwards, scattered by Spread and Pitch Jitter around a slow melody, with Blur washing everything: a swelling, reversed-reverb garden. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Grains view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Soft Cloud** | A gentle grain cloud over the recent input. |
+| **Shimmer Up** | Octave-up grains with feedback for a shimmering halo. |
+| **Deep Down** | An octave below, smoothed into a pad. |
+| **Fifth Harmonies** | Random octaves and fifths stacked on the source. |
+| **Frozen Pad** | Holds what was playing and sustains it as a pad. |
+| **Glitch Stutter** | Short clicks of audio on the 16th grid; works well on drums. |
+| **Reverse Wash** | All grains play backwards. |
+| **Granular Dust** | Tiny grains: crackling, textural dust. |
+| **Slow Smear** | Long overlapping grains blur transients away. |
+| **Chromatic Scatter** | Random semitone-quantised pitches. |
+| **Endless Tail** | Feedback turns the input into an ever-growing texture. |
+| **Half-Time Drift** | Reads far back in a long buffer for slow, drifting echoes. |
+| **Rhythmic Gate** | Triggered grains on eighths for a chopped, gated feel. |
+| **Alien Choir** | Dense detuned grains with feedback: an eerie vocal-like cluster. |
+<!-- /generated -->
 
 ## Reference
 

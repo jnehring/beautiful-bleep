@@ -48,6 +48,19 @@ fewer than ten or more than twenty presets. A module without a file has no prese
 controllers, samplers). Factory presets are read-only; the user's own live in the native library `module:<type>`
 (`<app data>/Beautiful Bleep/Module Presets/<type>/`, one `.bleepmodule` file each) and keep every knob plus the node's `data`.
 
+### Module manuals
+
+Every module's manual (`patch/modules/<type>/doc/<type>.md`) lists its demo patches and its presets in two **generated**
+sections, so they follow the files in this folder. [`build-docs.mjs`](build-docs.mjs) writes them and checks that every
+manual has the same outline (Introduction, How does it work?, How to use it?, a screenshot, alt text on images):
+
+```bash
+node patch/presets/build-docs.mjs            # rewrite the generated sections
+node patch/presets/build-docs.mjs --check    # CI: they are current and every manual has the outline
+```
+
+Run it after `build.mjs` and `build-modules.mjs`; never edit between the `<!-- generated:… -->` markers.
+
 ## How the preset system fits together
 
 | Piece | Where | What |

@@ -46,6 +46,30 @@ another scale is selected copies that scale and switches *Scale* to
 - **Arpeggios:** a sawtooth LFO into *In* plays the scale upwards.
 - **Portamento:** raise *Glide* for slides between notes.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Quantizer view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **C Major** | Snaps any pitch to C major: the safe, bright default. |
+| **Natural Minor** | A natural minor: melancholic and familiar. |
+| **Minor Pentatonic** | Five notes that can't clash: great for random melodies. |
+| **Major Pentatonic** | Open and folky: nothing sounds wrong. |
+| **Dorian Walk** | Minor with a lifted sixth: cool, jazzy lines. |
+| **Lydian Float** | A major scale with a raised fourth: dreamy and airy. |
+| **Phrygian Dark** | Flat second gives a tense, Spanish-tinged colour. |
+| **Harmonic Minor** | Dramatic minor with a leading tone. |
+| **Blues** | Blue notes for gritty, soulful lines. |
+| **Whole Tone Dream** | Six equal steps: ambiguous, floating melodies. |
+| **Hirajoshi** | A five-note scale with an east-Asian flavour. |
+| **Gliding Major** | A little slide between notes for a singing feel. |
+| **Wide Range** | Stretches the input over three octaves with a steadier hold. |
+| **Round Down** | Always rounds down to the scale note below. |
+| **Round Up Chromatic** | Chromatic, rounding up: plain semitone steps with no hold. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

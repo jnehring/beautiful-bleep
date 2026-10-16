@@ -77,17 +77,19 @@ same outputs.
   the interval between two others.
 - **Classic scope:** Mode Y-T, any signal into Y.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what XY Scope does. In the standalone app open **File → Presets…** (⌘P) and pick *XY Scope* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what XY Scope does. In the standalone app open **File → Presets…** (⌘P) and pick *XY Scope* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **XY Scope: Beating Lissajous** | Two detuned sines turn the figure slowly; *Phase* becomes a sawtooth LFO for a pad's filter. |
-| **XY Scope: Interval Figures** | A sequenced sine against a fixed one draws each interval; *Ratio* steers a voice that follows the interval. |
-| **XY Scope: Waiting for Lock** | The *Still* gate opens a melody only while two wandering oscillators agree; try *Still Tolerance*. |
-| **XY Scope: Stereo Width** | A detuned pad's left and right on X and Y; *Correlation* darkens an arpeggio as the pad widens. |
-| **XY Scope: Drum Scope** | *Mode* Y-T with *Trigger* Beat draws a drum loop as a waveform, with the bass as a second trace. |
+| **XY Scope: Beating Lissajous** | Two sines a few cents apart draw a figure that slowly turns; Phase turns that rotation into a sawtooth LFO that sweeps the filter of a drifting pad, speeding up as the oscillators drift further apart. Watch the loop open and close while the pad opens with it, and try Persistence for longer trails. |
+| **XY Scope: Interval Figures** | A fixed sine on X and a sequenced sine on Y trace the figure of each interval: a line for unison, a figure-eight for the octave, a woven knot for the fifth. Ratio feeds a triangle voice that follows the interval, so the scope also plays the harmony. Try Mode Y-T for the same sound as a waveform. |
+| **XY Scope: Waiting for Lock** | Two drifting oscillators wander in and out of tune. Whenever the figure stands still the Still gate goes high and opens a melody, so the tune plays only in the moments they agree. Set Still Tolerance to Tight for rarer windows or Loose for more. |
+| **XY Scope: Stereo Width** | The left and right sides of a detuned saw pad go to X and Y, so you see the stereo image: a rounder cloud when the sides drift apart. Correlation controls the cutoff of an arpeggio, so the wider the pad swells, the darker the arpeggio. Change the Detune of the pad to change the picture. |
+| **XY Scope: Drum Scope** | Mode Y-T turns the scope into an oscilloscope: the drum loop is drawn as a waveform, one sweep per beat in Trigger Beat, with the bass on X as a second dimmer trace. Try a shorter Timebase, a longer Persistence or Trigger Y Rising. |
+<!-- /generated -->
 
 ## Reference
 

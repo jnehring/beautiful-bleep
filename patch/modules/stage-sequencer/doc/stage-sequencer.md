@@ -84,17 +84,42 @@ and changing the sounding stage's gate mode or pulses all end the note.
 - **Chaining:** *Stage Start* fires on every stage, *End* when the cycle (or
   phrase) starts over.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Stage Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Stage Seq* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Stage Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Stage Seq* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Stage Seq: Staircase Lead** | Eight stages with held notes, a ratchet and slides in C harmonic minor; the Accent Gate snaps the filter open. |
-| **Stage Seq: Pendulum Pad** | *Mode* Pendulum across six long held stages with *Slide Time*, played by detuned oscillators as a pad. |
-| **Stage Seq: Brownian Bells** | *Mode* Brownian takes one stage up or down at a time over 16 stages of bells. |
-| **Stage Seq: Slide Bass** | *Mode* Reverse with slides and accents: *Accent* and *Slide Time* shape the squelch, over a beat. |
-| **Stage Seq: Hold Freeze** | *Mode* Random with a two-bar *Phrase*; an LFO on *Hold* freezes the sequence and Stage sweeps the filter. |
+| **Stage Seq: Staircase Lead** | Eight stages of C harmonic minor: held notes, repeats, a ratchet and two slides make a one-bar riff, with louder accented stages. Change a stage's Pulses or Gate mode in the view, or raise Slide Time to melt the slides further. |
+| **Stage Seq: Pendulum Pad** | Pendulum mode swings back and forth across six stages of long held notes in F Lydian, each lasting four to eight pulses; a pair of detuned oscillators and a slowly opening filter turn the chord-like line into a pad. Change Mode to Forward or Reverse, or shorten the Pulses. |
+| **Stage Seq: Brownian Bells** | Brownian mode takes one stage up or down at a time, so the sixteen-stage bell melody in D major pentatonic wanders like a drunk on a staircase and always returns to the same neighbours. Change the Seed, or switch Mode to Random, to hear a different walk. |
+| **Stage Seq: Slide Bass** | A reversed run of E minor stages with slides between stages and accents that fire the Accent Gate: it opens the filter with an extra snap on the accented stages. Turn Accent or Slide Time to change the squelch, or add pulses to a stage to lengthen it. |
+| **Stage Seq: Hold Freeze** | Random mode with a two-bar Phrase: ten A Dorian stages come in a shuffled order that repeats every phrase. A square LFO on the Hold input freezes the sequence on one stage for a bar, and the Stage output sweeps the filter. Try a longer Phrase, or hold Hold yourself. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Stage Seq view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Eight Stages** | Eight stages played forward: the neutral setup. |
+| **Sixteen Stages** | All sixteen stages for a long phrase. |
+| **Short Four** | A four-stage loop: tight and repetitive. |
+| **Reverse** | Stages play backward. |
+| **Slow Pendulum** | Swings forward and back through the stages. |
+| **Random Stages** | Stages in random order. |
+| **Brownian Wander** | Each step moves one stage up or down: a drifting melody. |
+| **Slidey Lead** | Long slide times make marked stages glide. |
+| **Snappy Slide** | Very short slides: a quick portamento snap. |
+| **Hard Accents** | Accented stages hit at full strength. |
+| **Soft Accents** | Accents barely stand out: an even, gentle line. |
+| **Swung Stages** | A shuffle across the stages. |
+| **Triplet Phrase** | Triplets over a two-bar phrase. |
+| **Long Phrase Bass** | A long eight-bar phrase an octave pair down. |
+<!-- /generated -->
 
 ## Reference
 

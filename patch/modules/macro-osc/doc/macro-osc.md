@@ -197,17 +197,44 @@ higher for toms.
 - *Blend* [Ring]: a ringing band-pass resonance (a cowbell, a bell).
 - *Decay*: short = hi-hat, long = cymbal. *Aux*: the unfiltered metal.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Macro Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Macro Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Macro Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Macro Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Macro Osc: Plucked Strings** | The *Pluck* model struck by a sequencer *Trigger*: its built-in decay and gate need no envelope. |
-| **Macro Osc: Synthetic Kit** | Three Macro Oscs play a drum kit from one grid: *Kick*, *Snare* and *Metal* models. |
-| **Macro Osc: Chord Mist** | The *Chord* model with slow LFOs on *Tone* and *Shape*; *Aux* carries a second voice. |
-| **Macro Osc: Phase Warp Bass** | The *Phase Warp* model with an envelope on *Tone* for a bass that starts bent and settles. |
-| **Macro Osc: Dust Garden** | The *Dust* model scattering pitched clicks over a *Noise Band* breath. |
+| **Macro Osc: Plucked Strings** | The Pluck model struck by a sequencer trigger rings like a plucked string, and its built-in decay and low-pass gate need no envelope at all. Try a longer Decay for sustain or move Tone for a brighter string. |
+| **Macro Osc: Synthetic Kit** | Three Macro Oscs play a whole drum kit from one grid: the Kick, Snare and Metal models, each struck by its own trigger. Change Tone and Decay on each one to retune the kit. |
+| **Macro Osc: Chord Mist** | The Chord model plays a whole chord from one pitch; slow LFOs on Tone and Shape change the chord type and voicing, and Aux carries a second voice to the other side. Turn Blend to taste. |
+| **Macro Osc: Phase Warp Bass** | The Phase Warp model with an envelope on its Tone macro: each bass note starts wide open and bent, then settles into a round, quiet sound. Try other Models such as Fold or FM on the same line. |
+| **Macro Osc: Dust Garden** | The Dust model scatters tiny pitched clicks, with the sequencer walking them through a pentatonic scale, and a second Macro Oscillator on Noise Band adds airy breath beneath. Move Tone for denser crackle and Blend for a wider texture. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Macro Osc view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Fat VA Pair** | Two detuned saws: a fat classic analog voice. |
+| **Sync Sweep** | Hard-synced pair: move Blend for the classic sync sweep. |
+| **Wavefold Sine** | A sine folded back on itself: bright, harmonic timbre. |
+| **FM Bell Tone** | Two-operator FM with a bell-like ratio. |
+| **Phase Warp Bass** | A bent cosine: a warm, saw-like bass. |
+| **Vowel Voice** | A sung vowel: sweep Tone from a to u. |
+| **Hollow Harmonics** | Odd harmonics only: a hollow, clarinet-like tone. |
+| **Chord Stack** | A minor-seventh chord from one note: Aux plays the root. |
+| **Wavetable Walk** | An analog table: move Shape and Blend across the grid. |
+| **Grain Formant** | Windowed sine bursts: a vocal, filter-like peak. |
+| **Plucked String** | A plucked string: patch triggers to play it. |
+| **Struck Bell** | A struck bell with stretched modes: trigger it. |
+| **Sub Kick** | A swept-sine kick: patch triggers. |
+| **Snare Hit** | Two heads plus noise: a classic synthetic snare. |
+| **Closed Hat** | Six metallic squares, very short: a closed hat. |
+| **Dust Rain** | Random clicks like rain or crackle; no trigger needed. |
+<!-- /generated -->
 
 ## Controls and jacks
 
@@ -226,7 +253,7 @@ Five whole patches show what Macro Osc does. In the standalone app open **File �
 Inputs: *Pitch* (1 V/oct, 0 V = C4), *FM*, *Trigger*, *Accent* (strength of
 each hit, 0–1). Outputs: *Out*, *Aux* (named after what it carries), *Env*.
 
-## Patch ideas
+## How to use it?
 
 - **Model sequencing.** A Step Sequencer into *Model* (and its pitch into
   *Pitch*): every step a different sound, from one module.

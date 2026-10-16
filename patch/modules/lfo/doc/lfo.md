@@ -57,6 +57,30 @@ full over that time after each Reset and each time the transport starts.
 - **Clocking other modules:** *Cycle* triggers a sequencer's *Clock* or an
   envelope.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the LFO view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Gentle Sine** | Slow sine for subtle filter or pitch drift. |
+| **Vibrato** | Classic vibrato speed that fades in after the note starts. |
+| **Tremolo** | Unipolar triangle for amplitude tremolo. |
+| **Beat Pump** | Falling ramp locked to the beat: sidechain-like ducking. |
+| **Eighth Chop** | Square gate on every eighth for rhythmic chopping. |
+| **Slow Sweep** | A 20-second triangle for long filter sweeps. |
+| **Rising Saw** | Ramp that climbs over two bars and snaps back. |
+| **Sample and Hold** | Random stepped values, a classic sample-and-hold. |
+| **Smooth Random** | Wandering smooth random for organic movement. |
+| **Narrow Pulse** | Thin pulse for staccato jumps. |
+| **Wide Slow Tide** | A four-bar sine swell locked to the song. |
+| **Triplet Feel Wobble** | Fast synced triangle for shimmering wobble. |
+| **Offset Sine** | Sine starting at its peak: pair with another LFO for quadrature. |
+| **Fast Flutter** | Tape-like flutter, best used very lightly. |
+| **Wild Random** | Fast random jitter for glitchy modulation. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

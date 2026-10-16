@@ -31,3 +31,25 @@ The **Reduction** output is a control signal from 0 (no compression) to 1 (24 dB
 - **Parallel smash:** ratio 20:1, threshold −40 dB, attack 1 ms, Mix 30 %.
 - **Limiter:** ratio 40:1, attack 0.1 ms, release 50 ms, threshold −3 dB. Put one at the end of a feedback loop, like the Shimmer Verb's, to keep it under control.
 - **Ducking:** a kick on the Sidechain input, ratio 10:1, threshold −35 dB, release 200 ms.
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Compressor view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Gentle Glue** | Light bus compression that holds a mix together. |
+| **Vocal Leveler** | Even out a voice or lead with smooth RMS detection. |
+| **Drum Punch** | Slow attack lets the transient through, then clamps the body. |
+| **Bass Control** | Keeps a bass line steady and solid. |
+| **Parallel Smash** | Hard compression blended under the dry signal for density. |
+| **Soft Limiter** | Catches peaks at the end of a chain. |
+| **Brick Wall** | Near-hard limiting; nothing gets past the ceiling. |
+| **Slow Opto** | Slow, smooth levelling with a wide knee. |
+| **Sustain Boost** | Pulls up tails: guitars and plucks ring longer. |
+| **Pump Duck** | Audible pumping on loud material; patch a kick into Key for ducking. |
+| **Transient Tamer** | Fast attack rounds off clicks and spikes. |
+| **Wide Squash** | Heavy squash with loosely linked channels for a wider image. |
+| **Gain Reduction Source** | Take the Reduction output as a control signal for pumping other modules. |
+<!-- /generated -->

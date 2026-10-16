@@ -38,4 +38,8 @@ assert.doesNotMatch(render("![alt](data:image/svg+xml,x)"), /src="data:/);
 assert.doesNotMatch(render("![alt](pic.png)"), /onerror/);
 const quote = render('[a](x"onmouseover="alert(1))');
 assert.doesNotMatch(quote, /"onmouseover|\sonmouseover=/);
-console.log("ok   markdown links and images");
+
+// a comment on a line of its own (the markers of generated sections) is not shown; text around it is
+assert.equal(render("<!-- generated:demos -->\n## Demo patches\n\nText\n<!-- /generated -->"), "<h2>Demo patches</h2>\n<p>Text</p>");
+assert.doesNotMatch(render("a <!-- b --> c"), /<!--/);   // inside a paragraph it stays escaped text
+console.log("ok   markdown links, images and comments");

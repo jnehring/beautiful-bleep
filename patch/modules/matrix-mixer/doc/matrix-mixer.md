@@ -55,17 +55,19 @@ delay); with *Normalize* such loops stay stable.
 - **Modulation blender:** four LFOs in, eight related modulations out.
 - **Scene changes:** store snapshots, patch a slow LFO into *Morph*.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Matrix Mixer does. In the standalone app open **File → Presets…** (⌘P) and pick *Matrix Mixer* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Matrix Mixer does. In the standalone app open **File → Presets…** (⌘P) and pick *Matrix Mixer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Matrix Mixer: Send Matrix** | Eight inputs, four outputs: a lead, bass and drums, two outputs as sends to an echo and a reverb, and the returns mixed back in by crosspoints. |
-| **Matrix Mixer: Scene Morph** | Two *snapshots* (a sparse scene and a full groove) blended by a slow LFO on *Morph* with *Morph Curve* on *Equal power*. |
-| **Matrix Mixer: Crosspoint Ring** | An oscillator patched into the **1 → 1** crosspoint ring-modulates the melody at audio rate; the **1 → 2** crosspoint keeps the dry sound. |
-| **Matrix Mixer: Feedback Web** | Two echo networks feed back into the matrix with *Output Stage* on *Normalize*: loops of repeats that stay stable. |
-| **Matrix Mixer: Modulation Blender** | Four Quad LFO waves go in, four blended (some inverted) mixes come out to move the filters of a chord. |
+| **Matrix Mixer: Send Matrix** | Eight inputs, four outputs: a lead, a bass and a drum kit go in, outputs 3 and 4 are sends to an echo and a reverb, and their returns come back into the matrix to be mixed into the main left and right. Each crosspoint is a send amount - try the lead's 1 -> 3 and 1 -> 4 circles. |
+| **Matrix Mixer: Scene Morph** | Two stored snapshots: A is a sparse scene (lead left, bass centre, pad), B a full groove with drums and the lead on the right. A slow LFO on Morph blends smoothly between them, so the arrangement keeps changing by itself. Click a snapshot button to hear it alone, or drag Morph. |
+| **Matrix Mixer: Crosspoint Ring** | Every crosspoint is also a knob, so an audio-rate oscillator patched into the 1 -> 1 gain turns the matrix into a ring modulator: the left output is the metallic product, the right output the dry melody. A slow LFO detunes the modulator for sweeping bell tones. Try changing the 1 -> 2 crosspoint to blend dry and ring. |
+| **Matrix Mixer: Feedback Web** | Two echo networks sit between matrix outputs and inputs, and their returns feed one another through the crosspoints with Normalize on, so the loops build a glassy web of repeats that never runs away. Lower or raise the crosspoint gains around 0.5 to thin out or thicken the web. |
+| **Matrix Mixer: Modulation Blender** | The matrix isn't only for audio: four slow Quad LFO waves go in, and four differently blended mixes (some inverted) come out to move the filter of each voice of a chord. Change the crosspoint signs to make voices open when others close. |
+<!-- /generated -->
 
 ## Reference
 

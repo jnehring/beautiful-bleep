@@ -113,7 +113,7 @@
   function toFlat(doc) {
     if (!doc || typeof doc !== "object") return null;
     if (doc.board && Array.isArray(doc.board.nodes))
-      return { name: doc.name, preset: Object.assign({}, doc.board, { description: doc.description || "", tags: doc.tags || [], tempo: doc.tempo, needs: doc.needs, credits: doc.credits }) };
+      return { name: doc.name, preset: Object.assign({}, doc.board, { description: doc.description || "", tags: doc.tags || [], tempo: doc.tempo, needs: doc.needs, credits: doc.credits, media: doc.media }) };
     if (doc.preset && Array.isArray(doc.preset.nodes))   // the Library's envelope
       return { name: doc.title, preset: Object.assign({}, doc.preset, { needs: doc.needs || doc.preset.needs, tags: doc.tags || doc.preset.tags }) };
     if (Array.isArray(doc.nodes)) return { name: doc.name, preset: doc };
@@ -335,6 +335,10 @@
       return;
     }
     const src = p.preset;
+    if (src.media) {   // the audio the project carries goes into the media folder first
+      const problems = await window.BleepMedia.importAll(src.media, (name, data) => native("importMedia", name, data));
+      if (problems.length) say("Some audio could not be imported: " + problems.join("; "));
+    }
     const board = { format: 1, id: uuid(), nodes: clone(src.nodes), cables: clone(src.cables || []) };
     if (Array.isArray(src.panels) && src.panels.length) board.panels = clone(src.panels);
     if (host.mapPorts) mapPorts(board);
@@ -361,6 +365,9 @@
       : current.source === "factory" ? C.factory(current.name) : null;
     const made = C.merge(C.collect(preset.nodes), current && current.preset && current.preset.credits, from ? [from] : []);
     if (made.length) preset.credits = made;
+    // The audio the board's modules use goes along (common/ui/bleep-media.js); one that cannot be read is left out, with a note.
+    const lost = await window.BleepMedia.attach(preset, preset.nodes, (id) => native("readMedia", id));
+    if (lost.length) say(`${lost.length === 1 ? "An audio file" : lost.length + " audio files"} could not be read and ${lost.length === 1 ? "is" : "are"} not in the project.`);
     if ((board.panels || []).length) preset.panels = clone(board.panels).map((q) => { delete q.open; return q; });
     const needs = libraryView() ? await P.BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
@@ -387,8 +394,8 @@
     const preset = await currentProject(current && current.preset ? current.preset.description : "");
     if (!preset) return;
     const name = (current && current.name) || "Untitled";
-    const { description, tags, tempo, needs, credits, ...board } = preset;
-    const doc = { format: 2, app: "Bleep", name, description, tags, needs, credits, board };
+    const { description, tags, tempo, needs, credits, media, ...board } = preset;
+    const doc = { format: 2, app: "Bleep", name, description, tags, needs, credits, media, board };
     // Through the page's lock: a script-made click is otherwise dropped (common/ui/bleep-bridge.js).
     saveFile(JSON.stringify(doc, null, 1), name.replace(/[^\w .-]+/g, "_") + ".bleepboard", "application/json");
   }

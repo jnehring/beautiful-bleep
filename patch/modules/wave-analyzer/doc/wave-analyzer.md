@@ -84,17 +84,19 @@ chases it. The drift follows *Seed* and the song position, so renders repeat.
   *Frequency* 20 Hz: one full spectrum every four bars on the plotter.
 - **Frozen partial:** *Hold* from a gate: the band stays put while you play.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Wave Analyzer does. In the standalone app open **File → Presets…** (⌘P) and pick *Wave Analyzer* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Wave Analyzer does. In the standalone app open **File → Presets…** (⌘P) and pick *Wave Analyzer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Wave Analyzer: Harmonic Series** | *Sweep* mode with a 10 Hz *Bandwidth* plays the harmonics of a low saw; *Peak* triggers the hats. |
-| **Wave Analyzer: One Pitch from Everything** | The *Shifted* output moves each partial to the *Listen* frequency, so a melody becomes changing timbres at one pitch. |
-| **Wave Analyzer: Pitch Tracker** | *Lock* mode follows the loudest partial within *Capture*; *Track* drives a follower voice and *Locked* gates it. |
-| **Wave Analyzer: Spectrum Pad** | A slow synced *Sweep* with large *Span* sings through a three-saw chord while the plotter draws the spectrum. |
-| **Wave Analyzer: Held Partial** | A square LFO on *Hold* freezes the sweep, and a 1/3 octave *Bandwidth* makes it whistle and talk. |
+| **Wave Analyzer: Harmonic Series** | A narrow band sweeps up five octaves through a low saw drone, lighting up each harmonic in turn: the Band output plays the overtone series as a rising melody, and every harmonic it finds fires Peak, which plays the hats. Try Bandwidth 100 Hz or a faster Sync. |
+| **Wave Analyzer: One Pitch from Everything** | A wide-open sweep drifts through a plucked saw melody while Shifted moves whatever partial it finds to the Listen frequency: the tune becomes a stream of changing timbres all at one pitch. Move Listen to change that pitch, or Bandwidth to 3 Hz for purer tones. |
+| **Wave Analyzer: Pitch Tracker** | In Lock mode the analyser hunts for the loudest partial within Capture of the dial, locks on and follows it: Track drives a square voice an octave below that doubles the melody, and Locked gates it. Widen Capture or move Frequency to change what it grabs. |
+| **Wave Analyzer: Spectrum Pad** | A slow synced sweep reads a three-saw chord from 20 Hz up through the whole spectrum in four bars; the Band output sings each partial as it passes and the plotter draws the spectrum. Try Hold on a slow LFO to freeze a partial, or Sync Free for a looser sweep. |
+| **Wave Analyzer: Held Partial** | The sweep moves through a bass-and-lead sequence, but a square LFO on Hold freezes it on one partial for a bar at a time, then lets it run again; the wide 1/3-octave Bandwidth makes the band whistle and talk. Change the Hold rate or Bandwidth to taste. |
+<!-- /generated -->
 
 ## Reference
 

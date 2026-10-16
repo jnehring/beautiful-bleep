@@ -75,17 +75,41 @@ shift shows up as a translation. The dial shows both oscillators turning.
   *Cos* to two destinations (e.g. the pan of two voices) for circular motion.
 - **Rhythmic phaser:** Sync 1 bar, Shift slightly positive, Feedback 50 %.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Freq Shifter does. In the standalone app open **File → Presets…** (⌘P) and pick *Freq Shifter* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Freq Shifter does. In the standalone app open **File → Presets…** (⌘P) and pick *Freq Shifter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Freq Shifter: Barber-Pole Phaser** | A tiny positive *Fine*, strong *Feedback* and half *Mix*: a phaser sweep that always rises. |
-| **Freq Shifter: Pad to Bells** | *Shift* at about +30 % of ±200 Hz and *Mix* 100 % make a harmonic pad inharmonic and metallic. |
-| **Freq Shifter: Spiral Echoes** | *Feedback* through *FB Delay* shifts every repeat up by the same step, so notes spiral upward. |
-| **Freq Shifter: Stereo Rotation** | *Spread* at 100 % shifts left and right in opposite directions so a mono arpeggio rotates. |
-| **Freq Shifter: Tempo Phaser** | *Sync* on one bar locks the shifter to the song for a slow phaser over drums and bass. |
+| **Freq Shifter: Barber-Pole Phaser** | A saw pad passes through the shifter with a tiny positive Fine and strong Feedback at half Mix: the phaser-like sweep never reaches the end, always rising. Flip Fine negative for a falling one. |
+| **Freq Shifter: Pad to Bells** | With Shift at about +30 % of the 200 Hz range and Mix at 100 %, a harmonic pad becomes inharmonic and metallic, and a slow LFO on Shift moves between bell clusters. Fold in Spread for a stereo glitter. |
+| **Freq Shifter: Spiral Echoes** | Feedback through a short FB Delay shifts every repeat up by the same amount, so each plucked note spirals upward into a stack of echoes. Change Shift to climb faster or slower, or make it negative to spiral down. |
+| **Freq Shifter: Stereo Rotation** | A mono arpeggio on the left input is shifted in opposite directions left and right by Spread at 100 %, so the sound slowly rotates around the head. Change Fine to rotate faster or slower. |
+| **Freq Shifter: Tempo Phaser** | Sync on one bar locks the shifter's rate to the song, so a drum loop and bass get a slow, feedback-laden phaser that sweeps once per bar. Try shorter Sync values, or Shift negative. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Freq Shifter view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Slow Barber Pole** | Endless, slow phasing against the dry sound. |
+| **Gentle Detune** | Beating, chorus-like shimmer. |
+| **Stereo Widener** | Opposite small shifts left and right for a wide image. |
+| **Down Spiral** | Feedback makes the sound sink in steps. |
+| **Up Spiral** | Rising, bell-like spiral. |
+| **Phase Bells** | Metallic ringing from resonant feedback. |
+| **Inharmonic Bell** | Moves partials off the harmonic series: dissonant, bell-like. |
+| **Dissonant Shift** | Fully wet and inharmonic. |
+| **Negative Shift** | Pushes downward: reversed-sounding tones. |
+| **Wide Stereo Spread** | Different shift per channel for a swirling image. |
+| **Negative Feedback Cloud** | Inverted feedback: a darker, diffuse smear. |
+| **Synced Sweep** | Tempo-synced shift movement. |
+| **Extreme Warp** | Large shift: robotic and alien. |
+<!-- /generated -->
 
 ## Reference
 

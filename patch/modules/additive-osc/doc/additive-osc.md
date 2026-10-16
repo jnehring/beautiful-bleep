@@ -75,17 +75,43 @@ levels (Shift: fine, relative), double-click a bar to reset it to 1/n, or use
 *Saw*, *Square*, *Flat*, *Smooth* and *Randomize*. A drag is one undo step.
 The drawing is saved with the board.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Additive Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Additive Osc* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Additive Osc does. In the standalone app open **File → Presets…** (⌘P) and pick *Additive Osc* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Additive Osc: Glass Pad** | A saw spectrum with a gentle *Tilt*, slight *Stretch* and slow *Chorus* makes a wide glassy pad; an LFO drifts *Tilt*. |
-| **Additive Osc: Hollow Reed** | *Base* Square with *Odd/Even* pushed to the odd side; a slow LFO sweeps it from hollow to bright. |
-| **Additive Osc: Inharmonic Bells** | *Stretch* detunes the partials from each other and *Decay* lets them ring on a *Trigger*: struck bells. |
-| **Additive Osc: Comb Drone** | A low saw drone whose *Comb* notches are moved by an LFO on *Comb Phase*: a phaser made of harmonics. |
-| **Additive Osc: Spectral Pulse** | A random generator moves *Partials*, *Tilt* and *Shift* on every sixteenth: each pluck is a different slice of the spectrum. |
+| **Additive Osc: Glass Pad** | A saw-based spectrum with a gentle Tilt, a touch of Stretch and a slow Chorus makes a wide, glassy pad. Try pulling Tilt down for a duller tone, or raising Chorus and Width. |
+| **Additive Osc: Hollow Reed** | A square spectrum with Odd/Even pushed to the odd side gives a hollow, woody reed. A slow LFO sweeps Odd/Even toward the even partials so the tone keeps turning from hollow to bright. |
+| **Additive Osc: Inharmonic Bells** | Stretch spreads the partials out of tune with each other and Decay lets each one ring and die on a trigger, so every note strikes like a struck bell. Change Stretch toward negative values for a softer, gong-like cluster. |
+| **Additive Osc: Comb Drone** | A low saw drone whose partials are notched by a Comb: a slow LFO on Comb Phase moves the notches up the spectrum, so the drone sweeps like a phaser made purely of harmonics. Try Comb Spacing for different notch patterns. |
+| **Additive Osc: Spectral Pulse** | A short rhythmic pluck whose Partials count and Tilt are pushed around by a random generator, so every note is a different slice of the spectrum, from a pure sine to a rich buzz. Lower Damp for brighter plucks. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Additive Osc view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Soft Saw** | A smooth, slightly darkened additive saw. |
+| **Organ Drawbars** | Odd partials with a limited count: a hollow organ. |
+| **Clarinet** | Mostly odd partials: hollow and woody. |
+| **Even Glass** | Even partials only: a thin, glassy octave-like tone. |
+| **Dark Sine Pad** | Few, quiet upper partials: a dark, near-sine pad. |
+| **Bright Buzz** | Strong high partials: a very bright, buzzing tone. |
+| **Ensemble Pad** | Detuned partials and stereo spread: a shimmering ensemble pad. |
+| **Bell** | Stretched partials struck by a trigger: patch the note gate to Trigger. |
+| **Pluck** | A short, plucked string-like tone; needs a trigger from the note. |
+| **Metal Shift** | Shifted, inharmonic partials: ring-modulated and metallic. |
+| **Comb Notches** | Notches carved in the spectrum: modulate Comb Phase with a slow LFO. |
+| **Squeezed Choir** | Compressed partials: dense, vocal and choir-like. |
+| **Stiff Strings** | A slightly stretched, piano-like struck tone. |
+| **Fundamental Whisper** | Just the first few partials: a pure, flute-like tone. |
+| **Random Phase Cloud** | Heavily detuned partials: a wide, cloudy texture. |
+<!-- /generated -->
 
 ## Reference
 

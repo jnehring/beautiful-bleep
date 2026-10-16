@@ -79,17 +79,19 @@ before it, so a render from the same position always sounds the same.
 - **Human timing:** *T Jitter* 15 %.
 - **Rolls:** *T Mode* Ratchet, *T Bias* 75 %.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Recall does. In the standalone app open **File → Presets…** (⌘P) and pick *Recall* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Recall does. In the standalone app open **File → Presets…** (⌘P) and pick *Recall* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Recall: Random Backbeat** | *T Mode* Drums for kick and snare with *T Recall* at 60 %; the X section, snapped to a scale and clocked by T1, plays the bass. |
-| **Recall: Locked Melody** | *T Recall* and *X Recall* at 100 % lock an eight-step loop; change *Scale* or *X Spread* to reshape the same contour. |
-| **Recall: Ratchet Rolls** | *T Mode* Ratchet: rattling hats and claps from divisions and fast pulses over a steady kick. |
-| **Recall: Sorted Drift** | *X Mode* Sorted keeps X1, X2 and X3 low to high: three voices drifting through a chord that changes every half note. |
-| **Recall: Breathing Memory** | Slow LFOs move both Recall knobs between new and locked while *T Loop* 5 and *X Loop* 7 never line up. |
+| **Recall: Random Backbeat** | T Mode Drums turns the T section into a kick (T1) and a snare (T2) that favour beats 1 and 3, 2 and 4, with occasional ghost notes. X, snapped to F minor pentatonic and clocked by the kicks, plays the bass. T Recall at 60 % keeps the figure recognisable while it changes; try 0 % or 100 %. |
+| **Recall: Locked Melody** | With T Recall and X Recall at 100 % the random gates and notes are locked into an eight-step loop, a ready-made melody in A minor pentatonic. Because the memory holds raw random numbers, changing the Scale, X Spread or X Bias reshapes the same contour. Lower the Recall knobs to let it mutate again. |
+| **Recall: Ratchet Rolls** | T Mode Ratchet lets every tick fire as divisions or as two to four quick pulses: T1 rattles a hi-hat, T2 a clap, over a steady kick and a pulsing bass. T Bias towards the right gives more ratchets, towards the left sparse divisions. Try Gate Length and T Jitter. |
+| **Recall: Sorted Drift** | X Mode Sorted makes X1, X2 and X3 always low, middle and high, so three soft voices drift through a D major pentatonic chord that changes every half note; T chance gates re-swell them. Spread sets how wide the chord is, Bias how high it sits. |
+| **Recall: Breathing Memory** | A slow LFO moves both Recall knobs from always-new to a locked loop and back, while T Loop is 5 and X Loop 7 so the rhythm and the melody never line up. The D Dorian pluck line crystallises, mutates, and crystallises again; a bass follows the second gate. Try setting the Recall knobs by hand. |
+<!-- /generated -->
 
 ## Reference
 

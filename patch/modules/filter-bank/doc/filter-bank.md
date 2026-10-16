@@ -98,17 +98,43 @@ The *Presets* menu sets all ten levels at once: *Flat*, *Smile*,
 - **Vocoder with cables:** two banks, *Env k* of the first into *Level k* of
   the second (levels at 0, amount 100 %). Swap cables to shift formants.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Filter Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Filter Bank* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Filter Bank does. In the standalone app open **File → Presets…** (⌘P) and pick *Filter Bank* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Filter Bank: Rhythm Vocoder** | A drum beat in the *Sidechain* with *Env From* on Sidechain and *Vocode* at 100 % makes a saw chord speak the rhythm. |
-| **Filter Bank: Scanning Window** | A narrow *Width* with an LFO on *Scan* sweeps a two-band window across a held chord. |
-| **Filter Bank: Tuned Resonator** | *Tuning* on Harmonic, high *Q* and a sequencer on *Pitch* turn noise bursts and drums into pitched hits. |
-| **Filter Bank: Phaser Sweep** | An LFO on *Shift* slides all ten bands together for a vocal, phaser-like sweep on an arpeggio. |
-| **Filter Bank: Odd-Even Wide** | *Stereo* on Odd/Even split puts odd bands left and even bands right for a wide mono-to-stereo pad; *Odd/Even* and *Tilt* reshape it. |
+| **Filter Bank: Rhythm Vocoder** | A drum beat feeds the Sidechain while a saw chord sits on the input: with Vocode at 100 % and Env From on Sidechain, the ten bands let the beat's spectrum speak through the chord. Try Release and Q. |
+| **Filter Bank: Scanning Window** | Width narrows the bank to a two-band window and a slow LFO on Scan moves it across the spectrum, so a held saw chord sweeps like a gentle formant filter. Open Width back up to hear the full sound. |
+| **Filter Bank: Tuned Resonator** | With Tuning on Harmonic and a high Q the ten bands ring at a note's harmonics: noise bursts and a beat become pitched hits that follow a sequencer into the Pitch input. Change Tuning to Scale or lower Q. |
+| **Filter Bank: Phaser Sweep** | An LFO on Shift slides all ten bands up and down together with a modest Q, giving an arpeggio a vocal, phaser-like sweep. Raise Q for more whistle, or Spacing to change how far apart the bands sit. |
+| **Filter Bank: Odd-Even Wide** | Stereo is set to Odd/Even split, so a mono saw pad leaves the odd bands on the left and the even bands on the right: a wide, hollow image. A slow LFO on Odd/Even moves the emphasis between them; try Tilt. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Filter Bank view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Flat Bank** | All ten bands at unity: a transparent starting point. |
+| **Warm Tilt** | Tilts the spectrum darker. |
+| **Bright Tilt** | Tilts the spectrum brighter. |
+| **Scooped Mids** | Classic smile curve: mids pulled down. |
+| **Telephone Bands** | Only the speech range survives. |
+| **Odd Harmonics** | Only odd bands: hollow, clarinet-like colour. |
+| **Even Harmonics** | Only even bands: octave-ish, reedy colour. |
+| **Scanning Window** | Two-band window: sweep Scan with an LFO or sequencer. |
+| **Single Band Pinger** | One band at a time: sequence Scan for a melodic filter. |
+| **Phaser Sweep** | Modulate Shift with an LFO to slide the bands like a phaser. |
+| **Harmonic Comb** | Bands on harmonics of the pitch input: resonant comb tones. |
+| **Scale Chimes** | Bands snapped to a scale: noise and pads ring with chords. |
+| **Robot Vocoder** | Patch a voice into the sidechain and a buzzy synth into the input. |
+| **Soft Vocoder** | Smoother vocoder for pads and choirs. |
+| **Stretched Bands** | Wider band spacing: inharmonic, metallic resonances. |
+<!-- /generated -->
 
 ## Reference
 

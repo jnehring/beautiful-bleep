@@ -29,3 +29,24 @@ With only *In L* patched, the signal feeds both sides.
 - **Rhythmic sweep:** a clocked LFO onto *Centre*, with Rate at 0.02 Hz so the internal LFO barely moves.
 
 To make the sweep a more sudden swoosh, put a [Compressor](compressor.md) before it, so the level is constant while notches travel.
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Phaser view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Classic Phase** | Warm four-stage phaser. |
+| **Gentle Swirl** | Slow, subtle movement on pads and keys. |
+| **Deep Sweep** | Wide, dramatic sweep. |
+| **Two-Stage Wobble** | Light, airy phase with one notch. |
+| **Twelve Stage Glass** | Dense, glassy notches. |
+| **Stereo Spin** | Left and right sweep out of phase. |
+| **Mono Pulse** | Faster, centred throb. |
+| **Resonant Peaks** | Strong positive feedback: ringing, vocal peaks. |
+| **Hollow Negative** | Negative feedback: a hollow, nasal tone. |
+| **Low Rumble Phase** | Centred low: moves bass and drums. |
+| **High Shimmer** | Bright, airy sweep over the top end. |
+| **Fast Leslie-ish** | Quick, shimmering rotary-like movement. |
+<!-- /generated -->

@@ -86,17 +86,42 @@ Hold all end the sounding note.
 - **Chaining:** *Track Ends* into a Random's trigger gives a new value every
   time any track wraps; *Bar* marks the whole cycle.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Polymeter Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Polymeter Seq* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Polymeter Seq does. In the standalone app open **File → Presets…** (⌘P) and pick *Polymeter Seq* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Polymeter Seq: Pentatonic Cycles** | Trigger, note, octave, gate and probability tracks of 16, 5, 7, 12 and 9 steps loop against each other. |
-| **Polymeter Seq: Acid Odd Lengths** | A Phrygian Dominant bass line from odd-length tracks with ties, ratchets and *Ratchet Amt*, over a beat. |
-| **Polymeter Seq: Division Dance** | Each track runs at its own division (×2, 1, /2, /3) with a ping-pong gate track, playing a marimba. |
-| **Polymeter Seq: Pattern Slots** | *Slots used* 3 and a slow LFO on the Pattern input change the tune every few bars (*Pattern Change* Next bar). |
-| **Polymeter Seq: Glass Shower** | Sparse probability bursts with ratchets and a slow LFO on *Prob. Bias*, over a quiet drone. |
+| **Polymeter Seq: Pentatonic Cycles** | Rhythm 16, notes 5, octaves 7, gates 12 and chances 9 steps long: each track loops at its own length, so the soft A major pentatonic figure only repeats after hundreds of steps. Change one track's length in the view and the pattern re-weaves itself. |
+| **Polymeter Seq: Acid Odd Lengths** | An E Phrygian Dominant bass line from tracks of 13, 7, 5 and 11 steps, with ties for slides and a few ratchets, over a four-on-the-floor beat. Move Prob. Bias or Ratchet Amt to thin the line out or make it stutter. |
+| **Polymeter Seq: Division Dance** | Each track runs at its own Division: triggers at double speed, notes at normal speed, octaves at half speed, gates ping-ponging and probability in thirds. A bright marimba line in D Dorian that keeps changing shape. Try other divisions on the tracks. |
+| **Polymeter Seq: Pattern Slots** | Three stored patterns with different track lengths share one voice. A slow saw LFO on the Pattern input moves from slot to slot on the next bar, so the tune changes character every few bars. Click a slot in the view to hear it alone. |
+| **Polymeter Seq: Glass Shower** | Sparse, probability-driven bursts of high notes over a slow drone: ratchets turn single notes into showers, and a slow LFO on Prob. Bias keeps the density rising and falling. Turn Ratchet Amt down for plain notes, or up for more rain. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Polymeter Seq view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Straight Sixteenths** | Plain sixteenth notes: the neutral setup. |
+| **Tight Gates** | Short gates for plucks and percussion. |
+| **Long Gates** | Gates stretch past the step so notes overlap. |
+| **Swung Shuffle** | A loose swing across all six tracks. |
+| **Slow Eighths** | Eighth notes: a roomier polymeter. |
+| **Triplet Polymeter** | Triplet steps against the bar for a rolling feel. |
+| **Sparse Chance** | Lowers every step's probability: only some notes play. |
+| **Always Play** | Raises every probability so all steps fire. |
+| **Heavy Ratchets** | Ratchet steps repeat at full strength: stuttering hits. |
+| **No Ratchets** | Ratchets switched off: clean single notes. |
+| **Wide Spread** | Spreads the tracks across pitch and velocity for a lively line. |
+| **Soft Velocity** | Quiet notes for a gentle background pattern. |
+| **Low Octave Bass** | Two octaves down in E minor: a bass polymeter. |
+| **Blues Polymeter** | A blues scale with light swing. |
+<!-- /generated -->
 
 ## Reference
 

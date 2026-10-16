@@ -55,17 +55,40 @@ next due step.
 - **A melody from rhythm:** *Stair* into a Quantizer Suite.
 - **Phrase starts:** *Align* resets a sequencer or advances a Harmony Master.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Rotating Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Rotating Div* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Rotating Div does. In the standalone app open **File → Presets…** (⌘P) and pick *Rotating Div* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Rotating Div: Integer Gears** | The Integers *Set* on a 16th clock drives a drum kit; a slow ramp on *Rotate* changes the gearing, *Realign* every 4 bars. |
-| **Rotating Div: Prime Chimes** | The Primes *Set* on 8ths strikes six chimes, with *Rotate* reassigning the fast and slow divisions. |
-| **Rotating Div: Fibonacci Pad** | *Output* Gate with the Fibonacci *Set* opens six notes of a chord and *Width* sets how long each is held. |
-| **Rotating Div: Powers Groove** | Powers of 2 make a techno grid, and the Stair output, quantised, plays the bass. |
-| **Rotating Div: Odd Meters** | *Set* Custom (4, 3, 5, 6, 7, 9, 10, 12) drives a tuned drum ensemble that *Realign* resets every 8 bars. |
+| **Rotating Div: Integer Gears** | Eight integer divisions of the 16th-note clock (/1 to /8) strike a hat, tom, kick, rim, clap and cowbell, forming polyrhythms that realign every four bars. A slow ramp on Rotate shifts which drum gets which division at each bar; turn Rotate by hand and listen to the kit re-gear. |
+| **Rotating Div: Prime Chimes** | The Primes set (1, 2, 3, 5, 7, 11, 13, 17) on eighth notes strikes six bells of an F major-pentatonic chord, so the chimes drift through patterns that almost never repeat. A slow ramp on Rotate hands the fast and slow divisions to different bells over time. |
+| **Rotating Div: Fibonacci Pad** | Gate output on quarter notes with the Fibonacci set (1, 2, 3, 5, 8, 13, 21, 34): each division opens one note of a C major-nine chord, so the pad breathes in and out as the gates fall in and out of step. Widen or narrow Width to change how long each note is held. |
+| **Rotating Div: Powers Groove** | Powers of 2 split the 16th clock into a clean techno grid: /1 hats, /2 off-beat accents, /4 kick, /8 clap, /16 a bar-long ping. The Stair output counts how many divisions fire together and, snapped to a scale, plays the bass: busier beats climb higher. |
+| **Rotating Div: Odd Meters** | Set = Custom with the divisions 4, 3, 5, 6, 7, 9, 10 and 12 drives a tuned drum ensemble of toms, a rim, a cowbell, a hat and a clap: a kit that lines up only every few bars (Realign sets 8). Type other numbers into the divisions in the view for a new meter. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Rotating Div view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Integer Set** | Divisions 1 to 8 across the outputs: the plain starting point. |
+| **Integers Rotated** | The same set shifted three outputs along, wrapping round. |
+| **Odd Divisions** | Divisions 1, 3, 5, 7 and so on: off-kilter, interlocking pulses. |
+| **Even Divisions** | Divisions 2, 4, 6 and so on: steady, related pulses. |
+| **Prime Rotation** | Prime divisions shifted by two: very slow to repeat. |
+| **Binary Ladder** | Powers of two: classic halving for kick, snare and hats. |
+| **Fibonacci Spiral** | Fibonacci divisions for organic cross-rhythms. |
+| **Extending Rotate** | Rotate extends the set upward instead of wrapping. |
+| **Triggers Instant** | Triggers for drums; rotation changes take effect at once. |
+| **Bar-Locked Rotation** | Rotation moves only at the bar line, resyncing each bar. |
+| **Eighth Base Pulses** | A slower base clock with long gates. |
+| **Triplet Fibonacci** | Triplet base with base-step gates for skittering hits. |
+<!-- /generated -->
 
 ## Reference
 

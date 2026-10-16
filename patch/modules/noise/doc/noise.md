@@ -46,6 +46,27 @@ never play the same noise.
 - **Random modulation:** brown noise wanders slowly; patched with a small
   amount onto a pitch or cutoff, it adds unsteady, analog-style drift.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Noise view has 12 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **White Noise** | Flat, full-spectrum noise: the all-round source for hats and snares. |
+| **Pink Noise** | Equal energy per octave: natural, balanced, like rain. |
+| **Brown Rumble** | Dark, deep noise: thunder, wind and engine rumble. |
+| **Soft Hiss** | A quiet, slightly bright hiss for tape or room atmosphere. |
+| **Bright Air** | Bright, airy noise for breaths, cymbals and shimmer. |
+| **Violet Fizz** | Only the top end: fizzy, icy noise for hats and sprays. |
+| **Wind** | Darkened noise: run it through a band-pass and sweep for wind. |
+| **Ocean** | Deep, rolling noise: modulate Level slowly for waves. |
+| **Snare Noise** | Full-level near-white noise: gate it with a fast envelope. |
+| **Hat Noise** | Very bright noise for closed and open hats. |
+| **Vinyl Bed** | A very quiet noise floor to add some grit under a mix. |
+| **Half Level** | White noise at half level: a safe starting point for mixing. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

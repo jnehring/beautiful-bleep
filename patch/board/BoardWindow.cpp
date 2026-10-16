@@ -11,6 +11,7 @@
 //              (kind: "cell", the default, "drums" for Drum Grid patterns, or "projects" for whole projects: the
 //              board with its panels, as {name, preset: {nodes, cables, panels, description, tags, tempo, needs}})
 //              loadPatch(board, tempo, name)   the preset browser: replace the project with a patch
+//              importMedia(name, base64) readMedia(id)   audio files for modules; a preset takes the files it uses along (common/ui/bleep-media.js)
 //              copyText(text) pasteText()   the system clipboard (board copy & paste)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
 //              "state"  {nodes: {id: {outputs, activity, params?}}, ports}   30 times per second
@@ -213,11 +214,11 @@ juce::File presetFolder(const PresetKind& k) {
         .getChildFile("Beautiful Bleep").getChildFile(k.folder);
 }
 
-// Projects (spec §11.5) are the standalone app's project files: {format, app, name, description, tags, tempo, needs, credits, board}.
-// The page sees one flat object, the board with description, tags, tempo, needs and credits next to its nodes, cables and panels.
+// Projects (spec §11.5) are the standalone app's project files: {format, app, name, description, tags, tempo, needs, credits, media, board}.
+// The page sees one flat object, the board with description, tags, tempo, needs, credits and media next to its nodes, cables and panels.
 bool isProjectKind(const juce::var& kind) { return kind.toString() == "projects"; }
 
-const char* const kProjectMeta[] = {"description", "tags", "tempo", "needs", "credits"};
+const char* const kProjectMeta[] = {"description", "tags", "tempo", "needs", "credits", "media"};
 
 juce::var projectToFlat(const juce::var& doc) {
     auto* flat = new juce::DynamicObject();
@@ -425,6 +426,9 @@ public:
                         return;
                     }
                     done(engine_.importMedia(a[0].toString(), decoded.getMemoryBlock()));
+                }))
+                .withNativeFunction("readMedia", gated([this](const juce::Array<juce::var>& a, Completion done) {
+                    done(engine_.readMedia(a[0].toString()));
                 }))
                 .withNativeFunction("exportMedia", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     done(engine_.exportMedia(a[0].toString(), a[1].toString()));

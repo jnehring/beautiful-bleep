@@ -57,6 +57,11 @@ article th, article td { border: 1px solid var(--line); padding: 5px 8px; text-a
 .play-button { padding: 22px 80px; border-radius: 999px; border: 1px solid #5eead4; background: #0f1a1a; color: #5eead4;
   font: 700 1.8rem system-ui; text-decoration: none; }
 .play-button:hover { background: #12302f; }
+.demo-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.demo-card { border: 1px solid #2a3a3a; border-radius: 8px; padding: 4px 14px; }
+.demo-card h3 { margin: 10px 0 4px; font-size: 1rem; }
+.demo-card p { margin: 6px 0; }
+.demo-card .play-button { display: inline-block; padding: 6px 18px; font-size: 0.9rem; }
 .play-button[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .play-steps { color: var(--muted); max-width: 760px; line-height: 1.6; }
 .play-steps strong { color: inherit; }

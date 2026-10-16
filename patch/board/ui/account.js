@@ -79,17 +79,18 @@
         const summary = field("Description", el("textarea")); summary.maxLength = 280; summary.rows = 3;
         summary.value = (preset.description || "").slice(0, 280);
         const tags = field("Tags (comma separated)", el("input")); tags.value = (preset.tags || []).join(", ");
-        const lic = field("License", el("select"));
-        for (const [v, t] of [["CC-BY-4.0", "CC BY 4.0: credit me"], ["CC0-1.0", "CC0: public domain"]]) lic.appendChild(Object.assign(el("option", "", t), { value: v }));
+        box.appendChild(el("div", "ac-note", "Shared presets are licensed CC BY 4.0: others may copy and change them if they credit you."));
         box.appendChild(msg);
         const row = el("div", "ac-row");
         const cancelBtn = el("button", "", "Cancel");
         const go = el("button", "ac-primary", "Share");
         cancelBtn.addEventListener("click", () => close());
         go.addEventListener("click", async () => {
+          const big = window.BleepMedia.tooBig(preset.media);   // the audio it carries must fit what the library takes
+          if (big) { msg.className = "ac-msg bad"; msg.textContent = "Not shared: " + big + "."; return; }
           go.disabled = true; msg.className = "ac-msg"; msg.textContent = "Sharing…";
           const body = {
-            title: title.value.trim(), summary: summary.value.trim(), type: kind === "cells" ? "cell" : "patch", license: lic.value,
+            title: title.value.trim(), summary: summary.value.trim(), type: kind === "cells" ? "cell" : "patch",
             tags: tags.value.split(",").map((t) => t.trim()).filter(Boolean), preset,
             slug: slugOf(name),   // sharing the same name again publishes a new version
           };

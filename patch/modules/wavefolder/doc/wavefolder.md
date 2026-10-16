@@ -67,17 +67,41 @@ makes a mono source wide. A mono source with *Spread* at 0 is computed once.
 - **Tame hot sources:** lower *Level* rather than *Fold*: it changes how far
   the signal reaches into the folds.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Folder does. In the standalone app open **File → Presets…** (⌘P) and pick *Folder* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Folder does. In the standalone app open **File → Presets…** (⌘P) and pick *Folder* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Folder: Complex Voice** | The internal sine played from a sequencer, with an envelope on *Fold*: each note starts bright and relaxes. |
-| **Folder: Moving Bass** | Slow LFOs on *Symmetry* and *Tap* turn a low sine from hollow to buzzy and back. |
-| **Folder: Fold Bells** | An Oscillator into *In L* with *FM Depth* up, then folded: bright, bell-like tones. |
-| **Folder: Stereo Brightener** | A plucked saw on the input with low *Fold*, *Mix* at half and *Spread* open: harmonics and width added to a dry sound. |
-| **Folder: Folded Beat** | A whole drum loop through the Folder with *Fold* moved by a slow LFO and *Mix* for parallel crunch. |
+| **Folder: Complex Voice** | The Folder's internal sine, played from a sequencer's pitch, is folded harder as an envelope opens Fold: every note starts bright and metallic, then relaxes toward a pure tone. Change Fold, Symmetry or Tap for other timbres. |
+| **Folder: Moving Bass** | A low sine from the Folder's own oscillator, with slow LFOs on Symmetry and Tap, turns from hollow to buzzy and back. Raise Fold for more teeth, or turn Octave up for a lead. |
+| **Folder: Fold Bells** | An Oscillator patched into the Folder's input frequency-modulates its internal sine through FM Depth, then the result is folded: sparkling, bell-like tones with a quick decay. Raise FM Depth or Fold to turn bells to glass. |
+| **Folder: Stereo Brightener** | An external plucked saw goes into the Folder with a gentle Fold and Mix at half: the folds add upper harmonics to the dry sound, and Spread opens it into stereo. Move Fold and Level to see how far into the folds the signal reaches. |
+| **Folder: Folded Beat** | A whole drum loop passes through the Folder: kicks gain harmonics and snare and hats turn crunchy as Fold rises with a slow LFO. Pull Mix back for parallel crunch. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Folder view has 13 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Soft Fold** | Mild folding that adds a few bright harmonics. |
+| **Classic Fold** | The classic folded-sine timbre. |
+| **Hollow Fold** | Asymmetry adds even harmonics for a reedy sound. |
+| **Vocal Folds** | Formant-like tone when the fold is swept. |
+| **Metal Bright** | Deep folding: bright, metallic and inharmonic. |
+| **Low Tap Tame** | Heavy fold but only the early stages, so it stays smooth. |
+| **Wide Folder** | Spread decorrelates left and right: a mono source becomes wide. |
+| **Internal Sine Lead** | Use the built-in oscillator; play it from Pitch. |
+| **Triangle Fold** | Folded triangle from the internal oscillator: softer and rounder. |
+| **FM Fold** | FM adds sidebands before the folder for glassy tones. |
+| **Detuned Growl** | An octave down with asymmetric folding: a growling bass. |
+| **Parallel Fold** | Folded signal mixed under the dry one. |
+| **Eco Chaos** | Extreme settings with cheaper oversampling; aliasing is part of it. |
+<!-- /generated -->
 
 ## Reference
 

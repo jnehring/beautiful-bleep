@@ -83,17 +83,43 @@ same, wherever you start.
   outputs play it back delayed by 0 … 7 steps.
 - **Accents:** *Combo* on *All* with two bits chosen, into a velocity or a VCA.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Shift Register does. In the standalone app open **File → Presets…** (⌘P) and pick *Shift Register* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Shift Register does. In the standalone app open **File → Presets…** (⌘P) and pick *Shift Register* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Shift Register: Locked Loop** | *Lock* just below 100 % with a slow LFO: a repeating pentatonic melody that occasionally slips. |
-| **Shift Register: Canon Beat** | A 16-step pattern read at *Bit 1*, *Bit 3*, *Bit 4* and *Bit 6* drives kick, clap, hat and rim as a rhythmic canon. |
-| **Shift Register: Rhythm Echo** | *Source* Data: a drum pattern into *Data* returns as echoes that trigger chimes. |
-| **Shift Register: Mirror Flip** | *Lock* at −100 % inverts the pattern on every pass; *Combine* Odd rings a bell and *Voltage* opens the filter. |
-| **Shift Register: Drifting Free Run** | *Sync* Free with an LFO on *Rate* and another on *Lock*, in a whole-tone scale. |
+| **Shift Register: Locked Loop** | An eight-bit register in E minor pentatonic with Lock almost at 100 %: the melody repeats, and a very slow LFO lets it slip a note now and then before it settles again. Pull Lock down by hand to loosen it, or push it to the top to freeze the tune. |
+| **Shift Register: Canon Beat** | One sixteen-step pattern in the register, read at four places: the kick takes Bit 1, the clap Bit 3, the hats Bit 4 and a rim Bit 6, so the same rhythm echoes itself two, three and five steps later. Lower Lock to let the groove mutate, change Length for new cycles. |
+| **Shift Register: Rhythm Echo** | Source = Data: a little kick-and-snare pattern is fed into the register's Data input and comes back out of the bits as echoes that drive chimes and a pad of notes. Lock below 100 % corrupts the echoes, so the rhythm slowly drifts from its original. |
+| **Shift Register: Mirror Flip** | Lock at -100 % flips every returning bit, so the five-step pattern comes back inverted and the whole line repeats every ten steps. The Combo output (odd number of the chosen bits) rings a high bell, Voltage opens the filter. Move Lock towards the middle to hear the mirror blur. |
+| **Shift Register: Drifting Free Run** | Sync = Free: the register runs on its own Rate instead of the song tempo, and a slow LFO speeds it up and slows it down, over a whole-tone scale. A second LFO on Lock moves between frozen, mutating and random. Switch Sync to a note value to lock it back to the beat. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Shift Register view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Frozen Loop** | The pattern repeats exactly every eight steps. |
+| **Slowly Mutating** | Mostly stable, with an occasional note changing. |
+| **Restless** | Changes often but keeps a recognisable contour. |
+| **Pure Random** | Every bit is a coin toss: random melodies. |
+| **Inverted Echo** | Repeats every twelve steps, the second half inverted. |
+| **Short Four** | A four-step loop for a hypnotic riff. |
+| **Odd Seven** | Seven steps: the loop slides across the bar. |
+| **Long Sixteen** | A long register that drifts slowly over time. |
+| **Slow Eighths** | Slower steps with long gates for a calm line. |
+| **Staccato Burst** | Fast, short notes in an Eastern scale. |
+| **Wide Four Octaves** | The pitch spreads over four octaves: big leaps. |
+| **Free Running** | Ignores the song tempo and steps at a set rate. |
+| **Gate Weights** | Different weights make the Mix output stepped and uneven. |
+| **All-Bits Combo** | Combo goes high only when every chosen bit is 1: sparse rhythms. |
+| **Odd-Parity Combo** | Combo of an odd number of bits: busy, shifting gate patterns. |
+<!-- /generated -->
 
 ## Reference
 

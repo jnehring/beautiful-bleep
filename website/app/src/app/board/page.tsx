@@ -20,6 +20,8 @@ export default function PlayPage() {
       </section>
       <LaunchButton />
 
+      <p>Or try an <a href="/instruments/">instrument</a> or an <a href="/effects/">effect</a> on its own.</p>
+
       <h2>How to use it</h2>
       <ol className="play-steps">
         <li><strong>Launch</strong> opens Bleep in its own window. Click <strong>Start audio</strong> once; browsers only allow sound after a click.</li>

@@ -65,17 +65,43 @@ lower sustain. *Velocity* scales every exciter.
 - **Play button:** held, it is a gate (and a strike), for trying sounds
   without patching.
 
+<!-- generated:demos -->
 ## Demo patches
 
-Five whole patches show what Modal Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Modal Voice* under *Demos by module*; loading one replaces the project and starts the transport.
+Five whole patches show what Modal Voice does. In the standalone app open **File → Presets…** (⌘P) and pick *Modal Voice* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
 
 | Patch | What it shows |
 |---|---|
-| **Modal Voice: Mallet Bars** | Mallet strikes (*Strike*) on a damped bar-like body; *Strike Timbre* changes soft to hard mallets. |
-| **Modal Voice: Bowed Strings** | Held gates with *Bow* up make the string sing; an LFO moves *Bow Timbre*. |
-| **Modal Voice: Breath Tube** | *Blow* excites a tube-like body for an airy melody, with a slowly rising vibrato on *Fine*. |
-| **Modal Voice: Metal Plate Groove** | Rhythmic hits on a large plate while LFOs morph *Geometry* and *Brightness*. |
-| **Modal Voice: Drums Through a Body** | A drum beat on the *Ext* input excites the body, tuned by a bass line; *Ext Level* sets the amount. |
+| **Modal Voice: Mallet Bars** | Mallet strikes on a wooden bar: a quick pentatonic phrase played by the Strike input, with Geometry at the bar setting and a short, damped ring. Strike Timbre changes the mallet from soft to hard, Position moves where on the bar it lands. |
+| **Modal Voice: Bowed Strings** | Long held gates with Bow turned up make the string sing continuously, with a slow rise of bow pressure from a Triangle LFO. Lower Bow Timbre for a softer scrape, or raise Damping to shorten the sustain. |
+| **Modal Voice: Breath Tube** | Blow, not bow or strike: breath noise excites a tube-like body and a slow melody speaks out of it with a soft, airy attack. Blow Timbre sets the colour of the air, Geometry the shape of the body. |
+| **Modal Voice: Metal Plate Groove** | Hits on a big metal plate in a rhythmic pattern, with slow LFOs morphing Geometry between string, plate and bell and sweeping Brightness. Try Size, Damping and Space for a tighter or a more cavernous plate. |
+| **Modal Voice: Drums Through a Body** | A drum beat enters the Ext input and excites the modal body, so the kit rings like it is played on a tuned bell with a bass line from the sequencer's pitch. Ext Level is the amount of beat in the body; Coarse retunes the whole thing. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Modal Voice view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Soft Mallet** | A gentle mallet on a resonant bar: a mellow mallet instrument. |
+| **Plucked String** | Bright pluck on a string body; fast, natural decay. |
+| **Bowed String** | A sustained bow on a string: patch Gate to hold the note. |
+| **Flute Breath** | Breath through a tube-like string body: airy, sustained. |
+| **Glass Bell** | Inharmonic bell body with long ring. |
+| **Wood Block** | Short, dry knock: heavily damped bar. |
+| **Vibraphone** | Long metal bar with a rounded mallet and some room. |
+| **Plate Gong** | Large plate struck softly: a slow, crashing bloom. |
+| **Bowed Plate Drone** | Bowed metal plate: eerie, evolving drone. |
+| **Dark Marimba** | Woody, dark bar with short sustain. |
+| **Tiny Chimes** | High, small, bright chimes an octave up. |
+| **Bowed Bell** | Singing bowl-like sustained tone: hold the gate. |
+| **Blown Bottle** | Breathy, hollow bottle tone with a soft attack. |
+| **Ext Resonator** | Patch any audio into Ext: it rings through the modal body. |
+| **Big Hall Strike** | A struck body in a very large room. |
+<!-- /generated -->
 
 ## Reference
 
