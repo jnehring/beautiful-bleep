@@ -605,8 +605,9 @@ std::set<juce::String> cellTree(const juce::var& doc, const juce::String& cellId
     bool grew = true;
     while (grew) {
         grew = false;
-        for (const auto& n : *doc["nodes"].getArray())
-            if (ids.count(n["parent"].toString()) && ids.insert(n["id"].toString()).second) grew = true;
+        if (const auto* list = doc["nodes"].getArray())
+            for (const auto& n : *list)
+                if (ids.count(n["parent"].toString()) && ids.insert(n["id"].toString()).second) grew = true;
     }
     return ids;
 }
@@ -770,13 +771,13 @@ juce::String attachedCell(const juce::var& doc, const juce::String& portNodeId) 
 
 void removeCell(juce::var& doc, const juce::String& cellId) {
     const auto ids = cellTree(doc, cellId);
-    auto* nodes = doc["nodes"].getArray();
-    for (int i = nodes->size(); --i >= 0;)
-        if (ids.count((*nodes)[i]["id"].toString())) nodes->remove(i);
-    auto* cables = doc["cables"].getArray();
-    for (int i = cables->size(); --i >= 0;)
-        if (ids.count((*cables)[i]["from"]["node"].toString()) || ids.count((*cables)[i]["to"]["node"].toString()))
-            cables->remove(i);
+    if (auto* nodes = doc["nodes"].getArray())
+        for (int i = nodes->size(); --i >= 0;)
+            if (ids.count((*nodes)[i]["id"].toString())) nodes->remove(i);
+    if (auto* cables = doc["cables"].getArray())
+        for (int i = cables->size(); --i >= 0;)
+            if (ids.count((*cables)[i]["from"]["node"].toString()) || ids.count((*cables)[i]["to"]["node"].toString()))
+                cables->remove(i);
     if (auto* panels = doc["panels"].getArray())
         for (int i = panels->size(); --i >= 0;)
             if (ids.count((*panels)[i]["cell"].toString())) panels->remove(i);
@@ -785,10 +786,12 @@ void removeCell(juce::var& doc, const juce::String& cellId) {
 juce::var extractPreset(const juce::var& doc, const juce::String& cellId) {
     const auto ids = cellTree(doc, cellId);
     juce::Array<juce::var> nodes, cables, panels;
-    for (const auto& n : *doc["nodes"].getArray())
-        if (ids.count(n["id"].toString())) nodes.add(deepCopy(n));
-    for (const auto& c : *doc["cables"].getArray())
-        if (ids.count(c["from"]["node"].toString()) && ids.count(c["to"]["node"].toString())) cables.add(deepCopy(c));
+    if (const auto* list = doc["nodes"].getArray())
+        for (const auto& n : *list)
+            if (ids.count(n["id"].toString())) nodes.add(deepCopy(n));
+    if (const auto* list = doc["cables"].getArray())
+        for (const auto& c : *list)
+            if (ids.count(c["from"]["node"].toString()) && ids.count(c["to"]["node"].toString())) cables.add(deepCopy(c));
     if (const auto* list = doc["panels"].getArray())
         for (const auto& q : *list)
             if (q["cell"].toString() == cellId) panels.add(deepCopy(q));

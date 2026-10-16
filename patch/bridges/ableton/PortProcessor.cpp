@@ -101,8 +101,9 @@ void PortProcessor::pollSlots() {
     // The host moved a parameter: set its knob.
     for (int k = 0; k < kSlots; ++k)
         if (slotDirty_[(size_t)k].exchange(false) && mapping_[(size_t)k].node.isNotEmpty())
-            call("setParam", "[\"" + mapping_[(size_t)k].node + "\",\"" + mapping_[(size_t)k].param + "\"," +
-                                 juce::String(slots_[(size_t)k]->get(), 6) + "]");
+            call("setParam", juce::JSON::toString(juce::var(juce::Array<juce::var>{
+                                 mapping_[(size_t)k].node, mapping_[(size_t)k].param,
+                                 (double)slots_[(size_t)k]->get()}), true));
     // The knobs: which ones, what they are called, and where they stand now (a knob moved on the panel).
     if (++slotTick_ < 6 && slotsGeneration_ == engine().boardGeneration()) return;
     slotTick_ = 0;
@@ -229,9 +230,12 @@ void PortProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuff
             case PortKind::MidiOut:
                 audio.clear();
                 midi.clear();
-                for (int i = 0; i < b.numMidiOut; ++i)
-                    midi.addEvent(bridgeMidiOut_[(size_t)i].bytes, bridgeMidiOut_[(size_t)i].size,
+                for (int i = 0; i < std::clamp(b.numMidiOut, 0, bridge::kMaxMidi); ++i) {
+                    const int sz = std::min<int>(bridgeMidiOut_[(size_t)i].size, 3);
+                    if (sz < 1) continue;
+                    midi.addEvent(bridgeMidiOut_[(size_t)i].bytes, sz,
                                   juce::jlimit(0, juce::jmax(0, n - 1), bridgeMidiOut_[(size_t)i].offset));
+                }
                 break;
             case PortKind::AudioOut:
                 midi.clear();

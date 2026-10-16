@@ -10,6 +10,9 @@
 
 #include <condition_variable>
 #include <cstdio>
+#include <cstring>
+#include <memory>
+#include <vector>
 #include <mutex>
 #include <thread>
 
@@ -203,6 +206,64 @@ void testPortKinds(engine::Engine& engine, bridge::BridgeServer& server) {
     EXPECT(audioWrong == 0);
 }
 
+/// A hostile peer: negative/huge numSamples and MIDI records with size 255 or offsets outside the block.
+void testHostileFrame() {
+    auto f = std::make_unique<bridge::Frame>();
+    std::memset((void*)f.get(), 0, sizeof(bridge::Frame));
+    f->block = 5;
+    f->numSamples = -7;
+    f->numMidi = 5;
+    auto setMidi = [&](int i, int32_t off, uint8_t size) {
+        f->midi[i].offset = off;
+        f->midi[i].size = size;
+        f->midi[i].bytes[0] = 0x90;
+    };
+    std::vector<float> l(bridge::kMaxBlock), r(bridge::kMaxBlock);
+    std::vector<bridge::Midi> midi(bridge::kMaxMidi);
+    int ns = 99, nm = 99;
+    EXPECT(bridge::readFrame(*f, 5, l.data(), r.data(), bridge::kMaxBlock, ns, nullptr, midi.data(), &nm));
+    EXPECT(ns == 0);  // negative numSamples: nothing copied, no huge memcpy
+    EXPECT(nm == 0);  // every offset is outside an empty block
+
+    f->numSamples = 64;
+    setMidi(0, 10, 255);   // size clamped to 3
+    setMidi(1, -1, 3);     // dropped
+    setMidi(2, 64, 3);     // dropped (outside the block)
+    setMidi(3, 1 << 30, 3);  // dropped
+    setMidi(4, 63, 2);
+    f->numMidi = 1 << 20;  // clamped to kMaxMidi; the rest of the array is zero (size 0, offset 0)
+    EXPECT(bridge::readFrame(*f, 5, l.data(), r.data(), bridge::kMaxBlock, ns, nullptr, midi.data(), &nm));
+    EXPECT(ns == 64);
+    bool ok = nm >= 2 && midi[0].offset == 10 && midi[0].size == 3 && midi[1].offset == 63 && midi[1].size == 2;
+    for (int i = 0; i < nm; ++i) ok = ok && midi[(size_t)i].size <= 3 && midi[(size_t)i].offset >= 0 && midi[(size_t)i].offset < 64;
+    EXPECT(ok);
+}
+
+/// A hostile plugin claims a slot with a huge block size and a non-finite sample rate: the app must stay up.
+void testHostileSlot(bridge::BridgeServer& server) {
+    std::unique_ptr<bridge::SharedMemory> mem(bridge::SharedMemory::open(false));
+    EXPECT(mem != nullptr);
+    if (!mem) return;
+    bridge::Shared& s = *mem->get();
+    int hit = 0;
+    for (auto& slot : s.slots)
+        if (slot.state.load() == 1) {
+            slot.maxBlock.store(0x7fffffff);
+            slot.sampleRateMilli.store(INT64_MAX);
+            slot.generation.fetch_add(1);
+            ++hit;
+        }
+    EXPECT(hit > 0);
+    server.poll();  // must not allocate gigabytes or crash
+    for (auto& slot : s.slots)
+        if (slot.state.load() == 1) {
+            slot.maxBlock.store(-5);
+            slot.sampleRateMilli.store(-1);
+        }
+    server.poll();
+    EXPECT(server.ok());
+}
+
 }  // namespace
 
 int main() {
@@ -210,6 +271,7 @@ int main() {
     const juce::String ns = "t" + juce::String(juce::Random::getSystemRandom().nextInt(99999));
     setenv("BLEEP_BRIDGE_NAMESPACE", ns.toRawUTF8(), 1);
 
+    testHostileFrame();
     auto* engine = new engine::Engine();
     engine->setStandalone(true);
     const int main = engine->registerInstance(engine::PortKind::Patch);
@@ -269,6 +331,7 @@ int main() {
         EXPECT(late < 40);  // a loaded CI machine may miss some; Live measures this in phase 0
 
         testPortKinds(*engine, server);
+        testHostileSlot(server);
 
         // A bridge that goes away becomes a ghost node with its cables kept.
         b.setIdentity("", "Pad");

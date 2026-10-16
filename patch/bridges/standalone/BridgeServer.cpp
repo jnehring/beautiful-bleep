@@ -2,6 +2,7 @@
 #include "BridgeServer.h"
 
 #include <algorithm>
+#include <cmath>
 #include <thread>
 
 namespace bleep::bridge {
@@ -128,7 +129,9 @@ void BridgeServer::poll() {
         }
         if (attached && (p.id != id || p.kind != kindValue || p.board != board)) detach(k);
         const std::string track(slot.track, strnlen(slot.track, sizeof slot.track));
-        const double rate = (double)slot.sampleRateMilli.load() / 1000.0;
+        double rate = (double)slot.sampleRateMilli.load() / 1000.0;
+        if (!std::isfinite(rate) || rate < 8000.0 || rate > 768000.0) rate = 0.0;  // untrusted: fall back to 48 kHz below
+        const int maxBlock = std::clamp((int)slot.maxBlock.load(), 1, kMaxBlock);
         if (board == (uint32_t)Board::Web) {
             if (!relay_) continue;  // no hub: nothing to hand it to
             if (!relayed_[k].load()) {
@@ -171,7 +174,7 @@ void BridgeServer::poll() {
             p.generation = gen;
             engine_.setTrack(p.handle, track.c_str(), 0);
         }
-        engine_.prepare(p.handle, rate > 0.0 ? rate : 48000.0, std::max(1, (int)slot.maxBlock.load()));
+        engine_.prepare(p.handle, rate > 0.0 ? rate : 48000.0, maxBlock);
         live_[k].store(true);
     }
 }
@@ -239,7 +242,7 @@ void BridgeServer::processBlock(int64_t block) {
             for (int i = 0; i < p.io.numMidiIn; ++i) {
                 p.midiEvents[(size_t)i].offset = p.midiIn[(size_t)i].offset;
                 std::memcpy(p.midiEvents[(size_t)i].bytes, p.midiIn[(size_t)i].bytes, 3);
-                p.midiEvents[(size_t)i].size = p.midiIn[(size_t)i].size;
+                p.midiEvents[(size_t)i].size = std::min<uint8_t>(p.midiIn[(size_t)i].size, 3);
             }
         } else {
             p.io.numSamples = 0;  // this bridge didn't hand over the block
@@ -277,7 +280,7 @@ void BridgeServer::processBlock(int64_t block) {
                     Midi& m = o.midi[o.numMidi++];
                     m.offset = e.offset;
                     std::memcpy(m.bytes, e.bytes, 3);
-                    m.size = e.size;
+                    m.size = std::min<uint8_t>(e.size, 3);
                 }
             o.endWrite();
         }

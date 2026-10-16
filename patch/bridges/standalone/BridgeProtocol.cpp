@@ -74,6 +74,11 @@ SharedMemory* SharedMemory::open(bool create) {
     HANDLE h = create ? CreateFileMappingA(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, (DWORD)((uint64_t)size >> 32),
                                            (DWORD)(size & 0xffffffffu), name.c_str())
                       : OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, name.c_str());
+    // The app must be the creator: an object another process pre-created in the session is not ours.
+    if (create && h && GetLastError() == ERROR_ALREADY_EXISTS) {
+        CloseHandle(h);
+        h = nullptr;
+    }
     if (!h) {
         delete m;
         return nullptr;
@@ -153,6 +158,10 @@ WakeSignal* WakeSignal::open(bool create) {
     const std::string name = "Local\\" + semaphoreName().substr(1);
     HANDLE h = create ? CreateEventA(nullptr, FALSE, FALSE, name.c_str())
                       : OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE, FALSE, name.c_str());
+    if (create && h && GetLastError() == ERROR_ALREADY_EXISTS) {  // pre-created by another process: not ours
+        CloseHandle(h);
+        h = nullptr;
+    }
     if (!h) {
         delete w;
         return nullptr;

@@ -23,6 +23,7 @@
 // of its portKind, so "Bleep Audio In with Board = App" is the app's Audio In.
 #pragma once
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -87,14 +88,20 @@ inline bool readFrame(const Frame& src, int64_t b, float* left, float* right, in
                       Transport* transport = nullptr, Midi* midi = nullptr, int* numMidi = nullptr) noexcept {
     const uint32_t s1 = src.seq.load(std::memory_order_acquire);
     if ((s1 & 1u) != 0 || src.block != b) return false;
-    const int n = std::min(std::min(src.numSamples, kMaxBlock), capacity);
+    const int n = std::max(0, std::min(std::min(src.numSamples, kMaxBlock), capacity));
     if (left) std::memcpy(left, src.audio[0], sizeof(float) * (size_t)n);
     if (right) std::memcpy(right, src.audio[1], sizeof(float) * (size_t)n);
     if (transport) *transport = src.transport;
     int m = 0;
     if (midi) {
-        m = std::max(0, std::min(src.numMidi, kMaxMidi));
-        std::memcpy(midi, src.midi, sizeof(Midi) * (size_t)m);
+        // The peer is untrusted: clamp sizes to the 3 data bytes and drop events outside the block.
+        const int total = std::max(0, std::min(src.numMidi, kMaxMidi));
+        for (int i = 0; i < total; ++i) {
+            Midi e = src.midi[i];
+            if (e.offset < 0 || e.offset >= n) continue;
+            if (e.size > 3) e.size = 3;
+            midi[m++] = e;
+        }
     }
     std::atomic_thread_fence(std::memory_order_acquire);
     if (src.seq.load(std::memory_order_relaxed) != s1) return false;
