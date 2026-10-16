@@ -905,6 +905,146 @@ static void check_latency_threads(void) {
     bb_bus_close(bus);
 }
 
+/* ---- hostile peers ------------------------------------------------------ */
+
+static bb_shm_input* raw_find_input(raw_map* m, const char* name) {
+    bb_shm_header* h = (bb_shm_header*)m->base;
+    bb_shm_input* t = (bb_shm_input*)((char*)m->base + h->inputs_offset);
+    for (uint32_t i = 0; i < BB_MAX_INPUTS; ++i)
+        if (t[i].state == BB_SLOT_ACTIVE && strncmp(t[i].name, name, BB_PORT_NAME_BYTES) == 0) return &t[i];
+    return NULL;
+}
+
+/* A peer can put anything into the segment: the library must neither hand NaN
+ * or Inf to the caller nor read past an unterminated string. */
+static void check_hostile_values(void) {
+    pair p;
+    CHECK(make_pair(&p, 1.0f));
+    raw_map m;
+    CHECK(raw_open(g_ns, 0, &m));
+    if (g_current_failed || !m.base) {
+        free_pair(&p);
+        return;
+    }
+    bb_shm_input* rec = raw_find_input(&m, "in");
+    CHECK(rec != NULL);
+    if (!rec) {
+        raw_close(&m);
+        free_pair(&p);
+        return;
+    }
+    const uint32_t n = 256;
+    uint64_t t = 1000000000ull;
+    int64_t pos = 0;
+    float nan_v = nanf(""), inf_v = INFINITY;
+    uint32_t bits;
+
+    /* Sample values: NaN and Inf from a hostile writer read as silence. */
+    float values[2] = {nan_v, inf_v};
+    for (int k = 0; k < 2; ++k) {
+        for (int c = 0; c < 3; ++c, pos += n, t += 5333333ull) {
+            uint32_t present = 0;
+            float last = 1.0f;
+            write_block(p.writer, p.out, pos, n, 1, t, values[k]);
+            float first = read_block(p.reader, p.in, pos, n, 1, t, &present, &last);
+            CHECK(isfinite(first) && isfinite(last));
+            if (c > 0) CHECK_NEAR(first, 0.0, 0.0);
+        }
+    }
+
+    /* Amount bits: NaN reads as 0, huge values are clamped to the limit. */
+    float amounts[3] = {nan_v, inf_v, 1e30f};
+    float expect[3] = {0.0f, 0.0f, 1000.0f};
+    for (int k = 0; k < 3; ++k) {
+        memcpy(&bits, &amounts[k], sizeof(bits));
+        rec->connections[0].amount_bits = bits;
+        for (int c = 0; c < 3; ++c, pos += n, t += 5333333ull) {
+            uint32_t present = 0;
+            write_block(p.writer, p.out, pos, n, 1, t, 1.0f);
+            float first = read_block(p.reader, p.in, pos, n, 1, t, &present, NULL);
+            CHECK(isfinite(first));
+            if (c > 0) CHECK_NEAR(first, expect[k], 0.0);
+        }
+    }
+    {
+        /* Listing and saving also sanitise the amount. */
+        bb_connection_info ci[2];
+        uint32_t cn = bb_list_connections(p.bus, bb_endpoint_uid(p.reader), "in", ci, 2);
+        CHECK_EQ_INT(cn, 1);
+        CHECK(cn == 1 && ci[0].amount == 1000.0f);
+        char buf[512];
+        size_t need = bb_save_connections(p.reader, buf, sizeof(buf));
+        CHECK(need > 0 && need <= sizeof(buf) && strstr(buf, "1000.000000") != NULL);
+    }
+
+    /* Unterminated strings: names filled to the last byte. */
+    bb_shm_header* h = (bb_shm_header*)m.base;
+    bb_shm_endpoint* eps = (bb_shm_endpoint*)((char*)m.base + h->endpoints_offset);
+    for (uint32_t i = 0; i < BB_MAX_ENDPOINTS; ++i) {
+        if (eps[i].state != BB_SLOT_ACTIVE) continue;
+        memset(eps[i].display_name, 'A', sizeof(eps[i].display_name));
+        memset(eps[i].track_name, 'B', sizeof(eps[i].track_name));
+        memset(eps[i].vendor, 'C', sizeof(eps[i].vendor));
+        memset(eps[i].product, 'D', sizeof(eps[i].product));
+    }
+    memset(rec->name, 'x', sizeof(rec->name));
+    memset(rec->connections[0].output_name, 'y', sizeof(rec->connections[0].output_name));
+
+    bb_endpoint_info infos[BB_MAX_ENDPOINTS];
+    uint32_t ne = bb_list_endpoints(p.bus, infos, BB_MAX_ENDPOINTS);
+    CHECK(ne >= 2);
+    for (uint32_t i = 0; i < ne && i < BB_MAX_ENDPOINTS; ++i) {
+        CHECK(memchr(infos[i].display_name, 0, sizeof(infos[i].display_name)) != NULL);
+        CHECK(memchr(infos[i].track_name, 0, sizeof(infos[i].track_name)) != NULL);
+        CHECK(memchr(infos[i].vendor, 0, sizeof(infos[i].vendor)) != NULL);
+        CHECK(memchr(infos[i].product, 0, sizeof(infos[i].product)) != NULL);
+    }
+    bb_output_info oi[BB_MAX_OUTPUTS];
+    uint32_t no = bb_list_outputs(p.bus, oi, BB_MAX_OUTPUTS);
+    for (uint32_t i = 0; i < no && i < BB_MAX_OUTPUTS; ++i) {
+        CHECK(memchr(oi[i].name, 0, sizeof(oi[i].name)) != NULL);
+        CHECK(memchr(oi[i].endpoint_name, 0, sizeof(oi[i].endpoint_name)) != NULL);
+        CHECK(memchr(oi[i].track_name, 0, sizeof(oi[i].track_name)) != NULL);
+    }
+    bb_input_info ii[4];
+    uint32_t ni = bb_list_inputs(p.bus, bb_endpoint_uid(p.reader), ii, 4);
+    CHECK_EQ_INT(ni, 1);
+    if (ni == 1) CHECK(memchr(ii[0].name, 0, sizeof(ii[0].name)) != NULL);
+    char big[1024];
+    size_t need = bb_save_connections(p.reader, big, sizeof(big));
+    CHECK(need > 0 && need <= sizeof(big));
+    /* Duplicate-name checks and cable edits must stay in bounds. */
+    CHECK(bb_add_input(p.reader, "in", BB_SIGNAL_CONTROL, NULL) != NULL);
+    bb_disconnect(p.bus, bb_endpoint_uid(p.reader), "in", bb_endpoint_uid(p.writer), "out");
+
+    raw_close(&m);
+    free_pair(&p);
+}
+
+/* A peer that dies at seq-odd must not leave the cable table unreadable. */
+static void check_seq_odd_recovery(void) {
+    pair p;
+    CHECK(make_pair(&p, 1.0f));
+    raw_map m;
+    CHECK(raw_open(g_ns, 0, &m));
+    if (g_current_failed || !m.base) {
+        free_pair(&p);
+        return;
+    }
+    bb_shm_input* rec = raw_find_input(&m, "in");
+    CHECK(rec != NULL);
+    if (rec) {
+        rec->seq |= 1u; /* a writer died mid-update */
+        CHECK_EQ_INT(bb_connect(p.bus, bb_endpoint_uid(p.reader), "in", 0x77ull, "other", 0.5f), BB_OK);
+        CHECK_EQ_INT(rec->seq & 1u, 0);
+        rec->seq |= 1u;
+        CHECK_EQ_INT(bb_disconnect(p.bus, bb_endpoint_uid(p.reader), "in", 0x77ull, "other"), BB_OK);
+        CHECK_EQ_INT(rec->seq & 1u, 0);
+    }
+    raw_close(&m);
+    free_pair(&p);
+}
+
 /* ---- processes ---------------------------------------------------------- */
 
 static void check_reap_dead_process(void) {
@@ -1138,6 +1278,40 @@ static int mode_inspect(const char* ns) {
     return problems ? 1 : 0;
 }
 
+#if BB_HAVE_POSIX
+/* The creator crashed while initialising: the next opener recovers after the
+ * init timeout instead of failing forever. */
+static void check_init_crash_recovery(void) {
+    char ns[BB_NAMESPACE_BYTES];
+    snprintf(ns, sizeof(ns), "%s-i", g_ns);
+    ns[BB_NAMESPACE_BYTES - 1] = '\0';
+    bb_bus_unlink(ns);
+    pid_t child = fork();
+    if (child == 0) _exit(0);
+    int status = 0;
+    waitpid(child, &status, 0);
+
+    raw_map m;
+    CHECK(raw_open(ns, (size_t)BB_LAYOUT_TOTAL_BYTES, &m));
+    if (!m.base) return;
+    bb_shm_header* h = (bb_shm_header*)m.base;
+    h->init_state = BB_INIT_INITIALIZING;
+    h->reserved0 = (uint32_t)child; /* dead initializer */
+    bb_error err = BB_OK;
+    bb_bus* bus = bb_bus_open(BB_SPEC_VERSION, ns, &err);
+    CHECK(bus != NULL);
+    CHECK_EQ_INT(err, BB_OK);
+    if (bus) {
+        bb_endpoint* ep = make_endpoint(bus, "Recovered", 0);
+        CHECK(ep != NULL);
+        if (ep) bb_unregister_instance(ep);
+        bb_bus_close(bus);
+    }
+    raw_close(&m);
+    bb_bus_unlink(ns);
+}
+#endif
+
 static int mode_run(const char* ns_arg) {
     if (ns_arg) {
         snprintf(g_ns, sizeof(g_ns), "%s", ns_arg);
@@ -1167,12 +1341,16 @@ static int mode_run(const char* ns_arg) {
     run_check("signals: unwritten, short, mismatched and oversized blocks", check_block_edge_cases);
     run_check("state: connections save and load", check_persistence);
     run_check("patching: cables edited from another handle", check_cross_handle_patching);
+    run_check("hostile peer: NaN/Inf values and unterminated names", check_hostile_values);
+    run_check("hostile peer: odd seqlock left by a dead writer", check_seq_odd_recovery);
 #if BB_HAVE_POSIX
+    run_check("open: a crashed initializer is recovered", check_init_crash_recovery);
     run_check("timing: real threads in random order", check_latency_threads);
     run_check("registry: endpoints of dead processes are reclaimed", check_reap_dead_process);
     run_check("registry: a lock held by a dead process is recovered", check_lock_recovery);
     run_check("ipc: signals cross process boundaries", check_cross_process);
 #else
+    skip_check("open: a crashed initializer is recovered", "POSIX only in this version");
     skip_check("timing: real threads in random order", "POSIX only in this version");
     skip_check("registry: endpoints of dead processes are reclaimed", "POSIX only in this version");
     skip_check("registry: a lock held by a dead process is recovered", "POSIX only in this version");

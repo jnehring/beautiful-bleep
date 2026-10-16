@@ -161,11 +161,19 @@ public:
     void endBlock() noexcept { bb_end_block(ep_); }                                     // [RT]
 
     std::string saveConnections() const {
-        size_t needed = bb_save_connections(ep_, nullptr, 0);
-        std::string s(needed, '\0');
-        needed = bb_save_connections(ep_, s.data(), s.size());
-        s.resize(needed > 0 ? needed - 1 : 0);
-        return s;
+        // The table can grow between the size query and the copy; retry until
+        // the copy fits.
+        for (int attempt = 0; attempt < 8; ++attempt) {
+            size_t needed = bb_save_connections(ep_, nullptr, 0);
+            if (needed == 0) break;
+            std::string s(needed, '\0');
+            size_t got = bb_save_connections(ep_, s.data(), s.size());
+            if (got > 0 && got <= s.size()) {
+                s.resize(got - 1);
+                return s;
+            }
+        }
+        return std::string();
     }
     bb_error loadConnections(const std::string& s) { return bb_load_connections(ep_, s.data(), s.size()); }
 

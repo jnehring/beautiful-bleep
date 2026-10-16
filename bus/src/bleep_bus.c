@@ -22,6 +22,8 @@
 #include "bleep_bus_layout.h"
 #include "bb_platform.h"
 
+#include <math.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +56,26 @@ static float bb_bits_float(uint32_t u) {
     memcpy(&f, &u, sizeof(f));
     return f;
 }
+
+/* Copies a string that lives in shared memory (and so may be unterminated or
+ * hostile) into a caller buffer: at most cap-1 bytes, always NUL-terminated,
+ * remainder zeroed. */
+static void bb_copy_shm_str(char* dst, size_t cap, const char* src) {
+    size_t n = strnlen(src, cap - 1);
+    memcpy(dst, src, n);
+    memset(dst + n, 0, cap - n);
+}
+
+/* Amounts and samples come from shared memory and may be NaN/Inf/huge:
+ * non-finite becomes 0, amounts are clamped to the documented range. */
+static float bb_sanitize_amount(float a) {
+    if (!isfinite(a)) return 0.0f;
+    if (a > BB_AMOUNT_LIMIT) return BB_AMOUNT_LIMIT;
+    if (a < -BB_AMOUNT_LIMIT) return -BB_AMOUNT_LIMIT;
+    return a;
+}
+
+static float bb_sanitize_sample(float x) { return isfinite(x) ? x : 0.0f; }
 
 static void bb_set_err(bb_error* err, bb_error value) {
     if (err) *err = value;
@@ -205,6 +227,25 @@ static void bb_init_header(bb_shm_header* h) {
     h->outputs_offset = BB_LAYOUT_OUTPUTS_OFFSET;
 }
 
+/* Called by a waiter after the init timeout. Succeeds for exactly one waiter
+ * when the recorded initializer is dead (or never recorded itself): that
+ * waiter claims the pid field, resets the header and publishes READY. */
+static int bb_recover_init(bb_shm_header* h) {
+    uint32_t holder = bb_load32(&h->reserved0);
+    uint32_t me = bb_platform_pid();
+    if (holder == me) return 0;
+    if (holder != 0 && bb_platform_pid_alive(holder)) return 0;
+    if (!bb_cas32(&h->reserved0, holder, me)) return 0; /* lost the race */
+    /* Reset everything after init_state. init_state itself keeps its value so
+     * that no other opener starts a second initialisation meanwhile. */
+    size_t from = offsetof(bb_shm_header, init_state) + sizeof(uint32_t);
+    memset((char*)h + from, 0, sizeof(bb_shm_header) - from);
+    bb_store32(&h->reserved0, me);
+    bb_init_header(h);
+    bb_store32(&h->init_state, BB_INIT_READY);
+    return 1;
+}
+
 static bb_error bb_check_header(const bb_shm_header* h, size_t mapped) {
     if (mapped < sizeof(bb_shm_header)) return BB_ERR_CORRUPT;
     if (h->magic != BB_LAYOUT_MAGIC) return BB_ERR_CORRUPT;
@@ -247,12 +288,23 @@ bb_bus* bb_bus_open(uint32_t spec_version, const char* bus_namespace, bb_error* 
     bb_shm_header* hdr = (bb_shm_header*)shm.base;
 
     if (!size_mismatch && bb_cas32(&hdr->init_state, BB_INIT_EMPTY, BB_INIT_INITIALIZING)) {
+        bb_store32(&hdr->reserved0, bb_platform_pid()); /* initializer pid, for crash recovery */
         bb_init_header(hdr);
         bb_store32(&hdr->init_state, BB_INIT_READY);
     } else {
         unsigned waited = 0;
+        int retried = 0;
         while (shm.size >= sizeof(bb_shm_header) && bb_load32(&hdr->init_state) != BB_INIT_READY) {
             if (waited++ >= BB_INIT_TIMEOUT_MS) {
+                /* The initializer may have crashed: if its process is gone, one
+                 * waiter takes over and re-initialises the header. Otherwise
+                 * (alive, or another waiter is recovering) wait one more round. */
+                if (!size_mismatch && !retried) {
+                    retried = 1;
+                    if (bb_recover_init(hdr)) break;
+                    waited = 0;
+                    continue;
+                }
                 bb_platform_shm_close(&shm);
                 bb_set_err(err, BB_ERR_TIMEOUT);
                 return NULL;
@@ -547,7 +599,7 @@ bb_output* bb_add_output(bb_endpoint* ep, const char* name, bb_signal_type type,
         return NULL;
     }
     for (uint32_t i = 0; i < ep->num_outputs; ++i) {
-        if (strcmp(ep->bus->outputs[ep->outputs[i]->index].name, name) == 0) {
+        if (strncmp(ep->bus->outputs[ep->outputs[i]->index].name, name, BB_PORT_NAME_BYTES) == 0) {
             bb_set_err(err, BB_ERR_ALREADY_EXISTS);
             return NULL;
         }
@@ -609,7 +661,7 @@ bb_input* bb_add_input(bb_endpoint* ep, const char* name, bb_signal_type type, b
         return NULL;
     }
     for (uint32_t i = 0; i < ep->num_inputs; ++i) {
-        if (strcmp(ep->bus->inputs[ep->inputs[i]->index].name, name) == 0) {
+        if (strncmp(ep->bus->inputs[ep->inputs[i]->index].name, name, BB_PORT_NAME_BYTES) == 0) {
             bb_set_err(err, BB_ERR_ALREADY_EXISTS);
             return NULL;
         }
@@ -810,15 +862,19 @@ static int64_t bb_select_block(const bb_endpoint* ep, const bb_shm_output* o) {
     /* Rule 2 (fallback): the newest block that began at least half a block
      * before ours, i.e. one that belongs to an earlier processing cycle. */
     uint64_t guard_ns = 1000000u;
-    if (ep->cur.sample_rate > 0.0)
-        guard_ns = (uint64_t)(0.5e9 * (double)ep->cur.num_samples / ep->cur.sample_rate);
+    if (ep->cur.sample_rate > 0.0) {
+        double g = 0.5e9 * (double)ep->cur.num_samples / ep->cur.sample_rate;
+        if (!(g >= 0.0)) g = 0.0;
+        if (g > 1e9) g = 1e9; /* also keeps the cast defined for tiny sample rates */
+        guard_ns = (uint64_t)g;
+    }
     for (uint64_t k = w; k-- > oldest;) {
         uint64_t idx;
         int64_t pos;
         uint32_t flags;
         uint64_t t;
         if (!bb_read_stamp(&o->slots[k % BB_OUTPUT_SLOTS], &idx, &pos, &flags, &t)) continue;
-        if (idx == k && t + guard_ns <= ep->cur.time_ns) return (int64_t)k;
+        if (idx == k && t <= ep->cur.time_ns && ep->cur.time_ns - t >= guard_ns) return (int64_t)k;
     }
     return -1;
 }
@@ -845,7 +901,7 @@ uint32_t bb_read_input(bb_input* in, float* dest, uint32_t num_samples) {
             continue; /* stale; re-resolved when the generation moves */
         ++present;
 
-        float amount = bb_bits_float(bb_load32(&rec->connections[c].amount_bits));
+        float amount = bb_sanitize_amount(bb_bits_float(bb_load32(&rec->connections[c].amount_bits)));
         int64_t k = bb_select_block(ep, o);
         uint32_t copied = 0;
         if (k >= 0) {
@@ -858,10 +914,15 @@ uint32_t bb_read_input(bb_input* in, float* dest, uint32_t num_samples) {
             bb_fence_acquire();
             if ((s1 & 1u) || bb_load32_relaxed(&slot->seq) != s1 || slot->block_index != (uint64_t)k) copied = 0;
         }
-        for (uint32_t i = 0; i < copied; ++i) dest[i] += in->scratch[i] * amount;
+        for (uint32_t i = 0; i < copied; ++i) {
+            in->scratch[i] = bb_sanitize_sample(in->scratch[i]);
+            dest[i] += in->scratch[i] * amount;
+        }
         if (copied > 0) cc->held = in->scratch[copied - 1];
         for (uint32_t i = copied; i < n; ++i) dest[i] += cc->held * amount;
     }
+    /* A sum of huge finite values can still overflow to Inf. */
+    for (uint32_t i = 0; i < n; ++i) dest[i] = bb_sanitize_sample(dest[i]);
     return present;
 }
 
@@ -909,7 +970,7 @@ bb_error bb_connect(bb_bus* bus, uint64_t dst_uid, const char* input_name, uint6
             if (free_slot < 0) free_slot = (int)c;
             continue;
         }
-        if (conn->source_uid == src_uid && strcmp(conn->output_name, output_name) == 0) {
+        if (conn->source_uid == src_uid && strncmp(conn->output_name, output_name, BB_PORT_NAME_BYTES) == 0) {
             /* Amount changes need no seqlock: readers load it atomically. */
             bb_store32(&conn->amount_bits, bb_float_bits(amount));
             bb_touch_connections_locked(bus, ei);
@@ -922,15 +983,15 @@ bb_error bb_connect(bb_bus* bus, uint64_t dst_uid, const char* input_name, uint6
         return BB_ERR_FULL;
     }
     bb_shm_connection* conn = &rec->connections[free_slot];
-    uint32_t seq = bb_load32(&rec->seq);
-    bb_store32(&rec->seq, seq + 1u);
+    uint32_t seq = bb_load32(&rec->seq) | 1u; /* odd while changing, even if a writer died mid-update */
+    bb_store32(&rec->seq, seq);
     bb_fence_release();
     conn->source_uid = src_uid;
     conn->output_hash = bb_fnv1a64(output_name);
     bb_copy_display(conn->output_name, sizeof(conn->output_name), output_name);
     bb_store32(&conn->amount_bits, bb_float_bits(amount));
     conn->state = BB_SLOT_ACTIVE;
-    bb_store32(&rec->seq, seq + 2u);
+    bb_store32(&rec->seq, seq + 1u);
     bb_touch_connections_locked(bus, ei);
     bb_unlock(bus);
     return BB_OK;
@@ -949,19 +1010,19 @@ static bb_error bb_disconnect_impl(bb_bus* bus, uint64_t dst_uid, const char* in
         bb_unlock(bus);
         return e;
     }
-    uint32_t seq = bb_load32(&rec->seq);
-    bb_store32(&rec->seq, seq + 1u);
+    uint32_t seq = bb_load32(&rec->seq) | 1u;
+    bb_store32(&rec->seq, seq);
     bb_fence_release();
     int removed = 0;
     for (uint32_t c = 0; c < BB_MAX_CONNECTIONS_PER_INPUT; ++c) {
         bb_shm_connection* conn = &rec->connections[c];
         if (conn->state != BB_SLOT_ACTIVE) continue;
-        if (all || (conn->source_uid == src_uid && strcmp(conn->output_name, output_name) == 0)) {
+        if (all || (conn->source_uid == src_uid && strncmp(conn->output_name, output_name, BB_PORT_NAME_BYTES) == 0)) {
             memset(conn, 0, sizeof(*conn));
             ++removed;
         }
     }
-    bb_store32(&rec->seq, seq + 2u);
+    bb_store32(&rec->seq, seq + 1u);
     if (removed) bb_touch_connections_locked(bus, ei);
     bb_unlock(bus);
     return (removed || all) ? BB_OK : BB_ERR_NOT_FOUND;
@@ -987,10 +1048,10 @@ uint32_t bb_list_endpoints(bb_bus* bus, bb_endpoint_info* dest, uint32_t capacit
             memset(d, 0, sizeof(*d));
             d->uid = bb_load64(&e->uid);
             d->pid = e->pid;
-            memcpy(d->display_name, e->display_name, sizeof(d->display_name));
-            memcpy(d->track_name, e->track_name, sizeof(d->track_name));
-            memcpy(d->vendor, e->vendor, sizeof(d->vendor));
-            memcpy(d->product, e->product, sizeof(d->product));
+            bb_copy_shm_str(d->display_name, sizeof(d->display_name), e->display_name);
+            bb_copy_shm_str(d->track_name, sizeof(d->track_name), e->track_name);
+            bb_copy_shm_str(d->vendor, sizeof(d->vendor), e->vendor);
+            bb_copy_shm_str(d->product, sizeof(d->product), e->product);
             for (uint32_t o = 0; o < BB_MAX_OUTPUTS; ++o)
                 if (bb_load32(&bus->outputs[o].state) == BB_SLOT_ACTIVE && bus->outputs[o].endpoint_index == i)
                     ++d->num_outputs;
@@ -1017,9 +1078,9 @@ uint32_t bb_list_outputs(bb_bus* bus, bb_output_info* dest, uint32_t capacity) {
             d->endpoint_uid = bb_load64(&o->endpoint_uid);
             d->type = (bb_signal_type)o->signal_type;
             d->polarity = (bb_polarity)o->polarity;
-            memcpy(d->name, o->name, sizeof(d->name));
-            memcpy(d->endpoint_name, e->display_name, sizeof(d->endpoint_name));
-            memcpy(d->track_name, e->track_name, sizeof(d->track_name));
+            bb_copy_shm_str(d->name, sizeof(d->name), o->name);
+            bb_copy_shm_str(d->endpoint_name, sizeof(d->endpoint_name), e->display_name);
+            bb_copy_shm_str(d->track_name, sizeof(d->track_name), e->track_name);
         }
         ++count;
     }
@@ -1039,7 +1100,7 @@ uint32_t bb_list_inputs(bb_bus* bus, uint64_t endpoint_uid, bb_input_info* dest,
             memset(d, 0, sizeof(*d));
             d->endpoint_uid = endpoint_uid;
             d->type = (bb_signal_type)in->signal_type;
-            memcpy(d->name, in->name, sizeof(d->name));
+            bb_copy_shm_str(d->name, sizeof(d->name), in->name);
             for (uint32_t c = 0; c < BB_MAX_CONNECTIONS_PER_INPUT; ++c)
                 if (in->connections[c].state == BB_SLOT_ACTIVE) ++d->num_connections;
         }
@@ -1063,8 +1124,8 @@ uint32_t bb_list_connections(bb_bus* bus, uint64_t endpoint_uid, const char* inp
                 bb_connection_info* d = &dest[count];
                 memset(d, 0, sizeof(*d));
                 d->source_uid = conn->source_uid;
-                d->amount = bb_bits_float(bb_load32(&conn->amount_bits));
-                memcpy(d->output_name, conn->output_name, sizeof(d->output_name));
+                d->amount = bb_sanitize_amount(bb_bits_float(bb_load32(&conn->amount_bits)));
+                bb_copy_shm_str(d->output_name, sizeof(d->output_name), conn->output_name);
                 d->source_present = bb_find_output_locked(bus, conn->source_uid, conn->output_name) >= 0;
             }
             ++count;
@@ -1098,7 +1159,10 @@ uint32_t bb_peek_output(bb_bus* bus, uint64_t endpoint_uid, const char* output_n
         if (n > capacity) n = capacity;
         memcpy(dest, slot->samples, n * sizeof(float));
         bb_fence_acquire();
-        if (bb_load32_relaxed(&slot->seq) == s1) return n;
+        if (bb_load32_relaxed(&slot->seq) == s1) {
+            for (uint32_t i = 0; i < n; ++i) dest[i] = bb_sanitize_sample(dest[i]);
+            return n;
+        }
     }
     return 0;
 }
@@ -1118,7 +1182,7 @@ uint32_t bb_peek_output(bb_bus* bus, uint64_t endpoint_uid, const char* output_n
 static size_t bb_format_amount(char* dst, float amount) {
     char tmp[48];
     size_t n = 0;
-    double v = amount;
+    double v = bb_sanitize_amount(amount);
     if (v < 0) {
         dst[n++] = '-';
         v = -v;
@@ -1161,6 +1225,7 @@ static int bb_parse_amount(const char* s, const char* end, float* out) {
         }
     }
     if (!digits) return 0;
+    if (v > (double)BB_AMOUNT_LIMIT) v = (double)BB_AMOUNT_LIMIT; /* also keeps the float cast defined */
     *out = (float)(neg ? -v : v);
     return 1;
 }
@@ -1252,6 +1317,7 @@ bb_error bb_load_connections(bb_endpoint* ep, const void* data, size_t len) {
                 }
             }
             bb_saved_cable cable;
+            memset(&cable, 0, sizeof(cable));
             int ok = nf == 4 && count < MAX_CABLES && (fe[1] - f[1]) == 16;
             ok = ok && bb_copy_field(cable.input, f[0], fe[0]) && bb_copy_field(cable.output, f[2], fe[2]);
             cable.uid = 0;
@@ -1278,24 +1344,22 @@ bb_error bb_load_connections(bb_endpoint* ep, const void* data, size_t len) {
     }
     for (uint32_t i = 0; i < ep->num_inputs; ++i) {
         bb_shm_input* rec = &bus->inputs[ep->inputs[i]->index];
-        uint32_t seq = bb_load32(&rec->seq);
-        bb_store32(&rec->seq, seq + 1u);
+        uint32_t seq = bb_load32(&rec->seq) | 1u;
+        bb_store32(&rec->seq, seq);
         bb_fence_release();
         memset(rec->connections, 0, sizeof(rec->connections));
         uint32_t slot = 0;
         for (size_t c = 0; c < count && slot < BB_MAX_CONNECTIONS_PER_INPUT; ++c) {
-            if (strcmp(cables[c].input, rec->name) != 0) continue;
+            if (strncmp(cables[c].input, rec->name, BB_PORT_NAME_BYTES) != 0) continue;
             bb_shm_connection* conn = &rec->connections[slot++];
-            float amount = cables[c].amount;
-            if (amount > BB_AMOUNT_LIMIT) amount = BB_AMOUNT_LIMIT;
-            if (amount < -BB_AMOUNT_LIMIT) amount = -BB_AMOUNT_LIMIT;
+            float amount = bb_sanitize_amount(cables[c].amount);
             conn->source_uid = cables[c].uid;
             conn->output_hash = bb_fnv1a64(cables[c].output);
-            memcpy(conn->output_name, cables[c].output, sizeof(conn->output_name));
+            bb_copy_shm_str(conn->output_name, sizeof(conn->output_name), cables[c].output);
             bb_store32(&conn->amount_bits, bb_float_bits(amount));
             conn->state = BB_SLOT_ACTIVE;
         }
-        bb_store32(&rec->seq, seq + 2u);
+        bb_store32(&rec->seq, seq + 1u);
     }
     /* Loading is the owner's own action: no patch_version bump (it would mark
      * a freshly loaded set as modified). Other viewers still refresh. */
