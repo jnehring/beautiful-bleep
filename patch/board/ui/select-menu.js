@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 // Replaces the native popup of every <select> in the board UI (the board's own and the module
 // views') with a menu in the board's own style. The closed select keeps being the real element, so
 // the views read and write `.value` and listen for `change` as before; only the list is ours.
