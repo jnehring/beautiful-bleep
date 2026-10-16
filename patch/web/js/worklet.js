@@ -39,6 +39,7 @@ class BleepProcessor extends AudioWorkletProcessor {
         case "cc": e.midi.cc[m.number] = m.value; break;
         case "bend": e.midi.bend = m.value; break;
         case "tempo": e.bpm = m.bpm; break;
+        case "play": e.playing = !!m.on; break;
         case "bridge-port": e.bridge.connect(m.port); break;  // [bridge] the Worker's MessagePort
         case "bridge": e.bridge.message(m, (x) => this.port.postMessage(x)); break;  // [bridge]
         case "bridge-debug": {  // [bridge] what the endpoint and the bound nodes hold, for finding out why a channel is silent

@@ -77,6 +77,10 @@
     command: (id, cmd, value) => post({ cmd: "command", node: id, id: cmd, value }),
     setData: (id, data) => post({ cmd: "data", node: id, data }),
     watch(ids) { watched = ids; post({ cmd: "watch", nodes: ids }); },
+    /// The transport of this page (the side menu): tempo and start/stop.
+    transport: { bpm: 120, playing: true },
+    setTempo(bpm) { W.transport.bpm = bpm; post({ cmd: "tempo", bpm }); },
+    setPlaying(on) { W.transport.playing = !!on; post({ cmd: "play", on: !!on }); },
     noteOn: (note, velocity = 0.8) => post({ cmd: "noteOn", note, velocity, channel: 0 }),
     noteOff: (note) => post({ cmd: "noteOff", note, channel: 0 }),
 

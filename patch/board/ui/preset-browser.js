@@ -17,6 +17,9 @@
   let query = "";
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
   let root = null, listEl, groupsEl, searchEl, saveRow;
+  let current = null;         // the loaded preset for the side menu: {name, source: "factory" | "user" | "store", address?, preset}
+  const listeners = [];
+  function setCurrent(c) { current = c; listeners.forEach((f) => f(current)); }
 
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
@@ -159,6 +162,7 @@
     if (p.cell) {
       close();
       await native("loadCellPreset", p.name);
+      setCurrent({ name: p.name, source: "factory", preset: p.preset });
       return;
     }
     const src = p.preset;
@@ -166,6 +170,7 @@
     if (host.mapPorts) mapPorts(board);
     close();
     host.apply(await native("loadPatch", board, src.tempo || 0, p.name));
+    setCurrent({ name: p.name, source: p.address ? "store" : p.own ? "user" : "factory", address: p.address, preset: src });
   }
 
   function showSave() {
@@ -180,6 +185,7 @@
     const needs = window.BleepStoreView ? await BleepStoreView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     mine = (await native("savePreset", name, preset, "boards")) || [];
+    setCurrent({ name, source: "user", preset });
     saveRow.hidden = true;
     for (const i of saveRow.querySelectorAll("input")) i.value = "";
     group = "mine";
@@ -260,6 +266,8 @@
     },
     open,
     close,
+    /// Opens the browser with its Save row ready (File → Save as Preset…).
+    async save() { await open(); if (!host.cells) showSave(); },
     /// Loads a preset shared in the Bleep Store, by its address ("author/slug"), as the Load button does. Throws when it cannot be fetched.
     async loadShared(address, name) {
       const r = await fetch("/api/presets/" + address.split("/").map(encodeURIComponent).join("/") + "/file");
@@ -267,8 +275,11 @@
       const preset = await r.json();
       if (!preset || !Array.isArray(preset.nodes)) throw new Error("That file is not a board preset.");
       preset.cables = preset.cables || [];
-      await loadPatch({ name: name || address.split("/").pop(), preset });
+      await loadPatch({ name: name || address.split("/").pop(), preset, address });
     },
     isOpen: () => !!root && !root.hidden,
+    /// The preset the board came from, or null. `onChange(fn)` calls fn(current) after every load or save.
+    current: () => current,
+    onChange: (fn) => { listeners.push(fn); },
   };
 })();

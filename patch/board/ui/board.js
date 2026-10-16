@@ -3496,6 +3496,7 @@
       $("presets").addEventListener("click", () => BleepPresetBrowser.open());
       if (m.plugin) BleepPresetBrowser.open();  // an instrument or FX window opens on its presets
     }
+    BleepSideMenu.init({ mode: m.plugin ? "plugin" : window.BleepWeb ? "web" : "app", board: () => board });
     await loadFactoryPresets();
     await loadFactoryPanels();
     setPresets((await native("presets")) || []);

@@ -183,6 +183,8 @@ private:
     // Ticks (audio threads).
     std::atomic<int64_t> ticks_{0};
     bool wasPlaying_ = false;
+    std::atomic<double> uiBpm_{120.0};          ///< the transport of the last tick, for the side menu [RT writes, UI reads]
+    std::atomic<bool> uiPlaying_{false};
 
     bool standalone_ = false;
     std::function<juce::String()> statusProvider_;

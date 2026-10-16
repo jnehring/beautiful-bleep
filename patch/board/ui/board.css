@@ -396,7 +396,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 body.in-store .sections button.on { background: var(--bg); }
 #undo, #redo { display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px; }
 #undo svg, #redo svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-body.in-store #main, body.in-store #crumbs, body.in-store #add, body.in-store #panels, body.in-store #presets,
+body.in-store #side-toggle, body.in-store #side-menu, body.in-store #main, body.in-store #crumbs, body.in-store #add, body.in-store #panels, body.in-store #presets,
 body.in-store #undo, body.in-store #redo { display: none; }
 #store { position: absolute; top: 41px; left: 0; right: 0; bottom: 0; overflow: auto; padding: 16px 24px 32px; background: var(--bg); color: var(--text); font-size: 13px; }
 #store h2 { margin: 0; font-size: 18px; font-weight: 600; }
@@ -547,3 +547,31 @@ select:focus-visible { border-color: var(--accent) !important; }
 .ac-primary { background: var(--accent); color: var(--bg, #15171c); border-color: var(--accent); font-weight: 600; }
 #store .st-account { max-width: 520px; }
 #store .st-account .ac-code { text-align: left; }
+
+/* The side menu: collapsed by default, slides in from the left edge over the board (side-menu.js). */
+.side-toggle { padding: 4px 6px; display: inline-flex; align-items: center; }
+.side-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.side-toggle[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+#side-menu { position: absolute; z-index: 40; left: 0; top: 0; bottom: 0; width: 272px; max-width: 86vw; overflow-y: auto;
+  background: var(--panel); border-right: 1px solid var(--line); box-shadow: 6px 0 24px rgba(0, 0, 0, .35);
+  transform: translateX(-102%); visibility: hidden; transition: transform .22s ease, visibility 0s linear .22s; }
+#side-menu.open { transform: none; visibility: visible; transition: transform .22s ease, visibility 0s; }
+@media (prefers-reduced-motion: reduce) { #side-menu, #side-menu.open { transition: none; } }
+#side-menu .sm-sec { padding: 14px 14px 12px; border-bottom: 1px solid var(--line); }
+#side-menu h3 { margin: 0 0 10px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+#side-menu .sm-row { display: flex; align-items: flex-end; gap: 10px; }
+#side-menu .sm-field { display: flex; flex-direction: column; gap: 3px; flex: 1; color: var(--muted); font-size: 11px; position: relative; }
+#side-menu .sm-bpm { width: 100%; padding-right: 34px; }
+#side-menu .sm-unit { position: absolute; right: 8px; bottom: 6px; font-size: 10px; pointer-events: none; }
+#side-menu .sm-play { min-width: 82px; }
+#side-menu .sm-play.on { color: var(--accent); border-color: var(--accent); }
+#side-menu .sm-wide { width: 100%; }
+#side-menu .sm-wide.on { color: var(--accent); border-color: var(--accent); }
+#side-menu .sm-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+#side-menu .sm-note { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+#side-menu .sm-note.bad { color: var(--warn); }
+#side-menu .sm-pname { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+#side-menu .sm-pname.none { color: var(--muted); font-weight: 400; }
+#side-menu .sm-psource { margin: 2px 0 10px; font-size: 12px; color: var(--muted); }
+#side-menu .sm-link { display: block; margin-bottom: 10px; color: var(--sel); font-size: 12px; }
+#side-menu button:disabled, #side-menu input:disabled { opacity: .5; cursor: default; }

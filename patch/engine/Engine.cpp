@@ -832,6 +832,12 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
     }
     root->setProperty("nodes", juce::var(nodes));
     root->setProperty("ports", ports());
+    {  // the side menu's Transport section
+        auto* t = new juce::DynamicObject();
+        t->setProperty("bpm", uiBpm_.load(std::memory_order_relaxed));
+        t->setProperty("playing", uiPlaying_.load(std::memory_order_relaxed));
+        root->setProperty("transport", juce::var(t));
+    }
     if (statusProvider_) root->setProperty("status", statusProvider_());
     return juce::var(root);
 }
@@ -993,6 +999,8 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
         }
         const bool started = t.playing && !wasPlaying_;
         wasPlaying_ = t.playing;
+        uiBpm_.store(t.bpm, std::memory_order_relaxed);
+        uiPlaying_.store(t.playing, std::memory_order_relaxed);
         for (auto& st : p->steps()) {
             if (!st.port) continue;
             st.io.in = st.port->tickInValid ? &st.port->tickIn : nullptr;

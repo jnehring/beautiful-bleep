@@ -988,6 +988,7 @@ juce::var AppController::settingsState() {
     o->setProperty("web", webState());
     return juce::var(o);
 }
+    link->setProperty("playing", clock_.playing());
 
 // ---- the web link (Settings → Web connection) ---------------------------------------------------------------
 
@@ -1103,6 +1104,9 @@ juce::var AppController::settingsCall(const juce::String& fn, const juce::var& a
         if (!arg["port"].isVoid()) webPort_ = juce::jlimit(1024, 65535, (int)arg["port"]);
         applyWeb();
         saveSettings();
+    } else if (fn == "play") {
+        clock_.setPlaying((bool)arg["on"], true);
+        commands_.commandStatusChanged();
         error = webError_;
     } else if (fn == "webForget") {
         {
