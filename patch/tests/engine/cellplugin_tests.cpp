@@ -19,6 +19,22 @@ juce::String factoryPreset(const char* name) {
     return {};
 }
 
+/// The name of the first factory instrument whose root is a Voice Cell and that has a panel (the presets change, so no test names one):
+/// the Starters are left out, they have nothing inside to play. Empty if there is none.
+juce::String voiceCellInstrument() {
+    const auto presets = board::fromJson(juce::File(BLEEP_FACTORY_PRESETS).loadFileAsString());
+    const auto panels = board::fromJson(juce::File(BLEEP_FACTORY_PANELS).loadFileAsString());
+    for (const auto& p : *presets["presets"].getArray()) {
+        const auto& doc = p["preset"];
+        if (p["category"].toString() == "Starters" || !doc["plays"].hasProperty("instrument")) continue;
+        if (!panels["panels"].hasProperty(p["name"].toString())) continue;
+        const juce::String root = doc["root"].toString();
+        for (const auto& n : *doc["nodes"].getArray())
+            if (n["id"].toString() == root && n["type"].toString() == "voice-cell") return p["name"].toString();
+    }
+    return {};
+}
+
 void setPreset(Engine& e, int handle, const juce::String& json, bool replace = true) {
     e.setCellPreset(handle, json.toRawUTF8(), (size_t)json.getNumBytesAsUTF8(), replace);
 }
@@ -109,7 +125,9 @@ void cellPlugins() {
         probe->release();
         EXPECT(juce::String(kAbiTag).startsWith("bleep-engine-abi-"));
     }
-    const auto warm = factoryPreset("Slate Stabs");
+    const juce::String voiceName = voiceCellInstrument();   // an instrument whose root is a Voice Cell, whatever the factory presets are today
+    EXPECT(voiceName.isNotEmpty());
+    const auto warm = factoryPreset(voiceName.toRawUTF8());
     const auto empty = factoryPreset("Empty FX");
     EXPECT(warm.isNotEmpty() && empty.isNotEmpty());
 
@@ -124,9 +142,9 @@ void cellPlugins() {
         const auto cell = cellOf(*e, inst);
         EXPECT(cell.isNotEmpty());
         if (cell.isNotEmpty()) {
-            // Slate Stabs is a Voice Cell: the cell is the preset's root.
+            // The preset's root is a Voice Cell, and it is the cell.
             EXPECT(board::findNode(e->board(), cell)->getProperty("type").toString() == "voice-cell");
-            EXPECT(board::findNode(e->board(), cell)->getProperty("name").toString() == "Slate Stabs");
+            EXPECT(board::findNode(e->board(), cell)->getProperty("name").toString() == voiceName);
             EXPECT(e->board()["panels"].isArray() && e->board()["panels"].size() >= 1);
             // The panel's keys play the cell's notes.
             bool keysFound = false;
@@ -179,7 +197,7 @@ void cellPlugins() {
         e->cellPreset(inst, json.data(), len);
         snapshot = juce::String::fromUTF8(json.data(), (int)len);
         const auto saved = board::fromJson(snapshot);
-        EXPECT(saved["name"].toString() == "Slate Stabs" && saved.hasProperty("plays") && saved["panels"].isArray());
+        EXPECT(saved["name"].toString() == voiceName && saved.hasProperty("plays") && saved["panels"].isArray());
         bool kept = false;
         for (const auto& n : *saved["nodes"].getArray()) kept |= n["name"].toString() == "Edited Node";
         EXPECT(moved && kept);
