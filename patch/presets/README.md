@@ -17,6 +17,17 @@ ctest --test-dir build/patch -R factory   # the engine loads every preset withou
 ctest --test-dir build/patch -R demo      # every demo board loads and makes sound
 ```
 
+## Samples, tags and panels
+
+- **Samples.** Cells and projects may carry short recordings (`p.sample("<name>")`: a file from [`samples/`](samples/README.md), which
+  lists what each is and where it comes from, with the licences). The audio travels inside the preset (`media`), is imported when the
+  preset is placed or loaded, and also when Bleep Instrument or Bleep FX load it. At most 8 files and 5 MB (32-bit float form)
+  per preset; the builder checks it, and the engine tests check that the ids match.
+- **Tags.** `build.mjs` adds the tag `instrument` and/or `effect` to every cell that can be loaded as one (from `plays`), so the Add
+  menu's Tab search finds them by it. Write the other tags yourself (3 to 5 lowercase words).
+- **Panels.** Every cell with `plays` has a panel, generated if you don't write one. Every project has one too; instruments and effects among
+  the projects show theirs when they are loaded (see [`demos/README.md`](demos/README.md)).
+
 ## Cables into a VCA's Gain
 
 The VCA's Gain knob runs 0 – 400 %, and a cable amount is a share of a knob's whole range. Presets are written as if the

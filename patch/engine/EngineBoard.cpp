@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // EngineBoard.cpp — the board document and the cell presets of a port.
 #include "EngineInternal.h"
+#include "Media.h"
 
 namespace bleep::engine {
 
@@ -102,13 +103,41 @@ void Engine::attachPreset(PortSlot& s, const juce::String& portNodeId) {
     board_ = board::sanitise(board_);
 }
 
+namespace {
+
+/// A preset's audio (its `media` map: { "<id>.wav": { name, data: base64 } }) goes into the media folder, and the map
+/// is dropped from the document the slot keeps (it would only bloat the host's saved state: the files are in the folder).
+/// Returns the document unchanged when it carries none.
+std::string takeMedia(const char* json, size_t length) {
+    if (std::memchr(json, 'm', length) == nullptr || juce::String::fromUTF8(json, (int)length).indexOf("\"media\"") < 0)
+        return std::string(json, length);
+    try {
+        juce::var doc = board::fromJson(juce::String::fromUTF8(json, (int)length));
+        auto* obj = doc.getDynamicObject();
+        if (!obj || !obj->hasProperty("media")) return std::string(json, length);
+        if (auto* files = obj->getProperty("media").getDynamicObject())
+            for (const auto& f : files->getProperties()) {
+                juce::MemoryBlock bytes;
+                juce::MemoryOutputStream out(bytes, false);
+                if (!juce::Base64::convertFromBase64(out, f.value["data"].toString())) continue;
+                media::import((const uint8_t*)bytes.getData(), bytes.getSize(), f.value["name"].toString().toStdString(), nullptr);
+            }
+        obj->removeProperty("media");
+        return board::toJson(doc).toStdString();
+    } catch (...) {
+        return std::string(json, length);
+    }
+}
+
+}  // namespace
+
 void Engine::setCellPreset(int handle, const char* json, size_t length, bool replace) noexcept {
     auto s = slotShared(handle);
     if (!s || json == nullptr) return;
     if (s->kind != PortKind::Instrument && s->kind != PortKind::AudioInsert) return;
     s->restored = true;  // the saved state has arrived: its node may appear
     if (!replace && !s->presetJson.empty()) return;
-    s->presetJson.assign(json, length);
+    s->presetJson = takeMedia(json, length);
     updateImplicitBoard();
     if (!hasBoard()) return;
     auto* node = board::findNodeByPort(board_, juce::String(s->id));

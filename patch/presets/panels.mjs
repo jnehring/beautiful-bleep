@@ -51,42 +51,22 @@ class Builder {
 const dial = (label, ref) => ["dial", label, ref];
 const slider = (label, ref) => ["slider", label, ref];
 
-// ---------------------------------------------------------------- Punch Machine
-// Play: the drum grid and a mixer. Sound: two or three knobs for each voice.
-const drumGrid = new Builder("drum-grid", "Drum Grid", { for: { module: "drum-grid" }, cols: 46, rows: 26 })
-  .add("view", [1, 1], [44, 24], { node: "this" })
-  .done();
-
-const punch = new Builder("punch-machine", "Punch Machine", { cell: "root", cols: 69, rows: 29 });
-punch.title("Punch Machine", [1, 0], 67);
-punch.tab("play", "Play", 29)
-  .load("drum-grid", [1, 3], [46, 26], "grid")
-  .section("Mixer", "#fb7185", [48, 3], [
-    slider("Kick", "mixA.level1"), slider("Snr", "mixA.level2"), slider("Hat", "mixA.level3"), slider("Clap", "mixA.level4"),
-    slider("L Tom", "mixB.level1"), slider("H Tom", "mixB.level2"), slider("Rim", "mixB.level3"),
-    slider("Master", "master.master"), ["meter", "Out", ["master.outl", "master.outr"]],
-  ], 20);
-punch.tab("sound", "Sound", 21)
-  .section("Kick", "#f59e0b", [1, 3], [dial("Tune", "kick.tune"), dial("Decay", "kick.decay"), dial("Sweep", "kick.sweep")])
-  .section("Snare", "#f59e0b", [16, 3], [dial("Tune", "snare.tune"), dial("Snappy", "snare.snappy"), dial("Decay", "snare.decay")])
-  .section("Hats", "#f59e0b", [31, 3], [dial("Tune", "hats.tune"), dial("Closed", "hats.closed"), dial("Open", "hats.open")])
-  .section("Clap", "#f59e0b", [1, 12], [dial("Tone", "clap.tone"), dial("Decay", "clap.decay"), dial("Spread", "clap.spread")])
-  .section("Low Tom", "#f59e0b", [16, 12], [dial("Tune", "tomlo.tune"), dial("Decay", "tomlo.decay")])
-  .section("High Tom", "#f59e0b", [27, 12], [dial("Tune", "tomhi.tune"), dial("Decay", "tomhi.decay")])
-  .section("Rim", "#f59e0b", [38, 12], [dial("Tune", "perc.tune"), dial("Decay", "perc.decay")]);
-
-export default { "Punch Machine": [punch.done(), drumGrid] };
+// Hand-written panels, keyed by preset name, go here: `export default { "Preset Name": [panel, modulePanel…] }`. A cell preset without
+// one gets the panel the board's "Build panel from cell" draws (build.mjs), which is what all the factory cells use now.
+// (`Builder`, `dial` and `slider` are the helpers for writing one; see the history of this file for Punch Machine's.)
+export default {};
 
 // ------------------------------------------------------------------- check
 /// A control must wire to something that exists, sit inside its panel, and not
 /// overlap another on the same tab; loaded panels must exist and not loop.
 export function checkPanels(preset, list) {
   const byId = new Map(list.map((p) => [p.id, p]));
-  const root = preset.nodes.find((n) => n.id === preset.root);
+  const root = preset.board ? { id: "", type: "board", inputs: [] } : preset.nodes.find((n) => n.id === preset.root);
   const split = (ref) => { const i = ref.indexOf("."); return [ref.slice(0, i), ref.slice(i + 1)]; };
   for (const panel of list) {
     const forModule = panel.for && panel.for.module;
-    if (!forModule && panel.cell !== preset.root) throw new Error(`${panel.name}: fronts neither a cell of the preset nor a module`);
+    if (!forModule && (preset.board ? panel.cell !== undefined : panel.cell !== preset.root))
+      throw new Error(`${panel.name}: fronts neither ${preset.board ? "the board" : "a cell of the preset"} nor a module`);
     const where = (c) => `${panel.name} › ${c.label || c.text || c.type} (${c.id})`;
     const node = (id, c) => {
       if (id === "this" && forModule) return { type: forModule, id };   // a module panel's own module
@@ -251,34 +231,4 @@ export function panelCell(doc, preset, extras = []) {
 /// Edits to the panels the build generates, for presets whose panel shows off controls that are modules in the cell
 /// (doc/specs/panels.md, "Panels add modules to the board"). `doc` is the generated panel, `preset` the cell preset.
 /// The modules sit in a stack on the cell's board, below its other nodes.
-export const panelEdits = {
-  "Warm Saws": (doc, preset) => {
-    const find = (type, name) => {
-      const n = preset.nodes.find((q) => q.type === type && q.name === name);
-      if (!n) throw new Error(`Warm Saws: the ${name} ${type} module is missing`);
-      return n;
-    };
-    const keys = find("keyboard", "Keys"), voiceCell = find("voice-cell", "Voice");
-    // The Bend wheel: one Wheel module in the Panel cell, a channel in the bay of each saw, ±2 semitones on its pitch.
-    const bend = { key: "bend", type: "wheel", name: "Bend", params: { smooth: 0.01 } };
-    const panel = panelCell(doc, preset, ["Saw 1", "Saw 2"].map((name) => ({ ...bend, to: find("oscillator", name), toJack: "pitch", amount: 2 / 12 })));
-    const wheel = preset.nodes.find((n) => n.parent === panel.id && n.type === "wheel");
-    const meter = doc.controls.find((c) => c.type === "meter");
-    const keysControl = doc.controls.find((c) => c.type === "keys");
-    if (!meter || !keysControl) throw new Error("Warm Saws: the generated panel has no Out meter or Keys");
-    // Beside the Out section (see the generated layout): a Bend section.
-    const out = doc.controls.find((c) => c.type === "section" && c.text === "Out");
-    doc.controls.push({ id: "c50", type: "section", at: [out.at[0] + out.size[0] + 1, out.at[1]], size: [7, 12], text: "Bend", colour: "#fda4af" },
-                      { id: "c51", type: "wheel", label: "Bend", at: [out.at[0] + out.size[0] + 3, out.at[1] + 2], size: [3, 8], spring: true, wire: [{ param: `${wheel.id}.value` }] });
-    doc.cols = Math.max(doc.cols, out.at[0] + out.size[0] + 1 + 7);   // room for the Bend section, whatever the generated width
-    // The Keys play the Keyboard next to the Voice Cell; the Out meter reads a Level Meter after it.
-    keysControl.wire = [{ keyboard: keys.id }];
-    const lm = { id: "level", type: "level-meter", name: "Out", x: 0, y: 0, parent: preset.root, params: {} };
-    for (const q of types["level-meter"].params) lm.params[q.id] = q.default;
-    preset.nodes.push(lm);
-    for (const j of ["l", "r"]) preset.cables.push({ id: `pm_${j}`, from: { node: voiceCell.id, jack: j }, to: { node: lm.id, jack: j }, amount: 1 });
-    meter.source = { out: [`${lm.id}.l`, `${lm.id}.r`] };
-    doc.modules = [keys.id, lm.id];
-    doc.groups = { [preset.root]: { x: 40, y: 40 + 5 * 220 } };
-  },
-};
+export const panelEdits = {};

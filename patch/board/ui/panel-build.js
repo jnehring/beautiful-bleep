@@ -6,7 +6,13 @@
 // ordinary control, free to move or delete.
 //
 //   BleepPanelBuild.build(cell, ctx) → a panel document
-//     ctx { nodes: [node] the cell's contents, in layout order, types, inputsOf(n), cables }
+//     ctx { nodes: [node] the cell's contents, in layout order, types, inputsOf(n), cables,
+//           focus?: id of the module to show first and with more knobs (the module a project is about),
+//           focusViews?: draw the module's own view (sequencers, the Sampler's waveform) only for `focus`,
+//           generic?: also give modules without a FACE entry their first modulatable knobs,
+//           outs?: [[l, r], …] "node.jack" outputs for the Out meter when there is no Cell Out }
+//     cell { id, name, type, params } is the cell the panel fronts; { board: true, id: "", name } builds a board panel
+//     (no cell inputs, no keyboard, no `cell` in the result).
 (function () {
   "use strict";
   // The knobs of a module that matter, in order. Others: its first few modulatable knobs.
@@ -25,8 +31,9 @@
     "grains": ["position", "size", "pitch", "density", "texture", "mix"], "bender": ["time", "chance", "repeats", "bend", "corrupt", "mix"],
     "pitch-shifter": ["pitch", "fine", "window", "drift", "feedback", "mix"], "chorus": ["rate", "depth", "delay", "feedback", "spread", "mix"],
     "phaser": ["rate", "depth", "centre", "feedback", "stages", "mix"], "compressor": ["threshold", "ratio", "attack", "release", "makeup", "mix"],
-    "crunch": ["drive", "bits", "rate", "tone", "level", "mix"], "eq": ["b2Gain", "b3Gain", "b4Gain", "b5Gain", "b6Gain", "b7Gain", "level"],
-    "audio-mixer": [], "vca": [],
+    "crunch": ["drive", "bits", "rate", "tone", "level", "mix"], "eq": ["b2Gain", "b3Gain", "b4Gain", "b5Gain", "level"],
+    "audio-mixer": [], "vca": [], "sampler": ["transpose", "speed", "position", "attack", "release", "cutoff", "level", "pan"],
+    "delay": ["timel", "timer", "feedback", "lowcut", "highcut", "mix"], "saturator": ["drive", "bias", "color", "tone", "level", "mix"], "limiter": ["ceiling", "release", "input"],
     "adsr": ["attack", "decay", "sustain", "release", "velamount"], "lfo": ["wave", "rate", "pw", "fade", "phase"],
     "organic-lfos": ["rate", "spread", "drift", "twist", "scatter", "level"], "quad-lfo": ["rate1", "rate2", "rate3", "rate4", "level1", "spread"],
     "shape-env": ["time", "shape", "morph", "level", "skew", "velamount"], "function": ["rise", "fall", "shape", "spread", "cycle"],
@@ -50,6 +57,7 @@
     "rotating-divider": [18, 9], "shift-register": [18, 11], "recall": [18, 11], "segments": [22, 13], "neuron": [20, 10],
     "quantizer-suite": [32, 14], "sampler": [40, 18],
   };
+  const CONTROLLER_TYPES = new Set(["dial", "wheel", "xy-pad", "button", "keyboard", "level-meter", "monitor"]);
   const SIZE = { dial: [4, 4], slider: [2, 8], wheel: [3, 8], meter: [2, 8], button: [4, 3], select: [6, 3] };
   const SECTION_MAX = 24;
   const BIPOLAR = new Set(["cut", "bend", "tone", "pos", "scan", "x", "y", "tr"]);
@@ -75,6 +83,8 @@
   function build(cell, ctx) {
     const { nodes, types, inputsOf, cables } = ctx;
     const isVoice = cell.type === "voice-cell";
+    const faceOf = (n) => FACE[n.type] || (ctx.generic && types[n.type] && types[n.type].creatable && !CONTROLLER_TYPES.has(n.type)
+      ? types[n.type].params.filter((q) => q.modulatable).slice(0, 6).map((q) => q.id) : undefined);
     const sections = [];
     // The cell's own inputs first.
     const macros = [];
@@ -87,11 +97,13 @@
     }
     if (macros.length) sections.push({ title: "Controls", colour: "#fda4af", items: macros });
 
-    const faced = nodes.filter((n) => n.parent === cell.id && (FACE[n.type] !== undefined || EMBED[n.type]));
+    const faced = nodes.filter((n) => n.parent === cell.id && (faceOf(n) !== undefined || EMBED[n.type]) && !(ctx.focusViews && EMBED[n.type] && n.id !== ctx.focus));
+    if (ctx.focus) faced.sort((a, b) => (b.id === ctx.focus) - (a.id === ctx.focus));
     const cap = faced.length <= 3 ? 8 : faced.length <= 6 ? 6 : faced.length <= 10 ? 4 : 3;
     for (const n of faced) {
       const t = types[n.type];
-      if (EMBED[n.type]) { sections.push({ title: n.name, embed: EMBED[n.type], node: n.id, colour: t.colour }); continue; }
+      const capHere = n.id === ctx.focus ? Math.max(cap, 8) : cap;
+      if (EMBED[n.type]) { sections.push({ title: n.name, embed: EMBED[n.type], node: n.id, colour: t.colour }); if (!FACE[n.type]) continue; }
       let items = [];
       if (n.type === "audio-mixer") {
         const chans = [];
@@ -103,9 +115,9 @@
         }
         if (chans.length > 1) items = chans.concat({ type: "slider", label: "Master", wire: [{ param: `${n.id}.master` }] });
       } else {
-        const named = FACE[n.type].map((id) => t.params.find((p) => p.id === id)).filter(Boolean);
+        const named = faceOf(n).map((id) => t.params.find((p) => p.id === id)).filter(Boolean);
         const moved = t.params.filter((p) => !named.includes(p) && !p.id.startsWith("seed") && n.params && n.params[p.id] !== undefined && Math.abs(n.params[p.id] - p.default) > 1e-4);
-        items = named.concat(moved).slice(0, cap).map((p) => knobControl(n, p));
+        items = named.concat(moved).slice(0, capHere).map((p) => knobControl(n, p));
       }
       if (items.length) sections.push({ title: n.name, colour: t.colour, items });
     }
@@ -116,10 +128,11 @@
       sections.push({ title: "Voice", colour: "#94a3b8", items });
     }
     // Outputs: a meter for the sound.
-    const outNode = nodes.find((n) => n.parent === cell.id && n.type === (isVoice ? "voice-out" : "cell-out"));
+    if (ctx.outs && ctx.outs.length) sections.push({ title: "Out", colour: "#94a3b8", items: [{ type: "meter", label: "Out", source: { out: ctx.outs[0] } }] });
+    const outNode = ctx.outs ? null : nodes.find((n) => n.parent === cell.id && n.type === (isVoice ? "voice-out" : "cell-out"));
     const feeds = (jack) => outNode && cables.find((c) => c.to.node === outNode.id && c.to.jack === jack);
-    const l = feeds(isVoice ? "l" : "l"), r = feeds("r");
-    if (l) sections.push({ title: "Out", colour: "#94a3b8", items: [{ type: "meter", label: "Out", source: { out: [`${l.from.node}.${l.from.jack}`].concat(r ? [`${r.from.node}.${r.from.jack}`] : []) } }] });
+    const l = feeds("l"), r = feeds("r");
+    if (l && !ctx.outs) sections.push({ title: "Out", colour: "#94a3b8", items: [{ type: "meter", label: "Out", source: { out: [`${l.from.node}.${l.from.jack}`].concat(r ? [`${r.from.node}.${r.from.jack}`] : []) } }] });
 
     // Layout: sections flow left to right, wrapping.
     for (const s of sections) {
@@ -146,7 +159,7 @@
       add({ type: "keys", at: [Math.floor((cols - keysW) / 2), rows], size: [keysW, 7], octaves: 3, from: "C3", wire: [{ notes: "cell" }] });
       rows += 8;
     }
-    return { name: cell.name, cell: cell.id, cols, rows, controls };
+    return { name: cell.name, ...(cell.board ? {} : { cell: cell.id }), cols, rows, controls };
   }
 
   window.BleepPanelBuild = { build, knobControl, EMBED, FACE };

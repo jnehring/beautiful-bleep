@@ -108,7 +108,7 @@ Right-click a knob in any module view (or on a cell's input jack) → **Add to p
 
 - **A panel belongs to a cell or to the board.** A *cell panel* (`"cell": "<id>"`) wires to the nodes inside that cell and is opened with the ▦ on the cell. A *board panel* (no `cell`) wires to any node of the board and is opened from the toolbar's **Panels** list (P), which also has *New board panel*. Cell panels are listed there too.
 - **Show on load.** A board panel's settings (select nothing in the editor) have **Show on load**: *Off*, *In a window* or *Full screen*. The panel opens when the board is loaded, so a patch can open as an instrument. One panel per board has it; setting it on another clears the first. Full screen fills the canvas and scales the panel to fit; ⤢ in the panel's title bar toggles it at any time.
-- Cell panels placed with a preset do not open on load; Show on load is for panels the user sets.
+- Cell panels placed with a preset do not open on load. **Projects keep it**: a project saved or shipped with a board panel that has Show on load opens with that panel, so a factory project for an instrument or an effect comes up with its front panel.
 
 ### 3.2 The editor (as built)
 

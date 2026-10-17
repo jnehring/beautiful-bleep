@@ -56,6 +56,6 @@ const PresetEntry* PresetLibrary::find(PortKind kind, const juce::String& name) 
     return nullptr;
 }
 
-juce::String PresetLibrary::defaultName(PortKind kind) { return kind == PortKind::AudioInsert ? "Empty FX" : "Warm Saws"; }
+juce::String PresetLibrary::defaultName(PortKind kind) { return kind == PortKind::AudioInsert ? "Empty FX" : "Slate Stabs"; }
 
 }  // namespace bleep::patch

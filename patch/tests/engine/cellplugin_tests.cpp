@@ -43,7 +43,7 @@ float peakAfter(FakePort& p, int blocks, int from, std::function<void(int)> befo
 /// A drum machine in an Instrument plays with the host's transport: Clock and Run come from the port node.
 void cellPluginsFollowHost() {
     g_test = "cell plugins follow the host";
-    for (const char* name : {"Map Walker", "Electro Pop-Lock"}) {
+    for (const char* name : {"Trap Roll Call", "Warehouse House"}) {
         auto* e = new Engine();
         const int inst = e->registerInstance(PortKind::Instrument);
         setPreset(*e, inst, factoryPreset(name));
@@ -57,9 +57,10 @@ void cellPluginsFollowHost() {
             run |= c["from"]["jack"].toString() == "playing" && c["to"]["node"].toString() == cell && c["to"]["jack"].toString() == "run";
         }
         EXPECT(clock);
-        EXPECT(run == (juce::String(name) == "Electro Pop-Lock"));
+        EXPECT(run == (juce::String(name) == "Warehouse House"));
         FakePort p(*e, inst);
         const float stopped = peakAfter(p, 300, 8);
+        if (!(stopped < 0.0001f)) std::printf("%s: plays %f with the transport stopped\n", name, stopped);
         EXPECT(stopped < 0.0001f);  // a stopped transport plays nothing
         p.playing = true;
         const float playing = peakAfter(p, 1200, 8);
@@ -69,14 +70,15 @@ void cellPluginsFollowHost() {
         e->release();
     }
     // The host's MIDI plays the drums too: General MIDI notes trigger the kit, the transport stays stopped.
-    for (const char* name : {"Map Walker", "Macro Foundry", "Euclid Garden", "Electro Pop-Lock", "Concrete Minimal",
-                             "Break Shredder", "Dusty Tape Kit", "Gear Train"}) {
+    for (const char* name : {"Warehouse House", "One Drop Echo", "Trap Roll Call", "Bossa Clave Box", "Foundry Clank",
+                             "Neuro Two-Step", "Twelve-Eight Bell", "Tribal Tom Cascade", "Clicks & Cuts Garden", "Brush Swing Trio"}) {
         auto* e = new Engine();
         const int inst = e->registerInstance(PortKind::Instrument);
         setPreset(*e, inst, factoryPreset(name));
         FakePort p(*e, inst);
         const float idle = peakAfter(p, 200, 8);
-        EXPECT(idle < 0.0001f || juce::String(name) == "Dusty Tape Kit");  // the tape hiss never stops
+        if (!(idle < 0.0001f)) std::printf("%s: idle peak %f\n", name, idle);
+        EXPECT(idle < 0.0001f);
         bool wired = false;
         for (const auto& c : *e->board()["cables"].getArray())
             wired |= c["from"]["node"].toString() == portNode(*e, inst) && c["from"]["jack"].toString() == "notes";
@@ -107,7 +109,7 @@ void cellPlugins() {
         probe->release();
         EXPECT(juce::String(kAbiTag).startsWith("bleep-engine-abi-"));
     }
-    const auto warm = factoryPreset("Warm Saws");
+    const auto warm = factoryPreset("Slate Stabs");
     const auto empty = factoryPreset("Empty FX");
     EXPECT(warm.isNotEmpty() && empty.isNotEmpty());
 
@@ -122,24 +124,15 @@ void cellPlugins() {
         const auto cell = cellOf(*e, inst);
         EXPECT(cell.isNotEmpty());
         if (cell.isNotEmpty()) {
-            // Warm Saws is a plain cell around a Voice Cell, with a Keyboard beside it and patch bays for its panel's dials.
-            EXPECT(board::findNode(e->board(), cell)->getProperty("type").toString() == "cell");
-            bool voiceCell = false, bays = false;
-            for (const auto& n : *e->board()["nodes"].getArray()) {
-                voiceCell |= n["type"].toString() == "voice-cell";
-                bays |= n["type"].toString() == "patchbay-out";
-            }
-            EXPECT(voiceCell && bays);
-            EXPECT(board::findNode(e->board(), cell)->getProperty("name").toString() == "Warm Saws");
+            // Slate Stabs is a Voice Cell: the cell is the preset's root.
+            EXPECT(board::findNode(e->board(), cell)->getProperty("type").toString() == "voice-cell");
+            EXPECT(board::findNode(e->board(), cell)->getProperty("name").toString() == "Slate Stabs");
             EXPECT(e->board()["panels"].isArray() && e->board()["panels"].size() >= 1);
-            // The panel's wires name nodes of the placed cell: a Keys control plays the Keyboard that came with it.
+            // The panel's keys play the cell's notes.
             bool keysFound = false;
             for (const auto& q : *e->board()["panels"].getArray())
                 for (const auto& c : *q["controls"].getArray())
-                    if (c["type"].toString() == "keys") {
-                        const auto id = (*c["wire"].getArray())[0]["keyboard"].toString();
-                        keysFound = board::findNode(e->board(), id) != nullptr && board::findNode(e->board(), id)->getProperty("type").toString() == "keyboard";
-                    }
+                    if (c["type"].toString() == "keys") keysFound = (*c["wire"].getArray())[0].hasProperty("notes");
             EXPECT(keysFound);
             EXPECT(board::parse(e->board()).nodes.size() > 4);
         }
@@ -186,7 +179,7 @@ void cellPlugins() {
         e->cellPreset(inst, json.data(), len);
         snapshot = juce::String::fromUTF8(json.data(), (int)len);
         const auto saved = board::fromJson(snapshot);
-        EXPECT(saved["name"].toString() == "Warm Saws" && saved.hasProperty("plays") && saved["panels"].isArray());
+        EXPECT(saved["name"].toString() == "Slate Stabs" && saved.hasProperty("plays") && saved["panels"].isArray());
         bool kept = false;
         for (const auto& n : *saved["nodes"].getArray()) kept |= n["name"].toString() == "Edited Node";
         EXPECT(moved && kept);
@@ -214,11 +207,11 @@ void cellPlugins() {
         for (const auto& n : *e->board()["nodes"].getArray()) cells += n["parent"].toString().isEmpty() && (n["type"].toString() == "voice-cell" || n["type"].toString() == "cell");
         EXPECT(cells == 1);
         // Choosing another preset replaces the cell.
-        setPreset(*e, inst, factoryPreset("Reese Pressure"), true);
+        setPreset(*e, inst, factoryPreset("Heavy Ladder Bass"), true);
         cells = 0;
         for (const auto& n : *e->board()["nodes"].getArray()) cells += n["parent"].toString().isEmpty() && (n["type"].toString() == "voice-cell" || n["type"].toString() == "cell");
         EXPECT(cells == 1);
-        EXPECT(board::findNode(e->board(), cellOf(*e, inst))->getProperty("name").toString() == "Reese Pressure");
+        EXPECT(board::findNode(e->board(), cellOf(*e, inst))->getProperty("name").toString() == "Heavy Ladder Bass");
         e->unregisterInstance(inst);
         e->unregisterInstance(main);
         e->collectGarbage();

@@ -6,6 +6,7 @@
 // this folder into patch/board/ui/factory-presets.json. See README.md.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { loadSample, checkMedia } from "./media.mjs";
 
 const TYPES_FILE = fileURLToPath(new URL("../board/ui/demo-types.json", import.meta.url));
 export const types = Object.fromEntries(JSON.parse(readFileSync(TYPES_FILE, "utf8")).map((t) => [t.type, t]));
@@ -101,6 +102,7 @@ export class Preset {
     this.playsOverride = undefined;
     this.nodes = [];
     this.cables = [];
+    this.media = {};
     this.ids = new Set();
     if (kind === "patch") {
       this.module = opts.module || "";
@@ -144,6 +146,15 @@ export class Preset {
     this.nodes.push(n);
     this.ids.add(id);
     return n;
+  }
+
+  /// A factory sample (patch/presets/samples/<name>.wav) the preset carries along; returns it ({id, frames, rate, seconds, …}),
+  /// for the node data (samplerData, grainsData in media.mjs).
+  sample(name) {
+    const s = loadSample(name);
+    this.media[s.id] = s.entry;
+    checkMedia(this.name, this.media);
+    return s;
   }
 
   /// Overrides what the cell can be loaded as (see derivePlays); `false` keeps it on the board only.
@@ -353,7 +364,8 @@ export class Preset {
         throw new Error(`${this.name}: output '${j.name}' isn't patched inside`);
     if (this.kind === "cell" && !this.root.outputs.length) throw new Error(`${this.name}: a cell preset needs an output`);
     const doc = { format: 1, root: "root", category, description: this.description, tags: this.tags,
-                  ...(this.help ? { help: this.help } : {}), nodes: this.nodes, cables: this.cables };
+                  ...(this.help ? { help: this.help } : {}), nodes: this.nodes, cables: this.cables,
+                  ...(Object.keys(this.media).length ? { media: this.media } : {}) };
     const plays = this.playsOverride === undefined ? derivePlays(doc, category) : this.playsOverride || undefined;
     if (plays) {
       checkPlays(this.name, doc, plays);
@@ -371,7 +383,7 @@ export class Preset {
     if (!this.nodes.some((n) => n.type === this.module))
       throw new Error(`${this.name}: doesn't use the ${this.module} module it demonstrates`);
     return { format: 1, module: this.module, description: this.description, tags: this.tags, tempo: this.tempo,
-             nodes: this.nodes, cables: this.cables };
+             nodes: this.nodes, cables: this.cables, ...(Object.keys(this.media).length ? { media: this.media } : {}) };
   }
 }
 

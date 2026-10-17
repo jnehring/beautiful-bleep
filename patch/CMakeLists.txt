@@ -295,8 +295,7 @@ if (BLEEP_BUILD_TESTS)
     target_link_libraries(bleep_cell_plugin_presets PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.cell-plugin-presets COMMAND bleep_cell_plugin_presets
-        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json"
-        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/hand-written-presets.json")
+        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json")
 
     # Engine features modules build on (normalling, output flags, harmony order,
     # stepped knobs, view metadata, commands, media). juce_core only.

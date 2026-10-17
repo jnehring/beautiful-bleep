@@ -1,0 +1,272 @@
+{
+  "sources": {
+    "iowa": {
+      "author": "Lawrence Fritts, University of Iowa Electronic Music Studios",
+      "title": "University of Iowa Musical Instrument Samples",
+      "url": "https://theremin.music.uiowa.edu/MIS.html",
+      "base": "https://theremin.music.uiowa.edu/sound%20files/MIS/",
+      "licence": "Free for any project, without restrictions (the site's own words: the recordings \"may be downloaded and used for any projects, without restrictions\"). No credit is required; the author asks to hear about projects that use them."
+    },
+    "ylmir": {
+      "author": "Ylmir",
+      "title": "Rain loopable",
+      "url": "https://opengameart.org/content/rain-loopable",
+      "base": "https://opengameart.org/sites/default/files/",
+      "licence": "CC0 1.0 Universal (public domain dedication): https://creativecommons.org/publicdomain/zero/1.0/"
+    }
+  },
+  "samples": [
+    {
+      "name": "piano-c3",
+      "source": "iowa",
+      "file": "Piano_Other/piano/Piano.mf.C3.aiff",
+      "start": 0.05,
+      "length": 2.4,
+      "root": "C3",
+      "note": "Piano, mezzo-forte"
+    },
+    {
+      "name": "piano-c4",
+      "source": "iowa",
+      "file": "Piano_Other/piano/Piano.mf.C4.aiff",
+      "start": 0.05,
+      "length": 2.4,
+      "root": "C4",
+      "note": "Piano, mezzo-forte"
+    },
+    {
+      "name": "piano-c5",
+      "source": "iowa",
+      "file": "Piano_Other/piano/Piano.mf.C5.aiff",
+      "start": 0.05,
+      "length": 2.0,
+      "root": "C5",
+      "note": "Piano, mezzo-forte"
+    },
+    {
+      "name": "crotale-c6",
+      "source": "iowa",
+      "file": "Percussion/crotales/crotale.C6.ff.aif",
+      "start": 0.0,
+      "length": 2.2,
+      "root": "C6",
+      "note": "Crotale, fortissimo"
+    },
+    {
+      "name": "thai-gong-a4",
+      "source": "iowa",
+      "file": "Percussion/gongs & tamtams/thaigongs/thaigong.A4.mf.aif",
+      "start": 0.0,
+      "length": 2.6,
+      "root": "A4",
+      "note": "Thai gong, mezzo-forte"
+    },
+    {
+      "name": "tam-tam",
+      "source": "iowa",
+      "file": "Percussion/gongs & tamtams/22tamtam.mf.aif",
+      "start": 0.0,
+      "length": 4.0,
+      "note": "22-inch tam-tam, mezzo-forte"
+    },
+    {
+      "name": "crash-cymbal",
+      "source": "iowa",
+      "file": "Percussion/cymbals/crash cymbals/18orchcrash.french.mf.aif",
+      "start": 0.0,
+      "length": 2.5,
+      "note": "18-inch orchestral crash (French), mezzo-forte"
+    },
+    {
+      "name": "hihat-closed",
+      "source": "iowa",
+      "file": "Percussion/cymbals/hihat/hihat.footclose.mf.aif",
+      "start": 0.0,
+      "length": 0.45,
+      "note": "Hi-hat, foot close"
+    },
+    {
+      "name": "hihat-open",
+      "source": "iowa",
+      "file": "Percussion/cymbals/hihat/hihat.normal.mf.aif",
+      "start": 0.0,
+      "length": 1.1,
+      "note": "Hi-hat, normal strike"
+    },
+    {
+      "name": "clave",
+      "source": "iowa",
+      "file": "Percussion/hand percussion/claves/clave1.mf.aif",
+      "start": 0.0,
+      "length": 0.4,
+      "note": "Claves"
+    },
+    {
+      "name": "castanet",
+      "source": "iowa",
+      "file": "Percussion/hand percussion/castanets/castanet1.mf.aif",
+      "start": 0.0,
+      "length": 0.45,
+      "note": "Castanets"
+    },
+    {
+      "name": "granite-block",
+      "source": "iowa",
+      "file": "Percussion/hand percussion/graniteblocks/graniteblock1.mf.aif",
+      "start": 0.0,
+      "length": 0.4,
+      "note": "Granite block"
+    },
+    {
+      "name": "tambourine",
+      "source": "iowa",
+      "file": "Percussion/tambourines/tambourine1.normal.mf.aif",
+      "start": 0.0,
+      "length": 0.9,
+      "note": "Tambourine, normal"
+    },
+    {
+      "name": "tambourine-shake",
+      "source": "iowa",
+      "file": "Percussion/tambourines/tambourine1.shakeroll.mf.aif",
+      "start": 0.0,
+      "length": 2.2,
+      "note": "Tambourine, shake roll"
+    },
+    {
+      "name": "balloon-pop",
+      "source": "iowa",
+      "file": "Piano_Other/balloonpop/Balloon.pop.aiff",
+      "start": 0.0,
+      "length": 1.2,
+      "note": "Balloon pop"
+    },
+    {
+      "name": "rain-a",
+      "source": "ylmir",
+      "file": "Rain OGG.zip: 1.ogg",
+      "local": "rain1.ogg",
+      "start": 0.5,
+      "length": 8,
+      "rate": 24000,
+      "fadeOut": 0.5,
+      "note": "Steady rain, first of the four loopable takes"
+    },
+    {
+      "name": "rain-b",
+      "source": "ylmir",
+      "file": "Rain OGG.zip: 4.ogg",
+      "local": "rain4.ogg",
+      "start": 0.5,
+      "length": 8,
+      "rate": 24000,
+      "fadeOut": 0.5,
+      "note": "Steady rain, fourth of the four loopable takes"
+    }
+  ],
+  "loops": [
+    {
+      "name": "wood-loop",
+      "bpm": 120,
+      "beats": 4,
+      "note": "One bar of claves, castanets, granite block and hi-hats arranged by us from the single hits above.",
+      "hits": [
+        {
+          "sample": "clave",
+          "step": 0,
+          "gain": 1
+        },
+        {
+          "sample": "clave",
+          "step": 3,
+          "gain": 0.7
+        },
+        {
+          "sample": "clave",
+          "step": 10,
+          "gain": 0.8
+        },
+        {
+          "sample": "castanet",
+          "step": 4,
+          "gain": 0.9
+        },
+        {
+          "sample": "castanet",
+          "step": 12,
+          "gain": 0.9
+        },
+        {
+          "sample": "castanet",
+          "step": 14,
+          "gain": 0.5
+        },
+        {
+          "sample": "granite-block",
+          "step": 2,
+          "gain": 0.8
+        },
+        {
+          "sample": "granite-block",
+          "step": 8,
+          "gain": 1
+        },
+        {
+          "sample": "granite-block",
+          "step": 11,
+          "gain": 0.6
+        },
+        {
+          "sample": "hihat-closed",
+          "step": 0,
+          "gain": 0.6
+        },
+        {
+          "sample": "hihat-closed",
+          "step": 2,
+          "gain": 0.5
+        },
+        {
+          "sample": "hihat-closed",
+          "step": 4,
+          "gain": 0.6
+        },
+        {
+          "sample": "hihat-closed",
+          "step": 6,
+          "gain": 0.5
+        },
+        {
+          "sample": "hihat-closed",
+          "step": 8,
+          "gain": 0.6
+        },
+        {
+          "sample": "hihat-closed",
+          "step": 10,
+          "gain": 0.5
+        },
+        {
+          "sample": "hihat-closed",
+          "step": 12,
+          "gain": 0.6
+        },
+        {
+          "sample": "hihat-open",
+          "step": 14,
+          "gain": 0.5
+        },
+        {
+          "sample": "tambourine",
+          "step": 6,
+          "gain": 0.7
+        },
+        {
+          "sample": "tambourine",
+          "step": 15,
+          "gain": 0.6
+        }
+      ]
+    }
+  ]
+}

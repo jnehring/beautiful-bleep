@@ -228,9 +228,9 @@ Presets and projects are copies, so they take the audio their modules use along 
 - **Saving:** *Save as preset*, *Save to My Projects* and download attach the files (native `readMedia`); a file that cannot be read is left
   out with a note. **Loading or placing:** the files are imported first (native `importMedia`); importing twice stores one file.
 - **Sharing:** up to 8 files, 5 MB together, WAV only; the API checks header and size (422 / 413). The 512 KB limit is for the patch alone.
+- **Factory presets and projects** carry samples the same way (`p.sample()` in the kit, files in `patch/presets/samples/`, with their provenance); the Instrument and FX plugins import a cell preset's `media` when they load it (`Engine::setCellPreset`).
 - **Not in v1:** credits for samples (the preset's CC BY 4.0 licence covers its audio; the terms say publishers must have the right to
-  share it), Bleep Play (no media folder in the browser: it needs a store in IndexedDB or memory in the wasm host), the Instrument and FX
-  plugins' cell presets (loaded natively), deduplication of the same sample across presets in the bucket.
+  share it), Bleep Play (no media folder in the browser: it needs a store in IndexedDB or memory in the wasm host), deduplication of the same sample across presets in the bucket.
 - **Cost:** user presets with audio make the preset lists bigger (every list call reads them). Watch it; move the audio to separate files
   next to the preset if it hurts.
 

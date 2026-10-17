@@ -44,7 +44,7 @@ without the app, is planned, not built.
 
 Whichever place you are in, you choose how to start:
 
-- **Instrument.** Pick a preset such as *Warm Saws*, play it with MIDI. For
+- **Instrument.** Pick a preset such as *Slate Stabs*, play it with MIDI. For
   when you want a sound, not a board. In Live this is **Bleep Instrument**.
 - **Audio effect.** Pick a preset such as *Dub Ping-Pong*, send audio
   through it. In Live this is **Bleep FX**.

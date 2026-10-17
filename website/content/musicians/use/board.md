@@ -17,7 +17,7 @@ Right-click on empty space opens the **Add** menu:
   *Utility*, *Controllers*, *Sequencing* and *Drums*. Each has subcategories, e.g.
   *Sequencing › Melodic* and *Sequencing › Drum*.
 - **Cell ›** *New Cell*, *New Voice Cell*, and your cell presets by category
-  (*Synthesizers › Basic Poly* comes with Beautiful Bleep).
+  (*Synthesizers › Slate Stabs* comes with Beautiful Bleep).
 
 Tab (or a double-click on empty space) opens a search at the cursor instead.
 See [Voice Cells](voice-cells.md) for polyphonic synths.

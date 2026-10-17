@@ -121,6 +121,32 @@ in use; *Slice* pulses when a playhead starts.
 - **Reverse cymbals:** *Speed* −1 with Mode *To end of slice*.
 - **Chord from one note:** Voice Mode *Layers*, Layers 3, Layer Pitch 4.
 
+**Factory samples.** The demo patches and the *Samples* cells carry short pieces of
+recordings that are free to use, so they work on any computer. All of them come from
+the University of Iowa Electronic Music Studios' *Musical Instrument Samples*
+(Lawrence Fritts, <https://theremin.music.uiowa.edu/MIS.html>; free for any project,
+without restrictions): piano, crotale, Thai gong, tam-tam, crash cymbal, hi-hat, claves,
+castanets, granite block, tambourine and a balloon pop. We cut, fade and normalise them and
+turn them into mono, 16-bit, 48 kHz WAV files; the wood loop is a bar we arranged
+from the single hits. The rain used with *Grains* is *Rain loopable* by Ylmir
+(<https://opengameart.org/content/rain-loopable>, CC0). Every file, its original and its licence
+is listed in
+`patch/presets/samples/README.md` in the source tree.
+
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Sampler does. In the standalone app open **File → Presets…** (⌘P) and pick *Sampler* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Sampler: Wood Bar Shuffle** | One bar of claves, castanets and granite blocks is cut into sixteen equal slices. With Slice Mode on, each key plays one slice (slice 1 on the Root Note), so a step sequencer re-orders the bar into a new groove; two slices are set to Reverse in the view. Edit the sequence, drag a marker, or select a slice to change its pitch and level. |
+| **Sampler: Two-Note Piano** | Two recorded piano notes, C3 and C4, each sit on their own Sampler with the right Root Note, and a step sequencer plays the left hand on one and the right hand on the other. Sampler pitches the single recording across the keyboard, tape-style. Try Quality for cleaner pitch shifting, Release for staccato, or Cutoff for a softer touch. |
+| **Sampler: Gong Garden** | A Thai gong played in Layers voice mode: every note starts three playheads a fifth apart (Layer Pitch 7), each a little later than the last, so one gong becomes a bell cluster. Slow notes ring into each other. Change Layers, Layer Pitch or Layer Offset for other stacks, or switch Voice Mode back to Poly for a single gong. |
+| **Sampler: Tam-Tam Drone** | A short, steady stretch of a tam-tam recording is looped (Mode Loop with a crossfade that hides the seam) and played slowly from the keys as a shimmering metallic pad. A slow LFO scrubs the Position inside the region and another opens the filter. Move Start and End to choose a different part of the gong, or shorten the region for a more electronic drone. |
+| **Sampler: Shaker Choke** | A tambourine shake is cut into four slices, all in choke group 1, so each new hit cuts off the one before it. Trigger By is CV: a trigger starts a playhead and a random control signal on the Slice input picks which part of the shake plays, one of them reversed. Change the sequence, or select a slice in the view and give it another group. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

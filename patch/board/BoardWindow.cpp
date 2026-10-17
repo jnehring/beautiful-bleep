@@ -375,7 +375,7 @@ public:
         later(2500,
               "(function(){ const b = JSON.parse(JSON.stringify(window.__board())); b.nodes.push({id:'smoke', "
               "type:'function', name:'Smoke', x:300, y:300, parent:'', params:{}}); "
-              "const p = JSON.parse(JSON.stringify(window.BleepFactoryPresets[0].preset)); "
+              "const p = JSON.parse(JSON.stringify(window.__findPreset('Slate Stabs').preset)); "
               "for (const n of p.nodes) b.nodes.push(n); for (const c of p.cables) b.cables.push(c); "
               "native('commit', b, 'smoke').then(m => { window.__smoke = m.board.nodes.length; "
               "window.__voiceCells = m.board.nodes.filter(n => n.type === 'voice-cell').length; "
@@ -386,13 +386,13 @@ public:
               [](const juce::var&) {});
         // Place cell presets the way the Add menu does (the library check first), and see what the board keeps.
         later(5000,
-              "(function(){ const q = window.__findPreset('Combo Organ'); window.__t0 = Date.now(); "
+              "(function(){ const q = window.__findPreset('Hollow Reed'); window.__t0 = Date.now(); "
               "window.__ens = 'pending'; "
               "native('libraryStatus').then(s => { window.__st = JSON.stringify({keys: Object.keys(s), installed: (s.installed||[]).length, "
               "index: s.index && {ok: s.index.ok, error: s.index.error, modules: (s.index.modules||[]).length}}); }, e => window.__st = 'rejected ' + e); "
               "BleepLibraryView.ensureNeeds(q.preset, q.name).then(v => window.__ens = 'resolved ' + v + ' after ' + (Date.now() - window.__t0) + ' ms', "
               "e => window.__ens = 'rejected ' + (e && e.message || e)); "
-              "return JSON.stringify(['Warm Saws', 'Combo Organ', 'Brass Section'].map(window.__addPreset)); })()",
+              "return JSON.stringify(['Slate Stabs', 'Hollow Reed', 'Quintal Stack'].map(window.__addPreset)); })()",
               [](const juce::var& v) { std::printf("board smoke: add presets: %s\n", v.toString().toRawUTF8()); });
         later(11000,
               "JSON.stringify({cells: window.__board().nodes.filter(n => n.type === 'cell' || n.type === 'voice-cell').map(n => n.name), "

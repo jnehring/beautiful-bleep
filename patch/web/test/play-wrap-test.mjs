@@ -18,10 +18,10 @@ const factory = JSON.parse(readFileSync(join(ui, "factory-presets.json"), "utf8"
 const find = (name) => factory.find((p) => p.name === name).preset;
 
 // shapes of `plays.instrument.notes`
-assert.deepEqual(plain(W.plan(find("808 Boom"), "instrument")), {
+assert.deepEqual(plain(W.plan(find("Pocket Thump"), "instrument")), {
   ok: true, role: "instrument", midi: [{ from: "trigger", to: "trig" }, { from: "velocity", to: "velocity" }], in: [], out: ["l", "r"], notes: [] });
 // a drum map: the Drum Notes module sits between MIDI In and the cell, and the keys start at the General MIDI drum notes
-const hats = plain(W.plan(find("808 Hats"), "instrument"));
+const hats = plain(W.plan(find("Glass Hats"), "instrument"));
 assert.ok(hats.ok && hats.octave === 2 && W.DRUM_OCTAVE === 2);
 assert.deepEqual(hats.midi, [], "trigger and velocity come from Drum Notes");
 assert.deepEqual(hats.drums.filter((d) => d.to === "open"), [{ from: "open", to: "open" }], "note 46 opens the hat");
@@ -30,10 +30,12 @@ assert.ok(hats.drums.some((d) => d.from === "velocity" && d.to === "velocity"));
 assert.ok(hats.notes.some((n) => n.includes("A♯2 plays “open”") && n.includes("every other drum key plays “closed”")), hats.notes.join(" "));
 assert.equal(W.noteName(60), "C4");
 assert.equal(W.noteName(46), "A♯2");
-assert.equal("drums" in plain(W.plan(find("808 Boom"), "instrument")), false, "a plain trigger needs no Drum Notes");
-assert.deepEqual(plain(W.plan(find("Seasons Turning"), "instrument").midi), [{ from: "pitch", to: "root" }]);
-assert.deepEqual(plain(W.plan(find("Bongo Garden"), "instrument").midi), []);   // plays by itself
-const eff = plain(W.plan(find("Cathedral Hall"), "effect"));
+assert.equal("drums" in plain(W.plan(find("Pocket Thump"), "instrument")), false, "a plain trigger needs no Drum Notes");
+const pitched = JSON.parse(JSON.stringify(find("Pocket Thump")));   // a plain cell whose notes drive a pitch jack
+pitched.plays.instrument.notes = { pitch: "trig" };
+assert.deepEqual(plain(W.plan(pitched, "instrument").midi), [{ from: "pitch", to: "trig" }]);
+assert.deepEqual(plain(W.plan(find("Tin Roof Rain"), "instrument").midi), []);   // plays by itself
+const eff = plain(W.plan(find("Glass Plate"), "effect"));
 assert.deepEqual([eff.ok, eff.in, eff.out], [true, ["l", "r"], ["l", "r"]]);
 
 // a Voice Cell as the root takes the notes; one inside a plain cell is reached through that cell's notes jack
@@ -41,16 +43,16 @@ const hasVoices = (p) => p.preset.nodes.some((n) => n.type === "voice-cell");
 const voiceCell = factory.find((p) => p.preset.plays && p.preset.plays.instrument && p.preset.nodes.find((n) => n.id === p.preset.root).type === "voice-cell");
 assert.deepEqual(plain(W.plan(voiceCell.preset, "instrument")), { ok: true, role: "instrument", midi: [{ from: "notes", to: "notes" }], in: [], out: ["l", "r"], notes: [] });
 const nested = factory.find((p) => p.preset.plays && p.preset.plays.instrument && p.preset.nodes.find((n) => n.id === p.preset.root).type === "cell" && hasVoices(p));
-assert.deepEqual(plain(W.plan(nested.preset, "instrument").midi), [{ from: "notes", to: "notes" }], nested.name);
+if (nested) assert.deepEqual(plain(W.plan(nested.preset, "instrument").midi), [{ from: "notes", to: "notes" }], nested.name);   // no factory cell wraps a Voice Cell any more
 
 // refusals: the wrong role, a missing jack
-assert.equal(W.plan(find("808 Boom"), "effect").reason, "role");
-assert.equal(W.plan(find("Cathedral Hall"), "instrument").reason, "role");
+assert.equal(W.plan(find("Pocket Thump"), "effect").reason, "role");
+assert.equal(W.plan(find("Glass Plate"), "instrument").reason, "role");
 assert.equal(W.plan(null, "instrument").reason, "role");
-const broken = JSON.parse(JSON.stringify(find("808 Boom")));
+const broken = JSON.parse(JSON.stringify(find("Pocket Thump")));
 broken.plays.instrument.notes.velocity = "nothing";
 assert.ok(W.plan(broken, "instrument").notes.some((n) => n.includes("“nothing” is missing")));
-const noIn = JSON.parse(JSON.stringify(find("Cathedral Hall")));
+const noIn = JSON.parse(JSON.stringify(find("Glass Plate")));
 noIn.plays.effect.in = ["x"];
 assert.equal(W.plan(noIn, "effect").reason, "jacks");
 
@@ -61,6 +63,7 @@ for (const p of factory) {
     if (!p.preset.plays || !p.preset.plays[role]) continue;
     const root = p.preset.nodes.find((n) => n.id === p.preset.root);
     const r = W.plan(p.preset, role);
+    if (p.preset.media) { assert.equal(r.reason, "media", p.name); continue; }   // Play cannot load recordings yet
     assert.ok(r.ok, `${p.name}: ${r.message}`);
     const fixed = root.type === "voice-cell" ? ["notes"] : [];
     const ins = new Set([...root.inputs.map((j) => j.id), ...fixed]), outs = new Set([...root.outputs.map((j) => j.id), ...(fixed.length ? ["l", "r"] : [])]);
@@ -72,12 +75,12 @@ for (const p of factory) {
     if (hasVoices(p)) voices++;
   }
 }
-assert.ok(playable >= 150 && voices >= 60, `${playable} playable, ${voices} with voices`);
+assert.ok(playable >= 140 && voices >= 40, `${playable} playable, ${voices} with voices`);
 
 // sources for an effect: self-playing instruments only
 const src = W.sources(factory).map((s) => s.name);
-assert.ok(src.includes("Bongo Garden") && src.includes("Wind Chimes"));
-assert.ok(!src.includes("808 Boom") && !src.includes("Cathedral Hall"));
+assert.ok(src.includes("Tin Roof Rain") && src.includes("Phase Claves"));
+assert.ok(!src.includes("Pocket Thump") && !src.includes("Glass Plate"));
 assert.ok(src.length >= 4, src.join(", "));
 
 console.log(`play-wrap-test: ok (${playable} playable, ${voices} of them with voices, ${src.length} effect sources)`);

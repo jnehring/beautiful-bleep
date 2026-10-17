@@ -368,7 +368,7 @@
     // The audio the board's modules use goes along (common/ui/bleep-media.js); one that cannot be read is left out, with a note.
     const lost = await window.BleepMedia.attach(preset, preset.nodes, (id) => native("readMedia", id));
     if (lost.length) say(`${lost.length === 1 ? "An audio file" : lost.length + " audio files"} could not be read and ${lost.length === 1 ? "is" : "are"} not in the project.`);
-    if ((board.panels || []).length) preset.panels = clone(board.panels).map((q) => { delete q.open; return q; });
+    if ((board.panels || []).length) preset.panels = clone(board.panels);   // Show on load stays: a project opens with its panel
     const needs = libraryView() ? await P.BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
     return preset;

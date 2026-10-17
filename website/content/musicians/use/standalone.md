@@ -47,7 +47,7 @@ plays](../connect/system-audio.md).
 ## A MIDI keyboard
 
 Add **MIDI Device** (*Add → Module → Sources*), click it and choose your
-controller. Patch its *Notes* into a Voice Cell — e.g. *Basic Poly* — and the
+controller. Patch its *Notes* into a Voice Cell — e.g. *Slate Stabs* — and the
 cell's *Out L/R* into *Out 1/2*. MIDI Device also has mono *Pitch*, *Gate*,
 *Velocity*, *Bend*, *Mod Wheel* and CCs. It exists only in the app.
 

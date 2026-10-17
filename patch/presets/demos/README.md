@@ -1,6 +1,6 @@
 # Demo patches
 
-Five whole patches for every advanced module, one file per module
+Five whole patches (the standalone app calls them *projects*) for every module that can be shown on its own, one file per module
 (`<module type>.mjs`, the type being the folder name in `patch/modules/`). The
 standalone app's preset browser (File → Presets…, ⌘P) lists them under *Demos
 by module*; the website's module docs mention them under *Demo patches*.
@@ -34,4 +34,20 @@ ctest --test-dir build/light -R demo-patches                           # every d
   *Run in Play*. Both are generated from this folder: after changing a demo run `node patch/presets/build.mjs` and
   `node patch/presets/build-docs.mjs` (`--check` in CI); never edit the section between the `generated` markers.
 
-Not covered: **Sampler** plays a WAV file the user loads, and a patch can't ship one, so it has no demos.
+## Front panels, "Show on load" and tags
+
+`build.mjs` gives every project a **front panel** (a board panel, [`doc/specs/panels.md`](../../../doc/specs/panels.md)): the module the
+project is about first and with the most knobs, then the main knobs of the other modules, the module's own view if it has one
+(a sequencer, the Sampler's waveform) and an Out meter (`projectPanel` in `build.mjs`, which runs the board's *Build panel*
+code with `focus`). A project whose module is an **instrument** (sources, drums, samplers, sequencers) or an **effect** (the Effects
+categories, filters, mixers, manglers) is tagged `instrument` or `effect` and its panel is set to **Show on load**, so it opens with the panel
+in a window, as an instrument or effect does. The user can change this in the panel's sidebar (*Show on load*: Off, In a window, Full screen) and
+it is saved with the project. Modulators, utilities and the rest get a panel too, but it does not open by itself.
+
+## Samples
+
+A project may carry recordings (`p.sample("<name>")`, files from [`../samples/`](../samples/README.md), which also says where
+each comes from). They are embedded in the project (`media`, at most 8 files and 5 MB counted as 32-bit float) and imported
+into the media folder when it is loaded. Give a Sampler `samplerData(s, {markers})` and Grains `grainsData(s)` from
+[`../media.mjs`](../media.mjs). Markers are frame positions; every sample except the rain is 48 kHz, the rate the app runs at, so they land
+where you put them. The test imports the audio and checks that each file gets the id it is filed under.

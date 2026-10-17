@@ -25,7 +25,7 @@ import panelsByPreset, { checkPanels, panelEdits } from "./panels.mjs";
 
 // Category files, in Add-menu order.
 const CATEGORIES = [
-  "synthesizers", "basses", "leads", "pads", "plucks-and-mallets", "feedback-pings",
+  "synthesizers", "basses", "leads", "pads", "plucks-and-mallets", "samples", "feedback-pings",
   "drum-machines", "drum-kicks", "drum-snares-and-claps", "drum-hats-and-cymbals", "drum-toms-and-percussion",
   "drum-fx", "sequencers", "effects", "processors", "modulators", "generative", "starters", "test",
 ];
@@ -75,11 +75,50 @@ async function compile(only) {
       if (names.has(p.name)) throw new Error(`two presets are called '${p.name}' (here or in factory-presets.js)`);
       names.add(p.name);
       const preset = p.build(cat.name);
+      if (preset.plays) for (const k of ["instrument", "effect"]) if (preset.plays[k] && !preset.tags.includes(k)) preset.tags = [...preset.tags, k];
       checkHelp(p.name, preset);
       presets.push({ name: p.name, category: cat.name, preset });
     }
   }
   return { categories, presets };
+}
+
+let panelBuilder = null;
+function builder() {
+  if (!panelBuilder) {
+    const sandbox = { window: {} };
+    vm.runInNewContext(readFileSync(PANEL_BUILD, "utf8"), sandbox);
+    panelBuilder = sandbox.window.BleepPanelBuild;
+  }
+  return panelBuilder;
+}
+
+/// What a project is for, by the module it shows: sources, drums, samplers and sequencers make an "instrument";
+/// effects, filters, mixers and manglers an "effect". Modulators, utilities and the rest are neither.
+function projectKind(typeInfo) {
+  const c = typeInfo.category;
+  if (/^Effects\//.test(c) || ["Audio/Filters", "Audio/Mixing", "Audio/Mangling"].includes(c)) return "effect";
+  if (/^(Sources|Drums)\//.test(c) || c === "Audio/Sampling" || /^Sequencing\/(Melodic|Drum|Generative)$/.test(c)) return "instrument";
+  return null;
+}
+
+/// The front panel of a project (a board panel, panels.md): the module the project is about first and with the most knobs,
+/// then the other modules' main knobs, the sequencers' own views and an Out meter. Instruments and effects open with it
+/// (`open`: "Show on load", set in the panel's sidebar).
+function projectPanel(doc, name, kind) {
+  const ports = (n) => types[n.type] && types[n.type].port;
+  const nodes = doc.nodes.filter((n) => !ports(n) && !n.parent);
+  const focus = nodes.find((n) => n.type === doc.module);
+  const outs = doc.cables.filter((c) => c.to.node === "out" && (c.to.jack === "l" || c.to.jack === "r")).sort((a, b) => a.to.jack.localeCompare(b.to.jack));
+  const cell = { id: "", name: name.replace(/^[^:]+: /, ""), type: "board", params: {}, board: true };
+  const ctx = { nodes, types, inputsOf: () => [], cables: doc.cables, focus: focus && focus.id, focusViews: true, generic: true,
+                outs: outs.length ? [outs.map((c) => `${c.from.node}.${c.from.jack}`)] : undefined };
+  const panel = builder().build(cell, ctx);
+  panel.id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  panel.name = name;
+  for (const c of panel.controls) if (c.type === "label" && c.style === "title") c.text = name;
+  if (kind) panel.open = "window";
+  return panel;
 }
 
 /// The demo patches: demos/<module type>.mjs each export five patches that show off that module.
@@ -98,6 +137,11 @@ async function compileDemos(only) {
       if (!p.name.startsWith(types[type].name + ": ")) throw new Error(`demos/${file}: '${p.name}' must start with '${types[type].name}: '`);
       const doc = p.build();
       if (doc.module !== type) throw new Error(`demos/${file}: '${p.name}' demonstrates '${doc.module}'`);
+      const kind = projectKind(types[type]);
+      if (kind && !doc.tags.includes(kind)) doc.tags = [...doc.tags, kind];
+      const panel = projectPanel(doc, p.name, kind);
+      checkPanels({ board: true, root: "", nodes: doc.nodes }, [panel]);
+      doc.panels = [panel];
       patches.push({ name: p.name, module: type, moduleName: types[type].name, preset: doc });
     }
   }
@@ -109,7 +153,7 @@ function formatDemos(patches) {
   const line = (v) => JSON.stringify(v);
   return ["{", `  "format": 1,`, `  "patches": [`,
     patches.map(({ name, module, moduleName, preset }) => {
-      const { nodes, cables, ...head } = preset;
+      const { nodes, cables, media, panels, ...head } = preset;
       return [
         "    {",
         `      "name": ${line(name)}, "module": ${line(module)}, "moduleName": ${line(moduleName)},`,
@@ -120,11 +164,25 @@ function formatDemos(patches) {
         `        ],`,
         `        "cables": [`,
         cables.map((c) => "          " + line(c)).join(",\n"),
-        `        ]`,
+        tailLines(panels, media),
         `      }`,
         "    }",
       ].join("\n");
     }).join(",\n"), "  ]", "}", ""].join("\n");
+}
+
+/// What follows the cables: the panels (one per line) and the audio a preset carries (one file per line).
+function tailLines(panels, media) {
+  const out = [];
+  if (panels && panels.length) out.push(`        "panels": [`, panels.map((q) => "          " + JSON.stringify(q)).join(",\n"), `        ]`);
+  if (media && Object.keys(media).length)
+    out.push(`        "media": {`, Object.entries(media).map(([id, f]) => `          ${JSON.stringify(id)}: ${JSON.stringify(f)}`).join(",\n"), `        }`);
+  // Sections are comma-separated; the cables' own closing bracket carries the first comma.
+  let text = "";
+  const groups = [];
+  let cur = [];
+  for (const l of out) { cur.push(l); if (/^ {8}[\]}]$/.test(l)) { groups.push(cur); cur = []; } }
+  return (groups.length ? `        ],\n` : `        ]`) + groups.map((g) => g.join("\n")).join(",\n");
 }
 
 /// A dial wired to a cell input is a jack the panel feeds, and it doesn't keep its position in the app. For these
@@ -220,7 +278,7 @@ function format(doc) {
   out.push(doc.categories.map((c) => "    " + line(c)).join(",\n"));
   out.push("  ],", `  "presets": [`);
   out.push(doc.presets.map(({ name, category, preset }) => {
-    const { nodes, cables, ...head } = preset;
+    const { nodes, cables, media, ...head } = preset;
     return [
       "    {",
       `      "name": ${line(name)}, "category": ${line(category)},`,
@@ -231,7 +289,7 @@ function format(doc) {
       `        ],`,
       `        "cables": [`,
       cables.map((c) => "          " + line(c)).join(",\n"),
-      `        ]`,
+      tailLines(undefined, media),
       `      }`,
       "    }",
     ].join("\n");

@@ -12,7 +12,7 @@ are ready-made patches with a front panel of knobs and sliders.
 ## An instrument
 
 1. Put **Bleep Instrument** on a MIDI track in Live.
-2. Pick a preset, for example *Warm Saws*.
+2. Pick a preset, for example *Slate Stabs*.
 3. Play it with MIDI.
 
 ## An effect

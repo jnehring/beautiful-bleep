@@ -193,7 +193,7 @@ New page `plugin-panel.html` + `plugin-panel.js`: loads `panels.js` and the modu
 
 An overlay in the same web page, reusing `project-browser.js`: category tree, search over name, tags and description, description on hover, filtered by `plays` for the plugin's role. It lists factory presets (compiled in), then user and store ones as they appear (phase 5). Picking one calls `uiCall("loadPreset", {name})` → `setCellPreset(..., replace=true)`. In the first version the native menu stays as the fallback.
 
-The three presets in `factory-presets.js` (Basic Poly, Punch Machine, Ring Machine) become part of the library: the build writes them, with their panels and `plays`, into `factory-presets.json` too (the board hides the duplicates by name).
+Presets hand-written in `factory-presets.js` (there are none at the moment: every factory cell is written in `patch/presets`) would become part of the library: the build writes them, with their panels and `plays`, into `hand-written-presets.json`, which the plugins' library reads next to `factory-presets.json`.
 
 ### 11.4 Parameters
 
@@ -231,7 +231,7 @@ Built (commits `9b70a1d` and after):
 
 - **Panel in the plugin window** (11.1, 11.2): `IEngine::uiCall` (ABI 7); the board page's plugin mode (`?panelOf=` in a browser, `init.plugin` in a plugin); `PanelView` (a web view in the editor) and a bar with ◀ ▶, the preset menu, *Open Board* and Dry/Wet. The window is resizable and the panel scales to it; the first size comes from the panel's grid. The window no longer opens the board. If the panel is gone, the page builds one from the cell, once.
 - **16 parameters** (11.4): `SlotParameter` p1…p16 on both plugins; `Engine` answers `cellParams` (controls marked `expose`, else the first 16 dials and sliders of the panel); a 30 Hz message-thread timer carries host automation to the knobs and knob moves back to the host, and updates the names. No `expose` flag is set by any generated panel yet, so the fallback picks the first 16.
-- **Hand-written presets** (11.3, 11.6): `build.mjs` writes Basic Poly and the two drum machines to `hand-written-presets.json`; the plugins' library and `patch.cell-plugin-presets` read it next to `factory-presets.json`.
+- **Hand-written presets** (11.3, 11.6): `build.mjs` writes any of them to `hand-written-presets.json` (empty now); the plugins' library reads it next to `factory-presets.json`.
 - **Rename** (11.5): *Bleep Audio Insert* is **Bleep FX** (`BleepFx`, code `BpFx`, `PortKind::AudioInsert` inside); `release.py`, READMEs and `specs.md` follow.
 
 Not built, and not tried in Live: the web view inside Live's plugin window (the risk named in 11.2: rendering, keyboard focus, close and reopen, two instances), the browser overlay (the native menu stays), `note-router` for open hi-hats, ghost cables.

@@ -90,7 +90,7 @@ let audioSeconds = 0;
 const started = Date.now();
 for (const p of factory) {
   for (const role of ["instrument", "effect"]) {
-    if (!p.preset.plays || !p.preset.plays[role] || (only && !p.name.includes(only))) continue;
+    if (!p.preset.plays || !p.preset.plays[role] || p.preset.media || (only && !p.name.includes(only))) continue;   // recordings: not in Play yet
     // An effect is tried twice: through a looping instrument and with the audio input (a tone and a bright overtone, as a file or a microphone).
     for (const input of role === "effect" ? [false, true] : [false]) {
       const b = boardFor(p, role, input);
@@ -113,7 +113,7 @@ for (const p of factory) {
 }
 // A drum map plays the drum of the key: the open hat (46) rings longer than the closed one (44), and any other drum key (the kick's 36) closes the hat.
 {
-  const hats = factory.find((x) => x.name === "808 Hats");
+  const hats = factory.find((x) => x.name === "Glass Hats");
   engine.setBoard(boardFor(hats, "instrument"));
   const ring = (note) => {
     engine.midi.noteOn(note, 0.9);
@@ -126,7 +126,7 @@ for (const p of factory) {
   assert.ok(open.peak > 1e-3 && closed.peak > 1e-3 && other.peak > 1e-3, `all three keys sound: ${open.peak} ${closed.peak} ${other.peak}`);
   assert.ok(open.tail > closed.tail * 3, `the open hat rings longer (${open.tail} against ${closed.tail})`);
   assert.ok(other.tail < open.tail / 3, "a key of another drum plays the closed hat");
-  console.log("drum map (808 Hats): the open hat rings (tail energy " + open.tail.toExponential(1) + ") where the closed hat and the other keys stop (" + closed.tail.toExponential(1) + ", " + other.tail.toExponential(1) + ")");
+  console.log("drum map (Glass Hats): the open hat rings (tail energy " + open.tail.toExponential(1) + ") where the closed hat and the other keys stop (" + closed.tail.toExponential(1) + ", " + other.tail.toExponential(1) + ")");
 }
 const took = (Date.now() - started) / 1000;
 console.log(`${results.sound.length} play, ${results.silent.length} are silent, ${results.missing.length} need modules the site lacks, ${results.broken.length} give non-finite audio`);

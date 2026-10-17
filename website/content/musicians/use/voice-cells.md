@@ -14,8 +14,8 @@ to 16 voices at a time.
 
 - **Add → Cell → New Voice Cell** gives you a cell with a starter voice inside:
   Oscillator → VCA, with an ADSR on the VCA's gain. It makes sound right away.
-- **Add → Cell → Synthesizers → Basic Poly** is a ready-made synth: Oscillator →
-  Multi Filter (Rough) → VCA, one ADSR for the filter and one for the VCA.
+- **Add → Cell → Synthesizers → Slate Stabs** is a ready-made synth: Dual Osc →
+  Multi Filter → VCA, one ADSR for the filter and one for the VCA.
 - Right-click an ordinary cell → **Make Voice Cell** turns it into one.
 
 ## Connect it

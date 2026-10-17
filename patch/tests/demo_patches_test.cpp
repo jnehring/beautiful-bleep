@@ -10,6 +10,7 @@
 //
 //   bleep_demo_patches <demo-patches.json> [-v] [name-or-module ...]
 #include "Board.h"
+#include "Media.h"
 #include "Program.h"
 #include "Registry.h"
 
@@ -17,6 +18,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <functional>
 #include <set>
 
 using namespace bleep::engine;
@@ -151,6 +153,47 @@ Result render(const juce::var& board, double tempo) {
     return r;
 }
 
+/// The audio a patch carries (its `media` map): imported into a temporary media folder, each file must get the id it is
+/// filed under (the id is a hash of the engine's own form of the audio), and every id a node names must be among them.
+void importMedia(const juce::String& name, const juce::var& preset) {
+    static juce::TemporaryFile folderHolder;
+    static bool folderSet = false;
+    if (!folderSet) {
+        folderHolder.getFile().createDirectory();
+        media::setFolder(folderHolder.getFile().getFullPathName().toStdString());
+        folderSet = true;
+    }
+    std::set<juce::String> have;
+    if (auto* obj = preset["media"].getDynamicObject())
+        for (const auto& prop : obj->getProperties()) {
+            juce::MemoryBlock bytes;
+            juce::MemoryOutputStream out(bytes, false);
+            if (!juce::Base64::convertFromBase64(out, prop.value["data"].toString())) {
+                fail(name, "media " + prop.name.toString() + ": not base64");
+                continue;
+            }
+            std::string err;
+            const auto clip = media::import((const uint8_t*)bytes.getData(), bytes.getSize(), prop.value["name"].toString().toStdString(), &err);
+            if (!clip) fail(name, "media " + prop.name.toString() + ": " + juce::String(err));
+            else if (juce::String(clip->id) != prop.name.toString())
+                fail(name, "media filed under " + prop.name.toString() + " is stored as " + juce::String(clip->id));
+            have.insert(prop.name.toString());
+        }
+    // Every media id in a node's data.
+    std::function<void(const juce::var&)> walk = [&](const juce::var& v) {
+        if (v.isString()) {
+            const juce::String t = v.toString();
+            if (media::validId(t.toStdString()) && !have.count(t)) fail(name, "uses " + t + " but does not carry it");
+        } else if (const auto* a = v.getArray()) {
+            for (const auto& x : *a) walk(x);
+        } else if (auto* o = v.getDynamicObject()) {
+            for (const auto& p : o->getProperties()) walk(p.value);
+        }
+    };
+    if (const auto* nodes = preset["nodes"].getArray())
+        for (const auto& n : *nodes) walk(n["data"]);
+}
+
 void check(const juce::var& entry, bool verbose) {
     const juce::String name = entry["name"].toString();
     const juce::var preset = entry["preset"];
@@ -183,6 +226,7 @@ void check(const juce::var& entry, bool verbose) {
     }
     if (!usesModule) fail(name, "doesn't use " + entry["module"].toString());
 
+    importMedia(name, preset);
     const double tempo = preset["tempo"].isDouble() || preset["tempo"].isInt() ? (double)preset["tempo"] : 120.0;
     const Result r = render(out, tempo);
     const double db = 20.0 * std::log10(std::max(r.rms, 1e-9));

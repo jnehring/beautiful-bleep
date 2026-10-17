@@ -70,6 +70,13 @@ board (the module then starts frozen on it); unfreezing lets it go.
 - **Granular delay:** Position 30 %, Spread 5 %, Mix 40 %.
 - **Scrubbing:** a slow LFO on Position while frozen.
 
+**Factory samples.** The demo patches and the *Samples* cells play a granular cloud over short
+recordings that are free to use: *Rain loopable* by Ylmir (<https://opengameart.org/content/rain-loopable>, CC0)
+and pieces of the University of Iowa Electronic Music Studios' *Musical Instrument Samples*
+(Lawrence Fritts, <https://theremin.music.uiowa.edu/MIS.html>; free for any project, without restrictions).
+The files are cut, faded and normalised, and each preset carries the ones it uses. The full list with
+originals and licences is in `patch/presets/samples/README.md` in the source tree.
+
 <!-- generated:demos -->
 ## Demo patches
 
@@ -77,11 +84,11 @@ Five whole patches show what Grains does. In the standalone app open **File → 
 
 | Patch | What it shows |
 |---|---|
-| **Grains: Frozen Cloud** | A short plucked phrase is recorded, then a slow square LFO on the Freeze gate holds the buffer for a few bars at a time: the grains turn one moment of the phrase into a wide, endless pad, and the next phrase is caught when the freeze lets go. |
-| **Grains: Stutter Rhythm** | Triggered mode with Sync on 1/16: every step fires a short, reversed-or-forward grain of a bass loop, chopping it into a stuttering rhythm. Raise Density to fire bursts. |
-| **Grains: Shimmer Leaps** | Pitch Quant on Octaves + fifths and a little Pitch Jitter turn a slow melody into a shimmering halo that climbs by fifths and octaves. Feedback keeps the glow after each note. |
-| **Grains: Melodic Cloud** | A sequencer drives the Pitch input of a frozen noise burst's grains, so the cloud itself plays the tune: a shimmering sine-like melody made of nothing but grains. |
-| **Grains: Backwards Garden** | Long grains that mostly play backwards, scattered by Spread and Pitch Jitter around a slow melody, with Blur washing everything: a swelling, reversed-reverb garden. |
+| **Grains: Rain Curtain** | A recording of steady rain is played as a cloud of 300 ms grains, scattered wide by Spread and slowly scanned by an LFO on Position, with Blur smoothing the grains into a soft, deep curtain of sound. Lower Size and raise Density for a crisp downpour, or raise Pitch for a lighter, more distant shower. |
+| **Grains: Raindrop Melody** | In Triggered mode each sequencer step fires one short, percussive grain of rain, and the sequencer's Pitch is patched into Grains' Pitch input, so the raindrops play a tune. Texture at 100 % gives a plucked attack. Change Size for longer notes, Pitch Quant to Off for glides, or Pitch Jitter for a more scattered melody. |
+| **Grains: Frozen Piano** | A single recorded piano note is turned into a slow, endless pad: grains of 600 ms drawn from around Position, detuned by Pitch Jitter and snapped by Pitch Quant to octaves and fifths, so the cloud sings in stacked octaves and fifths. A slow LFO moves Position from the attack to the tail. Try Size, Density and Feedback. |
+| **Grains: Gong Shimmer** | A struck gong is stretched into grains an octave higher, with Feedback and Blur feeding the cloud back into itself so each hit blooms into a glassy halo. A sequencer plays the gong's pitch (Pitch input) and fires a grain burst on each note. Raise Feedback for a longer afterglow, or lower Pitch to hear the gong's own size. |
+| **Grains: Crotale Stutter** | Triggered mode with Sync on 1/16: a grid of tiny, percussive grains cut from a crotale recording makes a glittering rhythmic stutter, with some grains reversed. A stepped random source jumps Position on every beat so each bar pulls a different piece of the bell. Raise Density for bursts, or Size for a ringing tail. |
 <!-- /generated -->
 
 <!-- generated:presets -->

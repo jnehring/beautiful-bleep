@@ -31,11 +31,13 @@
   ///   {ok: true, role, midi: [{from, to}], out: [jack, jack], in: [jack, jack], notes: [string]}   midi: MIDI In output → cell input
   ///     a preset that maps keys to different jacks also has `drums: [{from, to}]` (Drum Notes output → cell input: the Drum Notes module sits
   ///     between MIDI In and the cell) and `octave` (the keyboard octave that shows the drum notes)
-  ///   {ok: false, reason: "role" | "jacks", message}
+  ///   {ok: false, reason: "role" | "jacks" | "media", message}
   function plan(preset, role) {
     const plays = preset && preset.plays && preset.plays[role];
     const root = preset && rootOf(preset);
     if (!plays || !root) return { ok: false, reason: "role", message: `This preset is not an ${role}.` };
+    // Play has no media folder yet (preset-system-plan.md, "Samples in presets"): a preset that carries recordings needs the app.
+    if (preset.media && Object.keys(preset.media).length) return { ok: false, reason: "media", message: "This preset plays recordings, which Bleep Play cannot load yet. Use the app or the plugin." };
     const voice = root.type === "voice-cell";   // a Voice Cell as the root has the fixed jacks notes, l and r
     const out = voice ? ["l", "r"] : audioOut(root);
     if (!out.length) return { ok: false, reason: "jacks", message: "This preset has no audio output." };

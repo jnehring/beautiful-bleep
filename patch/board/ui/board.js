@@ -697,7 +697,7 @@
       const shared = q.get("preset"), demo = q.get("demo");
       if (shared && !pluginMode) P.BleepProjectBrowser.loadShared(shared).catch((e) => notice(e.message));
       else if (demo && !pluginMode) P.BleepProjectBrowser.loadDemo(demo).catch((e) => notice(e.message));
-      else if (q.get("play") && !pluginMode)   // an instrument or effect preset on its own: /play/index.html?play=Warm Saws&as=instrument
+      else if (q.get("play") && !pluginMode)   // an instrument or effect preset on its own: /play/index.html?play=Slate Stabs&as=instrument
         playCell(q.get("play"), q.get("as") === "effect" ? "effect" : "instrument", q.get("source") || "").catch((e) => notice(e.message));
     }
     // Fit once the canvas has its size (the window may still be opening).
