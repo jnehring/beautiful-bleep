@@ -64,6 +64,9 @@
 // laid out, so a display that measures its siblings keeps drawing) and fills the view's box.
 // api.partMenu(partId | null, event) (optional) is called on a right-click on a part, or on the
 // view's background.
+//   visible(item, view)  false hides a knob or setting on top of "show"; the view calls applyLayout() again
+//                        whenever a param for which revealedBy(paramId) is true changes (EQ: only the selected band's controls)
+//   revealedBy(paramId)  see visible
 //   afterBuild(view, customElement)
 //   onState(nodeState, view)
 //   onRefresh(view)    the node changed (undo, another edit)
@@ -203,7 +206,8 @@
       if (!p) return 0;
       return Math.round(p.min + (view.node.params[id] ?? p.default) * (p.max - p.min));
     }
-    const isShown = (item) => !item.show || (units(item.show.param) >= item.show.min && units(item.show.param) <= item.show.max);
+    const isShown = (item) => (!item.show || (units(item.show.param) >= item.show.min && units(item.show.param) <= item.show.max)) &&
+      !(h && h.visible && h.visible(item, view) === false);
     const shownName = (item) => (item.names && item.names.list[units(item.names.by)]) || item.name;
     view.isShown = isShown;
     view.shownName = shownName;
@@ -221,7 +225,7 @@
       if (p && p.steps > 1) v = Math.round(v * (p.steps - 1)) / (p.steps - 1);  // stepped knobs snap
       view.node.params[id] = v;
       api.setParam(id, v);
-      if (drivers.has(id)) applyLayout();
+      if (drivers.has(id) || (h && h.revealedBy && h.revealedBy(id))) applyLayout();
       if (view.presets) view.presets.update();
     }
     /// Shows, hides and renames knobs and settings after a mode change.
@@ -237,6 +241,8 @@
       for (const g of root.querySelectorAll(".bv-sec"))
         g.hidden = ![...g.querySelectorAll(".bv-knob, .bv-setting")].some((b) => !b.hidden);
     }
+
+    view.applyLayout = applyLayout;
 
     // ---- knobs: every modulatable float is a destination (spec §7.3)
     function makeKnob(p) {
@@ -563,7 +569,7 @@
           if (ps) view.node.params[id] = ps.v;
           s.draw();
         }
-        if (drivers.size) applyLayout();
+        if (drivers.size || (h && h.visible)) applyLayout();
       }
       if (h && h.onState) h.onState(st, view);
     };

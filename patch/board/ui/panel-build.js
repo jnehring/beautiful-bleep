@@ -25,7 +25,7 @@
     "grains": ["position", "size", "pitch", "density", "texture", "mix"], "bender": ["time", "chance", "repeats", "bend", "corrupt", "mix"],
     "pitch-shifter": ["pitch", "fine", "window", "drift", "feedback", "mix"], "chorus": ["rate", "depth", "delay", "feedback", "spread", "mix"],
     "phaser": ["rate", "depth", "centre", "feedback", "stages", "mix"], "compressor": ["threshold", "ratio", "attack", "release", "makeup", "mix"],
-    "crunch": ["drive", "bits", "rate", "tone", "level", "mix"], "eq": ["lowGain", "m1Gain", "m2Gain", "highGain", "level"],
+    "crunch": ["drive", "bits", "rate", "tone", "level", "mix"], "eq": ["b2Gain", "b3Gain", "b4Gain", "b5Gain", "b6Gain", "b7Gain", "level"],
     "audio-mixer": [], "vca": [],
     "adsr": ["attack", "decay", "sustain", "release", "velamount"], "lfo": ["wave", "rate", "pw", "fade", "phase"],
     "organic-lfos": ["rate", "spread", "drift", "twist", "scatter", "level"], "quad-lfo": ["rate1", "rate2", "rate3", "rate4", "level1", "spread"],
