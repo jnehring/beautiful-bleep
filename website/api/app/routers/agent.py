@@ -60,7 +60,7 @@ def _build_resources() -> Any:
     if (data / "docs.sqlite").exists():
         embed = None
         try:
-            embed = provider_embedding_model(settings.agent_embed_model)
+            embed = provider_embedding_model(settings.agent_embed_model, settings.agent_api_key)
         except Exception as e:  # noqa: BLE001  (no key, unknown model: keyword search still works)
             log.warning("embedding model unavailable (%s): documentation search is keyword-only", e)
         docs = DocsIndex(data / "docs.sqlite", embed, settings.agent_embed_model)

@@ -25,9 +25,22 @@ def resolve_model_name(name: str) -> str:
 
 
 def provider_embedding_model(name: str, api_key: str | None = None) -> EmbeddingModel:
+    """The configured embedding model. An explicit key beats the environment (GEMINI_API_KEY / OPENAI_API_KEY)."""
+    full = resolve_model_name(name)
+    prov, _, m = full.partition(":")
+    if api_key and prov == "google-gla":
+        from pydantic_ai.embeddings.google import GoogleEmbeddingModel
+        from pydantic_ai.providers.google import GoogleProvider
+
+        return GoogleEmbeddingModel(m, provider=GoogleProvider(api_key=api_key))
+    if api_key and prov == "openai":
+        from pydantic_ai.embeddings.openai import OpenAIEmbeddingModel
+        from pydantic_ai.providers.openai import OpenAIProvider
+
+        return OpenAIEmbeddingModel(m, provider=OpenAIProvider(api_key=api_key))
     from pydantic_ai import Embedder
 
-    return Embedder(resolve_model_name(name))._model  # noqa: SLF001  (the configured model object)
+    return Embedder(full)._model  # noqa: SLF001  (the configured model object)
 
 
 class HashingEmbeddingModel(EmbeddingModel):
