@@ -1,0 +1,7 @@
+# The build context `agentlib` of website/docker-compose.yml: only what the API image needs to install the library.
+tests
+evals/runs
+**/__pycache__
+**/*.egg-info
+build
+.pytest_cache
