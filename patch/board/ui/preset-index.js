@@ -85,6 +85,10 @@
     if (view === "instrument") return playsAs(e) === "instrument" || playsAs(e) === "both";
     if (view === "effect") return playsAs(e) === "effect" || playsAs(e) === "both";
     if (view.startsWith("module:")) return e.kind === "demo" && e.module === view.slice(7);
+    if (view.startsWith("cell:")) {   // a category of cell presets and what is below it ("Drums" holds "Drums/Kicks")
+      const cat = view.slice(5);
+      return e.kind === "cell" && (e.group === cat || e.group.startsWith(cat + "/"));
+    }
     return false;
   }
 
@@ -103,6 +107,24 @@
     return select(entries, { view, origins }).length;
   }
 
+  /// The categories of the cell presets as a tree, in the order they first appear (the Add menu's order): [{name, path, children: […]}].
+  /// A category is a path with slashes ("Drums/Kicks"); `path` is what the view "cell:<path>" takes.
+  function categories(entries) {
+    const top = { kids: [], by: new Map() };
+    for (const e of entries) {
+      if (e.kind !== "cell" || !e.group) continue;
+      let node = top, path = "";
+      for (const part of e.group.split("/")) {
+        path = path ? path + "/" + part : part;
+        let c = node.by.get(part);
+        if (!c) { c = { name: part, path, kids: [], by: new Map() }; node.by.set(part, c); node.kids.push(c); }
+        node = c;
+      }
+    }
+    const plain = (n) => ({ name: n.name, path: n.path, children: n.kids.map(plain) });
+    return top.kids.map(plain);
+  }
+
   /// The demos' modules as [[type, name], …] sorted by name.
   function modules(entries) {
     const m = new Map();
@@ -110,5 +132,5 @@
     return [...m].sort((a, b) => a[1].localeCompare(b[1]));
   }
 
-  window.BleepPresetIndex = { ORIGINS, ORIGIN_LABELS, entry, playsAs, matches, textMatches, inView, select, count, modules };
+  window.BleepPresetIndex = { ORIGINS, ORIGIN_LABELS, entry, playsAs, matches, textMatches, inView, select, count, modules, categories };
 })();

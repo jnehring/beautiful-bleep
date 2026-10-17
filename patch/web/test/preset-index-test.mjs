@@ -85,4 +85,29 @@ assert.equal(X.textMatches("Delay Net", ["dely"]), true);
 assert.equal(X.textMatches("Delay Net", ["dely"], true), false, "exact: no typos");
 assert.equal(X.textMatches("Delay Net", []), true);
 
+// cell categories: a tree in the order they first appear (the Add menu's), and a view for each category that includes what is below it
+const cats = [
+  X.entry({ kind: "cell", origin: "factory", name: "Warm Saws", group: "Synthesizers" }), X.entry({ kind: "cell", origin: "factory", name: "808 Boom", group: "Drums/Kicks" }),
+  X.entry({ kind: "cell", origin: "factory", name: "808 Snare", group: "Drums/Snares & Claps" }), X.entry({ kind: "cell", origin: "factory", name: "Dub Echo", group: "Effects" }),
+  X.entry({ kind: "cell", origin: "factory", name: "Hats", group: "Drums/Hats & Cymbals" }), X.entry({ kind: "cell", origin: "factory", name: "Mine", group: "My Cells", origin: "user" }),
+  X.entry({ kind: "demo", name: "Grains: A", group: "Grains", module: "grains" }), X.entry({ kind: "project", name: "A project" }),
+];
+assert.deepEqual(plain(X.categories(cats)), [
+  { name: "Synthesizers", path: "Synthesizers", children: [] },
+  { name: "Drums", path: "Drums", children: [
+    { name: "Kicks", path: "Drums/Kicks", children: [] }, { name: "Snares & Claps", path: "Drums/Snares & Claps", children: [] }, { name: "Hats & Cymbals", path: "Drums/Hats & Cymbals", children: [] }] },
+  { name: "Effects", path: "Effects", children: [] },
+  { name: "My Cells", path: "My Cells", children: [] },
+]);
+assert.deepEqual(plain(X.categories([])), []);
+const inCat = (v, origins) => names(X.select(cats, { view: v, origins }));
+assert.deepEqual(inCat("cell:Drums"), ["808 Boom", "808 Snare", "Hats"], "a category holds the ones below it");
+assert.deepEqual(inCat("cell:Drums/Kicks"), ["808 Boom"]);
+assert.deepEqual(inCat("cell:Drum"), [], "a path, not a prefix of the name");
+assert.deepEqual(inCat("cell:Synthesizers"), ["Warm Saws"]);
+assert.deepEqual(inCat("cell:Drums", ["user"]), [], "origins still apply");
+assert.deepEqual(inCat("cell:Nothing"), []);
+assert.equal(X.count(cats, "cell:Drums", []), 3);
+assert.deepEqual(inCat("cell").length, 6, "all cells: no demo, no project");
+
 console.log("preset-index-test: ok");

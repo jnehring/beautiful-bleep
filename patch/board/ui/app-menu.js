@@ -126,6 +126,7 @@
       { id: "view.zoomOut", label: "Zoom Out", key: "−" },
       null,
       { id: "view.trace", label: "Trace Signal", key: "T" },
+      { id: "view.keyboard", label: "Screen Keyboard", when: () => !!(window.BleepWeb && window.BleepPlayKeys) },   // Bleep Play: the piano under the board, on or off
     ]],
     ["Library", [
       { id: "library.open", label: "Open Library…", when: () => !!document.getElementById("library") },

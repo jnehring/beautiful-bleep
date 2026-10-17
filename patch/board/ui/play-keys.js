@@ -12,8 +12,8 @@
   const down = new Map();   // pointer id → note
 
   const web = () => window.BleepWeb;
-  function on(note) { if (web() && web().noteOn) web().noteOn(note, 0.8); }
-  function off(note) { if (web() && web().noteOff) web().noteOff(note); }
+  function on(note) { const w = web(); if (w && w.keyDown) w.keyDown(note, 0.8); else if (w && w.noteOn) w.noteOn(note, 0.8); }
+  function off(note) { const w = web(); if (w && w.keyUp) w.keyUp(note); else if (w && w.noteOff) w.noteOff(note); }
 
   function el(tag, cls, text) {
     const e = document.createElement(tag);
@@ -88,6 +88,8 @@
       if (!bar) build();
       label.textContent = name || "";
       bar.hidden = false;
+      const source = document.getElementById("play-source");   // an effect's source bar sits at the bottom too: stand above it
+      bar.style.bottom = source && !source.hidden ? source.offsetHeight + "px" : "0";
     },
     hide() { if (bar) bar.hidden = true; },
     visible: () => !!bar && !bar.hidden,

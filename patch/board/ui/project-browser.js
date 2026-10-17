@@ -25,8 +25,10 @@
   const origins = new Set(["factory", "user"]);   // board mode: which origins show (Community needs the Library); none on shows all
   let query = "";
   let moduleFilter = "";      // board mode: narrows the list of modules under "Demos by module"
+  let cellsOpen = false, modsOpen = false;   // the two folding sections of the list on the left: both start closed
+  const openCats = new Set();                // the cell categories that are unfolded (paths like "Drums/Kicks")
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
-  let root = null, listEl, groupsEl, viewsEl, modSepEl, modFilterEl, modsEl, originsEl, searchEl, saveRow, saveBtn, fileInput, noteEl;
+  let root = null, listEl, groupsEl, viewsEl, cellsHeadEl, cellsEl, modHeadEl, modFilterEl, modsEl, originsEl, searchEl, saveRow, saveBtn, fileInput, noteEl;
   let signedIn = null;        // web: is there a login (null: not asked yet)
   let current = null;         // the loaded project for the side menu: {name, source: "factory" | "user" | "community", address?, preset}
   const listeners = [];
@@ -163,19 +165,39 @@
   /// Community presets come from the Library: they need an account (the apps with a library, Play) and a search.
   const communityOn = () => account() && origins.has("community");
 
-  /// A row of the list on the left: `view`'s name and how many entries it holds.
-  function groupRow(container, id, label, count, active, pick) {
+  /// A row of the list on the left: `view`'s name and how many entries it holds. `o.indent`: levels of nesting; `o.arrow`: "▸" or "▾" for a
+  /// row that unfolds (`o.fold` does it).
+  function groupRow(container, id, label, count, active, pick, o = {}) {
     const b = el("div", "pb-group" + (active ? " active" : ""));
-    b.appendChild(el("span", "", label));
+    if (o.indent) b.style.paddingLeft = 8 + o.indent * 14 + "px";
+    const name = el("span", "pb-name-cell");
+    if (o.arrow !== undefined) {
+      const arrow = el("span", "pb-arrow", o.arrow || "");
+      if (o.arrow && o.fold) arrow.addEventListener("click", (ev) => { ev.stopPropagation(); o.fold(); });
+      name.appendChild(arrow);
+    }
+    name.appendChild(document.createTextNode(label));
+    b.appendChild(name);
     b.appendChild(el("span", "pb-count", String(count)));
     b.addEventListener("click", pick);
     container.appendChild(b);
   }
 
+  /// The head of a folding section: ▸ / ▾ and the name; a click opens or closes it.
+  function foldHead(head, label, open, toggle) {
+    head.innerHTML = "";
+    head.appendChild(el("span", "pb-arrow", open ? "▾" : "▸"));
+    head.appendChild(document.createTextNode(label));
+    head.onclick = toggle;
+    head.setAttribute("role", "button");
+    head.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
   function renderGroups() {
     viewsEl.innerHTML = "";
-    const showModules = !host.cells;
-    modSepEl.hidden = modFilterEl.hidden = modsEl.hidden = !showModules;
+    const board = !host.cells;
+    cellsHeadEl.hidden = cellsEl.hidden = !board || !host.cellPresets;
+    modHeadEl.hidden = modFilterEl.hidden = modsEl.hidden = !board;
     if (host.cells) {   // plugin: the cell presets it can play, by category
       const add = (id, label, count) => groupRow(viewsEl, id, label, count, group === id, () => { group = id; render(); });
       add("all", "All presets", cells.length);
@@ -190,16 +212,42 @@
     const add = (id, label) => groupRow(viewsEl, id, label, I.count(all, id, origins), view === id, () => { view = id; render(); });
     add("all", "Everything");
     add("project", "Projects");
-    if (host.cellPresets) add("cell", "Cells");
     add("instrument", "Instruments");
     add("effect", "Effects");
+    renderCells(all);
     renderModules(all);
+  }
+
+  /// "Cells": all of them, then the categories of the Add menu with their submenus, each unfolding.
+  function renderCells(all) {
+    const I = window.BleepPresetIndex;
+    cellsEl.innerHTML = "";
+    if (!host.cellPresets) return;
+    foldHead(cellsHeadEl, "Cells", cellsOpen, () => { cellsOpen = !cellsOpen; renderGroups(); });
+    cellsEl.hidden = !cellsOpen;
+    if (!cellsOpen) return;
+    groupRow(cellsEl, "cell", "All cells", I.count(all, "cell", origins), view === "cell", () => { view = "cell"; render(); });
+    const walk = (nodes, depth) => {
+      for (const n of nodes) {
+        const id = "cell:" + n.path;
+        const kids = n.children.length > 0;
+        const open = kids && (openCats.has(n.path) || view.startsWith(id + "/"));   // the category of the open view is always unfolded
+        const fold = () => { if (openCats.has(n.path)) openCats.delete(n.path); else openCats.add(n.path); renderGroups(); };
+        groupRow(cellsEl, id, n.name, I.count(all, id, origins), view === id,
+          () => { view = id; if (kids) openCats.add(n.path); render(); }, { indent: depth + 1, arrow: kids ? (open ? "▾" : "▸") : "", fold });
+        if (open) walk(n.children, depth + 1);
+      }
+    };
+    walk(I.categories(all), 0);
   }
 
   /// "Demos by module": all demos, then the modules that match the filter above them (the one that is open always stays).
   function renderModules(all) {
     const I = window.BleepPresetIndex;
     modsEl.innerHTML = "";
+    foldHead(modHeadEl, "Demos by module", modsOpen, () => { modsOpen = !modsOpen; renderGroups(); });
+    modFilterEl.hidden = modsEl.hidden = !modsOpen;
+    if (!modsOpen) return;
     const add = (id, label) => groupRow(modsEl, id, label, I.count(all, id, origins), view === id, () => { view = id; render(); });
     add("demo", "All demos");
     const words = moduleFilter.toLowerCase().split(/\s+/).filter(Boolean);
@@ -231,6 +279,7 @@
   /// What is filtered, for the empty list: "in Grains", "in Cells".
   function viewLabel() {
     const names = { project: "Projects", cell: "Cells", instrument: "Instruments", effect: "Effects", demo: "the demos" };
+    if (view.startsWith("cell:")) return view.slice(5).split("/").join(" › ");
     if (view.startsWith("module:")) {
       const hit = window.BleepPresetIndex.modules(entries()).find(([type]) => type === view.slice(7));
       return hit ? hit[1] : "this module";
@@ -297,6 +346,15 @@
         }
       }
       const isCell = e.kind === "cell";
+      if (isCell && host.playCell) {   // an instrument or effect cell can also be loaded on its own, wired as the plugins wire it
+        for (const role of ["instrument", "effect"]) {
+          if (!(e.plays && e.plays[role])) continue;
+          const alone = el("button", "pb-del", "Load as " + role);
+          alone.title = role === "instrument" ? "Replace the board with this cell, played from MIDI In to Audio Out" : "Replace the board with this cell, between a looping instrument and Audio Out";
+          alone.addEventListener("click", (ev) => { ev.stopPropagation(); close(); host.playCell(e.ref.name, role); });
+          foot.appendChild(alone);
+        }
+      }
       const load = el("button", "pb-load", isCell ? "Add" : e.current || p.current ? "Loaded" : "Load");
       load.addEventListener("click", (ev) => { ev.stopPropagation(); activate(e); });
       foot.appendChild(load);
@@ -505,7 +563,9 @@
     const body = el("div", "pb-body");
     groupsEl = el("div", "pb-groups");
     viewsEl = el("div");
-    modSepEl = el("div", "pb-sep", "Demos by module");
+    cellsHeadEl = el("div", "pb-sep pb-fold");
+    cellsEl = el("div");
+    modHeadEl = el("div", "pb-sep pb-fold");
     modFilterEl = el("input", "pb-modfilter");
     modFilterEl.placeholder = "Filter modules";
     modFilterEl.spellcheck = false;
@@ -518,7 +578,7 @@
       else if (e.key === "Escape") close();
     });
     modsEl = el("div");
-    groupsEl.append(viewsEl, modSepEl, modFilterEl, modsEl);
+    groupsEl.append(viewsEl, cellsHeadEl, cellsEl, modHeadEl, modFilterEl, modsEl);
     const main = el("div", "pb-main");
     originsEl = el("div", "pb-origins");
     listEl = el("div", "pb-list");

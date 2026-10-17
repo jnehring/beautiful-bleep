@@ -127,6 +127,9 @@
     /// The octave the computer keys start in (A is its C); a drum map asks for a low one so that the keys are the drum notes.
     setOctave(o) { octave = Math.max(0, Math.min(8, Math.round(o))); },
     noteOn: (note, velocity = 0.8) => post({ cmd: "noteOn", note, velocity, channel: 0 }),
+    /// A key of the screen keyboard: plays the MIDI In nodes and the Keyboard modules, as the computer keys do.
+    keyDown(note, velocity = 0.8) { W.noteOn(note, velocity); played(note, "on"); },
+    keyUp(note) { W.noteOff(note); played(note, "off"); },
     noteOff: (note) => post({ cmd: "noteOff", note, channel: 0 }),
 
     /// What the Audio In nodes carry: the microphone or an audio file that loops (the web has no other source). Call from a click.

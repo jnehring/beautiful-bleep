@@ -292,8 +292,8 @@
   /// "@input" (`input` says which, for the source bar). Replaces the board; throws what Play cannot do.
   async function playCell(name, role, sourceName, input) {
     const W = window.BleepPlayWrap;
-    const factory = presetList().filter((r) => r.factory);
-    const q = factory.find((r) => r.name === name);
+    const everything = presetList(), factory = everything.filter((r) => r.factory);
+    const q = factory.find((r) => r.name === name) || everything.find((r) => r.name === name);   // the user's own presets too
     if (!q) throw new Error(`There is no preset called “${name}”.`);
     const plan = W.plan(q.preset, role);
     if (!plan.ok) throw new Error(plan.message);
@@ -308,7 +308,7 @@
     const cable = (from, fj, to, tj) => b.cables.push({ id: uid("k"), from: { node: from, jack: fj }, to: { node: to, jack: tj }, amount: 1 });
     let rootId, current = "";
     if (role === "instrument") {
-      rootId = insertPreset(b, q.preset, "", 340, 40, credits().factory(q.name));
+      rootId = insertPreset(b, q.preset, "", 340, 40, (q.factory ? credits().factory(q.name) : null));
       for (const c of plan.midi) cable(keys.id, c.from, rootId, c.to);
       if (plan.drums) {   // a drum map: Drum Notes turns the General MIDI drum notes into one trigger per drum
         const dn = { id: uid("n"), type: "drum-notes", name: "Drum Notes", x: 180, y: 40, parent: "", muted: false, params: {} };
@@ -332,7 +332,7 @@
         sid = insertPreset(b, s.preset, "", 20, 40, credits().factory(s.name));
         current = "loop:" + s.name;
       }
-      rootId = insertPreset(b, q.preset, "", 460, 40, credits().factory(q.name));
+      rootId = insertPreset(b, q.preset, "", 460, 40, (q.factory ? credits().factory(q.name) : null));
       plan.in.forEach((j, i) => cable(sid, sout[Math.min(i, sout.length - 1)], rootId, j));
     }
     plan.out.forEach((j, i) => cable(rootId, j, speakers.id, i ? "r" : "l"));
@@ -584,6 +584,7 @@
     "edit.group": () => group(), "edit.ungroup": () => hasSel().filter(isCellLike).forEach((n) => ungroup(n.id)),
     "edit.add": () => { const r = canvas.getBoundingClientRect(); openSearch(r.width / 2, r.height / 2); },
     "view.panels": (anchor) => panelsMenu(anchor), "view.fit": fit, "view.trace": toggleTrace,
+    "view.keyboard": () => { const k = window.BleepPlayKeys; if (k.visible()) k.hide(); else k.show("Screen keyboard"); },
     "view.zoomIn": () => navStep("zoom-in"), "view.zoomOut": () => navStep("zoom-out"),
   }, { "edit.undo": () => canUndo, "edit.redo": () => canRedo });  window.addEventListener("resize", () => { renderCables(); positionCablePop(); });
 
@@ -683,6 +684,8 @@
         cellPresets: () => presetList().map((q) => ({ key: q.key, name: q.name, factory: !!q.factory, category: q.category || (q.preset && q.preset.category) || "My Cells",
                                                  description: q.preset && q.preset.description, tags: q.preset && q.preset.tags, plays: q.preset && q.preset.plays })),
         placeCell: (key) => addAtCentre({ preset: key }),
+        // A cell preset on its own, wired as an instrument or an effect (what Bleep Play's ?play= does); replaces the board.
+        playCell: (name, role) => playCell(name, role).catch((e) => notice(e.message)),
       });
       if (m.plugin) P.BleepProjectBrowser.open();  // an instrument or FX window opens on its presets
     }
