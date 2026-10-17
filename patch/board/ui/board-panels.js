@@ -315,7 +315,8 @@
           input.addEventListener("blur", () => finish(true));
           input.addEventListener("pointerdown", (e) => e.stopPropagation());
         });
-        const sub = el("span", "v-sub", doc0.cell && nodeById(doc0.cell) ? nodeById(doc0.cell).name : doc0.for ? "Module panel" : "Board");
+        const sub = el("span", "v-sub", doc0.cell && nodeById(doc0.cell) ? nodeById(doc0.cell).name : doc0.for ? "Module panel" : "");
+        sub.hidden = !sub.textContent;
         tools.append(editBtn, fullBtn);
         head.append(title, sub, el("span", "spacer"), tools, pin, close);
         const body = el("div", "v-body");
@@ -392,7 +393,7 @@
               edit: (label, fn) => edit(label, fn),
               removeControl: (panelId, controlId) => removePanelControl(panelId, controlId),
               reveal: revealPanelModule,
-              host: () => panelHost(panelById(panelId) || doc, []),
+              host: () => panelHost(panelById(panelId) || doc, embeddedViews),
               menu: (ev, items) => showMenu(ev, items),
               editPanel: (id) => openPanel(id, { edit: true }),
             });
@@ -408,15 +409,16 @@
         const entry = {
           win, pinned: true, panelId,
           setEdit: (on) => { state.edit = on; state.full = state.full && !on; draw(); },
-          nodes: () => (play && !state.edit ? play.nodeIds() : []),
+          nodes: () => (state.edit ? (editor ? editor.nodeIds() : []) : play ? play.nodeIds() : []),
           destroy: () => { if (play) play.destroy(); },
           bv: {
-            update: (s) => { if (play) play.update(s); },
+            update: (s) => { if (play) play.update(s); if (editor) editor.update(s); },
             refresh: (doc) => {
-              if (layoutOf(doc) !== state.json) { if (editor) { state.json = layoutOf(doc); title.textContent = doc.name; editor.rebuild(); } else draw(); return; }
-              if (play) {
+              if (layoutOf(doc) !== state.json) { if (editor) { state.json = layoutOf(doc); title.textContent = doc.name; embeddedViews = []; editor.rebuild(); } else draw(); return; }
+              if (play || editor) {
                 for (const e of embeddedViews) { const m = nodeById(e.id); if (m) e.bv.refresh(m); }
-                play.refresh();
+                if (play) play.refresh();
+                if (editor) editor.refresh();
               }
             },
           },

@@ -16,7 +16,7 @@
 //               toggle(nodeId)           flip a Button module in Toggle mode (and save its state)
 //               view(nodeId) → {root, update(state), refresh(node)} | null
 //               refreshView(nodeId, view) }
-//     opts    { edit: true   controls don't react and views are placeholders (the editor draws over them)
+//     opts    { edit: true   controls don't react (the editor draws over them); views are live
 //               tab: id      the tab to start on
 //               onTab(id)    the user switched tabs }
 //   p.root        the element to insert
@@ -572,19 +572,10 @@
     function embeddedView(c, bound) {
       const e = el("div", "");
       const node = host.node(c.node, bound);
-      // The editor shows the view as it stands (not live, not reacting: its overlay takes the pointer); a view that
-      // cannot be built there is a placeholder.
+      // The editor shows the live view too (it does not react there: its overlay takes the pointer).
       const v = node ? host.view(node.id) : null;
-      if (opts.edit && (!v || (c.part && !(v.showOnly && v.showOnly(c.part))))) {
-        e.classList.add("placeholder");
-        e.append(el("span", "", node ? (c.part && c.label) || `${node.name} view` : "view: module missing"));
-        return e;
-      }
-      if (opts.edit) {
-        e.classList.add("preview");
-        e.append(v.root);
-        return e;
-      }
+      if (!node) { e.classList.add("placeholder"); e.append(el("span", "", "view: module missing")); return e; }
+      if (opts.edit) e.classList.add("preview");
       if (!v) { e.classList.add("dead"); return e; }
       // A part of the view (a display, a section of knobs, the buttons) alone; one that is gone shows as a dead box.
       if (c.part && !(v.showOnly && v.showOnly(c.part))) { e.classList.add("dead"); e.append(el("i", "", "Part missing")); return e; }

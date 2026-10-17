@@ -300,15 +300,12 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 
 /* ---- panel editor ---- */
 .pe { display: flex; flex-direction: column; height: var(--pe-h, calc(100vh - 150px)); min-height: 380px; outline: none; }
-.pe-bar { display: flex; align-items: center; gap: 12px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
 .pe-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .pe-seg button { border: 0; border-radius: 0; background: none; padding: 3px 12px; }
 .pe-seg button.on { background: var(--accent); color: #0b0d10; }
-.pe-hint { font-size: 11px; color: var(--muted); }
 .pe-main { flex: 1; display: flex; min-height: 0; }
-.pe-side, .pe-insp { width: clamp(240px, 22%, 360px); flex: none; overflow: auto; padding: 8px; font-size: 12px; }
-.pe-side { border-right: 1px solid var(--line); }
-.pe-insp { border-left: 1px solid var(--line); }
+.pe-side { width: clamp(240px, 22%, 360px); flex: none; overflow: auto; padding: 8px; font-size: 12px; border-right: 1px solid var(--line); }
+.pe-insp { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
 .pe-centre { flex: 1; overflow: auto; padding: 12px; background: var(--bg, #15171c); }
 .pe h4 { margin: 8px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .pe-pal { display: block; width: 100%; text-align: left; margin-bottom: 4px; }

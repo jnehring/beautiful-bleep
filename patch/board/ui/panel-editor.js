@@ -38,6 +38,7 @@
   const FREE = ["label", "section", "view", "panel"];
   // What the Add list shows: only the ones that need no module. Module views are added from the module on the board.
   const ADD = ["label", "section"];
+  const LIVE = ["view", "panel"];   // live UI elements: resized only in proportion
   const GRID = 2;   // "Snap to grid" rounds positions to multiples of this many units
   let clipboard = null;   // controls copied in any panel editor
   /// The board module a control is made with: its wire's (or meter source's) node.
@@ -104,11 +105,12 @@
 
     const root = el("div", "pe");
     root.tabIndex = 0;
-    const bar = el("div", "pe-bar");
     const main = el("div", "pe-main");
-    const side = el("div", "pe-side"), centre = el("div", "pe-centre"), insp = el("div", "pe-insp");
-    main.append(side, centre, insp);
-    root.append(bar, main);
+    // One left column: the settings of the selection on top, then what can be added and the list of controls.
+    const aside = el("div", "pe-side"), insp = el("div", "pe-insp"), side = el("div", "pe-lib"), centre = el("div", "pe-centre");
+    aside.append(insp, side);
+    main.append(aside, centre);
+    root.append(main);
     body.append(root);
 
     const doc = () => ctx.doc();
@@ -134,12 +136,6 @@
       });
       setSel([id]);
       return id;
-    }
-
-    // ------------------------------------------------------------------ bar
-    function drawBar() {
-      bar.innerHTML = "";
-      bar.append(el("span", "pe-hint", "Drag to move, corner to resize · Shift-click or drag a rectangle to select several · Type to set the title · Right-click for align, copy, paste and delete · New dials, wheels and buttons: right-click the module on the board and choose Add to panel"));
     }
 
     // ----------------------------------------------------------------- centre
@@ -263,9 +259,14 @@
       let w = c.size[0], hh = c.size[1];
       const grip = ev.currentTarget;
       grip.setPointerCapture(ev.pointerId);
+      const ratio = c.size[0] / c.size[1], locked = LIVE.includes(c.type);
       const move = (m) => {
         w = Math.max(2, c.size[0] + Math.round((m.clientX - start.x) / U));
         hh = Math.max(2, c.size[1] + Math.round((m.clientY - start.y) / U));
+        if (locked) {   // a live element keeps its proportions: the larger pull of the two decides
+          const k = Math.max(w / c.size[0], hh / c.size[1]);
+          w = Math.max(2, Math.round(c.size[0] * k)); hh = Math.max(2, Math.round(w / ratio));
+        }
         place(h, { at: c.at, size: [w, hh] });
         const ee = live.elements.get(c.id);
         if (ee) { ee.style.width = w * U + "px"; ee.style.height = hh * U + "px"; }
@@ -481,8 +482,9 @@
       const cell = (name, input) => { const d = el("div"); field(d, name, input); row.append(d.firstChild); };
       cell("X", num(c.at[0], (v) => change("move", (t, p) => { t.at[0] = v; fit(p); })));
       cell("Y", num(c.at[1], (v) => change("move", (t, p) => { t.at[1] = v; fit(p); })));
-      cell("W", num(c.size[0], (v) => change("resize", (t, p) => { t.size[0] = Math.max(1, v); fit(p); }), 1));
-      cell("H", num(c.size[1], (v) => change("resize", (t, p) => { t.size[1] = Math.max(1, v); fit(p); }), 1));
+      const live = LIVE.includes(c.type);
+      cell("W", num(c.size[0], (v) => change("resize", (t, p) => { const r = t.size[0] / t.size[1]; t.size[0] = Math.max(1, v); if (live) t.size[1] = Math.max(1, Math.round(t.size[0] / r)); fit(p); }), 1));
+      cell("H", num(c.size[1], (v) => change("resize", (t, p) => { const r = t.size[0] / t.size[1]; t.size[1] = Math.max(1, v); if (live) t.size[0] = Math.max(1, Math.round(t.size[1] * r)); fit(p); }), 1));
       insp.append(row);
       const tabs = doc().tabs || [];
       if (tabs.length) {
@@ -505,15 +507,17 @@
 
     /// Evenly spaces the selected controls along one axis: the outermost two stay, the gaps between all are made equal.
     function align(axis) {
-      const i = axis === "x" ? 0 : 1;
-      ctx.mutate("align " + multi.size + " controls", (p) => {
-        const cs = p.controls.filter((c) => multi.has(c.id)).sort((a, b) => a.at[i] - b.at[i]);
-        if (cs.length < 3) return;
-        const first = cs[0].at[i], last = cs[cs.length - 1];
-        const span = last.at[i] + last.size[i] - first;
-        const gap = Math.max(0, (span - cs.reduce((n, c) => n + c.size[i], 0)) / (cs.length - 1));   // never overlap; the panel grows if the row needs more room
-        let pos = first;
-        for (const c of cs) { c.at[i] = Math.max(0, Math.round(pos)); pos += c.size[i] + gap; }
+      const axes = axis === "xy" ? [0, 1] : [axis === "x" ? 0 : 1];
+      ctx.mutate("space " + multi.size + " controls", (p) => {
+        for (const i of axes) {
+          const cs = p.controls.filter((c) => multi.has(c.id)).sort((a, b) => a.at[i] - b.at[i]);
+          if (cs.length < 3) continue;
+          const first = cs[0].at[i], last = cs[cs.length - 1];
+          const span = last.at[i] + last.size[i] - first;
+          const gap = Math.max(0, (span - cs.reduce((n, c) => n + c.size[i], 0)) / (cs.length - 1));   // never overlap; the panel grows if the row needs more room
+          let pos = first;
+          for (const c of cs) { c.at[i] = Math.max(0, Math.round(pos)); pos += c.size[i] + gap; }
+        }
         fit(p);
       });
     }
@@ -588,6 +592,10 @@
           { label: "Snap to grid", run: snap },
           { label: "Align horizontally", disabled: multi.size < 2, run: () => lineUp("h") },
           { label: "Align vertically", disabled: multi.size < 2, run: () => lineUp("v") },
+        ] }, { label: "Spacing", items: [
+          { label: "Same horizontal spacing", disabled: multi.size < 3, run: () => align("x") },
+          { label: "Same vertical spacing", disabled: multi.size < 3, run: () => align("y") },
+          { label: "Same horizontal and vertical", disabled: multi.size < 3, run: () => align("xy") },
         ] }, { label: "Group", key: "⌘G", run: group }, "-");
         items.push({ label: "Copy", key: "⌘C", disabled: !copyable().length, run: copy });
       }
@@ -597,9 +605,9 @@
     }
     function multiSettings() {
       insp.append(el("h4", "", multi.size + " controls"));
-      insp.append(el("p", "pe-note", "Align spaces the selection evenly between its outermost controls (three or more)."));
+      insp.append(el("p", "pe-note", "Spacing makes the gaps between the selected controls equal, between the outermost ones (three or more)."));
       const acts = el("div", "pe-acts");
-      for (const [axis, name, tip] of [["x", "Align ↔", "Even spacing left to right"], ["y", "Align ↕", "Even spacing top to bottom"]]) {
+      for (const [axis, name, tip] of [["x", "Space ↔", "Same horizontal spacing"], ["y", "Space ↕", "Same vertical spacing"], ["xy", "Space both", "Same horizontal and vertical spacing"]]) {
         const b = el("button", "", name);
         b.title = tip;
         b.disabled = multi.size < 3;
@@ -759,7 +767,6 @@
     });
 
     function build() {
-      drawBar();
       drawCentre();
       drawSide();
       drawInsp();
@@ -771,6 +778,8 @@
         build();
       },
       update: (s) => { if (live) live.update(s); },
+      refresh: () => { if (live) live.refresh(); },
+      nodeIds: () => (live ? live.nodeIds() : []),
       destroy() { root.remove(); },
     };
   }
