@@ -12,7 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const ctx = { window: {} };
 vm.runInNewContext(readFileSync(join(here, "..", "..", "board", "ui", "preset-index.js"), "utf8"), ctx);
 const X = ctx.window.BleepPresetIndex;
-const names = (list) => list.map((e) => e.name);
+const names = (list) => Array.from(list, (e) => e.name);   // an Array of this realm: select() builds its answer inside the vm
 const plain = (v) => JSON.parse(JSON.stringify(v));   // the vm's arrays have another prototype
 
 const E = [
@@ -67,5 +67,22 @@ assert.equal(X.count(E, "cell", ["factory"]), 2);
 
 // modules: sorted by name
 assert.deepEqual(plain(X.modules(E)), [["grains", "Grains"], ["reverb", "Verb"]]);
+
+// typos: a word of four letters or more finds the start of a word with one typo, the first letter is right; exact matches come first
+assert.deepEqual(view("module:grains", [], "gran"), ["Grains: Frozen Cloud"], "gran finds Grains");
+assert.deepEqual(view("demo", [], "grians"), ["Grains: Frozen Cloud"], "two letters swapped");
+assert.deepEqual(view("demo", [], "grainz"), ["Grains: Frozen Cloud"], "a letter changed");
+assert.deepEqual(view("demo", [], "grain"), ["Grains: Frozen Cloud"], "exact, a piece of the word");
+assert.deepEqual(view("demo", [], "grns"), [], "left out letters are not guessed at");
+assert.deepEqual(view("demo", [], "drains"), [], "the first letter must be right");
+assert.deepEqual(view("demo", [], "grx"), [], "short words must match as typed");
+assert.deepEqual(view("demo", [], "gra"), ["Grains: Frozen Cloud"], "short words match as pieces");
+assert.deepEqual(view("demo", [], "frozen gran"), ["Grains: Frozen Cloud"], "every word, each with its own typo");
+const rank = [X.entry({ kind: "cell", name: "Grainy Pad" }), X.entry({ kind: "cell", name: "Grand Piano" }), X.entry({ kind: "cell", name: "Grans" })];
+assert.deepEqual(names(X.select(rank, { view: "cell", query: "gran" })), ["Grand Piano", "Grans", "Grainy Pad"], "as typed first, then with a typo");
+assert.equal(X.textMatches("Delay Net", ["delay"]), true);
+assert.equal(X.textMatches("Delay Net", ["dely"]), true);
+assert.equal(X.textMatches("Delay Net", ["dely"], true), false, "exact: no typos");
+assert.equal(X.textMatches("Delay Net", []), true);
 
 console.log("preset-index-test: ok");

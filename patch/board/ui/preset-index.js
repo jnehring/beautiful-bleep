@@ -42,11 +42,40 @@
     return i && f ? "both" : i ? "instrument" : f ? "effect" : "";
   }
 
-  /// Does the entry match every word (name, group, tags, description, author)?
-  function matches(e, words) {
+  /// Are two words the same but for one typo (a letter changed, left out, added or swapped with the next)?
+  function near(a, b) {
+    if (a === b) return true;
+    const la = a.length, lb = b.length;
+    if (Math.abs(la - lb) > 1) return false;
+    let i = 0;
+    while (i < la && i < lb && a[i] === b[i]) i++;
+    if (la === lb) return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
+    return la > lb ? a.slice(i + 1) === b.slice(i) : b.slice(i + 1) === a.slice(i);
+  }
+
+  /// Does one word match the text: as a piece of it, or (from four letters on, same first letter) as the start of one of its words
+  /// within one typo? "gran" finds "Grains".
+  function wordMatches(hay, tokens, w) {
+    if (hay.includes(w)) return true;
+    if (w.length < 4) return false;
+    return tokens.some((t) => t[0] === w[0] && (near(w, t.slice(0, w.length)) || near(w, t.slice(0, w.length + 1)) || near(w, t.slice(0, w.length - 1))));
+  }
+
+  /// Does a text match every word of a search (lower-case words)? `exact`: only whole pieces, no typos.
+  function textMatches(text, words, exact) {
+    if (!words.length) return true;
+    const hay = String(text).toLowerCase();
+    if (exact) return words.every((w) => hay.includes(w));
+    const tokens = hay.split(/[^a-z0-9\u00c0-\u024f]+/).filter(Boolean);
+    return words.every((w) => wordMatches(hay, tokens, w));
+  }
+
+  const haystack = (e) => [e.name, e.group, e.tags.join(" "), e.description, e.author].join(" ");
+
+  /// Does the entry match every word (name, group, tags, description, author), typos allowed?
+  function matches(e, words, exact) {
     if (!words.length || e.served) return true;
-    const hay = [e.name, e.group, e.tags.join(" "), e.description, e.author].join(" ").toLowerCase();
-    return words.every((w) => hay.includes(w));
+    return textMatches(haystack(e), words, exact);
   }
 
   /// Does the entry belong to a view? Views: "all", "project", "cell", "demo", "instrument", "effect", "module:<type>".
@@ -64,7 +93,9 @@
     const view = (opts && opts.view) || "all";
     const origins = new Set((opts && opts.origins) || []);
     const words = String((opts && opts.query) || "").toLowerCase().split(/\s+/).filter(Boolean);
-    return entries.filter((e) => inView(e, view) && (!origins.size || origins.has(e.origin)) && matches(e, words));
+    const found = entries.filter((e) => inView(e, view) && (!origins.size || origins.has(e.origin)) && matches(e, words));
+    // What matches as typed comes before what only matches with a typo allowed.
+    return words.length ? [...found.filter((e) => matches(e, words, true)), ...found.filter((e) => !matches(e, words, true))] : found;
   }
 
   /// How many entries a view holds for the chosen origins (the numbers in the browser's list of views); the query is ignored.
@@ -79,5 +110,5 @@
     return [...m].sort((a, b) => a[1].localeCompare(b[1]));
   }
 
-  window.BleepPresetIndex = { ORIGINS, ORIGIN_LABELS, entry, playsAs, matches, inView, select, count, modules };
+  window.BleepPresetIndex = { ORIGINS, ORIGIN_LABELS, entry, playsAs, matches, textMatches, inView, select, count, modules };
 })();

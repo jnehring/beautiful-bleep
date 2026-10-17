@@ -375,7 +375,10 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .pb-origins { display: flex; gap: 6px; padding: 8px 12px 0; }
 .pb-origins:empty { display: none; }
 .pb-origin-switch { font-size: 11px; border-radius: 10px; padding: 1px 10px; color: var(--muted); background: transparent; border: 1px solid var(--line); cursor: pointer; }
-.pb-origin-switch.on { color: var(--accent); border-color: var(--accent); }
+.pb-origin-switch.on { color: #0d1f1d; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.pb-modfilter { width: 100%; box-sizing: border-box; margin: 0 0 6px; font: inherit; font-size: 12px; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 3px 7px; }
+.pb-none { color: var(--muted); font-size: 12px; padding: 4px 8px; }
+.pb-clear { margin-top: 10px; }
 .pb-badge { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-radius: 4px; padding: 0 5px; border: 1px solid var(--line); color: var(--muted); }
 .pb-badge-community { color: var(--accent); border-color: var(--accent); }
 .pb-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }

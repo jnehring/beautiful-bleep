@@ -24,8 +24,9 @@
   let view = "all";           // board mode: a view of preset-index.js ("all", "project", "cell", "instrument", "effect", "demo", "module:<type>")
   const origins = new Set(["factory", "user"]);   // board mode: which origins show (Community needs the Library); none on shows all
   let query = "";
+  let moduleFilter = "";      // board mode: narrows the list of modules under "Demos by module"
   let cells = [];             // plugin mode: [{name, category, description, tags, current}]
-  let root = null, listEl, groupsEl, originsEl, searchEl, saveRow, saveBtn, fileInput, noteEl;
+  let root = null, listEl, groupsEl, viewsEl, modSepEl, modFilterEl, modsEl, originsEl, searchEl, saveRow, saveBtn, fileInput, noteEl;
   let signedIn = null;        // web: is there a login (null: not asked yet)
   let current = null;         // the loaded project for the side menu: {name, source: "factory" | "user" | "community", address?, preset}
   const listeners = [];
@@ -162,18 +163,23 @@
   /// Community presets come from the Library: they need an account (the apps with a library, Play) and a search.
   const communityOn = () => account() && origins.has("community");
 
+  /// A row of the list on the left: `view`'s name and how many entries it holds.
+  function groupRow(container, id, label, count, active, pick) {
+    const b = el("div", "pb-group" + (active ? " active" : ""));
+    b.appendChild(el("span", "", label));
+    b.appendChild(el("span", "pb-count", String(count)));
+    b.addEventListener("click", pick);
+    container.appendChild(b);
+  }
+
   function renderGroups() {
-    groupsEl.innerHTML = "";
+    viewsEl.innerHTML = "";
+    const showModules = !host.cells;
+    modSepEl.hidden = modFilterEl.hidden = modsEl.hidden = !showModules;
     if (host.cells) {   // plugin: the cell presets it can play, by category
-      const add = (id, label, count) => {
-        const b = el("div", "pb-group" + (group === id ? " active" : ""));
-        b.appendChild(el("span", "", label));
-        b.appendChild(el("span", "pb-count", String(count)));
-        b.addEventListener("click", () => { group = id; render(); });
-        groupsEl.appendChild(b);
-      };
+      const add = (id, label, count) => groupRow(viewsEl, id, label, count, group === id, () => { group = id; render(); });
       add("all", "All presets", cells.length);
-      groupsEl.appendChild(el("div", "pb-sep", "Categories"));
+      viewsEl.appendChild(el("div", "pb-sep", "Categories"));
       const cats = new Map();
       for (const c of cells) cats.set(c.category, (cats.get(c.category) || 0) + 1);
       for (const [name, n] of cats) add(name, name, n);
@@ -181,24 +187,28 @@
     }
     const I = window.BleepPresetIndex;
     const all = entries();
-    const add = (id, label) => {
-      const b = el("div", "pb-group" + (view === id ? " active" : ""));
-      b.appendChild(el("span", "", label));
-      b.appendChild(el("span", "pb-count", String(I.count(all, id, origins))));
-      b.addEventListener("click", () => { view = id; render(); });
-      groupsEl.appendChild(b);
-    };
+    const add = (id, label) => groupRow(viewsEl, id, label, I.count(all, id, origins), view === id, () => { view = id; render(); });
     add("all", "Everything");
     add("project", "Projects");
     if (host.cellPresets) add("cell", "Cells");
     add("instrument", "Instruments");
     add("effect", "Effects");
-    groupsEl.appendChild(el("div", "pb-sep", "Demos by module"));
-    add("demo", "All demos");
-    for (const [type, name] of I.modules(all)) add("module:" + type, name);
+    renderModules(all);
   }
 
-  /// The Factory / Mine / Community switches above the list; none on shows everything.
+  /// "Demos by module": all demos, then the modules that match the filter above them (the one that is open always stays).
+  function renderModules(all) {
+    const I = window.BleepPresetIndex;
+    modsEl.innerHTML = "";
+    const add = (id, label) => groupRow(modsEl, id, label, I.count(all, id, origins), view === id, () => { view = id; render(); });
+    add("demo", "All demos");
+    const words = moduleFilter.toLowerCase().split(/\s+/).filter(Boolean);
+    const shown = I.modules(all).filter(([type, name]) => view === "module:" + type || I.textMatches(name, words));
+    for (const [type, name] of shown) add("module:" + type, name);
+    if (words.length && !shown.length) modsEl.appendChild(el("div", "pb-none", "No module matches."));
+  }
+
+  /// The Factory / Mine / Community switches above the list: the origins that show.
   function renderOrigins() {
     originsEl.innerHTML = "";
     if (host.cells) return;
@@ -206,8 +216,11 @@
       if (o === "community" && !account()) continue;
       const b = el("button", "pb-origin-switch" + (origins.has(o) ? " on" : ""), window.BleepPresetIndex.ORIGIN_LABELS[o]);
       b.title = o === "community" ? "Presets shared in the Bleep Library" : o === "user" ? "Presets and projects you saved" : "Presets that come with the app";
+      b.setAttribute("aria-pressed", origins.has(o) ? "true" : "false");
       b.addEventListener("click", () => {
         if (origins.has(o)) origins.delete(o); else origins.add(o);
+        // At least one stays on: with none on every origin would show, which looks like the opposite.
+        if (!origins.size) for (const k of window.BleepPresetIndex.ORIGINS) if (k !== "community" || account()) origins.add(k);
         if (o === "community" && origins.has(o)) searchLibrary();
         render();
       });
@@ -215,15 +228,26 @@
     }
   }
 
+  /// What is filtered, for the empty list: "in Grains", "in Cells".
+  function viewLabel() {
+    const names = { project: "Projects", cell: "Cells", instrument: "Instruments", effect: "Effects", demo: "the demos" };
+    if (view.startsWith("module:")) {
+      const hit = window.BleepPresetIndex.modules(entries()).find(([type]) => type === view.slice(7));
+      return hit ? hit[1] : "this module";
+    }
+    return names[view] || "";
+  }
+
   function emptyText() {
     if (communityOn() && lib.busy) return "Searching the Library…";
     if (communityOn() && lib.note) return lib.note;
-    if (view === "cell" && !query) return "No cell presets here.";
-    if (origins.size === 1 && origins.has("user") && !query) {
+    if (query.trim()) return `Nothing ${viewLabel() ? "in " + viewLabel() + " " : ""}matches “${query.trim()}”.`;
+    if (view === "cell") return "No cell presets here.";
+    if (origins.size === 1 && origins.has("user")) {
       if (webMine() && signedIn === false) return "Log in on the website to keep projects in your account.";
       return "Nothing saved yet. “Save current project…” keeps the board you are working on here.";
     }
-    return "Nothing matches.";
+    return "Nothing here.";
   }
 
   function renderList() {
@@ -231,7 +255,14 @@
     const items = host.cells ? pluginCells().map((p) => ({ name: p.name, group: p.moduleName, current: p.current, origin: "", plays: null, description: p.preset.description, tags: p.preset.tags || [], ref: p }))
       : visible();
     if (!items.length) {
-      listEl.appendChild(el("div", "pb-empty", emptyText()));
+      const empty = el("div", "pb-empty", emptyText());
+      if (query.trim() && !(communityOn() && (lib.busy || lib.note))) {
+        const clear = el("button", "pb-clear", "Clear search");
+        clear.addEventListener("click", () => { query = ""; searchEl.value = ""; searchEl.focus(); render(); });
+        empty.appendChild(el("br"));
+        empty.appendChild(clear);
+      }
+      listEl.appendChild(empty);
       return;
     }
     for (const e of items) {
@@ -473,6 +504,21 @@
 
     const body = el("div", "pb-body");
     groupsEl = el("div", "pb-groups");
+    viewsEl = el("div");
+    modSepEl = el("div", "pb-sep", "Demos by module");
+    modFilterEl = el("input", "pb-modfilter");
+    modFilterEl.placeholder = "Filter modules";
+    modFilterEl.spellcheck = false;
+    modFilterEl.autocomplete = "off";
+    modFilterEl.setAttribute("aria-label", "Filter the modules");
+    modFilterEl.addEventListener("input", () => { moduleFilter = modFilterEl.value; renderModules(entries()); });
+    modFilterEl.addEventListener("keydown", (e) => {
+      e.stopPropagation();   // typing here is not a shortcut of the board
+      if (e.key === "Escape" && modFilterEl.value) { modFilterEl.value = ""; moduleFilter = ""; renderModules(entries()); }
+      else if (e.key === "Escape") close();
+    });
+    modsEl = el("div");
+    groupsEl.append(viewsEl, modSepEl, modFilterEl, modsEl);
     const main = el("div", "pb-main");
     originsEl = el("div", "pb-origins");
     listEl = el("div", "pb-list");
