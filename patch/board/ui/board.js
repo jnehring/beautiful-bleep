@@ -301,15 +301,21 @@
     // The ports the board has stay (they cannot be deleted, spec §6): the new board reuses them, so no port is added twice or comes back.
     const ports = (board.nodes || []).filter((n) => n.port && !n.parent).map(clone);
     const find = (type) => ports.find((n) => n.type === type);
-    const keys = find("midi-in"), speakers = find("audio-out");
-    if (!speakers || (role === "instrument" && !keys)) throw new Error(`This board has no ${!speakers ? "Audio Out" : "MIDI In"} port to play through.`);
+    let keys = find("midi-in");
+    const speakers = find("audio-out");
+    if (!speakers) throw new Error("This board has no Audio Out port to play through.");
+    // A board without a MIDI In (the standalone app has one only for a MIDI keyboard or a virtual port) gets a Keyboard module as its notes.
+    let player = null;
+    if (role === "instrument" && !keys) player = keys = { id: uid("n"), type: "keyboard", name: "Keyboard", x: 20, y: 40, parent: "", muted: false, params: {} };
     ports.forEach((n, i) => { n.x = n === keys ? 20 : n === speakers ? 900 : 20; n.y = n === keys || n === speakers ? 40 : 300 + 110 * i; });
     b.nodes.push(...ports);
+    if (player) b.nodes.push(player);
+    const keyJack = (j) => (player && j === "velocity" ? "vel" : j);   // the Keyboard module calls it vel
     const cable = (from, fj, to, tj) => b.cables.push({ id: uid("k"), from: { node: from, jack: fj }, to: { node: to, jack: tj }, amount: 1 });
     let rootId, current = "";
     if (role === "instrument") {
       rootId = insertPreset(b, q.preset, "", 340, 40, (q.factory ? credits().factory(q.name) : null));
-      for (const c of plan.midi) cable(keys.id, c.from, rootId, c.to);
+      for (const c of plan.midi) cable(keys.id, keyJack(c.from), rootId, c.to);
       if (plan.drums) {   // a drum map: Drum Notes turns the General MIDI drum notes into one trigger per drum
         const dn = { id: uid("n"), type: "drum-notes", name: "Drum Notes", x: 180, y: 40, parent: "", muted: false, params: {} };
         b.nodes.push(dn);
@@ -339,7 +345,11 @@
     if (plan.out.length === 1) cable(rootId, plan.out[0], speakers.id, "r");
     applyMessage(await native("loadPatch", b, 0, q.name));
     if (role === "instrument") {
-      window.BleepPlayKeys.show(q.name);
+      // The piano needs a way to play: Bleep Play (BleepWeb) plays MIDI In and Keyboard nodes; elsewhere it presses the Keyboard module's keys.
+      if (window.BleepWeb || player)
+        window.BleepPlayKeys.show(q.name, window.BleepWeb || !player ? null : { on: (n) => native("perform", player.id, "on", [n]), off: (n) => native("perform", player.id, "off", [n]) });
+      else window.BleepPlayKeys.hide();
+      if (player) notice("This board has no MIDI input, so a Keyboard module plays the cell: use the piano below, or click the module's keys and play with A W S E D F …");
       window.BleepPlaySource.hide();
       const octave = plan.octave; // a drum map starts the keys at the General MIDI drum notes, everything else where it always did
       window.BleepPlayKeys.setOctave(octave === undefined ? 3 : octave);

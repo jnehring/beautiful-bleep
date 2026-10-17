@@ -2,7 +2,8 @@
 // play-keys.js — an on-screen piano for Bleep Play, shown while an instrument preset is played on its own (play-wrap.js). The computer
 // keyboard and Web MIDI already play the MIDI In node (patch/web/js/bleep-web.js); this adds mouse and touch, for the phone.
 //
-//   BleepPlayKeys.show(name)   the bar with the preset's name and two octaves of keys; hide() removes it
+//   BleepPlayKeys.show(name, route)   the bar with the preset's name and two octaves of keys; hide() removes it. `route` ({on(note), off(note)}):
+//     how to play when the page has no BleepWeb (the standalone app presses the keys of a Keyboard module)
 // It calls BleepWeb.noteOn(note, velocity) and noteOff(note) when the page has them (Bleep Play); in the dev server it only draws.
 (function () {
   "use strict";
@@ -12,8 +13,17 @@
   const down = new Map();   // pointer id → note
 
   const web = () => window.BleepWeb;
-  function on(note) { const w = web(); if (w && w.keyDown) w.keyDown(note, 0.8); else if (w && w.noteOn) w.noteOn(note, 0.8); }
-  function off(note) { const w = web(); if (w && w.keyUp) w.keyUp(note); else if (w && w.noteOff) w.noteOff(note); }
+  let route = null;   // {on(note), off(note)} when the page has no BleepWeb to play through (the standalone app presses a Keyboard module)
+  function on(note) {
+    if (route) { route.on(note); return; }
+    const w = web();
+    if (w && w.keyDown) w.keyDown(note, 0.8); else if (w && w.noteOn) w.noteOn(note, 0.8);
+  }
+  function off(note) {
+    if (route) { route.off(note); return; }
+    const w = web();
+    if (w && w.keyUp) w.keyUp(note); else if (w && w.noteOff) w.noteOff(note);
+  }
 
   function el(tag, cls, text) {
     const e = document.createElement(tag);
@@ -84,7 +94,8 @@
   }
 
   window.BleepPlayKeys = {
-    show(name) {
+    show(name, how) {
+      route = how || null;
       if (!bar) build();
       label.textContent = name || "";
       bar.hidden = false;
