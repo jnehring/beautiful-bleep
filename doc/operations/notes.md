@@ -7,6 +7,7 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 ## Contents
 
 - [One-time setup (all three)](#one-time-setup-all-three)
+- [Fast loop: board and module development](#fast-loop-board-and-module-development)
 - [Standalone app](#standalone-app-bleep-app)
 - [Plugins](#plugins-vst3)
 - [Modules](#modules)
@@ -34,6 +35,44 @@ Short version for the three things we ship. Details: [build-standalone-app.md](b
 
 - Always rehearse first: add `--dry-run` (no token needed, changes nothing).
 - `--level` says what to count up: `patch` (1.4.2 → 1.4.3), `minor` (→ 1.5.0), `major` (→ 2.0.0). Each plugin and each module has its own counter.
+
+## Fast loop: board and module development
+
+The best way to work on the board UI or on a module is the local website with Bleep Play, not the standalone app. Editing a module and hearing it takes seconds to a minute, against a full CMake build of the app, and nothing has to be signed, released or installed. The same `.wasm` and the same board UI run in the app and the plugins later, so what works here works there.
+
+**1. Start the dev stack once** (Docker Compose 2.24+; first time only: `cp website/.env.example website/.env`):
+
+```bash
+docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env up
+```
+
+Open http://localhost:8080/play/. The `play` service builds the board UI at start; `dev` is `next dev` with hot reload behind the same Caddy routes as production. Leave it running.
+
+**2. Allow unsigned modules, once.** In Bleep Play: Settings > Library > "Allow unsigned modules" on (it asks first and is remembered in the browser). Without it the page ignores the locally built modules and installs the released ones from the library.
+
+**3. After every change, one command:**
+
+```bash
+source ../emsdk/emsdk_env.sh        # every new shell, once (the local emsdk, see Modules)
+scripts/build/update-play.sh
+```
+
+It runs `build-web.sh --modules-only`, which publishes the modules unsigned to `website/app/public/play/local-modules/`, then the `play` service, which rebuilds the board UI (`patch/board`, `patch/web`) into `website/app/public/play/`. Reload the page (hard reload if the old UI stays). Without a local emsdk use `scripts/build/update-play.sh --docker` (slow on Apple Silicon).
+
+**Faster still, for one module:** `BLEEP_WEB_ONLY=reverb scripts/build/update-play.sh` rebuilds only that module folder; the others stay as they are. For a change to the board UI only, skip the module build and run just the `play` service:
+
+```bash
+docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml --env-file website/.env run --rm play
+```
+
+Docs or website content (`website/content`, a module's `doc/`) need `... restart dev` instead.
+
+Notes:
+
+- Unsigned local modules are for development only. Users get modules through the signed release steps in [Modules](#modules); run those, and test with "Allow unsigned modules" off, before you release.
+- Only Bleep Play takes `local-modules/`. The standalone app and the plugins still load installed `.bleepmod` packages, so check a module there only after packaging and releasing it (or installing it into the app's library).
+- Use one build method (local emsdk or Docker) consistently, so the per-module cache in `build/web/modules/.cache` keeps working.
+- Build the standalone app ([below](#standalone-app-bleep-app)) only when the change is in the app itself (`patch/app`, `patch/engine`, the bridges, the hosts).
 
 ## Standalone app (`bleep-app`)
 
