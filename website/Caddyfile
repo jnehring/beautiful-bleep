@@ -23,7 +23,7 @@
 	header {
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		Permissions-Policy "camera=(), geolocation=(), payment=(), usb=()"
+		Permissions-Policy "camera=(), geolocation=(), microphone=(self), payment=(), usb=()"
 		# Only honoured by browsers when the site was reached over HTTPS.
 		Strict-Transport-Security "max-age=31536000"
 		# Nobody frames the site (clickjacking on /device/ and /account).

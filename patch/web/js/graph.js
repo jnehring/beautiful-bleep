@@ -137,7 +137,22 @@ class PortNode {
       }
     }
     if (this.spec.outputs.length && (kind === "midi-in" || kind === "midi-device" || kind === "instrument")) this.#midi(n);
-    // audio-in, link, macros: silent outputs for now.
+    if (kind === "audio-in") this.#audioIn(n);
+    // link, macros: silent outputs for now.
+  }
+
+  /// Audio In: what the page feeds the engine (the microphone, a file: Engine.render's input), times the Gain knob (dB).
+  /// A mono input plays on both sides.
+  #audioIn(n) {
+    const o = this.views.outputs, e = this.engine;
+    const k = (id) => this.spec.outputs.findIndex((q) => q.id === id);
+    const gain = this.spec.params.findIndex((q) => q.id === "gain");
+    const l = k("l"), r = k("r");
+    for (let s = 0; s < n; ++s) {
+      const g = gain >= 0 ? this.#smooth(this.#gain(gain, this.views.params[gain * CHUNK + s])) : 1;
+      if (l >= 0) o[l * CHUNK + s] = e.inL[s] * g;
+      if (r >= 0) o[r * CHUNK + s] = e.inR[s] * g;
+    }
   }
 
   /// A level knob's linear gain from its normalised value (ParamSpec::fromNormalised, then dB → gain).
@@ -226,6 +241,8 @@ export class Engine {
     this.outL = new Float32Array(CHUNK);
     this.outR = new Float32Array(CHUNK);
     this.outPos = 0;
+    this.inL = new Float32Array(CHUNK);   // the audio the page feeds in (render's inL and inR), for the Audio In nodes
+    this.inR = new Float32Array(CHUNK);
     this.board = null;
     this.watched = new Set();
     this.onError = null;  // (message) — set by the host
@@ -457,14 +474,22 @@ export class Engine {
 
   // ---- running ----------------------------------------------------------------------
 
-  /// Renders `frames` frames into left/right (added to nothing: overwritten).
-  render(left, right, frames) {
+  /// Renders `frames` frames into left/right (added to nothing: overwritten). `inL` and `inR` (optional, `inR` defaults to `inL`) are
+  /// the audio the Audio In nodes carry: the microphone or a file; without them they are silent.
+  render(left, right, frames, inL, inR) {
     let done = 0;
     while (done < frames) {
       const n = Math.min(CHUNK, frames - done);
       this.outL.fill(0);
       this.outR.fill(0);
       this.outPos = 0;
+      if (inL) {
+        this.inL.set(inL.subarray(done, done + n));
+        this.inR.set((inR || inL).subarray(done, done + n));
+      } else {
+        this.inL.fill(0);
+        this.inR.fill(0);
+      }
       this.#runChunk(n);
       left.set(this.outL.subarray(0, n), done);
       right.set(this.outR.subarray(0, n), done);

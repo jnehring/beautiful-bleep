@@ -619,3 +619,10 @@ body.plugin #side-toggle { display: none; }
 .pk-black { position: absolute; top: 0; width: 1.8%; height: 60%; background: #1a1a1e; border-radius: 0 0 3px 3px; cursor: pointer; z-index: 1; }
 .pk-black.on { background: var(--accent); }
 @media (max-width: 600px) { .pk-hint { display: none; } }
+
+/* ---- what an effect plays through in Bleep Play (play-source.js) */
+.ps { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line); padding: 8px 10px; display: flex; align-items: center; gap: 12px; font-size: 12px; flex-wrap: wrap; }
+.ps[hidden] { display: none; }
+.ps-name { font-weight: 600; }
+.ps-pick select { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 2px 6px; }
+.ps-hint { color: var(--muted); }

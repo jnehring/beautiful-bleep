@@ -50,6 +50,8 @@ keyboard and Web MIDI play MIDI In.
   is guarded so a C++ exception never reaches the audio thread.
 - Node data (`sanitiseData`) runs inside the module: a new node's defaults come
   back to the board document through the engine's `state` message.
+- Audio input: the worklet has one input; `Engine.render(left, right, frames, inL, inR)` feeds the Audio In nodes, and `BleepWeb.input` connects
+  the microphone or a looping audio file to it (Bleep Play's effects page uses it). Not the Bleep Bridge's audio, which is separate.
 - Voice Cells run (`js/voices.js`): the board is expanded before compiling, one plain cell per voice plus an allocator; a voice that is
   neither held nor sounding is not run. Not ported yet: Harmony Master/bus (modules run, but no shared
   bus), Link, Macros, audio input, host MIDI out, and the media folder
@@ -152,6 +154,22 @@ node patch/web/test/bridge-ring-test.mjs       # ±200 ppm for 10 minutes, steps
 node patch/web/test/bridge-client-test.mjs     # fake hub: hello → welcome → channels → MIDI → reconnect, audio through the Worker
 node patch/web/test/bridge-engine-test.mjs     # remote nodes in the graph runner
 ```
+
+## Developing a module in Bleep Play
+
+Bleep Play installs its modules from the Library as signed packages. To try a module change without packaging, signing or
+releasing it:
+
+```
+scripts/build/build-web.sh --modules-only      # or: scripts/build/build-web.sh --docker --modules-only
+```
+
+Besides `build/web/modules`, this copies the `.wasm` files and the modules' view scripts (`ui/*.js`) to
+`website/app/public/play/local-modules/`, which the website's dev site serves next to Bleep Play (skipped when that folder does
+not exist; `BLEEP_LOCAL_MODULES=<dir>` picks another one, `off` skips it). Turn on **Settings, Library, Allow unsigned modules**
+once and reload the page (it only works when the page is served from `localhost`, `127.0.0.1` or `[::1]`; a deployed site never uses `local-modules/`): the modules and views from `local-modules/` replace the Library's of the same name, unsigned, and
+the status line says "loaded <module> from the local build". Modules not built locally still come from the Library. With
+the switch off, or without the folder, nothing changes.
 
 ## Hosting
 

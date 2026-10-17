@@ -50,13 +50,17 @@ function place(b, preset, prefix) {
 }
 
 /// The board playCell builds: MIDI In → the cell → Audio Out, or a self-playing instrument → the effect → Audio Out.
-function boardFor(p, role) {
+function boardFor(p, role, input = false) {
   const plan = W.plan(p.preset, role);
   const b = { format: 1, id: "b", nodes: [node("keys", "midi-in", { port: "p-keys" }), node("out", "audio-out", { port: "p-out" })], cables: [] };
   let root;
   if (role === "instrument") {
     root = place(b, p.preset, "p_");
     for (const c of plan.midi) b.cables.push(cable("keys", c.from, root, c.to));
+  } else if (input) {   // the microphone or a file: the Audio In port
+    b.nodes.push(node("in", "audio-in", { port: "p-in" }));
+    root = place(b, p.preset, "p_");
+    plan.in.forEach((j, i) => b.cables.push(cable("in", i ? "r" : "l", root, j)));
   } else {
     const src = W.sources(factory)[0];
     const sp = W.plan(src.preset, "instrument");
@@ -69,9 +73,10 @@ function boardFor(p, role) {
   return b;
 }
 
-const render = (seconds) => {
+const render = (seconds, input = null) => {
   const n = Math.ceil((48000 * seconds) / 128) * 128, l = new Float32Array(n), r = new Float32Array(n);
-  for (let i = 0; i < n; i += 128) engine.render(l.subarray(i, i + 128), r.subarray(i, i + 128), 128);
+  const noise = input && Float32Array.from({ length: n }, (_, i) => 0.3 * Math.sin((2 * Math.PI * 220 * i) / 48000) + 0.1 * Math.sin((2 * Math.PI * 1760 * i) / 48000));
+  for (let i = 0; i < n; i += 128) engine.render(l.subarray(i, i + 128), r.subarray(i, i + 128), 128, noise && noise.subarray(i, i + 128));
   return l;
 };
 
@@ -81,19 +86,23 @@ const started = Date.now();
 for (const p of factory) {
   for (const role of ["instrument", "effect"]) {
     if (!p.preset.plays || !p.preset.plays[role] || (only && !p.name.includes(only))) continue;
-    const b = boardFor(p, role);
-    const missing = engine.missingSlugs(b, manifest);
-    if (missing.length) { results.missing.push(`${p.name} (${missing.join(", ")})`); continue; }
-    engine.setBoard(b);
-    if (role === "instrument") engine.midi.noteOn(60, 0.9);
-    const x = render(1.2);
-    audioSeconds += 1.2;
-    if (role === "instrument") engine.midi.allOff();
-    render(0.5);
-    const peak = x.reduce((m, v) => (Number.isFinite(v) ? Math.max(m, Math.abs(v)) : Infinity), 0);
-    if (!Number.isFinite(peak)) results.broken.push(p.name);
-    else if (peak < 1e-4) results.silent.push(`${p.name} (${role})`);
-    else results.sound.push(p.name);
+    // An effect is tried twice: through a looping instrument and with the audio input (a tone and a bright overtone, as a file or a microphone).
+    for (const input of role === "effect" ? [false, true] : [false]) {
+      const b = boardFor(p, role, input);
+      const missing = engine.missingSlugs(b, manifest);
+      if (missing.length) { results.missing.push(`${p.name} (${missing.join(", ")})`); continue; }
+      engine.setBoard(b);
+      if (role === "instrument") engine.midi.noteOn(60, 0.9);
+      const x = render(1.2, input);
+      audioSeconds += 1.2;
+      if (role === "instrument") engine.midi.allOff();
+      render(0.5);
+      const peak = x.reduce((m, v) => (Number.isFinite(v) ? Math.max(m, Math.abs(v)) : Infinity), 0);
+      const label = `${p.name} (${role}${input ? ", input" : ""})`;
+      if (!Number.isFinite(peak)) results.broken.push(label);
+      else if (peak < 1e-4) results.silent.push(label);
+      else results.sound.push(label);
+    }
   }
 }
 const took = (Date.now() - started) / 1000;

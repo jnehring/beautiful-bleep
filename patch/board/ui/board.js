@@ -287,9 +287,10 @@
   });
   const { setPresets, categories: presetCategories, save: savePreset, insert: insertPreset, addPanels, list: presetList, order: presetOrder } = cp;
 
-  /// Bleep Play: a factory cell preset on its own, wired as the plugins wire it (play-wrap.js). An instrument takes MIDI In, an effect a
-  /// self-playing instrument preset as its source (Play has no audio input yet). Replaces the board; throws what Play cannot do.
-  async function playCell(name, role, sourceName) {
+  /// Bleep Play: a factory cell preset on its own, wired as the plugins wire it (play-wrap.js). An instrument takes MIDI In; an effect takes a
+  /// self-playing instrument preset as its source (`sourceName`), or the Audio In port, fed with the microphone or a file, when `sourceName` is
+  /// "@input" (`input` says which, for the source bar). Replaces the board; throws what Play cannot do.
+  async function playCell(name, role, sourceName, input) {
     const W = window.BleepPlayWrap;
     const factory = presetList().filter((r) => r.factory);
     const q = factory.find((r) => r.name === name);
@@ -305,23 +306,53 @@
     ports.forEach((n, i) => { n.x = n === keys ? 20 : n === speakers ? 900 : 20; n.y = n === keys || n === speakers ? 40 : 300 + 110 * i; });
     b.nodes.push(...ports);
     const cable = (from, fj, to, tj) => b.cables.push({ id: uid("k"), from: { node: from, jack: fj }, to: { node: to, jack: tj }, amount: 1 });
-    let rootId;
+    let rootId, current = "";
     if (role === "instrument") {
       rootId = insertPreset(b, q.preset, "", 340, 40, credits().factory(q.name));
       for (const c of plan.midi) cable(keys.id, c.from, rootId, c.to);
     } else {
       const sources = W.sources(factory);
-      const s = sources.find((x) => x.name === sourceName) || sources[0];
-      if (!s) throw new Error("There is no source to play through the effect.");
-      const sp = W.plan(s.preset, "instrument");
-      const sid = insertPreset(b, s.preset, "", 20, 40, credits().factory(s.name));
+      let sid, sout;
+      if (sourceName === "@input") {   // the microphone or a file, through the Audio In port
+        const audioIn = find("audio-in");
+        if (!audioIn) throw new Error("This board has no Audio In port.");
+        audioIn.x = 20; audioIn.y = 40;
+        sid = audioIn.id; sout = ["l", "r"];
+        current = input === "file" ? "file" : "mic";
+      } else {
+        const s = sources.find((x) => x.name === sourceName) || sources[0];
+        if (!s) throw new Error("There is no source to play through the effect.");
+        sout = W.plan(s.preset, "instrument").out;
+        sid = insertPreset(b, s.preset, "", 20, 40, credits().factory(s.name));
+        current = "loop:" + s.name;
+      }
       rootId = insertPreset(b, q.preset, "", 460, 40, credits().factory(q.name));
-      plan.in.forEach((j, i) => cable(sid, sp.out[Math.min(i, sp.out.length - 1)], rootId, j));
+      plan.in.forEach((j, i) => cable(sid, sout[Math.min(i, sout.length - 1)], rootId, j));
     }
     plan.out.forEach((j, i) => cable(rootId, j, speakers.id, i ? "r" : "l"));
     if (plan.out.length === 1) cable(rootId, plan.out[0], speakers.id, "r");
     applyMessage(await native("loadPatch", b, 0, q.name));
-    if (role === "instrument") window.BleepPlayKeys.show(q.name); else window.BleepPlayKeys.hide();
+    if (role === "instrument") { window.BleepPlayKeys.show(q.name); window.BleepPlaySource.hide(); }
+    else {
+      window.BleepPlayKeys.hide();
+      const choose = async (c) => {
+        const web = window.BleepWeb;
+        try {
+          if (c.kind === "loop") {
+            if (web && web.input) web.input.stop();   // the microphone is let go
+            await playCell(name, "effect", c.name);
+            return;
+          }
+          if (!web || !web.input) throw new Error("Audio input works in Bleep Play, in the browser.");
+          if (c.kind === "mic") await web.input.useMic(); else await web.input.useFile(c.file);
+          await playCell(name, "effect", "@input", c.kind);
+        } catch (e) {
+          notice(e.message);
+          window.BleepPlaySource.show({ name: q.name, loops: W.sources(factory).map((x) => x.name), current, choose });   // back to what plays
+        }
+      };
+      window.BleepPlaySource.show({ name: q.name, loops: W.sources(factory).map((x) => x.name), current, choose });
+    }
     if (plan.notes.length) notice(plan.notes.join(" "));
     fit();
   }

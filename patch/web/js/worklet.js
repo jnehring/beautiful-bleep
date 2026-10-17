@@ -55,9 +55,9 @@ class BleepProcessor extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
-    const out = outputs[0];
+    const out = outputs[0], input = inputs[0];   // the input is empty while nothing is connected (no microphone, no file)
     try {
-      this.engine.render(out[0], out[1] || out[0], out[0].length);
+      this.engine.render(out[0], out[1] || out[0], out[0].length, input && input[0], input && (input[1] || input[0]));
     } catch (err) {
       this.port.postMessage({ cmd: "error", message: String(err && err.stack || err) });
       this.engine.steps = [];  // stop running the broken graph

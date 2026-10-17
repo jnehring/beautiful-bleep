@@ -252,14 +252,19 @@ the browser (`patch/web/README.md`). A web instrument is the plugin's wrapper do
   same note, stealing, mono and legato, glide, spread, compensation). The patch bay bundles of the factory voice presets resolve through the
   copies. A voice that is neither held nor sounding is not run. `Engine.voiceLimit` caps the voices. All 138 instruments and 21 effects can be
   played (`patch/web/test/voices-test.mjs`, `play-presets-test.mjs`, with the real modules from the built site).
+- **Audio input** for effects: an effect plays through a looping instrument, the microphone, or an audio file of the visitor's own, chosen in
+  a bar under the board ([play-source.js](../../patch/board/ui/play-source.js), `playCell`'s `@input` source). The worklet has one input;
+  `Engine.render(…, inL, inR)` feeds the Audio In nodes (the Gain knob scales it; a mono input plays on both sides); `BleepWeb.input`
+  (`bleep-web.js`) connects the microphone (raw: no echo cancellation or noise suppression, with a warning about feedback through
+  speakers) or an audio file that loops (decoded by the browser). The microphone needs the browser's permission; the Caddyfile's
+  Permissions-Policy allows it for the site itself. `patch/web/test/audio-input-test.mjs` checks the engine side; `play-presets-test.mjs`
+  also runs every effect with a tone as the input. The browser's microphone and file paths were not run: nothing here drives a browser's audio.
 - **CPU:** measured in node on a laptop, Warm Saws with three notes held runs at about 2× real time (the Multi Filter is most of it), a drum
   at about 30×. A big chord on a phone may not keep up; the real limit is the browser's, which nobody has measured yet.
 
 **Not built**
-- **Audio input** for effects (a dropped file, the microphone): `PortNode` has silent `audio-in` outputs; it needs an AudioWorklet input.
-  Until then an effect plays through a built-in self-playing instrument.
 - **Drum maps:** a preset that maps keys to different jacks (hats: closed, open) plays one sound for every key.
-- Choosing the effect's source in the page (only the URL parameter), and `?play=` for community presets (they arrive with step 4's Library work).
+- `?play=` for community presets (they arrive with step 4's Library work).
 - Not checked: any sound. The dev server's engine has no audio, so wiring, ports and the piano were checked in the browser, not by ear.
 
 ## 10. Files touched (expected)

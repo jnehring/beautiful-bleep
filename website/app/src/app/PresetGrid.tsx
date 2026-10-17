@@ -8,7 +8,7 @@ export default function PresetGrid({ role }: { role: "instrument" | "effect" }) 
   for (const p of all) (groups.get(p.category) ?? groups.set(p.category, []).get(p.category)!).push(p);
   return (
     <>
-      <p className="muted">{all.length} to try.{role === "instrument" ? " Play them with your computer keys (A W S E D F …), the piano at the bottom, or a MIDI keyboard. Instruments with several voices need a reasonably fast computer." : " Each effect plays through a looping instrument, so you hear it at once."}</p>
+      <p className="muted">{all.length} to try.{role === "instrument" ? " Play them with your computer keys (A W S E D F …), the piano at the bottom, or a MIDI keyboard. Instruments with several voices need a reasonably fast computer." : " Each effect plays through a looping instrument, so you hear it at once; in Play you can switch to your microphone or an audio file."}</p>
       {[...groups].map(([category, list]) => (
         <section key={category}>
           <h2>{category.replace(/\//g, " › ")}</h2>

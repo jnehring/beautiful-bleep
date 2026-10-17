@@ -28,6 +28,15 @@
 
   const post = (m) => node && node.port.postMessage(m);
 
+  let inputSource = null, inputStream = null;   // what feeds the worklet's input (W.input)
+  function dropInput() {
+    try { if (inputSource && inputSource.stop) inputSource.stop(); } catch (e) { /* not started */ }
+    if (inputSource) inputSource.disconnect();
+    if (inputStream) for (const t of inputStream.getTracks()) t.stop();
+    inputSource = inputStream = null;
+    if (W.input) W.input.kind = "";
+  }
+
   // ---- Settings (web-settings.js; the board's Settings section asks through board-demo.js) -----------------------------
   let usedHint = "interactive";   // the latencyHint the AudioContext was made with
   const S = window.BleepWebSettings ? window.BleepWebSettings.create({
@@ -118,6 +127,46 @@
     noteOff: (note) => post({ cmd: "noteOff", note, channel: 0 }),
 
     /// Starts audio. Call from a click.
+    /// What the Audio In nodes carry: the microphone or an audio file that loops (the web has no other source). Call from a click.
+    input: {
+      kind: "",   // "", "mic" or "file"
+      supported: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+      async useMic() {
+        await W.start();
+        if (!W.input.supported) throw new Error("This browser cannot use a microphone.");
+        let stream;
+        try {
+          // The raw signal: echo cancellation and noise suppression would colour an effect.
+          stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+        } catch (e) {
+          throw new Error(e && e.name === "NotAllowedError" ? "The microphone is blocked. Allow it in the address bar to use it." : "No microphone could be opened.");
+        }
+        dropInput();
+        inputStream = stream;
+        inputSource = ctx.createMediaStreamSource(stream);
+        inputSource.connect(node);
+        W.input.kind = "mic";
+      },
+      async useFile(file) {
+        await W.start();
+        let buffer;
+        try {
+          buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+        } catch (e) {
+          throw new Error("That file could not be read as audio.");
+        }
+        dropInput();
+        inputSource = ctx.createBufferSource();
+        inputSource.buffer = buffer;
+        inputSource.loop = true;
+        inputSource.connect(node);
+        inputSource.start();
+        W.input.kind = "file";
+        return { seconds: buffer.duration };
+      },
+      stop() { dropInput(); },
+    },
+
     async start() {
       if (ctx) { await ctx.resume(); return; }
       setStatus("starting audio…");
@@ -135,7 +184,8 @@
       ctx = new AudioContext({ latencyHint: usedHint });
       if (S && S.output() && ctx.setSinkId) await ctx.setSinkId(S.output()).catch(() => { /* the device is gone: the default plays */ });
       await ctx.audioWorklet.addModule(url("js/worklet.js"));
-      node = new AudioWorkletNode(ctx, "bleep-processor", { numberOfInputs: 0, outputChannelCount: [2] });
+      // One input, for the Audio In nodes (the microphone or a file, W.input); mono is made stereo. Nothing is connected until asked.
+      node = new AudioWorkletNode(ctx, "bleep-processor", { numberOfInputs: 1, channelCount: 2, channelCountMode: "explicit", outputChannelCount: [2] });
       node.connect(ctx.destination);
       node.port.onmessage = (e) => {
         const m = e.data;
