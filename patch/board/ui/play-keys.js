@@ -9,6 +9,7 @@
   "use strict";
   const WHITE = [0, 2, 4, 5, 7, 9, 11], BLACK = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };   // semitone → white key it follows
   const NAMES = ["C", "D", "E", "F", "G", "A", "B"];
+  const BLACK_WIDTH = 4.3;   // percent of the keyboard: 60 % of a white key (100 / 14 = 7.14 %)
   let bar = null, octave = 3, label = null;
   const down = new Map();   // pointer id → note
 
@@ -88,7 +89,9 @@
       for (const [semi, after] of Object.entries(BLACK)) {
         const b = el("div", "pk-black");
         b.dataset.note = String(base + 12 * o + +semi);
-        b.style.left = `calc(${((o * 7 + after + 1) / 14) * 100}% - 0.9%)`;
+        // A black key sits on the border of two white ones and is about 60 % as wide as a white key (a white key is 1/14 of the width).
+        b.style.width = BLACK_WIDTH + "%";
+        b.style.left = `calc(${((o * 7 + after + 1) / 14) * 100}% - ${BLACK_WIDTH / 2}%)`;
         keys.appendChild(b);
       }
   }

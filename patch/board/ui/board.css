@@ -621,7 +621,7 @@ body.plugin #side-toggle { display: none; }
 .pk-white { flex: 1; background: #e8e8ec; border: 1px solid #222; border-radius: 0 0 4px 4px; position: relative; cursor: pointer; }
 .pk-white.on { background: var(--accent); }
 .pk-c { position: absolute; bottom: 3px; left: 4px; font-size: 10px; color: #333; pointer-events: none; }
-.pk-black { position: absolute; top: 0; width: 1.8%; height: 60%; background: #1a1a1e; border-radius: 0 0 3px 3px; cursor: pointer; z-index: 1; }
+.pk-black { position: absolute; top: 0; width: 4.3%; height: 62%; background: #1a1a1e; border-radius: 0 0 3px 3px; cursor: pointer; z-index: 1; }
 .pk-black.on { background: var(--accent); }
 @media (max-width: 600px) { .pk-hint { display: none; } }
 
