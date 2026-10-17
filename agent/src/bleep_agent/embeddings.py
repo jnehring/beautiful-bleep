@@ -14,11 +14,13 @@ from .cache import Cache, make_key
 
 
 def resolve_model_name(name: str) -> str:
-    """'gemini-embedding-2' -> 'google-gla:gemini-embedding-2'; names that already carry a provider are kept."""
+    """'gemini-embedding-2' -> 'google:gemini-embedding-2'; names that already carry a provider are kept."""
+    if name.startswith("google-gla:"):
+        return "google:" + name.split(":", 1)[1]
     if ":" in name:
         return name
     if name.startswith(("gemini", "text-embedding-004", "embedding-")):
-        return f"google-gla:{name}"
+        return f"google:{name}"
     if name.startswith(("text-embedding", "gpt")):
         return f"openai:{name}"
     return name
@@ -28,7 +30,7 @@ def provider_embedding_model(name: str, api_key: str | None = None) -> Embedding
     """The configured embedding model. An explicit key beats the environment (GOOGLE_API_KEY / OPENAI_API_KEY)."""
     full = resolve_model_name(name)
     prov, _, m = full.partition(":")
-    if api_key and prov == "google-gla":
+    if api_key and prov in ("google", "google-gla"):
         from pydantic_ai.embeddings.google import GoogleEmbeddingModel
         from pydantic_ai.providers.google import GoogleProvider
 
@@ -38,9 +40,9 @@ def provider_embedding_model(name: str, api_key: str | None = None) -> Embedding
         from pydantic_ai.providers.openai import OpenAIProvider
 
         return OpenAIEmbeddingModel(m, provider=OpenAIProvider(api_key=api_key))
-    from pydantic_ai import Embedder
+    from pydantic_ai.embeddings import infer_embedding_model
 
-    return Embedder(full)._model  # noqa: SLF001  (the configured model object)
+    return infer_embedding_model(full)
 
 
 class HashingEmbeddingModel(EmbeddingModel):

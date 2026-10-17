@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     agent_enabled: bool = False
     # Daily token budget (input + output) for ALL users together; resets at 00:00 UTC. 0 = no new runs.
     agent_daily_tokens: int = 1_000_000
-    agent_model: str = "google-gla:gemini-3.8-flash"
+    agent_model: str = "google:gemini-3.8-flash"
     agent_embed_model: str = "gemini-embedding-2"
     # catalog.json, presets.jsonl and docs.sqlite (scripts/build/build-agent-data.sh), relative to the API's working directory.
     agent_data_dir: str = "agent_data"

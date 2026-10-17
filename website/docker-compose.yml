@@ -93,7 +93,7 @@ services:
       # The patch assistant (agent/, doc/specs/agent.md). Off unless BLEEP_AGENT_ENABLED=true. Needs website/api/agent_data/ (scripts/build/build-agent-data.sh).
       BLEEP_AGENT_ENABLED: ${BLEEP_AGENT_ENABLED:-false}
       BLEEP_AGENT_DAILY_TOKENS: ${BLEEP_AGENT_DAILY_TOKENS:-1000000}
-      BLEEP_AGENT_MODEL: ${BLEEP_AGENT_MODEL:-google-gla:gemini-3.8-flash}
+      BLEEP_AGENT_MODEL: ${BLEEP_AGENT_MODEL:-google:gemini-3.8-flash}
       BLEEP_AGENT_EMBED_MODEL: ${BLEEP_AGENT_EMBED_MODEL:-gemini-embedding-2}
       BLEEP_AGENT_USER_PER_MINUTE: ${BLEEP_AGENT_USER_PER_MINUTE:-6}
       # Provider keys: the providers' own variable names (Google AI Studio key for gemini-* and gemini-embedding-*, OpenAI for gpt-*).

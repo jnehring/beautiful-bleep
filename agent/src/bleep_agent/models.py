@@ -18,10 +18,12 @@ class BudgetExceeded(RuntimeError):
 
 
 def normalize_model_name(name: str) -> str:
+    if name.startswith("google-gla:"):  # the old provider name
+        return "google:" + name.split(":", 1)[1]
     if ":" in name:
         return name
     if name.startswith("gemini"):
-        return f"google-gla:{name}"
+        return f"google:{name}"
     if name.startswith(("gpt", "o1", "o3", "o4")):
         return f"openai:{name}"
     if name.startswith("claude"):
@@ -30,11 +32,11 @@ def normalize_model_name(name: str) -> str:
 
 
 def create_model(name: str, api_key: str | None = None) -> Model:
-    """'gemini-3.8-flash' or 'google-gla:gemini-3.8-flash' -> a model object. An explicit key beats the environment."""
+    """'gemini-3.8-flash' or 'google:gemini-3.8-flash' -> a model object. An explicit key beats the environment."""
     full = normalize_model_name(name)
     prov, _, m = full.partition(":")
     if api_key:
-        if prov == "google-gla":
+        if prov in ("google", "google-gla"):
             from pydantic_ai.models.google import GoogleModel
             from pydantic_ai.providers.google import GoogleProvider
 

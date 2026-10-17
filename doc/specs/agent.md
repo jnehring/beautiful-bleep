@@ -201,7 +201,7 @@ reciprocal rank fusion (k=60), boost by audience, return 6. Chunk embeddings go 
 
 ## 8. Backend
 
-Settings (`BLEEP_` prefix): `agent_enabled=False`, `agent_daily_tokens=1_000_000`, `agent_model="google-gla:gemini-3.8-flash"`,
+Settings (`BLEEP_` prefix): `agent_enabled=False`, `agent_daily_tokens=1_000_000`, `agent_model="google:gemini-3.8-flash"`,
 `agent_embed_model="gemini-embedding-2"`, `agent_data_dir="agent_data"`, `agent_user_per_minute=6`,
 `agent_max_steps=12`, the provider keys `GOOGLE_API_KEY` / `OPENAI_API_KEY` (the providers' own variables, read from the environment), `agent_state_secret` (HMAC key; random per process when empty).
 

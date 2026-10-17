@@ -4,8 +4,8 @@
 version: 1
 currency: USD
 models:
-  gemini-3.8-flash: {input: null, cached_input: null, output: null}
-  gpt-6-luna: {input: null, cached_input: null, output: null}
-  gemini-4-argon: {input: null, cached_input: null, output: null}
+  gemini-3.8-flash: {input: 0.75, cached_input: 0.075, output: 3.75}
+  gpt-6-luna: {input: 0.1, cached_input: 0.01, output: 0.50}
+  gemini-4-argon: {input: 2, cached_input: 0.1, output: 10}
 embeddings:
-  gemini-embedding-2: {input: null}
+  gemini-embedding-2: {input: 0.2}
