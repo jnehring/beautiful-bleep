@@ -65,11 +65,11 @@ Five whole patches show what Neuron does. In the standalone app open **File → 
 
 | Patch | What it shows |
 |---|---|
-| **Neuron: Self-Made Rhythm** | Neuron A fires regularly from its own bias; as it charges, its Out pushes Neuron B down, so B fires in irregular gaps. A Spike plays the kick, B Spike the snare and A AND B a clap over a pad: a rhythm made by two cells listening to each other. Try the Leak knobs or the W3 weights. |
-| **Neuron: Spike Melody** | Neuron A's spikes ping a pair of low pass gates, while Neuron B's saw-like Out is sampled by a quantizer on every spike: pitches from an irregular rhythm, in D minor pentatonic, through a long delay. Change the Pulse and Leak of either neuron to rewrite the tune. |
-| **Neuron: Accelerando** | A slow triangle LFO feeds Neuron A's In 2: the higher it rises, the faster A fires, so the hats and rim accelerate into a roll and fall silent as the level drops. Neuron B answers with a tom. Try a different W2 or Threshold to move where the roll starts. |
-| **Neuron: Audio-Rate Buzz** | With Leak near 0 and Cross on Gate, the two neurons chase each other so fast that their output is an audio-rate buzz. A slow LFO bends the weights and so the pitch, a filter tames it and a slow envelope shapes it into a drifting, electric drone. Nudge W3 or Pulse to retune it. |
-| **Neuron: Logic Drums** | Both neurons are in Compare mode, each a Schmitt trigger on its own clocked LFO. Their gates are combined by AND, OR and XOR into kick, clap and hats, so a few slow waves yield a changing polymetric groove. Change the Threshold of A or B to change which crossings count. |
+| **Neuron: Self-Playing Rhythm** | Two neurons charge up, fire and listen to each other, and that conversation is a drum pattern: A fires the kick, B the snare, and the logic outputs add hats and claps where they agree or differ. Change the Threshold or Leak of either neuron and the rhythm re-forms. |
+| **Neuron: Spiking Melody** | Neuron A's gate plays the notes and its membrane level, passed through a Quantizer, picks the pitch: as the neuron charges the notes climb, then drop when it fires. Lower the Threshold for a faster tune, or raise Leak to flatten the climb. |
+| **Neuron: Call and Response** | With Cross on Gate, each neuron's firing nudges the other, so a low bass note from A is answered by a high bell from B. Set Cross to Off and the two stop listening and drift apart; change B's W3 to turn the answer into a hesitation. |
+| **Neuron: Slow Charge** | The neurons' membrane levels (A Out and B Out) are slow, irregular swells here: one fades a pad in and out and the other opens its filter. Lower Leak for longer swells, or raise Sharp on a neuron for a harder snap at the top. |
+| **Neuron: Driven by an LFO** | A slow triangle LFO feeds the neurons' inputs: when it is high they fire fast and when it is low they go quiet, so a bass, tom and hat pattern speeds up and thins out in waves. Change the LFO Rate or the neuron weights to change the ebb and flow. |
 <!-- /generated -->
 
 <!-- generated:presets -->

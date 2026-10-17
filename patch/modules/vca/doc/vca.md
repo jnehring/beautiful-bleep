@@ -42,6 +42,20 @@ out on both sides.
 - To shape a control signal instead of audio, use **Utility**. The VCA is
   built for audio.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what VCA does. In the standalone app open **File → Presets…** (⌘P) and pick *VCA* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **VCA: Exponential Pluck** | A saw note shaped by a short envelope into the VCA's Gain, with Response on Exponential so the decay sounds natural and plucked. Switch Response to Linear to hear a stiffer, more abrupt tail, or change the envelope's Decay. |
+| **VCA: Tremolo Chords** | A held chord goes through a VCA whose Gain rests at a middle value while a triangle LFO swings it up and down, a classic tremolo. Raise the LFO Rate for a flutter, change its amount for a deeper chop, or move the VCA's Gain to rebalance. |
+| **VCA: Linear Swell** | A very slow attack on the envelope lets a rich pad fade in and out through a VCA with Response set to Linear, so the volume rises evenly instead of rushing in at the end. Compare it with Exponential, or lengthen Attack and Release. |
+| **VCA: Kick Ducking** | Every kick fires an envelope that pushes the pad VCA's Gain down by a negative amount, so the chords dip on the beat and swell back between hits. Change the envelope Release for a longer pump, or raise the VCA's Gain for an even bigger pad. |
+| **VCA: Rhythm Gate** | A sustained saw chord is chopped into a rhythm by a drum-grid track that fires a tight envelope into the VCA's Gain, the stuttering gate used in trance and electro. Edit the pattern, or lengthen the envelope Release to soften the chops. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

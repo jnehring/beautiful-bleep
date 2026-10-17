@@ -83,6 +83,20 @@ The preset bar of the Function view has 15 factory presets. Pick one to set the 
 | **Eight-Bar Rise** | Huge synced build-up that restarts every eight bars. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Function does. In the standalone app open **File → Presets…** (⌘P) and pick *Function* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Function: Filter Sweeper** | With Cycle on, the Function is a free-running rise-and-fall LFO: its A output opens and closes the filter on a plucked line. Change Rise and Fall for a lopsided sweep, or Shape to bend the slopes. |
+| **Function: Plucked Envelope** | Cycle is off, so every sequencer gate triggers one rise-and-fall: the A output shapes the volume and the B output, lagging behind through Spread, opens the filter slightly later. Try a slower Rise for swells or a longer Fall for ringing notes. |
+| **Function: Four Related Curves** | A, B, C and D are the same slow cycle at different delays, set by Spread, and here each one moves something else: filter cutoff, resonance, oscillator shape and reverb size. Raise Spread to pull them further apart, or lower it to make them move as one. |
+| **Function: Bouncing Pad** | Locked to the beat with Sync, the Function acts as a rhythmic pump on a held pad: Fall sets how fast the volume swells back after each bounce. Change Sync for a faster or slower pulse, or Shape for a softer curve. |
+| **Function: Swell and Chime** | One trigger per bar starts a long swell that fades a pad in and out; when it finishes, its End output triggers a second Function that plays a short chime. Lengthen the first Fall to push the chimes later. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

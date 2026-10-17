@@ -3,113 +3,117 @@
 import { patch, steps, drumGrid, pattern } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// Channels → Audio Mixer → Verb → Out 1/2. chans: {n, l (jack), r (optional jack), level, pan}
-function finish(p, at, chans, o = {}) {
-  const lv = {};
-  chans.forEach((c, i) => { lv[`level${i + 1}`] = c.level ?? -6; lv[`pan${i + 1}`] = c.pan ?? 0; });
-  const mix = p.add("audio-mixer", at, { ...lv, master: o.master ?? -3 });
-  chans.forEach((c, i) => {
-    p.cable(c.n, c.l || "out", mix, `in${i + 1}l`);
-    if (c.r) p.cable(c.n, c.r, mix, `in${i + 1}r`);
-    for (const [n, j] of c.also || []) p.cable(n, j, mix, `in${i + 1}l`);
-  });
-  const verb = p.add("reverb", [at[0] + 1, at[1]], { size: o.size ?? 0.5, decay: o.decay ?? 2.5, damping: 0.5, mix: o.vmix ?? 0.25, quality: "Eco (8 lines)" });
-  p.cable(mix, "outl", verb, "l").cable(mix, "outr", verb, "r").stereo(verb, p.out);
+/// A Step Sequencer playing `notes` (semitones above the root; "." rest, "_" tie).
+function seqOf(p, at, notes, o = {}) {
+  return p.add("step-sequencer", at, {
+    length: notes.length, rate: o.rate || "1/8", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
+    octave: o.octave ?? 0, gatelength: o.gate ?? 0.5,
+  }, { data: steps(notes) });
+}
+
+/// Sequencer pitch → `src`, gate → ADSR → VCA. `jacks`: the source's audio outs (one = mono, two = stereo).
+/// Returns {amp, out}: `out` are the VCA jacks to take (l, l for a mono source).
+function play(p, at, src, seq, jacks, o = {}) {
+  const [c, r] = at;
+  const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.25, ...(o.env || {}) }, { name: "Amp Env" });
+  const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
+  p.cable(seq, "pitch", src, o.pitch || "pitch").cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(env, "env", amp, "gain");
+  if (jacks.length === 1) { p.cable(src, jacks[0], amp, "l"); return { amp, env, out: ["l", "l"] }; }
+  p.stereo(src, amp, { from: jacks });
+  return { amp, env, out: ["l", "r"] };
+}
+
+/// Source jacks → trim mixer → reverb → Out 1/2.
+function finish(p, at, src, jacks, trim = 0, verb = {}, master = 0) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: trim, master }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.25, quality: "Eco (8 lines)", ...verb });
+  p.stereo(src, t, { from: jacks, to: ["in1l", "in1r"] }).stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return t;
+}
+
+/// A drum loop and a voice mixed together into Out 1/2.
+function withDrums(p, at, src, jacks, drums, o = {}) {
+  const mix = p.add("audio-mixer", at, { level1: o.l1 ?? -4, level2: o.l2 ?? -8, master: o.master ?? -1 }, { name: "Mix" });
+  p.stereo(src, mix, { from: jacks, to: ["in1l", "in1r"] }).stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
+    .stereo(mix, p.out, { from: ["outl", "outr"] });
   return mix;
 }
 
 
-
-function drone() {
-  const p = patch("Test Oscillator: Living Drone", {
+function warmHum() {
+  const p = patch("Test Oscillator: Warm Hum", {
     module: "test-oscillator", tempo: 60,
-    description: "Three lamp-stabilised sines tuned to a root, a fifth and an octave, each with a long Settle and plenty of Drift: they warm up from flat, swell and bounce against each other, with a slow wobble on one dial. Try Loop Gain between 100 % and 150 %, or Settle at 0.1 s for faster bounces.",
-    tags: ["drone", "drift", "warm-up", "sine"],
+    description: "A lamp-stabilised sine on its own: it warms up, bounces slightly in level and carries a faint mains hum, a slowly breathing drone in a big room. Raise Drift for more wander, or change Mains to Off for a perfectly clean tone.",
+    tags: ["drone", "sine", "warm-up", "hum"],
   });
-  const mk = (at, name, f, extra = {}) => p.add("test-oscillator", at, { range: "×100", freq: f, loopgain: 1.4, settle: 1.1, drift: 0.6, warmup: true, powerup: "On play", level: 0.8, ...extra }, { name });
-  const a = mk([0, 0], "Root", 1.1, { seed: 1 });
-  const b = mk([0, 1], "Fifth", 1.65, { seed: 2, settle: 0.8 });
-  const c = mk([0, 2], "Octave", 2.2, { seed: 3, settle: 1.6, level: 0.5 });
-  const lfo = p.add("lfo", [1, 2], { rate: 0.04 }, { name: "Dial Hand" });
-  p.cable(lfo, "out", b, "freq", 0.02);
-  finish(p, [2, 0], [{ n: a, l: "sine", level: -4, pan: -0.3 }, { n: b, l: "sine", level: -6, pan: 0.3 }, { n: c, l: "square", level: -16, also: [[c, "sine"]] }], { vmix: 0.4, decay: 5, size: 0.8 });
+  const t = p.add("test-oscillator", [0, 0], { freq: 3.2, range: "×100", drift: 0.5, mains: "50 Hz", loopgain: 1.2, settle: 0.5 });
+  const amp = p.add("vca", [1, 0], { gain: 1 }, { name: "VCA" });
+  p.cable(t, "sine", amp, "l").cable(t, "sine", amp, "r");
+  finish(p, [2, 0], amp, ["l", "r"], -12, { size: 0.8, decay: 6, mix: 0.4 });
   return p;
 }
 
-function drums() {
-  const p = patch("Test Oscillator: Ringing Drums", {
-    module: "test-oscillator", tempo: 94,
-    description: "With Loop Gain below 100 % the oscillator does not run: it rings when kicked, so each Drum Grid hit becomes a tuned drum, a deep kick on Range ×10, a tom on ×100 and a rim tick on ×1k. Raise Loop Gain towards 100 % for longer rings, or lower Kick for softer hits.",
-    tags: ["drums", "kick", "resonator", "percussion"],
+function kickedRing() {
+  const p = patch("Test Oscillator: Kicked Bell", {
+    module: "test-oscillator", tempo: 84,
+    description: "With Loop Gain below 100 % the oscillator dies away on its own, and a trigger on Kick makes it ring like a struck tuning fork. Change Loop Gain for longer or shorter rings, and Kick for how hard it is hit.",
+    tags: ["kick", "ring", "pluck", "loop gain"],
   });
-  const grid = p.add("drum-grid", [0, 0], {}, { data: drumGrid(["Kick", "Tom", "Rim", "Hat", "", "", "", ""],
-    [pattern("Ring", ["X.....x.X..x....", "....x.......x.x.", "x.x.x.xxx.x.x.x.", "..x...x...x...x."])]) });
-  const k = p.add("test-oscillator", [1, 0], { range: "×10", freq: 5.2, loopgain: 0.97, settle: 0.1, kick: 0.9, drift: 0.1, level: 1, warmup: false }, { name: "Kick Ring" });
-  const t = p.add("test-oscillator", [1, 1], { range: "×100", freq: 1.7, loopgain: 0.95, kick: 0.8, drift: 0.1, warmup: false }, { name: "Tom Ring" });
-  const r = p.add("test-oscillator", [1, 2], { range: "×1k", freq: 2.6, loopgain: 0.85, kick: 0.6, drift: 0.1, warmup: false }, { name: "Rim Ring" });
-  p.cable(grid, "gate1", k, "kick").cable(grid, "gate2", t, "kick").cable(grid, "gate3", r, "kick");
-  const hats = p.add("punch-hats", [1, 3], { level: 0.4 });
-  p.cable(grid, "gate4", hats, "closed");
-  const m = melody(p, [2, 0], [0, ".", ".", 7, ".", 5, ".", 3], { rate: "1/8", root: "F", scale: "Dorian", octave: -1, shape: 0.2, env: { decay: 0.5 } });
-  finish(p, [3, 1], [{ n: k, l: "sine", level: 3 }, { n: t, l: "sine", level: 0, pan: -0.2, also: [[r, "sine"]] }, { n: hats, l: "out", level: -9, pan: 0.3 }, { n: m.amp, l: "l", level: 2 }], { vmix: 0.18, master: -6 });
+  const seq = seqOf(p, [0, 0], [0, ".", 0, ".", 7, ".", ".", 5, 0, ".", ".", 0, 3, ".", 5, "."], { root: "A", rate: "1/8", gate: 0.3 });
+  const t = p.add("test-oscillator", [1, 0], { freq: 4.4, range: "×100", loopgain: 0.97, kick: 0.9, drift: 0.1, settle: 0.05 });
+  const amp = p.add("vca", [2, 0], { gain: 1 }, { name: "VCA" });
+  p.cable(seq, "pitch", t, "pitch").cable(seq, "trigger", t, "kick").cable(t, "sine", amp, "l").cable(t, "sine", amp, "r");
+  finish(p, [3, 0], amp, ["l", "r"], 1, { size: 0.65, decay: 4, mix: 0.3 });
   return p;
 }
 
-function resonator() {
-  const p = patch("Test Oscillator: Drum Resonator", {
-    module: "test-oscillator", tempo: 104,
-    description: "A drum loop goes into Audio In of a test oscillator held just below self-oscillation at 95 %, and a sequencer steers its Pitch: the loop plays a melody through the tuned resonator. Change Loop Gain for a shorter or longer ring, or Frequency for a different key.",
-    tags: ["resonator", "filter", "audio in", "melody"],
+function sineMelody() {
+  const p = patch("Test Oscillator: Pure Sine Tune", {
+    module: "test-oscillator", tempo: 100,
+    description: "A plain sine melody from the Test Oscillator's Pitch input with a short envelope, about as clean a tone as exists. Add Fm from the LFO for vibrato or raise Drift to hear a warmer, wobblier note.",
+    tags: ["sine", "melody", "pitch", "clean"],
   });
-  const bt = beat(p, [0, 2], { style: "broken", level: -6 });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/8", root: "C", scale: "Minor Pentatonic", octave: 0 },
-    { data: steps([0, 3, 7, 3, 10, 7, 12, 10]) });
-  const t = p.add("test-oscillator", [2, 0], { range: "×100", freq: 2.6, loopgain: 0.97, settle: 0.2, drift: 0.1, level: 1, warmup: false });
-  const boost = p.add("audio-mixer", [1, 2], { level1: 6, master: 6, limiter: false }, { name: "Drive In" });
-  const boost2 = p.add("audio-mixer", [1, 3], { level1: 6, master: 6, limiter: false }, { name: "Drive In 2" });
-  p.cable(bt, "outl", boost, "in1l").cable(boost, "outl", boost2, "in1l").cable(boost2, "outl", t, "audio").cable(seq, "pitch", t, "pitch");
-  const lfo = p.add("lfo", [1, 1], { rate: 0.1 }, { name: "Dial" });
-  p.cable(lfo, "out", t, "freq", 0.01);
-  finish(p, [3, 0], [{ n: t, l: "sine", level: 6, pan: 0.1 }, { n: bt, l: "outl", r: "outr", level: -9 }], { vmix: 0.25, master: 4 });
+  const seq = seqOf(p, [0, 0], [0, 4, 7, 12, 7, 4, 9, 7, 5, 9, 12, 16, 12, 9, 7, 4], { root: "C", scale: "Major", rate: "1/8", gate: 0.55 });
+  const t = p.add("test-oscillator", [1, 0], { freq: 4.4, range: "×100", loopgain: 1.2, drift: 0.2, fm: 0.1 });
+  const lfo = p.add("lfo", [1, 2], { rate: 5.5 }, { name: "Vibrato" });
+  const v = play(p, [2, 0], t, seq, ["sine"], { env: { decay: 0.3, sustain: 0.5, release: 0.3 } });
+  p.cable(lfo, "out", t, "fm", 0.2);
+  finish(p, [3, 0], v.amp, v.out, 2, { size: 0.5, decay: 2.5, mix: 0.25 });
   return p;
 }
 
-function squeal() {
-  const p = patch("Test Oscillator: Squeal Tremolo", {
-    module: "test-oscillator", tempo: 126,
-    description: "A tiny Settle lets the lamp chase the waveform itself, and Loop Gain at 210 % clips it: the sine turns into a squealing, fluttering square-ish tone that stutters between bursts. A bass line steers the pitch; try Settle between 5 and 50 ms and Loop Gain near 150 % for gentler flutter.",
-    tags: ["squeal", "tremolo", "distortion", "bass"],
+function squareBass() {
+  const p = patch("Test Oscillator: Square Bass", {
+    module: "test-oscillator", tempo: 100,
+    description: "The square output at the lowest range plays a rounded bass line through a low-pass filter, over a simple beat. Change Range to jump the whole line by decades or move Freq for a different key.",
+    tags: ["square", "bass", "range", "drums"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/16", root: "E", scale: "Phrygian", octave: -1, gatelength: 0.6 },
-    { data: steps([0, 0, ".", 0, 7, ".", 0, ".", 3, 3, ".", 5, ".", 1, 0, "."]) });
-  const t = p.add("test-oscillator", [1, 0], { range: "×100", freq: 1.6, loopgain: 2.1, settle: 0.012, drift: 0.2, level: 0.55, warmup: false });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.12 }, { name: "Squeal Sweep" });
-  p.cable(seq, "pitch", t, "pitch").cable(lfo, "out", t, "settle", 0.3);
-  const flt = p.add("filter", [2, 0], { cutoff: 1200, resonance: 0.3, drive: 0.2 });
-  p.cable(t, "sine", flt, "l");
-  const env = p.add("adsr", [2, 1], { attack: 0.003, decay: 0.2, sustain: 0.6, release: 0.1 });
-  const amp = p.add("vca", [3, 0], {});
-  p.cable(seq, "gate", env, "gate").cable(flt, "l", amp, "l").cable(env, "env", amp, "gain");
-  const bt = beat(p, [0, 2], { style: "four", level: -9 });
-  finish(p, [4, 0], [{ n: amp, l: "l", level: 0 }, { n: bt, l: "outl", r: "outr", level: -3 }], { vmix: 0.18 });
+  const seq = seqOf(p, [0, 0], [0, "_", 0, ".", 3, ".", 0, 5, 0, "_", 0, ".", 7, ".", 5, 3], { root: "E", octave: -1, rate: "1/8", gate: 0.7 });
+  const t = p.add("test-oscillator", [1, 0], { freq: 4.4, range: "×10", loopgain: 1.2, drift: 0.1, level: 0.7 });
+  const v = play(p, [2, 0], t, seq, ["square"], { env: { decay: 0.2, sustain: 0.6, release: 0.12 } });
+  const lp = p.add("filter", [3, 0], { cutoff: 700, resonance: 0.3 });
+  p.stereo(v.amp, lp, { from: v.out });
+  const drums = beat(p, [0, 4], { style: "four", level: -7 });
+  withDrums(p, [4, 0], lp, ["l", "r"], drums, { l1: -3, l2: -6 });
   return p;
 }
 
-function bounce() {
-  const p = patch("Test Oscillator: Bouncing Bass", {
-    module: "test-oscillator", tempo: 88,
-    description: "A bass line jumps the dial of a lamp-regulated sine: each leap dips the amplitude and it surges back, a living bounce. The Lamp output follows that heat and sweeps the cutoff of a saw lead, so the lead breathes with the bass. Try Settle to change the bounce time.",
-    tags: ["bass", "lamp", "bounce", "modulation"],
+function lampFilter() {
+  const p = patch("Test Oscillator: Lamp Drives Filter", {
+    module: "test-oscillator", tempo: 70,
+    description: "The Lamp output, a slow signal showing the oscillator's amplitude loop breathing, opens a filter on a held chord of Oscillators. Raise Settle for slower swings, or Loop Gain for harder bounces.",
+    tags: ["lamp", "modulation", "filter", "pad"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "A", scale: "Natural Minor", octave: -1, gatelength: 0.95 },
-    { data: steps([0, "_", 7, "_", 3, "_", 5, 10]) });
-  const t = p.add("test-oscillator", [1, 0], { range: "×10", freq: 5.5, loopgain: 1.3, settle: 0.35, drift: 0.3, level: 1, warmup: false });
-  p.cable(seq, "pitch", t, "pitch");
-  const lead = melody(p, [2, 1], [0, 7, 12, 7, 5, 10, 7, 3], { rate: "1/8", root: "A", scale: "Natural Minor", octave: 1, shape: 1, env: { decay: 0.2 } });
-  const flt = p.add("filter", [4, 1], { cutoff: 500, resonance: 0.4 });
-  p.cable(lead.amp, "l", flt, "l").cable(t, "lamp", flt, "cutoff", 0.5);
-  finish(p, [5, 0], [{ n: t, l: "sine", level: -10 }, { n: flt, l: "l", level: -8, pan: 0.2 }], { vmix: 0.25 });
+  const t = p.add("test-oscillator", [0, 0], { freq: 1.5, range: "×1", loopgain: 1.1, settle: 1.2, drift: 0.7, level: 0.01 });
+  const seq = seqOf(p, [0, 2], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], { root: "A", scale: "Natural Minor", octave: -1, rate: "1/4", gate: 1 });
+  const o1 = p.add("oscillator", [1, 0], { shape: 0.85, fine: -8 }, { name: "Voice 1" });
+  const o2 = p.add("oscillator", [1, 1], { shape: 0.85, fine: 8, coarse: 7 }, { name: "Voice 2" });
+  const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -10, pan1: -0.4, pan2: 0.4, master: 0 }, { name: "Voices" });
+  const f = p.add("filter", [3, 0], { cutoff: 500, resonance: 0.35 });
+  p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", mix, "in1l").cable(o2, "out", mix, "in2l")
+    .stereo(mix, f, { from: ["outl", "outr"] }).cable(t, "lamp", f, "cutoff", 0.7);
+  finish(p, [4, 0], f, ["l", "r"], 0, { size: 0.8, decay: 5, mix: 0.35 });
   return p;
 }
 
-export default [drone, drums, resonator, squeal, bounce];
+export default [warmHum, kickedRing, sineMelody, squareBass, lampFilter];

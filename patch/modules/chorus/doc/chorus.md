@@ -52,3 +52,17 @@ The preset bar of the Chorus view has 12 factory presets. Pick one to set the kn
 | **Metallic Ring** | Almost static comb that rings with a pitch. |
 | **Deep Doubler** | Long delay times give a slapback-like double. |
 <!-- /generated -->
+
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Chorus does. In the standalone app open **File → Presets…** (⌘P) and pick *Chorus* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Chorus: Lush Pad** | A mono saw pad is turned into a wide, slowly shimmering ensemble by the Chorus: slow Rate, plenty of Depth and full Spread. Raise Rate for a faster wobble or lower Spread to hear the stereo image collapse. |
+| **Chorus: Jet Flanger** | In Flanger mode with strong Feedback and a short Delay, a beat and a hat-heavy groove get a slow jet-engine sweep through every sound. Lower Feedback for a mild swirl or raise Depth for a wider sweep. |
+| **Chorus: Detuned Pluck Ensemble** | A bright pluck melody gets a gentle Chorus with a short Delay and small Depth: it thickens like a doubled instrument without obvious wobble. Increase Depth to push it toward a seasick vibrato. |
+| **Chorus: Wobbly Vibrato** | With Mix at 100 % only the moving delay is heard, which wobbles the pitch like a warped tape: a fast Rate gives vibrato, a slow one a seasick drift. Lower Mix to blend the dry sound back in as a chorus. |
+| **Chorus: Metallic Comb Sweep** | A flanger with negative Feedback hollows out a sustained saw, and an LFO slowly moves its Delay, so the tone sweeps through metallic, hollow resonances. Flip Feedback positive for a brighter, ringing comb. |
+<!-- /generated -->

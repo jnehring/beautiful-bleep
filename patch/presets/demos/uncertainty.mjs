@@ -3,115 +3,132 @@
 import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// Mixer: channel i takes `srcs[i]` = [node, jack, rightJack?]; reverb on the send; out to Out 1/2.
-function finish(p, at, srcs, o = {}) {
+/// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
+function finish(p, at, src, o = {}) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: o.trim ?? 0, master: 0 }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.25, quality: "Eco (8 lines)", ...(o.verb || {}) });
+  const [jl, jr] = o.jacks || ["l", "r"];
+  p.cable(src, jl, t, "in1l").cable(src, o.stereo ? jr : jl, t, "in1r");
+  p.stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return v;
+}
+
+/// Plucked melody into a Multi Filter (returns the filter, stereo out).
+function voice(p, at, notes, o = {}) {
+  const m = melody(p, at, notes, o);
+  const f = p.add("filter", [at[0] + 3, at[1]], { cutoff: 1200, resonance: 0.25, ...(o.filter || {}) }, { name: "Filter" });
+  p.cable(m.amp, "l", f, "l").cable(m.amp, "l", f, "r");
+  return { ...m, filt: f };
+}
+
+/// Two detuned oscillators (left / right) held by a sequencer → VCA (gain left to the caller) → Multi Filter.
+function pad(p, at, notes, o = {}) {
   const [c, r] = at;
-  const v = { master: o.master ?? -3, return: o.ret ?? -6 };
-  srcs.forEach((s, i) => { v[`level${i + 1}`] = (o.levels || [])[i] ?? -9; v[`pan${i + 1}`] = (o.pans || [])[i] ?? 0; v[`send${i + 1}`] = (o.sends || [])[i] ?? -12; });
-  const mix = p.add("audio-mixer", [c, r], v, { name: "Mix" });
-  srcs.forEach(([n, j, j2], i) => p.cable(n, j, mix, `in${i + 1}l`).cable(n, j2 || j, mix, `in${i + 1}r`));
-  const verb = p.add("reverb", [c + 1, r], { size: 0.6, decay: o.decay ?? 3.5, damping: 0.5, mix: 1, quality: "Eco (8 lines)" }, { name: "Room" });
-  p.cable(mix, "sendl", verb, "l").cable(mix, "sendr", verb, "r").cable(verb, "l", mix, "returnl").cable(verb, "r", mix, "returnr");
-  p.stereo(mix, p.out, { from: ["outl", "outr"] });
-  return mix;
+  const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
+    octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
+  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
+  const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
+  p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
+    .stereo(amp, f);
+  return { seq, o1, o2, amp, filt: f };
 }
 
-const same = (n) => new Array(n).fill(0);
-
-function randomMelody() {
-  const p = patch("Uncertainty: Random Melody", {
-    module: "uncertainty", tempo: 104,
-    description: "Quantized 1 jumps between eight levels two semitones apart on every sixteenth, and a quantizer pulls them into D minor pentatonic: a small random vocabulary the ear hears as a tune. Lower Q1 Bits for fewer notes, or change Q1 Interval and Seed for a different melody.",
-    tags: ["random", "melody", "quantized", "pentatonic"],
+/// Up to six oscillators, each through its own VCA (gain from the caller), mixed to stereo on `master` (jacks outl/outr).
+/// tones: [semitones, octave] per oscillator.
+function chord(p, at, tones, o = {}) {
+  const [c, r] = at;
+  const lv = o.lvl ?? -10;
+  const mixA = p.add("audio-mixer", [c + 2, r], { level1: lv, level2: lv, level3: lv, pan1: -0.7, pan2: 0, pan3: 0.7, master: 0 }, { name: "Mix 1-3" });
+  const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
+  const vcas = [], oscs = [];
+  tones.forEach((t, i) => {
+    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
+    p.cable(osc, "out", vca, "l");
+    if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
+    const m = i < 3 ? mixA : mixB, k = (i % 3) + 1;
+    p.cable(vca, "l", m, `in${k}l`).cable(vca, "l", m, `in${k}r`);
+    vcas.push(vca); oscs.push(osc);
   });
-  const m = melody(p, [0, 0], same(16), { rate: "1/16", root: "D", scale: "Minor Pentatonic", octave: 0, shape: 0.7, gatelength: 0.55, env: { decay: 0.18, sustain: 0.15 } });
-  const un = p.add("uncertainty", [0, 3], { q1bits: 3, q1interval: "2 st", seed: 11 });
-  const qz = p.add("quantizer", [2, 3], { root: "D", scale: "Minor Pentatonic" });
-  p.cable(m.seq, "trigger", un, "clockq1").cable(un, "quant1", qz, "in").cable(m.seq, "trigger", qz, "clock").cable(qz, "out", m.osc, "pitch");
-  const bass = melody(p, [0, 5], [0, ".", ".", ".", 0, ".", 7, "."], { rate: "1/4", root: "D", scale: "Minor Pentatonic", octave: -2, shape: 0.2, env: { decay: 0.5, sustain: 0.3 } });
-  const dl = p.add("delay-network", [3, 0], { sync: "1/8.", taps: 2, feedback: 0.35, mix: 0.35, tone: -0.2 }, { name: "Echo" });
-  p.cable(m.amp, "l", dl, "l").cable(m.amp, "l", dl, "r");
-  finish(p, [4, 0], [[dl, "l", "r"], [bass.amp, "l"]], { levels: [-2, -4], sends: [-8, -22], decay: 2.5, master: 0 });
+  const master = p.add("audio-mixer", [c + 3, r], { level1: 0, level2: 0, master: o.master ?? 0 }, { name: "Master" });
+  p.stereo(mixA, master, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).stereo(mixB, master, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
+  return { vcas, oscs, master, jacks: ["outl", "outr"] };
+}
+
+function fluctuating() {
+  const p = patch("Uncertainty: Fluctuating Filter", {
+    module: "uncertainty", tempo: 94,
+    description: "The two fluctuating curves wander at unrelated speeds: one opens and closes the filter on a plucked line, the other changes the tone shape. Raise F1 Rate and F2 Rate to speed them up, or lower F1 Spread to shrink the sweep.",
+    tags: ["fluctuating", "smooth random", "filter", "slow"],
+  });
+  const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.8, root: "G", scale: "Natural Minor", env: { decay: 0.3, sustain: 0.15 }, filter: { cutoff: 650, resonance: 0.3 } });
+  const u = p.add("uncertainty", [3, 1], { f1rate: 0.35, f2rate: 0.13, f1spread: 0.9, f2spread: 0.8, fsync: "Free" });
+  p.cable(u, "fluct1", v.filt, "cutoff", 0.5).cable(u, "fluct2", v.osc, "shape", 0.35);
+  finish(p, [4, 0], v.filt, { stereo: true, trim: -2, verb: { size: 0.5, decay: 3, mix: 0.3 } });
   return p;
 }
 
-function fluctuatingPad() {
-  const p = patch("Uncertainty: Drifting Pad", {
-    module: "uncertainty", tempo: 62,
-    description: "The two Fluctuating outputs are smooth random curves with different speeds: one opens and closes the filters of a four-voice chord, the other pans the voices together and bends their waveform. Nothing repeats. Raise F1 Rate or F2 Rate for a busier shimmer, or lower F1 Spread for a calmer pad.",
-    tags: ["fluctuating", "pad", "slow", "ambient"],
+function quantSteps() {
+  const p = patch("Uncertainty: Stepped Levels", {
+    module: "uncertainty", tempo: 108,
+    description: "Quantized outputs jump between a few evenly spaced levels (Q1 Bits sets how many): Q1 pushes the pitch up by octaves and Q2 moves the filter, both in time with the eighth notes. Try Q1 Interval at 7 st for stacked fifths or raise the bits for more levels.",
+    tags: ["quantized", "bits", "interval", "steps"],
   });
-  const un = p.add("uncertainty", [0, 0], { f1rate: 0.13, f2rate: 0.07, f1spread: 0.9, f2spread: 0.8, seed: 31 });
-  const mix = p.add("audio-mixer", [3, 0], { level1: -9, level2: -9, level3: -9, level4: -9, pan1: -0.5, pan2: -0.2, pan3: 0.2, pan4: 0.5, send1: -8, send2: -8, send3: -8, send4: -8, return: -4, master: -2 }, { name: "Mix" });
-  [0, 4, 7, 11].forEach((s, i) => {
-    const o = p.add("oscillator", [1, i], { coarse: s, octave: "-1", shape: 0.8, fine: (i - 1.5) * 5 }, { name: `Voice ${i + 1}` });
-    const f = p.add("filter", [2, i], { cutoff: 700, resonance: 0.3 }, { name: `Filter ${i + 1}` });
-    p.cable(o, "out", f, "l").cable(un, i % 2 ? "fluct2" : "fluct1", f, "cutoff", 0.5).cable(un, i % 2 ? "fluct1" : "fluct2", o, "shape", 0.2);
-    p.cable(f, "l", mix, `in${i + 1}l`).cable(f, "l", mix, `in${i + 1}r`);
-  });
-  p.cable(un, "fluct2", mix, "pan2", 0.6).cable(un, "fluct1", mix, "pan3", 0.6);
-  const verb = p.add("reverb", [4, 0], { size: 0.8, decay: 6, mix: 1, quality: "Eco (8 lines)" }, { name: "Hall" });
-  p.cable(mix, "sendl", verb, "l").cable(mix, "sendr", verb, "r").cable(verb, "l", mix, "returnl").cable(verb, "r", mix, "returnr");
-  p.stereo(mix, p.out, { from: ["outl", "outr"] });
+  const v = voice(p, [0, 0], [0, 0, 0, ".", 0, 0, ".", 0, 0, 0, 0, ".", 0, ".", 0, 0], { rate: "1/8", shape: 0.85, root: "E", octave: -1, env: { decay: 0.2, sustain: 0.2 }, filter: { cutoff: 600, resonance: 0.3 } });
+  const u = p.add("uncertainty", [3, 1], { qrate: 4, qsync: "1/8", q1bits: 2, q2bits: 3, q1interval: "7 st", q2interval: "Even" });
+  p.cable(u, "quant1", v.osc, "pitch", 0.2).cable(u, "quant2", v.filt, "cutoff", 0.5);
+  finish(p, [4, 0], v.filt, { stereo: true, trim: 4, verb: { size: 0.45, decay: 2, mix: 0.25 } });
   return p;
 }
 
-function randomSweeps() {
-  const p = patch("Uncertainty: Random Sweeps", {
+function stored() {
+  const p = patch("Uncertainty: Stored Per Note", {
     module: "uncertainty", tempo: 112,
-    description: "Stored takes a new value every half note and Correlation keeps each close to the last; Integrated turns that into long random sweeps that open and close the filter of a saw arpeggio. A one-bit Quantized 2 switches the hats on and off. Change Correlation to make the sweeps longer or jitterier.",
-    tags: ["integrated", "sweeps", "correlation", "filter"],
+    description: "Each note of the line tells the Store input to take a fresh stored value, which then holds until the next note; it sets the filter, and the Store Trigger output also fires a hi-hat. Raise Correlation so each value leans on the last, or move Distribution to favour low or high settings.",
+    tags: ["store", "correlation", "distribution", "hats"],
   });
-  const m = melody(p, [0, 0], [0, 3, 7, 10, 12, 10, 7, 3, 0, 5, 8, 12, 15, 12, 8, 5], { rate: "1/16", root: "A", scale: "Natural Minor", octave: -1, shape: 1, env: { decay: 0.14, sustain: 0.1 } });
-  const un = p.add("uncertainty", [0, 3], { correlation: 0.65, integrate: 1.8, storesync: "1/2", q2bits: 1, q2interval: "Even", q2divide: "/4", qsync: "1/16", shape: "Bell", seed: 5 });
-  const flt = p.add("filter", [3, 0], { cutoff: 500, resonance: 0.4 }, { name: "Sweeper" });
-  p.cable(m.amp, "l", flt, "l").cable(m.amp, "l", flt, "r").cable(un, "integrated", flt, "cutoff", 0.9);
-  const drums = beat(p, [0, 5], { style: "half", level: -8 });
-  const hats = p.add("punch-hats", [3, 5], { level: 0.45, tone: 0.65 });
-  const hvca = p.add("vca", [4, 5], {}, { name: "Hat Switch" });
-  const hseq = p.add("step-sequencer", [3, 6], { length: 16, rate: "1/16", gatelength: 0.3 }, { data: steps([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) });
-  p.cable(hseq, "gate", hats, "closed").cable(hats, "out", hvca, "l").cable(hats, "out", hvca, "r").cable(un, "quant2", hvca, "gain");
-  finish(p, [5, 0], [[flt, "l", "r"], [drums, "outl", "outr"], [hvca, "l", "r"]], { levels: [-6, -7, -11], pans: [0, 0, 0.3], sends: [-9, -24, -16], decay: 2, master: 0 });
-  p.cable(un, "stored", flt, "resonance", 0.15);
+  const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.85, root: "D", scale: "Dorian", env: { decay: 0.2, sustain: 0.2 }, filter: { cutoff: 900, resonance: 0.3 } });
+  const u = p.add("uncertainty", [3, 1], { correlation: 0.5, distribution: 0.2, shape: "Bell" });
+  const hats = p.add("punch-hats", [3, 3], { level: 0.45 });
+  p.cable(v.seq, "trigger", u, "store").cable(u, "stored", v.filt, "cutoff", 0.55).cable(u, "storetrig", hats, "closed");
+  const drums = beat(p, [0, 4], { style: "half", level: -8 });
+  const mix = p.add("audio-mixer", [4, 0], { level1: 3, level2: -10, level3: -10, master: 0 });
+  const verb = p.add("reverb", [5, 0], { size: 0.4, decay: 1.8, mix: 0.12, quality: "Eco (8 lines)" });
+  p.cable(v.filt, "l", mix, "in1l").cable(v.filt, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
+    .cable(hats, "out", mix, "in3l").cable(hats, "out", mix, "in3r").stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
   return p;
 }
 
-function randomOctaves() {
-  const p = patch("Uncertainty: Random Octaves", {
-    module: "uncertainty", tempo: 124,
-    description: "A fixed riff plays while two Uncertainty quantizers decorate it: Quantized 2 with Interval 12 sends each note to one of four octaves, and a one-bit Quantized 1 on Interval 7 adds a fifth now and then. Try Q2 Bits 1 for a plain octave jump or Q2 Divide /1 for a new octave on every note.",
-    tags: ["octaves", "riff", "leaps", "random"],
+function integrated() {
+  const p = patch("Uncertainty: Integrated Drift", {
+    module: "uncertainty", tempo: 70,
+    description: "The Integrated output is the running total of the stored steps, so it wanders like a slow random walk; here it steers the brightness of a held pad and the stored value tilts the oscillators. Change Integrate to make the walk shorter-lived or longer, and Store Rate for how often it is nudged.",
+    tags: ["integrated", "random walk", "pad", "slow"],
   });
-  const m = melody(p, [0, 0], [0, 0, 3, 0, 5, 0, 7, 3, 0, 0, 10, 0, 7, 5, 3, 5], { rate: "1/8", root: "E", scale: "Natural Minor", octave: -2, shape: 0.6, gatelength: 0.5, env: { decay: 0.2, sustain: 0.25 } });
-  const un = p.add("uncertainty", [0, 3], { q1bits: 1, q1interval: "7 st", q2bits: 2, q2interval: "12 st", q2divide: "/2", seed: 23 });
-  const flt = p.add("filter", [3, 0], { cutoff: 2200, resonance: 0.2 }, { name: "Tone" });
-  p.cable(m.seq, "trigger", un, "clockq1").cable(un, "quant1", m.osc, "pitch", 1).cable(un, "quant2", m.osc, "pitch", 1);
-  p.cable(m.amp, "l", flt, "l").cable(m.amp, "l", flt, "r");
-  const drums = beat(p, [0, 5], { style: "four", level: -9 });
-  finish(p, [4, 0], [[flt, "l", "r"], [drums, "outl", "outr"]], { levels: [-4, -2], sends: [-12, -26], decay: 1.8, master: 0 });
+  const pd = pad(p, [0, 0], [0, 7, 3, 10, 5, 8, 3, 7], { rate: "1/1", root: "C", scale: "Natural Minor", gain: 1, shape: 0.6, filter: { cutoff: 800, resonance: 0.25 } });
+  const u = p.add("uncertainty", [0, 3], { storerate: 0.6, storesync: "Free", integrate: 2, distribution: 0, correlation: 0.3 });
+  p.cable(u, "integrated", pd.filt, "cutoff", 0.7).cable(u, "stored", pd.o1, "shape", 0.2).cable(u, "stored", pd.o2, "shape", -0.2);
+  finish(p, [5, 0], pd.filt, { stereo: true, trim: -13, verb: { size: 0.6, decay: 4, mix: 0.35 } });
   return p;
 }
 
-function drunkenWalk() {
-  const p = patch("Uncertainty: Drunken Walk", {
-    module: "uncertainty", tempo: 78,
-    description: "Stored picks a new value on every step and with Correlation at +85 % each is close to the last, so the pitch wanders up and down like a drunken walk; a quantizer keeps it in F Lydian and pinged low pass gates turn each step into a bell. Try Correlation negative for a zig-zag, or the Shape set to Edges.",
-    tags: ["stored", "correlation", "walk", "bells"],
+function edges() {
+  const p = patch("Uncertainty: Extreme Moods", {
+    module: "uncertainty", tempo: 120,
+    description: "Setting Shape to Edges makes the random values favour the extremes, so the filter on this bass line jumps between very closed and wide open instead of sitting in the middle. Switch Shape to Bell or Uniform to hear it settle.",
+    tags: ["edges", "shape", "bass", "extremes"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/8", gatelength: 0.3 }, { data: steps(same(8)) });
-  const un = p.add("uncertainty", [1, 0], { correlation: 0.85, distribution: 0, storerate: 2, storesync: "1/8", shape: "Bell", seed: 3 });
-  const qz = p.add("quantizer", [2, 0], { root: "F", scale: "Lydian", range: 1.2 });
-  p.cable(seq, "trigger", un, "store").cable(un, "stored", qz, "in").cable(un, "storetrig", qz, "clock");
-  const bell = p.add("oscillator", [3, 0], { shape: 0.05, octave: "0" }, { name: "Bell" });
-  const lpg = p.add("low-pass-gate", [4, 0], { response: 0.5, ping: 0.9, brightness: 0.6 }, { name: "Strike" });
-  const sub = p.add("oscillator", [3, 1], { shape: 0.1, octave: "-1" }, { name: "Echo Bell" });
-  const lpg2 = p.add("low-pass-gate", [4, 1], { response: 0.7, ping: 0.8, brightness: 0.35 }, { name: "Soft Strike" });
-  p.cable(qz, "out", bell, "pitch").cable(qz, "out", sub, "pitch").cable(bell, "out", lpg, "l").cable(bell, "out", lpg, "r").cable(sub, "out", lpg2, "l").cable(sub, "out", lpg2, "r");
-  p.cable(seq, "trigger", lpg, "ping").cable(un, "storetrig", lpg2, "ping");
-  const dl = p.add("delay-network", [5, 0], { sync: "1/4.", taps: 3, feedback: 0.5, mix: 0.5, tone: -0.1 }, { name: "Echoes" });
-  p.cable(lpg, "l", dl, "l").cable(lpg, "r", dl, "r");
-  finish(p, [6, 0], [[dl, "l", "r"], [lpg2, "l", "r"]], { levels: [3, 0], pans: [0, 0], sends: [-6, -8], decay: 5, master: 0 });
+  const v = voice(p, [0, 0], [0, "_", 0, 3, 0, "_", 7, 5, 0, "_", 0, 3, 10, "_", 7, 5], { rate: "1/8", shape: 0.95, root: "A", octave: -2, gatelength: 0.8, env: { decay: 0.2, sustain: 0.7 }, filter: { cutoff: 300, resonance: 0.35 } });
+  const u = p.add("uncertainty", [3, 1], { shape: "Edges", f1rate: 1, f1spread: 1, fsync: "1/2", qrate: 3, qsync: "1/8", q1bits: 1, distribution: 0 });
+  p.cable(u, "fluct1", v.filt, "cutoff", 0.5).cable(u, "quant1", v.filt, "resonance", 0.2);
+  const drums = beat(p, [0, 4], { style: "four", level: -7 });
+  const mix = p.add("audio-mixer", [4, 0], { level1: -6, level2: -11, master: 0 });
+  const verb = p.add("reverb", [5, 0], { size: 0.4, decay: 1.8, mix: 0.12, quality: "Eco (8 lines)" });
+  p.cable(v.filt, "l", mix, "in1l").cable(v.filt, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
+    .stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
   return p;
 }
 
-export default [randomMelody, fluctuatingPad, randomSweeps, randomOctaves, drunkenWalk];
+export default [fluctuating, quantSteps, stored, integrated, edges];

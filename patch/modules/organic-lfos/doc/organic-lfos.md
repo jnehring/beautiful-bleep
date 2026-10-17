@@ -80,11 +80,11 @@ Five whole patches show what Organic LFOs does. In the standalone app open **Fil
 
 | Patch | What it shows |
 |---|---|
-| **Organic LFOs: Living Pad** | Eight slow, related LFOs move a four-note chord: four of them open and close the filters, four more shift each voice's waveform, and the level of each voice drifts too. Raise Drift or Spread in the view and the pad starts to breathe unevenly. |
-| **Organic LFOs: Breathing in Time** | Lock is on Bars, so LFO 1 breathes once every two bars and the other seven float loosely around the song. They open the filter of a plucked line and pan its echoes while a light beat keeps time. Try Anchor off or a higher Drift to let it slip out of step. |
-| **Organic LFOs: Brightness Peaks** | Max follows whichever of the eight LFOs is highest and drives the cutoff of a saw arpeggio, so the sound flares open every time one of them peaks. The Sum output slowly widens the reverb. Turn Twist up for sharper flares and Scatter down to make them line up. |
-| **Organic LFOs: Detuned Swarm** | Four sawtooth voices on one note are each detuned by their own LFO, running at a lively 0.6 Hz with high Drift: a restless, chorusing swarm. Try a negative Spread to slow the LFOs down along the row. |
-| **Organic LFOs: Rain of Tones** | Four bell-like tones, each gated by its own fast, sharp-peaked Organic LFO (Twist +1, Unipolar): irregular pulses fall like rain and never repeat. Move Rate or Spread to make the shower faster or more uneven. |
+| **Organic LFOs: Living Pad** | Eight slow, related movements are spread over a pad: the filter, the oscillator shape and the reverb size each follow a different one, so the sound breathes without ever repeating exactly. Change Rate, Spread and Drift on the module to speed up or loosen the group. |
+| **Organic LFOs: Breathing Chord** | Six of the eight outputs swell six notes of a chord in and out, so the harmony rearranges itself in a slow, natural way. Lower Scatter to make the voices move more alike, or turn Spread negative to reverse the order. |
+| **Organic LFOs: Lively Pluck** | At a faster Rate with plenty of Drift, the same eight movements become a restless wobble: they open the filter, change the tone and add resonance to a plucked line, never twice the same way. Slow Rate and Drift down for a calmer feel. |
+| **Organic LFOs: Bar-Locked Breath** | With Lock set to Bars the group repeats in step with the song, so the filter movement over a bass line and beat comes back exactly each time. Switch Lock back to Free and the same movement slips out of time. |
+| **Organic LFOs: Wandering Voices** | Four held notes each wander across the stereo field, steered by different outputs, while Twist bends how the group is related. Change Twist and Spread to change how the voices follow each other. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -1,114 +1,142 @@
 // SPDX-License-Identifier: MIT
 // Drum Map: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch } from "../kit.mjs";
 import { melody } from "../demo-kit.mjs";
 
-/// Kick, snare and hats modules wired to a Drum Map's triggers and velocities, into a mixer (stereo out "outl"/"outr").
-/// kit: "punch" or "ring".
-function drums(p, dm, at, kit = "punch", opts = {}) {
+const oct = (n) => (n > 0 ? "+" : "") + n;
+/// Oscillator -> ADSR -> VCA (optional filter), played by a pitch jack and a gate jack: [node, jack] pairs.
+function voice(p, at, pitch, gate, o = {}) {
+  const [c, r] = at, name = o.name || "Voice";
+  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.6, octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
+  const env = p.add("adsr", [c, r + 1], { attack: 0.004, decay: 0.3, sustain: 0, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
+  const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
+  if (pitch) p.cable(pitch[0], pitch[1], osc, "pitch", pitch[2] ?? 1);
+  p.cable(gate[0], gate[1], env, "gate").cable(osc, "out", amp, "l").cable(env, "env", amp, "gain");
+  if (o.retrig) p.cable(o.retrig[0], o.retrig[1], env, "retrig");
+  if (!o.filter) return { osc, env, amp, out: amp, jack: "l" };
+  const filter = p.add("filter", [c + 2, r], o.filter, { name: `${name} Filter` });
+  p.cable(amp, "l", filter, "l");
+  return { osc, env, amp, filter, out: filter, jack: "l" };
+}
+/// Up to eight mono sources into one stereo mix. list: {node, jack, level, pan}.
+function bus(p, at, list, master = -3, name = "Mix") {
   const [c, r] = at;
-  const kick = p.add(`${kit}-kick`, [c, r], opts.kick || { level: 0.8 });
-  const snare = p.add(`${kit}-snare`, [c, r + 1], opts.snare || { level: 0.6 });
-  const hats = p.add(`${kit}-hats`, [c, r + 2], opts.hats || { level: 0.5 });
-  const mix = p.add("audio-mixer", [c + 1, r], { level1: -2, level2: -5, pan2: 0.1, level3: -10, pan3: 0.3, master: opts.master ?? -3,
-    send2: opts.send ?? -60, send3: opts.send ?? -60 }, { name: "Drum Mix" });
-  p.cable(dm, "kick", kick, "trig").cable(dm, "kickvel", kick, "velocity")
-    .cable(dm, "snare", snare, "trig").cable(dm, "snarevel", snare, "velocity")
-    .cable(dm, "hats", hats, "closed").cable(dm, "hatsvel", hats, "velocity")
-    .cable(kick, "out", mix, "in1l").cable(snare, "out", mix, "in2l").cable(hats, "out", mix, "in3l");
-  return { mix, kick, snare, hats };
+  const mk = (items, col, row, nm, m) => {
+    const vals = { master: m };
+    items.forEach((x, i) => { vals[`level${i + 1}`] = x.level ?? -6; vals[`pan${i + 1}`] = x.pan ?? 0; });
+    const mx = p.add("audio-mixer", [col, row], vals, { name: nm });
+    items.forEach((x, i) => p.cable(x.node, x.jack || "out", mx, `in${i + 1}l`));
+    return mx;
+  };
+  if (list.length <= 4) return mk(list, c, r, name, master);
+  const a = mk(list.slice(0, 4), c, r, `${name} A`, 0), b = mk(list.slice(4), c, r + 1, `${name} B`, 0);
+  const fin = p.add("audio-mixer", [c + 1, r], { level1: 0, level2: 0, master }, { name });
+  p.stereo(a, fin, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).stereo(b, fin, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
+  return fin;
+}
+/// Mono jack to both sides of a stereo input pair.
+const both = (p, from, jack, to, l = "l", r = "r") => p.cable(from, jack, to, l).cable(from, jack, to, r);
+/// A reverb after a stereo mixer (outl/outr) and then the patch output.
+function finish(p, mixer, at, verb = {}) {
+  const v = p.add("reverb", at, { size: 0.4, decay: 1.4, mix: 0.15, ...verb });
+  p.stereo(mixer, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return v;
 }
 
-/// A bass voice (Step Sequencer → Oscillator → VCA through a low-pass filter) as a mono audio source on `amp` "l".
-function bass(p, at, notes, opts = {}) {
-  const m = melody(p, at, notes, { rate: "1/8", shape: 0.9, octave: -1, gatelength: 0.55, env: { decay: 0.2, sustain: 0.5, release: 0.1 }, ...opts });
-  const flt = p.add("filter", [at[0] + 3, at[1]], { cutoff: opts.cutoff ?? 400, resonance: 0.3, type: "Ladder Tanh" });
-  p.cable(m.amp, "l", flt, "l").cable(m.amp, "l", flt, "r");
-  return { ...m, flt };
+/// A punch kit on a Drum Map: kick, snare, hats (accents and velocities patched), mixed. Returns {kick, snare, hats, mix}.
+function kit(p, dm, at, o = {}) {
+  const [c, r] = at;
+  const kick = p.add("punch-kick", [c, r], { level: 0.85, decay: 0.5, ...(o.kick || {}) });
+  const snare = p.add("punch-snare", [c, r + 1], { level: 0.65, snappy: 0.65, ...(o.snare || {}) });
+  const hats = p.add("punch-hats", [c, r + 2], { level: 0.5, closed: 0.04, ...(o.hats || {}) });
+  p.cable(dm, "kick", kick, "trig").cable(dm, "kickvel", kick, "velocity").cable(dm, "snare", snare, "trig").cable(dm, "snarevel", snare, "velocity")
+    .cable(dm, "hats", hats, "closed").cable(dm, "hatsvel", hats, "velocity");
+  const mix = bus(p, [c + 2, r], [{ node: kick, level: -3 }, { node: snare, level: -6, pan: 0.1 }, { node: hats, level: -12, pan: 0.3 }],
+    o.master ?? -2, "Drum Mix");
+  return { kick, snare, hats, mix };
 }
 
-/// Mixes (source, left jack, right jack, level dB) rows into Out 1/2.
-function mixOut(p, at, parts, master = 0) {
-  const lv = {};
-  parts.forEach(([, , , l], i) => { lv[`level${i + 1}`] = l; });
-  const mx = p.add("audio-mixer", at, { ...lv, master });
-  parts.forEach(([src, jl, jr], i) => p.cable(src, jl, mx, `in${i + 1}l`).cable(src, jr, mx, `in${i + 1}r`));
-  p.stereo(mx, p.out, { from: ["outl", "outr"] });
-  return mx;
-}
-
-function straightFour() {
-  const p = patch("Drum Map: Straight Four", {
-    module: "drum-map", tempo: 124,
-    description: "In the straight corner of the map (low X, low Y) the Drum Map plays a steady kick on every beat, a backbeat snare and eighth-note hats, under a pulsing bass. Move X toward broken or Y toward busy, or turn the Density knobs to thin and fill each drum.",
-    tags: ["four on the floor", "house", "beat", "dance"],
+function wandering() {
+  const p = patch("Drum Map: Wandering the Map", {
+    module: "drum-map", tempo: 118,
+    description: "Two slow LFOs move X and Y through the map, so the beat drifts from sparse to busy and back without ever repeating exactly. Grab the X and Y knobs yourself to park on a pattern you like; the three Density knobs thin out any spot.",
+    tags: ["map", "x y", "evolving", "drums"],
   });
-  const dm = p.add("drum-map", [0, 0], { x: 0.0, y: 0.35, kickdensity: 0.6, snaredensity: 0.5, hatsdensity: 0.55, accent: 0.8, seed: 4 });
-  const d = drums(p, dm, [1, 0], "punch");
-  const b = bass(p, [1, 3], [0, ".", 0, 0, ".", 0, 12, "."], { rate: "1/8", root: "A", scale: "Natural Minor" });
-  mixOut(p, [5, 0], [[d.mix, "outl", "outr", 0], [b.flt, "l", "r", -3]], 0);
+  const dm = p.add("drum-map", [0, 0], { x: 0.5, y: 0.5, seed: 7, kickdensity: 0.6, snaredensity: 0.55, hatsdensity: 0.6 });
+  const lx = p.add("lfo", [0, 3], { rate: 0.03, wave: "Triangle", polarity: "Unipolar" }, { name: "X Drift" });
+  const ly = p.add("lfo", [1, 3], { rate: 0.021, wave: "Sine", polarity: "Unipolar", phase: 90 }, { name: "Y Drift" });
+  p.cable(lx, "out", dm, "x").cable(ly, "out", dm, "y");
+  const k = kit(p, dm, [2, 0]);
+  const m = melody(p, [2, 4], [0, ".", ".", 7, ".", 5, ".", "."], { rate: "1/8", root: "D", scale: "Dorian", octave: -1, shape: 0.3, env: { decay: 0.2, sustain: 0 } });
+  const fin = p.add("audio-mixer", [5, 0], { level1: 0, level2: -9, master: 0 }, { name: "Final" });
+  p.stereo(k.mix, fin, { from: ["outl", "outr"], to: ["in1l", "in1r"] });
+  both(p, m.amp, "l", fin, "in2l", "in2r");
+  finish(p, fin, [6, 0], { size: 0.35, decay: 1.2, mix: 0.12 });
   return p;
 }
 
-function brokenWanderer() {
-  const p = patch("Drum Map: Wandering Groove", {
+function sparseFill() {
+  const p = patch("Drum Map: Sparse with Fills", {
+    module: "drum-map", tempo: 90,
+    description: "Low Density settings leave a spacious beat with only the strongest hits, and a square LFO holds the Fill input for the last bar of every four. Raise Fill Amount for a bigger fill, or raise a Density knob to bring a drum back in.",
+    tags: ["fill", "density", "sparse", "drums"],
+  });
+  const dm = p.add("drum-map", [0, 0], { x: 0.3, y: 0.6, seed: 3, kickdensity: 0.3, snaredensity: 0.3, hatsdensity: 0.35, fillamount: 0.75, length: 16 });
+  const fill = p.add("lfo", [0, 3], { wave: "Square", sync: "4 bars", pw: 0.25, polarity: "Unipolar", phase: 270 }, { name: "Fill Gate" });
+  p.cable(fill, "out", dm, "fill");
+  const k = kit(p, dm, [2, 0], { master: 0 });
+  const pad = voice(p, [2, 4], null, [dm, "kick"], { name: "Low Tone", shape: 0.2, octave: -1, env: { attack: 0.02, decay: 0.8, sustain: 0.0, release: 0.5 }, osc: { coarse: -4 } });
+  const fin = p.add("audio-mixer", [5, 0], { level1: 0, level2: -10, master: 1 }, { name: "Final" });
+  p.stereo(k.mix, fin, { from: ["outl", "outr"], to: ["in1l", "in1r"] });
+  both(p, pad.amp, "l", fin, "in2l", "in2r");
+  finish(p, fin, [6, 0], { size: 0.5, decay: 1.8, mix: 0.2 });
+  return p;
+}
+
+function chaos() {
+  const p = patch("Drum Map: Chaos Re-roll", {
+    module: "drum-map", tempo: 132,
+    description: "Chaos at 55 % swaps in a few random changes every bar, a lively breakbeat that is never quite the same twice. Set Chaos Rate to Frozen, or change the Seed, to lock in a version you like.",
+    tags: ["chaos", "random", "breakbeat", "seed"],
+  });
+  const dm = p.add("drum-map", [0, 0], { x: 0.8, y: 0.3, chaos: 0.55, chaosrate: "Every bar", seed: 21, swing: 0.54, kickdensity: 0.65, snaredensity: 0.6, hatsdensity: 0.7 });
+  const k = kit(p, dm, [2, 0], { kick: { tune: 55 }, snare: { tune: 220, decay: 0.2 }, hats: { crunch: 0.6, tone: 0.65 }, master: 0 });
+  finish(p, k.mix, [4, 0], { size: 0.25, decay: 0.8, mix: 0.1 });
+  return p;
+}
+
+function shuffle() {
+  const p = patch("Drum Map: Triplet Shuffle", {
     module: "drum-map", tempo: 96,
-    description: "A slow LFO on X and a seeded Random on Y make the beat travel the whole map, from straight to broken and from sparse to busy, with Chaos adding ghost notes that come back identically every time. Try replacing the LFO with your own X and Y moves.",
-    tags: ["generative", "groove", "evolving", "broken beat"],
+    description: "Rate 1/16T and a 24-step Length turn the map into a rolling triplet shuffle, with Swing and Accent adding a lazy push on top. Switch Rate back to 1/16 to hear the same map played straight.",
+    tags: ["shuffle", "triplet", "swing", "length"],
   });
-  const dm = p.add("drum-map", [0, 0], { x: 0.5, y: 0.5, kickdensity: 0.6, snaredensity: 0.6, hatsdensity: 0.6, chaos: 0.3, chaosrate: "Every 2 bars", seed: 9 });
-  const lx = p.add("lfo", [0, 1], { rate: 0.04, wave: "Triangle", polarity: "Unipolar" }, { name: "X Drift" });
-  const ry = p.add("random", [0, 2], { rate: 0.2, sync: "Free", smooth: 0.7, spread: 0.6, seed: 5 }, { name: "Y Wander" });
-  p.cable(lx, "out", dm, "x", 0.5).cable(ry, "out", dm, "y", 0.5);
-  const d = drums(p, dm, [1, 0], "punch", { master: 0 });
-  const m = melody(p, [1, 3], [0, ".", 7, ".", 3, ".", ".", 5], { rate: "1/8", root: "D", scale: "Dorian", octave: -1, shape: 0.5 });
-  const v = p.add("reverb", [5, 1], { size: 0.5, decay: 1.8, mix: 0.25 });
-  p.cable(m.amp, "l", v, "l").cable(m.amp, "l", v, "r");
-  mixOut(p, [6, 0], [[d.mix, "outl", "outr", 0], [v, "l", "r", -8]], 0);
+  const dm = p.add("drum-map", [0, 0], { x: 0.65, y: 0.7, seed: 9, rate: "1/16T", length: 24, swing: 0.58, accent: 0.95, kickdensity: 0.6, snaredensity: 0.6, hatsdensity: 0.75 });
+  const k = kit(p, dm, [2, 0], { kick: { tune: 48, decay: 0.7 }, snare: { tone: 0.35 }, master: 0 });
+  const bass = voice(p, [2, 4], null, [dm, "kick"], { name: "Bass", shape: 0.25, octave: -2, env: { decay: 0.35, sustain: 0.1 }, filter: { cutoff: 500, resonance: 0.3 }, osc: { coarse: 5 } });
+  const fin = p.add("audio-mixer", [5, 0], { level1: 0, level2: -9, master: 0 }, { name: "Final" });
+  p.stereo(k.mix, fin, { from: ["outl", "outr"], to: ["in1l", "in1r"] });
+  both(p, bass.out, "l", fin, "in2l", "in2r");
+  finish(p, fin, [6, 0], { size: 0.3, decay: 1, mix: 0.12 });
   return p;
 }
 
-function fillEveryFour() {
-  const p = patch("Drum Map: Fill Every Four", {
-    module: "drum-map", tempo: 108,
-    description: "A square LFO pulses the Fill gate for one bar in every four, adding Fill Amount to every Density so extra kicks, snares and sixteenth hats appear before the loop turns round. Raise Fill Amount for bigger fills, or make the LFO faster for constant fills.",
-    tags: ["fill", "rock", "gate", "variation"],
+function notesOut() {
+  const p = patch("Drum Map: Notes to Other Drums", {
+    module: "drum-map", tempo: 104,
+    description: "The Notes output sends the map as note events (Kick Note, Snare Note, Hats Note), and Drum Notes turns them into triggers for a different kit: a ring kick, a clap on the snare note and a cowbell on the hats note. Change the three note settings to move a part to another drum.",
+    tags: ["notes", "midi", "drum notes", "layout"],
   });
-  const dm = p.add("drum-map", [0, 0], { x: 0.2, y: 0.45, kickdensity: 0.45, snaredensity: 0.4, hatsdensity: 0.35, fillamount: 0.5, seed: 2 });
-  const gate = p.add("lfo", [0, 1], { wave: "Square", sync: "4 bars", pw: 0.25, polarity: "Unipolar", phase: 270 }, { name: "Fill Bar" });
-  p.cable(gate, "out", dm, "fill");
-  const d = drums(p, dm, [1, 0], "ring", { snare: { level: 0.75 }, kick: { level: 0.8 }, hats: { level: 0.5 } });
-  const b = bass(p, [1, 3], [0, 0, ".", 0, 0, ".", 5, 7], { rate: "1/8", root: "E", scale: "Minor Pentatonic", cutoff: 600 });
-  mixOut(p, [5, 0], [[d.mix, "outl", "outr", 0], [b.flt, "l", "r", -3]], 0);
+  const dm = p.add("drum-map", [0, 0], { x: 0.45, y: 0.4, seed: 15, snarenote: 39, hatsnote: 56, kickdensity: 0.55, snaredensity: 0.5, hatsdensity: 0.45, notelength: 0.3 });
+  const dn = p.add("drum-notes", [1, 0], {});
+  p.cable(dm, "notes", dn, "notes");
+  const kick = p.add("ring-kick", [2, 0], { level: 0.85, decay: 0.7 });
+  const clap = p.add("ring-clap", [2, 1], { level: 0.6 });
+  const bell = p.add("ring-cowbell", [2, 2], { level: 0.45, tune: -2, decay: 0.3 });
+  p.cable(dn, "kick", kick, "trig").cable(dn, "velocity", kick, "velocity").cable(dn, "clap", clap, "trig").cable(dn, "bell", bell, "trig");
+  const mix = bus(p, [4, 0], [{ node: kick, level: -3 }, { node: clap, level: -7, pan: 0.15 }, { node: bell, level: -12, pan: -0.3 }], 0, "Kit");
+  finish(p, mix, [5, 0], { size: 0.4, decay: 1.3, mix: 0.15 });
   return p;
 }
 
-function halfTimeDub() {
-  const p = patch("Drum Map: Half-Time Dub", {
-    module: "drum-map", tempo: 140,
-    description: "Rate 1/8 stretches the two-bar map to four bars and X sits at the half-time edge: a sparse kick, a heavy snare on beat 3 and a few hats. The snare and hats feed a long delay through the mixer sends. Try Swing and Chaos for a looser feel.",
-    tags: ["half-time", "dub", "echo", "slow"],
-  });
-  const dm = p.add("drum-map", [0, 0], { x: 0.5, y: 0.1, rate: "1/8", kickdensity: 0.55, snaredensity: 0.7, hatsdensity: 0.5, swing: 0.56, seed: 6 });
-  const d = drums(p, dm, [1, 0], "punch", { send: -8, master: -2, kick: { level: 0.85, decay: 0.9, tune: 45 }, snare: { level: 0.7, decay: 0.35 } });
-  const dl = p.add("delay-network", [3, 1], { time: 0.43, taps: 3, feedback: 0.55, character: 0.5, tone: -0.3, mix: 1, width: 0.9 });
-  p.cable(d.mix, "sendl", dl, "l").cable(d.mix, "sendr", dl, "r");
-  const b = bass(p, [1, 3], ["0", "_", "_", "_", ".", ".", 3, "_"], { rate: "1/4", root: "G", scale: "Natural Minor", cutoff: 250, octave: -2, shape: 0.6 });
-  mixOut(p, [5, 0], [[d.mix, "outl", "outr", 0], [dl, "l", "r", -6], [b.flt, "l", "r", -2]], 0);
-  return p;
-}
-
-function chaosShuffle() {
-  const p = patch("Drum Map: Chaos Shuffle", {
-    module: "drum-map", tempo: 100,
-    description: "Rate 1/16T and a high Swing give a rolling shuffle, and Chaos at 60 % with a fresh nudge every bar keeps adding and dropping ghost notes around the steady backbone. Turn Chaos down for a rigid groove or set Chaos Rate to Frozen to fix one version.",
-    tags: ["shuffle", "chaos", "swing", "ghost notes"],
-  });
-  const dm = p.add("drum-map", [0, 0], { x: 0.75, y: 0.7, rate: "1/16T", chaos: 0.6, chaosrate: "Every bar", swing: 0.6, kickdensity: 0.5, snaredensity: 0.45, hatsdensity: 0.7, seed: 17 });
-  const d = drums(p, dm, [1, 0], "ring", { hats: { level: 0.45, tone: 0.6 } });
-  const m = melody(p, [1, 3], [0, ".", ".", 7, ".", 5, ".", ".", 3, ".", 7, "."], { rate: "1/8T", root: "C", scale: "Blues", octave: -1, shape: 0.6, cutoff: 700 });
-  mixOut(p, [5, 0], [[d.mix, "outl", "outr", 0], [m.amp, "l", "l", -9]], 0);
-  return p;
-}
-
-export default [straightFour, brokenWanderer, fillEveryFour, halfTimeDub, chaosShuffle];
+export default [wandering, sparseFill, chaos, shuffle, notesOut];

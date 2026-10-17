@@ -1,152 +1,150 @@
+// chord-quantizer: five demo patches. Each plays by itself with the transport.
 // SPDX-License-Identifier: MIT
-// Chord Quantizer: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
-import { beat } from "../demo-kit.mjs";
+import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { melody, beat } from "../demo-kit.mjs";
 
-function mixer(p, at, vals, name) {
-  return p.add("audio-mixer", at, vals, { name });
-}
-function chordBus(p, at, cq, o = {}) {
+/// A mono voice: Oscillator -> VCA with its own ADSR. src: {n, pitch, gate, trig} (trig: false = no retrigger).
+/// o: shape, osc (extra knobs), env, cutoff/res (adds a low-pass), name. Returns {osc, env, amp, out: {n, j}}.
+function voice(p, at, src, o = {}) {
   const [c, r] = at;
-  const shapes = o.shapes || [0.8, 0.8, 0.8, 0.8];
-  const pans = o.pans || [-0.6, -0.2, 0.2, 0.6];
-  const vals = { master: o.master ?? -8 };
-  pans.forEach((x, i) => { vals[`pan${i + 1}`] = x; vals[`level${i + 1}`] = (o.levels || [-3, -3, -3, -3])[i]; });
-  const mix = mixer(p, [c + 1, r], vals, o.name || "Chord Mix");
-  for (let i = 0; i < 4; i++) {
-    const osc = p.add("oscillator", [c, r + i], { shape: shapes[i], octave: String(o.octave ?? 0), fine: (i - 1.5) * (o.detune ?? 6), ...(o.osc || {}) },
-      { name: `Voice ${i + 1}` });
-    p.cable(cq, `voice${i + 1}`, osc, "pitch").cable(osc, "out", mix, `in${i + 1}l`);
+  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.7, ...(o.osc || {}) }, { name: o.name || "Source" });
+  const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25, ...(o.env || {}) }, { name: o.envName || "Amp Env" });
+  const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
+  if (src.pitch !== null) p.cable(src.pn || src.n, src.pitch || "pitch", osc, "pitch");
+  p.cable(src.n, src.gate || "gate", env, "gate");
+  if (src.trig !== false) p.cable(src.n, src.trig || "trigger", env, "retrig");
+  p.cable(osc, "out", amp, "l").cable(env, "env", amp, "gain");
+  let out = { n: amp, j: "l" }, flt;
+  if (o.cutoff) {
+    flt = p.add("filter", [c + 2, r], { cutoff: o.cutoff, resonance: o.res ?? 0.2, ...(o.flt || {}) }, { name: "Filter" });
+    p.cable(amp, "l", flt, "l");
+    out = { n: flt, j: "l" };
   }
-  return mix;
+  return { osc, env, amp, flt, out };
 }
 
-function smoothPad() {
-  const p = patch("Chord Quantizer: Smooth Pad", {
-    module: "chord-quantizer", tempo: 66,
-    description: "A bar-long sequence of single notes becomes a lush A minor pad. Voice Leading on Smooth + Top picks the inversion that moves least, so the top voice glides and the chords flow instead of jumping. Try Voice Leading Off to hear the raw jumps, or Voicing Close.",
-    tags: ["pad", "voice leading", "ambient", "chords"],
+/// chans: [{n, l, r?, level (dB), pan}] -> Audio Mixer -> Verb -> Out 1/2.  Returns {mix, verb}.
+function finish(p, at, chans, o = {}) {
+  const vals = { master: o.master ?? -3 };
+  chans.forEach((c, i) => { vals[`level${i + 1}`] = c.level ?? -6; vals[`pan${i + 1}`] = c.pan ?? 0; });
+  const mix = p.add("audio-mixer", at, vals, { name: "Mix" });
+  chans.forEach((c, i) => {
+    p.cable(c.n, c.l || "l", mix, `in${i + 1}l`);
+    if (c.r) p.cable(c.n, c.r, mix, `in${i + 1}r`);
+    for (const [n, j] of c.also || []) p.cable(n, j, mix, `in${i + 1}l`);
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/1", root: "A", scale: "Natural Minor", octave: 0, gatelength: 0.98 },
-    { data: steps([0, 5, 3, 7, 0, 5, 10, 7]) });
-  const cq = p.add("chord-quantizer", [1, 0], { stack: "Seventh", chord: "Minor 7", mode: "Diatonic", root: "A", scale: "Natural Minor", voices: 4,
-    voicing: "Spread", lead: "Smooth + Top", anchor: "Top", range: 3, velocity: 0.8 });
-  p.cable(seq, "pitch", cq, "pitch").cable(seq, "trigger", cq, "trig");
-  const mix = chordBus(p, [2, 0], cq, { shapes: [0.75, 0.6, 0.75, 0.9], detune: 9, master: -9, osc: {} });
-  const env = p.add("adsr", [3, 1], { attack: 0.9, decay: 1, sustain: 0.8, release: 2 }, { name: "Swell" });
-  const vca = p.add("vca", [4, 0], {}, { name: "VCA" });
-  const flt = p.add("filter", [5, 0], { cutoff: 1100, resonance: 0.25, type: "Ladder Tanh" });
-  const lfo = p.add("lfo", [4, 1], { rate: 0.07, wave: "Sine" }, { name: "Breath" });
-  const verb = p.add("reverb", [6, 0], { size: 0.8, decay: 6, damping: 0.5, mix: 0.4 });
-  p.cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig");
-  p.stereo(mix, vca, { from: ["outl", "outr"] }).cable(env, "env", vca, "gain");
-  p.stereo(vca, flt).cable(lfo, "out", flt, "cutoff", 0.18);
-  p.stereo(flt, verb).stereo(verb, p.out);
-  return p;
+  const verb = p.add("reverb", [at[0] + 1, at[1]], { size: o.size ?? 0.5, decay: o.decay ?? 2.5, damping: 0.5, mix: o.vmix ?? 0.22, quality: "Eco (8 lines)" });
+  p.cable(mix, "outl", verb, "l").cable(mix, "outr", verb, "r").stereo(verb, p.out);
+  return { mix, verb };
 }
+const drumsOf = (m, level = -8, pan) => ({ n: m, l: "outl", r: "outr", level, pan: pan ?? 0 });
 
-function strumHarp() {
-  const p = patch("Chord Quantizer: Strummed Dorian", {
-    module: "chord-quantizer", tempo: 92,
-    description: "Plucked quarter notes in D Dorian each become an open-voiced ninth chord that is strummed across the four voices instead of arriving at once, with an echo behind it. Turn Strum up for a lazier roll, or change Strum Order to Down.",
-    tags: ["strum", "harp", "dorian", "open voicing"],
-  });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "D", scale: "Dorian", octave: 0, gatelength: 0.9 },
-    { data: steps([0, ".", 4, ".", 2, ".", 7, 5]) });
-  const cq = p.add("chord-quantizer", [1, 0], { stack: "Ninth", chord: "Minor 9", mode: "Diatonic", root: "D", scale: "Dorian", voices: 4,
-    voicing: "Open", lead: "Smooth", anchor: "Centre", range: 2, strum: 0.085, strumorder: "Up" });
-  p.cable(seq, "pitch", cq, "pitch").cable(seq, "trigger", cq, "trig");
-  const mix = chordBus(p, [2, 0], cq, { shapes: [0.05, 0.1, 0.05, 0.15], detune: 4, master: -2, octave: 0 });
-  const env = p.add("adsr", [3, 1], { attack: 0.004, decay: 0.9, sustain: 0, release: 0.5 }, { name: "Pluck" });
-  const vca = p.add("vca", [4, 0], {}, { name: "VCA" });
-  const dly = p.add("delay-network", [5, 0], { sync: "1/8.", taps: 3, feedback: 0.4, tone: -0.3, width: 0.9, mix: 0.3, routing: "Ring" });
-  const verb = p.add("reverb", [6, 0], { size: 0.6, decay: 3.5, mix: 0.3 });
-  p.cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig");
-  p.stereo(mix, vca, { from: ["outl", "outr"] }).cable(env, "env", vca, "gain");
-  p.stereo(vca, dly).stereo(dly, verb).stereo(verb, p.out);
-  return p;
+/// The four chord voices -> four oscillators -> panned mixer -> VCA (one ADSR from gate/trigger) -> filter.
+function chordPad(p, at, cq, src, o = {}) {
+  const [c, r] = at;
+  const mix = p.add("audio-mixer", [c + 1, r], { master: -3, level1: -6, level2: -6, level3: -6, level4: -6, pan1: -0.6, pan2: -0.2, pan3: 0.2, pan4: 0.6 }, { name: "Chord Mix" });
+  for (let i = 0; i < 4; i++) {
+    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0.6, fine: (i - 1.5) * (o.detune ?? 6), octave: String(o.octave ?? 0) }, { name: `Voice ${i + 1}` });
+    p.cable(cq, `voice${i + 1}`, osc, "pitch").cable(osc, "out", mix, `in${i + 1}l`).cable(osc, "out", mix, `in${i + 1}r`);
+  }
+  const env = p.add("adsr", [c + 1, r + 1], { attack: 0.01, decay: 0.5, sustain: 0.5, release: 0.5, ...(o.env || {}) }, { name: "Chord Env" });
+  const amp = p.add("vca", [c + 2, r], {}, { name: "VCA" });
+  p.cable(src, "gate", env, "gate").cable(src, "trigger", env, "retrig").cable(env, "env", amp, "gain").stereo(mix, amp, { from: ["outl", "outr"] });
+  const flt = p.add("filter", [c + 3, r], { cutoff: o.cutoff ?? 2200, resonance: 0.15 }, { name: "Tone" });
+  p.stereo(amp, flt);
+  return { amp, env, flt };
 }
+const seqRoots = (p, at, notes, o = {}) => p.add("step-sequencer", at, { length: notes.length, rate: o.rate || "1/1", root: o.root || "C", scale: o.scale || "Natural Minor", octave: o.octave ?? 0, gatelength: o.gate ?? 0.9 },
+  { data: steps(notes) }, { name: "Roots" });
+const feed = (p, seq, cq) => p.cable(seq, "pitch", cq, "pitch").cable(seq, "trigger", cq, "trig").cable(seq, "gate", cq, "gate");
 
-function funkStabs() {
-  const p = patch("Chord Quantizer: Offbeat Stabs", {
-    module: "chord-quantizer", tempo: 104,
-    description: "Syncopated single notes turn into short minor-seventh stabs over a root-note bass, on a broken beat. In Chromatic mode the Chord knob picks the quality: try Dominant 7, Minor add9 or Sus4, and raise Inversion for a higher voicing.",
-    tags: ["stabs", "funk", "chromatic", "rhythm"],
-  });
-  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/16", root: "E", scale: "Minor Pentatonic", octave: 0, gatelength: 0.3 },
-    { data: steps([0, ".", ".", 0, ".", ".", 3, ".", ".", 0, ".", 5, ".", ".", 3, "."]) });
-  const cq = p.add("chord-quantizer", [1, 0], { mode: "Chromatic", chord: "Minor 7", voices: 4, voicing: "Drop 2", lead: "Smooth",
-    anchor: "Centre", range: 2, inversion: 0 });
-  p.cable(seq, "pitch", cq, "pitch").cable(seq, "trigger", cq, "trig");
-  const mix = chordBus(p, [2, 0], cq, { shapes: [0.9, 0.9, 0.9, 0.9], detune: 8, master: -7, octave: 0 });
-  const env = p.add("adsr", [3, 1], { attack: 0.003, decay: 0.16, sustain: 0, release: 0.08 }, { name: "Stab" });
-  const vca = p.add("vca", [4, 0], {}, { name: "VCA" });
-  const flt = p.add("filter", [5, 0], { cutoff: 1800, resonance: 0.3, type: "Ladder Tanh" });
-  const fenv = p.add("adsr", [4, 1], { attack: 0.002, decay: 0.2, sustain: 0, release: 0.1 }, { name: "Filter Env" });
-  p.cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(seq, "gate", fenv, "gate").cable(seq, "trigger", fenv, "retrig");
-  p.stereo(mix, vca, { from: ["outl", "outr"] }).cable(env, "env", vca, "gain");
-  p.stereo(vca, flt).cable(fenv, "env", flt, "cutoff", 0.35);
-  // The chord's root as a sine bass, an octave and a half down.
-  const bass = p.add("oscillator", [2, 5], { shape: 0.1, octave: "-2" }, { name: "Root Bass" });
-  const benv = p.add("adsr", [3, 5], { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.15 }, { name: "Bass Env" });
-  const bvca = p.add("vca", [4, 5], {}, { name: "Bass VCA" });
-  p.cable(cq, "root", bass, "pitch").cable(seq, "gate", benv, "gate").cable(seq, "trigger", benv, "retrig")
-    .cable(bass, "out", bvca, "l").cable(benv, "env", bvca, "gain");
-  const drums = beat(p, [0, 7], { style: "broken", level: -10 });
-  const out = p.add("audio-mixer", [6, 1], { level1: -4, level2: -2, level3: -4, master: -2 }, { name: "Mix" });
-  p.stereo(flt, out, { to: ["in1l", "in1r"] }).cable(bvca, "l", out, "in2l").cable(bvca, "l", out, "in2r")
-    .cable(drums, "outl", out, "in3l").cable(drums, "outr", out, "in3r");
-  p.stereo(out, p.out, { from: ["outl", "outr"] });
-  return p;
-}
-
-function followChanges() {
-  const p = patch("Chord Quantizer: Follow the Changes", {
+function padChanges() {
+  const p = patch("Chord Quantizer: Minor Seventh Pad", {
     module: "chord-quantizer", tempo: 72,
-    description: "Mode Follow: the chord is whatever the Harmony Master's progression says (A minor 7, F, C, G), voiced as a drop-2 pad with a root bass below. A slow LFO into Pitch lifts and drops the register. Change Voicing or Anchor in the module's view.",
-    tags: ["follow", "harmony", "progression", "pad"],
+    description: "A slow root line goes into the Chord Quantizer, which stacks each root as a minor seventh over four voices; the four oscillators swell into a lush, moving pad. Try Chord on Dominant 9 or Sus4, or Voicing on Spread for a wider sound.",
+    tags: ["pad", "minor seventh", "chords", "voicing"],
   });
-  const hm = p.add("harmony-master", [0, 0], { source: "Progression", key: "A", scale: "Natural Minor", bus: "A", advance: "Transport" },
-    { data: { slots: [
-      { deg: 1, q: "diatonic-seventh", len: 8 }, { deg: 6, q: "diatonic-seventh", len: 8 },
-      { deg: 3, q: "diatonic-seventh", len: 8 }, { deg: 7, q: "diatonic-triad", len: 8 } ] } });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.05, wave: "Triangle" }, { name: "Register" });
-  const cq = p.add("chord-quantizer", [1, 0], { mode: "Follow", harmony: "Bus A", voices: 4, voicing: "Drop 2", lead: "Smooth",
-    anchor: "Centre", range: 2 });
-  p.cable(lfo, "out", cq, "pitch", 0.3).cable(hm, "change", cq, "trig");
-  const mix = chordBus(p, [2, 0], cq, { shapes: [0.5, 0.7, 0.7, 0.4], detune: 8, master: -3, octave: 0 });
-  const flt = p.add("filter", [5, 0], { cutoff: 1500, resonance: 0.2, type: "Ladder Tanh" });
-  p.stereo(mix, flt, { from: ["outl", "outr"] });
-  const bass = p.add("oscillator", [2, 5], { shape: 0.15, octave: "-1" }, { name: "Bass" });
-  const bvca = p.add("vca", [3, 5], { gain: 0.5 }, { name: "Bass Level" });
-  p.cable(hm, "bass", bass, "pitch").cable(bass, "out", bvca, "l");
-  const out = p.add("audio-mixer", [6, 1], { level1: -3, level2: -6, master: -2 }, { name: "Mix" });
-  const verb = p.add("reverb", [7, 0], { size: 0.8, decay: 5, mix: 0.35 });
-  p.stereo(flt, out, { to: ["in1l", "in1r"] }).cable(bvca, "l", out, "in2l").cable(bvca, "l", out, "in2r");
-  p.stereo(out, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
+  const seq = seqRoots(p, [0, 0], [0, 5, 3, 7], { root: "A", octave: -1 });
+  const cq = p.add("chord-quantizer", [1, 0], { chord: "Minor 7", voicing: "Drop 2", range: 2 });
+  feed(p, seq, cq);
+  const pad = chordPad(p, [2, 0], cq, seq, { shape: 0.55, env: { attack: 0.6, decay: 1, sustain: 0.8, release: 1.2 }, cutoff: 1600, octave: 0 });
+  const lfo = p.add("lfo", [2, 4], { rate: 0.1, wave: "Sine" }, { name: "Breath" });
+  p.cable(lfo, "out", pad.flt, "cutoff", 0.2);
+  const bass = p.add("oscillator", [2, 5], { shape: 0.1, octave: "-1" }, { name: "Root Bass" });
+  const bv = p.add("vca", [3, 5], { gain: 0.5 }, { name: "Bass Level" });
+  p.cable(cq, "root", bass, "pitch").cable(bass, "out", bv, "l");
+  finish(p, [6, 0], [{ n: pad.flt, l: "l", r: "r", level: 2 }, { n: bv, level: -10 }], { vmix: 0.4, decay: 5, size: 0.7, master: 0 });
   return p;
 }
 
-function pulsingWholeTone() {
-  const p = patch("Chord Quantizer: Whole-tone Pulse", {
-    module: "chord-quantizer", tempo: 110,
-    description: "A wandering Random feeds Pitch; in a whole-tone scale every triad is an augmented chord, so the harmony floats without a home. An LFO gates the chords as eighth-note pulses. Switch Scale to Hirajoshi or Blues in the view for a different colour.",
-    tags: ["whole tone", "random", "pulse", "floating"],
+function smoothLeading() {
+  const p = patch("Chord Quantizer: Smooth Voice Leading", {
+    module: "chord-quantizer", tempo: 100,
+    description: "Rhythmic triad stabs follow a four-chord loop, and Voice Leading chooses the inversion that moves least, so the top voice glides instead of jumping. Turn Voice Leading Off to hear every chord land in root position.",
+    tags: ["voice leading", "triads", "stabs", "inversions"],
   });
-  const rnd = p.add("random", [0, 0], { rate: 1, sync: "1/2", spread: 0.8, smooth: 0, quantize: true, seed: 11 }, { name: "Wander" });
-  const cq = p.add("chord-quantizer", [1, 0], { mode: "Diatonic", stack: "Triad", root: "C", scale: "Whole Tone", voices: 4,
-    voicing: "Open", lead: "Smooth + Top", anchor: "Centre", range: 2, hysteresis: 0.15 });
-  p.cable(rnd, "out", cq, "pitch", 0.45).cable(rnd, "trig", cq, "trig");
-  const mix = chordBus(p, [2, 0], cq, { shapes: [0.1, 0.5, 0.2, 0.7], detune: 5, master: -2, octave: 0 });
-  const gate = p.add("lfo", [3, 1], { wave: "Square", sync: "1/8", pw: 0.45, polarity: "Unipolar" }, { name: "Pulse" });
-  const env = p.add("adsr", [4, 1], { attack: 0.01, decay: 0.15, sustain: 0.4, release: 0.12 }, { name: "Pulse Env" });
-  const vca = p.add("vca", [4, 0], {}, { name: "VCA" });
-  const dly = p.add("delay-network", [5, 0], { sync: "1/8.", taps: 3, feedback: 0.45, tone: -0.2, width: 1, mix: 0.35, routing: "Ring" });
-  const verb = p.add("reverb", [6, 0], { size: 0.7, decay: 4, mix: 0.3 });
-  p.cable(gate, "out", env, "gate");
-  p.stereo(mix, vca, { from: ["outl", "outr"] }).cable(env, "env", vca, "gain");
-  p.stereo(vca, dly).stereo(dly, verb).stereo(verb, p.out);
+  const bar = (n) => [n, ".", ".", n, ".", n, ".", "."];
+  const seq = seqRoots(p, [0, 0], [...bar(0), ...bar(9), ...bar(5), ...bar(7)], { rate: "1/8", root: "C", scale: "Major", octave: 0, gate: 0.35 });
+  const cq = p.add("chord-quantizer", [1, 0], { chord: "Major", voicing: "Close", lead: "Smooth", anchor: "Top", range: 2 });
+  feed(p, seq, cq);
+  const pad = chordPad(p, [2, 0], cq, seq, { shape: 0.8, env: { attack: 0.005, decay: 0.35, sustain: 0.1, release: 0.25 }, cutoff: 2800 });
+  const drums = beat(p, [0, 5], { style: "half", level: -10 });
+  finish(p, [6, 0], [{ n: pad.flt, l: "l", r: "r", level: 6 }, drumsOf(drums, 2)], { vmix: 0.2, master: 2 });
   return p;
 }
 
-export default [smoothPad, strumHarp, funkStabs, followChanges, pulsingWholeTone];
+function quartalBells() {
+  const p = patch("Chord Quantizer: Quartal Glass", {
+    module: "chord-quantizer", tempo: 76,
+    description: "Instead of thirds, each chord is stacked in fourths and spread wide: an open, floating sound that suits slow, bell-like notes. Try Inversion or Range to move the stack, or Chord to Fifth for a hollow drone.",
+    tags: ["quartal", "open voicing", "ambient", "bells"],
+  });
+  const seq = seqRoots(p, [0, 0], [0, 2, 4, 2, 0, 5, 4, 2], { rate: "1/2", root: "E", scale: "Minor Pentatonic", octave: 0, gate: 0.3 });
+  const cq = p.add("chord-quantizer", [1, 0], { chord: "Quartal", voicing: "Open", range: 3, inversion: 1 });
+  feed(p, seq, cq);
+  const pad = chordPad(p, [2, 0], cq, seq, { shape: 0, detune: 2, env: { attack: 0.003, decay: 2.5, sustain: 0, release: 2 }, cutoff: 6000, octave: 0 });
+  const dl = p.add("delay", [6, 0], { timel: 450, timer: 600, feedback: 0.45, highcut: 6000, mix: 0.3, mode: "Ping-Pong" });
+  p.stereo(pad.flt, dl);
+  finish(p, [7, 0], [{ n: dl, l: "l", r: "r", level: 2 }], { vmix: 0.4, decay: 5, size: 0.8, master: 0 });
+  return p;
+}
+
+function diatonicHarmoniser() {
+  const p = patch("Chord Quantizer: Diatonic Harmoniser", {
+    module: "chord-quantizer", tempo: 98,
+    description: "In Diatonic mode a melody in C major is harmonised note by note: each pitch becomes the root of the right triad for the scale, major on some steps, minor on others. Change the Stack to Seventh, or the setting Scale to Dorian.",
+    tags: ["diatonic", "harmonise", "melody", "triads"],
+  });
+  const seq = seqRoots(p, [0, 0], [0, 2, 4, 2, 5, 4, 2, 0], { rate: "1/4", root: "C", scale: "Major", octave: 0, gate: 0.6 });
+  const cq = p.add("chord-quantizer", [1, 0], { mode: "Diatonic", root: "C", scale: "Major", stack: "Triad", voicing: "Close", range: 2 });
+  feed(p, seq, cq);
+  const pad = chordPad(p, [2, 0], cq, seq, { shape: 0.45, env: { attack: 0.03, decay: 0.8, sustain: 0.3, release: 0.5 }, cutoff: 2400, octave: -1 });
+  const lead = p.add("oscillator", [2, 5], { shape: 0.2, octave: "+1" }, { name: "Melody" });
+  const lenv = p.add("adsr", [3, 5], { attack: 0.005, decay: 0.3, sustain: 0.25, release: 0.2 }, { name: "Melody Env" });
+  const lamp = p.add("vca", [4, 5], {}, { name: "Melody VCA" });
+  p.cable(seq, "pitch", lead, "pitch").cable(seq, "gate", lenv, "gate").cable(seq, "trigger", lenv, "retrig").cable(lead, "out", lamp, "l").cable(lenv, "env", lamp, "gain");
+  const drums = beat(p, [0, 7], { style: "sparse", level: -12 });
+  finish(p, [6, 0], [{ n: pad.flt, l: "l", r: "r", level: 0 }, { n: lamp, level: -3, pan: 0.2 }, drumsOf(drums, -2)], { vmix: 0.25, decay: 2.5, master: 0 });
+  return p;
+}
+
+function chordArp() {
+  const p = patch("Chord Quantizer: Chords into an Arpeggio", {
+    module: "chord-quantizer", tempo: 112,
+    description: "The Notes output of the Chord Quantizer holds each chord while an Arpeggiator breaks it into a running pattern for a single pluck voice. Change the chord, then the Arpeggiator's Pattern or Octaves, to reshape the same harmony.",
+    tags: ["arpeggio", "notes out", "chords", "pluck"],
+  });
+  const seq = seqRoots(p, [0, 0], [0, 3, 5, 4], { rate: "1/1", root: "G", scale: "Natural Minor", octave: -1, gate: 0.97 });
+  const cq = p.add("chord-quantizer", [1, 0], { chord: "Minor 9", voicing: "Close", range: 2 });
+  feed(p, seq, cq);
+  const arp = p.add("arpeggiator", [2, 0], { rate: "1/16", pattern: "Up & Down", octaves: 2, gatelength: 0.4 });
+  p.cable(cq, "notes", arp, "notes");
+  const v = voice(p, [3, 0], { n: arp }, { shape: 0.8, env: { decay: 0.2, sustain: 0.05, release: 0.15 }, cutoff: 2800, res: 0.2 });
+  const drums = beat(p, [0, 4], { style: "four", level: -10 });
+  const dl = p.add("delay", [5, 0], { timel: 280, timer: 420, feedback: 0.3, highcut: 5000, mix: 0.25 });
+  p.cable(v.out.n, "l", dl, "l").cable(v.out.n, "l", dl, "r");
+  finish(p, [6, 0], [{ n: dl, level: 5 }, drumsOf(drums, 0)], { vmix: 0.2, master: 0 });
+  return p;
+}
+
+export default [padChanges, smoothLeading, quartalBells, diatonicHarmoniser, chordArp];

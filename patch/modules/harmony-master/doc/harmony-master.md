@@ -70,11 +70,11 @@ Five whole patches show what Harmony Master does. In the standalone app open **F
 
 | Patch | What it shows |
 |---|---|
-| **Harmony Master: Four-Chord Loop** | The classic I – vi – IV – V in C major runs as a progression with the transport, four beats per chord. Tone 1 – 4 feed a soft pad and Bass a sine below. Click a slot in the view to change its chord or length, or switch Quality to Diatonic Seventh. |
-| **Harmony Master: Jazz Changes** | A ii – V – I – VI progression written with fixed roots and rich qualities (minor 9, dominant 9, major 9, dominant 7♭9), one slot with a slash bass. Each change plucks the chord and the Bass output walks underneath, on a shuffle. Edit the qualities in the progression strip. |
-| **Harmony Master: Rhythmic Changes** | Advance is set to Trigger: a syncopated step sequencer pulses Next, so the chord changes exactly when you want, cycling through five minor-key chords as short stabs over a pumping root bass. Try Advance Transport to hear it follow the slot lengths instead. |
-| **Harmony Master: Adapting Scale** | In A minor the progression visits E major, whose G♯ is not in the scale. With Scale Policy on Adapt the published scale bends to A harmonic minor for that chord, so a Quantizer Suite following the bus plays the G♯ in its random pluck line. Switch Scale Policy to Keep and listen to the line lose it. |
-| **Harmony Master: Wandering Key** | Manual source: a slow stepped Random walks the Degree knob through the Mixolydian chords while a sequencer on Transpose moves the whole key up a fourth and a fifth every few bars. Each change swells in a warm pad with a root drone below. Try Quality Diatonic Triad or another Scale. |
+| **Harmony Master: Minor Journey** | A minor progression (i, VI, III, VII) runs with the transport; its Tone outputs hold a warm pad, Bass walks underneath and a sequenced lead on the bus rewrites itself to stay inside each chord's scale. Change Key or Scale and the whole board follows. |
+| **Harmony Master: Stepping by Trigger** | With Advance set to Trigger, the progression moves one chord every time a trigger arrives; here an off-beat sequencer rhythm does the stepping and each change plucks the chord. Edit the trigger rhythm and the chords change when you decide. |
+| **Harmony Master: Key Change Up** | A slow two-step sequence feeds the Transpose input, so after four bars the whole progression, bass and follower lead move up two semitones together. Change the transposing sequence to climb through more keys. |
+| **Harmony Master: Modern Colours** | Four chosen chords written as fixed roots and rich qualities: minor 11, dominant 13, major 7 sharp 11 and dominant 7 sharp 9. The Tone outputs get the whole stack. Click a slot in the view to try another quality. |
+| **Harmony Master: Phrygian Dominant Drone** | Manual source: one held fifth in E Phrygian Dominant, with a follower line that wanders by Variation but never leaves the scale. Change Degree or the scale to colour the drone, or Quality to a richer chord. |
 <!-- /generated -->
 
 <!-- generated:presets -->

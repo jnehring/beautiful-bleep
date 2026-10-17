@@ -3,131 +3,138 @@
 import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// Mixer: channel i takes `srcs[i]` = [node, jack, rightJack?]; reverb on the send; out to Out 1/2.
-function finish(p, at, srcs, o = {}) {
+/// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
+function finish(p, at, src, o = {}) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: o.trim ?? 0, master: 0 }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.25, quality: "Eco (8 lines)", ...(o.verb || {}) });
+  const [jl, jr] = o.jacks || ["l", "r"];
+  p.cable(src, jl, t, "in1l").cable(src, o.stereo ? jr : jl, t, "in1r");
+  p.stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return v;
+}
+
+/// Plucked melody into a Multi Filter (returns the filter, stereo out).
+function voice(p, at, notes, o = {}) {
+  const m = melody(p, at, notes, o);
+  const f = p.add("filter", [at[0] + 3, at[1]], { cutoff: 1200, resonance: 0.25, ...(o.filter || {}) }, { name: "Filter" });
+  p.cable(m.amp, "l", f, "l").cable(m.amp, "l", f, "r");
+  return { ...m, filt: f };
+}
+
+/// Two detuned oscillators (left / right) held by a sequencer → VCA (gain left to the caller) → Multi Filter.
+function pad(p, at, notes, o = {}) {
   const [c, r] = at;
-  const v = { master: o.master ?? -3, return: o.ret ?? -6 };
-  srcs.forEach((s, i) => { v[`level${i + 1}`] = (o.levels || [])[i] ?? -9; v[`pan${i + 1}`] = (o.pans || [])[i] ?? 0; v[`send${i + 1}`] = (o.sends || [])[i] ?? -12; });
-  const mix = p.add("audio-mixer", [c, r], v, { name: "Mix" });
-  srcs.forEach(([n, j, j2], i) => p.cable(n, j, mix, `in${i + 1}l`).cable(n, j2 || j, mix, `in${i + 1}r`));
-  const verb = p.add("reverb", [c + 1, r], { size: 0.6, decay: o.decay ?? 3.5, damping: 0.5, mix: 1, quality: "Eco (8 lines)" }, { name: "Room" });
-  p.cable(mix, "sendl", verb, "l").cable(mix, "sendr", verb, "r").cable(verb, "l", mix, "returnl").cable(verb, "r", mix, "returnr");
-  p.stereo(mix, p.out, { from: ["outl", "outr"] });
-  return mix;
+  const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
+    octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
+  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
+  const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
+  p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
+    .stereo(amp, f);
+  return { seq, o1, o2, amp, filt: f };
 }
 
-/// Oscillator → VCA pairs for a chord (semitones from C); returns {oscs, vcas}.
-function voices(p, at, semis, o = {}) {
-  const oscs = [], vcas = [];
-  semis.forEach((s, i) => {
-    const osc = p.add("oscillator", [at[0], at[1] + i], { coarse: s, shape: o.shape ?? 0.7, octave: o.octave ?? "-1", fine: (i - 1.5) * 3 }, { name: `Voice ${i + 1}` });
-    const v = p.add("vca", [at[0] + 1, at[1] + i], {}, { name: `Gate ${i + 1}` });
-    p.cable(osc, "out", v, "l").cable(osc, "out", v, "r");
-    oscs.push(osc); vcas.push(v);
+/// Up to six oscillators, each through its own VCA (gain from the caller), mixed to stereo on `master` (jacks outl/outr).
+/// tones: [semitones, octave] per oscillator.
+function chord(p, at, tones, o = {}) {
+  const [c, r] = at;
+  const lv = o.lvl ?? -10;
+  const mixA = p.add("audio-mixer", [c + 2, r], { level1: lv, level2: lv, level3: lv, pan1: -0.7, pan2: 0, pan3: 0.7, master: 0 }, { name: "Mix 1-3" });
+  const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
+  const vcas = [], oscs = [];
+  tones.forEach((t, i) => {
+    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
+    p.cable(osc, "out", vca, "l");
+    if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
+    const m = i < 3 ? mixA : mixB, k = (i % 3) + 1;
+    p.cable(vca, "l", m, `in${k}l`).cable(vca, "l", m, `in${k}r`);
+    vcas.push(vca); oscs.push(osc);
   });
-  return { oscs, vcas };
+  const master = p.add("audio-mixer", [c + 3, r], { level1: 0, level2: 0, master: o.master ?? 0 }, { name: "Master" });
+  p.stereo(mixA, master, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).stereo(mixB, master, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
+  return { vcas, oscs, master, jacks: ["outl", "outr"] };
 }
 
-function circularPan() {
-  const p = patch("Quad LFO: Circular Pan", {
-    module: "quad-lfo", tempo: 92,
-    description: "In Quadrature mode four sines run a quarter cycle apart. Out 1 and Out 2 pan two plucked lines in a slow circle around the listener while the other two outputs swell a pad. Switch the module's view to XY to see the circle, and change Rate 1 to spin it faster.",
-    tags: ["quadrature", "pan", "circle", "stereo"],
+function quadrature() {
+  const p = patch("Quad LFO: Quadrature Chord", {
+    module: "quad-lfo", tempo: 88,
+    description: "In Quadrature mode the four LFOs are a quarter-turn apart, so four notes of a chord swell one after another in a rotating pattern. Change Rate to turn it faster, or switch Mode to Free to let each LFO run at its own speed.",
+    tags: ["quadrature", "chord", "rotation", "swell"],
   });
-  const a = melody(p, [0, 0], [0, 4, 7, 11, 9, 7, 4, 2], { rate: "1/8", root: "F", scale: "Lydian", octave: 0, shape: 0.5, env: { decay: 0.3, sustain: 0.55, release: 0.3 } });
-  const b = melody(p, [0, 2], [7, ".", 4, ".", 11, ".", 9, "."], { rate: "1/8", root: "F", scale: "Lydian", octave: -1, shape: 0.3, env: { decay: 0.4, sustain: 0.5 }, gatelength: 0.8 });
-  const q = p.add("quad-lfo", [3, 0], { rate1: 0.18, mode: "Quadrature", polarity: "Bipolar" });
-  const pad = p.add("oscillator", [3, 2], { octave: "-1", coarse: 5, shape: 0.4 }, { name: "Pad" });
-  const padv = p.add("vca", [4, 2], {}, { name: "Swell" });
-  p.cable(pad, "out", padv, "l").cable(pad, "out", padv, "r").cable(q, "out3", padv, "gain", 0.3).cable(q, "out4", padv, "gain", 0.3);
-  const mix = finish(p, [5, 0], [[a.amp, "l"], [b.amp, "l"], [padv, "l", "r"]], { levels: [-4, -3, -8], sends: [-8, -8, -4], decay: 3.5, master: -2 });
-  p.cable(q, "out1", mix, "pan1", 0.9).cable(q, "out2", mix, "pan2", 0.9);
+  const q = p.add("quad-lfo", [0, 0], { rate1: 0.3, mode: "Quadrature", wave1: "Sine", polarity: "Unipolar" });
+  const c = chord(p, [1, 0], [[0, "-1"], [7, "-1"], [3, "0"], [10, "0"]], { master: -3, lvl: -9 });
+  for (let i = 0; i < 4; i++) p.cable(q, `out${i + 1}`, c.vcas[i], "gain", 1);
+  finish(p, [5, 0], c.master, { jacks: c.jacks, stereo: true, trim: -3, verb: { size: 0.6, decay: 4, mix: 0.35 } });
   return p;
 }
 
-function polyrhythmPlucks() {
-  const p = patch("Quad LFO: Polyrhythm Plucks", {
-    module: "quad-lfo", tempo: 120,
-    description: "Divide mode runs four falling saws at x1, 1/2, 1/3 and 1/4 of one rate, each plucking a note of an A minor chord: a 4-against-3-against-2 pattern that only lines up every twelve beats. Change Divide 2-4 to remix the polyrhythm.",
-    tags: ["divide", "polyrhythm", "pluck", "arpeggio"],
-  });
-  const v = voices(p, [0, 0], [0, 3, 7, 10], { octave: "0", shape: 0.6 });
-  const q = p.add("quad-lfo", [2, 0], { rate1: 4, mode: "Divide", divide1: "÷1", divide2: "÷2", divide3: "÷3", divide4: "÷4", wave1: "Saw Down", wave2: "Saw Down",
-    wave3: "Saw Down", wave4: "Saw Down", polarity: "Unipolar" });
-  const lp = v.vcas.map((vca, i) => {
-    p.cable(q, `out${i + 1}`, vca, "gain");
-    return vca;
-  });
-  finish(p, [4, 0], lp.map((l) => [l, "l", "r"]), { levels: [-7, -7, -7, -7], pans: [-0.6, -0.2, 0.2, 0.6], sends: [-9, -9, -9, -9], decay: 2.5, master: -5 });
-  return p;
-}
-
-function chordBreath() {
-  const p = patch("Quad LFO: Chord Breath", {
-    module: "quad-lfo", tempo: 66,
-    description: "Phase mode with Spread at 90 degrees lets four unipolar sines pass one swell along the voices of a major-seventh chord: the chord rolls up and down like a breath. Try Spread 0 (all together) or 180 (two pairs).",
-    tags: ["phase", "pad", "swell", "slow"],
-  });
-  const v = voices(p, [0, 0], [0, 4, 7, 11], { shape: 0.55, octave: "-1" });
-  const q = p.add("quad-lfo", [2, 0], { rate1: 0.16, mode: "Phase", spread: 90, polarity: "Unipolar" });
-  v.vcas.forEach((vca, i) => p.cable(q, `out${i + 1}`, vca, "gain"));
-  const flt = p.add("filter", [2, 2], { cutoff: 1800, resonance: 0.2 }, { name: "Soften" });
-  // the pad passes the filter after a quick mix of the four voices
-  const sum = p.add("audio-mixer", [3, 0], { level1: -6, level2: -6, level3: -6, level4: -6, master: 0 }, { name: "Chord" });
-  v.vcas.forEach((vca, i) => p.cable(vca, "l", sum, `in${i + 1}l`).cable(vca, "r", sum, `in${i + 1}r`));
-  p.cable(sum, "outl", flt, "l").cable(sum, "outr", flt, "r");
-  p.cable(q, "sum", flt, "cutoff", 0.35);
-  const mix = finish(p, [4, 0], [[flt, "l", "r"]], { levels: [-1], sends: [-6], decay: 6, master: 0 });
-  return p;
-}
-
-function cycleDrums() {
-  const p = patch("Quad LFO: Cycle Drums", {
+function divided() {
+  const p = patch("Quad LFO: Divided Movements", {
     module: "quad-lfo", tempo: 112,
-    description: "The Cycle outputs fire once per LFO cycle, and in Divide mode each LFO has its own fraction of the rate: kick every beat, hat every half beat, clap every third and a tom every fifth - a drum pattern that slowly phases. Change the Divide settings to rearrange it.",
-    tags: ["cycle", "drums", "divide", "triggers"],
+    description: "Locked to the tempo in Divide mode, the four LFOs run at whole fractions of one rate: the fastest shapes the tone, slower ones open the filter over two, four and eight times as long. Change a Divide setting or switch Sync off to unlock it.",
+    tags: ["divide", "sync", "polyrhythm", "groove"],
   });
-  const q = p.add("quad-lfo", [0, 0], { rate1: 3.7333, mode: "Divide", divide1: "÷2", divide2: "÷1", divide3: "÷3", divide4: "÷5", level1: 1 });
-  const kick = p.add("punch-kick", [2, 0], { level: 0.85 });
-  const hat = p.add("punch-hats", [2, 1], { level: 0.5, tone: 0.6 });
-  const clap = p.add("punch-clap", [2, 2], { level: 0.6 });
-  const tom = p.add("punch-tom", [2, 3], { level: 0.7, tune: 140 });
-  p.cable(q, "cycle1", kick, "trig").cable(q, "cycle2", hat, "closed").cable(q, "cycle3", clap, "trig").cable(q, "cycle4", tom, "trig");
-  const bass = melody(p, [0, 5], [0, ".", 0, ".", 3, ".", 5, "."], { rate: "1/8", root: "D", scale: "Dorian", octave: -2, shape: 0.15, env: { decay: 0.3, sustain: 0.4 } });
-  const pad = p.add("oscillator", [0, 7], { octave: "-1", coarse: 2, shape: 0.5 }, { name: "Pad" });
-  const padv = p.add("vca", [1, 7], { gain: 0.3 }, { name: "Pad Level" });
-  p.cable(pad, "out", padv, "l").cable(pad, "out", padv, "r");
-  finish(p, [4, 0], [[kick, "out"], [hat, "out"], [clap, "out"], [tom, "out"]], { levels: [-4, -12, -8, -6], pans: [0, 0.4, -0.3, 0.3], sends: [-30, -20, -8, -10], decay: 1.8, master: -3 });
-  // bass and pad into a second small mixer feeding the same outputs would double-count; keep them on the reverb via their own mixer
-  const m2 = p.add("audio-mixer", [5, 3], { level1: -6, level2: -16, master: -3 }, { name: "Bass+Pad" });
-  p.cable(bass.amp, "l", m2, "in1l").cable(bass.amp, "l", m2, "in1r").cable(padv, "l", m2, "in2l").cable(padv, "r", m2, "in2r");
-  p.stereo(m2, p.out, { from: ["outl", "outr"] });
+  const v = voice(p, [0, 0], [0, 0, 7, 0, 10, 0, 7, 5, 0, 0, 7, 12, 10, 7, 5, 3], { rate: "1/16", shape: 0.9, root: "D", octave: -1, env: { decay: 0.16, sustain: 0.3 }, filter: { cutoff: 500, resonance: 0.35 } });
+  const q = p.add("quad-lfo", [3, 1], { rate1: 1, mode: "Divide", sync: true, divide1: "÷1", divide2: "÷2", divide3: "÷4", divide4: "÷8", wave1: "Triangle", wave2: "Sine", wave3: "Sine", wave4: "Sine" });
+  p.cable(q, "out1", v.osc, "shape", 0.25).cable(q, "out2", v.filt, "cutoff", 0.35).cable(q, "out3", v.filt, "cutoff", 0.3).cable(q, "out4", v.filt, "resonance", 0.15);
+  const drums = beat(p, [0, 4], { style: "four", level: -7 });
+  const mix = p.add("audio-mixer", [4, 0], { level1: -6, level2: -11, master: 0 });
+  const verb = p.add("reverb", [5, 0], { size: 0.4, decay: 1.8, mix: 0.12, quality: "Eco (8 lines)" });
+  p.cable(v.filt, "l", mix, "in1l").cable(v.filt, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
+    .stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
   return p;
 }
 
-function clockChop() {
-  const p = patch("Quad LFO: Clock Chop", {
-    module: "quad-lfo", tempo: 104,
-    description: "A sequencer's step trigger is patched into Clock: LFO 1 runs one cycle per Clock Ratio pulses, here two, and a square wave chops a sustained saw chord on that grid while LFO 2 sweeps the filter. Change Clock Ratio or Pulse Width to change the rhythm of the chop.",
-    tags: ["clock", "chop", "gate", "rhythmic"],
+function stereoSweep() {
+  const p = patch("Quad LFO: Stereo Filter Sweep", {
+    module: "quad-lfo", tempo: 92,
+    description: "Phase mode keeps all four LFOs at the same rate but staggered by Spread. Here two of them sweep a separate filter for each channel, so the pad's brightness moves from left to right. Widen or narrow Spread, or change Rate 1 for a faster sweep.",
+    tags: ["phase", "spread", "stereo", "filter sweep"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/8", root: "E", scale: "Natural Minor", octave: -1, gatelength: 0.9 },
-    { data: steps([0, 0, 7, 0, 5, 0, 3, 7]) });
-  const q = p.add("quad-lfo", [1, 1], { mode: "Free", clockratio: "2", wave1: "Square", wave2: "Triangle", pw: 0.35, polarity: "Unipolar", rate2: 0.12, level3: 0, level4: 0 });
-  p.cable(seq, "trigger", q, "clock");
-  const chordOscs = [0, 7, 12].map((s, i) => {
-    const o = p.add("oscillator", [1, i], { coarse: s % 12, octave: s >= 12 ? "0" : "-1", shape: 0.85, fine: i * 5 - 5 }, { name: `Saw ${i + 1}` });
-    return o;
-  });
-  const m = p.add("audio-mixer", [2, 0], { level1: -8, level2: -8, level3: -8, master: 0 }, { name: "Chord" });
-  chordOscs.forEach((o, i) => p.cable(o, "out", m, `in${i + 1}l`).cable(o, "out", m, `in${i + 1}r`));
-  const flt = p.add("filter", [3, 0], { cutoff: 1000, resonance: 0.3 }, { name: "Sweep" });
-  const vca = p.add("vca", [4, 0], {}, { name: "Chop" });
-  p.cable(m, "outl", flt, "l").cable(m, "outr", flt, "r").cable(flt, "l", vca, "l").cable(flt, "r", vca, "r");
-  p.cable(q, "out1", vca, "gain").cable(q, "out2", flt, "cutoff", 0.5);
-  const drums = beat(p, [0, 4], { style: "sparse", level: -8 });
-  finish(p, [5, 0], [[vca, "l", "r"], [drums, "outl", "outr"]], { levels: [0, -2], sends: [-10, -24], decay: 2 });
+  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/2", root: "E", scale: "Minor Pentatonic", octave: -1, gatelength: 0.95 },
+    { data: steps([0, 3, 7, 5, 0, 5, 10, 7]) });
+  const o1 = p.add("oscillator", [1, 0], { shape: 0.9, fine: -8 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [1, 1], { shape: 0.9, fine: 8 }, { name: "Osc R" });
+  const fl = p.add("filter", [2, 0], { cutoff: 600, resonance: 0.4 }, { name: "Filter L" });
+  const fr = p.add("filter", [2, 1], { cutoff: 600, resonance: 0.4 }, { name: "Filter R" });
+  const q = p.add("quad-lfo", [1, 3], { rate1: 0.22, mode: "Phase", spread: 150, wave1: "Sine", polarity: "Unipolar" });
+  const mix = p.add("audio-mixer", [3, 0], { level1: -13, level2: -13, pan1: -1, pan2: 1, master: 0 });
+  p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", fl, "l").cable(o1, "out", fl, "r").cable(o2, "out", fr, "l").cable(o2, "out", fr, "r")
+    .cable(q, "out1", fl, "cutoff", 0.55).cable(q, "out2", fr, "cutoff", 0.55)
+    .cable(fl, "l", mix, "in1l").cable(fr, "l", mix, "in2r");
+  const v = p.add("reverb", [4, 0], { size: 0.5, decay: 3, mix: 0.3, quality: "Eco (8 lines)" });
+  p.stereo(mix, v, { from: ["outl", "outr"] }).stereo(v, p.out);
   return p;
 }
 
-export default [circularPan, polyrhythmPlucks, chordBreath, cycleDrums, clockChop];
+function freeTexture() {
+  const p = patch("Quad LFO: Free Texture", {
+    module: "quad-lfo", tempo: 100,
+    description: "In Free mode the four LFOs run at unrelated rates with different waves (sine, smooth random, triangle and stepped random); their Sum output moves the filter while the others change tone and resonance, an endlessly shifting texture. Change a Rate or Wave to steer it.",
+    tags: ["free", "waveforms", "random", "texture"],
+  });
+  const v = voice(p, [0, 0], [0, 7, 3, 10, 12, 7, 5, 3, 0, 5, 8, 7, 12, 10, 7, 3], { rate: "1/8", shape: 0.7, root: "F", scale: "Dorian", env: { decay: 0.3, sustain: 0.2 }, filter: { cutoff: 700, resonance: 0.3 } });
+  const q = p.add("quad-lfo", [3, 1], { rate1: 0.13, rate2: 0.31, rate3: 0.77, rate4: 1.9, mode: "Free", level1: 0.8, level2: 0.8, level3: 0.5, level4: 0.5,
+    wave1: "Sine", wave2: "Random Smooth", wave3: "Triangle", wave4: "Random Step" });
+  p.cable(q, "sum", v.filt, "cutoff", 0.4).cable(q, "out3", v.osc, "shape", 0.3).cable(q, "out2", v.filt, "resonance", 0.12);
+  finish(p, [4, 0], v.filt, { stereo: true, trim: -2, verb: { size: 0.5, decay: 3, mix: 0.3 } });
+  return p;
+}
+
+function clockHold() {
+  const p = patch("Quad LFO: Clocked and Held", {
+    module: "quad-lfo", tempo: 106,
+    description: "The LFOs follow a clock from the sequencer rather than a free rate, and a second, sparser gate patched to Hold freezes them for a moment. The result is a filter movement that stops and resumes in time with the notes. Change Clock Ratio for a faster or slower cycle.",
+    tags: ["clock", "hold", "sync", "freeze"],
+  });
+  const v = voice(p, [0, 0], [0, 7, 12, 7, 3, 10, 7, 3, 0, 5, 8, 12, 8, 5, 3, 7], { rate: "1/8", shape: 0.8, root: "C", scale: "Natural Minor", env: { decay: 0.25, sustain: 0.2 }, filter: { cutoff: 600, resonance: 0.35 } });
+  const hold = p.add("step-sequencer", [3, 2], { length: 8, rate: "1/4", gatelength: 0.5 }, { data: steps([".", ".", 0, ".", ".", ".", 0, 0]) });
+  const q = p.add("quad-lfo", [3, 1], { mode: "Quadrature", sync: true, clockratio: "8", wave1: "Triangle", polarity: "Unipolar" });
+  p.cable(v.seq, "trigger", q, "clock").cable(hold, "gate", q, "hold").cable(q, "out1", v.filt, "cutoff", 0.5).cable(q, "out2", v.osc, "shape", 0.3);
+  finish(p, [4, 0], v.filt, { stereo: true, trim: -2, verb: { size: 0.45, decay: 2.2, mix: 0.25 } });
+  return p;
+}
+
+export default [quadrature, divided, stereoSweep, freeTexture, clockHold];

@@ -91,6 +91,20 @@ The preset bar of the Step Sequencer view has 15 factory presets. Pick one to se
 | **Low Octave Drone** | Slow, held quarter notes two octaves down for a sub line. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Step Sequencer does. In the standalone app open **File → Presets…** (⌘P) and pick *Step Sequencer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Step Sequencer: Pentatonic Pluck** | Sixteen steps of C major pentatonic, with rests and a few quieter steps, played as short plucks: every note you edit snaps to the scale. Try Scale, Root or Length to reshape the tune, or Gate Length to go from staccato to legato. |
+| **Step Sequencer: Acid Ties** | A bass line with tied steps, which hold the previous pitch into the next step so the notes run together, and a little Swing for a rolling feel, over a four-on-the-floor beat. Try more Swing, or shorten Gate Length to hear the ties disappear. |
+| **Step Sequencer: Ping-Pong Bells** | Twelve steps of D Dorian run forward and then backward, in triplet eighths, so the bell line rises and falls without repeating the end notes. Switch Direction to Forward, Backward or Random, or change Length to move the turning points. |
+| **Step Sequencer: Shaken Tune** | Variation is set to about half, so around every other step may jump up to a fifth away from its programmed note, and a slow LFO swells and fades that chance. Change Var. Range for bigger leaps, or Seed to deal a different set of surprises. |
+| **Step Sequencer: Chord Walker** | A second, slow Step Sequencer walks a four-bar progression and its Pitch goes into the first one's Transpose input, so the same eight-step figure is carried to a new root each bar. The slow one also plays the sub bass. Edit either sequence to change the harmony or the figure. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

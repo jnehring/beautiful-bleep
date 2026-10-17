@@ -96,11 +96,11 @@ Five whole patches show what Six Slopes does. In the standalone app open **File 
 
 | Patch | What it shows |
 |---|---|
-| **Six Slopes: Strummed Chord** | One trigger per bar fires all six slopes, but Harmonics spreads their rates so each note of a six-note chord opens a moment after the last: a strum. Turn Harmonics down to bring the notes together, Skew for plucks or swells. |
-| **Six Slopes: Phasing Pulses** | In Loop mode six slopes run slightly apart (Harmonics 0.13), each swelling one chord tone, so the chord's colour drifts as the pulses phase against each other. Nudge Harmonics, Rate or Skew to change the pattern. |
-| **Six Slopes: Bar Polyrhythm** | Loop mode with Sync on one bar and Snap on Integer runs six slopes at one to six cycles per bar, locked to the song: six pentatonic notes pulsing in a polyrhythm. Try Skew for short blips and Curve for sharper decays. |
-| **Six Slopes: Six-Part Percussion** | A six-track grid fires six slopes, one per drum trigger, and each shapes a different sine tone into a synthetic toms-and-blips kit. One set of Skew and Curve knobs shapes all six decays at once. |
-| **Six Slopes: Just Drone** | In Sound mode the six slopes become audio oscillators locked to the sequencer's pitch with Snap on Just: a six-note chord in pure ratios whose spread you change with Harmonics, moved slowly by an LFO. |
+| **Six Slopes: Looping Chord** | In Loop mode six slopes breathe at related rates, and each one swells a different note of a chord, so the harmony slowly rearranges itself. Move Harmonics to change how far apart the rates are and Skew to shift each swell between rise and fall. |
+| **Six Slopes: Harmonic Bell** | One trigger starts all six slopes in AR mode; with Harmonics up, the higher slopes die away faster, so each note sparkles then settles into its lower partials. Move Harmonics down for a darker, longer ring or change Rate to stretch the whole decay. |
+| **Six Slopes: Sound Mode Voice** | In Sound mode the slopes run at audio rate and follow the sequencer's pitch, so the Six Slopes is the oscillator itself; the Sum output is a rich, buzzy tone. Try Snap on Integer or Just for harmonic spacing, or Curve and Skew for different timbres. |
+| **Six Slopes: Locked Motion** | Sync ties the Loop mode to the tempo and Snap on Integer keeps every rate an exact multiple, so six slopes move filter, tone, pulse and volume in polyrhythm that never drifts. Change Sync or Harmonics and listen to the grooves reshuffle. |
+| **Six Slopes: Chord Unfolds** | In ASR mode each of six slopes rises while a gate is held and falls when it ends; with Harmonics below zero the lower notes of the chord arrive first and the top ones drift in last. Change Harmonics, Rate or the sequencer's gate length to alter the unfolding. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -97,11 +97,11 @@ Five whole patches show what Delay Net does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Delay Net: Ring Pad** | Six taps in a Ring feed each other with a dark, tape-like Character, so single soft notes smear into a slowly turning pad. Move Scatter and Width to change where the taps sit, or Routing to Chain to hear a straighter line. |
-| **Delay Net: Dotted Pluck Grid** | With Sync on a dotted eighth and Parallel routing, four taps place echoes on a rhythmic grid around a short plucked tune; Scatter nudges them off it. Try Taps, Scatter and Feedback for denser or sparser patterns. |
-| **Delay Net: Reverse Mesh** | In Mesh routing every line feeds every other, and Reverse plays part of the echoes backwards, so each note blooms into swelling, reversed clouds. Raise Jitter to blur the timing further; Time Change decides if time moves bend the pitch. |
-| **Delay Net: Drum Echoes** | A drum beat goes through a Chain of lines locked to the tempo; Jitter and Scatter make the repeats a loose, dubby shadow of the groove. Pull Mix down for a subtle effect or up for a wall of echoes. |
-| **Delay Net: Overdriven Loop** | Feedback is almost at its limit, so the network sustains into a self-holding drone around a sparse bass line; a slow LFO on Character shifts it from clean to gritty. Lower Feedback to hear it settle, or push it past 100 %. |
+| **Delay Net: Ring Cloud** | Six taps pass the signal round a ring, so a sparse melody dissolves into a drifting cloud of repeats. Try Taps, Scatter and Character, or switch Routing to Parallel to hear the ring unravel. |
+| **Delay Net: Parallel Rhythm Taps** | In Parallel routing each tap is a separate echo, locked to a dotted eighth so the taps spread into a rhythm around a bright pluck. Change Sync, Scatter or Taps to re-space the pattern. |
+| **Delay Net: Reverse Tide** | Chain routing with a large Reverse amount turns the repeats backwards, so every note swells in before it arrives. Lower Reverse for normal echoes, or raise Jitter to blur the swells. |
+| **Delay Net: Mesh Swarm** | Mesh routing lets every line feed every other, and a slow LFO sweeps Scatter so the swarm of repeats keeps rearranging itself. Try more Jitter and Character for a rougher texture, or less Feedback to calm it. |
+| **Delay Net: Frozen Moment** | A square LFO closes the Freeze gate every few bars, trapping the network's contents as a sustained wash while the melody carries on over it. Change the LFO's Sync, or latch the gate with your own control. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -92,11 +92,11 @@ Five whole patches show what Verb does. In the standalone app open **File → Pr
 
 | Patch | What it shows |
 |---|---|
-| **Verb: Cathedral** | A slow, soft melody disappears into a huge room: Size and Decay are high, Damping rolls the tail dark, and Pre-delay keeps each note clear before the bloom. Try Decay and Size together, or push Mix to 100 %. |
-| **Verb: Tight Room** | A drum beat in a small, dry room: low Size, a short Decay and high Damping glue the kit together like a booth. Raise Size and Decay to move the same beat into a hall. |
-| **Verb: Freeze Pad** | A square LFO opens the Freeze gate for a couple of bars at a time, holding whatever is in the tank as an endless chord, then lets it go so the next phrase can be caught. Edit the LFO's Sync, or latch Freeze yourself. |
-| **Verb: Breathing Space** | Slow LFOs ride Size and Decay while Mod Depth swirls the tail, so the room itself seems to inhale and exhale around a gentle arpeggio. Every Verb knob modulates click-free: try patching your own LFO into Tone. |
-| **Verb: Pre-delay Echoes** | Pre-delay is locked to a dotted eighth, so a bright plucked tune is followed by one clear rhythmic echo and then a short, diffuse bloom. Change Pre-delay Sync, or lower Diffusion to hear the individual reflections. |
+| **Verb: Endless Hall** | Sparse, soft notes sink into a huge hall: Size is almost full, Decay is over twenty seconds and Pre-delay leaves each note clean before the bloom. Try Decay and Size together, or push Mix to 100 %. |
+| **Verb: Drum Booth** | A drum beat in a tiny, dry room: low Size, a short Decay and high Damping glue the kit together. Raise Size and Decay to move the same beat into a hall, or widen it with Width. |
+| **Verb: Frozen Chord** | A square LFO closes the Freeze gate for a couple of bars at a time, holding whatever is in the tank as an endless chord, then lets go so the next phrase can be caught. Edit the LFO's Sync, or latch Freeze yourself. |
+| **Verb: Tide Pool** | Slow LFOs ride Size and Tone while Mod Depth swirls the tail, so the room seems to inhale and exhale around a gentle arpeggio. Every Verb knob modulates click-free: patch your own LFO into Decay. |
+| **Verb: Dark Cellar** | A low plucked bass line in a cellar: Bass is boosted, Tone and Damping pull the tail dark, and Eco quality keeps it light. Lower Bass or lift Tone to hear the same room turn into a bright stairwell. |
 <!-- /generated -->
 
 <!-- generated:presets -->

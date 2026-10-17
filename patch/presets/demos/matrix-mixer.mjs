@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-// Matrix Mixer: five demo patches. Each plays by itself with the transport.
+// Matrix Mixer (matrix-mixer): five demo patches. Each plays by itself with the transport.
 import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// A Matrix Mixer with every crosspoint set: `gains` maps "in>out" to a value (−1…1), the rest are 0.
-/// `extra`: other knobs/settings; `data`: node data (labels, snapshots).
+/// Matrix Mixer node. `gains`: {"i>j": gain} crosspoints (1-based, input > output); everything else is 0.
+/// `extra`: other knobs/settings; `data`: node data (snapshots, labels).
 function matrix(p, at, nIn, nOut, gains, extra = {}, data) {
   const v = { inputs: nIn, outputs: nOut, ...extra };
   for (let i = 1; i <= nIn; i++) for (let j = 1; j <= nOut; j++) v[`g_${i}_${j}`] = gains[`${i}>${j}`] ?? 0;
@@ -12,121 +12,102 @@ function matrix(p, at, nIn, nOut, gains, extra = {}, data) {
 }
 
 /// A snapshot for the node data: gains as an 8×8 array (rows = inputs).
-function snapshot(name, gains, level = 1) {
-  const g = Array.from({ length: 8 }, () => new Array(8).fill(0));
+function snap(name, gains) {
+  const g = Array.from({ length: 8 }, () => Array(8).fill(0));
   for (const [k, v] of Object.entries(gains)) { const [i, j] = k.split(">").map(Number); g[i - 1][j - 1] = v; }
-  return { name, g, level: new Array(8).fill(level), mute: new Array(8).fill(0) };
+  return { name, g, level: Array(8).fill(1), mute: Array(8).fill(0) };
 }
 
-/// Mixer-less ending for stereo audio: a gentle glue stage then Out 1/2 (here a plain stereo reverb).
-function room(p, at, l, r, o = {}) {
-  const verb = p.add("reverb", at, { size: 0.55, decay: o.decay ?? 2.5, damping: 0.5, mix: o.mix ?? 0.25, quality: "Eco (8 lines)" }, { name: "Room" });
-  p.cable(l[0], l[1], verb, "l").cable(r[0], r[1], verb, "r");
-  p.stereo(verb, p.out);
-  return verb;
+/// Two matrix outputs → trim mixer → reverb → Out.
+function finish(p, at, src, trim = 0, verb = {}, jacks = ["out1", "out2"]) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: trim, master: 0 }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.2, damping: 0.5, mix: 0.18, quality: "Eco (8 lines)", ...verb });
+  p.stereo(src, t, { from: jacks, to: ["in1l", "in1r"] }).stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
 }
 
-function effectSends() {
-  const p = patch("Matrix Mixer: Send Matrix", {
-    module: "matrix-mixer", tempo: 96,
-    description: "Eight inputs, four outputs: a lead, a bass and a drum kit go in, outputs 3 and 4 are sends to an echo and a reverb, and their returns come back into the matrix to be mixed into the main left and right. Each crosspoint is a send amount - try the lead's 1 -> 3 and 1 -> 4 circles.",
-    tags: ["sends", "effects", "routing", "mix"],
+function sceneSwitch() {
+  const p = patch("Matrix Mixer: Four Into Stereo", {
+    module: "matrix-mixer", tempo: 106,
+    description: "Four sources (bass, chords, lead, drums) go into a 4 by 2 matrix, each with its own left and right gain: the bass sits in the middle, the chords lean left, the lead right and the drums are spread. Click a crosspoint to change how much of a source goes to which side.",
+    tags: ["routing", "stereo", "panning", "mix", "crosspoints"],
   });
-  const lead = melody(p, [0, 0], [0, 7, 3, 7, 10, 7, 5, 3], { rate: "1/8", root: "C", scale: "Dorian", octave: 0, shape: 0.75 });
-  const bass = melody(p, [0, 2], [0, ".", ".", 0, ".", 7, ".", 5], { rate: "1/8", root: "C", scale: "Dorian", octave: -2, shape: 0.25, env: { decay: 0.35, sustain: 0.4 } });
-  const drums = beat(p, [0, 4], { style: "shuffle", level: -6 });
-  const g = { "1>1": 0.55, "1>2": 0.4, "1>3": 0.6, "1>4": 0.25, "2>1": 0.5, "2>2": 0.5, "3>1": 0.55, "3>4": 0.15, "4>2": 0.55, "4>4": 0.15,
-              "5>1": 0.8, "6>2": 0.8, "7>1": 0.7, "8>2": 0.7 };
-  const mm = matrix(p, [4, 0], 8, 4, g, { stage: "Soft clip", level_1: 1.25, level_2: 1.25 }, { labels: { in: ["Lead", "Bass", "Drums L", "Drums R", "Echo L", "Echo R", "Verb L", "Verb R"], out: ["Main L", "Main R", "To Echo", "To Verb"] } });
-  p.cable(lead.amp, "l", mm, "in1").cable(bass.amp, "l", mm, "in2").cable(drums, "outl", mm, "in3").cable(drums, "outr", mm, "in4");
-  const dl = p.add("delay-network", [6, 0], { sync: "1/8.", taps: 3, feedback: 0.4, tone: -0.3, mix: 1 }, { name: "Echo" });
-  const vb = p.add("reverb", [6, 1], { size: 0.7, decay: 3.2, mix: 1, quality: "Eco (8 lines)" }, { name: "Verb" });
-  p.cable(mm, "out3", dl, "l").cable(mm, "out3", dl, "r").cable(mm, "out4", vb, "l").cable(mm, "out4", vb, "r");
-  p.cable(dl, "l", mm, "in5").cable(dl, "r", mm, "in6").cable(vb, "l", mm, "in7").cable(vb, "r", mm, "in8");
-  p.cable(mm, "out1", p.out, "l").cable(mm, "out2", p.out, "r");
+  const b = melody(p, [0, 0], [0, ".", 0, 7, ".", 0, 5, ".", 0, ".", 3, 0, 10, ".", 7, 5], { rate: "1/8", root: "A", scale: "Minor Pentatonic", octave: -2, shape: 0.9, gatelength: 0.55, env: { decay: 0.2, sustain: 0.5 } });
+  const c = melody(p, [0, 2], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_"], { rate: "1/4", root: "A", scale: "Minor Pentatonic", octave: 0, shape: 0.3, gatelength: 1, env: { attack: 0.05, sustain: 0.8, release: 0.5 } });
+  const l = melody(p, [0, 4], [12, ".", 10, 12, ".", 15, 12, 10, ".", 7, ".", 10, 12, ".", ".", "."], { rate: "1/8", root: "A", scale: "Minor Pentatonic", octave: 1, shape: 0.5, gatelength: 0.4, env: { decay: 0.3, sustain: 0.1 } });
+  const d = beat(p, [0, 6], { style: "four", level: -6 });
+  const mx = matrix(p, [4, 0], 5, 2, { "1>1": 0.5, "1>2": 0.5, "2>1": 0.45, "2>2": 0.1, "3>1": 0.1, "3>2": 0.45, "4>1": 0.4, "5>2": 0.4 });
+  p.cable(b.amp, "l", mx, "in1").cable(c.amp, "l", mx, "in2").cable(l.amp, "l", mx, "in3").cable(d, "outl", mx, "in4").cable(d, "outr", mx, "in5");
+  p.stereo(mx, p.out, { from: ["out1", "out2"] });
   return p;
 }
 
-function sceneMorph() {
+function morphScenes() {
   const p = patch("Matrix Mixer: Scene Morph", {
     module: "matrix-mixer", tempo: 100,
-    description: "Two stored snapshots: A is a sparse scene (lead left, bass centre, pad), B a full groove with drums and the lead on the right. A slow LFO on Morph blends smoothly between them, so the arrangement keeps changing by itself. Click a snapshot button to hear it alone, or drag Morph.",
-    tags: ["snapshots", "morph", "arrangement", "scenes"],
+    description: "Two stored snapshots: A is a sparse scene with bass and a pad, B adds drums and the lead on the right. A slow LFO on Morph blends smoothly between them, so the arrangement builds and thins by itself. Drag Morph by hand, or edit a snapshot's crosspoints.",
+    tags: ["snapshots", "morph", "scenes", "arrangement", "lfo"],
   });
-  const lead = melody(p, [0, 0], [0, 4, 7, 11, 9, 7, 4, 2], { rate: "1/8", root: "G", scale: "Major Pentatonic", octave: 0, shape: 0.6 });
-  const bass = melody(p, [0, 2], [0, ".", 0, ".", 7, ".", 5, "."], { rate: "1/8", root: "G", scale: "Major Pentatonic", octave: -2, shape: 0.2, env: { decay: 0.4, sustain: 0.4 } });
-  const pad = p.add("oscillator", [0, 4], { coarse: 4, octave: "-1", shape: 0.4 }, { name: "Pad" });
-  const pad2 = p.add("oscillator", [0, 5], { coarse: 11, octave: "-1", shape: 0.4, fine: 7 }, { name: "Pad 2" });
-  const drums = beat(p, [0, 6], { style: "four", level: -6 });
-  const A = snapshot("Sparse", { "1>1": 0.9, "2>1": 0.45, "2>2": 0.45, "3>1": 0.25, "3>2": 0.25, "4>1": 0.2, "4>2": 0.2, "5>1": 0, "5>2": 0 }, 0.5);
-  const B = snapshot("Groove", { "1>2": 0.8, "1>1": 0.2, "2>1": 0.5, "2>2": 0.5, "3>1": 0.05, "3>2": 0.05, "5>1": 0.6, "5>2": 0.6 }, 0.5);
-  const mm = matrix(p, [4, 0], 5, 2, { "1>1": 0.9, "2>1": 0.45, "2>2": 0.45, "3>1": 0.25, "3>2": 0.25, "4>1": 0.2, "4>2": 0.2 },
-    { morphon: "On", curve: "Equal power", inputs: 5, outputs: 2, level_1: 0.5, level_2: 0.5 },
-    { labels: { in: ["Lead", "Bass", "Pad", "Pad 2", "Drums"], out: ["Left", "Right"] }, snapshots: [A, B, null, null, null, null, null, null], morphA: 0, morphB: 1 });
-  const lfo = p.add("lfo", [4, 2], { rate: 0.06, wave: "Triangle", polarity: "Unipolar" }, { name: "Scene Walk" });
-  p.cable(lead.amp, "l", mm, "in1").cable(bass.amp, "l", mm, "in2").cable(pad, "out", mm, "in3").cable(pad2, "out", mm, "in4").cable(drums, "outl", mm, "in5");
-  p.cable(lfo, "out", mm, "morph");
-  room(p, [6, 0], [mm, "out1"], [mm, "out2"], { mix: 0.2 });
+  const b = melody(p, [0, 0], [0, ".", 0, 7, ".", 0, 5, ".", 0, ".", 3, 0, 10, ".", 7, 5], { rate: "1/8", root: "D", scale: "Dorian", octave: -2, shape: 0.9, gatelength: 0.55, env: { decay: 0.2, sustain: 0.5 } });
+  const c = melody(p, [0, 2], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_"], { rate: "1/4", root: "D", scale: "Dorian", octave: 0, shape: 0.3, gatelength: 1, env: { attack: 0.05, sustain: 0.8, release: 0.5 } });
+  const l = melody(p, [0, 4], [12, ".", 10, 12, ".", 15, 12, 10, ".", 7, ".", 10, 12, ".", ".", "."], { rate: "1/8", root: "D", scale: "Dorian", octave: 1, shape: 0.5, gatelength: 0.4, env: { decay: 0.3, sustain: 0.1 } });
+  const d = beat(p, [0, 6], { style: "half", level: -6 });
+  const A = snap("Sparse", { "1>1": 0.5, "1>2": 0.5, "2>1": 0.5, "2>2": 0.3 });
+  const B = snap("Full", { "1>1": 0.5, "1>2": 0.5, "2>1": 0.2, "2>2": 0.4, "3>2": 0.5, "3>1": 0.1, "4>1": 0.4, "5>2": 0.4 });
+  const mx = matrix(p, [4, 0], 5, 2, {}, { morphon: "On", curve: "Smooth" },
+    { labels: { in: ["Bass", "Pad", "Lead", "Drums L", "Drums R"], out: ["Left", "Right"] }, snapshots: [A, B, null, null, null, null, null, null], morphA: 0, morphB: 1 });
+  const lfo = p.add("lfo", [4, 3], { wave: "Triangle", sync: "4 bars", polarity: "Unipolar" }, { name: "Morph" });
+  p.cable(b.amp, "l", mx, "in1").cable(c.amp, "l", mx, "in2").cable(l.amp, "l", mx, "in3").cable(d, "outl", mx, "in4").cable(d, "outr", mx, "in5").cable(lfo, "out", mx, "morph", 0.5);
+  p.stereo(mx, p.out, { from: ["out1", "out2"] });
   return p;
 }
 
-function crosspointRing() {
-  const p = patch("Matrix Mixer: Crosspoint Ring", {
-    module: "matrix-mixer", tempo: 90,
-    description: "Every crosspoint is also a knob, so an audio-rate oscillator patched into the 1 -> 1 gain turns the matrix into a ring modulator: the left output is the metallic product, the right output the dry melody. A slow LFO detunes the modulator for sweeping bell tones. Try changing the 1 -> 2 crosspoint to blend dry and ring.",
-    tags: ["ring mod", "audio rate", "crosspoint", "bells"],
+function feedbackFree() {
+  const p = patch("Matrix Mixer: Voice Swap", {
+    module: "matrix-mixer", tempo: 112,
+    description: "A saw arpeggio and a square arpeggio enter a 2 by 2 matrix. Each output carries a mix of both, and two LFOs in opposite phase move the crossing gains, so the voices drift from one side to the other and back. Change a gain to a negative value to hear phase effects.",
+    tags: ["crosspoints", "negative gain", "swap", "phase", "arpeggio"],
   });
-  const m = melody(p, [0, 0], [0, 7, 4, 9, 12, 9, 7, 4], { rate: "1/4", root: "A", scale: "Minor Pentatonic", octave: 0, shape: 0.3, env: { decay: 0.6, sustain: 0.3, release: 0.4 } });
-  const mod = p.add("oscillator", [0, 2], { coarse: 3, octave: "0", shape: 0 }, { name: "Modulator" });
-  const lfo = p.add("lfo", [0, 3], { rate: 0.07, wave: "Triangle" }, { name: "Detune" });
-  p.cable(lfo, "out", mod, "coarse", 0.6);
-  const mm = matrix(p, [2, 0], 1, 2, { "1>1": 0, "1>2": 0.7 }, { stage: "Soft clip" }, { labels: { in: ["Melody"], out: ["Ring", "Dry"] } });
-  p.cable(m.amp, "l", mm, "in1").cable(mod, "out", mm, "g_1_1", 1);
-  const boost = p.add("filter", [3, 0], { cutoff: 9000, resonance: 0.05, gain: 0 }, { name: "Soften" });
-  p.cable(mm, "out1", boost, "l").cable(mm, "out2", boost, "r");
-  room(p, [4, 0], [boost, "l"], [boost, "r"], { mix: 0.3, decay: 3.5 });
+  const a = melody(p, [0, 0], [0, 7, 12, 7, 3, 10, 15, 10, 5, 12, 17, 12, 7, 14, 19, 14], { rate: "1/8", root: "E", scale: "Natural Minor", octave: 0, shape: 1, gatelength: 0.5, env: { decay: 0.2, sustain: 0.1 } });
+  const b = melody(p, [0, 3], [12, 10, 7, 10, 15, 12, 7, 3, 17, 15, 12, 10, 19, 17, 14, 12], { rate: "1/8", root: "E", scale: "Natural Minor", octave: -1, shape: 0.4, gatelength: 0.5, osc: { fine: 4 }, env: { decay: 0.25, sustain: 0.1 } });
+  const mx = matrix(p, [4, 0], 2, 2, { "1>1": 0.7, "1>2": 0.2, "2>1": 0.2, "2>2": 0.7 });
+  const lfo1 = p.add("lfo", [4, 2], { rate: 0.12, wave: "Sine" }, { name: "Cross 1>2" });
+  const lfo2 = p.add("lfo", [4, 3], { rate: 0.12, phase: 180, wave: "Sine" }, { name: "Cross 2>1" });
+  p.cable(a.amp, "l", mx, "in1").cable(b.amp, "l", mx, "in2").cable(lfo1, "out", mx, "g_1_2", 0.5).cable(lfo2, "out", mx, "g_2_1", 0.5);
+  finish(p, [5, 0], mx, -6, { size: 0.55, decay: 3, mix: 0.25 });
   return p;
 }
 
-function feedbackWeb() {
-  const p = patch("Matrix Mixer: Feedback Web", {
-    module: "matrix-mixer", tempo: 84,
-    description: "Two echo networks sit between matrix outputs and inputs, and their returns feed one another through the crosspoints with Normalize on, so the loops build a glassy web of repeats that never runs away. Lower or raise the crosspoint gains around 0.5 to thin out or thicken the web.",
-    tags: ["feedback", "echo", "ambient", "network"],
+function splitterFan() {
+  const p = patch("Matrix Mixer: One to Many", {
+    module: "matrix-mixer", tempo: 98,
+    description: "One plucked line fans out to four outputs through four crosspoints with different gains; outputs 1 and 2 go to the speakers and outputs 3 and 4 pass through delays on the other side, so a single melody turns into a stereo echo field. Raise or lower the 1 to 3 and 1 to 4 gains to place the echoes.",
+    tags: ["fan out", "splitter", "echo", "delay", "one to many"],
   });
-  const m = melody(p, [0, 0], [0, ".", 7, ".", 4, ".", 9, 5, ".", ".", 2, "."], { rate: "1/8", root: "F", scale: "Lydian", octave: 0, shape: 0.2, env: { decay: 0.35, sustain: 0.15 } });
-  const g = { "1>1": 0.7, "1>2": 0.5, "1>3": 0.5, "1>4": 0.5,
-              "3>1": 0.5, "5>1": 0.5, "2>2": 0.5, "4>2": 0.5, "2>3": 0.6, "3>3": 0.6, "4>4": 0.6, "5>4": 0.6 };
-  const mm = matrix(p, [2, 0], 5, 4, g, { stage: "Normalize", level_3: 1.4, level_4: 1.4 }, { labels: { in: ["Source", "Echo A L", "Echo B L", "Echo A R", "Echo B R"], out: ["To A", "To B", "Main L", "Main R"] } });
-  const a = p.add("delay-network", [4, 0], { sync: "1/8.", taps: 3, feedback: 0.35, tone: -0.2, mix: 1, routing: "Chain" }, { name: "Echo A" });
-  const b = p.add("delay-network", [4, 1], { sync: "1/4", taps: 2, feedback: 0.3, tone: 0.1, character: 0.4, mix: 1, routing: "Ring" }, { name: "Echo B" });
-  p.cable(m.amp, "l", mm, "in1");
-  p.cable(mm, "out1", a, "l").cable(mm, "out1", a, "r").cable(mm, "out2", b, "l").cable(mm, "out2", b, "r");
-  p.cable(a, "l", mm, "in2").cable(b, "l", mm, "in3").cable(a, "r", mm, "in4").cable(b, "r", mm, "in5");
-  p.cable(mm, "out3", p.out, "l").cable(mm, "out4", p.out, "r");
+  const a = melody(p, [0, 0], [0, 4, 7, 12, 9, 7, 4, 2, 0, 4, 9, 7, 12, 9, 7, 4], { rate: "1/8", root: "G", scale: "Major Pentatonic", octave: 0, shape: 0.6, gatelength: 0.35, env: { decay: 0.3, sustain: 0 } });
+  const mx = matrix(p, [3, 0], 1, 4, { "1>1": 0.9, "1>2": 0.4, "1>3": 1, "1>4": 1 });
+  const d1 = p.add("delay", [4, 1], { timel: 270, timer: 270, feedback: 0.4, mix: 1 });
+  const d2 = p.add("delay", [4, 2], { timel: 420, timer: 420, feedback: 0.4, mix: 1 });
+  p.cable(a.amp, "l", mx, "in1").cable(mx, "out3", d1, "l").cable(mx, "out3", d1, "r").cable(mx, "out4", d2, "l").cable(mx, "out4", d2, "r");
+  const mix = p.add("audio-mixer", [5, 0], { level1: -2, level2: -2, pan1: -0.6, pan2: 0.6, level3: -6, pan3: -0.8, level4: -6, pan4: 0.8, master: 0 });
+  p.cable(mx, "out1", mix, "in1l").cable(mx, "out1", mix, "in1r").cable(mx, "out2", mix, "in2l").cable(mx, "out2", mix, "in2r")
+    .stereo(d1, mix, { from: ["l", "r"], to: ["in3l", "in3r"] }).stereo(d2, mix, { from: ["l", "r"], to: ["in4l", "in4r"] });
+  finish(p, [6, 0], mix, 1, { size: 0.5, decay: 2.5, mix: 0.2 }, ["outl", "outr"]);
   return p;
 }
 
-function modulationBlender() {
-  const p = patch("Matrix Mixer: Modulation Blender", {
-    module: "matrix-mixer", tempo: 72,
-    description: "The matrix isn't only for audio: four slow Quad LFO waves go in, and four differently blended mixes (some inverted) come out to move the filter of each voice of a chord. Change the crosspoint signs to make voices open when others close.",
-    tags: ["modulation", "control", "blend", "pad"],
+function softClipSum() {
+  const p = patch("Matrix Mixer: Soft Clip Stage", {
+    module: "matrix-mixer", tempo: 120,
+    description: "Four loud parts are summed into one output with every crosspoint at full gain, and the Output Stage setting is Soft clip, so peaks are rounded off instead of cutting hard. Try Clean and Normalize for the other behaviours, or turn Level 1 down to rebalance.",
+    tags: ["output stage", "soft clip", "sum", "level", "mixdown"],
   });
-  const q = p.add("quad-lfo", [0, 0], { rate1: 0.11, mode: "Free", rate2: 0.17, rate3: 0.07, rate4: 0.23, wave1: "Sine", wave2: "Triangle", wave3: "Sine", wave4: "Random Smooth" });
-  const g = { "1>1": 0.8, "2>1": 0.4, "2>2": 0.8, "3>2": -0.5, "3>3": 0.8, "4>3": 0.4, "4>4": 0.8, "1>4": -0.4 };
-  const mm = matrix(p, [1, 0], 4, 4, g, {}, { labels: { in: ["LFO 1", "LFO 2", "LFO 3", "LFO 4"], out: ["Voice 1", "Voice 2", "Voice 3", "Voice 4"] } });
-  [1, 2, 3, 4].forEach((i) => p.cable(q, `out${i}`, mm, `in${i}`));
-  const mix = p.add("audio-mixer", [4, 0], { level1: -9, level2: -9, level3: -9, level4: -9, pan1: -0.6, pan2: -0.2, pan3: 0.2, pan4: 0.6, master: -2, send1: -9, send2: -9, send3: -9, send4: -9, return: -5 }, { name: "Chord" });
-  [0, 4, 7, 11].forEach((s, i) => {
-    const o = p.add("oscillator", [2, i], { coarse: s, octave: "-1", shape: 0.75, fine: (i - 1.5) * 4 }, { name: `Voice ${i + 1}` });
-    const f = p.add("filter", [3, i], { cutoff: 600, resonance: 0.3 }, { name: `Filter ${i + 1}` });
-    p.cable(o, "out", f, "l").cable(mm, `out${i + 1}`, f, "cutoff", 0.7).cable(f, "l", mix, `in${i + 1}l`).cable(f, "l", mix, `in${i + 1}r`);
-  });
-  const verb = p.add("reverb", [5, 0], { size: 0.7, decay: 4.5, mix: 1, quality: "Eco (8 lines)" }, { name: "Hall" });
-  p.cable(mix, "sendl", verb, "l").cable(mix, "sendr", verb, "r").cable(verb, "l", mix, "returnl").cable(verb, "r", mix, "returnr");
-  p.stereo(mix, p.out, { from: ["outl", "outr"] });
+  const d = beat(p, [0, 0], { style: "four", level: 0 });
+  const b = melody(p, [0, 4], [0, 0, ".", 7, 0, ".", 5, ".", 0, 0, ".", 3, 10, ".", 7, 5], { rate: "1/8", root: "F", scale: "Minor Pentatonic", octave: -2, shape: 1, gatelength: 0.6, env: { decay: 0.2, sustain: 0.6 } });
+  const c = melody(p, [0, 6], [12, "_", "_", "_", 15, "_", "_", "_", 10, "_", "_", "_", 14, "_", "_", "_"], { rate: "1/4", root: "F", scale: "Minor Pentatonic", octave: 0, shape: 1, gatelength: 1, env: { attack: 0.02, sustain: 0.8, release: 0.3 } });
+  const mx = matrix(p, [4, 0], 4, 2, { "1>1": 1, "2>2": 1, "3>1": 0.8, "3>2": 0.8, "4>1": 0.6, "4>2": 0.6 }, { stage: "Soft clip", level_1: 0.4, level_2: 0.4 });
+  p.cable(d, "outl", mx, "in1").cable(d, "outr", mx, "in2").cable(b.amp, "l", mx, "in3").cable(c.amp, "l", mx, "in4");
+  p.stereo(mx, p.out, { from: ["out1", "out2"] });
   return p;
 }
 
-export default [effectSends, sceneMorph, crosspointRing, feedbackWeb, modulationBlender];
+export default [sceneSwitch, morphScenes, feedbackFree, splitterFan, softClipSum];

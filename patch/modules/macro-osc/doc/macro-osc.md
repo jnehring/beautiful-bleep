@@ -204,11 +204,11 @@ Five whole patches show what Macro Osc does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Macro Osc: Plucked Strings** | The Pluck model struck by a sequencer trigger rings like a plucked string, and its built-in decay and low-pass gate need no envelope at all. Try a longer Decay for sustain or move Tone for a brighter string. |
-| **Macro Osc: Synthetic Kit** | Three Macro Oscs play a whole drum kit from one grid: the Kick, Snare and Metal models, each struck by its own trigger. Change Tone and Decay on each one to retune the kit. |
-| **Macro Osc: Chord Mist** | The Chord model plays a whole chord from one pitch; slow LFOs on Tone and Shape change the chord type and voicing, and Aux carries a second voice to the other side. Turn Blend to taste. |
-| **Macro Osc: Phase Warp Bass** | The Phase Warp model with an envelope on its Tone macro: each bass note starts wide open and bent, then settles into a round, quiet sound. Try other Models such as Fold or FM on the same line. |
-| **Macro Osc: Dust Garden** | The Dust model scatters tiny pitched clicks, with the sequencer walking them through a pentatonic scale, and a second Macro Oscillator on Noise Band adds airy breath beneath. Move Tone for denser crackle and Blend for a wider texture. |
+| **Macro Osc: Plucked Strings** | The Pluck model struck by the sequencer's trigger: its built-in decay and low-pass gate shape every note, so no envelope or VCA is needed. Turn Decay for longer strings, Tone for brightness and Shape for how hard the string is hit. |
+| **Macro Osc: Vowel Choir** | The Vowel model holds slow notes while a slow LFO walks Tone through the vowels, so the choir seems to sing a different syllable on every phrase. Turn Blend to change the voice or Shape for brightness. |
+| **Macro Osc: FM Electric Keys** | The FM model as a tine-and-bell keyboard sound: Tone sets the modulator ratio and an envelope on Shape gives each key a sparkle that fades. Change Tone to hop between ratios, or raise Blend for more of the second voice. |
+| **Macro Osc: Synth Drum Kit** | Three Macro Oscs on the Kick, Snare and Metal models are struck by a drum grid: a whole beat from one module type. Change each model's Decay and Tone to tune the kit, or switch a model for other percussion. |
+| **Macro Osc: Modal Marimba** | The Modal model struck by a trigger rings like a wooden bar. Tone moves from soft wood to bright metal, Decay lengthens the ring, and Accent from the velocity gives the loud and soft notes. |
 <!-- /generated -->
 
 <!-- generated:presets -->

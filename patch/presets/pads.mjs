@@ -2,225 +2,223 @@
 // Pads: slow, moving polyphonic Voice Cells for chords and beds. Notes in, Out L/R.
 import { voice, category, ampEnvelope, envelope, semis } from "./kit.mjs";
 
-// Two detuned saws, a per-voice drifting LFO on the second and a slow ladder swell: string machine.
-function velvetStrings() {
-  const p = voice("Velvet Strings", {
-    description: "Two saws a few cents apart, each voice drifting at its own rate, into a soft ladder that swells open: a lush analog string pad. Shared input Cutoff.",
-    tags: ["pad", "strings", "analog", "lush"],
-    help: "Two saws detuned by -8 and +8 cents, with a drifting LFO on the second one and different drift " +
-      "rates for each voice. They feed a Ladder Linear filter at 900 Hz that a slow envelope swells " +
-      "open. Eight voices.\n\n" +
-      "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
-      "Tip: play slow chords and let the attack swell in, then raise Cutoff for a brighter section.",
-  }).settings({ voices: 8, spread: 0.6 }).input("cut", "Cutoff");
-  const o1 = p.add("oscillator", [0, 0], { fine: -8 }, { name: "Saw 1" });
-  const o2 = p.add("oscillator", [0, 1], { fine: 8 }, { name: "Saw 2" });
-  const drift = p.add("lfo", [0, 2], { rate: 0.35, wave: "Random Smooth" }, { name: "Drift" });
-  const envf = envelope(p, [0, 3], { attack: 1.2, decay: 2, sustain: 0.6, release: 2.5, velamount: 0.3 }, "Filter Env");
-  const flt = p.add("filter", [1, 0], { cutoff: 900, resonance: 0.12, keytrack: 0.4, type: "Ladder Linear" });
-  p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch")
-    .cable(drift, "out", o2, "pitch", semis(0.15)).cable(p.vin, "random", drift, "rate", 0.08)
-    .cable(o1, "out", flt, "l", 0.55).cable(o2, "out", flt, "l", 0.55).cable(p.vin, "pitch", flt, "pitch")
-    .cable(envf, "env", flt, "cutoff", 0.2).cable(p.cin, "cut", flt, "cutoff", 0.5);
-  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.9, decay: 1, sustain: 0.9, release: 2.2, velamount: 0.3 });
+// Additive saw partials, chorused wide, brightness drifting slowly.
+function additiveDawn() {
+  const p = voice("Additive Dawn", {
+    description: "Additive saw partials with a built-in chorus and a tilt that drifts slowly brighter and darker: a clean, airy pad that rises like first light. Shared input Brightness.",
+    tags: ["pad", "additive", "airy", "evolving", "clean"],
+    help: "An Additive Osc with 24 saw partials, a soft Tilt and a wide, slow chorus. An Organic LFO moves the " +
+      "Tilt up and down over many seconds, and velocity adds a little more top. A slow amp envelope fades " +
+      "each note in and a long release lets chords melt into one another. Six voices.\n\n" +
+      "Notes in, Out L/R. The shared input Brightness adds to the Tilt.\n\n" +
+      "Tip: hold open chords with the sustain pedal and raise Brightness as the section builds.",
+  }).settings({ voices: 6, spread: 0.5 }).input("bright", "Brightness");
+  const add = p.add("additive-osc", [0, 0], { partials: 24, tilt: -8, chorus: 22, chorusRate: 0.25, width: 0.9 });
+  const org = p.add("organic-lfos", [0, 1], { rate: 0.12, spread: 0.5 });
+  p.cable(p.vin, "pitch", add, "pitch").cable(org, "out1", add, "tilt", 0.12).cable(p.vin, "velocity", add, "tilt", 0.06)
+    .cable(p.cin, "bright", add, "tilt", 0.3);
+  ampEnvelope(p, { node: add, stereo: true, jacks: ["outL", "outR"] }, [1, 1], { attack: 1.4, decay: 1.5, sustain: 0.85, release: 2.5, velamount: 0.2 });
   return p;
 }
 
-// A Swarm on fifths that blooms out of unison, breathed on by Organic LFOs.
-function swarmNebula() {
-  const p = voice("Swarm Nebula", {
-    description: "Ten Swarm oscillators bloom from unison into stacked fifths while Organic LFOs breathe on spread, warp and filter: a wide, living cloud. Shared input Bloom.",
-    tags: ["pad", "cloud", "wide", "evolving"],
-    help: "A Swarm of ten oscillators in Fifths mode, with long glide so the stack blooms out of unison. " +
-      "Organic LFOs modulate spread, warp and filter cutoff slowly, and every new note reshuffles the " +
-      "Swarm. An SVF Multimode filter at 2.6 kHz follows.\n\n" +
-      "Notes in, Out L/R. The shared input Bloom adds to the Swarm's spread.\n\n" +
-      "Tip: hold one chord for a while and move Bloom.",
-  }).settings({ voices: 6, spread: 0.3 }).input("bloom", "Bloom");
-  const sw = p.add("swarm", [0, 0], { chord: "Fifths", count: 10, spread: 0.45, detune: 14, drift: 0.5, width: 1, glide: 1.5, crossfm: 0.04 });
-  const org = p.add("organic-lfos", [0, 1], { rate: 0.08, spread: 0.6, drift: 0.4 });
-  const flt = p.add("filter", [1, 0], { cutoff: 2600, resonance: 0.15, keytrack: 0.3, type: "SVF Multimode" });
-  p.cable(p.vin, "pitch", sw, "pitch").cable(org, "out1", sw, "spread", 0.25).cable(org, "out2", sw, "warp", 0.15)
-    .cable(p.cin, "bloom", sw, "spread", 0.5).cable(p.vin, "trigger", sw, "reshuffle")
-    .stereo(sw, flt).cable(org, "out3", flt, "cutoff", 0.08);
-  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 1.8, decay: 1.5, sustain: 0.85, release: 3.5, velamount: 0.2 });
-  return p;
-}
-
-// Additive saw spectrum with a moving comb and chorus: a breathy organ-choir.
-function aetherChoir() {
-  const p = voice("Aether Choir", {
-    description: "Additive Osc with a chorus on its partials and a comb that sweeps slowly through them, differently per voice: an airy organ-choir. Shared input Air.",
-    tags: ["pad", "choir", "additive", "airy"],
-    help: "An Additive Osc with 24 partials, a chorus on the partials and a comb filter whose phase is " +
-      "swept by a slow LFO, different for each voice. It sounds like an airy organ-choir. Eight " +
+// Wavetable bank wandering on two slow axes.
+function spectraTide() {
+  const p = voice("Spectra Tide", {
+    description: "A spectral wavetable that wanders slowly across its grid on two axes, never repeating the same way twice: a glassy, shifting pad. Shared input Drift.",
+    tags: ["pad", "wavetable", "evolving", "glassy", "spectral"],
+    help: "A Wavetable Osc on the Spectra bank. Two Organic LFOs move X and Y very slowly, and each voice starts " +
+      "from a slightly different place. A gentle 1-Pole low-pass at 6 kHz takes off the digital edge. Six " +
       "voices.\n\n" +
-      "Notes in, Out L/R. The shared input Air adds to both the spectral tilt and the chorus amount.\n\n" +
-      "Tip: play wide chords and move Air for more chorus and brightness.",
-  }).settings({ voices: 8, spread: 0.4 }).input("air", "Air");
-  const add = p.add("additive-osc", [0, 0], { partials: 24, tilt: -6, oddEven: 0.25, comb: 0.5, combSpacing: 5,
-    chorus: 18, chorusRate: 0.4, width: 0.7 });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.12, wave: "Triangle" }, { name: "Comb Sweep" });
-  p.cable(p.vin, "pitch", add, "pitch").cable(lfo, "out", add, "combPhase", 0.5).cable(p.vin, "random", lfo, "phase", 0.5)
-    .cable(p.cin, "air", add, "tilt", 0.3).cable(p.cin, "air", add, "chorus", 0.3);
-  ampEnvelope(p, { node: add, stereo: true, jacks: ["outL", "outR"] }, [1, 1],
-    { attack: 1.2, decay: 1, sustain: 0.9, release: 2.5, velamount: 0.25 });
+      "Notes in, Out L/R. The shared input Drift adds to the X position, so you can steer where the pad sits " +
+      "in the table.\n\n" +
+      "Tip: hold a chord and listen: the sound slowly changes from bright to hollow and back.",
+  }).settings({ voices: 6, spread: 0.6 }).input("drift", "Drift");
+  const wt = p.add("wavetable-osc", [0, 0], { bank: "Spectra", x: 0.3, y: 0.3, stereo: 0.3 });
+  const org = p.add("organic-lfos", [0, 1], { rate: 0.1, spread: 0.7 });
+  const flt = p.add("filter", [1, 0], { cutoff: 6000, resonance: 0.05, type: "1-Pole Low-pass" });
+  p.cable(p.vin, "pitch", wt, "pitch").cable(org, "out1", wt, "x", 0.25).cable(org, "out2", wt, "y", 0.25)
+    .cable(p.vin, "random", wt, "scan", 0.1).cable(p.cin, "drift", wt, "x", 0.5)
+    .stereo(wt, flt, { from: ["outL", "outR"] });
+  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 1.2, decay: 1.5, sustain: 0.85, release: 2.5, velamount: 0.2 });
   return p;
 }
 
-// Wavetable Spectra bank walked along a spiral path by a slow LFO.
-function tidalTables() {
-  const p = voice("Tidal Tables", {
-    description: "Wavetable Osc on the Spectra bank, scanned along a spiral by a slow tide LFO and offset per voice, through a gentle ladder. Shared input Scan.",
-    tags: ["pad", "wavetable", "morphing", "digital"],
-    help: "A Wavetable Osc on the Spectra bank, scanned along a Spiral path by a very slow LFO. Each voice " +
-      "is offset a little by its random value. A Ladder Linear filter at 4.2 kHz follows.\n\n" +
-      "Notes in, Out L/R. The shared input Scan adds to the scan position, so a knob or LFO there " +
-      "changes which part of the table you hear.\n\n" +
-      "Tip: hold a chord for a minute and slowly turn Scan.",
-  }).settings({ voices: 8, spread: 0.5 }).input("scan", "Scan");
-  const wt = p.add("wavetable-osc", [0, 0], { bank: "Spectra", path: "Spiral", scan: 0.3, stereo: 0.3, subLevel: 0.15 });
-  const tide = p.add("lfo", [0, 1], { rate: 0.05, wave: "Triangle" }, { name: "Tide" });
-  const flt = p.add("filter", [1, 0], { cutoff: 4200, resonance: 0.1, keytrack: 0.3, type: "Ladder Linear" });
-  p.cable(p.vin, "pitch", wt, "pitch").cable(tide, "out", wt, "scan", 0.3).cable(p.vin, "random", wt, "scan", 0.15)
-    .cable(p.cin, "scan", wt, "scan", 0.5).stereo(wt, flt, { from: ["outL", "outR"] });
-  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 1.5, decay: 1, sustain: 0.9, release: 3, velamount: 0.25 });
+// Formant oscillator with a slow vowel drift, like a hummed choir.
+function hollowChoir() {
+  const p = voice("Hollow Choir", {
+    description: "A pulse-formant oscillator whose peak drifts slowly, voice by voice, giving a hummed, hollow choir that never settles on one vowel. Shared input Formant.",
+    tags: ["pad", "choir", "formant", "vocal", "hollow"],
+    help: "A Formant Osc in a wide stereo setting. An Organic LFO nudges the Formant peak a little differently " +
+      "for each voice, so a chord sounds like several singers on slightly different vowels. A 1-Pole " +
+      "low-pass at 4 kHz softens it and a slow envelope swells each note. Six voices.\n\n" +
+      "Notes in, Out L/R. The shared input Formant adds to the peak position and so moves the vowel for " +
+      "all voices together.\n\n" +
+      "Tip: play wide, open chords and ride Formant slowly for a choir that turns its head.",
+  }).settings({ voices: 6, spread: 0.7 }).input("form", "Formant");
+  const fo = p.add("formant-osc", [0, 0], { formant: 1.2, narrow: 0.35, body: 0.75, spread: 0.6 });
+  const org = p.add("organic-lfos", [0, 1], { rate: 0.15, spread: 0.8 });
+  const flt = p.add("filter", [1, 0], { cutoff: 4000, resonance: 0.05, type: "1-Pole Low-pass" });
+  p.cable(p.vin, "pitch", fo, "pitch").cable(org, "out1", fo, "formant", 0.1).cable(p.vin, "random", fo, "formant", 0.05)
+    .cable(p.cin, "form", fo, "formant", 0.3).stereo(fo, flt, { from: ["outL", "outR"] });
+  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 1.1, decay: 1.2, sustain: 0.9, release: 2.2, velamount: 0.2 });
   return p;
 }
 
-// Macro Osc Vowel model: each voice sings its own slowly changing vowel.
-function monasteryVowels() {
-  const p = voice("Monastery Vowels", {
-    description: "Macro Osc's Vowel model: each voice drifts through its own vowels with a slow vibrato fading in, a little breath on top: a formant choir. Shared input Vowel.",
-    tags: ["pad", "choir", "formant", "vocal"],
-    help: "A Macro Osc in Vowel mode. A slow random LFO drifts each voice's vowel, with a vibrato that " +
-      "fades in and a 1-Pole Low-pass at 5.5 kHz. Eight voices spread wide.\n\n" +
-      "Notes in, Out L/R. The shared input Vowel adds to the vowel position of all voices.\n\n" +
-      "Tip: play open chords and raise Vowel to change the vowel.",
-  }).settings({ voices: 8, spread: 0.7 }).input("vowel", "Vowel");
-  const mo = p.add("macro-osc", [0, 0], { model: "Vowel", tone: 0.35, shape: 0.6, blend: 0.15, level: 0.7 });
-  const drift = p.add("lfo", [0, 1], { rate: 0.09, wave: "Random Smooth" }, { name: "Vowel Drift" });
-  const vib = p.add("lfo", [0, 2], { rate: 5.2, fade: 1.2 }, { name: "Vibrato" });
-  const flt = p.add("filter", [1, 0], { cutoff: 5500, resonance: 0.05, type: "1-Pole Low-pass" });
-  p.cable(p.vin, "pitch", mo, "pitch").cable(drift, "out", mo, "tone", 0.25).cable(p.vin, "random", mo, "tone", 0.2)
-    .cable(p.cin, "vowel", mo, "tone", 0.5).cable(vib, "sine", mo, "pitch", semis(0.15))
-    .cable(mo, "out", flt, "l");
-  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.8, decay: 1, sustain: 0.9, release: 2, velamount: 0.3 });
-  return p;
-}
-
-// Two pulse waves with LFO-swept widths in opposite phase: the classic PWM pad.
-function pulseWidthHaze() {
-  const p = voice("Pulse Width Haze", {
-    description: "Two pulse waves whose widths sweep in opposite phase, at a slightly different speed per voice, into a warm ladder: a shimmering PWM pad. Shared input Cutoff.",
-    tags: ["pad", "pwm", "analog", "vintage"],
-    help: "Two pulse Oscillators detuned by -4 and +4 cents. One LFO sweeps their widths in opposite " +
-      "directions, with a slightly different speed per voice. A Ladder Tanh filter at 1.4 kHz follows. " +
-      "Eight voices.\n\n" +
+// Chord oscillator: every key plays a minor seventh.
+function seventhGlow() {
+  const p = voice("Seventh Glow", {
+    description: "Every key sounds a full minor seventh chord, slightly detuned and spread wide through a soft ladder: one-finger jazzy pad harmony. Shared input Cutoff.",
+    tags: ["pad", "chord", "jazz", "minor seventh", "warm"],
+    help: "A Chord Osc set to a minor seventh with four voices, a little detune and a wide stereo image, through " +
+      "a Ladder Linear filter at 1.4 kHz that a slow envelope opens. Three voices, since each already plays " +
+      "a whole chord.\n\n" +
       "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
-      "Tip: play a held chord, and slowly raise Cutoff to hear the PWM shimmer open up.",
-  }).settings({ voices: 8, spread: 0.7 }).input("cut", "Cutoff");
-  const o1 = p.add("oscillator", [0, 0], { shape: 1, fine: -4 }, { name: "Pulse 1" });
-  const o2 = p.add("oscillator", [0, 1], { shape: 1, fine: 4 }, { name: "Pulse 2" });
-  const pwm = p.add("lfo", [0, 2], { rate: 0.6, wave: "Triangle" }, { name: "PWM" });
-  const flt = p.add("filter", [1, 0], { cutoff: 1400, resonance: 0.2, drive: 0.15, keytrack: 0.3, type: "Ladder Tanh" });
-  p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch")
-    .cable(pwm, "out", o1, "pw", 0.35).cable(pwm, "out", o2, "pw", -0.35).cable(p.vin, "random", pwm, "rate", 0.05)
-    .cable(o1, "out", flt, "l", 0.55).cable(o2, "out", flt, "l", 0.55).cable(p.vin, "pitch", flt, "pitch")
-    .cable(p.cin, "cut", flt, "cutoff", 0.5);
-  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.6, decay: 1, sustain: 0.85, release: 1.8, velamount: 0.3 });
+      "Tip: play single notes for lush chord changes; play two or three together for stacked, ambiguous harmony.",
+  }).settings({ voices: 3, spread: 0.4 }).input("cut", "Cutoff");
+  const ch = p.add("chord-osc", [0, 0], { chord: "Minor 7", voices: 4, detune: 12, stereo: 0.8, shape: 0.67 });
+  const envf = envelope(p, [0, 1], { attack: 1.2, decay: 2, sustain: 0.6, release: 2, velamount: 0.3 }, "Filter Env");
+  const flt = p.add("filter", [1, 0], { cutoff: 1400, resonance: 0.12, keytrack: 0.4, type: "Ladder Linear" });
+  p.cable(p.vin, "pitch", ch, "pitch").stereo(ch, flt).cable(p.vin, "pitch", flt, "pitch")
+    .cable(envf, "env", flt, "cutoff", 0.15).cable(p.cin, "cut", flt, "cutoff", 0.5);
+  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.8, decay: 1, sustain: 0.9, release: 2.2, velamount: 0.2 });
   return p;
 }
 
-// Saw and sub-octave triangle, a touch of folding, a low resonant ladder moved by Organic LFOs.
-function abyssalDrone() {
-  const p = voice("Abyssal Drone", {
-    description: "Dual Osc saw over a triangle an octave down, lightly folded, into a low resonant ladder that Organic LFOs open and close over many seconds: a dark drone. Shared input Cutoff.",
-    tags: ["pad", "drone", "dark", "ambient"],
-    help: "A Dual Osc with a saw and a triangle one octave down, lightly folded, into a low resonant " +
-      "Ladder Tanh filter at 260 Hz. Organic LFOs move the fold and cutoff over many seconds. Attack " +
-      "and release are very long.\n\n" +
+// Two saws into a dual filter whose two peaks drift apart and together.
+function duskFormants() {
+  const p = voice("Dusk Formants", {
+    description: "Two detuned saws through a pair of parallel resonant filters whose peaks slowly drift apart and together, like a vowel at dusk. Shared input Spread.",
+    tags: ["pad", "formant", "filter", "evolving", "dark"],
+    help: "Two saw Oscillators feed a Dual Filter in Parallel mode with moderate resonance. A slow LFO " +
+      "changes the Spread between the two peaks, so the voice-like colour opens and closes over several " +
+      "seconds. Six voices with a long release.\n\n" +
+      "Notes in, Out L/R. The shared input Spread adds to the distance between the two filters.\n\n" +
+      "Tip: play low chords; the filters follow the keyboard, so the colour moves with the harmony.",
+  }).settings({ voices: 6, spread: 0.5 }).input("spread", "Spread");
+  const o1 = p.add("oscillator", [0, 0], { fine: -9 }, { name: "Saw 1" });
+  const o2 = p.add("oscillator", [0, 1], { fine: 9, octave: "-1" }, { name: "Saw 2" });
+  const lfo = p.add("lfo", [0, 2], { rate: 0.08, wave: "Triangle" }, { name: "Spread LFO" });
+  const df = p.add("dual-filter", [1, 0], { cutoff: 800, spread: 1.6, res1: 0.55, res2: 0.5, keyTrack: 0.8, routing: "Parallel", mode1: 0, mode2: 0 });
+  for (const o of [o1, o2]) p.cable(p.vin, "pitch", o, "pitch").cable(o, "out", df, "l", 0.5).cable(o, "out", df, "r", 0.5);
+  p.cable(p.vin, "pitch", df, "pitch").cable(lfo, "out", df, "spread", 0.12).cable(p.cin, "spread", df, "spread", 0.4)
+    .cable(p.vin, "random", df, "cutoff", 0.04);
+  ampEnvelope(p, { node: df, stereo: true }, [2, 1], { attack: 1.2, decay: 1, sustain: 0.9, release: 2.4, velamount: 0.2 });
+  return p;
+}
+
+// Three pulses with independent width movement: a string-ensemble wash.
+function ribbonEnsemble() {
+  const p = voice("Ribbon Ensemble", {
+    description: "Three detuned pulse waves, each with its own slowly wandering width, into a soft low-pass: a thick, swirling analog ensemble. Shared input Cutoff.",
+    tags: ["pad", "pwm", "ensemble", "analog", "swirling"],
+    help: "Three pulse Oscillators tuned -10, 0 and +10 cents. Two Organic LFO outputs and a random LFO move " +
+      "their pulse widths at different slow rates, so the thickness keeps changing. An SVF low-pass at 2.2 kHz " +
+      "shapes them. Six voices.\n\n" +
       "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
-      "Tip: hold one or two low notes and leave it running; raise Cutoff for more movement.",
-  }).settings({ voices: 4, spread: 0.5 }).input("cut", "Cutoff");
-  const osc = p.add("dual-osc", [0, 0], { shapeA: 0.67, shapeB: 0.33, octaveB: -1, balance: 0.5, fold: 0.15, drift: 0.4, width: 0.6 });
-  const org = p.add("organic-lfos", [0, 1], { rate: 0.03, spread: 0.4, drift: 0.5 });
-  const flt = p.add("filter", [1, 0], { cutoff: 260, resonance: 0.45, drive: 0.3, keytrack: 0.2, type: "Ladder Tanh" });
-  p.cable(p.vin, "pitch", osc, "pitch").cable(org, "out1", osc, "fold", 0.2)
-    .stereo(osc, flt, { from: ["outL", "outR"] }).cable(p.vin, "pitch", flt, "pitch")
-    .cable(org, "out2", flt, "cutoff", 0.12).cable(p.cin, "cut", flt, "cutoff", 0.5);
-  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 2.5, decay: 1, sustain: 1, release: 5, velamount: 0.15 });
+      "Tip: play chords in the middle register and let them sit for a few bars to hear the width move.",
+  }).settings({ voices: 6, spread: 0.6 }).input("cut", "Cutoff");
+  const o1 = p.add("oscillator", [0, 0], { shape: 1, fine: -10, pw: 0.35 }, { name: "Pulse 1" });
+  const o2 = p.add("oscillator", [0, 1], { shape: 1, fine: 0, pw: 0.5 }, { name: "Pulse 2" });
+  const o3 = p.add("oscillator", [0, 2], { shape: 1, fine: 10, pw: 0.6 }, { name: "Pulse 3" });
+  const org = p.add("organic-lfos", [0, 3], { rate: 0.2, spread: 0.8 });
+  const flt = p.add("filter", [1, 0], { cutoff: 2200, resonance: 0.12, keytrack: 0.5, type: "SVF Multimode" });
+  p.cable(org, "out1", o1, "pw", 0.3).cable(org, "out2", o2, "pw", 0.3).cable(org, "out3", o3, "pw", 0.3);
+  for (const o of [o1, o2, o3]) p.cable(p.vin, "pitch", o, "pitch").cable(o, "out", flt, "l", 0.4).cable(o, "out", flt, "r", 0.4);
+  p.cable(p.vin, "pitch", flt, "pitch").cable(p.cin, "cut", flt, "cutoff", 0.5);
+  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.9, decay: 1, sustain: 0.9, release: 2, velamount: 0.2 });
   return p;
 }
 
-// Modal Voice bowing a bell-shaped body, a soft ting at the start: singing glass.
-function bowedCrystal() {
-  const p = voice("Bowed Crystal", {
-    description: "Modal Voice bows an inharmonic glass body that swells in after a soft mallet ting; a slow LFO wanders the bow position and aftertouch bows harder. Shared input Brightness.",
-    tags: ["pad", "glassy", "bell", "physical"],
-    help: "A Modal Voice bows an inharmonic glass-like body, with a soft mallet strike at note start. A " +
-      "slow LFO moves the bow position and aftertouch bows harder. The Modal Voice has its own " +
-      "envelope, so there is no ADSR in the patch.\n\n" +
-      "Notes in, Out L/R. The shared input Brightness adds to the Modal Voice brightness.\n\n" +
-      "Tip: hold a note for a few seconds to hear the bow swell, then lean on the key.",
-  }).settings({ voices: 8, spread: 0.6 }).input("bright", "Brightness");
-  const mv = p.add("modal-voice", [1, 0], { bow: 0.65, bowTimbre: 0.3, strike: 0.25, strikeTimbre: 0.2, contour: 0.1,
-    geometry: 0.85, brightness: 0.7, damping: 0.25, position: 0.3, space: 0 });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.15, wave: "Random Smooth" }, { name: "Position Drift" });
-  p.cable(p.vin, "pitch", mv, "pitch").cable(p.vin, "gate", mv, "gate").cable(p.vin, "trigger", mv, "strike")
-    .cable(p.vin, "velocity", mv, "velocity").cable(p.vin, "pressure", mv, "bow", 0.3)
-    .cable(lfo, "out", mv, "position", 0.12).cable(p.cin, "bright", mv, "brightness", 0.4)
-    .stereo(mv, p.vout).cable(mv, "active", p.vout, "active");
+// FM with a quiet index, shimmering and cold.
+function frostGlass() {
+  const p = voice("Frost Glass", {
+    description: "An FM voice an octave up with a gently wandering index and a slow swell: a cold, shimmering pad of glass-bell overtones. Shared input Shine.",
+    tags: ["pad", "fm", "glass", "bell", "shimmer"],
+    help: "A Macro Osc in FM mode, one octave up. A slow Random LFO changes the Shape (the FM index) per voice " +
+      "and an envelope brightens the swell. A high-cut SVF filter at 7 kHz keeps it from getting harsh. " +
+      "Six voices with a long release.\n\n" +
+      "Notes in, Out L/R. The shared input Shine adds to the index and so to the number of bell-like overtones.\n\n" +
+      "Tip: play high, sparse chords; low notes sound heavier and less glassy.",
+  }).settings({ voices: 6, spread: 0.5 }).input("shine", "Shine");
+  const fm = p.add("macro-osc", [0, 0], { model: "FM", octave: 1, tone: 0.8, shape: 0.2, blend: 0.1, level: 0.7 });
+  const org = p.add("organic-lfos", [0, 1], { rate: 0.15, spread: 0.6 });
+  const envi = envelope(p, [0, 2], { attack: 1.5, decay: 2, sustain: 0.5, release: 2, velamount: 0.3 }, "Index Env");
+  const flt = p.add("filter", [1, 0], { cutoff: 7000, resonance: 0.05, type: "SVF Multimode" });
+  p.cable(p.vin, "pitch", fm, "pitch").cable(org, "out1", fm, "shape", 0.12).cable(envi, "env", fm, "shape", 0.15)
+    .cable(p.cin, "shine", fm, "shape", 0.4).cable(fm, "out", flt, "l").cable(fm, "out", flt, "r");
+  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 1.1, decay: 1.5, sustain: 0.8, release: 2.5, velamount: 0.2 });
   return p;
 }
 
-// A detuned major-seventh chord per key through a slowly sweeping phaser.
-function satinSevenths() {
-  const p = voice("Satin Sevenths", {
-    description: "Chord Osc spreads an open major seventh over the stereo field with a chorus-like detune, through a phaser that sweeps slowly: an ensemble pad for one-finger chords. Shared input Cutoff.",
-    tags: ["pad", "chords", "ensemble", "lush"],
-    help: "A Chord Osc plays an open Major 7 chord from each key, detuned and spread in stereo. It passes " +
-      "through a slowly swept Phaser and a Ladder Linear low-pass at 3.5 kHz. Four voices.\n\n" +
-      "Notes in, Out L/R. The shared input Cutoff moves the final low-pass.\n\n" +
-      "Tip: play single notes for instant chords and raise " +
-      "Cutoff to open the sound up.",
-  }).settings({ voices: 4 }).input("cut", "Cutoff");
-  const chord = p.add("chord-osc", [0, 0], { chord: "Major 7", voices: 4, voicing: "Open", detune: 12, stereo: 0.8, shape: 0.6 });
-  const sweep = p.add("lfo", [0, 1], { rate: 0.12, wave: "Triangle" }, { name: "Phaser Sweep" });
-  const ph = p.add("filter", [1, 0], { cutoff: 900, resonance: 0.35, mix: 0.5, type: "Phaser 2-Pole ×2" }, { name: "Phaser" });
-  const lp = p.add("filter", [2, 0], { cutoff: 3500, resonance: 0.1, keytrack: 0.3, type: "Ladder Linear" }, { name: "Low-pass" });
-  p.cable(p.vin, "pitch", chord, "pitch").stereo(chord, ph).cable(sweep, "out", ph, "cutoff", 0.2)
-    .stereo(ph, lp).cable(p.vin, "pitch", lp, "pitch").cable(p.cin, "cut", lp, "cutoff", 0.5);
-  ampEnvelope(p, { node: lp, stereo: true }, [3, 1], { attack: 0.7, decay: 1, sustain: 0.85, release: 2.2, velamount: 0.3 });
+// Noise through a tracking narrow band-pass plus a soft triangle: breathy air organ.
+function breathOrgan() {
+  const p = voice("Breath Organ", {
+    description: "Pink noise through a narrow band-pass that tracks each note, with a soft triangle underneath: a breathy, pipe-like pad with air on every chord. Shared input Breath.",
+    tags: ["pad", "breath", "noise", "organ", "airy"],
+    help: "Pink Noise goes through a resonant SVF band-pass that follows the key, which makes the noise ring at " +
+      "the note's pitch. A soft triangle Oscillator sits underneath for body. Both go through a VCA with a " +
+      "slow swell. A drifting LFO moves the band slightly. Eight voices.\n\n" +
+      "Notes in, Out L/R. The shared input Breath adds to the level of the noise.\n\n" +
+      "Tip: play octaves or fifths; the narrow band rings clearly on simple intervals.",
+  }).settings({ voices: 8, spread: 0.5 }).input("breath", "Breath");
+  const tri = p.add("oscillator", [0, 0], { shape: 0.2 }, { name: "Tone" });
+  const noise = p.add("noise", [0, 1], { colour: -0.2, level: 1 });
+  const bp = p.add("filter", [1, 1], { cutoff: 440, resonance: 0.85, keytrack: 1, type: "SVF Bandpass (unit gain)" }, { name: "Breath Band" });
+  const air = p.add("vca", [2, 1], { gain: 3 }, { name: "Breath Level" });
+  const drift = p.add("lfo", [0, 2], { rate: 0.3, wave: "Random Smooth" }, { name: "Drift" });
+  const mix = p.add("filter", [2, 0], { cutoff: 5000, resonance: 0.05, type: "1-Pole Low-pass" }, { name: "Tone LP" });
+  p.cable(p.vin, "pitch", tri, "pitch").cable(noise, "pink", bp, "l").cable(p.vin, "pitch", bp, "pitch")
+    .cable(drift, "out", bp, "cutoff", 0.03).cable(bp, "l", air, "l").cable(p.cin, "breath", air, "gain", 0.4)
+    .cable(tri, "out", mix, "l", 0.7).cable(tri, "out", mix, "r", 0.7).cable(air, "l", mix, "l", 0.9).cable(air, "l", mix, "r", 0.9);
+  ampEnvelope(p, { node: mix, stereo: true }, [3, 1], { attack: 1, decay: 1, sustain: 0.9, release: 1.8, velamount: 0.2 });
   return p;
 }
 
-// Pink noise through two key-tracked resonant band-passes, gusting with Organic LFOs.
-function desertWind() {
-  const p = voice("Desert Wind", {
-    description: "Pink noise through a pair of resonant band-passes tuned to the note, gusting and turning as Organic LFOs move them: a pitched wind texture. Shared input Howl (resonance).",
-    tags: ["pad", "texture", "noise", "wind"],
-    help: "Pink Noise through a Dual Filter, two resonant band-passes in parallel, tuned to the note " +
-      "pitch. Organic LFOs move the cutoff and the gap between the bands, and a second pass gusts the " +
-      "level.\n\n" +
-      "Notes in, Out L/R. The shared input Howl adds to the resonance of both bands, so higher values " +
-      "make the pitch clearer.\n\n" +
-      "Tip: hold one note and raise Howl until a whistling tone appears.",
-  }).settings({ voices: 6, spread: 0.8 }).input("howl", "Howl");
-  const nz = p.add("noise", [0, 0], { colour: -0.3 });
-  const org = p.add("organic-lfos", [0, 1], { rate: 0.15, spread: 0.7, drift: 0.6 });
-  const df = p.add("dual-filter", [1, 0], { cutoff: 261.63, spread: 1, res1: 0.85, res2: 0.8, mode1: 0.333, mode2: 0.333,
-    keyTrack: 1, routing: "Parallel" });
-  p.cable(nz, "pink", df, "l").cable(p.vin, "pitch", df, "pitch")
-    .cable(org, "out1", df, "cutoff", 0.03).cable(org, "out2", df, "spread", 0.05)
-    .cable(p.cin, "howl", df, "res1", 0.15).cable(p.cin, "howl", df, "res2", 0.15);
-  const gust = p.add("vca", [2, 0], { gain: 0.7 }, { name: "Gusts" });
-  p.stereo(df, gust).cable(org, "out3", gust, "gain", 0.3);
-  ampEnvelope(p, { node: gust, stereo: true }, [3, 1], { attack: 2, decay: 1, sustain: 0.9, release: 4, velamount: 0.3 });
+// Brown noise plus a deep saw into a closed lowpass that slowly opens: a cellar bed.
+function cellarFog() {
+  const p = voice("Cellar Fog", {
+    description: "A deep saw, its sub and a veil of brown noise behind a closed low-pass that creeps open as the note holds: a dark, rumbling bed. Shared input Cutoff.",
+    tags: ["pad", "dark", "drone", "noise", "low"],
+    help: "A saw Oscillator an octave down with its sub output, plus Brown Noise, all through a Ladder Tanh " +
+      "low-pass at 220 Hz. A slow Filter Env opens the filter during a held note. A random LFO drifts the " +
+      "cutoff a little. Four voices, long release.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter.\n\n" +
+      "Tip: play low, sparse notes and bring Cutoff up for a slow-motion rise.",
+  }).settings({ voices: 4, spread: 0.4 }).input("cut", "Cutoff");
+  const saw = p.add("oscillator", [0, 0], { octave: "-1", fine: 4 }, { name: "Saw" });
+  const noise = p.add("noise", [0, 1], { colour: -1, level: 0.5 });
+  const envf = envelope(p, [0, 2], { attack: 3, decay: 3, sustain: 0.5, release: 2.5, velamount: 0.2 }, "Filter Env");
+  const drift = p.add("lfo", [0, 3], { rate: 0.15, wave: "Random Smooth" }, { name: "Drift" });
+  const flt = p.add("filter", [1, 0], { cutoff: 220, resonance: 0.25, drive: 0.25, keytrack: 0.5, type: "Ladder Tanh" });
+  p.cable(p.vin, "pitch", saw, "pitch").cable(saw, "out", flt, "l", 0.6).cable(saw, "sub", flt, "l", 0.4)
+    .cable(noise, "brown", flt, "l", 0.25).cable(saw, "out", flt, "r", 0.6).cable(saw, "sub", flt, "r", 0.4)
+    .cable(noise, "brown", flt, "r", 0.25).cable(p.vin, "pitch", flt, "pitch")
+    .cable(envf, "env", flt, "cutoff", 0.25).cable(drift, "out", flt, "cutoff", 0.04).cable(p.cin, "cut", flt, "cutoff", 0.5);
+  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 2, decay: 1.5, sustain: 0.9, release: 2.5, velamount: 0.2 });
   return p;
 }
 
-export default category("Pads", "Slow, wide, moving Voice Cells for chords, beds and drones: patch Notes in and Out L/R out.", [
-  velvetStrings, swarmNebula, aetherChoir, tidalTables, monasteryVowels, pulseWidthHaze, abyssalDrone, bowedCrystal,
-  satinSevenths, desertWind,
+// The Folder's internal oscillator, folded by slow modulation.
+function foldedAurora() {
+  const p = voice("Folded Aurora", {
+    description: "The Folder's own oscillator, folded a little more and less by slow wandering modulators and pushed off-centre: a rippling, shimmering west-coast pad. Shared input Fold.",
+    tags: ["pad", "wavefolder", "west coast", "shimmer", "evolving"],
+    help: "A Wavefolder using its internal oscillator. An Organic LFO moves the fold amount and the symmetry " +
+      "slowly, so the harmonics ripple like a light curtain. A swell envelope also folds the note more as it " +
+      "opens. A 1-Pole low-pass at 5 kHz rounds off the top. Six voices.\n\n" +
+      "Notes in, Out L/R. The shared input Fold adds to the fold amount.\n\n" +
+      "Tip: keep Fold low for a gentle shimmer and raise it for glassier, more metallic textures.",
+  }).settings({ voices: 6, spread: 0.6 }).input("fold", "Fold");
+  const wf = p.add("wavefolder", [0, 0], { fold: 0.15, wave: 0.4, spread: 0.5, source: "Internal", level: 0.7 });
+  const org = p.add("organic-lfos", [0, 1], { rate: 0.12, spread: 0.7 });
+  const envw = envelope(p, [0, 2], { attack: 1.8, decay: 2, sustain: 0.5, release: 2, velamount: 0.3 }, "Fold Env");
+  const flt = p.add("filter", [1, 0], { cutoff: 5000, resonance: 0.05, type: "1-Pole Low-pass" });
+  p.cable(p.vin, "pitch", wf, "pitch").cable(org, "out1", wf, "fold", 0.15).cable(org, "out2", wf, "symmetry", 0.3)
+    .cable(envw, "env", wf, "fold", 0.2).cable(p.cin, "fold", wf, "fold", 0.4).stereo(wf, flt);
+  ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 1.2, decay: 1.5, sustain: 0.85, release: 2.4, velamount: 0.2 });
+  return p;
+}
+
+export default category("Pads", "Slow, moving polyphonic Voice Cells for chords and beds, from additive and wavetable clouds to formant choirs, breath organs and folded textures: patch Notes in and Out L/R out.", [
+  additiveDawn, spectraTide, hollowChoir, seventhGlow, duskFormants, ribbonEnsemble, frostGlass, breathOrgan, cellarFog, foldedAurora,
 ]);

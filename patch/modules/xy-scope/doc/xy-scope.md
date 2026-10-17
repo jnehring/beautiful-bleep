@@ -84,11 +84,11 @@ Five whole patches show what XY Scope does. In the standalone app open **File â†
 
 | Patch | What it shows |
 |---|---|
-| **XY Scope: Beating Lissajous** | Two sines a few cents apart draw a figure that slowly turns; Phase turns that rotation into a sawtooth LFO that sweeps the filter of a drifting pad, speeding up as the oscillators drift further apart. Watch the loop open and close while the pad opens with it, and try Persistence for longer trails. |
-| **XY Scope: Interval Figures** | A fixed sine on X and a sequenced sine on Y trace the figure of each interval: a line for unison, a figure-eight for the octave, a woven knot for the fifth. Ratio feeds a triangle voice that follows the interval, so the scope also plays the harmony. Try Mode Y-T for the same sound as a waveform. |
-| **XY Scope: Waiting for Lock** | Two drifting oscillators wander in and out of tune. Whenever the figure stands still the Still gate goes high and opens a melody, so the tune plays only in the moments they agree. Set Still Tolerance to Tight for rarer windows or Loose for more. |
-| **XY Scope: Stereo Width** | The left and right sides of a detuned saw pad go to X and Y, so you see the stereo image: a rounder cloud when the sides drift apart. Correlation controls the cutoff of an arpeggio, so the wider the pad swells, the darker the arpeggio. Change the Detune of the pad to change the picture. |
-| **XY Scope: Drum Scope** | Mode Y-T turns the scope into an oscilloscope: the drum loop is drawn as a waveform, one sweep per beat in Trigger Beat, with the bass on X as a second dimmer trace. Try a shorter Timebase, a longer Persistence or Trigger Y Rising. |
+| **XY Scope: Locked Fifth Knot** | Two sines a fifth apart draw a slow-turning knot on the scope; each time the pattern stands still enough, the Still gate fires a bell. Change Still Tolerance to Loose and the bells come more often, or tune the Y oscillator by ear to lock them. |
+| **XY Scope: Stereo Width Pad** | A pad's left and right channels go into X and Y, so the scope shows the stereo image: a diagonal line means near-mono, a round cloud means wide. The Correlation output opens the reverb when the image narrows. Turn the Chorus's Spread down and watch the cloud pinch. |
+| **XY Scope: Bass Waveform** | In Y-T mode the scope is an ordinary oscilloscope: a bass line's waveform stands still on screen, triggered on every rising edge. Shorten Timebase to see single cycles, or turn the Oscillator's Shape and watch the wave change under the sound. |
+| **XY Scope: FM Knots** | A bell-like FM pair plays a pentatonic line; the carrier goes to X and the modulated tone to Y, so each note draws a tangled knot that unwinds as it decays. Raise the Oscillator's FM Depth for a busier knot, or X Gain to stretch the figure. |
+| **XY Scope: Ratio Plays a Voice** | A fixed sine on X and a sweeping sine on Y: the scope measures their ratio and its Ratio output, as a pitch, plays a third voice that follows the interval between them. Change the sweep rate and the follower glides along; try Timebase for a clearer picture. |
 <!-- /generated -->
 
 ## Reference

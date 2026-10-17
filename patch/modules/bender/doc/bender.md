@@ -90,11 +90,11 @@ Five whole patches show what Bender does. In the standalone app open **File → 
 
 | Patch | What it shows |
 |---|---|
-| **Bender: Stutter Beat** | A drum loop and riff pass through Bender at 1/16 with a low Chance: now and then a slice repeats twice and stutters before the groove carries on. Raise Chance for more, or Repeats for longer stutters. |
-| **Bender: Ratchet Arp** | An arpeggio goes through Bender at 1/8 with Slice at 40 %: repeated fragments cut into ratchets while Chance picks which beats get them. Change Seed to hear another set of decisions. |
-| **Bender: Tape-Stop Pad** | A slow chord pad is re-pitched downward in Smear mode with Bend at one half and some Bend Var: pieces of the sound sag and slur like a tape machine losing speed. Try Bend Steps on Free for a continuous slide. |
-| **Bender: Shredder** | Mode Shuffle with Chance at 70 %, Corrupt at 80 % and a little Slice cuts a beat and bass line into constantly rearranged, crumbling pieces. Pull Chance down to keep the groove, or try Fold and Dropout modes. |
-| **Bender: Glitch Triggers** | Chance is zero, so Bender stays clean until a sequencer's trigger hits the Glitch input: only those steps are Folded, and the Random output jumps a filter's cutoff along with each decision. Change the sequencer steps to move the glitches. |
+| **Bender: Beat Crusher** | Crush mode grabs sixteenth-note pieces of a drum loop and repeats them, with pitch steps by octave and a little corruption. Raise Chance for a busier mess, or lower Repeats for a gentler stutter. |
+| **Bender: Dropout Tune** | Dropout mode punches holes into an arpeggio, as if the signal kept losing contact. Move Chance for more or fewer gaps, Time for the length of each hole, and try another Seed. |
+| **Bender: Fifths and Octaves** | Fold mode with Bend steps set to Fifths + octaves repeats short pieces of a slow melody a fifth or an octave away, so the glitches stay musical. Switch Bend Steps to Free for wild slides, or raise Bend Var. |
+| **Bender: Shuffle Slicer** | Shuffle mode with Slice cuts a swung beat into small pieces and reorders them, so the groove is always almost the same and never quite. Turn Slice down for longer chunks, or Chance up for more reshuffling. |
+| **Bender: Smear and Freeze** | Smear mode melts a chord arpeggio together while a square LFO holds Freeze for a bar at a time, looping one grain until the gate lets go. Try the LFO's rate, or latch Freeze on and off by hand. |
 <!-- /generated -->
 
 <!-- generated:presets -->

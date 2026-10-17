@@ -70,6 +70,20 @@ The preset bar of the Delay view has 14 factory presets. Pick one to set the kno
 | **Endless Repeat** | Near-infinite feedback; the filters keep it from blowing up. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Delay does. In the standalone app open **File → Presets…** (⌘P) and pick *Delay* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Delay: Dotted Echo** | A bright pluck line gets a left echo on a dotted eighth and a right echo on a quarter note, so the repeats weave a rhythm of their own. Change Rate L and Rate R, or raise Feedback for longer trails. |
+| **Delay: Ping-Pong Bounce** | Ping-Pong mode bounces each note from one side to the other in sixteenth steps while the arpeggio itself stays sparse. Switch Mode to Stereo to hear the same echoes stay put, or push Feedback up. |
+| **Delay: Slapback Kit** | A very short free-time delay of about 80 ms with almost no Feedback thickens the drums into a live-room slap. Try Time L and Time R a few milliseconds apart for width, or lengthen both until it becomes an echo. |
+| **Delay: Dub Spiral** | High Feedback keeps the echoes spiralling while High Cut slowly closes and opens under an LFO, so each repeat gets darker and then brighter. Edit the LFO rate, or raise Low Cut to thin out the build-up. |
+| **Delay: Wide Double** | Two unrelated short times, 23 ms on the left and 37 ms on the right, fatten a slow pad into a wide stereo cloud with no audible echo. Move the Time knobs a little, or turn on Link L/R and watch the image collapse. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

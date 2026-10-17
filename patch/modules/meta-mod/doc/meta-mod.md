@@ -95,11 +95,11 @@ Five whole patches show what Meta Mod does. In the standalone app open **File â†
 
 | Patch | What it shows |
 |---|---|
-| **Meta Mod: Ring Bells** | A plain sine melody is the carrier; with nothing patched into Modulator the internal oscillator ring-modulates it, and a slow LFO sweeps Osc Tune so the plucks turn into shifting, inharmonic bells. Try Timbre towards 100 % to let the carrier bleed through, or change Osc Octave. |
-| **Meta Mod: Robot Choir** | The vocoder algorithm lets a drum beat talk through a sustained buzzy chord: every kick, snare and hat from the Modulator carves its rhythm and spectrum into the Carrier. Move Timbre to shift the formants, or change Algorithm to hear the same signals ring-modulated. |
-| **Meta Mod: Harmonic Arpeggio** | Algorithm 7 (Chebyshev) turns a pure sine into its Nth harmonic, and a stepped Random picks N for every sixteenth: the same note blurs through brighter and brighter overtones like an arpeggio inside each pitch. Turn Timbre by hand to hear single harmonics, or raise Carrier Level for a hotter sound. |
-| **Meta Mod: Ring Bass** | A bass voice made entirely inside Meta Mod: a sequencer plays its internal oscillator while a second oscillator a fifth up goes into Modulator, and a slow LFO glides Algorithm between ring, crossfade and fold. Listen for the growl when the algorithm passes the ring-mod area, then change Timbre. |
-| **Meta Mod: Bitwise Machine** | Algorithm 4 treats the carrier and modulator as integers and combines their bits: a saw lead and a square arpeggio turn into gritty, digital chords. A slow LFO lowers and raises Timbre (the bit resolution); switch Bitwise Op between XOR, AND, OR and Sum mod for different textures. |
+| **Meta Mod: Ring Bells** | With no modulator patched, the internal oscillator multiplies a simple melody in analog ring mode, giving clangorous bell tones. Change Osc Tune to move between consonant and metallic, or sweep Algorithm to the neighbours. |
+| **Meta Mod: Talking Drums** | In vocoder mode a buzzing saw carrier is shaped by the drum beat as modulator, so the pad seems to pump and speak in the rhythm of the kit. Change Timbre for a different band balance, or the saw's pitch for another vowel colour. |
+| **Meta Mod: Bitwise Grit** | Bitwise mode combines a bass line with the internal oscillator number by number, producing digital edge and odd harmonics that move with Osc Tune. Switch Bitwise Op between XOR, AND and OR, or sweep Timbre. |
+| **Meta Mod: Algorithm Sweep** | A slow triangle LFO walks the Algorithm knob from crossfade through fold and ring modulation and back, so the same two tones keep changing character. Narrow the LFO's amount to stay in one family, or move Timbre by hand. |
+| **Meta Mod: Chebyshev Glow** | The last algorithm adds harmonics to a plain sine bass line, with a slow LFO moving Timbre from a pure tone to a bright, organ-like glow. Try Quality for cleaner top end, or Mix to blend the pure sine back in. |
 <!-- /generated -->
 
 <!-- generated:presets -->

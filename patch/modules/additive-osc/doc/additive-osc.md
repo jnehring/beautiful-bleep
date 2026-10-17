@@ -82,11 +82,11 @@ Five whole patches show what Additive Osc does. In the standalone app open **Fil
 
 | Patch | What it shows |
 |---|---|
-| **Additive Osc: Glass Pad** | A saw-based spectrum with a gentle Tilt, a touch of Stretch and a slow Chorus makes a wide, glassy pad. Try pulling Tilt down for a duller tone, or raising Chorus and Width. |
-| **Additive Osc: Hollow Reed** | A square spectrum with Odd/Even pushed to the odd side gives a hollow, woody reed. A slow LFO sweeps Odd/Even toward the even partials so the tone keeps turning from hollow to bright. |
-| **Additive Osc: Inharmonic Bells** | Stretch spreads the partials out of tune with each other and Decay lets each one ring and die on a trigger, so every note strikes like a struck bell. Change Stretch toward negative values for a softer, gong-like cluster. |
-| **Additive Osc: Comb Drone** | A low saw drone whose partials are notched by a Comb: a slow LFO on Comb Phase moves the notches up the spectrum, so the drone sweeps like a phaser made purely of harmonics. Try Comb Spacing for different notch patterns. |
-| **Additive Osc: Spectral Pulse** | A short rhythmic pluck whose Partials count and Tilt are pushed around by a random generator, so every note is a different slice of the spectrum, from a pure sine to a rich buzz. Lower Damp for brighter plucks. |
+| **Additive Osc: Tilt Sweep** | A saw-shaped stack of partials whose Tilt is swept by a slow LFO, from dark and woolly to bright and ringing, with no filter involved. Reduce Partials for a rounder tone or push Tilt up for an organ-like glare. |
+| **Additive Osc: Odd Partials Reed** | Odd/Even is pulled to the odd side so only the 1st, 3rd, 5th partials sound: a hollow, reedy tone. Move Odd/Even through zero to bring back the even partials and watch the reed turn into a full saw. |
+| **Additive Osc: Stretched Bells** | A flat spectrum with Stretch pushing the partials apart gives inharmonic, bell-like tones, and each trigger restarts a decay that makes the high partials die first. Change Stretch for a metallic or glassy family, or Decay for longer ringing. |
+| **Additive Osc: Comb Choir** | A slow chord line played by a comb-notched spectrum with a wide chorus, giving a shimmering, voice-like pad. Change Comb Spacing to move the notches or raise Chorus for a bigger, more unstable cloud. |
+| **Additive Osc: Odd and Even Split** | The odd-partial and even-partial outputs go to separate mixer channels whose pans drift in opposite directions, so the two halves of one tone circle each other. Mute one channel to hear its half alone. |
 <!-- /generated -->
 
 <!-- generated:presets -->

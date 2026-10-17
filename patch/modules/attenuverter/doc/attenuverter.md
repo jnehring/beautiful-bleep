@@ -38,6 +38,20 @@ destination, and that knob can itself be modulated.
 - **Invert:** *Scale* −1 makes an envelope fall instead of rise.
 - **Mix four rows:** use *Sum* as a small four-input mixer.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Attenuverter does. In the standalone app open **File → Presets…** (⌘P) and pick *Attenuverter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Attenuverter: Opposite Sweeps** | One slow LFO enters two rows of the Attenuverter, one scaled +1 and one -1, and they open the left filter while closing the right one, so the arpeggio seems to travel across the stereo field. Change the scale of either row to unbalance the sweep. |
+| **Attenuverter: Manual Offsets** | With nothing patched in, each Attenuverter row is a constant set by its Offset: row 1 transposes the sequencer up a fourth and row 2 holds the filter at a fixed opening. Turn Offset 1 to change key while the music plays. |
+| **Attenuverter: Wandering Sum** | Three unrelated modulators, a slow sine, a triangle and a smooth random line, go into three rows and meet at the Sum output, which sweeps the filter along a path that rarely repeats. Change a row's scale to give one modulator more say. |
+| **Attenuverter: Hard-Clipped Sweep** | A triangle LFO is doubled by the row's Scale and hard-clipped, so the filter spends most of the time fully open or fully closed and only moves quickly in between. Set Clip to Off or Soft to round the sweep, or lower Scale to reduce the effect. |
+| **Attenuverter: Kick Ducking** | A kick's envelope goes through a row set to scale -1 with offset +1, turning a short burst into a short dip, and that dip pumps the volume of a chord pad on every beat. Lower the negative Scale for a gentler duck. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

@@ -96,11 +96,11 @@ Five whole patches show what Splice does. In the standalone app open **File → 
 
 | Patch | What it shows |
 |---|---|
-| **Splice: Phrase Looper** | A plucked phrase is recorded into the reel for one bar, then the splice loops it back, locked to the bars by Sync, and you hear the live phrase pass through while it is recorded. Try Sync, Speed or Window Size to bend the loop. |
-| **Splice: Micro Cloud** | A short recorded chord arpeggio is chopped into 3 % windows with high Overlap, turning it into a granular cloud that a slow LFO scrubs across the splice via Position. Raise Window Size to hear the phrase re-emerge. |
-| **Splice: Reel Keyboard** | One recorded note is replayed as an instrument: a sequencer's Pitch drives the Speed input (1 V per octave) and its trigger restarts the splice, with Loop on One-shot. Change the sequence, or Window Size, for different timbres. |
-| **Splice: Chopped Break** | A drum beat is recorded to the reel, then a stepped random source on Select and a clock on Next hop through its splices and a fast random Position, re-cutting the groove on the fly. Try Shift (Immediate against End of window) and Overlap. |
-| **Splice: Reverse Tape Drift** | A slow melody is caught on the reel and played back at a speed that a slow LFO sweeps from forward through standstill to reverse, like a tape dragged by hand. Change the LFO's depth or fix Speed at -1 for plain reverse. |
+| **Splice: Two-Bar Loop** | A plucked phrase is recorded onto the reel for two bars, then the splice loops it back with Sync on 2 bars, so the loop stays on the beat. The live phrase is heard while it is recorded (Monitor). Try Sync, Speed or Window Size to bend the loop, or set Record Target to Current splice and Overdub to layer more on top. |
+| **Splice: Tape Stop** | A drum bar is recorded, then plays from the reel while a ramp pulls Speed down towards zero every two bars: the whole loop slows, drops in pitch and winds to a halt before the tape snaps back to full speed. Edit the ramp's Rate or amount, or try a negative Speed to run the tape backwards. |
+| **Splice: Reel Keyboard** | One recorded note is replayed as an instrument: a sequencer's Pitch drives the Speed input (1 V per octave) and its trigger restarts the splice, with Loop on One-shot. Change the sequence for a new tune, or Window Size for another timbre; pitch and speed move together, like tape. |
+| **Splice: Break Chopper** | A drum bar is recorded and then replayed one eighth at a time: Window Size is 1/8 of the splice and a stepped random source picks Position every eighth note, so the break is re-cut into a stuttering new beat. The random loops after eight steps, so the pattern repeats; raise Loop towards 0 for endless variation. |
+| **Splice: Micro Cloud** | A short chord arpeggio is recorded, then replayed in 3 % windows with Overlap at 90 %, which turns it into a granular cloud; a slow LFO scrubs Position across the splice. Raise Window Size to hear the phrase re-emerge, or lower Overlap below 30 % for a rhythmic stutter. |
 <!-- /generated -->
 
 ## Reference

@@ -78,6 +78,20 @@ The preset bar of the Oscillator view has 15 factory presets. Pick one to set th
 | **Low Rumble** | Very low pulse: use as a drone, or slow rhythmic modulation. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Oscillator does. In the standalone app open **File → Presets…** (⌘P) and pick *Oscillator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Oscillator: Shape Sweep** | A bass line on one Oscillator while a slow LFO turns Shape from triangle through saw toward square, so the same note keeps changing colour. Set Shape by hand to freeze a waveform, or move Pulse Width for a thinner square. |
+| **Oscillator: Hard Sync Sweep** | A lead oscillator is reset by the sequencer's gate on every note, while a slow LFO pushes its Coarse tuning upward: the classic tearing sync sweep. Turn Shape toward the saw for more bite, or lower the LFO amount for a calmer tone. |
+| **Oscillator: Through-Zero Bells** | A second Oscillator frequency-modulates the first through its FM input, and a decaying envelope on FM Depth makes each bell strike bright and then mellow. Change the modulator's Coarse for different bell families, or raise FM Depth for glassier tones. |
+| **Oscillator: Sub Octave Weight** | The main output and the Sub output (one octave down) are mixed under a drum loop, with Pulse Width moving slowly for a hollow, breathing bass. Mute the Sub channel on the mixer to hear how much weight it adds. |
+| **Oscillator: Three-Voice Pad** | Three Oscillators a few cents apart play slow chord roots, one pushed a fifth up, and a reverb spreads them wide. Change Fine on any oscillator for faster beating, or Shape for a brighter or softer pad. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

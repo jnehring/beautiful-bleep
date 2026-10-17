@@ -78,6 +78,20 @@ The preset bar of the Random view has 14 factory presets. Pick one to set the kn
 | **Fast Glitch** | Rapid random steps for glitchy mod. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Random does. In the standalone app open **File → Presets…** (⌘P) and pick *Random* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Random: Wandering Melody** | Every eighth note the Random module picks a new value; with Semitones on they land on exact notes, so a steady rhythm plays a never-repeating tune. Raise Spread for a wider range, move Bias up or down to place it higher or lower, or change Seed for a new tune. |
+| **Random: Locked Loop** | Loop at its top setting repeats an eight-step random pattern exactly, here moving a bass line's filter in time with the drums. Turn Loop down and the pattern slowly mutates, down to fully new values every step; change Length to repeat after more or fewer steps. |
+| **Random: Smooth Drift** | With Smooth turned up the random steps glide into one another, making a slow, irregular drift that moves a pad's brightness and tone. Lower Smooth to bring back the steps, or raise Rate to make the drift busier. |
+| **Random: Tom Roll** | The Random module's trigger output fires a tom at irregular moments while its stepped output retunes it each time, a loose, tuned roll over a steady kick. Raise Rate for a busier roll or pull Spread in for a narrower range of pitches. |
+| **Random: Raised Bells** | A high Bias and a narrow Spread keep the random notes in a bright upper range, like a music box wandering over a held drone. Set Bias to zero and widen Spread to bring the bells down across the whole range. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

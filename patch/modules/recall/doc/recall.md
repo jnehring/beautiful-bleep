@@ -86,11 +86,11 @@ Five whole patches show what Recall does. In the standalone app open **File → 
 
 | Patch | What it shows |
 |---|---|
-| **Recall: Random Backbeat** | T Mode Drums turns the T section into a kick (T1) and a snare (T2) that favour beats 1 and 3, 2 and 4, with occasional ghost notes. X, snapped to F minor pentatonic and clocked by the kicks, plays the bass. T Recall at 60 % keeps the figure recognisable while it changes; try 0 % or 100 %. |
-| **Recall: Locked Melody** | With T Recall and X Recall at 100 % the random gates and notes are locked into an eight-step loop, a ready-made melody in A minor pentatonic. Because the memory holds raw random numbers, changing the Scale, X Spread or X Bias reshapes the same contour. Lower the Recall knobs to let it mutate again. |
-| **Recall: Ratchet Rolls** | T Mode Ratchet lets every tick fire as divisions or as two to four quick pulses: T1 rattles a hi-hat, T2 a clap, over a steady kick and a pulsing bass. T Bias towards the right gives more ratchets, towards the left sparse divisions. Try Gate Length and T Jitter. |
-| **Recall: Sorted Drift** | X Mode Sorted makes X1, X2 and X3 always low, middle and high, so three soft voices drift through a D major pentatonic chord that changes every half note; T chance gates re-swell them. Spread sets how wide the chord is, Bias how high it sits. |
-| **Recall: Breathing Memory** | A slow LFO moves both Recall knobs from always-new to a locked loop and back, while T Loop is 5 and X Loop 7 so the rhythm and the melody never line up. The D Dorian pluck line crystallises, mutates, and crystallises again; a bass follows the second gate. Try setting the Recall knobs by hand. |
+| **Recall: Coin-Flip Drums** | Every clock step Recall flips a coin for two gates: T1 plays the kick, T2 the snare, and the Clock output drives steady hats. T Bias leans the coin towards or away from firing, T Jitter adds extra randomness; try raising T Recall to repeat the recent past. |
+| **Recall: Ratchet Bass Line** | T Mode Ratchet turns the random gates into bursts of quick repeats, and each burst plays a bass note chosen by X from F Phrygian dominant. Lower X Spread for a narrower line, or move X Bias to put the bass higher or lower. |
+| **Recall: Settling Loop** | A slow sawtooth LFO raises both Recall knobs from 0 to 100 % over 16 bars: the melody starts out new on every step, gradually repeats itself more and more, and ends up as a locked loop before the cycle begins again. Move T Recall or X Recall yourself to freeze or free it at any time. |
+| **Recall: Sorted Triad Rising** | X Mode Sorted puts the three random voltages in ascending order, so X1, X2 and X3 always form a stack from low to high, and three voices play them as a changing chord. Switch X Mode to Independent and the voices cross over; change Scale for a different colour. |
+| **Recall: Free-Running Bells** | Sync is set to Free at 1.6 Hz, so Recall ticks on its own clock rather than the song's, and each random T1 gate rings a bell whose pitch is read from X on its own X clock. Change Rate to speed the shimmer up or slow it down. |
 <!-- /generated -->
 
 ## Reference

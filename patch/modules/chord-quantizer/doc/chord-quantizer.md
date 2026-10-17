@@ -72,11 +72,11 @@ Five whole patches show what Chord Quantizer does. In the standalone app open **
 
 | Patch | What it shows |
 |---|---|
-| **Chord Quantizer: Smooth Pad** | A bar-long sequence of single notes becomes a lush A minor pad. Voice Leading on Smooth + Top picks the inversion that moves least, so the top voice glides and the chords flow instead of jumping. Try Voice Leading Off to hear the raw jumps, or Voicing Close. |
-| **Chord Quantizer: Strummed Dorian** | Plucked quarter notes in D Dorian each become an open-voiced ninth chord that is strummed across the four voices instead of arriving at once, with an echo behind it. Turn Strum up for a lazier roll, or change Strum Order to Down. |
-| **Chord Quantizer: Offbeat Stabs** | Syncopated single notes turn into short minor-seventh stabs over a root-note bass, on a broken beat. In Chromatic mode the Chord knob picks the quality: try Dominant 7, Minor add9 or Sus4, and raise Inversion for a higher voicing. |
-| **Chord Quantizer: Follow the Changes** | Mode Follow: the chord is whatever the Harmony Master's progression says (A minor 7, F, C, G), voiced as a drop-2 pad with a root bass below. A slow LFO into Pitch lifts and drops the register. Change Voicing or Anchor in the module's view. |
-| **Chord Quantizer: Whole-tone Pulse** | A wandering Random feeds Pitch; in a whole-tone scale every triad is an augmented chord, so the harmony floats without a home. An LFO gates the chords as eighth-note pulses. Switch Scale to Hirajoshi or Blues in the view for a different colour. |
+| **Chord Quantizer: Minor Seventh Pad** | A slow root line goes into the Chord Quantizer, which stacks each root as a minor seventh over four voices; the four oscillators swell into a lush, moving pad. Try Chord on Dominant 9 or Sus4, or Voicing on Spread for a wider sound. |
+| **Chord Quantizer: Smooth Voice Leading** | Rhythmic triad stabs follow a four-chord loop, and Voice Leading chooses the inversion that moves least, so the top voice glides instead of jumping. Turn Voice Leading Off to hear every chord land in root position. |
+| **Chord Quantizer: Quartal Glass** | Instead of thirds, each chord is stacked in fourths and spread wide: an open, floating sound that suits slow, bell-like notes. Try Inversion or Range to move the stack, or Chord to Fifth for a hollow drone. |
+| **Chord Quantizer: Diatonic Harmoniser** | In Diatonic mode a melody in C major is harmonised note by note: each pitch becomes the root of the right triad for the scale, major on some steps, minor on others. Change the Stack to Seventh, or the setting Scale to Dorian. |
+| **Chord Quantizer: Chords into an Arpeggio** | The Notes output of the Chord Quantizer holds each chord while an Arpeggiator breaks it into a running pattern for a single pluck voice. Change the chord, then the Arpeggiator's Pattern or Octaves, to reshape the same harmony. |
 <!-- /generated -->
 
 <!-- generated:presets -->

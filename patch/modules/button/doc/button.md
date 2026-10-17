@@ -35,6 +35,20 @@ off when you open it again.
 - **Mute a part:** Toggle mode, *Gate* onto a VCA's **Gain** (or into a
   Switch to choose between two sources).
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Button does. In the standalone app open **File → Presets…** (⌘P) and pick *Button* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Button: Hold To Brighten** | A dark, muffled saw riff plays on its own; hold the Button and its Gate output opens an envelope that sweeps the filter wide open, then lets it fall back when you let go. Try the Toggle mode to latch the bright sound. |
+| **Button: Toggle Bell Layer** | A warm pad-like line carries the patch; click the Button in Toggle mode and a second, bell-like line fades in on top and stays until you click again. Switch Mode to Momentary to bring the bells in only while you hold it. |
+| **Button: Clap On Press** | A bass line and a half-time beat play by themselves; every press of the Button sends a Trigger to a clap, so you add hand claps by tapping it in time. The Trigger fires on the press, not on the release, and its Gate output would stay high while you hold. |
+| **Button: Cymbal On Release** | Press and hold the Button, then let go: its Release output fires a long crash cymbal at the moment you lift your finger, like a drum-fill finish. Use the Trigger output on the same Button to hit the cymbal on the way down instead. |
+| **Button: Freeze Hold** | In Toggle mode the Button's Toggle output latches the reverb's Freeze input: click it while a note is ringing and the tail is held as an endless chord under the following notes. Click again to let the room empty. |
+<!-- /generated -->
+
 ## Reference
 
 ### Settings

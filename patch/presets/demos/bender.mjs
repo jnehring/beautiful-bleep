@@ -1,92 +1,76 @@
 // SPDX-License-Identifier: MIT
 // Bender: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
+import { patch } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// Mixer of a drum beat (stereo) and a mono melody; returns the mixer (outl/outr).
-function band(p, at, drums, m, lv = [-2, -6]) {
-  const mix = p.add("audio-mixer", at, { level1: lv[0], level2: lv[1], master: -1 }, { name: "Source Mix" });
-  p.stereo(drums, mix, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).cable(m.amp, "l", mix, "in2l").cable(m.amp, "l", mix, "in2r");
-  return mix;
-}
-/// Source (stereo jacks) → trim mixer → reverb → Out.
-function finish(p, at, src, trim = 0, verb = {}, jacks = ["l", "r"], master = 0) {
-  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: trim, master }, { name: "Trim" });
-  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.2, quality: "Eco (8 lines)", ...verb });
-  p.stereo(src, t, { from: jacks, to: ["in1l", "in1r"] }).stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
-}
-const into = (p, mix, b) => p.stereo(mix, b, { from: ["outl", "outr"] });
+// Mono source into both inputs of an effect, through a gain stage (dB, up to +12) so the demo sits at a sensible level.
+const mono = (p, from, jack, to, db = 0) => {
+  const g = p.add("audio-mixer", [2, 2], { level1: Math.min(db, 6), master: db > 6 ? db - 6 : 0 }, { name: "Level" });
+  p.cable(from, jack, g, "in1l").cable(g, "outl", to, "l").cable(g, "outl", to, "r");
+};
 
-function stutterBeat() {
-  const p = patch("Bender: Stutter Beat", {
-    module: "bender", tempo: 120,
-    description: "A drum loop and riff pass through Bender at 1/16 with a low Chance: now and then a slice repeats twice and stutters before the groove carries on. Raise Chance for more, or Repeats for longer stutters.",
-    tags: ["stutter", "beat", "repeat", "glitch"],
+function beatCrusher() {
+  const p = patch("Bender: Beat Crusher", {
+    module: "bender", tempo: 110,
+    description: "Crush mode grabs sixteenth-note pieces of a drum loop and repeats them, with pitch steps by octave and a little corruption. Raise Chance for a busier mess, or lower Repeats for a gentler stutter.",
+    tags: ["glitch", "drums", "stutter", "crush"],
   });
-  const drums = beat(p, [0, 0], { style: "four", level: -5 });
-  const m = melody(p, [0, 3], [0, 0, 7, ".", 5, 3, ".", 0], { rate: "1/8", shape: 0.5, root: "A", scale: "Minor Pentatonic", octave: -1 });
-  const mix = band(p, [3, 0], drums, m);
-  const b = p.add("bender", [4, 0], { chance: 0.22, repeats: 3, bend: 1, mix: 1, sync: "1/16", mode: "Crush", seed: 4 });
-  into(p, mix, b);
-  finish(p, [5, 0], b, 4, { size: 0.3, decay: 1.2, mix: 0.1 });
+  const mix = beat(p, [0, 0], { style: "four", level: -6 });
+  const b = p.add("bender", [3, 0], { mode: "Crush", sync: "1/16", chance: 0.4, repeats: 4, bend: 1, bendvar: 0.3, corrupt: 0.25, edge: 0.7, mix: 1, seed: 7 });
+  mono(p, mix, "outl", b, 6); p.stereo(b, p.out);
   return p;
 }
 
-function ratchetArp() {
-  const p = patch("Bender: Ratchet Arp", {
-    module: "bender", tempo: 100,
-    description: "An arpeggio goes through Bender at 1/8 with Slice at 40 %: repeated fragments cut into ratchets while Chance picks which beats get them. Change Seed to hear another set of decisions.",
-    tags: ["ratchet", "arpeggio", "slice", "rhythm"],
-  });
-  const m = melody(p, [0, 0], [0, 4, 7, 12, 7, 4, 9, 5], { rate: "1/8", shape: 0.8, root: "D", scale: "Major Pentatonic", gatelength: 0.5, env: { decay: 0.25, sustain: 0.2, release: 0.2 } });
-  const b = p.add("bender", [3, 0], { chance: 0.35, repeats: 2, slice: 0.4, bend: 1, mix: 1, sync: "1/8", mode: "Crush", seed: 11 });
-  p.cable(m.amp, "l", b, "l").cable(m.amp, "l", b, "r");
-  finish(p, [4, 0], b, 6, { size: 0.45, decay: 2, mix: 0.25 }, ["l", "r"], 6);
-  return p;
-}
-
-function tapeStopPad() {
-  const p = patch("Bender: Tape-Stop Pad", {
-    module: "bender", tempo: 72,
-    description: "A slow chord pad is re-pitched downward in Smear mode with Bend at one half and some Bend Var: pieces of the sound sag and slur like a tape machine losing speed. Try Bend Steps on Free for a continuous slide.",
-    tags: ["tape stop", "pitch", "smear", "pad"],
-  });
-  const m = melody(p, [0, 0], [0, "_", "_", "_", 4, "_", "_", "_", 7, "_", "_", "_", 5, "_", "_", "_"], { rate: "1/4", shape: 0.9, root: "G", scale: "Major Pentatonic", gatelength: 0.97, env: { attack: 0.3, decay: 0.4, sustain: 0.9, release: 1 } });
-  const b = p.add("bender", [3, 0], { time: 0.4, chance: 0.5, repeats: 1, bend: 0.5, bendvar: 0.5, mix: 1, sync: "1/2", mode: "Smear", bendsteps: "Octaves", seed: 3 });
-  p.cable(m.amp, "l", b, "l").cable(m.amp, "l", b, "r");
-  finish(p, [4, 0], b, -9, { size: 0.65, decay: 4, mix: 0.35 });
-  return p;
-}
-
-function shredder() {
-  const p = patch("Bender: Shredder", {
-    module: "bender", tempo: 132,
-    description: "Mode Shuffle with Chance at 70 %, Corrupt at 80 % and a little Slice cuts a beat and bass line into constantly rearranged, crumbling pieces. Pull Chance down to keep the groove, or try Fold and Dropout modes.",
-    tags: ["shuffle", "corrupt", "breakcore", "chaotic"],
-  });
-  const drums = beat(p, [0, 0], { style: "broken", level: -5 });
-  const m = melody(p, [0, 3], [0, 0, 3, 0, 7, 5, 0, 10], { rate: "1/16", shape: 1, root: "F", scale: "Phrygian Dominant", octave: -1, gatelength: 0.4 });
-  const mix = band(p, [3, 0], drums, m, [-2, -8]);
-  const b = p.add("bender", [4, 0], { chance: 0.7, repeats: 4, slice: 0.3, corrupt: 0.8, bend: 1, bendvar: 0.4, mix: 1, sync: "1/16", mode: "Shuffle", corruptwhen: "Glitches only", seed: 21 });
-  into(p, mix, b);
-  finish(p, [5, 0], b, 0, { size: 0.3, decay: 1.2, mix: 0.1 });
-  return p;
-}
-
-function glitchOnDemand() {
-  const p = patch("Bender: Glitch Triggers", {
+function dropoutMelody() {
+  const p = patch("Bender: Dropout Tune", {
     module: "bender", tempo: 96,
-    description: "Chance is zero, so Bender stays clean until a sequencer's trigger hits the Glitch input: only those steps are Folded, and the Random output jumps a filter's cutoff along with each decision. Change the sequencer steps to move the glitches.",
-    tags: ["trigger", "glitch input", "fold", "random output"],
+    description: "Dropout mode punches holes into an arpeggio, as if the signal kept losing contact. Move Chance for more or fewer gaps, Time for the length of each hole, and try another Seed.",
+    tags: ["dropout", "melody", "gaps", "broken"],
   });
-  const m = melody(p, [0, 0], [0, 7, 12, 7, 3, 7, 10, 7], { rate: "1/8", shape: 0.9, root: "E", scale: "Natural Minor", gatelength: 0.5, env: { decay: 0.3, sustain: 0.3, release: 0.3 } });
-  const trg = p.add("step-sequencer", [0, 2], { length: 16, rate: "1/16", root: "C", scale: "Chromatic", gatelength: 0.3 },
-    { data: steps([".", ".", ".", 0, ".", ".", ".", ".", ".", 0, ".", ".", 0, ".", ".", "."]) });
-  const b = p.add("bender", [2, 0], { chance: 0, repeats: 3, corrupt: 0.5, bend: 1, slice: 0.2, mix: 1, sync: "1/16", mode: "Fold", seed: 8 });
-  const f = p.add("filter", [3, 0], { cutoff: 2500, resonance: 0.3 });
-  p.cable(m.amp, "l", b, "l").cable(m.amp, "l", b, "r").cable(trg, "trigger", b, "glitch").stereo(b, f).cable(b, "random", f, "cutoff", 0.3);
-  finish(p, [4, 0], f, -10, { size: 0.5, decay: 2.5, mix: 0.25 });
+  const m = melody(p, [0, 0], [0, 7, 12, 7, 3, 7, 10, 7], { rate: "1/8", shape: 0.6, root: "A", scale: "Minor Pentatonic",
+    env: { decay: 0.3, sustain: 0.5, release: 0.2 }, gatelength: 0.8 });
+  const b = p.add("bender", [3, 0], { mode: "Dropout", sync: "1/16", chance: 0.5, repeats: 2, edge: 0.4, mix: 1, seed: 21 });
+  mono(p, m.amp, "l", b, 1); p.stereo(b, p.out);
   return p;
 }
 
-export default [stutterBeat, ratchetArp, tapeStopPad, shredder, glitchOnDemand];
+function fifthsFall() {
+  const p = patch("Bender: Fifths and Octaves", {
+    module: "bender", tempo: 84,
+    description: "Fold mode with Bend steps set to Fifths + octaves repeats short pieces of a slow melody a fifth or an octave away, so the glitches stay musical. Switch Bend Steps to Free for wild slides, or raise Bend Var.",
+    tags: ["pitch", "bend", "harmonic", "glitch"],
+  });
+  const m = melody(p, [0, 0], [0, "_", 7, "_", 4, "_", 9, "_"], { rate: "1/8", shape: 0.5, root: "D", scale: "Major Pentatonic",
+    env: { attack: 0.01, decay: 0.4, sustain: 0.6, release: 0.3 }, gatelength: 0.9 });
+  const b = p.add("bender", [3, 0], { mode: "Fold", sync: "1/8", chance: 0.45, repeats: 3, bend: 1, bendvar: 0.6, bendsteps: "Fifths + octaves", edge: 0.8, mix: 0.9, seed: 3 });
+  mono(p, m.amp, "l", b, -3); p.stereo(b, p.out);
+  return p;
+}
+
+function shuffleSlicer() {
+  const p = patch("Bender: Shuffle Slicer", {
+    module: "bender", tempo: 100,
+    description: "Shuffle mode with Slice cuts a swung beat into small pieces and reorders them, so the groove is always almost the same and never quite. Turn Slice down for longer chunks, or Chance up for more reshuffling.",
+    tags: ["shuffle", "slice", "drums", "rearrange"],
+  });
+  const mix = beat(p, [0, 0], { style: "shuffle", level: -6 });
+  const b = p.add("bender", [3, 0], { mode: "Shuffle", sync: "1/8", chance: 0.55, repeats: 2, slice: 0.65, corrupt: 0.1, mix: 1, seed: 12 });
+  mono(p, mix, "outl", b, 8); p.stereo(b, p.out);
+  return p;
+}
+
+function smearFreeze() {
+  const p = patch("Bender: Smear and Freeze", {
+    module: "bender", tempo: 76,
+    description: "Smear mode melts a chord arpeggio together while a square LFO holds Freeze for a bar at a time, looping one grain until the gate lets go. Try the LFO's rate, or latch Freeze on and off by hand.",
+    tags: ["smear", "freeze", "ambient", "texture"],
+  });
+  const m = melody(p, [0, 0], [0, 4, 7, 11, 7, 4, 2, 4], { rate: "1/8", shape: 0.5, root: "E", scale: "Dorian",
+    env: { decay: 0.4, sustain: 0.4, release: 0.3 }, gatelength: 0.8 });
+  const b = p.add("bender", [3, 0], { mode: "Smear", sync: "1/4", time: 0.2, chance: 0.5, repeats: 6, corrupt: 0.3, corruptwhen: "Always", edge: 0.9, mix: 0.8, seed: 5 });
+  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "2 bars", polarity: "Unipolar" }, { name: "Freeze Gate" });
+  mono(p, m.amp, "l", b, 0); p.stereo(b, p.out).cable(hold, "out", b, "freeze");
+  return p;
+}
+
+export default [beatCrusher, dropoutMelody, fifthsFall, shuffleSlicer, smearFreeze];

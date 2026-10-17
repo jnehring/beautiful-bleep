@@ -83,11 +83,11 @@ Five whole patches show what Perc Voice does. In the standalone app open **File 
 
 | Patch | What it shows |
 |---|---|
-| **Perc Voice: FM Kit** | Three Perc Voices make a whole kit: an FM kick with a long Sweep, a snappy mid voice with plenty of Click, and a hat from the Noise Bank engine. Change a voice's Tone or Decay to move between boom, tom and metal. |
-| **Perc Voice: Tuned Toms** | With Track on, the sequencer's pitch tunes the Modal engine, so a membrane voice plays a melodic line like a set of tuned toms. Decay and Damp set how much the notes ring into each other; Sweep gives each hit its dive. |
-| **Perc Voice: Metal Bells** | Tone near the top of its range and the FM engine turn the voice into a long, inharmonic bell; a slow sparse line plays it, with a second quieter bell an octave higher. Try Morph and Spread for different bell colours. |
-| **Perc Voice: Noise Bank Shakers** | Two Noise Bank voices play off-beat shakers and a rim-like tick, with random accents so no two bars are alike. Pitch sets the colour of the bank, Decay the length of the shake, and Damp how fast the highs die. |
-| **Perc Voice: Tone Sweep** | One voice plays the same rhythm while a slow LFO walks Tone from pure sine through membrane and bar to metal, then back: a single hit becomes a kick, a tom, a wood block and a clang over time. Switch Engine to hear the same sweep three ways. |
+| **Perc Voice: Modal Kit** | A whole kit from three Perc Voices in different engines: a Modal kick (Tone 8 %, Sweep high), a Noise Bank snare with a wide Morph and a membrane-toned Modal tom. Velocity from the grid goes into Accent, so soft hits are duller as well as quieter. Try Tone and Decay on each voice, or Drive on the kick. |
+| **Perc Voice: FM Tom Melody** | In the FM engine the partials modulate one sine carrier, so Morph is the modulation index: bright on the attack, purer in the tail. A sequencer's Pitch tunes the hits, which makes a melody of toms. Raise Morph for metal, lower Decay for wood blocks, or switch Track on to let the pitch follow during the ring. |
+| **Perc Voice: Glass Bells** | The Modal engine with Tone at 85 % and Morph high lets the upper partials of a metallic set ring out like struck glass, with long Decay and low Damp. A slow sequence hits the bell, and a second, lower bell answers on the off-beat. Change Seed to get a different bell, or Tone to walk from bell to bar to drum. |
+| **Perc Voice: Hats and Gong** | Noise Bank at Tone 100 % is metal: a short one is a closed hat, a long one an open hat, and the closed hat's trigger is patched into the open hat's Choke so it cuts the ring off. A third voice with a very long Decay is a gong that swells in once per phrase. Try Damp, Morph and Pitch on the hats. |
+| **Perc Voice: Steel Pan** | Noise Bank with a narrow Morph rings its band-pass filters almost pitched, the sound of a steel drum or a tuned block. A sequencer plays the pitch and each hit gets a small Spread of stereo width. Raise Morph towards 100 % for a noisier shaker, or change Damp to shorten the shimmer. |
 <!-- /generated -->
 
 <!-- generated:presets -->

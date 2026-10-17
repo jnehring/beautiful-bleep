@@ -42,6 +42,20 @@ Lanes on higher CCs stay 7 bit.
   64.
 - **Smooth controls:** use 14 bit on CC 0–31 for receivers that support it.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what CV to MIDI does. In the standalone app open **File → Presets…** (⌘P) and pick *CV to MIDI* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **CV to MIDI: Filter Sweep Out** | A slow LFO opens and closes the filter of a plucked line, and the same cable also feeds lane 1 of CV to MIDI, which sends the sweep out as CC 74 (open the Monitor to watch the messages). Change CC 1 to send it as another controller, or narrow Min 1 and Max 1. |
+| **CV to MIDI: Envelope as Expression** | Each note's envelope shapes the filter and is also sent as CC 11 through lane 1, so a hardware synth could breathe with the same contour. Lower Max Rate to thin out the messages, or stretch the envelope's Decay and watch the table fill. |
+| **CV to MIDI: Vibrato in 14 Bit** | A bipolar LFO bends the pitch a few cents and goes out as CC 1 at 14-bit resolution, so slow movement stays smooth instead of stepping. Switch Resolution back to 7 bit, or Input Range to 0 to +1, and compare the table. |
+| **CV to MIDI: Four Moving Controls** | Four LFOs at different speeds move cutoff, resonance, tone and the reverb, and each is sent on its own lane as CC 74, 71, 91 and 93 on separate channels with their own Min and Max. Drag a lane's Max down to squeeze its range. |
+| **CV to MIDI: Random Steps** | A stepped Random changes the filter on every eighth note and CV to MIDI sends each new level as CC 74: only values that moved are sent, so the table shows one message per step. Turn Smooth up on the Random and the messages arrive in streams. |
+<!-- /generated -->
+
 ## Reference
 
 ### Settings

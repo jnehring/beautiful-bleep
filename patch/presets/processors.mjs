@@ -1,195 +1,223 @@
 // SPDX-License-Identifier: MIT
-// Processors: pitch, modulation, dynamics and tone effects, built from the Pitch Shifter, Chorus, Phaser,
-// Compressor, Crunch and EQ modules. In L/R → processing → Out L/R.
+// Processors: tone-shaping and dynamics. EQ, compression, saturation, filters, gating and widening.
+// Stereo cells: In L/R → processing → Out L/R.
 import { cell, category } from "./kit.mjs";
 
-// The shimmer: the reverb's wet signal goes through a shifter and back into the reverb. A limiter keeps the loop
-// from running away; the shared Shimmer input opens or closes the loop gain.
-function shimmerLoop(name, description, tags, help, { semitones, window, loop, decay, tail }) {
-  const p = cell(name, { description, tags, help })
-    .stereoIn().stereoOut().input("mix", "Mix").input("shimmer", "Shimmer").input("freeze", "Freeze", "gate")
-    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail } });  // Verb decay, lengthened by the loop
-  const verb = p.add("reverb", [1, 0], { size: 0.85, decay, preDelay: 0.02, damping: 0.35, modDepth: 0.35, tone: 0.1, mix: 0.5 });
-  const gain = p.add("vca", [2, 1], { gain: loop }, { name: "Shimmer" });
-  const shift = p.add("pitch-shifter", [3, 1], { pitch: semitones, window, drift: 0.12, mix: 1 });
-  const limit = p.add("compressor", [4, 1], { threshold: -9, ratio: 40, attack: 0.5, release: 120, knee: 3 }, { name: "Loop Limiter" });
-  p.stereo(p.cin, verb).stereo(verb, gain, { from: ["wetL", "wetR"] }).stereo(gain, shift).stereo(shift, limit)
-    .stereo(limit, verb).stereo(verb, p.cout)
-    .cable(p.cin, "mix", verb, "mix", 0.5).cable(p.cin, "shimmer", gain, "gain", 0.5).cable(p.cin, "freeze", verb, "freeze");
+// A mastering-style tone curve on the six-band EQ.
+function airAndWeight() {
+  const p = cell("Air & Weight", {
+    description: "A gentle tone curve: a clean low cut, more weight in the bottom, less boxiness at 300 Hz and a lift of air on top. Shared inputs Weight and Air.",
+    tags: ["eq", "mastering", "tone", "polish", "air"],
+    help: "One EQ with four bands in use: a 24 dB/oct low cut at 28 Hz, a low shelf at 85 Hz (+2 dB), a wide dip at " +
+      "300 Hz (-2.5 dB) and a high shelf at 10 kHz (+3 dB), plus a slight bell at 3 kHz for presence.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Weight is added to the gain of the low shelf and Air " +
+      "to the gain of the high shelf, so each moves the curve by up to about 9 dB at full amount.\n\n" +
+      "Tip: put it last on a mix; turn Air up until the top opens, then back off a little.",
+  }).stereoIn().stereoOut().input("weight", "Weight").input("air", "Air");
+  const eq = p.add("eq", [1, 0], {
+    b1On: true, b1Type: "Low Cut", b1Hz: 28, b1Slope: "24 dB/oct",
+    b2Type: "Low Shelf", b2Hz: 85, b2Gain: 2, b2Q: 0.7,
+    b3Type: "Bell", b3Hz: 300, b3Gain: -2.5, b3Q: 0.8,
+    b4Type: "Bell", b4Hz: 3000, b4Gain: 1, b4Q: 0.7,
+    b5Type: "High Shelf", b5Hz: 10000, b5Gain: 3, b5Q: 0.7,
+    level: -1,
+  });
+  p.stereo(p.cin, eq).stereo(eq, p.cout)
+    .cable(p.cin, "weight", eq, "b2Gain", 0.25).cable(p.cin, "air", eq, "b5Gain", 0.25);
   return p;
 }
 
-function shimmerVerb() {
-  return shimmerLoop("Shimmer Verb", "The reverb's tail is pitched up an octave and fed back into it, so every echo climbs: a halo of ever higher voices above the sound. A limiter keeps the loop bounded. Shared inputs Mix, Shimmer (loop amount) and Freeze.",
-    ["shimmer", "reverb", "octave", "ambient", "pitch"],
-    "A Reverb whose wet signal goes through a Pitch Shifter (up 12 semitones), a Shimmer VCA and a Loop Limiter compressor, " +
-    "then back into the reverb. Each echo is an octave higher than the last; the limiter keeps the loop from running away.\n\n" +
-    "Patch a sound into In L/R and take Out L/R onwards. Mix is added to the reverb mix, Shimmer to the loop gain (more means " +
-    "more climbing echoes), and a gate into Freeze holds the tail. The tail is long, about 20 seconds.\n\n" +
-    "Tip: play single sustained notes and raise Shimmer slowly.", { semitones: 12, window: 100, loop: 0.35, decay: 8, tail: 20 });
-}
-
-function fifthShimmer() {
-  return shimmerLoop("Fifth Shimmer", "The same loop, but a fifth up: each echo moves to the next fifth, so the halo is open and suspended rather than bright. A longer window keeps it smooth. Shared inputs Mix, Shimmer and Freeze.",
-    ["shimmer", "reverb", "fifth", "ambient", "pitch"],
-    "The same loop as Shimmer Verb: the reverb's wet signal passes through a Pitch Shifter, a gain stage and a limiter before " +
-    "returning. Here the shift is a fifth (7 semitones) with a longer window, so the repeats stack into open fifths.\n\n" +
-    "Patch a sound into In L/R and take Out L/R onwards. Mix is added to the reverb mix, Shimmer to the loop gain, and a gate " +
-    "into Freeze holds the tail. The tail is long, about 22 seconds.\n\n" +
-    "Tip: with Shimmer low it adds a soft ghost fifth; with it high the tail becomes a wide suspended chord.", { semitones: 7, window: 140, loop: 0.3, decay: 10, tail: 22 });
-}
-
-// A shifted-down copy, rounded off, under the original.
-function subOctaver() {
-  const p = cell("Sub Octaver", {
-    description: "A copy of the sound an octave down, with its top taken off, mixed under the original: a bass, a lead or a kick gets a floor. Shared input Sub (the amount of the lower octave).",
-    tags: ["octave", "bass", "pitch", "sub"],
-    help: "A Pitch Shifter drops a copy of the sound one octave, a 1-pole low-pass at 400 Hz rounds its top " +
-      "off, and a VCA named Sub sets its level. The result is mixed under the original, which passes " +
-      "through unchanged.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Sub input is added to the Sub gain: more " +
-      "adds more low octave. It works best on one note at a time, as a pitch shifter does not follow chords " +
-      "cleanly.\n\n" +
-      "Tip: use it on a mono bass line or a lead, and keep Sub moderate to avoid clipping.",
-  }).stereoIn().stereoOut().input("sub", "Sub");
-  const shift = p.add("pitch-shifter", [0, 1], { pitch: -12, window: 60, mix: 1 });
-  const lp = p.add("filter", [1, 1], { cutoff: 400, type: "1-Pole Low-pass" }, { name: "Round Off" });
-  const gain = p.add("vca", [2, 1], { gain: 0.6 }, { name: "Sub" });
-  p.stereo(p.cin, shift).stereo(shift, lp).stereo(lp, gain).stereo(gain, p.cout).stereo(p.cin, p.cout)
-    .cable(p.cin, "sub", gain, "gain", 0.5);
+// Slow, gentle bus compressor whose detector ignores the bass.
+function softGlue() {
+  const p = cell("Soft Glue", {
+    description: "A slow, gentle compressor that listens only above 150 Hz, so the bass cannot make the mix pump: it holds drums, bass and chords together. Shared inputs Threshold and Mix.",
+    tags: ["compressor", "bus", "glue", "dynamics", "mix"],
+    help: "A Compressor in RMS mode with a low ratio, a slow 30 ms attack and a soft knee. Its Sidechain input " +
+      "gets a copy of the signal through a 1-pole high-pass at 150 Hz, so loud bass notes do not control the " +
+      "gain reduction. A light shelf on top adds a little polish afterwards.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Threshold is subtracted from the compressor's " +
+      "Threshold knob (more means more compression) and Mix is added to its Mix knob, which blends the " +
+      "squeezed sound with the dry one.\n\n" +
+      "Tip: on a drum bus, set Threshold so the needle moves two to four decibels on loud hits.",
+  }).stereoIn().stereoOut().input("amount", "Amount").input("mix", "Mix");
+  const hp = p.add("filter", [0, 1], { cutoff: 150, type: "1-Pole High-pass" }, { name: "Detector Low Cut" });
+  const comp = p.add("compressor", [1, 0], { threshold: -22, ratio: 2.5, attack: 30, release: 220, knee: 10, makeup: 3, detector: "RMS", mix: 1 });
+  const tone = p.add("eq", [2, 0], { b5Hz: 9000, b5Gain: 1.5 }, { name: "Polish" });
+  p.stereo(p.cin, hp).stereo(p.cin, comp)
+    .cable(hp, "l", comp, "key")
+    .stereo(comp, tone).stereo(tone, p.cout)
+    .cable(p.cin, "amount", comp, "threshold", -0.4).cable(p.cin, "mix", comp, "mix", 0.5);
   return p;
 }
 
-// Two slightly detuned, drifting copies and a light chorus around the dry sound.
-function vocalDoubler() {
-  const p = cell("Vocal Doubler", {
-    description: "Two copies, a few cents sharp and flat, each wandering a little, plus a light chorus: a single voice or lead becomes a small ensemble. Shared input Spread (the detune).",
-    tags: ["doubler", "vocal", "chorus", "pitch", "wide"],
-    help: "Two Pitch Shifters, one 9 cents sharp and one 9 cents flat, each with a little drift, plus a light " +
-      "Chorus. The dry sound and both copies go into the chorus, which makes the result wider.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Spread input is added to both shifters' Fine " +
-      "knobs in opposite directions, widening the detune. It does not follow the transport.\n\n" +
-      "Tip: works well on a single voice, a lead or a mono synth that needs width.",
-  }).stereoIn().stereoOut().input("spread", "Spread");
-  const up = p.add("pitch-shifter", [0, 0], { pitch: 0, fine: 9, window: 40, drift: 0.25, mix: 1 }, { name: "Sharp" });
-  const down = p.add("pitch-shifter", [0, 1], { pitch: 0, fine: -9, window: 46, drift: 0.25, mix: 1 }, { name: "Flat" });
-  const cho = p.add("chorus", [1, 0], { rate: 0.35, depth: 0.35, delay: 14, spread: 0.8, mix: 0.3 });
-  p.stereo(p.cin, up).stereo(p.cin, down)
-    .stereo(p.cin, cho, { amount: 0.5 }).stereo(up, cho, { amount: 0.35 }).stereo(down, cho, { amount: 0.35 })
-    .stereo(cho, p.cout)
-    .cable(p.cin, "spread", up, "fine", 0.3).cable(p.cin, "spread", down, "fine", -0.3);
+// Tape saturation followed by a gentle roll-off.
+function tapeWarmth() {
+  const p = cell("Tape Warmth", {
+    description: "Tape-style saturation with a bit of supply sag, rounded off by a soft top cut and a little extra bottom: the warmth of a good machine. Shared inputs Drive and Tone.",
+    tags: ["saturation", "tape", "warm", "analog"],
+    help: "A Saturator in its Tape character with moderate drive, some sag, followed by an EQ with a low " +
+      "shelf at 100 Hz (+1.5 dB) and a gentle high cut at 14 kHz.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Drive is added to the Saturator's Drive knob and Tone " +
+      "to its Tone knob, which sets the top end of the saturated signal. It does not follow the transport.\n\n" +
+      "Tip: it works on almost anything; try it on drums for glue or on a synth to soften digital edges.",
+  }).stereoIn().stereoOut().input("drive", "Drive").input("tone", "Tone");
+  const sat = p.add("saturator", [1, 0], { character: "Tape", drive: 0.5, bias: 0.05, color: 0.1, sag: 0.4, age: 0, tone: 12000, level: 1, mix: 1 });
+  const eq = p.add("eq", [2, 0], { b2Hz: 100, b2Gain: 1.5, b6On: true, b6Hz: 14000, b6Slope: "12 dB/oct" }, { name: "Roll-Off" });
+  p.stereo(p.cin, sat).stereo(sat, eq).stereo(eq, p.cout)
+    .cable(p.cin, "drive", sat, "drive", 0.4).cable(p.cin, "tone", sat, "tone", 0.4);
   return p;
 }
 
-function jetFlanger() {
-  const p = cell("Jet Flanger", {
-    description: "A short, resonant flanger on a slow sweep: the whoosh of a jet passing over drums, noise or a full mix. Shared inputs Rate and Feedback.",
-    tags: ["flanger", "modulation", "jet", "sweep"],
-    help: "A Chorus module in Flanger mode: short delay (2.2 ms), deep modulation, strong feedback and a slow " +
-      "rate (0.12 Hz). The sweep gives a jet-like whoosh.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. Rate is added to the flanger's Rate knob and " +
-      "Feedback to its Feedback knob. It does not follow the transport.\n\n" +
-      "Tip: put it on drums or a full mix; raise Feedback for a more metallic sound.",
-  }).stereoIn().stereoOut().input("rate", "Rate").input("fb", "Feedback");
-  const fl = p.add("chorus", [0, 0], { mode: "Flanger", rate: 0.12, depth: 0.85, delay: 2.2, feedback: 0.72, spread: 0.6, mix: 0.5 });
-  p.stereo(p.cin, fl).stereo(fl, p.cout).cable(p.cin, "rate", fl, "rate", 0.4).cable(p.cin, "fb", fl, "feedback", 0.3);
+// EQ, compressor and limiter in a row: loudness without crushing.
+function loudnessPush() {
+  const p = cell("Loudness Push", {
+    description: "A tone curve, a medium compressor and a brickwall limiter in a row: it makes a mix louder and more even without falling over. Shared inputs Push and Bright.",
+    tags: ["limiter", "mastering", "loudness", "compressor", "eq"],
+    help: "Three stages: an EQ (low cut at 30 Hz, a lift at 90 Hz, a dip at 350 Hz and a high shelf), a Compressor " +
+      "at 3:1 with a 15 ms attack, and a Limiter with a ceiling at -1 dB.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Push is added to the Limiter's Input knob (up to +24 " +
+      "dB at full amount, so a small turn is enough) and Bright to the high shelf's gain.\n\n" +
+      "Tip: raise Push until the loudest parts just touch the limiter, and leave the rest of the headroom alone.",
+  }).stereoIn().stereoOut().input("push", "Push").input("bright", "Bright");
+  const eq = p.add("eq", [1, 0], {
+    b1On: true, b1Hz: 30, b1Slope: "24 dB/oct",
+    b2Hz: 90, b2Gain: 2, b3Hz: 350, b3Gain: -2, b3Q: 0.9, b4On: false, b5Hz: 9000, b5Gain: 2.5,
+  });
+  const comp = p.add("compressor", [2, 0], { threshold: -18, ratio: 3, attack: 15, release: 140, knee: 6, makeup: 3 });
+  const lim = p.add("limiter", [3, 0], { ceiling: -1, release: 80, input: 3 });
+  p.stereo(p.cin, eq).stereo(eq, comp).stereo(comp, lim).stereo(lim, p.cout)
+    .cable(p.cin, "push", lim, "input", 0.25).cable(p.cin, "bright", eq, "b5Gain", 0.25);
   return p;
 }
 
-function slowPhaser() {
-  const p = cell("Slow Phaser", {
-    description: "Eight allpass stages sweeping slowly and wide, the right ear half a cycle behind the left: notches that travel through a pad, strings or an electric piano. Shared inputs Speed and Feedback.",
-    tags: ["phaser", "modulation", "pad", "sweep", "stereo"],
-    help: "A Phaser with eight allpass stages, a slow rate (0.08 Hz), wide depth and spread at maximum, so the " +
-      "right ear is half a cycle behind the left. Notches travel through the sound.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. Speed is added to the Rate knob and Feedback to " +
-      "the Feedback knob. It does not follow the transport.\n\n" +
-      "Tip: suits pads, strings and electric piano; raise Feedback for a more vocal sweep.",
-  }).stereoIn().stereoOut().input("speed", "Speed").input("fb", "Feedback");
-  const ph = p.add("phaser", [0, 0], { rate: 0.08, depth: 0.8, centre: 650, feedback: 0.55, stages: "8", spread: 1, mix: 0.5 });
-  p.stereo(p.cin, ph).stereo(ph, p.cout).cable(p.cin, "speed", ph, "rate", 0.4).cable(p.cin, "fb", ph, "feedback", 0.3);
+// The playing loudness sweeps a band-pass.
+function touchWah() {
+  const p = cell("Touch Wah", {
+    description: "The loudness of what you play opens a resonant band-pass: hard notes make it quack, soft notes keep it closed. Shared inputs Sensitivity and Cutoff.",
+    tags: ["wah", "envelope follower", "funk", "filter", "dynamic"],
+    help: "An Envelope Follower listens to the input and its output opens the cutoff of an SVF Band-pass filter with " +
+      "medium-high resonance. The follower reacts in a few milliseconds and falls back in a quarter of a " +
+      "second, which is the typical quack.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Sensitivity is added to the follower's Gain (how far " +
+      "the wah opens for a given loudness) and Cutoff to the filter's resting cutoff.\n\n" +
+      "Tip: it loves funky guitar, clavinet and bass; play with a lot of dynamics and set Sensitivity so the " +
+      "loudest note just opens the filter fully.",
+  }).stereoIn().stereoOut().input("sens", "Sensitivity").input("cut", "Cutoff");
+  const env = p.add("envelope-follower", [0, 1], { attack: 0.008, release: 0.22, gain: 4 }, { name: "Touch" });
+  const flt = p.add("filter", [1, 0], { type: "SVF Bandpass (unit gain)", cutoff: 450, resonance: 0.5, drive: 0.15, mix: 0.75 }, { name: "Wah" });
+  p.cable(p.cin, "l", env, "in")
+    .cable(env, "env", flt, "cutoff", 0.4).cable(p.cin, "sens", env, "gain", 0.3).cable(p.cin, "cut", flt, "cutoff", 0.4)
+    .stereo(p.cin, flt).stereo(flt, p.cout);
   return p;
 }
 
-// A kick (or any sound) on the sidechain input pushes the sound down.
-function pumpDuck() {
-  const p = cell("Pump Duck", {
-    description: "Patch a kick or any rhythmic sound into Sidechain and the sound on In L/R is pushed down with every hit, then swells back: the pumping of dance music. Shared inputs Sidechain, Depth (lowers the threshold) and Release.",
-    tags: ["sidechain", "compressor", "pump", "ducking", "dance"],
-    help: "A Compressor with a high ratio, a low threshold and a 3 ms attack, driven by a sidechain key. " +
-      "Whatever you patch into Sidechain pushes the sound on In L/R down, then it swells back over a 220 ms " +
-      "release.\n\n" +
-      "Patch the sound to be ducked into In L/R, a kick or any rhythmic sound into Sidechain, and take Out " +
-      "L/R onwards. Depth is added to the threshold (more means deeper ducking) and Release to the release " +
-      "time.\n\n" +
-      "Tip: patch a kick into Sidechain and a pad into In L/R for classic dance pumping.",
-  }).stereoIn().stereoOut().input("key", "Sidechain", "audio").input("depth", "Depth").input("release", "Release");
-  const comp = p.add("compressor", [0, 0], { threshold: -32, ratio: 12, attack: 3, release: 220, knee: 4, makeup: 2, link: 1 });
-  p.stereo(p.cin, comp).stereo(comp, p.cout)
-    .cable(p.cin, "key", comp, "key").cable(p.cin, "depth", comp, "threshold", -0.4).cable(p.cin, "release", comp, "release", 0.4);
+// Two band-pass filters at different centres, slowly sliding: a vowel that never settles.
+function driftingVowel() {
+  const p = cell("Drifting Vowel", {
+    description: "Two resonant band-passes side by side, the second pulled away from the first, slowly drifting: a sound seems to change vowels as it plays. Shared inputs Cutoff and Spread.",
+    tags: ["formant", "vowel", "filter", "dual filter", "vocal"],
+    help: "A Dual Filter in Parallel routing with two band-pass sections and medium resonance. The second filter " +
+      "sits above the first by Spread. A slow LFO named Drift moves the shared cutoff, so the pair glides " +
+      "across vowel-like positions.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Cutoff is added to the shared cutoff and Spread to " +
+      "the distance between the two peaks. It does not follow the transport.\n\n" +
+      "Tip: it needs a source with plenty of harmonics, like a saw, a pulse, strings or noise.",
+  }).stereoIn().stereoOut().input("cut", "Cutoff").input("spread", "Spread");
+  const lfo = p.add("lfo", [0, 1], { rate: 0.15, wave: "Triangle" }, { name: "Drift" });
+  const df = p.add("dual-filter", [1, 0], { cutoff: 600, spread: 1.4, res1: 0.55, res2: 0.55, mode1: 0.5, mode2: 0.5,
+                                            drive: 0.15, routing: "Parallel", mix: 0.9 });
+  p.stereo(p.cin, df).stereo(df, p.cout)
+    .cable(lfo, "out", df, "cutoff", 0.18).cable(p.cin, "cut", df, "cutoff", 0.4).cable(p.cin, "spread", df, "spread", 0.2);
   return p;
 }
 
-function brokenRadio() {
-  const p = cell("Broken Radio", {
-    description: "Five bits, a quarter of the sample rate, a drive and a band-limiting EQ: music through a failing radio or a 90s sampler. Shared input Damage.",
-    tags: ["lo-fi", "bitcrusher", "radio", "distortion"],
-    help: "A Crunch module (5 bits, quarter sample rate, drive) followed by an EQ that cuts lows and highs and " +
-      "boosts the mids. Together this sounds like a small, failing radio.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Damage input is subtracted from Bits and " +
-      "added to Rate, so one control wrecks both. It does not follow the transport.\n\n" +
-      "Tip: try it on a full mix, then bring Damage up for dropouts.",
-  }).stereoIn().stereoOut().input("damage", "Damage");
-  const cr = p.add("crunch", [0, 0], { drive: 0.5, bits: 5, rate: 0.35, tone: 3200, level: 1 });
-  const eq = p.add("eq", [1, 0], { b1On: true, b1Hz: 500, b1Slope: "12 dB/oct", b8On: true, b8Hz: 4500, b6Hz: 1600, b6Gain: 5, b6Q: 1.2 });
-  p.stereo(p.cin, cr).stereo(cr, eq).stereo(eq, p.cout)
-    .cable(p.cin, "damage", cr, "bits", -0.35).cable(p.cin, "damage", cr, "rate", 0.35);
+// Envelope follower threshold gate drives a smoothed VCA.
+function tightGate() {
+  const p = cell("Tight Gate", {
+    description: "Silences everything below a threshold so noise, hum and spill between notes disappear: the gate closes with a short, smoothed release. Shared inputs Threshold and Release.",
+    tags: ["gate", "noise gate", "cleanup", "dynamics", "drums"],
+    help: "An Envelope Follower with a threshold turns the input into a gate signal, a Utility named Smooth " +
+      "slews it so the edges do not click, and a VCA applies it to the sound.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Threshold is added to the follower's threshold " +
+      "(higher means more is cut) and Release is added to its release, which also lengthens the time the gate " +
+      "stays open after a hit.\n\n" +
+      "Tip: set Threshold just above the noise floor; on drums, shorten Release for a tight, punchy sound.",
+  }).stereoIn().stereoOut().input("threshold", "Threshold").input("release", "Release");
+  const env = p.add("envelope-follower", [0, 1], { attack: 0.002, release: 0.12, gain: 2, threshold: 0.06 }, { name: "Detector" });
+  const soft = p.add("utility", [1, 1], { slew: 0.01 }, { name: "Smooth" });
+  const vca = p.add("vca", [2, 0], { gain: 0, response: "Linear" });
+  p.cable(p.cin, "l", env, "in")
+    .cable(env, "gate", soft, "x").cable(soft, "out", vca, "gain")
+    .cable(p.cin, "threshold", env, "threshold", 0.3).cable(p.cin, "release", env, "release", 0.3)
+    .stereo(p.cin, vca).stereo(vca, p.cout);
   return p;
 }
 
-function telephone() {
-  const p = cell("Telephone", {
-    description: "Everything below 500 Hz and above 3 kHz removed, a bump in the middle and a touch of drive: a voice or a drum loop down the line. Shared input Drive.",
-    tags: ["telephone", "eq", "band-pass", "lo-fi"],
-    help: "An EQ cuts everything below about 700 Hz and above 3 kHz and lifts the middle, followed by a Crunch " +
-      "module for a little drive. This narrow band is the sound of a voice or loop down the line.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Drive input is added to the Crunch Drive " +
-      "knob.\n\n" +
-      "Tip: use it on a vocal or a drum loop and bring in Drive for distortion.",
-  }).stereoIn().stereoOut().input("drive", "Drive");
-  const eq = p.add("eq", [0, 0], { b1On: true, b1Hz: 700, b1Slope: "24 dB/oct", b8On: true, b8Hz: 3000, b8Slope: "24 dB/oct", b4Hz: 1500, b4Gain: 6, b4Q: 1.5 });
-  const cr = p.add("crunch", [1, 0], { drive: 0.35, mix: 0.7 });
-  p.stereo(p.cin, eq).stereo(eq, cr).stereo(cr, p.cout).cable(p.cin, "drive", cr, "drive", 0.5);
+// A short, high-passed Haas copy at a different time on each side.
+function haasWidener() {
+  const p = cell("Haas Widener", {
+    description: "A high-passed copy delayed by a different few milliseconds on each side is added under the dry sound: mono sources spread out without phasing the bass. Shared inputs Width and Time.",
+    tags: ["stereo", "widener", "haas", "width", "mix"],
+    help: "The dry sound passes straight through. A copy goes through a 1-pole high-pass at 250 Hz, a Delay with " +
+      "12 ms on the left and 23 ms on the right, and a VCA named Width into the output. Because the low end is " +
+      "left out of the copy, the bass stays centred and solid.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Width is added to the VCA gain and Time to both delay " +
+      "times. Check the result in mono; very high Width can thin out the sound.\n\n" +
+      "Tip: use it on mono synths, guitars or vocals that sound narrow next to a stereo bed.",
+  }).stereoIn().stereoOut().input("width", "Width").input("time", "Time");
+  const hp = p.add("filter", [1, 1], { cutoff: 250, type: "1-Pole High-pass" }, { name: "Keep Bass Out" });
+  const dly = p.add("delay", [2, 1], { timel: 12, timer: 23, feedback: 0, lowcut: 20, highcut: 14000, mix: 1 });
+  const vca = p.add("vca", [3, 1], { gain: 0.5, response: "Linear" }, { name: "Width" });
+  p.stereo(p.cin, p.cout).stereo(p.cin, hp).stereo(hp, dly).stereo(dly, vca).stereo(vca, p.cout)
+    .cable(p.cin, "width", vca, "gain", 0.5).cable(p.cin, "time", dly, "timel", 0.2).cable(p.cin, "time", dly, "timer", 0.2);
   return p;
 }
 
-// Tape speed errors: a slow sine and a wandering LFO are the wow, a fast random one the flutter, all moving the
-// shifter's pitch by a few cents. A little head-bump, top-end roll-off and saturation finish the tape.
-function wowAndFlutter() {
-  const p = cell("Wow & Flutter", {
-    description: "The speed errors of a worn tape machine: a slow wow and a quick flutter wobble the pitch by a few cents, with a darker top, a little saturation and drift. Shared inputs Wow and Flutter (the depth of each).",
-    tags: ["tape", "wow", "flutter", "vibrato", "lo-fi", "pitch"],
-    help: "Three LFOs (a slow sine, a wandering random, a fast random) modulate the pitch of a Pitch Shifter by " +
-      "a few cents. A Multiplier sets their depth. An EQ rolls off the top and a Crunch stage adds " +
-      "saturation, like tape.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Wow input is added to the depth of the slow " +
-      "motion and Flutter to the depth of the fast one. It does not follow the transport.\n\n" +
-      "Tip: use it on pads or keys and keep the depths low for realism.",
-  }).stereoIn().stereoOut().input("wow", "Wow").input("flutter", "Flutter");
-  const slow = p.add("lfo", [0, 0], { rate: 0.55, wave: "Sine" }, { name: "Wow" });
-  const wander = p.add("lfo", [0, 1], { rate: 1.4, wave: "Random Smooth" }, { name: "Wander" });
-  const quick = p.add("lfo", [0, 2], { rate: 9, wave: "Random Smooth" }, { name: "Flutter" });
-  const depth = p.add("multiplier", [1, 1], { biasx1: 0, biasy1: 0.6, gain1: 1, biasx2: 0, biasy2: 0.5, gain2: 1 }, { name: "Depth" });
-  const shift = p.add("pitch-shifter", [2, 0], { pitch: 0, window: 30, drift: 0.2, mix: 1 }, { name: "Speed" });
-  const tone = p.add("eq", [3, 0], { b2Hz: 60, b2Gain: -2, b7Hz: 7000, b7Gain: -5 }, { name: "Head" });
-  const sat = p.add("crunch", [4, 0], { drive: 0.25, mix: 0.6 }, { name: "Tape" });
-  p.cable(slow, "out", depth, "x1", 0.7).cable(wander, "out", depth, "x1", 0.3).cable(p.cin, "wow", depth, "y1", 0.4)
-    .cable(quick, "out", depth, "x2").cable(p.cin, "flutter", depth, "y2", 0.4)
-    .cable(depth, "out1", shift, "pitch", 0.003).cable(depth, "out2", shift, "pitch", 0.0008)
-    .stereo(p.cin, shift).stereo(shift, tone).stereo(tone, sat).stereo(sat, p.cout);
+// A crushed, folded copy blended under the clean sound.
+function parallelGrit() {
+  const p = cell("Parallel Grit", {
+    description: "A crushed and folded copy of the sound is blended with the clean one: drums and basses gain bite and weight without losing their shape. Shared inputs Grit and Blend.",
+    tags: ["distortion", "parallel", "bitcrusher", "wavefolder", "drums"],
+    help: "The sound goes down two paths: one stays clean, the other passes a Crunch (8 bits, reduced sample rate, " +
+      "tone at 6 kHz) and then a Folder. A Crossfader blends the two.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Grit is added to the Crunch Drive and the Folder's " +
+      "Fold, so one control makes the dirty path nastier; Blend is added to the Crossfader and sets how much of " +
+      "it you hear.\n\n" +
+      "Tip: for a drum loop, keep Blend around a third and push Grit; for a bass, lower both.",
+  }).stereoIn().stereoOut().input("grit", "Grit").input("blend", "Blend");
+  const cr = p.add("crunch", [1, 1], { drive: 0.55, bits: 8, rate: 0.2, tone: 6000, level: 0.9 });
+  const fold = p.add("wavefolder", [2, 1], { fold: 0.25, symmetry: 0.15, source: "Input", mix: 1 });
+  const fade = p.add("crossfader", [3, 0], { fade: 0.3 }, { name: "Blend" });
+  p.stereo(p.cin, cr).stereo(cr, fold)
+    .cable(p.cin, "l", fade, "al").cable(p.cin, "r", fade, "ar")
+    .cable(fold, "l", fade, "bl").cable(fold, "r", fade, "br")
+    .cable(fade, "outl", p.cout, "l").cable(fade, "outr", p.cout, "r")
+    .cable(p.cin, "grit", cr, "drive", 0.4).cable(p.cin, "grit", fold, "fold", 0.4).cable(p.cin, "blend", fade, "fade", 0.5);
   return p;
 }
 
-export default category("Processors", "Pitch, modulation, dynamics and tone effects: shimmer, doubling, flanging, phasing, sidechain pumping and lo-fi.", [
-  shimmerVerb, fifthShimmer, subOctaver, vocalDoubler, jetFlanger, slowPhaser, pumpDuck, brokenRadio, telephone, wowAndFlutter,
+// Compressor ducked by a band-passed copy: only sibilance is turned down.
+function deEsser() {
+  const p = cell("Gentle De-Esser", {
+    description: "Harsh S sounds and hi-hat sizzle around 6 to 8 kHz pull the whole sound down for a moment and nothing else does: a vocal or a bright mix stays smooth. Shared inputs Amount and Frequency.",
+    tags: ["de-esser", "vocal", "compressor", "sibilance", "dynamics"],
+    help: "A band-pass filter at 6.5 kHz listens to the input and feeds the Sidechain input of a fast Compressor. " +
+      "When the band is loud (an S or a hi-hat), the compressor turns the whole signal down for a few " +
+      "milliseconds; otherwise the sound passes untouched.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Amount is subtracted from the compressor's Threshold " +
+      "(higher means more de-essing) and Frequency is added to the listening filter's cutoff.\n\n" +
+      "Tip: sweep Frequency while a vocal plays until the harshest S is tamed, then lower Amount until the " +
+      "effect is hardly audible.",
+  }).stereoIn().stereoOut().input("amount", "Amount").input("freq", "Frequency");
+  const band = p.add("filter", [0, 1], { type: "SVF Bandpass (unit gain)", cutoff: 6500, resonance: 0.35 }, { name: "Listener" });
+  const comp = p.add("compressor", [1, 0], { threshold: -28, ratio: 5, attack: 0.5, release: 70, knee: 4, makeup: 0, detector: "Peak" });
+  p.stereo(p.cin, band).stereo(p.cin, comp)
+    .cable(band, "l", comp, "key")
+    .stereo(comp, p.cout)
+    .cable(p.cin, "amount", comp, "threshold", -0.3).cable(p.cin, "freq", band, "cutoff", 0.3);
+  return p;
+}
+
+export default category("Processors", "Tone-shaping and dynamics: EQ, compression, saturation, filters, gating, widening and distortion for any stereo signal.", [
+  airAndWeight, softGlue, tapeWarmth, loudnessPush, touchWah, driftingVowel, tightGate, haasWidener, parallelGrit, deEsser,
 ]);

@@ -1,123 +1,133 @@
 // SPDX-License-Identifier: MIT
 // Rhythm Bank: five demo patches. Each plays by itself with the transport.
 import { patch } from "../kit.mjs";
-import { melody } from "../demo-kit.mjs";
 
-/// Mixes (source, left jack, right jack, level dB) rows into Out 1/2.
-function mixOut(p, at, parts, master = 0) {
-  const lv = {};
-  parts.forEach(([, , , l], i) => { lv[`level${i + 1}`] = l; });
-  const mx = p.add("audio-mixer", at, { ...lv, master });
-  parts.forEach(([src, jl, jr], i) => p.cable(src, jl, mx, `in${i + 1}l`).cable(src, jr, mx, `in${i + 1}r`));
-  p.stereo(mx, p.out, { from: ["outl", "outr"] });
-  return mx;
+const oct = (n) => (n > 0 ? "+" : "") + n;
+/// Oscillator -> ADSR -> VCA (optional filter), played by a pitch jack and a gate jack: [node, jack] pairs.
+function voice(p, at, pitch, gate, o = {}) {
+  const [c, r] = at, name = o.name || "Voice";
+  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.6, octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
+  const env = p.add("adsr", [c, r + 1], { attack: 0.004, decay: 0.3, sustain: 0, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
+  const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
+  if (pitch) p.cable(pitch[0], pitch[1], osc, "pitch", pitch[2] ?? 1);
+  p.cable(gate[0], gate[1], env, "gate").cable(osc, "out", amp, "l").cable(env, "env", amp, "gain");
+  if (o.retrig) p.cable(o.retrig[0], o.retrig[1], env, "retrig");
+  if (!o.filter) return { osc, env, amp, out: amp, jack: "l" };
+  const filter = p.add("filter", [c + 2, r], o.filter, { name: `${name} Filter` });
+  p.cable(amp, "l", filter, "l");
+  return { osc, env, amp, filter, out: filter, jack: "l" };
+}
+/// Up to eight mono sources into one stereo mix. list: {node, jack, level, pan}.
+function bus(p, at, list, master = -3, name = "Mix") {
+  const [c, r] = at;
+  const mk = (items, col, row, nm, m) => {
+    const vals = { master: m };
+    items.forEach((x, i) => { vals[`level${i + 1}`] = x.level ?? -6; vals[`pan${i + 1}`] = x.pan ?? 0; });
+    const mx = p.add("audio-mixer", [col, row], vals, { name: nm });
+    items.forEach((x, i) => p.cable(x.node, x.jack || "out", mx, `in${i + 1}l`));
+    return mx;
+  };
+  if (list.length <= 4) return mk(list, c, r, name, master);
+  const a = mk(list.slice(0, 4), c, r, `${name} A`, 0), b = mk(list.slice(4), c, r + 1, `${name} B`, 0);
+  const fin = p.add("audio-mixer", [c + 1, r], { level1: 0, level2: 0, master }, { name });
+  p.stereo(a, fin, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).stereo(b, fin, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
+  return fin;
+}
+/// Mono jack to both sides of a stereo input pair.
+const both = (p, from, jack, to, l = "l", r = "r") => p.cable(from, jack, to, l).cable(from, jack, to, r);
+/// A reverb after a stereo mixer (outl/outr) and then the patch output.
+function finish(p, mixer, at, verb = {}) {
+  const v = p.add("reverb", at, { size: 0.4, decay: 1.4, mix: 0.15, ...verb });
+  p.stereo(mixer, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return v;
 }
 
-/// A plucked sine voice on a Rhythm Bank gate: Oscillator → VCA, enveloped by an ADSR from the gate. Mono audio on `amp` "l".
-function pluck(p, at, rb, jack, tune, oct, env = {}) {
-  const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: 0.15, coarse: tune, octave: oct }, { name: `Pluck ${r + 1}` });
-  const e = p.add("adsr", [c + 1, r], { attack: 0.002, decay: 0.35, sustain: 0, release: 0.2, ...env });
-  const amp = p.add("vca", [c + 2, r]);
-  p.cable(rb, jack, e, "gate").cable(osc, "out", amp, "l").cable(e, "env", amp, "gain");
-  return amp;
-}
-
-/// Kick/snare/hats-style voices on Rhythm Bank outs 1–4 (Output: Trigger).
-function kit(p, rb, at, voices) {
-  const [c, r] = at;
-  const mods = voices.map(([type, vals, jack], i) => {
-    const m = p.add(type, [c, r + i], vals);
-    p.cable(rb, `out${i + 1}`, m, jack || "trig");
-    return m;
+function evenKit() {
+  const p = patch("Rhythm Bank: Even Groove Kit", {
+    module: "rhythm-bank", tempo: 110,
+    description: "The Even family spreads hits as evenly as it can: four related rhythms of different density drive a kick, snare, hats and a rim. Turn Pattern to change all four grooves at once, or turn Width for longer or shorter gates.",
+    tags: ["even", "drums", "pattern", "groove"],
   });
-  const mix = p.add("audio-mixer", [c + 1, r], { level1: -2, level2: -5, level3: -9, level4: -8, pan2: 0.15, pan3: 0.3, pan4: -0.3, master: 0 }, { name: "Kit Mix" });
-  mods.forEach((m, i) => p.cable(m, "out", mix, `in${i + 1}l`));
-  return mix;
+  const rb = p.add("rhythm-bank", [0, 0], { pattern: 14, family: "Even", length: "16", rate: "1/16", rotate2: 4, rotate4: 2, output: "Trigger" });
+  const kick = p.add("punch-kick", [2, 0], { level: 0.85 });
+  const snare = p.add("punch-snare", [2, 1], { level: 0.6 });
+  const hats = p.add("punch-hats", [2, 2], { level: 0.45, closed: 0.04 });
+  const rim = p.add("punch-rim", [2, 3], { level: 0.45, tune: 3 });
+  p.cable(rb, "out1", kick, "trig").cable(rb, "out2", snare, "trig").cable(rb, "out3", hats, "closed").cable(rb, "out4", rim, "trig");
+  const mix = bus(p, [4, 0], [{ node: kick, level: -3 }, { node: snare, level: -7, pan: 0.1 }, { node: hats, level: -12, pan: 0.3 }, { node: rim, level: -12, pan: -0.3 }], -6, "Kit");
+  finish(p, mix, [5, 0], { size: 0.3, decay: 1, mix: 0.12 });
+  return p;
 }
 
-function euclidKit() {
-  const p = patch("Rhythm Bank: Euclid Kit", {
+function primes() {
+  const p = patch("Rhythm Bank: Prime Cycles", {
+    module: "rhythm-bank", tempo: 96,
+    description: "Length 15 and the Prime family give four rhythms with uneven, prime-based spacing, each playing a different pluck of an A minor chord. Because the lengths never line up the same way twice, the figure keeps turning; try Family = Poly for a different split.",
+    tags: ["prime", "polyrhythm", "plucks", "chord"],
+  });
+  const rb = p.add("rhythm-bank", [0, 0], { pattern: 20, family: "Prime", length: "15", rate: "1/8", output: "Gate", width: 0.3 });
+  const vs = [-12, -5, 0, 7].map((n, i) => voice(p, [2, i * 2], null, [rb, `out${i + 1}`], { name: `Pluck ${i + 1}`, shape: 0.3 + i * 0.12, osc: { coarse: n },
+    env: { attack: 0.01, decay: 0.9, sustain: 0.25, release: 0.7 } }));
+  const mix = bus(p, [5, 0], vs.map((v, i) => ({ node: v.out, jack: "l", level: 0, pan: -0.6 + i * 0.4 })), 6, "Plucks");
+  const dly = p.add("delay", [6, 0], { sync: "Tempo", ratel: "1/8.", rater: "1/4", feedback: 0.38, mix: 0.28, highcut: 5000 });
+  p.stereo(mix, dly, { from: ["outl", "outr"] });
+  const v = p.add("reverb", [7, 0], { size: 0.5, decay: 2.5, mix: 0.25 });
+  p.stereo(dly, v).stereo(v, p.out);
+  return p;
+}
+
+function browsing() {
+  const p = patch("Rhythm Bank: Pattern Browser", {
     module: "rhythm-bank", tempo: 118,
-    description: "In the Even family the four outputs spread different numbers of hits evenly over 16 steps: kick, snare, hats and rim lock into a lopsided but steady groove. Turn Pattern to browse related grooves or use Rotate 1-4 to shift one drum against the others.",
-    tags: ["euclidean", "drums", "groove", "even"],
+    description: "A stepped random LFO picks a new Pattern number every bar, and Change is set to Cycle so each new rhythm waits for the end of the current one: the part develops by itself without a break. Set Change to Step to switch mid-pattern, or turn the LFO cable down to stay near one groove.",
+    tags: ["pattern", "browse", "random", "develop"],
   });
-  const rb = p.add("rhythm-bank", [0, 0], { family: "Even", pattern: 20, length: "16", rate: "1/16", output: "Trigger", rotate2: 2, rotate3: 1 });
-  const mix = kit(p, rb, [1, 0], [
-    ["punch-kick", { level: 0.8 }], ["punch-snare", { level: 0.6 }], ["punch-hats", { level: 0.5 }, "closed"], ["punch-rim", { level: 0.6 }],
-  ]);
-  const m = melody(p, [1, 4], [0, ".", ".", 7, ".", 3, ".", "."], { rate: "1/8", root: "E", scale: "Minor Pentatonic", octave: -1, shape: 0.8 });
-  mixOut(p, [4, 0], [[mix, "outl", "outr", 0], [m.amp, "l", "l", -8]]);
-  return p;
-}
-
-function primeMarimba() {
-  const p = patch("Rhythm Bank: Prime Marimba", {
-    module: "rhythm-bank", tempo: 100,
-    description: "With Family on Prime and Length on Open the four parts repeat every few steps (2, 3, 5, 7 ...) and slowly drift against each other, each plucking a different note of a minor pentatonic scale, so the melody never repeats the same way twice. Try other Pattern numbers for different cycle lengths.",
-    tags: ["prime", "polyrhythm", "pluck", "melodic"],
-  });
-  const rb = p.add("rhythm-bank", [0, 0], { family: "Prime", pattern: 40, length: "Open", rate: "1/8", width: 0.4 });
-  const mix = p.add("audio-mixer", [4, 0], { level1: -1, level2: -1, level3: -3, level4: -4, pan1: -0.5, pan2: 0.4, pan3: -0.15, pan4: 0.6, master: 6 });
-  [[0, "-1", "out1"], [7, "-1", "out2"], [3, "0", "out3"], [10, "0", "out4"]].forEach(([tune, oct, jack], i) => {
-    const amp = pluck(p, [1, i], rb, jack, tune, oct);
-    p.cable(amp, "l", mix, `in${i + 1}l`).cable(amp, "l", mix, `in${i + 1}r`);
-  });
-  const v = p.add("reverb", [5, 0], { size: 0.7, decay: 3.5, mix: 0.35 });
-  p.stereo(mix, v, { from: ["outl", "outr"] }).stereo(v, p.out);
-  return p;
-}
-
-function metricBackbeat() {
-  const p = patch("Rhythm Bank: Metric Backbeat", {
-    module: "rhythm-bank", tempo: 104,
-    description: "The Metric family builds a kit by metric weight: kick on the one, snare on the backbeat, hats on the off-beats. A Random steps Pattern once per bar, so the groove changes bar by bar but always from the same family. Try Complement on Avoid to stop the parts from colliding.",
-    tags: ["metric", "backbeat", "changing", "kit"],
-  });
-  const rb = p.add("rhythm-bank", [0, 0], { family: "Metric", pattern: 6, length: "16", rate: "1/16", output: "Trigger", complement: "Avoid" });
-  const rnd = p.add("random", [0, 1], { sync: "1 bar", spread: 0.6, bias: 0.2, seed: 11 }, { name: "Bar Changes" });
-  p.cable(rnd, "out", rb, "pattern", 0.12);
-  const mix = kit(p, rb, [1, 0], [
-    ["ring-kick", { level: 0.8 }], ["ring-snare", { level: 0.65 }], ["ring-hats", { level: 0.5 }, "closed"], ["punch-clap", { level: 0.5 }],
-  ]);
-  const m = melody(p, [1, 4], [0, 0, ".", 3, ".", 5, ".", 7], { rate: "1/8", root: "A", scale: "Dorian", octave: -1, shape: 0.9, env: { decay: 0.18, sustain: 0.4 } });
-  mixOut(p, [4, 0], [[mix, "outl", "outr", 0], [m.amp, "l", "l", -8]]);
-  return p;
-}
-
-function crossRhythms() {
-  const p = patch("Rhythm Bank: Cross-Rhythms", {
-    module: "rhythm-bank", tempo: 92,
-    description: "The Poly family plays between 2 and 9 hits per cycle across the same bar, not tied to the sixteenths: with Grid on Free the hits land at their exact positions on four hand drums and a bell. Switch Grid to Snap to hear them squared up.",
-    tags: ["polyrhythm", "percussion", "toms", "cross-rhythm"],
-  });
-  const rb = p.add("rhythm-bank", [0, 0], { family: "Poly", pattern: 33, length: "16", rate: "1/16", grid: "Free", output: "Trigger" });
-  const mix = kit(p, rb, [1, 0], [
-    ["ring-tom", { tune: 85, decay: 0.6, bend: 0.4, level: 0.8 }], ["ring-tom", { tune: 130, decay: 0.45, level: 0.7 }],
-    ["ring-cowbell", { tune: 4, decay: 0.3, level: 0.5 }], ["punch-tom", { tune: 220, decay: 0.3, level: 0.7 }],
-  ]);
-  const v = p.add("reverb", [3, 1], { size: 0.5, decay: 1.6, mix: 0.2 });
-  p.stereo(mix, v, { from: ["outl", "outr"] });
-  const m = melody(p, [1, 4], [0, ".", ".", ".", 7, ".", ".", "."], { rate: "1/4", root: "D", scale: "Minor Pentatonic", octave: -1, shape: 0.2, env: { decay: 0.6, sustain: 0.3, release: 0.4 } });
-  mixOut(p, [4, 0], [[v, "l", "r", 0], [m.amp, "l", "l", -9]]);
+  const rb = p.add("rhythm-bank", [0, 0], { pattern: 0, family: "Metric", length: "16", rate: "1/16", change: "Cycle", output: "Trigger" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Random Step", sync: "1 bar", polarity: "Unipolar", seed: 4 }, { name: "Picker" });
+  p.cable(lfo, "out", rb, "pattern", 0.5);
+  const kick = p.add("ring-kick", [2, 0], { level: 0.85, decay: 0.6 });
+  const snare = p.add("ring-snare", [2, 1], { level: 0.55 });
+  const hats = p.add("ring-hats", [2, 2], { level: 0.4 });
+  const bell = p.add("ring-cowbell", [2, 3], { level: 0.4, decay: 0.25 });
+  p.cable(rb, "out1", kick, "trig").cable(rb, "out2", snare, "trig").cable(rb, "out3", hats, "closed").cable(rb, "out4", bell, "trig");
+  const mix = bus(p, [4, 0], [{ node: kick, level: -3 }, { node: snare, level: -7, pan: 0.1 }, { node: hats, level: -13, pan: 0.3 }, { node: bell, level: -14, pan: -0.3 }], 2, "Kit");
+  finish(p, mix, [5, 0], { size: 0.35, decay: 1.2, mix: 0.12 });
   return p;
 }
 
 function interlock() {
-  const p = patch("Rhythm Bank: Interlocking Hats", {
-    module: "rhythm-bank", tempo: 128,
-    description: "Interlock never lets two parts hit on the same step, and Complement on Fill makes Out 4 play every step the other three leave empty: kick, snare and rim weave around a continuous ride of hats. Try Rotate 1-4 or Pattern to reshuffle who plays where.",
-    tags: ["interlock", "complement", "hats", "dance"],
+  const p = patch("Rhythm Bank: Interlocking Pair", {
+    module: "rhythm-bank", tempo: 100,
+    description: "With Complement set to Pairs, output 2 fills the gaps left by output 1 (and 4 those of 3), so a low and a high voice share one steady line like two hands. Switch Complement to Off to hear the raw rhythms collide, or to Avoid to keep them from landing together.",
+    tags: ["complement", "interlock", "call and response", "bass"],
   });
-  const rb = p.add("rhythm-bank", [0, 0], { family: "Interlock", pattern: 12, length: "16", rate: "1/16", output: "Trigger", complement: "Fill" });
-  const mix = kit(p, rb, [1, 0], [
-    ["punch-kick", { level: 0.85 }], ["punch-snare", { level: 0.6 }], ["punch-rim", { level: 0.6 }], ["punch-hats", { level: 0.4, tone: 0.6 }, "closed"],
-  ]);
-  const b = melody(p, [1, 4], [0, 0, 12, 0, 7, 0, 10, 0], { rate: "1/8", root: "F", scale: "Natural Minor", octave: -1, shape: 0.9, env: { decay: 0.15, sustain: 0.4, release: 0.08 } });
-  const flt = p.add("filter", [4, 4], { cutoff: 500, resonance: 0.4, type: "Ladder Tanh" });
-  p.cable(b.amp, "l", flt, "l").cable(b.amp, "l", flt, "r");
-  mixOut(p, [5, 0], [[mix, "outl", "outr", 0], [flt, "l", "r", -4]], -3);
+  const rb = p.add("rhythm-bank", [0, 0], { pattern: 37, family: "Interlock", length: "16", rate: "1/16", complement: "Pairs", output: "Gate", width: 0.4 });
+  const low = voice(p, [2, 0], null, [rb, "out1"], { name: "Low", shape: 0.25, octave: -2, env: { decay: 0.25, sustain: 0.1 }, filter: { cutoff: 600, resonance: 0.3 } });
+  const high = voice(p, [2, 2], null, [rb, "out2"], { name: "High", shape: 0.5, octave: 0, osc: { coarse: 7 }, env: { decay: 0.15, sustain: 0 }, filter: { cutoff: 3500, resonance: 0.2 } });
+  const kick = p.add("punch-kick", [2, 4], { level: 0.8 });
+  const hats = p.add("punch-hats", [3, 4], { level: 0.4 });
+  p.cable(rb, "out3", kick, "trig").cable(rb, "out4", hats, "closed");
+  const mix = bus(p, [5, 0], [{ node: low.out, jack: "l", level: -4, pan: -0.2 }, { node: high.out, jack: "l", level: -8, pan: 0.3 },
+    { node: kick, level: -6 }, { node: hats, level: -16, pan: 0.4 }], 0, "Mix");
+  finish(p, mix, [6, 0], { size: 0.35, decay: 1.2, mix: 0.15 });
   return p;
 }
 
-export default [euclidKit, primeMarimba, metricBackbeat, crossRhythms, interlock];
+function seeded() {
+  const p = patch("Rhythm Bank: Seeded Open Loop", {
+    module: "rhythm-bank", tempo: 126,
+    description: "Length is Open, so the rhythms never loop, and the Seeded family makes up a fresh but related set from the Pattern number. Rotate nudges each rhythm against the others and Grid Free lets hits sit between steps; set Length back to 16 to hear a plain loop.",
+    tags: ["seeded", "open", "rotate", "generative"],
+  });
+  const rb = p.add("rhythm-bank", [0, 0], { pattern: 63, family: "Seeded", length: "Open", rate: "1/16", rotate1: 1, rotate3: -2, grid: "Free", output: "Trigger" });
+  const kick = p.add("punch-kick", [2, 0], { level: 0.85, tune: 52 });
+  const clap = p.add("punch-clap", [2, 1], { level: 0.55 });
+  const hats = p.add("punch-hats", [2, 2], { level: 0.45, closed: 0.035, tone: 0.65 });
+  const tom = p.add("punch-tom", [2, 3], { level: 0.65, tune: 150 });
+  p.cable(rb, "out1", kick, "trig").cable(rb, "out2", clap, "trig").cable(rb, "out3", hats, "closed").cable(rb, "out4", tom, "trig");
+  const mix = bus(p, [4, 0], [{ node: kick, level: -3 }, { node: clap, level: -9, pan: 0.1 }, { node: hats, level: -12, pan: 0.3 }, { node: tom, level: -9, pan: -0.3 }], 0, "Kit");
+  finish(p, mix, [5, 0], { size: 0.3, decay: 1, mix: 0.12 });
+  return p;
+}
+
+export default [evenKit, primes, browsing, interlock, seeded];

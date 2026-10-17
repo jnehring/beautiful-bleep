@@ -82,11 +82,11 @@ Five whole patches show what Freq Shifter does. In the standalone app open **Fil
 
 | Patch | What it shows |
 |---|---|
-| **Freq Shifter: Barber-Pole Phaser** | A saw pad passes through the shifter with a tiny positive Fine and strong Feedback at half Mix: the phaser-like sweep never reaches the end, always rising. Flip Fine negative for a falling one. |
-| **Freq Shifter: Pad to Bells** | With Shift at about +30 % of the 200 Hz range and Mix at 100 %, a harmonic pad becomes inharmonic and metallic, and a slow LFO on Shift moves between bell clusters. Fold in Spread for a stereo glitter. |
-| **Freq Shifter: Spiral Echoes** | Feedback through a short FB Delay shifts every repeat up by the same amount, so each plucked note spirals upward into a stack of echoes. Change Shift to climb faster or slower, or make it negative to spiral down. |
-| **Freq Shifter: Stereo Rotation** | A mono arpeggio on the left input is shifted in opposite directions left and right by Spread at 100 %, so the sound slowly rotates around the head. Change Fine to rotate faster or slower. |
-| **Freq Shifter: Tempo Phaser** | Sync on one bar locks the shifter's rate to the song, so a drum loop and bass get a slow, feedback-laden phaser that sweeps once per bar. Try shorter Sync values, or Shift negative. |
+| **Freq Shifter: Endless Rising Sweep** | A saw pad is shifted up by a tiny Fine amount, and strong Feedback sends it round again, so the phasing sweep seems to climb forever. Make Fine negative and it falls forever; raise Mix to hear more of the swirl. |
+| **Freq Shifter: Pad into Bells** | With Shift raised on the 200 Hz range and Mix at 100 %, the harmonics of a pad move by a fixed number of Hz instead of staying in tune, so it turns into clanging, inharmonic bells. Reduce Shift toward zero to bring the pad back to a normal pitch. |
+| **Freq Shifter: Opposite Shifts Widener** | Spread sends the left channel up and the right channel down by the same few Hz, so a mono riff becomes wide and slowly beating without any delay. Close Spread to hear the plain mono sound again. |
+| **Freq Shifter: Robot Drum Downshift** | A broken beat is shifted down a few hundred Hz with some Feedback, so the kick loses its pitch and the snare and hats turn into clanking robot hits. Move Shift through zero and up to hear the effect change character. |
+| **Freq Shifter: Quadrature Wobble** | The Shifter's own Sin output, a control signal that runs at the shift rate, opens and closes a filter on the same riff, so the phasing and the filter wobble stay locked together. Change Fine to speed up or slow down both. |
 <!-- /generated -->
 
 <!-- generated:presets -->

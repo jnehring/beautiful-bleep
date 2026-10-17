@@ -69,11 +69,11 @@ Five whole patches show what Coin Toss does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Coin Toss: Heads or Tails Drums** | A steady sixteenth-note gate is tossed twice: channel 1 sends each step to a closed hat or a quiet snare ghost note, channel 2 (with some Memory, so it comes in runs) occasionally turns it into an open hat. The kick and backbeat stay fixed, the rest never repeats. Move Probability 1 and 2. |
-| **Coin Toss: Trading Voices** | One pentatonic melody is dealt note by note to two different instruments: a round low pluck on A and a bright high one on B, panned apart. Memory makes them trade in runs instead of strictly alternating. Raise Memory 1 for longer runs, move Probability 1 towards one side. |
-| **Coin Toss: Latch Layers** | Both channels are in Latch mode, so A and B are always opposite. Channel 1 tosses once a bar and decides whether the pad or the arpeggio is muted; channel 2 independently switches the drums on or off. The song re-arranges itself. Change Mode to Trigger or Toggle, or the Seed. |
-| **Coin Toss: Looped Groove** | Link is Shared and Loop is 16 tosses: one coin decides a nested pattern, a 30 % clap and a 70 % closed hat that always contains it, and the whole random figure repeats every bar over a steady kick and bass. Change the Seed for another groove, or Loop to Off to let it wander. |
-| **Coin Toss: Coin on the Pitch** | The Coin outputs are control voltages: channel 1 in Toggle mode occasionally flips a switch that lifts a bell melody up a fifth, channel 2 in Latch mode opens or closes a low-pass filter on a drone with each toss. Nothing is gated; the coin steers the sound. Change Probability 1 to flip more often. |
+| **Coin Toss: Kick or Snare** | Every eighth-note gate is sent either to a kick or to a snare by a fair coin, so the backbeat is never the same twice, over a fixed hat and bass line. Push Probability 1 up for more kicks, or change Seed for a different run of luck. |
+| **Coin Toss: Weighted Hats** | A steady sixteenth-note stream is split by a loaded coin: four tosses in five give a closed hat and the rest an open one, over a plain kick and clap. Move Probability 1 toward 0.5 for a busier, more open hat line. |
+| **Coin Toss: Looped Fate** | Eight eighth-note tosses decide whether a low note or a high note sounds, and Loop makes the same eight outcomes repeat, so a tune made by chance settles into a pattern you can hum. Set Loop to Off and it never repeats; change Seed for another tune. |
+| **Coin Toss: Chord Roulette** | Once a bar the coin picks one of two pads, an A minor chord or an F major chord; in Latch mode the chosen side stays on until the next toss, so one chord always sounds. Raise Memory 1 and the coin tends to repeat the last result. |
+| **Coin Toss: Opposed Channels** | With Link set to Opposed, channel 2 always chooses the other side from channel 1: when the first coin sends a gate to the kick, the second sends its gate to the hat, and the other way round. Try Shared to make both coins land together. |
 <!-- /generated -->
 
 <!-- generated:presets -->

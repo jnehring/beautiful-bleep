@@ -89,11 +89,11 @@ Five whole patches show what Sweep Generator does. In the standalone app open **
 
 | Patch | What it shows |
 |---|---|
-| **Sweep Generator: Four-Bar Riser** | A ramp wave sweeps from 100 Hz to 8 kHz in exactly four bars, locked to the song, through a low-pass that opens with it, and End fires a noise crash as it flies back. Change Start, Stop, Law or Sweep Sync to reshape the build. |
-| **Sweep Generator: Lab Sirens** | Two Up-Down triangle sweeps of different lengths, panned apart, wail over a slow bass and drift in and out of phase. Try Law Log for an even siren, Waveform Pulse for a harsher one, or a shorter Sweep Time. |
-| **Sweep Generator: Climbing Bursts** | In Burst mode the sweep climbs slowly in silence, and each step of a sequencer plays a short tone burst at whatever frequency it has reached. Over eight bars they rise from 200 Hz to 4 kHz, like a stepped frequency measurement. Try Burst Count or a different Waveform. |
-| **Sweep Generator: Marker Drums** | Three Sweep Generators of different lengths (one bar, two bars, half a note) each fire a Marker when their Up-Down sweep crosses a set frequency, striking a kick, a snare and a hat: the sweeps play a drifting polyrhythm. Change a Marker frequency or Sweep Sync to move the hits. |
-| **Sweep Generator: Laser Plucks** | Triggered mode with a falling sweep: each note of the sequencer fires one fast zap from high to low, and the note's pitch (the Pitch input) shifts where the sweep starts and ends. Lengthen Sweep Time for slower sirens, or switch Law to Lin. |
+| **Sweep Generator: Eight-Bar Riser** | A saw tone climbs from 80 Hz to 6 kHz over eight bars while its Sweep output opens a filter on a bed of noise; at the top, the End trigger fires a crash. Edit Start, Stop and Sweep Sync for a shorter or lower riser, or switch Law to Lin to hear it rush through the bass. |
+| **Sweep Generator: Harbour Siren** | A triangle wave glides up and down between 300 Hz and 1.2 kHz, two bars each way, on a linear law like an old air-raid horn, with Drift keeping the pitch slightly alive. Change Direction, Waveform or Retrace to turn the siren into a whooping alarm, and let the delay ring behind it. |
+| **Sweep Generator: Climbing Blips** | In Burst mode the tone is silent until a trigger, and each trigger plays three clean cycles at the frequency the sweep has reached, so a steady sixteenth pulse becomes blips that climb through the band and start over every two bars. Raise Burst Count for longer blips, or change Stop to widen the climb. |
+| **Sweep Generator: Marker Drums** | A slow sweep from 100 Hz to 8 kHz crosses three Markers, and each crossing, in both directions, fires a kick and a hat, while the End trigger calls the snare once per cycle. Move a Marker to shift the rhythm, change Sweep Sync for a faster or slower pulse, or set Markers to 1 for a sparse beat. |
+| **Sweep Generator: Laser Zaps** | In Triggered mode each sequencer note fires one quick downward sweep that begins on its own pitch (the Pitch input), so a bassline of zaps shoots across the speakers. Change Sweep Time for longer or shorter zaps, Waveform for a different edge, or Direction to make them rise. |
 <!-- /generated -->
 
 <!-- generated:presets -->

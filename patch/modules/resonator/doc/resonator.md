@@ -72,11 +72,11 @@ Five whole patches show what Resonator does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Resonator: Struck Bells** | The Modal model rings like a bell or plate each time a sequencer strums it, tuned by the Pitch input. Structure moves from string to bar to bell, Damping decides how long they ring, and Position changes which overtones are struck. |
-| **Resonator: Plucked Strings** | The String model with four voices turns a running arpeggio into a harp: each trigger plucks a string that rings over the next. Brightness and Damping change the string, Position moves the pluck point toward the bridge. |
-| **Resonator: Sympathetic Drone** | A soft saw melody is fed into the Sympathetic model, whose strings ring along with whatever matches them: the tune turns into a shimmering sitar-like cloud. Try Frequency (in semitones) to retune the strings against the melody. |
-| **Resonator: Drum Body** | A drum beat is the exciter: Strum Source is set to Input onsets, so every kick, snare and hat hit makes the tuned body ring a note of a slow, random-walking bass line. Turn Dry up for the plain kit, or Structure for a different resonant body. |
-| **Resonator: Noise Plate** | Rhythmic bursts of filtered noise strike a plate whose Structure and Brightness drift on slow LFOs, so the metallic timbre keeps changing from rubbed glass to gong. Change the strum rate, Damping or Position to retune the surface. |
+| **Resonator: Bell Strikes** | A sequencer strums the Modal model with its own internal exciter and pitches it, so each note rings like a struck bell or bar. Move Structure to change the metal, and Damping to shorten the ring. |
+| **Resonator: Sympathetic Drone** | A plucked melody is fed into sympathetic strings tuned to a fixed root, so the drone strings glow along with whatever notes match them. Change Frequency to retune the drone, or Damping for a shorter shimmer. |
+| **Resonator: Plucked Strings** | The String model plays a bouncy bass-and-treble pattern, four voices deep so older notes keep ringing under new ones. Try Position for a hollower or brighter pluck, and Brightness for nylon versus steel. |
+| **Resonator: Drum Body** | A drum beat excites a Modal resonator that is tuned low, so every kick and hat rings the same plate-like body. Turn Dry up to bring the raw drums back, or sweep Frequency to retune the whole kit. |
+| **Resonator: Morphing Plate** | A slow LFO sweeps Structure through string, bar and plate territory while the same strummed notes play, so the instrument seems to change material as it rings. Patch the LFO into Brightness too, or change its speed. |
 <!-- /generated -->
 
 <!-- generated:presets -->

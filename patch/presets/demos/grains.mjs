@@ -1,88 +1,100 @@
 // SPDX-License-Identifier: MIT
-// Grains: five demo patches. Each plays by itself with the transport.
+// Grains: five demo patches. Each plays by itself with the transport. The clouds are made from recordings the
+// project carries (patch/presets/samples): Grains plays the clip instead of recording its input.
 import { patch, steps } from "../kit.mjs";
-import { melody } from "../demo-kit.mjs";
+import { beat } from "../demo-kit.mjs";
+import { grainsData } from "../media.mjs";
 
-/// Grains' stereo out → a mixer with makeup gain → Out 1/2.
-function finish(p, g, at, gain = 6) {
-  const mix = p.add("audio-mixer", at, { level1: gain, pan1: -1, level2: gain, pan2: 1, master: gain }, { name: "Level" });
-  p.cable(g, "l", mix, "in1l").cable(g, "r", mix, "in2l").stereo(mix, p.out, { from: ["outl", "outr"] });
+function seq(p, at, notes, o = {}) {
+  return p.add("step-sequencer", at, { length: Math.min(32, notes.length), rate: o.rate || "1/8", root: o.root || "C",
+    scale: o.scale || "Minor Pentatonic", octave: o.octave ?? 0, gatelength: o.gate ?? 0.5 }, { data: steps(notes, o.vel), name: o.name || "Notes" });
+}
+/// Grains' stereo out → a mixer (gain in dB) → Verb → Out 1/2. Returns the mixer.
+function finish(p, g, at, o = {}) {
+  const gain = o.gain ?? 0;
+  const mix = p.add("audio-mixer", at, { level1: gain, pan1: -1, level2: gain, pan2: 1, level3: -3, master: o.master ?? 0 }, { name: "Level" });
+  p.cable(g, "l", mix, "in1l").cable(g, "r", mix, "in2r");
+  if (o.mix === false) { p.stereo(mix, p.out, { from: ["outl", "outr"] }); return mix; }
+  const v = p.add("reverb", [at[0] + 1, at[1]], { size: 0.6, decay: 3, damping: 0.5, mix: o.mix ?? 0.2, quality: "Eco (8 lines)", ...(o.v || {}) });
+  p.cable(mix, "outl", v, "l").cable(mix, "outr", v, "r").stereo(v, p.out);
+  return mix;
 }
 
-function frozenCloud() {
-  const p = patch("Grains: Frozen Cloud", {
-    module: "grains", tempo: 90,
-    description: "A short plucked phrase is recorded, then a slow square LFO on the Freeze gate holds the buffer for a few bars at a time: the grains turn one moment of the phrase into a wide, endless pad, and the next phrase is caught when the freeze lets go.",
-    tags: ["freeze", "pad", "texture"],
+function rainCurtain() {
+  const p = patch("Grains: Rain Curtain", {
+    module: "grains", tempo: 60,
+    description: "A recording of steady rain is played as a cloud of 300 ms grains, scattered wide by Spread and slowly scanned by an LFO on Position, with Blur smoothing the grains into a soft, deep curtain of sound. Lower Size and raise Density for a crisp downpour, or raise Pitch for a lighter, more distant shower.",
+    tags: ["rain", "texture", "scan", "ambient", "field recording"],
   });
-  const m = melody(p, [0, 0], [0, 4, 7, 4, 9, 7, 4, 2], { rate: "1/8" });
-  const g = p.add("grains", [3, 0], { position: 0.25, size: 0.45, pitch: 0, density: 0.75, texture: 0.5, spread: 0.7,
-    feedback: 0.25, blur: 0.5, mix: 1, mode: "Continuous", buffer: "4 s" });
-  p.cable(m.amp, "l", g, "l");
-  finish(p, g, [4, 0]);
-  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "4 bars", pw: 0.7, polarity: "Unipolar" }, { name: "Hold" });
-  const drift = p.add("lfo", [3, 1], { rate: 0.07, wave: "Triangle" }, { name: "Drift" });
-  p.cable(hold, "out", g, "freeze").cable(drift, "out", g, "position", 0.25);
+  const s = p.sample("rain-b");
+  const g = p.add("grains", [1, 0], { position: 0.4, size: 0.3, pitch: -4, density: 0.8, texture: 0.5, spread: 0.85, blur: 0.5, freeze: true, mix: 1, maxgrains: "32", pitchquant: "Off" }, { data: grainsData(s) });
+  const lfo = p.add("lfo", [0, 1], { rate: 0.03, wave: "Triangle", polarity: "Unipolar" }, { name: "Scan" });
+  p.cable(lfo, "out", g, "position", 0.7);
+  finish(p, g, [2, 0], { gain: 5, mix: 0.2, v: { size: 0.7, decay: 4 } });
   return p;
 }
 
-function stutterRhythm() {
-  const p = patch("Grains: Stutter Rhythm", {
+function raindropMelody() {
+  const p = patch("Grains: Raindrop Melody", {
+    module: "grains", tempo: 96,
+    description: "In Triggered mode each sequencer step fires one short, percussive grain of rain, and the sequencer's Pitch is patched into Grains' Pitch input, so the raindrops play a tune. Texture at 100 % gives a plucked attack. Change Size for longer notes, Pitch Quant to Off for glides, or Pitch Jitter for a more scattered melody.",
+    tags: ["pitch input", "melody", "triggered", "rain"],
+  });
+  const s = p.sample("rain-a");
+  const q = seq(p, [0, 0], [0, 3, 7, 10, 12, 10, 7, 3, 0, 5, 8, 12, 15, 12, 8, 5], { rate: "1/8", root: "A", scale: "Natural Minor", octave: 0, gate: 0.4, vel: [110, 80, 95, 80] });
+  const g = p.add("grains", [1, 0], { position: 0.3, size: 0.18, pitch: 0, density: 0.4, texture: 1, spread: 0.45, pitchquant: "Semitones", blur: 0.2, freeze: true, mix: 1, mode: "Triggered", reverse: 0.0, maxgrains: "32" }, { data: grainsData(s) });
+  p.cable(q, "trigger", g, "trigger").cable(q, "pitch", g, "pitch");
+  const rnd = p.add("random", [0, 1], { sync: "1/4", spread: 1, smooth: 0, loop: 0, seed: 3 }, { name: "Drop Place" });
+  p.cable(rnd, "out", g, "position", 0.3);
+  const m = finish(p, g, [2, 0], { gain: 6, mix: 0.3, v: { size: 0.7, decay: 4 } });
+  const d = beat(p, [0, 2], { style: "sparse", level: -10 });
+  p.cable(d, "outl", m, "in3l").cable(d, "outr", m, "in3r");
+  return p;
+}
+
+function pianoFreeze() {
+  const p = patch("Grains: Frozen Piano", {
+    module: "grains", tempo: 70,
+    description: "A single recorded piano note is turned into a slow, endless pad: grains of 600 ms drawn from around Position, detuned by Pitch Jitter and snapped by Pitch Quant to octaves and fifths, so the cloud sings in stacked octaves and fifths. A slow LFO moves Position from the attack to the tail. Try Size, Density and Feedback.",
+    tags: ["freeze", "pad", "piano", "pitch quant"],
+  });
+  const s = p.sample("piano-c3");
+  const g = p.add("grains", [1, 0], { position: 0.25, size: 0.7, pitch: 0, density: 0.65, texture: 0.5, spread: 0.3, pitchjitter: 7, pitchquant: "Octaves + fifths", feedback: 0.2, blur: 0.5, freeze: true, mix: 1 }, { data: grainsData(s) });
+  const lfo = p.add("lfo", [0, 1], { rate: 0.04, wave: "Triangle", polarity: "Unipolar" }, { name: "Scan" });
+  p.cable(lfo, "out", g, "position", 0.5);
+  finish(p, g, [2, 0], { gain: -6, mix: 0.4, v: { size: 0.85, decay: 8 } });
+  return p;
+}
+
+function gongShimmer() {
+  const p = patch("Grains: Gong Shimmer", {
+    module: "grains", tempo: 64,
+    description: "A struck gong is stretched into grains an octave higher, with Feedback and Blur feeding the cloud back into itself so each hit blooms into a glassy halo. A sequencer plays the gong's pitch (Pitch input) and fires a grain burst on each note. Raise Feedback for a longer afterglow, or lower Pitch to hear the gong's own size.",
+    tags: ["shimmer", "gong", "feedback", "triggered"],
+  });
+  const s = p.sample("thai-gong-a4");
+  const q = seq(p, [0, 0], [0, ".", ".", ".", 5, ".", ".", ".", 7, ".", ".", ".", 3, ".", ".", "."], { rate: "1/4", root: "A", scale: "Minor Pentatonic", octave: 0, gate: 0.5 });
+  const g = p.add("grains", [1, 0], { position: 0.1, size: 0.5, pitch: 12, density: 0.7, texture: 0.5, spread: 0.35, pitchjitter: 0, pitchquant: "Semitones", feedback: 0.45, blur: 0.65, freeze: true, mix: 1, mode: "Triggered" }, { data: grainsData(s) });
+  p.cable(q, "trigger", g, "trigger").cable(q, "pitch", g, "pitch");
+  finish(p, g, [2, 0], { gain: 6, mix: 0.4, master: 2, v: { size: 0.85, decay: 7 } });
+  return p;
+}
+
+function crotaleStutter() {
+  const p = patch("Grains: Crotale Stutter", {
     module: "grains", tempo: 118,
-    description: "Triggered mode with Sync on 1/16: every step fires a short, reversed-or-forward grain of a bass loop, chopping it into a stuttering rhythm. Raise Density to fire bursts.",
-    tags: ["rhythm", "stutter", "triggered", "sync"],
+    description: "Triggered mode with Sync on 1/16: a grid of tiny, percussive grains cut from a crotale recording makes a glittering rhythmic stutter, with some grains reversed. A stepped random source jumps Position on every beat so each bar pulls a different piece of the bell. Raise Density for bursts, or Size for a ringing tail.",
+    tags: ["stutter", "rhythm", "sync", "reverse", "crotale"],
   });
-  const m = melody(p, [0, 0], [0, 0, 7, 0, 5, 0, 3, 7], { rate: "1/8", shape: 0.3, scale: "Natural Minor", root: "E" });
-  const g = p.add("grains", [3, 0], { position: 0.1, size: 0.08, pitch: -12, density: 0.8, texture: 0.9, spread: 0.2,
-    reverse: 0.3, mix: 0.8, mode: "Triggered", sync: "1/16", buffer: "2 s" });
-  const rnd = p.add("random", [2, 1], { rate: 4, spread: 0.6, sync: "1/16", seed: 5 }, { name: "Jump" });
-  p.cable(m.amp, "l", g, "l");
-  finish(p, g, [4, 0]);
-  p.cable(rnd, "out", g, "position", 0.4);
+  const s = p.sample("crotale-c6");
+  const rnd = p.add("random", [0, 1], { sync: "1/8", spread: 1, loop: 0.9, length: "8 steps", seed: 21 }, { name: "Jump" });
+  const g = p.add("grains", [1, 0], { position: 0.1, size: 0.08, pitch: -12, density: 0.5, texture: 1, spread: 0.1, reverse: 0.3, pitchquant: "Octaves", blur: 0.15, freeze: true, mix: 1, mode: "Continuous", sync: "1/16", maxgrains: "32" }, { data: grainsData(s) });
+  const uni = p.add("utility", [0, 2], { scalex: 0.5, offset: 0.5 }, { name: "Unipolar" });
+  p.cable(rnd, "out", uni, "x").cable(uni, "out", g, "position", 0.6);
+  const m = finish(p, g, [2, 0], { gain: 6, master: 6, mix: 0.2 });
+  const d = beat(p, [0, 3], { style: "broken", level: -9 });
+  p.cable(d, "outl", m, "in3l").cable(d, "outr", m, "in3r");
   return p;
 }
 
-function shimmerLeaps() {
-  const p = patch("Grains: Shimmer Leaps", {
-    module: "grains", tempo: 76,
-    description: "Pitch Quant on Octaves + fifths and a little Pitch Jitter turn a slow melody into a shimmering halo that climbs by fifths and octaves. Feedback keeps the glow after each note.",
-    tags: ["shimmer", "pitch", "feedback"],
-  });
-  const m = melody(p, [0, 0], [0, ".", 5, ".", 3, ".", 7, "."], { rate: "1/4", shape: 0.5, root: "D", scale: "Major Pentatonic" });
-  const g = p.add("grains", [3, 0], { position: 0.05, size: 0.35, pitch: 12, density: 0.7, texture: 0.5, spread: 0.5,
-    pitchjitter: 7, pitchquant: "Octaves + fifths", feedback: 0.55, blur: 0.65, mix: 0.7 });
-  p.cable(m.amp, "l", g, "l").stereo(g, p.out);
-  return p;
-}
-
-function melodicCloud() {
-  const p = patch("Grains: Melodic Cloud", {
-    module: "grains", tempo: 100,
-    description: "A sequencer drives the Pitch input of a frozen noise burst's grains, so the cloud itself plays the tune: a shimmering sine-like melody made of nothing but grains.",
-    tags: ["pitch input", "melody", "noise"],
-  });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "C", scale: "Minor Pentatonic" },
-    { data: steps([0, 3, 7, 10, 12, 10, 7, 3]) });
-  const n = p.add("noise", [0, 1], { colour: -0.3, level: 0.6 });
-  const g = p.add("grains", [2, 0], { position: 0.4, size: 0.3, pitch: 0, density: 0.9, texture: 0.45, spread: 0.4,
-    pitchquant: "Semitones", blur: 0.3, mix: 1, freeze: false });
-  p.cable(n, "out", g, "l").cable(seq, "pitch", g, "pitch").stereo(g, p.out);
-  return p;
-}
-
-function backwardsTexture() {
-  const p = patch("Grains: Backwards Garden", {
-    module: "grains", tempo: 84,
-    description: "Long grains that mostly play backwards, scattered by Spread and Pitch Jitter around a slow melody, with Blur washing everything: a swelling, reversed-reverb garden.",
-    tags: ["reverse", "ambient", "blur"],
-  });
-  const m = melody(p, [0, 0], [0, 7, 4, 9, 2, 7, 5, 4], { rate: "1/4", shape: 0.6, root: "G", scale: "Dorian" });
-  const g = p.add("grains", [3, 0], { position: 0.55, size: 0.9, pitch: 0, density: 0.45, texture: 0.5, spread: 0.85,
-    reverse: 0.9, pitchjitter: 3, feedback: 0.3, blur: 0.8, mix: 0.85, buffer: "8 s" });
-  const lfo = p.add("lfo", [3, 1], { rate: 0.05 }, { name: "Slow Drift" });
-  p.cable(m.amp, "l", g, "l").cable(lfo, "out", g, "position", 0.3);
-  finish(p, g, [4, 0]);
-  return p;
-}
-
-export default [frozenCloud, stutterRhythm, shimmerLeaps, melodicCloud, backwardsTexture];
+export default [rainCurtain, raindropMelody, pianoFreeze, gongShimmer, crotaleStutter];

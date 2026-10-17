@@ -57,3 +57,17 @@ The preset bar of the Pitch Shifter view has 14 factory presets. Pick one to set
 | **Monster** | Dark, slow, huge voice. |
 | **Granular Window** | Tiny window: choppy, grainy artefacts. |
 <!-- /generated -->
+
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Pitch Shifter does. In the standalone app open **File → Presets…** (⌘P) and pick *Pitch Shifter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Pitch Shifter: Octave Shimmer** | A pluck melody goes up an octave into a Pitch Shifter with Feedback and then a big reverb: each tail climbs in octaves into a glassy shimmer. Lower Feedback for a single octave halo or try +7 for a fifth. |
+| **Pitch Shifter: Octave Down Weight** | A bass riff is blended with a copy an octave lower, doubling its depth at half Mix. Try -5 or -7 for a thick parallel line or raise Window for smoother, less grainy low notes. |
+| **Pitch Shifter: Parallel Fifth** | The Shifter adds a line a fifth above the melody at half Mix, so every note is paired with a power-chord partner. Change Pitch to +4 for a major third, +3 for a minor third or -5 for a fourth below. |
+| **Pitch Shifter: Fine Detune Doubler** | With Pitch at zero and just 12 cents of Fine plus a little Drift, a held pad is doubled by a slightly out-of-tune, wavering copy, which thickens it like an ensemble. Increase Drift for tape-like flutter or Fine for a wider detune. |
+| **Pitch Shifter: Climbing Spiral** | Sparse notes enter a Pitch Shifter set a few semitones up with high Feedback: each echo is shifted again and spirals upward until it fades. Make Pitch negative and the spiral falls instead; add Drift for flutter. |
+<!-- /generated -->

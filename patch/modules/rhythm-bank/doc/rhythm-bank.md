@@ -60,11 +60,11 @@ Five whole patches show what Rhythm Bank does. In the standalone app open **File
 
 | Patch | What it shows |
 |---|---|
-| **Rhythm Bank: Euclid Kit** | In the Even family the four outputs spread different numbers of hits evenly over 16 steps: kick, snare, hats and rim lock into a lopsided but steady groove. Turn Pattern to browse related grooves or use Rotate 1-4 to shift one drum against the others. |
-| **Rhythm Bank: Prime Marimba** | With Family on Prime and Length on Open the four parts repeat every few steps (2, 3, 5, 7 ...) and slowly drift against each other, each plucking a different note of a minor pentatonic scale, so the melody never repeats the same way twice. Try other Pattern numbers for different cycle lengths. |
-| **Rhythm Bank: Metric Backbeat** | The Metric family builds a kit by metric weight: kick on the one, snare on the backbeat, hats on the off-beats. A Random steps Pattern once per bar, so the groove changes bar by bar but always from the same family. Try Complement on Avoid to stop the parts from colliding. |
-| **Rhythm Bank: Cross-Rhythms** | The Poly family plays between 2 and 9 hits per cycle across the same bar, not tied to the sixteenths: with Grid on Free the hits land at their exact positions on four hand drums and a bell. Switch Grid to Snap to hear them squared up. |
-| **Rhythm Bank: Interlocking Hats** | Interlock never lets two parts hit on the same step, and Complement on Fill makes Out 4 play every step the other three leave empty: kick, snare and rim weave around a continuous ride of hats. Try Rotate 1-4 or Pattern to reshuffle who plays where. |
+| **Rhythm Bank: Even Groove Kit** | The Even family spreads hits as evenly as it can: four related rhythms of different density drive a kick, snare, hats and a rim. Turn Pattern to change all four grooves at once, or turn Width for longer or shorter gates. |
+| **Rhythm Bank: Prime Cycles** | Length 15 and the Prime family give four rhythms with uneven, prime-based spacing, each playing a different pluck of an A minor chord. Because the lengths never line up the same way twice, the figure keeps turning; try Family = Poly for a different split. |
+| **Rhythm Bank: Pattern Browser** | A stepped random LFO picks a new Pattern number every bar, and Change is set to Cycle so each new rhythm waits for the end of the current one: the part develops by itself without a break. Set Change to Step to switch mid-pattern, or turn the LFO cable down to stay near one groove. |
+| **Rhythm Bank: Interlocking Pair** | With Complement set to Pairs, output 2 fills the gaps left by output 1 (and 4 those of 3), so a low and a high voice share one steady line like two hands. Switch Complement to Off to hear the raw rhythms collide, or to Avoid to keep them from landing together. |
+| **Rhythm Bank: Seeded Open Loop** | Length is Open, so the rhythms never loop, and the Seeded family makes up a fresh but related set from the Pattern number. Rotate nudges each rhythm against the others and Grid Free lets hits sit between steps; set Length back to 16 to hear a plain loop. |
 <!-- /generated -->
 
 ## Reference

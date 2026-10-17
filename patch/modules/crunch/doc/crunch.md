@@ -53,3 +53,17 @@ The preset bar of the Crunch view has 13 factory presets. Pick one to set the kn
 | **Square Wave Mangler** | Two bits turn everything into buzzing pulses. |
 | **Total Destruction** | Everything at once; keep the level low. |
 <!-- /generated -->
+
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Crunch does. In the standalone app open **File → Presets…** (⌘P) and pick *Crunch* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Crunch: Overdriven Bass** | A plain bass line is pushed into Drive with Tone rolled down to 3 kHz: warm, thick overdrive with the harshest top cut away. Raise Drive for fuzz, or open Tone for a more biting edge. |
+| **Crunch: Bit-Crushed Breaks** | A broken beat loses bits and sample rate, so the kick turns gritty and the hats turn into digital hiss; Mix keeps some of the clean drum underneath. Push Bits toward 1 for noise, or pull Rate Red. down to restore the highs. |
+| **Crunch: Aliased Lead** | Rate Red. at about 55 % with full 16-bit depth leaves the lead's pitch intact but folds new, glassy partials around it, like an old video-game chip. Sweep Rate Red. slowly while the riff plays. |
+| **Crunch: Dissolving Pad** | A slow LFO sweeps Bits from clean to coarse and back on a held pad, so the sound breaks into steps and re-forms in long waves. Change the cable amount for a shallower sweep or move Rate Red. for another kind of breakup. |
+| **Crunch: Parallel Grit** | A four-on-the-floor beat gets near-maximum Drive and 8 bits but only 35 % Mix, so the clean punch stays and the crunch adds weight and fizz around it. Move Mix to find where the grit starts to take over. |
+<!-- /generated -->

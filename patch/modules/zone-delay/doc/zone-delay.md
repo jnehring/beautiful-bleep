@@ -96,11 +96,11 @@ Five whole patches show what Zone Delay does. In the standalone app open **File 
 
 | Patch | What it shows |
 |---|---|
-| **Zone Delay: Dub Echo** | Zone 3 locked to the transport gives a warm dotted echo with a tape Character; Ping-Pong from a slow square LFO flips the repeats between a straight tail and a bouncing one. Ride Feedback and Tone to dub it live. |
-| **Zone Delay: Tuned Combs** | In the Comb zone the delay is tuned by the Pitch input, so a sequencer plays a resonant, string-like ring from short noise-free pulses of a saw. Feedback sets how long each note rings; Character shapes its colour. |
-| **Zone Delay: Vast Hold Loop** | Zone 5 is a multi-bar loop: a Hold gate from an LFO freezes the buffer for a few bars, then releases it, while Reverse flips the held phrase. Change Zone or Time to shorten the loop, or hold it by hand. |
-| **Zone Delay: Tape Dive** | A stepped random source jumps Time around in Tape mode, so every change bends the echoes up or down in pitch like a tape machine being thrown about. Lower Glide for sharper swoops, or switch Time Change to Crossfade for stepped echoes. |
-| **Zone Delay: Diffuse Cloud** | A drum groove runs through a Long-zone delay with full Diffuse and high Feedback: the first echo is clear, then the repeats melt into a reverb-like cloud behind the kit. Reduce Diffuse for distinct repeats, or try Offset for a wider image. |
+| **Zone Delay: Tuned Combs** | Zone 1 turns the delay into a tuned comb: a drum loop is pushed through it while a sequencer plays its Pitch input, so the beat rings out a melody. Change Feedback for a longer ring, or Zone to leave the comb behind. |
+| **Zone Delay: Tape Echo** | Zone 3 in Tape mode with a little Wobble: a plucked line is followed by warm, drifting echoes that darken as they repeat. Raise Wobble and Character for a worn tape, or move Time while it plays to hear the pitch slide. |
+| **Zone Delay: Loop Catcher** | In the longest zone a square LFO raises Hold every other bar group, so the delay stops listening and loops what it just heard while the live melody plays over it. Change the LFO's Sync, or fire Hold from a Button. |
+| **Zone Delay: Reverse Bounce** | Two square LFOs gate Reverse and Ping-Pong on their own cycles, so the echoes of an arpeggio flip backwards and hop between the speakers in changing combinations. Edit either LFO, or turn Diffuse up to blur the reversals. |
+| **Zone Delay: Smeared Pad** | Zone 2 with Diffuse and Character turned up blurs a slow chord progression into a soft, slowly shifting wash. Lower Diffuse to bring back distinct echoes, or change Offset to push the left and right times apart. |
 <!-- /generated -->
 
 <!-- generated:presets -->

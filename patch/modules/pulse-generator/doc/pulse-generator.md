@@ -88,11 +88,11 @@ Five whole patches show what Pulse Generator does. In the standalone app open **
 
 | Patch | What it shows |
 |---|---|
-| **Pulse Generator: Humanised Clock** | A Pulse Generator synced to 1/16 is the clock for a melody, while a second one rings a short pulse into hi-hat ticks. Jitter on the first one loosens the groove; try it at 0 for a rigid machine and at 40 % for a drunk one. |
-| **Pulse Generator: Ringing Pings** | A very short pulse struck once per note makes the Ring resonance ping, and the sequencer's pitch moves Ring Freq, so each note is a glassy, metallic chime. Turn Damping to change how long they ring, or Width to change their colour. |
-| **Pulse Generator: Pulse Drums** | Four Pulse Generators in Triggered mode, each struck by a Drum Grid track: Ring Freq and Damping turn the same circuit into a deep thump, a tom, a rim click and a hat. Change their Ring Freq and Damping for a whole new kit. |
-| **Pulse Generator: Rolls and Flams** | Burst fires four to eight pulses 30 ms apart for a drum roll, and Double adds a second pulse for a flam. A sparse beat triggers them, so the kit rolls in at the ends of phrases. Try Burst 16 or a longer Period. |
-| **Pulse Generator: Gate Echo** | In External Width mode the Pulse Generator is a gate delay: each gate of a slow melody comes out 330 ms later, as long as it went in, and opens a second voice an octave up. Change Delay to move the echo, and Width to see the gate length. |
+| **Pulse Generator: Wobbly Clock** | A Pulse Generator synced to 1/8 is the clock of the melody, and its Jitter nudges every pulse a little early or late, so the tune sways like a human player. Turn Jitter to 0 for a rigid machine, or up to 40 % for a drunk one; the same Seed always gives the same wobble. |
+| **Pulse Generator: Tin Drums** | A whole kit from triggered pulses: the Ring output of each Pulse Generator is a pitched thump, tick or rattle. The tom fires a Burst of four pulses, a quick roll. Change Ring Freq for the tuning, Damping for how long they ring, Width for the colour. |
+| **Pulse Generator: Glass Chimes** | One very short pulse per note makes the Ring resonance ping, and the sequencer's pitch tunes Ring Freq (1 V per octave), so each step is a glassy chime. A second, wider pulse a fifth above adds a darker partner. Try Damping for the length of the ring and Width for the brightness. |
+| **Pulse Generator: Gate Echo** | In External Width mode the Pulse Generator is a gate delay: each note's gate comes out 190 ms later, as long as it went in, and plays a second voice a fifth higher. The result is a hand-made echo of the melody. Change Delay for the spacing, or Rise and Fall to soften the echoed notes. |
+| **Pulse Generator: Pulse Choir** | At audio rate the Pulse Generator is an oscillator: three of them at 110, 165 and 220 Hz, with slow LFOs on Width for a swaying pulse-width sound and soft Rise and Fall on the edges. Switch Double on for a hollow, comb-like voice, or change the Period to retune a note. |
 <!-- /generated -->
 
 <!-- generated:presets -->

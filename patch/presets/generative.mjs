@@ -1,7 +1,20 @@
 // SPDX-License-Identifier: MIT
 // Generative: self-playing patches as plain cells. Press play and they make
 // music on their own, in time with the transport; Out L/R out.
-import { cell, category } from "./kit.mjs";
+import { cell, category, semis, steps as stepsOf } from "./kit.mjs";
+
+/// Gate Sequencer data: up to four 32-step tracks as strings. `.` off, `x` hit, `X` accent, `o` ghost, `?` coin-flip hit.
+function gateTracks(rows) {
+  const step = (ch) => {
+    const s = { on: 0, p: 100, l: 50, t: 0, r: 1, rs: 0, n: 0, c: [0, 0], v: 100 };
+    if (ch === "x") Object.assign(s, { on: 1, v: 96 });
+    else if (ch === "X") Object.assign(s, { on: 1, v: 124 });
+    else if (ch === "o") Object.assign(s, { on: 1, v: 48 });
+    else if (ch === "?") Object.assign(s, { on: 1, p: 45, v: 80 });
+    return s;
+  };
+  return { tracks: [0, 1, 2, 3].map((t) => ({ mute: false, steps: [...(rows[t] || "").padEnd(32, ".")].slice(0, 32).map(step) })) };
+}
 
 /// The mixer's send → an effect (set to 100 % wet) → the mixer's return.
 function sendReturn(p, mix, fx) {
@@ -9,355 +22,322 @@ function sendReturn(p, mix, fx) {
     .cable(fx, "l", mix, "returnl").cable(fx, "r", mix, "returnr");
 }
 
-// Recall's chance gates tossed between three pinged low pass gates; each
-// samples its own pentatonic note: west-coast hand drums.
-function bongoGarden() {
-  const p = cell("Bongo Garden", {
-    description: "Random gates tossed between three pinged low pass gates, each tuned to a fresh D minor pentatonic note: a west-coast hand-drum garden that keeps shifting. Shared input Density.",
-    tags: ["generative", "west coast", "percussion", "pentatonic", "low pass gate"],
-    help: "A Recall module makes random gates that a Coin Toss tosses between three pinged low pass gates. Each " +
-      "drum samples a fresh D minor pentatonic note from a Quantizer Suite, fed by Uncertainty curves. " +
-      "Drums are mixed in stereo with a send to a small reverb.\n\n" +
-      "Press play: it makes sound on its own from Out L/R. The Density input raises the gate bias of " +
-      "Recall, so more means more hits. It follows the transport.\n\n" +
-      "Tip: lower Density for a sparse pattern, and pitch the whole garden by editing the quantizer root.",
-  }).input("dens", "Density").stereoOut();
-  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.42, trecall: 0.6, tloop: 16, tjitter: 0.08, sync: "1/16", seed: 7 });
-  const coin = p.add("coin-toss", [0, 1], { prob1: 0.55, prob2: 0.5, memory1: 0.3, seed: 11 });
-  const un = p.add("uncertainty", [0, 2], { f1rate: 0.7, f2rate: 0.45 });
-  const qs = p.add("quantizer-suite", [1, 2], {
-    "a.root": "D", "a.scale": "Minor Pentatonic", "a.sample": "Trigger", "a.octave": -1,
-    "b.mode": "Quantize", "b.sample": "Trigger", "b.octave": 0,
-    "c.mode": "Transpose", "c.steps": -3, "c.sample": "Trigger", "c.octave": -1,
+// Dense chance triggers on three noise-bank voices tuned high, like drops on corrugated metal.
+function tinRoofRain() {
+  const p = cell("Tin Roof Rain", {
+    description: "Dense random drops on three bright noise-band voices of different pitch, panned across a small room: steady rain on a metal roof that never repeats. Shared input Intensity (drizzle to downpour).",
+    tags: ["generative", "rain", "texture", "noise", "ambient"],
+    help: "A Recall module on thirty-second notes makes random gates in Chance mode; a Coin Toss splits them between " +
+      "three Perc Voices in Noise Bank mode, each tuned to a different pitch and given a very short decay, so " +
+      "they sound like drops hitting sheet metal. The random voltages of Recall nudge each pitch, and a small " +
+      "reverb is the room.\n\n" +
+      "Press play: it makes sound on its own from Out L/R. The Intensity input is added to the gate bias of " +
+      "Recall: lower is a drizzle, higher is a downpour. It follows the transport.\n\n" +
+      "Tip: automate Intensity slowly up and down as a storm passing.",
+  }).input("int", "Intensity").stereoOut();
+  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.5, tjitter: 0.6, trecall: 0, xspread: 0.9, sync: "1/32", seed: 41 });
+  const coin = p.add("coin-toss", [0, 1], { prob1: 0.5, prob2: 0.5, seed: 8 });
+  p.cable(p.cin, "int", rc, "tbias", 0.35).cable(rc, "t1", coin, "in1").cable(rc, "t2", coin, "in2");
+  const mix = p.add("audio-mixer", [3, 1], { level1: -9, pan1: -0.6, level2: -9, pan2: 0.6, level3: -11, pan3: 0.05,
+    send1: -14, send2: -14, send3: -14, return: -5, master: 0 });
+  [["a1", 2800, 0.05, "x1"], ["b1", 3900, 0.035, "x2"], ["a2", 1700, 0.07, "x3"]].forEach(([trig, pitch, decay, x], i) => {
+    const d = p.add("perc-voice", [1, i], { engine: "Noise Bank", pitch, tone: 0.7, click: 0.4, decay, damp: 0.7, level: 0.7, seed: 5 + i },
+      { name: `Drops ${i + 1}` });
+    p.cable(coin, trig, d, "trig").cable(rc, x, d, "pitch", 0.15).stereo(d, mix, { to: [`in${i + 1}l`, `in${i + 1}r`] });
   });
-  p.cable(p.cin, "dens", rc, "tbias", 0.4)
-    .cable(rc, "t1", coin, "in1").cable(rc, "t2", coin, "in2")
-    .cable(un, "fluct1", qs, "ina").cable(un, "fluct2", qs, "inb").cable(un, "fluct2", qs, "inc")
-    .cable(coin, "a1", qs, "triga").cable(coin, "b1", qs, "trigb").cable(coin, "a2", qs, "trigc");
-  const mix = p.add("audio-mixer", [3, 1], { level1: -6, pan1: -0.55, level2: -6, pan2: 0.55, level3: -5, pan3: 0,
-    send1: -14, send2: -14, send3: -16, return: -4, master: -2 });
-  const pings = [["a1", "outa", 0.12], ["b1", "outb", 0.25], ["a2", "outc", 0.05]];
-  pings.forEach(([gate, pitch, shape], i) => {
-    const osc = p.add("oscillator", [1, i], { shape, fm: 0.12 }, { name: `Drum ${i + 1}` });
-    const lpg = p.add("low-pass-gate", [2, i], { response: 0.3, ping: 0.9, resonance: 0.35, brightness: 0.6, drive: 0.15 },
-      { name: `LPG ${i + 1}` });
-    p.cable(qs, pitch, osc, "pitch").cable(osc, "sub", osc, "fm").cable(osc, "out", lpg, "l")
-      .cable(coin, gate, lpg, "ping").cable(lpg, "l", mix, `in${i + 1}l`);
-  });
-  const verb = p.add("reverb", [4, 2], { size: 0.35, decay: 1.4, damping: 0.5, mix: 1, quality: "Eco (8 lines)" });
-  sendReturn(p, mix, verb);
+  const room = p.add("reverb", [4, 2], { size: 0.3, decay: 1.2, damping: 0.55, mix: 1, quality: "Eco (8 lines)" });
+  sendReturn(p, mix, room);
   p.stereo(mix, p.cout, { from: ["outl", "outr"] });
   return p;
 }
 
-// A shift register's melody plucks a two-voice string resonator, a canon
-// bass echoes it four steps later; dotted delay and a room.
-function turingStrings() {
-  const p = cell("Turing Strings", {
-    description: "A Shift Register melody in A Dorian plucks a string Resonator while a sine bass echoes the same bits four steps later, through a dotted-eighth delay network. Shared input Lock (frozen ↔ mutating).",
-    tags: ["generative", "turing machine", "shift register", "plucked", "string", "delay"],
-    help: "A Shift Register (8 bits, A Dorian) plucks a two-voice string Resonator on its bit 1. Another bit " +
-      "triggers a sine bass through a low pass gate, so the bass echoes the melody later. A dotted-eighth " +
-      "Delay Network and a reverb finish it.\n\n" +
-      "Press play: it plays on its own from Out L/R. The Lock input is added to the Lock knob: up freezes " +
-      "the pattern, down lets it mutate. It follows the transport.\n\n" +
-      "Tip: freeze the pattern when you like it, then ride Lock for variation.",
-  }).input("lock", "Lock").stereoOut();
-  const sr = p.add("shift-register", [0, 0], { lock: 0.85, length: 8, sync: "1/8", octaves: 2, root: "A", scale: "Dorian", seed: 23, gatelength: 0.4 });
-  const res = p.add("resonator", [1, 0], { model: "String", polyphony: "2", frequency: -12, structure: 0.4, brightness: 0.55, damping: 0.55, position: 0.25, exciter: 0.7 });
-  const dn = p.add("delay-network", [2, 0], { sync: "1/8.", taps: 3, feedback: 0.42, scatter: 0.2, character: 0.3, tone: -0.3, width: 0.9, mix: 0.3, routing: "Ring" });
-  const bass = p.add("oscillator", [1, 1], { octave: "-2", shape: 0.1 }, { name: "Canon Bass" });
-  const lpg = p.add("low-pass-gate", [2, 1], { response: 0.55, ping: 0.85, brightness: 0.5 });
-  p.cable(p.cin, "lock", sr, "lock", 0.5)
-    .cable(sr, "bit1", res, "strum").cable(sr, "pitch", res, "pitch")
-    .cable(res, "odd", dn, "l").cable(res, "even", dn, "r")
-    .cable(sr, "pitch", bass, "pitch").cable(bass, "out", lpg, "l").cable(sr, "bit5", lpg, "ping");
-  const mix = p.add("audio-mixer", [3, 1], { level1: -3, level2: -8, send1: -16, send2: -24, return: -6, master: -2 });
-  p.stereo(dn, mix, { to: ["in1l", "in1r"] }).cable(lpg, "l", mix, "in2l");
-  const verb = p.add("reverb", [4, 2], { size: 0.55, decay: 2.8, damping: 0.45, mix: 1, quality: "Eco (8 lines)" });
-  sendReturn(p, mix, verb);
+// Two identical twelve-step claves, clocked by two free LFOs a hair apart: they slide out of phase and back.
+function phaseClaves() {
+  const p = cell("Phase Claves", {
+    description: "The same twelve-step wooden pattern played by two clocks a hair apart: the two parts slowly slide out of phase and back again over minutes, a minimalist hand-clapping piece. Shared input Drift (widens the gap).",
+    tags: ["generative", "minimalism", "phasing", "claves", "percussion"],
+    help: "Two LFO squares run freely at 6.00 and 6.03 steps per second. Each clocks its own Gate Sequencer with " +
+      "the same twelve-step pattern of eight hits, and each plays a Ring Rim Clave, one tuned a little higher " +
+      "and panned left, the other right. Because the second clock is slightly faster, it gains one step " +
+      "on the first about every 33 seconds; after twelve steps the two are in step again.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Drift input is added to the second clock's rate: " +
+      "a little makes the phasing faster. The clocks are free and do not follow the transport.\n\n" +
+      "Tip: with Drift at zero, listen for the moment the parts line up again after about six and a half minutes.",
+  }).input("drift", "Drift").stereoOut();
+  const pat = "xxx.xx.x.xx.";
+  const clkA = p.add("lfo", [0, 0], { rate: 6, wave: "Square", polarity: "Unipolar", pw: 0.5 }, { name: "Clock A" });
+  const clkB = p.add("lfo", [0, 1], { rate: 6.03, wave: "Square", polarity: "Unipolar", pw: 0.5 }, { name: "Clock B" });
+  p.cable(p.cin, "drift", clkB, "rate", 0.004);
+  const mix = p.add("audio-mixer", [3, 0], { level1: -4, pan1: -0.7, level2: -4, pan2: 0.7, send1: -18, send2: -18, return: -6, master: -2 });
+  [[clkA, 0, "A"], [clkB, 3, "B"]].forEach(([clk, tune, tag], i) => {
+    const seq = p.add("gate-sequencer", [1, i], { length1: 12, rate1: "1/16", swing: 0.5, dice: "Fixed" },
+      { name: `Pattern ${tag}`, data: gateTracks([pat]) });
+    const clave = p.add("ring-rim", [2, i], { voice: "Clave", tune, decay: 1, level: 0.8 }, { name: `Clave ${tag}` });
+    p.cable(clk, "out", seq, "clock").cable(seq, "trig1", clave, "trig").cable(clave, "out", mix, `in${i + 1}l`);
+  });
+  const room = p.add("reverb", [4, 1], { size: 0.35, decay: 1.2, damping: 0.5, mix: 1, quality: "Eco (8 lines)" });
+  sendReturn(p, mix, room);
   p.stereo(mix, p.cout, { from: ["outl", "outr"] });
   return p;
 }
 
-// Four voices on free LFO loops of prime-ish lengths (18–29 s): they never
-// line up the same way twice. Eno's Music for Airports, as a patch.
-function tapeLoopChoir() {
-  const p = cell("Tape Loop Choir", {
-    description: "Four soft voices of a D♭ major-seven chord, each swelling on its own free-running loop of 18 to 29 seconds so they never line up the same way twice, into a wobbling tape delay and a long hall.",
-    tags: ["generative", "ambient", "eno", "tape loops", "slow"],
-    help: "Four soft voices make a D flat major seven chord. Each is gated by its own free LFO loop of 18 to 29 " +
-      "seconds, so the swells never line up the same way twice. The sum goes through a dark filter, a " +
-      "wobbling tape delay and a long hall.\n\n" +
-      "Press play: it plays on its own from Out L/R, and has no inputs. The loops run freely and are not " +
-      "tied to the tempo.\n\n" +
-      "Tip: use it as a bed under a slow lead or just as ambient background.",
-  }).stereoOut();
-  const voices = [  // coarse (semitones from C4), loop length (s), LFO phase, pan
-    [-4, 23.3, 0, -0.6], [1, 18.1, 120, 0.3], [5, 29.1, 250, -0.2], [12, 25.7, 60, 0.65],
+// A rotating divider on powers of two strikes four bell-like bodies, from a fast bar to the big gong.
+function colotomicCycle() {
+  const p = cell("Colotomic Cycle", {
+    description: "A gamelan-style cycle: a fast bar plays random notes, and slower bells and a deep gong strike on every 4th, 8th and 16th beat, so the layers meet only at the end of each long cycle. Shared input Rotate (moves the divisions).",
+    tags: ["generative", "gamelan", "gong", "cycle", "bells", "percussion"],
+    help: "A Rotating Divider on the Powers of 2 set with a quarter-note base fires four layers at different divisions. " +
+      "The fastest strikes a bright bar tuned to random notes of D minor pentatonic, the next a mid bell, " +
+      "the next a low plate and the slowest a deep gong with a long ring. Together they mark the structure " +
+      "of the cycle: the gong closes it.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Rotate input is added to the Rotate knob and " +
+      "shifts the divisions at the next bar: more means slower layers. It follows the transport.\n\n" +
+      "Tip: change the divider's Base to 1/8 for a faster, tighter cycle.",
+  }).input("rot", "Rotate").stereoOut();
+  const layers = [  // divider output, coarse, geometry, damping, size, level, pan, send
+    ["out2", 7, 0.3, 0.45, 0.2, -5, -0.4, -16, "Saron"],
+    ["out3", -2, 0.65, 0.35, 0.35, -5, 0.35, -14, "Bell"],
+    ["out4", -12, 0.55, 0.25, 0.5, -4, -0.15, -12, "Plate"],
+    ["out5", -24, 0.9, 0.12, 0.8, -3, 0, -12, "Gong"],
   ];
-  const mix = p.add("audio-mixer", [4, 1], { level1: -6, pan1: voices[0][3], level2: -7, pan2: voices[1][3],
-    level3: -7, pan3: voices[2][3], level4: -9, pan4: voices[3][3], master: -3 });
-  voices.forEach(([coarse, secs, phase, pan], i) => {
-    const loop = p.add("lfo", [0, i], { rate: 1 / secs, phase, pw: 0.16, polarity: "Unipolar" }, { name: `Loop ${i + 1}` });
-    const osc = p.add("oscillator", [1, i], { coarse, shape: 0.18, fine: [-4, 3, -2, 5][i] }, { name: `Voice ${i + 1}` });
-    const env = p.add("adsr", [2, i], { attack: 2.5, decay: 1.5, sustain: 0.75, release: 6, velamount: 0 }, { name: `Swell ${i + 1}` });
-    const vca = p.add("vca", [3, i], {}, { name: `VCA ${i + 1}` });
-    p.cable(loop, "square", env, "gate").cable(osc, "out", vca, "l").cable(env, "env", vca, "gain")
-      .cable(vca, "l", mix, `in${i + 1}l`);
+  const mixValues = { return: -5, master: -5 };
+  layers.forEach(([, , , , , level, pan, send], i) => Object.assign(mixValues, { [`level${i + 1}`]: level, [`pan${i + 1}`]: pan, [`send${i + 1}`]: send }));
+  const rd = p.add("rotating-divider", [0, 1], { set: "Powers of 2", base: "1/4", output: "Trigger", sync: "Next Bar" });
+  const walk = p.add("random", [0, 0], { sync: "1/4", spread: 1, loop: 0.35, length: "8 steps", seed: 14 }, { name: "Saron Notes" });
+  const q = p.add("quantizer", [1, 0], { root: "D", scale: "Minor Pentatonic", range: 1, hysteresis: 0 });
+  p.cable(p.cin, "rot", rd, "rotate", 0.25).cable(walk, "out", q, "in");
+  const mix = p.add("audio-mixer", [3, 1], mixValues);
+  layers.forEach(([out, coarse, geometry, damping, size, , , , name], i) => {
+    const mv = p.add("modal-voice", [2, i], { coarse, strike: 1, strikeTimbre: 0.5, geometry, brightness: 0.6, damping, position: 0.3,
+      size, space: 0.2, partials: "16", seed: 20 + i }, { name });
+    p.cable(rd, out, mv, "strike");
+    if (i === 0) p.cable(q, "out", mv, "pitch");
+    p.stereo(mv, mix, { to: [`in${i + 1}l`, `in${i + 1}r`] });
   });
-  const tone = p.add("filter", [5, 0], { cutoff: 2600, resonance: 0.05, type: "1-Pole Low-pass" }, { name: "Tape Tone" });
-  const tape = p.add("zone-delay", [5, 1], { zone: 4, time: 0.55, feedback: 0.55, character: 0.4, tone: -0.3, wobble: 0.45, diffuse: 0.3, mix: 0.35 });
-  const verb = p.add("reverb", [5, 2], { size: 0.85, decay: 9, damping: 0.55, modDepth: 0.4, mix: 0.4 });
-  p.stereo(mix, tone, { from: ["outl", "outr"] }).stereo(tone, tape).stereo(tape, verb).stereo(verb, p.cout);
+  const verb = p.add("reverb", [4, 2], { size: 0.55, decay: 3.5, damping: 0.4, mix: 1, quality: "Eco (8 lines)" });
+  sendReturn(p, mix, verb);
+  p.stereo(mix, p.cout, { from: ["outl", "outr"] });
   return p;
 }
 
-// Chance gates in a gusty rhythm strike two bell-like modal bodies, each
-// holding its own pentatonic note until its next strike.
-function windChimes() {
-  const p = cell("Wind Chimes", {
-    description: "Gusts of chance triggers strike two bell-like Modal Voices tuned to F major pentatonic, slow organic movement on where they are struck, in a wide reverb. Shared input Wind (more strikes).",
-    tags: ["generative", "chimes", "bells", "modal", "ambient", "pentatonic"],
-    help: "A Recall module makes sparse chance triggers that strike two Modal Voices. A Quantizer Suite tunes " +
-      "each to F major pentatonic, and organic LFOs vary where on the bar they are struck. A reverb makes " +
-      "the space.\n\n" +
-      "Press play: it plays on its own from Out L/R. The Wind input is added to the trigger bias: more " +
-      "means more chimes. It follows the transport.\n\n" +
-      "Tip: raise Wind in gusts and lower it for stillness.",
-  }).input("wind", "Wind").stereoOut();
-  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.16, tjitter: 0.7, sync: "1/16", seed: 42 });
-  const gust = p.add("organic-lfos", [0, 1], { rate: 0.05, spread: 0.6, drift: 0.5, seed: 5 });
-  const un = p.add("uncertainty", [0, 2], { f1rate: 0.23, f2rate: 0.31, f1spread: 0.6, f2spread: 0.6, seed: 9 });
-  const qs = p.add("quantizer-suite", [1, 2], {
-    "a.root": "F", "a.scale": "Major Pentatonic", "a.sample": "Trigger", "a.octave": 1,
-    "b.mode": "Quantize", "b.sample": "Trigger", "b.octave": 1,
+// A four-on-the-floor kick, offbeat hats and delayed chord stabs: a foggy dub techno loop.
+function dubTechnoFog() {
+  const p = cell("Dub Techno Fog", {
+    description: "A hazy dub-techno loop: soft kick, offbeat hats and a minor seventh chord stab fed into a long dotted echo and a cavernous reverb, so the chord dissolves into the fog. Shared inputs Cutoff and Dub (echo feedback).",
+    tags: ["generative", "dub techno", "chords", "echo", "loop"],
+    help: "A Gate Sequencer plays a Ring Kick, closed hats, a ghost rim and the chord. The chord comes from a Chord " +
+      "Osc on a minor seventh, through a ladder filter and a short envelope. A dotted-eighth Delay Network " +
+      "with a lot of feedback and a big reverb sit on a send, so only the first hit is clear and the rest is " +
+      "fog.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Cutoff input is added to the chord filter cutoff, and " +
+      "Dub is added to the echo feedback: raise it for a wash, lower it to hear the pattern. It follows the " +
+      "transport.\n\n" +
+      "Tip: ride Dub up on the last bar of a phrase, then back to zero on the downbeat.",
+  }).input("cut", "Cutoff").input("dub", "Dub").stereoOut();
+  const seq = p.add("gate-sequencer", [0, 1], { swing: 0.5, dice: "Fixed" }, {
+    data: gateTracks(["X...X...X...X...", "..x...x...x...x.", "..X....x..x....x", "...?.?..?....?.."]),
   });
-  p.cable(p.cin, "wind", rc, "tbias", 0.35).cable(gust, "out3", rc, "tbias", 0.12)
-    .cable(un, "fluct1", qs, "ina").cable(un, "fluct2", qs, "inb")
-    .cable(rc, "t1", qs, "triga").cable(rc, "t2", qs, "trigb");
-  const mix = p.add("audio-mixer", [3, 1], { level1: -6, level2: -6, send1: -8, send2: -8, return: -3, master: -3 });
-  [["t1", "outa", "out1"], ["t2", "outb", "out2"]].forEach(([trig, pitch, mod], i) => {
-    const mv = p.add("modal-voice", [2, i], { strike: 1, strikeTimbre: 0.65, geometry: 0.85 - i * 0.1, brightness: 0.7,
-      damping: 0.2, position: 0.35, size: 0.3, space: 0.3, partials: "16", seed: 3 + i }, { name: `Chime ${i + 1}` });
-    p.cable(qs, pitch, mv, "pitch").cable(rc, trig, mv, "strike").cable(gust, mod, mv, "position", 0.25)
+  const kick = p.add("ring-kick", [1, 0], { tune: 48, decay: 0.55, sweep: 0.3, tone: 0.2, level: 0.8 });
+  const hat = p.add("ring-hats", [1, 1], { closed: 0.04, tone: 0.4, level: 0.5 });
+  const rim = p.add("ring-rim", [1, 2], { voice: "Rim", tune: -2, level: 0.45 });
+  p.cable(seq, "trig1", kick, "trig").cable(seq, "trig2", hat, "closed").cable(seq, "trig4", rim, "trig");
+  const chord = p.add("chord-osc", [1, 3], { chord: "Minor 7", octave: "-1", voices: 4, detune: 9, stereo: 0.7, shape: 0.5 }, { name: "Chord" });
+  const flt = p.add("filter", [2, 3], { cutoff: 700, resonance: 0.25, drive: 0.1, type: "Ladder Tanh" }, { name: "Stab Filter" });
+  const env = p.add("adsr", [2, 4], { attack: 0.004, decay: 0.28, sustain: 0, release: 0.2 }, { name: "Stab Env" });
+  const amp = p.add("vca", [3, 3], {}, { name: "Stab VCA" });
+  p.cable(seq, "gate3", env, "gate").cable(p.cin, "cut", flt, "cutoff", 0.4).cable(env, "env", flt, "cutoff", 0.25)
+    .stereo(chord, flt).stereo(flt, amp).cable(env, "env", amp, "gain");
+  const mix = p.add("audio-mixer", [4, 1], { level1: -4, level2: -14, pan2: 0.25, level3: -9, send3: -3, send2: -22, level4: -18, pan4: -0.3,
+    return: -5, master: -2 });
+  p.cable(kick, "out", mix, "in1l").cable(hat, "out", mix, "in2l").stereo(amp, mix, { to: ["in3l", "in3r"] }).cable(rim, "out", mix, "in4l");
+  const dly = p.add("delay-network", [5, 1], { sync: "1/8.", taps: 2, feedback: 0.6, scatter: 0.2, tone: -0.5, character: 0.35, width: 1, mix: 1, routing: "Ring" });
+  const verb = p.add("reverb", [5, 2], { size: 0.8, decay: 6, damping: 0.5, mix: 0.35, quality: "Eco (8 lines)" });
+  p.cable(p.cin, "dub", dly, "feedback", 0.2);
+  p.cable(mix, "sendl", dly, "l").cable(mix, "sendr", dly, "r").stereo(dly, verb).stereo(verb, mix, { to: ["returnl", "returnr"] });
+  p.stereo(mix, p.cout, { from: ["outl", "outr"] });
+  return p;
+}
+
+// Random sine pings that glide down, thrown into a dark echo: a submarine in the dark.
+function sonarDeep() {
+  const p = cell("Sonar Deep", {
+    description: "Rare random sine pings that sweep downward, one high and one deep, thrown into a dark, scattered echo and a huge reverb: a submarine listening in the deep. Shared input Activity (more pings).",
+    tags: ["generative", "sonar", "pings", "dark", "ambient", "echo"],
+    help: "A Recall module on half notes makes sparse random gates in Chance mode. One starts a Sweep Generator that glides a " +
+      "sine from 2.4 kHz down to 700 Hz in under half a second; the other starts a second generator for a deep, " +
+      "slow ping from 280 Hz to 110 Hz. Both go into a dark Delay Network with scattered taps and a very long reverb.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Activity input is added to the gate bias of Recall: higher " +
+      "means more pings. It follows the transport.\n\n" +
+      "Tip: it works well as a background under slow pads: set Activity so you hear a ping every few seconds.",
+  }).input("act", "Activity").stereoOut();
+  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.2, trecall: 0.3, tloop: 12, sync: "1/2", seed: 27, gatelength: 0.2 });
+  p.cable(p.cin, "act", rc, "tbias", 0.3);
+  const hi = p.add("sweep-generator", [1, 0], { mode: "Triggered", waveform: "Sine", start: 2400, stop: 700, time: 0.4, law: "Log", sweepsync: "Free",
+    warmup: "Off", drift: 0, level: 0.6 }, { name: "High Ping" });
+  const lo = p.add("sweep-generator", [1, 1], { mode: "Triggered", waveform: "Sine", start: 280, stop: 110, time: 1.5, law: "Log", sweepsync: "Free",
+    warmup: "Off", drift: 0, level: 0.8 }, { name: "Deep Ping" });
+  p.cable(rc, "t1", hi, "trigger").cable(rc, "t2", lo, "trigger");
+  const mix = p.add("audio-mixer", [2, 0], { level1: -6, pan1: -0.3, send1: -4, level2: -6, pan2: 0.3, send2: -6, return: -4, master: -2 });
+  p.cable(hi, "out", mix, "in1l").cable(lo, "out", mix, "in2l");
+  const dly = p.add("delay-network", [3, 1], { time: 0.9, taps: 4, feedback: 0.62, scatter: 0.4, jitter: 0.1, tone: -0.55, character: 0.3, width: 1, mix: 1, routing: "Mesh" });
+  const verb = p.add("reverb", [4, 1], { size: 0.9, decay: 9, damping: 0.55, mix: 0.5, modDepth: 0.4, quality: "Eco (8 lines)" });
+  p.cable(mix, "sendl", dly, "l").cable(mix, "sendr", dly, "r").stereo(dly, verb).stereo(verb, mix, { to: ["returnl", "returnr"] });
+  p.stereo(mix, p.cout, { from: ["outl", "outr"] });
+  return p;
+}
+
+// A heartbeat shape breathes through a stack of low drone oscillators.
+function heartbeatDrone() {
+  const p = cell("Heartbeat Drone", {
+    description: "A dark drone of two fifths and a minor third whose level and filter beat like a slow heart, once a half note, under a bed of dark noise and a long reverb. Shared inputs Cutoff and Depth (shallow to deep beat).",
+    tags: ["generative", "drone", "heartbeat", "dark", "pulse", "ambient"],
+    help: "Three low oscillators (a root, a fifth and a minor third) and a little dark noise go through a ladder filter and a VCA. " +
+      "A looping Shape Env plays the Heartbeat shape once every half note: it opens the VCA and nudges the filter, so the drone " +
+      "swells with two quick pulses and sinks back. A slow organic LFO moves the cutoff and a long reverb " +
+      "sits around it.\n\n" +
+      "Press play: it plays on its own from Out L/R. Cutoff is added to the filter cutoff, Depth is added to the " +
+      "heartbeat depth: at zero the drone still breathes a little, higher it pulses deeply. It follows the transport.\n\n" +
+      "Tip: automate Depth up slowly as a scene tightens.",
+  }).input("cut", "Cutoff").input("depth", "Depth").stereoOut();
+  const oscs = [["Root", "-2", 0, 0.12, 0], ["Fifth", "-2", 7, 0.18, 4], ["Third", "-1", 3, 0.3, -3]].map(([name, octave, coarse, shape, fine], i) =>
+    p.add("oscillator", [0, i], { octave, coarse, shape, fine }, { name }));
+  const breath = p.add("noise", [0, 3], { colour: -0.7, level: 1 }, { name: "Dark Noise" });
+  const flt = p.add("filter", [1, 1], { cutoff: 240, resonance: 0.18, drive: 0.1, type: "Ladder Tanh" }, { name: "Drone Filter" });
+  oscs.forEach((o, i) => { const amt = [0.5, 0.35, 0.18][i]; p.cable(o, "out", flt, "l", amt).cable(o, "out", flt, "r", amt); });
+  p.cable(breath, "out", flt, "l", 0.1).cable(breath, "out", flt, "r", 0.1);
+  const heart = p.add("shape-env", [1, 3], { shape: "Heartbeat", mode: "Loop", sync: "1/2" }, { name: "Heartbeat" });
+  const depth = p.add("utility", [2, 3], { scalex: 0.65, offset: 0.35 }, { name: "Depth" });
+  const drift = p.add("organic-lfos", [1, 4], { rate: 0.03, spread: 0.5, seed: 3 });
+  const amp = p.add("vca", [2, 1], {}, { name: "Beat VCA" });
+  p.cable(heart, "out", depth, "x").cable(p.cin, "depth", depth, "scalex", 0.15).cable(p.cin, "depth", depth, "offset", -0.15)
+    .cable(p.cin, "cut", flt, "cutoff", 0.4).cable(heart, "out", flt, "cutoff", 0.1).cable(drift, "out1", flt, "cutoff", 0.08)
+    .stereo(flt, amp).cable(depth, "out", amp, "gain");
+  const verb = p.add("reverb", [3, 1], { size: 0.85, decay: 8, damping: 0.55, mix: 0.4, modDepth: 0.4, quality: "Eco (8 lines)" });
+  const mix = p.add("audio-mixer", [4, 1], { level1: 0, master: -2 });
+  p.stereo(amp, verb).stereo(verb, mix, { to: ["in1l", "in1r"] }).stereo(mix, p.cout, { from: ["outl", "outr"] });
+  return p;
+}
+
+// Three pulse-formant voices on an A minor triad, their vowels slowly morphing.
+function vowelDriftChoir() {
+  const p = cell("Vowel Drift Choir", {
+    description: "Three pulse-formant voices on an A minor triad sing with vowels that drift independently and a faint wobble in the pitch, through chorus and a wide hall: a choir that never says the same word. Shared input Vowel.",
+    tags: ["generative", "choir", "vowel", "formant", "pad", "evolving"],
+    help: "Three Formant Osc voices (A, E and A an octave apart) make a bright pulse with a moving resonant peak, which " +
+      "sounds like a sung vowel. Organic LFOs move each voice's formant independently and add a little pitch " +
+      "wobble, so the vowels shift from ah to oh to ee in no pattern. The sum goes through a chorus and a wide hall.\n\n" +
+      "Press play: it plays on its own from Out L/R and is not tied to the tempo. The Vowel input is added to the formant " +
+      "of all three voices together: raise it to brighten the vowels, lower it to darken them.\n\n" +
+      "Tip: automate Vowel with a slow LFO for a synchronised change of word across the choir.",
+  }).input("vowel", "Vowel").stereoOut();
+  const life = p.add("organic-lfos", [0, 1], { rate: 0.05, spread: 0.6, drift: 0.5, seed: 12 });
+  const mix = p.add("audio-mixer", [3, 1], { level1: -9, pan1: -0.3, level2: -9, pan2: 0.3, level3: -10, pan3: 0, master: -4 });
+  [[-1, -3, 1.4], [-1, 4, 2.2], [0, -3, 0.7]].forEach(([octave, coarse, formant], i) => {
+    const fo = p.add("formant-osc", [1, i], { octave, coarse, formant, narrow: 0.35, body: 0.7, spread: 0.3 }, { name: `Voice ${i + 1}` });
+    p.cable(life, `out${i + 1}`, fo, "formant", 0.18).cable(p.cin, "vowel", fo, "formant", 0.25)
+      .cable(life, `out${i + 4}`, fo, "pitch", semis(0.15)).stereo(fo, mix, { from: ["outL", "outR"], to: [`in${i + 1}l`, `in${i + 1}r`] });
+  });
+  const ch = p.add("chorus", [4, 1], { rate: 0.3, depth: 0.4, delay: 12, mix: 0.4 });
+  const verb = p.add("reverb", [5, 1], { size: 0.8, decay: 6, damping: 0.45, modDepth: 0.35, mix: 0.4, quality: "Eco (8 lines)" });
+  p.stereo(mix, ch, { from: ["outl", "outr"] }).stereo(ch, verb).stereo(verb, p.cout);
+  return p;
+}
+
+// A step-sequenced lullaby on a bright wooden bar that mutates a little each time round.
+function windUpLullaby() {
+  const p = cell("Wind-Up Lullaby", {
+    description: "A sixteen-step G major lullaby on a bright struck bar with a low bell at the end of each round; Variation lets random steps wander, and a wobbly tape echo makes the whole box sound old. Shared input Variation.",
+    tags: ["generative", "music box", "lullaby", "melodic", "tape", "mutating"],
+    help: "A Step Sequencer plays sixteen steps in G major on eighth notes. Each note strikes a bright Modal Voice " +
+      "tuned like a small wooden bar. At the end of each round a second voice, an octave lower, strikes a " +
+      "soft bell. A Zone Delay with tape wobble gives the sound an old, drifting character.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Variation input is added to the sequencer's " +
+      "Variation: at zero the lullaby is exactly the same every time, higher some steps jump by up to " +
+      "seven semitones, so the tune mutates round by round. It follows the transport.\n\n" +
+      "Tip: set the starting Variation on the sequencer a little above zero and let it run for a while.",
+  }).input("var", "Variation").stereoOut();
+  const seq = p.add("step-sequencer", [0, 1], { length: 16, rate: "1/8", gatelength: 0.5, variation: 0.08, varrange: 7, root: "G", scale: "Major", octave: 0, seed: 6 }, {
+    data: stepsOf([7, 9, 11, 14, 11, 9, 7, ".", 4, 7, 9, 11, 9, 7, 4, "."]),
+  });
+  const bar = p.add("modal-voice", [1, 0], { strike: 1, strikeTimbre: 0.7, geometry: 0.3, brightness: 0.85, damping: 0.5, size: 0.12, position: 0.25, space: 0.15, partials: "16", seed: 6 }, { name: "Music Box" });
+  const bell = p.add("modal-voice", [1, 1], { coarse: -12, strike: 1, strikeTimbre: 0.4, geometry: 0.7, brightness: 0.55, damping: 0.25, size: 0.3, space: 0.2, partials: "16", seed: 7 }, { name: "Low Bell" });
+  p.cable(p.cin, "var", seq, "variation", 0.5)
+    .cable(seq, "pitch", bar, "pitch").cable(seq, "trigger", bar, "strike")
+    .cable(seq, "pitch", bell, "pitch").cable(seq, "end", bell, "strike");
+  const mix = p.add("audio-mixer", [2, 0], { level1: -6, pan1: -0.15, level2: -9, pan2: 0.15, master: -2 });
+  p.stereo(bar, mix, { to: ["in1l", "in1r"] }).stereo(bell, mix, { to: ["in2l", "in2r"] });
+  const tape = p.add("zone-delay", [3, 0], { zone: 3, time: 0.4, feedback: 0.4, character: 0.5, tone: -0.3, wobble: 0.5, mix: 0.3 });
+  p.stereo(mix, tape, { from: ["outl", "outr"] }).stereo(tape, p.cout);
+  return p;
+}
+
+// A pattern bank of four related rhythms plays four Ring drums; a slow random leafs through the bank.
+function kitchenTableBeat() {
+  const p = cell("Kitchen Table Beat", {
+    description: "Four related rhythms from a Rhythm Bank play a kick, snare, hat and rim in a warm saturated mix, and every four bars a slow random leafs to a new groove. Shared inputs Pattern and Drive.",
+    tags: ["generative", "drums", "groove", "lo-fi", "rhythm bank", "evolving"],
+    help: "A Rhythm Bank in the Interlock family gives four rhythms that are related and avoid colliding with each other, " +
+      "each patched to a Ring drum voice: kick, snare, closed hat and rim. A slow Random module changes the pattern " +
+      "number every four bars, so the groove changes in steps, and the mix goes through a warm Saturator and a small room.\n\n" +
+      "Press play: it plays on its own from Out L/R. The Pattern input is added to the pattern number: use it to " +
+      "choose a different set of grooves; Drive is added to the saturator drive for more crunch. It follows the transport.\n\n" +
+      "Tip: set the Random module's Loop higher to make the changes come back in a repeating sequence of four.",
+  }).input("pat", "Pattern").input("drive", "Drive").stereoOut();
+  const rb = p.add("rhythm-bank", [0, 1], { pattern: 37, family: "Interlock", length: "16", rate: "1/16", width: 0.3, complement: "Avoid", output: "Trigger" });
+  const walk = p.add("random", [0, 0], { sync: "4 bars", length: "4 steps", spread: 1, loop: 0.5, seed: 30 }, { name: "Groove Change" });
+  p.cable(walk, "out", rb, "pattern", 0.12).cable(p.cin, "pat", rb, "pattern", 0.3);
+  const kick = p.add("ring-kick", [1, 0], { tune: 52, decay: 0.5, sweep: 0.3, tone: 0.3, level: 0.85 });
+  const snare = p.add("ring-snare", [1, 1], { tune: 190, tone: 0.5, snappy: 0.5, decay: 0.2, level: 0.7 });
+  const hat = p.add("ring-hats", [1, 2], { closed: 0.05, tone: 0.45, level: 0.55 });
+  const rim = p.add("ring-rim", [1, 3], { voice: "Rim", level: 0.6 });
+  p.cable(rb, "out1", kick, "trig").cable(rb, "out2", snare, "trig").cable(rb, "out3", hat, "closed").cable(rb, "out4", rim, "trig");
+  const mix = p.add("audio-mixer", [2, 1], { level1: -3, level2: -6, pan2: 0.1, level3: -12, pan3: 0.3, level4: -10, pan4: -0.3,
+    send2: -16, send4: -14, return: -8, master: -3 });
+  p.cable(kick, "out", mix, "in1l").cable(snare, "out", mix, "in2l").cable(hat, "out", mix, "in3l").cable(rim, "out", mix, "in4l");
+  const room = p.add("reverb", [3, 2], { size: 0.3, decay: 1, damping: 0.5, mix: 1, quality: "Eco (8 lines)" });
+  sendReturn(p, mix, room);
+  const sat = p.add("saturator", [4, 1], { drive: 0.45, color: 0.2, sag: 0.4, level: 0.9 });
+  p.cable(p.cin, "drive", sat, "drive", 0.3).stereo(mix, sat, { from: ["outl", "outr"] }).stereo(sat, p.cout);
+  return p;
+}
+
+// Three bowed glass bodies that fade in and out on their own long loops, each fading in on a new note.
+function bowedGlassTrio() {
+  const p = cell("Bowed Glass Trio", {
+    description: "Three bowed glass-plate voices whose bows start and stop on their own loops of 17, 23 and 31 seconds, each choosing a fresh D major pentatonic note whenever it starts: slow, singing, always-new chords. Shared input Bow (pressure).",
+    tags: ["generative", "bowed", "glass", "ambient", "slow", "physical model"],
+    help: "Three Modal Voices in a plate-like geometry are bowed continuously while their gate is high. Each gate is a free " +
+      "LFO square with a loop length of 17, 23 or 31 seconds, so the bows overlap in changing ways. A Quantizer " +
+      "Suite fed by slowly fluctuating curves from an Uncertainty module samples a new D major pentatonic " +
+      "pitch each time a bow starts. The sum goes through a big reverb.\n\n" +
+      "Press play: it plays on its own from Out L/R and is not tied to the tempo. The Bow input is added to the bow " +
+      "pressure of all three voices: more pressure is louder and rougher, less is breathy and soft.\n\n" +
+      "Tip: reduce the bow pressure for a ghostly, whistling sound.",
+  }).input("bow", "Bow").stereoOut();
+  const un = p.add("uncertainty", [0, 1], { f1rate: 0.19, f2rate: 0.27, f1spread: 0.7, f2spread: 0.7, seed: 4 });
+  const loops = [17, 23, 31];
+  const lfos = loops.map((secs, i) => p.add("lfo", [0, i + 2], { rate: 1 / secs, phase: i * 130, pw: 0.7, wave: "Square", polarity: "Unipolar" }, { name: `Loop ${i + 1}` }));
+  const qs = p.add("quantizer-suite", [1, 1], {
+    "a.mode": "Quantize", "a.root": "D", "a.scale": "Major Pentatonic", "a.sample": "Trigger", "a.octave": -1,
+    "b.mode": "Quantize", "b.root": "D", "b.scale": "Major Pentatonic", "b.sample": "Trigger", "b.octave": 0,
+    "c.mode": "Quantize", "c.root": "D", "c.scale": "Major Pentatonic", "c.sample": "Trigger", "c.octave": 0,
+    "d.notes": false,
+  });
+  p.cable(un, "fluct1", qs, "ina").cable(un, "fluct2", qs, "inb").cable(un, "fluct2", qs, "inc")
+    .cable(lfos[0], "out", qs, "triga").cable(lfos[1], "out", qs, "trigb").cable(lfos[2], "out", qs, "trigc");
+  const mix = p.add("audio-mixer", [3, 1], { level1: -8, pan1: -0.5, level2: -8, pan2: 0.5, level3: -9, pan3: 0, master: -3 });
+  ["outa", "outb", "outc"].forEach((pitch, i) => {
+    const mv = p.add("modal-voice", [2, i], { bow: 0.55, bowTimbre: 0.5, strike: 0, geometry: 0.72, brightness: 0.6, damping: 0.15,
+      position: 0.3 + i * 0.1, size: 0.4, space: 0.3, contour: 0.5, partials: "16", seed: 40 + i }, { name: `Glass ${i + 1}` });
+    p.cable(qs, pitch, mv, "pitch").cable(lfos[i], "out", mv, "gate").cable(p.cin, "bow", mv, "bow", 0.3)
       .stereo(mv, mix, { to: [`in${i + 1}l`, `in${i + 1}r`] });
   });
-  const verb = p.add("reverb", [4, 2], { size: 0.8, decay: 6, damping: 0.3, modDepth: 0.35, mix: 1 });
-  sendReturn(p, mix, verb);
-  p.stereo(mix, p.cout, { from: ["outl", "outr"] });
-  return p;
-}
-
-// Drum Map with a little chaos plus a polymeter acid line through a diode
-// ladder whose cutoff drifts on a slow LFO: a techno loop that never repeats.
-function acidWeather() {
-  const p = cell("Acid Weather", {
-    description: "A generative techno loop: Drum Map kick, clap and hats with a touch of chaos, and a Polymeter Seq acid line in A minor through a resonant diode ladder whose cutoff drifts like weather. Shared input Cutoff.",
-    tags: ["generative", "techno", "acid", "drums", "loop"],
-    help: "A Drum Map drives Punch kick, clap and hats with a touch of chaos, and a Polymeter Seq plays an A " +
-      "minor acid line through a Diode Ladder filter. A slow random LFO moves the cutoff like weather, and " +
-      "a dotted delay is on a send.\n\n" +
-      "Press play: it plays on its own from Out L/R. The Cutoff input is added to the filter cutoff, which " +
-      "also follows the acid line envelope. It follows the transport.\n\n" +
-      "Tip: raise Cutoff slowly for a build.",
-  }).input("cut", "Cutoff").stereoOut();
-  const dm = p.add("drum-map", [0, 0], { x: 0.3, y: 0.6, kickdensity: 0.55, snaredensity: 0.4, hatsdensity: 0.65, chaos: 0.25, chaosrate: "Every 2 bars", swing: 0.54, seed: 17 });
-  const kick = p.add("punch-kick", [1, 0], { tune: 48, decay: 0.45, drive: 0.35 });
-  const clap = p.add("punch-clap", [1, 1], { tone: 1300, decay: 0.3 });
-  const hats = p.add("punch-hats", [1, 2], { closed: 0.04, open: 0.3, crunch: 0.3, level: 0.6 });
-  p.cable(dm, "kick", kick, "trig").cable(dm, "kickvel", kick, "velocity")
-    .cable(dm, "snare", clap, "trig").cable(dm, "snarevel", clap, "velocity")
-    .cable(dm, "hats", hats, "closed").cable(dm, "hatsacc", hats, "open").cable(dm, "hatsvel", hats, "velocity");
-  const seq = p.add("polymeter-sequencer", [0, 3], { root: "A", scale: "Natural Minor", octave: -1, gatescale: 0.7, swing: 0.54, seed: 31 });
-  const osc = p.add("oscillator", [1, 3], { octave: "-1", shape: 0.6667 }, { name: "Acid Saw" });
-  const env = p.add("adsr", [1, 4], { attack: 0.002, decay: 0.22, sustain: 0.15, release: 0.12, velamount: 0.6 }, { name: "Acid Env" });
-  const drift = p.add("lfo", [2, 4], { rate: 0.04, wave: "Random Smooth", seed: 4 }, { name: "Weather" });
-  const flt = p.add("filter", [2, 3], { cutoff: 380, resonance: 0.78, drive: 0.35, keytrack: 0.3, type: "Diode Ladder Tanh" });
-  const vca = p.add("vca", [3, 3]);
-  p.cable(seq, "pitch", osc, "pitch").cable(seq, "pitch", flt, "pitch").cable(seq, "gate", env, "gate")
-    .cable(seq, "trigger", env, "retrig").cable(seq, "velocity", env, "velocity")
-    .cable(osc, "out", flt, "l").cable(env, "env", flt, "cutoff", 0.32).cable(drift, "out", flt, "cutoff", 0.12)
-    .cable(p.cin, "cut", flt, "cutoff", 0.4).cable(flt, "l", vca, "l").cable(env, "env", vca, "gain");
-  const mix = p.add("audio-mixer", [4, 1], { level1: -2, level2: -9, pan2: 0.15, level3: -12, pan3: -0.25, level4: -7,
-    send4: -10, send2: -20, return: -9, master: -2 });
-  p.cable(kick, "out", mix, "in1l").cable(clap, "out", mix, "in2l").cable(hats, "out", mix, "in3l").cable(vca, "l", mix, "in4l");
-  const dly = p.add("delay-network", [5, 2], { sync: "1/8.", taps: 2, feedback: 0.45, tone: -0.4, width: 1, mix: 1, routing: "Ring" });
-  sendReturn(p, mix, dly);
-  p.stereo(mix, p.cout, { from: ["outl", "outr"] });
-  return p;
-}
-
-// A Harmony Master on bus D walks a locked four-chord loop; a pad plays the
-// chord tones, a bass follows the root, an arpeggio follows the chord.
-function seasonsTurning() {
-  const p = cell("Seasons Turning", {
-    description: "A Harmony Master (bus D) walks a repeating loop of four D minor seventh chords, two bars each: a saw pad holds the chord tones, a plucked bass follows the chord's bass note, and a Pluck arpeggio traces the chord. Shared input Root (transposes everything).",
-    tags: ["generative", "chords", "progression", "arpeggio", "harmony"],
-    help: "A Random module walks a four-step loop of chord degrees on a Harmony Master (D minor sevenths, Bus " +
-      "D). Three saw oscillators play the chord tones through a ladder filter, a plucked bass follows the " +
-      "chord's bass note, and a Pluck arpeggio is snapped to the chord via a Quantizer Suite.\n\n" +
-      "Press play: it plays on its own from Out L/R. The Root input, a pitch, transposes the chords. It " +
-      "follows the transport.\n\n" +
-      "Tip: patch a keyboard or sequencer pitch into Root to change key.",
-  }).input("root", "Root", "pitch").stereoOut();
-  const walk = p.add("random", [0, 0], { sync: "2 bars", length: "4 steps", loop: 1, spread: 1, seed: 12 }, { name: "Chord Walk" });
-  const hm = p.add("harmony-master", [1, 0], { source: "Manual", key: "D", scale: "Natural Minor", quality: "Diatonic Seventh",
-    degree: 4, octave: -1, bus: "D" });
-  p.cable(walk, "out", hm, "degree", 0.5).cable(p.cin, "root", hm, "transpose");
-  // Pad: three chord tones on detuned saws through a soft ladder.
-  const pf = p.add("filter", [3, 0], { cutoff: 900, resonance: 0.2, drive: 0.15, type: "Ladder Tanh" }, { name: "Pad Filter" });
-  const sweep = p.add("lfo", [3, 1], { rate: 0.07 }, { name: "Pad Sweep" });
-  ["tone1", "tone2", "tone3"].forEach((t, i) => {
-    const o = p.add("oscillator", [2, i], { fine: [-6, 4, 8][i], shape: 0.6667 }, { name: `Pad ${i + 1}` });
-    p.cable(hm, t, o, "pitch");
-    if (i !== 2) p.cable(o, "out", pf, "l", 0.35);
-    if (i !== 0) p.cable(o, "out", pf, "r", 0.35);
-  });
-  p.cable(sweep, "sine", pf, "cutoff", 0.08);
-  // Rhythm for bass and arpeggio.
-  const rb = p.add("rhythm-bank", [0, 3], { pattern: 37, family: "Interlock", rate: "1/16", width: 0.3 });
-  const bass = p.add("oscillator", [2, 3], { shape: 0.3 }, { name: "Bass" });
-  const blpg = p.add("low-pass-gate", [3, 3], { response: 0.6, ping: 0.9, brightness: 0.55, resonance: 0.2 }, { name: "Bass LPG" });
-  p.cable(hm, "bass", bass, "pitch").cable(bass, "out", blpg, "l").cable(rb, "out1", blpg, "ping").cable(hm, "change", blpg, "ping");
-  // Arpeggio: a slow triangle contour snapped to the chord tones on every hit.
-  const contour = p.add("lfo", [0, 4], { rate: 0.31 }, { name: "Contour" });
-  const qs = p.add("quantizer-suite", [1, 4], { "a.mode": "Follow", "a.harmony": "Bus D", "a.target": "Chord", "a.sample": "Trigger",
-    "a.octave": 1, "b.notes": false, "c.notes": false, "d.notes": false });
-  const arp = p.add("macro-osc", [2, 4], { model: "Pluck", tone: 0.55, blend: 0.4, decay: 0.7, level: 0.7 }, { name: "Arp Pluck" });
-  p.cable(contour, "triangle", qs, "ina").cable(rb, "out2", qs, "triga")
-    .cable(qs, "outa", arp, "pitch").cable(rb, "out2", arp, "trig");
-  const mix = p.add("audio-mixer", [4, 2], { level1: -12, level2: -6, level3: -8, pan3: 0.3,
-    send1: -12, send3: -8, return: -6, master: -2 });
-  p.stereo(pf, mix, { to: ["in1l", "in1r"] }).cable(blpg, "l", mix, "in2l").cable(arp, "out", mix, "in3l");
-  const verb = p.add("reverb", [5, 3], { size: 0.7, decay: 4.5, damping: 0.45, preDelay: 0.04, mix: 1 });
-  sendReturn(p, mix, verb);
-  p.stereo(mix, p.cout, { from: ["outl", "outr"] });
-  return p;
-}
-
-// A minor-ninth swarm breathing through a scale-tuned filter bank, eight
-// related slow LFOs on its spread, scan and shift.
-function lichenDrone() {
-  const p = cell("Lichen Drone", {
-    description: "A twelve-voice Swarm on a C minor ninth, breathing through a scale-tuned Filter Bank; eight related Organic LFOs slowly move its spread, cross-FM and the bank's scan and shift. Shared input Root (pitch).",
-    tags: ["generative", "drone", "ambient", "swarm", "evolving"],
-    help: "A twelve-voice Swarm plays a C minor ninth chord through a scale-tuned Filter Bank and a long " +
-      "reverb. Eight related Organic LFOs slowly move the spread, cross-FM, scan, shift and width, so the " +
-      "drone evolves.\n\n" +
-      "Press play: it plays on its own from Out L/R and is not tied to the tempo. The Root input, a pitch, " +
-      "moves the Swarm and the Filter Bank together.\n\n" +
-      "Tip: change Root slowly with a glide for drone modulations.",
-  }).input("root", "Root", "pitch").stereoOut();
-  const life = p.add("organic-lfos", [0, 1], { rate: 0.025, spread: 0.7, drift: 0.6, twist: 0.3, seed: 8 });
-  const sw = p.add("swarm", [1, 0], { octave: -1, chord: "Minor 9", count: 12, spread: 0.45, range: 3, detune: 14, drift: 0.55,
-    crossfm: 0.06, glide: 3, width: 0.9, pattern: "Random", stack: "Centred", seed: 6 });
-  const air = p.add("noise", [1, 1], { colour: -0.6, level: 1 }, { name: "Breath" });
-  const fb = p.add("filter-bank", [2, 0], { q: 7, tilt: -1.5, scan: 0.5, width: 5, tuning: "Scale", root: "C", scale: "Minor Pentatonic", mix: 0.75 });
-  p.cable(p.cin, "root", sw, "pitch").cable(p.cin, "root", fb, "pitch")
-    .stereo(sw, fb).cable(air, "out", fb, "l", 0.05).cable(air, "out", fb, "r", 0.05)
-    .cable(life, "out1", sw, "spread", 0.3).cable(life, "out2", sw, "crossfm", 0.08)
-    .cable(life, "out3", fb, "scan", 0.4).cable(life, "out4", fb, "shift", 0.12).cable(life, "out5", fb, "width", 0.2);
-  const verb = p.add("reverb", [3, 0], { size: 0.9, decay: 12, damping: 0.5, modDepth: 0.5, mix: 0.4 });
-  p.stereo(fb, verb).cable(life, "out6", verb, "size", 0.05);
-  const mix = p.add("audio-mixer", [4, 1], { level1: -6, master: -3 });
-  p.stereo(verb, mix, { to: ["in1l", "in1r"] }).stereo(mix, p.cout, { from: ["outl", "outr"] });
-  return p;
-}
-
-// Four marimba bars on prime clock divisions (2, 3, 5, 7 sixteenths): a
-// rotating polyrhythm on a C minor seventh chord.
-function primeMarimba() {
-  const p = cell("Prime Marimba", {
-    description: "Four Modal Voice marimba bars on C minor-seventh chord tones, struck every 2, 3, 5 and 7 sixteenths; a slow random rotates which bar gets which prime, so the polyrhythm turns over every four bars.",
-    tags: ["generative", "polyrhythm", "marimba", "mallets", "modal"],
-    help: "A Rotating Divider outputs triggers every 2, 3, 5 and 7 sixteenths. Each strikes a Modal Voice " +
-      "marimba bar tuned to a C minor seventh chord tone. A slow random rotates which bar gets which prime " +
-      "every four bars.\n\n" +
-      "Press play: it plays on its own from Out L/R and has no inputs. It follows the transport.\n\n" +
-      "Tip: it works well as a background layer under pads and bass.",
-  }).stereoOut();
-  const div = p.add("rotating-divider", [0, 1], { set: "Primes", base: "1/16", output: "Trigger", rotate: 4, sync: "Next Bar" });
-  const turn = p.add("random", [0, 2], { sync: "4 bars", spread: 1, length: "8 steps", loop: 0.5, seed: 21 }, { name: "Turn" });
-  p.cable(turn, "out", div, "rotate", 0.25);
-  const bars = [[-12, -0.5], [-5, 0.5], [3, -0.25], [10, 0.25]];  // coarse, pan
-  const mix = p.add("audio-mixer", [2, 1], { level1: -4, level2: -6, level3: -7, level4: -8, master: -2,
-    send1: -18, send2: -16, send3: -14, send4: -14, return: -6, pan1: bars[0][1], pan2: bars[1][1], pan3: bars[2][1], pan4: bars[3][1] });
-  bars.forEach(([coarse], i) => {
-    const mv = p.add("modal-voice", [1, i], { coarse, strike: 1, strikeTimbre: 0.4, geometry: 0.55, brightness: 0.5,
-      damping: 0.4, position: 0.2 + i * 0.08, space: 0.1, partials: "16", seed: 10 + i }, { name: `Bar ${i + 1}` });
-    p.cable(div, `out${i + 1}`, mv, "strike").cable(mv, "l", mix, `in${i + 1}l`);
-  });
-  const verb = p.add("reverb", [3, 2], { size: 0.45, decay: 1.8, damping: 0.5, mix: 1, quality: "Eco (8 lines)" });
-  sendReturn(p, mix, verb);
-  p.stereo(mix, p.cout, { from: ["outl", "outr"] });
-  return p;
-}
-
-// Random Lydian plucks recorded into Grains, read back at wandering
-// positions in octaves and fifths: a shimmering cloud.
-function pollenCloud() {
-  const p = cell("Pollen Cloud", {
-    description: "Sparse Lydian plucks from a Macro Osc feed Grains, which scatters them back at wandering positions, an octave or a fifth away, with feedback and blur: a slowly shimmering cloud. Shared input Density.",
-    tags: ["generative", "granular", "ambient", "cloud", "shimmer"],
-    help: "Random notes on 8ths, quantized to E Lydian, are played by a plucked Macro Osc at coin-toss moments. " +
-      "Grains records the plucks and scatters them at moving positions, an octave or a fifth away, with " +
-      "feedback and blur.\n\n" +
-      "Press play: it plays on its own from Out L/R. The Density input is added to the Grains density: more " +
-      "means a thicker cloud. It follows the transport.\n\n" +
-      "Tip: lower Density for sparse clouds with space between grains.",
-  }).input("dens", "Density").stereoOut();
-  const notes = p.add("random", [0, 0], { sync: "1/8", spread: 0.8, loop: 0.4, length: "16 steps", seed: 3 }, { name: "Notes" });
-  const gate = p.add("coin-toss", [0, 1], { prob1: 0.35, seed: 19 });
-  const q = p.add("quantizer", [1, 0], { root: "E", scale: "Lydian", range: 1.5 });
-  const src = p.add("macro-osc", [2, 0], { model: "Pluck", tone: 0.4, blend: 0.6, decay: 1.2, level: 0.7 }, { name: "Plucks" });
-  p.cable(notes, "out", q, "in").cable(notes, "trig", gate, "in1")
-    .cable(q, "out", src, "pitch").cable(gate, "a1", src, "trig");
-  const wander = p.add("wobble", [1, 2], { rate: 0.15, smooth: 0.9, wobble: 0.3, polarity: "Unipolar", seed: 2 }, { name: "Wander" });
-  const gr = p.add("grains", [3, 0], { position: 0.15, size: 0.35, density: 0.55, texture: 0.6, spread: 0.5, pitchjitter: 12,
-    feedback: 0.35, blur: 0.45, mix: 0.7, reverse: 0.25, pitchquant: "Octaves + fifths", buffer: "4 s", seed: 14 });
-  p.cable(src, "out", gr, "l").cable(wander, "smooth", gr, "position", 0.5)
-    .cable(wander, "wobble", gr, "size", 0.15).cable(p.cin, "dens", gr, "density", 0.4);
-  const verb = p.add("reverb", [4, 0], { size: 0.75, decay: 5, damping: 0.4, mix: 0.3, quality: "Eco (8 lines)" });
-  const mix = p.add("audio-mixer", [5, 1], { level1: -4, master: -2 });
-  p.stereo(gr, verb).stereo(verb, mix, { to: ["in1l", "in1r"] }).stereo(mix, p.cout, { from: ["outl", "outr"] });
-  return p;
-}
-
-// Two leaky neurons fire at each other; their spikes and logic gates hit
-// four percussion voices, then a glitcher and a scattered delay.
-function synapseClicks() {
-  const p = cell("Synapse Clicks", {
-    description: "Two Neurons firing at each other, nudged by slow organic drift, play metallic FM clicks, a modal knock, noise ticks and a rim; Bender glitches the mix and a scattered delay smears it. Shared input Excite (fires faster).",
-    tags: ["generative", "glitch", "percussion", "neuron", "idm"],
-    help: "Two Neurons fire at each other. Their spikes and logic outputs trigger an FM click, a modal knock, " +
-      "noise ticks and a clave. Organic LFOs nudge them, a Bender glitches the mix and a scattered Delay " +
-      "Network smears it.\n\n" +
-      "Press play: it plays on its own from Out L/R. The Excite input is added to one neuron, making it " +
-      "fire faster. The neurons run freely; only the Bender slices follow the transport.\n\n" +
-      "Tip: raise Excite for denser, busier rhythms.",
-  }).input("exc", "Excite").stereoOut();
-  const nr = p.add("neuron", [0, 0], { aw1: 0.75, bw1: 0.95, aleak: 0.2, bleak: 0.35, apulse: 0.02, bpulse: 0.02 });
-  const drift = p.add("organic-lfos", [0, 1], { rate: 0.08, spread: 0.6, seed: 13 });
-  p.cable(drift, "out1", nr, "a2", 0.4).cable(drift, "out2", nr, "b2", 0.4).cable(p.cin, "exc", nr, "a2", 0.5);
-  const fm = p.add("perc-voice", [1, 0], { engine: "FM", pitch: 900, tone: 0.75, click: 0.6, decay: 0.06, damp: 0.6, sweep: 0.2, level: 0.6 }, { name: "FM Click" });
-  const knock = p.add("perc-voice", [1, 1], { engine: "Modal", pitch: 160, tone: 0.45, decay: 0.18, sweep: 0.3, level: 0.75 }, { name: "Knock" });
-  const tick = p.add("perc-voice", [1, 2], { engine: "Noise Bank", pitch: 2400, tone: 0.8, decay: 0.03, level: 0.5 }, { name: "Tick" });
-  const rim = p.add("ring-rim", [1, 3], { voice: "Clave", tune: 5, level: 0.5 });
-  p.cable(nr, "aspike", fm, "trig").cable(nr, "diff", fm, "pitch", 0.5)
-    .cable(nr, "bspike", knock, "trig").cable(nr, "aout", knock, "pitch", 0.25)
-    .cable(nr, "xor", tick, "trig").cable(nr, "and", rim, "trig");
-  const mix = p.add("audio-mixer", [2, 1], { level1: -6, pan1: -0.4, level2: -3, level3: -10, pan3: 0.5, level4: -9, pan4: 0.2,
-    send1: -10, send2: -18, send3: -12, send4: -14, return: -8, master: -2 });
-  p.cable(fm, "l", mix, "in1l").cable(fm, "r", mix, "in1r").cable(knock, "l", mix, "in2l").cable(knock, "r", mix, "in2r")
-    .cable(tick, "l", mix, "in3l").cable(rim, "out", mix, "in4l");
-  const dly = p.add("delay-network", [3, 2], { time: 0.11, taps: 5, scatter: 0.6, jitter: 0.3, reverse: 0.3, feedback: 0.4, tone: 0.2, mix: 1, routing: "Mesh" });
-  sendReturn(p, mix, dly);
-  const bend = p.add("bender", [3, 1], { chance: 0.2, repeats: 4, sync: "1/16", mode: "Shuffle", bendsteps: "Octaves" });
-  p.stereo(mix, bend, { from: ["outl", "outr"] }).stereo(bend, p.cout);
+  const verb = p.add("reverb", [4, 1], { size: 0.85, decay: 7, damping: 0.45, modDepth: 0.4, mix: 0.4, quality: "Eco (8 lines)" });
+  p.stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.cout);
   return p;
 }
 
 export default category("Generative", "Self-playing patches: press play and they make music on their own, in time with the transport. Out L/R out.", [
-  bongoGarden, turingStrings, tapeLoopChoir, windChimes, acidWeather, seasonsTurning, lichenDrone, primeMarimba, pollenCloud, synapseClicks,
+  tinRoofRain, phaseClaves, colotomicCycle, dubTechnoFog, sonarDeep, heartbeatDrone, vowelDriftChoir, windUpLullaby,
+  kitchenTableBeat, bowedGlassTrio,
 ]);

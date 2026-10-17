@@ -1,114 +1,116 @@
 // SPDX-License-Identifier: MIT
 // Beat Oscillator: five demo patches. Each plays by itself with the transport.
-import { patch, steps, semis } from "../kit.mjs";
+import { patch, steps, drumGrid, pattern } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// Channels → Audio Mixer → Verb → Out 1/2. chans: {n, l (jack), r (optional jack), level, pan}
-function finish(p, at, chans, o = {}) {
-  const lv = {};
-  chans.forEach((c, i) => { lv[`level${i + 1}`] = c.level ?? -6; lv[`pan${i + 1}`] = c.pan ?? 0; });
-  const mix = p.add("audio-mixer", at, { ...lv, master: o.master ?? -3 });
-  chans.forEach((c, i) => {
-    p.cable(c.n, c.l || "out", mix, `in${i + 1}l`);
-    if (c.r) p.cable(c.n, c.r, mix, `in${i + 1}r`);
-  });
-  const verb = p.add("reverb", [at[0] + 1, at[1]], { size: o.size ?? 0.5, decay: o.decay ?? 2.5, damping: 0.5, mix: o.vmix ?? 0.25, quality: "Eco (8 lines)" });
-  p.cable(mix, "outl", verb, "l").cable(mix, "outr", verb, "r").stereo(verb, p.out);
+/// A Step Sequencer playing `notes` (semitones above the root; "." rest, "_" tie).
+function seqOf(p, at, notes, o = {}) {
+  return p.add("step-sequencer", at, {
+    length: notes.length, rate: o.rate || "1/8", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
+    octave: o.octave ?? 0, gatelength: o.gate ?? 0.5,
+  }, { data: steps(notes) });
+}
+
+/// Sequencer pitch → `src`, gate → ADSR → VCA. `jacks`: the source's audio outs (one = mono, two = stereo).
+/// Returns {amp, out}: `out` are the VCA jacks to take (l, l for a mono source).
+function play(p, at, src, seq, jacks, o = {}) {
+  const [c, r] = at;
+  const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.25, ...(o.env || {}) }, { name: "Amp Env" });
+  const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
+  p.cable(seq, "pitch", src, o.pitch || "pitch").cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(env, "env", amp, "gain");
+  if (jacks.length === 1) { p.cable(src, jacks[0], amp, "l"); return { amp, env, out: ["l", "l"] }; }
+  p.stereo(src, amp, { from: jacks });
+  return { amp, env, out: ["l", "r"] };
+}
+
+/// Source jacks → trim mixer → reverb → Out 1/2.
+function finish(p, at, src, jacks, trim = 0, verb = {}, master = 0) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: trim, master }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.25, quality: "Eco (8 lines)", ...verb });
+  p.stereo(src, t, { from: jacks, to: ["in1l", "in1r"] }).stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return t;
+}
+
+/// A drum loop and a voice mixed together into Out 1/2.
+function withDrums(p, at, src, jacks, drums, o = {}) {
+  const mix = p.add("audio-mixer", at, { level1: o.l1 ?? -4, level2: o.l2 ?? -8, master: o.master ?? -1 }, { name: "Mix" });
+  p.stereo(src, mix, { from: jacks, to: ["in1l", "in1r"] }).stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
+    .stereo(mix, p.out, { from: ["outl", "outr"] });
   return mix;
 }
 
-function theremin() {
-  const p = patch("Beat Oscillator: Heterodyne Theremin", {
-    module: "beat-oscillator", tempo: 72,
-    description: "Two 10 kHz carriers beat against each other; a slow LFO sweeps Beat from a pulse to a whistle and back, and the detector plucks only the difference tone. Try the Mixer setting (Diode or Overdriven) for a buzzier beat, or raise Drift.",
-    tags: ["theremin", "heterodyne", "sweep", "lead"],
+
+function heterodyneDrone() {
+  const p = patch("Beat Oscillator: Heterodyne Drone", {
+    module: "beat-oscillator", tempo: 60,
+    description: "Two high carriers beat against each other and a slow LFO sweeps Beat, so a pure tone glides down into a throbbing pulse and back. Turn Drift up for a wandering, unstable tone or move Beat by hand for a held pitch.",
+    tags: ["drone", "heterodyne", "sweep", "ambient"],
   });
-  const bo = p.add("beat-oscillator", [0, 0], { carrier: 10000, beat: 0.42, range: "±2 kHz", mixer: "Ideal", drift: 0.3, warmup: "Off" });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.09, wave: "Sine" }, { name: "Hand" });
-  const lfo2 = p.add("lfo", [1, 1], { rate: 0.6, wave: "Sine" }, { name: "Vibrato" });
-  p.cable(lfo, "out", bo, "beat", 0.2).cable(lfo2, "out", bo, "beat", 0.012);
-  const flt = p.add("filter", [1, 0], { cutoff: 2500, resonance: 0.25 });
-  p.cable(bo, "out", flt, "l");
-  finish(p, [2, 0], [{ n: flt, l: "l", level: -3 }], { vmix: 0.35, decay: 3.5, size: 0.7 });
+  const osc = p.add("beat-oscillator", [0, 0], { carrier: 9000, beat: 0.35, drift: 0.3, range: "±2 kHz" });
+  const lfo = p.add("lfo", [0, 2], { rate: 0.06, wave: "Triangle" }, { name: "Beat Sweep" });
+  const amp = p.add("vca", [1, 0], { gain: 1 }, { name: "VCA" });
+  p.cable(lfo, "out", osc, "beat", 0.25).cable(osc, "out", amp, "l").cable(osc, "out", amp, "r");
+  finish(p, [2, 0], amp, ["l", "r"], -12, { size: 0.8, decay: 6, mix: 0.4 });
   return p;
 }
 
-function lurch() {
-  const p = patch("Beat Oscillator: Lurching Thump", {
+function playedTones() {
+  const p = patch("Beat Oscillator: Played Melody", {
     module: "beat-oscillator", tempo: 100,
-    description: "With Pull up, the two carriers hold each other near lock, so the beat does not run steadily: it lurches in single sub-bass blips that bunch up and stall as Drift pushes the pair across the lock edge. Try nudging Beat or Drift.",
-    tags: ["pull", "lock", "bass", "rhythm"],
+    description: "The sequencer's pitch is fed to the Pitch input so the heterodyne tone plays a tune, with a gentle envelope for each note. Change Carrier to shift the character, or raise Fine to detune the whole line.",
+    tags: ["melody", "pitch", "heterodyne", "lead"],
   });
-  const bo = p.add("beat-oscillator", [0, 0], { carrier: 8000, beat: 0.53, range: "±200 Hz", pull: 0.5, drift: 0.35, coupling: "AC", detector: 0, seed: 7 });
-  const drift = p.add("lfo", [0, 1], { rate: 0.13 }, { name: "Edge" });
-  p.cable(drift, "out", bo, "beat", 0.03);
-  const flt = p.add("filter", [1, 0], { cutoff: 300, resonance: 0.3, drive: 0.5 });
-  p.cable(bo, "out", flt, "l");
-  const bt = beat(p, [0, 2], { style: "sparse", level: -8 });
-  const pad = melody(p, [3, 2], [0, "_", "_", "_", 7, "_", 5, "_"], { rate: "1/4", shape: 0.4, root: "D", scale: "Natural Minor", octave: 1,
-    env: { attack: 0.05, decay: 0.5, sustain: 0.5, release: 0.8 }, gatelength: 0.95 });
-  finish(p, [4, 0], [{ n: flt, l: "l", level: -2 }, { n: bt, l: "outl", r: "outr", level: -3 }, { n: pad.amp, l: "l", level: -12 }]);
+  const seq = seqOf(p, [0, 0], [0, 3, 7, 3, 10, 7, 3, 0, 5, 7, 12, 10, 7, 5, 3, 7], { root: "A", rate: "1/8", gate: 0.55 });
+  const osc = p.add("beat-oscillator", [1, 0], { carrier: 8000, beat: 0.3, drift: 0.05 });
+  const v = play(p, [2, 0], osc, seq, ["out"], { env: { decay: 0.3, sustain: 0.4, release: 0.25 } });
+  finish(p, [3, 0], v.amp, v.out, -4, { size: 0.5, decay: 2.5, mix: 0.25 });
   return p;
 }
 
-function lockedMelody() {
-  const p = patch("Beat Oscillator: Locked Melody", {
-    module: "beat-oscillator", tempo: 96,
-    description: "The Lock output is a gate: it goes high whenever the carriers pull into step. A slow wobble on Detune drives the pair in and out of lock, and a melody is only allowed to play while it is locked. Change Pull or Detune Range to change how often it happens.",
-    tags: ["lock", "gate", "generative", "melody"],
+function lockStutter() {
+  const p = patch("Beat Oscillator: Pull and Stutter", {
+    module: "beat-oscillator", tempo: 90,
+    description: "A slow LFO raises Pull so the two carriers try to lock: the tone stutters, drops into pulses and jumps into pitch as they catch each other. Move Pull and Detector by hand to hear the stutter appear and disappear.",
+    tags: ["lock", "pull", "stutter", "heterodyne"],
   });
-  const bo = p.add("beat-oscillator", [0, 0], { carrier: 6000, beat: 0.62, range: "±200 Hz", pull: 0.75, detuneRange: 40, drift: 0.2, seed: 11 });
-  const wob = p.add("lfo", [0, 1], { rate: 0.17, wave: "Triangle" }, { name: "Detune" });
-  p.cable(wob, "out", bo, "detune", 0.9);
-  const m = melody(p, [2, 1], [0, 3, 7, 10, 7, 12, 10, 7], { rate: "1/8", root: "A", scale: "Minor Pentatonic", shape: 0.6, env: { sustain: 0.15 } });
-  const gate = p.add("adsr", [2, 0], { attack: 0.02, decay: 0.2, sustain: 1, release: 0.5 }, { name: "Lock Env" });
-  const vca = p.add("vca", [5, 0], {}, { name: "Lock VCA" });
-  p.cable(bo, "lock", gate, "gate").cable(m.amp, "l", vca, "l").cable(gate, "env", vca, "gain");
-  const flt = p.add("filter", [3, 0], { cutoff: 700, resonance: 0.2 });
-  p.cable(bo, "out", flt, "l");
-  finish(p, [4, 2], [{ n: vca, l: "l", level: 4 }, { n: flt, l: "l", level: -10 }], { vmix: 0.3, decay: 3, master: -3 });
+  const osc = p.add("beat-oscillator", [0, 0], { carrier: 7000, beat: 0.2, pull: 0.5, detector: 0.4, drift: 0.2 });
+  const lfo = p.add("lfo", [0, 2], { rate: 0.1, wave: "Triangle", polarity: "Unipolar" }, { name: "Pull" });
+  const bl = p.add("lfo", [0, 3], { rate: 0.05 }, { name: "Beat" });
+  const amp = p.add("vca", [1, 0], { gain: 1 }, { name: "VCA" });
+  p.cable(lfo, "out", osc, "pull", 0.5).cable(bl, "out", osc, "beat", 0.15).cable(osc, "out", amp, "l").cable(osc, "out", amp, "r");
+  const dl = p.add("delay", [2, 0], { sync: "Tempo", ratel: "1/8.", rater: "1/4", feedback: 0.4, mix: 0.3, mode: "Ping-Pong" });
+  p.stereo(amp, dl);
+  finish(p, [3, 0], dl, ["l", "r"], -10, { size: 0.6, decay: 3, mix: 0.25 });
   return p;
 }
 
-function warmWhistle() {
-  const p = patch("Beat Oscillator: Warm-up Whistle", {
-    module: "beat-oscillator", tempo: 66,
-    description: "Low carriers with the Detector opened let the sum tone whistle on top of the beat, and Warm-up makes both start flat and slide into tune while the transport runs. The Overdriven mixer turns the beat into a soft triangle. Try Detector at 0 to hear the whistle vanish.",
-    tags: ["whistle", "warm-up", "drone", "overdriven"],
-  });
-  const bo = p.add("beat-oscillator", [0, 0], { carrier: 2600, beat: 0.37, range: "±200 Hz", detector: 0.9, mixer: "Overdriven", drift: 0.5, warmup: "30 s", seed: 3 });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.05 }, { name: "Slow Beat" });
-  p.cable(lfo, "out", bo, "beat", 0.1);
-  const flt = p.add("filter", [1, 0], { cutoff: 1800, resonance: 0.3 });
-  const lp = p.add("lfo", [1, 1], { rate: 0.08, wave: "Triangle" }, { name: "Breath" });
-  p.cable(bo, "out", flt, "l").cable(lp, "out", flt, "cutoff", 0.15);
-  const sub = p.add("oscillator", [2, 1], { shape: 0, octave: "-2" });
-  const sl = p.add("lfo", [2, 2], { rate: 0.03, wave: "Square", polarity: "Unipolar" }, { name: "Sub Gate" });
-  const sv = p.add("vca", [3, 1], {});
-  p.cable(sub, "out", sv, "l").cable(sl, "out", sv, "gain", 0.8);
-  finish(p, [3, 0], [{ n: flt, l: "l", level: -6 }, { n: sv, l: "l", level: -14 }], { vmix: 0.4, decay: 4, size: 0.8 });
-  return p;
-}
-
-function follower() {
-  const p = patch("Beat Oscillator: Beat Follower", {
+function slowPulses() {
+  const p = patch("Beat Oscillator: Slow Pulse Bass", {
     module: "beat-oscillator", tempo: 108,
-    description: "A sequencer drives Pitch, transposing both carriers so the difference tone plays the tune. The Beat output measures that tone and feeds an oscillator an octave up, so a second voice follows the heterodyne melody. Try Mixer Diode for more bite.",
-    tags: ["melody", "pitch", "tracking", "diode"],
+    description: "A low heterodyne bass under a drum loop: each sequencer note retunes the pair through Pitch and an envelope shapes it, with the Diode mixer adding grit. Try the Range setting at ±20 Hz or ±2 kHz and move Beat to change how deep it sits.",
+    tags: ["bass", "range", "detune", "low frequency"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/8", root: "C", scale: "Dorian", octave: 0, gatelength: 0.6 },
-    { data: steps([0, 3, 7, 5, 10, 7, 3, 2]) });
-  const bo = p.add("beat-oscillator", [1, 0], { carrier: 3000, beat: 0.4, range: "±2 kHz", mixer: "Diode", drift: 0.1, coupling: "AC" });
-  p.cable(seq, "pitch", bo, "pitch", 0.5);
-  const env = p.add("adsr", [1, 1], { attack: 0.005, decay: 0.3, sustain: 0.3, release: 0.25 });
-  const amp = p.add("vca", [2, 0], {});
-  p.cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(bo, "out", amp, "l").cable(env, "env", amp, "gain");
-  const fo = p.add("oscillator", [2, 1], { shape: 0.2, octave: "+1" });
-  const fa = p.add("vca", [3, 1], {});
-  p.cable(bo, "beat", fo, "pitch").cable(fo, "out", fa, "l").cable(env, "env", fa, "gain");
-  const bt = beat(p, [0, 3], { style: "half", level: -10 });
-  finish(p, [4, 0], [{ n: amp, l: "l", level: 4 }, { n: fa, l: "l", level: -6, pan: 0.3 }, { n: bt, l: "outl", r: "outr", level: -9 }], { vmix: 0.2 });
+  const seq = seqOf(p, [0, 0], [0, ".", 0, 3, ".", 0, 5, ".", 0, ".", 7, ".", 3, 5, 0, "."], { root: "E", rate: "1/8", gate: 0.6, octave: 0 });
+  const osc = p.add("beat-oscillator", [1, 0], { carrier: 6000, beat: 0.3, range: "±200 Hz", mixer: "Diode", drift: 0.05 });
+  const v = play(p, [2, 0], osc, seq, ["out"], { pitch: "pitch", env: { decay: 0.2, sustain: 0.6, release: 0.12 } });
+  const drums = beat(p, [0, 4], { style: "half", level: -7 });
+  withDrums(p, [3, 0], v.amp, v.out, drums, { l1: -3, l2: -6 });
   return p;
 }
 
-export default [theremin, lurch, lockedMelody, warmWhistle, follower];
+function overdrivenMixer() {
+  const p = patch("Beat Oscillator: Overdriven Mixer", {
+    module: "beat-oscillator", tempo: 78,
+    description: "The Mixer setting on Overdriven adds harmonics and sidebands to the beat tone, and Drift keeps it alive and slightly unstable. Compare Ideal, Diode and Overdriven to hear the same beat with three characters.",
+    tags: ["overdrive", "character", "drift", "mixer"],
+  });
+  const seq = seqOf(p, [0, 0], [0, "_", "_", 7, "_", "_", 5, "_", 3, "_", "_", 0, "_", "_", "_", "."], { root: "D", scale: "Natural Minor", rate: "1/8", gate: 0.9 });
+  const osc = p.add("beat-oscillator", [1, 0], { carrier: 10000, beat: 0.4, mixer: "Overdriven", drift: 0.4, coupling: "DC" });
+  const v = play(p, [2, 0], osc, seq, ["out"], { env: { attack: 0.05, decay: 0.3, sustain: 0.7, release: 0.5 } });
+  const lp = p.add("filter", [3, 0], { cutoff: 2800, resonance: 0.2 });
+  p.stereo(v.amp, lp, { from: v.out });
+  finish(p, [4, 0], lp, ["l", "r"], -8, { size: 0.65, decay: 4, mix: 0.3 });
+  return p;
+}
+
+export default [heterodyneDrone, playedTones, lockStutter, slowPulses, overdrivenMixer];

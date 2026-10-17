@@ -87,11 +87,11 @@ Five whole patches show what Gate Sequencer does. In the standalone app open **F
 
 | Patch | What it shows |
 |---|---|
-| **Gate Sequencer: Broken Beat** | Four tracks play a kick, snare, hats and a rim: ghost notes, coin-flip hits, ratchets and a little Swing make a loose, breathing beat that changes a bit every loop. Lower a track's Chance, or pick Dice = Fixed, to tighten it. |
-| **Gate Sequencer: Bell Cycles** | Four tracks of different Lengths (5, 7, 9 and 11 steps) each strike their own bell in A minor pentatonic, so the chord of bells slowly rearranges itself. Change a Length by one step and the whole weave shifts. |
-| **Gate Sequencer: Four-Note Bass** | Each track owns a Note (A1, C2, E2, G2) and its own rhythm of hits, ties and ratchets; the Notes output merges them into one bass line that drives a mono voice. Change a track's Note setting to re-tune its part of the line. |
-| **Gate Sequencer: Chance Rain** | Every step of four tracks is armed, and slow LFOs on the Chance knobs decide how many of them fire: glassy D-minor drops thicken into a downpour and thin out again, each track on its own cycle. Turn a Chance knob by hand to hear one track's density. |
-| **Gate Sequencer: Fill and Drop** | A four-on-the-floor groove where a slow square LFO holds Fill for the last bar of every four, switching in extra hits and ratchets, and another LFO on Mute 4 drops the percussion for a while. Hold the Fill button yourself, or mute tracks, to arrange it live. |
+| **Gate Sequencer: Loose Probability Beat** | Coin-flip steps (?) and quiet ghost notes (o) make a drum pattern that breathes differently on every pass; Swing adds a lazy lean. Turn a track's Chance knob down for fewer hits, or set Dice to Fixed to lock one version in. |
+| **Gate Sequencer: Ratchet Rolls** | Steps marked 2 and 3 fire quick repeats inside one step: two on the snare, a rising run of three on the hats. Ratchet Decay fades each repeat out, so try raising it for a bouncing-ball feel. |
+| **Gate Sequencer: Phasing Plucks** | Four tracks of different lengths (3, 4, 5 and 7 steps) each pluck one note of a chord, so the pattern only realigns after 420 steps and keeps shifting shape. Change a Length setting by one to get a different cycle. |
+| **Gate Sequencer: Fill Switch** | Steps marked ! only play while the Fill input is high and steps marked - only while it is low, so a square LFO that holds Fill for the last bar of every four swaps the main beat for a busy fill. Some steps are nudged early or late for a human feel; Nudge Depth scales them all. |
+| **Gate Sequencer: Mute Arrangement** | Slow square LFOs patched into the Mute inputs bring the four tracks in and out on their own cycles of 2, 4 and 8 bars, so a simple pattern arranges itself. Patch a different LFO Sync into a mute jack to rewrite the structure. |
 <!-- /generated -->
 
 ## Reference

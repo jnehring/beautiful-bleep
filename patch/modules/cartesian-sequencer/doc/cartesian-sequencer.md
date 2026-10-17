@@ -98,11 +98,11 @@ Five whole patches show what Cartesian Seq does. In the standalone app open **Fi
 
 | Patch | What it shows |
 |---|---|
-| **Cartesian Seq: Lattice Pluck** | A 4 × 3 corner of the grid in F Lydian: X runs every 16th, Y steps down a row at the end of each pass, so a twelve-step figure of bright broken chords turns against the bar. Change Columns, Rows or a cell's pitch and the figure follows. |
-| **Cartesian Seq: Bass Raster** | Eight columns by two rows of E minor bass under a four-on-the-floor beat. The Mod value of every cell opens the filter, so each row has its own brightness: edit the Mod column of a cell to change the accent. |
-| **Cartesian Seq: Crosshair Drift** | Cartesian mode: no clocks, two slow LFOs steer the crosshair across a full 8 × 8 grid of minor pentatonic notes, and a note sounds whenever the crosshair enters a new cell. Move X and Y by hand or change the LFO rates to wander faster or slower. |
-| **Cartesian Seq: Two Clocks** | X moves back and forth across five columns on the 8ths while Y steps a row every dotted quarter: the marimba line takes ages to repeat and never lines up with the beat. Row End ticks a hat and Grid End thumps a kick; try other Y Rate values. |
-| **Cartesian Seq: Random Walk Arp** | Both playheads move at random, so the Hirajoshi arpeggio hops around the grid in a fixed but never-obvious order (the Seed decides it). Mod swings the filter and a slow LFO lifts the whole cutoff; change Seed or the directions to deal a new tune. |
+| **Cartesian Seq: Two-Row Riff** | A grid of eight columns and two rows: the X playhead runs along a row every sixteenth and Y drops to the second row when it reaches the end, so a sixteen-note riff in G Dorian comes out in order. Change Rows to 1 for a short loop, or edit a cell's pitch in the view. |
+| **Cartesian Seq: Ping-Pong Marimba** | Both playheads bounce back and forth over a 6 × 4 patch of the grid, X on the eighths and Y once a bar, so a marimba line keeps reversing and the long path takes ages to repeat. Set the directions to Forward for a plain scan, or Random to lose the pattern. |
+| **Cartesian Seq: Mod Bass** | Every cell also stores a Mod value, and here the Mod output opens the filter of an acid bass, so each step has its own brightness: notes with a high Mod bite, low ones stay dark. Edit the Mod of a cell or turn Mod Slew up to smear the changes. |
+| **Cartesian Seq: Slow Crosshair** | Cartesian mode: no clocks, two slow LFOs steer the X and Y inputs across a full 8 × 8 grid of Lydian notes, and a note sounds whenever the crosshair enters a new cell. Move X and Y yourself, or change the LFO rates to wander faster. |
+| **Cartesian Seq: Row End Fills** | X runs backward through a 5 × 3 grid, and the Row End and Grid End triggers play the drums: a hat each time a row finishes, a kick and clap when the whole grid has been walked. Change Columns or Rows and the drum accents move with the melody. |
 <!-- /generated -->
 
 <!-- generated:presets -->

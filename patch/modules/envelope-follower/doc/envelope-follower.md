@@ -70,6 +70,20 @@ The preset bar of the Envelope Follower view has 12 factory presets. Pick one to
 | **Long Tail** | Slowly falling level for lingering effects. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Envelope Follower does. In the standalone app open **File → Presets…** (⌘P) and pick *Envelope Follower* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Envelope Follower: Auto Wah** | A plucked bass line is followed by the Envelope Follower, and the result opens a resonant filter on every note, so the tone speaks with the playing. Try a longer Release for a lazier wah, or more Gain for a wider sweep. |
+| **Envelope Follower: Kick Ducker** | The kick drum is followed and its Inverted output closes a VCA on a sustained pad, so the pad ducks on every beat and swells back in between. Lengthen Release for a slower pump, or shorten it for a tight, subtle push. |
+| **Envelope Follower: Notes Fire Claps** | The follower listens to a melody and its Trigger output fires a clap every time a note rises above the Threshold, so the drum part is written by the tune. Raise Threshold to skip the softer notes, or change Detector to RMS. |
+| **Envelope Follower: Drone Swell** | A slow Attack and long Release turn a sparse drum loop into a gentle level that fades a drone in and out, so the drone breathes with how busy the drums are. Shorten both times to make it follow each hit instead. |
+| **Envelope Follower: Slewed Pitch** | With Rectify set to None (signed), the follower becomes a slew limiter: stepped random values glide into one another and bend a voice's pitch. Raise Attack for slow climbs and Release for slow falls, or play with the Gain. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

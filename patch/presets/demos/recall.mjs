@@ -1,139 +1,132 @@
 // SPDX-License-Identifier: MIT
 // Recall: five demo patches. Each plays by itself with the transport.
-import { patch, steps, semis } from "../kit.mjs";
+import { patch } from "../kit.mjs";
 
 const oct = (n) => (n > 0 ? "+" : "") + n;
-/// Oscillator → ADSR-driven VCA, gated by a gate jack. Returns {osc, env, amp}.
+/// Oscillator -> ADSR -> VCA (optional filter), played by a pitch jack and a gate jack: [node, jack] pairs.
 function voice(p, at, pitch, gate, o = {}) {
+  const [c, r] = at, name = o.name || "Voice";
+  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.6, octave: oct(o.octave ?? 0), ...(o.osc || {}) }, { name });
+  const env = p.add("adsr", [c, r + 1], { attack: 0.004, decay: 0.3, sustain: 0, release: 0.2, ...(o.env || {}) }, { name: `${name} Env` });
+  const amp = p.add("vca", [c + 1, r], {}, { name: `${name} VCA` });
+  if (pitch) p.cable(pitch[0], pitch[1], osc, "pitch", pitch[2] ?? 1);
+  p.cable(gate[0], gate[1], env, "gate").cable(osc, "out", amp, "l").cable(env, "env", amp, "gain");
+  if (o.retrig) p.cable(o.retrig[0], o.retrig[1], env, "retrig");
+  if (!o.filter) return { osc, env, amp, out: amp, jack: "l" };
+  const filter = p.add("filter", [c + 2, r], o.filter, { name: `${name} Filter` });
+  p.cable(amp, "l", filter, "l");
+  return { osc, env, amp, filter, out: filter, jack: "l" };
+}
+/// Up to eight mono sources into one stereo mix. list: {node, jack, level, pan}.
+function bus(p, at, list, master = -3, name = "Mix") {
   const [c, r] = at;
-  const osc = p.add("oscillator", [c, r], { shape: o.shape ?? 0.5, octave: oct(o.octave ?? 0), fine: o.fine ?? 0, coarse: o.coarse ?? 0 }, { name: o.name || "Voice" });
-  const env = p.add("adsr", [c, r + 1], { attack: o.attack ?? 0.004, decay: o.decay ?? 0.3, sustain: o.sustain ?? 0, release: o.release ?? 0.2 }, { name: "Env" });
-  const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
-  if (pitch) p.cable(pitch.node, pitch.jack, osc, "pitch", pitch.amount ?? 1);
-  p.cable(gate.node, gate.jack, env, "gate").cable(osc, "out", amp, "l").cable(env, "env", amp, "gain");
-  return { osc, env, amp };
+  const mk = (items, col, row, nm, m) => {
+    const vals = { master: m };
+    items.forEach((x, i) => { vals[`level${i + 1}`] = x.level ?? -6; vals[`pan${i + 1}`] = x.pan ?? 0; });
+    const mx = p.add("audio-mixer", [col, row], vals, { name: nm });
+    items.forEach((x, i) => p.cable(x.node, x.jack || "out", mx, `in${i + 1}l`));
+    return mx;
+  };
+  if (list.length <= 4) return mk(list, c, r, name, master);
+  const a = mk(list.slice(0, 4), c, r, `${name} A`, 0), b = mk(list.slice(4), c, r + 1, `${name} B`, 0);
+  const fin = p.add("audio-mixer", [c + 1, r], { level1: 0, level2: 0, master }, { name });
+  p.stereo(a, fin, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).stereo(b, fin, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
+  return fin;
 }
-function sum(p, at, list, master = -3, name = "Mix") {
-  const vals = { master };
-  list.forEach((x, i) => { vals[`level${i + 1}`] = x.level ?? -3; vals[`pan${i + 1}`] = x.pan ?? 0; });
-  const m = p.add("audio-mixer", at, vals, { name });
-  list.forEach((x, i) => p.cable(x.node, x.jack || "l", m, `in${i + 1}l`));
-  return m;
-}
-const mono = (p, from, to, a, b) => p.cable(from, "l", to, a).cable(from, "l", to, b);
-
-function randomBackbeat() {
-  const p = patch("Recall: Random Backbeat", {
-    module: "recall", tempo: 112,
-    description: "T Mode Drums turns the T section into a kick (T1) and a snare (T2) that favour beats 1 and 3, 2 and 4, with occasional ghost notes. X, snapped to F minor pentatonic and clocked by the kicks, plays the bass. T Recall at 60 % keeps the figure recognisable while it changes; try 0 % or 100 %.",
-    tags: ["drums", "backbeat", "bass", "recall"],
-  });
-  const rc = p.add("recall", [0, 0], { tmode: "Drums", tbias: 0.55, trecall: 0.6, tloop: 16, gatelength: 0.4, xspread: 0.45, xbias: 0.35,
-    xsteps: 0.6, xrecall: 0.5, xloop: 8, sync: "1/16", xsource: "T1", xrange: "Unipolar", root: "F", scale: "Minor Pentatonic", seed: 12 });
-  const kick = p.add("punch-kick", [2, 0], { level: 0.8 });
-  const snare = p.add("punch-snare", [2, 1], { level: 0.65 });
-  const hats = p.add("punch-hats", [2, 2], { level: 0.45, closed: 0.035 });
-  p.cable(rc, "t1", kick, "trig").cable(rc, "t2", snare, "trig").cable(rc, "clock", hats, "closed");
-  const bass = voice(p, [2, 4], { node: rc, jack: "x1", amount: 1 }, { node: rc, jack: "t1" }, { shape: 0.6, octave: -2, decay: 0.28, sustain: 0.15, name: "Bass" });
-  const drums = sum(p, [4, 0], [{ node: kick, jack: "out", level: -2 }, { node: snare, jack: "out", level: -4, pan: 0.1 }, { node: hats, jack: "out", level: -12, pan: 0.3 }], -2, "Drums");
-  const out = p.add("audio-mixer", [5, 1], { level1: -1, level2: -2, master: -3 }, { name: "Final" });
-  p.stereo(drums, out, { from: ["outl", "outr"], to: ["in1l", "in1r"] });
-  mono(p, bass.amp, out, "in2l", "in2r");
-  const verb = p.add("reverb", [6, 0], { size: 0.4, decay: 1.4, mix: 0.12 });
-  p.stereo(out, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
-  return p;
+/// Mono jack to both sides of a stereo input pair.
+const both = (p, from, jack, to, l = "l", r = "r") => p.cable(from, jack, to, l).cable(from, jack, to, r);
+/// A reverb after a stereo mixer (outl/outr) and then the patch output.
+function finish(p, mixer, at, verb = {}) {
+  const v = p.add("reverb", at, { size: 0.4, decay: 1.4, mix: 0.15, ...verb });
+  p.stereo(mixer, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return v;
 }
 
-function lockedMelody() {
-  const p = patch("Recall: Locked Melody", {
-    module: "recall", tempo: 100,
-    description: "With T Recall and X Recall at 100 % the random gates and notes are locked into an eight-step loop, a ready-made melody in A minor pentatonic. Because the memory holds raw random numbers, changing the Scale, X Spread or X Bias reshapes the same contour. Lower the Recall knobs to let it mutate again.",
-    tags: ["melody", "locked loop", "scale", "pentatonic"],
-  });
-  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.7, trecall: 1, tloop: 8, gatelength: 0.6, xspread: 0.6, xbias: 0.5,
-    xsteps: 0.6, xrecall: 1, xloop: 8, sync: "1/8", xsource: "Tick", xrange: "Unipolar", root: "A", scale: "Minor Pentatonic", seed: 41 });
-  const lead = voice(p, [2, 0], { node: rc, jack: "x1", amount: 1 }, { node: rc, jack: "t1" }, { shape: 0.35, octave: 0, decay: 0.3, name: "Lead" });
-  const low = voice(p, [2, 3], { node: rc, jack: "x2", amount: 1 }, { node: rc, jack: "t2" }, { shape: 0.15, octave: -1, decay: 0.45, sustain: 0.1, name: "Low Voice" });
-  const mix = sum(p, [4, 0], [{ node: lead.amp, level: -3, pan: 0.2 }, { node: low.amp, level: -3, pan: -0.25 }], 4, "Voices");
-  const dly = p.add("delay-network", [5, 0], { sync: "1/8.", taps: 3, feedback: 0.4, tone: -0.3, width: 1, mix: 0.3, routing: "Ring" });
-  const verb = p.add("reverb", [6, 0], { size: 0.6, decay: 3, mix: 0.25 });
-  p.stereo(mix, dly, { from: ["outl", "outr"] }).stereo(dly, verb).stereo(verb, p.out);
-  return p;
-}
-
-function ratchetRolls() {
-  const p = patch("Recall: Ratchet Rolls", {
-    module: "recall", tempo: 122,
-    description: "T Mode Ratchet lets every tick fire as divisions or as two to four quick pulses: T1 rattles a hi-hat, T2 a clap, over a steady kick and a pulsing bass. T Bias towards the right gives more ratchets, towards the left sparse divisions. Try Gate Length and T Jitter.",
-    tags: ["ratchet", "rolls", "hats", "techno"],
-  });
-  const rc = p.add("recall", [0, 0], { tmode: "Ratchet", tbias: 0.65, tjitter: 0.15, trecall: 0.4, tloop: 16, gatelength: 0.35, sync: "1/8", seed: 6, xsteps: 0.6, xsource: "T2",
-    xrange: "Unipolar", root: "D", scale: "Natural Minor", xrecall: 0.2 });
-  const kseq = p.add("step-sequencer", [0, 3], { length: 4, rate: "1/4", gatelength: 0.4 }, { data: steps([0, 0, 0, 0]) }, { name: "Four on the Floor" });
-  const kick = p.add("punch-kick", [2, 0], { level: 0.85, tune: 48, decay: 0.5 });
-  const hat = p.add("punch-hats", [2, 1], { level: 0.5, closed: 0.03, tone: 0.7 });
-  const clap = p.add("punch-clap", [2, 2], { tone: 2200, decay: 0.2, bursts: 3 });
-  p.cable(kseq, "trigger", kick, "trig").cable(rc, "t1", hat, "closed").cable(rc, "t2", clap, "trig");
-  const bseq = p.add("step-sequencer", [0, 5], { length: 8, rate: "1/8", root: "D", scale: "Natural Minor", octave: -1, gatelength: 0.45 },
-    { data: steps([".", 0, ".", 0, ".", 0, ".", 3]) }, { name: "Offbeat Bass" });
-  const bass = voice(p, [2, 4], { node: bseq, jack: "pitch" }, { node: bseq, jack: "gate" }, { shape: 0.85, decay: 0.22, sustain: 0.1, name: "Bass" });
-  const bflt = p.add("filter", [4, 4], { cutoff: 500, resonance: 0.4, type: "Ladder Tanh" });
-  const lfo = p.add("lfo", [4, 5], { rate: 0.1 }, { name: "Sweep" });
-  mono(p, bass.amp, bflt, "l", "r");
-  p.cable(lfo, "out", bflt, "cutoff", 0.25);
-  const drums = sum(p, [4, 0], [{ node: kick, jack: "out", level: -2 }, { node: hat, jack: "out", level: -6, pan: 0.3 }, { node: clap, jack: "out", level: -7, pan: -0.25 }], -3, "Drums");
-  const out = p.add("audio-mixer", [5, 1], { level1: -1, level2: -3, master: -1 }, { name: "Final" });
-  p.stereo(drums, out, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).stereo(bflt, out, { to: ["in2l", "in2r"] });
-  const verb = p.add("reverb", [6, 0], { size: 0.4, decay: 1.5, mix: 0.12 });
-  p.stereo(out, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
-  return p;
-}
-
-function sortedDrift() {
-  const p = patch("Recall: Sorted Drift", {
-    module: "recall", tempo: 70,
-    description: "X Mode Sorted makes X1, X2 and X3 always low, middle and high, so three soft voices drift through a D major pentatonic chord that changes every half note; T chance gates re-swell them. Spread sets how wide the chord is, Bias how high it sits.",
-    tags: ["ambient", "sorted", "drift", "chord"],
-  });
-  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.8, trecall: 0.3, tloop: 4, gatelength: 0.95, xspread: 0.75, xbias: 0.5, xsteps: 0.6,
-    xrecall: 0, xloop: 8, sync: "1/2", xsource: "Tick", xmode: "Sorted", xrange: "Unipolar", root: "D", scale: "Major Pentatonic", seed: 3 });
-  const env = p.add("adsr", [2, 4], { attack: 0.8, decay: 1, sustain: 0.8, release: 2 }, { name: "Swell" });
-  p.cable(rc, "t1", env, "gate");
-  const oscs = ["x1", "x2", "x3"].map((j, i) => {
-    const o = p.add("oscillator", [2, i], { shape: [0.1, 0.4, 0.2][i], octave: oct(i === 2 ? 0 : -1), fine: (i - 1) * 6 }, { name: `Voice ${i + 1}` });
-    p.cable(rc, j, o, "pitch", 1);
-    return { node: o, jack: "out", level: -5, pan: (i - 1) * 0.6 };
-  });
-  const mix = sum(p, [3, 0], oscs, -2, "Voices");
-  const vca = p.add("vca", [4, 0], {}, { name: "VCA" });
-  const flt = p.add("filter", [5, 0], { cutoff: 1400, resonance: 0.15, type: "Ladder Tanh" });
-  p.stereo(mix, vca, { from: ["outl", "outr"] }).cable(env, "env", vca, "gain").stereo(vca, flt);
-  const verb = p.add("reverb", [6, 0], { size: 0.9, decay: 8, mix: 0.45 });
-  p.stereo(flt, verb).stereo(verb, p.out);
-  return p;
-}
-
-function breathingLoop() {
-  const p = patch("Recall: Breathing Memory", {
+function coinDrums() {
+  const p = patch("Recall: Coin-Flip Drums", {
     module: "recall", tempo: 108,
-    description: "A slow LFO moves both Recall knobs from always-new to a locked loop and back, while T Loop is 5 and X Loop 7 so the rhythm and the melody never line up. The D Dorian pluck line crystallises, mutates, and crystallises again; a bass follows the second gate. Try setting the Recall knobs by hand.",
-    tags: ["evolving", "polymeter", "memory", "dorian"],
+    description: "Every clock step Recall flips a coin for two gates: T1 plays the kick, T2 the snare, and the Clock output drives steady hats. T Bias leans the coin towards or away from firing, T Jitter adds extra randomness; try raising T Recall to repeat the recent past.",
+    tags: ["coin", "random", "drums", "gates"],
   });
-  const rc = p.add("recall", [0, 0], { tmode: "Coin", tbias: 0.6, trecall: 0.5, tloop: 5, gatelength: 0.5, xspread: 0.65, xbias: 0.45, xsteps: 0.62,
-    xrecall: 0.5, xloop: 7, sync: "1/16", xsource: "T1", xrange: "Unipolar", root: "D", scale: "Dorian", seed: 19 });
-  const lfo = p.add("lfo", [0, 2], { rate: 0.03, wave: "Triangle" }, { name: "Memory Tide" });
-  const lfo2 = p.add("lfo", [0, 3], { rate: 0.021, wave: "Sine", phase: 90 }, { name: "Melody Tide" });
-  p.cable(lfo, "out", rc, "trecall", 0.55).cable(lfo2, "out", rc, "xrecall", 0.55);
-  const lead = voice(p, [2, 0], { node: rc, jack: "x1", amount: 1 }, { node: rc, jack: "t1" }, { shape: 0.4, octave: 0, decay: 0.22, name: "Lead" });
-  const bass = voice(p, [2, 3], { node: rc, jack: "x2", amount: 0.5 }, { node: rc, jack: "t2" }, { shape: 0.15, octave: -1, decay: 0.35, sustain: 0.1, name: "Bass" });
-  const hat = p.add("punch-hats", [2, 6], { level: 0.35, closed: 0.03 });
-  const hseq = p.add("step-sequencer", [0, 6], { length: 4, rate: "1/8", gatelength: 0.3 }, { data: steps([0, 0, 0, 0]) }, { name: "Hat Clock" });
-  p.cable(hseq, "trigger", hat, "closed");
-  const mix = sum(p, [4, 0], [{ node: lead.amp, level: -3, pan: 0.25 }, { node: bass.amp, level: -3, pan: -0.2 }, { node: hat, jack: "out", level: -14, pan: 0.4 }], 4, "Voices");
-  const dly = p.add("delay-network", [5, 0], { sync: "1/8.", taps: 3, feedback: 0.42, tone: -0.3, width: 1, mix: 0.32, routing: "Ring" });
-  const verb = p.add("reverb", [6, 0], { size: 0.6, decay: 3, mix: 0.25 });
-  p.stereo(mix, dly, { from: ["outl", "outr"] }).stereo(dly, verb).stereo(verb, p.out);
+  const rc = p.add("recall", [0, 0], { tmode: "Coin", tbias: 0.4, tjitter: 0.15, trecall: 0.35, tloop: 16, gatelength: 0.25, sync: "1/16", seed: 17 });
+  const kick = p.add("punch-kick", [2, 0], { level: 0.85, decay: 0.45 });
+  const snare = p.add("punch-snare", [2, 1], { level: 0.6 });
+  const hats = p.add("punch-hats", [2, 2], { level: 0.42, closed: 0.035 });
+  p.cable(rc, "t1", kick, "trig").cable(rc, "t2", snare, "trig").cable(rc, "clock", hats, "closed");
+  const mix = bus(p, [4, 0], [{ node: kick, level: -3 }, { node: snare, level: -7, pan: 0.1 }, { node: hats, level: -14, pan: 0.3 }], 0, "Kit");
+  finish(p, mix, [5, 0], { size: 0.3, decay: 1, mix: 0.12 });
   return p;
 }
 
-export default [randomBackbeat, lockedMelody, ratchetRolls, sortedDrift, breathingLoop];
+function ratchetBass() {
+  const p = patch("Recall: Ratchet Bass Line", {
+    module: "recall", tempo: 124,
+    description: "T Mode Ratchet turns the random gates into bursts of quick repeats, and each burst plays a bass note chosen by X from F Phrygian dominant. Lower X Spread for a narrower line, or move X Bias to put the bass higher or lower.",
+    tags: ["ratchet", "bass", "phrygian", "random melody"],
+  });
+  const rc = p.add("recall", [0, 0], { tmode: "Ratchet", tbias: 0.55, trecall: 0.5, tloop: 8, gatelength: 0.4, xspread: 0.4, xbias: 0.3, xsteps: 0.6, xrecall: 0.5, xloop: 8,
+    sync: "1/16", xsource: "T1", xrange: "Unipolar", root: "F", scale: "Phrygian Dominant", seed: 33 });
+  const bass = voice(p, [2, 0], [rc, "x1"], [rc, "t1"], { name: "Bass", shape: 0.25, octave: -2, env: { decay: 0.22, sustain: 0.1 },
+    filter: { cutoff: 700, resonance: 0.35, type: "Ladder Tanh" } });
+  const kick = p.add("punch-kick", [2, 3], { level: 0.75 });
+  const hats = p.add("punch-hats", [3, 3], { level: 0.4, closed: 0.035 });
+  p.cable(rc, "t2", kick, "trig").cable(rc, "clock", hats, "closed");
+  const mix = bus(p, [5, 0], [{ node: bass.out, jack: "l", level: -2 }, { node: kick, level: -5 }, { node: hats, level: -16, pan: 0.3 }], -5, "Mix");
+  finish(p, mix, [6, 0], { size: 0.3, decay: 1, mix: 0.1 });
+  return p;
+}
+
+function settleDown() {
+  const p = patch("Recall: Settling Loop", {
+    module: "recall", tempo: 96,
+    description: "A slow sawtooth LFO raises both Recall knobs from 0 to 100 % over 16 bars: the melody starts out new on every step, gradually repeats itself more and more, and ends up as a locked loop before the cycle begins again. Move T Recall or X Recall yourself to freeze or free it at any time.",
+    tags: ["recall", "loop", "evolving", "melody"],
+  });
+  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.75, trecall: 0, tloop: 8, gatelength: 0.55, xspread: 0.65, xbias: 0.5, xsteps: 0.6, xrecall: 0, xloop: 8,
+    sync: "1/8", xsource: "Tick", xrange: "Unipolar", root: "D", scale: "Major Pentatonic", seed: 52 });
+  const lfo = p.add("lfo", [0, 3], { wave: "Saw Up", sync: "8 bars", polarity: "Unipolar" }, { name: "Settle" });
+  p.cable(lfo, "out", rc, "trecall").cable(lfo, "out", rc, "xrecall");
+  const lead = voice(p, [2, 0], [rc, "x1"], [rc, "t1"], { name: "Lead", shape: 0.35, env: { decay: 0.35, sustain: 0.1, release: 0.3 } });
+  const low = voice(p, [2, 3], [rc, "x2", 0.5], [rc, "t2"], { name: "Low", shape: 0.15, octave: -1, env: { decay: 0.5, sustain: 0.1, release: 0.4 } });
+  const mix = bus(p, [5, 0], [{ node: lead.out, jack: "l", level: -2, pan: 0.2 }, { node: low.out, jack: "l", level: -1, pan: -0.25 }], 5, "Voices");
+  const dly = p.add("delay", [6, 0], { sync: "Tempo", ratel: "1/8.", rater: "1/4", feedback: 0.4, mix: 0.28, highcut: 5000 });
+  p.stereo(mix, dly, { from: ["outl", "outr"] });
+  const v = p.add("reverb", [7, 0], { size: 0.6, decay: 3, mix: 0.25 });
+  p.stereo(dly, v).stereo(v, p.out);
+  return p;
+}
+
+function sortedChords() {
+  const p = patch("Recall: Sorted Triad Rising", {
+    module: "recall", tempo: 80,
+    description: "X Mode Sorted puts the three random voltages in ascending order, so X1, X2 and X3 always form a stack from low to high, and three voices play them as a changing chord. Switch X Mode to Independent and the voices cross over; change Scale for a different colour.",
+    tags: ["sorted", "chords", "voicing", "pad"],
+  });
+  const rc = p.add("recall", [0, 0], { tmode: "Coin", tbias: 0.9, tjitter: 0, trecall: 0, gatelength: 0.9, xspread: 0.75, xbias: 0.45, xsteps: 0.6, xrecall: 0,
+    xloop: 4, xmode: "Sorted", xrange: "Unipolar", sync: "1/2", xsource: "Tick", root: "E", scale: "Dorian", seed: 8 });
+  const vs = ["x1", "x2", "x3"].map((j, i) => voice(p, [2, i * 2], [rc, j], [rc, "t1"], { name: `Chord ${i + 1}`, shape: 0.4 + i * 0.1,
+    osc: { fine: (i - 1) * 7 }, env: { attack: 0.3, decay: 1, sustain: 0.6, release: 1.5 }, filter: { cutoff: 2200, resonance: 0.15 } }));
+  const mix = bus(p, [5, 0], vs.map((v, i) => ({ node: v.out, jack: "l", level: -4, pan: -0.5 + i * 0.5 })), 1, "Chord");
+  const ch = p.add("chorus", [6, 0], { rate: 0.35, depth: 0.5, mix: 0.4 });
+  const v = p.add("reverb", [7, 0], { size: 0.8, decay: 6, mix: 0.35 });
+  p.stereo(mix, ch, { from: ["outl", "outr"] }).stereo(ch, v).stereo(v, p.out);
+  return p;
+}
+
+function driftingBells() {
+  const p = patch("Recall: Free-Running Bells", {
+    module: "recall", tempo: 70,
+    description: "Sync is set to Free at 1.6 Hz, so Recall ticks on its own clock rather than the song's, and each random T1 gate rings a bell whose pitch is read from X on its own X clock. Change Rate to speed the shimmer up or slow it down.",
+    tags: ["free", "bells", "shimmer", "ambient"],
+  });
+  const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.3, trecall: 0.2, tloop: 16, gatelength: 0.3, xspread: 0.8, xbias: 0.55, xsteps: 0.4, xrecall: 0.2,
+    xloop: 16, sync: "Free", rate: 1.6, xsource: "T1", xrange: "Wide", root: "C", scale: "Major Pentatonic", seed: 71 });
+  const a = voice(p, [2, 0], [rc, "x1"], [rc, "t1"], { name: "Bell A", shape: 0, octave: 1, env: { decay: 1.8, sustain: 0, release: 1.5 } });
+  const b = voice(p, [2, 2], [rc, "x2"], [rc, "t2"], { name: "Bell B", shape: 0, octave: 0, env: { decay: 2.2, sustain: 0, release: 1.8 } });
+  const mix = bus(p, [5, 0], [{ node: a.out, jack: "l", level: -4, pan: 0.4 }, { node: b.out, jack: "l", level: -4, pan: -0.4 }], 3, "Bells");
+  const v = p.add("reverb", [6, 0], { size: 0.85, decay: 8, mix: 0.45 });
+  p.stereo(mix, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return p;
+}
+
+export default [coinDrums, ratchetBass, settleDown, sortedChords, driftingBells];

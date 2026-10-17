@@ -79,11 +79,11 @@ Five whole patches show what Dual Osc does. In the standalone app open **File â†
 
 | Patch | What it shows |
 |---|---|
-| **Dual Osc: Sync Lead** | Oscillator B hard-syncs oscillator A and a slow LFO sweeps Tune B, so the lead's tone rips from mellow to searing and back. Change Sync for a softer or harder grip, or pull Tune B to a fixed value to freeze the sound. |
-| **Dual Osc: Metal Bells** | Sine B frequency-modulates sine A at an odd ratio (B Tune +7 semitones) with Exponential FM, and a decaying envelope on both level and FM turns every note into a struck, clangorous bell. Try changing Tune B for different metals. |
-| **Dual Osc: Folding Bass** | A triangle bass pushed through the stereo wavefolder: an envelope opens Fold on every note so each one starts snarling and settles into a round tone. Raise Symmetry for a more even-harmonic growl. |
-| **Dual Osc: Drifting Pair** | Two saw cores a few cents apart with strong Drift and wide stereo Width: the slowly beating pair makes a warm, breathing pad. Raise Fine B or Drift for a wider, less stable sound. |
-| **Dual Osc: Ring Clang** | The Ring output multiplies the two cores into inharmonic clangs; a short envelope turns it into a metallic percussion line over a light beat. Change Tune B to retune the clang, or Octave B for a lower rumble. |
+| **Dual Osc: Complex Lead** | Oscillator B frequency-modulates A while an envelope opens FM Depth and Fold on every note: each note starts bright and metallic and settles to a clearer tone. Change Tune B to pick different FM ratios, or raise Fold for more edge. |
+| **Dual Osc: Sync Sweep** | A is hard-synced to B and the Sync amount is swept by a slow ramp, so the tone tears from a clean saw into a growling, harmonic-rich buzz. Turn Sync by hand to stop the sweep where you like it. |
+| **Dual Osc: Drifting Pad** | Two softly detuned cores with Drift and Width turned up make a slowly moving stereo pad, with a hint of Fold from a slow LFO. Raise Drift for more instability or pull Tune B further from A for a thicker chord. |
+| **Dual Osc: Ring Bells** | The Ring output multiplies A and B, giving clangorous, bell-like sidebands that die away with each note. Tune B moves the bell from soft and hollow to harsh and tuneless; choose a fifth or a tritone to hear the difference. |
+| **Dual Osc: Folded Bass** | A low note from both cores is driven into the wavefolder; Fold rides a slow LFO and Symmetry shifts the odd and even folds, so the bass flips between mellow and snarling. Try the Exponential FM Mode or a different Symmetry for other growls. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -60,3 +60,17 @@ The preset bar of the Saturator view has 14 factory presets. Pick one to set the
 | **Parallel Grit** | Hard-driven copy blended under the clean signal. |
 | **Eco Warmth** | Light on CPU for many instances. |
 <!-- /generated -->
+
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Saturator does. In the standalone app open **File → Presets…** (⌘P) and pick *Saturator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Saturator: Tube Warmth** | A thin sine-and-triangle melody gains harmonics from the Tube curve at moderate Drive: rounder, fuller and gently compressed. Raise Drive to move from warmth to overdrive, or compare with the Tape and Diode characters. |
+| **Saturator: Tape Drum Bus** | A shuffled beat runs through the Tape curve with some Sag and Age: the peaks soften, the highs round off and the kit glues together. Raise Age for a worn, uneven machine or Drive for heavier compression. |
+| **Saturator: Diode Bite** | A saw lead hits the Diode curve hard, with Color tilted toward the highs: a bright, snarling edge that stays musical. Pull Color negative for a darker growl, or lower Drive for a cleaner sound. |
+| **Saturator: Wandering Bias** | A slow LFO moves Bias on a soft sine pad, so the curve becomes lopsided and even harmonics come and go: the tone drifts between hollow, nasal and full. Change the cable amount to wander more, or switch Character. |
+| **Saturator: Worn Machine** | Bass and a sparse beat go through heavy Sag and Age on the Tape curve: the level sags on loud hits and the sound slowly drifts like a tired old machine. Turn Sag and Age to zero to hear the clean, steady version. |
+<!-- /generated -->

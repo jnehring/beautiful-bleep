@@ -44,6 +44,20 @@ removed, so the gate never hangs.
   notes move faster.
 - **Bass from chords:** *Priority* *Lowest* always plays the lowest held note.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Notes to CV does. In the standalone app open **File → Presets…** (⌘P) and pick *Notes to CV* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Notes to CV: Accent Lead** | A sequencer's notes come in, and Notes to CV hands out pitch, gate, trigger and velocity: the velocity opens the envelope harder on the accented steps. Try Retrigger Off to hear the tied notes run together. |
+| **Notes to CV: Gliding Bass** | Tied notes slide into each other because Glide is up and Glide Mode is Legato Only; separate notes still jump. Turn Glide to 0 for a plain bass, or set Glide Mode to Always to slide into every note. |
+| **Notes to CV: Lowest and Highest** | A Chord Quantizer sends four-note chords as notes; one Notes to CV follows the lowest note for a bass, another the highest for a bright lead. Change either Priority to Last or First to follow a different note of the chord. |
+| **Notes to CV: Drifting Pad** | Overlapping long notes with Retrigger Off and a slow Glide make the pad drift from chord root to chord root without restarting its envelope. Switch Retrigger to On and every note swells again. |
+| **Notes to CV: Trigger Out Kick** | Every note that arrives also leaves Notes to CV as a trigger, here firing a kick drum in step with a bass line, while Pitch plays the bass. Change the sequencer's pattern and the kick follows it. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

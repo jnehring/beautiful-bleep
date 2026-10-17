@@ -70,6 +70,20 @@ a moment, so even the shortest pulse shows.
 - **Chain it:** the outputs follow the inputs, so a Monitor can sit between
   a *MIDI In* and a Voice Cell without changing anything.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Monitor does. In the standalone app open **File → Presets…** (⌘P) and pick *Monitor* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Monitor: Note Table** | The sequencer's notes pass through a Monitor on their way to a synth voice: its table lists each note on and off with pitch and velocity as it happens. Change a step's note or velocity in the sequencer and read the difference in the table. |
+| **Monitor: Watch a Control Signal** | A slow LFO runs through the Monitor's CV input before it sweeps the filter of a gentle line: the readout shows the value moving between its extremes while you hear the same thing. Change the LFO's rate or wave and watch the shape change. |
+| **Monitor: Gate Meter on the Kick** | The kick's gate from the Drum Grid goes through the Monitor's gate meter, which lights on every hit and shows how long the gate lasts, before it triggers the drum. Lengthen the Drum Grid's Gate Length and watch the meter stay lit. |
+| **Monitor: Stereo Meter** | A ping-pong delay bounces a pluck line left and right through the Monitor's audio meters, so you see the two channels take turns. Raise the Floor to see only the loud part, or lower Response to make the bars fall slowly. |
+| **Monitor: Everything at Once** | One Monitor watches four kinds of signal on a single synth voice: the notes going in, a vibrato CV, the envelope's gate and the stereo audio coming out. Change the vibrato LFO or the sequence and see which panel reacts. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

@@ -91,11 +91,11 @@ Five whole patches show what Stage Seq does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Stage Seq: Staircase Lead** | Eight stages of C harmonic minor: held notes, repeats, a ratchet and two slides make a one-bar riff, with louder accented stages. Change a stage's Pulses or Gate mode in the view, or raise Slide Time to melt the slides further. |
-| **Stage Seq: Pendulum Pad** | Pendulum mode swings back and forth across six stages of long held notes in F Lydian, each lasting four to eight pulses; a pair of detuned oscillators and a slowly opening filter turn the chord-like line into a pad. Change Mode to Forward or Reverse, or shorten the Pulses. |
-| **Stage Seq: Brownian Bells** | Brownian mode takes one stage up or down at a time, so the sixteen-stage bell melody in D major pentatonic wanders like a drunk on a staircase and always returns to the same neighbours. Change the Seed, or switch Mode to Random, to hear a different walk. |
-| **Stage Seq: Slide Bass** | A reversed run of E minor stages with slides between stages and accents that fire the Accent Gate: it opens the filter with an extra snap on the accented stages. Turn Accent or Slide Time to change the squelch, or add pulses to a stage to lengthen it. |
-| **Stage Seq: Hold Freeze** | Random mode with a two-bar Phrase: ten A Dorian stages come in a shuffled order that repeats every phrase. A square LFO on the Hold input freezes the sequence on one stage for a bar, and the Stage output sweeps the filter. Try a longer Phrase, or hold Hold yourself. |
+| **Stage Seq: Held Pulses** | Each stage holds its note for a different number of pulses, from one to six, so a slow pad-like line in Eb Lydian lingers on some notes and moves quickly past others. Change a stage's Pulses in the view to stretch or squeeze the phrase. |
+| **Stage Seq: Gate Modes** | Eight stages that each use a different gate mode: a single First hit, notes that repeat on Every pulse, a long Hold, a Ratchet burst and a Rest, so one riff shows all the ways a stage can fire. Click a stage's gate mode in the view to change it. |
+| **Stage Seq: Slide Bass** | Stages marked Slide glide into the next pitch over the Slide Time, and the accented stages fire an extra gate that snaps the filter open, giving a squelchy bass over a four-on-the-floor beat. Raise Slide Time for slower glides or Accent for a harder bite. |
+| **Stage Seq: Pendulum Bells** | Twelve stages are played in Pendulum mode: forward to the last stage and back again, with the Phrase length marking the repeat. Switch Mode to Forward, Reverse, Random or Brownian to hear the same stages in other orders. |
+| **Stage Seq: Brownian Walk** | In Brownian mode the playhead takes a random step to a neighbouring stage each time, so a Dorian melody wanders without jumping, and the Stage Start output ticks a hat on every new stage. Change Seed to take another walk, or Stages to widen the range. |
 <!-- /generated -->
 
 <!-- generated:presets -->

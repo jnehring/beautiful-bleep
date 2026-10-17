@@ -60,6 +60,20 @@ to the new one over *Fade*: portamento for a value sequencer driving a pitch.
 - **Rhythmic routing:** a drum into *In*, *Out 1–4* to four different effects,
   *Rate* 1/16, *Direction* *Random*.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Switch does. In the standalone app open **File → Presets…** (⌘P) and pick *Switch* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Switch: Four Timbres in Rotation** | The same riff is played by four different oscillators, and the Switch hands the output to the next one every half note with a short crossfade: saw, hollow pulse, triangle and a bright octave. Change Direction to Ping-Pong or Random, or lengthen Fade to blend the voices. |
+| **Switch: Random Walk Textures** | Four sustained layers, a soft pad, a breathy noise band, a deep sine and a shimmering high chord, are slowly crossfaded by the Switch in Random Walk order, one step at a time, so the texture wanders without ever jumping. Change Seed for another route. |
+| **Switch: One Riff, Four Treatments** | Used the other way round, one input goes to eight outputs: a single riff is sent to a dry output, an echo, a high-pass filter and a huge reverb in turn, each for half a bar. Try Direction Random or Length 2 to make it jump between only two of them. |
+| **Switch: Gliding Drone Chords** | Four sine drones stacked on different chord tones are passed one at a time through the Switch in Glide mode and ping-pong order, with a long Fade so each tone seems to slide into the next. Change Mode to Crossfade for a cleaner blend or Fade for a quicker move. |
+| **Switch: Drum Voice Carousel** | One drum pattern plays four different drums at once, but the Switch lets only one of them through, stepping to the next each bar by a trigger: the same groove turns from kick to snare to clap to tom. Lengthen the Length setting to add silent bars, or change Direction. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

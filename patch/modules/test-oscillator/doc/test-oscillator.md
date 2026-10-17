@@ -85,11 +85,11 @@ Five whole patches show what Test Oscillator does. In the standalone app open **
 
 | Patch | What it shows |
 |---|---|
-| **Test Oscillator: Living Drone** | Three lamp-stabilised sines tuned to a root, a fifth and an octave, each with a long Settle and plenty of Drift: they warm up from flat, swell and bounce against each other, with a slow wobble on one dial. Try Loop Gain between 100 % and 150 %, or Settle at 0.1 s for faster bounces. |
-| **Test Oscillator: Ringing Drums** | With Loop Gain below 100 % the oscillator does not run: it rings when kicked, so each Drum Grid hit becomes a tuned drum, a deep kick on Range ×10, a tom on ×100 and a rim tick on ×1k. Raise Loop Gain towards 100 % for longer rings, or lower Kick for softer hits. |
-| **Test Oscillator: Drum Resonator** | A drum loop goes into Audio In of a test oscillator held just below self-oscillation at 95 %, and a sequencer steers its Pitch: the loop plays a melody through the tuned resonator. Change Loop Gain for a shorter or longer ring, or Frequency for a different key. |
-| **Test Oscillator: Squeal Tremolo** | A tiny Settle lets the lamp chase the waveform itself, and Loop Gain at 210 % clips it: the sine turns into a squealing, fluttering square-ish tone that stutters between bursts. A bass line steers the pitch; try Settle between 5 and 50 ms and Loop Gain near 150 % for gentler flutter. |
-| **Test Oscillator: Bouncing Bass** | A bass line jumps the dial of a lamp-regulated sine: each leap dips the amplitude and it surges back, a living bounce. The Lamp output follows that heat and sweeps the cutoff of a saw lead, so the lead breathes with the bass. Try Settle to change the bounce time. |
+| **Test Oscillator: Warm Hum** | A lamp-stabilised sine on its own: it warms up, bounces slightly in level and carries a faint mains hum, a slowly breathing drone in a big room. Raise Drift for more wander, or change Mains to Off for a perfectly clean tone. |
+| **Test Oscillator: Kicked Bell** | With Loop Gain below 100 % the oscillator dies away on its own, and a trigger on Kick makes it ring like a struck tuning fork. Change Loop Gain for longer or shorter rings, and Kick for how hard it is hit. |
+| **Test Oscillator: Pure Sine Tune** | A plain sine melody from the Test Oscillator's Pitch input with a short envelope, about as clean a tone as exists. Add Fm from the LFO for vibrato or raise Drift to hear a warmer, wobblier note. |
+| **Test Oscillator: Square Bass** | The square output at the lowest range plays a rounded bass line through a low-pass filter, over a simple beat. Change Range to jump the whole line by decades or move Freq for a different key. |
+| **Test Oscillator: Lamp Drives Filter** | The Lamp output, a slow signal showing the oscillator's amplitude loop breathing, opens a filter on a held chord of Oscillators. Raise Settle for slower swings, or Loop Gain for harder bounces. |
 <!-- /generated -->
 
 ## Reference

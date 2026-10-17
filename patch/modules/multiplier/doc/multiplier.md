@@ -41,6 +41,20 @@ filters it. This adds a short latency, so leave it off for modulation.
 - **Squaring:** the same signal into X and Y. A sine becomes a sine at twice
   the frequency, an LFO gets a rounder, always-positive shape.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Multiplier does. In the standalone app open **File → Presets…** (⌘P) and pick *Multiplier* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Multiplier: Ring Mod Bells** | Two sine oscillators multiplied together make only their sum and difference tones, which are not whole-number multiples of the note: clangorous bells that fade with each strike. Change the second oscillator's Coarse to retune the bell. |
+| **Multiplier: Offset Tremolo** | A saw melody goes into X1 and a sine LFO into Y1, with Bias Y1 lifting the LFO above zero so it works as a smooth tremolo; without the bias the sound would also flip its phase. Lower Bias Y1 toward zero for a deeper, rougher ring. |
+| **Multiplier: Envelope Times LFO** | Every note's decay envelope is multiplied by a slow LFO before it reaches the filter, so the notes open the filter wide when the LFO is high, hardly at all when it is low and even invert when it dips below zero. Raise Bias Y1 to keep the LFO positive. |
+| **Multiplier: Twin Ring Modulators** | Both multipliers ring-modulate the same saw melody, one with a modulator at a fifth above and one at a ratio that sits between notes, and each goes to its own side: left is nearly musical, right is metallic. Change either modulator's Coarse to move the clangour. |
+| **Multiplier: Robot Drums** | A whole drum loop is multiplied by a low sine so each hit turns pitched and robotic, mixed with the untouched loop underneath. Raise Oversampling to keep the highs clean, or change the sine's Coarse to tune the robot. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

@@ -74,11 +74,11 @@ Five whole patches show what Folder does. In the standalone app open **File → 
 
 | Patch | What it shows |
 |---|---|
-| **Folder: Complex Voice** | The Folder's internal sine, played from a sequencer's pitch, is folded harder as an envelope opens Fold: every note starts bright and metallic, then relaxes toward a pure tone. Change Fold, Symmetry or Tap for other timbres. |
-| **Folder: Moving Bass** | A low sine from the Folder's own oscillator, with slow LFOs on Symmetry and Tap, turns from hollow to buzzy and back. Raise Fold for more teeth, or turn Octave up for a lead. |
-| **Folder: Fold Bells** | An Oscillator patched into the Folder's input frequency-modulates its internal sine through FM Depth, then the result is folded: sparkling, bell-like tones with a quick decay. Raise FM Depth or Fold to turn bells to glass. |
-| **Folder: Stereo Brightener** | An external plucked saw goes into the Folder with a gentle Fold and Mix at half: the folds add upper harmonics to the dry sound, and Spread opens it into stereo. Move Fold and Level to see how far into the folds the signal reaches. |
-| **Folder: Folded Beat** | A whole drum loop passes through the Folder: kicks gain harmonics and snare and hats turn crunchy as Fold rises with a slow LFO. Pull Mix back for parallel crunch. |
+| **Folder: Folded Saw Riff** | An external saw riff enters the Folder's input and an LFO moves Fold up and down, so each note folds back on itself into a growl that opens and closes. Change Symmetry for a hollower tone or lower Tap for a gentler fold. |
+| **Folder: Evolving Sine Drone** | With Source on Internal the Folder is its own voice: a slow sequencer sets the pitch, Wave and Fold drift under two LFOs, and a plain sine turns into a shifting, metallic drone. Try Coarse and Fine for beating pairs of partials. |
+| **Folder: Lopsided Bass** | A low note from the internal sine is pushed off-centre with Symmetry and folded at Tap 3, giving a bass with strong even harmonics and a nasal, vocal edge. Change Symmetry to the other side or raise Fold for a buzzier note. |
+| **Folder: Spread Pad** | A slow pad goes through the Folder with Spread turned up, so the left and right channels fold by different amounts and the pad opens into a wide, shimmering stereo image. Pull Spread down to bring it back to the centre. |
+| **Folder: Folded Drum Kit** | A drum beat passes through the Folder at half Mix: the kick gains a hard, clicky harmonic edge and the hats shimmer, while the dry hits keep their weight. Raise Fold or Mix for a more broken, industrial kit. |
 <!-- /generated -->
 
 <!-- generated:presets -->

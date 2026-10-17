@@ -83,11 +83,11 @@ Five whole patches show what Chord Osc does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Chord Osc: Soft Minor Pads** | A slow bass line plays the root and Chord Osc stacks a Minor 7 on it, spread with the Open voicing, a little Detune and Stereo, and Glide so each chord melts into the next. Try other Chord types, or Inversion for different voice leading. |
-| **Chord Osc: Diatonic Run** | In Scale mode a plain melody becomes a chord progression: each note of the tune turns into the diatonic triad on that scale degree, changing exactly on the step through Latch. Change Root or Scale and the whole harmony follows. |
-| **Chord Osc: Chord Arpeggio** | The four Pitch outputs carry the chord's tones; a Switch steps through them on every sixteenth and plays an oscillator, so the arpeggio follows whatever chord Chord Osc is holding, while the full chord hums underneath. Change Chord or Voicing to re-voice the arpeggio. |
-| **Chord Osc: Offbeat Stabs** | Short dominant-ninth stabs on the off-beats, voiced Drop 2 with a squarer Shape and a snappy envelope, over a four-on-the-floor beat. Try Dominant 7, Quartal or a higher Inversion for a different punch. |
-| **Chord Osc: FM Quartal Glow** | Pure sine voices stacked in fourths, with a low oscillator in the FM input and FM Depth moved by a slow LFO: the chord shimmers between smooth and metallic. Turn Detune and Stereo up for a wider glow. |
+| **Chord Osc: Slow Seventh Pad** | A slow bass line plays the root and Chord Osc stacks a minor seventh on it in the Open voicing, with a little Detune, wide Stereo and Glide so each chord melts into the next. Try other Chord types, change Voicing, or push Inversion up and down to hear the same chord from a different bass note. |
+| **Chord Osc: Chords From a Melody** | In Scale mode every note of a simple melody becomes the diatonic chord on that scale degree: major, minor and diminished triads appear by themselves in C major. The melody's trigger is patched into Latch so chords change exactly on the step. Change Scale or Root to re-colour the tune, or set the stack to Seventh. |
+| **Chord Osc: Bass and Stabs** | One Chord Osc is two instruments: its Root output, filtered and sub-heavy, is the bassline, and the chord itself plays short offbeat stabs on top (Root Level lowered so they do not double the bass). Try Dominant 9 or Minor add9 in Chord, or open the stab filter. |
+| **Chord Osc: Chord Tone Arp** | The four Pitch outputs carry the chord tones from low to high; a Switch steps through them every sixteenth to play an arpeggio on a separate oscillator that always follows the chord. The pad underneath plays the whole chord. Change the Chord, or the Inversion, and the arpeggio changes with it. |
+| **Chord Osc: Quartal Glass** | Five voices stacked in fourths with the Wide voicing, near-sine waves and slow Detune make a cool, open sound with no clear major or minor. A slow LFO sweeps the Inversion, so the bass note of the chord keeps changing. Switch Chord to Sus2 or Add9 for a warmer cloud. |
 <!-- /generated -->
 
 <!-- generated:presets -->

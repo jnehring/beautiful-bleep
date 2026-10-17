@@ -85,11 +85,11 @@ Five whole patches show what Dual Filter does. In the standalone app open **File
 
 | Patch | What it shows |
 |---|---|
-| **Dual Filter: Vowel Pad** | A saw pad runs through two band-pass filters in parallel, a formant pair that a slow LFO on Spread slides between vowels. Try Res 1 and Res 2 for a sharper or breathier voice. |
-| **Dual Filter: Wide Band Bass** | A growly saw bass in Serial with a high-pass on filter 1 and a low-pass on filter 2: a band whose width is Spread and whose position is Cutoff. A beat keeps time; try Spread and Drive. |
-| **Dual Filter: Stereo Breath** | One mono arpeggio goes in on the left; in Stereo routing each filter takes a channel and Spread places their cutoffs apart, so an LFO on Spread makes the image breathe left and right. Change Resonance for more ring. |
-| **Dual Filter: Notch Sweep** | Parallel with the second filter inverted turns two band-passes into a steep notch. It sweeps through a bright saw riff over a beat; Spread widens the hole in the sound. |
-| **Dual Filter: Mirror Morph** | With Link on Mirror, one slow LFO on Mode 1 morphs the pair from two low-passes through band-pass to two notches, mirrored on the other filter, while Saturating Character adds bite. Sweep Mode 1 and Mode 2 by hand. |
+| **Dual Filter: Vowel Talker** | A buzzy saw drone goes through two band-pass filters pulled apart by Spread, which an LFO moves back and forth: the pair of peaks sounds like a vowel changing from 'oo' to 'ah' and back. Change Spread for a different mouth shape, or the Cutoff for a different voice. |
+| **Dual Filter: Serial Squelch** | In Serial routing the two filters stack into a steep, resonant low-pass that an envelope snaps open on every note. Raise Spread to make the second stage cut lower or higher than the first, or set Character to Saturating for more grit. |
+| **Dual Filter: Stereo Split Arp** | Stereo routing sends the left channel through one filter and the right through the other, with Spread putting their cutoffs apart: a busy arpeggio ends up with a dark side and a bright side, which an LFO swaps over time. Try Link set to Mirror or a negative Spread. |
+| **Dual Filter: Hollow Pad** | Parallel (F2 inverted) combines a low-pass and an inverted copy, carving a moving hole out of a wide chord. Move Cutoff slowly to sweep the gap, or change Balance to favour one side. |
+| **Dual Filter: Drum Crush** | A drum loop runs through a driven Dual Filter in Serial mode with Mode 1 and Mode 2 at opposite ends, so lows and highs are both trimmed into a narrow band that opens with a slow LFO. Turn up Drive or Mix to push it harder. |
 <!-- /generated -->
 
 <!-- generated:presets -->

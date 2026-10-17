@@ -1,211 +1,208 @@
 // SPDX-License-Identifier: MIT
-// Effects: stereo insert effects. In L/R → processing → Out L/R.
+// Effects: space, time and movement. Stereo cells: In L/R → processing → Out L/R.
 import { cell, category } from "./kit.mjs";
 
-// A steady +1 from a Utility's Offset: holds a gate input high.
-function constant(p, at, name = "Always On") {
-  return p.add("utility", at, { scalex: 0, offset: 1 }, { name });
-}
-
-// High-passed input into a large, slowly modulated FDN hall with pre-delay.
-function cathedralHall() {
-  const p = cell("Cathedral Hall", {
-    description: "A gentle high-pass keeps the lows out of a big, dark hall with 40 ms pre-delay and a six-second tail. Shared inputs Mix and Freeze.",
-    tags: ["reverb", "hall", "ambient", "space"],
-    help: "A 1-pole high-pass at 160 Hz feeds a Reverb with a large size, a six-second decay, 40 ms pre-delay " +
-      "and slow modulation. The high-pass keeps low end out of the tail so the hall stays clear. The reverb " +
-      "is 30 percent wet.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Mix input is added to the reverb's Mix knob. " +
-      "A gate into Freeze holds the current tail as an endless wash.\n\n" +
-      "Tip: freeze a chord for a moment, then release it to let the hall decay.",
-  }).stereoIn().stereoOut().input("mix", "Mix").input("freeze", "Freeze", "gate");
-  const hp = p.add("filter", [0, 0], { cutoff: 160, type: "1-Pole High-pass", mix: 0.6 }, { name: "Low Cut" });
-  const verb = p.add("reverb", [1, 0], { size: 0.85, decay: 6, preDelay: 0.04, diffusion: 0.8, damping: 0.55,
-                                         modRate: 0.4, modDepth: 0.35, width: 1.2, mix: 0.3 });
-  p.stereo(p.cin, hp).stereo(hp, verb).stereo(verb, p.cout)
-    .cable(p.cin, "mix", verb, "mix", 0.5).cable(p.cin, "freeze", verb, "freeze");
+// Bright, dense plate with a touch of pre-delay and a little modulation.
+function glassPlate() {
+  const p = cell("Glass Plate", {
+    description: "A dense, bright plate reverb with a short pre-delay and a two-second tail: vocals, snares and keys gain a polished sheen. Shared inputs Mix and Decay.",
+    tags: ["reverb", "plate", "bright", "vocal"],
+    help: "A single Reverb with high diffusion, little damping and a tone tilted bright. Pre-delay is 12 ms so the " +
+      "attack of the sound stays clear before the plate blooms. The reverb is 30 percent wet.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Mix is added to the reverb's Mix knob and Decay to " +
+      "its Decay knob, which stretches the tail from a tight plate towards a hall.\n\n" +
+      "Tip: put it on a snare and pull Decay down for a classic gated-feeling splash.",
+  }).stereoIn().stereoOut().input("mix", "Mix").input("decay", "Decay")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 8 } });
+  const verb = p.add("reverb", [1, 0], { size: 0.4, decay: 2.2, preDelay: 0.012, diffusion: 0.95, damping: 0.2,
+                                         modRate: 0.8, modDepth: 0.2, tone: 0.3, width: 1.2, mix: 0.3 });
+  p.stereo(p.cin, verb).stereo(verb, p.cout)
+    .cable(p.cin, "mix", verb, "mix", 0.5).cable(p.cin, "decay", verb, "decay", 0.3);
   return p;
 }
 
-// Dotted-eighth ping-pong through a dark tape loop, then a touch of room.
-function dubPingPong() {
-  const p = cell("Dub Ping-Pong", {
-    description: "Tempo-synced dotted-eighth echoes that bounce left and right, darker with every pass, into a short room. Shared inputs Feedback and Tone.",
-    tags: ["delay", "ping-pong", "dub", "tempo"],
-    help: "A Zone Delay in transport sync with a dotted eighth time, set to ping-pong so repeats alternate left " +
-      "and right, each pass darker, into a short Room reverb. Always-on constant keeps the ping-pong " +
-      "switched on.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Feedback input is added to the delay's " +
-      "Feedback knob and Tone to its Tone. The delay time follows the transport tempo.\n\n" +
-      "Tip: send a sparse, dry part through it and ride Feedback up for dub throws.",
-  }).stereoIn().stereoOut().input("fb", "Feedback").input("tone", "Tone");
-  const on = constant(p, [0, 1], "Ping-Pong On");
-  const dly = p.add("zone-delay", [1, 0], { zone: 3, sync: "Transport", time: 8 / 12, feedback: 0.6,
-                                             character: 0.4, tone: -0.1, wobble: 0.15, mix: 0.3 });
-  const verb = p.add("reverb", [2, 0], { size: 0.35, decay: 1.2, damping: 0.5, mix: 0.15 }, { name: "Room" });
-  p.stereo(p.cin, dly).cable(on, "out", dly, "pingpong").stereo(dly, verb).stereo(verb, p.cout)
-    .cable(p.cin, "fb", dly, "feedback", 0.4).cable(p.cin, "tone", dly, "tone", 0.5);
+// Short, dark, single repeat: the slapback.
+function slapSmear() {
+  const p = cell("Slap & Smear", {
+    description: "A single dark 110 ms slapback with a whisper of feedback, smeared by a short room: it thickens guitars and vocals without becoming an echo. Shared inputs Mix and Time.",
+    tags: ["delay", "slapback", "rockabilly", "short"],
+    help: "A Delay at 110 ms on the left and 135 ms on the right, with very little feedback, a high cut at " +
+      "3.5 kHz so the repeat sits behind the sound, and a small Room reverb after it.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Mix is added to the delay's Mix and Time to both " +
+      "delay times, so you can slide between a doubling and a clear slap.\n\n" +
+      "Tip: use it on a dry guitar or a vocal, and turn Mix down until you only notice it when it is gone.",
+  }).stereoIn().stereoOut().input("mix", "Mix").input("time", "Time")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 3 } });
+  const dly = p.add("delay", [1, 0], { timel: 110, timer: 135, feedback: 0.12, lowcut: 180, highcut: 3500, mix: 0.28 });
+  const room = p.add("reverb", [2, 0], { size: 0.2, decay: 0.6, damping: 0.6, mix: 0.18 }, { name: "Room" });
+  p.stereo(p.cin, dly).stereo(dly, room).stereo(room, p.cout)
+    .cable(p.cin, "mix", dly, "mix", 0.5).cable(p.cin, "time", dly, "timel", 0.2).cable(p.cin, "time", dly, "timer", 0.2);
   return p;
 }
 
-// Grains an octave up with fifth jitter, fed back and blurred, into a long verb.
-function shimmerCloud() {
-  const p = cell("Shimmer Cloud", {
-    description: "Grains pitched up an octave with octave-and-fifth jitter feed back into a long reverb: a shimmering halo above anything. Shared inputs Mix and Freeze.",
-    tags: ["shimmer", "granular", "ambient", "reverb"],
-    help: "Grains pitches the sound up an octave with octave-and-fifth jitter and feeds itself back with blur, " +
-      "into a long Reverb (9 s decay). The result is a bright halo of high voices above the original.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. Mix is added to both the Grains and the Reverb " +
-      "mix, so one input fades the whole effect. A gate into Freeze freezes both Grains and the reverb " +
-      "tail. Plays a long tail, so allow time after the sound stops.\n\n" +
-      "Tip: use it on sustained pads or single notes; busy material turns into mush.",
-  }).stereoIn().stereoOut().input("mix", "Mix").input("freeze", "Freeze", "gate")
-    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 14 } });  // Verb decay 9 s, fed back by Grains
-  const gr = p.add("grains", [0, 0], { size: 0.35, density: 0.6, texture: 0.5, spread: 0.4, pitch: 12,
-                                       pitchjitter: 7, pitchquant: "Octaves + fifths", feedback: 0.3, blur: 0.5, mix: 0.35 });
-  const verb = p.add("reverb", [1, 0], { size: 0.9, decay: 9, preDelay: 0.02, damping: 0.3, modDepth: 0.4, tone: 0.2, mix: 0.35 });
+// Triplet on the left, quarter on the right, ping-pong.
+function tripletBounce() {
+  const p = cell("Triplet Bounce", {
+    description: "Tempo-synced echoes that bounce between the ears: eighth-triplets on the left, dotted eighths on the right, each repeat a little darker. Shared inputs Feedback and Mix.",
+    tags: ["delay", "ping-pong", "triplet", "tempo", "rhythmic"],
+    help: "A Delay in tempo-sync mode and Ping-Pong mode, with 1/8T on the left and 1/8. on the right. Low and " +
+      "high cut shape every repeat, so the echoes thin out as they fade. The delay follows the transport tempo.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Feedback is added to the delay's Feedback and Mix to " +
+      "its Mix.\n\n" +
+      "Tip: it is made for sparse plucks and short hits; with a busy part, keep Mix low.",
+  }).stereoIn().stereoOut().input("fb", "Feedback").input("mix", "Mix")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 12 } });
+  const dly = p.add("delay", [1, 0], { sync: "Tempo", ratel: "1/8T", rater: "1/8.", mode: "Ping-Pong",
+                                       feedback: 0.5, lowcut: 200, highcut: 5500, mix: 0.35 });
+  p.stereo(p.cin, dly).stereo(dly, p.cout)
+    .cable(p.cin, "fb", dly, "feedback", 0.4).cable(p.cin, "mix", dly, "mix", 0.5);
+  return p;
+}
+
+// Eight scattered, jittered lines in a mesh.
+function scatterLab() {
+  const p = cell("Scatter Lab", {
+    description: "Six delay lines fed back into each other in a mesh, with scattered and jittered times and some reversed taps: a cloud of echoes that never repeats itself the same way. Shared inputs Feedback and Scatter.",
+    tags: ["delay", "scatter", "texture", "experimental", "ambient"],
+    help: "A Delay Net with six taps in Mesh routing. Scatter spreads the tap times, Jitter makes them wander, a " +
+      "share of the taps play backwards, and every feedback pass picks up a little character and darkness.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Feedback is added to the feedback knob (above about " +
+      "90 percent it sustains for a long time) and Scatter to the scatter knob.\n\n" +
+      "Tip: feed it short notes and sweep Scatter slowly while the cloud rings.",
+  }).stereoIn().stereoOut().input("fb", "Feedback").input("scatter", "Scatter")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 16 } });
+  const net = p.add("delay-network", [1, 0], { time: 0.45, taps: 6, scatter: 0.5, jitter: 0.25, reverse: 0.25,
+                                               feedback: 0.55, character: 0.4, tone: -0.2, width: 0.9, routing: "Mesh", mix: 0.4 });
+  p.stereo(p.cin, net).stereo(net, p.cout)
+    .cable(p.cin, "fb", net, "feedback", 0.3).cable(p.cin, "scatter", net, "scatter", 0.5);
+  return p;
+}
+
+// Two choruses at different speeds, one dark.
+function lushEnsemble() {
+  const p = cell("Lush Ensemble", {
+    description: "Two choruses at unrelated slow speeds, one with a longer delay, blended and widened: strings, pads and electric pianos melt into a big ensemble. Shared inputs Depth and Mix.",
+    tags: ["chorus", "ensemble", "strings", "wide", "pad"],
+    help: "Two Chorus modules in a row. The first is quick and shallow with a short delay, the second is slow and " +
+      "deep with a longer delay, and both spread their voices wide. Together they smear the pitch in two " +
+      "different time scales, like a string ensemble.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Depth is added to the depth of both choruses; Mix " +
+      "to the mix of the second one.\n\n" +
+      "Tip: it is made for chords and sustained sounds; single notes get a seasick detune.",
+  }).stereoIn().stereoOut().input("depth", "Depth").input("mix", "Mix");
+  const a = p.add("chorus", [1, 0], { rate: 0.9, depth: 0.3, delay: 7, spread: 0.9, mix: 0.5 }, { name: "Fast Chorus" });
+  const b = p.add("chorus", [2, 0], { rate: 0.23, depth: 0.55, delay: 17, spread: 1, mix: 0.5 }, { name: "Slow Chorus" });
+  p.stereo(p.cin, a).stereo(a, b).stereo(b, p.cout)
+    .cable(p.cin, "depth", a, "depth", 0.4).cable(p.cin, "depth", b, "depth", 0.4).cable(p.cin, "mix", b, "mix", 0.5);
+  return p;
+}
+
+// Twelve stages with negative feedback.
+function hollowSwirl() {
+  const p = cell("Hollow Swirl", {
+    description: "Twelve allpass stages with negative feedback, swept wide and slowly: a hollow, glassy phaser that rolls through guitars, synth pads and drum loops. Shared inputs Speed and Centre.",
+    tags: ["phaser", "swirl", "hollow", "guitar", "modulation"],
+    help: "A Phaser with twelve stages, negative feedback, a wide sweep and the right ear offset from the left. " +
+      "Negative feedback gives the hollow, glassy colour instead of the nasal sound of positive feedback.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Speed is added to the Rate knob and Centre moves the " +
+      "middle of the sweep up or down. It does not follow the transport.\n\n" +
+      "Tip: raise Centre for a brighter, airier sweep on pads; lower it for a heavy, dark roll on bass-rich loops.",
+  }).stereoIn().stereoOut().input("speed", "Speed").input("centre", "Centre");
+  const ph = p.add("phaser", [1, 0], { rate: 0.14, depth: 0.85, centre: 900, feedback: -0.7, stages: "12", spread: 0.8, mix: 0.55 });
+  p.stereo(p.cin, ph).stereo(ph, p.cout)
+    .cable(p.cin, "speed", ph, "rate", 0.4).cable(p.cin, "centre", ph, "centre", 0.4);
+  return p;
+}
+
+// The reverb tail goes up an octave and returns into the reverb.
+function octaveCloud() {
+  const p = cell("Octave Cloud", {
+    description: "The reverb's tail is sent up an octave and back into the reverb so every echo climbs: a bright, celestial halo above pads and single notes. Shared inputs Mix, Climb and Freeze.",
+    tags: ["shimmer", "octave", "reverb", "ambient", "celestial"],
+    help: "A Reverb whose wet signal goes through a Pitch Shifter (up twelve semitones), a VCA named Climb and a " +
+      "Limiter, and back into the reverb. Each echo is an octave higher than the last, and the limiter keeps the " +
+      "loop from running away.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Mix is added to the reverb mix, Climb to the loop " +
+      "gain (more means more ascending echoes) and a gate into Freeze holds the tail. The tail is long, about " +
+      "twenty seconds.\n\n" +
+      "Tip: play sustained chords, then raise Climb slowly for a rising wall.",
+  }).stereoIn().stereoOut().input("mix", "Mix").input("climb", "Climb").input("freeze", "Freeze", "gate")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 20 } });
+  const verb = p.add("reverb", [1, 0], { size: 0.85, decay: 7, preDelay: 0.02, damping: 0.35, modDepth: 0.35, tone: 0.1, mix: 0.5 });
+  const gain = p.add("vca", [2, 1], { gain: 0.33 }, { name: "Climb" });
+  const shift = p.add("pitch-shifter", [3, 1], { pitch: 12, window: 100, drift: 0.12, mix: 1 });
+  const lim = p.add("limiter", [4, 1], { ceiling: -6, release: 150, input: 0 });
+  p.stereo(p.cin, verb).stereo(verb, gain, { from: ["wetL", "wetR"] }).stereo(gain, shift).stereo(shift, lim)
+    .stereo(lim, verb).stereo(verb, p.cout)
+    .cable(p.cin, "mix", verb, "mix", 0.5).cable(p.cin, "climb", gain, "gain", 0.5).cable(p.cin, "freeze", verb, "freeze");
+  return p;
+}
+
+// Two opposed LFO gains: the sound swings left and right.
+function swayingAutoPan() {
+  const p = cell("Swaying Auto-Pan", {
+    description: "A slow sine swells the left channel while it fades the right, and the other way round: the whole image sways between the ears. Shared inputs Rate and Depth.",
+    tags: ["auto-pan", "tremolo", "stereo", "movement"],
+    help: "An LFO feeds a Multiplier named Depth. One output drives a VCA on the left channel, the other, " +
+      "inverted, drives a VCA on the right, so the loudness of the two sides moves in opposite directions.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Rate is added to the LFO rate and Depth is added to " +
+      "the Multiplier, so zero depth leaves the sound still and centred. It does not follow the transport.\n\n" +
+      "Tip: a stereo source works best; with a mono source, the pan is more obvious than with a wide one.",
+  }).stereoIn().stereoOut().input("rate", "Rate").input("depth", "Depth");
+  const lfo = p.add("lfo", [0, 1], { rate: 0.28, wave: "Sine" }, { name: "Sway" });
+  const amt = p.add("multiplier", [1, 1], { biasy1: 0.4, biasy2: 0.4, gain2: -1 }, { name: "Depth" });
+  const left = p.add("vca", [2, 0], { gain: 0.75, response: "Linear" }, { name: "Left Gain" });
+  const right = p.add("vca", [2, 2], { gain: 0.75, response: "Linear" }, { name: "Right Gain" });
+  p.cable(lfo, "out", amt, "x1").cable(lfo, "out", amt, "x2")
+    .cable(p.cin, "depth", amt, "y1", 0.3).cable(p.cin, "depth", amt, "y2", 0.3)
+    .cable(p.cin, "rate", lfo, "rate", 0.4)
+    .cable(p.cin, "l", left, "l").cable(p.cin, "r", left, "r")
+    .cable(p.cin, "l", right, "l").cable(p.cin, "r", right, "r")
+    .cable(amt, "out1", left, "gain", 0.5).cable(amt, "out2", right, "gain", 0.5)
+    .cable(left, "l", p.cout, "l").cable(right, "r", p.cout, "r");
+  return p;
+}
+
+// Grains frozen into a drifting cloud under a long reverb.
+function frozenMoment() {
+  const p = cell("Frozen Moment", {
+    description: "A gate holds whatever the grains have just heard and spreads it into a slowly drifting, endless cloud under a deep reverb. Shared inputs Freeze, Mix and Drift.",
+    tags: ["freeze", "granular", "drone", "ambient", "texture"],
+    help: "Grains records the input into a buffer and plays it back as a soft cloud with generous blur. A Reverb " +
+      "follows with a long decay. When Freeze is high, the buffer stops recording and the cloud keeps playing " +
+      "what it holds.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. A gate into Freeze holds the moment; Mix is added to " +
+      "the Grains mix and Drift to its Texture knob, which changes how scattered the cloud is. The tail is long.\n\n" +
+      "Tip: play a chord, hold Freeze, then play something new over the drone.",
+  }).stereoIn().stereoOut().input("freeze", "Freeze", "gate").input("mix", "Mix").input("drift", "Drift")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 18 } });
+  const gr = p.add("grains", [1, 0], { size: 0.5, density: 0.55, texture: 0.4, spread: 0.7, pitch: 0, feedback: 0.15, blur: 0.6, mix: 0.6 });
+  const verb = p.add("reverb", [2, 0], { size: 0.8, decay: 6, damping: 0.4, modDepth: 0.3, mix: 0.3 });
   p.stereo(p.cin, gr).stereo(gr, verb).stereo(verb, p.cout)
-    .cable(p.cin, "mix", gr, "mix", 0.5).cable(p.cin, "mix", verb, "mix", 0.4)
-    .cable(p.cin, "freeze", gr, "freeze").cable(p.cin, "freeze", verb, "freeze");
+    .cable(p.cin, "freeze", gr, "freeze").cable(p.cin, "mix", gr, "mix", 0.5).cable(p.cin, "drift", gr, "texture", 0.5);
   return p;
 }
 
-// Short tape delay with wow and a slow LFO on its time: chorus and wobble.
-function wornTapeChorus() {
-  const p = cell("Worn Tape Chorus", {
-    description: "A short tape-style delay whose head drifts with wow, flutter and a slow LFO: warm chorus and seasick tape wobble. Shared input Depth.",
-    tags: ["chorus", "tape", "wobble", "lo-fi", "modulation"],
-    help: "A Zone Delay in its tape zone with a short time, light feedback and wobble. A slow LFO named Wow " +
-      "also moves the delay time, so the pitch drifts like a worn tape head. Half wet, it reads as chorus.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Depth input is added to the delay's Wobble " +
-      "knob: more means a seasick sway. It does not follow the transport.\n\n" +
-      "Tip: it suits electric piano, guitar and pads; raise Depth for lo-fi warble.",
-  }).stereoIn().stereoOut().input("depth", "Depth");
-  const lfo = p.add("lfo", [0, 1], { rate: 0.45 }, { name: "Wow" });
-  const dly = p.add("zone-delay", [1, 0], { zone: 2, time: 0.35, feedback: 0.12, character: 0.25, offset: 0.2,
-                                             wobble: 0.6, mix: 0.5, timechange: "Tape" });
-  p.stereo(p.cin, dly).stereo(dly, p.cout).cable(lfo, "sine", dly, "time", 0.04)
-    .cable(p.cin, "depth", dly, "wobble", 0.4);
+// Frequency shifter with feedback: metallic, bell-like spirals.
+function bellSpiral() {
+  const p = cell("Bell Spiral", {
+    description: "A frequency shifter whose echoes feed back through a delay, so each pass lifts the spectrum a little: inharmonic bell spirals that climb out of any note. Shared inputs Shift and Feedback.",
+    tags: ["frequency shifter", "spiral", "metallic", "bell", "experimental"],
+    help: "A Frequency Shifter moves the whole spectrum up by a fixed number of hertz, not by a musical interval, " +
+      "and feeds it back through a short delay. Every pass shifts again, so a plucked note turns into a " +
+      "spiral of inharmonic partials. Spread makes the two ears go in opposite directions.\n\n" +
+      "Patch a sound into In L/R and take Out L/R onwards. Shift is added to the shifter's Shift knob and " +
+      "Feedback to its Feedback knob. The tail rings for a while.\n\n" +
+      "Tip: use single plucks or drum hits, and keep Feedback below the point where it starts to sing on its own.",
+  }).stereoIn().stereoOut().input("shift", "Shift").input("fb", "Feedback")
+    .plays({ effect: { in: ["l", "r"], out: ["l", "r"], tail: 6 } });
+  const fs = p.add("freq-shifter", [1, 0], { shift: 0.2, fine: 0, feedback: 0.6, fbDelay: 0.3, spread: 0.6, mix: 0.45 });
+  p.stereo(p.cin, fs).stereo(fs, p.cout)
+    .cable(p.cin, "shift", fs, "shift", 0.2).cable(p.cin, "fb", fs, "feedback", 0.3);
   return p;
 }
 
-// A resonant ladder swept by a half-note triangle: tempo auto-filter.
-function halfNoteWah() {
-  const p = cell("Half-Note Wah", {
-    description: "A resonant tanh ladder swept up and down by a triangle locked to half notes: a tempo auto-filter for pads, chords and loops. Shared inputs Cutoff and Depth.",
-    tags: ["filter", "auto-filter", "tempo", "wah"],
-    help: "A Ladder Tanh filter with resonance and a touch of drive, with a triangle LFO locked to half notes " +
-      "sweeping its cutoff. A Multiplier named Depth scales the sweep before it reaches the cutoff.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. Cutoff is added to the filter cutoff, moving the " +
-      "centre of the sweep. Depth is added to the Multiplier's Y input, scaling how far the LFO sweeps. The " +
-      "LFO follows the transport tempo.\n\n" +
-      "Tip: put it on chords or a full drum loop and set Cutoff so the sweep opens on the downbeat.",
-  }).stereoIn().stereoOut().input("cut", "Cutoff").input("depth", "Depth");
-  const lfo = p.add("lfo", [0, 1], { wave: "Triangle", sync: "1/2" }, { name: "Sweep" });
-  const amt = p.add("multiplier", [1, 1], { biasy1: 0.6 }, { name: "Depth" });
-  const flt = p.add("filter", [1, 0], { cutoff: 900, resonance: 0.45, drive: 0.15, type: "Ladder Tanh" });
-  p.cable(lfo, "out", amt, "x1").cable(p.cin, "depth", amt, "y1", 0.4)
-    .stereo(p.cin, flt).cable(amt, "out1", flt, "cutoff", 0.4).cable(p.cin, "cut", flt, "cutoff", 0.5)
-    .stereo(flt, p.cout);
-  return p;
-}
-
-// Frequency shifter with one-sample feedback: the endless rising phaser.
-function barberPole() {
-  const p = cell("Barber Pole", {
-    description: "A frequency shifter with tight feedback: phaser notches that rise forever, turning in opposite directions in the two ears. Shared input Speed.",
-    tags: ["phaser", "barber-pole", "frequency shifter", "stereo"],
-    help: "A Frequency Shifter with strong feedback and a tiny fine shift. Each pass moves the spectrum a " +
-      "little more, so the phaser notches seem to rise forever. Spread is at maximum, so left and right " +
-      "shift in opposite directions.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Speed input is added to the shifter's Fine " +
-      "knob, so more Speed moves the notches faster. It does not follow the transport.\n\n" +
-      "Tip: best on sustained sounds with plenty of harmonics, like strings, pads or noise.",
-  }).stereoIn().stereoOut().input("speed", "Speed");
-  const fs = p.add("freq-shifter", [0, 0], { shift: 0, fine: 0.3, feedback: 0.7, fbDelay: 0, spread: 1, mix: 0.5, range: "±10 Hz" });
-  p.stereo(p.cin, fs).stereo(fs, p.cout).cable(p.cin, "speed", fs, "fine", 0.1);
-  return p;
-}
-
-// Bender shuffling sixteenth slices now and then, with octave jumps.
-function stutterEngine() {
-  const p = cell("Stutter Engine", {
-    description: "Bender catches sixteenth-note slices by chance and repeats, reverses and re-pitches them in octaves: seeded glitches that come back every loop. Shared inputs Chance and Glitch.",
-    tags: ["glitch", "stutter", "repeat", "tempo"],
-    help: "A Bender on 16th-note slices (Shuffle mode). At each slice there is a chance it is caught, repeated " +
-      "up to four times, reversed or bent in octaves. The seed makes the glitches repeat each loop. Slice " +
-      "timing follows the transport.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Chance input is added to the Chance knob. A " +
-      "trigger into Glitch forces an immediate glitch, for instance from a button or a clock.\n\n" +
-      "Tip: use it on drums or a rhythmic loop and raise Chance only for fills.",
-  }).stereoIn().stereoOut().input("chance", "Chance").input("glitch", "Glitch", "trigger");
-  const bd = p.add("bender", [0, 0], { sync: "1/16", chance: 0.2, repeats: 4, bend: 1, bendvar: 0.4,
-                                       slice: 0.3, mode: "Shuffle", bendsteps: "Octaves", edge: 0.8 });
-  p.stereo(p.cin, bd).stereo(bd, p.cout).cable(p.cin, "chance", bd, "chance", 0.5).cable(p.cin, "glitch", bd, "glitch");
-  return p;
-}
-
-// Soft folding, always-on bit corruption and a dull 1-pole: crunchy lo-fi.
-function bitRot() {
-  const p = cell("Bit Rot", {
-    description: "A touch of wavefolding, constant sample-rate and bit crushing and a dull low-pass: a worn, crunchy sampler sound. Shared input Grit.",
-    tags: ["lo-fi", "crush", "distortion", "saturation"],
-    help: "Three stages in a row: a Wavefolder with a small fold, a Bender in Crush mode with corruption always " +
-      "on (bit and sample-rate crushing), and a dull 1-pole low-pass at 4.5 kHz.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Grit input is added to the Wavefolder's Fold " +
-      "and to the Crusher's Corrupt knob together, so one control makes everything dirtier. It does not " +
-      "follow the transport.\n\n" +
-      "Tip: run a clean drum loop through it and push Grit for a worn sampler sound.",
-  }).stereoIn().stereoOut().input("grit", "Grit");
-  const fold = p.add("wavefolder", [0, 0], { fold: 0.18, symmetry: 0.1, mix: 0.6, source: "Input" });
-  const crush = p.add("bender", [1, 0], { chance: 0, corrupt: 0.35, corruptwhen: "Always", mode: "Crush" }, { name: "Crusher" });
-  const lp = p.add("filter", [2, 0], { cutoff: 4500, drive: 0.35, type: "Naive 1-Pole Low-pass" }, { name: "Dull" });
-  p.stereo(p.cin, fold).stereo(fold, crush).stereo(crush, lp).stereo(lp, p.cout)
-    .cable(p.cin, "grit", fold, "fold", 0.4).cable(p.cin, "grit", crush, "corrupt", 0.5);
-  return p;
-}
-
-// Ten band-passes tuned to a minor pentatonic, a window drifting across them.
-function pentatonicPrism() {
-  const p = cell("Pentatonic Prism", {
-    description: "Ten narrow band-passes tuned to C minor pentatonic, a slow window scanning across them: drums and noise turn into ringing, tuned chords. Shared input Scan.",
-    tags: ["filter bank", "resonant", "tuned", "spectral"],
-    help: "A Filter Bank with ten narrow band-passes tuned to C minor pentatonic. A slow LFO named Drift moves " +
-      "its Scan window across them, and odd and even bands go to different sides. Whatever you feed it " +
-      "comes out as ringing tuned chords.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Scan input is added to the Scan knob, moving " +
-      "the window yourself. The effect is 60 percent wet.\n\n" +
-      "Tip: it works best on drums, noise and other sounds with lots of broadband energy.",
-  }).stereoIn().stereoOut().input("scan", "Scan");
-  const lfo = p.add("lfo", [0, 1], { rate: 0.07 }, { name: "Drift" });
-  const fb = p.add("filter-bank", [1, 0], { tuning: "Scale", root: "C", scale: "Minor Pentatonic", q: 14,
-                                            width: 4, scan: 0.5, mix: 0.6, stereo: "Odd/Even split" });
-  p.stereo(p.cin, fb).stereo(fb, p.cout).cable(lfo, "sine", fb, "scan", 0.3).cable(p.cin, "scan", fb, "scan", 0.5);
-  return p;
-}
-
-// A sixteenth square chopping a VCA, softened edges: the trance gate.
-function sixteenthChopper() {
-  const p = cell("Sixteenth Chopper", {
-    description: "A VCA chopped on sixteenths by a synced square with softened edges: rhythmic trance gate for pads and drones. Shared input Depth.",
-    tags: ["gate", "tremolo", "rhythmic", "tempo"],
-    help: "A synced LFO square on 16ths, softened by a short slew, controls a VCA's gain. A Multiplier named " +
-      "Depth sets how much the square closes the gate, so the sound is chopped rhythmically into a trance " +
-      "gate.\n\n" +
-      "Patch a sound into In L/R and take Out L/R onwards. The Depth input is added to the Multiplier's Y " +
-      "input: higher means deeper chopping. The LFO follows the transport tempo.\n\n" +
-      "Tip: use it on a pad or drone and automate Depth for builds.",
-  }).stereoIn().stereoOut().input("depth", "Depth");
-  const lfo = p.add("lfo", [0, 1], { wave: "Square", sync: "1/16", polarity: "Unipolar", pw: 0.55 }, { name: "Chop" });
-  const soft = p.add("utility", [1, 1], { slew: 0.004 }, { name: "Soften" });
-  const amt = p.add("multiplier", [2, 1], { biasy1: 0.75 }, { name: "Depth" });
-  const vca = p.add("vca", [1, 0], { gain: 0.25, response: "Linear" });
-  p.cable(lfo, "out", soft, "x").cable(soft, "out", amt, "x1").cable(p.cin, "depth", amt, "y1", 0.25)
-    .stereo(p.cin, vca).cable(amt, "out1", vca, "gain").stereo(vca, p.cout);
-  return p;
-}
-
-export default category("Effects", "Stereo insert effects: patch In L/R from any sound and take Out L/R onwards.", [
-  cathedralHall, dubPingPong, shimmerCloud, wornTapeChorus, halfNoteWah, barberPole, stutterEngine, bitRot,
-  pentatonicPrism, sixteenthChopper,
+export default category("Effects", "Space, time and movement: reverbs, delays, choruses, phasers, shimmer and textures. Patch In L/R from any sound and take Out L/R onwards.", [
+  glassPlate, slapSmear, tripletBounce, scatterLab, lushEnsemble, hollowSwirl, octaveCloud, swayingAutoPan,
+  frozenMoment, bellSpiral,
 ]);

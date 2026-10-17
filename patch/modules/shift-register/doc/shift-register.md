@@ -90,11 +90,11 @@ Five whole patches show what Shift Register does. In the standalone app open **F
 
 | Patch | What it shows |
 |---|---|
-| **Shift Register: Locked Loop** | An eight-bit register in E minor pentatonic with Lock almost at 100 %: the melody repeats, and a very slow LFO lets it slip a note now and then before it settles again. Pull Lock down by hand to loosen it, or push it to the top to freeze the tune. |
-| **Shift Register: Canon Beat** | One sixteen-step pattern in the register, read at four places: the kick takes Bit 1, the clap Bit 3, the hats Bit 4 and a rim Bit 6, so the same rhythm echoes itself two, three and five steps later. Lower Lock to let the groove mutate, change Length for new cycles. |
-| **Shift Register: Rhythm Echo** | Source = Data: a little kick-and-snare pattern is fed into the register's Data input and comes back out of the bits as echoes that drive chimes and a pad of notes. Lock below 100 % corrupts the echoes, so the rhythm slowly drifts from its original. |
-| **Shift Register: Mirror Flip** | Lock at -100 % flips every returning bit, so the five-step pattern comes back inverted and the whole line repeats every ten steps. The Combo output (odd number of the chosen bits) rings a high bell, Voltage opens the filter. Move Lock towards the middle to hear the mirror blur. |
-| **Shift Register: Drifting Free Run** | Sync = Free: the register runs on its own Rate instead of the song tempo, and a slow LFO speeds it up and slows it down, over a whole-tone scale. A second LFO on Lock moves between frozen, mutating and random. Switch Sync to a note value to lock it back to the beat. |
+| **Shift Register: Frozen Eight-Note Loop** | Lock at its top position freezes the register, so its eight bits recycle forever as a fixed little melody in D minor pentatonic over two octaves. Change the seed or Length to get a different tune; Length 5 or 7 against the drums makes the melody drift against the beat. |
+| **Shift Register: Slowly Mutating Tune** | Lock sits just below frozen, so now and then a bit flips and the melody changes by a note or two instead of repeating exactly. A slow LFO nudges Lock between nearly frozen and quite loose; turn it down to hear the tune stay put, up to hear it wander. |
+| **Shift Register: Canon of Drums** | As the bits travel along the register, each bit output plays the same rhythm one step later than the one before, so a kick, snare, hat and clap echo one rhythm in canon. Change Length to reshape the pattern for all four at once, or Lock below the top to let it mutate. |
+| **Shift Register: Bits from a Data Input** | Source is set to Data, so the register is fed from a gate patched into its Data input, here a pair of square LFOs with different speeds mixed together. The register turns that slow on-off pattern into a lively stepped melody. Switch Source to Data ⊕ Loop to blend the old loop with the new input. |
+| **Shift Register: Weighted Mix Filter** | The Mix output adds the bits up with the Weight knobs, here as a stepped voltage that sweeps the cutoff of a filter on a held saw bass, while Voltage plays the pitches. Change Weight 1 to 3 to reshape the sweep, or set a weight negative to flip it. |
 <!-- /generated -->
 
 <!-- generated:presets -->

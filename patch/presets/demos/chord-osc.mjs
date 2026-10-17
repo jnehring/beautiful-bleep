@@ -4,116 +4,127 @@ import { patch, steps } from "../kit.mjs";
 import { beat } from "../demo-kit.mjs";
 
 function seq(p, at, notes, o = {}) {
-  return p.add("step-sequencer", at, { length: notes.length, rate: o.rate || "1/8", root: o.root || "A",
-    scale: o.scale || "Minor Pentatonic", octave: o.octave ?? 0, gatelength: o.gate ?? 0.5 }, { data: steps(notes, o.vel) });
+  return p.add("step-sequencer", at, { length: Math.min(32, notes.length), rate: o.rate || "1/4", root: o.root || "A",
+    scale: o.scale || "Minor Pentatonic", octave: o.octave ?? 0, gatelength: o.gate ?? 0.9 }, { data: steps(notes, o.vel), name: o.name || "Roots" });
 }
-/// Stereo oscillator → VCA with an ADSR from the sequencer gate. Returns the VCA.
-function amp(p, at, s, osc, adsr, from = ["outL", "outR"]) {
+/// Stereo source → VCA with an ADSR from the sequencer gate. Returns the VCA.
+function amp(p, at, s, src, adsr, from = ["l", "r"]) {
   const env = p.add("adsr", at, adsr, { name: "Amp Env" });
   const v = p.add("vca", [at[0] + 1, at[1]], {}, { name: "VCA" });
   p.cable(s, "gate", env, "gate").cable(s, "trigger", env, "retrig").cable(env, "env", v, "gain");
-  p.stereo(osc, v, { from });
+  p.stereo(src, v, { from });
   return v;
 }
 function room(p, at, src, o = {}) {
   if (o.trim !== undefined) {  // level trim through a mixer first
-    const m = p.add("audio-mixer", [at[0] - 1, at[1] + 1], { level1: o.trim, pan1: -1, level2: o.trim, pan2: 1, master: 0 }, { name: "Trim" });
+    const m = p.add("audio-mixer", [at[0] - 1, at[1] + 2], { level1: o.trim, pan1: -1, level2: o.trim, pan2: 1, master: 0 }, { name: "Trim" });
     p.cable(src, (o.from || ["l", "r"])[0], m, "in1l").cable(src, (o.from || ["l", "r"])[1], m, "in2r");
     src = m; o = { ...o, from: ["outl", "outr"] };
   }
-  const v = p.add("reverb", at, { size: 0.6, decay: 3, damping: 0.45, mix: o.mix ?? 0.35, quality: "Eco (8 lines)", ...o.v });
+  const v = p.add("reverb", at, { size: 0.6, decay: 3, damping: 0.45, mix: o.mix ?? 0.3, quality: "Eco (8 lines)", ...o.v });
   p.stereo(src, v, { from: o.from || ["l", "r"] }).stereo(v, p.out);
   return v;
 }
 
-
-function softPads() {
-  const p = patch("Chord Osc: Soft Minor Pads", {
-    module: "chord-osc", tempo: 68,
-    description: "A slow bass line plays the root and Chord Osc stacks a Minor 7 on it, spread with the Open voicing, a little Detune and Stereo, and Glide so each chord melts into the next. Try other Chord types, or Inversion for different voice leading.",
+function seventhPad() {
+  const p = patch("Chord Osc: Slow Seventh Pad", {
+    module: "chord-osc", tempo: 66,
+    description: "A slow bass line plays the root and Chord Osc stacks a minor seventh on it in the Open voicing, with a little Detune, wide Stereo and Glide so each chord melts into the next. Try other Chord types, change Voicing, or push Inversion up and down to hear the same chord from a different bass note.",
     tags: ["pad", "minor 7", "voicing", "glide"],
   });
-  const s = seq(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"],
-    { rate: "1/4", root: "A", octave: -1, scale: "Natural Minor" });
-  const o = p.add("chord-osc", [1, 0], { chord: "Minor 7", voicing: "Open", voices: 4, shape: 0.55, detune: 9, stereo: 0.8, glide: 0.35 });
-  const v = amp(p, [1, 1], s, o, { attack: 1.2, decay: 1, sustain: 0.9, release: 2.5 }, ["l", "r"]);
-  const lfo = p.add("lfo", [0, 1], { rate: 0.05 }, { name: "Slow Shape" });
-  p.cable(s, "pitch", o, "pitch").cable(lfo, "out", o, "shape", 0.3);
-  room(p, [3, 0], v, { trim: -6, mix: 0.4, v: { decay: 5 } });
-  return p;
-}
-
-function diatonicRun() {
-  const p = patch("Chord Osc: Diatonic Run", {
-    module: "chord-osc", tempo: 96,
-    description: "In Scale mode a plain melody becomes a chord progression: each note of the tune turns into the diatonic triad on that scale degree, changing exactly on the step through Latch. Change Root or Scale and the whole harmony follows.",
-    tags: ["scale", "progression", "latch", "harmony"],
-  });
-  const s = seq(p, [0, 0], [0, "_", 2, "_", 4, "_", 3, "_", 5, "_", 4, "_", 1, "_", 0, "_"], { rate: "1/4", root: "G", octave: 0, scale: "Major", gate: 0.9 });
-  const o = p.add("chord-osc", [1, 0], { mode: "Scale", key: "G", scale: "Major", stack: "Seventh", shape: 0.4, detune: 6, stereo: 0.7, glide: 0.08 });
-  const v = amp(p, [1, 1], s, o, { attack: 0.02, decay: 0.8, sustain: 0.5, release: 0.9 }, ["l", "r"]);
-  p.cable(s, "pitch", o, "pitch").cable(s, "trigger", o, "latch");
-  room(p, [3, 0], v, { trim: -2, mix: 0.3, v: { decay: 2.6 } });
-  return p;
-}
-
-function chordArp() {
-  const p = patch("Chord Osc: Chord Arpeggio", {
-    module: "chord-osc", tempo: 110,
-    description: "The four Pitch outputs carry the chord's tones; a Switch steps through them on every sixteenth and plays an oscillator, so the arpeggio follows whatever chord Chord Osc is holding, while the full chord hums underneath. Change Chord or Voicing to re-voice the arpeggio.",
-    tags: ["arpeggio", "pitch outputs", "switch", "chord"],
-  });
-  const s = seq(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_"], { rate: "1/4", root: "D", octave: -1, scale: "Natural Minor", gate: 1 });
-  const o = p.add("chord-osc", [1, 0], { chord: "Minor 9", voicing: "Drop 2", voices: 4, shape: 0.3, detune: 5, stereo: 0.9, glide: 0 });
-  const sw = p.add("switch", [2, 1], { length: 4, rate: "1/16", fade: 0.002 });
-  const ao = p.add("oscillator", [3, 1], { shape: 0.75, octave: "+1" }, { name: "Arp Voice" });
-  const env = p.add("adsr", [3, 2], { attack: 0.002, decay: 0.16, sustain: 0, release: 0.1 }, { name: "Pluck" });
-  const av = p.add("vca", [4, 1], {}, { name: "Arp VCA" });
-  const clk = p.add("random", [2, 2], { rate: 4, sync: "1/16", spread: 0 }, { name: "16th Clock" });
+  const s = seq(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_"], { rate: "1/2", root: "A", octave: -1, scale: "Natural Minor" });
+  const o = p.add("chord-osc", [1, 0], { chord: "Minor 7", voicing: "Open", voices: 4, shape: 0.5, detune: 9, stereo: 0.8, glide: 0.35, rootLevel: 0.8 });
   p.cable(s, "pitch", o, "pitch");
-  [1, 2, 3, 4].forEach((i) => p.cable(o, "p" + i, sw, "in" + i));
-  p.cable(sw, "out", ao, "pitch").cable(clk, "trig", env, "retrig").cable(clk, "trig", env, "gate").cable(ao, "out", av, "l").cable(env, "env", av, "gain");
-  const mix = p.add("audio-mixer", [5, 0], { level1: -16, pan1: -1, level2: -16, pan2: 1, level3: -8, pan3: 0.1, master: 0 }, { name: "Mix" });
-  p.cable(o, "l", mix, "in1l").cable(o, "r", mix, "in2r").cable(av, "l", mix, "in3l");
-  room(p, [6, 0], mix, { from: ["outl", "outr"], mix: 0.28, v: { decay: 2.2 } });
+  const v = amp(p, [1, 1], s, o, { attack: 1.0, decay: 1, sustain: 0.9, release: 2.0 });
+  const lfo = p.add("lfo", [0, 1], { rate: 0.05 }, { name: "Slow Shape" });
+  p.cable(lfo, "out", o, "shape", 0.3);
+  room(p, [3, 0], v, { trim: -11, v: { size: 0.8, decay: 6, mix: 0.4 } });
   return p;
 }
 
-function offbeatStabs() {
-  const p = patch("Chord Osc: Offbeat Stabs", {
+function diatonic() {
+  const p = patch("Chord Osc: Chords From a Melody", {
+    module: "chord-osc", tempo: 96,
+    description: "In Scale mode every note of a simple melody becomes the diatonic chord on that scale degree: major, minor and diminished triads appear by themselves in C major. The melody's trigger is patched into Latch so chords change exactly on the step. Change Scale or Root to re-colour the tune, or set the stack to Seventh.",
+    tags: ["scale mode", "progression", "latch", "diatonic"],
+  });
+  const m = seq(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", 1, "_", 4, "_", 2, "_"], { rate: "1/4", root: "C", scale: "Major", octave: 0, name: "Melody" });
+  const o = p.add("chord-osc", [1, 0], { mode: "Scale", key: "C", scale: "Major", stack: "Triad", voicing: "Drop 2", voices: 4, shape: 0.35, detune: 6, stereo: 0.6, glide: 0.04 });
+  p.cable(m, "pitch", o, "pitch").cable(m, "trigger", o, "latch");
+  const v = amp(p, [1, 1], m, o, { attack: 0.02, decay: 0.6, sustain: 0.35, release: 0.6 });
+  const d = beat(p, [0, 2], { style: "half", level: -10 });
+  const mix = p.add("audio-mixer", [3, 0], { level1: 2, pan1: -1, level2: 2, pan2: 1, level3: -2, level4: -2, master: 0 }, { name: "Mix" });
+  p.cable(v, "l", mix, "in1l").cable(v, "r", mix, "in2r").cable(d, "outl", mix, "in3l").cable(d, "outr", mix, "in3r");
+  room(p, [4, 0], mix, { from: ["outl", "outr"], mix: 0.22 });
+  return p;
+}
+
+function stabs() {
+  const p = patch("Chord Osc: Bass and Stabs", {
     module: "chord-osc", tempo: 122,
-    description: "Short dominant-ninth stabs on the off-beats, voiced Drop 2 with a squarer Shape and a snappy envelope, over a four-on-the-floor beat. Try Dominant 7, Quartal or a higher Inversion for a different punch.",
-    tags: ["stabs", "dance", "dominant", "rhythm"],
+    description: "One Chord Osc is two instruments: its Root output, filtered and sub-heavy, is the bassline, and the chord itself plays short offbeat stabs on top (Root Level lowered so they do not double the bass). Try Dominant 9 or Minor add9 in Chord, or open the stab filter.",
+    tags: ["bass", "stabs", "root output", "dance"],
   });
-  const s = seq(p, [0, 0], [".", ".", 0, ".", ".", ".", 0, ".", ".", ".", 5, ".", ".", ".", 3, 7], { rate: "1/8", root: "C", octave: 0, scale: "Minor Pentatonic", gate: 0.35, vel: [100] });
-  const o = p.add("chord-osc", [1, 0], { chord: "Dominant 9", voicing: "Drop 2", voices: 5, shape: 0.85, detune: 12, stereo: 0.7, inversion: 1 });
-  const v = amp(p, [1, 1], s, o, { attack: 0.003, decay: 0.2, sustain: 0.05, release: 0.12 }, ["l", "r"]);
-  const lp = p.add("filter", [3, 1], { cutoff: 1500, resonance: 0.25 }, { name: "Stab Filter" });
-  const lfo = p.add("lfo", [3, 2], { rate: 0.12, wave: "Triangle" }, { name: "Open" });
-  p.cable(s, "pitch", o, "pitch").stereo(v, lp).cable(lfo, "out", lp, "cutoff", 0.4);
-  const drums = beat(p, [0, 3], { style: "four", level: -8 });
-  const mix = p.add("audio-mixer", [4, 0], { level1: 1, pan1: -1, level2: 1, pan2: 1, level3: 0, level4: 0, master: 0 }, { name: "Main" });
-  p.cable(lp, "l", mix, "in1l").cable(lp, "r", mix, "in2r").cable(drums, "outl", mix, "in3l").cable(drums, "outr", mix, "in4r");
-  room(p, [5, 0], mix, { from: ["outl", "outr"], mix: 0.15, v: { decay: 1.4 } });
+  const s = seq(p, [0, 0], [0, 0, ".", 0, 0, ".", 3, ".", 0, 0, ".", 5, 0, ".", 7, "."], { rate: "1/8", root: "F", scale: "Dorian", octave: -1, gate: 0.6 });
+  const o = p.add("chord-osc", [1, 0], { chord: "Minor 9", voicing: "Drop 2", voices: 4, shape: 0.9, detune: 10, stereo: 0.7, rootLevel: 0.3 });
+  p.cable(s, "pitch", o, "pitch");
+  const bass = p.add("filter", [2, 0], { cutoff: 380, resonance: 0.3, type: "Ladder Tanh", drive: 0.3 }, { name: "Bass Filter" });
+  const benv = p.add("adsr", [2, 1], { attack: 0.003, decay: 0.2, sustain: 0.5, release: 0.08 }, { name: "Bass Env" });
+  const bamp = p.add("vca", [3, 0], {}, { name: "Bass VCA" });
+  p.cable(o, "root", bass, "l").cable(s, "gate", benv, "gate").cable(s, "trigger", benv, "retrig").cable(bass, "l", bamp, "l").cable(benv, "env", bamp, "gain");
+  // stabs: the same chord, gated on the off-beats by their own sequencer
+  const g = seq(p, [0, 1], [".", 0, ".", ".", ".", 0, ".", 0], { rate: "1/8", root: "F", scale: "Dorian", octave: 0, gate: 0.25, name: "Stab Rhythm" });
+  const stabEnv = p.add("adsr", [0, 2], { attack: 0.004, decay: 0.18, sustain: 0.0, release: 0.12 }, { name: "Stab Env" });
+  const sv = p.add("vca", [1, 2], {}, { name: "Stab VCA" });
+  const sf = p.add("filter", [2, 2], { cutoff: 2600, resonance: 0.25 }, { name: "Stab Filter" });
+  p.cable(g, "gate", stabEnv, "gate").cable(g, "trigger", stabEnv, "retrig").cable(stabEnv, "env", sv, "gain").stereo(o, sv).stereo(sv, sf);
+  const d = beat(p, [0, 3], { style: "four", level: -9 });
+  const mix = p.add("audio-mixer", [4, 0], { level1: 0, level2: -3, pan2: -1, level3: -3, pan3: 1, level4: -4, master: 0 }, { name: "Mix" });
+  p.cable(bamp, "l", mix, "in1l").cable(sf, "l", mix, "in2l").cable(sf, "r", mix, "in3r").cable(d, "outl", mix, "in4l").cable(d, "outr", mix, "in4r");
+  p.stereo(mix, p.out, { from: ["outl", "outr"] });
   return p;
 }
 
-function fmChoir() {
-  const p = patch("Chord Osc: FM Quartal Glow", {
-    module: "chord-osc", tempo: 78,
-    description: "Pure sine voices stacked in fourths, with a low oscillator in the FM input and FM Depth moved by a slow LFO: the chord shimmers between smooth and metallic. Turn Detune and Stereo up for a wider glow.",
-    tags: ["fm", "quartal", "evolving", "sine"],
+function arpFromChord() {
+  const p = patch("Chord Osc: Chord Tone Arp", {
+    module: "chord-osc", tempo: 104,
+    description: "The four Pitch outputs carry the chord tones from low to high; a Switch steps through them every sixteenth to play an arpeggio on a separate oscillator that always follows the chord. The pad underneath plays the whole chord. Change the Chord, or the Inversion, and the arpeggio changes with it.",
+    tags: ["arpeggio", "pitch outputs", "switch", "voice leading"],
   });
-  const s = seq(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 2, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_", 3, "_", "_", "_", "_", "_", "_", "_"],
-    { rate: "1/4", root: "E", octave: -1, scale: "Minor Pentatonic", gate: 1 });
-  const o = p.add("chord-osc", [1, 0], { chord: "Quartal", shape: 0, voices: 4, detune: 14, stereo: 1, glide: 0.4, fm: 0.25 });
-  const mod = p.add("oscillator", [0, 1], { shape: 0, octave: "-2", coarse: 7 }, { name: "FM Source" });
-  const v = amp(p, [1, 1], s, o, { attack: 1.5, decay: 1, sustain: 0.9, release: 3 }, ["l", "r"]);
-  const lfo = p.add("lfo", [0, 2], { rate: 0.07, polarity: "Unipolar" }, { name: "Metal Amount" });
-  const gate = p.add("vca", [1, 2], {}, { name: "FM Amount" });
-  p.cable(s, "pitch", o, "pitch").cable(s, "pitch", mod, "pitch").cable(mod, "out", gate, "l").cable(lfo, "out", gate, "gain", 0.5).cable(gate, "l", o, "fm");
-  room(p, [3, 0], v, { trim: -12, mix: 0.4, v: { decay: 5.5 } });
+  const s = seq(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 4, "_", "_", "_"], { rate: "1/4", root: "E", scale: "Natural Minor", octave: -1 });
+  const o = p.add("chord-osc", [1, 0], { chord: "Minor 7", voicing: "Close", voices: 4, shape: 0.2, detune: 4, stereo: 0.5, glide: 0.1 });
+  p.cable(s, "pitch", o, "pitch");
+  const padv = amp(p, [1, 1], s, o, { attack: 0.4, decay: 1, sustain: 0.8, release: 1.2 });
+  const sw = p.add("switch", [2, 1], { fade: 0.002 }, { name: "Chord Tone" });
+  ["p1", "p2", "p3", "p4"].forEach((j, i) => p.cable(o, j, sw, `in${i + 1}`));
+  const clk = p.add("step-sequencer", [0, 2], { length: 1, rate: "1/16", root: "C", gatelength: 0.4 }, { data: steps([0]), name: "Arp Clock" });
+  const osc = p.add("oscillator", [3, 1], { shape: 0.7, octave: "+1" }, { name: "Arp Voice" });
+  const env = p.add("adsr", [3, 2], { attack: 0.003, decay: 0.15, sustain: 0.0, release: 0.1 }, { name: "Arp Env" });
+  const av = p.add("vca", [4, 1], {}, { name: "Arp VCA" });
+  p.cable(clk, "trigger", sw, "step").cable(sw, "out", osc, "pitch").cable(clk, "gate", env, "gate").cable(clk, "trigger", env, "retrig")
+    .cable(osc, "out", av, "l").cable(env, "env", av, "gain");
+  const mix = p.add("audio-mixer", [4, 0], { level1: -2, pan1: -0.6, level2: -2, pan2: 0.6, level3: -2, pan3: 0.2, master: -8 }, { name: "Mix" });
+  p.cable(padv, "l", mix, "in1l").cable(padv, "r", mix, "in2r").cable(av, "l", mix, "in3l");
+  room(p, [5, 0], mix, { from: ["outl", "outr"], mix: 0.3 });
   return p;
 }
 
-export default [softPads, diatonicRun, chordArp, offbeatStabs, fmChoir];
+function glassFifths() {
+  const p = patch("Chord Osc: Quartal Glass", {
+    module: "chord-osc", tempo: 72,
+    description: "Five voices stacked in fourths with the Wide voicing, near-sine waves and slow Detune make a cool, open sound with no clear major or minor. A slow LFO sweeps the Inversion, so the bass note of the chord keeps changing. Switch Chord to Sus2 or Add9 for a warmer cloud.",
+    tags: ["quartal", "wide", "inversion", "ambient"],
+  });
+  const s = seq(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], { rate: "1/2", root: "D", scale: "Dorian", octave: -1 });
+  const o = p.add("chord-osc", [1, 0], { chord: "Quartal", voicing: "Wide", voices: 5, shape: 0.12, detune: 14, stereo: 1, glide: 0.8 });
+  p.cable(s, "pitch", o, "pitch");
+  const sl = p.add("lfo", [1, 2], { rate: 0.06, wave: "Triangle" }, { name: "Inversion" });
+  p.cable(sl, "out", o, "inversion", 0.5);
+  const v = amp(p, [1, 1], s, o, { attack: 2, decay: 1, sustain: 1, release: 3 });
+  const ch = p.add("chorus", [3, 1], { rate: 0.3, depth: 0.4, mix: 0.4 }, { name: "Shimmer" });
+  p.stereo(v, ch);
+  room(p, [4, 0], ch, { trim: -11, v: { size: 0.9, decay: 9, mix: 0.45 } });
+  return p;
+}
+
+export default [seventhPad, diatonic, stabs, arpFromChord, glassFifths];

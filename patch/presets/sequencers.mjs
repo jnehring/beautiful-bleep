@@ -13,16 +13,26 @@ function notesOut(p, node, jacks = {}) {
   return p;
 }
 
-/// Polymeter Seq track as PolymeterSequencerModule's sanitiseData writes it.
-function polyTrack(values, div = "1", dir = "fwd") {
-  const neutral = { trig: 1, note: 0, oct: 0, gate: 50, prob: 100, ratch: 1 };
-  return (key) => {
-    const steps = [];
-    for (let i = 0; i < 64; i++) {
-      const v = i < values.length ? values[i] : neutral[key];
-      steps.push(key === "ratch" ? (Array.isArray(v) ? v : [v, 0]) : v);
+/// Gate Sequencer data: up to four 32-step tracks as strings. `.` off, `x` hit, `X` accent, `o` ghost,
+/// `?` coin-flip hit, `2`/`3` ratchets, `!` hit only while Fill is held, `-` hit only while Fill is NOT held.
+function gateTracks(rows) {
+  const step = (ch) => {
+    const s = { on: 0, p: 100, l: 50, t: 0, r: 1, rs: 0, n: 0, c: [0, 0], v: 100 };
+    switch (ch) {
+      case "x": Object.assign(s, { on: 1, v: 96 }); break;
+      case "X": Object.assign(s, { on: 1, v: 124 }); break;
+      case "o": Object.assign(s, { on: 1, v: 48 }); break;
+      case "?": Object.assign(s, { on: 1, p: 45, v: 80 }); break;
+      case "2": Object.assign(s, { on: 1, r: 2, v: 90 }); break;
+      case "3": Object.assign(s, { on: 1, r: 3, rs: 1, v: 90 }); break;
+      case "!": Object.assign(s, { on: 1, v: 110, c: [4, 0] }); break;
+      case "-": Object.assign(s, { on: 1, v: 96, c: [5, 0] }); break;
+      default: break;
     }
-    return { len: values.length, lo: 0, hi: values.length - 1, div, dir, mute: false, steps };
+    return s;
+  };
+  return {
+    tracks: [0, 1, 2, 3].map((t) => ({ mute: false, steps: [...(rows[t] || "").padEnd(32, ".")].slice(0, 32).map(step) })),
   };
 }
 
@@ -36,7 +46,7 @@ function stageData(list) {
   };
 }
 
-/// Cartesian Seq grid: rows of cells (strings of "pitch" numbers, "." rest, "_" tie), 8 × 8, row-major.
+/// Cartesian Seq grid: rows of cells (numbers = semitones, "." rest, "_" tie), 8 × 8, row-major.
 function cartData(rows, vel = [112, 84, 96, 84]) {
   const cells = [];
   for (let r = 0; r < 8; r++)
@@ -47,256 +57,277 @@ function cartData(rows, vel = [112, 84, 96, 84]) {
       else if (typeof v === "number") Object.assign(cellv, { g: 1, p: v });
       cells.push(cellv);
     }
-  // A tie holds the previous cell's pitch.
   for (let i = 1; i < cells.length; i++) if (cells[i].g === 2) cells[i].p = cells[i - 1].p;
   return { cells, randomize: { density: 0.6, octaves: 1, skip: 0, velocity: [0.6, 1] } };
 }
 
 // ------------------------------------------------------------ presets
 
-// A 16-step acid line in A Phrygian: slides from ties, accents from velocity.
-function acidSermon() {
-  const p = cell("Acid Sermon", {
-    description: "A 16-step A Phrygian acid line with ties for slides and loud accents: play a mono Voice Cell with Legato and Glide. Shared inputs Transpose and Reset.",
-    tags: ["sequencer", "acid", "bass", "step sequencer", "phrygian"],
-    help: "A Step Sequencer with 16 steps in A Phrygian, two octaves down. Ties hold a note into the next step " +
-      "and the louder steps carry high velocity, so accents come from the pattern itself. Gate length is 55 " +
-      "percent with a little swing.\n\n" +
-      "Patch Notes into a Voice Cell set to one voice, Legato mode and some Glide: the ties then become " +
-      "slides. Pitch and Gate outputs are there if you want to drive your own oscillator and envelope. " +
-      "Transpose shifts the whole line; a trigger into Reset restarts it. It follows the transport unless " +
-      "you patch Clock.\n\n" +
-      "Tip: send Notes to a resonant filtered voice and move Transpose by a few semitones between sections.",
+// A swung triplet gallop on an E minor bass: three-note figures, one octave jump each beat.
+function tripletGallop() {
+  const p = cell("Triplet Gallop", {
+    description: "A twelve-step triplet bass figure in E minor that gallops root, root, octave: play a short, punchy bass Voice Cell for driving metal and electro-rock lines. Shared inputs Transpose and Reset.",
+    tags: ["sequencer", "bass", "triplet", "gallop", "driving"],
+    help: "A Step Sequencer with twelve steps on triplet eighths in E natural minor, three octaves down from the " +
+      "middle. Every beat is a gallop: root, root, octave, and the last beat climbs through the fifth and the " +
+      "seventh. The first note of each group is accented, the others ride lower.\n\n" +
+      "Patch Notes into a Voice Cell set to one voice with a short decay; Pitch and Gate are there if you " +
+      "would rather drive your own oscillator and envelope. A pitch into Transpose changes the key, a " +
+      "trigger into Reset restarts the figure. It follows the transport unless you patch Clock.\n\n" +
+      "Tip: distortion after a sawtooth bass makes it sound like a charging bass guitar.",
   }).input("tr", "Transpose", "pitch").input("rst", "Reset", "trigger");
-  const seq = p.add("step-sequencer", [1, 1], { gatelength: 0.55, swing: 0.52, root: "A", scale: "Phrygian", octave: -2 }, {
-    data: steps([0, 0, 12, "_", 1, 0, ".", 7, 0, 12, ".", 3, "_", 0, 10, 1],
-                [127, 80, 110, 80, 90, 80, 80, 127, 80, 110, 80, 127, 80, 80, 110, 90]),
+  const seq = p.add("step-sequencer", [1, 1], { length: 12, rate: "1/8T", gatelength: 0.45, root: "E", scale: "Natural Minor", octave: -2 }, {
+    data: steps([0, 0, 12, 0, 0, 12, 0, 0, 12, 7, 7, 10], [124, 72, 96]),
   });
   p.cable(p.cin, "tr", seq, "transpose").cable(p.cin, "rst", seq, "reset");
   return notesOut(p, seq, { pitch: "pitch", gate: "gate" });
 }
 
-// A two-bar bassline that jumps octaves and moves to the sixth in bar two.
-function octaveBounce() {
-  const p = cell("Octave Bounce", {
-    description: "A two-bar E minor bassline bouncing between octaves, moving to C in the second bar: disco and house bass. Shared input Transpose follows a key change or a chord sequencer.",
-    tags: ["sequencer", "bass", "octave", "house", "disco"],
-    help: "A 32-step Step Sequencer in E natural minor, two octaves down. The line alternates a note with its " +
-      "octave above; in the second bar it moves up to C with the same bounce. Gates are short (35 percent) " +
-      "with a slight swing, and the velocities accent every other step.\n\n" +
-      "Patch Notes into a Voice Cell for a house or disco bass; Pitch and Gate outputs are also available. " +
-      "Transpose follows a key change, for instance from a chord sequencer or a Quantizer. It follows the " +
-      "transport unless you patch Clock.\n\n" +
-      "Tip: a short decay on the bass voice keeps the bounce tight.",
-  }).input("tr", "Transpose", "pitch");
-  const seq = p.add("step-sequencer", [1, 1], { gatelength: 0.35, swing: 0.54, length: 32, root: "E", scale: "Natural Minor",
-                                                octave: -2 }, {
-    data: steps([0, 12, 0, 12, 0, 12, 0, 12, 0, 12, 0, 12, 3, 15, 5, 17,
-                 8, 20, 8, 20, 8, 20, 8, 20, 7, 19, 7, 19, 10, 22, 10, 12],
-                [120, 90, 110, 90]),
+// Eight notes of C major pentatonic played up and back, with a little random variation.
+function pendulumClimb() {
+  const p = cell("Pendulum Climb", {
+    description: "Eight C major pentatonic notes played up and back again in eighths, with a Variation input that nudges random steps by an octave: a bright climbing figure for a pluck or a bell voice.",
+    tags: ["sequencer", "pentatonic", "ping-pong", "melodic", "variation"],
+    help: "A Step Sequencer with eight steps in C major pentatonic, running in Ping-Pong direction: up the " +
+      "scale and back down without repeating the end notes. The Variation knob lets random steps jump by up " +
+      "to an octave and a half; at zero the figure is exactly the same every time.\n\n" +
+      "Patch Notes into a Voice Cell with a pluck, bell or mallet sound. The Variation input is added to the " +
+      "Variation knob, so a slow LFO or a dial brings the figure to life, and a pitch into Transpose moves " +
+      "the key. It follows the transport unless you patch Clock.\n\n" +
+      "Tip: raise Variation only during the last bar of a phrase for a spontaneous fill.",
+  }).input("var", "Variation").input("tr", "Transpose", "pitch");
+  const seq = p.add("step-sequencer", [1, 1], { length: 8, rate: "1/8", direction: "Ping-Pong", gatelength: 0.6, variation: 0.1,
+                                                varrange: 12, root: "C", scale: "Major Pentatonic", octave: 0 }, {
+    data: steps([0, 2, 4, 7, 9, 12, 14, 16], [112, 84, 92, 84, 100, 84, 92, 84]),
   });
-  p.cable(p.cin, "tr", seq, "transpose");
+  p.cable(p.cin, "var", seq, "variation", 0.6).cable(p.cin, "tr", seq, "transpose");
   return notesOut(p, seq, { pitch: "pitch", gate: "gate" });
 }
 
-// A Harmony Master progression on Bus D, played as sustained seventh chords.
-function nightDriveChanges() {
-  const p = cell("Night Drive Changes", {
-    description: "Harmony Master plays Am7 – Fmaj7 – Cmaj7 – G7, two bars each, as sustained chords (and the chord root on Root) on harmony Bus D. Shared inputs Transpose and Reset.",
-    tags: ["sequencer", "chords", "progression", "harmony", "pads"],
-    help: "A Harmony Master in Progression mode plays Am7, Fmaj7, Cmaj7 and G7, two bars each, as seventh " +
-      "chords one octave down. It also publishes the chord on harmony Bus D, so modules set to follow Bus D " +
-      "hear the same changes.\n\n" +
-      "Patch Notes into a polyphonic Voice Cell (a pad or keys) to play the chords. The Root output carries " +
-      "the chord root as pitch: patch it into a bass voice. A pitch into Transpose moves the key; a trigger " +
-      "into Reset returns to the first chord. It follows the transport unless you patch Clock.\n\n" +
-      "Tip: give the pad voice a slow attack and release for sustained chords.",
-  }).input("tr", "Transpose", "pitch").input("rst", "Reset", "trigger");
-  const hm = p.add("harmony-master", [1, 1], { source: "Progression", key: "A", scale: "Natural Minor",
-                                              quality: "Diatonic Seventh", velocity: 0.6, octave: -1, bus: "D" }, {
-    data: { slots: [1, 6, 3, 7].map((deg) => ({ deg, q: "diatonic-seventh", len: 8 })) },
+// Root notes sampled by a chord quantizer: syncopated minor seventh stabs.
+function offbeatStabs() {
+  const p = cell("Offbeat Stabs", {
+    description: "Short syncopated A Dorian chord stabs: a Step Sequencer fires root notes that a Chord Quantizer turns into smooth-voiced seventh chords. Play a keys or organ Voice Cell. Shared inputs Transpose and Strum.",
+    tags: ["sequencer", "chords", "stabs", "dorian", "keys"],
+    help: "A Step Sequencer places root notes on the off-beats of a bar in A Dorian. A Chord Quantizer in " +
+      "Diatonic mode turns every root into a four-note seventh chord from the same scale, voiced Drop 2 with " +
+      "voice leading so neighbouring chords move as little as possible.\n\n" +
+      "Patch Notes into a polyphonic Voice Cell (electric piano, organ or a short synth chord) and keep the " +
+      "release short. Root carries the chord root as a pitch for a bass voice. The Strum input is added to " +
+      "the Strum time, spreading each chord into a quick roll, and a pitch into Transpose changes the key. " +
+      "It follows the transport unless you patch Clock.\n\n" +
+      "Tip: play the Root output on a bass voice an octave down to get the whole rhythm section.",
+  }).input("tr", "Transpose", "pitch").input("strum", "Strum");
+  const seq = p.add("step-sequencer", [0, 1], { length: 16, rate: "1/16", gatelength: 0.3, swing: 0.55, root: "A", scale: "Dorian", octave: -1 }, {
+    data: steps([".", ".", 0, ".", ".", ".", 0, ".", ".", ".", 5, ".", ".", ".", 3, 7], [110, 90, 120, 90]),
   });
-  p.cable(p.cin, "tr", hm, "transpose").cable(p.cin, "rst", hm, "reset");
-  notesOut(p, hm);
-  p.output("root", "Root", "pitch").cable(hm, "root", p.cout, "root");
+  const cq = p.add("chord-quantizer", [1, 1], { mode: "Diatonic", root: "A", scale: "Dorian", stack: "Seventh", voicing: "Drop 2",
+                                               lead: "Smooth", velocity: 0.75, strum: 0.01 });
+  p.cable(p.cin, "tr", seq, "transpose").cable(p.cin, "strum", cq, "strum", 0.4)
+    .cable(seq, "pitch", cq, "pitch").cable(seq, "trigger", cq, "trig").cable(seq, "gate", cq, "gate");
+  notesOut(p, cq);
+  p.output("root", "Root", "pitch").cable(cq, "root", p.cout, "root");
   return p;
 }
 
-// The chord roots of a Dorian progression arpeggiated in 16ths over two octaves.
-function cascadeArp() {
-  const p = cell("Cascade Arp", {
-    description: "A D Dorian progression (Dm – G – Dm – C) from Harmony Master on Bus D, arpeggiated by Quantizer Suite as seventh chords over two octaves, up and down in 16ths.",
-    tags: ["sequencer", "arpeggio", "arp", "dorian", "harmony"],
-    help: "A Harmony Master walks D Dorian chords (Dm, G, Dm, C, four beats each) on Bus D. Its chord root " +
-      "feeds a Quantizer Suite in Arp mode, which arpeggiates seventh chords over two octaves, up and down, " +
-      "from the transport.\n\n" +
-      "Patch Notes into any Voice Cell; the Pitch output carries the arpeggio as pitch too, but there is no " +
-      "Gate output. A pitch into Transpose shifts the chord progression. Follows the transport unless you " +
-      "patch Clock.\n\n" +
-      "Tip: a plucky voice with a short decay shows the chord changes best.",
-  }).input("tr", "Transpose", "pitch");
-  const hm = p.add("harmony-master", [0, 1], { source: "Progression", key: "D", scale: "Dorian", octave: -1, bus: "D" }, {
-    data: { slots: [1, 4, 1, 7].map((deg) => ({ deg, q: "diatonic-triad", len: 4 })) },
+// Held notes in, an arpeggio out: converging from the outside to the middle over three octaves.
+function convergingArp() {
+  const p = cell("Converging Arp", {
+    description: "Hold a chord on a keyboard and it plays the notes from the outside in over three octaves, with latch on so you can let go: patch a Keyboard or the host's MIDI into Notes and the output into any Voice Cell.",
+    tags: ["sequencer", "arpeggio", "arp", "latch", "keys"],
+    help: "An Arpeggiator in Converge pattern over three octaves on sixteenth notes, with swing and Latch on: " +
+      "it alternates between the lowest and the highest held note and moves toward the middle, so a chord " +
+      "folds in on itself. With Latch on, it keeps playing after you release the keys until you play a new " +
+      "chord.\n\n" +
+      "Patch a Keyboard (or the host's MIDI notes) into the Notes input, and the Notes output into a Voice " +
+      "Cell. Pitch and Gate are there too. A trigger into Reset restarts the pattern. It follows the " +
+      "transport unless you patch Clock.\n\n" +
+      "Tip: play a four-note chord and change it every bar for a pulsing, ever-shifting texture.",
+  }).input("notes", "Notes", "notes").input("rst", "Reset", "trigger");
+  const arp = p.add("arpeggiator", [1, 1], { rate: "1/16", pattern: "Converge", octaves: 3, latch: "On", gatelength: 0.55, swing: 0.54 });
+  p.cable(p.cin, "notes", arp, "notes").cable(p.cin, "rst", arp, "reset");
+  return notesOut(p, arp, { pitch: "pitch", gate: "gate" });
+}
+
+// A four-lane Gate Sequencer: kick, snare, hat and an odd-length open-hat lane, with fill steps.
+function ratchetDrums() {
+  const p = cell("Ratchet Drums", {
+    description: "A four-lane drum pattern with ratcheted hats, ghost notes and a fill that appears while its input is held: patch Notes into a drum machine's MIDI input or each Gate into a drum voice. Shared inputs Fill and Hat Mute.",
+    tags: ["sequencer", "drums", "ratchet", "fill", "gate sequencer"],
+    help: "A Gate Sequencer with four lanes at sixteenth notes: kick, snare, closed hat and an open-hat lane " +
+      "that is twelve steps long and so drifts against the other three. The hats ratchet in places, the " +
+      "snare has a ghost note and the kick has coin-flip hits. While Fill is held, extra snare hits " +
+      "appear and some kicks drop out.\n\n" +
+      "Notes carries all four lanes as General MIDI drum notes (kick, snare, closed and open hat): patch it " +
+      "into a drum machine cell's Notes input. Or use the Kick, Snare, Hat and Open gates on single drum " +
+      "voices. A gate into Fill adds the fill, a gate into Hat Mute silences the hats. It follows the " +
+      "transport unless you patch Clock.\n\n" +
+      "Tip: hold Fill on the last bar of every four for a turnaround.",
+  }).input("fill", "Fill", "gate").input("mute", "Hat Mute", "gate");
+  const seq = p.add("gate-sequencer", [1, 1], { swing: 0.55, ratchetdecay: 0.4, length4: 12, dice: "Repeat every 4", seed: 9, chance2: 1 }, {
+    data: gateTracks([
+      "X..-.?..x.-.x..-X...-.?..x.?x.-.",
+      "....X...o...X...-...X..o-...X..!",
+      "x.x.x.x.x.x.x.x2x.x.x.x.x.x2x.x3",
+      "..o...?...o.....",
+    ]),
   });
-  const arp = p.add("quantizer-suite", [1, 1], {
-    "a.mode": "Arp", "a.root": "D", "a.scale": "Dorian", "a.chord": "Seventh", "a.span": 2, "a.order": "Up-Down",
-    "b.notes": false, "c.notes": false, "d.notes": false, velocity: 0.75,
-  }, { name: "Arpeggiator" });
-  p.cable(p.cin, "tr", hm, "transpose").cable(hm, "root", arp, "ina");
-  return notesOut(p, arp, { pitch: "outa" });
-}
-
-// A slowly mutating shift register in E minor pentatonic.
-function turingSpiral() {
-  const p = cell("Turing Spiral", {
-    description: "A Turing-machine melody: an 8-bit Shift Register that mutates now and then, quantized to E minor pentatonic over two octaves. Shared inputs Lock (frozen ↔ random) and Transpose.",
-    tags: ["sequencer", "generative", "shift register", "turing", "lead"],
-    help: "An 8-bit Shift Register (Turing machine) clocked on 16ths, quantized to E minor pentatonic over two " +
-      "octaves. At each step the bit that comes back round is kept or flipped by chance, set by Lock; CV to " +
-      "Notes turns the pitch into notes, with bit 1 as the gate.\n\n" +
-      "Patch Notes into a Voice Cell. Pitch and Gate outputs are also available. The Lock input is added to " +
-      "the Lock knob: up freezes the loop, down makes it fully random. Transpose shifts the key. Follows " +
-      "the transport unless you patch Clock.\n\n" +
-      "Tip: let it mutate, then push Lock up when you like the loop.",
-  }).input("lock", "Lock").input("tr", "Transpose", "pitch");
-  const sr = p.add("shift-register", [0, 1], { lock: 0.8, length: 8, gatelength: 0.6, sync: "1/16", octaves: 2, root: "E",
-                                               scale: "Minor Pentatonic" });
-  const cv = p.add("cv-to-notes", [1, 1], { velocity: 0.75 });
-  p.cable(p.cin, "lock", sr, "lock", 0.5).cable(p.cin, "tr", sr, "transpose")
-    .cable(sr, "pitch", cv, "pitch").cable(sr, "bit1", cv, "gate");
-  return notesOut(p, cv, { pitch: "pitch", pitchNode: sr, gate: "bit1", gateNode: sr });
-}
-
-// Six tracks of different lengths: a line that takes ages to repeat.
-function clockworkPolymeter() {
-  const p = cell("Clockwork Polymeter", {
-    description: "Polymeter Seq in F Dorian: rhythm 16, notes 5, octaves 7, gates 12 and chances 9 steps long, so the line keeps turning over for hundreds of bars. Shared input Transpose.",
-    tags: ["sequencer", "polymeter", "generative", "dorian"],
-    help: "A Polymeter Seq in F Dorian with six tracks of different lengths: rhythm 16 steps, notes 5, octaves " +
-      "7, gates 12, chances 9, plus a ratchet track. Because the lengths do not divide each other, the " +
-      "combined line takes hundreds of bars to repeat.\n\n" +
-      "Patch Notes into a Voice Cell; Pitch and Gate outputs are also available. Transpose shifts the key. " +
-      "It follows the transport unless you patch Clock.\n\n" +
-      "Tip: open the Polymeter Seq and change one track's length to hear how the repeat length changes.",
-  }).input("tr", "Transpose", "pitch");
-  const tracks = {
-    trig: polyTrack([2, 0, 1, 1, 0, 1, 2, 0, 1, 0, 1, 1, 0, 2, 1, 0])("trig"),
-    note: polyTrack([0, 2, 4, 1, 3])("note"),
-    oct: polyTrack([0, 0, 1, 0, 0, -1, 0])("oct"),
-    gate: polyTrack([40, 30, 60, -1, 30, 50, 30, 80, 30, 40, -1, 30])("gate"),
-    prob: polyTrack([100, 100, 80, 100, 60, 100, 100, 75, 100])("prob"),
-    ratch: polyTrack([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, [3, 1], 1])("ratch"),
-  };
-  const seq = p.add("polymeter-sequencer", [1, 1], { velocity: 0.8, spread: 0.2, root: "F", scale: "Dorian", octave: -1 }, {
-    data: { slot: 0, slots: [{ tracks }], randomize: { density: 0.5, degrees: [0, 7], stepwise: true, ratchet: 0.1 } },
+  p.cable(p.cin, "fill", seq, "fill").cable(p.cin, "mute", seq, "mute3");
+  p.output("notes", "Notes", "notes").cable(seq, "notes", p.cout, "notes");
+  [["Kick", "gate1"], ["Snare", "gate2"], ["Hat", "gate3"], ["Open", "gate4"]].forEach(([name, jack]) => {
+    p.output(jack, name, "gate").cable(seq, jack, p.cout, jack);
   });
-  p.cable(p.cin, "tr", seq, "transpose");
-  return notesOut(p, seq, { pitch: "pitch", gate: "gate" });
+  return p;
 }
 
-// Eight held, ratcheted and sliding stages in C harmonic minor: one bar, four-bar phrase.
-function staircasePhrase() {
-  const p = cell("Staircase Phrase", {
-    description: "Stage Seq in C harmonic minor: eight stages of held notes, repeats, a ratchet and two slides make a one-bar riff with a four-bar phrase. Shared inputs Transpose and Hold.",
-    tags: ["sequencer", "stage sequencer", "riff", "harmonic minor"],
-    help: "A Stage Sequencer with eight stages in C harmonic minor. Each stage has a pitch, a number of pulses " +
-      "and a gate mode: held notes, repeats, one ratchet and two slides. Together they make a one-bar riff " +
-      "that unfolds as a four-bar phrase.\n\n" +
-      "Patch Notes into a Voice Cell; use Legato and Glide for the slides. Pitch and Gate outputs are also " +
-      "available. A pitch into Transpose shifts the riff. While a gate is high on Hold, the current stage " +
-      "keeps repeating instead of moving on. Follows the transport unless you patch Clock.\n\n" +
-      "Tip: hold a stage with a button or an LFO square for stutter fills.",
+// A slow crosshair wanders an 8 x 8 grid of D Dorian phrases; notes sound as it enters each cell.
+function gridPilgrim() {
+  const p = cell("Grid Pilgrim", {
+    description: "No clock at all: two slow LFOs steer a crosshair over an 8 × 8 grid of D Dorian phrases and a note sounds whenever it enters a new cell. Shared inputs X and Y push the crosshair by hand; Mod rises with the row.",
+    tags: ["sequencer", "cartesian", "ambient", "dorian", "wandering"],
+    help: "A Cartesian Seq in Cartesian mode: X and Y choose the column and the row directly, and with Sample set " +
+      "to Change a note plays as soon as the crosshair moves into a different cell. Two slow triangle LFOs " +
+      "steer the crosshair so it drifts across all 64 cells in D Dorian, low rows to high rows.\n\n" +
+      "Patch Notes into a Voice Cell with a soft, long-release sound. The X and Y inputs are added to the " +
+      "LFO movement: patch an XY Pad or two Dials and you steer the walk yourself. Mod carries the value " +
+      "stored in each cell, which is higher in the upper rows; patch it into a filter cutoff. The walk is " +
+      "independent of the transport and keeps going when it stops.\n\n" +
+      "Tip: make the voice's release long enough that the notes overlap into a slow, pealing melody.",
+  }).input("x", "X").input("y", "Y");
+  const lx = p.add("lfo", [0, 0], { rate: 0.045, wave: "Triangle", polarity: "Unipolar" }, { name: "X Walk" });
+  const ly = p.add("lfo", [0, 1], { rate: 0.0173, wave: "Triangle", polarity: "Unipolar", phase: 90 }, { name: "Y Walk" });
+  const seq = p.add("cartesian-sequencer", [1, 1], { mode: "Cartesian", sample: "Change", columns: 8, rows: 8, gatelength: 0.7,
+                                                     root: "D", scale: "Dorian", octave: -1, modslew: 0.2 }, {
+    data: cartData([
+      [0, 0, 7, 0, 3, 0, 5, "."],
+      [0, 3, 5, 7, 10, 7, 5, 3],
+      [2, 5, 9, 5, 2, ".", 7, 9],
+      [7, 10, 12, 10, 7, 5, "_", 3],
+      [12, 10, 12, 14, 12, 10, 9, 7],
+      [0, ".", 12, ".", 10, ".", 7, "."],
+      [5, 7, 9, 12, 9, 7, 5, "_"],
+      [14, 12, 10, 12, 7, 10, 5, 3],
+    ], [100, 80, 90, 70]),
+  });
+  p.cable(lx, "out", seq, "x").cable(ly, "out", seq, "y")
+    .cable(p.cin, "x", seq, "x", 0.5).cable(p.cin, "y", seq, "y", 0.5);
+  notesOut(p, seq, { pitch: "pitch", gate: "gate" });
+  p.output("mod", "Mod").cable(seq, "mod", p.cout, "mod");
+  return p;
+}
+
+// A Brownian walk through eight stages of D Phrygian Dominant, held, repeated and slid.
+function bazaarBrownian() {
+  const p = cell("Bazaar Brownian", {
+    description: "A Stage Seq random-walks one step at a time through eight stages in D Phrygian Dominant, so the riff meanders but never leaps: a winding, eastern-sounding line for a reedy or plucked voice. Shared inputs Transpose and Hold.",
+    tags: ["sequencer", "stage sequencer", "phrygian dominant", "random walk", "oriental"],
+    help: "A Stage Sequencer with eight stages in D Phrygian Dominant. Mode Brownian moves to a neighbouring " +
+      "stage at random each step, never farther, so the line wanders up and down the scale like a snake. " +
+      "Stages differ in length (1 to 4 pulses), gate mode (hold, repeat, ratchet) and slide, so a given " +
+      "walk sounds varied.\n\n" +
+      "Patch Notes into a Voice Cell; with Legato mode and some Glide the slides curve between notes. Pitch " +
+      "and Gate are available as well. A pitch into Transpose changes the key; a gate into Hold makes the " +
+      "current stage repeat. It follows the transport unless you patch Clock.\n\n" +
+      "Tip: change the Seed setting for a different walk with the same notes.",
   }).input("tr", "Transpose", "pitch").input("hold", "Hold", "gate");
-  const seq = p.add("stage-sequencer", [1, 1], { gatelength: 0.6, slidetime: 0.07, accent: 0.6, stages: 8, root: "C",
-                                                 scale: "Harmonic Minor", octave: -1 }, {
+  const seq = p.add("stage-sequencer", [1, 1], { stages: 8, mode: "Brownian", rate: "1/8", gatelength: 0.55, slidetime: 0.09, accent: 0.5,
+                                                 root: "D", scale: "Phrygian Dominant", octave: -1, seed: 17 }, {
     data: stageData([
-      [0, 3, "Hold", { accent: true, v: 115 }],
-      [0, 1, "Every", { v: 80 }],
-      [7, 2, "First"],
-      [8, 1, "Every", { slide: true }],
-      [7, 2, "Ratchet", { r: 3, v: 90 }],
-      [3, 2, "Hold", { accent: true, v: 115 }],
-      [2, 1, "Every", { v: 85 }],
-      [-1, 4, "Hold", { slide: true }],
+      [0, 2, "Every", { accent: true, v: 115 }],
+      [1, 1, "Every", { v: 80 }],
+      [4, 2, "Hold", { v: 95 }],
+      [5, 1, "Every", { slide: true }],
+      [7, 2, "Ratchet", { r: 2, v: 90 }],
+      [8, 1, "Every", { slide: true, v: 85 }],
+      [10, 3, "Hold", { accent: true, v: 110 }],
+      [12, 1, "First", { v: 90 }],
     ]),
   });
   p.cable(p.cin, "tr", seq, "transpose").cable(p.cin, "hold", seq, "hold");
   return notesOut(p, seq, { pitch: "pitch", gate: "gate" });
 }
 
-// A 4 × 3 corner of the Cartesian grid: twelve-step figure against the bar.
-function latticeWalker() {
-  const p = cell("Lattice Walker", {
-    description: "Cartesian Seq in F Lydian walks a 4 × 3 grid of bright broken chords: a twelve-step figure that shifts against the bar; Mod rises through the grid. Shared input Transpose.",
-    tags: ["sequencer", "cartesian", "lydian", "pluck", "melodic"],
-    help: "A Cartesian Seq walking a small 4 by 3 corner of its grid in F Lydian: the X axis steps on 16ths " +
-      "across four columns and the Y axis moves a row each time X wraps. A twelve-step figure against a " +
-      "16-step bar makes it shift against the bar.\n\n" +
-      "Patch Notes into a Voice Cell for plucks. Pitch and Gate outputs are also available, and Mod, a " +
-      "value that rises through the grid, can go into a filter cutoff or another knob. Transpose shifts the " +
-      "key. Follows the transport unless you patch Clock.\n\n" +
-      "Tip: use Mod on a cutoff so the sound opens as the figure walks on.",
-  }).input("tr", "Transpose", "pitch");
-  const seq = p.add("cartesian-sequencer", [1, 1], { gatelength: 0.45, columns: 4, rows: 3, xrate: "1/16", yrate: "Wrap",
-                                                     root: "F", scale: "Lydian" }, {
-    data: cartData([
-      [0, 7, 11, 16],
-      [2, 9, "_", 14],
-      [4, ".", 11, 19],
-    ]),
-  });
-  p.cable(p.cin, "tr", seq, "transpose");
-  notesOut(p, seq, { pitch: "pitch", gate: "gate" });
-  p.output("mod", "Mod").cable(seq, "mod", p.cout, "mod");
+// A Euclidean rhythm triggers random notes that are quantized to a scale.
+function euclidWalker() {
+  const p = cell("Euclid Walker", {
+    description: "A Rhythm Bank rhythm decides when to play and a random value, snapped to F Lydian, decides what: a melody over an even, spread-out rhythm that never repeats its notes the same way. Shared inputs Pattern and Transpose.",
+    tags: ["sequencer", "euclidean", "random", "lydian", "generative"],
+    help: "A Rhythm Bank in the Even family (evenly spread hits over sixteen steps) gives the gate. On every hit a " +
+      "Random module picks a new value, a Quantizer snaps it to F Lydian over a range of one and a half " +
+      "octaves, and CV to Notes combines pitch and gate into notes.\n\n" +
+      "Patch Notes into a Voice Cell. Pitch, Gate and Cycle (a trigger at each pass through the rhythm) are " +
+      "also available. The Pattern input is added to the Pattern knob: a slow LFO or a dial moves through the " +
+      "library of rhythms, and a pitch into Transpose shifts the key. It follows the transport unless you " +
+      "patch Clock.\n\n" +
+      "Tip: set Loop on the Random module higher for repeating phrases, or lower for endless variation.",
+  }).input("pat", "Pattern").input("tr", "Transpose", "pitch");
+  const rb = p.add("rhythm-bank", [0, 1], { pattern: 9, family: "Even", length: "16", rate: "1/16", width: 0.6, output: "Gate" });
+  const rnd = p.add("random", [1, 0], { spread: 0.7, loop: 0.3, length: "8 steps" });
+  const q = p.add("quantizer", [2, 0], { root: "F", scale: "Lydian", range: 1.5, hysteresis: 0 });
+  const cv = p.add("cv-to-notes", [3, 1], { velocity: 0.8 });
+  p.cable(p.cin, "pat", rb, "pattern", 0.2).cable(p.cin, "tr", q, "transpose")
+    .cable(rb, "out1", rnd, "clock").cable(rnd, "out", q, "in").cable(q, "out", cv, "pitch").cable(rb, "out1", cv, "gate");
+  notesOut(p, cv, { pitch: "out", pitchNode: q, gate: "out1", gateNode: rb });
+  p.output("cycle", "Cycle", "trigger").cable(rb, "cycle", p.cout, "cycle");
   return p;
 }
 
-// Random steps quantized to D Dorian, gated by a weighted coin on 8ths.
-function wanderingMonk() {
-  const p = cell("Wandering Monk", {
-    description: "A random melodic walk: Random steps on each 8th, quantized to D Dorian, with a looping coin deciding which 8ths play. Shared inputs Loop (new ↔ repeating) and Transpose.",
-    tags: ["sequencer", "random", "generative", "dorian", "melody"],
-    help: "A random melody built from modules: an LFO square gives 8th clocks, Random picks a value on each " +
-      "clock, a Quantizer snaps it to D Dorian, and a looping Coin Toss decides which 8ths actually play.\n\n" +
-      "Patch Notes into a Voice Cell; Pitch and Gate outputs are also available. The Loop input is added to " +
-      "the Random Loop knob: higher repeats the recent notes, lower gives new ones. Transpose shifts the " +
-      "key. The 8th clock follows the transport.\n\n" +
-      "Tip: raise Loop until a phrase you like repeats.",
-  }).input("loop", "Loop").input("tr", "Transpose", "pitch");
-  const clk = p.add("lfo", [0, 0], { pw: 0.5, wave: "Square", sync: "1/8", polarity: "Unipolar" }, { name: "8th Clock" });
-  const rnd = p.add("random", [1, 0], { spread: 0.75, loop: 0.6, length: "16 steps" });
-  const q = p.add("quantizer", [2, 0], { root: "D", scale: "Dorian", hysteresis: 0 });
-  const coin = p.add("coin-toss", [1, 1], { prob1: 0.72, loop: "8 tosses" });
-  const cv = p.add("cv-to-notes", [3, 1], { velocity: 0.7 });
-  p.cable(clk, "square", rnd, "clock").cable(clk, "square", coin, "in1")
-    .cable(p.cin, "loop", rnd, "loop", 0.5).cable(p.cin, "tr", q, "transpose")
-    .cable(rnd, "out", q, "in").cable(q, "out", cv, "pitch").cable(coin, "a1", cv, "gate");
-  return notesOut(p, cv, { pitch: "out", pitchNode: q, gate: "a1", gateNode: coin });
+// A shift register, two note streams: the lead and a bass that echoes the melody later.
+function bitCanon() {
+  const p = cell("Bit Canon", {
+    description: "A Shift Register mutates a melody in A minor pentatonic; bit 1 plays a lead and bit 5 plays a bass two octaves down, so the bass echoes the lead's pattern four steps later. Two Notes outputs: Lead and Bass. Shared inputs Lock and Transpose.",
+    tags: ["sequencer", "shift register", "canon", "generative", "two voices"],
+    help: "An 8-bit Shift Register clocked on eighth notes in A minor pentatonic. Its first bit plays the lead through " +
+      "CV to Notes. Its fifth bit plays a bass: each time it fires, a Quantizer Suite samples the register's " +
+      "pitch two octaves lower. Bit 5 is the first bit's pattern delayed by four steps, so the bass is a " +
+      "canon of the melody.\n\n" +
+      "Patch Lead into a Voice Cell for the melody and Bass into another voice for the bass. Lock is added to the " +
+      "Lock knob: up freezes the loop, down mutates it. A pitch into Transpose changes the key. It follows the " +
+      "transport unless you patch Clock.\n\n" +
+      "Tip: freeze the loop with Lock, then listen: the bass always plays what the lead played four steps ago.",
+  }).input("lock", "Lock").input("tr", "Transpose", "pitch");
+  const sr = p.add("shift-register", [0, 1], { lock: 0.75, length: 8, sync: "1/8", octaves: 2, root: "A", scale: "Minor Pentatonic",
+                                               gatelength: 0.5, seed: 31 });
+  const lead = p.add("cv-to-notes", [1, 0], { velocity: 0.8 }, { name: "Lead Notes" });
+  const qs = p.add("quantizer-suite", [1, 2], { "a.mode": "Quantize", "a.root": "A", "a.scale": "Minor Pentatonic", "a.sample": "Trigger",
+                                               "a.octave": -2, "b.notes": false, "c.notes": false, "d.notes": false, velocity: 0.9 }, { name: "Bass Pitch" });
+  const bass = p.add("cv-to-notes", [2, 2], { velocity: 0.9 }, { name: "Bass Notes" });
+  p.cable(p.cin, "lock", sr, "lock", 0.5).cable(p.cin, "tr", sr, "transpose")
+    .cable(sr, "pitch", lead, "pitch").cable(sr, "bit1", lead, "gate")
+    .cable(sr, "pitch", qs, "ina").cable(sr, "bit5", qs, "triga")
+    .cable(qs, "outa", bass, "pitch").cable(sr, "bit5", bass, "gate");
+  p.output("lead", "Lead", "notes").cable(lead, "notes", p.cout, "lead");
+  p.output("bass", "Bass", "notes").cable(bass, "notes", p.cout, "bass");
+  p.output("leadpitch", "Lead Pitch", "pitch").cable(sr, "pitch", p.cout, "leadpitch");
+  p.output("leadgate", "Lead Gate", "gate").cable(sr, "bit1", p.cout, "leadgate");
+  return p;
 }
 
-// Recall: random gates and notes that repeat the recent past, with a Memory input.
-function dejaVuLine() {
-  const p = cell("Deja Vu Line", {
-    description: "Recall draws random 16th-note gates and A minor pentatonic notes that keep echoing their recent past: half new, half remembered. Shared inputs Memory (more = repeats) and Reset.",
-    tags: ["sequencer", "recall", "generative", "random", "pentatonic"],
-    help: "A Recall module on 16ths makes random gates (T1) and random pitches (X1) in A minor pentatonic, and " +
-      "CV to Notes turns them into notes. Both are drawn partly from their own recent past, so phrases " +
-      "return in changed form.\n\n" +
-      "Patch Notes into a Voice Cell; Pitch and Gate outputs are also available. The Memory input is added " +
-      "to both Recall knobs: more means more repeats, up to a locked loop. A trigger into Reset restarts " +
-      "the loop. Follows the transport unless you patch Clock.\n\n" +
-      "Tip: sweep Memory up slowly, then down again to let new notes in.",
-  }).input("mem", "Memory").input("rst", "Reset", "trigger");
-  const rc = p.add("recall", [1, 1], { tbias: 0.6, trecall: 0.55, gatelength: 0.55, xspread: 0.5, xsteps: 0.62,
-                                       xrecall: 0.7, sync: "1/16", tloop: 8, xloop: 8, xsource: "T1", root: "A",
-                                       scale: "Minor Pentatonic" });
-  const cv = p.add("cv-to-notes", [2, 1], { velocity: 0.75 });
-  p.cable(p.cin, "mem", rc, "trecall", 0.5).cable(p.cin, "mem", rc, "xrecall", 0.5).cable(p.cin, "rst", rc, "reset")
-    .cable(rc, "x1", cv, "pitch").cable(rc, "t1", cv, "gate");
-  return notesOut(p, cv, { pitch: "x1", pitchNode: rc, gate: "t1", gateNode: rc });
+// Drum Map as Notes: a map of rhythms with X, Y and a fill gate.
+function mapRider() {
+  const p = cell("Map Rider", {
+    description: "A map of kick, snare and hat rhythms you travel with X and Y, with General MIDI drum notes out (and a trigger per drum): patch Notes into a drum machine and ride the map with an XY Pad. Shared inputs X, Y and Fill.",
+    tags: ["sequencer", "drums", "pattern map", "performance", "generative"],
+    help: "A Drum Map holds a map of kick, snare and hat patterns; X and Y pick where you stand on the map and " +
+      "the rhythm morphs as you move. The three densities are set to a medium level, the chaos to a slow, " +
+      "gentle drift every four bars, and the accent and swing are tuned for a laid-back groove.\n\n" +
+      "Notes carries the three drums as General MIDI drum notes: patch it into a drum machine cell's Notes " +
+      "input. Kick, Snare and Hats are triggers for single drum voices. The X and Y inputs are added to the " +
+      "knobs, so an XY Pad gives you live control; a gate into Fill adds extra hits for a fill. It follows " +
+      "the transport unless you patch Clock.\n\n" +
+      "Tip: move X and Y slowly across the pad between sections, and hold Fill before each change.",
+  }).input("x", "X").input("y", "Y").input("fill", "Fill", "gate");
+  const dm = p.add("drum-map", [1, 1], { x: 0.3, y: 0.4, kickdensity: 0.55, snaredensity: 0.5, hatsdensity: 0.6, fillamount: 0.5,
+                                         chaos: 0.15, chaosrate: "Every 4 bars", accent: 0.8, swing: 0.55, seed: 5 });
+  p.cable(p.cin, "x", dm, "x", 0.7).cable(p.cin, "y", dm, "y", 0.7).cable(p.cin, "fill", dm, "fill");
+  p.output("notes", "Notes", "notes").cable(dm, "notes", p.cout, "notes");
+  [["Kick", "kick"], ["Snare", "snare"], ["Hats", "hats"]].forEach(([name, jack]) => {
+    p.output(jack, name, "trigger").cable(dm, jack, p.cout, jack);
+  });
+  return p;
 }
 
 export default category("Sequencers", "Note sources that follow the transport: patch Notes into any Voice Cell.", [
-  acidSermon, octaveBounce, nightDriveChanges, cascadeArp, turingSpiral, clockworkPolymeter, staircasePhrase,
-  latticeWalker, wanderingMonk, dejaVuLine,
+  tripletGallop, pendulumClimb, offbeatStabs, convergingArp, ratchetDrums, gridPilgrim, bazaarBrownian,
+  euclidWalker, bitCanon, mapRider,
 ]);

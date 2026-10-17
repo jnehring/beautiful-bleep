@@ -80,11 +80,11 @@ Five whole patches show what Drum Map does. In the standalone app open **File â†
 
 | Patch | What it shows |
 |---|---|
-| **Drum Map: Straight Four** | In the straight corner of the map (low X, low Y) the Drum Map plays a steady kick on every beat, a backbeat snare and eighth-note hats, under a pulsing bass. Move X toward broken or Y toward busy, or turn the Density knobs to thin and fill each drum. |
-| **Drum Map: Wandering Groove** | A slow LFO on X and a seeded Random on Y make the beat travel the whole map, from straight to broken and from sparse to busy, with Chaos adding ghost notes that come back identically every time. Try replacing the LFO with your own X and Y moves. |
-| **Drum Map: Fill Every Four** | A square LFO pulses the Fill gate for one bar in every four, adding Fill Amount to every Density so extra kicks, snares and sixteenth hats appear before the loop turns round. Raise Fill Amount for bigger fills, or make the LFO faster for constant fills. |
-| **Drum Map: Half-Time Dub** | Rate 1/8 stretches the two-bar map to four bars and X sits at the half-time edge: a sparse kick, a heavy snare on beat 3 and a few hats. The snare and hats feed a long delay through the mixer sends. Try Swing and Chaos for a looser feel. |
-| **Drum Map: Chaos Shuffle** | Rate 1/16T and a high Swing give a rolling shuffle, and Chaos at 60 % with a fresh nudge every bar keeps adding and dropping ghost notes around the steady backbone. Turn Chaos down for a rigid groove or set Chaos Rate to Frozen to fix one version. |
+| **Drum Map: Wandering the Map** | Two slow LFOs move X and Y through the map, so the beat drifts from sparse to busy and back without ever repeating exactly. Grab the X and Y knobs yourself to park on a pattern you like; the three Density knobs thin out any spot. |
+| **Drum Map: Sparse with Fills** | Low Density settings leave a spacious beat with only the strongest hits, and a square LFO holds the Fill input for the last bar of every four. Raise Fill Amount for a bigger fill, or raise a Density knob to bring a drum back in. |
+| **Drum Map: Chaos Re-roll** | Chaos at 55 % swaps in a few random changes every bar, a lively breakbeat that is never quite the same twice. Set Chaos Rate to Frozen, or change the Seed, to lock in a version you like. |
+| **Drum Map: Triplet Shuffle** | Rate 1/16T and a 24-step Length turn the map into a rolling triplet shuffle, with Swing and Accent adding a lazy push on top. Switch Rate back to 1/16 to hear the same map played straight. |
+| **Drum Map: Notes to Other Drums** | The Notes output sends the map as note events (Kick Note, Snare Note, Hats Note), and Drum Notes turns them into triggers for a different kit: a ring kick, a clap on the snare note and a cowbell on the hats note. Change the three note settings to move a part to another drum. |
 <!-- /generated -->
 
 ## Reference

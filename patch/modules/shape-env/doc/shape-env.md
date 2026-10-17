@@ -95,11 +95,11 @@ Five whole patches show what Shape Env does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Shape Env: Pluck Morph** | A Shape Env triggered by every note replaces the ADSR: it plays a Pluck shape in One-shot mode, and a slow LFO on Morph blends it with its neighbours, so the notes slide between snappy and soft plucks. Browse other shapes with the Shape knob while it plays. |
-| **Shape Env: Gate Pattern** | A drawn-style gate shape looped over one bar and locked to the song chops a sustained chord into a rhythm, like a trance gate. Change Shape to another of the rhythmic patterns, or sweep Morph to blend between two of them. |
-| **Shape Env: Echoing Bell** | Shape Env plays the Echoes 1/8 shape, a burst that repeats itself on the beat grid, once per trigger from a slow melody, so every bell note comes back as a row of echoes without any delay effect. Change Sync or Skew to move the echoes, or try Ping-pong or Bounce 5. |
-| **Shape Env: Breathing Filter** | The Breathing shape loops every four seconds and opens and closes a low-pass filter on a sustained chord, while Inv, the upside-down shape, moves a second filter band the opposite way. Try other Wobbles shapes or change Time for a slower or faster breath. |
-| **Shape Env: Synth Drums** | Five Shape Envs build the drums from sine oscillators: Short exp as pitch drop and Pluck as amplitude make a kick and a tom, and the Roll shape fills out a snare of noise. Change Time or the shapes to retune and reshape each drum. |
+| **Shape Env: Pluck Library** | Every note triggers a one-shot shape from the library, a soft 1:8 pluck, that opens both volume and filter. Try the other plucks, Bounce and Echoes shapes, or move Morph to change its curve. |
+| **Shape Env: Looping Wobble Bass** | In Loop mode the Wobble shape repeats once per beat and swings the cutoff of a held bass, locked to the tempo. Switch Sync to another note length for faster or slower wobble, or try Double wobble and Swing wobble. |
+| **Shape Env: Breathing Pad** | A pad is held steady while one looped Shape Env breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse. |
+| **Shape Env: Drawn Rhythm Gate** | The rhythm shapes are patterns drawn as amplitude: one looping shape chops a held chord into syncopated stabs, another carves a bass note into a different pattern. Pick any of the x.xx shapes, or change Sync, to make a new groove. |
+| **Shape Env: Reversed Swells** | With Reverse on, a plucked shape plays backwards: each note swells up and is cut off at its peak, like a tape played in reverse. Switch Reverse off for normal plucks, or lengthen Time for slower swells. |
 <!-- /generated -->
 
 <!-- generated:presets -->

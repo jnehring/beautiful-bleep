@@ -73,11 +73,11 @@ Five whole patches show what Uncertainty does. In the standalone app open **File
 
 | Patch | What it shows |
 |---|---|
-| **Uncertainty: Random Melody** | Quantized 1 jumps between eight levels two semitones apart on every sixteenth, and a quantizer pulls them into D minor pentatonic: a small random vocabulary the ear hears as a tune. Lower Q1 Bits for fewer notes, or change Q1 Interval and Seed for a different melody. |
-| **Uncertainty: Drifting Pad** | The two Fluctuating outputs are smooth random curves with different speeds: one opens and closes the filters of a four-voice chord, the other pans the voices together and bends their waveform. Nothing repeats. Raise F1 Rate or F2 Rate for a busier shimmer, or lower F1 Spread for a calmer pad. |
-| **Uncertainty: Random Sweeps** | Stored takes a new value every half note and Correlation keeps each close to the last; Integrated turns that into long random sweeps that open and close the filter of a saw arpeggio. A one-bit Quantized 2 switches the hats on and off. Change Correlation to make the sweeps longer or jitterier. |
-| **Uncertainty: Random Octaves** | A fixed riff plays while two Uncertainty quantizers decorate it: Quantized 2 with Interval 12 sends each note to one of four octaves, and a one-bit Quantized 1 on Interval 7 adds a fifth now and then. Try Q2 Bits 1 for a plain octave jump or Q2 Divide /1 for a new octave on every note. |
-| **Uncertainty: Drunken Walk** | Stored picks a new value on every step and with Correlation at +85 % each is close to the last, so the pitch wanders up and down like a drunken walk; a quantizer keeps it in F Lydian and pinged low pass gates turn each step into a bell. Try Correlation negative for a zig-zag, or the Shape set to Edges. |
+| **Uncertainty: Fluctuating Filter** | The two fluctuating curves wander at unrelated speeds: one opens and closes the filter on a plucked line, the other changes the tone shape. Raise F1 Rate and F2 Rate to speed them up, or lower F1 Spread to shrink the sweep. |
+| **Uncertainty: Stepped Levels** | Quantized outputs jump between a few evenly spaced levels (Q1 Bits sets how many): Q1 pushes the pitch up by octaves and Q2 moves the filter, both in time with the eighth notes. Try Q1 Interval at 7 st for stacked fifths or raise the bits for more levels. |
+| **Uncertainty: Stored Per Note** | Each note of the line tells the Store input to take a fresh stored value, which then holds until the next note; it sets the filter, and the Store Trigger output also fires a hi-hat. Raise Correlation so each value leans on the last, or move Distribution to favour low or high settings. |
+| **Uncertainty: Integrated Drift** | The Integrated output is the running total of the stored steps, so it wanders like a slow random walk; here it steers the brightness of a held pad and the stored value tilts the oscillators. Change Integrate to make the walk shorter-lived or longer, and Store Rate for how often it is nudged. |
+| **Uncertainty: Extreme Moods** | Setting Shape to Edges makes the random values favour the extremes, so the filter on this bass line jumps between very closed and wide open instead of sitting in the middle. Switch Shape to Bell or Uniform to hear it settle. |
 <!-- /generated -->
 
 <!-- generated:presets -->

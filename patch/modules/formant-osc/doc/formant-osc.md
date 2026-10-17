@@ -73,11 +73,11 @@ Five whole patches show what Formant Osc does. In the standalone app open **File
 
 | Patch | What it shows |
 |---|---|
-| **Formant Osc: Wah Lead** | A slow triangle LFO sweeps Formant up and down over a simple tune, so the resonant peak wanders through the harmonics like a hand on a wah pedal. Try Narrow for a sharper peak, or Body for a fuller base. |
-| **Formant Osc: Squelch Bass** | An envelope snaps Formant upward on every bass note and lets it fall, giving the squelch of a resonant filter without any filter. Raise Narrow for more bite and shorten the envelope for a tighter pluck. |
-| **Formant Osc: Vowel Choir** | A slow chord-like line with a wide Spread and two LFOs gently moving Formant and Narrow, so the pad seems to sing different vowels in a big room. Change Roll to soften the top and Spread to widen it. |
-| **Formant Osc: Through Zero** | A low drone while Formant is swept slowly across zero, from below the pitch to far above it. The tone folds through a hollow, ghostly moment at the middle of every pass. Try FM Depth with a cable for a more metallic movement. |
-| **Formant Osc: Chatter** | A random generator jumps Formant on every sixteenth so a short repeating phrase seems to chatter in a different voice each time, over a broken beat. Lock the pattern with Loop on the Random, or change Spread to widen the chatter. |
+| **Formant Osc: Vowel Sweep** | A flowing melody on the Formant Osc while a slow LFO sweeps the Formant peak, so the tone opens and closes like a voice changing vowels, without a filter anywhere. Move Formant by hand, or raise Narrow for a more nasal peak. |
+| **Formant Osc: Squelch Bass** | A decaying envelope sweeps the formant peak up and down on every note, giving a squelchy bass that behaves like a resonant filter although there is none. Change Narrow for a sharper squelch, or lengthen the decay for a longer wow. |
+| **Formant Osc: Wide Choir** | Slow chord roots on the Formant Osc with Spread and Body opened up make a breathy, choir-like pad that sits wide in the stereo field. Turn Spread to zero for mono, or Roll up to soften the upper end. |
+| **Formant Osc: Random Vowels** | A fast arpeggio while a Random module picks a new smooth Formant position every few beats: each note wears a different vowel. Raise Random's Smooth for glides between vowels, or Spread for bolder jumps. |
+| **Formant Osc: Fixed Resonance** | With Tracking on Fixed, the formant peak stays put while the notes move, as in a real vowel across a sung tune, instead of rising with the pitch. Switch Tracking back to Ratio and the whole tone shifts with each note. |
 <!-- /generated -->
 
 <!-- generated:presets -->

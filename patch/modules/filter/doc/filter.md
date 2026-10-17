@@ -163,6 +163,20 @@ The preset bar of the Filter view has 16 factory presets. Pick one to set the kn
 | **Gritty Drive** | Overdriven, saturating state-variable filter. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Filter does. In the standalone app open **File → Presets…** (⌘P) and pick *Filter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Multi Filter: Ladder Bass Sweep** | A raw saw bass runs through a warm ladder-style low-pass whose Cutoff is opened by an envelope on every note, then closes again for a classic squelch. Raise Resonance or Drive for more bite, or switch Type to another ladder. |
+| **Multi Filter: Phaser Pad** | The Type is set to a four-stage phaser: a slow LFO sweeps Cutoff through a held, slightly detuned saw chord so the notches drift up and down. Try the 2-Pole phaser, more Resonance, or a faster LFO. |
+| **Multi Filter: Telephone Drums** | A whole drum loop goes through the unit-gain band-pass type while an LFO sweeps Cutoff: the beat shrinks to a thin radio sound, then opens up again. Move Mix to blend the original back in, or lower Resonance for a wider band. |
+| **Multi Filter: Key-Tracked Pluck** | The sequencer's pitch also goes into the filter, and Key Track at full makes Cutoff follow every note, so high and low notes keep the same brightness. Lower Key Track to hear the low notes go dull, or move Mode to morph from low-pass to high-pass. |
+| **Multi Filter: Flanger Jet** | Type is the flanger algorithm: a long single note rings through a sweeping comb of resonances that rise and fall with a slow LFO on Cutoff. Push Resonance for a metallic jet sound, or pull Mix back for a gentle swirl. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

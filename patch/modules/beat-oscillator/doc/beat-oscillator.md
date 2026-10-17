@@ -108,11 +108,11 @@ Five whole patches show what Beat Oscillator does. In the standalone app open **
 
 | Patch | What it shows |
 |---|---|
-| **Beat Oscillator: Heterodyne Theremin** | Two 10 kHz carriers beat against each other; a slow LFO sweeps Beat from a pulse to a whistle and back, and the detector plucks only the difference tone. Try the Mixer setting (Diode or Overdriven) for a buzzier beat, or raise Drift. |
-| **Beat Oscillator: Lurching Thump** | With Pull up, the two carriers hold each other near lock, so the beat does not run steadily: it lurches in single sub-bass blips that bunch up and stall as Drift pushes the pair across the lock edge. Try nudging Beat or Drift. |
-| **Beat Oscillator: Locked Melody** | The Lock output is a gate: it goes high whenever the carriers pull into step. A slow wobble on Detune drives the pair in and out of lock, and a melody is only allowed to play while it is locked. Change Pull or Detune Range to change how often it happens. |
-| **Beat Oscillator: Warm-up Whistle** | Low carriers with the Detector opened let the sum tone whistle on top of the beat, and Warm-up makes both start flat and slide into tune while the transport runs. The Overdriven mixer turns the beat into a soft triangle. Try Detector at 0 to hear the whistle vanish. |
-| **Beat Oscillator: Beat Follower** | A sequencer drives Pitch, transposing both carriers so the difference tone plays the tune. The Beat output measures that tone and feeds an oscillator an octave up, so a second voice follows the heterodyne melody. Try Mixer Diode for more bite. |
+| **Beat Oscillator: Heterodyne Drone** | Two high carriers beat against each other and a slow LFO sweeps Beat, so a pure tone glides down into a throbbing pulse and back. Turn Drift up for a wandering, unstable tone or move Beat by hand for a held pitch. |
+| **Beat Oscillator: Played Melody** | The sequencer's pitch is fed to the Pitch input so the heterodyne tone plays a tune, with a gentle envelope for each note. Change Carrier to shift the character, or raise Fine to detune the whole line. |
+| **Beat Oscillator: Pull and Stutter** | A slow LFO raises Pull so the two carriers try to lock: the tone stutters, drops into pulses and jumps into pitch as they catch each other. Move Pull and Detector by hand to hear the stutter appear and disappear. |
+| **Beat Oscillator: Slow Pulse Bass** | A low heterodyne bass under a drum loop: each sequencer note retunes the pair through Pitch and an envelope shapes it, with the Diode mixer adding grit. Try the Range setting at ±20 Hz or ±2 kHz and move Beat to change how deep it sits. |
+| **Beat Oscillator: Overdriven Mixer** | The Mixer setting on Overdriven adds harmonics and sidebands to the beat tone, and Drift keeps it alive and slightly unstable. Compare Ideal, Diode and Overdriven to hear the same beat with three characters. |
 <!-- /generated -->
 
 <!-- generated:presets -->

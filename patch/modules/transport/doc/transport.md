@@ -56,6 +56,20 @@ or a pad to either.
 Do not connect the module's *MIDI Out* back into its own *MIDI In* with both
 clock settings on: that makes a loop.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Transport does. In the standalone app open **File → Presets…** (⌘P) and pick *Transport* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Transport: Playing Gate Pad** | The Transport's Playing output is high whenever the song runs, and here it opens an envelope that slowly fades in a warm pad under a beat, then lets it ring out when you press Stop. Move the Tempo knob to change the speed of everything, or press Stop and Play to hear the pad breathe in and out. |
+| **Transport: Tempo Brightness** | The Tempo output carries the speed as a control value (BPM divided by 100) and here it also sets the cutoff of a filter on an arpeggio, so a faster song is automatically a brighter one. Drag the Tempo knob up and down and listen to the tone follow the speed. |
+| **Transport: Tempo Ride** | A very slow LFO is patched into the Tempo knob, so the whole song speeds up and slows down by a few BPM over about a minute like a band pushing and pulling. Lower the cable amount on the LFO, or unpatch it to hold the tempo steady. |
+| **Transport: MIDI Clock Out Groove** | MIDI Clock Out is switched on, so while this groove plays the Transport also sends clock, start and stop to a connected MIDI Out, keeping outboard gear in time with it. You will hear a driving bass line over a four-on-the-floor kick; use Tap to set the tempo. |
+| **Transport: Link Session Arp** | Link is switched on, so this song shares its tempo and start with any other Link-enabled app on the network, while a dreamy arpeggio and a soft beat play. Turn Link off to go solo, or use MIDI Clock In to follow a drum machine instead. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs, settings and buttons

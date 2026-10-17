@@ -1,111 +1,107 @@
 // SPDX-License-Identifier: MIT
-// Low Pass Gate: five demo patches. Each plays by itself with the transport.
+// Low Pass Gate (low-pass-gate): five demo patches. Each plays by itself with the transport.
 import { patch, steps, drumGrid, pattern } from "../kit.mjs";
-import { melody } from "../demo-kit.mjs";
+import { melody, beat } from "../demo-kit.mjs";
 
-/// Mixer (outl/outr) → reverb (100 % wet via the mixer's return would be heavier): mixer → reverb → Out.
-function finish(p, at, mix, verb = {}) {
-  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.3, quality: "Eco (8 lines)", ...verb });
-  p.stereo(mix, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+/// src (stereo jacks) → trim mixer → reverb → Out.
+function finish(p, at, src, trim = 0, verb = {}, jacks = ["l", "r"]) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: trim, master: 0 }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.2, damping: 0.5, mix: 0.2, quality: "Eco (8 lines)", ...verb });
+  p.stereo(src, t, { from: jacks, to: ["in1l", "in1r"] }).stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+}
+/// Mono jack of a node into both inputs of a stereo module.
+function mono(p, from, jack, to, l = "l", r = "r") { p.cable(from, jack, to, l).cable(from, jack, to, r); }
+/// Two stereo sources blended into Out.
+function blend(p, at, a, b, la = -3, lb = -6, aj = ["l", "r"], bj = ["outl", "outr"]) {
+  const mix = p.add("audio-mixer", at, { level1: la, level2: lb, master: -1 });
+  p.stereo(a, mix, { from: aj, to: ["in1l", "in1r"] }).stereo(b, mix, { from: bj, to: ["in2l", "in2r"] }).stereo(mix, p.out, { from: ["outl", "outr"] });
+  return mix;
 }
 
-function pentatonicPings() {
-  const p = patch("Low Pass Gate: Pentatonic Pings", {
-    module: "low-pass-gate", tempo: 96,
-    description: "A saw oscillator is pinged by a pentatonic sequence through the gate's Classic cell: each note opens fast and darkens as it dies, like a struck wooden bar. Turn Response for shorter or longer plucks and Resonance for more ring.",
-    tags: ["pluck", "ping", "pentatonic", "vactrol"],
+function pluckRun() {
+  const p = patch("Low Pass Gate: Wooden Pluck", {
+    module: "low-pass-gate", tempo: 100,
+    description: "A bright saw is silent until each sequencer trigger pings the gate: it snaps open and then darkens as it closes, like a plucked string. Raise Response for longer notes, Ping for harder hits, or switch Cell to Fast.",
+    tags: ["pluck", "ping", "vactrol", "melody", "classic"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "D", scale: "Major Pentatonic", octave: 0, gatelength: 0.3 },
-    { data: steps([0, 4, 7, 4, 9, 7, 4, 2, 0, 4, 9, 12, 9, 7, 4, 7]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.9 });
-  const g = p.add("low-pass-gate", [2, 0], { response: 0.45, ping: 0.9, resonance: 0.3, brightness: 0.6, cell: "Classic", mode: "Both" });
-  const mix = p.add("audio-mixer", [3, 0], { level1: 5, master: 3 });
-  p.cable(seq, "pitch", osc, "pitch").cable(seq, "trigger", g, "ping").cable(osc, "out", g, "l")
-    .stereo(g, mix, { to: ["in1l", "in1r"] });
-  finish(p, [4, 0], mix, { size: 0.55, decay: 3, mix: 0.3 });
+  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "C", scale: "Major Pentatonic", octave: 0, gatelength: 0.4 },
+    { data: steps([0, 4, 7, 12, 9, 7, 4, 2, 0, 4, 9, 7, 12, 9, 7, 4], [110, 80, 90, 100, 85, 70, 90, 80, 110, 80, 95, 85, 105, 90, 75, 85]) });
+  const osc = p.add("oscillator", [1, 0], { shape: 1 });
+  const g = p.add("low-pass-gate", [2, 0], { level: 0, response: 0.45, ping: 0.85, resonance: 0.2, brightness: 0.8, cell: "Classic", mode: "Both" });
+  p.cable(seq, "pitch", osc, "pitch").cable(osc, "out", g, "l").cable(osc, "out", g, "r").cable(seq, "trigger", g, "ping").cable(seq, "velocity", g, "velocity");
+  finish(p, [3, 0], g, 5, { size: 0.6, decay: 3, mix: 0.3 });
   return p;
 }
 
-function slowMemoryBass() {
-  const p = patch("Low Pass Gate: Slow Memory Bass", {
-    module: "low-pass-gate", tempo: 82,
-    description: "The Slow memory cell remembers earlier pings, so a sub-heavy bass line opens a little more with each note that follows another quickly. Switch Cell to Fast to hear it forget.",
-    tags: ["bass", "slow memory", "sub", "organic"],
-  });
-  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "A", scale: "Natural Minor", octave: -2, gatelength: 0.3 },
-    { data: steps([0, ".", 0, 0, ".", 7, ".", 5, 0, ".", 0, 0, 3, ".", 5, 7], [127, 90, 90, 110]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.35 });
-  const g = p.add("low-pass-gate", [2, 0], { response: 0.65, ping: 1, resonance: 0.15, brightness: 0.5, drive: 0.3, cell: "Slow memory" });
-  const mix = p.add("audio-mixer", [3, 0], { level1: 4, master: 2 });
-  p.cable(seq, "pitch", osc, "pitch").cable(seq, "trigger", g, "ping").cable(seq, "velocity", g, "velocity")
-    .cable(osc, "out", g, "l").stereo(g, mix, { to: ["in1l", "in1r"] });
-  finish(p, [4, 0], mix, { size: 0.35, decay: 1.4, mix: 0.15 });
-  return p;
-}
-
-function vactrolDrums() {
-  const p = patch("Low Pass Gate: Vactrol Drums", {
+function bongos() {
+  const p = patch("Low Pass Gate: Skin Drums", {
     module: "low-pass-gate", tempo: 108,
-    description: "Three gates ping from a Drum Grid: a low sine for the kick, noise for the snare and a bright square for the ticks. Everything is the gate's own pluck envelope; Response sets how tight the drums are.",
-    tags: ["drums", "noise", "percussion", "west coast"],
+    description: "Low, sine-like tones pinged by the drum grid through the Fast cell sound like tuned skin drums, with a short, sharp attack and a quick roll-off. Try Resonance for a ringing pitch, or change Response to tighten or loosen the hits.",
+    tags: ["percussion", "fast", "drums", "ping", "tom"],
   });
-  const rows = ["X...X...X..X....", "....X.......X..x", "..x.x.xx..x.x.x."];
-  const grid = p.add("drum-grid", [0, 0], {}, { data: drumGrid(["Kick", "Snare", "Tick", "", "", "", "", ""], [pattern("Pings", rows)]) });
-  const sine = p.add("oscillator", [1, 0], { octave: "-2", shape: 0, coarse: -5 }, { name: "Kick Osc" });
-  const noise = p.add("noise", [1, 1], { colour: 0.2 });
-  const sq = p.add("oscillator", [1, 2], { octave: "+2", shape: 0.95, coarse: 3 }, { name: "Tick Osc" });
-  const kick = p.add("low-pass-gate", [2, 0], { response: 0.35, ping: 1, resonance: 0.2, brightness: 0.35, drive: 0.2 }, { name: "Kick Gate" });
-  const snare = p.add("low-pass-gate", [2, 1], { response: 0.4, ping: 0.9, brightness: 0.8 }, { name: "Snare Gate" });
-  const tick = p.add("low-pass-gate", [2, 2], { response: 0.12, ping: 0.8, resonance: 0.4, brightness: 0.85 }, { name: "Tick Gate" });
-  const mix = p.add("audio-mixer", [3, 0], { level1: 2, level2: -3, level3: -7, pan2: 0.1, pan3: 0.35, master: 2 });
-  p.cable(grid, "gate1", kick, "ping").cable(sine, "out", kick, "l").cable(kick, "l", mix, "in1l")
-    .cable(grid, "gate2", snare, "ping").cable(noise, "out", snare, "l").cable(snare, "l", mix, "in2l")
-    .cable(grid, "gate3", tick, "ping").cable(sq, "out", tick, "l").cable(tick, "l", mix, "in3l");
-  finish(p, [4, 0], mix, { size: 0.3, decay: 1.2, mix: 0.15 });
+  const grid = p.add("drum-grid", [0, 0], {}, { data: drumGrid(["Kick", "Snare", "Closed Hat", "Open Hat", "Clap", "Tom", "Tom 2", "Perc"], [pattern("Skins", [
+    "X..x..x.x..x..x.", "..x.....x...x...", "", "", "", "", "", ""])]) });
+  const o1 = p.add("oscillator", [1, 0], { shape: 0, octave: "-1", coarse: 0 }, { name: "Low Skin" });
+  const o2 = p.add("oscillator", [1, 1], { shape: 0.2, coarse: 5, octave: "0" }, { name: "High Skin" });
+  const g1 = p.add("low-pass-gate", [2, 0], { level: 0, response: 0.3, ping: 0.9, resonance: 0.5, brightness: 0.7, cell: "Fast" }, { name: "LPG Low" });
+  const g2 = p.add("low-pass-gate", [2, 1], { level: 0, response: 0.25, ping: 0.9, resonance: 0.4, brightness: 0.8, cell: "Fast" }, { name: "LPG High" });
+  p.cable(o1, "out", g1, "l").cable(o1, "out", g1, "r").cable(grid, "gate1", g1, "ping").cable(grid, "velocity1", g1, "velocity")
+    .cable(o2, "out", g2, "l").cable(o2, "out", g2, "r").cable(grid, "gate2", g2, "ping").cable(grid, "velocity2", g2, "velocity");
+  const mix = p.add("audio-mixer", [3, 0], { level1: -1, level2: -3, pan1: -0.3, pan2: 0.4, master: 0 });
+  p.stereo(g1, mix, { to: ["in1l", "in1r"] }).stereo(g2, mix, { to: ["in2l", "in2r"] });
+  finish(p, [4, 0], mix, 2, { size: 0.45, decay: 1.8, mix: 0.2 }, ["outl", "outr"]);
   return p;
 }
 
-function lightFollower() {
-  const p = patch("Low Pass Gate: Light Follower", {
-    module: "low-pass-gate", tempo: 90,
-    description: "The gate's Light output, a ready-made pluck envelope, opens a Multi Filter on a drone, so a quiet saw pad brightens with each ping and dims again. Change Response to stretch the glow.",
-    tags: ["light", "modulation", "drone", "envelope"],
+function slowPad() {
+  const p = patch("Low Pass Gate: Slow Breath", {
+    module: "low-pass-gate", tempo: 72,
+    description: "With the Slow memory cell and a slow LFO on the CV input, the gate opens and closes like breathing over a held two-voice chord, getting brighter as it swells. Change the LFO rate or the Response to alter the pace.",
+    tags: ["slow memory", "pad", "cv", "lfo", "ambient"],
   });
-  const m = melody(p, [0, 0], [0, ".", ".", ".", 7, ".", ".", ".", 5, ".", ".", ".", 3, ".", 2, "."],
-    { rate: "1/4", shape: 0.4, root: "E", scale: "Minor Pentatonic", octave: 0, gatelength: 0.3 });
-  const g = p.add("low-pass-gate", [3, 0], { response: 0.6, ping: 0.9, resonance: 0.25, brightness: 0.7 });
-  const drone = p.add("oscillator", [0, 2], { shape: 1, octave: "-1", fine: 6 }, { name: "Drone" });
-  const drone2 = p.add("oscillator", [0, 3], { shape: 1, octave: "-1", fine: -7 }, { name: "Drone 2" });
-  const dm = p.add("audio-mixer", [1, 2], { level1: -8, level2: -8, pan1: -0.4, pan2: 0.4, master: -4 }, { name: "Drone Mix" });
-  const flt = p.add("filter", [2, 2], { cutoff: 250, resonance: 0.35 });
-  const mix = p.add("audio-mixer", [4, 0], { level1: -4, level2: -4, master: -2 });
-  p.cable(m.seq, "trigger", g, "ping").cable(m.osc, "out", g, "l")
-    .cable(drone, "out", dm, "in1l").cable(drone2, "out", dm, "in2l").stereo(dm, flt, { from: ["outl", "outr"] })
-    .cable(g, "light", flt, "cutoff", 0.5)
-    .stereo(g, mix, { to: ["in1l", "in1r"] }).stereo(flt, mix, { to: ["in2l", "in2r"] });
-  finish(p, [5, 0], mix, { size: 0.6, decay: 3.5, mix: 0.3 });
+  const m = melody(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], {
+    rate: "1/4", root: "F", scale: "Lydian", octave: -1, shape: 1, gatelength: 1, env: { attack: 0.01, decay: 0.2, sustain: 1, release: 0.3 } });
+  const o2 = p.add("oscillator", [1, 2], { shape: 0.8, coarse: 7, fine: 8 }, { name: "Fifth" });
+  const mx = p.add("audio-mixer", [2, 2], { level1: -2, level2: -6, master: 0 }, { name: "Blend" });
+  p.cable(m.seq, "pitch", o2, "pitch").cable(m.amp, "l", mx, "in1l").cable(o2, "out", mx, "in2l");
+  const lfo = p.add("lfo", [3, 2], { sync: "2 bars", wave: "Sine", polarity: "Unipolar" }, { name: "Breath" });
+  const g = p.add("low-pass-gate", [3, 0], { level: 0.05, response: 0.6, brightness: 0.7, resonance: 0.15, cell: "Slow memory", mode: "Both" });
+  p.cable(mx, "outl", g, "l").cable(mx, "outl", g, "r").cable(lfo, "out", g, "cv", 0.9);
+  finish(p, [4, 0], g, -8, { size: 0.75, decay: 4.5, mix: 0.3 });
   return p;
 }
 
-function breathingGate() {
-  const p = patch("Low Pass Gate: Breathing Chord", {
-    module: "low-pass-gate", tempo: 66,
-    description: "A slow LFO on the CV input opens and closes the gate over a held saw chord, with the Slow memory cell smoothing every swell into a breathing, darker-as-it-closes pad. Lower Brightness or add Resonance to change the colour.",
-    tags: ["pad", "cv", "swell", "chord"],
+function lpOnly() {
+  const p = patch("Low Pass Gate: Filter Mode Bass", {
+    module: "low-pass-gate", tempo: 112,
+    description: "Mode is set to LP, so the gate only acts as a filter on a steady buzzing bass: every ping opens the cutoff and it dulls again, while a Level of about a quarter keeps the note audible between hits. Switch Mode to VCA to hear only the volume change.",
+    tags: ["mode", "lp", "bass", "filter", "level"],
   });
-  const mixOsc = p.add("audio-mixer", [1, 0], { level1: -9, level2: -9, level3: -9, pan1: -0.5, pan3: 0.5, master: -3 }, { name: "Chord" });
-  [0, 3, 7].forEach((n, i) => {
-    const o = p.add("oscillator", [0, i], { shape: 0.9, coarse: n - 12, fine: (i - 1) * 8 }, { name: `Note ${i + 1}` });
-    p.cable(o, "out", mixOsc, `in${i + 1}l`);
-  });
-  const g = p.add("low-pass-gate", [2, 0], { response: 0.8, resonance: 0.3, brightness: 0.55, cell: "Slow memory", mode: "Both", level: 0 });
-  const lfo = p.add("lfo", [2, 2], { wave: "Sine", sync: "2 bars", polarity: "Unipolar" }, { name: "Breath" });
-  const lfo2 = p.add("lfo", [3, 2], { wave: "Triangle", rate: 0.07 }, { name: "Colour" });
-  const mix = p.add("audio-mixer", [3, 0], { level1: 2, master: -2 });
-  p.stereo(mixOsc, g, { from: ["outl", "outr"] }).cable(lfo, "out", g, "cv").cable(lfo2, "out", g, "brightness", 0.2)
-    .stereo(g, mix, { to: ["in1l", "in1r"] });
-  finish(p, [4, 0], mix, { size: 0.7, decay: 5, mix: 0.35 });
+  const m = melody(p, [0, 0], [0, 0, ".", 7, 0, ".", 5, ".", 0, 0, ".", 3, 10, ".", 7, 5], {
+    rate: "1/8", root: "E", scale: "Minor Pentatonic", octave: -2, shape: 1, gatelength: 0.9, env: { attack: 0.005, decay: 0.1, sustain: 1, release: 0.05 } });
+  const g = p.add("low-pass-gate", [3, 0], { level: 0.2, response: 0.4, ping: 0.9, resonance: 0.35, brightness: 0.7, drive: 0.2, cell: "Classic", mode: "LP" });
+  mono(p, m.amp, "l", g);
+  p.cable(m.seq, "trigger", g, "ping");
+  const d = beat(p, [0, 4], { style: "half", level: -8 });
+  blend(p, [4, 0], g, d, -14, -6);
   return p;
 }
 
-export default [pentatonicPings, slowMemoryBass, vactrolDrums, lightFollower, breathingGate];
+function bleedPercLoop() {
+  const p = patch("Low Pass Gate: Leaky Marimba", {
+    module: "low-pass-gate", tempo: 92,
+    description: "A softly pinged triangle wave with some Bleed lets a little signal through even when the gate is shut, so each note sits on a quiet bed of sound. Raise Bleed to blur the gaps, or lower Brightness for a more muffled wooden tone.",
+    tags: ["bleed", "mallet", "brightness", "ping", "melody"],
+  });
+  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "G", scale: "Major Pentatonic", octave: 0, gatelength: 0.3 },
+    { data: steps([0, ".", 7, 4, ".", 9, 7, ".", 12, ".", 9, 7, 4, ".", 2, "."], [100, 0, 80, 90, 0, 85, 70, 0, 110, 0, 85, 75, 95, 0, 80, 0].map((v) => (v || 90) + 25)) });
+  const osc = p.add("oscillator", [1, 0], { shape: 0.5 });
+  const g = p.add("low-pass-gate", [2, 0], { level: 0, response: 0.6, ping: 1, resonance: 0.3, brightness: 0.8, bleed: 0.2, cell: "Fast", mode: "Both" });
+  const lfo = p.add("lfo", [2, 1], { rate: 0.1 }, { name: "Tone" });
+  p.cable(seq, "pitch", osc, "pitch").cable(osc, "out", g, "l").cable(osc, "out", g, "r").cable(seq, "trigger", g, "ping").cable(seq, "velocity", g, "velocity")
+    .cable(lfo, "out", g, "response", 0.15);
+  finish(p, [3, 0], g, 3, { size: 0.55, decay: 2.5, mix: 0.25 });
+  return p;
+}
+
+export default [pluckRun, bongos, slowPad, lpOnly, bleedPercLoop];

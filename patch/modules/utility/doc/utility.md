@@ -44,6 +44,20 @@ hand or modulate.
   *X* becomes a square gate; an envelope follower becomes a trigger when a
   sound gets loud.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Utility does. In the standalone app open **File → Presets…** (⌘P) and pick *Utility* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Utility: Sample and Hold Melody** | A slow triangle LFO is sampled by an eighth-note clock in Sample & Hold mode, and the stepped result is snapped to a scale to play the oscillator: a tune that never repeats. Change the LFO rate for a different walk, or pick another Mode to hear the raw values. |
+| **Utility: Slew Glide** | The sequencer's pitch passes through the Utility's Slew before it reaches the oscillator, so every leap turns into a slide. Turn Slew down for sharp steps, or up until the notes smear into one long wail. |
+| **Utility: Folded Sweeps** | Two slow LFOs are added in the Utility and together they swing past plus and minus one, where Fold reflects them back, so the filter on the arpeggio keeps turning around at new places. Switch Mode to Through to hear the same sweeps without the folds. |
+| **Utility: Comparator Claps** | A slow triangle plus a fast sine run through the Utility, and its Gate output goes high whenever the sum rises above Threshold: the ripples cross the line in bursts and trigger the claps. Move Threshold to make the claps sparse or dense. |
+| **Utility: Rectified Tremolo** | A sine LFO into Rectify mode flips its negative half upwards, so the pad's volume pulses at twice the LFO speed, always rising from silence. Change the LFO rate for a slow pulse or a fast shimmer, or switch Mode to Through for a plain tremolo. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

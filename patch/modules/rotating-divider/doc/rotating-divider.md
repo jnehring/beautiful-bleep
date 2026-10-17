@@ -62,11 +62,11 @@ Five whole patches show what Rotating Div does. In the standalone app open **Fil
 
 | Patch | What it shows |
 |---|---|
-| **Rotating Div: Integer Gears** | Eight integer divisions of the 16th-note clock (/1 to /8) strike a hat, tom, kick, rim, clap and cowbell, forming polyrhythms that realign every four bars. A slow ramp on Rotate shifts which drum gets which division at each bar; turn Rotate by hand and listen to the kit re-gear. |
-| **Rotating Div: Prime Chimes** | The Primes set (1, 2, 3, 5, 7, 11, 13, 17) on eighth notes strikes six bells of an F major-pentatonic chord, so the chimes drift through patterns that almost never repeat. A slow ramp on Rotate hands the fast and slow divisions to different bells over time. |
-| **Rotating Div: Fibonacci Pad** | Gate output on quarter notes with the Fibonacci set (1, 2, 3, 5, 8, 13, 21, 34): each division opens one note of a C major-nine chord, so the pad breathes in and out as the gates fall in and out of step. Widen or narrow Width to change how long each note is held. |
-| **Rotating Div: Powers Groove** | Powers of 2 split the 16th clock into a clean techno grid: /1 hats, /2 off-beat accents, /4 kick, /8 clap, /16 a bar-long ping. The Stair output counts how many divisions fire together and, snapped to a scale, plays the bass: busier beats climb higher. |
-| **Rotating Div: Odd Meters** | Set = Custom with the divisions 4, 3, 5, 6, 7, 9, 10 and 12 drives a tuned drum ensemble of toms, a rim, a cowbell, a hat and a clap: a kit that lines up only every few bars (Realign sets 8). Type other numbers into the divisions in the view for a new meter. |
+| **Rotating Div: Shifting Drum Roles** | A slow stepped LFO turns Rotate, so the same set of divisions moves from output to output: the part that was the kick becomes the hats, then the clap, and the groove reshapes every few bars. Turn Rotate by hand to hear one fixed arrangement, or set Rotate Sync to Next Bar to move on the downbeat. |
+| **Rotating Div: Prime Bells** | The Primes set (2, 3, 5, 7, 11, 13 and on) rings eight soft bell tones, each on its own division, so they only coincide rarely and the texture keeps shifting. Change Rotate to give each bell a different, slower or faster clock without touching the tuning. |
+| **Rotating Div: Powers of Two Groove** | With the Powers of 2 set (1, 2, 4, 8, 16, 32...) every output lands on a regular beat, giving a tidy four-to-the-floor skeleton of kick, claps and hats. Raise Rotate by one and each part jumps to the next division for an instant half-time or double-time feel. |
+| **Rotating Div: Fibonacci Staircase** | The Stair output reads all eight gates as one binary number, a jumpy staircase that repeats with the pattern, and a Quantizer snaps it to a scale so the Fibonacci set (1, 2, 3, 5, 8...) writes a melody. Change the Quantizer's Scale, or Rotate, for a different tune from the same clocks. |
+| **Rotating Div: Extending Evens** | In Extend mode, Rotate does not wrap around the set but continues it, so with the Evens set each turn of the knob brings in longer divisions (2, 4, 6... then 18, 20 and beyond). A slow sawtooth LFO turns Rotate up through the bars, thinning the hats and claps out as it climbs. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -87,11 +87,11 @@ Five whole patches show what Swarm does. In the standalone app open **File → P
 
 | Patch | What it shows |
 |---|---|
-| **Swarm: Blooming Pad** | A slow LFO on Spread opens the swarm from a single note into a full Minor 9 chord and closes it again, while the Spread output also opens a filter, so the pad blooms and fades. Try other Chord entries or a higher Count. |
-| **Swarm: Dark Cluster** | A low swarm on the Cluster chord with strong Drift and a little Cross FM: dozens of close-packed pitches beat against each other into a restless, ominous drone. Lower Spread to tighten it, or raise Cross FM for a grittier texture. |
-| **Swarm: Pentatonic Rain** | The swarm spread over a Major Pentatonic scale with a plucky envelope and Reshuffle fired every bar: each bar the notes rearrange themselves, so the same rhythm rains down in a new order. Try Pattern: Random and a larger Spread. |
-| **Swarm: Octave Super Bass** | Seven oscillators on the Octaves chord with a wide Detune make a huge, thick bass that holds together over the beat. Try Fifths or a bigger Range for more weight, or reduce Detune for a cleaner tone. |
-| **Swarm: Glitter Fifths** | A bright swarm of stacked fifths with Warp pushed up and Cross FM on a slow cycle: the oscillators modulate each other into a glittering, bell-like shimmer. Move Warp and Cross FM to taste. |
+| **Swarm: Blooming Pad** | A slow LFO moves Spread between 0 and 100 %: the eight oscillators sit on the root, then leave it one after another and slide up into a minor ninth stack, and fold back again. Glide sets how lazily they move. Try Chord, Count and Width, or press Reshuffle for a new set of glide times. |
+| **Swarm: Supersaw Lead** | With Spread at 0 every oscillator plays the same note, so the swarm becomes a fat unison lead: seven bright saws, Detune in a Fan pattern, a little Width. A filter envelope closes after each note. Raise Spread a touch to hear the lead turn into a chord, or change Pattern to Alternate or Outer. |
+| **Swarm: Hirajoshi Shimmer** | Set to a whole scale instead of a chord: sixteen oscillators across four octaves of Hirajoshi, fully spread, with high Drift and Width so the notes shimmer and wander. Soft sine-like Warp keeps it glassy. Change Chord to another scale, lower Range for a narrower cloud, or sweep Drift by hand. |
+| **Swarm: Metal Cloud** | Cross FM pushes each oscillator's phase with its neighbour's, turning a Cluster chord into dense, bell-like metal. A trigger at the start of every bar reshuffles the detune pattern and glide times, so each bar is a new cloud, and an envelope on every beat strikes it. Lower Cross FM for gritty chords, or raise it for noise. |
+| **Swarm: Root and Upper** | Swarm's Root output is a clean anchor and Upper carries only the oscillators above the root octave. Here the Root goes through a low-pass for the bassline, while Upper is filtered brighter and swept by an LFO for the chord. Use two different filters, or one effect on only one of them. |
 <!-- /generated -->
 
 <!-- generated:presets -->

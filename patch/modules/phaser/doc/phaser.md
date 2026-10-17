@@ -50,3 +50,17 @@ The preset bar of the Phaser view has 12 factory presets. Pick one to set the kn
 | **High Shimmer** | Bright, airy sweep over the top end. |
 | **Fast Leslie-ish** | Quick, shimmering rotary-like movement. |
 <!-- /generated -->
+
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Phaser does. In the standalone app open **File → Presets…** (⌘P) and pick *Phaser* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Phaser: Classic Four-Stage Sweep** | A saw riff passes a four-stage Phaser at a slow Rate with moderate Feedback: two soft notches slide up and down the sound. Change Stages for a busier or gentler sweep. |
+| **Phaser: Deep Twelve-Stage Swirl** | Twelve stages and strong negative Feedback on a held pad carve many narrow notches that sweep through the sound with a hollow, vocal quality. Try positive Feedback for a brighter, ringing sweep. |
+| **Phaser: Wide Stereo Drift** | With Spread at maximum the left and right LFOs are far apart, so the notches move in opposite places in each ear and a mono pluck melody floats around the stereo field. Lower Spread to centre the movement. |
+| **Phaser: Fast Rotor** | A fast Rate with shallow Depth and few Stages gives a quick, rotary-like shimmer on a held organ-style tone. Slow Rate down for a classic sweep or deepen Depth to add warble. |
+| **Phaser: Jet Noise Sweep** | Pink noise through a ten-stage Phaser with high Feedback turns into a rolling, whooshing jet over a quiet beat. Change Centre to move the sweep higher or lower, or reduce Feedback for a softer whoosh. |
+<!-- /generated -->

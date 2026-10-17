@@ -92,11 +92,11 @@ Five whole patches show what Quad LFO does. In the standalone app open **File â†
 
 | Patch | What it shows |
 |---|---|
-| **Quad LFO: Circular Pan** | In Quadrature mode four sines run a quarter cycle apart. Out 1 and Out 2 pan two plucked lines in a slow circle around the listener while the other two outputs swell a pad. Switch the module's view to XY to see the circle, and change Rate 1 to spin it faster. |
-| **Quad LFO: Polyrhythm Plucks** | Divide mode runs four falling saws at x1, 1/2, 1/3 and 1/4 of one rate, each plucking a note of an A minor chord: a 4-against-3-against-2 pattern that only lines up every twelve beats. Change Divide 2-4 to remix the polyrhythm. |
-| **Quad LFO: Chord Breath** | Phase mode with Spread at 90 degrees lets four unipolar sines pass one swell along the voices of a major-seventh chord: the chord rolls up and down like a breath. Try Spread 0 (all together) or 180 (two pairs). |
-| **Quad LFO: Cycle Drums** | The Cycle outputs fire once per LFO cycle, and in Divide mode each LFO has its own fraction of the rate: kick every beat, hat every half beat, clap every third and a tom every fifth - a drum pattern that slowly phases. Change the Divide settings to rearrange it. |
-| **Quad LFO: Clock Chop** | A sequencer's step trigger is patched into Clock: LFO 1 runs one cycle per Clock Ratio pulses, here two, and a square wave chops a sustained saw chord on that grid while LFO 2 sweeps the filter. Change Clock Ratio or Pulse Width to change the rhythm of the chop. |
+| **Quad LFO: Quadrature Chord** | In Quadrature mode the four LFOs are a quarter-turn apart, so four notes of a chord swell one after another in a rotating pattern. Change Rate to turn it faster, or switch Mode to Free to let each LFO run at its own speed. |
+| **Quad LFO: Divided Movements** | Locked to the tempo in Divide mode, the four LFOs run at whole fractions of one rate: the fastest shapes the tone, slower ones open the filter over two, four and eight times as long. Change a Divide setting or switch Sync off to unlock it. |
+| **Quad LFO: Stereo Filter Sweep** | Phase mode keeps all four LFOs at the same rate but staggered by Spread. Here two of them sweep a separate filter for each channel, so the pad's brightness moves from left to right. Widen or narrow Spread, or change Rate 1 for a faster sweep. |
+| **Quad LFO: Free Texture** | In Free mode the four LFOs run at unrelated rates with different waves (sine, smooth random, triangle and stepped random); their Sum output moves the filter while the others change tone and resonance, an endlessly shifting texture. Change a Rate or Wave to steer it. |
+| **Quad LFO: Clocked and Held** | The LFOs follow a clock from the sequencer rather than a free rate, and a second, sparser gate patched to Hold freezes them for a moment. The result is a filter movement that stops and resumes in time with the notes. Change Clock Ratio for a faster or slower cycle. |
 <!-- /generated -->
 
 <!-- generated:presets -->

@@ -1,115 +1,124 @@
 // SPDX-License-Identifier: MIT
 // Dual Osc: five demo patches. Each plays by itself with the transport.
-import { patch, steps } from "../kit.mjs";
-import { beat } from "../demo-kit.mjs";
+import { patch, steps, drumGrid, pattern } from "../kit.mjs";
+import { melody, beat } from "../demo-kit.mjs";
 
-function seq(p, at, notes, o = {}) {
-  return p.add("step-sequencer", at, { length: notes.length, rate: o.rate || "1/8", root: o.root || "A",
-    scale: o.scale || "Minor Pentatonic", octave: o.octave ?? 0, gatelength: o.gate ?? 0.5 }, { data: steps(notes, o.vel) });
-}
-/// Stereo oscillator → VCA with an ADSR from the sequencer gate. Returns the VCA.
-function amp(p, at, s, osc, adsr, from = ["outL", "outR"]) {
-  const env = p.add("adsr", at, adsr, { name: "Amp Env" });
-  const v = p.add("vca", [at[0] + 1, at[1]], {}, { name: "VCA" });
-  p.cable(s, "gate", env, "gate").cable(s, "trigger", env, "retrig").cable(env, "env", v, "gain");
-  p.stereo(osc, v, { from });
-  return v;
-}
-function room(p, at, src, o = {}) {
-  if (o.trim !== undefined) {  // level trim through a mixer first
-    const m = p.add("audio-mixer", [at[0] - 1, at[1] + 1], { level1: o.trim, pan1: -1, level2: o.trim, pan2: 1, master: 0 }, { name: "Trim" });
-    p.cable(src, (o.from || ["l", "r"])[0], m, "in1l").cable(src, (o.from || ["l", "r"])[1], m, "in2r");
-    src = m; o = { ...o, from: ["outl", "outr"] };
-  }
-  const v = p.add("reverb", at, { size: 0.6, decay: 3, damping: 0.45, mix: o.mix ?? 0.35, quality: "Eco (8 lines)", ...o.v });
-  p.stereo(src, v, { from: o.from || ["l", "r"] }).stereo(v, p.out);
-  return v;
+/// A Step Sequencer playing `notes` (semitones above the root; "." rest, "_" tie).
+function seqOf(p, at, notes, o = {}) {
+  return p.add("step-sequencer", at, {
+    length: notes.length, rate: o.rate || "1/8", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
+    octave: o.octave ?? 0, gatelength: o.gate ?? 0.5,
+  }, { data: steps(notes) });
 }
 
+/// Sequencer pitch → `src`, gate → ADSR → VCA. `jacks`: the source's audio outs (one = mono, two = stereo).
+/// Returns {amp, out}: `out` are the VCA jacks to take (l, l for a mono source).
+function play(p, at, src, seq, jacks, o = {}) {
+  const [c, r] = at;
+  const env = p.add("adsr", [c, r + 1], { attack: 0.005, decay: 0.3, sustain: 0.4, release: 0.25, ...(o.env || {}) }, { name: "Amp Env" });
+  const amp = p.add("vca", [c + 1, r], {}, { name: "VCA" });
+  p.cable(seq, "pitch", src, o.pitch || "pitch").cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(env, "env", amp, "gain");
+  if (jacks.length === 1) { p.cable(src, jacks[0], amp, "l"); return { amp, env, out: ["l", "l"] }; }
+  p.stereo(src, amp, { from: jacks });
+  return { amp, env, out: ["l", "r"] };
+}
 
-function syncLead() {
-  const p = patch("Dual Osc: Sync Lead", {
+/// Source jacks → trim mixer → reverb → Out 1/2.
+function finish(p, at, src, jacks, trim = 0, verb = {}, master = 0) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: trim, master }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.25, quality: "Eco (8 lines)", ...verb });
+  p.stereo(src, t, { from: jacks, to: ["in1l", "in1r"] }).stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return t;
+}
+
+/// A drum loop and a voice mixed together into Out 1/2.
+function withDrums(p, at, src, jacks, drums, o = {}) {
+  const mix = p.add("audio-mixer", at, { level1: o.l1 ?? -4, level2: o.l2 ?? -8, master: o.master ?? -1 }, { name: "Mix" });
+  p.stereo(src, mix, { from: jacks, to: ["in1l", "in1r"] }).stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
+    .stereo(mix, p.out, { from: ["outl", "outr"] });
+  return mix;
+}
+
+
+function complexLead() {
+  const p = patch("Dual Osc: Complex Lead", {
     module: "dual-osc", tempo: 104,
-    description: "Oscillator B hard-syncs oscillator A and a slow LFO sweeps Tune B, so the lead's tone rips from mellow to searing and back. Change Sync for a softer or harder grip, or pull Tune B to a fixed value to freeze the sound.",
-    tags: ["sync", "lead", "sweep", "melody"],
+    description: "Oscillator B frequency-modulates A while an envelope opens FM Depth and Fold on every note: each note starts bright and metallic and settles to a clearer tone. Change Tune B to pick different FM ratios, or raise Fold for more edge.",
+    tags: ["fm", "fold", "complex oscillator", "lead"],
   });
-  const s = seq(p, [0, 0], [0, 0, 7, 0, 10, 7, 3, 5, 0, 0, 12, 10, 7, 5, 3, "."], { rate: "1/8", root: "A", octave: 0, scale: "Minor Pentatonic", gate: 0.6 });
-  const o = p.add("dual-osc", [1, 0], { octaveB: 0, tuneB: 5, shapeA: 0.8, sync: 1, balance: 0.1, drift: 0.15, width: 0.4, fold: 0.1 });
-  const v = amp(p, [1, 1], s, o, { attack: 0.01, decay: 0.3, sustain: 0.6, release: 0.2 });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.13, wave: "Triangle" }, { name: "Sync Sweep" });
-  p.cable(s, "pitch", o, "pitch").cable(lfo, "out", o, "tuneB", 0.8);
-  room(p, [3, 0], v, { trim: -2, mix: 0.2, v: { decay: 1.8 } });
+  const seq = seqOf(p, [0, 0], [0, 3, 7, 3, 10, 7, 3, 0, 5, 7, 12, 10, 7, 5, 3, 7], { root: "A", rate: "1/8", gate: 0.55 });
+  const osc = p.add("dual-osc", [1, 0], { shapeA: 0.3, shapeB: 0, octaveB: 0, tuneB: 7, fmDepth: 0.15, fold: 0.1, balance: 0.2, width: 0.5 });
+  const fe = p.add("adsr", [1, 2], { attack: 0.003, decay: 0.4, sustain: 0.1, release: 0.3 }, { name: "Fold Env" });
+  const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { decay: 0.35, sustain: 0.4, release: 0.3 } });
+  p.cable(seq, "pitch", osc, "pitchB").cable(seq, "gate", fe, "gate").cable(seq, "trigger", fe, "retrig")
+    .cable(fe, "env", osc, "fmDepth", 0.4).cable(fe, "env", osc, "fold", 0.5);
+  finish(p, [3, 0], v.amp, v.out, -7, { size: 0.5, decay: 2.5, mix: 0.25 });
   return p;
 }
 
-function metalBells() {
-  const p = patch("Dual Osc: Metal Bells", {
-    module: "dual-osc", tempo: 88,
-    description: "Sine B frequency-modulates sine A at an odd ratio (B Tune +7 semitones) with Exponential FM, and a decaying envelope on both level and FM turns every note into a struck, clangorous bell. Try changing Tune B for different metals.",
-    tags: ["fm", "bell", "metallic", "pluck"],
+function syncSweep() {
+  const p = patch("Dual Osc: Sync Sweep", {
+    module: "dual-osc", tempo: 112,
+    description: "A is hard-synced to B and the Sync amount is swept by a slow ramp, so the tone tears from a clean saw into a growling, harmonic-rich buzz. Turn Sync by hand to stop the sweep where you like it.",
+    tags: ["sync", "sweep", "growl", "bass"],
   });
-  const s = seq(p, [0, 0], [0, ".", 7, ".", 12, ".", 5, ".", 3, ".", 10, ".", 7, ".", ".", "."], { rate: "1/8", root: "D", octave: 1, scale: "Minor Pentatonic" });
-  const o = p.add("dual-osc", [1, 0], { shapeA: 0, shapeB: 0, octaveB: 0, tuneB: 7.3, fmDepth: 0.35, fmMode: "Exponential", balance: 0, width: 0.5, drift: 0.05 });
-  const v = amp(p, [1, 1], s, o, { attack: 0.002, decay: 1.8, sustain: 0, release: 1 });
-  const fe = p.add("adsr", [0, 1], { attack: 0.002, decay: 0.7, sustain: 0.05, release: 0.5 }, { name: "FM Env" });
-  p.cable(s, "pitch", o, "pitch").cable(s, "gate", fe, "gate").cable(s, "trigger", fe, "retrig");
-  p.cable(fe, "env", o, "fmDepth", 0.4);
-  room(p, [3, 0], v, { trim: -2, mix: 0.4, v: { decay: 4, size: 0.7 } });
+  const seq = seqOf(p, [0, 0], [0, ".", 0, 0, 3, ".", 0, 5, 0, ".", 7, ".", 5, 3, 0, "."], { root: "E", octave: -1, rate: "1/8", gate: 0.6 });
+  const osc = p.add("dual-osc", [1, 0], { shapeA: 0.85, shapeB: 0.85, octaveB: 0, sync: 0.4, balance: 0, fold: 0.05 });
+  const lfo = p.add("lfo", [1, 2], { wave: "Saw Up", sync: "2 bars", polarity: "Unipolar" }, { name: "Sync Ramp" });
+  const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { decay: 0.25, sustain: 0.6, release: 0.12 } });
+  p.cable(seq, "pitch", osc, "pitchB").cable(lfo, "out", osc, "sync", 0.9);
+  const lp = p.add("filter", [3, 0], { cutoff: 2500, resonance: 0.2 });
+  p.stereo(v.amp, lp, { from: v.out });
+  const drums = beat(p, [0, 4], { style: "broken", level: -7 });
+  withDrums(p, [4, 0], lp, ["l", "r"], drums, { l1: -3, l2: -5 });
+  return p;
+}
+
+function widePad() {
+  const p = patch("Dual Osc: Drifting Pad", {
+    module: "dual-osc", tempo: 66,
+    description: "Two softly detuned cores with Drift and Width turned up make a slowly moving stereo pad, with a hint of Fold from a slow LFO. Raise Drift for more instability or pull Tune B further from A for a thicker chord.",
+    tags: ["pad", "detune", "stereo", "drift"],
+  });
+  const seq = seqOf(p, [0, 0], [0, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_", 5, "_", "_", "_"], { root: "C", scale: "Natural Minor", octave: -1, rate: "1/4", gate: 1 });
+  const osc = p.add("dual-osc", [1, 0], { shapeA: 0.55, shapeB: 0.3, octaveB: 0, tuneB: 0.12, fineB: 8, balance: 0.5, drift: 0.5, width: 1, fold: 0.05 });
+  const lfo = p.add("lfo", [1, 2], { rate: 0.07 }, { name: "Fold" });
+  const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { attack: 1.2, decay: 1, sustain: 0.85, release: 2.5 } });
+  p.cable(seq, "pitch", osc, "pitchB").cable(lfo, "out", osc, "fold", 0.15);
+  const lp = p.add("filter", [3, 0], { cutoff: 1800, resonance: 0.15 });
+  p.stereo(v.amp, lp, { from: v.out });
+  finish(p, [4, 0], lp, ["l", "r"], -11, { size: 0.85, decay: 6.5, mix: 0.4 });
+  return p;
+}
+
+function ringBells() {
+  const p = patch("Dual Osc: Ring Bells", {
+    module: "dual-osc", tempo: 78,
+    description: "The Ring output multiplies A and B, giving clangorous, bell-like sidebands that die away with each note. Tune B moves the bell from soft and hollow to harsh and tuneless; choose a fifth or a tritone to hear the difference.",
+    tags: ["ring modulation", "bells", "metallic", "pluck"],
+  });
+  const seq = seqOf(p, [0, 0], [0, 7, 3, 12, 5, 10, 7, 2], { root: "D", scale: "Major Pentatonic", octave: 1, rate: "1/4", gate: 0.3 });
+  const osc = p.add("dual-osc", [1, 0], { shapeA: 0, shapeB: 0, octaveB: 0, tuneB: 5.5, balance: 0.5 });
+  const v = play(p, [2, 0], osc, seq, ["ring"], { env: { attack: 0.002, decay: 1.2, sustain: 0, release: 0.9 } });
+  p.cable(seq, "pitch", osc, "pitchB");
+  finish(p, [3, 0], v.amp, v.out, 4, { size: 0.7, decay: 5, mix: 0.35 }, 0);
   return p;
 }
 
 function foldBass() {
-  const p = patch("Dual Osc: Folding Bass", {
-    module: "dual-osc", tempo: 98,
-    description: "A triangle bass pushed through the stereo wavefolder: an envelope opens Fold on every note so each one starts snarling and settles into a round tone. Raise Symmetry for a more even-harmonic growl.",
-    tags: ["bass", "wavefolder", "fold", "growl"],
+  const p = patch("Dual Osc: Folded Bass", {
+    module: "dual-osc", tempo: 90,
+    description: "A low note from both cores is driven into the wavefolder; Fold rides a slow LFO and Symmetry shifts the odd and even folds, so the bass flips between mellow and snarling. Try the Exponential FM Mode or a different Symmetry for other growls.",
+    tags: ["wavefolder", "bass", "symmetry", "drums"],
   });
-  const s = seq(p, [0, 0], [0, ".", 0, 0, ".", 7, ".", 5, 0, ".", 0, 3, ".", 5, 7, "."], { rate: "1/8", root: "E", octave: -2, scale: "Minor Pentatonic", gate: 0.55 });
-  const o = p.add("dual-osc", [1, 0], { shapeA: 0.3, octaveB: -1, shapeB: 0.3, balance: 0.3, fold: 0.25, symmetry: 0.2, width: 0.2 });
-  const v = amp(p, [1, 1], s, o, { attack: 0.003, decay: 0.3, sustain: 0.6, release: 0.12 });
-  const fe = p.add("adsr", [0, 1], { attack: 0.002, decay: 0.25, sustain: 0.15, release: 0.15 }, { name: "Fold Env" });
-  const lfo = p.add("lfo", [0, 2], { rate: 0.1 }, { name: "Slow Symmetry" });
-  p.cable(s, "pitch", o, "pitch").cable(s, "gate", fe, "gate").cable(s, "trigger", fe, "retrig").cable(fe, "env", o, "fold", 0.6).cable(lfo, "out", o, "symmetry", 0.5);
-  const drums = beat(p, [0, 3], { style: "half", level: -10 });
-  const mix = p.add("audio-mixer", [3, 0], { level1: -4, pan1: -0.3, level2: -4, pan2: 0.3, level3: -3, level4: -3, master: 0 }, { name: "Main" });
-  p.cable(v, "l", mix, "in1l").cable(v, "r", mix, "in2r").cable(drums, "outl", mix, "in3l").cable(drums, "outr", mix, "in4r");
-  room(p, [4, 0], mix, { from: ["outl", "outr"], mix: 0.12, v: { decay: 1.2 } });
+  const seq = seqOf(p, [0, 0], [0, "_", ".", 0, 3, ".", 0, ".", 5, "_", 3, ".", 0, ".", 7, 5], { root: "F", octave: -2, rate: "1/8", gate: 0.75 });
+  const osc = p.add("dual-osc", [1, 0], { shapeA: 0.2, shapeB: 0, octaveB: 0, fmDepth: 0.1, balance: 0.4, fold: 0.5, symmetry: 0.3 });
+  const f = p.add("lfo", [1, 2], { wave: "Triangle", sync: "2 bars" }, { name: "Fold" });
+  const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { decay: 0.2, sustain: 0.7, release: 0.12 } });
+  p.cable(seq, "pitch", osc, "pitchB").cable(f, "out", osc, "fold", 0.3);
+  const drums = beat(p, [0, 4], { style: "four", level: -7 });
+  withDrums(p, [3, 0], v.amp, v.out, drums, { l1: -4, l2: -6 });
   return p;
 }
 
-function driftPad() {
-  const p = patch("Dual Osc: Drifting Pair", {
-    module: "dual-osc", tempo: 70,
-    description: "Two saw cores a few cents apart with strong Drift and wide stereo Width: the slowly beating pair makes a warm, breathing pad. Raise Fine B or Drift for a wider, less stable sound.",
-    tags: ["pad", "detune", "drift", "warm"],
-  });
-  const s = seq(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_", 3, "_", "_", "_", "_", "_", "_", "_", 7, "_", "_", "_", "_", "_", "_", "_"],
-    { rate: "1/4", root: "F", octave: -1, scale: "Major Pentatonic", gate: 1 });
-  const o = p.add("dual-osc", [1, 0], { shapeA: 0.67, octaveB: 0, shapeB: 0.67, fineB: 9, fineA: -7, balance: 0.5, drift: 0.7, width: 1, fold: 0.05 });
-  const v = amp(p, [1, 1], s, o, { attack: 1.4, decay: 1, sustain: 0.9, release: 2.5 });
-  const f = p.add("filter", [3, 0], { cutoff: 1200, resonance: 0.15 }, { name: "Warmth" });
-  const lfo = p.add("lfo", [3, 1], { rate: 0.05 }, { name: "Filter Drift" });
-  p.cable(s, "pitch", o, "pitch").stereo(v, f).cable(lfo, "out", f, "cutoff", 0.35);
-  room(p, [5, 0], f, { trim: -14, mix: 0.4, v: { decay: 5 } });
-  return p;
-}
-
-function ringClang() {
-  const p = patch("Dual Osc: Ring Clang", {
-    module: "dual-osc", tempo: 108,
-    description: "The Ring output multiplies the two cores into inharmonic clangs; a short envelope turns it into a metallic percussion line over a light beat. Change Tune B to retune the clang, or Octave B for a lower rumble.",
-    tags: ["ring mod", "percussion", "metallic", "rhythm"],
-  });
-  const s = seq(p, [0, 0], [0, ".", 0, ".", 7, ".", 0, 0, ".", 5, ".", 0, 12, ".", 7, "."], { rate: "1/8", root: "G", octave: 0, scale: "Minor Pentatonic", gate: 0.3 });
-  const o = p.add("dual-osc", [1, 0], { shapeA: 0.1, shapeB: 0.1, octaveB: 1, tuneB: 1.4, drift: 0.05 });
-  const env = p.add("adsr", [1, 1], { attack: 0.001, decay: 0.12, sustain: 0, release: 0.08 }, { name: "Clang Env" });
-  const v = p.add("vca", [2, 0], {}, { name: "VCA" });
-  p.cable(s, "pitch", o, "pitch").cable(s, "gate", env, "gate").cable(s, "trigger", env, "retrig").cable(o, "ring", v, "l").cable(env, "env", v, "gain");
-  const drums = beat(p, [0, 3], { style: "broken", level: -10 });
-  const mix = p.add("audio-mixer", [3, 0], { level1: -5, pan1: -0.2, level2: -5, pan2: 0.2, level3: 0, level4: 0, master: 0 }, { name: "Main" });
-  p.cable(v, "l", mix, "in1l").cable(v, "l", mix, "in2r").cable(drums, "outl", mix, "in3l").cable(drums, "outr", mix, "in4r");
-  room(p, [4, 0], mix, { from: ["outl", "outr"], mix: 0.15, v: { decay: 1.5 } });
-  return p;
-}
-
-export default [syncLead, metalBells, foldBass, driftPad, ringClang];
+export default [complexLead, syncSweep, widePad, ringBells, foldBass];

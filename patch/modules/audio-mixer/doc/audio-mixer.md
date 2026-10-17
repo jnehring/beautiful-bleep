@@ -56,6 +56,20 @@ reset it.
 - **Ducking:** the *Level* output follows the master's loudness; patch it with
   a negative amount onto another VCA's gain.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Audio Mixer does. In the standalone app open **File → Presets…** (⌘P) and pick *Audio Mixer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Audio Mixer: Four-Piece Band** | Drums, a bass, a chord line and a lead each sit on their own channel with their own level and pan: bass in the middle, chords left, lead right. Pull a Level down or move a Pan to rebalance the band. |
+| **Audio Mixer: Send to Reverb** | Each channel's Send feeds one reverb whose output returns on Return: the lead is awash in it, the bass stays dry. Raise Send 1 for more space, and switch Send Point to Pre-Fader to keep the reverb when a channel's Level is turned down. |
+| **Audio Mixer: Muting Arrangement** | Mute inputs are fed from drum-grid tracks, so the hats, the chord stabs and the bass drop in and out of the mix on their own in a repeating pattern. Switch a Solo on to isolate one part, or turn a Mute on by hand. |
+| **Audio Mixer: Limiter Squash** | All four channels are driven hot, well above 0 dB, and the built-in Limiter holds the master bus below full scale, giving a loud, dense and slightly pumping sound. Turn the Limiter setting off to hear how far past clipping the inputs are, and lower Master to keep it safe. |
+| **Audio Mixer: Mono Check** | Two arpeggios are panned hard left and hard right with wide detune, then summed to the middle by the Mono setting: a quick way to hear what happens to a wide mix on a single speaker. Switch Mono off to open them back out, or change the Pan values. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

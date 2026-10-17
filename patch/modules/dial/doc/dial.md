@@ -35,6 +35,20 @@ modulation as a ring.
   **Pitch** input: an octave down, unchanged, an octave up.
 - **Slow manual sweep:** *Smooth* at 1 s turns any quick move into a sweep.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Dial does. In the standalone app open **File → Presets…** (⌘P) and pick *Dial* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Dial: Filter Sweep** | One Dial, set to the middle of its range, opens the cutoff of a dark saw riff. Drag the big knob up and down while it plays to sweep the filter, or raise Smooth to make the knob glide between positions. |
+| **Dial: Stepped Transpose** | With Steps set to 12 the Dial jumps between fixed positions instead of sliding, and it feeds the sequencer's Transpose input so the whole tune moves up and down in whole notes. Set Steps to 0 to get a smooth slide, or change Steps to 5 for coarser jumps. |
+| **Dial: Reverb Blend** | The Dial rides the Mix knob of a very long reverb behind a slow bell tune: at the bottom you hear the dry notes, at the top only their wash. Move it slowly and listen to the tune sink into the room. |
+| **Dial: Flipped Range** | Min is higher than Max, so turning the Dial up closes the filter and eases off the drive while the bass sits on a beat. Swap Min and Max to turn the action around, or narrow them to limit how far the knob can go. |
+| **Dial: Morph Macro** | One Dial fans out to three destinations at different strengths: the oscillator shape, the filter cutoff and the delay mix, so a single gesture takes a soft sine pluck to a bright, echoing saw. Change the cable amounts to rebalance the macro. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

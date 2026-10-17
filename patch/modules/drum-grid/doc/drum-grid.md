@@ -60,6 +60,20 @@ step (*Immediate*). A cable into *Pattern* chooses the slot instead
 - **Chaining:** *Step Clock* clocks other sequencers in step with the grid;
   *End* fires when a pattern starts over.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Drum Grid does. In the standalone app open **File → Presets…** (⌘P) and pick *Drum Grid* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Drum Grid: Four on the Floor** | A house groove from five of the eight tracks: kick on every beat, clap on two and four, hats on the off-beats. Capital X steps are accents and play louder than x steps; click a step in the grid to cycle off, on and accent. |
+| **Drum Grid: Pattern Chain** | An LFO sweeping once every four bars feeds the Pattern input, so the grid plays a groove twice, then a busier variation, then a fill with toms, and starts over. Set Switch to Immediate to hear it change mid-bar, or take the cable out and pick slots by hand. |
+| **Drum Grid: Twelve-Step Waltz** | The pattern is only 12 steps long, so the grid wraps after three beats and the groove counts in three, with Swing leaning on the off-steps. Each pattern keeps its own Length: stretch it to 16 in the grid view and the waltz turns into a march. |
+| **Drum Grid: Accent Pump** | The grid's Accent output, high only when an X step plays, fires an envelope that opens a filter on a low drone, so every accented hit pumps the pad while the quiet x steps leave it closed. Change the grid's Velocity knob to scale the soft hits. |
+| **Drum Grid: Eight-Track Rolling Percussion** | All eight tracks work across two bars of 12/8 (Rate 1/8T, 24 steps): a kick, two toms, a clave, a cowbell, a clap, shaker hats and a distant cymbal. Mute a track in the grid view to hear how the parts interlock. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

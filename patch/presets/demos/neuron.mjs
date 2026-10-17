@@ -3,127 +3,151 @@
 import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// Mixer: channel i takes `srcs[i]` = [node, jack, rightJack?]; reverb on the send; out to Out 1/2.
-function finish(p, at, srcs, o = {}) {
+/// Mono/stereo source (`src`, jacks l/r) → trim → reverb → Out.
+function finish(p, at, src, o = {}) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: o.trim ?? 0, master: 0 }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.25, quality: "Eco (8 lines)", ...(o.verb || {}) });
+  const [jl, jr] = o.jacks || ["l", "r"];
+  p.cable(src, jl, t, "in1l").cable(src, o.stereo ? jr : jl, t, "in1r");
+  p.stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  return v;
+}
+
+/// Plucked melody into a Multi Filter (returns the filter, stereo out).
+function voice(p, at, notes, o = {}) {
+  const m = melody(p, at, notes, o);
+  const f = p.add("filter", [at[0] + 3, at[1]], { cutoff: 1200, resonance: 0.25, ...(o.filter || {}) }, { name: "Filter" });
+  p.cable(m.amp, "l", f, "l").cable(m.amp, "l", f, "r");
+  return { ...m, filt: f };
+}
+
+/// Two detuned oscillators (left / right) held by a sequencer → VCA (gain left to the caller) → Multi Filter.
+function pad(p, at, notes, o = {}) {
   const [c, r] = at;
-  const v = { master: o.master ?? -3, return: o.ret ?? -6 };
-  srcs.forEach((s, i) => { v[`level${i + 1}`] = (o.levels || [])[i] ?? -9; v[`pan${i + 1}`] = (o.pans || [])[i] ?? 0; v[`send${i + 1}`] = (o.sends || [])[i] ?? -12; });
-  const mix = p.add("audio-mixer", [c, r], v, { name: "Mix" });
-  srcs.forEach(([n, j, j2], i) => p.cable(n, j, mix, `in${i + 1}l`).cable(n, j2 || j, mix, `in${i + 1}r`));
-  const verb = p.add("reverb", [c + 1, r], { size: 0.6, decay: o.decay ?? 3.5, damping: 0.5, mix: 1, quality: "Eco (8 lines)" }, { name: "Room" });
-  p.cable(mix, "sendl", verb, "l").cable(mix, "sendr", verb, "r").cable(verb, "l", mix, "returnl").cable(verb, "r", mix, "returnr");
-  p.stereo(mix, p.out, { from: ["outl", "outr"] });
-  return mix;
+  const seq = p.add("step-sequencer", [c, r], { length: notes.length, rate: o.rate || "1/2", root: o.root || "A", scale: o.scale || "Minor Pentatonic",
+    octave: o.octave ?? -1, gatelength: o.gate ?? 0.95 }, { data: steps(notes) });
+  const o1 = p.add("oscillator", [c + 1, r], { shape: o.shape ?? 0.5, fine: -9 }, { name: "Osc L" });
+  const o2 = p.add("oscillator", [c + 1, r + 1], { shape: o.shape ?? 0.5, fine: 9 }, { name: "Osc R" });
+  const amp = p.add("vca", [c + 2, r], { gain: o.gain ?? 1 }, { name: "VCA" });
+  const f = p.add("filter", [c + 3, r], { cutoff: 1400, resonance: 0.2, ...(o.filter || {}) }, { name: "Filter" });
+  p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", amp, "l").cable(o2, "out", amp, "r")
+    .stereo(amp, f);
+  return { seq, o1, o2, amp, filt: f };
 }
 
-/// A drone pad: two detuned oscillators through a soft filter. Returns the filter (mono on "l").
-function drone(p, at, coarse, o = {}) {
-  const a = p.add("oscillator", [at[0], at[1]], { coarse, octave: o.octave ?? "-1", shape: o.shape ?? 0.5, fine: -6 }, { name: "Drone A" });
-  const b = p.add("oscillator", [at[0], at[1] + 1], { coarse: coarse + 7, octave: o.octave ?? "-1", shape: o.shape ?? 0.5, fine: 6 }, { name: "Drone B" });
-  const m = p.add("audio-mixer", [at[0] + 1, at[1]], { level1: -8, level2: -10, master: 0 }, { name: "Drone Mix" });
-  p.cable(a, "out", m, "in1l").cable(b, "out", m, "in2l");
-  const f = p.add("filter", [at[0] + 2, at[1]], { cutoff: o.cutoff ?? 900, resonance: 0.15 }, { name: "Drone Filter" });
-  p.cable(m, "outl", f, "l");
-  return f;
+/// Up to six oscillators, each through its own VCA (gain from the caller), mixed to stereo on `master` (jacks outl/outr).
+/// tones: [semitones, octave] per oscillator.
+function chord(p, at, tones, o = {}) {
+  const [c, r] = at;
+  const lv = o.lvl ?? -10;
+  const mixA = p.add("audio-mixer", [c + 2, r], { level1: lv, level2: lv, level3: lv, pan1: -0.7, pan2: 0, pan3: 0.7, master: 0 }, { name: "Mix 1-3" });
+  const mixB = p.add("audio-mixer", [c + 2, r + 3], { level1: lv, level2: lv, level3: lv, pan1: 0.5, pan2: -0.4, pan3: 0.2, master: 0 }, { name: "Mix 4-6" });
+  const vcas = [], oscs = [];
+  tones.forEach((t, i) => {
+    const osc = p.add("oscillator", [c, r + i], { shape: o.shape ?? 0, coarse: t[0], octave: t[1] }, { name: `Tone ${i + 1}` });
+    const vca = p.add("vca", [c + 1, r + i], { gain: o.gain ?? 0 }, { name: `Level ${i + 1}` });
+    p.cable(osc, "out", vca, "l");
+    if (o.pitch) p.cable(o.pitch, "pitch", osc, "pitch");
+    const m = i < 3 ? mixA : mixB, k = (i % 3) + 1;
+    p.cable(vca, "l", m, `in${k}l`).cable(vca, "l", m, `in${k}r`);
+    vcas.push(vca); oscs.push(osc);
+  });
+  const master = p.add("audio-mixer", [c + 3, r], { level1: 0, level2: 0, master: o.master ?? 0 }, { name: "Master" });
+  p.stereo(mixA, master, { from: ["outl", "outr"], to: ["in1l", "in1r"] }).stereo(mixB, master, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
+  return { vcas, oscs, master, jacks: ["outl", "outr"] };
 }
 
-function defaultRhythm() {
-  const p = patch("Neuron: Self-Made Rhythm", {
+function rhythm() {
+  const p = patch("Neuron: Self-Playing Rhythm", {
+    module: "neuron", tempo: 110,
+    description: "Two neurons charge up, fire and listen to each other, and that conversation is a drum pattern: A fires the kick, B the snare, and the logic outputs add hats and claps where they agree or differ. Change the Threshold or Leak of either neuron and the rhythm re-forms.",
+    tags: ["rhythm", "drums", "spikes", "logic"],
+  });
+  const n = p.add("neuron", [0, 0], { athreshold: 0.5, bthreshold: 0.5 });
+  const kick = p.add("punch-kick", [1, 0], { level: 0.8 });
+  const snare = p.add("punch-snare", [1, 1], { level: 0.6 });
+  const hats = p.add("punch-hats", [1, 2], { level: 0.45 });
+  const clap = p.add("punch-clap", [1, 3], { level: 0.5 });
+  p.cable(n, "aspike", kick, "trig").cable(n, "bspike", snare, "trig").cable(n, "xor", hats, "closed").cable(n, "and", clap, "trig");
+  const mix = p.add("audio-mixer", [2, 0], { level1: -9, level2: -12, level3: -16, level4: -14, master: 0 });
+  p.cable(kick, "out", mix, "in1l").cable(kick, "out", mix, "in1r").cable(snare, "out", mix, "in2l").cable(snare, "out", mix, "in2r")
+    .cable(hats, "out", mix, "in3l").cable(hats, "out", mix, "in3r").cable(clap, "out", mix, "in4l").cable(clap, "out", mix, "in4r");
+  const verb = p.add("reverb", [3, 0], { size: 0.4, decay: 1.6, mix: 0.15, quality: "Eco (8 lines)" });
+  p.stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
+  return p;
+}
+
+function melody2() {
+  const p = patch("Neuron: Spiking Melody", {
     module: "neuron", tempo: 100,
-    description: "Neuron A fires regularly from its own bias; as it charges, its Out pushes Neuron B down, so B fires in irregular gaps. A Spike plays the kick, B Spike the snare and A AND B a clap over a pad: a rhythm made by two cells listening to each other. Try the Leak knobs or the W3 weights.",
-    tags: ["rhythm", "spikes", "drums", "generative"],
+    description: "Neuron A's gate plays the notes and its membrane level, passed through a Quantizer, picks the pitch: as the neuron charges the notes climb, then drop when it fires. Lower the Threshold for a faster tune, or raise Leak to flatten the climb.",
+    tags: ["melody", "quantizer", "membrane", "gate"],
   });
-  const n = p.add("neuron", [0, 0], { aw1: 0.6, aleak: 0.25, bw1: 0.9, bleak: 0.4, bw3: -1, aw3: 0.5, cross: "Out" });
-  const kick = p.add("punch-kick", [2, 0], { level: 0.85 });
-  const snare = p.add("punch-snare", [2, 1], { level: 0.6 });
-  const clap = p.add("punch-clap", [2, 2], { level: 0.5 });
-  const hat = p.add("punch-hats", [2, 3], { level: 0.45, tone: 0.65 });
-  p.cable(n, "aspike", kick, "trig").cable(n, "bspike", snare, "trig").cable(n, "and", clap, "trig").cable(n, "xor", hat, "closed");
-  const pad = drone(p, [0, 5], 5, { cutoff: 700 });
-  finish(p, [4, 0], [[kick, "out"], [snare, "out"], [clap, "out"], [hat, "out"]], { levels: [-4, -8, -9, -16], pans: [0, -0.25, 0.3, 0.45], sends: [-30, -12, -8, -14], decay: 2.2, master: -2 });
-  const m2 = p.add("audio-mixer", [4, 4], { level1: -14, master: 0 }, { name: "Pad" });
-  p.cable(pad, "l", m2, "in1l").cable(pad, "l", m2, "in1r");
-  p.stereo(m2, p.out, { from: ["outl", "outr"] });
+  const n = p.add("neuron", [0, 0], { athreshold: 0.45, aleak: 0.6, aw1: 1, apulse: 0.12 });
+  const q = p.add("quantizer", [1, 0], { root: "E", scale: "Minor Pentatonic", range: 1 });
+  const osc = p.add("oscillator", [2, 0], { shape: 0.75 }, { name: "Source" });
+  const env = p.add("adsr", [2, 1], { attack: 0.004, decay: 0.3, sustain: 0.2, release: 0.25 }, { name: "Amp Env" });
+  const amp = p.add("vca", [3, 0], {});
+  const f = p.add("filter", [4, 0], { cutoff: 1800, resonance: 0.2 }, { name: "Filter" });
+  p.cable(n, "aout", q, "in", 0.3).cable(n, "aspike", q, "clock").cable(q, "out", osc, "pitch").cable(n, "agate", env, "gate").cable(n, "aspike", env, "retrig")
+    .cable(osc, "out", amp, "l").cable(env, "env", amp, "gain").cable(amp, "l", f, "l").cable(amp, "l", f, "r");
+  finish(p, [5, 0], f, { stereo: true, trim: 6, verb: { size: 0.5, decay: 2.5, mix: 0.3 } });
   return p;
 }
 
-function spikeMelody() {
-  const p = patch("Neuron: Spike Melody", {
-    module: "neuron", tempo: 90,
-    description: "Neuron A's spikes ping a pair of low pass gates, while Neuron B's saw-like Out is sampled by a quantizer on every spike: pitches from an irregular rhythm, in D minor pentatonic, through a long delay. Change the Pulse and Leak of either neuron to rewrite the tune.",
-    tags: ["melody", "quantizer", "generative", "bells"],
+function callResponse() {
+  const p = patch("Neuron: Call and Response", {
+    module: "neuron", tempo: 92,
+    description: "With Cross on Gate, each neuron's firing nudges the other, so a low bass note from A is answered by a high bell from B. Set Cross to Off and the two stop listening and drift apart; change B's W3 to turn the answer into a hesitation.",
+    tags: ["cross", "interaction", "bass", "bell"],
   });
-  const n = p.add("neuron", [0, 0], { aw1: 0.7, aleak: 0.3, bw1: 0.5, bleak: 1.4, bw3: -0.4, aw3: 0.3, cross: "Out", apulse: 0.05 });
-  const q = p.add("quantizer", [2, 0], { root: "D", scale: "Minor Pentatonic", range: 1.6 });
-  const osc = p.add("oscillator", [3, 0], { shape: 0.1, octave: "0" }, { name: "Bell" });
-  const lpg = p.add("low-pass-gate", [4, 0], { response: 0.45, ping: 0.9, brightness: 0.55, resonance: 0.2 }, { name: "Pluck" });
-  const bass = p.add("oscillator", [3, 1], { shape: 0.2, octave: "-2", coarse: 2 }, { name: "Bass" });
-  const blpg = p.add("low-pass-gate", [4, 1], { response: 0.6, ping: 0.9, brightness: 0.4 }, { name: "Bass Pluck" });
-  p.cable(n, "bout", q, "in").cable(n, "aspike", q, "clock").cable(q, "out", osc, "pitch");
-  p.cable(osc, "out", lpg, "l").cable(osc, "out", lpg, "r").cable(n, "aspike", lpg, "ping");
-  p.cable(bass, "out", blpg, "l").cable(bass, "out", blpg, "r").cable(n, "bspike", blpg, "ping");
-  const dl = p.add("delay-network", [5, 0], { sync: "1/8.", taps: 3, feedback: 0.45, mix: 0.45, tone: -0.2 }, { name: "Echoes" });
-  p.cable(lpg, "l", dl, "l").cable(lpg, "r", dl, "r");
-  finish(p, [6, 0], [[dl, "l", "r"], [blpg, "l", "r"]], { levels: [5, 0], sends: [-6, -12], decay: 4, master: 0 });
+  const n = p.add("neuron", [0, 0], { cross: "Gate", athreshold: 0.5, bthreshold: 0.45, aw3: 0.4, bw3: -0.6 });
+  const bass = p.add("oscillator", [1, 0], { shape: 0.05, octave: "-2" }, { name: "Bass" });
+  const be = p.add("adsr", [1, 1], { attack: 0.005, decay: 0.5, sustain: 0.3, release: 0.3 }, { name: "Bass Env" });
+  const ba = p.add("vca", [2, 0], {});
+  const bell = p.add("oscillator", [1, 2], { shape: 0, octave: "+2", coarse: 7 }, { name: "Bell" });
+  const ee = p.add("adsr", [1, 3], { attack: 0.002, decay: 0.9, sustain: 0, release: 0.8 }, { name: "Bell Env" });
+  const ea = p.add("vca", [2, 2], {});
+  p.cable(n, "agate", be, "gate").cable(be, "env", ba, "gain").cable(bass, "out", ba, "l")
+    .cable(n, "bgate", ee, "gate").cable(n, "bspike", ee, "retrig").cable(ee, "env", ea, "gain").cable(bell, "out", ea, "l");
+  const mix = p.add("audio-mixer", [3, 0], { level1: -4, level2: -14, master: 0 });
+  const verb = p.add("reverb", [4, 0], { size: 0.65, decay: 4, mix: 0.4, quality: "Eco (8 lines)" });
+  p.cable(ba, "l", mix, "in1l").cable(ba, "l", mix, "in1r").cable(ea, "l", mix, "in2l").cable(ea, "l", mix, "in2r")
+    .stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
   return p;
 }
 
-function accelerando() {
-  const p = patch("Neuron: Accelerando", {
-    module: "neuron", tempo: 108,
-    description: "A slow triangle LFO feeds Neuron A's In 2: the higher it rises, the faster A fires, so the hats and rim accelerate into a roll and fall silent as the level drops. Neuron B answers with a tom. Try a different W2 or Threshold to move where the roll starts.",
-    tags: ["accelerando", "lfo input", "hats", "bursts"],
-  });
-  const lfo = p.add("lfo", [0, 0], { rate: 0.12, wave: "Triangle", polarity: "Unipolar" }, { name: "Level" });
-  const n = p.add("neuron", [1, 0], { aw1: 0.05, aw2: 1.3, aw3: 0, aleak: 0.06, athreshold: 0.5, apulse: 0.02, bw1: 0.1, bw2: 0.9, bw3: 0, bleak: 0.5, bpulse: 0.04, cross: "Off" });
-  p.cable(lfo, "out", n, "a2").cable(lfo, "out", n, "b2");
-  const hat = p.add("punch-hats", [3, 0], { level: 0.55, closed: 0.04, tone: 0.7 });
-  const rim = p.add("punch-rim", [3, 1], { level: 0.6 });
-  const tom = p.add("punch-tom", [3, 2], { level: 0.8, tune: 90 });
-  p.cable(n, "aspike", hat, "closed").cable(n, "aspike", rim, "trig").cable(n, "bspike", tom, "trig");
-  const bass = melody(p, [0, 4], [0, ".", ".", ".", 0, ".", 7, "."], { rate: "1/4", root: "G", scale: "Natural Minor", octave: -2, shape: 0.2, env: { decay: 0.5, sustain: 0.3 } });
-  finish(p, [5, 0], [[hat, "out"], [rim, "out"], [tom, "out"], [bass.amp, "l"]], { levels: [-8, -10, -4, -6], pans: [0.3, -0.3, 0, 0], sends: [-14, -10, -10, -30], decay: 2, master: 0 });
-  return p;
-}
-
-function neuronOscillator() {
-  const p = patch("Neuron: Audio-Rate Buzz", {
+function swell() {
+  const p = patch("Neuron: Slow Charge", {
     module: "neuron", tempo: 76,
-    description: "With Leak near 0 and Cross on Gate, the two neurons chase each other so fast that their output is an audio-rate buzz. A slow LFO bends the weights and so the pitch, a filter tames it and a slow envelope shapes it into a drifting, electric drone. Nudge W3 or Pulse to retune it.",
-    tags: ["audio rate", "buzz", "drone", "experimental"],
+    description: "The neurons' membrane levels (A Out and B Out) are slow, irregular swells here: one fades a pad in and out and the other opens its filter. Lower Leak for longer swells, or raise Sharp on a neuron for a harder snap at the top.",
+    tags: ["slow", "modulation", "pad", "membrane"],
   });
-  const n = p.add("neuron", [0, 0], { aw1: 1, aw2: 0, aw3: 1.4, aleak: 0, athreshold: 0.2, apulse: 0.004, asharp: 6, bw1: 0.6, bw2: 0, bw3: 1.2, bleak: 0, bthreshold: 0.2, bpulse: 0.006, cross: "Gate", amode: "Spike", bmode: "Spike" });
-  const lfo = p.add("lfo", [0, 1], { rate: 0.07, wave: "Triangle" }, { name: "Bend" });
-  p.cable(lfo, "out", n, "aw3", 0.3).cable(lfo, "out", n, "bpulse", 0.4);
-  const hp = p.add("filter", [2, 0], { type: "1-Pole High-pass", cutoff: 60 }, { name: "DC Block" });
-  const lp = p.add("filter", [3, 0], { cutoff: 1400, resonance: 0.3, drive: 0.1 }, { name: "Tame" });
-  p.cable(n, "agate", hp, "l").cable(n, "bgate", hp, "r").cable(hp, "l", lp, "l").cable(hp, "r", lp, "r");
-  const sweep = p.add("lfo", [3, 1], { rate: 0.05, wave: "Sine" }, { name: "Cutoff Drift" });
-  p.cable(sweep, "out", lp, "cutoff", 0.4);
-  const pad = drone(p, [0, 4], 0, { cutoff: 600, octave: "-2" });
-  const mix = finish(p, [4, 0], [[lp, "l", "r"], [pad, "l"]], { levels: [-2, -10], pans: [0, 0], sends: [-8, -10], decay: 5, master: 0 });
+  const pd = pad(p, [0, 0], [0, 7, 3, 10], { rate: "1/1", root: "A", scale: "Natural Minor", gain: 0.7, shape: 0.7, filter: { cutoff: 700, resonance: 0.25 } });
+  const n = p.add("neuron", [0, 3], { aw1: 0.15, aleak: 0.05, athreshold: 0.8, bw1: 0.12, bleak: 0.08, bthreshold: 0.7, bw3: 0, aw3: 0 });
+  p.cable(n, "aout", pd.amp, "gain", 1).cable(n, "bout", pd.filt, "cutoff", 0.5);
+  finish(p, [5, 0], pd.filt, { stereo: true, trim: -6, verb: { size: 0.6, decay: 4, mix: 0.35 } });
   return p;
 }
 
-function logicDrums() {
-  const p = patch("Neuron: Logic Drums", {
-    module: "neuron", tempo: 118,
-    description: "Both neurons are in Compare mode, each a Schmitt trigger on its own clocked LFO. Their gates are combined by AND, OR and XOR into kick, clap and hats, so a few slow waves yield a changing polymetric groove. Change the Threshold of A or B to change which crossings count.",
-    tags: ["logic", "compare", "polymeter", "groove"],
+function driven() {
+  const p = patch("Neuron: Driven by an LFO", {
+    module: "neuron", tempo: 120,
+    description: "A slow triangle LFO feeds the neurons' inputs: when it is high they fire fast and when it is low they go quiet, so a bass, tom and hat pattern speeds up and thins out in waves. Change the LFO Rate or the neuron weights to change the ebb and flow.",
+    tags: ["lfo", "input", "bursts", "drums"],
   });
-  const la = p.add("lfo", [0, 0], { sync: "1/2", wave: "Sine", polarity: "Unipolar" }, { name: "Wave A" });
-  const lb = p.add("lfo", [0, 1], { sync: "1/4", wave: "Triangle", polarity: "Unipolar", phase: 40 }, { name: "Wave B" });
-  const n = p.add("neuron", [1, 0], { amode: "Compare", bmode: "Compare", aw1: 0, aw2: 1, aw3: 0, bw1: 0, bw2: 1, bw3: 0, aleak: 0, bleak: 0,
-    athreshold: 0.6, bthreshold: 0.35, ahysteresis: 0.05, bhysteresis: 0.05, cross: "Off" });
-  p.cable(la, "out", n, "a2").cable(lb, "out", n, "b2");
-  const kick = p.add("punch-kick", [3, 0], { level: 0.85 });
-  const clap = p.add("punch-clap", [3, 1], { level: 0.55 });
-  const hat = p.add("punch-hats", [3, 2], { level: 0.5, tone: 0.6 });
-  const snare = p.add("punch-snare", [3, 3], { level: 0.45 });
-  p.cable(n, "and", kick, "trig").cable(n, "xor", clap, "trig").cable(n, "or", hat, "closed").cable(n, "agate", snare, "trig");
-  const bass = melody(p, [0, 5], [0, 0, ".", 0, 3, ".", 5, "."], { rate: "1/8", root: "A", scale: "Natural Minor", octave: -2, shape: 0.25, env: { decay: 0.25, sustain: 0.4 } });
-  finish(p, [5, 0], [[kick, "out"], [clap, "out"], [hat, "out"], [bass.amp, "l"]], { levels: [-5, -9, -14, -6], pans: [0, 0.25, -0.3, 0], sends: [-30, -10, -16, -30], decay: 1.8, master: 0 });
+  const l = p.add("lfo", [0, 3], { rate: 0.13, wave: "Triangle", polarity: "Unipolar" }, { name: "Drive" });
+  const n = p.add("neuron", [0, 0], { aw1: 0.3, aw2: 1.2, aw3: 0, bw1: 0.3, bw2: 0.9, bw3: 0, athreshold: 0.6, bthreshold: 0.6, aleak: 0.5, bleak: 0.7 });
+  const tom = p.add("punch-tom", [1, 0], { tune: 90, level: 0.8, decay: 0.3 });
+  const hats = p.add("punch-hats", [1, 1], { level: 0.45, closed: 0.04 });
+  const kick = p.add("punch-kick", [1, 2], { level: 0.7 });
+  const g = p.add("lfo", [1, 3], { wave: "Square", sync: "1/4", polarity: "Unipolar", pw: 0.1 }, { name: "Pulse" });
+  p.cable(l, "out", n, "a2").cable(l, "out", n, "b2").cable(n, "aspike", tom, "trig").cable(n, "bspike", hats, "closed").cable(g, "cycle", kick, "trig");
+  const mix = p.add("audio-mixer", [2, 0], { level1: -6, level2: -12, level3: -5, master: 0 });
+  const verb = p.add("reverb", [3, 0], { size: 0.4, decay: 1.8, mix: 0.18, quality: "Eco (8 lines)" });
+  p.cable(tom, "out", mix, "in1l").cable(tom, "out", mix, "in1r").cable(hats, "out", mix, "in2l").cable(hats, "out", mix, "in2r")
+    .cable(kick, "out", mix, "in3l").cable(kick, "out", mix, "in3r").stereo(mix, verb, { from: ["outl", "outr"] }).stereo(verb, p.out);
   return p;
 }
 
-export default [defaultRhythm, spikeMelody, accelerando, neuronOscillator, logicDrums];
+export default [rhythm, melody2, callResponse, swell, driven];

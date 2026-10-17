@@ -29,3 +29,17 @@ The view shows an **IN** and an **OUT** level meter, with the controls beside th
 - **Safety at the end of a patch:** Ceiling −1 dB, Release 100 ms, Lookahead 2 ms.
 - **Louder, not clipped:** raise Input by 3 to 6 dB, Lookahead 5 ms, Release 200 ms.
 - **Inside a feedback loop:** Lookahead *Off*, so the loop gets no extra delay.
+
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Limiter does. In the standalone app open **File → Presets…** (⌘P) and pick *Limiter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Limiter: Drums Turned Up** | A broken beat is driven 18 dB into a fast, low-ceiling Limiter: the peaks are shaved flat and the whole kit gets denser and louder at the same top level. Lower Input to hear the open dynamics return, or lower Ceiling for more squash. |
+| **Limiter: Slow Release Pump** | A bass line and a four-on-the-floor beat are pushed hard into a Limiter with a long Release, so the bass dips on every kick and comes back slowly. Shorten Release for a tight, clean sound or lengthen it for a heavy breathing groove. |
+| **Limiter: Flattened Swells** | A pad that swells slowly in and out is driven into a low-ceiling Limiter, which holds it at one constant level: the fade-ins vanish and notes simply appear. Pull Input down to let the swells return. |
+| **Limiter: Reduction Brightens Lead** | A kick-heavy beat is limited, and the Limiter's Reduction output opens the cutoff of a filter on a lead, so the lead brightens exactly when the drums hit hardest. Raise Input for more reduction and a wider swing. |
+| **Limiter: Final Stage** | The finished mix of lead, bass and drums passes through a transparent Limiter with 5 ms Lookahead and a ceiling just under full scale, as the last module before the output. Raise Input and watch the reduction build while the peaks never pass the ceiling. |
+<!-- /generated -->

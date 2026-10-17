@@ -39,6 +39,20 @@ unused channels.
 - **Bipolar to unipolar:** *Abs* turns a −1 … +1 LFO into a 0 … 1 shape at
   twice the rate.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what CV Mixer does. In the standalone app open **File → Presets…** (⌘P) and pick *CV Mixer* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **CV Mixer: Three Waves Summed** | A sine, a triangle and a stepped random line are added by the CV Mixer in Sum mode, and the result sweeps the arpeggio's filter in a pattern that takes a long time to come round. Pull a channel's Level to zero to hear its share disappear. |
+| **CV Mixer: Averaged Drift** | Four smooth random lines are averaged into one gentle, never-settling signal that detunes a two-voice pad, so the chord drifts in and out of tune with itself. Change Mode to Sum for a wilder drift, or raise Master to deepen it. |
+| **CV Mixer: Max Swells** | Two unipolar LFOs at different speeds go into Max mode, which always passes the larger one, so the pad swells whenever either wave rises and the volume rarely falls to silence. Switch to Min to hear it only when both are high. |
+| **CV Mixer: Min as a Gate Maker** | Two square LFOs of different lengths go into Min mode, which only stays high while both are high, an AND of the two, and the result opens the envelope on a held chord to cut it into a shifting rhythm. Change either LFO's sync to rewrite the pattern. |
+| **CV Mixer: Scanning Four Notes** | Four stepped random lines sit in the four channels and Scan, swept by a slow triangle, fades from one to the next; the result is snapped to a scale to play the oscillator, so the tune walks between four moving lines. Move Scan by hand to pick which channel you hear. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

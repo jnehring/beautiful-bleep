@@ -93,11 +93,11 @@ Five whole patches show what Polymeter Seq does. In the standalone app open **Fi
 
 | Patch | What it shows |
 |---|---|
-| **Polymeter Seq: Pentatonic Cycles** | Rhythm 16, notes 5, octaves 7, gates 12 and chances 9 steps long: each track loops at its own length, so the soft A major pentatonic figure only repeats after hundreds of steps. Change one track's length in the view and the pattern re-weaves itself. |
-| **Polymeter Seq: Acid Odd Lengths** | An E Phrygian Dominant bass line from tracks of 13, 7, 5 and 11 steps, with ties for slides and a few ratchets, over a four-on-the-floor beat. Move Prob. Bias or Ratchet Amt to thin the line out or make it stutter. |
-| **Polymeter Seq: Division Dance** | Each track runs at its own Division: triggers at double speed, notes at normal speed, octaves at half speed, gates ping-ponging and probability in thirds. A bright marimba line in D Dorian that keeps changing shape. Try other divisions on the tracks. |
-| **Polymeter Seq: Pattern Slots** | Three stored patterns with different track lengths share one voice. A slow saw LFO on the Pattern input moves from slot to slot on the next bar, so the tune changes character every few bars. Click a slot in the view to hear it alone. |
-| **Polymeter Seq: Glass Shower** | Sparse, probability-driven bursts of high notes over a slow drone: ratchets turn single notes into showers, and a slow LFO on Prob. Bias keeps the density rising and falling. Turn Ratchet Amt down for plain notes, or up for more rain. |
+| **Polymeter Seq: Five Against Seven** | The trigger track is five steps long and the note track seven, so each rhythm cycle meets a different pitch and the tune only repeats after thirty-five steps. Change the length of either track in the view to find another cycle. |
+| **Polymeter Seq: Seven-Step Groove** | A bass line built on a seven-step trigger track plays against a half-time beat, so the groove keeps leaning forward and landing again. The Track Ends output rings a hat whenever a track wraps around; try dragging Swing or Gate Scale. |
+| **Polymeter Seq: Probability Garden** | The probability track gives each step a chance of sounding, so a Dorian marimba tune keeps thinning out and filling in. Push Prob. Bias up for a dense, almost fixed tune or down towards silence; change Seed to grow a different garden. |
+| **Polymeter Seq: Ratchet Rolls** | Some steps of the ratchet track split into two, three or four quick repeats, so a simple lead line stutters and rolls at odd places. Ratchet Amt scales how far the repeats go: bring it to 0 for a plain line, or leave it up for rolls. |
+| **Polymeter Seq: Pattern Slots** | Two stored patterns, a calm one and a busy one, share a voice, and a slow ramp on the Pattern input moves from one to the other at the next bar. Click a slot in the view to play it alone, or change Pattern Change to switch immediately. |
 <!-- /generated -->
 
 <!-- generated:presets -->

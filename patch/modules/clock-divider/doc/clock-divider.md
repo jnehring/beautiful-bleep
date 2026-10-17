@@ -53,11 +53,11 @@ Five whole patches show what Clock Div does. In the standalone app open **File â
 
 | Patch | What it shows |
 |---|---|
-| **Clock Div: Basic Kit** | One 16th-note clock divided six ways: a kick every 4 steps, hats every 2, a rim every 3, a cowbell every 5 and a clap once a bar. Realign restarts the odd divisions on every downbeat so they keep landing on the one; set it to Never and listen to them drift. |
-| **Clock Div: Three Against Four** | Four tuned toms on /3, /4, /5 and /7 of an 8th-note clock, with Realign off: the pattern slides against itself and only comes round again after 420 steps. Set Realign to 1 bar and the same divisions lock to the bar line instead. |
-| **Clock Div: Slow Chimes** | Long divisions of an 8th-note clock (/5, /8, /11, /13, /19 and /29) strike six bells of a D minor-pentatonic chord. Because the numbers share no factors, the same combination of bells takes minutes to come round. Change a Div knob and that bell shifts into a new rhythm. |
-| **Clock Div: Gate Pad** | Gate output on quarter notes with Div 1 to 6 at 4, 6, 8, 12, 16 and 24: six notes of an A minor-nine chord swell in and out at different rates, so the harmony thickens and thins over a few bars. Width sets how long each note is held. |
-| **Clock Div: Half-Time Melody** | A drum beat plays at full speed while a step sequencer is clocked by Out 1 (/2) of the same 16th clock, so its melody runs in half time. Out 2 (/32) resets the sequencer every two bars, keeping it in step with the drums. Change Div 1 to 3 or 4 for a slower, odder line. |
+| **Clock Div: Layered Percussion** | One 16th-note clock is cut into /2, /3, /5, /8 and /16: hats on the fast outputs, a kick every eight steps, a rim every three and a cowbell every five, so the layers drift in and out of line. Edit any Div knob to retune a layer; they all realign on the downbeat of the 16-step cycle. |
+| **Clock Div: Polyrhythm Chimes** | Four outputs divide an eighth-note clock by 3, 4, 5 and 7 and each rings a different bell tone, so a calm major pentatonic cluster slowly rearranges itself. Change one Div by a single step and the whole pattern shifts. |
+| **Clock Div: Binary Counter Bass** | Powers of two (/1, /2, /4, /8) in Trigger mode play a kick, snare, hat and bass in a fixed, regular pattern, a bit like the bits of a counter. Change Base to 1/8T for a rolling feel, or set Realign to 4 bars to snap the layers back together on a longer cycle. |
+| **Clock Div: Slow Gate Pad** | With Output set to Gate and Gate Length on Division, the slow outputs (/16, /24, /32 and /48) hold long gates that swell three chord tones in and out at different times. Narrow Width shortens the swells; try Gate Length = Base Step for short blips instead. |
+| **Clock Div: Clocks for Two Melodies** | Two Step Sequencers have no clock of their own: one takes /2 and one takes /3 of the divider, so an 8-note arpeggio and a 5-note bass line run at different speeds and phase against each other. Move a Div knob to speed one of them up or down. |
 <!-- /generated -->
 
 <!-- generated:presets -->

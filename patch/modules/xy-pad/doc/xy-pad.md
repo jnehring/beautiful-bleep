@@ -25,6 +25,20 @@ an XY pad control drives this module.
 - **Filter sweep:** *X* onto a Multi Filter's **Cutoff**, *Y* onto its **Resonance**.
 - **Morph:** *X* and *Y* onto two Crossfader mixes for a four-way blend.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what XY Pad does. In the standalone app open **File → Presets…** (⌘P) and pick *XY Pad* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **XY Pad: Filter Plane** | The pad's X axis drives the cutoff and its Y axis the resonance of a saw bass, so dragging across the pad goes from dull to bright and up from smooth to squelchy. Drag the dot around while the groove runs. |
+| **XY Pad: Echo Room** | X sets how much echo you hear and Y how many repeats it feeds back on a bell melody, so the bottom left is dry and the top right is a cloud of repeating notes. Try dragging along the edges to change only one thing at a time. |
+| **XY Pad: Timbre Map** | X morphs the oscillator through its waveforms and Y changes its pulse width, so each corner of the pad is a different voice for the same slow tune. Park the dot in a corner or move it while the notes sound. |
+| **XY Pad: Variation Field** | X controls the sequencer's Variation, the chance that notes are shifted away from the programmed ones, and Y its Gate Length, so you can shake up the tune and make it shorter or smoother at the same time. Park the pad low-left for the plain tune. |
+| **XY Pad: Bipolar Range** | Min and Max are set to -1 and +1, so the pad's centre is zero: X bends the pitch a little either way and Y pushes the filter above or below its starting point. Narrow Min and Max for gentler moves. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

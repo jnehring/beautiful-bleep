@@ -30,6 +30,20 @@ If only the left input of a pair is patched, it feeds both sides.
 - **Blend two modulators:** two LFOs into *A L* and *B L*, *Curve* *Linear*;
   *Out L* is a modulation source that moves between them.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Crossfader does. In the standalone app open **File → Presets…** (⌘P) and pick *Crossfader* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Crossfader: Two Voices Morph** | A soft sine arpeggio on side A and a bright buzzy line on side B share one Crossfader; a slow LFO on Fade moves between them. Drag Fade by hand, or try the Linear curve and listen for the dip at the middle. |
+| **Crossfader: Beat Swap** | Two different drum loops run at once, a steady four-on-the-floor and a broken pattern, and a square LFO flips the Crossfader between them every two bars. Change the LFO's Sync for faster swaps, or move Fade by hand to blend both beats. |
+| **Crossfader: Dry Wet Blend** | A plucked line is split: side A is the dry signal and side B goes through a long, fully wet reverb. Random values on Fade walk the blend between a close, dry sound and a distant, washed one. Turn Fade by hand to set your own mix. |
+| **Crossfader: Dark to Bright** | The same saw line goes through a dark low-pass on A and a bright, resonant high-pass on B, and an envelope on Fade sweeps from one colour to the other on each note. Change either filter's Cutoff to retune the two colours, or the envelope's Decay for a slower change. |
+| **Crossfader: Linear Curve** | Curve is set to Linear: two similar sustained chords are cross-faded back and forth by a triangle LFO, and the sum dips slightly in the middle where an equal-power fade would stay full. Switch Curve to Equal Power to hear the dip disappear. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

@@ -119,11 +119,11 @@ Five whole patches show what Segments does. In the standalone app open **File â†
 
 | Patch | What it shows |
 |---|---|
-| **Segments: Two-Bloom Pluck** | Five segments draw an envelope no ADSR can: a bright attack, a quick drop, a second bloom, a held sustain and a slow release. The same shape opens the VCA and the filter. Drag the points in the graph, or turn Time 3 and Level 3 to move the second bloom. |
-| **Segments: Lopsided LFO** | Run on Free with Sync turns four looped segments into a tempo-locked LFO of a shape no standard wave has: a fast curved rise, a dip and two uneven steps. It sweeps the filter on a bass line. Drag the points or change the note values to reshape the wobble. |
-| **Segments: Step Melody** | Eight Step segments on Free with Sync at 1/8 are a tiny sequencer: each segment's Level is a pitch, and a Quantizer snaps the staircase to A minor pentatonic. Drag the Levels in the graph to write a new tune, or change Count to shorten the loop. |
-| **Segments: Breathing Pad** | A long chord is shaped by a swell of two peaks: it rises, dips and rises again before holding while the gate is high, then releases slowly. Time Scale stretches the whole breath at once; try it, or move the dip's Level. |
-| **Segments: Drums From Segments** | Eight looped Step segments of an eighth note each make a one-bar clock: every segment's gate output fires a drum, so the Seg outputs are a patchable pattern, while the stepped Out moves a bass filter. Try patching other Seg outputs onto other drums. |
+| **Segments: Two-Humped Envelope** | Five segments draw an envelope no ADSR can: a quick rise, a dip, a second slower swell and a long fade, and every note of the tune follows that shape. Change a segment's Level or Time and hear the hump move. |
+| **Segments: Looping Filter Shape** | Set to run freely, the chain of four segments repeats like an LFO with a shape you choose: a fast ramp up, a step, a hold and a slide back. It sweeps the filter on a plucked arpeggio; stretch Time Scale or change the Shape knobs to reshape the sweep. |
+| **Segments: Bouncing Ball** | Eight segments alternate between a tiny rise and a fall to zero, each bounce shorter and quieter than the last, so one gate rings out as a dropped ball. Move the Level of a segment to change how high it bounces. |
+| **Segments: Segment Gates as Drummer** | A free-running chain of four equal segments hands out a gate at each step, and those gates play a kick, hat, snare and hat: the segments are the sequencer. Change a segment's Time to shift the groove, or raise Count to add steps. |
+| **Segments: Swell and Breath** | One three-segment shape (rise, hold while the key is down, fall) opens the filter on a pad while its inverted output fades a noise wash down, so the sound turns from airy to tonal and back with every chord. Try Release set to Jump to cut the swell short when the chord ends. |
 <!-- /generated -->
 
 <!-- generated:presets -->

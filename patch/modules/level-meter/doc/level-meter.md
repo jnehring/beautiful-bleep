@@ -44,6 +44,20 @@ line stays up.
   at *Until Reset*: the hold line and the clip light tell you afterwards if
   anything overloaded while you weren't looking.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Level Meter does. In the standalone app open **File → Presets…** (⌘P) and pick *Level Meter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Level Meter: Master Check** | A small band passes through a Level Meter on its way to the output: watch the RMS bars dance and the peak marks stop at the top of each hit, with the clip lights staying dark. Turn the band's mixer up until a clip light shows, then back off. |
+| **Level Meter: Level Ducks the Pad** | The drums run through a Level Meter whose Level output, inverted, pulls the pad's volume down on every kick: a sidechain pump made from a meter. Raise Response for slower, wider pumping, or turn the cable amount down for a gentler duck. |
+| **Level Meter: Loudness Opens the Filter** | The loudness of a drum loop, read by the Level Meter's Level output, opens the filter of a saw bass: loud passages sound bright, quiet ones muffled, like an envelope follower. Change Response for smoother or twitchier brightness. |
+| **Level Meter: Before and After** | Two Level Meters sit either side of a Compressor: the first shows the raw band, the second what is left after the squeeze, so you can see the dynamics shrink. Drop the Compressor's Threshold and watch the second meter's peaks come down. |
+| **Level Meter: Watching a Tail Fade** | Sparse bell notes ring into a long reverb, and a Level Meter with its Floor at minus 96 dB lets you watch the tail die away to nothing, long after the notes are gone. Change Floor to minus 24 dB to see how much of the tail the meter hides. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

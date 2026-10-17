@@ -91,11 +91,11 @@ Five whole patches show what Wave Analyzer does. In the standalone app open **Fi
 
 | Patch | What it shows |
 |---|---|
-| **Wave Analyzer: Harmonic Series** | A narrow band sweeps up five octaves through a low saw drone, lighting up each harmonic in turn: the Band output plays the overtone series as a rising melody, and every harmonic it finds fires Peak, which plays the hats. Try Bandwidth 100 Hz or a faster Sync. |
-| **Wave Analyzer: One Pitch from Everything** | A wide-open sweep drifts through a plucked saw melody while Shifted moves whatever partial it finds to the Listen frequency: the tune becomes a stream of changing timbres all at one pitch. Move Listen to change that pitch, or Bandwidth to 3 Hz for purer tones. |
-| **Wave Analyzer: Pitch Tracker** | In Lock mode the analyser hunts for the loudest partial within Capture of the dial, locks on and follows it: Track drives a square voice an octave below that doubles the melody, and Locked gates it. Widen Capture or move Frequency to change what it grabs. |
-| **Wave Analyzer: Spectrum Pad** | A slow synced sweep reads a three-saw chord from 20 Hz up through the whole spectrum in four bars; the Band output sings each partial as it passes and the plotter draws the spectrum. Try Hold on a slow LFO to freeze a partial, or Sync Free for a looser sweep. |
-| **Wave Analyzer: Held Partial** | The sweep moves through a bass-and-lead sequence, but a square LFO on Hold freezes it on one partial for a bar at a time, then lets it run again; the wide 1/3-octave Bandwidth makes the band whistle and talk. Change the Hold rate or Bandwidth to taste. |
+| **Wave Analyzer: Partial Picker** | A low saw drone has many partials; the analyzer is a very narrow band-pass that an LFO moves slowly over them, so you hear single sine-like overtones appear and fade, over the dry drone. Change Bandwidth for a wider or glassier peak, or move Frequency by hand. |
+| **Wave Analyzer: Spectrum Sweep** | Mode is Sweep: the narrow band glides from low to high and back across a bed of noise and drums, drawing out a rising and falling whistle. Change Sweep Dir, Span or Sweep Time, or widen Bandwidth for a softer tone. |
+| **Wave Analyzer: Pitch Shadow** | In Lock mode the analyzer finds the strongest partial of a melody and its Track output drives a pure sine that shadows every note an octave up. Change Listen to move the range it hears, or Threshold to make it more or less eager to lock. |
+| **Wave Analyzer: Kick Pump** | The analyzer is tuned to the kick's low note and its Level output follows how strong that partial is; the level swells a chord pad in time with the beat. Move Frequency to follow a different drum, or Gain to make the pad react more. |
+| **Wave Analyzer: Shifted Harmony** | A wide band-pass picks the fundamental of a plucked line and the Shifted output moves it up by the Capture amount, a seventh semitones for a fifth, so a thin sine harmony chases each note. Change Capture for other intervals, or Bandwidth to let more of the original through. |
 <!-- /generated -->
 
 ## Reference

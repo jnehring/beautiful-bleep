@@ -57,11 +57,11 @@ Five whole patches show what Low Pass Gate does. In the standalone app open **Fi
 
 | Patch | What it shows |
 |---|---|
-| **Low Pass Gate: Pentatonic Pings** | A saw oscillator is pinged by a pentatonic sequence through the gate's Classic cell: each note opens fast and darkens as it dies, like a struck wooden bar. Turn Response for shorter or longer plucks and Resonance for more ring. |
-| **Low Pass Gate: Slow Memory Bass** | The Slow memory cell remembers earlier pings, so a sub-heavy bass line opens a little more with each note that follows another quickly. Switch Cell to Fast to hear it forget. |
-| **Low Pass Gate: Vactrol Drums** | Three gates ping from a Drum Grid: a low sine for the kick, noise for the snare and a bright square for the ticks. Everything is the gate's own pluck envelope; Response sets how tight the drums are. |
-| **Low Pass Gate: Light Follower** | The gate's Light output, a ready-made pluck envelope, opens a Multi Filter on a drone, so a quiet saw pad brightens with each ping and dims again. Change Response to stretch the glow. |
-| **Low Pass Gate: Breathing Chord** | A slow LFO on the CV input opens and closes the gate over a held saw chord, with the Slow memory cell smoothing every swell into a breathing, darker-as-it-closes pad. Lower Brightness or add Resonance to change the colour. |
+| **Low Pass Gate: Wooden Pluck** | A bright saw is silent until each sequencer trigger pings the gate: it snaps open and then darkens as it closes, like a plucked string. Raise Response for longer notes, Ping for harder hits, or switch Cell to Fast. |
+| **Low Pass Gate: Skin Drums** | Low, sine-like tones pinged by the drum grid through the Fast cell sound like tuned skin drums, with a short, sharp attack and a quick roll-off. Try Resonance for a ringing pitch, or change Response to tighten or loosen the hits. |
+| **Low Pass Gate: Slow Breath** | With the Slow memory cell and a slow LFO on the CV input, the gate opens and closes like breathing over a held two-voice chord, getting brighter as it swells. Change the LFO rate or the Response to alter the pace. |
+| **Low Pass Gate: Filter Mode Bass** | Mode is set to LP, so the gate only acts as a filter on a steady buzzing bass: every ping opens the cutoff and it dulls again, while a Level of about a quarter keeps the note audible between hits. Switch Mode to VCA to hear only the volume change. |
+| **Low Pass Gate: Leaky Marimba** | A softly pinged triangle wave with some Bleed lets a little signal through even when the gate is shut, so each note sits on a quiet bed of sound. Raise Bleed to blur the gaps, or lower Brightness for a more muffled wooden tone. |
 <!-- /generated -->
 
 <!-- generated:presets -->

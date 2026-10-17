@@ -72,11 +72,11 @@ Five whole patches show what Modal Voice does. In the standalone app open **File
 
 | Patch | What it shows |
 |---|---|
-| **Modal Voice: Mallet Bars** | Mallet strikes on a wooden bar: a quick pentatonic phrase played by the Strike input, with Geometry at the bar setting and a short, damped ring. Strike Timbre changes the mallet from soft to hard, Position moves where on the bar it lands. |
-| **Modal Voice: Bowed Strings** | Long held gates with Bow turned up make the string sing continuously, with a slow rise of bow pressure from a Triangle LFO. Lower Bow Timbre for a softer scrape, or raise Damping to shorten the sustain. |
-| **Modal Voice: Breath Tube** | Blow, not bow or strike: breath noise excites a tube-like body and a slow melody speaks out of it with a soft, airy attack. Blow Timbre sets the colour of the air, Geometry the shape of the body. |
-| **Modal Voice: Metal Plate Groove** | Hits on a big metal plate in a rhythmic pattern, with slow LFOs morphing Geometry between string, plate and bell and sweeping Brightness. Try Size, Damping and Space for a tighter or a more cavernous plate. |
-| **Modal Voice: Drums Through a Body** | A drum beat enters the Ext input and excites the modal body, so the kit rings like it is played on a tuned bell with a bass line from the sequencer's pitch. Ext Level is the amount of beat in the body; Coarse retunes the whole thing. |
+| **Modal Voice: Wooden Bars** | A mallet strikes a bar-shaped body on every step of a looping pentatonic pattern. Geometry sits at 50 % (a bar), Damping and Strike Timbre keep it woody. Try Geometry towards 0 for a string, towards 100 % for a bell, or Position at 50 % to cancel the even partials. |
+| **Modal Voice: Bowed Bells** | No mallet at all: a Bow sings a bell-shaped body for as long as each gate is held. Contour at a low value gives a slow swell and long release, so the chords of the sequence bloom into each other. Lower Bow Timbre for a light, airy bow, or raise Damping to hear the bell become wood. |
+| **Modal Voice: Breath Flute** | A string-like body (Geometry 0 %) is excited only by Blow with a high Blow Timbre: above 60 % the breath couples with the body like an air jet and it sings on its own, with a little breath noise on top. Move Blow Timbre across 60 % to hear the voice appear, or add Strike for a tongued start. |
+| **Modal Voice: Plate Resonator** | Audio from a drum beat goes into Ext In with every built-in exciter at 0, so the module is a resonator in a room: the drums ring a tuned plate. Change Coarse to retune the plate, Geometry to move from string to plate to bell, Damping for how long it keeps ringing. |
+| **Modal Voice: Plucked Strings** | A hard, bright strike on a stiff string (Geometry 25 %) is a plucked-string sound, played as a broken chord in an open room. Position sets where the string is plucked and Strike Timbre how hard the pick is. Lengthen Damping for a harp, or shorten it for a muted pluck. |
 <!-- /generated -->
 
 <!-- generated:presets -->

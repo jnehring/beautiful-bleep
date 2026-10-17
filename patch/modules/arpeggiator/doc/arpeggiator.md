@@ -76,6 +76,20 @@ The preset bar of the Arpeggiator view has 15 factory presets. Pick one to set t
 | **Slow Quarter Walk** | A slow, spacious quarter-note walk down and up. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Arpeggiator does. In the standalone app open **File → Presets…** (⌘P) and pick *Arpeggiator* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Arpeggiator: Rising Pluck** | A four-bar progression of held chords is broken into a plucked run that climbs through two octaves and starts over. Try Pattern, Octaves and Rate on the Arpeggiator to turn the same chords into a different tune. |
+| **Arpeggiator: Triplet Up-Down** | The Arpeggiator climbs and falls over three octaves in triplet eighths with a touch of Swing, giving a rolling, harp-like figure behind a slow chord change. Change Rate to 1/8 or 1/16 for straight timing. |
+| **Arpeggiator: Random Sparks** | The pattern is Random over four octaves at sixteenth notes, so the chord tones scatter into a glittery, never-quite-repeating line over a beat. The Seed picks the shuffle: change it for a different sequence. |
+| **Arpeggiator: Converging Bass** | A low saw bass takes the outside notes first and works inwards, the Converge pattern over two octaves, with a bit of Swing under a driving beat. Try Diverge for the reverse, or Down for a falling line. |
+| **Arpeggiator: Slow Bell Wash** | A downward arpeggio at quarter-note speed with a short Gate Length turns each chord into a few soft bell strikes that fade into a long reverb. Increase Rate to eighth notes for a busier shimmer, or Latch to keep a chord ringing. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

@@ -69,6 +69,20 @@ The preset bar of the ADSR view has 14 factory presets. Pick one to set the knob
 | **Staccato Click** | Ultra-short blip for percussive clicks. |
 <!-- /generated -->
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what ADSR does. In the standalone app open **File → Presets…** (⌘P) and pick *ADSR* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **ADSR: Plucked Strings** | Two ADSRs share each note: one shapes the volume, the other sweeps a low-pass filter from open to closed, so every note starts bright and darkens. Shorten Decay for staccato plucks, or raise Sustain to let the notes ring. |
+| **ADSR: Slow Pad Swell** | With a long Attack and a long Release, each held note rises out of silence and melts away over the next one, so the chords seem to breathe. Try a shorter Attack to turn the pad into a soft organ. |
+| **ADSR: Velocity Touch** | The sequencer sends a different velocity with every note into the ADSR, and Vel Amount decides how much it matters: soft notes are quiet and mellow, accented ones loud and bright. Set Vel Amount to zero and the phrase goes flat. |
+| **ADSR: Bass Under a Beat** | A fast Attack with a medium Decay and a high Sustain gives the bass a tight thump that then holds its note until the gate closes. Lower Sustain for a plucked bass, lengthen Release to let notes blur into each other. |
+| **ADSR: End Trigger Echoes** | When each note's envelope finishes, its End output fires a rim shot, so the percussion trails after the melody at a distance set by Decay and Release. Lengthen the Release and the echo hits arrive later. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs

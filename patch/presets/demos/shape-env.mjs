@@ -3,141 +3,120 @@
 import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
-/// Mixes (source, left jack, right jack, level dB) rows into Out 1/2.
-function mixOut(p, at, parts, master = 0) {
-  const lv = {};
-  parts.forEach(([, , , l], i) => { lv[`level${i + 1}`] = l; });
-  const mx = p.add("audio-mixer", at, { ...lv, master });
-  parts.forEach(([src, jl, jr], i) => p.cable(src, jl, mx, `in${i + 1}l`).cable(src, jr, mx, `in${i + 1}r`));
-  p.stereo(mx, p.out, { from: ["outl", "outr"] });
-  return mx;
+/// Mono source → trim → reverb → Out.
+function finish(p, at, src, jack = "l", trim = 0, verb = {}) {
+  const t = p.add("audio-mixer", [at[0], at[1] + 1], { level1: trim, master: 0 }, { name: "Trim" });
+  const v = p.add("reverb", at, { size: 0.5, decay: 2.5, damping: 0.5, mix: 0.25, quality: "Eco (8 lines)", ...verb });
+  p.cable(src, jack, t, "in1l").cable(src, jack, t, "in1r").stereo(t, v, { from: ["outl", "outr"] }).stereo(v, p.out);
 }
 
-function pluckShapes() {
-  const p = patch("Shape Env: Pluck Morph", {
+function pluckLib() {
+  const p = patch("Shape Env: Pluck Library", {
     module: "shape-env", tempo: 100,
-    description: "A Shape Env triggered by every note replaces the ADSR: it plays a Pluck shape in One-shot mode, and a slow LFO on Morph blends it with its neighbours, so the notes slide between snappy and soft plucks. Browse other shapes with the Shape knob while it plays.",
-    tags: ["pluck", "envelope", "morph", "melody"],
+    description: "Every note triggers a one-shot shape from the library, a soft 1:8 pluck, that opens both volume and filter. Try the other plucks, Bounce and Echoes shapes, or move Morph to change its curve.",
+    tags: ["one-shot", "pluck", "shape library", "melody"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/8", root: "A", scale: "Minor Pentatonic", gatelength: 0.5 },
-    { data: steps([0, 3, 7, 3, 10, 7, 3, 5]) });
-  const osc = p.add("oscillator", [1, 0], { shape: 0.8 });
-  const flt = p.add("filter", [2, 0], { cutoff: 1500, resonance: 0.2, type: "Ladder Tanh" });
-  const amp = p.add("vca", [3, 0]);
-  const se = p.add("shape-env", [1, 1], { shape: "Pluck 1:8 soft", time: 0.35, mode: "One-shot", morph: 0.3 });
-  const lfo = p.add("lfo", [0, 2], { rate: 0.1, polarity: "Unipolar" }, { name: "Morph Drift" });
-  p.cable(seq, "pitch", osc, "pitch").cable(seq, "trigger", se, "trig").cable(lfo, "out", se, "morph", 0.6)
-    .cable(osc, "out", flt, "l").cable(se, "out", flt, "cutoff", 0.35).cable(flt, "l", amp, "l").cable(se, "out", amp, "gain");
-  const gm = p.add("audio-mixer", [3, 1], { level1: 6, master: 0 });
-  const v = p.add("reverb", [4, 0], { size: 0.6, decay: 2.6, mix: 0.3 });
-  p.cable(amp, "l", gm, "in1l").cable(amp, "l", gm, "in1r").stereo(gm, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "C", scale: "Major Pentatonic", octave: 0, gatelength: 0.4 },
+    { data: steps([0, 4, 7, 9, 12, 9, 7, 4, 2, 5, 9, 12, 9, 5, 4, 2]) });
+  const osc = p.add("oscillator", [1, 0], { shape: 0.75 });
+  const env = p.add("shape-env", [1, 1], { shape: "Pluck 1:8 soft", time: 0.45, morph: 0.25, mode: "One-shot" });
+  const f = p.add("filter", [2, 0], { cutoff: 400, resonance: 0.25, type: "Ladder Tanh" });
+  const vca = p.add("vca", [3, 0], {});
+  p.cable(seq, "pitch", osc, "pitch").cable(seq, "trigger", env, "trig").cable(osc, "out", f, "l").cable(env, "out", f, "cutoff", 0.55)
+    .cable(f, "l", vca, "l").cable(env, "out", vca, "gain");
+  finish(p, [4, 0], vca, "l", 3, { decay: 2.2 });
   return p;
 }
 
-function tranceGate() {
-  const p = patch("Shape Env: Gate Pattern", {
-    module: "shape-env", tempo: 126,
-    description: "A drawn-style gate shape looped over one bar and locked to the song chops a sustained chord into a rhythm, like a trance gate. Change Shape to another of the rhythmic patterns, or sweep Morph to blend between two of them.",
-    tags: ["gate", "chopper", "loop", "rhythm"],
+function wobbleBass() {
+  const p = patch("Shape Env: Looping Wobble Bass", {
+    module: "shape-env", tempo: 96,
+    description: "In Loop mode the Wobble shape repeats once per beat and swings the cutoff of a held bass, locked to the tempo. Switch Sync to another note length for faster or slower wobble, or try Double wobble and Swing wobble.",
+    tags: ["loop", "wobble", "bass", "synced"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "D", scale: "Natural Minor", gatelength: 1 },
-    { data: steps([0, "_", 5, 3]) });
-  const mix = p.add("audio-mixer", [2, 0], { level1: -5, level2: -7, level3: -7, level4: -9, pan1: -0.4, pan2: 0.4, pan3: -0.2, pan4: 0.2, master: 0 });
-  [["Root", 0, -6, "-1"], ["Fifth", 7, 4, "0"], ["Octave", 12, -3, "0"], ["Third", 3, 5, "0"]].forEach(([name, c, f, oct], i) => {
-    const o = p.add("oscillator", [1, i], { shape: 0.9, coarse: Math.min(c, 12), fine: f, octave: oct }, { name });
-    p.cable(seq, "pitch", o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
-  });
-  const flt = p.add("filter", [3, 0], { cutoff: 2200, resonance: 0.2, type: "SVF Multimode" });
-  const amp = p.add("vca", [4, 0]);
-  const se = p.add("shape-env", [3, 1], { shape: "x.xxx.x.", mode: "Loop", sync: "1/1", time: 2, morph: 0, level: 1 });
-  const lfo = p.add("lfo", [4, 1], { sync: "8 bars", polarity: "Unipolar" }, { name: "Variation" });
-  p.stereo(mix, flt, { from: ["outl", "outr"] }).stereo(flt, amp).cable(se, "out", amp, "gain").cable(lfo, "out", se, "morph", 0.7);
-  const bt = beat(p, [0, 3], { style: "four", level: -8 });
-  const gm = p.add("audio-mixer", [5, 0], { level1: 2, master: -5 });
-  const dl = p.add("delay-network", [6, 0], { time: 0.24, taps: 2, feedback: 0.35, mix: 0.25 });
-  p.stereo(amp, gm, { to: ["in1l", "in1r"] }).stereo(gm, dl, { from: ["outl", "outr"] });
-  mixOut(p, [7, 0], [[dl, "l", "r", -3], [bt, "outl", "outr", -4]], 0);
+  const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/4", root: "F", scale: "Natural Minor", octave: -2, gatelength: 1 },
+    { data: steps([0, "_", "_", "_", 3, "_", "_", "_", 5, "_", "_", "_", 2, "_", "_", "_"]) });
+  const osc = p.add("oscillator", [1, 0], { shape: 0.9 });
+  const lfo = p.add("shape-env", [1, 1], { shape: "Wobble", mode: "Loop", sync: "1/4", level: 1 }, { name: "Wobble" });
+  const f = p.add("filter", [2, 0], { cutoff: 250, resonance: 0.45, type: "Ladder Tanh", drive: 0.25 });
+  const vca = p.add("vca", [3, 0], { gain: 1 });
+  p.cable(seq, "pitch", osc, "pitch").cable(osc, "out", f, "l").cable(lfo, "out", f, "cutoff", 0.6).cable(f, "l", vca, "l");
+  const drums = beat(p, [0, 3], { style: "half", level: -5 });
+  const mix = p.add("audio-mixer", [4, 0], { level1: -10, level2: -6, master: -1 });
+  p.cable(vca, "l", mix, "in1l").cable(vca, "l", mix, "in1r").stereo(drums, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] })
+    .stereo(mix, p.out, { from: ["outl", "outr"] });
   return p;
 }
 
-function echoingBounce() {
-  const p = patch("Shape Env: Echoing Bell", {
-    module: "shape-env", tempo: 90,
-    description: "Shape Env plays the Echoes 1/8 shape, a burst that repeats itself on the beat grid, once per trigger from a slow melody, so every bell note comes back as a row of echoes without any delay effect. Change Sync or Skew to move the echoes, or try Ping-pong or Bounce 5.",
-    tags: ["echo", "bell", "bounce", "rhythmic"],
+function breathing() {
+  const p = patch("Shape Env: Breathing Pad", {
+    module: "shape-env", tempo: 66,
+    description: "A pad is held steady while one looped Shape Env breathes its volume over two bars and a second one slowly sways its filter over four. Choose Heartbeat or Sway shapes, or change Sync, and the whole pad takes on a new pulse.",
+    tags: ["pad", "loop", "slow", "ambient"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/2", root: "F", scale: "Major Pentatonic", gatelength: 0.1, octave: 1 },
-    { data: steps([0, 4, 7, 9, 12, 9, 7, 4]) });
-  const o1 = p.add("oscillator", [1, 0], { shape: 0.0 }, { name: "Bell" });
-  const o2 = p.add("oscillator", [1, 1], { shape: 0.0, coarse: 7, octave: "+1", fine: 3 }, { name: "Overtone" });
-  const mix = p.add("audio-mixer", [2, 0], { level1: 6, level2: -3, pan2: 0.3, master: 6 });
-  const amp = p.add("vca", [3, 0], { response: "Linear" });
-  const se = p.add("shape-env", [2, 2], { shape: "Echoes 1/8", sync: "1/2", mode: "One-shot", time: 1, skew: 0.2 });
-  p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(seq, "trigger", se, "trig")
-    .cable(o1, "out", mix, "in1l").cable(o2, "out", mix, "in2l").cable(mix, "outl", amp, "l").cable(se, "out", amp, "gain");
-  const gm = p.add("audio-mixer", [3, 1], { level1: 6, master: 6 });
-  const v = p.add("reverb", [4, 0], { size: 0.75, decay: 5, mix: 0.4 });
-  p.cable(amp, "l", gm, "in1l").cable(amp, "l", gm, "in1r").stereo(gm, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "D", scale: "Dorian", octave: 0, gatelength: 1 },
+    { data: steps([0, 7, 5, 3]) });
+  const o1 = p.add("oscillator", [1, 0], { shape: 0.7, fine: -8 });
+  const o2 = p.add("oscillator", [1, 1], { shape: 0.7, fine: 8, coarse: 7 });
+  const mix = p.add("audio-mixer", [2, 0], { level1: -7, level2: -11, pan1: -0.4, pan2: 0.4, master: 3 });
+  const f = p.add("filter", [3, 0], { cutoff: 900, resonance: 0.1, type: "SVF Multimode" });
+  const breath = p.add("shape-env", [1, 2], { shape: "Breathing", mode: "Loop", sync: "2 bars" }, { name: "Breath" });
+  const sway = p.add("shape-env", [2, 2], { shape: "Sway", mode: "Loop", sync: "4 bars" }, { name: "Sway" });
+  const vca = p.add("vca", [4, 0], {});
+  p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch");
+  p.cable(o1, "out", mix, "in1l").cable(o1, "out", mix, "in1r").cable(o2, "out", mix, "in2l").cable(o2, "out", mix, "in2r")
+    .stereo(mix, f, { from: ["outl", "outr"] }).cable(sway, "out", f, "cutoff", 0.25).stereo(f, vca).cable(breath, "out", vca, "gain");
+  const v = p.add("reverb", [5, 0], { size: 0.75, decay: 7, mix: 0.35, quality: "Eco (8 lines)" });
+  p.stereo(vca, v).stereo(v, p.out);
   return p;
 }
 
-function breathingFilter() {
-  const p = patch("Shape Env: Breathing Filter", {
-    module: "shape-env", tempo: 70,
-    description: "The Breathing shape loops every four seconds and opens and closes a low-pass filter on a sustained chord, while Inv, the upside-down shape, moves a second filter band the opposite way. Try other Wobbles shapes or change Time for a slower or faster breath.",
-    tags: ["lfo", "breathing", "pad", "filter"],
+function stabs() {
+  const p = patch("Shape Env: Drawn Rhythm Gate", {
+    module: "shape-env", tempo: 118,
+    description: "The rhythm shapes are patterns drawn as amplitude: one looping shape chops a held chord into syncopated stabs, another carves a bass note into a different pattern. Pick any of the x.xx shapes, or change Sync, to make a new groove.",
+    tags: ["rhythm shapes", "loop", "chop", "groove"],
   });
-  const seq = p.add("step-sequencer", [0, 0], { length: 4, rate: "1/1", root: "C", scale: "Dorian", gatelength: 1 }, { data: steps([0, "_", 3, 5]) });
-  const mix = p.add("audio-mixer", [2, 0], { level1: -5, level2: -7, level3: -7, pan1: -0.4, pan2: 0.4, master: 0 });
-  [["Root", 0, -7, "-1"], ["Fifth", 7, 6, "0"], ["Ninth", 2, -2, "+1"]].forEach(([name, c, f, oct], i) => {
-    const o = p.add("oscillator", [1, i], { shape: 0.85, coarse: c, fine: f, octave: oct }, { name });
-    p.cable(seq, "pitch", o, "pitch").cable(o, "out", mix, `in${i + 1}l`).cable(o, "out", mix, `in${i + 1}r`);
-  });
-  const se = p.add("shape-env", [2, 2], { shape: "Breathing", mode: "Loop", time: 4, level: 1 });
-  const f1 = p.add("filter", [3, 0], { cutoff: 400, resonance: 0.35, type: "SVF Multimode" }, { name: "Breath Filter" });
-  const f2 = p.add("filter", [4, 0], { cutoff: 1800, resonance: 0.2, mode: 0.5, type: "SVF Multimode", mix: 0.6 }, { name: "Opposite Filter" });
-  p.stereo(mix, f1, { from: ["outl", "outr"] }).cable(se, "out", f1, "cutoff", 0.5).stereo(f1, f2).cable(se, "inv", f2, "cutoff", 0.3);
-  const gm = p.add("audio-mixer", [5, 1], { level1: -2, master: 0 });
-  const v = p.add("reverb", [6, 0], { size: 0.85, decay: 8, mix: 0.4 });
-  p.stereo(f2, gm, { to: ["in1l", "in1r"] }).stereo(gm, v, { from: ["outl", "outr"] }).stereo(v, p.out);
+  const chord = p.add("step-sequencer", [0, 0], { length: 2, rate: "1/1", root: "A", scale: "Natural Minor", octave: 0, gatelength: 1 },
+    { data: steps([0, 5]) });
+  const o1 = p.add("oscillator", [1, 0], { shape: 0.7 });
+  const o2 = p.add("oscillator", [1, 1], { shape: 0.7, coarse: 7 });
+  const o3 = p.add("oscillator", [1, 2], { shape: 0.7, coarse: 3, octave: "+1" });
+  const mix = p.add("audio-mixer", [2, 0], { level1: -9, level2: -10, level3: -12, pan1: -0.3, pan3: 0.3, master: 0 });
+  const vca = p.add("vca", [3, 0], {});
+  const rh = p.add("shape-env", [2, 1], { shape: "x.xxx.x.", mode: "Loop", sync: "1/2" }, { name: "Chord Rhythm" });
+  const bs = p.add("oscillator", [1, 4], { shape: 0.4, octave: "-2" }, { name: "Bass" });
+  const bvca = p.add("vca", [3, 4], {});
+  const br = p.add("shape-env", [2, 4], { shape: "x..x..x...x..x..", mode: "Loop", sync: "1/1" }, { name: "Bass Rhythm" });
+  p.cable(chord, "pitch", o1, "pitch").cable(chord, "pitch", o2, "pitch").cable(chord, "pitch", o3, "pitch").cable(chord, "pitch", bs, "pitch");
+  p.cable(o1, "out", mix, "in1l").cable(o1, "out", mix, "in1r").cable(o2, "out", mix, "in2l").cable(o2, "out", mix, "in2r")
+    .cable(o3, "out", mix, "in3l").cable(o3, "out", mix, "in3r").stereo(mix, vca, { from: ["outl", "outr"] }).cable(rh, "out", vca, "gain")
+    .cable(bs, "out", bvca, "l").cable(br, "out", bvca, "gain");
+  const drums = beat(p, [0, 6], { style: "four", level: -6 });
+  const fm = p.add("audio-mixer", [4, 0], { level1: -7, level2: -4, level3: -8, pan1: 0, master: 0 });
+  p.stereo(vca, fm, { to: ["in1l", "in1r"] }).cable(bvca, "l", fm, "in2l").cable(bvca, "l", fm, "in2r")
+    .stereo(drums, fm, { from: ["outl", "outr"], to: ["in3l", "in3r"] });
+  const v = p.add("reverb", [5, 0], { size: 0.4, decay: 1.6, mix: 0.18, quality: "Eco (8 lines)" });
+  p.stereo(fm, v, { from: ["outl", "outr"] }).stereo(v, p.out);
   return p;
 }
 
-function synthDrums() {
-  const p = patch("Shape Env: Synth Drums", {
-    module: "shape-env", tempo: 110,
-    description: "Five Shape Envs build the drums from sine oscillators: Short exp as pitch drop and Pluck as amplitude make a kick and a tom, and the Roll shape fills out a snare of noise. Change Time or the shapes to retune and reshape each drum.",
-    tags: ["drums", "synthesis", "pitch envelope", "percussion"],
+function reversed() {
+  const p = patch("Shape Env: Reversed Swells", {
+    module: "shape-env", tempo: 84,
+    description: "With Reverse on, a plucked shape plays backwards: each note swells up and is cut off at its peak, like a tape played in reverse. Switch Reverse off for normal plucks, or lengthen Time for slower swells.",
+    tags: ["reverse", "swell", "backwards", "pluck"],
   });
-  const grid = beat(p, [0, 6], { style: "sparse", level: -14 });
-  // Shaped kick: Short exp as pitch sweep, Pluck as amplitude
-  const kseq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/16", root: "C", scale: "Chromatic", gatelength: 0.1 },
-    { data: steps([0, ".", ".", ".", ".", ".", 0, ".", ".", ".", 0, ".", ".", ".", ".", "."]) });
-  const kp = p.add("shape-env", [1, 0], { shape: "Short exp", time: 0.1 }, { name: "Kick Pitch" });
-  const ka = p.add("shape-env", [1, 1], { shape: "Pluck 1:8 soft", time: 0.45 }, { name: "Kick Amp" });
-  const ko = p.add("oscillator", [2, 0], { shape: 0, octave: "-3", coarse: -2 }, { name: "Kick Osc" });
-  const kv = p.add("vca", [3, 0], {}, { name: "Kick VCA" });
-  p.cable(kseq, "trigger", kp, "trig").cable(kseq, "trigger", ka, "trig").cable(kp, "out", ko, "pitch", 0.9)
-    .cable(ko, "out", kv, "l").cable(ka, "out", kv, "gain");
-  // Tom, on the off-beats
-  const tseq = p.add("step-sequencer", [0, 2], { length: 16, rate: "1/16", root: "C", scale: "Minor Pentatonic", gatelength: 0.1 },
-    { data: steps([".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", 7, ".", 3, 0]) });
-  const tp = p.add("shape-env", [1, 2], { shape: "Short exp", time: 0.18 }, { name: "Tom Pitch" });
-  const ta = p.add("shape-env", [1, 3], { shape: "Pluck 1:4 soft", time: 0.5 }, { name: "Tom Amp" });
-  const to = p.add("oscillator", [2, 2], { shape: 0, octave: "-1" }, { name: "Tom Osc" });
-  const tv = p.add("vca", [3, 2], {}, { name: "Tom VCA" });
-  p.cable(tseq, "trigger", tp, "trig").cable(tseq, "trigger", ta, "trig").cable(tseq, "pitch", to, "pitch").cable(tp, "out", to, "pitch", 0.5)
-    .cable(to, "out", tv, "l").cable(ta, "out", tv, "gain");
-  // Snare: noise through a roll envelope on beats 2 and 4
-  const sseq = p.add("step-sequencer", [0, 4], { length: 16, rate: "1/16", gatelength: 0.1 },
-    { data: steps([".", ".", ".", ".", 0, ".", ".", ".", ".", ".", ".", ".", 0, ".", ".", "."]) });
-  const sa = p.add("shape-env", [1, 4], { shape: "Roll", time: 0.3, mode: "One-shot" }, { name: "Snare Roll" });
-  const nz = p.add("noise", [2, 4], { colour: 0.4, level: 0.7 });
-  const sf = p.add("filter", [3, 4], { cutoff: 1500, resonance: 0.2, mode: 0.5, type: "SVF Multimode" });
-  const sv = p.add("vca", [4, 4], {}, { name: "Snare VCA" });
-  p.cable(sseq, "trigger", sa, "trig").cable(nz, "out", sf, "l").cable(sf, "l", sv, "l").cable(sa, "out", sv, "gain");
-  mixOut(p, [5, 0], [[kv, "l", "l", 0], [tv, "l", "l", -4], [sv, "l", "l", -6], [grid, "outl", "outr", -6]], -3);
+  const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/4", root: "E", scale: "Minor Pentatonic", octave: 0, gatelength: 0.4 },
+    { data: steps([0, 7, 3, 10, 12, 10, 7, 3]) });
+  const osc = p.add("oscillator", [1, 0], { shape: 0.4 });
+  const env = p.add("shape-env", [1, 1], { shape: "Pluck 1:4 soft", time: 0.55, reverse: true, mode: "One-shot" });
+  const f = p.add("filter", [2, 0], { cutoff: 800, resonance: 0.2, type: "SVF Multimode" });
+  const vca = p.add("vca", [3, 0], {});
+  p.cable(seq, "pitch", osc, "pitch").cable(seq, "trigger", env, "trig").cable(osc, "out", f, "l").cable(env, "out", f, "cutoff", 0.4)
+    .cable(f, "l", vca, "l").cable(env, "out", vca, "gain");
+  finish(p, [4, 0], vca, "l", -1, { size: 0.7, decay: 4.5, mix: 0.35 });
   return p;
 }
 
-export default [pluckShapes, tranceGate, echoingBounce, breathingFilter, synthDrums];
+export default [pluckLib, wobbleBass, breathing, stabs, reversed];
