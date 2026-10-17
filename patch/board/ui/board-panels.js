@@ -10,7 +10,7 @@
 
   P.BoardPanels = {
     create(s) {
-      const { $, addControlModule, canvas, centreOn, clone, closeUnpinnedViews, closeView, descendants, edit, el, front, gesture, inType, inputsOf, isBoundary, isCellLike, isPort, isStructural, makeApi, nodeById, nodesAt, notice, outputsOf, pathTo, pinTitle, placeWin, render, revealPanelModule, sel, selectedNodes, showMenu, typeOf, uid, views, watch } = s;
+      const { $, addControlModule, canvas, centreOn, clone, closeUnpinnedViews, closeView, descendants, edit, el, front, gesture, hidePopovers, inType, inputsOf, isBoundary, isCellLike, isPort, isStructural, makeApi, nodeById, nodesAt, notice, outputsOf, pathTo, pinTitle, placeWin, render, revealPanelModule, sel, selectedNodes, showMenu, typeOf, uid, views, watch } = s;
       // Panels live in the board document (board.panels, doc/specs/panels.md): a cell's
       // panel names nodes inside the cell, a board panel any node; a module panel
       // ("for") is loaded by other panels and names its module "this".
@@ -430,7 +430,7 @@
           win.style.left = Math.max(8, (r.width - win.offsetWidth) / 2) + "px";
         }
         front(win);
-        win.addEventListener("pointerdown", () => front(win));
+        win.addEventListener("pointerdown", () => { hidePopovers(); front(win); });
         editBtn.addEventListener("click", () => entry.setEdit(!state.edit));
         fullBtn.addEventListener("click", () => {
           state.full = !state.full;

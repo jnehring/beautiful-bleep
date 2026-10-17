@@ -395,7 +395,7 @@
     get board() { return board; }, get path() { return path; }, set path(v) { path = v; }, get pluginMode() { return pluginMode; }, get trace() { return trace; }, set trace(v) { trace = v; }, get types() { return types; },
     $, addControlModule, canvas, centreOn, clone, edit, closeUnpinnedViews, closeView, descendants, el, front, gesture,
     inType, inputsOf, isBoundary, isCellLike, isPort, isStructural, makeApi, nodeById, nodesAt, notice, outputsOf,
-    pathTo, pinTitle, placeWin, render, revealPanelModule, sel, selectedNodes, showMenu, typeOf, uid, views, watch,
+    pathTo, pinTitle, placeWin, render, revealPanelModule, sel, selectedNodes, showMenu, typeOf, uid, views, watch, hidePopovers,
   });
   const { panelList, panelById, panelsOfCell, hasPanel, panelOpen, togglePanel, panelsWithLoaded, prunePanels,
           cellPanels, panelsMenu, panelMenuFor, knobMenuItems, goToNode, buildPanel, newPanel, openStartPanel,
