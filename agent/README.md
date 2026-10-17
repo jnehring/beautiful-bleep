@@ -10,7 +10,7 @@ the chat panel is `patch/board/ui/agent-chat.js`.
 ```bash
 python3 -m venv .venv-agent && .venv-agent/bin/pip install -e "agent[dev]"
 PYTHON=.venv-agent/bin/python scripts/build/build-agent-data.sh                    # catalog.json, presets.jsonl, docs.sqlite (keyword search)
-PYTHON=.venv-agent/bin/python scripts/build/build-agent-data.sh --embed gemini-embedding-2   # + embeddings (GEMINI_API_KEY; cached)
+PYTHON=.venv-agent/bin/python scripts/build/build-agent-data.sh --embed gemini-embedding-2   # + embeddings (GOOGLE_API_KEY; cached)
 .venv-agent/bin/pytest agent/tests
 ```
 
