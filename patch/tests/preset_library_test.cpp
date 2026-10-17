@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // The presets compiled into Bleep Instrument and Bleep FX: each plugin's library is not empty, only holds
-// presets that play its role, has the default preset, and the hand-written presets are in it.
+// presets that play its role and has the default preset. (There are no hand-written presets at the moment: hand-written-presets.json
+// is empty. When some come back, check one here by name.)
 #include "Engine.h"
 #include "PresetLibrary.h"
 
@@ -33,7 +34,10 @@ int main() {
           "the default instrument exists");
     check(PresetLibrary::find(PortKind::AudioInsert, PresetLibrary::defaultName(PortKind::AudioInsert)) != nullptr,
           "the default effect exists");
-    check(PresetLibrary::find(PortKind::Instrument, "Basic Poly") != nullptr, "a hand-written preset is there");
+    // The Starters (an empty instrument and an empty effect) are in the library of their role and not in the other one.
+    check(PresetLibrary::find(PortKind::Instrument, "Empty Instrument") != nullptr, "the Empty Instrument starter is in the instrument library");
+    check(PresetLibrary::find(PortKind::AudioInsert, "Empty FX") != nullptr, "the Empty FX starter is in the effect library");
+    check(PresetLibrary::find(PortKind::AudioInsert, "Empty Instrument") == nullptr, "an instrument is not in the effect library");
     for (const auto& e : instruments) check(PresetLibrary::find(PortKind::AudioInsert, e.name) == nullptr || e.name.isEmpty(),
                                             "no preset plays both roles in this build");
     return failures ? 1 : 0;
