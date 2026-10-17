@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// EQ node (doc/eq.md): eight bands (bell, shelves, cuts, notch, band-pass), stereo.
+// EQ node (doc/eq.md): six bands (bell, shelves, cuts, notch, band-pass), stereo.
 #include "EqDsp.h"
 #include "Registry.h"
 #include "dsp/SpectrumTap.h"
@@ -41,26 +41,15 @@ public:
         dsp_[1].reset();
     }
 
-    /// For the view: the audio going in and out (log-spaced dB, 20 Hz ... 20 kHz) and the response of
-    /// the bands as they are right now, modulation included, on the same bins. "bands" is
-    /// (hz, gain dB, Q, type, on, order) per band, then the level in dB.
+    /// For the view: the audio going in and out (log-spaced dB, 20 Hz ... 20 kHz) and the sample rate. The view
+    /// draws the response curve itself from the band params (modulation included), so it follows every change at once.
     void liveArrays(std::vector<std::pair<std::string, std::vector<float>>>& out) const override {
-        std::vector<float> in(kBins), wet(kBins), curve(kBins), bands(kShown);
+        std::vector<float> in(kBins), wet(kBins);
         tap_.spectrum(false, sampleRate_, in);
         tap_.spectrum(true, sampleRate_, wet);
-        for (int i = 0; i < kShown; ++i) bands[(size_t)i] = shown_[(size_t)i].load(std::memory_order_relaxed);
-        EqBand b[EqDsp::kBands];
-        for (int k = 0; k < EqDsp::kBands; ++k) b[k] = band(bands.data() + kFields * k);
-        for (int i = 0; i < kBins; ++i) {
-            const double hz = 20.0 * std::pow(1000.0, (i + 0.5) / kBins);
-            double db = bands[kShown - 1];
-            for (int k = 0; k < EqDsp::kBands; ++k) db += Biquad::bandMagnitudeDb(b[k], hz, sampleRate_);
-            curve[(size_t)i] = (float)db;
-        }
         out.emplace_back("spectrumIn", std::move(in));
         out.emplace_back("spectrumOut", std::move(wet));
-        out.emplace_back("curve", std::move(curve));
-        out.emplace_back("bands", std::move(bands));
+        out.emplace_back("sampleRate", std::vector<float>{(float)sampleRate_});
     }
 
     void process(const ProcessContext& c) override {
@@ -74,12 +63,10 @@ public:
                     const int slope = std::clamp((int)std::lround(setting(idx(k, Slope))), 0, 5);
                     bands[k] = {(EqBand::Kind)type, setting(idx(k, On)) > 0.5f, value(c, idx(k, Hz), i), value(c, idx(k, Gain), i),
                                 value(c, idx(k, Q), i), kSlopeOrders[slope]};
-                    publish(k, bands[k], type);
                 }
                 dsp_[0].setBands(bands);
                 dsp_[1].setBands(bands);
                 level = std::pow(10.0f, value(c, kLevel, i) * 0.05f);
-                shown_[kShown - 1].store(value(c, kLevel, i), std::memory_order_relaxed);
             }
             c.outputs[OutL][i] = dsp_[0].tick(c.inputs[InL][i]) * level;
             c.outputs[OutR][i] = dsp_[1].tick(inR[i]) * level;
@@ -89,26 +76,9 @@ public:
 
 private:
     static constexpr int kBins = 128;
-    static constexpr int kShown = kFields * EqDsp::kBands + 1;
-
-    /// A band from its six numbers in `shown_` / the view's "bands" array.
-    static EqBand band(const float* v) {
-        const int type = std::clamp((int)std::lround(v[3]), 0, (int)EqBand::NumKinds - 1);
-        return {(EqBand::Kind)type, v[4] > 0.5f, v[0], v[1], v[2], (int)std::lround(v[5])};
-    }
-    void publish(int k, const EqBand& b, int type) {
-        const size_t o = (size_t)(kFields * k);
-        shown_[o].store(b.hz, std::memory_order_relaxed);
-        shown_[o + 1].store(b.gainDb, std::memory_order_relaxed);
-        shown_[o + 2].store(b.q, std::memory_order_relaxed);
-        shown_[o + 3].store((float)type, std::memory_order_relaxed);
-        shown_[o + 4].store(b.on ? 1.0f : 0.0f, std::memory_order_relaxed);
-        shown_[o + 5].store((float)b.order, std::memory_order_relaxed);
-    }
 
     EqDsp dsp_[2];
     dsp::SpectrumTap tap_;
-    std::array<std::atomic<float>, kShown> shown_{};  // what the audio thread last used, for the view
 };
 
 struct BandDefault {
@@ -117,11 +87,10 @@ struct BandDefault {
     float q;
     bool on;
 };
-// Bands 1 and 8 start as (off) cuts, 2 and 7 as shelves, 3-6 as bells spread over the spectrum.
+// Bands 1 and 6 start as (off) cuts, 2 and 5 as shelves, 3 and 4 as bells.
 constexpr BandDefault kDefaults[EqDsp::kBands] = {
-    {EqBand::LowCut, 40.0f, 1.0f, false},     {EqBand::LowShelf, 120.0f, 0.7f, true},   {EqBand::Bell, 300.0f, 1.0f, true},
-    {EqBand::Bell, 800.0f, 1.0f, true},       {EqBand::Bell, 2000.0f, 1.0f, true},      {EqBand::Bell, 5000.0f, 1.0f, true},
-    {EqBand::HighShelf, 9000.0f, 0.7f, true}, {EqBand::HighCut, 16000.0f, 1.0f, false}};
+    {EqBand::LowCut, 40.0f, 1.0f, false},  {EqBand::LowShelf, 120.0f, 0.7f, true}, {EqBand::Bell, 400.0f, 1.0f, true},
+    {EqBand::Bell, 2000.0f, 1.0f, true},   {EqBand::HighShelf, 8000.0f, 0.7f, true}, {EqBand::HighCut, 16000.0f, 1.0f, false}};
 
 }  // namespace
 
@@ -131,10 +100,10 @@ static void registerEqModule(Registry& r) {
     s.name = "EQ";
     s.category = "Effects/Dynamics & EQ";
     s.colour = "#0ea5e9";
-    s.description = "Eight-band parametric equaliser. Every band is a bell, low or high shelf, low or high cut, notch or band-pass. "
+    s.description = "Six-band parametric equaliser. Every band is a bell, low or high shelf, low or high cut, notch or band-pass. "
                     "Frequency, gain and Q of every band can be modulated.";
     // The band being edited in the view: a setting of the view, not of the sound.
-    s.params.push_back(ParamSpec::choice("band", "Band", {"1", "2", "3", "4", "5", "6", "7", "8"}, 0));
+    s.params.push_back(ParamSpec::choice("band", "Band", {"1", "2", "3", "4", "5", "6"}, 0));
     for (int k = 0; k < EqDsp::kBands; ++k) {
         const std::string n = std::to_string(k + 1), id = "b" + n, name = "Band " + n + " ";
         const BandDefault& d = kDefaults[k];

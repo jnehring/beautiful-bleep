@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Eight-band parametric equaliser. Every band has a type (bell, shelves, cuts, notch, band-pass); RBJ "Audio EQ Cookbook"
+// Six-band parametric equaliser. Every band has a type (bell, shelves, cuts, notch, band-pass); RBJ "Audio EQ Cookbook"
 // biquads (the formulas are public), cuts as Butterworth cascades, transposed direct form II in double precision.
 #pragma once
 
@@ -119,10 +119,10 @@ struct Biquad {
     }
 };
 
-/// Eight bands on one channel. Coefficients are redesigned only when a band changed.
+/// Six bands on one channel. Coefficients are redesigned only when a band changed.
 class EqDsp {
 public:
-    static constexpr int kBands = 8;
+    static constexpr int kBands = 6;
     void prepare(double sampleRate) {
         sr_ = sampleRate;
         reset();
