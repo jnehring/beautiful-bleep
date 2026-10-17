@@ -77,4 +77,4 @@ class MeteredModel(WrapperModel):
                 yield stream
             finally:
                 if self._on_usage:
-                    self._on_usage(stream.usage())
+                    self._on_usage(stream.usage)

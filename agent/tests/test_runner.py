@@ -126,3 +126,22 @@ def test_streaming_text(catalog, synth):
     res = Resources(model=model, catalog=catalog, stream=True)
     ev = collect(res, request("what is a vca", synth))
     assert "".join(d["delta"] for k, d in ev if k == "text") == "Hello world"
+
+
+def test_streaming_reports_usage_and_survives_tools(catalog, synth):
+    """The production path: streamed text, tool calls and the usage meter together."""
+    from pydantic_ai.models.function import DeltaToolCall
+
+    async def stream_fn(messages, info):
+        if returned(messages, "get_patch"):
+            yield "The patch has "
+            yield "a reverb."
+        else:
+            yield {0: DeltaToolCall(name="get_patch", json_args="{}")}
+
+    seen = []
+    res = Resources(model=FunctionModel(stream_function=stream_fn), catalog=catalog, stream=True, on_usage=seen.append)
+    ev = collect(res, request("what is in my patch?", synth))
+    assert ev[-1] == ("done", {"reason": "final"}), ev[-3:]
+    assert "".join(d["delta"] for k, d in ev if k == "text") == "The patch has a reverb."
+    assert len(seen) == 2 and all(hasattr(u, "input_tokens") for u in seen)
