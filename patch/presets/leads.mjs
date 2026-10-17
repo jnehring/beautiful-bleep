@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Leads: monophonic and few-voice Voice Cells for melodies and solos. Notes in, Out L/R.
 import { voice, category, ampEnvelope, envelope, semis } from "./kit.mjs";
+import { withFx, verb, echo, synced, chorus, phaser, flanger, shimmer } from "./fx.mjs";
 
 // Two saws, a filter that swells open on the attack like a played horn section.
 function copperHorn() {
@@ -216,5 +217,24 @@ function heterodyneWhistle() {
 }
 
 export default category("Leads", "Monophonic and few-voice Voice Cells for melodies and solos, from brass swells and glass partials to ring-mod, vowel, bowed and heterodyne voices: patch Notes in and Out L/R out.", [
-  copperHorn, glassHarmonica, wavetableSiren, ringmodComet, pitchDropPulse, formantCry, bowedWire, phaseWhip, powerFifthLead, heterodyneWhistle,
+  withFx(copperHorn, [echo(120, 150, 0.2, 0.18, 4500), verb(0.7, 3, 0.25, 0.4)],
+    { say: "A slap echo and a concert hall make the horn swell.", help: "A short slap Delay and a hall Reverb place the horn on a stage.", tags: ["hall", "slapback"] }),
+  withFx(glassHarmonica, [shimmer(0.25), verb(0.85, 5.5, 0.35, 0.3)],
+    { say: "An octave shimmer into a long hall gives the glass an angelic halo.", help: "A Pitch Shifter adds a quiet octave and a long Reverb stretches it into a halo.", tags: ["shimmer", "reverb"] }),
+  withFx(wavetableSiren, [synced("1/8", "1/8.", 0.4, 0.28, 5500, 150, true), verb(0.7, 3.2, 0.25)],
+    { say: "Ping-pong echoes and a hall let the siren bounce around the room.", help: "A tempo-synced ping-pong Delay and a hall Reverb.", tags: ["delay", "reverb"] }),
+  withFx(ringmodComet, [synced("1/8.", "1/4", 0.5, 0.3, 4500, 200, true), phaser(0.35, 0.6, 1500, 0.5, 6, 0.3), verb(0.65, 3, 0.22)],
+    { say: "A trail of echoes and a phaser turn the comet's tail into a long streak.", help: "A tempo-synced ping-pong Delay, a Phaser and a Reverb extend the ring-modulated trail.", tags: ["delay", "phaser"] }),
+  withFx(pitchDropPulse, [echo(180, 270, 0.35, 0.22, 5000), verb(0.5, 1.8, 0.18)],
+    { say: "A bouncing echo and a room let each pitch drop ring.", help: "A Delay and a small Reverb give the drops some tail.", tags: ["delay", "room"] }),
+  withFx(formantCry, [phaser(0.25, 0.55, 1100, 0.4, 6, 0.4), verb(0.75, 3.5, 0.28)],
+    { say: "A phaser and a big hall make the cry swirl and carry.", help: "A slow Phaser moves through the formants and a large Reverb makes the cry carry.", tags: ["phaser", "reverb"] }),
+  withFx(bowedWire, [echo(400, 600, 0.45, 0.25, 4000, 150, true), verb(0.8, 5, 0.32, 0.35)],
+    { say: "Slow echoes and a long hall let the bowed wire hang in the air.", help: "A slow ping-pong Delay and a long Reverb extend the bow into a haunting tail.", tags: ["delay", "reverb"] }),
+  withFx(phaseWhip, [flanger(0.2, 0.6, 0.55, 0.4), echo(220, 330, 0.35, 0.2, 5000), verb(0.55, 2, 0.2)],
+    { say: "A flanger, a short echo and a room make the whip jet across the stereo field.", help: "A Chorus in Flanger mode, a Delay and a Reverb extend the whip.", tags: ["flanger", "delay"] }),
+  withFx(powerFifthLead, [chorus(0.4, 0.4, 0.3), synced("1/8.", "1/8.", 0.35, 0.25, 5500, 150), verb(0.7, 2.8, 0.22)],
+    { say: "A chorus, dotted echoes and a hall make the fifths sound enormous.", help: "A Chorus, a tempo-synced dotted-eighth Delay and a Reverb give the lead an arena sound.", tags: ["chorus", "arena"] }),
+  withFx(heterodyneWhistle, [echo(280, 420, 0.4, 0.24, 6000, 150, true), shimmer(0.12), verb(0.7, 3.5, 0.28, 0.3)],
+    { say: "Echoes and a faint shimmer let the whistle bend off into space.", help: "A ping-pong Delay, a faint octave shimmer and a Reverb carry the whistle away.", tags: ["delay", "shimmer"] }),
 ]);

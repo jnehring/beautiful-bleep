@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Pads: slow, moving polyphonic Voice Cells for chords and beds. Notes in, Out L/R.
 import { voice, category, ampEnvelope, envelope, semis } from "./kit.mjs";
+import { withFx, verb, echo, chorus, phaser, shimmer } from "./fx.mjs";
 
 // Additive saw partials, chorused wide, brightness drifting slowly.
 function additiveDawn() {
@@ -220,5 +221,24 @@ function foldedAurora() {
 }
 
 export default category("Pads", "Slow, moving polyphonic Voice Cells for chords and beds, from additive and wavetable clouds to formant choirs, breath organs and folded textures: patch Notes in and Out L/R out.", [
-  additiveDawn, spectraTide, hollowChoir, seventhGlow, duskFormants, ribbonEnsemble, frostGlass, breathOrgan, cellarFog, foldedAurora,
+  withFx(additiveDawn, [chorus(0.25, 0.45, 0.4, 14, 0.9), verb(0.85, 5, 0.38, 0.35)],
+    { say: "A wide chorus and a long hall let the dawn spread over the stereo field.", help: "A wide Chorus and a long Reverb bring the pad into a hazy distance.", tags: ["chorus", "reverb"] }),
+  withFx(spectraTide, [phaser(0.12, 0.7, 900, 0.5, 8, 0.45), verb(0.9, 7, 0.38, 0.3)],
+    { say: "A slow phaser turns the tide, and a very long hall carries it away.", help: "A very slow Phaser adds sweeping notches and a very long Reverb stretches the pad into a landscape.", tags: ["phaser", "reverb"] }),
+  withFx(hollowChoir, [chorus(0.3, 0.5, 0.45, 15, 1), verb(0.95, 8, 0.4, 0.3)],
+    { say: "A wide chorus and a cathedral reverb make the choir sound a hundred strong.", help: "A wide Chorus thickens the voices and a very large Reverb places them in a cathedral.", tags: ["chorus", "cathedral"] }),
+  withFx(seventhGlow, [shimmer(0.3), echo(450, 675, 0.4, 0.2, 5000, 200, true), verb(0.9, 6, 0.38, 0.3)],
+    { say: "A shimmer, slow echoes and a huge hall give the sevenths a golden glow.", help: "A Pitch Shifter adds an octave shimmer, a slow ping-pong Delay and a very long Reverb finish the glow.", tags: ["shimmer", "delay"] }),
+  withFx(duskFormants, [phaser(0.18, 0.6, 1000, 0.45, 6, 0.4), verb(0.85, 5.5, 0.36, 0.35)],
+    { say: "A slow phaser and a deep hall let the dusk formants breathe.", help: "A slow Phaser moves the formants and a long Reverb sets them in a big space.", tags: ["phaser", "reverb"] }),
+  withFx(ribbonEnsemble, [chorus(0.35, 0.55, 0.5, 14, 1), phaser(0.1, 0.4, 1400, 0.3, 4, 0.25), verb(0.8, 4.5, 0.33)],
+    { say: "A deep chorus, a gentle phaser and a long hall make the ribbons a lush ensemble.", help: "A deep Chorus, a gentle Phaser and a long Reverb make the ensemble lush.", tags: ["chorus", "phaser"] }),
+  withFx(frostGlass, [shimmer(0.3), echo(380, 570, 0.4, 0.22, 7000, 200, true), verb(0.9, 6.5, 0.4, 0.2)],
+    { say: "Shimmer and icy echoes in a big hall: frozen glass, ringing forever.", help: "A Pitch Shifter adds a bright octave, a ping-pong Delay scatters it and a bright, long Reverb freezes it.", tags: ["shimmer", "icy"] }),
+  withFx(breathOrgan, [chorus(0.5, 0.35, 0.35), verb(0.8, 4, 0.3)],
+    { say: "A chorus and a church-sized reverb put the organ in a nave.", help: "A Chorus and a large Reverb place the breath organ in a church.", tags: ["chorus", "church"] }),
+  withFx(cellarFog, [echo(520, 780, 0.5, 0.25, 2500, 150, true), verb(0.95, 8.5, 0.42, 0.55)],
+    { say: "Dark, slow echoes and a vast, damped reverb make the fog roll in.", help: "A slow ping-pong Delay with its high cut lowered and a vast, damped Reverb make a dark, deep fog.", tags: ["dark", "reverb"] }),
+  withFx(foldedAurora, [shimmer(0.25), phaser(0.15, 0.6, 1200, 0.45, 6, 0.35), verb(0.9, 6, 0.38, 0.25)],
+    { say: "Shimmer and a drifting phaser in a huge hall make the aurora shimmer.", help: "A Pitch Shifter adds an octave shimmer, a slow Phaser drifts and a huge Reverb finishes the aurora.", tags: ["shimmer", "phaser"] }),
 ]);

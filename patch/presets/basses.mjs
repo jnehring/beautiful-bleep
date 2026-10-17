@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Basses: mostly monophonic Voice Cells for low lines. Notes in, Out L/R.
 import { voice, category, ampEnvelope, envelope, semis } from "./kit.mjs";
+import { withFx, verb, echo, chorus, phaser, flanger, tape } from "./fx.mjs";
 
 // Two saws and a sub through a big ladder: the classic fat analog bass.
 function heavyLadder() {
@@ -198,5 +199,24 @@ function octaveStack() {
 }
 
 export default category("Basses", "Mono and legato Voice Cells for low lines: patch Notes in and take Out L/R.", [
-  heavyLadder, slapSnap, ripplePulse, diveBomb, pixelBass, uprightPluck, grindEngine, foldedTable, mouthBass, octaveStack,
+  withFx(heavyLadder, [tape(0.45, 0.7), verb(0.3, 0.9, 0.08)],
+    { say: "Tape saturation thickens it and a tight room adds depth without blurring the low end.", help: "A Saturator on its Tape curve (blended with the dry sound) adds weight, and a small Reverb keeps the bass in a room.", tags: ["tape", "warm"] }),
+  withFx(slapSnap, [chorus(0.6, 0.25, 0.2, 8), verb(0.3, 0.8, 0.1)],
+    { say: "A light chorus and a tight room add width to the slap.", help: "A subtle Chorus widens the stereo image and a short Reverb adds a little space around the pops.", tags: ["chorus", "room"] }),
+  withFx(ripplePulse, [chorus(0.4, 0.5, 0.35), echo(250, 375, 0.3, 0.2, 3500, 250), verb(0.4, 1.2, 0.12)],
+    { say: "A chorus and a filtered echo make the ripples stretch across the stereo field.", help: "A Chorus, a Delay with its low cut raised (so the repeats stay clear of the low end) and a small Reverb.", tags: ["chorus", "delay"] }),
+  withFx(diveBomb, [echo(300, 450, 0.45, 0.22, 3000, 300, true), verb(0.6, 2.4, 0.18)],
+    { say: "Ping-pong echoes and a hall follow each dive, so the falls trail into space.", help: "A ping-pong Delay with a high and low cut repeats each fall; a Reverb lets it fade out.", tags: ["delay", "reverb"] }),
+  withFx(pixelBass, [echo(190, 285, 0.35, 0.22, 3500, 250, true), chorus(0.5, 0.2, 0.15, 8)],
+    { say: "A bright ping-pong echo gives the chiptune notes a bounce.", help: "A short ping-pong Delay with a raised low cut, and a faint Chorus for width.", tags: ["delay", "chiptune"] }),
+  withFx(uprightPluck, [verb(0.45, 1.5, 0.16, 0.6), tape(0.2, 0.5)],
+    { say: "A warm room and a little tape put the upright in a studio.", help: "A Reverb with plenty of damping gives a studio room and a gentle Saturator warms the tone.", tags: ["room", "warm"] }),
+  withFx(grindEngine, [tape(0.6, 0.8, "Diode"), phaser(0.2, 0.6, 500, 0.5, 4, 0.35), verb(0.3, 0.8, 0.07)],
+    { say: "Diode grit and a slow phaser make the engine growl and swirl.", help: "A Saturator on its Diode curve adds grit, a slow Phaser swirls the grind and a very small Reverb glues it.", tags: ["phaser", "grit"] }),
+  withFx(foldedTable, [flanger(0.15, 0.6, 0.5, 0.35), verb(0.45, 1.4, 0.12)],
+    { say: "A jet-like flanger sweeps the folded tones and a small hall adds depth.", help: "A Chorus in Flanger mode sweeps through the folded harmonics; a small Reverb finishes it.", tags: ["flanger", "reverb"] }),
+  withFx(mouthBass, [phaser(0.3, 0.5, 600, 0.45, 4, 0.4), verb(0.35, 1, 0.1)],
+    { say: "A slow phaser adds a talking motion to the mouth bass.", help: "A slow Phaser moves the vowels further and a small Reverb gives them room.", tags: ["phaser", "vocal"] }),
+  withFx(octaveStack, [chorus(0.35, 0.4, 0.3, 10), tape(0.3, 0.6), verb(0.5, 1.8, 0.14)],
+    { say: "Chorus, tape and a room turn the octaves into a big, wide bass.", help: "A Chorus widens the octaves, a Saturator adds weight and a Reverb adds depth.", tags: ["chorus", "tape"] }),
 ]);

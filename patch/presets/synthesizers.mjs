@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Synthesizers: full-bodied polyphonic Voice Cells. Notes in, Out L/R.
-import { voice, category, ampEnvelope, envelope, semis } from "./kit.mjs";
+import { voice, cell, category, ampEnvelope, envelope, semis } from "./kit.mjs";
+import { withFx, verb, echo, synced, chorus, phaser, shimmer, tape } from "./fx.mjs";
 
 // Saw and pulse through a ladder with a quick snap: house-style stabs.
-function slateStabs() {
-  const p = voice("Slate Stabs", {
+function slateStabsVoice() {
+  const p = voice("Stabs Voice", {
     description: "A saw and a narrow pulse through a ladder that snaps open and shuts again: short, punchy chord stabs. Play it with a shared Cutoff knob or a filter LFO.",
     tags: ["poly", "stabs", "house", "chords", "punchy"],
     help: "A Dual Osc supplies a saw (A) and a narrow pulse (B) an octave apart. A quick Filter Env opens a Ladder Tanh filter " +
@@ -19,6 +20,24 @@ function slateStabs() {
   p.cable(p.vin, "pitch", osc, "pitch").stereo(osc, flt, { from: ["outL", "outR"] }).cable(p.vin, "pitch", flt, "pitch")
     .cable(envf, "env", flt, "cutoff", 0.4).cable(p.cin, "cut", flt, "cutoff", 0.5);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.002, decay: 0.35, sustain: 0.5, release: 0.25 });
+  return p;
+}
+
+// The stabs voice inside a cell, so a Phaser and a Reverb can sit after the summed voices.
+function slateStabs() {
+  const p = cell("Slate Stabs", {
+    description: "A saw and a narrow pulse through a ladder that snaps open and shuts again: short, punchy chord stabs, swirled by a phaser and set in a room. Play it with a shared Cutoff knob.",
+    tags: ["poly", "stabs", "house", "chords", "punchy", "reverb"],
+    help: "A Dual Osc supplies a saw (A) and a narrow pulse (B) an octave apart. A quick Filter Env opens a Ladder Tanh filter " +
+      "on each key and lets it fall back to a closed 500 Hz, so every chord is a short stab. The summed voices then pass through " +
+      "a slow Phaser and a short Reverb, so the stabs have movement and a room to ring in.\n\n" +
+      "Notes in, Out L/R. The shared input Cutoff moves the filter's resting point; turn it up for bright, open stabs.\n\n" +
+      "Tip: play three- and four-note minor chords on the off-beat. Raise the Phaser's Mix or the Reverb's Decay for a bigger sound.",
+  }).input("notes", "Notes", "notes").input("cut", "Cutoff").output("l", "Out L").output("r", "Out R");
+  const v = p.embed(slateStabsVoice(), [0, 0], "Stabs Voice");
+  const ph = p.add("phaser", [1, 0], { rate: 0.3, depth: 0.6, centre: 900, feedback: 0.35, stages: "6", mix: 0.4 });
+  const verb = p.add("reverb", [2, 0], { size: 0.55, decay: 1.8, damping: 0.4, mix: 0.22 });
+  p.cable(p.cin, "notes", v, "notes").cable(p.cin, "cut", v, "cut").stereo(v, ph).stereo(ph, verb).stereo(verb, p.cout);
   return p;
 }
 
@@ -205,5 +224,23 @@ function harmonicBloom() {
 }
 
 export default category("Synthesizers", "Full-bodied polyphonic Voice Cells for chords, stabs and keys: patch Notes in and take Out L/R.", [
-  slateStabs, wideRibbonPulse, spectrumKeys, syncRake, foldedPianet, lunarGateChords, quintalStack, vowelTableKeys, hollowReed, harmonicBloom,
+  slateStabs,
+  withFx(wideRibbonPulse, [synced("1/8.", "1/4", 0.35, 0.22, 5000, 200, true), verb(0.7, 3.2, 0.25)],
+    { say: "A ping-pong echo and a wide hall make the ensemble huge.", help: "A tempo-synced ping-pong Delay and a wide Reverb widen the ensemble further.", tags: ["delay", "reverb"] }),
+  withFx(spectrumKeys, [shimmer(0.18), verb(0.75, 4.5, 0.3, 0.35)],
+    { say: "An octave shimmer feeds a long hall, so the glassy partials bloom into a halo.", help: "A Pitch Shifter adds a quiet octave above, then a long Reverb turns it into a shimmer. Raise the Shifter's Mix for more halo.", tags: ["shimmer", "reverb"] }),
+  withFx(syncRake, [phaser(0.25, 0.7, 1200, 0.5, 6, 0.45), echo(240, 360, 0.3, 0.2), verb(0.5, 1.6, 0.18)],
+    { say: "A swirling phaser, a short echo and a room put air around the rake.", help: "A slow Phaser sweeps the sync-rake's harmonics, a short Delay adds a bounce and a small Reverb gives it a room.", tags: ["phaser", "delay"] }),
+  withFx(foldedPianet, [phaser(0.4, 0.55, 800, 0.35, 4, 0.5), chorus(0.5, 0.35, 0.3), verb(0.5, 1.8, 0.2)],
+    { say: "A phaser, a chorus and a small room: the classic electric-piano treatment.", help: "A Phaser and a Chorus in series give the piano its dreamy, vintage swirl; a small Reverb finishes it.", tags: ["phaser", "chorus"] }),
+  withFx(lunarGateChords, [synced("1/8.", "1/4", 0.45, 0.3, 4500, 150, true), verb(0.8, 4, 0.28, 0.4)],
+    { say: "Dotted ping-pong echoes and a big hall make every gated chord trail off into space.", help: "A tempo-synced ping-pong Delay repeats each chord on dotted eighths and quarters, and a large Reverb carries the tails away.", tags: ["delay", "reverb"] }),
+  withFx(quintalStack, [chorus(0.3, 0.5, 0.45, 14, 0.9), verb(0.8, 3.6, 0.3)],
+    { say: "A wide chorus and a large hall turn the stacked fifths into a cathedral of sound.", help: "A wide Chorus thickens the stack and a large Reverb sets it in a big room.", tags: ["chorus", "reverb"] }),
+  withFx(vowelTableKeys, [chorus(0.45, 0.4, 0.4), verb(0.6, 2.6, 0.25), echo(330, 495, 0.25, 0.14)],
+    { say: "A chorus, a plate-like reverb and a faint echo give the vowel keys a choral glow.", help: "A Chorus, a medium Reverb and a very light Delay surround the vowels.", tags: ["chorus", "reverb"] }),
+  withFx(hollowReed, [tape(0.4, 0.8), echo(110, 140, 0.2, 0.18, 4000), verb(0.55, 2.2, 0.22)],
+    { say: "Tape warmth, a slap echo and a room put the reed in a smoky club.", help: "A Saturator on its Tape curve warms the reed, a short slap Delay doubles it and a Reverb gives it a room.", tags: ["tape", "slapback"] }),
+  withFx(harmonicBloom, [shimmer(0.2), phaser(0.15, 0.5, 1000, 0.3, 6, 0.3), verb(0.9, 6.5, 0.35, 0.3)],
+    { say: "A shimmer, a slow phaser and a very long hall let each bloom drift away like a cloud.", help: "A Pitch Shifter adds a quiet octave, a slow Phaser stirs the spectrum and a very long Reverb stretches the tails.", tags: ["shimmer", "phaser"] }),
 ]);

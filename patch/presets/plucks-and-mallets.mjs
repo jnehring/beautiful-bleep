@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Plucks & Mallets: struck, plucked and pinged Voice Cells. Notes in, Out L/R; velocity plays the hit.
 import { voice, category, ampEnvelope, envelope, semis } from "./kit.mjs";
+import { withFx, verb, echo, synced, chorus, phaser, shimmer } from "./fx.mjs";
 
 // Additive Osc with a fast-decaying top end: celesta.
 function feltCelesta() {
@@ -59,7 +60,7 @@ function banjoSnap() {
       "Tip: play fast alternating notes, as in a roll, with a short gate.",
   }).settings({ voices: 8, spread: 0.2 }).input("twang", "Twang");
   const mo = p.add("macro-osc", [0, 0], { model: "Pluck", tone: 0.85, shape: 0.55, blend: 0.1, decay: 0.55, level: 0.85 });
-  const head = p.add("filter", [1, 0], { cutoff: 1900, resonance: 0.4, mode: 0.33, type: "SVF Multimode" }, { name: "Head" });
+  const head = p.add("filter", [1, 0], { cutoff: 1900, resonance: 0.4, mode: "BP", type: "SVF Multimode" }, { name: "Head" });
   p.cable(p.vin, "pitch", mo, "pitch").cable(p.vin, "trigger", mo, "trig").cable(p.vin, "velocity", mo, "accent")
     .cable(p.cin, "twang", head, "cutoff", 0.3).cable(p.vin, "velocity", head, "cutoff", 0.06)
     .cable(mo, "out", head, "l").cable(mo, "out", head, "r");
@@ -225,6 +226,24 @@ function tunedHandDrum() {
 }
 
 export default category("Plucks & Mallets", "Struck, plucked and pinged Voice Cells (physical models, mallets, strings and bells) that follow velocity: patch Notes in and Out L/R out.", [
-  feltCelesta, nylonGuitarPluck, banjoSnap, gamelanTwinBars, cathedralChime, pentatonicWoodblock, raindropPings, tinePiano,
-  sympatheticSitar, tunedHandDrum,
+  withFx(feltCelesta, [synced("1/8.", "1/4", 0.4, 0.28, 6000, 200, true), verb(0.75, 3.5, 0.3, 0.3)],
+    { say: "Ping-pong echoes and a bright hall make the celesta sparkle.", help: "A tempo-synced ping-pong Delay and a bright hall Reverb let each note sparkle.", tags: ["delay", "sparkle"] }),
+  withFx(nylonGuitarPluck, [chorus(0.4, 0.3, 0.25), echo(140, 190, 0.2, 0.15, 4500), verb(0.5, 1.8, 0.2)],
+    { say: "A light chorus, a slap echo and a room put the guitar in a studio.", help: "A Chorus, a short slap Delay and a Reverb.", tags: ["chorus", "room"] }),
+  withFx(banjoSnap, [echo(100, 130, 0.2, 0.18, 5000), verb(0.4, 1.2, 0.14)],
+    { say: "A slapback echo and a small room give the banjo a porch sound.", help: "A short slap Delay and a small Reverb.", tags: ["slapback", "room"] }),
+  withFx(gamelanTwinBars, [chorus(0.2, 0.3, 0.25, 10), echo(330, 495, 0.3, 0.18, 6000, 200, true), verb(0.8, 4, 0.3, 0.35)],
+    { say: "A shimmering hall and soft echoes let the bars ring on.", help: "A slow Chorus, a ping-pong Delay and a large Reverb.", tags: ["chorus", "hall"] }),
+  withFx(cathedralChime, [shimmer(0.2), verb(0.95, 8, 0.42, 0.3)],
+    { say: "A shimmer and an enormous reverb: this chime really fills a cathedral.", help: "A Pitch Shifter adds a faint octave and a very large Reverb lets the chime ring for seconds.", tags: ["shimmer", "cathedral"] }),
+  withFx(pentatonicWoodblock, [synced("1/8.", "1/8", 0.4, 0.3, 5500, 200, true), verb(0.4, 1.4, 0.16)],
+    { say: "Dotted ping-pong echoes and a small room turn single knocks into rhythms.", help: "A tempo-synced ping-pong Delay and a small Reverb.", tags: ["delay", "rhythm"] }),
+  withFx(raindropPings, [synced("1/8.", "1/4", 0.5, 0.35, 6500, 250, true), shimmer(0.15), verb(0.85, 5, 0.35, 0.25)],
+    { say: "Ping-pong echoes and a shimmering hall make every drop ripple outward.", help: "A tempo-synced ping-pong Delay, a faint octave shimmer and a long Reverb.", tags: ["delay", "shimmer"] }),
+  withFx(tinePiano, [phaser(0.35, 0.45, 900, 0.3, 4, 0.4), chorus(0.5, 0.3, 0.25), verb(0.5, 2, 0.18)],
+    { say: "A phaser, a chorus and a room make the tines swirl like a vintage electric piano.", help: "A Phaser, a Chorus and a Reverb.", tags: ["phaser", "chorus"] }),
+  withFx(sympatheticSitar, [echo(260, 390, 0.35, 0.22, 5000, 150, true), verb(0.7, 3, 0.26, 0.4)],
+    { say: "Echoes and a hall let the sympathetic strings ring on in the room.", help: "A ping-pong Delay and a hall Reverb.", tags: ["delay", "hall"] }),
+  withFx(tunedHandDrum, [echo(190, 285, 0.25, 0.18, 4500), verb(0.55, 2.2, 0.24, 0.5)],
+    { say: "A slap echo and a warm room make the hand drum bloom.", help: "A short Delay and a warm Reverb.", tags: ["room", "warm"] }),
 ]);
