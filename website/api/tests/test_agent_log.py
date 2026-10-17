@@ -112,3 +112,19 @@ def test_only_admins_read_the_log(client, agent_with_log, make_admin):
 def test_huge_rows_are_clipped(client):
     clipped = agent_log._clip({"x": "a" * (agent_log.MAX_ROW_CHARS + 10)})
     assert clipped["truncated"] and clipped["chars"] > agent_log.MAX_ROW_CHARS and len(clipped["head"]) == 20_000
+
+
+def test_the_browser_gets_the_run_id_and_can_fetch_its_own_log(client, agent_with_log):
+    from test_agent import events
+
+    ann, ben = other_client("ann@example.com", "Ann"), other_client("ben@example.com", "Ben")
+    ev = events(ann.post("/api/agent/chat", json=BODY))
+    assert ev[0][0] == "run"
+    run_id = ev[0][1]["run_id"]
+    got = ann.get("/api/agent/log", params={"run_ids": run_id + ",nonexistent"}).json()
+    assert got["log_enabled"] is True and got["missing"] == ["nonexistent"]
+    assert [r["kind"] for r in got["runs"][0]["rows"]][0] == "run_start" and got["runs"][0]["rows"][-1]["kind"] == "summary"
+    # somebody else's run is not theirs to read
+    other = ben.get("/api/agent/log", params={"run_ids": run_id}).json()
+    assert other["runs"] == [] and other["missing"] == [run_id]
+    assert client.get("/api/agent/log", params={"run_ids": run_id}).status_code == 401

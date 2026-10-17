@@ -419,7 +419,7 @@
   function save() {
     if (!state.key) return;
     const items = state.items.slice(-MAX_MESSAGES).map((it) => ({
-      role: it.role, text: it.text, notes: it.notes || undefined,
+      role: it.role, text: it.text, notes: it.notes || undefined, at: it.at, runs: it.runs && it.runs.length ? it.runs : undefined,
       cards: (it.cards || []).map((id) => {
         const c = state.cards.get(id);
         return c ? { id: c.id, summary: c.summary, lines: c.lines, destructive: c.destructive, status: c.status === "pending" ? "expired" : c.status, error: c.error } : null;
@@ -441,9 +441,76 @@
                                 destructive: !!c.destructive, status: ["applied", "rejected", "failed", "undone"].includes(c.status) ? c.status : "expired", error: c.error });
         ids.push(c.id);
       }
-      state.items.push({ role: it.role, text: it.text, cards: ids, notes: Array.isArray(it.notes) ? it.notes.map(String) : undefined });
+      state.items.push({ role: it.role, text: it.text, cards: ids, notes: Array.isArray(it.notes) ? it.notes.map(String) : undefined,
+                         at: typeof it.at === "string" ? it.at : undefined, runs: Array.isArray(it.runs) ? it.runs.filter((x) => typeof x === "string") : [] });
     }
     state.notes = Array.isArray(d.notes) ? d.notes.map(String) : [];
+  }
+
+  // ---- Copy chat: everything about this conversation as one JSON document, for discussing the assistant's behaviour
+  // (the server's run log: every model call with the messages sent, the responses, tool calls and results, events, with timestamps).
+  function dedupeCalls(rows) {
+    // Each model call repeats the whole history; keep only what is new since the previous call of the run.
+    let prev = null;
+    return rows.map((r) => {
+      if (r.kind !== "model_call" || !isObj(r.data) || !Array.isArray(r.data.request)) return r;
+      const cur = r.data.request, was = prev;
+      prev = cur;
+      if (!was) return r;
+      let n = 0;
+      while (n < was.length && n < cur.length && JSON.stringify(was[n]) === JSON.stringify(cur[n])) n++;
+      if (!n) return r;
+      const { request, ...rest } = r.data;
+      return Object.assign({}, r, { data: Object.assign(rest, { request_new_messages: cur.slice(n), request_first_messages_same_as_previous_call: n }) });
+    });
+  }
+  async function exportChat() {
+    const ids = [];
+    for (const it of state.items) for (const id of it.runs || []) if (!ids.includes(id)) ids.push(id);
+    const out = {
+      format: "bleep-assistant-chat", version: 1, exported_at: new Date().toISOString(),
+      notes: "transcript = what the user saw (with the changesets and what became of them). runs = the server's log of each request, in order: run_start (prompt, board snapshot), "
+        + "model_call (request = messages sent to the model incl. instructions; response; usage; latency in seconds), tool_call (args, result or retry error), event, answer, summary. "
+        + "To save space a model_call lists only the messages that are new since the previous call of the run (request_first_messages_same_as_previous_call = how many leading messages repeat).",
+      client: Object.assign({ page: String(location.pathname), user_agent: navigator.userAgent, mode: mode() }, CLIENT),
+      transcript: state.items.map((it) => ({
+        role: it.role, at: it.at || null, text: it.text, notes: it.notes || [], run_ids: it.runs || [],
+        changesets: (it.cards || []).map((id) => state.cards.get(id)).filter(Boolean)
+          .map((c) => ({ id: c.id, summary: c.summary, lines: c.lines, destructive: c.destructive, status: c.status, error: c.error || null, ops: c.ops && c.ops.length ? c.ops : undefined })),
+      })),
+      pending_notes: state.notes.slice(), usage: state.usage, runs: [], missing_runs: [], log_error: null,
+    };
+    if (ids.length) {
+      try {
+        const resp = await fetch("/api/agent/log?run_ids=" + encodeURIComponent(ids.join(",")), { credentials: "same-origin" });
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const d = await resp.json();
+        out.runs = (d.runs || []).map((r) => ({ run_id: r.run_id, rows: dedupeCalls(r.rows || []) }));
+        out.missing_runs = d.missing || [];
+        if (d.log_enabled === false) out.log_error = "the server's run log is switched off (BLEEP_AGENT_LOG_MESSAGES=0)";
+        else if (out.missing_runs.length) out.log_error = "some runs are no longer in the rolling log";
+      } catch (e) {
+        out.log_error = "could not fetch the run log: " + String((e && e.message) || e);
+      }
+    } else out.log_error = "no run ids in this chat (it was made before logging, or nothing was sent yet)";
+    return out;
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return "clipboard"; } catch (e) { /* not allowed here: try the old way */ }
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove();
+      if (ok) return "clipboard";
+    } catch (e) { /* fall through */ }
+    const a = document.createElement("a");   // last resort: a file
+    a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    a.download = "bleep-assistant-chat.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    return "file";
   }
 
   // ---- the request
@@ -492,6 +559,7 @@
     let buf = "";
     const dispatch = (name, data) => {
       switch (name) {
+        case "run": if (typeof data.run_id === "string" && run.item) (run.item.runs = run.item.runs || []).push(data.run_id); break;
         case "text": if (typeof data.delta === "string") bubble.addText(data.delta); break;
         case "activity": if (typeof data.text === "string") ui.setActivity(data.text); break;
         case "changeset": bubble.addCard(data); break;
@@ -529,12 +597,12 @@
   async function runTurn(text) {
     if (state.running) return;
     ensureBoard();
-    const user = { role: "user", text, cards: [], notes: state.notes.length ? state.notes.slice() : undefined };
+    const user = { role: "user", text, cards: [], notes: state.notes.length ? state.notes.slice() : undefined, at: new Date().toISOString() };
     state.notes = [];
     state.items.push(user);
-    const reply = { role: "assistant", text: "", cards: [] };
+    const reply = { role: "assistant", text: "", cards: [], at: new Date().toISOString(), runs: [] };
     state.items.push(reply);
-    const run = state.running = { ctrl: new AbortController(), cleanups: new Set(), aborted: false };
+    const run = state.running = { ctrl: new AbortController(), cleanups: new Set(), aborted: false, item: reply };
     ui.addItem(user);
     const bubble = ui.addItem(reply);
     ui.setBusy(true);
@@ -705,6 +773,9 @@
     const head = el("div", "ag-head");
     head.appendChild(el("strong", "", "Assistant"));
     head.appendChild(el("span", "ag-spacer"));
+    const copy = el("button", "ag-small", "Copy chat");
+    copy.type = "button";
+    copy.title = "Copy this whole chat as JSON, with every model call, tool call and timestamp (to discuss it)";
     const clear = el("button", "ag-small", "New chat");
     clear.type = "button";
     clear.title = "Clear this chat (kept only in this browser)";
@@ -712,7 +783,7 @@
     close.type = "button";
     close.title = "Close (Esc)";
     close.setAttribute("aria-label", "Close the assistant");
-    head.append(clear, close);
+    head.append(copy, clear, close);
 
     const list = el("div", "ag-list");
     list.setAttribute("role", "log");
@@ -1019,6 +1090,24 @@
       run.aborted = true;
       for (const f of [...run.cleanups]) { try { f(); } catch (e) { /* none */ } }
       run.ctrl.abort();
+    });
+    copy.addEventListener("click", async () => {
+      if (!state.items.length) { ui.notice("Nothing to copy yet."); return; }
+      const label = copy.textContent;
+      copy.disabled = true; copy.textContent = "Copying…";
+      try {
+        const doc = await exportChat();
+        const text = JSON.stringify(doc, null, 1);
+        const how = await copyText(text);
+        const kb = Math.max(1, Math.round(text.length / 1024));
+        ui.notice(how === "clipboard" ? `Chat copied (${doc.runs.length} runs, ${kb} kB)${doc.log_error ? ": " + doc.log_error : ""}` : `Could not use the clipboard; saved as a file (${kb} kB)`);
+        copy.textContent = "Copied ✓";
+      } catch (e) {
+        ui.notice("Could not copy the chat: " + String((e && e.message) || e));
+        copy.textContent = label;
+      }
+      copy.disabled = false;
+      setTimeout(() => { copy.textContent = label; }, 2000);
     });
     clear.addEventListener("click", () => {
       if (state.running) return;

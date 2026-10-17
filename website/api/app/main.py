@@ -149,6 +149,7 @@ app.include_router(library.router)
 app.include_router(registry.router)
 app.include_router(agent.router)
 app.include_router(agent_log.router)
+app.include_router(agent_log.user_router)
 
 
 @app.get("/api/health")

@@ -137,6 +137,8 @@ async def chat(body: dict[str, Any], user: User = Depends(get_current_user), db:
         it = run_chat(res, req, record=recorder).__aiter__()
         pending = asyncio.ensure_future(it.__anext__())
         try:
+            if recorder is not None:
+                yield _sse("run", {"run_id": recorder.run_id})  # lets the browser fetch this run's log (Copy chat)
             while True:
                 done, _ = await asyncio.wait({pending}, timeout=15)
                 if not done:

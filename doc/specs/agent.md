@@ -145,6 +145,7 @@ carries the run's state) and `snapshot` must still be sent (it is the truth afte
 
 | event | data |
 |---|---|
+| `run` | `{"run_id"}` first event of a request when the run log is on; the browser keeps the ids to fetch the log (Copy chat) |
 | `text` | `{"delta": "..."}` |
 | `activity` | `{"text": "Checking signal levels"}` |
 | `changeset` | `{"id","summary","ops":[...],"lines":[...],"destructive":bool,"needs_confirmation":bool}` |
@@ -237,3 +238,7 @@ generators for fault-injected diagnose cases and patch templates in `agent/evals
 - Docker: the API image installs the library from the named build context `agentlib` (`../agent`); `website/api/agent_data/` must exist
   in the build context (`scripts/build/build-agent-data.sh`); `constraints.txt` pins the library's dependencies (websockets moved to 16.x,
   which `google-genai` requires).
+- **Copy chat:** the panel's "Copy chat" button builds one JSON document (`format: bleep-assistant-chat`): the transcript with timestamps and what became of
+  each changeset, and, for every run id seen, the server's log from `GET /api/agent/log?run_ids=a,b` (a user reads only their own runs; runs the rolling
+  log has dropped are listed as missing). A model call lists only the messages that are new since the previous call of its run
+  (`request_first_messages_same_as_previous_call`), to keep the document small. It is copied to the clipboard, or saved as a file if the clipboard is refused.
