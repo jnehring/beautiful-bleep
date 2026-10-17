@@ -60,7 +60,7 @@ def _build_resources() -> Any:
     if (data / "docs.sqlite").exists():
         embed = None
         try:
-            embed = provider_embedding_model(settings.agent_embed_model, settings.agent_api_key)
+            embed = provider_embedding_model(settings.agent_embed_model)
         except Exception as e:  # noqa: BLE001  (no key, unknown model: keyword search still works)
             log.warning("embedding model unavailable (%s): documentation search is keyword-only", e)
         docs = DocsIndex(data / "docs.sqlite", embed, settings.agent_embed_model)
@@ -76,7 +76,7 @@ def _build_resources() -> Any:
             if agent_quota.exhausted(db):
                 raise BudgetExceeded()
 
-    return Resources(model=create_model(settings.agent_model, settings.agent_api_key), catalog=catalog, presets=presets, docs=docs,
+    return Resources(model=create_model(settings.agent_model), catalog=catalog, presets=presets, docs=docs,
                      state_secret=settings.agent_state_secret.encode() or _secret, max_steps=settings.agent_max_steps,
                      on_usage=on_usage, check_budget=check)
 

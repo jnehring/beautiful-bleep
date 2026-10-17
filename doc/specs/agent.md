@@ -203,8 +203,7 @@ reciprocal rank fusion (k=60), boost by audience, return 6. Chunk embeddings go 
 
 Settings (`BLEEP_` prefix): `agent_enabled=False`, `agent_daily_tokens=1_000_000`, `agent_model="google-gla:gemini-3.8-flash"`,
 `agent_embed_model="gemini-embedding-2"`, `agent_data_dir="agent_data"`, `agent_user_per_minute=6`,
-`agent_max_steps=12`, `agent_api_key` (provider key passed to the provider; also read from the provider's usual
-environment variable), `agent_state_secret` (HMAC key; random per process when empty).
+`agent_max_steps=12`, the provider keys `GOOGLE_API_KEY` / `OPENAI_API_KEY` (the providers' own variables, read from the environment), `agent_state_secret` (HMAC key; random per process when empty).
 
 Table `agent_usage(day DATE PK, tokens BIGINT NOT NULL DEFAULT 0, requests INT NOT NULL DEFAULT 0)`; migration with
 alembic. Budget: refuse a run when `tokens >= limit` (429, `reset_at` next UTC midnight); after every model call add

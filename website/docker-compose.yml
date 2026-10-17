@@ -96,7 +96,9 @@ services:
       BLEEP_AGENT_MODEL: ${BLEEP_AGENT_MODEL:-google-gla:gemini-3.8-flash}
       BLEEP_AGENT_EMBED_MODEL: ${BLEEP_AGENT_EMBED_MODEL:-gemini-embedding-2}
       BLEEP_AGENT_USER_PER_MINUTE: ${BLEEP_AGENT_USER_PER_MINUTE:-6}
-      BLEEP_AGENT_API_KEY: ${BLEEP_AGENT_API_KEY:-}
+      # Provider keys: the providers' own variable names (Google AI Studio key for gemini-* and gemini-embedding-*, OpenAI for gpt-*).
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       BLEEP_AGENT_STATE_SECRET: ${BLEEP_AGENT_STATE_SECRET:-}
     depends_on:
       db:

@@ -6,7 +6,7 @@
 #   docs.sqlite    the documentation index: chunks, full-text index and, with --embed, embeddings
 #
 #   scripts/build/build-agent-data.sh                       keyword-only documentation search, no API key needed
-#   scripts/build/build-agent-data.sh --embed gemini-embedding-2   + embeddings (needs GEMINI_API_KEY; cached in .eval-cache)
+#   scripts/build/build-agent-data.sh --embed gemini-embedding-2   + embeddings (needs GOOGLE_API_KEY; cached in .eval-cache)
 #
 # Run it again after docs, modules or demo patches change; ship the result with the API image (website/api/Dockerfile).
 set -euo pipefail

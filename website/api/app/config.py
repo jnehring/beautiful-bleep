@@ -60,8 +60,7 @@ class Settings(BaseSettings):
     # Chat requests per user per minute (in memory, per process). 0 = no limit.
     agent_user_per_minute: int = 6
     agent_max_steps: int = 12
-    # Key for the model provider; without it the provider's usual variable is used (GEMINI_API_KEY, OPENAI_API_KEY).
-    agent_api_key: str | None = None
+    # The provider keys are the providers' own variables, read from the environment: GOOGLE_API_KEY (gemini-*) and OPENAI_API_KEY (gpt-*).
     # Signs the resume tokens of paused runs; random per process when empty (a restart then ends pending runs).
     agent_state_secret: str = ""
 

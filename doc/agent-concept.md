@@ -327,7 +327,7 @@ Configuration lives in `website/api/app/config.py` and `website/.env.example`, w
 | `BLEEP_AGENT_MODEL` | (set per deployment) | Model string handed to the library, e.g. the Gemini flash model. |
 | `BLEEP_AGENT_EMBED_MODEL` | `gemini-embedding-2` | Embedding model for the documentation index; must match the model recorded in the index file (section 5a). |
 | `BLEEP_AGENT_DOCS_INDEX` | path in the image | The documentation index file. |
-| `BLEEP_AGENT_API_KEY` etc. | none | Provider key, only in the backend environment. |
+| `GOOGLE_API_KEY`, `OPENAI_API_KEY` | none | Provider keys under the providers' own names, only in the backend environment. |
 | `BLEEP_AGENT_USER_PER_MINUTE` | `6` | Optional per-user request rate, using the existing in-memory limiter (`app/ratelimit.py`). `0` turns it off. |
 
 Per-user daily quotas are not part of the first version; the global budget is the control. A per-user cap can be

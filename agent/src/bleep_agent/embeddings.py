@@ -25,7 +25,7 @@ def resolve_model_name(name: str) -> str:
 
 
 def provider_embedding_model(name: str, api_key: str | None = None) -> EmbeddingModel:
-    """The configured embedding model. An explicit key beats the environment (GEMINI_API_KEY / OPENAI_API_KEY)."""
+    """The configured embedding model. An explicit key beats the environment (GOOGLE_API_KEY / OPENAI_API_KEY)."""
     full = resolve_model_name(name)
     prov, _, m = full.partition(":")
     if api_key and prov == "google-gla":

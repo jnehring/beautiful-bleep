@@ -14,7 +14,7 @@ PYTHON=.venv-agent/bin/python scripts/build/build-agent-data.sh --embed gemini-e
 .venv-agent/bin/pytest agent/tests
 ```
 
-Switching it on in the site: `BLEEP_AGENT_ENABLED=true`, `BLEEP_AGENT_API_KEY`, the daily budget `BLEEP_AGENT_DAILY_TOKENS`
+Switching it on in the site: `BLEEP_AGENT_ENABLED=true`, `GOOGLE_API_KEY` (or `OPENAI_API_KEY`), the daily budget `BLEEP_AGENT_DAILY_TOKENS`
 (see `website/.env.example`). Off by default.
 
 ## Try it
