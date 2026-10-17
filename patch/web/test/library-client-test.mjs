@@ -358,6 +358,50 @@ print(json.dumps(doc))`, join(ROOT, "scripts", "release"), join(tmp, "reg")));
   }
 });
 
+await test("local build: replaces a library module unsigned, only while unsigned modules are allowed", async () => {
+  const realFetch = globalThis.fetch;
+  const wasm = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
+  const served = {
+    "local-modules/manifest.json": { modules: { fuzz: { file: "modules/fuzz.wasm", bytes: 8, types: ["fuzz"] }, only: { file: "modules/only.wasm", types: ["only"] } } },
+    "local-modules/modules/fuzz.wasm": wasm,
+    "local-modules/modules/only.wasm": wasm,
+  };
+  globalThis.fetch = async (url) => {
+    const body = served[url];
+    if (body === undefined) return new Response("no", { status: 404 });
+    return new Response(body instanceof Uint8Array ? body : JSON.stringify(body));
+  };
+  try {
+    // not allowed: the local folder is not even read, and the missing library is the error
+    Library.configure({ base: "reg/", roots: null, allowUnsigned: { module: false, plugin: false }, localBase: "local-modules/" });
+    await assert.rejects(Library.manifest());
+    // allowed: it works without any library, and the module is loaded unsigned
+    Library.configure({ allowUnsigned: { module: true, plugin: false }, hostname: "localhost" });
+    const m = await Library.manifest();
+    assert.equal(m.types.fuzz, "fuzz");
+    assert.equal(m.modules.only.version, "local");
+    const got = await Library.fetchModule("fuzz");
+    assert.equal(got.status, "unsigned");
+    assert.equal(got.local, true);
+    assert.equal(got.wasm.byteLength, 8);
+    // a page that is not on this computer never reads it, whatever the folder holds and whatever the setting says
+    for (const hostname of ["play.example.com", "evil-localhost.com", "127.0.0.1.example.com"]) {
+      Library.configure({ hostname });
+      await assert.rejects(Library.manifest(), undefined, hostname);
+    }
+    for (const hostname of ["localhost", "127.0.0.1", "[::1]", "dev.localhost"]) {
+      Library.configure({ hostname });
+      assert.equal((await Library.manifest()).types.fuzz, "fuzz", hostname);
+    }
+    // a folder that is not there changes nothing
+    Library.configure({ hostname: null, localBase: "nowhere/" });
+    await assert.rejects(Library.manifest());
+  } finally {
+    globalThis.fetch = realFetch;
+    Library.configure({ allowUnsigned: { module: false, plugin: false }, localBase: "local-modules/", hostname: null, roots: null });
+  }
+});
+
 rmSync(tmp, { recursive: true, force: true });
 let failed = 0;
 for (const [name, err] of results) {

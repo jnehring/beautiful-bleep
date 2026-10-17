@@ -568,6 +568,7 @@ export class Engine {
       const live = host.live();
       Object.assign(entry, live.values);
       Object.assign(entry, live.arrays);
+      entry.arrays = live.arrays;   // the native engine's shape, which the module views read (st.arrays.<key>)
       if (this.watched.has(key)) {
         entry.params = {};
         st.spec.params.forEach((p, i) => {

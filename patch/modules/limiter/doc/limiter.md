@@ -15,6 +15,15 @@ The Limiter looks a few milliseconds ahead. When a peak is coming, it turns the 
 
 The **Reduction** output is a control signal from 0 (no limiting) to 1 (12 dB of reduction or more). Use it to light a lamp or to open a filter when the sound is being squashed.
 
+## The display
+
+The view shows an **IN** and an **OUT** level meter, with the controls beside them:
+
+- Each meter shows the peak (light bar), the RMS level (solid bar) and a held peak line per channel, with the held peak in dB below. The red mark at the top is a clip light (a sample over 0 dBFS). Click a meter to reset it.
+- The orange **limit** line across the IN meter is the level the input has to reach before the limiter turns it down: the *Ceiling* minus the *Input* gain. The part of the input bar above it is what the limiter takes off. It moves when you change either knob.
+- With the ceiling below 0 dB the OUT meter should never reach it.
+- *Gain reduction* under the meters is the amount the limiter is turning down, in dB. It changes four times a second, showing the deepest reduction since the last change, so it can be read.
+
 ## How to use it?
 
 - **Safety at the end of a patch:** Ceiling −1 dB, Release 100 ms, Lookahead 2 ms.

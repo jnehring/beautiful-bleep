@@ -191,9 +191,13 @@
 
   // ---- the library ------------------------------------------------------------------------------------
 
+  // localBase: a folder next to the page with the output of `build-web.sh --modules-only` (manifest.json and modules/*.wasm), for
+  // development. Its modules replace the library's of the same name, unsigned, but only while "Allow unsigned modules" is on and
+  // the page is served from localhost.
   const config = { base: "/registry/v1/", roots: null, channel: "stable", allowUnsigned: { module: false, plugin: false }, crl: null,
-                   revocations: true, storage: null };  // revocations: fetch the signed list (signing.md section 8); crl: a list given by hand
+                   revocations: true, storage: null, localBase: "local-modules/", hostname: null };  // revocations: fetch the signed list (signing.md section 8); crl: a list given by hand
   let indexPromise = null;
+  let localPromise = null;
   let crlPromise = null;
   const packages = new Map();
 
@@ -272,10 +276,41 @@
     return crlPromise;
   }
 
-  /// { types: {type id → slug}, modules: {slug → {version, entry, types}} } from the library's index.
+  /// Is the page served from this computer? Only then is a local development build used, whatever the folder holds: a deployed site
+  /// never loads unsigned modules this way, even if the folder was shipped by accident. (config.hostname: for tests.)
+  function onLoopback() {
+    const h = String(config.hostname || (typeof location !== "undefined" ? location.hostname : "")).toLowerCase();
+    return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h === "::1" || h.endsWith(".localhost");
+  }
+
+  /// The local development build's index (manifest.json of build-web.sh --modules-only), or null: none built, unsigned modules not
+  /// allowed, or the page is not on this computer.
+  function localIndex() {
+    if (!config.localBase || !(config.allowUnsigned && config.allowUnsigned.module) || !onLoopback()) return Promise.resolve(null);
+    if (!localPromise) {
+      localPromise = (async () => {
+        try {
+          const res = await fetch(abs(config.localBase + "manifest.json"), { cache: "no-store" });
+          if (!res.ok) return null;
+          const doc = await res.json();
+          return doc && typeof doc.modules === "object" ? doc.modules : null;
+        } catch (e) { return null; }
+      })();
+    }
+    return localPromise;
+  }
+
+  /// { types: {type id → slug}, modules: {slug → {version, entry, types}} } from the library's index, with the local build's modules over it.
   async function manifest() {
-    if (!indexPromise) indexPromise = getJSON(config.base + "index.json");
-    const mods = (await indexPromise).channels[config.channel].modules;
+    const local = await localIndex();
+    let mods = {};
+    try {
+      if (!indexPromise) indexPromise = getJSON(config.base + "index.json");
+      mods = { ...(await indexPromise).channels[config.channel].modules };
+    } catch (e) {
+      if (!local) throw e;  // a local build alone is enough to run offline
+    }
+    if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", types: m.types || [], local: m.file };
     const types = {};
     for (const [slug, m] of Object.entries(mods)) for (const t of m.types || []) types[t] = slug;
     return { types, modules: mods };
@@ -287,6 +322,12 @@
       packages.set(slug, (async () => {
         const mods = (await manifest()).modules;
         if (!mods[slug]) throw new Error(`the library has no module ${slug}`);
+        if (mods[slug].local) {  // the development build: no package, no signature
+          const res = await fetch(abs(config.localBase + mods[slug].local), { cache: "no-store" });
+          if (!res.ok) throw new Error(`${mods[slug].local}: ${res.status}`);
+          const wasm = await res.arrayBuffer();
+          return { wasm, version: "local", publisher: "local build", status: "unsigned", local: true, meta: {}, bytes: wasm.byteLength, spec: null };
+        }
         const dir = config.base + mods[slug].entry.replace(/entry\.json$/, "");
         const entry = await getJSON(config.base + mods[slug].entry);
         const file = entry.files.find((f) => f.platform === "any");
@@ -314,8 +355,8 @@
 
   const BleepLibrary = {
     /// Changing roots, the revocation list or the unsigned setting forgets what was verified under the old ones.
-    configure(o) { Object.assign(config, o); indexPromise = null; crlPromise = null; packages.clear(); return BleepLibrary; },
-    config, manifest, fetchModule, revocations,
+    configure(o) { Object.assign(config, o); indexPromise = null; crlPromise = null; localPromise = null; packages.clear(); return BleepLibrary; },
+    config, manifest, fetchModule, revocations, localIndex,
     // for tests and other tools
     canonical, contentDigest, readZip, verify, decide, keyId, hex, fromHex, fromB64,
   };

@@ -388,6 +388,77 @@ void midiInEvents() {
     EXPECT(on == 1 && cc == kMaxNotesPerChunk - kNoteReserve);
 }
 
+void compressorView() {
+    g_test = "compressor view data";
+    Rig r("compressor");
+    auto live = [&] {
+        std::vector<std::pair<std::string, double>> v;
+        r.m->liveValues(v);
+        return std::map<std::string, double>(v.begin(), v.end());
+    };
+    auto array = [&](const std::string& name) {
+        std::vector<std::pair<std::string, std::vector<float>>> a;
+        r.m->liveArrays(a);
+        for (auto& x : a)
+            if (x.first == name) return x.second;
+        return std::vector<float>();
+    };
+    // A loud 1 kHz sine on both inputs: -6 dBFS over a -30 dB threshold is compressed.
+    r.set("threshold", -30.0f);
+    r.set("ratio", 8.0f);
+    r.patch("l", 0.0f);
+    r.patch("r", 0.0f);
+    const int l = r.m->spec().inputIndex("l"), rr = r.m->spec().inputIndex("r");
+    for (int k = 0; k < 40; ++k) {
+        for (int i = 0; i < kChunk; ++i) {
+            const float x = 0.5f * std::sin(6.2831853f * 1000.0f * (float)(k * kChunk + i) / (float)kRate);
+            r.inputs[(size_t)l][(size_t)i] = x;
+            r.inputs[(size_t)rr][(size_t)i] = x;
+        }
+        r.run();
+    }
+    const auto in = array("historyIn"), wet = array("historyOut"), gr = array("historyGr");
+    EXPECT(in.size() == 400 && wet.size() == 400 && gr.size() == 400);
+    EXPECT(in.back() > 0.45f && in.back() < 0.51f);   // the input peak
+    EXPECT(wet.back() > 0.0f && wet.back() < in.back());  // turned down
+    EXPECT(gr.back() < -6.0f);                        // and the reduction says so
+    const auto v = live();
+    EXPECT(v.at("inPeakL") > 0.45f && v.at("outPeakL") > 0.0f && v.at("outPeakL") < v.at("inPeakL"));
+    EXPECT(v.at("inRmsL") > 0.3f && v.at("stereo") == 1.0);
+    EXPECT(live().at("inPeakL") == 0.0);  // peaks are read once, so none are missed
+}
+
+void limiterView() {
+    g_test = "limiter view data";
+    Rig r("limiter");
+    auto live = [&] {
+        std::vector<std::pair<std::string, double>> v;
+        r.m->liveValues(v);
+        return std::map<std::string, double>(v.begin(), v.end());
+    };
+    auto array = [&](const std::string& name) {
+        std::vector<std::pair<std::string, std::vector<float>>> a;
+        r.m->liveArrays(a);
+        for (auto& x : a)
+            if (x.first == name) return x.second;
+        return std::vector<float>();
+    };
+    r.patch("l", 0.0f);
+    r.patch("r", 0.0f);
+    const int l = r.m->spec().inputIndex("l"), rr = r.m->spec().inputIndex("r");
+    for (int k = 0; k < 40; ++k) {
+        for (int i = 0; i < kChunk; ++i) {
+            const float x = 0.9f * std::sin(6.2831853f * 1000.0f * (float)(k * kChunk + i) / (float)kRate);
+            r.inputs[(size_t)l][(size_t)i] = x;
+            r.inputs[(size_t)rr][(size_t)i] = x;
+        }
+        r.run();
+    }
+    EXPECT(array("historyIn").empty());  // the limiter view is meters only: no history is sent
+    const auto v = live();
+    EXPECT(v.at("inPeakL") > 0.8f && v.at("outPeakL") > 0.0f && v.at("inRmsL") > 0.4f && v.at("stereo") == 1.0);
+}
+
 void monitor() {
     g_test = "monitor node";
     Rig r("monitor");
@@ -756,6 +827,8 @@ int main() {
     notesToCv();
     midiInEvents();
     monitor();
+    compressorView();
+    limiterView();
     audioMixer();
     levelMeter();
     midiOutRealtime();

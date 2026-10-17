@@ -73,7 +73,8 @@
       try {
         const m = await fetchModule(slug);
         post({ cmd: "module", slug, bytes: m.wasm.slice(0), types: manifest.modules[slug].types });
-        setStatus(`installed ${slug} ${m.version} from the Bleep Library (signed by ${m.publisher}, ${Math.round(m.bytes / 1024)} KB)`);
+        setStatus(m.local ? `loaded ${slug} from the local build (unsigned, ${Math.round(m.bytes / 1024)} KB)`
+                         : `installed ${slug} ${m.version} from the Bleep Library (signed by ${m.publisher}, ${Math.round(m.bytes / 1024)} KB)`);
       } catch (e) {
         sent.delete(slug);
         loading.delete(slug);
@@ -123,10 +124,11 @@
     transport: { bpm: 120, playing: true },
     setTempo(bpm) { W.transport.bpm = bpm; post({ cmd: "tempo", bpm }); },
     setPlaying(on) { W.transport.playing = !!on; post({ cmd: "play", on: !!on }); },
+    /// The octave the computer keys start in (A is its C); a drum map asks for a low one so that the keys are the drum notes.
+    setOctave(o) { octave = Math.max(0, Math.min(8, Math.round(o))); },
     noteOn: (note, velocity = 0.8) => post({ cmd: "noteOn", note, velocity, channel: 0 }),
     noteOff: (note) => post({ cmd: "noteOff", note, channel: 0 }),
 
-    /// Starts audio. Call from a click.
     /// What the Audio In nodes carry: the microphone or an audio file that loops (the web has no other source). Call from a click.
     input: {
       kind: "",   // "", "mic" or "file"
@@ -167,6 +169,7 @@
       stop() { dropInput(); },
     },
 
+    /// Starts audio. Call from a click.
     async start() {
       if (ctx) { await ctx.resume(); return; }
       setStatus("starting audio…");

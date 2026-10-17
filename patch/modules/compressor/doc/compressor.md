@@ -24,6 +24,14 @@ The **Sidechain** input lets another signal control the compression: a kick drum
 
 The **Reduction** output is a control signal from 0 (no compression) to 1 (24 dB of reduction or more). Use it to open a filter when the sound gets squashed or to light a lamp.
 
+## The display
+
+The top of the view shows what the compressor is doing to the last two seconds of sound:
+
+- The **volume envelope** graph draws the level going in (grey) and coming out (green) as two lines over each other, on a dB scale, so you can see how far the peaks are pulled down. The dashed line marks the threshold.
+- **Gain reduction** below it shows, in dB, how far the compressor is turned down at each moment (0 at the top, 24 dB at the bottom), and the current amount in numbers under its label. The number changes four times a second, showing the deepest reduction since the last change, so it can be read. Watch the curve to set Attack and Release by eye.
+- The **IN** and **OUT** meters next to each other on the right show the peak (light bar), RMS level (solid bar) and a held peak line for each channel, with the held peak in dB below. The red mark at the top is a clip light (a sample over 0 dBFS). Click a meter to reset it.
+
 ## How to use it?
 
 - **Glue on a mix:** threshold −18 dB, ratio 2:1, attack 30 ms, release 200 ms, knee 12 dB.

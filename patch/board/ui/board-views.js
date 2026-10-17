@@ -11,7 +11,7 @@
     create(s) {
       const { $, cablesInto, canBypass, canvas, clone, drivesJacks, edit, el, gesture, isPort, isStructural,
               jackName, knobMenuItems, nodeById, nodesEl, panelMenuFor, removeCable, renderCables, renderNodes,
-              savePreset, setPowerButton, showMenu, toggleBypass, typeOf, views } = s;
+              savePreset, setPowerButton, showMenu, toggleBypass, typeOf, views, hidePopovers } = s;
       let viewZ = 1;
       /// Puts a floating window at (x, y), keeping its title bar inside the canvas so it can always be grabbed.
       function placeWin(win, x, y) {
@@ -145,7 +145,8 @@
         win.style.top = y + "px";
         front(win);
 
-        win.addEventListener("pointerdown", () => front(win));
+        // The canvas ignores presses inside a view, so a menu opened from the view (right-click) closes here.
+        win.addEventListener("pointerdown", () => { hidePopovers(); front(win); });
         pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); pin.title = pinTitle(v.pinned); });
         // The module's manual opens in a dialog over the board (modal.js), built on first use.
         help.addEventListener("click", () => {

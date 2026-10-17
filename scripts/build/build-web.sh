@@ -10,7 +10,8 @@
 #   scripts/build/build-web.sh --no-modules [out-dir] only the board UI and the web engine (seconds, no
 #                                               Emscripten or JUCE needed; what the website image does)
 #   scripts/build/build-web.sh --modules-only [out-dir]  only modules/*.wasm and manifest.json; default
-#                                               build/web/modules (what package-module.py packages)
+#                                               build/web/modules (what package-module.py packages). It also
+#                                               publishes them to the dev site's play/local-modules/ (see below)
 #   add --docker (first) to run the build in the Emscripten Docker image instead of a local emsdk:
 #   scripts/build/build-web.sh --docker --modules-only
 #   python3 -m http.server -d build/web/site 8000
@@ -62,7 +63,23 @@ if [ "$MODULES" = 1 ]; then
   fi
   python3 "$PATCH/web/build_modules.py" --out "$OUT" --juce "$JUCE" ${BLEEP_WEB_ONLY:+--only "$BLEEP_WEB_ONLY"}
 fi
-if [ "$UI" = 0 ]; then rmdir "$OUT/js" 2>/dev/null || true; echo "Built the modules in $OUT"; exit 0; fi
+if [ "$UI" = 0 ]; then
+  rmdir "$OUT/js" 2>/dev/null || true
+  echo "Built the modules in $OUT"
+  # For development: the website's dev site (website/docker-compose.dev.yml) serves website/app/public/play, and Bleep Play there takes
+  # the modules of a local-modules/ folder next to it, unsigned, while Settings > Library > "Allow unsigned modules" is on. So this build
+  # is all a module change needs: no packaging, signing or release. The modules' view scripts go along, so a change to one shows too.
+  # BLEEP_LOCAL_MODULES=<dir> names another folder, BLEEP_LOCAL_MODULES=off skips this; it is skipped unless the play folder exists.
+  LOCAL="${BLEEP_LOCAL_MODULES:-$ROOT/website/app/public/play/local-modules}"
+  if [ "$LOCAL" != off ] && [ -d "$(dirname "$LOCAL")" ]; then
+    rm -rf "$LOCAL"; mkdir -p "$LOCAL/views"
+    cp -R "$OUT/modules" "$OUT/manifest.json" "$LOCAL/"
+    for m in "$PATCH"/modules/*/; do [ -d "$m/ui" ] && cp "$m"/ui/*.js "$LOCAL/views/" 2>/dev/null || true; done
+    ( cd "$LOCAL/views" && ls *.js 2>/dev/null | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin]))' ) > "$LOCAL/views.json"
+    echo "Local modules for Bleep Play: $LOCAL (reload the page; turn on Allow unsigned modules once)"
+  fi
+  exit 0
+fi
 
 # 2. The board UI, the way the plugins and scripts/run/ui-server.py serve it: board,
 #    common and every module's ui/ and doc/ files side by side.

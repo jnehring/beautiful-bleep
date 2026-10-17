@@ -310,6 +310,12 @@
     if (role === "instrument") {
       rootId = insertPreset(b, q.preset, "", 340, 40, credits().factory(q.name));
       for (const c of plan.midi) cable(keys.id, c.from, rootId, c.to);
+      if (plan.drums) {   // a drum map: Drum Notes turns the General MIDI drum notes into one trigger per drum
+        const dn = { id: uid("n"), type: "drum-notes", name: "Drum Notes", x: 180, y: 40, parent: "", muted: false, params: {} };
+        b.nodes.push(dn);
+        cable(keys.id, "notes", dn.id, "notes");
+        for (const d of plan.drums) cable(dn.id, d.from, rootId, d.to);
+      }
     } else {
       const sources = W.sources(factory);
       let sid, sout;
@@ -332,7 +338,13 @@
     plan.out.forEach((j, i) => cable(rootId, j, speakers.id, i ? "r" : "l"));
     if (plan.out.length === 1) cable(rootId, plan.out[0], speakers.id, "r");
     applyMessage(await native("loadPatch", b, 0, q.name));
-    if (role === "instrument") { window.BleepPlayKeys.show(q.name); window.BleepPlaySource.hide(); }
+    if (role === "instrument") {
+      window.BleepPlayKeys.show(q.name);
+      window.BleepPlaySource.hide();
+      const octave = plan.octave; // a drum map starts the keys at the General MIDI drum notes, everything else where it always did
+      window.BleepPlayKeys.setOctave(octave === undefined ? 3 : octave);
+      if (window.BleepWeb && window.BleepWeb.setOctave) window.BleepWeb.setOctave(octave === undefined ? 4 : octave);
+    }
     else {
       window.BleepPlayKeys.hide();
       const choose = async (c) => {
@@ -416,7 +428,7 @@
     get board() { return board; },
     $, cablesInto, canBypass, canvas, clone, drivesJacks, edit, el, gesture, isPort, isStructural, jackName,
     nodeById, nodesEl, removeCable, renderCables, renderNodes, savePreset,
-    setPowerButton, showMenu, toggleBypass, typeOf, views,
+    setPowerButton, showMenu, toggleBypass, typeOf, views, hidePopovers,
     knobMenuItems: (...a) => knobMenuItems(...a), panelMenuFor: (...a) => panelMenuFor(...a),
   });
   const { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch } = viewsApi;
@@ -599,6 +611,21 @@
   async function loadModuleViews(list) {
     seal();  // from here on the page runs code that is not the app's own: take the bridge and the privileged globals out of reach
     const loaded = new Set([...document.scripts].map((s) => s.src.split("/").pop()));
+    // Bleep Play with a local development build (local-modules/, build-web.sh --modules-only): its view scripts go first, so they win
+    // over the page's own copies (the first registration of a type stays). Only while unsigned modules are allowed, as for the modules.
+    try {
+      if (window.BleepLibrary && (await BleepLibrary.localIndex())) {
+        const r = await fetch("local-modules/views.json", { cache: "no-store" });
+        const mine = r.ok ? await r.json() : [];
+        await Promise.all((Array.isArray(mine) ? mine : []).filter((n) => !loaded.has(n)).map((n) => new Promise((done) => {
+          const s = document.createElement("script");
+          s.src = "local-modules/views/" + encodeURIComponent(n);
+          s.onload = s.onerror = () => done();
+          document.head.appendChild(s);
+          loaded.add(n);
+        })));
+      }
+    } catch (e) { /* no local build: the page's own views */ }
     let names = null;
     try {
       const r = await fetch("module-views.json");
