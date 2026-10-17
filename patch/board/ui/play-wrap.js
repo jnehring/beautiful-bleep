@@ -13,6 +13,13 @@
 (function () {
   "use strict";
 
+  // The General MIDI drum notes each output of the Drum Notes module listens to (patch/modules/drum-notes/doc/drum-notes.md).
+  const GM = { kick: [35, 36], snare: [38, 40], rim: [37], clap: [39], hat: [42, 44], open: [46], tom: [41, 43, 45, 47, 48, 50], bell: [56], ride: [51, 53, 59], crash: [49, 52, 55, 57] };
+  const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+  const noteName = (n) => NAMES[n % 12] + (Math.floor(n / 12) - 1);   // 60 is C4, as on the keyboard under an instrument
+  /// The keyboard octave that puts the General MIDI drum notes (35 to 59) under the keys of a drum map.
+  const DRUM_OCTAVE = 2;
+
   const rootOf = (preset) => (preset.nodes || []).find((n) => n.id === preset.root) || null;
   const jacks = (list) => (list || []).map((j) => j.id);
   const audioOut = (root) => {
@@ -22,6 +29,8 @@
 
   /// How to play `preset` as `role` ("instrument" or "effect"):
   ///   {ok: true, role, midi: [{from, to}], out: [jack, jack], in: [jack, jack], notes: [string]}   midi: MIDI In output → cell input
+  ///     a preset that maps keys to different jacks also has `drums: [{from, to}]` (Drum Notes output → cell input: the Drum Notes module sits
+  ///     between MIDI In and the cell) and `octave` (the keyboard octave that shows the drum notes)
   ///   {ok: false, reason: "role" | "jacks", message}
   function plan(preset, role) {
     const plays = preset && preset.plays && preset.plays[role];
@@ -45,19 +54,32 @@
       else if (typeof to === "string") notes.push(`The jack “${to}” is missing, so ${from} is not connected.`);
     };
     const m = plays.notes && typeof plays.notes === "object" ? plays.notes : {};
+    let drums = null;
     if (m.trigger !== undefined) {
       if (typeof m.trigger === "string") want("trigger", m.trigger);
-      else if (m.trigger && typeof m.trigger === "object") {   // a map of MIDI notes to jacks: one note stream has no way to tell them apart here
-        want("trigger", m.trigger.default);
-        const others = Object.keys(m.trigger).filter((k) => k !== "default" && m.trigger[k] !== m.trigger.default);
-        if (others.length) notes.push("Every key plays the same sound: Play cannot tell the keys of a drum map apart yet.");
+      else if (m.trigger && typeof m.trigger === "object") {
+        // A map of MIDI notes to jacks (hats: 44 closed, 46 open, the rest closed). The Drum Notes module turns the General MIDI drum notes
+        // into one trigger per drum, so each of its outputs goes to the jack the map gives its notes, or to the default jack.
+        const map = m.trigger;
+        drums = [];
+        for (const [out, gm] of Object.entries(GM)) {
+          const mapped = gm.map((n) => map[String(n)]).filter((j) => typeof j === "string");
+          const to = mapped.length ? mapped[0] : map.default;
+          if (typeof to === "string" && have.has(to)) drums.push({ from: out, to });
+        }
+        if (typeof map.default === "string" && !have.has(map.default)) notes.push(`The jack “${map.default}” is missing, so the other keys play nothing.`);
+        const named = Object.keys(map).filter((k) => k !== "default" && map[k] !== map.default).map((k) => `${noteName(+k)} plays “${map[k]}”`);
+        notes.push(`The keys are the General MIDI drum notes (C2 and up)${named.length ? ": " + named.join(", ") : ""}${typeof map.default === "string" ? `; every other drum key plays “${map.default}”` : ""}.`);
       }
     }
-    if (m.velocity !== undefined) want("velocity", m.velocity);
+    if (m.velocity !== undefined) {
+      if (drums && typeof m.velocity === "string" && have.has(m.velocity)) drums.push({ from: "velocity", to: m.velocity });   // the hit's velocity, with its trigger
+      else want("velocity", m.velocity);
+    }
     if (m.pitch !== undefined) want("pitch", m.pitch);
     if (m.gate !== undefined) want("gate", m.gate);
     if (m.notes !== undefined) want("notes", m.notes);
-    return { ok: true, role, midi, in: [], out, notes };
+    return { ok: true, role, midi, in: [], out, notes, ...(drums ? { drums, octave: DRUM_OCTAVE } : {}) };
   }
 
   /// The presets that can feed an effect: instruments that play by themselves (no keys needed), as [{name, preset}], in order.
@@ -69,5 +91,5 @@
     });
   }
 
-  window.BleepPlayWrap = { rootOf, plan, sources };
+  window.BleepPlayWrap = { rootOf, plan, sources, noteName, DRUM_OCTAVE };
 })();

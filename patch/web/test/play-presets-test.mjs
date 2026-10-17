@@ -57,6 +57,11 @@ function boardFor(p, role, input = false) {
   if (role === "instrument") {
     root = place(b, p.preset, "p_");
     for (const c of plan.midi) b.cables.push(cable("keys", c.from, root, c.to));
+    if (plan.drums) {   // a drum map: Drum Notes between MIDI In and the cell
+      b.nodes.push(node("dn", "drum-notes"));
+      b.cables.push(cable("keys", "notes", "dn", "notes"));
+      for (const d of plan.drums) b.cables.push(cable("dn", d.from, root, d.to));
+    }
   } else if (input) {   // the microphone or a file: the Audio In port
     b.nodes.push(node("in", "audio-in", { port: "p-in" }));
     root = place(b, p.preset, "p_");
@@ -92,7 +97,8 @@ for (const p of factory) {
       const missing = engine.missingSlugs(b, manifest);
       if (missing.length) { results.missing.push(`${p.name} (${missing.join(", ")})`); continue; }
       engine.setBoard(b);
-      if (role === "instrument") engine.midi.noteOn(60, 0.9);
+      const octave = W.plan(p.preset, role).octave;   // a drum map: play a drum note
+      if (role === "instrument") engine.midi.noteOn(octave === undefined ? 60 : 12 * (octave + 1) + 4, 0.9);
       const x = render(1.2, input);
       audioSeconds += 1.2;
       if (role === "instrument") engine.midi.allOff();
@@ -104,6 +110,23 @@ for (const p of factory) {
       else results.sound.push(label);
     }
   }
+}
+// A drum map plays the drum of the key: the open hat (46) rings longer than the closed one (44), and any other drum key (the kick's 36) closes the hat.
+{
+  const hats = factory.find((x) => x.name === "808 Hats");
+  engine.setBoard(boardFor(hats, "instrument"));
+  const ring = (note) => {
+    engine.midi.noteOn(note, 0.9);
+    const x = render(0.8);
+    engine.midi.allOff();
+    render(1);
+    return { peak: x.reduce((m, v) => Math.max(m, Math.abs(v)), 0), tail: x.subarray(12000).reduce((s, v) => s + v * v, 0) };
+  };
+  const open = ring(46), closed = ring(44), other = ring(36);
+  assert.ok(open.peak > 1e-3 && closed.peak > 1e-3 && other.peak > 1e-3, `all three keys sound: ${open.peak} ${closed.peak} ${other.peak}`);
+  assert.ok(open.tail > closed.tail * 3, `the open hat rings longer (${open.tail} against ${closed.tail})`);
+  assert.ok(other.tail < open.tail / 3, "a key of another drum plays the closed hat");
+  console.log("drum map (808 Hats): the open hat rings (tail energy " + open.tail.toExponential(1) + ") where the closed hat and the other keys stop (" + closed.tail.toExponential(1) + ", " + other.tail.toExponential(1) + ")");
 }
 const took = (Date.now() - started) / 1000;
 console.log(`${results.sound.length} play, ${results.silent.length} are silent, ${results.missing.length} need modules the site lacks, ${results.broken.length} give non-finite audio`);

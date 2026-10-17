@@ -91,5 +91,10 @@
     },
     hide() { if (bar) bar.hidden = true; },
     visible: () => !!bar && !bar.hidden,
+    /// The octave of the lowest key (the C that is labelled C<octave>); 3 is where an instrument starts.
+    setOctave(o) {
+      octave = Math.max(0, Math.min(7, Math.round(o)));
+      if (bar) { bar.querySelector(".pk-octave").textContent = "Octave " + octave; draw(); }
+    },
   };
 })();

@@ -20,8 +20,17 @@ const find = (name) => factory.find((p) => p.name === name).preset;
 // shapes of `plays.instrument.notes`
 assert.deepEqual(plain(W.plan(find("808 Boom"), "instrument")), {
   ok: true, role: "instrument", midi: [{ from: "trigger", to: "trig" }, { from: "velocity", to: "velocity" }], in: [], out: ["l", "r"], notes: [] });
+// a drum map: the Drum Notes module sits between MIDI In and the cell, and the keys start at the General MIDI drum notes
 const hats = plain(W.plan(find("808 Hats"), "instrument"));
-assert.ok(hats.ok && hats.midi[0].to === "closed" && hats.notes.some((n) => n.includes("drum map")));
+assert.ok(hats.ok && hats.octave === 2 && W.DRUM_OCTAVE === 2);
+assert.deepEqual(hats.midi, [], "trigger and velocity come from Drum Notes");
+assert.deepEqual(hats.drums.filter((d) => d.to === "open"), [{ from: "open", to: "open" }], "note 46 opens the hat");
+assert.deepEqual(hats.drums.filter((d) => d.to === "closed").map((d) => d.from).sort(), ["bell", "clap", "crash", "hat", "kick", "ride", "rim", "snare", "tom"], "every other drum closes it");
+assert.ok(hats.drums.some((d) => d.from === "velocity" && d.to === "velocity"));
+assert.ok(hats.notes.some((n) => n.includes("A♯2 plays “open”") && n.includes("every other drum key plays “closed”")), hats.notes.join(" "));
+assert.equal(W.noteName(60), "C4");
+assert.equal(W.noteName(46), "A♯2");
+assert.equal("drums" in plain(W.plan(find("808 Boom"), "instrument")), false, "a plain trigger needs no Drum Notes");
 assert.deepEqual(plain(W.plan(find("Seasons Turning"), "instrument").midi), [{ from: "pitch", to: "root" }]);
 assert.deepEqual(plain(W.plan(find("Bongo Garden"), "instrument").midi), []);   // plays by itself
 const eff = plain(W.plan(find("Cathedral Hall"), "effect"));
@@ -56,6 +65,7 @@ for (const p of factory) {
     const fixed = root.type === "voice-cell" ? ["notes"] : [];
     const ins = new Set([...root.inputs.map((j) => j.id), ...fixed]), outs = new Set([...root.outputs.map((j) => j.id), ...(fixed.length ? ["l", "r"] : [])]);
     for (const c of r.midi) assert.ok(ins.has(c.to), `${p.name}: ${c.to}`);
+    for (const d of r.drums || []) assert.ok(ins.has(d.to), `${p.name}: drum ${d.to}`);
     for (const j of r.in) assert.ok(ins.has(j), `${p.name}: in ${j}`);
     assert.ok(r.out.length >= 1 && r.out.every((j) => outs.has(j)), `${p.name}: out`);
     playable++;

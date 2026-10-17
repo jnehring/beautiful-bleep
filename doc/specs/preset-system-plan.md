@@ -259,11 +259,14 @@ the browser (`patch/web/README.md`). A web instrument is the plugin's wrapper do
   speakers) or an audio file that loops (decoded by the browser). The microphone needs the browser's permission; the Caddyfile's
   Permissions-Policy allows it for the site itself. `patch/web/test/audio-input-test.mjs` checks the engine side; `play-presets-test.mjs`
   also runs every effect with a tone as the input. The browser's microphone and file paths were not run: nothing here drives a browser's audio.
+- **Drum maps** (the six hat presets: `trigger` as a map of MIDI notes to jacks): Play puts the Drum Notes module between MIDI In and the cell,
+  wires each of its outputs to the jack the map gives its General MIDI notes (or the default jack), and starts the keys, the on-screen piano
+  and the computer keys, at octave 2, so that they are the drum notes. For hats, A♯2 (46) opens the hat and every other drum key closes it;
+  the page says so. `play-presets-test.mjs` plays 808 Hats and checks that the open hat rings longer than the closed one.
 - **CPU:** measured in node on a laptop, Warm Saws with three notes held runs at about 2× real time (the Multi Filter is most of it), a drum
   at about 30×. A big chord on a phone may not keep up; the real limit is the browser's, which nobody has measured yet.
 
 **Not built**
-- **Drum maps:** a preset that maps keys to different jacks (hats: closed, open) plays one sound for every key.
 - `?play=` for community presets (they arrive with step 4's Library work).
 - Not checked: any sound. The dev server's engine has no audio, so wiring, ports and the piano were checked in the browser, not by ear.
 
