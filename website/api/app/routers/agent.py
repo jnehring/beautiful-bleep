@@ -127,6 +127,7 @@ async def chat(body: dict[str, Any], user: User = Depends(get_current_user), db:
         log.error("assistant not available: %s", e)
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "The assistant is not available")
     agent_quota.record(db, requests=1)
+    chat_id = agent_quota.start_chat(db, user.id, new_chat=req.resume is None and len(req.messages) <= 1)
 
     from bleep_agent.runner import run_chat
 
@@ -145,6 +146,7 @@ async def chat(body: dict[str, Any], user: User = Depends(get_current_user), db:
                     break
                 if kind == "usage":
                     with SessionLocal() as s:
+                        agent_quota.finish_chat(s, chat_id, data.get("input_tokens", 0), data.get("output_tokens", 0))
                         data = {**data, "day_total": agent_quota.used_today(s), "day_limit": settings.agent_daily_tokens}
                 yield _sse(kind, data)
                 pending = asyncio.ensure_future(it.__anext__())

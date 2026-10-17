@@ -120,3 +120,22 @@ def test_unavailable_without_data(client, agent_on, monkeypatch, tmp_path):
     monkeypatch.setattr(settings, "agent_data_dir", str(tmp_path))
     ann = other_client("ann@example.com", "Ann")
     assert ann.post("/api/agent/chat", json=BODY).status_code == 503
+
+
+def test_admin_chat_stats(client, agent_on, monkeypatch, make_admin):
+    monkeypatch.setattr(settings, "agent_price_input", 1.0)
+    monkeypatch.setattr(settings, "agent_price_output", 10.0)
+    ann, ben = other_client("ann@example.com", "Ann"), other_client("ben@example.com", "Ben")
+    assert ann.post("/api/agent/chat", json=BODY).status_code == 200
+    assert ann.post("/api/agent/chat", json=BODY).status_code == 200
+    follow_up = {**BODY, "messages": [*BODY["messages"], {"role": "assistant", "content": "a"}, {"role": "user", "content": "more"}]}
+    assert ben.post("/api/agent/chat", json=follow_up).status_code == 200   # a later turn: not a new chat
+    assert ann.get("/api/admin/chat/stats").status_code == 403
+    email, password = make_admin()
+    admin = client
+    assert admin.post("/api/auth/login", json={"email": email, "password": password}).status_code == 200
+    s = admin.get("/api/admin/chat/stats").json()
+    assert s["total"]["tokens"] == 360 and s["total"]["cost_usd"] == pytest.approx(3 * (100 + 200) / 1e6)
+    assert s["windows"]["all"] == {"chats": 2, "users": 2, "turns": 3}
+    assert s["windows"]["7d"]["users"] == 2 and s["windows"]["30d"]["chats"] == 2
+    assert len(s["daily"]) == 30 and s["daily"][-1]["tokens"] == 360

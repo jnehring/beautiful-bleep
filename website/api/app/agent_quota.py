@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .models import AgentUsage
+from .models import AgentChat, AgentUsage
 
 
 def today() -> date:
@@ -42,3 +42,19 @@ def record(db: Session, tokens: int = 0, requests: int = 0) -> None:
             return
         except IntegrityError:  # another request created the row first: add to it
             db.rollback()
+
+
+def start_chat(db: Session, user_id: int, new_chat: bool) -> int:
+    """Log one assistant turn when it starts, so a turn the client abandons is still counted."""
+    row = AgentChat(user_id=user_id, new_chat=new_chat)
+    db.add(row)
+    db.commit()
+    return row.id
+
+
+def finish_chat(db: Session, chat_id: int, input_tokens: int, output_tokens: int) -> None:
+    row = db.get(AgentChat, chat_id)
+    if row:
+        row.input_tokens, row.output_tokens = int(input_tokens or 0), int(output_tokens or 0)
+        row.cost_usd = (row.input_tokens * settings.agent_price_input + row.output_tokens * settings.agent_price_output) / 1e6
+        db.commit()

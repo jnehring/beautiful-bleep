@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     # Chat requests per user per minute (in memory, per process). 0 = no limit.
     agent_user_per_minute: int = 6
     agent_max_steps: int = 20
+    # What the model costs in USD per million tokens (BLEEP_AGENT_PRICE_INPUT / _OUTPUT); the admin dashboard multiplies by it. 0 = not tracked.
+    agent_price_input: float = 0.0
+    agent_price_output: float = 0.0
     # The provider keys are the providers' own variables, read from the environment: GOOGLE_API_KEY (gemini-*) and OPENAI_API_KEY (gpt-*).
     # Signs the resume tokens of paused runs; random per process when empty (a restart then ends pending runs).
     agent_state_secret: str = ""

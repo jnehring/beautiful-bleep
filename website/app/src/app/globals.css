@@ -99,6 +99,11 @@ button.linklike { background: none; border: 0; padding: 0; font: inherit; color:
 .admin table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 .admin th, .admin td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .admin .secret { border: 1px solid var(--accent); border-radius: 8px; padding: 12px; margin: 12px 0; word-break: break-all; }
+.admin .tiles { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.admin .tile { flex: 1 1 200px; border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; background: var(--card); }
+.admin .tile .big { font-size: 1.8rem; font-weight: 700; }
+.admin .bars { width: 100%; height: 160px; border-bottom: 1px solid var(--line); }
+.admin .bars rect { fill: var(--accent); }
 .admin .error { color: #d14343; } .admin .muted { color: var(--muted); }
 
 /* Bleep Library */

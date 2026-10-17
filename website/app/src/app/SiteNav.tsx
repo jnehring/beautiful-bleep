@@ -30,6 +30,7 @@ export default function SiteNav() {
                   <a href="/admin/tokens/" aria-current={path.startsWith("/admin") ? "true" : undefined} aria-haspopup="true">Admin</a>
                   <div className="dropdown-menu">
                     <a href="/admin/tokens/" aria-current={path.startsWith("/admin/tokens") ? "page" : undefined}>Tokens</a>
+                    <a href="/admin/chat/" aria-current={path.startsWith("/admin/chat") ? "page" : undefined}>Chat</a>
                   </div>
                 </div>
               )}

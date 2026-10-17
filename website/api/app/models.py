@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -293,3 +293,16 @@ class AgentUsage(Base):
     day: Mapped[date] = mapped_column(Date, primary_key=True)
     tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     requests: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+
+class AgentChat(Base):
+    """One assistant turn (a POST /api/agent/chat): who, when, tokens and cost. `new_chat` marks the first turn of a conversation."""
+    __tablename__ = "agent_chat"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    new_chat: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    input_tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    output_tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
