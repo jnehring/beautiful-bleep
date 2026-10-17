@@ -104,6 +104,19 @@ def test_usage_is_reported(catalog, synth):
     assert len(seen) == 1
 
 
+def test_usage_events_stream_while_running(catalog, synth):
+    """The chat's token counter moves after every model call, not only at the end; the totals are cumulative."""
+    steps = [("search_docs", {"query": "vca"}), "A VCA scales a signal."]
+    res = Resources(model=scripted(*steps), catalog=catalog, stream=False)
+    ev = collect(res, request("what is a vca", synth))
+    usage = [d for k, d in ev if k == "usage"]
+    assert len(usage) >= 2
+    assert [u["requests"] for u in usage] == list(range(1, len(usage) + 1))
+    totals = [u["input_tokens"] + u["output_tokens"] for u in usage]
+    assert totals == sorted(totals)
+    assert kinds(ev).index("usage") < kinds(ev).index("done")
+
+
 def test_docs_skill_uses_the_index(catalog, synth, repo, tmp_path):
     out = tmp_path / "docs.sqlite"
     build_index(repo, out, None, log=lambda *_: None)

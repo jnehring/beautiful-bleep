@@ -557,6 +557,7 @@
     const out = { pause: null, live: [], reason: "", errored: false };
     const reader = resp.body.getReader(), dec = new TextDecoder();
     let buf = "";
+    const seen = { i: 0, o: 0 };
     const dispatch = (name, data) => {
       switch (name) {
         case "run": if (typeof data.run_id === "string" && run.item) (run.item.runs = run.item.runs || []).push(data.run_id); break;
@@ -565,7 +566,11 @@
         case "changeset": bubble.addCard(data); break;
         case "live": out.live.push(data); break;
         case "pause": out.pause = data; break;
-        case "usage": run.tokens.input += num(data.input_tokens, 0); run.tokens.output += num(data.output_tokens, 0); state.usage = data; ui.drawUsage(); break;
+        case "usage": {   // cumulative for this request: add only what is new since the last event
+          const i = num(data.input_tokens, 0), o = num(data.output_tokens, 0);
+          run.tokens.input += i - seen.i; run.tokens.output += o - seen.o; seen.i = i; seen.o = o;
+          state.usage = { ...data, run_total: run.tokens.input + run.tokens.output }; ui.drawUsage(); break;
+        }
         case "error": out.errored = true; bubble.addError(data.message || "The assistant failed.", data.code); break;
         case "done": out.reason = data.reason || ""; break;
         default: break;

@@ -209,7 +209,17 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
                       "live_results": [r.model_dump() for r in req.resume.results] if req.resume else []})
     log.info("run: skill=%s mode=%s resume=%s modules=%d prompt=%r", skill_name, req.mode, bool(resume), len(patch.nodes),
              (prompt or "")[:120])
-    model = MeteredModel(res.model, on_usage=res.on_usage, check=res.check_budget, on_call=lambda d: rec("model_call", d))
+    running = {"input_tokens": 0, "output_tokens": 0, "requests": 0}
+
+    def on_usage(u: Any) -> None:  # progress for the chat's counter: cumulative tokens of this run after each model call
+        running["input_tokens"] += u.input_tokens or 0
+        running["output_tokens"] += u.output_tokens or 0
+        running["requests"] += 1
+        emit("usage", dict(running))
+        if res.on_usage:
+            res.on_usage(u)
+
+    model = MeteredModel(res.model, on_usage=on_usage, check=res.check_budget, on_call=lambda d: rec("model_call", d))
     agent: Agent[Deps, Any] = Agent(
         model, deps_type=Deps, output_type=[str, DeferredToolRequests],
         instructions=lambda ctx: build_instructions(skill, ctx.deps, res, ctx.usage.requests),
@@ -241,7 +251,6 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
 
     usage = result.usage
     log.info("run done: requests=%d tokens=%d/%d tools: %s", usage.requests, usage.input_tokens, usage.output_tokens, " > ".join(calls) or "none")
-    emit("usage", {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens, "requests": usage.requests})
     out = result.output
     if isinstance(out, DeferredToolRequests):
         for call in out.calls:
