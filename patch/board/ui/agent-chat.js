@@ -565,7 +565,7 @@
         case "changeset": bubble.addCard(data); break;
         case "live": out.live.push(data); break;
         case "pause": out.pause = data; break;
-        case "usage": state.usage = data; ui.drawUsage(); break;
+        case "usage": run.tokens.input += num(data.input_tokens, 0); run.tokens.output += num(data.output_tokens, 0); state.usage = data; ui.drawUsage(); break;
         case "error": out.errored = true; bubble.addError(data.message || "The assistant failed.", data.code); break;
         case "done": out.reason = data.reason || ""; break;
         default: break;
@@ -602,7 +602,9 @@
     state.items.push(user);
     const reply = { role: "assistant", text: "", cards: [], at: new Date().toISOString(), runs: [] };
     state.items.push(reply);
-    const run = state.running = { ctrl: new AbortController(), cleanups: new Set(), aborted: false, item: reply };
+    const t0 = performance.now();
+    const tokens = { input: 0, output: 0 };
+    const run = state.running = { tokens, ctrl: new AbortController(), cleanups: new Set(), aborted: false, item: reply };
     ui.addItem(user);
     const bubble = ui.addItem(reply);
     ui.setBusy(true);
@@ -643,6 +645,10 @@
       }
       ui.setBusy(false);
       ui.setActivity("");
+      if (state.items.includes(reply) && (tokens.input || tokens.output)) {
+        const n = (v) => v.toLocaleString("en-US");
+        bubble.addStats(`${ui.fmtSecs(performance.now() - t0)} · ${n(tokens.input)} input · ${n(tokens.output)} output tokens`);
+      }
       save();
       ui.refresh();
     }
@@ -794,6 +800,12 @@
     const activity = el("div", "ag-activity");
     activity.hidden = true;
     activity.setAttribute("role", "status");
+    const spin = el("span", "ag-spin");
+    const actText = el("span", "ag-act-text");
+    const actTime = el("span", "ag-act-time");
+    activity.append(spin, actText, actTime);
+    let timer = null, label = "";
+    const fmtSecs = (ms) => (ms < 60e3 ? (ms / 1000).toFixed(1) + " s" : Math.floor(ms / 60e3) + " min " + String(Math.floor(ms / 1000) % 60).padStart(2, "0") + " s");
     const composer = el("form", "ag-composer");
     const input = el("textarea", "ag-input");
     input.rows = 2;
@@ -846,14 +858,29 @@
         if (on) { refreshStatus().then(() => { ensureBoard(); api.refresh(); }); api.refresh(); setTimeout(() => (input.offsetParent ? input : close).focus(), 0); }
         else if (root.contains(document.activeElement)) toggle.focus();
       },
-      setActivity(text) { activity.hidden = !text; activity.textContent = text ? text + "…" : ""; },
-      setBusy(on) { send.hidden = on; stop.hidden = !on; input.disabled = false; root.classList.toggle("busy", on); list.setAttribute("aria-busy", on ? "true" : "false"); },
+      setActivity(text) { label = text; activity.hidden = !text && !timer; actText.textContent = text ? text + "…" : ""; },
+      setBusy(on) {
+        if (on && !timer) {
+          const t0 = performance.now();
+          const tick = () => { actTime.textContent = fmtSecs(performance.now() - t0); };
+          tick();
+          timer = setInterval(tick, 100);
+          activity.hidden = false;
+        } else if (!on && timer) {
+          clearInterval(timer);
+          timer = null;
+          actTime.textContent = "";
+          activity.hidden = !label;
+        }
+        send.hidden = on; stop.hidden = !on; input.disabled = false; root.classList.toggle("busy", on); list.setAttribute("aria-busy", on ? "true" : "false");
+      },
+      fmtSecs,
       notice(t) { if (host.notice) host.notice(t); },
       drawUsage() {
         const u = state.usage;
         if (!u) { usage.textContent = ""; return; }
         const k = (n) => (n >= 10000 ? Math.round(n / 1000) + "k" : n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n));
-        usage.textContent = `${k(num(u.run_total, 0))} tokens` + (u.day_limit ? ` · day ${k(num(u.day_total, 0))}/${k(u.day_limit)}` : "");
+        usage.textContent = `${k(num(u.run_total, num(u.input_tokens, 0) + num(u.output_tokens, 0)))} tokens` + (u.day_limit ? ` · day ${k(num(u.day_total, 0))}/${k(u.day_limit)}` : "");
         usage.title = "Tokens used by this answer, and today's total";
       },
       // ---- what stands in place of the composer
@@ -917,6 +944,7 @@
           row: wrap, hadError: false, pending: 0,
           draw() { if (item.role === "user") body.textContent = item.text; else markdown(body, item.text); body.hidden = !item.text; },
           addText(d) { item.text += d; if (!bubble.raf) bubble.raf = requestAnimationFrame(() => { bubble.raf = 0; bubble.draw(); api.scroll(); }); },
+          addStats(t) { wrap.appendChild(el("div", "ag-stats", t)); api.scroll(); },
           addNote(t) { bubble.hadError = true; wrap.appendChild(el("div", "ag-note", t)); api.scroll(); },
           addError(t, code) { bubble.hadError = true; const e = el("div", "ag-error", t); e.setAttribute("role", "alert"); wrap.appendChild(e); api.scroll(); void code; },
           addCard(cs) {
