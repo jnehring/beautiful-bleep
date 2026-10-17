@@ -99,6 +99,7 @@ services:
       BLEEP_AGENT_PRICE_OUTPUT: ${BLEEP_AGENT_PRICE_OUTPUT:-0}
       BLEEP_AGENT_EMBED_MODEL: ${BLEEP_AGENT_EMBED_MODEL:-gemini-embedding-2}
       BLEEP_AGENT_USER_PER_MINUTE: ${BLEEP_AGENT_USER_PER_MINUTE:-6}
+      BLEEP_AGENT_LOG_MESSAGES: ${BLEEP_AGENT_LOG_MESSAGES:-5000}
       # Provider keys: the providers' own variable names (Google AI Studio key for gemini-* and gemini-embedding-*, OpenAI for gpt-*).
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}

@@ -7,10 +7,12 @@ ends, the browser executes them, and a later request resumes (see runner.py).
 from __future__ import annotations
 
 import functools
+import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, Field
+from pydantic_core import to_jsonable_python
 from pydantic_ai import ExternalToolset, FunctionToolset, ModelRetry, RunContext, ToolDefinition
 
 from .catalog import Catalog
@@ -35,6 +37,7 @@ class Deps:
     emit: Callable[[str, dict[str, Any]], None] = lambda kind, data: None
     changesets: list[Changeset] = field(default_factory=list)
     trace: Callable[[str, bool], None] = lambda tool, retried: None
+    record: Callable[[str, dict[str, Any]], None] = lambda kind, data: None  # the run log (runner.run_chat(record=...))
 
 
 def _emit_changeset(d: Deps, cs: Changeset) -> dict[str, Any]:
@@ -331,15 +334,19 @@ DIAG = [check_audibility]
 
 
 def _traced(f: Callable[..., Any]) -> Callable[..., Any]:
-    """Report each call (and whether the model had to retry it) to deps.trace, for logs and the evaluation."""
+    """Report each call (and whether the model had to retry it) to deps.trace, and record it, in full, in the run log."""
     @functools.wraps(f)
     async def wrapper(ctx: RunContext[Deps], *args: Any, **kwargs: Any) -> Any:
+        t0 = time.perf_counter()
+        rec: dict[str, Any] = {"tool": f.__name__, "call_id": getattr(ctx, "tool_call_id", None), "args": to_jsonable_python(kwargs)}
         try:
             out = await f(ctx, *args, **kwargs)
-        except ModelRetry:
+        except ModelRetry as e:
             ctx.deps.trace(f.__name__, True)
+            ctx.deps.record("tool_call", {**rec, "retry": True, "error": str(e), "duration": round(time.perf_counter() - t0, 3)})
             raise
         ctx.deps.trace(f.__name__, False)
+        ctx.deps.record("tool_call", {**rec, "retry": False, "result": to_jsonable_python(out), "duration": round(time.perf_counter() - t0, 3)})
         return out
 
     return wrapper

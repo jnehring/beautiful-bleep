@@ -100,3 +100,16 @@ def test_panels(catalog, library):
     assert validate_panel(panel, p, catalog) == []
     next(c for c in panel["controls"] if c["type"] == "dial")["wire"] = [{"param": "adsr.nope"}]
     assert validate_panel(panel, p, catalog)
+
+
+def test_cables_to_a_cell_use_the_cells_own_jacks(catalog):
+    """'Trigger Slate Stabs from a step sequencer': the sequencer goes next to the cell at the top level, cabled to the cell's own `notes` jack."""
+    cell = {"id": "slate", "type": "cell", "name": "Slate Stabs", "x": 600, "y": 0, "parent": "", "params": {},
+            "inputs": [{"id": "notes", "name": "Notes", "type": "notes"}, {"id": "cut", "name": "Cutoff", "type": "control"}],
+            "outputs": [{"id": "l", "name": "Out L", "type": "audio"}, {"id": "r", "name": "Out R", "type": "audio"}]}
+    p = Patch({"nodes": [cell], "cables": []})
+    assert "cell jacks in: notes(notes), cut(control); out: l(audio), r(audio)" in p.summary(catalog)
+    cs = apply_ops(p, catalog, [AddModule(type="step-sequencer", ref="seq", near="slate"), Connect(from_node="$seq", from_jack="notes", to_node="slate", to_jack="notes")])
+    assert p.node("stepse")["parent"] == "" and any("stepse.notes -> slate.notes" in l for l in cs.lines)
+    with pytest.raises(OpError, match=r"Inputs: \['notes', 'cut'\]"):
+        apply_ops(p, catalog, [Connect(from_node="stepse", from_jack="pitch", to_node="slate", to_jack="gate")])

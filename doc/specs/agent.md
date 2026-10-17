@@ -205,6 +205,13 @@ Settings (`BLEEP_` prefix): `agent_enabled=False`, `agent_daily_tokens=1_000_000
 `agent_embed_model="gemini-embedding-2"`, `agent_data_dir="agent_data"`, `agent_user_per_minute=6`,
 `agent_max_steps=12`, the provider keys `GOOGLE_API_KEY` / `OPENAI_API_KEY` (the providers' own variables, read from the environment), `agent_state_secret` (HMAC key; random per process when empty).
 
+Run log: table `agent_log(id, run_id, user_id, created_at, kind, data JSON)`, one row per record, kept to the newest
+`BLEEP_AGENT_LOG_MESSAGES` rows (default 5000, 0 = off). Kinds per run, in order: `run_start` (prompt, history, the board snapshot, skill, mode),
+`model_call` (the full messages sent including the instructions, the response with any thinking and tool calls, usage, latency, tools offered),
+`tool_call` (arguments, result or retry error, duration), `event` (changeset, live, pause, usage, error, done), `answer`, and a final `summary`
+(prompt, tools, tokens, calls, outcome). Written when the run ends, also when the browser left. Admin read API:
+`GET /api/admin/agent-log/runs` and `/runs/{run_id}`. The log holds users' prompts and patches: say so in the privacy notice.
+
 Table `agent_usage(day DATE PK, tokens BIGINT NOT NULL DEFAULT 0, requests INT NOT NULL DEFAULT 0)`; migration with
 alembic. Budget: refuse a run when `tokens >= limit` (429, `reset_at` next UTC midnight); after every model call add
 that call's tokens with `UPDATE ... SET tokens = tokens + :n` (insert-if-missing first). The router never imports the

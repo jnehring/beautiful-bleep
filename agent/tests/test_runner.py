@@ -145,3 +145,38 @@ def test_streaming_reports_usage_and_survives_tools(catalog, synth):
     assert ev[-1] == ("done", {"reason": "final"}), ev[-3:]
     assert "".join(d["delta"] for k, d in ev if k == "text") == "The patch has a reverb."
     assert len(seen) == 2 and all(hasattr(u, "input_tokens") for u in seen)
+
+
+def test_the_run_log_has_everything(catalog, synth):
+    rows = []
+    res = Resources(model=scripted(("propose_changes", INSERT), "Added a chorus."), catalog=catalog, stream=False)
+
+    async def go():
+        return [e async for e in run_chat(res, request("add a chorus before the output", synth), record=lambda k, d: rows.append((k, d)))]
+
+    asyncio.run(go())
+    kinds_ = [k for k, _ in rows]
+    assert kinds_[0] == "run_start" and kinds_.count("model_call") == 2 and "tool_call" in kinds_ and "answer" in kinds_
+    start = rows[0][1]
+    assert start["skill"] == "patch" and start["prompt"].startswith("add a chorus") and start["snapshot"]["patch"]["nodes"]
+    calls = [d for k, d in rows if k == "model_call"]
+    assert calls[0]["request"] and calls[0]["response"]["parts"][0]["tool_name"] == "propose_changes" and "usage" in calls[0]
+    assert "instructions" in calls[0]["request"][0] and "propose_changes" in calls[0]["tools"]
+    tool = next(d for k, d in rows if k == "tool_call")
+    assert tool["tool"] == "propose_changes" and tool["args"]["summary"] and tool["result"]["ok"] and not tool["retry"]
+    names = [d["name"] for k, d in rows if k == "event"]
+    assert "changeset" in names and names[-1] == "done"
+    assert next(d for k, d in rows if k == "answer")["text"] == "Added a chorus."
+
+
+def test_the_run_log_records_retries_and_streaming(catalog, synth):
+    rows = []
+    bad = {"ops": [{"op": "connect", "from_node": "vca", "from_jack": "zzz", "to_node": "out", "to_jack": "l"}], "summary": "x"}
+    res = Resources(model=scripted(("propose_changes", bad), ("propose_changes", INSERT), "ok"), catalog=catalog, stream=False)
+
+    async def go():
+        return [e async for e in run_chat(res, request("add a chorus before the output", synth), record=lambda k, d: rows.append((k, d)))]
+
+    asyncio.run(go())
+    tools = [d for k, d in rows if k == "tool_call"]
+    assert [t["retry"] for t in tools] == [True, False] and "no output 'zzz'" in tools[0]["error"]

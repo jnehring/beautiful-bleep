@@ -99,18 +99,32 @@ def _history(msgs: list) -> list[ModelMessage]:
     return out
 
 
-async def run_chat(res: Resources, req: ChatRequest, agent_hook: Callable[[Agent], None] | None = None) -> AsyncIterator[Event]:
-    """Yield (event, data) pairs until `done`. Never raises: failures become `error` + `done`."""
+async def run_chat(res: Resources, req: ChatRequest, agent_hook: Callable[[Agent], None] | None = None,
+                   record: Callable[[str, dict[str, Any]], None] | None = None) -> AsyncIterator[Event]:
+    """Yield (event, data) pairs until `done`. Never raises: failures become `error` + `done`.
+
+    `record(kind, data)` receives the whole run for a log: run_start, every model_call (messages sent, response, usage), every tool_call
+    (arguments, result or retry error), every event except text deltas, the assembled answer text, and run_end."""
+    rec = record or (lambda kind, data: None)
     queue: asyncio.Queue[Event | None] = asyncio.Queue()
 
+    text_parts: list[str] = []
+
     def emit(kind: str, data: dict[str, Any]) -> None:
+        if kind == "text":
+            text_parts.append(data.get("delta", ""))
+        else:
+            if kind == "done" and text_parts:
+                rec("answer", {"text": "".join(text_parts)})
+                text_parts.clear()
+            rec("event", {"name": kind, "data": data})
         queue.put_nowait((kind, data))
 
     calls: list[str] = []
 
     async def worker() -> None:
         try:
-            await _run(res, req, emit, agent_hook, calls)
+            await _run(res, req, emit, agent_hook, calls, rec)
         except BudgetExceeded:
             emit("error", {"code": "budget", "message": "The daily AI budget is used up. It resets at midnight UTC."})
             emit("done", {"reason": "budget"})
@@ -147,8 +161,10 @@ async def run_chat(res: Resources, req: ChatRequest, agent_hook: Callable[[Agent
 
 
 async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, Any]], None],
-               agent_hook: Callable[[Agent], None] | None, calls: list[str] | None = None) -> None:
+               agent_hook: Callable[[Agent], None] | None, calls: list[str] | None = None,
+               rec: Callable[[str, dict[str, Any]], None] | None = None) -> None:
     calls = calls if calls is not None else []
+    rec = rec or (lambda kind, data: None)
     snap = req.snapshot
     resume = None
     history: list[ModelMessage] = []
@@ -186,9 +202,14 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
             res.trace(tool, retried)
 
     deps.trace = trace
+    deps.record = rec
+    rec("run_start", {"skill": skill_name, "mode": req.mode, "resume": bool(resume), "prompt": prompt, "history": [m.model_dump() for m in req.messages[:-1]] if not resume else [],
+                      "snapshot": {"patch": snap.patch, "selection": snap.selection, "environment": snap.environment},
+                      "model": getattr(res.model, "model_name", str(res.model)), "max_steps": res.max_steps, "client": req.client,
+                      "live_results": [r.model_dump() for r in req.resume.results] if req.resume else []})
     log.info("run: skill=%s mode=%s resume=%s modules=%d prompt=%r", skill_name, req.mode, bool(resume), len(patch.nodes),
              (prompt or "")[:120])
-    model = MeteredModel(res.model, on_usage=res.on_usage, check=res.check_budget) if (res.on_usage or res.check_budget) else res.model
+    model = MeteredModel(res.model, on_usage=res.on_usage, check=res.check_budget, on_call=lambda d: rec("model_call", d))
     agent: Agent[Deps, Any] = Agent(
         model, deps_type=Deps, output_type=[str, DeferredToolRequests],
         instructions=lambda ctx: build_instructions(skill, ctx.deps, res, ctx.usage.requests),

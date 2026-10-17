@@ -20,7 +20,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
-from .. import agent_quota
+from .. import agent_log, agent_quota
 from ..config import settings
 from ..db import SessionLocal, get_db
 from ..deps import COOKIE, _session_user, get_current_user
@@ -131,8 +131,10 @@ async def chat(body: dict[str, Any], user: User = Depends(get_current_user), db:
 
     from bleep_agent.runner import run_chat
 
+    recorder = agent_log.RunRecorder(user.id) if agent_log.enabled() else None
+
     async def stream() -> AsyncIterator[str]:
-        it = run_chat(res, req).__aiter__()
+        it = run_chat(res, req, record=recorder).__aiter__()
         pending = asyncio.ensure_future(it.__anext__())
         try:
             while True:
@@ -150,7 +152,13 @@ async def chat(body: dict[str, Any], user: User = Depends(get_current_user), db:
                         data = {**data, "day_total": agent_quota.used_today(s), "day_limit": settings.agent_daily_tokens}
                 yield _sse(kind, data)
                 pending = asyncio.ensure_future(it.__anext__())
+        except Exception:  # noqa: BLE001  (an aborted stream looks like a lost connection to the browser: say what happened instead)
+            log.exception("assistant stream failed")
+            yield _sse("error", {"code": "internal", "message": "The assistant failed unexpectedly. See the server log."})
+            yield _sse("done", {"reason": "error"})
         finally:
+            if recorder is not None:
+                recorder.write()  # also when the browser left in the middle of the run
             if not pending.done():
                 pending.cancel()
             await it.aclose()

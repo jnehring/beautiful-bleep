@@ -183,6 +183,9 @@ class Patch:
                 bits.append(f"{p.id}={p.text(v)}")
         if n.get("data"):
             bits.append("data=" + _data_hint(n["data"]))
+        if n.get("inputs") or n.get("outputs"):  # a cell: the jacks you connect to from outside
+            bits.append("cell jacks in: " + (", ".join(f"{j['id']}({j.get('type', 'control')})" for j in n.get("inputs", [])) or "none")
+                        + "; out: " + (", ".join(f"{j['id']}({j.get('type', 'audio')})" for j in n.get("outputs", [])) or "none"))
         return head + (": " + ", ".join(bits) if bits else "")
 
     def cable_text(self, c: dict[str, Any], cat: Catalog) -> str:
@@ -223,6 +226,11 @@ def _data_hint(data: Any) -> str:
 def jack_type(cat: Catalog, node: dict[str, Any], jack: str, side: str) -> tuple[str | None, str]:
     """Signal type of node.jack. For `side`='to' a param id counts as a control input (modulation).
     Returns (type or None, kind) with kind in {'jack','param',''}."""
+    own = node.get("outputs" if side == "from" else "inputs")
+    if own:  # cells (and voice cells) carry their own jacks in the board document
+        for j in own:
+            if j.get("id") == jack:
+                return j.get("type", "control"), "jack"
     t: ModuleType | None = cat.get(node["type"])
     if t is None:
         return None, ""

@@ -198,12 +198,13 @@ def _make_cable(ctx: _Ctx, fn: str, fj: str, tn: str, tj: str, amount: float | N
     a, b = ctx.p.require_node(fn), ctx.p.require_node(tn)
     ft, _ = jack_type(ctx.cat, a, fj, "from")
     if ft is None:
-        t = ctx.type_of(a)
-        raise PatchError(f"{a['id']} ({a['type']}) has no output '{fj}'. Outputs: {[j.id for j in t.outputs]}")
+        outs = [j["id"] for j in a["outputs"]] if a.get("outputs") else [j.id for j in ctx.type_of(a).outputs]
+        raise PatchError(f"{a['id']} ({a['type']}) has no output '{fj}'. Outputs: {outs}")
     tt, kind = jack_type(ctx.cat, b, tj, "to")
     if tt is None:
         t = ctx.type_of(b)
-        raise PatchError(f"{b['id']} ({b['type']}) has no input or knob '{tj}'. Inputs: {[j.id for j in t.inputs]}; "
+        ins = [j["id"] for j in b["inputs"]] if b.get("inputs") else [j.id for j in t.inputs]
+        raise PatchError(f"{b['id']} ({b['type']}) has no input or knob '{tj}'. Inputs: {ins}; "
                          f"knobs that accept cables: {[p.id for p in t.params if p.modulatable or p.cableable]}")
     if a.get("parent", "") != b.get("parent", ""):
         raise PatchError("cables cannot cross a cell border; connect through the cell's own jacks")

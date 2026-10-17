@@ -306,3 +306,17 @@ class AgentChat(Base):
     input_tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     output_tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+
+
+class AgentLog(Base):
+    """The assistant's run log, newest `BLEEP_AGENT_LOG_MESSAGES` rows kept. One run = rows sharing `run_id`, in `id` order:
+    run_start, model_call (messages sent, response, usage), tool_call (args, result or retry error), event (changeset, live, pause,
+    usage, error, done), answer, and a final `summary`."""
+    __tablename__ = "agent_log"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(32), index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    kind: Mapped[str] = mapped_column(String(24), index=True)
+    data: Mapped[dict] = mapped_column(JSON, nullable=False)

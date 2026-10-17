@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     # Chat requests per user per minute (in memory, per process). 0 = no limit.
     agent_user_per_minute: int = 6
     agent_max_steps: int = 20
+    # The assistant's run log (table agent_log): every model call, tool call, result and event of each run, newest kept. The size is in rows
+    # ("messages": one row per model call, tool call, event...); about 25 rows per run. 0 = no log. Contains users' prompts and patches.
+    agent_log_messages: int = 5000
     # What the model costs in USD per million tokens (BLEEP_AGENT_PRICE_INPUT / _OUTPUT); the admin dashboard multiplies by it. 0 = not tracked.
     agent_price_input: float = 0.0
     agent_price_output: float = 0.0
