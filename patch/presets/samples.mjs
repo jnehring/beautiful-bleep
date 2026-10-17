@@ -167,15 +167,15 @@ function reverseCymbalSwell() {
   const p = keys("Reverse Cymbal Swell", {
     description: "A crash cymbal played backwards: each key starts a rising swell that ends in a sudden stop, with a trailing reverb. Shared inputs Pitch and Brightness.",
     tags: ["cymbal", "reverse", "riser", "fx", "sampled"],
-    help: "A Sampler plays the crash cymbal with the slice reversed, so it runs from the tail to the hit and stops. The filter and " +
+    help: "A Sampler plays the crash cymbal at Speed -1, so it runs from the tail to the hit and stops. The filter and " +
       "a Verb soften the end. Keys transpose the swell as well as change its length: higher notes make it shorter.\n\n" +
       "Play it from Notes in a moment before a downbeat. Pitch bends the whole swell up or down by an octave (the " +
       "faster the pitch, the shorter the rise); Brightness opens the filter.\n\n" +
       "Layer it under a normal crash or a drum hit for the classic build-up.",
   }).input("pitch", "Pitch").input("bright", "Brightness");
   const s = p.sample("crash-cymbal");
-  const smp = p.add("sampler", [1, 0], { mode: "To end of slice", slicemode: "On", root: 60, voices: 4, release: 0.1, level: 1, cutoff: 9000 },
-    { data: samplerData(s, { slices: { 0: { mode: -1, transpose: 0, level: 1, pan: 0, reverse: true, choke: 0, name: "Backwards" } } }), name: "Backwards Crash" });
+  const smp = p.add("sampler", [1, 0], { mode: "To end of sample", speed: -1, root: 60, voices: 4, release: 0.1, level: 1, cutoff: 9000 },
+    { data: samplerData(s), name: "Backwards Crash" });
   const verb = p.add("reverb", [2, 0], { size: 0.7, decay: 3, mix: 0.25, damping: 0.45 });
   touch(p, [0, 1], smp);
   p.cable(p.cin, "notes", smp, "notes").cable(p.cin, "pitch", smp, "transpose", 0.25).cable(p.cin, "bright", smp, "cutoff", 0.3)

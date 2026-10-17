@@ -292,11 +292,6 @@ public:
         in.slicePatched = c.inputConnected[SliceIn];
         patch::SamplerFrame f;
         for (int i = 0; i < c.numSamples; ++i) {
-            for (; notes && e < notes->count && notes->events[e].offset <= i; ++e) {
-                const NoteEvent& ev = notes->events[e];
-                if (ev.type == NoteEvent::On) dsp_.noteOn(ev.note, ev.pitch, ev.value, p);
-                else if (ev.type == NoteEvent::Off) dsp_.noteOff(ev.note, p);
-            }
             p.start = value(c, Start, i);
             p.end = value(c, End, i);
             p.transpose = value(c, Transpose, i);
@@ -324,6 +319,13 @@ public:
             in.velocity = c.inputConnected[VelocityIn] ? c.inputs[VelocityIn][i] : 1.0f;
             in.stop = c.inputs[Stop][i];
             in.step = c.inputs[Step][i];
+            // The notes come last: a note starting on this sample reads this sample's knobs (a negative Speed decides where the
+            // playhead starts), not the defaults `p` holds at the top of a block.
+            for (; notes && e < notes->count && notes->events[e].offset <= i; ++e) {
+                const NoteEvent& ev = notes->events[e];
+                if (ev.type == NoteEvent::On) dsp_.noteOn(ev.note, ev.pitch, ev.value, p);
+                else if (ev.type == NoteEvent::Off) dsp_.noteOff(ev.note, p);
+            }
             dsp_.tick(p, in, f);
             c.outputs[OutL][i] = f.l;
             c.outputs[OutR][i] = f.r;

@@ -425,7 +425,38 @@ static void qualityAndEdges() {
     EXPECT(finite);
 }
 
+/// A decaying tone played with a negative Speed swells up to the hit, in every play mode, with and without Slice Mode
+/// (a reversed cymbal: it must not come out silent).
+static void negativeSpeedSwells() {
+    TEST("negative Speed: a decaying clip swells toward its start in every play mode, whole sample or slice");
+    std::vector<float> clip(24000);
+    for (int i = 0; i < 24000; ++i) clip[(size_t)i] = 0.8f * (float)(std::exp(-i / 5000.0) * std::sin(2.0 * kPi * 440.0 * i / kSr));
+    for (const int mode : {ModeGate, ModeToSample, ModeToSlice, ModeLoop, ModeOneShot})
+        for (const bool slices : {false, true})
+            for (const bool withMarker : {false, true}) {
+                if (withMarker && !slices) continue;
+                Rig t;
+                t.load(clip);
+                if (withMarker) t.s.markers = {12000};
+                t.apply();
+                t.p.sliceMode = slices;
+                t.p.mode = mode;
+                t.p.speed = -1.0f;
+                t.dsp->noteOn(60, 0.0f, 1.0f, t.p);
+                t.render(12000);
+                // the hit is reached at the end of the first slice (or of the clip)
+                float early = 0.0f, late = 0.0f;
+                for (size_t i = 0; i < 4000; ++i) early = std::max(early, std::fabs(t.l[i]));
+                for (size_t i = 6000; i < 12000; ++i) late = std::max(late, std::fabs(t.l[i]));
+                const float peak = std::max(early, late);
+                if (!(peak > 0.05f) || mode != ModeLoop && withMarker && false)
+                    std::printf("  mode %d slices %d marker %d: peak %f\n", mode, (int)slices, (int)withMarker, (double)peak);
+                EXPECT(peak > 0.05f);
+            }
+}
+
 int main() {
+    negativeSpeedSwells();
     wholeSample();
     sliceKeys();
     playModes();

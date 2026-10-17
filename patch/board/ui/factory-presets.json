@@ -2401,13 +2401,13 @@
         "category": "Samples",
         "description": "A crash cymbal played backwards: each key starts a rising swell that ends in a sudden stop, with a trailing reverb. Shared inputs Pitch and Brightness.",
         "tags": ["cymbal","reverse","riser","fx","sampled","instrument"],
-        "help": {"text":"A Sampler plays the crash cymbal with the slice reversed, so it runs from the tail to the hit and stops. The filter and a Verb soften the end. Keys transpose the swell as well as change its length: higher notes make it shorter.\n\nPlay it from Notes in a moment before a downbeat. Pitch bends the whole swell up or down by an octave (the faster the pitch, the shorter the rise); Brightness opens the filter.\n\nLayer it under a normal crash or a drum hit for the classic build-up."},
+        "help": {"text":"A Sampler plays the crash cymbal at Speed -1, so it runs from the tail to the hit and stops. The filter and a Verb soften the end. Keys transpose the swell as well as change its length: higher notes make it shorter.\n\nPlay it from Notes in a moment before a downbeat. Pitch bends the whole swell up or down by an octave (the faster the pitch, the shorter the rise); Brightness opens the filter.\n\nLayer it under a normal crash or a drum hit for the classic build-up."},
         "plays": {"instrument":{"notes":{"notes":"notes"}}},
         "nodes": [
           {"id":"root","type":"cell","name":"Reverse Cymbal Swell","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"notes","name":"Notes","type":"notes"},{"id":"pitch","name":"Pitch","type":"control"},{"id":"bright","name":"Brightness","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
-          {"id":"sample","type":"sampler","name":"Backwards Crash","x":640,"y":40,"parent":"root","params":{"mode":0.5,"slicemode":1,"root":0.472441,"voices":0.2,"release":0.401946,"level":0.5,"cutoff":0.884404},"data":{"clip":"07062fcb73038d30.wav","length":120000,"markers":[],"current":0,"slices":{"0":{"mode":-1,"transpose":0,"level":1,"pan":0,"reverse":true,"choke":0,"name":"Backwards"}},"slicing":{"kind":"manual","threshold":0.5,"minGap":30,"beats":16,"bpm":120,"bars":4}}},
+          {"id":"sample","type":"sampler","name":"Backwards Crash","x":640,"y":40,"parent":"root","params":{"mode":0.25,"speed":0.235393,"root":0.472441,"voices":0.2,"release":0.401946,"level":0.5,"cutoff":0.884404},"data":{"clip":"07062fcb73038d30.wav","length":120000,"markers":[],"current":0,"slices":{},"slicing":{"kind":"manual","threshold":0.5,"minGap":30,"beats":16,"bpm":120,"bars":4}}},
           {"id":"reverb","type":"reverb","name":"Verb","x":940,"y":40,"parent":"root","params":{"size":0.7,"decay":0.489157,"mix":0.25,"damping":0.45}},
           {"id":"notest","type":"notes-to-cv","name":"Keys","x":340,"y":260,"parent":"root","params":{}}
         ],
