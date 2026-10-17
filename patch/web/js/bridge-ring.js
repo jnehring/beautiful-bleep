@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // bridge-ring.js — the jitter buffer of the web link (doc/specs/bridges.md §10.4), as plain classes that work
 // on a Float32Array ring. The ring lives in one ArrayBuffer or SharedArrayBuffer, with its write and read

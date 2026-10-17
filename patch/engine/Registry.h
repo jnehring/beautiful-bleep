@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Registry.h — every node type the board knows: modules, ports and the cell
 // structure nodes. Modules register themselves in Registry.cpp.

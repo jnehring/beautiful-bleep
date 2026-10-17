@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Smoke test for the board window: a real engine with three ports opens the
 // real board page in a WebView; the page commits an edit through the bridge

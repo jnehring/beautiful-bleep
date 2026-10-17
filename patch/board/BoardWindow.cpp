@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // The board window (spec §9): one top-level window per process, owned by
 // the engine, showing board/ui/index.html in a WebView.

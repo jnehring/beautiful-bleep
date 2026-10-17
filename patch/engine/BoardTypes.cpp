@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // BoardTypes.cpp — describeTypes: the node types, as the board page needs them.
 #include "BoardInternal.h"
 

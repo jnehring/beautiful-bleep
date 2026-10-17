@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // AppController — the standalone Bleep App (spec §11): owns the engine,
 // the audio device, the app's own MIDI ports, Ableton Link, the Bleep Audio

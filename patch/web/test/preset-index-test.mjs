@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // preset-index.js: entries, views, origins, search.
 //
 //   node patch/web/test/preset-index-test.mjs

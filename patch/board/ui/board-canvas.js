@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // board-canvas.js — moving nodes, and the canvas: pointer tracking, panning, zooming, selecting with a band and navigating by key.
 //
 // P.BoardCanvas.create(s)   s: the board and page helpers it needs (see the destructuring below); `board`, `pointer`, `pointerInside`, `selCable`, `spaceDown` are getters

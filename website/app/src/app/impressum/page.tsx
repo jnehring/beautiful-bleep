@@ -21,7 +21,7 @@ export default function ImpressumPage() {
       <h2>Responsible for content (§ 18 Abs. 2 MStV)</h2>
       <p>[Full name, same address as above]</p>
       <h2>Open source</h2>
-      <p>The source code is on <a href="https://github.com/jnehring/beautiful-bleep" rel="noopener">GitHub</a> under the MIT licence.</p>
+      <p>The source code is on <a href="https://github.com/jnehring/beautiful-bleep" rel="noopener">GitHub</a> under the GPL-3.0-or-later licence, with a module exception. Bleep Bus is MIT.</p>
     </>
   );
 }

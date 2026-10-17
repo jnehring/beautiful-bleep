@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // board.js — the board (spec §9): canvas, Add menu, patching, cells,
 // floating module views, undo and keyboard shortcuts.
 //

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Wasm parity: the gate for moving the apps to library modules (developers/modules/library.md section 13, M1).
 //

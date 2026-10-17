@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // bleep-bridge.js — the page's client for JUCE's WebBrowserComponent native integration, and the lock on it.
 //
 // Module views (modules/<name>/ui/*.js) are third-party code that runs in this page, in the same JavaScript

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Demo patches (board/ui/demo-patches.json, built from patch/presets/demos): the
 // standalone app's preset browser loads these as whole boards. Each one must

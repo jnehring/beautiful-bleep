@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // BoardFiles.h — the files side of the board window: the page's resources, installing the plugins, and the preset and project files.
 // Used by BoardWindow.cpp.

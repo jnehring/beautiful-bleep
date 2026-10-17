@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Multi-stage wavefolder (doc/specs/modules/wavefolder.md 4.1–4.4), also used by
 // the Dual Osc (a fixed 4-stage fold), the Macro Osc's Fold model and the Meta
 // Mod's Fold algorithm (one soft stage).

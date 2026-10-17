@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Spike: can a plugin run Bleep modules from their standalone .wasm (patch/web), and how fast?
 //

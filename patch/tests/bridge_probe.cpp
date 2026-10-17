@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // A stand-in for Live's plugins, for trying the app and a browser by hand (not a ctest): connects to the running
 // Bleep App as one or more port plugins, paced at real time like a host (one process is one host, so the

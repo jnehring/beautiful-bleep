@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // PartialBank: sine accuracy, pitch, band limit, shapes, stretch, chorus.
 #include "dsp/Partials.h"
 #include "dsp/tests/TestUtil.h"

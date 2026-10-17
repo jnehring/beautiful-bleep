@@ -7,8 +7,10 @@
    bus/wrappers (no bus/src, no layout header).
 3. Nothing depends on website/.
 4. Every source file carries an SPDX license identifier; every top-level
-   part has a LICENSE file. A module's files carry the licence its module.json
-   declares (MIT when it declares none).
+   part has a LICENSE file. patch/ (the engine, board, apps and hub) is
+   GPL-3.0-or-later with the Bleep Module Exception; a module's files carry
+   the licence its module.json declares (MIT when it declares none); bus/,
+   scripts/, website/ and patch/presets/ are MIT.
 5. Module provenance (website/content/developers/modules/writing-a-module.md, "Ported code and licences"): a
    module that is ported from other code names it in `origin`, keeps the
    original licence (copyleft stays copyleft), ships the licence text and
@@ -32,6 +34,7 @@ COPYLEFT = {"GPL-2.0-only", "GPL-2.0-or-later", "GPL-3.0-only", "GPL-3.0-or-late
             "LGPL-3.0-only", "LGPL-3.0-or-later", "AGPL-3.0-only", "AGPL-3.0-or-later", "MPL-2.0"}
 LICENSES = PERMISSIVE | COPYLEFT
 MODULES = ROOT / "patch" / "modules"
+CORE_LICENSE = "GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception"  # LICENSE-EXCEPTION.md
 
 
 def module_info(folder: Path) -> dict:
@@ -42,10 +45,12 @@ def module_info(folder: Path) -> dict:
 
 
 def expected_license(p: Path) -> str:
-    """The SPDX id a source file must carry: its module's, else MIT."""
+    """The SPDX id a source file must carry: its module's, the core's for the rest of patch/, else MIT."""
     rel = p.relative_to(ROOT).parts
     if len(rel) > 3 and rel[:2] == ("patch", "modules"):
         return module_info(MODULES / rel[2]).get("license", "MIT")
+    if rel[0] == "patch" and rel[1:2] != ("presets",) and rel[1:2] != ("modules",):
+        return CORE_LICENSE
     return "MIT"
 
 

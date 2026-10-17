@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // The jitter buffer of the web link (bridge-ring.js): clock drift, steps, underrun and overrun, resampling.
 // Pure node, no dependencies:  node patch/web/test/bridge-ring-test.mjs
 import assert from "node:assert/strict";

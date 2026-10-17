@@ -25,7 +25,7 @@ export default function SiteFooter() {
         {col("Project", [["About", "/about/"], ["Contact", "/contact/"], ["GitHub", GITHUB], ["Report an issue", `${GITHUB}/issues`]])}
         {col("Legal", [["Impressum", "/impressum/"], ["Privacy", "/privacy/"], ["Terms", "/terms/"]])}
       </div>
-      <p>Beautiful Bleep is free and open source (MIT).</p>
+      <p>Beautiful Bleep is free and open source (GPL, with a module exception).</p>
     </footer>
   );
 }

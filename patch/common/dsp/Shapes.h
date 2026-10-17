@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Shape library (doc/specs/modules/shape-envelope.md 4.1): 96 factory envelope and
 // LFO shapes in 12 families of 8, generated from formulas in a fixed order
 // (the index is a stable id saved in boards: never reorder, only append), each

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Single-cycle wavetables with band-limited mipmaps, for the Wavetable Osc
 // (doc/specs/modules/wavetable-oscillator.md) and the Macro Osc's Table model.
 //

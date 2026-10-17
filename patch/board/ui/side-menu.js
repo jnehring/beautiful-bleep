@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // side-menu.js — the board's side menu, collapsed by default (plugin, standalone app and browser).
 //
 //   Connect to App   the browser only: the button that joins this page to the Bleep App (web/js/bridge-ui.js)

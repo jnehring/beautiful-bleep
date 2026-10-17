@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // web-settings.js: the state and the changes behind Bleep Play's Settings section, with a fake browser around it.
 //

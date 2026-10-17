@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 #
 # The web hub (doc/specs/bridges.md §10): WebSocket/HTTP server, web peers, audio links.
 # Included at the end of patch/CMakeLists.txt. Variables used from there:

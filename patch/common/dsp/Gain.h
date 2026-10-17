@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Decibel helpers for faders (doc/specs/modules/audio-mixer.md §4.1).
 #pragma once
 

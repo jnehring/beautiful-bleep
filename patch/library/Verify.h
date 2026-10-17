@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Verify.h — what the apps and plugins check before they run or install a module or a plugin
 // (developers/modules/signing.md). The same rules as scripts/release/signing.py and patch/web/js/library-client.js; the packages in

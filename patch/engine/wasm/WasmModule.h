@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // WasmModule.h — a node type whose DSP is a module .wasm (developers/modules/module-abi.md). It is a Module like the compiled-in
 // ones: the engine cannot tell the difference. One WasmPackage per file (compiled once), one WasmModule per node.

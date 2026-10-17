@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Board.cpp — the board model, parsing a document into it, and finding and adding nodes.
 #include "BoardInternal.h"
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Prints {slug: [type ids]} for every module .wasm in <out>/modules (used by build_modules.py).
 import { readdirSync, readFileSync } from "node:fs";
 import { compileModule, readSpecs } from "../js/module-host.js";

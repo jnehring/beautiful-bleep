@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Node-level tests for the utility modules (doc/specs/modules/attenuverter.md,
 // cv-mixer.md, audio-mixer.md, multiplier.md, crossfader.md, logic.md,

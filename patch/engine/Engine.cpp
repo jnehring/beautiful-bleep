@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Engine.cpp — lifetime, instances, and finding the engine of the process.
 
 #if JUCE_WINDOWS

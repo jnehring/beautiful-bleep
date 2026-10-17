@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // bridge-client.js — the main-thread API of the web link (doc/specs/bridges.md §3.2, §4, §5, §10).
 //

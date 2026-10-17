@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Slope.h: rate accuracy from 0.001 Hz to 8 kHz, 1 V/oct, skew at constant
 // period, curves, AD/AR envelopes, smoothing/folding and the clock lock.
 #include "dsp/Slope.h"

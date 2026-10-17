@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // WebSocketServer test (spec §10.2): the handshake and framing rules against a minimal raw-socket
 // client with masked frames, written here so the server is checked against the RFC rather than

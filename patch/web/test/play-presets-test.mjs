@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Every factory instrument and effect that Bleep Play can play, run through the browser engine with the real modules: wired as playCell wires
 // it (play-wrap.js), played, and checked for sound (needs the built site: scripts/build/build-web.sh, default build/web/site).
 //

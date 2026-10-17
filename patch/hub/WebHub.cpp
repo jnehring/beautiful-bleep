@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // WebHub.cpp — the hub's lifetime, HTTP and pairing, sync and status.
 #include "WebHubInternal.h"
 

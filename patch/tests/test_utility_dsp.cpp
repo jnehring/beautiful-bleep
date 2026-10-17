@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Unit tests for the utility module cores: Attenuverter, CV Mixer, Audio
 // Mixer, Multiplier, Crossfader, Logic, Quantizer, Switch, Notes to CV and
 // Level Meter.

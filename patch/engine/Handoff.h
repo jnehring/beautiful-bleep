@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Handoff.h — hands an object built on the message thread (a decoded clip, a
 // wavetable set, a parsed pattern) to the audio thread without locks on the

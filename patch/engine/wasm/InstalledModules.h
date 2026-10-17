@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // InstalledModules.h — the modules installed on this machine, made known to the engine (developers/modules/library.md, M3).
 #pragma once

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // System Audio where no backend exists (a platform other than macOS, Windows and Linux with libpulse).
 #include "SystemAudio.h"

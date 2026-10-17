@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Tiny test helpers for the DSP tests next to the code (common/dsp/tests,
 // modules/<name>/tests). Each test file is its own executable and ctest:
 //

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // mixing_tests.cpp — the signal path: Attenuverter, CV Mixer, Crossfader, Multiplier, Audio Mixer and Level Meter.
 
 #include "utility_test.h"

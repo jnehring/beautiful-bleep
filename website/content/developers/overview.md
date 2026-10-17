@@ -6,7 +6,7 @@ order: -10
 
 # Build with Beautiful Bleep
 
-Everything here is MIT-licensed. Pick the guide that matches what you want to build.
+Bleep is GPL-3.0-or-later with a module exception, so your modules can be closed source or paid; Bleep Bus is MIT. See [Licensing](modules/licensing.md). Pick the guide that matches what you want to build.
 
 | I want to… | Start here |
 |---|---|

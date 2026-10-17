@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // library-client.js — the Bleep Library, from the browser (developers/modules/library.md, developers/modules/signing.md).
 //

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // EngineAudio.cpp — the board window and the audio path (process, processAll, the tick).
 #include "EngineInternal.h"
 

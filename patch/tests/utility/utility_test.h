@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // utility/utility_test.h — what the utility DSP test files share: the includes, EXPECT macros and the failure count.
 #pragma once
 

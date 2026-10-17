@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Web hub test (doc/specs/bridges.md §10): a real WebHub and engine, a raw WebSocket client standing in for the
 // browser, and BridgeClients standing in for Live's plugins. Covers the three jobs of the hub: Bleep Play pages' own

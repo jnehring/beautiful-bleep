@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // SeqClock.h and the note values in Tempo.h: transport steps for straight,
 // dotted and triplet rates (also after a loop jump), Reset, stop, swing,
 // Clock mode timing, gate lengths and ClockRatio.

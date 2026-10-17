@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // AppControllerAudio.cpp — System Audio, the audio callback, MIDI and the timer.
 #include "AppControllerInternal.h"
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // bleep-credits.js: cleaning, merging without repeats, collecting from nodes, stamping a cell.
 //
 //   node patch/web/test/credits-test.mjs

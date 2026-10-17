@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Vactrol cell and low-pass gate: asymmetry, slowing fall, memory, ping
 // timing, response scale, LPG gain/cutoff laws.
 #include "dsp/Vactrol.h"

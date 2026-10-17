@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // control_tests.cpp — control modules: Logic, Quantizer, Switch and Notes to CV.
 
 #include "utility_test.h"

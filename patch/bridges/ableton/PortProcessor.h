@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // PortProcessor — every plugin users add in Live (spec §6): Bleep Board and
 // the ports of the Ableton bridge. One class, configured by PortKind; each

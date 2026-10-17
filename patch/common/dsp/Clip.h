@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Output limiting shared by the utility modules (doc/specs/modules/attenuverter.md
 // §4.3): off, a soft knee into ±1, or a hard clamp.
 #pragma once

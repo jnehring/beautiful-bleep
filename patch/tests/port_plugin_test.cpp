@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // The Board menu of the port plugins (doc/specs/bridges.md §1): loads the built Bleep Audio In, Audio Out, MIDI In
 // and MIDI Out VST3s into this process as a host would, sets Board = App, and runs the app's side (BridgeServer +

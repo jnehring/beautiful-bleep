@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Onsets.h: slice and tempo detection on synthetic loops.
 #include "dsp/Onsets.h"
 

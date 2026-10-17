@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // AppControllerSettings.cpp — the Settings section of the board window and the web link.
 #include "AppControllerInternal.h"
 

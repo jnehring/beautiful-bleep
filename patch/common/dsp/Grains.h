@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Granular engine over a caller-owned buffer (doc/specs/modules/grains.md §4,
 // splice.md §4.4, the Macro Osc's Grain model): morphable grain windows, up
 // to 64 grain voices with per-grain pitch (negative = reversed), position,

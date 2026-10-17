@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // voice_tests.cpp — Voice Cells, the Step Sequencer, the Drum Grid and the drum nodes.
 
 #include "engine_test.h"

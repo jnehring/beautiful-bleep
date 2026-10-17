@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // test_dsp.cpp — runs the DSP tests of dsp/*.cpp.
 
 #include "dsp/dsp_test.h"

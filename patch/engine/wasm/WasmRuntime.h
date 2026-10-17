@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // WasmRuntime.h — Wasmtime behind a small interface (developers/modules/module-abi.md, section 8): compile a module file once,
 // make an instance of it per node, call its exports. The imports the ABI allows are provided as stubs that give a module

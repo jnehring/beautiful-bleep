@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Delay-line toolkit shared by the delays, the reverb and the glitch modules
 // (doc/specs/modules/zone-delay.md, delay-network.md, reverb.md, bender.md): a
 // power-of-two ring buffer with fractional reads, and the readers built on

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Lo-fi corruption stages: bit-depth reduction, sample-rate decimation
 // (sample & hold, optionally anti-aliased), seeded dropouts, a short
 // averaging "smear" and a wavefolding "fold". Used by Bender's corrupt modes

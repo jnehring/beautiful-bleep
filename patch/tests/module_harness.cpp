@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Module harness: every module type, on a real compiled board. Each input jack
 // is fed by a test source of its signal type (noise, slow control, gates,

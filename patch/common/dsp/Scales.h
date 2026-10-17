@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Scales and quantizing (doc/specs/modules/step-sequencer.md §4.3), shared by
 // every module that snaps pitches to a scale.
 #pragma once

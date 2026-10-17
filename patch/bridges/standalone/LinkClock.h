@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // LinkClock — the standalone app's musical time (spec §11.4): Ableton Link
 // when it's built in (BLEEP_LINK), otherwise an internal clock with the

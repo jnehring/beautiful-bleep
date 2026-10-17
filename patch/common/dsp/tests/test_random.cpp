@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Random.h: counter-based uniforms (unchanged), normals, Φ and Φ⁻¹, the
 // spread/bias distribution and seekable smooth noise.
 #include "dsp/Random.h"

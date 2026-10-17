@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // SpecJson.h — a node type's ModuleSpec from the description a module file carries (bleep_spec_json, module-abi.md
 // section 7): the inverse of board::describeTypes(), so the engine cannot tell an installed module from a compiled-in one.

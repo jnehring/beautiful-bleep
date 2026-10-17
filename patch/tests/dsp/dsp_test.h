@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 #pragma once
 // dsp/dsp_test.h — what the DSP test files share: the includes, EXPECT macros and the failure count.
 // Unit tests for the Beautiful Bleep DSP cores. No JUCE, no bus: pure C++.

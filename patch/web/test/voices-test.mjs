@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Voice Cells in the browser engine (js/voices.js): the expansion into one cell per voice, the note allocator, and a whole Voice Cell playing
 // through the graph runner with the real modules (needs the built site: scripts/build/build-web.sh, default build/web/site).
 //

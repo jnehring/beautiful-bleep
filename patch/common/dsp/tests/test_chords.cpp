@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Chords.h: table, building (tones, inversion, voicing), diatonic stacks,
 // voice leading and detection.
 #include "dsp/Chords.h"

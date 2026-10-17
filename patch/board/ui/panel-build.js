@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // panel-build.js — "Build panel from cell" (doc/specs/panels.md §3, §6): a first
 // panel for a cell, made the way the factory panels are: the cell's inputs as
 // controls first, then a section of main knobs for each module, faders for

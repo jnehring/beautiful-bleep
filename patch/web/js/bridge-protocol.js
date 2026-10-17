@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // bridge-protocol.js — the wire format of the web link (doc/specs/bridges.md §10.2, §10.3) as pure functions:
 // the binary audio packet, the JSON messages and their validators, and the little bits of arithmetic both

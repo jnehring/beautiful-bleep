@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Exciters: friction curve, bowed and blown bodies, mallet and noise burst.
 #include "dsp/Exciter.h"
 #include "dsp/ModalBank.h"

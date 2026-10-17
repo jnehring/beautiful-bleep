@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // OscCore / SyncOsc / OscDrift, and the guard that OscillatorDsp's output did
 // not change when its core moved to OscCore.h.
 #include "dsp/OscCore.h"

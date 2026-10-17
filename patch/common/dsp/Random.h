@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Counter-based randomness: every value is a pure function of
 // (seed, index, stream), so renders are reproducible and seekable.
 #pragma once

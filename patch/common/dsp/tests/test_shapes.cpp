@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Shapes.h: the 96 factory shapes (range, kinds, endpoints, family traits,
 // pinned order), Morph, Skew, Reverse and user point lists.
 #include "dsp/Shapes.h"

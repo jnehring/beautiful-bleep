@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // BoardSanitise.cpp — sanitise: a document from outside becomes one the engine can trust.
 #include "BoardInternal.h"
 

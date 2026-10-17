@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // FormantOsc (pulse-formant bursts) and the vowel table.
 #include "dsp/Formant.h"
 #include "dsp/tests/TestUtil.h"

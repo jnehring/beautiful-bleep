@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // web-settings.js — what Bleep Play's Settings section (board/ui/settings.js) shows and changes in the browser: the output device and
 // latency mode, which MIDI inputs play, the link to the app, the library's channel and the unsigned-modules switch, and the data this

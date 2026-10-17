@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // BoardResources.h — the board page's files (board/ui, common/ui, the modules' ui and doc folders) as a
 // WebBrowserComponent resource provider. The board window and the plugin windows (a cell's panel) use it.

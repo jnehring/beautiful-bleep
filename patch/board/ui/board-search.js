@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // board-search.js — the search box (Tab on the canvas, or after dropping a cable on empty canvas): module types and cell presets.
 //
 //   P.BoardSearch.create(env)   env: { $, el, canvas, board, typeList, presets(), compatible, offered, toWorld, addAt } (`board`, `typeList`: getters)

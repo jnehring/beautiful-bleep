@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // help.js — the Help section of the board window: one tile per article of the documentation (help-articles.json, written by
 // scripts/docs/build-help-index.py from the site's content folder) and a search over the articles and the module manuals (help-search.json,
 // the same ranking as the website's search box). A click opens the page on the site in the browser. The site is the Library's

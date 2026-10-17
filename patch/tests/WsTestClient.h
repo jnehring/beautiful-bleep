@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // A minimal raw-socket WebSocket client with masked frames, for the hub tests: written separately from the
 // server so the server is checked against the RFC rather than against its own reader.

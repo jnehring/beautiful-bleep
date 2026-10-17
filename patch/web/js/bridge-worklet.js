@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // bridge-worklet.js — the audio-thread end of the web link (doc/specs/bridges.md §4.1, §10.4). It reads the
 // rings the bridge Worker writes (incoming audio), writes the rings it drains (outgoing audio), and keeps

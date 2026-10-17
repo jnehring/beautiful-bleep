@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // EngineCompile.cpp — compiling the board, reconciling ports, and the state the UI shows.
 #include "EngineInternal.h"
 

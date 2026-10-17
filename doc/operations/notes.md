@@ -62,7 +62,7 @@ scripts/release/release.py bleep-app --level patch --dry-run
 scripts/release/release.py bleep-app --level patch --notes "what changed" --token-file ~/.bleep-release-token
 ```
 
-- The app includes Ableton Link, which makes the binary GPL (`-DBLEEP_LINK=OFF` for an MIT build). Never ship a `BLEEP_UI_DEV=ON` build.
+- The app includes Ableton Link, which makes the binary GPL (`-DBLEEP_LINK=OFF` for a build without Link). Never ship a `BLEEP_UI_DEV=ON` build.
 - The zip is **not** signed with a Developer ID or notarized by any script. Gatekeeper blocks a downloaded unsigned app until you do that by hand.
 - One release holds this machine's build (`macos-arm64`, …). Add another platform to a published version from the other machine: `release.py bleep-app --add-platform latest`.
 

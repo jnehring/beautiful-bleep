@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Bleep Audio Bridge test (spec §11.3): a BridgeServer (the app) with a real
 // engine, and two BridgeClients (plugins in Live) running on their own

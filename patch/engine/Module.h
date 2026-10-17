@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Module.h — the processing side of a node. The engine runs modules in
 // chunks of at most kChunk samples; every input is already summed from its

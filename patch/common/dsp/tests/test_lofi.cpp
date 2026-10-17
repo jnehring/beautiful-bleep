@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 #include "dsp/Drums.h"
 #include "dsp/Lofi.h"
 #include "dsp/tests/TestUtil.h"

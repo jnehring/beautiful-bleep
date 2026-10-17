@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Prints every node type as JSON, the way the board UI receives it. The board
 // UI's browser demo (scripts/run/ui-server.py) uses a copy in board/ui/demo-types.json:

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // library-client.js against the Python reference (scripts/release/signing.py): packages are signed by the Python tools,
 // the browser code must reach the same verdicts. Needs python3 with the `cryptography` package.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // board-render.js — drawing the board: nodes, stacks of panel modules, jacks, cables, the selection and the cable popover.
 //
 // P.BoardRender.create(s)   s: the board and page helpers it needs (see the destructuring below); `board`, `types`, `trace`, `hoverCable`, `selCable` are getters

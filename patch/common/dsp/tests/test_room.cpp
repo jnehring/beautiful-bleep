@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Room: bounded, decaying, RT60 close to the size law, sleeps, survives
 // parameter modulation.
 #include "dsp/Noise.h"

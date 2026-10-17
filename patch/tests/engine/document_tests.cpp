@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // document_tests.cpp — board documents: spec mapping, sanitising, the compiler (cells, feedback), persistence, undo and panels.
 
 #include "engine_test.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // The band-limited analog-style oscillator core of the source modules
 // (Oscillator, Chord Osc, Dual Osc, Swarm Osc, Meta Mod, Wavefolder, Macro
 // Osc; chord-oscillator.md §7). A double-precision phase in [0, 1) runs at a

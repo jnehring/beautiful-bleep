@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // The web link inside the graph runner: nodes bound to a channel key (node.remote) carry what the hub sent and send
 // what is patched into them; port types only, so no wasm build is needed.   node patch/web/test/bridge-engine-test.mjs
 import { readFileSync } from "node:fs";

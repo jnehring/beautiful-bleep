@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // filter_tests.cpp — the filters: state-variable filter, mapping, aliasing and the filter algorithms.
 
 #include "dsp_test.h"

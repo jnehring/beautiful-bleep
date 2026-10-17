@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Graph runner test (node): oscillator → filter → audio-out, with a cable that modulates a knob.
 // usage: node graph-test.mjs <site dir>   (the output of build_modules.py)
 import { readFileSync } from "node:fs";

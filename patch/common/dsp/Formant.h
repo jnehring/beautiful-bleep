@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Formant synthesis shared by Formant Osc (doc/specs/modules/formant-oscillator.md),
 // the Macro Osc's Grain and Vowel models and the Wavetable Osc's Vowel bank:
 //

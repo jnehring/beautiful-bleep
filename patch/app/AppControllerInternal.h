@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // AppControllerInternal.h — what the files of the AppController implementation share: the includes, the command ids and a few small helpers.
 // AppController.cpp (lifetime, ports), AppControllerAudio.cpp (System Audio, the audio callback, the timer),
 // AppControllerProjects.cpp (projects and menus), AppControllerSettings.cpp (the Settings section and the web link).

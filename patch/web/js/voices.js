@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // voices.js — Voice Cells in the browser (spec §8.3): the JavaScript counterpart of engine/VoiceCell.cpp.
 //

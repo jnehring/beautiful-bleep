@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // BoardInternal.h — what the files of the board document implementation share: the includes and the small readers.
 // Board.cpp (the model, parse, find, add), BoardSanitise.cpp (sanitise), BoardPresets.cpp (cells as presets),
 // BoardTypes.cpp (describeTypes).

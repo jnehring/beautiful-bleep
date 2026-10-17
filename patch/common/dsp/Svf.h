@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Zero-delay-feedback state-variable filter (topology-preserving transform,
 // after Zavalishin, "The Art of VA Filter Design"). Stable and click-free
 // when cutoff and resonance change every sample, including at audio rate.

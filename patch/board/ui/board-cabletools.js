@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // board-cabletools.js — what you do to the cables already on the board: the activity meter, removing cables, the cable menu and Create patch bay.
 //
 // P.BoardCableTools.create(s)   s: the board and page helpers it needs (see the destructuring below); `board`, `types`, `live` are getters.

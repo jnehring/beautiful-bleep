@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Sequencer timing (doc/specs/modules/step-sequencer.md §4.2), extracted from the
 // Step Sequencer so every sequencer steps the same way:
 //

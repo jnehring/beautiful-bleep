@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Building blocks for the drum voices: decays, ringing resonators,
 // band-limited squares, a six-oscillator metal source and a hand clap.
 #pragma once

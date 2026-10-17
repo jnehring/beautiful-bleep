@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Loads the built Bleep Audio Bridge VST3 twice (two tracks in a host) and
 // runs the app's side (BridgeServer + engine) in this process. The plugin

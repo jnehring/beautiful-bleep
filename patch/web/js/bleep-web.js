@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // bleep-web.js — the browser engine, main-thread side. Takes the place of the
 // native plugin behind the board UI: board-demo.js keeps the document (undo,

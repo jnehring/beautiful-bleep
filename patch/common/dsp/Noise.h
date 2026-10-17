@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Noise sources: white, pink, brown, blue and violet, each at about the same
 // loudness (RMS ≈ 0.3). Cheap enough to run one per drum voice.
 #pragma once

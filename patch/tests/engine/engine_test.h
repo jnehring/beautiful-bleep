@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // engine/engine_test.h — what the engine test files share: the includes, EXPECT macros, the failure count and the
 // helpers that build board documents and simulate a plugin (a FakePort).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // panel-wiring.js — "Add to panel" (doc/specs/panels.md): put a knob, or a controller module, on a panel.
 //
 // Right-click a knob → Add to panel ▸ a panel, or a new one: a control wired straight to the knob. Right-click a controller

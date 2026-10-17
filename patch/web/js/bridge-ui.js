@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // bridge-ui.js — the "Connect to app" control of Bleep Play (doc/specs/bridges.md §4), and the glue between
 // the web link and the board: Live ports the hub announces become port nodes (board-demo.js mirrorPort), and

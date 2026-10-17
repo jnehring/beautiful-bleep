@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // bleep-markdown.js: hostile links and images must not produce a live scheme or an event handler.
 //
 //   node patch/web/test/markdown-test.mjs

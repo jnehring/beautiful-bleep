@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // play-wrap.js — what it takes to play a cell preset on its own in Bleep Play (doc/specs/preset-system-plan.md, section 9).
 //
 // An instrument or effect preset is a cell with `plays` (doc/specs/cell-plugins.md §2). The plugins wire such a cell to the host: MIDI in

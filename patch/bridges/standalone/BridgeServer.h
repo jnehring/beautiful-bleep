@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // BridgeServer — the app side of Bleep Audio Bridge (spec §11.3). Creates
 // the shared segment, turns every connected bridge into a port node, and runs

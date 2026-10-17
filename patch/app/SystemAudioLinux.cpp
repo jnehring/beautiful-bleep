@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // System Audio on Linux: the monitor of an output, through PulseAudio's API (doc/specs/system-audio.md §6.3).
 //

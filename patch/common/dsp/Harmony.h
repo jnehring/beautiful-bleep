@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // The board-wide harmony context (doc/specs/modules/harmony-master.md §4.1, §7):
 // what key, scale and chord the music is in right now. A Harmony Master
 // publishes a HarmonyState to one of kHarmonyBuses buses; followers read it

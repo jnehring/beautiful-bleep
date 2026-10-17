@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Unit tests for System Audio's ring and drift-compensating reader (doc/specs/system-audio.md §5). Pure C++.
 #include "../app/SystemAudioBuffer.h"
 

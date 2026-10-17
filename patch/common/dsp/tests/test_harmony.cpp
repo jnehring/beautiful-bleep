@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Harmony.h: the context, quantizing and transposing, Scale Policy Adapt,
 // chord tones and the per-chunk bus.
 #include "dsp/Harmony.h"

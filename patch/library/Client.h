@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 //
 // Client.h — the Bleep Library from the app and the plugins (developers/modules/library.md, signing.md): read its index, install and remove
 // modules on this machine, list what is installed. Everything here blocks (network, disk): call it from a worker thread,
