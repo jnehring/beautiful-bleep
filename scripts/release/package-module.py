@@ -4,7 +4,7 @@
 
     scripts/release/package-module.py                       every module that has a built .wasm
     scripts/release/package-module.py reverb filter         just these
-    scripts/release/package-module.py --out DIR --web DIR   other folders (defaults: build/library/modules, build/web/modules)
+    scripts/release/package-module.py --out DIR --web DIR   other folders (defaults: build/library/modules, build/web/modules, else build/web/site)
     scripts/release/package-module.py --install DATA --kit KIT [--version 0.1.0]
                                                             also sign each package with the kit and put it into DATA/modules/local,
                                                             the folder the apps read modules copied by hand from (for tests and development)
@@ -176,12 +176,18 @@ def entries_of(files: dict[str, bytes]) -> dict[str, tuple[bytes, bool]]:
     return {p: (hashlib.sha256(c).digest(), False) for p, c in files.items()}
 
 
+DEFAULT_WEB = ROOT / "build" / "web" / "modules"  # build-web.sh --modules-only
+DEFAULT_SITE = ROOT / "build" / "web" / "site"    # build-web.sh
+
+
 def package(slug: str, web: Path, out: Path) -> tuple[Path, str]:
     """Writes out/<slug>.bleepmod; returns it and its content hash (hex). Raises ValueError with the reason if it cannot."""
     folder = ROOT / "patch" / "modules" / slug
     if not (folder / "module.json").exists():
         raise ValueError("no such module folder")
     wasm_file = web / "modules" / f"{slug}.wasm"
+    if not wasm_file.exists() and web == DEFAULT_WEB:  # a full build-web.sh keeps its .wasm files in the site folder
+        wasm_file = DEFAULT_SITE / "modules" / f"{slug}.wasm"
     if not wasm_file.exists():
         raise ValueError(f"no built {wasm_file.relative_to(ROOT) if wasm_file.is_relative_to(ROOT) else wasm_file} (scripts/build/build-web.sh --modules-only)")
     wasm = wasm_file.read_bytes()
@@ -211,7 +217,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("modules", nargs="*", metavar="SLUG", help="module folders (default: every one with a built .wasm)")
     ap.add_argument("--out", type=Path, default=ROOT / "build" / "library" / "modules")
-    ap.add_argument("--web", type=Path, default=ROOT / "build" / "web" / "modules", help="the output of build-web.sh --modules-only")
+    ap.add_argument("--web", type=Path, default=DEFAULT_WEB, help="the output of build-web.sh --modules-only (default: build/web/modules, else the full build's build/web/site)")
     ap.add_argument("--install", type=Path, metavar="DATA", help="also install the signed packages into DATA/modules/local")
     ap.add_argument("--kit", type=Path, help="the signing kit for --install")
     ap.add_argument("--version", default="0.1.0", help="the version --install signs for (it is part of the file name)")
