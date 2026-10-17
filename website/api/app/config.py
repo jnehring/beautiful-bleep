@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     agent_data_dir: str = "agent_data"
     # Chat requests per user per minute (in memory, per process). 0 = no limit.
     agent_user_per_minute: int = 6
-    agent_max_steps: int = 12
+    agent_max_steps: int = 20
     # The provider keys are the providers' own variables, read from the environment: GOOGLE_API_KEY (gemini-*) and OPENAI_API_KEY (gpt-*).
     # Signs the resume tokens of paused runs; random per process when empty (a restart then ends pending runs).
     agent_state_secret: str = ""

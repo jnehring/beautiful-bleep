@@ -1,4 +1,6 @@
 # Task: program a sequencer
+If the request is to play or trigger a synth (a Voice Cell, an oscillator chain) from a step sequencer: add `step-sequencer` (near the target), connect its `notes` output
+to a Voice Cell's `notes` input, or its `pitch` to the oscillator and `gate` to the envelope; then write a short pattern with `set_pattern`.
 Find the step sequencer (`get_patch`; if there is none, add `step-sequencer` and wire its `pitch` and `gate` like the existing note source would be, or ask). Read
 the current pattern with `get_sequencer`, then write the new one with `set_pattern` (1..32 steps; each step gate 0 off / 1 on / 2 tie, pitch in semitones above the
 root, velocity 1..127). Pitches snap to the sequencer's scale; choose root and scale through `params` when the style needs it.

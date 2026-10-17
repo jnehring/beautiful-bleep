@@ -23,6 +23,12 @@ from .skills import SKILLS, Skill, prompt_text, route
 from .tools import Deps, function_toolset, live_toolset
 
 log = logging.getLogger("bleep_agent")
+if not log.handlers:  # uvicorn configures only its own loggers; make ours readable in `docker compose logs`
+    _h = logging.StreamHandler()
+    _h.setFormatter(logging.Formatter("%(levelname)s agent: %(message)s"))
+    log.addHandler(_h)
+    log.setLevel(logging.INFO)
+    log.propagate = False
 
 ACTIVITY = {
     "get_patch": "Looking at the patch", "get_selection": "Looking at the selection", "list_module_types": "Searching modules",
@@ -43,7 +49,7 @@ class Resources:
     presets: PresetLibrary | None = None
     docs: DocsIndex | None = None
     state_secret: bytes = b"dev-secret"
-    max_steps: int = 12
+    max_steps: int = 20
     stream: bool = True
     on_usage: Callable[[Any], None] | None = None
     check_budget: Callable[[], None] | None = None
@@ -58,8 +64,11 @@ def _catalog_index(cat: Catalog) -> str:
     return "\n".join(f"- {c}: {', '.join(v)}" for c, v in sorted(by_cat.items()))
 
 
-def build_instructions(skill: Skill, deps: Deps, res: Resources) -> str:
+def build_instructions(skill: Skill, deps: Deps, res: Resources, used: int = 0) -> str:
     parts = [prompt_text("base.md"), prompt_text(skill.prompt)]
+    if used >= res.max_steps - 4:
+        parts.append(f"# Steps\nYou have used {used} of {res.max_steps} steps. Stop researching now: make the change with what you know, or "
+                     "answer and say what is still open. Do not call more lookup tools.")
     parts.append("# Situation\n" + ("Changes you propose are applied to the user's board immediately (they can undo)."
                                     if deps.mode == "auto" else
                                     "Changes you propose are shown to the user, who approves them before they apply."))
@@ -97,13 +106,16 @@ async def run_chat(res: Resources, req: ChatRequest, agent_hook: Callable[[Agent
     def emit(kind: str, data: dict[str, Any]) -> None:
         queue.put_nowait((kind, data))
 
+    calls: list[str] = []
+
     async def worker() -> None:
         try:
-            await _run(res, req, emit, agent_hook)
+            await _run(res, req, emit, agent_hook, calls)
         except BudgetExceeded:
             emit("error", {"code": "budget", "message": "The daily AI budget is used up. It resets at midnight UTC."})
             emit("done", {"reason": "budget"})
-        except UsageLimitExceeded:
+        except UsageLimitExceeded as e:
+            log.warning("run hit the step limit (%s); tool calls in order: %s", e, " > ".join(calls) or "none")
             emit("error", {"code": "limit", "message": "The assistant took too many steps for this request. Try a smaller request."})
             emit("done", {"reason": "limit"})
         except TokenError as e:
@@ -135,7 +147,8 @@ async def run_chat(res: Resources, req: ChatRequest, agent_hook: Callable[[Agent
 
 
 async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, Any]], None],
-               agent_hook: Callable[[Agent], None] | None) -> None:
+               agent_hook: Callable[[Agent], None] | None, calls: list[str] | None = None) -> None:
+    calls = calls if calls is not None else []
     snap = req.snapshot
     resume = None
     history: list[ModelMessage] = []
@@ -167,12 +180,18 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
     skill = SKILLS[skill_name]
     deps = Deps(patch=patch, catalog=res.catalog, presets=res.presets, docs=res.docs, selection=list(snap.selection),
                 env=dict(snap.environment), mode=req.mode, skill=skill_name, emit=emit)
-    if res.trace:
-        deps.trace = res.trace
+    def trace(tool: str, retried: bool) -> None:
+        calls.append(tool + ("(retry)" if retried else ""))
+        if res.trace:
+            res.trace(tool, retried)
+
+    deps.trace = trace
+    log.info("run: skill=%s mode=%s resume=%s modules=%d prompt=%r", skill_name, req.mode, bool(resume), len(patch.nodes),
+             (prompt or "")[:120])
     model = MeteredModel(res.model, on_usage=res.on_usage, check=res.check_budget) if (res.on_usage or res.check_budget) else res.model
     agent: Agent[Deps, Any] = Agent(
         model, deps_type=Deps, output_type=[str, DeferredToolRequests],
-        instructions=lambda ctx: build_instructions(skill, ctx.deps, res),
+        instructions=lambda ctx: build_instructions(skill, ctx.deps, res, ctx.usage.requests),
         toolsets=[function_toolset(list(skill.funcs)), live_toolset(list(skill.live))] if skill.live else [function_toolset(list(skill.funcs))],
         retries=2)
     if agent_hook:
@@ -200,6 +219,7 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
         event_stream_handler=handler if res.stream else None)
 
     usage = result.usage
+    log.info("run done: requests=%d tokens=%d/%d tools: %s", usage.requests, usage.input_tokens, usage.output_tokens, " > ".join(calls) or "none")
     emit("usage", {"input_tokens": usage.input_tokens, "output_tokens": usage.output_tokens, "requests": usage.requests})
     out = result.output
     if isinstance(out, DeferredToolRequests):
