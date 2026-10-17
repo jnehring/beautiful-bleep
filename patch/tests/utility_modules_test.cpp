@@ -235,6 +235,39 @@ void quantizer() {
     r.patch("rootin", 14.0f / 12.0f);  // D (one octave up): D and A
     r.run();
     EXPECT_NEAR(r.out("out"), 2.0 / 12.0, 1e-6);  // F is 3 above D, 4 below A
+
+    // Notes in, notes out: C major, nearest. D# (63) is a tie and goes down to D (62); the Off follows the sent note.
+    Rig n("quantizer");
+    n.set("hysteresis", 0.0f);
+    const int ni = n.m->spec().inputIndex("notesin");
+    const NoteBuffer& nout = n.notesOutBuf[(size_t)n.m->spec().outputIndex("notes")];
+    n.connected[(size_t)ni] = true;
+    auto ev = [&](NoteEvent::Type t, int note, int offset) {
+        NoteEvent e;
+        e.type = t;
+        e.note = note;
+        e.offset = (int16_t)offset;
+        e.value = 0.7f;
+        n.notes[(size_t)ni].push(e);
+    };
+    ev(NoteEvent::On, 63, 2);
+    ev(NoteEvent::Cc, 74, 3);
+    n.run();
+    EXPECT(nout.count == 2 && nout.events[0].type == NoteEvent::On && nout.events[0].note == 62 &&
+           nout.events[0].offset == 2 && nout.events[0].value == 0.7f);
+    EXPECT(nout.count == 2 && nout.events[1].type == NoteEvent::Cc && nout.events[1].note == 74);
+    n.set("scale", 17.0f);  // Custom: C and G only; the Off must still end the D that was sent
+    n.m->setData("{\"customMask\": 129}");
+    ev(NoteEvent::Off, 63, 0);
+    n.run();
+    EXPECT(nout.count == 1 && nout.events[0].type == NoteEvent::Off && nout.events[0].note == 62);
+    n.patch("shift", 2.0f / 12.0f);  // Shift is chromatic, after quantizing: 67 (G) + 2
+    ev(NoteEvent::On, 66, 0);
+    n.run();
+    EXPECT(nout.count == 1 && nout.events[0].note == 69);
+    n.connected[(size_t)ni] = false;  // cable pulled with a note held: it ends
+    n.run();
+    EXPECT(nout.count == 1 && nout.events[0].type == NoteEvent::Off && nout.events[0].note == 69);
 }
 
 void switchNode() {

@@ -28,6 +28,14 @@ The signal goes through these steps:
 *Hysteresis* stops flicker: the input has to move a bit past the halfway
 point between two notes before the output changes.
 
+*Notes In* is a second way in. Patch notes (a keyboard, a sequencer, an
+arpeggiator) and each note is snapped to the scale and sent out of *Notes*:
+*Transpose* is added before quantizing, *Shift* after, and *Root*, *Scale* and
+*Rounding* apply. *Range*, *Clock*, *Hysteresis* and *Glide* belong to the pitch
+path and are ignored for notes. The note-off ends the note that was sent, so a
+scale change while a key is held cannot leave a note hanging. Velocity,
+controllers, bend and the other messages pass through unchanged.
+
 *Trigger* fires and *Gate* drops for one millisecond each time the note
 changes, so an envelope or *CV to Notes* can start a new note.
 
@@ -115,6 +123,7 @@ Five whole patches show what Quantizer does. In the standalone app open **File â
 | Transpose | pitch | Added before quantizing (stays in the scale) |
 | Shift | pitch | Added after quantizing (chromatic) |
 | Root In | pitch | Optional: overrides *Root* with this note's pitch class |
+| Notes In | notes | Optional: notes to quantize, sent out of *Notes* |
 
 ### Outputs
 
@@ -123,3 +132,4 @@ Five whole patches show what Quantizer does. In the standalone app open **File â
 | Out | pitch | The quantized pitch, plus *Shift*, after *Glide* |
 | Trigger | trigger | A pulse at each note change |
 | Gate | gate | Low for 1 ms at each note change, high otherwise |
+| Notes | notes | The notes from *Notes In*, snapped to the scale |
