@@ -91,6 +91,7 @@
   const MODEL = [
     ["File", [
       { id: "project.new", label: "New Project", appKey: cmdKey("N"), app: true },
+      { id: "project.newPatch", label: "New Patch", when: () => !native_ && !document.body.classList.contains("plugin") && has("BleepProjectBrowser")() },
       { id: "project.browse", label: "Open Project…", appKey: cmdKey("P"), when: has("BleepProjectBrowser") },
       { id: "project.openFile", label: "Open Project File…", appKey: cmdKey("O"), app: true },
       { id: "project.import", label: "Open Project from File…", when: () => !!(window.BleepWeb && P.BleepProjectBrowser) },
@@ -141,6 +142,7 @@
   ];
 
   const internal = {
+    "project.newPatch": () => P.BleepProjectBrowser && P.BleepProjectBrowser.newPatch(),
     "project.browse": () => P.BleepProjectBrowser && P.BleepProjectBrowser.open(),
     "project.saveBrowser": () => P.BleepProjectBrowser && P.BleepProjectBrowser.save(),
     "project.import": () => P.BleepProjectBrowser && P.BleepProjectBrowser.openFile(),

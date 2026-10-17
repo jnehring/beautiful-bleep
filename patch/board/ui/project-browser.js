@@ -436,6 +436,15 @@
     setCurrent({ name: p.name, source: p.address ? "community" : p.own ? "user" : "factory", address: p.address, preset: src });
   }
 
+  /// File → New Patch: an empty board that keeps only the port nodes (Audio In/Out, MIDI) of the current one.
+  async function newPatch() {
+    const cur = (host.board() || {}).nodes || [];
+    if (cur.some((n) => !n.port) && !window.confirm("Start a new patch? The current board is replaced; Undo brings it back.")) return;
+    const board = { format: 1, id: uuid(), nodes: clone(cur.filter((n) => n.port)), cables: [] };
+    host.apply(await native("loadPatch", board, 0, "Untitled"));
+    setCurrent({ name: "Untitled", source: "user", preset: board });
+  }
+
   // ---------------------------------------------------------------- Save, download, open from a file
   function showSave() {
     if (!canSave()) { say("Log in on the website to keep projects in your account. Download Project saves a file."); return; }
@@ -628,6 +637,7 @@
     /// Download Project and Open from a file: the browser board only.
     download,
     openFile,
+    newPatch,
     canSave,
     /// My projects, for the Library dialog: [{name, preset}] and the whole project of one of them.
     mineList,
