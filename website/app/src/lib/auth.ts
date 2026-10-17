@@ -47,3 +47,12 @@ export function useUser(): User | null | undefined {
   }, []);
   return user;
 }
+
+/** The user of an account page: sends a logged-out visitor to the login page and returns null until there is a user. */
+export function useAccountUser(): User | null {
+  const user = useUser();
+  useEffect(() => {
+    if (user === null) window.location.href = `/login/?next=${encodeURIComponent(window.location.pathname)}`;
+  }, [user]);
+  return user ?? null;
+}

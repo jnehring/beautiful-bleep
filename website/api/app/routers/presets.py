@@ -204,6 +204,15 @@ def search(
     return PresetListOut(items=[_out(r, ratings, used=used) for r in page_rows], total=len(rows), page=page, page_size=page_size)
 
 
+@router.get("/mine", response_model=list[PresetOut])
+def mine(db: Session = Depends(get_db), user: User = Depends(get_library_user)):
+    """The presets of the signed-in user, listed or not (an unlisted one is not in the search)."""
+    rows = list(db.scalars(select(Preset).where(Preset.author_id == user.id).order_by(Preset.updated_at.desc())))
+    ratings = rating_summaries(db, "preset", [r.address for r in rows])
+    used = used_in_counts(db, [r.address for r in rows])
+    return [_out(r, ratings, used=used) for r in rows]
+
+
 def _find(db: Session, author: str, slug: str, user: User | None) -> Preset:
     row = db.scalar(select(Preset).join(User, Preset.author_id == User.id).where(User.handle == author, Preset.slug == slug))
     # An unlisted preset is still visible to its author and to admins.

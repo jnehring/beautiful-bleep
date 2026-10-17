@@ -97,6 +97,18 @@ def test_every_preset_is_cc_by_and_an_older_licence_stays(client):
     assert client.get("/api/presets/ann/warm-pad/file").json()["license"] == "CC0-1.0"
 
 
+def test_mine_lists_own_presets_including_unlisted(client):
+    register(client)
+    assert TestClient(app).get("/api/presets/mine").status_code == 401
+    made = client.post("/api/presets", json=PRESET).json()
+    other = other_client()
+    assert other.get("/api/presets/mine").json() == []
+    assert client.patch(f"/api/presets/{made['id']}", json={"state": "unlisted"}).status_code == 200
+    mine = client.get("/api/presets/mine").json()
+    assert [(p["address"], p["state"]) for p in mine] == [("ann/warm-pad", "unlisted")]
+    assert client.get("/api/presets").json()["total"] == 0
+
+
 def test_publish_versions_download_and_listing(client):
     register(client)
     r = client.post("/api/presets", json=PRESET)

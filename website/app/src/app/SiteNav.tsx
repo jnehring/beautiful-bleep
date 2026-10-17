@@ -2,7 +2,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { api, useUser } from "@/lib/auth";
-import { AUDIENCES, audienceOf, isActive, isModulesPath, type Audience } from "@/lib/audiences";
+import { ACCOUNT_MENU, AUDIENCES, audienceOf, isAccountActive, isAccountPath, isActive, isModulesPath, type Audience } from "@/lib/audiences";
 
 /** Main menu (Musicians, Developers, Modules, …) and, below it, the current audience's submenu. */
 export default function SiteNav() {
@@ -44,6 +44,13 @@ export default function SiteNav() {
           ) : null}
         </nav>
       </header>
+      {user && isAccountPath(path) && (
+        <nav className="submenu" aria-label="Account menu">
+          {ACCOUNT_MENU.map((item) => (
+            <a key={item.href} href={item.href} aria-current={isAccountActive(path, item) ? "page" : undefined}>{item.title}</a>
+          ))}
+        </nav>
+      )}
       {current && (
         <nav className="submenu" aria-label={`${AUDIENCES[current].title} menu`}>
           {AUDIENCES[current].menu.map((item) => (

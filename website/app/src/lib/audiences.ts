@@ -80,3 +80,18 @@ export function audienceOf(path: string): Audience | undefined {
 export function isActive(path: string, item: MenuItem): boolean {
   return matches(path, item.match);
 }
+
+/** The submenu of the account pages (the link with the user's name in the header). */
+export const ACCOUNT_MENU: MenuItem[] = [
+  { title: "Overview", href: "/account/", match: ["/account/"] },
+  { title: "Presets", href: "/account/presets/", match: ["/account/presets/"] },
+  { title: "Apps & devices", href: "/account/apps/", match: ["/account/apps/"] },
+  { title: "Settings", href: "/account/settings/", match: ["/account/settings/"] },
+];
+export const isAccountPath = (path: string) => path.startsWith("/account");
+
+/** Overview matches only its own page: the others start with the same prefix. */
+export function isAccountActive(path: string, item: MenuItem): boolean {
+  const p = path.endsWith("/") ? path : path + "/";
+  return item.href === "/account/" ? p === "/account/" : p.startsWith(item.href);
+}
