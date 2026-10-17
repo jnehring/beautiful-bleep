@@ -2,6 +2,8 @@
 """Model creation and wrappers: provider lookup, usage metering with a budget check (production)."""
 from __future__ import annotations
 
+import logging
+import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from typing import Any
@@ -11,6 +13,9 @@ from pydantic_ai.models import Model, ModelRequestParameters, StreamedResponse, 
 from pydantic_ai.models.wrapper import WrapperModel
 from pydantic_ai.settings import ModelSettings
 from pydantic_ai.usage import RequestUsage
+
+
+log = logging.getLogger("bleep_agent")
 
 
 class BudgetExceeded(RuntimeError):
@@ -62,7 +67,9 @@ class MeteredModel(WrapperModel):
                       model_request_parameters: ModelRequestParameters) -> ModelResponse:
         if self._check:
             self._check()
+        t0 = time.perf_counter()
         resp = await super().request(messages, model_settings, model_request_parameters)
+        log.info("model call %.1fs tokens in=%s out=%s", time.perf_counter() - t0, resp.usage.input_tokens, resp.usage.output_tokens)
         if self._on_usage:
             self._on_usage(resp.usage)
         return resp
@@ -72,9 +79,12 @@ class MeteredModel(WrapperModel):
                              model_request_parameters: ModelRequestParameters, run_context: Any = None) -> AsyncGenerator[StreamedResponse]:
         if self._check:
             self._check()
+        t0 = time.perf_counter()
         async with super().request_stream(messages, model_settings, model_request_parameters, run_context) as stream:
             try:
                 yield stream
             finally:
+                u = stream.usage
+                log.info("model call %.1fs tokens in=%s out=%s", time.perf_counter() - t0, u.input_tokens, u.output_tokens)
                 if self._on_usage:
                     self._on_usage(stream.usage)
