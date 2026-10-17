@@ -1,0 +1,784 @@
+- id: patch-insert-fx-01
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:compressor-kick-ducked-pad
+  query: add chorus and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - chorus
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: chorus
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-02
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:organic-lfos-bar-locked-breath
+  query: add delay between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - delay
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: delay
+  judge: patch_general
+- id: patch-insert-fx-03
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:ring-cymbal-crash-accents
+  query: add reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-04
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:compressor-parallel-drum-squash
+  query: add phaser and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - phaser
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: phaser
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-05
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:function-bouncing-pad
+  query: add chorus between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - chorus
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: chorus
+  judge: patch_general
+- id: patch-insert-fx-06
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:punch-snare-roll-build
+  query: add delay and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - delay
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: delay
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-07
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:resonator-plucked-strings
+  query: add saturator between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - saturator
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: saturator
+  judge: patch_general
+- id: patch-insert-fx-08
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:cv-mixer-averaged-drift
+  query: add chorus and delay between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - chorus
+    - delay
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: chorus
+  - kind: module_added
+    type: delay
+  judge: patch_general
+- id: patch-insert-fx-09
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:ring-rim-two-woodblocks
+  query: add chorus and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - chorus
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: chorus
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-10
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:dual-filter-vowel-talker
+  query: add delay between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - delay
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: delay
+  judge: patch_general
+- id: patch-insert-fx-11
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:zone-delay-tape-echo
+  query: add reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-12
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:delay-dub-spiral
+  query: add phaser and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - phaser
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: phaser
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-13
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:neuron-spiking-melody
+  query: add chorus between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - chorus
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: chorus
+  judge: patch_general
+- id: patch-insert-fx-14
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:crossfader-linear-curve
+  query: add delay and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - delay
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: delay
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-15
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:ring-kick-tuned-kick-trio
+  query: add saturator between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - saturator
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: saturator
+  judge: patch_general
+- id: patch-insert-fx-16
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:dual-osc-sync-sweep
+  query: add chorus and delay between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - chorus
+    - delay
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: chorus
+  - kind: module_added
+    type: delay
+  judge: patch_general
+- id: patch-insert-fx-17
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:ring-clap-classic-handclap
+  query: add chorus and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - chorus
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: chorus
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-18
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:chart-recorder-marked-hits
+  query: add delay between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - delay
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: delay
+  judge: patch_general
+- id: patch-insert-fx-19
+  skill: patch
+  difficulty: easy
+  tags:
+  - insert-on-cable
+  patch: preset:punch-tom-pitched-melody
+  query: add reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-insert-fx-20
+  skill: patch
+  tags:
+  - insert-on-cable
+  patch: preset:audio-mixer-four-piece-band
+  query: add phaser and reverb between the synth and the output
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: fx_before_output
+    types:
+    - phaser
+    - reverb
+  - kind: unrelated_changes
+    max: 0
+  - kind: module_added
+    type: phaser
+  - kind: module_added
+    type: reverb
+  judge: patch_general
+- id: patch-lfo-cutoff-01
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:switch-random-walk-textures
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-lfo-cutoff-02
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:arpeggiator-converging-bass
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-lfo-cutoff-03
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:function-bouncing-pad
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-lfo-cutoff-04
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:cv-mixer-averaged-drift
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-lfo-cutoff-05
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:keyboard-hold-drone
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-lfo-cutoff-06
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:neuron-spiking-melody
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-lfo-cutoff-07
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:notes-to-cv-drifting-pad
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-lfo-cutoff-08
+  skill: patch
+  tags:
+  - add-and-wire
+  patch: preset:notes-to-cv-trigger-out-kick
+  query: add an LFO and use it to modulate the filter cutoff
+  selection:
+  - filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: module_added
+    type: lfo
+  - kind: cable
+    from: role:lfo.out
+    to: filter.cutoff
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-midi-keyboard-01
+  skill: patch
+  difficulty: hard
+  tags:
+  - midi-device
+  patch: preset:compressor-kick-ducked-pad
+  query: add my usb midi keyboard to the patch
+  env:
+    midi:
+      inputs:
+      - id: usb-1
+        name: USB MIDI Keyboard
+        enabled: true
+  checks:
+  - kind: valid_patch
+  - kind: module_added
+    type: midi-device
+  - kind: has_output_cable
+    node: type:midi-device
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-midi-keyboard-02
+  skill: patch
+  difficulty: hard
+  tags:
+  - midi-device
+  patch: preset:organic-lfos-bar-locked-breath
+  query: add my usb midi keyboard to the patch
+  env:
+    midi:
+      inputs:
+      - id: usb-1
+        name: USB MIDI Keyboard
+        enabled: true
+  checks:
+  - kind: valid_patch
+  - kind: module_added
+    type: midi-device
+  - kind: has_output_cable
+    node: type:midi-device
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-midi-keyboard-03
+  skill: patch
+  difficulty: hard
+  tags:
+  - midi-device
+  patch: preset:arpeggiator-converging-bass
+  query: add my usb midi keyboard to the patch
+  env:
+    midi:
+      inputs:
+      - id: usb-1
+        name: USB MIDI Keyboard
+        enabled: true
+  checks:
+  - kind: valid_patch
+  - kind: module_added
+    type: midi-device
+  - kind: has_output_cable
+    node: type:midi-device
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-midi-keyboard-04
+  skill: patch
+  difficulty: hard
+  tags:
+  - midi-device
+  patch: preset:segments-looping-filter-shape
+  query: add my usb midi keyboard to the patch
+  env:
+    midi:
+      inputs:
+      - id: usb-1
+        name: USB MIDI Keyboard
+        enabled: true
+  checks:
+  - kind: valid_patch
+  - kind: module_added
+    type: midi-device
+  - kind: has_output_cable
+    node: type:midi-device
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-midi-keyboard-05
+  skill: patch
+  difficulty: hard
+  tags:
+  - midi-device
+  patch: preset:sampler-two-note-piano
+  query: add my usb midi keyboard to the patch
+  env:
+    midi:
+      inputs:
+      - id: usb-1
+        name: USB MIDI Keyboard
+        enabled: true
+  checks:
+  - kind: valid_patch
+  - kind: module_added
+    type: midi-device
+  - kind: has_output_cable
+    node: type:midi-device
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-midi-keyboard-06
+  skill: patch
+  difficulty: hard
+  tags:
+  - midi-device
+  patch: preset:function-bouncing-pad
+  query: add my usb midi keyboard to the patch
+  env:
+    midi:
+      inputs:
+      - id: usb-1
+        name: USB MIDI Keyboard
+        enabled: true
+  checks:
+  - kind: valid_patch
+  - kind: module_added
+    type: midi-device
+  - kind: has_output_cable
+    node: type:midi-device
+  - kind: unrelated_changes
+    max: 1
+  judge: patch_general
+- id: patch-param-01
+  skill: patch
+  difficulty: easy
+  tags:
+  - set-param
+  patch: preset:arpeggiator-converging-bass
+  query: make the reverb bigger
+  selection:
+  - reverb
+  checks:
+  - kind: valid_patch
+  - kind: param_changed
+    node: reverb
+    param: size
+    direction: up
+  - kind: unrelated_changes
+    max: 1
+    allow:
+    - reverb
+  judge: patch_general
+- id: patch-param-02
+  skill: patch
+  difficulty: easy
+  tags:
+  - set-param
+  patch: preset:segments-looping-filter-shape
+  query: make the reverb bigger
+  selection:
+  - reverb
+  checks:
+  - kind: valid_patch
+  - kind: param_changed
+    node: reverb
+    param: size
+    direction: up
+  - kind: unrelated_changes
+    max: 1
+    allow:
+    - reverb
+  judge: patch_general
+- id: patch-param-03
+  skill: patch
+  difficulty: easy
+  tags:
+  - set-param
+  patch: preset:sampler-two-note-piano
+  query: make the reverb bigger
+  selection:
+  - reverb
+  checks:
+  - kind: valid_patch
+  - kind: param_changed
+    node: reverb
+    param: size
+    direction: up
+  - kind: unrelated_changes
+    max: 1
+    allow:
+    - reverb
+  judge: patch_general
+- id: patch-param-04
+  skill: patch
+  difficulty: easy
+  tags:
+  - set-param
+  patch: preset:function-bouncing-pad
+  query: make the reverb bigger
+  selection:
+  - reverb
+  checks:
+  - kind: valid_patch
+  - kind: param_changed
+    node: reverb
+    param: size
+    direction: up
+  - kind: unrelated_changes
+    max: 1
+    allow:
+    - reverb
+  judge: patch_general
+- id: patch-param-05
+  skill: patch
+  difficulty: easy
+  tags:
+  - set-param
+  patch: preset:cv-mixer-averaged-drift
+  query: make the reverb bigger
+  selection:
+  - reverb
+  checks:
+  - kind: valid_patch
+  - kind: param_changed
+    node: reverb
+    param: size
+    direction: up
+  - kind: unrelated_changes
+    max: 1
+    allow:
+    - reverb
+  judge: patch_general
+- id: patch-param-06
+  skill: patch
+  difficulty: easy
+  tags:
+  - set-param
+  patch: preset:dual-filter-vowel-talker
+  query: make the reverb bigger
+  selection:
+  - reverb
+  checks:
+  - kind: valid_patch
+  - kind: param_changed
+    node: reverb
+    param: size
+    direction: up
+  - kind: unrelated_changes
+    max: 1
+    allow:
+    - reverb
+  judge: patch_general

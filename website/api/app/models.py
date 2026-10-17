@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -284,3 +284,12 @@ class Report(Base):
     reason: Mapped[str] = mapped_column(String(500), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AgentUsage(Base):
+    """Tokens the patch assistant used per UTC day, all users together (the daily budget)."""
+    __tablename__ = "agent_usage"
+
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    tokens: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    requests: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

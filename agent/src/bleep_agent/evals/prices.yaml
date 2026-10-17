@@ -1,0 +1,11 @@
+# Price table for cost reports: US dollars per 1,000,000 tokens. Keys are model names without the provider prefix.
+# `null` = not set: reports then show tokens and "n/a" instead of inventing a cost. Fill in from the providers' price lists
+# on the day of a run; the table's version is stored in every run so numbers stay comparable.
+version: 1
+currency: USD
+models:
+  gemini-3.8-flash: {input: null, cached_input: null, output: null}
+  gpt-6-luna: {input: null, cached_input: null, output: null}
+  gemini-4-argon: {input: null, cached_input: null, output: null}
+embeddings:
+  gemini-embedding-2: {input: null}

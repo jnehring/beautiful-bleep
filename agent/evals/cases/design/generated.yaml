@@ -1,0 +1,750 @@
+- id: design-01
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: build an acid synthesizer
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: param_range
+    node: type:filter
+    param: resonance
+    min: 0.45
+  judge: design_quality
+- id: design-02
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: build a fat detuned analog bass
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality
+- id: design-03
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make a warm slow pad with a long release
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: param_range
+    node: role:envelope
+    param: release
+    min: 0.8
+  judge: design_quality
+- id: design-04
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: create a plucky synth lead with a short decay
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: param_range
+    node: role:envelope
+    param: decay
+    max: 0.8
+  judge: design_quality
+- id: design-05
+  skill: design
+  difficulty: easy
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: build a simple subtractive synth
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality
+- id: design-06
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make a bright bell-like sound
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality
+- id: design-07
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: build a wobble bass with an LFO on the filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: has_path
+    chain:
+    - role:lfo
+    - role:filter
+  judge: design_quality
+- id: design-08
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: design a classic mono lead with a bit of delay
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: module_added
+    type: delay
+  judge: design_quality
+- id: design-09
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: create a string-like ensemble pad with chorus
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: module_added
+    type: chorus
+  judge: design_quality
+- id: design-10
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make an electric piano-ish sound
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality
+- id: design-11
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make me an acid synthesizer
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: param_range
+    node: type:filter
+    param: resonance
+    min: 0.45
+  judge: design_quality
+- id: design-12
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make me a fat detuned analog bass
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality
+- id: design-13
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make a warm slow pad with a long release, please
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: param_range
+    node: role:envelope
+    param: release
+    min: 0.8
+  judge: design_quality
+- id: design-14
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: create a plucky synth lead with a short decay, please
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: param_range
+    node: role:envelope
+    param: decay
+    max: 0.8
+  judge: design_quality
+- id: design-15
+  skill: design
+  difficulty: easy
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make me a simple subtractive synth
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality
+- id: design-16
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make a bright bell-like sound, please
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality
+- id: design-17
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make me a wobble bass with an LFO on the filter
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: has_path
+    chain:
+    - role:lfo
+    - role:filter
+  judge: design_quality
+- id: design-18
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: design a classic mono lead with a bit of delay, please
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: module_added
+    type: delay
+  judge: design_quality
+- id: design-19
+  skill: design
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: create a string-like ensemble pad with chorus, please
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  - kind: module_added
+    type: chorus
+  judge: design_quality
+- id: design-20
+  skill: design
+  difficulty: hard
+  tags:
+  - synth
+  patch:
+    format: 1
+    tempo: 120
+    nodes:
+    - id: out
+      type: audio-out
+      name: Out 1/2
+      x: 1500
+      y: 200
+      parent: ''
+      params: {}
+      port: device-out-1
+    - id: keys
+      type: keyboard
+      name: Keyboard
+      x: 40
+      y: 200
+      parent: ''
+      params: {}
+    cables: []
+  query: make an electric piano-ish sound, please
+  checks:
+  - kind: valid_patch
+  - kind: audible
+  - kind: has_path
+    chain:
+    - role:source
+    - role:filter
+    - type:vca
+    - type:audio-out
+  judge: design_quality

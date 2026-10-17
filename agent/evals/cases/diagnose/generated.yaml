@@ -1,0 +1,1225 @@
+- id: diagnose-no-gate-01
+  skill: diagnose
+  tags:
+  - fault:no-gate
+  patch: preset:uncertainty-fluctuating-filter
+  mutate:
+  - fault: remove_cables_to
+    node: adsr
+    jack: gate
+  - fault: remove_cables_to
+    node: adsr
+    jack: retrig
+  query: why do i not hear sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - gate
+    - adsr
+    - adsr
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: no-gate
+    mentions:
+    - gate
+    - adsr
+    - adsr
+- id: diagnose-vca-not-opened-01
+  skill: diagnose
+  tags:
+  - fault:vca-not-opened
+  patch: preset:uncertainty-fluctuating-filter
+  mutate:
+  - fault: remove_cables_to
+    node: vca
+    jack: gain
+  query: i press keys but there is no sound
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - vca
+    - gain
+    - vca
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: vca-not-opened
+    mentions:
+    - vca
+    - gain
+    - vca
+- id: diagnose-out-unconnected-01
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-unconnected
+  patch: preset:uncertainty-fluctuating-filter
+  mutate:
+  - fault: remove_cables_to
+    node: out
+  query: my patch is silent, what is wrong?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - audio out
+    - connect
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-unconnected
+    mentions:
+    - audio out
+    - connect
+    - out
+- id: diagnose-out-volume-zero-01
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-volume-zero
+  patch: preset:uncertainty-fluctuating-filter
+  mutate:
+  - fault: set_param
+    node: out
+    param: volume
+    value: 0.0
+  query: nothing comes out of the speakers
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - volume
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-volume-zero
+    mentions:
+    - volume
+    - out
+- id: diagnose-filter-closed-01
+  skill: diagnose
+  difficulty: hard
+  tags:
+  - fault:filter-closed
+  patch: preset:uncertainty-fluctuating-filter
+  mutate:
+  - fault: set_param
+    node: filter
+    param: cutoff
+    value: 0.0
+  - fault: set_param
+    node: filter
+    param: mode
+    value: 0.0
+  - fault: remove_cables_to
+    node: filter
+    jack: cutoff
+  query: why is there no sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - cutoff
+    - filter
+    - filter
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: filter-closed
+    mentions:
+    - cutoff
+    - filter
+    - filter
+- id: diagnose-source-unwired-01
+  skill: diagnose
+  tags:
+  - fault:source-unwired
+  patch: preset:uncertainty-fluctuating-filter
+  mutate:
+  - fault: remove_cables_from
+    node: stepse
+  query: there is no sound, can you find out why and fix it?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - stepse
+    - gate
+    - note
+    - connect
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: source-unwired
+    mentions:
+    - stepse
+    - gate
+    - note
+    - connect
+- id: diagnose-module-muted-01
+  skill: diagnose
+  tags:
+  - fault:module-muted
+  patch: preset:uncertainty-fluctuating-filter
+  mutate:
+  - fault: mute
+    node: reverb
+  query: why do i not hear sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - mute
+    - reverb
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: module-muted
+    mentions:
+    - mute
+    - reverb
+- id: diagnose-out-unconnected-02
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-unconnected
+  patch: preset:switch-one-riff-four-treatments
+  mutate:
+  - fault: remove_cables_to
+    node: out
+  query: i press keys but there is no sound
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - audio out
+    - connect
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-unconnected
+    mentions:
+    - audio out
+    - connect
+    - out
+- id: diagnose-out-volume-zero-02
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-volume-zero
+  patch: preset:switch-one-riff-four-treatments
+  mutate:
+  - fault: set_param
+    node: out
+    param: volume
+    value: 0.0
+  query: my patch is silent, what is wrong?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - volume
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-volume-zero
+    mentions:
+    - volume
+    - out
+- id: diagnose-module-muted-02
+  skill: diagnose
+  tags:
+  - fault:module-muted
+  patch: preset:switch-one-riff-four-treatments
+  mutate:
+  - fault: mute
+    node: audiom3
+  query: nothing comes out of the speakers
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - mute
+    - audiom3
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: module-muted
+    mentions:
+    - mute
+    - audiom3
+- id: diagnose-out-unconnected-03
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-unconnected
+  patch: preset:clock-div-binary-counter-bass
+  mutate:
+  - fault: remove_cables_to
+    node: out
+  query: why is there no sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - audio out
+    - connect
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-unconnected
+    mentions:
+    - audio out
+    - connect
+    - out
+- id: diagnose-out-volume-zero-03
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-volume-zero
+  patch: preset:clock-div-binary-counter-bass
+  mutate:
+  - fault: set_param
+    node: out
+    param: volume
+    value: 0.0
+  query: there is no sound, can you find out why and fix it?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - volume
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-volume-zero
+    mentions:
+    - volume
+    - out
+- id: diagnose-module-muted-03
+  skill: diagnose
+  tags:
+  - fault:module-muted
+  patch: preset:clock-div-binary-counter-bass
+  mutate:
+  - fault: mute
+    node: reverb
+  query: why do i not hear sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - mute
+    - reverb
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: module-muted
+    mentions:
+    - mute
+    - reverb
+- id: diagnose-out-unconnected-04
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-unconnected
+  patch: preset:wavetable-osc-warp-bass
+  mutate:
+  - fault: remove_cables_to
+    node: out
+  query: i press keys but there is no sound
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - audio out
+    - connect
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-unconnected
+    mentions:
+    - audio out
+    - connect
+    - out
+- id: diagnose-out-volume-zero-04
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-volume-zero
+  patch: preset:wavetable-osc-warp-bass
+  mutate:
+  - fault: set_param
+    node: out
+    param: volume
+    value: 0.0
+  query: my patch is silent, what is wrong?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - volume
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-volume-zero
+    mentions:
+    - volume
+    - out
+- id: diagnose-module-muted-04
+  skill: diagnose
+  tags:
+  - fault:module-muted
+  patch: preset:wavetable-osc-warp-bass
+  mutate:
+  - fault: mute
+    node: audiom2
+  query: nothing comes out of the speakers
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - mute
+    - audiom2
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: module-muted
+    mentions:
+    - mute
+    - audiom2
+- id: diagnose-no-gate-02
+  skill: diagnose
+  tags:
+  - fault:no-gate
+  patch: preset:vca-tremolo-chords
+  mutate:
+  - fault: remove_cables_to
+    node: adsr
+    jack: gate
+  - fault: remove_cables_to
+    node: adsr
+    jack: retrig
+  query: why is there no sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - gate
+    - adsr
+    - adsr
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: no-gate
+    mentions:
+    - gate
+    - adsr
+    - adsr
+- id: diagnose-out-unconnected-05
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-unconnected
+  patch: preset:vca-tremolo-chords
+  mutate:
+  - fault: remove_cables_to
+    node: out
+  query: there is no sound, can you find out why and fix it?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - audio out
+    - connect
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-unconnected
+    mentions:
+    - audio out
+    - connect
+    - out
+- id: diagnose-out-volume-zero-05
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:out-volume-zero
+  patch: preset:vca-tremolo-chords
+  mutate:
+  - fault: set_param
+    node: out
+    param: volume
+    value: 0.0
+  query: why do i not hear sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - volume
+    - out
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: out-volume-zero
+    mentions:
+    - volume
+    - out
+- id: diagnose-source-unwired-02
+  skill: diagnose
+  tags:
+  - fault:source-unwired
+  patch: preset:vca-tremolo-chords
+  mutate:
+  - fault: remove_cables_from
+    node: stepse
+  query: i press keys but there is no sound
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - stepse
+    - gate
+    - note
+    - connect
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: source-unwired
+    mentions:
+    - stepse
+    - gate
+    - note
+    - connect
+- id: diagnose-module-muted-05
+  skill: diagnose
+  tags:
+  - fault:module-muted
+  patch: preset:vca-tremolo-chords
+  mutate:
+  - fault: mute
+    node: reverb
+  query: my patch is silent, what is wrong?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - mute
+    - reverb
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: module-muted
+    mentions:
+    - mute
+    - reverb
+- id: diagnose-no-gate-03
+  skill: diagnose
+  tags:
+  - fault:no-gate
+  patch: preset:crunch-aliased-lead
+  mutate:
+  - fault: remove_cables_to
+    node: adsr
+    jack: gate
+  - fault: remove_cables_to
+    node: adsr
+    jack: retrig
+  query: nothing comes out of the speakers
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - gate
+    - adsr
+    - adsr
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: no-gate
+    mentions:
+    - gate
+    - adsr
+    - adsr
+- id: diagnose-vca-not-opened-02
+  skill: diagnose
+  tags:
+  - fault:vca-not-opened
+  patch: preset:crunch-aliased-lead
+  mutate:
+  - fault: remove_cables_to
+    node: vca
+    jack: gain
+  query: why is there no sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - vca
+    - gain
+    - vca
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: vca-not-opened
+    mentions:
+    - vca
+    - gain
+    - vca
+- id: diagnose-source-unwired-03
+  skill: diagnose
+  tags:
+  - fault:source-unwired
+  patch: preset:crunch-aliased-lead
+  mutate:
+  - fault: remove_cables_from
+    node: stepse
+  query: there is no sound, can you find out why and fix it?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - stepse
+    - gate
+    - note
+    - connect
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: source-unwired
+    mentions:
+    - stepse
+    - gate
+    - note
+    - connect
+- id: diagnose-no-gate-04
+  skill: diagnose
+  tags:
+  - fault:no-gate
+  patch: preset:quad-lfo-free-texture
+  mutate:
+  - fault: remove_cables_to
+    node: adsr
+    jack: gate
+  - fault: remove_cables_to
+    node: adsr
+    jack: retrig
+  query: why do i not hear sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - gate
+    - adsr
+    - adsr
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: no-gate
+    mentions:
+    - gate
+    - adsr
+    - adsr
+- id: diagnose-vca-not-opened-03
+  skill: diagnose
+  tags:
+  - fault:vca-not-opened
+  patch: preset:quad-lfo-free-texture
+  mutate:
+  - fault: remove_cables_to
+    node: vca
+    jack: gain
+  query: i press keys but there is no sound
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - vca
+    - gain
+    - vca
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: vca-not-opened
+    mentions:
+    - vca
+    - gain
+    - vca
+- id: diagnose-filter-closed-02
+  skill: diagnose
+  difficulty: hard
+  tags:
+  - fault:filter-closed
+  patch: preset:quad-lfo-free-texture
+  mutate:
+  - fault: set_param
+    node: filter
+    param: cutoff
+    value: 0.0
+  - fault: set_param
+    node: filter
+    param: mode
+    value: 0.0
+  - fault: remove_cables_to
+    node: filter
+    jack: cutoff
+  query: my patch is silent, what is wrong?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - cutoff
+    - filter
+    - filter
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: filter-closed
+    mentions:
+    - cutoff
+    - filter
+    - filter
+- id: diagnose-source-unwired-04
+  skill: diagnose
+  tags:
+  - fault:source-unwired
+  patch: preset:quad-lfo-free-texture
+  mutate:
+  - fault: remove_cables_from
+    node: stepse
+  query: nothing comes out of the speakers
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - stepse
+    - gate
+    - note
+    - connect
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: source-unwired
+    mentions:
+    - stepse
+    - gate
+    - note
+    - connect
+- id: diagnose-source-unwired-05
+  skill: diagnose
+  tags:
+  - fault:source-unwired
+  patch: preset:envelope-follower-drone-swell
+  mutate:
+  - fault: remove_cables_from
+    node: drumgr
+  query: why is there no sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - drumgr
+    - gate
+    - note
+    - connect
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: source-unwired
+    mentions:
+    - drumgr
+    - gate
+    - note
+    - connect
+- id: diagnose-no-gate-05
+  skill: diagnose
+  tags:
+  - fault:no-gate
+  patch: preset:folder-spread-pad
+  mutate:
+  - fault: remove_cables_to
+    node: adsr
+    jack: gate
+  - fault: remove_cables_to
+    node: adsr
+    jack: retrig
+  query: there is no sound, can you find out why and fix it?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - gate
+    - adsr
+    - adsr
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: no-gate
+    mentions:
+    - gate
+    - adsr
+    - adsr
+- id: diagnose-vca-not-opened-04
+  skill: diagnose
+  tags:
+  - fault:vca-not-opened
+  patch: preset:folder-spread-pad
+  mutate:
+  - fault: remove_cables_to
+    node: vca
+    jack: gain
+  query: why do i not hear sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - vca
+    - gain
+    - vca
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: vca-not-opened
+    mentions:
+    - vca
+    - gain
+    - vca
+- id: diagnose-vca-not-opened-05
+  skill: diagnose
+  tags:
+  - fault:vca-not-opened
+  patch: preset:utility-folded-sweeps
+  mutate:
+  - fault: remove_cables_to
+    node: vca
+    jack: gain
+  query: i press keys but there is no sound
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - vca
+    - gain
+    - vca
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: vca-not-opened
+    mentions:
+    - vca
+    - gain
+    - vca
+- id: diagnose-filter-closed-03
+  skill: diagnose
+  difficulty: hard
+  tags:
+  - fault:filter-closed
+  patch: preset:utility-folded-sweeps
+  mutate:
+  - fault: set_param
+    node: filter
+    param: cutoff
+    value: 0.0
+  - fault: set_param
+    node: filter
+    param: mode
+    value: 0.0
+  - fault: remove_cables_to
+    node: filter
+    jack: cutoff
+  query: my patch is silent, what is wrong?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - cutoff
+    - filter
+    - filter
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: filter-closed
+    mentions:
+    - cutoff
+    - filter
+    - filter
+- id: diagnose-filter-closed-04
+  skill: diagnose
+  difficulty: hard
+  tags:
+  - fault:filter-closed
+  patch: preset:six-slopes-sound-mode-voice
+  mutate:
+  - fault: set_param
+    node: filter
+    param: cutoff
+    value: 0.0
+  - fault: set_param
+    node: filter
+    param: mode
+    value: 0.0
+  - fault: remove_cables_to
+    node: filter
+    jack: cutoff
+  query: nothing comes out of the speakers
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - cutoff
+    - filter
+    - filter
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: filter-closed
+    mentions:
+    - cutoff
+    - filter
+    - filter
+- id: diagnose-filter-closed-05
+  skill: diagnose
+  difficulty: hard
+  tags:
+  - fault:filter-closed
+  patch: preset:cv-mixer-scanning-four-notes
+  mutate:
+  - fault: set_param
+    node: filter
+    param: cutoff
+    value: 0.0
+  - fault: set_param
+    node: filter
+    param: mode
+    value: 0.0
+  - fault: remove_cables_to
+    node: filter
+    jack: cutoff
+  query: why is there no sound?
+  checks:
+  - kind: valid_patch
+  - kind: text_contains
+    any:
+    - cutoff
+    - filter
+    - filter
+  - kind: fixes_fault
+  - kind: unrelated_changes
+    max: 3
+  judge: patch_general
+  gold:
+    fault: filter-closed
+    mentions:
+    - cutoff
+    - filter
+    - filter
+- id: diagnose-transport-stopped-01
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:transport
+  patch: preset:uncertainty-fluctuating-filter
+  query: why do i not hear sound?
+  env:
+    transport:
+      playing: false
+      bpm: 120
+  checks:
+  - kind: text_contains
+    any:
+    - transport
+    - play button
+    - press play
+    - stopped
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: transport
+- id: diagnose-transport-stopped-02
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:transport
+  patch: preset:switch-one-riff-four-treatments
+  query: i press keys but there is no sound
+  env:
+    transport:
+      playing: false
+      bpm: 120
+  checks:
+  - kind: text_contains
+    any:
+    - transport
+    - play button
+    - press play
+    - stopped
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: transport
+- id: diagnose-transport-stopped-03
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:transport
+  patch: preset:wavetable-osc-warp-bass
+  query: my patch is silent, what is wrong?
+  env:
+    transport:
+      playing: false
+      bpm: 120
+  checks:
+  - kind: text_contains
+    any:
+    - transport
+    - play button
+    - press play
+    - stopped
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: transport
+- id: diagnose-transport-stopped-04
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:transport
+  patch: preset:vca-tremolo-chords
+  query: nothing comes out of the speakers
+  env:
+    transport:
+      playing: false
+      bpm: 120
+  checks:
+  - kind: text_contains
+    any:
+    - transport
+    - play button
+    - press play
+    - stopped
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: transport
+- id: diagnose-transport-stopped-05
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:transport
+  patch: preset:crunch-aliased-lead
+  query: why is there no sound?
+  env:
+    transport:
+      playing: false
+      bpm: 120
+  checks:
+  - kind: text_contains
+    any:
+    - transport
+    - play button
+    - press play
+    - stopped
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: transport
+- id: diagnose-audio-suspended-01
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:audio-off
+  patch: preset:uncertainty-fluctuating-filter
+  query: my patch is silent, what is wrong?
+  env:
+    audio:
+      running: false
+      sampleRate: 48000
+      muted: false
+  checks:
+  - kind: text_contains
+    any:
+    - audio engine
+    - suspended
+    - click
+    - audio is not running
+    - browser audio
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: audio-off
+- id: diagnose-audio-suspended-02
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:audio-off
+  patch: preset:switch-one-riff-four-treatments
+  query: nothing comes out of the speakers
+  env:
+    audio:
+      running: false
+      sampleRate: 48000
+      muted: false
+  checks:
+  - kind: text_contains
+    any:
+    - audio engine
+    - suspended
+    - click
+    - audio is not running
+    - browser audio
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: audio-off
+- id: diagnose-audio-suspended-03
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:audio-off
+  patch: preset:clock-div-binary-counter-bass
+  query: why is there no sound?
+  env:
+    audio:
+      running: false
+      sampleRate: 48000
+      muted: false
+  checks:
+  - kind: text_contains
+    any:
+    - audio engine
+    - suspended
+    - click
+    - audio is not running
+    - browser audio
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: audio-off
+- id: diagnose-audio-suspended-04
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:audio-off
+  patch: preset:wavetable-osc-warp-bass
+  query: there is no sound, can you find out why and fix it?
+  env:
+    audio:
+      running: false
+      sampleRate: 48000
+      muted: false
+  checks:
+  - kind: text_contains
+    any:
+    - audio engine
+    - suspended
+    - click
+    - audio is not running
+    - browser audio
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: audio-off
+- id: diagnose-audio-suspended-05
+  skill: diagnose
+  difficulty: easy
+  tags:
+  - fault:audio-off
+  patch: preset:vca-tremolo-chords
+  query: why do i not hear sound?
+  env:
+    audio:
+      running: false
+      sampleRate: 48000
+      muted: false
+  checks:
+  - kind: text_contains
+    any:
+    - audio engine
+    - suspended
+    - click
+    - audio is not running
+    - browser audio
+  - kind: no_state_change
+  judge: patch_general
+  gold:
+    fault: audio-off

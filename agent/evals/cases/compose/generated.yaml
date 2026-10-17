@@ -1,0 +1,642 @@
+- id: compose-01
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:xy-scope-locked-fifth-knot
+  query: in the step sequencer program an acid line
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 9
+    - 14
+    accents: 2
+    ties: 1
+    range_semitones:
+    - 7
+    - 24
+    motif: true
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-02
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:test-oscillator-kicked-bell
+  query: program a 303 style acid bassline in a minor
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 9
+    - 14
+    accents: 2
+    ties: 1
+    range_semitones:
+    - 7
+    - 24
+    motif: true
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-03
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:pitch-shifter-parallel-fifth
+  query: write a driving techno bassline, 16 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 10
+    - 16
+    accents: 1
+    range_semitones:
+    - 0
+    - 14
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-04
+  skill: compose
+  difficulty: easy
+  tags:
+  - sequencer
+  patch: preset:pulse-generator-gate-echo
+  query: program an 8 step arpeggio in the sequencer
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 8
+    - 8
+    gated:
+    - 6
+    - 8
+    range_semitones:
+    - 5
+    - 24
+  - kind: audible
+  judge: compose_musical
+- id: compose-05
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:attenuverter-kick-ducking
+  query: make a slow ambient melody with long held notes, 8 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 8
+    - 8
+    gated:
+    - 3
+    - 8
+    ties: 1
+    range_semitones:
+    - 4
+    - 19
+  - kind: audible
+  judge: compose_musical
+- id: compose-06
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:coin-toss-kick-or-snare
+  query: program a funky bassline with rests and accents
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 7
+    - 13
+    accents: 2
+    range_semitones:
+    - 3
+    - 17
+  - kind: audible
+  judge: compose_musical
+- id: compose-07
+  skill: compose
+  difficulty: easy
+  tags:
+  - sequencer
+  patch: preset:oscillator-hard-sync-sweep
+  query: give me a simple major scale melody going up and down, 16 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 14
+    - 16
+    range_semitones:
+    - 10
+    - 14
+    pitch_classes:
+    - 0
+    - 2
+    - 4
+    - 5
+    - 7
+    - 9
+    - 11
+    pitch_tolerance: 1
+  - kind: audible
+  judge: compose_musical
+- id: compose-08
+  skill: compose
+  difficulty: easy
+  tags:
+  - sequencer
+  patch: preset:matrix-mixer-soft-clip-stage
+  query: program a repeating 4 step bass ostinato
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 4
+    - 16
+    gated:
+    - 3
+    - 16
+    range_semitones:
+    - 0
+    - 12
+  - kind: audible
+  judge: compose_musical
+- id: compose-09
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:arpeggiator-converging-bass
+  query: a minimal house bass pattern with off-beat notes
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 4
+    - 10
+    range_semitones:
+    - 0
+    - 12
+  - kind: audible
+  judge: compose_musical
+- id: compose-10
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:dial-reverb-blend
+  query: write a dark phrygian riff, 16 steps with a few slides
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 8
+    - 14
+    ties: 1
+    range_semitones:
+    - 5
+    - 20
+  - kind: audible
+  judge: compose_musical
+- id: compose-11
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:dual-filter-vowel-talker
+  query: in the step sequencer program an acid line
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 9
+    - 14
+    accents: 2
+    ties: 1
+    range_semitones:
+    - 7
+    - 24
+    motif: true
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-12
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:limiter-flattened-swells
+  query: program a 303 style acid bassline in a minor
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 9
+    - 14
+    accents: 2
+    ties: 1
+    range_semitones:
+    - 7
+    - 24
+    motif: true
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-13
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:delay-wide-double
+  query: write a driving techno bassline, 16 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 10
+    - 16
+    accents: 1
+    range_semitones:
+    - 0
+    - 14
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-14
+  skill: compose
+  difficulty: easy
+  tags:
+  - sequencer
+  patch: preset:modal-voice-plucked-strings
+  query: program an 8 step arpeggio in the sequencer
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 8
+    - 8
+    gated:
+    - 6
+    - 8
+    range_semitones:
+    - 5
+    - 24
+  - kind: audible
+  judge: compose_musical
+- id: compose-15
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:quantizer-chromatic-run-to-hirajoshi
+  query: make a slow ambient melody with long held notes, 8 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 8
+    - 8
+    gated:
+    - 3
+    - 8
+    ties: 1
+    range_semitones:
+    - 4
+    - 19
+  - kind: audible
+  judge: compose_musical
+- id: compose-16
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:cv-to-notes-octave-runs
+  query: program a funky bassline with rests and accents
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 7
+    - 13
+    accents: 2
+    range_semitones:
+    - 3
+    - 17
+  - kind: audible
+  judge: compose_musical
+- id: compose-17
+  skill: compose
+  difficulty: easy
+  tags:
+  - sequencer
+  patch: preset:dual-osc-sync-sweep
+  query: give me a simple major scale melody going up and down, 16 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 14
+    - 16
+    range_semitones:
+    - 10
+    - 14
+    pitch_classes:
+    - 0
+    - 2
+    - 4
+    - 5
+    - 7
+    - 9
+    - 11
+    pitch_tolerance: 1
+  - kind: audible
+  judge: compose_musical
+- id: compose-18
+  skill: compose
+  difficulty: easy
+  tags:
+  - sequencer
+  patch: preset:sweep-generator-climbing-blips
+  query: program a repeating 4 step bass ostinato
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 4
+    - 16
+    gated:
+    - 3
+    - 16
+    range_semitones:
+    - 0
+    - 12
+  - kind: audible
+  judge: compose_musical
+- id: compose-19
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:vca-kick-ducking
+  query: a minimal house bass pattern with off-beat notes
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 4
+    - 10
+    range_semitones:
+    - 0
+    - 12
+  - kind: audible
+  judge: compose_musical
+- id: compose-20
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:saturator-worn-machine
+  query: write a dark phrygian riff, 16 steps with a few slides
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 8
+    - 14
+    ties: 1
+    range_semitones:
+    - 5
+    - 20
+  - kind: audible
+  judge: compose_musical
+- id: compose-21
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:zone-delay-loop-catcher
+  query: in the step sequencer program an acid line
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 9
+    - 14
+    accents: 2
+    ties: 1
+    range_semitones:
+    - 7
+    - 24
+    motif: true
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-22
+  skill: compose
+  difficulty: hard
+  tags:
+  - sequencer
+  patch: preset:chord-osc-bass-and-stabs
+  query: program a 303 style acid bassline in a minor
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 9
+    - 14
+    accents: 2
+    ties: 1
+    range_semitones:
+    - 7
+    - 24
+    motif: true
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-23
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:arpeggiator-random-sparks
+  query: write a driving techno bassline, 16 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 16
+    - 16
+    gated:
+    - 10
+    - 16
+    accents: 1
+    range_semitones:
+    - 0
+    - 14
+    pitch_classes:
+    - 0
+    - 2
+    - 3
+    - 5
+    - 7
+    - 8
+    - 10
+    pitch_tolerance: 2
+  - kind: audible
+  judge: compose_musical
+- id: compose-24
+  skill: compose
+  difficulty: easy
+  tags:
+  - sequencer
+  patch: preset:arpeggiator-triplet-up-down
+  query: program an 8 step arpeggio in the sequencer
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 8
+    - 8
+    gated:
+    - 6
+    - 8
+    range_semitones:
+    - 5
+    - 24
+  - kind: audible
+  judge: compose_musical
+- id: compose-25
+  skill: compose
+  tags:
+  - sequencer
+  patch: preset:vca-rhythm-gate
+  query: make a slow ambient melody with long held notes, 8 steps
+  checks:
+  - kind: valid_patch
+  - kind: pattern
+    length:
+    - 8
+    - 8
+    gated:
+    - 3
+    - 8
+    ties: 1
+    range_semitones:
+    - 4
+    - 19
+  - kind: audible
+  judge: compose_musical

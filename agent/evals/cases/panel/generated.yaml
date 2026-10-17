@@ -1,0 +1,494 @@
+- id: panel-build-01
+  skill: panel
+  tags:
+  - build
+  patch: preset:ring-cowbell-bell-and-clap-shuffle
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - ringco.level
+    - ringki.level
+    - ringcl.level
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-02
+  skill: panel
+  tags:
+  - build
+  patch: preset:gate-sequencer-fill-switch
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params: []
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-03
+  skill: panel
+  tags:
+  - build
+  patch: preset:ring-kick-driven-break
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - ringki.level
+    - ringsn.level
+    - ringha.level
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-04
+  skill: panel
+  tags:
+  - build
+  patch: preset:freq-shifter-opposite-shifts-widener
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - freqsh.mix
+    - adsr.attack
+    - adsr.release
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-05
+  skill: panel
+  tags:
+  - build
+  patch: preset:drum-grid-twelve-step-waltz
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - ringri.level
+    - adsr.attack
+    - adsr.release
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-06
+  skill: panel
+  tags:
+  - build
+  patch: preset:wavetable-osc-spiral-path
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - adsr.attack
+    - adsr.release
+    - adsr2.attack
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-07
+  skill: panel
+  tags:
+  - build
+  patch: preset:ring-rim-two-woodblocks
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - ringri.level
+    - ringri2.level
+    - ringki.level
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-08
+  skill: panel
+  tags:
+  - build
+  patch: preset:chord-osc-slow-seventh-pad
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - adsr.attack
+    - adsr.release
+    - reverb.mix
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-09
+  skill: panel
+  tags:
+  - build
+  patch: preset:splice-tape-stop
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params: []
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-10
+  skill: panel
+  tags:
+  - build
+  patch: preset:delay-net-parallel-rhythm-taps
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - delayn.mix
+    - adsr.attack
+    - adsr.release
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-11
+  skill: panel
+  tags:
+  - build
+  patch: preset:segments-looping-filter-shape
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - adsr.attack
+    - adsr.release
+    - filter.cutoff
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-build-12
+  skill: panel
+  tags:
+  - build
+  patch: preset:noise-blue-hat-patterns
+  mutate:
+  - fault: strip_panels
+  query: build a panel for the patch
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    params:
+    - noise.level
+    - adsr.attack
+    - adsr.release
+    min_controls: 6
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-01
+  skill: panel
+  tags:
+  - organize
+  patch: preset:chart-recorder-marked-hits
+  mutate:
+  - fault: scramble_panel
+    seed: 0
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 37
+    params:
+    - chartr.gain
+    - chartr.response
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-02
+  skill: panel
+  tags:
+  - organize
+  patch: preset:adsr-bass-under-a-beat
+  mutate:
+  - fault: scramble_panel
+    seed: 1
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 30
+    params:
+    - adsr.attack
+    - adsr.decay
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-03
+  skill: panel
+  tags:
+  - organize
+  patch: preset:sweep-generator-harbour-siren
+  mutate:
+  - fault: scramble_panel
+    seed: 2
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 29
+    params:
+    - sweepg.start
+    - sweepg.stop
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-04
+  skill: panel
+  tags:
+  - organize
+  patch: preset:step-sequencer-ping-pong-bells
+  mutate:
+  - fault: scramble_panel
+    seed: 3
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 14
+    params:
+    - oscill.shape
+    - oscill.pw
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-05
+  skill: panel
+  tags:
+  - organize
+  patch: preset:delay-net-frozen-moment
+  mutate:
+  - fault: scramble_panel
+    seed: 4
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 23
+    params:
+    - delayn.time
+    - delayn.taps
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-06
+  skill: panel
+  tags:
+  - organize
+  patch: preset:attenuverter-wandering-sum
+  mutate:
+  - fault: scramble_panel
+    seed: 5
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 32
+    params:
+    - attenu.scale1
+    - attenu.offset1
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-07
+  skill: panel
+  tags:
+  - organize
+  patch: preset:test-oscillator-lamp-drives-filter
+  mutate:
+  - fault: scramble_panel
+    seed: 6
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 25
+    params:
+    - testos.range
+    - testos.freq
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-08
+  skill: panel
+  tags:
+  - organize
+  patch: preset:formant-osc-vowel-sweep
+  mutate:
+  - fault: scramble_panel
+    seed: 7
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 20
+    params:
+    - forman.formant
+    - forman.narrow
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-09
+  skill: panel
+  tags:
+  - organize
+  patch: preset:xy-scope-fm-knots
+  mutate:
+  - fault: scramble_panel
+    seed: 8
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 24
+    params:
+    - xyscop.xgain
+    - xyscop.ygain
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-10
+  skill: panel
+  tags:
+  - organize
+  patch: preset:perc-voice-glass-bells
+  mutate:
+  - fault: scramble_panel
+    seed: 9
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 21
+    params:
+    - percvo.engine
+    - percvo.pitch
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-11
+  skill: panel
+  tags:
+  - organize
+  patch: preset:function-four-related-curves
+  mutate:
+  - fault: scramble_panel
+    seed: 10
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 19
+    params:
+    - functi.rise
+    - functi.fall
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-12
+  skill: panel
+  tags:
+  - organize
+  patch: preset:bender-beat-crusher
+  mutate:
+  - fault: scramble_panel
+    seed: 11
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 26
+    params:
+    - bender.time
+    - bender.chance
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout
+- id: panel-organize-13
+  skill: panel
+  tags:
+  - organize
+  patch: preset:splice-break-chopper
+  mutate:
+  - fault: scramble_panel
+    seed: 12
+  query: organize the panel
+  checks:
+  - kind: panel_valid
+  - kind: panel_covers
+    min_controls: 41
+    params:
+    - splice.recmode
+    - splice.rectarget
+  - kind: valid_patch
+  - kind: unrelated_changes
+    max: 0
+  judge: panel_layout

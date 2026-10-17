@@ -15,6 +15,11 @@ next-prompts.md
 .claude/worktrees/
 website/app/public/play
 
+# Patch assistant: generated data and the evaluation workbench's cache and runs
+website/api/agent_data/
+.eval-cache/
+agent/evals/runs/
+
 # Website secrets and Python caches
 website/.env
 __pycache__/

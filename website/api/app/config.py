@@ -49,6 +49,22 @@ class Settings(BaseSettings):
     verify_hours: int = 48
     reset_minutes: int = 60
 
+    # The patch assistant (agent/, doc/specs/agent.md). Off by default: nothing is mounted that calls a model.
+    agent_enabled: bool = False
+    # Daily token budget (input + output) for ALL users together; resets at 00:00 UTC. 0 = no new runs.
+    agent_daily_tokens: int = 1_000_000
+    agent_model: str = "google-gla:gemini-3.8-flash"
+    agent_embed_model: str = "gemini-embedding-2"
+    # catalog.json, presets.jsonl and docs.sqlite (scripts/build/build-agent-data.sh), relative to the API's working directory.
+    agent_data_dir: str = "agent_data"
+    # Chat requests per user per minute (in memory, per process). 0 = no limit.
+    agent_user_per_minute: int = 6
+    agent_max_steps: int = 12
+    # Key for the model provider; without it the provider's usual variable is used (GEMINI_API_KEY, OPENAI_API_KEY).
+    agent_api_key: str | None = None
+    # Signs the resume tokens of paused runs; random per process when empty (a restart then ends pending runs).
+    agent_state_secret: str = ""
+
     # Hosts besides the API's own that may send cookie-authenticated writes (comma separated host[:port]), e.g. a dev server.
     allowed_origins: str = ""
 

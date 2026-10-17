@@ -7,6 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /srv
 COPY requirements.txt constraints.txt ./
 RUN pip install --no-cache-dir -c constraints.txt -r requirements.txt
+# The patch assistant library (agent/ in the repository, passed as the named build context `agentlib` by docker-compose.yml).
+COPY --from=agentlib . /tmp/agentlib
+RUN pip install --no-cache-dir -c constraints.txt /tmp/agentlib && rm -rf /tmp/agentlib
 COPY . .
 RUN useradd --system --no-create-home api
 USER api

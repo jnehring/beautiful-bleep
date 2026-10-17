@@ -55,7 +55,10 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-    build: api
+    build:
+      context: api
+      additional_contexts:
+        agentlib: ../agent   # the patch assistant library, installed into the image (api/Dockerfile)
     image: beautiful-bleep-api:latest
     environment:
       BLEEP_DATABASE_URL: postgresql+psycopg://bleep:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in website/.env}@db:5432/bleep
@@ -87,6 +90,14 @@ services:
       BLEEP_ISSUER_KEY: ${BLEEP_ISSUER_KEY:-}
       BLEEP_ISSUER_CERT: ${BLEEP_ISSUER_CERT:-}
       BLEEP_REQUIRE_SIGNATURES: ${BLEEP_REQUIRE_SIGNATURES:-true}
+      # The patch assistant (agent/, doc/specs/agent.md). Off unless BLEEP_AGENT_ENABLED=true. Needs website/api/agent_data/ (scripts/build/build-agent-data.sh).
+      BLEEP_AGENT_ENABLED: ${BLEEP_AGENT_ENABLED:-false}
+      BLEEP_AGENT_DAILY_TOKENS: ${BLEEP_AGENT_DAILY_TOKENS:-1000000}
+      BLEEP_AGENT_MODEL: ${BLEEP_AGENT_MODEL:-google-gla:gemini-3.8-flash}
+      BLEEP_AGENT_EMBED_MODEL: ${BLEEP_AGENT_EMBED_MODEL:-gemini-embedding-2}
+      BLEEP_AGENT_USER_PER_MINUTE: ${BLEEP_AGENT_USER_PER_MINUTE:-6}
+      BLEEP_AGENT_API_KEY: ${BLEEP_AGENT_API_KEY:-}
+      BLEEP_AGENT_STATE_SECRET: ${BLEEP_AGENT_STATE_SECRET:-}
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,591 @@
+# Seed documentation cases, written from the docs (gold pages and facts verified against them).
+# 'unanswerable' cases ask about things the documentation does not cover: the right answer is to say so.
+- id: docs-01
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: What is the shortcut to add a module on the board?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id001
+    - musicians/reference/shortcuts
+  - kind: text_contains
+    all:
+    - Tab
+  judge: docs_faithfulness
+  gold:
+    docs: *id001
+    facts:
+    - Tab
+- id: docs-02
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: How do I mute a module from the keyboard?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id002
+    - musicians/reference/shortcuts
+  judge: docs_faithfulness
+  gold:
+    docs: *id002
+    facts: []
+- id: docs-03
+  skill: docs
+  difficulty: easy
+  tags:
+  - everyday
+  - musicians
+  query: What is the difference between Bleep Play, the Bleep App and the Bleep plugin?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id003
+    - musicians/start/ways-to-use
+  - kind: text_contains
+    all:
+    - browser
+    - DAW
+  judge: docs_faithfulness
+  gold:
+    docs: *id003
+    facts:
+    - browser
+    - DAW
+- id: docs-04
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: How many voices can a Voice Cell play at the same time?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id004
+    - musicians/use/voice-cells
+  - kind: text_contains
+    all:
+    - '16'
+  judge: docs_faithfulness
+  gold:
+    docs: *id004
+    facts:
+    - '16'
+- id: docs-05
+  skill: docs
+  difficulty: medium
+  tags:
+  - everyday
+  - musicians
+  query: How can I play a Voice Cell from a step sequencer?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id005
+    - musicians/use/voice-cells
+  - kind: text_contains
+    all:
+    - CV to Notes
+  judge: docs_faithfulness
+  gold:
+    docs: *id005
+    facts:
+    - CV to Notes
+- id: docs-06
+  skill: docs
+  difficulty: medium
+  tags:
+  - everyday
+  - musicians
+  query: How can I run what my computer is playing through a reverb?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id006
+    - musicians/connect/system-audio
+  - kind: text_contains
+    all:
+    - System
+  judge: docs_faithfulness
+  gold:
+    docs: *id006
+    facts:
+    - System
+- id: docs-07
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: What happens to a port's node when its plugin is deleted in Live?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id007
+    - musicians/use/ports
+  - kind: text_contains
+    all:
+    - grey
+  judge: docs_faithfulness
+  gold:
+    docs: *id007
+    facts:
+    - grey
+- id: docs-08
+  skill: docs
+  difficulty: medium
+  tags:
+  - everyday
+  - musicians
+  query: How do I shape the volume of a note with an ADSR?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id008
+    - module:adsr
+    - module:vca
+  - kind: text_contains
+    all:
+    - Gain
+  judge: docs_faithfulness
+  gold:
+    docs: *id008
+    facts:
+    - Gain
+- id: docs-09
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: What range does the VCA gain knob have?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id009
+    - module:vca
+  - kind: text_contains
+    all:
+    - '400'
+  judge: docs_faithfulness
+  gold:
+    docs: *id009
+    facts:
+    - '400'
+- id: docs-10
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: What does Freeze do in the reverb?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id010
+    - module:reverb
+  - kind: text_contains
+    all:
+    - Freeze
+  judge: docs_faithfulness
+  gold:
+    docs: *id010
+    facts:
+    - Freeze
+- id: docs-11
+  skill: docs
+  difficulty: medium
+  tags:
+  - everyday
+  - musicians
+  query: How do I make a ducking effect with a VCA?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id011
+    - module:vca
+  - kind: text_contains
+    all:
+    - negative
+  judge: docs_faithfulness
+  gold:
+    docs: *id011
+    facts:
+    - negative
+- id: docs-12
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: What is the Active output of the ADSR for?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id012
+    - module:adsr
+  - kind: text_contains
+    all:
+    - Voice Cell
+  judge: docs_faithfulness
+  gold:
+    docs: *id012
+    facts:
+    - Voice Cell
+- id: docs-13
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: How does cutoff modulation work in the Multi Filter, in octaves or Hz?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id013
+    - module:filter
+  - kind: text_contains
+    all:
+    - octave
+  judge: docs_faithfulness
+  gold:
+    docs: *id013
+    facts:
+    - octave
+- id: docs-14
+  skill: docs
+  difficulty: medium
+  tags:
+  - everyday
+  - musicians
+  query: How do I get a crunchy distorted sound?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id014
+    - module:crunch
+  - kind: text_contains
+    all:
+    - Drive
+  judge: docs_faithfulness
+  gold:
+    docs: *id014
+    facts:
+    - Drive
+- id: docs-15
+  skill: docs
+  difficulty: medium
+  tags:
+  - exact
+  - developers
+  query: How does a developer sign a module?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id015
+    - developers/modules/signing
+  - kind: text_contains
+    all:
+    - key
+  judge: docs_faithfulness
+  gold:
+    docs: *id015
+    facts:
+    - key
+- id: docs-16
+  skill: docs
+  difficulty: medium
+  tags:
+  - exact
+  - developers
+  query: How do I publish a module to the library?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id016
+    - developers/modules/publishing
+  - kind: text_contains
+    all:
+    - release
+  judge: docs_faithfulness
+  gold:
+    docs: *id016
+    facts:
+    - release
+- id: docs-17
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - developers
+  query: Under which licence can I release my own module?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id017
+    - developers/modules/licensing
+  - kind: text_contains
+    all:
+    - Module Exception
+  judge: docs_faithfulness
+  gold:
+    docs: *id017
+    facts:
+    - Module Exception
+- id: docs-18
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - developers
+  query: Which browser thread runs the audio in Bleep Play?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id018
+    - developers/web/bleep-play
+  - kind: text_contains
+    all:
+    - AudioWorklet
+  judge: docs_faithfulness
+  gold:
+    docs: *id018
+    facts:
+    - AudioWorklet
+- id: docs-19
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - developers
+  query: How do I build only the modules for the web?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id019
+    - developers/web/bleep-play
+    - developers/setup/build-and-release
+  - kind: text_contains
+    all:
+    - --modules-only
+  judge: docs_faithfulness
+  gold:
+    docs: *id019
+    facts:
+    - --modules-only
+- id: docs-20
+  skill: docs
+  difficulty: medium
+  tags:
+  - everyday
+  - musicians
+  query: What is a ghost node?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id020
+    - musicians/use/ports
+    - musicians/reference/glossary
+  judge: docs_faithfulness
+  gold:
+    docs: *id020
+    facts: []
+- id: docs-21
+  skill: docs
+  difficulty: hard
+  tags:
+  - everyday
+  - musicians
+  query: My Voice Cell sounds cut off when I release a key, how do I make the voice end when the sound has faded?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id021
+    - module:adsr
+  - kind: text_contains
+    all:
+    - Active
+  judge: docs_faithfulness
+  gold:
+    docs: *id021
+    facts:
+    - Active
+- id: docs-22
+  skill: docs
+  difficulty: hard
+  tags:
+  - everyday
+  - musicians
+  query: Can I map a board signal to a parameter in Ableton Live without Max for Live?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id022
+    - musicians/connect/loopback-cc
+  - kind: text_contains
+    all:
+    - virtual MIDI port
+  judge: docs_faithfulness
+  gold:
+    docs: *id022
+    facts:
+    - virtual MIDI port
+- id: docs-23
+  skill: docs
+  difficulty: easy
+  tags:
+  - exact
+  - musicians
+  query: How do I turn on capturing the system audio in the Bleep App?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id023
+    - musicians/connect/system-audio
+  - kind: text_contains
+    all:
+    - Settings
+  judge: docs_faithfulness
+  gold:
+    docs: *id023
+    facts:
+    - Settings
+- id: docs-24
+  skill: docs
+  difficulty: hard
+  tags:
+  - exact
+  - developers
+  query: Do I need a release token to publish modules, and how long does it last?
+  checks:
+  - kind: no_state_change
+  - kind: cites
+    docs: &id024
+    - developers/setup/build-and-release
+  - kind: text_contains
+    all:
+    - token
+  judge: docs_faithfulness
+  gold:
+    docs: *id024
+    facts:
+    - token
+- id: docs-unanswerable-01
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - musicians
+  query: Can I export my patch as an MP3 file?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
+- id: docs-unanswerable-02
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - musicians
+  query: Does Bleep work with Kontakt libraries?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
+- id: docs-unanswerable-03
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - musicians
+  query: Is there an Android version of Bleep?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
+- id: docs-unanswerable-04
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - musicians
+  query: How do I use Bleep in Logic Pro?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
+- id: docs-unanswerable-05
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - developers
+  query: Does Bleep support the VST2 plugin format?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
+- id: docs-unanswerable-06
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - musicians
+  query: How do I install the Bleep plugins in Pro Tools?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
+- id: docs-unanswerable-07
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - musicians
+  query: Can I use Bleep with REAPER?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
+- id: docs-unanswerable-08
+  skill: docs
+  difficulty: medium
+  tags:
+  - unanswerable
+  - developers
+  query: Is there a hosted cloud rendering API for patches?
+  checks:
+  - kind: no_state_change
+  - kind: says_unknown
+  judge: docs_faithfulness
+  gold:
+    docs: []
+    unanswerable: true
