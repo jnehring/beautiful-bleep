@@ -6,12 +6,20 @@
 #   docs.sqlite    the documentation index: chunks, full-text index and, with --embed, embeddings
 #
 #   scripts/build/build-agent-data.sh                       keyword-only documentation search, no API key needed
-#   scripts/build/build-agent-data.sh --embed gemini-embedding-2   + embeddings (needs GOOGLE_API_KEY; cached in .eval-cache)
+#   scripts/build/build-agent-data.sh --embed gemini-embedding-2   + embeddings (needs GOOGLE_API_KEY, from the shell or website/.env; cached in .eval-cache)
 #
 # Run it again after docs, modules or demo patches change; ship the result with the API image (website/api/Dockerfile).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
+# Provider keys: from the environment, else from website/.env (only these two lines are read; the file is not sourced).
+for var in GOOGLE_API_KEY OPENAI_API_KEY; do
+    if [[ -z "${!var:-}" && -f website/.env ]]; then
+        val="$(grep -E "^${var}=" website/.env | tail -n 1 | cut -d= -f2- || true)"
+        val="${val%\"}"; val="${val#\"}"; val="${val%\'}"; val="${val#\'}"
+        [[ -n "$val" ]] && export "$var=$val"
+    fi
+done
 PY="${PYTHON:-python3}"
 if ! "$PY" -c "import bleep_agent" 2>/dev/null; then
     echo "bleep_agent is not installed: python3 -m venv .venv-agent && .venv-agent/bin/pip install -e agent  (then PYTHON=.venv-agent/bin/python)" >&2
