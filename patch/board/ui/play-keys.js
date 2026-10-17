@@ -2,7 +2,7 @@
 // play-keys.js — an on-screen piano for Bleep Play, shown while an instrument preset is played on its own (play-wrap.js). The computer
 // keyboard and Web MIDI already play the MIDI In node (patch/web/js/bleep-web.js); this adds mouse and touch, for the phone.
 //
-//   BleepPlayKeys.show(name, route)   the bar with the preset's name and two octaves of keys; hide() removes it. `route` ({on(note), off(note)}):
+//   BleepPlayKeys.show(name, route)   the bar with two octaves of keys; hide() removes it. `route` ({on(note), off(note)}):
 //     how to play when the page has no BleepWeb (the standalone app presses the keys of a Keyboard module)
 // It calls BleepWeb.noteOn(note, velocity) and noteOff(note) when the page has them (Bleep Play); in the dev server it only draws.
 (function () {
@@ -10,7 +10,7 @@
   const WHITE = [0, 2, 4, 5, 7, 9, 11], BLACK = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };   // semitone → white key it follows
   const NAMES = ["C", "D", "E", "F", "G", "A", "B"];
   const BLACK_WIDTH = 4.3;   // percent of the keyboard: 60 % of a white key (100 / 14 = 7.14 %)
-  let bar = null, octave = 3, label = null;
+  let bar = null, octave = 3;
   const down = new Map();   // pointer id → note
 
   const web = () => window.BleepWeb;
@@ -37,16 +37,15 @@
     bar = el("div", "pk");
     bar.id = "play-keys";
     const head = el("div", "pk-head");
-    label = el("span", "pk-name");
     const down1 = el("button", "pk-oct", "−");
     const up1 = el("button", "pk-oct", "+");
     const oct = el("span", "pk-octave");
     const redraw = () => { oct.textContent = "Octave " + octave; draw(); };
     down1.title = "Octave down"; up1.title = "Octave up";
-    down1.addEventListener("click", () => { octave = Math.max(0, octave - 1); redraw(); });
-    up1.addEventListener("click", () => { octave = Math.min(7, octave + 1); redraw(); });
-    const hint = el("span", "pk-hint", "Computer keys A S D F … play too");
-    head.append(label, down1, oct, up1, hint);
+    down1.addEventListener("click", () => change(-1));
+    up1.addEventListener("click", () => change(1));
+    const hint = el("span", "pk-hint", "Computer keys A S D F … play too, Y / X for the octave");
+    head.append(down1, oct, up1, hint);
     keys = el("div", "pk-keys");
     keys.addEventListener("pointerdown", (e) => {
       const k = e.target.closest("[data-note]");
@@ -73,6 +72,16 @@
   }
 
   let keys = null;
+  /// One octave up or down, from the buttons or the computer keys (Y / X): the piano and the octave the computer keys play in move together.
+  function change(d) {
+    const next = Math.max(0, Math.min(7, octave + d));
+    if (next === octave) return;
+    d = next - octave;
+    octave = next;
+    if (bar) { bar.querySelector(".pk-octave").textContent = "Octave " + octave; draw(); }
+    const w = web();
+    if (w && w.shiftOctave) w.shiftOctave(d);
+  }
   /// Two octaves from C of the current octave: white keys in a row, black keys over them.
   function draw() {
     keys.innerHTML = "";
@@ -100,12 +109,12 @@
     show(name, how) {
       route = how || null;
       if (!bar) build();
-      label.textContent = name || "";
       bar.hidden = false;
       const source = document.getElementById("play-source");   // an effect's source bar sits at the bottom too: stand above it
       bar.style.bottom = source && !source.hidden ? source.offsetHeight + "px" : "0";
     },
     hide() { if (bar) bar.hidden = true; },
+    change,
     visible: () => !!bar && !bar.hidden,
     /// The octave of the lowest key (the C that is labelled C<octave>); 3 is where an instrument starts.
     setOctave(o) {

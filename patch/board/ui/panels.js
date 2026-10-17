@@ -508,7 +508,7 @@
         down.delete(code);
       };
       const onDown = (ev) => {
-        if (!over || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+        if (window.BleepWeb || !over || ev.metaKey || ev.ctrlKey || ev.altKey) return;
         const tag = ev.target && ev.target.tagName;
         if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
         if (ev.code === "KeyZ" || ev.code === "KeyX") {

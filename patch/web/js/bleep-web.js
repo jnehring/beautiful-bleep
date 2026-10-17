@@ -126,6 +126,7 @@
     setPlaying(on) { W.transport.playing = !!on; post({ cmd: "play", on: !!on }); },
     /// The octave the computer keys start in (A is its C); a drum map asks for a low one so that the keys are the drum notes.
     setOctave(o) { octave = Math.max(0, Math.min(8, Math.round(o))); },
+    shiftOctave(d) { W.setOctave(octave + d); },
     noteOn: (note, velocity = 0.8) => post({ cmd: "noteOn", note, velocity, channel: 0 }),
     /// A key of the screen keyboard: plays the MIDI In nodes and the Keyboard modules, as the computer keys do.
     keyDown(note, velocity = 0.8) { W.noteOn(note, velocity); played(note, "on"); },
@@ -231,27 +232,34 @@
   });
 
   // ---- the computer keyboard plays the MIDI In nodes ------------------------------
-  const keys = "awsedftgyhujkolp;'".split("");  // C … E, piano layout
-  const down = new Set();
+  // Physical keys (so any layout has the piano in the same place), semitones above C; Z and X (Y and X on a German keyboard) move the octave.
+  const keys = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon", "Quote"];
+  const down = new Map();   // key code → the note it started: the octave may change before the key comes up
   let octave = 4;
   /// Keyboard modules play too (their own view handles the keys only while it has focus).
   const played = (note, action) => {
     if (board) for (const n of board.nodes) if (n.type === "keyboard") W.perform(n.id, action, [note]);
   };
   window.addEventListener("keydown", (e) => {
-    if (!W.running || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (!W.running || e.metaKey || e.ctrlKey || e.altKey) return;
     if (/^(input|textarea|select)$/i.test(e.target.tagName) || e.target.isContentEditable) return;
-    const k = keys.indexOf(e.key.toLowerCase());
-    if (k < 0 || down.has(e.key)) return;
-    down.add(e.key);
+    if (e.code === "KeyZ" || e.code === "KeyX") {   // with the screen keyboard up, it follows (play-keys.js)
+      if (e.repeat) return;
+      const d = e.code === "KeyZ" ? -1 : 1, pk = window.BleepPlayKeys;
+      if (pk && pk.visible()) pk.change(d); else W.shiftOctave(d);
+      return;
+    }
+    const k = keys.indexOf(e.code);
+    if (k < 0 || e.repeat || down.has(e.code)) return;
     const note = 12 * (octave + 1) + k;
+    down.set(e.code, note);
     W.noteOn(note);
     played(note, "on");
   });
   window.addEventListener("keyup", (e) => {
-    const k = keys.indexOf(e.key.toLowerCase());
-    if (k < 0 || !down.delete(e.key)) return;
-    const note = 12 * (octave + 1) + k;
+    const note = down.get(e.code);
+    if (note === undefined) return;
+    down.delete(e.code);
     W.noteOff(note);
     played(note, "off");
   });
