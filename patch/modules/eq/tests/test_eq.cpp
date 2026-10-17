@@ -7,9 +7,10 @@
 using namespace bleep::patch;
 static constexpr double kSr = 48000.0;
 static constexpr double kPi = 3.14159265358979323846;
+static constexpr int kN = EqDsp::kBands;
 
-/// Gain in dB of the four bands at `hz`.
-static double gainDb(const EqBand (&bands)[4], double hz) {
+/// Gain in dB of the bands at `hz`, measured through the running filter.
+static double gainDb(const EqBand (&bands)[kN], double hz) {
     EqDsp d;
     d.prepare(kSr);
     d.setBands(bands);
@@ -21,46 +22,99 @@ static double gainDb(const EqBand (&bands)[4], double hz) {
     return 20.0 * std::log10(bleep::test::rms(y) * std::sqrt(2.0));
 }
 
-static EqBand flat[4] = {{EqBand::LowShelf, 120.0f, 0.0f, 0.7f}, {EqBand::Peak, 400.0f, 0.0f, 1.0f},
-                         {EqBand::Peak, 2500.0f, 0.0f, 1.0f}, {EqBand::HighShelf, 8000.0f, 0.0f, 0.7f}};
+/// Eight bells at 0 dB: a wire.
+static void flat(EqBand (&b)[kN]) {
+    for (int i = 0; i < kN; ++i) b[i] = {EqBand::Bell, true, 200.0f * (i + 1), 0.0f, 1.0f, 2};
+}
 
 static void flatIsAWire() {
     TEST("all bands at 0 dB pass the signal unchanged");
-    for (double hz : {60.0, 1000.0, 9000.0}) EXPECT_NEAR(gainDb(flat, hz), 0.0, 0.01);
+    EqBand b[kN];
+    flat(b);
+    b[0].kind = EqBand::LowShelf;
+    b[7].kind = EqBand::HighShelf;
+    for (double hz : {60.0, 1000.0, 9000.0}) EXPECT_NEAR(gainDb(b, hz), 0.0, 0.01);
 }
 
 static void bellBoostsAtItsFrequency() {
     TEST("a bell has its gain at its centre and little far away");
-    EqBand b[4];
-    std::copy(flat, flat + 4, b);
-    b[1].gainDb = 12.0f;
-    b[1].q = 2.0f;
-    EXPECT_NEAR(gainDb(b, 400.0), 12.0, 0.1);
-    EXPECT(std::fabs(gainDb(b, 4000.0)) < 0.7);
+    EqBand b[kN];
+    flat(b);
+    b[3] = {EqBand::Bell, true, 800.0f, 12.0f, 2.0f, 2};
+    EXPECT_NEAR(gainDb(b, 800.0), 12.0, 0.1);
+    EXPECT(std::fabs(gainDb(b, 8000.0)) < 0.7);
     EXPECT(std::fabs(gainDb(b, 60.0)) < 0.7);
-    b[1].gainDb = -9.0f;
-    EXPECT_NEAR(gainDb(b, 400.0), -9.0, 0.1);
+    b[3].gainDb = -9.0f;
+    EXPECT_NEAR(gainDb(b, 800.0), -9.0, 0.1);
 }
 
 static void shelvesReachTheirGain() {
     TEST("the shelves reach their gain far from the corner and half of it at the corner");
-    EqBand b[4];
-    std::copy(flat, flat + 4, b);
-    b[0].gainDb = 10.0f;
-    b[3].gainDb = -8.0f;
+    EqBand b[kN];
+    flat(b);
+    b[1] = {EqBand::LowShelf, true, 120.0f, 10.0f, 0.7f, 2};
+    b[6] = {EqBand::HighShelf, true, 8000.0f, -8.0f, 0.7f, 2};
     EXPECT_NEAR(gainDb(b, 30.0), 10.0, 0.5);
     EXPECT_NEAR(gainDb(b, 120.0), 5.0, 0.6);
     EXPECT_NEAR(gainDb(b, 18000.0), -8.0, 0.8);
     EXPECT_NEAR(gainDb(b, 1000.0), 0.0, 0.5);
 }
 
-static void magnitudeMatchesTheFilter() {
-    TEST("the response the view draws equals the level measured through the filters");
-    EqBand b[4] = {{EqBand::LowShelf, 150.0f, 7.0f, 0.7f}, {EqBand::Peak, 500.0f, -6.0f, 2.0f},
-                   {EqBand::Peak, 3000.0f, 11.0f, 0.8f}, {EqBand::HighShelf, 7000.0f, -5.0f, 0.7f}};
-    for (double hz : {40.0, 150.0, 500.0, 1200.0, 3000.0, 9000.0}) {
+/// A Butterworth cut of order n at `fc`, in dB at `hz`, with the bilinear transform's frequency warping.
+static double butterworthDb(bool highPass, int n, double fc, double hz) {
+    const double r = highPass ? std::tan(kPi * fc / kSr) / std::tan(kPi * hz / kSr) : std::tan(kPi * hz / kSr) / std::tan(kPi * fc / kSr);
+    return -10.0 * std::log10(1.0 + std::pow(r, 2.0 * n));
+}
+
+static void cutsHaveTheirSlope() {
+    TEST("a cut is 3 dB down at its corner and follows a Butterworth response of its order");
+    EqBand b[kN];
+    flat(b);
+    for (int order : {1, 2, 3, 4, 6, 8}) {
+        b[0] = {EqBand::LowCut, true, 1000.0f, 0.0f, 1.0f, order};
+        EXPECT_NEAR(gainDb(b, 1000.0), -3.01, 0.1);
+        EXPECT_NEAR(gainDb(b, 500.0), butterworthDb(true, order, 1000.0, 500.0), 0.1);
+        EXPECT_NEAR(gainDb(b, 8000.0), 0.0, 0.1);
+        b[0].kind = EqBand::HighCut;
+        EXPECT_NEAR(gainDb(b, 1000.0), -3.01, 0.1);
+        EXPECT_NEAR(gainDb(b, 2000.0), butterworthDb(false, order, 1000.0, 2000.0), 0.1);
+        EXPECT_NEAR(gainDb(b, 125.0), 0.0, 0.1);
+    }
+}
+
+static void notchAndBandPass() {
+    TEST("a notch removes its centre, a band-pass is 0 dB there and cuts around it");
+    EqBand b[kN];
+    flat(b);
+    b[2] = {EqBand::Notch, true, 1000.0f, 0.0f, 4.0f, 2};
+    EXPECT(gainDb(b, 1000.0) < -40.0);
+    EXPECT_NEAR(gainDb(b, 100.0), 0.0, 0.1);
+    EXPECT_NEAR(gainDb(b, 10000.0), 0.0, 0.1);
+    b[2].kind = EqBand::BandPass;
+    EXPECT_NEAR(gainDb(b, 1000.0), 0.0, 0.1);
+    EXPECT(gainDb(b, 100.0) < -15.0);
+    EXPECT(gainDb(b, 10000.0) < -15.0);
+}
+
+static void offBandIsAWire() {
+    TEST("a band that is off passes the signal, and turning it on filters again");
+    EqBand b[kN];
+    flat(b);
+    b[0] = {EqBand::LowCut, false, 2000.0f, 0.0f, 1.0f, 4};
+    EXPECT_NEAR(gainDb(b, 200.0), 0.0, 0.01);
+    b[0].on = true;
+    EXPECT(gainDb(b, 200.0) < -30.0);
+}
+
+static void bandsAddUp() {
+    TEST("eight bands together are the sum of their responses");
+    EqBand b[kN] = {{EqBand::LowCut, true, 50.0f, 0.0f, 1.0f, 2},    {EqBand::LowShelf, true, 150.0f, 7.0f, 0.7f, 2},
+                    {EqBand::Bell, true, 500.0f, -6.0f, 2.0f, 2},    {EqBand::Bell, true, 1200.0f, 4.0f, 1.0f, 2},
+                    {EqBand::Notch, true, 3000.0f, 0.0f, 3.0f, 2},   {EqBand::Bell, true, 5000.0f, 5.0f, 0.8f, 2},
+                    {EqBand::HighShelf, true, 7000.0f, -5.0f, 0.7f, 2}, {EqBand::HighCut, true, 14000.0f, 0.0f, 1.0f, 3}};
+    for (double hz : {40.0, 150.0, 500.0, 1200.0, 2800.0, 5000.0, 9000.0}) {
         double db = 0.0;
-        for (const auto& band : b) db += Biquad::design(band, kSr).magnitudeDb(hz, kSr);
+        for (const auto& band : b) db += Biquad::bandMagnitudeDb(band, hz, kSr);
         EXPECT_NEAR(db, gainDb(b, hz), 0.05);
     }
 }
@@ -69,6 +123,9 @@ int main() {
     flatIsAWire();
     bellBoostsAtItsFrequency();
     shelvesReachTheirGain();
-    magnitudeMatchesTheFilter();
+    cutsHaveTheirSlope();
+    notchAndBandPass();
+    offBandIsAWire();
+    bandsAddUp();
     return bleep::test::finish("eq");
 }

@@ -141,7 +141,7 @@ function brokenRadio() {
       "Tip: try it on a full mix, then bring Damage up for dropouts.",
   }).stereoIn().stereoOut().input("damage", "Damage");
   const cr = p.add("crunch", [0, 0], { drive: 0.5, bits: 5, rate: 0.35, tone: 3200, level: 1 });
-  const eq = p.add("eq", [1, 0], { lowHz: 500, lowGain: -12, m2Hz: 1600, m2Gain: 5, m2Q: 1.2, highHz: 4500, highGain: -10 });
+  const eq = p.add("eq", [1, 0], { b1On: true, b1Hz: 500, b1Slope: "12 dB/oct", b8On: true, b8Hz: 4500, b6Hz: 1600, b6Gain: 5, b6Q: 1.2 });
   p.stereo(p.cin, cr).stereo(cr, eq).stereo(eq, p.cout)
     .cable(p.cin, "damage", cr, "bits", -0.35).cable(p.cin, "damage", cr, "rate", 0.35);
   return p;
@@ -157,7 +157,7 @@ function telephone() {
       "knob.\n\n" +
       "Tip: use it on a vocal or a drum loop and bring in Drive for distortion.",
   }).stereoIn().stereoOut().input("drive", "Drive");
-  const eq = p.add("eq", [0, 0], { lowHz: 700, lowGain: -15, m1Hz: 1500, m1Gain: 6, m1Q: 1.5, highHz: 3000, highGain: -15 });
+  const eq = p.add("eq", [0, 0], { b1On: true, b1Hz: 700, b1Slope: "24 dB/oct", b8On: true, b8Hz: 3000, b8Slope: "24 dB/oct", b4Hz: 1500, b4Gain: 6, b4Q: 1.5 });
   const cr = p.add("crunch", [1, 0], { drive: 0.35, mix: 0.7 });
   p.stereo(p.cin, eq).stereo(eq, cr).stereo(cr, p.cout).cable(p.cin, "drive", cr, "drive", 0.5);
   return p;
@@ -181,7 +181,7 @@ function wowAndFlutter() {
   const quick = p.add("lfo", [0, 2], { rate: 9, wave: "Random Smooth" }, { name: "Flutter" });
   const depth = p.add("multiplier", [1, 1], { biasx1: 0, biasy1: 0.6, gain1: 1, biasx2: 0, biasy2: 0.5, gain2: 1 }, { name: "Depth" });
   const shift = p.add("pitch-shifter", [2, 0], { pitch: 0, window: 30, drift: 0.2, mix: 1 }, { name: "Speed" });
-  const tone = p.add("eq", [3, 0], { lowHz: 60, lowGain: -2, highHz: 7000, highGain: -5 }, { name: "Head" });
+  const tone = p.add("eq", [3, 0], { b2Hz: 60, b2Gain: -2, b7Hz: 7000, b7Gain: -5 }, { name: "Head" });
   const sat = p.add("crunch", [4, 0], { drive: 0.25, mix: 0.6 }, { name: "Tape" });
   p.cable(slow, "out", depth, "x1", 0.7).cable(wander, "out", depth, "x1", 0.3).cable(p.cin, "wow", depth, "y1", 0.4)
     .cable(quick, "out", depth, "x2").cable(p.cin, "flutter", depth, "y2", 0.4)

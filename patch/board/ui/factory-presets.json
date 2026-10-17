@@ -5669,7 +5669,7 @@
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
           {"id":"crunch","type":"crunch","name":"Crunch","x":340,"y":40,"parent":"root","params":{"drive":0.5,"bits":0.266667,"rate":0.35,"tone":0.503215,"level":0.5}},
-          {"id":"eq","type":"eq","name":"EQ","x":640,"y":40,"parent":"root","params":{"lowHz":0.802328,"lowGain":0.1,"m2Hz":0.474539,"m2Gain":0.666667,"m2Q":0.422211,"highHz":0.520375,"highGain":0.166667}}
+          {"id":"eq","type":"eq","name":"EQ","x":640,"y":40,"parent":"root","params":{"b1On":1,"b1Hz":0.46598,"b1Slope":0.2,"b8On":1,"b8Hz":0.784061,"b6Hz":0.634363,"b6Gain":0.638889,"b6Q":0.478515}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"crunch","jack":"l"},"amount":1},
@@ -5697,7 +5697,7 @@
           {"id":"root","type":"cell","name":"Telephone","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"l","name":"In L","type":"audio"},{"id":"r","name":"In R","type":"audio"},{"id":"drive","name":"Drive","type":"control"}],"outputs":[{"id":"l","name":"Out L","type":"audio"},{"id":"r","name":"Out R","type":"audio"}]},
           {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
           {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
-          {"id":"eq","type":"eq","name":"EQ","x":340,"y":40,"parent":"root","params":{"lowHz":0.898283,"lowGain":0,"m1Hz":0.636501,"m1Gain":0.7,"m1Q":0.490172,"highHz":0.380094,"highGain":0}},
+          {"id":"eq","type":"eq","name":"EQ","x":340,"y":40,"parent":"root","params":{"b1On":1,"b1Hz":0.514689,"b1Slope":0.6,"b8On":1,"b8Hz":0.725364,"b8Slope":0.6,"b4Hz":0.62502,"b4Gain":0.666667,"b4Q":0.521485}},
           {"id":"crunch","type":"crunch","name":"Crunch","x":640,"y":40,"parent":"root","params":{"drive":0.35,"mix":0.7}}
         ],
         "cables": [
@@ -5730,7 +5730,7 @@
           {"id":"lfo3","type":"lfo","name":"Flutter","x":340,"y":480,"parent":"root","params":{"rate":0.798666,"wave":1}},
           {"id":"multip","type":"multiplier","name":"Depth","x":640,"y":260,"parent":"root","params":{"biasx1":0.5,"biasy1":0.8,"gain1":0.75,"biasx2":0.5,"biasy2":0.75,"gain2":0.75}},
           {"id":"pitchs","type":"pitch-shifter","name":"Speed","x":940,"y":40,"parent":"root","params":{"pitch":0.5,"window":0.143111,"drift":0.2,"mix":1}},
-          {"id":"eq","type":"eq","name":"Head","x":1240,"y":40,"parent":"root","params":{"lowHz":0.197672,"lowGain":0.433333,"highHz":0.673239,"highGain":0.333333}},
+          {"id":"eq","type":"eq","name":"Head","x":1240,"y":40,"parent":"root","params":{"b2Hz":0.15904,"b2Gain":0.444444,"b7Hz":0.848023,"b7Gain":0.361111}},
           {"id":"crunch","type":"crunch","name":"Tape","x":1540,"y":40,"parent":"root","params":{"drive":0.25,"mix":0.6}}
         ],
         "cables": [
