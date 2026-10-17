@@ -10,10 +10,13 @@ type Stats = {
   total: { tokens: number; input_tokens: number; output_tokens: number; cost_usd: number };
   windows: { all: Win; "7d": Win; "30d": Win };
   daily: Day[];
+  budget: { used: number; limit: number };
   pricing_configured: boolean;
 };
 
 const int = (n: number) => n.toLocaleString("en-US");
+/** 2,000,000 -> "2 mio", 2,400,000 -> "2.4 mio"; below a million the plain number. */
+const mio = (n: number) => (n >= 1e6 ? `${parseFloat((n / 1e6).toFixed(1))} mio` : int(n));
 const usd = (n: number) => `$${n.toFixed(n < 1 ? 4 : 2)}`;
 
 export default function ChatAdminPage() {
@@ -30,8 +33,9 @@ function Dashboard() {
   return (
     <section>
       <div className="tiles">
+        <Tile label="Today's budget" value={`${int(stats.budget.used)} / ${mio(stats.budget.limit)}`} />
         <Tile label="Total tokens" value={int(total.tokens)} sub={`${int(total.input_tokens)} in · ${int(total.output_tokens)} out`} />
-        <Tile label="Total cost" value={usd(total.cost_usd)} sub={stats.pricing_configured ? "all time" : "set BLEEP_AGENT_PRICE_INPUT / _OUTPUT"} />
+        <Tile label="Total cost" value={usd(total.cost_usd)} sub={stats.pricing_configured ? "all time" : "model missing in evals/prices.yaml"} />
       </div>
       <h2>Chats and users</h2>
       <div className="scroll"><table>
@@ -51,8 +55,8 @@ function Dashboard() {
   );
 }
 
-function Tile({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return <div className="tile"><div className="muted">{label}</div><div className="big">{value}</div><div className="muted">{sub}</div></div>;
+function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return <div className="tile"><div className="muted">{label}</div><div className="big">{value}</div>{sub && <div className="muted">{sub}</div>}</div>;
 }
 
 function Bars({ days, value, format }: { days: Day[]; value: (d: Day) => number; format: (n: number) => string }) {

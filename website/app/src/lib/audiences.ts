@@ -88,6 +88,14 @@ export const ACCOUNT_MENU: MenuItem[] = [
   { title: "Apps & devices", href: "/account/apps/", match: ["/account/apps/"] },
   { title: "Settings", href: "/account/settings/", match: ["/account/settings/"] },
 ];
+/** The submenu of the admin pages (the Admin link in the header, shown to admins only). */
+export const ADMIN_MENU: MenuItem[] = [
+  { title: "Tokens", href: "/admin/tokens/", match: ["/admin/tokens/"] },
+  { title: "AI usage", href: "/admin/chat/", match: ["/admin/chat/"] },
+];
+export const isAdminPath = (path: string) => path.startsWith("/admin");
+export const isAdminActive = (path: string, item: MenuItem) => (path.endsWith("/") ? path : path + "/").startsWith(item.href);
+
 export const isAccountPath = (path: string) => path.startsWith("/account");
 
 /** Overview matches only its own page: the others start with the same prefix. */

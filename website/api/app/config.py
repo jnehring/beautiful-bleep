@@ -63,9 +63,6 @@ class Settings(BaseSettings):
     # The assistant's run log (table agent_log): every model call, tool call, result and event of each run, newest kept. The size is in rows
     # ("messages": one row per model call, tool call, event...); about 25 rows per run. 0 = no log. Contains users' prompts and patches.
     agent_log_messages: int = 5000
-    # What the model costs in USD per million tokens (BLEEP_AGENT_PRICE_INPUT / _OUTPUT); the admin dashboard multiplies by it. 0 = not tracked.
-    agent_price_input: float = 0.0
-    agent_price_output: float = 0.0
     # The provider keys are the providers' own variables, read from the environment: GOOGLE_API_KEY (gemini-*) and OPENAI_API_KEY (gpt-*).
     # Signs the resume tokens of paused runs; random per process when empty (a restart then ends pending runs).
     agent_state_secret: str = ""

@@ -123,8 +123,7 @@ def test_unavailable_without_data(client, agent_on, monkeypatch, tmp_path):
 
 
 def test_admin_chat_stats(client, agent_on, monkeypatch, make_admin):
-    monkeypatch.setattr(settings, "agent_price_input", 1.0)
-    monkeypatch.setattr(settings, "agent_price_output", 10.0)
+    monkeypatch.setattr(agent_quota, "model_prices", lambda: (1.0, 10.0))
     ann, ben = other_client("ann@example.com", "Ann"), other_client("ben@example.com", "Ben")
     assert ann.post("/api/agent/chat", json=BODY).status_code == 200
     assert ann.post("/api/agent/chat", json=BODY).status_code == 200

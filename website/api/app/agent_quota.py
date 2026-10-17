@@ -10,6 +10,17 @@ from .config import settings
 from .models import AgentChat, AgentUsage
 
 
+def model_prices() -> tuple[float, float] | None:
+    """USD per million (input, output) tokens of BLEEP_AGENT_MODEL, from the price table the benchmark uses too
+    (agent/src/bleep_agent/evals/prices.yaml); None when the model is not in it."""
+    from bleep_agent.evals.pricing import load_prices, short_name
+
+    p = (load_prices().get("models") or {}).get(short_name(settings.agent_model))
+    if not p or p.get("input") is None or p.get("output") is None:
+        return None
+    return float(p["input"]), float(p["output"])
+
+
 def today() -> date:
     return datetime.now(timezone.utc).date()
 
@@ -56,5 +67,6 @@ def finish_chat(db: Session, chat_id: int, input_tokens: int, output_tokens: int
     row = db.get(AgentChat, chat_id)
     if row:
         row.input_tokens, row.output_tokens = int(input_tokens or 0), int(output_tokens or 0)
-        row.cost_usd = (row.input_tokens * settings.agent_price_input + row.output_tokens * settings.agent_price_output) / 1e6
+        price = model_prices()
+        row.cost_usd = (row.input_tokens * price[0] + row.output_tokens * price[1]) / 1e6 if price else 0.0
         db.commit()

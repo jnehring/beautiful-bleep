@@ -2,7 +2,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { api, useUser } from "@/lib/auth";
-import { ACCOUNT_MENU, AUDIENCES, audienceOf, isAccountActive, isAccountPath, isActive, isModulesPath, type Audience } from "@/lib/audiences";
+import { ACCOUNT_MENU, ADMIN_MENU, isAdminActive, isAdminPath, AUDIENCES, audienceOf, isAccountActive, isAccountPath, isActive, isModulesPath, type Audience } from "@/lib/audiences";
 
 /** Main menu (Musicians, Developers, Modules, …) and, below it, the current audience's submenu. */
 export default function SiteNav() {
@@ -26,13 +26,7 @@ export default function SiteNav() {
           {user ? (
             <>
               {user.role === "admin" && (
-                <div className="dropdown">
-                  <a href="/admin/tokens/" aria-current={path.startsWith("/admin") ? "true" : undefined} aria-haspopup="true">Admin</a>
-                  <div className="dropdown-menu">
-                    <a href="/admin/tokens/" aria-current={path.startsWith("/admin/tokens") ? "page" : undefined}>Tokens</a>
-                    <a href="/admin/chat/" aria-current={path.startsWith("/admin/chat") ? "page" : undefined}>Chat</a>
-                  </div>
-                </div>
+                <a href="/admin/tokens/" aria-current={isAdminPath(path) ? "true" : undefined}>Admin</a>
               )}
               <a href="/account/" aria-current={path.startsWith("/account") ? "true" : undefined}>{user.display_name}</a>
               <button type="button" className="linklike" onClick={logout}>Log out</button>
@@ -49,6 +43,13 @@ export default function SiteNav() {
         <nav className="submenu" aria-label="Account menu">
           {ACCOUNT_MENU.map((item) => (
             <a key={item.href} href={item.href} aria-current={isAccountActive(path, item) ? "page" : undefined}>{item.title}</a>
+          ))}
+        </nav>
+      )}
+      {user?.role === "admin" && isAdminPath(path) && (
+        <nav className="submenu" aria-label="Admin menu">
+          {ADMIN_MENU.map((item) => (
+            <a key={item.href} href={item.href} aria-current={isAdminActive(path, item) ? "page" : undefined}>{item.title}</a>
           ))}
         </nav>
       )}

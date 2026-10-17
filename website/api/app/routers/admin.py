@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..deps import require_admin
+from .. import agent_quota
 from ..config import settings
 from ..models import AgentChat, User, UserSession
 from ..schemas import AdminUserIn, UserOut
@@ -98,5 +99,6 @@ def chat_stats(days: int = 30, db: Session = Depends(get_db)):
         "total": {"input_tokens": int(total[0]), "output_tokens": int(total[1]), "tokens": int(total[0] + total[1]), "cost_usd": float(total[2])},
         "windows": {"all": window(None), "7d": window(now - timedelta(days=7)), "30d": window(now - timedelta(days=30))},
         "daily": [{"day": k, **v, "tokens": v["input_tokens"] + v["output_tokens"]} for k, v in daily.items()],
-        "pricing_configured": bool(settings.agent_price_input or settings.agent_price_output),
+        "budget": {"used": agent_quota.used_today(db), "limit": settings.agent_daily_tokens},
+        "pricing_configured": agent_quota.model_prices() is not None,
     }
