@@ -701,10 +701,13 @@
     }
     P.BleepAppMenu.init({ nativeMenu: !!m.nativeMenu, version: m.version || "" });
     P.BleepSideMenu.init({ mode: m.plugin ? "plugin" : window.BleepWeb ? "web" : "app", board: () => board });
+    // The patch assistant (agent-chat.js): shows nothing unless the website's backend has it switched on.
+    if (P.BleepAgentChat) P.BleepAgentChat.init({ board: () => board, types: () => types, selection: () => [...sel], edit, undo, goToNode, notice });
     await cp.load();
     setPresets((await native("presets")) || []);
     $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);
+    window.BleepPlayKeys.restore();   // Bleep Play: the piano of an instrument preset comes back with the board after a reload
     {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug, or from a module's demo: ?demo=Grains: Frozen Cloud
       const q = new URLSearchParams(location.search);
       const shared = q.get("preset"), demo = q.get("demo");

@@ -105,15 +105,26 @@
       }
   }
 
+  // Bleep Play keeps the board over a reload (board-demo.js), so it keeps whether the piano was up as well.
+  const KEY = "bleep-play-keys";
+  const remember = (up) => { try { localStorage.setItem(KEY, up ? "1" : "0"); } catch (e) { /* private mode */ } };
+
   window.BleepPlayKeys = {
+    /// Brings the piano back after a reload if it was up (the page plays through BleepWeb, as for an instrument preset).
+    restore() {
+      let up = false;
+      try { up = localStorage.getItem(KEY) === "1"; } catch (e) { /* private mode */ }
+      if (up && web()) this.show("Screen keyboard");
+    },
     show(name, how) {
       route = how || null;
+      remember(true);
       if (!bar) build();
       bar.hidden = false;
       const source = document.getElementById("play-source");   // an effect's source bar sits at the bottom too: stand above it
       bar.style.bottom = source && !source.hidden ? source.offsetHeight + "px" : "0";
     },
-    hide() { if (bar) bar.hidden = true; },
+    hide() { remember(false); if (bar) bar.hidden = true; },
     change,
     visible: () => !!bar && !bar.hidden,
     /// The octave of the lowest key (the C that is labelled C<octave>); 3 is where an instrument starts.
