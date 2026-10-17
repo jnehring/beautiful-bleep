@@ -350,6 +350,7 @@
         };
         e.addEventListener("pointerup", up);
         e.addEventListener("pointercancel", up);
+        e.addEventListener("lostpointercapture", up);
       }
       return e;
     }
@@ -380,10 +381,11 @@
         if (axes[1]) axes[1].move(y);
       };
       e.addEventListener("pointerdown", (ev) => { if (ev.button !== 0) return; ev.stopPropagation(); e.setPointerCapture(ev.pointerId); host.begin(); on = true; at(ev); });
-      e.addEventListener("pointermove", (ev) => { if (on) at(ev); });
       const end = () => { if (on) { on = false; for (const a of axes) if (a) a.end(); } };
+      e.addEventListener("pointermove", (ev) => { if (on) { if (ev.buttons) at(ev); else end(); } });
       e.addEventListener("pointerup", end);
       e.addEventListener("pointercancel", end);
+      e.addEventListener("lostpointercapture", end);
       paint();
       return e;
     }
@@ -419,14 +421,16 @@
           if (ev.clientY >= r.top - 4 && ev.clientY <= r.bottom + 4) { v0 = clamp01((r.bottom - ev.clientY) / r.height); w.move(v0); }
         }
       });
+      const end = () => { if (on) w.end(); on = false; };
       e.addEventListener("pointermove", (ev) => {
         if (!on) return;
+        if (!ev.buttons) return end();   // the release was missed (a menu, another window): do not follow the mouse
         const span = relative ? 200 : (rail ? rail.getBoundingClientRect().height : 160);
         w.move(v0 + (y0 - ev.clientY) / (ev.shiftKey ? span * 5 : span));
       });
-      const end = () => { if (on) w.end(); on = false; };
       e.addEventListener("pointerup", end);
       e.addEventListener("pointercancel", end);
+      e.addEventListener("lostpointercapture", end);
       e.addEventListener("dblclick", () => { host.begin(); w.move(w.def.default); w.end(); });
     }
 
@@ -493,6 +497,7 @@
       });
       e.addEventListener("pointerup", release);
       e.addEventListener("pointercancel", release);
+      e.addEventListener("lostpointercapture", release);
 
       // The computer keyboard while the pointer is over the panel: A W S E D F T G Y H U J K … like a piano, Z / X octave.
       const CODES = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, KeyG: 7, KeyY: 8, KeyH: 9,
@@ -507,6 +512,7 @@
         if (k) k.classList.remove("on");
         down.delete(code);
       };
+      // In Bleep Play the page plays the computer keys wherever the pointer is (bleep-web.js); this one would swallow them over a panel.
       const onDown = (ev) => {
         if (window.BleepWeb || !over || ev.metaKey || ev.ctrlKey || ev.altKey) return;
         const tag = ev.target && ev.target.tagName;

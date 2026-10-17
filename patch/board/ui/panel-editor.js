@@ -10,6 +10,8 @@
 //                          makeModule(type, name) adds a Dial, Button or Keyboard module to the board and returns its id.
 //     ctx.scope()          [{id, name, type, depth, params: [def], outputs: [{id, name}], view}]: the modules a control may show
 //     ctx.module(id)       a board node by id, or undefined
+//     ctx.cables()         the board's cables [{from: {node, jack}, to: {node, jack}}]
+//     ctx.jackName(node, id)  the name of a jack or knob of a board node
 //     ctx.parts(nodeId)    [{id, name, kind}] the parts of a module's view a Module view control can show alone (BleepView.partsOf)
 //     ctx.reveal(id)       goes to a module on the board (its stack, or the Panel cell) and selects it
 //     ctx.edit(label, fn(b))  edits the whole board document in one undo step
@@ -124,6 +126,16 @@
     const freeSpot = (p, size) => freeSpotIn(p, size, tab);
     const nextId = nextIdIn;
     /// The id of the board module a control was made with (not a knob wired directly, as on older panels).
+    /// What a control drives, as "Module › param" strings: its own knob wire, or where its board module's output is cabled.
+    const drives = (c) => {
+      const name = (id, jack) => { const n = ctx.module(id); return n ? `${n.name} › ${ctx.jackName(n, jack)}` : null; };
+      if (c.target) { const t = ctx.module(c.target.node); return t ? [`${t.name} › ${c.target.param || c.target.jack}`] : []; }
+      const w = (c.wire || [])[0], mid = moduleOf(c);
+      if (w && w.param && !mid) { const [id, ...rest] = w.param.split("."); const s = name(id, rest.join(".")); return s ? [s] : []; }
+      if (!mid) return [];
+      const out = ctx.cables().filter((k) => k.from.node === mid).map((k) => name(k.to.node, k.to.jack));
+      return [...new Set(out.filter(Boolean))];
+    };
     const moduleOf = (c) => { const id = nodeOf(c), n = id && ctx.module(id); return n && CONTROL_MODULES.has(n.type) ? id : null; };
 
     function addControl(type, extra = {}) {
@@ -300,10 +312,10 @@
       const list = el("div", "pe-list");
       for (const c of doc().controls) {
         if (FREE.includes(c.type)) continue;   // labels, sections, module views and loaded panels are not controls of anything
-        const t = c.target && ctx.module(c.target.node);
+        const d = drives(c);
         const row = el("div", "pe-knob" + (multi.has(c.id) ? " wired" : ""), c.label || c.type);
         row.dataset.id = c.id;
-        row.append(el("small", "", t ? `${t.name} › ${c.target.param || c.target.jack}` : c.type));
+        row.append(el("small", "", d.length ? d.join(", ") : c.type));
         row.addEventListener("click", (ev) => {
           if (ev.shiftKey) { const ids = new Set(multi); if (ids.has(c.id)) ids.delete(c.id); else ids.add(c.id); setSel([...ids], ids.has(c.id) ? c.id : undefined); }
           else setSel([c.id]);
@@ -397,6 +409,10 @@
         field(insp, "Colour", col);
       }
       if (["dial", "slider", "button", "wheel", "select", "xy", "meter"].includes(c.type)) field(insp, "Label", text(c.label, (v) => change("label", (t) => (t.label = v))));
+      if (!FREE.includes(c.type) && !c.target) {
+        const d = drives(c);
+        insp.append(el("p", "pe-note", d.length ? `Drives ${d.join(", ")}.` : "Drives nothing yet."));
+      }
       if (c.target) {   // made by an older version: a module in the Panel cell, wired to what it controls
         const t = ctx.module(c.target.node), m = c.module && ctx.module(c.module);
         insp.append(el("p", "pe-note", t ? `Controls ${t.name} › ${c.target.param || c.target.jack}, through ${m ? m.name : "a module that is gone"} in the Panel cell.` : "What it controls is gone."));

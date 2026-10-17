@@ -389,6 +389,11 @@
               }),
               scope: () => panelScope(panelById(panelId) || doc),
               module: (id) => nodeById(id),
+              cables: () => (s.board && s.board.cables) || [],
+              jackName: (n, id) => {
+                const j = inputsOf(n).find((q) => q.id === id) || typeOf(n).params.find((q) => q.id === id);
+                return j ? j.name || id : id;
+              },
               parts: (id) => { const n = nodeById(id); return n && !isStructural(n) ? partList(n) : []; },
               edit: (label, fn) => edit(label, fn),
               removeControl: (panelId, controlId) => removePanelControl(panelId, controlId),
