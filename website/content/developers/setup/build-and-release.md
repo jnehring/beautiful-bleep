@@ -215,6 +215,16 @@ docker compose -f website/docker-compose.yml -f website/docker-compose.dev.yml -
 
 Reload http://localhost:8080/play/ (hard reload if the old UI stays).
 
+**Modules and UI in one go (dev stack).** After changing a module as well as the board UI, one script does both: it runs `build-web.sh --modules-only` (which publishes the modules unsigned to `website/app/public/play/local-modules`) and then the `play` service above.
+
+```bash
+scripts/build/update-play.sh
+# modules built in the Emscripten image
+scripts/build/update-play.sh --docker
+```
+
+Reload Bleep Play afterwards. Turn on Settings > Library > "Allow unsigned modules" once, so it takes the local modules. This is for development only; users get modules through the release steps above.
+
 **Production stack** (`run-website.sh`). The site container is read-only and its files are baked into the image, so copying `build/web/site` into it does not work (and would be lost on the next restart). The image build runs `build-web.sh --no-modules` itself; rebuild the image and recreate the container:
 
 ```bash
