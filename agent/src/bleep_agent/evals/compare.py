@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .report import _money, benchmark_cost, load_results, stats
+from .report import _clock, _money, benchmark_cost, execution_time, load_results, stats
 
 
 @dataclass
@@ -122,13 +122,15 @@ def compare_runs(runs: list[Run], prices: dict, all_cases: bool = False, max_cas
             out.append("")
         out.append("## Runs")
         out.append("")
-    out += ["| # | label | run | date | models | repeats | runs | judge | benchmark cost without cache | cost of that run |", "|---|---|---|---|---|---|---|---|---|---|"]
+    out += ["| # | label | run | date | models | repeats | runs | judge | benchmark cost without cache | cost of that run | model time (recorded) | fresh run time at its concurrency | wall time of that run |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for i, run in enumerate(runs, 1):
         bc = benchmark_cost(run.results, prices, run.meta.get("judge", ""))
         full = None if any(b["full"] is None for b in bc) else sum(b["full"] for b in bc)
         spent = None if any(b["spent"] is None for b in bc) else sum(b["spent"] for b in bc)
+        et = execution_time(run.results, run.meta)
         out.append(f"| {i} | {run.label} | `{run.run_id}` | {run.meta.get('date', '?')} | {', '.join(run.meta.get('models') or sorted({r['model'] for r in run.results}))} | "
-                   f"{run.meta.get('repeats', '?')} | {len(run.results)} | {run.meta.get('judge') or '–'} | {_money(full)} | {_money(spent)} |")
+                   f"{run.meta.get('repeats', '?')} | {len(run.results)} | {run.meta.get('judge') or '–'} | {_money(full)} | {_money(spent)} | "
+                   f"{_clock(et['llm'])} | {_clock(et['estimate'])} | {_clock(et['wall'])} |")
     out.append("")
     if all_cases:
         out.append(f"Compared on all {len(union)} (model, case) pairs of any run; a run that lacks a pair simply has fewer rows (cases in every run: {len(common)}).")
@@ -169,7 +171,7 @@ def compare_runs(runs: list[Run], prices: dict, all_cases: bool = False, max_cas
             cps = "n/a" if s["cost"] is None else f"${s['cost']:.4f}"
             cs = "n/a" if s["cost_per_success"] is None else f"${s['cost_per_success']:.4f}"
             out.append(f"| {m} | {i} | {run.label} | {s['n']} | {_pct(s['success'])} ({_pct(s['ci'][0])}-{_pct(s['ci'][1])}) | {'' if s is base else _pp(s['success'] - base['success'])} | "
-                       f"{s['score']:.2f} | {j} | {s['tokens_in']:.0f} / {s['tokens_out']:.0f} | {'' if s is base else _rel(s['tokens_in'], base['tokens_in'])} | {_pct(s['provider_cache']) if any('cached_in' in r for r in mr) else 'n/a'} | {cps} | {cs} | "
+                       f"{s['score']:.2f} | {j} | {s['tokens_in']:.0f} / {s['tokens_out']:.0f} | {'' if s is base else _rel(s['tokens_in'], base['tokens_in'])} | {'n/a' if s['provider_cache'] is None else _pct(s['provider_cache'])} | {cps} | {cs} | "
                        f"{s['lat50']:.1f}s / {s['lat95']:.1f}s | {s['calls']:.1f} | {s['retry_rate']:.0%} | {s['errors']} |")
     out.append("")
     old = [str(i) for i, rows in enumerate(rows_of, 1) if rows and not any("cached_in" in r for r in rows)]

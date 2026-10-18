@@ -92,6 +92,10 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
         "latency": sum(c["latency"] for c in cm.calls), "cached_calls": sum(1 for c in cm.calls if c["cached"]),
         "wall": time.perf_counter() - t_wall,
     }
+    # `wall` is what this execution really took (almost nothing for replayed calls); `duration` is what a fresh execution takes: the recorded model
+    # latencies plus everything else the run spent (tools, simulation), i.e. the wall time minus the time spent waiting on calls made just now.
+    out["cached_latency"] = sum(c["latency"] for c in cm.calls if c["cached"])
+    out["duration"] = out["latency"] + max(0.0, out["wall"] - sum(c["latency"] for c in cm.calls if not c["cached"]))
     if case.judge and judge_model is not None:
         jm = CachingModel(judge_model, cache, salt="judge")
         try:
@@ -101,7 +105,9 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
             out["judge_usage"] = {"calls": len(jm.calls), "tokens_in": sum(c["input"] for c in jm.calls), "tokens_out": sum(c["output"] for c in jm.calls),
                                   "cached_in": sum(c["provider_cached"] for c in jm.calls), "paid_cached_in": sum(c["provider_cached"] for c in jm.calls if not c["cached"]),
                                   "paid_in": sum(c["input"] for c in jm.calls if not c["cached"]), "paid_out": sum(c["output"] for c in jm.calls if not c["cached"]),
-                                  "paid_calls": sum(1 for c in jm.calls if not c["cached"])}
+                                  "paid_calls": sum(1 for c in jm.calls if not c["cached"]),
+                                  "latency": sum(c["latency"] for c in jm.calls), "cached_latency": sum(c["latency"] for c in jm.calls if c["cached"])}
+            out["duration"] += out["judge_usage"]["latency"]
         except Exception as e:  # noqa: BLE001
             out["judge"] = {"error": f"{type(e).__name__}: {e}"}
     # not part of results.jsonl: run_many writes it to the log files and drops it

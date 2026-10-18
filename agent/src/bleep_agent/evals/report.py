@@ -53,7 +53,7 @@ def stats(rows: list[dict[str, Any]], prices: dict, model: str) -> dict[str, Any
         "cost": statistics.fmean(known) if known and len(known) == n else None,
         "cost_per_success": (sum(known) / k) if known and len(known) == n and k else None,
         "lat50": pctile([r["latency"] for r in rows], 0.5), "lat95": pctile([r["latency"] for r in rows], 0.95),
-        "provider_cache": (sum(r.get("cached_in", 0) for r in rows) / sum(r["tokens_in"] for r in rows)) if sum(r["tokens_in"] for r in rows) else 0.0,
+        "provider_cache": (sum(r["cached_in"] for r in rows) / sum(r["tokens_in"] for r in rows)) if rows and all("cached_in" in r for r in rows) and sum(r["tokens_in"] for r in rows) else None,
         "calls": calls / n if n else 0.0, "retry_rate": (sum(r["retries"] for r in rows) / tools) if tools else 0.0,
         "errors": sum(1 for r in rows if r["errors"]), "cached": (sum(r["cached_calls"] for r in rows) / calls) if calls else 0.0,
     }
@@ -90,6 +90,43 @@ def _money(x: float | None) -> str:
     return _fmt_cost(x, 2 if x is not None and abs(x) >= 1 else 4)
 
 
+def _clock(seconds: float | None) -> str:
+    if seconds is None:
+        return "n/a"
+    s = int(round(seconds))
+    h, rest = divmod(s, 3600)
+    m, s = divmod(rest, 60)
+    return f"{h}h {m:02d}m {s:02d}s" if h else f"{m}m {s:02d}s" if m else f"{seconds:.1f}s"
+
+
+def execution_time(results: list[dict[str, Any]], meta: dict[str, Any] | None = None) -> dict[str, Any]:
+    """How long the benchmark takes: the model time as recorded when each call was made (replayed calls keep their original latency), what a fresh
+    sequential execution would take (`duration` of every run), an estimate at the concurrency used, and what this execution really took."""
+    meta = meta or {}
+    has = all("duration" in r for r in results)
+    llm = sum(r["latency"] for r in results)
+    judge = sum((r.get("judge_usage") or {}).get("latency", 0.0) for r in results)
+    total = sum(r["duration"] for r in results) if has else None
+    conc = meta.get("concurrency")
+    return {"runs": len(results), "llm": llm, "replayed_llm": sum(r["cached_latency"] for r in results) if all("cached_latency" in r for r in results) else None, "judge": judge, "sequential": total,
+            "concurrency": conc, "estimate": (total / conc) if total is not None and conc else None, "wall": meta.get("wall_seconds"),
+            "longest": max((r["duration"] if has else r["latency"] for r in results), default=0.0)}
+
+
+def _time_section(results: list[dict[str, Any]], meta: dict[str, Any] | None) -> list[str]:
+    t = execution_time(results, meta)
+    out = ["## Benchmark execution time", "", "| | |", "|---|---|",
+           f"| model time of all {t['runs']} runs (as recorded when the calls were made) | {_clock(t['llm'])} (of which replayed from the cache: {_clock(t['replayed_llm'])}) |"]
+    if t["judge"]:
+        out.append(f"| judge time | {_clock(t['judge'])} |")
+    out += [f"| fresh sequential execution (models, judge, tools) | {_clock(t['sequential'])} |",
+            f"| fresh execution at concurrency {t['concurrency'] or '?'} (estimate) | {_clock(t['estimate'])} |",
+            f"| this execution (real wall time) | {_clock(t['wall'])} |", f"| longest single run | {_clock(t['longest'])} |", "",
+            "Replayed calls keep the latency recorded when they were first made, so these figures describe a fresh run even when this execution was answered from the cache. "
+            "`n/a` = the run predates this accounting.", ""]
+    return out
+
+
 def _cost_section(results: list[dict[str, Any]], prices: dict, meta: dict[str, Any] | None) -> list[str]:
     rows = benchmark_cost(results, prices, (meta or {}).get("judge", ""))
     out = ["## Benchmark cost", "", "| model | model calls (made now / total) | tokens in / out (total) | cost without cache | cost of this run (with cache) | saved by the cache |",
@@ -121,11 +158,12 @@ def render(results: list[dict[str, Any]], prices: dict, meta: dict[str, Any] | N
         out += [f"- run: `{meta.get('run', '')}`, {meta.get('date', '')}, repeats {meta.get('repeats', '?')}, cache `{meta.get('cache', '?')}`, "
                 f"price table v{prices.get('version', '?')}", ""]
     out += _cost_section(results, prices, meta)
+    out += _time_section(results, meta)
     out += ["## Overall", "", "| model | runs | success (95% CI) | check score | tokens in / out | provider cache hit | cost / request | cost / success | latency p50 / p95 | model calls | retried tool calls | errors | replayed |",
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for m in models:
         s = stats(by_model[m], prices, m)
-        out.append(f"| {m} | {s['n']} | {s['success']:.0%} ({s['ci'][0]:.0%}-{s['ci'][1]:.0%}) | {s['score']:.2f} | {s['tokens_in']:.0f} / {s['tokens_out']:.0f} | {s['provider_cache']:.0%} | "
+        out.append(f"| {m} | {s['n']} | {s['success']:.0%} ({s['ci'][0]:.0%}-{s['ci'][1]:.0%}) | {s['score']:.2f} | {s['tokens_in']:.0f} / {s['tokens_out']:.0f} | {'n/a' if s['provider_cache'] is None else format(s['provider_cache'], '.0%')} | "
                    f"{_fmt_cost(s['cost'])} | {_fmt_cost(s['cost_per_success'])} | {s['lat50']:.1f}s / {s['lat95']:.1f}s | {s['calls']:.1f} | {s['retry_rate']:.0%} | {s['errors']} | {s['cached']:.0%} |")
     out += ["", "## By skill", "", "Success = every deterministic check passed. Judge = mean rubric score 0..1 (soft; not part of success).", "",
             "| skill | model | runs | success (95% CI) | judge | tokens in / out | cost / request | cost / success | latency p50 |", "|---|---|---|---|---|---|---|---|---|"]

@@ -305,3 +305,39 @@ def test_compare_reads_versions_from_a_lab_notebook(tmp_path):
     shipped = json.loads((Path(__file__).resolve().parents[1] / "evals" / "lab-notebook.json").read_text())
     assert [v["id"] for v in shipped["versions"]] == list(range(1, len(shipped["versions"]) + 1))
     assert all(v["name"] and v["benchmark"] and v["changes"] for v in shipped["versions"])
+
+
+def test_replayed_calls_keep_their_recorded_latency_in_logs_and_run_time(library, catalog, tmp_path):
+    import asyncio
+
+    from pydantic_ai.models.wrapper import WrapperModel
+
+    from bleep_agent.evals.report import execution_time, render
+
+    class Slow(WrapperModel):  # a model that takes a while, so the recorded latency is noticeable
+        async def request(self, *a, **k):
+            await asyncio.sleep(0.15)
+            return await super().request(*a, **k)
+
+    case = case_by_id("patch-insert-fx-01")
+    p = case.load_patch(library)
+    out = p.of_type("audio-out")[0]["id"]
+    src = p.cables_to(out)[0]["from"]["node"]
+    ops = [{"op": "insert_on_cable", "from_node": src, "to_node": out, "type": "delay", "ref": "fx0"}]
+    script = lambda: Slow(scripted(("propose_changes", {"ops": ops, "summary": "fx"}), "ok"))  # noqa: E731
+    cache = Cache(tmp_path / "c.sqlite", "use")
+    fresh = run(case, script(), cache, library, catalog)
+    replay = run(case, script(), cache, library, catalog)
+    assert replay["cached_calls"] == 2 and replay["wall"] < 0.1 and replay["latency"] == pytest.approx(fresh["latency"]) and replay["latency"] >= 0.3
+    calls = [r["data"] for r in replay["_log"]["runs"][0]["rows"] if r["kind"] == "model_call"]
+    assert all(c["replayed"] and c["latency"] >= 0.1 for c in calls)  # the recorded latency, not the milliseconds the replay took
+    assert not any(r["data"].get("replayed") for r in fresh["_log"]["runs"][0]["rows"] if r["kind"] == "model_call")
+    # what a fresh execution takes: the recorded model time plus the non-model time, even for a run answered from the cache
+    assert replay["duration"] >= replay["latency"] and fresh["duration"] == pytest.approx(replay["duration"], abs=0.3)
+    et = execution_time([fresh, replay], {"concurrency": 2, "wall_seconds": 5.0})
+    assert et["llm"] == pytest.approx(fresh["latency"] + replay["latency"]) and et["replayed_llm"] == pytest.approx(replay["latency"])
+    assert et["estimate"] == pytest.approx(et["sequential"] / 2) and et["wall"] == 5.0
+    text = render([fresh, replay], {"models": {}}, {"concurrency": 2, "wall_seconds": 5.0})
+    assert "## Benchmark execution time" in text and "this execution (real wall time) | 5.0s" in text
+    old = {k: v for k, v in replay.items() if k not in ("duration", "cached_latency")}
+    assert execution_time([old])["sequential"] is None and "n/a" in render([old], {"models": {}}, None).split("## Overall")[0]

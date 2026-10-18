@@ -33,7 +33,8 @@ class CachingModel(WrapperModel):
     def __init__(self, wrapped: Model, cache: Cache, salt: str = ""):
         super().__init__(wrapped)
         self.cache, self.salt = cache, salt
-        self.last_latency = 0.0
+        self.last_latency = 0.0  # latency of the last call as recorded when it was made (a replayed call keeps its original latency)
+        self.last_replayed = False
         self.calls: list[dict[str, Any]] = []  # per call: tokens, latency, cached
 
     async def request(self, messages: list[ModelMessage], model_settings: ModelSettings | None,
@@ -47,10 +48,12 @@ class CachingModel(WrapperModel):
             resp = ModelMessagesTypeAdapter.validate_python([hit["response"]])[0]
             self.calls.append({"input": resp.usage.input_tokens, "output": resp.usage.output_tokens, "provider_cached": resp.usage.cache_read_tokens or 0,
                                "latency": hit["latency"], "cached": True})
+            self.last_latency, self.last_replayed = hit["latency"], True
             return resp  # type: ignore[return-value]
         t0 = time.perf_counter()
         resp = await self.wrapped.request(messages, model_settings, model_request_parameters)
         lat = time.perf_counter() - t0
+        self.last_latency, self.last_replayed = lat, False
         self.cache.put("model", key, {"response": ModelMessagesTypeAdapter.dump_python([resp], mode="json")[0], "latency": lat})
         self.calls.append({"input": resp.usage.input_tokens, "output": resp.usage.output_tokens, "provider_cached": resp.usage.cache_read_tokens or 0,
                            "latency": lat, "cached": False})

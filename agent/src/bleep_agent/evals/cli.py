@@ -203,11 +203,12 @@ def main(argv: list[str] | None = None) -> int:
         os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")
         logging.getLogger("bleep_agent").setLevel(logging.CRITICAL)
     progress = _Progress(len(cases) * len(models) * a.repeats)
+    t_bench = time.monotonic()
     results = asyncio.run(run_many(cases, models, repeats=a.repeats, concurrency=a.concurrency, progress=progress, log_dir=None if a.no_logs else out / "logs", catalog=cat, lib=lib, docs=docs, cache=cache, judge_model=judge_model))
     (out / "results.jsonl").write_text("\n".join(json.dumps(r) for r in results) + "\n")
     prices = load_prices()
     meta = {"run": run_id, "date": time.strftime("%Y-%m-%d %H:%M"), "repeats": a.repeats, "cache": a.cache, "models": list(models), "judge": a.judge,
-            "cache_stats": cache.stats()}
+            "concurrency": a.concurrency, "wall_seconds": round(time.monotonic() - t_bench, 1), "cache_stats": cache.stats()}
     (out / "meta.json").write_text(json.dumps(meta, indent=1))
     text = render(results, prices, meta)
     (out / "report.md").write_text(text)

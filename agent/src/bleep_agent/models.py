@@ -59,7 +59,7 @@ def create_model(name: str, api_key: str | None = None) -> Model:
 
 
 def _call_record(model: Model, messages: list[ModelMessage], settings: Any, params: ModelRequestParameters, resp: ModelResponse | None,
-                 latency: float, error: BaseException | None = None) -> dict[str, Any]:
+                 latency: float, error: BaseException | None = None, replayed: bool = False) -> dict[str, Any]:
     """Everything about one model call, JSON-ready: what was sent, what came back, what it cost."""
     rec: dict[str, Any] = {
         "model": model.model_name, "latency": round(latency, 3), "settings": to_jsonable_python(settings),
@@ -69,6 +69,8 @@ def _call_record(model: Model, messages: list[ModelMessage], settings: Any, para
     if resp is not None:
         rec["response"] = ModelMessagesTypeAdapter.dump_python([resp], mode="json")[0]
         rec["usage"] = {"input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens, "cache_read_tokens": resp.usage.cache_read_tokens}
+    if replayed:
+        rec["replayed"] = True  # answered from the evaluation cache; `latency` is the one recorded when the call was really made
     if error is not None:
         rec["error"] = f"{type(error).__name__}: {error}"
     return rec
@@ -97,9 +99,12 @@ class MeteredModel(WrapperModel):
                 self._on_call(_call_record(self.wrapped, messages, model_settings, model_request_parameters, None, time.perf_counter() - t0, e))
             raise
         dt = time.perf_counter() - t0
-        log.info("model call %.1fs tokens in=%s out=%s", dt, resp.usage.input_tokens, resp.usage.output_tokens)
+        replayed = bool(getattr(self.wrapped, "last_replayed", False))  # an evaluation cache underneath: report what the call took when it was made
+        if replayed:
+            dt = getattr(self.wrapped, "last_latency", dt) or dt
+        log.info("model call %.1fs tokens in=%s out=%s%s", dt, resp.usage.input_tokens, resp.usage.output_tokens, " (replayed)" if replayed else "")
         if self._on_call:
-            self._on_call(_call_record(self.wrapped, messages, model_settings, model_request_parameters, resp, dt))
+            self._on_call(_call_record(self.wrapped, messages, model_settings, model_request_parameters, resp, dt, replayed=replayed))
         if self._on_usage:
             self._on_usage(resp.usage)
         return resp
