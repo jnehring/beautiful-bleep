@@ -283,7 +283,7 @@
       box.innerHTML = "";
       if (st.signedIn) {
         box.appendChild(el("div", "st-note", "Signed in as " + (st.name || st.email || "you") + (st.email && st.name ? " (" + st.email + ")" : "") + (st.offline ? " · the library could not be reached just now" : "") + "."));
-        box.appendChild(el("div", "st-note", "You can share presets from the Presets tab. Comments and ratings are on the library's pages, with the same account."));
+        box.appendChild(el("div", "st-note", "You can share presets from the Presets tab and use the patch assistant. Comments and ratings are on the library's pages, with the same account."));
         const row = el("div", "ac-row");
         const site = el("button", "", "My account on the website");
         site.addEventListener("click", () => P.BleepAccount.open(st.libraryUrl + "/account/"));
@@ -295,7 +295,7 @@
       }
       box.appendChild(el("div", "st-note", st.playLogin
         ? "Log in on the website to share presets."
-        : "Sign in to share presets in the Bleep Library, comment and rate. The website shows a page where you confirm the code below; nothing is typed here, and your password never reaches this app."));
+        : "Sign in to use the patch assistant, share presets in the Bleep Library, comment and rate. The website shows a page where you confirm the code below; nothing is typed here, and your password never reaches this app."));
       const code = el("div", "ac-code");
       const msg = el("div", "ac-msg");
       box.append(code, msg);

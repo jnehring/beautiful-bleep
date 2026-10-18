@@ -485,6 +485,62 @@ void testAccount() {
     CHECK(fake.seen.back().bearer == "blu_secret" && fake.seen.back().url == "https://library.example/api/presets", "the token goes in the header");
     const juce::var bad = account.call("POST", "/api/presets", juce::JSON::parse(R"({"title":""})"));
     CHECK((int)bad["status"] == 422 && bad["error"].toString() == "title: String should have at least 1 character", "the library's reason: %s", bad["error"].toString().toRawUTF8());
+    {   // the assistant's answer, piece by piece (Server-Sent Events): blocks arrive whole, a split multi-byte character is never cut
+        std::string lastBearer, lastUrl;
+        StreamTransport streaming = [&](const HttpRequest& r, const StreamEvents& e) {
+            lastBearer = r.bearer;
+            lastUrl = r.url;
+            if (r.body.find("limit") != std::string::npos) {
+                e.head(429, 30);
+                const std::string body = R"({"detail":"The daily AI budget is used up"})";
+                e.data(body.data(), body.size());
+                return;
+            }
+            if (r.body.find("down") != std::string::npos) return;   // never reached: no head
+            e.head(200, 0);
+            const std::string block = "event: text\ndata: {\"delta\":\"\xC3\xA9\"}\n\n";   // an e with an acute accent
+            e.data(block.data(), block.size() - 6);                  // ends inside the character's JSON, before the blank line
+            e.data(block.data() + block.size() - 6, 6);
+            e.data("event: done\ndata: {}\n\n", 22);
+        };
+        Account streamer(dir, transport, makeFileTokenStore(dir), streaming);
+        CHECK((int)streamer.streamStart("/api/presets", juce::var())["status"] == 0, "only the assistant's paths can be streamed");
+        CHECK((int)streamer.streamStart("/api/agent/../tokens", juce::var())["status"] == 0, "no path tricks");
+        const juce::var started = streamer.streamStart("/api/agent/chat", juce::JSON::parse(R"({"messages":[]})"));
+        CHECK(started["id"].isString(), "stream started: %s", juce::JSON::toString(started).toRawUTF8());
+        std::string text;
+        bool done = false;
+        int status = -1;
+        for (int i = 0; i < 50 && !done; ++i) {
+            const juce::var r = streamer.streamRead(started["id"].toString().toStdString(), 200);
+            if (r["status"].isInt()) status = (int)r["status"];
+            const std::string chunk = r["chunk"].toString().toStdString();
+            if (!done && !chunk.empty()) CHECK(chunk.size() >= 2 && chunk.substr(chunk.size() - 2) == "\n\n", "a chunk ends at a block boundary");
+            text += chunk;
+            done = (bool)r["done"];
+        }
+        CHECK(status == 200 && done, "status %d, done %d", status, (int)done);
+        CHECK(text == "event: text\ndata: {\"delta\":\"\xC3\xA9\"}\n\nevent: done\ndata: {}\n\n", "all of it, in order: %s", text.c_str());
+        CHECK(lastBearer == "blu_secret" && lastUrl == "https://library.example/api/agent/chat", "the login goes with it");
+        CHECK(!streamer.streamRead(started["id"].toString().toStdString(), 100)["error"].isVoid(), "a finished stream is forgotten");
+
+        const juce::var refused = streamer.streamStart("/api/agent/chat", juce::JSON::parse(R"({"note":"limit"})"));
+        juce::var first;
+        for (int i = 0; i < 50 && !(bool)first["done"]; ++i) first = streamer.streamRead(refused["id"].toString().toStdString(), 200);
+        CHECK((int)first["status"] == 429 && (int)first["retryAfter"] == 30 && first["chunk"].toString().contains("budget"), "an error answer comes whole: %s",
+              juce::JSON::toString(first).toRawUTF8());
+
+        const juce::var gone = streamer.streamStart("/api/agent/chat", juce::JSON::parse(R"({"note":"down"})"));
+        juce::var r3;
+        for (int i = 0; i < 50 && !(bool)r3["done"]; ++i) r3 = streamer.streamRead(gone["id"].toString().toStdString(), 200);
+        CHECK((bool)r3["done"] && r3["error"].toString().contains("cannot reach"), "an unreachable library: %s", juce::JSON::toString(r3).toRawUTF8());
+
+        const juce::var cancelled = streamer.streamStart("/api/agent/chat", juce::JSON::parse(R"({"messages":[]})"));
+        streamer.streamCancel(cancelled["id"].toString().toStdString());
+        juce::var r4;
+        for (int i = 0; i < 50 && !(bool)r4["done"]; ++i) r4 = streamer.streamRead(cancelled["id"].toString().toStdString(), 200);
+        CHECK((bool)r4["done"], "a cancelled stream ends");
+    }
     {   // plain http to a host other than this machine: no token and no sign-in is sent
         Settings plain = Settings::load(dir);
         plain.libraryUrl = "http://library.example";

@@ -12,7 +12,7 @@ order: 20
 
 **The board (browser).** The chat panel (`agent-chat.js`) sends the conversation and a **snapshot** of the board with every request, shows the streamed answer, and applies changesets to the real board as one undo step. It also runs the *live tools*, the few things only the browser can do: measure signals, play notes, highlight a jack, ask the user a question.
 
-**The website API.** A thin FastAPI router (`routers/agent.py`) mounted only when the assistant is enabled. It requires a signed-in user, applies a per-user rate limit and a **daily token budget** for the whole site, turns the library's events into a Server-Sent Events stream, and writes the run log. It holds no conversation state.
+**The website API.** A thin FastAPI router (`routers/agent.py`) mounted only when the assistant is enabled. It requires a signed-in user (the website's session cookie, or the library token of the standalone app and the Bleep Board plugin), applies a per-user rate limit and a **daily token budget** for the whole site, turns the library's events into a Server-Sent Events stream, and writes the run log. It holds no conversation state.
 
 **The `bleep-agent` library.** Everything that makes it an assistant, with no web code: the agent loop, the skills and tools, the patch model, the catalog, the documentation search. It is given a model by its caller and never imports a provider itself, so the site, the command line and the benchmark can use different models.
 
@@ -58,3 +58,9 @@ Every run is logged so it can be debugged: the prompt, the board snapshot, every
 
 - Formats and protocol, as built: `doc/specs/agent.md`
 - Goals, reasoning and evaluation design: `doc/agent-concept.md`
+
+## In the standalone app and the Bleep Board plugin
+
+The assistant is the same panel (`agent-chat.js`) everywhere. Bleep Play is a page of the website and calls `/api/agent/…` with the session cookie. The app and the plugin serve their page themselves, so the page cannot call the website: it goes through the native `account` calls (`patch/library/Account.cpp`) to the library address from the settings, with the personal token from the OS keychain. The answer is a stream, which the page pulls piece by piece (`streamStart`, `streamRead`, `streamCancel`); `agent-chat.js` wraps it in a standard `Response`, so the rest of the panel does not know which transport it uses.
+
+Signing in is the library login (device flow): the first time the panel opens without a login, a dialog shows a code to confirm on the website. Settings > Library has the same sign in and sign out; one login serves the app and every plugin. Instrument and FX plugin windows show only a cell's panel and have no assistant.

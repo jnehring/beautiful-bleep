@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // agent-chat.js — the patch assistant's chat panel (doc/specs/agent.md §3.2, §5; doc/agent-concept.md).
 //
-// Only exists when the website's backend says so: GET /api/agent/status must answer {enabled: true}. In a plugin, the static Play
-// page without a backend, offline, or when the answer is anything else, the page shows nothing at all (no button, no CSS loaded).
+// Only exists when the website's backend says so: GET /api/agent/status must answer {enabled: true}. In an instrument or FX plugin
+// window (the cell's panel only), the static Play page without a backend, offline, or when the answer is anything else, the page shows
+// nothing at all (no button, no CSS loaded). Bleep Play talks to the backend with the website's session cookie; the standalone app and
+// the Bleep Board plugin with the library login (account.js: the personal token in the keychain), through the native `account` calls,
+// because their page is not served by the website.
 //
 //   P.BleepAgentChat.init(host)   board.js calls it once the board is up. host:
 //        board(): the board document              types(): type → description          selection(): selected node ids
@@ -489,7 +492,7 @@
     };
     if (ids.length) {
       try {
-        const resp = await fetch("/api/agent/log?run_ids=" + encodeURIComponent(ids.join(",")), { credentials: "same-origin" });
+        const resp = await agentFetch("/api/agent/log?run_ids=" + encodeURIComponent(ids.join(",")));
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const d = await resp.json();
         out.runs = (d.runs || []).map((r) => ({ run_id: r.run_id, rows: dedupeCalls(r.rows || []) }));
@@ -542,6 +545,55 @@
   }
   const mode = () => (store.get("bleep-agent-mode", "ask") === "auto" ? "auto" : "ask");
 
+  /// Where the assistant's answers come from. Bleep Play: the website's own address, with the session cookie. The app and the plugin:
+  /// the library, through the native `account` calls with the login. Both return a standard Response, so the callers do not differ.
+  let viaApp = false;
+  async function agentFetch(path, init) {
+    if (!viaApp) return fetch(path, Object.assign({ credentials: "same-origin" }, init));
+    const A = P.BleepAccount;
+    const json = (status, body, headers) => new Response(JSON.stringify(body === undefined ? null : body), { status, headers: Object.assign({ "Content-Type": "application/json" }, headers) });
+    if (!init || !init.method || init.method === "GET") {
+      const r = await A.call("GET", path);
+      if (!r || !r.status) throw new TypeError((r && r.error) || "cannot reach the library");
+      return json(r.status, r.body);
+    }
+    const s = await native("account", "streamStart", path, JSON.parse(init.body));
+    if (!s || !s.id) {
+      if (s && s.status >= 400) return json(s.status, { detail: s.error || "" });
+      throw new TypeError((s && s.error) || "cannot reach the library");
+    }
+    const id = s.id, signal = init.signal;
+    let finished = false;
+    const stop = () => { if (!finished) { finished = true; native("account", "streamCancel", id); } };
+    if (signal) signal.addEventListener("abort", stop, { once: true });
+    let head = null;
+    while (!head) {   // the first answer carries the status
+      if (signal && signal.aborted) { stop(); throw new DOMException("Aborted", "AbortError"); }
+      const r = await native("account", "streamRead", id, 1000);
+      if (r && r.status !== undefined) head = r;
+      else if (!r || r.done) { finished = true; throw new TypeError((r && r.error) || "cannot reach the library"); }
+    }
+    const queue = head.chunk ? [head.chunk] : [];
+    let ended = !!head.done;
+    const enc = new TextEncoder();
+    const headers = head.retryAfter > 0 ? { "Retry-After": String(head.retryAfter) } : {};
+    const body = new ReadableStream({
+      async pull(ctrl) {
+        for (;;) {
+          if (signal && signal.aborted) { stop(); ctrl.error(new DOMException("Aborted", "AbortError")); return; }
+          if (queue.length) { ctrl.enqueue(enc.encode(queue.shift())); return; }
+          if (ended) { finished = true; ctrl.close(); return; }
+          const r = await native("account", "streamRead", id, 1000);
+          if (!r) { ended = true; continue; }
+          if (r.chunk) queue.push(r.chunk);
+          if (r.done) ended = true;
+        }
+      },
+      cancel: stop,
+    });
+    return new Response(body, { status: head.status, headers });
+  }
+
   async function errorFrom(resp) {
     let body = null;
     try { body = await resp.json(); } catch (e) { /* no JSON */ }
@@ -552,8 +604,8 @@
 
   /// One POST, one event stream. Returns {pause, live, reason}; throws on a network failure (AbortError when stopped).
   async function streamOnce(body, run, bubble) {
-    const resp = await fetch("/api/agent/chat", {
-      method: "POST", credentials: "same-origin", signal: run.ctrl.signal,
+    const resp = await agentFetch("/api/agent/chat", {
+      method: "POST", signal: run.ctrl.signal,
       headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
       body: JSON.stringify(body),
     });
@@ -687,8 +739,17 @@
     }
   }
 
+  /// The login dialog (account.js). Shown by itself the first time the panel opens without a login; the panel's button asks again.
+  let askedSignIn = false;
+  async function askSignIn() {
+    askedSignIn = true;
+    const ok = await P.BleepAccount.requireSignIn("Sign in to use the assistant",
+      "The assistant runs on the Bleep Library's servers, so it needs your account (the same one that shares presets).");
+    if (ok) { await refreshStatus(); ui.refresh(); }
+  }
+
   function failure(e, bubble) {
-    if (e.http === 401) { status.signed_in = false; ui.refresh(); bubble.addError("You are signed out. Sign in on the website to use the assistant."); return; }
+    if (e.http === 401) { status.signed_in = false; ui.refresh(); bubble.addError(viaApp ? "You are signed out. Sign in again to use the assistant." : "You are signed out. Sign in on the website to use the assistant."); return; }
     if (e.http === 429) {
       const b = e.body || {};
       const when = b.reset_at ? fmtTime(b.reset_at) : "";
@@ -872,7 +933,7 @@
         root.hidden = !on;
         toggle.setAttribute("aria-expanded", on ? "true" : "false");
         toggle.classList.toggle("on", on);
-        if (on) { refreshStatus().then(() => { ensureBoard(); api.refresh(); }); api.refresh(); setTimeout(() => (input.offsetParent ? input : close).focus(), 0); }
+        if (on) { refreshStatus().then(() => { ensureBoard(); api.refresh(); if (viaApp && status && status.enabled && !status.signed_in && !askedSignIn) askSignIn(); }); api.refresh(); setTimeout(() => (input.offsetParent ? input : close).focus(), 0); }
         else if (root.contains(document.activeElement)) toggle.focus();
       },
       setActivity(text) { label = text; activity.hidden = !text && !timer; actText.textContent = text ? text + "…" : ""; },
@@ -908,12 +969,20 @@
         if (!ok) { /* hidden anyway */ }
         else if (!status.signed_in) {
           blocker.append(el("p", "", "Sign in to use the assistant."));
-          const a = el("a", "ag-link", "Sign in on the website");
-          a.href = "/login/"; a.target = "_blank"; a.rel = "noopener";
-          const again = el("button", "ag-small", "I have signed in");
-          again.type = "button";
-          again.addEventListener("click", async () => { await refreshStatus(); api.refresh(); });
-          const r = el("div", "ag-actions"); r.append(a, again);
+          const r = el("div", "ag-actions");
+          if (viaApp) {   // the app and the plugin: the library login, a dialog with the code to confirm on the website
+            const go = el("button", "ag-primary", "Sign in…");
+            go.type = "button";
+            go.addEventListener("click", () => askSignIn());
+            r.append(go);
+          } else {
+            const a = el("a", "ag-link", "Sign in on the website");
+            a.href = "/login/"; a.target = "_blank"; a.rel = "noopener";
+            const again = el("button", "ag-small", "I have signed in");
+            again.type = "button";
+            again.addEventListener("click", async () => { await refreshStatus(); api.refresh(); });
+            r.append(a, again);
+          }
           blocker.appendChild(r);
         } else if (status.budget_exhausted) {
           const when = status.reset_at ? fmtTime(status.reset_at) : "";
@@ -1177,7 +1246,7 @@
 
   async function refreshStatus() {
     try {
-      const r = await fetch("/api/agent/status", { credentials: "same-origin", headers: { Accept: "application/json" } });
+      const r = await agentFetch("/api/agent/status", { headers: { Accept: "application/json" } });
       if (!r.ok) return;
       const d = await r.json();
       if (isObj(d)) status = d;
@@ -1185,11 +1254,15 @@
   }
 
   async function init(h) {
-    if (host || !h || !/^https?:$/.test(location.protocol)) return;
-    if (document.body.classList.contains("plugin")) return;
+    if (host || !h) return;
+    if (document.body.classList.contains("plugin")) return;   // an instrument or FX window shows the cell's panel only
+    const A = P.BleepAccount;
+    // The app and the plugin: the library login (Bleep Play, a page of the website, has the cookie instead).
+    viaApp = !!(A && A.enabled && !(await A.status(false)).playLogin);
+    if (!viaApp && !/^https?:$/.test(location.protocol)) return;
     let d = null;
     try {
-      const r = await fetch("/api/agent/status", { credentials: "same-origin", headers: { Accept: "application/json" } });
+      const r = await agentFetch("/api/agent/status", { headers: { Accept: "application/json" } });
       if (!r.ok) return;
       d = await r.json();
     } catch (e) { return; }   // offline, a static page without backend, not JSON: no assistant
@@ -1203,6 +1276,7 @@
     ui.renderAll();
     ui.refresh();
     ui.drawUsage();
+    if (viaApp && A.onChange) A.onChange(() => { refreshStatus().then(() => ui.refresh()); });   // signed in or out in Settings
   }
 
   P.BleepAgentChat = {

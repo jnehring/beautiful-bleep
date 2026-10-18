@@ -158,5 +158,50 @@
     });
   }
 
-  const api = P.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, onChange: (f) => listeners.add(f), open, get last() { return last; } };
+  /// A dialog that asks the user to sign in because `title` needs the login (the patch assistant: its first use). Resolves true when the
+  /// user is signed in (already, or after the dialog), false when they dismissed it.
+  function requireSignIn(title, note) {
+    return new Promise(async (resolve) => {
+      const st = await status(false);
+      if (st.signedIn) { resolve(true); return; }
+      const back = el("div", "ac-back");
+      const box = el("div", "ac-box");
+      back.appendChild(box);
+      const close = (v) => { cancel(); back.remove(); resolve(!!v); };
+      back.addEventListener("mousedown", (e) => { if (e.target === back) close(false); });
+      box.appendChild(el("h3", "", title));
+      box.appendChild(el("div", "ac-note", note + (st.playLogin
+        ? " Log in on the website, then come back here."
+        : " Sign in with your Bleep Library account: the website shows a page where you confirm the code below. Your password never reaches this app.")));
+      const code = el("div", "ac-code");
+      const msg = el("div", "ac-msg");
+      box.append(code, msg);
+      const row = el("div", "ac-row");
+      const later = el("button", "", "Not now");
+      const go = el("button", "ac-primary", st.playLogin ? "Log in" : "Sign in…");
+      later.addEventListener("click", () => close(false));
+      go.addEventListener("click", async () => {
+        if (st.playLogin) {
+          if (go.dataset.opened) {
+            if ((await status(false)).signedIn) close(true); else { msg.className = "ac-msg bad"; msg.textContent = "Not logged in yet."; }
+            return;
+          }
+          go.dataset.opened = "1";
+          go.textContent = "I have logged in";
+          open(st.libraryUrl + "/login/");
+          return;
+        }
+        go.disabled = true;
+        const r = await signIn((c) => { code.textContent = c.userCode; msg.className = "ac-msg"; msg.textContent = "Waiting for you to confirm it in the browser…"; });
+        if (r && r.error !== undefined) { go.disabled = false; code.textContent = ""; if (r.error) { msg.className = "ac-msg bad"; msg.textContent = r.error; } return; }
+        close(true);
+      });
+      row.append(later, go);
+      box.appendChild(row);
+      document.body.appendChild(back);
+      go.focus();
+    });
+  }
+
+  const api = P.BleepAccount = { enabled: false, client: "Bleep", status, signIn, cancel, signOut, call, share, requireSignIn, onChange: (f) => listeners.add(f), open, get last() { return last; } };
 })();

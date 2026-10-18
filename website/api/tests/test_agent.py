@@ -15,7 +15,7 @@ from app.config import settings  # noqa: E402
 from app.db import SessionLocal  # noqa: E402
 from app.main import app  # noqa: E402
 from app.routers import agent as agent_router  # noqa: E402
-from test_social import other_client  # noqa: E402,F401
+from test_social import app_token, bearer, other_client  # noqa: E402,F401
 
 REPO = Path(__file__).resolve().parents[3]
 PATCH = {"format": 1, "nodes": [{"id": "out", "type": "audio-out", "name": "Out", "x": 0, "y": 0, "parent": "", "params": {}}], "cables": []}
@@ -77,6 +77,19 @@ def test_status_and_login(client, agent_on):
     assert client.post("/api/agent/chat", json=BODY).status_code == 401
     ann = other_client("ann@example.com", "Ann")
     assert ann.get("/api/agent/status").json()["signed_in"] is True
+
+
+def test_app_token_signs_in_the_assistant(client, agent_on):
+    """The standalone app and the plugins have no cookie: their personal token (the device flow) works for status, chat and the run log."""
+    ann = other_client("ann@example.com", "Ann")
+    token = app_token(ann)
+    bare = TestClient(app)
+    assert bare.get("/api/agent/status", headers=bearer(token)).json()["signed_in"] is True
+    assert bare.get("/api/agent/status", headers=bearer("blu_wrong")).json()["signed_in"] is False
+    assert bare.post("/api/agent/chat", json=BODY, headers=bearer("blu_wrong")).status_code == 401
+    r = bare.post("/api/agent/chat", json=BODY, headers=bearer(token))
+    assert r.status_code == 200 and events(r)[-1][0] == "done"
+    assert bare.get("/api/agent/log", params={"run_ids": "x"}, headers=bearer(token)).status_code != 401
 
 
 def test_chat_streams_and_counts_tokens(client, agent_on):

@@ -144,7 +144,7 @@ Live (**external**: the run ends, the client executes, a later request resumes):
 
 - `GET /api/agent/status` → `{"enabled": bool, "signed_in": bool, "budget_exhausted": bool, "reset_at": iso8601|null,
   "docs": bool}`. Always answers (also when disabled: `{"enabled": false}`), never 404, never calls a model.
-- `POST /api/agent/chat` → `text/event-stream`. Requires the session cookie (401 otherwise); 429 with `Retry-After`
+- `POST /api/agent/chat` → `text/event-stream`. Requires a login (401 otherwise): the website's session cookie, or the app's personal token (`Authorization: Bearer blu_…`, the same one that shares presets); 429 with `Retry-After`
   and a JSON body `{"detail", "code": "budget", "reset_at"}` when the daily budget is used up (a plain `detail` for the per-user rate); 503 when not configured.
 
 ### 5.2 Request

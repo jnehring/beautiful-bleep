@@ -4,8 +4,10 @@
 #include "Client.h"
 #include "../common/SafeJson.h"
 
+#include <chrono>
 #include <cstdlib>
 #include <ctime>
+#include <thread>
 
 #if JUCE_WINDOWS
 #include <windows.h>
@@ -68,6 +70,33 @@ HttpResponse httpSend(const HttpRequest& request) {
     out.status = status;
     out.body = stream->readEntireStreamAsString().toStdString();
     return out;
+}
+
+void httpStream(const HttpRequest& request, const StreamEvents& events) {
+    juce::URL url(juce::String(request.url));
+    juce::String headers;
+    if (!request.body.empty()) {
+        url = url.withPOSTData(juce::String::fromUTF8(request.body.data(), (int)request.body.size()));
+        headers << "Content-Type: application/json\r\n";
+    }
+    headers << "Accept: text/event-stream\r\n";
+    if (!request.bearer.empty()) headers << "Authorization: Bearer " << juce::String(request.bearer) << "\r\n";
+    int status = 0;
+    juce::StringPairArray responseHeaders;
+    // The server pings every 15 seconds while the model thinks, so a minute without a byte means the connection is gone.
+    auto options = juce::URL::InputStreamOptions(request.body.empty() ? juce::URL::ParameterHandling::inAddress
+                                                                       : juce::URL::ParameterHandling::inPostData)
+                       .withConnectionTimeoutMs(60000).withStatusCode(&status).withResponseHeaders(&responseHeaders)
+                       .withNumRedirectsToFollow(0).withHttpRequestCmd(juce::String(request.method)).withExtraHeaders(headers);
+    auto stream = url.createInputStream(options);
+    if (!stream) return;
+    if (events.head) events.head(status, responseHeaders.getValue("Retry-After", "0").getIntValue());
+    char buffer[4096];
+    while (!stream->isExhausted()) {
+        const int n = stream->read(buffer, (int)sizeof buffer);
+        if (n <= 0) break;
+        if (events.data && !events.data(buffer, (size_t)n)) break;
+    }
 }
 
 // ---- token stores -------------------------------------------------------------------------------------------
@@ -211,9 +240,10 @@ std::unique_ptr<TokenStore> makeTokenStore(const juce::File& dataDir) {
 
 // ---- account ------------------------------------------------------------------------------------------------
 
-Account::Account(juce::File dataDir, Transport transport, std::unique_ptr<TokenStore> tokens)
+Account::Account(juce::File dataDir, Transport transport, std::unique_ptr<TokenStore> tokens, StreamTransport streamTransport)
     : dataDir_(std::move(dataDir)), transport_(transport ? std::move(transport) : Transport(httpSend)),
-      tokens_(tokens ? std::move(tokens) : makeTokenStore(dataDir_)) {}
+      tokens_(tokens ? std::move(tokens) : makeTokenStore(dataDir_)),
+      streamTransport_(streamTransport ? std::move(streamTransport) : StreamTransport(httpStream)) {}
 
 std::string Account::base() const {
     std::string url = Settings::load(dataDir_).libraryUrl;
@@ -335,14 +365,121 @@ juce::var Account::call(const std::string& method, const std::string& path, cons
         return object({{"status", 0}, {"error", "not a call to the library"}});
     const std::string account = base();
     const std::string token = tokens_->load(account);
-    if (token.empty()) return object({{"status", 401}, {"error", "Not signed in"}});
+    // Whether the assistant is switched on is public: the page asks before anyone has signed in.
+    if (token.empty() && !(method == "GET" && path == "/api/agent/status")) return object({{"status", 401}, {"error", "Not signed in"}});
     HttpResponse r;
     std::string error = send(method, path, body, token, r);
-    if (r.status == 401) {   // revoked or expired: this machine is signed out now
+    if (r.status == 401 && !token.empty()) {   // revoked or expired: this machine is signed out now
         tokens_->clear(account);
         error = "You were signed out; sign in again";
     }
     return object({{"status", r.status}, {"body", bleep::safejson::parse(juce::String(r.body))}, {"error", juce::String(error)}});
+}
+
+// ---- streams ------------------------------------------------------------------------------------------------
+
+/// One streaming request: a worker thread fills it, streamRead() empties it.
+struct Account::Stream {
+    std::mutex m;
+    std::condition_variable cv;
+    std::string pending;
+    bool headSent = false, headReported = false, done = false, cancelled = false;
+    int status = 0, retryAfter = 0;
+    std::string error;
+};
+
+juce::var Account::streamStart(const std::string& path, const juce::var& body) {
+    if (path.rfind("/api/agent/", 0) != 0 || path.find("..") != std::string::npos || path.find("://") != std::string::npos)
+        return object({{"status", 0}, {"error", "not a call to the assistant"}});
+    const std::string account = base();
+    if (std::string why; !libraryUrlAllowed(account, why)) return object({{"status", 0}, {"error", juce::String(why)}});
+    const std::string token = tokens_->load(account);
+    if (token.empty()) return object({{"status", 401}, {"error", "Not signed in"}});
+    HttpRequest r;
+    r.method = "POST";
+    r.url = account + path;
+    r.bearer = token;
+    r.body = juce::JSON::toString(body, true).toStdString();
+    auto s = std::make_shared<Stream>();
+    std::string id;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        id = std::to_string(nextStream_++);
+        streams_[id] = s;
+    }
+    auto transport = streamTransport_;
+    std::thread([s, r, transport, account]() {
+        StreamEvents events;
+        events.head = [&](int status, int retryAfter) {
+            std::lock_guard<std::mutex> lock(s->m);
+            s->status = status;
+            s->retryAfter = retryAfter;
+            s->headSent = true;
+            s->cv.notify_all();
+        };
+        events.data = [&](const char* bytes, size_t n) {
+            std::lock_guard<std::mutex> lock(s->m);
+            if (s->cancelled) return false;
+            s->pending.append(bytes, n);
+            s->cv.notify_all();
+            return true;
+        };
+        transport(r, events);
+        std::lock_guard<std::mutex> lock(s->m);
+        if (!s->headSent) s->error = "cannot reach " + account;
+        s->done = true;
+        s->cv.notify_all();
+    }).detach();
+    return object({{"id", juce::String(id)}});
+}
+
+juce::var Account::streamRead(const std::string& id, int timeoutMs) {
+    std::shared_ptr<Stream> s;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = streams_.find(id);
+        if (it == streams_.end()) return object({{"done", true}, {"chunk", ""}, {"error", "no such stream"}});
+        s = it->second;
+    }
+    std::unique_lock<std::mutex> lock(s->m);
+    // The first answer carries the status; after that, a block (or the end) is news. An error answer is read whole, at its end.
+    s->cv.wait_for(lock, std::chrono::milliseconds(timeoutMs), [&] {
+        return s->done || s->cancelled || (s->headSent && !s->headReported) ||
+               (s->headSent && s->status < 400 && s->pending.find("\n\n") != std::string::npos);
+    });
+    std::string chunk;
+    const bool finished = s->done || s->cancelled;
+    if (finished) { chunk.swap(s->pending); }
+    else if (const size_t cut = s->pending.rfind("\n\n"); cut != std::string::npos && s->status < 400) {
+        chunk = s->pending.substr(0, cut + 2);
+        s->pending.erase(0, cut + 2);
+    }
+    auto result = object({{"chunk", juce::String::fromUTF8(chunk.data(), (int)chunk.size())}, {"done", finished}});
+    auto* o = result.getDynamicObject();
+    if (s->headSent && !s->headReported) { o->setProperty("status", s->status); o->setProperty("retryAfter", s->retryAfter); }
+    s->headReported = s->headSent;
+    if (!s->error.empty()) o->setProperty("error", juce::String(s->error));
+    const int status = s->status;
+    lock.unlock();
+    if (finished) {
+        std::lock_guard<std::mutex> g(mutex_);
+        streams_.erase(id);
+    }
+    if (status == 401) tokens_->clear(base());   // revoked or expired: this machine is signed out now
+    return result;
+}
+
+void Account::streamCancel(const std::string& id) {
+    std::shared_ptr<Stream> s;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = streams_.find(id);
+        if (it == streams_.end()) return;
+        s = it->second;
+    }
+    std::lock_guard<std::mutex> lock(s->m);
+    s->cancelled = true;
+    s->cv.notify_all();
 }
 
 }  // namespace bleep::library

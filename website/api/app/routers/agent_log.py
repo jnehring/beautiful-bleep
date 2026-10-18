@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..db import get_db
-from ..deps import get_current_user, require_admin
+from ..deps import get_library_user, require_admin
 from ..models import AgentLog, User
 
 user_router = APIRouter(prefix="/api/agent", tags=["agent-log"])
@@ -39,7 +39,7 @@ def run(run_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
 
 
 @user_router.get("/log")
-def my_runs(run_ids: str = Query(..., description="comma separated run ids, as sent in the `run` event"), user: User = Depends(get_current_user),
+def my_runs(run_ids: str = Query(..., description="comma separated run ids, as sent in the `run` event"), user: User = Depends(get_library_user),
             db: Session = Depends(get_db)) -> dict[str, Any]:
     """The full log of the given runs, for "Copy chat". Users get their own runs; admins any. Runs the rolling log has already dropped are listed as missing."""
     ids = [i for i in dict.fromkeys(x.strip() for x in run_ids.split(",")) if i][:40]

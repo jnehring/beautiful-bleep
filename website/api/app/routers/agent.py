@@ -2,7 +2,7 @@
 """The patch assistant's endpoints (agent/, doc/specs/agent.md §5).
 
 GET  /api/agent/status  always answers; {"enabled": false} when BLEEP_AGENT_ENABLED is off (the board then hides the chat).
-POST /api/agent/chat    a Server-Sent Events stream of one assistant turn; signed-in users only, per-user rate, daily token budget.
+POST /api/agent/chat    a Server-Sent Events stream of one assistant turn; signed-in users only (the website's cookie, or the app's personal token), per-user rate, daily token budget.
 
 The library is imported only when the feature is on, so a disabled installation never loads a model client.
 """
@@ -16,14 +16,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from .. import agent_log, agent_quota
 from ..config import settings
 from ..db import SessionLocal, get_db
-from ..deps import COOKIE, _session_user, get_current_user
+from ..deps import get_library_user, get_optional_library_user
 from ..models import User
 from ..ratelimit import limiter
 
@@ -91,10 +91,9 @@ def get_resources() -> Any:
 
 
 @router.get("/status")
-def agent_status(token: str | None = Cookie(default=None, alias=COOKIE), db: Session = Depends(get_db)) -> dict[str, Any]:
+def agent_status(user: User | None = Depends(get_optional_library_user), db: Session = Depends(get_db)) -> dict[str, Any]:
     if not settings.agent_enabled:
         return {"enabled": False}
-    user = _session_user(token, db)
     out_of_budget = agent_quota.exhausted(db)
     return {"enabled": True, "signed_in": user is not None, "budget_exhausted": out_of_budget,
             "reset_at": agent_quota.reset_at().isoformat() if out_of_budget else None}
@@ -105,7 +104,7 @@ def _sse(event: str, data: dict[str, Any]) -> str:
 
 
 @router.post("/chat")
-async def chat(body: dict[str, Any], user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def chat(body: dict[str, Any], user: User = Depends(get_library_user), db: Session = Depends(get_db)):
     if not settings.agent_enabled:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
     from bleep_agent.protocol import ChatRequest

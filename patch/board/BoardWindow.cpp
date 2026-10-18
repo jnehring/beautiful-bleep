@@ -88,6 +88,10 @@ juce::var runAccount(const juce::String& op, const juce::var& x, const juce::var
     if (op == "cancel") { account.cancelSignIn(); return account.status(false); }
     if (op == "signOut") return account.signOut();
     if (op == "call") return account.call(x.toString().toStdString(), y.toString().toStdString(), z);
+    // The patch assistant's answer is a stream: start it, then pull it piece by piece (agent-chat.js).
+    if (op == "streamStart") return account.streamStart(x.toString().toStdString(), y);
+    if (op == "streamRead") return account.streamRead(x.toString().toStdString(), juce::jlimit(100, 5000, (int)y));
+    if (op == "streamCancel") { account.streamCancel(x.toString().toStdString()); return {}; }
     return {};
 }
 #endif
