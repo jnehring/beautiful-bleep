@@ -115,6 +115,32 @@ def test_cables_to_a_cell_use_the_cells_own_jacks(catalog):
         apply_ops(p, catalog, [Connect(from_node="stepse", from_jack="pitch", to_node="slate", to_jack="gate")])
 
 
+def test_drum_grid_tool_describe_and_routing(catalog):
+    import asyncio
+    from bleep_agent import skills
+    from bleep_agent.patch import Patch
+    from bleep_agent.tools import Deps, set_drum_pattern, describe_module, get_sequencer
+    from types import SimpleNamespace as NS
+
+    assert skills.route("add a four on the floor kick and high hats on the offbeats") == "compose"
+    assert skills.route("add reverb to the drums") == "patch"
+    assert skills.route("build a fat kick drum sound") == "design"
+    assert set_drum_pattern in skills.SKILLS["compose"].funcs and set_drum_pattern in skills.SKILLS["design"].funcs
+
+    p = Patch({"format": 1, "id": "t", "nodes": [{"id": "g", "type": "drum-grid", "name": "Grid", "x": 0, "y": 0, "parent": "", "params": {}}], "cables": []})
+    deps = Deps(patch=p, catalog=catalog)
+    ctx = NS(deps=deps)
+    asyncio.run(set_drum_pattern(ctx, "g", ["X...X...X...X...", "..x...x...x...x."], names=["Kick", "Hat"], params={"swing": 0.55}))
+    data = p.node("g")["data"]
+    assert data["patterns"][0]["steps"][0].startswith("X...X...") and data["tracks"][1]["name"] == "Hat" and data["current"] == 0
+    seq = asyncio.run(get_sequencer(ctx, "g"))
+    assert seq["pattern"]["rows"][1].startswith("..x...x.")
+
+    d = asyncio.run(describe_module(NS(deps=Deps(patch=p, catalog=catalog)), "drum-grid"))
+    ids = [o["id"] for o in d["outputs"]]
+    assert "gate1..gate8" in ids and "gate2" not in ids and len(ids) < 12
+
+
 def test_set_muted_op_unmutes_and_set_node_data_refuses_mute(catalog, synth):
     from bleep_agent.ops import SetMuted, SetNodeData
 

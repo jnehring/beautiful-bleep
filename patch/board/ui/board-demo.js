@@ -82,6 +82,8 @@
   const message = () => (syncPorts(), { board, ports, canUndo: undo.length > 0, canRedo: redo.length > 0,
                            status: (window.BleepWeb && BleepWeb.status) || "Demo · no audio · latency 256 smp" });
   function save() { store.set("bleep-demo-board", board); }
+  // The tempo belongs to the patch: it is saved with the board and comes back with it.
+  if (window.BleepWeb) BleepWeb.onTempoSet = (bpm) => { if (board) { board.tempo = bpm; save(); } };
   function pushUndo() { undo.push(JSON.stringify(board)); if (undo.length > 200) undo.shift(); redo = []; }
 
   function paramText(p, v) {
@@ -379,7 +381,7 @@
           return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});
         case "commit":
           pushUndo();
-          board = sanitise(clone(a[0]));
+          { const t = board.tempo; board = sanitise(clone(a[0])); if (t) board.tempo = t; }   // the UI's copy may be older than the tempo
           save();
           if (window.BleepWeb) BleepWeb.setBoard(board);
           return message();
@@ -397,6 +399,7 @@
           const ids = new Set(next.nodes.map((n) => n.id));
           next.cables = next.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node));
           pushUndo();
+          next.tempo = a[1] >= 20 && a[1] <= 400 ? a[1] : board.tempo;   // a patch without a tempo keeps the current one
           board = sanitise(next);
           save();
           if (window.BleepWeb) BleepWeb.setBoard(board);
@@ -414,6 +417,7 @@
         case "setParam": {
           const n = board.nodes.find((x) => x.id === a[0]);
           if (n) { n.params[a[1]] = a[2]; save(); if (window.BleepWeb) BleepWeb.setKnob(a[0], a[1], a[2]); }
+          else if (String(a[0]).startsWith("~") && window.BleepWeb) BleepWeb.setKnob(a[0], a[1], a[2]);   // a panel control's hidden source
           return null;
         }
         case "setData": {

@@ -27,7 +27,7 @@ function wobblyClock() {
   const m = melody(p, [1, 0], [0, 7, 3, 5, 0, 10, 7, 3, 0, 7, 12, 10, 7, 5, 3, 5], { rate: "1/8", root: "F", scale: "Dorian", shape: 0.5, osc: { octave: "-1" } });
   p.cable(clk, "gate", m.seq, "clock");
   const tick = p.add("pulse-generator", [0, 1], { mode: "Free Run", sync: "1/16", width: 0.00025, ring: 1, ringfreq: 7500, damping: 0.78, jitter: 0.12, seed: 9, amplitude: 0.6 }, { name: "Hat Ticks" });
-  const hp = p.add("filter", [1, 1], { cutoff: 5000, mode: 1, resonance: 0.1 }, { name: "Hat Filter" });
+  const hp = p.add("filter", [1, 1], { cutoff: 5000, mode: "Notch", resonance: 0.1 }, { name: "Hat Filter" });
   const thump = p.add("pulse-generator", [0, 2], { mode: "Free Run", sync: "1/4", width: 0.0003, ring: 1, ringfreq: 70, damping: 0.4 }, { name: "Thump" });
   p.cable(tick, "ring", hp, "l");
   finish(p, [3, 0], [{ n: m.amp, l: "l", level: 0, pan: -0.2 }, { n: hp, l: "l", level: -4, pan: 0.35 }, { n: thump, l: "ring", level: -6 }], { vmix: 0.2, master: 6 });
@@ -47,7 +47,7 @@ function tinDrums() {
   const hat = p.add("pulse-generator", [1, 2], { mode: "Triggered", period: 0.1, width: 0.00018, ring: 1, ringfreq: 8200, damping: 0.8, amplitude: 0.6 }, { name: "Hat" });
   const tom = p.add("pulse-generator", [1, 3], { mode: "Triggered", burst: 4, period: 0.045, width: 0.002, ring: 1, ringfreq: 150, damping: 0.35 }, { name: "Tom Roll" });
   p.cable(grid, "gate1", kick, "trigger").cable(grid, "gate2", snare, "trigger").cable(grid, "gate3", hat, "trigger").cable(grid, "gate4", tom, "trigger");
-  const hpf = p.add("filter", [2, 2], { cutoff: 6000, mode: 1 }, { name: "Hat Filter" });
+  const hpf = p.add("filter", [2, 2], { cutoff: 6000, mode: "Notch" }, { name: "Hat Filter" });
   p.cable(hat, "ring", hpf, "l");
   finish(p, [3, 0], [{ n: kick, l: "ring", level: -2 }, { n: snare, l: "ring", level: -8, pan: 0.1 }, { n: hpf, l: "l", level: -10, pan: 0.3 }, { n: tom, l: "ring", level: -6, pan: -0.3 }], { vmix: 0.18, size: 0.3, decay: 1.2 });
   return p;
@@ -102,7 +102,7 @@ function pulseChoir() {
     p.cable(l, "out", g, "widthpct", 0.35);
     return g;
   });
-  const lp = p.add("filter", [2, 0], { cutoff: 1400, mode: 0, resonance: 0.15, type: "Ladder Tanh" }, { name: "Warmth" });
+  const lp = p.add("filter", [2, 0], { cutoff: 1400, mode: "LP", resonance: 0.15, type: "Ladder Tanh" }, { name: "Warmth" });
   const sum = p.add("audio-mixer", [2, 1], { level1: -6, level2: -6, level3: -8, pan1: -0.5, pan3: 0.5, master: 0 }, { name: "Choir" });
   nodes.forEach((g, i) => p.cable(g, "out", sum, `in${i + 1}l`));
   p.cable(sum, "outl", lp, "l").cable(sum, "outr", lp, "r");

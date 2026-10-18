@@ -51,7 +51,7 @@ function hatWash() {
   const n = p.add("noise", [1, 0], { colour: 0.9, level: 0.8 });
   const env = p.add("adsr", [2, 1], { attack: 0.001, decay: 0.07, sustain: 0, release: 0.05 }, { name: "Tick Env" });
   const amp = p.add("vca", [2, 0], {}, { name: "VCA" });
-  const hp = p.add("filter", [3, 0], { cutoff: 6500, resonance: 0.2, mode: 1 }, { name: "High-pass" });
+  const hp = p.add("filter", [3, 0], { cutoff: 6500, resonance: 0.2, mode: "Notch" }, { name: "High-pass" });
   p.cable(seq, "gate", env, "gate").cable(seq, "trigger", env, "retrig").cable(env, "env", amp, "gain").cable(n, "out", amp, "l")
     .cable(amp, "l", hp, "l").cable(hp, "l", hp, "r");
   withDrums(p, [4, 0], hp, ["l", "r"], grid, { l1: 5, l2: -3 });

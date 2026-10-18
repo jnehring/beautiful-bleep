@@ -911,7 +911,7 @@
     "name": "Multi Filter",
     "category": "Audio/Filters",
     "colour": "#f472b6",
-    "description": "Stereo multimode filter: 25 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger), LP/BP/HP/notch morph, drive, key tracking, envelope out.",
+    "description": "Stereo multimode filter: 25 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger), LP/BP/HP/notch mode, drive, key tracking, envelope out.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -962,15 +962,21 @@
       {
         "id": "mode",
         "name": "Mode",
-        "kind": "float",
+        "kind": "choice",
         "default": 0.0,
-        "steps": 0,
+        "steps": 4,
         "modulatable": true,
         "cableable": false,
+        "choices": [
+          "LP",
+          "BP",
+          "HP",
+          "Notch"
+        ],
         "min": 0.0,
-        "max": 1.0,
+        "max": 3.0,
         "def": 0.0,
-        "format": "filterMode",
+        "format": "choice",
         "decimals": 2
       },
       {
@@ -2292,7 +2298,7 @@
     "name": "Quantizer",
     "category": "Utility/Harmony",
     "colour": "#93c5fd",
-    "description": "Snaps a pitch to the notes of a scale: any modulator becomes a melody.",
+    "description": "Snaps a pitch or incoming notes to the notes of a scale: any modulator becomes a melody.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -2454,6 +2460,12 @@
         "name": "Root In",
         "type": "pitch",
         "bipolar": true
+      },
+      {
+        "id": "notesin",
+        "name": "Notes In",
+        "type": "notes",
+        "bipolar": true
       }
     ],
     "outputs": [
@@ -2473,6 +2485,12 @@
         "id": "gate",
         "name": "Gate",
         "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "notes",
+        "name": "Notes",
+        "type": "notes",
         "bipolar": false
       }
     ]

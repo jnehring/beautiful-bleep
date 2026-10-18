@@ -58,6 +58,10 @@ class Resources:
     trace: Callable[[str, bool], None] | None = None
 
 
+ACTION_TOOLS = {"propose_changes", "set_pattern", "build_panel", "propose_panel", "ask_user", "play", "highlight"}
+WIND_DOWN = 4  # in the last steps the model may no longer look things up: it has to act or answer
+
+
 def _slim_schema(x: Any) -> Any:
     """A tool's JSON schema without what the model does not need: pydantic's per-property titles, `default: null`, and the `anyOf [X, null]` wrapper of
     optional fields (leaving the field out says the same). Every definition is sent on every model call; propose_changes alone is about 1.7k tokens."""
@@ -74,8 +78,17 @@ def _slim_schema(x: Any) -> Any:
     return out
 
 
-async def _slim_tool_defs(ctx: RunContext[Deps], tool_defs: list) -> list:
-    return [dataclasses.replace(t, parameters_json_schema=_slim_schema(t.parameters_json_schema)) if dataclasses.is_dataclass(t) else t for t in tool_defs]
+def _budget_prepare(res: "Resources"):
+    """Tool filter that makes the step budget a rule instead of a request: from `max_steps - WIND_DOWN` only tools that change
+    something remain; on the very last step none, so the model can only answer in text (and never hits the hard limit)."""
+    async def prepare(ctx: RunContext[Deps], tool_defs: list) -> list:
+        used = ctx.usage.requests
+        if used >= res.max_steps - 1:
+            return []
+        if used >= res.max_steps - WIND_DOWN:
+            tool_defs = [t for t in tool_defs if t.name in ACTION_TOOLS]
+        return [dataclasses.replace(t, parameters_json_schema=_slim_schema(t.parameters_json_schema)) if dataclasses.is_dataclass(t) else t for t in tool_defs]
+    return prepare
 
 
 def _catalog_index(cat: Catalog) -> str:
@@ -102,10 +115,9 @@ def _core_sheet(cat: Catalog) -> str:
 
 
 def build_instructions(skill: Skill, deps: Deps, res: Resources, used: int = 0) -> str:
+    # Stable text first, volatile text last: the model API caches the longest unchanged prefix of a request, so the parts that change
+    # between steps (the board after a change, the step warning) come at the end and the warning carries no counter.
     parts = [prompt_text("base.md"), prompt_text(skill.prompt)]
-    if used >= res.max_steps - 4:
-        parts.append(f"# Steps\nYou have used {used} of {res.max_steps} steps. Stop researching now: make the change with what you know, or "
-                     "answer and say what is still open. Do not call more lookup tools.")
     parts.append("# Situation\n" + ("Changes you propose are applied to the user's board immediately (they can undo)."
                                     if deps.mode == "auto" else
                                     "Changes you propose are shown to the user, who approves them before they apply."))
@@ -118,6 +130,11 @@ def build_instructions(skill: Skill, deps: Deps, res: Resources, used: int = 0) 
     parts.append("# The user's board right now\n" + deps.patch.summary(res.catalog, selection=deps.selection))
     if deps.env:
         parts.append("# Environment reported by the browser\n" + _short(deps.env))
+    if used >= res.max_steps - 1:
+        parts.append("# Steps\nThis is your last step and no tools are available: answer in text now, saying what you did and what is still open.")
+    elif used >= res.max_steps - WIND_DOWN:
+        parts.append("# Steps\nYou are almost out of steps. Stop researching: make the change with what you know, or answer and say what is "
+                     "still open. Lookup tools are no longer available.")
     return "\n\n".join(parts)
 
 
@@ -169,7 +186,7 @@ async def run_chat(res: Resources, req: ChatRequest, agent_hook: Callable[[Agent
             emit("done", {"reason": "budget"})
         except UsageLimitExceeded as e:
             log.warning("run hit the step limit (%s); tool calls in order: %s", e, " > ".join(calls) or "none")
-            emit("error", {"code": "limit", "message": "The assistant took too many steps for this request. Try a smaller request."})
+            emit("error", {"code": "limit", "message": "The assistant ran out of steps before it could finish. Ask again with a more specific request, or split it into smaller steps."})
             emit("done", {"reason": "limit"})
         except TokenError as e:
             emit("error", {"code": "invalid", "message": f"This conversation step expired or is invalid ({e}). Please ask again."})
@@ -262,7 +279,7 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
     agent: Agent[Deps, Any] = Agent(
         model, deps_type=Deps, output_type=[str, DeferredToolRequests],
         instructions=lambda ctx: build_instructions(skill, ctx.deps, res, ctx.usage.requests),
-        toolsets=[PreparedToolset(t, _slim_tool_defs) for t in (
+        toolsets=[PreparedToolset(t, _budget_prepare(res)) for t in (
             [function_toolset(list(skill.funcs)), live_toolset(list(skill.live))] if skill.live else [function_toolset(list(skill.funcs))])],
         model_settings={"openai_prompt_cache_key": f"bleep-agent:{skill_name}"},  # OpenAI: requests of one skill share a long identical prefix; routing them together makes its prompt cache hit
         retries=2)

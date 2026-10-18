@@ -195,6 +195,24 @@ def test_the_run_log_records_retries_and_streaming(catalog, synth):
     assert [t["retry"] for t in tools] == [True, False] and "no output 'zzz'" in tools[0]["error"]
 
 
+def test_budget_filter_removes_lookup_tools_near_the_limit():
+    import asyncio
+    from types import SimpleNamespace
+    from bleep_agent.runner import Resources, _budget_prepare
+
+    res = Resources(model=None, catalog=None, max_steps=20)  # type: ignore[arg-type]
+    prepare = _budget_prepare(res)
+    defs = [SimpleNamespace(name=n) for n in ("describe_module", "search_docs", "propose_changes", "ask_user")]
+
+    def names(used: int) -> list[str]:
+        ctx = SimpleNamespace(usage=SimpleNamespace(requests=used))
+        return [t.name for t in asyncio.run(prepare(ctx, defs))]
+
+    assert len(names(5)) == 4
+    assert names(16) == ["propose_changes", "ask_user"]
+    assert names(19) == []
+
+
 def test_tool_schemas_are_slimmed_without_losing_fields():
     import json
 

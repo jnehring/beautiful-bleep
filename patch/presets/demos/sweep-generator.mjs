@@ -25,9 +25,9 @@ function riser() {
   });
   const drums = beat(p, [0, 1], { style: "four", level: -6 });
   const sw = p.add("sweep-generator", [0, 0], { start: 80, stop: 6000, sweepsync: "8 bars", waveform: "Ramp Up", mode: "Continuous", law: "Log", retrace: "Instant", level: 0.5, drift: 0 }, { name: "Riser" });
-  const lp = p.add("filter", [1, 0], { cutoff: 4000, resonance: 0.25, mode: 0 }, { name: "Tone Filter" });
+  const lp = p.add("filter", [1, 0], { cutoff: 4000, resonance: 0.25, mode: "LP" }, { name: "Tone Filter" });
   const noise = p.add("noise", [0, 2], { colour: 0.4, level: 0.5 });
-  const nf = p.add("filter", [1, 1], { cutoff: 300, resonance: 0.45, mode: 0.5, type: "SVF Multimode" }, { name: "Noise Filter" });
+  const nf = p.add("filter", [1, 1], { cutoff: 300, resonance: 0.45, mode: "HP", type: "SVF Multimode" }, { name: "Noise Filter" });
   const crash = p.add("punch-cymbal", [1, 2], { decay: 3, tone: 0.55 });
   p.cable(sw, "out", lp, "l").cable(sw, "freq", lp, "pitch").cable(noise, "out", nf, "l").cable(sw, "sweep", nf, "cutoff", 0.95).cable(sw, "end", crash, "trig");
   const mix = finish(p, [3, 0], [{ n: lp, l: "l", level: -9 }, { n: nf, l: "l", level: -4, pan: 0.1 }, { n: crash, l: "out", level: -8, pan: -0.2 }], { vmix: 0.2, size: 0.6 });

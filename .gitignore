@@ -1,3 +1,5 @@
+.venv-agent
+
 build/
 # ... but not the folder of build scripts
 !/scripts/build/

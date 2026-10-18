@@ -71,7 +71,7 @@ function keyTrack() {
   });
   const m = melody(p, [0, 0], [0, 7, 12, 7, 3, 10, 15, 10, 5, 12, 17, 12, 7, 14, 19, 14], {
     rate: "1/8", root: "C", scale: "Natural Minor", octave: 0, shape: 1, gatelength: 0.35, env: { decay: 0.35, sustain: 0, release: 0.25 } });
-  const f = p.add("filter", [3, 0], { type: "SVF Multimode", cutoff: 500, resonance: 0.5, keytrack: 1, mode: 0.1, drive: 0.1 });
+  const f = p.add("filter", [3, 0], { type: "SVF Multimode", cutoff: 500, resonance: 0.5, keytrack: 1, mode: "LP", drive: 0.1 });
   const lfo = p.add("lfo", [3, 1], { rate: 0.08 }, { name: "Mode" });
   p.cable(m.seq, "pitch", f, "pitch").cable(m.amp, "l", f, "l").cable(m.amp, "l", f, "r").cable(lfo, "out", f, "mode", 0.12);
   finish(p, [4, 0], f, -8, { size: 0.55, decay: 2.5, mix: 0.25 });

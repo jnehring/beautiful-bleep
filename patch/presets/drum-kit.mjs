@@ -62,4 +62,4 @@ export function drum(name, { description, tags, help, hats = false, layers, effe
 }
 
 // Multi Filter modes (the Mode knob morphs LP › BP › HP › Notch).
-export const LP = 0, BP = 1 / 3, HP = 2 / 3;
+export const LP = "LP", BP = "BP", HP = "HP";

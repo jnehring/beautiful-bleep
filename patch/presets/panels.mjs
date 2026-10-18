@@ -91,7 +91,7 @@ export function checkPanels(preset, list) {
         } else if (t.cell) {
           if (!(root.inputs || []).some((j) => j.id === t.cell)) throw new Error(`${where(c)}: the cell has no input '${t.cell}'`);
         } else if (t.notes) {
-          if (root.type !== "voice-cell") throw new Error(`${where(c)}: only a Voice Cell takes notes`);
+          if (root.type !== "voice-cell" && !(root.inputs || []).some((j) => j.type === "notes")) throw new Error(`${where(c)}: only a Voice Cell or a cell with a Notes input takes notes`);
         } else if (t.jack) {
           const [nid, jack] = split(t.jack), n = node(nid, c), ty = types[n.type];
           if (!ty.inputs.some((j) => j.id === jack) && !ty.params.some((p) => p.id === jack && p.modulatable))
@@ -232,3 +232,21 @@ export function panelCell(doc, preset, extras = []) {
 /// (doc/specs/panels.md, "Panels add modules to the board"). `doc` is the generated panel, `preset` the cell preset.
 /// The modules sit in a stack on the cell's board, below its other nodes.
 export const panelEdits = {};
+
+// Slate Stabs: the Phaser and the Reverb after the voices, in a row above the keys (the generated panel is the Voice Cell's).
+panelEdits["Slate Stabs"] = (doc) => {
+  const keys = doc.controls.find((c) => c.type === "keys"), y = keys.at[1], h = 8;
+  keys.at[1] += h;
+  doc.rows += h;
+  let x = 1, n = doc.controls.length;
+  const add = (c) => doc.controls.push({ ...c, id: "c" + ++n });
+  for (const [title, colour, node, knobs] of [
+    ["Phaser", "#c084fc", "phaser", [["rate", "Rate"], ["depth", "Depth"], ["feedback", "Feedback"], ["mix", "Mix"]]],
+    ["Reverb", "#60a5fa", "reverb", [["size", "Size"], ["decay", "Decay"], ["damping", "Damping"], ["mix", "Mix"]]],
+  ]) {
+    const w = knobs.length * 4 + 2;
+    add({ type: "section", at: [x, y], size: [w, h], text: title, colour });
+    knobs.forEach(([id, label], i) => add({ type: "dial", wire: [{ param: `${node}.${id}` }], label, at: [x + 1 + i * 4, y + 2], size: [4, 4] }));
+    x += w + 1;
+  }
+};

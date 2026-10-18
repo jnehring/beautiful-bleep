@@ -77,7 +77,7 @@ function router() {
   p.cable(m.amp, "l", sw, "in");
   const lp = p.add("filter", [4, 0], { cutoff: 1800, type: "SVF Multimode" }, { name: "Dry" });
   const dl = p.add("delay", [4, 1], { timel: 375, timer: 250, feedback: 0.55, mix: 1, mode: "Stereo" });
-  const hp = p.add("filter", [4, 2], { cutoff: 1500, mode: 1, resonance: 0.3, type: "SVF Multimode" }, { name: "Thin" });
+  const hp = p.add("filter", [4, 2], { cutoff: 1500, mode: "Notch", resonance: 0.3, type: "SVF Multimode" }, { name: "Thin" });
   const rv = p.add("reverb", [4, 3], { size: 0.95, decay: 9, mix: 1, quality: "Eco (8 lines)" });
   p.cable(sw, "out1", lp, "l").cable(sw, "out2", dl, "l").cable(sw, "out3", hp, "l").cable(sw, "out4", rv, "l").cable(sw, "out4", rv, "r");
   const mix = p.add("audio-mixer", [5, 0], { level1: -2, level2: -1, level3: -3, level4: 0, pan1: 0, pan3: 0.3, master: 0 });

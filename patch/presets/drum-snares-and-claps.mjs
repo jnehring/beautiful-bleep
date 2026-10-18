@@ -31,7 +31,7 @@ const brush = () => drum("Brush Sweep Snare", {
                                           sweep: 0, damp: 0.5 }),
            layer("perc-voice", "Head", { engine: "Modal", pitch: 190, tone: 0.1, click: 0.1, decay: 0.15,
                                          sweep: 0.2, damp: 0.7, spread: 0 }, { gain: -14 })],
-  effects: [effect("filter", "Band", { cutoff: 9000, resonance: 0.05, mode: 0 }),
+  effects: [effect("filter", "Band", { cutoff: 9000, resonance: 0.05, mode: "LP" }),
             effect("filter", "Rumble Cut", { cutoff: 1200, mode: HP })],
   patch: toneDial(2, 0.3),
 });

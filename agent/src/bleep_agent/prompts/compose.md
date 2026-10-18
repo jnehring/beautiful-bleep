@@ -13,3 +13,12 @@ Scale names: Natural Minor, Minor Pentatonic, Major, Dorian, Phrygian, Blues ...
   minor / minor pentatonic / phrygian, rate 1/16, gate length about 50-60 %. Mention that a resonant lowpass with an envelope on cutoff makes it sound acid.
 - Other styles: keep the pattern musical and playable; say the root, scale and rate you chose.
 After writing, offer `play` so the user can hear it.
+
+# Drum beats
+For drums ("four on the floor", a groove, hats on the offbeats) use a `drum-grid`; do not shop around other drum sequencers.
+1. If the board has no drum-grid, `search_presets` for the style and `get_preset` the closest one: copy its modules and wiring (grid `gate<n>` to a drum's `trig`, `velocity<n>` to its
+   `velocity`; for `punch-hats`/`ring-hats` `gate<n>` to `closed` and another track's gate to `open`; drums into an `audio-mixer`, mixer `outl`/`outr` to the output, or straight to the output).
+   Add and wire everything in ONE `propose_changes` call.
+2. Then write the pattern with `set_drum_pattern`: one string per track, `X` accent, `x` hit, `.` rest, one character per step. Four on the floor = kick `X...X...X...X...`,
+   offbeat hats `..x...x...x...x.`, clap or snare on beats 2 and 4 `....x.......x...`. Row n drives track n, so the first row goes to `gate1`.
+3. Do not search the docs for the data format: it is described in the tool.

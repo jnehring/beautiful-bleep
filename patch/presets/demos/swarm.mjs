@@ -88,7 +88,7 @@ function metalCloud() {
   const bar = p.add("step-sequencer", [0, 1], { length: 8, rate: "1/2", gatelength: 0.1 }, { data: steps([0, ".", ".", "."]), name: "Bar Pulse" });
   const sw = p.add("swarm", [1, 0], { chord: "Cluster", count: 6, range: 2, spread: 0.7, crossfm: 0.28, warp: 0.1, detune: 18, glide: 0.05, drift: 0.4, width: 0.9, octave: 0 });
   p.cable(s, "pitch", sw, "pitch").cable(bar, "trigger", sw, "reshuffle");
-  const lp = p.add("filter", [2, 0], { cutoff: 6000, resonance: 0.1, mode: 0 }, { name: "Tone" });
+  const lp = p.add("filter", [2, 0], { cutoff: 6000, resonance: 0.1, mode: "LP" }, { name: "Tone" });
   p.stereo(sw, lp);
   const v = amp(p, [2, 1], s, lp, { attack: 0.002, decay: 0.45, sustain: 0.0, release: 0.4 });
   room(p, [4, 0], v, { trim: 4, v: { size: 0.6, decay: 3.5, mix: 0.35 } });
@@ -108,7 +108,7 @@ function rootAndUpper() {
   const benv = p.add("adsr", [2, 1], { attack: 0.004, decay: 0.2, sustain: 0.6, release: 0.1 }, { name: "Bass Env" });
   const bv = p.add("vca", [3, 0], {}, { name: "Bass VCA" });
   p.cable(sw, "root", bf, "l").cable(s, "gate", benv, "gate").cable(s, "trigger", benv, "retrig").cable(bf, "l", bv, "l").cable(benv, "env", bv, "gain");
-  const uf = p.add("filter", [2, 2], { cutoff: 2200, resonance: 0.3, mode: 0.5, type: "SVF Multimode" }, { name: "Upper Filter" });
+  const uf = p.add("filter", [2, 2], { cutoff: 2200, resonance: 0.3, mode: "HP", type: "SVF Multimode" }, { name: "Upper Filter" });
   const lfo = p.add("lfo", [1, 2], { rate: 0.2, wave: "Triangle" }, { name: "Sweep" });
   const uenv = p.add("adsr", [3, 2], { attack: 0.01, decay: 0.15, sustain: 0.0, release: 0.1 }, { name: "Pluck Env" });
   const uv = p.add("vca", [4, 2], {}, { name: "Upper VCA" });

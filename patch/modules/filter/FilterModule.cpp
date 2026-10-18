@@ -34,7 +34,7 @@ public:
             p.cutoff = c.params[Cutoff][i];  // normalised = octave domain
             p.resonance = value(c, Resonance, i);
             p.drive = value(c, Drive, i);
-            p.morph = value(c, Morph, i);
+            p.morph = std::round(value(c, Morph, i)) / 3.0f;  // Mode steps: LP, BP, HP, Notch
             p.gain = value(c, Gain, i);
             p.mix = value(c, Mix, i);
             p.keyTrack = value(c, KeyTrack, i);
@@ -58,9 +58,8 @@ void registerFilterModule(Registry& r) {
     s.category = "Audio/Filters";
     s.colour = "#f472b6";
     s.description = "Stereo multimode filter: 25 virtual-analog algorithms (SVF, ladders, 1-poles, shelves, phasers, flanger), "
-                    "LP/BP/HP/notch morph, drive, key tracking, envelope out.";
-    ParamSpec mode = ParamSpec::number("mode", "Mode", 0.0f, 1.0f, 0.0f);
-    mode.format = ParamSpec::Format::FilterMode;
+                    "LP/BP/HP/notch mode, drive, key tracking, envelope out.";
+    ParamSpec mode = ParamSpec::stepped("mode", "Mode", {"LP", "BP", "HP", "Notch"}, 0);
     std::vector<std::string> names, groups;
     for (const auto& group : patch::va::typeGroups())
         for (const char* name : group.types) {

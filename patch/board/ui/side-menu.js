@@ -246,6 +246,8 @@
       root.addEventListener("keydown", (e) => { if (e.key === "Escape") { setOpen(false); toggle.focus(); } e.stopPropagation(); });
     },
     toggle: () => setOpen(!root.classList.contains("open")),
+    /// The tempo a saved patch carries: the page's own (web) or the app's (standalone); the plugin follows Live, so none.
+    tempo: () => mode === "plugin" ? 0 : mode === "web" ? BleepWeb.transport.bpm : t.bpm,
     /// Library → Upload Project…: shares the board as it is (BleepAccount asks to sign in when needed).
     upload: () => upload(),
   };

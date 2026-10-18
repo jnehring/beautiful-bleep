@@ -22,7 +22,7 @@ function autoWah() {
   const m = melody(p, [0, 0], [0, ".", 0, 3, ".", 7, ".", 5], { rate: "1/8", shape: 1, root: "E", octave: -1, scale: "Natural Minor",
     env: { decay: 0.3, sustain: 0.1, release: 0.15 } });
   const f = p.add("envelope-follower", [3, 1], { attack: 0.005, release: 0.18, gain: 3 });
-  const flt = p.add("filter", [4, 0], { cutoff: 250, resonance: 0.65, type: "SVF Multimode", mode: 0, drive: 0.2 });
+  const flt = p.add("filter", [4, 0], { cutoff: 250, resonance: 0.65, type: "SVF Multimode", mode: "LP", drive: 0.2 });
   p.cable(m.amp, "l", f, "in").cable(m.amp, "l", flt, "l").cable(m.amp, "l", flt, "r").cable(f, "env", flt, "cutoff", 0.7);
   toOut(p, [5, 0], [[flt, "l", -10, -0.2], [flt, "r", -10, 0.2]], 0);
   return p;

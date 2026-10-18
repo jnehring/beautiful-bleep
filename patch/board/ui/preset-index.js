@@ -78,12 +78,16 @@
     return textMatches(haystack(e), words, exact);
   }
 
-  /// Does the entry belong to a view? Views: "all", "project", "cell", "demo", "instrument", "effect", "module:<type>".
+  /// Does the entry belong to a view? Views: "all", "project" (saved, shared and factory projects), "cell", "demo" (factory projects), "instrument", "effect", "module:<type>", "cell:<category path>".
   function inView(e, view) {
     if (view === "all") return true;
-    if (view === "project" || view === "cell" || view === "demo") return e.kind === view;
-    if (view === "instrument") return playsAs(e) === "instrument" || playsAs(e) === "both";
-    if (view === "effect") return playsAs(e) === "effect" || playsAs(e) === "both";
+    // The factory projects are "demos" (listed by module as well) and are projects too.
+    if (view === "project") return e.kind === "project" || e.kind === "demo";
+    if (view === "cell" || view === "demo") return e.kind === view;
+    // A cell can be loaded as an instrument or effect (`plays`); a factory project says what it is with a tag.
+    const tagged = (role) => e.kind === "demo" && e.tags.includes(role);
+    if (view === "instrument") return playsAs(e) === "instrument" || playsAs(e) === "both" || tagged("instrument");
+    if (view === "effect") return playsAs(e) === "effect" || playsAs(e) === "both" || tagged("effect");
     if (view.startsWith("module:")) return e.kind === "demo" && e.module === view.slice(7);
     if (view.startsWith("cell:")) {   // a category of cell presets and what is below it ("Drums" holds "Drums/Kicks")
       const cat = view.slice(5);

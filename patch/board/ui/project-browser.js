@@ -469,6 +469,8 @@
     if ((board.panels || []).length) preset.panels = clone(board.panels);   // Show on load stays: a project opens with its panel
     const needs = libraryView() ? await P.BleepLibraryView.needsFor(preset.nodes) : {};
     if (Object.keys(needs).length) preset.needs = needs;
+    const bpm = P.BleepSideMenu && P.BleepSideMenu.tempo();
+    if (bpm >= 20 && bpm <= 400) preset.tempo = bpm;   // web and standalone: the tempo is part of the patch
     return preset;
   }
 
@@ -493,7 +495,7 @@
     if (!preset) return;
     const name = (current && current.name) || "Untitled";
     const { description, tags, tempo, needs, credits, media, ...board } = preset;
-    const doc = { format: 2, app: "Bleep", name, description, tags, needs, credits, media, board };
+    const doc = { format: 2, app: "Bleep", name, description, tags, tempo, needs, credits, media, board };
     // Through the page's lock: a script-made click is otherwise dropped (common/ui/bleep-bridge.js).
     saveFile(JSON.stringify(doc, null, 1), name.replace(/[^\w .-]+/g, "_") + ".bleepboard", "application/json");
   }

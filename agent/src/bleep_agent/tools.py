@@ -7,6 +7,7 @@ ends, the browser executes them, and a later request resumes (see runner.py).
 from __future__ import annotations
 
 import functools
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal
@@ -36,6 +37,7 @@ class Deps:
     skill: str = "design"
     emit: Callable[[str, dict[str, Any]], None] = lambda kind, data: None
     changesets: list[Changeset] = field(default_factory=list)
+    seen: set = field(default_factory=set)  # lookups already answered in this run (describe_module, read_doc): repeats cost a step for nothing
     trace: Callable[[str, bool], None] = lambda tool, retried: None
     record: Callable[[str, dict[str, Any]], None] = lambda kind, data: None  # the run log (runner.run_chat(record=...))
 
@@ -67,6 +69,41 @@ async def list_module_types(ctx: RunContext[Deps], query: str = "", role: str = 
     return [t.summary() for t in ctx.deps.catalog.search(query, role, category, min(limit, 40))]
 
 
+_NUMBERED = re.compile(r"^(.*?)(\d+)$")
+
+
+def _group(items: list[dict[str, Any]], sig: Callable[[dict[str, Any]], Any]) -> list[dict[str, Any]]:
+    """Collapse numbered items that differ only in their number (gate1..gate8, even when interleaved with accent1..8) into one entry
+    with an id range, placed where the first of them was."""
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for it in items:
+        m = _NUMBERED.match(it["id"])
+        if m:
+            groups.setdefault((m.group(1), repr(sig(it))), []).append(it)
+    out: list[dict[str, Any]] = []
+    for it in items:
+        m = _NUMBERED.match(it["id"])
+        g = groups.get((m.group(1), repr(sig(it)))) if m else None
+        nums = [int(_NUMBERED.match(x["id"]).group(2)) for x in g] if g else []
+        if g and len(g) >= 3 and nums == list(range(nums[0], nums[0] + len(nums))):
+            if g[0] is it:
+                e = dict(it)
+                e["id"] = f"{it['id']}..{g[-1]['id']}"
+                e["name"] = re.sub(r"\s*\d+$", "", it["name"]) + f" {nums[0]}..{nums[-1]}"
+                out.append(e)
+        else:
+            out.append(it)
+    return out
+
+
+def _group_jacks(jacks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return _group(jacks, lambda j: j.get("type"))
+
+
+def _group_params(params: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return _group(params, lambda p: {k: v for k, v in p.items() if k not in ("id", "name")})
+
+
 def _param_line(p: dict[str, Any]) -> str:
     """One knob as one line: id (Name): range unit [scale]; default. Choices are listed with |."""
     name = p.get("name") or ""
@@ -87,11 +124,16 @@ async def describe_module(ctx: RunContext[Deps], type: str, include_docs: bool =
     """Full facts about one module type: input and output jacks with signal types, knobs with ranges and defaults, typical use.
     Set include_docs to also get the start of its manual page."""
     t = ctx.deps.catalog.get(type)
+    key = ("describe_module", type, include_docs)
+    if t is not None and key in ctx.deps.seen:
+        return {"type": type, "note": "Already described earlier in this conversation turn; use that result."}
+    ctx.deps.seen.add(key)
     if t is None:
         similar = [m.type for m in ctx.deps.catalog.search(type, limit=6)]
         raise ModelRetry(f"unknown module type '{type}'. Similar: {similar}")
     out = t.summary(detail=True)
-    out["params"] = [_param_line(p) for p in out["params"]]
+    out["inputs"], out["outputs"] = _group_jacks(out["inputs"]), _group_jacks(out["outputs"])
+    out["params"] = [_param_line(p) for p in _group_params(out["params"])]
     if include_docs and ctx.deps.docs is not None and t.doc:
         text, _ = ctx.deps.docs.read(t.doc, max_tokens=1800)
         out["manual"] = text
@@ -133,7 +175,7 @@ async def get_panel(ctx: RunContext[Deps], id: str = "") -> Any:
 
 
 async def get_sequencer(ctx: RunContext[Deps], node: str) -> dict[str, Any]:
-    """A step sequencer's pattern: steps as [gate, pitch, velocity] (gate 0 off, 1 on, 2 tie; pitch in semitones from the root),
+    """A step sequencer's or Drum Grid's pattern. Step sequencer: steps as [gate, pitch, velocity] (gate 0 off, 1 on, 2 tie; pitch in semitones from the root),
     plus its knob values (length, rate, root, scale...)."""
     d = ctx.deps
     try:
@@ -145,6 +187,11 @@ async def get_sequencer(ctx: RunContext[Deps], node: str) -> dict[str, Any]:
     steps = (n.get("data") or {}).get("steps")
     if steps is not None:
         out["steps"] = [[s.get("g", 0), s.get("p", 0), s.get("v", 100)] for s in steps]
+    elif n["type"] == "drum-grid" and (n.get("data") or {}).get("patterns"):
+        dd = n["data"]
+        cur = (dd["patterns"][dd.get("current", 0)] if dd["patterns"] else None) or {}
+        out["tracks"] = [t.get("name") for t in dd.get("tracks", [])]
+        out["pattern"] = {"name": cur.get("name"), "length": cur.get("length"), "rows": cur.get("steps", [])}
     elif n.get("data"):
         out["data_keys"] = list(n["data"])
     if t:
@@ -200,6 +247,9 @@ async def read_doc(ctx: RunContext[Deps], id: str) -> str:
     idx = ctx.deps.docs
     if idx is None:
         return "The documentation index is not available."
+    if ("read_doc", id) in ctx.deps.seen:
+        return "Already read earlier in this conversation turn; use that result."
+    ctx.deps.seen.add(("read_doc", id))
     text, hits = idx.read(id)
     if not hits:
         raise ModelRetry(f"no documentation with id '{id}'. Use search_docs.")
@@ -266,6 +316,41 @@ async def set_pattern(ctx: RunContext[Deps], node: str, steps: list[Step], lengt
     shown = [Step(**t) for t in tiled]
     cs.lines = [f"~ {node}: pattern of {len(tiled)} steps (" + " ".join(_step_name(s) for s in shown[:16]) + (" ..." if len(shown) > 16 else "") + ")"] + \
         [l for l in cs.lines if l.startswith("~ ") and ".length" not in l and "data" not in l]
+    return _emit_changeset(d, cs)
+
+
+async def set_drum_pattern(ctx: RunContext[Deps], node: str, rows: list[str], names: list[str] | None = None, length: int = 16,
+                           slot: int = 1, name: str = "", params: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Write a Drum Grid pattern. `rows` has one string per track (track 1 first, up to 8): `x` is a hit, `X` an accent, `.` a rest, one
+    character per step (16 for one bar of sixteenths). Example four on the floor: rows ["X...X...X...X...", "..x...x...x...x."] is a
+    kick on every beat and a hat on every off-beat. Track n plays out of the grid's `gate<n>` (and `velocity<n>`, `accent<n>`) output:
+    cable it to the drum's trigger. `names` optionally names the tracks, `slot` is the pattern slot 1..16 (it becomes the playing
+    one), `length` how many steps play. `params` sets grid knobs/settings, e.g. {"swing": 0.55, "rate": "1/16"}."""
+    d = ctx.deps
+    n = d.patch.node(node)
+    if n is None or n["type"] != "drum-grid":
+        raise ModelRetry(f"{node} is not a drum-grid module. Drum grids in this patch: {[x['id'] for x in d.patch.of_type('drum-grid')]}")
+    if not 1 <= len(rows) <= 8 or not all(set(r) <= set("xX.") and 1 <= len(r) <= 32 for r in rows):
+        raise ModelRetry("rows: 1..8 strings of x, X and . (1..32 characters each)")
+    if not 1 <= slot <= 16 or not 1 <= length <= 32:
+        raise ModelRetry("slot is 1..16 and length 1..32")
+    old = dict(n.get("data") or {})
+    tracks = [dict(t) for t in (old.get("tracks") or [])][:8]
+    tracks += [{"name": "", "mute": False, "solo": False} for _ in range(8 - len(tracks))]
+    for i, nm in enumerate((names or [])[:8]):
+        tracks[i]["name"] = nm
+    patterns = list(old.get("patterns") or [])
+    patterns += [None] * (16 - len(patterns))
+    patterns[slot - 1] = {"name": name or "Pattern", "length": length, "steps": [r.ljust(32, ".") for r in rows] + ["." * 32] * (8 - len(rows))}
+    ops: list[Any] = [SetNodeData(node=node, data={"tracks": tracks, "current": slot - 1, "patterns": patterns})]
+    for k, v in (params or {}).items():
+        ops.append(SetParam(node=node, param=k, value=v))
+    try:
+        cs = apply_ops(d.patch, d.catalog, ops, f"Drum pattern: {len(rows)} tracks")
+    except OpError as e:
+        raise ModelRetry(f"{e.message} (op {e.index}). Nothing was changed.")
+    cs.lines = [f"~ {node}: drum pattern, track {i + 1}: {r[:length]}" for i, r in enumerate(rows)] + \
+        [l for l in cs.lines if l.startswith("~ ") and "data" not in l]
     return _emit_changeset(d, cs)
 
 
@@ -369,7 +454,7 @@ DOCS = [search_docs, read_doc]
 PRESETS = [search_presets, get_preset]
 WRITE = [propose_changes]
 PANEL = [get_panel, build_panel_tool, propose_panel]
-SEQ = [get_sequencer, set_pattern]
+SEQ = [get_sequencer, set_pattern, set_drum_pattern]
 DIAG = [check_audibility]
 
 

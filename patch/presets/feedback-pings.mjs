@@ -82,7 +82,7 @@ function filterWhistle() {
     help: "A short noise burst excites a State Variable filter with its resonance set very high, close to self-oscillation, and the filter tracks the keyboard. The result is a nearly pure sine at the note's pitch that blooms and fades.\n\nPatch Notes in and take Out L/R. The shared Resonance input adds a small amount to the filter resonance and pushes it nearer to oscillation.\n\nTry a slow LFO on Resonance, or play a chord to hear several whistles at once.",
   }).settings({ voices: 10, spread: 0.3 }).input("res", "Resonance");
   const b = burst(p, [0, 0], 0.01);
-  const f = p.add("filter", [2, 0], { cutoff: 261.63, resonance: 0.985, keytrack: 1, type: "SVF Multimode", mode: 0.5, drive: 0.1 });
+  const f = p.add("filter", [2, 0], { cutoff: 261.63, resonance: 0.985, keytrack: 1, type: "SVF Multimode", mode: "BP", drive: 0.1 });
   p.cable(b, "l", f, "l").cable(p.vin, "pitch", f, "pitch").cable(p.cin, "res", f, "resonance", 0.03);
   ampEnvelope(p, { node: f, jack: "l" }, [3, 1], AMP(0.5, 2));
   return p;
@@ -110,7 +110,7 @@ function loopedBandpass() {
     help: "A noise burst enters a Band Pass filter. Its output goes to a Zone Delay comb tuned to the note, and the comb feeds back into the filter on a cable at 55%. The loop rings, squeals and settles at the note, and a limiter before the output catches overload.\n\nPatch Notes in and take Out L/R. The shared Loop Amount input adds to the comb's feedback.\n\nRaise Loop Amount carefully for longer, screechier loops, and watch your monitor level.",
   }).settings({ voices: 6, spread: 0.3 }).input("loop", "Loop Amount");
   const b = burst(p, [0, 0], 0.008);
-  const f = p.add("filter", [2, 0], { cutoff: 800, resonance: 0.6, type: "SVF Multimode", mode: 0.5, keytrack: 1 }, { name: "Loop Filter" });
+  const f = p.add("filter", [2, 0], { cutoff: 800, resonance: 0.6, type: "SVF Multimode", mode: "BP", keytrack: 1 }, { name: "Loop Filter" });
   const comb = p.add("zone-delay", [3, 0], { zone: 1, feedback: 0.8, character: 0.3, tone: 0, mix: 1 }, { name: "Loop Comb" });
   p.cable(b, "l", f, "l").cable(p.vin, "pitch", f, "pitch").cable(f, "l", comb, "l").cable(f, "r", comb, "r")
     .cable(p.vin, "pitch", comb, "pitch").cable(comb, "l", f, "l", 0.55).cable(p.cin, "loop", comb, "feedback", 0.1);
@@ -268,7 +268,7 @@ function sympatheticRattle() {
     help: "A noise burst is filtered by a Band Pass filter (the Scrape) and strikes the Resonator in Sympathetic model, whose strings sing at the overtones of the note. Velocity opens the Scrape filter, so harder notes scrape brighter.\n\nPatch Notes in and take Out L/R. The shared Brightness input adds to the Resonator's brightness.\n\nRaise Brightness for a brighter, more metallic scrape, and play chords to excite several string sets.",
   }).settings({ voices: 6, spread: 0.6 }).input("bright", "Brightness");
   const b = burst(p, [0, 0], 0.05, 0.4);
-  const bp = p.add("filter", [2, 0], { cutoff: 3500, resonance: 0.4, mode: 0.5, type: "SVF Multimode" }, { name: "Scrape" });
+  const bp = p.add("filter", [2, 0], { cutoff: 3500, resonance: 0.4, mode: "BP", type: "SVF Multimode" }, { name: "Scrape" });
   const res = p.add("resonator", [3, 0], { model: "Sympathetic", structure: 0.5, brightness: 0.6, damping: 0.25, inputgain: 6, width: 1 });
   p.cable(b, "l", bp, "l").cable(p.vin, "velocity", bp, "cutoff", 0.15).cable(bp, "l", res, "in")
     .cable(p.vin, "pitch", res, "pitch").cable(p.cin, "bright", res, "brightness", 0.4);

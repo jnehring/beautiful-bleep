@@ -74,7 +74,7 @@ function reductionFilter() {
     [pattern("Kick", ["X..x..X...X.x...", "....X.......X...", "", "", "", "", "", ""])]) });
   const kick = p.add("punch-kick", [1, 3], { level: 0.9 });
   const sn = p.add("punch-snare", [1, 4], { level: 0.5 });
-  const f = p.add("filter", [2, 0], { cutoff: 4500, resonance: 0.3, mode: 0 });
+  const f = p.add("filter", [2, 0], { cutoff: 4500, resonance: 0.3, mode: "LP" });
   const c = p.add("compressor", [4, 0], { threshold: -30, ratio: 8, attack: 1, release: 250, knee: 3, makeup: 6 });
   p.cable(grid, "gate1", kick, "trig").cable(grid, "velocity1", kick, "velocity").cable(grid, "gate2", sn, "trig").cable(grid, "velocity2", sn, "velocity");
   p.cable(m.amp, "l", f, "l").cable(m.amp, "l", f, "r").stereo(f, c);

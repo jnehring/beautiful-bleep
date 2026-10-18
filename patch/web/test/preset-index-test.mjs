@@ -20,8 +20,8 @@ const E = [
   X.entry({ kind: "cell", origin: "factory", name: "Dub Echo", group: "Delays", description: "Tape-style repeats", plays: { effect: { in: ["l", "r"] } } }),
   X.entry({ kind: "cell", origin: "user", name: "My Both", group: "My Cells", plays: { instrument: {}, effect: {} } }),
   X.entry({ kind: "cell", origin: "user", name: "Lfo Thing", group: "Modulators" }),
-  X.entry({ kind: "demo", origin: "factory", name: "Grains: Frozen Cloud", group: "Grains", module: "grains", description: "A frozen pad" }),
-  X.entry({ kind: "demo", origin: "factory", name: "Verb: Cathedral", group: "Verb", module: "reverb" }),
+  X.entry({ kind: "demo", origin: "factory", name: "Grains: Frozen Cloud", group: "Grains", module: "grains", description: "A frozen pad", tags: ["effect"] }),
+  X.entry({ kind: "demo", origin: "factory", name: "Verb: Cathedral", group: "Verb", module: "reverb", tags: ["instrument"] }),
   X.entry({ kind: "project", origin: "user", name: "Sketch 1" }),
   X.entry({ kind: "project", origin: "community", name: "Ambient Bed", author: "janne", served: true }),
 ];
@@ -38,10 +38,10 @@ assert.deepEqual(plain(E.map(X.playsAs)), ["instrument", "effect", "both", "", "
 const view = (v, origins, query) => names(X.select(E, { view: v, origins, query }));
 assert.equal(view("all").length, E.length);
 assert.deepEqual(view("cell"), ["Basic Poly", "Dub Echo", "My Both", "Lfo Thing"]);
-assert.deepEqual(view("project"), ["Sketch 1", "Ambient Bed"]);
+assert.deepEqual(view("project"), ["Grains: Frozen Cloud", "Verb: Cathedral", "Sketch 1", "Ambient Bed"], "factory projects (demos) are projects too");
 assert.deepEqual(view("demo"), ["Grains: Frozen Cloud", "Verb: Cathedral"]);
-assert.deepEqual(view("instrument"), ["Basic Poly", "My Both"]);
-assert.deepEqual(view("effect"), ["Dub Echo", "My Both"]);
+assert.deepEqual(view("instrument"), ["Basic Poly", "My Both", "Verb: Cathedral"], "a demo tagged instrument");
+assert.deepEqual(view("effect"), ["Dub Echo", "My Both", "Grains: Frozen Cloud"], "a demo tagged effect");
 assert.deepEqual(view("module:grains"), ["Grains: Frozen Cloud"]);
 assert.deepEqual(view("module:nothing"), []);
 assert.deepEqual(view("bogus"), []);

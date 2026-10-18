@@ -27,9 +27,8 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
   top (see the table).
 - **Drive** saturates the input before the filter (a soft tanh curve) for
   warmth and grit. The saturating types add their own distortion on top.
-- **Mode** morphs the response on the multimode types:
-
-      LP (0 %) → BP (33 %) → HP (67 %) → Notch (100 %)
+- **Mode** is a dropdown that picks the response on the multimode types:
+  LP, BP, HP or Notch. A cable into it steps through the four.
 
   On the phasers and the flanger it does something else (see below).
 - **Gain** sets the boost or cut of the shelving types, in dB.
@@ -186,7 +185,7 @@ Five whole patches show what Filter does. In the standalone app open **File → 
 | Cutoff | 20 Hz – 20 kHz | 2 kHz |
 | Resonance | 0 – 100 % | 20 % |
 | Drive | 0 – 100 % | 0 % |
-| Mode | LP → BP → HP → Notch | LP |
+| Mode | LP · BP · HP · Notch (dropdown) | LP |
 | Mix | 0 – 100 % | 100 % |
 | Key Track | 0 – 100 % | 0 % |
 | Gain | −24 – +24 dB | 0 dB |

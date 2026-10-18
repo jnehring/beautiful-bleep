@@ -74,7 +74,7 @@ function filterColours() {
   });
   const m = melody(p, [0, 0], [0, 0, ".", 7, 0, ".", 5, 3, 0, 0, ".", 10, 12, ".", 7, 5], { rate: "1/8", root: "D", scale: "Natural Minor", octave: -1, shape: 1, gatelength: 0.55, env: { decay: 0.25, sustain: 0.5, release: 0.1 } });
   const dark = p.add("filter", [3, 0], { type: "Ladder Tanh", cutoff: 400, resonance: 0.2 }, { name: "Dark" });
-  const bright = p.add("filter", [3, 1], { type: "SVF Multimode", mode: 1, cutoff: 2500, resonance: 0.5 }, { name: "Bright" });
+  const bright = p.add("filter", [3, 1], { type: "SVF Multimode", mode: "Notch", cutoff: 2500, resonance: 0.5 }, { name: "Bright" });
   p.cable(m.amp, "l", dark, "l").cable(m.amp, "l", dark, "r").cable(m.amp, "l", bright, "l").cable(m.amp, "l", bright, "r");
   const env = p.add("adsr", [3, 2], { attack: 0.003, decay: 0.35, sustain: 0.1, release: 0.2 }, { name: "Colour Env" });
   p.cable(m.seq, "gate", env, "gate").cable(m.seq, "trigger", env, "retrig");

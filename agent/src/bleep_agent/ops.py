@@ -331,6 +331,22 @@ def _seq_check(data: dict[str, Any]) -> None:
             raise PatchError(f"step {i}: need {{'g': 0 off|1 on|2 tie, 'p': integer semitones from root, 'v': 1..127}}, got {s}")
 
 
+def _grid_check(data: dict[str, Any]) -> None:
+    """Drum Grid data: {tracks: [{name, mute, solo}] x8, current: 0..15, patterns: [null | {name, length, steps: [row] x8}] x16}, a row being
+    a string of 'x' (hit), 'X' (accent) and '.' (rest), one character per step (up to 32)."""
+    pats = data.get("patterns")
+    if pats is None:
+        return
+    if not isinstance(pats, list) or len(pats) > 16:
+        raise PatchError("patterns must be a list of up to 16 slots (a pattern object, or null for an empty slot)")
+    for i, pat in enumerate(pats):
+        if pat is None:
+            continue
+        rows = pat.get("steps") if isinstance(pat, dict) else None
+        if not isinstance(rows, list) or len(rows) > 8 or not all(isinstance(r, str) and set(r) <= set("xX.") and len(r) <= 32 for r in rows):
+            raise PatchError(f"pattern {i}: 'steps' must be up to 8 strings (one per track) of x, X and . with at most 32 characters")
+
+
 def _apply_one(ctx: _Ctx, o: Any) -> None:
     p = ctx.p
     if isinstance(o, AddModule):
@@ -391,6 +407,8 @@ def _apply_one(ctx: _Ctx, o: Any) -> None:
             raise PatchError("muting is not module data: use the set_muted op ({\"op\": \"set_muted\", \"node\": ..., \"muted\": false})")
         if n["type"] == "step-sequencer":
             _seq_check(o.data)
+        elif n["type"] == "drum-grid":
+            _grid_check(o.data)
         n["data"] = o.data
         ctx.prims.append({"op": "set_data", "node": n["id"], "data": o.data})
         ctx.lines.append(f"~ {n['id']} data ({len(o.data.get('steps', [])) or 'custom'} steps)" if "steps" in o.data else f"~ {n['id']} data")

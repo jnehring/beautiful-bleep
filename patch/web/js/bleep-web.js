@@ -103,6 +103,54 @@
     if (W.onStatus) W.onStatus(text);
   }
 
+  /// The hidden Dial and Button a panel control drives when it is wired to a cell's own input or a jack (the native engine makes the
+  /// same ones, Board.cpp addPanelSources): ids "~panel:control:index", each cabled to its target. Not part of the saved board.
+  function withPanelSources(b) {
+    if (!b || !Array.isArray(b.panels) || !b.panels.length) return b;
+    const byId = new Map(b.nodes.map((n) => [n.id, n])), typeOf = new Map((types || []).map((t) => [t.type, t]));
+    const inVoiceCell = (n) => { for (let p = n.parent, d = 0; p && d < 64; ++d) { const q = byId.get(p); if (!q) break; if (q.type === "voice-cell") return true; p = q.parent; } return false; };
+    const inputType = (n, jack) => {
+      if (n.type === "cell" || n.type === "voice-cell") { const j = (n.inputs || []).find((q) => q.id === jack); return j ? j.type : null; }
+      const t = typeOf.get(n.type);
+      if (!t) return null;
+      const j = (t.inputs || []).find((q) => q.id === jack);
+      if (j) return j.type;
+      const q = (t.params || []).find((x) => x.id === jack && x.modulatable);
+      return q ? "control" : null;
+    };
+    const nodes = b.nodes.slice(), cables = b.cables.slice();
+    for (const panel of b.panels) {
+      const cellId = panel.cell || "";
+      if (cellId && !byId.has(cellId)) continue;
+      for (const c of panel.controls || []) {
+        (c.wire || []).forEach((w, index) => {
+          const id = `~${panel.id}:${c.id}:${index}`;
+          let nodeId, jack;
+          if (w.cell) { nodeId = cellId; jack = w.cell; }
+          else if (w.jack) { const i = w.jack.indexOf("."); if (i < 0) return; nodeId = w.jack.slice(0, i); jack = w.jack.slice(i + 1); }
+          else if (w.param && w.mode === "mod") { const i = w.param.indexOf("."); if (i < 0) return; nodeId = w.param.slice(0, i); jack = w.param.slice(i + 1); }
+          else return;
+          const target = byId.get(nodeId), jt = target && !inVoiceCell(target) ? inputType(target, jack) : null;
+          if (!jt) return;
+          const cable = (from) => cables.push({ id: "~k" + id, from: { node: id, jack: from }, to: { node: nodeId, jack }, amount: 1 });
+          if (c.type === "button" && (jt === "trigger" || jt === "gate")) {
+            nodes.push({ id, type: "button", name: "button", x: 0, y: 0, parent: "", muted: false, params: {} });
+            cable(jt);
+            return;
+          }
+          const [lo, hi] = w.range || [0, 1];
+          let saved = c.value;
+          if (Array.isArray(saved)) saved = saved[w.axis === "y" ? 1 : 0];
+          const x = Math.max(0, Math.min(1, typeof saved === "number" ? saved : lo < 0 && hi > 0 ? -lo / (hi - lo) : 0));
+          const signal = Math.max(-1, Math.min(1, lo + x * (hi - lo)));
+          nodes.push({ id, type: "dial", name: "dial", x: 0, y: 0, parent: "", muted: false, params: { value: (signal + 1) / 2, min: 0, max: 1, steps: 0 } });
+          cables.push({ id: "~k" + id, from: { node: id, jack: "out" }, to: { node: nodeId, jack }, amount: Math.max(-1, Math.min(1, w.amount ?? 1)) });
+        });
+      }
+    }
+    return { ...b, nodes, cables };
+  }
+
   Object.assign(W, {
     libraryTypes,
     setTypes(list) { types = list; post({ cmd: "types", types }); },
@@ -110,8 +158,9 @@
       board = b;
       W.boardDoc = b;
       if (W.onBoardSet) W.onBoardSet(b);  // [bridge]
+      if (b && b.tempo >= 20 && b.tempo <= 400) { W.transport.bpm = b.tempo; post({ cmd: "tempo", bpm: b.tempo }); }   // the patch's own tempo
       if (!node) return;
-      post({ cmd: "board", board: W.mapBoard ? W.mapBoard(b) : b });  // [bridge] Remote nodes carry their channel key
+      post({ cmd: "board", board: withPanelSources(W.mapBoard ? W.mapBoard(b) : b) });  // [bridge] Remote nodes carry their channel key
       ensureModules();
     },
     setKnob: (id, param, value) => post({ cmd: "knob", node: id, param, value }),
@@ -122,7 +171,8 @@
     watch(ids) { watched = ids; post({ cmd: "watch", nodes: ids }); },
     /// The transport of this page (the side menu): tempo and start/stop.
     transport: { bpm: 120, playing: true },
-    setTempo(bpm) { W.transport.bpm = bpm; post({ cmd: "tempo", bpm }); },
+    /// The tempo belongs to the patch: `onTempoSet` lets the board remember it (board-demo.js).
+    setTempo(bpm) { W.transport.bpm = bpm; if (W.onTempoSet) W.onTempoSet(bpm); post({ cmd: "tempo", bpm }); },
     setPlaying(on) { W.transport.playing = !!on; post({ cmd: "play", on: !!on }); },
     /// The octave the computer keys start in (A is its C); a drum map asks for a low one so that the keys are the drum notes.
     setOctave(o) { octave = Math.max(0, Math.min(8, Math.round(o))); },
@@ -201,6 +251,7 @@
       };
       post({ cmd: "types", types });
       post({ cmd: "watch", nodes: watched });
+      post({ cmd: "tempo", bpm: W.transport.bpm });
       W.running = true;
       if (board) { post({ cmd: "board", board: W.mapBoard ? W.mapBoard(board) : board }); await ensureModules(); }
       setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms` + (libraryDown ? ` · ${libraryDown}` : ""));

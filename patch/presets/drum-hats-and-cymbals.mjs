@@ -59,7 +59,7 @@ const pedal = () => drum("Pedal Chick Hats", {
         "Tip: play it on beats 2 and 4 for a classic swing feel.",
   hats: true,
   layers: [layer("ring-hats", "Hats", { tune: -5, closed: 0.03, open: 0.14, tone: 0.2 })],
-  effects: [effect("filter", "Band", { cutoff: 3000, resonance: 0.3, mode: 0.33 })],
+  effects: [effect("filter", "Band", { cutoff: 3000, resonance: 0.3, mode: "BP" })],
   patch: toneDial(1, 0.25),
 });
 

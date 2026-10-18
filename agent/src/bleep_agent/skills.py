@@ -33,7 +33,7 @@ SKILLS: dict[str, Skill] = {
     "patch": Skill("patch", "patch.md", _READ + _FIND + _TRACE + tuple(T.WRITE) + tuple(T.PRESETS),
                    ("get_environment", "highlight", "ask_user"), True),
     "panel": Skill("panel", "panel.md", _READ + tuple(T.PANEL), ("highlight",), True),
-    "compose": Skill("compose", "compose.md", _READ + tuple(T.SEQ) + tuple(T.WRITE),
+    "compose": Skill("compose", "compose.md", _READ + tuple(T.SEQ) + tuple(T.WRITE) + tuple(T.PRESETS),
                      ("play", "ask_user"), True),
     "design": Skill("design", "design.md", _READ + _FIND + tuple(T.WRITE) + tuple(T.PRESETS) + tuple(T.SEQ) + tuple(T.PANEL) + tuple(T.DIAG),
                     ("get_environment", "probe_signals", "play", "highlight", "ask_user"), True),
@@ -46,6 +46,7 @@ _RX = [
     ("panel", re.compile(r"\bpanels?\b", re.I)),
     ("compose", re.compile(r"\b(step[- ]?sequencer|sequencer|melody|bass ?line|riff|arp|acid line|pattern|program an?)\b", re.I)),
     ("design", re.compile(r"\b(build|create|make|design|give me)\b.*\b(synth\w*|sound|pad|bass|lead|pluck|kick|snare|drum|instrument|voice|patch)\b", re.I)),
+    ("compose", re.compile(r"^(?!.*\b(reverb|delay|echo|chorus|phaser|flanger|filter|distortion|compressor|eq|limiter|effects?)\b).*\b(four on the floor|beats?|rhythms?|grooves?|hi-?hats?|hats|kicks?|snares?|claps?|drum (pattern|grid|machine|track)s?|drum ?beat)\b", re.I)),
     ("patch", re.compile(r"\b(add|insert|put|place|connect|disconnect|remove|delete|replace|swap|wire up|route|hook|plug|set|change|make|raise|lower|reduce|use my|increase|decrease|turn)\b", re.I)),
 ]
 
