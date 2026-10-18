@@ -64,6 +64,21 @@ def _catalog_index(cat: Catalog) -> str:
     return "\n".join(f"- {c}: {', '.join(v)}" for c, v in sorted(by_cat.items()))
 
 
+CORE_MODULES = ("oscillator", "adsr", "vca", "filter", "reverb", "delay", "chorus", "lfo", "audio-mixer", "keyboard", "step-sequencer", "audio-out")  # 83 % of the describe_module calls in the first benchmark run
+
+
+def _core_sheet(cat: Catalog) -> str:
+    """The jacks and knob ids of the modules the assistant looks up most, so that it does not spend a model call on them."""
+    def jack(j: Any) -> str:
+        return j.id if j.type == "audio" else f"{j.id}:{j.type}"
+    lines = []
+    for name in CORE_MODULES:
+        t = cat.get(name)
+        if t is not None:
+            lines.append(f"- {name}: in {' '.join(jack(j) for j in t.inputs) or '-'} | out {' '.join(jack(j) for j in t.outputs) or '-'} | knobs {' '.join(p.id for p in t.params) or '-'}")
+    return "\n".join(lines)
+
+
 def build_instructions(skill: Skill, deps: Deps, res: Resources, used: int = 0) -> str:
     parts = [prompt_text("base.md"), prompt_text(skill.prompt)]
     if used >= res.max_steps - 4:
@@ -74,6 +89,8 @@ def build_instructions(skill: Skill, deps: Deps, res: Resources, used: int = 0) 
                                     "Changes you propose are shown to the user, who approves them before they apply."))
     if skill.catalog_index:
         parts.append("# Module types (ids for tools)\n" + _catalog_index(res.catalog))
+        parts.append("# Jacks and knobs of the common modules (audio jacks have no suffix; no `describe_module` needed for these, only for choice lists, ranges and other modules)\n"
+                     + _core_sheet(res.catalog))
     if skill.name == "docs" and res.docs is not None:
         parts.append("# Documentation pages (ids for read_doc)\n" + res.docs.contents(7000))
     parts.append("# The user's board right now\n" + deps.patch.summary(res.catalog, selection=deps.selection))
@@ -224,6 +241,7 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
         model, deps_type=Deps, output_type=[str, DeferredToolRequests],
         instructions=lambda ctx: build_instructions(skill, ctx.deps, res, ctx.usage.requests),
         toolsets=[function_toolset(list(skill.funcs)), live_toolset(list(skill.live))] if skill.live else [function_toolset(list(skill.funcs))],
+        model_settings={"openai_prompt_cache_key": f"bleep-agent:{skill_name}"},  # OpenAI: requests of one skill share a long identical prefix; routing them together makes its prompt cache hit
         retries=2)
     if agent_hook:
         agent_hook(agent)

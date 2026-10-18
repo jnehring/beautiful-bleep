@@ -5,6 +5,7 @@
     bleep-agent eval run --models gemini-3.8-flash,gpt-6-luna --skills docs,diagnose --repeats 3 --judge gemini-4-argon [--cache use]
     (writes <run>/logs/<model>/<skill>/<case>.r<n>.json|md for every run, plus logs/index.md; --no-logs skips them)
     bleep-agent eval report agent/evals/runs/<run> [--compare agent/evals/runs/<other>]
+    bleep-agent eval compare "First=agent/evals/runs/<run>" "Quick wins=agent/evals/runs/<run>" [...] [--out report.md] [--all-cases]
     bleep-agent eval retrieval --index website/api/agent_data/docs.sqlite [--embed gemini-embedding-2]
 """
 from __future__ import annotations
@@ -87,6 +88,11 @@ def main(argv: list[str] | None = None) -> int:
     rp = sub.add_parser("report")
     rp.add_argument("run", type=Path)
     rp.add_argument("--compare", type=Path, default=None)
+    cp = sub.add_parser("compare", help="compare two or more runs in one Markdown report")
+    cp.add_argument("runs", nargs="+", help="run directories (or results.jsonl), optionally as 'label=path'; the first is the baseline")
+    cp.add_argument("--out", type=Path, default=None, help="also write the report to this file")
+    cp.add_argument("--all-cases", action="store_true", help="include cases that not every run contains (default: only the common ones)")
+    cp.add_argument("--max-cases", type=int, default=60, help="rows per case list")
     rt = sub.add_parser("retrieval")
     rt.add_argument("--index", type=Path, default=repo / "website" / "api" / "agent_data" / "docs.sqlite")
     rt.add_argument("--embed", default="")
@@ -114,6 +120,18 @@ def main(argv: list[str] | None = None) -> int:
         if a.compare:
             text += "\n\n" + compare(load_results(a.compare), res)
         (a.run / "report.md").write_text(text) if a.run.is_dir() else None
+        print(text)
+        return 0
+
+    if a.cmd == "compare":
+        from .compare import compare_runs, load_run
+        from .pricing import load_prices
+
+        if len(a.runs) < 2:
+            ap.error("compare needs at least two runs")
+        text = compare_runs([load_run(x) for x in a.runs], load_prices(), a.all_cases, a.max_cases)
+        if a.out:
+            a.out.write_text(text + "\n")
         print(text)
         return 0
 

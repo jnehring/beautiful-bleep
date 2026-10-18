@@ -68,7 +68,7 @@ def _call_record(model: Model, messages: list[ModelMessage], settings: Any, para
     }
     if resp is not None:
         rec["response"] = ModelMessagesTypeAdapter.dump_python([resp], mode="json")[0]
-        rec["usage"] = {"input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens}
+        rec["usage"] = {"input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens, "cache_read_tokens": resp.usage.cache_read_tokens}
     if error is not None:
         rec["error"] = f"{type(error).__name__}: {error}"
     return rec

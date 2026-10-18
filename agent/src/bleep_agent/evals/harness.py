@@ -86,6 +86,8 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
         "checks": checks, "errors": errors, "answer": answer, "changesets": [c["summary"] for c in changesets],
         "tools": [t for t, _ in tools], "retries": sum(1 for _, r in tools if r), "live": live_names,
         "paid_in": sum(c["input"] for c in cm.calls if not c["cached"]), "paid_out": sum(c["output"] for c in cm.calls if not c["cached"]),  # what this run really spent
+        "cached_in": sum(c["provider_cached"] for c in cm.calls),  # input tokens the provider served from its prompt cache (as recorded when the call was made)
+        "paid_cached_in": sum(c["provider_cached"] for c in cm.calls if not c["cached"]),
         "calls": len(cm.calls), "tokens_in": sum(c["input"] for c in cm.calls), "tokens_out": sum(c["output"] for c in cm.calls),
         "latency": sum(c["latency"] for c in cm.calls), "cached_calls": sum(1 for c in cm.calls if c["cached"]),
         "wall": time.perf_counter() - t_wall,
@@ -97,6 +99,7 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
             out["judge"] = {"score": v.normalised, "raw": v.score, "reasoning": v.reasoning, "issues": v.issues}
             out["judge_tokens"] = sum(c["input"] + c["output"] for c in jm.calls)
             out["judge_usage"] = {"calls": len(jm.calls), "tokens_in": sum(c["input"] for c in jm.calls), "tokens_out": sum(c["output"] for c in jm.calls),
+                                  "cached_in": sum(c["provider_cached"] for c in jm.calls), "paid_cached_in": sum(c["provider_cached"] for c in jm.calls if not c["cached"]),
                                   "paid_in": sum(c["input"] for c in jm.calls if not c["cached"]), "paid_out": sum(c["output"] for c in jm.calls if not c["cached"]),
                                   "paid_calls": sum(1 for c in jm.calls if not c["cached"])}
         except Exception as e:  # noqa: BLE001

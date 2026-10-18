@@ -82,6 +82,22 @@ async def list_module_types(ctx: RunContext[Deps], query: str = "", role: str = 
     return [t.summary() for t in ctx.deps.catalog.search(query, role, category, min(limit, 40))]
 
 
+def _param_line(p: dict[str, Any]) -> str:
+    """One knob as one line: id (Name): range unit [scale]; default. Choices are listed with |."""
+    name = p.get("name") or ""
+    head = p["id"] + (f" ({name})" if name and name.lower().replace(" ", "") != p["id"].lower() else "")
+    if p.get("choices"):
+        body = " | ".join(str(c) for c in p["choices"])
+    elif p.get("range"):
+        lo, hi = p["range"]
+        unit = p.get("unit") or ""
+        body = f"{lo:g}..{hi:g}" + (f" {unit}" if unit else "") + (f" [{p['scale']}]" if p.get("scale") not in (None, "lin", "linear") else "")
+    else:
+        body = p.get("kind", "")
+    rest = {k: v for k, v in p.items() if k not in ("id", "name", "kind", "choices", "range", "unit", "scale", "default")}
+    return f"{head}: {body}" + (f"; default {p['default']}" if p.get("default") is not None else "") + (f"; {rest}" if rest else "")
+
+
 async def describe_module(ctx: RunContext[Deps], type: str, include_docs: bool = False) -> dict[str, Any]:
     """Full facts about one module type: input and output jacks with signal types, knobs with ranges and defaults, typical use.
     Set include_docs to also get the start of its manual page."""
@@ -90,6 +106,7 @@ async def describe_module(ctx: RunContext[Deps], type: str, include_docs: bool =
         similar = [m.type for m in ctx.deps.catalog.search(type, limit=6)]
         raise ModelRetry(f"unknown module type '{type}'. Similar: {similar}")
     out = t.summary(detail=True)
+    out["params"] = [_param_line(p) for p in out["params"]]
     if include_docs and ctx.deps.docs is not None and t.doc:
         text, _ = ctx.deps.docs.read(t.doc, max_tokens=1800)
         out["manual"] = text
@@ -222,24 +239,43 @@ class Step(BaseModel):
     v: int = Field(100, description="velocity 1..127; high values are accents")
 
 
-async def set_pattern(ctx: RunContext[Deps], node: str, steps: list[Step], length: int | None = None, params: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Write a step sequencer pattern (up to 32 steps). `length` is how many steps play (default: len(steps)). `params` sets
-    knobs, e.g. {"rate": "1/16", "root": "A", "scale": "Minor Pentatonic", "octave": 0, "gatelength": 0.5}."""
+class Variation(BaseModel):
+    step: int = Field(description="1-based step number to change after tiling (1..length)")
+    g: int | None = Field(None, description="new gate: 0 off, 1 on, 2 tie")
+    p: int | None = Field(None, description="new pitch in semitones above the root")
+    v: int | None = Field(None, description="new velocity 1..127")
+
+
+async def set_pattern(ctx: RunContext[Deps], node: str, steps: list[Step], length: int | None = None, params: dict[str, Any] | None = None,
+                      variations: list[Variation] | None = None) -> dict[str, Any]:
+    """Write a step sequencer pattern (up to 32 steps). `length` is how many steps play (default: len(steps)). When `length` is longer
+    than `steps`, `steps` is a motif that is repeated to fill it: write a 4-8 step motif with length 16 or 32 instead of every step, then
+    change a few steps of the repeats with `variations` (step numbers count from 1 and refer to the tiled pattern, e.g. to vary the end of
+    the second bar). `params` sets knobs, e.g. {"rate": "1/16", "root": "A", "scale": "Minor Pentatonic", "octave": 0, "gatelength": 0.5}."""
     d = ctx.deps
     n = d.patch.node(node)
     if n is None or n["type"] != "step-sequencer":
         raise ModelRetry(f"{node} is not a step-sequencer module. Step sequencers in this patch: {[x['id'] for x in d.patch.of_type('step-sequencer')]}")
     if not 1 <= len(steps) <= 32:
         raise ModelRetry("give 1..32 steps")
-    full = [s.model_dump() for s in steps] + [{"g": 0, "p": 0, "v": 100}] * (32 - len(steps))
-    ops: list[Any] = [SetNodeData(node=node, data={"steps": full}), SetParam(node=node, param="length", value=length or len(steps))]
+    play = length or len(steps)
+    if not 1 <= play <= 32:
+        raise ModelRetry("length is 1..32")
+    tiled = [steps[i % len(steps)].model_dump() for i in range(max(play, len(steps)))] if play > len(steps) else [s.model_dump() for s in steps]
+    for var in variations or []:
+        if not 1 <= var.step <= len(tiled):
+            raise ModelRetry(f"variation step {var.step} is outside the pattern (steps 1..{len(tiled)})")
+        tiled[var.step - 1].update({k: v for k, v in (("g", var.g), ("p", var.p), ("v", var.v)) if v is not None})
+    full = tiled + [{"g": 0, "p": 0, "v": 100}] * (32 - len(tiled))
+    ops: list[Any] = [SetNodeData(node=node, data={"steps": full}), SetParam(node=node, param="length", value=play)]
     for k, v in (params or {}).items():
         ops.append(SetParam(node=node, param=k, value=v))
     try:
-        cs = apply_ops(d.patch, d.catalog, ops, f"Sequencer pattern: {len(steps)} steps")
+        cs = apply_ops(d.patch, d.catalog, ops, f"Sequencer pattern: {len(tiled)} steps")
     except OpError as e:
         raise ModelRetry(f"{e.message} (op {e.index}). Nothing was changed.")
-    cs.lines = [f"~ {node}: pattern of {len(steps)} steps (" + " ".join(_step_name(s) for s in steps[:16]) + (" ..." if len(steps) > 16 else "") + ")"] + \
+    shown = [Step(**t) for t in tiled]
+    cs.lines = [f"~ {node}: pattern of {len(tiled)} steps (" + " ".join(_step_name(s) for s in shown[:16]) + (" ..." if len(shown) > 16 else "") + ")"] + \
         [l for l in cs.lines if l.startswith("~ ") and ".length" not in l and "data" not in l]
     return _emit_changeset(d, cs)
 

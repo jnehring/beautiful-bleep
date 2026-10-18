@@ -40,7 +40,7 @@ def stats(rows: list[dict[str, Any]], prices: dict, model: str) -> dict[str, Any
     n = len(rows)
     k = sum(r["success"] for r in rows)
     lo, hi = wilson(k, n)
-    costs = [cost(prices, model, r["tokens_in"], r["tokens_out"]) for r in rows]
+    costs = [cost(prices, model, r["tokens_in"], r["tokens_out"], r.get("cached_in", 0)) for r in rows]
     known = [c for c in costs if c is not None]
     calls = sum(r["calls"] for r in rows)
     tools = sum(len(r["tools"]) for r in rows)
@@ -53,6 +53,7 @@ def stats(rows: list[dict[str, Any]], prices: dict, model: str) -> dict[str, Any
         "cost": statistics.fmean(known) if known and len(known) == n else None,
         "cost_per_success": (sum(known) / k) if known and len(known) == n and k else None,
         "lat50": pctile([r["latency"] for r in rows], 0.5), "lat95": pctile([r["latency"] for r in rows], 0.95),
+        "provider_cache": (sum(r.get("cached_in", 0) for r in rows) / sum(r["tokens_in"] for r in rows)) if sum(r["tokens_in"] for r in rows) else 0.0,
         "calls": calls / n if n else 0.0, "retry_rate": (sum(r["retries"] for r in rows) / tools) if tools else 0.0,
         "errors": sum(1 for r in rows if r["errors"]), "cached": (sum(r["cached_calls"] for r in rows) / calls) if calls else 0.0,
     }
@@ -67,20 +68,21 @@ def benchmark_cost(results: list[dict[str, Any]], prices: dict, judge: str = "")
     run actually spent (only the calls the cache could not answer). None = no price for that model, or a run from before the split was recorded."""
     rows: list[dict[str, Any]] = []
 
-    def row(label: str, calls: int, paid_calls: int, tin: int, tout: int, pin: int | None, pout: int | None, model: str) -> None:
-        full = cost(prices, model, tin, tout)
-        spent = cost(prices, model, pin, pout) if pin is not None and pout is not None else None
+    def row(label: str, calls: int, paid_calls: int, tin: int, tout: int, pin: int | None, pout: int | None, model: str, cin: int = 0, pcin: int = 0) -> None:
+        full = cost(prices, model, tin, tout, cin)  # input the provider served from its prompt cache is billed at the cached rate
+        spent = cost(prices, model, pin, pout, pcin) if pin is not None and pout is not None else None
         rows.append({"label": label, "calls": calls, "paid_calls": paid_calls, "tokens_in": tin, "tokens_out": tout, "full": full, "spent": spent})
 
     for m in sorted({r["model"] for r in results}):
         rs = [r for r in results if r["model"] == m]
         known = all("paid_in" in r for r in rs)
         row(m, sum(r["calls"] for r in rs), sum(r["calls"] - r["cached_calls"] for r in rs), sum(r["tokens_in"] for r in rs), sum(r["tokens_out"] for r in rs),
-            sum(r["paid_in"] for r in rs) if known else None, sum(r["paid_out"] for r in rs) if known else None, m)
+            sum(r["paid_in"] for r in rs) if known else None, sum(r["paid_out"] for r in rs) if known else None, m,
+            sum(r.get("cached_in", 0) for r in rs), sum(r.get("paid_cached_in", 0) for r in rs))
     js = [r["judge_usage"] for r in results if isinstance(r.get("judge_usage"), dict)]
     if js and judge:
         row(f"{judge} (judge)", sum(j["calls"] for j in js), sum(j["paid_calls"] for j in js), sum(j["tokens_in"] for j in js), sum(j["tokens_out"] for j in js),
-            sum(j["paid_in"] for j in js), sum(j["paid_out"] for j in js), judge)
+            sum(j["paid_in"] for j in js), sum(j["paid_out"] for j in js), judge, sum(j.get("cached_in", 0) for j in js), sum(j.get("paid_cached_in", 0) for j in js))
     return rows
 
 
@@ -102,7 +104,7 @@ def _cost_section(results: list[dict[str, Any]], prices: dict, meta: dict[str, A
     out.append(f"| **total** | {sum(r['paid_calls'] for r in rows)} / {sum(r['calls'] for r in rows)} | {sum(r['tokens_in'] for r in rows)} / {sum(r['tokens_out'] for r in rows)} | "
                f"**{_money(tf)}** | **{_money(ts)}** | {_money(tf - ts) if tf is not None and ts is not None else 'n/a'} |")
     out += ["", "Without cache = every model and judge call priced at the price table's rates, as if nothing had been replayed (a fresh run). This run = only the calls "
-            "the cache could not answer. Documentation embeddings and the providers' own prompt caching are not included. `n/a` = no price for that model in prices.yaml.", ""]
+            "the cache could not answer. Input tokens the provider served from its own prompt cache (as recorded when each call was made) are priced at the `cached_input` rate; runs from before this was recorded count them at the full input rate. Documentation embeddings are not included. `n/a` = no price for that model in prices.yaml.", ""]
     return out
 
 
@@ -119,11 +121,11 @@ def render(results: list[dict[str, Any]], prices: dict, meta: dict[str, Any] | N
         out += [f"- run: `{meta.get('run', '')}`, {meta.get('date', '')}, repeats {meta.get('repeats', '?')}, cache `{meta.get('cache', '?')}`, "
                 f"price table v{prices.get('version', '?')}", ""]
     out += _cost_section(results, prices, meta)
-    out += ["## Overall", "", "| model | runs | success (95% CI) | check score | tokens in / out | cost / request | cost / success | latency p50 / p95 | model calls | retried tool calls | errors | cached |",
-            "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    out += ["## Overall", "", "| model | runs | success (95% CI) | check score | tokens in / out | provider cache hit | cost / request | cost / success | latency p50 / p95 | model calls | retried tool calls | errors | replayed |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for m in models:
         s = stats(by_model[m], prices, m)
-        out.append(f"| {m} | {s['n']} | {s['success']:.0%} ({s['ci'][0]:.0%}-{s['ci'][1]:.0%}) | {s['score']:.2f} | {s['tokens_in']:.0f} / {s['tokens_out']:.0f} | "
+        out.append(f"| {m} | {s['n']} | {s['success']:.0%} ({s['ci'][0]:.0%}-{s['ci'][1]:.0%}) | {s['score']:.2f} | {s['tokens_in']:.0f} / {s['tokens_out']:.0f} | {s['provider_cache']:.0%} | "
                    f"{_fmt_cost(s['cost'])} | {_fmt_cost(s['cost_per_success'])} | {s['lat50']:.1f}s / {s['lat95']:.1f}s | {s['calls']:.1f} | {s['retry_rate']:.0%} | {s['errors']} | {s['cached']:.0%} |")
     out += ["", "## By skill", "", "Success = every deterministic check passed. Judge = mean rubric score 0..1 (soft; not part of success).", "",
             "| skill | model | runs | success (95% CI) | judge | tokens in / out | cost / request | cost / success | latency p50 |", "|---|---|---|---|---|---|---|---|---|"]

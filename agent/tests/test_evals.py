@@ -250,3 +250,31 @@ def test_checks_accept_typographic_apostrophes_and_any_lfo_waveform(library, cat
     assert spec["from"] == "role:lfo.out" and CHECKS["cable"](ctx2, spec)[0]  # sine instead of out: same signal type
     ctx3 = Ctx(case=case, before=before, after=before, text="", catalog=catalog, tools=[], changesets=[], live=[])
     assert not CHECKS["cable"](ctx3, spec)[0]
+
+
+def _fake(case, skill, model, ok, tin=1000, tout=100, lat=2.0, calls=3, why="pattern: no repeating motif"):
+    return {"case": case, "skill": skill, "difficulty": "easy", "model": model, "repeat": 0, "success": ok, "score": float(ok),
+            "checks": [] if ok else [{"kind": why.split(":")[0], "ok": False, "detail": why}], "errors": [], "answer": "", "changesets": [], "tools": ["a"], "retries": 0,
+            "live": [], "calls": calls, "tokens_in": tin, "tokens_out": tout, "latency": lat, "cached_calls": 0, "wall": 1.0, "paid_in": tin, "paid_out": tout}
+
+
+def test_compare_runs_across_three_runs_on_the_common_cases(tmp_path):
+    from bleep_agent.evals.compare import Run, compare_runs, load_run
+
+    price = {"models": {"m": {"input": 1.0, "output": 2.0}}}
+    base = [_fake("c1", "compose", "m", False), _fake("c2", "docs", "m", True), _fake("c3", "docs", "m", False), _fake("c4", "panel", "m", False)]
+    mid = [_fake("c1", "compose", "m", True, tin=800), _fake("c2", "docs", "m", False, why="cites: none"), _fake("c3", "docs", "m", False)]  # c4 not re-run
+    last = [_fake("c1", "compose", "m", True, tin=600), _fake("c2", "docs", "m", True), _fake("c3", "docs", "m", False), _fake("c4", "panel", "m", True)]
+    runs = [Run("First", tmp_path / "a", base), Run("Mid", tmp_path / "b", mid, {"run": "r2", "judge": ""}), Run("Last", tmp_path / "c", last)]
+    text = compare_runs(runs, price)
+    assert "3 (model, case) pairs that every run contains" in text  # c4 is missing from the middle run
+    assert "success 33% → 67% (+33 pp)" in text and "input tokens/request 1000 → 867 (-13%)" in text
+    assert "## Cases: First → Mid" in text and "## Cases: Mid → Last" in text and "## Case outcomes across all runs" in text
+    assert "| gpt" not in text and "`c1`" in text and "cites: none" in text  # c2 regressed in Mid with that reason
+    assert "`c3`" in text.split("## Failing in every run")[1]
+    assert "pairs of any run" in compare_runs(runs, price, all_cases=True)
+    # run directories, 'label=path' and bare paths load
+    for d, rows in (("x", base), ("y", last)):
+        (tmp_path / d).mkdir()
+        (tmp_path / d / "results.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    assert load_run(f"Mine={tmp_path / 'x'}").label == "Mine" and load_run(str(tmp_path / "y")).label == "y"

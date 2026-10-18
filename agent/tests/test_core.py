@@ -172,3 +172,47 @@ def test_propose_panel_refuses_to_drop_wired_knobs(catalog, synth):
     lost = sorted({w["param"] for c in panel["controls"] for w in c.get("wire", [])} - {w["param"] for c in smaller["controls"] for w in c.get("wire", [])})
     out = asyncio.run(propose_panel(NS(deps=deps), smaller, "trim on request", removed=lost))
     assert out["ok"]
+
+
+def test_set_pattern_tiles_a_motif_and_applies_variations(catalog, library):
+    import asyncio
+    from types import SimpleNamespace as NS
+
+    from pydantic_ai import ModelRetry
+
+    from bleep_agent.tools import Deps, Step, Variation, set_pattern
+
+    p = next(Patch(e.preset) for e in library.entries if Patch(e.preset).of_type("step-sequencer"))
+    seq = p.of_type("step-sequencer")[0]["id"]
+    ctx = NS(deps=Deps(patch=p, catalog=catalog, emit=lambda *a, **k: None))
+    motif = [Step(g=1, p=0, v=120), Step(g=1, p=7), Step(g=0), Step(g=2, p=3)]
+    asyncio.run(set_pattern(ctx, seq, motif, length=16, variations=[Variation(step=16, p=12, v=127), Variation(step=5, g=0)]))
+    steps = p.node(seq)["data"]["steps"]
+    assert len(steps) == 32 and [s["p"] for s in steps[:16]] == [0, 7, 0, 3] * 3 + [0, 7, 0, 12]
+    assert steps[4]["g"] == 0 and steps[8]["g"] == 1 and steps[15]["v"] == 127 and steps[16]["g"] == 0  # beyond the length: rests
+    t = catalog.get("step-sequencer").param("length")
+    assert round(t.from_normalised(p.node(seq)["params"]["length"])) == 16
+    # without length the steps are written as given
+    asyncio.run(set_pattern(ctx, seq, motif))
+    assert round(t.from_normalised(p.node(seq)["params"]["length"])) == 4
+    with pytest.raises(ModelRetry, match="outside"):
+        asyncio.run(set_pattern(ctx, seq, motif, length=8, variations=[Variation(step=9)]))
+    with pytest.raises(ModelRetry, match="1..32"):
+        asyncio.run(set_pattern(ctx, seq, motif, length=33))
+
+
+def test_describe_module_is_compact_and_the_common_modules_are_in_the_prompt(catalog):
+    import asyncio
+    import json
+    from types import SimpleNamespace as NS
+
+    from bleep_agent.runner import CORE_MODULES, _core_sheet
+    from bleep_agent.tools import Deps, describe_module
+
+    d = asyncio.run(describe_module(NS(deps=Deps(patch=Patch({"format": 1, "nodes": [], "cables": []}), catalog=catalog)), "filter"))
+    assert all(isinstance(p, str) for p in d["params"]) and len(json.dumps(d)) < 1700
+    assert any(p.startswith("cutoff") and "20..20000 Hz" in p and "default" in p for p in d["params"])
+    assert any(p.startswith("type") and "SVF Multimode | " in p for p in d["params"])  # a choice knob lists its choices
+    sheet = _core_sheet(catalog)
+    assert len(sheet.splitlines()) == len(CORE_MODULES) and "- adsr: in gate:gate" in sheet and "knobs attack decay sustain release" in sheet
+    assert len(sheet) < 2500

@@ -15,6 +15,7 @@ from pydantic_core import to_jsonable_python
 from ..cache import Cache, make_key
 
 _VOLATILE = {"timestamp", "run_id", "conversation_id", "provider_response_id", "provider_url"}
+_ROUTING_ONLY = {"openai_prompt_cache_key"}  # tells the provider which requests share a prompt cache; does not change the answer, so it is not part of the key
 
 
 def scrub(x: Any) -> Any:
@@ -39,15 +40,18 @@ class CachingModel(WrapperModel):
                       model_request_parameters: ModelRequestParameters) -> ModelResponse:
         key = make_key("model", self.wrapped.system, self.wrapped.model_name, self.salt,
                        scrub(ModelMessagesTypeAdapter.dump_python(messages, mode="json")),
-                       scrub(to_jsonable_python(model_request_parameters)), to_jsonable_python(model_settings))
+                       scrub(to_jsonable_python(model_request_parameters)),
+                       {k: v for k, v in (to_jsonable_python(model_settings) or {}).items() if k not in _ROUTING_ONLY} or None)
         hit = self.cache.get("model", key)
         if hit is not None:
             resp = ModelMessagesTypeAdapter.validate_python([hit["response"]])[0]
-            self.calls.append({"input": resp.usage.input_tokens, "output": resp.usage.output_tokens, "latency": hit["latency"], "cached": True})
+            self.calls.append({"input": resp.usage.input_tokens, "output": resp.usage.output_tokens, "provider_cached": resp.usage.cache_read_tokens or 0,
+                               "latency": hit["latency"], "cached": True})
             return resp  # type: ignore[return-value]
         t0 = time.perf_counter()
         resp = await self.wrapped.request(messages, model_settings, model_request_parameters)
         lat = time.perf_counter() - t0
         self.cache.put("model", key, {"response": ModelMessagesTypeAdapter.dump_python([resp], mode="json")[0], "latency": lat})
-        self.calls.append({"input": resp.usage.input_tokens, "output": resp.usage.output_tokens, "latency": lat, "cached": False})
+        self.calls.append({"input": resp.usage.input_tokens, "output": resp.usage.output_tokens, "provider_cached": resp.usage.cache_read_tokens or 0,
+                           "latency": lat, "cached": False})
         return resp
