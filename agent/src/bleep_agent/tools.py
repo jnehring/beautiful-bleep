@@ -263,13 +263,24 @@ async def build_panel_tool(ctx: RunContext[Deps], plan: PanelPlan) -> dict[str, 
     return _emit_panel(d, panel, f"Panel '{plan.name}'")
 
 
-async def propose_panel(ctx: RunContext[Deps], panel: dict[str, Any], summary: str) -> dict[str, Any]:
+def _wired(panel: dict[str, Any]) -> set[str]:
+    return {w["param"] for ctl in panel.get("controls", []) for w in ctl.get("wire", []) if isinstance(w, dict) and "param" in w}
+
+
+async def propose_panel(ctx: RunContext[Deps], panel: dict[str, Any], summary: str, removed: list[str] | None = None) -> dict[str, Any]:
     """Set a complete panel (JSON as in get_panel) after validation. Use for edits to an existing panel: read it with get_panel, change
-    it, and send it back whole. Prefer build_panel for new panels."""
+    it, and send it back whole. Prefer build_panel for new panels. Every knob the old panel had wired must stay on the panel: only when
+    the user asked to take knobs off, list their ids (as 'module.knob') in `removed`."""
     d = ctx.deps
     errs = validate_panel(panel, d.patch, d.catalog)
     if errs:
         raise ModelRetry("panel is not valid: " + "; ".join(errs))
+    old = next((p for p in d.patch.data.get("panels", []) if p.get("id") == panel.get("id")), None)
+    if old is not None:
+        lost = sorted(_wired(old) - _wired(panel) - set(removed or []))
+        if lost:
+            raise ModelRetry(f"the new panel drops {len(lost)} wired knob(s) the old one had: {lost[:12]}. Organising means rearranging: keep them "
+                             "(regroup, align, relabel), or list them in `removed` only if the user asked to take them off. Nothing was changed.")
     return _emit_panel(d, panel, summary)
 
 

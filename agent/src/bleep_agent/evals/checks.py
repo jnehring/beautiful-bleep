@@ -137,6 +137,11 @@ def _cable(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
     fn, fj = _node_jack(c, a["from"])
     tn, tj = _node_jack(c, a["to"])
     ok = any(k["from"] == {"node": fn, "jack": fj} and k["to"] == {"node": tn, "jack": tj} for k in c.after.cables)
+    if not ok and (a.get("exists", True)) and (node := c.after.node(fn)) is not None:
+        # "role:lfo.out" means the LFO's signal: its sine, triangle or saw jack is as good as the one called out (same signal type)
+        want, _ = jack_type(c.catalog, node, fj, "from")
+        ok = want is not None and any(k["from"]["node"] == fn and k["to"] == {"node": tn, "jack": tj}
+                                      and jack_type(c.catalog, node, k["from"]["jack"], "from")[0] == want for k in c.after.cables)
     return ok == a.get("exists", True), f"{a['from']} -> {a['to']} exists={ok}"
 
 
@@ -205,7 +210,8 @@ def _cites(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
 
 @check("says_unknown")
 def _unknown(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
-    ok = bool(re.search(r"not (documented|covered|mentioned|described|say)|(does not|doesn't|do not|don't) (say|mention|cover|describe|document|have)|no (information|documentation|mention)|(cannot|can't|couldn't|could not|did not|didn't) find|isn't (documented|covered)|unclear from", c.text, re.I))
+    text = c.text.replace("\u2019", "'").replace("\u2018", "'")  # models write typographic apostrophes: "don’t describe"
+    ok = bool(re.search(r"not (documented|covered|mentioned|described|say)|(does not|doesn't|do not|don't) (say|mention|cover|describe|document|have)|no (information|documentation|mention)|(cannot|can't|couldn't|could not|did not|didn't) find|isn't (documented|covered)|unclear from", text, re.I))
     return ok == a.get("value", True), f"admits_gap={ok}"
 
 

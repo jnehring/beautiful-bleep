@@ -212,6 +212,13 @@
           n.data = clone(op.data);
           break;
         }
+        case "set_muted": {
+          const n = node(op.node);
+          if (!n) return fail(`no node ${op.node}`);
+          if (typeof op.muted !== "boolean") return fail("muted must be true or false");
+          n.muted = op.muted;
+          break;
+        }
         case "rename_node": {
           const n = node(op.id);
           if (!n) return fail(`no node ${op.id}`);
@@ -515,7 +522,12 @@
 
   // ---- the request
   function snapshot() {
-    return { patch: clone(host.board()), selection: host.selection() };
+    const b = host.board(), media = b && b.media;
+    if (!isObj(media)) return { patch: clone(b), selection: host.selection() };
+    // Embedded sample data (base64 wav) is not something the assistant reads or edits; leaving it out keeps the request small. The ops apply to the real board by id.
+    const slim = Object.assign({}, b, { media: Object.fromEntries(Object.entries(media).map(([k, m]) =>
+      [k, isObj(m) && typeof m.data === "string" && m.data.length > 1000 ? Object.assign({}, m, { data: `<${m.data.length} characters of audio data left out>` }) : m])) });
+    return { patch: clone(slim), selection: host.selection() };
   }
   function transcript() {
     const out = [];

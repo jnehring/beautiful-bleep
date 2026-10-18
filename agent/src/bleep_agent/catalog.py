@@ -84,6 +84,11 @@ def _round(x: float, n: int = 6) -> float:
     return float(round(x, n))
 
 
+# Names models (and musicians) use for a choice that the module spells differently; applied only when the target exists in the knob's choices.
+CHOICE_ALIASES = {"minor": "natural minor", "aeolian": "natural minor", "ionian": "major",
+                  "minor scale": "natural minor", "major scale": "major"}
+
+
 class Param(BaseModel):
     id: str
     name: str
@@ -151,6 +156,9 @@ class Param(BaseModel):
                     if c.lower() == s.lower():
                         return self.to_normalised(self.min + i), ""
                 near = [c for c in self.choices if s.lower() in c.lower()]
+                alias = next((c for c in self.choices if c.lower() == CHOICE_ALIASES.get(s.lower(), "")), None)  # "Minor" fits four scales: say which one it means
+                if alias:
+                    return self.to_normalised(self.min + self.choices.index(alias)), f"read '{s}' as '{alias}'"
                 if len(near) == 1:
                     i = self.choices.index(near[0])
                     return self.to_normalised(self.min + i), f"read '{s}' as '{near[0]}'"

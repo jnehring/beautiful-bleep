@@ -230,3 +230,23 @@ def test_cache_modes(tmp_path):
     with pytest.raises(CacheMiss):
         Cache(tmp_path / "a.sqlite", "replay-only").get("k", "nope")
     assert Cache(None, "off").get("k", "x") is None
+
+
+def test_checks_accept_typographic_apostrophes_and_any_lfo_waveform(library, catalog):
+    from bleep_agent.evals.checks import CHECKS, Ctx
+    from bleep_agent.patch import Patch
+
+    case = case_by_id("patch-lfo-cutoff-02")
+    before = case.load_patch(library)
+    ctx = Ctx(case=case, before=before, after=before, text="The docs don’t describe MP3 export.", catalog=catalog, tools=[], changesets=[], live=[])
+    assert CHECKS["says_unknown"](ctx, {})[0]
+    spec = next(c for c in case.checks if c["kind"] == "cable")
+    after = Patch(before.to_dict())
+    fl = after.of_type("filter")[0]["id"]
+    from bleep_agent.ops import AddModule, Connect, apply_ops
+
+    apply_ops(after, catalog, [AddModule(type="lfo", ref="l"), Connect(from_node="$l", from_jack="sine", to_node=fl, to_jack="cutoff")])
+    ctx2 = Ctx(case=case, before=before, after=after, text="", catalog=catalog, tools=[], changesets=[], live=[])
+    assert spec["from"] == "role:lfo.out" and CHECKS["cable"](ctx2, spec)[0]  # sine instead of out: same signal type
+    ctx3 = Ctx(case=case, before=before, after=before, text="", catalog=catalog, tools=[], changesets=[], live=[])
+    assert not CHECKS["cable"](ctx3, spec)[0]

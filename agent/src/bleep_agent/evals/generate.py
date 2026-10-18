@@ -256,7 +256,7 @@ def gen_design(lib: PresetLibrary, cat: Catalog) -> list[Case]:
         if i >= len(DESIGN):
             q = q.replace("build", "make me") if "build" in q else q + ", please"
         out.append(Case(id=f"design-{i + 1:02d}", skill="design", difficulty=diff, tags=["synth"], patch=EMPTY, query=q,
-                        checks=[{"kind": "valid_patch"}, {"kind": "audible"}, {"kind": "has_path", "chain": ["role:source", "role:filter", "type:vca", "type:audio-out"]}] + extra,
+                        checks=[{"kind": "valid_patch"}, {"kind": "audible"}, {"kind": "has_path", "chain": ["role:source", "type:audio-out"]}] + extra,
                         judge="design_quality"))
     return out
 

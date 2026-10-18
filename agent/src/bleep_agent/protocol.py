@@ -23,6 +23,20 @@ class ChatMessage(BaseModel):
     content: str = Field(max_length=MAX_MESSAGE_CHARS)
 
 
+BLOB_CHARS = 1000  # a string longer than this in the board's media table (embedded samples, base64) is audio data, not something to reason about
+
+
+def slim_patch(v: dict[str, Any]) -> dict[str, Any]:
+    """The board without its embedded sample data. The agent only edits modules, cables, data and panels (the client applies the ops to its own
+    board by id), so a sampler's wav bytes would just make the snapshot, the resume token and the log huge: a board with one sample was refused."""
+    media = v.get("media")
+    if not isinstance(media, dict):
+        return v
+    slim = {k: ({**m, "data": f"<{len(m['data'])} characters of audio data left out>"} if isinstance(m, dict) and isinstance(m.get("data"), str) and len(m["data"]) > BLOB_CHARS else m)
+            for k, m in media.items()}
+    return {**v, "media": slim}
+
+
 class Snapshot(BaseModel):
     patch: dict[str, Any] = Field(default_factory=dict)
     selection: list[str] = []
@@ -31,6 +45,7 @@ class Snapshot(BaseModel):
     @field_validator("patch")
     @classmethod
     def _size(cls, v: dict[str, Any]) -> dict[str, Any]:
+        v = slim_patch(v)
         if len(json.dumps(v, separators=(",", ":"))) > MAX_PATCH_BYTES:
             raise ValueError("patch is too large")
         return v

@@ -79,6 +79,7 @@ passed through when the type declares data (`sanitiseData`), i.e. when existing 
 | `insert_on_cable` | `cable` or (`from_node`,`from_jack`,`to_node`,`to_jack`), `type`, `name?`, `params?`, `in_jack?`, `out_jack?` | breaks the cable, inserts the module; stereo pairs (`l`/`r`) are handled together when both cables exist |
 | `rename_module`, `move_module` | `node`, `name` / `x`,`y` | |
 | `set_node_data` | `node`, `data` | e.g. sequencer steps |
+| `set_muted` | `node`, `muted` (bool) | the module's Mute switch (`muted` on the node, not part of `data`) |
 | `set_tempo` | `bpm` | |
 
 `ref` handles are written as `"$name"` wherever a node id is expected.
@@ -93,6 +94,7 @@ passed through when the type declares data (`sanitiseData`), i.e. when existing 
 {"op":"set_param","node","param","value"}        // normalised 0..1
 {"op":"set_cable_amount","id","amount"}
 {"op":"set_data","node","data"}
+{"op":"set_muted","node","muted"}
 {"op":"rename_node","id","name"} {"op":"move_node","id","x","y"}
 {"op":"set_tempo","bpm"}
 {"op":"set_panel","panel":{...}}  {"op":"remove_panel","id"}

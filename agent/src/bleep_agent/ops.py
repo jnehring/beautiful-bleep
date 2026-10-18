@@ -107,6 +107,12 @@ class SetNodeData(BaseModel):
     data: dict[str, Any]
 
 
+class SetMuted(BaseModel):
+    op: Literal["set_muted"] = "set_muted"
+    node: str
+    muted: bool = Field(description="true = mute the module, false = unmute it (the Mute switch of the module's menu).")
+
+
 class SetTempo(BaseModel):
     op: Literal["set_tempo"] = "set_tempo"
     bpm: float
@@ -114,7 +120,7 @@ class SetTempo(BaseModel):
 
 Op = Annotated[
     Union[AddModule, RemoveModule, Connect, Disconnect, SetParam, SetCableAmount, InsertOnCable, RenameModule,
-          MoveModule, SetNodeData, SetTempo],
+          MoveModule, SetNodeData, SetMuted, SetTempo],
     Field(discriminator="op"),
 ]
 
@@ -374,8 +380,15 @@ def _apply_one(ctx: _Ctx, o: Any) -> None:
         n = p.require_node(ctx.nid(o.node))
         n["x"], n["y"] = o.x, o.y
         ctx.prims.append({"op": "move_node", "id": n["id"], "x": o.x, "y": o.y})
+    elif isinstance(o, SetMuted):
+        n = p.require_node(ctx.nid(o.node))
+        n["muted"] = o.muted
+        ctx.prims.append({"op": "set_muted", "node": n["id"], "muted": o.muted})
+        ctx.lines.append(f"~ {n['id']} {'muted' if o.muted else 'unmuted'}")
     elif isinstance(o, SetNodeData):
         n = p.require_node(ctx.nid(o.node))
+        if "muted" in o.data:
+            raise PatchError("muting is not module data: use the set_muted op ({\"op\": \"set_muted\", \"node\": ..., \"muted\": false})")
         if n["type"] == "step-sequencer":
             _seq_check(o.data)
         n["data"] = o.data
@@ -445,6 +458,8 @@ def apply_primitives(patch: Patch, prims: list[dict[str, Any]]) -> None:
             patch.cable(o["id"])["amount"] = o["amount"]
         elif k == "set_data":
             patch.node(o["node"])["data"] = o["data"]
+        elif k == "set_muted":
+            patch.node(o["node"])["muted"] = bool(o["muted"])
         elif k == "rename_node":
             patch.node(o["id"])["name"] = o["name"]
         elif k == "move_node":
