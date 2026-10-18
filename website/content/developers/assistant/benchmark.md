@@ -6,7 +6,7 @@ order: 70
 
 # Benchmark and results
 
-Prompts and tools change how the assistant behaves in ways that are hard to predict, so every change is measured. The **benchmark** runs a fixed set of requests against the real agent loop and scores each result by code. The numbers on this page come from the report that `bleep-agent eval compare` writes to `agent/evals/runs/compare.md`. That file is generated and git-ignored; the results below are a snapshot of it from **2026-10-18** and are not updated by a build.
+Prompts and tools change how the assistant behaves in ways that are hard to predict, so every change is measured. The **benchmark** runs a fixed set of requests against the real agent loop and scores each result by code. The numbers on this page come from the report that `bleep-agent eval compare` writes to `agent/evals/runs/compare.md`. That file is generated and git-ignored; the results below are a snapshot of it from **2026-10-18** (five versions) and are not updated by a build.
 
 ![Cases run through a harness that calls the real agent loop with a simulated browser, with every model call going through a replay cache. Checks in code and an optional judge model score each run. Results and full logs go to a run folder. The lab notebook lists versions of the assistant with their run folders, and the compare command writes compare.md.](/img/assistant-benchmark.svg)
 
@@ -34,7 +34,7 @@ The harness (`evals/harness.py`) runs a case the way a user would, with the brow
 3. When the model calls a live tool, the simulated client answers it from the graph model: `probe_signals` reports from the simulation, `get_environment` reports a running audio engine, `ask_user` picks the first choice. The run is resumed, up to six times.
 4. Run the **checks** on the final board, the changesets, the tool calls and the answer text.
 
-A run is a **success** only if every check passes and there was no error. The checks are code, not opinion: `audible`, `fixes_fault`, `unrelated_changes`, `cable`, `has_path`, `fx_before_output`, `param_range`, `module_added`, `valid_patch`, `no_state_change` (a question must not change the patch), `text_contains`, `cites`, `says_unknown`, `tool_used`, `panel_valid`, `panel_covers`, `pattern`.
+A run is a **success** only if every check passes and there was no error. The checks are code, not opinion: `audible`, `fixes_fault`, `unrelated_changes`, `cable`, `has_path`, `fx_before_output`, `param_range`, `layout`, `module_added`, `valid_patch`, `no_state_change` (a question must not change the patch), `text_contains`, `cites`, `says_unknown`, `tool_used`, `panel_valid`, `panel_covers`, `pattern`.
 
 An **optional judge** (`--judge <model>`) scores the answer 1 to 5 against a rubric in `evals/rubrics/` for what code cannot decide, such as musical quality or faithfulness to the docs. The judge is a pinned model with a fixed rubric and a structured verdict, and it sees the ground truth as context. The results below were run without a judge, so they measure what code can check.
 
@@ -69,44 +69,46 @@ The report is compared on the **cases every run contains**, so a version is not 
 
 ## Results
 
-All runs so far used one model, **gpt-6-luna**, one repeat, no judge, on the same 187 cases.
+All runs so far used one model, **gpt-6-luna**, one repeat, no judge, on the same 187 cases. Five versions have been benchmarked.
 
 | # | Version | Success | Δ | Check score | Cost / request | Tokens in / out per request | Model calls / request | Latency p50 / p95 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | First implementation | 74% (68%-80%) | | 0.91 | $0.0026 | 21,513 / 827 | 3.7 | 11.5s / 46.1s |
-| 2 | Quick Wins | 90% (85%-93%) | +16 pp | 0.96 | $0.0025 | 21,007 / 760 | 3.6 | 11.8s / 35.4s |
+| 1 | First implementation | 74% (68%-80%) | | 0.91 | $0.0015 | 21,513 / 827 | 3.7 | 11.5s / 46.1s |
+| 2 | Quick Wins | 90% (85%-93%) | +16 pp | 0.96 | $0.0015 | 21,007 / 760 | 3.6 | 11.8s / 35.4s |
 | 3 | Motif tiling & lean lookups | 91% (87%-95%) | +17 pp | 0.97 | $0.0016 | 21,232 / 811 | 3.4 | 11.8s / 39.8s |
+| 4 | Lean tools & citations | 93% (88%-96%) | +19 pp | 0.97 | $0.0015 | 19,195 / 828 | 3.4 | 10.3s / 39.0s |
+| 5 | Flow layout | 94% (89%-96%) | +19 pp | 0.97 | $0.0015 | 19,236 / 770 | 3.2 | 9.5s / 30.5s |
 
-The ranges are 95% confidence intervals (Wilson). With 187 runs they are about ±4 points, so the jump from version 1 to 2 is real and the step from 2 to 3 (+1 point) is within noise. Cost per request fell by a third at version 3 because of provider prompt caching (50% of input tokens were cache hits); versions 1 and 2 predate that accounting and counted every input token at full price, so their costs are not comparable. The whole benchmark costs about **$0.30 without cache** and ran in about 49 minutes of model time.
+The ranges are 95% confidence intervals (Wilson). With 187 runs they are about ±4 points, so only the jump from version 1 to 2 is clearly real. From version 2 onwards the steps are 1 to 3 points and the intervals overlap: the later versions are better than version 1, but the benchmark cannot rank them against each other.
+
+**Cost.** Every run is now priced with the provider's prompt cache accounted for (about half of the input tokens are cache hits), so the costs of all five versions are comparable. Cost per *request* is flat at about $0.0015; cost per *success* fell from $0.0021 to $0.0016 only because more requests succeed. One whole benchmark costs about **$0.28 without any cache** (a fresh run of version 5 cost $0.2757). Model time fell from 54 minutes to 42; at concurrency 4 a fresh run takes about 10 minutes of wall time.
+
+**Tokens and speed.** Input tokens fell 11% at version 4, when each skill was offered only its own tool definitions and the schemas were slimmed, and have stayed there. Calls per request fell from 3.7 to 3.2, p50 latency from 11.5 s to 9.5 s and p95 from 46 s to 30.5 s. Input is still about 19,000 tokens per request because each of the 3 to 4 calls repeats the instructions (prompt, module index, the board); that is why prompt caching matters more than shorter prompts.
 
 ### By skill
 
 Success rate, 187 runs per version.
 
-| Skill | Cases | 1 | 2 | 3 | Δ 1 to 3 |
-|---|---|---|---|---|---|
-| compose | 25 | 68% | 68% | 84% | +16 pp |
-| design | 20 | 80% | 100% | 100% | +20 pp |
-| diagnose | 45 | 84% | 96% | 98% | +13 pp |
-| docs | 32 | 62% | 78% | 81% | +19 pp |
-| panel | 25 | 56% | 92% | 92% | +36 pp |
-| patch | 40 | 85% | 100% | 92% | +8 pp |
+| Skill | Cases | 1 | 2 | 3 | 4 | 5 | Δ 1 to 5 |
+|---|---|---|---|---|---|---|---|
+| compose | 25 | 68% | 68% | 84% | 96% | 88% | +20 pp |
+| design | 20 | 80% | 100% | 100% | 100% | 100% | +20 pp |
+| diagnose | 45 | 84% | 96% | 98% | 98% | 96% | +11 pp |
+| docs | 32 | 62% | 78% | 81% | 78% | 81% | +19 pp |
+| panel | 25 | 56% | 92% | 92% | 84% | 96% | +40 pp |
+| patch | 40 | 85% | 100% | 92% | 100% | 100% | +15 pp |
 
 ### By difficulty
 
-| Difficulty | Cases | 1 | 2 | 3 | Δ 1 to 3 |
-|---|---|---|---|---|---|
-| easy | 58 | 93% | 95% | 93% | +0 pp |
-| medium | 99 | 68% | 91% | 90% | +22 pp |
-| hard | 30 | 60% | 77% | 93% | +33 pp |
+| Difficulty | Cases | 1 | 2 | 3 | 4 | 5 | Δ 1 to 5 |
+|---|---|---|---|---|---|---|---|
+| easy | 58 | 93% | 95% | 93% | 97% | 95% | +2 pp |
+| medium | 99 | 68% | 91% | 90% | 90% | 95% | +27 pp |
+| hard | 30 | 60% | 77% | 93% | 97% | 87% | +27 pp |
 
 The gains are in the medium and hard cases; the easy ones were already solved.
 
-### Tokens and speed
-
-Input tokens are about 21,000 per request in every version and have hardly moved. They add up over the 3 to 4 model calls of a request, and each call repeats the instructions (prompt, module index, the board). That is why prompt caching, not shorter prompts, gave the cost reduction. Design is the heaviest skill (about 45,000 tokens in, 5 calls, 28 s at p50) and docs the lightest (17,000 in, 3.4 calls, 8 s).
-
-### What each version fixed
+### What each version changed
 
 **Version 1 to 2 (+16 pp).** Most of the gain came from fixing the assistant and the benchmark where they disagreed with reality, not from a better model:
 
@@ -117,21 +119,24 @@ Input tokens are about 21,000 per request in every version and have hardly moved
 - "Minor", "Aeolian" and "Ionian" understood as the scale they mean,
 - unanswerable docs questions now say so (`says_unknown`: 8 failures became 2).
 
-**Version 2 to 3 (+1 pp, but a different profile).** `set_pattern` tiles a short motif and accepts variations, which fixed seven compose cases (no repeating motif, no ties). It cost six: `compose-07`, `-09` and `-17` now miss the requested pitch span or length, and `patch-insert-fx-02`, `-14` and `-16` no longer put the requested effects in order before the output. Net: 9 cases improved, 6 regressed, 172 unchanged. A change that is a net gain of 1 point can hide a lot of movement, which is why the report lists every case that flipped.
+**Version 2 to 3 (+1 pp).** `set_pattern` tiles a short motif and accepts variations, which fixed seven compose cases (no repeating motif, no ties). It cost six: `compose-07`, `-09` and `-17` missed the requested pitch span or length, and `patch-insert-fx-02`, `-14` and `-16` no longer put the requested effects in order before the output. Net 9 improved, 6 regressed, 172 unchanged.
 
-**Version 4, Lean tools & citations**, is recorded in the notebook (each skill offered only its own tools, slimmer tool schemas, ready-made citation links in the docs tools, a stricter-but-fairer set of checks) but its benchmark folder has no results yet, so it is not in the comparison. Its changed checks mean cases such as `docs-24` and `patch-insert-fx-*` are not strictly comparable with versions 1 to 3.
+**Version 3 to 4 (+2 pp).** Each skill is offered only its own tools, tool schemas are slimmed (25-58% smaller per skill), the docs tools return ready-made `cite_as` links, `set_pattern` requires a length so a motif is always tiled, and `build_panel` completes an envelope section with all four stages. Two checks were also relaxed (`fx_before_output` accepts the effects anywhere on a signal path into the output, `docs-24` accepts the publishing page), so the effect-insertion and `docs-24` cases are not strictly comparable with versions 1 to 3. Net 13 improved, 10 regressed, 164 unchanged: the citation, compose and effect-insertion cases came back, while three unanswerable docs questions and three panel cases failed.
+
+**Version 4 to 5 (+1 pp).** New modules are placed by code (`layout.py`) from their cables: flow runs left to right on the preset grid, voices are stacked as rows, nothing is placed on top of another module, and a prompt section gives layout guidelines. A new check, `layout` (no overlaps, at least 90% of the cables touching new modules run left to right), applies to 20 design and 34 patch cases; only run 5 was scored with it, and design and patch both stayed at 100%. Net 9 improved, 8 regressed, 170 unchanged.
+
+### How much of the movement is noise
+
+Between versions 4 and 5, 17 cases changed outcome while the total moved by one. Several of the flips cannot be caused by a layout change: `compose-01`, `-07` and `-21` flipped to a pattern-length or pitch-span failure, and `docs-17` and `docs-22` lost a fact in their text. With one repeat, a case near its pass boundary flips from run to run, so differences of a few points between versions, and the per-skill figures (n of 20 to 45), should be read as likely noise until a change is confirmed with `--repeats 3` or more. The effects that repeat across versions are the real ones: the panel and muted-module fixes, and the docs `says_unknown` and citation fixes.
 
 ### Failing in every run
 
-Nine cases fail in every version; they are the next things to look at.
+Two cases fail in every version.
 
 | Case | Why (latest run) |
 |---|---|
-| `compose-01` | 15 gated steps, where 9 to 14 are asked for |
-| `diagnose-source-unwired-05` | The answer names none of the expected terms |
-| `docs-05`, `docs-17`, `docs-24` | Missing fact or missing citation of the page that holds the answer |
-| `docs-unanswerable-02`, `-05` | Answers confidently instead of admitting the documentation has no answer |
-| `panel-build-06`, `-07` | A wired knob (`adsr.release`, the ring `level` knobs) is left off the panel |
+| `docs-05` | The page about voice cells is not cited and the fact "CV to Notes" is missing |
+| `docs-unanswerable-05` | Answers instead of admitting the documentation has no answer |
 
 Whether a failure is the assistant's or the check's is decided from the case's log. Several early failures turned out to be the check (curly apostrophes, a waveform-specific jack name), and fixing a check is recorded in the notebook so the versions stay honest.
 
