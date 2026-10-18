@@ -1,0 +1,40 @@
+{
+  "format": "bleep-lab-notebook",
+  "version": 1,
+  "notes": "One entry per version of the assistant that was benchmarked, oldest first (the first is the baseline of `bleep-agent eval compare`). `benchmark` is the run folder, relative to the repository root. Add an entry when you benchmark a new version, with what changed since the previous one.",
+  "versions": [
+    {
+      "id": 1,
+      "name": "First implementation",
+      "benchmark": "agent/evals/runs/20261018-131041",
+      "changes": [
+        "Baseline: the assistant as it was at the first full benchmark (6 skills, 187 cases)",
+        "A bad knob value (for example scale 'Minor') is returned to the model as a retryable tool error instead of ending the run"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Quick Wins",
+      "benchmark": "agent/evals/runs/20261018-134641",
+      "changes": [
+        "New set_muted op, so the assistant can unmute a module (set_node_data refuses 'muted')",
+        "Embedded sample data is left out of the board snapshot (boards with a sample were refused as too large)",
+        "Prompts: the board is in the instructions, no more get_patch calls",
+        "Panels are rearranged, never trimmed: propose_panel refuses to drop wired knobs",
+        "'Minor', 'Aeolian' and 'Ionian' are read as the scale they mean",
+        "Benchmark checks fixed: curly apostrophes, any LFO waveform jack, design needs only source to output"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Motif tiling & lean lookups",
+      "benchmark": "agent/evals/runs/20261018-141222",
+      "changes": [
+        "set_pattern tiles a short motif to the requested length and takes variations; compose prompt asks for a motif and ties for held notes",
+        "describe_module lists each knob on one line (30-40% smaller)",
+        "Prompt carries a jacks-and-knobs sheet for the 12 most used modules, so fewer lookup rounds",
+        "OpenAI prompt_cache_key per skill; results record provider-cached tokens and the report prices them"
+      ]
+    }
+  ]
+}

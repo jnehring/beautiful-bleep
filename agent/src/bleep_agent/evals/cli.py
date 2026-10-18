@@ -6,6 +6,7 @@
     (writes <run>/logs/<model>/<skill>/<case>.r<n>.json|md for every run, plus logs/index.md; --no-logs skips them)
     bleep-agent eval report agent/evals/runs/<run> [--compare agent/evals/runs/<other>]
     bleep-agent eval compare "First=agent/evals/runs/<run>" "Quick wins=agent/evals/runs/<run>" [...] [--out report.md] [--all-cases]
+    bleep-agent eval compare [--notebook agent/evals/lab-notebook.json] [--versions 1,3] [--out report.md]   (versions, folders and changes from the lab notebook)
     bleep-agent eval retrieval --index website/api/agent_data/docs.sqlite [--embed gemini-embedding-2]
 """
 from __future__ import annotations
@@ -89,7 +90,9 @@ def main(argv: list[str] | None = None) -> int:
     rp.add_argument("run", type=Path)
     rp.add_argument("--compare", type=Path, default=None)
     cp = sub.add_parser("compare", help="compare two or more runs in one Markdown report")
-    cp.add_argument("runs", nargs="+", help="run directories (or results.jsonl), optionally as 'label=path'; the first is the baseline")
+    cp.add_argument("runs", nargs="*", help="run directories (or results.jsonl), optionally as 'label=path'; the first is the baseline. Without runs the lab notebook is used")
+    cp.add_argument("--notebook", type=Path, default=None, help="lab notebook (JSON list of versions with name, id, benchmark folder and changes); default agent/evals/lab-notebook.json")
+    cp.add_argument("--versions", default="", help="comma separated version ids of the notebook to compare (default: all)")
     cp.add_argument("--out", type=Path, default=None, help="also write the report to this file")
     cp.add_argument("--all-cases", action="store_true", help="include cases that not every run contains (default: only the common ones)")
     cp.add_argument("--max-cases", type=int, default=60, help="rows per case list")
@@ -127,9 +130,19 @@ def main(argv: list[str] | None = None) -> int:
         from .compare import compare_runs, load_run
         from .pricing import load_prices
 
-        if len(a.runs) < 2:
-            ap.error("compare needs at least two runs")
-        text = compare_runs([load_run(x) for x in a.runs], load_prices(), a.all_cases, a.max_cases)
+        if a.runs:
+            runs = [load_run(x) for x in a.runs]
+        else:
+            from .compare import load_notebook
+
+            try:
+                only = [int(x) for x in a.versions.split(",") if x.strip()]
+            except ValueError:
+                ap.error("--versions takes comma separated ids, e.g. 1,3")
+            runs = load_notebook(a.notebook or repo / "agent" / "evals" / "lab-notebook.json", only, repo)
+        if len(runs) < 2:
+            ap.error("compare needs at least two runs (or a lab notebook with two versions)")
+        text = compare_runs(runs, load_prices(), a.all_cases, a.max_cases)
         if a.out:
             a.out.write_text(text + "\n")
         print(text)

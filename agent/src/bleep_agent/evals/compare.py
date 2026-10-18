@@ -18,6 +18,8 @@ class Run:
     path: Path
     results: list[dict[str, Any]]
     meta: dict[str, Any] = field(default_factory=dict)
+    version_id: int | None = None  # from the lab notebook
+    changes: list[str] = field(default_factory=list)
 
     @property
     def run_id(self) -> str:
@@ -37,6 +39,34 @@ def load_run(spec: str) -> Run:
     d = path if path.is_dir() else path.parent
     meta = json.loads((d / "meta.json").read_text()) if (d / "meta.json").exists() else {}
     return Run(label or meta.get("run") or d.name, path, load_results(path), meta)
+
+
+def load_notebook(path: Path, only: list[int] | None = None, root: Path | None = None) -> list[Run]:
+    """The versions of a lab notebook (JSON: {"versions": [{id, name, benchmark, changes: [...]}]}) as runs, in notebook order. Benchmark folders are
+    looked up relative to the current directory, the repository root (`root`) and the notebook's own folder."""
+    try:
+        book = json.loads(path.read_text())
+    except FileNotFoundError:
+        raise SystemExit(f"no lab notebook at {path}")
+    versions = book.get("versions") or []
+    ids = [v.get("id") for v in versions]
+    if len(set(ids)) != len(ids):
+        raise SystemExit(f"{path}: version ids must be unique, got {ids}")
+    unknown = sorted(set(only or []) - set(ids))
+    if unknown:
+        raise SystemExit(f"{path}: no version {unknown} (the notebook has {ids})")
+    runs = []
+    for v in versions:
+        if only and v["id"] not in only:
+            continue
+        folder = next((c for c in (Path(v["benchmark"]), (root or Path()) / v["benchmark"], path.parent / v["benchmark"])
+                       if (c / "results.jsonl").exists() or (c.is_file() and c.name.endswith(".jsonl"))), None)
+        if folder is None:
+            raise SystemExit(f"version {v['id']} ({v['name']}): no results.jsonl in {v['benchmark']} (is the benchmark still running?)")
+        run = load_run(f"{v['name']}={folder}")
+        run.version_id, run.changes = v["id"], list(v.get("changes") or [])
+        runs.append(run)
+    return runs
 
 
 def _pct(x: float) -> str:
@@ -84,6 +114,14 @@ def compare_runs(runs: list[Run], prices: dict, all_cases: bool = False, max_cas
     first, last = 0, n - 1
 
     out = ["# Benchmark comparison", ""]
+    if any(r.changes for r in runs):
+        out += ["## Versions and what changed", ""]
+        for r in runs:
+            out += [f"### {r.version_id if r.version_id is not None else runs.index(r) + 1}. {r.label}", "", f"Benchmark: `{r.path}`", ""]
+            out += [f"- {c}" for c in r.changes] or ["- (no changes recorded)"]
+            out.append("")
+        out.append("## Runs")
+        out.append("")
     out += ["| # | label | run | date | models | repeats | runs | judge | benchmark cost without cache | cost of that run |", "|---|---|---|---|---|---|---|---|---|---|"]
     for i, run in enumerate(runs, 1):
         bc = benchmark_cost(run.results, prices, run.meta.get("judge", ""))

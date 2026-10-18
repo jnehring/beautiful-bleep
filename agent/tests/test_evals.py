@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 import asyncio
 import json
+from pathlib import Path
 
 import pytest
 
@@ -278,3 +279,29 @@ def test_compare_runs_across_three_runs_on_the_common_cases(tmp_path):
         (tmp_path / d).mkdir()
         (tmp_path / d / "results.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
     assert load_run(f"Mine={tmp_path / 'x'}").label == "Mine" and load_run(str(tmp_path / "y")).label == "y"
+
+
+def test_compare_reads_versions_from_a_lab_notebook(tmp_path):
+    from bleep_agent.evals.compare import compare_runs, load_notebook
+
+    for name, ok in (("r1", False), ("r2", True)):
+        (tmp_path / name).mkdir()
+        (tmp_path / name / "results.jsonl").write_text(json.dumps(_fake("c1", "compose", "m", ok)) + "\n")
+    book = {"versions": [{"id": 1, "name": "Baseline", "benchmark": "r1", "changes": ["the start"]},
+                         {"id": 2, "name": "Fixed it", "benchmark": "r2", "changes": ["tiled the motif", "second change"]},
+                         {"id": 3, "name": "Not run yet", "benchmark": "r3", "changes": []}]}
+    nb = tmp_path / "book.json"
+    nb.write_text(json.dumps(book))
+    runs = load_notebook(nb, [1, 2])
+    assert [(r.version_id, r.label) for r in runs] == [(1, "Baseline"), (2, "Fixed it")]
+    text = compare_runs(runs, {"models": {}})
+    assert "## Versions and what changed" in text and "### 2. Fixed it" in text and "- tiled the motif" in text and "- second change" in text
+    assert text.index("### 1. Baseline") < text.index("### 2. Fixed it") < text.index("## Runs")
+    with pytest.raises(SystemExit, match="still running"):
+        load_notebook(nb)
+    with pytest.raises(SystemExit, match="no version"):
+        load_notebook(nb, [7])
+    # the shipped notebook is valid JSON with unique ids and the fields the script reads
+    shipped = json.loads((Path(__file__).resolve().parents[1] / "evals" / "lab-notebook.json").read_text())
+    assert [v["id"] for v in shipped["versions"]] == list(range(1, len(shipped["versions"]) + 1))
+    assert all(v["name"] and v["benchmark"] and v["changes"] for v in shipped["versions"])

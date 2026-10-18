@@ -39,3 +39,6 @@ for cost figures; until then reports show tokens and `n/a`.
 Every run is also logged in full under `evals/runs/<run>/logs/<model>/<skill>/<case>.r<n>.json` (same shape as the assistant's "Copy chat"
 export: transcript, every model call with the messages sent, tool calls with arguments and results, events, timestamps) and `.md` (the same,
 to read). `logs/index.md` lists them all; `--no-logs` skips them.
+
+Versions of the assistant are recorded in `evals/lab-notebook.json` (name, id, benchmark folder, what changed). Compare them with
+`.venv-agent/bin/bleep-agent eval compare` (all versions; `--versions 1,3` for some; or pass `"Label=evals/runs/<run>"` folders directly).
