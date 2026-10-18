@@ -146,11 +146,11 @@ def test_streaming_reports_usage_and_survives_tools(catalog, synth):
     from pydantic_ai.models.function import DeltaToolCall
 
     async def stream_fn(messages, info):
-        if returned(messages, "get_patch"):
+        if returned(messages, "describe_module"):
             yield "The patch has "
             yield "a reverb."
         else:
-            yield {0: DeltaToolCall(name="get_patch", json_args="{}")}
+            yield {0: DeltaToolCall(name="describe_module", json_args='{"type": "reverb"}')}
 
     seen = []
     res = Resources(model=FunctionModel(stream_function=stream_fn), catalog=catalog, stream=True, on_usage=seen.append)
@@ -193,3 +193,41 @@ def test_the_run_log_records_retries_and_streaming(catalog, synth):
     asyncio.run(go())
     tools = [d for k, d in rows if k == "tool_call"]
     assert [t["retry"] for t in tools] == [True, False] and "no output 'zzz'" in tools[0]["error"]
+
+
+def test_tool_schemas_are_slimmed_without_losing_fields():
+    import json
+
+    from bleep_agent import skills, tools
+    from bleep_agent.runner import _slim_schema
+
+    schema = {"type": "object", "title": "Args", "properties": {"title": {"type": "string", "title": "Title"}, "node": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None, "title": "Node", "description": "which"}},
+              "required": ["title"]}
+    slim = _slim_schema(schema)
+    assert slim == {"type": "object", "properties": {"title": {"type": "string"}, "node": {"type": "string", "description": "which"}}, "required": ["title"]}  # a property *named* title stays
+    ts = tools.function_toolset(list(skills.SKILLS["design"].funcs))
+    before = sum(len(json.dumps(t.tool_def.parameters_json_schema)) for t in ts.tools.values())
+    after = sum(len(json.dumps(_slim_schema(t.tool_def.parameters_json_schema))) for t in ts.tools.values())
+    assert after < 0.9 * before
+
+    def titles(x):  # string-valued "title" keys are pydantic's; a property named title has a dict value
+        return (isinstance(x, dict) and any((k == "title" and isinstance(v, str)) or titles(v) for k, v in x.items())) or (isinstance(x, list) and any(titles(i) for i in x))
+    assert titles(ts.tools["propose_changes"].tool_def.parameters_json_schema) and not titles(_slim_schema(ts.tools["propose_changes"].tool_def.parameters_json_schema))
+    assert set(ts.tools["propose_changes"].tool_def.parameters_json_schema["properties"]) == set(_slim_schema(ts.tools["propose_changes"].tool_def.parameters_json_schema)["properties"])
+
+
+def test_docs_tools_hand_out_ready_citations(catalog, synth, repo, tmp_path):
+    from types import SimpleNamespace as NS
+
+    from bleep_agent.tools import Deps, describe_module, read_doc, search_docs
+
+    out = tmp_path / "docs.sqlite"
+    build_index(repo, out, None, log=lambda *_: None)
+    deps = Deps(patch=synth, catalog=catalog, docs=DocsIndex(out))
+    ctx = NS(deps=deps)
+    hits = asyncio.run(search_docs(ctx, "how do I sign a module"))
+    assert hits and all(h["cite_as"] == f"[{h['title']}]({h['url']})" for h in hits)
+    text = asyncio.run(read_doc(ctx, hits[0]["id"]))
+    assert "Cite as: [" in text and hits[0]["url"] in text and "Sources:" not in text
+    d = asyncio.run(describe_module(ctx, "vca"))
+    assert d["cite_as"].startswith("[") and "/modules/vca/" in d["cite_as"] and "#" not in d["cite_as"]

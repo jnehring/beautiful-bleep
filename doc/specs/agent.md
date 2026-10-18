@@ -109,10 +109,12 @@ style (type slug, 6 characters, suffix to avoid clashes) and never collide with 
 
 All tools are Pydantic AI tools on one agent; the active **skill** decides which are visible.
 
-Read (run on the working copy / catalog / indexes, no round trip): `get_patch(detail)`, `get_selection`,
-`list_module_types(query?, role?, category?)`, `describe_module(type, include_docs?)`, `search_presets(query, limit)`,
+Read (run on the working copy / catalog / indexes, no round trip): `list_module_types(query?, role?, category?)`, `describe_module(type, include_docs?)`, `search_presets(query, limit)`,
 `get_preset(id)`, `get_panel(id?)`, `get_sequencer(node)`, `trace_signal(from_node?, to_node?)` (paths in the graph),
 `check_audibility()` (static + simulated diagnosis, §6), `search_docs(query, audience?)`, `read_doc(id)`.
+There is no `get_patch` or `get_selection`: the board (with the selection marked) is in the instructions of every step, always current. Each skill is offered only
+the tools it uses (every definition is sent on every model call): the docs tools belong to `docs`, `list_module_types` to `patch` and `design`, `trace_signal`
+to `patch` and `diagnose`.
 
 Write (return a changeset or an error text): `propose_changes(ops, summary)`, `set_pattern(node, steps, params?)`,
 `propose_panel(panel, summary)`, `layout_panel(...)` (helper that returns a tidy layout for the nodes' main params).

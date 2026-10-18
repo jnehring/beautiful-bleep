@@ -66,7 +66,7 @@ class Hit:
 
     def brief(self, chars: int = 280) -> dict[str, Any]:
         snippet = " ".join(self.text.split())
-        return {"id": self.id, "title": self.title, "path": self.path, "url": self.url,
+        return {"id": self.id, "title": self.title, "path": self.path, "url": self.url, "cite_as": f"[{self.title}]({self.url})",
                 "snippet": snippet[:chars] + ("..." if len(snippet) > chars else "")}
 
 

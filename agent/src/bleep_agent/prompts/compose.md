@@ -4,7 +4,7 @@ to a Voice Cell's `notes` input, or its `pitch` to the oscillator and `gate` to 
 Find the step sequencer in the board below (if there is none, add `step-sequencer` and wire its `pitch` and `gate` like the existing note source would be, or ask). Read
 the current pattern with `get_sequencer`, then write the new one with `set_pattern` (1..32 steps; each step gate 0 off / 1 on / 2 tie, pitch in semitones above the
 root, velocity 1..127). Pitches snap to the sequencer's scale; choose root and scale through `params` when the style needs it.
-**Write a motif, not every step**: for a 16 or 32 step line give `set_pattern` the 4-8 step motif and `length` 16 or 32; it is repeated to fill the length. Then pass `variations`
+**Write a motif, not every step**: always pass `length` (how many steps play: 16 for a bar of sixteenths unless the request says otherwise); for a 16 or 32 step line give the 4-8 step motif and `length` 16 or 32, and it is repeated to fill the length. Then pass `variations`
 (step numbers count from 1) to change 2-4 steps of the repeats (a different last note of a bar, one more accent, a slide). That makes the repeating phrase musical, and is much shorter to write.
 Held, long notes (pads, drones, "long held notes") are ties: a step with gate 2 holds the note into the next step, so use gate 2 on the steps that sustain.
 Scale names: Natural Minor, Minor Pentatonic, Major, Dorian, Phrygian, Blues ... (`Minor` alone means Natural Minor).

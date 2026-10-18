@@ -136,7 +136,7 @@ def test_compose_case_checks_the_pattern(library, catalog):
     notes = [0, 0, 12, 0, 3, 0, 7, 12, 0, 0, 12, 0, 3, 10, 7, 5]
     steps = [{"g": 1 if i % 4 != 3 or i == 15 else 0, "p": notes[i], "v": 120 if i in (2, 6, 10, 14) else 85} for i in range(16)]
     steps[7]["g"] = 2
-    r = run(case, scripted(("set_pattern", {"node": seq, "steps": steps}), "Here is an acid line."), Cache(None, "off"), library, catalog)
+    r = run(case, scripted(("set_pattern", {"node": seq, "steps": steps, "length": 16}), "Here is an acid line."), Cache(None, "off"), library, catalog)
     pat = [c for c in r["checks"] if c["kind"] == "pattern"][0]
     assert pat["ok"], pat
     assert r["success"], r["checks"]
@@ -341,3 +341,45 @@ def test_replayed_calls_keep_their_recorded_latency_in_logs_and_run_time(library
     assert "## Benchmark execution time" in text and "this execution (real wall time) | 5.0s" in text
     old = {k: v for k, v in replay.items() if k not in ("duration", "cached_latency")}
     assert execution_time([old])["sequential"] is None and "n/a" in render([old], {"models": {}}, None).split("## Overall")[0]
+
+
+def test_fx_check_accepts_the_effects_on_any_path_into_the_output(library, catalog):
+    from bleep_agent.evals.checks import CHECKS, Ctx
+    from bleep_agent.patch import Patch
+
+    def node(i, t):
+        return {"id": i, "type": t, "name": i, "x": 0, "y": 0, "parent": "", "params": {}}
+
+    def cab(i, a, aj, b, bj):
+        return {"id": i, "from": {"node": a, "jack": aj}, "to": {"node": b, "jack": bj}, "amount": 1.0}
+
+    # drums and a synth meet in a mixer; the delay sits on the synth path only
+    board = {"format": 1, "nodes": [node("kick", "punch-kick"), node("osc", "oscillator"), node("dly", "delay"), node("mix", "audio-mixer"), node("out", "audio-out")],
+             "cables": [cab("c1", "kick", "l", "mix", "in1l"), cab("c2", "kick", "r", "mix", "in1r"), cab("c3", "osc", "out", "dly", "l"), cab("c4", "osc", "out", "dly", "r"),
+                        cab("c5", "dly", "l", "mix", "in2l"), cab("c6", "dly", "r", "mix", "in2r"), cab("c7", "mix", "outl", "out", "l"), cab("c8", "mix", "outr", "out", "r")]}
+    case = case_by_id("patch-insert-fx-01")
+    p = Patch(board)
+    ctx = Ctx(case=case, before=p, after=p, text="", catalog=catalog, tools=[], changesets=[], live=[])
+    assert CHECKS["fx_before_output"](ctx, {"types": ["delay"]})[0]  # the drum path comes first in the mixer, the synth path has the delay
+    ok, why = CHECKS["fx_before_output"](ctx, {"types": ["delay", "reverb"]})
+    assert not ok and "no signal path" in why
+    assert not CHECKS["fx_before_output"](ctx, {"types": ["oscillator", "delay", "audio-mixer", "chorus"]})[0]  # order matters
+    assert CHECKS["fx_before_output"](ctx, {"types": ["oscillator", "delay", "audio-mixer"]})[0]
+
+
+def test_cached_tokens_are_backfilled_from_the_logs_of_older_runs(tmp_path):
+    from bleep_agent.evals.report import load_results, stats
+    from bleep_agent.evals.runlog import write_run_logs
+
+    old = _fake("c1", "compose", "m", True, tin=1000)
+    del old["paid_in"], old["paid_out"]  # a run from before the accounting existed
+    rows = [{"id": 1, "at": "2026-10-18T10:00:00+00:00", "kind": "model_call", "data": {"latency": 1.0, "request": [], "response": {"parts": [], "usage": {"input_tokens": 600, "cache_read_tokens": 400}}}},
+            {"id": 2, "at": "2026-10-18T10:00:01+00:00", "kind": "model_call", "data": {"latency": 1.0, "request": [], "response": {"parts": [], "usage": {"input_tokens": 400, "cache_read_tokens": 100}}}}]
+    write_run_logs(tmp_path / "logs", old, {"case": {}, "transcript": [], "runs": [{"run_id": "r", "rows": rows}]})
+    (tmp_path / "results.jsonl").write_text(json.dumps(old) + "\n")
+    (r,) = load_results(tmp_path)
+    assert r["cached_in"] == 500
+    assert stats([r], {"models": {"m": {"input": 1.0, "cached_input": 0.1, "output": 2.0}}}, "m")["provider_cache"] == 0.5
+    (tmp_path / "other").mkdir()
+    (tmp_path / "other" / "results.jsonl").write_text(json.dumps(old) + "\n")
+    assert "cached_in" not in load_results(tmp_path / "other")[0]  # no logs, nothing to take it from

@@ -174,6 +174,12 @@ def test_propose_panel_refuses_to_drop_wired_knobs(catalog, synth):
     assert out["ok"]
 
 
+def tools_required(fn):
+    from bleep_agent.tools import function_toolset
+
+    return function_toolset([fn]).tools[fn.__name__].tool_def.parameters_json_schema["required"]
+
+
 def test_set_pattern_tiles_a_motif_and_applies_variations(catalog, library):
     import asyncio
     from types import SimpleNamespace as NS
@@ -192,9 +198,10 @@ def test_set_pattern_tiles_a_motif_and_applies_variations(catalog, library):
     assert steps[4]["g"] == 0 and steps[8]["g"] == 1 and steps[15]["v"] == 127 and steps[16]["g"] == 0  # beyond the length: rests
     t = catalog.get("step-sequencer").param("length")
     assert round(t.from_normalised(p.node(seq)["params"]["length"])) == 16
-    # without length the steps are written as given
-    asyncio.run(set_pattern(ctx, seq, motif))
+    # a length as long as the steps writes them as given
+    asyncio.run(set_pattern(ctx, seq, motif, length=4))
     assert round(t.from_normalised(p.node(seq)["params"]["length"])) == 4
+    assert "length" in tools_required(set_pattern)
     with pytest.raises(ModelRetry, match="outside"):
         asyncio.run(set_pattern(ctx, seq, motif, length=8, variations=[Variation(step=9)]))
     with pytest.raises(ModelRetry, match="1..32"):
@@ -216,3 +223,11 @@ def test_describe_module_is_compact_and_the_common_modules_are_in_the_prompt(cat
     sheet = _core_sheet(catalog)
     assert len(sheet.splitlines()) == len(CORE_MODULES) and "- adsr: in gate:gate" in sheet and "knobs attack decay sustain release" in sheet
     assert len(sheet) < 2500
+
+
+def test_panel_sections_for_an_envelope_show_every_stage(catalog, synth):
+    plan = PanelPlan(id="env", name="Env", sections=[PanelSection(title="Env", node="adsr", params=["attack", "decay", "sustain"]),
+                                                     PanelSection(title="Verb", node="reverb", params=["mix"])])
+    panel = build_panel(plan, synth, catalog)
+    wired = [w["param"] for c in panel["controls"] for w in c.get("wire", [])]
+    assert wired == ["adsr.attack", "adsr.decay", "adsr.sustain", "adsr.release", "reverb.mix"]  # release added, a reverb is left alone

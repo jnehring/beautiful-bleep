@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import logging
 from collections.abc import AsyncIterable, AsyncIterator, Callable
 from dataclasses import dataclass
@@ -12,6 +13,7 @@ from pydantic_ai import (Agent, DeferredToolRequests, DeferredToolResults, Funct
                          PartDeltaEvent, PartStartEvent, RunContext, TextPart, TextPartDelta, UsageLimitExceeded, UsageLimits)
 from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, UserPromptPart
 from pydantic_ai.models import Model
+from pydantic_ai.toolsets import PreparedToolset
 
 from .catalog import Catalog
 from .docs_index import DocsIndex
@@ -54,6 +56,26 @@ class Resources:
     on_usage: Callable[[Any], None] | None = None
     check_budget: Callable[[], None] | None = None
     trace: Callable[[str, bool], None] | None = None
+
+
+def _slim_schema(x: Any) -> Any:
+    """A tool's JSON schema without what the model does not need: pydantic's per-property titles, `default: null`, and the `anyOf [X, null]` wrapper of
+    optional fields (leaving the field out says the same). Every definition is sent on every model call; propose_changes alone is about 1.7k tokens."""
+    if isinstance(x, list):
+        return [_slim_schema(i) for i in x]
+    if not isinstance(x, dict):
+        return x
+    out = {k: _slim_schema(v) for k, v in x.items() if not (k == "title" and isinstance(v, str)) and not (k == "default" and v is None)}
+    options = out.get("anyOf")
+    if isinstance(options, list) and len(options) == 2 and {"type": "null"} in options:
+        rest = [o for o in options if o != {"type": "null"}]
+        if len(rest) == 1 and isinstance(rest[0], dict):
+            return {**{k: v for k, v in out.items() if k != "anyOf"}, **rest[0]}
+    return out
+
+
+async def _slim_tool_defs(ctx: RunContext[Deps], tool_defs: list) -> list:
+    return [dataclasses.replace(t, parameters_json_schema=_slim_schema(t.parameters_json_schema)) if dataclasses.is_dataclass(t) else t for t in tool_defs]
 
 
 def _catalog_index(cat: Catalog) -> str:
@@ -240,7 +262,8 @@ async def _run(res: Resources, req: ChatRequest, emit: Callable[[str, dict[str, 
     agent: Agent[Deps, Any] = Agent(
         model, deps_type=Deps, output_type=[str, DeferredToolRequests],
         instructions=lambda ctx: build_instructions(skill, ctx.deps, res, ctx.usage.requests),
-        toolsets=[function_toolset(list(skill.funcs)), live_toolset(list(skill.live))] if skill.live else [function_toolset(list(skill.funcs))],
+        toolsets=[PreparedToolset(t, _slim_tool_defs) for t in (
+            [function_toolset(list(skill.funcs)), live_toolset(list(skill.live))] if skill.live else [function_toolset(list(skill.funcs))])],
         model_settings={"openai_prompt_cache_key": f"bleep-agent:{skill_name}"},  # OpenAI: requests of one skill share a long identical prefix; routing them together makes its prompt cache hit
         retries=2)
     if agent_hook:

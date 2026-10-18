@@ -104,6 +104,17 @@ class PanelPlan(BaseModel):
     columns: int = Field(53, description="Panel width in grid units (20 px each).")
 
 
+ENVELOPE_KNOBS = ("attack", "decay", "sustain", "release")  # a panel section for an envelope shows all of them, in this order
+
+
+def _complete_envelope(t: Any, pids: list[str]) -> list[str]:
+    """An envelope on a panel with only some of its stages (a plan that leaves out the release) is not playable: add the missing ones."""
+    stages = [k for k in ENVELOPE_KNOBS if t.param(k) is not None]
+    if "envelope" not in (t.roles or []) or not any(p in stages for p in pids):
+        return pids
+    return stages + [p for p in pids if p not in stages]
+
+
 def build_panel(plan: PanelPlan, patch: Patch, cat: Catalog) -> dict[str, Any]:
     """Lay the sections out in rows, left to right, wrapping at `columns`. Deterministic."""
     cols = max(24, min(plan.columns, MAX_COLS))
@@ -123,7 +134,7 @@ def build_panel(plan: PanelPlan, patch: Patch, cat: Catalog) -> dict[str, Any]:
         t = cat.get(node["type"])
         if t is None:
             raise ValueError(f"unknown type of {sec.node}")
-        pids = sec.params or [p.id for p in t.params if p.kind == "float" and p.modulatable][:8]
+        pids = _complete_envelope(t, sec.params or [p.id for p in t.params if p.kind == "float" and p.modulatable][:8])
         items: list[tuple[str, str, int, int]] = []  # (param, type, w, h)
         for pid in pids:
             p = t.param(pid)

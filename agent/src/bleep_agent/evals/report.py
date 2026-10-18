@@ -33,7 +33,15 @@ def pctile(xs: list[float], q: float) -> float:
 
 def load_results(path: Path) -> list[dict[str, Any]]:
     f = path / "results.jsonl" if path.is_dir() else path
-    return [json.loads(l) for l in f.read_text().splitlines() if l.strip()]
+    results = [json.loads(l) for l in f.read_text().splitlines() if l.strip()]
+    logs = f.parent / "logs"
+    if logs.is_dir() and any("cached_in" not in r for r in results):  # a run from before provider-cached tokens were recorded: take them from its logs
+        from .runlog import cached_input_tokens
+
+        for r in results:
+            if "cached_in" not in r and (n := cached_input_tokens(logs, r) if r.get("tokens_in") else 0) is not None:  # no model call, nothing cached
+                r["cached_in"] = n
+    return results
 
 
 def stats(rows: list[dict[str, Any]], prices: dict, model: str) -> dict[str, Any]:
@@ -75,7 +83,7 @@ def benchmark_cost(results: list[dict[str, Any]], prices: dict, judge: str = "")
 
     for m in sorted({r["model"] for r in results}):
         rs = [r for r in results if r["model"] == m]
-        known = all("paid_in" in r for r in rs)
+        known = all("paid_in" in r and "paid_cached_in" in r for r in rs)  # what this run paid needs both: which calls were made now and what the provider cached of them
         row(m, sum(r["calls"] for r in rs), sum(r["calls"] - r["cached_calls"] for r in rs), sum(r["tokens_in"] for r in rs), sum(r["tokens_out"] for r in rs),
             sum(r["paid_in"] for r in rs) if known else None, sum(r["paid_out"] for r in rs) if known else None, m,
             sum(r.get("cached_in", 0) for r in rs), sum(r.get("paid_cached_in", 0) for r in rs))

@@ -469,6 +469,7 @@
   - kind: cites
     docs: &id024
     - developers/setup/build-and-release
+    - developers/modules/publishing  # the publishing page has the token section too (found by the model in the first runs)
   - kind: text_contains
     all:
     - token

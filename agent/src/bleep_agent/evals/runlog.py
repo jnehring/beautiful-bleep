@@ -208,6 +208,18 @@ def log_path(log_dir: Path, result: dict[str, Any]) -> Path:
     return log_dir / safe(result["model"]) / safe(result["skill"]) / f"{safe(result['case'])}.r{result['repeat']}"
 
 
+def cached_input_tokens(log_dir: Path, result: dict[str, Any]) -> int | None:
+    """Input tokens the provider served from its prompt cache in a logged run (summed over its model calls), or None when there is no log for it.
+    Replayed calls keep the usage recorded when they were made, so this is also right for runs answered from the evaluation cache."""
+    f = log_path(log_dir, result)
+    f = f.with_suffix(f.suffix + ".json")
+    if not f.exists():
+        return None
+    doc = json.loads(f.read_text())
+    return sum(((row["data"].get("response") or {}).get("usage") or {}).get("cache_read_tokens") or 0
+               for run in doc.get("runs", []) for row in run["rows"] if row["kind"] == "model_call")
+
+
 def write_run_logs(log_dir: Path, result: dict[str, Any], log: dict[str, Any]) -> Path:
     doc = run_document(result, log)
     base = log_path(log_dir, result)

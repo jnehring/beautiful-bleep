@@ -61,21 +61,6 @@ def _emit_changeset(d: Deps, cs: Changeset) -> dict[str, Any]:
 # Read tools
 
 
-async def get_patch(ctx: RunContext[Deps], detail: Literal["brief", "full"] = "brief") -> str:
-    """The patch as text: every module (id, type, name, knobs that differ from default) and every cable. Use 'full' to also see
-    default knob values. Always reflects changes you have already proposed in this conversation turn."""
-    d = ctx.deps
-    return d.patch.summary(d.catalog, params="all" if detail == "full" else "changed", selection=d.selection)
-
-
-async def get_selection(ctx: RunContext[Deps]) -> str:
-    """The modules the user currently has selected on the board (what 'this', 'it' or 'the synth' may refer to)."""
-    d = ctx.deps
-    if not d.selection:
-        return "Nothing is selected."
-    return "\n".join(d.patch.describe_node(n, d.catalog) for nid in d.selection if (n := d.patch.node(nid)))
-
-
 async def list_module_types(ctx: RunContext[Deps], query: str = "", role: str = "", category: str = "", limit: int = 15) -> list[dict[str, Any]]:
     """Search the module catalog. `role` is one of: source, filter, vca, mixer, effect, reverb, chorus, delay, envelope, lfo,
     sequencer, clock, controller, note_source, utility, meter, drum. `category` matches e.g. 'Effects', 'Modulation'."""
@@ -110,6 +95,10 @@ async def describe_module(ctx: RunContext[Deps], type: str, include_docs: bool =
     if include_docs and ctx.deps.docs is not None and t.doc:
         text, _ = ctx.deps.docs.read(t.doc, max_tokens=1800)
         out["manual"] = text
+    if ctx.deps.docs is not None and t.doc:
+        _, pages = ctx.deps.docs.read(t.doc, max_tokens=1)
+        if pages:
+            out["cite_as"] = f"[{t.name}]({pages[0].url.split('#')[0]})"
     return out
 
 
@@ -123,7 +112,7 @@ async def search_presets(ctx: RunContext[Deps], query: str, uses: list[str] | No
 
 
 async def get_preset(ctx: RunContext[Deps], id: str) -> str:
-    """An example patch as text (modules, knob values, cables), in the same form as get_patch."""
+    """An example patch as text (modules, knob values, cables), in the same form as the board in your instructions."""
     lib = ctx.deps.presets
     e = lib.by_id.get(id) if lib else None
     if e is None:
@@ -197,8 +186,8 @@ async def check_audibility(ctx: RunContext[Deps]) -> dict[str, Any]:
 
 
 async def search_docs(ctx: RunContext[Deps], query: str, audience: Literal["", "musicians", "developers"] = "") -> list[dict[str, Any]]:
-    """Search the Bleep documentation (musician guides, module manuals, developer docs). Returns the best passages with ids and
-    page URLs. Rephrase and search again if the first results do not answer the question. Cite pages by URL."""
+    """Search the Bleep documentation (musician guides, module manuals, developer docs). Returns the best passages with ids, page URLs
+    and a ready `cite_as` markdown link. Rephrase and search again if the first results do not answer the question. Cite pages with `cite_as`."""
     idx = ctx.deps.docs
     if idx is None:
         return [{"note": "the documentation index is not available"}]
@@ -214,7 +203,7 @@ async def read_doc(ctx: RunContext[Deps], id: str) -> str:
     text, hits = idx.read(id)
     if not hits:
         raise ModelRetry(f"no documentation with id '{id}'. Use search_docs.")
-    return text + "\n\nSources: " + ", ".join(h.url for h in hits[:6])
+    return text + "\n\nCite as: " + " · ".join(dict.fromkeys(f"[{h.title}]({h.url})" for h in hits[:6]))
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -246,10 +235,10 @@ class Variation(BaseModel):
     v: int | None = Field(None, description="new velocity 1..127")
 
 
-async def set_pattern(ctx: RunContext[Deps], node: str, steps: list[Step], length: int | None = None, params: dict[str, Any] | None = None,
+async def set_pattern(ctx: RunContext[Deps], node: str, steps: list[Step], length: int, params: dict[str, Any] | None = None,
                       variations: list[Variation] | None = None) -> dict[str, Any]:
-    """Write a step sequencer pattern (up to 32 steps). `length` is how many steps play (default: len(steps)). When `length` is longer
-    than `steps`, `steps` is a motif that is repeated to fill it: write a 4-8 step motif with length 16 or 32 instead of every step, then
+    """Write a step sequencer pattern (up to 32 steps). `length` (required) is how many steps play: 8 or 16 for a bar or two of sixteenths, up to 32.
+    When `length` is longer than `steps`, `steps` is a motif that is repeated to fill it: write a 4-8 step motif with length 16 or 32 instead of every step, then
     change a few steps of the repeats with `variations` (step numbers count from 1 and refer to the tiled pattern, e.g. to vary the end of
     the second bar). `params` sets knobs, e.g. {"rate": "1/16", "root": "A", "scale": "Minor Pentatonic", "octave": 0, "gatelength": 0.5}."""
     d = ctx.deps
@@ -258,7 +247,7 @@ async def set_pattern(ctx: RunContext[Deps], node: str, steps: list[Step], lengt
         raise ModelRetry(f"{node} is not a step-sequencer module. Step sequencers in this patch: {[x['id'] for x in d.patch.of_type('step-sequencer')]}")
     if not 1 <= len(steps) <= 32:
         raise ModelRetry("give 1..32 steps")
-    play = length or len(steps)
+    play = length
     if not 1 <= play <= 32:
         raise ModelRetry("length is 1..32")
     tiled = [steps[i % len(steps)].model_dump() for i in range(max(play, len(steps)))] if play > len(steps) else [s.model_dump() for s in steps]
@@ -371,7 +360,11 @@ def live_toolset(names: list[str]) -> ExternalToolset[Deps]:
 # ---------------------------------------------------------------------------------------------------------
 # Tool groups per skill
 
-READ = [get_patch, get_selection, list_module_types, describe_module, trace_signal]
+# Tools are offered per skill: every tool definition is sent on every model call, so a tool that is (almost) never used costs more than it saves.
+# The board and the selection are in the instructions, so there is no get_patch / get_selection.
+READ = [describe_module]
+FIND = [list_module_types]
+TRACE = [trace_signal]
 DOCS = [search_docs, read_doc]
 PRESETS = [search_presets, get_preset]
 WRITE = [propose_changes]

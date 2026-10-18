@@ -21,17 +21,21 @@ class Skill:
 
 
 _READ = tuple(T.READ)
+_FIND = tuple(T.FIND)
+_TRACE = tuple(T.TRACE)
 
+# What each skill is offered, from how often the tools were used in the benchmark (374 runs): the docs tools only matter to the docs skill,
+# list_module_types to the skills that look for modules, trace_signal to those that follow cables.
 SKILLS: dict[str, Skill] = {
     "docs": Skill("docs", "docs.md", _READ + tuple(T.DOCS), (), False),
-    "diagnose": Skill("diagnose", "diagnose.md", _READ + tuple(T.DIAG) + tuple(T.WRITE) + tuple(T.DOCS),
+    "diagnose": Skill("diagnose", "diagnose.md", _READ + _TRACE + tuple(T.DIAG) + tuple(T.WRITE),
                       ("get_environment", "probe_signals", "highlight", "ask_user"), True),
-    "patch": Skill("patch", "patch.md", _READ + tuple(T.WRITE) + tuple(T.PRESETS) + tuple(T.DOCS),
+    "patch": Skill("patch", "patch.md", _READ + _FIND + _TRACE + tuple(T.WRITE) + tuple(T.PRESETS),
                    ("get_environment", "highlight", "ask_user"), True),
-    "panel": Skill("panel", "panel.md", _READ + tuple(T.PANEL) + tuple(T.DOCS), ("highlight",), True),
-    "compose": Skill("compose", "compose.md", _READ + tuple(T.SEQ) + tuple(T.WRITE) + tuple(T.DOCS),
+    "panel": Skill("panel", "panel.md", _READ + tuple(T.PANEL), ("highlight",), True),
+    "compose": Skill("compose", "compose.md", _READ + tuple(T.SEQ) + tuple(T.WRITE),
                      ("play", "ask_user"), True),
-    "design": Skill("design", "design.md", _READ + tuple(T.WRITE) + tuple(T.PRESETS) + tuple(T.SEQ) + tuple(T.PANEL) + tuple(T.DIAG) + tuple(T.DOCS),
+    "design": Skill("design", "design.md", _READ + _FIND + tuple(T.WRITE) + tuple(T.PRESETS) + tuple(T.SEQ) + tuple(T.PANEL) + tuple(T.DIAG),
                     ("get_environment", "probe_signals", "play", "highlight", "ask_user"), True),
 }
 

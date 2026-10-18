@@ -94,35 +94,53 @@ def _added(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
     return after - before >= a.get("count", 1), f"{a['type']}: {before} -> {after}"
 
 
+def _upstream_chains(p: Patch, out_id: str, jack: str, limit: int = 400) -> list[list[str]]:
+    """Every signal path into `out_id`.`jack`, as lists of module types from the output outwards. The side (l/r) is followed where the jack names tell it."""
+    chains: list[list[str]] = []
+
+    def walk(node: str, path: list[str], seen: frozenset[str], cabs: list[dict[str, Any]]) -> None:
+        if len(chains) >= limit:
+            return
+        if not cabs:
+            chains.append(path)
+            return
+        for cab in cabs:
+            src = cab["from"]["node"]
+            if src in seen or p.node(src) is None:
+                continue
+            into = p.cables_to(src)
+            side = [k for k in into if k["to"]["jack"].lower().endswith(("l", "1l")) == (jack == "l")]
+            walk(src, path + [p.node(src)["type"]], seen | {src}, side or into)
+
+    walk(out_id, [], frozenset({out_id}), p.cables_to(out_id, jack))
+    return chains
+
+
 @check("fx_before_output")
 def _fx(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
-    """Walking back from each Audio Out input, the requested effect types appear in the requested order (first = upstream)."""
+    """For each Audio Out input there is a signal path into it on which the requested effect types appear in the requested order (first = upstream).
+    Any path counts: a board with a synth and drums has several, and the effect belongs on the one the request means."""
     want: list[str] = a["types"]
     outs = c.after.of_type("audio-out")
     if not outs:
         return False, "no audio out"
     for out in outs:
         for jack in ("l", "r"):
-            chain: list[str] = []
-            node = out["id"]
-            seen = {node}
-            cabs = c.after.cables_to(node, jack)
-            while cabs:
-                src = cabs[0]["from"]["node"]
-                if src in seen:
+            seen_orders = []
+            for chain in _upstream_chains(c.after, out["id"], jack):
+                order = list(reversed(chain))
+                seen_orders.append(order)
+                pos, ok = -1, True
+                for t in want:
+                    try:
+                        pos = order.index(t, pos + 1)
+                    except ValueError:
+                        ok = False
+                        break
+                if ok:
                     break
-                seen.add(src)
-                chain.append(c.after.node(src)["type"])
-                # follow the same channel upstream: the source's first audio input cable of the same side
-                nxt = [k for k in c.after.cables_to(src) if k["to"]["jack"].lower().endswith(("l", "1l")) == (jack == "l")]
-                cabs = nxt[:1] or c.after.cables_to(src)[:1]
-            order = list(reversed(chain))
-            pos = -1
-            for t in want:
-                try:
-                    pos = order.index(t, pos + 1)
-                except ValueError:
-                    return False, f"{out['id']}.{jack}: chain {order} lacks {want} in order"
+            else:
+                return False, f"{out['id']}.{jack}: no signal path has {want} in order (paths: {seen_orders[:3]})"
     return True, "ok"
 
 

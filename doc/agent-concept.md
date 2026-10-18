@@ -149,8 +149,7 @@ Pydantic AI lets an agent call another agent as a tool, so this needs no restruc
 
 ### Tools
 
-**Read (run in Python against the snapshot, no approval):** `get_patch`, `get_selection` (resolves "this" and "the
-synth"), `list_module_types`, `describe_module`, `search_presets`, `get_preset`, `get_panel`, `get_sequencer`, `search_docs`, `read_doc`.
+**Read (run in Python against the snapshot, no approval):** `list_module_types`, `describe_module`, `search_presets`, `get_preset`, `get_panel`, `get_sequencer`, `search_docs`, `read_doc`.
 
 **Write (produce a changeset):** `propose_changes(ops[], summary)` with typed ops `add_module`, `remove_module`,
 `connect`, `disconnect`, `set_param`, `insert_on_cable`, `move`, `set_midi_input`; `set_pattern`; `propose_panel`;
