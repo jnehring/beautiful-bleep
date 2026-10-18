@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from pydantic_ai.models import Model
@@ -21,6 +22,7 @@ from .caching import CachingModel
 from .cases import Case
 from .checks import Ctx, run_checks
 from .judge import judge, rubric_text
+from .runlog import RunRecorder, write_index, write_run_logs
 from .simclient import SimClient
 
 
@@ -50,9 +52,12 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
                       snapshot=Snapshot(patch=cur.to_dict(), selection=case.selection, environment=client.handle("get_environment", {})),
                       mode=case.mode if case.mode in ("ask", "auto") else "auto")
     pauses = 0
+    runs: list[dict[str, Any]] = []  # one entry per request to the agent (a pause for a browser tool starts the next one)
     while True:
         pending, token = [], None
-        async for kind, d in run_chat(res, req):
+        rec = RunRecorder()
+        runs.append({"run_id": f"{case.id}.{model_name}.r{repeat}.{pauses}", "rows": rec.rows})
+        async for kind, d in run_chat(res, req, record=rec):
             if kind == "text":
                 text.append(d["delta"])
             elif kind == "changeset":
@@ -92,18 +97,27 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
             out["judge_tokens"] = sum(c["input"] + c["output"] for c in jm.calls)
         except Exception as e:  # noqa: BLE001
             out["judge"] = {"error": f"{type(e).__name__}: {e}"}
+    # not part of results.jsonl: run_many writes it to the log files and drops it
+    out["_log"] = {"case": case.model_dump(exclude={"checks", "patch", "mutate"}) | {"checks_spec": case.checks},
+                   "transcript": [{"role": "user", "text": case.query},
+                                  {"role": "assistant", "text": answer, "changesets": changesets}],
+                   "runs": runs}
     return out
 
 
 async def run_many(cases: list[Case], models: dict[str, Model], *, repeats: int, concurrency: int = 4,
-                   progress: Callable[[dict[str, Any]], None] | None = None, **kw: Any) -> list[dict[str, Any]]:
+                   progress: Callable[[dict[str, Any]], None] | None = None, log_dir: Path | None = None, **kw: Any) -> list[dict[str, Any]]:
     sem = asyncio.Semaphore(concurrency)
     results: list[dict[str, Any]] = []
 
     async def one(c: Case, name: str, m: Model, r: int) -> None:
         async with sem:
             try:
-                results.append(await run_case(c, model=m, model_name=name, repeat=r, **kw))
+                res = await run_case(c, model=m, model_name=name, repeat=r, **kw)
+                log = res.pop("_log", None)
+                if log and log_dir:
+                    write_run_logs(log_dir, res, log)  # as each run ends, so an interrupted benchmark keeps what it has
+                results.append(res)
             except Exception as e:  # noqa: BLE001  (a broken case must not stop the run; it counts as a failure)
                 results.append({"case": c.id, "skill": c.skill, "difficulty": c.difficulty, "model": name, "repeat": r, "success": False, "score": 0.0,
                                 "checks": [], "errors": [{"code": "harness", "message": f"{type(e).__name__}: {e}"}], "answer": "",
@@ -114,4 +128,6 @@ async def run_many(cases: list[Case], models: dict[str, Model], *, repeats: int,
 
     await asyncio.gather(*[one(c, n, m, r) for c in cases for n, m in models.items() for r in range(repeats)])
     results.sort(key=lambda x: (x["model"], x["skill"], x["case"], x["repeat"]))
+    if log_dir and results:
+        write_index(log_dir, results)
     return results

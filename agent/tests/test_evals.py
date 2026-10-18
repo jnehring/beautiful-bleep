@@ -75,6 +75,31 @@ def test_patch_case_passes_with_a_correct_solution_and_replays_from_cache(librar
     assert not r4["success"] and r4["errors"]
 
 
+def test_run_logs_are_written_as_json_and_markdown(library, catalog, tmp_path):
+    from bleep_agent.evals.runlog import write_index, write_run_logs
+
+    case = case_by_id("patch-insert-fx-01")
+    p = case.load_patch(library)
+    out = p.of_type("audio-out")[0]["id"]
+    src = p.cables_to(out)[0]["from"]["node"]
+    ops = [{"op": "insert_on_cable", "from_node": src, "to_node": out, "type": "delay", "ref": "fx0"}]
+    model = scripted(("propose_changes", {"ops": ops, "summary": "fx"}), "Added a delay.")
+    r = run(case, model, Cache(tmp_path / "c.sqlite", "use"), library, catalog)
+    log = r.pop("_log")
+    base = write_run_logs(tmp_path / "logs", r, log)
+    doc = json.loads(base.with_suffix(base.suffix + ".json").read_text())
+    assert doc["format"] == "bleep-benchmark-run" and doc["result"]["case"] == case.id
+    assert doc["transcript"][0] == {"role": "user", "text": case.query} and doc["transcript"][1]["text"] == "Added a delay."
+    kinds = [row["kind"] for row in doc["runs"][0]["rows"]]
+    assert kinds.count("model_call") == 2 and "tool_call" in kinds and kinds[0] == "run_start"
+    calls = [row["data"] for row in doc["runs"][0]["rows"] if row["kind"] == "model_call"]
+    assert "request" in calls[0] and "request" not in calls[1] and calls[1]["request_first_messages_same_as_previous_call"] >= 1
+    md = base.with_suffix(base.suffix + ".md").read_text()
+    assert md.startswith(f"# {case.id}") and "**model call 2**" in md and "propose_changes" in md and "Added a delay." in md
+    write_index(tmp_path / "logs", [r])
+    assert f"{case.id}.r0.md" in (tmp_path / "logs" / "index.md").read_text()
+
+
 def test_wrong_solution_fails_the_right_checks(library, catalog, tmp_path):
     case = case_by_id("patch-insert-fx-01")
     r = run(case, scripted("I did it."), Cache(None, "use"), library, catalog)

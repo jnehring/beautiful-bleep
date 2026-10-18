@@ -35,3 +35,7 @@ Switching it on in the site: `BLEEP_AGENT_ENABLED=true`, `GOOGLE_API_KEY` (or `O
 Every model, judge and embedding call goes through the cache in `.eval-cache/` (`--cache use|refresh|replay-only|off`), so an
 unchanged rerun costs nothing and a changed prompt re-runs only what depends on it. Fill `src/bleep_agent/evals/prices.yaml`
 for cost figures; until then reports show tokens and `n/a`.
+
+Every run is also logged in full under `evals/runs/<run>/logs/<model>/<skill>/<case>.r<n>.json` (same shape as the assistant's "Copy chat"
+export: transcript, every model call with the messages sent, tool calls with arguments and results, events, timestamps) and `.md` (the same,
+to read). `logs/index.md` lists them all; `--no-logs` skips them.

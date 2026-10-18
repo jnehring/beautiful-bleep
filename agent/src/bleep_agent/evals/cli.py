@@ -3,6 +3,7 @@
 
     bleep-agent eval generate [--out agent/evals/cases]
     bleep-agent eval run --models gemini-3.8-flash,gpt-6-luna --skills docs,diagnose --repeats 3 --judge gemini-4-argon [--cache use]
+    (writes <run>/logs/<model>/<skill>/<case>.r<n>.json|md for every run, plus logs/index.md; --no-logs skips them)
     bleep-agent eval report agent/evals/runs/<run> [--compare agent/evals/runs/<other>]
     bleep-agent eval retrieval --index website/api/agent_data/docs.sqlite [--embed gemini-embedding-2]
 """
@@ -81,6 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--concurrency", type=int, default=4)
     r.add_argument("--limit", type=int, default=0, help="at most N cases per skill (smoke test)")
     r.add_argument("--out", type=Path, default=None)
+    r.add_argument("--no-logs", action="store_true", help="do not write the per-run log files (<run>/logs/*.json and *.md)")
     r.add_argument("--verbose", action="store_true", help="show the agent's per-call log lines and tracebacks instead of the progress bar only")
     rp = sub.add_parser("report")
     rp.add_argument("run", type=Path)
@@ -170,7 +172,7 @@ def main(argv: list[str] | None = None) -> int:
         os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")
         logging.getLogger("bleep_agent").setLevel(logging.CRITICAL)
     progress = _Progress(len(cases) * len(models) * a.repeats)
-    results = asyncio.run(run_many(cases, models, repeats=a.repeats, concurrency=a.concurrency, progress=progress, catalog=cat, lib=lib, docs=docs, cache=cache, judge_model=judge_model))
+    results = asyncio.run(run_many(cases, models, repeats=a.repeats, concurrency=a.concurrency, progress=progress, log_dir=None if a.no_logs else out / "logs", catalog=cat, lib=lib, docs=docs, cache=cache, judge_model=judge_model))
     (out / "results.jsonl").write_text("\n".join(json.dumps(r) for r in results) + "\n")
     prices = load_prices()
     meta = {"run": run_id, "date": time.strftime("%Y-%m-%d %H:%M"), "repeats": a.repeats, "cache": a.cache, "models": list(models), "judge": a.judge,
@@ -179,5 +181,5 @@ def main(argv: list[str] | None = None) -> int:
     text = render(results, prices, meta)
     (out / "report.md").write_text(text)
     print(text)
-    print(f"\nresults: {out}")
+    print(f"\nresults: {out}" + ("" if a.no_logs else f"\nrun logs: {out / 'logs'} (index.md; one .json and .md per run)"))
     return 0
