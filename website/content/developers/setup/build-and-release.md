@@ -97,6 +97,18 @@ scripts/build/build-patch.sh --install
 scripts/build/build-patch.sh --plugins-only --install
 ```
 
+**Only the VST3s (no tests, no standalone app).** `--plugins-only` still builds the standalone app (`BleepApp`) in the same tree. `--no-app` turns it off (`-DBLEEP_BUILD_APP=OFF`), so only the seven plugins and Bleep Audio Bridge are built. Install the app and its modules once through the app; the plugins pick the installed modules up from the data folder:
+
+```bash
+scripts/build/build-patch.sh --juce ../bastelbox/brilliant-bleep/plugins/JUCE --plugins-only --no-app --install
+```
+
+Leave out `--install` to only build. The setting is kept in `build/patch/CMakeCache.txt`, so a later run without `--no-app` turns the app back on (the script passes `ON` again). To build a single plugin, name its CMake target (`BleepBoard_VST3`, `BleepMidiIn_VST3`, `BleepMidiOut_VST3`, `BleepAudioIn_VST3`, `BleepAudioOut_VST3`, `BleepInstrument_VST3`, `BleepFx_VST3`, `BleepAudioBridge_VST3`) after the first configure:
+
+```bash
+cmake --build build/patch --target BleepBoard_VST3 --parallel
+```
+
 If `BLEEP_WASMTIME_DIR` is empty (no Wasmtime under `build/wasm-spike`), the plugins fall back to compiling all modules in. Check with `grep BLEEP_WASMTIME_DIR build/patch/CMakeCache.txt`.
 
 Bundles end up in `build/patch/<Target>_artefacts/Release/VST3/`. Plugins share one engine only when the engine major (`kAbiTag`) matches: rebuild and release all of them if it changed.
