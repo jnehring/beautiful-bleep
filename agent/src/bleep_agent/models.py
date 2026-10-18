@@ -35,6 +35,8 @@ def normalize_model_name(name: str) -> str:
         return f"openai:{name}"
     if name.startswith("claude"):
         return f"anthropic:{name}"
+    if name.startswith("qwen"):  # Alibaba DashScope; needs ALIBABA_API_KEY (or DASHSCOPE_API_KEY)
+        return f"alibaba:{name}"
     return name
 
 
