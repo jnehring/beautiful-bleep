@@ -62,6 +62,50 @@ def _fmt_cost(x: float | None, digits: int = 4) -> str:
     return "n/a" if x is None else f"${x:.{digits}f}"
 
 
+def benchmark_cost(results: list[dict[str, Any]], prices: dict, judge: str = "") -> list[dict[str, Any]]:
+    """Cost of the whole benchmark, per model and for the judge: without the cache (every call priced as if it had been made) and what this
+    run actually spent (only the calls the cache could not answer). None = no price for that model, or a run from before the split was recorded."""
+    rows: list[dict[str, Any]] = []
+
+    def row(label: str, calls: int, paid_calls: int, tin: int, tout: int, pin: int | None, pout: int | None, model: str) -> None:
+        full = cost(prices, model, tin, tout)
+        spent = cost(prices, model, pin, pout) if pin is not None and pout is not None else None
+        rows.append({"label": label, "calls": calls, "paid_calls": paid_calls, "tokens_in": tin, "tokens_out": tout, "full": full, "spent": spent})
+
+    for m in sorted({r["model"] for r in results}):
+        rs = [r for r in results if r["model"] == m]
+        known = all("paid_in" in r for r in rs)
+        row(m, sum(r["calls"] for r in rs), sum(r["calls"] - r["cached_calls"] for r in rs), sum(r["tokens_in"] for r in rs), sum(r["tokens_out"] for r in rs),
+            sum(r["paid_in"] for r in rs) if known else None, sum(r["paid_out"] for r in rs) if known else None, m)
+    js = [r["judge_usage"] for r in results if isinstance(r.get("judge_usage"), dict)]
+    if js and judge:
+        row(f"{judge} (judge)", sum(j["calls"] for j in js), sum(j["paid_calls"] for j in js), sum(j["tokens_in"] for j in js), sum(j["tokens_out"] for j in js),
+            sum(j["paid_in"] for j in js), sum(j["paid_out"] for j in js), judge)
+    return rows
+
+
+def _money(x: float | None) -> str:
+    return _fmt_cost(x, 2 if x is not None and abs(x) >= 1 else 4)
+
+
+def _cost_section(results: list[dict[str, Any]], prices: dict, meta: dict[str, Any] | None) -> list[str]:
+    rows = benchmark_cost(results, prices, (meta or {}).get("judge", ""))
+    out = ["## Benchmark cost", "", "| model | model calls (made now / total) | tokens in / out (total) | cost without cache | cost of this run (with cache) | saved by the cache |",
+           "|---|---|---|---|---|---|"]
+    for r in rows:
+        saved = r["full"] - r["spent"] if r["full"] is not None and r["spent"] is not None else None
+        out.append(f"| {r['label']} | {r['paid_calls']} / {r['calls']} | {r['tokens_in']} / {r['tokens_out']} | {_money(r['full'])} | {_money(r['spent'])} | {_money(saved)} |")
+    full = [r["full"] for r in rows]
+    spent = [r["spent"] for r in rows]
+    tf = None if None in full else sum(full)
+    ts = None if None in spent else sum(spent)
+    out.append(f"| **total** | {sum(r['paid_calls'] for r in rows)} / {sum(r['calls'] for r in rows)} | {sum(r['tokens_in'] for r in rows)} / {sum(r['tokens_out'] for r in rows)} | "
+               f"**{_money(tf)}** | **{_money(ts)}** | {_money(tf - ts) if tf is not None and ts is not None else 'n/a'} |")
+    out += ["", "Without cache = every model and judge call priced at the price table's rates, as if nothing had been replayed (a fresh run). This run = only the calls "
+            "the cache could not answer. Documentation embeddings and the providers' own prompt caching are not included. `n/a` = no price for that model in prices.yaml.", ""]
+    return out
+
+
 def render(results: list[dict[str, Any]], prices: dict, meta: dict[str, Any] | None = None) -> str:
     by: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -74,6 +118,7 @@ def render(results: list[dict[str, Any]], prices: dict, meta: dict[str, Any] | N
     if meta:
         out += [f"- run: `{meta.get('run', '')}`, {meta.get('date', '')}, repeats {meta.get('repeats', '?')}, cache `{meta.get('cache', '?')}`, "
                 f"price table v{prices.get('version', '?')}", ""]
+    out += _cost_section(results, prices, meta)
     out += ["## Overall", "", "| model | runs | success (95% CI) | check score | tokens in / out | cost / request | cost / success | latency p50 / p95 | model calls | retried tool calls | errors | cached |",
             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for m in models:

@@ -100,6 +100,28 @@ def test_run_logs_are_written_as_json_and_markdown(library, catalog, tmp_path):
     assert f"{case.id}.r0.md" in (tmp_path / "logs" / "index.md").read_text()
 
 
+def test_report_states_the_cost_with_and_without_cache(library, catalog, tmp_path):
+    from bleep_agent.evals.report import benchmark_cost
+
+    case = case_by_id("patch-insert-fx-01")
+    p = case.load_patch(library)
+    out = p.of_type("audio-out")[0]["id"]
+    src = p.cables_to(out)[0]["from"]["node"]
+    ops = [{"op": "insert_on_cable", "from_node": src, "to_node": out, "type": "delay", "ref": "fx0"}]
+    cache = Cache(tmp_path / "c.sqlite", "use")
+    fresh = run(case, scripted(("propose_changes", {"ops": ops, "summary": "fx"}), "ok"), cache, library, catalog)
+    replay = run(case, scripted("never used"), cache, library, catalog)
+    assert fresh["paid_in"] == fresh["tokens_in"] > 0 and replay["paid_in"] == replay["paid_out"] == 0
+    name = fresh["model"]
+    prices = {"models": {name.split(":", 1)[-1]: {"input": 1.0, "output": 2.0}}}
+    (row,) = benchmark_cost([fresh, replay], prices)
+    full = (2 * fresh["tokens_in"] + 2 * fresh["tokens_out"] * 2) / 1e6
+    assert row["full"] == pytest.approx(full) and row["spent"] == pytest.approx(full / 2) and row["calls"] == 4 and row["paid_calls"] == 2
+    text = render([fresh, replay], prices, {"judge": ""})
+    assert "## Benchmark cost" in text and "cost without cache" in text and "**total**" in text
+    assert "n/a" in render([fresh, replay], {"models": {}}, None).split("## Overall")[0]
+
+
 def test_wrong_solution_fails_the_right_checks(library, catalog, tmp_path):
     case = case_by_id("patch-insert-fx-01")
     r = run(case, scripted("I did it."), Cache(None, "use"), library, catalog)

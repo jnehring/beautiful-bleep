@@ -85,6 +85,7 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
         "success": ok, "score": (sum(c["ok"] for c in checks) / len(checks)) if checks else float(not errors),
         "checks": checks, "errors": errors, "answer": answer, "changesets": [c["summary"] for c in changesets],
         "tools": [t for t, _ in tools], "retries": sum(1 for _, r in tools if r), "live": live_names,
+        "paid_in": sum(c["input"] for c in cm.calls if not c["cached"]), "paid_out": sum(c["output"] for c in cm.calls if not c["cached"]),  # what this run really spent
         "calls": len(cm.calls), "tokens_in": sum(c["input"] for c in cm.calls), "tokens_out": sum(c["output"] for c in cm.calls),
         "latency": sum(c["latency"] for c in cm.calls), "cached_calls": sum(1 for c in cm.calls if c["cached"]),
         "wall": time.perf_counter() - t_wall,
@@ -95,6 +96,9 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
             v = await judge(jm, rubric_text(case.judge), case.query, answer, _summary_for_judge(case, ctx, catalog))
             out["judge"] = {"score": v.normalised, "raw": v.score, "reasoning": v.reasoning, "issues": v.issues}
             out["judge_tokens"] = sum(c["input"] + c["output"] for c in jm.calls)
+            out["judge_usage"] = {"calls": len(jm.calls), "tokens_in": sum(c["input"] for c in jm.calls), "tokens_out": sum(c["output"] for c in jm.calls),
+                                  "paid_in": sum(c["input"] for c in jm.calls if not c["cached"]), "paid_out": sum(c["output"] for c in jm.calls if not c["cached"]),
+                                  "paid_calls": sum(1 for c in jm.calls if not c["cached"])}
         except Exception as e:  # noqa: BLE001
             out["judge"] = {"error": f"{type(e).__name__}: {e}"}
     # not part of results.jsonl: run_many writes it to the log files and drops it
