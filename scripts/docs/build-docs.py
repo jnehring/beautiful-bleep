@@ -133,7 +133,7 @@ def main() -> int:
         "api-reference-full.md": ("", sorted((dev / "api-reference").glob("*.md"))),
         "user-docs-full.md": ("Beautiful Bleep user documentation", sorted((CONTENT / "musicians").rglob("*.md"))),
     }
-    for key, title in (("modules", "modules: writing, publishing, module ABI, signing and the library"), ("plugins", "plugins"), ("app", "the standalone app"), ("web", "Bleep Play and the web"), ("setup", "developer setup: tools to install, build, release and upload"), ("contribute", "working on Bleep itself: configuration, engine ABI")):
+    for key, title in (("modules", "modules: writing, publishing, module ABI, signing and the library"), ("plugins", "plugins"), ("app", "the standalone app"), ("web", "Bleep Play and the web"), ("assistant", "the patch assistant: architecture, agent flow, tools, documentation search, benchmark and results"), ("setup", "developer setup: tools to install, build, release and upload"), ("contribute", "working on Bleep itself: configuration, engine ABI")):
         bundles[f"developer-{key}-full.md"] = (f"Beautiful Bleep developer documentation: {title}", sorted((dev / key).glob("*.md")))
     # The module manuals are too many for one file: one per category.
     module_bundles = {f"modules-{category_slug(c)}-full.md": (f"Beautiful Bleep modules: {c.replace('/', ' · ')}", docs)
@@ -184,6 +184,7 @@ def main() -> int:
         f"- [Plugin developers]({base}/v{version}/developer-plugins-full.md): the Bleep plugins in Live",
         f"- [Standalone app]({base}/v{version}/developer-app-full.md): building and extending the Bleep App",
         f"- [Web]({base}/v{version}/developer-web-full.md): Bleep Play, the board in the browser",
+        f"- [Patch assistant]({base}/v{version}/developer-assistant-full.md): the agentic assistant in the board: architecture, how a turn works, skills and tools, documentation search, the benchmark and its results",
         f"- [Developer setup]({base}/v{version}/developer-setup-full.md): installing the tools, building, releasing and uploading",
         f"- [Contribute]({base}/v{version}/developer-contribute-full.md): configuration, the engine ABI",
         "",

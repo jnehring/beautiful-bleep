@@ -16,6 +16,7 @@ Bleep is GPL-3.0-or-later with a module exception, so your modules can be closed
 | Work on the Bleep plugins in Ableton Live | [Plugins](plugins/overview.md) |
 | Work on the standalone Bleep App | [Standalone app](app/standalone-app.md) |
 | Work on Bleep Play, the board in the browser | [Web](web/bleep-play.md) |
+| Work on the AI patch assistant, or measure it | [Patch assistant](assistant/overview.md) |
 | Build, release or configure Bleep | [Contribute](contribute/overview.md) |
 
 ## The documentation
@@ -25,6 +26,7 @@ Bleep is GPL-3.0-or-later with a module exception, so your modules can be closed
 | **Bleep Bus** | The open protocol: [quickstart](bleep-bus/quickstart.md), [API reference](api-reference/00-overview.md), [specification](spec/v0.1/00-overview.md), [conformance](bleep-bus/conformance.md), [RFC process](bleep-bus/rfc-process.md) |
 | **Modules** | Writing, packaging and publishing a board module, and the contracts a module meets: ABI, signing, the library |
 | **Developer setup** | [Install the tools](setup/overview.md) for modules, plugins, the app, Bleep Play and the website, then [build and release](setup/build-and-release.md) |
+| **Patch assistant** | The agentic assistant in the board: [architecture](assistant/architecture.md), [how a turn works](assistant/agent-flow.md), [skills and tools](assistant/skills-and-tools.md), [edits](assistant/edits-and-changesets.md), [documentation search](assistant/documentation-search.md), [benchmark and results](assistant/benchmark.md) |
 | **Contribute** | Working on Bleep itself: [configuration](contribute/configuration.md), the [engine ABI](contribute/engine-abi.md), and the plugins, app and web build |
 
 ## How the pieces fit

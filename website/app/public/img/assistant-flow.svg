@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 500" role="img" aria-labelledby="t d">
+  <title id="t">One assistant turn from request to events</title>
+  <desc id="d">A request carries the messages and a snapshot of the board. The router picks a skill by keywords, and the skill sets the prompt and the tools on offer. The agent loop builds the instructions, calls the model, and the model answers with text or tool calls. Read tools return facts, write tools validate the edit on a working copy and emit a changeset, and live tools pause the run until the browser sends results back with a signed token. Everything streams to the board as events.</desc>
+  <style>
+    :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; } }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--fg); }
+    .group { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 5; }
+    .gt { font-size: 13px; font-weight: 700; }
+    .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+    .hub { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .name { font-size: 14px; font-weight: 650; text-anchor: middle; }
+    .sub { font-size: 12px; fill: var(--muted); text-anchor: middle; }
+    .cap { font-size: 12px; font-weight: 600; fill: var(--accent); text-anchor: middle; }
+    .link { stroke: var(--accent); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .back { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; stroke-linecap: round; stroke-linejoin: round; }
+    .head { fill: var(--accent); }
+    .bhead { fill: var(--muted); }
+  </style>
+  <rect width="760" height="500" rx="14" fill="var(--bg)"/>
+
+  <!-- row 1 -->
+  <rect class="box" x="20" y="24" width="210" height="60" rx="10"/>
+  <text class="name" x="125" y="50">1  Request</text><text class="sub" x="125" y="69">messages + board snapshot</text>
+  <rect class="box" x="275" y="24" width="210" height="60" rx="10"/>
+  <text class="name" x="380" y="50">2  Route</text><text class="sub" x="380" y="69">keywords pick the skill</text>
+  <rect class="box" x="530" y="24" width="210" height="60" rx="10"/>
+  <text class="name" x="635" y="50">3  Skill</text><text class="sub" x="635" y="69">prompt + its own tools</text>
+  <path class="link" d="M230 54 H267"/><path class="head" d="M275 54 l-10 -6 v12 z"/>
+  <path class="link" d="M485 54 H522"/><path class="head" d="M530 54 l-10 -6 v12 z"/>
+  <path class="link" d="M635 84 V112"/><path class="head" d="M635 120 l-6 -10 h12 z"/>
+
+  <!-- loop container -->
+  <rect class="group" x="20" y="120" width="720" height="256" rx="12"/>
+  <text class="gt" x="34" y="142">4  Agent loop: tool results go back to the model until it answers (step budget, then wind-down)</text>
+  <rect class="box" x="40" y="160" width="200" height="62" rx="10"/>
+  <text class="name" x="140" y="186">Build instructions</text><text class="sub" x="140" y="205">prompt + the board right now</text>
+  <rect class="hub" x="290" y="160" width="200" height="62" rx="10"/>
+  <text class="name" x="390" y="186">Model call</text><text class="sub" x="390" y="205">tool definitions of the skill</text>
+  <rect class="box" x="540" y="160" width="180" height="62" rx="10"/>
+  <text class="name" x="630" y="186">Text answer</text><text class="sub" x="630" y="205">no tool calls: the run ends</text>
+  <path class="link" d="M240 191 H282"/><path class="head" d="M290 191 l-10 -6 v12 z"/>
+  <path class="link" d="M490 191 H532"/><path class="head" d="M540 191 l-10 -6 v12 z"/>
+
+  <!-- tool kinds -->
+  <path class="link" d="M390 222 V240 H140 V262"/><path class="head" d="M140 270 l-6 -10 h12 z"/>
+  <path class="link" d="M390 222 V262"/><path class="head" d="M390 270 l-6 -10 h12 z"/>
+  <path class="link" d="M390 222 V240 H630 V262"/><path class="head" d="M630 270 l-6 -10 h12 z"/>
+  <rect class="box" x="40" y="270" width="200" height="86" rx="10"/>
+  <text class="name" x="140" y="294">Read tools</text>
+  <text class="sub" x="140" y="314">describe_module, search_docs,</text><text class="sub" x="140" y="330">trace_signal, search_presets</text><text class="sub" x="140" y="346">answer at once</text>
+  <rect class="box" x="290" y="270" width="200" height="86" rx="10"/>
+  <text class="name" x="390" y="294">Write tools</text>
+  <text class="sub" x="390" y="314">propose_changes, set_pattern,</text><text class="sub" x="390" y="330">propose_panel: checked on a</text><text class="sub" x="390" y="346">working copy, then a changeset</text>
+  <rect class="box" x="540" y="270" width="180" height="86" rx="10"/>
+  <text class="name" x="630" y="294">Live tools</text>
+  <text class="sub" x="630" y="314">probe_signals, play, ask_user:</text><text class="sub" x="630" y="330">the run pauses, the browser</text><text class="sub" x="630" y="346">answers, a token resumes it</text>
+
+  <!-- return path to instructions -->
+  <path class="back" d="M40 313 H28 V191 H34"/><path class="bhead" d="M40 191 l-9 -5 v10 z"/>
+
+  <!-- events -->
+  <rect class="box" x="20" y="404" width="720" height="68" rx="10"/>
+  <text class="name" x="380" y="430">5  Events (SSE) to the board</text>
+  <text class="sub" x="380" y="452">activity, text, changeset (applied or approved, one undo step), live + pause, usage, done</text>
+  <path class="link" d="M380 376 V396"/><path class="head" d="M380 404 l-6 -10 h12 z"/>
+</svg>
