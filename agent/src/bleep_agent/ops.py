@@ -403,7 +403,9 @@ def apply_ops(patch: Patch, cat: Catalog, ops: list[Any], summary: str = "") -> 
     for i, o in enumerate(ops):
         try:
             _apply_one(ctx, o)
-        except PatchError as e:
+        except OpError:
+            raise
+        except ValueError as e:  # PatchError, and Param.parse's messages for a bad knob value
             raise OpError(i, str(e)) from None
     patch.data = work.data
     patch._reindex()

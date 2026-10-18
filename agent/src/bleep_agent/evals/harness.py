@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable
 from typing import Any
 
 from pydantic_ai.models import Model
@@ -94,7 +95,8 @@ async def run_case(case: Case, *, model: Model, model_name: str, catalog: Catalo
     return out
 
 
-async def run_many(cases: list[Case], models: dict[str, Model], *, repeats: int, concurrency: int = 4, **kw: Any) -> list[dict[str, Any]]:
+async def run_many(cases: list[Case], models: dict[str, Model], *, repeats: int, concurrency: int = 4,
+                   progress: Callable[[dict[str, Any]], None] | None = None, **kw: Any) -> list[dict[str, Any]]:
     sem = asyncio.Semaphore(concurrency)
     results: list[dict[str, Any]] = []
 
@@ -107,6 +109,8 @@ async def run_many(cases: list[Case], models: dict[str, Model], *, repeats: int,
                                 "checks": [], "errors": [{"code": "harness", "message": f"{type(e).__name__}: {e}"}], "answer": "",
                                 "changesets": [], "tools": [], "retries": 0, "live": [], "calls": 0, "tokens_in": 0, "tokens_out": 0,
                                 "latency": 0.0, "cached_calls": 0, "wall": 0.0})
+            if progress:
+                progress(results[-1])
 
     await asyncio.gather(*[one(c, n, m, r) for c in cases for n, m in models.items() for r in range(repeats)])
     results.sort(key=lambda x: (x["model"], x["skill"], x["case"], x["repeat"]))

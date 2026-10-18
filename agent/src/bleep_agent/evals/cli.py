@@ -11,14 +11,58 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
+import os
+import sys
 import time
 from pathlib import Path
+
+
+class _Progress:
+    """One-line progress bar on stderr: runs done, how many passed, elapsed time and an estimate of the time left."""
+
+    def __init__(self, total: int, width: int = 28) -> None:
+        self.total, self.width, self.done, self.ok, self.t0 = total, width, 0, 0, time.monotonic()
+        self.tty = sys.stderr.isatty()
+        self(None)
+
+    def __call__(self, result: dict | None) -> None:
+        if result is not None:
+            self.done += 1
+            self.ok += bool(result.get("success"))
+        elapsed = time.monotonic() - self.t0
+        eta = elapsed / self.done * (self.total - self.done) if self.done else 0
+        filled = int(self.width * self.done / max(self.total, 1))
+        line = (f"[{'#' * filled}{'-' * (self.width - filled)}] {self.done}/{self.total} ({self.done / max(self.total, 1):.0%})  "
+                f"passed {self.ok}  elapsed {_clock(elapsed)}  eta {_clock(eta) if self.done else '--:--'}")
+        if self.tty:
+            print("\r" + line + "\033[K", end="\n" if self.done >= self.total else "", file=sys.stderr, flush=True)
+        elif result is not None and (self.done % 10 == 0 or self.done == self.total):
+            print(line, file=sys.stderr, flush=True)
+
+
+def _clock(seconds: float) -> str:
+    m, s = divmod(int(seconds), 60)
+    h, m = divmod(m, 60)
+    return f"{h}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
+
+
+def _load_api_keys(env_file: Path) -> None:
+    """Provider keys from website/.env, so the eval run needs no export. Only *_API_KEY lines; a variable already set wins."""
+    if not env_file.is_file():
+        return
+    for line in env_file.read_text().splitlines():
+        name, sep, value = line.partition("=")
+        name = name.strip()
+        if sep and name.endswith("_API_KEY") and value.strip():
+            os.environ.setdefault(name, value.strip().strip("\"'"))
 
 
 def main(argv: list[str] | None = None) -> int:
     from ..catalog import Catalog, repo_root
 
     repo = repo_root()
+    _load_api_keys(repo / "website" / ".env")
     ap = argparse.ArgumentParser(prog="bleep-agent eval")
     sub = ap.add_subparsers(dest="cmd", required=True)
     g = sub.add_parser("generate")
@@ -37,6 +81,7 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--concurrency", type=int, default=4)
     r.add_argument("--limit", type=int, default=0, help="at most N cases per skill (smoke test)")
     r.add_argument("--out", type=Path, default=None)
+    r.add_argument("--verbose", action="store_true", help="show the agent's per-call log lines and tracebacks instead of the progress bar only")
     rp = sub.add_parser("report")
     rp.add_argument("run", type=Path)
     rp.add_argument("--compare", type=Path, default=None)
@@ -121,7 +166,11 @@ def main(argv: list[str] | None = None) -> int:
     out = a.out or repo / "agent" / "evals" / "runs" / run_id
     out.mkdir(parents=True, exist_ok=True)
     print(f"{len(cases)} cases x {len(models)} models x {a.repeats} repeats = {len(cases) * len(models) * a.repeats} runs (cache: {a.cache})")
-    results = asyncio.run(run_many(cases, models, repeats=a.repeats, concurrency=a.concurrency, catalog=cat, lib=lib, docs=docs, cache=cache, judge_model=judge_model))
+    if not a.verbose:
+        os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")
+        logging.getLogger("bleep_agent").setLevel(logging.CRITICAL)
+    progress = _Progress(len(cases) * len(models) * a.repeats)
+    results = asyncio.run(run_many(cases, models, repeats=a.repeats, concurrency=a.concurrency, progress=progress, catalog=cat, lib=lib, docs=docs, cache=cache, judge_model=judge_model))
     (out / "results.jsonl").write_text("\n".join(json.dumps(r) for r in results) + "\n")
     prices = load_prices()
     meta = {"run": run_id, "date": time.strftime("%Y-%m-%d %H:%M"), "repeats": a.repeats, "cache": a.cache, "models": list(models), "judge": a.judge,
