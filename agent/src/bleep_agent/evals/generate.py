@@ -133,7 +133,7 @@ def gen_patch(lib: PresetLibrary, cat: Catalog, seed: int = 11) -> list[Case]:
             continue
         n_fx += 1
         names = " and ".join(FX[t] for t in combo)
-        checks: list[dict[str, Any]] = [{"kind": "valid_patch"}, {"kind": "audible"}, {"kind": "fx_before_output", "types": list(combo)}, {"kind": "unrelated_changes", "max": 0}]
+        checks: list[dict[str, Any]] = [{"kind": "valid_patch"}, {"kind": "layout"}, {"kind": "audible"}, {"kind": "fx_before_output", "types": list(combo)}, {"kind": "unrelated_changes", "max": 0}]
         checks += [{"kind": "module_added", "type": t} for t in combo]
         out.append(Case(id=f"patch-insert-fx-{n_fx:02d}", skill="patch", difficulty="easy" if len(combo) == 1 else "medium", tags=["insert-on-cable"],
                         patch=f"preset:{e.id}", query=f"add {names} between the synth and the output", checks=checks, judge="patch_general"))
@@ -148,7 +148,7 @@ def gen_patch(lib: PresetLibrary, cat: Catalog, seed: int = 11) -> list[Case]:
         n += 1
         out.append(Case(id=f"patch-lfo-cutoff-{n:02d}", skill="patch", difficulty="medium", tags=["add-and-wire"], patch=f"preset:{e.id}",
                         query="add an LFO and use it to modulate the filter cutoff", selection=[fl[0]["id"]],
-                        checks=[{"kind": "valid_patch"}, {"kind": "audible"}, {"kind": "module_added", "type": "lfo"},
+                        checks=[{"kind": "valid_patch"}, {"kind": "layout"}, {"kind": "audible"}, {"kind": "module_added", "type": "lfo"},
                                 {"kind": "cable", "from": "role:lfo.out", "to": f"{fl[0]['id']}.cutoff"}, {"kind": "unrelated_changes", "max": 1}],
                         judge="patch_general"))
     n = 0
@@ -162,7 +162,7 @@ def gen_patch(lib: PresetLibrary, cat: Catalog, seed: int = 11) -> list[Case]:
         out.append(Case(id=f"patch-midi-keyboard-{n:02d}", skill="patch", difficulty="hard", tags=["midi-device"], patch=f"preset:{e.id}",
                         query="add my usb midi keyboard to the patch",
                         env={"midi": {"inputs": [{"id": "usb-1", "name": "USB MIDI Keyboard", "enabled": True}]}},
-                        checks=[{"kind": "valid_patch"}, {"kind": "module_added", "type": "midi-device"}, {"kind": "has_output_cable", "node": "type:midi-device"},
+                        checks=[{"kind": "valid_patch"}, {"kind": "layout"}, {"kind": "module_added", "type": "midi-device"}, {"kind": "has_output_cable", "node": "type:midi-device"},
                                 {"kind": "unrelated_changes", "max": 1}],
                         judge="patch_general"))
     n = 0
@@ -256,7 +256,7 @@ def gen_design(lib: PresetLibrary, cat: Catalog) -> list[Case]:
         if i >= len(DESIGN):
             q = q.replace("build", "make me") if "build" in q else q + ", please"
         out.append(Case(id=f"design-{i + 1:02d}", skill="design", difficulty=diff, tags=["synth"], patch=EMPTY, query=q,
-                        checks=[{"kind": "valid_patch"}, {"kind": "audible"}, {"kind": "has_path", "chain": ["role:source", "type:audio-out"]}] + extra,
+                        checks=[{"kind": "valid_patch"}, {"kind": "layout"}, {"kind": "audible"}, {"kind": "has_path", "chain": ["role:source", "type:audio-out"]}] + extra,
                         judge="design_quality"))
     return out
 

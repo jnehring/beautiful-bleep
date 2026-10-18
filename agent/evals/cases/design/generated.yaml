@@ -26,6 +26,7 @@
   query: build an acid synthesizer
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -63,6 +64,7 @@
   query: build a fat detuned analog bass
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -96,6 +98,7 @@
   query: make a warm slow pad with a long release
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -133,6 +136,7 @@
   query: create a plucky synth lead with a short decay
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -171,6 +175,7 @@
   query: build a simple subtractive synth
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -205,6 +210,7 @@
   query: make a bright bell-like sound
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -239,6 +245,7 @@
   query: build a wobble bass with an LFO on the filter
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -276,6 +283,7 @@
   query: design a classic mono lead with a bit of delay
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -311,6 +319,7 @@
   query: create a string-like ensemble pad with chorus
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -347,6 +356,7 @@
   query: make an electric piano-ish sound
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -381,6 +391,7 @@
   query: make me an acid synthesizer
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -418,6 +429,7 @@
   query: make me a fat detuned analog bass
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -451,6 +463,7 @@
   query: make a warm slow pad with a long release, please
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -488,6 +501,7 @@
   query: create a plucky synth lead with a short decay, please
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -526,6 +540,7 @@
   query: make me a simple subtractive synth
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -560,6 +575,7 @@
   query: make a bright bell-like sound, please
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -594,6 +610,7 @@
   query: make me a wobble bass with an LFO on the filter
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -631,6 +648,7 @@
   query: design a classic mono lead with a bit of delay, please
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -666,6 +684,7 @@
   query: create a string-like ensemble pad with chorus, please
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:
@@ -702,6 +721,7 @@
   query: make an electric piano-ish sound, please
   checks:
   - kind: valid_patch
+  - kind: layout
   - kind: audible
   - kind: has_path
     chain:

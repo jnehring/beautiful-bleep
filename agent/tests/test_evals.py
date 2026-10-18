@@ -387,3 +387,30 @@ def test_cached_tokens_are_backfilled_from_the_logs_of_older_runs(tmp_path):
     (tmp_path / "other").mkdir()
     (tmp_path / "other" / "results.jsonl").write_text(json.dumps(old) + "\n")
     assert "cached_in" not in load_results(tmp_path / "other")[0]  # no logs, nothing to take it from
+
+
+def test_layout_check_flags_overlaps_and_backward_cables(library, catalog):
+    from bleep_agent.evals.checks import CHECKS, Ctx
+    from bleep_agent.ops import AddModule, Connect, apply_ops
+    from bleep_agent.patch import Patch
+
+    case = case_by_id("design-01")
+    assert any(k["kind"] == "layout" for k in case.checks)
+    before = Patch({"format": 1, "nodes": [{"id": "keys", "type": "keyboard", "name": "k", "x": 40, "y": 40, "parent": "", "params": {}}], "cables": []})
+
+    def check(after):
+        return CHECKS["layout"](Ctx(case=case, before=before, after=after, text="", catalog=catalog, tools=[], changesets=[], live=[]), {})
+
+    good = Patch(before.to_dict())
+    apply_ops(good, catalog, [AddModule(type="oscillator", ref="o"), Connect(from_node="keys", from_jack="pitch", to_node="$o", to_jack="pitch")])
+    assert check(good)[0]
+    new = next(n for n in good.nodes if n["type"] == "oscillator")
+    on_top = Patch(good.to_dict())
+    on_top.node(new["id"])["x"], on_top.node(new["id"])["y"] = 60, 60  # on the keyboard
+    ok, why = check(on_top)
+    assert not ok and "on top of another" in why
+    backwards = Patch(good.to_dict())
+    backwards.node(new["id"])["x"] = 0  # left of the keyboard that feeds it
+    backwards.node("keys")["x"] = 600
+    ok, why = check(backwards)
+    assert not ok and "0% of 1 cables run left to right" in why

@@ -296,6 +296,25 @@ def _pattern(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
     return not problems, "; ".join(problems) or f"length {length}, {len(gated)} gated, {acc} accents, {ties} ties"
 
 
+@check("layout")
+def _layout(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
+    """The modules this run added are not on top of any other module, and (almost) all cables that touch them run from left to right."""
+    from ..layout import BOX_H, NODE_W
+
+    old = {n["id"] for n in c.before.nodes}
+    top = [n for n in c.after.nodes if not n.get("parent")]
+    new = [n for n in top if n["id"] not in old]
+    clash = [(n["id"], m["id"]) for n in new for m in top if m["id"] != n["id"] and (m["id"] in old or m["id"] > n["id"])
+             and abs(n["x"] - m["x"]) < NODE_W and abs(n["y"] - m["y"]) < BOX_H]
+    newids = {n["id"] for n in new}
+    flow = [k for k in c.after.cables if (k["from"]["node"] in newids or k["to"]["node"] in newids)
+            and all(c.after.node(k[s]["node"]) is not None and not c.after.node(k[s]["node"]).get("parent") for s in ("from", "to"))]
+    back = [k["id"] for k in flow if c.after.node(k["to"]["node"])["x"] <= c.after.node(k["from"]["node"])["x"]]
+    forward = 1 - len(back) / len(flow) if flow else 1.0
+    ok = len(clash) <= a.get("max_overlaps", 0) and forward >= a.get("min_forward", 0.9)
+    return ok, f"{len(new)} new modules, {len(clash)} on top of another {clash[:3]}, {forward:.0%} of {len(flow)} cables run left to right" + (f" (not: {back[:4]})" if back else "")
+
+
 @check("has_output_cable")
 def _has_out(c: Ctx, a: dict[str, Any]) -> tuple[bool, str]:
     n = c.ref(c.after, a["node"])

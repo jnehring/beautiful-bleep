@@ -39,7 +39,7 @@
     {
       "id": 4,
       "name": "Lean tools & citations",
-      "benchmark": "agent/evals/runs/20261018-171640",
+      "benchmark": "agent/evals/runs/20261018-174900",
       "changes": [
         "Each skill is offered only the tools it uses: no get_patch/get_selection (the board and the selection are in the instructions), docs tools only in docs, list_module_types in patch/design, trace_signal in patch/diagnose",
         "Tool schemas slimmed (titles and null unions removed): tool definitions 25-58% smaller per skill",
@@ -47,6 +47,18 @@
         "Docs tools return ready cite_as links; the docs prompt tells the model to end with them",
         "build_panel completes an envelope section with all four stages (attack, decay, sustain, release)",
         "Benchmark checks changed: fx_before_output accepts the effects on any signal path into the output, docs-24 accepts the publishing page (those cases are not strictly comparable with versions 1-3)"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Flow layout",
+      "benchmark": "agent/evals/runs/20261018-201400",
+      "changes": [
+        "Modules the assistant adds are placed by code (layout.py) from their cables: flow runs left to right on the preset grid (columns 300 apart, rows 220 apart)",
+        "Voices are row blocks in the same columns, stacked under each other; envelopes and LFOs hang under their voice; a mixer sits right of the voices it mixes",
+        "Nothing is put on top of another module; existing modules are pushed right (move_node) when a new one needs the room; modules the model moved itself stay",
+        "Prompt: layout guidelines (same chain order per voice, one audio-mixer for several voices, effects in line, move_module only on request); add_module's near is only a hint",
+        "New benchmark check 'layout' (no overlaps, at least 90% of the cables touching new modules run left to right) on 20 design and 34 patch cases"
       ]
     }
   ]

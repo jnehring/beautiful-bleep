@@ -14,6 +14,7 @@ from typing import Annotated, Any, Literal, Union
 from pydantic import BaseModel, Field
 
 from .catalog import Catalog, ModuleType, compatible
+from .layout import layout_new_nodes
 from .patch import PORT_TYPES, Patch, PatchError, jack_type
 
 
@@ -33,7 +34,7 @@ class AddModule(BaseModel):
     name: str | None = Field(None, description="Display name; defaults to the module's own name.")
     ref: str | None = Field(None, description="Local handle (e.g. 'fx1') that later ops in this call may use as '$fx1'.")
     params: dict[str, Any] = Field(default_factory=dict, description="Knob values in real units (Hz, seconds, 0..1 percent...) or choice names.")
-    near: str | None = Field(None, description="Node id to place the new module next to.")
+    near: str | None = Field(None, description="Hint only: a module to put the new one next to when it has no cables yet. The layout follows the cables (left to right).")
     parent: str = Field("", description="Cell id to put it in; empty = top level.")
 
 
@@ -97,8 +98,8 @@ class RenameModule(BaseModel):
 class MoveModule(BaseModel):
     op: Literal["move_module"] = "move_module"
     node: str
-    x: int
-    y: int
+    x: int = Field(description="Only to rearrange on the user's request: columns are 300 apart, the left edge is 40.")
+    y: int = Field(description="Rows are 220 apart, the top edge is 40.")
 
 
 class SetNodeData(BaseModel):
@@ -149,6 +150,8 @@ class _Ctx:
         self.notes: list[str] = []
         self.destructive = False
         self.new_nodes: set[str] = set()
+        self.new_order: list[str] = []   # new modules in creation order (the layout places them)
+        self.pinned: set[str] = set()    # modules the model positioned itself (move_module): the layout leaves them
         self.new_cables: set[str] = set()
 
     def nid(self, x: str) -> str:
@@ -195,6 +198,7 @@ def _make_node(ctx: _Ctx, type_: str, name: str | None, params: dict[str, Any], 
     ctx.p.nodes.append(node)
     ctx.p._reindex()
     ctx.new_nodes.add(nid)
+    ctx.new_order.append(nid)
     ctx.prims.append({"op": "add_node", "node": dict(node, params=dict(node["params"]))})
     ctx.lines.append(f"+ {node['name']} ({type_}) as {nid}")
     return node
@@ -395,6 +399,7 @@ def _apply_one(ctx: _Ctx, o: Any) -> None:
     elif isinstance(o, MoveModule):
         n = p.require_node(ctx.nid(o.node))
         n["x"], n["y"] = o.x, o.y
+        ctx.pinned.add(n["id"])
         ctx.prims.append({"op": "move_node", "id": n["id"], "x": o.x, "y": o.y})
     elif isinstance(o, SetMuted):
         n = p.require_node(ctx.nid(o.node))
@@ -427,6 +432,21 @@ def _cid(prims: list[dict[str, Any]]) -> str:
     return hashlib.sha1(json.dumps(prims, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:8]
 
 
+def _place_new_modules(ctx: _Ctx) -> None:
+    """Flow layout of the modules this changeset added (layout.py); the add_node primitives carry the final positions, and modules that had to be pushed
+    right to make room are moved by move_node primitives."""
+    if not ctx.new_order:
+        return
+    moved = layout_new_nodes(ctx.p, ctx.cat, ctx.new_order, ctx.pinned)
+    for prim in ctx.prims:
+        if prim["op"] == "add_node" and (n := ctx.p.node(prim["node"]["id"])) is not None:
+            prim["node"]["x"], prim["node"]["y"] = n["x"], n["y"]
+    for nid, (x, y) in moved.items():
+        ctx.prims.append({"op": "move_node", "id": nid, "x": x, "y": y})
+    if moved:
+        ctx.lines.append(f"~ moved {len(moved)} module{'s' if len(moved) != 1 else ''} to the right to make room")
+
+
 def apply_ops(patch: Patch, cat: Catalog, ops: list[Any], summary: str = "") -> Changeset:
     """Validate and apply `ops` to `patch` (changed in place only if all succeed)."""
     work = patch.copy()
@@ -438,6 +458,7 @@ def apply_ops(patch: Patch, cat: Catalog, ops: list[Any], summary: str = "") -> 
             raise
         except ValueError as e:  # PatchError, and Param.parse's messages for a bad knob value
             raise OpError(i, str(e)) from None
+    _place_new_modules(ctx)
     patch.data = work.data
     patch._reindex()
     if not ctx.prims:
