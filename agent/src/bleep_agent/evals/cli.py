@@ -139,10 +139,13 @@ def main(argv: list[str] | None = None) -> int:
                 only = [int(x) for x in a.versions.split(",") if x.strip()]
             except ValueError:
                 ap.error("--versions takes comma separated ids, e.g. 1,3")
-            runs = load_notebook(a.notebook or repo / "agent" / "evals" / "lab-notebook.json", only, repo)
+            skipped: list[str] = []
+            runs = load_notebook(a.notebook or repo / "agent" / "evals" / "lab-notebook.json", only, repo, skipped)
         if len(runs) < 2:
             ap.error("compare needs at least two runs (or a lab notebook with two versions)")
         text = compare_runs(runs, load_prices(), a.all_cases, a.max_cases)
+        if not a.runs and skipped:
+            text += "\n\n" + "\n".join(f"> Not compared: {s}" for s in skipped)
         if a.out:
             a.out.write_text(text + "\n")
         print(text)

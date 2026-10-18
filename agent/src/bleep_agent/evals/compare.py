@@ -41,9 +41,10 @@ def load_run(spec: str) -> Run:
     return Run(label or meta.get("run") or d.name, path, load_results(path), meta)
 
 
-def load_notebook(path: Path, only: list[int] | None = None, root: Path | None = None) -> list[Run]:
+def load_notebook(path: Path, only: list[int] | None = None, root: Path | None = None, skipped: list[str] | None = None) -> list[Run]:
     """The versions of a lab notebook (JSON: {"versions": [{id, name, benchmark, changes: [...]}]}) as runs, in notebook order. Benchmark folders are
-    looked up relative to the current directory, the repository root (`root`) and the notebook's own folder."""
+    looked up relative to the current directory, the repository root (`root`) and the notebook's own folder. A version whose benchmark has no results yet
+    (still running) is an error when asked for by id, and otherwise left out: `skipped` receives a line about it."""
     try:
         book = json.loads(path.read_text())
     except FileNotFoundError:
@@ -62,7 +63,11 @@ def load_notebook(path: Path, only: list[int] | None = None, root: Path | None =
         folder = next((c for c in (Path(v["benchmark"]), (root or Path()) / v["benchmark"], path.parent / v["benchmark"])
                        if (c / "results.jsonl").exists() or (c.is_file() and c.name.endswith(".jsonl"))), None)
         if folder is None:
-            raise SystemExit(f"version {v['id']} ({v['name']}): no results.jsonl in {v['benchmark']} (is the benchmark still running?)")
+            why = f"version {v['id']} ({v['name']}): no results.jsonl in {v['benchmark']} (is the benchmark still running?)"
+            if only or skipped is None:
+                raise SystemExit(why)
+            skipped.append(why)
+            continue
         run = load_run(f"{v['name']}={folder}")
         run.version_id, run.changes = v["id"], list(v.get("changes") or [])
         runs.append(run)

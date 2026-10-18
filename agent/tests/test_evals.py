@@ -298,7 +298,11 @@ def test_compare_reads_versions_from_a_lab_notebook(tmp_path):
     assert "## Versions and what changed" in text and "### 2. Fixed it" in text and "- tiled the motif" in text and "- second change" in text
     assert text.index("### 1. Baseline") < text.index("### 2. Fixed it") < text.index("## Runs")
     with pytest.raises(SystemExit, match="still running"):
-        load_notebook(nb)
+        load_notebook(nb)  # asked for by default without a place to note it: an error
+    left_out: list[str] = []
+    assert [r.version_id for r in load_notebook(nb, skipped=left_out)] == [1, 2] and "version 3 (Not run yet)" in left_out[0]  # a version still running is left out and noted
+    with pytest.raises(SystemExit, match="still running"):
+        load_notebook(nb, [1, 3], skipped=[])  # but asking for it by id is an error
     with pytest.raises(SystemExit, match="no version"):
         load_notebook(nb, [7])
     # the shipped notebook is valid JSON with unique ids and the fields the script reads

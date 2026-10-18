@@ -35,6 +35,19 @@
         "Prompt carries a jacks-and-knobs sheet for the 12 most used modules, so fewer lookup rounds",
         "OpenAI prompt_cache_key per skill; results record provider-cached tokens and the report prices them"
       ]
+    },
+    {
+      "id": 4,
+      "name": "Lean tools & citations",
+      "benchmark": "agent/evals/runs/20261018-171640",
+      "changes": [
+        "Each skill is offered only the tools it uses: no get_patch/get_selection (the board and the selection are in the instructions), docs tools only in docs, list_module_types in patch/design, trace_signal in patch/diagnose",
+        "Tool schemas slimmed (titles and null unions removed): tool definitions 25-58% smaller per skill",
+        "set_pattern: length is required, so a short motif is always tiled",
+        "Docs tools return ready cite_as links; the docs prompt tells the model to end with them",
+        "build_panel completes an envelope section with all four stages (attack, decay, sustain, release)",
+        "Benchmark checks changed: fx_before_output accepts the effects on any signal path into the output, docs-24 accepts the publishing page (those cases are not strictly comparable with versions 1-3)"
+      ]
     }
   ]
 }
