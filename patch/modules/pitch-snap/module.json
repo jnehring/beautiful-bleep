@@ -1,0 +1,11 @@
+{
+  "name": "Pitch Snap",
+  "slug": "pitch-snap",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Real-time pitch corrector: finds the pitch of a voice or instrument and pulls it onto the notes of a scale, hard or gently, with room left for vibrato.",
+  "colour": "#f472b6",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/pitch-snap.md"
+}

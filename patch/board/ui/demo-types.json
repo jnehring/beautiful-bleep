@@ -3984,7 +3984,7 @@
     "name": "Step Sequencer",
     "category": "Sequencing/Melodic",
     "colour": "#f6c453",
-    "description": "Up to 32 steps of gate, pitch and velocity, quantized to a scale. Notes out plays a Voice Cell.",
+    "description": "Up to 32 steps of gate (with length), pitch, velocity and ratchet, quantized to a scale. Notes out plays a Voice Cell.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -20542,6 +20542,192 @@
     ]
   },
   {
+    "type": "pitch-follower",
+    "name": "Pitch Follower",
+    "category": "Modulation/Followers",
+    "colour": "#34d399",
+    "description": "Finds the pitch of a single voice or instrument and outputs it as V/oct, with a gate, a confidence signal and an envelope. An octave guard and a vote keep it steady.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "low",
+        "name": "Low",
+        "kind": "float",
+        "default": 0.246372550725937,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 30.0,
+        "max": 500.0,
+        "def": 60.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Range"
+      },
+      {
+        "id": "high",
+        "name": "High",
+        "kind": "float",
+        "default": 0.625964820384979,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 200.0,
+        "max": 5000.0,
+        "def": 1500.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Range"
+      },
+      {
+        "id": "glide",
+        "name": "Glide",
+        "kind": "float",
+        "default": 0.378431469202042,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.029999999329448,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.100000001490116,
+        "group": "Output"
+      },
+      {
+        "id": "hold",
+        "name": "Hold",
+        "kind": "float",
+        "default": 0.534740209579468,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.25,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.200000002980232,
+        "group": "Output"
+      },
+      {
+        "id": "confidence",
+        "name": "Confidence",
+        "kind": "float",
+        "default": 0.661764681339264,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.300000011920929,
+        "max": 0.980000019073486,
+        "def": 0.75,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Detection"
+      },
+      {
+        "id": "guard",
+        "name": "Octave Guard",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "Light",
+          "Firm"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Detection"
+      },
+      {
+        "id": "vote",
+        "name": "Vote",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": true,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "3",
+          "5",
+          "7",
+          "9"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Detection"
+      },
+      {
+        "id": "release",
+        "name": "Env Release",
+        "kind": "float",
+        "default": 0.45773857831955,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.004999999888241,
+        "max": 2.0,
+        "def": 0.150000005960464,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.200000002980232,
+        "group": "Output"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "confidence",
+        "name": "Confidence",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "env",
+        "name": "Env",
+        "type": "control",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "pitch-shifter",
     "name": "Pitch Shifter",
     "category": "Effects/Movement",
@@ -20668,6 +20854,333 @@
         "bipolar": true
       }
     ]
+  },
+  {
+    "type": "pitch-snap",
+    "name": "Pitch Snap",
+    "category": "Effects/Movement",
+    "colour": "#f472b6",
+    "description": "Corrects the pitch of a voice or instrument in real time: it follows the pitch, picks the nearest note of a scale or of the board's harmony and shifts toward it, hard or natural, with Drift to keep vibrato.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "amount",
+        "name": "Amount",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Correction"
+      },
+      {
+        "id": "speed",
+        "name": "Speed",
+        "kind": "float",
+        "default": 0.850000023841858,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.850000023841858,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Correction"
+      },
+      {
+        "id": "drift",
+        "name": "Drift",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Correction"
+      },
+      {
+        "id": "drifttime",
+        "name": "Drift Time",
+        "kind": "float",
+        "default": 0.499999970197678,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.050000000745058,
+        "max": 1.0,
+        "def": 0.300000011920929,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.300000011920929,
+        "group": "Correction"
+      },
+      {
+        "id": "offset",
+        "name": "Offset",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -24.0,
+        "max": 24.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "st",
+        "group": "Correction"
+      },
+      {
+        "id": "formant",
+        "name": "Formant Preserve",
+        "kind": "bool",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "toggle",
+        "decimals": 2,
+        "group": "Correction"
+      },
+      {
+        "id": "root",
+        "name": "Root",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 12,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "C",
+          "C♯",
+          "D",
+          "D♯",
+          "E",
+          "F",
+          "F♯",
+          "G",
+          "G♯",
+          "A",
+          "A♯",
+          "B"
+        ],
+        "min": 0.0,
+        "max": 11.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Notes"
+      },
+      {
+        "id": "scale",
+        "name": "Scale",
+        "kind": "choice",
+        "default": 0.0625,
+        "steps": 17,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Chromatic",
+          "Major",
+          "Natural Minor",
+          "Harmonic Minor",
+          "Melodic Minor",
+          "Dorian",
+          "Phrygian",
+          "Lydian",
+          "Mixolydian",
+          "Locrian",
+          "Phrygian Dominant",
+          "Major Pentatonic",
+          "Minor Pentatonic",
+          "Blues",
+          "Whole Tone",
+          "Diminished",
+          "Hirajoshi"
+        ],
+        "min": 0.0,
+        "max": 16.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Notes"
+      },
+      {
+        "id": "source",
+        "name": "Harmony",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "Bus A",
+          "Bus B",
+          "Bus C",
+          "Bus D"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Notes"
+      },
+      {
+        "id": "target",
+        "name": "Target",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Scale",
+          "Chord",
+          "Chord + Scale"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Notes",
+        "show": {
+          "param": "source",
+          "min": 1,
+          "max": 4
+        }
+      },
+      {
+        "id": "low",
+        "name": "Low",
+        "kind": "float",
+        "default": 0.327108293771744,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 30.0,
+        "max": 400.0,
+        "def": 70.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Tracking"
+      },
+      {
+        "id": "high",
+        "name": "High",
+        "kind": "float",
+        "default": 0.653212547302246,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 200.0,
+        "max": 2000.0,
+        "def": 900.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Tracking"
+      },
+      {
+        "id": "tracking",
+        "name": "Tracking",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Fast",
+          "Steady",
+          "Rock Solid"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Tracking"
+      },
+      {
+        "id": "latency",
+        "name": "Latency",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Aligned",
+          "Quick"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Tracking"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "pitchoffset",
+        "name": "Offset",
+        "type": "pitch",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "target",
+        "name": "Target",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "shift",
+        "name": "Shift",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "harmony": "reader"
   },
   {
     "type": "polymeter-sequencer",
@@ -25228,7 +25741,7 @@
     "name": "Sampler",
     "category": "Audio/Sampling",
     "colour": "#0d9488",
-    "description": "Polyphonic sample player and slicer: load a WAV, cut it into slices by hand, by transients or into beats, and play it from notes or triggers with up to 16 playheads, play modes, an envelope and a filter.",
+    "description": "Polyphonic sample player and slicer: load a WAV, cut it into slices by hand, by transients or into beats, and play it from notes or triggers with up to 16 playheads, play modes, an envelope and a filter. It also records its audio inputs, to loop, overdub or use as a delay.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -25786,6 +26299,175 @@
         "def": 0.0,
         "format": "choice",
         "decimals": 2
+      },
+      {
+        "id": "warp",
+        "name": "Warp",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Repitch",
+          "Beats",
+          "Tones",
+          "Texture"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "sync",
+        "name": "Tempo Sync",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "ppqn",
+        "name": "Clock PPQN",
+        "kind": "choice",
+        "default": 0.800000011920929,
+        "steps": 6,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1 PPQN",
+          "2 PPQN",
+          "4 PPQN",
+          "8 PPQN",
+          "24 PPQN",
+          "48 PPQN"
+        ],
+        "min": 0.0,
+        "max": 5.0,
+        "def": 4.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "sync",
+          "min": 1,
+          "max": 2
+        }
+      },
+      {
+        "id": "beats",
+        "name": "Beats",
+        "kind": "float",
+        "default": 0.400000005960464,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.25,
+        "max": 256.0,
+        "def": 4.0,
+        "format": "number",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Tempo Sync"
+      },
+      {
+        "id": "gain",
+        "name": "Gain",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -24.0,
+        "max": 24.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "group": "Sample"
+      },
+      {
+        "id": "recmode",
+        "name": "Rec Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Replace",
+          "Overdub"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "reclen",
+        "name": "Rec Length",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Free",
+          "Beats"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "monitor",
+        "name": "Monitor",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "Recording",
+          "Always"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "recfeedback",
+        "name": "Feedback",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Record"
       }
     ],
     "inputs": [
@@ -25841,6 +26523,30 @@
         "id": "step",
         "name": "Step",
         "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "inl",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "inr",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "rec",
+        "name": "Rec",
+        "type": "gate",
         "bipolar": true
       }
     ],
@@ -26072,6 +26778,11 @@
       {
         "id": "stop",
         "name": "Stop",
+        "momentary": false
+      },
+      {
+        "id": "record",
+        "name": "Record",
         "momentary": false
       }
     ],
@@ -28321,6 +29032,319 @@
     ]
   },
   {
+    "type": "spectral-blend",
+    "name": "Spectral Blend",
+    "category": "Audio/Mangling",
+    "colour": "#818cf8",
+    "description": "Cross-synthesis of two sounds in the frequency domain: the magnitudes of one with the phases of the other, or any morph between, bent across the spectrum by Tilt, with blur, a spectral gate and freeze.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "magnitude",
+        "name": "Magnitude",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Blend"
+      },
+      {
+        "id": "phase",
+        "name": "Phase",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Blend"
+      },
+      {
+        "id": "tilt",
+        "name": "Tilt",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "group": "Blend"
+      },
+      {
+        "id": "pivot",
+        "name": "Pivot",
+        "kind": "float",
+        "default": 0.525461256504059,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 100.0,
+        "max": 8000.0,
+        "def": 1000.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Blend"
+      },
+      {
+        "id": "blur",
+        "name": "Blur",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Shape"
+      },
+      {
+        "id": "smear",
+        "name": "Smear",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Shape"
+      },
+      {
+        "id": "gatelow",
+        "name": "Gate Low",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -90.0,
+        "max": 0.0,
+        "def": -90.0,
+        "format": "number",
+        "decimals": 0,
+        "label": "dB",
+        "group": "Gate"
+      },
+      {
+        "id": "gatemid",
+        "name": "Gate Mid",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -90.0,
+        "max": 0.0,
+        "def": -90.0,
+        "format": "number",
+        "decimals": 0,
+        "label": "dB",
+        "group": "Gate"
+      },
+      {
+        "id": "gatehigh",
+        "name": "Gate High",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -90.0,
+        "max": 0.0,
+        "def": -90.0,
+        "format": "number",
+        "decimals": 0,
+        "label": "dB",
+        "group": "Gate"
+      },
+      {
+        "id": "splitlow",
+        "name": "Split Low",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 80.0,
+        "max": 2000.0,
+        "def": 400.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Gate"
+      },
+      {
+        "id": "splithigh",
+        "name": "Split High",
+        "kind": "float",
+        "default": 0.488083958625793,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 800.0,
+        "max": 12000.0,
+        "def": 3000.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "group": "Gate"
+      },
+      {
+        "id": "invertgate",
+        "name": "Invert Gate",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "group": "Gate"
+      },
+      {
+        "id": "freeze",
+        "name": "Freeze",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "group": "Output"
+      },
+      {
+        "id": "size",
+        "name": "FFT Size",
+        "kind": "choice",
+        "default": 0.666666686534882,
+        "steps": 4,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "512",
+          "1024",
+          "2048",
+          "4096"
+        ],
+        "min": 0.0,
+        "max": 3.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Output"
+      },
+      {
+        "id": "law",
+        "name": "Morph Law",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Linear",
+          "Geometric"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Blend"
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Output"
+      },
+      {
+        "id": "level",
+        "name": "Level",
+        "kind": "float",
+        "default": 0.666666686534882,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -24.0,
+        "max": 12.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "dB",
+        "group": "Output"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "a",
+        "name": "In A",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "b",
+        "name": "In B",
+        "type": "audio",
+        "bipolar": true,
+        "normal": "a"
+      },
+      {
+        "id": "freezegate",
+        "name": "Freeze",
+        "type": "gate",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out",
+        "name": "Out",
+        "type": "audio",
+        "bipolar": true
+      }
+    ]
+  },
+  {
     "type": "splice",
     "name": "Splice",
     "category": "Audio/Sampling",
@@ -29079,6 +30103,445 @@
         "bipolar": false
       }
     ]
+  },
+  {
+    "type": "stretch",
+    "name": "Stretch",
+    "category": "Effects/Textures",
+    "colour": "#fb923c",
+    "description": "Records its input and plays it back slower or faster without changing the pitch: freeze a moment, scrub through it, loop a held range, or let time itself wobble.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "stretch",
+        "name": "Stretch",
+        "kind": "float",
+        "default": 0.525461256504059,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.100000001490116,
+        "max": 8.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "×",
+        "map": "exp",
+        "group": "Time"
+      },
+      {
+        "id": "freeze",
+        "name": "Freeze",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "group": "Time"
+      },
+      {
+        "id": "reverse",
+        "name": "Reverse",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "group": "Time"
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -24.0,
+        "max": 24.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "st",
+        "group": "Time"
+      },
+      {
+        "id": "engine",
+        "name": "Engine",
+        "kind": "choice",
+        "default": 1.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Grains",
+          "Smear"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Engine"
+      },
+      {
+        "id": "grain",
+        "name": "Grain",
+        "kind": "float",
+        "default": 0.598104000091553,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 20.0,
+        "max": 400.0,
+        "def": 120.0,
+        "format": "number",
+        "decimals": 2,
+        "label": "ms",
+        "map": "exp",
+        "group": "Engine",
+        "show": {
+          "param": "engine",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "overlap",
+        "name": "Overlap",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "2×",
+          "3×",
+          "4×"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Engine",
+        "show": {
+          "param": "engine",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "scatter",
+        "name": "Scatter",
+        "kind": "float",
+        "default": 0.100000001490116,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.100000001490116,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Engine",
+        "show": {
+          "param": "engine",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "window",
+        "name": "Window",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "1024",
+          "2048",
+          "4096"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Engine",
+        "show": {
+          "param": "engine",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "hold",
+        "name": "Hold Range",
+        "kind": "bool",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "toggle",
+        "decimals": 2,
+        "group": "Range"
+      },
+      {
+        "id": "start",
+        "name": "Start",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Range",
+        "show": {
+          "param": "hold",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "range",
+        "name": "Range",
+        "kind": "float",
+        "default": 0.242424234747887,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.009999999776483,
+        "max": 1.0,
+        "def": 0.25,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Range",
+        "show": {
+          "param": "hold",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "mode",
+        "name": "Position Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Offset",
+          "Scrub"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Range"
+      },
+      {
+        "id": "position",
+        "name": "Position",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Range"
+      },
+      {
+        "id": "wobble",
+        "name": "Wobble",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Wobble"
+      },
+      {
+        "id": "wobblerate",
+        "name": "Wobble Rate",
+        "kind": "float",
+        "default": 0.44046950340271,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.050000000745058,
+        "max": 20.0,
+        "def": 0.699999988079071,
+        "format": "number",
+        "decimals": 2,
+        "label": "Hz",
+        "map": "exp",
+        "group": "Wobble"
+      },
+      {
+        "id": "wobbleshape",
+        "name": "Wobble Shape",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Sine",
+          "Random",
+          "Saw"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Wobble"
+      },
+      {
+        "id": "record",
+        "name": "Record",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Once",
+          "Rolling",
+          "Off"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "group": "Tape"
+      },
+      {
+        "id": "length",
+        "name": "Length",
+        "kind": "float",
+        "default": 0.241379305720329,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 30.0,
+        "def": 8.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "s",
+        "group": "Tape"
+      },
+      {
+        "id": "mix",
+        "name": "Mix",
+        "kind": "float",
+        "default": 1.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 1.0,
+        "format": "percent",
+        "decimals": 2,
+        "group": "Tape"
+      }
+    ],
+    "inputs": [
+      {
+        "id": "l",
+        "name": "In L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "In R",
+        "type": "audio",
+        "bipolar": true,
+        "normal": "l"
+      },
+      {
+        "id": "positioncv",
+        "name": "Position",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "freezegate",
+        "name": "Freeze",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "newtake",
+        "name": "New Take",
+        "type": "trigger",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "l",
+        "name": "Out L",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "r",
+        "name": "Out R",
+        "type": "audio",
+        "bipolar": true
+      },
+      {
+        "id": "head",
+        "name": "Head",
+        "type": "control",
+        "bipolar": false
+      }
+    ],
+    "buttons": [
+      {
+        "id": "rec",
+        "name": "New Take",
+        "momentary": false
+      }
+    ],
+    "memoryHeavy": true
   },
   {
     "type": "swarm",
@@ -30681,6 +32144,159 @@
         "id": "tap",
         "name": "Tap",
         "momentary": false
+      }
+    ]
+  },
+  {
+    "type": "tuner",
+    "name": "Tuner",
+    "category": "Utility/Metering",
+    "colour": "#a3e635",
+    "description": "A chromatic tuner: the note, a needle for the error in cents and the frequency, with a cents CV and an in-tune gate for patching.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "reference",
+        "name": "Reference A",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 400.0,
+        "max": 480.0,
+        "def": 440.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "Hz"
+      },
+      {
+        "id": "tolerance",
+        "name": "In Tune",
+        "kind": "float",
+        "default": 0.16666667163372,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 25.0,
+        "def": 5.0,
+        "format": "number",
+        "decimals": 1,
+        "label": "ct"
+      },
+      {
+        "id": "damping",
+        "name": "Damping",
+        "kind": "float",
+        "default": 0.455759406089783,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.009999999776483,
+        "max": 0.600000023841858,
+        "def": 0.079999998211861,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.100000001490116
+      },
+      {
+        "id": "low",
+        "name": "Low",
+        "kind": "float",
+        "default": 0.169517979025841,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 25.0,
+        "max": 400.0,
+        "def": 40.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp"
+      },
+      {
+        "id": "high",
+        "name": "High",
+        "kind": "float",
+        "default": 0.649560749530792,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 200.0,
+        "max": 4000.0,
+        "def": 1400.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp"
+      },
+      {
+        "id": "names",
+        "name": "Names",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 2,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Sharps",
+          "Flats"
+        ],
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "guard",
+        "name": "Octave Guard",
+        "kind": "choice",
+        "default": 0.5,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "Light",
+          "Firm"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "audio",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "cents",
+        "name": "Cents",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "intune",
+        "name": "In Tune",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
       }
     ]
   },

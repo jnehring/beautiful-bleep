@@ -1,0 +1,11 @@
+{
+  "name": "Pitch Follower",
+  "slug": "pitch-follower",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Tracks the pitch of a single voice or instrument and turns it into a V/oct CV, a gate, a confidence signal and an envelope.",
+  "colour": "#34d399",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/pitch-follower.md"
+}

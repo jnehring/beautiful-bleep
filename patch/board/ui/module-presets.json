@@ -594,6 +594,20 @@
       {"name":"High Shimmer","description":"Bright, airy sweep over the top end.","params":{"rate":0.547291,"depth":0.5,"centre":0.87516,"stages":0.6,"spread":0.8,"mix":0.45}},
       {"name":"Fast Leslie-ish","description":"Quick, shimmering rotary-like movement.","params":{"rate":0.917802,"depth":0.4,"centre":0.585,"feedback":0.605263,"spread":0.9,"mix":0.6}}
     ],
+    "pitch-follower": [
+      {"name":"Voice","description":"All-round setting for a singing or speaking voice.","params":{"low":0.348626,"high":0.5}},
+      {"name":"Bass","description":"Low range for a bass; the firm guard ignores octave mix-ups on heavy low notes.","params":{"low":0.054791,"high":0.215338,"glide":0.404478,"hold":0.564909,"confidence":0.735294,"guard":1,"release":0.5}},
+      {"name":"Guitar","description":"Plucked strings: a vote of three evens out the first wobbly cycles.","params":{"low":0.325687,"high":0.581508,"glide":0.344543,"hold":0.5,"confidence":0.735294,"vote":0.25,"release":0.535203}},
+      {"name":"Flute and Whistle","description":"High and pure sounds with a quick response.","params":{"low":0.753627,"high":0.841303,"glide":0.344543,"hold":0.458521,"confidence":0.588235,"release":0.403531}},
+      {"name":"Fast and Twitchy","description":"No stabilisers and almost no glide: every little movement reaches the output.","params":{"low":0.427941,"high":0.715338,"glide":0.25,"hold":0.329406,"confidence":0.441176,"guard":0,"release":0.32296}},
+      {"name":"Smooth Glide","description":"Notes slide into each other, a portamento from any voice.","params":{"low":0.348626,"high":0.556641,"glide":0.61808,"hold":0.564909,"vote":0.25,"release":0.565666}},
+      {"name":"Rock Steady","description":"A firm guard and a vote of nine: slow to believe, then very stable.","params":{"low":0.301164,"high":0.5,"glide":0.444262,"hold":0.564909,"confidence":0.735294,"guard":1,"vote":1,"release":0.5}},
+      {"name":"Long Hold","description":"The gate stays open for a second and a half after the sound stops.","params":{"low":0.348626,"high":0.5,"glide":0.404478,"hold":0.917043,"release":0.660029}},
+      {"name":"Strict Confidence","description":"Only clean, clearly pitched sound counts. For dirty input.","params":{"low":0.348626,"hold":0.5,"confidence":0.911765,"guard":1,"vote":0.5}},
+      {"name":"Loose Tracker","description":"Follows rough and breathy sounds, at the price of the odd wrong note.","params":{"high":0.715338,"glide":0.42591,"confidence":0.220588,"vote":0.25}},
+      {"name":"Pad Follower","description":"Slow envelope and gate for driving pads and drones from a voice.","params":{"low":0.348626,"high":0.5,"glide":0.521544,"hold":0.695982,"confidence":0.588235,"vote":0.5,"release":0.858333}},
+      {"name":"Deep Range","description":"Sub-bass territory; the longest analysis window, so the slowest to answer.","params":{"low":0,"high":0.069323,"glide":0.42591,"hold":0.616012,"confidence":0.735294,"guard":1,"vote":0.25,"release":0.565666}}
+    ],
     "pitch-shifter": [
       {"name":"Octave Up","description":"Straight octave up.","params":{}},
       {"name":"Octave Down","description":"Straight octave down.","params":{"pitch":0.25,"window":0.568061}},
@@ -609,6 +623,24 @@
       {"name":"Chipmunk","description":"An octave and a fifth up: cartoon voice.","params":{"pitch":0.895833,"window":0.244651}},
       {"name":"Monster","description":"Dark, slow, huge voice.","params":{"pitch":0.104167,"window":0.812712}},
       {"name":"Granular Window","description":"Tiny window: choppy, grainy artefacts.","params":{"pitch":0.604167,"window":0.07876,"drift":0.3,"mix":0.7}}
+    ],
+    "pitch-snap": [
+      {"name":"Hard Snap","description":"Every note jumps straight to the nearest semitone: the classic stepped sound.","params":{"speed":1,"scale":0}},
+      {"name":"Natural Major","description":"A gentle pull toward the C major scale that still sounds sung.","params":{"speed":0.55,"drift":0.2}},
+      {"name":"Gentle Nudge","description":"Half the error is corrected, slowly: a tired voice gets a little help.","params":{"amount":0.5,"speed":0.35,"drift":0.3,"scale":0}},
+      {"name":"Keep the Vibrato","description":"The average pitch lands on the note while the vibrato around it survives.","params":{"drift":1,"drifttime":0.549644,"scale":0}},
+      {"name":"Drifty Slide","description":"Slow retune with plenty of drift: notes wander in from the side.","params":{"speed":0.2,"drift":0.6,"drifttime":0.678438,"scale":0}},
+      {"name":"Pentatonic Lock","description":"Whatever you sing ends up on an A minor pentatonic note.","params":{"speed":0.8,"drift":0.25,"root":0.818182,"scale":0.75}},
+      {"name":"Blues Voice","description":"Pulls toward the E blues scale, with the speed of a bent note.","params":{"speed":0.7,"drift":0.3,"root":0.363636,"scale":0.8125}},
+      {"name":"Whole Tone Dream","description":"Hard retune onto a whole-tone scale: floating, unresolved.","params":{"speed":0.9,"scale":0.875}},
+      {"name":"Octave Up","description":"Snaps, then sings an octave higher with the vowel left where it was.","params":{"speed":1,"offset":0.75,"scale":0}},
+      {"name":"Fifth Above","description":"A harmony voice a fifth above the corrected note.","params":{"speed":0.9,"offset":0.645833}},
+      {"name":"Octave Down","description":"A second voice an octave below, which keeps the vowel.","params":{"speed":1,"offset":0.25,"scale":0,"low":0.464806,"high":0.778151}},
+      {"name":"Chipmunk","description":"Formant Preserve off: raising the pitch drags the vowel up too.","params":{"speed":1,"offset":0.75,"scale":0,"formant":0}},
+      {"name":"Follow the Band","description":"Takes its notes from a Harmony Master on bus A: chord tones first, then the scale.","params":{"speed":0.7,"drift":0.3,"source":0.25,"target":1}},
+      {"name":"Chord Tones Only","description":"Only the notes of the current chord are allowed.","params":{"speed":0.9,"drift":0.2,"source":0.25,"target":0.5}},
+      {"name":"Bass Corrector","description":"Low range and a firm tracker for a bass.","params":{"speed":0.8,"drift":0.2,"scale":0,"low":0.059511,"high":0.30103,"tracking":1}},
+      {"name":"Quick Monitor","description":"As little delay as it can: for monitoring a voice while singing.","params":{"speed":0.9,"scale":0,"low":0.464806,"tracking":0,"latency":1}}
     ],
     "polymeter-sequencer": [
       {"name":"Straight Sixteenths","description":"Plain sixteenth notes: the neutral setup.","params":{}},
@@ -1008,6 +1040,23 @@
       {"name":"Audio Rate Slopes","description":"Slopes as audio oscillators at harmonic ratios.","params":{"mode":1,"rate":0.860059,"harmonics":0.75,"skew":0.5}},
       {"name":"Sharp Curves","description":"Strongly curved spikes: percussive modulation.","params":{"mode":0.666667,"rate":0.4631,"curve":0.95,"skew":0.2,"level":0.8}}
     ],
+    "spectral-blend": [
+      {"name":"Cross Synthesis","description":"The loudness shape of In A with the phases of In B: A speaks with B's texture.","params":{}},
+      {"name":"Phase Swap","description":"The reverse: B's shape on A's phases.","params":{"magnitude":1,"phase":0}},
+      {"name":"Half and Half","description":"Both magnitudes and phases halfway between the two sounds.","params":{"magnitude":0.5,"phase":0.5}},
+      {"name":"Geometric Morph","description":"A morph that follows loudness in dB: partials present in only one sound stay quiet.","params":{"magnitude":0.5,"phase":0.5,"law":1}},
+      {"name":"Low A, High B","description":"Below 1 kHz it is A, above it is B, with a smooth crossover.","params":{"magnitude":0.5,"phase":0.5,"tilt":1}},
+      {"name":"High A, Low B","description":"The other way round: B's lows under A's highs.","params":{"magnitude":0.5,"phase":0.5,"tilt":0,"pivot":0.474539}},
+      {"name":"Soft Blur","description":"A single input made hazy; the blur softens its partials.","params":{"phase":0,"blur":0.4}},
+      {"name":"Wash","description":"Blur and a long smear turn anything into a slowly fading wash.","params":{"phase":0,"blur":0.6,"smear":0.7,"size":1}},
+      {"name":"Spectral Tail","description":"Half dry, half a lingering ghost of the spectrum.","params":{"phase":0,"blur":0.1,"smear":0.85,"mix":0.5}},
+      {"name":"Ghost Gate","description":"A spectral gate removes everything quiet: what is left is a skeleton of the loudest partials.","params":{"phase":0,"gatelow":0.5,"gatemid":0.577778,"gatehigh":0.533333}},
+      {"name":"Inverse Gate","description":"Keeps only what is below the threshold: the sound without its loudest partials.","params":{"phase":0,"gatelow":0.666667,"gatemid":0.666667,"gatehigh":0.666667,"invertgate":1}},
+      {"name":"Bass Keeper","description":"Lows pass untouched, the mids and highs are gated hard.","params":{"gatemid":0.611111,"gatehigh":0.688889,"splitlow":0.410627,"splithigh":0.420758}},
+      {"name":"Frozen Moment","description":"Holds the spectrum at the moment of switching on, as a steady drone.","params":{"phase":0,"freeze":1,"size":1}},
+      {"name":"Crisp Cross","description":"Short frames: tighter timing, rougher pitch resolution.","params":{"size":0}},
+      {"name":"Dark Tilt","description":"Mostly B's shape and A's phases, with B's highs pushed back.","params":{"magnitude":0.7,"phase":0.3,"tilt":0.2,"pivot":0.408888,"law":1,"level":0.611111}}
+    ],
     "stage-sequencer": [
       {"name":"Eight Stages","description":"Eight stages played forward: the neutral setup.","params":{}},
       {"name":"Sixteen Stages","description":"All sixteen stages for a long phrase.","params":{"stages":1,"scale":0.75}},
@@ -1040,6 +1089,23 @@
       {"name":"Blues Walk","description":"Dotted eighths in an A blues scale with a little swing.","params":{"rate":0.384615,"gatelength":0.545455,"swing":0.32,"scale":0.8125,"root":0.818182},"data":{"steps":[{"g":1,"p":0,"v":105},{"g":0,"p":0,"v":100},{"g":1,"p":3,"v":85},{"g":1,"p":5,"v":95},{"g":0,"p":0,"v":100},{"g":1,"p":6,"v":80},{"g":1,"p":7,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":10,"v":110},{"g":0,"p":0,"v":100},{"g":1,"p":7,"v":85},{"g":1,"p":6,"v":80},{"g":0,"p":0,"v":100},{"g":1,"p":5,"v":90},{"g":1,"p":3,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}},
       {"name":"Eastern Lines","description":"Sixteenth triplets in a Phrygian dominant scale.","params":{"rate":0.769231,"scale":0.625,"root":0.181818},"data":{"steps":[{"g":1,"p":0,"v":110},{"g":1,"p":1,"v":70},{"g":1,"p":4,"v":85},{"g":1,"p":5,"v":90},{"g":1,"p":4,"v":100},{"g":1,"p":1,"v":70},{"g":1,"p":0,"v":85},{"g":1,"p":1,"v":95},{"g":1,"p":4,"v":110},{"g":1,"p":5,"v":75},{"g":1,"p":7,"v":85},{"g":1,"p":5,"v":100},{"g":1,"p":4,"v":90},{"g":1,"p":1,"v":70},{"g":1,"p":0,"v":80},{"g":1,"p":1,"v":95},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}},
       {"name":"Low Octave Drone","description":"Slow, held quarter notes two octaves down for a sub line.","params":{"rate":0.230769,"gatelength":1,"octave":0.166667,"scale":0.125,"root":0.454545,"length":0.225806},"data":{"steps":[{"g":1,"p":0,"v":110},{"g":2,"p":0,"v":100},{"g":1,"p":0,"v":90},{"g":2,"p":0,"v":100},{"g":1,"p":3,"v":95},{"g":2,"p":3,"v":100},{"g":1,"p":-2,"v":100},{"g":2,"p":-2,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}}
+    ],
+    "stretch": [
+      {"name":"Half Speed","description":"Plays the recording at half speed with the pitch where it was.","params":{"stretch":0.683641}},
+      {"name":"Slow Motion","description":"Four times as long: transients melt, tones hold.","params":{"stretch":0.84182}},
+      {"name":"Crawl","description":"The longest stretch with the finest frequency resolution.","params":{"stretch":1,"window":1}},
+      {"name":"Double Time","description":"Twice as fast, same pitch.","params":{"stretch":0.367282,"engine":0,"grain":0.502073,"scatter":0.05}},
+      {"name":"Granular Cloud","description":"Long scattered grains: a cloud made from the recording.","params":{"stretch":0.77617,"engine":0,"grain":0.768622,"overlap":1,"scatter":0.6}},
+      {"name":"Freeze Frame","description":"Stops time at the head and holds that moment as a drone.","params":{"freeze":1,"window":1}},
+      {"name":"Scrub Pad","description":"Position is the play head: move it by hand or with a CV to scrub.","params":{"mode":1,"position":0.3}},
+      {"name":"Loop Window","description":"Loops a small window of the recording over and over.","params":{"stretch":0.61799,"engine":0,"grain":0.366726,"scatter":0.05,"hold":1,"start":0.3,"range":0.111111}},
+      {"name":"Time Wobble","description":"Time itself sways: the sound speeds up and slows down but never changes pitch.","params":{"stretch":0.61799,"wobble":0.5,"wobblerate":0.384311}},
+      {"name":"Drunk Time","description":"Time takes an uneven walk around a slow stretch.","params":{"stretch":0.683641,"engine":0,"grain":0.672591,"scatter":0.2,"wobble":0.8,"wobblerate":0.567674,"wobbleshape":0.5}},
+      {"name":"Backwards Smear","description":"The recording plays backwards, slowly.","params":{"stretch":0.683641,"reverse":1}},
+      {"name":"Octave Down Slow","description":"Half speed, an octave lower: the classic slowed-down sound.","params":{"stretch":0.683641,"pitch":0.25}},
+      {"name":"Shimmer Stretch","description":"A slow sheen an octave above, mixed under the live sound.","params":{"stretch":0.84182,"pitch":0.75,"window":1,"mix":0.6}},
+      {"name":"Rolling Capture","description":"Keeps recording round a four-second loop while the head stretches through it.","params":{"stretch":0.61799,"record":0.5,"length":0.103448}},
+      {"name":"Stutter Loop","description":"A tiny window of the last seconds on repeat.","params":{"engine":0,"grain":0.231378,"overlap":0,"scatter":0,"hold":1,"start":0.1,"range":0.010101,"record":0.5,"length":0.068966}}
     ],
     "swarm": [
       {"name":"Minor Cloud","description":"The default pad: eight oscillators over a minor 7, gently drifting.","params":{"width":0.6}},
@@ -1092,6 +1158,19 @@
       {"name":"Bipolar Wobble","description":"Centred wobble for vibrato and pitch effects.","params":{"freq":0.705704,"smooth":0.65}},
       {"name":"Unipolar Pump","description":"Positive-only fast-attack pump for ducking.","params":{"freq":0.588592,"polarity":1,"skew":0.1,"curve":0.8}},
       {"name":"Audio Rate Tone","description":"Slope oscillator at audio rate: a raw, lo-fi tone source.","params":{"freq":0.882888,"range":1,"smooth":0.6}}
+    ],
+    "tuner": [
+      {"name":"Standard","description":"Concert pitch, A = 440 Hz.","params":{}},
+      {"name":"Baroque 415","description":"A = 415 Hz, a semitone lower, for period instruments.","params":{"reference":0.1875,"damping":0.5,"names":1}},
+      {"name":"Bright 442","description":"A = 442 Hz, as many orchestras tune.","params":{"reference":0.525,"tolerance":0.125,"low":0.315759,"high":0.768622}},
+      {"name":"Warm 432","description":"A = 432 Hz.","params":{"reference":0.4,"damping":0.5}},
+      {"name":"Bass Tuner","description":"Low range for bass strings; slower and steadier.","params":{"tolerance":0.125,"damping":0.572587,"low":0.040875,"high":0.231378,"guard":1}},
+      {"name":"Guitar","description":"Six strings and a tight in-tune window.","params":{"tolerance":0.083333,"damping":0.5,"low":0.371357,"high":0.537244}},
+      {"name":"Violin and Voice","description":"High range for strings and singers, with a forgiving window.","params":{"tolerance":0.208333,"low":0.711999,"high":0.843109,"names":1}},
+      {"name":"Strict","description":"Only within two cents counts as in tune.","params":{"tolerance":0.041667,"damping":0.588445,"guard":1}},
+      {"name":"Loose","description":"A wide window for a quick check of a rough sound.","params":{"tolerance":0.458333,"damping":0.370803}},
+      {"name":"Slow Needle","description":"The needle takes its time and hardly twitches.","params":{"damping":0.858468,"guard":1}},
+      {"name":"Fast Needle","description":"Shows every movement at once, e.g. to watch a vibrato.","params":{"damping":0.222435,"guard":0}}
     ],
     "uncertainty": [
       {"name":"Slow Random Drift","description":"Two lazy fluctuating curves: gentle analogue-style drift.","params":{"f1rate":0.394129,"f2rate":0.25601,"f1spread":0.6,"f2spread":0.6}},

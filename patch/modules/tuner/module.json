@@ -1,0 +1,11 @@
+{
+  "name": "Tuner",
+  "slug": "tuner",
+  "license": "GPL-3.0-or-later",
+  "tagline": "A chromatic tuner for the board: note name, needle, cents and frequency, with CV outputs for the error and an in-tune gate.",
+  "colour": "#a3e635",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/tuner.md"
+}

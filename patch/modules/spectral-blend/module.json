@@ -1,0 +1,11 @@
+{
+  "name": "Spectral Blend",
+  "slug": "spectral-blend",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Cross-synthesis in the frequency domain: the shape of one sound dressed in the phase of another, with blur, a spectral gate, freeze and a tilt across the spectrum.",
+  "colour": "#818cf8",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/spectral-blend.md"
+}
