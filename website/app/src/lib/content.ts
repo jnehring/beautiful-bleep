@@ -7,9 +7,24 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Marked } from "marked";
+import hljs from "highlight.js/lib/core";
+import typescript from "highlight.js/lib/languages/typescript";
+import javascript from "highlight.js/lib/languages/javascript";
+import json from "highlight.js/lib/languages/json";
+import cpp from "highlight.js/lib/languages/cpp";
+import bash from "highlight.js/lib/languages/bash";
+import cmake from "highlight.js/lib/languages/cmake";
 import { AUDIENCES, sectionRank, type Audience } from "./audiences";
 
 export { AUDIENCES, type Audience };
+
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("cpp", cpp);
+hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("cmake", cmake);
+const LANGUAGES: Record<string, string> = { ts: "typescript", js: "javascript", c: "cpp", cpp: "cpp", json: "json", bash: "bash", sh: "bash", cmake: "cmake" };
 
 /** Markdown to HTML. Headings get GitHub-style ids (marked does not add them), so `#section` links
  *  and tables of contents jump to the heading; repeated titles get -1, -2 ... like on GitHub. */
@@ -17,6 +32,13 @@ function renderMarkdown(body: string): string {
   const seen = new Map<string, number>();
   const md = new Marked({
     renderer: {
+      // Highlighted at build time (classes only: no script on the page, so the CSP is untouched). Unknown languages stay plain.
+      code({ text, lang }) {
+        const language = LANGUAGES[(lang ?? "").split(/\s/)[0]];
+        const escape = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const inner = language ? hljs.highlight(text, { language, ignoreIllegals: true }).value : escape(text);
+        return `<pre><code${lang ? ` class="language-${escape(lang)}"` : ""}>${inner}\n</code></pre>\n`;
+      },
       heading({ tokens, depth }) {
         const inner = this.parser.parseInline(tokens);
         const base = inner.replace(/<[^>]*>/g, "").replace(/&[a-z#0-9]+;/gi, "").toLowerCase()

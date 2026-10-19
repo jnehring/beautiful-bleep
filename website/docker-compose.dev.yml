@@ -15,7 +15,7 @@ services:
   play:
     image: node:22-alpine
     working_dir: /repo
-    command: sh -c "apk add --no-cache bash python3 >/dev/null && scripts/build/build-web.sh --no-modules /tmp/play && cp -r /tmp/play/. /repo/website/app/public/play/"
+    command: sh -c "apk add --no-cache bash python3 >/dev/null && scripts/build/build-web.sh --no-modules /tmp/play && cp -rf /tmp/play/./repo/website/app/public/play/"
     volumes:
       - ../scripts:/repo/scripts:ro
       - ../config:/repo/config:ro
@@ -23,6 +23,7 @@ services:
       - ../patch/board:/repo/patch/board:ro
       - ../patch/common:/repo/patch/common:ro
       - ../patch/modules:/repo/patch/modules:ro
+      - ../patch/script/dist:/repo/patch/script/dist:ro   # the compiler and editor of the Code node (cd patch/script && npm run bundle); without them the Add menu has no Code node
       - ../patch/web:/repo/patch/web:ro
       - ./app/public/play:/repo/website/app/public/play
 

@@ -9,6 +9,7 @@
     "build": "npm run docs && next build && node scripts/csp-hashes.mjs out"
   },
   "dependencies": {
+    "highlight.js": "^11.12.0",
     "marked": "^15.0.0",
     "next": "^16.4.2",
     "react": "^19.0.0",
