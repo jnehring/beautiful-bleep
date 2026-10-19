@@ -42,7 +42,7 @@ export class BleepError extends Error {
 }
 
 // ---- decorator arguments: a small literal parser (never eval) ---------------------------------------------------------
-function parseLiteral(text, idents = {}) {
+function parseLiteral(text, idents = {}, lenient = false) {
   let i = 0;
   const fail = (why) => { throw new Error(`${why} in "${text.length > 60 ? text.slice(0, 60) + "…" : text}"`); };
   const ws = () => { while (i < text.length && /\s/.test(text[i])) i++; };
@@ -60,6 +60,7 @@ function parseLiteral(text, idents = {}) {
       if (word[0] === "false") return false;
       if (word[0] === "null") return null;
       if (Object.prototype.hasOwnProperty.call(idents, word[0])) return idents[word[0]];   // a setting of the module, e.g. count: CHANNELS
+      if (lenient) return { ident: word[0] };   // @module: the settings it declares are not known until it has been read (layout: repeat: CHANNELS)
       fail(`only literals and the module's settings are allowed in decorator arguments, not '${word[0]}'`);
     }
     return fail("unexpected character " + JSON.stringify(c));
@@ -143,7 +144,7 @@ function docOf(source, node) {
   } catch { return ""; }
 }
 
-function decoratorsOf(node, source, idents = {}) {
+function decoratorsOf(node, source, idents = {}, lenient = false) {
   const out = {};
   for (const d of node.decorators || []) {
     const name = d.name && d.name.text;
@@ -151,11 +152,11 @@ function decoratorsOf(node, source, idents = {}) {
     let options = {};
     if (d.args && d.args.length) {
       try {
-        const v = parseLiteral(ASTBuilder.build(d.args[0]), idents);
+        const v = parseLiteral(ASTBuilder.build(d.args[0]), idents, lenient);
         options = typeof v === "string" ? { name: v } : v;
         if (!options || typeof options !== "object" || Array.isArray(options)) throw new Error("expected an object or a name");
         if (d.args[1]) {   // @on("jack", { rising: 0.5 }): the second argument adds options
-          const more = parseLiteral(ASTBuilder.build(d.args[1]), idents);
+          const more = parseLiteral(ASTBuilder.build(d.args[1]), idents, lenient);
           if (!more || typeof more !== "object" || Array.isArray(more)) throw new Error("the second argument must be an object");
           options = { ...options, ...more };
         }
@@ -167,6 +168,73 @@ function decoratorsOf(node, source, idents = {}) {
 }
 
 const MAX_COUNT = 64;
+
+// ---- the widget layout (@module option `layout`): a tree of widgets bound to the module's params, probes and buttons -------------------------
+const WIDGETS = ["knob", "fader", "toggle", "select", "meter", "value", "button", "label", "spacer"];
+const CONTAINERS = ["row", "column"];
+const MAX_LAYOUT_ITEMS = 400;
+
+/// Validates and expands the layout the module declares: `repeat` is unrolled (`{n}` in strings becomes 1, 2, …), a bare id becomes the widget
+/// that suits it, and every id must be a param, probe or button of the module. Returns a plain tree: { type, ... } with `children` for rows and columns.
+function normalizeLayout(raw, mod, bad, node, values) {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw)) bad(node, "@module layout must be a list of widgets, e.g. layout: [{ fader: \"vol\", meter: \"level\" }]");
+  const params = new Map(mod.params.map((p) => [p.id, p]));
+  const probes = new Set(mod.probes.map((p) => p.id));
+  const buttons = new Set(mod.buttons.map((b) => b.id));
+  let count = 0;
+  const sub = (v, n) => (typeof v === "string" ? v.replaceAll("{n}", String(n)) : v);
+  const fail = (message) => bad(node, `layout: ${message}`);
+  const param = (id) => { if (!params.has(id)) fail(`'${id}' is not a param of this module (${[...params.keys()].slice(0, 8).join(", ")}${params.size > 8 ? ", …" : ""})`); return params.get(id); };
+  const probe = (id) => { if (!probes.has(id)) fail(`'${id}' is not a probe of this module (${[...probes].join(", ") || "it has none"})`); return id; };
+  const item = (it, n) => {
+    if (++count > MAX_LAYOUT_ITEMS) fail(`at most ${MAX_LAYOUT_ITEMS} widgets`);
+    if (typeof it === "string") {   // a bare id: the widget that suits it
+      const id = sub(it, n);
+      if (params.has(id)) { const k = params.get(id).kind; return { type: k === "bool" ? "toggle" : k === "choice" ? "select" : "knob", param: id }; }
+      if (probes.has(id)) return { type: "meter", probe: id };
+      if (buttons.has(id)) return { type: "button", button: id };
+      fail(`'${id}' is not a param, probe or button of this module`);
+    }
+    if (!it || typeof it !== "object" || Array.isArray(it)) fail("a widget is an id like \"vol\" or an object like { knob: \"vol\" }");
+    const keys = Object.keys(it);
+    const container = CONTAINERS.find((c) => keys.includes(c));
+    if (container) {
+      if (!Array.isArray(it[container])) fail(`${container} must hold a list of widgets`);
+      const children = [];
+      if (it.repeat !== undefined) {
+        const named = it.repeat && typeof it.repeat === "object" && it.repeat.ident;
+        if (named && !Object.prototype.hasOwnProperty.call(values, named)) fail(`repeat: '${named}' is not a setting of this module`);
+        const times = named ? values[named] : it.repeat;
+        if (!Number.isInteger(times) || times < 1 || times > MAX_COUNT) fail(`repeat must be a whole number or a setting, from 1 to ${MAX_COUNT}`);
+        for (let k = 1; k <= times; k++) children.push({ type: container, ...(it.title ? { title: sub(it.title, k) } : {}), children: it[container].map((c) => item(c, k)) });
+        return { type: "column", children: [], repeat: true, expanded: children };   // flattened below: the repeats sit side by side in a row of their own
+      }
+      return { type: container, ...(it.title !== undefined ? { title: sub(it.title, n) } : {}), children: it[container].map((c) => item(c, n)) };
+    }
+    const widget = WIDGETS.find((w) => keys.includes(w));
+    if (!widget) fail(`a widget needs one of: ${[...WIDGETS, ...CONTAINERS].join(", ")}`);
+    const out = { type: widget };
+    const v = sub(it[widget], n);
+    if (widget === "knob" || widget === "fader" || widget === "toggle" || widget === "select" || widget === "value") {
+      const p = param(v);
+      if (widget === "toggle" && p.kind !== "bool") fail(`toggle '${v}': the param is not a boolean`);
+      if (widget === "select" && p.kind !== "choice") fail(`select '${v}': the param has no choices`);
+      if ((widget === "knob" || widget === "fader") && (p.kind === "bool" || p.kind === "choice")) fail(`${widget} '${v}': the param is a ${p.kind === "bool" ? "toggle" : "choice"}; use ${p.kind === "bool" ? "toggle" : "select"}`);
+      out.param = v;
+    } else if (widget === "meter") out.probe = probe(v);
+    else if (widget === "button") { if (!buttons.has(v)) fail(`button '${v}' is not a @button of this module`); out.button = v; }
+    else if (widget === "label") out.text = String(v ?? "");
+    if (it.label !== undefined) out.label = sub(it.label, n);
+    if (it.meter !== undefined && widget !== "meter") { if (widget !== "fader") fail("meter: is only for a fader"); out.probe = probe(sub(it.meter, n)); }
+    if (it.title !== undefined) out.title = sub(it.title, n);
+    return out;
+  };
+  // a repeat sits in the list as a marker holding its copies; flatten puts the copies in its place, at any depth
+  const settle = (w) => (w.children ? { ...w, children: flatten(w.children) } : w);
+  const flatten = (list) => list.flatMap((w) => (w.repeat ? w.expanded.map(settle) : [settle(w)]));
+  return flatten(raw.map((it) => item(it, 1)));
+}
 
 /// The settings a module declares: [{ id, name, min, max, init }], validated.
 function settingsOf(top, bad, st) {
@@ -190,7 +258,7 @@ function readModules(source, constants = {}, settingsOnly = false) {
   const file = source.normalizedPath;
   for (const st of source.statements) {
     if (!st.decorators || !st.members) continue;
-    const top = decoratorsOf(st, source);
+    const top = decoratorsOf(st, source, {}, true);
     if (!top.module) continue;
     const bad = (node, message) => { throw new BleepError(message, file, lineOf(source, node)); };
     const className = st.name.text;
@@ -315,6 +383,7 @@ function readModules(source, constants = {}, settingsOnly = false) {
       }
       h.index = mod.inputs.indexOf(jack);
     }
+    mod.layout = normalizeLayout(top.module.layout, mod, bad, st, mod.values);
     if (!mod.params.length && !mod.inputs.length && !mod.outputs.length) bad(st, `module '${className}' declares nothing: add @input, @output or @param fields`);
   }
   return modules;
@@ -347,6 +416,7 @@ export function specOf(mod) {
       };
       if (p.map && p.map !== "linear") { out.map = p.map; if (p.map === "skew") out.centre = p.centre; }
       if (p.doc) out.description = p.doc;
+      if (p.minText) out.minText = p.minText;   // the text shown at min ("-inf"): for the widgets of the Code node's view
       if (p.unit) out.label = p.unit;
       if (p.group) out.group = p.group;
       if (p.choices) out.choices = p.choices;
@@ -357,6 +427,7 @@ export function specOf(mod) {
     buttons: mod.buttons.map(({ id, name, momentary, doc }) => ({ id, name, momentary, ...(doc ? { description: doc } : {}) })),
     probes: mod.probes.map(({ id, name, doc }) => ({ id, name, ...(doc ? { description: doc } : {}) })),   // not in the ABI's description (hosts ignore unknown fields): what a view can poll
     settings: mod.settings || [],
+    ...(mod.layout ? { layout: mod.layout } : {}),   // the widgets the Code node's view draws instead of the automatic knobs
     cost: mod.cost || { ops: 0, block: 0, sample: 0, handlers: 0, limit: BUDGET.error },   // estimated ops per chunk (subset.mjs): for the editor, ignored by hosts
   };
 }

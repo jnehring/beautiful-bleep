@@ -159,13 +159,152 @@
   // ---- the view of a Code node ---------------------------------------------------------------------------------------------------------------
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 
+
+  // ---- a Code node's own UI: JavaScript in a sandboxed frame (board-code-view.html) --------------------------------------------------------
+  // The code can only compute and draw, and talk to the board through the messages below; it never touches the board, storage or the network.
+  // It is code that came with the patch, so it does not run until the user starts it (once per page session for each node).
+  const approved = new Set();   // Code nodes whose UI the user has started in this page session
+
+  function customUi(view, root, spec) {
+    const $ = (selector) => root.querySelector(selector);
+    const tabs = [...root.querySelectorAll(".bc-tab")], panes = [...root.querySelectorAll(".bc-pane")];
+    const select = (name) => {
+      tabs.forEach((t) => { const on = t.dataset.tab === name; t.classList.toggle("on", on); t.setAttribute("aria-selected", String(on)); });
+      panes.forEach((p) => { p.hidden = p.dataset.pane !== name; });
+    };
+    tabs.forEach((t) => t.addEventListener("click", () => select(t.dataset.tab)));
+    const mount = $(".bc-custom"), runButton = $(".bc-ui-run"), stopButton = $(".bc-ui-stop"), area = $(".bc-ui-source"), problems = $(".bc-ui-problems");
+    const params = spec.params || [], buttons = (spec.buttons || []).map((b) => b.id);
+
+    // the UI's source: CodeMirror when its bundle is there, a text box until then
+    let ed = null;
+    const getView = () => (ed ? ed.getValue() : area.value);
+    const setView = (text) => { if (ed) ed.setValue(text); else area.value = text; };
+    area.value = (view.node.code && view.node.code.view) || "";
+    area.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Tab" && !e.shiftKey) { e.preventDefault(); const { selectionStart: s, selectionEnd: t, value } = area; area.value = value.slice(0, s) + "  " + value.slice(t); area.selectionStart = area.selectionEnd = s + 2; }
+      else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); start(); }
+    });
+    area.addEventListener("keyup", (e) => e.stopPropagation());
+    editorBundle().then(({ createEditor }) => {
+      ed = createEditor({ parent: $(".bc-ui-editor"), doc: area.value, onRun: () => start() });
+      area.hidden = true;
+    }, () => { /* no editor bundle: the text box stays */ });
+
+    const themeOf = () => {
+      const css = getComputedStyle(root), v = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+      return { bg: v("--canvas", "#111317"), panel: v("--panel-2", "#252932"), line: v("--line", "#333845"), text: v("--text", "#e7e9ee"), muted: v("--muted", "#8b92a3"), accent: v("--accent", "#4fd1c5"), warn: v("--warn", "#ff7a6b") };
+    };
+    const values = () => Object.fromEntries(params.map((p) => [p.id, view.node.params[p.id] ?? p.default]));
+    const slim = () => params.map((p) => ({ id: p.id, name: p.name, kind: p.kind, min: p.min, max: p.max, map: p.map, centre: p.centre, choices: p.choices, steps: p.steps, label: p.label, default: p.default }));
+
+    let frame = null, listener = null, ready = false, lastProbes = {}, lastSent = 0, lastSet = 0, setCount = 0, setWindow = 0;
+    const show = (message, line) => { problems.replaceChildren(el("li", "error", line ? `Line ${line}: ${message}` : message)); };
+    function stop() {
+      if (listener) window.removeEventListener("message", listener);
+      if (frame) frame.remove();
+      frame = null; listener = null; ready = false;
+      mount.replaceChildren();
+      mount.hidden = true;
+      stopButton.disabled = true;
+    }
+    function start() {
+      const source = getView();
+      stop();
+      problems.replaceChildren();
+      if (!source.trim()) return;
+      approved.add(view.node.id);
+      const f = document.createElement("iframe");
+      f.className = "bc-frame";
+      f.title = "The module's own UI";
+      f.setAttribute("sandbox", "allow-scripts");   // without the same-origin flag: an opaque origin, so no storage, no cookies, no parent access
+      f.style.height = "160px";
+      mount.hidden = false;
+      mount.append(f);
+      frame = f;
+      stopButton.disabled = false;
+      const send = (m) => { if (f.contentWindow) f.contentWindow.postMessage(m, "*"); };
+      const onMessage = (e) => {
+        if (!f.isConnected) { window.removeEventListener("message", onMessage); return; }
+        if (e.source !== f.contentWindow) return;
+        const m = e.data;
+        if (!m || typeof m !== "object") return;
+        const now = Date.now();
+        switch (m.t) {
+          case "hello": send({ t: "init", source, params: slim(), values: values(), probes: lastProbes, theme: themeOf() }); break;
+          case "ready": ready = true; break;
+          case "error": show(String(m.message || "error").slice(0, 300), Number.isInteger(m.line) ? m.line : null); break;
+          case "size": if (Number.isFinite(m.h)) f.style.height = `${Math.max(40, Math.min(800, Math.round(m.h)))}px`; break;
+          case "command": if (buttons.includes(m.id)) view.api.command(m.id, 1); break;
+          case "set": {
+            if (now - setWindow > 1000) { setWindow = now; setCount = 0; }
+            if (++setCount > 240) break;   // a runaway loop cannot flood the engine
+            const p = params.find((q) => q.id === m.id);
+            if (!p) break;
+            let x = Number.isFinite(m.x) ? m.x : Number.isFinite(m.units) && P.BleepCodeWidgets ? P.BleepCodeWidgets.fromUnits(p, m.units) : null;
+            if (x === null) break;
+            x = Math.max(0, Math.min(1, x));
+            if (p.steps > 1) x = Math.round(x * (p.steps - 1)) / (p.steps - 1);
+            if (now - lastSet > 400 && view.api.beginGesture) view.api.beginGesture();   // one undo step per movement
+            lastSet = now;
+            view.node.params[p.id] = x;
+            view.api.setParam(p.id, x);
+            break;
+          }
+          default: break;
+        }
+      };
+      window.addEventListener("message", onMessage);
+      listener = onMessage;
+      f.src = new URL("board-code-view.html", document.baseURI).href;
+    }
+    runButton.addEventListener("click", () => { start(); const code = view.node.code; if (code) view.api.setNodeProperty("code", { ...code, ...(getView().trim() ? { view: getView() } : {}) }); });
+    stopButton.addEventListener("click", stop);
+
+    // a UI that came with the patch asks before it runs
+    function offer() {
+      const box = el("div", "bc-offer");
+      const go = el("button", "", "Run this UI");
+      go.type = "button";
+      go.addEventListener("click", start);
+      box.append(el("span", "", "This node has its own UI, written in JavaScript. It runs in a sandbox with no network and no access to the board."), go);
+      mount.hidden = false;
+      mount.replaceChildren(box);
+    }
+    if (getView().trim()) { if (approved.has(view.node.id)) start(); else offer(); }
+
+    return {
+      getView, setView, start,
+      /// The engine's state arrives: the UI sees the knob values and the probes, up to 30 times a second.
+      onState(st, probeIds) {
+        for (const id of probeIds) { const v = Number(st && st[id]); if (Number.isFinite(v)) lastProbes[id] = v; }
+        const now = Date.now();
+        if (!frame || !ready || now - lastSent < 33) return;
+        lastSent = now;
+        frame.contentWindow.postMessage({ t: "state", values: values(), probes: lastProbes }, "*");
+      },
+      stop,
+    };
+  }
+
   function build(view, root) {
     const node = view.node;
     const ui = {
       bar: root.querySelector(".bc-bar"), compile: root.querySelector(".bc-compile"), examples: root.querySelector(".bc-examples"),
       status: root.querySelector(".bc-status"), gutter: root.querySelector(".bc-gutter"), source: root.querySelector(".bc-source"),
       problems: root.querySelector(".bc-problems"), probes: root.querySelector(".bc-probes"), settings: root.querySelector(".bc-settings"),
+      widgets: root.querySelector(".bc-widgets"),
     };
+    // A module that declares a widget layout shows it in place of the automatic knobs, buttons and meters (board-code-widgets.js)
+    const iface = node.code && node.code.interface;
+    let widgets = null;
+    if (iface && iface.layout && P.BleepCodeWidgets) {
+      widgets = P.BleepCodeWidgets.build(view, iface.layout, iface, ui.widgets);
+      ui.widgets.hidden = false;
+      ui.probes.classList.add("covered");   // the layout has its own meters
+      for (const e of view.root.querySelectorAll(".bv-controls, .bv-buttons")) e.hidden = true;
+    }
     // the settings the source declares (a count, such as the number of channels): changing one compiles again
     const settingValues = { ...((node.code && node.code.settings) || {}) };
     const declared = (node.code && node.code.interface && node.code.interface.settings) || [];
@@ -183,6 +322,8 @@
       ui.settings.append(label);
     }
     const setStatus = (text, cls = "") => { ui.status.textContent = text; ui.status.className = "bc-status " + cls; };
+    const custom = customUi(view, root, iface || {});
+    const withView = (code) => (custom.getView().trim() ? { ...code, view: custom.getView() } : code);   // the UI's source rides along with every save
     let examples = [];
 
     // The source is in a CodeMirror editor once its bundle has loaded (bleep-script-editor.js); until then, and where it is missing,
@@ -255,7 +396,7 @@
         const settings = Object.fromEntries((r.interface.settings || []).map((s) => [s.id, s.value]));
         try { await register({ id: view.node.id, code: { source, settings } }, r); }
         catch (e) { showProblems([{ severity: "error", message: `the engine refused the module: ${e.message}`, line: null, column: null }]); setStatus("the engine refused the module; the previous version keeps running", "bad"); return; }
-        view.api.setNodeProperty("code", { source, interface: r.interface, settings });
+        view.api.setNodeProperty("code", withView({ source, interface: r.interface, settings }));
         setStatus(`${r.interface.name}: ${r.wasm.length} bytes, compiled in ${r.ms} ms${costText(r.interface)}`, "ok");
       } catch (e) {
         setStatus(`the compiler could not run: ${e.message}`, "bad");
@@ -267,7 +408,7 @@
       showProblems(r.problems);
       if (!r.ok) { setStatus(`${r.problems.filter((p) => p.severity === "error").length} error(s); the cell stays as it was`, "bad"); return; }
       const settings = Object.fromEntries((r.interface.settings || []).map((s) => [s.id, s.value]));
-      view.api.applyGenerated({ source, interface: r.interface, settings }, r);
+      view.api.applyGenerated(withView({ source, interface: r.interface, settings }), r);
       setStatus(`${r.interface.name}: ${r.interface.summary.modules} modules and ${r.interface.summary.cables} cables made`, "ok");
     }
     ui.compile.addEventListener("click", run);
@@ -296,9 +437,11 @@
       const ex = examples.find((e) => e.id === ui.examples.value);
       if (!ex) return;
       setSource(ex.source); showProblems([]);
+      if (ex.view !== undefined) custom.setView(ex.view);   // an example with its own UI brings the code for it (the UI tab; press Run UI)
       ui.examples.value = "";
     });
-    view.code = { ui, key: keyOf(node), showProbes: (st) => showProbes(view, ui, st) };
+    const probeIds = ((iface && iface.probes) || []).map((p) => p.id);
+    view.code = { ui, key: keyOf(node), showProbes: (st) => { if (widgets) widgets.update(st); else showProbes(view, ui, st); custom.onState(st, probeIds); }, refreshWidgets: () => widgets && widgets.update(null) };
     view.codeKey = keyOf(node);
   }
 
@@ -395,11 +538,23 @@
       <div class="bc-bar"><button class="bc-compile" title="Compile (Ctrl/Cmd+Enter)">Compile</button>
         <select class="bc-examples" aria-label="Load an example"><option value="">Examples…</option></select><span class="bc-status"></span></div>
       <div class="bc-settings" hidden></div>
-      <div class="bc-editor"><pre class="bc-gutter" aria-hidden="true"></pre><textarea class="bc-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Source code"></textarea></div>
-      <ul class="bc-problems" aria-label="Problems"></ul>
+      <div class="bc-widgets" hidden></div>
+      <div class="bc-custom" hidden></div>
+      <div class="bc-tabs" role="tablist"><button type="button" class="bc-tab on" data-tab="script" role="tab" aria-selected="true">Script</button><button type="button" class="bc-tab" data-tab="ui" role="tab" aria-selected="false">UI</button></div>
+      <div class="bc-pane" data-pane="script">
+        <div class="bc-editor"><pre class="bc-gutter" aria-hidden="true"></pre><textarea class="bc-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Source code"></textarea></div>
+        <ul class="bc-problems" aria-label="Problems"></ul>
+      </div>
+      <div class="bc-pane" data-pane="ui" hidden>
+        <div class="bc-ui-bar"><button type="button" class="bc-ui-run">Run UI</button><button type="button" class="bc-ui-stop" disabled>Stop</button>
+          <span class="bc-ui-note">JavaScript that draws this module's own UI. It runs in a sandbox with no network and no access to the board.</span></div>
+        <div class="bc-ui-editor"><textarea class="bc-ui-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="UI code"></textarea></div>
+        <ul class="bc-ui-problems" aria-label="UI problems"></ul>
+      </div>
       <div class="bc-probes" hidden></div>
     </div>`,
     afterBuild(view, customEl) { build(view, customEl); },
     onState(st, view) { if (view.code) view.code.showProbes(st); },
+    onRefresh(view) { if (view.code) view.code.refreshWidgets(); },
   });
 })();

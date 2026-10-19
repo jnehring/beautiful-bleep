@@ -9,7 +9,7 @@
        Windows): the board has no frames, plugins, forms or <base>, so these cannot break loading. They keep a module view from adding
        a frame (a frame would be a second window that has the platform's message channel). The browser build adds its full policy
        (scripts/build/build-web.sh); a script-src for the app is left out until it is tried in each web view. -->
-  <meta http-equiv="Content-Security-Policy" content="frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Play</title>
   <link rel="stylesheet" href="board.css">
@@ -70,6 +70,7 @@
   <script src="keyboard.js"></script>
   <script src="level-meter.js"></script>
   <script src="audio-mixer.js"></script>
+  <script src="board-code-widgets.js"></script>
   <script src="board-code.js"></script>
   <script src="panel-wiring.js"></script>
   <script src="panels.js"></script>

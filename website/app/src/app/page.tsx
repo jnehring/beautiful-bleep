@@ -33,6 +33,31 @@ export default function Home() {
         See <a href="/docs/musicians/start/ways-to-use/">Ways to use Beautiful Bleep</a>.
       </p>
 
+      <h2>More than patch cables</h2>
+      <div className="grid">
+        <div className="card">
+          <h3>Custom UIs with panels</h3>
+          <p>
+            Group a patch into a cell and give it a front panel with just the controls that matter, so it plays like an
+            instrument. <a href="/docs/musicians/learn/cells-and-panels/">Cells and panels</a>.
+          </p>
+        </div>
+        <div className="card">
+          <h3>Bleep Script</h3>
+          <p>
+            A programming language for the board. Write your own modules, route messages and generate whole patches in code.{" "}
+            <a href="/docs/developers/bleep-script/overview/">Read the Bleep Script docs</a>.
+          </p>
+        </div>
+        <div className="card">
+          <h3>Bleep Assistant</h3>
+          <p>
+            An AI agent in the board that helps you patch: it adds and wires modules, builds panels and designs sounds.{" "}
+            <a href="/docs/developers/bleep-assistant/overview/">How the assistant works</a>.
+          </p>
+        </div>
+      </div>
+
       <h2>Modules</h2>
       <p>{modules().length} modules in {modulesByCategory().length} categories, each with a manual, in the <a href="/library/?kind=module">Bleep Library</a>.</p>
 

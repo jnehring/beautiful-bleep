@@ -661,3 +661,52 @@ body.plugin #side-toggle { display: none; }
 
 .bc-editor.cm { display: block; }
 .bc-editor.cm .cm-editor { height: 100%; user-select: text; -webkit-user-select: text; }
+
+/* The widget layout of a Code node (board-code-widgets.js) */
+.bcw-layout { display: flex; flex-direction: column; gap: 10px; }
+.bcw-group { display: flex; flex-direction: column; background: var(--panel-2); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.bcw-group.row { flex-direction: column; }
+.bcw-group.row > .bcw-inner { display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.bcw-group.column > .bcw-inner { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.bcw-title { color: var(--muted); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+.bcw { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text); }
+.bcw-label { color: var(--muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; text-align: center; }
+.bcw-value { color: var(--text); font-size: 11px; font-variant-numeric: tabular-nums; min-width: 4em; text-align: center; }
+.bcw-value.big { font-size: 16px; }
+.bcw-knob svg { width: 56px; height: 56px; cursor: ns-resize; touch-action: none; }
+.bcw-knob svg:focus-visible, .bcw-fader-track:focus-visible { outline: 2px solid var(--sel); outline-offset: 2px; }
+.bcw-track { fill: none; stroke: var(--line); stroke-width: 5; stroke-linecap: round; }
+.bcw-arc { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }
+.bcw-pointer { stroke: var(--text); stroke-width: 2.5; stroke-linecap: round; }
+.bcw-fader-body { display: flex; gap: 6px; height: 120px; }
+.bcw-fader-track { position: relative; width: 14px; height: 100%; background: var(--panel-3); border-radius: 7px; cursor: ns-resize; touch-action: none; }
+.bcw-fader-thumb { position: absolute; left: -4px; width: 22px; height: 12px; border-radius: 4px; background: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
+.bcw-bar { position: relative; background: var(--panel-3); border-radius: 4px; overflow: hidden; }
+.bcw-bar:not(.vertical) { width: 100%; min-width: 90px; height: 8px; }
+.bcw-bar.vertical { width: 8px; height: 100%; }
+.bcw-bar i { display: block; background: var(--accent); }
+.bcw-bar:not(.vertical) i { height: 100%; width: 0; }
+.bcw-bar.vertical i { position: absolute; bottom: 0; left: 0; width: 100%; height: 0; }
+.bcw-toggle, .bcw-button { padding: 4px 10px; background: var(--panel-3); border: 1px solid var(--line); border-radius: 6px; color: var(--text); cursor: pointer; font: inherit; }
+.bcw-toggle.on { background: var(--accent); color: #0b1d1b; border-color: var(--accent); }
+.bcw-select select { font: inherit; color: var(--text); background: var(--panel-3); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+.bcw-text { color: var(--muted); }
+.bcw-spacer { flex: 1; }
+
+.bc-probes.covered { display: none; }
+
+/* The Code node's tabs and its own UI (board-code-view.html) */
+.bc-tabs { display: flex; gap: 4px; margin: 6px 0 4px; }
+.bc-tab { background: transparent; border: 1px solid var(--line); border-bottom-color: transparent; border-radius: 6px 6px 0 0; color: var(--muted); padding: 3px 12px; cursor: pointer; font: inherit; }
+.bc-tab.on { background: var(--panel-3); color: var(--text); }
+.bc-ui-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.bc-ui-note { color: var(--muted); font-size: 11px; }
+.bc-ui-editor { height: 240px; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.bc-ui-editor .cm-editor { height: 100%; user-select: text; -webkit-user-select: text; }
+.bc-ui-source { width: 100%; height: 100%; resize: none; border: 0; background: transparent; color: var(--text); padding: 8px; box-sizing: border-box; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; user-select: text; -webkit-user-select: text; }
+.bc-ui-problems { list-style: none; margin: 6px 0 0; padding: 0; }
+.bc-ui-problems:empty { display: none; }
+.bc-ui-problems li { color: var(--warn); padding: 2px 4px; user-select: text; }
+.bc-custom { margin-bottom: 8px; }
+.bc-frame { display: block; width: 100%; border: 0; border-radius: 8px; background: var(--panel-2); }
+.bc-offer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; background: var(--panel-2); border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); }

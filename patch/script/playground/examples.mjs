@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Examples for the playground. "Gains" is the real module in src/; the others are written here.
 
-export const EXAMPLES = [
-  { id: "fold", name: "Wave folder", source: `import { Smoother, PeakHold } from "./bleep/dsp";
+const FOLD_SOURCE = `import { Smoother, PeakHold } from "./bleep/dsp";
 
 @module({
   name: "Fold",
@@ -38,7 +37,57 @@ export class Fold {
     this.level = this.meter.next(this.out);
   }
 }
-` },
+`;
+
+const FOLD_VIEW = String.raw`// The UI of this module, in plain JavaScript. It runs in a sandbox: it can compute and draw, read the module's knobs and meters, and set the
+// knobs, and nothing else. The object bleep is all it is given.
+const c = bleep.canvas(190);                       // a canvas as wide as the view
+const drive = bleep.param("drive"), mix = bleep.param("mix");
+const t = bleep.theme;
+let level = 0, dragging = false;
+
+// drag in the picture: left and right is Drive, up and down is Mix
+c.el.style.cursor = "crosshair";
+c.el.addEventListener("pointerdown", (e) => { dragging = true; c.el.setPointerCapture(e.pointerId); move(e); });
+c.el.addEventListener("pointermove", (e) => { if (dragging) move(e); });
+c.el.addEventListener("pointerup", () => { dragging = false; });
+function move(e) {
+  const r = c.el.getBoundingClientRect();
+  drive.setNormalised((e.clientX - r.left) / r.width);
+  mix.setNormalised(1 - (e.clientY - r.top) / r.height);
+}
+
+bleep.onFrame(() => {
+  const g = c.g, w = c.width, h = c.height;
+  g.clearRect(0, 0, w, h);
+  g.fillStyle = t.bg; g.fillRect(0, 0, w, h);
+  g.strokeStyle = t.line; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.stroke();
+
+  // the transfer curve: what the module does to a signal from -1 to +1
+  g.strokeStyle = t.accent; g.lineWidth = 2.5; g.beginPath();
+  for (let px = 0; px <= w; px++) {
+    const x = (px / w) * 2 - 1;
+    const y = x + (Math.sin(x * drive.value) - x) * mix.value;
+    const py = h / 2 - (y * (h / 2 - 8));
+    px === 0 ? g.moveTo(px, py) : g.lineTo(px, py);
+  }
+  g.stroke();
+
+  // the level, as a dot sliding up the curve
+  level += (bleep.probe("level") - level) * 0.25;
+  const x = Math.min(1, level), y = x + (Math.sin(x * drive.value) - x) * mix.value;
+  g.fillStyle = t.text;
+  g.beginPath(); g.arc(w / 2 + x * (w / 2 - 6), h / 2 - y * (h / 2 - 8), 4, 0, Math.PI * 2); g.fill();
+
+  g.fillStyle = t.muted; g.font = "11px system-ui";
+  g.fillText("Drive " + drive.value.toFixed(1) + "   Mix " + mix.value.toFixed(2) + "   (drag to change)", 8, 14);
+});
+`;
+
+export const EXAMPLES = [
+  { id: "fold", name: "Wave folder", source: FOLD_SOURCE },
+  { id: "fold-ui", name: "Wave folder with its own UI", source: FOLD_SOURCE, view: FOLD_VIEW },
   { id: "tremolo", name: "Tremolo", source: `@module({
   name: "Tremolo",
   category: "Utility/Script",
@@ -117,6 +166,17 @@ export class Router {
   colour: "#60a5fa",
   description: "A mixer with as many channels as you set: a three band EQ, a low-pass, a fader, mute and solo on each.",
   settings: [{ id: "CHANNELS", name: "Channels", min: 1, max: 16, init: 4 }],
+  // The widgets the view shows instead of the automatic knobs: one strip per channel, then the master.
+  layout: [
+    { row: [
+      { repeat: CHANNELS, title: "Ch {n}", column: [
+        { knob: "high{n}" }, { knob: "mid{n}" }, { knob: "low{n}" }, { toggle: "lp{n}" },
+        { fader: "vol{n}", meter: "level{n}" },
+        { row: [{ toggle: "solo{n}" }, { toggle: "mute{n}" }] },
+      ] },
+      { title: "Master", column: [{ fader: "master", meter: "masterLevel" }] },
+    ] },
+  ],
 })
 export class Mixer {
   @input({ name: "Ch", type: "audio", count: CHANNELS }) ch!: StaticArray<f32>;
@@ -234,5 +294,5 @@ export default cell("SuperSaw", {
 /// The real Gains module, as built in src/ (a mixer channel).
 export async function loadExamples() {
   const gains = await (await fetch("/script/src/gains.dsp.ts")).text();
-  return [{ id: "gains", name: "Gains (mixer channel)", source: gains }, ...EXAMPLES].filter((e) => e.kind !== "patch");   // the playground compiles modules only
+  return [{ id: "gains", name: "Gains (mixer channel)", source: gains }, ...EXAMPLES].filter((e) => e.kind !== "patch" && !e.view);   // the playground compiles modules only
 }

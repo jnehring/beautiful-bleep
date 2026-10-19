@@ -32,7 +32,7 @@ async function compile(source, name = "t") {
     type: "gains", name: "Gains", category: "Utility/Mixing", colour: "#94a3b8",
     description: "Volume, mute and solo for one channel, with smoothing. Written in Bleep Script.", port: "", creatable: true, standaloneOnly: false,
     params: [
-      { id: "vol", name: "Volume", kind: "float", default: 0.909090909, steps: 0, modulatable: true, min: -60, max: 6, def: 0, format: "number", decimals: 1, label: "dB" },
+      { id: "vol", name: "Volume", kind: "float", default: 0.909090909, steps: 0, modulatable: true, min: -60, max: 6, def: 0, format: "number", decimals: 1, minText: "-inf", label: "dB" },
       { id: "mute", name: "Mute", kind: "bool", default: 0, steps: 2, modulatable: false, min: 0, max: 1, def: 0, format: "toggle", decimals: 0 },
       { id: "solo", name: "Solo", kind: "bool", default: 0, steps: 2, modulatable: false, min: 0, max: 1, def: 0, format: "toggle", decimals: 0 },
     ],
@@ -395,6 +395,63 @@ export class Mixer {
   check(!!eight.wasm && eight.specs[0].inputs.length === 8 && eight.specs[0].cost.ops > 0, "eight channels", String(eight.specs[0] && eight.specs[0].cost.ops));
   const sixteen = await compileScript(AscModule, EXAMPLES.find((e) => e.id === "mixer").source, { lib, constants: { CHANNELS: 16 } });
   check(!!sixteen.wasm, "sixteen channels is within the cost limit", sixteen.problems.map((p) => p.message).join(" | ") + " " + (sixteen.specs[0] && sixteen.specs[0].cost.ops));
+}
+
+// ---- 5e. the widget layout ------------------------------------------------------------------------------------------------------------------
+{
+  const AscModule = (await import("assemblyscript/asc")).default;
+  const source = (layout, extra = "") => `
+@module({
+  name: "Strips",
+  settings: [{ id: "CHANNELS", name: "Channels", min: 1, max: 8, init: 3 }],
+  layout: ${layout},
+})
+export class Strips {
+  @input({ name: "Ch", type: "audio", count: CHANNELS }) ch!: StaticArray<f32>;
+  @param({ name: "Vol", min: -60, max: 6, init: 0, unit: "dB", count: CHANNELS }) vol!: StaticArray<f32>;
+  @param({ name: "Mute", count: CHANNELS }) mute!: StaticArray<bool>;
+  @param({ name: "Shape", choices: ["A", "B"] }) shape: i32 = 0;
+  @param({ name: "Master", min: 0, max: 1, init: 1 }) master: f32 = 1;
+  @output({ name: "Out", type: "audio" }) out: f32 = 0;
+  @probe({ name: "Level", count: CHANNELS }) level!: StaticArray<f32>;
+  @probe({ name: "Peak" }) peak: f32 = 0;
+  constructor(sampleRate: f64) {}
+  @button({ name: "Clear" }) clear(): void { this.peak = 0; }
+  sample(): void { let s: f32 = 0; for (let i = 0; i < CHANNELS; i++) { s += this.ch[i] * this.vol[i]; this.level[i] = abs(s); } this.out = s; }
+  ${extra}
+}`;
+  const good = source(`[
+    { row: [{ repeat: CHANNELS, column: [{ fader: "vol{n}", meter: "level{n}" }, { toggle: "mute{n}" }], title: "Ch {n}" }] },
+    { row: [{ select: "shape" }, { knob: "master" }, { meter: "peak" }, "clear", { value: "master" }, { label: "Hello" }, { spacer: 1 }] },
+  ]`);
+  const r = await compileScript(AscModule, good, { lib });
+  check(!!r.wasm, "a module with a widget layout compiles", r.problems.map((p) => p.message).join(" | "));
+  if (r.wasm) {
+    const layout = r.specs[0].layout;
+    check(layout.length === 2 && layout[0].type === "row" && layout[0].children.length === 3, "repeat is unrolled: one column per channel", JSON.stringify(layout[0]).slice(0, 200));
+    const first = layout[0].children[0];
+    check(first.title === "Ch 1" && first.children[0].type === "fader" && first.children[0].param === "vol1" && first.children[0].probe === "level1" && first.children[1].type === "toggle" && first.children[1].param === "mute1", "{n} becomes the channel number; a fader carries its meter");
+    check(layout[0].children[2].title === "Ch 3", "all three channels");
+    const second = layout[1].children;
+    check(second.map((w) => w.type).join() === "select,knob,meter,button,value,label,spacer" && second[3].button === "clear", "bare ids and every widget kind", second.map((w) => w.type).join());
+    const four = await compileScript(AscModule, good, { lib, constants: { CHANNELS: 5 } });
+    check(four.specs[0].layout[0].children.length === 5, "the repeat follows the setting (5 channels)");
+  }
+  const bad = async (what, layout, pattern) => {
+    const x = await compileScript(AscModule, source(layout), { lib });
+    check(!x.wasm && x.problems.some((p) => pattern.test(p.message)), what, x.problems.map((p) => p.message).join(" | ").slice(0, 160));
+  };
+  await bad("a widget on a param that does not exist", `[{ knob: "nope" }]`, /not a param of this module/);
+  await bad("a knob on a toggle", `[{ knob: "mute1" }]`, /use toggle/);
+  await bad("a toggle on a knob", `[{ toggle: "master" }]`, /not a boolean/);
+  await bad("a select on a knob", `[{ select: "master" }]`, /no choices/);
+  await bad("a meter on something that is not a probe", `[{ meter: "master" }]`, /not a probe/);
+  await bad("a button that does not exist", `[{ button: "zap" }]`, /not a @button/);
+  await bad("a meter on a knob", `[{ knob: "master", meter: "peak" }]`, /only for a fader/);
+  await bad("an object with no widget in it", `[{ colour: "red" }]`, /needs one of/);
+  await bad("repeat of an unknown setting", `[{ repeat: NOPE, row: ["master"] }]`, /not a setting of this module/);
+  await bad("layout that is not a list", `{ knob: "master" }`, /must be a list/);
+  await bad("a bare id that is nothing", `["zzz"]`, /not a param, probe or button/);
 }
 
 // ---- 6. buttons ------------------------------------------------------------------------------------------------------------------------------

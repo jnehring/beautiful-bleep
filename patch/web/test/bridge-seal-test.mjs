@@ -261,7 +261,14 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
   ok(/BleepSeal/.test(read("board/ui/board.js")) && /seal\(\);/.test(read("board/ui/board.js")), "board.js seals before it loads module views");
   const html = read("board/ui/index.html");
   ok(html.indexOf("bleep-bridge.js") > 0 && html.indexOf("bleep-bridge.js") < html.indexOf("board-demo.js"), "the bridge is the first script");
-  ok(/Content-Security-Policy/.test(html) && /frame-src 'none'/.test(html), "index.html forbids frames");
+  // Frames: only the board's own origin (the Code node's sandboxed UI, board-code-view.html), never another site.
+  ok(/Content-Security-Policy/.test(html) && /frame-src 'self'/.test(html) && !/frame-src[^;"]*(https?:|\*)/.test(html), "index.html allows frames of its own origin only");
+  {
+    const frame = read("board/ui/board-code-view.html");
+    ok(/default-src 'none'/.test(frame) && !/connect-src|frame-src|worker-src/.test(frame), "the Code node's UI page has no network, frames or workers (default-src 'none')");
+    ok(!/allow-same-origin/.test(read("board/ui/board-code.js")) && /setAttribute\("sandbox", "allow-scripts"\)/.test(read("board/ui/board-code.js")), "the Code node's UI frame is sandboxed with allow-scripts only");
+    ok(/e\.source !== f\.contentWindow/.test(read("board/ui/board-code.js")), "messages are accepted only from that frame");
+  }
 }
 
 console.log(`bridge-seal: ${passed} checks passed, ${failed} failed`);
