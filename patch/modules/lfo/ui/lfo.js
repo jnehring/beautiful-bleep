@@ -28,7 +28,7 @@
     ],
     template: '<div class="bv-panel"><h2>Wave</h2><canvas class="lfo-wave" style="height:120px"></canvas></div>',
     afterBuild(view) {
-      const S = view.lfo = { st: null, phase: 0, last: 0 };
+      const S = view.lfo = { st: null, phase: 0, last: 0, prev: 0, cyc: 0 };
       BleepView.loop(view.root, (t) => {
         const c = view.root.querySelector(".lfo-wave");
         if (!c || !c.clientWidth) return;
@@ -40,11 +40,14 @@
           const u = unipolar ? 0.5 + 0.5 * x : x;
           return unipolar ? h - padY - u * (h - 2 * padY) : h / 2 - u * (h / 2 - padY);
         };
-        const at = (x) => { const s = x / w + offset; return value(wave, frac(s), pw, Math.floor(s), seed); };
+        const cycles = wave >= 5 ? 8 : 1;  // random waves: show several cycles, else the trace is one flat step
+        const at = (x) => { const s = (x / w) * cycles + offset; return value(wave, frac(s), pw, Math.floor(s), seed); };
         // live phase, or a free-running one
         let ph = st && typeof st.phase === "number" ? st.phase : null;
         if (ph === null) { S.phase = frac(S.phase + (t - S.last) * 0.25); ph = S.phase; }
         S.last = t;
+        if (ph < S.prev - 0.5) S.cyc = (S.cyc + 1) % cycles;
+        S.prev = ph; S.cyc %= cycles;
         // grid
         g.strokeStyle = th.line; g.lineWidth = 1; g.globalAlpha = 0.6;
         g.beginPath();
@@ -57,7 +60,7 @@
         const path = (x0, x1) => { g.beginPath(); for (let x = x0; x <= x1; x++) x > x0 ? g.lineTo(x, y(at(x))) : g.moveTo(x, y(at(x))); };
         g.strokeStyle = th.accent; g.globalAlpha = 0.28; g.lineWidth = 1.5; path(0, w); g.stroke(); g.globalAlpha = 1;
         // area under the trace up to the playhead
-        const px = Math.round(ph * w);
+        const px = Math.round(((S.cyc + ph) / cycles) * w);
         const grad = g.createLinearGradient(0, 0, 0, h);
         grad.addColorStop(0, th.accent); grad.addColorStop(1, "transparent");
         g.save(); g.globalAlpha = 0.18; g.fillStyle = grad;
