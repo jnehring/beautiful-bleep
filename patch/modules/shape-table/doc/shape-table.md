@@ -1,5 +1,7 @@
 # Shape Table
 
+![Shape Table in the module view](shape-table.png)
+
 ## Introduction
 
 Shape Table is a waveshaper where you draw the shape. A waveshaper maps

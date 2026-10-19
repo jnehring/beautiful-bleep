@@ -1,5 +1,7 @@
 # Endless Tone
 
+![Endless Tone in the module view](endless-tone.png)
+
 ## Introduction
 
 Endless Tone is a sound that rises (or falls) for ever and never gets

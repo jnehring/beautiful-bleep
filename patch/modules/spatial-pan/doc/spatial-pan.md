@@ -1,5 +1,7 @@
 # Spatial Pan
 
+![Spatial Pan in the module view](spatial-pan.png)
+
 ## Introduction
 
 Spatial Pan places a sound in a space around your head, for headphones.

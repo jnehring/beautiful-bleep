@@ -1,5 +1,7 @@
 # Strange Osc
 
+![Strange Osc in the module view](strange-osc.png)
+
 ## Introduction
 
 Strange Osc is an oscillator that is not a waveform at all: it is a small

@@ -1,5 +1,7 @@
 # Speak
 
+![Speak in the module view](speak.png)
+
 ## Introduction
 
 Speak is a small speech synthesiser in the old, characterful sense: a buzzing

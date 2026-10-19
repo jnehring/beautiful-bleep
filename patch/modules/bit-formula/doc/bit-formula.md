@@ -1,5 +1,7 @@
 # Bit Formula
 
+![Bit Formula in the module view](bit-formula.png)
+
 ## Introduction
 
 Bit Formula makes sound from a one-line sum of whole numbers. A counter

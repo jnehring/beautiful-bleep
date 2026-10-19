@@ -1,5 +1,7 @@
 # Room Print
 
+![Room Print in the module view](room-print.png)
+
 ## Introduction
 
 Room Print is a convolution reverb: it makes any sound ring as if it had

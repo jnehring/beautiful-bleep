@@ -119,3 +119,10 @@ imperfection are part of the sound.
 | Chart Recorder | [chart-recorder.md](chart-recorder.md) | Modulation | Draft |
 | Sampler | [sampler.md](sampler.md) | Audio | Implemented (v1) |
 | XY Scope | [xy-scope.md](xy-scope.md) | Utility | Draft |
+| Strange Osc | [strange-osc.md](strange-osc.md) | Sources | Implemented |
+| Bit Formula | [bit-formula.md](bit-formula.md) | Sources | Implemented |
+| Speak | [speak.md](speak.md) | Sources | Implemented |
+| Endless Tone | [endless-tone.md](endless-tone.md) | Sources | Implemented |
+| Spatial Pan | [spatial-pan.md](spatial-pan.md) | Audio | Implemented |
+| Room Print | [room-print.md](room-print.md) | Effects | Implemented |
+| Shape Table | [shape-table.md](shape-table.md) | Effects | Implemented |
