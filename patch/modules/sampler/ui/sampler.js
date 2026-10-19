@@ -2,7 +2,7 @@
 // Sampler view (doc/specs/modules/sampler.md §5): the waveform with slice markers,
 // the current slice highlighted and a dot per playhead; slicing controls
 // (manual, threshold, beats); per-slice settings for the selected slice; a
-// drop target for WAV files. Click a slice to select it (shift-click to hear
+// drop target for audio files. Click a slice to select it (shift-click to hear
 // it), double-click to add a marker (double-click a marker to remove it), drag
 // a marker to move it. Threshold detection and the tempo estimate run in the
 // engine (perform "detect" / "bpm") and come back through the node's data.
@@ -52,6 +52,7 @@
     const peaks = (st.arrays && st.arrays.peaks) || [];
     const heads = (st.arrays && st.arrays.heads) || [];
     const d = data(view), len = total(view);
+    const gainLin = Math.pow(10, (-24 + 48 * view.value(st, "gain")) / 20);  // the Gain dial scales the drawing too
     const markers = sp.drag ? sp.drag.markers : ((st.arrays && st.arrays.markers) || d.markers).map(Math.round);
     const bounds = [0, ...markers, len];
     const x = (f) => (f / len) * w;
@@ -74,7 +75,7 @@
     const grad = g.createLinearGradient(0, 0, 0, h);
     grad.addColorStop(0, muted); grad.addColorStop(0.5, text); grad.addColorStop(1, muted);
     for (let i = 0; i < peaks.length; i++) {
-      const v = Math.min(1, peaks[i]) * (h / 2 - 3), fx = ((i + 0.5) / peaks.length) * len;
+      const v = Math.min(1, peaks[i] * gainLin) * (h / 2 - 3), fx = ((i + 0.5) / peaks.length) * len;
       const inCur = fx >= bounds[cur] && fx < bounds[cur + 1];
       g.fillStyle = inCur ? accent : grad;
       g.globalAlpha = inCur ? 0.95 : 0.7;
@@ -246,6 +247,8 @@
     st.id = "sa-style";
     st.textContent = ".bleep-view.sa .bv-knob{width:64px}.bleep-view.sa .bv-knob svg{width:38px;height:38px}" +
       ".bleep-view.sa .bv-sec-knobs{gap:2px 0;align-items:flex-start}.sa-beat-btns{display:flex;gap:3px;margin-top:2px}.sa-beat-btns button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:10px;padding:0 5px;cursor:pointer}.sa-beat-btns button:hover{border-color:var(--accent)}.bleep-view.sa .bv-label{font-size:9px;letter-spacing:.02em;text-align:center;white-space:normal;line-height:1.15;min-height:2.3em;display:flex;align-items:center;justify-content:center}" +
+      ".sa-tabs{display:flex;gap:4px;margin:2px 0 -2px}.sa-tabs button{background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:6px 6px 0 0;font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 12px;cursor:pointer}.sa-tabs button.on{color:var(--text);border-color:var(--accent);background:var(--panel-2)}.sa-tabs button.rec{color:#f87171}" +
+      ".bleep-view.sa:not(.bv-part) .sa-hide{display:none !important}.bleep-view.sa .bv-button.on{background:#b91c1c;color:#fff}" +
       ".sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:11px}" +
       ".sa-grid label{display:flex;justify-content:space-between;align-items:center;gap:4px;color:var(--muted)}" +
       ".sa-grid input,.sa-grid select,.bleep-view.sa .sa-tools input,.bleep-view.sa .sa-tools select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 3px}" +
@@ -259,13 +262,14 @@
     partNames: ["Waveform and slices"],
     width: 900,
     layout: [
-      { title: "Sample", params: ["start", "end", "position", "loopfade", "positionmode", "mode", "loopstyle"] },
+      { title: "Sample", params: ["gain", "start", "end", "position", "loopfade", "positionmode", "mode", "loopstyle"] },
       { title: "Pitch", params: ["transpose", "fine", "speed", "keytrack", "warp", "root", "quality"] },
       { title: "Tempo Sync", params: ["beats", "sync", "ppqn"] },
       { title: "Envelope", params: ["attack", "decay", "sustain", "release"] },
       { title: "Filter", params: ["cutoff", "resonance", "filterenv"] },
       { title: "Output", params: ["level", "pan", "velocity", "crush"] },
       { title: "Voices", params: ["voices", "voicemode", "layers", "layerpitch", "layeroffset", "triggerby", "slicemode", "output", "voiceouts"] },
+      { title: "Record", params: ["recfeedback", "recmode", "reclen", "monitor"] },
     ],
     template:
       '<div style="display:flex;gap:8px;width:100%;flex:1 1 100%;flex-wrap:wrap">' +
@@ -391,6 +395,29 @@
         mk("Fit", "Guess the beats from the detected tempo", () => { sp.fit = Date.now(); view.api.perform("bpm"); });
         bk.box.appendChild(box);
       }
+      // Tabs: the control cards are grouped, one group at a time; the waveform and the buttons stay.
+      const TABS = [["Sample", ["Sample", "Pitch", "Tempo Sync"]], ["Envelope & Filter", ["Envelope", "Filter"]], ["Output", ["Output", "Voices"]], ["Record", ["Record"]]];
+      const secs = [...view.root.querySelectorAll(".bv-controls > .bv-sec")];
+      const titleOf = (sec) => { const t = sec.querySelector(".bv-sec-title"); return t ? t.textContent : ""; };
+      const bar = document.createElement("div");
+      bar.className = "sa-tabs";
+      const showTab = (n) => {
+        sp.tab = n;
+        TABS.forEach(([, titles], i) => {
+          for (const sec of secs) if (titles.includes(titleOf(sec))) sec.classList.toggle("sa-hide", i !== n);
+          bar.children[i].classList.toggle("on", i === n);
+        });
+      };
+      TABS.forEach(([name], i) => {
+        const b = document.createElement("button");
+        b.textContent = name;
+        if (name === "Record") sp.recTab = b;
+        b.addEventListener("click", () => showTab(i));
+        bar.appendChild(b);
+      });
+      const controls = view.root.querySelector(".bv-controls");
+      if (controls) controls.parentNode.insertBefore(bar, controls);
+      showTab(sp.tab | 0);
       BleepView.loop(view.root, (t) => envelope(view, t));
       slicingPanel(view);
       slicePanel(view);
@@ -404,6 +431,13 @@
         ? (st.length / sr).toFixed(2) + " s · " + (st.channels > 1 ? "stereo" : "mono") + " · " + n + (n === 1 ? " slice" : " slices")
         : "";
       view.sp.noteEl.textContent = view.sp.note || "";
+      const rs = st.recState | 0, rb = view.root.querySelector('[data-command="record"]');
+      if (rb) {
+        rb.classList.toggle("on", rs !== 0);
+        rb.textContent = rs === 1 ? "Stop (" + (st.recSeconds || 0).toFixed(1) + " s)" : rs === 2 ? "Stop overdub" : "Record";
+      }
+      if (view.sp.recTab) view.sp.recTab.classList.toggle("rec", rs !== 0);
+      if (rs !== 0) view.sp.info.textContent = (rs === 1 ? "REC " : "OVERDUB ") + (st.recSeconds || 0).toFixed(1) + " s";
       if (!view.sp.editing) { slicingPanel(view); slicePanel(view); }
       if (view.sp.fit && Date.now() - view.sp.fit > 200 && st.length > 0 && view.sp.setBeats) {
         view.sp.fit = 0;

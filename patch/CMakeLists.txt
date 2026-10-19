@@ -349,6 +349,15 @@ if (BLEEP_BUILD_TESTS AND NOT BLEEP_LIGHT_TESTS)
         juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
     add_test(NAME patch.controller-modules COMMAND bleep_controller_module_tests)
 
+    juce_add_console_app(bleep_sampler_module_test PRODUCT_NAME "Bleep Sampler Module Test")
+    target_sources(bleep_sampler_module_test PRIVATE tests/sampler_module_test.cpp ${BLEEP_ENGINE_SOURCES})
+    target_include_directories(bleep_sampler_module_test PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_sampler_module_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_sampler_module_test PRIVATE
+        bleep_dsp juce::juce_events
+        juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+    add_test(NAME patch.sampler-module COMMAND bleep_sampler_module_test)
+
     juce_add_console_app(bleep_bridge_tests PRODUCT_NAME "Bleep Bridge Tests")
     target_sources(bleep_bridge_tests PRIVATE tests/bridge_test.cpp ${BLEEP_ENGINE_SOURCES}
         bridges/standalone/BridgeProtocol.cpp bridges/standalone/BridgeClient.cpp bridges/standalone/BridgeServer.cpp)

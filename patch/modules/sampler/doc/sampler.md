@@ -84,6 +84,29 @@ detected BPM. Use *Beats* or *Tones* in *Warp* to keep a drum loop's pitch while
 follows the tempo. It matches the tempo; it does not line the loop up with the bar,
 so start it on the beat.
 
+**Gain.** *Gain* (±24 dB) boosts or cuts the sample before the filter and
+envelope, and the waveform display follows it, so a quiet file can be seen and
+heard at a useful level.
+
+**Recording.** Patch audio into *In L* (and *In R* for stereo; a lone *In L* is
+recorded as mono) and press *Record* (or raise the *Rec* gate). Press it again,
+or drop the gate, to stop: the take becomes the sample and loops at once, and is
+saved with the project. Recordings can be up to 20 seconds.
+- *Rec Mode* *Overdub* adds what comes in on top of the take at the playhead,
+  keeping the old audio at *Feedback* (100 % layers forever, lower values fade
+  the old layers out like an echo). It needs a take made here; after loading a
+  project, make a new one.
+- *Rec Length* *Beats* records exactly *Beats* beats at the current tempo and
+  stops by itself: a perfect bar for a looper. Together with *Tempo Sync* the
+  loop follows later tempo changes.
+- *Monitor* sends the input to the output while recording, or always.
+- With *Overdub*, *Feedback* below 100 % and *Rec Length* in beats, the Sampler is a
+  tempo-synced looper-delay. Overdub assumes the playhead moves at Speed 1.
+
+**Tabs.** The controls are in four tabs under the waveform: *Sample* (Gain,
+Start, End, Position, Pitch, Warp and Tempo Sync), *Envelope & Filter*, *Output*
+(Output and Voices) and *Record*.
+
 **Moving the playhead.** With *Position Mode* *Scrub*, turning *Position* (or
 modulating it) moves every sounding playhead to that point of its region, with a
 3 ms crossfade, so an LFO or a sequencer can scan through the sample. With
@@ -185,6 +208,8 @@ Five whole patches show what Sampler does. In the standalone app open **File →
 | Filter Env | −100 … +100 % | 0 % |
 | Layer Pitch | −24 … +24 semitones | 7 |
 | Layer Offset | 0 – 200 ms | 0 |
+| Gain | −24 … +24 dB | 0 |
+| Feedback | 0 – 100 % | 100 % |
 | Beats | 0.25 – 256 | 4 |
 
 Every knob is a modulation destination. *Layer Pitch* and *Layer Offset* show
@@ -209,6 +234,9 @@ in *Layers* voice mode.
 | Warp | Repitch, Beats, Tones, Texture | Repitch |
 | Tempo Sync | Off, Auto, Clock, Transport | Off |
 | Clock PPQN | 1, 2, 4, 8, 24, 48 | 24 |
+| Rec Mode | Replace, Overdub | Replace |
+| Rec Length | Free, Beats | Free |
+| Monitor | Off, Recording, Always | Off |
 | Voice Outs | Off, On | Off |
 | Output | Stereo, Mono | Stereo |
 
@@ -231,6 +259,8 @@ and Choke group (none, 1 – 8). They are saved with the markers.
 | Stop | trigger | releases every playhead |
 | Step | trigger | moves the selected slice to the next one |
 | Clock | trigger | tempo for *Tempo Sync* (*Auto* and *Clock*) |
+| In L, In R | audio | what is recorded |
+| Rec | gate | high records (or overdubs), low stops |
 
 ### Outputs
 

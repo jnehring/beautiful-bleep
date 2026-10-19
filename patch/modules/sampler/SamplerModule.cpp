@@ -147,17 +147,29 @@ public:
         Start, End, Transpose, Fine, Speed, Position, Attack, Decay, Sustain, Release, Level, Pan, Cutoff, Resonance,
         FilterEnv, Velocity, Crush, LayerPitch, LayerOffset,
         Voices, VoiceMode, Layers, TriggerBy, SliceMode, Mode, LoopStyle, LoopFade, Root, KeyTrack, Quality,
-        PositionMode, VoiceOuts, Output, Warp, Sync, Ppqn, Beats
+        PositionMode, VoiceOuts, Output, Warp, Sync, Ppqn, Beats,
+        Gain, RecMode, RecLen, Monitor, RecFeedback
     };
-    enum { Notes, Trigger, Gate, SliceIn, PitchIn, SpeedIn, VelocityIn, Stop, Step, ClockIn };
+    enum { Notes, Trigger, Gate, SliceIn, PitchIn, SpeedIn, VelocityIn, Stop, Step, ClockIn, InL, InR, RecIn };
     enum { OutL, OutR, EndOut, SliceOut, PlayheadOut, ActiveOut, Voice1 };
-    enum { NextButton, RandomButton, StopButton, AuditionCommand };
+    enum { NextButton, RandomButton, StopButton, RecordButton, AuditionCommand };
+    static constexpr double kRecSeconds = 20.0;  ///< longest recording
 
     using Module::Module;
 
     void prepare(double sampleRate) override {
         Module::prepare(sampleRate);
         dsp_.prepare(sampleRate);
+        const size_t cap = (size_t)(kRecSeconds * sampleRate);
+        if (recL_.size() != cap) {  // the recording buffer is allocated here, never on the audio thread
+            recL_.assign(cap, 0.0f);
+            recR_.assign(cap, 0.0f);
+            recLen_.store(0);
+            recState_.store(0);
+            liveA_ = false;
+            live_ = false;
+            lastJson_.clear();
+        }
     }
     void reset() override {
         dsp_.reset();
@@ -165,6 +177,8 @@ public:
         clockPrev_ = false;
         clockBpm_ = 0.0;
         syncRatio_ = 1.0;
+        recGatePrev_ = false;
+        recState_.store(0);
     }
 
     void command(const std::string& id, float value) override {
@@ -181,7 +195,9 @@ public:
             clip_.reset();
             peaks_.assign(kBins, 0.0f);
             missing_.store(false);
-            if (!clipId_.empty()) {
+            live_ = !clipId_.empty() && clipId_ == liveClipId_ && recLen_.load() > 0;
+            if (!live_ && recState_.load() == 0) recHeld_.store(false);
+            if (!clipId_.empty() && !live_) {
                 clip_ = atRate(media::load(clipId_), sampleRate_);
                 missing_.store(!clip_);
                 if (clip_) computePeaks();
@@ -223,6 +239,7 @@ public:
         hasPending_ = true;
     }
     bool takeData(std::string& json) override {
+        if (recDone_.exchange(false)) saveRecording();
         std::lock_guard<std::mutex> l(pendingLock_);
         if (!hasPending_) return false;
         hasPending_ = false;
@@ -231,12 +248,17 @@ public:
     }
 
     void liveValues(std::vector<std::pair<std::string, double>>& out) const override {
-        out.push_back({"length", clip_ ? (double)clip_->numFrames() : 0.0});
-        out.push_back({"slices", clip_ ? (double)data_.markers.size() + 1.0 : 0.0});
+        const int rs = recState_.load();
+        const bool rec = rs == 1 || live_ || recHeld_.load();
+        const double frames = rs == 1 ? (double)recPosA_.load() : (live_ || recHeld_.load()) ? (double)recLen_.load() : clip_ ? (double)clip_->numFrames() : 0.0;
+        out.push_back({"length", frames});
+        out.push_back({"slices", rec ? (double)data_.markers.size() + 1.0 : clip_ ? (double)data_.markers.size() + 1.0 : 0.0});
+        out.push_back({"recState", (double)rs});
+        out.push_back({"recSeconds", sampleRate_ > 0.0 ? (rs == 1 ? (double)recPosA_.load() : (double)recLen_.load()) / sampleRate_ : 0.0});
         out.push_back({"current", (double)current_.load()});
         out.push_back({"missing", missing_.load() ? 1.0 : 0.0});
         out.push_back({"sampleRate", sampleRate_});
-        out.push_back({"channels", clip_ ? (double)clip_->numChannels() : 0.0});
+        out.push_back({"channels", rec ? 2.0 : clip_ ? (double)clip_->numChannels() : 0.0});
     }
     /// "markers" (frames), "peaks" (max |L|,|R| over 512 bins), "heads" (position
     /// in frames and slice of each sounding voice, pairs).
@@ -244,7 +266,8 @@ public:
         std::vector<float> m;
         for (int64_t x : data_.markers) m.push_back((float)x);
         out.push_back({"markers", std::move(m)});
-        out.push_back({"peaks", peaks_});
+        if (recState_.load() == 1 || live_ || recHeld_.load()) out.push_back({"peaks", livePeaks()});
+        else out.push_back({"peaks", peaks_});
         std::vector<float> heads;
         const int n = headCount_.load();
         for (int i = 0; i < n; ++i) {
@@ -261,9 +284,10 @@ public:
     }
 
     void process(const ProcessContext& c) override {
-        if (const Loaded* ld = handoff_.get(); ld != applied_) {
+        if (const Loaded* ld = handoff_.get(); ld != applied_ && recState_.load() != 1) {  // not while a fresh recording is made
             applied_ = ld;
             dsp_.setSample(ld && ld->sample.frames > 0 ? &ld->sample : nullptr);
+            liveA_ = ld && ld->live && ld->sample.frames > 0;
             sampleSeconds_ = ld && ld->sample.frames > 0 ? (double)ld->sample.frames / sampleRate_ : 0.0;
             if (ld) dsp_.setCurrentSlice(ld->current);
         }
@@ -293,11 +317,23 @@ public:
         if (clockMode && clockBpm_ > 0.0) hostBpm = clockBpm_;
         const bool useSync = sync > 0 && sampleSeconds_ > 0.0;
         const double smooth = 1.0 - std::exp(-1.0 / (0.02 * sampleRate_));
+        const int recMode = (int)setting(RecMode), monitor = (int)setting(Monitor);
+        const float feedback = setting(RecFeedback);
+        const auto recLimit = [&]() -> int64_t {
+            int64_t n = (int64_t)recL_.size();
+            if ((int)setting(RecLen) == 1)
+                n = std::min<int64_t>(n, (int64_t)std::llround(std::clamp((double)setting(Beats), 0.25, 256.0) * 60.0 / std::max(hostBpm, 1.0) * sampleRate_));
+            return std::max<int64_t>(n, 16);
+        };
         if (setting(VoiceOuts) >= 0.5f)
             for (int v = 0; v < sm::kVoices; ++v) p.voiceOut[v] = c.isOutputConnected(Voice1 + v);
 
         pollCommands([&](const Command& cmd) {
             switch (cmd.index) {
+                case RecordButton:
+                    if (recState_.load() != 0) recStop(p);
+                    else recStart(recMode == 1, recLimit(), c.inputConnected[InR], p);
+                    break;
                 case NextButton: dsp_.nextSlice(); break;
                 case RandomButton: dsp_.randomSlice(++randomCount_); break;
                 case StopButton: dsp_.stopAll(); break;
@@ -332,6 +368,28 @@ public:
             }
             const double target = useSync ? sampleSeconds_ * hostBpm / (60.0 * std::clamp((double)value(c, Beats, i), 0.25, 256.0)) : 1.0;
             syncRatio_ += (target - syncRatio_) * smooth;
+            if (c.inputConnected[RecIn]) {  // the Rec gate: high records (or overdubs, per Rec Mode), low stops
+                const bool g = c.inputs[RecIn][i] >= 0.5f;
+                if (g && !recGatePrev_ && recState_.load() == 0) recStart(recMode == 1, recLimit(), c.inputConnected[InR], p);
+                else if (!g && recGatePrev_ && recState_.load() != 0) recStop(p);
+                recGatePrev_ = g;
+            }
+            const float inL = c.inputs[InL][i], inR = c.inputConnected[InR] ? c.inputs[InR][i] : inL;
+            if (const int rs = recState_.load(std::memory_order_relaxed); rs == 1) {
+                if (recPos_ < (int64_t)recL_.size()) {
+                    recL_[(size_t)recPos_] = inL;
+                    recR_[(size_t)recPos_] = inR;
+                    ++recPos_;
+                }
+                if (recPos_ >= recLimit_) recStop(p);
+            } else if (rs == 2) {  // overdub: the input is added at the playhead, the old audio kept by Feedback
+                double pos;
+                if (dsp_.primaryHead(pos) && recLen_.load() > 0) {
+                    const size_t k = (size_t)std::clamp<int64_t>((int64_t)pos, 0, recLen_.load() - 1);
+                    recL_[k] = recL_[k] * feedback + inL;
+                    recR_[k] = recR_[k] * feedback + inR;
+                }
+            }
             p.start = value(c, Start, i);
             p.end = value(c, End, i);
             p.transpose = value(c, Transpose, i);
@@ -349,6 +407,7 @@ public:
             p.filterEnv = value(c, FilterEnv, i);
             p.velocity = value(c, Velocity, i);
             p.crush = value(c, Crush, i);
+            p.gain = std::exp2(value(c, Gain, i) * 0.16609640474f);
             p.layerPitch = value(c, LayerPitch, i);
             p.layerOffset = value(c, LayerOffset, i);
             in.trigger = c.inputs[Trigger][i];
@@ -369,12 +428,17 @@ public:
             dsp_.tick(p, in, f);
             c.outputs[OutL][i] = f.l;
             c.outputs[OutR][i] = f.r;
+            if (monitor == 2 || (monitor == 1 && recState_.load(std::memory_order_relaxed) != 0)) {
+                c.outputs[OutL][i] += inL;
+                c.outputs[OutR][i] += inR;
+            }
             c.outputs[EndOut][i] = f.end;
             c.outputs[SliceOut][i] = f.slice;
             c.outputs[PlayheadOut][i] = f.playhead;
             c.outputs[ActiveOut][i] = f.active;
             for (int v = 0; v < sm::kVoices; ++v) c.outputs[Voice1 + v][i] = f.voice[v];
         }
+        recPosA_.store(recPos_, std::memory_order_relaxed);
         current_.store(dsp_.currentSlice());
         int n = 0;
         dsp_.forEachHead([&](double pos, int slice, bool, float env, int stage) {
@@ -390,18 +454,114 @@ public:
     }
 
 private:
+    /// [audio thread] Starts recording: fresh (replaces the sample) or overdub (into a recording that is there).
+    void recStart(bool overdub, int64_t limit, bool stereo, const patch::SamplerParams& p) {
+        if (overdub && liveA_ && recLen_.load() > 0) {
+            recState_.store(2);
+            if (dsp_.activeVoices() == 0) dsp_.startLoop(p);
+            return;
+        }
+        dsp_.stopAll();
+        dsp_.setSample(nullptr);
+        liveA_ = false;
+        recPos_ = 0;
+        recLimit_ = limit;
+        recStereo_.store(stereo);
+        recLen_.store(0);
+        recState_.store(1);
+    }
+    /// [audio thread] Ends the recording: a fresh one becomes the sample and loops at once.
+    void recStop(const patch::SamplerParams& p) {
+        const int rs = recState_.load();
+        if (rs == 1) {
+            if (recPos_ < 16) {  // nothing recorded: the old sample comes back
+                recState_.store(0);
+                applied_ = nullptr;
+                return;
+            }
+            recLen_.store(recPos_);
+            recSample_ = sm::Sample();
+            recSample_.channels = 2;
+            recSample_.ch[0] = recL_.data();
+            recSample_.ch[1] = recR_.data();
+            recSample_.frames = recPos_;
+            recSample_.slices.resize(1);
+            dsp_.setSample(&recSample_);
+            dsp_.setCurrentSlice(0);
+            liveA_ = true;
+            recHeld_.store(true);
+            sampleSeconds_ = (double)recPos_ / sampleRate_;
+            recState_.store(0);
+            dsp_.startLoop(p);
+            recDone_.store(true);
+        } else if (rs == 2) {
+            recState_.store(0);
+            recDone_.store(true);
+        }
+    }
+    /// [message thread] A recording ended: it goes to the media folder and into the node's data.
+    void saveRecording() {
+        const int64_t n = recLen_.load();
+        if (n < 16 || n > (int64_t)recL_.size()) return;
+        auto clip = std::make_shared<MediaClip>();
+        clip->name = "Recording";
+        clip->sampleRate = sampleRate_;
+        clip->channels.emplace_back(recL_.begin(), recL_.begin() + n);
+        if (recStereo_.load()) clip->channels.emplace_back(recR_.begin(), recR_.begin() + n);
+        const std::string id = media::save(*clip);
+        if (id.empty()) return;
+        NodeData d = data_;
+        if (d.length != n || d.clip.empty()) {
+            d.markers.clear();
+            d.slices.assign(1, sm::SliceCfg());
+            d.names.assign(1, std::string());
+            d.current = 0;
+        }
+        d.clip = id;
+        d.length = n;
+        liveClipId_ = id;
+        std::lock_guard<std::mutex> l(pendingLock_);
+        pending_ = juce::JSON::toString(toVar(d), true).toStdString();
+        hasPending_ = true;
+    }
+    std::vector<float> livePeaks() const {
+        std::vector<float> out((size_t)kBins, 0.0f);
+        const int64_t n = recState_.load() == 1 ? recPosA_.load() : recLen_.load();
+        if (n < 1 || n > (int64_t)recL_.size()) return out;
+        for (int b = 0; b < kBins; ++b) {
+            const int64_t from = n * b / kBins, to = std::max(n * (b + 1) / kBins, from + 1);
+            const int64_t stride = std::max<int64_t>(1, (to - from) / 64);
+            float v = 0.0f;
+            for (int64_t i = from; i < to && i < n; i += stride) v = std::max({v, std::fabs(recL_[(size_t)i]), std::fabs(recR_[(size_t)i])});
+            out[(size_t)b] = v;
+        }
+        return out;
+    }
+
     /// What the audio thread plays: the Sample plus the clip it points into.
     struct Loaded {
         patch::sampler::Sample sample;
         std::shared_ptr<const MediaClip> clip;
         int current = 0;
+        bool live = false;  ///< the sample is the recording buffer
     };
 
     void publish() {
         auto ld = std::make_shared<Loaded>();
         ld->clip = clip_;
         ld->current = data_.current;
-        if (clip_ && clip_->numChannels() > 0 && clip_->numFrames() > 1) {
+        ld->live = live_;
+        if (live_ && recLen_.load() > 1) {
+            sm::Sample& s = ld->sample;
+            s.channels = 2;
+            s.ch[0] = recL_.data();
+            s.ch[1] = recR_.data();
+            s.frames = recLen_.load();
+            for (int64_t m : data_.markers)
+                if (m > 0 && m < s.frames) s.markers.push_back(m);
+            s.slices = data_.slices;
+            s.slices.resize(s.markers.size() + 1);
+        } else if (clip_ && clip_->numChannels() > 0 && clip_->numFrames() > 1) {
             sm::Sample& s = ld->sample;
             s.channels = std::min(clip_->numChannels(), 2);
             for (int k = 0; k < s.channels; ++k) s.ch[k] = clip_->channels[(size_t)k].data();
@@ -436,7 +596,17 @@ private:
     std::mutex pendingLock_;
     std::string pending_;
     bool hasPending_ = false;
+    // recording: the buffers are allocated in prepare(); the audio thread writes them, the message thread saves them
+    std::vector<float> recL_, recR_;
+    std::atomic<int> recState_{0};  ///< 0 idle, 1 recording, 2 overdubbing
+    std::atomic<int64_t> recLen_{0}, recPosA_{0};
+    std::atomic<bool> recDone_{false}, recStereo_{false}, recHeld_{false};  ///< recHeld_: the sample is a take not yet saved
+    bool live_ = false;  // message thread: the node's clip is the recording buffer
+    std::string liveClipId_;
     // audio thread
+    sm::Sample recSample_;
+    bool liveA_ = false, recGatePrev_ = false;
+    int64_t recPos_ = 0, recLimit_ = 0;
     const Loaded* applied_ = nullptr;
     bool hadNotes_ = false;
     double sampleSeconds_ = 0.0, clockBpm_ = 0.0, syncRatio_ = 1.0;
@@ -461,7 +631,8 @@ static void registerSamplerModule(Registry& r) {
     s.category = "Audio/Sampling";
     s.colour = "#0d9488";
     s.description = "Polyphonic sample player and slicer: load a WAV, cut it into slices by hand, by transients or into "
-                    "beats, and play it from notes or triggers with up to 16 playheads, play modes, an envelope and a filter.";
+                    "beats, and play it from notes or triggers with up to 16 playheads, play modes, an envelope and a filter. "
+                    "It also records its audio inputs, to loop, overdub or use as a delay.";
     auto speed = ParamSpec::number("speed", "Speed", -4.0f, 4.0f, 1.0f, "×", 2);
     speed.map = ParamSpec::Map::Skew;
     speed.centre = 1.0f;
@@ -503,7 +674,12 @@ static void registerSamplerModule(Registry& r) {
         ParamSpec::choice("warp", "Warp", {"Repitch", "Beats", "Tones", "Texture"}, 0),
         ParamSpec::choice("sync", "Tempo Sync", {"Off", "Auto", "Clock", "Transport"}, 0),
         ParamSpec::choice("ppqn", "Clock PPQN", {"1 PPQN", "2 PPQN", "4 PPQN", "8 PPQN", "24 PPQN", "48 PPQN"}, 4).when("sync", 1, 2),
-        ParamSpec::exponential("beats", "Beats", 0.25f, 256.0f, 4.0f).inGroup("Tempo Sync").when("sync", 1, 3)};
+        ParamSpec::exponential("beats", "Beats", 0.25f, 256.0f, 4.0f).inGroup("Tempo Sync"),
+        ParamSpec::number("gain", "Gain", -24.0f, 24.0f, 0.0f, "dB", 1).inGroup("Sample"),
+        ParamSpec::choice("recmode", "Rec Mode", {"Replace", "Overdub"}, 0),
+        ParamSpec::choice("reclen", "Rec Length", {"Free", "Beats"}, 0),
+        ParamSpec::choice("monitor", "Monitor", {"Off", "Recording", "Always"}, 0),
+        ParamSpec::percent("recfeedback", "Feedback", 0.0f, 1.0f, 1.0f).inGroup("Record")};
     // Settings are plain choices; the knobs above are inputs too.
     for (auto& p : s.params)
         if (p.kind != ParamSpec::Kind::Float) p.modulatable = false;
@@ -512,7 +688,10 @@ static void registerSamplerModule(Registry& r) {
                 {"pitch", "Pitch", Signal::Pitch},         {"speed", "Speed", Signal::Pitch},
                 {"velocity", "Velocity", Signal::Control}, {"stop", "Stop", Signal::Trigger},
                 {"step", "Step", Signal::Trigger},
-                {"clock", "Clock", Signal::Trigger}};
+                {"clock", "Clock", Signal::Trigger},
+                {"inl", "In L", Signal::Audio},
+                {"inr", "In R", Signal::Audio},
+                {"rec", "Rec", Signal::Gate}};
     s.outputs = {{"l", "Out L", Signal::Audio, true},
                  {"r", "Out R", Signal::Audio, true},
                  {"end", "End", Signal::Trigger, false},
@@ -521,7 +700,7 @@ static void registerSamplerModule(Registry& r) {
                  {"active", "Active", Signal::Control, false}};
     for (int v = 1; v <= sm::kVoices; ++v)
         s.outputs.push_back(JackSpec("voice" + std::to_string(v), "Voice " + std::to_string(v), Signal::Audio, true).when("voiceouts", 1, 1));
-    s.buttons = {{"next", "Next"}, {"random", "Random"}, {"stop", "Stop"}};
+    s.buttons = {{"next", "Next"}, {"random", "Random"}, {"stop", "Stop"}, {"record", "Record"}};
     s.memoryHeavy = true;
     s.sanitiseData = sanitiseData;
     r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<SamplerModule>(spec); });

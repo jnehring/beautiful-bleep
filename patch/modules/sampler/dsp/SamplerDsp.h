@@ -104,6 +104,7 @@ struct SamplerParams {
     float level = 1.0f, pan = 0.0f;
     float cutoff = 20000.0f, resonance = 0.0f, filterEnv = 0.0f;
     float velocity = 0.5f, crush = 0.0f;
+    float gain = 1.0f;                    ///< linear, on the sample before the filter
     float layerPitch = 7.0f, layerOffset = 0.0f;  ///< semitones, milliseconds
     // settings
     int voices = 8;
@@ -254,6 +255,23 @@ public:
         if (n <= 0) return;
         rng_ = rng_ * 1664525u + 1013904223u + seed;
         current_ = (int)((rng_ >> 8) % (uint32_t)n);
+    }
+    /// Starts the whole sample looping until Stop (a recording that just ended).
+    void startLoop(const SamplerParams& p) {
+        if (!s_ || s_->frames < 2) return;
+        SamplerParams q = p;
+        q.mode = sampler::ModeLoop;
+        q.positionMode = sampler::PositionOffset;
+        q.position = 0.0f;
+        q.start = 0.0f;
+        q.end = 1.0f;
+        startGroup(-3, -1, 0.0f, 1.0f, true, q);
+    }
+    /// The position (frames) of the playhead that started last, if it sounds.
+    bool primaryHead(double& pos) const noexcept {
+        if (headSlot_ < 0 || !voices_[(size_t)headSlot_].active) return false;
+        pos = voices_[(size_t)headSlot_].pos;
+        return true;
     }
     /// Plays slice `i` (or the whole sample, i < 0) once, from the view.
     void audition(int i, const SamplerParams& p) {
@@ -741,6 +759,8 @@ private:
         }
         g *= v.fade;
 
+        l *= p.gain;
+        r *= p.gain;
         // filter, crush
         if (filterOn(p)) {
             l = v.fl.process(l).lp;
