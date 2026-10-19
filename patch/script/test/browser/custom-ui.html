@@ -1,0 +1,112 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>custom ui harness</title>
+<!-- Runs the Code node's sandboxed UI page (patch/board/ui/board-code-view.html) the way board-code.js does, in a sandboxed frame, and checks:
+     the bleep API works (params, probes, buttons, size, errors) and the code inside the frame can reach nothing it should not.
+     Run in a real browser: test/browser/run-custom-ui.sh (headless Chrome), or open /script/test/browser/custom-ui.html on the script-spike server. -->
+<pre id="out">running…</pre>
+<script type="module">
+const results = { checks: [], messages: [] };
+const check = (ok, what, detail = "") => results.checks.push({ ok: !!ok, what, detail });
+const FRAME = "/board/ui/board-code-view.html";
+const params = [
+  { id: "drive", name: "Drive", kind: "float", min: 0, max: 20, steps: 0, label: "", default: 0.1 },
+  { id: "shape", name: "Shape", kind: "choice", min: 0, max: 2, steps: 3, choices: ["A", "B", "C"], default: 0 },
+];
+
+/// Starts a frame with this source and collects its messages for `ms`.
+function run(source, { ms = 3000, onMessage = () => {}, sandbox = "allow-scripts" } = {}) {
+  return new Promise((resolve) => {
+    const f = document.createElement("iframe");
+    f.setAttribute("sandbox", sandbox);
+    const got = [];
+    const listener = (e) => {
+      if (e.source !== f.contentWindow) return;
+      const m = e.data;
+      got.push(m);
+      if (m.t === "hello") f.contentWindow.postMessage({ t: "init", source, params, values: { drive: 0.1, shape: 0 }, probes: { level: 0.5 }, theme: { panel: "#252932", text: "#fff", accent: "#4fd1c5" } }, "*");
+      onMessage(m, f);
+    };
+    window.addEventListener("message", listener);
+    f.src = FRAME;
+    document.body.append(f);
+    setTimeout(() => { window.removeEventListener("message", listener); f.remove(); resolve(got); }, ms);
+  });
+}
+
+try {
+  // 1. the API: values in, settings out, size, buttons, state, probes
+  const api = await run(`
+    const drive = bleep.param("drive"), shape = bleep.param("shape");
+    const report = (extra) => parent.postMessage(Object.assign({ t: "report" }, extra), "*");
+    report({ initial: drive.value, normalised: drive.normalised, choices: shape.choices.join(), probe: bleep.probe("level"), missing: bleep.probe("nope"), unit: shape.kind });
+    drive.setNormalised(0.25); drive.set(10); shape.set(2);
+    bleep.button("reset"); bleep.size(120);
+    bleep.onValues(() => report({ later: true, drive: drive.value, level: bleep.probe("level") }));
+    try { bleep.param("nope"); } catch (e) { report({ unknownParam: String(e.message) }); }
+    let frames = 0; bleep.onFrame((dt) => { if (++frames === 3) report({ frames, dt: typeof dt }); });
+    const c = bleep.canvas(80); report({ canvas: c.height, w: c.width > 0 });
+    report({ frozen: Object.isFrozen(bleep), noFetchGlobal: typeof bleep.fetch });
+  `, { onMessage: (m, f) => { if (m.t === "ready") setTimeout(() => f.contentWindow.postMessage({ t: "state", values: { drive: 0.5 }, probes: { level: 0.9 } }, "*"), 100); } });
+  const reports = api.filter((m) => m.t === "report");
+  const first = reports.find((r) => r.initial !== undefined) || {};
+  check(Math.abs(first.initial - 2) < 1e-9 && first.normalised === 0.1, "a param reads in its own units (0.1 of 0..20 is 2)", JSON.stringify(first));
+  check(first.choices === "A,B,C" && first.probe === 0.5 && first.missing === 0, "choices, probes, and 0 for an unknown probe");
+  const sets = api.filter((m) => m.t === "set");
+  check(sets.some((s) => s.id === "drive" && s.x === 0.25) && sets.some((s) => s.id === "drive" && s.units === 10) && sets.some((s) => s.id === "shape" && s.units === 2), "set and setNormalised reach the board", JSON.stringify(sets));
+  check(api.some((m) => m.t === "command" && m.id === "reset"), "a button press reaches the board");
+  check(api.some((m) => m.t === "size" && m.h === 120), "size() asks for a height");
+  check(reports.some((r) => /no param 'nope'/.test(r.unknownParam || "")), "an unknown param is an error with the known ids");
+  check(reports.some((r) => r.frames === 3 && r.dt === "number"), "onFrame runs every animation frame");
+  check(reports.some((r) => r.canvas === 80 && r.w === true), "canvas() makes a canvas as wide as the view");
+  const later = reports.find((r) => r.later);
+  check(later && Math.abs(later.drive - 10) < 1e-9 && later.level === 0.9, "state from the board reaches onValues (drive 0.5 -> 10, probe 0.9)", JSON.stringify(later));
+  check(reports.some((r) => r.frozen === true && r.noFetchGlobal === "undefined"), "the bleep object is frozen and has nothing beyond its API");
+
+  // 2. errors come back with a line
+  const bad = await run(`const x = 1;\nthrow new Error("boom");`);
+  const err = bad.find((m) => m.t === "error");
+  check(err && /boom/.test(err.message), "a thrown error is reported", JSON.stringify(err));
+  const unknown = await run(`bleep.param("zzz");`);
+  check(unknown.some((m) => m.t === "error" && /no param 'zzz'/.test(m.message)), "a bad call is reported as an error");
+  const late = await run(`bleep.onFrame(() => { throw new Error("in a frame"); });`);
+  check(late.some((m) => m.t === "error" && /in a frame/.test(m.message)), "an error inside a frame callback is reported and stops the UI");
+
+  // 3. the sandbox: user code tries to get out
+  const attack = await run(`
+    const out = {}; const pending = [];
+    const t = (name, fn) => { try { const r = fn(); out[name] = "ALLOWED:" + String(r).slice(0, 40); } catch (e) { out[name] = "blocked"; } };
+    t("localStorage", () => localStorage.getItem("a"));
+    t("sessionStorage", () => sessionStorage.getItem("a"));
+    t("cookie", () => document.cookie);
+    t("parentDocument", () => parent.document.title);
+    t("parentLocation", () => parent.location.href);
+    t("topDocument", () => top.document.title);
+    t("indexedDB", () => indexedDB.open("x"));
+    t("openWindow", () => { const w = window.open("/", "_blank"); if (!w) throw 1; return "opened"; });
+    t("navigateTop", () => { top.location.href = "/?escaped"; return "navigated"; });
+    t("WebSocket", () => { const s = new WebSocket("ws://127.0.0.1:1"); return s.readyState; });
+    pending.push(new Promise((res) => { try { const w = new Worker("data:text/javascript,postMessage(1)"); w.onmessage = () => { out.worker = "ALLOWED"; res(); }; w.onerror = () => { out.worker = "blocked"; res(); }; setTimeout(() => { out.worker = out.worker || "blocked"; res(); }, 800); } catch (e) { out.worker = "blocked"; res(); } }));
+    t("serviceWorker", () => navigator.serviceWorker.register("/sw.js"));
+    t("form", () => { const f = document.createElement("form"); f.action = "/?formsubmit"; document.body.append(f); f.submit(); return "submitted"; });
+    out.form = "blocked"; /* judged by the page: a navigating frame would say hello again */
+    pending.push(fetch("/", { credentials: "include" }).then(() => { out.fetch = "ALLOWED"; }, () => { out.fetch = "blocked"; }));
+    pending.push(new Promise((res) => { const x = new XMLHttpRequest(); x.onerror = () => { out.xhr = "blocked"; res(); }; x.onload = () => { out.xhr = "ALLOWED"; res(); }; try { x.open("GET", "/"); x.send(); } catch (e) { out.xhr = "blocked"; res(); } }));
+    pending.push(new Promise((res) => { const i = new Image(); i.onerror = () => { out.image = "blocked"; res(); }; i.onload = () => { out.image = "ALLOWED"; res(); }; i.src = "/favicon.ico?" + Date.now(); }));
+    pending.push(new Promise((res) => { const s = document.createElement("script"); s.onerror = () => { out.scriptTag = "blocked"; res(); }; s.onload = () => { out.scriptTag = "ALLOWED"; res(); }; s.src = "/board/ui/board-code.js"; document.head.append(s); }));
+    Promise.all(pending).then(() => parent.postMessage({ t: "report", attack: out }, "*"));
+  `, { ms: 3000 });
+  const attackReport = (attack.find((m) => m.t === "report" && m.attack) || {}).attack || {};
+  check(attack.filter((m) => m.t === "hello").length === 1, "sandbox: a form submit does not navigate the frame", String(attack.filter((m) => m.t === "hello").length));
+  for (const name of ["localStorage", "sessionStorage", "cookie", "parentDocument", "parentLocation", "topDocument", "indexedDB", "openWindow", "navigateTop", "worker", "serviceWorker", "fetch", "xhr", "image", "scriptTag"])
+    check(attackReport[name] === "blocked", `sandbox: ${name} is blocked`, attackReport[name] || "no answer");
+  check(attackReport.WebSocket === "ALLOWED:3" || attackReport.WebSocket === "blocked", "sandbox: WebSocket is closed at once (readyState 3)", String(attackReport.WebSocket));
+  results.attack = attackReport;
+} catch (e) {
+  check(false, "the harness itself failed", String(e && e.stack || e));
+}
+const failed = results.checks.filter((c) => !c.ok);
+document.getElementById("out").textContent = JSON.stringify({ failed: failed.length, total: results.checks.length, checks: results.checks, attack: results.attack }, null, 1);
+try { await fetch("/result", { method: "POST", body: JSON.stringify({ failed: failed.length, total: results.checks.length, checks: results.checks, attack: results.attack }) }); } catch (e) {}
+document.title = failed.length ? "FAILED " + failed.length : "PASSED " + results.checks.length;
+</script>

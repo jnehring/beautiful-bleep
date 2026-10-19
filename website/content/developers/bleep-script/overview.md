@@ -63,6 +63,7 @@ Compile that and the node gets an In jack, an Out jack and two dials. Nothing el
 | [Module scripts](module-scripts.md) | Reference: decorators, signal types, parameters, probes, buttons, settings |
 | [Events and routing](events.md) | Notes and edge handlers, with a router |
 | [Patch scripts](patch-scripts.md) | Reference: building cells from code |
+| [Custom UIs and widgets](custom-ui.md) | Layouts of knobs, faders and meters, or a self-made canvas UI |
 | [Library](library.md) | `bleep/dsp` and `bleep/notes`: filters, smoothing, meters, notes |
 | [Limits and safety](limits.md) | What is refused, the cost estimate, and the sandboxes |
 

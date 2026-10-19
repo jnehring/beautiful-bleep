@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- The page a Code node's own JavaScript UI runs in (board-code.js). It is loaded in an iframe with sandbox="allow-scripts" and no
+     allow-same-origin: the code in it has no access to the board, its storage, cookies or the native bridge, and this policy gives it no network
+     at all (default-src 'none'): it can compute, draw and talk to the board through the `bleep` object below, nothing else. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
+<title>Code node UI</title>
+<meta name="color-scheme" content="dark">
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; padding: 0; background: #252932; color: #e7e9ee; font: 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; overflow: hidden; }
+  canvas { display: block; width: 100%; }
+  button, select, input { font: inherit; color: inherit; }
+</style>
+</head>
+<body>
+<script>
+(function () {
+  "use strict";
+  var send = function (m) { parent.postMessage(m, "*"); };
+  var started = false, failed = false;
+  var specs = new Map(), normalised = {}, probes = {}, frameCallbacks = [], valueCallbacks = [], last = 0, canvases = [];
+
+  // The value of a knob in its own units, as the engine maps it (engine/Spec.h)
+  function toUnits(p, x) {
+    var v;
+    if (p.map === "exp") v = p.min * Math.pow(p.max / p.min, x);
+    else if (p.map === "skew") { var skew = Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min)); v = x <= 0 ? p.min : p.min + (p.max - p.min) * Math.exp(Math.log(x) / skew); }
+    else v = p.min + (p.max - p.min) * x;
+    return p.kind === "float" ? v : Math.round(v);
+  }
+  function fail(e) {
+    if (failed) return;
+    failed = true;
+    send({ t: "error", message: String(e && e.message || e), line: lineOf(e) });
+  }
+  function lineOf(e) {
+    var m = /<anonymous>:(\d+):/.exec(String(e && e.stack || "")) || /eval.*?:(\d+):\d+/.exec(String(e && e.stack || ""));
+    return m ? Math.max(1, Number(m[1]) - 2) : null;   // new Function adds two lines of header
+  }
+  function guard(fn) { return function () { try { return fn.apply(null, arguments); } catch (e) { fail(e); } }; }
+
+  function makeParam(p) {
+    var o = {
+      id: p.id, name: p.name, kind: p.kind, unit: p.label || "", min: p.min, max: p.max, steps: p.steps || 0, choices: p.choices ? p.choices.slice() : [],
+      /** The value in its own units (dB, an integer, a choice index, true as 1). */
+      get value() { return toUnits(p, normalised[p.id] !== undefined ? normalised[p.id] : p.default); },
+      /** The knob's position from 0 to 1. */
+      get normalised() { return normalised[p.id] !== undefined ? normalised[p.id] : p.default; },
+      /** Sets the value in its own units. */
+      set: function (v) { v = Number(v); if (isFinite(v)) send({ t: "set", id: p.id, units: v }); },
+      setNormalised: function (x) { x = Number(x); if (isFinite(x)) send({ t: "set", id: p.id, x: Math.max(0, Math.min(1, x)) }); },
+    };
+    return Object.freeze(o);
+  }
+
+  function start(m) {
+    if (started) return;
+    started = true;
+    m.params.forEach(function (p) { specs.set(p.id, p); normalised[p.id] = m.values[p.id]; });
+    probes = Object.assign({}, m.probes || {});
+    var paramObjects = m.params.map(makeParam), byId = new Map(paramObjects.map(function (p) { return [p.id, p]; }));
+    var api = {
+      /** Every knob of the module: { id, name, kind, unit, min, max, value, normalised, set(units), setNormalised(x) }. */
+      params: Object.freeze(paramObjects),
+      /** One knob by id. */
+      param: function (id) { var p = byId.get(String(id)); if (!p) throw new Error("no param '" + id + "' (" + paramObjects.map(function (q) { return q.id; }).join(", ") + ")"); return p; },
+      /** The latest value of a @probe, 0 until the module has reported one. */
+      probe: function (id) { var v = probes[String(id)]; return typeof v === "number" ? v : 0; },
+      /** Presses one of the module's @button methods. */
+      button: function (id) { send({ t: "command", id: String(id) }); },
+      /** Calls fn(dtSeconds) every animation frame while the UI is on screen. */
+      onFrame: function (fn) { if (typeof fn === "function") frameCallbacks.push(guard(fn)); },
+      /** Calls fn() when a knob or probe value has changed. */
+      onValues: function (fn) { if (typeof fn === "function") valueCallbacks.push(guard(fn)); },
+      /** Asks the board for a height in pixels (40 to 800); the width is the view's. */
+      size: function (h) { send({ t: "size", h: Number(h) }); },
+      /** A canvas as wide as the view, `height` CSS pixels high, scaled for the screen: { el, g, width, height }. */
+      canvas: function (height) {
+        height = Math.max(20, Math.min(800, Number(height) || 160));
+        var el = document.createElement("canvas"), g = el.getContext("2d");
+        el.style.height = height + "px";
+        document.body.appendChild(el);
+        var c = { el: el, g: g, height: height, width: 0 };
+        function fit() {
+          var dpr = window.devicePixelRatio || 1, w = Math.max(1, Math.round(document.body.clientWidth));
+          if (el.width !== Math.round(w * dpr) || el.height !== Math.round(height * dpr)) { el.width = Math.round(w * dpr); el.height = Math.round(height * dpr); }
+          g.setTransform(dpr, 0, 0, dpr, 0, 0);
+          c.width = w;
+        }
+        fit();
+        canvases.push(fit);
+        api.size(document.body.scrollHeight);
+        return c;
+      },
+      /** The board's colours: { bg, panel, line, text, muted, accent, warn }. */
+      theme: Object.freeze(Object.assign({}, m.theme)),
+    };
+    Object.freeze(api);
+    if (m.theme && m.theme.panel) document.documentElement.style.background = m.theme.panel;
+    try { (new Function("bleep", m.source))(api); }
+    catch (e) { fail(e); return; }
+    send({ t: "ready" });
+    requestAnimationFrame(tick);
+  }
+
+  function tick(now) {
+    if (failed) return;
+    var dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+    last = now;
+    canvases.forEach(function (f) { f(); });
+    for (var i = 0; i < frameCallbacks.length; i++) frameCallbacks[i](dt);
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener("message", function (e) {
+    if (e.source !== parent) return;
+    var m = e.data;
+    if (!m || typeof m !== "object") return;
+    if (m.t === "init") start(m);
+    else if (m.t === "state" && started) {
+      if (m.values) for (var id in m.values) if (specs.has(id)) normalised[id] = m.values[id];
+      if (m.probes) Object.assign(probes, m.probes);
+      for (var i = 0; i < valueCallbacks.length; i++) valueCallbacks[i]();
+    }
+  });
+  window.addEventListener("error", function (e) { fail(e.error || e.message); });
+  window.addEventListener("unhandledrejection", function (e) { fail(e.reason); });
+  send({ t: "hello" });
+})();
+</script>
+</body>
+</html>
