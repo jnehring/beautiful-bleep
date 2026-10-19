@@ -113,7 +113,7 @@ function looseTime() {
       "stays a little loose by itself; Loose adds to that.\n\n" +
       "Tip: put it only on the hats and the lead, leaving the kick and bass stiff.",
   }).input("gate", "Gate", "gate").input("pitch", "Pitch", "pitch").input("loose", "Loose")
-    .output("gout", "Gate", "gate").output("vel", "Velocity").output("pout", "Pitch", "pitch");
+    .output("gout", "Gate", "gate").output("vel", "Velocity", "control").output("pout", "Pitch", "pitch");
   const rt = p.add("random", [0, 0], { sync: "1/4", spread: 1, seed: 11 }, { name: "Timing Draw" });
   const rv = p.add("random", [0, 1], { sync: "1/4", spread: 1, seed: 29 }, { name: "Velocity Draw" });
   const rp = p.add("random", [0, 2], { sync: "1/4", spread: 1, seed: 53 }, { name: "Pitch Draw" });
@@ -145,7 +145,7 @@ function reboundEnvelope() {
       "bounce gets longer) and Velocity scales the height of the first fall.\n\n" +
       "Tip: Env into the pitch of a drum voice makes a rolling, bouncing tom.",
   }).input("gate", "Gate", "gate").input("bounce", "Bounce").input("velocity", "Velocity")
-    .output("env", "Env").output("inv", "Inverse").output("hits", "Hits", "gate").output("done", "Done", "trigger");
+    .output("env", "Env", "control").output("inv", "Inverse", "control").output("hits", "Hits", "gate").output("done", "Done", "trigger");
   const seg = p.add("segments", [1, 0], {
     count: 8, run: "Free", release: "Finish", velamount: 0.5,
     time1: 0.004, level1: 1, shape1: 0,
@@ -255,7 +255,7 @@ function holdAndCount() {
       "Open the cell and set the Switch's Length (2 to 8) to count to another number.\n\n" +
       "Tip: Held on Nth into the pitch of a bass and Held into a lead gives a lead that wanders and a bass that stays put.",
   }).input("in", "Signal").input("gate", "Gate", "gate").input("reset", "Reset", "trigger")
-    .output("held", "Held").output("heldn", "Held on Nth").output("nth", "Nth", "trigger").output("count", "Count");
+    .output("held", "Held", "control").output("heldn", "Held on Nth", "control").output("nth", "Nth", "trigger").output("count", "Count", "control");
   const sh = p.add("utility", [1, 0], { mode: "Sample & Hold", slew: 0.004 }, { name: "Hold Each" });
   const shn = p.add("utility", [1, 1], { mode: "Sample & Hold", slew: 0.004 }, { name: "Hold Nth" });
   const ctr = p.add("switch", [1, 2], { length: 4, order: "Forward" }, { name: "Counter" });
@@ -306,7 +306,7 @@ function lissaWalk() {
       "pan movements that follow the melody.\n\n" +
       "Tip: put a Harmony Master on the board and change its chord or scale: the walk follows it.",
   }).input("speed", "Speed").input("drift", "Drift").input("tr", "Transpose", "pitch")
-    .output("notes", "Notes", "notes").output("pitch", "Pitch", "pitch").output("gate", "Gate", "gate").output("mod", "Mod").output("x", "X", "control");
+    .output("notes", "Notes", "notes").output("pitch", "Pitch", "pitch").output("gate", "Gate", "gate").output("mod", "Mod", "control").output("x", "X", "control");
   const lx = p.add("lfo", [0, 0], { rate: 0.0731, wave: "Triangle", polarity: "Unipolar" }, { name: "X Walk" });
   const ly = p.add("lfo", [0, 1], { rate: 0.1183, wave: "Triangle", polarity: "Unipolar", phase: 90 }, { name: "Y Walk" });
   // A deterministic scatter of scale-ish offsets, a few rests.
@@ -343,7 +343,7 @@ function drunkWalk() {
       "Tip: hold the walk on a stage for a bar while the rest of the music changes, then let it go.",
   }).input("forget", "Forget").input("hold", "Hold", "gate").input("tr", "Transpose", "pitch")
     .output("notes", "Notes", "notes").output("pitch", "Pitch", "pitch").output("gate", "Gate", "gate")
-    .output("accent", "Accent", "gate").output("stage", "Stage");
+    .output("accent", "Accent", "gate").output("stage", "Stage", "control");
   const seq = p.add("stage-sequencer", [1, 0], { stages: 8, rate: "1/8", mode: "Brownian", gatelength: 0.6, root: "D", scale: "Minor Pentatonic", octave: 0 }, {
     data: stageData([
       [0, 1, "Every"], [3, 2, "Every"], [5, 1, "Ratchet", { r: 2 }], [7, 1, "Every", { accent: true }],
@@ -373,7 +373,7 @@ function runningTotal() {
       "Patch Notes into a Voice Cell, or Pitch and Gate into your own. Add is added to the amount, so a dial turns the " +
       "pattern from a pedal tone through arpeggios to a wandering line; Total is the raw voltage for modulation.\n\n" +
       "Tip: set Add so 1 ÷ Add is nearly a whole number for a pattern that almost repeats and then slips.",
-  }).input("add", "Add").output("notes", "Notes", "notes").output("pitch", "Pitch", "pitch").output("gate", "Gate", "gate").output("total", "Total");
+  }).input("add", "Add").output("notes", "Notes", "notes").output("pitch", "Pitch", "pitch").output("gate", "Gate", "gate").output("total", "Total", "control");
   const clk = p.add("clock-divider", [0, 0], { div1: 1, base: "1/16", output: "Trigger", gatelength: "Base Step" }, { name: "Step Clock" });
   const hold = p.add("utility", [1, 0], { mode: "Sample & Hold" }, { name: "Total" });
   const sum = p.add("attenuverter", [1, 1], { scale1: 1, offset1: 0.29, scale2: 0.5 }, { name: "Add Amount" });
@@ -446,7 +446,7 @@ function scatterClock() {
       "Tip: turn Repeat all the way up once you like the pattern, then Loose up to hear it played ever more sloppily.",
   }).input("loose", "Loose").input("repeat", "Repeat").input("bias", "Bias")
     .output("clock", "Clock", "gate").output("gate1", "Gate A", "gate").output("gate2", "Gate B", "gate")
-    .output("v1", "Volt 1").output("v2", "Volt 2").output("v3", "Volt 3");
+    .output("v1", "Volt 1", "control").output("v2", "Volt 2", "control").output("v3", "Volt 3", "control");
   const rc = p.add("recall", [1, 0], { sync: "1/16", tmode: "Coin", tbias: 0.5, tjitter: 0.1, trecall: 0, xspread: 0.4, xrecall: 0, xsteps: 0.3, tloop: 8, xloop: 8, seed: 23 });
   const pg = p.add("pulse-generator", [2, 1], { mode: "Triggered", sync: "1/16", units: "% of Period", delaypct: 0.2, widthpct: 0.4, jitter: 0.02, seed: 7 }, { name: "Scattered Clock" });
   p.cable(p.cin, "repeat", rc, "trecall").cable(p.cin, "repeat", rc, "xrecall")
