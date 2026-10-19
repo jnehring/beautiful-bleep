@@ -70,6 +70,7 @@ struct PortSlot {
     double registeredAt = 0.0;      ///< ms, for the settle delay before a node appears
     bool restored = false;          ///< setState has run (or the settle delay passed)
     bool remote = false;            ///< standalone app: stands in for a plugin or Bleep Play somewhere else (Engine::registerRemoteInstance)
+    bool seeded = false;            ///< Bleep Board: its own MIDI In and Audio Out nodes were added to a new board
     bool bridged = false;           ///< Live: the plugin talks to another board (IEngine::setBridged)
     std::string savedBoard;         ///< Bleep Board: the board it loaded or last saved
     std::string presetJson;         ///< cell plugins: the preset as the plugin loaded it (name, plays, panels …)
@@ -88,6 +89,9 @@ struct PortSlot {
     std::atomic<uint32_t> resyncs{0};
     std::atomic<uint32_t> drops{0};
     std::atomic<int> maxBlock{0};
+
+    /// Bleep Board: the board has an Audio Out node for this plugin, so its output is the board's (else the track passes through).
+    std::atomic<bool> writesOut{false};
 };
 
 /// A port node's view of its plugin during one tick.

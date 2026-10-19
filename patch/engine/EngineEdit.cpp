@@ -85,9 +85,32 @@ size_t Engine::uiCall(int handle, const char* method, const char* argsJson, char
     return uiLast_.size();
 }
 
+/// A project loaded into Bleep Board brings an Audio Out and a MIDI In whose port is only the bare suffix (the page cannot know
+/// the plugin's id): they become this Bleep Board's own, unless the board already has one.
+void Engine::claimBoardPorts(const juce::var& doc) {
+    if (standalone_ || mainHandle_ == 0) return;
+    std::string id;
+    for (const auto& s : instances_)
+        if (s->kind == PortKind::Patch && s->handle == mainHandle_) id = s->id;
+    auto* nodes = doc["nodes"].getArray();
+    if (id.empty() || nodes == nullptr) return;
+    for (const char* suffix : {kBoardMidiSuffix, kBoardAudioSuffix}) {
+        const juce::String own = juce::String(id) + suffix;
+        bool taken = false;
+        for (const auto& n : *nodes) taken = taken || n["port"].toString() == own;
+        for (auto& n : *nodes) {
+            if (n["port"].toString() != suffix) continue;
+            if (taken) continue;
+            n.getDynamicObject()->setProperty("port", own);
+            taken = true;
+        }
+    }
+}
+
 juce::var Engine::commit(const juce::var& edited, const juce::String& label) {
     juce::ignoreUnused(label);
     if (!hasBoard()) return board_;
+    claimBoardPorts(edited);
     auto clean = board::sanitise(edited);
     // Ports can't be deleted from the board (spec §6): put back what went missing.
     if (auto* oldNodes = board_["nodes"].getArray()) {

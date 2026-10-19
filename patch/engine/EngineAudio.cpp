@@ -46,6 +46,7 @@ void writeIn(PortSlot& s, int64_t c, const BlockIO& io) noexcept {
 /// Copies the board's output for host block `want` to the plugin. [RT]
 void readOut(PortSlot& s, int64_t want, BlockIO& io) noexcept {
     if (io.numAudioOut == 0 && io.midiOut == nullptr) return;
+    if (s.kind == PortKind::Patch && !s.writesOut.load(std::memory_order_relaxed)) return;  // no Audio Out node: pass through
     const PortFrame& o = s.out[((want % kRing) + kRing) % kRing];
     const uint32_t s1 = o.seq.load(std::memory_order_acquire);
     if (want < 0 || (s1 & 1u) != 0 || o.block != want) {

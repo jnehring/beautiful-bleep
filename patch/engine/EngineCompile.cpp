@@ -13,8 +13,15 @@ void Engine::modulesChanged() {
 
 void Engine::recompile() {
     std::map<std::string, std::shared_ptr<PortSlot>> ports;
-    for (const auto& s : instances_)
+    for (const auto& s : instances_) {
+        s->writesOut.store(false, std::memory_order_relaxed);  // compile sets it again for an Audio Out node
         if ((s->kind != PortKind::Patch || s->handle == mainHandle_) && !s->bridged) ports[s->id] = s;
+        // Bleep Board is also a MIDI In and an Audio Out: a port id names one node, so each gets its own.
+        if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !s->bridged) {
+            ports[s->id + kBoardMidiSuffix] = s;
+            ports[s->id + kBoardAudioSuffix] = s;
+        }
+    }
     std::unique_ptr<Program> next;
     if (hasBoard()) {
         BoardModel model = board::parse(board_);
@@ -52,6 +59,17 @@ void Engine::reconcile(bool force) {
     // channels) are added from the Add menu, and may be deleted again.
     const bool emptyBoard = board_["nodes"].getArray() == nullptr || board_["nodes"].getArray()->isEmpty();
     for (const auto& s : instances_) {
+        if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !standalone_ && !s->bridged && !s->seeded && emptyBoard &&
+            (force || s->restored || nowMs() - s->registeredAt >= 500.0)) {
+            // A new Bleep Board starts with a MIDI In and an Audio Out of its own (a saved board is left alone).
+            s->seeded = true;
+            if (const auto* midi = Registry::get().forPort(PortKind::MidiIn))
+                board::addNode(board_, *midi, 40.0, 40.0, juce::String(s->id + kBoardMidiSuffix));
+            if (const auto* audio = Registry::get().forPort(PortKind::AudioOut))
+                board::addNode(board_, *audio, 760.0, 40.0, juce::String(s->id + kBoardAudioSuffix));
+            changed = true;
+            inputs = 1;  // the Macros node goes below the MIDI In
+        }
         if (s->kind == PortKind::Patch && (s->handle != mainHandle_ || standalone_)) continue;
         if (s->kind == PortKind::MidiDevice && !s->remote) continue;  // its node comes first; the app follows it
         if (s->bridged) continue;                                      // its other side is another board

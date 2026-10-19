@@ -476,9 +476,9 @@ function(bleep_use_library target)
 endfunction()
 
 # bleep_add_plugin(TARGET <t> PRODUCT <name> CODE <4 chars> KIND <PortKind>
-#                  [SYNTH] [MIDI_OUT] [VST3_CATEGORIES ...])
+#                  [SYNTH] [MIDI_IN] [MIDI_OUT] [VST3_CATEGORIES ...])
 function(bleep_add_plugin)
-    cmake_parse_arguments(P "SYNTH;MIDI_OUT" "TARGET;PRODUCT;CODE;KIND" "VST3_CATEGORIES" ${ARGN})
+    cmake_parse_arguments(P "SYNTH;MIDI_IN;MIDI_OUT" "TARGET;PRODUCT;CODE;KIND" "VST3_CATEGORIES" ${ARGN})
     string(TOLOWER "${P_TARGET}" lower)
     set(webview2 FALSE)
     if (WIN32)
@@ -486,6 +486,10 @@ function(bleep_add_plugin)
     endif ()
     # Live refuses VST3 instruments without an event input bus, so every
     # instrument takes MIDI in (and ignores it where it has no use).
+    set(midiIn ${P_SYNTH})
+    if (P_MIDI_IN)
+        set(midiIn TRUE)
+    endif ()
     juce_add_plugin(${P_TARGET}
         COMPANY_NAME "Beautiful Bleep"   # Live groups VST3 plugins by this vendor name
         COMPANY_WEBSITE "https://brilliantbleep.com"
@@ -496,7 +500,7 @@ function(bleep_add_plugin)
         VERSION ${PROJECT_VERSION}
         FORMATS ${BLEEP_FORMATS}
         IS_SYNTH ${P_SYNTH}
-        NEEDS_MIDI_INPUT ${P_SYNTH}
+        NEEDS_MIDI_INPUT ${midiIn}
         NEEDS_MIDI_OUTPUT ${P_MIDI_OUT}
         IS_MIDI_EFFECT FALSE
         EDITOR_WANTS_KEYBOARD_FOCUS TRUE
@@ -550,8 +554,8 @@ function(bleep_add_plugin)
             juce::juce_recommended_warning_flags)
 endfunction()
 
-bleep_add_plugin(TARGET BleepBoard PRODUCT "Bleep Board" CODE BpBo KIND Patch
-    VST3_CATEGORIES Fx Tools)
+bleep_add_plugin(TARGET BleepBoard PRODUCT "Bleep Board" CODE BpBo KIND Patch SYNTH
+    VST3_CATEGORIES Instrument Tools)
 bleep_add_plugin(TARGET BleepMidiIn PRODUCT "Bleep MIDI In" CODE BpMi KIND MidiIn SYNTH
     VST3_CATEGORIES Instrument Tools)
 bleep_add_plugin(TARGET BleepMidiOut PRODUCT "Bleep MIDI Out" CODE BpMo KIND MidiOut SYNTH MIDI_OUT

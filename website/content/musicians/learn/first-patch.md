@@ -13,7 +13,7 @@ only the first two steps are specific to Live.
 
 ## The patch (5 minutes)
 
-1. Put **Bleep Board** on any track (the master track is a good place).
+1. Put **Bleep Board** on a MIDI track (it is an instrument, so it can't go on the master or a return track).
    Every set that uses Bleep Board needs exactly one. Its window opens the
    board.
 2. Put **Bleep FX** on a synth track, after the synth. It appears

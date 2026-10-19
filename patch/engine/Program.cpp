@@ -376,6 +376,7 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
             if (auto p = ports.find(n->port); p != ports.end() && p->second) {
                 st.port = p->second;
                 st.portWritesOut = writesToTrack(spec.port);
+                if (st.portWritesOut) st.port->writesOut.store(true, std::memory_order_relaxed);
                 if (std::find(program->slots_.begin(), program->slots_.end(), st.port) == program->slots_.end())
                     program->slots_.push_back(st.port);
             }

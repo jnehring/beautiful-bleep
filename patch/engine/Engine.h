@@ -136,6 +136,7 @@ private:
     PortSlot* slot(int handle) const noexcept;
     std::shared_ptr<PortSlot> slotShared(int handle) const;
     void setBoard(juce::var doc, bool resetUndo);
+    void claimBoardPorts(const juce::var& doc);
     void boardEdited(bool notifyUi);
     void recompile();
     /// Modules were installed: nodes of a type that was missing are real nodes now.

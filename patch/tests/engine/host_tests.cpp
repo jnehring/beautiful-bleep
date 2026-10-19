@@ -186,6 +186,109 @@ void standaloneDriver() {
     e->release();
 }
 
+/// A new Bleep Board comes with a MIDI In and an Audio Out of its own; the Audio Out plays through the Board plugin.
+void boardIsMidiInAndAudioOut() {
+    g_test = "board io";
+    auto* e = new Engine();
+    const int main = e->registerInstance(PortKind::Patch);
+    const int ain = e->registerInstance(PortKind::AudioIn);
+    e->reconcileNow();
+    char id[40];
+    e->instanceId(main, id, sizeof id);
+    const auto* midi = board::findNodeByPort(e->board(), juce::String(id) + ":midi");
+    const auto* audio = board::findNodeByPort(e->board(), juce::String(id) + ":audio");
+    EXPECT(midi != nullptr && midi->getProperty("type").toString() == "midi-in");
+    EXPECT(audio != nullptr && audio->getProperty("type").toString() == "audio-out");
+    if (midi == nullptr || audio == nullptr) {
+        e->release();
+        return;
+    }
+    const auto outNode = audio->getProperty("id").toString();
+    auto edited = copyOf(e->board());
+    edited["cables"].getArray()->add(cable(portNode(*e, ain), "l", outNode, "l"));
+    e->commit(edited, "patch");
+    e->reconcileNow();
+    EXPECT(e->board()["nodes"].getArray()->size() == 4);  // MIDI In, Audio Out, Macros, Audio In: nothing added twice
+
+    FakePort pMain(*e, main), pIn(*e, ain);
+    int arrivedAt = -1;
+    for (int b = 0; b < 8; ++b) {
+        for (auto& ch : pIn.in) std::fill(ch.begin(), ch.end(), 0.0f);
+        if (b == 1) pIn.in[0][5] = 1.0f;
+        pMain.run((int64_t)b * kBlock);
+        pIn.run((int64_t)b * kBlock);
+        for (int i = 0; i < kBlock; ++i)
+            if (pMain.out[0][(size_t)i] > 0.5f && arrivedAt < 0) arrivedAt = b;
+    }
+    EXPECT(arrivedAt >= 0);  // the Board plugin's own output carries the board's audio
+    e->unregisterInstance(main);
+    e->unregisterInstance(ain);
+    e->collectGarbage();
+    e->release();
+}
+
+/// A project loaded into Bleep Board carries an Audio Out with only the bare port suffix: the board makes it its own.
+void boardClaimsLoadedPorts() {
+    g_test = "board claims";
+    auto* e = new Engine();
+    const int main = e->registerInstance(PortKind::Patch);
+    e->reconcileNow();
+    char id[40];
+    e->instanceId(main, id, sizeof id);
+    auto loaded = doc({node("out", "audio-out"), node("mid", "midi-in")}, {});
+    loaded["nodes"][0].getDynamicObject()->setProperty("port", ":audio");
+    loaded["nodes"][1].getDynamicObject()->setProperty("port", ":midi");
+    e->commit(loaded, "load");
+    EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":audio") != nullptr);
+    EXPECT(board::findNodeByPort(e->board(), juce::String(id) + ":midi") != nullptr);
+    e->unregisterInstance(main);
+    e->collectGarbage();
+    e->release();
+}
+
+/// A sequencer in Bleep Board steps at the host's tempo, whatever the board was saved with.
+void boardFollowsHostTempo() {
+    g_test = "board tempo";
+    auto stepsAt = [](double bpm) {
+        auto* e = new Engine();
+        const int main = e->registerInstance(PortKind::Patch);
+        e->reconcileNow();
+        char id[40];
+        e->instanceId(main, id, sizeof id);
+        const auto* audio = board::findNodeByPort(e->board(), juce::String(id) + ":audio");
+        int edges = 0;
+        if (audio != nullptr) {
+            juce::Array<juce::var> steps;
+            for (int i = 0; i < 32; ++i) steps.add(obj({{"g", 1}, {"p", 0}, {"v", 100}}));
+            auto seq = node("seq", "step-sequencer");
+            seq.getDynamicObject()->setProperty("data", obj({{"steps", steps}}));
+            auto edited = copyOf(e->board());
+            edited["nodes"].getArray()->add(seq);
+            edited["cables"].getArray()->add(cable("seq", "gate", audio->getProperty("id").toString(), "l"));
+            e->commit(edited, "seq");
+            FakePort p(*e, main);
+            p.playing = true;
+            p.bpm = bpm;
+            float last = 0.0f;
+            for (int b = 0; b < 1500; ++b) {
+                p.run((int64_t)b * kBlock);
+                for (int i = 0; i < kBlock; ++i) {
+                    const float v = p.out[0][(size_t)i];
+                    if (v > 0.5f && last <= 0.5f) ++edges;
+                    last = v;
+                }
+            }
+        }
+        e->unregisterInstance(main);
+        e->collectGarbage();
+        e->release();
+        return edges;
+    };
+    const int slow = stepsAt(60.0), fast = stepsAt(180.0);
+    EXPECT(slow > 2);
+    EXPECT(fast >= slow * 2.5 && fast <= slow * 3.5);  // three times the tempo, three times the steps
+}
+
 /// Voice Cells (spec §8.3): MIDI notes into a Voice Cell whose voice outputs
 
 }  // namespace
@@ -195,4 +298,7 @@ void runHostTests() {
     parallelThreads();
     midiThrough();
     standaloneDriver();
+    boardIsMidiInAndAudioOut();
+    boardFollowsHostTempo();
+    boardClaimsLoadedPorts();
 }

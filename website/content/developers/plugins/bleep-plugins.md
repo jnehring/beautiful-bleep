@@ -10,7 +10,7 @@ The Bleep plugins are VST3s for Ableton Live. Modules are not plugins: they are 
 
 | Plugin | Live device | On the board |
 |---|---|---|
-| **Bleep Board** | audio effect | required once per set; stores and opens the board; 16 macros |
+| **Bleep Board** | instrument (MIDI in, audio out) | required once per set; stores and opens the board; 16 macros |
 | **Bleep MIDI In** | instrument | notes, pitch, gate, velocity and CCs from a MIDI track |
 | **Bleep MIDI Out** | instrument (VST3 MIDI out) | notes, gate/pitch, CCs and bend to another track |
 | **Bleep Audio In** | audio effect | the track's audio |

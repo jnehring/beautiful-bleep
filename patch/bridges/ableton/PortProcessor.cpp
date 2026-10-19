@@ -130,12 +130,13 @@ void PortProcessor::pollSlots() {
 const juce::String PortProcessor::getName() const { return productName(kind_); }
 
 bool PortProcessor::acceptsMidi() const {
-    return kind_ == PortKind::MidiIn || kind_ == PortKind::MidiOut || kind_ == PortKind::AudioOut ||
-           kind_ == PortKind::Instrument;
+    return kind_ == PortKind::Patch || kind_ == PortKind::MidiIn || kind_ == PortKind::MidiOut ||
+           kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument;
 }
 
 bool PortProcessor::reportsLatency() const noexcept {
-    return kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument || kind_ == PortKind::AudioInsert;
+    return kind_ == PortKind::Patch || kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument ||
+           kind_ == PortKind::AudioInsert;
 }
 
 bool PortProcessor::canBridge() const noexcept {
@@ -254,8 +255,8 @@ void PortProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuff
         io.audioIn = inPtrs;
         io.numAudioIn = juce::jmin(2, juce::jmax(1, ins));
     }
-    if (kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument) {
-        io.audioOut = outPtrs;
+    if (kind_ == PortKind::Patch || kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument) {
+        io.audioOut = outPtrs;  // Bleep Board: the engine leaves the track's audio alone unless the board has an Audio Out
         io.numAudioOut = juce::jmin(2, outs);
     }
     if (kind_ == PortKind::AudioInsert) {
@@ -265,7 +266,7 @@ void PortProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuff
         io.audioOut = boardPtrs;
         io.numAudioOut = 2;
     }
-    if (kind_ == PortKind::MidiIn || kind_ == PortKind::Instrument) {
+    if (kind_ == PortKind::Patch || kind_ == PortKind::MidiIn || kind_ == PortKind::Instrument) {
         int count = 0;
         for (const auto m : midi) {
             if (count >= (int)midiIn_.size()) break;

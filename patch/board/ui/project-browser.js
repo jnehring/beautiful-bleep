@@ -383,13 +383,20 @@
   }
 
   /// In a plugin the patch's port nodes (Out 1/2, …) take the ports this board already has, by type;
-  /// extra ones are left out, with their cables.
+  /// extra ones are left out, with their cables, except an Audio Out and a MIDI In, which the board gets for the plugin.
   function mapPorts(board) {
     const free = ((host.board() || {}).nodes || []).filter((n) => n.port);
+    const claimed = new Set();
     board.nodes = board.nodes.filter((n) => {
       if (!n.port) return true;
       const i = free.findIndex((f) => f.type === n.type);
-      if (i < 0) return false;
+      if (i < 0) {   // Bleep Board without that port node: a patch's Audio Out and MIDI In become the plugin's own (the engine names the port)
+        const own = { "audio-out": ":audio", "midi-in": ":midi" }[n.type];
+        if (!own || claimed.has(own)) return false;
+        claimed.add(own);
+        n.port = own;
+        return true;
+      }
       const [f] = free.splice(i, 1);
       for (const k of ["port", "track", "colour"]) if (f[k] !== undefined) n[k] = f[k];
       return true;

@@ -27,6 +27,10 @@ inline bool appOwnsPort(PortKind k) {
            k == PortKind::Link;
 }
 
+/// Port ids of the MIDI In and Audio Out nodes that belong to Bleep Board itself: "<instance id>" + suffix.
+constexpr const char* kBoardMidiSuffix = ":midi";
+constexpr const char* kBoardAudioSuffix = ":audio";
+
 /// Non-ASCII text (·, —, …) must reach juce::String as UTF-8.
 inline juce::String u8(const char* text) { return juce::String::fromUTF8(text); }
 
