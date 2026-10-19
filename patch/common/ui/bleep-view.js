@@ -225,6 +225,19 @@
       if (p && p.steps > 1) v = Math.round(v * (p.steps - 1)) / (p.steps - 1);  // stepped knobs snap
       view.node.params[id] = v;
       api.setParam(id, v);
+      // A module's hook can tie knobs together: linked(id, view) -> the ids that follow this one.
+      if (h && h.linked && !view._linking) {
+        view._linking = true;
+        try {
+          for (const o of h.linked(id, view) || []) {
+            if (o === id) continue;
+            setParam(o, v);
+            const k = view.knobs.get(o), st = view.settings.get(o);
+            if (k) { k.renderAmounts(); k.draw(); }
+            if (st) st.draw();
+          }
+        } finally { view._linking = false; }
+      }
       if (drivers.has(id) || (h && h.revealedBy && h.revealedBy(id))) applyLayout();
       if (view.presets) view.presets.update();
     }
