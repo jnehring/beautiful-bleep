@@ -33,7 +33,8 @@ Changing a time while the sound plays, by hand, with a modulator or by
 changing the tempo, makes the echoes slide in pitch like a tape echo. They
 never click. Turn *Time* quickly for a classic dub effect.
 
-*Feedback* at 100 % repeats forever without getting louder. *Low Cut* and
+*Feedback* at 100 % repeats forever without getting louder; up to 200 % the repeats
+grow until the soft limiter holds them. *Low Cut* and
 *High Cut* only work on the repeats, so the first sound stays untouched.
 
 ## How to use it?
@@ -92,7 +93,7 @@ Five whole patches show what Delay does. In the standalone app open **File → P
 |---|---|---|
 | Time L | 1 … 2000 ms | 300 ms |
 | Time R | 1 … 2000 ms | 300 ms |
-| Feedback | 0 … 100 % | 40 % |
+| Feedback | 0 … 200 % | 40 % |
 | Low Cut | 20 … 2000 Hz | 20 Hz (off) |
 | High Cut | 500 … 20000 Hz | 20 kHz (off) |
 | Mix | 0 … 100 % | 50 % |

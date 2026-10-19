@@ -56,7 +56,7 @@
     const { g, w, h } = BleepView.fit(z.arcs);
     if (!w || !h) return;
     const st = z.last || {}, th = BleepView.theme(view.root);
-    const fbv = Math.min(1.1, view.value(st, "feedback") * 1.1);
+    const fbv = Math.min(2, view.value(st, "feedback") * 2);
     const hold = !!(st.hold || data(view).hold), rev = !!(st.reverse || data(view).reverse), pp = !!(st.pingPong || data(view).pingPong);
     const diff = view.value(st, "diffuse"), wob = view.value(st, "wobble"), off = view.value(st, "offset") - 0.5;
     const gain = hold ? 1 : fbv;

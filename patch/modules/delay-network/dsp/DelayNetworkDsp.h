@@ -198,7 +198,7 @@ struct DelayNetworkParams {
     float scatter = 0.0f;      ///< −1 … +1
     float jitter = 0.0f;
     float reverse = 0.0f;
-    float feedback = 0.45f;    ///< 0 … 1.1
+    float feedback = 0.45f;    ///< 0 … 2
     float character = 0.2f;
     float tone = 0.0f;
     float width = 0.7f;
@@ -443,7 +443,7 @@ public:
             route(prevRouting_, c, old, 1.0f);
             for (int i = 0; i < dnet::kLines; ++i) fb[(size_t)i] = old[(size_t)i] + routeFade_ * (fb[(size_t)i] - old[(size_t)i]);
         }
-        const float fbGain = std::clamp(p.feedback, 0.0f, 1.1f) + freezeMix_ * (1.0f - std::clamp(p.feedback, 0.0f, 1.1f));
+        const float fbGain = std::clamp(p.feedback, 0.0f, 2.0f) + freezeMix_ * (1.0f - std::clamp(p.feedback, 0.0f, 2.0f));
         const float mid = 0.5f * (inL + inR) * (1.0f - freezeMix_) * clearGain_;
         for (int i = 0; i < dnet::kLines; ++i) {
             Line& l = lines_[(size_t)i];

@@ -37,7 +37,7 @@ inline float delayLimit(float x) noexcept {
 
 struct DelayParams {
     float timeL = 0.3f, timeR = 0.3f;  ///< seconds
-    float feedback = 0.4f;             ///< 0 … 1
+    float feedback = 0.4f;             ///< 0 … 2
     float lowCutHz = 20.0f;            ///< high-pass in the feedback path (20 = off)
     float highCutHz = 20000.0f;        ///< low-pass in the feedback path (20000 = off)
     bool pingPong = false;
@@ -69,7 +69,7 @@ public:
         const double dr = time_[1].process(clampSamples(p.timeR));
         const float wl = line_[0].readHermite(dl - 1.0);  // read before write: d - 1 is a delay of d samples
         const float wr = line_[1].readHermite(dr - 1.0);
-        const float fb = std::clamp(p.feedback, 0.0f, 1.0f);
+        const float fb = std::clamp(p.feedback, 0.0f, 2.0f);
         float fl, fr;
         if (p.pingPong) {  // each side feeds the other; the input enters the left line only
             fl = filter(1, wr, p) * fb;

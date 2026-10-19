@@ -40,7 +40,7 @@
     if (!w || !h) return;
     const th = BleepView.theme(view.root);
     const span = Math.max((st && st.time) || 0.6, 0.005);
-    const fb = Math.min(1.1, view.value(st, "feedback") * 1.1), jit = view.value(st, "jitter");
+    const fb = Math.min(2, view.value(st, "feedback") * 2), jit = view.value(st, "jitter");
     const taps = tapList(view, st, span);
     const gens = 3, X0 = 14, X1 = w - 14, base = h - 28, H = base - 14;
     const total = span * gens;

@@ -204,7 +204,7 @@ enum ZoneCharacter { ZoneClean = 0, ZoneTape, ZoneDark, ZoneBand, ZoneLofi, kZon
 struct ZoneDelayParams {
     int zone = 3;              ///< 1 … 5
     float time = 0.5f;         ///< 0 … 1 within the zone
-    float feedback = 0.4f;     ///< 0 … 1.1
+    float feedback = 0.4f;     ///< 0 … 2
     float character = 0.25f;   ///< 0 … 1 (five characters)
     float tone = 0.0f;         ///< −1 … +1 (± 2 octaves)
     float diffuse = 0.0f;
@@ -449,7 +449,7 @@ public:
 
         // Feedback paths (not while holding: writing stops, the loop replays).
         if (!holding_) {
-            const float fb = std::clamp(p.feedback, 0.0f, 1.1f);
+            const float fb = std::clamp(p.feedback, 0.0f, 2.0f);
             const float inPP[2] = {in.l + ppMix_ * 0.5f * (in.r - in.l), in.r * (1.0f - ppMix_)};
             for (int c = 0; c < 2; ++c) {
                 Channel& ch = ch_[(size_t)c];

@@ -146,7 +146,7 @@ static void registerDelayNetworkModule(Registry& r) {
                 ParamSpec::number("scatter", "Scatter", -1.0f, 1.0f, 0.0f, "", 2),
                 ParamSpec::percent("jitter", "Jitter", 0.0f, 1.0f, 0.0f),
                 ParamSpec::percent("reverse", "Reverse", 0.0f, 1.0f, 0.0f),
-                ParamSpec::percent("feedback", "Feedback", 0.0f, 1.1f, 0.45f),
+                ParamSpec::percent("feedback", "Feedback", 0.0f, 2.0f, 0.45f),
                 ParamSpec::percent("character", "Character", 0.0f, 1.0f, 0.2f).inGroup("Repeats"),
                 ParamSpec::number("tone", "Tone", -1.0f, 1.0f, 0.0f, "", 2).inGroup("Repeats"),
                 ParamSpec::percent("width", "Width", 0.0f, 1.0f, 0.7f).inGroup("Repeats"),

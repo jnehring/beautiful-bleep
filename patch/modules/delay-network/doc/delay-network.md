@@ -61,7 +61,7 @@ down by up to two octaves.
 | Mesh | all into all (Hadamard) | dense, diffuse, reverb-like build-up |
 
 *Feedback* at 100 % is the edge of stability for every routing; above it the
-loop's soft limiter holds the level. Switching *Routing* crossfades over 50 ms.
+loop's soft limiter holds the level, up to 200 %. Switching *Routing* crossfades over 50 ms.
 
 **Stereo.** The taps alternate left and right, spread by *Width* (0 % is
 centred). *Tap 1 … Tap 4* put out those lines on their own, before panning.
@@ -138,7 +138,7 @@ The preset bar of the Delay Net view has 14 factory presets. Pick one to set the
 | Scatter | −1 … +1 | 0 |
 | Jitter | 0 – 100 % | 0 % |
 | Reverse | 0 – 100 % | 0 % |
-| Feedback | 0 – 110 % | 45 % |
+| Feedback | 0 – 200 % | 45 % |
 | Character | 0 – 100 % | 20 % |
 | Tone | −1 … +1 | 0 |
 | Width | 0 – 100 % | 70 % |

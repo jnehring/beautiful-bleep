@@ -76,7 +76,7 @@ static void registerDelayModule(Registry& r) {
     for (const char* n : patch::delayRateNames()) rates.emplace_back(n);
     s.params = {ParamSpec::exponential("timel", "Time L", 1.0f, 2000.0f, 300.0f, "ms").when("sync", 0, 0),
                 ParamSpec::exponential("timer", "Time R", 1.0f, 2000.0f, 300.0f, "ms").when("sync", 0, 0),
-                ParamSpec::percent("feedback", "Feedback", 0.0f, 1.0f, 0.4f),
+                ParamSpec::percent("feedback", "Feedback", 0.0f, 2.0f, 0.4f),
                 ParamSpec::exponential("lowcut", "Low Cut", 20.0f, 2000.0f, 20.0f, "Hz"),
                 ParamSpec::exponential("highcut", "High Cut", 500.0f, 20000.0f, 20000.0f, "Hz"),
                 ParamSpec::percent("mix", "Mix", 0.0f, 1.0f, 0.5f),

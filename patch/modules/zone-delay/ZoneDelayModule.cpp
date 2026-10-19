@@ -138,7 +138,7 @@ static void registerZoneDelayModule(Registry& r) {
     glide.modulatable = false;
     s.params = {ParamSpec::steppedInt("zone", "Zone", 1, 5, 3),
                 ParamSpec::percent("time", "Time", 0.0f, 1.0f, 0.5f),
-                ParamSpec::percent("feedback", "Feedback", 0.0f, 1.1f, 0.4f),
+                ParamSpec::percent("feedback", "Feedback", 0.0f, 2.0f, 0.4f),
                 ParamSpec::percent("character", "Character", 0.0f, 1.0f, 0.25f).inGroup("Repeats"),
                 tone.inGroup("Repeats"),
                 ParamSpec::percent("diffuse", "Diffuse", 0.0f, 1.0f, 0.0f).inGroup("Repeats"),

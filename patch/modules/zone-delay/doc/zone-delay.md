@@ -134,7 +134,7 @@ The preset bar of the Zone Delay view has 14 factory presets. Pick one to set th
 |---|---|---|
 | Zone | 1 – 5 (stepped) | 3 |
 | Time | 0 – 100 % of the zone | 50 % |
-| Feedback | 0 – 110 % | 40 % |
+| Feedback | 0 – 200 % | 40 % |
 | Character | 0 – 100 % | 25 % |
 | Tone | −1 … +1 | 0 |
 | Diffuse | 0 – 100 % | 0 % |
