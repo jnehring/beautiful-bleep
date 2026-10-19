@@ -204,7 +204,7 @@
       viewsEl.appendChild(el("div", "pb-sep", "Categories"));
       const cats = new Map();
       for (const c of cells) cats.set(c.category, (cats.get(c.category) || 0) + 1);
-      for (const [name, n] of cats) add(name, name, n);
+      for (const [name, n] of [...cats].sort((a, b) => a[0].localeCompare(b[0]))) add(name, name, n);
       return;
     }
     const I = window.BleepPresetIndex;

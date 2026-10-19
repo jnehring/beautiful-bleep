@@ -214,20 +214,15 @@
             items.push({ label: "Delete preset", deletes: true, items: own.map((p) => ({
               label: p.name, run: async () => setPresets((await native("deletePreset", p.name)) || []) })) });
         }
-        // Factory categories first, in their order (factory-presets.json), then the user's, A–Z.
-        const rank = (label) => {
-          const i = presetOrder().findIndex((c) => c === label || c.startsWith(label + "/"));
-          return i < 0 ? presetOrder().length : i;
-        };
-        const sortPresets = (items, top) => {
-          const subs = items.filter((it) => it.items && !it.deletes)
-            .sort((a, b) => (top ? rank(a.label) - rank(b.label) : 0) || byLabel(a, b));
+        // Categories A–Z at every level.
+        const sortPresets = (items) => {
+          const subs = items.filter((it) => it.items && !it.deletes).sort(byLabel);
           const factory = items.filter((it) => !it.items && !it.own), own = items.filter((it) => it.own);
           const del = items.filter((it) => it.deletes);
-          for (const it of subs) it.items = sortPresets(it.items, false);
+          for (const it of subs) it.items = sortPresets(it.items);
           return [...subs, ...factory, ...(factory.length && own.length ? ["-"] : []), ...own, ...(del.length ? ["-", ...del] : [])];
         };
-        cells.push(...sortPresets(tree, true));
+        cells.push(...sortPresets(tree));
         const menu = [{ label: "Module", items: cats }, { label: "Cell", items: cells }];
         // The standalone app's own ports that are not on the board (audio channels, MIDI, Link).
         if (s.standalone && !level()) {

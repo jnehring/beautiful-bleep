@@ -111,7 +111,9 @@
     return select(entries, { view, origins }).length;
   }
 
-  /// The categories of the cell presets as a tree, in the order they first appear (the Add menu's order): [{name, path, children: […]}].
+  const sorted = (kids) => [...kids].sort((a, b) => a.name.localeCompare(b.name));
+
+  /// The categories of the cell presets as a tree, sorted A–Z at every level: [{name, path, children: […]}].
   /// A category is a path with slashes ("Drums/Kicks"); `path` is what the view "cell:<path>" takes.
   function categories(entries) {
     const top = { kids: [], by: new Map() };
@@ -125,8 +127,8 @@
         node = c;
       }
     }
-    const plain = (n) => ({ name: n.name, path: n.path, children: n.kids.map(plain) });
-    return top.kids.map(plain);
+    const plain = (n) => ({ name: n.name, path: n.path, children: sorted(n.kids).map(plain) });
+    return sorted(top.kids).map(plain);
   }
 
   /// The demos' modules as [[type, name], …] sorted by name.
