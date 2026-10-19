@@ -6,9 +6,11 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node build.mjs && node test/transform.test.mjs && node test/spike.mjs"
+    "test": "node build.mjs && node test/transform.test.mjs && node test/spike.mjs",
+    "bundle": "node bundle.mjs"
   },
   "devDependencies": {
-    "assemblyscript": "^0.28.0"
+    "assemblyscript": "^0.28.0",
+    "esbuild": "^0.28.2"
   }
 }

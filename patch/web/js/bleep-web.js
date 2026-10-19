@@ -28,6 +28,19 @@
 
   const post = (m) => node && node.port.postMessage(m);
 
+  // ---- Code nodes (board-code.js): each runs a module compiled in this page, under a node type of its own, "code:<node id>:<hash>" ----
+  const code = new Map();   // node id → { spec, wasm }
+  const codeSent = new Set();
+  function sendCode(id) {
+    const c = code.get(id);
+    if (!node || !c) return;
+    codeSent.add(id);
+    post({ cmd: "types", types: [c.spec] });
+    post({ cmd: "module", slug: c.spec.type, bytes: c.wasm.slice().buffer, types: [c.spec.type] });
+  }
+  /// The board as the engine runs it: a Code node with a compiled module is its own node type; one without stays the empty "code" type.
+  const withCode = (b) => (!b || !b.nodes || !code.size ? b : { ...b, nodes: b.nodes.map((n) => (n.type === "code" && code.has(n.id) ? { ...n, type: code.get(n.id).spec.type } : n)) });
+
   let inputSource = null, inputStream = null;   // what feeds the worklet's input (W.input)
   function dropInput() {
     try { if (inputSource && inputSource.stop) inputSource.stop(); } catch (e) { /* not started */ }
@@ -177,10 +190,20 @@
       W.boardDoc = b;
       if (W.onBoardSet) W.onBoardSet(b);  // [bridge]
       if (b && b.tempo >= 20 && b.tempo <= 400) { W.transport.bpm = b.tempo; post({ cmd: "tempo", bpm: b.tempo }); }   // the patch's own tempo
+      if (window.BleepCode) BleepCode.sync(b);   // compiles the Code nodes the engine does not have yet (also before the audio starts)
       if (!node) return;
-      post({ cmd: "board", board: withPanelSources(W.mapBoard ? W.mapBoard(b) : b) });  // [bridge] Remote nodes carry their channel key
+      for (const id of code.keys()) if (!codeSent.has(id)) sendCode(id);
+      post({ cmd: "board", board: withPanelSources(withCode(W.mapBoard ? W.mapBoard(b) : b)) });  // [bridge] Remote nodes carry their channel key
       sendMedia(b.nodes);
       ensureModules();
+    },
+    /// A Code node's compiled module (board-code.js). The engine gets the module and the type before the board that uses them.
+    registerCode(id, spec, wasm) {
+      code.set(id, { spec, wasm });
+      codeSent.delete(id);
+      if (!node) return;
+      sendCode(id);
+      if (board) post({ cmd: "board", board: withPanelSources(withCode(W.mapBoard ? W.mapBoard(board) : board)) });
     },
     setKnob: (id, param, value) => post({ cmd: "knob", node: id, param, value }),
     setAmount: (cable, value) => post({ cmd: "amount", cable, value }),
@@ -269,10 +292,11 @@
         if (m.cmd === "error") { console.error("[bleep worklet]", m.message); setStatus("audio error: " + m.message.split("\n")[0]); }
       };
       post({ cmd: "types", types });
+      for (const id of code.keys()) sendCode(id);   // Code nodes compiled before the audio started (board-code.js)
       post({ cmd: "watch", nodes: watched });
       post({ cmd: "tempo", bpm: W.transport.bpm });
       W.running = true;
-      if (board) { post({ cmd: "board", board: W.mapBoard ? W.mapBoard(board) : board }); sendMedia(board.nodes); await ensureModules(); }
+      if (board) { post({ cmd: "board", board: withCode(W.mapBoard ? W.mapBoard(board) : board) }); sendMedia(board.nodes); await ensureModules(); }
       setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms` + (libraryDown ? ` · ${libraryDown}` : ""));
     },
     /// The board a visitor starts with: a playable keyboard synth.

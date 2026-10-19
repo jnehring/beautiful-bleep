@@ -352,6 +352,29 @@ Jacks and knobs do not exist until the first compile. After each compile, the de
 
 The second case needs its own result type. Preferred: a separate **Patch script** module that expands into an inner cell it owns.
 
+**As built: the playground** ([`patch/script/playground/`](../../patch/script/playground/index.html), run it with the `script-spike` server in `.claude/launch.json` and open `/script/playground/`). It is the Code module's editor, compile flow and automatic panel as a standalone page, not yet inside the board:
+
+- A source editor (a plain textarea with line numbers, Tab indents, Ctrl/Cmd+Enter compiles), an examples menu (Gains, Wave folder, Tremolo) and the source saved in the browser.
+- **Compile** runs `asc` and the Bleep transform in the page (about 0.3 s per module). Problems are listed with line and column, click to jump; the error line is marked in the gutter. A failed compile leaves the previous version playing and its panel in place.
+- On success the new module is swapped into an AudioWorklet through the Bleep browser module host, fed by a test signal (sine, saw, noise, silence). Knob values are kept for params that still exist.
+- The panel is built by the board's own `BleepView` from the generated description, so the dial, toggles and choice selector are the real ones. Probes are shown as live meters, polled about twelve times a second.
+- Checked in the in-app browser with all three examples, mute, a deliberate type error and switching between modules. Not covered by an automated test.
+
+Not built: the CodeMirror editor, hot reload with a crossfade that keeps `state`, the cost display, compiling in a worker, and, above all, the board integration below.
+
+**Decided: one Code node per script, each with its own interface.** A Code node carries its source and the interface that source declares: `node.code = { source, interface }`. The board reads the node's jacks, knobs and probes from `node.code.interface` (`typeOf` in `board-model.js` asks `BleepCode.uiSpec(node)`), so a saved patch shows its jacks and cables at once, before anything is compiled. The engine's rule that a node's interface belongs to its *type* is kept by giving every Code node and source a type of its own, `code:<node id>:<source hash>`; the type id changes with the source because the engine keeps a node's running module while the type id stays the same.
+
+**As built in the board** (web build and the dev server; [`board-code.js`](../../patch/board/ui/board-code.js), [`board-code-worker.js`](../../patch/board/ui/board-code-worker.js)):
+
+- **Add module → Code** (category Utility › Script) adds an empty Code node. Its view is the editor: a Compile button, an Examples menu (Gains, Wave folder, Tremolo), the source with line numbers, the problems list, probe meters, and below them the module's own knobs built by `BleepView` from the interface.
+- **Compile** runs in a Worker that loads the compiler bundle (`patch/script`, `npm run bundle`, about 14.5 MB, 3 MB gzipped, loaded on first use; `build-web.sh` and `ui-server.py` serve it when it exists). The page must not run the compiler: the board seals JavaScript built-ins in the page, and the compiler assigns to one. On success the source and the interface are saved on the node in one undoable step, the module is registered with the engine, and the open view is rebuilt in place (`rebuildView`) with the new knobs. On failure the problems are listed and the previous version keeps running.
+- **Loading a patch** compiles each Code node's source in the background (`BleepCode.sync`, called from `BleepWeb.setBoard`) and registers the module when it is ready, with or without audio started. Sources are compiled once per hash.
+- **Cables survive** a recompile as long as the jack ids still exist, and a Code node keeps its cables and its saved interface when the compiler is not available.
+- **Undo and redo** restore the source, the interface and, through the same `sync`, the running module.
+- Checked in the in-app browser against a rebuilt site with the real engine and local modules: Keyboard, Oscillator, Filter, Code, Amp and Speakers; compile, live swap between Fold, Tremolo and Gains while a note was held (the engine's own probe values show which module runs), reload of the saved patch, undo, the dev server with its strict content-security policy. `patch/web/test/board-code-test.mjs` covers the pure parts. No automated end-to-end test.
+
+**Not built:** the native app and the plugins (the engine there would need to accept a compiled module and its description for a node, the way `WasmRuntime` already runs library modules; a Code node there shows as a missing module), panel wiring to a Code node's knobs (the panel tools look knobs up by node type), CodeMirror, the cost display, and a build step for the bundle in CI. The website's content-security policy already allows WebAssembly; a policy delivered as a response header must also allow it for workers and must not block `data:` in `connect-src` (the bundle avoids that one itself).
+
 Saving and sharing: the source is stored in the patch or preset. *Save as library module* publishes it through the library. A script shared as source is compiled by whoever opens it. Also planned: an examples dropdown, a rate-limited `console.log` in the panel, live field values on hover, and agent integration (`agent/` writes scripts and uses the compiler's errors as feedback; TypeScript-family source is a good fit for it).
 
 ## 9. User interfaces
@@ -507,7 +530,7 @@ What can be reused around AssemblyScript and TypeScript. Items marked (verified)
    5. Speed: 16 ns per sample in Wasmtime (0.08 % of a core at 48 kHz). Not compared with a native C++ build of the same code.
    Not covered: the time budget on a module that never returns, notes and events with offsets, hot reload, and a worker (the page ran on the main thread).
 1b. **Transform** (decorators to node type description and `bleep_*` exports). **Done** for modules with inputs, outputs, params of all four kinds and probes; section 7 lists what is built and what is not. `Gains` is written with it and passes the same checks as the hand-written spike.
-2. **Code module** with the CodeMirror editor (section 12.1), compile flow and automatic panel (section 8, UI level 1).
+2. **Code module** with the CodeMirror editor (section 12.1), compile flow and automatic panel (section 8, UI level 1). **Playground and board integration done for the web build** (section 8); the native app and plugins, CodeMirror and panel wiring are open.
 3. **Subset checker and cost bound**, then events with sample offsets (`onNote`, `@on`).
 4. **Layer 1 API** (TypeScript) and the Patch script module, with sanitiser and fuel caps.
 5. **Widget registry** (binding contract; move dial, meter, scope; then fader and waveform; then step lane and curve editor extraction).

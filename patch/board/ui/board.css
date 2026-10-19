@@ -631,3 +631,27 @@ body.plugin #side-toggle { display: none; }
 .ps-name { font-weight: 600; }
 .ps-pick select { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 2px 6px; }
 .ps-hint { color: var(--muted); }
+
+/* The Code module view (board-code.js) */
+.bc-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bc-bar .bc-compile { background: var(--accent); color: #0b1d1b; border-color: var(--accent); font-weight: 600; }
+.bc-bar .bc-compile[disabled] { opacity: .5; }
+.bc-status { margin-left: auto; color: var(--muted); }
+.bc-status.ok { color: var(--accent); }
+.bc-status.bad { color: var(--warn); }
+.bc-editor { display: flex; height: 280px; background: var(--canvas); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.bc-gutter, .bc-source { margin: 0; padding: 8px 6px; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; tab-size: 2; }
+.bc-gutter { display: flex; flex-direction: column; align-items: flex-end; color: var(--muted); user-select: none; overflow: hidden; border-right: 1px solid var(--line); min-width: 3em; }
+.bc-gutter .err { color: var(--warn); font-weight: 700; }
+.bc-source { flex: 1; resize: none; border: 0; background: transparent; color: var(--text); white-space: pre; overflow: auto; user-select: text; -webkit-user-select: text; outline-offset: -2px; }
+.bc-problems { list-style: none; margin: 6px 0 0; padding: 0; max-height: 110px; overflow: auto; }
+.bc-problems:empty { display: none; }
+.bc-problems li { display: flex; gap: 10px; padding: 3px 4px; cursor: pointer; border-radius: 4px; user-select: text; }
+.bc-problems li:hover { background: var(--panel-3); }
+.bc-problems .where { color: var(--warn); min-width: 4.5em; font-variant-numeric: tabular-nums; }
+.bc-problems li.warning .where { color: var(--mod); }
+.bc-probes { margin-top: 8px; display: grid; gap: 4px; }
+.bc-probe { display: grid; grid-template-columns: 6em 1fr 4.5em; align-items: center; gap: 8px; color: var(--muted); }
+.bc-probe .bar { height: 7px; background: var(--panel-3); border-radius: 4px; overflow: hidden; }
+.bc-probe .bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.bc-probe output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }

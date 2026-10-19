@@ -12,7 +12,11 @@ npm test                            # build, test/transform.test.mjs, then test/
 test/wasmtime-check.sh              # the same file in the engine's Wasmtime host (needs build/wasm-spike/wasmtime)
 ```
 
-Compile in a browser: start the `script-spike` server (`.claude/launch.json`, serves `patch/` on port 8767) and open
+Playground (the Code module's editor, Compile button and automatic panel, with live audio): start the `script-spike` server (`.claude/launch.json`, serves `patch/` on port 8767) and open `/script/playground/`. Press Compile once: the browser starts audio on a click.
+
+The board: `npm run bundle` builds `dist/bleep-script-compiler.js` (the compiler, Binaryen, the transform and the library sources in one file); `scripts/build/build-web.sh --no-modules` copies it next to the board, and `scripts/run/ui-server.py` serves it. The board's Code node (`patch/board/ui/board-code.js`) loads it in a Worker.
+
+Compile in a browser, as a test: start the `script-spike` server (`.claude/launch.json`, serves `patch/` on port 8767) and open
 `/script/test/browser/index.html`. The page compiles the module with `asc` in memory, runs a transform, and tests the result.
 
 ## Files
@@ -28,6 +32,9 @@ Compile in a browser: start the `script-spike` server (`.claude/launch.json`, se
 | `test/spike.mjs` | Node: module host, reference model, behaviour, speed |
 | `test/wasmtime_check.cpp`, `test/wasmtime-check.sh` | The engine's `WasmRuntime` (Wasmtime) |
 | `test/browser/` | The compiler and a transform running in a page |
+| `compiler/compile.mjs` | `compileScript(asc, source, { lib, typeId })`: asc and the transform in memory; shared by the playground and the bundle |
+| `compiler/bundle-entry.mjs`, `bundle.mjs` | The browser bundle (esbuild). `bundle.mjs` also replaces Binaryen's `fetch("data:...")` of its embedded wasm, which a content-security policy without `data:` in `connect-src` blocks |
+| `playground/` | The editor page: `index.html`, `playground.mjs` (editor, compile, problems, panel via `BleepView`), `worklet.js` (the module in an AudioWorklet), `examples.mjs` |
 
 ## Compiler flags and why
 

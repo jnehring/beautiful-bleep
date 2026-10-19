@@ -85,6 +85,8 @@ fi
 #    common and every module's ui/ and doc/ files side by side.
 cp "$PATCH"/board/ui/* "$OUT"/
 cp "$PATCH"/common/ui/* "$OUT"/
+# The Bleep Script compiler for the Code node (patch/script: npm install && npm run bundle), loaded on first use. Without it the Code node says so.
+[ -f "$PATCH/script/dist/bleep-script-compiler.js" ] && cp "$PATCH/script/dist/bleep-script-compiler.js" "$OUT"/ || true
 for m in "$PATCH"/modules/*/; do
   for sub in ui doc; do
     [ -d "$m$sub" ] && cp "$m$sub"/* "$OUT"/ 2>/dev/null || true

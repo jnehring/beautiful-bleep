@@ -22,6 +22,18 @@
         "patch"
       ],
       "port": 8767
+    },
+    {
+      "name": "web-site",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8768",
+        "--directory",
+        "build/web/site"
+      ],
+      "port": 8768
     }
   ]
 }

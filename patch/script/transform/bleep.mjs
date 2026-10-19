@@ -246,6 +246,7 @@ export function specOf(mod) {
     }),
     inputs: mod.inputs.map(({ id, name, type, bipolar }) => ({ id, name, type, bipolar })),
     outputs: mod.outputs.map(({ id, name, type, bipolar }) => ({ id, name, type, bipolar })),
+    probes: mod.probes.map(({ id, name }) => ({ id, name })),   // not in the ABI's description (hosts ignore unknown fields): what a view can poll
   };
 }
 
@@ -370,8 +371,10 @@ export function bleep_take_data(h: usize): i32 { return -1; }
 /// and `transform.specs` the generated node type descriptions.
 export class BleepTransform {
   /// abiFrom: where bleep/abi.ts and bleep/format.ts are, as an import path from the module's directory.
-  constructor({ abiFrom = "./bleep" } = {}) {
+  /// typeId: the node type id of the first module (a Code node gives its engine type); default: from the class name.
+  constructor({ abiFrom = "./bleep", typeId } = {}) {
     this.abiFrom = abiFrom;
+    this.typeId = typeId;
     this.modules = [];
     this.specs = [];
     this.generated = [];
@@ -385,6 +388,7 @@ export class BleepTransform {
       if (source.sourceKind !== 0 && source.sourceKind !== 1) continue;   // user files only
       const found = readModules(source);
       if (found.length) bySource.set(path, found);
+      if (found.length && this.typeId && !this.typeApplied) { found[0].type = this.typeId; this.typeApplied = true; }
     }
     for (const [path, mods] of bySource) {
       const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/") + 1) : "";

@@ -37,6 +37,7 @@ async function compile(source, name = "t") {
     ],
     inputs: [{ id: "x", name: "In", type: "audio", bipolar: true }, { id: "othersSolo", name: "Others Solo", type: "gate", bipolar: false }],
     outputs: [{ id: "out", name: "Out", type: "audio", bipolar: true }, { id: "soloOut", name: "Solo Out", type: "gate", bipolar: false }],
+    probes: [{ id: "level", name: "Level" }],
   }];
   check(!error, "Gains compiles with the transform", error && error.message);
   check(JSON.stringify(transform.specs) === JSON.stringify(byHand), "the generated description equals the hand-written one",

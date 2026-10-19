@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bleep Script Playground</title>
+<!-- The Code module, as a page: an editor, a Compile button, the compiler's errors, the module's automatic panel (the same
+     BleepView the board uses) and live audio. Serve patch/ (launch.json: script-spike) and open /script/playground/. -->
+<link rel="stylesheet" href="/common/ui/bleep-view.css">
+<link rel="stylesheet" href="./playground.css">
+<script type="importmap">
+{ "imports": {
+  "assemblyscript": "/script/node_modules/assemblyscript/dist/assemblyscript.js",
+  "assemblyscript/asc": "/script/node_modules/assemblyscript/dist/asc.js",
+  "binaryen": "/script/node_modules/binaryen/index.js",
+  "long": "/script/node_modules/long/index.js" } }
+</script>
+<header>
+  <strong>Bleep Script</strong>
+  <select id="example" aria-label="Example"></select>
+  <button id="compile" disabled title="Compile (Ctrl/Cmd+Enter)">Compile</button>
+  <label>Test signal
+    <select id="signal"><option value="sine">Sine 220 Hz</option><option value="noise">Noise</option><option value="saw">Saw 110 Hz</option><option value="silence">Silence</option></select>
+  </label>
+  <label>Volume <input id="volume" type="range" min="0" max="1" step="0.01" value="0.3"></label>
+  <span id="status" role="status">loading the compiler…</span>
+</header>
+<main>
+  <section id="editor-pane">
+    <div id="editor"><pre id="gutter" aria-hidden="true"></pre><textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Source code"></textarea></div>
+    <ul id="problems" aria-label="Problems"></ul>
+  </section>
+  <section id="panel-pane">
+    <div id="panel"><p class="hint">Compile to see the module's panel.</p></div>
+    <div id="probes"></div>
+    <details id="details"><summary>Generated</summary><pre id="spec"></pre></details>
+  </section>
+</main>
+<script type="module" src="./playground.mjs"></script>
+<script src="/common/ui/bleep-view-presets.js"></script>
+<script src="/common/ui/bleep-view.js"></script>

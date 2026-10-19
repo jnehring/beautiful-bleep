@@ -108,6 +108,7 @@
       }
       const n = nodeById(id);
       if (!n) closeView(id);
+      else if (n.type === "code" && window.BleepCode && v.bv.codeKey !== window.BleepCode.keyOf(n)) rebuildView(id);   // a compile changed its jacks and knobs
       else v.bv.refresh(n);
     }
     render();
@@ -441,7 +442,7 @@
     setPowerButton, showMenu, toggleBypass, typeOf, views, hidePopovers,
     knobMenuItems: (...a) => knobMenuItems(...a), panelMenuFor: (...a) => panelMenuFor(...a),
   });
-  const { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch } = viewsApi;
+  const { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch, rebuildView } = viewsApi;
 
   // ----------------------------------------------------------- front panels (board-panels.js)
   const panelsApi = P.BoardPanels.create({

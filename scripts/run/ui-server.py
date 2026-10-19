@@ -22,11 +22,11 @@ def modules():
 
 
 def dirs():  # looked up per request, so a new module ui/ folder is served without a restart
-    return [PATCH / "board" / "ui", PATCH / "common" / "ui"] + [m / sub for m in modules() for sub in ("ui", "doc") if (m / sub).is_dir()]
+    return [PATCH / "board" / "ui", PATCH / "common" / "ui", PATCH / "script" / "dist"] + [m / sub for m in modules() for sub in ("ui", "doc") if (m / sub).is_dir()]
 
 
 # The same policy as the browser build (scripts/build/build-web.sh), minus WebAssembly: the demo engine here is plain JavaScript.
-CSP = ("default-src 'self'; script-src 'self'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; "
+CSP = ("default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; "
        "img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'self'")
 
 

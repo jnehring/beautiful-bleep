@@ -2,7 +2,7 @@
 // board-views.js — the floating module views: a window with the module's controls, opened from its node, and the doc hint behind it.
 //
 // P.BoardViews.create(s)   s: the board and page helpers it needs (see the destructuring below); `board` is a getter.
-//   returns { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch }
+//   returns { placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews, closeTopView, watch, rebuildView }
 (function () {
   "use strict";
   const { native, priv: P } = window.BleepSeal;
@@ -232,6 +232,14 @@
         win.classList.add("front");
         win.style.zIndex = ++viewZ;
       }
+      /// Builds a view again from the node's current type description, in the same window (a Code node's interface changed).
+      function rebuildView(id) {
+        const v = views.get(id), n = nodeById(id);
+        if (!v || !n || v.panelId) return;
+        const bv = BleepView.create(typeOf(n), clone(n), makeApi(id));
+        v.bv.root.replaceWith(bv.root);
+        v.bv = bv;
+      }
       function closeView(id) {
         const v = views.get(id);
         if (!v) return;
@@ -257,7 +265,7 @@
 
       return {
         placeWin, toggleView, makeApi, openView, front, closeView, pinTitle, closeUnpinnedViews,
-        closeTopView, watch,
+        closeTopView, watch, rebuildView,
       };
     },
   };

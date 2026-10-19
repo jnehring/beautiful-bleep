@@ -376,6 +376,8 @@
           // Released modules the list above does not know yet: their node types come from the library's packages.
           if (window.BleepWeb && BleepWeb.libraryTypes) types = types.concat(await BleepWeb.libraryTypes(types));
           if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
+          // The Code node (board-code.js) where the Bleep Script compiler is part of the build.
+          if (window.BleepCode && await BleepCode.available()) types = types.concat([BleepCode.type]);
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
           return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});
