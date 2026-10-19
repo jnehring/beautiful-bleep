@@ -533,6 +533,7 @@
   if (G.BleepViews) G.BleepViews.register("code", {
     top: true,
     width: 900,
+    resizable: true,
     template: `<div class="bv-panel bc">
       <h2>Code</h2>
       <div class="bc-bar"><button class="bc-compile" title="Compile (Ctrl/Cmd+Enter)">Compile</button>

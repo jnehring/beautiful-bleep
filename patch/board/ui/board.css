@@ -197,6 +197,19 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .v-head .power { font-size: 14px; }
 .v-head .power.on { color: var(--accent); text-shadow: 0 0 6px var(--accent); }
 .v-body { max-height: 70vh; overflow-y: auto; }
+/* a resizable view (the Code node) that has been dragged to a size, or is fullscreen: the body fills the window and its editors stretch */
+.vwin.sized { display: flex; flex-direction: column; max-width: none; }
+.vwin.sized .v-body { flex: 1; max-height: none; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
+.vwin.fs { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; border-radius: 0; z-index: 30; }
+.vwin.fs .v-grip { display: none; }
+.vwin.fs .v-head { cursor: default; padding-left: 52px; }   /* clear of the board's menu button */
+.v-head .full.on { color: var(--accent); }
+.vwin.sized .bc { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.vwin.sized .bc-pane:not([hidden]) { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.vwin.sized .bc-editor, .vwin.sized .bc-ui-editor { height: auto; flex: 1; min-height: 120px; }
+.vwin.sized .bc-ui-editor { display: flex; flex-direction: column; }
+.vwin.sized .bc-custom:not([hidden]) { flex: 1 1 40%; min-height: 120px; display: flex; flex-direction: column; }
+.vwin.sized .bc-custom .bc-frame { height: 100% !important; flex: 1; }
 .vwin.port { width: fit-content; min-width: 260px; max-width: min(520px, calc(100vw - 24px)); }
 .vwin.wiring { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; }
 .vwin.wiring .v-head { grid-column: 1 / -1; }

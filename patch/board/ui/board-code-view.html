@@ -77,14 +77,17 @@
       onValues: function (fn) { if (typeof fn === "function") valueCallbacks.push(guard(fn)); },
       /** Asks the board for a height in pixels (40 to 800); the width is the view's. */
       size: function (h) { send({ t: "size", h: Number(h) }); },
-      /** A canvas as wide as the view, `height` CSS pixels high, scaled for the screen: { el, g, width, height }. */
+      /** A canvas as wide as the view, `height` CSS pixels high, scaled for the screen: { el, g, width, height }.
+       *  canvas("fill") makes it as high as the view too, which follows the Code window when it is resized or fullscreen. */
       canvas: function (height) {
-        height = Math.max(20, Math.min(800, Number(height) || 160));
+        var fill = height === "fill";
+        height = fill ? Math.max(20, window.innerHeight) : Math.max(20, Math.min(800, Number(height) || 160));
         var el = document.createElement("canvas"), g = el.getContext("2d");
         el.style.height = height + "px";
         document.body.appendChild(el);
         var c = { el: el, g: g, height: height, width: 0 };
         function fit() {
+          if (fill) { height = Math.max(20, window.innerHeight); c.height = height; el.style.height = height + "px"; }
           var dpr = window.devicePixelRatio || 1, w = Math.max(1, Math.round(document.body.clientWidth));
           if (el.width !== Math.round(w * dpr) || el.height !== Math.round(height * dpr)) { el.width = Math.round(w * dpr); el.height = Math.round(height * dpr); }
           g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -92,7 +95,7 @@
         }
         fit();
         canvases.push(fit);
-        api.size(document.body.scrollHeight);
+        if (!fill) api.size(document.body.scrollHeight);
         return c;
       },
       /** The board's colours: { bg, panel, line, text, muted, accent, warn }. */

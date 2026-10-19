@@ -196,23 +196,51 @@
           input.addEventListener("blur", () => finish(true));
           input.addEventListener("pointerdown", (e) => e.stopPropagation());
         });
-        if (hook && hook.resizable) {  // drag the lower right corner to change the width
+        if (hook && hook.resizable) {  // drag the lower right corner to change the width and height; the button fills the board
           const grip = el("div", "v-grip");
           grip.title = "Drag to resize";
           win.appendChild(grip);
+          const full = el("button", "full", "⛶");
+          full.title = "Fullscreen (F11)";
+          full.setAttribute("aria-label", "Fullscreen");
+          head.insertBefore(full, head.querySelector(".help"));
+          let before = null;
+          const setFull = (on) => {
+            if (on === win.classList.contains("fs")) return;
+            if (on) before = { left: win.style.left, top: win.style.top, width: win.style.width, height: win.style.height };
+            win.classList.toggle("fs", on);
+            win.classList.toggle("sized", on || !!(before && before.height));
+            if (!on && before) Object.assign(win.style, before);
+            full.classList.toggle("on", on);
+            full.title = on ? "Leave fullscreen (F11 or Esc)" : "Fullscreen (F11)";
+            if (on) win.classList.add("sized");
+            win.dispatchEvent(new Event("bv-resized"));
+          };
+          full.addEventListener("click", () => setFull(!win.classList.contains("fs")));
+          win.addEventListener("keydown", (e) => {
+            if (e.key === "F11") { e.preventDefault(); setFull(!win.classList.contains("fs")); }
+            else if (e.key === "Escape" && win.classList.contains("fs")) { e.preventDefault(); e.stopPropagation(); setFull(false); }
+          }, true);
+          head.addEventListener("dblclick", (e) => { if (!e.target.closest("button, input")) setFull(!win.classList.contains("fs")); });
           grip.addEventListener("pointerdown", (e) => {
             e.preventDefault();
             e.stopPropagation();
             grip.setPointerCapture(e.pointerId);
-            const sx = e.clientX, w0 = win.offsetWidth, max = canvas.clientWidth - win.offsetLeft - 8;
-            const move = (m) => { win.style.width = Math.max(360, Math.min(max, w0 + m.clientX - sx)) + "px"; };
+            const sx = e.clientX, sy = e.clientY, w0 = win.offsetWidth, h0 = win.offsetHeight;
+            const maxW = canvas.clientWidth - win.offsetLeft - 8, maxH = canvas.clientHeight - win.offsetTop - 8;
+            const move = (m) => {
+              win.classList.add("sized");
+              win.style.width = Math.max(360, Math.min(maxW, w0 + m.clientX - sx)) + "px";
+              win.style.height = Math.max(240, Math.min(maxH, h0 + m.clientY - sy)) + "px";
+              win.dispatchEvent(new Event("bv-resized"));
+            };
             const up = () => { grip.removeEventListener("pointermove", move); grip.removeEventListener("pointerup", up); };
             grip.addEventListener("pointermove", move);
             grip.addEventListener("pointerup", up);
           });
         }
         head.addEventListener("pointerdown", (e) => {
-          if (e.target.closest("button")) return;
+          if (e.target.closest("button") || win.classList.contains("fs")) return;
           const sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
           const move = (m) => placeWin(win, m.clientX - sx, m.clientY - sy);
           const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };

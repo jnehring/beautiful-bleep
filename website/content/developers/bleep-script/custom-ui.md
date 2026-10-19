@@ -13,6 +13,10 @@ By default a Code node shows one control for every `@param`, a meter for every `
 
 The Code node's editor has a **Script** tab and a **UI** tab for this.
 
+## Resizing and fullscreen
+
+Drag the lower right corner of the Code window to make it larger or smaller: the editors and the UI area grow with it. The fullscreen button in the title bar (or F11, or a double click on the title bar) fills the board; Esc or the same button brings the window back to its size.
+
 ## Layout
 
 ```ts
@@ -79,7 +83,7 @@ The playground example **Fold (own UI)** draws a transfer curve and lets you dra
 | `bleep.onFrame(fn)` | Calls `fn(dt)` every animation frame, `dt` in seconds. |
 | `bleep.onValues(fn)` | Calls `fn()` when a param or probe has changed. |
 | `bleep.size(h)` | Asks for a height in pixels, 40 to 800. The width is the node's. |
-| `bleep.canvas(h)` | Makes a canvas as wide as the view and `h` high, scaled for the screen: `{ el, g, width, height }`. |
+| `bleep.canvas(h)` | Makes a canvas as wide as the view and `h` high, scaled for the screen: `{ el, g, width, height }`. `bleep.canvas("fill")` makes it as high as the view too, so it follows the window when it is resized or fullscreen. |
 | `bleep.theme` | The board's colours: `bg`, `panel`, `line`, `text`, `muted`, `accent`, `warn`. |
 
 A param has `id`, `name`, `kind`, `unit`, `min`, `max`, `steps`, `choices`, a `value` in its own units, a `normalised` position from 0 to 1, and `set(units)` and `setNormalised(x)` to change it. A UI can set at most 240 values per second. An error in your code stops the UI and is shown in the editor with its line.
