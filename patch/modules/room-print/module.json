@@ -1,0 +1,11 @@
+{
+  "name": "Room Print",
+  "slug": "room-print",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Convolution reverb from a dropped WAV or ten built-in impulse responses, with predelay, stretch, trim, low/high damping and an early/late balance.",
+  "colour": "#818cf8",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/room-print.md"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Speak",
+  "slug": "speak",
+  "license": "GPL-3.0-or-later",
+  "tagline": "A small formant speech synthesiser: a phoneme string sequenced at a rate, with vowels, nasals, fricatives and plosives, pitch, speed and formant shift.",
+  "colour": "#fb923c",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/speak.md"
+}

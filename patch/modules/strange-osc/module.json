@@ -1,0 +1,11 @@
+{
+  "name": "Strange Osc",
+  "slug": "strange-osc",
+  "license": "GPL-3.0-or-later",
+  "tagline": "An oscillator that is a chaotic system: four attractors at audio or control rate, a Tame knob toward periodic order, X/Y/Z outputs and a seeded start.",
+  "colour": "#f472b6",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/strange-osc.md"
+}
