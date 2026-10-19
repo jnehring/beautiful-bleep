@@ -1,0 +1,11 @@
+{
+  "name": "Melody Mirror",
+  "slug": "melody-mirror",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Listens to the last notes you play and plays them back turned around: reversed, inverted, rotated or mirrored, or as an answer after a pause.",
+  "colour": "#b69cf5",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/melody-mirror.md"
+}
