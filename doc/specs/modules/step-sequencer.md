@@ -140,6 +140,8 @@ The scale table lives in `patch/common/` so the Utility quantizer and Random's
   instead of retriggering; the Gate output stays high. With the **same** pitch,
   the note simply continues. A tie into an *Off* step ends at that step's start.
 - **Off:** nothing plays; Pitch and Velocity hold their last values.
+- **Step gate length** (1–100 %) scales *Gate Length* for that step.
+- **Ratchet** (1–16): the step is split into that many equal parts (by its swung length), each playing the step's note again with its own gate (*Gate Length* × step gate length × the part's length). A tie does not carry over a ratcheted step. Trigger fires for every part.
 - A note is never left hanging: changing Length or Direction, removing the
   step's gate, stopping the transport, Reset and removing the module all end
   the sounding note.
@@ -150,13 +152,13 @@ Two tools, one for writing patterns and one for playing them:
 
 **Randomize** rewrites the pattern, one lane at a time or all at once: each
 lane has a dice button (⚄) next to its name (Gate: new gates and ties; Pitch:
-new pitches; Vel: new velocities), and **Randomize all** in the toolbar
-rewrites all three. A panel opened with **▾** holds the options, remembered
-per module:
+new pitches; Vel: new velocities; Ratchet: new ratchet counts), and **Randomize all** in the toolbar
+rewrites all four. A panel opened with **▾** holds the density; each lane has a
+two-handle **range slider** next to its dice. All are remembered per module:
 
 - **Density:** 0–100 %, the share of steps that get a gate (default 60 %); about one in eight gated steps becomes a Tie.
-- **Pitch range:** 1–3 octaves above the root (default 1); pitches are drawn from the current scale.
-- **Velocity range:** low and high bounds (default 60–100 %).
+- **Gate length range** (Gate lane, default 50–100 %), **Pitch range** (semitones from the root, −24…36, default 0–12; drawn from the current scale), **Velocity range** (1–127, default 76–127), **Ratchet range** (1–16, default 1–2).
+- Dragging a handle past the other pushes it; with both on one value the dice sets every step to it.
 
 It writes all 32 steps (not only up to Length) and is one undo step. Each
 click gives a new pattern; it uses a UI-side random source, not *Seed*.
@@ -177,22 +179,25 @@ editor above them:
 ```
  ┌───────────────────────────────────────────────────────────────┐
  │  [Randomize all] [▾]  [◀ shift]  [shift ▶]   [Clear]          │
- │ Gate⚄ ■ ■ □ ━ ■ □ ■ ■ │ ■ □ ■ ■ ━ ■ □ ■                      │
+ │ Gate⚄ ■ ■ □ ━ ■ □ ■ ■ │ ■ □ ■ ■ ━ ■ □ ■   (state, then length)│
+ │ [range]▇ ▅ ▇ ▃ ▇ ▅ ▆ ▇ │ …                                   │
  │ Pitch⚄▁ ▃ ▁ ▅ ▇ ▁ ▃ ▂ │ …       (note names on hover/drag)   │
  │ Vel⚄  ▇ ▅ ▇ ▃ ▇ ▅ ▆ ▇ │ …                                    │
+ │ Ratchet⚄ 1 2 1 4 1 3 1 1 │ …                                 │
  │       1       ▲       8                                       │
  └───────────────────────────────────────────────────────────────┘
 ```
 
 - **Columns** are steps; steps beyond *Length* are dimmed but editable. The playhead column is highlighted.
-- **Gate lane:** click cycles Off → On → Tie; drag across steps paints the value of the first step clicked.
+- **Gate lane:** the strip on top cycles Off → On → Tie on click; dragging across steps paints the value of the first step clicked. The bars below set each step's gate length by height (an Off step turns On).
+- **Ratchet lane:** the bar height is the note count, 1–16. Double-click resets a bar (also in the gate-length bars and the pitch lane).
 - **Pitch lane:** click or drag to set the pitch at the pointer's height; dragging across steps draws a line. The value snaps to the current scale (Shift: single semitones, even outside it). A row under the lane shows each step's note name (e.g. *E4*). Double-click resets to the root.
 - **Velocity lane:** drag across steps to draw a curve; with Shift, dragging moves the value relative to where it started (fine).
 - **Shift ◀ ▶** rotates the steps within Length by one; **Clear** sets all gates to Off. Both are one undo step each.
 - A drag is one undo step (`beginGesture`, `specs.md` section 9.10).
 - Steps whose last play was varied (4.5) show a dot in the pitch lane, so you can see what Variation does.
 
-The lane editor sits above the knobs. The window is 600 px wide; the 32 columns (22 px each) scroll horizontally.
+The lane editor sits above the knobs. The window is 1180 px wide so all four knob sections fit in one row; the 32 columns (22 px each) scroll horizontally if it is narrower.
 
 ## 6. Saved state
 
@@ -204,13 +209,13 @@ randomizer options in the board document:
   "type": "step-sequencer",
   "params": { "length": 0.4839, "scale": 0.0625, … },
   "data": {
-    "steps": [ { "g": 1, "p": 0, "v": 100 }, … 32 entries … ],
-    "randomize": { "density": 0.6, "octaves": 1, "velocity": [0.6, 1.0] }
+    "steps": [ { "g": 1, "p": 0, "v": 100, "l": 100, "r": 1 }, … 32 entries … ],
+    "randomize": { "density": 0.6, "range": { "pitch": [0, 12], "velocity": [76, 127], "gatelen": [50, 100], "ratchet": [1, 2] } }
   }
 }
 ```
 
-`g` is 0 = Off, 1 = On, 2 = Tie. Missing or short `steps` arrays are padded
+`g` is 0 = Off, 1 = On, 2 = Tie; `l` is the gate length in % (1–100) and `r` the ratchet count (1–16); both are optional (100 and 1). Missing or short `steps` arrays are padded
 with Off/0/100 when loading; values out of range are clamped (sanitise).
 A new module starts with 16 steps, all On, pitch 0, velocity 100, so it plays
 the root right away.

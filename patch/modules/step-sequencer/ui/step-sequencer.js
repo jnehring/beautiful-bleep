@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Step Sequencer view (doc/specs/modules/step-sequencer.md §5): the lane editor
-// (gate, pitch, velocity), the playhead, and the Randomize tools. Steps live
+// (gate and its length, pitch, velocity, ratchet), the playhead, and the Randomize
+// tools with a value range per lane. Steps live
 // in the node's data; edits go to the engine with api.setData.
 (function () {
   "use strict";
@@ -17,7 +18,11 @@
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
   // Lane geometry (canvas px).
-  const GATE = [2, 20], PITCH = [26, 122], NAME = [122, 134], VEL = [140, 184], RULER = [186, 198], H = 200;
+  // GATE is the on/off/tie strip, GLEN the gate length bars below it.
+  const GATE = [2, 16], GLEN = [20, 76], PITCH = [84, 180], NAME = [180, 192], VEL = [200, 244], RAT = [252, 296],
+    RULER = [298, 310], H = 312, MAX_R = 16;
+  // Randomizer ranges per lane: [min, max, default low, default high].
+  const RANGES = { glen: [1, 100, 50, 100], pitch: [MIN_P, MAX_P, 0, 12], velocity: [1, 127, 76, 127], ratchet: [1, MAX_R, 1, 2] };
 
   function inScale(scale, s) { return SCALES[scale].includes(mod(s, 12)); }
   function quantize(semi, scale) {
@@ -31,12 +36,17 @@
     const v = view.node.params[id] ?? p.default;
     return Math.round(p.min + v * (p.max - p.min));
   }
-  const freshStep = () => ({ g: 1, p: 0, v: 100 });
+  const freshStep = () => ({ g: 1, p: 0, v: 100, l: 100, r: 1 });
   function data(view) {
     let d = view.node.data;
     if (!d || !Array.isArray(d.steps)) d = view.node.data = { steps: Array.from({ length: STEPS }, freshStep) };
-    while (d.steps.length < STEPS) d.steps.push({ g: 0, p: 0, v: 100 });
-    if (!d.randomize) d.randomize = { density: 0.6, octaves: 1, velocity: [0.6, 1] };
+    while (d.steps.length < STEPS) d.steps.push({ g: 0, p: 0, v: 100, l: 100, r: 1 });
+    for (const s of d.steps) { if (s.l == null) s.l = 100; if (s.r == null) s.r = 1; }
+    if (!d.randomize) d.randomize = {};
+    const o = d.randomize;
+    if (o.density == null) o.density = 0.6;
+    if (!o.range) o.range = {};
+    for (const k in RANGES) if (!Array.isArray(o.range[k])) o.range[k] = [RANGES[k][2], RANGES[k][3]];
     return d;
   }
   /// The note a step plays (without Transpose and Variation), e.g. "E4".
@@ -81,11 +91,15 @@
         g.fillStyle = line;
         g.fillRect(x, 0, COL, RULER[0]);
       }
-      // gate
+      // gate state strip and gate length
       g.strokeStyle = muted;
       g.fillStyle = accent;
       if (s.g === 0) g.strokeRect(x + 3.5, GATE[0] + 0.5, COL - 7, GATE[1] - GATE[0] - 1);
       else g.fillRect(x + 3, GATE[0], s.g === 2 ? COL - 3 : COL - 6, GATE[1] - GATE[0]);
+      const lh = Math.max(1, (s.l / 100) * (GLEN[1] - GLEN[0]));
+      g.globalAlpha *= s.g === 0 ? 0.3 : 1;
+      g.fillRect(x + 4, GLEN[1] - lh, COL - 8, lh);
+      g.globalAlpha = i < len ? 1 : 0.3;
       // pitch
       const y = pitchY(s.p);
       g.globalAlpha *= s.g === 0 ? 0.35 : 1;
@@ -104,6 +118,14 @@
       const vh = ((s.v - 1) / 126) * (VEL[1] - VEL[0]);
       g.fillStyle = accent;
       g.fillRect(x + 4, VEL[1] - Math.max(1, vh), COL - 8, Math.max(1, vh));
+      // ratchet
+      const rh = ((s.r - 1) / (MAX_R - 1)) * (RAT[1] - RAT[0] - 2) + 2;
+      g.globalAlpha = (i < len ? 1 : 0.3) * (s.g === 0 ? 0.35 : 1);
+      g.fillRect(x + 4, RAT[1] - rh, COL - 8, rh);
+      if (s.r > 1) {
+        g.fillStyle = text;
+        g.fillText(String(s.r), x + COL / 2, RAT[1] - rh - 2);
+      }
       g.globalAlpha = 1;
       g.fillStyle = i === st.step ? text : muted;
       if (i % 4 === 0 || i === len - 1) g.fillText(String(i + 1), x + COL / 2, RULER[1] - 2);
@@ -111,6 +133,7 @@
     g.strokeStyle = line;
     g.beginPath();
     g.moveTo(0, zeroY + 0.5); g.lineTo(w, zeroY + 0.5);
+    for (const [a, b] of [GLEN, VEL, RAT]) { g.moveTo(0, b + 0.5); g.lineTo(w, b + 0.5); }
     for (let i = 4; i < STEPS; i += 4) { g.moveTo(i * COL + 0.5, 0); g.lineTo(i * COL + 0.5, RULER[0]); }
     g.stroke();
     view.seq.length.textContent = len + (len === 1 ? " step" : " steps");
@@ -118,9 +141,11 @@
 
   // ---- editing --------------------------------------------------------------
   function lane(y) {
-    if (y < GATE[1] + 3) return "gate";
+    if (y < GATE[1] + 2) return "gate";
+    if (y < GLEN[1] + 3) return "glen";
     if (y < NAME[1]) return "pitch";
-    if (y < RULER[0]) return "velocity";
+    if (y < VEL[1] + 3) return "velocity";
+    if (y < RULER[0]) return "ratchet";
     return null;
   }
   function attach(view, c) {
@@ -132,7 +157,12 @@
     const apply = (e) => {
       const { i, y } = at(e), s = data(view).steps[i];
       if (drag.lane === "gate") s.g = drag.value;
-      else if (drag.lane === "pitch") {
+      else if (drag.lane === "glen") {
+        if (s.g === 0) s.g = 1;
+        s.l = clamp(Math.round(((GLEN[1] - y) / (GLEN[1] - GLEN[0])) * 100), 1, 100);
+      } else if (drag.lane === "ratchet") {
+        s.r = clamp(Math.round(1 + ((RAT[1] - y) / (RAT[1] - RAT[0])) * (MAX_R - 1)), 1, MAX_R);
+      } else if (drag.lane === "pitch") {
         let p = Math.round(MAX_P - ((y - PITCH[0]) / (PITCH[1] - PITCH[0])) * (MAX_P - MIN_P));
         if (!e.shiftKey) p = quantize(p, clamp(setting(view, "scale"), 0, SCALES.length - 1));
         s.p = clamp(p, MIN_P, MAX_P);
@@ -159,47 +189,93 @@
     c.addEventListener("pointerup", end);
     c.addEventListener("pointercancel", end);
     c.addEventListener("dblclick", (e) => {
-      const { i, y } = at(e);
-      if (lane(y) !== "pitch") return;
-      edit(view, (d) => (d.steps[i].p = 0));
+      const { i, y } = at(e), l = lane(y);
+      const reset = { pitch: ["p", 0], glen: ["l", 100], ratchet: ["r", 1] }[l];
+      if (reset) edit(view, (d) => (d.steps[i][reset[0]] = reset[1]));
     });
   }
 
   // ---- Randomize (spec §4.5) ---------------------------------------------
-  /// Rewrites the given lanes ("gate", "pitch", "velocity") of all 32 steps.
+  const between = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+  /// Rewrites the given lanes ("gate", "pitch", "velocity", "ratchet") of all 32 steps. Values
+  /// come from each lane's range; a range of one value sets every step to it.
   function randomize(view, lanes) {
     edit(view, (d) => {
-      const o = d.randomize;
+      const o = d.randomize, r = o.range;
       const scale = clamp(setting(view, "scale"), 0, SCALES.length - 1);
       const notes = [];
-      for (let k = 0; k <= 12 * (o.octaves || 1); k++) if (inScale(scale, k)) notes.push(k);
-      const [lo, hi] = o.velocity || [0.6, 1];
+      for (let k = r.pitch[0]; k <= r.pitch[1]; k++) if (inScale(scale, k)) notes.push(k);
+      if (!notes.length) notes.push(quantize(r.pitch[0], scale));
       for (const s of d.steps) {
-        if (lanes.includes("gate")) s.g = Math.random() < (o.density ?? 0.6) ? (Math.random() < 0.125 ? 2 : 1) : 0;
-        if (lanes.includes("pitch")) s.p = notes[Math.floor(Math.random() * notes.length)];
-        if (lanes.includes("velocity")) s.v = clamp(Math.round((lo + Math.random() * (hi - lo)) * 127), 1, 127);
+        if (lanes.includes("gate")) {
+          s.g = Math.random() < o.density ? (Math.random() < 0.125 ? 2 : 1) : 0;
+          s.l = between(r.glen[0], r.glen[1]);
+        }
+        if (lanes.includes("pitch")) s.p = clamp(notes[Math.floor(Math.random() * notes.length)], MIN_P, MAX_P);
+        if (lanes.includes("velocity")) s.v = between(r.velocity[0], r.velocity[1]);
+        if (lanes.includes("ratchet")) s.r = between(r.ratchet[0], r.ratchet[1]);
       }
     });
   }
   function options(view, box) {
     const o = data(view).randomize;
     box.innerHTML = "";
-    const row = (label, input) => {
-      const r = document.createElement("label");
-      r.className = "seq-opt";
-      r.append(Object.assign(document.createElement("span"), { textContent: label }), input);
-      box.appendChild(r);
+    const n = Object.assign(document.createElement("input"), { type: "number", min: 0, max: 100, value: Math.round(o.density * 100), className: "bv-number" });
+    n.addEventListener("change", () => {
+      o.density = clamp(parseFloat(n.value) || 0, 0, 100) / 100;
+      view.api.beginGesture();
+      send(view);
+      options(view, box);
+    });
+    const r = document.createElement("label");
+    r.className = "seq-opt";
+    r.append(Object.assign(document.createElement("span"), { textContent: "Density % (share of steps with a gate)" }), n);
+    box.appendChild(r);
+  }
+  /// A two-handle slider over [min, max] for o.range[key]; dragging a handle past the other
+  /// pushes it, so both together pick one value. Returns { el, refresh }.
+  function rangeSlider(view, key) {
+    const [min, max] = RANGES[key];
+    const el = document.createElement("div");
+    el.className = "seq-range";
+    el.title = "Range for the dice: the new values fall between the two handles. Drag both together for one value.";
+    el.innerHTML = '<div class="seq-track"><div class="seq-fill"></div><i></i><i></i></div><span class="seq-rv"></span>';
+    const fill = el.querySelector(".seq-fill"), thumbs = el.querySelectorAll("i"), out = el.querySelector(".seq-rv");
+    const track = el.querySelector(".seq-track");
+    const unit = { glen: "%", pitch: " st" }[key] || "";
+    const pos = (v) => ((v - min) / (max - min)) * 100;
+    const refresh = () => {
+      const [lo, hi] = data(view).randomize.range[key];
+      fill.style.left = pos(lo) + "%";
+      fill.style.width = pos(hi) - pos(lo) + "%";
+      thumbs[0].style.left = pos(lo) + "%";
+      thumbs[1].style.left = pos(hi) + "%";
+      out.textContent = lo === hi ? lo + unit : lo + "–" + hi + unit;
     };
-    const save = () => { view.api.beginGesture(); send(view); };
-    const number = (value, min, max, set) => {
-      const n = Object.assign(document.createElement("input"), { type: "number", min, max, value, className: "bv-number" });
-      n.addEventListener("change", () => { set(clamp(parseFloat(n.value) || 0, min, max)); save(); options(view, box); });
-      return n;
+    let which = null;
+    const move = (e) => {
+      const r = track.getBoundingClientRect(), rg = data(view).randomize.range[key];
+      const v = clamp(Math.round(min + ((e.clientX - r.left) / r.width) * (max - min)), min, max);
+      if (which === 0) { rg[0] = v; if (rg[1] < v) rg[1] = v; }
+      else { rg[1] = v; if (rg[0] > v) rg[0] = v; }
+      send(view);
+      refresh();
     };
-    row("Density %", number(Math.round(o.density * 100), 0, 100, (v) => (o.density = v / 100)));
-    row("Octaves", number(o.octaves, 1, 3, (v) => (o.octaves = Math.round(v))));
-    row("Velocity low %", number(Math.round(o.velocity[0] * 100), 1, 100, (v) => (o.velocity = [v / 100, Math.max(v / 100, o.velocity[1])])));
-    row("Velocity high %", number(Math.round(o.velocity[1] * 100), 1, 100, (v) => (o.velocity = [Math.min(v / 100, o.velocity[0]), v / 100])));
+    el.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      e.stopPropagation();
+      const r = track.getBoundingClientRect(), rg = data(view).randomize.range[key];
+      const v = min + ((e.clientX - r.left) / r.width) * (max - min);
+      which = Math.abs(v - rg[0]) < Math.abs(v - rg[1]) || (rg[0] === rg[1] && v < rg[0]) ? 0 : 1;
+      el.setPointerCapture(e.pointerId);
+      view.api.beginGesture();
+      move(e);
+    });
+    el.addEventListener("pointermove", (e) => { if (which !== null) move(e); });
+    const end = () => (which = null);
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    return { el, refresh };
   }
 
   const STYLE = `
@@ -214,19 +290,26 @@
     .seq-opt { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .seq-opt .bv-number { width: 56px; }
     .seq-body { display: flex; }
-    .seq-labels { position: relative; width: 40px; flex: none; height: ${H}px; font-size: 9px; color: var(--muted);
+    .seq-labels { position: relative; width: 132px; margin-right: 6px; flex: none; height: ${H}px; font-size: 9px; color: var(--muted);
       text-transform: uppercase; letter-spacing: .06em; }
-    .seq-labels .seq-lane { position: absolute; left: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+    .seq-labels .seq-lane { position: absolute; left: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
     .seq-labels button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 5px;
       padding: 0 3px; font-size: 16px; line-height: 16px; cursor: pointer; }
     .seq-labels button:hover { border-color: var(--accent); }
+    .seq-labels .seq-head { display: flex; align-items: center; gap: 4px; }
+    .seq-range { position: relative; width: 126px; touch-action: none; cursor: pointer; }
+    .seq-range .seq-track { position: relative; height: 4px; background: var(--line); border-radius: 2px; margin: 8px 6px 10px; }
+    .seq-range .seq-fill { position: absolute; top: 0; height: 100%; background: var(--accent); border-radius: 2px; }
+    .seq-range i { position: absolute; top: -4px; width: 10px; height: 12px; margin-left: -5px; box-sizing: border-box;
+      background: var(--panel); border: 1px solid var(--accent); border-radius: 3px; }
+    .seq-range .seq-rv { position: absolute; right: 0; top: -20px; text-align: right; font-size: 9px; color: var(--muted); text-transform: none; letter-spacing: 0; }
     .seq-scroll { overflow-x: auto; flex: 1; min-width: 0; }
     .seq-scroll canvas { display: block; touch-action: none; cursor: crosshair; }`;
 
   BleepViews.register("step-sequencer", {
     partNames: ["Step lanes"],
     top: true,
-    width: 900,
+    width: 1180,
     layout: [
       { title: "Clock", params: ["syncto", "rate", "length", "direction"] },
       { title: "Feel", params: ["gatelength", "swing"] },
@@ -245,9 +328,14 @@
       <div class="seq-options" hidden></div>
       <div class="seq-body">
         <div class="seq-labels">
-          <div class="seq-lane" style="top:${GATE[0] + 2}px">Gate <button data-lane="gate" title="New gates and ties">⚄</button></div>
-          <div class="seq-lane" style="top:${PITCH[0] + 30}px">Pitch <button data-lane="pitch" title="New pitches from the scale">⚄</button></div>
-          <div class="seq-lane" style="top:${VEL[0] + 6}px">Vel <button data-lane="velocity" title="New velocities">⚄</button></div>
+          <div class="seq-lane" style="top:${GATE[0] + 14}px"><div class="seq-head">Gate <button data-lane="gate" title="New gates, ties and gate lengths">⚄</button></div>
+            <div data-range="glen"></div></div>
+          <div class="seq-lane" style="top:${PITCH[0] + 6}px"><div class="seq-head">Pitch <button data-lane="pitch" title="New pitches from the scale">⚄</button></div>
+            <div data-range="pitch"></div></div>
+          <div class="seq-lane" style="top:${VEL[0]}px"><div class="seq-head">Vel <button data-lane="velocity" title="New velocities">⚄</button></div>
+            <div data-range="velocity"></div></div>
+          <div class="seq-lane" style="top:${RAT[0]}px"><div class="seq-head">Ratchet <button data-lane="ratchet" title="New ratchets (1–16 notes per step)">⚄</button></div>
+            <div data-range="ratchet"></div></div>
         </div>
         <div class="seq-scroll"><canvas></canvas></div>
       </div>
@@ -264,6 +352,13 @@
       attach(view, canvas);
       const box = el.querySelector(".seq-options"), more = el.querySelector(".seq-more");
       el.querySelector(".seq-rand").addEventListener("click", () => randomize(view, ["gate", "pitch", "velocity"]));
+      view.seq.sliders = [];
+      for (const slot of el.querySelectorAll("[data-range]")) {
+        const sl = rangeSlider(view, slot.dataset.range);
+        slot.replaceWith(sl.el);
+        sl.refresh();
+        view.seq.sliders.push(sl);
+      }
       for (const b of el.querySelectorAll(".seq-labels button"))
         b.addEventListener("click", () => randomize(view, [b.dataset.lane]));
       more.addEventListener("click", () => {
@@ -289,6 +384,7 @@
     onRefresh(view) {
       const box = view.root.querySelector(".seq-options");
       if (box && !box.hidden) options(view, box);
+      if (view.seq) for (const sl of view.seq.sliders || []) sl.refresh();
       draw(view);
     },
   });

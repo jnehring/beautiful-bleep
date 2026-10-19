@@ -193,6 +193,37 @@ static void seqTies() {
     EXPECT(outs[0].trigger == 1.0f && outs[6000].trigger == 0.0f && outs[18000].trigger == 0.0f);
 }
 
+static void seqRatchet() {
+    g_test = "seq-ratchet";
+    StepSequencerDsp d;
+    d.prepare(48000.0);
+    d.reset();
+    SeqPattern pat{};
+    pat[0] = {SeqOn, 0, 100, 50, 3};   // three notes, each gate 50 % x 50 % of a third of the step
+    pat[1] = {SeqOn, 2, 100, 100, 1};  // a plain step
+    d.setPattern(pat);
+    SeqParams p;
+    p.length = 2;
+    std::vector<SeqOutputs> outs;
+    auto ev = runSeq(d, p, 11000, transportAt(), &outs);
+    // A 1/16 is 6000 samples: notes at 0, 2000, 4000, each 2000 * 0.25 = 500 long.
+    std::vector<SeqEvent> want{{0, true, 60},    {500, false, 60},  {2000, true, 60}, {2500, false, 60},
+                               {4000, true, 60}, {4500, false, 60}, {6000, true, 62}, {9000, false, 62}};
+    EXPECT(ev.size() == want.size());
+    for (size_t i = 0; i < std::min(ev.size(), want.size()); ++i)
+        EXPECT(ev[i].at == want[i].at && ev[i].on == want[i].on && ev[i].note == want[i].note);
+    EXPECT(outs[0].trigger == 1.0f && outs[2000].trigger == 1.0f && outs[4000].trigger == 1.0f && outs[1000].trigger == 0.0f);
+    // A step that ends first drops the unplayed notes: a 16-fold ratchet in a short step still ends with it.
+    d.reset();
+    pat[0].ratchet = 16;
+    pat[0].gateLen = 100;
+    d.setPattern(pat);
+    ev = runSeq(d, p, 12000, transportAt());
+    int ons = 0;
+    for (const auto& e : ev) ons += e.on && e.at < 6000;
+    EXPECT(ons == 16);
+}
+
 static void seqVariation() {
     g_test = "seq-variation";
     SeqPattern pat{};
@@ -287,6 +318,7 @@ void runSequencerTests() {
     seqClock();
     seqDirections();
     seqTies();
+    seqRatchet();
     seqVariation();
     seqNoHangingNotes();
 }

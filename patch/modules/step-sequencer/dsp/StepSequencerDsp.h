@@ -23,12 +23,14 @@ enum SeqGate : uint8_t { SeqOff = 0, SeqOn = 1, SeqTie = 2 };
 enum SeqDirection { SeqForward = 0, SeqBackward, SeqPingPong, SeqRandom };
 
 constexpr int kSeqSteps = 32;
-constexpr int kSeqMinPitch = -24, kSeqMaxPitch = 36;
+constexpr int kSeqMinPitch = -24, kSeqMaxPitch = 36, kSeqMaxRatchet = 16;
 
 struct SeqStep {
     uint8_t gate = SeqOn;
     int8_t pitch = 0;        ///< semitones above Root + Octave
     uint8_t velocity = 100;  ///< 1..127
+    uint8_t gateLen = 100;   ///< 1..100 %, scales the Gate Length setting
+    uint8_t ratchet = 1;     ///< 1..16 notes in the step
 };
 using SeqPattern = std::array<SeqStep, kSeqSteps>;
 
@@ -107,6 +109,7 @@ public:
         lastIdx_ = -1;
         varied_ = 0;
         stopRequested_ = false;
+        ratchLeft_ = 0;
     }
 
     /// A new pattern. A sounding step that lost its gate stops.
@@ -134,6 +137,16 @@ public:
         clocked_ = clockPatched;
         if (stopRequested_) stop(emit);
 
+        // Ratchet: the next sub-note of the running step, before a new step can replace it.
+        if (ratchLeft_ > 0) {
+            ++ratchElapsed_;
+            if (ratchElapsed_ >= (int64_t)std::llround((double)ratchIndex_ * ratchSub_)) {
+                ++ratchIndex_;
+                --ratchLeft_;
+                playRatchet(emit, out);
+            }
+        }
+
         dsp::SeqClockInput in;
         in.clocked = clockPatched;
         in.clock = clockIn;
@@ -160,6 +173,7 @@ private:
     template <class Emit>
     void stop(Emit& emit) noexcept {
         stopRequested_ = false;
+        ratchLeft_ = 0;
         voice_.release(emit);
     }
 
@@ -185,6 +199,7 @@ private:
 
         const SeqStep& st = pattern_[(size_t)idx];
         varied_ &= ~(1u << idx);
+        ratchLeft_ = 0;
         if (st.gate == SeqOff) {
             voice_.rest(emit);
             return;
@@ -199,8 +214,28 @@ private:
         }
         const int q = pitchOf(p, rel);
         vel = std::clamp(vel, 1.0f / 127.0f, 1.0f);
-        const auto how = voice_.play(60 + q, (float)q / 12.0f, vel, st.gate == SeqTie,
-                                     dsp::gateSamples(durationSamples, p.gateLength), emit);
+        const int r = std::clamp((int)st.ratchet, 1, kSeqMaxRatchet);
+        const float gl = p.gateLength * (float)std::clamp((int)st.gateLen, 1, 100) / 100.0f;
+        note_ = 60 + q;
+        pitch_ = (float)q / 12.0f;
+        vel_ = vel;
+        gateLen_ = gl;
+        if (r > 1) {  // the step is r equal notes; a tie does not carry over
+            ratchSub_ = durationSamples / (double)r;
+            ratchIndex_ = 1;
+            ratchLeft_ = r - 1;
+            ratchElapsed_ = 0;
+            const auto how = voice_.play(note_, pitch_, vel_, false, dsp::gateSamples(ratchSub_, gl), emit);
+            if (how == dsp::SeqVoice::Fresh) out.trigger = 1.0f;
+            return;
+        }
+        const auto how = voice_.play(note_, pitch_, vel_, st.gate == SeqTie, dsp::gateSamples(durationSamples, gl), emit);
+        if (how == dsp::SeqVoice::Fresh) out.trigger = 1.0f;
+    }
+
+    template <class Emit>
+    void playRatchet(Emit& emit, SeqOutputs& out) noexcept {
+        const auto how = voice_.play(note_, pitch_, vel_, false, dsp::gateSamples(ratchSub_, gateLen_), emit);
         if (how == dsp::SeqVoice::Fresh) out.trigger = 1.0f;
     }
 
@@ -212,6 +247,11 @@ private:
     bool played_ = false, stopRequested_ = false;
     int step_ = 0, lastIdx_ = -1;
     uint32_t varied_ = 0;
+    // The running step's ratchet: notes still to come, their spacing and the shared note.
+    int ratchLeft_ = 0, ratchIndex_ = 1, note_ = 60;
+    int64_t ratchElapsed_ = 0;
+    double ratchSub_ = 0.0;
+    float pitch_ = 0.0f, vel_ = 0.0f, gateLen_ = 0.5f;
 };
 
 }  // namespace bleep::patch

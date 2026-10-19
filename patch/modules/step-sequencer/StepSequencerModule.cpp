@@ -32,6 +32,8 @@ SeqPattern parseSteps(const juce::var& data, bool& fresh) {
         s.gate = (uint8_t)juce::jlimit(0, 2, (int)st.getProperty("g", 0));
         s.pitch = (int8_t)juce::jlimit(patch::kSeqMinPitch, patch::kSeqMaxPitch, (int)st.getProperty("p", 0));
         s.velocity = (uint8_t)juce::jlimit(1, 127, (int)st.getProperty("v", 100));
+        s.gateLen = (uint8_t)juce::jlimit(1, 100, (int)st.getProperty("l", 100));
+        s.ratchet = (uint8_t)juce::jlimit(1, patch::kSeqMaxRatchet, (int)st.getProperty("r", 1));
     }
     return p;
 }
@@ -48,6 +50,8 @@ std::string sanitiseData(const std::string& json) {
         o->setProperty("g", (int)s.gate);
         o->setProperty("p", (int)s.pitch);
         o->setProperty("v", (int)s.velocity);
+        o->setProperty("l", (int)s.gateLen);
+        o->setProperty("r", (int)s.ratchet);
         steps.add(juce::var(o));
     }
     out->setProperty("steps", steps);
@@ -59,14 +63,22 @@ std::string sanitiseData(const std::string& json) {
         return juce::jlimit(lo, hi, v.isDouble() || v.isInt() || v.isInt64() ? (double)v : def);
     };
     ro->setProperty("density", number("density", 0.6, 0.0, 1.0));
-    ro->setProperty("octaves", (int)number("octaves", 1, 1, 3));
-    double lo = 0.6, hi = 1.0;
-    if (const auto* a = r["velocity"].getArray(); a && a->size() == 2) {
-        lo = juce::jlimit(0.01, 1.0, (double)(*a)[0]);
-        hi = juce::jlimit(0.01, 1.0, (double)(*a)[1]);
-        if (lo > hi) std::swap(lo, hi);
-    }
-    ro->setProperty("velocity", juce::Array<juce::var>{lo, hi});
+    // Per-lane value range the randomizer draws from (min == max sets every step to that value).
+    auto* rr = new juce::DynamicObject();
+    auto range = [&](const char* key, int lo, int hi, int defLo, int defHi) {
+        int a = defLo, b = defHi;
+        if (const auto* v = r["range"][key].getArray(); v && v->size() == 2) {
+            a = juce::jlimit(lo, hi, (int)(*v)[0]);
+            b = juce::jlimit(lo, hi, (int)(*v)[1]);
+            if (a > b) std::swap(a, b);
+        }
+        rr->setProperty(key, juce::Array<juce::var>{a, b});
+    };
+    range("pitch", patch::kSeqMinPitch, patch::kSeqMaxPitch, 0, 12);
+    range("velocity", 1, 127, 76, 127);
+    range("gatelen", 1, 100, 50, 100);
+    range("ratchet", 1, patch::kSeqMaxRatchet, 1, 2);
+    ro->setProperty("range", juce::var(rr));
     out->setProperty("randomize", juce::var(ro));
     return juce::JSON::toString(result, true).toStdString();
 }
@@ -181,7 +193,7 @@ void registerStepSequencerModule(Registry& r) {
     s.name = "Step Sequencer";
     s.category = "Sequencing/Melodic";
     s.colour = "#f6c453";
-    s.description = "Up to 32 steps of gate, pitch and velocity, quantized to a scale. Notes out plays a Voice Cell.";
+    s.description = "Up to 32 steps of gate (with length), pitch, velocity and ratchet, quantized to a scale. Notes out plays a Voice Cell.";
     std::vector<std::string> rates, roots, scales;
     for (const char* n : StepSequencerDsp::rateNames()) rates.emplace_back(n);
     for (const char* n : {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}) roots.emplace_back(n);

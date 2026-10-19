@@ -5,9 +5,10 @@
 ## Introduction
 
 The Step Sequencer plays a melody of up to **32 steps**. Each step has a
-**gate** (off, on or tied to the next step), a **pitch** and a **velocity**,
-drawn in three lanes. Pitches snap to a **scale**, so every pattern stays in
-key. **Randomize** buttons write new gates, pitches or velocities in one click, and the **Variation** knob
+**gate** (off, on or tied to the next step) with its own **length**, a **pitch**,
+a **velocity** and a **ratchet** (1–16 notes inside the step), drawn in four
+lanes. Pitches snap to a **scale**, so every pattern stays in
+key. **Randomize** buttons write new gates, pitches, velocities or ratchets in one click, and the **Variation** knob
 adds seeded variation while the pattern plays, without changing it.
 
 Patch *Notes* into a Voice Cell and you have a polyphonic synth playing a
@@ -27,7 +28,7 @@ steps forward, backward, back and forth (*Ping-Pong*) or in a seeded random
 order that never repeats a step twice in a row.
 
 **Gates and ties.**
-- **On** plays a note for *Gate Length* of the step.
+- **On** plays a note for *Gate Length* of the step, scaled by the step's own length bar.
 - **Tie** holds the note into the next step. If the next step has another
   pitch, the new note starts before the old one ends, so a Voice Cell in
   *Legato* mode glides instead of retriggering. With the same pitch, the note
@@ -49,15 +50,22 @@ time.
 
 - **A sequenced synth:** patch *Notes* into a Voice Cell's *Notes* input.
   Press play.
-- **Drawing:** click a gate to cycle Off → On → Tie; drag across gates to paint
-  them. Drag in the pitch lane to draw a melody; it snaps to the scale (hold
+- **Drawing:** click the strip on top of the gate lane to cycle Off → On → Tie;
+  drag across it to paint. Click or drag in the bars below it to set each
+  step's gate length (height = share of *Gate Length*; an Off step turns On).
+  In the ratchet lane, the height is the number of notes (1–16) the step is
+  divided into; each one is retriggered with the same pitch and velocity, and a
+  tie does not carry over. Double-click a bar to reset it. Drag in the pitch lane to draw a melody; it snaps to the scale (hold
   Shift for single semitones outside it). Double-click a pitch to reset it to
   the root. Drag in the velocity lane to draw accents.
 - **New ideas:** each lane has its own dice button (⚄) next to its name: new
   gates and ties, new pitches from the scale, or new velocities, leaving the
   other lanes alone. **Randomize all** rewrites all three. The **▾** button
-  sets how many steps get a gate (*Density*), the pitch range in octaves and
-  the velocity range. Each click is one undo step.
+  sets how many steps get a gate (*Density*). Next to each dice, a **range
+  slider** sets the values the dice may pick (gate length, pitch in semitones
+  from the root, velocity, ratchet count): narrow it to reduce the spread, or
+  drag both handles together to set every step to one value. Each click is one
+  undo step.
 - **Moving patterns:** ◀ and ▶ rotate the steps; **Clear** turns all gates off.
 - **Evolving lines:** patch a slow Function or Random onto **Variation**. The
   melody wanders off and comes back.
