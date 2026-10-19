@@ -57,11 +57,18 @@
   // ------------------------------------------------------------------ markdown (minimal, built with DOM nodes only)
   // Paragraphs, headings (as bold lines), lists, fenced code, **bold**, *italic*, `code` and [links](http…). Everything else is text.
   const INLINE = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(\*[^*\s][^*\n]*\*)|(\[[^\]\n]+\]\((?:https?:\/\/|\/)[^\s)]*\))/g;
+  // Models sometimes emit HTML entities (&rarr;); the text is shown as text nodes, so decode the common ones here.
+  const ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0", rarr: "\u2192", larr: "\u2190", harr: "\u2194",
+                     ndash: "\u2013", mdash: "\u2014", hellip: "\u2026", times: "\u00d7", deg: "\u00b0" };
+  const decode = (t) => t.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (all, e) => {
+    if (e[0] === "#") { const n = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); return n > 0 && n < 0x110000 ? String.fromCodePoint(n) : all; }
+    return Object.prototype.hasOwnProperty.call(ENTITIES, e.toLowerCase()) ? ENTITIES[e.toLowerCase()] : all;
+  });
   function inline(parent, text) {
     let last = 0, m;
     const re = new RegExp(INLINE.source, "g");   // its own state: bold and italic recurse into inline()
     while ((m = re.exec(text))) {
-      if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+      if (m.index > last) parent.appendChild(document.createTextNode(decode(text.slice(last, m.index))));
       const tok = m[0];
       if (m[1]) parent.appendChild(el("code", "", tok.slice(1, -1)));
       else if (m[2]) { const b = el("strong"); inline(b, tok.slice(2, -2)); parent.appendChild(b); }
@@ -76,7 +83,7 @@
       }
       last = m.index + tok.length;
     }
-    if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+    if (last < text.length) parent.appendChild(document.createTextNode(decode(text.slice(last))));
   }
   function markdown(root, src) {
     root.textContent = "";
