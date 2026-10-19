@@ -97,6 +97,9 @@ public:
     /// Imports a WAV file (its bytes) into the media folder (Media.h). Returns
     /// {id, name, seconds, channels} or {error}.
     juce::var importMedia(const juce::String& name, const juce::MemoryBlock& bytes);
+    /// A Code node's module, compiled by the board UI (engine/wasm/CodeNodes.h): registers it for that node and recompiles the board.
+    /// {ok: true} or {error}. `code` is the node's `code` property ({source, interface, settings}).
+    juce::var registerCode(const juce::String& nodeId, const juce::var& code, const juce::MemoryBlock& wasm);
     /// The WAV file of a media id as base64, for a preset that takes its audio along: {data, name} or {error}.
     juce::var readMedia(const juce::String& id);
     /// Shows a media file in the computer's file manager (the Recorder's "show take"). {ok} or {error}.

@@ -122,4 +122,18 @@ assert.equal(at(old, "PC"), undefined, "an empty Panel cell goes too");
   assert.equal(v.nodes.length, 9, "no module is made");
   assert.equal(v.cables.length, 0);
 }
+// a Code node has knobs of its own: the panel tools ask the node's description (env.typeOf), not the type's empty one
+{
+  const code = (b2) => { b2.nodes.push(node("C1", "code", "W", { name: "Mixer", code: { source: "s", interface: { params: [{ id: "gain1", name: "Gain 1", kind: "float", modulatable: true }] } } })); return b2; };
+  const own = (n) => (n.type === "code" ? { type: "code", params: n.code.interface.params } : env.types[n.type]);
+  const e2 = { ...env, types: { ...env.types, code: { type: "code", params: [] } }, typeOf: own };
+  const b3 = code(board());
+  const asType = W.addKnob(b3, { ...e2, typeOf: undefined }, at(b3, "C1"), "gain1", "new");
+  assert.equal(asType.error, "no such knob", "without typeOf only the type's (empty) description is seen");
+  const asNode = W.addKnob(b3, e2, at(b3, "C1"), "gain1", "new");
+  assert.ok(asNode.control && !asNode.error, JSON.stringify(asNode));
+  assert.deepEqual(asNode.control.wire, [{ param: "C1.gain1" }]);
+  assert.equal(W.addKnob(b3, e2, at(b3, "C1"), "gain9", asNode.panel.id).error, "no such knob");
+}
+
 console.log("panel-wiring: ok");

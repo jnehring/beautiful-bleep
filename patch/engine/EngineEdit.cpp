@@ -65,6 +65,14 @@ juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var&
             return juce::var(o);
         }
         return importMedia(a[0].toString(), decoded.getMemoryBlock());
+    } else if (m == "registerCode") {   // [node id, the node's code, the module's bytes as base64]
+        juce::MemoryOutputStream decoded;
+        if (!juce::Base64::convertFromBase64(decoded, a[2].toString())) {
+            auto* o = new juce::DynamicObject();
+            o->setProperty("error", "could not read the module");
+            return juce::var(o);
+        }
+        return registerCode(a[0].toString(), a[1], decoded.getMemoryBlock());
     } else if (m == "readMedia") {
         return readMedia(a[0].toString());
     } else if (m == "liveState") {
@@ -199,6 +207,23 @@ void Engine::command(const juce::String& nodeId, const juce::String& id, float v
     if (auto m = modules_.find(node); m != modules_.end()) m->second->command(cmd, value);
     if (auto in = inner_.find(node); in != inner_.end())
         for (const auto& m : in->second.modules) m->command(cmd, value);
+}
+
+juce::var Engine::registerCode(const juce::String& nodeId, const juce::var& code, const juce::MemoryBlock& wasm) {
+    auto* o = new juce::DynamicObject();
+#if defined(BLEEP_WASM_MODULES)
+    std::string error;
+    if (registerCodeModule(nodeId.toStdString(), juce::JSON::toString(code, true).toStdString(), static_cast<const uint8_t*>(wasm.getData()), wasm.getSize(), error)) {
+        modulesChanged();   // nodes of this id now run the new module
+        o->setProperty("ok", true);
+    } else {
+        o->setProperty("error", juce::String(error));
+    }
+#else
+    (void)nodeId; (void)code; (void)wasm;
+    o->setProperty("error", "this build cannot run Code nodes");
+#endif
+    return juce::var(o);
 }
 
 juce::var Engine::importMedia(const juce::String& name, const juce::MemoryBlock& bytes) {

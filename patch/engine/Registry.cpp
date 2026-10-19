@@ -16,6 +16,18 @@ std::vector<std::pair<std::string, RegisterFn>>& autoRegistered() {
 
 AutoRegister::AutoRegister(const char* name, RegisterFn fn) { autoRegistered().emplace_back(name, fn); }
 
+namespace {
+CodeNodeResolver& codeResolver() {
+    static CodeNodeResolver resolver = nullptr;
+    return resolver;
+}
+}  // namespace
+
+void setCodeNodeResolver(CodeNodeResolver resolver) { codeResolver() = resolver; }
+const ModuleSpec* codeNodeSpec(const std::string& nodeId, const std::string& codeJson) {
+    return codeResolver() ? codeResolver()(nodeId, codeJson) : nullptr;
+}
+
 Registry& Registry::instance() {
     static Registry registry;
     return registry;

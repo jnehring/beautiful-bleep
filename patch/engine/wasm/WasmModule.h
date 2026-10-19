@@ -37,6 +37,10 @@ public:
 
     int indexOf(const std::string& type) const;
 
+    /// Renames the node type of a package that has exactly one (a Code node's module: the UI compiles it with a placeholder id and the engine
+    /// gives it the id of its node). `types` and `specJson` change; the module file does not. False if the package has more than one type.
+    bool retype(const std::string& type);
+
     /// A node type's data made valid (ModuleSpec::sanitiseData), by a private instance of the module. Message thread.
     std::string sanitiseData(int typeIndex, const std::string& json) const;
 

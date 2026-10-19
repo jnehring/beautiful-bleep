@@ -6,6 +6,7 @@
 (function () {
   "use strict";
   if (window.__JUCE__) return;
+  const priv = (window.BleepSeal && window.BleepSeal.priv) || window;   // the board's private namespace, captured before the seal removes it
 
   const listeners = {};
   const emit = (e, v) => (listeners[e] || []).forEach((f) => f(v));
@@ -377,7 +378,11 @@
           if (window.BleepWeb && BleepWeb.libraryTypes) types = types.concat(await BleepWeb.libraryTypes(types));
           if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
           // The Code node (board-code.js) where the Bleep Script compiler is part of the build.
-          if (window.BleepCode && await BleepCode.available()) types = types.concat([BleepCode.type]);
+          {
+            const code = priv.BleepCode;
+            types = types.filter((t) => t.type !== "code");   // the list may carry it (the engine has the type); it is offered only where the compiler is
+            if (code && await code.available()) types = types.concat([code.type]);
+          }
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
           return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});

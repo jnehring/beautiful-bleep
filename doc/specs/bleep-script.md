@@ -1,6 +1,6 @@
 # Bleep Script
 
-Status: concept (not built). A way to write modules, message routing, and generated patches for Beautiful Bleep in code, built on **AssemblyScript** and **TypeScript**, with the module and widget system around it. The foundation is decided (section 4). The spike (section 14) has run and works; everything beyond it is still open. Open questions are in section 16.
+Status: built and working in the web board; the native app and plugins have the engine side but not yet the compiler delivery (section 17). A way to write modules, message routing, and generated patches for Beautiful Bleep in code, built on **AssemblyScript** and **TypeScript**, with the module and widget system around it. Section 17 lists what exists and where the built version differs from the design in the sections before it.
 
 It should serve four jobs:
 
@@ -558,3 +558,35 @@ What can be reused around AssemblyScript and TypeScript. Items marked (verified)
 5. Should a probe carry arrays, and what is the maximum size?
 6. If the spike fails, do we fall back to the own language on Binaryen, or look at Faust as a backend?
 7. How are array declarations such as `@param({ count: CHANNELS })` best expressed, so the checker and the editor understand them?
+
+## 17. What is built
+
+Everything below runs and is tested; `patch/script` has the code, `patch/script/README.md` the commands.
+
+| Part | Where | State |
+|---|---|---|
+| Transform: decorators to spec JSON and ABI exports | `transform/bleep.mjs` | `@module`, `@input`, `@output`, `@param` (float, int, choice, bool; linear, `exp`, `skew` as the engine maps them), `@probe`, `@button`, `@on`; `count` for numbered jacks, params and probes; module `settings` (a count the user sets); TSDoc comments as descriptions |
+| Subset checker and cost bound | `transform/subset.mjs` | Section 3.4 as written: no host imports or raw memory, no unbounded loops, recursion, allocation, closures or exceptions in real-time code; an estimate of ops per 32-sample chunk (limit 400,000, warning at 60,000), shown in the editor. The estimate is conservative: about 4 times the measured time for Gains |
+| Events | `src/bleep/notes.ts`, transform glue | Notes jacks (`NoteStream`, `NoteEvent`), `@on("jack")` for note events at their sample offset, `@on("jack", { rising/falling: level })` for edges. Not built: a transport clock handler |
+| Standard library | `src/bleep/dsp.ts`, `format.ts` | `Smoother`, `PeakHold`, `Biquad` (shelves, bell, low-pass), `dbToLin`, number formatting |
+| Layer 1: patch scripts | `patch/` | **TypeScript or JavaScript run in QuickJS compiled to WebAssembly** (memory and time limits, no network, files, clock, DOM), checked against the board's module types, producing a cell of modules and cables. This differs from section 5, which put layer 1 in a host-language API; the script API is `cell(name, { settings }, (c, s) => ...)` with `c.add`, `c.cable`, `c.input`, `c.output`, `c.stereo`, `c.place`, in `export default cell(...)` |
+| Compiler in the browser | `compiler/`, `bundle.mjs` | One 15.6 MB ES module (asc, Binaryen, the transform, the library, QuickJS, sucrase; about 3 MB gzipped), loaded in a Worker. The editor (CodeMirror 6, MIT) is a separate 471 KB bundle |
+| Code node in the web board | `patch/board/ui/board-code*.js` | Section 8. Settings row, patch scripts, regeneration that keeps the user's cables, undo, panel wiring to a Code node's knobs |
+| Native engine | `patch/engine/wasm/CodeNodes.*`, `Registry`, `Board`, `BoardSanitise` | A Code node keeps its cables, knob values and `code` when loaded, before anything is compiled; the module the UI compiled is registered for the node and runs in Wasmtime; a changed source is a new type. Tested in `patch/tests/code_node_test.cpp` (not a ctest: it needs the module built in `patch/script`) |
+| CI | `.github/workflows/ci.yml`, `website/Dockerfile` | The script tests run in the rules job; the bundles are built before the site |
+
+**Where the built version differs from the design above**
+
+- Decorators are `@input` and `@output` (`in` is reserved). Array jacks use `count`, not `[n]`.
+- A Code node stores `{ source, interface, settings }` on the node; the engine type is `code:<node id>:<hash of source and settings>`.
+- Layer 1 is not AssemblyScript and not a host-language library: it is a sandboxed script that returns a description.
+- Rates are methods, not inferred sections, and the checker enforces rules by syntax and call-graph, not by a rate type system.
+- The module's `bleep_destroy` frees nothing (stub runtime); allocation happens in constructors only.
+
+**Not built**
+
+- The native app and plugins cannot compile a script yet: the compiler bundle is not delivered there. A dev build serves it from `patch/script/dist` (`BLEEP_UI_DEV_ROOT`); a release needs it to arrive as a library package or an embedded file (16 MB is too large for JUCE's binary data). The engine side is done and tested. Whether the native WebView can run a module Worker from its resource scheme is not verified.
+- Hot reload that keeps module state across a recompile, and a crossfade.
+- Widget registry, custom `frame()` views, custom JS views, `@data`, a transport clock handler, library publishing of script modules, the generated API reference.
+- No browser test is automated: the board was driven by hand in the in-app browser.
+

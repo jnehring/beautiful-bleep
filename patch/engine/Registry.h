@@ -24,6 +24,17 @@ constexpr const char* kVoiceCell = "voice-cell";
 constexpr const char* kVoiceIn = "voice-in";
 constexpr const char* kVoiceOut = "voice-out";
 
+/// Code nodes (type "code"): a module written in Bleep Script, compiled by the board UI (board-code.js). Each Code node, with each source it has
+/// had, runs as a node type of its own: made from the module the UI compiled, or, until that arrives, from the description saved on the node,
+/// without DSP, so the node already has its jacks and knobs. The wasm host installs the resolver (engine/wasm/CodeNodes.cpp); without one,
+/// a Code node is a placeholder, like a module that is not installed.
+constexpr const char* kCode = "code";
+/// `codeJson`: the node's `code` property as JSON ({source, interface, settings}), or empty for a node that has none yet.
+using CodeNodeResolver = const struct ModuleSpec* (*)(const std::string& nodeId, const std::string& codeJson);
+void setCodeNodeResolver(CodeNodeResolver resolver);
+/// The spec a Code node runs with: its own type; the plain "code" type for a node with no code; null (a placeholder) with no resolver.
+const ModuleSpec* codeNodeSpec(const std::string& nodeId, const std::string& codeJson);
+
 class Registry {
 public:
     using Factory = std::function<std::unique_ptr<Module>(const ModuleSpec&)>;

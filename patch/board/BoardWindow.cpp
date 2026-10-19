@@ -11,6 +11,7 @@
 //              (kind: "cell", the default, "drums" for Drum Grid patterns, or "projects" for whole projects: the
 //              board with its panels, as {name, preset: {nodes, cables, panels, description, tags, tempo, needs}})
 //              loadPatch(board, tempo, name)   the preset browser: replace the project with a patch
+//              registerCode(nodeId, code, base64)   a Code node's compiled module (engine/wasm/CodeNodes.h)
 //              importMedia(name, base64) readMedia(id) revealMedia(id)   audio files for modules; a preset takes the files it uses along (common/ui/bleep-media.js)
 //              copyText(text) pasteText()   the system clipboard (board copy & paste)
 //   C++ → JS   "board"  {board, ports, canUndo, canRedo}   board changed elsewhere
@@ -192,6 +193,17 @@ public:
                         return;
                     }
                     done(engine_.importMedia(a[0].toString(), decoded.getMemoryBlock()));
+                }))
+                .withNativeFunction("registerCode", gated([this](const juce::Array<juce::var>& a, Completion done) {
+                    // a[0]: the Code node's id, a[1]: its `code` ({source, interface, settings}), a[2]: the module compiled from it, as base64.
+                    juce::MemoryOutputStream decoded;
+                    if (!juce::Base64::convertFromBase64(decoded, a[2].toString())) {
+                        auto* o = new juce::DynamicObject();
+                        o->setProperty("error", "could not read the module");
+                        done(juce::var(o));
+                        return;
+                    }
+                    done(engine_.registerCode(a[0].toString(), a[1], decoded.getMemoryBlock()));
                 }))
                 .withNativeFunction("readMedia", gated([this](const juce::Array<juce::var>& a, Completion done) {
                     done(engine_.readMedia(a[0].toString()));

@@ -9,6 +9,7 @@
 
   P.BoardViews = {
     create(s) {
+      // (s.types, the board's module types by id, is for the Code node: api.types() below)
       const { $, cablesInto, canBypass, canvas, clone, drivesJacks, edit, el, gesture, isPort, isStructural,
               jackName, knobMenuItems, nodeById, nodesEl, panelMenuFor, removeCable, renderCables, renderNodes,
               savePreset, setPowerButton, showMenu, toggleBypass, typeOf, views, hidePopovers } = s;
@@ -67,6 +68,9 @@
           deletePreset: async (kind, name) => (viewKind(kind) && (await native("deletePreset", name, kind))) || [],
           // The MIDI inputs the app sees (MIDI Device's controller list).
           midiDevices: async () => (await native("midiDevices")) || [],
+          // For the Code node (board-code.js): the board's module types, and a patch script's result put on the board in one undoable step.
+          types: () => s.types,
+          applyGenerated: (code, result) => edit("generate patch", (b) => (P.BleepCode ? P.BleepCode.applyGenerated(b, id, code, result) : false)),
           setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
           cablesInto: (pid) => cablesInto(id, pid).map((c) => {
             const src = nodeById(c.from.node);

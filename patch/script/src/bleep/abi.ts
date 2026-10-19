@@ -5,6 +5,7 @@
 
 export const CHUNK: i32 = 32;
 export const NOTE_BUFFER_BYTES: i32 = 64 * 16 + 4;
+export const emptyNotes: ArrayBuffer = new ArrayBuffer(NOTE_BUFFER_BYTES);   // what a jack that is not a notes jack answers
 
 /// What every module has: three float buffers laid out jack-major, 32 samples per row (ABI section 5).
 export abstract class Module {
@@ -13,6 +14,9 @@ export abstract class Module {
   readonly outputs: StaticArray<f32>;
   readonly inConnected: StaticArray<u8>;
   readonly outConnected: StaticArray<u8>;
+  /// The note buffer of each notes jack, by jack index (the others are never asked for). The generated glue makes them.
+  readonly notesIn: ArrayBuffer[];
+  readonly notesOut: ArrayBuffer[];
 
   constructor(numParams: i32, numInputs: i32, numOutputs: i32) {
     this.params = new StaticArray<f32>(max(numParams, 1) * CHUNK);
@@ -20,6 +24,10 @@ export abstract class Module {
     this.outputs = new StaticArray<f32>(max(numOutputs, 1) * CHUNK);
     this.inConnected = new StaticArray<u8>(numInputs + 1);
     this.outConnected = new StaticArray<u8>(numOutputs + 1);
+    this.notesIn = new Array<ArrayBuffer>(numInputs);
+    this.notesOut = new Array<ArrayBuffer>(numOutputs);
+    for (let i = 0; i < numInputs; i++) this.notesIn[i] = emptyNotes;
+    for (let i = 0; i < numOutputs; i++) this.notesOut[i] = emptyNotes;
   }
 
   /// The knob without modulation (bleep_set_knob). Most modules read `params` and need not override it.
@@ -27,6 +35,8 @@ export abstract class Module {
   reset(): void {}
   /// Runs `n` (1 to 32) samples.
   abstract process(n: i32): void;
+  /// A view button was pressed: its id is in the scratch buffer (scratchEquals).
+  command(value: f32): void {}
   /// The text of a knob at a value ("2.5 dB"); empty: the host formats it.
   paramText(index: i32, normalised: f32): string { return ""; }
   /// {"values":{name:number}} for the module's view, polled about ten times a second (the `@probe` channel).
@@ -34,6 +44,11 @@ export abstract class Module {
   outputDisplay(index: i32): f32 { return 0; }
 }
 
+/// The address of the note buffer of jack `jack` in `list` (module.notesIn or notesOut).
+export function notesPtr(list: ArrayBuffer[], jack: i32): usize {
+  if (jack < 0 || jack >= list.length) return changetype<usize>(emptyNotes);
+  return changetype<usize>(unchecked(list[jack]));
+}
 export function asModule(h: usize): Module { return changetype<Module>(h); }
 export function handleOf(m: Module): usize { return changetype<usize>(m); }
 export function addressOf<T>(a: StaticArray<T>): usize { return changetype<usize>(a); }
@@ -41,7 +56,6 @@ export function addressOf<T>(a: StaticArray<T>): usize { return changetype<usize
 // ---- strings handed to the host: valid until the next call that produces one ----
 let textBuffer: ArrayBuffer = new ArrayBuffer(0);
 let scratchBuffer: ArrayBuffer = new ArrayBuffer(0);
-export const emptyNotes: ArrayBuffer = new ArrayBuffer(NOTE_BUFFER_BYTES);
 
 /// Keeps `s` as the last text and returns its length in bytes.
 export function setText(s: string): i32 {
@@ -49,6 +63,13 @@ export function setText(s: string): i32 {
   return textBuffer.byteLength;
 }
 export function textAddress(): usize { return changetype<usize>(textBuffer); }
+/// Does the scratch buffer hold exactly `id` followed by a NUL? (How a button press names its button; ids are plain ASCII.)
+export function scratchEquals(id: string): bool {
+  const at = changetype<usize>(scratchBuffer);
+  if (scratchBuffer.byteLength <= id.length) return false;
+  for (let i = 0; i < id.length; i++) if (<i32>load<u8>(at + <usize>i) != id.charCodeAt(i)) return false;
+  return load<u8>(at + <usize>id.length) == 0;
+}
 export function scratch(size: i32): usize {
   if (scratchBuffer.byteLength < size) scratchBuffer = new ArrayBuffer(size);
   return changetype<usize>(scratchBuffer);

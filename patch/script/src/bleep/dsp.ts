@@ -33,3 +33,52 @@ export class PeakHold {
     return this.value;
   }
 }
+
+/// A second-order filter section (the RBJ cookbook forms), in transposed direct form II. Set it up with one of the set* methods when
+/// the settings change (each takes a few trig calls: do it in block(), not in sample()), then call next() for every sample.
+export class Biquad {
+  private b0: f64 = 1; private b1: f64 = 0; private b2: f64 = 0;
+  private a1: f64 = 0; private a2: f64 = 0;
+  private z1: f64 = 0; private z2: f64 = 0;
+
+  reset(): void { this.z1 = 0; this.z2 = 0; }
+
+  private set(b0: f64, b1: f64, b2: f64, a0: f64, a1: f64, a2: f64): void {
+    this.b0 = b0 / a0; this.b1 = b1 / a0; this.b2 = b2 / a0;
+    this.a1 = a1 / a0; this.a2 = a2 / a0;
+  }
+
+  /// A low shelf: `gainDb` below `frequency`.
+  setLowShelf(sampleRate: f64, frequency: f64, gainDb: f64): void {
+    const A = Math.pow(10.0, gainDb / 40.0);
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / 2.0 * Math.SQRT2, r = 2.0 * Math.sqrt(A) * alpha;
+    this.set(A * ((A + 1.0) - (A - 1.0) * cs + r), 2.0 * A * ((A - 1.0) - (A + 1.0) * cs), A * ((A + 1.0) - (A - 1.0) * cs - r),
+      (A + 1.0) + (A - 1.0) * cs + r, -2.0 * ((A - 1.0) + (A + 1.0) * cs), (A + 1.0) + (A - 1.0) * cs - r);
+  }
+  /// A high shelf: `gainDb` above `frequency`.
+  setHighShelf(sampleRate: f64, frequency: f64, gainDb: f64): void {
+    const A = Math.pow(10.0, gainDb / 40.0);
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / 2.0 * Math.SQRT2, r = 2.0 * Math.sqrt(A) * alpha;
+    this.set(A * ((A + 1.0) + (A - 1.0) * cs + r), -2.0 * A * ((A - 1.0) + (A + 1.0) * cs), A * ((A + 1.0) + (A - 1.0) * cs - r),
+      (A + 1.0) - (A - 1.0) * cs + r, 2.0 * ((A - 1.0) - (A + 1.0) * cs), (A + 1.0) - (A - 1.0) * cs - r);
+  }
+  /// A bell: `gainDb` around `frequency`, `q` wide.
+  setPeaking(sampleRate: f64, frequency: f64, q: f64, gainDb: f64): void {
+    const A = Math.pow(10.0, gainDb / 40.0);
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / (2.0 * q);
+    this.set(1.0 + alpha * A, -2.0 * cs, 1.0 - alpha * A, 1.0 + alpha / A, -2.0 * cs, 1.0 - alpha / A);
+  }
+  /// A low-pass at `frequency`.
+  setLowpass(sampleRate: f64, frequency: f64, q: f64): void {
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / (2.0 * q);
+    this.set((1.0 - cs) / 2.0, 1.0 - cs, (1.0 - cs) / 2.0, 1.0 + alpha, -2.0 * cs, 1.0 - alpha);
+  }
+
+  next(x: f32): f32 {
+    const xi = <f64>x;
+    const y = this.b0 * xi + this.z1;
+    this.z1 = this.b1 * xi - this.a1 * y + this.z2;
+    this.z2 = this.b2 * xi - this.a2 * y;
+    return <f32>y;
+  }
+}

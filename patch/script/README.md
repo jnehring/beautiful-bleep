@@ -69,7 +69,11 @@ Compile in a browser, as a test: start the `script-spike` server (`.claude/launc
 - Events (`NoteEvent` with sample offsets), notes jacks, probes with arrays, `bleep_perform` and `bleep_set_data` are stubbed: not yet exercised.
 - The real-time limits are not enforced yet. A module that loops forever is stopped by Wasmtime's time budget, which is not tested here.
 
-## Not done yet
+## Since the spike
+
+The transform, the subset checker, events, buttons, settings, the CodeMirror editor, patch scripts (layer 1), the Code node in the board and the native engine support are built; see section 17 of the concept for the list and what is still open.
+
+## Not done yet (from the spike)
 
 `@button`, `@on` event handlers with notes jacks, array params, exponential params, TSDoc descriptions, the subset checker, the cost bound, the Code module, layer 1, and the widget registry:
 phases 2 to 7 of the concept.

@@ -55,7 +55,7 @@ std::optional<juce::WebBrowserComponent::Resource> resource(const juce::String& 
         const auto json = ("[" + names.joinIntoString(", ") + "]\n").toStdString();
         return bytesOf(json.data(), json.size());
     }
-    juce::Array<juce::File> dirs{root.getChildFile("board/ui"), root.getChildFile("common/ui")};
+    juce::Array<juce::File> dirs{root.getChildFile("board/ui"), root.getChildFile("common/ui"), root.getChildFile("script/dist")};   // script/dist: the Bleep Script compiler and editor bundles (npm run bundle)
     for (const auto& d : root.getChildFile("modules").findChildFiles(juce::File::findDirectories, false)) {
         dirs.add(d.getChildFile("ui"));
         dirs.add(d.getChildFile("doc"));

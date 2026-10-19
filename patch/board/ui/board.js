@@ -108,7 +108,7 @@
       }
       const n = nodeById(id);
       if (!n) closeView(id);
-      else if (n.type === "code" && window.BleepCode && v.bv.codeKey !== window.BleepCode.keyOf(n)) rebuildView(id);   // a compile changed its jacks and knobs
+      else if (n.type === "code" && P.BleepCode && v.bv.codeKey !== P.BleepCode.keyOf(n)) rebuildView(id);   // a compile changed its jacks and knobs
       else v.bv.refresh(n);
     }
     render();
@@ -703,10 +703,17 @@
     P.BleepAppMenu.init({ nativeMenu: !!m.nativeMenu, version: m.version || "" });
     P.BleepSideMenu.init({ mode: m.plugin ? "plugin" : window.BleepWeb ? "web" : "app", board: () => board });
     // The patch assistant (agent-chat.js): shows nothing unless the website's backend has it switched on.
+    // Code nodes (board-code.js): in the app and the plugins the module a node's source compiles to runs in the native engine
+    if (P.BleepCode && !window.BleepWeb) P.BleepCode.setHost({
+      registerCode: (nodeId, code, wasm) => {
+        let binary = "";
+        for (let i = 0; i < wasm.length; i += 0x8000) binary += String.fromCharCode.apply(null, wasm.subarray(i, i + 0x8000));
+        return native("registerCode", nodeId, code, btoa(binary));
+      },
+    });
     if (P.BleepAgentChat) P.BleepAgentChat.init({ board: () => board, types: () => types, selection: () => [...sel], edit, undo, goToNode, notice });
     await cp.load();
     setPresets((await native("presets")) || []);
-    $("hint").textContent = "Tab add · drag jacks to patch · ⌘G group · T trace · F fit" + (dev ? " · UI dev build" : "");
     applyMessage(m);
     window.BleepPlayKeys.restore();   // Bleep Play: the piano of an instrument preset comes back with the board after a reload
     {  // Bleep Play opened from a library preset: /play/index.html?preset=author/slug, or from a module's demo: ?demo=Grains: Frozen Cloud

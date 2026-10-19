@@ -72,7 +72,7 @@
       }
       // ---- panel controls that are modules (panel-wiring.js) ------------------------------------------------------------
       /// What `panel-wiring.js` needs: the types, new ids, and where a new control goes on its panel.
-      const wiringEnv = () => ({ types: s.types, uid, hasView: (n) => !isStructural(n), knobControl: BleepPanelBuild.knobControl, place: (q, type, extra) => BleepPanelEditor.placeControl(q, type, extra, q.tabs && q.tabs[0] ? q.tabs[0].id : null) });
+      const wiringEnv = () => ({ types: s.types, typeOf, uid, hasView: (n) => !isStructural(n), knobControl: BleepPanelBuild.knobControl, place: (q, type, extra) => BleepPanelEditor.placeControl(q, type, extra, q.tabs && q.tabs[0] ? q.tabs[0].id : null) });
       /// The panels a control can go on (those that already have it are left out), then "New panel".
       /// `have`: [{panel, control}] the controls it has; `add(where)`: makes one on a panel id or "new".
       const panelTitle = (q) => { const c = q.cell && nodeById(q.cell); return c && c.name !== q.name ? `${c.name}: ${q.name}` : q.name; };
@@ -132,7 +132,7 @@
       /// A knob (or setting) of a module: a control wired straight to it.
       function knobMenuItems(nodeId, paramId) {
         const n = nodeById(nodeId);
-        if (!n || !window.BleepPanelWiring || BleepPanelWiring.belongsToPanel(s.board, n) || !(s.types[n.type] || {}).params.some((p) => p.id === paramId)) return [];
+        if (!n || !window.BleepPanelWiring || BleepPanelWiring.belongsToPanel(s.board, n) || !(typeOf(n) || {}).params.some((p) => p.id === paramId)) return [];
         return panelMenuItems(n, BleepPanelWiring.knobControls(s.board, n, paramId), (where) => addToPanel(nodeId, where, (b, m) => BleepPanelWiring.addKnob(b, wiringEnv(), m, paramId, where)));
       }
       function addToPanel(nodeId, where, make) {
@@ -169,7 +169,7 @@
         if (!cell) return;
         const order = descendants(cellId).filter((m) => !isBoundary(m) || m.type === "voice-out" || m.type === "cell-out")
           .sort((a, b) => a.x - b.x || a.y - b.y);
-        const doc = BleepPanelBuild.build(cell, { nodes: order, types: s.types, inputsOf, cables: s.board.cables });
+        const doc = BleepPanelBuild.build(cell, { nodes: order, types: s.types, typeOf, inputsOf, cables: s.board.cables });
         doc.id = uid("p");
         await edit("build panel", (b) => { (b.panels || (b.panels = [])).push(doc); });
         if (!s.pluginMode) openPanel(doc.id);

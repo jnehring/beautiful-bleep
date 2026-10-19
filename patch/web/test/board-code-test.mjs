@@ -47,4 +47,42 @@ assert.doesNotThrow(() => BleepCode.sync({}));
 assert.doesNotThrow(() => BleepCode.sync({ nodes: [{ id: "a", type: "oscillator" }, { id: "b", type: "code" }, { id: "c", type: "code", code: { interface: iface } }] }));
 assert.equal(calls.length, 0);
 
+// patch scripts: what a script built replaces what it built before, and keeps the cables that still fit
+{
+  assert.equal(BleepCode.isPatch('import { cell } from "bleep/patch";\nexport default cell("A", (c) => {});'), true);
+  assert.equal(BleepCode.isPatch('@module({ name: "M" })\nexport class M {}'), false);
+  assert.equal(BleepCode.isPatch("const x = 1;"), false);
+  const made = (names, ins = ["pitch"], outs = ["l"]) => ({
+    nodes: [{ id: "gen-c1", type: "cell", name: "SuperSaw", x: 0, y: 0, parent: "", params: {}, generatedBy: "c1", inputs: ins.map((id) => ({ id, name: id, type: "audio" })), outputs: outs.map((id) => ({ id, name: id, type: "audio" })) },
+      { id: "gen-c1/ci", type: "cell-in", parent: "gen-c1", params: {}, generatedBy: "c1" }, { id: "gen-c1/co", type: "cell-out", parent: "gen-c1", params: {}, generatedBy: "c1" },
+      ...names.map((n) => ({ id: "gen-c1/" + n, type: "oscillator", name: n, parent: "gen-c1", params: {}, generatedBy: "c1" }))],
+    cables: names.map((n, i) => ({ id: "gen-c1/k" + i, from: { node: "gen-c1/ci", jack: ins[0] }, to: { node: "gen-c1/" + n, jack: "pitch" }, amount: 1, generatedBy: "c1" })),
+  });
+  const board = () => ({ nodes: [{ id: "c1", type: "code", name: "Code", x: 100, y: 200, parent: "", params: {} }, { id: "src", type: "oscillator", name: "Src", x: 0, y: 0, parent: "", params: {} }, { id: "dst", type: "filter", name: "Dst", x: 0, y: 0, parent: "", params: {} }], cables: [] });
+  const b = board();
+  assert.equal(BleepCode.applyGenerated(b, "c1", { source: "s1", interface: { kind: "patch", name: "SuperSaw" } }, made(["a", "b"])), true);
+  assert.equal(b.nodes.length, 3 + 5, "the cell, its two boundaries and two modules are added");
+  const cell = b.nodes.find((n) => n.id === "gen-c1");
+  assert.deepEqual([cell.x, cell.y, cell.parent], [340, 200, ""], "the cell is put beside the Code node");
+  assert.equal(b.nodes.find((n) => n.id === "c1").code.source, "s1", "the source is saved on the Code node in the same step");
+  // the user cables things to the cell
+  b.cables.push({ id: "u1", from: { node: "src", jack: "out" }, to: { node: "gen-c1", jack: "pitch" }, amount: 1 }, { id: "u2", from: { node: "gen-c1", jack: "l" }, to: { node: "dst", jack: "l" }, amount: 1 });
+  b.nodes.find((n) => n.id === "gen-c1").x = 999;   // and moves it
+  b.nodes.find((n) => n.id === "gen-c1").name = "My saw";
+  assert.equal(BleepCode.applyGenerated(b, "c1", { source: "s2", interface: { kind: "patch", name: "SuperSaw" } }, made(["a", "b", "c", "d"])), true);
+  assert.equal(b.nodes.filter((n) => n.generatedBy === "c1").length, 3 + 4, "the old modules are replaced, not added to");
+  assert.deepEqual(b.cables.filter((c) => !c.generatedBy).map((c) => c.id).sort(), ["u1", "u2"], "the user's cables to the cell's jacks are kept");
+  assert.equal(b.cables.filter((c) => c.generatedBy).length, 4, "the cables inside are the new ones");
+  assert.equal(b.nodes.find((n) => n.id === "gen-c1").x, 999, "the cell stays where the user put it");
+  assert.equal(b.nodes.find((n) => n.id === "gen-c1").name, "My saw", "and keeps the name the user gave it");
+  // a jack that is gone takes its cables with it
+  assert.equal(BleepCode.applyGenerated(b, "c1", { source: "s3", interface: { kind: "patch", name: "SuperSaw" } }, made(["a"], ["pitch"], ["r"])), true);
+  assert.deepEqual(b.cables.filter((c) => !c.generatedBy).map((c) => c.id), ["u1"], "a cable to a jack the script no longer declares is dropped");
+  assert.equal(BleepCode.applyGenerated(b, "gone", {}, made(["a"])), false, "no Code node, no change");
+  const ui = BleepCode.uiSpec({ code: { interface: { kind: "patch", name: "SuperSaw", description: "d" } } });
+  assert.deepEqual([ui.type, ui.inputs.length, ui.outputs.length, ui.params.length, ui.description], ["code", 0, 0, 0, "d"], "a patch script's Code node has no jacks of its own");
+  assert.doesNotThrow(() => BleepCode.sync({ nodes: [{ id: "p", type: "code", code: { source: 'export default cell("x", (c) => {});', interface: { kind: "patch" } } }] }));
+  assert.equal(calls.length, 0, "a patch script is never handed to the engine");
+}
+
 console.log("board-code: ok");

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Bundles the compiler for the browser: node bundle.mjs -> dist/bleep-script-compiler.js (an ES module, about 10 MB: Binaryen is most of it).
+// Bundles the compiler and the editor for the browser: node bundle.mjs -> dist/bleep-script-compiler.js and dist/bleep-script-editor.js (an ES module, about 10 MB: Binaryen is most of it).
 // The board loads it on first use; build-web.sh copies it next to the board when it exists.
 import { mkdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,14 @@ const noDataFetch = {
     });
   },
 };
+
+// the editor (CodeMirror), a bundle of its own: the page loads it when a Code node is opened
+await build({
+  entryPoints: [`${root}editor/editor-entry.mjs`],
+  outfile: `${root}dist/bleep-script-editor.js`,
+  bundle: true, format: "esm", platform: "browser", target: "es2022", minify: true, legalComments: "none", logLevel: "warning",
+});
+console.log(`dist/bleep-script-editor.js: ${(statSync(`${root}dist/bleep-script-editor.js`).size / 1024).toFixed(0)} KB`);
 
 await build({
   plugins: [noDataFetch],

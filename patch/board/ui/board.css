@@ -64,7 +64,6 @@ kbd { font: inherit; font-size: 11px; color: var(--muted); }
 #navbar button { width: 26px; height: 24px; padding: 0; line-height: 1; font-size: 14px; background: transparent; border-color: transparent; }
 #navbar button:hover { background: var(--panel-3); }
 #navbar .nav-sep { width: 1px; height: 16px; margin: 0 3px; background: var(--line); }
-#hint { position: absolute; left: 12px; bottom: 10px; color: var(--muted); font-size: 11px; pointer-events: none; }
 
 /* ---- nodes */
 .node { position: absolute; width: var(--node-w); background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
@@ -516,7 +515,7 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 #nodes .node .n-install:disabled { opacity: .6; cursor: default; }
 
 /* In a plugin window (Bleep Instrument, Bleep FX): only the cell's panel, filling the window. */
-body.plugin #top, body.plugin #hint, body.plugin #world, body.plugin #band, body.plugin #empty,
+body.plugin #top, body.plugin #world, body.plugin #band, body.plugin #empty,
 body.plugin #cell-close, body.plugin #navbar, body.plugin .pwin .v-head { display: none; }
 body.plugin #canvas { background: var(--panel); }
 body.plugin .pwin.full { border: 0; }
@@ -655,3 +654,10 @@ body.plugin #side-toggle { display: none; }
 .bc-probe .bar { height: 7px; background: var(--panel-3); border-radius: 4px; overflow: hidden; }
 .bc-probe .bar i { display: block; height: 100%; width: 0; background: var(--accent); }
 .bc-probe output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
+
+.bc-settings { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; color: var(--muted); }
+.bc-setting { display: flex; align-items: center; gap: 6px; }
+.bc-setting input { width: 4.5em; font: inherit; color: var(--text); background: var(--panel-3); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; user-select: text; -webkit-user-select: text; }
+
+.bc-editor.cm { display: block; }
+.bc-editor.cm .cm-editor { height: 100%; user-select: text; -webkit-user-select: text; }

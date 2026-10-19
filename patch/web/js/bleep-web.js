@@ -27,6 +27,7 @@
   };
 
   const post = (m) => node && node.port.postMessage(m);
+  const priv = (window.BleepSeal && window.BleepSeal.priv) || window;   // where the board keeps BleepCode (bleep-bridge.js); captured before the seal
 
   // ---- Code nodes (board-code.js): each runs a module compiled in this page, under a node type of its own, "code:<node id>:<hash>" ----
   const code = new Map();   // node id → { spec, wasm }
@@ -190,7 +191,7 @@
       W.boardDoc = b;
       if (W.onBoardSet) W.onBoardSet(b);  // [bridge]
       if (b && b.tempo >= 20 && b.tempo <= 400) { W.transport.bpm = b.tempo; post({ cmd: "tempo", bpm: b.tempo }); }   // the patch's own tempo
-      if (window.BleepCode) BleepCode.sync(b);   // compiles the Code nodes the engine does not have yet (also before the audio starts)
+      if (priv.BleepCode) priv.BleepCode.sync(b);   // compiles the Code nodes the engine does not have yet (also before the audio starts)
       if (!node) return;
       for (const id of code.keys()) if (!codeSent.has(id)) sendCode(id);
       post({ cmd: "board", board: withPanelSources(withCode(W.mapBoard ? W.mapBoard(b) : b)) });  // [bridge] Remote nodes carry their channel key

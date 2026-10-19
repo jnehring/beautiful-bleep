@@ -35,6 +35,8 @@ juce::var sanitise(const juce::var& in, juce::StringArray* warnings) {
         for (const auto& n : *a) {
             const juce::String id = str(n, "id"), type = str(n, "type");
             const ModuleSpec* spec = reg.find(type.toStdString());
+            if (type == kCode)   // a Code node has the jacks and knobs of the module its source declares (Registry.h, codeNodeSpec)
+                spec = codeNodeSpec(id.toStdString(), n.hasProperty("code") ? juce::JSON::toString(n["code"], true).toStdString() : std::string());
             if (id.isEmpty()) {
                 warn("dropped a node without an id");
                 continue;

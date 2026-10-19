@@ -22,6 +22,16 @@ COPY patch/board patch/board
 COPY patch/common patch/common
 COPY patch/modules patch/modules
 COPY patch/web patch/web
+# The Bleep Script compiler and editor for the Code node (patch/script): bundled here, copied next to the board by build-web.sh.
+COPY patch/script/package.json patch/script/package-lock.json patch/script/bundle.mjs patch/script/
+RUN --mount=type=cache,target=/root/.npm cd patch/script && npm ci --no-audit --no-fund
+COPY patch/script/compiler patch/script/compiler
+COPY patch/script/editor patch/script/editor
+COPY patch/script/patch patch/script/patch
+COPY patch/script/transform patch/script/transform
+COPY patch/script/src patch/script/src
+COPY patch/script/playground/examples.mjs patch/script/playground/examples.mjs
+RUN cd patch/script && node bundle.mjs
 COPY scripts/build/build-web.sh scripts/build/build-web.sh
 RUN scripts/build/build-web.sh --no-modules /out
 

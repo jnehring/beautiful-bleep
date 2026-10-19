@@ -83,8 +83,9 @@
   function build(cell, ctx) {
     const { nodes, types, inputsOf, cables } = ctx;
     const isVoice = cell.type === "voice-cell";
-    const faceOf = (n) => FACE[n.type] || (ctx.generic && types[n.type] && types[n.type].creatable && !CONTROLLER_TYPES.has(n.type)
-      ? types[n.type].params.filter((q) => q.modulatable).slice(0, 6).map((q) => q.id) : undefined);
+    const typeFor = (n) => (ctx.typeOf ? ctx.typeOf(n) : types[n.type]);   // a Code node has a description of its own
+    const faceOf = (n) => FACE[n.type] || (ctx.generic && typeFor(n) && typeFor(n).creatable && !CONTROLLER_TYPES.has(n.type)
+      ? typeFor(n).params.filter((q) => q.modulatable).slice(0, 6).map((q) => q.id) : undefined);
     const sections = [];
     // The cell's own inputs first.
     const macros = [];
@@ -101,7 +102,7 @@
     if (ctx.focus) faced.sort((a, b) => (b.id === ctx.focus) - (a.id === ctx.focus));
     const cap = faced.length <= 3 ? 8 : faced.length <= 6 ? 6 : faced.length <= 10 ? 4 : 3;
     for (const n of faced) {
-      const t = types[n.type];
+      const t = typeFor(n);
       const capHere = n.id === ctx.focus ? Math.max(cap, 8) : cap;
       if (EMBED[n.type]) { sections.push({ title: n.name, embed: EMBED[n.type], node: n.id, colour: t.colour }); if (!FACE[n.type]) continue; }
       let items = [];

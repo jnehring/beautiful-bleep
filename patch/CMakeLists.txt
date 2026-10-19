@@ -232,7 +232,7 @@ if (BLEEP_BUILD_TESTS)
         if (APPLE)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
-        set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp
+        set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp
             engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp library/Package.cpp library/Client.cpp library/Account.cpp
             third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
@@ -262,6 +262,19 @@ if (BLEEP_BUILD_TESTS)
         target_include_directories(bleep_wasm_host_control_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
         target_compile_definitions(bleep_wasm_host_control_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
         target_link_libraries(bleep_wasm_host_control_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
+            juce::juce_recommended_config_flags)
+        # Code nodes (engine/wasm/CodeNodes.h): a Bleep Script module compiled by the UI runs for one node (tests/code_node_test.cpp). Not a ctest:
+        # it needs the module built in patch/script (cd patch/script && npm run build).
+        juce_add_console_app(bleep_code_node_test PRODUCT_NAME "Bleep Code Node Test")
+        target_sources(bleep_code_node_test PRIVATE tests/code_node_test.cpp ${BLEEP_WASM_HOST_SOURCES} ${BLEEP_BOARD_SOURCES}
+            engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+        foreach (m IN LISTS BLEEP_MODULES)
+            file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+            target_sources(bleep_code_node_test PRIVATE ${s})
+        endforeach ()
+        target_include_directories(bleep_code_node_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+        target_compile_definitions(bleep_code_node_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+        target_link_libraries(bleep_code_node_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
     endif ()
 
@@ -468,7 +481,7 @@ function(bleep_use_library target)
         endif ()
     endif ()
     target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
-        engine/wasm/WasmRegistry.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp
+        engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp
         library/Package.cpp library/Client.cpp library/Account.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
     if (WIN32)
         target_link_libraries(${target} PRIVATE advapi32)  # the Credential Manager (library/Account.cpp)

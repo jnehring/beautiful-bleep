@@ -11,6 +11,7 @@
 #include "VoiceCell.h"
 #if defined(BLEEP_WASM_MODULES)
 #include "wasm/ModuleLibrary.h"
+#include "wasm/CodeNodes.h"
 #endif
 
 #include <algorithm>

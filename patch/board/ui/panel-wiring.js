@@ -16,7 +16,7 @@
 //   BleepPanelWiring.viewControls(b, node)                 [{panel, control, part}] the Module view controls that show this node
 //   BleepPanelWiring.remove(b, panelId, controlId)         takes a control away (older panels: with the module they made)
 //
-//   env: { types, uid(prefix), place(panel, type, extra) → control, knobControl(node, param) → the control for a knob,
+//   env: { types, typeOf(node) (optional: the node's own description), uid(prefix), place(panel, type, extra) → control, knobControl(node, param) → the control for a knob,
 //          hasView(node) → bool (structural nodes have none) }
 //
 // Panels made before this carried `target: {node, param|jack}` and `module` (a module in a Panel cell, `panelCell`, `bays`).
@@ -92,6 +92,8 @@
   // drawing of an ADSR, a section of knobs, the button bar. Both are Module view controls ({type: "view", node, part?}); the
   // panel shows the module's real view (or the part alone), so it is as live there as in the module's window. Nothing is
   // added to the board.
+  /// A node's type description: the node's own where it has one (a Code node), else its type's.
+  const typeFor = (env, n) => (env.typeOf ? env.typeOf(n) : env.types[n.type]);
   const canAddView = (b, env, n) => !belongsToPanel(b, n) && !!env.types[n.type] && (!env.hasView || env.hasView(n));
 
   /// The Module view controls that show this node: [{panel, control, part: part id or null}].
@@ -131,7 +133,7 @@
   /// A control wired straight to the knob: it is the knob, both move together.
   function addKnob(b, env, n, paramId, where) {
     if (belongsToPanel(b, n)) return { error: "that module is part of a Panel cell" };
-    const def = ((env.types[n.type] || {}).params || []).find((p) => p.id === paramId);
+    const def = ((typeFor(env, n) || {}).params || []).find((p) => p.id === paramId);
     if (!def) return { error: "no such knob" };
     const t = target(b, env, n, where);
     if (t.error) return t;

@@ -172,6 +172,17 @@ int WasmPackage::indexOf(const std::string& type) const {
     return -1;
 }
 
+bool WasmPackage::retype(const std::string& type) {
+    if (types.size() != 1 || type.empty()) return false;
+    juce::var specs = juce::JSON::parse(juce::String(specJson));
+    if (!specs.isArray() || specs.size() != 1) return false;
+    if (auto* o = specs[0].getDynamicObject()) o->setProperty("type", juce::String(type));
+    else return false;
+    types[0] = type;
+    specJson = juce::JSON::toString(specs, true).toStdString();
+    return true;
+}
+
 std::shared_ptr<const wasm::Compiled> WasmPackage::compiled(std::string& error) const {
     std::lock_guard<std::mutex> lock(compileMutex_);
     if (!compiled_ && compileError_.empty()) {

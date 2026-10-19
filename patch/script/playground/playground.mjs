@@ -23,7 +23,7 @@ async function loadCompiler() {
   const t0 = performance.now();
   [asc] = await Promise.all([
     import("assemblyscript/asc").then((m) => m.default),
-    ...["abi", "dsp", "format"].map(async (n) => { lib[`src/bleep/${n}.ts`] = await (await fetch(`/script/src/bleep/${n}.ts`)).text(); }),
+    ...["abi", "dsp", "format", "notes"].map(async (n) => { lib[`src/bleep/${n}.ts`] = await (await fetch(`/script/src/bleep/${n}.ts`)).text(); }),
   ]);
   return performance.now() - t0;
 }
@@ -152,7 +152,8 @@ async function run() {
     const worklet = await node_;
     ready = false;
     await new Promise((resolve) => { installing = resolve; worklet.port.postMessage({ cmd: "module", bytes: result.wasm.slice().buffer, type: spec.type, knobs: params }); });
-    setStatus(`${spec.name}: ${result.wasm.length} bytes, compiled in ${result.ms.toFixed(0)} ms${result.specs.length > 1 ? `, showing the first of ${result.specs.length} modules` : ""}`, "ok");
+    const cost = spec.cost && spec.cost.ops ? `, about ${spec.cost.ops.toLocaleString("en")} ops per block (${Math.max(1, Math.round(100 * spec.cost.ops / spec.cost.limit))} % of the limit)` : "";
+    setStatus(`${spec.name}: ${result.wasm.length} bytes, compiled in ${result.ms.toFixed(0)} ms${cost}${result.specs.length > 1 ? `, showing the first of ${result.specs.length} modules` : ""}`, "ok");
   } catch (e) {
     setStatus(String(e && e.message || e), "bad");
   } finally { busy = false; ui.compile.disabled = false; }
