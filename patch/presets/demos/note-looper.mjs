@@ -79,7 +79,7 @@ function ghostNotes() {
   const loop = loopData(pitches.map((n, i) => [i * 0.25, 0.2, n, i % 4 === 0 ? 0.95 : 0.65]));
   const l = p.add("note-looper", [2, 0], { bars: 1, probability: 0.55, seed: 5 }, { data: loop });
   const v = mono(p, [4, 0], { node: l }, { osc: { shape: 0.5 }, env: { decay: 0.15, sustain: 0, release: 0.15 }, filter: { cutoff: 3600, resonance: 0.2 } });
-  space(p, [8, 0], v.out, v.jack, { level: 4, delay: { zone: 3, time: 0.375, feedback: 0.45, mix: 0.3 }, verb: { size: 0.5, decay: 2.5, mix: 0.25 } });
+  space(p, [8, 0], v.out, v.jack, { level: 6, delay: { zone: 3, time: 0.375, feedback: 0.45, mix: 0.3 }, verb: { size: 0.5, decay: 2.5, mix: 0.25 } });
   return p;
 }
 

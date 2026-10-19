@@ -68,7 +68,7 @@ function backwardsTune() {
   const m = p.add("melody-mirror", [2, 0], { mode: "Reverse", length: 8, start: "After Gap", gap: "1 beat" });
   p.cable(s, "notes", m, "notes");
   const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.55 }, env: { decay: 0.35, sustain: 0.1, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
-  withBeat(p, [8, 0], v.out, v.jack, "sparse", { lead: 1, verb: { size: 0.5, decay: 2.5, mix: 0.25 } });
+  withBeat(p, [8, 0], v.out, v.jack, "sparse", { lead: 5, verb: { size: 0.5, decay: 2.5, mix: 0.25 } });
   return p;
 }
 
@@ -82,7 +82,7 @@ function upsideDown() {
   const m = p.add("melody-mirror", [2, 0], { mode: "Invert", length: 8, axismode: "First Note", gap: "1 beat", snap: "On", root: "A", scale: "Minor Pentatonic", transpose: 12 });
   p.cable(s, "notes", m, "notes");
   const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.2 }, env: { decay: 0.5, sustain: 0.05, release: 0.5 } });
-  space(p, [8, 0], v.out, v.jack, { level: 4, delay: { zone: 3, time: 0.375, feedback: 0.4, mix: 0.3 }, verb: { size: 0.6, decay: 3, mix: 0.3 } });
+  space(p, [8, 0], v.out, v.jack, { level: 6, delay: { zone: 3, time: 0.375, feedback: 0.4, mix: 0.3 }, verb: { size: 0.6, decay: 3, mix: 0.3 } });
   return p;
 }
 
@@ -96,7 +96,7 @@ function callAndResponse() {
   const m = p.add("melody-mirror", [2, 0], { mode: "Answer", reply: "Mirror", length: 8, gap: "1 beat" });
   p.cable(s, "notes", m, "notes");
   const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.85 }, env: { decay: 0.2, sustain: 0.3, release: 0.1 }, filter: { cutoff: 1500, resonance: 0.3 } });
-  withBeat(p, [8, 0], v.out, v.jack, "half", { lead: -1, verb: { size: 0.4, decay: 1.5, mix: 0.15 } });
+  withBeat(p, [8, 0], v.out, v.jack, "half", { lead: 3, verb: { size: 0.4, decay: 1.5, mix: 0.15 } });
   return p;
 }
 
@@ -109,8 +109,8 @@ function turnedMotif() {
   const s = phrase(p, [0, 0], [0, 7, 3, 5], { rate: "1/4", octave: 0 });
   const m = p.add("melody-mirror", [2, 0], { mode: "Rotate", length: 4, rotate: 2, gap: "1/2 beat" });
   p.cable(s, "notes", m, "notes");
-  const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.4 }, env: { decay: 0.6, sustain: 0, release: 0.5 }, filter: { cutoff: 3200 } });
-  space(p, [8, 0], v.out, v.jack, { level: 5, delay: { zone: 4, time: 0.5, feedback: 0.45, mix: 0.3, tone: -0.2 }, verb: { size: 0.8, decay: 5, mix: 0.35 } });
+  const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.4 }, env: { decay: 0.9, sustain: 0.4, release: 0.6 }, filter: { cutoff: 3200 } });
+  space(p, [8, 0], v.out, v.jack, { level: 6, delay: { zone: 4, time: 0.5, feedback: 0.45, mix: 0.3, tone: -0.2 }, verb: { size: 0.8, decay: 5, mix: 0.35 } });
   return p;
 }
 
@@ -125,7 +125,7 @@ function wanderingTurns() {
   const m = p.add("melody-mirror", [2, 0], { mode: "Reverse", length: 8, gap: "1 beat", snap: "On", root: "A", scale: "Minor Pentatonic" });
   p.cable(s, "notes", m, "notes").cable(lfo, "out", m, "mode", 0.8);
   const v = mono(p, [4, 0], { node: m }, { osc: { shape: 0.7 }, env: { decay: 0.3, sustain: 0.15, release: 0.2 }, filter: { cutoff: 2200, resonance: 0.2 } });
-  withBeat(p, [8, 0], v.out, v.jack, "shuffle", { lead: 0, verb: { size: 0.5, decay: 2.2, mix: 0.2 } });
+  withBeat(p, [8, 0], v.out, v.jack, "shuffle", { lead: 4, verb: { size: 0.5, decay: 2.2, mix: 0.2 } });
   return p;
 }
 

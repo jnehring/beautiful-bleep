@@ -56,6 +56,44 @@ round (what you play is still recorded).
 - **Sync outside modules:** *Pass* triggers at every loop start, *Phase* is a
   ramp over the loop, *Recording* is high while it records.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Note Looper does. In the standalone app open **File → Presets…** (⌘P) and pick *Note Looper* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Note Looper: Recorded Groove** | A two-bar bass line, recorded earlier, loops over a beat. Set Mode to Overdub and play along to add notes on top, press Undo to take the last layer off again, or Clear to start over. |
+| **Note Looper: Ghost Notes** | A one-bar sixteenth-note figure is played with 55 % Probability, so every pass keeps a different set of its notes. Change Seed for another sequence of passes, or raise Probability to 100 % for the full figure. |
+| **Note Looper: Half Speed Drift** | A two-bar tune loops at half speed, so it takes four bars to come round and every note is twice as long. Set Speed to Double or Normal to hear the same notes at other speeds. |
+| **Note Looper: Tidied Take** | A loosely played one-bar riff, quantized to sixteenths by a Strength that a slow LFO sweeps from none to full: you hear the take tighten and loosen again. Turn Strength up for a fixed amount, or try Quantize 1/8T. |
+| **Note Looper: Loop Into Echo** | A sparse two-bar loop feeds a Note Echo that climbs the scale and fans into chord tones, so a handful of recorded notes becomes a shimmering figure. Mute the Echo's Original or change its Rate to reshape it. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Note Looper view has 15 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Two Bar Loop** | A two-bar loop in play: set Mode to Record and play it in. |
+| **One Bar Pulse** | A one-bar loop for short, repeating figures. |
+| **Four Bar Phrase** | Four bars: room for a melody that goes somewhere. |
+| **Eight Bar Story** | Eight bars for a whole verse of notes. |
+| **Overdub Layers** | Records on top of what is already looping; Undo takes the last layer off. |
+| **Fresh Take** | Throws the old loop away and records a new one. |
+| **Half Speed Drift** | The loop plays at half speed: the same notes, twice as long. |
+| **Double Speed Flurry** | The loop at double speed. |
+| **Tight Sixteenths** | Notes snap fully to the sixteenth grid. |
+| **Loose Eighths** | Notes move halfway to the eighth grid: tidied, but still human. |
+| **Triplet Snap** | Everything snaps to triplets. |
+| **Ghost Notes** | Each pass plays about 60 % of the notes, differently every time. |
+| **Sparse Memory** | A handful of notes per pass: the loop hints at the tune. |
+| **Silent Thru** | What you play is recorded but not heard until the loop comes round. |
+| **Waltz Loop** | Bars of three beats. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

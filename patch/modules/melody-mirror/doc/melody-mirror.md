@@ -59,6 +59,45 @@ pitch never gets cut by the other: they share the note.
 - **Sync with others:** the *Playing* gate and *Phrase* trigger tell other
   modules when the reply is sounding or has just started.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Melody Mirror does. In the standalone app open **File → Presets…** (⌘P) and pick *Melody Mirror* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Melody Mirror: Backwards Tune** | A pentatonic phrase plays once every four bars; a beat after its last note the Mirror answers with the same notes played backwards, rhythm included. Change Length to turn more or fewer notes around, or Speed to play the reply slower. |
+| **Melody Mirror: Upside Down** | The phrase is mirrored in pitch around its first note and pulled into A minor pentatonic, so the reply climbs where the original fell. Turn Axis to Mean or Fixed to move the mirror, and Transpose to lift the reply. |
+| **Melody Mirror: Call And Response** | Answer mode: the module listens to the phrase, waits for the pause, plays the mirror image as a reply and listens again, ignoring itself while it answers. Try Reply Invert or Rotate, or a longer Gap. |
+| **Melody Mirror: Turned Motif** | A four-note motif comes back with its pitches rotated two places along the same rhythm, so it sounds related but different. Change Rotate, or Mode to Mirror, to turn it another way. |
+| **Melody Mirror: Wandering Turns** | A slow LFO sweeps the Mode knob, so each reply is a different turn of the phrase: reversed, inverted, rotated or mirrored. Patch your own modulation into Mode, or set Start to Trigger to play replies by hand. |
+<!-- /generated -->
+
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Melody Mirror view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Backwards Tune** | A beat after you stop, the last six notes come back in reverse. |
+| **Upside Down** | The phrase mirrored in pitch around its first note, same rhythm. |
+| **Rotated Pitches** | The pitches shift one place along the same rhythm. |
+| **Mirror Image** | Backwards and upside down together. |
+| **Call And Response** | Play a phrase; it waits for your pause, answers with the mirror image and listens again. |
+| **Answer Upside Down** | A calm answer: your phrase inverted after two beats of silence. |
+| **Answer In Reverse** | A quick reply that plays your last four notes backwards. |
+| **Slow Retrograde** | The reversed phrase at half speed. |
+| **Double Time Mirror** | The mirror image at double speed, like a tape running fast. |
+| **Octave Up Reverse** | The reversed phrase an octave higher. |
+| **Scale Snapped Inversion** | The inverted phrase is pulled into C major so it never leaves the key. |
+| **Fixed Axis Flip** | Pitches mirrored around C5: low notes become high ones. |
+| **Mean Axis Flip** | Mirrored around the average pitch of the phrase. |
+| **Triggered Replay** | Plays only when a trigger arrives or you press Replay. |
+| **Short Motif Turner** | A four-note motif comes back with its pitches turned two places. |
+| **Soft Reply** | The answer is quieter and shorter than the question. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

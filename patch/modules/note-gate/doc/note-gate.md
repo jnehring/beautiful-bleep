@@ -60,6 +60,32 @@ passed or was stopped.
 - **Chains:** put it before a Note Echo to echo only the strong notes, or
   after an Arpeggiator to thin it out.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Note Gate view has 17 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Low Register** | Only notes below middle C get through. |
+| **Upper Register** | Only notes from middle C up. |
+| **Notch Out The Middle** | A hole in the middle of the keyboard: lows and highs pass. |
+| **Soft Notes Out** | Notes played softer than 30 % are dropped: ghost notes disappear. |
+| **Lift The Floor** | Soft notes are raised to 45 % instead of dropped. |
+| **Ceiling Squash** | Nothing plays harder than 60 %. |
+| **Compress Curve** | Soft notes come out louder: an even, compressed touch. |
+| **Expand Curve** | Soft notes get softer, hard notes stay: more dynamics. |
+| **Hard Hits Only** | A drawn curve that mutes everything below the middle and jumps to full above it. |
+| **Naturals Only** | Sharps and flats fall down to the natural below: a C-major-ish keyboard. |
+| **Major To Minor** | E, A and B drop a semitone: the same tune in a minor mood. |
+| **Mute Black Keys** | Every black key is blocked: only the white keys play. |
+| **Fifths Swap** | Every note moves up a fifth within its octave. |
+| **Downbeats Only** | Notes pass only on the four beats of the bar. |
+| **Offbeat Eighths** | Notes pass only on the 'and' of each beat. |
+| **Every Other Note** | Passes the 1st, 3rd, 5th note and so on: halves a busy line. |
+| **Thin Out Busy Runs** | At most three notes per beat get through, however fast you play. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

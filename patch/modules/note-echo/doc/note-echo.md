@@ -63,6 +63,31 @@ and the note-off of the original never ends a repeat.
 - **Follow the song:** put *Harmony* on a bus and the repeats walk through
   whatever key the Harmony Master plays.
 
+<!-- generated:presets -->
+## Presets
+
+The preset bar of the Note Echo view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+
+| Preset | What it does |
+|---|---|
+| **Dotted Eighth Tail** | Five fading repeats a dotted eighth apart: the classic rhythmic tail. |
+| **Slapback** | One quiet, short repeat right behind the note. |
+| **Rising Staircase** | Each repeat is one scale step higher: the note climbs the board's scale. |
+| **Falling Cascade** | Each repeat one scale step lower: a tumbling run down the scale. |
+| **Triad Fan Up** | Repeats take the chord tones above the note in turn: an arpeggio from one key. |
+| **Triad Fan Down** | The same chord tones, falling. |
+| **Seventh Ping-Pong** | Four chord tones bounce up and down in triplets. |
+| **Random Sparkle** | Fast random chord tones with gaps: glitter around every note. |
+| **Sparse Ghosts** | Half the repeats go missing, differently for every note. |
+| **Pulled Tight** | Triplet spacing, dragged onto the sixteenth grid: a skipping, almost straight feel. |
+| **Off The Grid** | Repeats pushed halfway between the grid lines: behind-the-beat echoes. |
+| **Loose Pull** | Gravity at half: repeats drift towards the grid without landing on it. |
+| **Free Wash** | Repeats in seconds, not beats, long and overlapping: a wash behind the playing. |
+| **Echo Only** | The played note is muted: you hear only its climbing repeats. |
+| **Pentatonic Rain** | Climbing repeats in A minor pentatonic: nothing sounds wrong. |
+| **Fourths Climb** | Three scale steps per repeat: open, fourth-like leaps. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings
