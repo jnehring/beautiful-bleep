@@ -6959,6 +6959,489 @@
     ]
   },
   {
+    "type": "automata",
+    "name": "Automata",
+    "category": "Sequencing/Generative",
+    "colour": "#14b8a6",
+    "description": "A sequencer grown by a small evolving system: a ring of cells, a grid, a Markov chain, a walker or a rewriting string. Interference keeps it from repeating; Rewind steps it back.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "mode",
+        "name": "Mode",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Ring",
+          "Grid",
+          "Chain",
+          "Walker",
+          "Rewrite"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "rule",
+        "name": "Rule",
+        "kind": "int",
+        "default": 0.117647059261799,
+        "steps": 256,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 255.0,
+        "def": 30.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "cells",
+        "name": "Cells",
+        "kind": "int",
+        "default": 0.428571432828903,
+        "steps": 29,
+        "modulatable": true,
+        "cableable": false,
+        "min": 4.0,
+        "max": 32.0,
+        "def": 16.0,
+        "format": "integer",
+        "decimals": 2,
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "gridrule",
+        "name": "Grid Rule",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 6,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "B3/S23",
+          "B36/S23",
+          "B3/S12345",
+          "B2/S",
+          "B3/S45678",
+          "B1357/S1357"
+        ],
+        "min": 0.0,
+        "max": 5.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "mode",
+          "min": 1,
+          "max": 1
+        }
+      },
+      {
+        "id": "turns",
+        "name": "Turns",
+        "kind": "choice",
+        "default": 0.25,
+        "steps": 5,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "RL",
+          "RLR",
+          "LLRR",
+          "RLLR",
+          "RRLLRL"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 1.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "mode",
+          "min": 3,
+          "max": 3
+        }
+      },
+      {
+        "id": "rules",
+        "name": "Rules",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Cascade",
+          "Climb",
+          "Breath",
+          "Fork",
+          "Tide"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "mode",
+          "min": 4,
+          "max": 4
+        }
+      },
+      {
+        "id": "density",
+        "name": "Density",
+        "kind": "float",
+        "default": 0.349999994039536,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.349999994039536,
+        "format": "percent",
+        "decimals": 2,
+        "show": {
+          "param": "mode",
+          "min": 0,
+          "max": 3
+        }
+      },
+      {
+        "id": "interference",
+        "name": "Interference",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "learn",
+        "name": "Learn",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "percent",
+        "decimals": 2,
+        "show": {
+          "param": "mode",
+          "min": 2,
+          "max": 2
+        }
+      },
+      {
+        "id": "rewindby",
+        "name": "Rewind By",
+        "kind": "int",
+        "default": 0.200000002980232,
+        "steps": 16,
+        "modulatable": true,
+        "cableable": false,
+        "min": 1.0,
+        "max": 16.0,
+        "def": 4.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "octaves",
+        "name": "Octaves",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 3.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "gatelength",
+        "name": "Gate Length",
+        "kind": "float",
+        "default": 0.494949489831924,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.009999999776483,
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "rate",
+        "name": "Rate",
+        "kind": "float",
+        "default": 0.634363353252411,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.050000000745058,
+        "max": 50.0,
+        "def": 4.0,
+        "format": "hertz",
+        "decimals": 2,
+        "map": "exp",
+        "show": {
+          "param": "sync",
+          "min": 0,
+          "max": 0
+        }
+      },
+      {
+        "id": "sync",
+        "name": "Sync",
+        "kind": "choice",
+        "default": 0.222222223877907,
+        "steps": 10,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Free",
+          "1/32",
+          "1/16",
+          "1/8",
+          "1/4",
+          "1/2",
+          "1 bar",
+          "2 bars",
+          "4 bars",
+          "8 bars"
+        ],
+        "min": 0.0,
+        "max": 9.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "syncto",
+        "name": "Sync To",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 3,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Auto",
+          "Clock",
+          "Transport"
+        ],
+        "min": 0.0,
+        "max": 2.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "seed",
+        "name": "Seed",
+        "kind": "int",
+        "default": 0.001001000986435,
+        "steps": 1000,
+        "modulatable": false,
+        "cableable": false,
+        "min": 0.0,
+        "max": 999.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2
+      },
+      {
+        "id": "root",
+        "name": "Root",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 12,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "C",
+          "C#",
+          "D",
+          "D#",
+          "E",
+          "F",
+          "F#",
+          "G",
+          "G#",
+          "A",
+          "A#",
+          "B"
+        ],
+        "min": 0.0,
+        "max": 11.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "scale",
+        "name": "Scale",
+        "kind": "choice",
+        "default": 0.75,
+        "steps": 17,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Chromatic",
+          "Major",
+          "Natural Minor",
+          "Harmonic Minor",
+          "Melodic Minor",
+          "Dorian",
+          "Phrygian",
+          "Lydian",
+          "Mixolydian",
+          "Locrian",
+          "Phrygian Dominant",
+          "Major Pentatonic",
+          "Minor Pentatonic",
+          "Blues",
+          "Whole Tone",
+          "Diminished",
+          "Hirajoshi"
+        ],
+        "min": 0.0,
+        "max": 16.0,
+        "def": 12.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "harmony",
+        "name": "Harmony",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 5,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Off",
+          "Bus A",
+          "Bus B",
+          "Bus C",
+          "Bus D"
+        ],
+        "min": 0.0,
+        "max": 4.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "clock",
+        "name": "Clock",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "reset",
+        "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "rewind",
+        "name": "Rewind",
+        "type": "gate",
+        "bipolar": true
+      },
+      {
+        "id": "learn",
+        "name": "Learn",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "transpose",
+        "name": "Transpose",
+        "type": "pitch",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      },
+      {
+        "id": "pitch",
+        "name": "Pitch",
+        "type": "pitch",
+        "bipolar": true
+      },
+      {
+        "id": "velocity",
+        "name": "Velocity",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "birth",
+        "name": "Birth",
+        "type": "trigger",
+        "bipolar": false
+      },
+      {
+        "id": "density",
+        "name": "Density",
+        "type": "control",
+        "bipolar": false
+      },
+      {
+        "id": "step",
+        "name": "Step",
+        "type": "trigger",
+        "bipolar": false
+      }
+    ],
+    "buttons": [
+      {
+        "id": "rewind",
+        "name": "Rewind",
+        "momentary": false
+      }
+    ],
+    "harmony": "reader"
+  },
+  {
     "type": "beat-oscillator",
     "name": "Beat Oscillator",
     "category": "Sources/Oscillators",

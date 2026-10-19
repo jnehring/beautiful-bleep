@@ -51,6 +51,26 @@
       {"name":"Fast Trance","description":"Thirty-second notes over three octaves for a fast trance run.","params":{"rate":0.923077,"octaves":0.666667,"gatelength":0.393939}},
       {"name":"Slow Quarter Walk","description":"A slow, spacious quarter-note walk down and up.","params":{"pattern":0.375,"rate":0.230769,"gatelength":0.89899}}
     ],
+    "automata": [
+      {"name":"Rule 30 Ring","description":"One seed cell grows into a lopsided, never-quite-repeating pattern.","params":{"density":0}},
+      {"name":"Rule 90 Lace","description":"A symmetrical lattice: the melody mirrors itself as it grows.","params":{"rule":0.352941,"density":0,"scale":0.3125,"gatelength":0.393939}},
+      {"name":"Rule 110 Drift","description":"Structures drift sideways through a longer ring.","params":{"rule":0.431373,"cells":0.714286,"density":0.3,"scale":0.125,"octaves":0.5}},
+      {"name":"Rule 184 Traffic","description":"Cells move along the ring like cars in traffic: slow, flowing lines.","params":{"rule":0.721569,"cells":0.285714,"density":0.4,"sync":0.333333,"scale":0.6875}},
+      {"name":"Garden Grid","description":"A small wrapping world: colonies grow, collide and die out.","params":{"mode":0.25,"scale":0.4375}},
+      {"name":"Mazy Grid","description":"Structures build up slowly into a maze of long-lived notes.","params":{"mode":0.25,"gridrule":0.4,"density":0.2}},
+      {"name":"Seeds Burst","description":"Every cell lives one step: a restless, sparkling grid.","params":{"mode":0.25,"gridrule":0.6,"density":0.15,"gatelength":0.242424,"scale":1}},
+      {"name":"Gentle Chain","description":"Mostly stepwise motion with occasional rests.","params":{"mode":0.5,"sync":0.333333,"scale":0.6875,"gatelength":0.79798,"octaves":0.5}},
+      {"name":"Student Chain","description":"Patch a melody into Learn: the chain picks up its habits.","params":{"mode":0.5,"learn":0.6,"sync":0.333333,"scale":0.3125,"octaves":0.5}},
+      {"name":"Wandering Walker","description":"A walker with two turn rules draws a looping highway.","params":{"mode":0.75,"turns":0,"density":0}},
+      {"name":"Crowded Walker","description":"A walker among old marks: gaps and bursts.","params":{"mode":0.75,"turns":0.75,"density":0.6,"scale":0.375}},
+      {"name":"Wide Walker","description":"Six turn rules: a sprawling, unpredictable path over three octaves.","params":{"mode":0.75,"turns":1,"density":0.3,"octaves":1,"scale":0.875}},
+      {"name":"Cascade Phrase","description":"A phrase that rewrites itself every time it ends.","params":{"mode":1,"scale":0.125}},
+      {"name":"Climbing Phrase","description":"Rising lines with octave jumps.","params":{"mode":1,"rules":0.25,"octaves":0.5,"scale":0.3125}},
+      {"name":"Breathing Tide","description":"Slow phrases with rests that breathe.","params":{"mode":1,"rules":1,"sync":0.333333,"gatelength":0.69697,"scale":0.6875}},
+      {"name":"Restless Ring","description":"Interference keeps nudging the ring: it never settles into a pattern.","params":{"rule":0.352941,"cells":0.571429,"density":0.2,"interference":0.5,"scale":1}},
+      {"name":"Fork Phrase","description":"A rewriting phrase with a few mutations each pass.","params":{"mode":1,"rules":0.75,"interference":0.3,"scale":0.8125}},
+      {"name":"Free Grid","description":"Ignores the song tempo and steps at a set rate.","params":{"mode":0.25,"density":0.4,"sync":0,"rate":0.715376}}
+    ],
     "beat-oscillator": [
       {"name":"Lab Tone","description":"Classic heterodyne sine around 260 Hz, slightly alive.","params":{"beat":0.7538,"drift":0.1}},
       {"name":"Pure Low","description":"A steady, drift-free low sine tone, good for sub and tests.","params":{"carrier":0.773706,"beat":0.65,"drift":0}},
