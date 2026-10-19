@@ -603,19 +603,42 @@
     return view;
   }
 
-  /// Drop target / click-to-choose for a WAV file, imported into the media folder.
+  /// Decodes any audio file the web view understands (MP3, AIFF, FLAC, OGG, M4A …) and returns it as 16-bit PCM WAV bytes.
+  async function toWav(file) {
+    const Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!Ctx) throw new Error("this view cannot decode audio files");
+    const buf = await new Ctx(1, 1, 48000).decodeAudioData(await file.arrayBuffer());
+    const ch = Math.min(2, buf.numberOfChannels), n = buf.length, out = new DataView(new ArrayBuffer(44 + n * ch * 2));
+    const str = (o, t) => { for (let i = 0; i < t.length; i++) out.setUint8(o + i, t.charCodeAt(i)); };
+    str(0, "RIFF"); out.setUint32(4, 36 + n * ch * 2, true); str(8, "WAVEfmt ");
+    out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, ch, true);
+    out.setUint32(24, buf.sampleRate, true); out.setUint32(28, buf.sampleRate * ch * 2, true);
+    out.setUint16(32, ch * 2, true); out.setUint16(34, 16, true); str(36, "data"); out.setUint32(40, n * ch * 2, true);
+    const data = [...Array(ch).keys()].map((c) => buf.getChannelData(c));
+    for (let i = 0, o = 44; i < n; i++)
+      for (let c = 0; c < ch; c++, o += 2) out.setInt16(o, Math.round(Math.max(-1, Math.min(1, data[c][i])) * 32767), true);
+    return new Uint8Array(out.buffer);
+  }
+
+  /// Drop target / click-to-choose for an audio file (WAV, or MP3, AIFF, FLAC … converted to WAV), imported into the media folder.
   function mediaDrop(target, api, onImported, onError) {
     target.classList.add("bv-drop");
     const report = (msg) => (onError ? onError(msg) : (target.title = msg));
     async function importFile(file) {
       if (!file) return;
-      if (!/\.wav$/i.test(file.name)) return report("Only WAV files can be imported.");
+      if (!/\.(wav|mp3|aiff?|aifc|flac|ogg|oga|m4a|aac|caf)$/i.test(file.name) && !(file.type || "").startsWith("audio/"))
+        return report("That is not an audio file.");
       target.classList.add("busy");
       try {
-        const bytes = new Uint8Array(await file.arrayBuffer());
+        let name = file.name, bytes;
+        if (/\.wav$/i.test(name)) bytes = new Uint8Array(await file.arrayBuffer());
+        else {
+          try { bytes = await toWav(file); } catch (e) { return report("Could not decode " + name + ": " + ((e && e.message) || "unsupported format")); }
+          name = name.replace(/\.[^.]*$/, "") + ".wav";
+        }
         let bin = "";
         for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-        const r = await api.importMedia(file.name, btoa(bin));
+        const r = await api.importMedia(name, btoa(bin));
         if (!r || r.error) report((r && r.error) || "Import failed.");
         else onImported(r);
       } finally {
@@ -624,7 +647,7 @@
     }
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".wav,audio/wav,audio/x-wav";
+    input.accept = "audio/*,.wav,.mp3,.aif,.aiff,.flac,.ogg,.m4a";
     input.hidden = true;
     input.addEventListener("change", () => importFile(input.files[0]));
     target.appendChild(input);

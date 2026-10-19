@@ -232,7 +232,7 @@
     template:
       '<div class="bv-panel" style="width:100%;flex:1 1 100%"><div class="sp-head" style="display:flex;gap:8px;align-items:center;margin-bottom:4px">' +
       '<span class="sp-rec" style="font-weight:600"></span><span class="sp-info" style="flex:1;color:var(--muted)"></span>' +
-      '<span class="sp-drop bv-drop" style="padding:2px 8px">Import WAV</span></div>' +
+      '<span class="sp-drop bv-drop" style="padding:2px 8px">Import audio</span></div>' +
       '<div style="display:flex;gap:8px;align-items:stretch">' +
       '<canvas class="sp-reel" style="flex:1 1 60%;min-width:0;height:64px;touch-action:none"></canvas>' +
       '<canvas class="sp-zoom" style="flex:1 1 40%;min-width:0;height:64px"></canvas></div>' +

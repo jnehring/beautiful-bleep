@@ -14,7 +14,7 @@ recording onto a reel, *Grains* for a moving cloud.
 
 ## How does it work?
 
-**Loading.** Drop a WAV file on the view (or press *Import WAV*). The file is
+**Loading.** Drop an audio file on the view (or press *Import audio*): WAV, or MP3, AIFF, FLAC, OGG or M4A, which are converted to WAV on import. The file is
 stored in the media folder, so the board keeps working on any computer that
 has it. 8, 16, 24 and 32-bit files, mono or stereo, any sample rate.
 

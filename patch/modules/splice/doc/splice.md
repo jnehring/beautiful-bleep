@@ -72,7 +72,7 @@ sample-exact. **Level** sets the output level.
 **Saving.** The reel is stored as a WAV file in the media folder; the view
 saves it whenever the audio has changed and recording has stopped (the header
 says "unsaved" until then), and the board keeps its name, markers and current
-splice. **Import WAV**: drop a file on the reel or the *Import WAV* box; it
+splice. **Import audio**: drop a file on the reel or the *Import audio* box; it
 replaces the reel. **Clear reel** empties it.
 
 ## How to use it?

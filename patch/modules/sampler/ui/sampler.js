@@ -270,7 +270,7 @@
     template:
       '<div style="display:flex;gap:8px;width:100%;flex:1 1 100%;flex-wrap:wrap">' +
       '<div class="bv-panel" style="flex:3 1 440px;min-width:0;display:flex;flex-direction:column"><div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">' +
-      '<span class="sa-info" style="flex:1;color:var(--muted)"></span><span class="sa-drop bv-drop" style="padding:2px 8px">Import WAV</span></div>' +
+      '<span class="sa-info" style="flex:1;color:var(--muted)"></span><span class="sa-drop bv-drop" style="padding:2px 8px">Import audio</span></div>' +
       '<canvas class="sa-canvas" style="flex:1 1 80px;min-height:80px;touch-action:none"></canvas>' +
       '<div class="sa-tools" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:11px">' +
       field("Slicing", '<select class="sa-kind"><option value="manual">Manual</option><option value="threshold">Threshold</option><option value="beats">Beats</option></select>') +
