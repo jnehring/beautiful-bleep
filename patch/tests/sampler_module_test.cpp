@@ -77,6 +77,20 @@ struct Rig {
         m->setKnob(i, n);
         std::fill(params[(size_t)i].begin(), params[(size_t)i].end(), n);
     }
+    void noteOn() {
+        const size_t i = (size_t)m->spec().inputIndex("notes");
+        connected[i] = true;
+        NoteEvent e;
+        e.type = NoteEvent::On;
+        e.note = 60;
+        e.pitch = 0.0f;
+        e.value = 1.0f;
+        e.offset = 0;
+        notesIn[i].count = 1;
+        notesIn[i].events[0] = e;
+        pendingNote = true;
+    }
+    bool pendingNote = false;
     void patch(const std::string& id) { connected[(size_t)m->spec().inputIndex(id)] = true; }
     /// Runs `samples` samples with a 440 Hz sine on In L (when patched), collecting Out L.
     std::vector<float> run(int samples, float gate = 0.0f) {
@@ -98,6 +112,10 @@ struct Rig {
             c.outputs = op.data();
             c.notesOut = nop.data();
             m->process(c);
+            if (pendingNote) {
+                pendingNote = false;
+                notesIn[(size_t)m->spec().inputIndex("notes")].count = 0;
+            }
             const auto& l = outputs[(size_t)m->spec().outputIndex("l")];
             out.insert(out.end(), l.begin(), l.end());
         }
@@ -162,6 +180,56 @@ void beatsAndOverdub() {
     EXPECT(r.m->takeData(json));
 }
 
+/// Loads two clips one after the other through the node data: the second one plays.
+void loadAnother() {
+    auto make = [](double hz) {
+        MediaClip c;
+        c.sampleRate = kRate;
+        std::vector<float> x(24000);
+        for (size_t i = 0; i < x.size(); ++i) x[i] = 0.5f * (float)std::sin(2.0 * kPi * hz * (double)i / kRate);
+        c.channels.push_back(x);
+        return media::save(c);
+    };
+    const std::string a = make(440.0), b = make(880.0);
+    EXPECT(!a.empty() && !b.empty() && a != b);
+    Rig r;
+    r.set("mode", 3.0f);  // loop
+    auto data = [&](const std::string& id) { return r.m->spec().sanitiseData("{\"clip\":\"" + id + "\",\"length\":0,\"markers\":[],\"current\":0}"); };
+    r.m->setData(data(a));
+    r.noteOn();
+    r.run(4000);
+    const auto first = r.run(9600);
+    r.m->setData(data(b));
+    r.run(1000);
+    r.noteOn();
+    r.run(4000);
+    const auto second = r.run(9600);
+    auto zc = [](const std::vector<float>& x) { int n = 0; for (size_t i = 1; i < x.size(); ++i) n += x[i - 1] <= 0.0f && x[i] > 0.0f; return n; };
+    std::printf("zc %d %d\n", zc(first), zc(second));
+    EXPECT(zc(first) > 0 && zc(second) > zc(first) * 3 / 2);
+    // Clear: nothing plays any more
+    r.m->setData(data(""));
+    r.run(1000);
+    r.noteOn();
+    const auto none = r.run(9600);
+    EXPECT(peak(none, 0, none.size()) < 1e-4f);
+    // A sample loaded while a recording is going on ends the recording and plays
+    Rig q;
+    q.patch("inl");
+    q.set("mode", 3.0f);
+    q.m->command("record", 1);
+    q.run(5000);
+    q.m->setData(data(a));
+    q.run(1000);
+    q.noteOn();
+    const auto played = q.run(9600);
+    EXPECT(zc(played) > 0);
+    std::vector<std::pair<std::string, double>> v;
+    q.m->liveValues(v);
+    for (auto& [k, x] : v)
+        if (k == "recState") EXPECT(x == 0.0);
+}
+
 void gateRecords() {
     Rig r;
     r.patch("inl");
@@ -180,6 +248,7 @@ int main() {
     recordAndLoop();
     beatsAndOverdub();
     gateRecords();
+    loadAnother();
     tmp.deleteRecursively();
     std::printf("sampler module: %d failures\n", g_failures);
     return g_failures ? 1 : 0;

@@ -196,7 +196,14 @@ public:
             peaks_.assign(kBins, 0.0f);
             missing_.store(false);
             live_ = !clipId_.empty() && clipId_ == liveClipId_ && recLen_.load() > 0;
-            if (!live_ && recState_.load() == 0) recHeld_.store(false);
+            if (!live_) {  // another sample (or none): whatever was being recorded or held is let go
+                ++clipSerial_;
+                if (clipId_.empty()) {
+                    liveClipId_.clear();
+                    recLen_.store(0);
+                }
+            }
+            if (!live_) recHeld_.store(false);
             if (!clipId_.empty() && !live_) {
                 clip_ = atRate(media::load(clipId_), sampleRate_);
                 missing_.store(!clip_);
@@ -284,6 +291,10 @@ public:
     }
 
     void process(const ProcessContext& c) override {
+        if (const Loaded* ld = handoff_.get(); ld != applied_ && ld && ld->serial != appliedSerial_) {
+            appliedSerial_ = ld->serial;
+            recState_.store(0);  // another sample was loaded (or cleared): the recording stops
+        }
         if (const Loaded* ld = handoff_.get(); ld != applied_ && recState_.load() != 1) {  // not while a fresh recording is made
             applied_ = ld;
             dsp_.setSample(ld && ld->sample.frames > 0 ? &ld->sample : nullptr);
@@ -544,6 +555,7 @@ private:
         std::shared_ptr<const MediaClip> clip;
         int current = 0;
         bool live = false;  ///< the sample is the recording buffer
+        int serial = 0;     ///< counts the clip changes: a new one ends a recording in progress
     };
 
     void publish() {
@@ -551,6 +563,7 @@ private:
         ld->clip = clip_;
         ld->current = data_.current;
         ld->live = live_;
+        ld->serial = clipSerial_;
         if (live_ && recLen_.load() > 1) {
             sm::Sample& s = ld->sample;
             s.channels = 2;
@@ -603,11 +616,13 @@ private:
     std::atomic<bool> recDone_{false}, recStereo_{false}, recHeld_{false};  ///< recHeld_: the sample is a take not yet saved
     bool live_ = false;  // message thread: the node's clip is the recording buffer
     std::string liveClipId_;
+    int clipSerial_ = 0;
     // audio thread
     sm::Sample recSample_;
     bool liveA_ = false, recGatePrev_ = false;
     int64_t recPos_ = 0, recLimit_ = 0;
     const Loaded* applied_ = nullptr;
+    int appliedSerial_ = 0;
     bool hadNotes_ = false;
     double sampleSeconds_ = 0.0, clockBpm_ = 0.0, syncRatio_ = 1.0;
     int64_t sinceClock_ = 0;

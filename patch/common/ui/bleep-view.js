@@ -649,7 +649,7 @@
     input.type = "file";
     input.accept = "audio/*,.wav,.mp3,.aif,.aiff,.flac,.ogg,.m4a";
     input.hidden = true;
-    input.addEventListener("change", () => importFile(input.files[0]));
+    input.addEventListener("change", () => { const f = input.files[0]; input.value = ""; importFile(f); });  // cleared, so the same file can be chosen again
     target.appendChild(input);
     target.addEventListener("click", (e) => { if (e.target !== input) input.click(); });
     target.addEventListener("dragover", (e) => { e.preventDefault(); target.classList.add("over"); });

@@ -14,7 +14,7 @@ recording onto a reel, *Grains* for a moving cloud.
 
 ## How does it work?
 
-**Loading.** Drop an audio file on the view (or press *Import audio*): WAV, or MP3, AIFF, FLAC, OGG or M4A, which are converted to WAV on import. The file is
+**Loading.** Drop an audio file on the view (or press *Import audio*): WAV, or MP3, AIFF, FLAC, OGG or M4A, which are converted to WAV on import. *Clear sample* removes the sample again (and stops a recording in progress). Loading another sample while one is loaded replaces it. The file is
 stored in the media folder, so the board keeps working on any computer that
 has it. 8, 16, 24 and 32-bit files, mono or stereo, any sample rate.
 
@@ -103,9 +103,12 @@ saved with the project. Recordings can be up to 20 seconds.
 - With *Overdub*, *Feedback* below 100 % and *Rec Length* in beats, the Sampler is a
   tempo-synced looper-delay. Overdub assumes the playhead moves at Speed 1.
 
-**Tabs.** The controls are in four tabs under the waveform: *Sample* (Gain,
-Start, End, Position, Pitch, Warp and Tempo Sync), *Envelope & Filter*, *Output*
-(Output and Voices) and *Record*.
+**Tabs.** The controls are in five tabs under the waveform: *Sample* (Gain,
+Start, End, Position, Pitch, Warp and Tempo Sync), *Slices* (the slicing tools
+and the selected slice's settings), *Envelope & Filter*, *Output* (Output and
+Voices) and *Record*. The waveform shows *Start* and *End* as lines marked S and E
+with the part that is not played dimmed (in slice mode, in every slice), and the
+volume envelope drawn over the played part, at the current Speed.
 
 **Moving the playhead.** With *Position Mode* *Scrub*, turning *Position* (or
 modulating it) moves every sounding playhead to that point of its region, with a

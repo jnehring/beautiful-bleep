@@ -43,6 +43,15 @@
     return out;
   }
 
+  /// A knob's value in its own units (as ParamSpec::fromNormalised).
+  function real(view, st, id) {
+    const p = view.type.params.find((q) => q.id === id), x = Math.min(1, Math.max(0, view.value(st, id)));
+    if (!p) return 0;
+    if (p.map === "exponential") return p.min * Math.pow(p.max / p.min, x);
+    if (p.map === "skew") return x <= 0 ? p.min : p.min + (p.max - p.min) * Math.exp(Math.log(x) / (Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min))));
+    return p.min + (p.max - p.min) * x;
+  }
+
   function draw(view) {
     const sp = view.sp, st = sp.state || {}, c = sp.canvas;
     const { g, w, h } = BleepView.fit(c);
@@ -82,6 +91,61 @@
       g.fillRect(i * bw, h / 2 - v, Math.max(1, bw), Math.max(1, 2 * v));
     }
     g.globalAlpha = 1;
+    // Start and End: what is not played is dimmed, and the edges get a line (the current slice's, in slice mode)
+    const sF = Math.min(1, Math.max(0, view.value(st, "start"))), eF = Math.min(1, Math.max(0, view.value(st, "end")));
+    const sliceMode = view.value(st, "slicemode") > 0.5;
+    const regionOf = (i) => { const s0 = bounds[i], s1 = bounds[i + 1], a = s0 + sF * (s1 - s0); return [s0, s1, a, Math.max(a, s0 + eF * (s1 - s0))]; };
+    const regions = sliceMode ? bounds.slice(0, -1).map((_, i) => regionOf(i)) : [[0, len, sF * len, Math.max(sF * len, eF * len)]];
+    g.fillStyle = panel;
+    g.globalAlpha = 0.8;
+    for (const [s0, s1, a, b] of regions) {
+      if (a > s0) g.fillRect(x(s0), 0, x(a) - x(s0), h);
+      if (b < s1) g.fillRect(x(b), 0, x(s1) - x(b), h);
+    }
+    g.globalAlpha = 1;
+    const cr = sliceMode ? regionOf(cur) : regions[0];
+    g.strokeStyle = text;
+    g.fillStyle = text;
+    g.lineWidth = 1.5;
+    g.font = "9px system-ui, sans-serif";
+    g.textAlign = "left";
+    for (const [f, label, dir] of [[cr[2], "S", 1], [cr[3], "E", -1]]) {
+      const X = Math.round(x(f)) + 0.5;
+      g.beginPath(); g.moveTo(X, 0); g.lineTo(X, h); g.stroke();
+      g.beginPath(); g.moveTo(X, h - 14); g.lineTo(X + dir * 9, h - 14); g.lineTo(X, h - 5); g.closePath(); g.fill();
+      g.textAlign = dir > 0 ? "left" : "right";
+      g.fillText(label, X + dir * 3, h - 17);
+    }
+    g.lineWidth = 1;
+    g.textAlign = "left";
+    // the volume envelope over the played part of the current region, at the speed set (Attack and Decay from its start, Release ending at its end)
+    {
+      const sr = st.sampleRate || 48000, sp = Math.max(0.05, Math.abs(real(view, st, "speed")));
+      const A = (real(view, st, "attack") * sr * sp), D = (real(view, st, "decay") * sr * sp), R = (real(view, st, "release") * sr * sp);
+      const S = Math.min(1, Math.max(0, view.value(st, "sustain"))), a = cr[2], b = Math.max(cr[3], cr[2] + 1);
+      const relStart = Math.max(a, b - R);
+      const lvl = (f) => {
+        if (f < a) return 0;
+        if (f < a + A) return (f - a) / Math.max(1, A);
+        if (f < relStart) return S + (1 - S) * Math.exp(-4.6 * Math.max(0, f - a - A) / Math.max(1, D));
+        const hold = S + (1 - S) * Math.exp(-4.6 * Math.max(0, relStart - a - A) / Math.max(1, D));
+        return f >= b ? 0 : (relStart <= a + A ? Math.min(1, (relStart - a) / Math.max(1, A)) : hold) * Math.exp(-4.6 * (f - relStart) / Math.max(1, b - relStart));
+      };
+      const half = h / 2 - 3, N = 120;
+      g.beginPath();
+      for (let i = 0; i <= N; i++) { const f = a + (b - a) * i / N; i ? g.lineTo(x(f), h / 2 - lvl(f) * half) : g.moveTo(x(f), h / 2 - lvl(f) * half); }
+      for (let i = N; i >= 0; i--) { const f = a + (b - a) * i / N; g.lineTo(x(f), h / 2 + lvl(f) * half); }
+      g.closePath();
+      g.fillStyle = accent; g.globalAlpha = 0.14; g.fill(); g.globalAlpha = 0.9;
+      g.strokeStyle = accent; g.lineWidth = 1.5; g.setLineDash([4, 3]);
+      g.beginPath();
+      for (let i = 0; i <= N; i++) { const f = a + (b - a) * i / N; i ? g.lineTo(x(f), h / 2 - lvl(f) * half) : g.moveTo(x(f), h / 2 - lvl(f) * half); }
+      g.stroke();
+      g.beginPath();
+      for (let i = 0; i <= N; i++) { const f = a + (b - a) * i / N; i ? g.lineTo(x(f), h / 2 + lvl(f) * half) : g.moveTo(x(f), h / 2 + lvl(f) * half); }
+      g.stroke();
+      g.setLineDash([]); g.lineWidth = 1; g.globalAlpha = 1;
+    }
     g.fillStyle = accent;
     g.font = "10px system-ui, sans-serif";
     g.textAlign = "left";
@@ -253,8 +317,8 @@
       ".sa-grid label{display:flex;justify-content:space-between;align-items:center;gap:4px;color:var(--muted)}" +
       ".sa-grid input,.sa-grid select,.bleep-view.sa .sa-tools input,.bleep-view.sa .sa-tools select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 3px}" +
       ".sa-grid input[type=number]{width:52px}.sa-grid select{width:84px}" +
-      ".sa-tools button,.sa-grid button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 8px;cursor:pointer}" +
-      ".sa-tools button:hover,.sa-grid button:hover{border-color:var(--accent)}";
+      ".sa-tools button,.sa-grid button,.sa-head button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 8px;cursor:pointer}" +
+      ".sa-tools button:hover,.sa-grid button:hover,.sa-head button:hover{border-color:var(--accent)}";
     document.head.appendChild(st);
   }
 
@@ -273,9 +337,9 @@
     ],
     template:
       '<div style="display:flex;gap:8px;width:100%;flex:1 1 100%;flex-wrap:wrap">' +
-      '<div class="bv-panel" style="flex:3 1 440px;min-width:0;display:flex;flex-direction:column"><div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">' +
-      '<span class="sa-info" style="flex:1;color:var(--muted)"></span><span class="sa-drop bv-drop" style="padding:2px 8px">Import audio</span></div>' +
-      '<canvas class="sa-canvas" style="flex:1 1 80px;min-height:80px;touch-action:none"></canvas>' +
+      '<div class="bv-panel" style="flex:3 1 440px;min-width:0;display:flex;flex-direction:column"><div class="sa-head" style="display:flex;gap:8px;align-items:center;margin-bottom:4px">' +
+      '<span class="sa-info" style="flex:1;color:var(--muted)"></span><button class="sa-clearsample" title="Remove the sample from this Sampler">Clear sample</button><span class="sa-drop bv-drop" style="padding:2px 8px">Import audio</span></div>' +
+      '<canvas class="sa-canvas" style="flex:1 1 150px;min-height:150px;touch-action:none"></canvas>' +
       '<div class="sa-tools" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:11px">' +
       field("Slicing", '<select class="sa-kind"><option value="manual">Manual</option><option value="threshold">Threshold</option><option value="beats">Beats</option></select>') +
       '<span data-kind="threshold" style="display:flex;gap:8px;align-items:center">' +
@@ -339,6 +403,11 @@
         view.api.beginGesture();
         send(view, { ...data(view), markers: beatMarkers(view, true), current: 0 });
       });
+      q(".sa-clearsample").addEventListener("click", () => {
+        view.api.beginGesture();
+        send(view, { clip: "", length: 0, markers: [], current: 0, slices: {}, slicing: data(view).slicing });
+        sp.note = "Sample cleared";
+      });
       q(".sa-clear").addEventListener("click", () => {
         view.api.beginGesture();
         send(view, { ...data(view), markers: [], slices: {}, current: 0 });
@@ -395,18 +464,31 @@
         mk("Fit", "Guess the beats from the detected tempo", () => { sp.fit = Date.now(); view.api.perform("bpm"); });
         bk.box.appendChild(box);
       }
+      // The slicing tools and the selected slice's settings get a tab of their own.
+      const wrap = el.firstElementChild, panel1 = wrap && wrap.children[0], panel2 = wrap && wrap.children[1];
+      const slicesEl = document.createElement("div");
+      slicesEl.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;width:100%";
+      if (panel1) panel1.style.flex = "1 1 100%";
+      const toolsBox = document.createElement("div");
+      toolsBox.className = "bv-panel";
+      toolsBox.style.cssText = "flex:3 1 440px;min-width:0";
+      toolsBox.appendChild(q(".sa-tools"));
+      slicesEl.appendChild(toolsBox);
+      if (panel2) slicesEl.appendChild(panel2);
       // Tabs: the control cards are grouped, one group at a time; the waveform and the buttons stay.
-      const TABS = [["Sample", ["Sample", "Pitch", "Tempo Sync"]], ["Envelope & Filter", ["Envelope", "Filter"]], ["Output", ["Output", "Voices"]], ["Record", ["Record"]]];
+      const TABS = [["Sample", ["Sample", "Pitch", "Tempo Sync"]], ["Slices", [], [slicesEl]], ["Envelope & Filter", ["Envelope", "Filter"]], ["Output", ["Output", "Voices"]], ["Record", ["Record"]]];
       const secs = [...view.root.querySelectorAll(".bv-controls > .bv-sec")];
       const titleOf = (sec) => { const t = sec.querySelector(".bv-sec-title"); return t ? t.textContent : ""; };
       const bar = document.createElement("div");
       bar.className = "sa-tabs";
       const showTab = (n) => {
         sp.tab = n;
-        TABS.forEach(([, titles], i) => {
+        TABS.forEach(([, titles, extra], i) => {
           for (const sec of secs) if (titles.includes(titleOf(sec))) sec.classList.toggle("sa-hide", i !== n);
+          for (const e of extra || []) e.classList.toggle("sa-hide", i !== n);
           bar.children[i].classList.toggle("on", i === n);
         });
+        draw(view);
       };
       TABS.forEach(([name], i) => {
         const b = document.createElement("button");
@@ -416,7 +498,10 @@
         bar.appendChild(b);
       });
       const controls = view.root.querySelector(".bv-controls");
-      if (controls) controls.parentNode.insertBefore(bar, controls);
+      if (controls) {
+        controls.parentNode.insertBefore(bar, controls);
+        controls.parentNode.insertBefore(slicesEl, controls);
+      }
       showTab(sp.tab | 0);
       BleepView.loop(view.root, (t) => envelope(view, t));
       slicingPanel(view);
