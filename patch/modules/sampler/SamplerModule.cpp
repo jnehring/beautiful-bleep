@@ -252,6 +252,12 @@ public:
             heads.push_back((float)headSlice_[i].load(std::memory_order_relaxed));
         }
         out.push_back({"heads", std::move(heads)});
+        std::vector<float> envs;  // envelope level and stage (0 attack, 1 decay, 2 sustain, 3 release) of each sounding voice
+        for (int i = 0; i < n; ++i) {
+            envs.push_back(headEnv_[i].load(std::memory_order_relaxed));
+            envs.push_back((float)headStage_[i].load(std::memory_order_relaxed));
+        }
+        out.push_back({"envs", std::move(envs)});
     }
 
     void process(const ProcessContext& c) override {
@@ -371,10 +377,12 @@ public:
         }
         current_.store(dsp_.currentSlice());
         int n = 0;
-        dsp_.forEachHead([&](double pos, int slice, bool) {
+        dsp_.forEachHead([&](double pos, int slice, bool, float env, int stage) {
             if (n < sm::kVoices) {
                 heads_[n].store(pos, std::memory_order_relaxed);
                 headSlice_[n].store(slice, std::memory_order_relaxed);
+                headEnv_[n].store(env, std::memory_order_relaxed);
+                headStage_[n].store(stage, std::memory_order_relaxed);
                 ++n;
             }
         });
@@ -440,6 +448,8 @@ private:
     std::atomic<bool> missing_{false};
     std::atomic<double> heads_[sm::kVoices] = {};
     std::atomic<int> headSlice_[sm::kVoices] = {};
+    std::atomic<float> headEnv_[sm::kVoices] = {};
+    std::atomic<int> headStage_[sm::kVoices] = {};
 };
 
 }  // namespace
@@ -471,7 +481,7 @@ static void registerSamplerModule(Registry& r) {
         ParamSpec::number("pan", "Pan", -1.0f, 1.0f, 0.0f).inGroup("Output"),
         cutoff.inGroup("Filter"),
         ParamSpec::percent("resonance", "Resonance", 0.0f, 1.0f, 0.0f).inGroup("Filter"),
-        ParamSpec::percent("filterenv", "Flt Env", -1.0f, 1.0f, 0.0f).inGroup("Filter"),
+        ParamSpec::percent("filterenv", "Filter Env", -1.0f, 1.0f, 0.0f).inGroup("Filter"),
         ParamSpec::percent("velocity", "Velocity", 0.0f, 1.0f, 0.5f).inGroup("Output"),
         ParamSpec::percent("crush", "Crush", 0.0f, 1.0f, 0.0f).inGroup("Output"),
         ParamSpec::number("layerpitch", "Layer Pitch", -24.0f, 24.0f, 7.0f, "st", 1).inGroup("Layers").when("voicemode", 3, 3),
@@ -483,9 +493,9 @@ static void registerSamplerModule(Registry& r) {
         ParamSpec::choice("slicemode", "Slice Mode", {"Off", "On"}, 0),
         ParamSpec::choice("mode", "Mode", {"Gate", "To end of sample", "To end of slice", "Loop", "One-shot"}, 0),
         ParamSpec::choice("loopstyle", "Loop Style", {"Forward", "Ping-pong"}, 0),
-        ParamSpec::seconds("loopfade", "Loop Fade", 0.0f, 0.05f, 0.01f, 0.005f),
+        ParamSpec::seconds("loopfade", "Loop Crossfade", 0.0f, 0.05f, 0.01f, 0.005f),
         ParamSpec::integer("root", "Root Note", 0, 127, 60),
-        ParamSpec::percent("keytrack", "Key Track", -1.0f, 2.0f, 1.0f),
+        ParamSpec::percent("keytrack", "Key Tracking", -1.0f, 2.0f, 1.0f),
         ParamSpec::choice("quality", "Quality", {"Linear", "Cubic", "Sinc"}, 1),
         ParamSpec::choice("positionmode", "Position Mode", {"Scrub", "Offset"}, 0),
         ParamSpec::choice("voiceouts", "Voice Outs", {"Off", "On"}, 0),

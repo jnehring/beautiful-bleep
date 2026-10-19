@@ -495,7 +495,26 @@ static void warpModes() {
     EXPECT(peak > 0.45f && peak < 0.55f);
 }
 
+// Transpose and the Pitch input move the pitch of a note-triggered playhead.
+static void pitchFollows() {
+    Rig t;
+    t.load(sineClip(48000, 440.0));
+    t.p.mode = ModeLoop;
+    t.dsp->noteOn(60, 0.0f, 1.0f, t.p);
+    t.render(10000);
+    t.clear();
+    t.p.transpose = 12.0f;
+    t.render(10000);
+    EXPECT(std::fabs(risingHz(t.l, 2000, 10000) - 880.0) < 25.0);
+    t.clear();
+    t.p.transpose = 0.0f;
+    t.in.pitch = 1.0f;
+    t.render(10000);
+    EXPECT(std::fabs(risingHz(t.l, 2000, 10000) - 880.0) < 25.0);
+}
+
 int main() {
+    pitchFollows();
     warpModes();
     negativeSpeedSwells();
     wholeSample();

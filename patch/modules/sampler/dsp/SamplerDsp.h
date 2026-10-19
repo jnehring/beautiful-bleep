@@ -269,11 +269,11 @@ public:
         for (const auto& v : voices_) n += v.active && !v.fading ? 1 : 0;
         return n;
     }
-    /// f(position in frames, slice, held) for every sounding voice.
+    /// f(position in frames, slice, held, envelope level, envelope stage) for every sounding voice.
     template <class F>
     void forEachHead(F&& f) const {
         for (const auto& v : voices_)
-            if (v.active && !v.fading) f(v.pos, v.slice, v.held);
+            if (v.active && !v.fading) f(v.pos, v.slice, v.held, v.env, v.stage);
     }
 
     // ---- audio -----------------------------------------------------------------
@@ -521,7 +521,7 @@ private:
 
     /// Control-rate update: pitch, filter, gains.
     void updateVoice(Voice& v, const SamplerParams& p, const SamplerInput& in) noexcept {
-        const float cv = v.note == -1 ? in.pitch : 0.0f;
+        const float cv = in.pitch;  // 1 V/oct on every playhead, note-triggered ones too
         const double semis = (double)v.noteSemis + (double)v.extraSemis + (double)p.transpose + (double)p.fine * 0.01 + 12.0 * (double)cv;
         const double speed = (double)p.speed * std::exp2((double)in.speed);
         if (p.warp != sampler::WarpRepitch) {  // Speed is time only, the grains carry the pitch

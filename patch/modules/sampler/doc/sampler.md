@@ -54,7 +54,7 @@ playhead.
 - **To end of sample:** plays on to the sample end, whatever the gate does.
 - **To end of slice:** plays to the next marker, whatever the gate does.
 - **Loop:** loops the sample (or the slice) until released. *Loop Style* can
-  be *Ping-pong*; *Loop Fade* hides the seam.
+  be *Ping-pong*; *Loop Crossfade* hides the seam.
 - **One-shot:** plays the whole slice, ignoring the gate.
 
 *End* fires whenever a playhead reaches its end or wraps its loop.
@@ -182,7 +182,7 @@ Five whole patches show what Sampler does. In the standalone app open **File →
 | Crush | 0 – 100 % | 0 % |
 | Cutoff | 20 Hz – 20 kHz | 20 kHz |
 | Resonance | 0 – 100 % | 0 % |
-| Flt Env | −100 … +100 % | 0 % |
+| Filter Env | −100 … +100 % | 0 % |
 | Layer Pitch | −24 … +24 semitones | 7 |
 | Layer Offset | 0 – 200 ms | 0 |
 | Beats | 0.25 – 256 | 4 |
@@ -198,12 +198,12 @@ in *Layers* voice mode.
 | Slice Mode | Off, On | Off |
 | Mode | Gate, To end of sample, To end of slice, Loop, One-shot | Gate |
 | Loop Style | Forward, Ping-pong | Forward |
-| Loop Fade | 0 – 50 ms | 5 ms |
+| Loop Crossfade | 0 – 50 ms | 5 ms |
 | Voices | 1 – 16 | 8 |
 | Voice Mode | Poly, Mono, Legato, Layers | Poly |
 | Layers | 1 – 8 | 2 |
 | Root Note | 0 – 127 (MIDI) | 60 |
-| Key Track | −100 … +200 % | 100 % |
+| Key Tracking | −100 … +200 % | 100 % |
 | Quality | Linear, Cubic, Sinc | Cubic |
 | Position Mode | Scrub, Offset | Scrub |
 | Warp | Repitch, Beats, Tones, Texture | Repitch |

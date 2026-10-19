@@ -130,9 +130,18 @@
     g.setLineDash([]);
     g.fillStyle = th.muted; g.font = "9px system-ui, sans-serif"; g.textAlign = "center";
     g.fillText("A", px(A / 2), h - 0); g.fillText("D", px(A + D / 2), h - 0); g.fillText("S", px(A + D + H / 2), h - 0); g.fillText("R", px(A + D + H + R / 2), h - 0);
-    const u = ((t * 0.35) % 1) * tot * 1.0;
+    // a dot per sounding voice, at the point of the curve its envelope has reached
+    const envs = (st.arrays && st.arrays.envs) || [];
     g.fillStyle = th.text; BleepView.glow(g, th.text, 12);
-    g.beginPath(); g.arc(px(u), py(envAt(u, A, D, S, H, R)), 3.2, 0, 6.2832); g.fill();
+    for (let i = 0; i + 1 < envs.length; i += 2) {
+      const e = envs[i], stage = envs[i + 1];
+      let u;
+      if (stage === 0) u = A * Math.min(1, e);
+      else if (stage === 1) u = A + D * (1 - Math.sqrt(Math.max(0, Math.min(1, (e - S) / Math.max(1e-4, 1 - S)))));
+      else if (stage === 2) u = A + D + H * 0.5;
+      else u = A + D + H + R * (1 - Math.sqrt(Math.max(0, Math.min(1, e / Math.max(1e-4, S)))));
+      g.beginPath(); g.arc(px(u), py(Math.min(1, e)), 3.2, 0, 6.2832); g.fill();
+    }
     g.shadowBlur = 0;
   }
   function envAt(u, A, D, S, H, R) {
@@ -235,8 +244,8 @@
   if (!document.getElementById("sa-style")) {
     const st = document.createElement("style");
     st.id = "sa-style";
-    st.textContent = ".bleep-view.sa .bv-knob{width:56px}.bleep-view.sa .bv-knob svg{width:38px;height:38px}" +
-      ".bleep-view.sa .bv-sec-knobs{gap:2px 0;align-items:flex-start}.bleep-view.sa .bv-label{white-space:nowrap}.sa-beat-btns{display:flex;gap:3px;margin-top:2px}.sa-beat-btns button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:10px;padding:0 5px;cursor:pointer}.sa-beat-btns button:hover{border-color:var(--accent)}.bleep-view.sa .bv-label{font-size:9px;letter-spacing:.04em}" +
+    st.textContent = ".bleep-view.sa .bv-knob{width:64px}.bleep-view.sa .bv-knob svg{width:38px;height:38px}" +
+      ".bleep-view.sa .bv-sec-knobs{gap:2px 0;align-items:flex-start}.sa-beat-btns{display:flex;gap:3px;margin-top:2px}.sa-beat-btns button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:10px;padding:0 5px;cursor:pointer}.sa-beat-btns button:hover{border-color:var(--accent)}.bleep-view.sa .bv-label{font-size:9px;letter-spacing:.02em;text-align:center;white-space:normal;line-height:1.15;min-height:2.3em;display:flex;align-items:center;justify-content:center}" +
       ".sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:11px}" +
       ".sa-grid label{display:flex;justify-content:space-between;align-items:center;gap:4px;color:var(--muted)}" +
       ".sa-grid input,.sa-grid select,.bleep-view.sa .sa-tools input,.bleep-view.sa .sa-tools select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 3px}" +
@@ -331,7 +340,15 @@
         send(view, { ...data(view), markers: [], slices: {}, current: 0 });
       });
       q(".sa-audition").addEventListener("click", () => view.api.command("audition", data(view).current));
-      const bind = (el, key, conv) => el.addEventListener("change", () => sp.set && sp.set(key, conv(el)));
+      const bind = (el, key, conv) => {
+        const fire = () => { if (sp.set && !(el.type === "number" && el.value === "")) sp.set(key, conv(el)); };
+        el.addEventListener("change", fire);
+        if (el.type === "number") el.addEventListener("input", fire);
+      };
+      for (const e of [sp.mode, sp.transpose, sp.level, sp.pan, sp.choke, sp.reverse]) {
+        e.addEventListener("focus", () => (sp.editing = true));
+        e.addEventListener("blur", () => (sp.editing = false));
+      }
       bind(sp.mode, "mode", (e) => +e.value);
       bind(sp.transpose, "transpose", (e) => +e.value);
       bind(sp.level, "level", (e) => +e.value);
