@@ -54,7 +54,7 @@ playhead.
 - **To end of sample:** plays on to the sample end, whatever the gate does.
 - **To end of slice:** plays to the next marker, whatever the gate does.
 - **Loop:** loops the sample (or the slice) until released. *Loop Style* can
-  be *Ping-pong*; *Loop Crossfade* hides the seam.
+  be *Ping-pong*; *Loop Fade* hides the seam.
 - **One-shot:** plays the whole slice, ignoring the gate.
 
 *End* fires whenever a playhead reaches its end or wraps its loop.
@@ -65,11 +65,24 @@ slice, as a fraction of it, so End at 50 % plays the first half of every slice.
 **Pitch and speed.** *Transpose* (semitones) and *Fine* (cents) set the pitch;
 *Pitch* adds 1 V per octave to CV-triggered playheads. *Speed* is the
 playback ratio and negative plays backwards; *Speed* (input) adds 1 V per
-octave. In this version pitch and speed are one thing, like tape: playing
-twice as fast sounds an octave higher. *Key Tracking* sets how much the note
+octave. With *Warp* on *Repitch* pitch and speed are one thing, like tape:
+playing twice as fast sounds an octave higher. The other *Warp* modes stretch
+time on their own, with overlapping grains, so *Speed* changes the tempo and only
+*Transpose* (and the note) changes the pitch: *Beats* (short grains, for drums
+and percussion), *Tones* (long grains, smooth, for pads and melodies) and
+*Texture* (scattered grains, for noise and ambience). *Key Tracking* sets how much the note
 number moves the pitch (100 % is normal; 0 % plays every key at the same pitch).
 *Quality* is the interpolation: *Linear* (cheapest), *Cubic*, or *Sinc* (cleanest
 when pitching down).
+
+**Tempo sync.** Turn *Tempo Sync* on and *Speed* is scaled so the sample lasts
+*Beats* beats at the tempo of the board: *Transport* follows the transport,
+*Clock* measures the pulses on the *Clock* input (set *Clock PPQN* to match) and
+*Auto* uses the clock while the jack is patched, else the transport. **÷2** and
+**×2** halve and double *Beats* (twice as fast, half as fast); **Fit** guesses it from the
+detected BPM. Use *Beats* or *Tones* in *Warp* to keep a drum loop's pitch while it
+follows the tempo. It matches the tempo; it does not line the loop up with the bar,
+so start it on the beat.
 
 **Moving the playhead.** With *Position Mode* *Scrub*, turning *Position* (or
 modulating it) moves every sounding playhead to that point of its region, with a
@@ -169,9 +182,10 @@ Five whole patches show what Sampler does. In the standalone app open **File →
 | Crush | 0 – 100 % | 0 % |
 | Cutoff | 20 Hz – 20 kHz | 20 kHz |
 | Resonance | 0 – 100 % | 0 % |
-| Filter Env | −100 … +100 % | 0 % |
+| Flt Env | −100 … +100 % | 0 % |
 | Layer Pitch | −24 … +24 semitones | 7 |
 | Layer Offset | 0 – 200 ms | 0 |
+| Beats | 0.25 – 256 | 4 |
 
 Every knob is a modulation destination. *Layer Pitch* and *Layer Offset* show
 in *Layers* voice mode.
@@ -184,14 +198,17 @@ in *Layers* voice mode.
 | Slice Mode | Off, On | Off |
 | Mode | Gate, To end of sample, To end of slice, Loop, One-shot | Gate |
 | Loop Style | Forward, Ping-pong | Forward |
-| Loop Crossfade | 0 – 50 ms | 5 ms |
+| Loop Fade | 0 – 50 ms | 5 ms |
 | Voices | 1 – 16 | 8 |
 | Voice Mode | Poly, Mono, Legato, Layers | Poly |
 | Layers | 1 – 8 | 2 |
 | Root Note | 0 – 127 (MIDI) | 60 |
-| Key Tracking | −100 … +200 % | 100 % |
+| Key Track | −100 … +200 % | 100 % |
 | Quality | Linear, Cubic, Sinc | Cubic |
 | Position Mode | Scrub, Offset | Scrub |
+| Warp | Repitch, Beats, Tones, Texture | Repitch |
+| Tempo Sync | Off, Auto, Clock, Transport | Off |
+| Clock PPQN | 1, 2, 4, 8, 24, 48 | 24 |
 | Voice Outs | Off, On | Off |
 | Output | Stereo, Mono | Stereo |
 
@@ -213,6 +230,7 @@ and Choke group (none, 1 – 8). They are saved with the markers.
 | Velocity | control | velocity of CV-triggered playheads (full when unpatched) |
 | Stop | trigger | releases every playhead |
 | Step | trigger | moves the selected slice to the next one |
+| Clock | trigger | tempo for *Tempo Sync* (*Auto* and *Clock*) |
 
 ### Outputs
 

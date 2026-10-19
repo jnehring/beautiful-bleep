@@ -12,6 +12,7 @@
 #include "SamplerDsp.h"
 #include "dsp/Delay.h"
 #include "dsp/Onsets.h"
+#include "dsp/SeqClock.h"
 
 #include <juce_core/juce_core.h>
 
@@ -146,9 +147,9 @@ public:
         Start, End, Transpose, Fine, Speed, Position, Attack, Decay, Sustain, Release, Level, Pan, Cutoff, Resonance,
         FilterEnv, Velocity, Crush, LayerPitch, LayerOffset,
         Voices, VoiceMode, Layers, TriggerBy, SliceMode, Mode, LoopStyle, LoopFade, Root, KeyTrack, Quality,
-        PositionMode, VoiceOuts, Output
+        PositionMode, VoiceOuts, Output, Warp, Sync, Ppqn, Beats
     };
-    enum { Notes, Trigger, Gate, SliceIn, PitchIn, SpeedIn, VelocityIn, Stop, Step };
+    enum { Notes, Trigger, Gate, SliceIn, PitchIn, SpeedIn, VelocityIn, Stop, Step, ClockIn };
     enum { OutL, OutR, EndOut, SliceOut, PlayheadOut, ActiveOut, Voice1 };
     enum { NextButton, RandomButton, StopButton, AuditionCommand };
 
@@ -158,7 +159,13 @@ public:
         Module::prepare(sampleRate);
         dsp_.prepare(sampleRate);
     }
-    void reset() override { dsp_.reset(); }
+    void reset() override {
+        dsp_.reset();
+        sinceClock_ = 0;
+        clockPrev_ = false;
+        clockBpm_ = 0.0;
+        syncRatio_ = 1.0;
+    }
 
     void command(const std::string& id, float value) override {
         if (id == "audition") postCommand(AuditionCommand, value);
@@ -251,6 +258,7 @@ public:
         if (const Loaded* ld = handoff_.get(); ld != applied_) {
             applied_ = ld;
             dsp_.setSample(ld && ld->sample.frames > 0 ? &ld->sample : nullptr);
+            sampleSeconds_ = ld && ld->sample.frames > 0 ? (double)ld->sample.frames / sampleRate_ : 0.0;
             if (ld) dsp_.setCurrentSlice(ld->current);
         }
 
@@ -268,6 +276,17 @@ public:
         p.quality = (int)setting(Quality);
         p.positionMode = (int)setting(PositionMode);
         p.outputMono = setting(Output) >= 0.5f;
+        p.warp = (int)setting(Warp);
+
+        // Tempo sync: Speed is scaled so the sample lasts `Beats` beats at the tempo of the clock or the transport.
+        const int sync = (int)setting(Sync);  // 0 off, 1 auto, 2 clock, 3 transport
+        const bool clockMode = sync > 0 && dsp::clockSynced(sync - 1, c.inputConnected[ClockIn]);
+        static constexpr double kPulses[] = {1.0, 2.0, 4.0, 8.0, 24.0, 48.0};
+        const double pulses = kPulses[std::clamp((int)setting(Ppqn), 0, 5)];
+        double hostBpm = c.transport ? c.transport->bpm : 120.0;
+        if (clockMode && clockBpm_ > 0.0) hostBpm = clockBpm_;
+        const bool useSync = sync > 0 && sampleSeconds_ > 0.0;
+        const double smooth = 1.0 - std::exp(-1.0 / (0.02 * sampleRate_));
         if (setting(VoiceOuts) >= 0.5f)
             for (int v = 0; v < sm::kVoices; ++v) p.voiceOut[v] = c.isOutputConnected(Voice1 + v);
 
@@ -292,11 +311,26 @@ public:
         in.slicePatched = c.inputConnected[SliceIn];
         patch::SamplerFrame f;
         for (int i = 0; i < c.numSamples; ++i) {
+            if (sync > 0) {  // measure the clock: the time between pulses gives the tempo
+                ++sinceClock_;
+                const bool edge = c.inputs[ClockIn][i] >= 0.5f;
+                if (edge && !clockPrev_ && c.inputConnected[ClockIn]) {
+                    if (sinceClock_ > 16 && sinceClock_ < (int64_t)(4.0 * sampleRate_)) {
+                        const double bpm = std::clamp(60.0 * sampleRate_ / ((double)sinceClock_ * pulses), 20.0, 400.0);
+                        clockBpm_ = clockBpm_ > 0.0 ? clockBpm_ + (bpm - clockBpm_) * 0.5 : bpm;
+                    }
+                    sinceClock_ = 0;
+                }
+                clockPrev_ = edge;
+                if (clockMode && clockBpm_ > 0.0) hostBpm = clockBpm_;
+            }
+            const double target = useSync ? sampleSeconds_ * hostBpm / (60.0 * std::clamp((double)value(c, Beats, i), 0.25, 256.0)) : 1.0;
+            syncRatio_ += (target - syncRatio_) * smooth;
             p.start = value(c, Start, i);
             p.end = value(c, End, i);
             p.transpose = value(c, Transpose, i);
             p.fine = value(c, Fine, i);
-            p.speed = value(c, Speed, i);
+            p.speed = value(c, Speed, i) * (float)syncRatio_;
             p.position = value(c, Position, i);
             p.attack = value(c, Attack, i);
             p.decay = value(c, Decay, i);
@@ -397,6 +431,9 @@ private:
     // audio thread
     const Loaded* applied_ = nullptr;
     bool hadNotes_ = false;
+    double sampleSeconds_ = 0.0, clockBpm_ = 0.0, syncRatio_ = 1.0;
+    int64_t sinceClock_ = 0;
+    bool clockPrev_ = false;
     uint32_t randomCount_ = 0;
     // shared
     std::atomic<int> current_{0}, headCount_{0};
@@ -434,7 +471,7 @@ static void registerSamplerModule(Registry& r) {
         ParamSpec::number("pan", "Pan", -1.0f, 1.0f, 0.0f).inGroup("Output"),
         cutoff.inGroup("Filter"),
         ParamSpec::percent("resonance", "Resonance", 0.0f, 1.0f, 0.0f).inGroup("Filter"),
-        ParamSpec::percent("filterenv", "Filter Env", -1.0f, 1.0f, 0.0f).inGroup("Filter"),
+        ParamSpec::percent("filterenv", "Flt Env", -1.0f, 1.0f, 0.0f).inGroup("Filter"),
         ParamSpec::percent("velocity", "Velocity", 0.0f, 1.0f, 0.5f).inGroup("Output"),
         ParamSpec::percent("crush", "Crush", 0.0f, 1.0f, 0.0f).inGroup("Output"),
         ParamSpec::number("layerpitch", "Layer Pitch", -24.0f, 24.0f, 7.0f, "st", 1).inGroup("Layers").when("voicemode", 3, 3),
@@ -446,13 +483,17 @@ static void registerSamplerModule(Registry& r) {
         ParamSpec::choice("slicemode", "Slice Mode", {"Off", "On"}, 0),
         ParamSpec::choice("mode", "Mode", {"Gate", "To end of sample", "To end of slice", "Loop", "One-shot"}, 0),
         ParamSpec::choice("loopstyle", "Loop Style", {"Forward", "Ping-pong"}, 0),
-        ParamSpec::seconds("loopfade", "Loop Crossfade", 0.0f, 0.05f, 0.01f, 0.005f),
+        ParamSpec::seconds("loopfade", "Loop Fade", 0.0f, 0.05f, 0.01f, 0.005f),
         ParamSpec::integer("root", "Root Note", 0, 127, 60),
-        ParamSpec::percent("keytrack", "Key Tracking", -1.0f, 2.0f, 1.0f),
+        ParamSpec::percent("keytrack", "Key Track", -1.0f, 2.0f, 1.0f),
         ParamSpec::choice("quality", "Quality", {"Linear", "Cubic", "Sinc"}, 1),
         ParamSpec::choice("positionmode", "Position Mode", {"Scrub", "Offset"}, 0),
         ParamSpec::choice("voiceouts", "Voice Outs", {"Off", "On"}, 0),
-        ParamSpec::choice("output", "Output", {"Stereo", "Mono"}, 0)};
+        ParamSpec::choice("output", "Output", {"Stereo", "Mono"}, 0),
+        ParamSpec::choice("warp", "Warp", {"Repitch", "Beats", "Tones", "Texture"}, 0),
+        ParamSpec::choice("sync", "Tempo Sync", {"Off", "Auto", "Clock", "Transport"}, 0),
+        ParamSpec::choice("ppqn", "Clock PPQN", {"1 PPQN", "2 PPQN", "4 PPQN", "8 PPQN", "24 PPQN", "48 PPQN"}, 4).when("sync", 1, 2),
+        ParamSpec::exponential("beats", "Beats", 0.25f, 256.0f, 4.0f).inGroup("Tempo Sync").when("sync", 1, 3)};
     // Settings are plain choices; the knobs above are inputs too.
     for (auto& p : s.params)
         if (p.kind != ParamSpec::Kind::Float) p.modulatable = false;
@@ -460,7 +501,8 @@ static void registerSamplerModule(Registry& r) {
                 {"gate", "Gate", Signal::Gate},            {"slice", "Slice", Signal::Control},
                 {"pitch", "Pitch", Signal::Pitch},         {"speed", "Speed", Signal::Pitch},
                 {"velocity", "Velocity", Signal::Control}, {"stop", "Stop", Signal::Trigger},
-                {"step", "Step", Signal::Trigger}};
+                {"step", "Step", Signal::Trigger},
+                {"clock", "Clock", Signal::Trigger}};
     s.outputs = {{"l", "Out L", Signal::Audio, true},
                  {"r", "Out R", Signal::Audio, true},
                  {"end", "End", Signal::Trigger, false},

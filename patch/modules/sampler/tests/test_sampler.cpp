@@ -455,7 +455,48 @@ static void negativeSpeedSwells() {
             }
 }
 
+// Zero crossings (rising) per second over [from, to).
+static double risingHz(const std::vector<float>& x, size_t from, size_t to) {
+    int n = 0;
+    for (size_t i = from + 1; i < to; ++i) n += x[i - 1] <= 0.0f && x[i] > 0.0f ? 1 : 0;
+    return n * kSr / (double)(to - from);
+}
+
+// Warp modes: at double speed Repitch goes an octave up, the grain modes keep the pitch and take half the time.
+static void warpModes() {
+    for (int warp = WarpRepitch; warp <= WarpTexture; ++warp) {
+        Rig t;
+        t.load(sineClip(48000, 440.0));
+        t.p.mode = ModeToSample;
+        t.p.speed = 2.0f;
+        t.p.warp = warp;
+        t.dsp->noteOn(60, 0.0f, 1.0f, t.p);
+        t.render(30000);
+        const double hz = risingHz(t.l, 2000, 20000);
+        float peak = 0.0f;
+        for (size_t i = 2000; i < 20000; ++i) peak = std::max(peak, std::fabs(t.l[i]));
+        EXPECT(peak > 0.2f);
+        if (warp == WarpRepitch) EXPECT(std::fabs(hz - 880.0) < 20.0);
+        else if (warp != WarpTexture) EXPECT(std::fabs(hz - 440.0) < 25.0);
+        // the clip is over after ~0.5 s: the tail is silent
+        float tail = 0.0f;
+        for (size_t i = 27000; i < 30000; ++i) tail = std::max(tail, std::fabs(t.l[i]));
+        if (warp != WarpTexture) EXPECT(tail < 0.01f);
+    }
+    // unity speed and transpose: the grains put the sine back together
+    Rig t;
+    t.load(sineClip(48000, 440.0));
+    t.p.mode = ModeToSample;
+    t.p.warp = WarpTones;
+    t.dsp->noteOn(60, 0.0f, 1.0f, t.p);
+    t.render(20000);
+    float peak = 0.0f;
+    for (size_t i = 5000; i < 20000; ++i) peak = std::max(peak, std::fabs(t.l[i]));
+    EXPECT(peak > 0.45f && peak < 0.55f);
+}
+
 int main() {
+    warpModes();
     negativeSpeedSwells();
     wholeSample();
     sliceKeys();

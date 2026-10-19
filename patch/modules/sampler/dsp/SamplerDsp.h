@@ -34,6 +34,10 @@ enum Mode { ModeInherit = -1, ModeGate = 0, ModeToSample, ModeToSlice, ModeLoop,
 enum VoiceMode { VoicePoly = 0, VoiceMono, VoiceLegato, VoiceLayers };
 enum Quality { QualityLinear = 0, QualityCubic, QualitySinc };
 enum PositionMode { PositionScrub = 0, PositionOffset };
+/// How Speed changes the sound: Repitch moves pitch and time together (tape); the others stretch time on their own
+/// with overlapping grains (Beats: short, for drums; Tones: long, smooth; Texture: medium and scattered) and Transpose is the only pitch.
+enum Warp { WarpRepitch = 0, WarpBeats, WarpTones, WarpTexture };
+constexpr int kGrains = 4;
 
 /// Per-slice settings (saved with the markers).
 struct SliceCfg {
@@ -114,6 +118,7 @@ struct SamplerParams {
     float keyTrack = 1.0f;
     int quality = sampler::QualityCubic;
     int positionMode = sampler::PositionScrub;
+    int warp = sampler::WarpRepitch;
     bool outputMono = false;
     bool voiceOut[sampler::kVoices] = {};  ///< voice n goes to its own jack (and out of the mix)
 };
@@ -373,6 +378,14 @@ private:
         dsp::Svf fl, fr;
         float holdL = 0.0f, holdR = 0.0f;
         int crushCount = 0;
+        double rate = 1.0;           ///< warp modes: pitch ratio the grains read at
+        int spawnLeft = 0;           ///< warp modes: samples until the next grain
+        bool firstGrain = true;
+        struct Grain {
+            bool on = false;
+            double pos = 0.0;
+            int age = 0, len = 1;
+        } grain[sampler::kGrains];
     };
 
     // ---- starting voices ----------------------------------------------------------
@@ -511,9 +524,16 @@ private:
         const float cv = v.note == -1 ? in.pitch : 0.0f;
         const double semis = (double)v.noteSemis + (double)v.extraSemis + (double)p.transpose + (double)p.fine * 0.01 + 12.0 * (double)cv;
         const double speed = (double)p.speed * std::exp2((double)in.speed);
-        double inc = std::exp2(semis / 12.0) * speed;
-        if (v.reverse) inc = -inc;
-        v.inc = inc * (double)v.dir;
+        if (p.warp != sampler::WarpRepitch) {  // Speed is time only, the grains carry the pitch
+            double t = speed;
+            if (v.reverse) t = -t;
+            v.inc = t * (double)v.dir;
+            v.rate = std::exp2(semis / 12.0);
+        } else {
+            double inc = std::exp2(semis / 12.0) * speed;
+            if (v.reverse) inc = -inc;
+            v.inc = inc * (double)v.dir;
+        }
         // level × velocity, balance
         const float level = p.level * v.sliceLevel * v.vel;
         v.gain = level;
@@ -564,6 +584,51 @@ private:
         r = s_->channels > 1 ? readAt(s_->ch[1], s_->frames, pos, quality) : l;
     }
 
+    /// Grain length in seconds per warp mode.
+    static double grainSeconds(int warp) noexcept {
+        return warp == sampler::WarpBeats ? 0.024 : warp == sampler::WarpTones ? 0.09 : 0.05;
+    }
+    float rand01() noexcept {
+        rng_ = rng_ * 1664525u + 1013904223u;
+        return (float)(rng_ >> 8) * (1.0f / 16777216.0f);
+    }
+    /// Time-stretch read: the playhead (v.pos) moves at Speed; overlapping Hann grains start at it and read at the pitch ratio.
+    void warpRead(Voice& v, const SamplerParams& p, double a, double b, bool loop, float& l, float& r) noexcept {
+        const int len = std::max(32, (int)(grainSeconds(p.warp) * sr_));
+        if (v.spawnLeft <= 0) {
+            int slot = -1;
+            for (int i = 0; i < sampler::kGrains && slot < 0; ++i)
+                if (!v.grain[i].on) slot = i;
+            if (slot < 0) slot = 0;
+            auto& g = v.grain[slot];
+            g.on = true;
+            g.len = len;
+            g.age = v.firstGrain ? len / 2 : 0;  // the first grain starts at its peak: no soft attack on a hit
+            g.pos = v.pos;
+            if (p.warp == sampler::WarpTexture) g.pos += (double)(rand01() - 0.5f) * (double)len * 0.5 * (v.inc >= 0.0 ? 1.0 : -1.0);
+            v.firstGrain = false;
+            const float jitter = p.warp == sampler::WarpTexture ? 0.6f + 0.8f * rand01() : 1.0f;
+            v.spawnLeft = std::max(1, (int)((float)len * 0.5f * jitter));
+        }
+        --v.spawnLeft;
+        const double dir = v.inc >= 0.0 ? 1.0 : -1.0, region = b - a;
+        l = r = 0.0f;
+        for (auto& g : v.grain) {
+            if (!g.on) continue;
+            const float w = std::sin(3.14159265f * (float)g.age / (float)g.len);
+            float gl, gr;
+            readFrame(std::clamp(g.pos, 0.0, (double)s_->frames - 1.0), p.quality, gl, gr);
+            l += gl * w * w;
+            r += gr * w * w;
+            g.pos += dir * v.rate;
+            if (loop && region > 1.0) {
+                if (g.pos >= b) g.pos = a + std::fmod(g.pos - a, region);
+                else if (g.pos < a) g.pos = b - std::fmod(a - g.pos, region);
+            }
+            if (++g.age >= g.len) g.on = false;
+        }
+    }
+
     /// One sample of one voice into (l, r) before the gains. False when the voice is gone.
     bool renderVoice(Voice& v, const SamplerParams& p, float& l, float& r, bool& ended) noexcept {
         if (v.delay > 0) {
@@ -577,6 +642,11 @@ private:
         const bool loop = v.mode == sampler::ModeLoop;
         const bool ignoreGate = v.mode == sampler::ModeToSample || v.mode == sampler::ModeToSlice || v.mode == sampler::ModeOneShot;
 
+        const bool warp = p.warp != sampler::WarpRepitch;
+        if (warp) {
+            warpRead(v, p, a, b, loop, l, r);
+            v.xLeft = 0;
+        } else {
         // read (with the loop seam crossfade)
         readFrame(v.pos, p.quality, l, r);
         if (loop && !p.pingPong && p.loopFade > 0.0f) {
@@ -606,6 +676,7 @@ private:
             r += (r2 - r) * w;
             v.xPos += v.inc;
             --v.xLeft;
+        }
         }
 
         // advance

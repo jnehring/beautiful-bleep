@@ -236,7 +236,7 @@
     const st = document.createElement("style");
     st.id = "sa-style";
     st.textContent = ".bleep-view.sa .bv-knob{width:56px}.bleep-view.sa .bv-knob svg{width:38px;height:38px}" +
-      ".bleep-view.sa .bv-sec-knobs{gap:2px 0}.bleep-view.sa .bv-label{font-size:9px;letter-spacing:.04em}" +
+      ".bleep-view.sa .bv-sec-knobs{gap:2px 0;align-items:flex-start}.bleep-view.sa .bv-label{white-space:nowrap}.sa-beat-btns{display:flex;gap:3px;margin-top:2px}.sa-beat-btns button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:10px;padding:0 5px;cursor:pointer}.sa-beat-btns button:hover{border-color:var(--accent)}.bleep-view.sa .bv-label{font-size:9px;letter-spacing:.04em}" +
       ".sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:11px}" +
       ".sa-grid label{display:flex;justify-content:space-between;align-items:center;gap:4px;color:var(--muted)}" +
       ".sa-grid input,.sa-grid select,.bleep-view.sa .sa-tools input,.bleep-view.sa .sa-tools select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:1px 3px}" +
@@ -251,7 +251,8 @@
     width: 900,
     layout: [
       { title: "Sample", params: ["start", "end", "position", "loopfade", "positionmode", "mode", "loopstyle"] },
-      { title: "Pitch", params: ["transpose", "fine", "speed", "keytrack", "root", "quality"] },
+      { title: "Pitch", params: ["transpose", "fine", "speed", "keytrack", "warp", "root", "quality"] },
+      { title: "Tempo Sync", params: ["beats", "sync", "ppqn"] },
       { title: "Envelope", params: ["attack", "decay", "sustain", "release"] },
       { title: "Filter", params: ["cutoff", "resonance", "filterenv"] },
       { title: "Output", params: ["level", "pan", "velocity", "crush"] },
@@ -346,6 +347,33 @@
         sp.env.style.cssText = "width:100%;height:46px;display:block;margin-top:2px";
         envBox.appendChild(sp.env);
       }
+      // Tempo Sync: ÷2 / ×2 halve and double the number of beats the sample lasts; Fit reads it from the detected BPM.
+      const bk = view.knobs.get("beats");
+      if (bk) {
+        const lo = 0.25, hi = 256;
+        const beatsNow = () => lo * Math.pow(hi / lo, view.node.params.beats ?? Math.log(4 / lo) / Math.log(hi / lo));
+        const setBeats = (v) => {
+          v = Math.min(hi, Math.max(lo, v));
+          view.api.beginGesture();
+          view.node.params.beats = Math.log(v / lo) / Math.log(hi / lo);
+          view.api.setParam("beats", view.node.params.beats);
+          bk.draw();
+        };
+        sp.setBeats = setBeats;
+        const box = document.createElement("div");
+        box.className = "sa-beat-btns";
+        const mk = (label, title, fn) => {
+          const b = document.createElement("button");
+          b.textContent = label;
+          b.title = title;
+          b.addEventListener("click", fn);
+          box.appendChild(b);
+        };
+        mk("÷2", "Half the beats: twice as fast", () => setBeats(beatsNow() / 2));
+        mk("×2", "Double the beats: half as fast", () => setBeats(beatsNow() * 2));
+        mk("Fit", "Guess the beats from the detected tempo", () => { sp.fit = Date.now(); view.api.perform("bpm"); });
+        bk.box.appendChild(box);
+      }
       BleepView.loop(view.root, (t) => envelope(view, t));
       slicingPanel(view);
       slicePanel(view);
@@ -360,6 +388,12 @@
         : "";
       view.sp.noteEl.textContent = view.sp.note || "";
       if (!view.sp.editing) { slicingPanel(view); slicePanel(view); }
+      if (view.sp.fit && Date.now() - view.sp.fit > 200 && st.length > 0 && view.sp.setBeats) {
+        view.sp.fit = 0;
+        const secs = st.length / sr, raw = (secs * data(view).slicing.bpm) / 60;
+        view.sp.setBeats(Math.pow(2, Math.round(Math.log2(Math.max(raw, 0.25)))));  // loops are 1, 2, 4, 8 … beats
+        view.sp.note = "Fitted to " + data(view).slicing.bpm + " BPM";
+      }
       draw(view);
     },
   });
