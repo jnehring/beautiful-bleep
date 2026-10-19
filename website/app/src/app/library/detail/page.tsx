@@ -53,6 +53,13 @@ function DetailView() {
   }, [kind, slug]);
   if (error) return <p className="error" role="alert">{error}</p>;
   if (!data) return <p>Loading…</p>;
+  // Table of contents: the sections above plus the headings of the module documentation (ids come from its HTML).
+  const toc: { id: string; label: string; sub?: boolean }[] = [];
+  if (demos?.demos.length) toc.push({ id: "examples", label: "Example patches" });
+  if (demos?.presets.length) toc.push({ id: "presets", label: "Presets" });
+  for (const m of doc.matchAll(/<h([23]) id="([^"]+)"[^>]*>(.*?)<\/h\1>/gs))
+    toc.push({ id: m[2], label: m[3].replace(/<[^>]+>/g, "").replace(/&#39;/g, "'").replace(/&amp;/g, "&"), sub: m[1] === "3" });
+  if (data.releases.length) toc.push({ id: "releases", label: "Releases" });
   const latest = data.releases.find((r) => r.channel === "stable") ?? data.releases[0];
   return (
     <section>
@@ -91,29 +98,36 @@ function DetailView() {
           ))}</ul>
         </>
       )}
+      {toc.length > 1 && (
+        <nav className="toc" aria-label="Contents">
+          <strong>Contents</strong>
+          <ul>{toc.map((t) => <li key={t.id} className={t.sub ? "sub" : undefined}><a href={`#${t.id}`}>{t.label}</a></li>)}</ul>
+        </nav>
+      )}
       {demos && demos.demos.length > 0 && (
         <>
-          <h2>Demo patches</h2>
-          <div className="demo-cards">{demos.demos.map((d) => (
-            <div key={d.name} className="demo-card">
-              <h3>{d.name}</h3>
-              <p>{d.description}</p>
-              <p><a className="play-button" href={`/play/index.html?demo=${encodeURIComponent(d.name)}`} target="_blank" rel="noopener">Run in Play</a></p>
-            </div>
-          ))}</div>
+          <h2 id="examples">Example patches</h2>
+          <ul className="examples">{demos.demos.map((d) => (
+            <li key={d.name}>
+              <a className="play-button" href={`/play/index.html?demo=${encodeURIComponent(d.name)}`} target="_blank" rel="noopener">Load in Play</a>
+              <div><strong>{d.name}</strong>{d.description && <span className="muted"> {d.description}</span>}</div>
+            </li>
+          ))}</ul>
         </>
       )}
       {demos && demos.presets.length > 0 && (
         <>
-          <h2>Presets</h2>
+          <h2 id="presets">Presets</h2>
           <ul>{demos.presets.map((p) => <li key={p.name}><strong>{p.name}</strong> <span className="muted">{p.description}</span></li>)}</ul>
         </>
       )}
       {doc && <article className="module-doc" dangerouslySetInnerHTML={{ __html: doc }} />}
-      {data.releases.length > 0 && <h2>Releases</h2>}
+      {data.releases.length > 0 && <h2 id="releases">Releases</h2>}
       {data.releases.map((r) => (
-        <div key={r.version} className="release">
-          <h3>{r.version} <small className="muted">{r.channel} · {r.license || "license not stated"} · published {day(r.published_at)} · {r.files} {r.files === 1 ? "file" : "files"}, {size(r.bytes)}</small></h3>
+        <details key={r.version} className="release">
+          <summary>
+            <strong>{r.version}</strong> <small className="muted">{r.channel} · {r.license || "license not stated"} · {day(r.published_at)} · {r.files} {r.files === 1 ? "file" : "files"}, {size(r.bytes)}</small>
+          </summary>
           {r.notes && <p>{r.notes}</p>}
           {Object.keys(r.requires).length > 0 && <p className="muted">Requires: <code>{JSON.stringify(r.requires)}</code></p>}
           <div className="scroll"><table>
@@ -125,7 +139,7 @@ function DetailView() {
               </tr>
             ))}</tbody>
           </table></div>
-        </div>
+        </details>
       ))}
       <Social kind={data.kind} slug={data.slug} />
     </section>

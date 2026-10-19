@@ -170,3 +170,13 @@ footer.site nav h2 { margin: 0 0 4px; font-size: .75rem; text-transform: upperca
 footer.site nav a[aria-current] { font-weight: 700; text-decoration: none; }
 footer.site p { margin: 8px 0 0; }
 .auth .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+.toc { border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; margin: 0 0 24px; background: var(--card); }
+.toc ul { list-style: none; margin: 6px 0 0; padding: 0; columns: 2 220px; }
+.toc li { margin: 2px 0; break-inside: avoid; }
+.toc li.sub { padding-left: 14px; font-size: .9rem; }
+.examples { list-style: none; padding: 0; margin: 0 0 24px; }
+.examples li { display: flex; gap: 14px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.examples .play-button { flex: none; padding: 4px 14px; font-size: .85rem; white-space: nowrap; }
+details.release { border-bottom: 1px solid var(--line); padding: 6px 0; }
+details.release summary { cursor: pointer; }
