@@ -135,4 +135,3 @@ Measuring and connecting (implemented):
 | Spectrum | [spectrum.md](spectrum.md) | Utility | Implemented |
 | Rate Counter | [rate-counter.md](rate-counter.md) | Utility | Implemented |
 | Recorder | [recorder.md](recorder.md) | Utility | Implemented |
-| OSC Bridge | [osc-bridge.md](osc-bridge.md) | Utility | Implemented (module and port; see §6 of the spec) |
