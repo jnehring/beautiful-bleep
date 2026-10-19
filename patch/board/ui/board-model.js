@@ -107,6 +107,25 @@
         return p ? p.name : jack;
       }
       const cablesInto = (node, jack, b = s.board) => b.cables.filter((c) => c.to.node === node && c.to.jack === jack);
+      /// The module whose state tells what travels on a cable leaving (node, jack): a cell or voice cell has none of its own,
+      /// so this follows the jack inwards to the real output feeding it. Falls back to (node, jack) when nothing feeds it.
+      const kInner = { cell: "cell-out", "voice-cell": "voice-out" };
+      function liveSource(node, jack, b = s.board, depth = 0) {
+        const n = nodeById(node, b);
+        if (!n || depth > 64) return { node, jack };
+        const inner = kInner[n.type] && b.nodes.find((x) => x.type === kInner[n.type] && x.parent === n.id);
+        if (!inner) return { node, jack };
+        for (const c of cablesInto(inner.id, jack, b)) {
+          const src = nodeById(c.from.node, b);
+          if (!src) continue;
+          if (src.type === "cell-in" || src.type === "voice-in") {   // passes straight through: look at what feeds the cell
+            for (const o of cablesInto(src.parent, c.from.jack, b)) return liveSource(o.from.node, o.from.jack, b, depth + 1);
+            continue;
+          }
+          return liveSource(c.from.node, c.from.jack, b, depth + 1);
+        }
+        return { node, jack };
+      }
       function portInfo(n) { return n.port ? s.ports[n.port] : null; }
       /// A param's value in its own units (for integer settings like Voices).
       function paramValue(n, id) {
@@ -154,7 +173,7 @@
         isBoundary, inVoiceCell, isFixedBoundary, isBay, isStructural, isFixedPort,
         APP_PORTS, VOICE_IN, VOICE_OUT, compatible, isChannel, bundleSource,
         bayChannels, bayInputs, bayOutputs, outputsOf, inputsOf, modParams,
-        outType, inType, jackName, cablesInto, portInfo, paramValue,
+        outType, inType, jackName, cablesInto, liveSource, portInfo, paramValue,
         isShown, shownName, drivesJacks, insideVoiceCell, isGhost, descendants,
       };
     },

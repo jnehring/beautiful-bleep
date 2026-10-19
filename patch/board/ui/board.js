@@ -59,7 +59,7 @@
   };
 
   // --------------------------------------------------------------- the model (board-model.js)
-  const { level, nodeById, nodesAt, typeOf, isPort, isCellLike, isBoundary, inVoiceCell, isFixedBoundary, isBay, isStructural, isFixedPort, APP_PORTS, VOICE_IN, VOICE_OUT, compatible, isChannel, bundleSource, bayChannels, bayInputs, bayOutputs, outputsOf, inputsOf, modParams, outType, inType, jackName, cablesInto, portInfo, paramValue, isShown, shownName, drivesJacks, insideVoiceCell, isGhost, descendants } = P.BoardModel.create({
+  const { level, nodeById, nodesAt, typeOf, isPort, isCellLike, isBoundary, inVoiceCell, isFixedBoundary, isBay, isStructural, isFixedPort, APP_PORTS, VOICE_IN, VOICE_OUT, compatible, isChannel, bundleSource, bayChannels, bayInputs, bayOutputs, outputsOf, inputsOf, modParams, outType, inType, jackName, cablesInto, liveSource, portInfo, paramValue, isShown, shownName, drivesJacks, insideVoiceCell, isGhost, descendants } = P.BoardModel.create({
     get board() { return board; }, get types() { return types; }, get ports() { return ports; },
     get standalone() { return standalone; }, get path() { return path; },
   });
@@ -205,7 +205,7 @@
     get board() { return board; }, get path() { return path; }, get hoverCable() { return hoverCable; }, set hoverCable(v) { hoverCable = v; }, get selCable() { return selCable; }, set selCable(v) { selCable = v; }, get trace() { return trace; }, get types() { return types; },
     $, SVGNS, applyCam, cablesEl, cam, canvas, centreOn, clearCableSel, edit, el, enterCell, expanded, gesture,
     inputsOf, isBoundary, isCableSel, isCellLike, isGhost, isPort, isShown, jackName, leaveTo, level, modParams,
-    nodeById, nodesAt, nodesEl, outType, outputsOf, paramValue, portInfo, scopes, sel, selMore, shownName, toCanvas,
+    liveSource, nodeById, nodesAt, nodesEl, outType, outputsOf, paramValue, portInfo, scopes, sel, selMore, shownName, toCanvas,
     toWorld, typeOf,
     cableDragging: (...a) => cableDragging(...a), cellPanels: (...a) => cellPanels(...a), goToNode: (...a) => goToNode(...a), hasPanel: (...a) => hasPanel(...a), hideMeter: (...a) => hideMeter(...a), hidePopovers: (...a) => hidePopovers(...a), knobMenuItems: (...a) => knobMenuItems(...a), onNodePointerDown: (...a) => onNodePointerDown(...a), panelById: (...a) => panelById(...a), panelList: (...a) => panelList(...a), removeCable: (...a) => removeCable(...a), setPowerButton: (...a) => setPowerButton(...a), showCableMenu: (...a) => showCableMenu(...a), showCellHelp: (...a) => showCellHelp(...a), showMenu: (...a) => showMenu(...a), showMeter: (...a) => showMeter(...a), showNodeMenu: (...a) => showNodeMenu(...a), startCableDrag: (...a) => startCableDrag(...a), startRename: (...a) => startRename(...a), startSourceDrag: (...a) => startSourceDrag(...a),
     views, kShownOutputs,
@@ -217,7 +217,7 @@
   // ------------------------------------------------------- cable tools (board-cabletools.js)
   const cableTools = P.BoardCableTools.create({
     get board() { return board; }, get live() { return live; }, get types() { return types; },
-    $, canvas, clearCableSel, clone, edit, el, jackPos, level, nodeById, outType, sel, selectedCableIds, signalColour, toCanvas, uid,
+    $, canvas, clearCableSel, clone, edit, el, jackPos, level, liveSource, nodeById, outType, sel, selectedCableIds, signalColour, toCanvas, uid,
     showMenu: (...a) => showMenu(...a),
   });
   const { meterShown, showMeter, hideMeter, feedMeter, removeCable, removeCables, showCableMenu, meterNode } = cableTools;
@@ -436,7 +436,7 @@
 
   // ------------------------------------------------------- floating views (board-views.js)
   const viewsApi = P.BoardViews.create({
-    get board() { return board; },
+    get board() { return board; }, get types() { return types; },
     $, cablesInto, canBypass, canvas, clone, drivesJacks, edit, el, gesture, isPort, isStructural, jackName,
     nodeById, nodesEl, removeCable, renderCables, renderNodes, savePreset,
     setPowerButton, showMenu, toggleBypass, typeOf, views, hidePopovers,

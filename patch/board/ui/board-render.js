@@ -12,7 +12,7 @@
             const { $, SVGNS, applyCam, cableDragging, cablesEl, cam, canvas, cellPanels, centreOn, clearCableSel, edit,
               el, enterCell, expanded, gesture, goToNode, hasPanel, hideMeter, hidePopovers, inputsOf, isBoundary,
               isCableSel, isCellLike, isGhost, isPort, isShown, jackName, kShownOutputs, knobMenuItems, leaveTo,
-              level, modParams, nodeById, nodesAt, nodesEl, onNodePointerDown, outType, outputsOf, panelById,
+              level, liveSource, modParams, nodeById, nodesAt, nodesEl, onNodePointerDown, outType, outputsOf, panelById,
               panelList, paramValue, portInfo, removeCable, scopes, sel, selMore, setPowerButton, showCableMenu,
               showCellHelp, showMenu, showMeter, showNodeMenu, shownName, startCableDrag, startRename,
               startSourceDrag, toCanvas, toWorld, typeOf, views } = s;
@@ -441,9 +441,10 @@
             glow.setAttribute("d", d);
             glow.setAttribute("class", "cable-pulse");
             glow.style.setProperty("--c", signalColour(type));
-            glow.style.setProperty("--act", pulseLevel.get(c.from.node + "|" + c.from.jack) || 0);
+            const ls = liveSource(c.from.node, c.from.jack), pkey = ls.node + "|" + ls.jack;   // a cell has no state: read the module behind it
+            glow.style.setProperty("--act", pulseLevel.get(pkey) || 0);
             cablesEl.append(glow);
-            pulses.set(c.id, { path: glow, key: c.from.node + "|" + c.from.jack });
+            pulses.set(c.id, { path: glow, key: pkey });
           }
           cablesEl.append(hit);
           if (c.id === s.hoverCable) hoverPath = p;

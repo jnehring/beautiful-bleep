@@ -9,7 +9,7 @@
 
   P.BoardCableTools = {
     create(s) {
-      const { $, canvas, clearCableSel, clone, edit, el, jackPos, level, nodeById, outType, sel, selectedCableIds, showMenu, signalColour, toCanvas, uid } = s;
+      const { $, canvas, clearCableSel, clone, edit, el, jackPos, level, liveSource, nodeById, outType, sel, selectedCableIds, showMenu, signalColour, toCanvas, uid } = s;
       // While the pointer rests on a cable, a small meter at its input end shows what travels through it: a level meter
       // for audio, a graph for control and pitch, a step trace for gates, ticks for triggers and notes.
       const kMeterW = 120, kMeterN = 60;   // px wide; samples kept (60 at 30 Hz: two seconds)
@@ -33,9 +33,11 @@
         const label = el("span", "cm-val");
         e.append(cv, label);
         canvas.append(e);
-        const ns = s.live && s.live.nodes && s.live.nodes[c.from.node];
-        const v0 = (ns && ns.outputs && ns.outputs[c.from.jack]) || 0;
-        meter = { id: c.id, node: c.from.node, jack: c.from.jack, kind, el: e, cv, label, colour: getComputedStyle(e).getPropertyValue("--c") || "#888",
+        const src2 = liveSource(c.from.node, c.from.jack);
+        const ns = s.live && s.live.nodes && s.live.nodes[src2.node];
+        const v0 = (ns && ns.outputs && ns.outputs[src2.jack]) || 0;
+        const live = liveSource(c.from.node, c.from.jack);
+        meter = { id: c.id, node: live.node, jack: live.jack, kind, el: e, cv, label, colour: getComputedStyle(e).getPropertyValue("--c") || "#888",
                   hist: new Float32Array(kMeterN).fill(kind === "graph" || kind === "gate" ? v0 : 0), head: 0, level: 0, peak: 0, hold: 0, v: v0 };
         positionMeter();
         drawMeter();
