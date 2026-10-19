@@ -4,8 +4,24 @@
     {
       "name": "board-ui",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["scripts/run/ui-server.py", "--port", "8766"],
+      "runtimeArgs": [
+        "scripts/run/ui-server.py",
+        "--port",
+        "8766"
+      ],
       "port": 8766
+    },
+    {
+      "name": "script-spike",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8767",
+        "--directory",
+        "patch"
+      ],
+      "port": 8767
     }
   ]
 }

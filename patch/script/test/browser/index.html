@@ -1,0 +1,14 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bleep Script: compile in the browser</title>
+<!-- Spike: the AssemblyScript compiler (a JS bundle) compiles the Gains module inside the page, in memory, with a Bleep
+     transform; the result runs in the Bleep browser module host. Serve patch/ and open /script/test/browser/index.html. -->
+<script type="importmap">
+{ "imports": {
+  "assemblyscript": "/script/node_modules/assemblyscript/dist/assemblyscript.js",
+  "assemblyscript/asc": "/script/node_modules/assemblyscript/dist/asc.js",
+  "binaryen": "/script/node_modules/binaryen/index.js",
+  "long": "/script/node_modules/long/index.js" } }
+</script>
+<pre id="out">running…</pre>
+<script type="module" src="./compile-in-browser.mjs"></script>
