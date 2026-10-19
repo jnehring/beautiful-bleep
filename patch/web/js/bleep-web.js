@@ -60,6 +60,23 @@
     return loading.get(slug);
   }
 
+  // ---- Media (web-media.js): the audio files modules use. Kept here; the clips a board uses go to the worklet once each. -----
+  const M = window.BleepWebMedia ? window.BleepWebMedia.create({ idb: (() => { try { return window.indexedDB; } catch (e) { return null; } })() }) : null;
+  const mediaSent = new Set();   // ids the worklet has been sent (or is being sent)
+  /// Sends the clips named in `value` (a board's nodes, or one node's data) that the worklet does not have yet. The engine makes
+  /// the modules load them when they arrive, so the order against the node data does not matter.
+  function sendMedia(value) {
+    if (!M || !node) return;
+    for (const id of window.BleepWebMedia.idsIn(value)) {
+      if (mediaSent.has(id)) continue;
+      mediaSent.add(id);
+      M.clip(id).then((clip) => {
+        if (!clip) { mediaSent.delete(id); return; }   // not in this browser: the node shows as missing
+        post({ cmd: "media", id, rate: clip.rate, channels: clip.channels });
+      });
+    }
+  }
+
   /// Fetches (once) the module files the board's nodes need and gives them to the worklet.
   async function ensureModules() {
     if (!node || !board || !manifest) return;
@@ -152,6 +169,7 @@
   }
 
   Object.assign(W, {
+    media: M,
     libraryTypes,
     setTypes(list) { types = list; post({ cmd: "types", types }); },
     setBoard(b) {
@@ -161,13 +179,14 @@
       if (b && b.tempo >= 20 && b.tempo <= 400) { W.transport.bpm = b.tempo; post({ cmd: "tempo", bpm: b.tempo }); }   // the patch's own tempo
       if (!node) return;
       post({ cmd: "board", board: withPanelSources(W.mapBoard ? W.mapBoard(b) : b) });  // [bridge] Remote nodes carry their channel key
+      sendMedia(b.nodes);
       ensureModules();
     },
     setKnob: (id, param, value) => post({ cmd: "knob", node: id, param, value }),
     setAmount: (cable, value) => post({ cmd: "amount", cable, value }),
     perform: (id, action, args) => post({ cmd: "perform", node: id, action, args: args || [] }),
     command: (id, cmd, value) => post({ cmd: "command", node: id, id: cmd, value }),
-    setData: (id, data) => post({ cmd: "data", node: id, data }),
+    setData: (id, data) => { sendMedia(data); post({ cmd: "data", node: id, data }); },
     watch(ids) { watched = ids; post({ cmd: "watch", nodes: ids }); },
     /// The transport of this page (the side menu): tempo and start/stop.
     transport: { bpm: 120, playing: true },
@@ -253,7 +272,7 @@
       post({ cmd: "watch", nodes: watched });
       post({ cmd: "tempo", bpm: W.transport.bpm });
       W.running = true;
-      if (board) { post({ cmd: "board", board: W.mapBoard ? W.mapBoard(board) : board }); await ensureModules(); }
+      if (board) { post({ cmd: "board", board: W.mapBoard ? W.mapBoard(board) : board }); sendMedia(board.nodes); await ensureModules(); }
       setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms` + (libraryDown ? ` · ${libraryDown}` : ""));
     },
     /// The board a visitor starts with: a playable keyboard synth.

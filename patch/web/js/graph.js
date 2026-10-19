@@ -12,7 +12,7 @@
 //
 // No DOM and no Web Audio here: it runs in an AudioWorklet and under node.
 // Voice Cells are expanded into one plain cell per voice before compiling (voices.js).
-// Not ported yet: Link, Macros, host MIDI out, media.
+// Not ported yet: Link, Macros, host MIDI out. Media: the page sends the clips a board uses (addMedia).
 
 import { CHUNK, ModuleInstance } from "./module-host.js";
 import { expandVoiceCells, VoiceAllocNode } from "./voices.js";
@@ -247,6 +247,7 @@ export class Engine {
     this.watched = new Set();
     this.onError = null;  // (message) — set by the host
     this.generation = 0;
+    this.media = new Map();        // media id → {rate, channels: [Float32Array]}: the audio files the page sent (web-media.js)
     this.pendingData = new Map();  // node id → sanitised data the UI's board does not have yet
     this.voiceLimit = 16;          // the most voices a Voice Cell runs: every voice costs CPU all the time here (voices.js)
     this.copies = new Map();       // a node inside a Voice Cell → the ids of its copies, one per voice
@@ -260,6 +261,11 @@ export class Engine {
   addModule(slug, module, typeIds) {
     this.wasm.set(slug, module);
     for (const t of typeIds) this.slugOfType.set(t, slug);
+  }
+  /// A clip of the media folder arrived: a module whose node data names it loads it again (it was "not available" before).
+  addMedia(id, rate, channels) {
+    this.media.set(id, { rate, channels });
+    for (const e of this.instances.values()) if (e.dataJson && e.dataJson.includes(id)) e.host.setData(e.dataJson);
   }
   /// Module files a board needs that are not loaded yet: [slug, …].
   missingSlugs(board, manifest) {
@@ -430,7 +436,7 @@ export class Engine {
     if (!mod) return null;
     if (probe) return true;
     try {
-      const host = new ModuleInstance(mod, this.sampleRate, n.type);
+      const host = new ModuleInstance(mod, this.sampleRate, n.type, this.media);
       host.connectedIn = new Uint8Array(s.inputs.length);
       return host;
     } catch (e) {  // one broken module must not stop the board

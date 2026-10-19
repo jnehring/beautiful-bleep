@@ -26,6 +26,7 @@ class BleepProcessor extends AudioWorkletProcessor {
       switch (m.cmd) {
         case "types": e.setTypes(m.types); break;
         case "module": e.addModule(m.slug, new WebAssembly.Module(m.bytes), m.types); if (this.board) e.setBoard(this.board); break;
+        case "media": e.addMedia(m.id, m.rate, m.channels); break;
         case "board": this.board = m.board; e.setBoard(m.board); break;
         case "knob": e.setKnob(m.node, m.param, m.value); break;
         case "amount": e.setAmount(m.cable, m.value); break;

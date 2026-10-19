@@ -91,9 +91,39 @@ export function readSpecs(module) {
   return instantiate(module).specs;
 }
 
-function instantiate(module) {
+/// bleep_media_info / bleep_media_read (module-abi.md §5a), answered from `media`: a Map of media id → {rate, channels: [Float32Array]}
+/// that the engine fills as the page sends clips. A clip that is not there yet is "not available" (0); the engine sends the module's
+/// node data again when it arrives.
+function mediaImports(getMemory, media) {
+  const idOf = (ptr, length) => {
+    const bytes = new Uint8Array(getMemory().buffer);
+    return ptr >= 0 && length > 0 && length <= 64 && ptr + length <= bytes.length ? utf8Decode(bytes.subarray(ptr, ptr + length)) : "";
+  };
+  return {
+    bleep_media_info: (idPtr, idLength, ratePtr, channelsPtr) => {
+      const clip = media && media.get(idOf(idPtr, idLength));
+      if (!clip || !clip.channels.length) return 0n;
+      const v = new DataView(getMemory().buffer);
+      v.setFloat64(ratePtr, clip.rate, true);
+      v.setInt32(channelsPtr, clip.channels.length, true);
+      return BigInt(clip.channels[0].length);
+    },
+    bleep_media_read: (idPtr, idLength, channel, dst, frames) => {
+      const clip = media && media.get(idOf(idPtr, idLength));
+      const n = Number(frames);
+      if (!clip || channel < 0 || channel >= clip.channels.length || n > clip.channels[channel].length) return 0;
+      const memory = getMemory();
+      if (dst < 0 || dst + n * 4 > memory.buffer.byteLength) return 0;
+      new Float32Array(memory.buffer, dst, n).set(clip.channels[channel].subarray(0, n));
+      return 1;
+    },
+  };
+}
+
+function instantiate(module, media) {
   let memory = null;
   const imports = wasiImports(() => memory);
+  imports.env = { ...imports.env, ...mediaImports(() => memory, media) };
   for (const { module: ns, name, kind } of WebAssembly.Module.imports(module)) {  // anything else: "not supported"
     imports[ns] = imports[ns] || {};
     if (kind === "function" && !imports[ns][name]) imports[ns][name] = () => 52;  // ENOSYS
@@ -111,8 +141,9 @@ function instantiate(module) {
 /// One running module instance: write inputs / params, process(), read outputs.
 export class ModuleInstance {
   /// `type`: a node type id, when the file holds several (default: the first).
-  constructor(module, sampleRate, type) {
-    const { x, memory, specs } = instantiate(module);
+  /// `media`: the clips the engine has, a Map of media id → {rate, channels} (see mediaImports).
+  constructor(module, sampleRate, type, media) {
+    const { x, memory, specs } = instantiate(module, media);
     const typeIndex = Math.max(0, type ? specs.findIndex((s) => s.type === type) : 0);
     const spec = specs[typeIndex];
     this.typeIndex = typeIndex;

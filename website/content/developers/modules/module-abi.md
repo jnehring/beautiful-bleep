@@ -130,7 +130,7 @@ Four modules (Grains, Sampler, Splice, Wavetable Osc) read audio files from the 
 | `bleep_media_info` | `(id: ptr, idLength: i32, sampleRate: ptr→f64, channels: ptr→i32) → i64` | Length of the clip in frames, its sample rate and channels written to the two pointers; **0 if the clip is not available**. |
 | `bleep_media_read` | `(id: ptr, idLength: i32, channel: i32, dst: ptr, frames: i64) → i32` | Copies `frames` samples of one channel to `dst` (float32); 1 on success. |
 
-The host **must not block** to answer: these calls come from inside `bleep_set_data` on the audio thread. A clip that is not in memory is "not available"; the host reads it on another thread and, when it is there, sends the module's last node data again (`bleep_set_data`), which makes the module ask again and succeed. A host with no media folder (the browser, for now) answers 0 to everything.
+The host **must not block** to answer: these calls come from inside `bleep_set_data` on the audio thread. A clip that is not in memory is "not available"; the host reads it on another thread and, when it is there, sends the module's last node data again (`bleep_set_data`), which makes the module ask again and succeed. A host with no media folder answers 0 to everything. The browser build keeps the files in IndexedDB and gives the worklet the decoded clips a board uses (`patch/web/js/web-media.js`).
 
 ## 6. Transport and time
 

@@ -456,12 +456,13 @@
         case "watch": watched = a[0] || []; if (window.BleepWeb) BleepWeb.watch(watched); return null;
         case "command": if (window.BleepWeb) BleepWeb.command(a[0], a[1], a[2]); return null;
         case "importMedia": {
+          if (window.BleepWeb && BleepWeb.media) return BleepWeb.media.importBase64(a[0], a[1]);   // the browser's media store (web-media.js)
           // No media folder in the demo: a stable fake id from the name and size.
           let h = 0;
           for (const ch of a[0] + ":" + (a[1] || "").length) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
           return { id: h.toString(16).padStart(16, "0").slice(-16) + ".wav", name: a[0], seconds: 0, channels: 2 };
         }
-        case "readMedia": return { error: "no audio in the demo" };
+        case "readMedia": return window.BleepWeb && BleepWeb.media ? BleepWeb.media.read(a[0]) : { error: "no audio in the demo" };
         case "exportMedia": return { error: "no audio in the demo" };
         case "midiDevices": return window.BleepWeb ? BleepWeb.midiDevices() : ["Demo Keyboard", "Demo Pads"];
         case "presets": return store.get(presetKey(a[0]), []);

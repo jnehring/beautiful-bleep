@@ -54,9 +54,12 @@ keyboard and Web MIDI play MIDI In.
   the microphone or a looping audio file to it (Bleep Play's effects page uses it). Not the Bleep Bridge's audio, which is separate.
 - Voice Cells run (`js/voices.js`): the board is expanded before compiling, one plain cell per voice plus an allocator; a voice that is
   neither held nor sounding is not run. Not ported yet: Harmony Master/bus (modules run, but no shared
-  bus), Link, Macros, audio input, host MIDI out, and the media folder
-  (Splice, Grains and Wavetable Osc import find no files; Media.cpp is linked
-  so they build; an IndexedDB store is the next step). Modules that start
+  bus), Link, Macros, audio input, host MIDI out, and exporting audio a module made (Grains' freeze).
+  The media folder is in the browser: `js/web-media.js` decodes an imported WAV and keeps it in IndexedDB under the native id
+  (the page's `importMedia` / `readMedia`); `bleep-web.js` sends the clips a board's nodes name to the worklet once each, and
+  `graph.js` answers the modules' `bleep_media_info` / `bleep_media_read` imports from them (`module-host.js`), then sets the node's
+  data again so a module that loads in `setData()` finds the clip. Splice, Grains, Sampler and Wavetable Osc load audio this way.
+  Modules that start
   threads need a change: Wavetable Osc builds its factory banks on demand
   in the browser.
 - The engine is JavaScript for now, not a `core.wasm`: `Board.cpp` and
