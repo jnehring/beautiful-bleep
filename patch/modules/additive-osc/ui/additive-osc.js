@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Additive Osc view (doc/specs/modules/additive-oscillator.md §5): the final level
 // of each partial at its real frequency (log axis, live arrays from the
 // module) with the band limit marked, and, with Base = Drawn, an editor for

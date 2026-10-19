@@ -1,6 +1,7 @@
 {
   "name": "ADSR",
   "slug": "adsr",
+  "license": "GPL-3.0-or-later",
   "tagline": "Attack, decay, sustain, release with velocity, retrigger and an Active gate for Voice Cells.",
   "colour": "#fbbf24",
   "formats": [

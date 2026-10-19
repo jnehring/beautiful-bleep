@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Compressor node (doc/compressor.md): a stereo-linked feed-forward compressor/limiter with a sidechain input.
 #include "CompressorDsp.h"
 #include "Registry.h"

@@ -1,6 +1,7 @@
 {
   "name": "Delay",
   "slug": "delay",
+  "license": "GPL-3.0-or-later",
   "tagline": "A simple stereo delay: free or synced times per side, feedback with low and high cut, and a ping-pong mode.",
   "colour": "#5b8def",
   "formats": [

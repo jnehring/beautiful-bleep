@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Macro Osc (doc/specs/modules/macro-oscillator.md): what every model sees. The
 // engine (MacroOscDsp.h) fills a MacroIn per sample; a model returns its Out
 // and Aux. Models are plain structs with

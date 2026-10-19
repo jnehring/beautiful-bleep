@@ -1,6 +1,7 @@
 {
   "name": "Perc Voice",
   "slug": "perc-voice",
+  "license": "GPL-3.0-or-later",
   "tagline": "One percussion voice from kick to bell: FM, modal and noise-bank engines behind the same knobs.",
   "colour": "#fdba74",
   "formats": [

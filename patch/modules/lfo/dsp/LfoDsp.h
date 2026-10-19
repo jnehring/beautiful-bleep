@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // LFO core (doc/specs/modules/lfo.md): fixed waveforms, free or phase-locked to
 // the song position, seeded random waves and a fade-in. Random values are a
 // pure function of (seed, cycle), so synced renders repeat exactly. The waves

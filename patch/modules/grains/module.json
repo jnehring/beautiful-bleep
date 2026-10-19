@@ -1,6 +1,7 @@
 {
   "name": "Grains",
   "slug": "grains",
+  "license": "GPL-3.0-or-later",
   "tagline": "Granular processor: records its input and plays it back as a cloud of seeded grains, with freeze, feedback and blur.",
   "colour": "#2563eb",
   "formats": [

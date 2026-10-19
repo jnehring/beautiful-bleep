@@ -1,6 +1,7 @@
 {
   "name": "Sweep Generator",
   "slug": "sweep-generator",
+  "license": "GPL-3.0-or-later",
   "tagline": "A bench function generator that glides from Start to Stop: risers, sirens, tone bursts and tracking sweeps.",
   "colour": "#fb923c",
   "formats": [

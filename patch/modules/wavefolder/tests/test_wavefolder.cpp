@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Folder module: clean identity at Fold 0, aliasing per quality, bounds,
 // symmetry and DC, tap cost, the internal oscillator and its source logic,
 // and the latency-compensated dry path. (The fold curves, ADAA accuracy, the

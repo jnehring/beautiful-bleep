@@ -1,6 +1,7 @@
 {
   "name": "Polymeter Seq",
   "slug": "polymeter-sequencer",
+  "license": "GPL-3.0-or-later",
   "tagline": "A step split into six drifting tracks — trigger, note, octave, gate, probability, ratchet — that still land on the grid.",
   "colour": "#f59e6b",
   "formats": [

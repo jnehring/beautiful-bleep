@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Delay view: with Link L/R on, moving either side's time (or rate) moves the other too.
 (function () {
   "use strict";

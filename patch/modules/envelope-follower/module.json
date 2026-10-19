@@ -1,6 +1,7 @@
 {
   "name": "Envelope Follower",
   "slug": "envelope-follower",
+  "license": "GPL-3.0-or-later",
   "tagline": "Follows the loudness of audio or the movement of a CV, with its own attack and release.",
   "colour": "#f0abfc",
   "formats": [

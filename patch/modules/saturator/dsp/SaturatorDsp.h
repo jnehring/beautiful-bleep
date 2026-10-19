@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Saturator: an analogue-style saturation stage that avoids the usual digital tells.
 //
 //   in → pre-emphasis → [ 2×/4× oversampled: bias + drive → shaper (ADAA) ] → post-emphasis → DC block → tone → out

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Splice core (doc/specs/modules/splice.md): a tape-style sampler and looper.
 // Audio is recorded onto a stereo reel of up to two minutes and cut into
 // splices by markers; the current splice plays at a bipolar Speed, looped as

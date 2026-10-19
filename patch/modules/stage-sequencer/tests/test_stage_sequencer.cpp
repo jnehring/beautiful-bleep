@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Stage Seq DSP: stage positions for every order, loop jumps, Random and
 // Brownian walks (no repeats, ±1 steps, phrase restarts, replay after a
 // jump), gate modes and ratchets, slides, accents, Hold, and no hanging notes.

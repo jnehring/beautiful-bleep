@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Wobble view (doc/specs/modules/wobble.md §5): a three-trace scope over the last
 // four steps (Stepped, Smooth, Wobble), burst pulses as ticks below, and the
 // step response of the two filters at the current knobs drawn faintly behind

@@ -1,6 +1,7 @@
 {
   "name": "Patch Bay Out",
   "slug": "patchbay-out",
+  "license": "GPL-3.0-or-later",
   "tagline": "Splits a bundle cable back into its channels, named like the signals that go in at the other end.",
   "colour": "#a78bfa",
   "formats": [

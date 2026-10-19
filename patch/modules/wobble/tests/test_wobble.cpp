@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Wobble: seeded values, transport grid, Smooth/Wobble step responses, cutoff
 // scaling, soft limit, Hold, bursts, Compare, Chaos determinism
 // (doc/specs/modules/wobble.md §8).

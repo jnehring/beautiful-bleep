@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Filter Bank (doc/specs/modules/filter-bank.md): ten fixed band-pass filters
 // (dsp::Svf, unit gain at the centre) with per-band levels, tilt, odd/even
 // balance and a scanning window, an envelope follower per band, and a

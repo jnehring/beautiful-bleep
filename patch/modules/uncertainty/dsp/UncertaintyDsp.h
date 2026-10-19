@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Uncertainty (doc/specs/modules/uncertainty.md): six random generators with
 // different characters. Two Fluctuating curves (Catmull-Rom through randomly
 // spaced points), two Quantized voltages on 2^Bits levels, a Stored value with

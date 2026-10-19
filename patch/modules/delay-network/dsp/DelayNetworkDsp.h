@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Delay Net core (doc/specs/modules/delay-network.md): up to eight mono delay
 // lines (taps) spread over one Time by Scatter and Jitter, some of them read
 // backwards (dsp::ReverseReader), each repeat run through a character stage

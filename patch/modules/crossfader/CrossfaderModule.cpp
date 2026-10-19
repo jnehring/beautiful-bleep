@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Crossfader node (doc/specs/modules/crossfader.md): stereo A/B blend,
 // equal-power or linear.
 #include "CrossfaderDsp.h"

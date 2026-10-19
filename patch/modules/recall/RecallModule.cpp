@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Recall node (doc/specs/modules/recall.md): random gates and voltages that can
 // repeat their own recent past. Captured loops live in the node's data; the
 // Capture buttons snapshot a ring on the audio thread and the view writes it

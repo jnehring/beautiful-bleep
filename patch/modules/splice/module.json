@@ -1,6 +1,7 @@
 {
   "name": "Splice",
   "slug": "splice",
+  "license": "GPL-3.0-or-later",
   "tagline": "Tape-style sampler and looper: record onto a reel, cut it into splices, play them at any speed and break them into windows.",
   "colour": "#0284c7",
   "formats": [

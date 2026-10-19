@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // EQ node (doc/eq.md): six bands (bell, shelves, cuts, notch, band-pass), stereo.
 #include "EqDsp.h"
 #include "Registry.h"

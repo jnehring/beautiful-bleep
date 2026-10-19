@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Drum Grid view (doc/specs/modules/drum-grid.md §5): the 8 × 32 grid, the 16
 // pattern slots, mute/solo per track, and the pattern library. Patterns live
 // in the node's data; edits go to the engine with api.setData.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Delay Net node (doc/specs/modules/delay-network.md): up to eight delay lines
 // feeding each other through a routing matrix. Freeze latches in the node's
 // data (ORed with the gate), Clear is a view button and a trigger input.

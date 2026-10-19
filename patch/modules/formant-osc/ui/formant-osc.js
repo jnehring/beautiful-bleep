@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Formant Osc view (doc/specs/modules/formant-oscillator.md §5): one fundamental
 // cycle (window outline, burst, square) and the first 64 harmonics with a
 // marker at each formant. Both are computed here from the modulated knob

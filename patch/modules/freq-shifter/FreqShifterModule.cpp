@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Freq Shifter node (doc/specs/modules/frequency-shifter.md): moves every
 // frequency of a stereo signal by the same number of hertz, with feedback
 // spirals, opposite shifts left/right, tempo sync and a quadrature LFO out.

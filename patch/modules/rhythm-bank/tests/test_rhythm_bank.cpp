@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Rhythm Bank: the families against hand-checked rows, metric strength,
 // determinism over every (Family, P, L), Poly Free timing, rotation, mute,
 // complement, accent, pattern changes on the cycle and transport timing.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Shift Register view (doc/specs/modules/shift-register.md §5): the 16 live bits
 // (newest left, bits beyond Length dimmed, the feedback tap marked, flipped
 // bits flashing), the start pattern below them, Capture / Load, the Combo

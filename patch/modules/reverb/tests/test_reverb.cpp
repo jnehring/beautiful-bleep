@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ReverbDsp.h"
 #include "dsp/Delay.h"
 #include "dsp/Svf.h"

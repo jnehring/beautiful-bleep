@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Chord Quantizer: chromatic and diatonic chords, voicings, Anchor and
 // Range, voice leading, Trig sampling, Strum timing, the Notes output, and
 // Follow driven by a Harmony Master's context.

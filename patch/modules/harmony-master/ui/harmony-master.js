@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Harmony Master view (doc/specs/modules/harmony-master.md §5): the chord now
 // playing with its key and scale and a one-octave keyboard, and the
 // progression strip (Progression source): click a slot to edit it, drag its

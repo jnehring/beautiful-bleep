@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Rhythm Bank core (doc/specs/modules/rhythm-bank.md): four related rhythms from
 // (Family, Pattern, Length). rbPattern() builds the raw rows (a pure
 // function, O(L) per output, no allocation); RhythmBankDsp steps through

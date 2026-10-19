@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Oscillator node: triangle core with waveform morph, through-zero FM, hard sync, sub.
 #include "OscillatorDsp.h"
 #include "Registry.h"

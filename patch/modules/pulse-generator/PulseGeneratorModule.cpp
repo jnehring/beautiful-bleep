@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Pulse Generator node (doc/specs/modules/pulse-generator.md): timed pulses with
 // delay, width, slewed edges, bursts and double pulses, band-limited, with a
 // ringing resonance on every edge.

@@ -1,6 +1,7 @@
 {
   "name": "Recall",
   "slug": "recall",
+  "license": "GPL-3.0-or-later",
   "tagline": "Random rhythms and voltages that can recall and lock their own recent past.",
   "colour": "#e11d48",
   "formats": [

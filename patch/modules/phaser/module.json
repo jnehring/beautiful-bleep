@@ -1,6 +1,7 @@
 {
   "name": "Phaser",
   "slug": "phaser",
+  "license": "GPL-3.0-or-later",
   "tagline": "Stereo phaser: up to twelve swept allpass stages, feedback in both polarities and a stereo LFO offset.",
   "colour": "#f97316",
   "formats": [

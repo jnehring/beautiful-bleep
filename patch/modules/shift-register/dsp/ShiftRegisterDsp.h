@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Shift Register (doc/specs/modules/shift-register.md): a 16-bit looping register.
 // On every step the bits move one place and the bit at Length comes back in at
 // the front, flipped with probability (1 − Lock) / 2. Outputs read the bits:

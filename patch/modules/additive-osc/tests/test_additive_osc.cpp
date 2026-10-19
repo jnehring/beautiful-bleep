@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Additive Osc: pitch, partial levels, band limit, reference saw, odd/even,
 // comb, normalisation, stretch, decay, drawn spectrum, determinism
 // (doc/specs/modules/additive-oscillator.md §8).

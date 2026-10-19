@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Function view: the four outputs drawn as in FunctionDsp: cycling, B..D are phase-shifted copies
 // of A (Spread × ¼ cycle each); as an envelope they stretch by (1 + Spread) each. A comet runs
 // along the traces (a free-running preview), the live output levels are the bars at the right.

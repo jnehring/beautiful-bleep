@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Monitor: the event log (order, wrap-around, packing), held notes, CV range and
 // note name, gate state, count, length, rate and duty (doc/specs/modules/monitor.md §8).
 #include "MonitorDsp.h"

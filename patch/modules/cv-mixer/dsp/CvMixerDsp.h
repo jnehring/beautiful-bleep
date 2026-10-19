@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // CV Mixer core (doc/specs/modules/cv-mixer.md §4): four bipolar channels
 // combined by sum, average, max, min or a scan across them.
 #pragma once

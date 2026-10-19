@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Swarm: unison tuning and level, settled chord stacks, quantizing while
 // opening, seeded glides, detune patterns, stereo, Cross FM, aliasing and
 // repeatable renders.

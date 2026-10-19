@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Shape Env view (doc/specs/modules/shape-envelope.md §5): the preview of the
 // current (morphed, skewed) shape with its sustain point and the live phase,
 // a browser of thumbnails grouped by family (hover previews, click selects,

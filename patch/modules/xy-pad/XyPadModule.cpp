@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // XY Pad node (doc/specs/modules/xy-pad.md): two control signals from one
 // point on a pad.
 #include "Registry.h"

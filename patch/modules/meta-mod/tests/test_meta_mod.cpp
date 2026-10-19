@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Meta Mod: each algorithm's defining behaviour, morphing, level matching,
 // aliasing per quality, the internal oscillator's fallback table and its
 // click-free switching, and bounded output under random abuse.

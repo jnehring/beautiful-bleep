@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Multiplier view: the surface of each section, out = (x + bias X) * (y + bias Y)
 // * gain, as a heat map over x, y in -1..1 (accent positive, modulation colour
 // negative) with the zero lines glowing where the biases put them. Section 2

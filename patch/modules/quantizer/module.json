@@ -1,6 +1,7 @@
 {
   "name": "Quantizer",
   "slug": "quantizer",
+  "license": "GPL-3.0-or-later",
   "tagline": "Snaps any signal to a scale: turns modulation into melodies.",
   "colour": "#93c5fd",
   "formats": [

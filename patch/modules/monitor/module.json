@@ -1,6 +1,7 @@
 {
   "name": "Monitor",
   "slug": "monitor",
+  "license": "GPL-3.0-or-later",
   "tagline": "See what is on a cable: a MIDI event table, an audio meter, a CV readout and a gate meter.",
   "colour": "#7dd3fc",
   "formats": [

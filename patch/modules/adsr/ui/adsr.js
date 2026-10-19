@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // ADSR view: the real envelope curve of the (modulated) settings: a linear
 // attack, an exponential decay to the sustain level and an exponential release,
 // both reaching -80 dB after their set time (AdsrDsp.h). A glowing dot follows

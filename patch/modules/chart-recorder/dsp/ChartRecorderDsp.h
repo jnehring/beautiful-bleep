@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Chart Recorder (doc/specs/modules/chart-recorder.md): a sprung pen draws the
 // input onto a looping strip of paper and a replay head plays the strip back
 // as modulation.

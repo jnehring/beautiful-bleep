@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Button core (doc/specs/modules/button.md §4): presses and releases in, gate and
 // triggers out. Every press flips the Toggle output; Gate follows the finger
 // (Momentary) or the toggle (Toggle).

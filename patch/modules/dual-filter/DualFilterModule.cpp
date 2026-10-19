@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Dual Filter node (doc/specs/modules/dual-filter.md): two multimode SVFs under
 // one Cutoff, pulled apart by Spread, in serial, parallel or stereo routing.
 // Cutoff and Spread modulation work in octaves and may run at audio rate.

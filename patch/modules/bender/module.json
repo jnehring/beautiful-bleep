@@ -1,6 +1,7 @@
 {
   "name": "Bender",
   "slug": "bender",
+  "license": "GPL-3.0-or-later",
   "tagline": "Seeded glitches: repeats, re-pitches, reverses, slices and corrupts pieces of the input, the same way on every playback.",
   "colour": "#d8b4fe",
   "formats": [

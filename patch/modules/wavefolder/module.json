@@ -1,6 +1,7 @@
 {
   "name": "Folder",
   "slug": "wavefolder",
+  "license": "GPL-3.0-or-later",
   "tagline": "Stereo six-stage wavefolder with tap crossfade, symmetry and an internal oscillator, anti-aliased for audio.",
   "colour": "#10b981",
   "formats": [

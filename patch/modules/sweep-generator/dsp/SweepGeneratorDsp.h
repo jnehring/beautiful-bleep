@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Sweep Generator (doc/specs/modules/sweep-generator.md): a function generator
 // with a built-in frequency sweep. A progress value p runs over one sweep
 // cycle (free, synced to the song position, triggered, gated); the position s

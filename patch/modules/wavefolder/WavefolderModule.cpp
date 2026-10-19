@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Folder node (doc/specs/modules/wavefolder.md): stereo six-stage wavefolder with
 // tap crossfade, symmetry, anti-aliasing (oversampling + ADAA) and an
 // internal sine/triangle oscillator.

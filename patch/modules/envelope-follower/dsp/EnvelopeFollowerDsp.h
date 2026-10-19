@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Envelope Follower core (doc/specs/modules/envelope-follower.md): a peak or
 // RMS detector with separate attack and release, a gain, and a gate with
 // hysteresis on the result.

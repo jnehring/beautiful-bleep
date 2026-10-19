@@ -1,6 +1,7 @@
 {
   "name": "Macro Osc",
   "slug": "macro-osc",
+  "license": "GPL-3.0-or-later",
   "tagline": "Sixteen synthesis models behind one Model knob and three macro knobs, with Aux, a built-in decay and a low-pass gate.",
   "colour": "#38bdf8",
   "formats": [

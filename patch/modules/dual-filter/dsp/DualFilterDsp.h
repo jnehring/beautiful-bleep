@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Dual Filter (doc/specs/modules/dual-filter.md): two morphing state-variable
 // filters (dsp::Svf clean, dsp::RoughSvf saturating) under one cutoff, pulled
 // apart symmetrically by Spread, in serial, parallel, parallel-inverted or

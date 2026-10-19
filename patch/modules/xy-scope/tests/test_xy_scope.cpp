@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // XY Scope: frequency estimates, validity and holds, Ratio, figure ratio and
 // its hysteresis, Phase at 1:1 and 3:2, the detuned saw, Correlation, Still
 // at each tolerance, the Y-T sweep, determinism and the point ring

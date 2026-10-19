@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Shape Env node (doc/specs/modules/shape-envelope.md): an envelope / LFO that
 // plays shapes from the shared library or eight user-drawn slots (node data).
 #include "ShapeEnvDsp.h"

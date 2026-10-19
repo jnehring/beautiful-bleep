@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Step Sequencer view (doc/specs/modules/step-sequencer.md §5): the lane editor
 // (gate, pitch, velocity), the playhead, and the Randomize tools. Steps live
 // in the node's data; edits go to the engine with api.setData.

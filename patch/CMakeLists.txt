@@ -81,14 +81,14 @@ set(BLEEP_ONLY_MODULES "" CACHE STRING "Build only these modules (empty: all)")
 if (BLEEP_ONLY_MODULES)
     list(FILTER BLEEP_MODULES INCLUDE REGEX "^(${BLEEP_ONLY_MODULES})$")
 endif ()
-# A module ported from copyleft code (GPL, LGPL, AGPL, MPL) keeps that licence and is never compiled into the apps
+# A module ported from copyleft code (an "origin" under GPL, LGPL, AGPL, MPL) keeps that licence and is never compiled into the apps
 # and plugins: it ships only as an optional .wasm module from the Bleep Library. Tests and tools still build it
 # (they are not distributed).
 set(BLEEP_COPYLEFT_MODULES)
 foreach (m IN LISTS BLEEP_MODULES)
     file(READ "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/module.json" module_json)
-    string(JSON module_license ERROR_VARIABLE no_license GET "${module_json}" license)
-    if (NOT no_license AND module_license MATCHES "GPL|MPL")
+    string(JSON module_origin ERROR_VARIABLE no_origin GET "${module_json}" origin license)
+    if (NOT no_origin AND module_origin MATCHES "GPL|MPL")
         list(APPEND BLEEP_COPYLEFT_MODULES "${m}")
     endif ()
 endforeach ()

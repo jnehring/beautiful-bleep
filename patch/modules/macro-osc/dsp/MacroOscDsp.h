@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Macro Osc (doc/specs/modules/macro-oscillator.md): sixteen synthesis models
 // behind one Model selector and three macro knobs, an Aux output per model,
 // and a Trigger with a built-in decay envelope and low-pass gate.

@@ -1,6 +1,7 @@
 {
   "name": "Rotating Div",
   "slug": "rotating-divider",
+  "license": "GPL-3.0-or-later",
   "tagline": "Eight clock dividers from one base clock; one Rotate knob shifts the whole set across the outputs.",
   "colour": "#f4a259",
   "formats": [

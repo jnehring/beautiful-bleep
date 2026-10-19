@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // ADSR: attack, decay, sustain, release with velocity amount and retrigger.
 // Attack rises linearly (it's short and should be punchy); decay and release
 // fall exponentially and reach silence (−80 dB) after their set time.

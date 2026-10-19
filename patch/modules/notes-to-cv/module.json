@@ -1,6 +1,7 @@
 {
   "name": "Notes to CV",
   "slug": "notes-to-cv",
+  "license": "GPL-3.0-or-later",
   "tagline": "Notes in; pitch, gate, velocity and pressure out, with note priority and glide.",
   "colour": "#c084fc",
   "formats": [

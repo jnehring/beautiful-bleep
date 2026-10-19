@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Quad LFO core (doc/specs/modules/quad-lfo.md): four LFOs with the LFO module's
 // waves and a global mode for how they relate: independent rates, quadrature,
 // an adjustable phase spread, or divisions of one rate. Free, synced to the

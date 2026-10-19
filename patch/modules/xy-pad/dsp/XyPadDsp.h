@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // XY Pad core (doc/specs/modules/xy-pad.md §4): two positions scaled to one
 // range, each smoothed.
 #pragma once

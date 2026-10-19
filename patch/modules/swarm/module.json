@@ -1,6 +1,7 @@
 {
   "name": "Swarm",
   "slug": "swarm",
+  "license": "GPL-3.0-or-later",
   "tagline": "A cloud of up to 16 oscillators spread over a chord or scale: blooms from unison into the chord, drifts and fills the stereo field.",
   "colour": "#facc15",
   "formats": [

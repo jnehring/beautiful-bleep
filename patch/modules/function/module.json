@@ -1,6 +1,7 @@
 {
   "name": "Function",
   "slug": "function",
+  "license": "GPL-3.0-or-later",
   "tagline": "Rise/fall slope generator: LFO, envelope, slew \u2014 one primitive, four related outputs.",
   "colour": "#4fd1c5",
   "formats": [

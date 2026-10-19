@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Oscillator: a triangle-core oscillator with waveform morph, through-zero FM,
 // hard sync and a sub octave. Saw and square are band-limited (polyBLEP).
 // Through-zero FM: the phase runs backwards when the instantaneous frequency

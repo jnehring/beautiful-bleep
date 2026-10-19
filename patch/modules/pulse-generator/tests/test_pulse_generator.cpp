@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Pulse Generator: Free Run timing, transport grid with jitter, bursts,
 // Gated runs, External Width delay line and its overflow, Double and
 // Complement, band-limiting (aliasing, sub-sample edges), ringing, warm-up

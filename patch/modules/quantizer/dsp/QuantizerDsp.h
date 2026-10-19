@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Quantizer core (doc/specs/modules/quantizer.md §4): range, transpose, optional
 // clocked sample and hold, scale quantizing with hysteresis, shift and glide.
 #pragma once

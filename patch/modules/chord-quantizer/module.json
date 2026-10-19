@@ -1,6 +1,7 @@
 {
   "name": "Chord Quantizer",
   "slug": "chord-quantizer",
+  "license": "GPL-3.0-or-later",
   "tagline": "One pitch in, a voiced chord out: four pitches and notes, with inversions, voicings, voice leading and strum.",
   "colour": "#9f8cf7",
   "formats": [

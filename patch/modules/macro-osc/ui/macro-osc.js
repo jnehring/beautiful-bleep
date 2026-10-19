@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Macro Osc view (doc/specs/modules/macro-oscillator.md §5): a 4 × 4 model
 // picker (Pitched / Noise / Struck, the playing model highlighted, a fading
 // one outlined), the scope of Out (solid) and Aux (dashed) from the module's

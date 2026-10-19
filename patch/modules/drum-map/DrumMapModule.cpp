@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Drum Map node (doc/specs/modules/drum-map.md): kick, snare and hats from the
 // generated map plus the user's edited nodes (node data), triggers,
 // accents, velocities and notes out.

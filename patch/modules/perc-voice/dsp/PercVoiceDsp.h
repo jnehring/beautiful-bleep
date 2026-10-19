@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Perc Voice DSP (doc/specs/modules/perc-voice.md): one percussion voice from
 // eight partials. Tone picks the partial ratios (sine → membrane → bar →
 // seeded metal), three engines turn them into sound (FM, struck modal

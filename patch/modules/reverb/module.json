@@ -1,6 +1,7 @@
 {
   "name": "Verb",
   "slug": "reverb",
+  "license": "GPL-3.0-or-later",
   "tagline": "Stereo FDN reverb built to be played: click-free Size and Decay modulation, infinite decay and Freeze.",
   "colour": "#f0abfc",
   "formats": [

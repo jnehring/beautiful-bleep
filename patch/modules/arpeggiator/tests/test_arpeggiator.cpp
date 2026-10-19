@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Arpeggiator: pattern order, octaves, latch, gate length, clock mode,
 // transport lock, release on empty/stop, no hanging notes.
 #include "ArpeggiatorDsp.h"

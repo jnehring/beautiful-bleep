@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Utility: the glue. Out = shape(X × ScaleX + Y × ScaleY + Offset), slewed,
 // plus a comparator gate and an inverted copy.
 #pragma once

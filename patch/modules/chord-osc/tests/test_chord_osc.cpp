@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Chord Osc: chord intervals (spectrum), tone dropping and doubling,
 // inversions, voicings and the range guard, Scale mode qualities and
 // quantizing, Latch, click-free changes, levels, the Root output against the

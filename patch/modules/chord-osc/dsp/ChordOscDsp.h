@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Chord Osc (doc/specs/modules/chord-oscillator.md): up to six Oscillator cores
 // tuned to a chord built on one pitch. The chord itself (quality, tone
 // dropping and doubling, inversion, voicing) comes from the shared

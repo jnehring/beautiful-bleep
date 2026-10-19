@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // EQ view (doc/eq.md): the signal going in (grey) and coming out (accent) as live spectra on a log axis
 // (20 Hz … 20 kHz), with the equaliser's response curve and its six band points on top. Drag a point to
 // change a band's frequency and gain (hold Cmd / Ctrl: its Q, or the slope of a cut); click it to edit the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Low Pass Gate view: the cell's openness over the last 2 s (the light that
 // drove it dimmer behind), and a small low-pass curve whose corner follows
 // the current cutoff. The Ping button comes from the module's buttons.

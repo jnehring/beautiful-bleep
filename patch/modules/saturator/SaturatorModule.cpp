@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Saturator node (doc/saturator.md): organic, anti-aliased saturation, stereo.
 #include "Registry.h"
 #include "SaturatorDsp.h"

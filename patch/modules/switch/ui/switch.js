@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Switch view: the eight slots as glowing columns (height = level, slots beyond
 // Length dimmed) with the active step lit, the stepping order and the Select
 // offset. The active step comes from the engine (SwitchDsp position).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Polymeter Seq view (doc/specs/modules/polymeter-sequencer.md §5): six track rows
 // (Trigger, Note, Octave, Gate, Probability, Ratchet), each with its length,
 // loop window, division, direction, mute and dice; a playhead per track, a

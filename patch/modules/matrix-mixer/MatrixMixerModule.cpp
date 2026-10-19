@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Matrix Mixer node (doc/specs/modules/matrix-mixer.md): up to 8 × 8
 // crosspoints as modulatable knobs, output levels, mutes, an output stage,
 // and snapshots (node data) to morph between.

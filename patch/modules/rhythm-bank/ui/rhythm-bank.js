@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Rhythm Bank view (doc/specs/modules/rhythm-bank.md §5): the playing pattern as
 // four rows by Length steps (muted rows dimmed, the playhead, Accent steps
 // marked below, Poly Free hits at their exact position), a large pattern

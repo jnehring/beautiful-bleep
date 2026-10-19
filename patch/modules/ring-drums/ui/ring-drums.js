@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Ring drum views: each voice shows a phosphor scope of its actual sound, drawn
 // from the effective (modulated) parameters and the formulas in
 // patch/modules/ring-drums/dsp/RingDrumsDsp.h (pitch sweeps, T60 envelopes,

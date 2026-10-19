@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // VCA view: the gain law (linear, or cubed below 100 % for the exponential response:
 // about -60 dB .. 0 dB, then linear up to 400 %) with a dot at the current (modulated) Gain, and a scope of a
 // test tone before (ghost) and after the amplifier. Mirrors VcaModule.cpp.

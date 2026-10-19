@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Low Pass Gate DSP (doc/specs/modules/low-pass-gate.md): a modelled vactrol cell
 // (dsp::Vactrol) opened by light (Level + CV + Ping flashes) drives a stereo
 // filter + VCA (dsp::LowPassGate). Drive saturates the input with

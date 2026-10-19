@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Dial core (doc/specs/modules/dial.md §4): the dial's position, stepped and
 // scaled to a range, then smoothed.
 #pragma once

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // XY Scope (doc/specs/modules/xy-scope.md): the measurement side of the scope.
 // Two channel trackers (DC blocker, peak follower, interpolated rising zero
 // crossings, mean period over 50 ms) give fx and fy; from them the Ratio

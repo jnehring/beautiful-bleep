@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Filter Bank view (doc/specs/modules/filter-bank.md §5): the ten Level knobs as
 // a slider bank (drag across to draw, double-click for 0 dB), the effective
 // gain of each band (after tilt, odd/even, scan and vocode) as an outline,

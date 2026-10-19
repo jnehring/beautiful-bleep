@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Ring drums: drum voices built the way the classic analog drum machines of
 // the early eighties built them. Struck resonators that ring and die away
 // (kick, toms, snare body, rim), band-passed noise (snare, clap) and six

@@ -1,6 +1,7 @@
 {
   "name": "Limiter",
   "slug": "limiter",
+  "license": "GPL-3.0-or-later",
   "tagline": "Brickwall stereo limiter: nothing passes the ceiling. Lookahead, release, input gain and a gain reduction output.",
   "colour": "#64748b",
   "formats": [

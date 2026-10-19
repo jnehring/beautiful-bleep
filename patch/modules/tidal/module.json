@@ -1,6 +1,7 @@
 {
   "name": "Tidal",
   "slug": "tidal",
+  "license": "GPL-3.0-or-later",
   "tagline": "Slope oscillator from minute-long swells to audio rate, with four related outputs, smoothing and folding.",
   "colour": "#60a5fa",
   "formats": [

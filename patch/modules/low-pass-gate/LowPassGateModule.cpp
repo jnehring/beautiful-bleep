@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Low Pass Gate node: a vactrol-modelled filter + VCA, opened by CV and Ping
 // flashes (doc/specs/modules/low-pass-gate.md). Light and Active outputs for
 // Voice Cells; the view draws the cell's last 2 s and the current cutoff.

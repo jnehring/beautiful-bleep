@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Quad LFO (doc/specs/modules/quad-lfo.md §8): quadrature and phase offsets,
 // Cycle pulses that ignore Spread movement, Divide realignment, free rates,
 // transport lock, clock, seeded random waves and click-free mode switches.

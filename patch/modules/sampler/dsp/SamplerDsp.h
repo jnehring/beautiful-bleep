@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Sampler core (doc/specs/modules/sampler.md): a polyphonic sample player and
 // slicer. A loaded sample (stereo or mono floats, markers that cut it into
 // slices) is played by up to 16 playheads. A start comes from a note (the

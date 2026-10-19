@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Utility view: the transfer curve out = f(x * scale X + offset) of the chosen
 // mode (through, rectify, fold, quantize in twelfths; sample & hold passes the
 // held value) with the comparator threshold, and a live trace of the Out

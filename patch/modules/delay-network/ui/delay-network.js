@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Delay Net view (doc/specs/modules/delay-network.md §5): a timeline with every
 // active tap at its effective time (height = its level, colour = side, ◀ for
 // reversed taps), a small diagram of the routing, and the latched Freeze

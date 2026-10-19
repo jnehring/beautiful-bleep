@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Delay node (doc/delay.md): a stereo delay with free or tempo-synced times, feedback with low and high cut,
 // and a ping-pong mode.
 #include "DelayDsp.h"

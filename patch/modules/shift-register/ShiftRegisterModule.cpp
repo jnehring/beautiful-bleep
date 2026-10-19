@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Shift Register node (doc/specs/modules/shift-register.md): a looping register of
 // bits. The start pattern and the Combo mask live in the node's data; the view
 // loads the pattern or toggles live bits through Module::command.

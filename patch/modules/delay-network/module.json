@@ -1,6 +1,7 @@
 {
   "name": "Delay Net",
   "slug": "delay-network",
+  "license": "GPL-3.0-or-later",
   "tagline": "Up to eight delay lines feeding each other: scattered and reversed taps, per-pass character and four routings from multi-tap to diffuse.",
   "colour": "#0ea5e9",
   "formats": [

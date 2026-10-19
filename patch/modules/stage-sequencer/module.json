@@ -1,6 +1,7 @@
 {
   "name": "Stage Seq",
   "slug": "stage-sequencer",
+  "license": "GPL-3.0-or-later",
   "tagline": "Up to 16 stages, each a pitch held for 1–8 pulses with a gate mode, slide and accent.",
   "colour": "#e3a73b",
   "formats": [

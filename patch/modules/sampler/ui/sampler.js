@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Sampler view (doc/specs/modules/sampler.md §5): the waveform with slice markers,
 // the current slice highlighted and a dot per playhead; slicing controls
 // (manual, threshold, beats); per-slice settings for the selected slice; a

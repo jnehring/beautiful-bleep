@@ -1,6 +1,7 @@
 {
   "name": "Wave Analyzer",
   "slug": "wave-analyzer",
+  "license": "GPL-3.0-or-later",
   "tagline": "A tunable needle of a band-pass: pick out single partials, sweep a spectrum, lock onto the loudest.",
   "colour": "#22d3ee",
   "formats": [

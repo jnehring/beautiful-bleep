@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Monitor node (doc/specs/modules/monitor.md): shows what is on a cable. A notes
 // stream goes into a MIDI event table, audio into a peak/RMS meter, a control
 // signal into a readout and a gate into a gate meter. Every input passes through

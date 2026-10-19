@@ -1,6 +1,7 @@
 {
   "name": "Multiplier",
   "slug": "multiplier",
+  "license": "GPL-3.0-or-later",
   "tagline": "Two four-quadrant multipliers: ring modulation, or one modulator scaling another.",
   "colour": "#c4b5fd",
   "formats": [

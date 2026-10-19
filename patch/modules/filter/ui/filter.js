@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Filter view: the magnitude response of the current (modulated) settings,
 // from the analog prototype of the selected algorithm. Types, resonance and
 // mode mappings mirror patch/modules/filter/dsp/VaFilters.h.

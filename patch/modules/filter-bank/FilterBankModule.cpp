@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Filter Bank node (doc/specs/modules/filter-bank.md): ten band-pass filters with
 // levels, tilt, odd/even, a scan window, per-band outputs and envelopes, and
 // a built-in vocoder through the sidechain. Unread band outputs and

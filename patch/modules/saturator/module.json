@@ -1,6 +1,7 @@
 {
   "name": "Saturator",
   "slug": "saturator",
+  "license": "GPL-3.0-or-later",
   "tagline": "Organic saturation that does not sound digital: tube, tape and diode curves, anti-aliased, with colour, sag and drift.",
   "colour": "#f59e0b",
   "formats": [

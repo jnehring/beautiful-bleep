@@ -1,6 +1,7 @@
 {
   "name": "Rhythm Bank",
   "slug": "rhythm-bank",
+  "license": "GPL-3.0-or-later",
   "tagline": "Four related rhythms from a pattern number: browse 128 grooves in six families.",
   "colour": "#f08a5d",
   "formats": [

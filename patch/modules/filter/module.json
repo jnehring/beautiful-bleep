@@ -1,6 +1,7 @@
 {
   "name": "Filter",
   "slug": "filter",
+  "license": "GPL-3.0-or-later",
   "tagline": "Stereo multimode filter with 25 zero-delay-feedback algorithms: SVF, transistor and diode ladders, shelves, phasers and a flanger.",
   "colour": "#f472b6",
   "formats": [

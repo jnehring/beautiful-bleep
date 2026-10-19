@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Wavetable Osc: pitch, aliasing (plain and warped), mip crossfade, grid
 // position, paths, warps, stereo and sub, Sync, bank changes, user banks
 // (doc/specs/modules/wavetable-oscillator.md §8).

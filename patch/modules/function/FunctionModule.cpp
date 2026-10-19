@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Function node: slope generator (LFO / envelope) with four related outputs.
 #include "FunctionDsp.h"
 #include "Registry.h"

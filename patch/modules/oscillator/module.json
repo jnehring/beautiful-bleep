@@ -1,6 +1,7 @@
 {
   "name": "Oscillator",
   "slug": "oscillator",
+  "license": "GPL-3.0-or-later",
   "tagline": "Triangle-core oscillator: waveform morph, through-zero FM, hard sync and a sub octave.",
   "colour": "#5eead4",
   "formats": [

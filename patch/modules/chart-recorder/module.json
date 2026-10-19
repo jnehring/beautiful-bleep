@@ -1,6 +1,7 @@
 {
   "name": "Chart Recorder",
   "slug": "chart-recorder",
+  "license": "GPL-3.0-or-later",
   "tagline": "A sprung pen draws onto a looping paper strip that plays back as modulation.",
   "colour": "#a3e635",
   "formats": [

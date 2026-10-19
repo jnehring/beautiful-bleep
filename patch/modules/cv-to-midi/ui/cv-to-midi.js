@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // CV to MIDI view (doc/specs/modules/cv-to-midi.md §5): one bar per lane, 0 to
 // 127. The lit band is the lane's Min to Max range, the marker the CC value
 // last sent (live), and the label says CC, channel and value. A lane without

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Modal Voice view: an exciter scope (the last 50 ms of the Exciter output:
 // mallet pulses, the bow's stick-slip, breath noise), the body's partials on
 // a log frequency axis (height = amplitude, brightness = what is still

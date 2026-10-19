@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Zone Delay core (doc/specs/modules/zone-delay.md): a stereo delay over five time
 // zones (comb … 20 s loops), free, synced to the transport or measured from a
 // clock. Time changes bend like tape (dsp::TapeTime) or crossfade between two

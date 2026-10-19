@@ -1,6 +1,7 @@
 {
   "name": "Beat Oscillator",
   "slug": "beat-oscillator",
+  "license": "GPL-3.0-or-later",
   "tagline": "Two high carriers mixed down to their difference: a heterodyne tone that locks, stutters and drifts.",
   "colour": "#e879f9",
   "formats": [

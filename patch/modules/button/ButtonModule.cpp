@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Button node (doc/specs/modules/button.md): a pad in the module view; pressing
 // it gives a gate, triggers and a toggle.
 #include "ButtonDsp.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Folder view: the transfer curve of the stages up to Tap (computed by the
 // module with dsp::Folder::transfer, x from −2 to +2 after Level) with the
 // live input range shaded, a row of six dots for the Tap position, and a

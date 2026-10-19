@@ -1,6 +1,7 @@
 {
   "name": "Logic",
   "slug": "logic",
+  "license": "GPL-3.0-or-later",
   "tagline": "AND, OR, XOR and friends for gates, a flip-flop and edge triggers.",
   "colour": "#86efac",
   "formats": [

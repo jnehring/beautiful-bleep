@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Quantizer node (doc/specs/modules/quantizer.md): snaps a pitch to a scale,
 // with a custom scale in the node's data.
 #include "QuantizerDsp.h"

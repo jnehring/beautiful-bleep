@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Test Oscillator (doc/specs/modules/test-oscillator.md): a lamp-stabilised
 // bridge oscillator. A band-pass resonator (zero-delay-feedback SVF, Q0 = 5)
 // and a soft-clipping amplifier form a closed loop that is solved implicitly each

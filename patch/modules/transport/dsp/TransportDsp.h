@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The Transport module's logic without the engine (doc/specs/modules/transport.md): MIDI clock out from the
 // song position, MIDI clock in turned into a tempo and start/stop, and tap tempo.
 #pragma once

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Chart Recorder view (doc/specs/modules/chart-recorder.md §5): graph paper that
 // scrolls right to left under a fixed pen carriage, red ink, marks as
 // triangles on the top edge, the replay head as a thin line, and an overview

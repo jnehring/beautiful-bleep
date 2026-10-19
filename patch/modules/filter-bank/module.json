@@ -1,6 +1,7 @@
 {
   "name": "Filter Bank",
   "slug": "filter-bank",
+  "license": "GPL-3.0-or-later",
   "tagline": "Ten fixed band-pass filters with levels, tilt, a scan window, per-band outputs and envelopes, and a built-in vocoder.",
   "colour": "#eab308",
   "formats": [

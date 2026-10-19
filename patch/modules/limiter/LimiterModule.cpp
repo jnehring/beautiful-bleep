@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Limiter node (doc/limiter.md): a stereo-linked brickwall limiter with lookahead.
 #include "LimiterDsp.h"
 #include "Registry.h"

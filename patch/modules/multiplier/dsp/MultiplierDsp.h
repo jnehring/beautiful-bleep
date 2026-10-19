@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Multiplier core (doc/specs/modules/multiplier.md §4): two four-quadrant
 // multipliers, the second chained from the first, optionally oversampled.
 // Both sections run at the same (over)sampling rate, so the chain adds no

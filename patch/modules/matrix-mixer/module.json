@@ -1,6 +1,7 @@
 {
   "name": "Matrix Mixer",
   "slug": "matrix-mixer",
+  "license": "GPL-3.0-or-later",
   "tagline": "Up to 8 inputs by 8 outputs with a bipolar gain at every crosspoint, snapshots and morphing.",
   "colour": "#4f46e5",
   "formats": [

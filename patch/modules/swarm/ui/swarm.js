@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Swarm view: the cloud of oscillators, pitch up and pan across. Each voice
 // is a glowing dot at its current pitch (gliding, detuned) and pan, sized by
 // level, wandering a little with Drift and Detune and leaving a short

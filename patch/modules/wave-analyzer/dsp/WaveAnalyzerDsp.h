@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Wave Analyzer (doc/specs/modules/wave-analyzer.md): a very narrow, tunable
 // band-pass after the heterodyne wave analyzers of the measurement lab.
 //

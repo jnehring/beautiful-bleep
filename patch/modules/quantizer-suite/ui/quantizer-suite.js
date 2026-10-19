@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Quantizer Suite view (doc/specs/modules/quantizer-suite.md §5): four channel
 // strips with the Out note name, the mode, and a one-octave keyboard: scale
 // notes lit, masked-out notes crossed, the current note highlighted, chord

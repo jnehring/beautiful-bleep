@@ -1,6 +1,7 @@
 {
   "name": "Utility",
   "slug": "utility",
+  "license": "GPL-3.0-or-later",
   "tagline": "Attenuverter, offset, mixer, shaper, slew and comparator: the glue.",
   "colour": "#a78bfa",
   "formats": [

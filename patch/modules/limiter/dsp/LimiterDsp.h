@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Brickwall lookahead limiter, stereo-linked. The gain needed to bring each sample under the ceiling is
 // min-filtered over the lookahead window, released with a one-pole and averaged over the same window, which
 // is a ramp down that arrives exactly when the peak does: no sample of the delayed signal exceeds the ceiling.

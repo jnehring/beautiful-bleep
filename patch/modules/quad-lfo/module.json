@@ -1,6 +1,7 @@
 {
   "name": "Quad LFO",
   "slug": "quad-lfo",
+  "license": "GPL-3.0-or-later",
   "tagline": "Four LFOs in one: independent, in quadrature, spread in phase or divided from one rate.",
   "colour": "#ea580c",
   "formats": [

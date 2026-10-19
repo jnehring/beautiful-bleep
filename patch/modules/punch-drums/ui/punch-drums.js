@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Punch drum views: each voice shows a phosphor scope of its actual sound, drawn
 // from the effective (modulated) parameters and the formulas in
 // patch/modules/punch-drums/dsp/PunchDrumsDsp.h (two-stage pitch bends, T60

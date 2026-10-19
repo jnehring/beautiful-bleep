@@ -1,6 +1,7 @@
 {
   "name": "Arpeggiator",
   "slug": "arpeggiator",
+  "license": "GPL-3.0-or-later",
   "tagline": "Held notes in, one note at a time out: nine patterns over up to four octaves, with latch, swing and clock.",
   "colour": "#f6a04d",
   "formats": [

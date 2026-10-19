@@ -1,6 +1,7 @@
 {
   "name": "Freq Shifter",
   "slug": "freq-shifter",
+  "license": "GPL-3.0-or-later",
   "tagline": "Stereo single-sideband frequency shifter: barber-pole phasing, bells and feedback spirals, with tempo sync and a quadrature LFO.",
   "colour": "#65a30d",
   "formats": [

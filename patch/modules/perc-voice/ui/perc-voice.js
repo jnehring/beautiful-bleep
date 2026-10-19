@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Perc Voice view: a sketch of the hit over time (the amplitude envelope from
 // Decay and Click as a glowing filled curve, the pitch sweep dashed above it,
 // a dot replaying the hit) and the eight partials of the current (modulated)

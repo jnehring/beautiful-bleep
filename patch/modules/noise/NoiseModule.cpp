@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Noise node: white, pink, brown and blue noise, and a Colour sweep.
 #include "NoiseDsp.h"
 #include "Registry.h"

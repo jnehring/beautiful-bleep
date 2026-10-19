@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Dual Osc node (doc/specs/modules/dual-oscillator.md): two cores with B → A FM,
 // A → B sync and a stereo wavefolder; a scope of A, B and Out for the view.
 #include "DualOscDsp.h"

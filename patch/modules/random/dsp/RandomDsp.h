@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Random: stepped random values with a looping memory. One knob (Loop) moves
 // from "always new" to "locked loop". Every value is a pure function of
 // (seed, step), so renders are reproducible and the transport can jump.

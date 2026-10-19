@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Tidal core (doc/specs/modules/tidal.md): a slope oscillator from minutes-long
 // swells to audio rate, run as a loop, an AD or an AR envelope, with four
 // related outputs (ratio, phase, level or harmonic relations), smoothing or

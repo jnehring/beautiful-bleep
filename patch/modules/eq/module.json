@@ -1,6 +1,7 @@
 {
   "name": "EQ",
   "slug": "eq",
+  "license": "GPL-3.0-or-later",
   "tagline": "Six-band parametric equaliser: bell, shelves, low and high cut, notch and band-pass; drag the band points to shape the sound.",
   "colour": "#0ea5e9",
   "formats": [

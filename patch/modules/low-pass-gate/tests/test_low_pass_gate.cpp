@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Low Pass Gate: cell asymmetry and memory, ping decay, response scaling,
 // modes, bleed, gain bound, Active (doc/specs/modules/low-pass-gate.md §8).
 #include "LowPassGateDsp.h"

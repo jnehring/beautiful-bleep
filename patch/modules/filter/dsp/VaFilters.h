@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // The filter algorithms of Vadim Zavalishin, "The Art of VA Filter Design"
 // (rev. 1.0.3), built with the topology-preserving transform (TPT): every
 // integrator is trapezoidal and every delayless feedback loop is solved

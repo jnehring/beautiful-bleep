@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Factory patterns for the Drum Grid (doc/specs/modules/drum-grid.md §4.6), in
 // the same shape as a saved library preset. Our own, generic patterns.
 // Rows: Kick, Snare, Closed Hat, Open Hat, Clap, Low Tom, High Tom, Perc;

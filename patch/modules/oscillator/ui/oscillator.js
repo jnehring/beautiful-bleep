@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Oscillator view: a scrolling phosphor trace of the waveform the settings make
 // (sine -> triangle -> saw -> square morph with the pulse width, through-zero FM
 // with a test modulator), the pitch as Hz and note name, and the shape ruler.

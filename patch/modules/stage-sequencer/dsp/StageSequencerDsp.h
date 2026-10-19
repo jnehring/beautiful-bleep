@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Stage Seq core (doc/specs/modules/stage-sequencer.md): up to 16 stages, each a
 // pitch held for 1–8 clock pulses with a gate mode (Rest, First, Every, Hold,
 // Ratchet), slides, velocity and accent. Fixed orders are located

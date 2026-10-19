@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Dual Filter view (doc/specs/modules/dual-filter.md §5): the response of each
 // filter (thin) and of the current routing (bright; Stereo: left and right),
 // drawn from the modulated values with the quiet-signal (linear) SVF model.

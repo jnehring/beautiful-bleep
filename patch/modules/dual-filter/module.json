@@ -1,6 +1,7 @@
 {
   "name": "Dual Filter",
   "slug": "dual-filter",
+  "license": "GPL-3.0-or-later",
   "tagline": "Two morphing state-variable filters under one cutoff, pulled apart by Spread: serial, parallel or stereo.",
   "colour": "#f9a8d4",
   "formats": [

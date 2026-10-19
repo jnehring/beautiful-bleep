@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Random view: a scrolling trace of the live Out value over the band the
 // distribution can reach (Bias +- Spread, RandomDsp::shapeValue), with the
 // semitone grid when Quantize is on. Nothing here is invented: the trace is the

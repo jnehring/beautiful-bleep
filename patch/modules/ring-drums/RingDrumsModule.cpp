@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Ring drums: one node per drum voice (doc/specs/modules/ring-drums.md).
 #include "DrumModule.h"
 #include "RingDrumsDsp.h"

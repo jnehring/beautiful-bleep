@@ -1,6 +1,7 @@
 {
   "name": "Low Pass Gate",
   "slug": "low-pass-gate",
+  "license": "GPL-3.0-or-later",
   "tagline": "Filter and VCA in one, opened by a modelled vactrol: organic plucks from a single trigger.",
   "colour": "#4ade80",
   "formats": [

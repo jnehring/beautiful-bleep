@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Noise: white, pink, brown and blue noise, plus a Colour knob that sweeps
 // continuously brown → pink → white → blue → violet.
 #pragma once

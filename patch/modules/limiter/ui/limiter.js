@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Limiter view (doc/limiter.md): an input meter and an output meter next to each other. The input meter marks
 // the limit: the level the input has to reach before the limiter turns it down (Ceiling minus Input gain).
 // Live values from LimiterModule::liveValues (inPeakL/R, inRmsL/R, outPeakL/R, outRmsL/R, reductionDb, stereo).

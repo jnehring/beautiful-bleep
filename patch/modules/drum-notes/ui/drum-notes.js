@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Drum Notes view (doc/drum-notes.md): one pad per drum with the General MIDI notes that play it;
 // a pad lights up when its note arrives, brighter for a harder hit.
 (function () {

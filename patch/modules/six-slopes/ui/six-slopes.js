@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Six Slopes view (doc/specs/modules/six-slopes.md §5): six thin lanes, one per
 // channel, each a short running scope with its live ratio (a note name in
 // Sound mode, where the lane shows one cycle of the wave instead), and the

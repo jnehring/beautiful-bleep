@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Beat Oscillator (doc/specs/modules/beat-oscillator.md): a heterodyne tone
 // source. Two high carriers A and B are mixed and low-passed, and what is
 // left is their difference. Pull couples the carriers (Adler injection

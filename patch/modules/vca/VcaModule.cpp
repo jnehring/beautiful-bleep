@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // VCA node: stereo amplifier. Gain starts at 0, so an envelope patched into
 // the Gain knob opens it fully (the modulation offset, spec §5.6).
 // The Gain knob runs 0 – 400 % (+12 dB of make-up gain at the top).

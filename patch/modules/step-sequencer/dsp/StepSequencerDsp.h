@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Step Sequencer core (doc/specs/modules/step-sequencer.md): 32 steps with a
 // gate (Off/On/Tie), a pitch and a velocity; transport-locked or clocked;
 // scale quantizing and seeded live variation. Timing comes from the shared

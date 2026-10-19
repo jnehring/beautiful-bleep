@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Test Oscillator view (doc/specs/modules/test-oscillator.md §5): a large
 // log-printed dial for Frequency (drag vertically, Shift for fine, double-click
 // for the default), a four-button range switch, the lamp glowing with the

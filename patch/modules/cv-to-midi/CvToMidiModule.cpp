@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // CV to MIDI node (doc/specs/modules/cv-to-midi.md): four lanes of control
 // signal → controller messages on a notes stream. Patched lanes only; the
 // Resend button sends every patched lane's value again.

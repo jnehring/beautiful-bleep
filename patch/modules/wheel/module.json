@@ -1,6 +1,7 @@
 {
   "name": "Wheel",
   "slug": "wheel",
+  "license": "GPL-3.0-or-later",
   "tagline": "A pitch or mod wheel as a control signal: drag it, and it springs back to the middle when you let go.",
   "colour": "#fda4af",
   "formats": [

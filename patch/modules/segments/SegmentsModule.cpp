@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Segments node (doc/specs/modules/segments.md): a chain of up to 8 ramp, step
 // and hold segments with loops, a sustain point and per-segment gates. The
 // segment types and flags are node data; times, levels and curves are knobs.

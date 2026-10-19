@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Arpeggiator core (doc/specs/modules/arpeggiator.md): the held notes of a
 // `notes` stream played one at a time, in a pattern, over up to four octaves.
 // Timing comes from the shared dsp::SeqClock (transport-locked or clocked),

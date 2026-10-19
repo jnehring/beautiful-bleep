@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Grains core (doc/specs/modules/grains.md): a stereo circular buffer recording
 // the input (plus feedback), played back by the shared granular engine
 // (dsp::GrainEngine, dsp::GrainCloud): continuous, transport-locked or

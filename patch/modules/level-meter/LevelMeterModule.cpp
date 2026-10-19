@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Level Meter node (doc/specs/modules/level-meter.md): stereo peak and RMS
 // meters with clip lights; the audio passes through, and the level comes out
 // as a control signal.

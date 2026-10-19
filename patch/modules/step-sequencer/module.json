@@ -1,6 +1,7 @@
 {
   "name": "Step Sequencer",
   "slug": "step-sequencer",
+  "license": "GPL-3.0-or-later",
   "tagline": "Up to 32 steps of gate, pitch and velocity, quantized to a scale, with a randomizer.",
   "colour": "#f6c453",
   "formats": [

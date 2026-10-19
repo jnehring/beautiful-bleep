@@ -1,7 +1,7 @@
 # Beautiful Bleep
 
 A modular sound engine as a plugin (Ableton Live), a standalone app and in the browser, built on an open protocol.
-The engine, board and apps in `patch/` are GPL-3.0-or-later with a [module exception](LICENSE-EXCEPTION.md), so modules can be open source, closed source or paid. Bleep Bus (`bus/`), the built-in modules, the scripts and the website are MIT. [Licensing in plain terms](website/content/developers/modules/licensing.md).
+The engine, board and apps in `patch/` are GPL-3.0-or-later with a [module exception](LICENSE-EXCEPTION.md), so modules can be open source, closed source or paid. The built-in modules are GPL-3.0-or-later too (the three ported from other code keep their original licence). Bleep Bus (`bus/`), the scripts and the website are MIT. [Licensing in plain terms](website/content/developers/modules/licensing.md).
 
 | Folder | What | Start here |
 |---|---|---|

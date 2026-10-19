@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Chord Osc view: the chord's name (with the slash bass and, in Scale mode,
 // the key and Roman degree), a three-octave keyboard with the sounding
 // voices lit (the root stronger) and the note names of Pitch 1–4. Live

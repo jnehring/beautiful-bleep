@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Uncertainty view (doc/specs/modules/uncertainty.md §5): a 4-second scope per
 // output; the Quantized lanes show their levels (note names in semitone
 // mode); next to Stored the distribution of the current Shape and

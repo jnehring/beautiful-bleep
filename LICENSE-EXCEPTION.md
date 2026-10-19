@@ -25,7 +25,7 @@ including proprietary terms, with or without charge, provided that:
    source code that is licensed under the GPL. Copying such code from
    outside the Module API makes the Module a derivative work of Bleep, and
    it must then be licensed under the GPL. Parts of the repository that
-   carry another licence (for example the MIT-licensed built-in modules and
+   carry another licence (for example the ported built-in modules and
    Bleep Bus) may be reused under that licence.
 
 4. This exception does not cover modifications to Bleep itself. A modified
