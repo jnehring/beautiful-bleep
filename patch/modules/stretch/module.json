@@ -1,0 +1,11 @@
+{
+  "name": "Stretch",
+  "slug": "stretch",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Records its input and plays it back slower or faster without changing the pitch, or freezes a moment; scrub, loop a window, let time wobble.",
+  "colour": "#fb923c",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/stretch.md"
+}
