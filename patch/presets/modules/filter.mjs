@@ -17,4 +17,8 @@ export default [
   ["Slow Phaser", { type: "Phaser 2-Pole ×2", cutoff: 900, resonance: 0.6, mode: "BP", mix: 0.5 }, "Notches that sound best when you modulate the cutoff with an LFO."],
   ["Jet Flanger", { type: "Flanger", cutoff: 700, resonance: 0.75, mix: 0.5 }, "Comb filtering: sweep the cutoff slowly for a jet sound."],
   ["Gritty Drive", { type: "SVF Saturating (Rough)", cutoff: 1400, resonance: 0.4, drive: 0.75 }, "Overdriven, saturating state-variable filter."],
+  ["Wall Squeal", { type: "Sallen-Key Low-pass", cutoff: 900, resonance: 0.85, drive: 0.2 }, "A two-pole low-pass whose resonance rings clean, then bites against the wall when pushed."],
+  ["Vowel Mouth", { type: "Vowel A-E-I-O-U", vowel: 0.35, cutoff: 2000, resonance: 0.3 }, "Four formants: sweep Vowel from A to U, or move Cutoff to change the size of the throat."],
+  ["Hollow Tube", { type: "Comb Negative", cutoff: 330, resonance: 0.8, damping: 0.45, mix: 1 }, "A tuned comb with negative feedback: only the odd harmonics ring, like a closed pipe."],
+  ["Terraced Lows", { type: "Staircase Low-pass", slope: "36 dB", cutoff: 1200, resonance: 0.45 }, "Six 1-pole sections with staggered corners: a steep, stepped slope without a resonant peak."],
 ];

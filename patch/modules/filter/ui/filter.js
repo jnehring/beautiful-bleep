@@ -10,7 +10,17 @@
     "diode", "diodeTanh",
     "phaser1", "phaser2", "flanger",
     "naive", "biquad",
-    "svfAtanh", "svfHyper", "svfRough"];
+    "svfAtanh", "svfHyper", "svfRough",
+    "keyLp", "keyHp", "vowel", "combPos", "combNeg", "stairLp", "stairHp"];
+
+  // Vowel table: formant centre (Hz), level (dB), bandwidth (Hz), as in VaFilters.h.
+  const VOWELS = [
+    { hz: [780, 1180, 2850, 3800], db: [0, -5, -16, -22], bw: [85, 95, 130, 190] },
+    { hz: [430, 1900, 2650, 3450], db: [0, -9, -14, -22], bw: [70, 110, 140, 200] },
+    { hz: [310, 2150, 2950, 3700], db: [0, -13, -15, -24], bw: [60, 120, 150, 210] },
+    { hz: [460, 820, 2700, 3500], db: [0, -4, -18, -24], bw: [75, 90, 130, 190] },
+    { hz: [330, 720, 2450, 3350], db: [0, -8, -20, -26], bw: [65, 90, 120, 180] },
+  ];
 
   // Complex numbers as [re, im].
   const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
@@ -29,7 +39,7 @@
   }
 
   /// Settings → the parameters the response needs (cf. makeCoeffs).
-  function coeffs(type, res, mode, gainDb) {
+  function coeffs(type, res, mode, gainDb, ex) {
     res = Math.min(Math.max(res, 0), 1);
     const q = 0.5 * Math.pow(50, res);
     const c = { R: 0.5 / q, K: Math.pow(10, gainDb / 20) - 1, k: 0, comp: 1, invert: mode < 0.5 ? 1 : -1, scale: 1 };
@@ -47,7 +57,11 @@
     if (type === "phaser2") c.R = 5 * Math.pow(0.02, Math.min(Math.max(mode, 0), 1));
     // The linear curve of a self-oscillating model would be unstable: draw it just below.
     c.k = Math.min(c.k, type.startsWith("diode") ? 16.9 : type.startsWith("ladder") ? 3.97 : c.k);
+    if (type === "keyLp" || type === "keyHp") c.R = (3 - (1 + 2.04 * res)) / 2;  // amplifier gain K: H = 1 / (s² + (3 − K)·s + 1)
     c.R = Math.max(c.R, 0.01);
+    c.ex = ex || {};
+    c.res = res;
+    c.gainDb = gainDb;
     return c;
   }
 
@@ -75,6 +89,42 @@
       const w = morphWeights(mode);
       return add(add(scale(y[4], w[0]), scale(bp, 4 * w[1])), add(scale(hp, w[2]), scale(add(add(y[4], scale(bp, 2)), hp), w[3])));
     };
+    const ex = c.ex;
+    if (type === "vowel") {
+      const bwScale = 2 * Math.pow(0.1, c.res), spacing = 1 + Math.min(Math.max(c.gainDb, -24), 24) / 48, shift = fc / 2000;
+      const pos = Math.min(Math.max(ex.vowel || 0, 0), 1) * 4, i = Math.min(Math.floor(pos), 3), t = pos - i;
+      const a = VOWELS[i], b = VOWELS[i + 1];
+      let sum = [0, 0];
+      for (let n = 0; n < 4; n++) {
+        const f0 = a.hz[n] * Math.pow(b.hz[n] / a.hz[n], t);
+        const f = Math.min(Math.max(1500 * Math.pow(f0 / 1500, spacing) * shift, 40), 18000);
+        const bw = (a.bw[n] + t * (b.bw[n] - a.bw[n])) * bwScale * Math.sqrt(shift);
+        const R = Math.max(0.01, 0.5 * bw / f), amp = 2 * Math.pow(10, (a.db[n] + t * (b.db[n] - a.db[n])) / 20);
+        const sn = [0, freq / f];
+        const den = add(add(mul(sn, sn), scale(sn, 2 * R)), ONE);
+        sum = add(sum, scale(div(sn, den), 2 * R * amp));
+      }
+      return sum;
+    }
+    if (type === "combPos" || type === "combNeg") {
+      const neg = type === "combNeg", k = (neg ? -0.985 : 0.985) * c.res;
+      const fd = 20000 * Math.pow(0.02, Math.min(Math.max(ex.damping || 0, 0), 1));
+      const L = div(ONE, [1, freq / fd]);
+      const phase = Math.atan(fc / fd) / (2 * Math.PI * fc);  // the damping filter's delay at the pitch
+      const D = (neg ? 0.5 : 1) / fc - phase, ph = -2 * Math.PI * freq * D;
+      return div([1 - Math.abs(k), 0], sub(ONE, scale(mul(L, [Math.cos(ph), Math.sin(ph)]), k)));
+    }
+    if (type === "stairLp" || type === "stairHp") {
+      const n = ex.stages || 4, lp = type === "stairLp", edge = Math.sqrt(Math.pow(2, 1 / n) - 1);
+      const base = lp ? fc / edge : fc * edge;
+      let h = ONE;
+      for (let i = 0; i < n; i++) {
+        const fi = base * Math.pow(2, c.res * (i - 0.5 * (n - 1)));
+        const l = div(ONE, [1, freq / fi]);
+        h = mul(h, lp ? l : sub(ONE, l));
+      }
+      return h;
+    }
     const fbMix = (ap) => div(scale(add(ONE, scale(ap, c.invert)), 0.5), sub(ONE, scale(ap, c.k)));
     switch (type) {
       case "svf": case "biquad": case "svfAtanh": case "svfHyper": case "svfRough": return svfMorph();
@@ -82,6 +132,8 @@
       case "svfBandShelf": return add(ONE, scale(svf().bp, 2 * c.R * c.K));
       case "svfPeak": { const o = svf(); return sub(o.lp, o.hp); }
       case "svfAllpass": return sub(ONE, scale(svf().bp, 4 * c.R));
+      case "keyLp": return svf().lp;
+      case "keyHp": return svf().hp;
       case "lp1": case "naive": return lp1();
       case "hp1": return sub(ONE, lp1());
       case "ap1": return sub(scale(lp1(), 2), ONE);
@@ -102,7 +154,7 @@
   BleepViews.register("filter", {
     width: 800,
     layout: [
-      { title: "Algorithm", params: ["type", "mode"] },
+      { title: "Algorithm", params: ["type", "mode", "vowel", "damping", "slope"] },
       { title: "Cutoff", params: ["cutoff", "keytrack", "resonance"] },
       { title: "Drive / Output", params: ["drive", "gain", "mix"] },
     ],
@@ -115,7 +167,12 @@
       const index = Math.round(view.value(st, "type") * ((tp ? tp.steps : TYPES.length) - 1));
       const type = TYPES[index] || "svf";
       const mode = view.value(st, "mode"), mix = view.value(st, "mix"), res = view.value(st, "resonance");
-      const co = coeffs(type, res, mode, -24 + 48 * view.value(st, "gain"));
+      const sp = view.type.params.find((p) => p.id === "slope");
+      const ex = {
+        vowel: view.value(st, "vowel"), damping: view.value(st, "damping"),
+        stages: 1 + Math.round(view.value(st, "slope") * ((sp ? sp.steps : 8) - 1)),
+      };
+      const co = coeffs(type, res, mode, -24 + 48 * view.value(st, "gain"), ex);
       const { g, w, h } = BleepView.fit(cv);
       if (!w || !h) return;
       const th = BleepView.theme(view.root);

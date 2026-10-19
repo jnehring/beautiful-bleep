@@ -108,6 +108,23 @@ juce::var fromJson(const juce::String& json) {
 }
 
 
+/// A choice stored against an earlier list (ParamSpec::legacyChoices) moves to the same name in the
+/// current list. The two grids (k / (old − 1), j / (new − 1)) only meet at 0 and 1, and the ends
+/// of such lists stay in place, so a value on the current grid is left alone.
+static float migrateLegacyChoice(const ParamSpec& p, float x) {
+    const int oldN = (int)p.legacyChoices.size(), newN = (int)p.choices.size();
+    if (oldN < 2 || newN < 2 || oldN == newN) return x;
+    const auto onGrid = [x](int n) {
+        const float r = x * (float)(n - 1);
+        return std::fabs(r - std::round(r)) < 0.005f;
+    };
+    if (onGrid(newN) || !onGrid(oldN)) return x;
+    const int k = (int)std::round(x * (float)(oldN - 1));
+    const auto it = std::find(p.choices.begin(), p.choices.end(), p.legacyChoices[(size_t)k]);
+    if (it == p.choices.end()) return x;
+    return (float)(it - p.choices.begin()) / (float)(newN - 1);
+}
+
 BoardModel parse(const juce::var& doc) {
     const auto& reg = Registry::get();
     BoardModel m;
@@ -124,9 +141,12 @@ BoardModel parse(const juce::var& doc) {
             node.bypassed = (bool)n.getProperty("bypassed", false);
             node.spec = reg.find(node.type);
             if (node.spec)
-                for (const auto& p : node.spec->params)
-                    node.params[p.id] = juce::jlimit(
-                        0.0f, 1.0f, (float)n["params"].getProperty(juce::Identifier(p.id), p.defaultNormalised()));
+                for (const auto& p : node.spec->params) {
+                    float x = juce::jlimit(0.0f, 1.0f,
+                                           (float)n["params"].getProperty(juce::Identifier(p.id), p.defaultNormalised()));
+                    if (!p.legacyChoices.empty()) x = migrateLegacyChoice(p, x);
+                    node.params[p.id] = x;
+                }
             if (n.hasProperty("data")) node.data = juce::JSON::toString(n["data"], true).toStdString();
             node.cellInputs = parseJacks(n["inputs"]);
             node.cellOutputs = parseJacks(n["outputs"]);

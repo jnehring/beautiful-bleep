@@ -10,7 +10,8 @@ zipper noise or clicks. It goes from small rooms through halls to endless,
 slowly drifting pads, and **Freeze** holds whatever is in the reverb for as
 long as you like. Patch an envelope onto *Size* for swelling spaces, an LFO
 onto *Decay* for breathing tails, or a sequencer onto *Freeze* for rhythmic
-holds.
+holds. Switch **Type** to *Spring* and the same knobs drive a different tank:
+a metallic, dispersive, boingy spring-like tail.
 
 ## How does it work?
 
@@ -43,6 +44,39 @@ metallically.
   makes it, 150 % wider.
 - **Mix** blends dry and wet with equal power. *Wet L/R* always carry the
   reverb alone.
+
+### Type: Hall and Spring
+
+**Hall** (the default) is the tank described above. **Spring** replaces it
+with a coil: for each channel a delay line the length of the coil, in a
+feedback loop with 36 chained allpass filters. The allpasses delay the lows
+more than the highs, so on every round trip a note is smeared into a falling
+chirp, and the echoes pile up into the metallic "sproing" of a real spring.
+The two channels are coils of different length, so a mono input still gives
+a stereo tail. A soft limiter (tanh) sits at the loop's write point, so
+loud input makes the tail compress, never explode.
+
+With *Spring* the knobs mean:
+
+- **Size** is the length of the coil: 22 ms per round trip at 0 % (a tight,
+  fast flutter) to 122 ms at 100 % (slow, separate drips). Moving it bends
+  the pitch of the tail.
+- **Diffusion** is the **dispersion**: how strongly the lows lag the highs.
+  At 0 % the coil is only a ringing delay; at 100 % each hit becomes a long,
+  drooping chirp.
+- **Decay**, **Damping** and **Bass** work as in the hall (T60 per round
+  trip, treble loss, low-band T60). Damping at 40 % already gives the dull,
+  wet tone of a coil. The infinite zone holds the coil indefinitely.
+- **Mod Depth** makes it boing: the level of what enters the coil shortens
+  the loop for a moment, so every hit bends upward and then sags back as the
+  hit dies away. A slow wobble of the length (speed: **Mod Rate**) is added.
+  At 0 % the coil is static.
+- **Pre-delay**, **Tone**, **Width**, **Mix**, **Freeze** and **Clear**
+  behave as before. *Quality* and *Seed* only belong to the hall and are
+  hidden while *Spring* is selected.
+
+Switching *Type* goes through the same 10 ms fade as *Quality* and *Seed*:
+the old tail is cut cleanly, the new tank starts empty.
 
 **Freeze** (the gate input, or the latching *Freeze* button in the view):
 within 20 ms the input to the tank fades out and the tail stops decaying.
@@ -82,6 +116,11 @@ meter of the wet level.
 - **Tempo pre-delay:** *Pre-delay Sync* 1/16 or 1/8 keeps the reverb off
   the transient, in time.
 - **Shimmer-ish:** *Mod Depth* high, *Mod Rate* 2–4 Hz, *Tone* bright.
+- **Boing spring:** *Type* Spring, *Size* about 40 %, *Diffusion* 70 % or
+  more, *Mod Depth* 40 %. Feed it short, bright hits (a click, a snare, a
+  plucked tone) and sweep *Size* for a coil being stretched.
+- **Dub throw:** *Type* Spring, *Mix* 100 % on an aux, a gate or a drum
+  trigger onto the input, *Decay* about 3 s; ride *Decay* up for a throw.
 - **Spatial effects:** an audio-rate oscillator onto *Size* turns the tail
   into a frequency-modulated cloud.
 
@@ -102,7 +141,7 @@ Five whole patches show what Verb does. In the standalone app open **File → Pr
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Verb view has 14 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Verb view has 18 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
 
 | Preset | What it does |
 |---|---|
@@ -120,6 +159,10 @@ The preset bar of the Verb view has 14 factory presets. Pick one to set the knob
 | **Infinite Freeze** | Practically endless; gate Freeze to hold a chord. |
 | **Mono Closet** | Very small and mono: a hint of space. |
 | **Eco Wash** | A cheaper eight-line reverb for busy patches. |
+| **Boing Spring** | A bright coil that bends up on every hit and droops back: feed it clicks and snares. |
+| **Long Drip** | A long coil with slow, separate drips; the lows trail behind the highs. |
+| **Tight Flutter** | A short coil: fast metallic flutter with little chirp. |
+| **Held Coil** | An endless, wobbling metal drone; play into it, then lower Decay to let it go. |
 <!-- /generated -->
 
 ## Reference
@@ -144,13 +187,17 @@ The preset bar of the Verb view has 14 factory presets. Pick one to set the knob
 | Clear on Play | Off, On | Off |
 | Seed | 0 – 999 | 1 |
 | Freeze (latch) | Off, On | Off |
+| Type | Hall, Spring | Hall |
 
 - **Decay:** the knob reads seconds; past 60 s (92 %) it is the infinite
   zone, from 96 % fully infinite.
 - **Damping:** high T60 = Decay × (1 − 0.9 × Damping).
 - **Bass:** low T60 (below ≈ 250 Hz) = Decay × Bass.
-- **Quality:** *Eco* costs about half the CPU; *Fine* is denser.
-- **Seed:** the start phases and rates of the internal modulation.
+- **Type:** the tank. *Hall* is the 8/16-line FDN, *Spring* the dispersive
+  coil (see above). Not modulatable. *Diffusion* is the coil's dispersion,
+  *Size* its length (22 – 122 ms) and *Mod Depth* the boing in *Spring*.
+- **Quality:** *Eco* costs about half the CPU; *Fine* is denser. Hall only.
+- **Seed:** the start phases and rates of the internal modulation. Hall only.
 - **Freeze (latch):** the view's Freeze button; saved with the board (the
   reverb itself opens empty).
 - The settings are not modulatable; all knobs are modulation destinations.
@@ -172,5 +219,5 @@ The preset bar of the Verb view has 14 factory presets. Pick one to set the knob
 | Wet L, Wet R | audio | the reverb only (after *Tone* and *Width*) |
 | Env | control, 0 – 1 | envelope follower on the wet signal (5 ms attack, 200 ms release) |
 
-Verb uses about 2.5 MB of memory per instance at 48 kHz. Inside a Voice Cell
+Verb uses about 2.5 MB of memory per instance at 48 kHz (the Spring tank needs less). Inside a Voice Cell
 every voice gets its own reverb, so it's usually better placed after the cell.

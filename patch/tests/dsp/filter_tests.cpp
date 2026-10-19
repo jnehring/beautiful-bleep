@@ -164,6 +164,122 @@ static double filterGain(FilterType type, float hz, double freq, float resonance
     return std::sqrt(out / in);
 }
 
+/// Gain of a sine through the filter for parameters `p` (cutoff in Hz).
+static double gainWith(FilterParams p, float hz, double freq) {
+    FilterDsp f;
+    f.prepare(48000.0);
+    p.cutoff = std::log(hz / 20.0f) / std::log(1000.0f);
+    double in = 0.0, out = 0.0;
+    for (int i = 0; i < 48000; ++i) {
+        const float x = 0.1f * (float)std::sin(2.0 * 3.14159265358979 * freq * i / 48000.0);
+        float frame[2] = {x, x};
+        f.tick(p, 0.0f, frame, 2);
+        if (i >= 24000) {
+            in += (double)x * x;
+            out += (double)frame[0] * frame[0];
+        }
+    }
+    return std::sqrt(out / in);
+}
+
+static FilterParams typed(FilterType t, float resonance = 0.0f) {
+    FilterParams p;
+    p.type = (int)t;
+    p.resonance = resonance;
+    return p;
+}
+
+static void ownAlgorithms() {
+    g_test = "filter own designs";
+    // Saved boards store the type normalised: the first and last algorithms keep their place
+    // (old boards stored SVF Multimode as 0 and Rough as 1.0), the rest are migrated by name.
+    static_assert((int)FilterType::Svf == 0 && (int)FilterType::SvfSaturating == va::kNumTypes - 1, "ends are frozen");
+    static_assert(va::kNumTypes == 32, "32 algorithms");
+    {
+        std::vector<std::string> names;
+        for (const auto& g : va::typeGroups())
+            for (const char* n : g.types) names.emplace_back(n);
+        EXPECT((int)names.size() == va::kNumTypes);
+        const auto& legacy = va::legacyNames();
+        EXPECT(legacy.size() == 25);
+        for (const auto& n : legacy) EXPECT(std::find(names.begin(), names.end(), n) != names.end());
+        EXPECT(names.front() == legacy.front() && names.back() == legacy.back());
+    }
+
+    // Sallen-Key: 12 dB/oct, half amplitude at the cutoff without resonance, a peak with it.
+    EXPECT_NEAR(gainWith(typed(FilterType::SallenKeyLp), 1000.0f, 100.0), 1.0, 0.03);
+    EXPECT_NEAR(gainWith(typed(FilterType::SallenKeyLp), 1000.0f, 1000.0), 0.5, 0.03);
+    EXPECT(gainWith(typed(FilterType::SallenKeyLp), 1000.0f, 8000.0) < 0.03);
+    EXPECT(gainWith(typed(FilterType::SallenKeyLp, 0.9f), 1000.0f, 1000.0) > 4.0);
+    EXPECT_NEAR(gainWith(typed(FilterType::SallenKeyHp), 1000.0f, 15000.0), 1.0, 0.05);
+    EXPECT_NEAR(gainWith(typed(FilterType::SallenKeyHp), 1000.0f, 1000.0), 0.5, 0.03);
+    EXPECT(gainWith(typed(FilterType::SallenKeyHp), 1000.0f, 125.0) < 0.03);
+    EXPECT(gainWith(typed(FilterType::SallenKeyHp, 0.9f), 1000.0f, 1000.0) > 4.0);
+    // At full resonance it rings on its own, held by the wall.
+    for (FilterType t : {FilterType::SallenKeyLp, FilterType::SallenKeyHp}) {
+        FilterDsp f;
+        f.prepare(48000.0);
+        FilterParams p = typed(t, 1.0f);
+        p.cutoff = std::log(1000.0f / 20.0f) / std::log(1000.0f);
+        double late = 0.0, peak = 0.0;
+        for (int i = 0; i < 96000; ++i) {
+            float frame[2] = {i == 0 ? 0.3f : 0.0f, 0.0f};
+            f.tick(p, 0.0f, frame, 2);
+            peak = std::max(peak, (double)std::fabs(frame[0]));
+            if (i >= 72000) late += (double)frame[0] * frame[0];
+        }
+        EXPECT(std::sqrt(late / 24000.0) > 0.05);
+        EXPECT(peak < 4.0 && std::isfinite(peak));
+    }
+
+    // Vowel: A has its first formant near 780 Hz, I near 310 Hz; Cutoff slides them.
+    {
+        FilterParams a = typed(FilterType::Vowel), i = a;
+        i.vowel = 0.5f;  // E sits at 0.25, I at 0.5
+        FilterParams ii = a;
+        ii.vowel = 0.5f;
+        EXPECT(gainWith(a, 2000.0f, 780.0) > 3.0 * gainWith(a, 2000.0f, 310.0));
+        EXPECT(gainWith(ii, 2000.0f, 310.0) > 3.0 * gainWith(ii, 2000.0f, 780.0));
+        EXPECT(gainWith(a, 4000.0f, 1560.0) > 3.0 * gainWith(a, 4000.0f, 780.0));  // an octave up
+        EXPECT(gainWith(a, 2000.0f, 780.0) > 0.5);
+    }
+
+    // Comb: peaks on the cutoff and its multiples (positive) or odd multiples (negative).
+    {
+        FilterParams pos = typed(FilterType::CombPositive, 0.8f), neg = typed(FilterType::CombNegative, 0.8f);
+        pos.damping = neg.damping = 0.0f;
+        EXPECT(gainWith(pos, 1000.0f, 1000.0) > 0.9 && gainWith(pos, 1000.0f, 2000.0) > 0.9);
+        EXPECT(gainWith(pos, 1000.0f, 1000.0) > 3.0 * gainWith(pos, 1000.0f, 1500.0));
+        EXPECT(gainWith(pos, 1000.0f, 1000.0) > gainWith(pos, 1000.0f, 985.0));
+        EXPECT(gainWith(pos, 1000.0f, 1000.0) > gainWith(pos, 1000.0f, 1015.0));
+        EXPECT(gainWith(neg, 1000.0f, 1000.0) > 0.9 && gainWith(neg, 1000.0f, 3000.0) > 0.9);
+        EXPECT(gainWith(neg, 1000.0f, 1000.0) > 3.0 * gainWith(neg, 1000.0f, 2000.0));
+        // Damping dulls the upper peaks but keeps the tuning.
+        pos.damping = 0.9f;
+        EXPECT(gainWith(pos, 500.0f, 500.0) > 1.8 * gainWith(pos, 500.0f, 5000.0));
+        EXPECT(gainWith(pos, 500.0f, 500.0) > gainWith(pos, 500.0f, 492.0));
+        EXPECT(gainWith(pos, 500.0f, 500.0) > gainWith(pos, 500.0f, 508.0));
+    }
+
+    // Staircase: -3 dB at the cutoff for every slope, steeper with more sections.
+    for (int n = 1; n <= 8; ++n) {
+        FilterParams lp = typed(FilterType::StaircaseLp), hp = typed(FilterType::StaircaseHp);
+        lp.slope = hp.slope = n;
+        EXPECT_NEAR(gainWith(lp, 1000.0f, 1000.0), 0.7071, 0.03);
+        EXPECT_NEAR(gainWith(hp, 1000.0f, 1000.0), 0.7071, 0.03);
+        EXPECT_NEAR(gainWith(lp, 1000.0f, 20.0), 1.0, 0.02);
+        const double octave = gainWith(lp, 1000.0f, 8000.0) / gainWith(lp, 1000.0f, 4000.0);
+        EXPECT(octave < std::pow(0.5, 0.5 * n) * 1.2 && octave > std::pow(0.5, n) * 0.8);
+    }
+    {
+        FilterParams lp = typed(FilterType::StaircaseLp, 0.0f);
+        lp.slope = 4;
+        const double tight = gainWith(lp, 1000.0f, 3000.0);
+        lp.resonance = 0.5f;  // spread-out corners: a gentler first step
+        EXPECT(gainWith(lp, 1000.0f, 3000.0) != tight);
+    }
+}
+
 static void filterAlgorithms() {
     g_test = "filter algorithms";
     // Every algorithm stays finite and bounded at full resonance and drive,
@@ -178,6 +294,9 @@ static void filterAlgorithms() {
             p.drive = 1.0f;
             p.morph = morph;
             p.gain = 24.0f;
+            p.vowel = morph;
+            p.damping = morph;
+            p.slope = 1 + (int)(morph * 7.0f);
             std::mt19937 rng(11);
             std::uniform_real_distribution<float> u(-1.0f, 1.0f);
             float peak = 0.0f;
@@ -243,4 +362,5 @@ void runFilterTests() {
     roughFilter();
     filterAliasing();
     filterAlgorithms();
+    ownAlgorithms();
 }

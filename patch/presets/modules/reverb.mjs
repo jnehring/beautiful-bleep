@@ -15,4 +15,8 @@ export default [
   ["Infinite Freeze", { size: 0.7, decay: 60, diffusion: 0.85, damping: 0.3, modDepth: 0.4, width: 1.2, mix: 0.5 }, "Practically endless; gate Freeze to hold a chord."],
   ["Mono Closet", { size: 0.05, decay: 0.3, diffusion: 0.4, damping: 0.6, width: 0, mix: 0.15 }, "Very small and mono: a hint of space."],
   ["Eco Wash", { size: 0.6, decay: 4, quality: "Eco (8 lines)", mix: 0.3 }, "A cheaper eight-line reverb for busy patches."],
+  ["Boing Spring", { type: "Spring", size: 0.4, decay: 2.2, diffusion: 0.75, damping: 0.35, modDepth: 0.55, mix: 0.4 }, "A bright coil that bends up on every hit and droops back: feed it clicks and snares."],
+  ["Long Drip", { type: "Spring", size: 0.95, decay: 3.5, diffusion: 0.9, damping: 0.5, modDepth: 0.2, tone: -0.2, mix: 0.35 }, "A long coil with slow, separate drips; the lows trail behind the highs."],
+  ["Tight Flutter", { type: "Spring", size: 0.05, decay: 1.2, diffusion: 0.3, damping: 0.45, modDepth: 0.1, tone: 0.2, mix: 0.3 }, "A short coil: fast metallic flutter with little chirp."],
+  ["Held Coil", { type: "Spring", size: 0.6, decay: 60, diffusion: 0.85, damping: 0.3, modDepth: 0.4, width: 1.3, mix: 0.5 }, "An endless, wobbling metal drone; play into it, then lower Decay to let it go."],
 ];

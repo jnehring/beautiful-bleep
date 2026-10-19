@@ -59,6 +59,7 @@ Every knob is also an input (`specs.md` section 7.3).
 | Clear on Play | off / on | off |
 | Seed | 0–999 | 1 |
 | Freeze (latch) | off / on | off |
+| Type | Hall, Spring | Hall |
 
 *Decay* is an exponential seconds knob (0.1 s at 0 %, 60 s at 92 %); above
 92 % it is the infinite region (4.3), so the knob's own read-out shows
@@ -270,7 +271,26 @@ saved: it opens empty). No node data.
 - **Mono input** with *In R* unpatched gives decorrelated L/R (correlation
   < 0.5) at Width 100 %, and identical L/R at Width 0 %.
 - **Pre-delay sync:** at 120 BPM, 1/8 gives 250 ms ± 1 sample.
+- **Spring:** T60 follows *Decay*; *Damping* darkens; the lows arrive after the highs with *Diffusion* up; bounded at infinite decay and full modulation; Hall → Spring switches are click-free; *Clear on Play* repeats.
 - The demo types file includes the module (`patch.ui-types`).
+
+### 4.8 Type: Hall and Spring
+
+*Type* chooses the tank; the rest of the chain (pre-delay, Tone, Width, Mix,
+the fades, outputs) is shared. *Hall* is the FDN above and the default, so
+saved boards are unchanged. *Spring* (`dsp/SpringTank.h`) is, per channel, a
+loop of: a delay line (the coil; round trip 22 – 122 ms from *Size*, the right
+channel 13 % longer), 36 first-order allpasses with coefficient −(0.1 + 0.8 ×
+*Diffusion*) (dispersion: the group delay is large at low and small at high
+frequencies, so each pass turns an impulse into a falling chirp), a damping
+low-pass (14 kHz · 0.05^*Damping*: 14 kHz down to 700 Hz), a 220 Hz
+split that scales the low band by the *Bass* ratio, the per-round-trip gain
+10^(−3 · loop / T60), and a tanh at the write point. *Mod Depth* shortens the
+line by up to 12 % with the level of the input (a fast attack, ≈ 80 ms
+release, the "boing") plus a ±3 % wobble at *Mod Rate*. *Freeze* closes the
+input and sets the loop gain to 1 without damping. *Quality* and *Seed* only
+act on the hall and are hidden. Switching *Type* uses the *Quality* fade
+(10 ms out, empty tank, 10 ms in).
 
 ## 9. Later
 
