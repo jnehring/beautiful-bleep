@@ -142,7 +142,7 @@
       { title: "Tone", params: ["damping", "bass", "tone"] },
       { title: "Motion", params: ["modRate", "modDepth"] },
       { title: "Output", params: ["width", "mix"] },
-      { title: "Mode", params: ["preSync", "quality", "clearOnPlay", "seed"] },
+      { title: "Mode", params: ["type", "preSync", "quality", "clearOnPlay", "seed"] },
     ],
     template:
       '<div style="display:flex;gap:8px;flex-wrap:wrap;width:100%">' +

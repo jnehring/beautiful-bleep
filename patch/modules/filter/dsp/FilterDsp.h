@@ -26,6 +26,9 @@ struct FilterParams {
     float gain = 0.0f;      ///< shelf gain in dB, −24..+24
     float mix = 1.0f;       ///< dry/wet
     float keyTrack = 0.0f;  ///< 0..1: octaves of cutoff per octave of pitch
+    float vowel = 0.0f;     ///< 0..1: A, E, I, O, U (Vowel type)
+    float damping = 0.0f;   ///< 0..1: loop damping of the comb types
+    int slope = 4;          ///< 1..8 sections of 6 dB (staircase types)
     int type = 0;           ///< FilterType
 };
 
@@ -75,8 +78,10 @@ public:
         const float hz = cutoffHz(p.cutoff, p.keyTrack * pitch);
         const auto changed = [](float a, float b) { return std::fabs(a - b) > 0.0f; };
         if (changed(hz, last_.cutoff) || changed(p.resonance, last_.resonance) || changed(p.morph, last_.morph) ||
-            changed(p.gain, last_.gain) || type != last_.type) {
-            coeffs_ = va::makeCoeffs((FilterType)type, hz, p.resonance, p.morph, p.gain, sampleRate_);
+            changed(p.gain, last_.gain) || changed(p.vowel, last_.vowel) || changed(p.damping, last_.damping) ||
+            p.slope != last_.slope || type != last_.type) {
+            coeffs_ = va::makeCoeffs((FilterType)type, hz, p.resonance, p.morph, p.gain, sampleRate_, p.vowel, p.damping,
+                                     p.slope);
             last_ = p;
             last_.cutoff = hz;
             last_.type = type;

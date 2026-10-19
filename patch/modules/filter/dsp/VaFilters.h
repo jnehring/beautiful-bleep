@@ -13,6 +13,14 @@
 //           (atanh / hyperbolic) and saturating integrators
 //   §6      phasers (1-pole and 2-pole allpasses) and the flanger
 //
+// Appended after the book's list, in the module's own design:
+//   Sallen-Key 2-pole low-/high-pass: a two-capacitor active topology whose
+//           amplifier gain sets the resonance; the amplifier clips against a
+//           hard-knee wall, so the resonance rings clean and then bites
+//   Vowel   four formant resonators morphed over A-E-I-O-U
+//   Comb    a tuned feedback comb with either polarity and damping in the loop
+//   Staircase  a cascade of 1-pole sections, 6-48 dB, with staggered corners
+//
 // One FilterVoice holds the state of one channel for every algorithm.
 #pragma once
 
@@ -22,6 +30,7 @@
 #include <array>
 #include <cmath>
 #include <initializer_list>
+#include <string>
 #include <vector>
 
 namespace bleep::patch::va {
@@ -39,8 +48,11 @@ enum class FilterType {
     Phaser1, Phaser2, Flanger,
     // Classic digital references (§3)
     NaiveOnePole, Biquad,
+    // Own designs.
+    SallenKeyLp, SallenKeyHp, Vowel, CombPositive, CombNegative, StaircaseLp, StaircaseHp,
     // Nonlinear state variable (§5.4). SvfSaturating must stay last: boards
-    // saved before the algorithm list store it as type 1.0 ("Rough").
+    // saved before the algorithm list store it as type 1.0 ("Rough"). Boards
+    // saved with the 25-algorithm list are migrated by name (legacyNames()).
     SvfAtanh, SvfHyperbolic, SvfSaturating,
     Count
 };
@@ -59,12 +71,36 @@ inline const std::vector<TypeGroup>& typeGroups() {
         {"Diode Ladder (24 dB)", {"Diode Ladder Linear", "Diode Ladder Tanh"}},
         {"Allpass Effects", {"Phaser 1-Pole ×4", "Phaser 2-Pole ×2", "Flanger"}},
         {"Classic Digital", {"Naive 1-Pole Low-pass", "Biquad (Direct Form I)"}},
+        {"Sallen-Key (12 dB)", {"Sallen-Key Low-pass", "Sallen-Key High-pass"}},
+        {"Formant", {"Vowel A-E-I-O-U"}},
+        {"Tuned Comb", {"Comb Positive", "Comb Negative"}},
+        {"Staircase (6-48 dB)", {"Staircase Low-pass", "Staircase High-pass"}},
         {"Nonlinear State Variable", {"SVF Atanh Damping", "SVF Hyperbolic Damping", "SVF Saturating (Rough)"}},
     };
     return groups;
 }
 
+/// The 25 names of the list before the own designs were added, in their old
+/// order: boards stored Type normalised against it (index / 24).
+inline const std::vector<std::string>& legacyNames() {
+    static const std::vector<std::string> names = {
+        "SVF Multimode", "SVF Bandpass (unit gain)", "SVF Band Shelf", "SVF Peaking", "SVF Allpass",
+        "1-Pole Low-pass", "1-Pole High-pass", "1-Pole Allpass", "1-Pole Low Shelf", "1-Pole High Shelf",
+        "Ladder Linear", "Ladder Feedback HP", "Ladder Tanh", "Ladder Hyperbolic", "Ladder Nonlinear Stages",
+        "Diode Ladder Linear", "Diode Ladder Tanh", "Phaser 1-Pole ×4", "Phaser 2-Pole ×2", "Flanger",
+        "Naive 1-Pole Low-pass", "Biquad (Direct Form I)",
+        "SVF Atanh Damping", "SVF Hyperbolic Damping", "SVF Saturating (Rough)"};
+    return names;
+}
+
 constexpr double kPi = 3.14159265358979323846;
+
+/// Sallen-Key amplifier: gain 1 … 3.04 over the Resonance knob (3 is the edge
+/// of self-oscillation), clipping against a wall at ±kWall.
+constexpr double kWall = 2.0;
+constexpr int kFormants = 4, kMaxStages = 8;
+constexpr float kVowelNeutralHz = 2000.0f;  ///< Cutoff at which the formants sit at their natural place
+constexpr float kSpacingCentreHz = 1500.0f; ///< Gain stretches or squeezes the formants around this
 
 /// Prewarped integrator gain ωc·T/2 for a cutoff in Hz (§3.9).
 inline float prewarp(double hz, double sampleRate) noexcept {
@@ -91,7 +127,32 @@ struct Coeffs {
     float delay = 1.0f;    ///< flanger delay in samples
     float hz = 1000.0f;    ///< cutoff in Hz
     float q = 0.707f;      ///< resonance as Q, for the saturating SVF
+    float amp = 1.0f;      ///< Sallen-Key amplifier gain
+    float damp = 1.0f;     ///< comb: instantaneous gain of the damping 1-pole
+    float norm = 1.0f;     ///< comb: output scaling, 1 − |feedback|
+    int stages = 4;        ///< staircase: number of 1-pole sections
+    std::array<float, kMaxStages> stageG{};  ///< staircase: each section's G
+    struct Formant {
+        float g = 0.1f, R = 0.1f, amp = 0.0f;  ///< prewarped centre, damping, level
+    };
+    std::array<Formant, kFormants> formant{};
 };
+
+/// Formant table of the five vowels: centre (Hz), level (dB) and bandwidth (Hz)
+/// of the first four resonances.
+struct VowelFormants {
+    float hz[kFormants], db[kFormants], bw[kFormants];
+};
+inline const std::array<VowelFormants, 5>& vowels() {
+    static const std::array<VowelFormants, 5> v = {{
+        {{780, 1180, 2850, 3800}, {0, -5, -16, -22}, {85, 95, 130, 190}},    // A
+        {{430, 1900, 2650, 3450}, {0, -9, -14, -22}, {70, 110, 140, 200}},   // E
+        {{310, 2150, 2950, 3700}, {0, -13, -15, -24}, {60, 120, 150, 210}},  // I
+        {{460, 820, 2700, 3500}, {0, -4, -18, -24}, {75, 90, 130, 190}},     // O
+        {{330, 720, 2450, 3350}, {0, -8, -20, -26}, {65, 90, 120, 180}},     // U
+    }};
+    return v;
+}
 
 /// Weights of the four morph endpoints (LP, BP, HP, notch), 0 % … 100 %.
 inline std::array<float, 4> morphWeights(float morph) noexcept {
@@ -106,7 +167,7 @@ inline std::array<float, 4> morphWeights(float morph) noexcept {
 
 /// Computes the coefficients. resonance, morph 0..1; gainDb −24..+24.
 inline Coeffs makeCoeffs(FilterType type, float hz, float resonance, float morph, float gainDb,
-                         double sampleRate) noexcept {
+                         double sampleRate, float vowel = 0.0f, float damping = 0.0f, int slope = 4) noexcept {
     Coeffs c;
     c.type = type;
     c.hz = hz;
@@ -146,6 +207,52 @@ inline Coeffs makeCoeffs(FilterType type, float hz, float resonance, float morph
     if (type == FilterType::Phaser2) c.R = 5.0f * std::pow(0.02f, std::clamp(morph, 0.0f, 1.0f));  // notch spacing
     if (type == FilterType::NaiveOnePole) c.naive = std::min(1.0f, (float)(2.0 * kPi * hz / sampleRate));
     if (type == FilterType::Flanger) c.delay = (float)std::max(2.0, sampleRate / std::max(5.0, (double)hz));
+    if (type == FilterType::SallenKeyLp || type == FilterType::SallenKeyHp) c.amp = 1.0f + 2.04f * res;
+    if (type == FilterType::Vowel) {
+        // Resonance narrows the formants; Gain (±24 dB) stretches or squeezes their spacing.
+        const float bwScale = 2.0f * std::pow(0.1f, res);
+        const float spacing = 1.0f + std::clamp(gainDb, -24.0f, 24.0f) / 48.0f;
+        const float shift = hz / kVowelNeutralHz;
+        const float pos = std::clamp(vowel, 0.0f, 1.0f) * 4.0f;
+        const int i = std::min((int)pos, 3);
+        const float t = pos - (float)i;
+        const auto& a = vowels()[(size_t)i];
+        const auto& b = vowels()[(size_t)i + 1];
+        for (int n = 0; n < kFormants; ++n) {
+            const float f0 = a.hz[n] * std::pow(b.hz[n] / a.hz[n], t);
+            const float f = std::clamp(kSpacingCentreHz * std::pow(f0 / kSpacingCentreHz, spacing) * shift, 40.0f, 18000.0f);
+            const float bw = (a.bw[n] + t * (b.bw[n] - a.bw[n])) * bwScale * std::sqrt(shift);
+            auto& fm = c.formant[(size_t)n];
+            fm.g = prewarp(f, sampleRate);
+            fm.R = std::max(0.01f, 0.5f * bw / f);
+            fm.amp = 2.0f * std::pow(10.0f, (a.db[n] + t * (b.db[n] - a.db[n])) / 20.0f);
+        }
+    }
+    if (type == FilterType::CombPositive || type == FilterType::CombNegative) {
+        const bool neg = type == FilterType::CombNegative;
+        const float dampHz = 20000.0f * std::pow(0.02f, std::clamp(damping, 0.0f, 1.0f));
+        const float gd = prewarp(dampHz, sampleRate);
+        c.damp = gd / (1.0f + gd);
+        c.k = (neg ? -0.985f : 0.985f) * res;
+        c.norm = 1.0f - std::fabs(c.k);
+        // The damping filter delays the loop by its phase delay at the comb's
+        // pitch; take it off the line so the peaks stay on the Cutoff.
+        const double w = 2.0 * kPi * std::max(5.0f, hz) / sampleRate;
+        const double phase = std::atan(std::tan(0.5 * w) / gd);
+        const double period = sampleRate / std::max(5.0f, hz) * (neg ? 0.5 : 1.0);
+        c.delay = (float)std::max(2.0, period - phase / w);
+    }
+    if (type == FilterType::StaircaseLp || type == FilterType::StaircaseHp) {
+        c.stages = std::clamp(slope, 1, kMaxStages);
+        // N equal sections: scale the corner so the −3 dB point sits on the cutoff.
+        const double edge = std::sqrt(std::pow(2.0, 1.0 / c.stages) - 1.0);
+        const double base = type == FilterType::StaircaseLp ? hz / edge : hz * edge;
+        for (int n = 0; n < c.stages; ++n) {
+            const double octaves = res * ((double)n - 0.5 * (c.stages - 1));  // Resonance = spread, octaves per section
+            const float g = prewarp(base * std::exp2(octaves), sampleRate);
+            c.stageG[(size_t)n] = g / (1.0f + g);
+        }
+    }
     return c;
 }
 
@@ -194,6 +301,10 @@ public:
 
     void reset() noexcept {
         for (auto& p : p_) p = {};
+        for (auto& p : stair_) p = {};
+        vs1_.fill(0.0f);
+        vs2_.fill(0.0f);
+        skState_ = 0.0f;
         hp_ = {};
         s1_ = s2_ = t1_ = t2_ = 0.0f;
         x1_ = x2_ = y1_ = y2_ = 0.0f;
@@ -245,6 +356,20 @@ public:
                     roughQ_ = c.q;
                 }
                 return dsp::morphSvf(rough_.process(x), c.morph);
+            case FilterType::SallenKeyLp: return sallenKeyLp(c, x);
+            case FilterType::SallenKeyHp: return sallenKeyHp(c, x);
+            case FilterType::Vowel: return vowel(c, x);
+            case FilterType::CombPositive:
+            case FilterType::CombNegative: return comb(c, x);
+            case FilterType::StaircaseLp:
+            case FilterType::StaircaseHp: {
+                float y = x;
+                for (int n = 0; n < c.stages; ++n) {
+                    const float lp = stair_[(size_t)n].tick(y, c.stageG[(size_t)n]);
+                    y = c.type == FilterType::StaircaseLp ? lp : y - lp;
+                }
+                return y;
+            }
             case FilterType::Count: break;
         }
         return x;
@@ -421,10 +546,10 @@ private:
         return 0.5f * (u + c.invert * ap);
     }
 
-    /// §6.2: the allpass chain replaced by a delay of 1/cutoff.
-    float flanger(const Coeffs& c, float x) noexcept {
+    /// The delay line read `delay` samples back (cubic, Hermite).
+    float readDelay(float delay) const noexcept {
         const int size = (int)delay_.size();
-        const float d = std::clamp(c.delay, 2.0f, (float)(size - 3));
+        const float d = std::clamp(delay, 2.0f, (float)(size - 3));
         const int whole = (int)d;
         const float frac = d - (float)whole;
         // at(n): the sample written n + 1 samples before the current one.
@@ -433,11 +558,107 @@ private:
         const float ym1 = at(whole - 2), y0 = at(whole - 1), y1 = at(whole), y2 = at(whole + 1);
         const float c1 = 0.5f * (y1 - ym1), c2 = ym1 - 2.5f * y0 + 2.0f * y1 - 0.5f * y2;
         const float c3 = 0.5f * (y2 - ym1) + 1.5f * (y0 - y1);
-        const float wet = ((c3 * frac + c2) * frac + c1) * frac + y0;
+        return ((c3 * frac + c2) * frac + c1) * frac + y0;
+    }
+    void writeDelay(float v) noexcept {
+        write_ = (write_ + 1) % (int)delay_.size();
+        delay_[(size_t)write_] = v;
+    }
+
+    /// §6.2: the allpass chain replaced by a delay of 1/cutoff.
+    float flanger(const Coeffs& c, float x) noexcept {
+        const float wet = readDelay(c.delay);
         const float u = x + c.k * wet;
-        write_ = (write_ + 1) % size;
-        delay_[(size_t)write_] = u;
+        writeDelay(u);
         return 0.5f * (u + c.invert * wet);
+    }
+
+    /// Tuned comb: a delay of one period (half a period for the negative
+    /// feedback, which makes the peaks fall on the odd harmonics) with a
+    /// damping low-pass in the loop. Normalised to unity gain at the peaks.
+    float comb(const Coeffs& c, float x) noexcept {
+        const float fed = hp_.tick(readDelay(c.delay), c.damp);
+        const float y = x + c.k * fed;
+        writeDelay(y);
+        return y * c.norm;
+    }
+
+    /// The wall: a hard-knee clipper, linear below about 0.6 of kWall,
+    /// bounded by kWall. f'(t) = (1 + |t|^4)^(-5/4) on the unit curve.
+    static double wall(double v) noexcept {
+        const double t = v / kWall, t2 = t * t;
+        return v / std::pow(1.0 + t2 * t2, 0.25);
+    }
+    static double wallD(double v) noexcept {
+        const double t = v / kWall, t2 = t * t;
+        return std::pow(1.0 + t2 * t2, -1.25);
+    }
+    /// Solves F(v) = a·v − rhs − m·wall(arg(v)) = 0 for increasing F, v in [lo, hi].
+    template <typename Arg, typename DArg>
+    static float solveWall(double lo, double hi, double a, double rhs, double m, Arg arg, DArg darg, double guess) noexcept {
+        double v = std::clamp(guess, lo, hi);
+        for (int i = 0; i < 12; ++i) {
+            const double r = a * v - rhs - m * wall(arg(v));
+            if (std::fabs(r) < 1e-7) break;
+            if (r > 0.0) hi = v; else lo = v;
+            double next = v - r / (a - m * wallD(arg(v)) * darg);
+            if (!(next > lo && next < hi)) next = 0.5 * (lo + hi);
+            v = next;
+        }
+        return (float)v;
+    }
+
+    /// Sallen-Key low-pass: R-R-C-C with the second capacitor fed back from the
+    /// amplifier output y = wall(K·u). Capacitor voltage c = v − y integrates
+    /// x − 2v + u (v: the junction, u: the buffer input, a 1-pole of v):
+    ///   H = K / (s² + (3 − K)·s + 1)      (divided by K at the output)
+    /// The zero-delay equation a·v = rhs + y(v) is solved with a bracketed Newton.
+    float sallenKeyLp(const Coeffs& c, float x) noexcept {
+        const double g = c.g, G = c.G, K = c.amp;
+        const double Su = p_[0].offset(c.G);
+        const double a = 1.0 + 2.0 * g - g * G, rhs = skState_ + g * x + g * Su;
+        const double guess = (rhs + K * Su) / (a - K * G);
+        const float v = solveWall((rhs - kWall) / a, (rhs + kWall) / a, a, rhs, 1.0,
+                                  [&](double vv) { return K * (G * vv + Su); }, K * G, std::clamp(guess, -1e3, 1e3));
+        const double u = G * v + Su, y = wall(K * u);
+        const double in = x - 2.0 * v + u;
+        const double cap = skState_ + g * in;
+        skState_ = (float)(cap + g * in);
+        p_[0].commit((float)u);
+        return (float)(y / K);
+    }
+
+    /// Sallen-Key high-pass: C-C-R-R, the dual of the above.
+    ///   H = K·s² / (s² + (3 − K)·s + 1)
+    float sallenKeyHp(const Coeffs& c, float x) noexcept {
+        const double g = c.g, G = c.G, K = c.amp;
+        const double S2 = p_[0].offset(c.G);
+        const double a = 1.0 + G + g, rhs = x - S2 - skState_;
+        // F(v) = a·v − rhs − g·wall(K·((1 − G)·v − S2)): the 'm' is g.
+        const double guess = (rhs - g * K * S2) / (a - g * K * (1.0 - G));
+        const float v = solveWall((rhs - g * kWall) / a, (rhs + g * kWall) / a, a, rhs, g,
+                                  [&](double vv) { return K * ((1.0 - G) * vv - S2); }, K * (1.0 - G),
+                                  std::clamp(guess, -1e3, 1e3));
+        const double c2 = G * v + S2, u = v - c2, y = wall(K * u);
+        skState_ = (float)(skState_ + 2.0 * g * (v - y));
+        p_[0].commit((float)c2);
+        return (float)(y / K);
+    }
+
+    /// Four parallel unit-gain band-passes at the formants.
+    float vowel(const Coeffs& c, float x) noexcept {
+        float sum = 0.0f;
+        for (size_t n = 0; n < (size_t)kFormants; ++n) {
+            const auto& f = c.formant[n];
+            const float r2 = 2.0f * f.R, g = f.g;
+            const float hp = (x - (r2 + g) * vs1_[n] - vs2_[n]) / (1.0f + r2 * g + g * g);
+            const float v1 = g * hp, bp = v1 + vs1_[n];
+            vs1_[n] = bp + v1;
+            const float v2 = g * bp;
+            vs2_[n] += 2.0f * v2;
+            sum += f.amp * r2 * bp;
+        }
+        return sum;
     }
 
     /// §3.11: the bilinear transform of the SVF morph in direct form I.
@@ -458,6 +679,9 @@ private:
     }
 
     std::array<OnePole, 4> p_{};
+    std::array<OnePole, kMaxStages> stair_{};
+    std::array<float, kFormants> vs1_{}, vs2_{};  // formant SVFs
+    float skState_ = 0.0f;                       // Sallen-Key integrator
     OnePole hp_{};
     float s1_ = 0.0f, s2_ = 0.0f, t1_ = 0.0f, t2_ = 0.0f;  // SVF integrators (second SVF: t)
     float x1_ = 0.0f, x2_ = 0.0f, y1_ = 0.0f, y2_ = 0.0f;  // direct form I

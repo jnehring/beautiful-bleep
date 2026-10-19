@@ -753,13 +753,17 @@ Each module is our own design, built from generic modular concepts. Each module 
 | **MIDI Device** | A connected MIDI controller, chosen from a dropdown | **Standalone app only** (section 11). Outputs *Notes* plus mono *Pitch*, *Gate*, *Velocity*, *Trigger*, *Pressure*, *Bend*, *Mod Wheel* and CCs. |
 
 **Multi Filter details:**
-- **Type** dropdown with the 25 algorithms of Zavalishin's *The Art of VA Filter Design* (rev. 1.0.3), all in zero-delay-feedback (TPT) form, grouped by family (the dropdown shows the groups as headings):
+- **Type** dropdown with 32 algorithms, 25 of them from Zavalishin's *The Art of VA Filter Design* (rev. 1.0.3) and 7 own designs, all in zero-delay-feedback (TPT) form, grouped by family (the dropdown shows the groups as headings):
   - *State Variable*: SVF multimode, unit-gain band-pass, band shelf, peaking, allpass.
   - *1-Pole*: low-pass, high-pass, allpass, low shelf, high shelf.
   - *Transistor Ladder* (24 dB): linear, high-pass feedback shaping, tanh and hyperbolic feedback saturators (solved numerically), nonlinear stages. Multimode LP/BP/HP/notch from the ladder taps.
   - *Diode Ladder* (24 dB): linear, tanh feedback saturator.
   - *Allpass Effects*: 1-pole phaser, 2-pole phaser, flanger, each with zero-delay feedback.
   - *Classic Digital*: naive 1-pole, direct form I biquad (for comparison).
+  - *Sallen-Key (12 dB)*: low-pass and high-pass, resonance from the amplifier gain, hard-knee clipper in the amplifier.
+  - *Formant*: four parallel resonators over A-E-I-O-U (*Vowel*); Cutoff moves the formants, Gain their spacing.
+  - *Tuned Comb*: feedback comb with positive or negative feedback, damping in the loop, tuned by Cutoff and the Pitch input.
+  - *Staircase (6-48 dB)*: low-pass and high-pass cascade of 1 – 8 sections with staggered corners (*Slope*, spread from Resonance).
   - *Nonlinear State Variable*: atanh and hyperbolic damping, saturating integrators (the former *Rough*).
 - **Mode** morphs continuously LP → BP → HP → notch on the multimode types; on the phasers and flanger it sets polarity or notch spacing.
 - **Controls:** cutoff, resonance, drive, mode/morph, mix, key track, gain (dB, for the shelves).
@@ -767,7 +771,8 @@ Each module is our own design, built from generic modular concepts. Each module 
 - **Pitch input** for key-tracking.
 - **Envelope follower** on the filtered signal as a `control` output, so audio drives modulation elsewhere.
 - **4× oversampling**, always on: drive and filter run at four times the host rate between the half-band stages of `patch/common/dsp/Oversampler.h`, so the saturating types and hard drive alias far less (a fully driven 7.3 kHz sine at 48 kHz: aliases ≥ 49 dB down, against ~17 dB without). The output is delayed by 71 samples; the dry signal for *Mix* is delayed to match. It is fixed rather than switched by type or drive, since switching would jump the latency mid-signal.
-- The module keeps its saved type id (`filter`), so boards from before keep loading. *Type* is saved normalised: *SVF Multimode* (the former *Clean*) stays first and *SVF Saturating* (the former *Rough*) stays last, so old boards keep their sound. New types go in between.
+- The module keeps its saved type id (`filter`), so boards from before keep loading. *Type* is saved normalised: *SVF Multimode* (the former *Clean*) stays first and *SVF Saturating* (the former *Rough*) stays last, so old boards keep their sound. New types go in between. Boards saved with the 25-algorithm list are migrated by name when they load (`ParamSpec::legacyChoices`, `board::parse`).
+- **Vowel**, **Damping** and **Slope** are extra knobs that only show for the vowel, comb and staircase types.
 
 **Oscillator details:** a triangle core, as in classic through-zero analog oscillators, designed from general principles:
 - **Pitch:** octave (−3…+3), coarse (±12 semitones), fine (±100 cents), plus the 1 V/oct *Pitch* input.

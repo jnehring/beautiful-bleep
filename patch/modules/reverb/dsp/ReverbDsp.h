@@ -5,12 +5,15 @@
 // region, Tone (tilt EQ), Width (mid/side), equal-power Mix, the wet
 // envelope, and click-free Clear / Quality / Seed changes (the wet path fades
 // out over 10 ms, the change happens in silence, and it fades back in).
+// Type picks the tank: the FDN "Hall", or the "Spring" (dsp/SpringTank.h).
 #pragma once
 
+#include "SpringTank.h"
 #include "dsp/Fdn.h"
 #include "dsp/Smoothing.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -29,6 +32,7 @@ struct ReverbParams {
     float width = 1.0f;         ///< 0 … 1.5
     float mix = 0.35f;          ///< dry/wet, equal power
     bool freeze = false;
+    int type = 0;               ///< ReverbDsp::Hall or ReverbDsp::Spring
 };
 
 struct ReverbFrame {
@@ -39,6 +43,7 @@ struct ReverbFrame {
 
 class ReverbDsp {
 public:
+    enum Type { Hall = 0, Spring = 1 };
     static constexpr float kLimitFrom = 0.92f;     ///< the soft limiter engages, T60 leaves 60 s
     static constexpr float kInfiniteFrom = 0.96f;  ///< lossless loop
     static constexpr double kMinT60 = 0.1, kMaxT60 = 60.0;
@@ -61,6 +66,7 @@ public:
         lines_ = lines <= 8 ? 8 : 16;
         seed_ = seed;
         fdn_.prepare(sampleRate, lines_, 1.0, seed);
+        spring_.prepare(sampleRate);
         env_.prepare(sampleRate, 0.005f, 0.2f);
         toneCoef_ = (float)(std::tan(3.14159265358979323846 * 800.0 / sampleRate));
         toneCoef_ = toneCoef_ / (1.0f + toneCoef_);
@@ -73,6 +79,8 @@ public:
     void clearNow() noexcept {
         fdn_.setLineCount(lines_);  // also clears
         fdn_.setSeed(seed_);        // restarts the modulation from the seed
+        spring_.clear();
+        type_ = wantType_;
         toneZ_[0] = toneZ_[1] = 0.0f;
         env_.reset();
         peak_ = 0.0f;
@@ -94,12 +102,20 @@ public:
         wantLines_ = lines <= 8 ? 8 : 16;
         if (wantLines_ != lines_) fadeDir_ = -1;
     }
+    /// Hall or Spring: switching goes through the same fade.
+    void setType(int type) noexcept {
+        wantType_ = type == Spring ? Spring : Hall;
+        if (wantType_ != type_) fadeDir_ = -1;
+    }
     void setSeed(uint64_t seed) noexcept {
         wantSeed_ = seed;
         if (wantSeed_ != seed_) fadeDir_ = -1;
     }
     /// Internal LFOs back to their seeded start (transport start).
-    void restartModulation() noexcept { fdn_.restartModulation(); }
+    void restartModulation() noexcept {
+        fdn_.restartModulation();
+        spring_.restartModulation();
+    }
 
     bool infinite(float knob) const noexcept { return knob >= kInfiniteFrom; }
     /// True when the next tick() reads the slow params (all but size,
@@ -115,9 +131,11 @@ public:
             if (fade_ <= 0.0f) {
                 fade_ = 0.0f;
                 fadeDir_ = 1;
-                if (pendingClear_ || wantLines_ != lines_) {
+                if (pendingClear_ || wantLines_ != lines_ || wantType_ != type_) {
                     lines_ = wantLines_;
+                    type_ = wantType_;
                     fdn_.setLineCount(lines_);
+                    spring_.clear();
                     toneZ_[0] = toneZ_[1] = 0.0f;
                     pendingClear_ = false;
                 }
@@ -134,26 +152,44 @@ public:
             }
         }
 
-        dsp::FdnParams fp;
-        fp.size = p.size;
-        // The ∞ region runs the loop with gains of 1 − 1e−10 or so (T60 1e9 s),
-        // not the tank's own `infinite` mode: that keeps its soft limiter on at
-        // all levels, and the limiter's gentle compression drains a moderate
-        // pad by several dB a minute. Here the limiter only engages while the
-        // tank is hot (wet peak above −6 dBFS, off again below −9 dBFS), which
-        // is what bounds a loop that keeps receiving input.
-        fp.infinite = false;
-        fp.decay = decaySeconds_;
-        fp.limit = p.decay > kLimitFrom && hot_;
-        fp.freeze = p.freeze;
-        fp.damping = p.damping;
-        fp.bass = p.bass;
-        fp.diffusion = p.diffusion;
-        fp.modRate = p.modRate;
-        fp.modDepth = p.modDepth;
-        fp.preDelaySamples = p.preDelaySamples;
         float wl, wr;
-        fdn_.process(f.in[0], f.in[1], wl, wr, fp);
+        if (type_ == Spring) {
+            SpringParams sp;
+            sp.size = p.size;
+            sp.decaySeconds = decaySeconds_;
+            sp.damping = p.damping;
+            sp.bass = p.bass;
+            sp.dispersion = p.diffusion;
+            sp.modRate = p.modRate;
+            sp.modDepth = p.modDepth;
+            sp.preDelaySamples = p.preDelaySamples;
+            sp.freeze = p.freeze;
+            if (springDue_) spring_.update(sp);
+            springDue_ = false;
+            spring_.process(f.in[0], f.in[1], wl, wr, sp);
+            wl *= 1.6f;
+            wr *= 1.6f;
+        } else {
+            dsp::FdnParams fp;
+            fp.size = p.size;
+            // The ∞ region runs the loop with gains of 1 − 1e−10 or so (T60 1e9 s),
+            // not the tank's own `infinite` mode: that keeps its soft limiter on at
+            // all levels, and the limiter's gentle compression drains a moderate
+            // pad by several dB a minute. Here the limiter only engages while the
+            // tank is hot (wet peak above −6 dBFS, off again below −9 dBFS), which
+            // is what bounds a loop that keeps receiving input.
+            fp.infinite = false;
+            fp.decay = decaySeconds_;
+            fp.limit = p.decay > kLimitFrom && hot_;
+            fp.freeze = p.freeze;
+            fp.damping = p.damping;
+            fp.bass = p.bass;
+            fp.diffusion = p.diffusion;
+            fp.modRate = p.modRate;
+            fp.modDepth = p.modDepth;
+            fp.preDelaySamples = p.preDelaySamples;
+            fdn_.process(f.in[0], f.in[1], wl, wr, fp);
+        }
         const float level = std::max(std::fabs(wl), std::fabs(wr));
         peak_ = std::max(level, peak_ * peakRelease_);
         hot_ = hot_ ? peak_ > 0.35f : peak_ > 0.5f;
@@ -178,6 +214,7 @@ private:
     // Tone, Width and Mix gains every 8 samples (steps far below audibility).
     void control(const ReverbParams& p) noexcept {
         countdown_ = 8;
+        springDue_ = true;
         decaySeconds_ = (float)std::min(t60(p.decay), 1e9);
         const float tone = std::clamp(p.tone, -1.0f, 1.0f);
         toneHigh_ = std::pow(10.0f, 0.3f * tone);  // ±6 dB
@@ -190,6 +227,9 @@ private:
 
     double sr_ = 48000.0;
     dsp::Fdn fdn_;
+    SpringTank spring_;
+    int type_ = Hall, wantType_ = Hall;
+    bool springDue_ = true;
     dsp::EnvelopeFollower env_;
     uint64_t seed_ = 1, wantSeed_ = 1;
     int lines_ = 16, wantLines_ = 16, countdown_ = 0, fadeDir_ = 0;

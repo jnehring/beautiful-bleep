@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Verb node (doc/specs/modules/reverb.md): a stereo FDN reverb whose every knob,
 // Size and Decay included, can be modulated at audio rate; infinite decay,
-// Freeze (gate or latch), Clear, tempo-synced pre-delay.
+// Freeze (gate or latch), Clear, tempo-synced pre-delay. Type switches the
+// tank from the hall to a dispersive spring.
 #include "ReverbDsp.h"
 #include "Registry.h"
 #include "dsp/Delay.h"
@@ -29,7 +30,7 @@ const std::vector<std::string>& preSyncNames() {
 class ReverbModule final : public Module {
 public:
     enum { Size, Decay, PreDelay, Diffusion, Damping, Bass, ModRate, ModDepth, Tone, Width, Mix,
-           PreSync, Quality, ClearOnPlay, Seed, FreezeLatch };
+           PreSync, Quality, ClearOnPlay, Seed, FreezeLatch, Type };
     enum { InL, InR, Freeze, Clear };
     enum { OutL, OutR, WetL, WetR, Env };
     enum { ClearButton };
@@ -38,6 +39,7 @@ public:
 
     void prepare(double sampleRate) override {
         Module::prepare(sampleRate);
+        dsp_.setType((int)setting(Type));
         dsp_.prepare(sampleRate, setting(Quality) >= 0.5f ? 16 : 8, (uint64_t)setting(Seed));
         clearHigh_ = false;
     }
@@ -55,6 +57,7 @@ public:
         });
         dsp_.setLines(setting(Quality) >= 0.5f ? 16 : 8);
         dsp_.setSeed((uint64_t)setting(Seed));
+        dsp_.setType((int)setting(Type));
         if (c.transportStarted) {
             if (setting(ClearOnPlay) >= 0.5f) dsp_.clearNow();
             else dsp_.restartModulation();
@@ -121,7 +124,8 @@ static void registerReverbModule(Registry& r) {
     s.category = "Effects/Space & Time";
     s.colour = "#f0abfc";
     s.description = "Stereo FDN reverb built to be played: every knob, Size and Decay included, modulates "
-                    "click-free; small rooms to endless pads, infinite decay and Freeze.";
+                    "click-free; small rooms to endless pads, infinite decay and Freeze; "
+                    "or switch Type to Spring for a metallic, dispersive, boingy tail.";
     auto decay = ParamSpec::exponential("decay", "Decay", (float)ReverbDsp::kMinT60, (float)ReverbDsp::knobTopSeconds(), 2.5f);
     decay.format = ParamSpec::Format::Seconds;
     auto bass = ParamSpec::exponential("bass", "Bass", 0.5f, 2.0f, 1.0f, "\xc3\x97");
@@ -138,10 +142,11 @@ static void registerReverbModule(Registry& r) {
                 ParamSpec::percent("width", "Width", 0.0f, 1.5f, 1.0f),
                 ParamSpec::percent("mix", "Mix", 0.0f, 1.0f, 0.35f),
                 ParamSpec::choice("preSync", "Pre-delay Sync", preSyncNames(), 0),
-                ParamSpec::choice("quality", "Quality", {"Eco (8 lines)", "Fine (16 lines)"}, 1),
+                ParamSpec::choice("quality", "Quality", {"Eco (8 lines)", "Fine (16 lines)"}, 1).when("type", 0, 0),
                 ParamSpec::toggle("clearOnPlay", "Clear on Play", false),
-                ParamSpec::integer("seed", "Seed", 0, 999, 1),
-                ParamSpec::toggle("freeze", "Freeze (latch)", false)};
+                ParamSpec::integer("seed", "Seed", 0, 999, 1).when("type", 0, 0),
+                ParamSpec::toggle("freeze", "Freeze (latch)", false),
+                ParamSpec::choice("type", "Type", {"Hall", "Spring"}, 0)};
     s.inputs = {{"l", "In L", Signal::Audio},
                 {"r", "In R", Signal::Audio},
                 {"freeze", "Freeze", Signal::Gate},

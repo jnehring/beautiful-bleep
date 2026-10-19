@@ -291,6 +291,166 @@ static void decayMapping() {
     EXPECT_NEAR(ReverbDsp::t60(decayKnob(2.5)), 2.5, 1e-4);
 }
 
+/// A spring-type ReverbDsp, ready to run.
+static void prepareSpring(ReverbDsp& d) {
+    d.setType(ReverbDsp::Spring);
+    d.prepare(kSr);
+}
+
+static std::vector<float> springImpulse(const ReverbParams& p, double seconds, float amplitude = 0.05f) {
+    ReverbDsp d;
+    prepareSpring(d);
+    ReverbFrame f;
+    std::vector<float> y;
+    for (int i = 0; i < (int)(seconds * kSr); ++i) {
+        f.in[0] = f.in[1] = i == 0 ? amplitude : 0.0f;
+        d.tick(p, f);
+        y.push_back(0.5f * (f.wet[0] + f.wet[1]));
+    }
+    return y;
+}
+
+/// Energy-weighted mean arrival time (seconds) of the first `seconds`.
+static double centroid(const std::vector<float>& x, double seconds) {
+    double e = 0.0, te = 0.0;
+    for (size_t i = 0; i < x.size() && i < (size_t)(seconds * kSr); ++i) {
+        const double v = (double)x[i] * x[i];
+        e += v;
+        te += v * (double)i / kSr;
+    }
+    return e > 0.0 ? te / e : 0.0;
+}
+
+static void springTail() {
+    TEST("Spring: the tail decays with Decay and is finite and silent at the start");
+    ReverbParams p = wetOnly();
+    p.type = ReverbDsp::Spring;
+    p.decay = decayKnob(2.0);
+    p.damping = 0.0f;
+    p.diffusion = 0.7f;
+    p.modDepth = 0.0f;
+    const auto y = springImpulse(p, 4.0);
+    EXPECT(std::fabs(y[0]) < 1e-3f);
+    const double t60 = measureT60(y);
+    std::printf("  spring T60 2 s: measured %.3f s\n", t60);
+    EXPECT(t60 > 1.2 && t60 < 3.2);
+    EXPECT(rmsRange(y, 0.1, 0.5) > 1e-4);
+    // Damping darkens the tail.
+    p.damping = 1.0f;
+    const auto z = springImpulse(p, 4.0);
+    bleep::dsp::Svf hp;
+    hp.set(3000.0f, 0.7071f, kSr);
+    std::vector<float> hy, hz;
+    bleep::dsp::Svf hp2 = hp;
+    for (size_t i = 0; i < y.size(); ++i) {
+        hy.push_back(hp.process(y[i]).hp);
+        hz.push_back(hp2.process(z[i]).hp);
+    }
+    EXPECT(rmsRange(hz, 0.3, 1.5) < 0.3 * rmsRange(hy, 0.3, 1.5));
+}
+
+static void springDispersion() {
+    TEST("Spring: Diffusion disperses; the lows arrive after the highs (a falling chirp)");
+    ReverbParams p = wetOnly();
+    p.type = ReverbDsp::Spring;
+    p.decay = decayKnob(3.0);
+    p.damping = 0.1f;
+    p.modDepth = 0.0f;
+    p.size = 0.4f;
+    double gap[2];
+    int k = 0;
+    for (float diffusion : {0.0f, 1.0f}) {
+        p.diffusion = diffusion;
+        const auto y = springImpulse(p, 1.5);
+        bleep::dsp::Svf lo, hi;
+        lo.set(350.0f, 0.7071f, kSr);
+        hi.set(3500.0f, 0.7071f, kSr);
+        std::vector<float> low, high;
+        for (float v : y) {
+            low.push_back(lo.process(v).lp);
+            high.push_back(hi.process(v).hp);
+        }
+        gap[k++] = centroid(low, 1.2) - centroid(high, 1.2);
+    }
+    std::printf("  low - high arrival: %.1f ms undispersed, %.1f ms dispersed\n", 1000 * gap[0], 1000 * gap[1]);
+    EXPECT(gap[1] > gap[0] + 0.015);
+}
+
+static void springStability() {
+    TEST("Spring: stays bounded and alive at infinite decay, full modulation and loud input; Freeze holds");
+    for (int mode : {0, 1}) {
+        ReverbParams p = wetOnly();
+        p.type = ReverbDsp::Spring;
+        p.decay = mode == 0 ? 1.0f : decayKnob(2.0);
+        p.modDepth = 1.0f;
+        p.modRate = 8.0f;
+        p.size = 1.0f;
+        ReverbDsp d;
+        prepareSpring(d);
+        ReverbFrame f;
+        std::mt19937 rng(5);
+        std::uniform_real_distribution<float> noise(-1.0f, 1.0f);
+        std::vector<float> y;
+        float peak = 0.0f;
+        for (int i = 0; i < (int)(20.0 * kSr); ++i) {
+            const bool burst = i < (int)(0.3 * kSr);
+            p.freeze = mode == 1 && i >= (int)(0.5 * kSr);
+            f.in[0] = burst ? noise(rng) : 0.0f;
+            f.in[1] = burst ? noise(rng) : 0.0f;
+            d.tick(p, f);
+            peak = std::max({peak, std::fabs(f.wet[0]), std::fabs(f.wet[1])});
+            y.push_back(f.wet[0]);
+            if (!std::isfinite(f.wet[0]) || !std::isfinite(f.wet[1])) break;
+        }
+        EXPECT(std::isfinite(peak) && peak < 4.0f);
+        EXPECT(rmsRange(y, 18.0, 20.0) > 0.02 * rmsRange(y, 1.0, 3.0));
+    }
+}
+
+static void springSwitch() {
+    TEST("Type: Hall is the default, switching is click-free and Clear on Play is repeatable for Spring");
+    EXPECT(ReverbParams{}.type == ReverbDsp::Hall);
+    // Switch Hall -> Spring -> Hall while a tone runs: no step beyond the tone's own.
+    ReverbDsp d;
+    d.prepare(kSr);
+    ReverbParams p;
+    p.mix = 1.0f;
+    ReverbFrame f;
+    float last = 0.0f, maxStep = 0.0f;
+    for (int i = 0; i < 96000; ++i) {
+        d.setType((i / 24000) % 2 ? ReverbDsp::Spring : ReverbDsp::Hall);
+        f.in[0] = f.in[1] = 0.4f * (float)std::sin(i * 0.05);
+        d.tick(p, f);
+        if (i > 100) maxStep = std::max(maxStep, std::fabs(f.out[0] - last));
+        last = f.out[0];
+        EXPECT(std::isfinite(f.out[0]));
+    }
+    EXPECT(maxStep < 0.35f);
+    auto render = [](int prior) {
+        ReverbDsp r;
+        prepareSpring(r);
+        ReverbParams q;
+        ReverbFrame g;
+        std::mt19937 rng((unsigned)prior);
+        std::uniform_real_distribution<float> noise(-0.5f, 0.5f);
+        for (int i = 0; i < 24000; ++i) {
+            g.in[0] = noise(rng);
+            g.in[1] = noise(rng);
+            q.type = ReverbDsp::Spring;
+            r.tick(q, g);
+        }
+        r.clearNow();
+        std::vector<float> y;
+        for (int i = 0; i < 48000; ++i) {
+            g.in[0] = g.in[1] = i < 4800 ? (float)std::sin(i * 0.03) : 0.0f;
+            r.tick(q, g);
+            y.push_back(g.out[0]);
+        }
+        return y;
+    };
+    EXPECT(render(1) == render(2));
+}
+
 int main() {
     decayMapping();
     decayTime();
@@ -302,5 +462,9 @@ int main() {
     seeds();
     monoWidth();
     preDelaySync();
+    springTail();
+    springDispersion();
+    springStability();
+    springSwitch();
     return bleep::test::finish("reverb");
 }

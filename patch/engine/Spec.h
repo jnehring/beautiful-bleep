@@ -53,6 +53,9 @@ struct ParamSpec {
     std::string label;           ///< unit suffix for Format::Number
     std::vector<std::string> choices;
     std::vector<std::string> choiceGroups;  ///< optional: each choice's heading in the dropdown
+    std::vector<std::string> legacyChoices; ///< optional: an earlier, shorter list that boards stored this choice
+                                            ///< against (normalised: index / (n − 1)); Board::parse moves those
+                                            ///< values to the same names in `choices`
     bool modulatable = true;     ///< a knob (input jack) or a plain setting;
                                  ///< choices and integers can be modulatable too (stepped knobs)
     bool cableable = false;      ///< a setting (not modulatable) that a cable may still drive: the module reads it through

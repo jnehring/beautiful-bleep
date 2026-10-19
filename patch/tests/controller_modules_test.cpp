@@ -8,6 +8,7 @@
 #include "Engine.h"
 #include "Registry.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
@@ -337,7 +338,7 @@ void patchbays() {
             BoardModel m;
             NodeModel d = node("d", "dial"), f = node("f", "filter");
             for (const auto& p : d.spec->params) d.params[p.id] = p.defaultNormalised();
-            d.params["value"] = 0.5f;   // halfway: the 13th of 25 types
+            d.params["value"] = 0.5f;   // halfway through the list of types
             d.params["smooth"] = 0.0f;
             for (const auto& p : f.spec->params) f.params[p.id] = p.defaultNormalised();
             f.params["type"] = 0.0f;
@@ -352,7 +353,7 @@ void patchbays() {
             tr.sampleRate = 48000.0;
             program->run(tr, kChunk, true);
             program->run(tr, kChunk, false);
-            const float want = cabled ? 12.0f : 0.0f;
+            const float want = cabled ? std::round(filter->params[(size_t)typeIndex].fromNormalised(0.5f)) : 0.0f;
             EXPECT(modules.count("f") && typeIndex >= 0 && std::fabs(modules["f"]->setting(typeIndex) - want) < 0.5f);
         }
     }
@@ -461,7 +462,37 @@ void keyboard() {
 
 }  // namespace
 
+/// Filter Type was stored against the 25-algorithm list (index / 24); the list now has 32 and boards
+/// saved before still mean the same algorithm.
+namespace {
+void filterTypeMigration() {
+    g_test = "filter type migration";
+    const auto* spec = Registry::get().find("filter");
+    EXPECT(spec != nullptr);
+    if (!spec) return;
+    const ParamSpec& type = spec->params[(size_t)spec->paramIndex("type")];
+    auto indexOf = [&](const char* name) {
+        return (int)(std::find(type.choices.begin(), type.choices.end(), name) - type.choices.begin());
+    };
+    auto load = [&](float stored) {
+        const juce::String json = R"({"format":1,"id":"t","nodes":[{"id":"f","type":"filter","name":"F","x":0,"y":0,"parent":"","params":{"type":)" +
+                                  juce::String(stored, 9) + R"(}}],"cables":[]})";
+        const BoardModel m = board::parse(board::fromJson(json));
+        return m.nodes.empty() ? -1.0f : m.nodes[0].params.at("type");
+    };
+    const int n = (int)type.choices.size();
+    const auto& legacy = type.legacyChoices;
+    EXPECT(n == 32 && legacy.size() == 25);
+    for (size_t k = 0; k < legacy.size(); ++k)  // old: k / 24 → the same name in the new list
+        EXPECT_NEAR(load((float)k / 24.0f), (float)indexOf(legacy[k].c_str()) / (float)(n - 1), 1e-5);
+    for (int j = 0; j < n; ++j)  // new: j / 31 stays
+        EXPECT_NEAR(load((float)j / (float)(n - 1)), (float)j / (float)(n - 1), 1e-6);
+    EXPECT_NEAR(load(1.0f), 1.0f, 1e-6);  // the former Rough is still the last
+}
+}  // namespace
+
 int main() {
+    filterTypeMigration();
     specs();
     dial();
     wheel();

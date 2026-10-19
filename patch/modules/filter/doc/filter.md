@@ -5,8 +5,10 @@
 ## Introduction
 
 The Multi Filter shapes the tone of a sound by removing or emphasising
-frequencies. It's stereo and offers 25 filter algorithms, from clean
-state-variable and ladder filters to shelves, phasers and a flanger. Most of
+frequencies. It's stereo and offers 32 filter algorithms, from clean
+state-variable and ladder filters to shelves, phasers and a flanger, and on
+to a Sallen-Key filter with a hard wall, a vowel filter, a tuned comb and a
+staircase of 1-pole sections. Most of
 them have a low-pass, band-pass, high-pass and notch response that you can
 morph between continuously. It comes with drive and key tracking. An envelope
 output tells the rest of the patch how loud the filtered signal is.
@@ -31,7 +33,13 @@ audio rate. **Type** picks the algorithm; the dropdown groups them by family.
   LP, BP, HP or Notch. A cable into it steps through the four.
 
   On the phasers and the flanger it does something else (see below).
-- **Gain** sets the boost or cut of the shelving types, in dB.
+- **Gain** sets the boost or cut of the shelving types, in dB. On the vowel
+  filter it stretches or squeezes the spacing of the formants.
+- **Vowel** (only shown for the vowel filter) moves through A, E, I, O, U.
+- **Damping** (only shown for the comb types) dulls the loop, so the upper
+  peaks die away.
+- **Slope** (only shown for the staircase types) sets the steepness, 6 to
+  48 dB per octave.
 - **Key Track** moves the cutoff with the *Pitch* input, so high notes are as
   bright as low ones.
 - **Mix** blends the dry input with the filtered signal.
@@ -107,6 +115,49 @@ kept for comparison and for their sound.
 | SVF Hyperbolic Damping | the same with a harder-acting curve: gentler, quieter oscillation |
 | SVF Saturating (Rough) | saturating integrators: growls when driven, gritty and bounded. Drives harder than the others at the same *Drive* |
 
+**Sallen-Key (12 dB/oct)** — a two-pole filter modelled on the
+Sallen-Key topology: two resistors, two capacitors and an amplifier whose
+gain sets the resonance. *Resonance* raises that gain towards the edge of
+self-oscillation (a peak of Q = 1/(3 − gain)). The twist here: the amplifier
+clips against a hard-knee wall, so quiet signals ring cleanly but the
+resonance bites as soon as it hits the wall, and at 100 % the filter holds a
+bounded, self-sustaining tone. *Mode* has no effect.
+
+| Type | What it is |
+|---|---|
+| Sallen-Key Low-pass | 12 dB/oct, half level at the cutoff when *Resonance* is 0 |
+| Sallen-Key High-pass | the mirrored topology |
+
+**Formant**
+
+| Type | What it is |
+|---|---|
+| Vowel A-E-I-O-U | four parallel resonators placed like the first four formants of a voice. *Vowel* morphs A → E → I → O → U (the positions move smoothly, in pitch and level). *Cutoff* is the size of the throat: 2 kHz leaves the formants where they are, an octave up makes a smaller mouth, an octave down a larger one. *Resonance* narrows them (low: breathy, high: ringing). *Gain* stretches (+) or squeezes (−) the spacing of the formants. *Mode* has no effect. Feed it a bright, harmonic source: a saw or a pulse |
+
+**Tuned Comb** — a delay line fed back on itself, tuned by the *Cutoff*:
+the peaks sit at the cutoff frequency and its multiples. Patch Voice In
+*Pitch* into *Pitch* with *Key Track* at 100 % and it plays in tune, like a
+string or a pipe. *Resonance* is the feedback (0 – 98.5 %); the output is
+scaled so the peaks stay at unity. *Damping* lowers the cutoff of a low-pass
+inside the loop, so highs die faster, like a plucked string. Set *Mix* to 100 %.
+
+| Type | What it is |
+|---|---|
+| Comb Positive | positive feedback: peaks at 1×, 2×, 3× … the cutoff, a full harmonic ring |
+| Comb Negative | negative feedback: peaks at 1×, 3×, 5× … the cutoff, hollow like a closed pipe. The cutoff is still the pitch you hear |
+
+**Staircase** — a cascade of 1-pole sections, 1 to 8 of them (*Slope*:
+6, 12, … 48 dB/oct). The cutoff is always the −3 dB point, whatever the slope.
+*Resonance* is not a feedback here but the **spread**: at 0 % all sections
+share the cutoff (the steepest, tightest corner), at higher values their
+corners fan out up to an octave apart, so the slope builds up step by step
+from the cutoff and the shoulder softens. No resonant peak.
+
+| Type | What it is |
+|---|---|
+| Staircase Low-pass | the cascade of low-passes |
+| Staircase High-pass | the cascade of high-passes |
+
 The **Env** output follows the level of the filtered signal (fast 5 ms
 attack, 120 ms release).
 
@@ -130,6 +181,13 @@ it shows the quiet-signal (linear) response.
   sets how many octaves the envelope opens: 30 % ≈ 3 octaves.
 - **Key tracking:** patch Voice In *Pitch* into *Pitch* and set *Key Track*
   to 100 %. The cutoff then follows the keyboard one octave per octave.
+- **Talking pad:** *Vowel A-E-I-O-U*, a saw chord in, a slow Random or an
+  LFO onto *Vowel*; *Resonance* around 30 %.
+- **Plucked string from noise:** *Comb Positive*, *Mix* 100 %, *Resonance*
+  90 %, *Damping* 50 %, a short noise burst in, *Pitch* patched with *Key
+  Track* at 100 %.
+- **Squealing resonance:** *Sallen-Key Low-pass* with *Resonance* at 85 – 100 %
+  and an envelope on *Cutoff*; the wall keeps it bounded.
 - **Filter sweeps:** patch a slow Function or Random onto *Cutoff*, or onto
   *Mode* for a sweep from low-pass to high-pass.
 - **Process a track:** route a track's audio onto the board with an input
@@ -140,7 +198,7 @@ it shows the quiet-signal (linear) response.
 <!-- generated:presets -->
 ## Presets
 
-The preset bar of the Filter view has 16 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
+The preset bar of the Filter view has 20 factory presets. Pick one to set the knobs, then change them to taste; your own presets sit next to them.
 
 | Preset | What it does |
 |---|---|
@@ -160,6 +218,10 @@ The preset bar of the Filter view has 16 factory presets. Pick one to set the kn
 | **Slow Phaser** | Notches that sound best when you modulate the cutoff with an LFO. |
 | **Jet Flanger** | Comb filtering: sweep the cutoff slowly for a jet sound. |
 | **Gritty Drive** | Overdriven, saturating state-variable filter. |
+| **Wall Squeal** | A two-pole low-pass whose resonance rings clean, then bites against the wall when pushed. |
+| **Vowel Mouth** | Four formants: sweep Vowel from A to U, or move Cutoff to change the size of the throat. |
+| **Hollow Tube** | A tuned comb with negative feedback: only the odd harmonics ring, like a closed pipe. |
+| **Terraced Lows** | Six 1-pole sections with staggered corners: a steep, stepped slope without a resonant peak. |
 <!-- /generated -->
 
 <!-- generated:demos -->
@@ -189,7 +251,10 @@ Five whole patches show what Filter does. In the standalone app open **File → 
 | Mix | 0 – 100 % | 100 % |
 | Key Track | 0 – 100 % | 0 % |
 | Gain | −24 – +24 dB | 0 dB |
-| Type | 25 algorithms in 7 groups | SVF Multimode |
+| Vowel | A · E · I · O · U (only with the vowel filter) | A |
+| Damping | 0 – 100 % (only with the comb types) | 30 % |
+| Slope | 6 dB – 48 dB, in steps of 6 (only with the staircase types) | 24 dB |
+| Type | 32 algorithms in 11 groups | SVF Multimode |
 
 - **Cutoff:** the corner (LP, HP) or centre (BP, notch) frequency. Exponential
   over ten octaves; 10 % of modulation ≈ one octave.
@@ -210,7 +275,12 @@ Five whole patches show what Filter does. In the standalone app open **File → 
   nonlinear SVFs. On *Phaser 1-Pole ×4* and *Flanger* it flips the effect's
   polarity at 50 %; on *Phaser 2-Pole ×2* it sets the notch spacing.
 - **Gain:** boost or cut of *1-Pole Low Shelf*, *1-Pole High Shelf* and
-  *SVF Band Shelf*. No effect on the other types.
+  *SVF Band Shelf*; the formant spacing of *Vowel A-E-I-O-U* (±24 dB = ±50 %
+  spacing). No effect on the other types.
+- **Resonance** on the new types: the amplifier gain of the Sallen-Key
+  (Q up to ∞), the formant bandwidth of the vowel filter (10× narrower at the
+  top), the feedback of the comb (up to ±98.5 %), the corner spread of the
+  staircase (up to 1 octave per section).
 - **Mix:** dry/wet. 100 % is only the filter; lower values mix the
   unfiltered input back in. The response curve shows the result.
 - **Key Track:** how far the cutoff follows the *Pitch* input. At 100 % the
