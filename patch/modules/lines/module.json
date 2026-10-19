@@ -1,0 +1,11 @@
+{
+  "name": "Lines",
+  "slug": "lines",
+  "license": "GPL-3.0-or-later",
+  "tagline": "A four-track text tracker where every track has its own speed and length, so the lines drift against each other.",
+  "colour": "#e0856a",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/lines.md"
+}
