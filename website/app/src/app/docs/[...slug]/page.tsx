@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import { SECTIONS } from "@/lib/audiences";
+import { SECTIONS, sharesMenu } from "@/lib/audiences";
 import { AUDIENCES, CATEGORIES, allDocs, categoryTitle, docsFor, findDoc } from "@/lib/content";
 import { notFound } from "next/navigation";
 
@@ -24,7 +24,10 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   const audience = AUDIENCES[doc.audience];
   // Only this audience's docs: the musician and developer documentation stay separate.
   const sections = new Map<string, ReturnType<typeof allDocs>>();
+  // Within it, only the part of the documentation the visitor is in (Bleep Bus, Development, ...): each has its own menu.
+  const here = `/docs/${doc.slug.join("/")}/`;
   for (const d of docsFor(doc.audience)) {
+    if (!sharesMenu(doc.audience, here, `/docs/${d.slug.join("/")}/`)) continue;
     if (!sections.has(d.section)) sections.set(d.section, []);
     sections.get(d.section)!.push(d);
   }

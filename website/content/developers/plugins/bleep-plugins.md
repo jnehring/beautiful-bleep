@@ -23,7 +23,7 @@ MIDI In/Out and Audio In/Out have a **Board** menu (*This set*, *Bleep App*, *Bl
 
 ## How they fit together
 
-- **One engine per process.** Every plugin binary contains the engine code. The first Bleep plugin loaded creates the engine and publishes it in the process; the others use it. That binary pins itself so it is never unloaded. The rules, and how the interface may change, are in the [Engine ABI](../contribute/engine-abi.md): plugins share an engine when their major versions match, and a different minor is fine.
+- **One engine per process.** Every plugin binary contains the engine code. The first Bleep plugin loaded creates the engine and publishes it in the process; the others use it. That binary pins itself so it is never unloaded. The rules, and how the interface may change, are in the [Engine ABI](../development/engine-abi.md): plugins share an engine when their major versions match, and a different minor is fine.
 - **Ticks.** For each host block, the first plugin to run claims the block and runs the compiled board. Plugins exchange their block with the engine through small tagged rings, so a signal from an input port to an output port takes exactly two blocks whatever order Live runs the tracks in. Output ports report that latency to Live.
 - **The board** is a JSON document owned by the engine and saved in Bleep Board's state. The page edits a copy and commits it; the engine sanitises it, compiles it (cells are flattened, cycles get a 32-sample feedback delay) and keeps the undo stack.
 - **Ports** appear on the board on their own and cannot be deleted there. They turn into ghosts, with their cables kept, when their plugin is gone.

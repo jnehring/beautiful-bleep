@@ -1,12 +1,12 @@
 ---
-title: Patch assistant
-description: What the agentic patch assistant is, what it can do, where its code lives, and a map of these pages.
+title: Bleep Assistant
+description: What the agentic Bleep Assistant is, what it can do, where its code lives, and a map of these pages.
 order: 10
 ---
 
-# Patch assistant
+# Bleep Assistant
 
-The **patch assistant** is a chat window in the board in which an AI agent helps with a patch. It answers questions about Bleep, finds out why there is no sound, adds and wires modules, programs sequencers, builds panels and designs a sound from scratch. It is *agentic*: it does not just reply, it looks things up and acts through tools, step by step, until the request is done.
+The **Bleep Assistant** is a chat window in the board in which an AI agent helps with a patch. It answers questions about Bleep, finds out why there is no sound, adds and wires modules, programs sequencers, builds panels and designs a sound from scratch. It is *agentic*: it does not just reply, it looks things up and acts through tools, step by step, until the request is done.
 
 Two rules shape everything else:
 
@@ -24,7 +24,7 @@ Two rules shape everything else:
 | `compose` | Programs a sequencer | "Program an acid line in the step sequencer" |
 | `design` | Builds a whole sound or instrument | "Build an acid synthesizer" |
 
-The assistant is off by default. It is switched on in the website with `BLEEP_AGENT_ENABLED=true` and a provider key; see [Configuration](../contribute/configuration.md) and `website/.env.example`.
+The assistant is off by default. It is switched on in the website with `BLEEP_AGENT_ENABLED=true` and a provider key; see [Configuration](../setup/configuration.md) and `website/.env.example`.
 
 ## Where the code is
 

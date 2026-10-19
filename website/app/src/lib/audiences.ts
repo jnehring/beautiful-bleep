@@ -24,17 +24,20 @@ export const AUDIENCES = {
     home: "/docs/developers/overview/",
     match: ["/docs/developers/"],
     bundles: ["developer-overview-full.md", "quickstart-full.md", "api-reference-full.md", "spec-v0.1-full.md",
-      "developer-modules-full.md", "developer-plugins-full.md", "developer-app-full.md", "developer-web-full.md",
-      "developer-assistant-full.md", "developer-setup-full.md", "developer-contribute-full.md", "llms.txt"],
+      "developer-bus-full.md", "developer-assistant-full.md", "developer-development-full.md", "developer-modules-full.md",
+      "developer-plugins-full.md", "developer-app-full.md", "developer-web-full.md", "developer-script-full.md",
+      "developer-setup-full.md", "llms.txt"],
+    // Each item is a part of the documentation with its own overview page and its own sidebar menu: the sidebar lists
+    // only the sections whose pages match the item the visitor is in (see sectionsOf below).
     menu: [
       { title: "Overview", href: "/docs/developers/overview/", match: ["/docs/developers/overview/"] },
-      { title: "Bleep Bus", href: "/docs/developers/bleep-bus/quickstart/",
+      { title: "Bleep Bus", href: "/docs/developers/bleep-bus/overview/",
         match: ["/docs/developers/bleep-bus/", "/docs/developers/api-reference/", "/docs/developers/spec/"] },
-      { title: "Modules", href: "/docs/developers/modules/overview/", match: ["/docs/developers/modules/"] },
-      { title: "Patch assistant", href: "/docs/developers/assistant/overview/", match: ["/docs/developers/assistant/"] },
-      { title: "Developer setup", href: "/docs/developers/setup/overview/", match: ["/docs/developers/setup/"] },
-      { title: "Contribute", href: "/docs/developers/contribute/overview/",
-        match: ["/docs/developers/contribute/", "/docs/developers/plugins/", "/docs/developers/app/", "/docs/developers/web/"] },
+      { title: "Bleep Assistant", href: "/docs/developers/bleep-assistant/overview/", match: ["/docs/developers/bleep-assistant/"] },
+      { title: "Development", href: "/docs/developers/development/overview/",
+        match: ["/docs/developers/development/", "/docs/developers/plugins/", "/docs/developers/app/", "/docs/developers/web/", "/docs/developers/modules/"] },
+      { title: "Bleep Script", href: "/docs/developers/bleep-script/overview/", match: ["/docs/developers/bleep-script/"] },
+      { title: "Setup and release", href: "/docs/developers/setup/overview/", match: ["/docs/developers/setup/"] },
     ],
   },
 } satisfies Record<string, { title: string; home: string; match: string[]; bundles: string[]; menu: MenuItem[] }>;
@@ -52,13 +55,14 @@ export const SECTIONS: Record<string, string> = {
   "developers/bleep-bus": "Bleep Bus",
   "developers/api-reference": "Bleep Bus: API reference",
   "developers/spec": "Bleep Bus: specification",
-  "developers/modules": "Modules",
-  "developers/assistant": "Patch assistant",
-  "developers/setup": "Developer setup",
-  "developers/contribute": "Contribute",
+  "developers/bleep-assistant": "Bleep Assistant",
+  "developers/development": "Development",
   "developers/plugins": "Plugins",
   "developers/app": "Standalone app",
   "developers/web": "Web",
+  "developers/modules": "Modules",
+  "developers/bleep-script": "Bleep Script",
+  "developers/setup": "Setup and release",
 };
 const SECTION_KEYS = Object.keys(SECTIONS);
 /** Position of a section in the sidebar; the spec versions sit with the spec, everything else (module categories) last. */
@@ -77,6 +81,14 @@ export const isModulesPath = (path: string) => matches(path, MODULES_MATCH);
 export function audienceOf(path: string): Audience | undefined {
   if (isModulesPath(path)) return undefined;
   return (Object.keys(AUDIENCES) as Audience[]).find((a) => matches(path, AUDIENCES[a].match));
+}
+
+/** Whether a doc page belongs to the sidebar menu of the menu item the visitor is in (the musicians' docs have one menu). */
+export function sharesMenu(audience: Audience, current: string, other: string): boolean {
+  const menu: MenuItem[] = AUDIENCES[audience].menu;
+  if (audience === "musicians") return true;
+  const item = menu.find((m) => isActive(current, m));
+  return !item || isActive(other, item);
 }
 
 export function isActive(path: string, item: MenuItem): boolean {

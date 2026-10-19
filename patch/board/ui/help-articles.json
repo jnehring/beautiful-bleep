@@ -120,46 +120,10 @@
   "path": "/docs/developers/overview/"
  },
  {
-  "group": "Developers",
-  "title": "Patch assistant",
-  "description": "What the agentic patch assistant is, what it can do, where its code lives, and a map of these pages.",
-  "path": "/docs/developers/assistant/overview/"
- },
- {
-  "group": "Developers",
-  "title": "Assistant architecture",
-  "description": "The pieces of the patch assistant (board, website API, bleep-agent library, model provider, built data) and how they fit.",
-  "path": "/docs/developers/assistant/architecture/"
- },
- {
-  "group": "Developers",
-  "title": "How a turn works",
-  "description": "One assistant turn from request to events: routing, the agent loop, tool calls, live tools with pause and resume, and the step budget.",
-  "path": "/docs/developers/assistant/agent-flow/"
- },
- {
-  "group": "Developers",
-  "title": "Skills and tools",
-  "description": "The six skills, the tools each one is offered, and how the prompts and tool definitions are kept small and cache-friendly.",
-  "path": "/docs/developers/assistant/skills-and-tools/"
- },
- {
-  "group": "Developers",
-  "title": "Edits and changesets",
-  "description": "How the assistant changes a patch safely: typed operations, validation against the catalog, changesets and undo, and the simulator behind \"why is there no sound\".",
-  "path": "/docs/developers/assistant/edits-and-changesets/"
- },
- {
-  "group": "Developers",
-  "title": "Documentation search",
-  "description": "How the docs skill finds the right pages: heading-based chunks, a keyword index plus embeddings, rank fusion, and a version check.",
-  "path": "/docs/developers/assistant/documentation-search/"
- },
- {
-  "group": "Developers",
-  "title": "Benchmark and results",
-  "description": "The assistant benchmark (187 cases, six skills, simulated browser, deterministic checks), how to run and compare it, and the results of the versions so far.",
-  "path": "/docs/developers/assistant/benchmark/"
+  "group": "Bleep Bus",
+  "title": "Bleep Bus",
+  "description": "What Bleep Bus is, who it is for, and a map of the quickstart, API reference, specification, conformance suite and RFC process.",
+  "path": "/docs/developers/bleep-bus/overview/"
  },
  {
   "group": "Bleep Bus",
@@ -318,6 +282,84 @@
   "path": "/docs/developers/spec/v0.1/08-versioning/"
  },
  {
+  "group": "Bleep Assistant",
+  "title": "Bleep Assistant",
+  "description": "What the agentic Bleep Assistant is, what it can do, where its code lives, and a map of these pages.",
+  "path": "/docs/developers/bleep-assistant/overview/"
+ },
+ {
+  "group": "Bleep Assistant",
+  "title": "Assistant architecture",
+  "description": "The pieces of the Bleep Assistant (board, website API, bleep-agent library, model provider, built data) and how they fit.",
+  "path": "/docs/developers/bleep-assistant/architecture/"
+ },
+ {
+  "group": "Bleep Assistant",
+  "title": "How a turn works",
+  "description": "One assistant turn from request to events: routing, the agent loop, tool calls, live tools with pause and resume, and the step budget.",
+  "path": "/docs/developers/bleep-assistant/agent-flow/"
+ },
+ {
+  "group": "Bleep Assistant",
+  "title": "Skills and tools",
+  "description": "The six skills, the tools each one is offered, and how the prompts and tool definitions are kept small and cache-friendly.",
+  "path": "/docs/developers/bleep-assistant/skills-and-tools/"
+ },
+ {
+  "group": "Bleep Assistant",
+  "title": "Edits and changesets",
+  "description": "How the assistant changes a patch safely: typed operations, validation against the catalog, changesets and undo, and the simulator behind \"why is there no sound\".",
+  "path": "/docs/developers/bleep-assistant/edits-and-changesets/"
+ },
+ {
+  "group": "Bleep Assistant",
+  "title": "Documentation search",
+  "description": "How the docs skill finds the right pages: heading-based chunks, a keyword index plus embeddings, rank fusion, and a version check.",
+  "path": "/docs/developers/bleep-assistant/documentation-search/"
+ },
+ {
+  "group": "Bleep Assistant",
+  "title": "Benchmark and results",
+  "description": "The assistant benchmark (187 cases, six skills, simulated browser, deterministic checks), how to run and compare it, and the results of the versions so far.",
+  "path": "/docs/developers/bleep-assistant/benchmark/"
+ },
+ {
+  "group": "Development",
+  "title": "Development",
+  "description": "Work on Bleep itself: the plugins in Live, the standalone app, Bleep Play in the browser, modules, and the engine ABI that ties them together.",
+  "path": "/docs/developers/development/overview/"
+ },
+ {
+  "group": "Development",
+  "title": "Engine ABI",
+  "description": "How Bleep plugins in one process share a single engine, and the rules for changing its interface.",
+  "path": "/docs/developers/development/engine-abi/"
+ },
+ {
+  "group": "Plugin developers",
+  "title": "Plugin developers",
+  "description": "Two kinds of plugin work: Bleep Bus plugins in any DAW, and the Bleep plugins in Ableton Live.",
+  "path": "/docs/developers/plugins/overview/"
+ },
+ {
+  "group": "Plugin developers",
+  "title": "Bleep plugins",
+  "description": "The plugins in Live, how they share one engine, how to build and reload them, and how they are released.",
+  "path": "/docs/developers/plugins/bleep-plugins/"
+ },
+ {
+  "group": "Standalone app developers",
+  "title": "Standalone app",
+  "description": "Build, run and extend the Bleep App: the board without a DAW, with its own MIDI ports, Link and bridge server.",
+  "path": "/docs/developers/app/standalone-app/"
+ },
+ {
+  "group": "Web developers",
+  "title": "Web developers",
+  "description": "Bleep Play: the board running entirely in the browser, how it is built and hosted, and how it connects to the app.",
+  "path": "/docs/developers/web/bleep-play/"
+ },
+ {
   "group": "Module developers",
   "title": "Module ABI",
   "description": "The contract between a host and a module: one standalone WebAssembly file, its exports, buffers and versioning.",
@@ -360,57 +402,27 @@
   "path": "/docs/developers/modules/publishing/"
  },
  {
-  "group": "Developer setup",
+  "group": "Bleep Script",
+  "title": "Bleep Script",
+  "description": "Write modules, message routing and generated patches in code: what Bleep Script is, how it compiles, and where it stands.",
+  "path": "/docs/developers/bleep-script/overview/"
+ },
+ {
+  "group": "Setup and release",
   "title": "Developer setup",
   "description": "Set up your computer to write modules, change the plugins, the app or Bleep Play, or work on the website: tools, one-time steps and a check that everything works.",
   "path": "/docs/developers/setup/overview/"
  },
  {
-  "group": "Developer setup",
+  "group": "Setup and release",
   "title": "Build, release and upload",
   "description": "Build and publish the standalone app, the plugins, the modules and the web board, and run the website, with copy-paste commands.",
   "path": "/docs/developers/setup/build-and-release/"
  },
  {
-  "group": "Contribute",
-  "title": "Contribute",
-  "description": "Work on Bleep itself: the plugins, the standalone app, Bleep Play, and how to configure them.",
-  "path": "/docs/developers/contribute/overview/"
- },
- {
-  "group": "Contribute",
-  "title": "Engine ABI",
-  "description": "How Bleep plugins in one process share a single engine, and the rules for changing its interface.",
-  "path": "/docs/developers/contribute/engine-abi/"
- },
- {
-  "group": "Contribute",
+  "group": "Setup and release",
   "title": "Configuration (.env)",
   "description": "Every setting in website/.env: what it does, its default, and what a production installation needs.",
-  "path": "/docs/developers/contribute/configuration/"
- },
- {
-  "group": "Plugin developers",
-  "title": "Plugin developers",
-  "description": "Two kinds of plugin work: Bleep Bus plugins in any DAW, and the Bleep plugins in Ableton Live.",
-  "path": "/docs/developers/plugins/overview/"
- },
- {
-  "group": "Plugin developers",
-  "title": "Bleep plugins",
-  "description": "The plugins in Live, how they share one engine, how to build and reload them, and how they are released.",
-  "path": "/docs/developers/plugins/bleep-plugins/"
- },
- {
-  "group": "Standalone app developers",
-  "title": "Standalone app",
-  "description": "Build, run and extend the Bleep App: the board without a DAW, with its own MIDI ports, Link and bridge server.",
-  "path": "/docs/developers/app/standalone-app/"
- },
- {
-  "group": "Web developers",
-  "title": "Web developers",
-  "description": "Bleep Play: the board running entirely in the browser, how it is built and hosted, and how it connects to the app.",
-  "path": "/docs/developers/web/bleep-play/"
+  "path": "/docs/developers/setup/configuration/"
  }
 ]

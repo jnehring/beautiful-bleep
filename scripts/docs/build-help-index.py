@@ -39,12 +39,14 @@ GROUPS = {  # folder under website/content -> heading, in the order of the secti
     "developers/bleep-bus": "Bleep Bus",
     "developers/api-reference": "API reference",
     "developers/spec": "Specification",
-    "developers/modules": "Module developers",
-    "developers/setup": "Developer setup",
-    "developers/contribute": "Contribute",
+    "developers/bleep-assistant": "Bleep Assistant",
+    "developers/development": "Development",
     "developers/plugins": "Plugin developers",
     "developers/app": "Standalone app developers",
     "developers/web": "Web developers",
+    "developers/modules": "Module developers",
+    "developers/bleep-script": "Bleep Script",
+    "developers/setup": "Setup and release",
 }
 
 

@@ -109,7 +109,7 @@ Open http://localhost:8000. This is a plain static preview; the board installs i
 The website is the docs, the homepage, the board at `/play/`, the accounts API and the library, all started with Docker Compose from `website/`.
 
 1. **Docker** with Compose 2.24 or newer (`docker compose version`). The dev stack uses `!reset`, which older versions reject.
-2. **Configuration.** Copy the template and fill it in (database password and storage secret are required; everything is described in [Configuration](../contribute/configuration.md)):
+2. **Configuration.** Copy the template and fill it in (database password and storage secret are required; everything is described in [Configuration](../setup/configuration.md)):
 
    ```bash
    cp website/.env.example website/.env

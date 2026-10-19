@@ -98,4 +98,4 @@ These are not in `.env.example`. They are read by the API or by scripts, mostly 
 |---|---|---|
 | `BLEEP_DATABASE_URL` | local PostgreSQL URL | Database connection. Compose builds it from `POSTGRES_PASSWORD`; set it yourself only when running the API directly (`uvicorn`, tests use in-memory SQLite). |
 | `BLEEP_KEY_PASSPHRASE` | unset | Passphrase for an encrypted developer or issuer key, read by the signing tools. |
-| `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL` | unset | Used by the release script to publish to a library. See [build and release](../setup/build-and-release.md). |
+| `BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL` | unset | Used by the release script to publish to a library. See [build and release](build-and-release.md). |

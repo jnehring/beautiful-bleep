@@ -1,6 +1,6 @@
 ---
 title: Assistant architecture
-description: The pieces of the patch assistant (board, website API, bleep-agent library, model provider, built data) and how they fit.
+description: The pieces of the Bleep Assistant (board, website API, bleep-agent library, model provider, built data) and how they fit.
 order: 20
 ---
 
