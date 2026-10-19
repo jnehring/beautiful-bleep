@@ -152,7 +152,7 @@ public:
     };
     enum { Notes, Trigger, Gate, SliceIn, PitchIn, SpeedIn, VelocityIn, Stop, Step, ClockIn, InL, InR, RecIn };
     enum { OutL, OutR, EndOut, SliceOut, PlayheadOut, ActiveOut, Voice1 };
-    enum { NextButton, RandomButton, StopButton, RecordButton, AuditionCommand };
+    enum { NextButton, RandomButton, StopButton, RecordButton, AuditionCommand, PauseCommand };
     static constexpr double kRecSeconds = 20.0;  ///< longest recording
 
     using Module::Module;
@@ -183,6 +183,7 @@ public:
 
     void command(const std::string& id, float value) override {
         if (id == "audition") postCommand(AuditionCommand, value);
+        else if (id == "pause") postCommand(PauseCommand, value);
         else Module::command(id, value);
     }
 
@@ -348,6 +349,7 @@ public:
                 case NextButton: dsp_.nextSlice(); break;
                 case RandomButton: dsp_.randomSlice(++randomCount_); break;
                 case StopButton: dsp_.stopAll(); break;
+                case PauseCommand: dsp_.setPaused(!dsp_.paused()); break;
                 case AuditionCommand: dsp_.audition((int)std::lround(cmd.value), p); break;
                 default: break;
             }

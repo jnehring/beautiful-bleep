@@ -235,6 +235,7 @@ public:
     }
     /// Releases every voice (Stop).
     void stopAll() {
+        paused_ = false;
         for (auto& v : voices_)
             if (v.active) release(v);
         held_ = 0;
@@ -278,8 +279,14 @@ public:
         if (!s_ || s_->frames < 2) return;
         SamplerParams q = p;
         q.mode = sampler::ModeOneShot;
+        paused_ = false;
+        forceMode_ = true;  // a slice set to Loop (or any mode of its own) is auditioned once too
         startGroup(-2, i, 0.0f, 1.0f, false, q);
+        forceMode_ = false;
     }
+    /// Freezes (or resumes) every playhead in place.
+    void setPaused(bool on) noexcept { paused_ = on; }
+    bool paused() const noexcept { return paused_; }
 
     // ---- state for the view ---------------------------------------------------
     int activeVoices() const noexcept {
@@ -339,7 +346,7 @@ public:
         for (int i = 0; i < sampler::kVoices; ++i) out.voice[i] = 0.0f;
         int active = 0;
         bool ended = false;
-        if (s_) {
+        if (s_ && !paused_) {
             for (auto& v : voices_) {
                 if (!v.active) continue;
                 float l, r;
@@ -373,6 +380,7 @@ public:
     }
 
 private:
+    bool paused_ = false, forceMode_ = false;
     struct Held {
         int note = 0;
         float pitch = 0.0f, velocity = 0.0f;
@@ -486,7 +494,7 @@ private:
         v.slice = slice;
         v.layer = layer;
         v.choke = slice >= 0 ? cfg.choke : 0;
-        v.mode = cfg.mode >= 0 && slice >= 0 ? cfg.mode : p.mode;
+        v.mode = cfg.mode >= 0 && slice >= 0 && !forceMode_ ? cfg.mode : p.mode;
         v.noteSemis = semis;
         v.extraSemis = (slice >= 0 ? cfg.transpose : 0.0f) + (float)layer * p.layerPitch;
         v.reverse = slice >= 0 && cfg.reverse;

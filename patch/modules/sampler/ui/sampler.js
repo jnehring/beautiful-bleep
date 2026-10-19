@@ -311,6 +311,7 @@
     st.id = "sa-style";
     st.textContent = ".bleep-view.sa .bv-knob{width:64px}.bleep-view.sa .bv-knob svg{width:38px;height:38px}" +
       ".bleep-view.sa .bv-sec-knobs{gap:2px 0;align-items:flex-start}.sa-beat-btns{display:flex;gap:3px;margin-top:2px}.sa-beat-btns button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:10px;padding:0 5px;cursor:pointer}.sa-beat-btns button:hover{border-color:var(--accent)}.bleep-view.sa .bv-label{font-size:9px;letter-spacing:.02em;text-align:center;white-space:normal;line-height:1.15;min-height:2.3em;display:flex;align-items:center;justify-content:center}" +
+      ".sa-transport{display:flex;gap:4px;margin:4px 0 2px}.sa-transport button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;font:inherit;font-size:11px;padding:3px 12px;cursor:pointer}.sa-transport button:hover{border-color:var(--accent)}" +
       ".sa-tabs{display:flex;gap:4px;margin:2px 0 -2px}.sa-tabs button{background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:6px 6px 0 0;font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 12px;cursor:pointer}.sa-tabs button.on{color:var(--text);border-color:var(--accent);background:var(--panel-2)}.sa-tabs button.rec{color:#f87171}" +
       ".bleep-view.sa:not(.bv-part) .sa-hide{display:none !important}.bleep-view.sa .bv-button.on{background:#b91c1c;color:#fff}" +
       ".sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:11px}" +
@@ -497,8 +498,25 @@
         b.addEventListener("click", () => showTab(i));
         bar.appendChild(b);
       });
+      // Transport: Play auditions the selected slice once, Pause freezes the playheads, Stop releases them.
+      const transport = document.createElement("div");
+      transport.className = "sa-transport";
+      for (const [label, title, fn] of [
+        ["▶ Play", "Play the selected slice (the whole sample without slices) once", () => view.api.command("audition", data(view).current)],
+        ["❚❚ Pause", "Freeze the playheads; press again to continue", () => view.api.command("pause", 0)],
+        ["■ Stop", "Release every playhead", () => view.api.command("stop", 0)],
+      ]) {
+        const b = document.createElement("button");
+        b.textContent = label;
+        b.title = title;
+        b.addEventListener("click", fn);
+        transport.appendChild(b);
+      }
+      const oldStop = view.root.querySelector('[data-command="stop"]');
+      if (oldStop) oldStop.style.display = "none";
       const controls = view.root.querySelector(".bv-controls");
       if (controls) {
+        controls.parentNode.insertBefore(transport, controls);
         controls.parentNode.insertBefore(bar, controls);
         controls.parentNode.insertBefore(slicesEl, controls);
       }
