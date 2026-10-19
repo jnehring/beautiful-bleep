@@ -460,7 +460,7 @@
   }
 
   /// The board as one flat project: nodes, cables and panels with description, tags and what it needs.
-  async function currentProject(description) {
+  async function currentProject(description, noMedia) {
     const board = host.board();
     if (!board) return null;
     const preset = { format: 1, description: description || "", tags: [], nodes: clone(board.nodes), cables: clone(board.cables) };
@@ -471,7 +471,7 @@
     const made = C.merge(C.collect(preset.nodes), current && current.preset && current.preset.credits, from ? [from] : []);
     if (made.length) preset.credits = made;
     // The audio the board's modules use goes along (common/ui/bleep-media.js); one that cannot be read is left out, with a note.
-    const lost = await window.BleepMedia.attach(preset, preset.nodes, (id) => native("readMedia", id));
+    const lost = noMedia ? [] : await window.BleepMedia.attach(preset, preset.nodes, (id) => native("readMedia", id));
     if (lost.length) say(`${lost.length === 1 ? "An audio file" : lost.length + " audio files"} could not be read and ${lost.length === 1 ? "is" : "are"} not in the project.`);
     if ((board.panels || []).length) preset.panels = clone(board.panels);   // Show on load stays: a project opens with its panel
     const needs = libraryView() ? await P.BleepLibraryView.needsFor(preset.nodes) : {};
@@ -505,6 +505,19 @@
     const doc = { format: 2, app: "Bleep", name, description, tags, tempo, needs, credits, media, board };
     // Through the page's lock: a script-made click is otherwise dropped (common/ui/bleep-bridge.js).
     saveFile(JSON.stringify(doc, null, 1), name.replace(/[^\w .-]+/g, "_") + ".bleepboard", "application/json");
+  }
+
+  /// Edit → Copy Patch: the board as project JSON on the clipboard (audio files left out), to paste into a chat.
+  async function copyPatch() {
+    const preset = await currentProject(current && current.preset ? current.preset.description : "", true);
+    if (!preset) return;
+    const text = JSON.stringify(preset, null, 1);
+    try { await navigator.clipboard.writeText(text); return; } catch (e) { /* denied or insecure context */ }
+    const ta = el("textarea");
+    ta.value = text; ta.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e) { /* nothing more to try */ }
+    ta.remove();
   }
 
   /// Open from a file (web): a `.bleepboard` project, a Library file or a bare board.
@@ -645,6 +658,7 @@
     async save() { await open(); if (!host.cells) showSave(); },
     /// Download Project and Open from a file: the browser board only.
     download,
+    copyPatch,
     openFile,
     newPatch,
     canSave,

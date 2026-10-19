@@ -1,0 +1,11 @@
+{
+  "name": "Math",
+  "slug": "math",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Two rows of arithmetic on signals",
+  "colour": " add, subtract, multiply, divide, power, min, max.:#fcd34d",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/math.md"
+}

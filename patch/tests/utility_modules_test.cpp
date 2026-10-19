@@ -44,6 +44,7 @@ struct Rig {
     std::vector<const float*> pp, ip;
     std::vector<float*> op;
     std::unique_ptr<bool[]> connected;
+    std::unique_ptr<bool[]> outConnected;
     std::vector<NoteBuffer> notes, notesOutBuf;
     std::vector<const NoteBuffer*> np;
     std::vector<NoteBuffer*> nop;
@@ -59,6 +60,8 @@ struct Rig {
         notesOutBuf.resize(s.outputs.size());
         for (auto& b : notesOutBuf) nop.push_back(&b);
         connected.reset(new bool[s.inputs.size() + 1]());
+        outConnected.reset(new bool[s.outputs.size() + 1]());
+        std::fill(outConnected.get(), outConnected.get() + s.outputs.size(), true);
         for (size_t i = 0; i < s.params.size(); ++i) set(s.params[i].id, s.params[i].def);
         for (auto& v : params) pp.push_back(v.data());
         for (auto& v : inputs) ip.push_back(v.data());
@@ -94,6 +97,7 @@ struct Rig {
         c.params = pp.data();
         c.inputs = ip.data();
         c.inputConnected = connected.get();
+        c.outputConnected = outConnected.get();
         c.notesIn = np.data();
         c.notesOut = nop.data();
         c.port = port;
@@ -112,7 +116,7 @@ struct Rig {
 };
 
 void specs() {
-    const char* types[] = {"attenuverter", "cv-mixer", "audio-mixer", "multiplier", "crossfader",
+    const char* types[] = {"attenuverter", "cv-mixer", "audio-mixer", "multiplier", "math", "cv-to-gate", "crossfader",
                            "logic",        "quantizer", "switch",     "notes-to-cv", "level-meter", "monitor"};
     for (const char* t : types) {
         g_test = t;
@@ -180,6 +184,67 @@ void multiplier() {
     r.set("oversampling", 2.0f);
     r.run(20);  // past the filter latency, a constant passes unchanged
     EXPECT_NEAR(r.out("out1"), -0.25, 1e-3);
+}
+
+void mathNode() {
+    g_test = "math node";
+    Rig r("math");
+    r.patch("ina1", 3.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out1"), 3.0, 1e-6);  // Multiply, B1 reads its knob (1)
+    r.set("b1", 4.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out1"), 12.0, 1e-6);
+    r.patch("inb1", -2.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out1"), -6.0, 1e-6);  // a patched B replaces the knob
+    // A = 3, B = -2
+    for (int op = 0; op < 7; ++op) {
+        r.set("op1", (float)op);
+        r.run();
+        const float want = op == 0 ? 1.0f : op == 1 ? 5.0f : op == 2 ? -6.0f : op == 3 ? -1.5f : op == 4 ? 1.0f / 9.0f : op == 5 ? -2.0f : 3.0f;
+        EXPECT_NEAR(r.out("out1"), want, 1e-5);
+    }
+    r.set("op1", 3.0f);  // Divide by ~0 stays finite
+    r.patch("inb1", 0.0f);
+    r.run();
+    EXPECT(std::isfinite(r.out("out1")) && std::fabs(r.out("out1")) <= 1000.0f);
+    r.set("op1", 4.0f);  // Power: negative base, fractional exponent, no NaN; sign kept
+    r.patch("ina1", -4.0f);
+    r.patch("inb1", 0.5f);
+    r.run();
+    EXPECT_NEAR(r.out("out1"), -2.0, 1e-5);
+    r.patch("inb1", 100.0f);  // huge result is clamped
+    r.patch("ina1", 10.0f);
+    r.run();
+    EXPECT_NEAR(r.out("out1"), 1000.0, 1e-3);
+    r.run();
+    EXPECT_NEAR(r.out("out2"), 0.0, 1e-6);  // row 2: Add of two zero constants
+}
+
+void cvToGateNode() {
+    g_test = "cv-to-gate node";
+    Rig r("cv-to-gate");
+    r.set("threshold", 0.5f);
+    r.patch("in", 0.2f);
+    r.run();
+    EXPECT(r.out("gate") == 0.0f);
+    r.patch("in", 0.8f);
+    r.run();
+    EXPECT(r.out("gate") == 1.0f);  // length 0: follows
+    r.patch("in", 0.2f);
+    r.run();
+    EXPECT(r.out("gate") == 0.0f);
+    r.set("length", 0.001f);  // 48 samples: fires on the rise, outlasts one chunk, then ends
+    r.patch("in", 0.0f);
+    r.run();
+    r.patch("in", 0.8f);
+    r.run();
+    EXPECT(r.out("gate", 0) == 1.0f && r.out("gate") == 1.0f);
+    r.run();
+    EXPECT(r.out("gate", 0) == 1.0f && r.out("gate") == 0.0f);  // input still high, pulse over
+    r.run(3);
+    EXPECT(r.out("gate") == 0.0f);
 }
 
 void crossfader() {
@@ -853,6 +918,8 @@ int main() {
     attenuverter();
     cvMixer();
     multiplier();
+    mathNode();
+    cvToGateNode();
     crossfader();
     logic();
     quantizer();

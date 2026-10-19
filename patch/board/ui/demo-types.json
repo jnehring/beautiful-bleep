@@ -10229,6 +10229,64 @@
     ]
   },
   {
+    "type": "cv-to-gate",
+    "name": "CV to Gate",
+    "category": "Utility/Logic & Routing",
+    "colour": "#86efac",
+    "description": "Turns CV above a threshold into a gate, following the input or of a set length.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "threshold",
+        "name": "Threshold",
+        "kind": "float",
+        "default": 0.524999976158142,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -10.0,
+        "max": 10.0,
+        "def": 0.5,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "length",
+        "name": "Length",
+        "kind": "float",
+        "default": 0.0,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": 0.0,
+        "max": 10.0,
+        "def": 0.0,
+        "format": "seconds",
+        "decimals": 2,
+        "map": "skew",
+        "centre": 0.100000001490116
+      }
+    ],
+    "inputs": [
+      {
+        "id": "in",
+        "name": "In",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "gate",
+        "name": "Gate",
+        "type": "gate",
+        "bipolar": false
+      }
+    ]
+  },
+  {
     "type": "cv-to-midi",
     "name": "CV to MIDI",
     "category": "Utility/Converters",
@@ -10629,12 +10687,12 @@
         "id": "feedback",
         "name": "Feedback",
         "kind": "float",
-        "default": 0.400000005960464,
+        "default": 0.200000002980232,
         "steps": 0,
         "modulatable": true,
         "cableable": false,
         "min": 0.0,
-        "max": 1.0,
+        "max": 2.0,
         "def": 0.400000005960464,
         "format": "percent",
         "decimals": 2
@@ -10922,12 +10980,12 @@
         "id": "feedback",
         "name": "Feedback",
         "kind": "float",
-        "default": 0.409090876579285,
+        "default": 0.224999994039536,
         "steps": 0,
         "modulatable": true,
         "cableable": false,
         "min": 0.0,
-        "max": 1.100000023841858,
+        "max": 2.0,
         "def": 0.449999988079071,
         "format": "percent",
         "decimals": 2
@@ -16575,6 +16633,160 @@
         "name": "Env",
         "type": "control",
         "bipolar": false
+      }
+    ]
+  },
+  {
+    "type": "math",
+    "name": "Math",
+    "category": "Utility/Signal",
+    "colour": "#fcd34d",
+    "description": "Two rows of arithmetic on signals: add, subtract, multiply, divide, power, min, max.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "op1",
+        "name": "Op 1",
+        "kind": "choice",
+        "default": 0.333333343267441,
+        "steps": 7,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Add",
+          "Subtract",
+          "Multiply",
+          "Divide",
+          "Power",
+          "Min",
+          "Max"
+        ],
+        "min": 0.0,
+        "max": 6.0,
+        "def": 2.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "a1",
+        "name": "A1 Constant",
+        "kind": "float",
+        "default": 0.550000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -10.0,
+        "max": 10.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "b1",
+        "name": "B1 Constant",
+        "kind": "float",
+        "default": 0.550000011920929,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -10.0,
+        "max": 10.0,
+        "def": 1.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "op2",
+        "name": "Op 2",
+        "kind": "choice",
+        "default": 0.0,
+        "steps": 7,
+        "modulatable": false,
+        "cableable": false,
+        "choices": [
+          "Add",
+          "Subtract",
+          "Multiply",
+          "Divide",
+          "Power",
+          "Min",
+          "Max"
+        ],
+        "min": 0.0,
+        "max": 6.0,
+        "def": 0.0,
+        "format": "choice",
+        "decimals": 2
+      },
+      {
+        "id": "a2",
+        "name": "A2 Constant",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -10.0,
+        "max": 10.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "b2",
+        "name": "B2 Constant",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -10.0,
+        "max": 10.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "ina1",
+        "name": "A1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "inb1",
+        "name": "B1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "ina2",
+        "name": "A2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "inb2",
+        "name": "B2",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": [
+      {
+        "id": "out1",
+        "name": "Out 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "out2",
+        "name": "Out 2",
+        "type": "control",
+        "bipolar": true
       }
     ]
   },
@@ -32655,12 +32867,12 @@
         "id": "feedback",
         "name": "Feedback",
         "kind": "float",
-        "default": 0.363636374473572,
+        "default": 0.200000002980232,
         "steps": 0,
         "modulatable": true,
         "cableable": false,
         "min": 0.0,
-        "max": 1.100000023841858,
+        "max": 2.0,
         "def": 0.400000005960464,
         "format": "percent",
         "decimals": 2

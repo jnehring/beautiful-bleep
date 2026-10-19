@@ -1,0 +1,11 @@
+{
+  "name": "CV to Gate",
+  "slug": "cv-to-gate",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Turns CV above a threshold into a gate, following the input or of a set length.",
+  "colour": "#86efac",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/cv-to-gate.md"
+}
