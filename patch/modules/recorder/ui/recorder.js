@@ -62,7 +62,7 @@
     if (!rc) return;
     const st = rc.st || {}, d = view.node.data || {};
     rc.state.textContent = STATES[st.state | 0] || "";
-    rc.lamp.className = "rc-lamp s" + (st.state | 0);
+    rc.lamp.className = "rcd-lamp s" + (st.state | 0);
     rc.time.textContent = fmt(st.seconds || 0) + " / " + fmt(st.limit || 0);
     rc.level.style.width = Math.min(100, Math.round(100 * (st.level || 0))) + "%";
     rc.save.disabled = (st.state | 0) !== 3 || rc.saving;
@@ -81,24 +81,25 @@
     ],
     template:
       "<style>" +
-      ".rc-top{display:flex;align-items:center;gap:10px;font-size:13px}" +
-      ".rc-time{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted)}" +
-      ".rc-lamp{width:12px;height:12px;border-radius:50%;background:var(--panel-3);border:1px solid var(--line)}" +
-      ".rc-lamp.s1{background:#fbbf24;border-color:#fbbf24}.rc-lamp.s2{background:#f87171;border-color:#f87171;box-shadow:0 0 8px #f87171}" +
-      ".rc-lamp.s3{background:var(--accent);border-color:var(--accent)}" +
-      ".rc-bar{height:4px;border-radius:2px;background:var(--panel-3);margin:6px 0;overflow:hidden}" +
-      ".rc-bar i{display:block;height:100%;width:0;background:var(--accent)}" +
-      ".rc-wave{display:block;width:100%;height:90px;background:var(--panel-2);border-radius:6px}" +
-      ".rc-row{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:11px;color:var(--muted)}" +
+      ".rcd{flex:1 1 100%}" +
+      ".rcd-top{display:flex;align-items:center;gap:10px;font-size:13px}" +
+      ".rcd-time{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted)}" +
+      ".rcd-lamp{width:12px;height:12px;border-radius:50%;background:var(--panel-3);border:1px solid var(--line)}" +
+      ".rcd-lamp.s1{background:#fbbf24;border-color:#fbbf24}.rcd-lamp.s2{background:#f87171;border-color:#f87171;box-shadow:0 0 8px #f87171}" +
+      ".rcd-lamp.s3{background:var(--accent);border-color:var(--accent)}" +
+      ".rcd-bar{height:4px;border-radius:2px;background:var(--panel-3);margin:6px 0;overflow:hidden}" +
+      ".rcd-bar i{display:block;height:100%;width:0;background:var(--accent)}" +
+      ".rcd-wave{display:block;width:100%;height:90px;background:var(--panel-2);border-radius:6px}" +
+      ".rcd-row{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:11px;color:var(--muted)}" +
       "</style>" +
-      '<div class="rc"><div class="rc-top"><span class="rc-lamp"></span><b class="rc-state"></b><span class="rc-time"></span></div>' +
-      '<div class="rc-bar"><i></i></div><canvas class="rc-wave"></canvas>' +
-      '<div class="rc-row"><button class="rc-save" type="button">Save Take</button><button class="rc-reveal" type="button">Show File</button>' +
-      '<span class="rc-file"></span><span class="rc-note"></span></div></div>',
+      '<div class="rcd"><div class="rcd-top"><span class="rcd-lamp"></span><b class="rcd-state"></b><span class="rcd-time"></span></div>' +
+      '<div class="rcd-bar"><i></i></div><canvas class="rcd-wave"></canvas>' +
+      '<div class="rcd-row"><button class="rcd-save" type="button">Save Take</button><button class="rcd-reveal" type="button">Show File</button>' +
+      '<span class="rcd-file"></span><span class="rcd-note"></span></div></div>',
     afterBuild(view, el) {
       const q = (s) => el.querySelector(s);
-      view.rec = { canvas: q("canvas"), state: q(".rc-state"), lamp: q(".rc-lamp"), time: q(".rc-time"), level: q(".rc-bar i"),
-                   save: q(".rc-save"), reveal: q(".rc-reveal"), file: q(".rc-file"), note: q(".rc-note"),
+      view.rec = { canvas: q("canvas"), state: q(".rcd-state"), lamp: q(".rcd-lamp"), time: q(".rcd-time"), level: q(".rcd-bar i"),
+                   save: q(".rcd-save"), reveal: q(".rcd-reveal"), file: q(".rcd-file"), note: q(".rcd-note"),
                    st: null, peaks: null, dirty: true, saving: false, lastState: 0 };
       view.rec.save.addEventListener("click", () => save(view));
       view.rec.reveal.addEventListener("click", async () => {
