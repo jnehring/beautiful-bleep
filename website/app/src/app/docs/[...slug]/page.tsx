@@ -2,6 +2,7 @@
 import { SECTIONS, sharesMenu } from "@/lib/audiences";
 import { AUDIENCES, CATEGORIES, allDocs, categoryTitle, docsFor, findDoc } from "@/lib/content";
 import { notFound } from "next/navigation";
+import CopyCode from "./CopyCode";
 
 export function generateStaticParams() {
   return allDocs().map((d) => ({ slug: d.slug }));
@@ -54,6 +55,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
         )}
       </nav>
       <article dangerouslySetInnerHTML={{ __html: doc.html }} />
+      <CopyCode />
     </div>
   );
 }
