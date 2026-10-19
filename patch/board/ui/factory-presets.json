@@ -23,6 +23,7 @@
     {"name":"Ambient Textures","blurb":"Noise, grains and resonances that evolve slowly: weather and rooms rather than notes. Nothing to play, no transport needed. Out L/R out."},
     {"name":"Ambient Melodies","blurb":"Slow generative notes held to a scale: sparse, ringing and never the same twice. Nothing to play, no transport needed. Out L/R out."},
     {"name":"Starters","blurb":"Empty cells to start your own instrument or effect from."},
+    {"name":"Clock Hubs","blurb":"One clock in, a bank of related clocks out: multiplied, divided, thinned and swung."},
     {"name":"Test","blurb":"Presets for trying things out by hand in a host."}
   ],
   "presets": [
@@ -9297,6 +9298,51 @@
         "cables": [
           {"id":"k1","from":{"node":"ci","jack":"l"},"to":{"node":"co","jack":"l"},"amount":1},
           {"id":"k2","from":{"node":"ci","jack":"r"},"to":{"node":"co","jack":"r"},"amount":1}
+        ]
+      }
+    },
+    {
+      "name": "Rhythm Hub", "category": "Clock Hubs",
+      "preset": {
+        "format": 1,
+        "root": "root",
+        "category": "Clock Hubs",
+        "description": "One clock in, twelve related clocks out: x2, x3, x4 and 3/2 per clock, four swung and thinned fast clocks, and four divisions (/2 to /16). Shared inputs Clock, Reset, Swing, Thin and Loose.",
+        "tags": ["clock","rhythm","multiply","divide","swing"],
+        "help": {"text":"A Clock Mult makes the multiplied bank (2, 3, 4 and 3/2 ticks per clock). A second Clock Mult makes the fast bank: a sixteenth line with swing, and three busier lines that drop ticks by chance, with Keep Beat on so the beat itself always plays. A Clock Div makes the divided bank (/2, /4, /8, /16 of the incoming pulses). All outputs are short triggers.\n\nPatch a trigger into Clock, or leave it empty and the hub follows the transport. Reset restarts all three modules. Swing is added to the fast bank's Swing knob (it moves only the in-between ticks), Thin is added to the three skip knobs (more ticks drop out), and Loose is added to Humanize (the in-between ticks land late, differently each time).\n\nTip: put the x4 output on hats, 3/2 on a rim, /4 on a snare and /16 on a crash, then raise Thin with a slow LFO."},
+        "nodes": [
+          {"id":"root","type":"cell","name":"Rhythm Hub","x":0,"y":0,"parent":"","params":{},"inputs":[{"id":"clock","name":"Clock","type":"trigger"},{"id":"reset","name":"Reset","type":"trigger"},{"id":"swing","name":"Swing","type":"control"},{"id":"thin","name":"Thin","type":"control"},{"id":"loose","name":"Loose","type":"control"}],"outputs":[{"id":"x2","name":"x2","type":"trigger"},{"id":"x3","name":"x3","type":"trigger"},{"id":"x4","name":"x4","type":"trigger"},{"id":"x32","name":"x3/2","type":"trigger"},{"id":"fast","name":"Swung 16th","type":"trigger"},{"id":"thin1","name":"Thin 8th A","type":"trigger"},{"id":"thin2","name":"Thin 8th B","type":"trigger"},{"id":"ghost","name":"Ghost 32nd","type":"trigger"},{"id":"d2","name":"Div 2","type":"trigger"},{"id":"d4","name":"Div 4","type":"trigger"},{"id":"d8","name":"Div 8","type":"trigger"},{"id":"d16","name":"Div 16","type":"trigger"}]},
+          {"id":"ci","type":"cell-in","name":"Cell In","x":40,"y":700,"parent":"root","params":{}},
+          {"id":"co","type":"cell-out","name":"Cell Out","x":2140,"y":700,"parent":"root","params":{}},
+          {"id":"clockm","type":"clock-multiplier","name":"Multiplied","x":340,"y":40,"parent":"root","params":{"ratio1":0.5,"ratio2":0.583333,"ratio3":0.666667,"ratio4":0.375,"ratio5":0.291667,"ratio6":0.833333,"output":1}},
+          {"id":"clockm2","type":"clock-multiplier","name":"Swung and Thinned","x":340,"y":260,"parent":"root","params":{"ratio1":0.666667,"ratio2":0.833333,"ratio3":0.833333,"ratio4":0.916667,"ratio5":0.25,"ratio6":0.5,"skip2":0.25,"skip3":0.45,"skip4":0.6,"swing":0.3,"humanize":0.1,"output":1}},
+          {"id":"clockd","type":"clock-divider","name":"Divided","x":340,"y":480,"parent":"root","params":{"div1":0.015873,"div2":0.047619,"div3":0.111111,"div4":0.238095,"output":1}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"ci","jack":"clock"},"to":{"node":"clockm","jack":"clock"},"amount":1},
+          {"id":"k2","from":{"node":"ci","jack":"reset"},"to":{"node":"clockm","jack":"reset"},"amount":1},
+          {"id":"k3","from":{"node":"ci","jack":"clock"},"to":{"node":"clockm2","jack":"clock"},"amount":1},
+          {"id":"k4","from":{"node":"ci","jack":"reset"},"to":{"node":"clockm2","jack":"reset"},"amount":1},
+          {"id":"k5","from":{"node":"ci","jack":"clock"},"to":{"node":"clockd","jack":"clock"},"amount":1},
+          {"id":"k6","from":{"node":"ci","jack":"reset"},"to":{"node":"clockd","jack":"reset"},"amount":1},
+          {"id":"k7","from":{"node":"ci","jack":"swing"},"to":{"node":"clockm2","jack":"swing"},"amount":1},
+          {"id":"k8","from":{"node":"ci","jack":"swing"},"to":{"node":"clockm","jack":"swing"},"amount":1},
+          {"id":"k9","from":{"node":"ci","jack":"thin"},"to":{"node":"clockm2","jack":"skip2"},"amount":1},
+          {"id":"k10","from":{"node":"ci","jack":"thin"},"to":{"node":"clockm2","jack":"skip3"},"amount":1},
+          {"id":"k11","from":{"node":"ci","jack":"thin"},"to":{"node":"clockm2","jack":"skip4"},"amount":1},
+          {"id":"k12","from":{"node":"ci","jack":"loose"},"to":{"node":"clockm2","jack":"humanize"},"amount":1},
+          {"id":"k13","from":{"node":"clockm","jack":"out1"},"to":{"node":"co","jack":"x2"},"amount":1},
+          {"id":"k14","from":{"node":"clockm","jack":"out2"},"to":{"node":"co","jack":"x3"},"amount":1},
+          {"id":"k15","from":{"node":"clockm","jack":"out3"},"to":{"node":"co","jack":"x4"},"amount":1},
+          {"id":"k16","from":{"node":"clockm","jack":"out4"},"to":{"node":"co","jack":"x32"},"amount":1},
+          {"id":"k17","from":{"node":"clockm2","jack":"out1"},"to":{"node":"co","jack":"fast"},"amount":1},
+          {"id":"k18","from":{"node":"clockm2","jack":"out2"},"to":{"node":"co","jack":"thin1"},"amount":1},
+          {"id":"k19","from":{"node":"clockm2","jack":"out3"},"to":{"node":"co","jack":"thin2"},"amount":1},
+          {"id":"k20","from":{"node":"clockm2","jack":"out4"},"to":{"node":"co","jack":"ghost"},"amount":1},
+          {"id":"k21","from":{"node":"clockd","jack":"out1"},"to":{"node":"co","jack":"d2"},"amount":1},
+          {"id":"k22","from":{"node":"clockd","jack":"out2"},"to":{"node":"co","jack":"d4"},"amount":1},
+          {"id":"k23","from":{"node":"clockd","jack":"out3"},"to":{"node":"co","jack":"d8"},"amount":1},
+          {"id":"k24","from":{"node":"clockd","jack":"out4"},"to":{"node":"co","jack":"d16"},"amount":1}
         ]
       }
     },

@@ -28,7 +28,9 @@ const CATEGORIES = [
   "synthesizers", "basses", "leads", "pads", "plucks-and-mallets", "samples", "feedback-pings",
   "drum-machines", "drum-kicks", "drum-snares-and-claps", "drum-hats-and-cymbals", "drum-toms-and-percussion",
   "drum-fx", "sequencers", "effects", "processors", "modulators", "generative",
-  "ambient-drones", "ambient-textures", "ambient-melodies", "starters", "test",
+  "ambient-drones", "ambient-textures", "ambient-melodies", "starters",
+  "clock-hub",
+  "test",
 ];
 
 const OUT = fileURLToPath(new URL("../board/ui/factory-presets.json", import.meta.url));

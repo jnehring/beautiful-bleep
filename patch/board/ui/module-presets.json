@@ -160,6 +160,24 @@
       {"name":"Bar Realign","description":"Odd divisions snapped back together every bar.","params":{"div1":0.031746,"div2":0.063492,"div3":0.095238,"div4":0.126984,"div5":0.15873,"div6":0.190476,"div7":0.222222,"div8":0.253968,"realign":0.25}},
       {"name":"Four-Bar Polyrhythm","description":"Complex divisions that resync every four bars.","params":{"div1":0.031746,"div2":0.063492,"div3":0.079365,"div4":0.095238,"div5":0.126984,"div6":0.142857,"div7":0.174603,"div8":0.222222,"realign":0.75,"width":0.295918}}
     ],
+    "clock-multiplier": [
+      {"name":"Ratio Ladder","description":"Whole and fractional ratios side by side: 2, 3, 4, 3/2, 5/4 and 8 per clock.","params":{}},
+      {"name":"Straight Doubles","description":"Powers of two up from the clock, plus a half-speed output: everything lines up.","params":{"ratio1":0.25,"ratio2":0.5,"ratio4":0.833333,"ratio5":0.916667,"ratio6":0.125}},
+      {"name":"Triplet Roll","description":"Threes in every size, from a lazy 3/4 to a rolling 12 per clock.","params":{"ratio1":0.583333,"ratio2":0.75,"ratio3":0.875,"ratio5":0.208333,"ratio6":0.25}},
+      {"name":"Five Against Four","description":"Fifths over a four-beat feel: the odd outputs slide against the plain ones.","params":{"ratio1":0.708333,"ratio2":0.541667,"ratio3":0.291667,"ratio4":0.416667,"ratio5":0.25,"ratio6":0.666667}},
+      {"name":"Seven Over","description":"Septuplets against halves and quarters; the anchors meet on every clock.","params":{"ratio1":0.791667,"ratio2":0.625,"ratio3":0.458333,"ratio4":0.666667,"ratio5":0.5,"ratio6":0.25}},
+      {"name":"Shuffled Sixteenths","description":"Swing on the in-between ticks only: the beat stays put, the offbeats lean late.","params":{"ratio1":0.666667,"ratio2":0.666667,"ratio3":0.5,"ratio4":0.833333,"ratio5":0.25,"ratio6":0.5,"swing":0.6}},
+      {"name":"Loose Hands","description":"Every in-between tick lands a little late, differently each time round; anchors stay tight.","params":{"ratio1":0.666667,"ratio2":0.5,"ratio3":0.833333,"ratio4":0.666667,"ratio5":0.25,"humanize":0.7}},
+      {"name":"Thinning Out","description":"The same fast clock, each output losing more ticks than the one before.","params":{"ratio1":0.833333,"ratio2":0.833333,"ratio3":0.833333,"ratio4":0.833333,"ratio5":0.916667,"ratio6":0.916667,"skip1":0.1,"skip2":0.25,"skip3":0.4,"skip4":0.55,"skip5":0.7,"skip6":0.85}},
+      {"name":"Ghost Hats","description":"Half the eighths and most of the sixteenths drop out; what is left feels played.","params":{"ratio1":0.833333,"ratio2":0.666667,"ratio3":0.916667,"ratio4":0.5,"ratio5":0.25,"skip1":0.5,"skip3":0.7,"humanize":0.3,"swing":0.2}},
+      {"name":"Free Skips","description":"Keep Beat off: even the ticks on the clock can drop, so the pulse itself gets loose.","params":{"ratio1":0.666667,"ratio2":0.666667,"ratio3":0.833333,"ratio4":0.583333,"ratio5":0.75,"ratio6":0.5,"skip1":0.3,"skip2":0.5,"skip3":0.6,"skip4":0.4,"skip5":0.5,"skip6":0.2,"keepbeat":0}},
+      {"name":"Half-Time Pulses","description":"Slower than the clock: gates for pads, chord changes and slow modulation.","params":{"ratio1":0.125,"ratio2":0.041667,"ratio3":0.083333,"ratio4":0.166667,"ratio5":0.208333,"ratio6":0}},
+      {"name":"Dotted Feel","description":"Ratios of three over two give dotted spacing; a little swing leans the in-betweens.","params":{"ratio1":0.375,"ratio2":0.208333,"ratio3":0.583333,"ratio5":0.25,"ratio6":0.75,"swing":0.35}},
+      {"name":"Flywheel","description":"Phase Lock at zero: the outputs keep running on the learned tempo when the clock stops.","params":{"ratio2":0.666667,"ratio3":0.583333,"ratio4":0.833333,"ratio5":0.25,"ratio6":0.75,"lock":0}},
+      {"name":"Soft Lock","description":"A partial lock: a wobbly input clock is smoothed instead of followed tick for tick.","params":{"ratio2":0.666667,"ratio3":0.583333,"ratio4":0.833333,"ratio5":0.25,"ratio6":0.75,"lock":0.4}},
+      {"name":"Long Gates","description":"Gate output at 80 % of each interval: legato gates for envelopes and holds.","params":{"ratio2":0.666667,"ratio3":0.25,"ratio4":0.583333,"ratio5":0.125,"width":0.806122}},
+      {"name":"Swung Everything","description":"Heavy swing, a hint of humanize and an occasional dropped tick on the busy output.","params":{"ratio2":0.666667,"ratio3":0.833333,"ratio5":0.75,"ratio6":0.875,"swing":0.9,"humanize":0.15,"keepbeat":0,"skip3":0.2}}
+    ],
     "coin-toss": [
       {"name":"Fair Coin","description":"Each gate goes to A or B at random, half and half.","params":{}},
       {"name":"Mostly A","description":"Most gates go to A, B only sometimes: an occasional accent.","params":{"prob1":0.2,"prob2":0.2}},
@@ -947,6 +965,25 @@
       {"name":"Fuzz Wall","description":"Thick, compressed, anti-aliased fuzz.","params":{"drive":1,"bias":0.7,"sag":0.7,"age":0.3,"character":1,"color":0.6,"tone":0.527507,"level":0.3}},
       {"name":"Parallel Grit","description":"Hard-driven copy blended under the clean signal.","params":{"drive":0.8,"bias":0.65,"sag":0.4,"color":0.65,"tone":0.715409,"mix":0.35}},
       {"name":"Eco Warmth","description":"Light on CPU for many instances.","params":{"drive":0.3,"bias":0.575,"quality":0}}
+    ],
+    "scene-arranger": [
+      {"name":"Four Scene Loop","description":"Scenes 1 to 4, one bar each, round and round; manual launches wait for the bar line.","params":{"scenes":0.2,"steps":0.2,"length":0.333333}},
+      {"name":"Verse and Chorus","description":"A song shape: two verse rounds, two chorus rounds, then a bridge and an outro.","params":{"scenes":0.2,"steps":0.333333,"slot3":0,"slot4":0.066667,"slot5":0.133333,"slot6":0.2,"rep1":0.066667,"rep2":0.066667,"rep3":0.066667,"rep4":0.066667}},
+      {"name":"Long Form","description":"Eight scenes of four bars, every odd one twice: a 48-bar arrangement.","params":{"length":0.666667,"rep1":0.066667,"rep3":0.066667,"rep5":0.066667,"rep7":0.066667}},
+      {"name":"Ping Pong","description":"Up through the scenes and back down without repeating the end scenes.","params":{"scenes":0.2,"steps":0.333333,"length":0.333333,"slot5":0.133333,"slot6":0.066667}},
+      {"name":"Random Walk","description":"Every scene hands over to a random other one; the seed makes the walk repeatable.","params":{"scenes":0.333333,"length":0.333333,"follow1":0.5,"follow2":0.5,"follow3":0.5,"follow4":0.5,"follow5":0.5,"follow6":0.5}},
+      {"name":"Drift Forward","description":"Follow action Next on every scene: the order list is ignored and the scenes simply step on.","params":{"follow1":0.166667,"follow2":0.166667,"follow3":0.166667,"follow4":0.166667,"follow5":0.166667,"follow6":0.166667,"follow7":0.166667,"follow8":0.166667}},
+      {"name":"Hold the Last","description":"Plays 1, 2, 3 and settles on scene 4 until you launch something else.","params":{"scenes":0.2,"steps":0.2,"follow4":0.666667}},
+      {"name":"Chance Breakdown","description":"After scene 3 there is a one in three chance of dropping back to scene 1 instead of moving on.","params":{"scenes":0.2,"steps":0.2,"length":0.333333,"follow3":1,"chance3":0.35,"rep3":0.066667}},
+      {"name":"Stutter Back","description":"Scene 2 always falls back to 1; scene 4 flips a coin between 3 and the start.","params":{"scenes":0.2,"steps":0.2,"length":0.333333,"follow2":0.833333,"follow4":1,"jump4":0.133333}},
+      {"name":"Beat Launcher","description":"Nothing moves on its own: launches from the knob, buttons or jack land on the next beat.","params":{"steps":0,"length":1,"quantize":0.5,"follow1":0.666667}},
+      {"name":"Bar Launcher","description":"Sixteen scenes for a pattern selector, launched on the bar; the Queued gate shows what is waiting.","params":{"scenes":1,"steps":0,"length":1,"follow1":0.666667}},
+      {"name":"Immediate Switch","description":"Scenes change every beat and a launch cuts in at once: for fast, hands-on switching.","params":{"length":0,"quantize":0}},
+      {"name":"Phrase Lengths","description":"Eight-bar phrases, the second and fourth played twice.","params":{"scenes":0.2,"steps":0.2,"length":0.833333,"rep2":0.066667,"rep4":0.066667}},
+      {"name":"Lane Groups","description":"Each lane covers a range of scenes: pairs, the whole run, the middle and the centre two.","params":{"length":0.333333,"to1":0.066667,"from2":0.1875,"to2":0.2,"from3":0.3125,"to3":0.333333,"from4":0.4375,"to4":0.466667,"from5":0.0625,"to5":0.466667,"from6":0.125,"to6":0.4,"from7":0.25,"to7":0.266667,"from8":0}},
+      {"name":"Lane Triggers","description":"Lane outputs give a short trigger when their scene starts instead of holding a gate.","params":{"length":0.333333,"laneout":1}},
+      {"name":"Linear Scene CV","description":"The Scene output climbs from 0 to 1 over scenes 1 to 16: a staircase for filters and pitch.","params":{"length":0.333333,"cvmode":1}},
+      {"name":"Odd Meter Bars","description":"Seven beats to the bar: scene length and launches follow the odd bar.","params":{"scenes":0.2,"steps":0.2,"beats":0.4}}
     ],
     "segments": [
       {"name":"Classic Pluck","description":"Instant attack, exponential fall: the all-round plucked envelope.","params":{"count":0.142857,"time1":0.23853,"time2":0.5,"level2":0.5,"shape2":0.8}},
