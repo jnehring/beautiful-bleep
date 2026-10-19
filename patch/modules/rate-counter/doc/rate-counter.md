@@ -36,6 +36,20 @@ frequency it measured, one octave per volt.
 - **Gate by stability:** **Steady** into a VCA, or into a switch that only lets a sequence run once the clock is stable.
 - **Echo of a source:** **Rate** into an oscillator two octaves lower (with a Math module for the offset) makes a sub that follows the tone.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Rate Counter does. In the standalone app open **File → Presets…** (⌘P) and pick *Rate Counter* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Rate Counter: Wave Tuner** | A slow drone changes pitch and the Rate Counter, in Wave mode, counts its cycles; its Rate output, a pitch signal, plays a sine a fifth and an octave above the drone. Change Input Is to Pulse Train to see it lose the wave, or lower Average Of. |
+| **Rate Counter: Tempo Brightens the Lead** | The lead's own gate is a clock that the Rate Counter measures in Pulse Train mode, two edges to a beat; its Average BPM output, about 0.5 at 120 BPM, lifts the lead's filter cutoff. Change the song tempo and the brightness follows. |
+| **Rate Counter: Sixteenths Per Beat 4** | A run of sixteenth notes is counted four edges to the beat, so the Rate Counter reads the true tempo, and its Average BPM bends the pitch of a low drone a little. Change Per Beat to 2 to see the reading double and the drone jump. |
+| **Rate Counter: Steady Opens the Pad** | Four bars of even eighth notes are followed by four bars of uneven ones; the Steady gate of the Rate Counter is high only while the beat is even, and it swells a pad in and out. Make Steady Within wider and the pad stays open longer. |
+| **Rate Counter: Edge Echo** | A sparse melody is read by the Rate Counter, and its Edge trigger, one pulse per counted note, plays a rim click and a high bell a moment after each note. The long gaps clear the count, so the count starts fresh with each phrase. Shorten Start Over After to clear it sooner. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

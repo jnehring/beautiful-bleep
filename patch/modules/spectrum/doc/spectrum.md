@@ -36,6 +36,20 @@ sets how little is enough; a steady tone triggers nothing.
 - **Onset trigger:** **Flux** as a clock for a sequencer or an envelope: it follows what is played, even when the notes are soft.
 - **Find a resonance:** switch *Peak Line* to Hold, sweep a filter's cutoff and read where the curve rose.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Spectrum does. In the standalone app open **File → Presets…** (⌘P) and pick *Spectrum* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Spectrum: The Band at a Glance** | A small band plays through the Spectrum: the kick and bass fill the left, the lead and hats the right, and the dashed line follows the strongest partial. Change Tilt to +4.5 dB/oct to flatten the slope, or Peak Line to Hold to keep the highest marks. |
+| **Spectrum: Siren to Bells** | A quiet siren glides up and down; the Spectrum's Dominant output hears its strongest partial and a Quantizer turns that into bell notes of a minor scale, struck whenever the note changes. Change the Quantizer's Scale, or slow the siren down. |
+| **Spectrum: Brightness Drives the Pad** | A drum loop is analysed and its Centroid, the spectrum's centre of gravity, sets the filter cutoff of a saw pad: when hats and snares crowd in the pad opens, when only the kick is left it dulls. Turn the pad filter's Key Track down to lessen the effect. |
+| **Spectrum: Flux Plays the Hats** | Plucked notes go through the Spectrum, whose Flux trigger fires whenever new energy appears: it plays a closed hat and a rim click on every note, so the percussion follows the melody. Raise Flux Sensitivity to catch the quiet notes too. |
+| **Spectrum: Sweeping Pad, Tilted** | A saw pad with a slowly sweeping filter, seen on a long 8192 point average with the Tilt at +4.5 dB/oct so the slope looks level and the peak line stays up in Hold. Press Reset Peaks to clear the line, or lower Average for a jumpier picture. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

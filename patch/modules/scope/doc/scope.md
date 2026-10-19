@@ -45,6 +45,20 @@ on silence or when the signal stops repeating.
   or compare it with a keyboard's pitch in a Math module.
 - **Level follower:** **Amplitude** is a slow, smooth loudness signal, less quick than a peak meter.
 
+<!-- generated:demos -->
+## Demo patches
+
+Five whole patches show what Scope does. In the standalone app open **File → Presets…** (⌘P) and pick *Scope* under *Demos by module*; on the website, **Run in Play** opens one in your browser. Loading one replaces the project and starts the transport.
+
+| Patch | What it shows |
+|---|---|
+| **Scope: A Wave Standing Still** | A saw lead passes through the Scope, which holds each wave still on the screen; the Frequency and Amplitude readouts follow the notes. Turn Time / Div up to see more cycles or down to see one, and change the Edge to Falling to flip the picture. |
+| **Scope: Filter In and Out** | A saw riff is drawn twice: raw on the first trace, after a swept resonant low-pass on the second. Watch the corners round off as the cutoff sinks. Change Measure to Trace 1 to read the raw pitch, or raise the filter's Resonance. |
+| **Scope: Envelope in Normal Mode** | The first trace shows the envelope of each note, caught by a trigger set just above zero in Normal mode, so every sweep starts exactly when a note starts and the picture waits between notes. Raise Trigger Level to start later on the rise, or change Mode to Auto. |
+| **Scope: Frequency Plays Along** | The Scope measures the pitch of a bass line and its Frequency output, snapped to a scale by a Quantizer, plays a bell an octave and a fifth above, gated by Valid: a harmony made by measuring. Change the Quantizer's Scale or Root, or turn the follower up to hear its small delay. |
+| **Scope: Amplitude Opens the Bass** | A drum loop is drawn on the Scope and its Amplitude output, the size of the wave, opens the filter of a saw bass: each hit brightens the bass for a moment. Change the cable amount into Cutoff, or move the bass filter's base Cutoff. |
+<!-- /generated -->
+
 ## Reference
 
 ### Knobs and settings

@@ -138,10 +138,11 @@ lower 12 bits and defaults to the Major mask.
 - Hysteresis: a sine of ±0.05 semitone around a boundary causes no change with 10 %, but does with 0 %.
 - Clock patched: output changes only on clock pulses; Trigger fires only when the note differs.
 - Custom mask round-trips through node data; empty mask is chromatic.
+- Tunings (`common/dsp/tests/test_tuning.cpp`): equal divisions (19 steps, 12 = semitones), scale-file parsing (cents, ratios, CRLF, rejects), nearest / down / up rounding, and the Quantizer core on 24 divisions with a root and back to 12 notes.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later
 
 - Chord output (*Out 2–4*: the 3rd, 5th, 7th of the scale above *Out*).
 - Note weights / probabilities in the custom scale.
-- Microtonal scales (scala files) and non-12-EDO tunings.
+- Microtonal tunings in the Quantizer Suite, Chord Quantizer and Harmony Master (the Quantizer has them, §4.3a; they share `dsp::Tuning`).
