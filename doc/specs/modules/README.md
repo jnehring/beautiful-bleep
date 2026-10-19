@@ -119,7 +119,6 @@ imperfection are part of the sound.
 | Chart Recorder | [chart-recorder.md](chart-recorder.md) | Modulation | Draft |
 | Sampler | [sampler.md](sampler.md) | Audio | Implemented (v1) |
 | XY Scope | [xy-scope.md](xy-scope.md) | Utility | Draft |
-<<<<<<< HEAD
 | Strange Osc | [strange-osc.md](strange-osc.md) | Sources | Implemented |
 | Bit Formula | [bit-formula.md](bit-formula.md) | Sources | Implemented |
 | Speak | [speak.md](speak.md) | Sources | Implemented |
@@ -127,7 +126,6 @@ imperfection are part of the sound.
 | Spatial Pan | [spatial-pan.md](spatial-pan.md) | Audio | Implemented |
 | Room Print | [room-print.md](room-print.md) | Effects | Implemented |
 | Shape Table | [shape-table.md](shape-table.md) | Effects | Implemented |
-=======
 
 Measuring and connecting (implemented):
 
@@ -138,4 +136,3 @@ Measuring and connecting (implemented):
 | Rate Counter | [rate-counter.md](rate-counter.md) | Utility | Implemented |
 | Recorder | [recorder.md](recorder.md) | Utility | Implemented |
 | OSC Bridge | [osc-bridge.md](osc-bridge.md) | Utility | Implemented (module and port; see §6 of the spec) |
->>>>>>> claude/sad-lederberg-563a13
