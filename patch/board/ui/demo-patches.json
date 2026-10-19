@@ -448,7 +448,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":1840,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":2140,"y":40,"parent":"","params":{"cutoff":0.734707,"resonance":0.15}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":2140,"y":40,"parent":"","params":{"level1":0.935216,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":2440,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.363636,"mix":0.3}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":2440,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.2,"mix":0.3}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2740,"y":40,"parent":"","params":{"mix":0.25,"size":0.5,"decay":0.430843}}
         ],
         "cables": [
@@ -494,7 +494,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":1840,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":2140,"y":40,"parent":"","params":{"cutoff":0.747679}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":2140,"y":40,"parent":"","params":{"level1":0.935216,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":2440,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.409091,"mix":0.3,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":2440,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.225,"mix":0.3,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2740,"y":40,"parent":"","params":{"mix":0.35,"size":0.7,"decay":0.530531}}
         ],
         "cables": [
@@ -660,7 +660,7 @@
           {"id":"adsr","type":"adsr","name":"Voice Env","x":1540,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.60917,"sustain":0,"release":0.553172}},
           {"id":"vca","type":"vca","name":"Voice VCA","x":1840,"y":40,"parent":"","params":{}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":2140,"y":40,"parent":"","params":{"level1":0.935216,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":2440,"y":40,"parent":"","params":{"zone":0.75,"time":0.55,"feedback":0.454545,"mix":0.3,"tone":0.35}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":2440,"y":40,"parent":"","params":{"zone":0.75,"time":0.55,"feedback":0.25,"mix":0.3,"tone":0.35}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2740,"y":40,"parent":"","params":{"mix":0.45,"size":0.85,"decay":0.630219}}
         ],
         "cables": [
@@ -1274,6 +1274,245 @@
       }
     },
     {
+      "name": "Automata: Ring Melody", "module": "automata", "moduleName": "Automata",
+      "preset": {
+        "format": 1,
+        "module": "automata",
+        "description": "A ring of sixteen cells grows under rule 30 from a single seed cell; the read head sweeps round the ring, so the lit cells become notes and the dark ones rests. Change Rule (90 mirrors itself, 110 drifts) or raise Interference to nudge the pattern off its course; Reset returns to the seed.",
+        "tags": ["cellular","ring","melody","generative","instrument"],
+        "tempo": 108,
+        "nodes": [
+          {"id":"out","type":"audio-out","name":"Out 1/2","x":2140,"y":260,"parent":"","muted":false,"port":"device-out-1","params":{},"track":"Out 1/2"},
+          {"id":"automa","type":"automata","name":"Automata","x":340,"y":40,"parent":"","params":{"mode":0,"rule":0.117647,"cells":0.428571,"density":0,"sync":0.222222,"root":0.181818,"scale":0.75,"octaves":0.5,"seed":0.005005,"gatelength":0.545455,"interference":0.08}},
+          {"id":"oscill","type":"oscillator","name":"Lead","x":940,"y":40,"parent":"","params":{"shape":0.4,"octave":0.5}},
+          {"id":"adsr","type":"adsr","name":"Lead Env","x":940,"y":260,"parent":"","params":{"attack":0.238009,"decay":0.45176,"sustain":0.05,"release":0.402173}},
+          {"id":"vca","type":"vca","name":"Lead VCA","x":1240,"y":40,"parent":"","params":{}},
+          {"id":"filter","type":"filter","name":"Lead Filter","x":1540,"y":40,"parent":"","params":{"cutoff":0.704648,"resonance":0.2}},
+          {"id":"drumgr","type":"drum-grid","name":"Drum Grid","x":940,"y":700,"parent":"","params":{},"data":{"tracks":[{"name":"Kick","mute":false,"solo":false},{"name":"Snare","mute":false,"solo":false},{"name":"Closed Hat","mute":false,"solo":false},{"name":"Open Hat","mute":false,"solo":false},{"name":"Clap","mute":false,"solo":false},{"name":"Tom","mute":false,"solo":false},{"name":"Tom 2","mute":false,"solo":false},{"name":"Perc","mute":false,"solo":false}],"current":0,"patterns":[{"name":"Beat","length":16,"steps":["X.......x.......","........X.......","x...x...x...x...",""]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}},
+          {"id":"punchk","type":"punch-kick","name":"Punch Kick","x":1240,"y":700,"parent":"","params":{"level":0.8}},
+          {"id":"punchs","type":"punch-snare","name":"Punch Snare","x":1240,"y":920,"parent":"","params":{"level":0.6}},
+          {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":1240,"y":1140,"parent":"","params":{"level":0.5}},
+          {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1540,"y":700,"parent":"","params":{"level1":0.726805,"level2":0.646113,"pan2":0.55,"level3":0.5,"pan3":0.625,"master":0.646113}},
+          {"id":"audiom2","type":"audio-mixer","name":"Final","x":1840,"y":40,"parent":"","params":{"level1":0.812652,"level2":0.78346,"pan1":0.575,"master":0.812652}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.45,"decay":0.41569,"mix":0.2}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"automa","jack":"pitch"},"to":{"node":"oscill","jack":"pitch"},"amount":1},
+          {"id":"k2","from":{"node":"automa","jack":"gate"},"to":{"node":"adsr","jack":"gate"},"amount":1},
+          {"id":"k3","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
+          {"id":"k5","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k7","from":{"node":"drumgr","jack":"velocity1"},"to":{"node":"punchk","jack":"velocity"},"amount":1},
+          {"id":"k8","from":{"node":"drumgr","jack":"gate2"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k9","from":{"node":"drumgr","jack":"velocity2"},"to":{"node":"punchs","jack":"velocity"},"amount":1},
+          {"id":"k10","from":{"node":"drumgr","jack":"gate3"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k11","from":{"node":"drumgr","jack":"gate4"},"to":{"node":"punchh","jack":"open"},"amount":1},
+          {"id":"k12","from":{"node":"drumgr","jack":"velocity3"},"to":{"node":"punchh","jack":"velocity"},"amount":1},
+          {"id":"k13","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k14","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k15","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in3l"},"amount":1},
+          {"id":"k16","from":{"node":"filter","jack":"l"},"to":{"node":"audiom2","jack":"in1l"},"amount":1},
+          {"id":"k17","from":{"node":"filter","jack":"l"},"to":{"node":"audiom2","jack":"in1r"},"amount":1},
+          {"id":"k18","from":{"node":"audiom","jack":"outl"},"to":{"node":"audiom2","jack":"in2l"},"amount":1},
+          {"id":"k19","from":{"node":"audiom","jack":"outr"},"to":{"node":"audiom2","jack":"in2r"},"amount":1},
+          {"id":"k20","from":{"node":"audiom2","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k21","from":{"node":"audiom2","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k22","from":{"node":"reverb","jack":"l"},"to":{"node":"out","jack":"l"},"amount":1},
+          {"id":"k23","from":{"node":"reverb","jack":"r"},"to":{"node":"out","jack":"r"},"amount":1}
+        ],
+        "panels": [
+          {"name":"Automata: Ring Melody","cols":82,"rows":28,"controls":[{"id":"c1","type":"label","at":[1,0],"size":[80,2],"text":"Automata: Ring Melody","style":"title"},{"type":"view","at":[1,3],"size":[18,11],"node":"automa","id":"c2"},{"type":"section","at":[20,3],"size":[14,8],"text":"Lead","colour":"#5eead4","id":"c3"},{"type":"dial","wire":[{"param":"oscill.shape"}],"label":"Shape","at":[21,5],"size":[4,4],"id":"c4"},{"type":"dial","wire":[{"param":"oscill.pw"}],"label":"Pulse Width","at":[25,5],"size":[4,4],"id":"c5"},{"type":"dial","wire":[{"param":"oscill.fine"}],"label":"Fine","at":[29,5],"size":[4,4],"id":"c6"},{"type":"section","at":[35,3],"size":[14,8],"text":"Lead Env","colour":"#fbbf24","id":"c7"},{"type":"dial","wire":[{"param":"adsr.attack"}],"label":"Attack","at":[36,5],"size":[4,4],"id":"c8"},{"type":"dial","wire":[{"param":"adsr.decay"}],"label":"Decay","at":[40,5],"size":[4,4],"id":"c9"},{"type":"dial","wire":[{"param":"adsr.sustain"}],"label":"Sustain","at":[44,5],"size":[4,4],"id":"c10"},{"type":"section","at":[50,3],"size":[16,8],"text":"Lead Filter","colour":"#f472b6","id":"c11"},{"type":"select","wire":[{"param":"filter.type"}],"label":"Type","at":[51,5],"size":[6,3],"id":"c12"},{"type":"dial","wire":[{"param":"filter.cutoff"}],"label":"Cutoff","at":[57,5],"size":[4,4],"id":"c13"},{"type":"dial","wire":[{"param":"filter.resonance"}],"label":"Resonance","at":[61,5],"size":[4,4],"id":"c14"},{"type":"section","at":[67,3],"size":[14,8],"text":"Punch Kick","colour":"#f43f5e","id":"c15"},{"type":"dial","wire":[{"param":"punchk.tune"}],"label":"Tune","at":[68,5],"size":[4,4],"id":"c16"},{"type":"dial","wire":[{"param":"punchk.decay"}],"label":"Decay","at":[72,5],"size":[4,4],"id":"c17"},{"type":"dial","wire":[{"param":"punchk.sweep"}],"label":"Sweep","at":[76,5],"size":[4,4],"id":"c18"},{"type":"section","at":[1,15],"size":[14,8],"text":"Punch Snare","colour":"#f43f5e","id":"c19"},{"type":"dial","wire":[{"param":"punchs.tune"}],"label":"Tune","at":[2,17],"size":[4,4],"id":"c20"},{"type":"dial","wire":[{"param":"punchs.tone"}],"label":"Tone","at":[6,17],"size":[4,4],"id":"c21"},{"type":"dial","wire":[{"param":"punchs.snappy"}],"label":"Snappy","at":[10,17],"size":[4,4],"id":"c22"},{"type":"section","at":[16,15],"size":[14,8],"text":"Punch Hats","colour":"#f43f5e","id":"c23"},{"type":"dial","wire":[{"param":"punchh.tune"}],"label":"Tune","at":[17,17],"size":[4,4],"id":"c24"},{"type":"dial","wire":[{"param":"punchh.closed"}],"label":"Closed Decay","at":[21,17],"size":[4,4],"id":"c25"},{"type":"dial","wire":[{"param":"punchh.open"}],"label":"Open Decay","at":[25,17],"size":[4,4],"id":"c26"},{"type":"section","at":[31,15],"size":[10,12],"text":"Drum Mix","colour":"#fb7185","id":"c27"},{"type":"slider","label":"Punch Kick","wire":[{"param":"audiom.level1"}],"at":[32,17],"size":[2,8],"id":"c28"},{"type":"slider","label":"Punch Snare","wire":[{"param":"audiom.level2"}],"at":[34,17],"size":[2,8],"id":"c29"},{"type":"slider","label":"Punch Hats","wire":[{"param":"audiom.level3"}],"at":[36,17],"size":[2,8],"id":"c30"},{"type":"slider","label":"Master","wire":[{"param":"audiom.master"}],"at":[38,17],"size":[2,8],"id":"c31"},{"type":"section","at":[42,15],"size":[8,12],"text":"Final","colour":"#fb7185","id":"c32"},{"type":"slider","label":"Lead Filter","wire":[{"param":"audiom2.level1"}],"at":[43,17],"size":[2,8],"id":"c33"},{"type":"slider","label":"Drum Mix","wire":[{"param":"audiom2.level2"}],"at":[45,17],"size":[2,8],"id":"c34"},{"type":"slider","label":"Master","wire":[{"param":"audiom2.master"}],"at":[47,17],"size":[2,8],"id":"c35"},{"type":"section","at":[51,15],"size":[14,8],"text":"Verb","colour":"#f0abfc","id":"c36"},{"type":"dial","wire":[{"param":"reverb.size"}],"label":"Size","at":[52,17],"size":[4,4],"id":"c37"},{"type":"dial","wire":[{"param":"reverb.decay"}],"label":"Decay","at":[56,17],"size":[4,4],"id":"c38"},{"type":"dial","wire":[{"param":"reverb.preDelay"}],"label":"Pre-delay","at":[60,17],"size":[4,4],"id":"c39"},{"type":"section","at":[66,15],"size":[8,12],"text":"Out","colour":"#94a3b8","id":"c40"},{"type":"meter","label":"Out","source":{"out":["reverb.l","reverb.r"]},"at":[67,17],"size":[2,8],"id":"c41"}],"id":"automata-ring-melody","open":"window"}
+        ]
+      }
+    },
+    {
+      "name": "Automata: Grid Garden", "module": "automata", "moduleName": "Automata",
+      "preset": {
+        "format": 1,
+        "module": "automata",
+        "description": "An 8 by 8 wrapping world: colonies grow, collide and die. Gate and Pitch play a bell-like lead, every birth of a cell triggers a soft hat, and Density, how alive the grid is, opens a filter. Try the other Grid Rule choices, or raise Density for a crowded start.",
+        "tags": ["life","grid","birth","density","instrument"],
+        "tempo": 96,
+        "nodes": [
+          {"id":"out","type":"audio-out","name":"Out 1/2","x":2140,"y":260,"parent":"","muted":false,"port":"device-out-1","params":{},"track":"Out 1/2"},
+          {"id":"automa","type":"automata","name":"Automata","x":340,"y":40,"parent":"","params":{"mode":0.25,"gridrule":0,"density":0.35,"sync":0.222222,"root":0.818182,"scale":0.4375,"octaves":0.5,"seed":0.012012,"gatelength":0.393939}},
+          {"id":"oscill","type":"oscillator","name":"Bells","x":940,"y":40,"parent":"","params":{"shape":0.15,"octave":0.5}},
+          {"id":"adsr","type":"adsr","name":"Bells Env","x":940,"y":260,"parent":"","params":{"attack":0.238009,"decay":0.52465,"sustain":0,"release":0.46143}},
+          {"id":"vca","type":"vca","name":"Bells VCA","x":1240,"y":40,"parent":"","params":{}},
+          {"id":"filter","type":"filter","name":"Bells Filter","x":1540,"y":40,"parent":"","params":{"cutoff":0.551071,"resonance":0.25}},
+          {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":940,"y":700,"parent":"","params":{"level":0.35,"closed":0.39232}},
+          {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"level1":0.812652,"level2":0.570529,"master":0.754845}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.55,"decay":0.457065,"mix":0.3}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"automa","jack":"pitch"},"to":{"node":"oscill","jack":"pitch"},"amount":1},
+          {"id":"k2","from":{"node":"automa","jack":"gate"},"to":{"node":"adsr","jack":"gate"},"amount":1},
+          {"id":"k3","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
+          {"id":"k5","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"automa","jack":"density"},"to":{"node":"filter","jack":"cutoff"},"amount":0.7},
+          {"id":"k7","from":{"node":"automa","jack":"birth"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k10","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k11","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k12","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k13","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k14","from":{"node":"reverb","jack":"l"},"to":{"node":"out","jack":"l"},"amount":1},
+          {"id":"k15","from":{"node":"reverb","jack":"r"},"to":{"node":"out","jack":"r"},"amount":1}
+        ],
+        "panels": [
+          {"name":"Automata: Grid Garden","cols":58,"rows":41,"controls":[{"id":"c1","type":"label","at":[1,0],"size":[56,2],"text":"Automata: Grid Garden","style":"title"},{"type":"view","at":[1,3],"size":[18,11],"node":"automa","id":"c2"},{"type":"section","at":[20,3],"size":[18,8],"text":"Bells","colour":"#5eead4","id":"c3"},{"type":"dial","wire":[{"param":"oscill.shape"}],"label":"Shape","at":[21,5],"size":[4,4],"id":"c4"},{"type":"dial","wire":[{"param":"oscill.pw"}],"label":"Pulse Width","at":[25,5],"size":[4,4],"id":"c5"},{"type":"dial","wire":[{"param":"oscill.fine"}],"label":"Fine","at":[29,5],"size":[4,4],"id":"c6"},{"type":"dial","wire":[{"param":"oscill.coarse"}],"label":"Coarse","at":[33,5],"size":[4,4],"id":"c7"},{"type":"section","at":[39,3],"size":[18,8],"text":"Bells Env","colour":"#fbbf24","id":"c8"},{"type":"dial","wire":[{"param":"adsr.attack"}],"label":"Attack","at":[40,5],"size":[4,4],"id":"c9"},{"type":"dial","wire":[{"param":"adsr.decay"}],"label":"Decay","at":[44,5],"size":[4,4],"id":"c10"},{"type":"dial","wire":[{"param":"adsr.sustain"}],"label":"Sustain","at":[48,5],"size":[4,4],"id":"c11"},{"type":"dial","wire":[{"param":"adsr.release"}],"label":"Release","at":[52,5],"size":[4,4],"id":"c12"},{"type":"section","at":[1,15],"size":[20,8],"text":"Bells Filter","colour":"#f472b6","id":"c13"},{"type":"select","wire":[{"param":"filter.type"}],"label":"Type","at":[2,17],"size":[6,3],"id":"c14"},{"type":"dial","wire":[{"param":"filter.cutoff"}],"label":"Cutoff","at":[8,17],"size":[4,4],"id":"c15"},{"type":"dial","wire":[{"param":"filter.resonance"}],"label":"Resonance","at":[12,17],"size":[4,4],"id":"c16"},{"type":"dial","wire":[{"param":"filter.drive"}],"label":"Drive","at":[16,17],"size":[4,4],"id":"c17"},{"type":"section","at":[22,15],"size":[18,8],"text":"Punch Hats","colour":"#f43f5e","id":"c18"},{"type":"dial","wire":[{"param":"punchh.tune"}],"label":"Tune","at":[23,17],"size":[4,4],"id":"c19"},{"type":"dial","wire":[{"param":"punchh.closed"}],"label":"Closed Decay","at":[27,17],"size":[4,4],"id":"c20"},{"type":"dial","wire":[{"param":"punchh.open"}],"label":"Open Decay","at":[31,17],"size":[4,4],"id":"c21"},{"type":"dial","wire":[{"param":"punchh.tone"}],"label":"Tone","at":[35,17],"size":[4,4],"id":"c22"},{"type":"section","at":[41,15],"size":[8,12],"text":"Mix","colour":"#fb7185","id":"c23"},{"type":"slider","label":"Bells Filter","wire":[{"param":"audiom.level1"}],"at":[42,17],"size":[2,8],"id":"c24"},{"type":"slider","label":"Punch Hats","wire":[{"param":"audiom.level2"}],"at":[44,17],"size":[2,8],"id":"c25"},{"type":"slider","label":"Master","wire":[{"param":"audiom.master"}],"at":[46,17],"size":[2,8],"id":"c26"},{"type":"section","at":[1,28],"size":[18,8],"text":"Verb","colour":"#f0abfc","id":"c27"},{"type":"dial","wire":[{"param":"reverb.size"}],"label":"Size","at":[2,30],"size":[4,4],"id":"c28"},{"type":"dial","wire":[{"param":"reverb.decay"}],"label":"Decay","at":[6,30],"size":[4,4],"id":"c29"},{"type":"dial","wire":[{"param":"reverb.preDelay"}],"label":"Pre-delay","at":[10,30],"size":[4,4],"id":"c30"},{"type":"dial","wire":[{"param":"reverb.damping"}],"label":"Damping","at":[14,30],"size":[4,4],"id":"c31"},{"type":"section","at":[20,28],"size":[8,12],"text":"Out","colour":"#94a3b8","id":"c32"},{"type":"meter","label":"Out","source":{"out":["reverb.l","reverb.r"]},"at":[21,30],"size":[2,8],"id":"c33"}],"id":"automata-grid-garden","open":"window"}
+        ]
+      }
+    },
+    {
+      "name": "Automata: Chain Learns a Tune", "module": "automata", "moduleName": "Automata",
+      "preset": {
+        "format": 1,
+        "module": "automata",
+        "description": "A frozen eight-note loop plays on the left and is patched into the chain's Learn input; the chain on the right listens, adds the moves it hears to its transition table and improvises in the same style. Turn Learn down to hear the plain, stepwise table, or open the module to edit the table by hand.",
+        "tags": ["markov","learn","improvise","chain","instrument"],
+        "tempo": 104,
+        "nodes": [
+          {"id":"out","type":"audio-out","name":"Out 1/2","x":2140,"y":260,"parent":"","muted":false,"port":"device-out-1","params":{},"track":"Out 1/2"},
+          {"id":"shiftr","type":"shift-register","name":"Teacher","x":340,"y":40,"parent":"","params":{"lock":1,"length":0.428571,"sync":0.333333,"octaves":0.333333,"root":0.363636,"scale":0.75,"seed":0.021021,"gatelength":0.494949}},
+          {"id":"automa","type":"automata","name":"Student","x":340,"y":700,"parent":"","params":{"mode":0.5,"learn":0.8,"sync":0.333333,"root":0.363636,"scale":0.75,"octaves":0.5,"seed":0.004004,"gatelength":0.69697}},
+          {"id":"oscill","type":"oscillator","name":"Teacher","x":940,"y":40,"parent":"","params":{"shape":0.7,"octave":0.333333}},
+          {"id":"adsr","type":"adsr","name":"Teacher Env","x":940,"y":260,"parent":"","params":{"attack":0.238009,"decay":0.469903,"sustain":0.1,"release":0.420385}},
+          {"id":"vca","type":"vca","name":"Teacher VCA","x":1240,"y":40,"parent":"","params":{}},
+          {"id":"filter","type":"filter","name":"Teacher Filter","x":1540,"y":40,"parent":"","params":{"cutoff":0.62502,"resonance":0.1}},
+          {"id":"oscill2","type":"oscillator","name":"Student","x":940,"y":700,"parent":"","params":{"shape":0.3,"octave":0.5}},
+          {"id":"adsr2","type":"adsr","name":"Student Env","x":940,"y":920,"parent":"","params":{"attack":0.238009,"decay":0.485801,"sustain":0.15,"release":0.435862}},
+          {"id":"vca2","type":"vca","name":"Student VCA","x":1240,"y":700,"parent":"","params":{}},
+          {"id":"filter2","type":"filter","name":"Student Filter","x":1540,"y":700,"parent":"","params":{"cutoff":0.734707,"resonance":0.2}},
+          {"id":"audiom","type":"audio-mixer","name":"Final","x":1840,"y":40,"parent":"","params":{"level1":0.726805,"level2":0.78346,"pan1":0.35,"pan2":0.65,"master":0.812652}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.4,"decay":0.398751,"mix":0.2}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"shiftr","jack":"pitch"},"to":{"node":"automa","jack":"learn"},"amount":1},
+          {"id":"k2","from":{"node":"shiftr","jack":"pitch"},"to":{"node":"oscill","jack":"pitch"},"amount":1},
+          {"id":"k3","from":{"node":"shiftr","jack":"bit1"},"to":{"node":"adsr","jack":"gate"},"amount":1},
+          {"id":"k4","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
+          {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"automa","jack":"pitch"},"to":{"node":"oscill2","jack":"pitch"},"amount":1},
+          {"id":"k8","from":{"node":"automa","jack":"gate"},"to":{"node":"adsr2","jack":"gate"},"amount":1},
+          {"id":"k9","from":{"node":"oscill2","jack":"out"},"to":{"node":"vca2","jack":"l"},"amount":1},
+          {"id":"k10","from":{"node":"adsr2","jack":"env"},"to":{"node":"vca2","jack":"gain"},"amount":0.25},
+          {"id":"k11","from":{"node":"vca2","jack":"l"},"to":{"node":"filter2","jack":"l"},"amount":1},
+          {"id":"k12","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k13","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k14","from":{"node":"filter2","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k15","from":{"node":"filter2","jack":"l"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k16","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k17","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k18","from":{"node":"reverb","jack":"l"},"to":{"node":"out","jack":"l"},"amount":1},
+          {"id":"k19","from":{"node":"reverb","jack":"r"},"to":{"node":"out","jack":"r"},"amount":1}
+        ],
+        "panels": [
+          {"name":"Automata: Chain Learns a Tune","cols":82,"rows":28,"controls":[{"id":"c1","type":"label","at":[1,0],"size":[80,2],"text":"Automata: Chain Learns a Tune","style":"title"},{"type":"view","at":[1,3],"size":[18,11],"node":"automa","id":"c2"},{"type":"section","at":[20,3],"size":[14,8],"text":"Teacher","colour":"#5eead4","id":"c3"},{"type":"dial","wire":[{"param":"oscill.shape"}],"label":"Shape","at":[21,5],"size":[4,4],"id":"c4"},{"type":"dial","wire":[{"param":"oscill.pw"}],"label":"Pulse Width","at":[25,5],"size":[4,4],"id":"c5"},{"type":"dial","wire":[{"param":"oscill.fine"}],"label":"Fine","at":[29,5],"size":[4,4],"id":"c6"},{"type":"section","at":[35,3],"size":[14,8],"text":"Teacher Env","colour":"#fbbf24","id":"c7"},{"type":"dial","wire":[{"param":"adsr.attack"}],"label":"Attack","at":[36,5],"size":[4,4],"id":"c8"},{"type":"dial","wire":[{"param":"adsr.decay"}],"label":"Decay","at":[40,5],"size":[4,4],"id":"c9"},{"type":"dial","wire":[{"param":"adsr.sustain"}],"label":"Sustain","at":[44,5],"size":[4,4],"id":"c10"},{"type":"section","at":[50,3],"size":[16,8],"text":"Teacher Filter","colour":"#f472b6","id":"c11"},{"type":"select","wire":[{"param":"filter.type"}],"label":"Type","at":[51,5],"size":[6,3],"id":"c12"},{"type":"dial","wire":[{"param":"filter.cutoff"}],"label":"Cutoff","at":[57,5],"size":[4,4],"id":"c13"},{"type":"dial","wire":[{"param":"filter.resonance"}],"label":"Resonance","at":[61,5],"size":[4,4],"id":"c14"},{"type":"section","at":[67,3],"size":[14,8],"text":"Student","colour":"#5eead4","id":"c15"},{"type":"dial","wire":[{"param":"oscill2.shape"}],"label":"Shape","at":[68,5],"size":[4,4],"id":"c16"},{"type":"dial","wire":[{"param":"oscill2.pw"}],"label":"Pulse Width","at":[72,5],"size":[4,4],"id":"c17"},{"type":"dial","wire":[{"param":"oscill2.fine"}],"label":"Fine","at":[76,5],"size":[4,4],"id":"c18"},{"type":"section","at":[1,15],"size":[14,8],"text":"Student Env","colour":"#fbbf24","id":"c19"},{"type":"dial","wire":[{"param":"adsr2.attack"}],"label":"Attack","at":[2,17],"size":[4,4],"id":"c20"},{"type":"dial","wire":[{"param":"adsr2.decay"}],"label":"Decay","at":[6,17],"size":[4,4],"id":"c21"},{"type":"dial","wire":[{"param":"adsr2.sustain"}],"label":"Sustain","at":[10,17],"size":[4,4],"id":"c22"},{"type":"section","at":[16,15],"size":[16,8],"text":"Student Filter","colour":"#f472b6","id":"c23"},{"type":"select","wire":[{"param":"filter2.type"}],"label":"Type","at":[17,17],"size":[6,3],"id":"c24"},{"type":"dial","wire":[{"param":"filter2.cutoff"}],"label":"Cutoff","at":[23,17],"size":[4,4],"id":"c25"},{"type":"dial","wire":[{"param":"filter2.resonance"}],"label":"Resonance","at":[27,17],"size":[4,4],"id":"c26"},{"type":"section","at":[33,15],"size":[8,12],"text":"Final","colour":"#fb7185","id":"c27"},{"type":"slider","label":"Teacher Filter","wire":[{"param":"audiom.level1"}],"at":[34,17],"size":[2,8],"id":"c28"},{"type":"slider","label":"Student Filter","wire":[{"param":"audiom.level2"}],"at":[36,17],"size":[2,8],"id":"c29"},{"type":"slider","label":"Master","wire":[{"param":"audiom.master"}],"at":[38,17],"size":[2,8],"id":"c30"},{"type":"section","at":[42,15],"size":[14,8],"text":"Verb","colour":"#f0abfc","id":"c31"},{"type":"dial","wire":[{"param":"reverb.size"}],"label":"Size","at":[43,17],"size":[4,4],"id":"c32"},{"type":"dial","wire":[{"param":"reverb.decay"}],"label":"Decay","at":[47,17],"size":[4,4],"id":"c33"},{"type":"dial","wire":[{"param":"reverb.preDelay"}],"label":"Pre-delay","at":[51,17],"size":[4,4],"id":"c34"},{"type":"section","at":[57,15],"size":[8,12],"text":"Out","colour":"#94a3b8","id":"c35"},{"type":"meter","label":"Out","source":{"out":["reverb.l","reverb.r"]},"at":[58,17],"size":[2,8],"id":"c36"}],"id":"automata-chain-learns-a-tune","open":"window"}
+        ]
+      }
+    },
+    {
+      "name": "Automata: Walker Drums", "module": "automata", "moduleName": "Automata",
+      "preset": {
+        "format": 1,
+        "module": "automata",
+        "description": "A walker with four turn rules roams an 8 by 8 wrapping grid; it plays a note whenever it steps onto a marked cell and fires Birth when it lays a fresh mark. Gate drives a bass, Birth drives hats and a snare, and the walker's route repeats until Interference nudges it somewhere new.",
+        "tags": ["walker","ant","rhythm","bass","instrument"],
+        "tempo": 118,
+        "nodes": [
+          {"id":"out","type":"audio-out","name":"Out 1/2","x":2140,"y":260,"parent":"","muted":false,"port":"device-out-1","params":{},"track":"Out 1/2"},
+          {"id":"automa","type":"automata","name":"Automata","x":340,"y":40,"parent":"","params":{"mode":0.75,"turns":0.75,"density":0.45,"sync":0.222222,"root":0.636364,"scale":0.375,"octaves":0.5,"seed":0.009009,"gatelength":0.444444,"interference":0.04}},
+          {"id":"oscill","type":"oscillator","name":"Bass","x":940,"y":40,"parent":"","params":{"shape":0.85,"octave":0.166667}},
+          {"id":"adsr","type":"adsr","name":"Bass Env","x":940,"y":260,"parent":"","params":{"attack":0.238009,"decay":0.430488,"sustain":0.4,"release":0.379825}},
+          {"id":"vca","type":"vca","name":"Bass VCA","x":1240,"y":40,"parent":"","params":{}},
+          {"id":"filter","type":"filter","name":"Bass Filter","x":1540,"y":40,"parent":"","params":{"cutoff":0.514689,"resonance":0.3}},
+          {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":940,"y":700,"parent":"","params":{"level":0.4,"closed":0.39232}},
+          {"id":"punchs","type":"punch-snare","name":"Punch Snare","x":940,"y":920,"parent":"","params":{"level":0.5}},
+          {"id":"punchk","type":"punch-kick","name":"Punch Kick","x":1240,"y":700,"parent":"","params":{"level":0.8,"decay":0.451155}},
+          {"id":"clockd","type":"clock-divider","name":"Backbeat","x":640,"y":700,"parent":"","params":{"div1":0.047619}},
+          {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"level1":0.754845,"level2":0.54646,"level3":0.595159,"level4":0.570529,"master":0.812652}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.3,"decay":0.331155,"mix":0.12}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"automa","jack":"pitch"},"to":{"node":"oscill","jack":"pitch"},"amount":1},
+          {"id":"k2","from":{"node":"automa","jack":"gate"},"to":{"node":"adsr","jack":"gate"},"amount":1},
+          {"id":"k3","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k4","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
+          {"id":"k5","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k6","from":{"node":"automa","jack":"birth"},"to":{"node":"punchh","jack":"closed"},"amount":1},
+          {"id":"k7","from":{"node":"automa","jack":"step"},"to":{"node":"punchk","jack":"trig"},"amount":1},
+          {"id":"k8","from":{"node":"automa","jack":"step"},"to":{"node":"clockd","jack":"clock"},"amount":1},
+          {"id":"k9","from":{"node":"clockd","jack":"out1"},"to":{"node":"punchs","jack":"trig"},"amount":1},
+          {"id":"k10","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k11","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k12","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k13","from":{"node":"punchh","jack":"out"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k14","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in3l"},"amount":1},
+          {"id":"k15","from":{"node":"punchs","jack":"out"},"to":{"node":"audiom","jack":"in3r"},"amount":1},
+          {"id":"k16","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in4l"},"amount":1},
+          {"id":"k17","from":{"node":"punchk","jack":"out"},"to":{"node":"audiom","jack":"in4r"},"amount":1},
+          {"id":"k18","from":{"node":"audiom","jack":"outl"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k19","from":{"node":"audiom","jack":"outr"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k20","from":{"node":"reverb","jack":"l"},"to":{"node":"out","jack":"l"},"amount":1},
+          {"id":"k21","from":{"node":"reverb","jack":"r"},"to":{"node":"out","jack":"r"},"amount":1}
+        ],
+        "panels": [
+          {"name":"Automata: Walker Drums","cols":83,"rows":28,"controls":[{"id":"c1","type":"label","at":[1,0],"size":[81,2],"text":"Automata: Walker Drums","style":"title"},{"type":"view","at":[1,3],"size":[18,11],"node":"automa","id":"c2"},{"type":"section","at":[20,3],"size":[14,8],"text":"Bass","colour":"#5eead4","id":"c3"},{"type":"dial","wire":[{"param":"oscill.shape"}],"label":"Shape","at":[21,5],"size":[4,4],"id":"c4"},{"type":"dial","wire":[{"param":"oscill.pw"}],"label":"Pulse Width","at":[25,5],"size":[4,4],"id":"c5"},{"type":"dial","wire":[{"param":"oscill.fine"}],"label":"Fine","at":[29,5],"size":[4,4],"id":"c6"},{"type":"section","at":[35,3],"size":[14,8],"text":"Bass Env","colour":"#fbbf24","id":"c7"},{"type":"dial","wire":[{"param":"adsr.attack"}],"label":"Attack","at":[36,5],"size":[4,4],"id":"c8"},{"type":"dial","wire":[{"param":"adsr.decay"}],"label":"Decay","at":[40,5],"size":[4,4],"id":"c9"},{"type":"dial","wire":[{"param":"adsr.sustain"}],"label":"Sustain","at":[44,5],"size":[4,4],"id":"c10"},{"type":"section","at":[50,3],"size":[16,8],"text":"Bass Filter","colour":"#f472b6","id":"c11"},{"type":"select","wire":[{"param":"filter.type"}],"label":"Type","at":[51,5],"size":[6,3],"id":"c12"},{"type":"dial","wire":[{"param":"filter.cutoff"}],"label":"Cutoff","at":[57,5],"size":[4,4],"id":"c13"},{"type":"dial","wire":[{"param":"filter.resonance"}],"label":"Resonance","at":[61,5],"size":[4,4],"id":"c14"},{"type":"section","at":[67,3],"size":[14,8],"text":"Punch Hats","colour":"#f43f5e","id":"c15"},{"type":"dial","wire":[{"param":"punchh.tune"}],"label":"Tune","at":[68,5],"size":[4,4],"id":"c16"},{"type":"dial","wire":[{"param":"punchh.closed"}],"label":"Closed Decay","at":[72,5],"size":[4,4],"id":"c17"},{"type":"dial","wire":[{"param":"punchh.open"}],"label":"Open Decay","at":[76,5],"size":[4,4],"id":"c18"},{"type":"section","at":[1,15],"size":[14,8],"text":"Punch Snare","colour":"#f43f5e","id":"c19"},{"type":"dial","wire":[{"param":"punchs.tune"}],"label":"Tune","at":[2,17],"size":[4,4],"id":"c20"},{"type":"dial","wire":[{"param":"punchs.tone"}],"label":"Tone","at":[6,17],"size":[4,4],"id":"c21"},{"type":"dial","wire":[{"param":"punchs.snappy"}],"label":"Snappy","at":[10,17],"size":[4,4],"id":"c22"},{"type":"section","at":[16,15],"size":[14,8],"text":"Punch Kick","colour":"#f43f5e","id":"c23"},{"type":"dial","wire":[{"param":"punchk.tune"}],"label":"Tune","at":[17,17],"size":[4,4],"id":"c24"},{"type":"dial","wire":[{"param":"punchk.decay"}],"label":"Decay","at":[21,17],"size":[4,4],"id":"c25"},{"type":"dial","wire":[{"param":"punchk.sweep"}],"label":"Sweep","at":[25,17],"size":[4,4],"id":"c26"},{"type":"section","at":[31,15],"size":[14,8],"text":"Backbeat","colour":"#e9b44c","id":"c27"},{"type":"dial","wire":[{"param":"clockd.div1"}],"label":"Div 1","at":[32,17],"size":[4,4],"id":"c28"},{"type":"dial","wire":[{"param":"clockd.div2"}],"label":"Div 2","at":[36,17],"size":[4,4],"id":"c29"},{"type":"dial","wire":[{"param":"clockd.div3"}],"label":"Div 3","at":[40,17],"size":[4,4],"id":"c30"},{"type":"section","at":[46,15],"size":[12,12],"text":"Mix","colour":"#fb7185","id":"c31"},{"type":"slider","label":"Bass Filter","wire":[{"param":"audiom.level1"}],"at":[47,17],"size":[2,8],"id":"c32"},{"type":"slider","label":"Punch Hats","wire":[{"param":"audiom.level2"}],"at":[49,17],"size":[2,8],"id":"c33"},{"type":"slider","label":"Punch Snare","wire":[{"param":"audiom.level3"}],"at":[51,17],"size":[2,8],"id":"c34"},{"type":"slider","label":"Punch Kick","wire":[{"param":"audiom.level4"}],"at":[53,17],"size":[2,8],"id":"c35"},{"type":"slider","label":"Master","wire":[{"param":"audiom.master"}],"at":[55,17],"size":[2,8],"id":"c36"},{"type":"section","at":[59,15],"size":[14,8],"text":"Verb","colour":"#f0abfc","id":"c37"},{"type":"dial","wire":[{"param":"reverb.size"}],"label":"Size","at":[60,17],"size":[4,4],"id":"c38"},{"type":"dial","wire":[{"param":"reverb.decay"}],"label":"Decay","at":[64,17],"size":[4,4],"id":"c39"},{"type":"dial","wire":[{"param":"reverb.preDelay"}],"label":"Pre-delay","at":[68,17],"size":[4,4],"id":"c40"},{"type":"section","at":[74,15],"size":[8,12],"text":"Out","colour":"#94a3b8","id":"c41"},{"type":"meter","label":"Out","source":{"out":["reverb.l","reverb.r"]},"at":[75,17],"size":[2,8],"id":"c42"}],"id":"automata-walker-drums","open":"window"}
+        ]
+      }
+    },
+    {
+      "name": "Automata: Rewrite and Rewind", "module": "automata", "moduleName": "Automata",
+      "preset": {
+        "format": 1,
+        "module": "automata",
+        "description": "A phrase rewrites itself each time it ends, growing longer and then starting over. A slow square LFO patched into Rewind pulls the system four generations back every few seconds, so the phrase keeps returning to something it has played, but never exactly the same way. Change Rewind By or the Rules choice.",
+        "tags": ["rewrite","rewind","phrase","evolving","instrument"],
+        "tempo": 90,
+        "nodes": [
+          {"id":"out","type":"audio-out","name":"Out 1/2","x":2140,"y":260,"parent":"","muted":false,"port":"device-out-1","params":{},"track":"Out 1/2"},
+          {"id":"automa","type":"automata","name":"Automata","x":340,"y":40,"parent":"","params":{"mode":1,"rules":0.25,"sync":0.222222,"root":0,"scale":0.3125,"octaves":0.5,"seed":0.033033,"gatelength":0.59596,"interference":0.25,"rewindby":0.333333}},
+          {"id":"lfo","type":"lfo","name":"Rewinder","x":340,"y":700,"parent":"","params":{"wave":0.666667,"rate":0.362918,"polarity":1}},
+          {"id":"oscill","type":"oscillator","name":"Pluck","x":940,"y":40,"parent":"","params":{"shape":0.5,"octave":0.5}},
+          {"id":"adsr","type":"adsr","name":"Pluck Env","x":940,"y":260,"parent":"","params":{"attack":0.238009,"decay":0.469903,"sustain":0.1,"release":0.435862}},
+          {"id":"vca","type":"vca","name":"Pluck VCA","x":1240,"y":40,"parent":"","params":{}},
+          {"id":"filter","type":"filter","name":"Pluck Filter","x":1540,"y":40,"parent":"","params":{"cutoff":0.680464,"resonance":0.3}},
+          {"id":"oscill2","type":"oscillator","name":"Drone","x":940,"y":700,"parent":"","params":{"shape":0.2,"octave":0.333333}},
+          {"id":"vca2","type":"vca","name":"Drone Level","x":1240,"y":700,"parent":"","params":{"gain":0.0625}},
+          {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"level1":0.78346,"level2":0.455763,"master":0.812652}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.2,"mix":0.25,"highcut":0.673621}},
+          {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.5,"decay":0.444551,"mix":0.2}}
+        ],
+        "cables": [
+          {"id":"k1","from":{"node":"lfo","jack":"out"},"to":{"node":"automa","jack":"rewind"},"amount":1},
+          {"id":"k2","from":{"node":"automa","jack":"pitch"},"to":{"node":"oscill","jack":"pitch"},"amount":1},
+          {"id":"k3","from":{"node":"automa","jack":"gate"},"to":{"node":"adsr","jack":"gate"},"amount":1},
+          {"id":"k4","from":{"node":"oscill","jack":"out"},"to":{"node":"vca","jack":"l"},"amount":1},
+          {"id":"k5","from":{"node":"adsr","jack":"env"},"to":{"node":"vca","jack":"gain"},"amount":0.25},
+          {"id":"k6","from":{"node":"vca","jack":"l"},"to":{"node":"filter","jack":"l"},"amount":1},
+          {"id":"k7","from":{"node":"oscill2","jack":"out"},"to":{"node":"vca2","jack":"l"},"amount":1},
+          {"id":"k8","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1l"},"amount":1},
+          {"id":"k9","from":{"node":"filter","jack":"l"},"to":{"node":"audiom","jack":"in1r"},"amount":1},
+          {"id":"k10","from":{"node":"vca2","jack":"l"},"to":{"node":"audiom","jack":"in2l"},"amount":1},
+          {"id":"k11","from":{"node":"vca2","jack":"l"},"to":{"node":"audiom","jack":"in2r"},"amount":1},
+          {"id":"k12","from":{"node":"audiom","jack":"outl"},"to":{"node":"delay","jack":"l"},"amount":1},
+          {"id":"k13","from":{"node":"audiom","jack":"outr"},"to":{"node":"delay","jack":"r"},"amount":1},
+          {"id":"k14","from":{"node":"delay","jack":"l"},"to":{"node":"reverb","jack":"l"},"amount":1},
+          {"id":"k15","from":{"node":"delay","jack":"r"},"to":{"node":"reverb","jack":"r"},"amount":1},
+          {"id":"k16","from":{"node":"reverb","jack":"l"},"to":{"node":"out","jack":"l"},"amount":1},
+          {"id":"k17","from":{"node":"reverb","jack":"r"},"to":{"node":"out","jack":"r"},"amount":1}
+        ],
+        "panels": [
+          {"name":"Automata: Rewrite and Rewind","cols":84,"rows":28,"controls":[{"id":"c1","type":"label","at":[1,0],"size":[82,2],"text":"Automata: Rewrite and Rewind","style":"title"},{"type":"view","at":[1,3],"size":[18,11],"node":"automa","id":"c2"},{"type":"section","at":[20,3],"size":[16,8],"text":"Rewinder","colour":"#7dd3fc","id":"c3"},{"type":"select","wire":[{"param":"lfo.wave"}],"label":"Wave","at":[21,5],"size":[6,3],"id":"c4"},{"type":"dial","wire":[{"param":"lfo.rate"}],"label":"Rate","at":[27,5],"size":[4,4],"id":"c5"},{"type":"dial","wire":[{"param":"lfo.pw"}],"label":"Pulse Width","at":[31,5],"size":[4,4],"id":"c6"},{"type":"section","at":[37,3],"size":[14,8],"text":"Pluck","colour":"#5eead4","id":"c7"},{"type":"dial","wire":[{"param":"oscill.shape"}],"label":"Shape","at":[38,5],"size":[4,4],"id":"c8"},{"type":"dial","wire":[{"param":"oscill.pw"}],"label":"Pulse Width","at":[42,5],"size":[4,4],"id":"c9"},{"type":"dial","wire":[{"param":"oscill.fine"}],"label":"Fine","at":[46,5],"size":[4,4],"id":"c10"},{"type":"section","at":[52,3],"size":[14,8],"text":"Pluck Env","colour":"#fbbf24","id":"c11"},{"type":"dial","wire":[{"param":"adsr.attack"}],"label":"Attack","at":[53,5],"size":[4,4],"id":"c12"},{"type":"dial","wire":[{"param":"adsr.decay"}],"label":"Decay","at":[57,5],"size":[4,4],"id":"c13"},{"type":"dial","wire":[{"param":"adsr.sustain"}],"label":"Sustain","at":[61,5],"size":[4,4],"id":"c14"},{"type":"section","at":[67,3],"size":[16,8],"text":"Pluck Filter","colour":"#f472b6","id":"c15"},{"type":"select","wire":[{"param":"filter.type"}],"label":"Type","at":[68,5],"size":[6,3],"id":"c16"},{"type":"dial","wire":[{"param":"filter.cutoff"}],"label":"Cutoff","at":[74,5],"size":[4,4],"id":"c17"},{"type":"dial","wire":[{"param":"filter.resonance"}],"label":"Resonance","at":[78,5],"size":[4,4],"id":"c18"},{"type":"section","at":[1,15],"size":[14,8],"text":"Drone","colour":"#5eead4","id":"c19"},{"type":"dial","wire":[{"param":"oscill2.shape"}],"label":"Shape","at":[2,17],"size":[4,4],"id":"c20"},{"type":"dial","wire":[{"param":"oscill2.pw"}],"label":"Pulse Width","at":[6,17],"size":[4,4],"id":"c21"},{"type":"dial","wire":[{"param":"oscill2.fine"}],"label":"Fine","at":[10,17],"size":[4,4],"id":"c22"},{"type":"section","at":[16,15],"size":[8,8],"text":"Drone Level","colour":"#fb7185","id":"c23"},{"type":"dial","wire":[{"param":"vca2.gain"}],"label":"Gain","at":[17,17],"size":[4,4],"id":"c24"},{"type":"section","at":[25,15],"size":[8,12],"text":"Mix","colour":"#fb7185","id":"c25"},{"type":"slider","label":"Pluck Filter","wire":[{"param":"audiom.level1"}],"at":[26,17],"size":[2,8],"id":"c26"},{"type":"slider","label":"Drone Level","wire":[{"param":"audiom.level2"}],"at":[28,17],"size":[2,8],"id":"c27"},{"type":"slider","label":"Master","wire":[{"param":"audiom.master"}],"at":[30,17],"size":[2,8],"id":"c28"},{"type":"section","at":[34,15],"size":[14,8],"text":"Delay","colour":"#5b8def","id":"c29"},{"type":"dial","wire":[{"param":"delay.timel"}],"label":"Time L","at":[35,17],"size":[4,4],"id":"c30"},{"type":"dial","wire":[{"param":"delay.timer"}],"label":"Time R","at":[39,17],"size":[4,4],"id":"c31"},{"type":"dial","wire":[{"param":"delay.feedback"}],"label":"Feedback","at":[43,17],"size":[4,4],"id":"c32"},{"type":"section","at":[49,15],"size":[14,8],"text":"Verb","colour":"#f0abfc","id":"c33"},{"type":"dial","wire":[{"param":"reverb.size"}],"label":"Size","at":[50,17],"size":[4,4],"id":"c34"},{"type":"dial","wire":[{"param":"reverb.decay"}],"label":"Decay","at":[54,17],"size":[4,4],"id":"c35"},{"type":"dial","wire":[{"param":"reverb.preDelay"}],"label":"Pre-delay","at":[58,17],"size":[4,4],"id":"c36"},{"type":"section","at":[64,15],"size":[8,12],"text":"Out","colour":"#94a3b8","id":"c37"},{"type":"meter","label":"Out","source":{"out":["reverb.l","reverb.r"]},"at":[65,17],"size":[2,8],"id":"c38"}],"id":"automata-rewrite-and-rewind","open":"window"}
+        ]
+      }
+    },
+    {
       "name": "Beat Oscillator: Heterodyne Drone", "module": "beat-oscillator", "moduleName": "Beat Oscillator",
       "preset": {
         "format": 1,
@@ -1354,7 +1593,7 @@
           {"id":"lfo","type":"lfo","name":"Pull","x":340,"y":480,"parent":"","params":{"rate":0.270346,"wave":0.166667,"polarity":1}},
           {"id":"lfo2","type":"lfo","name":"Beat","x":340,"y":700,"parent":"","params":{"rate":0.188963}},
           {"id":"vca","type":"vca","name":"VCA","x":640,"y":40,"parent":"","params":{"gain":0.25}},
-          {"id":"delay","type":"delay","name":"Delay","x":940,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.4,"mix":0.3,"mode":1}},
+          {"id":"delay","type":"delay","name":"Delay","x":940,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.2,"mix":0.3,"mode":1}},
           {"id":"audiom","type":"audio-mixer","name":"Trim","x":1240,"y":260,"parent":"","params":{"level1":0.54646,"master":0.812652}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1240,"y":40,"parent":"","params":{"size":0.6,"decay":0.489157,"damping":0.5,"mix":0.25,"quality":0}}
         ],
@@ -1666,7 +1905,7 @@
           {"id":"button","type":"button","name":"Open Up","x":340,"y":480,"parent":"","params":{"mode":0}},
           {"id":"adsr2","type":"adsr","name":"Sweep Env","x":640,"y":480,"parent":"","params":{"attack":0.456513,"decay":0.469903,"sustain":1,"release":0.482277}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.812652,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.318182,"mix":0.2}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.175,"mix":0.2}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.2,"size":0.4,"decay":0.398751}}
         ],
         "cables": [
@@ -2051,7 +2290,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.69306,"type":0.208333}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.967315,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.75,"time":0.6,"feedback":0.5,"character":0.4,"wobble":0.3,"mix":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.75,"time":0.6,"feedback":0.275,"character":0.4,"wobble":0.3,"mix":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.45,"size":0.8,"decay":0.611014}}
         ],
         "cables": [
@@ -2740,7 +2979,7 @@
           {"id":"adsr","type":"adsr","name":"Chord Env","x":1240,"y":260,"parent":"","params":{"attack":0.22153,"decay":0.742031,"sustain":0,"release":0.634426}},
           {"id":"vca","type":"vca","name":"VCA","x":1540,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Tone","x":1840,"y":40,"parent":"","params":{"cutoff":0.825707,"resonance":0.15}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"timel":0.803753,"timer":0.841601,"feedback":0.45,"highcut":0.673621,"mix":0.3,"mode":1}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"timel":0.803753,"timer":0.841601,"feedback":0.225,"highcut":0.673621,"mix":0.3,"mode":1}},
           {"id":"audiom2","type":"audio-mixer","name":"Mix","x":2440,"y":40,"parent":"","params":{"master":0.812652,"level1":0.872771,"pan1":0.5}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2740,"y":40,"parent":"","params":{"size":0.8,"decay":0.562623,"damping":0.5,"mix":0.4,"quality":0}}
         ],
@@ -2887,7 +3126,7 @@
           {"id":"punchs","type":"punch-snare","name":"Punch Snare","x":640,"y":1140,"parent":"","params":{"level":0.6}},
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":1360,"parent":"","params":{"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":940,"y":920,"parent":"","params":{"level1":0.726805,"level2":0.646113,"pan2":0.55,"level3":0.5,"pan3":0.625,"master":0.54646}},
-          {"id":"delay","type":"delay","name":"Delay","x":1840,"y":40,"parent":"","params":{"timel":0.741332,"timer":0.794676,"feedback":0.3,"highcut":0.624196,"mix":0.25}},
+          {"id":"delay","type":"delay","name":"Delay","x":1840,"y":40,"parent":"","params":{"timel":0.741332,"timer":0.794676,"feedback":0.15,"highcut":0.624196,"mix":0.25}},
           {"id":"audiom2","type":"audio-mixer","name":"Mix","x":2140,"y":40,"parent":"","params":{"master":0.812652,"level1":0.967315,"pan1":0.5,"level2":0.812652,"pan2":0.5}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.5,"decay":0.462935,"damping":0.5,"mix":0.2,"quality":0}}
         ],
@@ -3337,7 +3576,7 @@
           {"id":"vca2","type":"vca","name":"VCA","x":1540,"y":700,"parent":"","params":{}},
           {"id":"punchk","type":"punch-kick","name":"Punch Kick","x":1840,"y":700,"parent":"","params":{"level":0.7}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"master":0.812652,"level1":0.699337,"pan1":0.65,"level2":0.812652,"pan2":0.4,"level3":0.646113,"pan3":0.5}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.35,"mix":0.25,"highcut":0.673621}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.175,"mix":0.25,"highcut":0.673621}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.4,"decay":0.398751,"mix":0.2}}
         ],
         "cables": [
@@ -4995,7 +5234,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":1540,"y":40,"parent":"","params":{"shape":0.4,"octave":0.5}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":1540,"y":260,"parent":"","params":{"attack":0.289085,"decay":0.52465,"sustain":0.2,"release":0.46143}},
           {"id":"vca","type":"vca","name":"VCA","x":1840,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"timel":0.779766,"timer":0.817615,"feedback":0.4,"highcut":0.624196,"mix":0.3}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"timel":0.779766,"timer":0.817615,"feedback":0.2,"highcut":0.624196,"mix":0.3}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":2440,"y":40,"parent":"","params":{"master":0.726805,"level1":0.903702,"pan1":0.5,"level2":0.78346,"pan2":0.5}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2740,"y":40,"parent":"","params":{"size":0.5,"decay":0.489157,"damping":0.5,"mix":0.3,"quality":0}}
         ],
@@ -5143,7 +5382,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.4}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.329953,"decay":0.52465,"sustain":0.1,"release":0.482277}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0.666667,"time":0.462713,"taps":0.714286,"scatter":0.7,"feedback":0.545455,"character":0.3,"tone":0.4,"width":0.9,"mix":0.55}},
+          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0.666667,"time":0.462713,"taps":0.714286,"scatter":0.7,"feedback":0.3,"character":0.3,"tone":0.4,"width":0.9,"mix":0.55}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":0.903702,"master":0.812652}}
         ],
         "cables": [
@@ -5177,7 +5416,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.9}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.385399,"sustain":0,"release":0.350351}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0,"sync":0.705882,"taps":0.428571,"scatter":0.75,"feedback":0.227273,"character":0.1,"width":1,"mix":0.5}},
+          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0,"sync":0.705882,"taps":0.428571,"scatter":0.75,"feedback":0.125,"character":0.1,"width":1,"mix":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":1,"master":0.872771}}
         ],
         "cables": [
@@ -5211,7 +5450,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.3}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.289085,"decay":0.5,"sustain":0.1,"release":0.46143}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0.333333,"time":0.557539,"taps":0.428571,"reverse":0.7,"feedback":0.454545,"character":0.25,"jitter":0.15,"mix":0.6}},
+          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0.333333,"time":0.557539,"taps":0.428571,"reverse":0.7,"feedback":0.25,"character":0.25,"jitter":0.15,"mix":0.6}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":1,"master":0.812652}}
         ],
         "cables": [
@@ -5245,7 +5484,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.75}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.398499,"sustain":0,"release":0.350351}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":1,"time":0.394601,"taps":1,"scatter":0.6,"jitter":0.4,"feedback":0.636364,"character":0.45,"tone":0.55,"mix":0.5}},
+          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":1,"time":0.394601,"taps":1,"scatter":0.6,"jitter":0.4,"feedback":0.35,"character":0.45,"tone":0.55,"mix":0.5}},
           {"id":"lfo","type":"lfo","name":"Scatter LFO","x":940,"y":260,"parent":"","params":{"rate":0.228468,"wave":0.166667}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":1,"master":0.812652}}
         ],
@@ -5281,7 +5520,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.5}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.485801,"sustain":0.1,"release":0.435862}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0.666667,"sync":0.588235,"taps":0.571429,"scatter":0.65,"feedback":0.727273,"character":0.2,"width":1,"mix":0.6}},
+          {"id":"delayn","type":"delay-network","name":"Delay Net","x":1240,"y":40,"parent":"","params":{"routing":0.666667,"sync":0.588235,"taps":0.571429,"scatter":0.65,"feedback":0.4,"character":0.2,"width":1,"mix":0.6}},
           {"id":"lfo","type":"lfo","name":"Freeze Gate","x":940,"y":260,"parent":"","params":{"wave":0.666667,"sync":0.888889,"polarity":1,"phase":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":0.726805,"master":0.812652}}
         ],
@@ -5317,7 +5556,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.85}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.469903,"sustain":0.3,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.5,"lowcut":0.437531,"highcut":0.673621,"mix":0.45}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.25,"lowcut":0.437531,"highcut":0.673621,"mix":0.45}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":1,"master":0.812652}}
         ],
         "cables": [
@@ -5351,7 +5590,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.5}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.469903,"sustain":0.3,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"mode":1,"ratel":0.230769,"rater":0.230769,"feedback":0.62,"highcut":0.715409,"mix":0.55}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"mode":1,"ratel":0.230769,"rater":0.230769,"feedback":0.31,"highcut":0.715409,"mix":0.55}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":1,"master":1}}
         ],
         "cables": [
@@ -5386,7 +5625,7 @@
           {"id":"punchs","type":"punch-snare","name":"Punch Snare","x":640,"y":260,"parent":"","params":{"level":0.6}},
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":480,"parent":"","params":{"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":940,"y":40,"parent":"","params":{"level1":0.726805,"level2":0.646113,"pan2":0.55,"level3":0.5,"pan3":0.625,"master":0.672441}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":0,"timel":0.573183,"timer":0.600501,"feedback":0.12,"lowcut":0.5,"highcut":0.624196,"mix":0.3}}
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":0,"timel":0.573183,"timer":0.600501,"feedback":0.06,"lowcut":0.5,"highcut":0.624196,"mix":0.3}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"punchk","jack":"trig"},"amount":1},
@@ -5423,7 +5662,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.7}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.52465,"sustain":0.7,"release":0.435862}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.692308,"rater":0.615385,"feedback":0.78,"lowcut":0.389076,"highcut":0.624196,"mix":0.6}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.692308,"rater":0.615385,"feedback":0.39,"lowcut":0.389076,"highcut":0.624196,"mix":0.6}},
           {"id":"lfo","type":"lfo","name":"Cut LFO","x":940,"y":260,"parent":"","params":{"rate":0.291752}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":0.699337,"master":0.812652}}
         ],
@@ -5459,7 +5698,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":1}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.475042,"decay":0.52465,"sustain":0.8,"release":0.529287}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":0,"timel":0.412516,"timer":0.475064,"feedback":0.15,"highcut":0.783537,"mix":0.5}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":0,"timel":0.412516,"timer":0.475064,"feedback":0.075,"highcut":0.783537,"mix":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":0.5,"master":0.812652}}
         ],
         "cables": [
@@ -5496,7 +5735,7 @@
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.371314,"resonance":0.35,"gain":0.375}},
           {"id":"dial","type":"dial","name":"Cutoff Dial","x":640,"y":480,"parent":"","params":{"value":0.55,"min":0.5,"max":1,"smooth":0.405836}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.812652,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.318182,"mix":0.25}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.175,"mix":0.25}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.2,"size":0.4,"decay":0.41569}}
         ],
         "cables": [
@@ -5537,7 +5776,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.715376,"resonance":0.15}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.903702,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.363636,"mix":0.3}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.2,"mix":0.3}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.3,"size":0.5,"decay":0.462935}}
         ],
         "cables": [
@@ -5668,7 +5907,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.551071,"resonance":0.2}},
           {"id":"dial","type":"dial","name":"Macro Dial","x":640,"y":480,"parent":"","params":{"value":0.45,"min":0.5,"max":1,"smooth":0.458521}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.409091,"mix":0.15,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.225,"mix":0.15,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"size":0.5,"decay":0.444551,"mix":0.25}}
         ],
         "cables": [
@@ -8014,7 +8253,7 @@
           {"id":"random","type":"random","name":"Vowel Picker","x":640,"y":480,"parent":"","params":{"sync":0.333333,"spread":0.8,"smooth":0.5}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":940,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.420787,"sustain":0.1,"release":0.379825}},
           {"id":"vca","type":"vca","name":"VCA","x":1240,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"feedback":0.35,"mix":0.25,"mode":1}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"feedback":0.175,"mix":0.25,"mode":1}},
           {"id":"audiom","type":"audio-mixer","name":"Trim","x":1540,"y":260,"parent":"","params":{"level1":0.903702,"master":0.812652}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1540,"y":40,"parent":"","params":{"size":0.5,"decay":0.457065,"damping":0.5,"mix":0.2,"quality":0}}
         ],
@@ -8592,7 +8831,7 @@
           {"id":"adsr4","type":"adsr","name":"Pluck 4 Env","x":940,"y":1580,"parent":"","params":{"attack":0.289085,"decay":0.5955,"sustain":0.25,"release":0.515487}},
           {"id":"vca4","type":"vca","name":"Pluck 4 VCA","x":1240,"y":1360,"parent":"","params":{}},
           {"id":"audiom","type":"audio-mixer","name":"Plucks","x":1840,"y":40,"parent":"","params":{"master":0.903702,"level1":0.812652,"pan1":0.2,"level2":0.812652,"pan2":0.4,"level3":0.812652,"pan3":0.6,"level4":0.812652,"pan4":0.8}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.4,"mix":0.3,"highcut":0.624196}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.2,"mix":0.3,"highcut":0.624196}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.5,"decay":0.462935,"mix":0.25}}
         ],
         "cables": [
@@ -9369,7 +9608,7 @@
           {"id":"vca2","type":"vca","name":"Lead VCA","x":940,"y":700,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Lead Filter","x":1240,"y":700,"parent":"","params":{"cutoff":0.680464,"resonance":0.25}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1540,"y":40,"parent":"","params":{"level1":0.842422,"level2":0.726805,"master":0.812652}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1840,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.363636,"mix":0.25,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1840,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.2,"mix":0.25,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.55,"decay":0.479234,"mix":0.25}}
         ],
         "cables": [
@@ -11203,8 +11442,8 @@
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.469903,"sustain":0,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"matrix","type":"matrix-mixer","name":"Matrix Mixer","x":1240,"y":40,"parent":"","params":{"inputs":0,"outputs":0.428571,"g_1_1":0.95,"g_1_2":0.7,"g_1_3":1,"g_1_4":1}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":260,"parent":"","params":{"timel":0.736547,"timer":0.736547,"feedback":0.4,"mix":1}},
-          {"id":"delay2","type":"delay","name":"Delay","x":1540,"y":480,"parent":"","params":{"timel":0.794676,"timer":0.794676,"feedback":0.4,"mix":1}},
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":260,"parent":"","params":{"timel":0.736547,"timer":0.736547,"feedback":0.2,"mix":1}},
+          {"id":"delay2","type":"delay","name":"Delay","x":1540,"y":480,"parent":"","params":{"timel":0.794676,"timer":0.794676,"feedback":0.2,"mix":1}},
           {"id":"audiom","type":"audio-mixer","name":"Audio Mixer","x":1840,"y":40,"parent":"","params":{"level1":0.754845,"level2":0.754845,"pan1":0.2,"pan2":0.8,"level3":0.646113,"pan3":0.1,"level4":0.646113,"pan4":0.9,"master":0.812652}},
           {"id":"audiom2","type":"audio-mixer","name":"Trim","x":2140,"y":260,"parent":"","params":{"level1":0.842422,"master":0.812652}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.5,"decay":0.462935,"damping":0.5,"mix":0.2,"quality":0}}
@@ -11842,7 +12081,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.3}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.485801,"sustain":0,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"timel":0.764139,"timer":0.764139,"feedback":0.55,"highcut":0.595635,"mix":0.6,"mode":1,"sync":1,"ratel":0.461538,"rater":0.461538}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"timel":0.764139,"timer":0.764139,"feedback":0.275,"highcut":0.595635,"mix":0.6,"mode":1,"sync":1,"ratel":0.461538,"rater":0.461538}},
           {"id":"monito","type":"monitor","name":"Stereo Monitor","x":1540,"y":40,"parent":"","params":{"response":0.429416,"floor":0.4}},
           {"id":"stepse2","type":"step-sequencer","name":"Step Sequencer","x":340,"y":700,"parent":"","params":{"length":0.483871,"rate":0.076923,"root":0,"scale":0.6875,"octave":0.333333,"gatelength":1},"data":{"steps":[{"g":1,"p":0,"v":100},{"g":2,"p":0,"v":100},{"g":2,"p":0,"v":100},{"g":2,"p":0,"v":100},{"g":2,"p":0,"v":100},{"g":2,"p":0,"v":100},{"g":2,"p":0,"v":100},{"g":2,"p":0,"v":100},{"g":1,"p":5,"v":100},{"g":2,"p":5,"v":100},{"g":2,"p":5,"v":100},{"g":2,"p":5,"v":100},{"g":1,"p":3,"v":100},{"g":2,"p":3,"v":100},{"g":2,"p":3,"v":100},{"g":2,"p":3,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}},
           {"id":"oscill2","type":"oscillator","name":"Source","x":640,"y":700,"parent":"","params":{"shape":0.5}},
@@ -12619,7 +12858,7 @@
           {"id":"punchs","type":"punch-snare","name":"Punch Snare","x":640,"y":1140,"parent":"","params":{"level":0.6}},
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":1360,"parent":"","params":{"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":940,"y":920,"parent":"","params":{"level1":0.726805,"level2":0.646113,"pan2":0.55,"level3":0.5,"pan3":0.625,"master":0.54646}},
-          {"id":"delay","type":"delay","name":"Delay","x":1840,"y":40,"parent":"","params":{"timel":0.750409,"timer":0.803753,"feedback":0.35,"highcut":0.595635,"mix":0.25}},
+          {"id":"delay","type":"delay","name":"Delay","x":1840,"y":40,"parent":"","params":{"timel":0.750409,"timer":0.803753,"feedback":0.175,"highcut":0.595635,"mix":0.25}},
           {"id":"audiom2","type":"audio-mixer","name":"Mix","x":2140,"y":40,"parent":"","params":{"master":0.903702,"level1":1,"pan1":0.5,"level2":0.935216,"pan2":0.5}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.5,"decay":0.462935,"damping":0.5,"mix":0.2,"quality":0}}
         ],
@@ -13219,7 +13458,7 @@
           {"id":"lfo","type":"lfo","name":"Sweep","x":640,"y":480,"parent":"","params":{"wave":0.333333,"sync":0.777778}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":940,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.430488,"sustain":0.6,"release":0.363322}},
           {"id":"vca","type":"vca","name":"VCA","x":1240,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.35,"mix":0.25,"highcut":0.673621,"mode":1}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.175,"mix":0.25,"highcut":0.673621,"mode":1}},
           {"id":"audiom","type":"audio-mixer","name":"Trim","x":1540,"y":40,"parent":"","params":{"level1":0.872771,"master":0.812652}}
         ],
         "cables": [
@@ -13989,7 +14228,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.725364,"resonance":0.15}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.967315,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.409091,"mix":0.3,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.225,"mix":0.3,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.3,"size":0.6,"decay":0.511327}}
         ],
         "cables": [
@@ -14174,7 +14413,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.715376,"resonance":0.15}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.967315,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.363636,"mix":0.25}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.2,"mix":0.25}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.3,"size":0.55,"decay":0.479234}}
         ],
         "cables": [
@@ -15330,7 +15569,7 @@
           {"id":"punchk","type":"punch-kick","name":"Punch Kick","x":640,"y":260,"parent":"","params":{"level":0.8,"tune":0.368483,"decay":0.451155}},
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":480,"parent":"","params":{"level":0.5,"closed":0.39232}},
           {"id":"audiom","type":"audio-mixer","name":"Audio Mixer","x":1240,"y":40,"parent":"","params":{"level1":0.699337,"pan1":0.5,"level2":0.672441,"pan2":0.5,"level3":0.33622,"pan3":0.625,"master":1}},
-          {"id":"delay","type":"delay","name":"Delay","x":1840,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"mode":1,"feedback":0.5,"highcut":0.673621,"lowcut":0.5,"mix":0.4}}
+          {"id":"delay","type":"delay","name":"Delay","x":1840,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"mode":1,"feedback":0.25,"highcut":0.673621,"lowcut":0.5,"mix":0.4}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"punchr","jack":"trig"},"amount":1},
@@ -16002,7 +16241,7 @@
           {"id":"oscill2","type":"oscillator","name":"Source","x":640,"y":920,"parent":"","params":{"shape":0.2}},
           {"id":"adsr2","type":"adsr","name":"Amp Env","x":640,"y":1140,"parent":"","params":{"attack":0.250439,"decay":0.52465,"sustain":0.3,"release":0.435862}},
           {"id":"vca2","type":"vca","name":"VCA","x":940,"y":920,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.74366,"timer":0.797772,"feedback":0.4,"highcut":0.624196,"mix":0.3}},
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.74366,"timer":0.797772,"feedback":0.2,"highcut":0.624196,"mix":0.3}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"master":0.812652,"level1":0.872771,"pan1":0.5,"level2":0.812652,"pan2":0.5,"level3":0.726805,"pan3":0.5}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.5,"decay":0.489157,"damping":0.5,"mix":0.3,"quality":0}}
         ],
@@ -16312,7 +16551,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":940,"y":40,"parent":"","params":{"shape":0.35,"octave":0.5}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":940,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.5,"sustain":0,"release":0.435862}},
           {"id":"vca","type":"vca","name":"VCA","x":1240,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.764139,"timer":0.817615,"feedback":0.45,"highcut":0.624196,"mix":0.3}},
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.764139,"timer":0.817615,"feedback":0.225,"highcut":0.624196,"mix":0.3}},
           {"id":"oscill2","type":"oscillator","name":"Drone","x":940,"y":700,"parent":"","params":{"shape":0.1,"octave":0.166667}},
           {"id":"vca2","type":"vca","name":"Drone Level","x":1240,"y":700,"parent":"","params":{"gain":0.1}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"master":0.812652,"level1":0.812652,"pan1":0.5,"level2":0.726805,"pan2":0.5,"level3":0.5,"pan3":0.5}},
@@ -16878,7 +17117,7 @@
           {"id":"adsr2","type":"adsr","name":"Low Env","x":940,"y":920,"parent":"","params":{"attack":0.238009,"decay":0.52465,"sustain":0.1,"release":0.46143}},
           {"id":"vca2","type":"vca","name":"Low VCA","x":1240,"y":700,"parent":"","params":{}},
           {"id":"audiom","type":"audio-mixer","name":"Voices","x":1840,"y":40,"parent":"","params":{"master":0.967315,"level1":0.754845,"pan1":0.6,"level2":0.78346,"pan2":0.375}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.4,"mix":0.28,"highcut":0.624196}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.2,"mix":0.28,"highcut":0.624196}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.6,"decay":0.489157,"mix":0.25}}
         ],
         "cables": [
@@ -17403,7 +17642,7 @@
           {"id":"adsr4","type":"adsr","name":"Pluck 4 Env","x":940,"y":1580,"parent":"","params":{"attack":0.289085,"decay":0.5955,"sustain":0.25,"release":0.515487}},
           {"id":"vca4","type":"vca","name":"Pluck 4 VCA","x":1240,"y":1360,"parent":"","params":{}},
           {"id":"audiom","type":"audio-mixer","name":"Plucks","x":1840,"y":40,"parent":"","params":{"master":1,"level1":0.812652,"pan1":0.2,"level2":0.812652,"pan2":0.4,"level3":0.812652,"pan3":0.6,"level4":0.812652,"pan4":0.8}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.38,"mix":0.28,"highcut":0.624196}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.19,"mix":0.28,"highcut":0.624196}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.5,"decay":0.462935,"mix":0.25}}
         ],
         "cables": [
@@ -17727,7 +17966,7 @@
           {"id":"ringcl","type":"ring-clap","name":"Roll","x":640,"y":260,"parent":"","params":{"level":0.7,"bursts":0.4,"decay":0.334206,"tone":0.495142}},
           {"id":"ringha","type":"ring-hats","name":"Hats","x":640,"y":480,"parent":"","params":{"level":0.4}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.699337,"level1":0.699337,"pan1":0.5,"level2":0.570529,"pan2":0.5,"level3":0.413732,"pan3":0.65}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"mode":1,"feedback":0.4,"highcut":0.624196,"mix":0.25}}
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"mode":1,"feedback":0.2,"highcut":0.624196,"mix":0.25}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringki","jack":"trig"},"amount":1},
@@ -17878,7 +18117,7 @@
           {"id":"ringco","type":"ring-cowbell","name":"Ping","x":640,"y":260,"parent":"","params":{"level":0.7,"tune":0.791667,"decay":0.261159,"tone":0.9}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.789253,"level1":0.699337,"pan1":0.5,"level2":0.54646,"pan2":0.6}},
           {"id":"lfo","type":"lfo","name":"Tone Sweep","x":340,"y":260,"parent":"","params":{"rate":0.270346,"wave":0.166667,"polarity":1}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"feedback":0.35,"highcut":0.624196,"mix":0.2}}
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"feedback":0.175,"highcut":0.624196,"mix":0.2}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringki","jack":"trig"},"amount":1},
@@ -18299,7 +18538,7 @@
           {"id":"ringha","type":"ring-hats","name":"Hats","x":640,"y":480,"parent":"","params":{"level":0.7,"closed":0.57094,"open":0.538389}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.699337,"level1":0.699337,"pan1":0.5,"level2":0.570529,"pan2":0.525,"level3":0.595159,"pan3":0.6}},
           {"id":"lfo","type":"lfo","name":"Tone Sweep","x":340,"y":260,"parent":"","params":{"rate":0.244146,"wave":0.166667,"polarity":1}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.230769,"feedback":0.3,"highcut":0.715409,"mix":0.12}}
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.230769,"feedback":0.15,"highcut":0.715409,"mix":0.12}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringki","jack":"trig"},"amount":1},
@@ -18460,7 +18699,7 @@
           {"id":"ringki3","type":"ring-kick","name":"High","x":640,"y":480,"parent":"","params":{"tune":0.611196,"decay":0.361127,"sweep":0.5,"tone":0.4}},
           {"id":"ringha","type":"ring-hats","name":"Hats","x":640,"y":700,"parent":"","params":{"level":0.4}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.792157,"level1":0.672441,"pan1":0.5,"level2":0.620354,"pan2":0.5,"level3":0.570529,"pan3":0.5,"level4":0.373891,"pan4":0.65}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.726422,"timer":0.779766,"feedback":0.3,"highcut":0.563705,"mix":0.15}}
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.726422,"timer":0.779766,"feedback":0.15,"highcut":0.563705,"mix":0.15}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringki","jack":"trig"},"amount":1},
@@ -18504,7 +18743,7 @@
           {"id":"ringki","type":"ring-kick","name":"Dub Kick","x":640,"y":40,"parent":"","params":{"tune":0.308336,"decay":0.535685,"sweep":0.35,"tone":0.25,"level":0.8}},
           {"id":"ringcl","type":"ring-clap","name":"Clap","x":640,"y":260,"parent":"","params":{"tone":0.282666,"decay":0.57094,"level":0.6}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.928867,"level1":0.699337,"pan1":0.5,"level2":0.54646,"pan2":0.55}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.55,"highcut":0.485719,"lowcut":0.389076,"mix":0.3}},
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.275,"highcut":0.485719,"lowcut":0.389076,"mix":0.3}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"size":0.6,"decay":0.489157,"mix":0.2}}
         ],
         "cables": [
@@ -18622,7 +18861,7 @@
           {"id":"ringri2","type":"ring-rim","name":"High Block","x":640,"y":260,"parent":"","params":{"level":0.8,"voice":1,"tune":0.708333,"decay":0.565759}},
           {"id":"ringki","type":"ring-kick","name":"Kick","x":640,"y":480,"parent":"","params":{"level":0.8,"tune":0.368483}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.993416,"level1":0.646113,"pan1":0.35,"level2":0.620354,"pan2":0.65,"level3":0.646113,"pan3":0.5}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"feedback":0.35,"highcut":0.624196,"mix":0.2}}
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.384615,"feedback":0.175,"highcut":0.624196,"mix":0.2}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringri","jack":"trig"},"amount":1},
@@ -18896,7 +19135,7 @@
           {"id":"ringsn","type":"ring-snare","name":"Tick","x":640,"y":260,"parent":"","params":{"tune":0.839036,"tone":0.8,"snappy":0.45,"decay":0.24436,"level":0.8}},
           {"id":"ringha","type":"ring-hats","name":"Hats","x":640,"y":480,"parent":"","params":{"level":0.4}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.872771,"level1":0.699337,"pan1":0.5,"level2":0.646113,"pan2":0.55,"level3":0.455763,"pan3":0.65}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.230769,"rater":0.384615,"feedback":0.3,"highcut":0.673621,"mix":0.15}}
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"sync":1,"ratel":0.230769,"rater":0.384615,"feedback":0.15,"highcut":0.673621,"mix":0.15}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringki","jack":"trig"},"amount":1},
@@ -19058,7 +19297,7 @@
           {"id":"ringto2","type":"ring-tom","name":"Lower Zap","x":640,"y":480,"parent":"","params":{"level":0.8,"tune":0.515486,"decay":0.436517,"bend":0.8,"noise":0.05}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1240,"y":40,"parent":"","params":{"master":0.699337,"level1":0.699337,"pan1":0.5,"level2":0.620354,"pan2":0.65,"level3":0.620354,"pan3":0.35}},
           {"id":"lfo","type":"lfo","name":"Bend Sweep","x":340,"y":260,"parent":"","params":{"rate":0.317951,"wave":0.166667,"polarity":1}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.721051,"timer":0.774395,"feedback":0.3,"highcut":0.624196,"mix":0.15}}
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.721051,"timer":0.774395,"feedback":0.15,"highcut":0.624196,"mix":0.15}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"ringki","jack":"trig"},"amount":1},
@@ -19343,7 +19582,7 @@
           {"id":"vca2","type":"vca","name":"Echo Voice VCA","x":1240,"y":700,"parent":"","params":{}},
           {"id":"punchk","type":"punch-kick","name":"Punch Kick","x":940,"y":1360,"parent":"","params":{"level":0.7}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"master":0.842422,"level1":0.754845,"pan1":0.6,"level2":0.726805,"pan2":0.375,"level3":0.620354,"pan3":0.5}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.35,"mix":0.25,"highcut":0.673621}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.175,"mix":0.25,"highcut":0.673621}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.5,"decay":0.444551,"mix":0.2}}
         ],
         "cables": [
@@ -20349,7 +20588,7 @@
           {"id":"adsr2","type":"adsr","name":"Low Env","x":940,"y":920,"parent":"","params":{"attack":0.238009,"decay":0.5,"sustain":0.2,"release":0.435862}},
           {"id":"vca2","type":"vca","name":"Low VCA","x":1240,"y":700,"parent":"","params":{}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"master":0.967315,"level1":0.754845,"pan1":0.6,"level2":0.699337,"pan2":0.4}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.4,"mix":0.25,"highcut":0.673621}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.2,"mix":0.25,"highcut":0.673621}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.5,"decay":0.444551,"mix":0.2}}
         ],
         "cables": [
@@ -21108,7 +21347,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.651414}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.935216,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.363636,"mix":0.25,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.2,"mix":0.25,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.4,"size":0.75,"decay":0.588845}}
         ],
         "cables": [
@@ -21260,7 +21499,7 @@
           {"id":"adsr","type":"adsr","name":"Voice Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.564114,"sustain":0,"release":0.5}},
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.935216,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.409091,"mix":0.3,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.225,"mix":0.3,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.35,"size":0.7,"decay":0.562623}}
         ],
         "cables": [
@@ -21300,7 +21539,7 @@
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.704648,"resonance":0.2}},
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":700,"parent":"","params":{"level":0.4,"closed":0.452121}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1540,"y":40,"parent":"","params":{"level1":0.903702,"level2":0.595159,"pan2":0.625,"master":0.812652}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1840,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.363636,"mix":0.25,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1840,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.2,"mix":0.25,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.55,"decay":0.479234,"mix":0.3}}
         ],
         "cables": [
@@ -21343,7 +21582,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.734707,"resonance":0.15}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":1,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.363636,"mix":0.3}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.2,"mix":0.3}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.25,"size":0.5,"decay":0.430843}}
         ],
         "cables": [
@@ -21440,7 +21679,7 @@
           {"id":"adsr","type":"adsr","name":"Voice Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.545681,"sustain":0,"release":0.482277}},
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.903702,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.409091,"mix":0.3,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.225,"mix":0.3,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.35,"size":0.7,"decay":0.54747}}
         ],
         "cables": [
@@ -21539,7 +21778,7 @@
           {"id":"vca2","type":"vca","name":"Sub VCA","x":940,"y":700,"parent":"","params":{}},
           {"id":"filter2","type":"filter","name":"Sub Filter","x":1240,"y":700,"parent":"","params":{"cutoff":0.46598}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1540,"y":40,"parent":"","params":{"level1":0.754845,"level2":0.570529,"master":0.812652}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1840,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.318182,"mix":0.2,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1840,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.175,"mix":0.2,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.5,"decay":0.457065,"mix":0.25}}
         ],
         "cables": [
@@ -21885,7 +22124,7 @@
           {"id":"out","type":"audio-out","name":"Out 1/2","x":2140,"y":260,"parent":"","muted":false,"port":"device-out-1","params":{},"track":"Out 1/2"},
           {"id":"sweepg","type":"sweep-generator","name":"Siren","x":340,"y":40,"parent":"","params":{"start":0.710538,"stop":0.806087,"sweepsync":0.714286,"direction":1,"law":1,"waveform":0.2,"symmetry":0.6,"level":0.5,"drift":0.35}},
           {"id":"filter","type":"filter","name":"Soften","x":640,"y":40,"parent":"","params":{"cutoff":0.704648,"resonance":0.15}},
-          {"id":"delay","type":"delay","name":"Delay","x":940,"y":40,"parent":"","params":{"sync":1,"ratel":0.692308,"rater":0.615385,"mode":1,"feedback":0.45,"mix":0.35,"highcut":0.527507}},
+          {"id":"delay","type":"delay","name":"Delay","x":940,"y":40,"parent":"","params":{"sync":1,"ratel":0.692308,"rater":0.615385,"mode":1,"feedback":0.225,"mix":0.35,"highcut":0.527507}},
           {"id":"stepse","type":"step-sequencer","name":"Step Sequencer","x":340,"y":260,"parent":"","params":{"length":0.225806,"rate":0.230769,"root":0.181818,"scale":0.125,"octave":0.166667,"gatelength":0.79798},"data":{"steps":[{"g":1,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":7,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}},
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":260,"parent":"","params":{"shape":0.2}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":480,"parent":"","params":{"attack":0.250439,"decay":0.52465,"sustain":0.4,"release":0.435862}},
@@ -21929,7 +22168,7 @@
           {"id":"sweepg","type":"sweep-generator","name":"Blips","x":640,"y":40,"parent":"","params":{"start":0.682592,"stop":0.87369,"sweepsync":0.571429,"mode":1,"burstcount":0.031746,"waveform":0.2,"law":0,"level":0.6,"drift":0}},
           {"id":"adsr","type":"adsr","name":"Pluck","x":640,"y":260,"parent":"","params":{"attack":0.195957,"decay":0.331395,"sustain":0,"release":0.304898}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":940,"y":260,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.153846,"mode":1,"feedback":0.4,"mix":0.35}},
+          {"id":"delay","type":"delay","name":"Delay","x":940,"y":260,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.153846,"mode":1,"feedback":0.2,"mix":0.35}},
           {"id":"stepse2","type":"step-sequencer","name":"Step Sequencer","x":340,"y":480,"parent":"","params":{"length":0.483871,"rate":0.692308,"root":0,"scale":0.125,"octave":0.166667,"gatelength":0.494949},"data":{"steps":[{"g":1,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":7,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":5,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":1,"p":3,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}},
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":480,"parent":"","params":{"shape":0.15}},
           {"id":"adsr2","type":"adsr","name":"Amp Env","x":640,"y":700,"parent":"","params":{"attack":0.250439,"decay":0.45176,"sustain":0.2,"release":0.350351}},
@@ -22194,7 +22433,7 @@
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"switch","type":"switch","name":"Switch","x":1240,"y":40,"parent":"","params":{"length":0.333333,"rate":0.555556,"fade":0.420917,"idle":0}},
           {"id":"filter","type":"filter","name":"Dry","x":1540,"y":40,"parent":"","params":{"cutoff":0.651414,"type":0}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":260,"parent":"","params":{"timel":0.779766,"timer":0.726422,"feedback":0.55,"mix":1,"mode":0}},
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":260,"parent":"","params":{"timel":0.779766,"timer":0.726422,"feedback":0.275,"mix":1,"mode":0}},
           {"id":"filter2","type":"filter","name":"Thin","x":1540,"y":480,"parent":"","params":{"cutoff":0.62502,"mode":1,"resonance":0.3,"type":0}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1540,"y":700,"parent":"","params":{"size":0.95,"decay":0.647158,"mix":1,"quality":0}},
           {"id":"audiom","type":"audio-mixer","name":"Audio Mixer","x":1840,"y":40,"parent":"","params":{"level1":0.754845,"level2":0.78346,"level3":0.726805,"level4":0.812652,"pan1":0.5,"pan3":0.65,"master":0.812652}},
@@ -22912,7 +23151,7 @@
           {"id":"adsr","type":"adsr","name":"Amp Env","x":1240,"y":1140,"parent":"","params":{"attack":0.250439,"decay":0.469903,"sustain":0.1,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":1540,"y":920,"parent":"","params":{}},
           {"id":"audiom2","type":"audio-mixer","name":"Final","x":1840,"y":40,"parent":"","params":{"level1":0.812652,"level2":0.699337,"pan2":0.6,"master":0.812652}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.35,"mix":0.2,"highcut":0.673621}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.175,"mix":0.2,"highcut":0.673621}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.4,"decay":0.389469,"mix":0.15}}
         ],
         "cables": [
@@ -23025,7 +23264,7 @@
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":1240,"y":1140,"parent":"","params":{"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":1540,"y":700,"parent":"","params":{"level1":0.726805,"level2":0.646113,"pan2":0.55,"level3":0.5,"pan3":0.625,"master":0.646113}},
           {"id":"audiom2","type":"audio-mixer","name":"Final","x":1840,"y":40,"parent":"","params":{"level1":0.726805,"level2":0.812652,"pan1":0.55,"master":0.812652}},
-          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.45,"mix":0.3,"highcut":0.624196}},
+          {"id":"delay","type":"delay","name":"Delay","x":2140,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.225,"mix":0.3,"highcut":0.624196}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2440,"y":40,"parent":"","params":{"size":0.7,"decay":0.530531,"mix":0.3}}
         ],
         "cables": [
@@ -24328,7 +24567,7 @@
           {"id":"adsr","type":"adsr","name":"Scan Env","x":640,"y":480,"parent":"","params":{"attack":0.22153,"decay":0.545681,"sustain":0.1,"release":0.46143}},
           {"id":"adsr2","type":"adsr","name":"Amp Env","x":940,"y":260,"parent":"","params":{"attack":0.22153,"decay":0.512865,"sustain":0.1,"release":0.435862}},
           {"id":"vca","type":"vca","name":"VCA","x":1240,"y":40,"parent":"","params":{}},
-          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.35,"mix":0.25,"mode":1}},
+          {"id":"delay","type":"delay","name":"Delay","x":1240,"y":40,"parent":"","params":{"sync":1,"ratel":0.461538,"rater":0.615385,"feedback":0.175,"mix":0.25,"mode":1}},
           {"id":"audiom","type":"audio-mixer","name":"Trim","x":1540,"y":260,"parent":"","params":{"level1":0.872771,"master":0.812652}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1540,"y":40,"parent":"","params":{"size":0.5,"decay":0.462935,"damping":0.5,"mix":0.2,"quality":0}}
         ],
@@ -24468,7 +24707,7 @@
           {"id":"vca","type":"vca","name":"Voice VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.69306,"resonance":0.2}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.967315,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.363636,"mix":0.25}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.2,"mix":0.25}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.25,"size":0.5,"decay":0.444551}}
         ],
         "cables": [
@@ -24508,7 +24747,7 @@
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"wheel","type":"wheel","name":"Fold Wheel","x":340,"y":480,"parent":"","params":{"value":0.3,"min":0.5,"max":1,"spring":0,"smooth":0.405836}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.967315,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.318182,"mix":0.2}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.175,"mix":0.2}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.25,"size":0.5,"decay":0.444551}}
         ],
         "cables": [
@@ -24642,7 +24881,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.6}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.469903,"sustain":0.05,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.545455,"mix":0.5,"tone":0.35,"wobble":0.2}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.3,"mix":0.5,"tone":0.35,"wobble":0.2}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1540,"y":40,"parent":"","params":{"size":0.45,"decay":0.430843,"mix":0.2}},
           {"id":"wheel","type":"wheel","name":"Tape Wheel","x":1240,"y":480,"parent":"","params":{"value":0.5,"min":0,"max":1,"spring":1,"smooth":0.458521}}
         ],
@@ -24966,7 +25205,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.2}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.5,"sustain":0,"release":0.435862}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.363636,"mix":0.3,"tone":0.4}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"time":0.45,"feedback":0.2,"mix":0.3,"tone":0.4}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1540,"y":40,"parent":"","params":{"size":0.5,"decay":0.457065,"mix":0.2}},
           {"id":"xypad","type":"xy-pad","name":"Echo Pad","x":1240,"y":480,"parent":"","params":{"x":0.4,"y":0.4,"smooth":0.405836}}
         ],
@@ -25007,7 +25246,7 @@
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.734707}},
           {"id":"xypad","type":"xy-pad","name":"Timbre Pad","x":640,"y":480,"parent":"","params":{"x":0.4,"y":0.5,"smooth":0.379471}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.903702,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.318182,"mix":0.25}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.4,"feedback":0.175,"mix":0.25}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.25,"size":0.5,"decay":0.462935}}
         ],
         "cables": [
@@ -25106,7 +25345,7 @@
           {"id":"filter","type":"filter","name":"Voice Filter","x":1240,"y":40,"parent":"","params":{"cutoff":0.551071,"resonance":0.25}},
           {"id":"xypad","type":"xy-pad","name":"Centre Pad","x":640,"y":480,"parent":"","params":{"x":0.5,"y":0.5,"min":0,"max":1,"smooth":0.405836}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":1240,"y":40,"parent":"","params":{"level1":0.903702,"master":0.812652,"limiter":1}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.363636,"mix":0.25}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1540,"y":40,"parent":"","params":{"zone":0.5,"time":0.5,"feedback":0.2,"mix":0.25}},
           {"id":"reverb","type":"reverb","name":"Verb","x":1840,"y":40,"parent":"","params":{"mix":0.3,"size":0.55,"decay":0.489157}}
         ],
         "cables": [
@@ -25300,7 +25539,7 @@
           {"id":"vca","type":"vca","name":"X VCA","x":940,"y":40,"parent":"","params":{}},
           {"id":"vca2","type":"vca","name":"Y VCA","x":940,"y":260,"parent":"","params":{}},
           {"id":"xyscop","type":"xy-scope","name":"XY Scope","x":1240,"y":40,"parent":"","params":{"phosphor":0,"persistence":0.705117,"timebase":0.394128,"intensity":0.7}},
-          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.779766,"timer":0.817615,"feedback":0.4,"highcut":0.673621,"mix":0.3}},
+          {"id":"delay","type":"delay","name":"Delay","x":1540,"y":40,"parent":"","params":{"timel":0.779766,"timer":0.817615,"feedback":0.2,"highcut":0.673621,"mix":0.3}},
           {"id":"audiom","type":"audio-mixer","name":"Mix","x":1840,"y":40,"parent":"","params":{"master":0.726805,"level1":1,"pan1":0.5}},
           {"id":"reverb","type":"reverb","name":"Verb","x":2140,"y":40,"parent":"","params":{"size":0.5,"decay":0.530531,"damping":0.5,"mix":0.35,"quality":0}}
         ],
@@ -25405,7 +25644,7 @@
           {"id":"punchh","type":"punch-hats","name":"Punch Hats","x":640,"y":480,"parent":"","params":{"level":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Drum Mix","x":940,"y":40,"parent":"","params":{"level1":0.726805,"level2":0.646113,"pan2":0.55,"level3":0.5,"pan3":0.625,"master":0.455763}},
           {"id":"stepse","type":"step-sequencer","name":"Comb Pitch","x":340,"y":920,"parent":"","params":{"length":0.225806,"rate":0.461538,"root":0.818182,"scale":0.75,"octave":0.666667},"data":{"steps":[{"g":1,"p":0,"v":100},{"g":1,"p":0,"v":100},{"g":1,"p":7,"v":100},{"g":1,"p":7,"v":100},{"g":1,"p":3,"v":100},{"g":1,"p":3,"v":100},{"g":1,"p":5,"v":100},{"g":1,"p":10,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100},{"g":0,"p":0,"v":100}]}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0,"feedback":0.727273,"character":0.15,"tone":0.55,"mix":0.7,"timechange":1}}
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0,"feedback":0.4,"character":0.15,"tone":0.55,"mix":0.7,"timechange":1}}
         ],
         "cables": [
           {"id":"k1","from":{"node":"drumgr","jack":"gate1"},"to":{"node":"punchk","jack":"trig"},"amount":1},
@@ -25443,7 +25682,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.8}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.469903,"sustain":0.3,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"sync":1,"time":0.5,"feedback":0.5,"character":0.45,"tone":0.375,"wobble":0.35,"mix":0.45,"timechange":0}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"sync":1,"time":0.5,"feedback":0.275,"character":0.45,"tone":0.375,"wobble":0.35,"mix":0.45,"timechange":0}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":1,"master":0.935216}}
         ],
         "cables": [
@@ -25477,7 +25716,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.6}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.45176,"sustain":0.2,"release":0.402173}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":1,"sync":1,"time":0.35,"feedback":0.454545,"character":0.1,"mix":0.6,"timechange":1}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":1,"sync":1,"time":0.35,"feedback":0.25,"character":0.1,"mix":0.6,"timechange":1}},
           {"id":"lfo","type":"lfo","name":"Hold Gate","x":940,"y":260,"parent":"","params":{"wave":0.666667,"sync":0.777778,"polarity":1,"pw":0.5}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":0.842422,"master":0.812652}}
         ],
@@ -25513,7 +25752,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.7}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.250439,"decay":0.430488,"sustain":0.2,"release":0.379825}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"sync":1,"time":0.4,"feedback":0.545455,"character":0.2,"diffuse":0.2,"mix":0.55}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.5,"sync":1,"time":0.4,"feedback":0.3,"character":0.2,"diffuse":0.2,"mix":0.55}},
           {"id":"lfo","type":"lfo","name":"Reverse Gate","x":940,"y":260,"parent":"","params":{"wave":0.666667,"sync":0.777778,"polarity":1}},
           {"id":"lfo2","type":"lfo","name":"Ping-Pong Gate","x":1240,"y":260,"parent":"","params":{"wave":0.666667,"sync":0.666667,"polarity":1,"phase":0.25}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":1,"master":0.812652}}
@@ -25551,7 +25790,7 @@
           {"id":"oscill","type":"oscillator","name":"Source","x":640,"y":40,"parent":"","params":{"shape":0.5}},
           {"id":"adsr","type":"adsr","name":"Amp Env","x":640,"y":260,"parent":"","params":{"attack":0.441888,"decay":0.52465,"sustain":0.6,"release":0.5}},
           {"id":"vca","type":"vca","name":"VCA","x":940,"y":40,"parent":"","params":{}},
-          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.25,"time":0.55,"feedback":0.636364,"character":0.55,"tone":0.45,"diffuse":0.85,"offset":0.7,"wobble":0.3,"mix":0.6,"timechange":1}},
+          {"id":"zonede","type":"zone-delay","name":"Zone Delay","x":1240,"y":40,"parent":"","params":{"zone":0.25,"time":0.55,"feedback":0.35,"character":0.55,"tone":0.45,"diffuse":0.85,"offset":0.7,"wobble":0.3,"mix":0.6,"timechange":1}},
           {"id":"audiom","type":"audio-mixer","name":"Level","x":940,"y":480,"parent":"","params":{"level1":0.812652,"master":0.812652}}
         ],
         "cables": [

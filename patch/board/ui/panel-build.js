@@ -54,7 +54,7 @@
   const EMBED = {
     "drum-grid": [46, 20], "step-sequencer": [40, 16], "cartesian-sequencer": [36, 16], "polymeter-sequencer": [40, 16],
     "stage-sequencer": [40, 14], "gate-sequencer": [36, 14], "drum-map": [36, 12], "rhythm-bank": [20, 10],
-    "rotating-divider": [18, 9], "shift-register": [18, 11], "recall": [18, 11], "segments": [22, 13], "neuron": [20, 10],
+    "rotating-divider": [18, 9], "shift-register": [18, 11], "automata": [18, 11], "recall": [18, 11], "segments": [22, 13], "neuron": [20, 10],
     "quantizer-suite": [32, 14], "sampler": [40, 18],
   };
   const CONTROLLER_TYPES = new Set(["dial", "wheel", "xy-pad", "button", "keyboard", "level-meter", "monitor"]);
