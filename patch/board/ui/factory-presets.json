@@ -9568,7 +9568,7 @@
           {"id":"quanti","type":"quantizer-suite","name":"Board Scale","x":640,"y":40,"parent":"root","params":{"a.mode":1,"a.target":0,"a.harmony":0.25,"a.root":0.181818,"a.scale":0.3125,"a.sample":0,"a.octave":0.5,"a.slew":0.308006,"a.notes":1,"b.notes":0,"c.notes":0,"d.notes":0,"hysteresis":0.3}},
           {"id":"oscill","type":"oscillator","name":"Saw","x":940,"y":40,"parent":"root","params":{"shape":0.67}},
           {"id":"adsr","type":"adsr","name":"Filter Env","x":940,"y":260,"parent":"root","params":{"attack":0.195957,"decay":0.462954,"sustain":0.25,"release":0.335072,"velamount":0.85}},
-          {"id":"filter","type":"filter","name":"Multi Filter","x":1240,"y":40,"parent":"root","params":{"cutoff":0.371314,"resonance":0.45,"drive":0.4,"keytrack":0.4,"type":0.5}},
+          {"id":"filter","type":"filter","name":"Multi Filter","x":1240,"y":40,"parent":"root","params":{"cutoff":0.371314,"resonance":0.45,"drive":0.4,"keytrack":0.4,"type":0.387097}},
           {"id":"adsr2","type":"adsr","name":"Amp Env","x":1240,"y":260,"parent":"root","params":{"attack":0.195957,"decay":0.469903,"sustain":0.7,"release":0.316294,"velamount":0.6}},
           {"id":"vca","type":"vca","name":"Amp","x":1540,"y":40,"parent":"root","params":{}}
         ],
