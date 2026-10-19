@@ -152,7 +152,7 @@ public:
     };
     enum { Notes, Trigger, Gate, SliceIn, PitchIn, SpeedIn, VelocityIn, Stop, Step, ClockIn, InL, InR, RecIn };
     enum { OutL, OutR, EndOut, SliceOut, PlayheadOut, ActiveOut, Voice1 };
-    enum { NextButton, RandomButton, StopButton, RecordButton, AuditionCommand, PauseCommand };
+    enum { NextButton, RandomButton, StopButton, RecordButton, AuditionCommand, PauseCommand, AuditionLoopCommand };
     static constexpr double kRecSeconds = 20.0;  ///< longest recording
 
     using Module::Module;
@@ -183,6 +183,7 @@ public:
 
     void command(const std::string& id, float value) override {
         if (id == "audition") postCommand(AuditionCommand, value);
+        else if (id == "auditionloop") postCommand(AuditionLoopCommand, value);
         else if (id == "pause") postCommand(PauseCommand, value);
         else Module::command(id, value);
     }
@@ -264,6 +265,7 @@ public:
         out.push_back({"recState", (double)rs});
         out.push_back({"recSeconds", sampleRate_ > 0.0 ? (rs == 1 ? (double)recPosA_.load() : (double)recLen_.load()) / sampleRate_ : 0.0});
         out.push_back({"current", (double)current_.load()});
+        out.push_back({"paused", paused_.load() ? 1.0 : 0.0});
         out.push_back({"missing", missing_.load() ? 1.0 : 0.0});
         out.push_back({"sampleRate", sampleRate_});
         out.push_back({"channels", rec ? 2.0 : clip_ ? (double)clip_->numChannels() : 0.0});
@@ -348,9 +350,10 @@ public:
                     break;
                 case NextButton: dsp_.nextSlice(); break;
                 case RandomButton: dsp_.randomSlice(++randomCount_); break;
-                case StopButton: dsp_.stopAll(); break;
-                case PauseCommand: dsp_.setPaused(!dsp_.paused()); break;
-                case AuditionCommand: dsp_.audition((int)std::lround(cmd.value), p); break;
+                case StopButton: dsp_.stopAll(); paused_.store(false); break;
+                case PauseCommand: dsp_.setPaused(!dsp_.paused()); paused_.store(dsp_.paused()); break;
+                case AuditionLoopCommand: dsp_.audition((int)std::lround(cmd.value), p, true); paused_.store(false); break;
+                case AuditionCommand: dsp_.audition((int)std::lround(cmd.value), p); paused_.store(false); break;
                 default: break;
             }
         });
@@ -467,6 +470,7 @@ public:
     }
 
 private:
+    std::atomic<bool> paused_{false};
     /// [audio thread] Starts recording: fresh (replaces the sample) or overdub (into a recording that is there).
     void recStart(bool overdub, int64_t limit, bool stereo, const patch::SamplerParams& p) {
         if (overdub && liveA_ && recLen_.load() > 0) {

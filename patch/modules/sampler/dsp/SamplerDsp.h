@@ -274,14 +274,14 @@ public:
         pos = voices_[(size_t)headSlot_].pos;
         return true;
     }
-    /// Plays slice `i` (or the whole sample, i < 0) once, from the view.
-    void audition(int i, const SamplerParams& p) {
+    /// Plays slice `i` (or the whole sample, i < 0) once, or looping until Stop, from the view.
+    void audition(int i, const SamplerParams& p, bool loop = false) {
         if (!s_ || s_->frames < 2) return;
         SamplerParams q = p;
-        q.mode = sampler::ModeOneShot;
+        q.mode = loop ? sampler::ModeLoop : sampler::ModeOneShot;
         paused_ = false;
         forceMode_ = true;  // a slice set to Loop (or any mode of its own) is auditioned once too
-        startGroup(-2, i, 0.0f, 1.0f, false, q);
+        startGroup(-2, i, 0.0f, 1.0f, loop, q);
         forceMode_ = false;
     }
     /// Freezes (or resumes) every playhead in place.
