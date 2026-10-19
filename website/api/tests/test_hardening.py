@@ -133,6 +133,6 @@ def test_project_bodies_may_be_bigger_than_other_json():
     from app import main
     from app.routers.projects import MAX_BYTES
 
-    assert main.body_limit("/api/projects") >= MAX_BYTES * 4 + 64 * 1024  # the endpoint's own 413 decides, not the middleware
+    assert main.body_limit("/api/projects") >= MAX_BYTES * 4 + 5 * 1024 * 1024 * 4 // 3 + 64 * 1024  # the board plus its audio as base64; the endpoint's own 413 decides, not the middleware
     assert main.body_limit("/api/presets") > 5 * 1024 * 1024 * 4 // 3   # the audio of a preset as base64, plus its patch
     assert main.body_limit("/api/contact") == main.MAX_BODY

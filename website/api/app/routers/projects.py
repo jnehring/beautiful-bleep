@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..deps import get_library_user
 from ..models import Project, User
-from .presets import MAX_BYTES, _depth, MAX_DEPTH
+from .presets import MAX_BYTES, _depth, MAX_DEPTH, clean_media
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -50,9 +50,13 @@ def save_project(body: ProjectIn, db: Session = Depends(get_db), user: User = De
     pre = body.preset
     if not isinstance(pre.get("nodes"), list) or not isinstance(pre.get("cables", []), list) or _depth(pre) > MAX_DEPTH:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "That is not a project")
+    media = pre.get("media")
+    if media is not None:   # the audio of the board's modules, with the same limits as a preset's
+        pre["media"], _ = clean_media(media)
     data = json.dumps(pre, separators=(",", ":"))
-    if len(data.encode()) > MAX_BYTES * 4:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, f"A project may be up to {MAX_BYTES * 4 // 1024} KB")
+    audio = sum(len(f["data"]) for f in pre.get("media", {}).values())
+    if len(data.encode()) - audio > MAX_BYTES * 4:   # the limit is for the board itself; the audio has its own (clean_media)
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, f"A project may be up to {MAX_BYTES * 4 // 1024} KB, not counting its audio")
     tags = [str(t)[:30] for t in pre.get("tags", []) if isinstance(t, str)][:10]
     description = str(pre.get("description", ""))[:280]
     p = db.scalar(select(Project).where(Project.user_id == user.id, Project.name == name))
