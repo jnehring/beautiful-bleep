@@ -1,0 +1,11 @@
+{
+  "name": "Bit Formula",
+  "slug": "bit-formula",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Integer-expression sound generator: sixteen formulas plus your own, three modulatable knobs, a clock rate with pitch and an audio input in the maths.",
+  "colour": "#a3e635",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/bit-formula.md"
+}
