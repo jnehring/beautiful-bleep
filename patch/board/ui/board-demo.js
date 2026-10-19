@@ -464,6 +464,7 @@
         }
         case "readMedia": return window.BleepWeb && BleepWeb.media ? BleepWeb.media.read(a[0]) : { error: "no audio in the demo" };
         case "exportMedia": return { error: "no audio in the demo" };
+        case "revealMedia": return { error: "no files in the demo" };
         case "midiDevices": return window.BleepWeb ? BleepWeb.midiDevices() : ["Demo Keyboard", "Demo Pads"];
         case "presets": return store.get(presetKey(a[0]), []);
         case "savePreset": {

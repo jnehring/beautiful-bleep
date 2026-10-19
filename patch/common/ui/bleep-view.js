@@ -12,6 +12,7 @@
 //              isPatched(inputJack) → bool, command(id, value),
 //              importMedia(name, base64) → Promise<{id, name, seconds, channels} | {error}>,
 //              exportMedia(slot) → Promise<{id, seconds, channels} | {error}>,
+//              revealMedia(id) → Promise<{ok} | {error}>  (shows the file in the computer's file manager),
 //              knobMenu(paramId, event)  (optional: right-click on a knob),
 //              perform(action, ...args)  (performance gestures: not saved, no undo),
 //              presets(kind), savePreset(kind, name, preset), deletePreset(kind, name)

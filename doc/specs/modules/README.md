@@ -119,3 +119,13 @@ imperfection are part of the sound.
 | Chart Recorder | [chart-recorder.md](chart-recorder.md) | Modulation | Draft |
 | Sampler | [sampler.md](sampler.md) | Audio | Implemented (v1) |
 | XY Scope | [xy-scope.md](xy-scope.md) | Utility | Draft |
+
+Measuring and connecting (implemented):
+
+| Module | File | Category | Status |
+|---|---|---|---|
+| Scope | [scope.md](scope.md) | Utility | Implemented |
+| Spectrum | [spectrum.md](spectrum.md) | Utility | Implemented |
+| Rate Counter | [rate-counter.md](rate-counter.md) | Utility | Implemented |
+| Recorder | [recorder.md](recorder.md) | Utility | Implemented |
+| OSC Bridge | [osc-bridge.md](osc-bridge.md) | Utility | Implemented (module and port; see §6 of the spec) |

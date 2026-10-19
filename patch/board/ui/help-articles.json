@@ -120,6 +120,48 @@
   "path": "/docs/developers/overview/"
  },
  {
+  "group": "Developers",
+  "title": "Patch assistant",
+  "description": "What the agentic patch assistant is, what it can do, where its code lives, and a map of these pages.",
+  "path": "/docs/developers/assistant/overview/"
+ },
+ {
+  "group": "Developers",
+  "title": "Assistant architecture",
+  "description": "The pieces of the patch assistant (board, website API, bleep-agent library, model provider, built data) and how they fit.",
+  "path": "/docs/developers/assistant/architecture/"
+ },
+ {
+  "group": "Developers",
+  "title": "How a turn works",
+  "description": "One assistant turn from request to events: routing, the agent loop, tool calls, live tools with pause and resume, and the step budget.",
+  "path": "/docs/developers/assistant/agent-flow/"
+ },
+ {
+  "group": "Developers",
+  "title": "Skills and tools",
+  "description": "The six skills, the tools each one is offered, and how the prompts and tool definitions are kept small and cache-friendly.",
+  "path": "/docs/developers/assistant/skills-and-tools/"
+ },
+ {
+  "group": "Developers",
+  "title": "Edits and changesets",
+  "description": "How the assistant changes a patch safely: typed operations, validation against the catalog, changesets and undo, and the simulator behind \"why is there no sound\".",
+  "path": "/docs/developers/assistant/edits-and-changesets/"
+ },
+ {
+  "group": "Developers",
+  "title": "Documentation search",
+  "description": "How the docs skill finds the right pages: heading-based chunks, a keyword index plus embeddings, rank fusion, and a version check.",
+  "path": "/docs/developers/assistant/documentation-search/"
+ },
+ {
+  "group": "Developers",
+  "title": "Benchmark and results",
+  "description": "The assistant benchmark (187 cases, six skills, simulated browser, deterministic checks), how to run and compare it, and the results of the versions so far.",
+  "path": "/docs/developers/assistant/benchmark/"
+ },
+ {
   "group": "Bleep Bus",
   "title": "Bleep Bus quickstart",
   "description": "A minimal Bleep Bus sender and receiver in 15 minutes.",
@@ -280,6 +322,12 @@
   "title": "Module ABI",
   "description": "The contract between a host and a module: one standalone WebAssembly file, its exports, buffers and versioning.",
   "path": "/docs/developers/modules/module-abi/"
+ },
+ {
+  "group": "Module developers",
+  "title": "Licensing",
+  "description": "Which licence applies to what, in plain terms: you can publish closed-source and paid modules, and forks of Bleep itself stay free.",
+  "path": "/docs/developers/modules/licensing/"
  },
  {
   "group": "Module developers",

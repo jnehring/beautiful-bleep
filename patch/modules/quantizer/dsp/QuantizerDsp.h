@@ -23,6 +23,9 @@ struct QuantizerParams {
     int root = 0;             ///< 0..11
     uint16_t mask = 0xfff;
     int rounding = RoundNearest;
+    /// A microtonal tuning (equal divisions or a scale file); null: the 12-note path with `mask`.
+    /// Root is still in semitones; Hysteresis is then a fraction of an average step.
+    const dsp::Tuning* tuning = nullptr;
 };
 
 struct QuantizerInputs {
@@ -48,6 +51,7 @@ public:
         gap_ = 0;
         glide_.reset(0.0f);
         first_ = true;
+        tuned_ = false;
     }
 
     static int round(float semis, uint16_t mask, int rounding) noexcept {
@@ -63,6 +67,14 @@ public:
         if (!in.clockPatched) held_ = v;
         else if (clock_.process(in.clock) > 0 || first_) held_ = v;
         first_ = false;
+        if (p.tuning) {
+            tickTuned(p, in, f);
+            return;
+        }
+        if (tuned_) {  // back from a tuning: start the 12-note path afresh
+            tuned_ = false;
+            hasNote_ = false;
+        }
 
         // Semitones relative to the root; the stored note is absolute (from C4).
         const float semis = held_ * 12.0f - (float)p.root;
@@ -89,16 +101,50 @@ public:
         f.out = glide_.process((float)note_ / 12.0f, p.glide, sampleRate_) + in.shift;
     }
 
-    int note() const noexcept { return note_; }
+    int note() const noexcept { return tuned_ ? 0 : note_; }
+    /// The pitch (octaves) of the note the tuned path holds.
+    float tunedPitch() const noexcept { return tunedPitch_; }
 
 private:
+    /// Same behaviour as the 12-note path, with steps of the tuning.
+    void tickTuned(const QuantizerParams& p, const QuantizerInputs& in, QuantizerFrame& f) noexcept {
+        if (!tuned_) {
+            tuned_ = true;
+            hasNote_ = false;
+        }
+        const dsp::Tuning& t = *p.tuning;
+        const float rootOct = (float)p.root / 12.0f;
+        const float rel = held_ - rootOct;
+        int step = t.index(rel, p.rounding);
+        if (hasNote_ && step != note_ && p.hysteresis > 0.0f) {
+            const float pull = (note_ > step ? p.hysteresis : -p.hysteresis) * t.meanStep() / 1200.0f;
+            const int pulled = t.index(rel + pull, p.rounding);
+            step = pulled == note_ ? note_ : pulled;
+        }
+        f.trigger = 0.0f;
+        if (!hasNote_ || step != note_) {
+            if (hasNote_) {
+                f.trigger = 1.0f;
+                gap_ = gapSamples_;
+            }
+            note_ = step;
+            if (!hasNote_) glide_.reset(rootOct + t.pitch(step));
+            hasNote_ = true;
+        }
+        tunedPitch_ = rootOct + t.pitch(note_);
+        f.gate = gap_ > 0 ? 0.0f : 1.0f;
+        if (gap_ > 0) --gap_;
+        f.out = glide_.process(tunedPitch_, p.glide, sampleRate_) + in.shift;
+    }
+
     double sampleRate_ = 48000.0;
     int gapSamples_ = 48;
     dsp::GateEdge clock_;
     dsp::OnePole glide_;
     float held_ = 0.0f;
     int note_ = 0, gap_ = 0;
-    bool hasNote_ = false, first_ = true;
+    bool hasNote_ = false, first_ = true, tuned_ = false;
+    float tunedPitch_ = 0.0f;
 };
 
 }  // namespace bleep::patch

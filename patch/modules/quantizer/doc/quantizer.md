@@ -39,6 +39,13 @@ controllers, bend and the other messages pass through unchanged.
 *Trigger* fires and *Gate* drops for one millisecond each time the note
 changes, so an envelope or *CV to Notes* can start a new note.
 
+**Other tunings.** *Tuning* leaves the twelve-note world. *Equal Divisions* splits the octave
+into 5 to 72 equal steps (19 and 31 are popular, 24 gives quarter tones); *Divisions* sets how many. *Scale File*
+loads a scale from a text file (a file with a description line, the number of notes, then one
+pitch per line as cents like `701.955` or as a ratio like `3/2`; the last line is the period, usually `2/1`): press **Load scale file…** in the view. Many tuning
+archives use this format. In these modes *Out* carries the exact pitch, the keyboard is not used, *Root* still moves the whole grid by semitones,
+*Hysteresis* counts in steps, and notes arriving at *Notes In* keep their exact tuned pitch (their note number is the nearest key).
+
 To build your own scale, click keys on the keyboard. Clicking a key while
 another scale is selected copies that scale and switches *Scale* to
 **Custom**, so any scale is a starting point.
@@ -104,12 +111,15 @@ Five whole patches show what Quantizer does. In the standalone app open **File �
 | Root | C … B | C |
 | Scale | the Step Sequencer's 17 scales, plus Custom | Major |
 | Rounding | Nearest, Down, Up | Nearest |
+| Tuning | 12 Notes, Equal Divisions, Scale File | 12 Notes |
+| Divisions | 5 … 72 | 19 |
 
 - **Range:** how many octaves a full-scale input covers in each direction.
   It applies to *In* only.
 - **Hysteresis:** how far past the midpoint between two notes the input must
   move before the note changes. 0 is plain quantizing.
 - **Glide:** a smoothing time on *Out*. *Trigger* still fires at the change.
+- **Tuning**, **Divisions:** the grid. *12 Notes* uses *Scale*; *Equal Divisions* splits the octave into *Divisions* steps; *Scale File* uses the loaded file.
 - **Root**, **Scale:** the key. *Custom* uses the keys set in the keyboard.
 - **Rounding:** *Nearest* rounds to the closest scale note (an exact tie goes
   down), *Down* to the one at or below, *Up* to the one at or above.
