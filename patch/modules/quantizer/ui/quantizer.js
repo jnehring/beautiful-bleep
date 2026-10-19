@@ -92,14 +92,22 @@
       const s = view.settings.get("scale");
       if (s) s.draw();
     }
-    view.node.data = { customMask: m };
-    view.api.setData({ customMask: m });
+    view.node.data = { ...(view.node.data || {}), customMask: m };
+    view.api.setData(view.node.data);
     draw(view);
+  }
+
+  function fileStatus(view) {
+    const d = view.node.data || {}, el = view.kb && view.kb.fileStat;
+    if (!el) return;
+    el.textContent = d.scaleError ? "Not a scale: " + d.scaleError
+      : d.scaleNotes ? (d.scaleName || "Scale") + ": " + d.scaleNotes + " notes per " + Math.round(d.scalePeriod) + " ¢" : "";
   }
 
   function draw(view) {
     const kb = view.kb;
     if (!kb) return;
+    fileStatus(view);
     const st = kb.state || {};
     const root = typeof st.root === "number" ? st.root : setting(view, "root");
     const m = mask(view);
@@ -115,6 +123,7 @@
   BleepViews.register("quantizer", {
     layout: [
       { title: "Scale", params: ["root", "scale", "rounding"] },
+      { title: "Tuning", params: ["tuning", "divisions"] },
       { title: "Tracking", params: ["range", "hysteresis", "glide"] },
     ],
     template:
@@ -131,9 +140,12 @@
       ".qz-kb .root{box-shadow:inset 0 -4px 0 var(--accent)}" +
       ".qz-kb .now{background:var(--accent)}" +
       ".qz-name{font-size:22px;font-weight:600;min-height:28px}" +
+      ".qz-file{display:flex;gap:10px;align-items:center;margin-top:6px;font-size:11px;color:var(--muted)}" +
       "</style>" +
       '<div class="qz-wrap"><canvas class="qz-ring"></canvas><div class="qz-main"><div class="qz-name"></div>' +
-      '<div class="qz-kb"></div></div></div></div>',
+      '<div class="qz-kb"></div></div></div>' +
+      '<div class="qz-file"><button class="qz-load" type="button">Load scale file…</button>' +
+      '<input type="file" accept=".scl,.txt,text/plain" hidden><span class="qz-fstat"></span></div></div>',
     afterBuild(view, el) {
       const box = el.querySelector(".qz-kb");
       const keys = new Map();
@@ -162,7 +174,28 @@
         });
         box.appendChild(k);
       }
-      view.kb = { keys, name: el.querySelector(".qz-name"), state: null, heat: new Float32Array(12), lastNote: null, t: 0 };
+      // Scale file: the text goes into the node's data; the module checks it and the status line shows the result.
+      const fileIn = el.querySelector("input[type=file]");
+      el.querySelector(".qz-load").addEventListener("click", () => fileIn.click());
+      fileIn.addEventListener("change", () => {
+        const f = fileIn.files && fileIn.files[0];
+        if (!f) return;
+        f.text().then((text) => {
+          view.api.beginGesture();
+          const data = { ...(view.node.data || {}), scaleText: text.slice(0, 16000), scaleName: f.name };
+          view.node.data = data;
+          view.api.setData(data);
+          if (setting(view, "tuning") !== 2) {
+            view.node.params.tuning = 1;  // the last choice: Scale File
+            view.api.setParam("tuning", 1);
+            const s = view.settings.get("tuning");
+            if (s) s.draw();
+          }
+          fileStatus(view);
+        });
+        fileIn.value = "";
+      });
+      view.kb = { fileStat: el.querySelector(".qz-fstat"), keys, name: el.querySelector(".qz-name"), state: null, heat: new Float32Array(12), lastNote: null, t: 0 };
       const ring = el.querySelector(".qz-ring");
       BleepView.loop(view.root, (t) => {
         const kb = view.kb, st = kb.state || {};

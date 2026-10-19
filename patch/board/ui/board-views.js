@@ -53,6 +53,7 @@
           isPatched: (jack) => s.board.cables.some((c) => c.to.node === id && c.to.jack === jack),
           importMedia: (name, base64) => native("importMedia", name, base64),
           exportMedia: (slot) => native("exportMedia", id, slot),
+          revealMedia: (mediaId) => native("revealMedia", mediaId),
           setData: (data) => {
             const m = nodeById(id);
             if (m) m.data = clone(data);

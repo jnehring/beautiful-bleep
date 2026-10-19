@@ -49,6 +49,8 @@ Every knob is also an input (`specs.md` section 7.3).
 | Root | C … B | C |
 | Scale | the 17 scales of `patch/common/dsp/Scales.h`, plus *Custom* | Major |
 | Rounding | Nearest, Down, Up | Nearest |
+| Tuning | 12 Notes, Equal Divisions, Scale File | 12 Notes |
+| Divisions | 5 … 72 (with Equal Divisions) | 19 |
 
 ## 4. Behaviour
 
@@ -80,6 +82,24 @@ one-octave keyboard (relative to *Root*). An empty mask behaves as
 chromatic, like `Scales.h` already does. Clicking a key while another scale is
 selected copies that scale into the mask and switches *Scale* to *Custom*,
 so any scale is a starting point.
+
+### 4.3a Microtonal tunings
+
+*Tuning* replaces the 12-note grid. The shared type is `dsp::Tuning` in `Scales.h`: up to 128 degrees per period, as cents above the root, ascending from 0,
+repeating every `period` cents (1200 for an octave). `index(octaves, rounding)` returns the nearest (or next lower / higher) step of the infinite ladder and
+`pitch(index)` its pitch in octaves; both are allocation-free and the 12-note functions are unchanged.
+
+- **Equal Divisions:** `Tuning::edo(Divisions)`, 5 – 72 equal steps of the octave. *Scale* and the keyboard are not used; *Root* still moves the grid by whole semitones.
+- **Scale File:** a text file in the common scale-file format, loaded in the view (button *Load scale file…*). Lines starting with `!` are comments; the next line is a description; then the
+  number of notes N (1 – 128); then N pitches, each either cents (contains a `.`: `701.955`) or a ratio (`3/2`, or a whole number) and anything after a space is ignored. The last
+  pitch is the period (usually `2/1`), the others are the degrees above the root `1/1`. Pitches must rise and stay below 10 octaves. A file that doesn't parse is refused and the
+  view shows why. The text (at most 16 KB) lives in the node's data (`scaleText`, `scaleName`; `scaleNotes`, `scalePeriod`, `scaleError` are written by the module). With *Scale File*
+  chosen and no usable file, the module quantizes to 12 equal steps.
+- **Hysteresis** is a fraction of the tuning's average step (period ÷ number of notes).
+- **Notes In:** a note's quantized pitch is exact in the outgoing event (`pitch` field, octaves); its note number is the nearest key. The note-off ends the same note.
+- *Out* carries the exact pitch. *Trigger* and *Gate* fire when the step changes.
+
+Presets and boards from before are unaffected: new settings default to *12 Notes*, which takes exactly the old path.
 
 ### 4.4 Triggers
 
@@ -118,10 +138,11 @@ lower 12 bits and defaults to the Major mask.
 - Hysteresis: a sine of ±0.05 semitone around a boundary causes no change with 10 %, but does with 0 %.
 - Clock patched: output changes only on clock pulses; Trigger fires only when the note differs.
 - Custom mask round-trips through node data; empty mask is chromatic.
+- Tunings (`common/dsp/tests/test_tuning.cpp`): equal divisions (19 steps, 12 = semitones), scale-file parsing (cents, ratios, CRLF, rejects), nearest / down / up rounding, and the Quantizer core on 24 divisions with a root and back to 12 notes.
 - The demo types file includes the module (`patch.ui-types`).
 
 ## 9. Later
 
 - Chord output (*Out 2–4*: the 3rd, 5th, 7th of the scale above *Out*).
 - Note weights / probabilities in the custom scale.
-- Microtonal scales (scala files) and non-12-EDO tunings.
+- Microtonal tunings in the Quantizer Suite, Chord Quantizer and Harmony Master (the Quantizer has them, §4.3a; they share `dsp::Tuning`).

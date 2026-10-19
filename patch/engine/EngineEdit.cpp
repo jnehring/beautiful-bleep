@@ -56,6 +56,7 @@ juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var&
     else if (m == "command") command(a[0].toString(), a[1].toString(), (float)a[2]);
     else if (m == "perform") perform(a[0].toString(), a[1].toString(), a[2]);
     else if (m == "exportMedia") return exportMedia(a[0].toString(), a[1].toString());
+    else if (m == "revealMedia") return revealMedia(a[0].toString());
     else if (m == "importMedia") {
         juce::MemoryOutputStream decoded;
         if (!juce::Base64::convertFromBase64(decoded, a[1].toString())) {
@@ -229,6 +230,18 @@ juce::var Engine::readMedia(const juce::String& id) {
     }
     o->setProperty("data", juce::Base64::toBase64(bytes.getData(), bytes.getSize()));
     o->setProperty("name", id);
+    return juce::var(o);
+}
+
+juce::var Engine::revealMedia(const juce::String& id) {
+    auto* o = new juce::DynamicObject();
+    const juce::File file = media::validId(id.toStdString()) ? juce::File(juce::String(media::folder())).getChildFile(id) : juce::File();
+    if (!file.existsAsFile()) {
+        o->setProperty("error", "not in the media folder");
+        return juce::var(o);
+    }
+    file.revealToUser();
+    o->setProperty("ok", true);
     return juce::var(o);
 }
 

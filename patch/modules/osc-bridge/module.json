@@ -1,0 +1,12 @@
+{
+  "name": "OSC Bridge",
+  "slug": "osc-bridge",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Receive and send OSC messages: address patterns become signals, gates and triggers; signals become messages.",
+  "colour": "#fde047",
+  "category": "Utility",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/osc-bridge.md"
+}
