@@ -34,7 +34,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   }
   return (
     <div className="docs">
-      <nav aria-label={`${audience.title} documentation`}>
+      <nav aria-label={audience.title}>
         {[...sections.entries()].filter(([section]) => !isModuleSection(section) || section === doc.section).map(([section, docs]) => (
           <div key={section}>
             <h4>{sectionTitle(section)}</h4>

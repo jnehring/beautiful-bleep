@@ -6,7 +6,7 @@ export type MenuItem = { title: string; href: string; match: string[] };
 
 export const AUDIENCES = {
   musicians: {
-    title: "Musicians",
+    title: "Musicians documentation",
     home: "/docs/musicians/overview/",
     match: ["/docs/musicians/"],
     bundles: ["user-docs-full.md"],
@@ -20,7 +20,7 @@ export const AUDIENCES = {
     ],
   },
   developers: {
-    title: "Developers",
+    title: "Developer documentation",
     home: "/docs/developers/overview/",
     match: ["/docs/developers/"],
     bundles: ["developer-overview-full.md", "quickstart-full.md", "api-reference-full.md", "spec-v0.1-full.md",
