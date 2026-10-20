@@ -43,7 +43,7 @@ Compile that and the node gets an In jack, an Out jack and two dials. Nothing el
 
 - **Two kinds of script.** A *module script* (it has `@module`) is [AssemblyScript](https://www.assemblyscript.org/), a TypeScript-like language that compiles to WebAssembly. A *patch script* (it ends in `export default cell(...)`) is TypeScript or JavaScript that runs once and describes modules and cables.
 - **You pick the rate by the method you write.** `block()` runs once per 32 samples, `sample()` once per sample, `@on` handlers once per event.
-- **The compiler runs in your browser.** Compiling takes about a second and produces one `.wasm` file that follows the [module ABI](../modules/module-abi.md), the same format as every other module. The engine runs it in the same sandbox.
+- **No installation on the web.** In Bleep Play there is nothing to install: the compiler runs in your browser and all the code is compiled there, on your machine. Compiling takes about a second and produces one `.wasm` file that follows the [module ABI](../modules/module-abi.md), the same format as every other module. The engine runs it in the same sandbox.
 - **Real-time code is restricted.** The compiler rejects what an audio thread must not do, and estimates the cost of a block. See [Limits and safety](limits.md).
 - **Share source, not binaries.** A script is text saved in the patch. Whoever opens the patch compiles it themselves, in a sandbox.
 

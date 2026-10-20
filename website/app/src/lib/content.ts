@@ -55,6 +55,7 @@ function renderMarkdown(body: string): string {
 const ROOT = path.resolve(process.cwd(), "..", "..");
 const CONTENT = path.join(ROOT, "website", "content");
 const MODULES = path.join(ROOT, "patch", "modules");
+const BLOG = path.join(CONTENT, "blog");
 
 export type Doc = { slug: string[]; audience: Audience; title: string; order: number; section: string; html: string };
 /** `doc` is relative to the module's folder, e.g. "doc/adsr.md". `category` is optional: the
@@ -94,7 +95,7 @@ function parse(file: string): { meta: Record<string, string>; body: string } {
 
 /** Rewrites links between Markdown files to site URLs. */
 function rewriteLinks(html: string, slug: string[]): string {
-  return html.replace(/href="([^":#]+)\.md(#[^"]*)?"/g, (_m, target: string, hash = "") => {
+  return html.replace(/href="(?!\/)([^":#]+)\.md(#[^"]*)?"/g, (_m, target: string, hash = "") => {
     const resolved = path.posix.normalize(path.posix.join(slug.slice(0, -1).join("/"), target));
     return `href="/docs/${resolved}/${hash}"`;
   });
@@ -129,10 +130,24 @@ function moduleDocs(): Doc[] {
     });
 }
 
+export type BlogPost = { slug: string; title: string; date: string; description: string; html: string };
+
+/** Blog posts (website/content/blog/<slug>.md, front matter: title, date, description), newest first. */
+export function blogPosts(): BlogPost[] {
+  if (!fs.existsSync(BLOG)) return [];
+  return fs.readdirSync(BLOG).filter((f) => f.endsWith(".md")).map((f) => {
+    const { meta, body } = parse(path.join(BLOG, f));
+    const slug = f.replace(/\.md$/, "");
+    if (!meta.title || !/^\d{4}-\d{2}-\d{2}$/.test(meta.date ?? "")) throw new Error(`blog/${f}: front matter needs title and date (YYYY-MM-DD)`);
+    return { slug, title: meta.title, date: meta.date, description: meta.description ?? "", html: renderMarkdown(body) };
+  }).sort((a, b) => b.date.localeCompare(a.date));
+}
+
 let cache: Doc[] | null = null;
 export function allDocs(): Doc[] {
   if (cache) return cache;
   cache = walk(CONTENT)
+    .filter((file) => !file.startsWith(BLOG + path.sep))
     .map((file) => {
       const rel = path.relative(CONTENT, file).replace(/\\/g, "/").replace(/\.md$/, "");
       const slug = rel.split("/");
