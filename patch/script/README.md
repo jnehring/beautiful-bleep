@@ -24,10 +24,13 @@ Compile in a browser, as a test: start the `script-spike` server (`.claude/launc
 | File | What |
 |---|---|
 | `src/bleep/abi.ts` | The module-independent part of the ABI: `Module` base class (buffers, text, scratch) |
-| `src/bleep/dsp.ts`, `src/bleep/format.ts` | The start of the standard library: `Smoother`, `PeakHold`, `dbToLin`, number formatting |
+| `src/bleep/dsp.ts`, `src/bleep/format.ts` | The start of the standard library: `Smoother`, `PeakHold`, `Biquad`, `dbToLin`, number formatting |
+| `src/bleep/{osc,filters,delay,random,env,dynamics,fx,fft,util}.ts` | The rest of the standard library: oscillators, filters, delays, noise, envelopes and LFOs, dynamics, reverb and friends, an FFT, helpers (documented in `website/content/developers/bleep-script/library.md`) |
+| `src/synth-voice.dsp.ts` | **Synth Voice**: a supersaw voice using most of the library; the tutorial builds it step by step |
 | `src/gains.dsp.ts` | **Gains**: volume, mute and solo for one mixer channel, with smoothing and a level probe. The interface is declared with decorators |
 | `transform/bleep.mjs` | **The Bleep Script transform**: reads the decorators, generates the node type description and the `bleep_*` exports (see the concept, section 7) |
 | `build.mjs` | Calls `asc` with the transform and the flags below; also writes `build/*.spec.json` and the generated `build/*.bleep-entry.ts` |
+| `test/dsp/*.test.mjs` | The library: one test file per library file (shapes, aliasing, filter responses, timing, allocation-free processing), `module.test.mjs` (the library in a module script with the subset checker), `docs.test.mjs` (every export is documented, the doc samples compile). `node test/dsp/all.mjs` runs them; `test/dsp/*.harness.ts` are the AssemblyScript wrappers they run |
 | `test/transform.test.mjs` | The transform: the generated description against a hand-written one, errors with file and line, int/choice/bool/float params, two modules in one file |
 | `test/spike.mjs` | Node: module host, reference model, behaviour, speed |
 | `test/wasmtime_check.cpp`, `test/wasmtime-check.sh` | The engine's `WasmRuntime` (Wasmtime) |

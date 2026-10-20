@@ -79,6 +79,26 @@ export class Biquad {
     const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / (2.0 * q);
     this.set((1.0 - cs) / 2.0, 1.0 - cs, (1.0 - cs) / 2.0, 1.0 + alpha, -2.0 * cs, 1.0 - alpha);
   }
+  /// A high-pass at `frequency`.
+  setHighpass(sampleRate: f64, frequency: f64, q: f64): void {
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / (2.0 * q);
+    this.set((1.0 + cs) / 2.0, -(1.0 + cs), (1.0 + cs) / 2.0, 1.0 + alpha, -2.0 * cs, 1.0 - alpha);
+  }
+  /// A band-pass at `frequency` with 0 dB gain at the peak; `q` is the centre frequency over the bandwidth.
+  setBandpass(sampleRate: f64, frequency: f64, q: f64): void {
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / (2.0 * q);
+    this.set(alpha, 0.0, -alpha, 1.0 + alpha, -2.0 * cs, 1.0 - alpha);
+  }
+  /// A notch: silence at `frequency`, `q` wide.
+  setNotch(sampleRate: f64, frequency: f64, q: f64): void {
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / (2.0 * q);
+    this.set(1.0, -2.0 * cs, 1.0, 1.0 + alpha, -2.0 * cs, 1.0 - alpha);
+  }
+  /// An all-pass: every frequency passes with gain 1, the phase turns by half a cycle around `frequency` (`q` sets how fast).
+  setAllpass(sampleRate: f64, frequency: f64, q: f64): void {
+    const w = 2.0 * Math.PI * frequency / sampleRate, cs = Math.cos(w), alpha = Math.sin(w) / (2.0 * q);
+    this.set(1.0 - alpha, -2.0 * cs, 1.0 + alpha, 1.0 + alpha, -2.0 * cs, 1.0 - alpha);
+  }
 
   next(x: f32): f32 {
     const xi = <f64>x;

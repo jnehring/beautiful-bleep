@@ -66,7 +66,7 @@ Compile that and the node gets an In jack, an Out jack and two dials. Nothing el
 | [Events and routing](events.md) | Notes and edge handlers, with a router |
 | [Patch scripts](patch-scripts.md) | Reference: building cells from code |
 | [Custom UIs and widgets](custom-ui.md) | Layouts of knobs, faders and meters, or a self-made canvas UI |
-| [Library](library.md) | `bleep/dsp` and `bleep/notes`: filters, smoothing, meters, notes |
+| [Library](library.md) | `bleep/osc`, `filters`, `delay`, `random`, `env`, `dynamics`, `fx`, `fft`, `util`, `dsp`, `notes`: oscillators, filters, delays, envelopes, dynamics, reverb, notes |
 | [Limits and safety](limits.md) | What is refused, the cost estimate, and the sandboxes |
 | [Programming with AI](ai-programming.md) | One prompt that teaches a coding AI Bleep Script, to copy or download |
 

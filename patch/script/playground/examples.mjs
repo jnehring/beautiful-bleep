@@ -814,5 +814,6 @@ export class Oscillator {
 /// The real Gains module, as built in src/ (a mixer channel).
 export async function loadExamples() {
   const gains = await (await fetch("/script/src/gains.dsp.ts")).text();
-  return [{ id: "gains", name: "Gains (mixer channel)", source: gains }, ...EXAMPLES].filter((e) => e.kind !== "patch" && !e.view);   // the playground compiles modules only
+  const synthVoice = await (await fetch("/script/src/synth-voice.dsp.ts")).text();
+  return [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, ...EXAMPLES].filter((e) => e.kind !== "patch" && !e.view);   // the playground compiles modules only
 }

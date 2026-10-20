@@ -17,6 +17,7 @@ Each tutorial builds a complete module that you can paste into a Code node and c
 | [Drive with anti-aliasing](drive.md) | A soft clipper that aliases much less | Aliasing, ADAA, oversampling |
 | [Sample and hold](sample-and-hold.md) | A sample and hold, with the generated UI and with a self-made UI | Triggers, a layout, a custom canvas UI |
 | [Processing different inputs](inputs.md) | An envelope follower, a transposer, a gate envelope and a note converter | Audio, pitch, gate, trigger and notes inputs |
+| [A synth voice](synth-voice.md) | A supersaw voice with a ladder filter, an ADSR, notes and a chorus | The `bleep/osc`, `filters`, `env` and `fx` libraries, block-rate modulation |
 | [The DSP toolbox](dsp-toolbox.md) | An oscillator, noise, a delay, a pan, a clock divider and a tempo LFO | The usual building blocks |
 
 Every code block marked as a module compiles as shown. The documentation tests compile them and, for the larger ones, run them: the step sequencer's timing, the drive's aliasing, and the others' behaviour are checked, so what you read is what the module does.
