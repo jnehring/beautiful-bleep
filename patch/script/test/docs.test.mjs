@@ -7,10 +7,12 @@ import { join } from "node:path";
 import asc from "assemblyscript/asc";
 import { compileScript } from "../compiler/compile.mjs";
 import { compileModule, ModuleInstance, CHUNK } from "../../web/js/module-host.js";
+import { wrapExample } from "./doc-examples.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const docs = fileURLToPath(new URL("../../../website/content/developers/bleep-script/", import.meta.url));
-const lib = Object.fromEntries(["abi", "dsp", "format", "notes"].map((n) => [`src/bleep/${n}.ts`, readFileSync(`${root}src/bleep/${n}.ts`, "utf8")]));
+const libraries = readdirSync(`${root}src/bleep`).filter((f) => f.endsWith(".ts")).map((f) => f.slice(0, -3));
+const lib = Object.fromEntries(libraries.map((n) => [`src/bleep/${n}.ts`, readFileSync(`${root}src/bleep/${n}.ts`, "utf8")]));
 let failures = 0;
 const check = (ok, what, detail = "") => { console.log(`${ok ? "ok  " : "FAIL"} ${what}${detail ? "  " + detail : ""}`); if (!ok) failures++; };
 const SR = 48000;
@@ -294,6 +296,20 @@ if (built.has("Oscillator")) {
   }
 }
 
+// the library page: every function and class of the bleep/ libraries has an example, and every example compiles
+{
+  const page = readFileSync(`${docs}library.md`, "utf8");
+  const examples = [...page.matchAll(/^#### (.+)\n\n```ts example\n([\s\S]*?)```/gm)].map((m) => ({ title: m[1], code: m[2] }));
+  for (const e of examples) {
+    const r = await compileScript(asc, wrapExample(e.code), { lib });
+    check(!!r.wasm, `library.md: example ${e.title} compiles`, r.problems.filter((p) => p.severity === "error").map((p) => `${p.line}: ${p.message}`).join(" | "));
+  }
+  const text = examples.map((e) => e.code).join("\n");
+  const missing = libraries.filter((f) => !["abi", "format"].includes(f)).flatMap((f) =>
+    [...lib[`src/bleep/${f}.ts`].matchAll(/^export (?:function|class) (\w+)/gm)].map((m) => m[1]).filter((name) => !new RegExp(`\\b${name}\\b`).test(text)).map((name) => `${f}/${name}`));
+  check(missing.length === 0, "the library page has an example for every function and class", missing.join(", "));
+}
+
 // the AI programming prompt: its code compiles, and it names every export of the library
 {
   const page = readFileSync(`${docs}ai-programming.md`, "utf8");
@@ -311,9 +327,9 @@ if (built.has("Oscillator")) {
     n++;
     check(!!r.wasm, `ai-programming.md: code block ${n} compiles`, r.problems.filter((p) => p.severity === "error").map((p) => `${p.line}: ${p.message}`).join(" | "));
   }
-  const exported = ["dsp", "notes"].flatMap((f) => [...lib[`src/bleep/${f}.ts`].matchAll(/^export (?:function|class|const) (\w+)/gm)].map((x) => x[1]));
+  const exported = ["dsp", "env", "notes"].flatMap((f) => [...lib[`src/bleep/${f}.ts`].matchAll(/^export (?:function|class|const) (\w+)/gm)].map((x) => x[1]));
   const missing = exported.filter((name) => !new RegExp(`\\b${name}\\b`).test(prompt));
-  check(missing.length === 0, "the AI prompt names every export of bleep/dsp and bleep/notes", missing.join(", "));
+  check(missing.length === 0, "the AI prompt names every export of bleep/dsp, bleep/env and bleep/notes", missing.join(", "));
 }
 
 console.log(failures ? `\n${failures} failed` : "\nall passed");
