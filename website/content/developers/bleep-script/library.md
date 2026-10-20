@@ -1804,7 +1804,7 @@ These come with the language and the checker allows them in real-time code:
 
 - **Math:** `Math.sin`, `cos`, `tan`, `tanh`, `exp`, `log`, `log10`, `pow`, `sqrt`, `floor`, `ceil`, `abs`, `min`, `max`, `PI`, `SQRT2`, `LN2` and the rest of `Math`. Mind that `Math` takes `f64`: convert with `<f64>x` and back with `<f32>y`.
 - **Built-in functions:** `abs`, `min`, `max`, `sqrt`, `floor`, `ceil`, `trunc`, `nearest`, `copysign`, `isNaN`, `isFinite`, `clz`, `ctz`, `popcnt`, `rotl`, `rotr`.
-- **Arrays:** `StaticArray<T>` allocated in the constructor. Growing `Array`s, strings built at run time, `Map` and `Set` allocate and are refused in real-time code. See [Limits](limits.md).
+- **Arrays:** `StaticArray<T>` allocated in the constructor. Growing `Array`s, strings built at run time, `Map` and `Set` allocate and are refused in real-time code. See [Limits](implementation/limits.md).
 
 Not available at all: the wall clock, files and the network.
 

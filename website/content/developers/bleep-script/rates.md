@@ -52,7 +52,7 @@ for every block of 32 samples
 Put each calculation at the **slowest rate that is still correct**.
 
 - **Once** (constructor): allocations, tables, constants that depend on the sample rate (`1 / sampleRate`).
-- **Block rate** (`block()`): anything derived from a knob. Converting a gain from dB, computing filter coefficients, choosing a lookup. A knob only changes once per block, so doing this per sample is wasted work. This is the main reason `block()` exists. It also decides cost: the [cost estimate](limits.md#cost-bound) counts `block()` once and `sample()` 32 times per block.
+- **Block rate** (`block()`): anything derived from a knob. Converting a gain from dB, computing filter coefficients, choosing a lookup. A knob only changes once per block, so doing this per sample is wasted work. This is the main reason `block()` exists. It also decides cost: the [cost estimate](implementation/limits.md#cost-bound) counts `block()` once and `sample()` 32 times per block.
 - **Audio rate** (`sample()`): the signal itself: filters, oscillators, waveshapers, envelopes. It is the most expensive place, so keep trig, `pow` and `exp` calls out of it when a block-rate value will do.
 - **Event rate** (`@on`): things that happen at a moment: a note, a gate rising. This is **sample-accurate**: the handler sees the event at the exact sample, so timing is not rounded to a block (about 0.67 ms).
 
@@ -96,6 +96,6 @@ A gate that must start on the exact sample is an event, not a block-rate value:
 
 ## What there is not
 
-- **No oversampling** or sub-block rates are built in: you can run your own faster loop inside `sample()` (a bounded `for`, see [Limits](limits.md)), as [the drive tutorial](tutorials/drive.md) discusses.
+- **No oversampling** or sub-block rates are built in: you can run your own faster loop inside `sample()` (a bounded `for`, see [Limits](implementation/limits.md)), as [the drive tutorial](tutorials/drive.md) discusses.
 - The **sample rate** is given to the constructor and does not change while the module lives (a different rate creates a new module). It is typically 44.1 or 48 kHz: use it, never assume it.
 - Time is always **samples and transport**: a module has no clock of its own, so a script cannot read the wall time.

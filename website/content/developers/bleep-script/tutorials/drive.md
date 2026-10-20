@@ -133,7 +133,7 @@ ADAA suits a smooth curve like `tanh`. For another curve, repeat the recipe: fin
 
 Bleep Script does not have a built-in oversampler: a module is called once per sample. You can write one yourself with `sample()` computing two shaper steps for each input sample (an interpolated one in between), followed by a half-band filter, but note that:
 
-- the cost doubles per step, and the [cost estimate](../limits.md#cost-bound) will say so;
+- the cost doubles per step, and the [cost estimate](../implementation/limits.md#cost-bound) will say so;
 - a linear-phase filter adds latency, an IIR one does not but disturbs phase;
 - for most drives, ADAA alone is audibly clean up to the moderate settings.
 

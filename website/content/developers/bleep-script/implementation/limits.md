@@ -1,7 +1,7 @@
 ---
 title: Limits and safety
 description: What the checker refuses in a module script, how the cost bound works, the patch-script sandbox, and what to know before running someone else's script.
-order: 70
+order: 60
 ---
 
 # Limits and safety
@@ -45,7 +45,7 @@ The result is checked against the module types on your board before anything is 
 
 ## Custom UIs
 
-A self-made UI (see [Custom UIs and widgets](custom-ui.md)) is JavaScript from the script's author. It runs in a sandboxed frame with no network, storage, cookies or access to the page, and the board asks you before it runs one for the first time. One thing the browser cannot prevent: a UI that loops forever freezes the page, because a frame cannot be stopped from outside. Reload the page to recover, and do not approve UIs you do not trust.
+A self-made UI (see [Custom UIs and widgets](../custom-ui.md)) is JavaScript from the script's author. It runs in a sandboxed frame with no network, storage, cookies or access to the page, and the board asks you before it runs one for the first time. One thing the browser cannot prevent: a UI that loops forever freezes the page, because a frame cannot be stopped from outside. Reload the page to recover, and do not approve UIs you do not trust.
 
 ## Scripts from other people
 

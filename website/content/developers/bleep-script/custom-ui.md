@@ -98,4 +98,4 @@ A self-made UI is code written by whoever made the script, so it runs in a frame
 - the board asks you before it runs a script's UI for the first time. Decline and the node shows the standard controls;
 - one thing a frame cannot prevent: a loop that never ends freezes the page, because a frame cannot be stopped from outside. Reload to recover.
 
-The UI is stored with the script, so it is shared and versioned with it. See [Limits and safety](limits.md).
+The UI is stored with the script, so it is shared and versioned with it. See [Limits and safety](implementation/limits.md).

@@ -135,7 +135,7 @@ export class Echo {
 }
 ```
 
-**Why `reset()` does not clear the buffer.** A loop in real-time code is limited to 4096 iterations (see [Limits](../limits.md)), and a second of audio is 48,000 samples. So the module remembers **how much has been written since the reset** (`filled`) and reads zero for anything older. This is the usual way to "clear" a long buffer in a module script.
+**Why `reset()` does not clear the buffer.** A loop in real-time code is limited to 4096 iterations (see [Limits](../implementation/limits.md)), and a second of audio is 48,000 samples. So the module remembers **how much has been written since the reset** (`filled`) and reads zero for anything older. This is the usual way to "clear" a long buffer in a module script.
 
 ## Crossfading and panning
 
@@ -245,4 +245,4 @@ A list of the usual building blocks and where each is in or how to make it:
 | Random per trigger | The LCG above, advanced in the handler |
 | Notes | [Events and routing](../events.md) |
 | Oversampling | Not built in, see [drive](drive.md) |
-| FFT, convolution, long buffers | Not a good fit: the cost bound is per block (see [Limits](../limits.md)) |
+| FFT, convolution, long buffers | Not a good fit: the cost bound is per block (see [Limits](../implementation/limits.md)) |

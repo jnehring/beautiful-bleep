@@ -108,7 +108,7 @@ What to take from it:
 - **`bleep.probe("held")`** is how the UI reads a module's `@probe`. The view receives it up to 30 times a second.
 - **`bleep.canvas(h)`** gives a canvas as wide as the node, scaled for the screen.
 - **`bleep.param("glide").set(v)`** writes a knob **in its own units** (seconds here).
-- Everything runs in a sandbox: no network, no storage, and it only talks to its module. The board asks before it runs a UI that came with a patch. See [Limits and safety](../limits.md).
+- Everything runs in a sandbox: no network, no storage, and it only talks to its module. The board asks before it runs a UI that came with a patch. See [Limits and safety](../implementation/limits.md).
 
 The *Wave folder with its own UI* example in the Code node's **Examples** menu is a larger one: it draws the transfer curve and lets you drag it to set the knobs.
 

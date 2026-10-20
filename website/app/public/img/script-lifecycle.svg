@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 290" role="img" aria-labelledby="t d">
+  <title id="t">The lifecycle of a script</title>
+  <desc id="d">The source is edited, compiled in the Worker, registered with the engine and run. A successful compile is saved with the patch as source, settings and interface. Opening the patch compiles the source again.</desc>
+    <style>
+    :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; } }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--fg); }
+    .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+    .hub { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .group { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; }
+    .name { font-size: 16px; font-weight: 650; text-anchor: middle; }
+    .sub { font-size: 12.5px; fill: var(--muted); text-anchor: middle; }
+    .cap { font-size: 13px; font-weight: 600; fill: var(--muted); }
+    .link { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .head { fill: var(--accent); }
+  </style>
+  <rect width="760" height="290" rx="14" fill="var(--bg)"/>
+
+  <rect class="box" x="24" y="40" width="150" height="70" rx="12"/>
+  <text class="name" x="99" y="72">Edit</text><text class="sub" x="99" y="92">source in the editor</text>
+  <rect class="hub" x="214" y="40" width="150" height="70" rx="12"/>
+  <text class="name" x="289" y="72">Compile</text><text class="sub" x="289" y="92">Worker, cached by hash</text>
+  <rect class="box" x="404" y="40" width="150" height="70" rx="12"/>
+  <text class="name" x="479" y="72">Register</text><text class="sub" x="479" y="92">type id code:node:hash</text>
+  <rect class="box" x="594" y="40" width="142" height="70" rx="12"/>
+  <text class="name" x="665" y="72">Run</text><text class="sub" x="665" y="92">instance in the engine</text>
+
+  <path class="link" d="M174 75 H206"/><path class="head" d="M214 75 l-10 -6 v12 z"/>
+  <path class="link" d="M364 75 H396"/><path class="head" d="M404 75 l-10 -6 v12 z"/>
+  <path class="link" d="M554 75 H586"/><path class="head" d="M594 75 l-10 -6 v12 z"/>
+
+  <path class="link" d="M259 110 V178"/><path class="head" d="M259 186 l-6 -10 h12 z"/>
+  <path class="link" d="M319 186 V118"/><path class="head" d="M319 110 l-6 10 h12 z"/>
+  <text class="cap" x="249" y="150" text-anchor="end">save</text>
+  <text class="cap" x="329" y="150">open the patch</text>
+
+  <rect class="box" x="164" y="186" width="250" height="70" rx="12"/>
+  <text class="name" x="289" y="218">Saved with the patch</text>
+  <text class="sub" x="289" y="238">source, settings, interface</text>
+
+  <text class="sub" x="470" y="212" style="text-anchor:start">On failure nothing changes:</text>
+  <text class="sub" x="470" y="232" style="text-anchor:start">the old version keeps running.</text>
+</svg>

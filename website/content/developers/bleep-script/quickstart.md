@@ -92,4 +92,4 @@ A cell called *SuperSaw* appears next to the Code node, with a Pitch input and O
 
 - [The Code node](code-node.md): settings, saving, panels, what to do when the compiler is missing
 - [Events and routing](events.md): notes and control edges
-- [Limits and safety](limits.md): what the compiler refuses and why
+- [Limits and safety](implementation/limits.md): what the compiler refuses and why

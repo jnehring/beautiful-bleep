@@ -79,7 +79,7 @@ Before the samples of a block, the `@transport` method runs, then `block()`. For
 
 ## Cost
 
-Handlers count in the [cost estimate](limits.md#cost-bound) at their worst case: a note handler is assumed to run for 64 events per block, an edge handler for every sample.
+Handlers count in the [cost estimate](implementation/limits.md#cost-bound) at their worst case: a note handler is assumed to run for 64 events per block, an edge handler for every sample.
 
 ## The router example
 

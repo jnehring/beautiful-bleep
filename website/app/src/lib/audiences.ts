@@ -63,6 +63,7 @@ export const SECTIONS: Record<string, string> = {
   "developers/modules": "Modules",
   "developers/bleep-script": "Bleep Script",
   "developers/bleep-script/tutorials": "Bleep Script: tutorials",
+  "developers/bleep-script/implementation": "Bleep Script: implementation",
   "developers/setup": "Setup and release",
 };
 const SECTION_KEYS = Object.keys(SECTIONS);
