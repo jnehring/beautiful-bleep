@@ -168,6 +168,34 @@ export class EnvTest {
   }
 }`;
 
+MODULES.dynamics = `
+import { Compressor, Limiter, Gate, softClip, hardClip, foldback, asymSat, chebyshev, Bitcrush, Decimate, Oversampler2x, Oversampler4x } from "./bleep/dynamics";
+@module({ name: "DynTest", category: "Utility/Test" })
+export class DynTest {
+  @input x: f32 = 0;
+  @input key: f32 = 0;
+  @output out: f32 = 0;
+  @probe reduction: f32 = 0;
+  @param({ name: "Drive", min: 0, max: 24, init: 6, unit: "dB" }) drive: f32 = 6;
+  private comp: Compressor; private limiter: Limiter; private gate: Gate; private crush: Bitcrush = new Bitcrush(6.0); private dec: Decimate = new Decimate();
+  private os2: Oversampler2x = new Oversampler2x(); private os4: Oversampler4x = new Oversampler4x();
+  constructor(sampleRate: f64) {
+    this.comp = new Compressor(sampleRate); this.limiter = new Limiter(sampleRate, 0.002); this.gate = new Gate(sampleRate);
+    this.dec.ratio = 0.5;
+  }
+  block(): void { this.comp.thresholdDb = -20.0; this.comp.ratio = 3.0; this.comp.setTimes(0.005, 0.1); this.gate.openDb = -50.0; this.crush.setBits(10.0); }
+  sample(): void {
+    const g = this.x * (1.0 + this.drive * 0.1);
+    this.os2.up(g);
+    const shaped = this.os2.down(softClip(this.os2.a), foldback(this.os2.b, 0.9));
+    this.os4.up(shaped);
+    const s4 = this.os4.down(hardClip(this.os4.a, 0.8), asymSat(this.os4.b, 0.3), chebyshev(this.os4.c, 3), this.os4.d);
+    const c = this.comp.nextKeyed(s4, this.key);
+    this.reduction = this.comp.gainReductionDb;
+    this.out = this.limiter.next(this.gate.next(this.dec.next(this.crush.next(c))));
+  }
+}`;
+
 for (const [name, source] of Object.entries(MODULES)) {
   const r = await run(source, { inputs: [0.9] });
   check(r.errors.length === 0, `${name}: compiles with the subset checker`, r.errors.map((e) => `${e.line}: ${e.message}`).join("; "));
