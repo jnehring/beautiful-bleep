@@ -6,7 +6,7 @@ import { compileScript } from "../../compiler/compile.mjs";
 import { root, check, finish } from "./lib.mjs";
 
 const doc = readFileSync(`${root}../../website/content/developers/bleep-script/library.md`, "utf8");
-const tutorial = readFileSync(`${root}../../website/content/developers/bleep-script/tutorial-synth-voice.md`, "utf8");
+const tutorial = readFileSync(`${root}../../website/content/developers/bleep-script/tutorials/synth-voice.md`, "utf8");
 
 // names that are plumbing, not API: the constants and helpers the doc folds into their class's row
 const SKIP = new Set(["ENV_IDLE", "ENV_ATTACK", "ENV_DECAY", "ENV_SUSTAIN", "ENV_RELEASE", "LFO_SINE", "LFO_TRIANGLE", "LFO_SAW", "LFO_SQUARE", "LFO_SAMPLE_HOLD", "LFO_SAW_DOWN", "NOTE_PRESSURE", "NOTE_CC", "NOTE_PROGRAM", "NOTE_BEND", "NOTE_CHANNEL_PRESSURE", "NOTE_SYSTEM"]);
@@ -24,12 +24,12 @@ for (const file of readdirSync(`${root}src/bleep`).filter((f) => f.endsWith(".ts
 for (const name of ["setHighpass", "setBandpass", "setNotch", "setAllpass"]) check(doc.includes(`\`${name}(sr, f, q)\``), `library.md documents Biquad.${name}`);
 check(/## What the library does not have \(yet\)/.test(doc), "library.md has the 'does not have (yet)' section");
 check(!/\bwas not|\bnot yet written\b/i.test(doc), "library.md has no leftover placeholders");
-check(doc.includes("tutorial-synth-voice.md") && /order: 25/.test(tutorial), "the tutorial exists and is linked from the library page");
+check(doc.includes("tutorials/synth-voice.md") && /order: 80/.test(tutorial), "the tutorial exists and is linked from the library page");
 console.log(`(${count} exports checked)`);
 
 // every complete module in the docs' code samples compiles (fragments, which have no @module, are skipped)
 const lib = Object.fromEntries(readdirSync(`${root}src/bleep`).filter((f) => f.endsWith(".ts")).map((f) => [`src/bleep/${f}`, readFileSync(`${root}src/bleep/${f}`, "utf8")]));
-for (const [name, text] of [["library.md", doc], ["tutorial-synth-voice.md", tutorial]]) {
+for (const [name, text] of [["library.md", doc], ["tutorials/synth-voice.md", tutorial]]) {
   const blocks = [...text.matchAll(/```ts\n([\s\S]*?)```/g)].map((m) => m[1]).filter((b) => b.includes("@module"));
   for (const [i, block] of blocks.entries()) {
     const r = await compileScript(asc, block, { lib });

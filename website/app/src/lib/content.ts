@@ -37,7 +37,7 @@ function renderMarkdown(body: string): string {
         const language = LANGUAGES[(lang ?? "").split(/\s/)[0]];
         const escape = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         const inner = language ? hljs.highlight(text, { language, ignoreIllegals: true }).value : escape(text);
-        return `<pre><code${lang ? ` class="language-${escape(lang)}"` : ""}>${inner}\n</code></pre>\n`;
+        return `<div class="codeblock"><button type="button" class="copy" title="Copy" aria-label="Copy the code to the clipboard"><svg class="i-copy" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 3.5v-.5A1.5 1.5 0 0 0 9 1.5H3A1.5 1.5 0 0 0 1.5 3v6A1.5 1.5 0 0 0 3 10.5h.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><svg class="i-done" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><pre><code${lang ? ` class="language-${escape((lang ?? "").split(/\s/)[0])}"` : ""}>${inner}\n</code></pre></div>\n`;
       },
       heading({ tokens, depth }) {
         const inner = this.parser.parseInline(tokens);

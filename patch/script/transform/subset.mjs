@@ -53,7 +53,6 @@ export class Subset {
     this.topFns = new Map();      // name -> Fn
     this.consts = new Map();      // top-level const name -> number
     this.fieldTypes = new Map();     // class name -> Map(field name -> class name of its type)
-    this.elementTypes = new Map();   // class name -> Map(field name -> class name of its elements) for StaticArray<T> and Array<T> fields
     this.libraryNames = new Set();   // names imported from bleep/*
     for (const [name, value] of Object.entries(constants)) this.consts.set(name, value);   // the module's settings
     this.user = [];
@@ -83,16 +82,14 @@ export class Subset {
     for (const st of source.statements) {
       if (st.kind === NodeKind.FunctionDeclaration && st.body) { const fn = new Fn(st, source, null, trusted); add(fn); if (fn.name) this.topFns.set(fn.name, fn); }
       else if (st.kind === NodeKind.ClassDeclaration) {
-        const fields = new Map(), elements = new Map();
+        const fields = new Map();
         this.fieldTypes.set(st.name.text, fields);
-        this.elementTypes.set(st.name.text, elements);
         for (const m of st.members || []) {
           if (m.kind === NodeKind.MethodDeclaration && m.body) add(new Fn(m, source, st.name.text, trusted));
           else if (m.kind === NodeKind.FieldDeclaration && m.type && m.name) {
-            const type = text(m.type);
-            fields.set(m.name.text, type.replace(/<.*$/, "").replace(/\|.*$/, "").trim());
-            const element = /^(?:StaticArray|Array)<\s*(\w+)\s*>/.exec(type);
-            if (element) elements.set(m.name.text, element[1]);
+            const t = text(m.type), element = /^(?:StaticArray|Array)<\s*([A-Za-z_][A-Za-z0-9_]*)\s*>/.exec(t);
+            fields.set(m.name.text, t.replace(/<.*$/, "").replace(/\|.*$/, "").trim());
+            if (element) fields.set(`${m.name.text}[]`, element[1]);   // the class of an array's elements: this.lows[i].next()
           }
         }
       } else if (st.kind === NodeKind.Variable) {
@@ -186,12 +183,12 @@ export class Subset {
     if (callee.kind === NodeKind.PropertyAccess) {
       const name = callee.property.text, target = callee.expression;
       if (target.kind === NodeKind.Identifier && MATH.has(target.text)) return cost + 25;
-      // the receiver's class when the syntax says it: this.m(), this.field.m(), this.items[i].m(); else every method of that name
+      // the receiver's class when the syntax says it: this.m(), this.field.m(); else every method of that name
       let owner = null;
       if (target.kind === NodeKind.This) owner = ctx.fn.owner;
-      else if (target.kind === NodeKind.PropertyAccess && target.expression.kind === NodeKind.This && ctx.fn.owner) owner = (this.fieldTypes.get(ctx.fn.owner) || new Map()).get(target.property.text) || null;
       else if (target.kind === NodeKind.ElementAccess && target.expression.kind === NodeKind.PropertyAccess && target.expression.expression.kind === NodeKind.This && ctx.fn.owner)
-        owner = (this.elementTypes.get(ctx.fn.owner) || new Map()).get(target.expression.property.text) || null;   // this.items[i].m()
+        owner = (this.fieldTypes.get(ctx.fn.owner) || new Map()).get(`${target.expression.property.text}[]`) || null;
+      else if (target.kind === NodeKind.PropertyAccess && target.expression.kind === NodeKind.This && ctx.fn.owner) owner = (this.fieldTypes.get(ctx.fn.owner) || new Map()).get(target.property.text) || null;
       const candidates = (this.byName.get(name) || []).filter((f) => !owner || f.owner === owner);
       if (ALLOCATING_METHODS.has(name) && !(owner && candidates.length)) {   // a method of that name on a class we can see is the library's or the user's own
         if (!ctx.trusted) this.error(ctx.fn.source, node, `'${name}' may allocate or copy, which real-time code must not do`);

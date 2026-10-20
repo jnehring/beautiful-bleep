@@ -59,13 +59,14 @@ Compile that and the node gets an In jack, an Out jack and two dials. Nothing el
 | Page | Content |
 |---|---|
 | [Quickstart](quickstart.md) | Your first script, in five minutes |
+| [Rates and timing](rates.md) | When each part of a script runs, and what to put where |
+| [Tutorials](tutorials/overview.md) | A step sequencer, drive, smoothing, sample and hold, inputs, the DSP toolbox |
 | [The Code node](code-node.md) | The editor, compiling, settings, saving, and what is available where |
 | [Module scripts](module-scripts.md) | Reference: decorators, signal types, parameters, probes, buttons, settings |
 | [Events and routing](events.md) | Notes and edge handlers, with a router |
 | [Patch scripts](patch-scripts.md) | Reference: building cells from code |
 | [Custom UIs and widgets](custom-ui.md) | Layouts of knobs, faders and meters, or a self-made canvas UI |
 | [Library](library.md) | `bleep/osc`, `filters`, `delay`, `random`, `env`, `dynamics`, `fx`, `fft`, `util`, `dsp`, `notes`: oscillators, filters, delays, envelopes, dynamics, reverb, notes |
-| [Tutorial: a synth voice](tutorial-synth-voice.md) | Build a supersaw voice from the library, step by step |
 | [Limits and safety](limits.md) | What is refused, the cost estimate, and the sandboxes |
 
 ## Where it lives

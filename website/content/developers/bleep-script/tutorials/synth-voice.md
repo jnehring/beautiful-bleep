@@ -1,12 +1,12 @@
 ---
 title: "Tutorial: a synth voice"
 description: Build a monophonic supersaw voice from the library, step by step: oscillator, filter, envelope, notes, chorus.
-order: 25
+order: 80
 ---
 
 # Tutorial: a synth voice
 
-This tutorial builds the **Synth voice** example (in the Code node's example list, and as `patch/script/src/synth-voice.dsp.ts`) one piece at a time. Each step is a complete module you can paste into the Code node and compile. You need the [quickstart](quickstart.md) first. Everything used here is in the [library](library.md).
+This tutorial builds the **Synth voice** example (in the Code node's example list, and as `patch/script/src/synth-voice.dsp.ts`) one piece at a time. Each step is a complete module you can paste into the Code node and compile. You need the [quickstart](../quickstart.md) first. Everything used here is in the [library](../library.md).
 
 ## 1. An oscillator
 
@@ -84,7 +84,7 @@ The filter then moves in steps of one chunk (32 samples, under a millisecond), w
 
 ## 5. Notes
 
-A `notes` input delivers events to an `@on` handler (see [Events and routing](events.md)). The handler sets the pitch and the gate; `midiToHz` converts the note number. A `Smoother` on the pitch gives a short glide between notes:
+A `notes` input delivers events to an `@on` handler (see [Events and routing](../events.md)). The handler sets the pitch and the gate; `midiToHz` converts the note number. A `Smoother` on the pitch gives a short glide between notes:
 
 ```ts
 import { NoteEvent, NoteStream } from "./bleep/notes";
