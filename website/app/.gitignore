@@ -4,5 +4,6 @@ out/
 public/docs/
 public/modules/
 public/llms.txt
+public/bleep-script-ai-prompt.md
 next-env.d.ts
 *.tsbuildinfo

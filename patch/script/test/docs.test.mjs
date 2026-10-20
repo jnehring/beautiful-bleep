@@ -294,5 +294,27 @@ if (built.has("Oscillator")) {
   }
 }
 
+// the AI programming prompt: its code compiles, and it names every export of the library
+{
+  const page = readFileSync(`${docs}ai-programming.md`, "utf8");
+  const prompt = page.match(/^~~~~markdown\n([\s\S]*?)\n~~~~$/m)?.[1] ?? "";
+  check(prompt.length > 10000, "the AI prompt is on its page", `${prompt.length} characters`);
+  const dummy = `\n@module({ name: "Dummy" }) export class Dummy { @output({ name: "Out", type: "audio" }) out: f32 = 0; constructor(sampleRate: f64) {} sample(): void {} }\n`;
+  let n = 0;
+  for (const m of prompt.matchAll(/```ts\n([\s\S]*?)```/g)) {
+    // a complete module, or helpers (functions, classes) that are compiled next to a dummy module
+    if (m[1].includes("export default cell(")) continue;                  // a patch script, built by a different compiler
+    const complete = /export class/.test(m[1]);
+    if (!complete && /^\s*@/m.test(m[1])) continue;                        // a fragment of decorators, shown to explain them
+    const source = complete ? m[1] : m[1] + dummy;
+    const r = await compileScript(asc, source, { lib });
+    n++;
+    check(!!r.wasm, `ai-programming.md: code block ${n} compiles`, r.problems.filter((p) => p.severity === "error").map((p) => `${p.line}: ${p.message}`).join(" | "));
+  }
+  const exported = ["dsp", "notes"].flatMap((f) => [...lib[`src/bleep/${f}.ts`].matchAll(/^export (?:function|class|const) (\w+)/gm)].map((x) => x[1]));
+  const missing = exported.filter((name) => !new RegExp(`\\b${name}\\b`).test(prompt));
+  check(missing.length === 0, "the AI prompt names every export of bleep/dsp and bleep/notes", missing.join(", "));
+}
+
 console.log(failures ? `\n${failures} failed` : "\nall passed");
 process.exit(failures ? 1 : 0);
