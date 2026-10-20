@@ -69,6 +69,7 @@ Compile that and the node gets an In jack, an Out jack and two dials. Nothing el
 | [Library](library.md) | `bleep/osc`, `filters`, `delay`, `random`, `env`, `dynamics`, `fx`, `fft`, `util`, `dsp`, `notes`: oscillators, filters, delays, envelopes, dynamics, reverb, notes |
 | [Limits and safety](limits.md) | What is refused, the cost estimate, and the sandboxes |
 | [Programming with AI](ai-programming.md) | One prompt that teaches a coding AI Bleep Script, to copy or download |
+| [Architecture](architecture.md) | How the language is implemented in the repo: compiler, transform, library, patch runner, Code node, engine |
 
 ## Where it lives
 

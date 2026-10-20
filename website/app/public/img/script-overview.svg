@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" role="img" aria-labelledby="t d">
+  <title id="t">How a Bleep Script travels from the editor to the engine</title>
+  <desc id="d">The Code node sends the source to a Worker that holds the compiler bundle. A module script is compiled by asc and the Bleep transform into a wasm file and a node description. A patch script runs in a QuickJS sandbox and becomes nodes and cables on the board. The wasm file runs in the browser's module host and in the app and plugins through Wasmtime, using the same module ABI.</desc>
+  <style>
+    :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; } }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--fg); }
+    .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+    .hub { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .group { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; }
+    .name { font-size: 16px; font-weight: 650; text-anchor: middle; }
+    .sub { font-size: 12.5px; fill: var(--muted); text-anchor: middle; }
+    .cap { font-size: 13px; font-weight: 600; fill: var(--muted); }
+    .link { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .head { fill: var(--accent); }
+  </style>
+  <rect width="760" height="440" rx="14" fill="var(--bg)"/>
+
+  <rect class="box" x="24" y="125" width="150" height="70" rx="12"/>
+  <text class="name" x="99" y="157">Code node</text>
+  <text class="sub" x="99" y="177">editor and Compile</text>
+
+  <rect class="group" x="196" y="24" width="344" height="260" rx="14"/>
+  <text class="cap" x="214" y="46">Worker: bleep-script-compiler.js</text>
+
+  <path class="link" d="M174 160 H210 V225 H230"/><path class="head" d="M238 225 l-10 -6 v12 z"/>
+  <path class="link" d="M210 160 V95 H230"/><path class="head" d="M238 95 l-10 -6 v12 z"/>
+
+  <rect class="hub" x="238" y="190" width="262" height="70" rx="12"/>
+  <text class="name" x="369" y="222">Module script</text>
+  <text class="sub" x="369" y="242">asc and the Bleep transform</text>
+  <rect class="box" x="238" y="60" width="262" height="70" rx="12"/>
+  <text class="name" x="369" y="92">Patch script</text>
+  <text class="sub" x="369" y="112">QuickJS sandbox</text>
+
+  <path class="link" d="M500 225 H568"/><path class="head" d="M576 225 l-10 -6 v12 z"/>
+  <path class="link" d="M500 95 H568"/><path class="head" d="M576 95 l-10 -6 v12 z"/>
+
+  <rect class="hub" x="576" y="190" width="164" height="70" rx="12"/>
+  <text class="name" x="658" y="222">module.wasm</text>
+  <text class="sub" x="658" y="242">and node description</text>
+  <rect class="box" x="576" y="60" width="164" height="70" rx="12"/>
+  <text class="name" x="658" y="92">Nodes and cables</text>
+  <text class="sub" x="658" y="112">placed on the board</text>
+
+  <path class="link" d="M658 260 V310 M658 310 H462 V338 M658 310 V338"/>
+  <path class="head" d="M462 346 l-6 -10 h12 z"/><path class="head" d="M658 346 l-6 -10 h12 z"/>
+  <text class="cap" x="640" y="302" text-anchor="end">same file, same module ABI</text>
+
+  <rect class="box" x="380" y="346" width="164" height="70" rx="12"/>
+  <text class="name" x="462" y="378">Browser</text>
+  <text class="sub" x="462" y="398">module-host.js, AudioWorklet</text>
+  <rect class="box" x="576" y="346" width="164" height="70" rx="12"/>
+  <text class="name" x="658" y="378">App and plugins</text>
+  <text class="sub" x="658" y="398">CodeNodes.cpp, Wasmtime</text>
+</svg>
