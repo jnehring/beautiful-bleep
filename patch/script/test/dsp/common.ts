@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Shared by the test harnesses: buffers the JS side reads and writes, and the unit interface.
 export const OUT = new StaticArray<f32>(524288);
 export const IN = new StaticArray<f32>(524288);

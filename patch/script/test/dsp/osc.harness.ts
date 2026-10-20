@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 import { OUT, IN, Unit } from "./common";
 import { polyBlep, sawBlep, squareBlep, triangle, fastSin, SineTable, Wavetable, Supersaw, FmOp } from "../../src/bleep/osc";
 export { outPtr, inPtr } from "./common";

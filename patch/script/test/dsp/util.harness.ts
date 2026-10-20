@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 import { OUT, IN, Unit } from "./common";
 import { fastTanh, fastExp2, fastLog2, fastPow2, Rms, Pan, MidSide } from "../../src/bleep/util";
 export { outPtr, inPtr } from "./common";

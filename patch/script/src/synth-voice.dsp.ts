@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // Synth Voice: a monophonic supersaw voice with a ladder filter, an ADSR and a chorus, written in Bleep Script. A tour of the library:
 // osc (Supersaw), filters (LadderFilter), env (Adsr), fx (Chorus), util (midiToHz, fastExp2) and dsp (Smoother).
-// The tutorial that builds it step by step is website/content/developers/bleep-script/tutorial-synth-voice.md.
+// The developer docs have a tutorial that builds it step by step ("Tutorial: a synth voice").
 
 import { Supersaw } from "./bleep/osc";
 import { LadderFilter } from "./bleep/filters";

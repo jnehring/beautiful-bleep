@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 import { OUT, IN, Unit } from "./common";
 import { Adsr, Ad, Ar, EnvFollower, Slew, Lfo, Line, Ramp, Trigger, Schmitt, Clock, LFO_SQUARE } from "../../src/bleep/env";
 export { outPtr, inPtr } from "./common";

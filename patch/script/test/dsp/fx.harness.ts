@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 import { OUT, IN, Unit } from "./common";
 import { Reverb, Phaser, Chorus, PitchShift } from "../../src/bleep/fx";
 import { Fft } from "../../src/bleep/fft";
