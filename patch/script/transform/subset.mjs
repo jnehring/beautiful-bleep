@@ -86,7 +86,11 @@ export class Subset {
         this.fieldTypes.set(st.name.text, fields);
         for (const m of st.members || []) {
           if (m.kind === NodeKind.MethodDeclaration && m.body) add(new Fn(m, source, st.name.text, trusted));
-          else if (m.kind === NodeKind.FieldDeclaration && m.type && m.name) fields.set(m.name.text, text(m.type).replace(/<.*$/, "").replace(/\|.*$/, "").trim());
+          else if (m.kind === NodeKind.FieldDeclaration && m.type && m.name) {
+            const t = text(m.type), element = /^(?:StaticArray|Array)<\s*([A-Za-z_][A-Za-z0-9_]*)\s*>/.exec(t);
+            fields.set(m.name.text, t.replace(/<.*$/, "").replace(/\|.*$/, "").trim());
+            if (element) fields.set(`${m.name.text}[]`, element[1]);   // the class of an array's elements: this.lows[i].next()
+          }
         }
       } else if (st.kind === NodeKind.Variable) {
         for (const d of st.declarations || []) {
@@ -182,6 +186,8 @@ export class Subset {
       // the receiver's class when the syntax says it: this.m(), this.field.m(); else every method of that name
       let owner = null;
       if (target.kind === NodeKind.This) owner = ctx.fn.owner;
+      else if (target.kind === NodeKind.ElementAccess && target.expression.kind === NodeKind.PropertyAccess && target.expression.expression.kind === NodeKind.This && ctx.fn.owner)
+        owner = (this.fieldTypes.get(ctx.fn.owner) || new Map()).get(`${target.expression.property.text}[]`) || null;
       else if (target.kind === NodeKind.PropertyAccess && target.expression.kind === NodeKind.This && ctx.fn.owner) owner = (this.fieldTypes.get(ctx.fn.owner) || new Map()).get(target.property.text) || null;
       const candidates = (this.byName.get(name) || []).filter((f) => !owner || f.owner === owner);
       if (ALLOCATING_METHODS.has(name) && !(owner && candidates.length)) {   // a method of that name on a class we can see is the library's or the user's own

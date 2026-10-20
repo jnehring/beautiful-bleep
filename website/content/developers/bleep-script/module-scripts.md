@@ -34,9 +34,10 @@ export class Gain {
 | `sample(): void` | Once per sample | Per-sample DSP |
 | `reset(): void` | When the engine resets the module | Clear state |
 | `@on(...)` methods | Once per event | [Events and routing](events.md) |
+| `@transport` method | Once per block, before `block()` | The tempo and position, see [Transport](#transport) |
 | `@button` methods | When a button is pressed | See below |
 
-All of them are optional. A module with only `@on` handlers is a router; one with only `sample()` is an effect. Several `@module` classes in one file make several modules (the Code node shows the first).
+All of them are optional. A module with only `@on` handlers is a router; one with only `sample()` is an effect. When each part runs, and what to put where, is the subject of [Rates and timing](rates.md). Several `@module` classes in one file make several modules (the Code node shows the first).
 
 ### How fields are filled
 
@@ -149,6 +150,17 @@ A value the view polls and shows as a meter. It does not appear as a jack. `name
 ```
 
 A button in the view. Its method runs when the button is pressed, between blocks. The method name is the button's id and must be a plain identifier.
+
+## `@transport`
+
+```ts
+@transport tempo(bpm: f64, ppq: f64, playing: bool): void {
+  this.bpm = bpm;
+  if (playing) this.beat = ppq;
+}
+```
+
+One method can be the transport handler. The engine calls it **once per block, before `block()`**, with the tempo in beats per minute, the position at the start of the block in quarter notes (`ppq`) and whether the transport is playing. Use it for anything that follows the tempo: a tempo-synced LFO or delay, a step sequencer. It is block rate (see [Rates and timing](rates.md)): advance the position yourself per sample and take the host's value again at the next block, as the [step sequencer](tutorials/step-sequencer.md) does. When `playing` goes from false to true the transport has started. The method takes exactly these three arguments.
 
 ## Settings and counted jacks
 

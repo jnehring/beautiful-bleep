@@ -27,7 +27,7 @@ const CHUNK = 32;
 
 const SIGNAL_TYPES = ["audio", "control", "pitch", "gate", "trigger", "notes"];
 const UNIPOLAR = new Set(["gate", "trigger", "notes"]);
-const DECORATORS = new Set(["module", "input", "output", "param", "probe", "on", "button"]);
+const DECORATORS = new Set(["module", "input", "output", "param", "probe", "on", "button", "transport"]);
 
 /// A problem in the user's declarations. Carries the position so the editor can mark it.
 /// Thrown to stop a compile once the settings of the module are known (the first pass of compile.mjs).
@@ -292,13 +292,18 @@ function readModules(source, constants = {}, settingsOnly = false) {
       const name = m.name && m.name.text;
       if (m.decorators && m.decorators.length && !m.type) {
         const found = decoratorsOf(m, source, mod.values);
-        delete found.on; delete found.button;   // @on and @button are the decorators a method takes
+        delete found.on; delete found.button; delete found.transport;   // @on, @button and @transport are the decorators a method takes
         if (Object.keys(found).length) bad(m, `a decorator on '${name}' needs a field`);
       }
       if (m.type === undefined || m.type === null) {   // a method (or constructor)
         if (name) mod.methods.add(name);
         const found = decoratorsOf(m, source, mod.values);
         if (found.on) mod.handlers.push({ method: name, jack: found.on.name, rising: found.on.rising, falling: found.on.falling, node: m });
+        if (found.transport) {
+          if (mod.transport) bad(m, "only one method can be the @transport handler");
+          if (!m.signature || m.signature.parameters.length !== 3) bad(m, "@transport method must be (bpm: f64, ppq: f64, playing: bool): void");
+          mod.transport = name;
+        }
         if (found.button) mod.buttons.push({ id: name, name: found.button.name || titleCase(name), momentary: found.button.momentary === true, doc: found.button.description || docOf(source, m), node: m });
         continue;
       }
@@ -312,7 +317,7 @@ function readModules(source, constants = {}, settingsOnly = false) {
       const initial = m.initializer ? ASTBuilder.build(m.initializer) : "";
       const doc = opts.description || docOf(source, m);
       if (key === "module") bad(m, "@module goes on a class");
-      if (key === "on" || key === "button") bad(m, `@${key} goes on a method`);
+      if (key === "on" || key === "button" || key === "transport") bad(m, `@${key} goes on a method`);
       if (key === "input" || key === "output" || key === "probe") {
         const notes = key !== "probe" && opts.type === "notes";
         if (notes && opts.count !== undefined) bad(m, `@${key} '${name}': a notes jack cannot have a count`);
@@ -500,6 +505,7 @@ ${loadParams.join("\n")}
       ${edges.map((e) => `this.prev${e.hi} = this.inputs[${e.index} * CHUNK];`).join("\n      ")}
       this.started = true;
     }
+${mod.transport ? `    m.${mod.transport}(this.bpm, this.ppq, this.playing);` : ""}
 ${has("block") ? "    m.block();" : ""}
     ${noteJacks.map((nj) => `const c${nj.ji}: i32 = m.${nj.id}.length; let p${nj.ji}: i32 = 0;`).join("\n    ")}
 ${needsLoop ? `    for (let i = 0; i < n; i++) {
@@ -559,7 +565,7 @@ export function bleep_in_connected_ptr(h: usize): usize { return addressOf(asMod
 export function bleep_out_connected_ptr(h: usize): usize { return addressOf(asModule(h).outConnected); }
 
 export function bleep_set_knob(h: usize, index: i32, normalised: f32): void { asModule(h).setKnob(index, normalised); }
-export function bleep_set_transport(h: usize, bpm: f64, ppq: f64, playing: i32, samplePos: i64): void {}
+export function bleep_set_transport(h: usize, bpm: f64, ppq: f64, playing: i32, samplePos: i64): void { asModule(h).setTransport(bpm, ppq, playing != 0); }
 export function bleep_process(h: usize, numSamples: i32): i32 {
   if (numSamples < 1 || numSamples > CHUNK) return 1;
   asModule(h).process(numSamples);
@@ -625,6 +631,7 @@ export class BleepTransform {
       for (const mod of mods) {
         for (const h of mod.handlers) subset.markHandler(mod.className, h.method, h.kind === "notes" ? 64 : CHUNK);
         for (const b of mod.buttons) subset.markHandler(mod.className, b.id, 1);
+        if (mod.transport) subset.markHandler(mod.className, mod.transport, 1);
         subset.costOfFn(subset.fns.find((f) => f.owner === mod.className && f.name === "reset" && !f.trusted) || { cost: 0, trusted: true });
         mod.cost = { ...subset.moduleCost(mod.className), limit: BUDGET.error };
         const file = mod.file, at = (name) => { const f = subset.fns.find((x) => x.owner === mod.className && x.name === name && !x.trusted); return f ? subset.line(f.source, f.node) : 1; };

@@ -59,6 +59,8 @@ Compile that and the node gets an In jack, an Out jack and two dials. Nothing el
 | Page | Content |
 |---|---|
 | [Quickstart](quickstart.md) | Your first script, in five minutes |
+| [Rates and timing](rates.md) | When each part of a script runs, and what to put where |
+| [Tutorials](tutorials/overview.md) | A step sequencer, drive, smoothing, sample and hold, inputs, the DSP toolbox |
 | [The Code node](code-node.md) | The editor, compiling, settings, saving, and what is available where |
 | [Module scripts](module-scripts.md) | Reference: decorators, signal types, parameters, probes, buttons, settings |
 | [Events and routing](events.md) | Notes and edge handlers, with a router |

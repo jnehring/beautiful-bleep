@@ -26,6 +26,7 @@ const SNIPPETS = [
   snippet("@param choice", '@param({ name: "${Shape}", choices: ["${Sine}", "${Triangle}"] }) ${shape}: i32 = 0;', "a choice"),
   snippet("@param count", '@param({ name: "${Gain}", min: ${0}, max: ${1}, init: ${1}, count: ${CHANNELS}, group: "Ch {n}" }) ${gain}!: StaticArray<f32>;', "one knob per channel"),
   snippet("@probe", '@probe ${level}: f32 = 0;', "a value for the view"),
+  snippet("@transport", '@transport ${tempo}(bpm: f64, ppq: f64, playing: bool): void {\n  ${}\n}', "the tempo and position, before every block"),
   snippet("@button", '@button({ name: "${Reset}" }) ${reset}(): void {\n  ${}\n}', "a button"),
   snippet("@on notes", '@on("${notes}") ${route}(n: NoteEvent): void {\n  ${}\n}', "a note handler"),
   snippet("@on rising", '@on("${cc}", { rising: ${0.5} }) ${open}(): void {\n  ${}\n}', "an edge handler"),

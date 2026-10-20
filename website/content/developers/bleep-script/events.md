@@ -75,11 +75,11 @@ A rising edge fires on the sample where the signal goes from below the level to 
 
 ## Order within a sample
 
-For each sample, in this order: inputs are set, note events at this sample are handled, edge handlers run, then `sample()` runs, then outputs are read. `block()` runs once before the first sample, and sees each input at its first sample of the block.
+Before the samples of a block, the `@transport` method runs, then `block()`. For each sample, in this order: inputs are set, note events at this sample are handled, edge handlers run, then `sample()` runs, then outputs are read. `block()` runs once before the first sample (see [Rates and timing](rates.md)), and sees each input at its first sample of the block.
 
 ## Cost
 
-Handlers count in the [cost estimate](limits.md#the-cost-estimate) at their worst case: a note handler is assumed to run for 64 events per block, an edge handler for every sample.
+Handlers count in the [cost estimate](limits.md#cost-bound) at their worst case: a note handler is assumed to run for 64 events per block, an edge handler for every sample.
 
 ## The router example
 

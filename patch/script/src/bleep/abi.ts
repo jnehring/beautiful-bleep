@@ -30,6 +30,11 @@ export abstract class Module {
     for (let i = 0; i < numOutputs; i++) this.notesOut[i] = emptyNotes;
   }
 
+  /// The transport, told before every chunk (bleep_set_transport): tempo in beats per minute, the position at the chunk start in quarter notes, and whether it runs.
+  bpm: f64 = 120;
+  ppq: f64 = 0;
+  playing: bool = false;
+  setTransport(bpm: f64, ppq: f64, playing: bool): void { this.bpm = bpm; this.ppq = ppq; this.playing = playing; }
   /// The knob without modulation (bleep_set_knob). Most modules read `params` and need not override it.
   setKnob(index: i32, normalised: f32): void {}
   reset(): void {}
