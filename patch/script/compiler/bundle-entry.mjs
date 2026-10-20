@@ -6,13 +6,15 @@ import abi from "../src/bleep/abi.ts";
 import dsp from "../src/bleep/dsp.ts";
 import format from "../src/bleep/format.ts";
 import notes from "../src/bleep/notes.ts";
+import osc from "../src/bleep/osc.ts";
 import gains from "../src/gains.dsp.ts";
 import { EXAMPLES } from "../playground/examples.mjs";
 import { compileScript } from "./compile.mjs";
 import { runPatchScript } from "../patch/run.mjs";
 import { materialize } from "../patch/materialize.mjs";
 
-const lib = { "src/bleep/abi.ts": abi, "src/bleep/dsp.ts": dsp, "src/bleep/format.ts": format, "src/bleep/notes.ts": notes };
+const lib = { "src/bleep/abi.ts": abi, "src/bleep/dsp.ts": dsp, "src/bleep/format.ts": format, "src/bleep/notes.ts": notes,
+  "src/bleep/osc.ts": osc };
 
 /// compile(source, { typeId }) -> { wasm, specs, generated, problems, ms }
 export const compile = (source, options = {}) => compileScript(asc, source, { lib, ...options });
