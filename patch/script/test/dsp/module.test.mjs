@@ -196,6 +196,41 @@ export class DynTest {
   }
 }`;
 
+MODULES.fx = `
+import { Reverb, Phaser, Chorus, PitchShift } from "./bleep/fx";
+import { Fft } from "./bleep/fft";
+@module({ name: "FxTest", category: "Utility/Test" })
+export class FxTest {
+  @input x: f32 = 0;
+  @output left: f32 = 0;
+  @output right: f32 = 0;
+  @probe peakBin: f32 = 0;
+  private reverb: Reverb; private phaser: Phaser; private chorus: Chorus; private shifter: PitchShift; private fft: Fft;
+  private filled: i32 = 0;
+  constructor(sampleRate: f64) {
+    this.reverb = new Reverb(sampleRate); this.phaser = new Phaser(sampleRate, 6); this.chorus = new Chorus(sampleRate, 3); this.shifter = new PitchShift(sampleRate);
+    this.fft = new Fft(256);
+    this.shifter.ratio = 1.5;
+  }
+  block(): void { this.reverb.roomSize = 0.8; this.reverb.update(); }
+  sample(): void {
+    const x = this.x;
+    this.reverb.next(x);
+    this.chorus.next(this.phaser.next(this.shifter.next(x)));
+    this.left = this.reverb.left * 0.5 + this.chorus.left * 0.5;
+    this.right = this.reverb.right * 0.5 + this.chorus.right * 0.5;
+    this.fft.re[this.filled] = x; this.fft.im[this.filled] = 0.0;
+    this.filled++;
+    if (this.filled >= 256) {
+      this.filled = 0;
+      this.fft.forward();
+      let best: f32 = 0.0, at: i32 = 0;
+      for (let k = 1; k < 128; k++) { const m = this.fft.magnitude(k); if (m > best) { best = m; at = k; } }
+      this.peakBin = <f32>at;
+    }
+  }
+}`;
+
 for (const [name, source] of Object.entries(MODULES)) {
   const r = await run(source, { inputs: [0.9] });
   check(r.errors.length === 0, `${name}: compiles with the subset checker`, r.errors.map((e) => `${e.line}: ${e.message}`).join("; "));
@@ -203,5 +238,23 @@ for (const [name, source] of Object.entries(MODULES)) {
     check(finiteAll(r.out) && peak(r.out) > 0.05 && peak(r.out) < 8, `${name}: runs in the module host`, `peak ${peak(r.out).toFixed(3)}`);
     check(r.cost && r.cost.ops > 0, `${name}: has a cost estimate`, JSON.stringify(r.cost));
   }
+}
+// ---- the subset checker resolves this.items[i].method() by the element type of the field --------------------------------------------------
+{
+  const body = (field) => `
+class Cheap { v: f32 = 0; tick(x: f32): f32 { this.v += x; return this.v; } }
+class Costly { v: f32 = 0; tick(x: f32): f32 { for (let i = 0; i < 1000; i++) this.v += x * <f32>i; return this.v; } }
+@module({ name: "Arr", category: "Utility/Test" })
+export class Arr {
+  @input x: f32 = 0;
+  @output out: f32 = 0;
+  private items: ${field};
+  private other: Costly = new Costly();
+  constructor(sampleRate: f64) { this.items = new ${field}(4); for (let i = 0; i < 4; i++) this.items[i] = new Cheap(); }
+  sample(): void { let s: f32 = 0; for (let i = 0; i < 4; i++) s += this.items[i].tick(this.x); this.out = s + this.other.tick(0.0); }
+}`;
+  const typed = await run(body("StaticArray<Cheap>"), { chunks: 2, inputs: [0.1] });
+  const costly = await run(body("StaticArray<Cheap>").replace("this.other.tick(0.0)", "0.0"), { chunks: 2, inputs: [0.1] });
+  check(typed.errors.length === 0 && costly.cost && costly.cost.sample < 120, "checker: this.items[i].tick() is costed as the element type's method, not the dearest tick in the file", costly.cost ? JSON.stringify(costly.cost) : typed.errors.map((e) => e.message).join(";"));
 }
 finish();
