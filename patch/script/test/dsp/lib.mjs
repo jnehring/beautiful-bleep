@@ -13,7 +13,7 @@ export const finish = () => { console.log(failures ? `\n${failures} check(s) fai
 /// Compiles test/dsp/<name>.harness.ts the way modules are compiled (stub runtime, no imports) and returns a runner.
 export async function harness(name) {
   let wasm = null;
-  const { error } = await asc.main([`test/dsp/${name}.harness.ts`, "--outFile", "o.wasm", "--baseDir", root, "--runtime", "stub", "--exportRuntime", "--use", "abort=",
+  const { error } = await asc.main([`test/dsp/${name}.harness.ts`, "--outFile", "o.wasm", "--baseDir", root, "--runtime", "stub", "--exportRuntime", "--use", "abort=", "--disableWarning", "235",
     "--noAssert", "--optimizeLevel", "3", "--shrinkLevel", "1"], { writeFile: (n, d) => { if (n.endsWith(".wasm")) wasm = d; }, stderr: process.stderr });
   if (error) throw new Error(`${name} harness: ${error.message}`);
   const { instance } = await WebAssembly.instantiate(wasm, {});
@@ -65,10 +65,34 @@ export const rms = (a, from = 0, to = a.length) => { let s = 0; for (let i = fro
 export const peak = (a, from = 0, to = a.length) => { let s = 0; for (let i = from; i < to; i++) s = Math.max(s, Math.abs(a[i])); return s; };
 export const finiteAll = (a) => a.every((v) => Number.isFinite(v));
 
-/// The gain (in dB) of a unit at `freq`, measured with a sine of that frequency after letting it settle.
-export function gainAt(h, id, params, freq, { n = 8192, amp = 0.1 } = {}) {
+/// The response of a unit at `freq`, measured with a sine after letting it settle: { gain (dB), phase (radians, output relative to input) }.
+export function responseAt(h, id, params, freq, { n = 16384, amp = 0.1 } = {}) {
   const input = new Float32Array(n);
   for (let i = 0; i < n; i++) input[i] = amp * Math.sin(2 * Math.PI * freq * i / SR);
   const out = h.run(id, params, n, input);
-  return 20 * Math.log10(rms(out, n / 2) / rms(input, n / 2));
+  // correlate with a complex exponential under a Hann window over the second half, so the image at -freq does not leak in
+  const corr = (sig) => {
+    let re = 0, im = 0;
+    for (let i = n / 2; i < n; i++) { const w = 2 * Math.PI * freq * i / SR, win = 0.5 - 0.5 * Math.cos(2 * Math.PI * (i - n / 2) / (n / 2)); re += win * sig[i] * Math.cos(w); im -= win * sig[i] * Math.sin(w); }
+    return [re, im];
+  };
+  const [ar, ai] = corr(input), [br, bi] = corr(out);
+  const a = Math.hypot(ar, ai), b = Math.hypot(br, bi);
+  let phase = Math.atan2(bi, br) - Math.atan2(ai, ar);
+  phase -= 2 * Math.PI * Math.round(phase / (2 * Math.PI));
+  return { gain: 20 * Math.log10(Math.max(b, 1e-30) / a), phase };
+}
+export const gainAt = (h, id, params, freq, opts) => responseAt(h, id, params, freq, opts).gain;
+
+/// White-ish noise in [-1, 1) from a seeded generator (mulberry32), so tests are repeatable.
+export function noise(n, seed = 1) {
+  const out = new Float32Array(n);
+  let a = seed >>> 0;
+  for (let i = 0; i < n; i++) {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    out[i] = (((t ^ (t >>> 14)) >>> 0) / 4294967296) * 2 - 1;
+  }
+  return out;
 }

@@ -55,8 +55,45 @@ export class OscTest {
   }
 }`;
 
+MODULES.filters = `
+import { Biquad } from "./bleep/dsp";
+import { OnePole, Svf, LadderFilter, Resonz, Formant, Allpass1, Allpass2, CombFilter } from "./bleep/filters";
+import { midiToHz, fastTanh, Pan, MidSide, Rms, clamp } from "./bleep/util";
+@module({ name: "FilterTest", category: "Utility/Test" })
+export class FilterTest {
+  @input x: f32 = 0;
+  @output out: f32 = 0;
+  @param({ name: "Cutoff", min: 20, max: 12000, init: 800 }) cutoff: f32 = 800;
+  private bq: Biquad = new Biquad();
+  private op: OnePole = new OnePole();
+  private svf: Svf = new Svf();
+  private ladder: LadderFilter = new LadderFilter();
+  private rz: Resonz = new Resonz();
+  private formant: Formant = new Formant();
+  private ap1: Allpass1 = new Allpass1();
+  private ap2: Allpass2 = new Allpass2();
+  private comb: CombFilter;
+  private pan: Pan = new Pan();
+  private ms: MidSide = new MidSide();
+  private level: Rms;
+  constructor(sampleRate: f64) { this.comb = new CombFilter(512); this.level = new Rms(sampleRate, 0.1); }
+  block(): void {
+    const f = <f64>this.cutoff;
+    this.bq.setBandpass(48000.0, f, 2.0); this.op.setLowpass(48000.0, f); this.svf.set(48000.0, f, 2.0); this.ladder.set(48000.0, f, 0.5);
+    this.rz.set(48000.0, f, 100.0); this.formant.setVowel(48000.0, 1.5); this.ap1.set(48000.0, f); this.ap2.set(48000.0, f, 1.0);
+    this.comb.setDelay(100.5); this.comb.feedback = 0.5; this.pan.equalPower(0.3);
+  }
+  sample(): void {
+    const x = this.x;
+    this.svf.tick(x);
+    const y = this.bq.next(x) + this.op.next(x) + this.svf.low + this.ladder.next(x) + this.rz.next(x) + this.formant.next(x) + this.ap1.next(x) + this.ap2.next(x) + this.comb.next(x);
+    this.ms.encode(y, x);
+    this.out = clamp(fastTanh(this.ms.mid * this.pan.left) * <f32>midiToHz(60.0) * 0.001 + this.level.next(y), -4.0, 4.0);
+  }
+}`;
+
 for (const [name, source] of Object.entries(MODULES)) {
-  const r = await run(source);
+  const r = await run(source, { inputs: [0.3] });
   check(r.errors.length === 0, `${name}: compiles with the subset checker`, r.errors.map((e) => `${e.line}: ${e.message}`).join("; "));
   if (r.out) {
     check(finiteAll(r.out) && peak(r.out) > 0.05 && peak(r.out) < 8, `${name}: runs in the module host`, `peak ${peak(r.out).toFixed(3)}`);
