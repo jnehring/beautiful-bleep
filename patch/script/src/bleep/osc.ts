@@ -144,11 +144,11 @@ export class Wavetable {
   setSquare(): void { this.build(2, null, 0); }
   setTriangle(): void { this.build(3, null, 0); }
 
-  /// The wave at `phase` (0 to 1) when stepping `dt` per sample.
+  /// The wave at `phase` (in cycles, any value) when stepping `dt` per sample.
   read(phase: f64, dt: f64): f32 {
     let lv = 0;
     while (lv < this.levels - 1 && <f64>(this.maxHarmonic >> lv) * dt > 0.5) lv++;
-    const p = phase * <f64>this.size;
+    const p = (phase - floor(phase)) * <f64>this.size;
     const i = <i32>p;
     const f = <f32>(p - <f64>i);
     const at = lv * (this.size + 1) + i;

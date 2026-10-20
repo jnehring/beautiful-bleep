@@ -16,6 +16,7 @@ import osc from "../src/bleep/osc.ts";
 import random from "../src/bleep/random.ts";
 import util from "../src/bleep/util.ts";
 import gains from "../src/gains.dsp.ts";
+import synthVoice from "../src/synth-voice.dsp.ts";
 import { EXAMPLES } from "../playground/examples.mjs";
 import { compileScript } from "./compile.mjs";
 import { runPatchScript } from "../patch/run.mjs";
@@ -37,5 +38,5 @@ export async function patch(source, settings, types, options) {
 }
 
 /// Starting points for the editor: [{ id, name, source }].
-export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, ...EXAMPLES];
+export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, ...EXAMPLES];
 export const version = "0.1";

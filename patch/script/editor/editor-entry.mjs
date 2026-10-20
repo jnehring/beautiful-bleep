@@ -35,9 +35,17 @@ const SNIPPETS = [
   snippet("for loop", "for (let ${i} = 0; ${i} < ${CHANNELS}; ${i}++) {\n  ${}\n}", "a bounded loop"),
   snippet("import dsp", 'import { ${Smoother}, PeakHold, Biquad, dbToLin } from "./bleep/dsp";', "the library"),
   snippet("import notes", 'import { NoteEvent, NoteStream } from "./bleep/notes";', "notes"),
+  snippet("import osc", 'import { ${sawBlep}, squareBlep, triangle, fastSin, Wavetable, Supersaw, FmOp } from "./bleep/osc";', "oscillators"),
+  snippet("import filters", 'import { ${Svf}, OnePole, LadderFilter, Resonz, Formant, Allpass1, Allpass2, CombFilter } from "./bleep/filters";', "filters"),
+  snippet("import delay", 'import { ${DelayLine}, TapeDelay, KarplusStrong } from "./bleep/delay";', "delays"),
+  snippet("import env", 'import { ${Adsr}, Ar, Ad, EnvFollower, Slew, Lfo, Clock } from "./bleep/env";', "envelopes and LFOs"),
+  snippet("import dynamics", 'import { ${Compressor}, Limiter, Gate, softClip, Oversampler2x } from "./bleep/dynamics";', "dynamics and distortion"),
+  snippet("import random", 'import { ${Xorshift}, PinkNoise, SampleAndHold, NoiseLfo } from "./bleep/random";', "noise and random"),
+  snippet("import fx", 'import { ${Reverb}, Phaser, Chorus, PitchShift } from "./bleep/fx";', "effects"),
+  snippet("import util", 'import { ${midiToHz}, clamp, fastTanh, Pan } from "./bleep/util";', "helpers"),
 ];
 const WORDS = ["f32", "f64", "i32", "bool", "StaticArray", "Smoother", "PeakHold", "Biquad", "dbToLin", "NoteEvent", "NoteStream", "Math", "abs", "min", "max", "sqrt", "floor",
-  "setLowShelf", "setHighShelf", "setPeaking", "setLowpass", "transpose", "isOn", "isOff", "push", "clear", "offsetAt", "snap", "next"].map((label) => ({ label, type: "variable" }));
+  "setLowShelf", "setHighShelf", "setPeaking", "setLowpass", "setHighpass", "setBandpass", "setNotch", "setAllpass", "Svf", "Adsr", "Supersaw", "LadderFilter", "DelayLine", "Compressor", "Reverb", "midiToHz", "transpose", "isOn", "isOff", "push", "clear", "offsetAt", "snap", "next"].map((label) => ({ label, type: "variable" }));
 
 function complete(context) {
   const word = context.matchBefore(/[@\w]+/);

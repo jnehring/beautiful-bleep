@@ -239,6 +239,29 @@ for (const [name, source] of Object.entries(MODULES)) {
     check(r.cost && r.cost.ops > 0, `${name}: has a cost estimate`, JSON.stringify(r.cost));
   }
 }
+// ---- the shipped example: src/synth-voice.dsp.ts (a note in, sound out; silence without a note) ----------------------------------------------
+{
+  const source = readFileSync(`${root}src/synth-voice.dsp.ts`, "utf8");
+  const r = await compileScript(asc, source, { lib });
+  check(!!r.wasm && r.problems.filter((p) => p.severity === "error").length === 0, "synth-voice example compiles with the subset checker", r.problems.map((p) => `${p.line}: ${p.message}`).join("; "));
+  if (r.wasm) {
+    const m = new ModuleInstance(await compileModule(r.wasm), 48000, r.specs[0].type);
+    const render = (chunks, events) => { const out = []; for (let c = 0; c < chunks; c++) { m.setNotesIn(0, c === 0 ? events : []); m.process(CHUNK); out.push(...m.outputs.slice(0, CHUNK)); } return Float32Array.from(out); };
+    // knobs at their defaults: the host takes normalised values, so ask the description for them
+    r.specs[0].params.forEach((p, i) => m.params.fill(p.default, i * CHUNK, (i + 1) * CHUNK));
+    const silent = render(100, []);
+    check(peak(silent) === 0, "synth-voice: silent until a note arrives");
+    const played = render(300, [{ type: 0, offset: 0, note: 57, pitch: -0.25, value: 0.8 }]);
+    check(finiteAll(played) && peak(played) > 0.05 && peak(played) < 1.5, "synth-voice: a note makes sound at a sane level", `peak ${peak(played).toFixed(3)}`);
+    // the pitch: zero crossings of the low-passed signal give about 220 Hz (A3) for a 7-voice supersaw ... count the strongest autocorrelation lag instead
+    let best = 0, lag = 0; const seg = played.slice(4800, 4800 + 4800);
+    for (let l = 60; l < 600; l++) { let acc = 0; for (let i = 0; i + l < seg.length; i++) acc += seg[i] * seg[i + l]; if (acc > best) { best = acc; lag = l; } }
+    check(Math.abs(48000 / lag - 220) < 12, "synth-voice: plays the note it was given (A3 = 220 Hz)", `${(48000 / lag).toFixed(1)} Hz`);
+    const released = render(700, [{ type: 1, offset: 0, note: 57, pitch: -0.25, value: 0 }]);
+    check(peak(released.slice(-1000)) < 1e-3, "synth-voice: a note off releases to silence", peak(released.slice(-1000)).toExponential(2));
+  }
+}
+
 // ---- the subset checker resolves this.items[i].method() by the element type of the field --------------------------------------------------
 {
   const body = (field) => `
