@@ -92,6 +92,37 @@ export class FilterTest {
   }
 }`;
 
+MODULES.delay = `
+import { DelayLine, TapeDelay, KarplusStrong, interpLinear, interpCubic, interpLagrange } from "./bleep/delay";
+import { NoteEvent } from "./bleep/notes";
+@module({ name: "DelayTest", category: "Utility/Test" })
+export class DelayTest {
+  @input x: f32 = 0;
+  @input({ type: "notes" }) notes!: NoteStream;
+  @output out: f32 = 0;
+  @param({ name: "Time", min: 0.01, max: 0.5, init: 0.1 }) time: f32 = 0.1;
+  private line: DelayLine;
+  private tape: TapeDelay;
+  private string: KarplusStrong;
+  private table: StaticArray<f32>;
+  private ph: f64 = 0;
+  constructor(sampleRate: f64) {
+    this.line = new DelayLine(2000);
+    this.tape = new TapeDelay(sampleRate, 1.0);
+    this.string = new KarplusStrong(sampleRate, 55.0);
+    this.table = new StaticArray<f32>(256);
+    for (let i = 0; i < 256; i++) this.table[i] = <f32>Math.sin(<f64>i * 6.283185307179586 / 256.0);
+  }
+  block(): void { this.tape.time = this.time; this.tape.feedback = 0.4; this.tape.setTone(3000.0); }
+  @on("notes") play(n: NoteEvent): void { if (n.isOn) this.string.pluck(261.0); }
+  sample(): void {
+    this.line.write(this.x);
+    this.ph += 0.01;
+    this.out = this.line.read(100.5) + this.line.readCubic(200.25) + this.line.readAllpass(300.7) + this.tape.next(this.x) + this.string.next()
+      + interpLinear(this.table, this.ph * 256.0) + interpCubic(this.table, this.ph * 256.0) + interpLagrange(this.table, this.ph * 256.0);
+  }
+}`.replace('import { NoteEvent }', 'import { NoteEvent, NoteStream }');
+
 for (const [name, source] of Object.entries(MODULES)) {
   const r = await run(source, { inputs: [0.3] });
   check(r.errors.length === 0, `${name}: compiles with the subset checker`, r.errors.map((e) => `${e.line}: ${e.message}`).join("; "));
