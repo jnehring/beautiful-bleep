@@ -23,8 +23,9 @@ A request can be short. The prompt tells the assistant to choose sensible knobs 
 
 ## What to expect
 
+- If you ask for a custom look (a drawn curve, your own meters), it writes the **UI tab** too: a second code block of JavaScript that you paste into the Code node's UI tab, next to the module in the Script tab. Without such a request it leaves the standard controls alone, or arranges them with a layout.
 - The assistant writes a **module script** (one module: a class with `sample()` and knobs), because that is what nearly every request needs. If you ask for a patch built from existing modules, say so, and it writes a **patch script** instead.
-- It can only use what the Bleep Script library offers. Anything else (high-pass filters, noise, an envelope, a delay line) it writes inside the module. That is normal and takes a few lines.
+- It can only use what the Bleep Script library offers. The library covers oscillators, filters, delays, noise, envelopes and LFOs, dynamics, effects, an FFT and helpers; anything else (a vocoder, convolution, granular) it writes inside the module, which takes more code and may need a round of fixes. That is normal and takes a few lines.
 - The first answer often compiles. When it does not, or when it sounds wrong, say what you hear ("it clicks when I turn the rate knob", "the feedback blows up at the top") and let it fix that.
 - It cannot hear. Check the result by ear, and with the meters (`@probe`) it adds when you ask for them.
 - The prompt describes the library as it is when this page was built. A newer library may have more in it; the [Library](library.md) page is the full list.
@@ -42,7 +43,7 @@ Everything you need is in this document. Follow it exactly. Do not use APIs, dec
 
 - **One complete module script** in a single ```ts code block. Never partial code, never "the rest stays the same".
 - Then a short note (a few lines, not an essay) listing the knobs and jacks you chose and anything the user may want to change. If the request left something open (ranges, number of stages, mono or stereo), decide it yourself with a sensible default and say so. Ask a question only if the request cannot be built at all without the answer.
-- No imports except `./bleep/dsp` and `./bleep/notes`. No other files, no build setup.
+- No imports except `./bleep/dsp`, `./bleep/notes` and `./bleep/env`. No other files, no build setup.
 - Default to a **module script** (section 2). Write a *patch script* (section 12) only if the user asks to wire up existing Bleep modules rather than write DSP.
 - Add a doc comment (`/** ... */`) on the class and on any knob whose purpose is not obvious from its name; it shows up as help text.
 
@@ -213,7 +214,7 @@ It looks like TypeScript but is stricter and typed like C. The differences that 
 - **Strings and growing arrays are not available in the audio code.** Use `StaticArray<f32>`: `new StaticArray<f32>(size)`, indexed `a[i]`, `a.length`. Allocate it in the constructor and never grow it.
 - Fields: give every field an initial value (`= 0`) **or** assign it in the constructor (`private g: Smoother;` then `this.g = new Smoother(...)` in the constructor). A field of a class type that is assigned in the constructor needs no initialiser. **In the constructor, assign every such field before you read `this.something` or call a method on `this`** (the compiler refuses otherwise); compute from local `const`s and parameters first, as the flanger below does.
 - Built-ins you can use anywhere: `abs`, `min`, `max`, `sqrt`, `floor`, `ceil`, `trunc`, `nearest`, `copysign`, `isNaN`, `isFinite`, `clz`, `ctz`, `popcnt`, `rotl`, `rotr`. `Math.*`: `sin`, `cos`, `tan`, `tanh`, `exp`, `log`, `log10`, `pow`, `sqrt`, `floor`, `ceil`, `abs`, `min`, `max`, `PI`, `SQRT2`, `LN2`, `atan`, `atan2`, `sinh`, `cosh`.
-- **Not available at all:** `Math.random()` (write a generator, section 11), the clock, files, network, `console`.
+- **Not available at all:** `Math.random()` (use `Xorshift` from `./bleep/random`), the clock, files, network, `console`.
 - Helper functions and constants at the top level of the file are fine (`function polyBlep(...)`, `const TWO_PI: f64 = 6.283185307179586;`) and so are helper classes that are not decorated: plain classes holding the state of one voice, one channel, one allpass stage.
 - Private fields: `private phase: f64 = 0;`. Methods are plain methods.
 
@@ -225,18 +226,43 @@ The checker walks `block()`, `sample()`, `reset()`, the `@on` handlers and every
 - anything that allocates or copies at run time: `new` anywhere outside the constructor, `push`, `map`, `filter`, `concat`, `slice`, `split`, string building, `Array` growth, `Map` and `Set`;
 - calls to anything except your own functions, `Math`, the built-ins above and the `bleep/` libraries;
 - `declare`, and these **names, anywhere, even as your own variable or parameter**: `load`, `store`, `memory`, `changetype`, `unchecked`, `unreachable`, `abort`, `trace`, `seed`, `unsafe`, `call_indirect`, and any name starting with `__`;
-- imports from anywhere but `./bleep/dsp` and `./bleep/notes`;
+- imports from anywhere but `./bleep/dsp`, `./bleep/notes` and `./bleep/env`;
 - **loops without a bound the checker can see, and loops longer than 4096 iterations.** Use a literal or a `const` bound, or a setting constant: `for (let i = 0; i < 8; i++)`, `for (let i = 0; i < STAGES; i++)`. A loop over `this.something` is not accepted. If you need a variable count (say 4 to 12 stages), loop to the **maximum** with a constant bound and skip the unused iterations with an `if` or a `break`.
 - **Cost:** the checker adds up the work of one 32-sample block (loops counted at their bound). More than 60,000 operations warns; more than 400,000 refuses the module. A single block-rate `Math.pow` is fine, 32 of them per block is not. Long buffers are fine as memory, but **a loop that touches a whole second of audio is not**: never clear or scan a long buffer in `reset()` or `block()`. Remember how much of it has been written (a `filled` counter) and treat older entries as zero instead.
 
 ## 6. The library
 
-Only `./bleep/dsp` and `./bleep/notes` exist. Use exactly these names and signatures. Anything not listed here (high-pass, band-pass and notch filters, state-variable filters, noise, delay lines, envelopes, LFO shapes, band-limited oscillators, oversampling, FFT) you write yourself inside the module; section 11 has the recipes.
+Eleven libraries exist, all inlined into your module (using them costs nothing extra). Use exactly these names and signatures; anything not listed here you write yourself inside the module (section 11 has recipes for a few things). **Prefer the library over hand-written code**: it is tested, band-limited where it matters, and safe under fast modulation.
+
+| Import | What is in it |
+|---|---|
+| `./bleep/osc` | band-limited saw, pulse and triangle, fast sine, wavetables, supersaw, FM operator |
+| `./bleep/filters` | one-pole, state-variable and ladder filters, resonator, formants, all-passes, comb |
+| `./bleep/delay` | delay line, table interpolation, tape delay, plucked string |
+| `./bleep/random` | seeded random numbers, white, pink and brown noise, sample and hold, random LFO |
+| `./bleep/env` | ADSR and friends, followers, slew, LFO, ramps, triggers, tempo clock |
+| `./bleep/dynamics` | compressor, limiter, gate, wave shapers, bitcrusher, oversampling |
+| `./bleep/fx` | reverb, phaser, chorus, pitch shifter |
+| `./bleep/fft` | a fixed-size FFT |
+| `./bleep/util` | ranges, pitch conversion, fast math, pan and mid/side, RMS |
+| `./bleep/dsp` | smoothing, meters, biquad filter, dB conversion |
+| `./bleep/notes` | note events |
+
+Import only the names you use, from the library that holds them:
 
 ```ts
 import { dbToLin, linToDb, lerp, pitchToHz, Smoother, PeakHold, Biquad, AdaaTanh, DcBlocker, Phasor } from "./bleep/dsp";
 import { NoteEvent, NoteStream, NOTE_ON, NOTE_OFF } from "./bleep/notes";
+import { sawBlep, squareBlep, triangle, Wavetable, Supersaw } from "./bleep/osc";
+import { Svf, LadderFilter, OnePole } from "./bleep/filters";
+import { Adsr, Lfo, LFO_TRIANGLE, Clock } from "./bleep/env";
 ```
+
+Rules that hold for every library class:
+
+- **Allocate in the constructor, never in `block()` or `sample()`.** Every class that needs memory (a delay line, a table, a reverb) takes its size in its constructor and allocates then. Hold it in a `private` field.
+- **`set*` and `update` methods may call `sin`, `tan`, `exp` or `pow`.** Call them in `block()`, and only when a setting changed, not in `sample()`. The `next()` methods are made for `sample()`.
+- **Audio is `f32`, `Math` takes `f64`.** Phases and frequencies are `f64` where precision matters; audio samples and levels are `f32`. Frequencies are in Hz, times in seconds, levels in dB when a name says so (`thresholdDb`) and linear otherwise.
 
 ### `./bleep/dsp`: functions
 
@@ -253,18 +279,198 @@ import { NoteEvent, NoteStream, NOTE_ON, NOTE_OFF } from "./bleep/notes";
 |---|---|---|
 | `Smoother` | `new Smoother(sampleRate, seconds)` | `target: f32` (set in `block()`), `value: f32` (current), `next(): f32` (once per sample; moves towards `target` with `seconds` as time constant), `snap()` (jump to the target now) |
 | `PeakHold` | `new PeakHold(sampleRate, seconds)` | `next(x: f32): f32` (peak meter: rises at once, falls with `seconds`), `value: f32`, `reset()` |
-| `Biquad` | `new Biquad()` | `setLowpass(sampleRate, frequency, q)`, `setLowShelf(sampleRate, frequency, gainDb)`, `setHighShelf(sampleRate, frequency, gainDb)`, `setPeaking(sampleRate, frequency, q, gainDb)` (all `f64` arguments; each costs a few trig calls: call from `block()`, only when something changed), `next(x: f32): f32` (once per sample), `reset()` |
+| `Biquad` | `new Biquad()` | `setLowpass(sampleRate, frequency, q)`, `setHighpass(sampleRate, frequency, q)`, `setBandpass(sampleRate, frequency, q)` (0 dB at the peak), `setNotch(sampleRate, frequency, q)`, `setAllpass(sampleRate, frequency, q)`, `setLowShelf(sampleRate, frequency, gainDb)`, `setHighShelf(sampleRate, frequency, gainDb)`, `setPeaking(sampleRate, frequency, q, gainDb)` (all `f64` arguments; each costs a few trig calls: call from `block()`, only when something changed), `next(x: f32): f32` (once per sample), `reset()` |
 | `AdaaTanh` | `new AdaaTanh()` | `next(x: f32): f32` (`tanh` soft clipper with anti-aliasing; one call per sample, keep the call count constant), `reset()` |
 | `DcBlocker` | `new DcBlocker(sampleRate, hz)` | `next(x: f32): f32` (one-pole high-pass; 20 Hz is a good value), `reset()` |
 | `Phasor` | `new Phasor(sampleRate)` | `frequency: f64` (Hz, set in `block()`), `phase: f64`, `next(): f32` (returns the phase 0..1 **before** this sample's step, then advances), `reset()` |
 
 All of these are allocated with `new` **in the constructor**, held in `private` fields, and used in `block()` and `sample()`.
 
+### `./bleep/osc`
+
+```ts
+import { sawBlep, squareBlep, triangle, Wavetable, Supersaw } from "./bleep/osc";
+```
+
+Phases run from 0 to 1 over one cycle and `dt` is the phase step of one sample (`frequency / sampleRate`). A naive saw or square aliases: harmonics above half the sample rate fold back as inharmonic whistles. The `*Blep` and `triangle` functions remove most of that by correcting the waveform near its jumps and corners (polyBLEP and polyBLAMP). Keep phase accumulators in `f64`.
+
+| Name | What it does |
+| --- | --- |
+| `polyBlep(t, dt)` | The polyBLEP residual of a unit step at phase 0. Add `height * polyBlep(phase, dt)` to a naive waveform at each jump to make your own band-limited shape. |
+| `polyBlamp(t, dt)` | The same for a corner (a change of slope). It is already multiplied by `dt`; multiply by the slope change per unit of phase. |
+| `sawBlep(phase, dt)` | A band-limited sawtooth rising from -1 to 1. |
+| `squareBlep(phase, dt, width)` | A band-limited pulse wave, +1 for the first `width` (0 to 1) of the cycle and -1 for the rest. `width` 0.5 is a square. |
+| `triangle(phase, dt)` | A band-limited triangle, starting at 0 and rising. Stateless (polyBLAMP on the naive triangle), so it has no drift or leak. |
+| `fastSin(phase)` | A sine from a polynomial, error below 4e-6. `phase` in cycles, any value. |
+| `SineTable(size = 4096)` | A sine from a lookup table with linear interpolation. `read(phase)`. |
+| `Wavetable(size = 2048, levels = 10)` | A mip-mapped wavetable: each level has half the harmonics of the one before, and `read(phase, dt)` picks the level that does not alias at the pitch it is played. Fill it in the constructor with `setSaw()`, `setSquare()`, `setTriangle()` or `setHarmonics(amps, count)` (the amplitude of harmonic k + 1 is `amps[k]`): building takes `size` times the number of harmonics operations. |
+| `Supersaw(sampleRate, voices = 7, detuneCents = 20)` | A stack of detuned band-limited saws. `setDetune(cents)` is the total spread; `next(frequency)` per sample. The mix is scaled by 1 / sqrt(voices). The start phases are fixed, so it sounds the same on every run. |
+| `FmOp(sampleRate)` | One FM / phase-modulation operator. `next(frequency, modulation, feedback)`: `modulation` is in cycles (another operator's output times an index), `feedback` times the operator's own last output is added to the phase. `reset()`. |
+
+### `./bleep/filters`
+
+```ts
+import { OnePole, Svf, LadderFilter, Resonz, Formant, Allpass1, Allpass2, CombFilter } from "./bleep/filters";
+```
+
+Frequencies are clamped below Nyquist, so a modulated cutoff cannot make a filter unstable. All filters have `reset()`. For a plain low-pass, high-pass, band-pass, notch, all-pass or shelf at a fixed setting, `Biquad` is the cheapest.
+
+| Name | What it does |
+| --- | --- |
+| `OnePole` | A 6 dB per octave filter. `setLowpass(sr, f)` or `setHighpass(sr, f)` (exactly -3 dB at `f`), then `next(x)`. |
+| `Svf` | A state-variable filter (Cytomic / Simper), stable under fast cutoff modulation. `set(sr, f, q)` (`q` from 0.5; 0.7071 is flat), then `tick(x)` and read `low`, `high`, `band` (peak gain `q`), `bandUnity` (peak gain 1), `notch`, `peak` or `all`. |
+| `LadderFilter` | A Moog-style 24 dB per octave low-pass with tanh saturation in each stage. `set(sr, f, resonance, drive = 1)`, `next(x)`. Resonance 0 to 1 (it self-oscillates near 1); the passband level drops as it rises, like the real thing. |
+| `Resonz` | A resonator with peak gain 1 (SuperCollider's Resonz). `set(sr, f, bandwidthHz)`, `next(x)`. |
+| `Formant` | Three resonators tuned to the formants of a vowel. `setVowel(sr, position, shift = 1)` morphs through a, e, i, o, u (0 to 4); `shift` scales the formants (1.15 is a smaller voice). Feed it a saw or noise. |
+| `Allpass1` | A first-order all-pass (unit gain, phase turns a quarter cycle at `f`). `set(sr, f)`, `next(x)`. Chain a few for a phaser. |
+| `Allpass2` | A second-order all-pass (phase turns half a cycle at `f`). `set(sr, f, q)`, `next(x)`. |
+| `CombFilter(maxDelay)` | `y = x + feedforward * x[n - D] + feedback * y[n - D]`. Set the public `feedforward` and `feedback`, `setDelay(samples)` (fractions allowed), `next(x)`. Feedforward only is a notch comb (flanger); feedback only rings at multiples of sampleRate / D. |
+
+### `./bleep/delay`
+
+```ts
+import { DelayLine, TapeDelay, KarplusStrong, interpLinear, interpCubic, interpLagrange } from "./bleep/delay";
+```
+
+| Name | What it does |
+| --- | --- |
+| `DelayLine(maxSamples)` | A delay line. `write(x)` once per sample, then read: `read(d)` (linear), `readCubic(d)` (Catmull-Rom, better highs, `d` from 1), `readAllpass(d)` (flat response, best for a steady `d`, one tap, `d` from 1.5); `tap(age)` reads a whole number of samples. `read(0)` is the sample just written. `reset()` clears it. |
+| `interpLinear(table, pos)` | Linear interpolation in a `StaticArray<f32>`, wrapping at the ends; `pos` is an index with a fraction. |
+| `interpCubic(table, pos)` | The same with Catmull-Rom cubic interpolation. |
+| `interpLagrange(table, pos)` | The same with third-order Lagrange interpolation, exact for cubic polynomials. |
+| `TapeDelay(sampleRate, maxSeconds, glideSeconds = 0.15)` | A tape-style echo: the delay time glides (changing it bends the pitch of the repeats, limited by `maxBend`), the repeats get darker (`setTone(hz)`) and saturated (`saturation`), and `wowDepth` / `wowRate` add drift. Set `time` and `feedback`; `next(x)` returns the wet signal; `snap()` jumps to `time`. |
+| `KarplusStrong(sampleRate, lowestHz = 40)` | A plucked string. `pluck(frequency, amplitude, brightness)` starts a note (it fills the line with noise: call it from a note handler); `next()` returns the string. `damping` (0 to 0.5) is how fast the highs die, `decay` (just under 1) the length of the note. `setFrequency(f)` bends it. |
+
+### `./bleep/random`
+
+```ts
+import { Xorshift, PinkNoise, SampleAndHold, NoiseLfo } from "./bleep/random";
+```
+
+Every generator takes a seed and gives the same sequence on every run, so an offline render sounds like the live patch.
+
+| Name | What it does |
+| --- | --- |
+| `Xorshift(seed)` | A fast random generator. `next()` is a float in [0, 1), `nextBipolar()` in [-1, 1), `nextU32()` the raw bits, `setSeed(s)`. |
+| `Lcg(seed)` | A cheaper generator with the same methods (its low bits are weak; the floats use the high ones). |
+| `whiteNoise(rng)` | White noise (-1 to 1) from an `Xorshift` you own. |
+| `WhiteNoise(seed)` | White noise with its own generator. `next()`. |
+| `PinkNoise(seed)` | Pink noise, -3 dB per octave (Kellet's filter bank). `next()`. |
+| `BrownNoise(seed)` | Brown noise, -6 dB per octave above about 150 Hz, kept within -1 to 1. `next()`. |
+| `SampleAndHold` | `next(x, gate)` takes a new sample of `x` each time the gate rises through 0.5 and holds it. |
+| `NoiseLfo(sampleRate, seed)` | A random LFO (-1 to 1): `next(rate)` picks `rate` new values a second; `smooth` 0 steps, 1 glides. |
+
+### `./bleep/env`: envelopes, followers, LFOs, triggers, clock
+
+```ts
+import { Adsr, Lfo, LFO_TRIANGLE, Clock } from "./bleep/env";
+```
+
+Use these instead of hand-written envelopes and LFOs. Like the `dsp` classes, allocate with `new` in the constructor, keep them in `private` fields, configure with `set*` in `block()` (only when a knob changed) and call `next(...)` once per sample in `sample()`. Times are in seconds, frequencies in Hz.
+
+| Class | Constructor | Members |
+|---|---|---|
+| `Adsr` | `new Adsr(sampleRate)` | `set(attack, decay, sustain, release)` (seconds; `sustain` is a level 0..1), `next(gate: f32): f32` (the gate is on from 0.5), `value`, `active`, `currentStage` (`ENV_IDLE`, `ENV_ATTACK`, `ENV_DECAY`, `ENV_SUSTAIN`, `ENV_RELEASE`), `reset()`. Exponential curves unless `exponential = false`. A retrigger during the release attacks from the current level; `hardRetrigger = true` restarts from 0. |
+| `Ar` | `new Ar(sampleRate)` | attack-release on a gate: `set(attack, release)`, `next(gate)` |
+| `Ad` | `new Ad(sampleRate)` | one-shot attack-decay started by a trigger (a rising edge), plays out whatever the trigger does: `set(attack, decay)`, `next(trigger)` |
+| `EnvFollower` | `new EnvFollower(sampleRate, attack, release)` | `next(x)` returns the smoothed `abs(x)`; `setTimes(attack, release)` |
+| `Slew` | `new Slew(sampleRate)` | slew limiter (portamento, click-free controls): `rise` and `fall` are the fastest the output may move, in units per second; `next(x)`, `snap(x)` |
+| `Lfo` | `new Lfo(sampleRate, seed)` | output -1..1. `shape` = `LFO_SINE`, `LFO_TRIANGLE`, `LFO_SAW`, `LFO_SAW_DOWN`, `LFO_SQUARE` (with `width`) or `LFO_SAMPLE_HOLD`; `next(frequency)` per sample; `sync()` restarts the cycle, `nextSync(frequency, gate)` does so on a rising gate; `phaseOffset` in cycles (use it to decorrelate a stereo pair); `uni` is the last output as 0..1 |
+| `Line` | `new Line(sampleRate)` | a straight line: `set(from, to, seconds)`, `next()`, `done` |
+| `Ramp` | `new Ramp(sampleRate)` | a 0..1 ramp started by a trigger: `setTime(seconds)`, `next(trigger)`, `start()` |
+| `Trigger` | `new Trigger()` | `next(x)` is 1 for the one sample in which `x` rises through `threshold` (0.5), else 0 |
+| `Schmitt` | `new Schmitt(low, high)` | output 0 or 1, high above `high`, low below `low`; `rose` and `fell` flag the change |
+| `Clock` | `new Clock(sampleRate)` | tempo-synced phasor: `bpm` (feed it from `@transport`) and `ratio` (1 = a quarter note per cycle, 4 = sixteenths, 0.25 = a bar of 4/4); `next()` returns the phase 0..1, `ticked` is true in the sample where a cycle starts, `count`; `setBeat(beats)` aligns it with a host beat position |
+
+Example, a filter envelope: `this.env.set(a, d, s, r)` in `block()`, then in `sample()` `const e = this.env.next(this.gate);` and use `e` (0..1) to scale the cutoff or the amplitude. Show it with `this.envLevel = e;` on a `@probe`.
+
+### `./bleep/dynamics`
+
+```ts
+import { Compressor, Limiter, Gate, softClip, Oversampler2x } from "./bleep/dynamics";
+```
+
+| Name | What it does |
+| --- | --- |
+| `Compressor(sampleRate, attack, release)` | A feed-forward compressor with a soft knee. Set `thresholdDb`, `ratio`, `kneeDb`, `makeupDb` and `setTimes(attack, release)`. `next(x)` detects on `x`, `nextKeyed(x, key)` on another signal (ducking, de-essing). `gainReductionDb` is for a meter. |
+| `Limiter(sampleRate, lookahead = 0.002, release = 0.08)` | A look-ahead brick-wall limiter: nothing leaves above `ceiling`. The output is `latency` samples late. `next(x)`, `gainReductionDb`. |
+| `Gate(sampleRate, attack, release)` | A noise gate with hysteresis: opens above `openDb`, closes below `closeDb` after `holdSeconds`, down to `rangeDb`. `next(x)`, `nextKeyed(x, key)`, `isOpen`. |
+| `softClip(x)` | Soft saturation (a tanh). |
+| `hardClip(x, limit = 1)` | Clips at +-limit. |
+| `foldback(x, threshold = 1)` | Folds the signal back from +-threshold (a wavefolder). |
+| `asymSat(x, amount)` | Asymmetric saturation: adds even harmonics, no DC, small-signal gain 1. `amount` 0 to 1. |
+| `chebyshev(x, order)` | The Chebyshev polynomial of that order: a sine of amplitude 1 comes out at `order` times the frequency. Mix a few for a harmonic exciter. |
+| `Bitcrush(bits = 8)` | Bit-depth reduction. `setBits(bits)` (fractions allowed), `next(x)`. |
+| `Decimate` | Sample-rate reduction: `ratio` 1 passes the signal, 0.25 keeps every fourth sample. `next(x)`. |
+| `Oversampler2x`, `Oversampler4x` | Oversampling around a non-linear step, with half-band filters (flat to 0.375 of the sample rate). `up(x)` sets `a`, `b` (and `c`, `d` for 4x); shape each; `down(a, b)` (`down(a, b, c, d)`) returns the sample. `latency` is the delay in samples. |
+| `HalfBandUp`, `HalfBandDown` | The two filters inside the oversamplers, for a different ratio or a custom chain. |
+
+The shapers have hard corners that alias when the input is loud or bright. Run them between `up` and `down`:
+
+```text
+this.os.up(x);
+const y = this.os.down(hardClip(this.os.a * drive), hardClip(this.os.b * drive));
+```
+
+### `./bleep/fx`
+
+```ts
+import { Reverb, Phaser, Chorus, PitchShift } from "./bleep/fx";
+```
+
+| Name | What it does |
+| --- | --- |
+| `Reverb(sampleRate)` | A Freeverb reverb: mono in, stereo out. Set `roomSize`, `damping`, `width` and call `update()`; `next(x)` sets `left` and `right`. The output is the reverb only: mix it with the dry signal. It allocates about 1 MB. |
+| `Phaser(sampleRate, stages = 4)` | A phaser with 2 to 12 all-pass stages swept between `minHz` and `maxHz` at `rate`. `feedback`, `mix`, `centre` (the sweep position when `rate` is 0). `next(x)`. |
+| `Chorus(sampleRate, voices = 2)` | Up to 4 modulated delay voices spread across left and right. `rate`, `delayMs`, `depthMs`, `mix`. `next(x)` sets `left` and `right` and returns their mean. |
+| `PitchShift(sampleRate, windowSeconds = 0.06)` | A two-tap delay-line pitch shifter. `ratio` is the frequency ratio (2 is an octave up). Good on single notes, grainy on chords. |
+
+### `./bleep/fft`
+
+```ts
+import { Fft } from "./bleep/fft";
+```
+
+| Name | What it does |
+| --- | --- |
+| `Fft(size)` | A complex FFT of `size` points (a power of two) in place on the public arrays `re` and `im`. `forward()`, `inverse()` (divides by `size`), `clearImag()`, `applyHann()`, `magnitude(k)`, `phase(k)`. A transform costs about 5 size log2(size) operations: do it once per hop in `block()`, not per sample. Bin k is at `k * sampleRate / size` Hz. |
+
+### `./bleep/util`
+
+```ts
+import { midiToHz, clamp, fastTanh, Pan } from "./bleep/util";
+```
+
+| Name | What it does |
+| --- | --- |
+| `midiToHz(note)` | MIDI note number (fractions allowed) to Hz; 69 is 440 Hz. |
+| `hzToMidi(hz)` | Hz to a MIDI note number. |
+| `hzToPitch(hz)` | Hz to Bleep's pitch in virtual volts (1.0 is an octave, 0 is C4). |
+| `semitones(n)` | The frequency ratio of `n` semitones: `semitones(12)` is 2. |
+| `clamp(x, lo, hi)` | Limits `x` to a range. |
+| `wrap(x, lo, hi)` | Wraps `x` into [lo, hi) like a phase. |
+| `fold(x, lo, hi)` | Mirrors `x` back and forth between `lo` and `hi`. |
+| `mix(a, b, t)` | `a` at `t` = 0, `b` at `t` = 1. |
+| `mapRange(x, inLo, inHi, outLo, outHi)` | Linear mapping of ranges. |
+| `expMap(x, lo, hi)` | Maps 0 to 1 exponentially onto [lo, hi]: right for frequencies. |
+| `fastTanh(x)` | tanh without libm, error below 1.1e-4. |
+| `fastExp2(x)` | 2 to the power x, relative error below 2e-7. |
+| `fastLog2(x)` | log2, absolute error below 1e-6. |
+| `fastPow2(base, exponent)` | `base ^ exponent` from the two above, about 5 digits. |
+| `Pan` | Pan gains: `equalPower(pan)` or `linear(pan)` (pan -1 to 1) set `left` and `right`. |
+| `Crossfade` | Crossfade gains: `equalPower(t)` or `linear(t)` (t 0 to 1) set `a` and `b`. |
+| `MidSide` | `encode(l, r)` sets `mid` and `side`; `decode(mid, side)` sets `left` and `right`. |
+| `Rms(sampleRate, seconds)` | A running RMS level. `next(x)`, `value`, `reset()`. |
+
 ### `./bleep/notes`
 
 `NoteEvent` fields: `type` (`NOTE_ON` 0, `NOTE_OFF` 1, `NOTE_PRESSURE` 2, `NOTE_CC` 3, `NOTE_PROGRAM` 4, `NOTE_BEND` 5, `NOTE_CHANNEL_PRESSURE` 6, `NOTE_SYSTEM` 7), `channel` (0..15), `offset` (the sample in the block), `note` (MIDI number; for controller events the controller number), `pitch` (volts, 0 is C4), `value` (velocity or pressure 0..1; control change divided by 127; bend -1..1). Members: `isOn`, `isOff`, `isCc`, `transpose(semitones)`.
 
 `NoteStream` (the type of a `notes` jack): `length`, `read(i, into)`, `push(event)` (dropped silently when 64 are queued), `clear()`. At most 64 events per block.
+
+### What the library does not have
+
+Write these yourself, or say the limit: minBLEP and hard-sync oscillators (the `*Blep` shapes lose ground near Nyquist), convolution and impulse responses, vocoders, granular engines and time stretching, a feedback-delay-network reverb (`Reverb` is Freeverb; build an FDN from `DelayLine` and `Allpass1`), sample buffers (a module cannot read audio files), oversampled filters (wrap them in `Oversampler2x`), multiband compressors.
 
 ## 7. Events: notes and edges
 
@@ -291,6 +497,56 @@ Give exactly one of `rising` and `falling`. Edge handlers work on `control`, `ga
 
 For a **monophonic** instrument, keep the current pitch and a gate flag in fields and set them in the handler; for **polyphony**, keep a fixed number of voice objects in a `StaticArray` allocated in the constructor and assign notes to free voices (steal the oldest when none is free). A voice is a small undecorated class with its own phase, envelope and filter state.
 
+## 7b. The UI tab (only when asked)
+
+By default a module shows one control per `@param`, a meter per `@probe` and a button per `@button`. Change that only if the user asks for a particular look, in one of two ways. Do nothing here for an ordinary request.
+
+**A layout** (no code, safe, enough for most requests): a `layout` list in `@module`, arranging the standard widgets. Every id must be a param, probe or button of the module; errors are reported at compile time.
+
+```ts
+@module({
+  name: "Mixer",
+  settings: [{ id: "CHANNELS", name: "Channels", min: 1, max: 16, init: 4 }],
+  layout: [
+    { row: [
+      { repeat: CHANNELS, title: "Ch {n}", column: [
+        { fader: "level{n}", meter: "peak{n}" },
+        "pan{n}",
+        "mute{n}",
+      ] },
+      { title: "Master", column: [{ fader: "master", meter: "peakMaster" }] },
+    ] },
+  ],
+})
+```
+
+Items: `"id"` (the fitting widget: knob for a number, toggle for a boolean, select for a choice, meter for a probe, button for a `@button`), `{ knob: "id" }`, `{ fader: "id", meter: "probeId" }`, `{ toggle: "id" }`, `{ select: "id" }`, `{ meter: "id" }`, `{ value: "id" }` (read-only text), `{ button: "id" }`, `{ label: "text" }`, `{ spacer: true }`, `{ row: [...] }`, `{ column: [...] }`. Any item may have `label` and `title`. A container with `repeat` (a number or a setting's name) makes one copy per channel; `{n}` in ids and titles becomes the copy number from 1. At most 400 widgets.
+
+**A self-made UI**: the Code node has a **Script** tab (the module, everything above) and a **UI** tab. The UI tab holds plain **JavaScript** (not AssemblyScript, no types, no decorators) that draws on a canvas and talks to the module through a global `bleep` object. It is a second file: when the user wants a custom UI, deliver the module script in one ```ts block and the UI in a separate ```js block, and say which goes in which tab. The ids you use in the UI must match the module's `@param` and `@probe` field names.
+
+```js
+const level = bleep.canvas(60);            // as wide as the node, 60 px high
+bleep.onFrame(() => {                      // every animation frame
+  const { g, width, height } = level;      // g is a 2D canvas context
+  g.clearRect(0, 0, width, height);
+  g.fillStyle = bleep.theme.accent;
+  g.fillRect(0, 0, width * bleep.probe("level"), height);
+});
+```
+
+| Member | What it does |
+|---|---|
+| `bleep.params` / `bleep.param(id)` | All params / one param (throws on an unknown id). A param has `id`, `name`, `kind`, `unit`, `min`, `max`, `steps`, `choices`, `value` (in its own units), `normalised` (0..1), `set(units)` and `setNormalised(x)`. |
+| `bleep.probe(id)` | The latest value of a `@probe`; 0 until the module reports one. |
+| `bleep.button(id)` | Presses a `@button` method. |
+| `bleep.onFrame(fn)` | Calls `fn(dt)` every animation frame, `dt` in seconds. |
+| `bleep.onValues(fn)` | Calls `fn()` when a param or probe has changed. |
+| `bleep.size(h)` | Asks for a height in pixels, 40..800; the width is the node's. |
+| `bleep.canvas(h)` | A canvas as wide as the view and `h` high, scaled for the screen: `{ el, g, width, height }`. `bleep.canvas("fill")` also takes the view's height, so it follows resizing and fullscreen. |
+| `bleep.theme` | The board's colours: `bg`, `panel`, `line`, `text`, `muted`, `accent`, `warn`. Use them so the UI fits the board. |
+
+Rules: a UI sets at most 240 values per second (so a drag may call `param.set` freely, but not in a tight loop); it runs sandboxed, with no network, storage or access outside `bleep`, and the board asks the user before running it the first time; an error in the UI code stops the UI and is shown with its line; a loop that never ends freezes the page. Ordinary DOM (buttons, inputs, selects) may be built in the page body. To let the user drag a point or curve, read the pointer on `canvas.el` (`pointerdown`, `pointermove`) and call `bleep.param(id).setNormalised(x)`. Redraw in `onFrame` or `onValues`, never keep a second copy of the state: the params are the state.
+
 ## 8. Tempo sync
 
 ```ts
@@ -309,13 +565,13 @@ These are the things that separate a module that works from one that clicks, rin
 
 **Feedback.** Keep loop gain strictly below 1 (limit the feedback knob to, say, 0.95 or 0.98, or soft-clip inside the loop). Put a `DcBlocker` in a feedback loop that contains a nonlinearity. Never divide by something that can be 0.
 
-**Aliasing.** A naive saw or square (`2 * phase - 1`) and any hard nonlinearity (clipping, folding, rectifying, bit-crushing, ring modulation by a square) create harmonics above Nyquist that fold back as inharmonic noise. For oscillators use PolyBLEP (section 11); for `tanh` soft clipping use `AdaaTanh`; otherwise keep the drive moderate and say so. There is no built-in oversampler.
+**Aliasing.** A naive saw or square (`2 * phase - 1`) and any hard nonlinearity (clipping, folding, rectifying, bit-crushing, ring modulation by a square) create harmonics above Nyquist that fold back as inharmonic noise. For oscillators use `sawBlep`, `squareBlep`, `triangle`, `Wavetable` or `Supersaw` from `./bleep/osc`; for `tanh` soft clipping use `AdaaTanh`; for other non-linear steps (clipping, folding) run them between `up` and `down` of `Oversampler2x` from `./bleep/dynamics`. Oversampling costs CPU, so say so when you use it.
 
 **Level.** Audio is nominally within -1..1. Keep gain staging sane: normalise the sum of mixed voices, compensate drive with make-up gain, and never let an effect add large gain at its default settings. Give gains in dB with `unit: "dB"`, and a bottom of "-inf" through `minText` when the lowest value should mean silence (`this.level <= -59.9 ? 0 : dbToLin(this.level)`).
 
 **Phase and time in `f64`.** Phases, positions and anything that accumulates small increments are `f64` and wrapped with `x -= Math.floor(x)`, so they stay exact for hours. Express every time as seconds times `sampleRate`, never as a fixed number of samples: the sample rate is 44.1 kHz, 48 kHz or 96 kHz and the sound must not change with it.
 
-**Delay lines** (chorus, flanger, echo, reverb, Karplus-Strong): a `StaticArray<f32>` allocated in the constructor at the longest delay plus 2 samples, a write index that wraps, a fractional read with linear interpolation (`read = write - delay`, add `size` if negative, interpolate between `buffer[i]` and the next index, wrapping). Delays shorter than one sample do not work in a feedback loop; keep a minimum of 1 or 2 samples.
+**Delay lines** (chorus, flanger, echo, reverb, Karplus-Strong): use `DelayLine` from `./bleep/delay` (or the ready-made `TapeDelay`, `KarplusStrong`, `Chorus`, `Reverb`). To build one by hand: a `StaticArray<f32>` allocated in the constructor at the longest delay plus 2 samples, a write index that wraps, a fractional read with linear interpolation (`read = write - delay`, add `size` if negative, interpolate between `buffer[i]` and the next index, wrapping). Delays shorter than one sample do not work in a feedback loop; keep a minimum of 1 or 2 samples.
 
 **Modulation.** An LFO is a `Phasor` (or an `f64` phase) at `rate` Hz with a shape function of the phase. A modulated delay or filter needs the modulator at audio rate: compute it in `sample()`. A *rate* knob is converted to a phase increment in `block()`. When a module should take an external modulation signal, add a `control` input and read it in `sample()`.
 
@@ -327,10 +583,12 @@ These are the things that separate a module that works from one that clicks, rin
 
 ## 10. Two complete examples
 
-A modulated delay effect with an LFO, a delay line, smoothing, a meter and a block-rate/audio-rate split:
+A modulated delay effect built from library parts (`Lfo`, `DelayLine`, `Smoother`, `DcBlocker`), with a meter and a block-rate/audio-rate split:
 
 ```ts
-import { Phasor, Smoother, DcBlocker } from "./bleep/dsp";
+import { Smoother, DcBlocker } from "./bleep/dsp";
+import { Lfo } from "./bleep/env";
+import { DelayLine } from "./bleep/delay";
 
 /** A flanger: a short delay swept by an LFO, mixed back with the dry signal. */
 @module({ name: "Flanger", category: "Effects/Script", colour: "#38bdf8" })
@@ -344,10 +602,8 @@ export class Flanger {
   @param({ name: "Mix", min: 0, max: 1, init: 0.5 }) mix: f32 = 0.5;
   @probe lfo: f32 = 0;
 
-  private lfoPhase: Phasor;
-  private buffer: StaticArray<f32>;
-  private size: i32;
-  private write: i32 = 0;
+  private lfoOsc: Lfo;
+  private line: DelayLine;
   private center: Smoother;     // the base delay in samples
   private sweep: Smoother;      // how far the LFO moves it, in samples
   private fb: Smoother;
@@ -357,10 +613,8 @@ export class Flanger {
 
   constructor(sampleRate: f64) {
     this.sampleRate = sampleRate;
-    const size = <i32>(sampleRate * 0.02) + 4;             // 20 ms of room, and the interpolation margin
-    this.size = size;
-    this.buffer = new StaticArray<f32>(size);
-    this.lfoPhase = new Phasor(sampleRate);
+    this.lfoOsc = new Lfo(sampleRate);                       // a sine, -1..1
+    this.line = new DelayLine(<i32>(sampleRate * 0.02));     // 20 ms of room
     this.center = new Smoother(sampleRate, 0.05);
     this.sweep = new Smoother(sampleRate, 0.05);
     this.fb = new Smoother(sampleRate, 0.02);
@@ -370,11 +624,10 @@ export class Flanger {
     this.center.snap();
   }
 
-  reset(): void { this.lfoPhase.reset(); this.dc.reset(); }
+  reset(): void { this.lfoOsc.reset(); this.line.reset(); this.dc.reset(); }
 
   block(): void {
     const base = <f64>this.delayMs * 0.001 * this.sampleRate;
-    this.lfoPhase.frequency = <f64>this.rate;
     this.center.target = <f32>base;
     this.sweep.target = <f32>(base * 0.9 * <f64>this.depth);   // never reaches 0 or below the minimum
     this.fb.target = this.feedback;
@@ -382,37 +635,26 @@ export class Flanger {
   }
 
   sample(): void {
-    const p = <f64>this.lfoPhase.next();
-    const m = <f32>(0.5 - 0.5 * Math.cos(2.0 * Math.PI * p));  // 0..1, starts at the shortest delay
+    this.lfoOsc.next(<f64>this.rate);
+    const m = this.lfoOsc.uni;                                  // 0..1
     this.lfo = m;
     const d = max(<f32>1.0, this.center.next() - this.sweep.next() * (1 - m));   // delay in samples, at least 1
-    let read = <f32>this.write - d;
-    if (read < 0) read += <f32>this.size;
-    const i = <i32>read;
-    const frac = read - <f32>i;
-    const a = this.buffer[i];
-    const b = this.buffer[i + 1 >= this.size ? 0 : i + 1];
-    const delayed = a + (b - a) * frac;
+    const delayed = this.line.readCubic(d);                    // read before writing: the line holds the past
     const input = this.x;
-    this.buffer[this.write] = this.dc.next(input + delayed * this.fb.next());
-    this.write = this.write + 1 >= this.size ? 0 : this.write + 1;
+    this.line.write(this.dc.next(input + delayed * this.fb.next()));
     this.out = input + (delayed - input) * this.wet.next();
   }
 }
 ```
 
-A note-driven monophonic synth with a band-limited saw, an envelope, a filter and a note handler:
+A note-driven monophonic synth with a band-limited saw (`sawBlep`), an ADSR, a state-variable filter and a note handler:
 
 ```ts
-import { Phasor, Smoother, Biquad, pitchToHz, dbToLin } from "./bleep/dsp";
+import { Phasor, Smoother, pitchToHz, dbToLin } from "./bleep/dsp";
 import { NoteEvent, NoteStream } from "./bleep/notes";
-
-/// The PolyBLEP correction: nonzero only within one phase step of the wrap.
-function polyBlep(t: f64, dt: f64): f64 {
-  if (t < dt) { const x = t / dt; return x + x - x * x - 1.0; }
-  if (t > 1.0 - dt) { const x = (t - 1.0) / dt; return x * x + x + x + 1.0; }
-  return 0.0;
-}
+import { sawBlep } from "./bleep/osc";
+import { Svf } from "./bleep/filters";
+import { Adsr } from "./bleep/env";
 
 @module({ name: "Mono Saw", category: "Sources/Script", colour: "#f59e0b" })
 export class MonoSaw {
@@ -421,68 +663,66 @@ export class MonoSaw {
   @param({ name: "Cutoff", min: 40, max: 16000, init: 2500, map: "exp", unit: "Hz", decimals: 0 }) cutoff: f32 = 2500;
   @param({ name: "Resonance", min: 0.5, max: 8, init: 0.9, map: "exp" }) resonance: f32 = 0.9;
   @param({ name: "Attack", min: 0.001, max: 2, init: 0.01, map: "exp", unit: "s", decimals: 3 }) attack: f32 = 0.01;
+  @param({ name: "Decay", min: 0.005, max: 4, init: 0.2, map: "exp", unit: "s", decimals: 3 }) decay: f32 = 0.2;
+  @param({ name: "Sustain", min: 0, max: 1, init: 0.8 }) sustain: f32 = 0.8;
   @param({ name: "Release", min: 0.005, max: 4, init: 0.3, map: "exp", unit: "s", decimals: 3 }) release: f32 = 0.3;
   @param({ name: "Level", min: -40, max: 0, init: -9, unit: "dB", decimals: 1 }) level: f32 = -9;
   @probe env: f32 = 0;
 
   private osc: Phasor;
-  private filter: Biquad;
+  private filter: Svf;
+  private adsr: Adsr;
   private cut: Smoother;
   private gain: Smoother;
   private step: f64 = 0;
   private velocity: f32 = 0;
-  private gateOn: bool = false;
-  private envelope: f32 = 0;
-  private attackRate: f32 = 0;
-  private releaseRate: f32 = 0;
+  private gate: f32 = 0;
   private sampleRate: f64;
 
   constructor(sampleRate: f64) {
     this.sampleRate = sampleRate;
     this.osc = new Phasor(sampleRate);
-    this.filter = new Biquad();
+    this.filter = new Svf();
+    this.adsr = new Adsr(sampleRate);
     this.cut = new Smoother(sampleRate, 0.02);
     this.gain = new Smoother(sampleRate, 0.01);
     this.cut.target = 2500;
     this.cut.snap();
   }
 
-  reset(): void { this.filter.reset(); this.envelope = 0; this.gateOn = false; }
+  reset(): void { this.filter.reset(); this.adsr.reset(); this.gate = 0; }
 
   @on("notes") handle(n: NoteEvent): void {
     if (n.isOn && n.value > 0) {
       this.osc.frequency = pitchToHz(<f64>n.pitch);       // pow per note, not per sample: fine
       this.step = this.osc.frequency / this.sampleRate;
       this.velocity = n.value;
-      this.gateOn = true;
+      this.gate = 1;
     } else if (n.isOff || (n.isOn && n.value == 0)) {
-      this.gateOn = false;
+      this.gate = 0;
     }
   }
 
   block(): void {
     this.cut.target = this.cutoff;
     this.gain.target = dbToLin(this.level);
-    this.attackRate = <f32>(1.0 / (<f64>this.attack * this.sampleRate));
-    this.releaseRate = <f32>(1.0 / (<f64>this.release * this.sampleRate));
-    this.filter.setLowpass(this.sampleRate, min(<f64>this.cut.value, 0.45 * this.sampleRate), <f64>this.resonance);
+    this.adsr.set(<f64>this.attack, <f64>this.decay, <f64>this.sustain, <f64>this.release);
+    this.filter.set(this.sampleRate, <f64>this.cut.value, <f64>this.resonance);   // clamped below Nyquist by the library
   }
 
   sample(): void {
     this.cut.next();
-    if (this.gateOn) this.envelope = min(<f32>1.0, this.envelope + this.attackRate);
-    else this.envelope = max(<f32>0.0, this.envelope - this.releaseRate * this.envelope - 0.000001);
-    const t = <f64>this.osc.next();
-    const saw = <f32>(2.0 * t - 1.0 - polyBlep(t, this.step));
-    this.out = this.filter.next(saw) * this.envelope * this.velocity * this.gain.next();
-    this.env = this.envelope;
+    const e = this.adsr.next(this.gate);
+    this.filter.tick(sawBlep(<f64>this.osc.next(), this.step));
+    this.out = this.filter.low * e * this.velocity * this.gain.next();
+    this.env = e;
   }
 }
 ```
 
 ## 11. Recipes for what the library lacks
 
-Write these yourself, inside the module file (as top-level functions or small undecorated classes).
+**Look in section 6 first**: the library has random numbers and noise (`Xorshift`, `WhiteNoise`, `PinkNoise`), state-variable, ladder, one-pole and all-pass filters, delay lines, envelopes, followers, wavetables, band-limited oscillators and wave shapers. Use these recipes only for what no library class does, or for a deliberately different shape. Write them inside the module file (as top-level functions or small undecorated classes).
 
 **Random numbers**: a linear congruential generator, `u32` state, no `Math.random`:
 
@@ -544,7 +784,7 @@ class Allpass1 {
 }
 ```
 
-**An envelope** (attack and release as rates, as in the example above): a stage or a level, moved towards a target by a fixed step or by a fraction of the distance. A one-pole follower `level += (target - level) * coefficient` with `coefficient = 1 - exp(-1 / (seconds * sampleRate))` computed in `block()` gives exponential segments. Retrigger on `NOTE_ON`; do not restart from 0, continue from the current level to avoid a click.
+**A simple envelope** (prefer `Adsr`, `Ar` or `Ad` from `./bleep/env`; hand-roll only for a special shape; attack and release as rates, as in the example above): a stage or a level, moved towards a target by a fixed step or by a fraction of the distance. A one-pole follower `level += (target - level) * coefficient` with `coefficient = 1 - exp(-1 / (seconds * sampleRate))` computed in `block()` gives exponential segments. Retrigger on `NOTE_ON`; do not restart from 0, continue from the current level to avoid a click.
 
 **An envelope follower or compressor detector**: `PeakHold` for the level, or `abs(x)` smoothed by two coefficients (attack when rising, release when falling). Convert to dB with `linToDb` in `sample()` only when needed (it calls `log10`); a compressor often does the comparison in the linear domain, or in dB at block rate for a slow control signal.
 
@@ -580,7 +820,7 @@ export default cell("Stack", { description: "Three oscillators into a filter." }
 
 Go through this list on your code. Fix what fails before you reply.
 
-1. One class with `@module`, a `constructor(sampleRate: f64)`, only `./bleep/dsp` and `./bleep/notes` imported.
+1. One class with `@module`, a `constructor(sampleRate: f64)`, only `./bleep/dsp`, `./bleep/notes` and `./bleep/env` imported.
 2. Every `new` is in the constructor. No `push`, `slice`, strings, `Map`, closures, recursion or `Math.random` in `block()`, `sample()`, `reset()` or handlers.
 3. Every loop has a literal, `const` or setting bound, and at most 4096 iterations. No loop over a whole second of audio.
 4. Types agree: no `f32` mixed with `f64` or `i32` without a cast; `Math.*` calls take `<f64>` and are cast back with `<f32>`; typed locals (`let s: f32 = 0;`).
@@ -590,7 +830,7 @@ Go through this list on your code. Fix what fails before you reply.
 8. Nothing can blow up: feedback below 1, no division by zero, frequencies clamped below Nyquist, state cleared in `reset()`, no NaN from `log(0)` or `sqrt` of a negative.
 9. Time-based values come from `sampleRate`, not from a fixed number of samples.
 10. Sensible defaults: it makes a useful sound the moment it is added.
-11. The reply is the complete file in one code block, followed by a short note on the knobs and the choices you made.
+11. The reply is the complete file in one code block (plus one ```js block for the UI tab only if a self-made UI was asked for), followed by a short note on the knobs and the choices you made.
 
 # The request
 

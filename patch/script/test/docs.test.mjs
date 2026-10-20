@@ -327,9 +327,9 @@ if (built.has("Oscillator")) {
     n++;
     check(!!r.wasm, `ai-programming.md: code block ${n} compiles`, r.problems.filter((p) => p.severity === "error").map((p) => `${p.line}: ${p.message}`).join(" | "));
   }
-  const exported = ["dsp", "env", "notes"].flatMap((f) => [...lib[`src/bleep/${f}.ts`].matchAll(/^export (?:function|class|const) (\w+)/gm)].map((x) => x[1]));
+  const exported = ["dsp", "env", "notes", "osc", "filters", "delay", "random", "dynamics", "fx", "fft", "util"].flatMap((f) => [...lib[`src/bleep/${f}.ts`].matchAll(/^export (?:function|class|const) (\w+)/gm)].map((x) => x[1]));
   const missing = exported.filter((name) => !new RegExp(`\\b${name}\\b`).test(prompt));
-  check(missing.length === 0, "the AI prompt names every export of bleep/dsp, bleep/env and bleep/notes", missing.join(", "));
+  check(missing.length === 0, "the AI prompt names every export of the bleep/ libraries", missing.join(", "));
 }
 
 console.log(failures ? `\n${failures} failed` : "\nall passed");
