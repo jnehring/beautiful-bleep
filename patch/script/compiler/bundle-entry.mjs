@@ -6,6 +6,7 @@ import abi from "../src/bleep/abi.ts";
 import dsp from "../src/bleep/dsp.ts";
 import format from "../src/bleep/format.ts";
 import delay from "../src/bleep/delay.ts";
+import env from "../src/bleep/env.ts";
 import filters from "../src/bleep/filters.ts";
 import notes from "../src/bleep/notes.ts";
 import osc from "../src/bleep/osc.ts";
@@ -19,7 +20,7 @@ import { materialize } from "../patch/materialize.mjs";
 
 const lib = { "src/bleep/abi.ts": abi, "src/bleep/dsp.ts": dsp, "src/bleep/format.ts": format, "src/bleep/notes.ts": notes,
   "src/bleep/osc.ts": osc,
-  "src/bleep/filters.ts": filters, "src/bleep/delay.ts": delay, "src/bleep/util.ts": util, "src/bleep/random.ts": random };
+  "src/bleep/filters.ts": filters, "src/bleep/delay.ts": delay, "src/bleep/env.ts": env, "src/bleep/util.ts": util, "src/bleep/random.ts": random };
 
 /// compile(source, { typeId }) -> { wasm, specs, generated, problems, ms }
 export const compile = (source, options = {}) => compileScript(asc, source, { lib, ...options });

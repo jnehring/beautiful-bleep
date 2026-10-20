@@ -143,8 +143,33 @@ export class RandomTest {
   }
 }`;
 
+MODULES.env = `
+import { Adsr, Ad, Ar, EnvFollower, Slew, Lfo, Line, Ramp, Trigger, Schmitt, Clock, LFO_TRIANGLE } from "./bleep/env";
+@module({ name: "EnvTest", category: "Utility/Test" })
+export class EnvTest {
+  @input gate: f32 = 0;
+  @output out: f32 = 0;
+  @param({ name: "Attack", min: 0.001, max: 2, init: 0.01 }) attack: f32 = 0.01;
+  private adsr: Adsr; private ad: Ad; private ar: Ar; private follower: EnvFollower; private slew: Slew; private lfo: Lfo;
+  private line: Line; private ramp: Ramp; private trig: Trigger = new Trigger(); private schmitt: Schmitt = new Schmitt(0.2, 0.8); private clock: Clock;
+  constructor(sampleRate: f64) {
+    this.adsr = new Adsr(sampleRate); this.ad = new Ad(sampleRate); this.ar = new Ar(sampleRate); this.follower = new EnvFollower(sampleRate);
+    this.slew = new Slew(sampleRate); this.lfo = new Lfo(sampleRate, 3); this.line = new Line(sampleRate); this.ramp = new Ramp(sampleRate); this.clock = new Clock(sampleRate);
+    this.lfo.shape = LFO_TRIANGLE;
+    this.slew.rise = 100.0;
+    this.clock.bpm = 140.0;
+  }
+  block(): void { this.adsr.set(<f64>this.attack, 0.1, 0.6, 0.2); this.ad.set(0.005, 0.1); this.ar.set(0.01, 0.1); this.ramp.setTime(0.1); this.adsr.exponential = false; }
+  sample(): void {
+    this.clock.next();
+    const g = this.gate;
+    this.out = 0.1 * (this.adsr.next(g) + this.ad.next(g) + this.ar.next(g) + this.follower.next(g) + this.slew.next(g) + this.lfo.next(4.0) + this.line.next()
+      + this.ramp.next(g) + this.trig.next(g) + this.schmitt.next(g) + (this.clock.ticked ? 1.0 : 0.0));
+  }
+}`;
+
 for (const [name, source] of Object.entries(MODULES)) {
-  const r = await run(source, { inputs: [0.3] });
+  const r = await run(source, { inputs: [0.9] });
   check(r.errors.length === 0, `${name}: compiles with the subset checker`, r.errors.map((e) => `${e.line}: ${e.message}`).join("; "));
   if (r.out) {
     check(finiteAll(r.out) && peak(r.out) > 0.05 && peak(r.out) < 8, `${name}: runs in the module host`, `peak ${peak(r.out).toFixed(3)}`);
