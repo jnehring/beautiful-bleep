@@ -123,6 +123,26 @@ export class DelayTest {
   }
 }`.replace('import { NoteEvent }', 'import { NoteEvent, NoteStream }');
 
+MODULES.random = `
+import { Xorshift, Lcg, whiteNoise, WhiteNoise, PinkNoise, BrownNoise, SampleAndHold, NoiseLfo } from "./bleep/random";
+@module({ name: "RandomTest", category: "Utility/Test" })
+export class RandomTest {
+  @input gate: f32 = 0;
+  @output out: f32 = 0;
+  private xs: Xorshift = new Xorshift(7);
+  private lcg: Lcg = new Lcg(7);
+  private white: WhiteNoise = new WhiteNoise(3);
+  private pink: PinkNoise = new PinkNoise(4);
+  private brown: BrownNoise = new BrownNoise(5);
+  private sh: SampleAndHold = new SampleAndHold();
+  private lfo: NoiseLfo;
+  constructor(sampleRate: f64) { this.lfo = new NoiseLfo(sampleRate, 9); }
+  sample(): void {
+    const n = whiteNoise(this.xs);
+    this.out = 0.1 * (n + this.lcg.nextBipolar() + this.white.next() + this.pink.next() + this.brown.next() + this.sh.next(n, this.gate) + this.lfo.next(3.0) + this.xs.next());
+  }
+}`;
+
 for (const [name, source] of Object.entries(MODULES)) {
   const r = await run(source, { inputs: [0.3] });
   check(r.errors.length === 0, `${name}: compiles with the subset checker`, r.errors.map((e) => `${e.line}: ${e.message}`).join("; "));
