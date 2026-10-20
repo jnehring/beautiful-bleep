@@ -141,6 +141,10 @@ The docs live in `website/content` as Markdown. After editing them in the dev st
 | `http://localhost:8080` shows the site | the website |
 | `python3 scripts/check/check-repo.py` | the repository rules CI enforces (licence headers, module provenance, dependencies between parts) |
 
+## Running the tests
+
+Every part has its own unit tests (CTest, pytest, Node scripts). Which command runs which suite is in [Running unit tests](running-tests.md).
+
 ## Releasing
 
 Releasing needs a signing kit and a release token from your own website stack, plus `pip install cryptography`. The one-time steps and every release command are in [Build, release and upload](build-and-release.md).
