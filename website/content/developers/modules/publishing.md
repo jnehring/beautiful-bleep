@@ -31,6 +31,7 @@ You need no key. You upload the module unsigned; the library checks it, signs it
 | `module.wasm` | Required. Imports only what the [Module ABI](module-abi.md) allows and exports the whole ABI |
 | `spec.json` | Required. The node types' descriptions |
 | `view.sandbox.js` | Optional. The module's own picture, written as a Code node's UI: it runs only in the sandboxed worker frame (no network, no storage, no DOM, stopped if it hangs), never in the page |
+| `source.dsp.ts` | Optional. The module's Bleep Script source, so that everyone can open it in a Code node (*Convert to code*) and change it. The module's licence applies to it |
 | `LICENSE`, `doc/*.md`, `doc/*.png` | Optional |
 
 Nothing else is allowed. In particular there is **no `ui/*.js`**: a module's page scripts run in the page, which only first-party modules may do. Its picture is `view.sandbox.js` instead, which is safe because it never runs in the page. Limits: 12 MB per package, 8 MB for the `.wasm`, 24 files.

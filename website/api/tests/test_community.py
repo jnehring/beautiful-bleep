@@ -302,3 +302,14 @@ def test_a_package_may_bring_the_modules_picture_as_a_sandboxed_script(client, c
     # only that exact name: a page script in a folder, or the same name elsewhere, is still refused
     for name in ("ui/view.js", "view.js", "ui/view.sandbox.js", "x/view.sandbox.js"):
         assert put(client, package(extra={name: b"x"}), version="1.0.1").status_code == 422, name
+
+
+def test_a_package_may_bring_its_source_so_everyone_can_open_it_in_a_code_node(client, community_on, storage):
+    author(client)
+    src = b"@module({ name: 'Wobble' })\nexport class Wobble {}\n"
+    r = put(client, package(extra={"source.dsp.ts": src, "view.sandbox.js": b"1"}))
+    assert r.status_code == 201, r.text
+    stored = zipfile.ZipFile(io.BytesIO(storage.objects["v1/modules/zed.wobble/1.0.0/wobble.bleepmod"]))
+    assert stored.read("source.dsp.ts") == src
+    for name in ("source.ts", "src/source.dsp.ts", "source.dsp.js"):
+        assert put(client, package(extra={name: b"x"}), version="1.0.1").status_code == 422, name

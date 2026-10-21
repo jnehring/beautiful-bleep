@@ -758,3 +758,7 @@ body.plugin #side-toggle { display: none; }
 .share-status.ok { color: var(--accent); }
 .share-buttons { display: flex; gap: 8px; justify-content: flex-end; }
 .share-buttons .primary { background: var(--accent); color: #0b1d1b; border-color: var(--accent); font-weight: 600; }
+.bc-field.check { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.bc-field.check input { width: auto; }
+.bc-field.check .bc-field-name { color: var(--text); text-transform: none; letter-spacing: 0; font-size: inherit; }
+.bc-field.check .bc-field-hint { flex-basis: 100%; }

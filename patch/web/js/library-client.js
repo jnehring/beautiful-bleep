@@ -327,7 +327,7 @@
 
   /// Is every file one a community module may bring (signing.md section 2a)? Data and the sandboxed .wasm, no scripts. The library refuses the
   /// rest at upload; the client checks again, because the community key's signature says nothing about files it should never have signed.
-  const COMMUNITY_FILES = /^(module\.json|module\.wasm|spec\.json|LICENSE|view\.sandbox\.js|doc\/[A-Za-z0-9._-]+\.(md|png))$/;
+  const COMMUNITY_FILES = /^(module\.json|module\.wasm|spec\.json|LICENSE|view\.sandbox\.js|source\.dsp\.ts|doc\/[A-Za-z0-9._-]+\.(md|png))$/;
   const communityFilesOk = (names) => { for (const n of names) if (!COMMUNITY_FILES.test(n)) return `${n} is not allowed in a community module`; return ""; };
 
   /// Downloads a module package, checks it and returns its .wasm. Throws, with the reason, if it must not load.
@@ -368,11 +368,11 @@
         const wasm = zip.files.get("module.wasm");
         if (!wasm) throw new Error(`${slug}: the package has no module.wasm`);
         const specFile = zip.files.get("spec.json");  // the node types the module describes (the board UI's type list entries)
-        // the module's own picture (only ever run in the sandboxed frame, never in the page) and its help page
-        const viewFile = zip.files.get("view.sandbox.js"), docName = [...zip.files.keys()].find((n) => /^doc\/[^/]+\.md$/.test(n));
+        // the module's own picture (only ever run in the sandboxed frame, never in the page), its help page and, when the author shared it, its source
+        const viewFile = zip.files.get("view.sandbox.js"), sourceFile = zip.files.get("source.dsp.ts"), docName = [...zip.files.keys()].find((n) => /^doc\/[^/]+\.md$/.test(n));
         return { wasm: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength), version: entry.version, publisher: checked.publisher, trust: checked.trust,
                  status: checked.status, meta: JSON.parse(dec.decode(zip.files.get("module.json"))), bytes: bytes.length,
-                 spec: specFile ? JSON.parse(dec.decode(specFile)) : null, view: viewFile ? dec.decode(viewFile) : "", help: docName ? dec.decode(zip.files.get(docName)) : "" };
+                 spec: specFile ? JSON.parse(dec.decode(specFile)) : null, view: viewFile ? dec.decode(viewFile) : "", source: sourceFile ? dec.decode(sourceFile) : "", help: docName ? dec.decode(zip.files.get(docName)) : "" };
       })());
       packages.get(slug).catch(() => packages.delete(slug));  // a failed download is tried again next time
     }

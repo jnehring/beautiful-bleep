@@ -53,11 +53,11 @@ The button on the module's window says **Convert to code**. It turns that node b
 
 ## Metadata
 
-The **Metadata** tab holds what the module says about itself: the *publisher* (your library name, filled in when you are logged in, otherwise *mine*), the *module name* (from `@module({ name })`), the *version*, a *summary* of up to 280 characters, the *category*, the *licence*, *tags*, a *web page* and *release notes*. It is saved with the node and with the module.
+The **Metadata** tab holds what the module says about itself: the *publisher* (your library name, filled in when you are logged in, otherwise *mine*), the *module name* (from `@module({ name })`), the *version*, a *summary* of up to 280 characters, the *category*, the *licence*, whether to *share the source code* (on by default), *tags*, a *web page* and *release notes*. It is saved with the node and with the module.
 
 ## Share
 
-**Share…** publishes the module in the Bleep Library as a community module, for everyone to install. It asks for the summary, category, licence, version and the help page, builds the package in the browser and uploads it under your library name (`<your name>/<module name>`); you must be logged in to the library. The library checks it and signs it. Each share needs a higher version than the last. The module's own UI goes with it (as `view.sandbox.js`) and runs only in the same sandbox as in your Code node, so a module from the library can show its picture, and its help page, like one you made.
+**Share…** publishes the module in the Bleep Library as a community module, for everyone to install. It asks for the summary, category, licence, version and the help page, builds the package in the browser and uploads it under your library name (`<your name>/<module name>`); you must be logged in to the library. The library checks it and signs it. Each share needs a higher version than the last. With **Share the source code** on (the default, in the Metadata tab and in the dialog) the script goes with it too, under the same licence: anyone who installs the module can press **Convert to code** on it, read it, change it and make their own. Turn it off to share only the compiled module. The module's own UI goes with it (as `view.sandbox.js`) and runs only in the same sandbox as in your Code node, so a module from the library can show its picture, and its help page, like one you made.
 
 ## Panels
 

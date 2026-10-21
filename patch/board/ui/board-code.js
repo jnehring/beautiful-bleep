@@ -673,18 +673,21 @@
     const statusEl = root.querySelector(".bc-status"), convert = root.querySelector(".bc-convert"), share = root.querySelector(".bc-share");
     const say = (text, cls = "") => { statusEl.textContent = text; statusEl.className = "bc-status " + cls; };
     say(entry.builtin ? "A module that comes with the board." : "");
-    if (entry.packaged) { root.querySelector(".bc-bar").hidden = true; return; }   // from the library: no source here to convert or share
+    if (entry.packaged && !entry.source) { root.querySelector(".bc-bar").hidden = true; return; }   // from the library, without its source: nothing to convert or share
+    if (entry.packaged) say("From the library: the author shared the source.");
     convert.addEventListener("click", async () => {
       convert.disabled = true;
       try {
         await view.api.convertNode("code", (n) => {
           n.code = { source: entry.source, interface: entry.spec[0], settings: { ...(entry.settings || {}) }, ...(entry.view ? { view: entry.view } : {}),
-                     ...(entry.help ? { help: entry.help } : {}), meta: entry.meta || (S ? S.defaults(entry.spec[0]) : {}) };
+                     ...(entry.help ? { help: entry.help } : {}),
+                     meta: entry.meta || (entry.libraryMeta && S ? { ...S.defaults(entry.spec[0]), publisher: U.slugOf(entry.spec[0].type.split("/")[0]) || U.LOCAL, version: entry.libraryMeta.version || "1.0.0",
+                       summary: entry.libraryMeta.summary || "", category: entry.libraryMeta.category || "", license: entry.libraryMeta.license || "MIT" } : (S ? S.defaults(entry.spec[0]) : {})) };
           if (n.name === entry.name) n.name = "Code";
         });
       } catch (e) { say(`Could not convert the node: ${e.message}`, "bad"); convert.disabled = false; }
     });
-    share.hidden = !(U && S && U.persistent !== undefined) || !!entry.builtin;
+    share.hidden = !(U && S && U.persistent !== undefined) || !!entry.builtin || !!entry.packaged;
     share.addEventListener("click", () => {
       if (!S) return;
       const current = () => installedTypes.get(view.node.type) || rec;
@@ -703,7 +706,7 @@
     const U = G.BleepUserModules;
     if (!G.BleepViews) return;
     // modules from the library that bring their own picture and/or help page (view.sandbox.js, doc/*.md): shown like the user's own, but with no source
-    const fromLibrary = (packaged || []).map((m) => ({ slug: m.type, name: m.spec.name, view: m.view || "", help: m.help || "", spec: [m.spec], packaged: true }));
+    const fromLibrary = (packaged || []).map((m) => ({ slug: m.type, name: m.spec.name, view: m.view || "", help: m.help || "", source: m.source || "", libraryMeta: { ...(m.meta || {}), version: m.version }, spec: [m.spec], packaged: true }));
     for (const entry of [...(U ? U.list() : []), ...fromLibrary]) for (const spec of entry.spec || []) {
       installedTypes.set(spec.type, { entry, spec });
       if (G.BleepViews.get(spec.type)) continue;

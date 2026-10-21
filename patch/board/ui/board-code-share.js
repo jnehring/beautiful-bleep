@@ -20,7 +20,7 @@
 
   const defaults = (iface) => ({
     publisher: "mine", name: (iface && iface.name) || "", version: "1.0.0", summary: (iface && iface.description) || "", category: (iface && iface.category) || "",
-    license: "MIT", tags: "", homepage: "", notes: "",
+    license: "MIT", shareSource: true, tags: "", homepage: "", notes: "",
   });
 
   /// The name the user's modules go by in the library. { signedIn: false } when nobody is logged in, { offline: true } where there is no library.
@@ -35,17 +35,18 @@
     } catch (e) { return { offline: true }; }
   }
 
-  /// A labelled field. kind: "text" | "area" | "select" | "readonly".
+  /// A labelled field. kind: "text" | "area" | "select" | "readonly" | "check".
   function field(label, kind, hint, options) {
-    const row = el("label", "bc-field"), name = el("span", "bc-field-name", label);
+    const row = el("label", "bc-field" + (kind === "check" ? " check" : "")), name = el("span", "bc-field-name", label);
     let input;
-    if (kind === "area") input = el("textarea");
+    if (kind === "check") { input = el("input"); input.type = "checkbox"; }
+    else if (kind === "area") input = el("textarea");
     else if (kind === "select") { input = el("select"); for (const o of options) input.append(new Option(o, o)); }
     else { input = el("input"); input.type = "text"; if (kind === "readonly") input.readOnly = true; }
     input.spellcheck = false;
     input.addEventListener("keydown", (e) => e.stopPropagation());   // typing is not for the board's shortcuts or the computer keyboard's notes
     input.addEventListener("keyup", (e) => e.stopPropagation());
-    row.append(name, input);
+    if (kind === "check") row.append(input, name); else row.append(name, input);
     if (hint) row.append(el("span", "bc-field-hint", hint));
     return { row, input, name };
   }
@@ -64,6 +65,7 @@
       summary: field("Summary", "area", "One or two sentences for the library's tile (up to 280 characters)."),
       category: field("Category", "text", "Where the module sits in the Add menu, for example Effects/Distortion."),
       license: field("Licence", "select", "What others may do with the module. Everything you share is published under it.", LICENSES),
+      shareSource: field("Share the source code", "check", "Include the script when you share, so everyone can open the module in a Code node (Convert to code), change it and make their own. The licence above applies to the source too. Turn it off to share only the compiled module."),
       tags: field("Tags", "text", "A few words, separated by commas."),
       homepage: field("Web page", "text", "Optional: where to read more or report problems (https://…)."),
       notes: field("Release notes", "area", "What is new in this version."),
@@ -80,11 +82,20 @@
     })();
     void list;
     const form = el("div", "bc-meta-form");
-    for (const k of ["publisher", "name", "version", "summary", "category", "license", "tags", "homepage", "notes"]) form.append(f[k].row);
+    for (const k of ["publisher", "name", "version", "summary", "category", "license", "shareSource", "tags", "homepage", "notes"]) form.append(f[k].row);
     mount.append(form);
 
-    const set = (m) => { for (const k of Object.keys(f)) { const v = m[k] != null ? m[k] : ""; if (f[k].input.tagName === "SELECT" && !LICENSES.includes(v)) f[k].input.append(new Option(v, v)); f[k].input.value = v; } check(); };
-    const get = () => Object.fromEntries(Object.keys(f).map((k) => [k, f[k].input.value.trim()]));
+    const set = (m) => {
+      for (const k of Object.keys(f)) {
+        const input = f[k].input;
+        if (input.type === "checkbox") { input.checked = m[k] !== false; continue; }   // on unless it was turned off
+        const v = m[k] != null ? m[k] : "";
+        if (input.tagName === "SELECT" && !LICENSES.includes(v)) input.append(new Option(v, v));
+        input.value = v;
+      }
+      check();
+    };
+    const get = () => Object.fromEntries(Object.keys(f).map((k) => [k, f[k].input.type === "checkbox" ? f[k].input.checked : f[k].input.value.trim()]));
     const check = () => {
       f.version.input.classList.toggle("bad", !SEMVER.test(f.version.input.value.trim()));
       f.homepage.input.classList.toggle("bad", !!f.homepage.input.value.trim() && !/^https?:\/\//.test(f.homepage.input.value.trim()));
@@ -119,6 +130,7 @@
       category: field("Category", "text", ""),
       license: field("Licence", "select", "", LICENSES),
       version: field("Version", "text", "x.y.z, higher than the last one you shared."),
+      shareSource: field("Share the source code", "check", "So everyone can open the module in a Code node (Convert to code) and change it. The licence applies to it too."),
       help: field("Help page", "area", "Markdown: shown by the module's ? button. Images are left out."),
     };
     fields.summary.input.maxLength = 280; fields.summary.input.rows = 3; fields.help.input.rows = 9;
@@ -126,13 +138,14 @@
     if (!LICENSES.includes(meta.license)) fields.license.input.append(new Option(meta.license, meta.license));
     fields.license.input.value = meta.license;
     fields.version.input.value = meta.shared ? nextVersion(meta.shared) : meta.version;
+    fields.shareSource.input.checked = meta.shareSource !== false;
     fields.help.input.value = state.help || "";
     const note = el("p", "share-note", opts.hasUi ? "The module's own picture (its UI) goes with it. It only ever runs in the same sandbox as in your Code node: no network, no storage, and it is stopped if it hangs." : "");
     const status = el("p", "share-status", "");
     const cancel = el("button", "", "Cancel"), go = el("button", "primary", "Share");
     cancel.type = go.type = "button";
     const buttons = el("div", "share-buttons"); buttons.append(cancel, go);
-    section.append(title, intro, fields.summary.row, fields.category.row, fields.license.row, fields.version.row, fields.help.row, note, status, buttons);
+    section.append(title, intro, fields.summary.row, fields.category.row, fields.license.row, fields.version.row, fields.shareSource.row, fields.help.row, note, status, buttons);
     section.hidden = true;
     const close = () => { P.BleepModal.toggle(section, false); setTimeout(() => P.BleepModal.unmount(section), 0); };
     P.BleepModal.mount(section, close);
@@ -165,7 +178,7 @@
         if (me.old) { say("This Bleep Library cannot take shared modules yet: its website needs an update.", "bad"); return; }
         if (me.offline) { say("There is no Bleep Library to share to here.", "bad"); return; }
         if (!me.signedIn || !me.handle) { say("You are not logged in to the Bleep Library: log in (another tab), then press Share again.", "bad"); return; }
-        const edited = { ...meta, summary: fields.summary.input.value.trim(), category: fields.category.input.value.trim(), license: fields.license.input.value, version };
+        const edited = { ...meta, summary: fields.summary.input.value.trim(), category: fields.category.input.value.trim(), license: fields.license.input.value, version, shareSource: fields.shareSource.input.checked };
         const help = fields.help.input.value;
         opts.save({ meta: edited, help });   // what was typed here is kept, whether or not the upload works
         say(`compiling for ${me.handle}/${slug}…`);
@@ -173,7 +186,7 @@
         const r = await opts.compile(now.source, `${me.handle}/${slug}`, now.settings || {});
         if (!r || !r.wasm || !r.specs || !r.specs.length) { say("The module did not compile.", "bad"); return; }
         const bytes = Mod.build({ handle: me.handle, slug, version, title: opts.name, summary: edited.summary, category: edited.category, license: edited.license, spec: r.specs,
-          wasm: r.wasm, help, view: now.view });
+          wasm: r.wasm, help, view: now.view, source: edited.shareSource ? now.source : "" });
         say(`uploading ${Math.round(bytes.length / 1024)} KB…`);
         const done = await Mod.upload(bytes, slug, version);
         if (!done.ok) { say(done.error || "The library refused the module.", "bad"); return; }
