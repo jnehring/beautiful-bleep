@@ -30,6 +30,10 @@ The Bleep App is the board without a DAW. It is for playing, sound design and li
 
 If you prefer to keep the DAW out of the way while you patch, or you want a fixed instrument on stage, this is the place. [The standalone app](/docs/musicians/use/standalone/) covers setup, and [Connecting plugin, app and Bleep Play](/docs/musicians/connect/connecting/) has the recipes and the latency numbers.
 
+### Playing it with a MIDI controller
+
+A MIDI keyboard or a box of knobs works in all three places. In the standalone app and in the browser you add a **MIDI Device** node, choose your controller, and cable its notes into a synth; its eight controller outputs turn your knobs into modulation. In the browser this needs Chrome or Edge, which ask once for permission to use your MIDI devices. In Live, the controller plays a Bleep plugin like any other instrument. [Play with a MIDI controller](/docs/musicians/connect/midi-controllers/) has the steps for each.
+
 ## More than patch cables
 
 A modular synthesizer is wonderful to build and awkward to play. Beautiful Bleep adds three things on top of the cables to fix that.
