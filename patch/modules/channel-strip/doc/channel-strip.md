@@ -1,10 +1,6 @@
----
-title: Channel Strip
-description: A console channel in one module: high-pass filter, input transformer, four-band EQ with switchable frequencies and proportional Q, and a drive stage that is warm, punchy or clean. Written in Bleep Script.
-order: 60
----
-
 # Channel Strip
+
+![Channel Strip in the module view](channel-strip.png)
 
 ## Introduction
 

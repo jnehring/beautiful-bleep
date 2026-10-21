@@ -36,6 +36,21 @@ whole boards for the app's preset browser, see
 `patch/presets/demos/README.md`) and a *Demo patches*
 section in their doc.
 
+## A module written in Bleep Script
+
+A module can also be written in [Bleep Script](../bleep-script/overview.md) instead of C++. It lives in the same place, and the build, the packager and the library treat it like any other module; only the compiler differs (node, not Emscripten). Its `module.json` says `"language": "bleep-script"`:
+
+```
+patch/modules/<type>/
+├── module.json            as above, plus "language": "bleep-script" and "category"
+├── <type>.dsp.ts          the module: a Bleep Script class (see Module scripts)
+├── <type>.view.js         optional: its own UI, as a Code node's UI tab (runs only in the sandboxed worker frame)
+├── LICENSE
+└── doc/<type>.md, <type>.png      the manual and its picture, as for every module
+```
+
+`scripts/build/build-web.sh --modules-only` compiles it (`patch/web/build_modules.py` calls `patch/script/build-module.mjs`; run `npm install` in `patch/script` once), with the module's slug as its node type id. The package gets two extra files: `view.sandbox.js` (the UI) and `source.dsp.ts` (the source, so that anyone can open the module in a Code node with *Convert to code*). CMake skips these folders. The DSP tests are `.mjs` files in `patch/script/test/modules/` (`node test/modules/<type>.test.mjs`), see [Running the tests](../bleep-script/implementation/testing.md). The vintage modules (Preamp, Valve Stage, Channel Strip, Tone EQ, Opto Compressor, Mic Colour, Tape Machine, Vinyl, Cheap Speaker) are written this way.
+
 ## Ported code and licences
 
 A module that is ported from, or adapted from, someone else's code (an

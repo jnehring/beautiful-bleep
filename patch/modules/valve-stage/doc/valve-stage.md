@@ -1,10 +1,6 @@
----
-title: Valve Stage
-description: One to three cascaded tube stages (12AX7, 12AU7 or an EL34 power stage) with plate load, grid-current clipping, Miller roll-off, coupling-capacitor blocking, cathode bypass and a sagging supply. Written in Bleep Script.
-order: 50
----
-
 # Valve Stage
+
+![Valve Stage in the module view](valve-stage.png)
 
 ## Introduction
 

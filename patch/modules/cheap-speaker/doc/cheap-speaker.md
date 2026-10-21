@@ -1,10 +1,6 @@
----
-title: Cheap Speaker
-description: Tonal lo-fi: the bandwidth, resonances, distortion and noise of a telephone, an AM radio, a car speaker, a cassette player, a tiny speaker or a megaphone. Written in Bleep Script.
-order: 90
----
-
 # Cheap Speaker
+
+![Cheap Speaker in the module view](cheap-speaker.png)
 
 ## Introduction
 

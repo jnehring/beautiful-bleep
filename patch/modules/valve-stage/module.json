@@ -1,0 +1,13 @@
+{
+  "name": "Valve Stage",
+  "slug": "valve-stage",
+  "license": "GPL-3.0-or-later",
+  "language": "bleep-script",
+  "tagline": "One to three cascaded tube stages: plate load, grid-current clipping, Miller roll-off, coupling-capacitor blocking, cathode bypass and a sagging supply. 12AX7, 12AU7 or an EL34 power stage.",
+  "category": "Effects/Distortion",
+  "colour": "#ea580c",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/valve-stage.md"
+}

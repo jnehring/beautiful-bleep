@@ -60,7 +60,7 @@ for (const W of [700, 1100]) {
     await sleep(900);   // let the picture animate
     const h = await evaluate("document.querySelector('iframe').getBoundingClientRect().height");
     check(ok, `${name} @ ${W}px: the UI paints in the sandboxed frame`);
-    const shot = await cdp("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: W + 20, height: Math.min(700, h + 20), scale: 1 } });
+    const shot = await cdp("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: Math.min(W, 640) + 20, height: Math.min(700, h + 20), scale: 1 } });
     writeFileSync(join(outdir, `${name}-${W}.png`), Buffer.from(shot.data, "base64"));
     if (W !== 700) { check((await evaluate("_ui.errors.length")) === 0, `${name} @ ${W}px: no errors`, JSON.stringify(await evaluate("_ui.errors"))); continue; }
     // a real mouse: drag from many points over the picture; any knob set (or button press) means the interaction reaches the module
@@ -83,7 +83,7 @@ for (const W of [700, 1100]) {
     const range = await evaluate("_ui.sets.every((s) => Number.isFinite(s.value) && s.x >= 0 && s.x <= 1)");
     check(range, `${name}: every value it set is finite and inside its range`);
     await sleep(200);
-    const shot2 = await cdp("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: W + 20, height: Math.min(700, h + 20), scale: 1 } });
+    const shot2 = await cdp("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: Math.min(W, 640) + 20, height: Math.min(700, h + 20), scale: 1 } });
     writeFileSync(join(outdir, `${name}-${W}-after-drag.png`), Buffer.from(shot2.data, "base64"));
   }
 }

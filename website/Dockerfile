@@ -26,14 +26,11 @@ COPY patch/web patch/web
 COPY patch/script/package.json patch/script/package-lock.json patch/script/bundle.mjs patch/script/
 RUN --mount=type=cache,target=/root/.npm cd patch/script && npm ci --no-audit --no-fund
 COPY patch/script/compiler patch/script/compiler
-COPY patch/script/builtin-modules.mjs patch/script/builtin-modules.txt patch/script/
 COPY patch/script/editor patch/script/editor
 COPY patch/script/patch patch/script/patch
 COPY patch/script/transform patch/script/transform
 COPY patch/script/src patch/script/src
 COPY patch/script/playground/examples.mjs patch/script/playground/examples.mjs
-# the vintage modules' manuals are the help pages of their Code node examples (patch/script/compiler/bundle-entry.mjs)
-COPY website/content/developers/bleep-script/vintage-modules website/content/developers/bleep-script/vintage-modules
 RUN cd patch/script && node bundle.mjs
 COPY scripts/build/build-web.sh scripts/build/build-web.sh
 RUN scripts/build/build-web.sh --no-modules /out

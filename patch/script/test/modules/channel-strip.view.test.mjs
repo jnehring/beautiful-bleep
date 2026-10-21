@@ -5,7 +5,7 @@ import { runView, viewSource } from "./view-lib.mjs";
 
 const m = await loadModule("channel-strip");
 const src = viewSource("channel-strip");
-check(!!src, "src/channel-strip.view.js exists");
+check(!!src, "channel-strip.view.js exists");
 const states = {
   silence: () => ({ saturation: 0, level: 0 }),
   loud: (t) => ({ saturation: 1, level: 1 + 0.2 * Math.sin(t) }),

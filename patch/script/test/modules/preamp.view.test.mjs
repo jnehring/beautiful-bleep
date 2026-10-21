@@ -5,7 +5,7 @@ import { runView, viewSource } from "./view-lib.mjs";
 
 const m = await loadModule("preamp");
 const src = viewSource("preamp");
-check(!!src, "src/preamp.view.js exists");
+check(!!src, "preamp.view.js exists");
 const states = {
   silence: () => ({ core: 0, level: 0 }),
   loud: (t) => ({ core: 1.5, level: 1 + 0.2 * Math.sin(t) }),

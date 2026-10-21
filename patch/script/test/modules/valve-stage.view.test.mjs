@@ -5,7 +5,7 @@ import { runView, viewSource } from "./view-lib.mjs";
 
 const m = await loadModule("valve-stage");
 const src = viewSource("valve-stage");
-check(!!src, "src/valve-stage.view.js exists");
+check(!!src, "valve-stage.view.js exists");
 const states = {
   silence: () => ({ supply: 1, grid: 0, level: 0 }),
   loud: (t) => ({ supply: 0.5, grid: 1, level: 1 + 0.1 * Math.sin(t) }),

@@ -79,30 +79,6 @@ await test("a removed or replaced module: forget() drops the cached package, a r
   try { await assert.rejects(Library.manifest(), /offline/); } finally { globalThis.fetch = realFetch; }   // nothing left to run offline
 });
 
-await test("built-in modules come from script-modules.json, the user's own of the same key win, and a missing file is no harm", async () => {
-  const path = join(here, "..", "js", "user-modules.js");
-  const fresh = () => { delete require.cache[require.resolve(path)]; return require(path); };
-  const list = [{ slug: "vintage.preamp", type: "vintage/preamp", publisher: "vintage", name: "Preamp", category: "Effects/Distortion", source: "// s", view: "v", help: "h", meta: {}, settings: {},
-    spec: [{ type: "vintage/preamp", name: "Preamp" }], wasm: Buffer.from([0, 97, 115, 109]).toString("base64") }];
-  const realFetch = globalThis.fetch;
-  try {
-    globalThis.fetch = async () => ({ ok: true, json: async () => list });
-    const U2 = fresh();
-    const entries = await U2.load();
-    const e = entries.get("vintage.preamp");
-    assert.equal(e.builtin, true);
-    assert.deepEqual([...new Uint8Array(e.wasm)], [0, 97, 115, 109], "the bytes are decoded from base64");
-    assert.deepEqual(Object.keys(U2.index()), ["vintage.preamp"]);
-    await U2.put({ ...e, name: "My Preamp", builtin: undefined });   // an edited copy of the same key replaces it
-    assert.equal(U2.get("vintage.preamp").name, "My Preamp");
-    assert.equal(U2.get("vintage.preamp").builtin, undefined);
-    globalThis.fetch = async () => ({ ok: false, status: 404 });
-    assert.equal((await fresh().load()).size, 0, "no file, no built-in modules");
-    globalThis.fetch = async () => { throw new TypeError("offline"); };
-    assert.equal((await fresh().load()).size, 0, "offline: the same");
-  } finally { globalThis.fetch = realFetch; fresh(); }
-});
-
 let failed = 0;
 for (const [name, err] of results) { console.log(`${err ? "FAIL" : "ok  "} ${name}${err ? "\n  " + err.message : ""}`); if (err) failed++; }
 console.log(failed ? `${failed} failed` : `all ${results.length} passed`);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Bundles the compiler and the editor for the browser: node bundle.mjs -> dist/bleep-script-compiler.js and dist/bleep-script-editor.js (an ES module, about 10 MB: Binaryen is most of it).
 // The board loads it on first use; build-web.sh copies it next to the board when it exists.
-import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
@@ -58,11 +58,3 @@ await build({
   logLevel: "warning",
 });
 console.log(`dist/bleep-script-compiler.js: ${(statSync(`${root}dist/bleep-script-compiler.js`).size / 1048576).toFixed(1)} MB`);
-
-// the script modules that ship with the board: compiled, with their UI and help page, next to the bundles (builtin-modules.txt)
-{
-  const { buildBuiltin } = await import("./builtin-modules.mjs");
-  const list = await buildBuiltin();
-  writeFileSync(`${root}dist/script-modules.json`, JSON.stringify(list));
-  console.log(`dist/script-modules.json: ${list.length} modules, ${(statSync(`${root}dist/script-modules.json`).size / 1024).toFixed(0)} KB`);
-}

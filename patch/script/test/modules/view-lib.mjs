@@ -6,10 +6,11 @@
 // size, canvas(h) { el, g, width, height }, theme, button(id). A drawing call with a NaN or infinite number is recorded as a failure.
 import { readFileSync, existsSync } from "node:fs";
 import { root } from "../dsp/lib.mjs";
+import { scriptModules } from "../../modules.mjs";
 
 const THEME = { bg: "#14161a", panel: "#1b1e23", line: "#2c3038", text: "#e6e8eb", muted: "#8b93a1", accent: "#f59e0b", warn: "#ef4444" };
 
-export const viewSource = (name) => { const f = `${root}src/${name}.view.js`; return existsSync(f) ? readFileSync(f, "utf8") : null; };
+export const viewSource = (name) => { const m = scriptModules().find((x) => x.slug === name), f = m ? m.view : `${root}src/${name}.view.js`; return f && existsSync(f) ? readFileSync(f, "utf8") : null; };
 
 function recordingContext(failures, stats, w, h) {
   const target = { canvas: { width: w, height: h } };

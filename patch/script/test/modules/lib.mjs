@@ -9,6 +9,7 @@ import asc from "assemblyscript/asc";
 import { compileScript } from "../../compiler/compile.mjs";
 import { compileModule, ModuleInstance, CHUNK } from "../../../web/js/module-host.js";
 import { root } from "../dsp/lib.mjs";
+import { scriptModules } from "../../modules.mjs";
 
 export { check, finish, SR, spectrum, db, rms, peak, finiteAll, noise } from "../dsp/lib.mjs";
 export { CHUNK };
@@ -26,8 +27,9 @@ export function normalise(p, v) {
 
 /// Compiles src/<name>.dsp.ts. Returns { spec, cost ({ ops, limit, ... } per 32-sample chunk), warnings, wasm, module }; throws if there is an error (the message lists them).
 export async function loadModule(name, { constants = {} } = {}) {
-  const text = readFileSync(`${root}src/${name}.dsp.ts`, "utf8");
-  const r = await compileScript(asc, text, { lib, constants });
+  const mod = scriptModules().find((m) => m.slug === name);
+  const text = readFileSync(mod ? mod.source : `${root}src/${name}.dsp.ts`, "utf8");   // a module of patch/modules/, else an example of src/
+  const r = await compileScript(asc, text, { lib, constants, typeId: mod ? name : undefined });
   const errors = r.problems.filter((p) => p.severity === "error");
   if (errors.length || !r.wasm) throw new Error(`${name}: ${errors.map((p) => `line ${p.line}: ${p.message}`).join("; ")}`);
   return { spec: r.specs[0], cost: r.specs[0].cost, warnings: r.problems.filter((p) => p.severity !== "error"), wasm: r.wasm, module: await compileModule(r.wasm) };

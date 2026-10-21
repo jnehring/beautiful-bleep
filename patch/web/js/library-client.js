@@ -317,7 +317,7 @@
     } catch (e) {
       if (!local && !(mine && mine.list().length)) throw e;  // a local build, or the user's own modules, are enough to run offline
     }
-    if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", types: m.types || [], local: m.file, spec: m.spec || null };
+    if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", types: m.types || [], local: m.file, spec: m.spec || null, script: m.script || null };
     // Kept in this browser, their own code: no signature and no setting.
     if (mine) for (const [slug, m] of Object.entries(mine.index())) mods[slug] = { version: "user", types: m.types || [], user: true, spec: m.spec || null };
     const types = {};
@@ -346,7 +346,11 @@
           const res = await fetch(abs(config.localBase + mods[slug].local), { cache: "no-store" });
           if (!res.ok) throw new Error(`${mods[slug].local}: ${res.status}`);
           const wasm = await res.arrayBuffer();
-          return { wasm, version: "local", publisher: "local build", status: "unsigned", local: true, meta: {}, bytes: wasm.byteLength, spec: mods[slug].spec || null };   // spec: the node types of a script module, which no demo-types.json lists
+          // a script module (Bleep Script) of the build: its own UI, source and help page sit beside the .wasm
+          const extra = mods[slug].script || {};
+          const text = async (rel) => { if (!rel) return ""; try { const r = await fetch(abs(config.localBase + rel), { cache: "no-store" }); return r.ok ? await r.text() : ""; } catch (e) { return ""; } };
+          return { wasm, version: "local", publisher: "local build", status: "unsigned", trust: "local", local: true, meta: {}, bytes: wasm.byteLength, spec: mods[slug].spec || null,
+                   view: await text(extra.view), source: await text(extra.source), help: await text(extra.help) };   // spec: the node types of a script module, which no demo-types.json lists
         }
         const dir = config.base + mods[slug].entry.replace(/entry\.json$/, "");
         const entry = await getJSON(config.base + mods[slug].entry);

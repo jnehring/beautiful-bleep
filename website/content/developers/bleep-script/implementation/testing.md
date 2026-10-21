@@ -27,7 +27,7 @@ This is what CI runs. It takes about a minute and a half, and ends with `all lib
 
 | Step | What it covers |
 |---|---|
-| `node build.mjs` | Compiles the two example modules (`src/gains.dsp.ts`, `src/synth-voice.dsp.ts`) to `build/`. A compile error here fails the run. |
+| `node build.mjs` | Compiles the two example modules (`src/gains.dsp.ts`, `src/synth-voice.dsp.ts`) and the script modules of `patch/modules/` (`language: bleep-script`) to `build/`. A compile error here fails the run. |
 | `test/transform.test.mjs` | The transform: the generated description against a hand-written one, errors with file and line, int, choice, bool and float params, two modules in one file, the subset checker and the cost estimate |
 | `test/patch.test.mjs` | Patch scripts: the sandbox and its limits, `materialize` against the module types, unit conversion |
 | `test/docs.test.mjs` | The documentation: every block fenced as ` ```ts compile ` in `website/content/developers/bleep-script/` compiles, and the tutorials' modules do what the text says |

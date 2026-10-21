@@ -1,10 +1,6 @@
----
-title: Vinyl
-description: Puts any signal through a record: RIAA cut and playback, mono bass, tracking distortion, rumble, hiss, dust, pops and scratches that come round once per turn, crosstalk and wobble. Written in Bleep Script.
-order: 80
----
-
 # Vinyl
+
+![Vinyl in the module view](vinyl.png)
 
 ## Introduction
 

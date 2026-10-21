@@ -11,7 +11,8 @@
 
 A package is a zip of: module.json (the module folder's, plus `types`, `requires.engineAbi`, and the `summary` and `category` of the library's tile), module.wasm (built by
 scripts/build/build-web.sh --modules-only), spec.json (the node types' descriptions, read from the .wasm with node: a host
-lists a module's node types from it without compiling the module), the module's view scripts (ui/*.js) and its docs
+lists a module's node types from it without compiling the module), the module's view scripts (ui/*.js; for a module written in Bleep Script
+its UI as view.sandbox.js and its source as source.dsp.ts) and its docs
 (doc/*.md, *.png), and its LICENSE when it has one. `license` (default MIT) and `origin` (the code it is ported from) stay in module.json.
 The version is not in the package: the library counts it, so the content hash says whether the code changed.
 
@@ -64,6 +65,13 @@ def collect(folder: Path, wasm: bytes, spec: str) -> dict[str, bytes]:
     files = {"module.json": (json.dumps(meta, indent=1, ensure_ascii=False) + "\n").encode(), "module.wasm": wasm, "spec.json": (spec + "\n").encode()}
     if (folder / "LICENSE").is_file() and not (folder / "LICENSE").is_symlink():
         files["LICENSE"] = (folder / "LICENSE").read_bytes()
+    if meta.get("language") == "bleep-script":
+        # A module written in Bleep Script brings its own UI (it runs only in the sandboxed worker frame, never in the page) and its source, which
+        # anyone can open in a Code node ("Convert to code").
+        for name, packaged in ((f"{folder.name}.view.js", "view.sandbox.js"), (f"{folder.name}.dsp.ts", "source.dsp.ts")):
+            f = folder / name
+            if f.is_file() and not f.is_symlink():
+                files[packaged] = f.read_bytes()
     for sub, suffixes in (("ui", (".js",)), ("doc", (".md", ".png"))):
         for f in sorted((folder / sub).glob("*")) if (folder / sub).is_dir() else []:
             if f.suffix in suffixes and f.is_file() and not f.is_symlink():  # a link could pull a file from elsewhere into the package

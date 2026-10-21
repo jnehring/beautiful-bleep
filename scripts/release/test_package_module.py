@@ -102,6 +102,22 @@ class Package(unittest.TestCase):
         self.assertNotIn("version", meta)  # the library counts the version; the content hash must not depend on it
         self.assertEqual(files["module.wasm"], self.wasm)
 
+    def test_a_module_written_in_bleep_script_brings_its_ui_and_source(self):
+        (self.folder / "module.json").write_text(json.dumps({"name": "Fuzz", "slug": "fuzz", "language": "bleep-script", "license": "GPL-3.0-or-later"}))
+        (self.folder / "fuzz.dsp.ts").write_text("@module({ name: 'Fuzz' })\nexport class Fuzz {}\n")
+        (self.folder / "fuzz.view.js").write_text("const c = bleep.canvas(80);")
+        (self.folder / "other.dsp.ts").write_text("not this one")
+        files = self.files()
+        self.assertEqual(files["source.dsp.ts"], b"@module({ name: 'Fuzz' })\nexport class Fuzz {}\n")
+        self.assertEqual(files["view.sandbox.js"], b"const c = bleep.canvas(80);")   # the UI runs only in the sandboxed worker frame
+        self.assertIn("ui/fuzz.js", files)   # a page script of the module folder is still packaged as before (first-party only)
+        self.assertNotIn("other.dsp.ts", files)
+        self.assertEqual(json.loads(files["module.json"])["language"], "bleep-script")
+        # a module that is not written in Bleep Script gets neither, even if the files are there
+        (self.folder / "module.json").write_text(json.dumps({"name": "Fuzz", "slug": "fuzz"}))
+        self.assertNotIn("source.dsp.ts", self.files())
+        self.assertNotIn("view.sandbox.js", self.files())
+
     def test_licence_and_origin_travel_with_the_package(self):
         self.assertEqual(json.loads(self.files()["module.json"])["license"], "MIT")  # none declared: MIT
         origin = {"name": "Foo", "author": "A. Author", "url": "https://x.y/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}

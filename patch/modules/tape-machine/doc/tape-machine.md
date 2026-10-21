@@ -1,10 +1,6 @@
----
-title: Tape Machine
-description: A reel-to-reel tape recorder: pre-emphasis, magnetic hysteresis with bias, head bump, gap loss, wow and flutter, hiss, dropouts and tape compression. Written in Bleep Script.
-order: 70
----
-
 # Tape Machine
+
+![Tape Machine in the module view](tape-machine.png)
 
 ## Introduction
 

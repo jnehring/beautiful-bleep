@@ -74,6 +74,17 @@ foreach (j IN LISTS module_jsons)
     get_filename_component(m "${j}" DIRECTORY)
     list(APPEND BLEEP_MODULES "${m}")
 endforeach ()
+# Modules written in Bleep Script (module.json: "language": "bleep-script") are not C++: patch/web/build_modules.py compiles them with node
+# (patch/script), and the board gets them from the web build or the library.
+set(BLEEP_NATIVE_MODULES)
+foreach (m IN LISTS BLEEP_MODULES)
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/module.json" module_json_lang)
+    string(JSON module_language ERROR_VARIABLE no_language GET "${module_json_lang}" language)
+    if (no_language OR NOT module_language STREQUAL "bleep-script")
+        list(APPEND BLEEP_NATIVE_MODULES "${m}")
+    endif ()
+endforeach ()
+set(BLEEP_MODULES ${BLEEP_NATIVE_MODULES})
 list(SORT BLEEP_MODULES)
 # Optional: build only some modules (a list of folder names), e.g. while
 # several people add modules to one tree at the same time.

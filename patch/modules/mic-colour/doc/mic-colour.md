@@ -1,10 +1,6 @@
----
-title: Mic Colour
-description: Makes any source sound as if it was recorded through a microphone in a room: ribbon, dynamic, condenser and tube condenser models with distance, proximity, presence, off-axis, early reflections, soft saturation and self-noise. Written in Bleep Script.
-order: 30
----
-
 # Mic Colour
+
+![Mic Colour in the module view](mic-colour.png)
 
 ## Introduction
 

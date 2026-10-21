@@ -1,10 +1,6 @@
----
-title: Tone EQ
-description: A passive, musical equaliser with three modes (interacting shelving network, tilt, guitar-amp tone stack), a valve make-up stage and slow component drift. Written in Bleep Script.
-order: 10
----
-
 # Tone EQ
+
+![Tone EQ in the module view](tone-eq.png)
 
 ## Introduction
 

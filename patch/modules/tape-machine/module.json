@@ -1,0 +1,13 @@
+{
+  "name": "Tape Machine",
+  "slug": "tape-machine",
+  "license": "GPL-3.0-or-later",
+  "language": "bleep-script",
+  "tagline": "A reel-to-reel tape recorder: pre-emphasis, magnetic hysteresis with bias, head bump, gap loss, wow and flutter, hiss, dropouts and tape compression.",
+  "category": "Effects/Distortion",
+  "colour": "#b45309",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/tape-machine.md"
+}

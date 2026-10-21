@@ -1,10 +1,6 @@
----
-title: Preamp
-description: A transformer-coupled preamp: input transformer, gain stage, output transformer. The iron thickens and saturates the bass, more the harder you push it. Written in Bleep Script.
-order: 40
----
-
 # Preamp
+
+![Preamp in the module view](preamp.png)
 
 ## Introduction
 

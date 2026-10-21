@@ -49,7 +49,7 @@ The button on the module's window says **Convert to code**. It turns that node b
 - The module is stored in the browser (IndexedDB) and is yours alone: it is your own code, so it is not signed and runs in the same sandbox as every module. Its type id is `<publisher>/<name>` (see the Metadata tab; *mine* until you have a library name).
 - Converting again replaces the stored module with the Code node's current source. Other nodes of it get the new version after a reload.
 - A module is not part of a patch file: someone who opens your patch needs the module too, so share it (see [Share](#share)).
-- The modules that come with the board (the vintage modules, in *Add › Effects*) are the same kind of module: **Convert to code** opens their source.
+- Modules written in Bleep Script and released in the library (the vintage modules, in *Add › Effects*) carry their source, so **Convert to code** opens them too. The converted copy is yours (publisher *mine*); the original stays as it is.
 
 ## Metadata
 

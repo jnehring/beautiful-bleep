@@ -417,14 +417,9 @@
         const publisher = U.slugOf(m.publisher) || U.LOCAL, slug = U.slugOf(i.name);
         if (!slug) { setStatus("Give the module a name: @module({ name: … }).", "bad"); return; }
         const type = U.typeId(publisher, slug), key = U.keyOf(publisher, slug);
-        const existing = U.get(key);
-        const same = existing && existing.builtin && existing.source === node.code.source && (existing.view || "") === custom.getView() && JSON.stringify(existing.settings || {}) === JSON.stringify(settings);
-        let r = null;
-        if (!same) {   // a module that comes with the board and is unchanged stays as it is: no copy of the user's shadows it
-          r = await compileFor(node.code.source, type, settings);   // compiled again, for the type id of the module
-          if (!r || !r.wasm || !r.specs.length) { setStatus("The module did not compile; nothing was converted.", "bad"); return; }
-        }
-        if (!same) await U.put({
+        const r = await compileFor(node.code.source, type, settings);   // compiled again, for the type id of the module
+        if (!r || !r.wasm || !r.specs.length) { setStatus("The module did not compile; nothing was converted.", "bad"); return; }
+        await U.put({
           slug: key, type, publisher, name: i.name, category: r.specs[0].category || "Utility/Script", source: node.code.source, view: custom.getView(), help: help.getHelp(),
           meta: { ...(S ? S.defaults(i) : {}), ...m, publisher }, settings, spec: r.specs, wasm: r.wasm.buffer.slice(r.wasm.byteOffset, r.wasm.byteOffset + r.wasm.byteLength),
         });
@@ -672,22 +667,22 @@
     const U = G.BleepUserModules, S = P.BleepCodeShare;
     const statusEl = root.querySelector(".bc-status"), convert = root.querySelector(".bc-convert"), share = root.querySelector(".bc-share");
     const say = (text, cls = "") => { statusEl.textContent = text; statusEl.className = "bc-status " + cls; };
-    say(entry.builtin ? "A module that comes with the board." : "");
+    say("");
     if (entry.packaged && !entry.source) { root.querySelector(".bc-bar").hidden = true; return; }   // from the library, without its source: nothing to convert or share
-    if (entry.packaged) say("From the library: the author shared the source.");
+    if (entry.packaged) say("The source of this module is open: change it as a Code node, and convert it again to make your own.");
     convert.addEventListener("click", async () => {
       convert.disabled = true;
       try {
         await view.api.convertNode("code", (n) => {
           n.code = { source: entry.source, interface: entry.spec[0], settings: { ...(entry.settings || {}) }, ...(entry.view ? { view: entry.view } : {}),
                      ...(entry.help ? { help: entry.help } : {}),
-                     meta: entry.meta || (entry.libraryMeta && S ? { ...S.defaults(entry.spec[0]), publisher: U.slugOf(entry.spec[0].type.split("/")[0]) || U.LOCAL, version: entry.libraryMeta.version || "1.0.0",
+                     meta: entry.meta || (entry.libraryMeta && S ? { ...S.defaults(entry.spec[0]), publisher: entry.spec[0].type.includes("/") ? U.slugOf(entry.spec[0].type.split("/")[0]) || U.LOCAL : U.LOCAL, version: entry.libraryMeta.version || "1.0.0", shared: entry.libraryMeta.version || undefined,
                        summary: entry.libraryMeta.summary || "", category: entry.libraryMeta.category || "", license: entry.libraryMeta.license || "MIT" } : (S ? S.defaults(entry.spec[0]) : {})) };
           if (n.name === entry.name) n.name = "Code";
         });
       } catch (e) { say(`Could not convert the node: ${e.message}`, "bad"); convert.disabled = false; }
     });
-    share.hidden = !(U && S && U.persistent !== undefined) || !!entry.builtin || !!entry.packaged;
+    share.hidden = !(U && S && U.persistent !== undefined) || !!entry.packaged;
     share.addEventListener("click", () => {
       if (!S) return;
       const current = () => installedTypes.get(view.node.type) || rec;

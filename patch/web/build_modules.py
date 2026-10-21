@@ -10,7 +10,8 @@ common headers it includes, the shim) or its compiler flags did; <out>/.cache/<s
 records the files (the compiler's own dependency list) and their hashes. --force rebuilds all.
 With --only, the other modules already in <out> stay in the manifest.
 
-Needs emcc on PATH (source emsdk_env.sh). About a third of the modules use
+Modules written in Bleep Script (module.json: "language": "bleep-script") are compiled with node (patch/script: npm install first), not emcc.
+Needs emcc on PATH (source emsdk_env.sh) for the C++ modules. About a third of the modules use
 juce_core (juce::var / String / JSON for their node data): with --juce <JUCE
 checkout> (8.x) juce_core is compiled once for WebAssembly (patched copy, two
 small fixes JUCE 8.0.9 lacks for its wasm platform) and linked into those
@@ -19,7 +20,7 @@ board shows them but cannot run them.
 
 Output:
   <out>/modules/<slug>.wasm
-  <out>/manifest.json   {"modules": {slug: {"file", "bytes", "types": [type ids]}},
+  <out>/manifest.json   {"modules": {slug: {"file", "bytes", "types": [type ids], "spec", "script": {view, source, help}}},   (spec and script: script modules only)
                          "types":   {type id: slug},
                          "unavailable": {slug: reason}}
 """
@@ -124,7 +125,52 @@ def _write_cache(cache_file, key, depfile):
     cache_file.write_text(json.dumps({"key": key, "deps": deps}))
 
 
+def is_script(d):
+    """A module written in Bleep Script (module.json: "language": "bleep-script"): <slug>.dsp.ts, compiled with node, not emcc."""
+    try:
+        return json.loads((d / "module.json").read_text()).get("language") == "bleep-script"
+    except (OSError, ValueError):
+        return False
+
+
+def build_script(d, out, force=False):
+    """Compiles a script module (patch/script/build-module.mjs) to <out>/modules/<slug>.wasm. The files next to it that the board needs
+    (<slug>.view.js: its own UI, <slug>.dsp.ts: its source, <slug>.md: its help page) are copied beside it, and its node type descriptions are
+    kept in <out>/.cache/<slug>.spec.json for the manifest."""
+    slug, script = d.name, PATCH / "script"
+    if not (script / "node_modules").is_dir():
+        return slug, None, "a script module: run npm install in patch/script"
+    source = d / f"{slug}.dsp.ts"
+    if not source.is_file():
+        return slug, None, f"no {slug}.dsp.ts"
+    target = out / "modules" / f"{slug}.wasm"
+    spec_file = out / ".cache" / f"{slug}.spec.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    spec_file.parent.mkdir(parents=True, exist_ok=True)
+    # what the result depends on: the module's source, the library it imports and the compiler's own files
+    deps = [source, *sorted((script / "src" / "bleep").glob("*.ts")), script / "transform" / "bleep.mjs", script / "transform" / "subset.mjs", script / "compiler" / "compile.mjs",
+            script / "modules.mjs", script / "build-module.mjs"]
+    key = hashlib.sha256(json.dumps([str(source.relative_to(ROOT)), "bleep-script-1"]).encode()).hexdigest()
+    cache_file = out / ".cache" / f"{slug}.json"
+    fresh = not force and spec_file.exists() and _up_to_date(cache_file, key, target)
+    if not fresh:
+        r = subprocess.run(["node", str(script / "build-module.mjs"), slug, str(target), str(spec_file)], capture_output=True, text=True)
+        if r.returncode != 0:
+            target.unlink(missing_ok=True)
+            cache_file.unlink(missing_ok=True)
+            return slug, None, (r.stderr.strip().splitlines() or ["node failed"])[-1]
+        cache_file.write_text(json.dumps({"key": key, "deps": {str(p.relative_to(ROOT)): _sha(p) for p in deps if p.is_file()}}))
+    for name, src in ((f"{slug}.view.js", d / f"{slug}.view.js"), (f"{slug}.dsp.ts", source), (f"{slug}.md", d / "doc" / f"{slug}.md")):
+        if src.is_file():
+            shutil.copyfile(src, out / "modules" / name)
+        else:
+            (out / "modules" / name).unlink(missing_ok=True)
+    return slug, target, "up to date" if fresh else ""
+
+
 def build(d, out, include_dirs, juce=None, force=False):
+    if is_script(d):
+        return build_script(d, out, force)
     sources = sorted(d.glob("*Module.cpp"))
     if not sources:
         return d.name, None, "no *Module.cpp"
@@ -224,6 +270,10 @@ def main():
                 progress.done(slug, f"  skip  {slug}: {err}")
                 continue
             manifest["modules"][slug] = {"file": f"modules/{slug}.wasm", "bytes": wasm.stat().st_size, "types": []}
+            if is_script(MODULES / slug):   # the board lists its node types from this (no demo-types.json entry), and shows its UI, help and source
+                entry = manifest["modules"][slug]
+                entry["spec"] = json.loads((out / ".cache" / f"{slug}.spec.json").read_text())
+                entry["script"] = {k: f"modules/{slug}.{ext}" for k, ext in (("view", "view.js"), ("source", "dsp.ts"), ("help", "md")) if (out / "modules" / f"{slug}.{ext}").is_file()}
             progress.done(slug, None if err else f"  built {slug} ({wasm.stat().st_size // 1024} KB)")
     progress.finish()
     old = out / "manifest.json"

@@ -374,6 +374,13 @@ await test("local build: replaces a library module unsigned, only while unsigned
     "local-modules/modules/fuzz.wasm": wasm,
     "local-modules/modules/only.wasm": wasm,
   };
+  // a module written in Bleep Script: its node types, UI, source and help page come with the build (patch/web/build_modules.py)
+  served["local-modules/manifest.json"].modules.pre = { file: "modules/pre.wasm", bytes: 8, types: ["pre"], spec: [{ type: "pre", name: "Pre" }],
+    script: { view: "modules/pre.view.js", source: "modules/pre.dsp.ts", help: "modules/pre.md" } };
+  served["local-modules/modules/pre.wasm"] = wasm;
+  served["local-modules/modules/pre.view.js"] = new TextEncoder().encode("const c = bleep.canvas(80);");
+  served["local-modules/modules/pre.dsp.ts"] = new TextEncoder().encode("export class Pre {}");
+  served["local-modules/modules/pre.md"] = new TextEncoder().encode("# Pre");
   globalThis.fetch = async (url) => {
     const body = served[url];
     if (body === undefined) return new Response("no", { status: 404 });
@@ -392,6 +399,11 @@ await test("local build: replaces a library module unsigned, only while unsigned
     assert.equal(got.status, "unsigned");
     assert.equal(got.local, true);
     assert.equal(got.wasm.byteLength, 8);
+    assert.deepEqual([got.view, got.source, got.help], ["", "", ""], "a C++ module has no script files");
+    const pre = await Library.fetchModule("pre");
+    assert.equal(pre.trust, "local");
+    assert.deepEqual(pre.spec, [{ type: "pre", name: "Pre" }]);
+    assert.deepEqual([pre.view, pre.source, pre.help], ["const c = bleep.canvas(80);", "export class Pre {}", "# Pre"], "a script module brings its UI, source and help page");
     // a page that is not on this computer never reads it, whatever the folder holds and whatever the setting says
     for (const hostname of ["play.example.com", "evil-localhost.com", "127.0.0.1.example.com"]) {
       Library.configure({ hostname });

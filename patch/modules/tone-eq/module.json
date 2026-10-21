@@ -1,0 +1,13 @@
+{
+  "name": "Tone EQ",
+  "slug": "tone-eq",
+  "license": "GPL-3.0-or-later",
+  "language": "bleep-script",
+  "tagline": "A passive, musical EQ: interacting shelving network, tilt or guitar-amp tone stack, with a valve make-up stage and slow component drift. Stereo.",
+  "category": "Effects/Dynamics & EQ",
+  "colour": "#38bdf8",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/tone-eq.md"
+}

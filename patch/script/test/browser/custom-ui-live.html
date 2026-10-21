@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <!-- SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception -->
 <title>custom ui live</title>
-<!-- One module's own UI (script/src/<name>.view.js) in the real sandboxed frame (board/ui/board-code-view.html), with the board's side of the protocol
+<!-- One module's own UI (patch/modules/<name>/<name>.view.js) in the real sandboxed frame (board/ui/board-code-view.html), with the board's side of the protocol
      played here: the knobs live in this page, the probes move on their own, and everything the UI does is logged in window._ui. Driven by
      test/browser/ui-chrome.mjs (a real mouse through the DevTools protocol); ?name=<module>&w=<css px>. -->
 <style>body { margin: 10px; background: #1b1e23; } iframe { display: block; border: 0; background: #252932; }</style>
@@ -10,7 +10,7 @@
 const q = new URLSearchParams(location.search), name = q.get("name"), W = Number(q.get("w") || 700);
 const _ui = window._ui = { sets: [], errors: [], painted: false, ready: false, height: 0, values: {}, commands: [] };
 const spec = (await (await fetch(`/script/build/${name}.spec.json`)).json())[0];
-const source = await (await fetch(`/script/src/${name}.view.js`)).text();
+const source = await (await fetch(`/modules/${name}/${name}.view.js`)).text();
 const norm = (p, v) => p.map === "exp" ? Math.log(v / p.min) / Math.log(p.max / p.min) : p.map === "skew" ? Math.pow(Math.max(0, (v - p.min) / (p.max - p.min)), Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min))) : (v - p.min) / (p.max - p.min);
 const unit = (p, x) => p.map === "exp" ? p.min * Math.pow(p.max / p.min, x) : p.map === "skew" ? p.min + (p.max - p.min) * Math.exp(Math.log(Math.max(x, 1e-9)) / (Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min)))) : p.min + (p.max - p.min) * x;
 const slim = spec.params.map((p) => ({ id: p.id, name: p.name, kind: p.kind, min: p.min, max: p.max, map: p.map, centre: p.centre, choices: p.choices, steps: p.steps, label: p.label, default: p.default }));

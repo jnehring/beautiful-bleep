@@ -1,10 +1,6 @@
----
-title: Opto Compressor
-description: An optical leveling amplifier with a photocell that attacks according to the programme and releases in two stages with memory, plus HF emphasis, parallel mix, stereo link and an external sidechain. Written in Bleep Script.
-order: 20
----
-
 # Opto Compressor
+
+![Opto Compressor in the module view](opto-compressor.png)
 
 ## Introduction
 

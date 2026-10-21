@@ -125,7 +125,7 @@
       const ui = [];   // library modules that bring their own picture (view.sandbox.js) or help page: { type, spec, view, help, source, version, meta }, for the board's views
       const found = await Promise.all(slugs.map((slug) => fetchModule(slug).then((r) => {
         const specs = (r.spec || []).filter((t) => !have.has(t.type));
-        if (r.view || r.source || (r.help && r.trust === "community")) for (const t of specs) ui.push({ type: t.type, spec: t, view: r.view || "", help: r.help || "", source: r.source || "", version: r.version, meta: r.meta || {} });
+        if (r.view || r.source || (r.help && (r.trust === "community" || r.trust === "local"))) for (const t of specs) ui.push({ type: t.type, spec: t, view: r.view || "", help: r.help || "", source: r.source || "", version: r.version, meta: r.meta || {} });
         return specs;
       }, () => [])));
       W.libraryUi = ui;

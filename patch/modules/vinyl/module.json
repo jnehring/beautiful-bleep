@@ -1,0 +1,13 @@
+{
+  "name": "Vinyl",
+  "slug": "vinyl",
+  "license": "GPL-3.0-or-later",
+  "language": "bleep-script",
+  "tagline": "Puts any signal through a record: cut and playback curve, mono bass, tracking distortion that grows towards the centre, rumble, hiss, dust, pops and scratches that come round once per turn, channel crosstalk and the wobble of an off-centre disc.",
+  "category": "Effects/Distortion",
+  "colour": "#92400e",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/vinyl.md"
+}
