@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // bleepmod.js — builds the package of a community module in the browser (the developer docs, "Publishing a module", "Share a module with the
-// community"): an unsigned .bleepmod, a zip with module.json, module.wasm, spec.json and the help page as doc/<name>.md. The library checks it,
+// community"): an unsigned .bleepmod, a zip with module.json, module.wasm, spec.json, the help page as doc/<name>.md and the module's own picture as view.sandbox.js. The library checks it,
 // signs it and publishes it (PUT /api/registry/community/modules/<name>/<version>).
 //
 //   BleepMod.zip([{ name, data }])      Uint8Array: a zip with every file stored as it is (data: a string or bytes)
-//   BleepMod.build({ handle, slug, version, title, summary, category, license, spec, wasm, help })   Uint8Array
+//   BleepMod.build({ handle, slug, version, title, summary, category, license, spec, wasm, help, view })   Uint8Array
 //   BleepMod.upload(bytes, slug, version, fetch?)   Promise<{ ok, id, version, error }>   the library's answer
 (function (root) {
   "use strict";
@@ -50,7 +50,7 @@
   }
 
   /// The package of one module: `spec` is the compiler's node type descriptions, compiled with the type id `<handle>/<slug>`.
-  function build({ handle, slug, version, title, summary, category, license, spec, wasm, help }) {
+  function build({ handle, slug, version, title, summary, category, license, spec, wasm, help, view }) {
     const text = (s, n) => String(s == null ? "" : s).slice(0, n);
     const meta = { types: spec.map((t) => t.type), requires: { engineAbi: 1 }, title: text(title, 120), summary: text(summary, 280), category: text(category, 64), license: text(license || "MIT", 120) };
     const files = [
@@ -59,6 +59,7 @@
       { name: "spec.json", data: JSON.stringify(spec) },
     ];
     if (help && String(help).trim()) files.push({ name: `doc/${slug}.md`, data: String(help) });
+    if (view && String(view).trim()) files.push({ name: "view.sandbox.js", data: String(view) });   // run only in the sandboxed worker frame, never in the page
     return zip(files);
   }
 

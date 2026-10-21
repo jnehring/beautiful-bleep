@@ -14,11 +14,13 @@
   let types = [], baseTypes = [], typesVersion = -1;
   /// The node types of this page: the engine's list, the released modules the list does not know yet, the user's own modules, the web link's and the Code node.
   async function listTypes() {
-    if (window.BleepUserModules) { await BleepUserModules.load(); typesVersion = BleepUserModules.version(); if (priv.BleepCode) priv.BleepCode.registerInstalledViews(); }
+    if (window.BleepUserModules) { await BleepUserModules.load(); typesVersion = BleepUserModules.version(); }
     types = baseTypes;
     // [bridge] Remote Audio and Remote MIDI come with the web link (patch/web/js/bridge-types.js), not with the engine's list.
     // Released modules the list above does not know yet, and the user's own: their node types come from the packages' spec.json.
     if (window.BleepWeb && BleepWeb.libraryTypes) types = types.concat(await BleepWeb.libraryTypes(types));
+    // the views of the user's own modules, the built-in ones, and the library's that bring a picture or a help page
+    if (priv.BleepCode) priv.BleepCode.registerInstalledViews((window.BleepWeb && BleepWeb.libraryUi) || []);
     if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
     // The Code node (board-code.js) where the Bleep Script compiler is part of the build.
     const code = priv.BleepCode;

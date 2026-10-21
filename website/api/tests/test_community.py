@@ -126,7 +126,7 @@ def test_login_is_required_and_the_library_must_be_set_up(client, community_on, 
 
 @pytest.mark.parametrize("data,why", ids=lambda v: v if isinstance(v, str) and len(v) < 60 else "package", argvalues=[
     (b"not a zip", "not a .bleepmod"),
-    (package(extra={"ui/view.js": b"alert(1)"}), "cannot bring its own JavaScript"),
+    (package(extra={"ui/view.js": b"alert(1)"}), "cannot bring page scripts"),
     (package(extra={"META/signature.json": b"{}"}), "upload the package unsigned"),
     (package(extra={"evil.exe": b"MZ"}), "not allowed in a community package"),
     (package(extra={"doc/pic.png": b"not a png"}), "not a PNG"),
@@ -291,3 +291,14 @@ def test_the_publisher_name_can_be_asked_for_before_publishing(client, community
     assert client.get("/api/registry/community/me").json() == {"handle": "zed"}
     assert client.post("/api/registry/community/handle").json() == {"handle": "zed"}   # the same again
     assert put(client, package()).json()["id"] == "zed/wobble"   # and it is the one a module is published under
+
+
+def test_a_package_may_bring_the_modules_picture_as_a_sandboxed_script(client, community_on, storage):
+    author(client)
+    r = put(client, package(extra={"view.sandbox.js": b"const c = bleep.canvas(100);"}))
+    assert r.status_code == 201, r.text
+    stored = zipfile.ZipFile(io.BytesIO(storage.objects["v1/modules/zed.wobble/1.0.0/wobble.bleepmod"]))
+    assert stored.read("view.sandbox.js") == b"const c = bleep.canvas(100);"   # kept, and covered by the library's signature
+    # only that exact name: a page script in a folder, or the same name elsewhere, is still refused
+    for name in ("ui/view.js", "view.js", "ui/view.sandbox.js", "x/view.sandbox.js"):
+        assert put(client, package(extra={name: b"x"}), version="1.0.1").status_code == 422, name

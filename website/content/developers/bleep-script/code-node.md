@@ -57,7 +57,7 @@ The **Metadata** tab holds what the module says about itself: the *publisher* (y
 
 ## Share
 
-**Share…** publishes the module in the Bleep Library as a community module, for everyone to install. It asks for the summary, category, licence, version and the help page, builds the package in the browser and uploads it under your library name (`<your name>/<module name>`); you must be logged in to the library. The library checks it and signs it. Each share needs a higher version than the last. A shared module carries no JavaScript, so it shows its knobs and not its own UI.
+**Share…** publishes the module in the Bleep Library as a community module, for everyone to install. It asks for the summary, category, licence, version and the help page, builds the package in the browser and uploads it under your library name (`<your name>/<module name>`); you must be logged in to the library. The library checks it and signs it. Each share needs a higher version than the last. The module's own UI goes with it (as `view.sandbox.js`) and runs only in the same sandbox as in your Code node, so a module from the library can show its picture, and its help page, like one you made.
 
 ## Panels
 

@@ -46,6 +46,12 @@ if (existsSync(wasmFile) && existsSync(specFile)) {
     const out = py("import sys,json; from app import community; files, meta = community.inspect(open(sys.argv[1],'rb').read()); print(json.dumps({'files': sorted(files), 'meta': meta}))", join(dir, "p.bleepmod"));
     const r = JSON.parse(out);
     assert.deepEqual(r.files, ["doc/preamp.md", "module.json", "module.wasm", "spec.json"]);
+    // with the module's own picture
+    const withView = Mod.build({ handle: "zed", slug: "preamp", version: "1.2.3", title: "Preamp", spec, wasm: readFileSync(wasmFile), help: "h", view: "const c = bleep.canvas(80);" });
+    writeFileSync(join(dir, "v.bleepmod"), withView);
+    const v = JSON.parse(py("import sys,json; from app import community; f,_=community.inspect(open(sys.argv[1],'rb').read()); print(json.dumps({'files': sorted(f), 'view': f['view.sandbox.js'].decode()}))", join(dir, "v.bleepmod")));
+    assert.deepEqual(v.files, ["doc/preamp.md", "module.json", "module.wasm", "spec.json", "view.sandbox.js"]);
+    assert.equal(v.view, "const c = bleep.canvas(80);");
     assert.deepEqual(r.meta.types, ["zed/preamp"]);
     assert.equal(r.meta.requires.engineAbi, 1);
     assert.equal(r.meta.summary.length, 280, "the summary is cut to what the library accepts");

@@ -122,7 +122,13 @@
       const m = await BleepLibrary.manifest();
       const have = new Set(known.map((t) => t.type));
       const slugs = Object.keys(m.modules).filter((slug) => (m.modules[slug].types || []).some((t) => !have.has(t)));
-      const found = await Promise.all(slugs.map((slug) => fetchModule(slug).then((r) => (r.spec || []).filter((t) => !have.has(t.type)), () => [])));
+      const ui = [];   // library modules that bring their own picture (view.sandbox.js) or help page: { type, spec, view, help }, for the board's views
+      const found = await Promise.all(slugs.map((slug) => fetchModule(slug).then((r) => {
+        const specs = (r.spec || []).filter((t) => !have.has(t.type));
+        if (r.view || (r.help && r.trust === "community")) for (const t of specs) ui.push({ type: t.type, spec: t, view: r.view || "", help: r.help || "" });
+        return specs;
+      }, () => [])));
+      W.libraryUi = ui;
       return found.flat();
     } catch (e) {
       return [];

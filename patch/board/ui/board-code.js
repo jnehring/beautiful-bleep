@@ -440,7 +440,7 @@
       const persist = () => { const code = view.node.code; if (code) view.api.setNodeProperty("code", withView({ ...code })); };
       S.shareDialog({
         name: i.name, slug: U.slugOf(i.name), hasUi: !!custom.getView().trim(),
-        get: () => ({ source: node.code.source, settings: { ...settingValues }, meta: meta.get(), help: help.getHelp() }),
+        get: () => ({ source: node.code.source, settings: { ...settingValues }, meta: meta.get(), help: help.getHelp(), view: custom.getView() }),
         save: ({ meta: m, help: h }) => { meta.set(m); help.setHelp(h); persist(); },
         compile: compileFor,
       });
@@ -673,6 +673,7 @@
     const statusEl = root.querySelector(".bc-status"), convert = root.querySelector(".bc-convert"), share = root.querySelector(".bc-share");
     const say = (text, cls = "") => { statusEl.textContent = text; statusEl.className = "bc-status " + cls; };
     say(entry.builtin ? "A module that comes with the board." : "");
+    if (entry.packaged) { root.querySelector(".bc-bar").hidden = true; return; }   // from the library: no source here to convert or share
     convert.addEventListener("click", async () => {
       convert.disabled = true;
       try {
@@ -689,7 +690,7 @@
       const current = () => installedTypes.get(view.node.type) || rec;
       S.shareDialog({
         name: entry.name, slug: entry.slug.slice(entry.slug.indexOf(".") + 1), hasUi: !!(entry.view && entry.view.trim()),
-        get: () => ({ source: current().entry.source, settings: current().entry.settings || {}, meta: current().entry.meta || S.defaults(entry.spec[0]), help: current().entry.help || "" }),
+        get: () => ({ source: current().entry.source, settings: current().entry.settings || {}, meta: current().entry.meta || S.defaults(entry.spec[0]), help: current().entry.help || "", view: current().entry.view || "" }),
         save: ({ meta: m, help: h }) => U.put({ ...current().entry, meta: m, help: h }),
         compile: async (source, typeId, settings) => { const { compile: run } = await compiler(); return run(source, { typeId, constants: settings }); },
       });
@@ -698,10 +699,12 @@
 
   /// Registers the view of every module the user saved (BleepViews.register keeps the first registration of a type, and the hooks look the
   /// module up here, so a module saved again shows its new source). Called when the node types are listed.
-  function registerInstalledViews() {
+  function registerInstalledViews(packaged) {
     const U = G.BleepUserModules;
-    if (!U || !G.BleepViews) return;
-    for (const entry of U.list()) for (const spec of entry.spec || []) {
+    if (!G.BleepViews) return;
+    // modules from the library that bring their own picture and/or help page (view.sandbox.js, doc/*.md): shown like the user's own, but with no source
+    const fromLibrary = (packaged || []).map((m) => ({ slug: m.type, name: m.spec.name, view: m.view || "", help: m.help || "", spec: [m.spec], packaged: true }));
+    for (const entry of [...(U ? U.list() : []), ...fromLibrary]) for (const spec of entry.spec || []) {
       installedTypes.set(spec.type, { entry, spec });
       if (G.BleepViews.get(spec.type)) continue;
       G.BleepViews.register(spec.type, {

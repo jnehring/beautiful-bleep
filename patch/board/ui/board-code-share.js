@@ -7,7 +7,7 @@
 //   BleepCodeShare.metaUi(view, root)      the Metadata tab: { get(), set(meta), showHandle() }; changes are saved on the node
 //   BleepCodeShare.libraryHandle(create)   Promise<{ signedIn, handle?, offline? }>: the library name of the logged-in user (made when `create`)
 //   BleepCodeShare.shareDialog(opts)       opens the dialog; opts: { name, slug, get(): { source, settings, meta, help }, save({ meta, help }),
-//                                          compile(source, typeId, settings): Promise<{ wasm, specs }|null>, hasUi }
+//                                          compile(source, typeId, settings): Promise<{ wasm, specs }|null>, hasUi }   (get() also returns the UI's source: view)
 (function () {
   "use strict";
   const G = typeof window !== "undefined" ? window : globalThis;
@@ -127,7 +127,7 @@
     fields.license.input.value = meta.license;
     fields.version.input.value = meta.shared ? nextVersion(meta.shared) : meta.version;
     fields.help.input.value = state.help || "";
-    const note = el("p", "share-note", opts.hasUi ? "The module's own picture (its UI) stays with you: a shared module carries no JavaScript, so it shows its knobs." : "");
+    const note = el("p", "share-note", opts.hasUi ? "The module's own picture (its UI) goes with it. It only ever runs in the same sandbox as in your Code node: no network, no storage, and it is stopped if it hangs." : "");
     const status = el("p", "share-status", "");
     const cancel = el("button", "", "Cancel"), go = el("button", "primary", "Share");
     cancel.type = go.type = "button";
@@ -173,7 +173,7 @@
         const r = await opts.compile(now.source, `${me.handle}/${slug}`, now.settings || {});
         if (!r || !r.wasm || !r.specs || !r.specs.length) { say("The module did not compile.", "bad"); return; }
         const bytes = Mod.build({ handle: me.handle, slug, version, title: opts.name, summary: edited.summary, category: edited.category, license: edited.license, spec: r.specs,
-          wasm: r.wasm, help });
+          wasm: r.wasm, help, view: now.view });
         say(`uploading ${Math.round(bytes.length / 1024)} KB…`);
         const done = await Mod.upload(bytes, slug, version);
         if (!done.ok) { say(done.error || "The library refused the module.", "bad"); return; }

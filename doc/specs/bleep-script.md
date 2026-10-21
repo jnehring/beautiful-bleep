@@ -408,7 +408,7 @@ Nothing else reaches the module. A probe is a snapshot copied out on a timer, so
      });
    });
    ```
-3. **Custom drawing.** A `frame()` method (about 60 Hz) emits drawing commands (`clear`, `line`, `rect`, `text`) that the host draws on a canvas. Same language, same sandbox, no DOM. Custom JS (like `lfo.js`) is possible but is the risky option; see 9.5.
+3. **Custom drawing.** A `frame()` method (about 60 Hz) emits drawing commands (`clear`, `line`, `rect`, `text`) that the host draws on a canvas. Same language, same sandbox, no DOM. Custom JS (like `lfo.js`) is possible; it runs in a sandboxed worker, see 9.5.
 
 ### 9.4 A shared widget registry
 
@@ -442,13 +442,12 @@ Existing module views mostly draw their displays with their own canvas code (92 
 
 ### 9.5 Security of UI code
 
-JS from a shared script would run in the app's page and could reach storage, patches and the network. So:
+JS from a shared script, run in the app's page, could reach storage, patches and the network. So a script's UI never runs in the page:
 
 - By default a script has no UI JS: automatic panel, widgets from the registry, or a draw list.
-- Custom JS runs in a **sandboxed iframe** without same-origin access, a CSP that blocks all network requests, and a small message API (read params and probes, set params, draw to its own canvas, get the theme).
-- It is allowed only for signed library modules, or after an explicit per-module user approval shown like a permission.
-
-Custom JS is left out of the first release.
+- Custom JS runs in a **Web Worker inside a sandboxed iframe**: no same-origin access, a CSP that blocks all network requests, no DOM, and a small message API (read params and probes, set params, draw on its own canvas, get the theme). The frame hands each finished picture to the board, forwards pointer events, and **terminates the worker** if it stops answering, never starts or floods messages. An endless loop cannot freeze the page.
+- Because of that, a UI needs **no approval**, wherever it comes from: a shared patch, a module in the library. What is left is a UI using the processor until it is stopped, and drawing misleading pixels inside its own box; neither reaches the board, patches or the network.
+- A module's own page scripts (`ui/*.js`, which run in the page) stay for first-party modules only. A community module brings its picture as the data file `view.sandbox.js`, which the board only ever hands to the sandbox.
 
 ## 10. Specs and documentation: one source of truth
 
