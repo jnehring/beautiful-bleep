@@ -8,28 +8,9 @@ order: -10
 
 **Bleep Script** lets you write parts of a patch as code. A **Code node** on the board has an editor and a Compile button. Depending on what you write, it becomes a new module with its own jacks, knobs and meters, or it builds a whole cell of modules and cables for you.
 
-```ts
-@module({ name: "Tremolo", category: "Utility/Script" })
-export class Tremolo {
-  @input({ name: "In", type: "audio" }) x: f32 = 0;
-  @output({ name: "Out", type: "audio" }) out: f32 = 0;
-  @param({ name: "Rate", min: 0.1, max: 20, init: 4, unit: "Hz" }) rate: f32 = 4;
-  @param({ name: "Depth", min: 0, max: 1, init: 0.5 }) depth: f32 = 0.5;
+![A Code node in Bleep Play holding the Tremolo example: the Compile button and status line on top, the script in the editor, and below it the module's meter and knobs.](/img/code-node-tremolo.png)
 
-  private phase: f64 = 0;
-  private sampleRate: f64;
-  constructor(sampleRate: f64) { this.sampleRate = sampleRate; }
-
-  sample(): void {
-    this.phase += <f64>this.rate / this.sampleRate;
-    this.phase -= Math.floor(this.phase);
-    const lfo = <f32>(0.5 + 0.5 * Math.sin(2.0 * Math.PI * this.phase));
-    this.out = this.x * (1 - this.depth * (1 - lfo));
-  }
-}
-```
-
-Compile that and the node gets an In jack, an Out jack and two dials. Nothing else is needed.
+This is the *Tremolo* example from the Examples menu. Compile it and the node gets an In jack, an Out jack, the Rate and Depth dials, a Shape menu and a meter for the LFO. Nothing else is needed: the decorators on top declare all of that, and `sample()` at the bottom is the sound.
 
 ## What it is for
 
