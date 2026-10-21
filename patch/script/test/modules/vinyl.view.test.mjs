@@ -68,13 +68,13 @@ const inRange = (sets) => sets.every(([id, val]) => { const p = m.spec.params.fi
   const run = (turn) => { const v = recorded(src, { probes: () => ({ turn, click: 0, level: 0.2 }) }); v.bleep.param("dust").setNormalised(1); v.frames(200); globalThis.__log.length = 0; v.frames(1); return globalThis.__log.join("|"); };
   check(run(0.137) !== run(0.5), "the disc follows the module's position on the turn");
 }
-// ---- the picture sits on a centred stage of at most 640 px: pointer hits must still land with the offset (widths 320, 700, 1400)
+// ---- the picture sits on a stage at the left edge of at most 640 px: pointer hits must still land with the offset (widths 320, 700, 1400)
 for (const W of [320, 700, 1400]) {
-  const SW = Math.min(W, 640), off = (W - SW) / 2;
+  const SW = Math.min(W, 640), off = 0;
   const v = runView(m.spec, src, { probes: loud, width: W }).frames(5);
   const s = v.drag((off + 0.34 * SW) / W, 0.5);
   check(s.length >= 1 && s[0][0] === "cartridge", `width ${W}: a click on the label lands (stage offset ${off} px)`, JSON.stringify(s));
-  const miss = v.drag(Math.max(0.001, (off - 6) / W) * (off > 6 ? 1 : 0) + 0.0005, 0.5);
-  check(off <= 6 || miss.length === 0, `width ${W}: a press outside the stage does nothing`, JSON.stringify(miss));
+  const miss = W > SW ? v.drag((SW + 8) / W, 0.5) : [];   // just to the right of the stage
+  check(miss.length === 0, `width ${W}: a press outside the stage does nothing`, JSON.stringify(miss));
 }
 finish();

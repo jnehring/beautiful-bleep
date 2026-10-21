@@ -7,8 +7,8 @@ const c = bleep.canvas(220);
 const T = bleep.theme;
 const tube = bleep.param("tube"), stages = bleep.param("stages"), gain = bleep.param("gain"), plate = bleep.param("plate");
 
-// 0. The stage: the canvas can be as wide as the node, so draw on a centred stage of at most 640 px (narrower canvases just get a narrower stage).
-const stageW = () => Math.min(640, c.width), stageX = () => (c.width - stageW()) / 2;
+// 0. The stage: the canvas can be as wide as the node, so draw on a stage of at most 640 px at the left edge (in line with the knobs below) (narrower canvases just get a narrower stage).
+const stageW = () => Math.min(640, c.width), stageX = () => 0;
 
 // 1. smoothed copies of the polled probes
 let supply = 1, grid = 0, level = 0, clock = 0;

@@ -13,8 +13,8 @@ const BANDS = [                                           // [kind, gain param, 
 ];
 const HP_HZ = [0, 30, 50, 80, 120];
 
-// 0. The stage: the canvas can be as wide as the node, so draw on a centred stage of at most 640 px (narrower canvases just get a narrower stage).
-const stageW = () => Math.min(640, c.width), stageX = () => (c.width - stageW()) / 2;
+// 0. The stage: the canvas can be as wide as the node, so draw on a stage of at most 640 px at the left edge (in line with the knobs below) (narrower canvases just get a narrower stage).
+const stageW = () => Math.min(640, c.width), stageX = () => 0;
 
 // 1. the maths: magnitude in dB of an RBJ biquad at f. The Q grows with the gain (proportional Q): a big boost is narrow.
 function band(kind, f0, gdb, f) {

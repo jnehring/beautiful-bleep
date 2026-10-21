@@ -36,13 +36,13 @@ for (const x of [0, 1]) { const v = runView(m.spec, src, { probes: states.loud }
   check(gs && gs[1] > 3 && fs && fs[1] >= 2, "dragging the LMF handle up and right raises its gain and snaps to a higher step", JSON.stringify([gs, fs]));
   check(sets.every(([id, val]) => { const p = m.spec.params.find((q) => q.id === id); return val >= p.min && val <= p.max; }), "every value set is inside its range");
 }
-{ // the LMF handle is found at canvas widths 320, 700 and 1400 (stage = min(640, width), centred)
+{ // the LMF handle is found at canvas widths 320, 700 and 1400 (stage = min(640, width), at the left edge)
   for (const w of [320, 700, 1400]) {
     const v = runView(m.spec, src, { probes: states.silence, width: w }); v.frames(2);
-    const sw = Math.min(640, w), off = (w - sw) / 2, hx = off + 8 + Math.log(500 / 20) / Math.log(1000) * (sw - 56);
+    const sw = Math.min(640, w), off = 0, hx = off + 8 + Math.log(500 / 20) / Math.log(1000) * (sw - 56);
     const sets = v.drag(hx / w, (10 + (240 - 24) / 2) / 240, hx / w, 0.2);
     check(sets.some(([id, val]) => id === "lmGain" && val > 3), `dragging the LMF handle works at canvas width ${w} px`, JSON.stringify(sets.slice(0, 2)));
-    check(v.drag(0.01, 0.5).length === 0 || w < 640, `a press beside the stage grabs nothing at ${w} px`);
+    check(v.drag(0.99, 0.5).length === 0 || w < 640, `a press beside the stage grabs nothing at ${w} px`);
   }
 }
 finish();

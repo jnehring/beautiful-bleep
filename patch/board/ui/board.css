@@ -645,11 +645,11 @@ body.plugin #side-toggle { display: none; }
 .ps-hint { color: var(--muted); }
 
 /* The Code module view (board-code.js) */
-.bc-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bc-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
 .bc-bar .bc-compile { background: var(--accent); color: #0b1d1b; border-color: var(--accent); font-weight: 600; }
 .bc-bar .bc-compile[disabled] { opacity: .5; }
 .bc-bar .bc-save, .bc-bar .bc-unsave { white-space: nowrap; }
-.bc-status { margin-left: auto; color: var(--muted); }
+.bc-status { margin-left: auto; flex: 1 1 14em; text-align: right; color: var(--muted); }
 .bc-status.ok { color: var(--accent); }
 .bc-status.bad { color: var(--warn); }
 .bc-editor { display: flex; height: 280px; background: var(--canvas); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }

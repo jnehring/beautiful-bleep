@@ -18,10 +18,10 @@ const ease = (cur, target, dt, k) => cur + (target - cur) * (1 - Math.exp(-dt * 
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const num = (x) => (Number.isFinite(x) ? x : 0);
 
-// The picture lives on a centred "stage" at most 640 px wide, so it looks the same in a narrow node and in a very wide one. On a canvas narrower
+// The picture lives on a "stage" at most 640 px wide at the left edge (in line with the knobs below), so it looks the same in a narrow node and in a very wide one. On a canvas narrower
 // than that the stage is simply the whole canvas and everything scales down. `off` is the stage's x offset: we translate by it when drawing and
 // subtract it from pointer positions.
-const stageW = () => Math.min(c.width, 640), off = () => (c.width - stageW()) / 2;
+const stageW = () => Math.min(c.width, 640), off = () => 0;
 
 // Where things are. Everything is derived from the canvas size so a narrow node still looks right.
 function layout() {
@@ -104,7 +104,7 @@ let dragging = false;
 const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: ((e.clientX - r.left) / (r.width || 1)) * c.width - off(), y: ((e.clientY - r.top) / (r.height || 1)) * c.height }; };
 c.el.addEventListener("pointerdown", (e) => {
   const p = pos(e), L = layout();
-  if (p.x < 0 || p.x > L.w) return;               // a press outside the centred stage does nothing
+  if (p.x < 0 || p.x > L.w) return;               // a press outside the stage does nothing
   // hit test: inside either reel's circle?
   if (Math.hypot(p.x - L.xl, p.y - L.cy) < L.R || Math.hypot(p.x - L.xr, p.y - L.cy) < L.R) {
     speedP.set((Math.round(speedP.value) + 1) % IPS.length);

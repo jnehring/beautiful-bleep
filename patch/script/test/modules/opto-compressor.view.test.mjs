@@ -41,8 +41,8 @@ for (const [name, p] of Object.entries(probes)) for (const width of [320, 520, 9
   check(v.bleep.param("mode").value === 0, "and back");
   check(v.failures.length === 0, "no failures during drags", v.failures.join("; "));
 }
-for (const W of [320, 700, 1400]) {   // the stage is centred and at most 640 px: hits must follow the offset
-  const SW = Math.min(W, 640), ox = (W - SW) / 2, H = 290, v = make({ probes: probes.silence, width: W }); v.frames(2);
+for (const W of [320, 700, 1400]) {   // the stage is at most 640 px, at the left edge: hits must follow the offset
+  const SW = Math.min(W, 640), ox = 0, H = 290, v = make({ probes: probes.silence, width: W }); v.frames(2);
   v.drag((ox + SW * 0.17) / W, 100 / H, (ox + SW * 0.17) / W, 70 / H);
   check(Math.abs(v.bleep.param("peakReduction").value - 65) < 1, `width ${W}: dragging the lamp on the centred stage sets Peak Reduction`, String(v.bleep.param("peakReduction").value));
   v.drag((ox + SW * 0.74) / W, 150 / H);

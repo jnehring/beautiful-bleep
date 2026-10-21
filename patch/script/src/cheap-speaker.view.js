@@ -42,8 +42,8 @@ function responseDb(d, bw, res, f) {
 
 const s = { cone: 0, level: 0, t: 0, hover: -1 };
 // Layout: the cone on the left, the response on the right, device tiles along the bottom.
-// The picture lives on a centred stage at most 640 px wide (the whole canvas when it is narrower); we translate by `off` to draw and subtract it from pointer x.
-const stageW = () => Math.min(c.width, 640), off = () => (c.width - stageW()) / 2;
+// The picture lives on a stage at most 640 px wide, at the left edge in line with the knobs below, (the whole canvas when it is narrower); we translate by `off` to draw and subtract it from pointer x.
+const stageW = () => Math.min(c.width, 640), off = () => 0;
 const L = () => { const w = stageW(), h = c.height; const R = Math.max(12, Math.min(h * 0.28, w * 0.16)); return { w, h, R, cx: w * 0.2, cy: h * 0.38, gx: w * 0.4, gy: 14, gw: w * 0.57, gh: h - 90, ty: h - 52 }; };
 const FMIN = 20, FMAX = 20000;
 const fx = (f, A) => A.gx + (Math.log(f / FMIN) / Math.log(FMAX / FMIN)) * A.gw;      // frequency -> x on a log axis

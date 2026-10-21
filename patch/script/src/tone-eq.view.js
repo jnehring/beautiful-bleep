@@ -8,9 +8,9 @@
 const T = bleep.theme;
 const c = bleep.canvas(260);                       // as wide as the node, 260 px high; c.g is a 2D context, c.width/height are in CSS pixels
 const P = (id) => bleep.param(id);
-// The stage: the canvas spans the whole node, so everything is drawn on a centred stage of at most 640 px. SW() is the stage width (it shrinks
+// The stage: the canvas spans the whole node, so everything is drawn on a stage of at most 640 px at the left edge (in line with the knobs below). SW() is the stage width (it shrinks
 // below 640 px, and the layout is written in terms of it), OX() the left offset: drawing is translated by it and pointer positions have it subtracted.
-const SW = () => Math.min(c.width, 640), OX = () => (c.width - SW()) / 2;
+const SW = () => Math.min(c.width, 640), OX = () => 0;
 const MODES = ["Passive Shelf", "Tilt", "Tone Stack"];
 const LOW = [20, 30, 60, 100], HIGH = [3000, 4000, 5000, 8000, 10000, 12000, 16000], ATT = [5000, 10000, 20000], PIVOT = [250, 400, 650, 1000, 1600, 2500];
 const DB = 18;                                     // the plot shows -18..+18 dB

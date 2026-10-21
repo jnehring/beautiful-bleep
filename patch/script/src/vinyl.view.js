@@ -17,8 +17,8 @@ const num = (x) => (Number.isFinite(x) ? x : 0);
 const ease = (cur, target, dt, k) => cur + (target - cur) * (1 - Math.exp(-dt * k));
 
 const s = { turn: 0, lastProbe: 0, click: 0, groove: 0, t: 0 };
-// The picture lives on a centred stage at most 640 px wide (the whole canvas when it is narrower); we translate by `off` to draw and subtract it from pointer x.
-const stageW = () => Math.min(c.width, 640), off = () => (c.width - stageW()) / 2;
+// The picture lives on a stage at most 640 px wide, at the left edge in line with the knobs below, (the whole canvas when it is narrower); we translate by `off` to draw and subtract it from pointer x.
+const stageW = () => Math.min(c.width, 640), off = () => 0;
 const L = () => { const w = stageW(), h = c.height; const R = Math.max(12, Math.min(h * 0.42, w * 0.3)); return { w, h, R, cx: w * 0.34, cy: h * 0.5, px: w * 0.86, py: h * 0.14 }; };
 // A cheap, repeatable pseudo-random number from an integer (so the dust specks keep their places from frame to frame).
 const hash = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
@@ -78,7 +78,7 @@ const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: ((e.cli
 const setInner = (p) => { const A = L(); const d = Math.hypot(p.x - A.cx, p.y - A.cy) / A.R; innerP.setNormalised(clamp((0.94 - d) / 0.58, 0, 1)); };
 c.el.addEventListener("pointerdown", (e) => {
   const p = pos(e), A = L();
-  if (p.x < 0 || p.x > A.w) return;               // a press outside the centred stage does nothing
+  if (p.x < 0 || p.x > A.w) return;               // a press outside the stage does nothing
   if (Math.hypot(p.x - A.cx, p.y - A.cy) < A.R * 0.3) { cartP.set((Math.round(cartP.value) + 1) % 3); return; }   // click the label
   dragging = true; c.el.setPointerCapture(e.pointerId); setInner(p);
 });

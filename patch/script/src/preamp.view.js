@@ -12,8 +12,8 @@ const T = bleep.theme;
 let core = 0, level = 0, phase = 0, heat = 0, drag = false, hover = false, wobble = 0;
 const ease = (cur, target, dt, rate) => cur + (target - cur) * (1 - Math.exp(-dt * rate));   // exponential smoothing, frame-rate independent
 
-// The stage: the canvas can be as wide as the node, so draw on a centred stage of at most 640 px (narrower canvases just get a narrower stage).
-const stageW = () => Math.min(640, c.width), stageX = () => (c.width - stageW()) / 2;
+// The stage: the canvas can be as wide as the node, so draw on a stage of at most 640 px at the left edge (in line with the knobs below) (narrower canvases just get a narrower stage).
+const stageW = () => Math.min(640, c.width), stageX = () => 0;
 
 // plot rectangle inside the canvas (recomputed per frame: the width can change)
 const area = () => ({ x: 14, y: 14, w: Math.max(40, stageW() - 28), h: c.height - 28 });

@@ -7,9 +7,9 @@
 const T = bleep.theme;
 const c = bleep.canvas(280);
 const P = (id) => bleep.param(id);
-// The stage: the canvas spans the whole node, so everything is drawn on a centred stage of at most 640 px. SW() is the stage width (it shrinks
+// The stage: the canvas spans the whole node, so everything is drawn on a stage of at most 640 px at the left edge (in line with the knobs below). SW() is the stage width (it shrinks
 // below 640 px, and the layout is written in terms of it), OX() the left offset: drawing is translated by it and pointer positions have it subtracted.
-const SW = () => Math.min(c.width, 640), OX = () => (c.width - SW()) / 2;
+const SW = () => Math.min(c.width, 640), OX = () => 0;
 const MODELS = ["Ribbon", "Dynamic", "Condenser", "Tube"];
 const PATTERN = [0, 0.5, 0.65, 0.6];                  // polar pattern r(a) = |A + (1 - A) cos a|: 0 is a figure-8, 1 would be an omni
 

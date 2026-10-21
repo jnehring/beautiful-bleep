@@ -35,13 +35,13 @@ for (const [name, probes] of Object.entries(states)) for (const width of [320, 5
   check(v2.failures.length === 0, "mock sanity");
   void recorded;
 }
-{ // pointer hits land on the stage whatever the canvas width (the stage is centred, at most 640 px)
-  const hit = (width, fx, fy) => { const v = runView(m.spec, src, { probes: states.moving, width }); v.frames(3); const stage = Math.min(640, width), off = (width - stage) / 2; return { v, x: (off + fx * stage) / width, w: width }; };
+{ // pointer hits land on the stage whatever the canvas width (the stage is at the left edge, at most 640 px)
+  const hit = (width, fx, fy) => { const v = runView(m.spec, src, { probes: states.moving, width }); v.frames(3); const stage = Math.min(640, width), off = 0; return { v, x: (off + fx * stage) / width, w: width }; };
   for (const width of [320, 700, 1400]) {
     const { v, x } = hit(width, 0.5, 0.5);
     const sets = v.drag(x, 0.5, x, 0.3);
     check(sets.some(([id]) => id === "drive"), `pointer hit at canvas width ${width} px reaches the stage`, JSON.stringify(sets.slice(0, 2)));
-    check(v.drag(0.02, 0.5).length === 0 || width < 640, `a press far outside the stage does nothing at ${width} px`);
+    check(v.drag(0.98, 0.5).length === 0 || width < 640, `a press far outside the stage does nothing at ${width} px`);
   }
 }
 finish();
