@@ -88,14 +88,26 @@ The playground example **Fold (own UI)** draws a transfer curve and lets you dra
 
 A param has `id`, `name`, `kind`, `unit`, `min`, `max`, `steps`, `choices`, a `value` in its own units, a `normalised` position from 0 to 1, and `set(units)` and `setNormalised(x)` to change it. A UI can set at most 240 values per second. An error in your code stops the UI and is shown in the editor with its line.
 
-You can also build ordinary DOM (buttons, inputs, selects) in the page body.
+### What a UI can use
+
+A UI draws on canvases and listens to the pointer. It runs in a worker, so there is **no DOM**: no `document`, no `window`, no buttons or inputs (draw them on the canvas, as the vintage modules' UIs do). The element `canvas.el` is a small stand-in with what a picture needs:
+
+| On `canvas.el` | |
+| --- | --- |
+| `addEventListener(type, fn)` | `pointerdown`, `pointermove`, `pointerup`, `pointercancel`, `pointerenter`, `pointerleave`, `wheel`, `click`, `dblclick`. The event has `clientX`, `clientY`, `pointerId`, `pointerType`, `button`, `buttons`, the modifier keys and `deltaX`, `deltaY`. A press captures the pointer, so a drag keeps working outside the picture |
+| `getBoundingClientRect()` | Where the canvas is, for turning `clientX` and `clientY` into picture coordinates |
+| `style.cursor` | `pointer`, `crosshair`, `grab`, `move`, `ns-resize`, `ew-resize` and the other common cursors |
+
+`canvas.g` is an ordinary 2D context (the browser's `OffscreenCanvas`): paths, gradients, shadows, `roundRect`, text with system fonts. `Math`, `Date`, typed arrays and the rest of JavaScript's own library are there.
 
 ## The sandbox
 
-A self-made UI is code written by whoever made the script, so it runs in a frame the browser keeps apart from the board:
+A self-made UI is code written by whoever made the script, so it runs where the browser keeps it apart from the board, and it runs **without asking**:
 
-- it has no network, storage, cookies or access to the board, your patches or the native app: it can compute, draw and talk to its module through `bleep`;
-- the board asks you before it runs a script's UI for the first time. Decline and the node shows the standard controls;
-- one thing a frame cannot prevent: a loop that never ends freezes the page, because a frame cannot be stopped from outside. Reload to recover.
+- it runs in a worker inside a sandboxed frame with no network, storage, cookies or access to the board, your patches or the native app: it can compute, draw and talk to its module through `bleep`, nothing else;
+- the frame hands each finished picture to the board and watches the worker. A UI that stops answering for a moment (an endless loop in a frame callback) or never gets started (an endless loop at the top of the code) is **stopped**, the UI shows the error, and the board carries on. It cannot freeze the page;
+- a UI cannot use more than the messages `bleep` has: it sets at most 240 values per second, and a flood of messages stops it.
+
+What a UI can still do is use your processor until the watchdog stops it, and draw whatever it likes inside its own box. Neither reaches your patches or your data.
 
 The UI is stored with the script, so it is shared and versioned with it. See [Limits and safety](implementation/limits.md).

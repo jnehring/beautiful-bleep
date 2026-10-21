@@ -2,119 +2,270 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception -->
 <!-- The page a Code node's own JavaScript UI runs in (board-code.js). It is loaded in an iframe with sandbox="allow-scripts" and no
      allow-same-origin: the code in it has no access to the board, its storage, cookies or the native bridge, and this policy gives it no network
-     at all (default-src 'none'): it can compute, draw and talk to the board through the `bleep` object below, nothing else. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
+     at all (default-src 'none').
+
+     The UI's code does not run on this page's thread. It runs in a Web Worker made from a blob (worker-src blob:), which inherits this policy: no
+     network, no storage, no DOM. The worker draws on OffscreenCanvases and hands each finished frame to this page as an ImageBitmap; this page
+     paints it, forwards pointer events to the worker, relays the worker's messages to the board, and watches it: a worker that stops answering
+     (an endless loop) is terminated and the UI says so, the board never freezes. That is why a UI from a patch can run without asking. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; worker-src blob:; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'">
 <title>Code node UI</title>
 <meta name="color-scheme" content="dark">
 <style>
   :root { color-scheme: dark; }
   html, body { margin: 0; padding: 0; background: #252932; color: #e7e9ee; font: 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; overflow: hidden; }
-  canvas { display: block; width: 100%; }
-  button, select, input { font: inherit; color: inherit; }
+  canvas { display: block; width: 100%; touch-action: none; }
 </style>
 </head>
 <body>
 <script>
 (function () {
   "use strict";
-  var send = function (m) { parent.postMessage(m, "*"); };
-  var started = false, failed = false;
-  var specs = new Map(), normalised = {}, probes = {}, frameCallbacks = [], valueCallbacks = [], last = 0, canvases = [];
 
-  // The value of a knob in its own units, as the engine maps it (engine/Spec.h)
-  function toUnits(p, x) {
-    var v;
-    if (p.map === "exp") v = p.min * Math.pow(p.max / p.min, x);
-    else if (p.map === "skew") { var skew = Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min)); v = x <= 0 ? p.min : p.min + (p.max - p.min) * Math.exp(Math.log(x) / skew); }
-    else v = p.min + (p.max - p.min) * x;
-    return p.kind === "float" ? v : Math.round(v);
+  // ---- the worker: the UI's own code and the `bleep` object it is given. Self-contained: it is turned into a string and run as a blob worker. ----
+  function workerMain() {
+    "use strict";
+    var post = self.postMessage.bind(self);
+    // What a UI must not use. The policy of the page already blocks the network and the storage; this takes the names away as well.
+    ["fetch", "XMLHttpRequest", "WebSocket", "EventSource", "importScripts", "Worker", "SharedWorker", "indexedDB", "caches", "BroadcastChannel", "WebTransport"].forEach(function (n) {
+      try { Object.defineProperty(self, n, { value: undefined, configurable: false, writable: false }); } catch (e) { /* not there */ }
+    });
+
+    var specs = new Map(), normalised = {}, probes = {}, frameCbs = [], valueCbs = [], canvases = new Map(), nextId = 1;
+    var vp = { w: 300, h: 200, dpr: 1 }, rects = {}, failed = false;
+
+    function toUnits(p, x) {
+      var v;
+      if (p.map === "exp") v = p.min * Math.pow(p.max / p.min, x);
+      else if (p.map === "skew") { var skew = Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min)); v = x <= 0 ? p.min : p.min + (p.max - p.min) * Math.exp(Math.log(x) / skew); }
+      else v = p.min + (p.max - p.min) * x;
+      return p.kind === "float" ? v : Math.round(v);
+    }
+    function lineOf(e) {
+      var m = /<anonymous>:(\d+):/.exec(String(e && e.stack || "")) || /eval.*?:(\d+):\d+/.exec(String(e && e.stack || ""));
+      return m ? Math.max(1, Number(m[1]) - 2) : null;   // new Function adds two lines of header
+    }
+    function fail(e) {
+      if (failed) return;
+      failed = true;
+      var message = String(e && e.message || e);
+      if (/\b(document|window|localStorage|alert) is not defined/.test(message)) message += " (a UI runs in a worker: draw with bleep.canvas, there is no DOM)";
+      post({ t: "error", message: message, line: lineOf(e) });
+    }
+    function guard(fn) { return function () { try { return fn.apply(null, arguments); } catch (e) { fail(e); } }; }
+
+    function makeParam(p) {
+      return Object.freeze({
+        id: p.id, name: p.name, kind: p.kind, unit: p.label || "", min: p.min, max: p.max, steps: p.steps || 0, choices: p.choices ? p.choices.slice() : [],
+        /** The value in its own units (dB, an integer, a choice index, true as 1). */
+        get value() { return toUnits(p, normalised[p.id] !== undefined ? normalised[p.id] : p.default); },
+        /** The knob's position from 0 to 1. */
+        get normalised() { return normalised[p.id] !== undefined ? normalised[p.id] : p.default; },
+        /** Sets the value in its own units. */
+        set: function (v) { v = Number(v); if (isFinite(v)) post({ t: "set", id: p.id, units: v }); },
+        setNormalised: function (x) { x = Number(x); if (isFinite(x)) post({ t: "set", id: p.id, x: Math.max(0, Math.min(1, x)) }); },
+      });
+    }
+
+    /** A canvas the UI draws on: { el, g, width, height }. g draws on an OffscreenCanvas; el is a small stand-in for the canvas element (pointer events,
+     *  getBoundingClientRect, style.cursor). */
+    function makeCanvas(height) {
+      var fill = height === "fill";
+      height = fill ? Math.max(20, vp.h) : Math.max(20, Math.min(800, Number(height) || 160));
+      var id = nextId++, off = new OffscreenCanvas(1, 1), present = new OffscreenCanvas(1, 1);
+      var listeners = {}, c = { el: null, g: off.getContext("2d"), height: height, width: vp.w };
+      var style = new Proxy({}, { set: function (t, k, v) { t[k] = v; if (k === "cursor") post({ t: "cursor", id: id, value: String(v) }); return true; } });
+      c.el = {
+        style: style,
+        get width() { return off.width; }, get height() { return off.height; },
+        addEventListener: function (type, fn) { if (typeof fn === "function") (listeners[type] = listeners[type] || []).push(guard(fn)); },
+        removeEventListener: function () {},
+        getBoundingClientRect: function () {
+          var r = rects[id] || { left: 0, top: 0 };
+          return { x: r.left, y: r.top, left: r.left, top: r.top, width: c.width, height: c.height, right: r.left + c.width, bottom: r.top + c.height };
+        },
+        setPointerCapture: function () {}, releasePointerCapture: function () {}, focus: function () {}, blur: function () {}, dispatchEvent: function () { return true; },
+      };
+      canvases.set(id, { id: id, c: c, fill: fill, off: off, present: present, pg: present.getContext("2d"), listeners: listeners });
+      fit(canvases.get(id));
+      post({ t: "canvas", id: id, h: height, fill: fill });
+      return c;
+    }
+    function fit(e) {
+      var c = e.c, dpr = vp.dpr || 1;
+      if (e.fill) c.height = Math.max(20, vp.h);
+      c.width = Math.max(1, vp.w);
+      var pw = Math.round(c.width * dpr), ph = Math.round(c.height * dpr);
+      if (e.off.width !== pw || e.off.height !== ph) { e.off.width = pw; e.off.height = ph; }
+      c.g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    function publish(e) {
+      if (e.present.width !== e.off.width || e.present.height !== e.off.height) { e.present.width = e.off.width; e.present.height = e.off.height; }
+      e.pg.drawImage(e.off, 0, 0);
+      var bmp = e.present.transferToImageBitmap();
+      post({ t: "bitmap", id: e.id, bmp: bmp }, [bmp]);
+    }
+
+    function start(m) {
+      m.params.forEach(function (p) { specs.set(p.id, p); normalised[p.id] = m.values[p.id]; });
+      probes = Object.assign({}, m.probes || {});
+      vp = m.vp || vp;
+      var objects = m.params.map(makeParam), byId = new Map(objects.map(function (p) { return [p.id, p]; }));
+      var api = Object.freeze({
+        /** Every knob of the module: { id, name, kind, unit, min, max, value, normalised, set(units), setNormalised(x) }. */
+        params: Object.freeze(objects),
+        /** One knob by id. */
+        param: function (id) { var p = byId.get(String(id)); if (!p) throw new Error("no param '" + id + "' (" + objects.map(function (q) { return q.id; }).join(", ") + ")"); return p; },
+        /** The latest value of a @probe, 0 until the module has reported one. */
+        probe: function (id) { var v = probes[String(id)]; return typeof v === "number" ? v : 0; },
+        /** Presses one of the module's @button methods. */
+        button: function (id) { post({ t: "command", id: String(id).slice(0, 2000) }); },
+        /** Calls fn(dtSeconds) every animation frame while the UI is on screen. */
+        onFrame: function (fn) { if (typeof fn === "function") frameCbs.push(guard(fn)); },
+        /** Calls fn() when a knob or probe value has changed. */
+        onValues: function (fn) { if (typeof fn === "function") valueCbs.push(guard(fn)); },
+        /** Asks the board for a height in pixels (40 to 800); the width is the view's. */
+        size: function (h) { post({ t: "size", h: Number(h) }); },
+        /** A canvas as wide as the view, `height` CSS pixels high, scaled for the screen: { el, g, width, height }.
+         *  canvas("fill") makes it as high as the view too, which follows the Code window when it is resized or fullscreen. */
+        canvas: makeCanvas,
+        /** The board's colours: { bg, panel, line, text, muted, accent, warn }. */
+        theme: Object.freeze(Object.assign({}, m.theme)),
+      });
+      try { (new Function("bleep", m.source))(api); }
+      catch (e) { fail(e); return; }
+      post({ t: "ready" });
+    }
+
+    var POINTER = { pointerdown: 1, pointermove: 1, pointerup: 1, pointercancel: 1, pointerenter: 1, pointerleave: 1, wheel: 1, click: 1, dblclick: 1 };
+    self.addEventListener("message", function (ev) {
+      var m = ev.data;
+      if (!m || typeof m !== "object" || failed) return;
+      if (m.t === "init") start(m);
+      else if (m.t === "frame") {
+        vp = m.vp || vp; rects = m.rects || rects;
+        canvases.forEach(fit);
+        for (var i = 0; i < frameCbs.length; i++) frameCbs[i](m.dt);
+        if (!failed) canvases.forEach(publish);
+        post({ t: "done" });
+      } else if (m.t === "state") {
+        if (m.values) for (var id in m.values) if (specs.has(id)) normalised[id] = m.values[id];
+        if (m.probes) Object.assign(probes, m.probes);
+        for (var j = 0; j < valueCbs.length; j++) valueCbs[j]();
+      } else if (m.t === "pointer" && POINTER[m.type]) {
+        var e = canvases.get(m.id), fns = e && e.listeners[m.type];
+        if (!fns) return;
+        var o = m.e || {};
+        o.type = m.type; o.target = o.currentTarget = e.c.el;
+        o.preventDefault = o.stopPropagation = function () {};
+        for (var k = 0; k < fns.length; k++) fns[k](o);
+      }
+    });
+    self.addEventListener("error", function (ev) { fail(ev.error || ev.message); ev.preventDefault(); });
+    self.addEventListener("unhandledrejection", function (ev) { fail(ev.reason); });
+    post({ t: "hello" });
   }
-  function fail(e) {
+
+  // ---- this page: canvases, pointer events, the relay to the board, and the watchdog ------------------------------------------------------------------
+  var send = function (m) { parent.postMessage(m, "*"); };
+  var worker = null, blobUrl = "", ready = false, failed = false, busySince = 0, last = 0, startTimer = 0, canvases = new Map(), pendingMove = new Map();
+  var START_LIMIT = 3000, BUSY_LIMIT = 1500, MAX_MESSAGES = 6000, windowStart = 0, windowCount = 0, painted = false;
+  var CURSORS = { "": 1, auto: 1, default: 1, pointer: 1, crosshair: 1, move: 1, grab: 1, grabbing: 1, text: 1, "ns-resize": 1, "ew-resize": 1, "nwse-resize": 1, "nesw-resize": 1, "col-resize": 1, "row-resize": 1, "not-allowed": 1, none: 1 };
+
+  function viewport() { return { w: Math.max(1, Math.round(document.body.clientWidth)), h: Math.max(20, window.innerHeight), dpr: window.devicePixelRatio || 1 }; }
+  function rectsNow() {
+    var out = {};
+    canvases.forEach(function (c, id) { var r = c.el.getBoundingClientRect(); out[id] = { left: r.left, top: r.top }; });
+    return out;
+  }
+  function stop() {
+    if (worker) { worker.terminate(); worker = null; }
+    if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = ""; }
+    clearTimeout(startTimer);
+  }
+  function fail(message, line) {
     if (failed) return;
     failed = true;
-    send({ t: "error", message: String(e && e.message || e), line: lineOf(e) });
-  }
-  function lineOf(e) {
-    var m = /<anonymous>:(\d+):/.exec(String(e && e.stack || "")) || /eval.*?:(\d+):\d+/.exec(String(e && e.stack || ""));
-    return m ? Math.max(1, Number(m[1]) - 2) : null;   // new Function adds two lines of header
-  }
-  function guard(fn) { return function () { try { return fn.apply(null, arguments); } catch (e) { fail(e); } }; }
-
-  function makeParam(p) {
-    var o = {
-      id: p.id, name: p.name, kind: p.kind, unit: p.label || "", min: p.min, max: p.max, steps: p.steps || 0, choices: p.choices ? p.choices.slice() : [],
-      /** The value in its own units (dB, an integer, a choice index, true as 1). */
-      get value() { return toUnits(p, normalised[p.id] !== undefined ? normalised[p.id] : p.default); },
-      /** The knob's position from 0 to 1. */
-      get normalised() { return normalised[p.id] !== undefined ? normalised[p.id] : p.default; },
-      /** Sets the value in its own units. */
-      set: function (v) { v = Number(v); if (isFinite(v)) send({ t: "set", id: p.id, units: v }); },
-      setNormalised: function (x) { x = Number(x); if (isFinite(x)) send({ t: "set", id: p.id, x: Math.max(0, Math.min(1, x)) }); },
-    };
-    return Object.freeze(o);
+    stop();
+    send({ t: "error", message: String(message).slice(0, 300), line: Number.isInteger(line) ? line : null });
   }
 
-  function start(m) {
-    if (started) return;
-    started = true;
-    m.params.forEach(function (p) { specs.set(p.id, p); normalised[p.id] = m.values[p.id]; });
-    probes = Object.assign({}, m.probes || {});
-    var paramObjects = m.params.map(makeParam), byId = new Map(paramObjects.map(function (p) { return [p.id, p]; }));
-    var api = {
-      /** Every knob of the module: { id, name, kind, unit, min, max, value, normalised, set(units), setNormalised(x) }. */
-      params: Object.freeze(paramObjects),
-      /** One knob by id. */
-      param: function (id) { var p = byId.get(String(id)); if (!p) throw new Error("no param '" + id + "' (" + paramObjects.map(function (q) { return q.id; }).join(", ") + ")"); return p; },
-      /** The latest value of a @probe, 0 until the module has reported one. */
-      probe: function (id) { var v = probes[String(id)]; return typeof v === "number" ? v : 0; },
-      /** Presses one of the module's @button methods. */
-      button: function (id) { send({ t: "command", id: String(id) }); },
-      /** Calls fn(dtSeconds) every animation frame while the UI is on screen. */
-      onFrame: function (fn) { if (typeof fn === "function") frameCallbacks.push(guard(fn)); },
-      /** Calls fn() when a knob or probe value has changed. */
-      onValues: function (fn) { if (typeof fn === "function") valueCallbacks.push(guard(fn)); },
-      /** Asks the board for a height in pixels (40 to 800); the width is the view's. */
-      size: function (h) { send({ t: "size", h: Number(h) }); },
-      /** A canvas as wide as the view, `height` CSS pixels high, scaled for the screen: { el, g, width, height }.
-       *  canvas("fill") makes it as high as the view too, which follows the Code window when it is resized or fullscreen. */
-      canvas: function (height) {
-        var fill = height === "fill";
-        height = fill ? Math.max(20, window.innerHeight) : Math.max(20, Math.min(800, Number(height) || 160));
-        var el = document.createElement("canvas"), g = el.getContext("2d");
-        el.style.height = height + "px";
-        document.body.appendChild(el);
-        var c = { el: el, g: g, height: height, width: 0 };
-        function fit() {
-          if (fill) { height = Math.max(20, window.innerHeight); c.height = height; el.style.height = height + "px"; }
-          var dpr = window.devicePixelRatio || 1, w = Math.max(1, Math.round(document.body.clientWidth));
-          if (el.width !== Math.round(w * dpr) || el.height !== Math.round(height * dpr)) { el.width = Math.round(w * dpr); el.height = Math.round(height * dpr); }
-          g.setTransform(dpr, 0, 0, dpr, 0, 0);
-          c.width = w;
+  function addCanvas(id, height, fill) {
+    var el = document.createElement("canvas");
+    el.style.height = (fill ? Math.max(20, window.innerHeight) : height) + "px";
+    document.body.appendChild(el);
+    var entry = { el: el, g: el.getContext("2d"), fill: fill };
+    canvases.set(id, entry);
+    Object.keys({ pointerdown: 1, pointermove: 1, pointerup: 1, pointercancel: 1, pointerenter: 1, pointerleave: 1, wheel: 1, click: 1, dblclick: 1 }).forEach(function (type) {
+      el.addEventListener(type, function (e) {
+        if (!worker || !ready) return;
+        if (type === "pointerdown") { try { el.setPointerCapture(e.pointerId); } catch (x) { /* not capturable */ } }
+        var o = { clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId, pointerType: e.pointerType, button: e.button, buttons: e.buttons,
+                  shiftKey: e.shiftKey, ctrlKey: e.ctrlKey, altKey: e.altKey, metaKey: e.metaKey, deltaX: e.deltaX || 0, deltaY: e.deltaY || 0, detail: e.detail || 0 };
+        var msg = { t: "pointer", id: id, type: type, e: o };
+        if (type === "pointermove" && busySince) { pendingMove.set(id, msg); return; }   // the worker is busy: only the latest move is kept
+        worker.postMessage(msg);
+      });
+    });
+    if (!fill) send({ t: "size", h: document.body.scrollHeight });
+  }
+
+  function onWorker(ev) {
+    var m = ev.data, now = performance.now();
+    if (!m || typeof m !== "object") return;
+    if (now - windowStart > 1000) { windowStart = now; windowCount = 0; }
+    if (++windowCount > MAX_MESSAGES) { fail("the UI sent too many messages and was stopped"); return; }
+    switch (m.t) {
+      case "canvas": if (Number.isFinite(m.id) && !canvases.has(m.id) && canvases.size < 8) addCanvas(m.id, Math.max(20, Math.min(800, Number(m.h) || 160)), !!m.fill); break;
+      case "bitmap": {
+        var c = canvases.get(m.id);
+        if (c && m.bmp) {
+          if (c.el.width !== m.bmp.width || c.el.height !== m.bmp.height) { c.el.width = m.bmp.width; c.el.height = m.bmp.height; }
+          c.g.drawImage(m.bmp, 0, 0);
+          if (!painted) { painted = true; send({ t: "painted" }); }
         }
-        fit();
-        canvases.push(fit);
-        if (!fill) api.size(document.body.scrollHeight);
-        return c;
-      },
-      /** The board's colours: { bg, panel, line, text, muted, accent, warn }. */
-      theme: Object.freeze(Object.assign({}, m.theme)),
-    };
-    Object.freeze(api);
-    if (m.theme && m.theme.panel) document.documentElement.style.background = m.theme.panel;
-    try { (new Function("bleep", m.source))(api); }
-    catch (e) { fail(e); return; }
-    send({ t: "ready" });
-    requestAnimationFrame(tick);
+        if (m.bmp && m.bmp.close) m.bmp.close();
+        break;
+      }
+      case "done": busySince = 0; break;
+      case "ready": ready = true; clearTimeout(startTimer); send({ t: "ready" }); break;
+      case "set": if (typeof m.id === "string" && (Number.isFinite(m.x) || Number.isFinite(m.units))) send({ t: "set", id: m.id, x: Number.isFinite(m.x) ? m.x : undefined, units: Number.isFinite(m.units) ? m.units : undefined }); break;
+      case "command": if (typeof m.id === "string") send({ t: "command", id: m.id.slice(0, 2000) }); break;
+      case "size": if (Number.isFinite(m.h)) send({ t: "size", h: m.h }); break;
+      case "cursor": { var cv = canvases.get(m.id); if (cv && CURSORS[m.value] === 1) cv.el.style.cursor = m.value; break; }
+      case "error": fail(m.message || "error", m.line); break;
+      default: break;
+    }
   }
 
   function tick(now) {
-    if (failed) return;
+    if (failed || !worker) return;
+    requestAnimationFrame(tick);
+    if (!ready || busySince) return;
     var dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
     last = now;
-    canvases.forEach(function (f) { f(); });
-    for (var i = 0; i < frameCallbacks.length; i++) frameCallbacks[i](dt);
+    busySince = performance.now();
+    pendingMove.forEach(function (msg) { worker.postMessage(msg); });
+    pendingMove.clear();
+    worker.postMessage({ t: "frame", dt: dt, vp: viewport(), rects: rectsNow() });
+  }
+  // a worker that does not answer is stopped (an endless loop in the UI's code); this timer keeps running when animation frames do not
+  setInterval(function () {
+    if (worker && busySince && performance.now() - busySince > BUSY_LIMIT) fail("the UI stopped answering and was stopped");
+  }, 400);
+
+  function init(m) {
+    if (worker || failed) return;
+    if (m.theme && m.theme.panel) document.documentElement.style.background = m.theme.panel;
+    blobUrl = URL.createObjectURL(new Blob(["(" + workerMain.toString() + ")();"], { type: "text/javascript" }));
+    try { worker = new Worker(blobUrl); } catch (e) { fail("the UI could not start: " + (e && e.message || e)); return; }
+    worker.onmessage = onWorker;
+    worker.onerror = function (e) { e.preventDefault && e.preventDefault(); fail(e.message || "the UI failed"); };
+    worker.postMessage({ t: "init", source: m.source, params: m.params, values: m.values, probes: m.probes || {}, theme: m.theme || {}, vp: viewport() });
+    startTimer = setTimeout(function () { fail("the UI did not start in time and was stopped"); }, START_LIMIT);
     requestAnimationFrame(tick);
   }
 
@@ -122,15 +273,10 @@
     if (e.source !== parent) return;
     var m = e.data;
     if (!m || typeof m !== "object") return;
-    if (m.t === "init") start(m);
-    else if (m.t === "state" && started) {
-      if (m.values) for (var id in m.values) if (specs.has(id)) normalised[id] = m.values[id];
-      if (m.probes) Object.assign(probes, m.probes);
-      for (var i = 0; i < valueCallbacks.length; i++) valueCallbacks[i]();
-    }
+    if (m.t === "init") init(m);
+    else if (m.t === "state" && worker && ready) worker.postMessage({ t: "state", values: m.values, probes: m.probes });
   });
-  window.addEventListener("error", function (e) { fail(e.error || e.message); });
-  window.addEventListener("unhandledrejection", function (e) { fail(e.reason); });
+  window.addEventListener("error", function (e) { fail(e.message || "error"); });
   send({ t: "hello" });
 })();
 </script>

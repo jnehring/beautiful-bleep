@@ -1,0 +1,50 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception -->
+<title>custom ui live</title>
+<!-- One module's own UI (script/src/<name>.view.js) in the real sandboxed frame (board/ui/board-code-view.html), with the board's side of the protocol
+     played here: the knobs live in this page, the probes move on their own, and everything the UI does is logged in window._ui. Driven by
+     test/browser/ui-chrome.mjs (a real mouse through the DevTools protocol); ?name=<module>&w=<css px>. -->
+<style>body { margin: 10px; background: #1b1e23; } iframe { display: block; border: 0; background: #252932; }</style>
+<script type="module">
+const q = new URLSearchParams(location.search), name = q.get("name"), W = Number(q.get("w") || 700);
+const _ui = window._ui = { sets: [], errors: [], painted: false, ready: false, height: 0, values: {}, commands: [] };
+const spec = (await (await fetch(`/script/build/${name}.spec.json`)).json())[0];
+const source = await (await fetch(`/script/src/${name}.view.js`)).text();
+const norm = (p, v) => p.map === "exp" ? Math.log(v / p.min) / Math.log(p.max / p.min) : p.map === "skew" ? Math.pow(Math.max(0, (v - p.min) / (p.max - p.min)), Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min))) : (v - p.min) / (p.max - p.min);
+const unit = (p, x) => p.map === "exp" ? p.min * Math.pow(p.max / p.min, x) : p.map === "skew" ? p.min + (p.max - p.min) * Math.exp(Math.log(Math.max(x, 1e-9)) / (Math.log(0.5) / Math.log((p.centre - p.min) / (p.max - p.min)))) : p.min + (p.max - p.min) * x;
+const slim = spec.params.map((p) => ({ id: p.id, name: p.name, kind: p.kind, min: p.min, max: p.max, map: p.map, centre: p.centre, choices: p.choices, steps: p.steps, label: p.label, default: p.default }));
+const values = Object.fromEntries(spec.params.map((p) => [p.id, p.default]));
+_ui.values = values;
+const f = document.createElement("iframe");
+f.setAttribute("sandbox", "allow-scripts");
+f.style.cssText = `width:${W}px;height:200px`;
+f.src = "/board/ui/board-code-view.html";
+document.body.append(f);
+const probeIds = (spec.probes || []).map((p) => p.id);
+const probes = {};
+window.addEventListener("message", (e) => {
+  if (e.source !== f.contentWindow) return;
+  const m = e.data;
+  if (m.t === "hello") f.contentWindow.postMessage({ t: "init", source, params: slim, values, probes, theme: { bg: "#14161a", panel: "#1b1e23", line: "#2c3038", text: "#e6e8eb", muted: "#8b93a1", accent: "#f59e0b", warn: "#ef4444" } }, "*");
+  else if (m.t === "ready") _ui.ready = true;
+  else if (m.t === "painted") _ui.painted = true;
+  else if (m.t === "error") _ui.errors.push(m.message + (m.line ? " (line " + m.line + ")" : ""));
+  else if (m.t === "size") { _ui.height = m.h; f.style.height = Math.max(40, Math.min(800, m.h)) + "px"; }
+  else if (m.t === "command") _ui.commands.push(m.id);
+  else if (m.t === "set") {
+    const p = spec.params.find((x) => x.id === m.id);
+    if (!p) return;
+    const x = Number.isFinite(m.x) ? m.x : Math.min(1, Math.max(0, norm(p, m.units)));
+    values[p.id] = p.steps > 1 ? Math.round(x * (p.steps - 1)) / (p.steps - 1) : x;
+    _ui.sets.push({ id: p.id, x: values[p.id], value: unit(p, values[p.id]) });
+  }
+});
+let t = 0;
+setInterval(() => {
+  t += 0.033;
+  const burst = Math.max(0, Math.sin(t * 1.3)) ** 2;
+  for (const id of probeIds) probes[id] = id === "dropout" ? (Math.sin(t * 0.7) > 0.95 ? 0.8 : 0) : id === "turn" ? (t / 1.8) % 1 : id === "wobble" ? 8 * Math.sin(t * 2.1) : id === "gr" || id === "reduction" ? burst * 0.8 : id === "fast" ? burst * 6 : id === "charge" ? Math.min(1, t % 10 / 8) : Math.min(1.4, burst * (0.6 + 0.4 * Math.sin(t * 7 + id.length)));
+  if (_ui.ready) f.contentWindow.postMessage({ t: "state", values, probes }, "*");
+}, 33);
+</script>

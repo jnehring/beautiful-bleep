@@ -23,7 +23,7 @@ SERVER=$!; disown
 "$CHROME" --headless=new --disable-gpu --no-first-run --user-data-dir="$(mktemp -d)" "http://localhost:$PORT/script/test/browser/custom-ui.html" >/dev/null 2>&1 &
 BROWSER=$!
 trap 'kill $SERVER $BROWSER 2>/dev/null || true; pkill -f "user-data-dir=.*" 2>/dev/null || true' EXIT
-for _ in $(seq 1 60); do [ -s "$RESULT" ] && break; sleep 0.5; done
+for _ in $(seq 1 160); do [ -s "$RESULT" ] && break; sleep 0.5; done
 [ -s "$RESULT" ] || { echo "no result from the page"; exit 1; }
 python3 - "$RESULT" <<'PY'
 import sys, json

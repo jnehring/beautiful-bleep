@@ -60,6 +60,8 @@ If you add a library function, `docs.test.mjs` fails until the function has an e
 | Check | How | Needs |
 |---|---|---|
 | The engine's Wasmtime host runs the same module | `test/wasmtime-check.sh` | The Wasmtime C API that `scripts/experiments/wasm-spike.sh` downloads to `build/wasm-spike/wasmtime`, and `clang++` |
+| A module's own UI in the real sandbox (a worker in a sandboxed frame), driven by a real mouse, with screenshots | `node test/browser/ui-chrome.mjs <outdir>` | Chrome (`CHROME=…` if it is not in the usual place) and `node build.mjs` first |
+| The sandbox of the UI frame: escape attempts, endless loops | `test/browser/run-custom-ui.sh` | Chrome |
 | The compiler runs in a page | Start the `script-spike` server from `.claude/launch.json` (it serves `patch/` on port 8767) and open `/script/test/browser/index.html` | A browser |
 | The custom UI frame | `test/browser/custom-ui.html`, served the same way | A browser |
 

@@ -162,8 +162,7 @@
 
   // ---- a Code node's own UI: JavaScript in a sandboxed frame (board-code-view.html) --------------------------------------------------------
   // The code can only compute and draw, and talk to the board through the messages below; it never touches the board, storage or the network.
-  // It is code that came with the patch, so it does not run until the user starts it (once per page session for each node).
-  const approved = new Set();   // Code nodes whose UI the user has started in this page session
+  // The frame runs the UI in a worker that the page stops when it hangs, so a UI that came with a patch runs without asking.
 
   /// The sandboxed frame that runs a module's own UI (board-code-view.html) and the messages between it and the board.
   ///   sandboxUi(view, root, mount, source, spec, report, probes)  -> { onState(st, probeIds), stop() }
@@ -274,24 +273,15 @@
       stop();
       problems.replaceChildren();
       if (!source.trim()) return;
-      approved.add(view.node.id);
       handle = sandboxUi(view, root, mount, source, spec, show, lastProbes);
       stopButton.disabled = false;
     }
     runButton.addEventListener("click", () => { start(); const code = view.node.code; if (code) view.api.setNodeProperty("code", { ...code, ...(getView().trim() ? { view: getView() } : {}) }); });
     stopButton.addEventListener("click", stop);
 
-    // a UI that came with the patch asks before it runs
-    function offer() {
-      const box = el("div", "bc-offer");
-      const go = el("button", "", "Run this UI");
-      go.type = "button";
-      go.addEventListener("click", start);
-      box.append(el("span", "", "This node has its own UI, written in JavaScript. It runs in a sandbox with no network and no access to the board."), go);
-      mount.hidden = false;
-      mount.replaceChildren(box);
-    }
-    if (getView().trim()) { if (approved.has(view.node.id)) start(); else offer(); }
+    // The UI runs in a worker inside the sandboxed frame, which is stopped if it hangs (board-code-view.html): a UI that came with a patch
+    // needs no approval.
+    if (getView().trim()) start();
 
     return {
       getView, setView, start,
@@ -669,7 +659,7 @@
       </div>
       <div class="bc-pane" data-pane="ui" hidden>
         <div class="bc-ui-bar"><button type="button" class="bc-ui-run">Run UI</button><button type="button" class="bc-ui-stop" disabled>Stop</button>
-          <span class="bc-ui-note">JavaScript that draws this module's own UI. It runs in a sandbox with no network and no access to the board.</span></div>
+          <span class="bc-ui-note">JavaScript that draws this module's own UI. It runs in a sandboxed worker with no network, no DOM and no access to the board, and is stopped if it hangs.</span></div>
         <div class="bc-ui-editor"><textarea class="bc-ui-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="UI code"></textarea></div>
         <ul class="bc-ui-problems" aria-label="UI problems"></ul>
       </div>

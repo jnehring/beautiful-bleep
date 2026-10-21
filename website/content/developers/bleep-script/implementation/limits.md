@@ -45,7 +45,7 @@ The result is checked against the module types on your board before anything is 
 
 ## Custom UIs
 
-A self-made UI (see [Custom UIs and widgets](../custom-ui.md)) is JavaScript from the script's author. It runs in a sandboxed frame with no network, storage, cookies or access to the page, and the board asks you before it runs one for the first time. One thing the browser cannot prevent: a UI that loops forever freezes the page, because a frame cannot be stopped from outside. Reload the page to recover, and do not approve UIs you do not trust.
+A self-made UI (see [Custom UIs and widgets](../custom-ui.md)) is JavaScript from the script's author. It runs in a worker inside a sandboxed frame with no network, storage, cookies or access to the page, so it needs no approval. The frame watches the worker: a UI that stops answering for 1.5 seconds, does not start within 3 seconds or floods the board with messages is terminated and shows an error, and the board keeps running. The UI can still use your processor until then, and draw anything inside its own box.
 
 ## Scripts from other people
 
