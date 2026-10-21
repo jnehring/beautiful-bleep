@@ -104,6 +104,9 @@ under the title). With `scripts/run/ui-server.py` running,
 `scripts/docs/module-screenshots.py [type ...]` retakes them after a view changes.
 The website shows them; the plugins only embed the `.md` files.
 
+
+When it works, [publishing](publishing.md) shows how to share it: any account can publish a module to the community without a key.
+
 ## Shared code
 
 Before writing DSP, look in `patch/common/dsp/` (namespace `bleep::dsp`):

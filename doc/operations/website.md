@@ -181,6 +181,31 @@ It prints `Signing as bleep (key …)`. "not signed by a trusted root" means `BL
 
 If you only have an old kit and lost the `.env`, you cannot recover the issuer key from the kit: the kit holds a developer key, not the issuer's. Without a backup of `issuer.key` the way forward is a new issuer certified by the root key from your keystore. That command does not exist yet (`init-registry` always makes a new root too); until it does, a lost issuer key means creating new keys as in section 1 and re-issuing every kit.
 
+## Community modules
+
+Anyone with an account can publish a module (see [Publishing a module](../../website/content/developers/modules/publishing.md)); the library checks it and signs it with its **community key**. This needs the signing keys above (root, issuer) and two more lines in `website/.env`. Without them uploads answer 503 and nothing else changes.
+
+**Set up (once).** From `website/`:
+
+```bash
+(umask 077; docker compose exec -T api python -m app.cli community-init > community.env)
+cat community.env >> .env && rm community.env
+docker compose up -d api
+```
+
+`umask 077` is required: the command refuses to write a secret into a file other users can read. Check that `.env` ended with a newline before appending. `community-init` prints the key id and expiry on stderr and records the key in the `developers` table, so `developer-revoke KEY_ID` works on it. The key is a secret; a Docker secret works too (`BLEEP_COMMUNITY_KEY_FILE`).
+
+**Renew before the certificate lapses** (365 days by default; `--days` up to 825). `python -m app.cli developer-list` shows the expiry of the `community` key. Run `community-init` again, replace both lines in `.env` and restart the API. Published modules keep working: their publication receipts date them inside the old certificate. After the certificate lapses and before you renew, uploads answer 503 ("community key is expired").
+
+**Moderation.**
+
+- Users report a module from the library; reports appear in the admin console with `target: module` (the id is the release id).
+- Withdraw a release: `docker compose exec api python -m app.cli community-takedown AUTHOR/NAME VERSION`. It leaves the index and goes on the signed revocation list; apps pick it up the next time they look. The version number stays used.
+- Remove an author: `community-ban HANDLE` takes down all their releases, deactivates the account and ends its sessions.
+- If the community key itself leaks: `developer-revoke KEY_ID`, then `community-init`. Every community module stops loading until the author or you republish it, so do this only if you must.
+
+**What to check after setup.** Upload a test module with a test account (`scripts/release/community-publish.py ... --check` first); it must show up in the library list with `trust: community`.
+
 ## Notes
 
 - **Database password is fixed at first start.** Postgres keeps the password it was created with in the `db-data` volume. If you change `POSTGRES_PASSWORD` later, either change it inside Postgres or delete the volume: `docker compose down -v` (this deletes all accounts).

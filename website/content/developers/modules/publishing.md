@@ -1,12 +1,52 @@
 ---
 title: Publishing a module
-description: Package a built module, sign it with your developer key and release it to the Bleep Library.
+description: Share a module with the community, or package, sign and release it as a developer.
 order: 30
 ---
 
 # Publishing a module
 
-Modules are **code**, so the apps only run them if they are signed. The full rules are in [Signing](signing.md) and the library's layout in [Bleep Library](library.md); this page is the practical path.
+Modules are **code**, so the apps only run them if they are signed. The full rules are in [Signing](signing.md) and the library's layout in [Bleep Library](library.md); this page is the practical path. There are two:
+
+| | Share with the community | Release as a developer |
+|---|---|---|
+| For | Any module you made, closed source included | Plugins, Bleep's own modules, modules with their own JavaScript |
+| Needs | An account on the library's site | A signing kit and a release token from the admin |
+| Who signs | The library, after its checks | You, with your key |
+| Section | [Share a module with the community](#share-a-module-with-the-community) | [1 to 4](#1-build-the-wasm-files) |
+
+## Share a module with the community
+
+You need no key. You upload the module unsigned; the library checks it, signs it and publishes it as `<your name>/<module name>`. Your name is the handle of your account (the one in the address of your presets, set when you first publish).
+
+**1. Make a token.** Log in to the library's site, open *Account > Apps* (`/account/apps/`) and create an access token. Save it in a file only you can read, for example `~/.bleep-token`. It is shown once.
+
+**2. Prepare the package.** A folder (or an unsigned `.bleepmod`) with:
+
+| File | |
+|---|---|
+| `module.json` | Required. `types`: the node types it provides, **all starting with `<your name>/`**; `requires.engineAbi`: `1`; optionally `title`, `summary`, `category`, `license` (SPDX, default MIT) and `origin` for ported code |
+| `module.wasm` | Required. Imports only what the [Module ABI](module-abi.md) allows and exports the whole ABI |
+| `spec.json` | Required. The node types' descriptions |
+| `LICENSE`, `doc/*.md`, `doc/*.png` | Optional |
+
+Nothing else is allowed. In particular there is **no `ui/*.js`**: a community module cannot bring its own JavaScript. Limits: 12 MB per package, 8 MB for the `.wasm`, 24 files.
+
+**3. Check and publish.**
+
+```bash
+scripts/release/community-publish.py my-module/ --name wobble --version 1.0.0 --check
+scripts/release/community-publish.py my-module/ --name wobble --version 1.0.0 \
+    --registry https://<library address> --token-file ~/.bleep-token
+```
+
+`--check` runs the library's own checks locally and sends nothing. The id of this module is `<your name>/wobble`. Each upload needs a higher version than the one before, and a version you withdrew stays used. You can publish up to 100 modules and 10 uploads an hour.
+
+**4. After publishing.** The module appears in the library marked *community*. Users need no setting to run it; it runs in the same sandbox as every module. To withdraw a release, call `POST /api/registry/community/modules/<your-name>.<name>/<version>/takedown` while logged in (or ask the admin); apps that already have it stop loading it once they fetch the next revocation list. If the library refuses your upload, the message names the rule and the file.
+
+## Release as a developer
+
+The steps 1 to 4 below are for publishers with a developer key. Sharing a module with the community does not need them.
 
 ## 1. Build the `.wasm` files
 
