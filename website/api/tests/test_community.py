@@ -280,3 +280,14 @@ def test_a_lapsed_community_certificate_publishes_nothing(client, pki, monkeypat
     author(client)
     r = put(client, package())
     assert r.status_code == 503 and "expired" in r.json()["detail"]
+
+
+def test_the_publisher_name_can_be_asked_for_before_publishing(client, community_on):
+    assert client.get("/api/registry/community/me").status_code == 401   # not logged in
+    assert client.post("/api/registry/community/handle").status_code == 401
+    author(client)
+    assert client.get("/api/registry/community/me").json() == {"handle": None}   # an account has a handle once it publishes or asks for one
+    assert client.post("/api/registry/community/handle").json() == {"handle": "zed"}
+    assert client.get("/api/registry/community/me").json() == {"handle": "zed"}
+    assert client.post("/api/registry/community/handle").json() == {"handle": "zed"}   # the same again
+    assert put(client, package()).json()["id"] == "zed/wobble"   # and it is the one a module is published under

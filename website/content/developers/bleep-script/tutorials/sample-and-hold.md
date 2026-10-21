@@ -110,7 +110,7 @@ What to take from it:
 - **`bleep.param("glide").set(v)`** writes a knob **in its own units** (seconds here).
 - Everything runs in a sandbox: no network, no storage, and it only talks to its module. It runs in a worker that the board stops if it hangs, so a UI that came with a patch needs no approval. See [Limits and safety](../implementation/limits.md).
 
-The *Wave folder with its own UI* example in the Code node's **Examples** menu is a larger one: it draws the transfer curve and lets you drag it to set the knobs.
+The vintage modules (Add › Effects) have larger UIs, each with a picture you can drag. Add one, open its window and press **Convert to code** to read how it is written.
 
 ## Using it
 

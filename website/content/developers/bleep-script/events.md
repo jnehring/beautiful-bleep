@@ -81,6 +81,6 @@ Before the samples of a block, the `@transport` method runs, then `block()`. For
 
 Handlers count in the [cost estimate](implementation/limits.md#cost-bound) at their worst case: a note handler is assumed to run for 64 events per block, an edge handler for every sample.
 
-## The router example
+## A router
 
-The *Note router* example in the Code node's *Examples* menu is the module above with a control edge as well: notes below middle C go out *Low*, the others go out *High* an octave up, and a control above 0.5 opens a gate. Cable a Keyboard's *Notes* into it and press keys: the *Count* meter counts events.
+Put the two handlers together and you have a router: notes below middle C go out *Low*, the others go out *High* an octave up, and a control above 0.5 opens a gate. Cable a Keyboard's *Notes* into it and press keys.

@@ -46,12 +46,12 @@ Bleep Script does three jobs.
 | [Tutorials](tutorials/overview.md) | A step sequencer, drive, smoothing, sample and hold, inputs, the DSP toolbox |
 | [The Code node](code-node.md) | The editor, compiling, settings, saving, and what is available where |
 | [Module scripts](module-scripts.md) | Reference: decorators, signal types, parameters, probes, buttons, settings |
-| [Built-ins reference](reference.md) | Every built-in one by one, with its API and a complete example: lifecycle methods, decorators, `@transport`, note types, the patch builder and the UI object |
 | [Events and routing](events.md) | Notes and edge handlers, with a router |
 | [Patch scripts](patch-scripts.md) | Reference: building cells from code |
 | [Custom UIs and widgets](custom-ui.md) | Layouts of knobs, faders and meters, or a self-made canvas UI |
 | [Library](library.md) | `bleep/osc`, `filters`, `delay`, `random`, `env`, `dynamics`, `fx`, `fft`, `util`, `dsp`, `notes`: oscillators, filters, delays, envelopes, dynamics, reverb, notes |
 | [Programming with AI](ai-programming.md) | One prompt that teaches a coding AI Bleep Script, to copy or download |
+| [Reference](reference.md) | Every built-in one by one, with its API and a complete example: lifecycle methods, decorators, `@transport`, note types, the patch builder and the UI object |
 | [Implementation](implementation/overview.md) | How the language is built in the repo: the compiler, the lifecycle of a script, [limits and safety](implementation/limits.md), and how to run the tests |
 
 ## Where it lives

@@ -26,6 +26,7 @@ COPY patch/web patch/web
 COPY patch/script/package.json patch/script/package-lock.json patch/script/bundle.mjs patch/script/
 RUN --mount=type=cache,target=/root/.npm cd patch/script && npm ci --no-audit --no-fund
 COPY patch/script/compiler patch/script/compiler
+COPY patch/script/builtin-modules.mjs patch/script/builtin-modules.txt patch/script/
 COPY patch/script/editor patch/script/editor
 COPY patch/script/patch patch/script/patch
 COPY patch/script/transform patch/script/transform

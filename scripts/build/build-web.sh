@@ -76,12 +76,6 @@ if [ "$UI" = 0 ]; then
     cp -R "$OUT/modules" "$OUT/manifest.json" "$LOCAL/"
     for m in "$PATCH"/modules/*/; do [ -d "$m/ui" ] && cp "$m"/ui/*.js "$LOCAL/views/" 2>/dev/null || true; done
     ( cd "$LOCAL/views" && ls *.js 2>/dev/null | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin]))' ) > "$LOCAL/views.json"
-    # The vintage modules are Bleep Script (patch/script/local-modules.txt): compiled with node, added to the same folder and manifest.
-    if [ -d "$PATCH/script/node_modules" ] && command -v node >/dev/null; then
-      node "$PATCH/script/publish-local.mjs" "$LOCAL"
-    else
-      echo "Skipped the Bleep Script modules (patch/script/local-modules.txt): run npm install in patch/script and have node on the PATH"
-    fi
     echo "Local modules for Bleep Play: $LOCAL (reload the page; turn on Allow unsigned modules once)"
   fi
   exit 0
@@ -93,7 +87,7 @@ cp "$PATCH"/board/ui/* "$OUT"/
 cp "$PATCH"/common/ui/* "$OUT"/
 # The Bleep Script compiler and code editor for the Code node (patch/script: npm install && npm run bundle), loaded on first use. Without the
 # compiler the Code node says so; without the editor it uses a plain text box.
-for f in bleep-script-compiler.js bleep-script-merge.js bleep-script-editor.js; do [ -f "$PATCH/script/dist/$f" ] && cp "$PATCH/script/dist/$f" "$OUT"/ || true; done
+for f in bleep-script-compiler.js bleep-script-merge.js bleep-script-editor.js script-modules.json; do [ -f "$PATCH/script/dist/$f" ] && cp "$PATCH/script/dist/$f" "$OUT"/ || true; done
 for m in "$PATCH"/modules/*/; do
   for sub in ui doc; do
     [ -d "$m$sub" ] && cp "$m$sub"/* "$OUT"/ 2>/dev/null || true
@@ -118,7 +112,7 @@ python3 - "$OUT/index.html" <<'PY'
 import sys
 p = sys.argv[1]
 s = open(p).read()
-tag = '<script src="js/user-modules.js"></script>\n  <script src="js/library-client.js"></script>\n  <script src="js/library-roots.js"></script>\n  <script src="js/web-settings.js"></script>\n  <script src="js/web-media.js"></script>\n  <script src="js/bleep-web.js"></script>\n  <script src="js/bridge-ui.js"></script>\n  '
+tag = '<script src="js/user-modules.js"></script>\n  <script src="js/bleepmod.js"></script>\n  <script src="js/library-client.js"></script>\n  <script src="js/library-roots.js"></script>\n  <script src="js/web-settings.js"></script>\n  <script src="js/web-media.js"></script>\n  <script src="js/bleep-web.js"></script>\n  <script src="js/bridge-ui.js"></script>\n  '
 assert '<script src="board-demo.js"></script>' in s
 s = s.replace('<script src="board-demo.js"></script>', tag + '<script src="board-demo.js"></script>', 1)
 # Content-Security-Policy for the browser build: no inline script and no eval anywhere in the UI; 'wasm-unsafe-eval' only because the

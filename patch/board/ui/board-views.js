@@ -72,6 +72,13 @@
           types: () => s.types,
           applyGenerated: (code, result) => edit("generate patch", (b) => (P.BleepCode ? P.BleepCode.applyGenerated(b, id, code, result) : false)),
           setNodeProperty: (key, value) => edit("set " + key, (b) => { const m = nodeById(id, b); if (!m) return false; m[key] = value; }),
+          // Turns node `id` into a node of another type in one undoable step (a Code node into the module made from it, and back): `apply(node)` makes the
+          // other changes (its code, its name). The board's list of node types and the engine's list of modules are read again first, so the new type is known.
+          convertNode: async (toType, apply) => {
+            if (s.refreshTypes) await s.refreshTypes();
+            if (window.BleepWeb && window.BleepWeb.refreshModules) await window.BleepWeb.refreshModules();
+            await edit("convert to " + toType, (b) => { const m = nodeById(id, b); if (!m) return false; apply(m); m.type = toType; });
+          },
           cablesInto: (pid) => cablesInto(id, pid).map((c) => {
             const src = nodeById(c.from.node);
             return { id: c.id, amount: c.amount, label: src ? `${src.name} › ${jackName(src, c.from.jack, true)}` : "?" };
@@ -117,7 +124,7 @@
         if (!n.params) n.params = {};
         body.append(bv.root);
         $("views").appendChild(win);
-        const v = { win, bv, pinned: false, power, docRoot: null, help };
+        const v = { win, bv, pinned: false, power, docRoot: null, help, type: t.type };
         let docHtml = null;
         // A Code node and a module saved from one have the help page their author wrote (Help tab), or one made from the module's description
         const ownHelp = () => (P.BleepCode && P.BleepCode.helpOf ? P.BleepCode.helpOf(nodeById(id)) : null);
@@ -278,9 +285,20 @@
       function rebuildView(id) {
         const v = views.get(id), n = nodeById(id);
         if (!v || !n || v.panelId) return;
-        const bv = BleepView.create(typeOf(n), clone(n), makeApi(id));
+        const t = typeOf(n), bv = BleepView.create(t, clone(n), makeApi(id));
         v.bv.root.replaceWith(bv.root);
         v.bv = bv;
+        if (v.type !== t.type) {   // the node became another type (a Code node converted to its module, or back): the window follows
+          v.type = t.type;
+          const title = v.win.querySelector(".v-title"), sub = v.win.querySelector(".v-sub"), hook = BleepViews.get(t.type);
+          if (title) title.textContent = n.name;
+          if (sub) sub.textContent = t.name;
+          v.win.style.setProperty("--accent", n.colour || t.colour || "#4fd1c5");
+          if (hook && hook.width) v.win.style.width = hook.width + "px";
+          if (v.docRoot) { P.BleepModal.unmount(v.docRoot); v.docRoot = null; }
+          v.ownHelp = null;
+          if (v.help) v.help.hidden = true;
+        }
         if (v.showHelpButton) v.showHelpButton();   // a Code node that has just compiled has a help page to show
       }
       function closeView(id) {

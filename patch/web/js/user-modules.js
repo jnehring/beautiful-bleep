@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
-// user-modules.js — the modules the user made from a Code node ("Save as module"): kept in this browser (IndexedDB), offered in the Add menu
-// like any module and loaded by the library client without a signature, because they are the user's own code. They run in the same
-// WebAssembly sandbox as every module; their own UI runs in the same sandboxed frame as a Code node's.
+// user-modules.js — the modules made from a Code node ("Convert to module"), and the script modules that come with the board: offered in the Add
+// menu like any module and loaded by the library client without a signature. The user's own are kept in this browser (IndexedDB); the built-in ones
+// come from script-modules.json next to the page (made by patch/script: npm run bundle). They run in the same WebAssembly sandbox as every module;
+// their own UI runs in the same sandboxed worker frame as a Code node's.
 //
 //   BleepUserModules.load()      Promise<Map slug → entry>: reads the store once (an in-memory store where the browser has none)
 //   BleepUserModules.list()      entries, oldest first (after load)
@@ -10,12 +11,14 @@
 //   BleepUserModules.remove(slug)
 //   BleepUserModules.index()     { slug: { types, spec } } for the library client's manifest
 //   BleepUserModules.onChange(fn)
-//   BleepUserModules.typeOf(slug) / slugOf(name)   the node type id of a module ("mine/<slug>") and the slug a name makes
-//   entry: { slug, name, category, source, view, settings, spec: [node type description], wasm: ArrayBuffer, saved: ms }
+//   BleepUserModules.typeId(publisher, slug) / keyOf(publisher, slug) / slugOf(name)   the node type id of a module ("<publisher>/<slug>"), its key
+//                                    in the store ("<publisher>.<slug>") and the slug a name (or a publisher) makes
+//   entry: { slug (the key), type, publisher, name, category, source, view, help, meta, settings, spec: [node type description], wasm: ArrayBuffer,
+//            saved: ms, builtin?: true }
 (function (root) {
   "use strict";
   const DB = "bleep-user-modules", STORE = "modules";
-  const PREFIX = "mine/";
+  const LOCAL = "mine";   // the publisher of a module nobody has signed in for
   const entries = new Map();
   const listeners = [];
   let loading = null, db = null, version = 0;
@@ -37,16 +40,33 @@
   });
   const changed = () => { version++; for (const f of listeners.slice()) try { f(); } catch (e) { /* a listener's mistake is its own */ } };
 
+  /// The script modules that ship with the board (script-modules.json: base64 .wasm, spec, source, UI and help of each); none where the file is missing.
+  async function builtin() {
+    try {
+      const r = await root.fetch("script-modules.json", { cache: "no-store" });
+      if (!r.ok) return [];
+      const list = await r.json();
+      return (Array.isArray(list) ? list : []).map((m) => {
+        const bin = atob(m.wasm), bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return { ...m, wasm: bytes.buffer, saved: 0, builtin: true };
+      });
+    } catch (e) { return []; }
+  }
+
   const BleepUserModules = {
-    PREFIX,
-    typeOf: (slug) => PREFIX + slug,
+    LOCAL,
     slugOf: (name) => String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48),
+    typeId: (publisher, slug) => `${publisher || LOCAL}/${slug}`,
+    keyOf: (publisher, slug) => `${publisher || LOCAL}.${slug}`,
     /// True where the modules survive a reload (the browser let us open a database).
     persistent: () => !!db,
     version: () => version,
     load() {
       if (!loading) loading = (async () => {
         db = await open();
+        // the built-in script modules first: a module of the user's with the same key replaces one
+        for (const e of await builtin()) entries.set(e.slug, e);
         if (db) {
           const all = (await run("readonly", (s) => s.getAll())) || [];
           for (const e of all) entries.set(e.slug, e);

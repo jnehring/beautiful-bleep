@@ -30,6 +30,7 @@ jobs:
       - run: node patch/web/test/web-settings-test.mjs
       - run: node patch/web/test/board-code-test.mjs
       - run: node patch/web/test/user-modules-test.mjs
+      - run: node patch/web/test/bleepmod-test.mjs
       - run: npm ci --no-audit --no-fund
         working-directory: patch/script
       - run: npm test

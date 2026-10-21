@@ -48,6 +48,18 @@ def _check_namespace(db: Session, handle: str) -> None:
         raise HTTPException(status.HTTP_409_CONFLICT, f"The name {handle!r} is reserved for a developer of the library; change your name in the profile")
 
 
+@router.get("/me")
+def whoami(user: User = Depends(get_library_user)):
+    """The name the caller publishes under (`null` until it has been made), so an editor can fill in a publisher and check a module's id."""
+    return {"handle": user.handle or None}
+
+
+@router.post("/handle")
+def make_handle(db: Session = Depends(get_db), user: User = Depends(get_library_user)):
+    """Makes the caller's handle if there is none yet (the first publish does the same) and returns it: every module id starts with it."""
+    return {"handle": ensure_handle(db, user)}
+
+
 @router.put("/modules/{name}/{version}", status_code=status.HTTP_201_CREATED)
 async def publish_module(request: Request, name: str = NamePath, version: str = registry.VersionPath, db: Session = Depends(get_db),
                          storage: Storage = Depends(get_storage), user: User = Depends(get_library_user)):

@@ -60,7 +60,7 @@ More in [Module scripts](module-scripts.md).
 
 ## A patch script
 
-The same Code node can build patches. Choose **SuperSaw: 100 oscillators (patch script)** from the *Examples* menu and press Compile:
+The same Code node can build patches. Paste this into a Code node and press Compile:
 
 ```ts
 import { cell } from "bleep/patch";

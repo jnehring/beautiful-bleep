@@ -17,33 +17,6 @@ import random from "../src/bleep/random.ts";
 import util from "../src/bleep/util.ts";
 import gains from "../src/gains.dsp.ts";
 import synthVoice from "../src/synth-voice.dsp.ts";
-import preamp from "../src/preamp.dsp.ts";
-import valveStage from "../src/valve-stage.dsp.ts";
-import channelStrip from "../src/channel-strip.dsp.ts";
-import toneEq from "../src/tone-eq.dsp.ts";
-import optoCompressor from "../src/opto-compressor.dsp.ts";
-import micColour from "../src/mic-colour.dsp.ts";
-import tapeMachine from "../src/tape-machine.dsp.ts";
-import vinyl from "../src/vinyl.dsp.ts";
-import cheapSpeaker from "../src/cheap-speaker.dsp.ts";
-import preampView from "../src/preamp.view.js";
-import valveStageView from "../src/valve-stage.view.js";
-import channelStripView from "../src/channel-strip.view.js";
-import toneEqView from "../src/tone-eq.view.js";
-import optoCompressorView from "../src/opto-compressor.view.js";
-import micColourView from "../src/mic-colour.view.js";
-import tapeMachineView from "../src/tape-machine.view.js";
-import vinylView from "../src/vinyl.view.js";
-import cheapSpeakerView from "../src/cheap-speaker.view.js";
-import preampHelp from "../../../website/content/developers/bleep-script/vintage-modules/preamp.md";
-import valveStageHelp from "../../../website/content/developers/bleep-script/vintage-modules/valve-stage.md";
-import channelStripHelp from "../../../website/content/developers/bleep-script/vintage-modules/channel-strip.md";
-import toneEqHelp from "../../../website/content/developers/bleep-script/vintage-modules/tone-eq.md";
-import optoCompressorHelp from "../../../website/content/developers/bleep-script/vintage-modules/opto-compressor.md";
-import micColourHelp from "../../../website/content/developers/bleep-script/vintage-modules/mic-colour.md";
-import tapeMachineHelp from "../../../website/content/developers/bleep-script/vintage-modules/tape-machine.md";
-import vinylHelp from "../../../website/content/developers/bleep-script/vintage-modules/vinyl.md";
-import cheapSpeakerHelp from "../../../website/content/developers/bleep-script/vintage-modules/cheap-speaker.md";
 import { EXAMPLES } from "../playground/examples.mjs";
 import { compileScript } from "./compile.mjs";
 import { runPatchScript } from "../patch/run.mjs";
@@ -69,10 +42,7 @@ export async function patch(source, settings, types, options) {
 }
 
 
-/// A module's manual (website/content/developers/bleep-script/vintage-modules/<name>.md) as its help page: without the front matter and the first
-/// heading's picture line.
-const helpPage = (md) => md.replace(/^---[\s\S]*?---\s*/, "").replace(/^!\[[^\]]*\]\([^)]*\)\s*$/gm, "").trim() + "\n";
 
 /// Starting points for the editor: [{ id, name, source }].
-export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, { id: "preamp", name: "Preamp (transformer-coupled)", source: preamp, view: preampView, help: helpPage(preampHelp) }, { id: "valve-stage", name: "Valve Stage (tube preamp)", source: valveStage, view: valveStageView, help: helpPage(valveStageHelp) }, { id: "channel-strip", name: "Channel Strip (EQ and drive)", source: channelStrip, view: channelStripView, help: helpPage(channelStripHelp) }, { id: "tone-eq", name: "Tone EQ (passive shelves)", source: toneEq, view: toneEqView, help: helpPage(toneEqHelp) }, { id: "opto-compressor", name: "Opto Compressor (leveling)", source: optoCompressor, view: optoCompressorView, help: helpPage(optoCompressorHelp) }, { id: "mic-colour", name: "Mic Colour", source: micColour, view: micColourView, help: helpPage(micColourHelp) }, { id: "tape-machine", name: "Tape Machine", source: tapeMachine, view: tapeMachineView, help: helpPage(tapeMachineHelp) }, { id: "vinyl", name: "Vinyl", source: vinyl, view: vinylView, help: helpPage(vinylHelp) }, { id: "cheap-speaker", name: "Cheap Speaker (lo-fi)", source: cheapSpeaker, view: cheapSpeakerView, help: helpPage(cheapSpeakerHelp) }, ...EXAMPLES];
+export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, ...EXAMPLES];
 export const version = "0.1";

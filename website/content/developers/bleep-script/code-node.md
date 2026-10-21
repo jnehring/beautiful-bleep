@@ -13,8 +13,8 @@ The **Code** node (Add menu: *Utility › Script*) holds one script. Click the n
 | Part | What it does |
 |---|---|
 | **Compile** | Compiles the script. `Ctrl+Enter` or `Cmd+Enter` does the same while the cursor is in the editor |
-| **Save as module** | Keeps the compiled module on this computer, in the Add menu (see [Save as module](#save-as-module)) |
-| **Examples** | Loads a starting point: *Gains (mixer channel)*, *Wave folder*, *Tremolo*, *Note router*, *Mixer (configurable)*, *SuperSaw: 100 oscillators (patch script)* |
+| **Convert to module** | Turns this node into the module itself: it keeps its cables and knob values, appears in the Add menu and shows its own UI. The same button on the module's window says **Convert to code** and turns it back. See [Convert to module](#convert-to-module) |
+| **Share…** | Publishes the module in the Bleep Library, after asking for the metadata and the help text. See [Share](#share) |
 | **Settings** | A number field per setting the script declares, such as *Channels*. Changing one compiles again. See [Settings](module-scripts.md#settings-and-counted-jacks) |
 | **Editor** | [CodeMirror](https://codemirror.net/) with TypeScript highlighting, line numbers, bracket matching, folding, undo within the editor, and completion for the decorators and library (type `@` or press `Ctrl+Space`) |
 | **Status line** | `Fold: compiled · about 3,000 ops per block (1 % of the limit)`, or the number of errors |
@@ -40,16 +40,24 @@ The source, the jacks and knobs it declares, and the settings are saved **in the
 
 Patch scripts are not compiled on load: the cell they built is ordinary patch content and is already there.
 
-## Save as module
+## Convert to module
 
-A script you want to keep using does not have to live in a Code node. **Save as module** (next to *Examples*, once the script has compiled) keeps the compiled module and its UI on this computer. It then appears in the **Add** menu like any module, under the category its `@module` names (for example *Effects › Distortion*), with its knob layout and its own UI, and needs no Code node, no compile and no "Allow unsigned modules".
+A script you want to keep using does not have to live in a Code node. **Convert to module** (once the script has compiled) compiles it for good, keeps it on this computer and turns the node into the module: the same node, with the same cables and knob values, now an ordinary module of the category its `@module` names (for example *Effects › Distortion*), with its own UI and help page. It also appears in the **Add** menu, so you can place more of it.
 
-- The module is stored in the browser (IndexedDB) and is yours alone: it is your own code, so it is not signed and runs in the same sandbox as every module. Its type id is `mine/<name>`.
-- **Update saved module** replaces it with the Code node's current source. Patches that already use it get the new version after a reload.
-- The module's UI and its help page (the Help tab) are saved with it.
-- **My modules** in the *Examples* menu opens a saved module's source, UI and help page in the Code node, to change it and update it.
-- **Remove module** takes it off this computer. Nodes of that module in a patch show as missing; the Code node keeps its source.
-- A saved module is not part of a patch file: someone who opens your patch needs the module too, so share it through the library (see [Publishing a module](../modules/publishing.md)).
+The button on the module's window says **Convert to code**. It turns that node back into a Code node with the module's source, UI, help page and metadata, so you can change it and convert it again: the two modes are two views of the same thing, to try either.
+
+- The module is stored in the browser (IndexedDB) and is yours alone: it is your own code, so it is not signed and runs in the same sandbox as every module. Its type id is `<publisher>/<name>` (see the Metadata tab; *mine* until you have a library name).
+- Converting again replaces the stored module with the Code node's current source. Other nodes of it get the new version after a reload.
+- A module is not part of a patch file: someone who opens your patch needs the module too, so share it (see [Share](#share)).
+- The modules that come with the board (the vintage modules, in *Add › Effects*) are the same kind of module: **Convert to code** opens their source.
+
+## Metadata
+
+The **Metadata** tab holds what the module says about itself: the *publisher* (your library name, filled in when you are logged in, otherwise *mine*), the *module name* (from `@module({ name })`), the *version*, a *summary* of up to 280 characters, the *category*, the *licence*, *tags*, a *web page* and *release notes*. It is saved with the node and with the module.
+
+## Share
+
+**Share…** publishes the module in the Bleep Library as a community module, for everyone to install. It asks for the summary, category, licence, version and the help page, builds the package in the browser and uploads it under your library name (`<your name>/<module name>`); you must be logged in to the library. The library checks it and signs it. Each share needs a higher version than the last. A shared module carries no JavaScript, so it shows its knobs and not its own UI.
 
 ## Panels
 

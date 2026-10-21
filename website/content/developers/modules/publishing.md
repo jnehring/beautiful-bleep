@@ -19,6 +19,8 @@ Modules are **code**, so the apps only run them if they are signed. The full rul
 
 You need no key. You upload the module unsigned; the library checks it, signs it and publishes it as `<your name>/<module name>`. Your name is the handle of your account (the one in the address of your presets, set when you first publish).
 
+**From a Code node,** the **Share…** button does steps 2 and 3 for you in the browser while you are logged in to the library: it asks for the metadata and help text, builds the package and uploads it (see [The Code node](../bleep-script/code-node.md#share)). The rest of this section is the same thing from the command line.
+
 **1. Make a token.** Log in to the library's site, open *Account > Apps* (`/account/apps/`) and create an access token. Save it in a file only you can read, for example `~/.bleep-token`. It is shown once.
 
 **2. Prepare the package.** A folder (or an unsigned `.bleepmod`) with:

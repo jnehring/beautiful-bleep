@@ -108,6 +108,7 @@
       }
       const n = nodeById(id);
       if (!n) closeView(id);
+      else if (v.type && v.type !== n.type) rebuildView(id);   // the node became another type: a Code node converted to its module, or back
       else if (n.type === "code" && P.BleepCode && v.bv.codeKey !== P.BleepCode.keyOf(n)) rebuildView(id);   // a compile changed its jacks and knobs
       else v.bv.refresh(n);
     }
@@ -436,7 +437,7 @@
 
   // ------------------------------------------------------- floating views (board-views.js)
   const viewsApi = P.BoardViews.create({
-    get board() { return board; }, get types() { return types; },
+    get board() { return board; }, get types() { return types; }, refreshTypes: () => refreshTypes(),
     $, cablesInto, canBypass, canvas, clone, drivesJacks, edit, el, gesture, isPort, isStructural, jackName,
     nodeById, nodesEl, removeCable, renderCables, renderNodes, savePreset,
     setPowerButton, showMenu, toggleBypass, typeOf, views, hidePopovers,

@@ -85,6 +85,8 @@
   const built = new Map();        // source hash -> { wasm, interface }
   const registered = new Map();   // node id -> source hash the engine runs
   const pending = new Map();      // source hash -> Promise
+  /// A node that is no longer a Code node (it became a module): the engine's copy of its code module goes with it, so forget it was registered.
+  const forgetNode = (id) => { registered.delete(id); };
 
   /// Compiles a source. { ok, interface, wasm, problems, ms }. The same source is compiled once.
   async function compile(source, settings = {}) {
@@ -239,6 +241,7 @@
     const select = (name) => {
       tabs.forEach((t) => { const on = t.dataset.tab === name; t.classList.toggle("on", on); t.setAttribute("aria-selected", String(on)); });
       panes.forEach((p) => { p.hidden = p.dataset.pane !== name; });
+      if (name === "meta") root.dispatchEvent(new CustomEvent("bc-meta-shown"));
     };
     tabs.forEach((t) => t.addEventListener("click", () => select(t.dataset.tab)));
     const mount = $(".bc-custom"), runButton = $(".bc-ui-run"), stopButton = $(".bc-ui-stop"), area = $(".bc-ui-source"), problems = $(".bc-ui-problems");
@@ -354,7 +357,7 @@
   function build(view, root) {
     const node = view.node;
     const ui = {
-      bar: root.querySelector(".bc-bar"), compile: root.querySelector(".bc-compile"), examples: root.querySelector(".bc-examples"),
+      bar: root.querySelector(".bc-bar"), compile: root.querySelector(".bc-compile"), convert: root.querySelector(".bc-convert"), share: root.querySelector(".bc-share"),
       status: root.querySelector(".bc-status"), gutter: root.querySelector(".bc-gutter"), source: root.querySelector(".bc-source"),
       problems: root.querySelector(".bc-problems"), probes: root.querySelector(".bc-probes"), settings: root.querySelector(".bc-settings"),
       widgets: root.querySelector(".bc-widgets"),
@@ -387,59 +390,64 @@
     const setStatus = (text, cls = "") => { ui.status.textContent = text; ui.status.className = "bc-status " + cls; };
     const custom = customUi(view, root, iface || {});
     const help = helpUi(view, root);
-    // the UI's source and the help page ride along with every save
-    const withView = (code) => ({ ...code, ...(custom.getView().trim() ? { view: custom.getView() } : {}), ...(help.getHelp().trim() ? { help: help.getHelp() } : {}) });
+    const S = P.BleepCodeShare, U = G.BleepUserModules;
+    const meta = S ? S.metaUi(view, root) : null;
+    let once = false;
+    root.addEventListener("bc-meta-shown", () => { if (!once && meta) { once = true; meta.showHandle(); } });
+    // the UI's source, the help page and the metadata ride along with every save
+    const withView = (code) => ({
+      ...code, ...(custom.getView().trim() ? { view: custom.getView() } : {}), ...(help.getHelp().trim() ? { help: help.getHelp() } : {}), ...(meta ? { meta: meta.get() } : {}),
+    });
     let examples = [];
 
-    // ---- Save as module: keep the compiled module (and its UI) on this computer, in the Add menu (web/js/user-modules.js) ----------------------
-    const U = G.BleepUserModules;
-    const saveButton = root.querySelector(".bc-save"), removeButton = root.querySelector(".bc-unsave");
-    const slugOfNode = () => { const i = node.code && node.code.interface; return U && i && i.kind !== "patch" && i.name ? U.slugOf(i.name) : ""; };
-    function showSaveButtons() {
-      const slug = slugOfNode();
-      saveButton.hidden = !slug;
-      removeButton.hidden = !slug || !U.get(slug);
-      saveButton.textContent = slug && U.get(slug) ? "Update saved module" : "Save as module";
-    }
-    let confirming = null;
-    const confirmFirst = (button, text, then) => {   // the second click within four seconds does it
-      if (confirming && confirming.button === button) { clearTimeout(confirming.timer); confirming = null; showSaveButtons(); then(); return; }
-      if (confirming) { clearTimeout(confirming.timer); showSaveButtons(); }
-      const old = button.textContent;
-      button.textContent = text;
-      confirming = { button, timer: setTimeout(() => { confirming = null; button.textContent = old; showSaveButtons(); }, 4000) };
-    };
-    async function saveModule() {
-      const slug = slugOfNode(), i = node.code && node.code.interface;
-      if (!slug || !node.code || !node.code.source) { setStatus("Compile the script first.", "bad"); return; }
-      setStatus("saving…");
+    // ---- Convert to module / Share --------------------------------------------------------------------------------------------------------------
+    // Convert: the node becomes the module (web/js/user-modules.js keeps it in this browser): same id, cables and knob values, the module's own UI and
+    // the Add menu entry; the button on the module's window converts it back. Share: the dialog (board-code-share.js) publishes it in the library.
+    const isScript = () => !!(U && S && node.code && node.code.interface && node.code.interface.kind !== "patch" && node.code.interface.name);
+    const showButtons = () => { ui.convert.hidden = !isScript(); ui.share.hidden = !isScript(); };
+    showButtons();
+    async function compileFor(source, typeId, settings) { const { compile: run } = await compiler(); return run(source, { typeId, constants: settings }); }
+    async function convertToModule() {
+      const i = node.code && node.code.interface;
+      if (!isScript() || !node.code.source) { setStatus("Compile the script first.", "bad"); return; }
+      setStatus("converting…");
+      ui.convert.disabled = true;
       try {
-        const { compile: run } = await compiler();
-        const settings = { ...settingValues };
-        const r = await run(node.code.source, { typeId: U.typeOf(slug), constants: settings });   // compiled again, for the type id of the saved module
-        if (!r.wasm || !r.specs.length) { setStatus("The module did not compile; nothing was saved.", "bad"); return; }
-        const replaced = !!U.get(slug);
-        await U.put({
-          slug, name: i.name, category: r.specs[0].category || "Utility/Script", source: node.code.source, view: custom.getView(), help: help.getHelp(), settings,
-          spec: r.specs, wasm: r.wasm.buffer.slice(r.wasm.byteOffset, r.wasm.byteOffset + r.wasm.byteLength),
+        const m = meta ? meta.get() : {}, settings = { ...settingValues };
+        const publisher = U.slugOf(m.publisher) || U.LOCAL, slug = U.slugOf(i.name);
+        if (!slug) { setStatus("Give the module a name: @module({ name: … }).", "bad"); return; }
+        const type = U.typeId(publisher, slug), key = U.keyOf(publisher, slug);
+        const existing = U.get(key);
+        const same = existing && existing.builtin && existing.source === node.code.source && (existing.view || "") === custom.getView() && JSON.stringify(existing.settings || {}) === JSON.stringify(settings);
+        let r = null;
+        if (!same) {   // a module that comes with the board and is unchanged stays as it is: no copy of the user's shadows it
+          r = await compileFor(node.code.source, type, settings);   // compiled again, for the type id of the module
+          if (!r || !r.wasm || !r.specs.length) { setStatus("The module did not compile; nothing was converted.", "bad"); return; }
+        }
+        if (!same) await U.put({
+          slug: key, type, publisher, name: i.name, category: r.specs[0].category || "Utility/Script", source: node.code.source, view: custom.getView(), help: help.getHelp(),
+          meta: { ...(S ? S.defaults(i) : {}), ...m, publisher }, settings, spec: r.specs, wasm: r.wasm.buffer.slice(r.wasm.byteOffset, r.wasm.byteOffset + r.wasm.byteLength),
         });
-        if (G.BleepLibrary && G.BleepLibrary.forget) G.BleepLibrary.forget(slug);
-        showSaveButtons();
-        const where = (r.specs[0].category || "Utility/Script").split("/").concat(i.name).join(" › ");
-        setStatus(`${replaced ? "Updated" : "Saved"} “${i.name}”: Add › Module › ${where}` +
-          (replaced ? ". Reload the page to use the new version in patches that already have it." : "") + (U.persistent() ? "" : " (this browser keeps it only until the page is closed)"), "ok");
-      } catch (e) { setStatus(`Could not save the module: ${e.message}`, "bad"); }
+        if (G.BleepLibrary && G.BleepLibrary.forget) G.BleepLibrary.forget(key);
+        forgetNode(node.id);   // the engine is about to lose this node's code module: a later conversion back must register it again
+        const name = i.name;
+        await view.api.convertNode(type, (n) => { delete n.code; if (!n.name || n.name === "Code") n.name = name; });
+      } catch (e) { setStatus(`Could not convert the node: ${e.message}`, "bad"); } finally { ui.convert.disabled = false; }
     }
-    if (U) {
-      U.load().then(showSaveButtons);
-      saveButton.addEventListener("click", saveModule);
-      removeButton.addEventListener("click", () => confirmFirst(removeButton, "Remove? (nodes using it go missing)", async () => {
-        const slug = slugOfNode();
-        if (!slug) return;
-        await U.remove(slug);
-        showSaveButtons();
-        setStatus(`Removed “${node.code.interface.name}” from this computer. Your Code node keeps its source.`, "ok");
-      }));
+    function openShare() {
+      const i = node.code && node.code.interface;
+      if (!isScript() || !node.code.source) { setStatus("Compile the script first.", "bad"); return; }
+      const persist = () => { const code = view.node.code; if (code) view.api.setNodeProperty("code", withView({ ...code })); };
+      S.shareDialog({
+        name: i.name, slug: U.slugOf(i.name), hasUi: !!custom.getView().trim(),
+        get: () => ({ source: node.code.source, settings: { ...settingValues }, meta: meta.get(), help: help.getHelp() }),
+        save: ({ meta: m, help: h }) => { meta.set(m); help.setHelp(h); persist(); },
+        compile: compileFor,
+      });
+    }
+    if (U && S) {
+      ui.convert.addEventListener("click", convertToModule);
+      ui.share.addEventListener("click", openShare);
     }
 
     // The source is in a CodeMirror editor once its bundle has loaded (bleep-script-editor.js); until then, and where it is missing,
@@ -540,29 +548,12 @@
     }, () => { /* no editor bundle in this build: the textarea stays */ });
     compiler().then((c) => {
       examples = c.examples;
-      for (const ex of examples) ui.examples.append(new Option(ex.name, ex.id));
-      if (U && U.list().length) {   // the modules saved from a Code node: open one to change it and update it
-        const group = document.createElement("optgroup");
-        group.label = "My modules";
-        for (const e of U.list()) group.append(new Option(e.name, "user:" + e.slug));
-        ui.examples.append(group);
-      }
       if (!getSource()) setSource(examples.find((e) => e.id === "fold").source);
       ui.compile.disabled = false;
       const saved = node.code && node.code.interface;
       setStatus(!saved ? "not compiled yet" : saved.kind === "patch" ? `${saved.name}: ${saved.summary.modules} modules and ${saved.summary.cables} cables made` : `${saved.name}: compiled${costText(saved)}`);
     }, () => {
       setStatus("The compiler is not part of this build.", "bad");
-      ui.examples.hidden = true;
-    });
-    ui.examples.addEventListener("change", () => {
-      const mine = ui.examples.value.startsWith("user:") && U ? U.get(ui.examples.value.slice(5)) : null;
-      const ex = mine ? { source: mine.source, view: mine.view || "", help: mine.help || "" } : examples.find((e) => e.id === ui.examples.value);
-      if (!ex) return;
-      setSource(ex.source); showProblems([]);
-      if (ex.view !== undefined) custom.setView(ex.view);   // an example with its own UI brings the code for it (the UI tab; press Run UI)
-      if (ex.help !== undefined) help.setHelp(ex.help);   // and its help page (the Help tab)
-      ui.examples.value = "";
     });
     const probeIds = ((iface && iface.probes) || []).map((p) => p.id);
     view.code = { ui, key: keyOf(node), showProbes: (st) => { if (widgets) widgets.update(st); else showProbes(view, ui, st); custom.onState(st, probeIds); }, refreshWidgets: () => widgets && widgets.update(null) };
@@ -676,6 +667,33 @@
       onState(st) { if (widgets) widgets.update(st); if (ui) ui.onState(st, probeIds); },
       refresh() { if (widgets) widgets.update(null); },
     };
+
+    // Convert to code: this node becomes a Code node holding the module's source, UI, help page and metadata; Share: the library dialog
+    const U = G.BleepUserModules, S = P.BleepCodeShare;
+    const statusEl = root.querySelector(".bc-status"), convert = root.querySelector(".bc-convert"), share = root.querySelector(".bc-share");
+    const say = (text, cls = "") => { statusEl.textContent = text; statusEl.className = "bc-status " + cls; };
+    say(entry.builtin ? "A module that comes with the board." : "");
+    convert.addEventListener("click", async () => {
+      convert.disabled = true;
+      try {
+        await view.api.convertNode("code", (n) => {
+          n.code = { source: entry.source, interface: entry.spec[0], settings: { ...(entry.settings || {}) }, ...(entry.view ? { view: entry.view } : {}),
+                     ...(entry.help ? { help: entry.help } : {}), meta: entry.meta || (S ? S.defaults(entry.spec[0]) : {}) };
+          if (n.name === entry.name) n.name = "Code";
+        });
+      } catch (e) { say(`Could not convert the node: ${e.message}`, "bad"); convert.disabled = false; }
+    });
+    share.hidden = !(U && S && U.persistent !== undefined) || !!entry.builtin;
+    share.addEventListener("click", () => {
+      if (!S) return;
+      const current = () => installedTypes.get(view.node.type) || rec;
+      S.shareDialog({
+        name: entry.name, slug: entry.slug.slice(entry.slug.indexOf(".") + 1), hasUi: !!(entry.view && entry.view.trim()),
+        get: () => ({ source: current().entry.source, settings: current().entry.settings || {}, meta: current().entry.meta || S.defaults(entry.spec[0]), help: current().entry.help || "" }),
+        save: ({ meta: m, help: h }) => U.put({ ...current().entry, meta: m, help: h }),
+        compile: async (source, typeId, settings) => { const { compile: run } = await compiler(); return run(source, { typeId, constants: settings }); },
+      });
+    });
   }
 
   /// Registers the view of every module the user saved (BleepViews.register keeps the first registration of a type, and the hooks look the
@@ -689,7 +707,10 @@
       G.BleepViews.register(spec.type, {
         top: true,
         width: 900,
-        template: `<div class="bv-panel bc"><div class="bc-custom" hidden></div><div class="bc-widgets" hidden></div></div>`,
+        template: `<div class="bv-panel bc">
+          <div class="bc-bar"><div class="bc-actions"><button type="button" class="bc-convert" title="Turn this node back into a Code node with the module's source, to edit it">Convert to code</button>
+            <button type="button" class="bc-share" title="Publish the module in the Bleep Library, for everyone" hidden>Share…</button></div><div class="bc-status"></div></div>
+          <div class="bc-custom" hidden></div><div class="bc-widgets" hidden></div></div>`,
         afterBuild(view, customEl) { buildInstalled(view, customEl); },
         onState(st, view) { if (view.installed) view.installed.onState(st); },
         onRefresh(view) { if (view.installed) view.installed.refresh(); },
@@ -721,15 +742,14 @@
     width: 900,
     resizable: true,
     template: `<div class="bv-panel bc">
-      <h2>Code</h2>
-      <div class="bc-bar"><button class="bc-compile" title="Compile (Ctrl/Cmd+Enter)">Compile</button>
-        <select class="bc-examples" aria-label="Load an example"><option value="">Examples…</option></select>
-        <button type="button" class="bc-save" title="Keep this module on this computer: it appears in the Add menu, with its own UI" hidden>Save as module</button>
-        <button type="button" class="bc-unsave" title="Take the saved module off this computer" hidden>Remove module</button><span class="bc-status"></span></div>
+      <div class="bc-bar"><div class="bc-actions"><button class="bc-compile" title="Compile (Ctrl/Cmd+Enter)">Compile</button>
+        <button type="button" class="bc-convert" title="Turn this node into the module itself: it keeps its cables and knobs, appears in the Add menu and shows its own UI. Convert it back to carry on editing" hidden>Convert to module</button>
+        <button type="button" class="bc-share" title="Publish the module in the Bleep Library, for everyone" hidden>Share…</button></div>
+        <div class="bc-status"></div></div>
       <div class="bc-settings" hidden></div>
       <div class="bc-custom" hidden></div>
       <div class="bc-widgets" hidden></div>
-      <div class="bc-tabs" role="tablist"><button type="button" class="bc-tab on" data-tab="script" role="tab" aria-selected="true">Script</button><button type="button" class="bc-tab" data-tab="ui" role="tab" aria-selected="false">UI</button><button type="button" class="bc-tab" data-tab="help" role="tab" aria-selected="false">Help</button></div>
+      <div class="bc-tabs" role="tablist"><button type="button" class="bc-tab on" data-tab="script" role="tab" aria-selected="true">Script</button><button type="button" class="bc-tab" data-tab="ui" role="tab" aria-selected="false">UI</button><button type="button" class="bc-tab" data-tab="help" role="tab" aria-selected="false">Help</button><button type="button" class="bc-tab" data-tab="meta" role="tab" aria-selected="false">Metadata</button></div>
       <div class="bc-pane" data-pane="script">
         <div class="bc-editor"><pre class="bc-gutter" aria-hidden="true"></pre><textarea class="bc-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Source code"></textarea></div>
         <ul class="bc-problems" aria-label="Problems"></ul>
@@ -745,6 +765,9 @@
           <span class="bc-ui-note">The module's help page, in Markdown: the <b>?</b> button of its window shows it. Headings, lists, tables, **bold**, <code>code</code> and links work; images are left out.</span></div>
         <div class="bc-help-editor"><textarea class="bc-help-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Help page (Markdown)" placeholder="# My module&#10;&#10;What it does, what the knobs mean, how to use it."></textarea></div>
         <div class="bc-help-render v-doc" hidden></div>
+      </div>
+      <div class="bc-pane" data-pane="meta" hidden>
+        <div class="bc-meta"></div>
       </div>
       <div class="bc-probes" hidden></div>
     </div>`,

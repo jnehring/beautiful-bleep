@@ -650,11 +650,13 @@ body.plugin #side-toggle { display: none; }
 .ps-hint { color: var(--muted); }
 
 /* The Code module view (board-code.js) */
-.bc-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bc-bar { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 8px; }
+.bc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .bc-bar .bc-compile { background: var(--accent); color: #0b1d1b; border-color: var(--accent); font-weight: 600; }
 .bc-bar .bc-compile[disabled] { opacity: .5; }
-.bc-bar .bc-save, .bc-bar .bc-unsave { white-space: nowrap; }
-.bc-status { margin-left: auto; flex: 1 1 14em; text-align: right; color: var(--muted); }
+.bc-bar .bc-convert, .bc-bar .bc-share { white-space: nowrap; }
+.bc-status { color: var(--muted); }
+.bc-status:empty { display: none; }
 .bc-status.ok { color: var(--accent); }
 .bc-status.bad { color: var(--warn); }
 .bc-editor { display: flex; height: 280px; background: var(--canvas); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
@@ -734,3 +736,25 @@ body.plugin #side-toggle { display: none; }
 .bc-custom { margin-bottom: 8px; }
 .bc-frame { display: block; width: 100%; border: 0; border-radius: 8px; background: var(--panel-2); }
 .bc-offer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; background: var(--panel-2); border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); }
+
+/* the Code node's Metadata tab and the Share dialog (board-code-share.js) */
+.bc-meta { max-height: 280px; overflow: auto; }
+.vwin.sized .bc-meta { flex: 1; max-height: none; min-height: 120px; }
+.bc-meta-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 16px; padding: 4px 2px 8px; }
+.bc-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bc-field:has(textarea) { grid-column: 1 / -1; }
+.bc-field-name { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.bc-field input, .bc-field textarea, .bc-field select { box-sizing: border-box; width: 100%; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; color: var(--text); padding: 5px 8px; font: inherit; user-select: text; -webkit-user-select: text; }
+.bc-field textarea { resize: vertical; }
+.bc-field input[readonly] { color: var(--muted); }
+.bc-field .bad { border-color: var(--warn); }
+.bc-field-hint { color: var(--muted); font-size: 11px; }
+.modal.share { width: min(560px, 94vw); height: auto; max-height: 90vh; }
+.share-dialog h2 { margin: 4px 0 8px; font-size: 16px; }
+.share-dialog .bc-field { margin: 10px 0; }
+.share-intro, .share-note { color: var(--muted); margin: 6px 0; }
+.share-status { margin: 8px 0; min-height: 1.4em; }
+.share-status.bad { color: var(--warn); }
+.share-status.ok { color: var(--accent); }
+.share-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+.share-buttons .primary { background: var(--accent); color: #0b1d1b; border-color: var(--accent); font-weight: 600; }
