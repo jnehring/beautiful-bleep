@@ -109,23 +109,25 @@ scripts/release/release.py bleep-app --level patch --notes "what changed" --toke
 
 Library ids: `bleep-board`, `bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`, `bleep-audio-out`, `bleep-instrument`, `bleep-fx`.
 
-Build (builds, runs the DSP, engine and bridge tests; the app is built in the same tree):
+Build and install only the VST3s (no tests, no standalone app; the fast path):
+
+```bash
+scripts/build/build-patch.sh --juce ../bastelbox/brilliant-bleep/plugins/JUCE --plugins-only --no-app --install
+```
+
+Give `--juce` (or set `BLEEP_JUCE_DIR`) on every run. Without it the script falls back to downloading JUCE 8.0.9 into `build/patch/_deps`, a different path, and everything is compiled again. `--install` copies the VST3s to `~/Library/Audio/Plug-Ins/VST3` (quit Live first); leave it out to only build.
+
+The full build (the plugins and the app, then the DSP, engine and bridge tests):
 
 ```bash
 scripts/build/build-patch.sh --juce ../bastelbox/brilliant-bleep/plugins/JUCE
-# skip the tests
-scripts/build/build-patch.sh --no-test
-# also copy the VST3s to ~/Library/Audio/Plug-Ins/VST3 (quit Live first)
-scripts/build/build-patch.sh --install
+# build the tests but do not run them
+scripts/build/build-patch.sh --juce ../bastelbox/brilliant-bleep/plugins/JUCE --no-test
 ```
 
-**Skip the tests:** `--no-test`, as in the second command above. `release.py --build` runs `build-patch.sh --plugins-only` (no tests, no test targets), so after a `build-patch.sh --plugins-only` run it has nothing left to compile. Run the tests separately with plain `build-patch.sh` before a release.
+**Skip the tests:** `--no-test` only skips running them; `--plugins-only` does not build them either. `release.py --build` runs `build-patch.sh --plugins-only` (no tests, no test targets), so after a `build-patch.sh --plugins-only` run it has nothing left to compile. Run the tests separately with plain `build-patch.sh` before a release.
 
-**Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the signed `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`library::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; to not build them either:
-
-```bash
-scripts/build/build-patch.sh --plugins-only --install
-```
+**Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the signed `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`library::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; `--plugins-only` does not build them either (the command at the top of this section).
 
 If `BLEEP_WASMTIME_DIR` is empty (no Wasmtime under `build/wasm-spike`), the plugins fall back to compiling all modules in. Check with `grep BLEEP_WASMTIME_DIR build/patch/CMakeCache.txt`.
 
