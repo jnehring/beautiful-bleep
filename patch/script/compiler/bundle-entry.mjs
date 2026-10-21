@@ -35,6 +35,15 @@ import micColourView from "../src/mic-colour.view.js";
 import tapeMachineView from "../src/tape-machine.view.js";
 import vinylView from "../src/vinyl.view.js";
 import cheapSpeakerView from "../src/cheap-speaker.view.js";
+import preampHelp from "../../../website/content/developers/bleep-script/vintage-modules/preamp.md";
+import valveStageHelp from "../../../website/content/developers/bleep-script/vintage-modules/valve-stage.md";
+import channelStripHelp from "../../../website/content/developers/bleep-script/vintage-modules/channel-strip.md";
+import toneEqHelp from "../../../website/content/developers/bleep-script/vintage-modules/tone-eq.md";
+import optoCompressorHelp from "../../../website/content/developers/bleep-script/vintage-modules/opto-compressor.md";
+import micColourHelp from "../../../website/content/developers/bleep-script/vintage-modules/mic-colour.md";
+import tapeMachineHelp from "../../../website/content/developers/bleep-script/vintage-modules/tape-machine.md";
+import vinylHelp from "../../../website/content/developers/bleep-script/vintage-modules/vinyl.md";
+import cheapSpeakerHelp from "../../../website/content/developers/bleep-script/vintage-modules/cheap-speaker.md";
 import { EXAMPLES } from "../playground/examples.mjs";
 import { compileScript } from "./compile.mjs";
 import { runPatchScript } from "../patch/run.mjs";
@@ -59,6 +68,11 @@ export async function patch(source, settings, types, options) {
   return { ok: m.ok, problems: m.problems, nodes: m.nodes, cables: m.cables, interface: { kind: "patch", name: r.spec.name, description: r.spec.description, settings: r.spec.settings, summary: m.summary } };
 }
 
+
+/// A module's manual (website/content/developers/bleep-script/vintage-modules/<name>.md) as its help page: without the front matter and the first
+/// heading's picture line.
+const helpPage = (md) => md.replace(/^---[\s\S]*?---\s*/, "").replace(/^!\[[^\]]*\]\([^)]*\)\s*$/gm, "").trim() + "\n";
+
 /// Starting points for the editor: [{ id, name, source }].
-export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, { id: "preamp", name: "Preamp (transformer-coupled)", source: preamp, view: preampView }, { id: "valve-stage", name: "Valve Stage (tube preamp)", source: valveStage, view: valveStageView }, { id: "channel-strip", name: "Channel Strip (EQ and drive)", source: channelStrip, view: channelStripView }, { id: "tone-eq", name: "Tone EQ (passive shelves)", source: toneEq, view: toneEqView }, { id: "opto-compressor", name: "Opto Compressor (leveling)", source: optoCompressor, view: optoCompressorView }, { id: "mic-colour", name: "Mic Colour", source: micColour, view: micColourView }, { id: "tape-machine", name: "Tape Machine", source: tapeMachine, view: tapeMachineView }, { id: "vinyl", name: "Vinyl", source: vinyl, view: vinylView }, { id: "cheap-speaker", name: "Cheap Speaker (lo-fi)", source: cheapSpeaker, view: cheapSpeakerView }, ...EXAMPLES];
+export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, { id: "preamp", name: "Preamp (transformer-coupled)", source: preamp, view: preampView, help: helpPage(preampHelp) }, { id: "valve-stage", name: "Valve Stage (tube preamp)", source: valveStage, view: valveStageView, help: helpPage(valveStageHelp) }, { id: "channel-strip", name: "Channel Strip (EQ and drive)", source: channelStrip, view: channelStripView, help: helpPage(channelStripHelp) }, { id: "tone-eq", name: "Tone EQ (passive shelves)", source: toneEq, view: toneEqView, help: helpPage(toneEqHelp) }, { id: "opto-compressor", name: "Opto Compressor (leveling)", source: optoCompressor, view: optoCompressorView, help: helpPage(optoCompressorHelp) }, { id: "mic-colour", name: "Mic Colour", source: micColour, view: micColourView, help: helpPage(micColourHelp) }, { id: "tape-machine", name: "Tape Machine", source: tapeMachine, view: tapeMachineView, help: helpPage(tapeMachineHelp) }, { id: "vinyl", name: "Vinyl", source: vinyl, view: vinylView, help: helpPage(vinylHelp) }, { id: "cheap-speaker", name: "Cheap Speaker (lo-fi)", source: cheapSpeaker, view: cheapSpeakerView, help: helpPage(cheapSpeakerHelp) }, ...EXAMPLES];
 export const version = "0.1";

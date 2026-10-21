@@ -19,6 +19,7 @@ The **Code** node (Add menu: *Utility › Script*) holds one script. Click the n
 | **Editor** | [CodeMirror](https://codemirror.net/) with TypeScript highlighting, line numbers, bracket matching, folding, undo within the editor, and completion for the decorators and library (type `@` or press `Ctrl+Space`) |
 | **Status line** | `Fold: compiled · about 3,000 ops per block (1 % of the limit)`, or the number of errors |
 | **Problems** | One line per error or warning with line and column; click one to jump to it. The first 30 are shown. Errors are also underlined in the editor |
+| **Help tab** | The module's help page in Markdown (*Write* and *Preview*). The **?** button of the node's window shows it, and a module saved from the node keeps it. Without one, the **?** shows a page made from the module's description: its text, knobs with their ranges, jacks and meters. Headings, lists, tables, bold, code and links work; images are left out |
 | **Meters** | One bar per `@probe` the module declares |
 | **Knobs** | The module's own knobs and buttons, built from its `@param` and `@button` declarations |
 
@@ -45,7 +46,8 @@ A script you want to keep using does not have to live in a Code node. **Save as 
 
 - The module is stored in the browser (IndexedDB) and is yours alone: it is your own code, so it is not signed and runs in the same sandbox as every module. Its type id is `mine/<name>`.
 - **Update saved module** replaces it with the Code node's current source. Patches that already use it get the new version after a reload.
-- **My modules** in the *Examples* menu opens a saved module's source (and UI) in the Code node, to change it and update it.
+- The module's UI and its help page (the Help tab) are saved with it.
+- **My modules** in the *Examples* menu opens a saved module's source, UI and help page in the Code node, to change it and update it.
 - **Remove module** takes it off this computer. Nodes of that module in a patch show as missing; the Code node keeps its source.
 - A saved module is not part of a patch file: someone who opens your patch needs the module too, so share it through the library (see [Publishing a module](../modules/publishing.md)).
 

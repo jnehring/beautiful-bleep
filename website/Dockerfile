@@ -31,6 +31,8 @@ COPY patch/script/patch patch/script/patch
 COPY patch/script/transform patch/script/transform
 COPY patch/script/src patch/script/src
 COPY patch/script/playground/examples.mjs patch/script/playground/examples.mjs
+# the vintage modules' manuals are the help pages of their Code node examples (patch/script/compiler/bundle-entry.mjs)
+COPY website/content/developers/bleep-script/vintage-modules website/content/developers/bleep-script/vintage-modules
 RUN cd patch/script && node bundle.mjs
 COPY scripts/build/build-web.sh scripts/build/build-web.sh
 RUN scripts/build/build-web.sh --no-modules /out

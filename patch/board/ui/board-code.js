@@ -198,6 +198,7 @@
         case "ready": ready = true; break;
         case "error": report(String(m.message || "error").slice(0, 300), Number.isInteger(m.line) ? m.line : null); break;
         case "size": if (Number.isFinite(m.h)) f.style.height = `${Math.max(40, Math.min(800, Math.round(m.h)))}px`; break;
+        case "fill": mount.classList.add("fills"); break;   // a UI with a canvas("fill") follows its window; the others keep their height
         case "command": if (buttons.includes(m.id)) view.api.command(m.id, 1); break;
         case "set": {
           if (now - setWindow > 1000) { setWindow = now; setCount = 0; }
@@ -228,7 +229,7 @@
         lastSent = now;
         f.contentWindow.postMessage({ t: "state", values: values(), probes }, "*");
       },
-      stop() { window.removeEventListener("message", onMessage); f.remove(); },
+      stop() { window.removeEventListener("message", onMessage); f.remove(); mount.classList.remove("fills"); },
     };
   }
 
@@ -294,6 +295,62 @@
     };
   }
 
+  // ---- the module's help page: Markdown written in the Help tab, shown by the ? button of the module's window --------------------------------------
+  /// The Markdown of a help page as HTML: the board's renderer (it escapes HTML and checks links), with images left out (a page from someone else's
+  /// patch must not make the board fetch anything).
+  function renderHelp(markdown) {
+    const M = G.BleepMarkdown;
+    if (!M) return "<pre></pre>".replace("</pre>", String(markdown).replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</pre>");
+    return M.render(String(markdown)).replace(/<img\b[^>]*?alt="([^"]*)"[^>]*>/g, "$1").replace(/<img\b[^>]*>/g, "");
+  }
+
+  /// A page made from the module's own description (name, text, knobs, jacks) for a module whose author wrote none.
+  function stubHelp(spec) {
+    const range = (p) => {
+      if (p.kind === "bool") return "off / on";
+      if (p.kind === "choice") return (p.choices || []).join(", ");
+      const unit = p.label ? " " + p.label : "";
+      return `${p.min}${unit} to ${p.max}${unit}`;
+    };
+    const cell = (t) => String(t == null ? "" : t).replace(/\s+/g, " ").replace(/\|/g, "/").trim();
+    const lines = [`# ${spec.name || "Module"}`, "", spec.description || "", ""];
+    const params = spec.params || [];
+    if (params.length) lines.push("## Knobs", "", "| Knob | Range | What it does |", "|---|---|---|", ...params.map((p) => `| **${cell(p.name)}** | ${cell(range(p))} | ${cell(p.description)} |`), "");
+    const jacks = (list, title) => list && list.length ? [`## ${title}`, "", ...list.map((j) => `- **${cell(j.name)}** (${cell(j.type)})${j.description ? ": " + cell(j.description) : ""}`), ""] : [];
+    lines.push(...jacks(spec.inputs, "Inputs"), ...jacks(spec.outputs, "Outputs"));
+    if ((spec.probes || []).length) lines.push("## Meters", "", ...spec.probes.map((p) => `- **${cell(p.name)}**${p.description ? ": " + cell(p.description) : ""}`), "");
+    lines.push("*This page was made from the module's description. Its author can write a better one in the Code node's Help tab.*");
+    return lines.join("\n");
+  }
+
+  function helpUi(view, root) {
+    const $ = (selector) => root.querySelector(selector);
+    const area = $(".bc-help-source"), shown = $(".bc-help-render"), editor = $(".bc-help-editor"), write = $(".bc-help-write"), preview = $(".bc-help-preview");
+    area.value = (view.node.code && view.node.code.help) || "";
+    area.addEventListener("keydown", (e) => {
+      e.stopPropagation();   // typing is not for the board's shortcuts or the computer keyboard's notes
+      if (e.key === "Tab" && !e.shiftKey) { e.preventDefault(); const { selectionStart: s, selectionEnd: t, value } = area; area.value = value.slice(0, s) + "  " + value.slice(t); area.selectionStart = area.selectionEnd = s + 2; }
+    });
+    area.addEventListener("keyup", (e) => e.stopPropagation());
+    const save = () => {   // the page is part of the node: saved when the text box is left
+      const code = view.node.code;
+      if (code && (code.help || "") !== area.value) view.api.setNodeProperty("code", { ...code, help: area.value });
+    };
+    area.addEventListener("blur", save);
+    const mode = (previewing) => {
+      write.classList.toggle("on", !previewing); preview.classList.toggle("on", previewing);
+      editor.hidden = previewing; shown.hidden = !previewing;
+      if (previewing) {
+        const spec = (view.node.code && view.node.code.interface) || {};
+        shown.innerHTML = renderHelp(area.value.trim() ? area.value : stubHelp(spec));
+        shown.addEventListener("click", (e) => { if (e.target.closest("a")) e.preventDefault(); });
+      }
+    };
+    write.addEventListener("click", () => mode(false));
+    preview.addEventListener("click", () => mode(true));
+    return { getHelp: () => area.value, setHelp: (text) => { area.value = text; mode(false); } };
+  }
+
   function build(view, root) {
     const node = view.node;
     const ui = {
@@ -329,7 +386,9 @@
     }
     const setStatus = (text, cls = "") => { ui.status.textContent = text; ui.status.className = "bc-status " + cls; };
     const custom = customUi(view, root, iface || {});
-    const withView = (code) => (custom.getView().trim() ? { ...code, view: custom.getView() } : code);   // the UI's source rides along with every save
+    const help = helpUi(view, root);
+    // the UI's source and the help page ride along with every save
+    const withView = (code) => ({ ...code, ...(custom.getView().trim() ? { view: custom.getView() } : {}), ...(help.getHelp().trim() ? { help: help.getHelp() } : {}) });
     let examples = [];
 
     // ---- Save as module: keep the compiled module (and its UI) on this computer, in the Add menu (web/js/user-modules.js) ----------------------
@@ -361,7 +420,7 @@
         if (!r.wasm || !r.specs.length) { setStatus("The module did not compile; nothing was saved.", "bad"); return; }
         const replaced = !!U.get(slug);
         await U.put({
-          slug, name: i.name, category: r.specs[0].category || "Utility/Script", source: node.code.source, view: custom.getView(), settings,
+          slug, name: i.name, category: r.specs[0].category || "Utility/Script", source: node.code.source, view: custom.getView(), help: help.getHelp(), settings,
           spec: r.specs, wasm: r.wasm.buffer.slice(r.wasm.byteOffset, r.wasm.byteOffset + r.wasm.byteLength),
         });
         if (G.BleepLibrary && G.BleepLibrary.forget) G.BleepLibrary.forget(slug);
@@ -498,10 +557,11 @@
     });
     ui.examples.addEventListener("change", () => {
       const mine = ui.examples.value.startsWith("user:") && U ? U.get(ui.examples.value.slice(5)) : null;
-      const ex = mine ? { source: mine.source, view: mine.view || "" } : examples.find((e) => e.id === ui.examples.value);
+      const ex = mine ? { source: mine.source, view: mine.view || "", help: mine.help || "" } : examples.find((e) => e.id === ui.examples.value);
       if (!ex) return;
       setSource(ex.source); showProblems([]);
       if (ex.view !== undefined) custom.setView(ex.view);   // an example with its own UI brings the code for it (the UI tab; press Run UI)
+      if (ex.help !== undefined) help.setHelp(ex.help);   // and its help page (the Help tab)
       ui.examples.value = "";
     });
     const probeIds = ((iface && iface.probes) || []).map((p) => p.id);
@@ -637,7 +697,24 @@
     }
   }
 
-  P.BleepCode = { registerInstalledViews, type: TYPE, available, uiSpec, keyOf, sync, compile, compilePatch, applyGenerated, isPatch, hashOf, setHost };
+  /// The help page of a node as Markdown, or null where there is none to show: a compiled Code node, or a module saved from one (the page its
+  /// author wrote in the Help tab, else one made from the module's description).
+  function helpOf(node) {
+    if (!node) return null;
+    let spec = null, text = "";
+    if (node.type === "code") {
+      const code = node.code;
+      if (!code || !code.interface || code.interface.kind === "patch") return null;
+      spec = code.interface; text = code.help || "";
+    } else {
+      const rec = installedTypes.get(node.type);
+      if (!rec) return null;
+      spec = rec.spec; text = rec.entry.help || "";
+    }
+    return text.trim() ? text : stubHelp(spec);
+  }
+
+  P.BleepCode = { registerInstalledViews, helpOf, renderHelp, stubHelp, type: TYPE, available, uiSpec, keyOf, sync, compile, compilePatch, applyGenerated, isPatch, hashOf, setHost };
 
   if (G.BleepViews) G.BleepViews.register("code", {
     top: true,
@@ -652,7 +729,7 @@
       <div class="bc-settings" hidden></div>
       <div class="bc-custom" hidden></div>
       <div class="bc-widgets" hidden></div>
-      <div class="bc-tabs" role="tablist"><button type="button" class="bc-tab on" data-tab="script" role="tab" aria-selected="true">Script</button><button type="button" class="bc-tab" data-tab="ui" role="tab" aria-selected="false">UI</button></div>
+      <div class="bc-tabs" role="tablist"><button type="button" class="bc-tab on" data-tab="script" role="tab" aria-selected="true">Script</button><button type="button" class="bc-tab" data-tab="ui" role="tab" aria-selected="false">UI</button><button type="button" class="bc-tab" data-tab="help" role="tab" aria-selected="false">Help</button></div>
       <div class="bc-pane" data-pane="script">
         <div class="bc-editor"><pre class="bc-gutter" aria-hidden="true"></pre><textarea class="bc-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Source code"></textarea></div>
         <ul class="bc-problems" aria-label="Problems"></ul>
@@ -662,6 +739,12 @@
           <span class="bc-ui-note">JavaScript that draws this module's own UI. It runs in a sandboxed worker with no network, no DOM and no access to the board, and is stopped if it hangs.</span></div>
         <div class="bc-ui-editor"><textarea class="bc-ui-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="UI code"></textarea></div>
         <ul class="bc-ui-problems" aria-label="UI problems"></ul>
+      </div>
+      <div class="bc-pane" data-pane="help" hidden>
+        <div class="bc-ui-bar"><button type="button" class="bc-help-write on">Write</button><button type="button" class="bc-help-preview">Preview</button>
+          <span class="bc-ui-note">The module's help page, in Markdown: the <b>?</b> button of its window shows it. Headings, lists, tables, **bold**, <code>code</code> and links work; images are left out.</span></div>
+        <div class="bc-help-editor"><textarea class="bc-help-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Help page (Markdown)" placeholder="# My module&#10;&#10;What it does, what the knobs mean, how to use it."></textarea></div>
+        <div class="bc-help-render v-doc" hidden></div>
       </div>
       <div class="bc-probes" hidden></div>
     </div>`,

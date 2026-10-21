@@ -208,8 +208,13 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .vwin.sized .bc-pane:not([hidden]) { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .vwin.sized .bc-editor, .vwin.sized .bc-ui-editor { height: auto; flex: 1; min-height: 120px; }
 .vwin.sized .bc-ui-editor { display: flex; flex-direction: column; }
-.vwin.sized .bc-custom:not([hidden]) { flex: 1 1 40%; min-height: 120px; display: flex; flex-direction: column; }
-.vwin.sized .bc-custom .bc-frame { height: 100% !important; flex: 1; }
+/* the module's own UI keeps its height when the window is resized, so the controls below stay in reach; only a UI that asked for the whole window
+   (canvas("fill")) grows with it */
+.vwin.sized .bc-custom:not([hidden]) { flex: none; display: flex; flex-direction: column; }
+.vwin.sized .bc-custom .bc-frame { flex: none; }
+.vwin.sized .bc-custom.fills:not([hidden]) { flex: 1 1 40%; min-height: 120px; }
+.vwin.sized .bc-custom.fills .bc-frame { height: 100% !important; flex: 1; }
+.vwin.sized .bc-widgets { flex: none; }
 .vwin.port { width: fit-content; min-width: 260px; max-width: min(520px, calc(100vw - 24px)); }
 .vwin.wiring { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; }
 .vwin.wiring .v-head { grid-column: 1 / -1; }
@@ -718,6 +723,11 @@ body.plugin #side-toggle { display: none; }
 .bc-ui-editor { height: 240px; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .bc-ui-editor .cm-editor { height: 100%; user-select: text; -webkit-user-select: text; }
 .bc-ui-source { width: 100%; height: 100%; resize: none; border: 0; background: transparent; color: var(--text); padding: 8px; box-sizing: border-box; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; user-select: text; -webkit-user-select: text; }
+.bc-help-editor { height: 240px; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.bc-help-source { width: 100%; height: 100%; resize: none; border: 0; background: transparent; color: var(--text); padding: 8px; box-sizing: border-box; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; user-select: text; -webkit-user-select: text; outline-offset: -2px; }
+.bc-help-render { height: 240px; overflow: auto; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; box-sizing: border-box; }
+.bc-ui-bar .on { border-color: var(--accent); color: var(--accent); }
+.vwin.sized .bc-help-editor, .vwin.sized .bc-help-render { height: auto; flex: 1; min-height: 120px; }
 .bc-ui-problems { list-style: none; margin: 6px 0 0; padding: 0; }
 .bc-ui-problems:empty { display: none; }
 .bc-ui-problems li { color: var(--warn); padding: 2px 4px; user-select: text; }

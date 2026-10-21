@@ -117,8 +117,12 @@
         if (!n.params) n.params = {};
         body.append(bv.root);
         $("views").appendChild(win);
-        const v = { win, bv, pinned: false, power, docRoot: null };
+        const v = { win, bv, pinned: false, power, docRoot: null, help };
         let docHtml = null;
+        // A Code node and a module saved from one have the help page their author wrote (Help tab), or one made from the module's description
+        const ownHelp = () => (P.BleepCode && P.BleepCode.helpOf ? P.BleepCode.helpOf(nodeById(id)) : null);
+        v.showHelpButton = () => { if (ownHelp() !== null) help.hidden = false; };
+        v.showHelpButton();
         moduleDoc(t.type).then((md) => {
           if (md === null) return;
           help.hidden = false;
@@ -155,6 +159,12 @@
         pin.addEventListener("click", () => { v.pinned = !v.pinned; pin.classList.toggle("on", v.pinned); pin.title = pinTitle(v.pinned); });
         // The module's manual opens in a dialog over the board (modal.js), built on first use.
         help.addEventListener("click", () => {
+          const own = ownHelp();
+          if (own !== null && own !== v.ownHelp) {   // the page may have changed since it was last opened
+            if (v.docRoot) { P.BleepModal.unmount(v.docRoot); v.docRoot = null; }
+            v.ownHelp = own;
+            docHtml = P.BleepCode.renderHelp(own);
+          }
           if (docHtml === null) return;
           if (!v.docRoot) {
             const section = el("section", "mod-doc");
@@ -271,6 +281,7 @@
         const bv = BleepView.create(typeOf(n), clone(n), makeApi(id));
         v.bv.root.replaceWith(bv.root);
         v.bv = bv;
+        if (v.showHelpButton) v.showHelpButton();   // a Code node that has just compiled has a help page to show
       }
       function closeView(id) {
         const v = views.get(id);

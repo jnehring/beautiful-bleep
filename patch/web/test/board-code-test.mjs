@@ -85,4 +85,23 @@ assert.equal(calls.length, 0);
   assert.equal(calls.length, 0, "a patch script is never handed to the engine");
 }
 
+// help pages: the author's own, else one made from the description; none for a node that has no module yet
+{
+  assert.equal(BleepCode.helpOf({ id: "h0", type: "code" }), null, "a Code node that has not compiled has no page");
+  assert.equal(BleepCode.helpOf({ id: "h1", type: "code", code: { interface: { kind: "patch" } } }), null, "nor a patch script");
+  assert.equal(BleepCode.helpOf({ id: "h2", type: "oscillator" }), null, "nor a module that is not from a Code node");
+  const own = BleepCode.helpOf({ id: "h3", type: "code", code: { source: "s", interface: iface, help: "# Mine\n\nText." } });
+  assert.equal(own, "# Mine\n\nText.", "the page the author wrote");
+  const made = BleepCode.helpOf({ id: "h4", type: "code", code: { source: "s", interface: iface, help: "  \n " } });
+  assert.match(made, /^# Gains\n\nd\n/, "a blank page is replaced by one made from the description");
+  assert.match(made, /\| \*\*Volume\*\* \| 0 to 1 \|/, "with a table of the knobs and their ranges");
+  assert.match(made, /- \*\*In\*\* \(audio\)/, "and the jacks");
+  assert.match(BleepCode.stubHelp({ name: "X", params: [{ name: "Mode", kind: "choice", choices: ["A", "B"] }, { name: "On", kind: "bool" }, { name: "Gain", kind: "float", min: -6, max: 6, label: "dB", description: "a | b" }] }), /\| \*\*Mode\*\* \| A, B \|[\s\S]*\| \*\*On\*\* \| off \/ on \|[\s\S]*-6 dB to 6 dB \| a \/ b \|/, "ranges, choices, toggles, units, and a pipe in a description cannot break the table");
+  // without the board's renderer the text is shown as text, escaped
+  assert.equal(BleepCode.renderHelp("<b>x</b> & y"), "<pre>&lt;b>x&lt;/b> &amp; y</pre>");
+  // with it, images are left out (a page from someone else's patch must not make the board fetch anything)
+  globalThis.BleepMarkdown = { render: (t) => `<p>${t}</p><img src="https://x.test/a.png" alt="A picture"><img src="b.png">` };
+  assert.equal(BleepCode.renderHelp("hi"), "<p>hi</p>A picture");
+}
+
 console.log("board-code: ok");

@@ -210,7 +210,8 @@
         worker.postMessage(msg);
       });
     });
-    if (!fill) send({ t: "size", h: document.body.scrollHeight });
+    if (fill) send({ t: "fill" });   // this UI follows the size of its window
+    else send({ t: "size", h: document.body.scrollHeight });
   }
 
   function onWorker(ev) {
