@@ -35,6 +35,11 @@ struct Package {
 /// Reads a zip: stored and deflate, no zip64. Refuses duplicates, symbolic links and anything that is not a zip.
 bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& error);
 
+/// Is every file of a package one a community module may bring (signing.md section 2a)? Module data and the sandboxed .wasm, no scripts:
+/// module.json, module.wasm, spec.json, LICENSE, doc/*.md and doc/*.png. The library refuses anything else at upload; a client checks
+/// again, because a signature by the community key says nothing about files that key should never have signed. `why` names the first offender.
+bool communityFilesOk(const Package& pkg, std::string& why);
+
 /// signing.md section 4. False (with `error`) if a path is unsafe.
 bool contentDigest(const Entries& entries, Digest& out, std::string& error);
 
@@ -52,6 +57,7 @@ std::string canonical(const juce::var& value);
 struct Result {
     std::string status = "unsigned";  ///< signed | unsigned | expired | revoked | invalid
     std::string publisher, keyId, root, reason;
+    std::string trust;  // official | community | developer (empty unless signed): whose key signed it
     int64_t publishedAt = 0;          ///< when the library published it, if a publication receipt dated the release (signing.md section 6a)
 };
 

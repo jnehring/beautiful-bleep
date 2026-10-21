@@ -194,6 +194,15 @@ Result verify(const Digest& digest, const juce::var* signature, const Context& c
     who.publisher = str(dt["publisher"]);
     who.keyId = str(dt["keyId"]);
     who.root = keyId(root->data());
+    // The library's community key (signing.md section 2a): modules only, as the publisher "community", never first-party.
+    const bool community = dt["community"].isBool() && (bool)dt["community"];
+    const bool firstParty = dt["firstParty"].isBool() && (bool)dt["firstParty"];
+    if (community) {
+        const juce::var scopes = dt["scopes"];
+        if (!scopes.isArray() || scopes.size() != 1 || str(scopes[0]) != "module" || firstParty || who.publisher != "community")
+            return invalid("a community certificate may only sign modules, as the 'community' publisher");
+    }
+    who.trust = community ? "community" : firstParty ? "official" : "developer";
     auto with = [&](const char* status, const char* reason) { Result r = who; r.status = status; r.reason = reason; return r; };
 
     if (c.revocations) {
@@ -205,10 +214,11 @@ Result verify(const Digest& digest, const juce::var* signature, const Context& c
             if (a.kind == c.kind && a.id == c.id && a.version == c.version && a.digest == hex) return with("revoked", "this release was revoked");
     }
     if ((c.kind != "module" && c.kind != "plugin") || !hasScope(dt, c.kind)) return invalid("the certificate does not allow signing a " + c.kind);
-    const bool firstParty = dt["firstParty"].isBool() && (bool)dt["firstParty"];
     const bool bareOk = firstParty && c.id.find('/') == std::string::npos;
     const std::string prefix = who.publisher + "/";
-    if (!bareOk && c.id.compare(0, prefix.size(), prefix) != 0) return invalid("'" + c.id + "' is not in the publisher's namespace");
+    // a community key signs any "<author>/<name>" (the library checked the author owns the namespace), never a bare id
+    const bool inNamespace = community ? c.id.find('/') != std::string::npos : (bareOk || c.id.compare(0, prefix.size(), prefix) == 0);
+    if (!inNamespace) return invalid("'" + c.id + "' is not in the publisher's namespace");
 
     std::vector<uint8_t> message, sig;
     append(message, "BLEEP-SIG-1\n");

@@ -137,6 +137,14 @@ void testFixtures(const juce::File& dir) {
             const Result r = pkg.hasSignature ? verify(digest, &pkg.signature, ctx) : verify(digest, nullptr, ctx);
             got = r.status;
             if (c["publisher"].isString()) CHECK(r.publisher == c["publisher"].toString().toStdString(), "%s: publisher %s", name.c_str(), r.publisher.c_str());
+            if (c.hasProperty("communityFiles")) {  // the file rule a client applies to a community-signed package
+                std::string why;
+                CHECK(communityFilesOk(pkg, why) == (bool)c["communityFiles"], "%s: community file rule (%s)", name.c_str(), why.c_str());
+            }
+            if (r.status == "signed") {
+                const std::string publisher = c["publisher"].toString().toStdString();
+                CHECK(r.trust == (publisher == "community" ? "community" : publisher == "bleep" ? "official" : "developer"), "%s: trust %s", name.c_str(), r.trust.c_str());
+            }
         }
         CHECK(got == expect, "%s: got %s, expected %s", name.c_str(), got.c_str(), expect.c_str());
         ++n;

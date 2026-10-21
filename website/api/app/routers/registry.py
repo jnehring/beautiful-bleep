@@ -42,8 +42,13 @@ def _signed_id(slug: str) -> str:
 
 
 def _revocations(db: Session) -> dict:
+    """What clients must refuse: revoked developer keys, and the releases an admin took down (`status` "taken_down": a community module
+    that turned out to be abusive). A taken-down release is listed by its content digest, so a copy installed earlier stops loading too."""
     keys = db.scalars(select(Developer.key_id).where(Developer.revoked_at.is_not(None)))
-    return {"revokedKeys": [{"keyId": k} for k in keys], "revokedArtifacts": []}
+    taken = db.scalars(select(Release).where(Release.status == "taken_down"))
+    artifacts = [{"kind": r.kind, "id": _signed_id(r.slug), "version": r.version, "digest": f["contentDigest"]}
+                 for r in taken for f in r.files if f.get("contentDigest")]
+    return {"revokedKeys": [{"keyId": k} for k in keys], "revokedArtifacts": artifacts}
 
 
 def write_revocations(db: Session, storage: Storage) -> dict | None:
@@ -51,14 +56,17 @@ def write_revocations(db: Session, storage: Storage) -> dict | None:
     change, so a client keeps the newest and a mirror cannot hand back an older list. Nothing is written when the library has no issuer key."""
     if not (settings.issuer_key or settings.issuer_key_file) or not settings.issuer_cert:
         return None
-    keys = sorted(_revocations(db)["revokedKeys"], key=lambda k: k["keyId"])
+    revoked = _revocations(db)
+    keys = sorted(revoked["revokedKeys"], key=lambda k: k["keyId"])
+    artifacts = sorted(revoked["revokedArtifacts"], key=lambda a: (a["kind"], a["id"], a["version"], a["digest"]))
     prev = storage.get("v1/revocations.json")
     old = json.loads(prev) if prev else {}
-    if prev and [k["keyId"] for k in keys] == [k["keyId"] for k in old.get("revokedKeys", [])]:
+    if prev and [k["keyId"] for k in keys] == [k["keyId"] for k in old.get("revokedKeys", [])] and artifacts == old.get("revokedArtifacts", []):
         return old  # nothing changed: the list stays, with its serial
     stamp = int(now().timestamp())
     crl = signing.make_crl(signing.key_from_pem(signing.issuer_key_pem()), json.loads(settings.issuer_cert),
-                           serial=max(stamp, int(old.get("serial", 0)) + 1), issued=stamp, revoked_keys=[k["keyId"] for k in keys])
+                           serial=max(stamp, int(old.get("serial", 0)) + 1), issued=stamp, revoked_keys=[k["keyId"] for k in keys],
+                           revoked_artifacts=artifacts)
     storage.put("v1/revocations.json", io.BytesIO(json.dumps(crl, indent=1).encode()), "application/json")
     return crl
 
@@ -92,11 +100,13 @@ def _check_files(db: Session, token: ApiToken, kind: str, slug: str, version: st
                                 roots=roots, now=int(now().timestamp()), crl=crl)
         if result.status != "signed":
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"{f.path}: signature {result.status}: {result.reason or 'not valid'}")
+        if result.trust == "community":
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Community signatures are made by the library itself; upload the unsigned package to /api/registry/community")
         if result.publisher != allowed:
             raise HTTPException(status.HTTP_403_FORBIDDEN, f"This token may release for {allowed!r}, the signature is by {result.publisher!r}")
         publishers.add(result.publisher)
         out.append({**f.model_dump(exclude={"signature"}), "contentDigest": f.contentDigest, "signature": f.signature,
-                    "signer": {"publisher": result.publisher, "keyId": result.key_id}, "uploaded": False, "token": token.id})
+                    "signer": {"publisher": result.publisher, "keyId": result.key_id, "trust": result.trust}, "uploaded": False, "token": token.id})
     if len(publishers) > 1:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "All files of a release must be signed by one publisher")
     return out
@@ -238,6 +248,14 @@ def _check_licence(row: Release, package) -> None:
                             "The release's license and origin must match the package's module.json "
                             f"(release: {row.license or 'none'}, package: {meta.get('license', 'MIT')})")
     package.seek(0)
+
+
+def _trust(r: Release) -> str:
+    """Who vouches for a release, for the tiles and the entry: official (first-party key), community (the library's community key after
+    its checks) or developer (a developer's own key). Releases signed before the field existed are told by their publisher."""
+    signer = next((f["signer"] for f in r.files if f.get("signer")), {})
+    return signer.get("trust") or ("community" if signer.get("publisher") == signing.COMMUNITY_PUBLISHER else
+                                   "official" if signer.get("publisher") == "bleep" else "developer")
 
 
 def _types(r: Release) -> list[str]:
@@ -416,7 +434,7 @@ def add_platform(kind: Kind, body: PlatformIn, slug: str = Slug, version: str = 
 def _entry(r: Release) -> dict:
     return {
         "kind": r.kind, "id": r.slug, "version": r.version, "channel": r.channel, "title": r.title or r.slug,
-        "summary": r.summary, "category": r.category, "license": r.license, "origin": r.origin or None, "image": r.image or None, "notes": r.notes, "requires": r.requires, "types": _types(r), "published": r.published_at.isoformat(),
+        "summary": r.summary, "category": r.category, "license": r.license, "origin": r.origin or None, "image": r.image or None, "notes": r.notes, "requires": r.requires, "types": _types(r), "trust": _trust(r), "published": r.published_at.isoformat(),
         "files": [{k: f[k] for k in ("path", "sha256", "bytes", "platform", "contentDigest", "signer", "signature", "publication") if f.get(k) is not None}
                   for f in r.files if f["uploaded"]],
     }
@@ -430,7 +448,7 @@ def write_index(db: Session, storage: Storage) -> dict:
             channels[channel][r.kind + "s"][r.slug] = {
                 "version": r.version, "entry": f"{r.kind}s/{r.slug}/{r.version}/entry.json",
                 # what the apps' library tiles show, so one request to the index is enough
-                "title": r.title or r.slug, "summary": r.summary, "category": r.category,
+                "title": r.title or r.slug, "summary": r.summary, "category": r.category, "trust": _trust(r),
                 **({"image": f"{r.kind}s/{r.slug}/{r.version}/{r.image}"} if r.image else {}),
             }
             if r.kind == "module":  # which node types a module provides: clients find the package for a type without downloading any

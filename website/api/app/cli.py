@@ -11,6 +11,9 @@
     python -m app.cli developer-create PUBLISHER [--scopes module,plugin] [--first-party --confirm] [--days 1..825] [--out FILE]
     python -m app.cli developer-list
     python -m app.cli developer-revoke KEY_ID
+    python -m app.cli community-init [--days 1..825] [--out FILE]
+    python -m app.cli community-takedown ID VERSION
+    python -m app.cli community-ban HANDLE
     python -m app.cli receipts-backfill [--dry-run]
 
 The token and the key kit are secrets. --out FILE writes them to a file that only the owner can read (0600). Without --out they go to
@@ -33,7 +36,8 @@ from sqlalchemy import delete, select
 from . import signing
 from .config import settings
 from .db import SessionLocal
-from .models import ApiToken, Developer, User, UserSession, now
+from .models import ApiToken, Developer, Release, User, UserSession, now
+from .routers import community as community_router
 from .routers import registry
 from .security import hash_password, hash_token
 from .storage import get_storage
@@ -190,6 +194,8 @@ def developer_create(args: argparse.Namespace) -> None:
         sys.exit(str(e))
     not_after = datetime.fromtimestamp(kit["chain"][1]["tbs"]["notAfter"], timezone.utc)
     with SessionLocal() as db:
+        if db.scalar(select(User.id).where(User.handle == args.publisher)) is not None:
+            sys.exit(f"{args.publisher!r} is already the name of a community author; their modules live in that namespace. Choose another publisher.")
         active = db.scalars(select(Developer).where(Developer.publisher == args.publisher, Developer.revoked_at.is_(None),
                                                     Developer.not_after > now())).all()
         if active:
@@ -200,6 +206,54 @@ def developer_create(args: argparse.Namespace) -> None:
     print(f"Developer key {kit['keyId']} for {args.publisher}, valid until {not_after:%Y-%m-%d}. The kit below is a secret: hand it over privately.",
           file=sys.stderr)
     _emit_secret(json.dumps(kit, indent=1), args.out)
+
+
+def community_init(args: argparse.Namespace) -> None:
+    """Makes the library's community key and its certificate (signing.md section 2a) and prints the three lines for website/.env.
+
+    The key signs every community module after the library's checks. Its certificate is issued by the issuer key, allows modules only and
+    names the publisher "community". Run it again before the certificate lapses: modules published earlier stay valid through their receipts.
+    The key is a secret: it lets whoever holds it publish as the library."""
+    _check_secret_destination(args.out)
+    if not (settings.issuer_key or settings.issuer_key_file) or not settings.issuer_cert:
+        sys.exit("Set BLEEP_ISSUER_KEY and BLEEP_ISSUER_CERT first (scripts/release/signing.py init-registry makes them)")
+    key = signing.Ed25519PrivateKey.generate()
+    cert = signing.issue_community_cert(signing.key_from_pem(signing.issuer_key_pem()), json.loads(settings.issuer_cert), key, days=args.days)
+    pem = key.private_bytes(signing.serialization.Encoding.PEM, signing.serialization.PrivateFormat.PKCS8, signing.serialization.NoEncryption()).decode()
+    not_after = datetime.fromtimestamp(cert["tbs"]["notAfter"], timezone.utc)
+    with SessionLocal() as db:
+        db.add(Developer(publisher=signing.COMMUNITY_PUBLISHER, key_id=cert["tbs"]["keyId"], scopes=["module"], not_after=not_after))
+        db.commit()
+    print(f"Community key {cert['tbs']['keyId']}, valid until {not_after:%Y-%m-%d}. The lines below are a secret: put them in website/.env.", file=sys.stderr)
+    lines = [f"BLEEP_COMMUNITY_KEY={pem.strip().replace(chr(10), chr(92) + 'n')}", f"BLEEP_COMMUNITY_CERT={json.dumps(cert, separators=(',', ':'))}"]
+    _emit_secret("\n".join(lines), args.out)
+
+
+def community_takedown(args: argparse.Namespace) -> None:
+    """Withdraws one community release: it leaves the index and goes on the signed revocation list."""
+    slug = args.id.replace("/", ".", 1)
+    with SessionLocal() as db:
+        row = db.scalar(select(Release).where(Release.kind == "module", Release.slug == slug, Release.version == args.version))
+        if row is None or not any(f.get("signer", {}).get("trust") == "community" for f in row.files):
+            sys.exit(f"No community module {args.id} {args.version}")
+        community_router.take_down(db, get_storage(), row)
+    print(f"{args.id} {args.version} taken down: clients refuse it once they have the new revocation list")
+
+
+def community_ban(args: argparse.Namespace) -> None:
+    """Takes down every community release of an author and deactivates the account."""
+    with SessionLocal() as db:
+        user = db.scalar(select(User).where(User.handle == args.handle))
+        if user is None:
+            sys.exit(f"No author with the name {args.handle}")
+        rows = db.scalars(select(Release).where(Release.kind == "module", Release.slug.like(f"{args.handle}.%"), Release.status == "published")).all()
+        for row in rows:
+            row.status = "taken_down"
+        user.is_active = False
+        db.query(UserSession).filter(UserSession.user_id == user.id).delete()
+        db.commit()
+        registry.write_index(db, get_storage())
+    print(f"{args.handle}: {len(rows)} release(s) taken down, the account is deactivated and signed out")
 
 
 def developer_list(_: argparse.Namespace) -> None:
@@ -275,6 +329,17 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--out", help="write the kit to this file (mode 0600) instead of stdout")
     p.add_argument("--name", default="")
     p.set_defaults(run=developer_create)
+    p = sub.add_parser("community-init", help="make the library's community key and certificate (lines for website/.env, on stdout or --out FILE)")
+    p.add_argument("--days", type=_bounded_days(1, 825), default=365, help="validity of the certificate, 1 to 825 days (default: 365)")
+    p.add_argument("--out", help="write the lines to this file (mode 0600) instead of stdout")
+    p.set_defaults(run=community_init)
+    p = sub.add_parser("community-takedown", help="withdraw one community release")
+    p.add_argument("id", help="the module id, author/name")
+    p.add_argument("version")
+    p.set_defaults(run=community_takedown)
+    p = sub.add_parser("community-ban", help="take down every community release of an author and deactivate the account")
+    p.add_argument("handle")
+    p.set_defaults(run=community_ban)
     sub.add_parser("developer-list", help="list issued developer keys").set_defaults(run=developer_list)
     p = sub.add_parser("developer-revoke", help="revoke a developer key")
     p.add_argument("key_id")

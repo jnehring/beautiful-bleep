@@ -332,6 +332,9 @@ class Fixtures(unittest.TestCase):
                     got = r.status
                     if c["publisher"]:
                         self.assertEqual(r.publisher, c["publisher"], c["name"])
+                    if "communityFiles" in c:  # the file rule every client applies to a community-signed package (signing.md section 2a)
+                        from app import community
+                        self.assertEqual(all(community.ALLOWED_FILES.match(p) for p in entries), c["communityFiles"], c["name"])
                 except (ValueError, KeyError):  # a signature document that is not even JSON
                     got = "invalid"
             self.assertEqual(got, c["expect"], c["name"])

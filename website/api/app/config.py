@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     issuer_key: str | None = None
     issuer_key_file: str | None = None  # the issuer key from a file (a Docker secret) instead of the environment
     issuer_cert: str | None = None
+    # The library's own key for community modules (signing.md section 2a), made by `python -m app.cli community-init`: it signs what the
+    # community uploads, after the library has checked it. Its certificate (JSON) is issued by the issuer key and allows modules only.
+    # Unset: community uploads are off.
+    community_key: str | None = None
+    community_key_file: str | None = None
+    community_cert: str | None = None
     # A release without a valid signature is refused. Only turn this off for local experiments.
     require_signatures: bool = True
 
@@ -73,6 +79,10 @@ class Settings(BaseSettings):
     @property
     def allowed_origin_hosts(self) -> list[str]:
         return [h.strip() for h in self.allowed_origins.split(",") if h.strip()]
+
+    @property
+    def community_enabled(self) -> bool:
+        return bool((self.community_key or self.community_key_file) and self.community_cert and self.issuer_cert and self.root_public_keys.strip())
 
     @property
     def roots(self) -> list[bytes]:

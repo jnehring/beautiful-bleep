@@ -28,102 +28,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
 from app import signing  # noqa: E402
+# the ABI checks are shared with the library's community upload (website/api/app/community.py), so both apply the same rules
+from app.community import ALLOWED_IMPORTS, REQUIRED_EXPORTS, check_abi, read_wasm  # noqa: E402,F401
 
 ENGINE_ABI = 1
 
-# website/content/developers/modules/module-abi.md, section 2 (imports) and 4 (exports)
-ALLOWED_IMPORTS = {
-    ("env", "emscripten_notify_memory_growth"),
-    ("env", "bleep_media_info"), ("env", "bleep_media_read"),  # sample files, answered by the host (module-abi.md, "Media")
-    *(("wasi_snapshot_preview1", n) for n in ("fd_close", "fd_read", "fd_seek", "fd_write", "environ_get", "environ_sizes_get", "clock_time_get")),
-}
-REQUIRED_EXPORTS = {
-    "memory", "_initialize", "bleep_error", "bleep_spec_json", "bleep_spec_json_length", "bleep_type_count", "bleep_chunk", "bleep_create",
-    "bleep_destroy", "bleep_reset", "bleep_params_ptr", "bleep_inputs_ptr", "bleep_outputs_ptr", "bleep_in_connected_ptr",
-    "bleep_out_connected_ptr", "bleep_set_knob", "bleep_set_transport", "bleep_process", "bleep_notes_in_ptr", "bleep_notes_out_ptr",
-    "bleep_note_event_size", "bleep_scratch", "bleep_text", "bleep_text_length", "bleep_set_data", "bleep_sanitise_data", "bleep_perform",
-    "bleep_command", "bleep_live", "bleep_param_text", "bleep_output_display", "bleep_take_data",
-}
 ZIP_DATE = (2020, 1, 1, 0, 0, 0)
-
-
-# ---- the .wasm file: just enough of the binary format to read imports and exports -------------
-
-def _leb(data: bytes, pos: int) -> tuple[int, int]:
-    result = shift = 0
-    while True:
-        b = data[pos]
-        pos += 1
-        result |= (b & 0x7F) << shift
-        if not b & 0x80:
-            return result, pos
-        shift += 7
-
-
-def _name(data: bytes, pos: int) -> tuple[str, int]:
-    n, pos = _leb(data, pos)
-    return data[pos:pos + n].decode(), pos + n
-
-
-def read_wasm(data: bytes) -> tuple[list[tuple[str, str]], list[str]]:
-    """(imports as (module, name), export names) of a WebAssembly binary. Raises ValueError for anything that is not one."""
-    if data[:8] != b"\0asm\x01\0\0\0":
-        raise ValueError("not a WebAssembly 1.0 binary")
-    imports: list[tuple[str, str]] = []
-    exports: list[str] = []
-    pos = 8
-    while pos < len(data):
-        sid = data[pos]
-        size, pos = _leb(data, pos + 1)
-        end = pos + size
-        if sid == 2:
-            count, p = _leb(data, pos)
-            for _ in range(count):
-                mod, p = _name(data, p)
-                name, p = _name(data, p)
-                kind = data[p]
-                p += 1
-                if kind == 0:                      # function: type index
-                    _, p = _leb(data, p)
-                elif kind == 1:                    # table: element type, limits
-                    p += 1
-                    flags, p = _leb(data, p)
-                    _, p = _leb(data, p)
-                    if flags & 1:
-                        _, p = _leb(data, p)
-                elif kind == 2:                    # memory: limits
-                    flags, p = _leb(data, p)
-                    _, p = _leb(data, p)
-                    if flags & 1:
-                        _, p = _leb(data, p)
-                elif kind == 3:                    # global: type, mutability
-                    p += 2
-                elif kind == 4:                    # tag: attribute, type index
-                    p += 1
-                    _, p = _leb(data, p)
-                else:
-                    raise ValueError(f"unknown import kind {kind}")
-                imports.append((mod, name))
-        elif sid == 7:
-            count, p = _leb(data, pos)
-            for _ in range(count):
-                name, p = _name(data, p)
-                p += 1
-                _, p = _leb(data, p)
-                exports.append(name)
-        pos = end
-    return imports, exports
-
-
-def check_abi(data: bytes) -> list[str]:
-    """What is wrong with this module file under website/content/developers/modules/module-abi.md (empty: nothing)."""
-    try:
-        imports, exports = read_wasm(data)
-    except (ValueError, IndexError) as e:
-        return [f"cannot read the file: {e}"]
-    problems = [f"imports {m}.{n}, which the ABI does not allow" for m, n in imports if (m, n) not in ALLOWED_IMPORTS]
-    problems += [f"does not export {n}" for n in sorted(REQUIRED_EXPORTS - set(exports))]
-    return problems
 
 
 # ---- the package ------------------------------------------------------------------------------

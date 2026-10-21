@@ -103,8 +103,8 @@
 
   function badge(m) {
     const [text, cls] = STATUS[m.status] || [m.status, "warn"];
-    const b = el("span", "st-badge " + cls, m.status === "signed" ? "signed by " + m.publisher : text);
-    b.title = m.why || "";
+    const b = el("span", "st-badge " + cls, m.status === "signed" ? (m.publisher === "community" ? "community module" : "signed by " + m.publisher) : text);
+    b.title = m.status === "signed" && m.publisher === "community" ? "Shared by a community author. The library checked it and signed it; it runs in the sandbox." : (m.why || "");
     return b;
   }
 
@@ -316,7 +316,7 @@
 
   function renderSecurity() {
     const s = status.settings;
-    body.appendChild(el("div", "st-note", "Modules and plugins from the Bleep Library are signed by their developer. Anything unsigned stays off unless you allow it here. A broken or revoked signature is never loaded."));
+    body.appendChild(el("div", "st-note", "Plugins and official modules from the Bleep Library are signed by their developer. Modules shared by the community are checked and signed by the library, and run in the sandbox like the rest. Only what has no signature (your own builds, files you copied in) stays off unless you allow it here. A broken or revoked signature is never loaded."));
     const toggle = (key, title, warning) => {
       const row = el("label", "st-toggle");
       const box = el("input");

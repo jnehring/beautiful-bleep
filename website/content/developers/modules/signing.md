@@ -1,12 +1,19 @@
 ---
 title: Signing
-description: How modules and plugins are signed and verified: chain of trust, content hash, certificates, test vector.
+description: How modules and plugins are signed and verified: chain of trust, the library's community key, content hash, certificates, test vector.
 order: 10
 ---
 
 # Signing modules and plugins
 
-Everything the shop distributes as **code** is signed: modules (WebAssembly, see [`module-abi.md`](module-abi.md)) and plugins (installers for the VST3 family). A signature says two things: **who** published it, and that **not one byte has changed** since. Every developer has a private key of their own and signs with it; the user's apps check the signature before loading and refuse code that is unsigned unless the user has switched that on in the settings.
+Everything the shop distributes as **code** is signed: modules (WebAssembly, see [`module-abi.md`](module-abi.md)) and plugins (installers for the VST3 family). The user's apps check the signature before loading and refuse code that is unsigned unless the user has switched that on in the settings. There are two ways to get a signature:
+
+| | Who signs | What the signature says | For |
+|---|---|---|---|
+| **Developer-signed** | The developer, with a key of their own under our root | **Who** published it, and that not one byte has changed | Plugins (native code), first-party modules, and modules that bring their own JavaScript |
+| **Community** (`trust: community`) | The library, with one community key | The library served exactly these bytes, **after its checks passed**; not who wrote them | Every module an account uploads, closed source included |
+
+A module is WebAssembly in a sandbox, so what protects the user is the sandbox and the checks (section 2a), not knowing the author. That is why anyone with an account can share a module without a key of their own. Plugins are native code with the user's full rights, so they stay with developer keys and a review.
 
 The reference implementation is `scripts/release/signing.py` with its tests in `scripts/release/test_signing.py`. This document is the specification; where they differ, fix whichever is wrong. Section 14 has a test vector other implementations must reproduce.
 
@@ -20,7 +27,7 @@ The reference implementation is `scripts/release/signing.py` with its tests in `
 | A stolen developer key | Certificates expire, and only the library can date a signature (section 6a), so a stolen key cannot publish once its certificate has lapsed. The library revokes a key or a single release, and clients check a signed revocation list. |
 | The library (or its storage) being hacked | The attacker cannot make a developer signature. They can still withhold updates or serve old ones, which the signed `index.json` (section 9) limits. |
 
-It does **not** make a module safe by itself: a signed module is the work of an identified developer, nothing more. Modules also run in a sandbox (the ABI gives them no files, no network, a memory cap and a time limit). **Plugins are native code with the user's full rights; a signature only tells whose code it is.** It also cannot stop Ableton from loading some other VST3 the user put in the plugin folder: enforcement for plugins happens where Bleep installs and checks them (section 11).
+It does **not** make a module safe by itself: a developer-signed module is the work of an identified developer, nothing more, and a community-signed one is a file that passed the library's checks. Modules run in a sandbox (the ABI gives them no files, no network, a memory cap and a time limit), and that, with the checks of section 2a, is what keeps the user safe. **Plugins are native code with the user's full rights; a signature only tells whose code it is.** It also cannot stop Ableton from loading some other VST3 the user put in the plugin folder: enforcement for plugins happens where Bleep installs and checks them (section 11).
 
 ## 2. The chain of trust
 
@@ -40,6 +47,33 @@ It does **not** make a module safe by itself: a signed module is the work of an 
 | Developer, private | The developer's machine or CI, as the kit the admin handed over | Only they can sign as them. |
 
 `scripts/release/signing.py init-registry DIR` makes the root and the issuer in one go and writes `registry.env` with the three lines for `website/.env`; `root.key` is then moved to the keystore and the copy deleted.
+
+## 2a. Community modules: the library signs
+
+Anyone with an account can publish a module. They upload it **unsigned**; the library checks it, signs it with its own **community key** and publishes it in one step (`PUT /api/registry/community/modules/{name}/{version}`, `website/api/app/routers/community.py`). Closed source is fine: the sandbox does not care whether the source is readable.
+
+**The key.** `python -m app.cli community-init` makes a key pair and a certificate for it, issued by the issuer like a developer certificate, with these properties, which verification enforces (section 7):
+
+- `community: true`, `publisher: "community"`, `scopes: ["module"]` and nothing else, not `firstParty`. A certificate with `community: true` and any other scope or publisher is `invalid`. It can therefore never sign a plugin, and a stolen or leaked community key cannot publish an installer.
+- It may sign **any** id of the form `<author>/<name>`, never a bare id: bare ids stay with the first-party key. That is the one place the namespace rule differs. The library, not the certificate, vouches that the author owns the namespace.
+- It lives in `website/.env` (`BLEEP_COMMUNITY_KEY` or `_FILE`, `BLEEP_COMMUNITY_CERT`), online, next to the issuer key. It is separate from the offline root. A library breach can publish a malicious module, which the sandbox contains; it cannot make a developer-signed module or a plugin.
+
+**The namespace.** An id is `<handle>/<name>` with the author's own handle (the one in the address of their presets, fixed on the first publish). A handle that a developer publisher uses (`acme`) or that is ours (`bleep`, `community`, `official`) is refused, and `developer-create` refuses a publisher that is already an author's handle, so a namespace is never both.
+
+**What the library checks before it signs** (`website/api/app/community.py`):
+
+1. **Files.** Only `module.json`, `module.wasm`, `spec.json`, `LICENSE`, `doc/*.md` and `doc/*.png`. **No `ui/*.js`**: a module's own JavaScript runs in the page, which only first-party modules may do. No `META/` entries (the library writes the signature), no symbolic links, no duplicates, no unsafe paths.
+2. **Sizes.** At most 12 MB for the package, 8 MB for the `.wasm`, 24 files, text and image limits; zip bombs are refused before decompression.
+3. **The `.wasm`.** A WebAssembly 1.0 binary that imports only what the host stubs out (`module-abi.md` section 2) and exports the whole ABI (section 4). The host repeats the import check at load and enforces the memory and time limits itself, so the checks here are an early refusal, not the defence.
+4. **The node types.** `module.json` lists `types`, all inside the author's namespace (`<handle>/…`) and not provided by another module, and `requires.engineAbi` equal to the current ABI.
+5. **Licence and origin.** `license` is an SPDX id or expression (default MIT); `origin`, if the code is ported, is complete.
+6. **Quotas.** A rising version number (also above a withdrawn one), at most 100 modules per author, 10 uploads per hour.
+
+If it passes, the library signs (section 5, signer = the community key), checks its own signature against the pinned roots, issues a publication receipt (section 6a), writes `META/signature.json` into the stored package and publishes. The index and `entry.json` carry `trust: "community"`, the file's `signer` carries the author's handle.
+
+**What the client does.** It verifies exactly as for a developer-signed module and then applies two more rules: a package whose result is `signed` with `trust: community` may contain only the files of item 1 (otherwise `invalid`), and the `.wasm` goes through the host's import check and limits like any module. A community module never gets custom JavaScript.
+
+**Withdrawing.** The author (or an admin) withdraws a release with `POST …/modules/{slug}/{version}/takedown`; an admin can also run `community-takedown ID VERSION`, or `community-ban HANDLE` for an author's whole catalogue and account. The release leaves the index and its content digest goes on the signed revocation list (`revokedArtifacts`, section 8), so a copy that is already installed stops loading as soon as the client has the list. The version number stays used. Anyone logged in can report a module (`POST …/report`); reports appear in the admin's report list.
 
 ## 3. Primitives
 
@@ -91,6 +125,7 @@ A **certificate** is `{"tbs": {...}, "issuer": <keyId of the signer>, "signature
 | `name` | Display name. |
 | `scopes` | `["module"]`, `["module","plugin"]`, … what the key may sign. Issuer certificates have `["issue"]`. **Plugins are a separate scope** the library grants after a review, because they are native code. |
 | `firstParty` | `true` for Brilliant Bleep's own key: may sign ids without a namespace. |
+| `community` | `true` only for the library's community key (section 2a); written only when true, so other certificates keep their bytes. It requires `scopes` `["module"]`, publisher `community` and no `firstParty`. |
 | `notBefore`, `notAfter` | Unix seconds. Developer certificates last at most 365 days and are renewed (a new certificate for the same key, or a new key). |
 | `serial` | An integer, for the library's records. |
 
@@ -133,7 +168,7 @@ signature = Ed25519-sign(issuerPrivateKey, message)
 
 | Status | Meaning |
 |---|---|
-| `signed` | Everything below passed. Carries the publisher and key id, and `publishedAt` when a receipt was used. |
+| `signed` | Everything below passed. Carries the publisher, the key id and the **trust** (`official` for a first-party key, `community` for the community key, `developer` otherwise), and `publishedAt` when a receipt was used. |
 | `unsigned` | There is no signature document. |
 | `expired` | Everything passed except that a certificate is outside its validity period (and there is no receipt that dates the release inside it). |
 | `revoked` | Valid, but the key (or the issuer, or this exact release) is on the revocation list. |
@@ -146,7 +181,7 @@ Steps, in this order; the first failure decides:
 3. The developer certificate is signed by that issuer and is of type `developer`; its key id matches its key and the document's `keyId`.
 4. **Revocation** (section 8): any key in the chain on the list, or this `(kind, id, version, contentDigest)` on the list: `revoked`.
 5. The certificate's `scopes` contain `kind`.
-6. **Namespace:** `id` starts with `<publisher>/`; only a `firstParty` certificate may sign an id without a `/`.
+6. **Namespace:** `id` starts with `<publisher>/`; only a `firstParty` certificate may sign an id without a `/`. A `community` certificate (checked right after step 3: scopes exactly `["module"]`, publisher `community`, not `firstParty`, else `invalid`) may sign any id **with** a `/` and none without.
 7. The signature verifies over the message of section 5, with the content digest recomputed from the files.
 8. **Validity.** The time `t` at which both certificates must be valid depends on the receipt:
    - **No receipt:** `t = now`. A certificate outside its period gives `expired`. (Manual installs, local libraries and the output of `signing.py sign` have no receipt.)
@@ -178,7 +213,7 @@ What the receipt changes, and what it does not:
 | `invalid` | refuse | **refuse** |
 | `revoked` | refuse | **refuse** |
 
-`invalid` and `revoked` are not overridden by "allow unsigned": the user allowed *no signature*, not *a broken one*. (Someone who strips the signature away gets `unsigned`, which is exactly the situation the user chose to allow.)
+A `community` module is `signed`, so it loads with both settings off: **Allow unsigned modules** is for what has no signature at all (your own builds, files copied into the folder). `invalid` and `revoked` are not overridden by "allow unsigned": the user allowed *no signature*, not *a broken one*. (Someone who strips the signature away gets `unsigned`, which is exactly the situation the user chose to allow.)
 
 ## 8. Revocation, expiry and rotation
 
@@ -194,6 +229,8 @@ What the receipt changes, and what it does not:
 Package signatures say who built a file. The library additionally signs `index.json` (and the revocation list) with the **issuer key**, to protect what the packages cannot: which release is the newest. `index.json` carries a rising `serial`, a `generated` time and an `expires` time (a week); a client rejects an index whose `serial` is lower than one it has seen, or that has expired, so a server or a mirror cannot hold clients on an old, vulnerable release (a rollback or freeze). The index lists each entry's `contentDigest`, so a client knows what to expect before downloading.
 
 ## 10. How a developer gets a key and signs
+
+This section is for **developers**: plugins, first-party modules, and modules with their own JavaScript. An author who only wants to share a module needs no key: they upload it as in section 2a (`scripts/release/community-publish.py`; an in-app button is planned).
 
 **Today: the admin issues the key and hands it over.** There is no developer self-service yet.
 
@@ -237,10 +274,10 @@ developer  scripts/release/release.py … --kit acme.kit.json --token-file token
 
 **Settings → Security.**
 
-- **Allow unsigned modules** (off). Switching it on shows: "Unsigned modules run in a sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise. Only enable this for modules you trust or have built yourself."
+- **Allow unsigned modules** (off). Community modules are signed by the library and do not need it; it is for your own builds and for files copied in by hand. Switching it on shows: "Unsigned modules run in a sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise. Only enable this for modules you trust or have built yourself."
 - **Allow unsigned plugins** (off). Switching it on shows: "Unsigned plugins are programs that run with all your rights inside your DAW. Only enable this for software you trust."
 - **Trusted developers**: the developers whose keys are in the chain of what you have installed, with a way to remove one (it stops everything they signed from loading). *Advanced:* add a **local root key**, so a developer can test their own signed modules, which carry a certificate issued by their own local library or `signing.py init-registry`, without allowing everything that is unsigned.
-- A status line per installed module and plugin: *Signed by acme* (key id on hover, and the publication date when a receipt was used), *Unsigned*, *Expired* (only code without a receipt), *Revoked*; refused items stay listed with the reason.
+- A status line per installed module and plugin: *Community module* (the library checked and signed it), *Signed by acme* (key id on hover, and the publication date when a receipt was used), *Unsigned*, *Expired* (only code without a receipt), *Revoked*; refused items stay listed with the reason.
 
 **On the board.** A node whose module was refused becomes a placeholder with the reason ("this module is unsigned: enable it in the settings"), never a deletion, as for a missing module in `library.md` section 4.3. Nothing is ever downloaded or verified on the audio thread, and a plugin in Live uses only what is already installed.
 
@@ -260,6 +297,10 @@ A **bundle** is a library entry of `kind: "bundle"` with no files: a signed list
 | One signature algorithm only? | Yes, Ed25519; a new one means a new `format`. | No algorithm negotiation, no downgrade. |
 | Trust on first use for developers without the library? | No. | A local root key (section 11) covers the legitimate case explicitly. |
 | Timestamps? | The library dates every release it publishes with a receipt signed by the issuer (section 6a); clients check the developer certificate at that time. No timestamp authority, and no trusted clock on the device. Code without a receipt is checked against the device clock, and the index is the freshness anchor. | Without it every release would expire with its developer's certificate and have to be re-signed each year, without giving up offline verification. The issuer is already trusted and online; a receipt is one more thing it signs. The cost: the library's clock is a security input. |
+| Developer keys for everyone who wants to share a module? | No: the library signs community modules (section 2a); developer keys stay for plugins, first-party modules and modules with their own JavaScript. | A module is sandboxed WebAssembly, so the author's identity adds little safety, while a key, a certificate and its renewal are a heavy start for a hobbyist. The goal is "safe to run", not "known author". |
+| Closed-source community modules? | Allowed. | The sandbox and the import and export checks do not depend on readable source. |
+| Where does the community key live? | Online, in `website/.env`, separate from the offline root, certified for modules only. | The library must sign at upload. A breach can publish a sandboxed module; it cannot sign a plugin (scope) or mint developer certificates (the issuer key is separate and already online). |
+| What if the library cheats or is breached? | Clients still run the host's import check, memory and time limits, and the file rule. A takedown reaches installed copies through the signed revocation list. | The signature is no longer the defence; the sandbox is. |
 
 ## 14. Test vector
 
@@ -304,6 +345,17 @@ signature (64 bytes)   3d68e3df76c2bcc347f69e3205bdc1b029220445989dec47da111791f
 
 All three are tested against the same packages: `scripts/release/signing.py fixture` writes a deterministic set (`patch/tests/library-fixtures/`: signed in several ways, tampered, expired, revoked, outside a namespace, unreadable, with the verdict each must get in `cases.json`), and `test_signing.py` (Python), `patch/web/test/library-client-test.mjs` (JavaScript) and `patch/tests/library_test.cpp` (C++, `ctest -R patch.library`) all check them, together with the content hash of the test vector above and the canonical JSON bytes. A change to the rules changes the generator, and the three tests tell which implementation is behind.
 
+The fixtures for the community key (section 2a):
+
+| Case | Expected |
+|---|---|
+| `community-signed`: the community key signs `zed/wobble` | `signed`, publisher `community`, trust `community` |
+| `community-clean` / `community-signed`: the client's file rule | `communityFiles` true for a package of the allowed files, false when it carries `ui/*.js` |
+| `community-bare-id`: the community key signs a bare id | `invalid` |
+| `community-with-plugin-scope`: a community certificate that also allows plugins | `invalid` |
+| `community-first-party`: a community certificate that is also first-party | `invalid` |
+| `community-wrong-publisher`: a community certificate named `acme` | `invalid` |
+
 The fixtures for receipts (section 6a), each with the verdict all three must give:
 
 | Case | Expected |
@@ -326,6 +378,7 @@ The fixtures for receipts (section 6a), each with the verdict all three must giv
 
 - The **root key ceremony** is decided in outline: generated on an offline machine, held in the owner's keystore with a backup, used only to certify or revoke an issuer. Still open: a second person or device that can recover it, and a written rotation drill.
 - **Revocation in the browser client** (`library-client.js` takes a list, but does not fetch one), and `revokedArtifacts`: the list can carry them, the library has no command that adds one yet.
-- Whether `community` (third-party, signed, not reviewed by us) is a separate release channel from `stable`, or all signed modules appear in one list with the publisher shown.
+- Decided: community modules are in the same list and channels as the rest, marked by `trust` (`official`, `community`, `developer`) in the index, the entry and the library API; the apps show it as a badge. A separate channel was not needed.
+- Not built: the in-app *Save as library module* button for scripts (it compiles the script and uploads through section 2a; today `scripts/release/community-publish.py` does the upload), per-module consent for community modules and a community key renewal drill (certificates last up to 825 days; published modules keep working through their receipts).
 - The plugin scope review: what we check before an admin grants it.
 - Whether the installers also carry the content-addressed file list of the installed plugin (what the startup check compares), or the Library section keeps it only locally.

@@ -364,6 +364,11 @@ bool Client::check(const std::vector<uint8_t>& bytes, const std::string& slug, c
     c.revocations = revocations_ ? &*revocations_ : nullptr;
     const juce::var* doc = signatureDoc && !signatureDoc->isVoid() ? signatureDoc : (pkg.hasSignature ? &pkg.signature : nullptr);
     out.result = verify(digest, doc, c, receiptDoc && !receiptDoc->isVoid() ? receiptDoc : nullptr);
+    std::string extra;
+    if (out.result.status == "signed" && out.result.trust == "community" && !communityFilesOk(pkg, extra)) {
+        out.result.status = "invalid";   // the community key never signs scripts or anything else outside the list
+        out.result.reason = extra;
+    }
     out.allowed = decide(out.result, "module", settings_.allowUnsigned, out.why);
     out.slug = slug;
     out.version = version;

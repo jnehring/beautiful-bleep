@@ -71,11 +71,12 @@ def make_fixtures(out: Path) -> None:
     cases = []
 
     def case(name, expect, *, doc=None, f=None, stored=False, extra=None, raw=None, kind="module", id="acme/fuzz", version="1.0.0", platform="any",
-             now=t0 + 100, roots="main", crl=None, publisher=None, signed_doc=True):
+             now=t0 + 100, roots="main", crl=None, publisher=None, signed_doc=True, community_files=None):
         make_zip(out / f"{name}.bleepmod", f if f is not None else files, doc if doc is not None else (good if signed_doc and raw is None else None),
                  stored=stored, extra=extra, raw_signature=raw)
         cases.append({"name": name, "file": f"{name}.bleepmod", "kind": kind, "id": id, "version": version, "platform": platform, "now": now,
-                      "roots": roots, "crl": crl, "expect": expect, "publisher": publisher})
+                      "roots": roots, "crl": crl, "expect": expect, "publisher": publisher,
+                      **({"communityFiles": community_files} if community_files is not None else {})})
 
     case("signed", "signed", publisher="acme")
     case("signed-stored", "signed", stored=True, publisher="acme")
@@ -100,6 +101,22 @@ def make_fixtures(out: Path) -> None:
     case("bare-id-by-third-party", "invalid", doc=bare, id="fuzz")
     first = sign(entries(files), bleep, bleep_chain, "module", "reverb", "1.0.0")
     case("bare-id-first-party", "signed", doc=first, id="reverb", publisher="bleep")
+    # the library's community key (signing.md section 2a): signs any "<author>/<name>" module, nothing else
+    comm = key(7)
+    comm_chain = chain(comm, publisher="community", name="Bleep community modules", scopes=["module"], community=True)
+    # the package of `files` carries ui/fuzz.js, which a community module may not: signed, but the clients' file rule refuses it
+    case("community-signed", "signed", doc=sign(entries(files), comm, comm_chain, "module", "zed/wobble", "1.0.0"), id="zed/wobble", publisher="community",
+         community_files=False)
+    clean = {"module.json": files["module.json"], "module.wasm": files["module.wasm"], "spec.json": b"[]\n", "doc/readme.md": b"# Wobble\n", "doc/shot.png": b"\x89PNG\r\n\x1a\n"}
+    case("community-clean", "signed", f=clean, doc=sign(entries(clean), comm, comm_chain, "module", "zed/wobble", "1.0.0"), id="zed/wobble", publisher="community",
+         community_files=True)
+    case("community-bare-id", "invalid", doc=sign(entries(files), comm, comm_chain, "module", "reverb", "1.0.0"), id="reverb")
+    comm_plugin = chain(comm, publisher="community", name="Overreaching community key", scopes=["module", "plugin"], community=True)
+    case("community-with-plugin-scope", "invalid", doc=sign(entries(files), comm, comm_plugin, "module", "zed/wobble", "1.0.0"), id="zed/wobble")
+    comm_first = chain(comm, publisher="community", name="First-party community key", scopes=["module"], first_party=True, community=True)
+    case("community-first-party", "invalid", doc=sign(entries(files), comm, comm_first, "module", "reverb", "1.0.0"), id="reverb")
+    comm_named = chain(comm, publisher="acme", name="Community key under a developer name", scopes=["module"], community=True)
+    case("community-wrong-publisher", "invalid", doc=sign(entries(files), comm, comm_named, "module", "zed/wobble", "1.0.0"), id="zed/wobble")
     plugin_file = {"installer.pkg": b"pretend installer"}
     plugin_doc = sign(entries(plugin_file), bleep, bleep_chain, "plugin", "bleep-board", "1.2.3", "macos-arm64")
     case("plugin-signed", "signed", f=plugin_file, doc=plugin_doc, kind="plugin", id="bleep-board", version="1.2.3", platform="macos-arm64", publisher="bleep")

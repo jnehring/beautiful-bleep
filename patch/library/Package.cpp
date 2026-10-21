@@ -139,4 +139,19 @@ bool readPackage(const uint8_t* data, size_t size, Package& out, std::string& er
     return true;
 }
 
+bool communityFilesOk(const Package& pkg, std::string& why) {
+    for (const auto& [path, bytes] : pkg.files) {
+        (void)bytes;
+        bool ok = path == "module.json" || path == "module.wasm" || path == "spec.json" || path == "LICENSE";
+        if (!ok && path.compare(0, 4, "doc/") == 0 && path.size() > 7) {
+            const std::string name = path.substr(4);
+            const bool text = name.size() > 3 && name.compare(name.size() - 3, 3, ".md") == 0;
+            const bool image = name.size() > 4 && name.compare(name.size() - 4, 4, ".png") == 0;
+            ok = (text || image) && name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-") == std::string::npos;
+        }
+        if (!ok) { why = path + " is not allowed in a community module"; return false; }
+    }
+    return true;
+}
+
 }  // namespace bleep::library

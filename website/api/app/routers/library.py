@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..models import Preset, Release
 from ..ratings import rating_summaries
+from . import registry
 from .presets import listed_presets
 from ..schemas import LibraryDetailOut, LibraryFileOut, LibraryItemOut, LibraryListOut, LibraryReleaseOut
 
@@ -42,7 +43,7 @@ def _with_ratings(db: Session, items: list[LibraryItemOut]) -> list[LibraryItemO
 def _item(r: Release) -> LibraryItemOut:
     return LibraryItemOut(
         kind=r.kind, slug=r.slug, version=r.version, channel=r.channel, title=r.title or r.slug, notes=r.notes,
-        summary=r.summary, category=r.category, image_url=_image_url(r),
+        summary=r.summary, category=r.category, image_url=_image_url(r), trust=registry._trust(r),
         files=len(r.files), bytes=sum(f["bytes"] for f in r.files), published_at=r.published_at,
     )
 

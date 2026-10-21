@@ -150,12 +150,20 @@ def make_cert(parent: Ed25519PrivateKey, parent_cert: dict | None, tbs: dict) ->
     return {"tbs": tbs, "issuer": issuer, "signature": b64(parent.sign(CERT_DOMAIN + canonical(tbs)))}
 
 
-def new_tbs(kind: str, public: bytes, *, publisher: str = "", name: str = "", scopes=(), first_party=False,
+COMMUNITY_PUBLISHER = "community"
+
+
+def new_tbs(kind: str, public: bytes, *, publisher: str = "", name: str = "", scopes=(), first_party=False, community=False,
             not_before: int, not_after: int, serial: int = 1) -> dict:
+    """`community` marks the library's own key for community modules (signing.md section 2a). It is only written when true, so
+    certificates without it keep their exact bytes."""
     assert kind in ("issuer", "developer")
-    return {"format": 1, "type": kind, "keyId": key_id(public), "publicKey": b64(public), "publisher": publisher,
-            "name": name, "scopes": sorted(scopes), "firstParty": bool(first_party),
-            "notBefore": not_before, "notAfter": not_after, "serial": serial}
+    tbs = {"format": 1, "type": kind, "keyId": key_id(public), "publicKey": b64(public), "publisher": publisher,
+           "name": name, "scopes": sorted(scopes), "firstParty": bool(first_party),
+           "notBefore": not_before, "notAfter": not_after, "serial": serial}
+    if community:
+        tbs["community"] = True
+    return tbs
 
 
 # ---- sign ---------------------------------------------------------------------------------
@@ -217,11 +225,12 @@ def issue_receipt(issuer: Ed25519PrivateKey, content, doc: dict | None, *, kind:
 
 class Result(NamedTuple):
     status: str            # signed | unsigned | expired | revoked | invalid
-    publisher: str = ""
+    publisher: str = ""    # "community" for a module the library signed for a community author (trust below)
     key_id: str = ""
     root: str = ""         # key id of the root that vouched for it
     reason: str = ""
     published_at: int = 0  # when the library published it, if a publication receipt dated the release (signing.md section 6a)
+    trust: str = ""        # official (first-party key) | community (the library's community key) | developer (a developer's own key)
 
 
 # ---- revocation list (signing.md section 8) -------------------------------------------------
@@ -294,7 +303,11 @@ def verify(content, doc: dict | None, *, kind: str, id_: str, version: str, plat
             return Result("invalid", reason="the developer certificate is not signed by the issuer")
         if dev_tbs["type"] != "developer" or dev_tbs["keyId"] != key_id(dev_pub) or doc["keyId"] != dev_tbs["keyId"]:
             return Result("invalid", reason="bad developer certificate")
-        who = Result("signed", dev_tbs["publisher"], dev_tbs["keyId"], key_id(root))
+        community = dev_tbs.get("community") is True
+        if community and (dev_tbs["scopes"] != ["module"] or dev_tbs["firstParty"] or dev_tbs["publisher"] != COMMUNITY_PUBLISHER):
+            return Result("invalid", reason="a community certificate may only sign modules, as the 'community' publisher")
+        who = Result("signed", dev_tbs["publisher"], dev_tbs["keyId"], key_id(root),
+                     trust="community" if community else "official" if dev_tbs["firstParty"] else "developer")
 
         # revocation outranks everything except a broken signature
         for cert in (issuer_tbs, dev_tbs):
@@ -308,8 +321,13 @@ def verify(content, doc: dict | None, *, kind: str, id_: str, version: str, plat
 
         if kind not in KINDS or kind not in dev_tbs["scopes"]:
             return Result("invalid", reason=f"the certificate does not allow signing a {kind}")
-        # a publisher signs "<publisher>/<name>"; only a first-party certificate signs bare ids
-        if not (dev_tbs["firstParty"] and "/" not in id_) and not id_.startswith(dev_tbs["publisher"] + "/"):
+        # a publisher signs "<publisher>/<name>"; only a first-party certificate signs bare ids; the library's community key signs
+        # any "<author>/<name>" (the library has checked that the author owns the namespace), never a bare id
+        if community:
+            in_namespace = "/" in id_
+        else:
+            in_namespace = (dev_tbs["firstParty"] and "/" not in id_) or id_.startswith(dev_tbs["publisher"] + "/")
+        if not in_namespace:
             return Result("invalid", reason=f"{id_!r} is not in the publisher's namespace")
         if not _verify_sig(dev_pub, base64.b64decode(doc["signature"]),
                            signing_message(kind, id_, version, platform, dev_tbs["keyId"], digest)):
@@ -364,6 +382,8 @@ def issue_kit(issuer_key: Ed25519PrivateKey, issuer_cert: dict, publisher: str, 
     """
     if not PUBLISHER.fullmatch(publisher):
         raise ValueError("a publisher is lower case letters, digits and -, up to 39 characters")
+    if publisher == COMMUNITY_PUBLISHER:
+        raise ValueError("'community' is the library's own publisher: it is made with `python -m app.cli community-init`")
     key = Ed25519PrivateKey.generate()
     t = int(time.time()) if now is None else now
     tbs = new_tbs("developer", public_bytes(key), publisher=publisher, name=name or publisher, scopes=scopes,
@@ -419,6 +439,27 @@ def issuer_key_pem() -> str | None:
             if not settings.issuer_key:
                 raise ValueError(f"Cannot read the issuer key file {settings.issuer_key_file}: {e}") from e
     return settings.issuer_key.replace("\\n", "\n") if settings.issuer_key else None
+
+
+def community_key_pem() -> str | None:
+    """The library's community key as PEM: from BLEEP_COMMUNITY_KEY_FILE when set (a Docker secret), else BLEEP_COMMUNITY_KEY (with \\n for newlines)."""
+    from .config import settings
+    if settings.community_key_file:
+        try:
+            return Path(settings.community_key_file).read_text()
+        except OSError as e:
+            if not settings.community_key:
+                raise ValueError(f"Cannot read the community key file {settings.community_key_file}: {e}") from e
+    return settings.community_key.replace("\\n", "\n") if settings.community_key else None
+
+
+def issue_community_cert(issuer_key: Ed25519PrivateKey, issuer_cert: dict, community_key: Ed25519PrivateKey, *, days: int = 365,
+                         now: int | None = None, serial: int = 1) -> dict:
+    """The certificate of the library's community key: issued by the issuer, modules only, publisher "community"."""
+    t = int(time.time()) if now is None else now
+    tbs = new_tbs("developer", public_bytes(community_key), publisher=COMMUNITY_PUBLISHER, name="Bleep community modules", scopes=["module"],
+                  community=True, not_before=t, not_after=t + days * 86400, serial=serial)
+    return make_cert(issuer_key, issuer_cert, tbs)
 
 
 def read_doc(package: Path) -> dict | None:

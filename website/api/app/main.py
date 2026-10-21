@@ -9,7 +9,7 @@ from .config import settings
 from .db import SessionLocal
 from .models import User, now
 from .deps import COOKIE, same_origin
-from .routers import admin, agent, agent_log, auth, contact, moderation, presets, profile, projects, registry, social, library, tokens, user_tokens
+from .routers import admin, agent, agent_log, auth, community, contact, moderation, presets, profile, projects, registry, social, library, tokens, user_tokens
 from .security import hash_password
 
 
@@ -56,11 +56,14 @@ MAX_BODY = 1024 * 1024  # JSON bodies (presets are capped at 512 KB inside, the 
 MAX_IMAGE_BODY = 2 * 1024 * 1024
 MAX_PROJECT_BODY = 10 * 1024 * 1024  # a project: its board (routers/projects.py: 2 MiB) plus up to 5 MB of audio as base64, plus the JSON envelope
 MAX_PRESET_BODY = 8 * 1024 * 1024  # a preset: its patch (512 KB) and up to 5 MB of audio as base64 (routers/presets.py: clean_media)
+MAX_COMMUNITY_BODY = 13 * 1024 * 1024  # a community module package (app/community.py: MAX_PACKAGE_BYTES) and a little
 MAX_UPLOAD = 1024 * 1024 * 1024 + 1024 * 1024  # store files: the registry's own limit (MAX_FILE_BYTES) plus a little
 
 
 def body_limit(path: str) -> int:
     if path.startswith("/api/registry/"):
+        if path.startswith("/api/registry/community/modules/") and not path.endswith(("/takedown", "/report")):
+            return MAX_COMMUNITY_BODY
         if "/files/" in path:
             return MAX_UPLOAD
         if path.endswith("/image"):
@@ -147,6 +150,7 @@ app.include_router(social.router)
 app.include_router(moderation.router)
 app.include_router(library.router)
 app.include_router(registry.router)
+app.include_router(community.router)
 app.include_router(agent.router)
 app.include_router(agent_log.router)
 app.include_router(agent_log.user_router)

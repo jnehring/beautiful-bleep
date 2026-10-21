@@ -67,7 +67,7 @@ Settings live where the thing they control lives. A setting is never offered in 
 ### 4.5 Web: Library and Security
 
 - **Channel** *stable* / *beta*: `BleepLibrary.configure({ channel })`, applied at the next page load (the index is read once).
-- **Allow unsigned modules**: off by default. Turning it on asks first with the same warning as the app, because a module runs in the browser's wasm sandbox with the page's CPU. A broken or revoked signature is never loaded, whatever this says.
+- **Allow unsigned modules**: off by default. It concerns modules with no signature (a development build, a file copied in); community modules from the library are signed by the library and load without it. Turning it on asks first with the same warning as the app, because a module runs in the browser's wasm sandbox with the page's CPU. A broken or revoked signature is never loaded, whatever this says.
 - No unsigned *plugins* switch: Bleep Play does not install plugins.
 - Remembered in `localStorage`. A page that cannot store (private window) keeps the choice for the visit and says so.
 

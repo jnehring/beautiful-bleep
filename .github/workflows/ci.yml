@@ -24,7 +24,7 @@ jobs:
           persist-credentials: false
       - run: python3 scripts/check/check-repo.py
       - run: python3 -m pip install cryptography==50.0.2
-      - run: python3 -m unittest test_release test_signing test_package_module
+      - run: python3 -m unittest test_release test_signing test_package_module test_community_publish
         working-directory: scripts/release
       - run: node patch/web/test/library-client-test.mjs
       - run: node patch/web/test/web-settings-test.mjs

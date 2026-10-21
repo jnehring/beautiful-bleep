@@ -16,13 +16,13 @@ Plugins, modules and presets are managed in one place, the **Bleep Library**. Ev
 
 *Naming:* the library was first called the registry, and its technical names keep that word: the URL path `/registry/v1/`, `BLEEP_REGISTRY_URL`, `/api/registry`, the `bleep-registry` bucket. In prose it is the Bleep Library, "the library" after the first mention.
 
-Plugins and modules are **code**: signed by their developer, immutable. Presets are **data**: published by anyone with an account. How code is signed and checked is in [`signing.md`](signing.md); what a module is to the engine, in [`module-abi.md`](module-abi.md).
+Plugins and modules are **code**: signed, immutable. Plugins and first-party modules are signed by their developer; a module anyone shares through their account is signed by the library after its checks (a *community* module). Presets are **data**: published by anyone with an account. How code is signed and checked is in [`signing.md`](signing.md); what a module is to the engine, in [`module-abi.md`](module-abi.md).
 
 ## Decisions
 
 - **Modules are WebAssembly everywhere** (web and native), hosted by an embedded wasm runtime in the engine. See 4.2.
 - **The library is part of the website stack** (Caddy, the FastAPI `website/api` and its Postgres), hosted locally for now and moved with the stack later. No separate infrastructure.
-- **Everything the shop distributes as code is signed**, by its developer's own key under our root (see [`signing.md`](signing.md)). Apps refuse unsigned modules and plugins unless the user switches on *Allow unsigned modules* or *Allow unsigned plugins* in the settings.
+- **Everything the shop distributes as code is signed.** Plugins and first-party modules by their developer's own key under our root; **community modules** by the library's community key, after it has checked the package (files, the `.wasm`'s imports and exports, node types, licence), so an author needs no key. Closed-source community modules are allowed: the sandbox is the defence, not readable source (see [`signing.md`](signing.md) section 2a). Apps refuse code with no signature unless the user switches on *Allow unsigned modules* or *Allow unsigned plugins* in the settings; community modules are signed and need neither. Every entry carries `trust`: `official`, `community` or `developer`.
 - **Modules and plugins reach the user three ways:** from the library on demand, through two **bundles** the setup offers (*default modules*, *default plugins*), or by copying files into a folder (section 5a).
 - **Everything is free.** There is no licence-key or entitlement logic anywhere.
 - **Downloading needs no login**: browsing, installing plugins, modules and presets, and update checks are anonymous. **Sharing a preset needs an account** (the existing `website/api` accounts).

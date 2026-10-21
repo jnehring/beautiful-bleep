@@ -175,6 +175,8 @@ await test("the shared fixtures: every package gets the verdict Python gave it (
       const r = await Library.verify(zip.entries, doc, { kind: c.kind, id: c.id, version: c.version, platform: c.platform, roots: roots[c.roots], now: c.now, crl: c.crl });
       got = r.status;
       if (c.publisher) assert.equal(r.publisher, c.publisher, c.name);
+      if ("communityFiles" in c) assert.equal(Library.communityFilesOk(zip.files.keys()) === "", c.communityFiles, c.name);
+      if (r.status === "signed") assert.equal(r.trust, c.publisher === "community" ? "community" : c.publisher === "bleep" ? "official" : "developer", c.name);
     }
     assert.equal(got, c.expect, c.name);
   }

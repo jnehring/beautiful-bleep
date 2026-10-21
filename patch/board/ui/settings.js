@@ -232,7 +232,7 @@
   function renderSecurity() {
     if (!hasLibrary || !library) { body.appendChild(el("div", "st-empty", "This build has no Bleep Library.")); return; }
     const s = library.settings;
-    body.appendChild(el("div", "st-note", "Modules and plugins from the Bleep Library are signed by their developer. Anything unsigned stays off unless you allow it here. A broken or revoked signature is never loaded."));
+    body.appendChild(el("div", "st-note", "Plugins and official modules from the Bleep Library are signed by their developer. Modules shared by the community are checked and signed by the library, and run in the sandbox like the rest. Only what has no signature (your own builds, files you copied in) stays off unless you allow it here. A broken or revoked signature is never loaded."));
     const toggle = (key, title, warning) => {
       const r = checkbox(title, s.allowUnsigned[key], (on) => {
         if (on && !window.confirm(warning)) { load(true); return; }
@@ -319,7 +319,7 @@
 
   function renderWebSecurity() {
     const l = state.webLib;
-    body.appendChild(el("div", "st-note", "Modules from the Bleep Library are signed by their developer. Anything unsigned stays off unless you allow it here. A broken or revoked signature is never loaded."));
+    body.appendChild(el("div", "st-note", "Official modules from the Bleep Library are signed by their developer. Modules shared by the community are checked and signed by the library, and run in the sandbox like the rest. Only what has no signature (your own builds) stays off unless you allow it here. A broken or revoked signature is never loaded."));
     const r = checkbox("Allow unsigned modules", l.allowUnsigned.module, (on) => {
       if (on && !window.confirm("Unsigned modules run in the browser's sandbox: they cannot read your files or use the network, but they can use a lot of CPU and make noise.\n\nOnly enable this for modules you trust or have built yourself. Turn it on?")) { load(true); return; }
       change("webLibrary", { allowUnsigned: { module: on } });

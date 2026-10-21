@@ -148,6 +148,7 @@ class LibraryItemOut(BaseModel):
     summary: str
     category: str
     image_url: str | None             # the screenshot, a path on the library's host; None: the page draws a placeholder
+    trust: str | None = None          # official | community | developer: who vouches for a plugin or module (None: a preset, which is data)
     rating_average: float | None = None
     rating_count: int = 0
     notes: str

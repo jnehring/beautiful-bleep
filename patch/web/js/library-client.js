@@ -120,7 +120,7 @@
   // ---- verification (signing.md section 7) ---------------------------------------------------------
 
   const KINDS = ["module", "plugin"];
-  const result = (status, extra = {}) => ({ status, publisher: "", keyId: "", root: "", reason: "", ...extra });
+  const result = (status, extra = {}) => ({ status, publisher: "", keyId: "", root: "", reason: "", trust: "", ...extra });
 
   async function checkCert(cert, signerPub) {
     return verifySignature(signerPub, fromB64(cert.signature), concat(enc.encode("BLEEP-CERT-1\n"), enc.encode(canonical(cert.tbs))));
@@ -144,7 +144,11 @@
       if (it.type !== "issuer" || it.keyId !== (await keyId(issuerPub)) || !it.scopes.includes("issue")) return result("invalid", { reason: "bad issuer certificate" });
       if (devCert.issuer !== it.keyId || !(await checkCert(devCert, issuerPub))) return result("invalid", { reason: "the developer certificate is not signed by the issuer" });
       if (dt.type !== "developer" || dt.keyId !== (await keyId(devPub)) || doc.keyId !== dt.keyId) return result("invalid", { reason: "bad developer certificate" });
-      const who = result("signed", { publisher: dt.publisher, keyId: dt.keyId, root: await keyId(root) });
+      // The library's community key (signing.md section 2a): modules only, as the publisher "community", never first-party.
+      const community = dt.community === true;
+      if (community && (!Array.isArray(dt.scopes) || dt.scopes.length !== 1 || dt.scopes[0] !== "module" || dt.firstParty || dt.publisher !== "community"))
+        return result("invalid", { reason: "a community certificate may only sign modules, as the 'community' publisher" });
+      const who = result("signed", { publisher: dt.publisher, keyId: dt.keyId, root: await keyId(root), trust: community ? "community" : dt.firstParty ? "official" : "developer" });
 
       const digest = content instanceof Uint8Array ? content : await contentDigest(content);
       for (const t of [it, dt]) for (const rev of (crl && crl.revokedKeys) || []) if (rev.keyId === t.keyId) return { ...who, status: "revoked", reason: "the signing key was revoked" };
@@ -152,8 +156,9 @@
         if (rev.kind === kind && rev.id === id && rev.version === version && rev.digest === hex(digest)) return { ...who, status: "revoked", reason: "this release was revoked" };
 
       if (!KINDS.includes(kind) || !dt.scopes.includes(kind)) return result("invalid", { reason: `the certificate does not allow signing a ${kind}` });
-      const bareOk = dt.firstParty && !id.includes("/");
-      if (!bareOk && !id.startsWith(dt.publisher + "/")) return result("invalid", { reason: `'${id}' is not in the publisher's namespace` });
+      // a community key signs any "<author>/<name>" (the library checked the author owns the namespace), never a bare id
+      const inNamespace = community ? id.includes("/") : (dt.firstParty && !id.includes("/")) || id.startsWith(dt.publisher + "/");
+      if (!inNamespace) return result("invalid", { reason: `'${id}' is not in the publisher's namespace` });
       const message = concat(enc.encode("BLEEP-SIG-1\n"), lp(enc.encode(kind)), lp(enc.encode(id)), lp(enc.encode(version)), lp(enc.encode(platform)),
                              lp(enc.encode(dt.keyId)), lp(digest));
       if (!(await verifySignature(devPub, fromB64(doc.signature), message))) return result("invalid", { reason: "the signature does not match the content" });
@@ -316,6 +321,11 @@
     return { types, modules: mods };
   }
 
+  /// Is every file one a community module may bring (signing.md section 2a)? Data and the sandboxed .wasm, no scripts. The library refuses the
+  /// rest at upload; the client checks again, because the community key's signature says nothing about files it should never have signed.
+  const COMMUNITY_FILES = /^(module\.json|module\.wasm|spec\.json|LICENSE|doc\/[A-Za-z0-9._-]+\.(md|png))$/;
+  const communityFilesOk = (names) => { for (const n of names) if (!COMMUNITY_FILES.test(n)) return `${n} is not allowed in a community module`; return ""; };
+
   /// Downloads a module package, checks it and returns its .wasm. Throws, with the reason, if it must not load.
   function fetchModule(slug) {
     if (!packages.has(slug)) {
@@ -339,12 +349,16 @@
         const zip = await readZip(bytes);
         const checked = await verify(zip.entries, file.signature || zip.signature, {
           kind: "module", id: signedId(slug), version: entry.version, platform: "any", roots: await roots(), crl: await revocations(), receipt: file.publication || null });
+        if (checked.status === "signed" && checked.trust === "community") {
+          const extra = communityFilesOk(zip.files.keys());
+          if (extra) { checked.status = "invalid"; checked.reason = extra; }
+        }
         const [ok, why] = decide(checked, "module", config.allowUnsigned);
         if (!ok) throw new Error(`${slug} ${entry.version} is not loaded: ${why}`);
         const wasm = zip.files.get("module.wasm");
         if (!wasm) throw new Error(`${slug}: the package has no module.wasm`);
         const specFile = zip.files.get("spec.json");  // the node types the module describes (the board UI's type list entries)
-        return { wasm: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength), version: entry.version, publisher: checked.publisher,
+        return { wasm: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength), version: entry.version, publisher: checked.publisher, trust: checked.trust,
                  status: checked.status, meta: JSON.parse(dec.decode(zip.files.get("module.json"))), bytes: bytes.length,
                  spec: specFile ? JSON.parse(dec.decode(specFile)) : null };
       })());
@@ -358,7 +372,7 @@
     configure(o) { Object.assign(config, o); indexPromise = null; crlPromise = null; localPromise = null; packages.clear(); return BleepLibrary; },
     config, manifest, fetchModule, revocations, localIndex,
     // for tests and other tools
-    canonical, contentDigest, readZip, verify, decide, keyId, hex, fromHex, fromB64,
+    canonical, contentDigest, readZip, verify, decide, communityFilesOk, keyId, hex, fromHex, fromB64,
   };
   root.BleepLibrary = BleepLibrary;
   if (typeof module !== "undefined" && module.exports) module.exports = BleepLibrary;

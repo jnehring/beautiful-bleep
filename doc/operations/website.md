@@ -69,6 +69,8 @@ docker compose exec api python -m app.cli set-password you@example.com  # prompt
 
 Release tokens for `scripts/release/release.py` come from the same console: `token-create NAME [--days 1..3650] [--publisher P] [--out FILE]`, `token-list`, `token-revoke ID`; developer signing keys with `developer-create PUBLISHER [--days 1..825] [--out FILE] [--first-party --confirm]` (warns when the publisher already has an active key), `developer-list`, `developer-revoke` (the token and the key kit are secrets: `--out FILE` writes them with mode 0600, and without `--out` the command refuses to print into a file that other users can read, as `> kit.json` under the default umask would; a pipe or terminal is fine; see [release.md](release.md); the keys the library needs are `BLEEP_ROOT_PUBLIC_KEYS`, `BLEEP_ISSUER_KEY` and `BLEEP_ISSUER_CERT` in `website/.env`).
 
+Community modules (anyone with an account shares a module; the library signs it): `community-init [--days 1..825] [--out FILE]` makes the community key and prints the two `.env` lines (once, and again before the certificate lapses), `community-takedown AUTHOR/NAME VERSION` withdraws a release onto the signed revocation list, and `community-ban HANDLE` takes down an author's whole catalogue and deactivates the account. Reports from users show in the admin console's report list (`target: module`). Authors upload with `scripts/release/community-publish.py`.
+
 Run these from `website/`. The password is typed at a prompt, never given as an argument.
 
 ## Signing keys
@@ -80,6 +82,8 @@ The library only accepts signed releases (the rules are in [signing.md](../../we
 | `BLEEP_ROOT_PUBLIC_KEYS` | The root **public** key (hex; two, comma separated, while a root is being replaced). The library checks every release against it, and the apps and plugins will carry the same key | No |
 | `BLEEP_ISSUER_KEY` | The issuer's private key (PEM on one line, newlines written as `\n`). It issues developer keys | **Yes** |
 | `BLEEP_ISSUER_CERT` | The issuer's certificate (JSON on one line), signed by the root | No |
+| `BLEEP_COMMUNITY_KEY` | The library's community key (PEM on one line, newlines as `\n`), or `BLEEP_COMMUNITY_KEY_FILE` for a Docker secret. It signs the modules accounts upload, after the library has checked them. Made by `python -m app.cli community-init`; empty: community uploads are off | **Yes** |
+| `BLEEP_COMMUNITY_CERT` | Its certificate (JSON on one line), issued by the issuer, modules only. Renew before it lapses (run `community-init` again and replace both lines): modules already published keep working through their receipts | No |
 
 The root **private** key never goes into `website/.env` or onto the server. If the server is broken into, the attacker gets the issuer key, which the root can revoke and replace; the root key could not be replaced without updating every installed app. Keep it offline, in your keystore.
 
