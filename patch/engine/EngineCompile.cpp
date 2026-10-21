@@ -147,6 +147,16 @@ juce::var Engine::ports() const {
         p->setProperty("live", now - s->lastBlock.load() < 16 && s->lastBlock.load() >= 0);
         p->setProperty("main", s->handle == mainHandle_);
         o->setProperty(juce::Identifier(s->id), juce::var(p));
+        // Bleep Board is also a MIDI In and an Audio Out (see recompile): the same slot answers for their port ids.
+        if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !s->bridged)
+            for (const auto& [suffix, kind] : {std::pair{kBoardMidiSuffix, PortKind::MidiIn}, std::pair{kBoardAudioSuffix, PortKind::AudioOut}}) {
+                auto* q = new juce::DynamicObject();
+                q->setProperty("kind", portKindName(kind));
+                q->setProperty("track", juce::String(s->trackName));
+                q->setProperty("live", p->getProperty("live"));
+                q->setProperty("main", true);
+                o->setProperty(juce::Identifier(s->id + suffix), juce::var(q));
+            }
     }
     return juce::var(o);
 }
