@@ -15,7 +15,7 @@ services:
   play:
     image: node:22-alpine
     working_dir: /repo
-    command: sh -c "apk add --no-cache bash python3 >/dev/null && scripts/build/build-web.sh --no-modules /tmp/play && cp -rf /tmp/play/./repo/website/app/public/play/"
+    command: sh -c "apk add --no-cache bash python3 >/dev/null && scripts/build/build-web.sh --no-modules /tmp/play && cp -rf /tmp/play/. /repo/website/app/public/play/"
     volumes:
       - ../scripts:/repo/scripts:ro
       - ../config:/repo/config:ro
