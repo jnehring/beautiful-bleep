@@ -65,6 +65,17 @@ In -> high-pass -> input transformer -> [ EQ -> Drive ]  or  [ Drive -> EQ ] -> 
 - **Bypass the tone but keep the colour:** EQ On off. The EQ bands are bypassed and the transformer and drive stage remain.
 - **CPU:** Eco for sessions with many channels.
 
+## The module's own UI
+
+The Channel Strip draws its **real frequency response** from the knobs, using the same filter formulas as the module (the high-pass, the four bands and the proportional Q), with a handle on each band. **Drag** a handle up or down for its gain; drag it sideways and it snaps to the band's stepped frequencies. A bar on the right glows with the Saturation probe, with a thin level bar beside it. A test checks that the drawn curve matches the module's measured response to within 1.5 dB. The file is `src/channel-strip.view.js`.
+
+Tricks it demonstrates:
+
+- recomputing the maths of a module in the UI for a picture (a log frequency axis, an analytic filter response);
+- hit testing handles by distance, then snapping a drag to a list of steps by the nearest value on a log scale;
+- setting stepped (choice) and continuous knobs from the same gesture;
+- the glow of a meter driven by a smoothed probe.
+
 ## Reference
 
 ### Inputs and outputs

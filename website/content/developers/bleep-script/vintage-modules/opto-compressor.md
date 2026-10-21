@@ -55,6 +55,15 @@ The time constants are in seconds, so the behaviour is the same at 44.1, 48 and 
 - **De-essing by ear:** HF Emphasis 9 to 12 dB with moderate Peak Reduction: the sibilants trigger the compression and the body does not.
 - **Use the Reduction output** to open a filter or light something when the signal is squashed: 0 is no reduction, 1 is 24 dB or more.
 
+## The module's own UI
+
+A lamp glows with the gain reduction. Beside it the photocell shows two bars: the fast stage and the slow stage (the charge), so you can see the slow one fill over seconds and linger after the fast one has let go. A needle on a spring shows the reduction in dB, and a strip scrolls the history of the reduction (bright) and the charge (faint). At silence the lamp breathes and the needle trembles, so the picture never looks dead.
+
+- Drag the lamp up or down to turn Peak Reduction (the ring around it shows the setting).
+- Click the dial to switch between Compress and Limit.
+
+Tricks it demonstrates: easing the polled probes with a frame-rate independent exponential; a mass-on-a-spring needle (semi-implicit Euler with damping); ring buffers allocated once for the history; a layout expressed as fractions of the canvas width so it works in a narrow node; vertical drags mapped to a knob's range.
+
 ## Reference
 
 ### Inputs and outputs

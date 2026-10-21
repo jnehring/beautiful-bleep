@@ -56,6 +56,18 @@ Each bracketed stage runs at twice the sample rate (Normal) or at the base rate 
 - **Parallel warmth:** Mix 35 %. The dry signal is delayed to match the oversampling.
 - **CPU:** Eco runs the stages at the base rate: it is the cheapest, but a hard-driven cascade will alias. Normal runs them at twice the rate.
 
+## The module's own UI
+
+The Valve Stage shows **glowing tubes**, as many as the Stages knob says. The plate glows with the supply and dims in a brownout when the supply sags (Supply probe), blue-white sparks jump at the grid when it conducts (Grid probe), and a starved plate sputters orange sparks. **Click** a tube to cycle the tube type; **drag** a tube up or down to set Gain. The file is `src/valve-stage.view.js`.
+
+Tricks it demonstrates:
+
+- a fixed pool of particles, allocated once and reused, so a busy picture creates no garbage per frame;
+- telling a click from a drag by how far the pointer moved before it was released;
+- setting a choice knob by its index (`tube.set(i)`) and reading its names from `choices`;
+- hit testing by dividing the canvas into one slot per tube;
+- driving effects from several probes at once (supply, grid, level) and from knob values (Plate, Stages).
+
 ## Reference
 
 ### Inputs and outputs

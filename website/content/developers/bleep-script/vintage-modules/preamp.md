@@ -51,6 +51,17 @@ In -> Trim -> bass weight bell -> input core -> gain stage (Class A / AB, oversa
 - **Stereo width without drift:** Age 0 % makes left and right identical for a mono source. A little Age (20 to 30 %) makes the sides differ by the slight amount that two real channels would.
 - **CPU:** Eco halves the oversampling of the gain stage. The aliasing stays below -55 dBc even at Drive 100 %.
 
+## The module's own UI
+
+The Preamp draws its own picture instead of the standard panel (the knobs stay below it). It shows the transformer core's **B-H loop**: flux against magnetising force. A dot rides round the loop with the signal level, the loop tints from amber to red as the core saturates (the Core probe), and it breathes gently when nothing is playing. **Drag** inside the picture: left and right sets Iron (the loop widens and its knees drop), up and down sets Drive (the dot swings further out). The file is `src/preamp.view.js`.
+
+Tricks it demonstrates:
+
+- smoothing polled probes with `1 - Math.exp(-dt * rate)`, so a value that arrives 10 times a second moves smoothly at 60 frames a second;
+- idle animation (a slow sine on the swing) so the picture never looks dead in silence;
+- drawing one closed path for the two branches of a loop, and tinting it by stacking two translucent fills;
+- mapping a pointer position to a knob with `setNormalised`, which works whatever the knob's units are.
+
 ## Reference
 
 ### Inputs and outputs

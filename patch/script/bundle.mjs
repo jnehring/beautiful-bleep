@@ -54,7 +54,7 @@ await build({
   outfile: `${root}dist/bleep-script-compiler.js`,
   bundle: true, format: "esm", platform: "browser", target: "es2022", minify: true, legalComments: "none",
   external: ["fs", "module", "path", "url", "node:*"],   // asc and Binaryen import these only when they run under node
-  loader: { ".ts": "text" },   // src/bleep/*.ts are imported as text: they are the library sources the compiler reads
+  loader: { ".ts": "text", ".view.js": "text" },   // src/bleep/*.ts are imported as text: they are the library sources the compiler reads
   logLevel: "warning",
 });
 console.log(`dist/bleep-script-compiler.js: ${(statSync(`${root}dist/bleep-script-compiler.js`).size / 1048576).toFixed(1)} MB`);

@@ -56,6 +56,18 @@ In -> wobble delay -> excursion limit -> non-linearity (2x oversampled)
 - **Wider or narrower:** Bandwidth 140 % opens any device up (a "better" telephone); 60 % squeezes it.
 - **Parallel lo-fi:** Mix 30 % keeps the original body and adds the device's mids and grit. The dry signal is time-aligned.
 
+## The module's own UI
+
+The node shows a cartoon speaker. Its cone pumps with the sound, stops at its travel limit on the devices that have one (car and tiny speaker) and jitters when overdriven, and static speckles around it follow Noise. Next to it is the frequency response of the chosen device, drawn with the same formulas the module designs it from, so the corners and the peaks move as you turn Bandwidth and Resonance. Click a device tile to change the device. Drag one of the two vertical corner lines sideways to set Bandwidth.
+
+What the UI demonstrates:
+
+- **Drawing a response from analytic formulas.** The curve is the sum, in decibels, of two fourth-order Butterworth sections and two peaking bells; the tests compare it with the measured module within 1.5 dB.
+- **A logarithmic frequency axis**, both ways: frequency to x for drawing and x to frequency for dragging.
+- **Dragging an edge.** Dragging the low corner to a frequency `f` sets Bandwidth to the device's corner divided by `f`.
+- **Hit testing small targets** with a distance tolerance, and tiles laid out from the canvas width.
+- **Probe added for the picture:** `excursion` (how far the cone is pushed towards its limit, 0 to 1).
+
 ## Reference
 
 ### Inputs and outputs

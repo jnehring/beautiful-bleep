@@ -303,6 +303,10 @@ export class TapeMachine {
   @probe saturation: f32 = 0;
   /** The output level. */
   @probe level: f32 = 0;
+  /** How deep the current dropout is (0 is none, 1 is silence). */
+  @probe dropout: f32 = 0;
+  /** The pitch deviation of the left channel from wow and flutter right now, in cents. */
+  @probe wobble: f32 = 0;
 
   private cl: TapeChannel;
   private cr: TapeChannel;
@@ -409,6 +413,9 @@ export class TapeMachine {
     this.cl.delayStep = <f32>((dL - this.lastDelayL) / 32.0);
     this.cr.delayStep = <f32>((dR - this.lastDelayR) / 32.0);
     this.lastDelayL = dL; this.lastDelayR = dR;
+    // a delay that grows by x samples per sample lowers the pitch by that ratio
+    this.wobble = <f32>(-1731.2 * <f64>this.cl.delayStep);
+    this.dropout = <f32>(1.0 - min(this.cl.dropouts.gain, this.cr.dropouts.gain));
     for (let c = 0; c < 2; c++) {
       const ch = c == 0 ? this.cl : this.cr;
       const before = ch.dropouts.gain;

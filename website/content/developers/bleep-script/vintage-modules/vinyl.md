@@ -55,6 +55,18 @@ Faster records are busier: the rates are multiplied by (rpm / 33.3) to the power
 - **Wobble only:** Dust, Noise and Rumble at 0, Warp 70 %, Inner Groove 0 %, Bass Mono 0.
 - **Keep the punch:** Mix 50 %. The dry signal is delayed to line up.
 
+## The module's own UI
+
+The node shows a turning record with a tonearm. The disc turns at the chosen speed and wobbles with Warp, specks of dust appear as Dust goes up, and from 40 % Dust the scratches the module plays are drawn on the disc. The module reports where it is on the turn, so a scratch reaches the needle at the moment it is heard, and the needle flashes on every click and glows with the level in the groove. The label shows the cartridge. Drag on the disc or the arm to move the needle in and out, which sets Inner Groove; click the label to change the cartridge.
+
+What the UI demonstrates:
+
+- **Syncing a free-running animation to a probe.** The disc turns by itself, and whenever a new `turn` value arrives the UI nudges its phase towards it along the shortest way round, so there is no jump at the end of a turn.
+- **Pointer geometry to a knob.** The distance from the centre of the disc becomes the needle position, which maps straight onto Inner Groove.
+- **Things fixed on a rotating body.** Dust and scratches are drawn at fixed positions on the disc and rotated with it.
+- **Deterministic pseudo-random numbers** (a small hash) keep the specks in the same places from frame to frame.
+- **Probes added for the picture:** `turn` (position on the current turn, 0 to 1) and `click` (loudness of the dust, pops and scratches, decaying).
+
 ## Reference
 
 ### Inputs and outputs

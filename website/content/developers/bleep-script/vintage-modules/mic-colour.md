@@ -66,6 +66,16 @@ The gains of the Colour-dependent parts are for the Colour knob at 50 %; they sc
 - **Lo-fi hiss:** Self-Noise -60 dB.
 - **Parallel colour:** Mix 40 %: keeps the dry attack and adds the mic's tone.
 
+## The module's own UI
+
+A top-down room. The microphone shows the polar pattern of the chosen model (a figure-8 for the ribbon, rounder for the others); the source is a dot at a distance that follows the Distance knob. Rings round the capsule thicken with the proximity effect, dots bounce off the walls as early reflections (their number follows Room and distance), ripples leave the source with the signal level, and the response curve of the microphone is drawn underneath.
+
+- Drag the source left or right to set Distance.
+- Grab the microphone and turn it to set Off-Axis; the pattern rotates away from the source.
+- Click a model pill to switch model.
+
+Tricks it demonstrates: mapping a logarithmic knob (Distance) to a horizontal position and back; drawing a polar pattern from a formula; animating particles along piecewise paths with a single phase value; a response curve cached and recomputed only when a knob changed, with the module's own analog formulas; easing a polled probe.
+
 ## Reference
 
 ### Inputs and outputs

@@ -199,6 +199,8 @@ export class OptoCompressor {
   @probe({ name: "Gain Reduction" }) gr: f32 = 0;
   /** The charge of the slow photocell stage in dB: how much long compression will linger in the release. */
   @probe({ name: "Charge" }) charge: f32 = 0;
+  /** The fast photocell stage in dB: the quick part of the reduction (the slow part is the Charge). */
+  @probe({ name: "Fast Stage" }) fast: f32 = 0;
 
   private sampleRate: f64;
   private chL: OptoChannel;
@@ -261,6 +263,7 @@ export class OptoCompressor {
     this.grOut.target = <f32>min(worst / 24.0, 1.0);
     this.gr = <f32>worst;
     this.charge = <f32>max(this.chL.cell.slow, this.chR.cell.slow);
+    this.fast = <f32>max(this.chL.cell.fast, this.chR.cell.fast);
 
     const gdb = <f64>this.gain;
     this.mk.target = <f32>Math.pow(10.0, gdb / 20.0);

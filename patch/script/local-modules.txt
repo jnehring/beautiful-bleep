@@ -1,0 +1,9 @@
+preamp
+valve-stage
+channel-strip
+tone-eq
+opto-compressor
+mic-colour
+tape-machine
+vinyl
+cheap-speaker

@@ -61,6 +61,17 @@ All the frequencies are stepped choices, so every position is a known, repeatabl
 
 Because a passive EQ interacts, move the controls against each other: boost a little, listen, then add attenuation at the same frequency and listen to the bottom tighten.
 
+## The module's own UI
+
+The Tone EQ draws the network you are hearing. In Passive Shelf mode the boost (amber) and the attenuation (red) are two ghost curves, and the white curve is their sum, so you can watch them interact. A dot sweeps along the curve and glows with the output level.
+
+- Drag a round handle: up and down set its amount, left and right snap its stepped frequency.
+- Click a mode pill (Passive Shelf, Tilt, Tone Stack) to switch mode.
+- In Tilt mode drag the diamond: vertical is Tilt, horizontal snaps Pivot.
+- In Tone Stack mode drag a dial up or down.
+
+Tricks it demonstrates: the curve is computed in the UI with the same analog formulas the module designs from (and checked against the module's measured response in its test); curves are cached and recomputed only when a knob moved; the polled `level` probe is eased with `1 - Math.exp(-dt * k)` so the glow is smooth at any frame rate; hit testing picks the nearest handle; a pointer is captured while dragging, and a continuous drag is snapped to a list of steps.
+
 ## Reference
 
 ### Inputs and outputs

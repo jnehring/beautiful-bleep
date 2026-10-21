@@ -211,6 +211,7 @@ class SpeakerChannel {
   private cabinLine: DelayLine;
   private noise: NoiseBed;
   private rattleRng: Xorshift;
+  cone: f32 = 0;
   private primed: bool = false;
   private cabin1: i32 = 0;
   private cabin2: i32 = 0;
@@ -260,7 +261,8 @@ class SpeakerChannel {
       const lc = s.excLimit * fastTanh(lw / s.excLimit);
       y = wet - lw + lc;
       rat = lw - lc;
-    }
+      this.cone = abs(lc) / s.excLimit;
+    } else this.cone = 0.0;
     // the main non-linearity, at twice the sample rate
     this.os.up(y);
     const a = (this.shaper.next(this.os.a * s.gain + s.bias, s.hard) - s.off) * s.invSlope;
@@ -327,6 +329,8 @@ export class CheapSpeaker {
 
   /** The output level. */
   @probe level: f32 = 0;
+  /** How far the cone is pushed towards its travel limit (0 to 1); devices without an excursion limit report the level instead. */
+  @probe excursion: f32 = 0;
 
   private cl: SpeakerChannel;
   private cr: SpeakerChannel;
@@ -338,6 +342,7 @@ export class CheapSpeaker {
   private tune: NoiseLfo;
   private mixSmooth: Smoother;
   private meter: PeakHold;
+  private coneMeter: PeakHold;
   private oversamplerLatency: i32;
   private started: bool = false;
 
@@ -351,6 +356,7 @@ export class CheapSpeaker {
     this.tune = new NoiseLfo(sampleRate / 32.0, 0x0ABCDEF);
     this.mixSmooth = new Smoother(sampleRate, 0.005);
     this.meter = new PeakHold(sampleRate, 0.3);
+    this.coneMeter = new PeakHold(sampleRate, 0.12);
     this.oversamplerLatency = new Oversampler2x().latency;
   }
 
@@ -385,5 +391,7 @@ export class CheapSpeaker {
     const yr = dr + (wr - dr) * m;
     this.outL = yl; this.outR = yr;
     this.level = this.meter.next(max(abs(yl), abs(yr)));
+    const cone = this.cl.cone;
+    this.excursion = this.coneMeter.next(this.spec.excLimit > 0.0 ? cone : min(abs(yl) * 2.0, 1.0));
   }
 }

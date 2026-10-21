@@ -55,6 +55,18 @@ The output is a mix of the two parts. The model is stable by construction: the i
 
 Eco halves the processing of the magnetic stage. Use Normal for bright, hard-driven material; Eco is fine for bass, drums or anything dull.
 
+## The module's own UI
+
+The node shows two reels instead of a plain row of knobs. They turn at the tape speed, the tape pack moves from the left reel to the right one, and the tape sags and the reels speed up and slow down with the wow and flutter the module is producing right now. A VU needle follows the output, the head glows warm as the tape saturates, sparkles show the hiss and the whole machine flashes at a dropout. Click a reel to change the speed; drag up or down anywhere else to set Input Level. The normal knobs stay below the picture.
+
+What the UI demonstrates:
+
+- **Smoothing polled probes.** The module reports its probes a few times a second; the UI eases each value towards its probe with `1 - Math.exp(-dt * k)` (fast attack, slow release for the needle), so the picture moves smoothly at 60 frames a second.
+- **Idle animation.** The reels always turn, so the picture is alive even when no sound plays.
+- **Hit testing.** A click inside a reel's circle (a distance test) changes the speed; anything else is a drag.
+- **Reading and writing knobs.** `bleep.param(id)` gives the value in its own units and `set` or `setNormalised` changes it.
+- **Probes added for the picture:** `dropout` (depth of the current dropout) and `wobble` (pitch deviation in cents).
+
 ## Reference
 
 ### Inputs and outputs

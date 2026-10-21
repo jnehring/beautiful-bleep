@@ -315,7 +315,7 @@
     } catch (e) {
       if (!local) throw e;  // a local build alone is enough to run offline
     }
-    if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", types: m.types || [], local: m.file };
+    if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", types: m.types || [], local: m.file, spec: m.spec || null };
     const types = {};
     for (const [slug, m] of Object.entries(mods)) for (const t of m.types || []) types[t] = slug;
     return { types, modules: mods };
@@ -336,7 +336,7 @@
           const res = await fetch(abs(config.localBase + mods[slug].local), { cache: "no-store" });
           if (!res.ok) throw new Error(`${mods[slug].local}: ${res.status}`);
           const wasm = await res.arrayBuffer();
-          return { wasm, version: "local", publisher: "local build", status: "unsigned", local: true, meta: {}, bytes: wasm.byteLength, spec: null };
+          return { wasm, version: "local", publisher: "local build", status: "unsigned", local: true, meta: {}, bytes: wasm.byteLength, spec: mods[slug].spec || null };   // spec: the node types of a script module, which no demo-types.json lists
         }
         const dir = config.base + mods[slug].entry.replace(/entry\.json$/, "");
         const entry = await getJSON(config.base + mods[slug].entry);

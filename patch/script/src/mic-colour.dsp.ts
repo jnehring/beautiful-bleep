@@ -273,6 +273,9 @@ export class MicColour {
   /** Auto uses the left input for both channels while nothing is patched to the right one; Stereo uses both; Mono feeds the left signal to both. */
   @param({ name: "Input", choices: ["Auto", "Stereo", "Mono"], group: "Setup" }) input: i32 = 0;
 
+  /** The output level (peak with a slow fall), for the module's own view. */
+  @probe level: f32 = 0;
+
   private sampleRate: f64;
   private chL: MicChannel;
   private chR: MicChannel;
@@ -335,6 +338,8 @@ export class MicColour {
   }
 
   block(): void {
+    // the view's level: the last output sample of the previous block, with a slow fall (cheap; a picture needs no more)
+    this.level = max(max(abs(this.outL), abs(this.outR)), this.level * 0.97);
     const first = !this.started;
     const k = first ? 1.0 : this.kb;
     this.cLnD += (Math.log(<f64>this.distance) - this.cLnD) * k;

@@ -317,6 +317,10 @@ export class Vinyl {
   @probe groove: f32 = 0;
   /** The output level. */
   @probe level: f32 = 0;
+  /** Where the stylus is on the current turn of the record: 0 to 1. */
+  @probe turn: f32 = 0;
+  /** The loudness of the dust, pops and scratches right now (peak, decaying), for flashes. */
+  @probe click: f32 = 0;
 
   private cl: RecordChannel;
   private cr: RecordChannel;
@@ -458,6 +462,9 @@ export class Vinyl {
     this.dustBed.next(this.rev, this.revStep);
     this.rev += this.revStep; if (this.rev >= 1.0) this.rev -= 1.0;
     wl += this.dustBed.left; wr += this.dustBed.right;
+    const ck = max(abs(this.dustBed.left), abs(this.dustBed.right));
+    this.click = max(ck, this.click * 0.9995);
+    this.turn = <f32>this.rev;
     const g = this.gainSmooth.next();
     const m = this.mixSmooth.next();
     wl *= g; wr *= g;

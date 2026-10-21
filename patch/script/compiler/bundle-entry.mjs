@@ -26,6 +26,15 @@ import micColour from "../src/mic-colour.dsp.ts";
 import tapeMachine from "../src/tape-machine.dsp.ts";
 import vinyl from "../src/vinyl.dsp.ts";
 import cheapSpeaker from "../src/cheap-speaker.dsp.ts";
+import preampView from "../src/preamp.view.js";
+import valveStageView from "../src/valve-stage.view.js";
+import channelStripView from "../src/channel-strip.view.js";
+import toneEqView from "../src/tone-eq.view.js";
+import optoCompressorView from "../src/opto-compressor.view.js";
+import micColourView from "../src/mic-colour.view.js";
+import tapeMachineView from "../src/tape-machine.view.js";
+import vinylView from "../src/vinyl.view.js";
+import cheapSpeakerView from "../src/cheap-speaker.view.js";
 import { EXAMPLES } from "../playground/examples.mjs";
 import { compileScript } from "./compile.mjs";
 import { runPatchScript } from "../patch/run.mjs";
@@ -51,5 +60,5 @@ export async function patch(source, settings, types, options) {
 }
 
 /// Starting points for the editor: [{ id, name, source }].
-export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, { id: "preamp", name: "Preamp (transformer-coupled)", source: preamp }, { id: "valve-stage", name: "Valve Stage (tube preamp)", source: valveStage }, { id: "channel-strip", name: "Channel Strip (EQ and drive)", source: channelStrip }, { id: "tone-eq", name: "Tone EQ (passive shelves)", source: toneEq }, { id: "opto-compressor", name: "Opto Compressor (leveling)", source: optoCompressor }, { id: "mic-colour", name: "Mic Colour", source: micColour }, { id: "tape-machine", name: "Tape Machine", source: tapeMachine }, { id: "vinyl", name: "Vinyl", source: vinyl }, { id: "cheap-speaker", name: "Cheap Speaker (lo-fi)", source: cheapSpeaker }, ...EXAMPLES];
+export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, { id: "preamp", name: "Preamp (transformer-coupled)", source: preamp, view: preampView }, { id: "valve-stage", name: "Valve Stage (tube preamp)", source: valveStage, view: valveStageView }, { id: "channel-strip", name: "Channel Strip (EQ and drive)", source: channelStrip, view: channelStripView }, { id: "tone-eq", name: "Tone EQ (passive shelves)", source: toneEq, view: toneEqView }, { id: "opto-compressor", name: "Opto Compressor (leveling)", source: optoCompressor, view: optoCompressorView }, { id: "mic-colour", name: "Mic Colour", source: micColour, view: micColourView }, { id: "tape-machine", name: "Tape Machine", source: tapeMachine, view: tapeMachineView }, { id: "vinyl", name: "Vinyl", source: vinyl, view: vinylView }, { id: "cheap-speaker", name: "Cheap Speaker (lo-fi)", source: cheapSpeaker, view: cheapSpeakerView }, ...EXAMPLES];
 export const version = "0.1";

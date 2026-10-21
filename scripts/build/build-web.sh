@@ -76,6 +76,12 @@ if [ "$UI" = 0 ]; then
     cp -R "$OUT/modules" "$OUT/manifest.json" "$LOCAL/"
     for m in "$PATCH"/modules/*/; do [ -d "$m/ui" ] && cp "$m"/ui/*.js "$LOCAL/views/" 2>/dev/null || true; done
     ( cd "$LOCAL/views" && ls *.js 2>/dev/null | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin]))' ) > "$LOCAL/views.json"
+    # The vintage modules are Bleep Script (patch/script/local-modules.txt): compiled with node, added to the same folder and manifest.
+    if [ -d "$PATCH/script/node_modules" ] && command -v node >/dev/null; then
+      node "$PATCH/script/publish-local.mjs" "$LOCAL"
+    else
+      echo "Skipped the Bleep Script modules (patch/script/local-modules.txt): run npm install in patch/script and have node on the PATH"
+    fi
     echo "Local modules for Bleep Play: $LOCAL (reload the page; turn on Allow unsigned modules once)"
   fi
   exit 0
