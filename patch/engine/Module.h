@@ -227,6 +227,11 @@ public:
     Display& paramDisplay(int i) noexcept { return paramDisplay_[(size_t)i]; }
     Display& outputDisplay(int i) noexcept { return outputDisplay_[(size_t)i]; }
 
+    /// [audio thread] The engine found NaN, inf or a runaway level in this module's output, silenced it and reset the module.
+    void noteRunaway() noexcept { runaways_.fetch_add(1, std::memory_order_relaxed); }
+    /// [message thread] How many runaways since the last call, then clears the count.
+    uint32_t takeRunaways() noexcept { return runaways_.exchange(0, std::memory_order_relaxed); }
+
 protected:
     double sampleRate_ = 48000.0;
 
@@ -234,6 +239,7 @@ private:
     static constexpr uint32_t kCommandQueue = 64;
     Command commands_[kCommandQueue];
     std::atomic<uint32_t> cmdWrite_{0}, cmdRead_{0};
+    std::atomic<uint32_t> runaways_{0};
 
     const ModuleSpec& spec_;
     std::unique_ptr<std::atomic<float>[]> knobs_;

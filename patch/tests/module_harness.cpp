@@ -186,6 +186,13 @@ void run(Program& p, const ModuleSpec& spec, double sampleRate, double seconds, 
             ctx.ppqStart = t.ppq + ppqPerSample * off;
             ctx.ppqPerSample = ppqPerSample;
             p.runChunk(ctx);
+            // The engine silences and resets NaN and runaway outputs, which would hide them from the check below: ask it.
+            for (const auto& st : p.steps())
+                if (const uint32_t n = st.module->takeRunaways(); n > 0 && !reported) {
+                    CHECK(false, "%s (%s, %.0f Hz): the engine had to silence a NaN or runaway output (%u time(s))",
+                          spec.type.c_str(), what, sampleRate, n);
+                    reported = true;
+                }
             for (size_t o = 0; o < dut->outputBuffers.size(); ++o) {
                 const float* b = dut->outputBuffers[o].get();
                 if (!b) continue;

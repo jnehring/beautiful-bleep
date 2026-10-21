@@ -36,6 +36,7 @@ class FilterDsp {
 public:
     static constexpr int kMaxChannels = 2;
     static constexpr int kOversampling = 4;
+    static constexpr float kRunaway = 1.0e4f;  ///< |output| from which (or NaN) a voice counts as blown up
     /// Half-band delay per FIR at its own rate; the 4× stages add half a host
     /// sample, padded to a whole one so the dry path can match it.
     static constexpr int kStageDelay = (dsp::HalfbandFir::kTaps - 1) / 2;
@@ -92,11 +93,17 @@ public:
         const int channels = std::min(numChannels, kMaxChannels);
         for (int ch = 0; ch < channels; ++ch) {
             const auto c = (size_t)ch;
+            // A non-finite input would sit in the half-band history and the filter state for good.
+            if (!std::isfinite(frame[ch])) frame[ch] = 0.0f;
             float x[kOversampling];
             up_[c].process(frame[ch], kOversampling, x);
             for (float& s : x) {
                 const float driven = s + p.drive * (std::tanh(s * gain) - s);
-                const float wet = voices_[c].process(coeffs_, driven, sampleRate_);
+                float wet = voices_[c].process(coeffs_, driven, sampleRate_);
+                if (!(std::fabs(wet) < kRunaway)) {  // a resonant feedback loop blew up: start the voice from silence
+                    voices_[c].reset();
+                    wet = 0.0f;
+                }
                 if (kPad == 0) {
                     s = wet;
                     continue;

@@ -2,6 +2,8 @@
 // EngineCompile.cpp — compiling the board, reconciling ports, and the state the UI shows.
 #include "EngineInternal.h"
 
+#include <cstdio>
+
 namespace bleep::engine {
 
 void Engine::modulesChanged() {
@@ -116,6 +118,9 @@ void Engine::pollModuleData() {
     if (!hasBoard()) return;
     bool changed = false;
     for (const auto& [id, m] : modules_) {
+        if (const uint32_t n = m->takeRunaways())
+            std::fprintf(stderr, "[engine] %s (%s) produced NaN or a runaway level %u time(s); silenced and reset\n",
+                         id.c_str(), m->spec().type.c_str(), n);
         std::string json;
         if (!m->takeData(json)) continue;
         const ModuleSpec& spec = m->spec();

@@ -4,6 +4,7 @@
 #include "VoiceCell.h"
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 
 namespace bleep::engine {
@@ -494,6 +495,31 @@ void Program::run(const Transport& t, int numSamples, bool transportStarted) noe
     }
 }
 
+namespace {
+/// An output past this is a runaway (a resonant loop growing) and is treated like NaN: audio and control signals sit within a few units.
+constexpr float kRunaway = 1.0e6f;
+}  // namespace
+
+/// NaN or inf would stay in a module's state and in every feedback loop through it. Zeroes such outputs and resets the module so the
+/// board recovers; false when it had to.
+bool Program::outputsSane(Step& st, int m) noexcept {
+    bool sane = true;
+    for (auto& ob : st.outputBuffers) {
+        float* b = ob.get();
+        if (b == nullptr) continue;
+        for (int s = 0; s < m; ++s)
+            if (!(std::fabs(b[s]) < kRunaway)) {  // also true for NaN
+                sane = false;
+                break;
+            }
+    }
+    if (sane) return true;
+    for (auto& ob : st.outputBuffers)
+        if (ob) std::fill_n(ob.get(), m, 0.0f);
+    st.module->reset();
+    return false;
+}
+
 void Program::runChunk(const ProcessContext& chunk) noexcept {
     ProcessContext ctx = chunk;
     if (!ctx.harmony) ctx.harmony = harmony_.data();  // a Voice Cell's inside shares the board's buses
@@ -557,6 +583,7 @@ void Program::runChunk(const ProcessContext& chunk) noexcept {
                     std::copy_n(st.inputPtrs[in], m, st.outputBuffers[out].get());
             } else {
                 mod.process(ctx);
+                if (!outputsSane(st, m)) mod.noteRunaway();
             }
 
             for (size_t k = 0; k < st.outputBuffers.size(); ++k) {

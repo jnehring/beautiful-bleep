@@ -87,6 +87,7 @@ public:
     const std::set<std::string>& feedback() const noexcept { return feedback_; }
 
 private:
+    static bool outputsSane(Step& st, int numSamples) noexcept;
     std::vector<Step> steps_;
     std::vector<std::vector<Source>> taps_;
     std::vector<std::shared_ptr<PortSlot>> slots_;

@@ -65,10 +65,21 @@ public:
     }
 
     void tick(const DelayParams& p, float inL, float inR, float& outL, float& outR) noexcept {
+        // NaN or inf in the lines would recirculate through the feedback for good: start again from silence.
+        if (!std::isfinite(inL)) inL = 0.0f;
+        if (!std::isfinite(inR)) inR = 0.0f;
         const double dl = time_[0].process(clampSamples(p.timeL));
         const double dr = time_[1].process(clampSamples(p.timeR));
         const float wl = line_[0].readHermite(dl - 1.0);  // read before write: d - 1 is a delay of d samples
         const float wr = line_[1].readHermite(dr - 1.0);
+        if (!std::isfinite(wl) || !std::isfinite(wr)) {
+            for (auto& l : line_) l.clear();
+            std::fill(std::begin(hp_), std::end(hp_), 0.0f);
+            std::fill(std::begin(lp_), std::end(lp_), 0.0f);
+            outL = inL;
+            outR = inR;
+            return;
+        }
         const float fb = std::clamp(p.feedback, 0.0f, 2.0f);
         float fl, fr;
         if (p.pingPong) {  // each side feeds the other; the input enters the left line only

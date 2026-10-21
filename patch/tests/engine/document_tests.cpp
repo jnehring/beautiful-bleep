@@ -3,6 +3,8 @@
 
 #include "engine_test.h"
 
+#include <limits>
+
 namespace {
 
 void specMapping() {
@@ -276,6 +278,149 @@ void panelSources() {
     EXPECT(modCable);
 }
 
+/// A one-pole with a poisoned state: the engine must silence it, reset it and tell the message thread.
+class PoisonModule final : public Module {
+public:
+    using Module::Module;
+    void reset() override {
+        acc_ = 0.0f;
+        ++resets;
+    }
+    void process(const ProcessContext& c) override {
+        for (int s = 0; s < c.numSamples; ++s, ++t_) {
+            acc_ = 0.5f * acc_ + c.inputs[0][s];
+            if (t_ == 300 || t_ == 301) acc_ = std::numeric_limits<float>::quiet_NaN();
+            if (t_ == 2000) acc_ = std::numeric_limits<float>::infinity();
+            c.outputs[0][s] = acc_;
+        }
+    }
+    int resets = 0;
+
+private:
+    float acc_ = 0.0f;
+    int t_ = 0;
+};
+
+void registerPoison(Registry& r) {
+    ModuleSpec s;
+    s.type = "poison-test";
+    s.name = "Poison Test";
+    s.category = "Test";
+    s.inputs = {{"x", "X", Signal::Audio, true}};
+    s.outputs = {{"y", "Y", Signal::Audio, true}};
+    r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<PoisonModule>(spec); });
+}
+BLEEP_REGISTER_MODULE(registerPoison);
+
+void runawayIsSilencedAndReset() {
+    g_test = "runaway";
+    // utility (constant 1) -> poison -> utility.
+    auto utility = node("u", "utility");
+    utility.getDynamicObject()->setProperty("params", obj({{"offset", 1.0}}));
+    auto d = board::sanitise(doc({utility, node("p", "poison-test"), node("o", "utility")},
+                                 {cable("u", "out", "p", "x"), cable("p", "y", "o", "x")}));
+    std::map<std::string, std::shared_ptr<Module>> modules;
+    auto program = Program::compile(board::parse(d), modules, {}, kRate);
+    const Program::Step* out = nullptr;
+    for (const auto& st : program->steps())
+        if (st.nodeId == "o") out = &st;
+    EXPECT(out != nullptr);
+    Transport t;
+    t.sampleRate = kRate;
+    bool finite = true;
+    for (int block = 0; block < 160 && out; ++block) {  // a chunk at a time: the buffers hold only the last one
+        program->run(t, kChunk, false);
+        const float* b = out->outputBuffers[0].get();
+        for (int s = 0; s < kChunk; ++s) finite = finite && std::fabs(b[s]) < 1.0e6f;
+    }
+    EXPECT(finite);  // the loop did not keep the NaN
+    auto* poison = dynamic_cast<PoisonModule*>(modules["p"].get());
+    EXPECT(poison != nullptr);
+    if (poison) {
+        EXPECT(poison->resets >= 2);                  // the NaN at 300 and the inf at 2000
+        EXPECT(poison->takeRunaways() >= 2);
+        EXPECT(poison->takeRunaways() == 0);          // the count clears when read
+    }
+}
+
+/// A sine with a burst of NaN and inf in it.
+class BurstSource final : public Module {
+public:
+    using Module::Module;
+    void process(const ProcessContext& c) override {
+        for (int s = 0; s < c.numSamples; ++s, ++t_) {
+            float v = 0.3f * (float)std::sin(0.05 * t_);
+            if (t_ >= 4000 && t_ < 4100) v = std::numeric_limits<float>::quiet_NaN();
+            if (t_ >= 4100 && t_ < 4200) v = std::numeric_limits<float>::infinity();
+            c.outputs[0][s] = v;
+        }
+    }
+
+private:
+    int t_ = 0;
+};
+
+void registerBurst(Registry& r) {
+    ModuleSpec s;
+    s.type = "burst-source-test";
+    s.name = "Burst Source Test";
+    s.category = "Test";
+    s.outputs = {{"audio", "Audio", Signal::Audio, true}};
+    r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<BurstSource>(spec); });
+}
+BLEEP_REGISTER_MODULE(registerBurst);
+
+/// The modules that keep a filter, an envelope or a delay line on the audio: a NaN burst in must not leave them dead.
+void audioModulesRecoverFromNaN() {
+    g_test = "nan-recovery";
+    for (const char* type : {"filter", "dual-filter", "filter-bank", "eq", "phaser", "freq-shifter", "spectral-blend",
+                             "delay", "delay-network", "zone-delay", "reverb", "room-print", "chorus", "pitch-shifter", "grains",
+                             "limiter", "compressor", "envelope-follower", "saturator"}) {
+        const auto* spec = Registry::get().find(type);
+        if (spec == nullptr) {
+            std::printf("  nan-recovery: unknown module type %s\n", type);
+            ++g_failures;
+            continue;
+        }
+        std::string in, out;
+        for (const auto& j : spec->inputs)
+            if (in.empty() && j.type == Signal::Audio) in = j.id;
+        for (const auto& j : spec->outputs)
+            if (out.empty() && (j.type == Signal::Audio || std::string(type) == "envelope-follower")) out = j.id;  // its env is a control
+        if (in.empty() || out.empty()) {
+            std::printf("  nan-recovery: %s has no audio jack\n", type);
+            ++g_failures;
+            continue;
+        }
+        auto d = board::sanitise(doc({node("s", "burst-source-test"), node("m", type)}, {cable("s", "audio", "m", in.c_str())}));
+        std::map<std::string, std::shared_ptr<Module>> modules;
+        auto program = Program::compile(board::parse(d), modules, {}, kRate);
+        const Program::Step* st = nullptr;
+        for (const auto& step : program->steps())
+            if (step.nodeId == "m") st = &step;
+        EXPECT(st != nullptr);
+        if (!st) continue;
+        const int jack = spec->outputIndex(out);
+        Transport t;
+        t.sampleRate = kRate;
+        bool finite = true;
+        float peak = 0.0f;
+        for (int block = 0; block < 1600; ++block) {  // 1.07 s: the burst is at 4000 samples
+            program->run(t, kChunk, false);
+            const float* b = st->outputBuffers[(size_t)jack].get();
+            for (int i = 0; i < kChunk; ++i) {
+                finite = finite && std::isfinite(b[i]);
+                if (block > 1200) peak = std::max(peak, std::fabs(b[i]));  // well after the burst and any tail
+            }
+        }
+        if (!finite || peak <= 1.0e-4f)
+            std::printf("  nan-recovery: %s finite=%d late peak=%g runaways=%u\n", type, (int)finite, (double)peak,
+                        modules["m"]->takeRunaways());
+        EXPECT(finite);
+        EXPECT(peak > 1.0e-4f);  // alive again: the sine gets through
+    }
+}
+
 }  // namespace
 
 void runDocumentTests() {
@@ -284,6 +429,8 @@ void runDocumentTests() {
     panelsAreKept();
     panelSources();
     compileCellsAndFeedback();
+    runawayIsSilencedAndReset();
+    audioModulesRecoverFromNaN();
     persistenceAndDuplicates();
     undoRedo();
 }

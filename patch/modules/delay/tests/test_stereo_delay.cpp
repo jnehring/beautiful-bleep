@@ -68,6 +68,20 @@ static void fullFeedbackStaysBounded() {
     EXPECT(peak <= 1.0f);
 }
 
+static void recoversFromNaN() {
+    TEST("a NaN input does not poison the repeats");
+    DelayParams p;
+    p.timeL = p.timeR = 0.02f;
+    p.feedback = 0.7f;
+    p.mix = 1.0f;
+    auto d = make(p);
+    for (int i = 0; i < 48000; ++i) {
+        float l, r;
+        d.tick(p, i == 100 ? std::nanf("") : (i < 960 ? 0.5f : 0.0f), 0.0f, l, r);
+        EXPECT(std::isfinite(l) && std::isfinite(r));
+    }
+}
+
 static void pingPongAlternates() {
     TEST("ping-pong: the first repeat is on the left, the next on the right");
     DelayParams p;
@@ -144,6 +158,7 @@ int main() {
     delaysByTheTime();
     feedbackRepeats();
     fullFeedbackStaysBounded();
+    recoversFromNaN();
     pingPongAlternates();
     highCutDarkensRepeats();
     syncedRates();
