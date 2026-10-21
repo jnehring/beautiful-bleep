@@ -8,6 +8,8 @@ import asc from "assemblyscript/asc";
 import { compileScript } from "../compiler/compile.mjs";
 import { compileModule, ModuleInstance, CHUNK } from "../../web/js/module-host.js";
 import { wrapExample } from "./doc-examples.mjs";
+import { runPatchScript } from "../patch/run.mjs";
+import { materialize } from "../patch/materialize.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const docs = fileURLToPath(new URL("../../../website/content/developers/bleep-script/", import.meta.url));
@@ -308,6 +310,20 @@ if (built.has("Oscillator")) {
   const missing = libraries.filter((f) => !["abi", "format"].includes(f)).flatMap((f) =>
     [...lib[`src/bleep/${f}.ts`].matchAll(/^export (?:function|class) (\w+)/gm)].map((m) => m[1]).filter((name) => !new RegExp(`\\b${name}\\b`).test(text)).map((name) => `${f}/${name}`));
   check(missing.length === 0, "the library page has an example for every function and class", missing.join(", "));
+}
+
+// the built-ins reference: every patch script example runs and is valid against the board's module types
+{
+  const types = Object.fromEntries(JSON.parse(readFileSync(fileURLToPath(new URL("../../board/ui/demo-types.json", import.meta.url)), "utf8")).map((t) => [t.type, t]));
+  const page = readFileSync(`${docs}reference.md`, "utf8");
+  let n = 0;
+  for (const m of page.matchAll(/```ts patch\n([\s\S]*?)```/g)) {
+    n++;
+    const r = await runPatchScript(m[1], {});
+    const built = r.ok ? materialize(r.spec, types, { cellId: "gen-1", parent: "", x: 0, y: 0, generatedBy: "code-1" }) : null;
+    check(!!(r.ok && built && built.ok), `reference.md: patch example ${n} builds`, (r.ok ? (built.problems || []) : r.problems).map((p) => `${p.line}: ${p.message}`).join(" | "));
+  }
+  check(n >= 6, "reference.md has the patch builder examples", String(n));
 }
 
 // the AI programming prompt: its code compiles, and it names every export of the library

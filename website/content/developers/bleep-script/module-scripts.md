@@ -8,7 +8,7 @@ order: 30
 
 You write a module script when the board has no module that does what you want. It is how you make your own oscillator, filter, distortion or any other effect, and also modules that handle notes and control signals instead of audio, such as a router or a note splitter. Compile the script and the Code node turns into a module of its own, with the jacks, knobs and meters you declared. You can patch it like any other module and it is saved with the patch.
 
-A module script describes one module as a class. The class says what goes in and what comes out, which settings the player can turn, and what to compute for each sample of audio or for each incoming event. This page is the reference for all of that. If you have not written one yet, start with the [Quickstart](quickstart.md).
+A module script describes one module as a class. The class says what goes in and what comes out, which settings the player can turn, and what to compute for each sample of audio or for each incoming event. This page explains all of that; the [Built-ins reference](reference.md) lists every built-in with its signature and a complete example. If you have not written one yet, start with the [Quickstart](quickstart.md).
 
 A module script is an [AssemblyScript](https://www.assemblyscript.org/) file with one or more classes marked `@module`. AssemblyScript is a strict subset of TypeScript that compiles to WebAssembly, so ordinary TypeScript syntax works, with these differences that matter here: numbers are typed (`f32`, `f64`, `i32`, `bool`), there are no closures or exceptions in real-time code, and `Math.sin` takes an `f64`.
 
@@ -41,7 +41,7 @@ export class Gain {
 | `@transport` method | Once per block, before `block()` | The tempo and position, see [Transport](#transport) |
 | `@button` methods | When a button is pressed | See below |
 
-All of them are optional. A module with only `@on` handlers is a router; one with only `sample()` is an effect. When each part runs, and what to put where, is the subject of [Rates and timing](rates.md). Several `@module` classes in one file make several modules (the Code node shows the first).
+The constructor is required (`constructor(sampleRate: f64) {}` when it has nothing to do); the rest are optional. A module with only `@on` handlers is a router; one with only `sample()` is an effect. When each part runs, and what to put where, is the subject of [Rates and timing](rates.md). Several `@module` classes in one file make several modules (the Code node shows the first).
 
 ### How fields are filled
 

@@ -10,7 +10,7 @@ order: -10
 
 ![A Code node in Bleep Play holding the Tremolo example: the Compile button and status line on top, the script in the editor, and below it the module's meter and knobs.](/img/code-node-tremolo.png)
 
-This is the *Tremolo* example from the Examples menu. Compile it and the node gets an In jack, an Out jack, the Rate and Depth dials, a Shape menu and a meter for the LFO. Nothing else is needed: the decorators on top declare all of that, and `sample()` at the bottom is the sound.
+This is a small tremolo script. Compile it and the node gets an In jack, an Out jack, the Rate and Depth dials, a Shape menu and a meter for the LFO. Nothing else is needed: the decorators on top declare all of that, and `sample()` at the bottom is the sound.
 
 ## What it is for
 
@@ -46,6 +46,7 @@ Bleep Script does three jobs.
 | [Tutorials](tutorials/overview.md) | A step sequencer, drive, smoothing, sample and hold, inputs, the DSP toolbox |
 | [The Code node](code-node.md) | The editor, compiling, settings, saving, and what is available where |
 | [Module scripts](module-scripts.md) | Reference: decorators, signal types, parameters, probes, buttons, settings |
+| [Built-ins reference](reference.md) | Every built-in one by one, with its API and a complete example: lifecycle methods, decorators, `@transport`, note types, the patch builder and the UI object |
 | [Events and routing](events.md) | Notes and edge handlers, with a router |
 | [Patch scripts](patch-scripts.md) | Reference: building cells from code |
 | [Custom UIs and widgets](custom-ui.md) | Layouts of knobs, faders and meters, or a self-made canvas UI |
