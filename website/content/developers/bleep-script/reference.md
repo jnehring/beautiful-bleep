@@ -1,10 +1,10 @@
 ---
-title: Built-ins reference
+title: Reference
 description: Every built-in of a module script, one by one: the lifecycle methods, each decorator, @transport, notes and events, with the signature, what it does and a complete example.
-order: 35
+order: 90
 ---
 
-# Built-ins reference
+# Reference
 
 This page lists every built-in a module script has: the methods the engine calls, the decorators that declare jacks and knobs, the transport handler and the note types. Each entry has the same three parts:
 
@@ -14,12 +14,13 @@ This page lists every built-in a module script has: the methods the engine calls
 
 For the story behind them, see [Module scripts](module-scripts.md), [Events and routing](events.md) and [Rates and timing](rates.md). The `bleep/` functions (oscillators, filters, delays) are on the [Library](library.md) page, and the calls of patch scripts and custom UIs are at the end of this page.
 
-| Group | Entries |
-|---|---|
-| Methods the engine calls | [`constructor`](#constructor), [`block`](#block), [`sample`](#sample), [`reset`](#reset) |
-| Decorators | [`@module`](#module), [`@input`](#input), [`@output`](#output), [`@param`](#param), [`@probe`](#probe), [`@button`](#button), [`@on` for notes](#on-for-notes), [`@on` for edges](#on-for-edges), [`@transport`](#transport) |
-| Note types | [`NoteEvent`](#noteevent), [`NoteStream`](#notestream) |
-| Other scripts | [The patch builder](#the-patch-builder), [The `bleep` UI object](#the-bleep-ui-object) |
+## Contents
+
+- **Methods the engine calls:** [`constructor`](#constructor), [`block`](#block), [`sample`](#sample), [`reset`](#reset)
+- **Decorators:** [`@module`](#module), [`@input`](#input), [`@output`](#output), [`@param`](#param), [`@probe`](#probe), [`@button`](#button), [`@on` for notes](#on-for-notes), [`@on` for edges](#on-for-edges), [`@transport`](#transport)
+- **Note types:** [`NoteEvent`](#noteevent), [`NoteStream`](#notestream)
+- **The patch builder:** [`cell`](#cellname-options-build), [`c.input` and `c.output`](#cinput-and-coutput), [`c.add`](#cadd), [`c.cable`](#ccable), [`c.stereo`](#cstereo), [`c.place`](#cplace), [`c.cin` and `c.cout`](#ccin-and-ccout)
+- **The `bleep` UI object:** [`param` and `params`](#bleepparamid-and-bleepparams), [`probe`](#bleepprobeid), [`button`](#bleepbuttonid), [`onFrame` and `onValues`](#bleeponframefn-and-bleeponvaluesfn), [`size` and `canvas`](#bleepsizeh-and-bleepcanvash), [`theme`](#bleeptheme)
 
 ## Methods the engine calls
 
