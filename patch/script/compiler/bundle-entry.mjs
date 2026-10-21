@@ -17,6 +17,15 @@ import random from "../src/bleep/random.ts";
 import util from "../src/bleep/util.ts";
 import gains from "../src/gains.dsp.ts";
 import synthVoice from "../src/synth-voice.dsp.ts";
+import preamp from "../src/preamp.dsp.ts";
+import valveStage from "../src/valve-stage.dsp.ts";
+import channelStrip from "../src/channel-strip.dsp.ts";
+import toneEq from "../src/tone-eq.dsp.ts";
+import optoCompressor from "../src/opto-compressor.dsp.ts";
+import micColour from "../src/mic-colour.dsp.ts";
+import tapeMachine from "../src/tape-machine.dsp.ts";
+import vinyl from "../src/vinyl.dsp.ts";
+import cheapSpeaker from "../src/cheap-speaker.dsp.ts";
 import { EXAMPLES } from "../playground/examples.mjs";
 import { compileScript } from "./compile.mjs";
 import { runPatchScript } from "../patch/run.mjs";
@@ -42,5 +51,5 @@ export async function patch(source, settings, types, options) {
 }
 
 /// Starting points for the editor: [{ id, name, source }].
-export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, ...EXAMPLES];
+export const examples = [{ id: "gains", name: "Gains (mixer channel)", source: gains }, { id: "synth-voice", name: "Synth voice (library tour)", source: synthVoice }, { id: "preamp", name: "Preamp (transformer-coupled)", source: preamp }, { id: "valve-stage", name: "Valve Stage (tube preamp)", source: valveStage }, { id: "channel-strip", name: "Channel Strip (EQ and drive)", source: channelStrip }, { id: "tone-eq", name: "Tone EQ (passive shelves)", source: toneEq }, { id: "opto-compressor", name: "Opto Compressor (leveling)", source: optoCompressor }, { id: "mic-colour", name: "Mic Colour", source: micColour }, { id: "tape-machine", name: "Tape Machine", source: tapeMachine }, { id: "vinyl", name: "Vinyl", source: vinyl }, { id: "cheap-speaker", name: "Cheap Speaker (lo-fi)", source: cheapSpeaker }, ...EXAMPLES];
 export const version = "0.1";

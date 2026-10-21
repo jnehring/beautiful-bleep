@@ -6,7 +6,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node build.mjs && node test/transform.test.mjs && node test/child.test.mjs && node test/patch.test.mjs && node test/docs.test.mjs && node test/spike.mjs && node test/dsp/all.mjs",
+    "test": "node build.mjs && node test/transform.test.mjs && node test/child.test.mjs && node test/patch.test.mjs && node test/docs.test.mjs && node test/spike.mjs && node test/dsp/all.mjs && node test/modules/all.mjs",
     "bundle": "node bundle.mjs"
   },
   "devDependencies": {
