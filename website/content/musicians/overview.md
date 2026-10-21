@@ -27,7 +27,7 @@ modulation destination.
 |---|---|
 | **Start** | [Ways to use Bleep](start/ways-to-use.md), [Install in Live](start/getting-started.md), [Your first sound](start/first-sound.md) |
 | **Learn** | A short path through the ideas: [Your first patch](learn/first-patch.md), [Modulation](learn/modulation.md), [Cells and panels](learn/cells-and-panels.md) |
-| **Use** | How each part works: [the board](use/board.md), [Voice Cells](use/voice-cells.md), [ports](use/ports.md), [the Bleep App](use/standalone.md), [Settings](use/settings.md) |
+| **Use** | How each part works: [the board](use/board.md), [Voice Cells](use/voice-cells.md), [ports](use/ports.md), [the Bleep App](use/standalone.md), [Settings](use/settings.md), [sharing modules](use/share-modules.md) |
 | **Connect** | Moving audio, MIDI and tempo between Live, the app and Bleep Play: [Connecting](connect/connecting.md) and three recipes |
 | **Reference** | [Glossary](reference/glossary.md), [Shortcuts](reference/shortcuts.md) and the [module manuals](/library/?kind=module) |
 

@@ -58,6 +58,14 @@ if (existsSync(wasmFile) && existsSync(specFile)) {
     const sf = JSON.parse(py("import sys,json; from app import community; f,_=community.inspect(open(sys.argv[1],'rb').read()); print(json.dumps({'files': sorted(f), 'source': f['source.dsp.ts'].decode()}))", join(dir, "s.bleepmod")));
     assert.deepEqual(sf.files, ["module.json", "module.wasm", "source.dsp.ts", "spec.json"]);
     assert.equal(sf.source, "@module({ name: 'Preamp' })\n");
+    // with the tile's picture, from a data URL as the metadata keeps it
+    const png = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    const img = Mod.imageFromDataUrl("data:image/png;base64," + png);
+    assert.equal(img.ext, "png");
+    assert.deepEqual([...img.data.slice(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
+    const withImage = Mod.build({ handle: "zed", slug: "preamp", version: "1.2.3", title: "Preamp", spec, wasm: readFileSync(wasmFile), image: img });
+    writeFileSync(join(dir, "i.bleepmod"), withImage);
+    assert.deepEqual(JSON.parse(py("import sys,json; from app import community; print(json.dumps(sorted(community.inspect(open(sys.argv[1],'rb').read())[0])))", join(dir, "i.bleepmod"))), ["image.png", "module.json", "module.wasm", "spec.json"]);
     assert.deepEqual(r.meta.types, ["zed/preamp"]);
     assert.equal(r.meta.requires.engineAbi, 1);
     assert.equal(r.meta.summary.length, 280, "the summary is cut to what the library accepts");
@@ -71,6 +79,13 @@ if (existsSync(wasmFile) && existsSync(specFile)) {
     assert.deepEqual(JSON.parse(py("import sys,json; from app import community; print(json.dumps(sorted(community.inspect(open(sys.argv[1],'rb').read())[0])))", join(dir, "p.bleepmod"))), ["module.json", "module.wasm", "spec.json"]);
   });
 }
+
+await test("imageFromDataUrl: png, jpeg and webp are read, anything else is not", () => {
+  const b64 = (bytes) => Buffer.from(bytes).toString("base64");
+  assert.equal(Mod.imageFromDataUrl("data:image/jpeg;base64," + b64([255, 216, 255])).ext, "jpg");
+  assert.equal(Mod.imageFromDataUrl("data:image/webp;base64," + b64([82, 73, 70, 70])).ext, "webp");
+  for (const bad of ["", null, "data:image/gif;base64,AAAA", "data:text/html;base64,AAAA", "http://x.test/a.png", "data:image/png;base64,@@@"]) assert.equal(Mod.imageFromDataUrl(bad), null, String(bad));
+});
 
 await test("upload: the library's answer becomes a result, and a refusal says why", async () => {
   const say = (status, body) => async (url, init) => { say.last = { url, init }; return { ok: status < 300, status, json: async () => body }; };

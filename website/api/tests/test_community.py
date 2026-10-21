@@ -313,3 +313,27 @@ def test_a_package_may_bring_its_source_so_everyone_can_open_it_in_a_code_node(c
     assert stored.read("source.dsp.ts") == src
     for name in ("source.ts", "src/source.dsp.ts", "source.dsp.js"):
         assert put(client, package(extra={name: b"x"}), version="1.0.1").status_code == 422, name
+
+
+def test_a_package_may_bring_the_picture_for_its_tile(client, community_on, storage):
+    author(client)
+    png = b"\x89PNG\r\n\x1a\n" + b"x" * 40
+    r = put(client, package(extra={"image.png": png}))
+    assert r.status_code == 201, r.text
+    entry = json.loads(storage.objects["v1/modules/zed.wobble/1.0.0/entry.json"])
+    assert entry["image"] == "image.png"
+    assert storage.objects["v1/modules/zed.wobble/1.0.0/image.png"] == png   # served next to entry.json, for the tile
+    index = json.loads(storage.objects["v1/index.json"])
+    assert index["channels"]["stable"]["modules"]["zed.wobble"]["image"] == "modules/zed.wobble/1.0.0/image.png"
+    tile = next(i for i in client.get("/api/library").json()["items"] if i["kind"] == "module" and i["slug"] == "zed.wobble")
+    assert tile["image_url"] == "/registry/v1/modules/zed.wobble/1.0.0/image.png"
+    # other formats, and the checks on what a picture is
+    assert put(client, package(extra={"image.jpg": b"\xff\xd8\xff" + b"x" * 20}), version="1.0.1").status_code == 201
+    assert put(client, package(extra={"image.webp": b"RIFF\0\0\0\0WEBP" + b"x" * 20}), version="1.0.2").status_code == 201
+    for name, data, why in (("image.png", b"not a png", "not a PNG"), ("image.jpg", b"GIF89a", "not a JPEG"), ("image.webp", b"RIFFxxxxWAVE", "not a WebP"),
+                            ("image.png", png + b"x" * (1024 * 1024), "larger than"), ("image.gif", b"x", "not allowed"), ("img/image.png", png, "not allowed")):
+        r = put(client, package(extra={name: data}), version="1.0.3")
+        assert r.status_code == 422 and why in r.json()["detail"], (name, r.text)
+    # no picture: the library draws its placeholder
+    put(client, package(), version="1.0.4")
+    assert json.loads(storage.objects["v1/modules/zed.wobble/1.0.4/entry.json"])["image"] is None

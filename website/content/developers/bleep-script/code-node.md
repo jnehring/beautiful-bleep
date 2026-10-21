@@ -53,7 +53,7 @@ The button on the module's window says **Convert to code**. It turns that node b
 
 ## Metadata
 
-The **Metadata** tab holds what the module says about itself: the *publisher* (your library name, filled in when you are logged in, otherwise *mine*), the *module name* (from `@module({ name })`), the *version*, a *summary* of up to 280 characters, the *category*, the *licence*, whether to *share the source code* (on by default), *tags*, a *web page* and *release notes*. It is saved with the node and with the module.
+The **Metadata** tab holds what the module says about itself: the *publisher* (your library name, filled in when you are logged in, otherwise *mine*), the *module name* (from `@module({ name })`), the *version*, a *summary* of up to 280 characters, the *category*, the *licence*, whether to *share the source code* (on by default), *tags*, a *web page*, *release notes* and the *picture for the library* (a screenshot you choose, made smaller to fit: it goes on the module's tile in the library). It is saved with the node and with the module.
 
 ## Share
 

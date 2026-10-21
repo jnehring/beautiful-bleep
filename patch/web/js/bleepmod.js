@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // bleepmod.js — builds the package of a community module in the browser (the developer docs, "Publishing a module", "Share a module with the
-// community"): an unsigned .bleepmod, a zip with module.json, module.wasm, spec.json, the help page as doc/<name>.md and the module's own picture as view.sandbox.js and, if the author shares it, the source as source.dsp.ts. The library checks it,
+// community"): an unsigned .bleepmod, a zip with module.json, module.wasm, spec.json, the help page as doc/<name>.md and the module's own picture as view.sandbox.js and, if the author shares it, the source as source.dsp.ts, and the tile's picture as image.png|jpg|webp. The library checks it,
 // signs it and publishes it (PUT /api/registry/community/modules/<name>/<version>).
 //
 //   BleepMod.zip([{ name, data }])      Uint8Array: a zip with every file stored as it is (data: a string or bytes)
-//   BleepMod.build({ handle, slug, version, title, summary, category, license, spec, wasm, help, view, source })   Uint8Array
+//   BleepMod.build({ handle, slug, version, title, summary, category, license, spec, wasm, help, view, source, image })   Uint8Array   (image: { data: Uint8Array, ext })
 //   BleepMod.upload(bytes, slug, version, fetch?)   Promise<{ ok, id, version, error }>   the library's answer
 (function (root) {
   "use strict";
@@ -50,7 +50,7 @@
   }
 
   /// The package of one module: `spec` is the compiler's node type descriptions, compiled with the type id `<handle>/<slug>`.
-  function build({ handle, slug, version, title, summary, category, license, spec, wasm, help, view, source }) {
+  function build({ handle, slug, version, title, summary, category, license, spec, wasm, help, view, source, image }) {
     const text = (s, n) => String(s == null ? "" : s).slice(0, n);
     const meta = { types: spec.map((t) => t.type), requires: { engineAbi: 1 }, title: text(title, 120), summary: text(summary, 280), category: text(category, 64), license: text(license || "MIT", 120) };
     const files = [
@@ -59,6 +59,7 @@
       { name: "spec.json", data: JSON.stringify(spec) },
     ];
     if (help && String(help).trim()) files.push({ name: `doc/${slug}.md`, data: String(help) });
+    if (image && image.data && /^(png|jpg|webp)$/.test(image.ext)) files.push({ name: `image.${image.ext}`, data: image.data });   // the picture on the library's tile
     if (source && String(source).trim()) files.push({ name: "source.dsp.ts", data: String(source) });   // so everyone can open the module in a Code node
     if (view && String(view).trim()) files.push({ name: "view.sandbox.js", data: String(view) });   // run only in the sandboxed worker frame, never in the page
     return zip(files);
@@ -79,6 +80,15 @@
     } catch (e) { return { ok: false, error: "The library cannot be reached" }; }
   }
 
-  root.BleepMod = { zip, build, upload, crc32 };
+  /// A picture kept as a data URL (png, jpeg or webp) as { data: Uint8Array, ext }, or null.
+  function imageFromDataUrl(url) {
+    const m = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/.exec(String(url || ""));
+    if (!m) return null;
+    const bin = root.atob(m[2]), data = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
+    return { data, ext: m[1] === "jpeg" ? "jpg" : m[1] };
+  }
+
+  root.BleepMod = { zip, build, upload, crc32, imageFromDataUrl };
   if (typeof module !== "undefined" && module.exports) module.exports = root.BleepMod;
 })(typeof window !== "undefined" ? window : globalThis);

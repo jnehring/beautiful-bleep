@@ -35,7 +35,7 @@ MAX_PACKAGE_BYTES = 12 * 1024 * 1024
 MAX_WASM_BYTES = 8 * 1024 * 1024
 MAX_FILES = 24
 MAX_TEXT_BYTES = 256 * 1024       # module.json, spec.json, LICENSE, view.sandbox.js, source.dsp.ts, doc/*.md
-MAX_IMAGE_BYTES = 1024 * 1024     # doc/*.png
+MAX_IMAGE_BYTES = 1024 * 1024     # image.*, doc/*.png
 
 # A community package is data plus sandboxed WebAssembly. There is no `ui/*.js`: a module's own page script runs in the page, which only
 # first-party modules may do (bleep-script.md section 9.5). The one JavaScript file a package may have is `view.sandbox.js`, the module's
@@ -43,7 +43,9 @@ MAX_IMAGE_BYTES = 1024 * 1024     # doc/*.png
 # stopped when it hangs), so it is data like the rest.
 # `source.dsp.ts` is the module's Bleep Script source, when the author shares it: text the board shows in a Code node ("Convert to code"), compiled
 # only by the user's own compiler in the browser.
-ALLOWED_FILES = re.compile(r"^(module\.json|module\.wasm|spec\.json|LICENSE|view\.sandbox\.js|source\.dsp\.ts|doc/[A-Za-z0-9._-]+\.(md|png))$")
+# `image.png|jpg|webp` is the picture on the module's tile in the library (display data, up to 1 MB).
+ALLOWED_FILES = re.compile(r"^(module\.json|module\.wasm|spec\.json|LICENSE|view\.sandbox\.js|source\.dsp\.ts|image\.(png|jpg|webp)|doc/[A-Za-z0-9._-]+\.(md|png))$")
+IMAGE_NAME = re.compile(r"^image\.(png|jpg|webp)$")
 REQUIRED_FILES = ("module.json", "module.wasm", "spec.json")
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 ZIP_DATE = (2020, 1, 1, 0, 0, 0)
@@ -172,8 +174,8 @@ def inspect(data: bytes) -> tuple[dict[str, bytes], dict]:
                 raise Rejected(f"{name}: upload the package unsigned; the library signs it")
             if not ALLOWED_FILES.match(name):
                 hint = " (a community module cannot bring page scripts; its own picture is view.sandbox.js, which runs in a sandbox)" if name.endswith(".js") else ""
-                raise Rejected(f"{name}: not allowed in a community package{hint}. Allowed: module.json, module.wasm, spec.json, LICENSE, view.sandbox.js, source.dsp.ts, doc/*.md, doc/*.png")
-            limit = MAX_WASM_BYTES if name == "module.wasm" else MAX_IMAGE_BYTES if name.endswith(".png") else MAX_TEXT_BYTES
+                raise Rejected(f"{name}: not allowed in a community package{hint}. Allowed: module.json, module.wasm, spec.json, LICENSE, view.sandbox.js, source.dsp.ts, image.png|jpg|webp, doc/*.md, doc/*.png")
+            limit = MAX_WASM_BYTES if name == "module.wasm" else MAX_IMAGE_BYTES if name.endswith((".png", ".jpg", ".webp")) else MAX_TEXT_BYTES
             if info.file_size > limit:
                 raise Rejected(f"{name}: larger than {limit // 1024} KB")
             files[name] = z.read(info)
@@ -183,6 +185,10 @@ def inspect(data: bytes) -> tuple[dict[str, bytes], dict]:
     for name, content in files.items():
         if name.endswith(".png") and not content.startswith(PNG_MAGIC):
             raise Rejected(f"{name}: not a PNG file")
+        if name == "image.jpg" and not content.startswith(b"\xff\xd8\xff"):
+            raise Rejected(f"{name}: not a JPEG file")
+        if name == "image.webp" and not (content.startswith(b"RIFF") and content[8:12] == b"WEBP"):
+            raise Rejected(f"{name}: not a WebP file")
     problems = check_abi(files["module.wasm"])
     if problems:
         raise Rejected("module.wasm: " + "; ".join(problems))

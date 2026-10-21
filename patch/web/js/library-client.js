@@ -327,7 +327,7 @@
 
   /// Is every file one a community module may bring (signing.md section 2a)? Data and the sandboxed .wasm, no scripts. The library refuses the
   /// rest at upload; the client checks again, because the community key's signature says nothing about files it should never have signed.
-  const COMMUNITY_FILES = /^(module\.json|module\.wasm|spec\.json|LICENSE|view\.sandbox\.js|source\.dsp\.ts|doc\/[A-Za-z0-9._-]+\.(md|png))$/;
+  const COMMUNITY_FILES = /^(module\.json|module\.wasm|spec\.json|LICENSE|view\.sandbox\.js|source\.dsp\.ts|image\.(png|jpg|webp)|doc\/[A-Za-z0-9._-]+\.(md|png))$/;
   const communityFilesOk = (names) => { for (const n of names) if (!COMMUNITY_FILES.test(n)) return `${n} is not allowed in a community module`; return ""; };
 
   /// Downloads a module package, checks it and returns its .wasm. Throws, with the reason, if it must not load.

@@ -762,3 +762,8 @@ body.plugin #side-toggle { display: none; }
 .bc-field.check input { width: auto; }
 .bc-field.check .bc-field-name { color: var(--text); text-transform: none; letter-spacing: 0; font-size: inherit; }
 .bc-field.check .bc-field-hint { flex-basis: 100%; }
+.bc-picture { display: block; max-width: 320px; max-height: 200px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); }
+.bc-picture[hidden] { display: none; }
+.bc-picture-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bc-picture-row input[type=file] { width: auto; max-width: 100%; }
+.bc-field-hint.bad { color: var(--warn); }

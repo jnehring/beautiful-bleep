@@ -362,8 +362,8 @@ print(json.dumps(doc))`, join(ROOT, "scripts", "release"), join(tmp, "reg")));
 
 await test("the client's file rule for a community module: the sandboxed picture is allowed, page scripts are not", () => {
   const ok = (names) => Library.communityFilesOk(names) === "";
-  assert.ok(ok(["module.json", "module.wasm", "spec.json", "doc/x.md", "view.sandbox.js", "source.dsp.ts"]));
-  for (const bad of ["ui/x.js", "view.js", "ui/view.sandbox.js", "x/view.sandbox.js", "view.sandbox.js.html", "source.ts", "src/source.dsp.ts"]) assert.ok(!ok(["module.json", bad]), bad);
+  assert.ok(ok(["module.json", "module.wasm", "spec.json", "doc/x.md", "view.sandbox.js", "source.dsp.ts", "image.png", "image.jpg", "image.webp"]));
+  for (const bad of ["ui/x.js", "view.js", "ui/view.sandbox.js", "x/view.sandbox.js", "view.sandbox.js.html", "source.ts", "src/source.dsp.ts", "image.gif", "img/image.png", "image.png.exe"]) assert.ok(!ok(["module.json", bad]), bad);
 });
 
 await test("local build: replaces a library module unsigned, only while unsigned modules are allowed", async () => {

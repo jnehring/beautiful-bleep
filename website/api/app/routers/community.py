@@ -106,6 +106,8 @@ async def publish_module(request: Request, name: str = NamePath, version: str = 
     if abi != community.ENGINE_ABI:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"module.json: requires.engineAbi must be {community.ENGINE_ABI}")
     row.requires = {"engineAbi": abi}
+    image = next((n for n in files if community.IMAGE_NAME.match(n)), "")   # the tile's picture: also kept next to entry.json, like a developer's screenshot
+    row.image = image
 
     # Sign. The library checks its own signature against the pinned roots before it publishes anything.
     try:
@@ -129,6 +131,8 @@ async def publish_module(request: Request, name: str = NamePath, version: str = 
     row.published_at = now()
     db.add(row)
     storage.put(registry._key(row, path), io.BytesIO(package))
+    if image:
+        storage.put(registry._key(row, image), io.BytesIO(files[image]), {"png": "image/png", "jpg": "image/jpeg", "webp": "image/webp"}[image.rsplit(".", 1)[1]])
     db.flush()
     storage.put(registry._key(row, "entry.json"), io.BytesIO(json.dumps(registry._entry(row), indent=1).encode()), "application/json")
     db.commit()

@@ -20,7 +20,7 @@
 
   const defaults = (iface) => ({
     publisher: "mine", name: (iface && iface.name) || "", version: "1.0.0", summary: (iface && iface.description) || "", category: (iface && iface.category) || "",
-    license: "MIT", shareSource: true, tags: "", homepage: "", notes: "",
+    license: "MIT", shareSource: true, tags: "", homepage: "", notes: "", image: "",
   });
 
   /// The name the user's modules go by in the library. { signedIn: false } when nobody is logged in, { offline: true } where there is no library.
@@ -49,6 +49,49 @@
     if (kind === "check") row.append(input, name); else row.append(name, input);
     if (hint) row.append(el("span", "bc-field-hint", hint));
     return { row, input, name };
+  }
+
+  // ---- the picture on the library's tile ----------------------------------------------------------------------------------------------------
+  const MAX_PICTURE = 300 * 1024;   // bytes, after it has been made smaller: it is kept in the node (and the saved module) as a data URL
+  /// A picture file made smaller (at most 640 x 400) and encoded as WebP, PNG or JPEG, whichever is small enough: a data URL.
+  async function shrinkPicture(file) {
+    const bmp = await G.createImageBitmap(file);
+    const scale = Math.min(1, 640 / bmp.width, 400 / bmp.height);
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(bmp.width * scale)); c.height = Math.max(1, Math.round(bmp.height * scale));
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    for (const [type, quality] of [["image/webp", 0.85], ["image/png"], ["image/jpeg", 0.8], ["image/jpeg", 0.6]]) {
+      const blob = await new Promise((resolve) => c.toBlob(resolve, type, quality));
+      if (blob && blob.type === type && blob.size <= MAX_PICTURE) {
+        return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = () => reject(new Error("The picture could not be read.")); r.readAsDataURL(blob); });
+      }
+    }
+    throw new Error("That picture is too large, even made smaller.");
+  }
+
+  /// The "picture for the library" field: a file chooser with a preview. { row, get(), set(dataUrl), onChange(fn) }
+  function picturePicker() {
+    const row = el("div", "bc-field"), name = el("span", "bc-field-name", "Picture for the library");
+    const preview = el("img", "bc-picture"), file = el("input"), remove = el("button", "", "Remove picture");
+    const hint = el("span", "bc-field-hint", "Shown on the module's tile in the library: a screenshot of the module, made smaller to fit (PNG, JPEG or WebP).");
+    preview.alt = "The picture for the library"; file.type = "file"; file.accept = "image/png,image/jpeg,image/webp"; remove.type = "button";
+    const row2 = el("div", "bc-picture-row"); row2.append(file, remove);
+    row.append(name, preview, row2, hint);
+    let data = "";
+    const listeners = [];
+    const show = () => { preview.hidden = !data; remove.hidden = !data; if (data) preview.src = data; };
+    const set = (v) => { data = /^data:image\//.test(v || "") ? v : ""; show(); };
+    file.addEventListener("keydown", (e) => e.stopPropagation());
+    file.addEventListener("change", async () => {
+      const f = file.files && file.files[0];
+      if (!f) return;
+      try { data = await shrinkPicture(f); hint.classList.remove("bad"); show(); for (const fn of listeners) fn(); }
+      catch (e) { hint.textContent = e.message || "That picture cannot be used."; hint.classList.add("bad"); }
+      file.value = "";
+    });
+    remove.addEventListener("click", () => { data = ""; show(); for (const fn of listeners) fn(); });
+    show();
+    return { row, get: () => data, set, onChange: (fn) => listeners.push(fn) };
   }
 
   /// The Metadata tab. Saved on the node (node.code.meta) when a field is left.
@@ -83,9 +126,12 @@
     void list;
     const form = el("div", "bc-meta-form");
     for (const k of ["publisher", "name", "version", "summary", "category", "license", "shareSource", "tags", "homepage", "notes"]) form.append(f[k].row);
+    const picture = picturePicker();
+    form.append(picture.row);
     mount.append(form);
 
     const set = (m) => {
+      picture.set(m.image);
       for (const k of Object.keys(f)) {
         const input = f[k].input;
         if (input.type === "checkbox") { input.checked = m[k] !== false; continue; }   // on unless it was turned off
@@ -95,7 +141,7 @@
       }
       check();
     };
-    const get = () => Object.fromEntries(Object.keys(f).map((k) => [k, f[k].input.type === "checkbox" ? f[k].input.checked : f[k].input.value.trim()]));
+    const get = () => ({ ...Object.fromEntries(Object.keys(f).map((k) => [k, f[k].input.type === "checkbox" ? f[k].input.checked : f[k].input.value.trim()])), image: picture.get() });
     const check = () => {
       f.version.input.classList.toggle("bad", !SEMVER.test(f.version.input.value.trim()));
       f.homepage.input.classList.toggle("bad", !!f.homepage.input.value.trim() && !/^https?:\/\//.test(f.homepage.input.value.trim()));
@@ -108,6 +154,7 @@
       if (JSON.stringify(code.meta || null) !== JSON.stringify(next)) view.api.setNodeProperty("code", { ...code, meta: next });
     };
     for (const k of Object.keys(f)) { f[k].input.addEventListener("change", save); f[k].input.addEventListener("blur", save); f[k].input.addEventListener("input", check); }
+    picture.onChange(save);
     set(values);
 
     /// Fills in the publisher with the library name of the logged-in user, as long as the author has not chosen one.
@@ -139,13 +186,15 @@
     fields.license.input.value = meta.license;
     fields.version.input.value = meta.shared ? nextVersion(meta.shared) : meta.version;
     fields.shareSource.input.checked = meta.shareSource !== false;
+    const picture = picturePicker();
+    picture.set(meta.image);
     fields.help.input.value = state.help || "";
     const note = el("p", "share-note", opts.hasUi ? "The module's own picture (its UI) goes with it. It only ever runs in the same sandbox as in your Code node: no network, no storage, and it is stopped if it hangs." : "");
     const status = el("p", "share-status", "");
     const cancel = el("button", "", "Cancel"), go = el("button", "primary", "Share");
     cancel.type = go.type = "button";
     const buttons = el("div", "share-buttons"); buttons.append(cancel, go);
-    section.append(title, intro, fields.summary.row, fields.category.row, fields.license.row, fields.version.row, fields.shareSource.row, fields.help.row, note, status, buttons);
+    section.append(title, intro, fields.summary.row, fields.category.row, fields.license.row, fields.version.row, fields.shareSource.row, picture.row, fields.help.row, note, status, buttons);
     section.hidden = true;
     const close = () => { P.BleepModal.toggle(section, false); setTimeout(() => P.BleepModal.unmount(section), 0); };
     P.BleepModal.mount(section, close);
@@ -178,7 +227,7 @@
         if (me.old) { say("This Bleep Library cannot take shared modules yet: its website needs an update.", "bad"); return; }
         if (me.offline) { say("There is no Bleep Library to share to here.", "bad"); return; }
         if (!me.signedIn || !me.handle) { say("You are not logged in to the Bleep Library: log in (another tab), then press Share again.", "bad"); return; }
-        const edited = { ...meta, summary: fields.summary.input.value.trim(), category: fields.category.input.value.trim(), license: fields.license.input.value, version, shareSource: fields.shareSource.input.checked };
+        const edited = { ...meta, summary: fields.summary.input.value.trim(), category: fields.category.input.value.trim(), license: fields.license.input.value, version, shareSource: fields.shareSource.input.checked, image: picture.get() };
         const help = fields.help.input.value;
         opts.save({ meta: edited, help });   // what was typed here is kept, whether or not the upload works
         say(`compiling for ${me.handle}/${slug}…`);
@@ -186,7 +235,7 @@
         const r = await opts.compile(now.source, `${me.handle}/${slug}`, now.settings || {});
         if (!r || !r.wasm || !r.specs || !r.specs.length) { say("The module did not compile.", "bad"); return; }
         const bytes = Mod.build({ handle: me.handle, slug, version, title: opts.name, summary: edited.summary, category: edited.category, license: edited.license, spec: r.specs,
-          wasm: r.wasm, help, view: now.view, source: edited.shareSource ? now.source : "" });
+          wasm: r.wasm, help, view: now.view, source: edited.shareSource ? now.source : "", image: Mod.imageFromDataUrl(edited.image) });
         say(`uploading ${Math.round(bytes.length / 1024)} KB…`);
         const done = await Mod.upload(bytes, slug, version);
         if (!done.ok) { say(done.error || "The library refused the module.", "bad"); return; }
