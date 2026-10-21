@@ -33,11 +33,13 @@ Compile that and the node gets an In jack, an Out jack and two dials. Nothing el
 
 ## What it is for
 
-| Job | What you write | Page |
-|---|---|---|
-| **Custom modules** | A class with `sample()`: DSP, per sample | [Module scripts](module-scripts.md) |
-| **Message routing and scripting** | `@on` handlers for notes and control edges, at their exact sample | [Events and routing](events.md) |
-| **Complex patches** | A script that builds a cell: 100 oscillators from a loop | [Patch scripts](patch-scripts.md) |
+Bleep Script does three jobs.
+
+**Custom modules.** When the board has no module that does what you want, you write one. A module is a class with a `sample()` method that does the DSP for each audio sample, and decorators such as `@input`, `@output` and `@param` declare its jacks and knobs. This is how you make your own oscillator, effect or distortion. See [Module scripts](module-scripts.md).
+
+**Message routing and scripting.** Some jobs are about logic rather than sound: splitting notes between voices, reacting to a gate going high, building a router. For these you write `@on` handlers for notes and control edges. A handler runs at the exact sample the event happens, so timing stays precise. Handlers live in a module script, so they use the same language and compiler as a custom module. See [Events and routing](events.md).
+
+**Complex patches.** Some patches are too big or too repetitive to place by hand. A patch script does not process audio. It runs once and describes which modules and cables to create, so a loop can build 100 oscillators and wire them up, and the shape of the result can depend on parameters. See [Patch scripts](patch-scripts.md).
 
 ## How it works
 
