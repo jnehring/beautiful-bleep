@@ -2,6 +2,7 @@
 // Compiles one Bleep Script source: asc (the AssemblyScript compiler) with the Bleep transform, entirely in memory.
 // Shared by the playground, the tests and the bundle the board loads (compiler/bundle.mjs).
 import { BleepTransform } from "../transform/bleep.mjs";
+import { childNames, childSource, usedChildren, linkChildren } from "./child.mjs";
 
 export const FILE = "src/module.dsp.ts";
 
@@ -13,9 +14,13 @@ function positionOf(text, offset) {
 /// `asc`: the compiler module (assemblyscript/asc's default export). `lib`: the sources of src/bleep/*.ts by path.
 /// `typeId`: the node type id the module's description gets (a Code node's engine type); default: from the class name.
 /// `constants`: { SETTING: value } for the settings the module declares in @module (a setting left out takes its init).
-/// Resolves to { wasm, specs, generated, problems, ms }. `wasm` is null when there is an error.
-export async function compileScript(asc, text, { lib, typeId, constants = {}, file = FILE } = {}) {
+/// `children`: { id: { wasm, spec, typeIndex } } the library modules the script may import as `./bleep/module-<id>` (child.mjs): their file, and
+/// the node type description of the type to use (typeIndex: its place in the file, default 0). `mergeTool`: wasm-merge.mjs's tool, or a
+/// function that loads it; needed only when the script uses a child.
+/// Resolves to { wasm, specs, generated, problems, ms, linked }. `wasm` is null when there is an error. `linked`: the ids of the children in it.
+export async function compileScript(asc, text, { lib, typeId, constants = {}, file = FILE, children = {}, mergeTool } = {}) {
   const files = { ...lib, [file]: text };
+  for (const [id, c] of Object.entries(children)) files[childNames(id, c.spec).file] = childSource(id, c.spec, c.typeIndex ?? 0);
   const t0 = Date.now();
   const flags = ["--runtime", "stub", "--use", "abort=", "--exportStart", "_initialize", "--disableWarning", "235"];
   const run = (transform, extra, writeFile, reportDiagnostic) => asc.main([file, "--outFile", "module.wasm", ...flags, ...extra], {
@@ -52,7 +57,15 @@ export async function compileScript(asc, text, { lib, typeId, constants = {}, fi
   });
   for (const p of transform.problems) if (!problems.some((q) => q.line === p.line && q.message === p.message)) problems.push({ column: null, ...p, file: p.file === file ? null : p.file });
   if (error && !problems.some((p) => p.severity === "error")) problems.push(problemOf(error, file));
-  return { wasm: error ? null : wasm, specs: transform.specs, generated: transform.generated, problems, ms: Date.now() - t0 };
+  let linked = [];
+  if (!error && wasm) {
+    const ids = usedChildren(wasm);
+    if (ids.length) {
+      try { wasm = await linkChildren(wasm, ids, children, mergeTool); linked = ids; }
+      catch (e) { problems.push({ severity: "error", message: e.message, line: null, column: null, file: null }); wasm = null; }
+    }
+  }
+  return { wasm: error ? null : wasm, specs: transform.specs, generated: transform.generated, problems, ms: Date.now() - t0, linked };
 }
 
 /// A transform error ("src/module.dsp.ts:14: message") as a problem.

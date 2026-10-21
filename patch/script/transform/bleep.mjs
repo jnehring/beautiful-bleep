@@ -11,7 +11,8 @@
 //                                      `choices: [...]` (a choice) or `min` and `max` (an integer)
 //   @probe                             f32 field: a value the view can poll
 //
-// and the methods `block()`, `sample()` and `reset()`. From them it generates
+// and the methods `block()`, `sample()`, `reset()` and `chunk(n, inputs, outputs)`. `chunk` runs once per chunk, after the samples, with the chunk's
+// input and output rows (jack-major, 32 floats per jack): the place to hand whole rows to a child module (compiler/child.mjs). From them it generates
 //   1. the node type description (the JSON of bleep_spec_json, module-abi.md section 7), and
 //   2. an entry source file with the bleep_* exports and a glue class that moves the ABI's buffers into the fields:
 //      a param holds its value in units, set once per chunk; an input holds its first sample in block(), and the
@@ -516,6 +517,7 @@ ${has("sample") ? "      m.sample();" : ""}
       ${signalOut.map(([j, k]) => `this.outputs[${k} * CHUNK + i] = m.${j.ref};`).join("\n      ")}
     }` : ""}
     ${noteJacks.map((nj) => fire(nj, "")).join("\n    ")}
+${has("chunk") ? "    m.chunk(n, this.inputs, this.outputs);" : ""}
   }
   command(value: f32): void {
 ${mod.buttons.map((b) => `    if (scratchEquals("${b.id}")) { this.m.${b.id}(); return; }`).join("\n")}
@@ -632,6 +634,7 @@ export class BleepTransform {
         for (const h of mod.handlers) subset.markHandler(mod.className, h.method, h.kind === "notes" ? 64 : CHUNK);
         for (const b of mod.buttons) subset.markHandler(mod.className, b.id, 1);
         if (mod.transport) subset.markHandler(mod.className, mod.transport, 1);
+        subset.markHandler(mod.className, "chunk", 1);
         subset.costOfFn(subset.fns.find((f) => f.owner === mod.className && f.name === "reset" && !f.trusted) || { cost: 0, trusted: true });
         mod.cost = { ...subset.moduleCost(mod.className), limit: BUDGET.error };
         const file = mod.file, at = (name) => { const f = subset.fns.find((x) => x.owner === mod.className && x.name === name && !x.trusted); return f ? subset.line(f.source, f.node) : 1; };

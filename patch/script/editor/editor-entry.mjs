@@ -32,6 +32,7 @@ const SNIPPETS = [
   snippet("@on rising", '@on("${cc}", { rising: ${0.5} }) ${open}(): void {\n  ${}\n}', "an edge handler"),
   snippet("block", "block(): void {\n  ${}\n}", "once per 32 samples"),
   snippet("sample", "sample(): void {\n  ${}\n}", "once per sample"),
+  snippet("chunk", "chunk(n: i32, ins: StaticArray<f32>, outs: StaticArray<f32>): void {\n  ${}\n}", "once per chunk, after the samples, with the rows"),
   snippet("reset", "reset(): void {\n  ${}\n}", "clear state"),
   snippet("for loop", "for (let ${i} = 0; ${i} < ${CHANNELS}; ${i}++) {\n  ${}\n}", "a bounded loop"),
   snippet("import dsp", 'import { ${Smoother}, PeakHold, Biquad, dbToLin } from "./bleep/dsp";', "the library"),

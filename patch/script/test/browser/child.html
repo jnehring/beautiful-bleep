@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bleep Script: child modules in a Worker</title>
+<!-- A script that imports the Gains module is compiled and linked inside a module Worker, with no node around (the merge tool runs on its own stand-in node,
+     compiler/wasm-merge.mjs). Serve patch/ and open /script/test/browser/child.html after npm run bundle and npm run build. -->
+<pre id="out">running…</pre>
+<script type="module">
+const WRAP = `
+import { Gains } from "./bleep/module-gains";
+@module({ name: "Wrap", category: "Utility/Script" })
+export class Wrap {
+  @input({ name: "In", type: "audio" }) x: f32 = 0;
+  @output({ name: "Out", type: "audio" }) out: f32 = 0;
+  private fx: Gains;
+  constructor(sampleRate: f64) { this.fx = new Gains(sampleRate); }
+  chunk(n: i32, ins: StaticArray<f32>, outs: StaticArray<f32>): void {
+    this.fx.feed(Gains.INPUT_X, ins, 0);
+    this.fx.process(n);
+    this.fx.fetch(Gains.OUTPUT_OUT, outs, 0);
+  }
+}`;
+const w = new Worker("./child-worker.mjs?" + Date.now(), { type: "module" });
+w.onmessage = (e) => {
+  if (e.data.ready) return w.postMessage({ source: WRAP });
+  const d = e.data;
+  if (d.error) { window.__result = d; document.getElementById('out').textContent = 'FAIL ' + d.error; return; }
+  const ok = d.ok && d.linked.join() === "gains" && d.out.imports === 0 && d.out.memories === 1 && d.node === "undefined";
+  window.__result = { ok, ...d };
+  document.getElementById("out").textContent = (ok ? "ok" : "FAIL") + "\n" + JSON.stringify(d, null, 1);
+};
+w.onerror = (e) => { window.__result = { ok: false, error: e.message }; document.getElementById("out").textContent = "FAIL " + e.message; };
+</script>

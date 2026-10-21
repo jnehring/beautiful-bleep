@@ -26,8 +26,12 @@ const lib = { "src/bleep/abi.ts": abi, "src/bleep/dsp.ts": dsp, "src/bleep/forma
   "src/bleep/osc.ts": osc,
   "src/bleep/filters.ts": filters, "src/bleep/delay.ts": delay, "src/bleep/env.ts": env, "src/bleep/fft.ts": fft, "src/bleep/fx.ts": fx, "src/bleep/dynamics.ts": dynamics, "src/bleep/util.ts": util, "src/bleep/random.ts": random };
 
-/// compile(source, { typeId }) -> { wasm, specs, generated, problems, ms }
-export const compile = (source, options = {}) => compileScript(asc, source, { lib, ...options });
+// the tool that links a script with the library modules it imports (wasm-merge.mjs): a file next to this one, loaded when a script needs it
+const mergeTool = () => import(new URL("./bleep-script-merge.js", import.meta.url).href);
+
+/// compile(source, { typeId, constants, children }) -> { wasm, specs, generated, problems, ms, linked }
+/// children: { id: { wasm, spec, typeIndex } } the library modules the script may import (compiler/child.mjs).
+export const compile = (source, options = {}) => compileScript(asc, source, { lib, mergeTool, ...options });
 /// Runs a patch script (layer 1) and builds the cell it describes: { ok, problems, nodes, cables, interface }.
 /// types: the board's module types; options: { cellId, parent, x, y, generatedBy } for materialize.
 export async function patch(source, settings, types, options) {

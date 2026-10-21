@@ -21,6 +21,25 @@ const noDataFetch = {
   },
 };
 
+// wasm-merge (a node script of the binaryen package) as an ES module that exports it as a function: wrapped here so the page evaluates nothing
+const mergeTool = {
+  name: "merge-tool",
+  setup(b) {
+    b.onResolve({ filter: /^wasm-merge-tool$/ }, () => ({ path: "wasm-merge-tool", namespace: "merge-tool" }));
+    b.onLoad({ filter: /.*/, namespace: "merge-tool" }, () => {
+      const source = readFileSync(`${root}node_modules/binaryen/bin/wasm-merge`, "utf8").replace(/^#!.*\n/, "");
+      return { contents: `export default function (require, process, module, __filename, __dirname, globalThis, Module) {\n${source}\n}`, loader: "js" };
+    });
+  },
+};
+await build({
+  plugins: [mergeTool],
+  entryPoints: [`${root}compiler/merge-entry.mjs`],
+  outfile: `${root}dist/bleep-script-merge.js`,
+  bundle: true, format: "esm", platform: "browser", target: "es2022", minify: false, legalComments: "none", logLevel: "warning",
+});
+console.log(`dist/bleep-script-merge.js: ${(statSync(`${root}dist/bleep-script-merge.js`).size / 1048576).toFixed(1)} MB`);
+
 // the editor (CodeMirror), a bundle of its own: the page loads it when a Code node is opened
 await build({
   entryPoints: [`${root}editor/editor-entry.mjs`],
