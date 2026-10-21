@@ -132,14 +132,25 @@ public:
             for (auto& z : band) z[0] = z[1] = 0.0;
         for (auto& b : designed_) b.hz = -1.0f;  // forces a redesign
     }
-    /// Sets the bands (call before a run of ticks; cheap when nothing changed).
-    void setBands(const EqBand (&bands)[kBands]) noexcept {
-        for (int i = 0; i < kBands; ++i)
-            if (!(bands[i] == designed_[i])) {
-                designed_[i] = bands[i];
-                count_[i] = bands[i].active() ? Biquad::design(bands[i], sr_, sec_[i]) : 0;
+    /// Sets the bands (call before a run of ticks; cheap when nothing changed). With `blockSamples` > 0 the call
+    /// stands for that many samples and frequency, gain and Q glide to the new values (about 10 ms) instead of
+    /// jumping, so a fast sweep does not crackle; a change of type, on/off or slope still applies at once.
+    void setBands(const EqBand (&bands)[kBands], int blockSamples = 0) noexcept {
+        const double a = blockSamples > 0 ? 1.0 - std::exp(-blockSamples / (kGlideSeconds * sr_)) : 1.0;
+        for (int i = 0; i < kBands; ++i) {
+            EqBand b = bands[i];
+            const EqBand& cur = designed_[i];
+            if (a < 1.0 && cur.hz > 0.0f && b.kind == cur.kind && b.on == cur.on && b.order == cur.order) {
+                b.hz = glide(cur.hz, b.hz, a, true);
+                b.gainDb = glide(cur.gainDb, b.gainDb, a, false);
+                b.q = glide(cur.q, b.q, a, true);
+            }
+            if (!(b == cur)) {
+                designed_[i] = b;
+                count_[i] = b.active() ? Biquad::design(b, sr_, sec_[i]) : 0;
                 for (int s = count_[i]; s < Biquad::kMaxSections; ++s) z_[i][s][0] = z_[i][s][1] = 0.0;
             }
+        }
     }
     float tick(float in) noexcept {
         double x = in;
@@ -157,6 +168,16 @@ public:
     }
 
 private:
+    static constexpr double kGlideSeconds = 0.01;
+    /// One step of a one-pole glide from `from` towards `to` (in the log domain for hz and Q); lands on `to` once close.
+    static float glide(float from, float to, double a, bool logDomain) noexcept {
+        if (logDomain) {
+            const double d = std::log((double)to / from);
+            return std::abs(d) < 1e-4 ? to : (float)(from * std::exp(d * a));
+        }
+        const double d = (double)to - from;
+        return std::abs(d) < 1e-3 ? to : (float)(from + d * a);
+    }
     double sr_ = 48000.0;
     EqBand designed_[kBands];
     Biquad sec_[kBands][Biquad::kMaxSections];

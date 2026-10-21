@@ -64,8 +64,8 @@ public:
                     bands[k] = {(EqBand::Kind)type, setting(idx(k, On)) > 0.5f, value(c, idx(k, Hz), i), value(c, idx(k, Gain), i),
                                 value(c, idx(k, Q), i), kSlopeOrders[slope]};
                 }
-                dsp_[0].setBands(bands);
-                dsp_[1].setBands(bands);
+                dsp_[0].setBands(bands, kBlock);
+                dsp_[1].setBands(bands, kBlock);
                 level = std::pow(10.0f, value(c, kLevel, i) * 0.05f);
             }
             c.outputs[OutL][i] = dsp_[0].tick(c.inputs[InL][i]) * level;

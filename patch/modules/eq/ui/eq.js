@@ -11,7 +11,7 @@
 (function () {
   "use strict";
   const BANDS = 6;
-  const TOP = 0, BOTTOM = -90;       // spectrum range in dB
+  const TOP = 24, BOTTOM = -90;      // spectrum range in dB; the headroom above 0 keeps boosted or hot signals on screen
   const ZOOMS = [3, 6, 9, 12, 18, 24];  // the dB axis shows ±this much; 18 is the Gain knob's range
   const GRID_STEP = { 3: 1, 6: 2, 9: 3, 12: 3, 18: 6, 24: 6 };
   const PREFS = "bleep.eq.view";
@@ -86,7 +86,7 @@
   }
 
   function area(g, bins, w, h, colour, fillAlpha, lineWidth) {
-    const y = (db) => (TOP - clamp(db, BOTTOM, TOP)) / (TOP - BOTTOM) * h;
+    const y = (db) => 2 + (TOP - clamp(db, BOTTOM, TOP)) / (TOP - BOTTOM) * (h - 4);  // inset so the stroke is never cut at an edge
     const pts = [];
     for (let i = 0; i < bins.length; i++) pts.push([(i + 0.5) / bins.length * w, y(bins[i])]);
     g.beginPath();
