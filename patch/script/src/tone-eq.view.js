@@ -8,6 +8,9 @@
 const T = bleep.theme;
 const c = bleep.canvas(260);                       // as wide as the node, 260 px high; c.g is a 2D context, c.width/height are in CSS pixels
 const P = (id) => bleep.param(id);
+// The stage: the canvas spans the whole node, so everything is drawn on a centred stage of at most 640 px. SW() is the stage width (it shrinks
+// below 640 px, and the layout is written in terms of it), OX() the left offset: drawing is translated by it and pointer positions have it subtracted.
+const SW = () => Math.min(c.width, 640), OX = () => (c.width - SW()) / 2;
 const MODES = ["Passive Shelf", "Tilt", "Tone Stack"];
 const LOW = [20, 30, 60, 100], HIGH = [3000, 4000, 5000, 8000, 10000, 12000, 16000], ATT = [5000, 10000, 20000], PIVOT = [250, 400, 650, 1000, 1600, 2500];
 const DB = 18;                                     // the plot shows -18..+18 dB
@@ -64,7 +67,7 @@ function recompute() {
 }
 
 // ---- 3. geometry helpers ----------------------------------------------------------------------------------------------------------------
-const PLOT = () => ({ x: 34, y: 32, w: Math.max(40, c.width - 46), h: 150 });
+const PLOT = () => ({ x: 34, y: 32, w: Math.max(40, SW() - 46), h: 150 });
 const fx = (f) => { const p = PLOT(); return p.x + p.w * Math.log(f / FMIN) / Math.log(FMAX / FMIN); };
 const dy = (d) => { const p = PLOT(); return p.y + p.h * (0.5 - Math.max(-DB, Math.min(DB, d)) / (2 * DB)); };
 const yToDb = (y) => { const p = PLOT(); return (0.5 - (y - p.y) / p.h) * 2 * DB; };
@@ -87,7 +90,7 @@ const dials = () => [["bass", "Bass"], ["mid", "Mid"], ["treble", "Treble"]].map
 
 // ---- 4. pointer: one object says what is being dragged ---------------------------------------------------------------------------------
 let drag = null, hover = null;
-const pos = (e) => { const r = c.el.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / (r.width || 1), (e.clientY - r.top) * c.height / (r.height || 1)]; };
+const pos = (e) => { const r = c.el.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / (r.width || 1) - OX(), (e.clientY - r.top) * c.height / (r.height || 1)]; };
 function pick(x, y) {
   if (y < 26) { for (let i = 0; i < 3; i++) if (x > 8 + i * 98 && x < 8 + i * 98 + 92) return { pill: i }; }
   if ((P("mode").value | 0) === 2) for (const d of dials()) if (Math.hypot(x - d.x, y - d.y) < d.r + 6) return { dial: d, y0: y, v0: P(d.id).value };
@@ -120,7 +123,7 @@ bleep.onFrame((dt) => {
   level += (Math.min(1, bleep.probe("level")) - level) * (1 - Math.exp(-dt * 10));
   t += dt;
   const g = c.g, p = PLOT(), mode = P("mode").value | 0;
-  g.clearRect(0, 0, c.width, c.height);
+  g.clearRect(0, 0, c.width, c.height); g.save(); g.translate(OX(), 0);
   g.font = "11px sans-serif"; g.textBaseline = "middle";
   // mode pills
   for (let i = 0; i < 3; i++) { g.globalAlpha = i === mode ? 1 : 0.45; g.fillStyle = i === mode ? T.accent : T.panel; g.beginPath(); g.roundRect(8 + i * 98, 5, 92, 18, 9); g.fill(); g.fillStyle = i === mode ? T.bg : T.text; g.textAlign = "center"; g.fillText(MODES[i], 54 + i * 98, 14); }
@@ -153,7 +156,8 @@ bleep.onFrame((dt) => {
     g.strokeStyle = T.accent; g.beginPath(); g.arc(d.x, d.y, d.r, 0.75 * Math.PI, 0.75 * Math.PI + 1.5 * Math.PI * prm.normalised + 1e-4); g.stroke();
     g.strokeStyle = T.text; g.lineWidth = 2; g.beginPath(); g.moveTo(d.x, d.y); g.lineTo(d.x + Math.sin(a) * (d.r - 4), d.y - Math.cos(a) * (d.r - 4)); g.stroke();
     g.fillStyle = T.muted; g.fillText(d.name + " " + prm.value.toFixed(1), d.x, d.y + d.r + 10);
-  } else { g.fillStyle = T.muted; g.fillText(mode === 0 ? "drag the handles: amount up/down, frequency left/right" : "drag the diamond: tilt up/down, pivot left/right", c.width / 2 - 40, 222); }
-  g.fillStyle = T.line; g.beginPath(); g.roundRect(c.width - 20, 192, 10, 62, 4); g.fill();
-  g.fillStyle = level > 0.9 ? T.warn : T.accent; const bh = 62 * Math.min(1, level); g.beginPath(); g.roundRect(c.width - 20, 192 + 62 - bh, 10, Math.max(0, bh), 4); g.fill();
+  } else { g.fillStyle = T.muted; g.fillText(mode === 0 ? "drag the handles: amount up/down, frequency left/right" : "drag the diamond: tilt up/down, pivot left/right", SW() / 2 - 40, 222); }
+  g.fillStyle = T.line; g.beginPath(); g.roundRect(SW() - 20, 192, 10, 62, 4); g.fill();
+  g.fillStyle = level > 0.9 ? T.warn : T.accent; const bh = 62 * Math.min(1, level); g.beginPath(); g.roundRect(SW() - 20, 192 + 62 - bh, 10, Math.max(0, bh), 4); g.fill();
+  g.restore();
 });

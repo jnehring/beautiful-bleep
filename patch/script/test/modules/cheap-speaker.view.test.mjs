@@ -96,4 +96,13 @@ const inRange = (sets) => sets.every(([id, val]) => { const p = m.spec.params.fi
     }
   }
 }
+// ---- the picture sits on a centred stage of at most 640 px: pointer hits must still land with the offset (widths 320, 700, 1400)
+for (const W of [320, 700, 1400]) {
+  const SW = Math.min(W, 640), off = (W - SW) / 2;
+  const v = runView(m.spec, src, { probes: loud, width: W }).frames(5);
+  const s = v.drag((off + (8 + 0.5 * (SW - 16) / 6)) / W, 0.9);
+  check(s.length >= 1 && s[0][0] === "device", `width ${W}: a click on the first device tile lands (stage offset ${off} px)`, JSON.stringify(s));
+  const miss = v.drag(Math.max(0.001, (off - 6) / W) * (off > 6 ? 1 : 0) + 0.0005, 0.5);
+  check(off <= 6 || miss.length === 0, `width ${W}: a press outside the stage does nothing`, JSON.stringify(miss));
+}
 finish();

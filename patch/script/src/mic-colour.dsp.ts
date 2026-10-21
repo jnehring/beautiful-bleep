@@ -233,11 +233,11 @@ function clamp01(x: f64): f64 { return min(max(x, 0.0), 1.0); }
   layout: [
     { row: [{ select: "model" }, { select: "input" }] },
     { row: [
-      { title: "Position", column: [{ row: ["distance", "proximity", "offAxis"] }] },
-      { title: "Capsule", column: [{ row: ["presence", "colour", "diaphragm"] }] },
-      { title: "Room", column: [{ row: ["room", "selfNoise"] }] },
+      { title: "Position", row: ["distance", "proximity", "offAxis"] },
+      { title: "Capsule", row: ["presence", "colour", "diaphragm"] },
+      { title: "Room", row: ["room", "selfNoise"] },
+      { title: "Output", row: ["output", "mix"] },
     ] },
-    { row: [{ title: "Output", column: [{ row: ["output", "mix"] }] }] },
   ],
 })
 export class MicColour {

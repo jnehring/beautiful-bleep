@@ -680,6 +680,8 @@
     types = Object.fromEntries(typeList.map((t) => [t.type, t]));
     await loadModuleViews(typeList);
     hasLibrary = !!m.library;
+    // the user's own modules (Code node: Save as module) come and go: read the module list and the node types again
+    if (window.BleepUserModules) BleepUserModules.onChange(() => { if (window.BleepWeb && BleepWeb.refreshModules) BleepWeb.refreshModules(); refreshTypes(); });
     if (m.account && P.BleepAccount) { P.BleepAccount.enabled = true; P.BleepAccount.client = m.standalone ? "Bleep Standalone" : "Bleep plugin"; }
     if (m.library && P.BleepLibraryView) await P.BleepLibraryView.init({ onTypes: refreshTypes, standalone: !!m.standalone, settings: !!m.settings });
     if (m.settings && P.BleepSettingsView) await P.BleepSettingsView.init({ library: !!m.library });

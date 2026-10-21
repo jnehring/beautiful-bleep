@@ -13,6 +13,7 @@ The **Code** node (Add menu: *Utility › Script*) holds one script. Click the n
 | Part | What it does |
 |---|---|
 | **Compile** | Compiles the script. `Ctrl+Enter` or `Cmd+Enter` does the same while the cursor is in the editor |
+| **Save as module** | Keeps the compiled module on this computer, in the Add menu (see [Save as module](#save-as-module)) |
 | **Examples** | Loads a starting point: *Gains (mixer channel)*, *Wave folder*, *Tremolo*, *Note router*, *Mixer (configurable)*, *SuperSaw: 100 oscillators (patch script)* |
 | **Settings** | A number field per setting the script declares, such as *Channels*. Changing one compiles again. See [Settings](module-scripts.md#settings-and-counted-jacks) |
 | **Editor** | [CodeMirror](https://codemirror.net/) with TypeScript highlighting, line numbers, bracket matching, folding, undo within the editor, and completion for the decorators and library (type `@` or press `Ctrl+Space`) |
@@ -37,6 +38,16 @@ Running a **patch script** builds a cell next to the node. See [Patch scripts](p
 The source, the jacks and knobs it declares, and the settings are saved **in the patch**, on the node. A saved patch shows its Code nodes with their jacks, cables and knob values at once, before anything is compiled. When a patch with a module script is loaded, the page compiles the source in the background and starts the module when it is ready (a few seconds); until then the node is silent.
 
 Patch scripts are not compiled on load: the cell they built is ordinary patch content and is already there.
+
+## Save as module
+
+A script you want to keep using does not have to live in a Code node. **Save as module** (next to *Examples*, once the script has compiled) keeps the compiled module and its UI on this computer. It then appears in the **Add** menu like any module, under the category its `@module` names (for example *Effects › Distortion*), with its knob layout and its own UI, and needs no Code node, no compile and no "Allow unsigned modules".
+
+- The module is stored in the browser (IndexedDB) and is yours alone: it is your own code, so it is not signed and runs in the same sandbox as every module. Its type id is `mine/<name>`.
+- **Update saved module** replaces it with the Code node's current source. Patches that already use it get the new version after a reload.
+- **My modules** in the *Examples* menu opens a saved module's source (and UI) in the Code node, to change it and update it.
+- **Remove module** takes it off this computer. Nodes of that module in a patch show as missing; the Code node keeps its source.
+- A saved module is not part of a patch file: someone who opens your patch needs the module too, so share it through the library (see [Publishing a module](../modules/publishing.md)).
 
 ## Panels
 

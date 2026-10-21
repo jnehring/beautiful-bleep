@@ -158,12 +158,12 @@ function wanted(over: f64, knee: f64, ratio: f64): f64 {
   colour: "#0ea5e9",
   description: "Optical leveling amplifier: program-dependent attack, two-stage photocell release with memory, HF emphasis, valve/transformer make-up, stereo link and an external sidechain.",
   layout: [
+    { row: [{ select: "mode" }, { select: "sidechain" }, { select: "input" }] },
     { row: [
-      { title: "Level", column: [{ row: ["peakReduction", "gain"] }, { select: "mode" }] },
-      { title: "Detector", column: [{ row: ["emphasis", "link"] }, { select: "sidechain" }] },
-      { title: "Output", column: [{ row: ["mix"] }, { select: "input" }] },
+      { title: "Level", row: ["peakReduction", "gain"] },
+      { title: "Detector", row: ["emphasis", "link"] },
+      { title: "Output", row: ["mix"] },
     ] },
-    { row: [{ title: "Gain reduction", column: [{ meter: "gr" }] }, { title: "Photocell charge", column: [{ meter: "charge" }] }] },
   ],
 })
 export class OptoCompressor {

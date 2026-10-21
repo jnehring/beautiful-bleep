@@ -42,7 +42,9 @@ function responseDb(d, bw, res, f) {
 
 const s = { cone: 0, level: 0, t: 0, hover: -1 };
 // Layout: the cone on the left, the response on the right, device tiles along the bottom.
-const L = () => { const w = c.width, h = c.height; const R = Math.max(12, Math.min(h * 0.28, w * 0.16)); return { w, h, R, cx: w * 0.2, cy: h * 0.38, gx: w * 0.4, gy: 14, gw: w * 0.57, gh: h - 90, ty: h - 52 }; };
+// The picture lives on a centred stage at most 640 px wide (the whole canvas when it is narrower); we translate by `off` to draw and subtract it from pointer x.
+const stageW = () => Math.min(c.width, 640), off = () => (c.width - stageW()) / 2;
+const L = () => { const w = stageW(), h = c.height; const R = Math.max(12, Math.min(h * 0.28, w * 0.16)); return { w, h, R, cx: w * 0.2, cy: h * 0.38, gx: w * 0.4, gy: 14, gw: w * 0.57, gh: h - 90, ty: h - 52 }; };
 const FMIN = 20, FMAX = 20000;
 const fx = (f, A) => A.gx + (Math.log(f / FMIN) / Math.log(FMAX / FMIN)) * A.gw;      // frequency -> x on a log axis
 const xf = (x, A) => FMIN * Math.pow(FMAX / FMIN, clamp((x - A.gx) / A.gw, 0, 1));    // x -> frequency
@@ -56,7 +58,8 @@ bleep.onFrame((dt) => {
   s.cone = ease(s.cone, ex, dt, ex > s.cone ? 40 : 10);
   s.level = ease(s.level, clamp(num(bleep.probe("level")), 0, 1), dt, 10);
   const A = L();
-  g.clearRect(0, 0, A.w, A.h);
+  g.clearRect(0, 0, c.width, c.height);
+  g.save(); g.translate(off(), 0);
   g.fillStyle = T.panel; g.fillRect(0, 0, A.w, A.h);
 
   // 1. the cone: basket, surround, cone and dust cap. The cap moves out with the excursion; an overdriven cone on the devices with a limit jitters.
@@ -95,11 +98,12 @@ bleep.onFrame((dt) => {
     g.fillStyle = on ? T.accent : T.bg; g.globalAlpha = on ? 1 : 0.9; g.fillRect(x, A.ty, w, 36); g.globalAlpha = 1;
     g.fillStyle = on ? T.bg : T.text; g.font = "bold 11px sans-serif"; g.textAlign = "center"; g.fillText(dv.tag, x + w / 2, A.ty + 22);
   });
+  g.restore();
 });
 
 // 4. pointer: tiles switch the device, the two corner lines (grab within 10 px) set Bandwidth. Dragging the low corner to f means bandwidth = hp / f.
 let grab = 0;                                       // 0 none, 1 low corner, 2 high corner
-const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: ((e.clientX - r.left) / (r.width || 1)) * c.width, y: ((e.clientY - r.top) / (r.height || 1)) * c.height }; };
+const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: ((e.clientX - r.left) / (r.width || 1)) * c.width - off(), y: ((e.clientY - r.top) / (r.height || 1)) * c.height }; };
 const drag = (p) => {
   const d = DEVICES[clamp(Math.round(deviceP.value), 0, DEVICES.length - 1)], f = xf(p.x, L());
   bwP.set(Math.round(grab === 1 ? d.hp / f * 100 : f / d.lp * 100));   // the knob is in percent; set() clamps to its range

@@ -293,20 +293,9 @@ class StripChan {
   colour: "#0284c7",
   description: "A console channel in one module: high-pass filter, input transformer, four-band equaliser with switchable frequencies and proportional Q, and a drive stage that can be warm, punchy or clean. The equaliser can sit before or after the saturation, so the colour follows the equaliser.",
   layout: [
-    { row: [
-      { title: "Filter", column: ["hpf", "hpfSlope"] },
-      { title: "Transformer", column: ["iron"] },
-      { title: "Drive", column: ["drive", "character", "order"] },
-    ] },
-    { title: "Equaliser", row: [
-      { title: "LF", column: ["lfGain", "lfFreq"] },
-      { title: "LMF", column: ["lmGain", "lmFreq"] },
-      { title: "HMF", column: ["hmGain", "hmFreq"] },
-      { title: "HF", column: ["hfGain", "hfFreq"] },
-      { title: "EQ", column: ["eqOn"] },
-    ] },
-    { row: [{ title: "Output", column: ["output"] }, { title: "Saturation", column: [{ meter: "saturation" }] }, { title: "Level", column: [{ meter: "level" }] }] },
-    { title: "Setup", row: ["input", "quality"] },
+    { row: ["iron", "drive", "lfGain", "lmGain", "hmGain", "hfGain", "output"] },
+    { row: ["hpf", "hpfSlope", "character", "order", "eqOn"] },
+    { row: ["lfFreq", "lmFreq", "hmFreq", "hfFreq", "input", "quality"] },
   ],
 })
 export class ChannelStrip {

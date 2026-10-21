@@ -75,4 +75,12 @@ const W = 520, H = 260, fx = (f) => 34 + (W - 46) * Math.log(f / 20) / Math.log(
   const bad = m.spec.params.filter((p) => { const x = v.bleep.param(p.id).value; return !(x >= p.min && x <= p.max); });
   check(bad.length === 0, "every param stays inside its range");
 }
+for (const W of [320, 700, 1400]) {
+  const SW = Math.min(W, 640), ox = (W - SW) / 2, fxs = (f) => ox + 34 + (SW - 46) * Math.log(f / 20) / Math.log(1000), v = make({ probes: probes.silence, width: W }); v.frames(2);
+  v.drag(fxs(60) / W, dy(4.5) / H, fxs(60) / W, dy(12) / H);
+  check(Math.abs(v.bleep.param("lowBoost").value - 8) < 0.2, `width ${W}: dragging a handle on the centred stage sets Low Boost`, String(v.bleep.param("lowBoost").value));
+  v.drag((ox + 54 + 196) / W, 14 / H); v.frames(2);
+  check(v.bleep.param("mode").value === 2, `width ${W}: the mode pill is hit`);
+  check(v.failures.length === 0, `width ${W}: no failures`, v.failures.join("; "));
+}
 finish();

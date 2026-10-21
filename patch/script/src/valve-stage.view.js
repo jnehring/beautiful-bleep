@@ -7,6 +7,9 @@ const c = bleep.canvas(220);
 const T = bleep.theme;
 const tube = bleep.param("tube"), stages = bleep.param("stages"), gain = bleep.param("gain"), plate = bleep.param("plate");
 
+// 0. The stage: the canvas can be as wide as the node, so draw on a centred stage of at most 640 px (narrower canvases just get a narrower stage).
+const stageW = () => Math.min(640, c.width), stageX = () => (c.width - stageW()) / 2;
+
 // 1. smoothed copies of the polled probes
 let supply = 1, grid = 0, level = 0, clock = 0;
 const ease = (cur, target, dt, rate) => cur + (target - cur) * (1 - Math.exp(-dt * rate));
@@ -21,12 +24,12 @@ const spawn = (x, y, hot) => {
 };
 
 // 3. layout: n tubes side by side; tubeAt(x) is the hit test
-const slots = () => { const n = Math.round(stages.value), w = c.width / n; return { n, w }; };
-const tubeAt = (x) => { const s = slots(); return x >= 0 && x <= c.width ? Math.min(s.n - 1, Math.floor(x / s.w)) : -1; };
+const slots = () => { const n = Math.round(stages.value), w = stageW() / n; return { n, w }; };
+const tubeAt = (x) => { const s = slots(); return x >= 0 && x <= stageW() ? Math.min(s.n - 1, Math.floor(x / s.w)) : -1; };
 
 // 4. pointer: a press that barely moves is a click (cycle the tube), otherwise vertical movement is Gain
 let down = null;
-const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: (e.clientX - r.left) * c.width / Math.max(1, r.width), y: (e.clientY - r.top) * c.height / Math.max(1, r.height) }; };
+const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: (e.clientX - r.left) * c.width / Math.max(1, r.width) - stageX(), y: (e.clientY - r.top) * c.height / Math.max(1, r.height) }; };
 c.el.addEventListener("pointerdown", (e) => { const p = pos(e); if (tubeAt(p.x) >= 0) { down = { x: p.x, y: p.y, g: gain.normalised, moved: false }; c.el.setPointerCapture(e.pointerId); } });
 c.el.addEventListener("pointermove", (e) => {
   if (!down) return;
@@ -46,7 +49,8 @@ bleep.onFrame((dt) => {
   level = ease(level, Math.min(1, Math.max(0, bleep.probe("level"))), dt, 10);
   const g = c.g, s = slots(), starve = 1 - plate.normalised;
   g.clearRect(0, 0, c.width, c.height);
-  g.fillStyle = T.panel; g.fillRect(0, 0, c.width, c.height);
+  g.save(); g.translate(stageX(), 0);
+  g.fillStyle = T.panel; g.fillRect(0, 0, stageW(), c.height);
   const heat = Math.min(1, 0.25 + 0.75 * plate.normalised) * (0.4 + 0.6 * supply);          // brownout: sag dims the plates
   const th = c.height - 60, tw = Math.max(24, Math.min(70, s.w * 0.45));
   for (let k = 0; k < s.n; k++) {
@@ -74,4 +78,5 @@ bleep.onFrame((dt) => {
     g.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
   }
   g.globalAlpha = 1;
+  g.restore();
 });

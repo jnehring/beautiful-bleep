@@ -273,13 +273,15 @@ class RecordChannel {
   description: "Puts any signal through a record: cut and playback curve, mono bass, tracking distortion that grows towards the centre, rumble, hiss, dust, pops and scratches that come round once per turn, channel crosstalk and the wobble of an off-centre disc.",
   layout: [
     { row: [
-      { title: "Record", column: ["speed", "cartridge", "inner"] },
-      { title: "Surface", column: ["dust", "noise", "rumble"] },
-      { title: "Turntable", column: ["warp", "crosstalk", "bassMono"] },
-      { title: "Output", column: ["outputDb", "mix"] },
+      { title: "Record", row: ["inner"] },
+      { title: "Surface", row: ["dust", "noise", "rumble"] },
+      { title: "Turntable", row: ["warp", "crosstalk", "bassMono"] },
+      { title: "Output", row: ["outputDb", "mix"] },
     ] },
-    { row: [{ title: "Groove", column: [{ meter: "groove" }] }, { title: "Level", column: [{ meter: "level" }] }] },
-    { title: "Setup", row: ["input"] },
+    { row: [
+      { title: "Record", row: ["speed", "cartridge"] },
+      { title: "Setup", row: ["input"] },
+    ] },
   ],
 })
 export class Vinyl {

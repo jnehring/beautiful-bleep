@@ -308,14 +308,18 @@
   /// { types: {type id → slug}, modules: {slug → {version, entry, types}} } from the library's index, with the local build's modules over it.
   async function manifest() {
     const local = await localIndex();
+    const mine = root.BleepUserModules;   // the modules the user made from a Code node (user-modules.js)
+    if (mine) await mine.load();
     let mods = {};
     try {
       if (!indexPromise) indexPromise = getJSON(config.base + "index.json");
       mods = { ...(await indexPromise).channels[config.channel].modules };
     } catch (e) {
-      if (!local) throw e;  // a local build alone is enough to run offline
+      if (!local && !(mine && mine.list().length)) throw e;  // a local build, or the user's own modules, are enough to run offline
     }
     if (local) for (const [slug, m] of Object.entries(local)) mods[slug] = { version: "local", types: m.types || [], local: m.file, spec: m.spec || null };
+    // Kept in this browser, their own code: no signature and no setting.
+    if (mine) for (const [slug, m] of Object.entries(mine.index())) mods[slug] = { version: "user", types: m.types || [], user: true, spec: m.spec || null };
     const types = {};
     for (const [slug, m] of Object.entries(mods)) for (const t of m.types || []) types[t] = slug;
     return { types, modules: mods };
@@ -332,6 +336,12 @@
       packages.set(slug, (async () => {
         const mods = (await manifest()).modules;
         if (!mods[slug]) throw new Error(`the library has no module ${slug}`);
+        if (mods[slug].user) {  // a module the user made: the bytes are in this browser
+          const e = root.BleepUserModules.get(slug);
+          if (!e) throw new Error(`the module ${slug} is not stored in this browser any more`);
+          const wasm = e.wasm.slice(0);
+          return { wasm, version: "user", publisher: "you", status: "unsigned", local: true, meta: {}, bytes: wasm.byteLength, spec: e.spec || null };
+        }
         if (mods[slug].local) {  // the development build: no package, no signature
           const res = await fetch(abs(config.localBase + mods[slug].local), { cache: "no-store" });
           if (!res.ok) throw new Error(`${mods[slug].local}: ${res.status}`);
@@ -371,6 +381,8 @@
     /// Changing roots, the revocation list or the unsigned setting forgets what was verified under the old ones.
     configure(o) { Object.assign(config, o); indexPromise = null; crlPromise = null; localPromise = null; packages.clear(); return BleepLibrary; },
     config, manifest, fetchModule, revocations, localIndex,
+    /// Forget a downloaded or stored package (a module the user replaced).
+    forget(slug) { packages.delete(slug); },
     // for tests and other tools
     canonical, contentDigest, readZip, verify, decide, communityFilesOk, keyId, hex, fromHex, fromB64,
   };

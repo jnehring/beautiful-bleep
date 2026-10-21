@@ -30,4 +30,13 @@ for (const x of [0, 1]) { const v = runView(m.spec, src, { probes: states.loud }
   check(s2.every(([id, val]) => { const p = m.spec.params.find((q) => q.id === id); return val >= p.min && val <= p.max; }), "every value set is inside its range");
 }
 { const v = runView(m.spec, src, { probes: states.silence }); v.frames(10); const a = v.stats.calls; v.frames(1); check(v.stats.calls > a, "silence still draws every frame (the glow flickers)"); }
+{ // pointer hits land on the stage whatever the canvas width (the stage is centred, at most 640 px)
+  const hit = (width, fx, fy) => { const v = runView(m.spec, src, { probes: states.moving, width }); v.frames(3); const stage = Math.min(640, width), off = (width - stage) / 2; return { v, x: (off + fx * stage) / width, w: width }; };
+  for (const width of [320, 700, 1400]) {
+    const { v, x } = hit(width, 0.25, 0.5);
+    const sets = v.drag(x, 0.5, x, 0.2);
+    check(sets.some(([id]) => id === "gain"), `pointer hit at canvas width ${width} px reaches the stage`, JSON.stringify(sets.slice(0, 2)));
+    check(v.drag(0.02, 0.5).length === 0 || width < 640, `a press far outside the stage does nothing at ${width} px`);
+  }
+}
 finish();

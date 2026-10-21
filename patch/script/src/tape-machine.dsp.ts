@@ -254,14 +254,15 @@ class TapeChannel {
   description: "A reel-to-reel tape recorder: pre-emphasis, magnetic hysteresis with bias, head bump, gap loss, wow and flutter, hiss, dropouts and tape compression.",
   layout: [
     { row: [
-      { title: "Transport", column: ["speed", "tapeType", "drift"] },
-      { title: "Wobble", column: ["wow", "flutter"] },
-      { title: "Tape", column: ["drive", "bias", "compress"] },
-      { title: "Wear", column: ["hiss", "dropouts"] },
-      { title: "Output", column: ["outputDb", "mix"] },
+      { title: "Tape", row: ["drive", "bias", "compress"] },
+      { title: "Wobble", row: ["wow", "flutter", "drift"] },
+      { title: "Wear", row: ["hiss", "dropouts"] },
+      { title: "Output", row: ["outputDb", "mix"] },
     ] },
-    { row: [{ title: "Saturation", column: [{ meter: "saturation" }] }, { title: "Level", column: [{ meter: "level" }] }] },
-    { title: "Setup", row: ["input", "quality"] },
+    { row: [
+      { title: "Transport", row: ["speed", "tapeType"] },
+      { title: "Setup", row: ["input", "quality"] },
+    ] },
   ],
 })
 export class TapeMachine {

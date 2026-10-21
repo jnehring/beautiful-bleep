@@ -55,4 +55,13 @@ for (const [name, p] of Object.entries(probes)) for (const width of [320, 520, 9
   const bad = m.spec.params.filter((p) => { const x = v.bleep.param(p.id).value; return !(x >= p.min && x <= p.max); });
   check(bad.length === 0, "every param stays inside its range");
 }
+for (const W of [320, 700, 1400]) {
+  const SW = Math.min(W, 640), ox = (W - SW) / 2, H = 280, v = make({ probes: probes.silence, width: W }); v.frames(2);
+  const room = SW - 16, sx = (d) => ox + 48 + 30 + (8 + room - 20 - 48 - 30) * Math.log(d / 3) / Math.log(100);
+  v.drag(sx(30) / W, 83 / H, sx(100) / W, 83 / H);
+  check(Math.abs(v.bleep.param("distance").value - 100) < 5, `width ${W}: dragging the source on the centred stage sets Distance`, v.bleep.param("distance").value.toFixed(1));
+  v.drag((ox + 8 + 3 * Math.max(60, (SW - 16) / 4) + 20) / W, 174 / H);
+  check(v.bleep.param("model").value === 3, `width ${W}: the model pill is hit`, String(v.bleep.param("model").value));
+  check(v.failures.length === 0, `width ${W}: no failures`, v.failures.join("; "));
+}
 finish();

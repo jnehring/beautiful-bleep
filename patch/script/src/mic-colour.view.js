@@ -7,6 +7,9 @@
 const T = bleep.theme;
 const c = bleep.canvas(280);
 const P = (id) => bleep.param(id);
+// The stage: the canvas spans the whole node, so everything is drawn on a centred stage of at most 640 px. SW() is the stage width (it shrinks
+// below 640 px, and the layout is written in terms of it), OX() the left offset: drawing is translated by it and pointer positions have it subtracted.
+const SW = () => Math.min(c.width, 640), OX = () => (c.width - SW()) / 2;
 const MODELS = ["Ribbon", "Dynamic", "Condenser", "Tube"];
 const PATTERN = [0, 0.5, 0.65, 0.6];                  // polar pattern r(a) = |A + (1 - A) cos a|: 0 is a figure-8, 1 would be an omni
 
@@ -38,17 +41,17 @@ function recompute() {                                   // cached: only when a 
 }
 
 // ---- 2. geometry: distance 3..300 cm maps logarithmically to the horizontal position of the source -----------------------------------------------
-const room = () => ({ x: 8, y: 8, w: Math.max(100, c.width - 16), h: 150 });
+const room = () => ({ x: 8, y: 8, w: Math.max(100, SW() - 16), h: 150 });
 const mic = () => { const r = room(); return { x: r.x + 40, y: r.y + r.h / 2 }; };
 const srcX = (d) => { const r = room(), m = mic(); return m.x + 30 + (r.x + r.w - 20 - m.x - 30) * Math.log(d / 3) / Math.log(100); };
 const xToD = (x) => { const r = room(), m = mic(); return 3 * Math.pow(100, cl((x - m.x - 30) / (r.x + r.w - 20 - m.x - 30))); };
 
 // ---- 3. pointer: pills switch the model; the source is dragged for Distance; the microphone is turned for Off-Axis -------------------------------
-const pos = (e) => { const r = c.el.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / (r.width || 1), (e.clientY - r.top) * c.height / (r.height || 1)]; };
+const pos = (e) => { const r = c.el.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / (r.width || 1) - OX(), (e.clientY - r.top) * c.height / (r.height || 1)]; };
 let drag = null;
 c.el.addEventListener("pointerdown", (e) => {
   const [x, y] = pos(e), m = mic(), sx = srcX(P("distance").value);
-  for (let i = 0; i < 4; i++) { const px = 8 + i * Math.max(60, (c.width - 16) / 4); if (y > 164 && y < 184 && x > px && x < px + 56) { P("model").set(i); return; } }
+  for (let i = 0; i < 4; i++) { const px = 8 + i * Math.max(60, (SW() - 16) / 4); if (y > 164 && y < 184 && x > px && x < px + 56) { P("model").set(i); return; } }
   if (Math.hypot(x - sx, y - m.y) < 18) drag = "source"; else if (Math.hypot(x - m.x, y - m.y) < 22) drag = "mic"; else return;
   c.el.setPointerCapture(e.pointerId);
 });
@@ -67,7 +70,7 @@ bleep.onFrame((dt) => {
   level += (Math.min(1, bleep.probe("level")) - level) * (1 - Math.exp(-dt * 10));    // ease the polled probe (frame-rate independent)
   const g = c.g, r = room(), m = mic(), model = P("model").value | 0, d = P("distance").value, off = P("offAxis").value / 100, roomAmt = P("room").value / 100;
   const sx = srcX(d), dist01 = cl(Math.log(d / 3) / Math.log(100)), close = cl(Math.log(40 / d) / Math.log(40 / 3));
-  g.clearRect(0, 0, c.width, c.height); g.font = "11px sans-serif"; g.textBaseline = "middle"; g.textAlign = "center";
+  g.clearRect(0, 0, c.width, c.height); g.save(); g.translate(OX(), 0); g.font = "11px sans-serif"; g.textBaseline = "middle"; g.textAlign = "center";
   g.fillStyle = T.panel; g.strokeStyle = T.line; g.lineWidth = 2; g.beginPath(); g.roundRect(r.x, r.y, r.w, r.h, 10); g.fill(); g.stroke();
 
   // ripples leave the source; louder signal, stronger ripples. At silence a slow idle ripple keeps the room alive.
@@ -100,12 +103,13 @@ bleep.onFrame((dt) => {
   g.beginPath(); g.moveTo(m.x, m.y); g.lineTo(m.x + Math.cos(rot) * 16, m.y + Math.sin(rot) * 16); g.stroke();      // the capsule's axis
 
   // model pills
-  const pw = Math.max(60, (c.width - 16) / 4);
+  const pw = Math.max(60, (SW() - 16) / 4);
   for (let i = 0; i < 4; i++) { g.globalAlpha = i === model ? 1 : 0.45; g.fillStyle = i === model ? T.accent : T.panel; g.beginPath(); g.roundRect(8 + i * pw, 165, 56, 18, 9); g.fill(); g.fillStyle = i === model ? T.bg : T.text; g.fillText(MODELS[i], 36 + i * pw, 174); }
   g.globalAlpha = 1;
   // response curve (log frequency 30 Hz..18 kHz, -12..+14 dB)
-  const px = 30, pw2 = Math.max(40, c.width - 44), py = 192, ph = 78, Y = (v) => py + ph * (1 - (Math.max(-12, Math.min(14, v)) + 12) / 26);
+  const px = 30, pw2 = Math.max(40, SW() - 44), py = 192, ph = 78, Y = (v) => py + ph * (1 - (Math.max(-12, Math.min(14, v)) + 12) / 26);
   g.strokeStyle = T.line; g.lineWidth = 1; g.beginPath(); g.moveTo(px, Y(0)); g.lineTo(px + pw2, Y(0)); g.stroke(); g.fillStyle = T.muted; g.textAlign = "right"; g.fillText("0 dB", px - 3, Y(0));
   g.strokeStyle = T.text; g.lineWidth = 2; g.beginPath(); for (let i = 0; i < N; i++) { const x = px + pw2 * i / (N - 1), y = Y(curve[i]); if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
   g.textAlign = "center";
+  g.restore();
 });

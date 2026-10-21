@@ -18,9 +18,14 @@ const ease = (cur, target, dt, k) => cur + (target - cur) * (1 - Math.exp(-dt * 
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const num = (x) => (Number.isFinite(x) ? x : 0);
 
+// The picture lives on a centred "stage" at most 640 px wide, so it looks the same in a narrow node and in a very wide one. On a canvas narrower
+// than that the stage is simply the whole canvas and everything scales down. `off` is the stage's x offset: we translate by it when drawing and
+// subtract it from pointer positions.
+const stageW = () => Math.min(c.width, 640), off = () => (c.width - stageW()) / 2;
+
 // Where things are. Everything is derived from the canvas size so a narrow node still looks right.
 function layout() {
-  const w = c.width, h = c.height;
+  const w = stageW(), h = c.height;
   const R = Math.max(10, Math.min(h * 0.34, w * 0.2));
   return { w, h, R, cy: h * 0.46, xl: w * 0.24, xr: w * 0.76, cx: w * 0.5 };
 }
@@ -62,7 +67,8 @@ bleep.onFrame((dt) => {
 
   // 3. draw
   const L = layout();
-  g.clearRect(0, 0, L.w, L.h);
+  g.clearRect(0, 0, c.width, c.height);
+  g.save(); g.translate(off(), 0);
   g.fillStyle = T.panel; rrect(0, 0, L.w, L.h, 14); g.fill();
   const rl = L.R * (0.42 + 0.5 * f), rr = L.R * (0.42 + 0.5 * (1 - f));
   reel(L.xl, L.cy, rl, L.R, s.angle);
@@ -90,13 +96,15 @@ bleep.onFrame((dt) => {
   g.globalAlpha = s.drop * 0.4; g.fillStyle = T.warn; rrect(0, 0, L.w, L.h, 14); g.fill();
   g.globalAlpha = 1; g.fillStyle = T.muted; g.font = "11px sans-serif"; g.textAlign = "left";
   g.fillText(`${ips} ips  ·  drive ${driveP.value.toFixed(1)} dB`, 10, L.h - 10);
+  g.restore();
 });
 
 // 4. pointer: click a reel to change speed, drag elsewhere for Input Level.
 let dragging = false;
-const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: ((e.clientX - r.left) / (r.width || 1)) * c.width, y: ((e.clientY - r.top) / (r.height || 1)) * c.height }; };
+const pos = (e) => { const r = c.el.getBoundingClientRect(); return { x: ((e.clientX - r.left) / (r.width || 1)) * c.width - off(), y: ((e.clientY - r.top) / (r.height || 1)) * c.height }; };
 c.el.addEventListener("pointerdown", (e) => {
   const p = pos(e), L = layout();
+  if (p.x < 0 || p.x > L.w) return;               // a press outside the centred stage does nothing
   // hit test: inside either reel's circle?
   if (Math.hypot(p.x - L.xl, p.y - L.cy) < L.R || Math.hypot(p.x - L.xr, p.y - L.cy) < L.R) {
     speedP.set((Math.round(speedP.value) + 1) % IPS.length);

@@ -294,12 +294,14 @@ class SpeakerChannel {
   description: "Tonal lo-fi: the bandwidth, resonances, distortion and noise of a telephone, an AM radio, a car speaker, a cassette player, a tiny speaker or a megaphone.",
   layout: [
     { row: [
-      { title: "Device", column: ["device", "bandwidth", "resonance"] },
-      { title: "Damage", column: ["distortion", "noise", "wobble"] },
-      { title: "Output", column: ["outputDb", "mix"] },
-      { title: "Level", column: [{ meter: "level" }] },
+      { title: "Device", row: ["bandwidth", "resonance"] },
+      { title: "Damage", row: ["distortion", "noise", "wobble"] },
+      { title: "Output", row: ["outputDb", "mix"] },
     ] },
-    { title: "Setup", row: ["input"] },
+    { row: [
+      { title: "Device", row: ["device"] },
+      { title: "Setup", row: ["input"] },
+    ] },
   ],
 })
 export class CheapSpeaker {

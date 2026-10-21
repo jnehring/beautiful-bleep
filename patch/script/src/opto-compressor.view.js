@@ -6,8 +6,11 @@
 // Bottom: a scrolling history of the gain reduction (bright) and the charge (faint).
 
 const T = bleep.theme;
-const c = bleep.canvas(250);
+const c = bleep.canvas(290);
 const P = (id) => bleep.param(id);
+// The stage: the canvas spans the whole node, so everything is drawn on a centred stage of at most 640 px. SW() is the stage width (it shrinks
+// below 640 px, and the layout is written in terms of it), OX() the left offset: drawing is translated by it and pointer positions have it subtracted.
+const SW = () => Math.min(c.width, 640), OX = () => (c.width - SW()) / 2;
 
 // ---- 1. state the picture keeps between frames ------------------------------------------------------------------------------------------
 // The module reports its probes 10-30 times a second. We never draw them raw: each is chased with an exponential ease whose factor
@@ -17,10 +20,10 @@ const HIST = 300, hist = new Float32Array(HIST), histSlow = new Float32Array(HIS
 let head = 0, histTimer = 0, t = 0, drag = null;
 
 // ---- 2. geometry (everything is a fraction of the canvas width, so the picture also works in a narrow node) -------------------------------------
-const geo = () => { const w = c.width; return { lamp: { x: w * 0.15, y: 80, r: Math.max(14, Math.min(34, w * 0.07)) }, cell: { x: w * 0.36, y: 36, w: Math.max(14, w * 0.045), h: 100 }, dial: { x: w * 0.76, y: 128, r: Math.max(30, Math.min(70, w * 0.14)) }, hist: { x: 10, y: 170, w: w - 20, h: 66 } }; };
+const geo = () => { const w = SW(); return { lamp: { x: w * 0.17, y: 100, r: Math.max(16, Math.min(46, w * 0.08)) }, cell: { x: w * 0.38, y: 30, w: Math.max(16, w * 0.06), h: 135 }, dial: { x: w * 0.74, y: 150, r: Math.max(34, Math.min(95, w * 0.17)) }, hist: { x: 10, y: 205, w: w - 20, h: 74 } }; };
 
 // ---- 3. pointer: dragging the lamp sets Peak Reduction ---------------------------------------------------------------------------------------
-const pos = (e) => { const r = c.el.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / (r.width || 1), (e.clientY - r.top) * c.height / (r.height || 1)]; };
+const pos = (e) => { const r = c.el.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / (r.width || 1) - OX(), (e.clientY - r.top) * c.height / (r.height || 1)]; };
 c.el.addEventListener("pointerdown", (e) => {
   const [x, y] = pos(e), g = geo();
   if (Math.hypot(x - g.lamp.x, y - g.lamp.y) < g.lamp.r + 18) { drag = { y0: y, v0: P("peakReduction").value }; c.el.setPointerCapture(e.pointerId); }
@@ -41,7 +44,7 @@ bleep.onFrame((dt) => {
   histTimer += dt; if (histTimer > 1 / 30) { histTimer = 0; head = (head + 1) % HIST; hist[head] = s.gr; histSlow[head] = s.slow; }
 
   const g = c.g, G = geo(), lamp = G.lamp, cell = G.cell, dial = G.dial, H = G.hist;
-  g.clearRect(0, 0, c.width, c.height); g.font = "11px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.clearRect(0, 0, c.width, c.height); g.save(); g.translate(OX(), 0); g.font = "11px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
 
   // the lamp: a radial glow whose size and alpha follow the reduction; breathing slightly at idle
   const glow = Math.min(1, s.gr / 18), breathe = 0.05 + 0.03 * Math.sin(t * 1.3);
@@ -79,4 +82,5 @@ bleep.onFrame((dt) => {
     g.stroke(); g.globalAlpha = 1;
   };
   draw(histSlow, T.warn, 0.45); draw(hist, T.accent, 1);
+  g.restore();
 });

@@ -165,6 +165,74 @@
   // It is code that came with the patch, so it does not run until the user starts it (once per page session for each node).
   const approved = new Set();   // Code nodes whose UI the user has started in this page session
 
+  /// The sandboxed frame that runs a module's own UI (board-code-view.html) and the messages between it and the board.
+  ///   sandboxUi(view, root, mount, source, spec, report, probes)  -> { onState(st, probeIds), stop() }
+  ///     view    the BleepView of the node (its knob values and api); root: the view's element (the UI takes its colours from it)
+  ///     mount   the element the frame goes into;  source: the UI's JavaScript;  spec: the node type description (params, buttons)
+  ///     report  (message, line) for an error in the UI's code;  probes: an object the latest probe values are kept in
+  function sandboxUi(view, root, mount, source, spec, report, probes) {
+    const params = spec.params || [], buttons = (spec.buttons || []).map((b) => b.id);
+    const themeOf = () => {
+      const css = getComputedStyle(root), v = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+      return { bg: v("--canvas", "#111317"), panel: v("--panel-2", "#252932"), line: v("--line", "#333845"), text: v("--text", "#e7e9ee"), muted: v("--muted", "#8b92a3"), accent: v("--accent", "#4fd1c5"), warn: v("--warn", "#ff7a6b") };
+    };
+    const values = () => Object.fromEntries(params.map((p) => [p.id, view.node.params[p.id] ?? p.default]));
+    const slim = () => params.map((p) => ({ id: p.id, name: p.name, kind: p.kind, min: p.min, max: p.max, map: p.map, centre: p.centre, choices: p.choices, steps: p.steps, label: p.label, default: p.default }));
+
+    let ready = false, lastSent = 0, lastSet = 0, setCount = 0, setWindow = 0;
+    const f = document.createElement("iframe");
+    f.className = "bc-frame";
+    f.title = "The module's own UI";
+    f.setAttribute("sandbox", "allow-scripts");   // without the same-origin flag: an opaque origin, so no storage, no cookies, no parent access
+    f.style.height = "160px";
+    mount.hidden = false;
+    mount.append(f);
+    const send = (m) => { if (f.contentWindow) f.contentWindow.postMessage(m, "*"); };
+    const onMessage = (e) => {
+      if (!f.isConnected) { window.removeEventListener("message", onMessage); return; }
+      if (e.source !== f.contentWindow) return;
+      const m = e.data;
+      if (!m || typeof m !== "object") return;
+      const now = Date.now();
+      switch (m.t) {
+        case "hello": send({ t: "init", source, params: slim(), values: values(), probes, theme: themeOf() }); break;
+        case "ready": ready = true; break;
+        case "error": report(String(m.message || "error").slice(0, 300), Number.isInteger(m.line) ? m.line : null); break;
+        case "size": if (Number.isFinite(m.h)) f.style.height = `${Math.max(40, Math.min(800, Math.round(m.h)))}px`; break;
+        case "command": if (buttons.includes(m.id)) view.api.command(m.id, 1); break;
+        case "set": {
+          if (now - setWindow > 1000) { setWindow = now; setCount = 0; }
+          if (++setCount > 240) break;   // a runaway loop cannot flood the engine
+          const p = params.find((q) => q.id === m.id);
+          if (!p) break;
+          let x = Number.isFinite(m.x) ? m.x : Number.isFinite(m.units) && P.BleepCodeWidgets ? P.BleepCodeWidgets.fromUnits(p, m.units) : null;
+          if (x === null) break;
+          x = Math.max(0, Math.min(1, x));
+          if (p.steps > 1) x = Math.round(x * (p.steps - 1)) / (p.steps - 1);
+          if (now - lastSet > 400 && view.api.beginGesture) view.api.beginGesture();   // one undo step per movement
+          lastSet = now;
+          view.node.params[p.id] = x;
+          view.api.setParam(p.id, x);
+          break;
+        }
+        default: break;
+      }
+    };
+    window.addEventListener("message", onMessage);
+    f.src = new URL("board-code-view.html", document.baseURI).href;
+    return {
+      /// The engine's state arrives: the UI sees the knob values and the probes, up to 30 times a second.
+      onState(st, probeIds) {
+        for (const id of probeIds) { const v = Number(st && st[id]); if (Number.isFinite(v)) probes[id] = v; }
+        const now = Date.now();
+        if (!ready || now - lastSent < 33 || !f.contentWindow) return;
+        lastSent = now;
+        f.contentWindow.postMessage({ t: "state", values: values(), probes }, "*");
+      },
+      stop() { window.removeEventListener("message", onMessage); f.remove(); },
+    };
+  }
+
   function customUi(view, root, spec) {
     const $ = (selector) => root.querySelector(selector);
     const tabs = [...root.querySelectorAll(".bc-tab")], panes = [...root.querySelectorAll(".bc-pane")];
@@ -174,7 +242,6 @@
     };
     tabs.forEach((t) => t.addEventListener("click", () => select(t.dataset.tab)));
     const mount = $(".bc-custom"), runButton = $(".bc-ui-run"), stopButton = $(".bc-ui-stop"), area = $(".bc-ui-source"), problems = $(".bc-ui-problems");
-    const params = spec.params || [], buttons = (spec.buttons || []).map((b) => b.id);
 
     // the UI's source: CodeMirror when its bundle is there, a text box until then
     let ed = null;
@@ -192,19 +259,12 @@
       area.hidden = true;
     }, () => { /* no editor bundle: the text box stays */ });
 
-    const themeOf = () => {
-      const css = getComputedStyle(root), v = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
-      return { bg: v("--canvas", "#111317"), panel: v("--panel-2", "#252932"), line: v("--line", "#333845"), text: v("--text", "#e7e9ee"), muted: v("--muted", "#8b92a3"), accent: v("--accent", "#4fd1c5"), warn: v("--warn", "#ff7a6b") };
-    };
-    const values = () => Object.fromEntries(params.map((p) => [p.id, view.node.params[p.id] ?? p.default]));
-    const slim = () => params.map((p) => ({ id: p.id, name: p.name, kind: p.kind, min: p.min, max: p.max, map: p.map, centre: p.centre, choices: p.choices, steps: p.steps, label: p.label, default: p.default }));
-
-    let frame = null, listener = null, ready = false, lastProbes = {}, lastSent = 0, lastSet = 0, setCount = 0, setWindow = 0;
+    let handle = null;
+    const lastProbes = {};   // the latest value of every probe, kept so a UI that starts later sees them at once
     const show = (message, line) => { problems.replaceChildren(el("li", "error", line ? `Line ${line}: ${message}` : message)); };
     function stop() {
-      if (listener) window.removeEventListener("message", listener);
-      if (frame) frame.remove();
-      frame = null; listener = null; ready = false;
+      if (handle) handle.stop();
+      handle = null;
       mount.replaceChildren();
       mount.hidden = true;
       stopButton.disabled = true;
@@ -215,49 +275,8 @@
       problems.replaceChildren();
       if (!source.trim()) return;
       approved.add(view.node.id);
-      const f = document.createElement("iframe");
-      f.className = "bc-frame";
-      f.title = "The module's own UI";
-      f.setAttribute("sandbox", "allow-scripts");   // without the same-origin flag: an opaque origin, so no storage, no cookies, no parent access
-      f.style.height = "160px";
-      mount.hidden = false;
-      mount.append(f);
-      frame = f;
+      handle = sandboxUi(view, root, mount, source, spec, show, lastProbes);
       stopButton.disabled = false;
-      const send = (m) => { if (f.contentWindow) f.contentWindow.postMessage(m, "*"); };
-      const onMessage = (e) => {
-        if (!f.isConnected) { window.removeEventListener("message", onMessage); return; }
-        if (e.source !== f.contentWindow) return;
-        const m = e.data;
-        if (!m || typeof m !== "object") return;
-        const now = Date.now();
-        switch (m.t) {
-          case "hello": send({ t: "init", source, params: slim(), values: values(), probes: lastProbes, theme: themeOf() }); break;
-          case "ready": ready = true; break;
-          case "error": show(String(m.message || "error").slice(0, 300), Number.isInteger(m.line) ? m.line : null); break;
-          case "size": if (Number.isFinite(m.h)) f.style.height = `${Math.max(40, Math.min(800, Math.round(m.h)))}px`; break;
-          case "command": if (buttons.includes(m.id)) view.api.command(m.id, 1); break;
-          case "set": {
-            if (now - setWindow > 1000) { setWindow = now; setCount = 0; }
-            if (++setCount > 240) break;   // a runaway loop cannot flood the engine
-            const p = params.find((q) => q.id === m.id);
-            if (!p) break;
-            let x = Number.isFinite(m.x) ? m.x : Number.isFinite(m.units) && P.BleepCodeWidgets ? P.BleepCodeWidgets.fromUnits(p, m.units) : null;
-            if (x === null) break;
-            x = Math.max(0, Math.min(1, x));
-            if (p.steps > 1) x = Math.round(x * (p.steps - 1)) / (p.steps - 1);
-            if (now - lastSet > 400 && view.api.beginGesture) view.api.beginGesture();   // one undo step per movement
-            lastSet = now;
-            view.node.params[p.id] = x;
-            view.api.setParam(p.id, x);
-            break;
-          }
-          default: break;
-        }
-      };
-      window.addEventListener("message", onMessage);
-      listener = onMessage;
-      f.src = new URL("board-code-view.html", document.baseURI).href;
     }
     runButton.addEventListener("click", () => { start(); const code = view.node.code; if (code) view.api.setNodeProperty("code", { ...code, ...(getView().trim() ? { view: getView() } : {}) }); });
     stopButton.addEventListener("click", stop);
@@ -279,10 +298,7 @@
       /// The engine's state arrives: the UI sees the knob values and the probes, up to 30 times a second.
       onState(st, probeIds) {
         for (const id of probeIds) { const v = Number(st && st[id]); if (Number.isFinite(v)) lastProbes[id] = v; }
-        const now = Date.now();
-        if (!frame || !ready || now - lastSent < 33) return;
-        lastSent = now;
-        frame.contentWindow.postMessage({ t: "state", values: values(), probes: lastProbes }, "*");
+        if (handle) handle.onState(st, probeIds);
       },
       stop,
     };
@@ -325,6 +341,57 @@
     const custom = customUi(view, root, iface || {});
     const withView = (code) => (custom.getView().trim() ? { ...code, view: custom.getView() } : code);   // the UI's source rides along with every save
     let examples = [];
+
+    // ---- Save as module: keep the compiled module (and its UI) on this computer, in the Add menu (web/js/user-modules.js) ----------------------
+    const U = G.BleepUserModules;
+    const saveButton = root.querySelector(".bc-save"), removeButton = root.querySelector(".bc-unsave");
+    const slugOfNode = () => { const i = node.code && node.code.interface; return U && i && i.kind !== "patch" && i.name ? U.slugOf(i.name) : ""; };
+    function showSaveButtons() {
+      const slug = slugOfNode();
+      saveButton.hidden = !slug;
+      removeButton.hidden = !slug || !U.get(slug);
+      saveButton.textContent = slug && U.get(slug) ? "Update saved module" : "Save as module";
+    }
+    let confirming = null;
+    const confirmFirst = (button, text, then) => {   // the second click within four seconds does it
+      if (confirming && confirming.button === button) { clearTimeout(confirming.timer); confirming = null; showSaveButtons(); then(); return; }
+      if (confirming) { clearTimeout(confirming.timer); showSaveButtons(); }
+      const old = button.textContent;
+      button.textContent = text;
+      confirming = { button, timer: setTimeout(() => { confirming = null; button.textContent = old; showSaveButtons(); }, 4000) };
+    };
+    async function saveModule() {
+      const slug = slugOfNode(), i = node.code && node.code.interface;
+      if (!slug || !node.code || !node.code.source) { setStatus("Compile the script first.", "bad"); return; }
+      setStatus("saving…");
+      try {
+        const { compile: run } = await compiler();
+        const settings = { ...settingValues };
+        const r = await run(node.code.source, { typeId: U.typeOf(slug), constants: settings });   // compiled again, for the type id of the saved module
+        if (!r.wasm || !r.specs.length) { setStatus("The module did not compile; nothing was saved.", "bad"); return; }
+        const replaced = !!U.get(slug);
+        await U.put({
+          slug, name: i.name, category: r.specs[0].category || "Utility/Script", source: node.code.source, view: custom.getView(), settings,
+          spec: r.specs, wasm: r.wasm.buffer.slice(r.wasm.byteOffset, r.wasm.byteOffset + r.wasm.byteLength),
+        });
+        if (G.BleepLibrary && G.BleepLibrary.forget) G.BleepLibrary.forget(slug);
+        showSaveButtons();
+        const where = (r.specs[0].category || "Utility/Script").split("/").concat(i.name).join(" › ");
+        setStatus(`${replaced ? "Updated" : "Saved"} “${i.name}”: Add › Module › ${where}` +
+          (replaced ? ". Reload the page to use the new version in patches that already have it." : "") + (U.persistent() ? "" : " (this browser keeps it only until the page is closed)"), "ok");
+      } catch (e) { setStatus(`Could not save the module: ${e.message}`, "bad"); }
+    }
+    if (U) {
+      U.load().then(showSaveButtons);
+      saveButton.addEventListener("click", saveModule);
+      removeButton.addEventListener("click", () => confirmFirst(removeButton, "Remove? (nodes using it go missing)", async () => {
+        const slug = slugOfNode();
+        if (!slug) return;
+        await U.remove(slug);
+        showSaveButtons();
+        setStatus(`Removed “${node.code.interface.name}” from this computer. Your Code node keeps its source.`, "ok");
+      }));
+    }
 
     // The source is in a CodeMirror editor once its bundle has loaded (bleep-script-editor.js); until then, and where it is missing,
     // a plain textarea with a line-number gutter does the same job.
@@ -425,6 +492,12 @@
     compiler().then((c) => {
       examples = c.examples;
       for (const ex of examples) ui.examples.append(new Option(ex.name, ex.id));
+      if (U && U.list().length) {   // the modules saved from a Code node: open one to change it and update it
+        const group = document.createElement("optgroup");
+        group.label = "My modules";
+        for (const e of U.list()) group.append(new Option(e.name, "user:" + e.slug));
+        ui.examples.append(group);
+      }
       if (!getSource()) setSource(examples.find((e) => e.id === "fold").source);
       ui.compile.disabled = false;
       const saved = node.code && node.code.interface;
@@ -434,7 +507,8 @@
       ui.examples.hidden = true;
     });
     ui.examples.addEventListener("change", () => {
-      const ex = examples.find((e) => e.id === ui.examples.value);
+      const mine = ui.examples.value.startsWith("user:") && U ? U.get(ui.examples.value.slice(5)) : null;
+      const ex = mine ? { source: mine.source, view: mine.view || "" } : examples.find((e) => e.id === ui.examples.value);
       if (!ex) return;
       setSource(ex.source); showProblems([]);
       if (ex.view !== undefined) custom.setView(ex.view);   // an example with its own UI brings the code for it (the UI tab; press Run UI)
@@ -528,7 +602,52 @@
     return true;
   }
 
-  P.BleepCode = { type: TYPE, available, uiSpec, keyOf, sync, compile, compilePatch, applyGenerated, isPatch, hashOf, setHost };
+  // ---- the views of the modules saved from a Code node (web/js/user-modules.js) -----------------------------------------------------------
+  // An installed module shows what its source declared: the widget layout in place of the automatic knobs, and its own UI above it. The UI is
+  // the user's own code (they saved it), so it runs without asking, in the same sandboxed frame as a Code node's.
+  const installedTypes = new Map();   // node type -> { entry, spec }
+
+  function buildInstalled(view, root) {
+    const rec = installedTypes.get(view.node.type);
+    if (!rec) return;
+    const { entry, spec } = rec;
+    const widgetsEl = root.querySelector(".bc-widgets"), mount = root.querySelector(".bc-custom");
+    let widgets = null;
+    if (spec.layout && P.BleepCodeWidgets) {
+      widgets = P.BleepCodeWidgets.build(view, spec.layout, spec, widgetsEl);
+      widgetsEl.hidden = false;
+      for (const e of view.root.querySelectorAll(".bv-controls, .bv-buttons")) e.hidden = true;
+    }
+    const probes = {}, probeIds = (spec.probes || []).map((p) => p.id);
+    const ui = entry.view && entry.view.trim()
+      ? sandboxUi(view, root, mount, entry.view, spec, (message, line) => { if (G.console) console.warn(`${entry.name}'s UI${line ? ", line " + line : ""}: ${message}`); }, probes)
+      : null;
+    view.installed = {
+      onState(st) { if (widgets) widgets.update(st); if (ui) ui.onState(st, probeIds); },
+      refresh() { if (widgets) widgets.update(null); },
+    };
+  }
+
+  /// Registers the view of every module the user saved (BleepViews.register keeps the first registration of a type, and the hooks look the
+  /// module up here, so a module saved again shows its new source). Called when the node types are listed.
+  function registerInstalledViews() {
+    const U = G.BleepUserModules;
+    if (!U || !G.BleepViews) return;
+    for (const entry of U.list()) for (const spec of entry.spec || []) {
+      installedTypes.set(spec.type, { entry, spec });
+      if (G.BleepViews.get(spec.type)) continue;
+      G.BleepViews.register(spec.type, {
+        top: true,
+        width: 900,
+        template: `<div class="bv-panel bc"><div class="bc-custom" hidden></div><div class="bc-widgets" hidden></div></div>`,
+        afterBuild(view, customEl) { buildInstalled(view, customEl); },
+        onState(st, view) { if (view.installed) view.installed.onState(st); },
+        onRefresh(view) { if (view.installed) view.installed.refresh(); },
+      });
+    }
+  }
+
+  P.BleepCode = { registerInstalledViews, type: TYPE, available, uiSpec, keyOf, sync, compile, compilePatch, applyGenerated, isPatch, hashOf, setHost };
 
   if (G.BleepViews) G.BleepViews.register("code", {
     top: true,
@@ -537,10 +656,12 @@
     template: `<div class="bv-panel bc">
       <h2>Code</h2>
       <div class="bc-bar"><button class="bc-compile" title="Compile (Ctrl/Cmd+Enter)">Compile</button>
-        <select class="bc-examples" aria-label="Load an example"><option value="">Examples…</option></select><span class="bc-status"></span></div>
+        <select class="bc-examples" aria-label="Load an example"><option value="">Examples…</option></select>
+        <button type="button" class="bc-save" title="Keep this module on this computer: it appears in the Add menu, with its own UI" hidden>Save as module</button>
+        <button type="button" class="bc-unsave" title="Take the saved module off this computer" hidden>Remove module</button><span class="bc-status"></span></div>
       <div class="bc-settings" hidden></div>
-      <div class="bc-widgets" hidden></div>
       <div class="bc-custom" hidden></div>
+      <div class="bc-widgets" hidden></div>
       <div class="bc-tabs" role="tablist"><button type="button" class="bc-tab on" data-tab="script" role="tab" aria-selected="true">Script</button><button type="button" class="bc-tab" data-tab="ui" role="tab" aria-selected="false">UI</button></div>
       <div class="bc-pane" data-pane="script">
         <div class="bc-editor"><pre class="bc-gutter" aria-hidden="true"></pre><textarea class="bc-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Source code"></textarea></div>

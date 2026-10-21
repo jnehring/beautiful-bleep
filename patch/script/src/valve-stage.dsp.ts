@@ -452,15 +452,8 @@ class ValveChan {
   colour: "#ea580c",
   description: "One to three cascaded tube stages: plate load, grid-current clipping, Miller roll-off, coupling-capacitor blocking, cathode bypass and a sagging supply. 12AX7, 12AU7 or an EL34 power stage.",
   layout: [
-    { row: [
-      { title: "Tube", column: ["tube", "stages"] },
-      { title: "Drive", column: ["gain", "bias"] },
-      { title: "Plate", column: ["plate", "sag"] },
-      { title: "Voicing", column: ["bright"] },
-      { title: "Output", column: ["output", "mix"] },
-    ] },
-    { row: [{ title: "Supply", column: [{ meter: "supply" }] }, { title: "Grid", column: [{ meter: "grid" }] }, { title: "Level", column: [{ meter: "level" }] }] },
-    { title: "Setup", row: ["input", "quality"] },
+    { row: ["stages", "gain", "bias", "plate", "sag", "bright", "output", "mix"] },
+    { row: ["tube", "input", "quality"] },
   ],
 })
 export class ValveStage {

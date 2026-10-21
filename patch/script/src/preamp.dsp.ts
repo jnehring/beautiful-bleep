@@ -326,14 +326,9 @@ class PreChan {
   colour: "#d97706",
   description: "A transformer-coupled preamp: input transformer, gain stage, output transformer. The iron thickens and saturates the bass, and the more you push it the more it does.",
   layout: [
-    { row: [
-      { title: "Input", column: ["trim", "drive"] },
-      { title: "Iron", column: ["iron", "impedance"] },
-      { title: "Stage", column: ["cls", "air"] },
-      { title: "Output", column: ["output", "mix"] },
-    ] },
-    { row: [{ title: "Character", column: ["age"] }, { title: "Core", column: [{ meter: "core" }] }, { title: "Level", column: [{ meter: "level" }] }] },
-    { title: "Setup", row: ["input", "quality"] },
+    // the custom UI is the hero; these are the same knobs in tidy rows of equal height (no meters: the picture shows them)
+    { row: ["trim", "drive", "iron", "impedance", "air", "age", "output", "mix"] },
+    { row: ["cls", "input", "quality"] },
   ],
 })
 export class Preamp {

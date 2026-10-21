@@ -185,6 +185,11 @@
   Object.assign(W, {
     media: M,
     libraryTypes,
+    /// The user's own modules (user-modules.js) changed: read the module list again; nodes that need a module now get it.
+    async refreshModules() {
+      try { manifest = await BleepLibrary.manifest(); } catch (e) { return; }
+      if (node) ensureModules();
+    },
     setTypes(list) { types = list; post({ cmd: "types", types }); },
     setBoard(b) {
       board = b;

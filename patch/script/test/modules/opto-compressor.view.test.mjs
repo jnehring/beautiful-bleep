@@ -30,15 +30,25 @@ for (const [name, p] of Object.entries(probes)) for (const width of [320, 520, 9
   check(!!alphas(probes.silence) && !!alphas(probes.loud), "the lamp is drawn in both states");
 }
 {
-  const W = 520, H = 250, v = make({ probes: probes.silence, width: W }); v.frames(2);
-  v.drag(0.15, 80 / H, 0.15, 20 / H);          // 60 px up = +50 on the 0..100 scale
+  const W = 520, H = 290, v = make({ probes: probes.silence, width: W }); v.frames(2);
+  v.drag(0.17, 100 / H, 0.17, 40 / H);          // 60 px up = +50 on the 0..100 scale
   check(Math.abs(v.bleep.param("peakReduction").value - 90) < 1, "dragging the lamp up raises Peak Reduction (40 + 50)", String(v.bleep.param("peakReduction").value));
-  v.drag(0.15, 80 / H, 0.15, 1.0);
+  v.drag(0.17, 100 / H, 0.17, 1.0);
   check(v.bleep.param("peakReduction").value === 0, "dragging far down clamps at 0");
-  v.drag(0.76, 128 / H);
+  v.drag(0.74, 150 / H);
   check(v.bleep.param("mode").value === 1, "clicking the dial switches Compress to Limit");
-  v.drag(0.76, 128 / H);
+  v.drag(0.74, 150 / H);
   check(v.bleep.param("mode").value === 0, "and back");
   check(v.failures.length === 0, "no failures during drags", v.failures.join("; "));
+}
+for (const W of [320, 700, 1400]) {   // the stage is centred and at most 640 px: hits must follow the offset
+  const SW = Math.min(W, 640), ox = (W - SW) / 2, H = 290, v = make({ probes: probes.silence, width: W }); v.frames(2);
+  v.drag((ox + SW * 0.17) / W, 100 / H, (ox + SW * 0.17) / W, 70 / H);
+  check(Math.abs(v.bleep.param("peakReduction").value - 65) < 1, `width ${W}: dragging the lamp on the centred stage sets Peak Reduction`, String(v.bleep.param("peakReduction").value));
+  v.drag((ox + SW * 0.74) / W, 150 / H);
+  check(v.bleep.param("mode").value === 1, `width ${W}: clicking the dial toggles the mode`);
+  const before = v.stats.sets.length; v.drag(ox / 2 / W + 0.001, 100 / H);   // left of the stage: nothing
+  check(ox < 10 || v.stats.sets.length === before, `width ${W}: a click left of the stage does nothing`);
+  check(v.failures.length === 0, `width ${W}: no failures`, v.failures.join("; "));
 }
 finish();

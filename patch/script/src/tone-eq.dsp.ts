@@ -289,19 +289,16 @@ class ToneChannel {
   colour: "#38bdf8",
   description: "A passive, musical EQ: interacting shelving network, tilt or guitar-amp tone stack, with a valve make-up stage and slow component drift. Stereo.",
   layout: [
-    { row: [{ select: "mode" }, { select: "input" }] },
+    { row: [{ select: "mode" }, { select: "pivot" }, { select: "input" }] },
     { row: [
-      { title: "Passive Shelf: low", column: [{ select: "lowFreq" }, { row: ["lowBoost", "lowAtten"] }] },
-      { title: "Passive Shelf: high", column: [{ select: "hiFreq" }, { row: ["hiBoost", "bandwidth"] }] },
-      { title: "Passive Shelf: attenuate", column: [{ select: "attFreq" }, "hiAtten"] },
+      { title: "Low", column: [{ select: "lowFreq" }, { row: ["lowBoost", "lowAtten"] }] },
+      { title: "High", column: [{ select: "hiFreq" }, { row: ["hiBoost", "bandwidth"] }] },
+      { title: "Attenuate", column: [{ select: "attFreq" }, { row: ["hiAtten"] }] },
     ] },
     { row: [
-      { title: "Tilt", column: [{ select: "pivot" }, "tilt"] },
-      { title: "Tone Stack", column: [{ row: ["bass", "mid", "treble"] }] },
-    ] },
-    { row: [
-      { title: "Make-up", column: [{ row: ["drive", "age", "output"] }] },
-      { title: "Level", column: [{ meter: "level" }] },
+      { title: "Tilt", row: ["tilt"] },
+      { title: "Tone Stack", row: ["bass", "mid", "treble"] },
+      { title: "Make-up", row: ["drive", "age", "output"] },
     ] },
   ],
 })

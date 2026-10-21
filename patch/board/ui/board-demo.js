@@ -11,7 +11,20 @@
   const listeners = {};
   const emit = (e, v) => (listeners[e] || []).forEach((f) => f(v));
   const clone = (o) => JSON.parse(JSON.stringify(o));
-  let types = [];
+  let types = [], baseTypes = [], typesVersion = -1;
+  /// The node types of this page: the engine's list, the released modules the list does not know yet, the user's own modules, the web link's and the Code node.
+  async function listTypes() {
+    if (window.BleepUserModules) { await BleepUserModules.load(); typesVersion = BleepUserModules.version(); if (priv.BleepCode) priv.BleepCode.registerInstalledViews(); }
+    types = baseTypes;
+    // [bridge] Remote Audio and Remote MIDI come with the web link (patch/web/js/bridge-types.js), not with the engine's list.
+    // Released modules the list above does not know yet, and the user's own: their node types come from the packages' spec.json.
+    if (window.BleepWeb && BleepWeb.libraryTypes) types = types.concat(await BleepWeb.libraryTypes(types));
+    if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
+    // The Code node (board-code.js) where the Bleep Script compiler is part of the build.
+    const code = priv.BleepCode;
+    types = types.filter((t) => t.type !== "code");   // the list may carry it (the engine has the type); it is offered only where the compiler is
+    if (code && await code.available()) types = types.concat([code.type]);
+  }
   const typeOf = (t) => types.find((x) => x.type === t);
   let board = null;
   let undo = [], redo = [];
@@ -372,17 +385,8 @@
     async call(name, a) {
       switch (name) {
         case "init":
-          types = await (await fetch("demo-types.json")).json();
-          // [bridge] Remote Audio and Remote MIDI come with the web link (patch/web/js/bridge-types.js), not with the engine's list.
-          // Released modules the list above does not know yet: their node types come from the library's packages.
-          if (window.BleepWeb && BleepWeb.libraryTypes) types = types.concat(await BleepWeb.libraryTypes(types));
-          if (window.BleepWeb && BleepWeb.remoteTypes) types = types.concat(await BleepWeb.remoteTypes().catch(() => []));
-          // The Code node (board-code.js) where the Bleep Script compiler is part of the build.
-          {
-            const code = priv.BleepCode;
-            types = types.filter((t) => t.type !== "code");   // the list may carry it (the engine has the type); it is offered only where the compiler is
-            if (code && await code.available()) types = types.concat([code.type]);
-          }
+          baseTypes = await (await fetch("demo-types.json")).json();
+          await listTypes();
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
           if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
           return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});
@@ -447,7 +451,9 @@
           if (a[1] === "allOff") p.notes = [];
           return null;
         }
-        case "types": return types;
+        case "types":
+          if (window.BleepUserModules && typesVersion !== BleepUserModules.version()) { await listTypes(); if (window.BleepWeb) BleepWeb.setTypes(types); }   // a module was saved from a Code node
+          return types;
         case "account": return demoAccount(a[0], a[1], a[2], a[3]);
         case "settings": return window.BleepWeb && BleepWeb.settings ? BleepWeb.settings(a[0], a[1]) : demoSettings(a[0], a[1]);
         case "libraryRevealData": return null;

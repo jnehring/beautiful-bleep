@@ -12,8 +12,11 @@ const T = bleep.theme;
 let core = 0, level = 0, phase = 0, heat = 0, drag = false, hover = false, wobble = 0;
 const ease = (cur, target, dt, rate) => cur + (target - cur) * (1 - Math.exp(-dt * rate));   // exponential smoothing, frame-rate independent
 
+// The stage: the canvas can be as wide as the node, so draw on a centred stage of at most 640 px (narrower canvases just get a narrower stage).
+const stageW = () => Math.min(640, c.width), stageX = () => (c.width - stageW()) / 2;
+
 // plot rectangle inside the canvas (recomputed per frame: the width can change)
-const area = () => ({ x: 14, y: 14, w: Math.max(40, c.width - 28), h: c.height - 28 });
+const area = () => ({ x: 14, y: 14, w: Math.max(40, stageW() - 28), h: c.height - 28 });
 
 // 3. the loop. Upward branch (dir = +1) is shifted right of the downward one by the hysteresis width.
 function bh(h, dir, wid, slope) { return Math.tanh(slope * (h - dir * wid)); }
@@ -21,11 +24,12 @@ function bh(h, dir, wid, slope) { return Math.tanh(slope * (h - dir * wid)); }
 // 4. pointer: x -> Iron, y -> Drive. setNormalised takes 0..1 whatever the knob's own units are.
 function point(e) {
   const r = c.el.getBoundingClientRect(), a = area();
-  const x = (e.clientX - r.left) * (c.width / Math.max(1, r.width)), y = (e.clientY - r.top) * (c.height / Math.max(1, r.height));
+  const x = (e.clientX - r.left) * (c.width / Math.max(1, r.width)) - stageX(), y = (e.clientY - r.top) * (c.height / Math.max(1, r.height));
   iron.setNormalised((x - a.x) / a.w);
   drive.setNormalised(1 - (y - a.y) / a.h);
 }
-c.el.addEventListener("pointerdown", (e) => { drag = true; c.el.setPointerCapture(e.pointerId); point(e); });
+c.el.addEventListener("pointerdown", (e) => { const r = c.el.getBoundingClientRect(), sx = (e.clientX - r.left) * (c.width / Math.max(1, r.width)) - stageX(); if (sx < 0 || sx > stageW()) return;   // presses beside the stage do nothing
+  drag = true; c.el.setPointerCapture(e.pointerId); point(e); });
 c.el.addEventListener("pointermove", (e) => { hover = true; if (drag) point(e); });
 c.el.addEventListener("pointerup", (e) => { drag = false; c.el.releasePointerCapture(e.pointerId); });
 
@@ -42,7 +46,8 @@ bleep.onFrame((dt) => {
 
   const g = c.g, a = area(), cx = a.x + a.w / 2, cy = a.y + a.h / 2;
   g.clearRect(0, 0, c.width, c.height);
-  g.fillStyle = T.panel; g.beginPath(); g.roundRect ? g.roundRect(0, 0, c.width, c.height, 12) : g.rect(0, 0, c.width, c.height); g.fill();
+  g.save(); g.translate(stageX(), 0);                                                 // everything below is in stage coordinates
+  g.fillStyle = T.panel; g.beginPath(); g.roundRect ? g.roundRect(0, 0, stageW(), c.height, 12) : g.rect(0, 0, stageW(), c.height); g.fill();
   // axes
   g.strokeStyle = T.line; g.lineWidth = 1;
   g.beginPath(); g.moveTo(a.x, cy); g.lineTo(a.x + a.w, cy); g.moveTo(cx, a.y); g.lineTo(cx, a.y + a.h); g.stroke();
@@ -73,4 +78,5 @@ bleep.onFrame((dt) => {
   g.fillStyle = T.muted; g.font = "11px sans-serif"; g.textBaseline = "top";
   g.fillText("Iron " + Math.round(iron.value) + " %", a.x + 4, a.y + 2);
   g.fillText("Drive " + Math.round(drive.value) + " %", a.x + 4, a.y + 16);
+  g.restore();
 });

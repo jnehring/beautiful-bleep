@@ -70,6 +70,7 @@ CI also runs three tests for the browser part of the Code node, from the reposit
 ```bash
 node patch/web/test/board-code-test.mjs
 node patch/web/test/library-client-test.mjs
+node patch/web/test/user-modules-test.mjs
 node patch/web/test/web-settings-test.mjs
 ```
 
@@ -84,3 +85,4 @@ node patch/web/test/web-settings-test.mjs
 | A page in `website/content/developers/bleep-script/` that has code | `node test/docs.test.mjs` |
 | The patch runner | `node test/patch.test.mjs` |
 | `board-code.js` | `node patch/web/test/board-code-test.mjs` |
+| `user-modules.js`, or how `library-client.js` lists the saved modules | `node patch/web/test/user-modules-test.mjs` |
