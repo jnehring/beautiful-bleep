@@ -208,4 +208,32 @@ for (const p of [{ gain: 0 }, { gain: 40 }, { gain: 100 }, { tube: 1, gain: 70 }
   }
 }
 
+// ---- turning a knob does not click ---------------------------------------------------------------------------------------------------------
+// The circuit's coefficients and its operating point change once per 32-sample block, so a knob that jumps must be followed, not jumped to; a change
+// of tube, stages or quality fades the input out, switches the circuits at rest, and fades it in. The measure: the largest second difference around the
+// jump (a click is a spike) against the largest one in the steady sound before and after it.
+{
+  const x = sine(1000, 0.3, 96000);
+  const excess = (id, a, b) => {
+    const y = render(m, { inputs: { l: x }, params: { [id]: (i) => (i < 48000 ? a : b) } }).outL;
+    const d2 = (i) => Math.abs(y[i] - 2 * y[i - 1] + y[i - 2]);
+    let before = 0, after = 0, around = 0;
+    for (let i = 30000; i < 47500; i++) before = Math.max(before, d2(i));
+    for (let i = 80000; i < 95000; i++) after = Math.max(after, d2(i));
+    for (let i = 48000; i < 48400; i++) around = Math.max(around, d2(i));
+    return around / Math.max(before, after, 1e-12);
+  };
+  for (const [id, a, b] of [["bias", 0, 50], ["bright", 10, 90], ["sag", 0, 80], ["plate", 100, 20], ["gain", 40, 90], ["mix", 100, 30]]) {
+    const v = excess(id, a, b);
+    check(v < 1.5, `a jump of ${id} (${a} to ${b}) does not click`, `${v.toFixed(2)}x the steady sound`);
+  }
+  for (const [id, a, b] of [["tube", 0, 1], ["tube", 1, 2], ["stages", 1, 3], ["stages", 3, 1], ["quality", 1, 0], ["quality", 0, 1]]) {
+    const v = excess(id, a, b);
+    check(v < 3, `switching ${id} (${a} to ${b}) is faded, not cut`, `${v.toFixed(2)}x the steady sound`);
+  }
+  // after a switch the sound is back at full level, with the new circuit
+  const y = render(m, { inputs: { l: x }, params: { stages: (i) => (i < 48000 ? 1 : 3) } }).outL;
+  check(Math.abs(rms(y, 60000, 90000) - rms(y, 30000, 47000)) / rms(y, 30000, 47000) < 1.5 && rms(y, 60000, 90000) > 0.05, "after the switch the sound comes back");
+}
+
 finish();

@@ -302,6 +302,13 @@ class ValveChan {
     this.env = 0.0; this.peak = 0.0;
   }
 
+  /// A change of tube, stages or quality (the input has faded out): the circuits start from rest, so the DC blocker's input does too (the circuits' output at
+  /// rest is zero) while its own output goes on decaying, which keeps the output continuous. The sag's level and the dry path go on as well: resetting
+  /// them would move the supply or cut the dry signal.
+  restart(): void {
+    this.os.reset(); this.t0.reset(); this.t1.reset(); this.t2.reset(); this.dcX = 0.0;
+  }
+
   /// Configures stage k for the tube type: kind 0 = 12AX7, 1 = 12AU7, 2 = EL34 (push-pull pentode). `rho` is the gain handed on to the next stage.
   private cfg(t: Tube, kind: i32, first: bool, last: bool, bias: f64, starve: f64, bright: f64, supply: f64, rate: f64): void {
     let g: f64, lam: f64, e: f64, gon: f64, rho: f64, miller: f64, kapMax: f64, hp: f64;
@@ -397,8 +404,8 @@ class ValveChan {
   }
 
   /// Block rate: the gains (call on the left channel; the right takes them over with `mirror`).
-  levels(first: bool, comp: f64, outDb: f64, mix: f64): void {
-    this.gT = <f32>(this.inScale * Math.pow(10.0, this.gainDb / 20.0));
+  levels(first: bool, comp: f64, outDb: f64, mix: f64, fade: f32): void {
+    this.gT = <f32>(this.inScale * Math.pow(10.0, this.gainDb / 20.0)) * fade;   // fade: 1, or the input fading out and in while the tubes are switched
     this.compNow = <f32>comp;
     this.wT = <f32>(comp * Math.pow(10.0, outDb / 20.0));
     this.mT = <f32>mix;
@@ -498,25 +505,53 @@ export class ValveStage {
   private monoS: Smoother;
   private mode: i32 = 2;
   private started: bool = false;
+  // What the knobs ask for is followed, not jumped to: the circuit's coefficients and its operating point change once per block, so a knob that moves
+  // in steps would put a small step into the sound at every block. These follow the knobs with a time constant of about 40 ms.
+  private gS: f64 = 0.4; private pS: f64 = 0.85; private bS: f64 = 0.0; private brS: f64 = 0.25; private sgS: f64 = 0.3;
+  private follow: f64 = 0.03;
+  // Tube type, number of stages and quality cannot be followed: the input fades out over a few blocks, the new circuit starts from rest, and the input fades in again (nothing is cut off while the tubes are loud).
+  private tubeNow: i32 = 0; private stagesNow: i32 = 2; private fade: f32 = 1; private fadeDir: i32 = 0;
 
   constructor(sampleRate: f64) {
     this.cl = new ValveChan(sampleRate, 0x2545F491);
     this.cr = new ValveChan(sampleRate, 0x6C078965);
     this.monoS = new Smoother(sampleRate, 0.005);
+    this.follow = 1.0 - Math.exp(-32.0 / (sampleRate * 0.040));
   }
 
   reset(): void { this.cl.reset(); this.cr.reset(); this.sense.reset(); }
 
   block(): void {
     const q = this.quality == 0 ? 1 : 2;
-    if (q != this.mode) { this.mode = q; this.cl.reset(); this.cr.reset(); }
     const first = !this.started;
+    if (first) { this.mode = q; this.tubeNow = this.tube; this.stagesNow = this.stages; }
+    // a change of tube, stages or quality: fade out (4 blocks, about 3 ms), switch with the circuits at rest, fade in (8 blocks)
+    const changed = q != this.mode || this.tube != this.tubeNow || this.stages != this.stagesNow;
+    if (changed && this.fadeDir >= 0) this.fadeDir = -1;
+    if (this.fadeDir < 0) {
+      this.fade -= 0.25;
+      if (this.fade <= 0.0) {
+        this.fade = 0.0;
+        this.mode = q; this.tubeNow = this.tube; this.stagesNow = this.stages;   // whatever the knobs ask for now
+        this.cl.restart(); this.cr.restart();
+        this.fadeDir = 1;
+      }
+    } else if (this.fadeDir > 0) {
+      this.fade += 0.125;
+      if (this.fade >= 1.0) { this.fade = 1.0; this.fadeDir = 0; }
+    }
     if (first) this.monoS.value = this.input == 2 ? 1.0 : 0.0;
     const g = <f64>this.gain * 0.01, p = <f64>this.plate * 0.01, b = <f64>this.bias * 0.01, br = <f64>this.bright * 0.01, sg = <f64>this.sag * 0.01;
-    this.cl.setup(this.tube, this.stages, g, p, b, br, sg, q, max(this.cl.env, this.cr.env));
+    if (first) { this.gS = g; this.pS = p; this.bS = b; this.brS = br; this.sgS = sg; }
+    else {
+      const k = this.follow;
+      this.gS += (g - this.gS) * k; this.pS += (p - this.pS) * k; this.bS += (b - this.bS) * k; this.brS += (br - this.brS) * k; this.sgS += (sg - this.sgS) * k;
+    }
+    const ovs = this.mode == 1 ? 1 : 2;
+    this.cl.setup(this.tubeNow, this.stagesNow, this.gS, this.pS, this.bS, this.brS, this.sgS, ovs, max(this.cl.env, this.cr.env));
     const comp = this.cl.calibrate();
     const mix = <f64>this.mix * 0.01;
-    this.cl.levels(first, comp, <f64>this.output, mix);
+    this.cl.levels(first, comp, <f64>this.output, mix, this.fade);
     this.cl.applySag();
     this.cr.mirror(this.cl, first);
     if (first) { this.cl.reset(); this.cr.reset(); }

@@ -41,6 +41,8 @@ Each bracketed stage runs at twice the sample rate (Normal) or at the base rate 
 
 **Level compensation.** At each block the module evaluates the static curve of the whole cascade for a -12 dBFS sine and sets the gain that brings it back to -12 dBFS. More Gain means more colour, not more volume. The weak and very loud ends are free to differ: that is what compression is.
 
+**Turning knobs.** Gain, Bias, Plate, Bright and Sag are followed, not jumped to: the circuit takes about 40 ms to arrive at a new setting, so turning a knob (or sweeping it with a cable) makes no zipper noise or clicks. Tube, Stages and Quality cannot be followed: when one changes, the input fades out over about 3 ms, the new circuit starts from rest and the input fades back in over 5 ms.
+
 ## How to use it?
 
 - **Warm a DI bass:** 12AX7, 1 stage, Gain 30 %, Plate 90 %, Sag 20 %, Bright 10 %. The even harmonics come in as you play harder; the bass stays full.
