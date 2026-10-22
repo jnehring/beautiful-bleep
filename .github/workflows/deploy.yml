@@ -7,11 +7,14 @@
 # Only runs for main: a push (through CI) or a manual run on main. Pull requests and forks never reach it.
 name: Deploy
 
+# DISABLED for now: manual runs only (Actions tab -> Run workflow). Re-enable the automatic deploy by adding, next to
+# `workflow_dispatch:`, the trigger
+#   workflow_run:
+#     workflows: [CI]
+#     types: [completed]
+#     branches: [main]
+# (and the push/pull_request triggers of ci.yml). doc/operations/deploy.md has the server setup.
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
 
 permissions:

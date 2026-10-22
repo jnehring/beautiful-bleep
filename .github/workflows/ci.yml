@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: MIT
 name: CI
 
-# Runs on every push to main and on pull requests (the repository is public, so the hosted runners are free).
-# A green run on main is what deploy.yml waits for.
+# DISABLED for now: manual runs only (Actions tab -> Run workflow).
+# (`on: {}` is invalid and makes GitHub record a failed run on every push.)
+# Re-enable by adding the triggers next to `workflow_dispatch:`:
+#   push:
+#     branches: [main]
+#   pull_request:
+# deploy.yml needs them too: it waits for a green CI run on main.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 # Nothing here writes to the repository.
