@@ -91,4 +91,15 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 echo "Starting ${APP#$ROOT/} ($CONFIG$([[ $UI_DEV == ON ]] && echo ", UI from source"))"
+if [[ "$(uname)" == "Darwin" ]]; then
+    # Started directly from a terminal the app is not truly activated, and macOS keeps showing the terminal's menu bar
+    # instead of the app's: activate it once its window is up. The app keeps this terminal's console.
+    "$BIN" ${APP_ARGS[@]+"${APP_ARGS[@]}"} &
+    APP_PID=$!
+    trap 'kill -TERM "$APP_PID" 2>/dev/null || true' INT TERM
+    sleep 4   # the window must be up: activating earlier does not take
+    kill -0 "$APP_PID" 2>/dev/null && osascript -e 'tell application "System Events" to set frontmost of (first process whose unix id is '"$APP_PID"') to true' >/dev/null 2>&1 || true
+    wait "$APP_PID"
+    exit $?
+fi
 exec "$BIN" ${APP_ARGS[@]+"${APP_ARGS[@]}"}
