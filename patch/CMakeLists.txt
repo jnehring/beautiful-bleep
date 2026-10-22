@@ -302,8 +302,13 @@ if (BLEEP_BUILD_TESTS)
     target_compile_definitions(bleep_demo_patches PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
     target_link_libraries(bleep_demo_patches PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
-    add_test(NAME patch.demo-patches COMMAND bleep_demo_patches
-        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-patches.json")
+    # 670 patches of 12 s of audio each take minutes in one process: split into shards that `ctest -j` runs side by side.
+    set(BLEEP_DEMO_SHARDS 6)
+    math(EXPR BLEEP_DEMO_LAST "${BLEEP_DEMO_SHARDS} - 1")
+    foreach (shard RANGE ${BLEEP_DEMO_LAST})
+        add_test(NAME patch.demo-patches.${shard} COMMAND bleep_demo_patches
+            "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-patches.json" --shard ${shard}/${BLEEP_DEMO_SHARDS})
+    endforeach ()
 
     # Every cell preset Bleep Instrument or Bleep FX can load (`plays`) is played like the plugin plays
     # it and must make sound / die away (tests/cell_plugin_presets_test.cpp). juce_core only.
