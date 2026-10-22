@@ -4,6 +4,7 @@
 (function () {
   "use strict";
   BleepViews.register("transport", {
+    width: 540,
     onState(st, view) {
       if (typeof st.bpm === "number") {
         const k = view.knobs.get("tempo");

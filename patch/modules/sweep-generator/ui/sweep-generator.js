@@ -240,7 +240,7 @@
   }
 
   BleepViews.register("sweep-generator", {
-    width: 940,
+    width: 870,
     hideParams: ["waveform"],  // the icon row sets it
     layout: [
       { title: "Sweep", params: ["start", "stop", "time", "symmetry", "direction", "law", "retrace", "burstcount"] },

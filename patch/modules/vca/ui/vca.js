@@ -43,6 +43,7 @@
   }
 
   BleepViews.register("vca", {
+    width: 530,
     template: '<div class="bv-panel"><h2>Gain</h2><canvas class="vca-cv"></canvas></div>',
     side: true,
     layout: [{ title: "Amplifier", params: ["gain", "response"] }],

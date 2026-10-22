@@ -258,7 +258,7 @@
 
   BleepViews.register("harmony-master", {
     partNames: ["Chord and progression"],
-    width: 880,
+    width: 700,
     layout: [
       { title: "Source", params: ["source", "key", "scale", "policy"] },
       { title: "Chord", params: ["degree", "quality", "slot", "advance", "latch"] },

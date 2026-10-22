@@ -81,6 +81,7 @@
   }
 
   BleepViews.register("oscillator", {
+    width: 550,
     template: '<div class="bv-panel osc-panel"><h2>Waveform</h2><canvas class="osc-cv"></canvas></div>',
     layout: [
       { title: "Pitch", params: ["octave", "coarse", "fine"] },

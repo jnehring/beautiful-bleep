@@ -142,7 +142,7 @@
   BleepViews.register("automata", {
     partNames: ["System"],
     top: true,
-    width: 760,
+    width: 670,
     layout: [
       { title: "System", params: ["mode", "seed", "rule", "cells", "gridrule", "turns", "rules", "density"] },
       { title: "Evolution", params: ["interference", "rewindby", "learn"] },

@@ -14,7 +14,7 @@
   ];
 
   BleepViews.register("bit-formula", {
-    width: 820,
+    width: 750,
     layout: [
       { title: "Formula", params: ["formula", "a", "b", "c"] },
       { title: "Clock", params: ["rate", "bits", "smooth", "level"] },

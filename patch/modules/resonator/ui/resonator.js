@@ -13,7 +13,7 @@
   const canvas = (c) => BleepView.fit(c);
 
   BleepViews.register("resonator", {
-    width: 900,
+    width: 690,
     layout: [
       { title: "Body", params: ["model", "modes", "polyphony"] },
       { title: "Tuning", params: ["frequency", "structure"] },

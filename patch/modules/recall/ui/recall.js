@@ -144,7 +144,7 @@
   BleepViews.register("recall", {
     partNames: ["Loops"],
     top: true,
-    width: 1000,
+    width: 920,
     layout: [
       { title: "T · gates", params: ["tmode", "tloop", "tbias", "tjitter", "trecall", "gatelength"] },
       { title: "X · voltages", params: ["xsource", "xmode", "xrange", "xloop", "xspread", "xbias", "xsteps", "xrecall"] },

@@ -22,6 +22,7 @@
   }
 
   BleepViews.register("xy-pad", {
+    width: 420,
     partNames: ["Pad"],
     side: true,
     hideParams: ["x", "y"],

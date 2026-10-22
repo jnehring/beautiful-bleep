@@ -34,7 +34,7 @@
     g.fillText("pitch", 6, 12); g.fillText("gate (brightness = velocity)", 6, h - 1);
   }
   BleepViews.register("notes-to-cv", {
-    width: 640,
+    width: 520,
     template: '<div class="bv-panel"><h2>Live</h2><canvas class="nc-cv"></canvas></div>',
     layout: [
       { title: "Listen", params: ["channel", "priority"] },

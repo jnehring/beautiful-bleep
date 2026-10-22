@@ -292,7 +292,7 @@
   BleepViews.register("shape-env", {
     partNames: ["Shape"],
     top: true,
-    width: 820,
+    width: 710,
     layout: [
       { title: "Shape", params: ["shape", "morph", "skew", "reverse"] },
       { title: "Timing", params: ["mode", "retrigger", "time", "sync"] },

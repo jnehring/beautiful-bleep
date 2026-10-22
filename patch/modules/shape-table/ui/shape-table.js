@@ -35,7 +35,7 @@
   }
 
   BleepViews.register("shape-table", {
-    width: 860,
+    width: 550,
     layout: [
       { title: "Input", params: ["drive", "bias", "edge"] },
       { title: "Output", params: ["mix", "out", "quality", "dcblock"] },

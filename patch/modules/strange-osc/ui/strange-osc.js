@@ -5,7 +5,7 @@
   "use strict";
 
   BleepViews.register("strange-osc", {
-    width: 820,
+    width: 690,
     layout: [
       { title: "Pitch", params: ["attractor", "range", "coarse", "fine"] },
       { title: "Chaos", params: ["tame", "force", "seed"] },

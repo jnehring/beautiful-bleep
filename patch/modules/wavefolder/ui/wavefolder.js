@@ -27,7 +27,7 @@
   }
 
   BleepViews.register("wavefolder", {
-    width: 900,
+    width: 680,
     layout: [
       { title: "Source", params: ["source", "wave", "octave", "coarse", "fine", "fm"] },
       { title: "Fold", params: ["level", "fold", "symmetry", "shape", "tap", "spread"] },

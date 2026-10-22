@@ -67,7 +67,7 @@
 
   BleepViews.register("quad-lfo", {
     top: true,
-    width: 900,
+    width: 810,
     layout: [
       { title: "Mode", params: ["mode", "sync", "clockratio", "spread"] },
       { title: "Waves", params: ["wave1", "wave2", "wave3", "wave4"] },

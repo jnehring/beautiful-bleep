@@ -11,6 +11,7 @@
   const frac = (x) => x - Math.floor(x);
 
   BleepViews.register("function", {
+    width: 560,
     top: true,
     layout: [
       { title: "Mode", params: ["cycle", "sync"] },

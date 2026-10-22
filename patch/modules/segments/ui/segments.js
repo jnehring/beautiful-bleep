@@ -355,7 +355,7 @@
 
   BleepViews.register("segments", {
     top: true,
-    width: 820,
+    width: 610,
     layout: [
       { title: "Run", params: ["run", "release", "sync", "count"] },
       { title: "Chain", params: ["timescale", "velamount"] },

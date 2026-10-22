@@ -309,7 +309,7 @@
   BleepViews.register("step-sequencer", {
     partNames: ["Step lanes"],
     top: true,
-    width: 1180,
+    width: 980,
     layout: [
       { title: "Clock", params: ["syncto", "rate", "length", "direction"] },
       { title: "Feel", params: ["gatelength", "swing"] },

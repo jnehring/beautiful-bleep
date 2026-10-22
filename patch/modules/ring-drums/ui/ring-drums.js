@@ -206,11 +206,14 @@
     g.shadowBlur = 0;
   }
 
+  const VIEW_WIDTH = {"ring-kick": 590, "ring-snare": 550, "ring-tom": 550, "ring-rim": 590, "ring-hats": 550};
+
   /// Registers a view: scene(P, view, st) -> scene; P(id) = effective real value.
   function drum(type, scene, layout, extra) {
     const n = layout.length;  // the level joins the last card: compact
     if (n > 1 && layout[n - 1].title === "Out") { const a = layout[n - 2]; layout = layout.slice(0, n - 2).concat([{ title: a.title + " · Out", params: a.params.concat(layout[n - 1].params) }]); }
     BleepViews.register(type, Object.assign({
+      width: VIEW_WIDTH[type],   // narrower than the default where the cards leave room
       partNames: ["Scope"],
       template: '<div class="bdk"><canvas></canvas><div class="bdk-cap"><span class="bdk-l"></span><span class="bdk-r"></span></div></div>',
       side: true,

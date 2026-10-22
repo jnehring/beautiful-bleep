@@ -301,7 +301,7 @@
     partNames: ["Stages"],
     top: true,
     side: true,
-    width: 1040,
+    width: 710,
     layout: [
       { title: "Sequence", params: ["syncto", "rate", "stages", "mode", "phrase"] },
       { title: "Pitch", params: ["root", "scale", "octave", "seed"] },

@@ -97,6 +97,7 @@
   }
 
   BleepViews.register("adsr", {
+    width: 680,
     template: '<div class="bv-panel"><h2>Envelope</h2><canvas class="adsr-cv"></canvas></div>',
     layout: [
       { title: "Envelope", params: ["attack", "decay", "sustain", "release"] },

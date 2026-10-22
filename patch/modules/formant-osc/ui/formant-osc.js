@@ -135,7 +135,7 @@
 
   BleepViews.register("formant-osc", {
     parts: [{ id: "cycle", name: "One cycle", select: ".fosc-row > div:nth-child(1)" }, { id: "harmonics", name: "Harmonics", select: ".fosc-row > div:nth-child(2)" }],
-    width: 900,
+    width: 620,
     layout: [
       { title: "Pitch", params: ["octave", "coarse", "fine", "tracking", "quality"] },
       { title: "Formant", params: ["formant", "narrow", "body", "start"] },

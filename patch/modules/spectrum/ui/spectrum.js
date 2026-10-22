@@ -94,7 +94,7 @@
   BleepViews.register("spectrum", {
     partNames: ["Analyser"],
     top: true,
-    width: 820,
+    width: 540,
     layout: [
       { title: "Analysis", params: ["size", "average", "floor"] },
       { title: "Display", params: ["tilt", "peak"] },

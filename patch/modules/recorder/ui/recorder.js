@@ -74,7 +74,7 @@
   BleepViews.register("recorder", {
     partNames: ["Take"],
     top: true,
-    width: 700,
+    width: 580,
     layout: [
       { title: "Start", params: ["start", "threshold", "preroll", "gatecontrol"] },
       { title: "Take", params: ["limit", "autosave"] },

@@ -5,7 +5,7 @@
   "use strict";
 
   BleepViews.register("speak", {
-    width: 820,
+    width: 750,
     layout: [
       { title: "Voice", params: ["mode", "speed", "coarse", "fine", "formant"] },
       { title: "Character", params: ["breath", "intonation", "glide", "level"] },

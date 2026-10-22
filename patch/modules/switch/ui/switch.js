@@ -45,6 +45,7 @@
     g.fillText(`${len} steps · ${ORDERS[order] || ""}${sel ? ` · start +${sel}` : ""}${rate ? "" : " · step by trigger"} · drag a column to set its level`, w - pad, 11);
   }
   BleepViews.register("switch", {
+    width: 690,
     template: '<div class="bv-panel"><h2>Slots</h2><canvas class="sw-cv"></canvas></div>',
     layout: [
       { title: "Sequence", params: ["length", "order", "rate", "select"] },

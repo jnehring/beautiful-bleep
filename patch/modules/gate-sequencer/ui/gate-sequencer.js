@@ -279,7 +279,7 @@
   BleepViews.register("gate-sequencer", {
     partNames: ["Tracks"],
     top: true,
-    width: 900,
+    width: 790,
     hideParams: ["rate1", "rate2", "rate3", "rate4", "length1", "length2", "length3", "length4"],
     layout: [
       { title: "Chance", params: ["chance1", "chance2", "chance3", "chance4"] },

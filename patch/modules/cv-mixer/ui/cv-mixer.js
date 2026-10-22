@@ -57,6 +57,7 @@
     g.fillStyle = th.muted; g.font = "9px system-ui, sans-serif"; g.fillText("OUT", ox + ow / 2, h - 4);
   }
   BleepViews.register("cv-mixer", {
+    width: 690,
     template: '<div class="bv-panel"><h2>Mix</h2><canvas class="cm-cv"></canvas></div>',
     layout: [
       { title: "Channels", params: ["level1", "level2", "level3", "level4"] },

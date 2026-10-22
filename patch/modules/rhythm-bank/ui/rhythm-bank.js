@@ -132,7 +132,7 @@
   BleepViews.register("rhythm-bank", {
     partNames: ["Pattern"],
     top: true,
-    width: 900,
+    width: 650,
     layout: [
       { title: "Clock & family", params: ["syncto", "rate", "length", "family", "change"] },
       { title: "Pattern · rotate · width", params: ["pattern", "rotate1", "rotate2", "rotate3", "rotate4", "width"] },

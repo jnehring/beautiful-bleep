@@ -44,6 +44,7 @@
     g.textAlign = "right"; g.fillStyle = th.mod; g.fillText(`B ${Math.round(b * 100)}%`, px + pw - 6, pt + 12);
   }
   BleepViews.register("crossfader", {
+    width: 420,
     template: '<div class="bv-panel"><h2>Gain curves</h2><canvas class="xf-cv"></canvas></div>',
     side: true,
     layout: [{ title: "Blend", params: ["fade", "curve"] }],

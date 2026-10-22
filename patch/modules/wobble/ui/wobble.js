@@ -85,7 +85,7 @@
 
   BleepViews.register("wobble", {
     top: true,
-    width: 820,
+    width: 690,
     layout: [
       { title: "Clock", params: ["rate", "sync"] },
       { title: "Smoothing", params: ["smooth", "wobble", "chaos"] },

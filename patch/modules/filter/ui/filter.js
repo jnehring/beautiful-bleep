@@ -151,7 +151,51 @@
     }
   }
 
-  BleepViews.register("filter", {
+  const HIT = 14;  // px around the cutoff dot that grab it
+
+  /// Drag the dot: left / right = cutoff (same log axis as the knob), up / down = resonance.
+  function attach(view, cv) {
+    const at = (e) => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    const norm = (id) => { const p = view.type.params.find((x) => x.id === id); return view.node.params[id] ?? (p ? p.default : 0); };
+    const set = (id, v) => {
+      v = Math.min(Math.max(v, 0), 1);
+      view.node.params[id] = v;
+      view.api.setParam(id, v);
+      const k = view.knobs.get(id);
+      if (k) k.draw();
+    };
+    const redraw = () => { if (view.flt.st) hooks.onState(view.flt.st, view); };
+    const over = (p) => view.flt.dot && Math.hypot(view.flt.dot.x - p.x, view.flt.dot.y - p.y) <= HIT;
+    cv.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      const p = at(e);
+      if (!over(p)) return;
+      e.stopPropagation(); e.preventDefault();
+      cv.setPointerCapture(e.pointerId);
+      view.api.beginGesture();  // one undo step per drag
+      view.flt.drag = { x: p.x, y: p.y, c: norm("cutoff"), r: norm("resonance") };
+      cv.style.cursor = "grabbing";
+    });
+    cv.addEventListener("pointermove", (e) => {
+      const p = at(e), d = view.flt.drag;
+      if (!d) { cv.style.cursor = over(p) ? "grab" : "default"; return; }
+      const fine = e.shiftKey ? 0.2 : 1;
+      set("cutoff", d.c + (p.x - d.x) / cv.clientWidth * fine);
+      set("resonance", d.r + (d.y - p.y) / 100 * fine);
+      redraw();
+    });
+    const end = () => { view.flt.drag = null; cv.style.cursor = "default"; };
+    cv.addEventListener("pointerup", end);
+    cv.addEventListener("pointercancel", end);
+    cv.addEventListener("dblclick", (e) => {
+      if (!over(at(e))) return;
+      view.api.beginGesture();
+      for (const id of ["cutoff", "resonance"]) { const p = view.type.params.find((x) => x.id === id); if (p) set(id, p.default); }
+      redraw();
+    });
+  }
+
+  const hooks = {
     width: 800,
     layout: [
       { title: "Algorithm", params: ["type", "mode", "vowel", "damping", "slope"] },
@@ -162,6 +206,8 @@
     onState(st, view) {
       const cv = view.root.querySelector(".response");
       if (!cv || !cv.clientWidth) return;
+      if (!view.flt) { view.flt = { st: null, dot: null, drag: null }; attach(view, cv); }
+      view.flt.st = st;
       const fc = 20 * Math.pow(1000, view.value(st, "cutoff"));
       const tp = view.type.params.find((p) => p.id === "type");
       const index = Math.round(view.value(st, "type") * ((tp ? tp.steps : TYPES.length) - 1));
@@ -212,7 +258,9 @@
       BleepView.glow(g, th.accent, 10);
       path(); g.stroke();
       g.shadowBlur = 0;
-      g.fillStyle = th.text; g.beginPath(); g.arc(cx, near[1], 3, 0, 7); g.fill();
+      view.flt.dot = { x: cx, y: near[1] };
+      g.fillStyle = th.text; g.beginPath(); g.arc(cx, near[1], view.flt.drag ? 5 : 3, 0, 7); g.fill();
     },
-  });
+  };
+  BleepViews.register("filter", hooks);
 })();

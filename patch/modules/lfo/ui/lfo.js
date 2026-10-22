@@ -47,6 +47,7 @@
   const WAVES = ["Sine", "Triangle", "Saw Up", "Saw Down", "Square", "Random Step", "Random Smooth"];
 
   BleepViews.register("lfo", {
+    width: 620,
     top: true,
     layout: [
       { title: "Wave", params: ["wave", "pw"] },

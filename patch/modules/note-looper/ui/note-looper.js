@@ -61,6 +61,7 @@
   }
 
   BleepViews.register("note-looper", {
+    width: 500,
     top: true,
     template: '<div class="bv-panel"><h2>Loop</h2><canvas class="nl-roll" style="height:150px"></canvas></div>',
     partNames: ["Loop"],

@@ -192,6 +192,7 @@
   }
 
   BleepViews.register("audio-mixer", {
+    width: 610,
     partNames: ["Mixer strips"],
     partSizes: [[35, 10]],
     layout: [{ title: "Send bus", params: ["sendpoint1", "sendpoint2", "sendpoint3", "sendpoint4", "return"] }],

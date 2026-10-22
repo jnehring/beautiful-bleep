@@ -71,6 +71,7 @@
   }
 
   BleepViews.register("coin-toss", {
+    width: 700,
     top: true,
     layout: [
       { title: "Coin 1", params: ["prob1", "memory1", "mode1"] },

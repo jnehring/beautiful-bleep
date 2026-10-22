@@ -311,7 +311,7 @@
   BleepViews.register("matrix-mixer", {
     partNames: ["Matrix"],
     side: true,
-    width: 900,
+    width: 710,
     // The grid is the editor for the crosspoint gains and the mutes; they stay modulatable through cables.
     hideParams: [].concat(
       ...Array.from({ length: N }, (_, i) => Array.from({ length: N }, (_, j) => `g_${i + 1}_${j + 1}`)),

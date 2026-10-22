@@ -128,7 +128,7 @@
   BleepViews.register("rotating-divider", {
     partNames: ["Division ring"],
     top: true,
-    width: 900,
+    width: 750,
     layout: [
       { title: "Clock", params: ["syncto", "base", "realign"] },
       { title: "Divisions", params: ["set", "rotatemode", "sync", "rotate"] },

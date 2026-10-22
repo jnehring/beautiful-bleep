@@ -53,6 +53,7 @@
   }
 
   BleepViews.register("logic", {
+    width: 530,
     template: '<div class="bv-panel"><h2>Comparator window</h2><canvas class="lg-cv"></canvas><div class="lg-leds"></div></div>',
     layout: [
       { title: "Comparator", params: ["threshold", "hysteresis"] },

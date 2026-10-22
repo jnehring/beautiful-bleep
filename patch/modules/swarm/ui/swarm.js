@@ -75,7 +75,7 @@
   }
 
   BleepViews.register("swarm", {
-    width: 920,
+    width: 860,
     layout: [
       { title: "Pitch", params: ["octave", "coarse", "fine", "glide", "quality", "seed"] },
       { title: "Cloud", params: ["count", "chord", "spread", "range", "pattern", "stack"] },

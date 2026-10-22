@@ -39,7 +39,7 @@
   }
 
   BleepViews.register("drum-notes", {
-    width: 480,
+    width: 420,
     template: '<div class="bv-panel"><h2>Drums</h2><canvas class="dn-cv"></canvas></div>',
     layout: [],
     afterBuild(view, custom) {

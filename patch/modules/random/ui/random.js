@@ -45,6 +45,7 @@
     g.fillText(`${sync ? names[sync] : real(view, st, "rate").toFixed(2) + " Hz"} · loop ${Math.round(view.value(st, "loop") * 100)}% · smooth ${Math.round(sm * 100)}%`, 6, 10);
   }
   BleepViews.register("random", {
+    width: 610,
     template: '<div class="bv-panel"><h2>Output</h2><canvas class="rn-cv"></canvas></div>',
     layout: [
       { title: "Timing", params: ["sync", "rate"] },

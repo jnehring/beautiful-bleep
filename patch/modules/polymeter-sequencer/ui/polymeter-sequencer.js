@@ -294,7 +294,7 @@
   BleepViews.register("polymeter-sequencer", {
     partNames: ["Tracks"],
     top: true,
-    width: 900,
+    width: 820,
     layout: [
       { title: "Clock & patterns", params: ["syncto", "rate", "slots", "patternchange", "seed"] },
       { title: "Gate", params: ["swing", "gatescale", "probbias", "ratchetamt", "velocity", "spread"] },

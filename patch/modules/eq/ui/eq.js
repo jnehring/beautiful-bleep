@@ -416,7 +416,7 @@
     '<circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l4 4M4.3 6.5h4.4' + (minus ? "" : "M6.5 4.3v4.4") + '"/></svg>';
 
   BleepViews.register("eq", {
-    width: 820,
+    width: 510,
     layout: [].concat(
       Array.from({ length: BANDS }, (_, k) => ({
         title: "Band " + (k + 1),

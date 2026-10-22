@@ -41,6 +41,7 @@
   }
 
   BleepViews.register("cv-to-midi", {
+    width: 680,
     template: '<div class="bv-panel"><h2>Lanes</h2><canvas class="cm-cv"></canvas></div>',
     layout: [
       { title: "Lane 1", params: ["cc1", "channel1", "min1", "max1"], columns: true },

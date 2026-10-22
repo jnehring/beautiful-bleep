@@ -193,7 +193,7 @@
   }
 
   BleepViews.register("additive-osc", {
-    width: 940,
+    width: 770,
     layout: [
       { title: "Pitch & phase", params: ["octave", "coarse", "fine", "phases", "normalise", "seed"] },
       { title: "Source", params: ["base", "partials", "tilt", "oddEven"] },

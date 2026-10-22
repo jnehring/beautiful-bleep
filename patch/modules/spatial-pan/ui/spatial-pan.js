@@ -6,7 +6,7 @@
   "use strict";
 
   BleepViews.register("spatial-pan", {
-    width: 820,
+    width: 580,
     layout: [
       { title: "Position", params: ["azimuth", "distance", "elevation", "orbit"] },
       { title: "Space", params: ["doppler", "room", "size", "air"] },

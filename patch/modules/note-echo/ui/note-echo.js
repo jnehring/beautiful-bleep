@@ -62,6 +62,7 @@
   }
 
   BleepViews.register("note-echo", {
+    width: 700,
     top: true,
     template: '<div class="bv-panel"><h2>Repeats</h2><canvas class="ne-train" style="height:110px"></canvas></div>',
     partNames: ["Repeats"],

@@ -77,6 +77,7 @@
   }
 
   BleepViews.register("utility", {
+    width: 630,
     template: '<div class="bv-panel"><h2>Transfer</h2><canvas class="ut-cv"></canvas></div>',
     layout: [
       { title: "Mode", params: ["mode"] },

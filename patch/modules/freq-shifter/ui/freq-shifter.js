@@ -42,7 +42,7 @@
   const xOf = (f, w) => Math.log(Math.max(f, 20) / 20) / Math.log(1000) * w;
 
   BleepViews.register("freq-shifter", {
-    width: 800,
+    width: 660,
     layout: [
       { title: "Shift", params: ["shift", "fine", "range", "sync"] },
       { title: "Feedback", params: ["feedback", "fbDelay"] },

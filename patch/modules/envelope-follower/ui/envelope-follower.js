@@ -57,6 +57,7 @@
   }
 
   BleepViews.register("envelope-follower", {
+    width: 610,
     template: '<div class="bv-panel"><h2>Envelope</h2><canvas class="ef-cv"></canvas></div>',
     layout: [
       { title: "Times", params: ["attack", "release"] },

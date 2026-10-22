@@ -38,7 +38,7 @@
 
   BleepViews.register("meta-mod", {
     partNames: ["Algorithm and scope"],
-    width: 860,
+    width: 730,
     layout: [
       { title: "Algorithm", params: ["algorithm", "timbre", "bitwiseOp"] },
       { title: "Inputs", params: ["carrierLevel", "modLevel"] },

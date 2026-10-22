@@ -130,7 +130,7 @@
   BleepViews.register("shift-register", {
     partNames: ["Register"],
     top: true,
-    width: 900,
+    width: 830,
     layout: [
       { title: "Clock & source", params: ["syncto", "sync", "rate", "source", "combine", "seed"] },
       { title: "Register", params: ["length", "lock"] },

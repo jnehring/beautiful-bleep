@@ -14,7 +14,7 @@
   }
 
   BleepViews.register("endless-tone", {
-    width: 820,
+    width: 650,
     layout: [
       { title: "Glide", params: ["rate", "direction", "phase"] },
       { title: "Tone", params: ["coarse", "fine", "count", "width", "timbre", "spread", "level"] },

@@ -88,6 +88,7 @@
   }
 
   BleepViews.register("noise", {
+    width: 520,
     template: '<div class="bv-panel"><h2>Spectrum</h2><canvas class="nz-cv"></canvas></div>',
     layout: [{ title: "Colour", params: ["colour"] }, { title: "Output", params: ["level"] }],
     afterBuild(view, custom) {

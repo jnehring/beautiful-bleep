@@ -207,6 +207,7 @@
   }
 
   BleepViews.register("wave-analyzer", {
+    width: 560,
     partNames: ["Meter and plotter"],
     hideParams: ["frequency"],
     layout: [
