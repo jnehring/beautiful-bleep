@@ -533,7 +533,7 @@ public:
         setResizeLimits(640, 420, 10000, 10000);
         if (style().bounds.isEmpty()) centreWithSize(1180, 760);
         else setBounds(style().bounds);
-        // Plugins: floats above Live's main window, like Live's own plugin windows. (Phase 0: verify.)
+        // Not always on top: that floats above every app, not only the host. show() brings it to the front.
         setAlwaysOnTop(style().alwaysOnTop);
 #if !JUCE_MAC
         if (style().menu) setMenuBar(style().menu);
