@@ -323,8 +323,11 @@ if (BLEEP_BUILD_TESTS)
     target_compile_definitions(bleep_cell_plugin_presets PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
     target_link_libraries(bleep_cell_plugin_presets PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
-    add_test(NAME patch.cell-plugin-presets COMMAND bleep_cell_plugin_presets
-        "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json")
+    # Sharded like the demo patches above (259 presets of up to 14 s of audio).
+    foreach (shard RANGE ${BLEEP_DEMO_LAST})
+        add_test(NAME patch.cell-plugin-presets.${shard} COMMAND bleep_cell_plugin_presets
+            "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/factory-presets.json" --shard ${shard}/${BLEEP_DEMO_SHARDS})
+    endforeach ()
 
     # Engine features modules build on (normalling, output flags, harmony order,
     # stepped knobs, view metadata, commands, media). juce_core only.

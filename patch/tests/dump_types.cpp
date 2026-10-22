@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     if (argc == 3 && juce::String(argv[1]) == "--check-presets")
         return checkPresets(juce::File::getCurrentWorkingDirectory().getChildFile(argv[2]));
     const juce::String json =
-        juce::JSON::toString(bleep::engine::board::describeTypes(), false).replace("\r\n", "\n") + "\n";
+        juce::JSON::toString(bleep::engine::board::describeTypes(), false).removeCharacters("\r") + "\n";   // JUCE ends lines with \r\n; replace("\r\n", "\n") copies the whole string per line, which took minutes on 1 MB. The JSON escapes any \r inside a string.
     if (argc == 3) {
         const juce::File file(juce::File::getCurrentWorkingDirectory().getChildFile(argv[2]));
         if (juce::String(argv[1]) == "--write") return file.replaceWithText(json, false, false, "\n") ? 0 : 1;

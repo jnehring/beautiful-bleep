@@ -10,10 +10,57 @@
   P.BoardCanvas = {
     create(s) {
       const { $, NODE_W, addAt, addMenu, applyCam, cablesEl, cablesInto, cam, canEnterVoice, canvas, clearCableSel,
-              clone, closeUnpinnedViews, commit, edit, fit, hidePopovers, insideVoiceCell, isBoundary, isCellLike,
-              isPort, isStructural, level, moveIntoCell, nodeById, nodesAt, nodesEl, openSearch, ownerOf, paste,
-              positionCablePop, renderCables, renderSelection, sel, selMore, selectAll, selectedCableIds,
-              showCablePop, showMenu, startCableDrag, startSourceDrag, toWorld, toggleView } = s;
+              clone, closeUnpinnedViews, commit, edit, fit, hidePopovers, inputsOf, insideVoiceCell, isBoundary,
+              isCellLike, isPort, isShown, isStructural, level, moveIntoCell, nodeById, nodesAt, nodesEl, openSearch,
+              outType, outputsOf, ownerOf, paste, positionCablePop, renderCables, renderSelection, sel, selMore,
+              selectAll, selectedCableIds, showCablePop, showMenu, startCableDrag, startSourceDrag, toWorld,
+              toggleView, uid } = s;
+
+      /// Dropping an unconnected module with audio in and out onto an audio cable puts it into the cable.
+      /// A mono module takes the cable under it; a stereo one takes the pair of cables running between the same two modules.
+      /// Returns { ins, outs } (the module's audio jacks), or null when the module may not be inserted.
+      function inserterJacks(m) {
+        if (isPort(m) || isBoundary(m) || isCellLike(m) || isStructural(m)) return null;
+        if (s.board.cables.some((c) => c.from.node === m.id || c.to.node === m.id)) return null;
+        const audio = (list) => list.filter((j) => j.type === "audio" && isShown(m, j));
+        const ins = audio(inputsOf(m)), outs = audio(outputsOf(m));
+        return ins.length && outs.length ? { ins, outs } : null;
+      }
+      /// The audio cables under the module's box (the one nearest its centre, with its stereo partner), or null.
+      function cablesUnder(m, h, jacks) {
+        const cx = m.x + NODE_W / 2, cy = m.y + h / 2;
+        let best = null, bestD = Infinity;
+        for (const hit of cablesEl.querySelectorAll(".cable-hit")) {
+          const c = s.board.cables.find((k) => k.id === hit.dataset.id);
+          const src = c && nodeById(c.from.node);
+          if (!src || outType(src, c.from.jack) !== "audio") continue;
+          const len = hit.getTotalLength();
+          for (let d = 0; d <= len + 6; d += 6) {
+            const p = hit.getPointAtLength(Math.min(d, len));
+            if (p.x < m.x || p.x > m.x + NODE_W || p.y < m.y || p.y > m.y + h) continue;
+            const dist = Math.hypot(p.x - cx, p.y - cy);
+            if (dist < bestD) { best = c; bestD = dist; }
+          }
+        }
+        if (!best) return null;
+        const src = nodeById(best.from.node);
+        const order = (k) => outputsOf(src).findIndex((o) => o.id === k.from.jack);
+        const pair = s.board.cables
+          .filter((k) => k.from.node === best.from.node && k.to.node === best.to.node && outType(src, k.from.jack) === "audio")
+          .sort((a, b) => order(a) - order(b));
+        const n = Math.min(pair.length, jacks.ins.length, jacks.outs.length);
+        return n >= pair.length ? pair : [best];
+      }
+      /// Replaces `cables` by cable → module → cable, jack by jack in order. The second leg keeps the cable's amount.
+      function insertInto(b, cables, id, jacks) {
+        const gone = new Set(cables.map((c) => c.id));
+        const legs = [];
+        cables.forEach((c, i) => {
+          legs.push({ id: uid("k"), from: clone(c.from), to: { node: id, jack: jacks.ins[i].id }, amount: 1 },
+                    { id: uid("k"), from: { node: id, jack: jacks.outs[i].id }, to: clone(c.to), amount: c.amount });
+        });
+        b.cables = b.cables.filter((c) => !gone.has(c.id)).concat(legs);
+      }
       function onNodePointerDown(ev, n) {
         if (ev.button !== 0) return;
         const dot = ev.target.closest(".dot");
@@ -75,6 +122,17 @@
           }
           return null;
         };
+        // A lone unconnected module over an audio cable: the cable lights up, and dropping puts the module into it.
+        const single = moving.length === 1 && movers.length === 1 ? moving[0] : null;
+        const jacks = single && inserterJacks(single);
+        let insert = null;
+        const setInsert = (cables) => {
+          insert = cables;
+          const ids = new Set((cables || []).map((k) => k.id));
+          for (const p of cablesEl.querySelectorAll(".cable")) p.classList.toggle("insert-target", ids.has(p.dataset.id));
+          const ne = single && nodesEl.querySelector(`[data-id="${single.id}"]`);
+          if (ne) ne.classList.toggle("insert-ready", !!cables);
+        };
         const move = (e) => {
           const dx = (e.clientX - start.x) / c.z, dy = (e.clientY - start.y) / c.z;
           if (!moved && Math.hypot(dx, dy) < 3) return;
@@ -88,15 +146,23 @@
             if (ne) { ne.style.left = m.x + "px"; ne.style.top = m.y + "px"; }
           });
           renderCables();
+          if (jacks) {
+            const ne = nodesEl.querySelector(`[data-id="${single.id}"]`);
+            setInsert(dropCell ? null : cablesUnder(single, ne ? ne.offsetHeight : 60, jacks));
+          }
           positionCablePop();
         };
         const up = (e) => {
           window.removeEventListener("pointermove", move);
           window.removeEventListener("pointerup", up);
           const target = moved ? cellUnder(e) : null;
+          const into = target ? null : insert;
           setDropCell(null);
+          setInsert(null);
           if (target) {
             edit("move into cell", (b) => { moveIntoCell(b, new Set(movers.map((m) => m.id)), target, false); sel.clear(); });
+          } else if (into) {
+            edit("insert into cable", (b) => insertInto(b, into, single.id, jacks));   // the position was updated in place while dragging
           } else if (moved) {
             commit(clone(s.board), "move");  // positions were updated in place while dragging
           } else if (!ev.shiftKey && !isStructural(n)) {

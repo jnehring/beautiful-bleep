@@ -74,9 +74,9 @@ def cmake(source: Path, build_dir: Path, config: str, defines: dict, target=None
     run(build)
     if test:
         ctest = ["ctest", "--test-dir", build_dir, "-C", config, "--output-on-failure"]
-        # The demo-patch shards render side by side; the rest runs one at a time (some tests share ports and folders).
-        run([*ctest, "-R", "demo-patches", "--parallel", min(os.cpu_count() or 2, 6)])
-        run([*ctest, "-E", "demo-patches"])
+        # The demo-patch and cell-preset shards render side by side; the rest runs one at a time (some tests share ports and folders).
+        run([*ctest, "-R", "demo-patches|cell-plugin-presets", "--parallel", min(os.cpu_count() or 2, 6)])
+        run([*ctest, "-E", "demo-patches|cell-plugin-presets"])
 
 
 def onoff(b):

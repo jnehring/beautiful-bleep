@@ -145,10 +145,16 @@ private:
 
 #if JUCE_MAC
 /// The login keychain: a generic password per library address. Another program (a DAW hosting the plugin) that did not create the item
-/// is asked by macOS the first time; "Always Allow" ends that.
+/// is asked by macOS the first time; "Always Allow" ends that. A token read once stays in memory for the process: every read of the
+/// keychain item can be a new password prompt (a build whose signature changes gets asked again), and the page asks often.
 class KeychainTokenStore : public TokenStore {
 public:
     std::string load(const std::string& account) override {
+        {
+            std::lock_guard<std::mutex> lock(cacheMutex());
+            const auto it = cache().find(account);
+            if (it != cache().end()) return it->second;
+        }
         CFMutableDictionaryRef q = query(account);
         CFDictionarySetValue(q, kSecReturnData, kCFBooleanTrue);
         CFDictionarySetValue(q, kSecMatchLimit, kSecMatchLimitOne);
@@ -159,6 +165,10 @@ public:
             CFRelease(found);
         }
         CFRelease(q);
+        if (!token.empty()) {
+            std::lock_guard<std::mutex> lock(cacheMutex());
+            cache()[account] = token;
+        }
         return token;
     }
     bool save(const std::string& account, const std::string& token) override {
@@ -170,15 +180,25 @@ public:
         const OSStatus status = SecItemAdd(q, nullptr);
         CFRelease(data);
         CFRelease(q);
+        if (status == errSecSuccess) {
+            std::lock_guard<std::mutex> lock(cacheMutex());
+            cache()[account] = token;
+        }
         return status == errSecSuccess;
     }
     void clear(const std::string& account) override {
+        {
+            std::lock_guard<std::mutex> lock(cacheMutex());
+            cache().erase(account);
+        }
         CFMutableDictionaryRef q = query(account);
         SecItemDelete(q);
         CFRelease(q);
     }
 
 private:
+    static std::map<std::string, std::string>& cache() { static std::map<std::string, std::string> c; return c; }
+    static std::mutex& cacheMutex() { static std::mutex m; return m; }
     static CFMutableDictionaryRef query(const std::string& account) {
         CFMutableDictionaryRef q = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
         CFStringRef service = CFStringCreateWithCString(kCFAllocatorDefault, "Bleep Library", kCFStringEncodingUTF8);

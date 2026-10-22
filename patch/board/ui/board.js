@@ -269,7 +269,7 @@
     $, NODE_W, applyCam, cablesEl, cablesInto, cam, canvas, clearCableSel, clone, commit, edit, fit, insideVoiceCell,
     isBoundary, isCellLike, isPort, isStructural, level, nodeById, nodesAt, nodesEl, ownerOf, positionCablePop,
     renderCables, renderSelection, sel, selMore, selectedCableIds, showCablePop, startCableDrag, startSourceDrag,
-    toWorld,
+    toWorld, inputsOf, outputsOf, outType, isShown, uid,
     addAt: (...a) => addAt(...a), addMenu: (...a) => addMenu(...a), canEnterVoice: (...a) => canEnterVoice(...a), closeUnpinnedViews: (...a) => closeUnpinnedViews(...a), hidePopovers: (...a) => hidePopovers(...a), moveIntoCell: (...a) => moveIntoCell(...a), openSearch: (...a) => openSearch(...a), paste: (...a) => paste(...a), selectAll: (...a) => selectAll(...a), showMenu: (...a) => showMenu(...a), toggleView: (...a) => toggleView(...a),
   });
   const { onNodePointerDown, navStep } = canvasApi;

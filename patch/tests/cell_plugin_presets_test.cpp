@@ -360,9 +360,15 @@ int main(int argc, char** argv) {
     bool verbose = false;
     std::vector<juce::String> files;
     std::set<juce::String> only;
+    int shard = 0, shards = 1;   // --shard K/N: every N-th preset from K, so ctest -j renders them side by side
     for (int i = 1; i < argc; ++i) {
         const juce::String a(argv[i]);
         if (a == "-v") verbose = true;
+        else if (a == "--shard" && i + 1 < argc) {
+            const juce::String spec(argv[++i]);
+            shard = spec.upToFirstOccurrenceOf("/", false, false).getIntValue();
+            shards = std::max(1, spec.fromFirstOccurrenceOf("/", false, false).getIntValue());
+        }
         else if (a.endsWithIgnoreCase(".json")) files.push_back(a);
         else only.insert(a);
     }
@@ -380,7 +386,7 @@ int main(int argc, char** argv) {
             ++count;
             if (!names.insert(entry["name"].toString()).second) fail(entry["name"].toString(), "name used twice");
             if (!entry["preset"].hasProperty("plays")) continue;
-            ++withPlays;
+            if (withPlays++ % shards != shard) continue;
             if (!only.empty() && !only.count(entry["name"].toString())) continue;
             check(entry, verbose);
         }

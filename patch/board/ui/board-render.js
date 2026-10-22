@@ -381,6 +381,7 @@
           const p = document.createElementNS(SVGNS, "path");
           p.setAttribute("d", d);
           p.setAttribute("class", `cable ${type}`);
+          p.dataset.id = c.id;
           p.style.setProperty("--c", signalColour(type));
           if (isGhost(src) || isGhost(dst)) p.classList.add("ghost");
           if (s.trace && !(s.trace.has(src.id) && s.trace.has(dst.id))) p.classList.add("dim");

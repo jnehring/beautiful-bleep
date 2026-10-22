@@ -15,7 +15,7 @@
 #include "Registry.h"
 
 #include <algorithm>
-#include <chrono>
+#include <ctime>
 #include <cmath>
 #include <cstdio>
 #include <functional>
@@ -128,7 +128,7 @@ Result render(const juce::var& board, double tempo) {
     const int64_t total = (int64_t)(kSeconds * kSampleRate);
     const int64_t block = 256;
     const double ppqPerSample = tempo / 60.0 / kSampleRate;
-    const auto t0 = std::chrono::steady_clock::now();
+    const std::clock_t t0 = std::clock();   // CPU time of this process, not the wall clock: shards running side by side must not slow each other's verdict
     for (int64_t done = 0; done < total; done += block) {
         SinkModule::counting = (double)done / kSampleRate >= 4.0;  // the first 4 s are warm-up
         for (int off = 0; off < block; off += kChunk) {
@@ -146,7 +146,7 @@ Result render(const juce::var& board, double tempo) {
     }
     Probe::current() = nullptr;
     Result r;
-    r.cpu = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count() / kSeconds;
+    r.cpu = (double)(std::clock() - t0) / CLOCKS_PER_SEC / kSeconds;
     r.peak = probe.peak;
     r.rms = probe.count ? std::sqrt(probe.sumSq / (double)probe.count) : 0.0;
     if (!probe.finite) r.peak = INFINITY;
