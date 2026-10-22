@@ -195,8 +195,8 @@
     const customEl = el("section", "bv-custom");
     const stage = el("div", "bv-stage");  // the custom display and the controls
     const h = hooks.get(type.type);
-    root.appendChild(stage);
     if (type.description) root.appendChild(el("p", "bv-description", type.description));
+    root.appendChild(stage);
 
     const view = { root, type, node, api, knobs: new Map(), settings: new Map() };
 
@@ -490,7 +490,7 @@
         } else btn.addEventListener("click", () => api.command(b.id, 1));
         bar.appendChild(btn);
       }
-      root.insertBefore(bar, root.querySelector(".bv-description"));
+      stage.after(bar);
       buttonsEl = bar;
     }
     applyLayout();
