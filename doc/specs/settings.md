@@ -43,7 +43,7 @@ Settings live where the thing they control lives. A setting is never offered in 
 
 ### 4.1 App: update check at start
 
-- **Check for module updates at start** (default on), in the Library tab. Today the app asks the library at every start (`library.js`, `updatesPrompt`); with the switch off nothing is asked until *Check for updates* is pressed. It is a field of the library's settings (`updateCheck` in `settings.json`, `library::Settings`), so it is stored with the channel and the unsigned switches and travels through `librarySettings`, not through a settings call of the app. Only the standalone app shows it: the plugins never ask at start.
+- **Check for module updates at start** (default on), in the Library tab. Today the app asks the library at every start (`library.js`, `updatesPrompt`); with the switch off nothing is asked until *Check for updates* is pressed. It is a field of the library's settings (`updateCheck` in `settings.json`, `library::Settings`), so it is stored with the channel and the unsigned switches and travels through `librarySettings`, not through a settings call of the app. The plugins have it too: the first plugin window opened in a Live session asks (once per process, whichever plugin it is), on the same switch.
 - *Later (not built):* open the last project at start; autosave and recovery; where projects and media are kept; a test tone for the output; Link quantum; a channel filter for MIDI inputs; *Reset settings*. Each needs native work in `AppController`.
 
 ### 4.2 Web: Audio

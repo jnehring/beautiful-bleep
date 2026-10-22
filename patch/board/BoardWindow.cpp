@@ -22,6 +22,7 @@
 #include "BoardFiles.h"
 #include "BoardResources.h"
 #include "Engine.h"
+#include <cstdlib>
 #if defined(BLEEP_WASM_MODULES)
 #include "wasm/ModuleLibrary.h"
 #include "library/Account.h"
@@ -286,6 +287,17 @@ public:
         options = options
             .withNativeFunction("types", gated([](const juce::Array<juce::var>&, Completion done) { done(board::describeTypes()); }))
             .withNativeFunction("libraryStatus", gated([](const juce::Array<juce::var>&, Completion done) { done(ModuleLibrary::instance().status()); }))
+            .withNativeFunction("libraryClaimUpdateCheck", gated([](const juce::Array<juce::var>&, Completion done) {
+                // The start check runs once per process: every plugin of a Live session shares the environment, each plugin binary has its own statics.
+                static const char* const flag = "BLEEP_UPDATE_CHECK_DONE";
+                const bool first = std::getenv(flag) == nullptr;
+#if JUCE_WINDOWS
+                if (first) _putenv_s(flag, "1");
+#else
+                if (first) setenv(flag, "1", 1);
+#endif
+                done(first);
+            }))
             .withNativeFunction("libraryRefresh", gated([](const juce::Array<juce::var>&, Completion done) {
                 ModuleLibrary::instance().refreshIndexAsync();
                 done({});

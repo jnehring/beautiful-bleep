@@ -417,18 +417,40 @@
   /// What a preset needs: Map slug → { min, max } from its `needs` plus the modules behind its node types.
   function neededBy(preset) {
     const need = new Map();
-    for (const [slug, r] of Object.entries(preset.needs || {})) need.set(slug, { min: (r && r.min) || "", max: (r && r.max) || "" });
+    for (const [slug, r] of Object.entries(preset.needs || {})) need.set(slug, { min: (r && r.min) || "", max: (r && r.max) || "", made: (r && r.version) || "" });
     const provider = new Map();
     for (const m of status.installed.concat(status.index.modules)) for (const t of m.types || []) if (!provider.has(t)) provider.set(t, m.slug);
     for (const n of preset.nodes || []) {
       const slug = provider.get(n.type);
-      if (slug && !need.has(slug)) need.set(slug, { min: "", max: "" });
+      if (!slug) continue;
+      if (!need.has(slug)) need.set(slug, { min: "", max: "", made: "" });
+      const r = need.get(slug);
+      r.count = (r.count || 0) + 1;
+      if (n.version) { r.made = n.version; r.pins = (r.pins || 0) + 1; }   // a pinned node says its own version
     }
+    for (const r of need.values()) r.pinned = !!r.made && r.count > 0 && r.pins === r.count;
     return need;
   }
 
   /// One verdict per needed module: ok, install (missing), update (too old), or a reason it cannot be met.
   function judge(slug, n) {
+    if (n.made && n.pinned) {   // every node of the module names its version: that version is what is needed
+      const row = { slug, need: n, made: n.made, have: n.made, offer: n.made };
+      if (haveExact(slug, n.made)) return Object.assign(row, { action: "ok" });
+      return Object.assign(row, { action: "install", exact: true });
+    }
+    const row = judgeLatest(slug, n);
+    if (!n.made) return row;
+    row.made = n.made;
+    // Installed and in range, but not the version it was made with: the person decides which to use.
+    if (row.action === "ok" && row.have !== n.made) row.action = "differs";
+    return row;
+  }
+
+  /// Is exactly this version of the module installed and loaded (the newest, or an older one kept for a board that pins it)?
+  const haveExact = (slug, version) => status.installed.concat(status.versions || []).some((m) => m.slug === slug && m.version === version && m.loaded);
+
+  function judgeLatest(slug, n) {
     const have = status.installed.find((m) => m.slug === slug && m.loaded) || status.installed.find((m) => m.slug === slug);
     const offer = status.index.modules.find((m) => m.slug === slug);
     const row = { slug, need: n, have: have && have.version, offer: offer && offer.version };
@@ -471,14 +493,57 @@
     if (opts.once) rows = rows.filter((r) => !asked.has(r.slug));
     if (!rows.length) return true;
     rows.forEach((r) => asked.add(r.slug));
-    return modulesDialog({
+    const choice = { use: "latest" };   // what the person picked when versions differ: "latest" or "made" (the versions it was made with)
+    const ok = await modulesDialog({
       title: `"${name || "This preset"}" needs modules`,
       install: rows.filter((r) => r.action === "install"),
       update: rows.filter((r) => r.action === "update"),
+      differs: rows.filter((r) => r.action === "differs"),
+      choice,
+      pinning: !!status.pinning,
       blocked: rows.filter((r) => r.action === "blocked"),
       updateText: (n) => `${listText(n.map((r) => r.slug))} ${n.length > 1 ? "need" : "needs"} an update.`,
       cancelLabel: "Cancel",
     });
+    if (ok) applyVersionChoice(preset, rows, choice);
+    return ok;
+  }
+
+  /// The nodes of a preset that is about to be placed follow the choice: "made" pins them to the version they were made with
+  /// (the engine then runs that exact version next to the newest), "latest" drops the pins so they run with what is installed.
+  function applyVersionChoice(preset, rows, choice) {
+    const provider = new Map();
+    for (const m of status.installed.concat(status.index.modules)) for (const t of m.types || []) if (!provider.has(t)) provider.set(t, m.slug);
+    const made = new Map(rows.filter((r) => r.made && r.action !== "blocked").map((r) => [r.slug, r.made]));
+    for (const n of preset.nodes || []) {
+      const slug = provider.get(n.type);
+      if (!slug || !made.has(slug)) continue;
+      if (choice.use === "made") n.version = made.get(slug);
+      else delete n.version;
+    }
+  }
+
+  /// The Install button of a placeholder whose node is pinned to a version: that version of the module that provides the type.
+  async function installVersionOf(type, version) {
+    message = "";
+    await statusWithIndex();
+    const m = status.installed.concat(status.index.modules).find((x) => (x.types || []).includes(type));
+    if (!m) { message = "the library has no module for " + type; return false; }
+    const ok = await installVersion(m.slug, version);
+    if (!ok) message = `${m.slug} ${version} could not be installed${status.index.ok ? "" : ": the library cannot be reached"}`;
+    return ok;
+  }
+
+  /// Installs one exact version of a module next to the newest (a board pins it). True if it is there afterwards.
+  async function installVersion(slug, version) {
+    await native("libraryInstallVersion", slug, version);
+    for (let i = 0; i < 300; i++) {
+      await new Promise((r) => setTimeout(r, 400));
+      status = await native("libraryStatus");
+      if (!status.busy[slug]) break;
+    }
+    if (host.onTypes) await host.onTypes();
+    return haveExact(slug, version);
   }
 
   /// The one dialog for every "modules are missing or have newer versions" question: the ones a preset or a pasted patch needs,
@@ -486,7 +551,9 @@
   /// give, then installs with a progress bar. Resolves true when everything asked for is installed (or nothing could be: continue
   /// anyway), false on cancel.
   ///   install, update: [{ slug, title?, have?, offer? }]   blocked: [{ slug, why }]
-  function modulesDialog({ title, install = [], update = [], blocked = [], updateText, cancelLabel = "Cancel", continueLabel = "Continue anyway" }) {
+  ///   differs: [{ slug, made, have }]   modules installed in another version than the one the preset was made with
+  ///   choice: { use }                    set to "latest" or "made" by the radio buttons (needs `pinning`: the app can run an older version)
+  function modulesDialog({ title, install = [], update = [], differs = [], choice = null, pinning = false, blocked = [], updateText, cancelLabel = "Cancel", continueLabel = "Continue anyway" }) {
     const fixable = install.concat(update);
     return new Promise((resolve) => {
       const back = el("div", "st-modal");
@@ -507,6 +574,29 @@
         say(`${listText(names(blocked))} ${blocked.length > 1 ? "are" : "is"} not available in the Bleep Library${fixable.length ? " and cannot be installed" : ""}.`);
         for (const r of blocked) text.appendChild(el("div", "st-why", `${r.slug}: ${r.why}`));
       }
+      if (differs.length) {
+        const shown = differs.map((r) => `${r.slug}: made with ${r.made}, installed ${r.have}`);
+        say(`${differs.length > 1 ? "Some modules are" : "A module is"} installed in another version than the one this was made with.`);
+        text.appendChild(el("div", "st-message", shown.join("\n")));
+      }
+      const withMade = [...differs, ...fixable].filter((r) => r.made);
+      if (choice && withMade.length) {
+        const pick = el("div", "st-choice");
+        const radio = (value, label, off) => {
+          const row = el("label", "st-toggle");
+          const box = el("input");
+          box.type = "radio";
+          box.name = "module-versions";
+          box.checked = choice.use === value;
+          box.disabled = !!off;
+          box.addEventListener("change", () => { if (box.checked) { choice.use = value; refreshLabel(); } });
+          row.append(box, el("span", "", label));
+          pick.appendChild(row);
+        };
+        radio("latest", "Use the latest versions (the settings may sound or look different)");
+        radio("made", `Use the versions it was made with: ${listText(withMade.map((r) => `${r.slug} ${r.made}`))}`, !pinning);
+        text.appendChild(pick);
+      }
       card.appendChild(text);
       const progress = el("progress");
       progress.hidden = true;
@@ -517,9 +607,11 @@
       const cancel = el("button", "", cancelLabel);
       const anyway = el("button", "", continueLabel);
       const go = el("button", "primary", "Install");
+      const refreshLabel = () => { go.textContent = (choice && choice.use === "made" ? fixable.concat(differs).some((r) => r.made && !haveExact(r.slug, r.made)) : fixable.length) ? "Install" : "Continue"; };
+      refreshLabel();
       buttons.append(cancel);
-      if (!fixable.length) buttons.append(anyway);
-      if (fixable.length) buttons.append(go);
+      if (!fixable.length && !differs.length) buttons.append(anyway);
+      if (fixable.length || differs.length) buttons.append(go);
       card.appendChild(buttons);
       back.appendChild(card);
       document.body.appendChild(back);
@@ -529,12 +621,17 @@
       go.addEventListener("click", async () => {
         go.disabled = cancel.disabled = true;
         progress.hidden = false;
-        progress.max = fixable.length;
+        const work = fixable.concat(differs);
+        progress.max = work.length;
         progress.value = 0;
         const failed = [];
-        for (const r of fixable) {
-          result.textContent = `Installing ${r.title || r.slug} (${progress.value + 1} of ${fixable.length})…`;
-          if (!(await installSlug(r.slug))) failed.push(r.slug);
+        const exact = choice && choice.use === "made";
+        for (const r of work) {
+          result.textContent = `Installing ${r.title || r.slug} (${progress.value + 1} of ${work.length})…`;
+          if (differs.includes(r)) {   // installed in another version: only "the versions it was made with" needs something fetched
+            if (exact && !haveExact(r.slug, r.made) && !(await installVersion(r.slug, r.made))) failed.push(`${r.slug} ${r.made}`);
+          } else if (exact && r.made) { if (!haveExact(r.slug, r.made) && !(await installVersion(r.slug, r.made))) failed.push(`${r.slug} ${r.made}`); }
+          else if (!(r.exact && status.installed.some((m) => m.slug === r.slug && m.loaded)) && !(await installSlug(r.slug))) failed.push(r.slug);
           progress.value += 1;
         }
         await refresh();
@@ -548,14 +645,21 @@
     });
   }
 
-  /// The `needs` to write into a preset that is being saved: the modules its node types come from, at least the version installed now.
+  const provides = (slug, type) => status.installed.concat(status.index.modules).some((m) => m.slug === slug && (m.types || []).includes(type));
+
+  /// The `needs` to write into a preset that is being saved: the modules its node types come from, at least the version installed now,
+  /// and the version the nodes were made with.
   async function needsFor(nodes) {
     status = await native("libraryStatus");
     const out = {};
+    if (!status) return out;
     const need = neededBy({ nodes });
     for (const [slug] of need) {
       const have = status.installed.find((m) => m.slug === slug);
-      if (have && have.version) out[slug] = { min: have.version };
+      if (!have || !have.version) continue;
+      // `version`: what the nodes were made with. Nodes pinned to another version (an older one kept for them) name it themselves.
+      const pinned = nodes.find((n) => n.version && provides(slug, n.type));
+      out[slug] = { min: have.version, version: pinned ? pinned.version : have.version };
     }
     return out;
   }
@@ -634,11 +738,12 @@
     });
   }
 
-  /// On every start of the standalone app, after the setup assistant: asks the library what is new and offers to install the updates.
+  /// On every start of the app and, in Live, the first plugin window of a session, after the setup assistant: asks the library what is new and offers to install the updates.
   async function updatesPrompt() {
     status = await native("libraryStatus");
     if (!status.settings.firstRunDone) return;   // the setup assistant is on screen, or was left for later
     if (status.settings.updateCheck === false) return;   // Settings → Library → Check for module updates at start
+    if (!host.standalone && !(await native("libraryClaimUpdateCheck"))) return;   // a plugin: another window of this Live session already asked
     await native("libraryRefresh");
     for (let i = 0; i < 40; i++) {  // the native side reads the index on another thread; a saved copy does not count as an answer
       await new Promise((r) => setTimeout(r, 400));
@@ -660,6 +765,8 @@
 
   P.BleepLibraryView = {
     installType,
+    installVersion,
+    installVersionOf,
     ensureNeeds,
     needsFor,
     lastMessage: () => message,
@@ -669,7 +776,7 @@
       P.BleepModal.mount(root, () => P.BleepLibraryView.hide());
       setTimeout(async () => {
         await firstRun();
-        if (host.standalone) await updatesPrompt();
+        await updatesPrompt();
       }, 600);
       // The standalone app has Security in its Settings section; plugin windows keep it here.
       if (host.settings) tabsEl.querySelector('[data-tab="security"]').remove();

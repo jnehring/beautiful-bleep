@@ -204,7 +204,7 @@
     const s = library.settings;
     row("Channel", select(["stable", "beta"], s.channel, (v) => libraryChange({ channel: v })), "Beta has newer modules that are less tested.");
     body.appendChild(el("div", "st-note", s.libraryUrl + (library.index.ok ? "" : " (not reached)")));
-    if (host === "app") body.appendChild(checkbox("Check for module updates at start", s.updateCheck !== false, (on) => libraryChange({ updateCheck: on })));
+    body.appendChild(checkbox("Check for module updates at start", s.updateCheck !== false, (on) => libraryChange({ updateCheck: on })));
     if (host === "plugin") body.appendChild(el("div", "st-note", "These settings and the modules are shared with Bleep App and the other plugins: one data folder."));
     const url = el("input");
     url.type = "text"; url.value = s.libraryUrl; url.spellcheck = false;
