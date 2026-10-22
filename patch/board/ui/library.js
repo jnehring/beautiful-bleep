@@ -446,9 +446,14 @@
     return Object.assign(row, { action: "install" });
   }
 
+  const asked = new Set();   // what a dialog already named (module slugs and node types), so opening the same board twice does not ask twice
+  const listText = (names) => names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names[0];
+
   /// Before a preset is loaded or placed: if modules it needs are missing or too old, asks to install them from the library.
-  /// Resolves true to go on loading (also with "Load anyway": the board keeps placeholders), false when the user cancels.
-  async function ensureNeeds(preset, name) {
+  /// Resolves true to go on (also when nothing can be done about the rest: the board keeps placeholders), false when the user cancels.
+  /// `opts.isKnown(type)`: node types the app has that no module provides (cells, ports, built-ins); a type nobody knows and the library
+  /// does not list is reported as not available. `opts.once`: skip what an earlier dialog already named.
+  async function ensureNeeds(preset, name, opts = {}) {
     if (!preset) return true;
     // Placing a preset must work offline: look at the modules installed here and at the library index if it is already
     // loaded, never wait for the network. (An index that is not loaded yet is fetched in the background, for next time.)
@@ -456,32 +461,45 @@
     status = await Promise.race([native("libraryStatus"), new Promise((_, no) => setTimeout(() => no(new Error("the app did not answer in time")), 5000))]);
     if (!status) return true;  // no library behind this board (the browser demo): place the preset anyway
     if (!status.index.ok) native("libraryRefresh").catch(() => {});
-    const rows = [...neededBy(preset)].map(([slug, n]) => judge(slug, n)).filter((r) => r.action !== "ok");
+    const need = neededBy(preset);
+    let rows = [...need].map(([slug, n]) => judge(slug, n)).filter((r) => r.action !== "ok");
+    if (opts.isKnown) {   // node types no module provides: the library cannot help
+      const provided = new Set(status.installed.concat(status.index.modules).flatMap((m) => m.types || []));
+      const strays = [...new Set((preset.nodes || []).map((n) => n.type))].filter((ty) => ty && !provided.has(ty) && !opts.isKnown(ty));
+      for (const ty of strays) rows.push({ slug: ty, need: { min: "", max: "" }, action: "blocked", why: "the library does not have it" });
+    }
+    if (opts.once) rows = rows.filter((r) => !asked.has(r.slug));
     if (!rows.length) return true;
+    rows.forEach((r) => asked.add(r.slug));
+    const fixable = rows.filter((r) => r.action === "install" || r.action === "update");
+    const missing = fixable.filter((r) => r.action === "install").map((r) => r.slug);
+    const old = fixable.filter((r) => r.action === "update").map((r) => r.slug);
+    const blocked = rows.filter((r) => r.action === "blocked");
     return new Promise((resolve) => {
       const back = el("div", "st-modal");
       const card = el("div", "st-card");
       card.appendChild(el("h2", "", `"${name || "This preset"}" needs modules`));
-      const list = el("div", "st-list");
-      for (const r of rows) {
-        const ver = r.need.min || r.need.max ? ` (needs ${rangeText(r.need)})` : "";
-        const line = r.action === "install" ? `not installed${r.offer ? `, library has ${r.offer}` : ""}${ver}`
-          : r.action === "update" ? `installed ${r.have}, library has ${r.offer}${ver}` : r.why;
-        const row = el("div", "st-row single");
-        row.appendChild(el("b", "", r.slug));
-        row.appendChild(el("span", "", ` – ${line}`));
-        list.appendChild(row);
+      const text = el("div", "st-text");
+      const say = (line) => text.appendChild(el("p", "", line));
+      if (missing.length) say(`The ${missing.length > 1 ? "modules" : "module"} ${listText(missing)} ${missing.length > 1 ? "are" : "is"} not installed.`);
+      if (old.length) say(`${listText(old)} ${old.length > 1 ? "need" : "needs"} an update.`);
+      if (fixable.length) say(`${fixable.length > 1 ? "They are" : "It is"} available in the Bleep Library. Install ${fixable.length > 1 ? "them" : "it"}?`);
+      if (blocked.length) {
+        say(`${listText(blocked.map((r) => r.slug))} ${blocked.length > 1 ? "are" : "is"} not available in the Bleep Library${fixable.length ? " and cannot be installed" : ""}.`);
+        for (const r of blocked) text.appendChild(el("div", "st-why", `${r.slug}: ${r.why}`));
       }
-      card.appendChild(list);
+      card.appendChild(text);
+      const progress = el("progress");
+      progress.hidden = true;
+      card.appendChild(progress);
       const result = el("div", "st-message");
       card.appendChild(result);
-      const fixable = rows.filter((r) => r.action === "install" || r.action === "update");
       const buttons = el("div", "st-bar");
       const cancel = el("button", "", "Cancel");
-      const anyway = el("button", "", "Load anyway");
-      const go = el("button", "primary", `Download ${fixable.length} from the Bleep Library`);
+      const anyway = el("button", "", "Continue anyway");
+      const go = el("button", "primary", "Install");
       buttons.append(cancel);
-      buttons.append(anyway);
+      if (!fixable.length) buttons.append(anyway);
       if (fixable.length) buttons.append(go);
       card.appendChild(buttons);
       back.appendChild(card);
@@ -490,16 +508,22 @@
       cancel.addEventListener("click", () => done(false));
       anyway.addEventListener("click", () => done(true));
       go.addEventListener("click", async () => {
-        go.disabled = anyway.disabled = cancel.disabled = true;
+        go.disabled = cancel.disabled = true;
+        progress.hidden = false;
+        progress.max = fixable.length;
+        progress.value = 0;
         const failed = [];
         for (const r of fixable) {
-          result.textContent = `Installing ${r.slug}…`;
+          result.textContent = `Installing ${r.slug} (${progress.value + 1} of ${fixable.length})…`;
           if (!(await installSlug(r.slug))) failed.push(r.slug);
+          progress.value += 1;
         }
         if (!failed.length) { done(true); return; }
+        progress.hidden = true;
         result.textContent = `Could not install ${failed.join(", ")}. ${message || "See the Library section."}`;
+        go.remove();
         anyway.disabled = cancel.disabled = false;
-        anyway.textContent = "Load anyway";
+        buttons.append(anyway);
       });
     });
   }

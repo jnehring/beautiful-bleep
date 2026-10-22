@@ -76,6 +76,19 @@
     notice.timer = setTimeout(() => box.classList.remove("show"), 5000);
   }
 
+  // ---------------------------------------------------------------- modules a loaded board needs
+  let typesReady = false;   // the node types are read (start() ran): before that, every type would look missing
+  /// A project or a cell was opened: if it uses modules this app lacks, offers them from the library (also says which are not there).
+  /// What a dialog already named is not asked again, so the same board loading twice stays quiet.
+  async function checkMissingModules() {
+    if (!typesReady || !hasLibrary || !board || !P.BleepLibraryView) return;
+    const known = (ty) => !!types[ty] || ty === "code" || ty === "cell" || ty === "voice-cell";
+    const nodes = board.nodes.filter((n) => !isPort(n) && !isBoundary(n) && !isCellLike(n) && !known(n.type));
+    if (!nodes.length) return;
+    try { await P.BleepLibraryView.ensureNeeds({ nodes, needs: board.needs }, "This project", { isKnown: known, once: true }); }
+    catch (e) { /* the library did not answer: the placeholders say what is missing */ }
+  }
+
   // ---------------------------------------------------------------- backend
   function applyMessage(m) {
     if (!m) return;
@@ -87,6 +100,7 @@
         shownFor = id;
         for (const k of [...views.keys()]) if (k.startsWith("panel:")) closeView(k);
         if (board) setTimeout(openStartPanel, 0);
+        if (board) checkMissingModules();
       }
     }
     if (m.ports) ports = m.ports;
@@ -264,10 +278,10 @@
 
   // ------------------------------------------------------------ operations (board-edit.js)
   const ops = P.BoardEdit.create({
-    get board() { return board; }, get pointer() { return pointer; }, get pointerInside() { return pointerInside; }, get selCable() { return selCable; }, get types() { return types; },
+    get board() { return board; }, get hasLibrary() { return hasLibrary; }, get pointer() { return pointer; }, get pointerInside() { return pointerInside; }, get selCable() { return selCable; }, get types() { return types; },
     canvas, clearCableSel, clone, descendants, edit, inVoiceCell, inputsOf, insideVoiceCell, isBoundary,
     isCellLike, isFixedBoundary, isFixedPort, isPort, isStructural, level, nodeById, nodesAt, outputsOf,
-    removeCables, renderSelection, sel, selectedCableIds, toWorld, uid,
+    notice, removeCables, renderSelection, sel, selectedCableIds, toWorld, uid,
     addPanels: (...a) => addPanels(...a), panelList: (...a) => panelList(...a),
     closeView: (...a) => closeView(...a), panelsWithLoaded: (...a) => panelsWithLoaded(...a),
   });
@@ -532,6 +546,13 @@
   onNative("focus", (f) => { if (f && f.node) focusNode(f.node); });
 
   // ------------------------------------------------------------- keyboard
+  // Where the host swallows the keystroke (a plugin in Live) the web view still gets the edit command: ⌘C, ⌘X and ⌘V arrive as these events.
+  for (const [name, run] of [["copy", copy], ["cut", cut], ["paste", () => paste()]])
+    document.addEventListener(name, (e) => {
+      if (editing() || !board || document.querySelector(".modal-back:not([hidden])")) return;
+      e.preventDefault();
+      run();
+    });
   document.addEventListener("keydown", (e) => {
     if (e.key === " " && !editing()) spaceDown = true;
     if (editing()) return;
@@ -727,6 +748,8 @@
       else if (q.get("play") && !pluginMode)   // an instrument or effect preset on its own: /play/index.html?play=Slate Stabs&as=instrument
         playCell(q.get("play"), q.get("as") === "effect" ? "effect" : "instrument", q.get("source") || "").catch((e) => notice(e.message));
     }
+    typesReady = true;
+    checkMissingModules();   // the board the host opened with
     // Fit once the canvas has its size (the window may still be opening).
     let fitted = false;
     new ResizeObserver(() => {

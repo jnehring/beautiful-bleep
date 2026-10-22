@@ -47,8 +47,17 @@ PanelView::PanelView(engine::IEngine& engine, int handle, Presets presets, std::
     // Things a panel never needs: answered empty, so the page does not wait for them.
     for (const char* name : {"presets", "midiDevices"})
         options = options.withNativeFunction(name, [](const juce::Array<juce::var>&, Completion done) { done(juce::Array<juce::var>()); });
-    for (const char* name : {"savePreset", "deletePreset", "copyText", "pasteText", "loadPatch"})
+    for (const char* name : {"savePreset", "deletePreset", "loadPatch"})
         options = options.withNativeFunction(name, [](const juce::Array<juce::var>&, Completion done) { done({}); });
+    // The system clipboard, so a copy on the web board or in the app pastes here and the other way round.
+    options = options
+                  .withNativeFunction("copyText", [](const juce::Array<juce::var>& a, Completion done) {
+                      if (!a.isEmpty()) juce::SystemClipboard::copyTextToClipboard(a[0].toString());
+                      done({});
+                  })
+                  .withNativeFunction("pasteText", [](const juce::Array<juce::var>&, Completion done) {
+                      done(juce::SystemClipboard::getTextFromClipboard());
+                  });
     options = options
                   .withNativeFunction("cellPresets", [this](const juce::Array<juce::var>&, Completion done) {
                       done(presets_.list ? presets_.list() : juce::var(juce::Array<juce::var>()));

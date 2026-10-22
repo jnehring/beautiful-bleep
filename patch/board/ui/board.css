@@ -491,6 +491,8 @@ canvas.scope { width: 34px; height: 12px; flex: none; }
 .st-card p { margin: 0 0 12px; color: var(--muted); }
 .st-card .st-message { white-space: pre-line; margin: 10px 0 0; }
 .st-card .st-bar { justify-content: flex-end; margin-top: 14px; }
+.st-card .st-why { margin: 0 0 4px 8px; color: var(--muted); font-size: 12px; }
+.st-card progress { width: 100%; margin-top: 10px; }
 #library .st-note { padding: 8px 11px; margin: 0 0 12px; border-left: 3px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 0 5px 5px 0; }
 #library .st-note.warn { border-left-color: var(--mod); color: var(--text); }
 #library .st-note.bad { border-left-color: var(--warn); color: var(--text); }

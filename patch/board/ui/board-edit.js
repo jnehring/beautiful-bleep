@@ -11,7 +11,7 @@
     create(s) {
       const { addPanels, canvas, clearCableSel, clone, closeView, descendants, edit, inVoiceCell, inputsOf,
               insideVoiceCell, isBoundary, isCellLike, isFixedBoundary, isFixedPort, isPort, isStructural, level,
-              nodeById, nodesAt, outputsOf, panelList, panelsWithLoaded, removeCables, renderSelection, sel,
+              nodeById, nodesAt, notice, outputsOf, panelList, panelsWithLoaded, removeCables, renderSelection, sel,
               selectedCableIds, toWorld, uid } = s;
       function selectedNodes(b = s.board) { return [...sel].map((id) => nodeById(id, b)).filter(Boolean); }
       const canDuplicate = () => selectedNodes().some((n) => !isPort(n) && !isBoundary(n));
@@ -143,14 +143,22 @@
       async function paste(at) {
         if (!s.board) return;
         let clip = null;
-        try { clip = JSON.parse(await native("pasteText")); } catch (e) { return; }
-        if (!clip || clip.format !== CLIP_FORMAT || !Array.isArray(clip.nodes) || !Array.isArray(clip.roots)) return;
+        try { clip = JSON.parse(await native("pasteText")); } catch (e) { return notice("Nothing to paste: the clipboard holds no copied Bleep modules."); }
+        if (!clip || clip.format !== CLIP_FORMAT || !Array.isArray(clip.nodes) || !Array.isArray(clip.roots))
+          return notice("Nothing to paste: the clipboard holds no copied Bleep modules.");
         const lvl = level();
         const byId = new Map(clip.nodes.map((n) => [n.id, n]));
         const known = (n) => isCellLike(n) || isBoundary(n) || !!s.types[n.type];
+        const unknownTypes = () => [...new Set(clip.nodes.filter((n) => !known(n)).map((n) => n.type))];
+        // Modules this build lacks: offer them from the library first (the node types are known again once they are installed).
+        if (unknownTypes().length && s.hasLibrary && P.BleepLibraryView
+            && !(await P.BleepLibraryView.ensureNeeds({ nodes: clip.nodes, needs: clip.needs }, "Pasted modules", { isKnown: (ty) => known({ type: ty }) }))) return;
+        const missing = unknownTypes();
         const roots = clip.roots.map((id) => byId.get(id)).filter((n) => n && known(n) && !isPort(n) && !isBoundary(n)
           && !(n.type === "voice-cell" && insideVoiceCell(lvl)));  // no nesting
-        if (!roots.length) return;
+        if (!roots.length)
+          return notice(missing.length ? "Nothing pasted: this build has no " + missing.join(", ") + "." : "Nothing pasted here.");
+        if (missing.length) notice("Pasted without " + missing.join(", ") + ": this build does not have them.");
         // Each root's subtree (its contents, for cells).
         const all = [];
         const walk = (id) => { for (const n of clip.nodes) if (n.parent === id && known(n)) { all.push(n); if (isCellLike(n)) walk(n.id); } };
