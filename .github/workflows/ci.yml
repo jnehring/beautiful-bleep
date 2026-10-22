@@ -63,6 +63,9 @@ jobs:
         with:
           persist-credentials: false
       - run: ./bleep test native
+      # The build rewrites the generated type list; a difference means the committed copy was stale.
+      - name: demo-types.json is current
+        run: git diff --exit-code -- patch/board/ui/demo-types.json
 
   web:
     name: Bleep Play (WebAssembly)

@@ -159,7 +159,18 @@ def build_agent_data(args, s):
     run([py, "-m", "bleep_agent.cli", "data", *args.extra], env=env, cwd=ROOT)
 
 
+def ensure_hooks():
+    """Points git at .githooks/ (the pre-commit check that demo-types.json is current) unless the clone has chosen hooks already."""
+    if not (ROOT / ".githooks").is_dir() or not have("git"):
+        return
+    cur = subprocess.run(["git", "-C", str(ROOT), "config", "--get", "core.hooksPath"], capture_output=True, text=True).stdout.strip()
+    if not cur:
+        run(["git", "-C", ROOT, "config", "core.hooksPath", ".githooks"])
+        print("git hooks: core.hooksPath = .githooks (pre-commit keeps patch/board/ui/demo-types.json current)")
+
+
 def cmd_build(args, s):
+    ensure_hooks()
     targets = args.targets or ["plugins"]
     for t in targets:
         print(f"\n== build {t}")

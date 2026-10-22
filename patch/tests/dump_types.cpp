@@ -86,7 +86,11 @@ int main(int argc, char** argv) {
         juce::JSON::toString(bleep::engine::board::describeTypes(), false).removeCharacters("\r") + "\n";   // JUCE ends lines with \r\n; replace("\r\n", "\n") copies the whole string per line, which took minutes on 1 MB. The JSON escapes any \r inside a string.
     if (argc == 3) {
         const juce::File file(juce::File::getCurrentWorkingDirectory().getChildFile(argv[2]));
-        if (juce::String(argv[1]) == "--write") return file.replaceWithText(json, false, false, "\n") ? 0 : 1;
+        if (juce::String(argv[1]) == "--write") {
+            if (file.existsAsFile() && file.loadFileAsString() == json) return 0;   // unchanged: keep the mtime (watchers, builds)
+            std::printf("%s updated\n", argv[2]);
+            return file.replaceWithText(json, false, false, "\n") ? 0 : 1;
+        }
         if (juce::String(argv[1]) == "--check") {
             if (file.loadFileAsString() == json) return 0;
             std::printf("%s is out of date: run bleep_dump_types --write %s\n", argv[2], argv[2]);

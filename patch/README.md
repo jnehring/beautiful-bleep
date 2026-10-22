@@ -90,12 +90,12 @@ python3 scripts/run/ui-server.py      # http://localhost:8765, with a fake engin
 
 With `./bleep build plugins --ui-dev`, plugins read the page from the
 source tree; press ⌘R in the board window after an edit. The demo backend
-reads node types from `board/ui/demo-types.json`; after changing a module's
-params or jacks, regenerate it (ctest checks it is current):
-
-```bash
-build/patch/bleep_dump_types_artefacts/Release/bleep_dump_types --write patch/board/ui/demo-types.json
-```
+reads node types from `board/ui/demo-types.json`. That file is generated from the module registry: every build
+that includes the tests (`./bleep build`, `./bleep test native`) rewrites it, so after changing a module's params or jacks
+you only build and commit the diff. `.githooks/pre-commit` (installed by `./bleep build`) rebuilds the generator when a
+commit touches `patch/engine` or `patch/modules` and refuses the commit while the file is not what is staged; CI runs
+`git diff --exit-code` on it after the native tests. By hand: `bleep_dump_types --write|--check patch/board/ui/demo-types.json`.
+`-DBLEEP_WRITE_TYPES=OFF` stops the build from touching it.
 
 `bleep_board_smoke` opens the real board window on a real engine for a few
 seconds and checks the page through the real bridge (not part of ctest).

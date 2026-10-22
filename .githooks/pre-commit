@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+#
+# patch/board/ui/demo-types.json is generated from the module registry (bleep_dump_types). When a commit touches the
+# engine or a module, rebuild that one target (an incremental build; it rewrites the file) and stop the commit if the
+# regenerated file is not what is staged, so a stale copy never gets committed.
+#
+# Installed by ./bleep build (git config core.hooksPath .githooks). Skip once with SKIP_TYPES_CHECK=1 git commit ...
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+types=patch/board/ui/demo-types.json
+build=build/patch
+
+git diff --cached --name-only | grep -Eq '^patch/(engine|modules)/|^patch/board/.*\.(cpp|h)$' || exit 0
+[ -z "${SKIP_TYPES_CHECK:-}" ] || exit 0
+if [ ! -f "$build/CMakeCache.txt" ]; then
+  echo "pre-commit: no build in $build, so $types cannot be checked (./bleep build plugins; SKIP_TYPES_CHECK=1 skips this)" >&2
+  exit 0
+fi
+
+echo "pre-commit: refreshing $types ..." >&2
+if ! cmake --build "$build" --target bleep_dump_types >/dev/null; then
+  echo "pre-commit: bleep_dump_types does not build; fix that first (SKIP_TYPES_CHECK=1 skips this)" >&2
+  exit 1
+fi
+if ! git diff --quiet -- "$types"; then
+  echo "pre-commit: $types was out of date and has been regenerated. Review it, 'git add $types', and commit again." >&2
+  exit 1
+fi

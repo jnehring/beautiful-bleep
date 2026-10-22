@@ -414,6 +414,15 @@ if (BLEEP_BUILD_TESTS)
     target_compile_definitions(bleep_dump_types PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
     target_link_libraries(bleep_dump_types PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
+    # The committed copy is generated from the module registry, so every build of this target refreshes it: a changed module
+    # shows up as a diff in git instead of a stale file that someone has to remember to regenerate (the test below, the
+    # pre-commit hook in .githooks/ and CI's `git diff --exit-code` are the safety nets). -DBLEEP_WRITE_TYPES=OFF to leave it alone.
+    option(BLEEP_WRITE_TYPES "Rewrite board/ui/demo-types.json after building bleep_dump_types" ON)
+    if (BLEEP_WRITE_TYPES)
+        add_custom_command(TARGET bleep_dump_types POST_BUILD
+            COMMAND bleep_dump_types --write "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-types.json"
+            VERBATIM)
+    endif ()
     add_test(NAME patch.ui-types COMMAND bleep_dump_types --check
         "${CMAKE_CURRENT_SOURCE_DIR}/board/ui/demo-types.json")
     # The factory cell presets (compiled by patch/presets/build.mjs) load without a warning.
