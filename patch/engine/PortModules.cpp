@@ -314,7 +314,11 @@ public:
             // An Insert with nothing patched into its return passes the send through.
             const bool through = from_ && !c.inputConnected[0];
             const float* l = through ? c.outputs[0] : c.inputs[0];
-            const float* r = through ? c.outputs[1] : (c.inputConnected[1] ? c.inputs[1] : l);  // mono → both
+            // Audio Out: an unpatched R stays silent, unless Mono is on, which plays L on both sides.
+            const bool audioOut = !from_;
+            const bool mono = audioOut && value(c, 1, 0) >= 0.5f;
+            const bool silentR = audioOut && !mono && !c.inputConnected[1];
+            const float* r = through ? c.outputs[1] : (c.inputConnected[1] && !mono ? c.inputs[1] : l);  // mono → both
             float* outL = c.port->out->audio[0] + c.offset;
             float* outR = c.port->out->audio[1] + c.offset;
             if (hasLevel()) {
@@ -323,6 +327,7 @@ public:
                 std::copy(l, l + c.numSamples, outL);
                 std::copy(r, r + c.numSamples, outR);
             }
+            if (silentR) std::fill(outR, outR + c.numSamples, 0.0f);
         }
     }
 
@@ -529,6 +534,7 @@ void registerPortModules(Registry& r) {
         s.params = {ParamSpec::number("volume", "Volume", -60.0f, 6.0f, 0.0f, "dB", 1)};
         s.params[0].map = ParamSpec::Map::Skew;
         s.params[0].centre = -12.0f;
+        s.params.push_back(ParamSpec::toggle("mono", "Mono", false));
         s.inputs = {{"l", "L", Signal::Audio}, {"r", "R", Signal::Audio}};
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<AudioPortModule>(spec, false, true); });
     }

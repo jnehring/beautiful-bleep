@@ -294,6 +294,10 @@ public:
                 ModuleLibrary::instance().installAsync(a[0].toString().toStdString());
                 done({});
             }))
+            .withNativeFunction("libraryInstallVersion", gated([](const juce::Array<juce::var>& a, Completion done) {
+                ModuleLibrary::instance().installVersionAsync(a[0].toString().toStdString(), a[1].toString().toStdString());   // a board pins this version
+                done({});
+            }))
             .withNativeFunction("libraryInstallAll", gated([](const juce::Array<juce::var>&, Completion done) {
                 ModuleLibrary::instance().installAllAsync();
                 done({});
@@ -522,7 +526,7 @@ BoardWindowStyle& style() {
 }
 juce::DocumentWindow* g_window = nullptr;
 
-class BoardWindow : public juce::DocumentWindow {
+class BoardWindow : public juce::DocumentWindow, private juce::FocusChangeListener {
 public:
     explicit BoardWindow(Engine& engine)
         : juce::DocumentWindow(style().title, juce::Colour(0xff15171c), juce::DocumentWindow::allButtons) {
@@ -533,14 +537,18 @@ public:
         setResizeLimits(640, 420, 10000, 10000);
         if (style().bounds.isEmpty()) centreWithSize(1180, 760);
         else setBounds(style().bounds);
-        // Not always on top: that floats above every app, not only the host. show() brings it to the front.
-        setAlwaysOnTop(style().alwaysOnTop);
+        // Floats above the plugin windows, but only while this process is in front, not above other apps.
+        if (style().alwaysOnTop) {
+            juce::Desktop::getInstance().addFocusChangeListener(this);
+            updateFloating();
+        }
 #if !JUCE_MAC
         if (style().menu) setMenuBar(style().menu);
 #endif
         g_window = this;
     }
     ~BoardWindow() override {
+        juce::Desktop::getInstance().removeFocusChangeListener(this);
         if (g_window == this) g_window = nullptr;
     }
     void closeButtonPressed() override {
@@ -550,6 +558,9 @@ public:
     BoardView& view() { return *view_; }
 
 private:
+    void globalFocusChanged(juce::Component*) override { updateFloating(); }
+    void updateFloating() { setAlwaysOnTop(juce::Process::isForegroundProcess()); }
+
     BoardView* view_ = nullptr;
 };
 

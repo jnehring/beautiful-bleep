@@ -12,7 +12,9 @@
 namespace bleep::engine {
 
 struct BoardWindowStyle {
-    bool alwaysOnTop = false;  ///< a floating window stays above every app, not only the host
+    /// Floats above the host's plugin windows, but only while the host is the frontmost app (a plain
+    /// always-on-top window would float above every app).
+    bool alwaysOnTop = true;
     juce::String title = "Bleep Board";
     std::function<void()> onClose;            ///< default: hide the window
     juce::MenuBarModel* menu = nullptr;       ///< Windows/Linux menu bar (macOS uses the main menu)
