@@ -36,7 +36,7 @@ ctest --test-dir build/light -R patch.dsp --output-on-failure
 To also run the engine, bridge and plugin tests, use the full build, which compiles the plugins and runs `ctest` at the end:
 
 ```bash
-scripts/build/build-patch.sh
+./bleep build plugins
 ```
 
 ## Bus tests

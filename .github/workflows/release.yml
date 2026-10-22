@@ -32,7 +32,7 @@ jobs:
         with:
           persist-credentials: false
       # No secrets in the build: it fetches and compiles other people's code (JUCE, Link).
-      - run: scripts/build/build-patch.sh
+      - run: ./bleep build plugins
       - name: Check the version level
         env:
           LEVEL: ${{ inputs.level }}

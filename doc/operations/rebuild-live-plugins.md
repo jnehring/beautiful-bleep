@@ -22,9 +22,9 @@ Same as [the standalone app](build-standalone-app.md): CMake 3.22+, a C++ compil
 ## With the script
 
 ```bash
-scripts/build-patch.sh --juce /path/to/JUCE           # build into build/patch/ and run the tests
-scripts/build-patch.sh --no-test                      # skip the tests
-scripts/build-patch.sh --install                      # also copy the VST3s to ~/Library/Audio/Plug-Ins/VST3
+./bleep build plugins --juce /path/to/JUCE           # build into build/patch/ and run the tests
+./bleep build plugins --no-test                      # skip the tests
+./bleep build plugins --install                      # also copy the VST3s to ~/Library/Audio/Plug-Ins/VST3
 ```
 
 ## Without the script
@@ -55,11 +55,11 @@ The bundles end up in `build/patch/<Target>_artefacts/Release/VST3/`, for exampl
 
 On Windows the folder is `C:\Program Files\Common Files\VST3`.
 
-`scripts/reload-live.sh <set.als>` does the same (build, quit Live, replace the bundles, reopen a set) in one step.
+`./bleep run live <set.als>` does the same (build, quit Live, replace the bundles, reopen a set) in one step.
 
 ## Troubleshooting
 
 - **Only some Bleep plugins show up in Live.** Check `ls ~/Library/Audio/Plug-Ins/VST3 | grep -i bleep`. Plugins that are not there were not built or not copied. `build/patch-dev/` holds old Debug builds: don't install from there.
-- **Stale CMake cache.** Run `scripts/build-patch.sh --clean`, or delete `build/patch/`.
+- **Stale CMake cache.** Run `./bleep build plugins --clean`, or delete `build/patch/`.
 - **Plugin refuses to share the engine.** The binaries have different engine major versions (`kAbiTag`). Rebuild and reinstall all of them.
 - **Only the board UI (HTML/CSS/JS) changed.** Build once with `--ui-dev` and press ⌘R in the board window instead of rebuilding (see the main [README](../../README.md)).

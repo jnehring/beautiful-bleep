@@ -50,9 +50,9 @@ Build (needs CMake 3.22+, a C++ compiler, JUCE 8.0.9; Link 4.1 is downloaded on 
 
 ```bash
 # Release build of the app target, then starts it
-scripts/run/run-app.sh
+./bleep run app
 # quick check of the last build: prints a report and quits
-scripts/run/run-app.sh --no-build --smoke
+./bleep run app --no-build --smoke
 ```
 
 Result: `build/patch/BleepApp_artefacts/Release/Bleep App.app`. Without the script:
@@ -62,7 +62,7 @@ cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_JUCE_DIR=/path/
 cmake --build build/patch --config Release --target BleepApp --parallel
 ```
 
-**Skip the tests:** `run-app.sh` builds only the app target and runs no tests, so there is nothing to skip. The optional `--smoke` check is the only test step, so leave it out. If you build the app with `build-patch.sh` (same tree as the plugins), pass `--no-test`.
+**Skip the tests:** `./bleep run app` builds only the app target and runs no tests, so there is nothing to skip. The optional `--smoke` check is the only test step, so leave it out. If you build the app with `./bleep build plugins` (same tree as the plugins), pass `--no-test`.
 
 Release and upload:
 
@@ -82,7 +82,7 @@ Library ids: `bleep-board`, `bleep-midi-in`, `bleep-midi-out`, `bleep-audio-in`,
 Build and install only the VST3s (no tests, no standalone app; the fast path):
 
 ```bash
-scripts/build/build-patch.sh --juce ../bastelbox/brilliant-bleep/plugins/JUCE --plugins-only --no-app --install
+./bleep build plugins --juce ../bastelbox/brilliant-bleep/plugins/JUCE --plugins-only --no-app --install
 ```
 
 Give `--juce` (or set `BLEEP_JUCE_DIR`) on every run. Without it the script falls back to downloading JUCE 8.0.9 into `build/patch/_deps`, a different path, and everything is compiled again. `--install` copies the VST3s to `~/Library/Audio/Plug-Ins/VST3` (quit Live first); leave it out to only build.
@@ -90,12 +90,12 @@ Give `--juce` (or set `BLEEP_JUCE_DIR`) on every run. Without it the script fall
 The full build (the plugins and the app, then the DSP, engine and bridge tests):
 
 ```bash
-scripts/build/build-patch.sh --juce ../bastelbox/brilliant-bleep/plugins/JUCE
+./bleep build plugins --juce ../bastelbox/brilliant-bleep/plugins/JUCE
 # build the tests but do not run them
-scripts/build/build-patch.sh --juce ../bastelbox/brilliant-bleep/plugins/JUCE --no-test
+./bleep build plugins --juce ../bastelbox/brilliant-bleep/plugins/JUCE --no-test
 ```
 
-**Skip the tests:** `--no-test` only skips running them; `--plugins-only` does not build them either. `release.py --build` runs `build-patch.sh --plugins-only` (no tests, no test targets), so after a `build-patch.sh --plugins-only` run it has nothing left to compile. Run the tests separately with plain `build-patch.sh` before a release.
+**Skip the tests:** `--no-test` only skips running them; `--plugins-only` does not build them either. `release.py --build` runs `./bleep build plugins --plugins-only` (no tests, no test targets), so after a `./bleep build plugins --plugins-only` run it has nothing left to compile. Run the tests separately with plain `./bleep build plugins` before a release.
 
 **Modules are not part of the plugins.** With the wasm module host (`BLEEP_WASMTIME_DIR`, found by default in `build/wasm-spike/wasmtime`) and `BLEEP_BUNDLE_MODULES=OFF`, the plugins carry no modules. They load the signed `.bleepmod` packages installed on the machine, from the same data folder the standalone app installs into (`library::defaultDataDir()`, `~/Library/Application Support/Bleep` on macOS). The app and the plugins share one module installation. What compiles every module in is the test targets (`bleep_module_harness`, `bleep_wasm_parity`, ...), which are the reference the wasm builds are checked against. `--no-test` only skips running them; `--plugins-only` does not build them either (the command at the top of this section).
 
@@ -115,7 +115,7 @@ Release and upload (`--list` shows the ids):
 scripts/release/release.py bleep-board --level 1.x --token-file ~/.bleep-release-token
 scripts/release/release.py --all --level patch --dry-run
 scripts/release/release.py --all --level patch --notes "what changed" --token-file ~/.bleep-release-token
-# runs build-patch.sh first
+# runs ./bleep build plugins first
 scripts/release/release.py --all --build --level patch --token-file ~/.bleep-release-token
 ```
 
@@ -226,17 +226,17 @@ Reload http://localhost:8080/play/ (hard reload if the old UI stays).
 **Modules and UI in one go (dev stack).** After changing a module as well as the board UI, one script does both: it runs `build-web.sh --modules-only` (which publishes the modules unsigned to `website/app/public/play/local-modules`) and then the `play` service above.
 
 ```bash
-scripts/build/update-play.sh
+./bleep run play
 # modules built in the Emscripten image
-scripts/build/update-play.sh --docker
+./bleep run play --docker
 ```
 
 Reload Bleep Play afterwards. Turn on Settings > Library > "Allow unsigned modules" once, so it takes the local modules. This is for development only; users get modules through the release steps above.
 
-**Production stack** (`run-website.sh`). The site container is read-only and its files are baked into the image, so copying `build/web/site` into it does not work (and would be lost on the next restart). The image build runs `build-web.sh --no-modules` itself; rebuild the image and recreate the container:
+**Production stack** (`./bleep run site`). The site container is read-only and its files are baked into the image, so copying `build/web/site` into it does not work (and would be lost on the next restart). The image build runs `build-web.sh --no-modules` itself; rebuild the image and recreate the container:
 
 ```bash
-scripts/run/run-website.sh up
+./bleep run site up
 ```
 
 Only the changed layers run again; the database and the library keep their data. Then open http://localhost:8080/play/.
@@ -257,27 +257,27 @@ cp website/.env.example website/.env
 
 ```bash
 # build the images and start everything: http://localhost:8080
-scripts/run/run-website.sh
+./bleep run site
 ```
 
 ```bash
 # after changing website/content, website/app, the board UI or module docs: rebuild and restart
-scripts/run/run-website.sh up
+./bleep run site up
 ```
 
 ```bash
 # rebuild from scratch, without Docker's layer cache
-scripts/run/run-website.sh rebuild
+./bleep run site rebuild
 ```
 
 ```bash
 # follow the logs
-scripts/run/run-website.sh logs
+./bleep run site logs
 ```
 
 ```bash
 # stop (the database and the library keep their data; `docker compose down -v` in website/ deletes it)
-scripts/run/run-website.sh down
+./bleep run site down
 ```
 
 On a real server set `BLEEP_COOKIE_SECURE=true` (the site is served over HTTPS) and `BLEEP_SITE_PORT` if 8080 is taken. Deploying is rebuilding the containers on the server; deploying from CI is not set up yet. A module release needs no website deploy.

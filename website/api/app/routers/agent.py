@@ -53,7 +53,7 @@ def _build_resources() -> Any:
     data = Path(settings.agent_data_dir)
     catalog_file = data / "catalog.json"
     if not catalog_file.exists():
-        raise FileNotFoundError(f"{catalog_file} missing: run scripts/build/build-agent-data.sh")
+        raise FileNotFoundError(f"{catalog_file} missing: run ./bleep build agent-data")
     catalog = Catalog.load(catalog_file)
     presets = PresetLibrary.load(data / "presets.jsonl") if (data / "presets.jsonl").exists() else None
     docs = None

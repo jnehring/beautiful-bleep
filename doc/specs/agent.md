@@ -9,7 +9,7 @@ fixes the formats and interfaces the code is written against. Where the two diff
 |---|---|---|
 | Library `bleep-agent` | `agent/` | Python 3.12, Pydantic AI |
 | Backend integration | `website/api/app/routers/agent.py`, `agent_quota.py`, config, migration | Python (FastAPI) |
-| Generated data (git-ignored) | `website/api/agent_data/` : `catalog.json`, `presets.jsonl`, `docs.sqlite` | built by `scripts/build/build-agent-data.sh` |
+| Generated data (git-ignored) | `website/api/agent_data/` : `catalog.json`, `presets.jsonl`, `docs.sqlite` | built by `./bleep build agent-data` |
 | Board chat panel | `patch/board/ui/agent-chat.js`, `agent-chat.css` (exposed as `P.BleepAgentChat`; the board seals its scripts, so it is not on `window`) | JavaScript |
 | Evaluation workbench | `agent/evals/`, `agent/src/bleep_agent/evals/` | Python |
 
@@ -256,7 +256,7 @@ generators for fault-injected diagnose cases and patch templates in `agent/evals
 - Changeset ids are a hash of the operations, so a replayed conversation (evaluation cache) is identical.
 - Skill routing is by keywords (`skills.route`), with the request's `skill` hint winning; questions go to `docs`.
 - Docker: the API image installs the library from the named build context `agentlib` (`../agent`); `website/api/agent_data/` must exist
-  in the build context (`scripts/build/build-agent-data.sh`); `constraints.txt` pins the library's dependencies (websockets moved to 16.x,
+  in the build context (`./bleep build agent-data`); `constraints.txt` pins the library's dependencies (websockets moved to 16.x,
   which `google-genai` requires).
 - **Copy chat:** the panel's "Copy chat" button builds one JSON document (`format: bleep-assistant-chat`): the transcript with timestamps and what became of
   each changeset, and, for every run id seen, the server's log from `GET /api/agent/log?run_ids=a,b` (a user reads only their own runs; runs the rolling

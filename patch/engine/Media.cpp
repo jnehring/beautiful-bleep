@@ -32,6 +32,7 @@ std::string defaultFolder() {
 
 namespace fs = std::filesystem;
 
+#ifndef __wasm__  // a module file has no disk: the folder helpers, save() and import() are native only (stubs below)
 /// Moves `from` to `to` without overwriting: a folder is merged child by child.
 void moveNoClobber(const fs::path& from, const fs::path& to) {
     std::error_code ec;
@@ -68,6 +69,7 @@ fs::path appDataDir() {  // as juce::File::userApplicationDataDirectory
     return homeDir() / ".config";
 #endif
 }
+#endif
 
 uint32_t u16(const uint8_t* p) { return (uint32_t)p[0] | ((uint32_t)p[1] << 8); }
 uint32_t u32(const uint8_t* p) { return u16(p) | (u16(p + 2) << 16); }
@@ -92,6 +94,7 @@ std::string hashId(const std::vector<uint8_t>& bytes) {
 
 }  // namespace
 
+#ifndef __wasm__
 void migrateLegacyFolders() {
     static std::mutex lock;
     std::lock_guard<std::mutex> guard(lock);
@@ -118,6 +121,9 @@ void migrateLegacyFolders() {
     }
     moveNoClobber(homeDir() / "Music" / "Bleep Patch", homeDir() / "Music" / "Beautiful Bleep");
 }
+#else
+void migrateLegacyFolders() {}
+#endif
 
 void setFolder(const std::string& path) {
     std::lock_guard<std::mutex> l(g_lock);
@@ -219,6 +225,7 @@ std::vector<uint8_t> encodeWav(const MediaClip& clip) {
     return v;
 }
 
+#ifndef __wasm__
 std::string save(const MediaClip& clip) {
     const std::vector<uint8_t> bytes = encodeWav(clip);
     const std::string id = hashId(bytes);
@@ -253,6 +260,13 @@ std::shared_ptr<const MediaClip> import(const uint8_t* data, size_t size, const 
     g_cache[clip->id] = clip;
     return clip;
 }
+#else
+std::string save(const MediaClip&) { return {}; }
+std::shared_ptr<const MediaClip> import(const uint8_t*, size_t, const std::string&, std::string* error) {
+    if (error) *error = "a module cannot write to the media folder";
+    return nullptr;
+}
+#endif
 
 #ifdef __wasm__
 // A module file has no disk. The host reads the media folder and hands the samples over through two imports

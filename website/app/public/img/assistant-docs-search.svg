@@ -18,7 +18,7 @@
 
   <!-- build time -->
   <rect class="group" x="16" y="14" width="728" height="140" rx="12"/>
-  <text class="gt" x="30" y="36">Build time (scripts/build/build-agent-data.sh)</text>
+  <text class="gt" x="30" y="36">Build time (./bleep build agent-data)</text>
   <rect class="box" x="30" y="50" width="150" height="86" rx="10"/>
   <text class="name" x="105" y="76">Pages</text><text class="sub" x="105" y="96">website/content</text><text class="sub" x="105" y="112">module manuals</text>
   <rect class="box" x="226" y="50" width="170" height="86" rx="10"/>

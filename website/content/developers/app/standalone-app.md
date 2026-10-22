@@ -15,11 +15,11 @@ CMake 3.22 or newer, a C++ compiler (Xcode command line tools on macOS, Visual S
 ## Build and run
 
 ```bash
-scripts/run/run-app.sh                        # Release build, then start with console output here
-scripts/run/run-app.sh my-project.bleepboard  # open a project
-scripts/run/run-app.sh --no-build             # start the last build
-scripts/run/run-app.sh --smoke                # no audio inputs or Link; print a report and quit
-scripts/run/run-app.sh --ui-dev               # read the board UI from patch/; ⌘R after an edit
+./bleep run app                        # Release build, then start with console output here
+./bleep run app my-project.bleepboard  # open a project
+./bleep run app --no-build             # start the last build
+./bleep run app --smoke                # no audio inputs or Link; print a report and quit
+./bleep run app --ui-dev               # read the board UI from patch/; ⌘R after an edit
 ```
 
 Without the script: `cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_JUCE_DIR=…`, then `cmake --build build/patch --target BleepApp`. The result is `build/patch/BleepApp_artefacts/Release/Bleep App.app` (macOS) or an executable in the same folder on Windows.
@@ -44,8 +44,8 @@ Without the script: `cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -D
 ## Checks before you hand out a build
 
 ```bash
-scripts/build/build-patch.sh      # plugins and tests; the app is built from the same tree
-scripts/run/run-app.sh --smoke
+./bleep build plugins      # plugins and tests; the app is built from the same tree
+./bleep run app --smoke
 ```
 
 On macOS, start the smoke run with `--system-audio` through LaunchServices (`open -W … --args --smoke --system-audio`), or the audio permission is not the app's and the capture stays silent.

@@ -22,26 +22,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - run: python3 scripts/check/check-repo.py
       - run: python3 -m pip install cryptography==50.0.2
-      - run: python3 -m unittest test_release test_signing test_package_module test_community_publish
-        working-directory: scripts/release
-      - run: node patch/web/test/library-client-test.mjs
-      - run: node patch/web/test/module-versions-test.mjs
-      - run: node patch/web/test/web-settings-test.mjs
-      - run: node patch/web/test/board-code-test.mjs
-      - run: node patch/web/test/user-modules-test.mjs
-      - run: node patch/web/test/bleepmod-test.mjs
-      - run: npm ci --no-audit --no-fund
-        working-directory: patch/script
-      - run: npm test
-        working-directory: patch/script
-      - run: python3 scripts/check/check-api-docs.py
-      - run: node patch/presets/build.mjs --check
-      - run: node patch/presets/build-modules.mjs --check
-      - run: node patch/presets/build-docs.mjs --check
-      - run: node patch/web/test/build-docs-test.mjs
-      - run: python3 scripts/docs/build-docs.py --out build/docs
+      - run: ./bleep test check py presets
+      - run: ./bleep test js
+      - run: ./bleep test script
+      - run: ./bleep docs build --out build/docs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: docs-single-files
@@ -67,9 +52,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - run: cmake -S bus -B build/bus -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build/bus --config Release
-      - run: ctest --test-dir build/bus -C Release --output-on-failure
+      - run: python3 scripts/bleep.py build bus
 
   patch-dsp:
     name: Patch DSP tests (Linux)
@@ -78,9 +61,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
-      - run: cmake -S patch -B build/patch -DBLEEP_BUILD_PLUGINS=OFF
-      - run: cmake --build build/patch
-      - run: ctest --test-dir build/patch --output-on-failure
+      - run: ./bleep test native
 
   web:
     name: Bleep Play (WebAssembly)
@@ -97,19 +78,8 @@ jobs:
           node-version: 22
       - run: npm ci --no-audit --no-fund && npm run bundle
         working-directory: patch/script
-      - run: scripts/build/build-web.sh build/web/site
-      - run: node patch/web/test/graph-test.mjs build/web/site
-      - run: node patch/web/test/patchbay-test.mjs
-      - run: node patch/web/test/panel-wiring-test.mjs
-      - run: node patch/web/test/bridge-seal-test.mjs
-      - run: node patch/web/test/markdown-test.mjs
-      - run: node patch/web/test/credits-test.mjs
-      - run: node patch/web/test/preset-index-test.mjs
-      - run: node patch/web/test/media-test.mjs
-      - run: node patch/web/test/play-wrap-test.mjs
-      - run: node patch/web/test/audio-input-test.mjs
-      - run: node patch/web/test/voices-test.mjs build/web/site
-      - run: node patch/web/test/play-presets-test.mjs build/web/site
+      - run: ./bleep build web --out build/web/site
+      - run: ./bleep test js --site build/web/site
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: bleep-board-web

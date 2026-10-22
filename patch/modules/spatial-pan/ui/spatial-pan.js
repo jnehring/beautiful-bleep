@@ -39,9 +39,9 @@
       const th = BleepView.theme(view.root);
       const az = (view.value(st, "azimuth") * 360 - 180) * Math.PI / 180;
       const dist = view.value(st, "distance"), el = (view.value(st, "elevation") * 180 - 90) * Math.PI / 180;
-      const top = view.root.querySelector(".sp-top");
-      if (top && top.clientWidth) {
-        const { g, w, h } = BleepView.fit(top);
+      const topEl = view.root.querySelector(".sp-top");
+      if (topEl && topEl.clientWidth) {
+        const { g, w, h } = BleepView.fit(topEl);
         const cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 8;
         g.strokeStyle = th.line; g.globalAlpha = 0.6;
         for (const f of [0.33, 0.66, 1]) { g.beginPath(); g.arc(cx, cy, R * f, 0, 6.2832); g.stroke(); }

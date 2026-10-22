@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     agent_daily_tokens: int = 1_000_000
     agent_model: str = "google:gemini-3.8-flash"
     agent_embed_model: str = "gemini-embedding-2"
-    # catalog.json, presets.jsonl and docs.sqlite (scripts/build/build-agent-data.sh), relative to the API's working directory.
+    # catalog.json, presets.jsonl and docs.sqlite (./bleep build agent-data), relative to the API's working directory.
     agent_data_dir: str = "agent_data"
     # Chat requests per user per minute (in memory, per process). 0 = no limit.
     agent_user_per_minute: int = 6

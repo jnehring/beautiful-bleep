@@ -31,8 +31,8 @@ MIDI In/Out and Audio In/Out have a **Board** menu (*This set*, *Bleep App*, *Bl
 ## Build
 
 ```bash
-scripts/build/build-patch.sh --juce /path/to/JUCE    # or BLEEP_JUCE_DIR; otherwise JUCE 8.0.9 is downloaded
-scripts/build/build-patch.sh --install               # also copy the VST3s to your plugin folder
+./bleep build plugins --juce /path/to/JUCE    # or BLEEP_JUCE_DIR; otherwise JUCE 8.0.9 is downloaded
+./bleep build plugins --install               # also copy the VST3s to your plugin folder
 ```
 
 The script builds into `build/patch/` and runs the DSP, engine and headless-host tests. VST3 and Live only for now. Without the script: `cmake -S patch -B build/patch -DBLEEP_JUCE_DIR=… -DBLEEP_FORMATS=VST3`, then `cmake --build`, with `--target BleepMidiIn_VST3` and so on to build only some plugins. Build them all when the engine major has changed.
@@ -42,7 +42,7 @@ The script builds into `build/patch/` and runs the DSP, engine and headless-host
 Live keeps a plugin's code loaded until it quits, and overwriting a loaded plugin can crash it. So:
 
 - **UI changes (HTML, CSS, JS):** build once with `--install --ui-dev`. These builds read the board UI from `patch/` instead of the embedded copy; press ⌘R in the board window after an edit. Never ship `--ui-dev` builds.
-- **DSP, bus or C++ changes:** save your test set and run `scripts/run/reload-live.sh <set.als>`. It builds first and quits Live only if the build succeeded. It never force-quits Live.
+- **DSP, bus or C++ changes:** save your test set and run `./bleep run live <set.als>`. It builds first and quits Live only if the build succeeded. It never force-quits Live.
 - **Without Live:** `scripts/run/ui-server.py` runs the board UI in a browser with a fake engine, and the engine tests simulate Live's parallel tracks (`ctest --test-dir build/patch`).
 
 ## Talking to other boards

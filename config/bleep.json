@@ -1,0 +1,6 @@
+{
+  "_comment": "Shared defaults of ./bleep (scripts/settings.py). Put this machine's own values in config/bleep.local.json (git-ignored; see bleep.local.example.json).",
+  "buildConfig": "Release",
+  "channel": "stable",
+  "webDocker": false
+}

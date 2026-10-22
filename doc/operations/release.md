@@ -30,11 +30,11 @@ docker compose exec api python -m app.cli developer-revoke KEY_ID
 
    The kit holds the private key and a certificate (valid 365 days by default; make a new one before you want to publish again once it has lapsed. Releases that are already published keep working: the library dated each one with a publication receipt, so nothing has to be re-signed). A developer outside the team gets their own kit and token: `developer-create acme --scopes module`, `token-create "acme" --publisher acme`, both handed over privately.
    Receipts make the library's clock a security input: keep the server's time synchronised (NTP). A clock that jumps back makes publishing fail (503) until it has caught up. Releases published before receipts existed get theirs once, with `docker compose exec api python -m app.cli receipts-backfill --dry-run` and then without `--dry-run`; it lists the files it cannot date, and those are signed again by their developers ([signing.md](../../website/content/developers/modules/signing.md), section 6a).
-4. Pass the kit to every release: `--kit ~/.bleep-signing-kit.json` or `$BLEEP_SIGNING_KIT`.
+4. Tell the tools where the kit is, once: `"signingKit": "~/.bleep-signing-kit.json"` in `config/bleep.local.json` (git-ignored; copy `config/bleep.local.example.json`, which also takes `releaseTokenFile` and `registry`). `--kit` and `$BLEEP_SIGNING_KIT` override it. Then `./bleep release plugins --level patch` and `./bleep release modules --level patch` need no further options (modules are built, packaged and released in one go; unchanged ones are skipped).
 
 **Release:**
 
-1. Set up the build: `scripts/build/build-patch.sh` (the script reads the artefacts in `build/patch`; `--build` runs that first).
+1. Set up the build: `./bleep build plugins` (the script reads the artefacts in `build/patch`; `--build` runs that first).
 2. Run, for one plugin, several, or all:
 
 ```bash
@@ -66,7 +66,7 @@ Other options: `--channel beta`, `--notes TEXT`, `--list`, `-y` (no confirmation
 1. **Check main is green.** CI (`.github/workflows/ci.yml`) builds and tests the bus, the plugins (macOS, Windows), Bleep Play and the website.
 2. **Set the version.** The product version is `project(BleepBoard VERSION …)` in `patch/CMakeLists.txt`; the plugins and the app take it from there. The bus has its own version in `bus/CMakeLists.txt` (it follows the spec version). Commit the bump.
 3. **Tag.** `git tag plugin-vX.Y.Z && git push origin plugin-vX.Y.Z`.
-4. **Take the build from CI.** The `plugins` job uploads `beautiful-bleep-macos-latest` and `beautiful-bleep-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `scripts/build/build-patch.sh`.
+4. **Take the build from CI.** The `plugins` job uploads `beautiful-bleep-macos-latest` and `beautiful-bleep-windows-latest` (VST3 and Standalone) as workflow artifacts. Download them from the run for the tag. To build locally instead, see [build-standalone-app.md](build-standalone-app.md) and `./bleep build plugins`.
 5. **Sign for the operating system.** (The library signature above is separate and happens in `release.py`.) Not automated. macOS builds need a Developer ID signature and notarization to open without a Gatekeeper warning; Windows builds are unsigned. Do this before publishing.
 6. **Publish.** Attach the signed files to a GitHub release for the tag, with the changelog, and release them to the library (above).
 7. **Website.** The site is deployed by rebuilding its containers (see [website.md](website.md)); deployment from CI is not set up yet (a note in the `website` job says so).

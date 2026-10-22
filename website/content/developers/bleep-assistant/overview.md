@@ -61,7 +61,7 @@ Set up the library and build its data once:
 
 ```bash
 python3 -m venv .venv-agent && .venv-agent/bin/pip install -e "agent[dev]"
-PYTHON=.venv-agent/bin/python scripts/build/build-agent-data.sh
+PYTHON=.venv-agent/bin/python ./bleep build agent-data
 .venv-agent/bin/pytest agent/tests
 ```
 

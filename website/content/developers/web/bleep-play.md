@@ -47,7 +47,7 @@ The bridge tests (`bridge-protocol-test.mjs`, `bridge-ring-test.mjs`, `bridge-cl
 
 ## Hosting
 
-Static files, plus the library the page installs its modules from (`/registry/v1/index.json`). `manifest.base` can point at another origin to ship modules separately from the site. The whole website stack runs with `scripts/run/run-website.sh` (Caddy, the API, PostgreSQL and the object storage).
+Static files, plus the library the page installs its modules from (`/registry/v1/index.json`). `manifest.base` can point at another origin to ship modules separately from the site. The whole website stack runs with `./bleep run site` (Caddy, the API, PostgreSQL and the object storage).
 
 ## Connecting to the app
 

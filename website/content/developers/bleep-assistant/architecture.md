@@ -18,7 +18,7 @@ order: 20
 
 **The model provider.** Gemini first, OpenAI for comparison. The library talks to it through Pydantic AI, wrapped in a metering layer that counts tokens after each call and refuses the call when the budget is gone.
 
-**Built data.** Three git-ignored files in `website/api/agent_data/`, produced by `scripts/build/build-agent-data.sh`:
+**Built data.** Three git-ignored files in `website/api/agent_data/`, produced by `./bleep build agent-data`:
 
 | File | Holds | Built from |
 |---|---|---|

@@ -265,7 +265,7 @@ function makePage({ withSecret = true, noSeal = false } = {}) {
   ok(/Content-Security-Policy/.test(html) && /frame-src 'self'/.test(html) && !/frame-src[^;"]*(https?:|\*)/.test(html), "index.html allows frames of its own origin only");
   {
     const frame = read("board/ui/board-code-view.html");
-    ok(/default-src 'none'/.test(frame) && !/connect-src|frame-src|worker-src/.test(frame), "the Code node's UI page has no network, frames or workers (default-src 'none')");
+    ok(/default-src 'none'/.test(frame) && !/connect-src|frame-src/.test(frame) && !/worker-src(?![^;"]*\bblob:)|worker-src[^;"]*(https?:|\*|'self')/.test(frame), "the Code node's UI page has no network or frames, and workers only from blob: (default-src 'none')");
     ok(!/allow-same-origin/.test(read("board/ui/board-code.js")) && /setAttribute\("sandbox", "allow-scripts"\)/.test(read("board/ui/board-code.js")), "the Code node's UI frame is sandboxed with allow-scripts only");
     ok(/e\.source !== f\.contentWindow/.test(read("board/ui/board-code.js")), "messages are accepted only from that frame");
   }

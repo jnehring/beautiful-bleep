@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+# One command for building, running, testing and releasing Bleep: ./bleep --help
+exec python3 "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts/bleep.py" "$@"

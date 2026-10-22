@@ -6,7 +6,7 @@
     scripts/release/release.py --all --level patch --registry https://registry.example --dry-run
     scripts/release/release.py --list
 
-What it does, per plugin: finds the build in build/patch (run scripts/build/build-patch.sh first, or
+What it does, per plugin: finds the build in build/patch (run `./bleep build plugins` first, or
 pass --build), asks the library for the published versions, counts the next version at the
 level you ask for, zips the build, uploads it and publishes it. A release is one machine's
 build: the zip is named for this platform. Versions are immutable, but a published version can gain
@@ -26,7 +26,7 @@ Modules: `release.py --modules --level patch` releases the packaged modules (bui
 package-module.py; `--package` makes them first). Each module counts its own version; one whose content did not change
 since its newest published version is skipped, so only what changed is released.
 
-Signing: every release file is signed with the developer's signing kit (--kit, or $BLEEP_SIGNING_KIT; website/content/developers/modules/signing.md;
+Signing: every release file is signed with the developer's signing kit (--kit, signingKit in config/bleep.local.json, or $BLEEP_SIGNING_KIT; website/content/developers/modules/signing.md;
 an admin makes one with `python -m app.cli developer-create`). The kit is checked against the library's root keys before anything
 is uploaded, and the library checks every signature again: without a valid key the release fails.
 Token: a release token an admin created with
@@ -52,6 +52,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "website" / "api"))
 from app import signing  # noqa: E402
+sys.path.insert(0, str(ROOT / "scripts"))
+import settings  # noqa: E402  (config/bleep.json, config/bleep.local.json, the environment)
 
 def library_config() -> dict:
     """config/library.json: where the library is and whom it trusts, the one place the apps' build and these scripts read."""
@@ -279,7 +281,7 @@ def make_zip(src: Path, out: Path) -> None:
 
 
 def load_kit(path: str | None) -> dict | None:
-    path = path or os.environ.get("BLEEP_SIGNING_KIT")
+    path = path or settings.get("signingKit")
     return json.loads(Path(path).expanduser().read_text()) if path else None
 
 
@@ -375,8 +377,11 @@ def read_token(args: argparse.Namespace) -> str:
         m = re.search(r"\bblp_\S+", text)
         return m.group(0) if m else text.strip()
     token = os.environ.get("BLEEP_RELEASE_TOKEN", "").strip()
+    if not token and settings.get("releaseTokenFile"):
+        args.token_file = settings.get("releaseTokenFile")
+        return read_token(args)
     if not token:
-        sys.exit("A release token is required: set BLEEP_RELEASE_TOKEN or pass --token-file "
+        sys.exit("A release token is required: set releaseTokenFile in config/bleep.local.json, $BLEEP_RELEASE_TOKEN, or pass --token-file "
                  "(an admin creates one with: docker compose exec api python -m app.cli token-create NAME)")
     return token
 
@@ -392,15 +397,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--force", action="store_true", help="with --modules: release even if the content did not change")
     ap.add_argument("--level", help="x, 1.x, 1.4.x, major, minor or patch (required unless --add-platform)")
     ap.add_argument("--add-platform", metavar="VERSION|latest", help="add this machine's build to the published VERSION instead of releasing a new one")
-    ap.add_argument("--registry", default=os.environ.get("BLEEP_REGISTRY_URL") or library_config().get("libraryUrl"),
-                    help="the website's URL (or $BLEEP_REGISTRY_URL; default: libraryUrl of config/library.json)")
-    ap.add_argument("--token-file", help="file holding the release token (or $BLEEP_RELEASE_TOKEN)")
-    ap.add_argument("--kit", help="the developer's signing kit (or $BLEEP_SIGNING_KIT)")
-    ap.add_argument("--channel", choices=("stable", "beta"), default="stable")
+    ap.add_argument("--registry", default=settings.get("registry"),
+                    help="the website's URL (or registry in config/bleep.local.json, $BLEEP_REGISTRY_URL; default: libraryUrl of config/library.json)")
+    ap.add_argument("--token-file", help="file holding the release token (or releaseTokenFile in the config, $BLEEP_RELEASE_TOKEN)")
+    ap.add_argument("--kit", help="the developer's signing kit (or signingKit in the config, $BLEEP_SIGNING_KIT)")
+    ap.add_argument("--channel", choices=("stable", "beta"), default=settings.get("channel", "stable"))
     ap.add_argument("--notes", default="", help="release notes")
     ap.add_argument("--build-dir", type=Path, default=ROOT / "build" / "patch")
     ap.add_argument("--config", default="Release", help="build configuration of the artefacts (default Release)")
-    ap.add_argument("--build", action="store_true", help="run scripts/build/build-patch.sh --plugins-only first (no tests: the test targets compile every module in)")
+    ap.add_argument("--build", action="store_true", help="run `./bleep build plugins --plugins-only` first (no tests: the test targets compile every module in)")
     ap.add_argument("--dry-run", action="store_true", help="show what would be released; change nothing")
     ap.add_argument("-y", "--yes", action="store_true", help="do not ask for confirmation")
     args = ap.parse_args(argv)
@@ -424,7 +429,7 @@ def main(argv: list[str] | None = None) -> int:
         registry = Registry(args.registry, None if args.dry_run else read_token(args))
         kit = load_kit(args.kit)
         if kit is None and not args.dry_run:
-            sys.exit("A signing kit is required: pass --kit FILE or set $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
+            sys.exit("A signing kit is required: pass --kit FILE, set signingKit in config/bleep.local.json or $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
         return release_modules(args, registry, kit)
     names = list(PLUGINS) if args.all else args.plugins
     if not names or (args.all and args.plugins):
@@ -451,11 +456,11 @@ def main(argv: list[str] | None = None) -> int:
             ap.error(str(e))
 
     if args.build:
-        subprocess.run([str(ROOT / "scripts" / "build" / "build-patch.sh"), "--plugins-only"], check=True)
+        subprocess.run([str(ROOT / "bleep"), "build", "plugins", "--plugins-only"], check=True)
     registry = Registry(args.registry, None if args.dry_run else read_token(args))
     kit = load_kit(args.kit)
     if kit is None and not args.dry_run:
-        sys.exit("A signing kit is required: pass --kit FILE or set $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
+        sys.exit("A signing kit is required: pass --kit FILE, set signingKit in config/bleep.local.json or $BLEEP_SIGNING_KIT (an admin makes one: python -m app.cli developer-create)")
 
     plan = []
     try:
@@ -464,7 +469,7 @@ def main(argv: list[str] | None = None) -> int:
         for slug in names:
             artefact = find_artefact(slug, args.build_dir, args.config)
             if artefact is None:
-                sys.exit(f"{slug}: no build at {args.build_dir / PLUGINS[slug][1].format(cfg=args.config)} (run scripts/build/build-patch.sh, or pass --build)")
+                sys.exit(f"{slug}: no build at {args.build_dir / PLUGINS[slug][1].format(cfg=args.config)} (run ./bleep build plugins, or pass --build)")
             published = registry.versions(slug)
             if args.add_platform:
                 target = max(published, key=parse_version) if args.add_platform == "latest" and published else args.add_platform

@@ -84,12 +84,12 @@ Try it:
 
 ```bash
 # build the app, then start it
-scripts/run/run-app.sh
+./bleep run app
 # build the plugins, run the DSP, engine and bridge tests, copy the VST3s to ~/Library/Audio/Plug-Ins/VST3
-scripts/build/build-patch.sh --install
+./bleep build plugins --install
 ```
 
-While you edit the board UI (`patch/board/ui`, HTML/CSS/JS), `scripts/run/run-app.sh --ui-dev` reads it from `patch/` instead of the embedded copy: edit, then press Cmd-R in the board window.
+While you edit the board UI (`patch/board/ui`, HTML/CSS/JS), `./bleep run app --ui-dev` reads it from `patch/` instead of the embedded copy: edit, then press Cmd-R in the board window.
 
 The Link library makes the app binary GPL. Build with `-DBLEEP_LINK=OFF` if it has to stay MIT. Details: [standalone app](../app/standalone-app.md), [plugins](../plugins/overview.md).
 
@@ -120,7 +120,7 @@ The website is the docs, the homepage, the board at `/play/`, the accounts API a
 3. **Start it.** Production style (static export behind Caddy, about a minute to build) or the dev stack with hot reload:
 
    ```bash
-   scripts/run/run-website.sh
+   ./bleep run site
    ```
 
    ```bash
@@ -136,7 +136,7 @@ The docs live in `website/content` as Markdown. After editing them in the dev st
 | If this works… | …then you are set for |
 |---|---|
 | `BLEEP_WEB_ONLY=reverb scripts/build/build-web.sh --modules-only` | modules |
-| `scripts/run/run-app.sh --smoke` | the app and the plugins |
+| `./bleep run app --smoke` | the app and the plugins |
 | `scripts/build/build-web.sh --no-modules` | Bleep Play |
 | `http://localhost:8080` shows the site | the website |
 | `python3 scripts/check/check-repo.py` | the repository rules CI enforces (licence headers, module provenance, dependencies between parts) |

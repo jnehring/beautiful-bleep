@@ -24,7 +24,7 @@ Edit `website/.env`:
 Then start it:
 
 ```bash
-scripts/run/run-website.sh          # or: cd website && docker compose up --build -d
+./bleep run site          # or: cd website && docker compose up --build -d
 ```
 
 Open http://localhost:8080. The image build takes about a minute: it contains the site, the docs and the board's UI, but **no modules**. Bleep Play at `/board/` installs its modules by itself, from the Bleep Library of the same site, the first time a board needs one: it reads `/registry/v1/index.json`, downloads the module's package, checks its signature in the browser and only then runs it. A visitor needs nothing installed. Until modules have been released to the library, the board runs but stays silent ("cannot load …" in its status line).
@@ -45,7 +45,7 @@ scripts/release/release.py --modules --level patch --registry http://localhost:8
 
 The first build compiles every module (slow; on Apple Silicon the image runs emulated); later builds recompile only the modules whose files changed (the compiler's dependency list is hashed in `build/web/modules/.cache/`; delete that folder to force a full rebuild, `BLEEP_WEB_ONLY=oscillator,filter` builds just those). `release.py --modules` releases only the modules whose package content changed since their newest published version, so running it again after a small change releases that one module.
 
-Other commands: `scripts/run/run-website.sh down | logs | rebuild`.
+Other commands: `./bleep run site down | logs | rebuild`.
 
 ## Create the admin user
 
@@ -114,7 +114,7 @@ chmod 600 website/.env
 4. **Start (or restart) the API** so it reads them and applies the database migrations:
 
 ```bash
-scripts/run/run-website.sh
+./bleep run site
 ```
 
 5. **Check:**
@@ -163,7 +163,7 @@ chmod 600 website/.env
 ```
 
 3. **Restore the database** from your backup if you can (see Notes below). The `developers` table lists the keys that were issued and which are revoked. Signatures verify without it, since the chain inside each one proves it was issued by your issuer. But in a **new empty database**, `developer-list` is empty, and keys revoked earlier are no longer refused. There is no command yet to add or revoke a key the database does not know, so restore the database if any key was revoked. Release tokens live in the database too: restore it, or make new tokens.
-4. **Start the API** (`scripts/run/run-website.sh`) and check that the library trusts your root:
+4. **Start the API** (`./bleep run site`) and check that the library trusts your root:
 
 ```bash
 curl -s localhost:8080/api/registry/roots
@@ -210,7 +210,7 @@ docker compose up -d api
 
 - **Database password is fixed at first start.** Postgres keeps the password it was created with in the `db-data` volume. If you change `POSTGRES_PASSWORD` later, either change it inside Postgres or delete the volume: `docker compose down -v` (this deletes all accounts).
 - **Back up the database** with `docker compose exec db pg_dump -U bleep bleep > backup.sql`.
-- **Updates:** `git pull && scripts/run/run-website.sh`. The API applies database migrations when it starts.
+- **Updates:** `git pull && ./bleep run site`. The API applies database migrations when it starts.
 - **Security headers:** the Caddyfile sends a CSP (pages: same-origin; no inline scripts in the header policy: `website/app/scripts/csp-hashes.mjs` (run by `npm run build`, so by the Docker build) puts a `<meta>` CSP with the sha256 of each page's inline scripts into every exported page, and the browser applies header and meta together; styles keep `'unsafe-inline'`; `/registry/*`: `default-src 'none'; sandbox`), HSTS, `nosniff`, `X-Frame-Options: DENY`, a Referrer-Policy and a Permissions-Policy. Bleep Play's origin list (`ws://127.0.0.1:*` for the app bridge, `'wasm-unsafe-eval'` for the modules) is in the CSP: extend it there if the page needs another origin. `Caddyfile.dev` has none (`next dev` needs `eval`).
 - **HTTPS:** by default the Caddyfile serves plain HTTP on port 80 (`BLEEP_SITE_ADDRESS` unset = `:80`): put TLS in front and set `BLEEP_COOKIE_SECURE=true`. Alternatively Caddy can get its own Let's Encrypt certificate: point the domain's DNS at the host, open ports 80 and 443 and set in `website/.env`
 

@@ -90,7 +90,7 @@ services:
       BLEEP_ISSUER_KEY: ${BLEEP_ISSUER_KEY:-}
       BLEEP_ISSUER_CERT: ${BLEEP_ISSUER_CERT:-}
       BLEEP_REQUIRE_SIGNATURES: ${BLEEP_REQUIRE_SIGNATURES:-true}
-      # The patch assistant (agent/, doc/specs/agent.md). Off unless BLEEP_AGENT_ENABLED=true. Needs website/api/agent_data/ (scripts/build/build-agent-data.sh).
+      # The patch assistant (agent/, doc/specs/agent.md). Off unless BLEEP_AGENT_ENABLED=true. Needs website/api/agent_data/ (./bleep build agent-data).
       BLEEP_AGENT_ENABLED: ${BLEEP_AGENT_ENABLED:-false}
       BLEEP_AGENT_DAILY_TOKENS: ${BLEEP_AGENT_DAILY_TOKENS:-1000000}
       BLEEP_AGENT_MODEL: ${BLEEP_AGENT_MODEL:-google:gemini-3.8-flash}

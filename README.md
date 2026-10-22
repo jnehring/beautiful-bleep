@@ -13,46 +13,42 @@ The engine, board and apps in `patch/` are GPL-3.0-or-later with a [module excep
 
 ## Scripts
 
-All scripts live in [`scripts/`](scripts/), one folder per kind of work, and work from any directory.
+One command does the everyday work: `./bleep` (see [`scripts/README.md`](scripts/README.md)). It works from any directory.
+This machine's settings (JUCE checkout, signing kit, release token file, registry, Live set) go into `config/bleep.local.json`
+(copy [`config/bleep.local.example.json`](config/bleep.local.example.json); `./bleep config` shows what is in effect).
 
-| Folder | Script | What it does |
-|---|---|---|
-| [`build/`](scripts/build/) | [`build-bus.sh`](scripts/build/build-bus.sh) | Builds Bleep Bus (library, examples, conformance suite) into `build/bus/` and runs its tests. Options: `--debug`, `--clean`, `--no-test` |
-| | [`build-patch.sh`](scripts/build/build-patch.sh) | Builds the plugins as VST3 into `build/patch/` and runs the DSP, engine and headless-host tests. Options: `--juce <dir>` (or `BLEEP_JUCE_DIR`; otherwise JUCE 8.0.9 is downloaded), `--install`, `--ui-dev`, `--debug`, `--clean`, `--no-test` |
-| | [`build-web.sh`](scripts/build/build-web.sh) | Builds the board for the browser: one `.wasm` per module and the web engine (`--no-modules`, `--modules-only`, `--docker`) |
-| [`run/`](scripts/run/) | [`run-app.sh`](scripts/run/run-app.sh) | Builds only the standalone Bleep App and starts it with its console output: `scripts/run/run-app.sh [project.bleepboard]`. Options: `--debug`, `--ui-dev`, `--no-build`, `--smoke`, `--juce <dir>` |
-| | [`reload-live.sh`](scripts/run/reload-live.sh) | macOS: rebuilds the plugins, quits Ableton Live, replaces the VST3s and reopens a test set: `scripts/run/reload-live.sh ~/Music/test.als [build options]` |
-| | [`run-website.sh`](scripts/run/run-website.sh) | Runs the website in Docker on http://localhost:8080: `up` (default), `down`, `logs`, `rebuild` |
-| | [`ui-server.py`](scripts/run/ui-server.py) | Serves the board UI in a browser with a fake engine: `scripts/run/ui-server.py`, then open http://localhost:8765 |
-| [`docs/`](scripts/docs/) | [`build-docs.py`](scripts/docs/build-docs.py) | Writes the single-file docs per audience (module manuals one file per category) and `llms.txt` (also run by the website build) |
-| | [`build-help-index.py`](scripts/docs/build-help-index.py) | Writes the board's Help section: the tiles (`help-articles.json`, from the `title:` and `description:` of every article in `website/content/`) and the search index over the articles and module manuals (`help-search.json`), both in `patch/board/ui/`. Run it after changing a doc; `--check` verifies the files |
-| | [`module-screenshots.py`](scripts/docs/module-screenshots.py) | Screenshots every module's view into its `doc/<type>.png` (needs `ui-server.py` running and Playwright) |
-| [`check/`](scripts/check/) | [`check-api-docs.py`](scripts/check/check-api-docs.py) | Checks that every function in `bleep_bus.h` is documented in the API reference |
-| | [`check-repo.py`](scripts/check/check-repo.py) | Checks the dependency rules between `bus/`, `patch/` and `website/`, SPDX headers and LICENSE files |
-| [`release/`](scripts/release/) | [`release.py`](scripts/release/release.py) | Signs and publishes plugins to the registry, or adds a platform build to a published release ([release.md](doc/operations/release.md)) |
-| | [`signing.py`](scripts/release/signing.py) | Keys, certificates, signing and verifying packages ([signing.md](website/content/developers/modules/signing.md)) |
-| | `test_release.py`, `test_signing.py` | Their unit tests: `cd scripts/release && python3 -m unittest test_release test_signing` |
-| [`experiments/`](scripts/experiments/) | [`wasm-spike.sh`](scripts/experiments/wasm-spike.sh) | Runs the Verb module's `.wasm` in Wasmtime and wasm3 next to the native build ([patch/wasm-host](patch/wasm-host/README.md)) |
+| Command | What it does |
+|---|---|
+| `./bleep build [bus\|plugins\|app\|web\|modules\|agent-data]` | Builds (default: the plugins as VST3 into `build/patch/`, then the DSP, engine and host tests). Options: `--juce <dir>`, `--install`, `--ui-dev`, `--debug`, `--clean`, `--no-test`, `--plugins-only`, `--no-app`; web/modules: `--docker`, `--no-modules`, `--out` |
+| `./bleep run app\|ui\|site\|play\|live` | `app`: builds only the standalone app and starts it (`--no-build`, `--smoke`, `--ui-dev`, a `.bleepboard` project); `ui`: the board UI in a browser with a fake engine (http://localhost:8765); `site`: the website in Docker (`--action up\|down\|logs\|rebuild`); `play`: updates the dev site's Bleep Play; `live`: macOS, rebuilds the plugins, quits Ableton Live, replaces the VST3s and reopens a set |
+| `./bleep test [py\|js\|script\|presets\|bus\|native\|check\|all]` | The unit tests: default is `py js presets check` (seconds, no compiler); `bus` and `native` are the C++ suites, `all` runs everything |
+| `./bleep check [repo\|api-docs\|account]` | Dependency rules, SPDX headers and LICENSE files; documented bus API; the app's sign-in against a real API |
+| `./bleep docs [build\|help-index\|screenshots]` | The single-file docs and `llms.txt`; the board's Help index; the module screenshots |
+| `./bleep package` / `./bleep release plugins\|modules\|community` | Packages modules; signs and publishes plugins or modules to the library ([release.md](doc/operations/release.md)) |
+
+Behind it: [`scripts/bleep.py`](scripts/bleep.py) (the command), [`scripts/settings.py`](scripts/settings.py) (the settings), and the tools it calls:
+`build/build-web.sh`, `run/ui-server.py`, `docs/*.py`, `check/*.py`, `release/release.py`, `package-module.py`, `signing.py`, `community-publish.py`.
+`experiments/wasm-spike.sh` runs the Verb module's `.wasm` in Wasmtime and wasm3 ([patch/wasm-host](patch/wasm-host/README.md)).
 
 ```bash
-scripts/build/build-bus.sh
-scripts/build/build-patch.sh --juce /path/to/JUCE
-scripts/run/run-website.sh
+./bleep build bus
+./bleep build plugins --juce /path/to/JUCE
+./bleep run site
 ```
 
 ### Developing in Live
 
 Live keeps a plugin's code loaded until it quits, so:
 
-- **UI changes (HTML/CSS/JS):** build once with `scripts/build/build-patch.sh --install --ui-dev`.
+- **UI changes (HTML/CSS/JS):** build once with `./bleep build plugins --install --ui-dev`.
   These dev builds read the board UI from `patch/` instead of the embedded copy.
   After an edit, press ⌘R in the board window. No rebuild, no restart.
   Don't ship `--ui-dev` builds.
-- **DSP, bus or C++ changes:** save your test set and run `scripts/run/reload-live.sh <set.als>`.
+- **DSP, bus or C++ changes:** save your test set and run `./bleep run live <set.als>`.
   It builds first, and only quits Live if the build succeeded. It never
   force-quits Live: answer Live's save dialog if one appears.
   Don't use `--install` while Live is running: overwriting a loaded plugin can crash Live.
-- **Quick checks without Live:** `scripts/run/ui-server.py` runs the board UI in a browser
+- **Quick checks without Live:** `./bleep run ui` runs the board UI in a browser
   against a fake engine; the engine tests (`ctest --test-dir build/patch`) simulate Live's
   parallel tracks.
 

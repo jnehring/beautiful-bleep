@@ -1,18 +1,24 @@
 # Scripts
 
-All build, run, check and release scripts of the repository, one folder per kind of work. Each script finds the
-repository root itself and works from any directory. The main [README](../README.md#scripts) has the table with
-what every script does and its options.
+Everything for building, running, testing and releasing goes through one command at the repository root, `./bleep`
+(`scripts/bleep.py`). `./bleep --help` lists the commands; `./bleep <command> --help` their options. The main
+[README](../README.md#scripts) has the table.
 
-| Folder | For | Scripts |
-|---|---|---|
-| [`build/`](build/) | Building the bus, the plugins and the browser board | `build-bus.sh`, `build-patch.sh`, `build-web.sh` |
-| [`run/`](run/) | Running things during development | `run-app.sh`, `reload-live.sh`, `run-website.sh`, `ui-server.py` |
-| [`docs/`](docs/) | Generating documentation | `build-docs.py`, `module-screenshots.py` |
-| [`check/`](check/) | Checks that CI runs | `check-repo.py`, `check-api-docs.py` |
-| [`release/`](release/) | Signing and publishing to the library, with their tests | `release.py`, `signing.py`, `test_release.py`, `test_signing.py` |
-| [`experiments/`](experiments/) | Spikes that are not part of the build | `wasm-spike.sh` |
+**Settings** are read by `settings.py`, later layers winning: `config/bleep.json` (shared defaults, committed), then
+`config/bleep.local.json` (this machine's: `signingKit`, `releaseTokenFile`, `registry`, `juceDir`, `liveSet`, `webDocker`,
+git-ignored; start from `config/bleep.local.example.json`), then the environment (`BLEEP_JUCE_DIR`, `BLEEP_SIGNING_KIT`,
+`BLEEP_RELEASE_TOKEN`, `BLEEP_REGISTRY_URL`, ...), then the command line. `./bleep config` prints the result. Secrets stay in
+the files the settings name; the config holds paths only.
 
-A new script goes in the folder of what it is for; add a folder only when none fits. Paths to a script in docs, CI
-and other scripts always include the folder (`scripts/build/build-patch.sh`), and a script reads the repository root
-as its folder's grandparent, so moving one means changing that line too.
+| Folder | For |
+|---|---|
+| `bleep.py`, `settings.py` | The command and its settings; their tests are in `tests/` |
+| [`build/`](build/) | `build-web.sh`: the browser build (modules as `.wasm`, board UI, web engine); it also runs inside the Emscripten image, so it stays a shell script. Use `./bleep build web\|modules` |
+| [`run/`](run/) | `ui-server.py`: the board UI against a fake engine (`./bleep run ui`) |
+| [`docs/`](docs/) | `build-docs.py`, `build-help-index.py`, `module-screenshots.py` (`./bleep docs`) |
+| [`check/`](check/) | `check-repo.py`, `check-api-docs.py`, `account-live.py` (`./bleep check`) |
+| [`release/`](release/) | `release.py`, `package-module.py`, `signing.py`, `community-publish.py`, with their tests (`./bleep release`, `package`) |
+| [`experiments/`](experiments/) | `wasm-spike.sh`: a spike that is not part of the build |
+
+A new tool goes in the folder of what it is for and gets a subcommand in `bleep.py`; the tools find the repository root as their
+folder's grandparent, so moving one means changing that line too.

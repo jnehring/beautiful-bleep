@@ -16,7 +16,7 @@ The text is full of exact terms (module, jack and knob names, file names), where
 
 ## Build time
 
-`python -m bleep_agent.docs build` (run by `scripts/build/build-agent-data.sh`) writes one SQLite file:
+`python -m bleep_agent.docs build` (run by `./bleep build agent-data`) writes one SQLite file:
 
 - **Chunks.** Each page is split by heading. A chunk is at most 450 tokens; very long sections are split at paragraph boundaries, sections under 50 tokens merge into their neighbour. The chunk's text starts with its heading path ("Modules > Multi Filter > Drive"), because the path carries most of the meaning of a short section. Each chunk has an id `<doc>#<anchor>`, the audience (`musicians`, `developers`, `module`) and the URL with anchor.
 - **Keyword index.** SQLite FTS5 over the title, heading path and text.

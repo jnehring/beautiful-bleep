@@ -85,7 +85,7 @@ assert.equal(X.textMatches("Delay Net", ["dely"]), true);
 assert.equal(X.textMatches("Delay Net", ["dely"], true), false, "exact: no typos");
 assert.equal(X.textMatches("Delay Net", []), true);
 
-// cell categories: a tree in the order they first appear (the Add menu's), and a view for each category that includes what is below it
+// cell categories: a tree sorted A–Z at every level, and a view for each category that includes what is below it
 const cats = [
   X.entry({ kind: "cell", origin: "factory", name: "Warm Saws", group: "Synthesizers" }), X.entry({ kind: "cell", origin: "factory", name: "808 Boom", group: "Drums/Kicks" }),
   X.entry({ kind: "cell", origin: "factory", name: "808 Snare", group: "Drums/Snares & Claps" }), X.entry({ kind: "cell", origin: "factory", name: "Dub Echo", group: "Effects" }),
@@ -93,11 +93,11 @@ const cats = [
   X.entry({ kind: "demo", name: "Grains: A", group: "Grains", module: "grains" }), X.entry({ kind: "project", name: "A project" }),
 ];
 assert.deepEqual(plain(X.categories(cats)), [
-  { name: "Synthesizers", path: "Synthesizers", children: [] },
   { name: "Drums", path: "Drums", children: [
-    { name: "Kicks", path: "Drums/Kicks", children: [] }, { name: "Snares & Claps", path: "Drums/Snares & Claps", children: [] }, { name: "Hats & Cymbals", path: "Drums/Hats & Cymbals", children: [] }] },
+    { name: "Hats & Cymbals", path: "Drums/Hats & Cymbals", children: [] }, { name: "Kicks", path: "Drums/Kicks", children: [] }, { name: "Snares & Claps", path: "Drums/Snares & Claps", children: [] }] },
   { name: "Effects", path: "Effects", children: [] },
   { name: "My Cells", path: "My Cells", children: [] },
+  { name: "Synthesizers", path: "Synthesizers", children: [] },
 ]);
 assert.deepEqual(plain(X.categories([])), []);
 const inCat = (v, origins) => names(X.select(cats, { view: v, origins }));

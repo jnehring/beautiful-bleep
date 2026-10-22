@@ -21,8 +21,8 @@ Bleep Play the plugin talks to that board, not this set's (doc/specs/bridges.md,
 in the user docs). Try it without Live: `build/patch/bleep_bridge_probe_artefacts/Release/bleep_bridge_probe audio-in,audio-out web`.
 
 ```bash
-scripts/build/build-patch.sh --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
-scripts/build/build-patch.sh --install                 # also copy the plugins into your user plugin folder
+./bleep build plugins --juce /path/to/JUCE      # or set BLEEP_JUCE_DIR; without it JUCE 8.0.9 is downloaded
+./bleep build plugins --install                 # also copy the plugins into your user plugin folder
 ```
 
 VST3 only, Ableton Live only for now (spec §5.2). The script builds into
@@ -88,7 +88,7 @@ A file that already exists under the new name is kept (the old one stays where i
 python3 scripts/run/ui-server.py      # http://localhost:8765, with a fake engine (no audio)
 ```
 
-With `scripts/build/build-patch.sh --ui-dev`, plugins read the page from the
+With `./bleep build plugins --ui-dev`, plugins read the page from the
 source tree; press ⌘R in the board window after an edit. The demo backend
 reads node types from `board/ui/demo-types.json`; after changing a module's
 params or jacks, regenerate it (ctest checks it is current):

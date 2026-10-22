@@ -33,3 +33,6 @@ __pycache__/
 registry.env
 root.key
 issuer.key
+
+# This machine's settings for ./bleep (signing kit path, token file, JUCE, Live set)
+config/bleep.local.json
