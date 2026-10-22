@@ -471,21 +471,40 @@
     if (opts.once) rows = rows.filter((r) => !asked.has(r.slug));
     if (!rows.length) return true;
     rows.forEach((r) => asked.add(r.slug));
-    const fixable = rows.filter((r) => r.action === "install" || r.action === "update");
-    const missing = fixable.filter((r) => r.action === "install").map((r) => r.slug);
-    const old = fixable.filter((r) => r.action === "update").map((r) => r.slug);
-    const blocked = rows.filter((r) => r.action === "blocked");
+    return modulesDialog({
+      title: `"${name || "This preset"}" needs modules`,
+      install: rows.filter((r) => r.action === "install"),
+      update: rows.filter((r) => r.action === "update"),
+      blocked: rows.filter((r) => r.action === "blocked"),
+      updateText: (n) => `${listText(n.map((r) => r.slug))} ${n.length > 1 ? "need" : "needs"} an update.`,
+      cancelLabel: "Cancel",
+    });
+  }
+
+  /// The one dialog for every "modules are missing or have newer versions" question: the ones a preset or a pasted patch needs,
+  /// and the updates the library offers at the start. Lists what is not installed, what can be updated and what the library cannot
+  /// give, then installs with a progress bar. Resolves true when everything asked for is installed (or nothing could be: continue
+  /// anyway), false on cancel.
+  ///   install, update: [{ slug, title?, have?, offer? }]   blocked: [{ slug, why }]
+  function modulesDialog({ title, install = [], update = [], blocked = [], updateText, cancelLabel = "Cancel", continueLabel = "Continue anyway" }) {
+    const fixable = install.concat(update);
     return new Promise((resolve) => {
       const back = el("div", "st-modal");
       const card = el("div", "st-card");
-      card.appendChild(el("h2", "", `"${name || "This preset"}" needs modules`));
+      card.appendChild(el("h2", "", title));
       const text = el("div", "st-text");
       const say = (line) => text.appendChild(el("p", "", line));
-      if (missing.length) say(`The ${missing.length > 1 ? "modules" : "module"} ${listText(missing)} ${missing.length > 1 ? "are" : "is"} not installed.`);
-      if (old.length) say(`${listText(old)} ${old.length > 1 ? "need" : "needs"} an update.`);
+      const names = (list) => list.map((r) => r.title || r.slug);
+      if (install.length) say(`The ${install.length > 1 ? "modules" : "module"} ${listText(names(install))} ${install.length > 1 ? "are" : "is"} not installed.`);
+      if (update.length) {
+        say(updateText(update));
+        const shown = update.slice(0, 8).map((r) => `${r.title || r.slug}${r.have && r.offer ? `  ${r.have} → ${r.offer}` : ""}`);
+        if (update.length > shown.length) shown.push(`and ${update.length - shown.length} more`);
+        text.appendChild(el("div", "st-message", shown.join("\n")));
+      }
       if (fixable.length) say(`${fixable.length > 1 ? "They are" : "It is"} available in the Bleep Library. Install ${fixable.length > 1 ? "them" : "it"}?`);
       if (blocked.length) {
-        say(`${listText(blocked.map((r) => r.slug))} ${blocked.length > 1 ? "are" : "is"} not available in the Bleep Library${fixable.length ? " and cannot be installed" : ""}.`);
+        say(`${listText(names(blocked))} ${blocked.length > 1 ? "are" : "is"} not available in the Bleep Library${fixable.length ? " and cannot be installed" : ""}.`);
         for (const r of blocked) text.appendChild(el("div", "st-why", `${r.slug}: ${r.why}`));
       }
       card.appendChild(text);
@@ -495,8 +514,8 @@
       const result = el("div", "st-message");
       card.appendChild(result);
       const buttons = el("div", "st-bar");
-      const cancel = el("button", "", "Cancel");
-      const anyway = el("button", "", "Continue anyway");
+      const cancel = el("button", "", cancelLabel);
+      const anyway = el("button", "", continueLabel);
       const go = el("button", "primary", "Install");
       buttons.append(cancel);
       if (!fixable.length) buttons.append(anyway);
@@ -514,10 +533,11 @@
         progress.value = 0;
         const failed = [];
         for (const r of fixable) {
-          result.textContent = `Installing ${r.slug} (${progress.value + 1} of ${fixable.length})…`;
+          result.textContent = `Installing ${r.title || r.slug} (${progress.value + 1} of ${fixable.length})…`;
           if (!(await installSlug(r.slug))) failed.push(r.slug);
           progress.value += 1;
         }
+        await refresh();
         if (!failed.length) { done(true); return; }
         progress.hidden = true;
         result.textContent = `Could not install ${failed.join(", ")}. ${message || "See the Library section."}`;
@@ -628,38 +648,13 @@
     if (!status.index.ok || status.index.cached) return;
     const updates = updatesOf(status);
     if (!updates.length) return;
-    const back = el("div", "st-modal");
-    const card = el("div", "st-card");
-    card.appendChild(el("h2", "", updates.length === 1 ? "A module update is available" : `${updates.length} module updates are available`));
-    const shown = updates.slice(0, 8).map((u) => `${u.title}  ${u.have} → ${u.offer}`);
-    if (updates.length > shown.length) shown.push(`and ${updates.length - shown.length} more`);
-    card.appendChild(el("p", "", "The Bleep Library has newer versions of modules you have installed. Install them now?"));
-    card.appendChild(el("div", "st-message", shown.join("\n")));
-    const result = el("div", "st-message");
-    card.appendChild(result);
-    const buttons = el("div", "st-bar");
-    const later = el("button", "", "Not now");
-    const go = el("button", "primary", updates.length === 1 ? "Update" : "Update all");
-    buttons.append(later, go);
-    card.appendChild(buttons);
-    back.appendChild(card);
-    document.body.appendChild(back);
-    later.addEventListener("click", () => back.remove());   // asked again at the next start
-    go.addEventListener("click", async () => {
-      go.disabled = later.disabled = true;
-      result.textContent = "Updating…";
-      await native("libraryUpdateAll");
-      for (let i = 0; i < 900; i++) {
-        await new Promise((r) => setTimeout(r, 500));
-        status = await native("libraryStatus");
-        if (!status.busy["*"]) break;
-      }
-      const left = updatesOf(status).length;
-      await refresh();
-      if (!left) { back.remove(); return; }
-      result.textContent = `${left} could not be updated. Try again from the Library section.`;
-      later.disabled = false;
-      later.textContent = "Close";
+    // "Not now": asked again at the next start
+    await modulesDialog({
+      title: updates.length === 1 ? "A module update is available" : `${updates.length} module updates are available`,
+      update: updates,
+      updateText: () => "The Bleep Library has newer versions of modules you have installed.",
+      cancelLabel: "Not now",
+      continueLabel: "Close",
     });
   }
 
