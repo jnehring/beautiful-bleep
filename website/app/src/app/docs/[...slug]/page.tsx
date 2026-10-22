@@ -47,12 +47,6 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             </ul>
           </div>
         ))}
-        {doc.audience === "musicians" && (
-          <>
-            <h4>Modules</h4>
-            <ul><li><a href="/library/?kind=module">All modules</a></li></ul>
-          </>
-        )}
       </nav>
       <article dangerouslySetInnerHTML={{ __html: doc.html }} />
       <CopyCode />
