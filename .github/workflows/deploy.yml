@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: MIT
+#
+# Deploys the website stack (website/docker-compose.yml) to the server it runs on, after CI has passed on main.
+# The job runs on a self-hosted runner on that server (doc/operations/deploy.md): GitHub never connects in, the
+# runner connects out. website/.env (the secrets) is not in the repository: it is copied from the server.
+#
+# Only runs for main: a push (through CI) or a manual run on main. Pull requests and forks never reach it.
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a newer one waits instead of cancelling a half-finished `up`.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to the server
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: [self-hosted, bleep-server]
+    timeout-minutes: 30
+    env:
+      # Where the server keeps website/.env (outside any checkout). Override with the repository variable BLEEP_ENV_FILE.
+      ENV_FILE: ${{ vars.BLEEP_ENV_FILE || '/etc/bleep/website.env' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Use the server's website/.env
+        run: install -m 600 "$ENV_FILE" website/.env
+      - name: Build and restart
+        # The compose file has its own project name, so the volumes (database, library, certificates) are kept.
+        # The API container runs the database migrations (alembic upgrade head) when it starts.
+        run: docker compose -f website/docker-compose.yml --env-file website/.env up --build -d --remove-orphans
+      - name: Wait for the site
+        run: |
+          # Asked inside the api container: works behind the site password (BLEEP_BASIC_AUTH_*) and any port setting.
+          compose="docker compose -f website/docker-compose.yml --env-file website/.env"
+          for i in $(seq 1 45); do
+            if $compose exec -T api python -c "import urllib.request as u; u.urlopen('http://localhost:8000/api/health', timeout=3)" 2>/dev/null; then
+              echo "the API answers"; exit 0
+            fi
+            sleep 2
+          done
+          echo "the API did not become healthy"
+          docker compose -f website/docker-compose.yml --env-file website/.env ps
+          docker compose -f website/docker-compose.yml --env-file website/.env logs --tail 60
+          exit 1
+      - name: Remove the copied secrets and old images
+        if: always()
+        run: |
+          rm -f website/.env
+          docker image prune -f
