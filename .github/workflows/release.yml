@@ -31,6 +31,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
+      - name: Python dependencies of the release script
+        shell: bash
+        run: python3 -m pip install cryptography==50.0.2
       # No secrets in the build: it fetches and compiles other people's code (JUCE, Link).
       - run: ./bleep build plugins
       - name: Check the version level
@@ -74,6 +77,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev \
             libfreetype-dev libfontconfig1-dev libgl1-mesa-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev
+      - name: Python dependencies of the release script
+        shell: bash
+        run: python3 -m pip install cryptography==50.0.2
       - run: cmake -S patch -B build/patch -DCMAKE_BUILD_TYPE=Release -DBLEEP_FORMATS=VST3
       - run: cmake --build build/patch --config Release --parallel
       - name: Write the signing kit
