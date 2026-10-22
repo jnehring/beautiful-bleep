@@ -95,8 +95,8 @@ void Engine::attachPreset(PortSlot& s, const juce::String& portNodeId) {
     if (!preset.isObject()) return;
     if (const auto old = board::attachedCell(board_, portNodeId); old.isNotEmpty()) board::removeCell(board_, old);
     const auto* port = board::findNode(board_, portNodeId);
-    const double x = port ? (double)port->getProperty("x") + 320.0 : 360.0;
-    const double y = port ? (double)port->getProperty("y") : 40.0;
+    const double x = port ? (double)port->getProperty("x") : 40.0;  // the cell sits right below its port, left-aligned
+    const double y = port ? (double)port->getProperty("y") + 110.0 : 150.0;
     const auto cell = board::insertPreset(board_, preset, x, y);
     if (cell.isEmpty()) return;
     board::attachHost(board_, portNodeId, cell, preset["plays"], s.kind == PortKind::AudioInsert);

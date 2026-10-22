@@ -2,7 +2,10 @@
 // EngineCompile.cpp — compiling the board, reconciling ports, and the state the UI shows.
 #include "EngineInternal.h"
 
+#include <algorithm>
 #include <cstdio>
+#include <tuple>
+#include <utility>
 
 namespace bleep::engine {
 
@@ -53,6 +56,23 @@ void Engine::collectGarbage() {
                    retired_.end());
 }
 
+namespace {
+
+/// Where the next top-level node goes on a board that already has some: left-aligned with what is there, one row
+/// below its lowest node (a node is about 110 tall, with the gap).
+std::pair<double, double> belowExisting(const juce::var& doc) {
+    double left = 1e9, bottom = 0.0;
+    if (const auto* a = doc["nodes"].getArray())
+        for (const auto& n : *a) {
+            if (n["parent"].toString().isNotEmpty()) continue;
+            left = std::min(left, (double)n["x"]);
+            bottom = std::max(bottom, (double)n["y"] + 110.0);
+        }
+    return {left > 1e8 ? 40.0 : left, bottom > 0.0 ? bottom : 40.0};
+}
+
+}  // namespace
+
 void Engine::reconcile(bool force) {
     if (!hasBoard()) return;
     bool changed = false;
@@ -92,8 +112,9 @@ void Engine::reconcile(bool force) {
         const bool toTrack = (sendsToTrack(s->kind) && s->kind != PortKind::Instrument &&
                               s->kind != PortKind::AudioInsert && s->kind != PortKind::AudioBridge) ||
                              s->kind == PortKind::MidiOut;
-        const double x = toTrack ? 760.0 : 40.0;
-        const double y = 40.0 + 110.0 * (toTrack ? outputs++ : inputs++);
+        double x = toTrack ? 760.0 : 40.0;
+        double y = 40.0 + 110.0 * (toTrack ? outputs++ : inputs++);
+        if (!emptyBoard) std::tie(x, y) = belowExisting(board_);  // a board with a patch: add below it, never over it
         const auto id = board::addNode(board_, *spec, x, y, juce::String(s->id));
         if (auto* n = board::findNode(board_, id); n && s->trackName.size()) {
             n->setProperty("track", juce::String(s->trackName));
