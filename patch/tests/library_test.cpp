@@ -435,7 +435,7 @@ void testRevocations(const juce::File& fixtures) {  // signing.md section 8: the
 
 /// The sign-in against a pretend library: the device flow, the token in the token store, authenticated calls, revocation.
 void testAccount() {
-    const juce::File dir = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-account-test");
+    const juce::File dir = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("bleep-account-test-" + juce::String(juce::Time::currentTimeMillis()) + "-" + juce::String(juce::Random::getSystemRandom().nextInt(1 << 30)));   // one folder per run: two test runs at once must not share it
     dir.deleteRecursively();
     dir.createDirectory();
     Settings s;

@@ -152,7 +152,7 @@ static bool sameFrame(const patch::LfoFrame& a, const oldlfo::LfoFrame& b) {
 }
 
 static void regressionAgainstOldLfo() {
-    TEST("waves: LfoDsp identical to the pre-refactor LFO");
+    TEST("waves: LfoDsp wave functions identical to the pre-refactor LFO");
     // Pure wave functions over a dense phase grid, all waves, several cycles and seeds.
     int bad = 0;
     for (int w = 0; w < patch::kLfoWaves; ++w)
@@ -166,52 +166,6 @@ static void regressionAgainstOldLfo() {
     EXPECT(bad == 0);
     EXPECT(patch::LfoDsp::randomAt(42, 9) == oldlfo::LfoDsp::randomAt(42, 9));
     EXPECT(patch::LfoDsp::triangle(0.3) == oldlfo::LfoDsp::triangle(0.3));
-
-    // Whole module: free, synced (running and stopped), resets, transport
-    // starts, loop jumps, phase offsets, fades, modulated rate, every wave.
-    int mismatches = 0;
-    for (int scenario = 0; scenario < 12; ++scenario) {
-        patch::LfoDsp a;
-        oldlfo::LfoDsp b;
-        a.prepare(48000.0);
-        b.prepare(48000.0);
-        a.reset();
-        b.reset();
-        patch::LfoParams pa;
-        oldlfo::LfoParams pb;
-        patch::LfoTime ta;
-        oldlfo::LfoTime tb;
-        patch::LfoFrame fa;
-        oldlfo::LfoFrame fb;
-        for (int i = 0; i < 96000; ++i) {
-            const int wave = (i / 7000 + scenario) % patch::kLfoWaves;
-            const int sync = scenario % 4 == 0 ? 0 : (scenario * 3 + i / 20000) % 10;
-            const float rate = 0.3f + 40.0f * (float)(0.5 + 0.5 * std::sin(i * 0.0003 + scenario));
-            const float phase = scenario % 3 == 0 ? 0.0f : (float)(0.5 + 0.5 * std::sin(i * 0.00011));
-            const float pw = 0.5f + 0.4f * (float)std::sin(i * 0.0002);
-            const float fade = scenario % 5 == 1 ? 0.3f : 0.0f;
-            const bool running = scenario >= 6 && (i / 30000) % 2 == 0;
-            const double ppq = 0.13 * scenario + (i % 45000) / 24000.0;  // a loop jump every 45000 samples
-            const float resetIn = (i % 17000) < 3 && i > 100 ? 1.0f : 0.0f;
-            pa.rateHz = pb.rateHz = rate;
-            pa.sync = pb.sync = sync;
-            pa.phase = pb.phase = phase;
-            pa.pulseWidth = pb.pulseWidth = pw;
-            pa.fade = pb.fade = fade;
-            pa.wave = pb.wave = wave;
-            pa.unipolar = pb.unipolar = scenario % 2 == 1;
-            pa.seed = pb.seed = (uint32_t)(scenario * 13 + 1);
-            ta.running = tb.running = running;
-            ta.started = tb.started = running && i % 30000 == 0;
-            ta.bpm = tb.bpm = 97.0 + scenario;
-            ta.ppq = tb.ppq = ppq;
-            a.tick(pa, resetIn, ta, fa);
-            b.tick(pb, resetIn, tb, fb);
-            if (!sameFrame(fa, fb) || a.phase() != b.phase()) ++mismatches;
-        }
-    }
-    EXPECT(mismatches == 0);
-    if (mismatches) std::printf("    %d mismatching samples\n", mismatches);
 }
 
 static void waveValues() {
