@@ -424,6 +424,7 @@
       if (!p.cell) p = Object.assign({}, p, { preset: await fetchPreset(p) });
     } catch (e) { say(e.message); return; }
     if (libraryView() && p.preset && !(await P.BleepLibraryView.ensureNeeds(p.preset, p.name))) return;
+    if (!libraryView() && p.preset) await P.BoardEdit.pinToMade(p.preset, {});   // the web board runs the versions the project names
     if (p.cell) {
       close();
       await native("loadCellPreset", p.name);

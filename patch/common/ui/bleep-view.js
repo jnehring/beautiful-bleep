@@ -179,7 +179,7 @@
   }
   /// Everything of this module's view a panel can show alone: [{id, name, kind: "display" | "controls" | "buttons", knobs?, size?}].
   function partsOf(type) {
-    const h = hooks.get(type.type), taken = new Set();
+    const h = type.older ? undefined : hooks.get(type.type), taken = new Set();
     const out = [...displayParts(h, taken), ...sectionParts(type, h, taken)];
     if (type.buttons && type.buttons.length) out.push({ id: "b:buttons", name: "Buttons", kind: "buttons" });
     return out.map(({ id, name, kind, knobs, size }) => ({ id, name, kind, ...(knobs ? { knobs } : {}), ...(size ? { size } : {}) }));
@@ -194,7 +194,8 @@
     root.style.setProperty("--accent", type.colour || "#4fd1c5");
     const customEl = el("section", "bv-custom");
     const stage = el("div", "bv-stage");  // the custom display and the controls
-    const h = hooks.get(type.type);
+    // An older version a node pins gets the plain view: the view script that is loaded belongs to the newest version.
+    const h = type.older ? undefined : hooks.get(type.type);
     if (type.description) root.appendChild(el("p", "bv-description", type.description));
     root.appendChild(stage);
 

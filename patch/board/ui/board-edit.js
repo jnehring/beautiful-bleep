@@ -8,6 +8,26 @@
   const { native, priv: P } = window.BleepSeal;
 
   P.BoardEdit = {
+    /// Where no dialog asks (the web board runs the version a project, cell or paste names): the nodes of `preset` that come from a
+    /// module this page runs in another version than its `needs` say get pinned to that version, and the page loads it. `types` is the
+    /// board's type table: the older version's description is put in, so the nodes are known at once. The app asks instead (library.js).
+    async pinToMade(preset, types) {
+      const needs = preset && preset.needs;
+      if (!needs || !Object.keys(needs).length || !Array.isArray(preset.nodes)) return;
+      if (P.BleepLibraryView && document.getElementById("library")) return;
+      let have;
+      try { have = await native("moduleNeeds", [...new Set(preset.nodes.map((n) => n.type))]); } catch (e) { return; }
+      const pins = [];
+      for (const [slug, h] of Object.entries(have || {})) {
+        const made = needs[slug] && needs[slug].version;
+        if (!made || made === h.version) continue;
+        for (const n of preset.nodes) if (h.types.includes(n.type)) { n.version = made; pins.push([n.type, made]); }
+      }
+      if (!pins.length) return;
+      let specs = [];
+      try { specs = (await native("loadVersions", pins)) || []; } catch (e) { /* the nodes wait as placeholders until the module arrives */ }
+      for (const t of specs) types[t.type + "@" + t.version] = t;
+    },
     create(s) {
       const { addPanels, canvas, clearCableSel, clone, closeView, descendants, edit, inVoiceCell, inputsOf,
               insideVoiceCell, isBoundary, isCellLike, isFixedBoundary, isFixedPort, isPort, isStructural, level,
@@ -47,7 +67,7 @@
 
       /// A module with audio in and audio out can be bypassed: its input audio goes straight to its output.
       function canBypass(n) {
-        if (isPort(n) || isCellLike(n) || isStructural(n) || !s.types[n.type]) return false;
+        if (isPort(n) || isCellLike(n) || isStructural(n) || !s.types[n.version ? n.type + "@" + n.version : n.type]) return false;
         return inputsOf(n).some((j) => j.type === "audio") && outputsOf(n).some((j) => j.type === "audio");
       }
       function setPowerButton(b, n) {
@@ -128,8 +148,18 @@
           cables: s.board.cables.filter((c) => ids.has(c.from.node) && ids.has(c.to.node)).map(clone),
           panels: clone(panelsWithLoaded(panelList().filter((q) => q.cell && ids.has(q.cell)))),
         };
-        native("copyText", JSON.stringify(clip));
+        // What the modules were at: the paste checks it against its own (the clipboard may come from the web board or another machine).
+        const write = () => native("copyText", JSON.stringify(clip));
+        needsOf(clip.nodes).then((needs) => {
+          if (needs && Object.keys(needs).length) clip.needs = Object.fromEntries(Object.entries(needs).map(([slug, v]) => [slug, { min: v.min, version: v.version }]));
+        }, () => {}).then(write);
         return true;
+      }
+
+      /// `needs` for these nodes: each module and the version it is installed in (the app's Library, or the web board's loaded modules).
+      async function needsOf(nodes) {
+        if (P.BleepLibraryView && document.getElementById("library")) return P.BleepLibraryView.needsFor(nodes);
+        return native("moduleNeeds", [...new Set(nodes.map((n) => n.type))]);
       }
 
       function cut() {
@@ -146,12 +176,15 @@
         try { clip = JSON.parse(await native("pasteText")); } catch (e) { return notice("Nothing to paste: the clipboard holds no copied Bleep modules."); }
         if (!clip || clip.format !== CLIP_FORMAT || !Array.isArray(clip.nodes) || !Array.isArray(clip.roots))
           return notice("Nothing to paste: the clipboard holds no copied Bleep modules.");
+        await P.BoardEdit.pinToMade(clip, s.types);
         const lvl = level();
         const byId = new Map(clip.nodes.map((n) => [n.id, n]));
-        const known = (n) => isCellLike(n) || isBoundary(n) || !!s.types[n.type];
+        const known = (n) => isCellLike(n) || isBoundary(n) || !!s.types[n.version ? n.type + "@" + n.version : n.type];
         const unknownTypes = () => [...new Set(clip.nodes.filter((n) => !known(n)).map((n) => n.type))];
         // Modules this build lacks: offer them from the library first (the node types are known again once they are installed).
-        if (unknownTypes().length && s.hasLibrary && P.BleepLibraryView
+        // Also when the modules are all here: they may be installed in another version than the one these were copied from.
+        const versioned = !!(clip.needs && Object.keys(clip.needs).length) || clip.nodes.some((n) => n.version);
+        if ((unknownTypes().length || versioned) && s.hasLibrary && P.BleepLibraryView
             && !(await P.BleepLibraryView.ensureNeeds({ nodes: clip.nodes, needs: clip.needs }, "Pasted modules", { isKnown: (ty) => known({ type: ty }) }))) return;
         const missing = unknownTypes();
         const roots = clip.roots.map((id) => byId.get(id)).filter((n) => n && known(n) && !isPort(n) && !isBoundary(n)

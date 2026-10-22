@@ -35,6 +35,13 @@
             return;
           }
         }
+        if (what.preset && !checked && !s.hasLibrary) {   // no library to ask (the web board): the cell runs the module versions it names
+          const q = presetList().find((r) => r.key === what.preset);
+          if (q && q.preset.needs && Object.keys(q.preset.needs).length) {
+            P.BoardEdit.pinToMade(q.preset, s.types).then(() => addAt(what, x, y, link, true), () => addAt(what, x, y, link, true));
+            return;
+          }
+        }
         if (what.preset && !checked && s.hasLibrary && P.BleepLibraryView) {  // modules the preset needs: offer to install them first
           const q = presetList().find((r) => r.key === what.preset);
           if (q) {

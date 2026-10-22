@@ -329,6 +329,18 @@ void testClient(const juce::File& fixtures) {
         CHECK(goods == 1, "one version of good");
     }
 
+    {   // a board pins the older version: it is fetched by its number and stays next to the newest, until a newer one is installed
+        CHECK(client("site").installVersion("good", "1.2.0", m, error) && m.version == "1.2.0" && m.allowed, "install the older version: %s", error.c_str());
+        CHECK(data.getChildFile("modules/registry/good/1.2.0").isDirectory() && data.getChildFile("modules/registry/good/1.3.0").isDirectory(), "both versions are on disk");
+        int newest = 0, all = 0;
+        for (const auto& i : client("site").installed()) if (i.slug == "good") { ++newest; CHECK(i.version == "1.3.0", "installed() still shows the newest only"); }
+        for (const auto& i : client("site").installed(false, true)) if (i.slug == "good") ++all;
+        CHECK(newest == 1 && all == 2, "installed(allVersions) lists both: %d %d", newest, all);
+        CHECK(!client("site").installVersion("good", "9.9.9", m, error), "a version the library never published: %s", error.c_str());
+        CHECK(!client("site").installVersion("good", "../1.2.0", m, error) && !client("site").installVersion("../good", "1.2.0", m, error), "a version and a name are never a path");
+        CHECK(client("site2").install("good", m, error) && !data.getChildFile("modules/registry/good/1.2.0").exists(), "a newer install removes the older version again");
+    }
+
     CHECK(client("site").remove("good", error), "remove: %s", error.c_str());
     CHECK(!client("site").remove("good", error), "removing twice is an error");
     {   // a slug is a folder name, never a path

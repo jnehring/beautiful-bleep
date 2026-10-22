@@ -118,7 +118,7 @@
         win.append(head, body);
         const api = makeApi(id);
         const bv = BleepView.create(t, clone(n), api);
-        const hook = BleepViews.get(t.type);
+        const hook = t.older ? null : BleepViews.get(t.type);
         if (hook && hook.width) win.style.width = hook.width + "px";
         else if (isPort(n)) win.classList.add("port");   // In/Out nodes have a few controls: fit them
         if (!n.params) n.params = {};
@@ -290,7 +290,7 @@
         v.bv = bv;
         if (v.type !== t.type) {   // the node became another type (a Code node converted to its module, or back): the window follows
           v.type = t.type;
-          const title = v.win.querySelector(".v-title"), sub = v.win.querySelector(".v-sub"), hook = BleepViews.get(t.type);
+          const title = v.win.querySelector(".v-title"), sub = v.win.querySelector(".v-sub"), hook = t.older ? null : BleepViews.get(t.type);
           if (title) title.textContent = n.name;
           if (sub) sub.textContent = t.name;
           v.win.style.setProperty("--accent", n.colour || t.colour || "#4fd1c5");

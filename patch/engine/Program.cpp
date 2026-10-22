@@ -327,12 +327,13 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
     std::map<std::string, std::shared_ptr<Module>> kept;
     for (const auto* n : order) {
         std::shared_ptr<Module> m;
-        if (auto it = modules.find(n->id); it != modules.end() && it->second->spec().type == n->type) m = it->second;
+        if (auto it = modules.find(n->id); it != modules.end() && it->second->spec().type == n->type
+                                          && (!n->spec || it->second->spec().version == n->spec->version)) m = it->second;
         if (n->type == kVoiceCell) {
             // Always rebuilt (its inside may have changed); its voices keep their state.
             m = VoiceCellModule::create(board, *n, std::dynamic_pointer_cast<VoiceCellModule>(m), sampleRate);
         } else if (!m) {
-            m = std::shared_ptr<Module>(reg.create(n->type).release());
+            m = std::shared_ptr<Module>((n->spec ? reg.create(*n->spec) : reg.create(n->type)).release());
             if (!m) continue;
             m->prepare(sampleRate);
             m->reset();
@@ -347,7 +348,8 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
     // Muted and structural nodes keep their state while they exist.
     for (const auto& n : board.nodes)
         if (kept.count(n.id) == 0)
-            if (auto it = modules.find(n.id); it != modules.end() && it->second->spec().type == n.type)
+            if (auto it = modules.find(n.id); it != modules.end() && it->second->spec().type == n.type
+                                              && (!n.spec || it->second->spec().version == n.spec->version))
                 kept[n.id] = it->second;
     modules = kept;
 

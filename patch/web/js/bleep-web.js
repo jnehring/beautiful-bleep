@@ -69,10 +69,30 @@
   if (S) { S.applyLibrary(); W.settings = S.call; }
 
   /// The module's package from the library, verified. The bytes are compiled inside the worklet (a Module does not cross to it everywhere).
-  function fetchModule(slug) {
-    if (!loading.has(slug)) loading.set(slug, BleepLibrary.fetchModule(slug));
-    return loading.get(slug);
+  function fetchModule(slug, version) {
+    const key = version ? `${slug}@${version}` : slug;
+    if (!loading.has(key)) loading.set(key, BleepLibrary.fetchModule(slug, version));
+    return loading.get(key);
   }
+
+  /// The module a node runs: the newest one the library lists, or the exact version the node pins (a project, cell or paste names it).
+  /// `version` is empty for the newest; `key` is what the engine knows the module and the node's type by ("filter" or "filter@0.1.2").
+  function moduleOf(n) {
+    const slug = manifest && manifest.types[n.type];
+    if (!slug) return null;
+    const latest = manifest.modules[slug].version;
+    const version = n.version && n.version !== latest && latest !== "local" && latest !== "user" ? n.version : "";
+    return { slug, version, key: version ? `${slug}@${version}` : slug, type: version ? `${n.type}@${version}` : n.type };
+  }
+  /// The board the engine gets: a node pinned to an older version has the type of that version.
+  const withVersions = (b) => {
+    if (!b || !b.nodes || !manifest) return b;
+    let changed = false;
+    const nodes = b.nodes.map((n) => { const m = n.version ? moduleOf(n) : null; if (m && m.version) { changed = true; return { ...n, type: m.type }; } return n; });
+    return changed ? { ...b, nodes } : b;
+  };
+  const versionSpecs = new Map();   // "type@version" → the board page's description of an older version that was loaded
+  const onVersionTypes = () => W.onVersionTypes && W.onVersionTypes();
 
   // ---- Media (web-media.js): the audio files modules use. Kept here; the clips a board uses go to the worklet once each. -----
   const M = window.BleepWebMedia ? window.BleepWebMedia.create({ idb: (() => { try { return window.indexedDB; } catch (e) { return null; } })() }) : null;
@@ -94,15 +114,22 @@
   /// Fetches (once) the module files the board's nodes need and gives them to the worklet.
   async function ensureModules() {
     if (!node || !board || !manifest) return;
-    const need = new Set();
+    const need = new Map();   // key → what the node(s) run
     for (const n of board.nodes) {
-      const slug = manifest.types[n.type];
-      if (slug && !sent.has(slug)) need.add(slug);
+      const w = moduleOf(n);
+      if (w && !sent.has(w.key)) need.set(w.key, w);
     }
-    for (const slug of need) {
+    for (const [slug, w] of need) {
       sent.add(slug);
       try {
-        const m = await fetchModule(slug);
+        const m = await fetchModule(w.slug, w.version);
+        if (w.version) {   // an older version: its node types are its own ("filter@0.1.2"), for the engine and for the board page
+          const specs = (m.spec || manifest.modules[w.slug].types.map((t) => types.find((x) => x.type === t)).filter(Boolean));
+          for (const t of specs) versionSpecs.set(`${t.type}@${w.version}`, { ...t, older: true, version: w.version });
+          post({ cmd: "types", types: specs.map((t) => ({ ...t, type: `${t.type}@${w.version}` })) });
+          post({ cmd: "module", slug, bytes: m.wasm.slice(0), types: specs.map((t) => `${t.type}@${w.version}`) });
+          onVersionTypes();
+        } else
         post({ cmd: "module", slug, bytes: m.wasm.slice(0), types: manifest.modules[slug].types });
         setStatus(m.local ? `loaded ${slug} from the local build (unsigned, ${Math.round(m.bytes / 1024)} KB)`
                          : `installed ${slug} ${m.version} from the Bleep Library (signed by ${m.publisher}, ${Math.round(m.bytes / 1024)} KB)`);
@@ -191,6 +218,43 @@
   Object.assign(W, {
     media: M,
     libraryTypes,
+    /// The older versions that boards pin and that were loaded: the board page's entries for them (`older`, `version`).
+    versionTypes: () => [...versionSpecs.values()],
+    onVersionTypes: null,
+    /// Loads the exact versions [[type, version], …] that a copy or project names (before the nodes are placed): the board page's
+    /// descriptions of them come back. A version that cannot be loaded is left out.
+    async loadVersions(pins) {
+      const out = [];
+      if (!manifest) return out;
+      for (const [type, version] of pins || []) {
+        const w = moduleOf({ type, version });
+        if (!w || !w.version) continue;
+        try {
+          const m = await fetchModule(w.slug, w.version);
+          const specs = m.spec || manifest.modules[w.slug].types.map((t) => types.find((x) => x.type === t)).filter(Boolean);
+          for (const t of specs) {
+            const key = `${t.type}@${w.version}`;
+            if (!versionSpecs.has(key)) versionSpecs.set(key, { ...t, older: true, version: w.version });
+          }
+          const spec = versionSpecs.get(`${type}@${w.version}`);
+          if (spec) out.push(spec);
+        } catch (e) { setStatus(`cannot load ${w.slug} ${w.version}: ${e.message}`); }
+      }
+      return out;
+    },
+    /// Which modules these node types come from and at which version this page runs them: { slug: { min, version, types } }.
+    /// A copy carries it, so a paste elsewhere can tell that the modules there are another version.
+    moduleNeeds(typeIds) {
+      const out = {};
+      if (!manifest) return out;
+      for (const t of typeIds || []) {
+        const slug = manifest.types[t];
+        const v = slug && manifest.modules[slug].version;
+        if (!slug || !/^\d+\.\d+\.\d+$/.test(v || "")) continue;   // a local build or the user's own module has no version to name
+        (out[slug] = out[slug] || { min: v, version: v, types: [] }).types.push(t);
+      }
+      return out;
+    },
     /// The user's own modules (user-modules.js) changed: read the module list again; nodes that need a module now get it.
     async refreshModules() {
       try { manifest = await BleepLibrary.manifest(); } catch (e) { return; }
@@ -205,7 +269,7 @@
       if (priv.BleepCode) priv.BleepCode.sync(b);   // compiles the Code nodes the engine does not have yet (also before the audio starts)
       if (!node) return;
       for (const id of code.keys()) if (!codeSent.has(id)) sendCode(id);
-      post({ cmd: "board", board: withPanelSources(withCode(W.mapBoard ? W.mapBoard(b) : b)) });  // [bridge] Remote nodes carry their channel key
+      post({ cmd: "board", board: withPanelSources(withVersions(withCode(W.mapBoard ? W.mapBoard(b) : b))) });  // [bridge] Remote nodes carry their channel key
       sendMedia(b.nodes);
       ensureModules();
     },
@@ -215,7 +279,7 @@
       codeSent.delete(id);
       if (!node) return;
       sendCode(id);
-      if (board) post({ cmd: "board", board: withPanelSources(withCode(W.mapBoard ? W.mapBoard(board) : board)) });
+      if (board) post({ cmd: "board", board: withPanelSources(withVersions(withCode(W.mapBoard ? W.mapBoard(board) : board))) });
     },
     setKnob: (id, param, value) => post({ cmd: "knob", node: id, param, value }),
     setAmount: (cable, value) => post({ cmd: "amount", cable, value }),
@@ -308,7 +372,7 @@
       post({ cmd: "watch", nodes: watched });
       post({ cmd: "tempo", bpm: W.transport.bpm });
       W.running = true;
-      if (board) { post({ cmd: "board", board: withCode(W.mapBoard ? W.mapBoard(board) : board) }); sendMedia(board.nodes); await ensureModules(); }
+      if (board) { post({ cmd: "board", board: withVersions(withCode(W.mapBoard ? W.mapBoard(board) : board)) }); sendMedia(board.nodes); await ensureModules(); }
       setStatus(`Web audio · ${Math.round(ctx.sampleRate / 1000)} kHz · latency ${Math.round(ctx.baseLatency * 1000)} ms` + (libraryDown ? ` · ${libraryDown}` : ""));
     },
     /// The board a visitor starts with: a playable keyboard synth.

@@ -436,7 +436,7 @@ export class Engine {
     if (!mod) return null;
     if (probe) return true;
     try {
-      const host = new ModuleInstance(mod, this.sampleRate, n.type, this.media);
+      const host = new ModuleInstance(mod, this.sampleRate, n.type.split("@")[0], this.media);   // "filter@0.1.2" is the module's "filter" in its 0.1.2 file
       host.connectedIn = new Uint8Array(s.inputs.length);
       return host;
     } catch (e) {  // one broken module must not stop the board

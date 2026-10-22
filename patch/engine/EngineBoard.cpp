@@ -203,7 +203,7 @@ juce::var Engine::cellParams(int handle) {
         if ((int)list.size() >= 16) break;
         const auto* node = board::findNode(board_, p.node);
         if (node == nullptr) continue;
-        const ModuleSpec* spec = Registry::get().find(node->getProperty("type").toString().toStdString());
+        const ModuleSpec* spec = Registry::get().find(node->getProperty("type").toString().toStdString(), node->getProperty("version").toString().toStdString());
         const int i = spec ? spec->paramIndex(p.param.toStdString()) : -1;
         if (i < 0) continue;
         double value = spec->params[(size_t)i].defaultNormalised();

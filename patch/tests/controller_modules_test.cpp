@@ -489,9 +489,23 @@ void filterTypeMigration() {
         EXPECT_NEAR(load((float)j / (float)(n - 1)), (float)j / (float)(n - 1), 1e-6);
     EXPECT_NEAR(load(1.0f), 1.0f, 1e-6);  // the former Rough is still the last
 }
+
+/// A Multi Filter copied from the web board and pasted keeps its settings through sanitise.
+void pastedFilterKeepsParams() {
+    g_test = "pasted filter";
+    const juce::String json = R"({"format":1,"id":"t","nodes":[{"id":"n1","type":"filter","name":"Multi Filter","x":3,"y":4,"parent":"","params":{"cutoff":0.46598,"resonance":0.8,"type":0.5161290322580645,"drive":0.4,"mode":0,"mix":1,"keytrack":0.5,"gain":0.5,"vowel":0,"damping":0.300000011920929,"slope":0.42857142857142855}}],"cables":[]})";
+    const auto doc = board::sanitise(board::fromJson(json));
+    const BoardModel m = board::parse(doc);
+    EXPECT(m.nodes.size() == 1);
+    if (m.nodes.empty()) return;
+    EXPECT_NEAR(m.nodes[0].params.at("cutoff"), 0.46598, 1e-5);
+    EXPECT_NEAR(m.nodes[0].params.at("resonance"), 0.8, 1e-5);
+    EXPECT_NEAR(m.nodes[0].params.at("drive"), 0.4, 1e-5);
+}
 }  // namespace
 
 int main() {
+    pastedFilterKeepsParams();
     filterTypeMigration();
     specs();
     dial();

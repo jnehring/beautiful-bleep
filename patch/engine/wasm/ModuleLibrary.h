@@ -37,6 +37,9 @@ public:
     void recheckInstalledAsync();
     /// Installs (or updates) a module and registers its node types. `done(ok, message)` on the message thread.
     void installAsync(const std::string& slug, std::function<void(bool, std::string)> done = {});
+    /// Installs one exact version of a module next to the newest (a board pins it) and registers it for the nodes that pin it.
+    /// Older versions are not kept for their own sake: installing a newer version of the module removes them (the board asks again).
+    void installVersionAsync(const std::string& slug, const std::string& version, std::function<void(bool, std::string)> done = {});
     void removeAsync(const std::string& slug, std::function<void(bool, std::string)> done = {});
     /// Installs every module the library offers that is not installed (the default module bundle).
     void installAllAsync(std::function<void(bool, std::string)> done = {});
@@ -69,7 +72,7 @@ private:
     void fetchRevocations(const library::Client& c);
     ModuleLibrary() = default;
     std::unique_ptr<library::Client> client() const;
-    void registerInstalled(const std::string& slug);   // message thread
+    void registerInstalled(const std::string& slug, const std::string& version = {});   // message thread; no version: the newest installed
     void post(std::function<void()> f);
     void setBusy(const std::string& slug, const std::string& what);
 
@@ -85,6 +88,7 @@ private:
     int64_t indexAt_ = 0;           ///< unix seconds the saved index was fetched
     bool cacheTried_ = false;
     std::map<std::string, std::string> busy_;
+    std::set<std::string> registered_;   ///< "slug version" of the older versions already in the registry (message thread)
     struct PluginJob { std::string state = "idle", message; bool ok = false; } pluginJob_;   // idle | running | done
     std::atomic<bool> started_{false};
     std::atomic<bool> rechecking_{false};

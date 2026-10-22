@@ -214,8 +214,37 @@ void Registry::add(ModuleSpec spec, Factory factory) {
 
 const ModuleSpec* Registry::find(const std::string& type) const noexcept {
     for (auto it = entries_.rbegin(); it != entries_.rend(); ++it)  // the newest first: a replaced type is found as its new version
-        if (it->spec->type == type) return it->spec.get();
+        if (!it->older && it->spec->type == type) return it->spec.get();
     return nullptr;
+}
+
+const ModuleSpec* Registry::find(const std::string& type, const std::string& version) const noexcept {
+    const ModuleSpec* newest = find(type);
+    if (version.empty() || newest == nullptr || newest->version.empty() || newest->version == version) return newest;
+    for (auto it = entries_.rbegin(); it != entries_.rend(); ++it)   // an older version, or one the newest replaced during this run
+        if (it->spec->type == type && it->spec->version == version) return it->spec.get();
+    return nullptr;
+}
+
+void Registry::addOlder(ModuleSpec spec, Factory factory) {
+    for (auto& p : spec.params)
+        if (!p.modulatable && cableableSettings().count({spec.type, p.id})) p.cableable = true;
+    Entry e{std::make_unique<ModuleSpec>(std::move(spec)), std::move(factory)};
+    e.older = true;
+    entries_.push_back(std::move(e));
+}
+
+std::vector<const ModuleSpec*> Registry::olderVersions() const {
+    std::vector<const ModuleSpec*> list;
+    for (const auto& e : entries_)
+        if (e.older) list.push_back(e.spec.get());
+    return list;
+}
+
+std::unique_ptr<Module> Registry::create(const ModuleSpec& spec) const {
+    for (const auto& e : entries_)
+        if (e.spec.get() == &spec) return e.factory ? e.factory(*e.spec) : nullptr;
+    return create(spec.type);
 }
 
 const ModuleSpec* Registry::forPort(PortKind kind) const noexcept {
@@ -227,7 +256,7 @@ const ModuleSpec* Registry::forPort(PortKind kind) const noexcept {
 
 std::unique_ptr<Module> Registry::create(const std::string& type) const {
     for (auto it = entries_.rbegin(); it != entries_.rend(); ++it)
-        if (it->spec->type == type) return it->factory ? it->factory(*it->spec) : nullptr;
+        if (!it->older && it->spec->type == type) return it->factory ? it->factory(*it->spec) : nullptr;
     return nullptr;
 }
 

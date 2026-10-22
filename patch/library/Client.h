@@ -87,6 +87,9 @@ public:
     bool loadCachedIndex(Index& out, int64_t& fetchedAt, std::string& error) const;
     /// Downloads, checks and installs the newest version of a module; older versions are removed after it worked.
     bool install(const std::string& slug, InstalledModule& out, std::string& error) const;
+    /// Downloads, checks and installs one exact version of a module next to the newest, for a board that pins it. The library keeps every
+    /// version it published; an older one stays on this machine until a newer one is installed (install() removes older versions).
+    bool installVersion(const std::string& slug, const std::string& version, InstalledModule& out, std::string& error) const;
     bool remove(const std::string& slug, std::string& error) const;
     /// Downloads a plugin from the library for this platform, checks its signature (kind "plugin") and the settings, and puts the
     /// .vst3 bundle(s) it holds into `folder`, replacing what is there. `names` receives the bundle names. Live must be closed (the caller checks).
@@ -100,7 +103,8 @@ public:
     int64_t revocationSerial() const { return revocations_ ? revocations_->serial : 0; }
     /// Every module in the data folder (the newest version of each), verified. Nothing is loaded.
     /// From the cache where the package is unchanged; `recheck` verifies every package again (a worker thread's job: see cacheStale).
-    std::vector<InstalledModule> installed(bool recheck = false) const;
+    /// `allVersions`: every version of a module from the library, not only the newest (older ones were fetched for boards that pin them).
+    std::vector<InstalledModule> installed(bool recheck = false, bool allVersions = false) const;
     /// Has a cached check grown old enough to be repeated with installed(true)?
     static bool cacheStale();
     /// The module.wasm and spec.json of an installed module, for the engine; checked again against its signature here.
@@ -117,6 +121,7 @@ public:
     juce::String url(const std::string& path) const;
 
 private:
+    bool installEntry(const std::string& slug, const std::string& entryPath, const std::string& expectVersion, bool pruneOlder, InstalledModule& out, std::string& error) const;
     bool check(const std::vector<uint8_t>& bytes, const std::string& slug, const std::string& version, const juce::var* signatureDoc,
                const juce::var* receiptDoc, InstalledModule& out, std::string& error) const;
 

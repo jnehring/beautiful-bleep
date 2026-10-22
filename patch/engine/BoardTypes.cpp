@@ -31,9 +31,15 @@ void describeShowAndNames(juce::DynamicObject* o, const ShowIf& show, const std:
 
 juce::var describeTypes() {
     juce::Array<juce::var> types;
-    for (const ModuleSpec* s : Registry::get().all()) {
+    // The newest version of every type, then the older versions installed next to them (a node can pin one: `older`, `version`).
+    std::vector<std::pair<const ModuleSpec*, bool>> specs;
+    for (const ModuleSpec* s : Registry::get().all()) specs.emplace_back(s, false);
+    for (const ModuleSpec* s : Registry::get().olderVersions()) specs.emplace_back(s, true);
+    for (const auto& [s, older] : specs) {
         auto* t = new juce::DynamicObject();
         t->setProperty("type", juce::String(s->type));
+        if (!s->version.empty()) t->setProperty("version", juce::String(s->version));
+        if (older) t->setProperty("older", true);
         t->setProperty("name", juce::String(s->name));
         t->setProperty("category", juce::String(s->category));
         t->setProperty("colour", juce::String(s->colour));

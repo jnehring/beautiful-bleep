@@ -14,7 +14,7 @@
       const level = () => (s.path.length ? s.path[s.path.length - 1] : "");
       const nodeById = (id, b = s.board) => (b ? b.nodes.find((n) => n.id === id) : null);
       const nodesAt = (lvl, b = s.board) => (b ? b.nodes.filter((n) => (n.parent || "") === lvl) : []);
-      const typeOf = (n) => (n.type === "code" && P.BleepCode && s.types.code ? P.BleepCode.uiSpec(n) : s.types[n.type]) || { type: n.type, name: n.type, params: [], inputs: [], outputs: [] };
+      const typeOf = (n) => (n.type === "code" && P.BleepCode && s.types.code ? P.BleepCode.uiSpec(n) : s.types[n.version ? n.type + "@" + n.version : n.type]) || { type: n.type, name: n.type, params: [], inputs: [], outputs: [] };
       const isPort = (n) => !!typeOf(n).port;
       const isCellLike = (n) => n.type === "cell" || n.type === "voice-cell";
       const isBoundary = (n) => n.type === "cell-in" || n.type === "cell-out" || n.type === "voice-in" || n.type === "voice-out";

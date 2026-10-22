@@ -162,7 +162,8 @@ BoardModel parse(const juce::var& doc) {
             node.port = sstr(n, "port");
             node.muted = (bool)n.getProperty("muted", false);
             node.bypassed = (bool)n.getProperty("bypassed", false);
-            node.spec = reg.find(node.type);
+            node.version = sstr(n, "version");
+            node.spec = reg.find(node.type, node.version);   // null for a pinned version that is not installed: a placeholder
             if (node.type == kCode) {   // a Code node runs as a type of its own (Registry.h, codeNodeSpec)
                 node.spec = codeNodeSpec(node.id, n.hasProperty("code") ? juce::JSON::toString(n["code"], true).toStdString() : std::string());
                 if (node.spec) node.type = node.spec->type;

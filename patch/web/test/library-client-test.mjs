@@ -276,6 +276,47 @@ await test("fetchModule: the whole path through the index, the entry and the pac
   }
 });
 
+await test("fetchModule(slug, version): an older version is fetched from its own entry, next to the newest", async () => {
+  const old = makeZip("reverb-old.bleepmod", files, { kit: "bleep", version: "1.0.0" });
+  const fresh = makeZip("reverb-new.bleepmod", { ...files, "spec.json": '[{"type":"reverb","name":"Verb 2"}]\n' }, { kit: "bleep", version: "2.0.0" });
+  const entryOf = async (version, pkg) => ({ id: "reverb", version, files: [{ path: `reverb-${version}.bleepmod`, sha256: Library.hex(new Uint8Array(await crypto.subtle.digest("SHA-256", pkg))), bytes: pkg.length, platform: "any", signature: (await Library.readZip(pkg)).signature }] });
+  const base = "http://library/registry/v1/";
+  const served = {
+    [base + "index.json"]: { format: 1, channels: { stable: { modules: { reverb: { version: "2.0.0", entry: "modules/reverb/2.0.0/entry.json", types: ["reverb"] } } } } },   // the index lists the newest only
+    [base + "modules/reverb/2.0.0/entry.json"]: await entryOf("2.0.0", fresh),
+    [base + "modules/reverb/2.0.0/reverb-2.0.0.bleepmod"]: fresh,
+    [base + "modules/reverb/1.0.0/entry.json"]: await entryOf("1.0.0", old),
+    [base + "modules/reverb/1.0.0/reverb-1.0.0.bleepmod"]: old,
+  };
+  const asked = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    asked.push(url);
+    const body = served[url];
+    if (body === undefined) return new Response("no", { status: 404 });
+    return new Response(body instanceof Uint8Array ? body : JSON.stringify(body));
+  };
+  try {
+    Library.configure({ base, roots: [root], allowUnsigned: { module: false, plugin: false } });
+    const latest = await Library.fetchModule("reverb");
+    const older = await Library.fetchModule("reverb", "1.0.0");
+    assert.equal([latest.version, older.version].join(), "2.0.0,1.0.0");
+    assert.equal(older.spec[0].name, "Verb");
+    assert.equal(latest.spec[0].name, "Verb 2");
+    assert.equal(older.status, "signed");   // checked like any download: signed for version 1.0.0
+    assert.equal(await Library.fetchModule("reverb", "2.0.0"), latest, "the newest asked for by its number is the same download");
+    assert.equal(await Library.fetchModule("reverb", "1.0.0"), older, "kept after the first fetch");
+    await assert.rejects(Library.fetchModule("reverb", "9.9.9"), /404|9\.9\.9/);   // never published
+    await assert.rejects(Library.fetchModule("reverb", "../2.0.0"), /not a version/);
+    assert.ok(!asked.some((u) => u.includes("..")), "a version never reaches the address as a path");
+    // an entry that is for another version than the one asked for
+    served[base + "modules/reverb/3.0.0/entry.json"] = served[base + "modules/reverb/1.0.0/entry.json"];
+    await assert.rejects(Library.fetchModule("reverb", "3.0.0"), /entry for 3\.0\.0 is for 1\.0\.0/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 await test("revocation list: fetched, verified, rollback refused, fetch failure tolerated, revoked key refused", async () => {
   const pkg = makeZip("crl.bleepmod", files, { kit: "bleep" });
   const sha = Library.hex(new Uint8Array(await crypto.subtle.digest("SHA-256", pkg)));

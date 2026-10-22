@@ -45,21 +45,32 @@ public:
     static Registry& instance();
 
     const ModuleSpec* find(const std::string& type) const noexcept;
+    /// The type in exactly this version (a node pins one, next to the newest); an empty version is `find(type)`. A spec without a
+    /// version (compiled in) matches any. Null when that version is not installed.
+    const ModuleSpec* find(const std::string& type, const std::string& version) const noexcept;
     /// The node type of a port plugin, e.g. PortKind::MidiIn → "midi-in".
     const ModuleSpec* forPort(PortKind kind) const noexcept;
     const std::vector<const ModuleSpec*>& all() const noexcept { return order_; }
     /// Creates the DSP for a node type; null for structural types.
     std::unique_ptr<Module> create(const std::string& type) const;
+    /// The DSP of exactly this spec (a registered version of a type).
+    std::unique_ptr<Module> create(const ModuleSpec& spec) const;
+    /// The older versions that are installed next to the newest of their type.
+    std::vector<const ModuleSpec*> olderVersions() const;
 
     /// Adds a node type. One whose id is already there is **replaced** for everything that looks it up from now on (a new
     /// version of an installed module); the old spec stays alive, because nodes that run with it hold a reference.
     void add(ModuleSpec spec, Factory factory);
+    /// Adds a version of a type that is not the newest: it is found by `find(type, version)` and listed in olderVersions(), and
+    /// `find(type)` and the lists keep the newest. Installed after the newest, an older version is still found as older.
+    void addOlder(ModuleSpec spec, Factory factory);
 
 private:
     Registry();
     struct Entry {
         std::unique_ptr<ModuleSpec> spec;
         Factory factory;
+        bool older = false;   ///< registered with addOlder: never what find(type) returns
     };
     std::vector<Entry> entries_;
     std::vector<const ModuleSpec*> order_;

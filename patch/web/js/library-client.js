@@ -331,11 +331,20 @@
   const communityFilesOk = (names) => { for (const n of names) if (!COMMUNITY_FILES.test(n)) return `${n} is not allowed in a community module`; return ""; };
 
   /// Downloads a module package, checks it and returns its .wasm. Throws, with the reason, if it must not load.
-  function fetchModule(slug) {
-    if (!packages.has(slug)) {
-      packages.set(slug, (async () => {
+  /// `version`: exactly that version, not the newest (a board pins it). The library keeps every version it published, each at
+  /// modules/<slug>/<version>/entry.json; checked like any other download.
+  function fetchModule(slug, version) {
+    const key = version ? `${slug}@${version}` : slug;
+    if (!packages.has(key)) {
+      packages.set(key, (async () => {
         const mods = (await manifest()).modules;
         if (!mods[slug]) throw new Error(`the library has no module ${slug}`);
+        let entryPath = mods[slug].entry;
+        if (version) {
+          if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error(`${slug}: ${version} is not a version`);
+          if (version === mods[slug].version || mods[slug].user || mods[slug].local) return fetchModule(slug);   // the newest (or a module with just one version)
+          entryPath = `modules/${slug}/${version}/entry.json`;
+        }
         if (mods[slug].user) {  // a module the user made: the bytes are in this browser
           const e = root.BleepUserModules.get(slug);
           if (!e) throw new Error(`the module ${slug} is not stored in this browser any more`);
@@ -352,8 +361,9 @@
           return { wasm, version: "local", publisher: "local build", status: "unsigned", trust: "local", local: true, meta: {}, bytes: wasm.byteLength, spec: mods[slug].spec || null,
                    view: await text(extra.view), source: await text(extra.source), help: await text(extra.help) };   // spec: the node types of a script module, which no demo-types.json lists
         }
-        const dir = config.base + mods[slug].entry.replace(/entry\.json$/, "");
-        const entry = await getJSON(config.base + mods[slug].entry);
+        const dir = config.base + entryPath.replace(/entry\.json$/, "");
+        const entry = await getJSON(config.base + entryPath);
+        if (version && entry.version !== version) throw new Error(`${slug}: the library's entry for ${version} is for ${entry.version}`);
         const file = entry.files.find((f) => f.platform === "any");
         if (!file) throw new Error(`${slug}: no package in the entry`);
         const res = await fetch(abs(dir + file.path));
@@ -378,9 +388,9 @@
                  status: checked.status, meta: JSON.parse(dec.decode(zip.files.get("module.json"))), bytes: bytes.length,
                  spec: specFile ? JSON.parse(dec.decode(specFile)) : null, view: viewFile ? dec.decode(viewFile) : "", source: sourceFile ? dec.decode(sourceFile) : "", help: docName ? dec.decode(zip.files.get(docName)) : "" };
       })());
-      packages.get(slug).catch(() => packages.delete(slug));  // a failed download is tried again next time
+      packages.get(key).catch(() => packages.delete(key));  // a failed download is tried again next time
     }
-    return packages.get(slug);
+    return packages.get(key);
   }
 
   const BleepLibrary = {

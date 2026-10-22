@@ -169,6 +169,7 @@ constexpr const char* kAudioReturn = "audio-return";
 
 struct ModuleSpec {
     std::string type;        ///< stable id saved in boards, e.g. "function"
+    std::string version;     ///< the module's version ("1.2.3"); empty for modules compiled in. A node may pin one (NodeModel::version)
     std::string name;        ///< "Function"
     std::string category;    ///< browser group, "Group/Subgroup" nests in the Add menu: "Modulation/LFOs", "Audio/Filters", "Ports", "Cells"
     std::string colour;      ///< "#4fd1c5"

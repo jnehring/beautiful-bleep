@@ -47,6 +47,7 @@ struct CellJack {
 
 struct NodeModel {
     std::string id, type, name, parent, port;
+    std::string version;                  ///< the version of the module the node is pinned to; empty: whatever is installed (the newest)
     bool muted = false;
     bool bypassed = false;                ///< audio modules: the input audio goes straight to the output, unprocessed
     const ModuleSpec* spec = nullptr;

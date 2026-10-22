@@ -27,6 +27,8 @@
     types = types.filter((t) => t.type !== "code");   // the list may carry it (the engine has the type); it is offered only where the compiler is
     if (code && await code.available()) types = types.concat([code.type]);
   }
+  /// Older versions of modules that boards pin and this page loaded for them (the web runs the version a project or cell names).
+  const versionTypes = () => (window.BleepWeb && BleepWeb.versionTypes ? BleepWeb.versionTypes() : []);
   const typeOf = (t) => types.find((x) => x.type === t);
   let board = null;
   let undo = [], redo = [];
@@ -390,8 +392,8 @@
           baseTypes = await (await fetch("demo-types.json")).json();
           await listTypes();
           board = store.get("bleep-demo-board", null) || (window.BleepWeb && BleepWeb.defaultBoard ? BleepWeb.defaultBoard(node, cable) : demoBoard());
-          if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.setBoard(board); }
-          return Object.assign(message(), { types, dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});
+          if (window.BleepWeb) { BleepWeb.setTypes(types); BleepWeb.onVersionTypes = () => emit("typesChanged"); BleepWeb.setBoard(board); }
+          return Object.assign(message(), { types: types.concat(versionTypes()), dev: true, standalone: true, settings: true, account: true }, demoLibrary ? { library: true } : {});
         case "commit":
           pushUndo();
           { const t = board.tempo; board = sanitise(clone(a[0])); if (t) board.tempo = t; }   // the UI's copy may be older than the tempo
@@ -455,7 +457,10 @@
         }
         case "types":
           if (window.BleepUserModules && typesVersion !== BleepUserModules.version()) { await listTypes(); if (window.BleepWeb) BleepWeb.setTypes(types); }   // a module was saved from a Code node
-          return types;
+          return types.concat(versionTypes());
+        // The modules these node types come from and their versions on this page: a copy carries them (board-edit.js).
+        case "loadVersions": return window.BleepWeb && BleepWeb.loadVersions ? BleepWeb.loadVersions(a[0]) : [];
+        case "moduleNeeds": return window.BleepWeb && BleepWeb.moduleNeeds ? BleepWeb.moduleNeeds(a[0]) : {};
         case "account": return demoAccount(a[0], a[1], a[2], a[3]);
         case "settings": return window.BleepWeb && BleepWeb.settings ? BleepWeb.settings(a[0], a[1]) : demoSettings(a[0], a[1]);
         case "libraryRevealData": return null;

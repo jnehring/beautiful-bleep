@@ -381,8 +381,19 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
     if (!fetchIndex(index, error)) return false;
     const IndexModule* m = index.find(slug);
     if (!m) { error = "the library has no module " + slug; return false; }
+    return installEntry(slug, m->entry, "", true, out, error);
+}
+
+bool Client::installVersion(const std::string& slug, const std::string& version, InstalledModule& out, std::string& error) const {
+    if (!safeSlug(slug)) { error = "a bad module name: " + slug; return false; }
+    if (!safeVersion(version)) { error = "a bad version: " + version; return false; }
+    // Every published version stays in the library (the index lists only the newest): its entry is at a fixed place.
+    return installEntry(slug, "modules/" + slug + "/" + version + "/entry.json", version, false, out, error);
+}
+
+bool Client::installEntry(const std::string& slug, const std::string& entryPath, const std::string& expectVersion, bool pruneOlder, InstalledModule& out, std::string& error) const {
     juce::var entry;
-    if (!fetchJson(url(m->entry), entry, error)) return false;
+    if (!fetchJson(url(entryPath), entry, error)) return false;
     juce::var file;
     if (auto* files = entry["files"].getArray())
         for (const auto& f : *files)
@@ -391,8 +402,9 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
     const std::string version = str(entry["version"]), path = str(file["path"]);
     if (!safeSlug(slug)) { error = "a bad module name: " + slug; return false; }
     if (!safeVersion(version)) { error = "a bad version in the entry of " + slug; return false; }
+    if (!expectVersion.empty() && version != expectVersion) { error = "the library's entry for " + slug + " " + expectVersion + " is for version " + version; return false; }
     if (path.empty() || path.find('/') != std::string::npos || path.find("..") != std::string::npos) { error = "a bad file name in the entry"; return false; }
-    const std::string dir = m->entry.substr(0, m->entry.rfind('/') + 1);
+    const std::string dir = entryPath.substr(0, entryPath.rfind('/') + 1);
     std::vector<uint8_t> bytes;
     if (!fetchBytes(url(dir + path), bytes, error)) return false;
     const Digest sha = sha256(bytes.data(), bytes.size());
@@ -422,9 +434,10 @@ bool Client::install(const std::string& slug, InstalledModule& out, std::string&
     finalDir.getParentDirectory().createDirectory();
     if (!temp.moveFileTo(finalDir)) { temp.deleteRecursively(); error = "cannot move the package into place"; return false; }
     out.file = finalDir.getChildFile(tempFile.getFileName());
-    // the newest version is the only one that stays
-    for (const auto& old : finalDir.getParentDirectory().findChildFiles(juce::File::findDirectories, false))
-        if (old != finalDir && versionKey(old.getFileName().toStdString()) < versionKey(version)) old.deleteRecursively();
+    // the newest version is the only one that stays (an older one fetched for a board that pins it stays until a newer one is installed)
+    if (pruneOlder)
+        for (const auto& old : finalDir.getParentDirectory().findChildFiles(juce::File::findDirectories, false))
+            if (old != finalDir && versionKey(old.getFileName().toStdString()) < versionKey(version)) old.deleteRecursively();
     return true;
 }
 
@@ -529,7 +542,7 @@ std::string fileStamp(const juce::File& f) {
 
 }  // namespace
 
-std::vector<InstalledModule> Client::installed(bool recheck) const {
+std::vector<InstalledModule> Client::installed(bool recheck, bool allVersions) const {
     std::vector<InstalledModule> out;
     std::string trust = std::string(settings_.allowUnsigned.module ? "m" : "-") + (settings_.allowUnsigned.plugin ? "p" : "-");
     trust += "|crl" + std::to_string(revocationSerial());  // a new revocation list makes every earlier verdict stale
@@ -574,14 +587,19 @@ std::vector<InstalledModule> Client::installed(bool recheck) const {
         }
         out.push_back(std::move(m));
     };
-    // from the library: <slug>/<version>/<slug>-<version>.bleepmod, the newest version of each
+    // from the library: <slug>/<version>/<slug>-<version>.bleepmod, the newest version of each (every version with `allVersions`:
+    // an older one is there because a board pins it)
     for (const auto& slugDir : modulesFolder("registry").findChildFiles(juce::File::findDirectories, false)) {
+        const std::string slug = slugDir.getFileName().toStdString();
         juce::File best;
         long long bestKey = -1;
-        for (const auto& v : slugDir.findChildFiles(juce::File::findDirectories, false))
-            if (versionKey(v.getFileName().toStdString()) > bestKey) { bestKey = versionKey(v.getFileName().toStdString()); best = v; }
+        for (const auto& v : slugDir.findChildFiles(juce::File::findDirectories, false)) {
+            const std::string version = v.getFileName().toStdString();
+            if (allVersions && versionKey(version) >= 0) consider(v.getChildFile(juce::String(slug) + "-" + juce::String(version) + ".bleepmod"), slug, version, "registry");
+            else if (versionKey(version) > bestKey) { bestKey = versionKey(version); best = v; }
+        }
         if (!best.isDirectory()) continue;
-        const std::string slug = slugDir.getFileName().toStdString(), version = best.getFileName().toStdString();
+        const std::string version = best.getFileName().toStdString();
         consider(best.getChildFile(juce::String(slug) + "-" + juce::String(version) + ".bleepmod"), slug, version, "registry");
     }
     // copied by hand: <slug>-<version>.bleepmod (a file that does not say its version cannot be checked against its signature)

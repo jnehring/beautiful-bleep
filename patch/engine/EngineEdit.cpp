@@ -192,7 +192,7 @@ void Engine::setParam(const juce::String& nodeId, const juce::String& paramId, f
 void Engine::setData(const juce::String& nodeId, const juce::var& data) {
     auto* n = hasBoard() ? board::findNode(board_, nodeId) : nullptr;
     if (n == nullptr) return;
-    const auto* spec = Registry::get().find(n->getProperty("type").toString().toStdString());
+    const auto* spec = Registry::get().find(n->getProperty("type").toString().toStdString(), n->getProperty("version").toString().toStdString());
     if (spec == nullptr || !spec->sanitiseData) return;
     const std::string json = spec->sanitiseData(juce::JSON::toString(data, true).toStdString());
     n->setProperty("data", board::fromJson(juce::String(json)));

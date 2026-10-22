@@ -208,8 +208,8 @@
         if (n.type === "cell") sub = "Cell";
         if (n.type === "voice-cell") sub = "×" + paramValue(n, "voices");
         if (isBoundary(n)) sub = "";
-        const missingModule = !s.types[n.type] && !isCellLike(n) && !isBoundary(n) && !isPort(n);
-        if (missingModule) { e.classList.add("missing"); sub = "not installed"; }
+        const missingModule = !s.types[n.version ? n.type + "@" + n.version : n.type] && !isCellLike(n) && !isBoundary(n) && !isPort(n);
+        if (missingModule) { e.classList.add("missing"); sub = n.version ? "version " + n.version + " not installed" : "not installed"; }
         if (n.name === sub) sub = t.name;
         if (sub) head.appendChild(el("span", "n-sub", sub));
         if (hasPanel(n)) {
@@ -240,7 +240,7 @@
               ev.stopPropagation();
               b.disabled = true;
               b.textContent = "Installing…";
-              const ok = await P.BleepLibraryView.installType(n.type);
+              const ok = n.version ? await P.BleepLibraryView.installVersionOf(n.type, n.version) : await P.BleepLibraryView.installType(n.type);
               if (!ok) { b.disabled = false; b.textContent = "Install"; note.textContent = n.type + ": " + (P.BleepLibraryView.lastMessage() || "not found in the library"); }
             });
             e.appendChild(b);

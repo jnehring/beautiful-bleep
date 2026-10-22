@@ -421,6 +421,87 @@ void audioModulesRecoverFromNaN() {
     }
 }
 
+// ---- a module in two versions: a node can pin the older one next to the newest -------------------------------------------
+
+/// Sound of the version it was made from: 1 for 1.0.0, 2 for 2.0.0 (so a test can tell which version a node runs).
+class VersionedModule final : public Module {
+public:
+    using Module::Module;
+    void process(const ProcessContext& c) override {
+        const float v = spec().version == "1.0.0" ? 1.0f : 2.0f;
+        for (int s = 0; s < c.numSamples; ++s) c.outputs[0][s] = v;
+    }
+};
+
+void registerVersioned(Registry& r) {
+    ModuleSpec news;
+    news.type = "versioned-test";
+    news.version = "2.0.0";
+    news.name = "Versioned Test";
+    news.params = {ParamSpec::percent("a", "A", 0.0f, 1.0f, 0.5f), ParamSpec::percent("b", "B", 0.0f, 1.0f, 0.25f)};
+    news.outputs = {{"out", "Out", Signal::Control}};
+    ModuleSpec old = news;
+    old.version = "1.0.0";
+    old.params = {ParamSpec::percent("a", "A", 0.0f, 1.0f, 0.5f)};   // the older version has no B
+    r.add(std::move(news), [](const ModuleSpec& s) { return std::make_unique<VersionedModule>(s); });
+    r.addOlder(std::move(old), [](const ModuleSpec& s) { return std::make_unique<VersionedModule>(s); });
+}
+BLEEP_REGISTER_MODULE(registerVersioned);
+
+void pinnedVersions() {
+    g_test = "pinned versions";
+    const auto& reg = Registry::get();
+    const auto* latest = reg.find("versioned-test");
+    const auto* older = reg.find("versioned-test", "1.0.0");
+    EXPECT(latest && latest->version == "2.0.0");
+    EXPECT(older && older->version == "1.0.0" && older != latest && older->params.size() == 1);
+    EXPECT(reg.find("versioned-test", "2.0.0") == latest);
+    EXPECT(reg.find("versioned-test", "") == latest);
+    EXPECT(reg.find("versioned-test", "3.0.0") == nullptr);   // not installed
+    EXPECT(reg.find("filter", "9.9.9") != nullptr);           // compiled in (no version): matches any
+    EXPECT(reg.olderVersions().size() >= 1);
+
+    // sanitise and parse: each node gets the version it names; a version that is not installed waits as a placeholder with its settings
+    auto pinned = node("old", "versioned-test");
+    pinned.getDynamicObject()->setProperty("version", "1.0.0");
+    pinned.getDynamicObject()->setProperty("params", obj({{"a", 0.8}, {"b", 0.9}}));
+    auto missing = node("gone", "versioned-test");
+    missing.getDynamicObject()->setProperty("version", "9.0.0");
+    missing.getDynamicObject()->setProperty("params", obj({{"a", 0.7}, {"b", 0.6}}));
+    auto plain = node("new", "versioned-test");
+    plain.getDynamicObject()->setProperty("params", obj({{"a", 0.3}, {"b", 0.4}}));
+    const auto d = board::sanitise(doc({pinned, missing, plain}, {}));
+    const auto model = board::parse(d);
+    const auto* o = model.node("old");
+    const auto* g = model.node("gone");
+    const auto* n = model.node("new");
+    EXPECT(o && o->spec == older && o->version == "1.0.0" && o->params.size() == 1 && std::fabs(o->params.at("a") - 0.8f) < 1e-5);
+    EXPECT(n && n->spec == latest && n->version.empty() && n->params.size() == 2);
+    EXPECT(g && g->spec == nullptr && g->version == "9.0.0");
+    EXPECT(board::findNode(d, "gone") && (bool)board::findNode(d, "gone")->getProperty("missing"));
+    EXPECT(std::fabs((double)board::findNode(d, "gone")->getProperty("params")["b"] - 0.6) < 1e-6);   // everything it was saved with is kept
+
+    // compile: both versions run in one board, each with its own DSP
+    std::map<std::string, std::shared_ptr<Module>> modules;
+    auto program = Program::compile(model, modules, {}, kRate);
+    EXPECT(modules.count("old") && modules["old"]->spec().version == "1.0.0");
+    EXPECT(modules.count("new") && modules["new"]->spec().version == "2.0.0");
+    // changing the pin builds a new module for the node; the one that stays pinned is kept
+    const auto before = modules["old"];
+    auto repinned = copyOf(d);
+    board::findNode(repinned, "new")->setProperty("version", "1.0.0");
+    auto again = Program::compile(board::parse(board::sanitise(repinned)), modules, {}, kRate);
+    EXPECT(modules["old"] == before);
+    EXPECT(modules["new"]->spec().version == "1.0.0");
+
+    // the board page gets the older version as a type of its own
+    bool listed = false;
+    const auto types = board::describeTypes();
+    for (int i = 0; i < types.size(); ++i)
+        listed = listed || (types[i]["type"].toString() == "versioned-test" && types[i]["older"] && types[i]["version"].toString() == "1.0.0");
+    EXPECT(listed);
+}
+
 }  // namespace
 
 void runDocumentTests() {
@@ -433,4 +514,5 @@ void runDocumentTests() {
     audioModulesRecoverFromNaN();
     persistenceAndDuplicates();
     undoRedo();
+    pinnedVersions();
 }

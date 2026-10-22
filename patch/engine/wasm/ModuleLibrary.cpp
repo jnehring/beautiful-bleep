@@ -106,24 +106,30 @@ void ModuleLibrary::fetchRevocations(const library::Client& c) {
     }
 }
 
-void ModuleLibrary::registerInstalled(const std::string& slug) {
+void ModuleLibrary::registerInstalled(const std::string& slug, const std::string& version) {
     const auto c = client();
-    for (const auto& m : c->installed()) {
-        if (m.slug != slug) continue;
+    const auto all = c->installed(false, true);
+    std::string newest;   // the highest version of this module on this machine
+    for (const auto& m : all)
+        if (m.slug == slug && (newest.empty() || library::versionNewer(m.version, newest))) newest = m.version;
+    for (const auto& m : all) {
+        if (m.slug != slug || (!version.empty() ? m.version != version : m.version != newest)) continue;
+        const bool older = m.version != newest;   // a version a board pins: found by its number, next to the newest
+        if (older && !registered_.insert(slug + " " + m.version).second) return;
         LoadReport r;
         r.slug = m.slug; r.version = m.version; r.source = m.source; r.status = m.result.status; r.why = m.why;
         std::vector<uint8_t> wasm;
         std::string spec, error;
         if (m.allowed && c->contentOf(m, wasm, spec, error)) {
             auto package = spec.empty() ? WasmPackage::load(wasm.data(), wasm.size(), error) : WasmPackage::lazy(std::move(wasm), spec, error);
-            if (package && registerPackage(Registry::instance(), package, error)) { r.loaded = true; r.types = package->types; }
+            if (package && registerPackage(Registry::instance(), package, error, m.version, older)) { r.loaded = true; r.types = package->types; }
             else r.why = error;
         } else if (m.allowed) {
             r.why = error;
         }
         dropViewCache();  // rebuilt on the next request (never while holding mutex_: viewFile takes the two in the other order)
         std::lock_guard<std::mutex> l(mutex_);
-        reports_.erase(std::remove_if(reports_.begin(), reports_.end(), [&](const LoadReport& x) { return x.slug == slug; }), reports_.end());
+        reports_.erase(std::remove_if(reports_.begin(), reports_.end(), [&](const LoadReport& x) { return x.slug == slug && x.version == m.version; }), reports_.end());
         reports_.push_back(std::move(r));
     }
 }
@@ -189,6 +195,27 @@ void ModuleLibrary::installAsync(const std::string& slug, std::function<void(boo
         post([this, slug, ok, error, done] {
             if (ok) {
                 registerInstalled(slug);
+                if (onTypesChanged) onTypesChanged();
+            }
+            setBusy(slug, "");
+            if (done) done(ok, error);
+        });
+    }).detach();
+}
+
+void ModuleLibrary::installVersionAsync(const std::string& slug, const std::string& version, std::function<void(bool, std::string)> done) {
+    setBusy(slug, "installing");
+    std::thread([this, slug, version, done = std::move(done)] {
+        const auto c = client();
+        library::InstalledModule m;
+        std::string error;
+        bool ok = true;
+        bool have = false;   // already here: nothing to fetch
+        for (const auto& x : c->installed(false, true)) have = have || (x.slug == slug && x.version == version && x.allowed);
+        if (!have) ok = c->installVersion(slug, version, m, error);
+        post([this, slug, version, ok, error, done] {
+            if (ok) {
+                registerInstalled(slug, version);
                 if (onTypesChanged) onTypesChanged();
             }
             setBusy(slug, "");
@@ -340,10 +367,24 @@ juce::var ModuleLibrary::status() {
     juce::Array<juce::var> installed;
     for (const auto& m : c->installed()) {
         const LoadReport* r = nullptr;
-        for (const auto& x : reports_) if (x.slug == m.slug) r = &x;
+        for (const auto& x : reports_) if (x.slug == m.slug && x.version == m.version) r = &x;
         installed.add(module(m, r));
     }
     o->setProperty("installed", installed);
+    // Older versions kept next to the newest, because a board pins them; `pinning`: this app can run a version a board names.
+    juce::Array<juce::var> versions;
+    const auto every = c->installed(false, true);
+    std::map<std::string, std::string> newestOf;
+    for (const auto& m : every)
+        if (!newestOf.count(m.slug) || library::versionNewer(m.version, newestOf[m.slug])) newestOf[m.slug] = m.version;
+    for (const auto& m : every) {
+        if (newestOf[m.slug] == m.version) continue;
+        const LoadReport* r = nullptr;
+        for (const auto& x : reports_) if (x.slug == m.slug && x.version == m.version) r = &x;
+        versions.add(module(m, r));
+    }
+    o->setProperty("versions", versions);
+    o->setProperty("pinning", true);
     auto* idx = new juce::DynamicObject();
     idx->setProperty("ok", haveIndex_);
     idx->setProperty("cached", indexFromCache_);   // true: the copy saved on disk, the library has not answered since

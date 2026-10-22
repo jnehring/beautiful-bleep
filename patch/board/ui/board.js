@@ -83,10 +83,17 @@
   async function checkMissingModules() {
     if (!typesReady || !hasLibrary || !board || !P.BleepLibraryView) return;
     const known = (ty) => !!types[ty] || ty === "code" || ty === "cell" || ty === "voice-cell";
-    const nodes = board.nodes.filter((n) => !isPort(n) && !isBoundary(n) && !isCellLike(n) && !known(n.type));
+    const isModule = (n) => !isPort(n) && !isBoundary(n) && !isCellLike(n);
+    // Nodes of a type or a pinned version this machine lacks, and (when the project says what it was made with) every module node:
+    // the modules may be installed in another version.
+    const lacking = (n) => !known(n.version ? n.type + "@" + n.version : n.type);
+    const nodes = board.needs && Object.keys(board.needs).length ? board.nodes.filter(isModule) : board.nodes.filter((n) => isModule(n) && lacking(n));
     if (!nodes.length) return;
+    const pins = () => JSON.stringify(nodes.map((n) => [n.id, n.version || ""]));
+    const before = pins();
     try { await P.BleepLibraryView.ensureNeeds({ nodes, needs: board.needs }, "This project", { isKnown: known, once: true }); }
     catch (e) { /* the library did not answer: the placeholders say what is missing */ }
+    if (pins() !== before) edit("module versions", () => {});   // the choice changed which versions the nodes run with: commit it
   }
 
   /// A board was loaded: once it is drawn and the canvas has a size, zoom and scroll so that all of it shows, as big as fits.
@@ -552,6 +559,7 @@
     }
   });
   onNative("board", applyMessage);
+  onNative("typesChanged", () => refreshTypes());   // the web page loaded an older version of a module that a board pins
   onNative("focus", (f) => { if (f && f.node) focusNode(f.node); });
 
   // ------------------------------------------------------------- keyboard
@@ -690,7 +698,7 @@
     const list = await native("types");
     if (!Array.isArray(list)) return;
     typeList = list;
-    types = Object.fromEntries(typeList.map((t) => [t.type, t]));
+    types = Object.fromEntries(typeList.map((t) => [t.older ? t.type + "@" + t.version : t.type, t]));
     await loadModuleViews(typeList);
     const m = await native("init");  // the board as the engine has it now: the node types it kept are compiled again
     if (m) applyMessage(m);
@@ -708,7 +716,7 @@
     const m = await native("init");
     if (!m) return;
     typeList = m.types || [];
-    types = Object.fromEntries(typeList.map((t) => [t.type, t]));
+    types = Object.fromEntries(typeList.map((t) => [t.older ? t.type + "@" + t.version : t.type, t]));
     await loadModuleViews(typeList);
     hasLibrary = !!m.library;
     // the user's own modules (Code node: Save as module) come and go: read the module list and the node types again
