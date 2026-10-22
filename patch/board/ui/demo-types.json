@@ -394,7 +394,7 @@
     "name": "LFO",
     "category": "Modulation/LFOs",
     "colour": "#7dd3fc",
-    "description": "Low-frequency oscillator: classic waves, free or locked to the bars, with a fade-in.",
+    "description": "Low-frequency oscillator: classic waves, free, on a clock or on the tempo, with a morph and a fade-in.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -412,7 +412,12 @@
         "def": 1.0,
         "format": "hertz",
         "decimals": 2,
-        "map": "exp"
+        "map": "exp",
+        "show": {
+          "param": "sync",
+          "min": 0,
+          "max": 0
+        }
       },
       {
         "id": "phase",
@@ -431,7 +436,7 @@
       },
       {
         "id": "pw",
-        "name": "Pulse Width",
+        "name": "Width",
         "kind": "float",
         "default": 0.5,
         "steps": 0,
@@ -441,7 +446,12 @@
         "max": 0.949999988079071,
         "def": 0.5,
         "format": "percent",
-        "decimals": 2
+        "decimals": 2,
+        "show": {
+          "param": "wave",
+          "min": 4,
+          "max": 4
+        }
       },
       {
         "id": "fade",
@@ -487,23 +497,16 @@
         "name": "Sync",
         "kind": "choice",
         "default": 0.0,
-        "steps": 10,
+        "steps": 3,
         "modulatable": true,
         "cableable": true,
         "choices": [
           "Free",
-          "1/32",
-          "1/16",
-          "1/8",
-          "1/4",
-          "1/2",
-          "1 bar",
-          "2 bars",
-          "4 bars",
-          "8 bars"
+          "Clock",
+          "Tempo"
         ],
         "min": 0.0,
-        "max": 9.0,
+        "max": 2.0,
         "def": 0.0,
         "format": "choice",
         "decimals": 2
@@ -527,17 +530,91 @@
         "decimals": 2
       },
       {
-        "id": "seed",
-        "name": "Seed",
-        "kind": "int",
-        "default": 0.001001000986435,
-        "steps": 1000,
-        "modulatable": false,
+        "id": "morph",
+        "name": "Morph",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
         "cableable": false,
         "min": 0.0,
-        "max": 999.0,
-        "def": 1.0,
-        "format": "integer",
+        "max": 1.0,
+        "def": 0.5,
+        "format": "percent",
+        "decimals": 2
+      },
+      {
+        "id": "division",
+        "name": "Rate",
+        "kind": "choice",
+        "default": 0.541666686534882,
+        "steps": 25,
+        "modulatable": true,
+        "cableable": false,
+        "choices": [
+          "1/64T",
+          "1/64",
+          "1/64.",
+          "1/32T",
+          "1/32",
+          "1/32.",
+          "1/16T",
+          "1/16",
+          "1/16.",
+          "1/8T",
+          "1/8",
+          "1/8.",
+          "1/4T",
+          "1/4",
+          "1/4.",
+          "1/2T",
+          "1/2",
+          "1/2.",
+          "1/1T",
+          "1/1",
+          "1/1.",
+          "2 bars",
+          "4 bars",
+          "8 bars",
+          "16 bars"
+        ],
+        "min": 0.0,
+        "max": 24.0,
+        "def": 13.0,
+        "format": "choice",
+        "decimals": 2,
+        "show": {
+          "param": "sync",
+          "min": 1,
+          "max": 2
+        }
+      },
+      {
+        "id": "skew",
+        "name": "Skew",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
+        "decimals": 2
+      },
+      {
+        "id": "curve",
+        "name": "Curve",
+        "kind": "float",
+        "default": 0.5,
+        "steps": 0,
+        "modulatable": true,
+        "cableable": false,
+        "min": -1.0,
+        "max": 1.0,
+        "def": 0.0,
+        "format": "number",
         "decimals": 2
       }
     ],
@@ -545,6 +622,12 @@
       {
         "id": "reset",
         "name": "Reset",
+        "type": "trigger",
+        "bipolar": true
+      },
+      {
+        "id": "clock",
+        "name": "Clock",
         "type": "trigger",
         "bipolar": true
       }
@@ -555,42 +638,6 @@
         "name": "Out",
         "type": "control",
         "bipolar": true
-      },
-      {
-        "id": "sine",
-        "name": "Sine",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "triangle",
-        "name": "Triangle",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "saw",
-        "name": "Saw",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "square",
-        "name": "Square",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "random",
-        "name": "Random",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "cycle",
-        "name": "Cycle",
-        "type": "trigger",
-        "bipolar": false
       }
     ]
   },

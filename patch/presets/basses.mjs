@@ -59,7 +59,7 @@ function ripplePulse() {
   const osc = p.add("oscillator", [0, 0], { shape: 1, pw: 0.5 });
   const lfo = p.add("lfo", [0, 1], { rate: 3.4 }, { name: "Ripple LFO" });
   const flt = p.add("filter", [1, 0], { cutoff: 700, resonance: 0.3, keytrack: 0.7, type: "SVF Multimode" });
-  p.cable(p.vin, "pitch", osc, "pitch").cable(lfo, "sine", osc, "pw", 0.3).cable(p.cin, "ripple", osc, "pw", 0.3)
+  p.cable(p.vin, "pitch", osc, "pitch").cable(lfo, "out", osc, "pw", 0.3).cable(p.cin, "ripple", osc, "pw", 0.3)
     .cable(osc, "out", flt, "l", 0.7).cable(osc, "sub", flt, "l", 0.35).cable(p.vin, "pitch", flt, "pitch")
     .cable(p.vin, "pressure", flt, "cutoff", 0.2);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.003, decay: 0.2, sustain: 0.8, release: 0.1 });

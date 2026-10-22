@@ -138,7 +138,7 @@ function fillSwitch() {
   const gs = p.add("gate-sequencer", [0, 0], { nudgedepth: 0.8, swing: 0.5 }, { data: gateTracks([
     "X.-.-.x.X.-.-.x.X.-.-.x.X.-.-.x.", "....X.......X.......X.......X...", "x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.", "......!.!.!!!.!!......!.!.!!!!!!"],
     [{ 6: -15, 14: 12 }, { 12: 15 }, { 3: 8, 11: -10 }, {}]), });
-  const lfo = p.add("lfo", [0, 3], { wave: "Square", sync: "4 bars", pw: 0.25, polarity: "Unipolar", phase: 270 }, { name: "Fill Gate" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "4 bars", pw: 0.25, polarity: "Unipolar", phase: 270 }, { name: "Fill Gate" });
   p.cable(lfo, "out", gs, "fill");
   const mix = kit(p, gs, [2, 0], { fourthType: "punch-tom", fourth: { tune: 120 } });
   finish(p, mix, [4, 0], { size: 0.3, decay: 1, mix: 0.12 });
@@ -153,9 +153,9 @@ function arrangement() {
   });
   const gs = p.add("gate-sequencer", [0, 0], { dice: "Fixed" }, { data: gateTracks([
     "X...X...X...X..xX...X...X...X.xx", "....X.......X.......X.......X..o", "x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.", "..x..x..x...x..x..x..x..x...x..."]) });
-  const l2 = p.add("lfo", [0, 3], { wave: "Square", sync: "4 bars", pw: 0.5, polarity: "Unipolar" }, { name: "Snare Mute" });
-  const l3 = p.add("lfo", [0, 4], { wave: "Square", sync: "8 bars", pw: 0.75, polarity: "Unipolar" }, { name: "Hat Mute" });
-  const l4 = p.add("lfo", [1, 3], { wave: "Square", sync: "2 bars", pw: 0.5, polarity: "Unipolar" }, { name: "Clap Mute" });
+  const l2 = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "4 bars", pw: 0.5, polarity: "Unipolar" }, { name: "Snare Mute" });
+  const l3 = p.add("lfo", [0, 4], { wave: "Square", sync: "Tempo", division: "8 bars", pw: 0.75, polarity: "Unipolar" }, { name: "Hat Mute" });
+  const l4 = p.add("lfo", [1, 3], { wave: "Square", sync: "Tempo", division: "2 bars", pw: 0.5, polarity: "Unipolar" }, { name: "Clap Mute" });
   p.cable(l2, "out", gs, "mute2").cable(l3, "out", gs, "mute3").cable(l4, "out", gs, "mute4");
   const mix = kit(p, gs, [2, 0], { fourthType: "punch-rim", fourth: { tune: 3 }, fourthLevel: -10 });
   finish(p, mix, [4, 0], { size: 0.3, decay: 1, mix: 0.12 });

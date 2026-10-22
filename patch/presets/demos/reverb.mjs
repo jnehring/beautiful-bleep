@@ -43,7 +43,7 @@ function freezeChord() {
   const m = melody(p, [0, 0], [0, 4, 7, 11, 9, 7, 4, 2], { rate: "1/8", shape: 0.5, root: "E", scale: "Dorian",
     env: { attack: 0.01, decay: 0.4, sustain: 0.15, release: 0.3 } });
   const v = p.add("reverb", [3, 0], { size: 0.8, decay: 40, preDelay: 0.03, diffusion: 0.9, damping: 0.4, modDepth: 0.4, mix: 0.9, width: 1.3 });
-  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "4 bars", pw: 0.5, polarity: "Unipolar", phase: 180 }, { name: "Hold" });
+  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "Tempo", division: "4 bars", pw: 0.5, polarity: "Unipolar", phase: 180 }, { name: "Hold" });
   mono(p, m.amp, v, 3); p.stereo(v, p.out).cable(hold, "out", v, "freeze");
   return p;
 }

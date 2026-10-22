@@ -67,7 +67,7 @@ function scaleResonator() {
     tags: ["resonator", "tuning", "scale", "noise", "chimes"],
   });
   const n = p.add("noise", [0, 0], { colour: 0.2, level: 0.8 });
-  const gate = p.add("lfo", [0, 1], { wave: "Triangle", sync: "2 bars", polarity: "Unipolar" }, { name: "Swell" });
+  const gate = p.add("lfo", [0, 1], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Swell" });
   const amp = p.add("vca", [1, 0], {});
   p.cable(n, "out", amp, "l").cable(gate, "out", amp, "gain");
   const fb = p.add("filter-bank", [3, 0], { tuning: "Scale", root: "A", scale: "Minor Pentatonic", q: 26, shift: 0, level1: 10, level2: 10, level3: 10, level4: 10, level5: 10, level6: 10, level7: 10, level8: 10, level9: 10, level10: 10 });

@@ -81,7 +81,7 @@ function patternChain() {
   const b = pattern("Variation", grid(["X..x....x.X..x..", "....X.......X..x", "xxxxxxxxxxxxxxxx", "......x.......x.", "", "", "", ""]));
   const c = pattern("Fill", grid(["X.......x.......", "....X...x.x.XxXx", "x.x.x.x.........", "", "........x.x.....", ".............x.x"]));
   const g = p.add("drum-grid", [0, 0], { switch: "At End", velocity: 0.75 }, { data: drumGrid(names, [a, b, c]) });
-  const lfo = p.add("lfo", [0, 3], { wave: "Saw Up", sync: "4 bars", polarity: "Unipolar" }, { name: "Chain" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Saw Up", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Chain" });
   p.cable(lfo, "out", g, "pattern", 0.25);
   const kick = p.add("punch-kick", [2, 0], { level: 0.8 });
   const snare = p.add("punch-snare", [2, 1], { level: 0.6, snappy: 0.7 });

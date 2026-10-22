@@ -21,7 +21,7 @@ function copperHorn() {
   const envf = envelope(p, [0, 3], { attack: 0.09, decay: 0.5, sustain: 0.55, release: 0.25, velamount: 0.7 }, "Filter Env");
   const flt = p.add("filter", [1, 0], { cutoff: 700, resonance: 0.2, drive: 0.3, keytrack: 0.5, type: "Ladder Tanh" });
   for (const o of [o1, o2])
-    p.cable(p.vin, "pitch", o, "pitch").cable(vib, "sine", o, "pitch", semis(0.25)).cable(p.cin, "bend", o, "pitch", semis(2))
+    p.cable(p.vin, "pitch", o, "pitch").cable(vib, "out", o, "pitch", semis(0.25)).cable(p.cin, "bend", o, "pitch", semis(2))
       .cable(o, "out", flt, "l", 0.6);
   p.cable(p.vin, "pitch", flt, "pitch").cable(envf, "env", flt, "cutoff", 0.35).cable(p.cin, "cut", flt, "cutoff", 0.5);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.03, decay: 0.3, sustain: 0.95, release: 0.2, velamount: 0.5 });
@@ -42,7 +42,7 @@ function glassHarmonica() {
   }).settings({ voices: 1, mode: "Legato", glide: 0.04, glidemode: "Legato only" }).input("bright", "Brightness");
   const add = p.add("additive-osc", [0, 0], { partials: 10, tilt: -14, chorus: 14, chorusRate: 0.4, width: 0.7 });
   const vib = p.add("lfo", [0, 1], { rate: 5, fade: 1.4 }, { name: "Vibrato" });
-  p.cable(p.vin, "pitch", add, "pitch").cable(vib, "sine", add, "pitch", semis(0.22))
+  p.cable(p.vin, "pitch", add, "pitch").cable(vib, "out", add, "pitch", semis(0.22))
     .cable(p.vin, "pressure", add, "tilt", 0.25).cable(p.cin, "bright", add, "tilt", 0.3);
   ampEnvelope(p, { node: add, stereo: true, jacks: ["outL", "outR"] }, [1, 1], { attack: 0.07, decay: 0.4, sustain: 0.9, release: 0.5, velamount: 0.4 });
   return p;
@@ -64,7 +64,7 @@ function wavetableSiren() {
   const envx = envelope(p, [0, 1], { attack: 0.35, decay: 1.2, sustain: 0.5, release: 0.4, velamount: 0.4 }, "Scan Env");
   const vib = p.add("lfo", [0, 2], { rate: 5.6, fade: 0.8 }, { name: "Vibrato" });
   const flt = p.add("filter", [1, 0], { cutoff: 9000, resonance: 0.05, type: "1-Pole Low-pass" });
-  p.cable(p.vin, "pitch", wt, "pitch").cable(vib, "sine", wt, "pitch", semis(0.2)).cable(envx, "env", wt, "x", 0.45)
+  p.cable(p.vin, "pitch", wt, "pitch").cable(vib, "out", wt, "pitch", semis(0.2)).cable(envx, "env", wt, "x", 0.45)
     .cable(p.vin, "pressure", wt, "y", 0.4).cable(p.cin, "scan", wt, "x", 0.5)
     .stereo(wt, flt, { from: ["outL", "outR"] });
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.02, decay: 0.3, sustain: 0.95, release: 0.3, velamount: 0.4 });
@@ -129,7 +129,7 @@ function formantCry() {
   const fo = p.add("formant-osc", [0, 0], { formant: 1.5, narrow: 0.4, body: 0.6, spread: 0.3 });
   const envf = envelope(p, [0, 1], { attack: 0.18, decay: 0.8, sustain: 0.35, release: 0.3, velamount: 0.5 }, "Formant Env");
   const vib = p.add("lfo", [0, 2], { rate: 5.3, fade: 0.9 }, { name: "Vibrato" });
-  p.cable(p.vin, "pitch", fo, "pitch").cable(vib, "sine", fo, "pitch", semis(0.25)).cable(envf, "env", fo, "formant", 0.15)
+  p.cable(p.vin, "pitch", fo, "pitch").cable(vib, "out", fo, "pitch", semis(0.25)).cable(envf, "env", fo, "formant", 0.15)
     .cable(p.vin, "pressure", fo, "formant", 0.12).cable(p.cin, "form", fo, "formant", 0.25);
   ampEnvelope(p, { node: fo, stereo: true, jacks: ["outL", "outR"] }, [1, 1], { attack: 0.05, decay: 0.3, sustain: 0.9, release: 0.3, velamount: 0.4 });
   return p;
@@ -150,7 +150,7 @@ function bowedWire() {
   const mv = p.add("modal-voice", [0, 0], { bow: 0.55, bowTimbre: 0.5, strike: 0, geometry: 0.1, brightness: 0.65, damping: 0.35, position: 0.35, space: 0.15 });
   const vib = p.add("lfo", [0, 1], { rate: 5.4, fade: 1 }, { name: "Vibrato" });
   p.cable(p.vin, "pitch", mv, "pitch").cable(p.vin, "gate", mv, "gate").cable(p.vin, "velocity", mv, "velocity")
-    .cable(vib, "sine", mv, "pitch", semis(0.25)).cable(p.cin, "bow", mv, "bow", 0.4);
+    .cable(vib, "out", mv, "pitch", semis(0.25)).cable(p.cin, "bow", mv, "bow", 0.4);
   ampEnvelope(p, { node: mv, stereo: true }, [1, 1], { attack: 0.04, decay: 0.3, sustain: 0.95, release: 0.35, velamount: 0.3 });
   return p;
 }
@@ -210,7 +210,7 @@ function heterodyneWhistle() {
   const bo = p.add("beat-oscillator", [0, 0], { carrier: 8000, beat: 0.45, drift: 0.2, pull: 0.1 });
   const vib = p.add("lfo", [0, 1], { rate: 5.5, fade: 1.2 }, { name: "Vibrato" });
   const flt = p.add("filter", [1, 0], { cutoff: 6000, resonance: 0.1, type: "Ladder Linear" });
-  p.cable(p.vin, "pitch", bo, "pitch").cable(vib, "sine", bo, "pitch", semis(0.3)).cable(p.cin, "beat", bo, "beat", 0.15)
+  p.cable(p.vin, "pitch", bo, "pitch").cable(vib, "out", bo, "pitch", semis(0.3)).cable(p.cin, "beat", bo, "beat", 0.15)
     .cable(bo, "out", flt, "l").cable(bo, "out", flt, "r");
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.06, decay: 0.3, sustain: 0.9, release: 0.35, velamount: 0.3 });
   return p;

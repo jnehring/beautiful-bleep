@@ -76,7 +76,7 @@ function clipped() {
   });
   const m = melody(p, [0, 0], [0, 0, 7, 0, 10, 0, 7, 12], { rate: "1/16", shape: 0.95, root: "E", scale: "Natural Minor", octave: -1, gatelength: 0.5,
     env: { attack: 0.003, decay: 0.12, sustain: 0.5, release: 0.08 } });
-  const lfo = p.add("lfo", [0, 2], { wave: "Triangle", sync: "2 bars" }, { name: "Triangle" });
+  const lfo = p.add("lfo", [0, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars" }, { name: "Triangle" });
   const a = p.add("attenuverter", [1, 2], { scale1: 2, offset1: 0, clip: "Hard" });
   const f = p.add("filter", [3, 0], { cutoff: 500, resonance: 0.4, type: "Ladder Tanh", drive: 0.2 });
   p.cable(lfo, "out", a, "in1").cable(a, "out1", f, "cutoff", 0.3).cable(m.amp, "l", f, "l");

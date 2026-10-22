@@ -61,7 +61,7 @@ function fallingBits() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_", 7, "_", "_", "_"],
     { rate: "1/4", shape: 0.95, root: "A", scale: "Dorian", gatelength: 0.98, env: { attack: 0.5, decay: 0.5, sustain: 0.9, release: 1.0 } });
-  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "2 bars", polarity: "Unipolar" }, { name: "Bit Sweep" });
+  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Bit Sweep" });
   const c = p.add("crunch", [3, 0], { drive: 0.15, bits: 12, rate: 0.1, tone: 8000, level: 0.8, mix: 1 });
   feed(p, m.amp, c);
   p.cable(l, "out", c, "bits", -0.75);

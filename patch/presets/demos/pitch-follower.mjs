@@ -70,7 +70,7 @@ function onlyClearTonesPass() {
   });
   const m = melody(p, [0, 0], [0, 4, 7, 4, 9, 7, 4, 2], { rate: "1/8", shape: 0.5, root: "G", scale: "Major Pentatonic", octave: 0,
     gatelength: 0.6, env: { decay: 0.2, sustain: 0.6, release: 0.05 } });
-  const lfo = p.add("lfo", [0, 3], { wave: "Square", sync: "1 bar", polarity: "Unipolar", pw: 0.5 }, { name: "Bar Switch" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "1/1", polarity: "Unipolar", pw: 0.5 }, { name: "Bar Switch" });
   const inv = p.add("attenuverter", [1, 3], { scale1: -1, offset1: 1 }, { name: "Invert" });
   p.cable(lfo, "out", inv, "in1");
   const tone = p.add("vca", [3, 0], {}, { name: "Tone Gate" });

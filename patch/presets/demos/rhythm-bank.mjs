@@ -83,7 +83,7 @@ function browsing() {
     tags: ["pattern", "browse", "random", "develop"],
   });
   const rb = p.add("rhythm-bank", [0, 0], { pattern: 0, family: "Metric", length: "16", rate: "1/16", change: "Cycle", output: "Trigger" });
-  const lfo = p.add("lfo", [0, 3], { wave: "Random Step", sync: "1 bar", polarity: "Unipolar", seed: 4 }, { name: "Picker" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Random Step", sync: "Tempo", division: "1/1", polarity: "Unipolar" }, { name: "Picker" });
   p.cable(lfo, "out", rb, "pattern", 0.5);
   const kick = p.add("ring-kick", [2, 0], { level: 0.85, decay: 0.6 });
   const snare = p.add("ring-snare", [2, 1], { level: 0.55 });

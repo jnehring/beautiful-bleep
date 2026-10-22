@@ -53,7 +53,7 @@ function scaled() {
   const m0 = melody(p, [0, 0], [0, 0, 7, 12, 10, 7, 3, 5, 0, 0, 7, 12, 15, 12, 10, 7], { rate: "1/8", shape: 0.9, root: "E", scale: "Natural Minor", octave: -1, gatelength: 0.4,
     env: { attack: 0.003, decay: 0.18, sustain: 0.3, release: 0.12 } });
   const fe = p.add("adsr", [1, 2], { attack: 0.003, decay: 0.2, sustain: 0, release: 0.1 }, { name: "Filter Env" });
-  const lfo = p.add("lfo", [1, 3], { sync: "4 bars" }, { name: "Slow LFO" });
+  const lfo = p.add("lfo", [1, 3], { sync: "Tempo", division: "4 bars" }, { name: "Slow LFO" });
   const m = p.add("multiplier", [2, 2], { biasy1: 0.2, gain1: 1 });
   const f = p.add("filter", [3, 0], { cutoff: 250, resonance: 0.4, type: "Ladder Tanh", drive: 0.2 });
   p.cable(m0.seq, "gate", fe, "gate").cable(m0.seq, "trigger", fe, "retrig").cable(fe, "env", m, "x1").cable(lfo, "out", m, "y1")

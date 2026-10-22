@@ -124,7 +124,7 @@ function carousel() {
   const snare = p.add("punch-snare", [1, 1], { level: 0.7 });
   const clap = p.add("punch-clap", [1, 2], { level: 0.7 });
   const tom = p.add("punch-tom", [1, 3], { tune: 130, decay: 0.35 });
-  const bar = p.add("lfo", [0, 4], { wave: "Square", sync: "1 bar", polarity: "Unipolar", pw: 0.1 }, { name: "Bar Clock" });
+  const bar = p.add("lfo", [0, 4], { wave: "Square", sync: "Tempo", division: "1/1", polarity: "Unipolar", pw: 0.1 }, { name: "Bar Clock" });
   const sw = p.add("switch", [2, 1], { length: 4, rate: "Off", fade: 0.002 });
   p.cable(g, "gate1", kick, "trig").cable(g, "gate1", snare, "trig").cable(g, "gate1", clap, "trig").cable(g, "gate1", tom, "trig")
     .cable(kick, "out", sw, "in1").cable(snare, "out", sw, "in2").cable(clap, "out", sw, "in3").cable(tom, "out", sw, "in4")

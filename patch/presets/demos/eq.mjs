@@ -40,7 +40,7 @@ function wahBell() {
     tags: ["wah", "modulation", "bell", "lfo", "resonant"],
   });
   const m = riff(p, { rate: "1/16" });
-  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "1 bar" }, { name: "Wah LFO" });
+  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "Tempo", division: "1/1" }, { name: "Wah LFO" });
   const e = p.add("eq", [3, 0], { b3Type: "Bell", b3Hz: 900, b3Gain: 14, b3Q: 5, b2On: false, b4On: false, b5On: false, level: -6 });
   feed(p, m.amp, e);
   p.cable(l, "out", e, "b3Hz", 0.6);
@@ -78,7 +78,7 @@ function notchSweep() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", 7, "_", "_", "_", 5, "_", "_", "_", 10, "_", "_", "_"],
     { rate: "1/4", shape: 1, root: "D", scale: "Dorian", gatelength: 0.98, env: { attack: 0.2, decay: 0.4, sustain: 0.9, release: 0.6 } });
-  const l = p.add("lfo", [2, 2], { wave: "Sine", sync: "2 bars" }, { name: "Sweep" });
+  const l = p.add("lfo", [2, 2], { wave: "Sine", sync: "Tempo", division: "2 bars" }, { name: "Sweep" });
   const e = p.add("eq", [3, 0], { b2On: false, b3Type: "Notch", b3Hz: 600, b3Q: 4, b4Type: "Notch", b4Hz: 2400, b4Q: 4, b5On: false, level: 2 });
   feed(p, m.amp, e);
   p.cable(l, "out", e, "b3Hz", 0.5).cable(l, "out", e, "b4Hz", -0.5);
@@ -96,7 +96,7 @@ function steepSweep() {
   const d = beat(p, [0, 3], { style: "four", level: -8 });
   const mix = p.add("audio-mixer", [3, 0], { level1: -2, level2: -3, master: 0 });
   p.cable(m.amp, "l", mix, "in1l").cable(m.amp, "l", mix, "in1r").stereo(d, mix, { from: ["outl", "outr"], to: ["in2l", "in2r"] });
-  const l = p.add("lfo", [3, 2], { wave: "Saw Up", sync: "8 bars", polarity: "Unipolar" }, { name: "Rise" });
+  const l = p.add("lfo", [3, 2], { wave: "Saw Up", sync: "Tempo", division: "8 bars", polarity: "Unipolar" }, { name: "Rise" });
   const e = p.add("eq", [4, 0], { b2On: false, b4On: false, b5On: false, b6On: true, b6Type: "High Cut", b6Hz: 400, b6Slope: "48 dB/oct", b6Q: 3, level: 0 });
   p.stereo(mix, e, { from: ["outl", "outr"] }).cable(l, "out", e, "b6Hz", 0.7);
   out(p, [5, 0], e, -8);

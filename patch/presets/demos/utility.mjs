@@ -16,7 +16,7 @@ function sampleHold() {
     description: "A slow triangle LFO is sampled by an eighth-note clock in Sample & Hold mode, and the stepped result is snapped to a scale to play the oscillator: a tune that never repeats. Change the LFO rate for a different walk, or pick another Mode to hear the raw values.",
     tags: ["sample and hold", "generative", "melody", "stepped"],
   });
-  const clock = p.add("lfo", [0, 0], { wave: "Square", sync: "1/8", polarity: "Unipolar", pw: 0.45 }, { name: "Clock" });
+  const clock = p.add("lfo", [0, 0], { wave: "Square", sync: "Tempo", division: "1/8", polarity: "Unipolar", pw: 0.45 }, { name: "Clock" });
   const walk = p.add("lfo", [0, 1], { wave: "Triangle", rate: 0.23 }, { name: "Walker" });
   const u = p.add("utility", [1, 0], { mode: "Sample & Hold" });
   const q = p.add("quantizer", [2, 0], { root: "D", scale: "Minor Pentatonic", range: 1.4 });
@@ -76,8 +76,8 @@ function comparator() {
     description: "A slow triangle plus a fast sine run through the Utility, and its Gate output goes high whenever the sum rises above Threshold: the ripples cross the line in bursts and trigger the claps. Move Threshold to make the claps sparse or dense.",
     tags: ["comparator", "threshold", "gate", "drums"],
   });
-  const slow = p.add("lfo", [0, 0], { wave: "Triangle", sync: "1 bar" }, { name: "Slow Wave" });
-  const fast = p.add("lfo", [0, 1], { wave: "Sine", sync: "1/8" }, { name: "Ripple" });
+  const slow = p.add("lfo", [0, 0], { wave: "Triangle", sync: "Tempo", division: "1/1" }, { name: "Slow Wave" });
+  const fast = p.add("lfo", [0, 1], { wave: "Sine", sync: "Tempo", division: "1/8" }, { name: "Ripple" });
   const u = p.add("utility", [1, 0], { scalex: 0.9, scaley: 0.5, threshold: 0.45 });
   const clap = p.add("punch-clap", [2, 0], { tone: 1800, decay: 0.3 });
   const drums = beat(p, [0, 3], { style: "sparse", level: -4 });

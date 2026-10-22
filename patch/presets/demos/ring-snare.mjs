@@ -70,7 +70,7 @@ function demo4() {
     description: "Sixteenth-note snare rolls get tighter and brighter as an LFO raises Tune over four bars, a classic build to the drop. Try slowing the LFO or lowering Decay to change how the roll connects.",
     tags: ["snare","roll","build","fill"],
   });
-  return drums(p, ["X...x...X...x...","........x.x.xxxx","x.x.x.x.x.x.x.x.",""], [{"t":"ring-kick","v":{"level":0.8,"tune":52},"tr":1,"name":"Kick","db":-4,"pan":0},{"t":"ring-snare","v":{"tune":170,"tone":0.55,"snappy":0.7,"decay":0.12,"level":0.75},"tr":2,"name":"Snare","db":-6,"pan":0},{"t":"ring-hats","v":{"level":0.4},"tr":3,"open":4,"name":"Hats","db":-16,"pan":0.3}], {"mods":[{"lfo":{"rate":0.12,"wave":"Saw Up","polarity":"Unipolar","sync":"4 bars"},"to":1,"knob":"tune","amt":0.5,"name":"Roll Rise"}]});
+  return drums(p, ["X...x...X...x...","........x.x.xxxx","x.x.x.x.x.x.x.x.",""], [{"t":"ring-kick","v":{"level":0.8,"tune":52},"tr":1,"name":"Kick","db":-4,"pan":0},{"t":"ring-snare","v":{"tune":170,"tone":0.55,"snappy":0.7,"decay":0.12,"level":0.75},"tr":2,"name":"Snare","db":-6,"pan":0},{"t":"ring-hats","v":{"level":0.4},"tr":3,"open":4,"name":"Hats","db":-16,"pan":0.3}], {"mods":[{"lfo":{"rate":0.12,"wave":"Saw Up","polarity":"Unipolar","sync":"Tempo","division":"4 bars"},"to":1,"knob":"tune","amt":0.5,"name":"Roll Rise"}]});
 }
 
 function demo5() {

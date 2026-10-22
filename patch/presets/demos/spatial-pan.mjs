@@ -65,7 +65,7 @@ function driftingKit() {
     tags: ["drums", "swing", "headphones", "room"],
   });
   const d = beat(p, [0, 0], { style: "broken", level: -4 });
-  const l = p.add("lfo", [2, 2], { wave: "Sine", sync: "4 bars", polarity: "Bipolar" }, { name: "Swing" });
+  const l = p.add("lfo", [2, 2], { wave: "Sine", sync: "Tempo", division: "4 bars", polarity: "Bipolar" }, { name: "Swing" });
   const sp = p.add("spatial-pan", [3, 0], { azimuth: 0, distance: 0.35, room: 0.45, size: 0.6, doppler: 0, level: 0.7 });
   p.cable(d, "outl", sp, "l").cable(d, "outr", sp, "r").cable(l, "out", sp, "azimuth", 0.45);
   direct(p, [4, 0], sp, ["l", "r"], 4);
@@ -79,8 +79,8 @@ function flyBy() {
     tags: ["doppler", "movement", "distance", "headphones"],
   });
   const m = melody(p, [0, 0], [0, 0, 7, 0, 10, 7, 12, 7, 0, 0, 5, 0, 3, 5, 7, 0], { rate: "1/8", shape: 1, root: "D", scale: "Natural Minor", gatelength: 0.6, env: { decay: 0.2, sustain: 0.4 } });
-  const az = p.add("lfo", [2, 2], { wave: "Saw Up", sync: "4 bars", polarity: "Bipolar" }, { name: "Path" });
-  const dist = p.add("lfo", [2, 3], { wave: "Triangle", sync: "4 bars", polarity: "Unipolar" }, { name: "Closeness" });
+  const az = p.add("lfo", [2, 2], { wave: "Saw Up", sync: "Tempo", division: "4 bars", polarity: "Bipolar" }, { name: "Path" });
+  const dist = p.add("lfo", [2, 3], { wave: "Triangle", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Closeness" });
   const sp = p.add("spatial-pan", [3, 0], { azimuth: 0, distance: 0.3, room: 0.25, doppler: 0.9, air: 0.6 });
   p.cable(m.amp, "l", sp, "l").cable(az, "out", sp, "azimuth", 0.5).cable(dist, "out", sp, "distance", 0.6);
   direct(p, [4, 0], sp, ["l", "r"], 3);

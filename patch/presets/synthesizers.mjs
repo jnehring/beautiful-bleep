@@ -57,7 +57,7 @@ function wideRibbonPulse() {
   const lfo = p.add("lfo", [0, 2], { rate: 0.35, fade: 0.4 }, { name: "Sway LFO" });
   const flt = p.add("filter", [1, 0], { cutoff: 4200, keytrack: 0.4, type: "1-Pole Low-pass" });
   p.cable(p.vin, "pitch", o1, "pitch").cable(p.vin, "pitch", o2, "pitch").cable(p.vin, "pitch", flt, "pitch")
-    .cable(lfo, "sine", o1, "pw", 0.3).cable(lfo, "sine", o2, "pw", -0.3)
+    .cable(lfo, "out", o1, "pw", 0.3).cable(lfo, "out", o2, "pw", -0.3)
     .cable(p.cin, "sway", o1, "pw", 0.3).cable(p.cin, "sway", o2, "pw", -0.3)
     .cable(o1, "out", flt, "l", 0.5).cable(o2, "out", flt, "r", 0.5);
   ampEnvelope(p, { node: flt, stereo: true }, [2, 1], { attack: 0.01, decay: 0.4, sustain: 0.85, release: 0.5 });

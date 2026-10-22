@@ -60,7 +60,7 @@ function heavyPen() {
     description: "A square wave goes in, but the sprung pen overshoots and wobbles round every edge, and that ringing line opens and closes a filter on a bass line. Raise Damping to calm the pen, or Friction to make it stick in steps.",
     tags: ["pen", "overshoot", "damping", "wobble"],
   });
-  const l = p.add("lfo", [0, 3], { wave: "Square", sync: "1/2", polarity: "Unipolar" }, { name: "Edges" });
+  const l = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "1/2", polarity: "Unipolar" }, { name: "Edges" });
   const c = p.add("chart-recorder", [1, 3], { record: "Always", writingspeed: 30, damping: 0.1, friction: 0.1, response: 0.05, detector: "DC" });
   const { flt } = filtered(p, [0, 0], [0, ".", 0, 7, ".", 3, 5, "."], { rate: "1/8", shape: 1, root: "D", octave: -1, scale: "Dorian",
     env: { decay: 0.3, sustain: 0.6, release: 0.15 }, gatelength: 0.8 }, { cutoff: 500, resonance: 0.55 });
@@ -91,8 +91,8 @@ function markedHits() {
     tags: ["marks", "triggers", "offset", "rhythm"],
   });
   const mix = beat(p, [0, 0], { style: "sparse", level: -6 });
-  const l = p.add("lfo", [0, 3], { wave: "Square", sync: "1/2", polarity: "Unipolar" }, { name: "Marker Clock" });
-  const tri = p.add("lfo", [0, 4], { wave: "Triangle", sync: "1 bar" }, { name: "Drawing" });
+  const l = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "1/2", polarity: "Unipolar" }, { name: "Marker Clock" });
+  const tri = p.add("lfo", [0, 4], { wave: "Triangle", sync: "Tempo", division: "1/1" }, { name: "Drawing" });
   const c = p.add("chart-recorder", [1, 3], { record: "Always", paper: "Transport", lengthbars: "2 bars", replayspeed: 1.5, offset: 0.2, interp: "Linear" });
   const sn = p.add("punch-snare", [2, 3], { level: 0.55 });
   p.cable(tri, "out", c, "in").cable(l, "out", c, "mark").cable(c, "marker", sn, "trig");

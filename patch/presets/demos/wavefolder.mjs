@@ -18,7 +18,7 @@ function foldedSaw() {
   });
   const m = melody(p, [0, 0], [0, 0, 7, 0, 10, 0, 12, 10, 0, 0, 7, 0, 5, 3, 5, 7],
     { rate: "1/8", shape: 1, root: "E", scale: "Natural Minor", gatelength: 0.6, env: { attack: 0.003, decay: 0.2, sustain: 0.6, release: 0.1 } });
-  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "2 bars", polarity: "Unipolar" }, { name: "Fold Sweep" });
+  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Fold Sweep" });
   const f = p.add("wavefolder", [3, 0], { fold: 0.3, symmetry: 0, tap: 6, level: 0.6, source: "Input" });
   feed(p, m.amp, f);
   p.cable(l, "out", f, "fold", 0.6);
@@ -34,7 +34,7 @@ function sineDrone() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 8, rate: "1/1", root: "D", scale: "Minor Pentatonic", octave: -1, gatelength: 1 },
     { data: steps([0, "_", 7, "_", 5, "_", 3, "_"]) });
-  const l1 = p.add("lfo", [1, 2], { wave: "Sine", sync: "4 bars", polarity: "Unipolar" }, { name: "Fold" });
+  const l1 = p.add("lfo", [1, 2], { wave: "Sine", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Fold" });
   const l2 = p.add("lfo", [1, 3], { wave: "Triangle", rate: 0.07, polarity: "Unipolar" }, { name: "Wave" });
   const f = p.add("wavefolder", [3, 0], { fold: 0.35, symmetry: 0.2, tap: 5, wave: 0.2, fine: 6, level: 0.5, source: "Internal" });
   p.cable(seq, "pitch", f, "pitch").cable(l1, "out", f, "fold", 0.5).cable(l2, "out", f, "wave", 0.7);

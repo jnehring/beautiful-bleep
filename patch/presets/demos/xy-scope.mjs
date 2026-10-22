@@ -143,7 +143,7 @@ function ratioVoice() {
   const f = p.add("oscillator", [2, 0], { shape: 0.55, octave: "0" }, { name: "Follower" });
   const env = p.add("adsr", [2, 1], { attack: 0.2, decay: 0.5, sustain: 0.7, release: 0.8 }, { name: "Follower Env" });
   const fv = p.add("vca", [3, 0], {}, { name: "Follower VCA" });
-  const lfo2 = p.add("lfo", [2, 2], { wave: "Square", sync: "2 bars", polarity: "Unipolar" }, { name: "Follower Gate" });
+  const lfo2 = p.add("lfo", [2, 2], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Follower Gate" });
   p.cable(sc, "ratio", f, "pitch").cable(lfo2, "out", env, "gate").cable(f, "out", fv, "l").cable(env, "env", fv, "gain");
   const drums = beat(p, [0, 5], { style: "sparse", level: -12 });
   finish(p, [4, 0], [{ n: sc, l: "outx", level: -20, pan: -0.3 }, { n: sc, l: "outy", level: -22, pan: 0.3 }, { n: fv, level: -8 }, drumsOf(drums, 0)], { vmix: 0.3, decay: 3, master: 0 });

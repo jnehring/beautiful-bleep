@@ -89,7 +89,7 @@ function roulette() {
     description: "Once a bar the coin picks one of two pads, an A minor chord or an F major chord; in Latch mode the chosen side stays on until the next toss, so one chord always sounds. Raise Memory 1 and the coin tends to repeat the last result.",
     tags: ["latch", "memory", "chords", "pads", "generative"],
   });
-  const bar = p.add("lfo", [0, 0], { wave: "Square", sync: "1 bar", polarity: "Unipolar", pw: 0.2 }, { name: "Bar" });
+  const bar = p.add("lfo", [0, 0], { wave: "Square", sync: "Tempo", division: "1/1", polarity: "Unipolar", pw: 0.2 }, { name: "Bar" });
   const c = p.add("coin-toss", [1, 0], { prob1: 0.5, mode1: "Latch", memory1: 0.25, seed: 5 });
   const mk = (row, coarses, name) => coarses.map((cs, i) => p.add("oscillator", [2, row + i * 0.5], { shape: 0.65, coarse: cs, fine: (i - 1) * 6 }, { name: `${name} ${i + 1}` }));
   const a = mk(0, [-3, 0, 4], "Am");

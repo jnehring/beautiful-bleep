@@ -108,8 +108,8 @@ function toms() {
   const r = p.add("random", [0, 0], { rate: 6, spread: 0.8, bias: 0, smooth: 0, sync: "1/16", seed: 5 });
   const tom = p.add("punch-tom", [1, 0], { tune: 140, decay: 0.35, bend: 0.4, level: 0.7 });
   const kick = p.add("punch-kick", [1, 1], { level: 0.7 });
-  const g = p.add("lfo", [0, 2], { wave: "Square", sync: "1/4", polarity: "Unipolar", pw: 0.1 }, { name: "Pulse" });
-  p.cable(r, "trig", tom, "trig").cable(r, "out", tom, "tune", 0.3).cable(g, "cycle", kick, "trig");
+  const g = p.add("lfo", [0, 2], { wave: "Square", sync: "Tempo", division: "1/4", polarity: "Unipolar", pw: 0.1 }, { name: "Pulse" });
+  p.cable(r, "trig", tom, "trig").cable(r, "out", tom, "tune", 0.3).cable(g, "out", kick, "trig");
   const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -9, master: 0 });
   const v = p.add("reverb", [3, 0], { size: 0.45, decay: 2, mix: 0.2, quality: "Eco (8 lines)" });
   p.cable(tom, "out", mix, "in1l").cable(tom, "out", mix, "in1r").cable(kick, "out", mix, "in2l").cable(kick, "out", mix, "in2r")

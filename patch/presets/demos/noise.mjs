@@ -101,7 +101,7 @@ function riser() {
   });
   const drums = beat(p, [0, 4], { style: "broken", level: -7 });
   const n = p.add("noise", [0, 0], { colour: -1, level: 0.8 });
-  const ramp = p.add("lfo", [0, 2], { wave: "Saw Up", sync: "4 bars", polarity: "Unipolar" }, { name: "Build" });
+  const ramp = p.add("lfo", [0, 2], { wave: "Saw Up", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Build" });
   const f = p.add("filter", [1, 0], { cutoff: 300, resonance: 0.35 });
   const amp = p.add("vca", [2, 0], { gain: 0.1 }, { name: "Swell" });
   p.cable(ramp, "out", n, "colour", 0.9).cable(ramp, "out", f, "cutoff", 0.8).cable(ramp, "out", amp, "gain", 0.8)

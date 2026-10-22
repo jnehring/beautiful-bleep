@@ -5,7 +5,7 @@ import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";
 
 /// A Record gate: high at the start of every `every` for the share `pw` (a square LFO, unipolar).
-const recordGate = (p, at, every, pw, name = "Record") => p.add("lfo", at, { wave: "Square", sync: every, polarity: "Unipolar", pw }, { name });
+const recordGate = (p, at, every, pw, name = "Record") => p.add("lfo", at, { wave: "Square", sync: "Tempo", division: every, polarity: "Unipolar", pw }, { name });
 
 /// Trim mixer → Verb → Out 1/2.
 function out(p, at, src, o = {}) {
@@ -39,7 +39,7 @@ function tapeStop() {
   const d = beat(p, [0, 0], { style: "broken", level: -3 });
   const rec = recordGate(p, [2, 1], "4 bars", 0.25);
   const s = p.add("splice", [3, 0], { recmode: "Gate", rectarget: "Whole reel", monitor: "Off", sync: "1 bar", loop: "Loop", window: 1, overlap: 0.4, speed: 1, level: 1 });
-  const ramp = p.add("lfo", [3, 1], { wave: "Saw Up", sync: "2 bars", polarity: "Unipolar" }, { name: "Tape Stop" });
+  const ramp = p.add("lfo", [3, 1], { wave: "Saw Up", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Tape Stop" });
   p.cable(d, "outl", s, "l").cable(d, "outr", s, "r").cable(rec, "out", s, "record").cable(ramp, "out", s, "speed", -0.13);
   out(p, [4, 0], s, { trim: 0, mix: 0.15 });
   return p;

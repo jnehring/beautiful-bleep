@@ -57,7 +57,7 @@ function drumBandpass() {
   });
   const d = beat(p, [0, 0], { style: "broken", level: 0 });
   const f = p.add("filter", [3, 0], { type: "SVF Bandpass (unit gain)", cutoff: 1200, resonance: 0.45, mix: 0.85, drive: 0.1, gain: 14 });
-  const lfo = p.add("lfo", [3, 1], { wave: "Triangle", sync: "2 bars" }, { name: "Sweep" });
+  const lfo = p.add("lfo", [3, 1], { wave: "Triangle", sync: "Tempo", division: "2 bars" }, { name: "Sweep" });
   p.stereo(d, f, { from: ["outl", "outr"] }).cable(lfo, "out", f, "cutoff", 0.5);
   finish(p, [4, 0], f, 6, { mix: 0.12, decay: 1.5 });
   return p;

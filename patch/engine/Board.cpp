@@ -125,6 +125,29 @@ static float migrateLegacyChoice(const ParamSpec& p, float x) {
     return (float)(it - p.choices.begin()) / (float)(newN - 1);
 }
 
+/// The LFO's Sync was once a list of lengths (Free, 1/32 … 8 bars); it is now Free, Clock or Tempo with a
+/// separate Rate in note values. A board saved with a length keeps it: Tempo at that length.
+static void migrateLfoSync(NodeModel& node) {
+    static const char* const names[] = {"Free", "1/32", "1/16", "1/8", "1/4", "1/2", "1 bar", "2 bars", "4 bars", "8 bars"};
+    const ParamSpec* sync = nullptr;
+    const ParamSpec* division = nullptr;
+    for (const auto& p : node.spec->params) {
+        if (p.id == "sync") sync = &p;
+        if (p.id == "division") division = &p;
+    }
+    if (!sync || !division || sync->choices.size() != 3) return;
+    const auto it = node.params.find("sync");
+    if (it == node.params.end()) return;
+    const float r = it->second * 9.0f;
+    const int k = (int)std::lround(r);
+    if (k < 1 || k > 9 || std::fabs(r - (float)k) > 0.005f) return;
+    const std::string name = k == 6 ? "1/1" : names[k];
+    const auto d = std::find(division->choices.begin(), division->choices.end(), name);
+    if (d == division->choices.end()) return;
+    it->second = 1.0f;  // Tempo
+    node.params["division"] = (float)(d - division->choices.begin()) / (float)(division->choices.size() - 1);
+}
+
 BoardModel parse(const juce::var& doc) {
     const auto& reg = Registry::get();
     BoardModel m;
@@ -151,6 +174,7 @@ BoardModel parse(const juce::var& doc) {
                     if (!p.legacyChoices.empty()) x = migrateLegacyChoice(p, x);
                     node.params[p.id] = x;
                 }
+            if (node.spec && node.type == "lfo" && !n["params"].hasProperty("division")) migrateLfoSync(node);
             if (n.hasProperty("data")) node.data = juce::JSON::toString(n["data"], true).toStdString();
             node.cellInputs = parseJacks(n["inputs"]);
             node.cellOutputs = parseJacks(n["outputs"]);

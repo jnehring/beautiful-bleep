@@ -213,18 +213,18 @@ function dawnChorale() {
     description: "A Swarm of fifths on a slow random walk through C major pentatonic that reshuffles its voices every minute or so, so the choir keeps finding a new arrangement of the same few notes. Shared input Light (brightness).",
     tags: ["ambient", "generative", "swarm", "fifths", "choir", "morning"],
     help: "A Random module walks very slowly through voltages that a Quantizer rounds to C major pentatonic, with a long glide, as the pitch of a Swarm in " +
-      "Fifths mode with ten oscillators. An LFO's cycle pulse, once a minute or so, reshuffles which oscillator plays which note. A low-pass Multi Filter opens with an " +
+      "Fifths mode with ten oscillators. A square LFO's short pulse, once a minute or so, reshuffles which oscillator plays which note. A low-pass Multi Filter opens with an " +
       "Organic LFO, then chorus and a hall.\n\n" +
       "It sounds on its own from Out L/R; it is not tied to the tempo. The Light input is added to the filter cutoff.\n\n" +
       "Tip: Pattern on the Swarm changes how the notes are laid across the stereo field.",
   }).input("light", "Light").stereoOut();
   const walk = p.add("random", [0, 1], { rate: 0.06, sync: "Free", spread: 0.7, length: "12 steps", loop: 0, seed: 130 }, { name: "Walk" });
-  const turn = p.add("lfo", [0, 2], { rate: 0.017, wave: "Sine", polarity: "Unipolar" }, { name: "Reshuffle" });
+  const turn = p.add("lfo", [0, 2], { rate: 0.017, wave: "Square", pw: 0.05, polarity: "Unipolar" }, { name: "Reshuffle" });
   const lfo = p.add("organic-lfos", [0, 3], { rate: 0.03, spread: 0.6, drift: 0.5, seed: 9 });
   const q = p.add("quantizer", [1, 1], { root: "C", scale: "Major Pentatonic", range: 0.8, hysteresis: 0.1, glide: 1.4 });
   const sw = p.add("swarm", [2, 1], { octave: -1, count: 10, chord: "Fifths", spread: 0.6, detune: 12, drift: 0.4, width: 0.9, glide: 0.8 });
   const flt = p.add("filter", [3, 1], { cutoff: 1600, resonance: 0.1, type: "SVF Multimode" }, { name: "Soft Top" });
-  p.cable(walk, "out", q, "in").cable(q, "out", sw, "pitch").cable(turn, "cycle", sw, "reshuffle").cable(lfo, "out1", flt, "cutoff", 0.2)
+  p.cable(walk, "out", q, "in").cable(q, "out", sw, "pitch").cable(turn, "out", sw, "reshuffle").cable(lfo, "out1", flt, "cutoff", 0.2)
     .cable(p.cin, "light", flt, "cutoff", 0.3).stereo(sw, flt);
   const mix = bed(p, [4, 1], [{ node: flt, level: -7 }], { master: -2 });
   const ch = p.add("chorus", [5, 1], { rate: 0.2, depth: 0.4, delay: 14, mix: 0.35 });

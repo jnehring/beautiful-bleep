@@ -107,7 +107,7 @@ function bassMask() {
     tags: ["bass", "mask", "bits", "lo-fi"],
   });
   const seq = seqOf(p, [0, 0], [0, ".", 0, 3, ".", 5, 7, ".", 0, ".", 10, 7, ".", 5, 3, "."], { root: "E", octave: -2, gate: 0.65 });
-  const env = p.add("lfo", [1, 2], { wave: "Triangle", sync: "2 bars", polarity: "Unipolar" }, { name: "Mask Sweep" });
+  const env = p.add("lfo", [1, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Mask Sweep" });
   const f = p.add("bit-formula", [1, 0], { formula: "Sierpinski", rate: 3500, a: 60, b: 180, smooth: 0.35, level: 0.7 });
   p.cable(env, "out", f, "a", 0.4);
   const v = gated(p, [2, 0], f, seq, "out", "pitch", { env: { attack: 0.003, decay: 0.2, sustain: 0.6, release: 0.1 } });

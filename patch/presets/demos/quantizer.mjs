@@ -123,7 +123,7 @@ function shiftCanon() {
   });
   const seq = p.add("step-sequencer", [0, 0], { length: 16, rate: "1/8", root: "C", scale: "Chromatic", octave: 0, gatelength: 0.45 },
     { data: steps([0, ".", 3, ".", 5, 6, ".", 7, 10, ".", 7, 5, 3, ".", 0, "."]) });
-  const lfo = p.add("lfo", [0, 3], { wave: "Square", sync: "2 bars", polarity: "Unipolar" }, { name: "Key Shift" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Key Shift" });
   const q = p.add("quantizer", [1, 0], { root: "E", scale: "Blues", range: 1 });
   p.cable(seq, "pitch", q, "in").cable(lfo, "out", q, "transpose", semis(5));
   const v = voice(p, [2, 0], { n: q, pitch: "out", gate: "gate", trig: "trigger" }, { shape: 0.75, env: { decay: 0.25, sustain: 0.1, release: 0.15 }, cutoff: 2200 });

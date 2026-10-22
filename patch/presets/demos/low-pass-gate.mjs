@@ -64,7 +64,7 @@ function slowPad() {
   const o2 = p.add("oscillator", [1, 2], { shape: 0.8, coarse: 7, fine: 8 }, { name: "Fifth" });
   const mx = p.add("audio-mixer", [2, 2], { level1: -2, level2: -6, master: 0 }, { name: "Blend" });
   p.cable(m.seq, "pitch", o2, "pitch").cable(m.amp, "l", mx, "in1l").cable(o2, "out", mx, "in2l");
-  const lfo = p.add("lfo", [3, 2], { sync: "2 bars", wave: "Sine", polarity: "Unipolar" }, { name: "Breath" });
+  const lfo = p.add("lfo", [3, 2], { sync: "Tempo", division: "2 bars", wave: "Sine", polarity: "Unipolar" }, { name: "Breath" });
   const g = p.add("low-pass-gate", [3, 0], { level: 0.05, response: 0.6, brightness: 0.7, resonance: 0.15, cell: "Slow memory", mode: "Both" });
   p.cable(mx, "outl", g, "l").cable(mx, "outl", g, "r").cable(lfo, "out", g, "cv", 0.9);
   finish(p, [4, 0], g, -8, { size: 0.75, decay: 4.5, mix: 0.3 });

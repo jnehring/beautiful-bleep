@@ -71,7 +71,7 @@ function frozenMoment() {
   const m = melody(p, [0, 0], [0, 4, 7, 11, 9, 7, 4, 2], { rate: "1/8", shape: 0.5, root: "F", scale: "Major Pentatonic",
     env: { decay: 0.35, sustain: 0.1, release: 0.3 } });
   const d = p.add("delay-network", [3, 0], { routing: "Ring", sync: "1/4", taps: 5, scatter: 0.3, feedback: 0.8, character: 0.2, width: 1, mix: 0.6 });
-  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "4 bars", polarity: "Unipolar", phase: 180 }, { name: "Freeze Gate" });
+  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "Tempo", division: "4 bars", polarity: "Unipolar", phase: 180 }, { name: "Freeze Gate" });
   mono(p, m.amp, d, -3); p.stereo(d, p.out); p.cable(hold, "out", d, "freeze");
   return p;
 }

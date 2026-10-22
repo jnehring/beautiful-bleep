@@ -93,7 +93,7 @@ function wrapTable() {
   });
   const seq = seqOf(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 7, "_", "_", "_", 3, "_", "_", "_"], { rate: "1/4", gate: 1, root: "G", octave: -1 });
   const osc = p.add("oscillator", [1, 0], { shape: 0.3 });
-  const l = p.add("lfo", [1, 2], { wave: "Triangle", sync: "4 bars", polarity: "Unipolar" }, { name: "Drive Sweep" });
+  const l = p.add("lfo", [1, 2], { wave: "Triangle", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Drive Sweep" });
   const st = p.add("shape-table", [3, 0], { drive: 6, edge: "Wrap", out: -7, quality: "4x" }, { data: SINE });
   const v = gated(p, [2, 0], osc, seq, "out", "pitch", { env: { attack: 0.2, decay: 0.4, sustain: 0.9, release: 0.8 } });
   p.cable(l, "out", st, "drive", 0.5).cable(v.amp, "l", st, "l");
@@ -121,7 +121,7 @@ function functionCurve() {
     tags: ["function", "modulation", "filter", "curve"],
   });
   const m = melody(p, [0, 0], [0, 0, 7, 0, 10, 0, 12, 7, 0, 0, 5, 0, 3, 5, 7, 0], { rate: "1/8", shape: 1, root: "A", scale: "Natural Minor", gatelength: 0.6, octave: -1, env: { decay: 0.2, sustain: 0.5 } });
-  const l = p.add("lfo", [0, 3], { wave: "Triangle", sync: "2 bars", polarity: "Bipolar" }, { name: "Sweep" });
+  const l = p.add("lfo", [0, 3], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Bipolar" }, { name: "Sweep" });
   const st = p.add("shape-table", [1, 3], { drive: 0 }, { data: ASYM });
   const f = p.add("filter", [3, 0], { cutoff: 500, resonance: 0.4, mode: "LP" });
   p.cable(l, "out", st, "func").cable(m.amp, "l", f, "l").cable(st, "func", f, "cutoff", 0.55);

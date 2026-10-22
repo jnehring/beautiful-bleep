@@ -88,7 +88,7 @@ function edges() {
     description: "A square wave is fed into Logic, and its Rise output fires a kick when the wave goes up, Fall a snare when it comes down, and Change a closed hat at either edge. Narrow the square's pulse width and the snare moves away from the kick.",
     tags: ["rise", "fall", "change", "edge", "triggers"],
   });
-  const sq = p.add("lfo", [0, 0], { wave: "Square", sync: "1/4", polarity: "Unipolar", pw: 0.3 }, { name: "Square" });
+  const sq = p.add("lfo", [0, 0], { wave: "Square", sync: "Tempo", division: "1/4", polarity: "Unipolar", pw: 0.3 }, { name: "Square" });
   const l = p.add("logic", [1, 0], {});
   const k = kit(p, [2, 0]);
   p.cable(sq, "out", l, "a").cable(l, "rise", k.kick, "trig").cable(l, "fall", k.snare, "trig").cable(l, "change", k.hats, "closed");
@@ -106,9 +106,9 @@ function nands() {
     description: "Three square waves at different speeds are combined three ways: Nor fires the kick when all of them are low, Nand the snare when any one drops, and Not-A a rim on the second half of A's cycle. Change any wave's speed to find new patterns.",
     tags: ["nor", "nand", "not", "gates", "rhythm"],
   });
-  const a = p.add("lfo", [0, 0], { wave: "Square", sync: "1/2", polarity: "Unipolar" }, { name: "A (half)" });
-  const b = p.add("lfo", [0, 1], { wave: "Square", sync: "1/4", polarity: "Unipolar" }, { name: "B (quarter)" });
-  const c = p.add("lfo", [0, 2], { wave: "Square", sync: "1/8", polarity: "Unipolar", pw: 0.4 }, { name: "C (eighth)" });
+  const a = p.add("lfo", [0, 0], { wave: "Square", sync: "Tempo", division: "1/2", polarity: "Unipolar" }, { name: "A (half)" });
+  const b = p.add("lfo", [0, 1], { wave: "Square", sync: "Tempo", division: "1/4", polarity: "Unipolar" }, { name: "B (quarter)" });
+  const c = p.add("lfo", [0, 2], { wave: "Square", sync: "Tempo", division: "1/8", polarity: "Unipolar", pw: 0.4 }, { name: "C (eighth)" });
   const l = p.add("logic", [1, 0], {});
   const k = kit(p, [2, 0]);
   p.cable(a, "out", l, "a").cable(b, "out", l, "b").cable(c, "out", l, "c").cable(l, "nor", k.kick, "trig")

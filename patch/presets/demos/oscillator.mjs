@@ -66,7 +66,7 @@ function syncLead() {
   });
   const seq = seqOf(p, [0, 0], [0, 0, 7, ".", 12, 10, 7, 5, 0, 0, 3, ".", 10, 7, 5, 3], { root: "E", octave: 0, gate: 0.7, rate: "1/8" });
   const osc = p.add("oscillator", [1, 0], { shape: 0.85, coarse: 0 }, { name: "Slave" });
-  const lfo = p.add("lfo", [1, 2], { wave: "Saw Up", sync: "2 bars" }, { name: "Sweep" });
+  const lfo = p.add("lfo", [1, 2], { wave: "Saw Up", sync: "Tempo", division: "2 bars" }, { name: "Sweep" });
   const v = play(p, [2, 0], osc, seq, ["out"], { env: { decay: 0.2, sustain: 0.6, release: 0.12 } });
   p.cable(seq, "gate", osc, "sync").cable(lfo, "out", osc, "coarse", 0.5);
   const dl = p.add("delay", [3, 0], { sync: "Tempo", ratel: "1/8.", rater: "1/4", feedback: 0.35, mix: 0.25, highcut: 6000, mode: "Ping-Pong" });

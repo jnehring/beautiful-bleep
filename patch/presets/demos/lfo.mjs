@@ -59,12 +59,12 @@ function vibrato() {
 function wobbleBass() {
   const p = patch("LFO: Synced Wobble", {
     module: "lfo", tempo: 100,
-    description: "A triangle LFO locked to eighth notes sweeps the low-pass filter of a bass line, a classic wobble that stays in time with the drums. Change Sync for a slower or faster wobble, switch the output you cable from triangle to square, or raise Resonance.",
+    description: "A triangle LFO locked to eighth notes sweeps the low-pass filter of a bass line, a classic wobble that stays in time with the drums. Change Rate for a slower or faster wobble, switch Wave from Triangle to Square, or raise Resonance.",
     tags: ["sync", "wobble", "bass", "filter"],
   });
   const v = voice(p, [0, 0], [0, "_", "_", "_", 0, "_", 3, "_", 5, "_", "_", "_", 7, "_", 5, 3], { rate: "1/8", shape: 0.95, root: "E", scale: "Natural Minor", octave: -2, gatelength: 0.95,
     env: { attack: 0.01, decay: 0.2, sustain: 0.9, release: 0.1 }, filter: { cutoff: 300, resonance: 0.35 } });
-  const l = p.add("lfo", [3, 1], { wave: "Triangle", sync: "1/8", polarity: "Unipolar" }, { name: "Wobble" });
+  const l = p.add("lfo", [3, 1], { wave: "Triangle", sync: "Tempo", division: "1/8", polarity: "Unipolar" }, { name: "Wobble" });
   p.cable(l, "out", v.filt, "cutoff", 0.55);
   const drums = beat(p, [0, 4], { style: "half", level: -6 });
   const mix = p.add("audio-mixer", [4, 0], { level1: -12, level2: -10, master: 0 });
@@ -75,11 +75,11 @@ function wobbleBass() {
 function randomStep() {
   const p = patch("LFO: Random Steps", {
     module: "lfo", tempo: 112,
-    description: "The LFO's Random Step wave picks a new level every sixteenth and sends it to the filter, so a repeating line is coloured differently on each step, always the same way for a given Seed. Change Seed for another pattern or switch to Random Smooth.",
+    description: "The LFO's Random Step wave picks a new level every sixteenth and sends it to the filter, so a repeating line is coloured differently on each step, always the same way. Switch Wave to Random Smooth for a gliding version.",
     tags: ["random", "stepped", "seed", "sample and hold"],
   });
   const v = voice(p, [0, 0], [0, 0, 7, 0, 12, 0, 7, 10, 0, 0, 7, 0, 12, 7, 5, 3], { rate: "1/16", shape: 0.9, root: "A", octave: -1, env: { decay: 0.15, sustain: 0.3 }, filter: { cutoff: 400, resonance: 0.4 } });
-  const l = p.add("lfo", [3, 1], { wave: "Random Step", sync: "1/16", polarity: "Unipolar", seed: 12 }, { name: "Random" });
+  const l = p.add("lfo", [3, 1], { wave: "Random Step", sync: "Tempo", division: "1/16", polarity: "Unipolar" }, { name: "Random" });
   p.cable(l, "out", v.filt, "cutoff", 0.6);
   finish(p, [4, 0], v.filt, { stereo: true, trim: -5, verb: { mix: 0.2, size: 0.4, decay: 1.8 } });
   return p;
@@ -106,15 +106,15 @@ function autoPan() {
 function trance() {
   const p = patch("LFO: Gate Chopper", {
     module: "lfo", tempo: 124,
-    description: "A square LFO locked to sixteenths chops a held pad into a rhythmic gate, and its Cycle output also triggers the hi-hat on every pulse. Move Pulse Width to make the chops shorter or longer, or change Sync for another pattern.",
+    description: "A square LFO locked to sixteenths chops a held pad into a rhythmic gate, and its rising edge also triggers the hi-hat on every pulse. Move Width to make the chops shorter or longer, or change Rate for another pattern.",
     tags: ["gate", "square", "pulse width", "cycle trigger"],
   });
   const pd = pad(p, [0, 0], [0, 3, 7, 5], { rate: "1/1", root: "D", scale: "Natural Minor", octave: 0, shape: 0.8, gain: 0, filter: { cutoff: 2600 } });
-  const l = p.add("lfo", [2, 2], { wave: "Square", sync: "1/16", polarity: "Unipolar", pw: 0.35 }, { name: "Chopper" });
+  const l = p.add("lfo", [2, 2], { wave: "Square", sync: "Tempo", division: "1/16", polarity: "Unipolar", pw: 0.35 }, { name: "Chopper" });
   const hats = p.add("punch-hats", [3, 2], { level: 0.45 });
   const kick = p.add("punch-kick", [3, 3], { level: 0.7 });
-  const kl = p.add("lfo", [2, 3], { wave: "Square", sync: "1/4", polarity: "Unipolar", pw: 0.1 }, { name: "Kick" });
-  p.cable(l, "square", pd.amp, "gain", 0.9).cable(l, "cycle", hats, "closed").cable(kl, "cycle", kick, "trig");
+  const kl = p.add("lfo", [2, 3], { wave: "Square", sync: "Tempo", division: "1/4", polarity: "Unipolar", pw: 0.1 }, { name: "Kick" });
+  p.cable(l, "out", pd.amp, "gain", 0.9).cable(l, "out", hats, "closed").cable(kl, "out", kick, "trig");
   const mix = p.add("audio-mixer", [5, 0], { level1: -4, level2: -9, level3: -8, master: 0 });
   const v = p.add("reverb", [6, 0], { size: 0.4, decay: 1.8, mix: 0.15, quality: "Eco (8 lines)" });
   p.stereo(pd.filt, mix, { to: ["in1l", "in1r"] }).cable(hats, "out", mix, "in2l").cable(hats, "out", mix, "in2r")

@@ -20,7 +20,7 @@ function summed() {
     env: { attack: 0.003, decay: 0.22, sustain: 0.15, release: 0.15 } });
   const l1 = p.add("lfo", [0, 2], { rate: 0.17 }, { name: "Sine" });
   const l2 = p.add("lfo", [0, 3], { wave: "Triangle", rate: 0.41 }, { name: "Triangle" });
-  const l3 = p.add("lfo", [0, 4], { wave: "Random Step", sync: "1/2", seed: 5 }, { name: "Steps" });
+  const l3 = p.add("lfo", [0, 4], { wave: "Random Step", sync: "Tempo", division: "1/2" }, { name: "Steps" });
   const cv = p.add("cv-mixer", [1, 2], { mode: "Sum", level1: 0.7, level2: 0.5, level3: 0.4, clip: "Soft" });
   const f = p.add("filter", [3, 0], { cutoff: 600, resonance: 0.35, type: "Ladder Tanh" });
   p.cable(l1, "out", cv, "in1").cable(l2, "out", cv, "in2").cable(l3, "out", cv, "in3").cable(cv, "out", f, "cutoff", 0.35).cable(m.amp, "l", f, "l");
@@ -64,8 +64,8 @@ function maxSwell() {
   const o1 = p.add("oscillator", [1, 0], { shape: 0.7, fine: -5 });
   const o2 = p.add("oscillator", [1, 1], { shape: 0.7, fine: 5, coarse: 7 });
   const mix = p.add("audio-mixer", [2, 0], { level1: -6, level2: -9, pan1: -0.4, pan2: 0.4, master: 2 });
-  const l1 = p.add("lfo", [0, 3], { sync: "2 bars", polarity: "Unipolar" }, { name: "Slow" });
-  const l2 = p.add("lfo", [0, 4], { wave: "Triangle", sync: "1 bar", polarity: "Unipolar", phase: 90 }, { name: "Faster" });
+  const l1 = p.add("lfo", [0, 3], { sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Slow" });
+  const l2 = p.add("lfo", [0, 4], { wave: "Triangle", sync: "Tempo", division: "1/1", polarity: "Unipolar", phase: 90 }, { name: "Faster" });
   const cv = p.add("cv-mixer", [1, 3], { mode: "Max", level1: 1, level2: 0.8 });
   const vca = p.add("vca", [3, 0], {});
   p.cable(seq, "pitch", o1, "pitch").cable(seq, "pitch", o2, "pitch").cable(o1, "out", mix, "in1l").cable(o1, "out", mix, "in1r")
@@ -88,8 +88,8 @@ function minGate() {
   const o2 = p.add("oscillator", [1, 1], { shape: 0.7, coarse: 7 });
   const o3 = p.add("oscillator", [1, 2], { shape: 0.7, coarse: 3, octave: "+1" });
   const mix = p.add("audio-mixer", [2, 0], { level1: -8, level2: -10, level3: -13, pan1: -0.3, pan3: 0.3, master: 0 });
-  const a = p.add("lfo", [0, 4], { wave: "Square", sync: "1/8", polarity: "Unipolar", pw: 0.7 }, { name: "Eighths" });
-  const b = p.add("lfo", [0, 5], { wave: "Square", sync: "1/4", polarity: "Unipolar", pw: 0.6, phase: 40 }, { name: "Quarters" });
+  const a = p.add("lfo", [0, 4], { wave: "Square", sync: "Tempo", division: "1/8", polarity: "Unipolar", pw: 0.7 }, { name: "Eighths" });
+  const b = p.add("lfo", [0, 5], { wave: "Square", sync: "Tempo", division: "1/4", polarity: "Unipolar", pw: 0.6, phase: 40 }, { name: "Quarters" });
   const cv = p.add("cv-mixer", [1, 4], { mode: "Min", level1: 1, level2: 1, clip: "Hard" });
   const env = p.add("adsr", [2, 4], { attack: 0.004, decay: 0.15, sustain: 0.6, release: 0.1 });
   const vca = p.add("vca", [3, 0], {});
@@ -111,7 +111,7 @@ function scan() {
     description: "Four stepped random lines sit in the four channels and Scan, swept by a slow triangle, fades from one to the next; the result is snapped to a scale to play the oscillator, so the tune walks between four moving lines. Move Scan by hand to pick which channel you hear.",
     tags: ["scan", "crossfade", "generative", "melody"],
   });
-  const clock = p.add("lfo", [0, 0], { wave: "Square", sync: "1/8", polarity: "Unipolar", pw: 0.5 }, { name: "Clock" });
+  const clock = p.add("lfo", [0, 0], { wave: "Square", sync: "Tempo", division: "1/8", polarity: "Unipolar", pw: 0.5 }, { name: "Clock" });
   const rs = [0, 1, 2, 3].map((i) => p.add("random", [0, 1 + i], { rate: 1, sync: "1/2", seed: 11 + i * 7, spread: 1 }, { name: `Line ${i + 1}` }));
   const cv = p.add("cv-mixer", [1, 2], { mode: "Scan", scan: 0.5, master: 1 });
   rs.forEach((r, i) => p.cable(r, "out", cv, "in" + (i + 1)));

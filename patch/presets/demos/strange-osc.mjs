@@ -69,7 +69,7 @@ function tameSweep() {
     tags: ["drone", "sweep", "bifurcation", "evolving"],
   });
   const seq = seqOf(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], { rate: "1/2", gate: 1, octave: -1, root: "E" });
-  const l = p.add("lfo", [1, 2], { wave: "Triangle", sync: "4 bars", polarity: "Unipolar" }, { name: "Tame Sweep" });
+  const l = p.add("lfo", [1, 2], { wave: "Triangle", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Tame Sweep" });
   const osc = p.add("strange-osc", [1, 0], { attractor: "Rossler", tame: 0.5, tone: 4500, level: 0.9 });
   p.cable(l, "out", osc, "tame", 0.9);
   const v = gated(p, [2, 0], osc, seq, "out", "pitch", { env: { attack: 0.4, decay: 0.5, sustain: 0.9, release: 1.2 } });

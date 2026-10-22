@@ -68,7 +68,7 @@ function smearFreeze() {
   const m = melody(p, [0, 0], [0, 4, 7, 11, 7, 4, 2, 4], { rate: "1/8", shape: 0.5, root: "E", scale: "Dorian",
     env: { decay: 0.4, sustain: 0.4, release: 0.3 }, gatelength: 0.8 });
   const b = p.add("bender", [3, 0], { mode: "Smear", sync: "1/4", time: 0.2, chance: 0.5, repeats: 6, corrupt: 0.3, corruptwhen: "Always", edge: 0.9, mix: 0.8, seed: 5 });
-  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "2 bars", polarity: "Unipolar" }, { name: "Freeze Gate" });
+  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Freeze Gate" });
   mono(p, m.amp, "l", b, 0); p.stereo(b, p.out).cable(hold, "out", b, "freeze");
   return p;
 }

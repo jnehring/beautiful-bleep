@@ -90,7 +90,7 @@ function wideSwirl() {
     description: "Twelve bright partials spread across the stereo field while a slow LFO swings Direction between rising and falling, so the swirl climbs, hangs and sinks. Narrow Width for a clearer, thinner voice.",
     tags: ["stereo", "swirl", "lfo", "wide"],
   });
-  const l = p.add("lfo", [0, 2], { wave: "Sine", sync: "8 bars", polarity: "Bipolar" }, { name: "Direction" });
+  const l = p.add("lfo", [0, 2], { wave: "Sine", sync: "Tempo", division: "8 bars", polarity: "Bipolar" }, { name: "Direction" });
   const t = p.add("endless-tone", [1, 0], { rate: 0.5, width: 1, count: 12, timbre: 0.7, spread: 1, level: 1 });
   p.cable(l, "out", t, "direction", 1);
   finish(p, [2, 0], t, ["l", "r"], 2, { decay: 3, mix: 0.25 });

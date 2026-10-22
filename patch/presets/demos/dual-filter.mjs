@@ -60,7 +60,7 @@ function stereoSplit() {
   const m = melody(p, [0, 0], [0, 7, 12, 7, 3, 10, 15, 10, 5, 12, 17, 12, 7, 14, 19, 14], {
     rate: "1/16", root: "A", scale: "Natural Minor", octave: 0, shape: 0.9, gatelength: 0.5, env: { decay: 0.18, sustain: 0.1, release: 0.1 } });
   const f = p.add("dual-filter", [3, 0], { cutoff: 1100, spread: 2.2, res1: 0.35, res2: 0.35, routing: "Stereo", link: "Mirror" });
-  const lfo = p.add("lfo", [3, 1], { wave: "Sine", sync: "4 bars" }, { name: "Swap" });
+  const lfo = p.add("lfo", [3, 1], { wave: "Sine", sync: "Tempo", division: "4 bars" }, { name: "Swap" });
   mono(p, m.amp, "l", f);
   p.cable(lfo, "out", f, "spread", 0.5);
   finish(p, [4, 0], f, -5, { size: 0.6, decay: 3, mix: 0.3 });
@@ -97,7 +97,7 @@ function drumSplit() {
   });
   const d = beat(p, [0, 0], { style: "four", level: -4 });
   const f = p.add("dual-filter", [3, 0], { cutoff: 900, spread: 1.5, res1: 0.4, res2: 0.4, mode1: 0, mode2: 1, routing: "Serial", drive: 0.5, character: "Saturating", mix: 0.9 });
-  const lfo = p.add("lfo", [3, 1], { wave: "Triangle", sync: "2 bars" }, { name: "Open" });
+  const lfo = p.add("lfo", [3, 1], { wave: "Triangle", sync: "Tempo", division: "2 bars" }, { name: "Open" });
   p.stereo(d, f, { from: ["outl", "outr"] }).cable(lfo, "out", f, "cutoff", 0.45);
   const bass = p.add("oscillator", [3, 3], { octave: "-2", shape: 0.1 }, { name: "Sub" });
   const seq = p.add("step-sequencer", [2, 3], { length: 16, rate: "1/8", root: "E", scale: "Minor Pentatonic", octave: -1, gatelength: 0.6 },

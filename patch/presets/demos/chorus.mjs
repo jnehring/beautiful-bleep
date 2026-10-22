@@ -73,7 +73,7 @@ function metalComb() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", 5, "_", "_", "_", 7, "_", "_", "_", 3, "_", "_", "_"],
     { rate: "1/4", shape: 1, root: "E", scale: "Minor Pentatonic", gatelength: 0.98, env: { attack: 0.1, decay: 0.3, sustain: 0.9, release: 0.5 } });
-  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "2 bars", polarity: "Unipolar" }, { name: "Delay Sweep" });
+  const l = p.add("lfo", [2, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Delay Sweep" });
   const c = p.add("chorus", [3, 0], { rate: 0.05, depth: 0.1, delay: 4, feedback: -0.75, spread: 0.5, mode: "Flanger", mix: 0.6 });
   feed(p, m.amp, c);
   p.cable(l, "out", c, "delay", 0.5);

@@ -205,7 +205,7 @@ static void lfoBasics() {
     std::vector<int> cycles;
     float lo = 1e9f, hi = -1e9f;
     for (int i = 0; i < 48000; ++i) {
-        d.tick(p, 0.0f, t, f);
+        d.tick(p, 0.0f, 0.0f, t, f);
         if (f.cycle > 0.0f) cycles.push_back(i);
         lo = std::min(lo, f.out);
         hi = std::max(hi, f.out);
@@ -239,7 +239,7 @@ static void lfoBasics() {
         q.rateHz = 5.0f;
         float last = 0.0f, maxStep = 0.0f;
         for (int i = 0; i < 48000; ++i) {
-            r.tick(q, 0.0f, t, f);
+            r.tick(q, 0.0f, 0.0f, t, f);
             if (i) maxStep = std::max(maxStep, std::fabs(f.out - last));
             last = f.out;
         }
@@ -257,7 +257,7 @@ static void lfoBasics() {
         for (int w = 0; w < kLfoWaves; ++w) {
             q.wave = w;
             for (int i = 0; i < 9000; ++i) {
-                u.tick(q, 0.0f, t, f);
+                u.tick(q, 0.0f, 0.0f, t, f);
                 EXPECT(f.out >= 0.0f && f.out <= 1.0f && f.random >= 0.0f && f.random <= 1.0f);
                 if (g_failures) return;
             }
@@ -265,29 +265,64 @@ static void lfoBasics() {
     }
 
     // Sync: phase = frac(ppq / beats), also after a loop jump.
-    for (int sync = 1; sync < 10; ++sync) {
+    for (int nv = 0; nv < dsp::kNumNoteValues; nv += 3) {
         LfoDsp s;
         s.prepare(48000.0);
         s.reset();
         LfoParams q;
-        q.sync = sync;
+        q.sync = LfoTempo;
+        q.cycleBeats = dsp::noteValueBeats(nv);
         q.wave = LfoSawUp;
         LfoTime ts;
         ts.running = true;
         ts.bpm = 120.0;
-        const double beats = dsp::syncBeats(sync);
+        const double beats = q.cycleBeats;
         float first = 0.0f;
         for (int i = 0; i < 60000; ++i) {
             const int j = i < 30000 ? i : i - 30000;  // loop jump back to 0
             ts.ppq = 0.37 + j / 24000.0;
             ts.started = i == 0;
-            s.tick(q, 0.0f, ts, f);
+            s.tick(q, 0.0f, 0.0f, ts, f);
             const double expect = std::fmod(ts.ppq / beats, 1.0);
             EXPECT_NEAR(s.phase(), expect, 1e-9);
             if (i == 100) first = f.out;
             if (i == 30100) EXPECT(f.out == first);
             if (g_failures) return;
         }
+    }
+
+    // Morph at 12 o'clock leaves every wave as it was; away from it the waves change but stay in range.
+    for (int w = 0; w < kLfoWaves; ++w)
+        for (int k = 0; k < 20; ++k) {
+            const double ph = k / 20.0;
+            EXPECT_NEAR(LfoDsp::value(w, ph, 0.4f, 0.5f, 3, 5), LfoDsp::value(w, ph, 0.4f, 3, 5), 1e-6);
+            for (float m : {0.0f, 0.2f, 0.8f, 1.0f}) {
+                const float v = LfoDsp::value(w, ph, 0.4f, m, 3, 5);
+                EXPECT(v >= -1.0001f && v <= 1.0001f);
+            }
+        }
+    EXPECT(std::fabs(LfoDsp::value(LfoSine, 0.1, 0.5f, 1.0f, 1, 0) - LfoDsp::value(LfoSine, 0.1, 0.5f, 0.5f, 1, 0)) > 0.05);
+    // Skew moves the peak; Curve bends the middle.
+    EXPECT_NEAR(dsp::waves::triangle(dsp::waves::warpPhase(0.5 * 0.725, 0.5)), 1.0, 1e-6);
+    EXPECT_NEAR(dsp::waves::bend(0.0f, 0.5f), -0.5, 1e-6);
+
+    // Clock: one cycle per division of 1/16 pulses, phase-locked to the pulses; a pause waits.
+    {
+        LfoDsp c;
+        c.prepare(48000.0);
+        c.reset();
+        LfoParams q;
+        q.sync = LfoClock;
+        q.cycleBeats = 1.0;  // 1/4 = four 1/16 pulses
+        q.wave = LfoSawUp;
+        std::vector<int> cyc;
+        for (int i = 0; i < 48000; ++i) {
+            const float clk = i % 1000 < 10 ? 1.0f : 0.0f;
+            c.tick(q, 0.0f, clk, t, f);
+            if (f.cycle > 0.0f) cyc.push_back(i);
+            if (i == 8000 + 500) EXPECT_NEAR(c.phase(), 0.125, 0.01);
+        }
+        EXPECT(cyc.size() >= 11 && cyc.size() <= 13 && cyc[1] - cyc[0] >= 3999 && cyc[1] - cyc[0] <= 4001);
     }
 
     // Reset restarts the cycle; Fade ramps from 0 to full.
@@ -298,13 +333,13 @@ static void lfoBasics() {
         LfoParams q;
         q.wave = LfoSquare;
         q.fade = 0.5f;
-        for (int i = 0; i < 1000; ++i) r.tick(q, 0.0f, t, f);
-        r.tick(q, 1.0f, t, f);
+        for (int i = 0; i < 1000; ++i) r.tick(q, 0.0f, 0.0f, t, f);
+        r.tick(q, 1.0f, 0.0f, t, f);
         EXPECT(f.cycle == 1.0f && r.phase() == 0.0);
         EXPECT(f.out > 0.0f && f.out < 0.001f);
-        for (int i = 0; i < 12000; ++i) r.tick(q, 0.0f, t, f);
+        for (int i = 0; i < 12000; ++i) r.tick(q, 0.0f, 0.0f, t, f);
         EXPECT_NEAR(f.out, 0.5, 0.01);  // a quarter of a second into a half-second fade (square is high)
-        for (int i = 0; i < 12100; ++i) r.tick(q, 0.0f, t, f);
+        for (int i = 0; i < 12100; ++i) r.tick(q, 0.0f, 0.0f, t, f);
         EXPECT(std::fabs(f.out) == 1.0f);
     }
 }

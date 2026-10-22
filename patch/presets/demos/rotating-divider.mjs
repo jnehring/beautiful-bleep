@@ -62,7 +62,7 @@ function shiftingDrums() {
     tags: ["rotate", "drums", "shifting", "divisions"],
   });
   const rd = p.add("rotating-divider", [0, 0], { set: "Integers", rotate: 0, sync: "Next Bar", base: "1/16", output: "Trigger", rotatemode: "Wrap" });
-  const lfo = p.add("lfo", [0, 3], { wave: "Random Step", sync: "2 bars", polarity: "Unipolar", seed: 9 }, { name: "Rotate LFO" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Random Step", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Rotate LFO" });
   p.cable(lfo, "out", rd, "rotate", 0.4);
   const mix = perc(p, rd, [2, 0], ["out4", "out8", "out1", "out6", "out5"]);
   finish(p, mix, [6, 0], { size: 0.35, decay: 1.2, mix: 0.12 });
@@ -130,7 +130,7 @@ function extended() {
     tags: ["evens", "extend", "sweep", "thinning"],
   });
   const rd = p.add("rotating-divider", [0, 0], { set: "Evens", rotatemode: "Extend", sync: "Next Bar", rotate: 0, base: "1/16", output: "Trigger" });
-  const lfo = p.add("lfo", [0, 3], { wave: "Saw Up", sync: "8 bars", polarity: "Unipolar" }, { name: "Climb" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Saw Up", sync: "Tempo", division: "8 bars", polarity: "Unipolar" }, { name: "Climb" });
   p.cable(lfo, "out", rd, "rotate", 0.5);
   const mix = perc(p, rd, [2, 0], ["out4", "out8", "out1", "out3", "out2"], { master: 0 });
   finish(p, mix, [6, 0], { size: 0.35, decay: 1.2, mix: 0.12 });

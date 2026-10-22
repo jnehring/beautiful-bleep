@@ -64,7 +64,7 @@ function syncSweep() {
   });
   const seq = seqOf(p, [0, 0], [0, ".", 0, 0, 3, ".", 0, 5, 0, ".", 7, ".", 5, 3, 0, "."], { root: "E", octave: -1, rate: "1/8", gate: 0.6 });
   const osc = p.add("dual-osc", [1, 0], { shapeA: 0.85, shapeB: 0.85, octaveB: 0, sync: 0.4, balance: 0, fold: 0.05 });
-  const lfo = p.add("lfo", [1, 2], { wave: "Saw Up", sync: "2 bars", polarity: "Unipolar" }, { name: "Sync Ramp" });
+  const lfo = p.add("lfo", [1, 2], { wave: "Saw Up", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Sync Ramp" });
   const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { decay: 0.25, sustain: 0.6, release: 0.12 } });
   p.cable(seq, "pitch", osc, "pitchB").cable(lfo, "out", osc, "sync", 0.9);
   const lp = p.add("filter", [3, 0], { cutoff: 2500, resonance: 0.2 });
@@ -113,7 +113,7 @@ function foldBass() {
   });
   const seq = seqOf(p, [0, 0], [0, "_", ".", 0, 3, ".", 0, ".", 5, "_", 3, ".", 0, ".", 7, 5], { root: "F", octave: -2, rate: "1/8", gate: 0.75 });
   const osc = p.add("dual-osc", [1, 0], { shapeA: 0.2, shapeB: 0, octaveB: 0, fmDepth: 0.1, balance: 0.4, fold: 0.5, symmetry: 0.3 });
-  const f = p.add("lfo", [1, 2], { wave: "Triangle", sync: "2 bars" }, { name: "Fold" });
+  const f = p.add("lfo", [1, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars" }, { name: "Fold" });
   const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { decay: 0.2, sustain: 0.7, release: 0.12 } });
   p.cable(seq, "pitch", osc, "pitchB").cable(f, "out", osc, "fold", 0.3);
   const drums = beat(p, [0, 4], { style: "four", level: -7 });

@@ -45,7 +45,7 @@ function loopHold() {
   const m = melody(p, [0, 0], [0, 4, 7, 4, 9, 7, 4, 2], { rate: "1/8", shape: 0.6, root: "C", scale: "Major Pentatonic",
     env: { decay: 0.25, sustain: 0.2, release: 0.2 } });
   const z = p.add("zone-delay", [3, 0], { zone: 5, sync: "Transport", time: 0.35, feedback: 0.5, character: 0.1, mix: 0.6, timechange: "Crossfade" });
-  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "2 bars", polarity: "Unipolar", pw: 0.5 }, { name: "Hold Gate" });
+  const hold = p.add("lfo", [2, 1], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar", pw: 0.5 }, { name: "Hold Gate" });
   mono(p, m.amp, z, 1); p.stereo(z, p.out).cable(hold, "out", z, "hold");
   return p;
 }
@@ -59,8 +59,8 @@ function reverseBounce() {
   const m = melody(p, [0, 0], [0, 7, ".", 3, 10, ".", 5, "."], { rate: "1/8", shape: 0.7, root: "D", scale: "Dorian",
     env: { decay: 0.2, sustain: 0.2, release: 0.15 } });
   const z = p.add("zone-delay", [3, 0], { zone: 3, sync: "Transport", time: 0.4, feedback: 0.6, character: 0.2, diffuse: 0.2, mix: 0.55 });
-  const rv = p.add("lfo", [2, 1], { wave: "Square", sync: "2 bars", polarity: "Unipolar" }, { name: "Reverse Gate" });
-  const pp = p.add("lfo", [3, 1], { wave: "Square", sync: "1 bar", polarity: "Unipolar", phase: 90 }, { name: "Ping-Pong Gate" });
+  const rv = p.add("lfo", [2, 1], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Reverse Gate" });
+  const pp = p.add("lfo", [3, 1], { wave: "Square", sync: "Tempo", division: "1/1", polarity: "Unipolar", phase: 90 }, { name: "Ping-Pong Gate" });
   mono(p, m.amp, z, 6); p.stereo(z, p.out).cable(rv, "out", z, "reverse").cable(pp, "out", z, "pingpong");
   return p;
 }

@@ -82,7 +82,7 @@ function sparseFill() {
     tags: ["fill", "density", "sparse", "drums"],
   });
   const dm = p.add("drum-map", [0, 0], { x: 0.3, y: 0.6, seed: 3, kickdensity: 0.3, snaredensity: 0.3, hatsdensity: 0.35, fillamount: 0.75, length: 16 });
-  const fill = p.add("lfo", [0, 3], { wave: "Square", sync: "4 bars", pw: 0.25, polarity: "Unipolar", phase: 270 }, { name: "Fill Gate" });
+  const fill = p.add("lfo", [0, 3], { wave: "Square", sync: "Tempo", division: "4 bars", pw: 0.25, polarity: "Unipolar", phase: 270 }, { name: "Fill Gate" });
   p.cable(fill, "out", dm, "fill");
   const k = kit(p, dm, [2, 0], { master: 0 });
   const pad = voice(p, [2, 4], null, [dm, "kick"], { name: "Low Tone", shape: 0.2, octave: -1, env: { attack: 0.02, decay: 0.8, sustain: 0.0, release: 0.5 }, osc: { coarse: -4 } });

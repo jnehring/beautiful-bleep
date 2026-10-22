@@ -55,7 +55,7 @@ function morphScenes() {
   const B = snap("Full", { "1>1": 0.5, "1>2": 0.5, "2>1": 0.2, "2>2": 0.4, "3>2": 0.5, "3>1": 0.1, "4>1": 0.4, "5>2": 0.4 });
   const mx = matrix(p, [4, 0], 5, 2, {}, { morphon: "On", curve: "Smooth" },
     { labels: { in: ["Bass", "Pad", "Lead", "Drums L", "Drums R"], out: ["Left", "Right"] }, snapshots: [A, B, null, null, null, null, null, null], morphA: 0, morphB: 1 });
-  const lfo = p.add("lfo", [4, 3], { wave: "Triangle", sync: "4 bars", polarity: "Unipolar" }, { name: "Morph" });
+  const lfo = p.add("lfo", [4, 3], { wave: "Triangle", sync: "Tempo", division: "4 bars", polarity: "Unipolar" }, { name: "Morph" });
   p.cable(b.amp, "l", mx, "in1").cable(c.amp, "l", mx, "in2").cable(l.amp, "l", mx, "in3").cable(d, "outl", mx, "in4").cable(d, "outr", mx, "in5").cable(lfo, "out", mx, "morph", 0.5);
   p.stereo(mx, p.out, { from: ["out1", "out2"] });
   return p;

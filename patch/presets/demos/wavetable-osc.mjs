@@ -111,7 +111,7 @@ function warpBass() {
   });
   const seq = seqOf(p, [0, 0], [0, "_", 0, ".", 3, ".", 0, 5, 0, "_", ".", 0, 7, ".", 5, 3], { root: "F", octave: -2, rate: "1/8", gate: 0.7 });
   const osc = p.add("wavetable-osc", [1, 0], { bank: "Fold", x: 0.4, y: 0.5, warp: 0.3, warpMode: "Sync", subLevel: 0.4 });
-  const lfo = p.add("lfo", [1, 2], { wave: "Triangle", sync: "2 bars", polarity: "Unipolar" }, { name: "Warp" });
+  const lfo = p.add("lfo", [1, 2], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Warp" });
   const v = play(p, [2, 0], osc, seq, ["outL", "outR"], { env: { decay: 0.2, sustain: 0.7, release: 0.12 } });
   p.cable(lfo, "out", osc, "warp", 0.6);
   const lp = p.add("filter", [3, 0], { cutoff: 1800, resonance: 0.2 });

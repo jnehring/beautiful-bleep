@@ -141,8 +141,8 @@ function driven() {
   const tom = p.add("punch-tom", [1, 0], { tune: 90, level: 0.8, decay: 0.3 });
   const hats = p.add("punch-hats", [1, 1], { level: 0.45, closed: 0.04 });
   const kick = p.add("punch-kick", [1, 2], { level: 0.7 });
-  const g = p.add("lfo", [1, 3], { wave: "Square", sync: "1/4", polarity: "Unipolar", pw: 0.1 }, { name: "Pulse" });
-  p.cable(l, "out", n, "a2").cable(l, "out", n, "b2").cable(n, "aspike", tom, "trig").cable(n, "bspike", hats, "closed").cable(g, "cycle", kick, "trig");
+  const g = p.add("lfo", [1, 3], { wave: "Square", sync: "Tempo", division: "1/4", polarity: "Unipolar", pw: 0.1 }, { name: "Pulse" });
+  p.cable(l, "out", n, "a2").cable(l, "out", n, "b2").cable(n, "aspike", tom, "trig").cable(n, "bspike", hats, "closed").cable(g, "out", kick, "trig");
   const mix = p.add("audio-mixer", [2, 0], { level1: -6, level2: -12, level3: -5, master: 0 });
   const verb = p.add("reverb", [3, 0], { size: 0.4, decay: 1.8, mix: 0.18, quality: "Eco (8 lines)" });
   p.cable(tom, "out", mix, "in1l").cable(tom, "out", mix, "in1r").cable(hats, "out", mix, "in2l").cable(hats, "out", mix, "in2r")

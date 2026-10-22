@@ -155,7 +155,7 @@ function patternSlots() {
   const calm = slot({ trig: track("trig", [2, 0, 1, 0, 0, 1, 0, 0]), note: track("note", [0, 2, 4]), oct: track("oct", [0]), gate: track("gate", [90, 60]) });
   const busy = slot({ trig: track("trig", [2, 1, 1, 0, 1, 1, 1, 0, 1]), note: track("note", [0, 4, 2, 5, 3, 1, 4, 6]), oct: track("oct", [0, 0, 1, 0, 0]), gate: track("gate", [40, 30, 30, 50]) });
   const seq = p.add("polymeter-sequencer", [0, 0], { rate: "1/8", root: "D", scale: "Dorian", slots: 2, patternchange: "Next bar", gatescale: 0.8, velocity: 0.8 }, { data: data([calm, busy]) });
-  const ramp = p.add("lfo", [0, 2], { wave: "Square", sync: "8 bars", polarity: "Unipolar", pw: 0.5 }, { name: "Slot Switch" });
+  const ramp = p.add("lfo", [0, 2], { wave: "Square", sync: "Tempo", division: "8 bars", polarity: "Unipolar", pw: 0.5 }, { name: "Slot Switch" });
   p.cable(ramp, "out", seq, "pattern");
   const v = voice(p, [1, 0], { node: seq, velocity: "velocity" }, { osc: { shape: 0.4 }, env: { decay: 0.4, sustain: 0.1, release: 0.3 }, filter: { cutoff: 2800, resonance: 0.15 } });
   space(p, [4, 0], v.out, "l", { level: 5, delay: { zone: 3, time: 0.45, feedback: 0.4, mix: 0.25 }, verb: { size: 0.55, decay: 2.8, mix: 0.3 } });

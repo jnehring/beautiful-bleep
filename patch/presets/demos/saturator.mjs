@@ -59,7 +59,7 @@ function wanderingBias() {
   });
   const m = melody(p, [0, 0], [0, "_", "_", "_", 7, "_", "_", "_", 5, "_", "_", "_", 3, "_", "_", "_"],
     { rate: "1/4", shape: 0, root: "F", scale: "Major Pentatonic", gatelength: 0.98, env: { attack: 0.4, decay: 0.4, sustain: 0.9, release: 0.9 } });
-  const l = p.add("lfo", [2, 2], { wave: "Sine", sync: "4 bars" }, { name: "Bias Drift" });
+  const l = p.add("lfo", [2, 2], { wave: "Sine", sync: "Tempo", division: "4 bars" }, { name: "Bias Drift" });
   const s = p.add("saturator", [3, 0], { drive: 0.7, bias: 0, character: "Tube", color: -0.2, tone: 10000, level: 0.7 });
   feed(p, m.amp, s);
   p.cable(l, "out", s, "bias", 0.8);

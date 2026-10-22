@@ -42,7 +42,7 @@ function drumSwap() {
   const a = beat(p, [0, 0], { style: "four", level: -6 });
   const b = beat(p, [0, 4], { style: "broken", level: -6 });
   const x = p.add("crossfader", [4, 0], { fade: 0.5, curve: "Equal Power" });
-  const lfo = p.add("lfo", [4, 1], { wave: "Square", sync: "2 bars", polarity: "Unipolar" }, { name: "Swap" });
+  const lfo = p.add("lfo", [4, 1], { wave: "Square", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Swap" });
   p.stereo(a, x, { from: ["outl", "outr"], to: ["al", "ar"] }).stereo(b, x, { from: ["outl", "outr"], to: ["bl", "br"] }).cable(lfo, "out", x, "fade", 0.5);
   const bass = melody(p, [3, 3], [0, "_", ".", 0, ".", 3, ".", 5, 0, "_", ".", 0, ".", 7, ".", 5], { rate: "1/8", root: "E", scale: "Minor Pentatonic", octave: -2, shape: 0.2, gatelength: 0.7, env: { decay: 0.2, sustain: 0.6 }, oscName: "Sub" });
   const mix = p.add("audio-mixer", [5, 0], { level1: 0, level2: -9, master: -1 });
@@ -94,7 +94,7 @@ function linearDip() {
   const a = melody(p, [0, 0], [0, "_", "_", "_", "_", "_", "_", "_", 5, "_", "_", "_", "_", "_", "_", "_"], { rate: "1/4", root: "A", scale: "Dorian", octave: -1, shape: 1, gatelength: 1, env: { attack: 0.1, sustain: 1, release: 0.5 } });
   const b = melody(p, [0, 3], [7, "_", "_", "_", "_", "_", "_", "_", 12, "_", "_", "_", "_", "_", "_", "_"], { rate: "1/4", root: "A", scale: "Dorian", octave: -1, shape: 0.4, gatelength: 1, env: { attack: 0.1, sustain: 1, release: 0.5 } });
   const x = p.add("crossfader", [4, 0], { fade: 0.5, curve: "Linear" });
-  const lfo = p.add("lfo", [4, 1], { wave: "Triangle", sync: "2 bars", polarity: "Unipolar" }, { name: "Fade" });
+  const lfo = p.add("lfo", [4, 1], { wave: "Triangle", sync: "Tempo", division: "2 bars", polarity: "Unipolar" }, { name: "Fade" });
   p.cable(a.amp, "l", x, "al").cable(a.amp, "l", x, "ar").cable(b.amp, "l", x, "bl").cable(b.amp, "l", x, "br").cable(lfo, "out", x, "fade", 0.5);
   const d = beat(p, [0, 6], { style: "four", level: -9 });
   blend(p, [5, 0], x, d, -9, -8, ["outl", "outr"]);

@@ -121,9 +121,20 @@ and `Module::liveValues` for the preview's phase dot.
 - Reset restarts the phase; Fade ramps from 0 to full over its time.
 - The demo types file includes the module (`patch.ui-types`).
 
+## 8a. Update: Sync, Morph, Skew, Curve
+
+- *Sync* is Free, Clock or Tempo. *Rate* (Hz) shows for Free; *Rate* in note
+  values (all straight, dotted and triplet values 1/64T … 16 bars) shows for
+  Clock and Tempo. A Clock pulse is a 1/16 step; the cycle is phase-locked to
+  the pulse count (reset to 0 by Reset or a pause over twice the period).
+- *Morph* (0–100 %, default 50 % = plain), *Skew* (−1…+1) and *Curve*
+  (−1…+1) shape every wave and output; see `dsp/Waves.h` (`valueMorph`,
+  `warpPhase`, `bend`). *Pulse Width* is shown as *Width* only for Square.
+- Only the *Out* jack remains (no per-wave or *Cycle* outputs).
+- *Seed* is gone: the random waves always use seed 1.
+- Boards saved with the old length list load as Tempo at that length.
+
 ## 9. Later
 
-- Shape morph (continuous blend between the waves) and a *Skew* control.
-- Dotted and triplet sync values.
 - Per-voice phase spread inside Voice Cells (from *Voice #*).
 - Audio-rate band-limited waves.

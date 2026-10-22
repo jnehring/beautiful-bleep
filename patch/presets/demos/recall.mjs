@@ -84,7 +84,7 @@ function settleDown() {
   });
   const rc = p.add("recall", [0, 0], { tmode: "Chance", tbias: 0.75, trecall: 0, tloop: 8, gatelength: 0.55, xspread: 0.65, xbias: 0.5, xsteps: 0.6, xrecall: 0, xloop: 8,
     sync: "1/8", xsource: "Tick", xrange: "Unipolar", root: "D", scale: "Major Pentatonic", seed: 52 });
-  const lfo = p.add("lfo", [0, 3], { wave: "Saw Up", sync: "8 bars", polarity: "Unipolar" }, { name: "Settle" });
+  const lfo = p.add("lfo", [0, 3], { wave: "Saw Up", sync: "Tempo", division: "8 bars", polarity: "Unipolar" }, { name: "Settle" });
   p.cable(lfo, "out", rc, "trecall").cable(lfo, "out", rc, "xrecall");
   const lead = voice(p, [2, 0], [rc, "x1"], [rc, "t1"], { name: "Lead", shape: 0.35, env: { decay: 0.35, sustain: 0.1, release: 0.3 } });
   const low = voice(p, [2, 3], [rc, "x2", 0.5], [rc, "t2"], { name: "Low", shape: 0.15, octave: -1, env: { decay: 0.5, sustain: 0.1, release: 0.4 } });

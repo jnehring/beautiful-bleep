@@ -126,8 +126,8 @@ function morphDrift() {
     tags: ["morph", "slots", "lfo", "arpeggio"],
   });
   const roll = p.add("roll", [1, 0], { morph: 0.5, morphto: 2, length: 0.8, scale: "Minor Pentatonic", root: "A", seed: 5 }, { data: rollData([slot(1, callA), slot(1, callB)]) });
-  const lfo = p.add("lfo", [0, 0], { rate: 0.06 }, { name: "Morph LFO" });
-  p.cable(lfo, "triangle", roll, "morph", 0.5);
+  const lfo = p.add("lfo", [0, 0], { rate: 0.06, wave: "Triangle" }, { name: "Morph LFO" });
+  p.cable(lfo, "out", roll, "morph", 0.5);
   const v = putVoice(p, polyVoice("Pluck", { shapeA: 0.4, shapeB: 0.9, cutoff: 2600, env: { attack: 0.003, decay: 0.28, sustain: 0.1, release: 0.25 } }), [2, 0], "Pluck", "pl_");
   p.cable(roll, "notes", v, "notes");
   const d = beat(p, [2, 2], { style: "broken", level: -9 });
