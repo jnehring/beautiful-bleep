@@ -68,14 +68,14 @@ export default function LibraryPage() {
       </div>
       {error ? <p className="error" role="alert">{error}</p> : !data ? <p>Loading…</p> : data.items.length === 0 ? <p className="muted">Nothing found.</p> : (
         <>
-          <ul className="tiles">{data.items.map((i) => (
+          <ul className="lib-tiles">{data.items.map((i) => (
             <li key={i.kind + i.slug}>
-              <a className="tile" href={`/library/detail/?kind=${i.kind}&slug=${encodeURIComponent(i.slug)}`}>
+              <a className="lib-tile" href={`/library/detail/?kind=${i.kind}&slug=${encodeURIComponent(i.slug)}`}>
                 <LibraryImage kind={i.kind} title={i.title} src={i.image_url} />
-                <span className="tile-body">
-                  <span className="tile-tags"><span className={`tag tag-${i.kind}`}>{KIND_LABEL[i.kind] ?? i.kind}</span>{i.category && <span className="tag">{i.category.replace(/\//g, " › ")}</span>}</span>
+                <span className="lib-tile-body">
+                  <span className="lib-tile-tags"><span className={`tag tag-${i.kind}`}>{KIND_LABEL[i.kind] ?? i.kind}</span>{i.category && <span className="tag">{i.category.replace(/\//g, " › ")}</span>}</span>
                   <strong>{i.title}</strong>
-                  <span className="tile-summary">{i.summary || "No description yet."}</span>
+                  <span className="lib-tile-summary">{i.summary || "No description yet."}</span>
                   <small className="muted">{i.version}{i.channel !== "stable" && ` ${i.channel}`}</small>
                   <Stars average={i.rating_average} count={i.rating_count} />
                 </span>
