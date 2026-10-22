@@ -89,6 +89,15 @@
     catch (e) { /* the library did not answer: the placeholders say what is missing */ }
   }
 
+  /// A board was loaded: once it is drawn and the canvas has a size, zoom and scroll so that all of it shows, as big as fits.
+  /// Gives up when the user already moved on to another level.
+  function fitWhenLaidOut(at, tries = 20) {
+    requestAnimationFrame(() => {
+      if (path.join("/") !== at) return;
+      if (fit() === false && tries > 0) fitWhenLaidOut(at, tries - 1);
+    });
+  }
+
   // ---------------------------------------------------------------- backend
   function applyMessage(m) {
     if (!m) return;
@@ -101,6 +110,7 @@
         for (const k of [...views.keys()]) if (k.startsWith("panel:")) closeView(k);
         if (board) setTimeout(openStartPanel, 0);
         if (board) checkMissingModules();
+        if (board) fitWhenLaidOut(path.join("/"));
       }
     }
     if (m.ports) ports = m.ports;
