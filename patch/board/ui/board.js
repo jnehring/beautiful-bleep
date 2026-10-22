@@ -436,7 +436,6 @@
     sel.clear();
     sel.add(id);
     render();
-    centreOn(n);
     const e = nodesEl.querySelector(`[data-id="${id}"]`);
     if (e) { e.classList.remove("flash"); void e.offsetWidth; e.classList.add("flash"); }
   }
