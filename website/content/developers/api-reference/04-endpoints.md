@@ -40,6 +40,11 @@ Removes the instance, its ports and the cables into its inputs. Cables from
 its outputs stay with their receivers and read silence until the UID returns.
 Frees `ep`. **[non-RT]**
 
+Removing ports is not safe while audio runs. `bb_unregister_instance` MUST NOT
+overlap `bb_begin_block`, `bb_write_output`, `bb_read_input` or `bb_end_block`
+on the same endpoint; stop audio processing first. (Adding ports is safe, see
+[Ports](05-ports.md).)
+
 ### `bb_endpoint_uid`
 
 ```c

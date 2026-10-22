@@ -36,5 +36,9 @@ come and go, the segment stays. Tools MAY unlink it when no host is running.
 4. Initialise: compare-and-swap `header.init_state` from 0 to 1. The winner
    writes the header (section 2) and then stores 2 with release semantics.
    Everyone else waits (up to 2 s) until `init_state` reads 2.
+   If the initialiser has crashed (its process is gone, or it never recorded
+   itself), exactly one waiter MAY take over after the timeout: it claims the
+   initialiser field, resets the header and stores 2. A waiter MUST NOT take
+   over from a live initialiser.
 5. Validate the header (magic, version, sizes, offsets). On a mismatch the
    implementation MUST NOT touch the segment and reports a version error.

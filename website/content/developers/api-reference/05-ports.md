@@ -22,7 +22,9 @@ Adds an output. **[non-RT]**
   `_AUDIO` is reserved.
 
 **Errors:** `BB_ERR_INVALID_ARGUMENT`, `BB_ERR_ALREADY_EXISTS`, `BB_ERR_FULL`.
-Outputs live until the endpoint is unregistered.
+Outputs live until the endpoint is unregistered. Adding a port while audio
+runs is safe: the port is published to the audio thread with release/acquire
+ordering. Removing ports is not (see `bb_unregister_instance`).
 
 ### `bb_add_input`
 

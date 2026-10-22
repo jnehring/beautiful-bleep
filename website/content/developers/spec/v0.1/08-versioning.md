@@ -6,6 +6,34 @@ order: 8
 
 ## 8. Versioning and extensions
 
+### 8.0 Hostile peers
+
+The segment is created with mode `0600`, so peers are same-user processes
+that may be buggy or hostile. Implementations MUST validate what they read
+from shared memory:
+
+- Table offsets and sizes come from the layout constants, not from a second
+  read of the header. Header values are validated once, at open.
+- An endpoint index outside the endpoint table makes a record invalid;
+  listings skip it.
+- Strings are copied with a bound and always NUL-terminated.
+- Non-finite samples and amounts are treated as 0; amounts are clamped to the
+  documented range, and a sum that overflows to Inf is treated as 0.
+- Before each write, a writer re-checks that the output record is still its
+  own (`state`, `endpoint_uid`, `incarnation`).
+- Process IDs of 0 or above `INT32_MAX` are invalid and never probed.
+
+Known limits:
+
+- **Truncation.** A same-user peer that shrinks the segment with `ftruncate`
+  makes later accesses to the removed pages raise SIGBUS in every process
+  that maps it. The audio thread cannot re-check the size without a system
+  call, and POSIX named shared memory cannot be sealed.
+- **PID namespaces.** Dead endpoints are reaped with `kill(pid, 0)`.
+  Processes in separate PID namespaces (containers) that share one segment
+  can look dead to each other. Run all peers of a bus in one PID namespace.
+
+
 - The segment name carries the major version. The header carries major and
   minor.
 - **0.x**: implementations MUST match major and minor exactly and report
