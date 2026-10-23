@@ -1,7 +1,7 @@
 # Building the Bleep Live Link device (Max for Live)
 
-A recipe for the four-row device: a **Channel** menu, and per row a **type** menu, a **Map** toggle, a **×** button, an
-**amount** dial, the mapped parameter's **name**, a **status** line and a **state** text. It is the prototype you already built
+A recipe for the four-row device: a **Channel** menu, and per row a **Map** toggle, a **×** button, an
+**amount** dial, and a **state** text. The **Map button** is the status line: it shows the parameter's name. It is the prototype you already built
 (`udpreceive` → `live.map` → `live.remote~`), wrapped in four rows around `live-link.js`. Nothing here has been run in
 Live by the person who wrote it; section 7 lists what to check. Background: [`doc/specs/live-link.md`](../../../../doc/specs/live-link.md).
 
@@ -48,16 +48,15 @@ Objects inside:
 | Object | Settings | Does |
 |---|---|---|
 | `inlet` | | the board's value (a float) |
-| `js live-link.js` | | the row's logic; all of its six outlets are used |
-| `live.menu` "Type" | Enum `dial switch menu`, Stored Only | the row type |
-| `live.text` "Map" | *Mode* **Toggle**, *Text* `Map`, **Parameter Mode Enable off** | mapping mode on or off |
+| `js live-link.js` | | the row's logic; all of its nine outlets are used |
+| `live.text` "Map" | *Mode* **Toggle**, *Text* `Map`, *Text On* `Mapping...`, **Parameter Mode Enable off**; make it wide enough for a parameter name (about 150 px) | mapping mode on or off, and the row's status line: `js` sets its texts |
 | `live.text` "×" | *Mode* **Button**, *Text* `×`, **Parameter Mode Enable off** | unmap this row |
 | `live.dial` "Amount" | *Unit Style* **Float**, *Range* `0 1`, *Initial* `1`, Stored Only | the dial row's trim |
 | `live.map` | | picks the Live parameter |
 | `live.object` | | reads and sets that parameter |
 | `sig~`, `live.remote~` | | drives a dial parameter |
-| `comment` × 3 | | name, status, state |
-| messages | `mapping $1`, `unmap`, `set 0` | see below |
+| `comment` (optional) | | the state of a discrete row (on/off, or the item). The status and the name labels are not needed: the Map button shows the name |
+| messages | `mapping $1`, `unmap` | see below |
 
 Connections (all of them; the numbers are outlets from the left, starting at 0):
 
@@ -66,28 +65,39 @@ Connections (all of them; the numbers are outlets from the left, starting at 0):
 | `inlet` | `js` | the board's value |
 | `live.text` Map | message `mapping $1` → `live.map` left inlet | mapping mode |
 | `live.map` outlet **1** (the id) | `js` | `id <n>`, exactly as you wired it |
-| `live.map` outlet 2 (the name) | `prepend set` → comment **name** | the parameter's name |
 | `js` outlet 0 | `sig~` → `live.remote~` **left** inlet | a dial's signal |
-| `js` outlet 1 | comment **status** (it sends `set <text>`) | waiting, reading, mapped, errors |
 | `js` outlet 2 | `live.remote~` **right** inlet | `id <n>`, or `id 0` to release |
 | `js` outlet 3 | `live.object` **right** inlet | the id to read and set |
 | `js` outlet 4 | `live.object` **left** inlet | `get …` and `set value …` |
 | `js` outlet 5 | `live.map` left inlet | `unmap` when `js` refuses a parameter |
 | `js` outlet 6 | comment **state** (it sends `set <text>`) | "on"/"off", or the item name |
-| `live.object` outlet | `js` | its answers: `min`, `max`, `value`, `is_quantized`, `value_items` |
-| `live.menu` Type, **middle** outlet (the text) | `prepend type` → `js` | `type dial` / `switch` / `menu` |
+| `live.object` outlet | `js` | its answers: `min`, `max`, `value`, `is_quantized`, `value_items`, `name` |
 | `live.dial` Amount | `prepend range` → `js` | the trim |
-| `live.text` ×, and `live.menu` Type (left outlet) | `[t b b b]` | on both: unmap and reset the Map toggle |
-| `[t b b b]` outlets | message `unmap` → `js` **and** → `live.map`; message `set 0` → `live.text` Map | the three things `×` does |
+| `live.text` × | `[t b b]` | unmap |
+| `[t b b]` outlets | message `unmap` → `js` **and** message `unmap` → `live.map` | what `×` does. `js` itself turns the Map button off and clickable again (outlet 8), so there is no `set 0` any more |
+| `js` outlet 8 | `live.text` Map, its left inlet | the Map button follows the row: its look, whether it can be clicked, and its texts. See below |
+| `js` outlets 1 and 7, and `live.map`'s name outlet | *nothing*: leave them unconnected | the status and the name label are not needed any more. (`js` still sends them if you want a comment for debugging: outlet 1 `set <status>`, outlet 7 `set not mapped`.) |
 
 Check each name: the `live.map` outlet numbers are the ones you used in the prototype (the id on the second outlet, the
 name on the third); if yours differ, keep what worked.
+
+**No type menu.** A row asks Live what it was mapped to: `get is_quantized` is 0 for a continuous parameter (a dial: `min`,
+`max`, a base, `live.remote~`) and 1 for a discrete one (a switch or a menu: `get value_items` gives the names, and the board's
+0..1 value picks the item). A switch is a menu of two items.
+
+**The Map button** is driven by `js`, so that it can only be used the way you want. Give it the texts *Map* and *Mapping...* in the Inspector; `js` changes them as it goes:
+- **Unmapped:** dark, says **Map**, clickable. Click it, then click a parameter in Live. While it waits for the click it is yellow and says **Mapping...**.
+- **Mapped:** it stays yellow, says the **parameter's name** (for example *Frequency*), and cannot be clicked (`active 0`), and `js` ends mapping mode in `live.map`, so clicking another parameter
+  in Live does not remap the row.
+- **×:** the only way back. It makes the button dark and clickable again (`active 1`, then `0`, which also sends
+  `mapping 0` to `live.map` through the toggle's own `mapping $1`). Then click Map again.
+- If the click cannot be mapped, the button stays yellow and says **not mappable**, still clickable, so you can try again. If `live.object` never answers, it goes dark and says **no answer**.
 
 ## 3. Four rows
 
 1. Copy `[p row]` three times (select, **Cmd+C**, **Cmd+V**).
 2. **Every `live.*` parameter needs its own Long Name in a device.** Open each copy (double-click), and rename the Long
-   Name of `Type`, `Amount` to `Type 2`, `Amount 2`, and so on. A duplicate name makes Max warn in its console.
+   Name of `Amount` to `Amount 2`, and so on. A duplicate name makes Max warn in its console.
 3. Connect the outlets of `route 0 1 2 3` to the inlets of row 1 to row 4.
 
 ## 4. Presentation view (what the device shows in Live)
@@ -95,18 +105,18 @@ name on the third); if yours differ, keep what worked.
 For each of these, right-click → **Add to Presentation**, then press **Cmd+Alt+E** to switch to presentation view and place them:
 
 - the **Channel** menu once at the top;
-- per row: Type menu, Map, name comment, status comment, state comment, Amount dial, ×.
+- per row: Map, name comment, status comment, state comment, Amount dial, ×.
 
 Objects inside a subpatcher are not shown in the device unless the subpatcher is a `bpatcher`. **Use `[bpatcher]` instead
 of `[p row]`:** save the row as `ll-row.maxpat` in this folder, and put `bpatcher ll-row.maxpat` four times with the
-*Argument* `1`, `2`, `3`, `4` (use `#1` in the Long Names, e.g. `Type #1`). That gives each row unique names for free and shows
+*Argument* `1`, `2`, `3`, `4` (use `#1` in the Long Names, e.g. `Amount #1`). That gives each row unique names for free and shows
 the row in the device. If you start with `[p row]`, move to a `bpatcher` once the logic works.
 
 Live limits a device's height: the line **Device vertical limit** in the editor shows it. Four rows of about 30 pixels
 and a header fit under it.
 
-Suggested row (left to right): Type 64 px, Map 40 px, name 150 px with the status line in small type below it, state 90 px,
-Amount 34 px, × 18 px.
+Suggested row (left to right): the Map button about 150 px (it shows the parameter's name), the state text 90 px, the Amount dial
+34 px, × 18 px.
 
 ## 5. Save
 
@@ -120,14 +130,12 @@ The test script stands in for the board (`osc_test.py`). With Live's audio engin
 | Check | Do | Expect |
 |---|---|---|
 | Load | Add the device | no errors in the Max console |
-| Dial | Row 1: type **Dial**, Map, click Auto Filter's Frequency. `osc_test.py sine 0 --amp 0.2` | the status says *mapped*; the frequency swings around its own position; Ctrl-C returns it |
-| Switch | Row 2: type **Switch**, Map, click a device's on/off. `osc_test.py set 1 1`, then `set 1 0` | the device switches; the state text says *on* then *off* |
-| Menu | Row 3: type **Menu**, Map, click Filter Type. `osc_test.py set 2 0`, `set 2 0.34`, `set 2 1` | the first, the second and the last item; the state text shows their names |
-| Refusal | A Dial row on Filter Type; a Menu row on a frequency | the status says *dials only* or *switches and menus only*, and the row unmaps |
-| Type change | Change a mapped row's type | it unmaps; the Map toggle resets |
-| Channel | Set the Channel to 2. `osc_test.py sine 0 --channel 2` | the row moves on channel 2 only |
+| Dial | Row 1: Map, click Auto Filter's Frequency (a continuous parameter: a dial). `osc_test.py sine 0 --amp 0.2` | the status shows the parameter's name (*Frequency*); the frequency swings around its own position; Ctrl-C returns it |
+| Switch | Row 2: Map, click a device's on/off (a discrete parameter). `osc_test.py on 1`, then `off 1` | the device switches; the state text says *on* then *off* |
+| Menu | Row 3: Map, click Filter Type (a discrete parameter with items). `osc_test.py item 2 0`, `item 2 1`, `item 2 3` (a menu of 4 items; for another size add it: `item 2 1 6`) | the first, the second and the last item; the state text shows their names |
+| Channel | Set the Channel to 2. `osc_test.py sine 0 -c 2` | the row moves on channel 2 only |
 | Hello | Run `osc_test.py sine 0` without the board; change the channel | the script prints `device on channel N said hello` |
-| Reload | Save the set, quit Live, reopen | the mappings and the type and amount settings are still there |
+| Reload | Save the set, quit Live, reopen | the mappings and the amount settings are still there |
 
 ## 7. Open points to look at
 
@@ -135,5 +143,5 @@ The test script stands in for the board (`osc_test.py`). With Live's audio engin
   re-reads the base from the parameter, which may hold the last driven value, so a dial's base can drift across a reload.
   Check the dial after reopening: if it moved, `js` has to keep its own base in the device's state.
 - **`channel in use`:** two devices on one channel is not detected; the second one silently receives nothing.
-- **The amount dial** is shown for every type; it only does something on a dial row.
+- **The amount dial** is shown for every row; it only does something on a continuous parameter.
 - **`udpreceive` `port` message:** see section 1.

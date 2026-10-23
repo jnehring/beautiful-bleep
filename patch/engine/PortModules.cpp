@@ -3,6 +3,7 @@
 // Port nodes (spec §6): the board side of the plugins users add in Live.
 // A port node reads its plugin's host block from ctx.port->in and writes to
 // ctx.port->out. Without a plugin (a ghost) its outputs are silent.
+#include "LiveParams.h"
 #include "PortSlot.h"
 #include "Registry.h"
 
@@ -458,6 +459,44 @@ std::vector<ParamSpec> ccParams() {
     return p;
 }
 
+// ---- Live Params ---------------------------------------------------------------------------------------------
+// Four control inputs for one Bleep Live Link Max for Live device (the one with the same channel), which modulates,
+// switches or selects parameters of Ableton Live (or of any plugin in the set). The node only publishes its inputs
+// (LiveParams.h); Bleep Board's sender (bridges/ableton/LiveLinkSender) reads them through IEngine::liveParams and sends
+// them to the device, which owns the mapping to Live's parameters. It is part of the engine, not a .wasm module: a
+// wasm module's memory is its own, so it could not reach the mailbox.
+
+class LiveParamsModule final : public Module {
+public:
+    enum { Channel };
+
+    using Module::Module;
+
+    ~LiveParamsModule() override { leave(); }
+
+    void reset() override { leave(); }
+
+    void process(const ProcessContext& c) override {
+        patch::LiveParamsMailbox& box = patch::liveParams();
+        const int ch = std::clamp((int)std::lround(setting(Channel)), 1, patch::kNumChannels);
+        if (ch != channel_) {   // the Channel setting moved: the old channel's rows are no longer ours
+            leave();
+            channel_ = ch;
+        }
+        for (int r = 0; r < patch::kRowsPerChannel; ++r)
+            box.publish((ch - 1) * patch::kRowsPerChannel + r, c.inputConnected[r],
+                        c.inputConnected[r] ? c.inputs[r][c.numSamples - 1] : 0.0f);
+    }
+
+private:
+    void leave() {
+        if (channel_ > 0) patch::liveParams().clearChannel(channel_);
+        channel_ = 0;
+    }
+
+    int channel_ = 0;   ///< the channel whose rows this node publishes (0: none yet)
+};
+
 ModuleSpec portSpec(const char* type, const char* name, PortKind kind, const char* description) {
     ModuleSpec s;
     s.type = type;
@@ -580,6 +619,20 @@ void registerPortModules(Registry& r) {
         for (int k = 1; k <= kNumMacros; ++k)
             s.outputs.push_back({"m" + std::to_string(k), "Macro " + std::to_string(k), Signal::Control, false});
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<MacrosModule>(spec); });
+    }
+    {
+        ModuleSpec s;
+        s.type = "live-params";
+        s.name = "Live Params";
+        s.category = "Ports";
+        s.colour = "#ff9f43";
+        s.description = "Modulates, switches and selects parameters of Ableton Live, or of any plugin in the set: four rows, "
+                        "matching one Bleep Live Link Max for Live device with the same channel. In the device you pick the "
+                        "parameter for each row.";
+        s.params = {ParamSpec::integer("channel", "Channel", 1, patch::kNumChannels, 1)};
+        for (int k = 1; k <= patch::kRowsPerChannel; ++k)
+            s.inputs.push_back({"r" + std::to_string(k), "Row " + std::to_string(k), Signal::Control});
+        r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<LiveParamsModule>(spec); });
     }
 }
 

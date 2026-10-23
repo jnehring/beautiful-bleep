@@ -18289,59 +18289,6 @@
     "harmony": "reader"
   },
   {
-    "type": "live-params",
-    "name": "Live Params",
-    "category": "Ports",
-    "colour": "#ff9f43",
-    "description": "Modulates, switches and selects parameters of Ableton Live, or of any plugin in the set: four rows, matching one Bleep Live Link Max for Live device with the same channel. In the device you pick the parameter for each row.",
-    "port": "",
-    "creatable": true,
-    "standaloneOnly": false,
-    "params": [
-      {
-        "id": "channel",
-        "name": "Channel",
-        "kind": "int",
-        "default": 0.0,
-        "steps": 8,
-        "modulatable": false,
-        "cableable": false,
-        "min": 1.0,
-        "max": 8.0,
-        "def": 1.0,
-        "format": "integer",
-        "decimals": 2
-      }
-    ],
-    "inputs": [
-      {
-        "id": "r1",
-        "name": "Row 1",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "r2",
-        "name": "Row 2",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "r3",
-        "name": "Row 3",
-        "type": "control",
-        "bipolar": true
-      },
-      {
-        "id": "r4",
-        "name": "Row 4",
-        "type": "control",
-        "bipolar": true
-      }
-    ],
-    "outputs": []
-  },
-  {
     "type": "low-pass-gate",
     "name": "Low Pass Gate",
     "category": "Audio/Filters",
@@ -44492,6 +44439,59 @@
         "bipolar": false
       }
     ]
+  },
+  {
+    "type": "live-params",
+    "name": "Live Params",
+    "category": "Ports",
+    "colour": "#ff9f43",
+    "description": "Modulates, switches and selects parameters of Ableton Live, or of any plugin in the set: four rows, matching one Bleep Live Link Max for Live device with the same channel. In the device you pick the parameter for each row.",
+    "port": "",
+    "creatable": true,
+    "standaloneOnly": false,
+    "params": [
+      {
+        "id": "channel",
+        "name": "Channel",
+        "kind": "int",
+        "default": 0.0,
+        "steps": 8,
+        "modulatable": false,
+        "cableable": false,
+        "min": 1.0,
+        "max": 8.0,
+        "def": 1.0,
+        "format": "integer",
+        "decimals": 2
+      }
+    ],
+    "inputs": [
+      {
+        "id": "r1",
+        "name": "Row 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "r2",
+        "name": "Row 2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "r3",
+        "name": "Row 3",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "r4",
+        "name": "Row 4",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
+    "outputs": []
   },
   {
     "type": "cell",

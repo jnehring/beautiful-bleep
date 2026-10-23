@@ -36,10 +36,13 @@
   .chip.sel::after { content: "▾"; color: var(--panel-muted); font-size: 11px; }
   .btn { background: var(--panel-2); border: 1px solid var(--panel-3); border-radius: 5px; padding: 3px 12px; color: var(--panel-ink); }
   .btn.on { background: var(--orange); border-color: var(--orange); color: #1b1100; font-weight: 600; }
+  .btn { text-align: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn.locked { opacity: .92; cursor: not-allowed; }
+  .btn.locked::before { content: "🔒 "; font-size: 11px; }
   .muted { color: var(--panel-muted); }
 
   /* ---- Live device ---- */
-  .dev .row { display: grid; grid-template-columns: 18px 96px 58px 1fr 160px; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--panel-3); }
+  .dev .row { display: grid; grid-template-columns: 18px 1fr 160px; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--panel-3); }
   .dev .row:first-of-type { border-top: 0; }
   .dev .num { color: var(--panel-muted); }
   .dev .name { min-width: 0; }
@@ -71,17 +74,17 @@
   th { border-top: 0; color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
   .built { color: #2e8b57; } .todo { color: #b8741a; }
   @media (prefers-color-scheme: dark) { .built { color: #5fd38d; } .todo { color: #ffb15a; } }
-  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } .dev .row { grid-template-columns: 18px 84px 52px 1fr; } .dev .ctl { grid-column: 2 / -1; justify-content: flex-start; } }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } .dev .row { grid-template-columns: 18px 1fr; } .dev .ctl { grid-column: 2 / -1; justify-content: flex-start; } }
 </style>
 </head>
 <body>
 <main>
   <h1>Bleep Live Link: interface mockups</h1>
-  <p class="lead">Two surfaces: the Max for Live device in Ableton Live, and the Live Params node on the board. These are design sketches, not screenshots. Dial rows work in the prototype today; switch and menu rows exist as logic in <code>live-link.js</code>; everything that shows a Live parameter's name or items on the board needs the device to send that back, which is not built.</p>
+  <p class="lead">Two surfaces: the Max for Live device in Ableton Live, and the Live Params node on the board. These are design sketches, not screenshots. The device's logic is in <code>live-link.js</code> and tested outside Max; everything that shows a Live parameter's name or items on the board needs the device to send that back, which is not built.</p>
 
   <!-- ================= LIVE DEVICE ================= -->
   <h2>1. In Live: the Bleep Live Link device <span class="tag">Max for Live</span></h2>
-  <p class="lead">One device = one channel = four rows. Each row picks its type, maps a parameter with the Map toggle, and shows what that type needs.</p>
+  <p class="lead">One device = one channel = four rows. Each row has a Map button that doubles as its status line, the mapped parameter's controls, and a × to let go of it. A row works out by itself whether it was mapped to a continuous parameter (a dial) or a discrete one (a switch or a menu).</p>
 
   <div class="grid one">
     <div class="panel dev dev-wrap" aria-label="Device with four rows">
@@ -92,9 +95,7 @@
 
       <div class="row">
         <span class="num">1</span>
-        <span class="chip sel">Dial</span>
-        <span class="btn on">Map</span>
-        <div class="name"><b>Auto Filter · Frequency</b><small><i class="dot ok"></i>mapped</small></div>
+        <span class="btn on locked">Frequency</span>
         <div class="ctl">
           <svg width="34" height="34" viewBox="0 0 34 34" aria-label="Amount dial"><circle cx="17" cy="17" r="12" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M7 25 A12 12 0 1 1 26 25" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" opacity="0"/><path d="M17 17 L17 8" stroke="#ff9f43" stroke-width="3" stroke-linecap="round"/><path d="M17 5 A12 12 0 0 1 28 22" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/></svg>
           <span>amount 1.0</span><span class="x" title="Unmap">×</span>
@@ -103,59 +104,53 @@
 
       <div class="row">
         <span class="num">2</span>
-        <span class="chip sel">Switch</span>
-        <span class="btn on">Map</span>
-        <div class="name"><b>Delay · Device On</b><small><i class="dot ok"></i>mapped</small></div>
+        <span class="btn on locked">Device On</span>
         <div class="ctl"><span class="lamp on"></span><span>on</span><span class="x" title="Unmap">×</span></div>
       </div>
 
       <div class="row">
         <span class="num">3</span>
-        <span class="chip sel">Menu</span>
-        <span class="btn on">Map</span>
-        <div class="name"><b>Auto Filter · Filter Type</b><small><i class="dot ok"></i>mapped</small></div>
+        <span class="btn on locked">Filter Type</span>
         <div class="ctl"><span class="chip">Lowpass</span><span class="x" title="Unmap">×</span></div>
       </div>
 
       <div class="row">
         <span class="num">4</span>
-        <span class="chip sel">Dial</span>
         <span class="btn">Map</span>
-        <div class="name"><b class="muted">no parameter</b><small><i class="dot wait"></i>waiting</small></div>
         <div class="ctl"></div>
       </div>
     </div>
 
     <div>
-      <h3>What a row shows, by type</h3>
+      <h3>What a row shows, by what it is mapped to</h3>
       <table>
-        <tr><th>Type</th><th>Control in the row</th><th>Meaning</th></tr>
-        <tr><td><b>Dial</b></td><td>amount dial</td><td>trim on top of the cable's amount on the board</td></tr>
-        <tr><td><b>Switch</b></td><td>lamp</td><td>the state the board last set</td></tr>
-        <tr><td><b>Menu</b></td><td>item name</td><td>the item the board last picked</td></tr>
+        <tr><th>Parameter</th><th>Control in the row</th><th>Meaning</th></tr>
+        <tr><td><b>Continuous</b></td><td>amount dial</td><td>trim on top of the cable's amount on the board</td></tr>
+        <tr><td><b>Discrete, two steps</b></td><td>on/off (or its names)</td><td>the state the board last set</td></tr>
+        <tr><td><b>Discrete, more steps</b></td><td>item name</td><td>the item the board last picked</td></tr>
       </table>
-      <h3>Status line</h3>
-      <p class="note">Messages the logic already produces:</p>
-      <p style="margin:0">
-        <i class="dot ok" style="background:var(--green)"></i> mapped &nbsp;
-        <i class="dot" style="background:#9a978f"></i> waiting, reading &nbsp;
-        <i class="dot" style="background:var(--red)"></i> dials only · switches and menus only · not mappable · channel in use
-      </p>
+      <h3>The Map button is the status line</h3>
+      <table>
+        <tr><th>State</th><th>The button</th></tr>
+        <tr><td>unmapped</td><td>dark, <b>Map</b>, clickable</td></tr>
+        <tr><td>waiting for a click in Live</td><td>yellow, <b>Mapping…</b>, clickable</td></tr>
+        <tr><td>mapped</td><td>yellow, the parameter's name, <b>locked</b>; only × lets go</td></tr>
+        <tr><td>the click could not be mapped</td><td>yellow, <b>not mappable</b>, clickable: try again</td></tr>
+        <tr><td>live.object did not answer</td><td>dark, <b>no answer</b>, clickable</td></tr>
+      </table>
     </div>
   </div>
 
-  <h3>A refused row</h3>
+  <h3>A click that cannot be mapped</h3>
   <div class="grid one">
     <div class="panel dev dev-wrap">
       <div class="row refused" style="border-top:0">
         <span class="num">3</span>
-        <span class="chip sel">Dial</span>
-        <span class="btn">Map</span>
-        <div class="name"><b>Auto Filter · Filter Type</b><small><i class="dot bad"></i>dials only</small></div>
+        <span class="btn on" style="background:var(--red);border-color:var(--red);color:#fff">not mappable</span>
         <div class="ctl"></div>
       </div>
     </div>
-    <p class="note">A dial row refuses a quantised parameter, and a switch or menu row refuses a continuous one. The row unmaps itself and says why.</p>
+    <p class="note">If <code>live.map</code> cannot map what was clicked it answers <code>id 0</code>, and the row says so. Nothing is refused for being a switch or a menu: the row treats a discrete parameter as a menu.</p>
   </div>
 
   <!-- ================= BOARD ================= -->
@@ -202,12 +197,12 @@
     <div>
       <h3>The three widgets</h3>
       <table>
-        <tr><th>Type</th><th>Jack</th><th>Widget</th></tr>
-        <tr><td><b>Dial</b></td><td>control</td><td>a ring with the value the device is sending to Live</td></tr>
-        <tr><td><b>Switch</b></td><td>any signal; a gate fits</td><td>a lamp: on at 0.5 or more</td></tr>
-        <tr><td><b>Menu</b></td><td>0–1 value</td><td>the current item's name; click for the list</td></tr>
+        <tr><th>Parameter</th><th>Jack</th><th>Widget</th></tr>
+        <tr><td><b>Continuous</b></td><td>control</td><td>a ring with the value the device is sending to Live</td></tr>
+        <tr><td><b>Discrete, two steps</b></td><td>any signal; a gate fits</td><td>a lamp: on at 0.5 or more</td></tr>
+        <tr><td><b>Discrete, more steps</b></td><td>0–1 value</td><td>the current item's name; click for the list</td></tr>
       </table>
-      <p class="note">All four jacks are <code>control</code> jacks. The board only refuses cables to or from notes and patch bays, so a gate or trigger cable fits any row; the row type, chosen in the device, decides what the value means.</p>
+      <p class="note">All four jacks are <code>control</code> jacks. The board only refuses cables to or from notes and patch bays, so a gate or trigger cable fits any row; what the value means depends on what the row is mapped to (a dial, a switch or a menu).</p>
 
       <h3>A menu, opened</h3>
       <div class="panel node" style="padding:10px;display:inline-block">
@@ -225,7 +220,7 @@
     <tr><th>Piece</th><th>State</th></tr>
     <tr><td>Dial row, logic and a working one-row device</td><td class="built">built, tried in Live</td></tr>
     <tr><td>Switch and menu row logic in <code>live-link.js</code></td><td class="built">built, tested outside Max; not tried in Live</td></tr>
-    <tr><td>Four rows, Channel menu, type menu, Map and × per row, status line</td><td class="todo">to build in Max</td></tr>
+    <tr><td>Four rows, Channel menu, Map and × per row, status line</td><td class="todo">to build in Max</td></tr>
     <tr><td>Lamp and item name in the device</td><td class="todo">small: <code>js</code> already knows the state it sent</td></tr>
     <tr><td>Name of the Live parameter on the board's jack</td><td class="todo">device sends it back, board parses and shows it</td></tr>
     <tr><td>Ring, lamp and item widgets in the node</td><td class="todo">node view and a path from the engine to it</td></tr>

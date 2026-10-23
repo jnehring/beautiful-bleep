@@ -9,7 +9,7 @@
 #include <unistd.h>
 #endif
 #include "EngineInternal.h"
-#include "LiveParamsDsp.h"
+#include "LiveParams.h"
 
 namespace bleep::engine {
 

@@ -11,8 +11,8 @@ described there.
 
 | Piece | Where | State |
 |---|---|---|
-| **Live Params** node: 4 `control` inputs and a *Channel* setting (1–8) | board, `patch/modules/live-params/` | built |
-| Mailbox: 8 channels × 4 rows; each node publishes its cabled inputs' last sample into its channel's rows | engine, `LiveParamsDsp.h` | built |
+| **Live Params** node: 4 `control` inputs and a *Channel* setting (1–8) | board, built into the engine (`patch/engine/PortModules.cpp`, with the ports) | built |
+| Mailbox: 8 channels × 4 rows; each node publishes its cabled inputs' last sample into its channel's rows | engine, `LiveParams.h` | built |
 | `IEngine::liveParams()` (ABI minor 3): the plugins read the mailbox through the shared engine | `EngineApi.h` | built |
 | **Sender**: Bleep Board, 100 Hz, OSC over UDP | `bridges/ableton/LiveLinkSender.*` | built |
 | **Device**: 4 rows, one channel; receives the OSC, owns the mappings, drives `live.remote~` | `.amxd`, on any track, up to four of them | one row works as a prototype |
@@ -136,14 +136,14 @@ Also tried: Ctrl-C returns the parameter to its base; the X button gives the kno
 shows "not mappable", because `live.map` answers `id 0` for what it cannot map. The `is_quantized` check is a second guard,
 not yet seen firing (a quantised parameter that `live.map` accepts).
 
-Still to do: the four-row device with channel, type menu and name display; and the whole chain with a real board (Live Params node, Bleep Board's sender) in place of `osc_test.py`.
+Still to do: the four-row device with channel and name display; and the whole chain with a real board (Live Params node, Bleep Board's sender) in place of `osc_test.py`.
 
 ## 7. Testing
 
-- Unit tests: `modules/live-params/tests/test_live_params.cpp` (what is sent and when) and `test_live_link_osc.cpp`
-  (packet layout).
+- Unit tests: `patch/tests/live_link_tests.cpp` (`ctest -R live-link`): what the sender sends and when, and the packet layout. And `live-link.js` with
+  `node patch/bridges/ableton/live-link/live-link.test.mjs`.
 - With the device: run `osc_test.py` in `sine`, `ramp`, `set` and `release` modes against one mapped row each; then the
-  same from a real board: a Live Params node with an LFO cabled to *Param 1*, Bleep Board and the device in one set.
+  same from a real board: a Live Params node with an LFO cabled to *Row 1*, Bleep Board and the device in one set.
 - Check: the knob position survives (the parameter returns to its base after `release`), no automation lane appears,
   and the undo history stays empty.
 
@@ -155,33 +155,33 @@ Still to do: the four-row device with channel, type menu and name display; and t
 - **A menu row takes a 0–1 value** (0 is the first item, 1 the last). A "step" mode (a trigger moves to the next item) and one
   gate per option are possible later; the second does not fit long menus with only four jacks.
 - The dial row's **amount** dial stays: the board's cable amount sets the depth, the amount is a per-row trim.
-- All four jacks are `control`; the row type is chosen in the device, not on the node.
+- All four jacks are `control`. **A row has no type setting**: what it does follows from what it is mapped to. The row asks
+  `get is_quantized`: 0 is continuous (a dial: `min`, `max`, a base, `live.remote~`), 1 is discrete (`get value_items` gives the
+  names; the board's 0..1 value picks the item). A switch is a menu of two items, since `round(value × 1)` is 0 below 0.5 and 1
+  from 0.5 up. So nothing is ever refused as "dials only".
 
-## 8. Other row types (mechanism tried by hand in Live; switch and menu rows are in live-link.js, not yet tried in Live)
+## 8. Discrete parameters (mechanism tried by hand in Live; the logic is in live-link.js, not yet tried in Live)
 
-First version: dials. The device should later offer a row type per row, so the board can also switch, select and trigger.
-`live.remote~` is for continuous values only, so these rows use `live.object` (tried by hand, 2026-10-23, below).
+`live.remote~` is for continuous values only, so a discrete parameter is set with `live.object` (tried by hand, 2026-10-23).
 
-| Row type | Board signal | Mechanism in the device | Notes |
+| Parameter | Board signal | Mechanism in the device | Notes |
 |---|---|---|---|
-| Dial | control | `live.remote~`, base + offset × range | works (sections 3 and 6) |
-| Switch | gate | `live.object`, `set value 0/1` when the gate changes | **works** on a device on/off button. Only on a change, never at 100 Hz |
-| Menu | control, 0..1 → step | `live.object`, `set value <n>` when the step changes | **works** on Auto Filter *Filter Type*: `set value 0` is the first item, `set value 1` the second, …. `get value_items` lists the item names; `n = round(v × (max − min))` |
-| Trigger | trigger | `live.object`, `call fire` (clips, scenes), a function of the Live API | transport, scene launch |
+| Continuous (`is_quantized` 0) | control | `live.remote~`, base + offset × range | works (sections 3 and 6) |
+| Discrete (`is_quantized` 1): a switch, a menu | control, 0..1 → item | `live.object`, `set value <n>` when the item changes | **works** on a device on/off button and on Auto Filter *Filter Type*: `set value 0` is the first item, `set value 1` the second, …. `get value_items` lists the item names; `n = min + round(v × (max − min))`. Only on a change, never at 100 Hz |
+| Trigger | trigger | `live.object`, `call fire` (clips, scenes), a function of the Live API | not written; transport, scene launch |
 
 **`live.tab` and `live.menu` (Cycling '74 docs) are not these mechanisms.** Both are user-interface objects for the device's *own*
 parameters: they show tabs or a dropdown and act as a Live parameter of this device (type Enum, Int or Float, with an item
 list). Neither controls a parameter of another device; `param_connect` only reaches compatible Max objects such as `gen~`.
 Use them for the device's own controls:
 
-- the **Channel** menu (1–4) and a **row type** menu per row (Dial / Switch / Menu / Trigger), saved with the set;
+- the **Channel** menu (1–8), saved with the set;
 - `rawfloat` (0..1) and `assign` set them from the patch; with Parameter Visibility "Stored Only", `assign` stays out of Live's
   undo chain.
 
-`live-link.js` has the row types `dial`, `switch` and `menu` (message `type <t>`; 21 tests outside Max). A switch or menu row sets
-the parameter only when the board's value changes the state or the item, does not set it when it is mapped, and puts it back
-as it was when unmapped. A board value of 0 means off, or the first item, so removing a cable also does that. Trigger rows
-are not written.
+`live-link.js` tells the two apart by itself (32 tests outside Max). A discrete row sets the parameter only when the board's value
+changes the item, does not set it when it is mapped, and puts it back as it was when unmapped. A board value of 0 means off,
+or the first item, so removing a cable also does that. Trigger rows are not written.
 
 Questions to answer in Live before relying on these rows:
 

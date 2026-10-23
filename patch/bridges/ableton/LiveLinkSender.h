@@ -10,7 +10,7 @@
 #include <juce_events/juce_events.h>
 
 #include "EngineApi.h"
-#include "LiveParamsDsp.h"
+#include "LiveParams.h"
 
 #include <memory>
 

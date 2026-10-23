@@ -130,6 +130,12 @@ if (BLEEP_BUILD_TESTS)
     # System Audio's ring and drift-compensating reader (app/SystemAudioBuffer.h, doc/specs/system-audio.md): pure C++.
     add_executable(bleep_system_audio_test tests/system_audio_test.cpp)
     add_test(NAME patch.system-audio COMMAND bleep_system_audio_test)
+    # Live Link, board side: the Live Params mailbox and sender logic (engine/LiveParams.h) and the OSC packets
+    # (bridges/ableton/LiveLinkOsc.h). Header-only, no engine.
+    add_executable(bleep_live_link_tests tests/live_link_tests.cpp)
+    target_include_directories(bleep_live_link_tests PRIVATE engine bridges/ableton)
+    target_link_libraries(bleep_live_link_tests PRIVATE bleep_dsp)
+    add_test(NAME patch.live-link COMMAND bleep_live_link_tests)
     # DSP tests next to the code they test: common/dsp/tests/*.cpp and
     # modules/<name>/tests/*.cpp, one executable (and one ctest) per file.
     file(GLOB dsp_test_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common/dsp/tests/*.cpp")
