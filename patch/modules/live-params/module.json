@@ -1,0 +1,11 @@
+{
+  "name": "Live Params",
+  "slug": "live-params",
+  "license": "GPL-3.0-or-later",
+  "tagline": "Modulates parameters of Ableton Live, or of any plugin in the set, through the Bleep Live Link Max for Live device.",
+  "colour": "#ff9f43",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/live-params.md"
+}

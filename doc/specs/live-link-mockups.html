@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bleep Live Link mockups</title>
+<style>
+  :root {
+    --page: #f4f3ef; --ink: #1d1d1b; --muted: #6b6a64; --rule: #d9d7cf;
+    --panel: #232323; --panel-2: #2e2e2e; --panel-3: #3a3a3a; --panel-ink: #e9e7e1; --panel-muted: #9a978f;
+    --orange: #ff9f43; --green: #5fd38d; --red: #ff6b5e; --blue: #60a5fa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page: #151514; --ink: #ecebe6; --muted: #9a978f; --rule: #34332f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 44px 0 4px; }
+  h3 { font-size: 15px; margin: 24px 0 8px; }
+  p.lead, p.note { color: var(--muted); margin: 4px 0 16px; max-width: 70ch; }
+  .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--rule); color: var(--muted); margin-left: 8px; vertical-align: middle; }
+  .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); align-items: start; }
+  .grid.one { grid-template-columns: 1fr; }
+  .dev-wrap { max-width: 640px; }
+
+  /* ---- shared panel look ---- */
+  .panel { background: var(--panel); color: var(--panel-ink); border-radius: 10px; padding: 14px 14px 16px; box-shadow: 0 1px 0 #0003, 0 10px 30px #0002; font-size: 13px; }
+  .panel header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .panel header strong { font-size: 13px; letter-spacing: .02em; }
+  .panel header .sp { flex: 1; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-3); flex: none; display: inline-block; }
+  .dot.ok { background: var(--green); } .dot.bad { background: var(--red); } .dot.wait { background: var(--panel-3); }
+  .chip { background: var(--panel-2); border: 1px solid var(--panel-3); border-radius: 5px; padding: 3px 9px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .chip.sel::after { content: "▾"; color: var(--panel-muted); font-size: 11px; }
+  .btn { background: var(--panel-2); border: 1px solid var(--panel-3); border-radius: 5px; padding: 3px 12px; color: var(--panel-ink); }
+  .btn.on { background: var(--orange); border-color: var(--orange); color: #1b1100; font-weight: 600; }
+  .muted { color: var(--panel-muted); }
+
+  /* ---- Live device ---- */
+  .dev .row { display: grid; grid-template-columns: 18px 96px 58px 1fr 160px; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--panel-3); }
+  .dev .row:first-of-type { border-top: 0; }
+  .dev .num { color: var(--panel-muted); }
+  .dev .name { min-width: 0; }
+  .dev .name b { font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dev .name small { display: flex; align-items: center; gap: 6px; color: var(--panel-muted); font-size: 11.5px; margin-top: 1px; }
+  .dev .ctl { display: flex; align-items: center; justify-content: flex-end; gap: 8px; white-space: nowrap; }
+  .dev .x { color: var(--panel-muted); font-size: 12px; border: 1px solid var(--panel-3); border-radius: 50%; width: 18px; height: 18px; display: inline-grid; place-items: center; }
+  .refused b { color: var(--red); }
+  .refused .name small { color: var(--red); }
+
+  /* ---- board node ---- */
+  .node .grp { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--panel-muted); margin: 12px 0 4px; }
+  .node .grp:first-of-type { margin-top: 0; }
+  .node .port { display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; }
+  .node .port .jack { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--orange); background: var(--panel); }
+  .node .port.gate .jack { border-radius: 3px; border-color: var(--blue); }
+  .node .port.off { opacity: .45; }
+  .node .port.off .jack { border-color: var(--panel-muted); }
+  .node .port .lbl small { display: block; color: var(--panel-muted); font-size: 11px; }
+  .lamp { width: 14px; height: 14px; border-radius: 50%; background: var(--panel-3); box-shadow: inset 0 0 0 1px #0006; display: inline-block; vertical-align: middle; }
+  .lamp.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .items { background: var(--panel-2); border: 1px solid var(--panel-3); border-radius: 6px; padding: 4px; width: 160px; }
+  .items div { padding: 3px 8px; border-radius: 4px; }
+  .items .cur { background: var(--orange); color: #1b1100; font-weight: 600; }
+  svg text { fill: var(--panel-ink); font: 11px -apple-system, system-ui, sans-serif; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px 7px 0; border-top: 1px solid var(--rule); vertical-align: top; }
+  th { border-top: 0; color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .built { color: #2e8b57; } .todo { color: #b8741a; }
+  @media (prefers-color-scheme: dark) { .built { color: #5fd38d; } .todo { color: #ffb15a; } }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } .dev .row { grid-template-columns: 18px 84px 52px 1fr; } .dev .ctl { grid-column: 2 / -1; justify-content: flex-start; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Bleep Live Link: interface mockups</h1>
+  <p class="lead">Two surfaces: the Max for Live device in Ableton Live, and the Live Params node on the board. These are design sketches, not screenshots. Dial rows work in the prototype today; switch and menu rows exist as logic in <code>live-link.js</code>; everything that shows a Live parameter's name or items on the board needs the device to send that back, which is not built.</p>
+
+  <!-- ================= LIVE DEVICE ================= -->
+  <h2>1. In Live: the Bleep Live Link device <span class="tag">Max for Live</span></h2>
+  <p class="lead">One device = one channel = four rows. Each row picks its type, maps a parameter with the Map toggle, and shows what that type needs.</p>
+
+  <div class="grid one">
+    <div class="panel dev dev-wrap" aria-label="Device with four rows">
+      <header>
+        <strong>Bleep Live Link</strong><span class="sp"></span>
+        <span class="muted">Channel</span><span class="chip sel">1</span>
+      </header>
+
+      <div class="row">
+        <span class="num">1</span>
+        <span class="chip sel">Dial</span>
+        <span class="btn on">Map</span>
+        <div class="name"><b>Auto Filter · Frequency</b><small><i class="dot ok"></i>mapped</small></div>
+        <div class="ctl">
+          <svg width="34" height="34" viewBox="0 0 34 34" aria-label="Amount dial"><circle cx="17" cy="17" r="12" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M7 25 A12 12 0 1 1 26 25" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" opacity="0"/><path d="M17 17 L17 8" stroke="#ff9f43" stroke-width="3" stroke-linecap="round"/><path d="M17 5 A12 12 0 0 1 28 22" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/></svg>
+          <span>amount 1.0</span><span class="x" title="Unmap">×</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="num">2</span>
+        <span class="chip sel">Switch</span>
+        <span class="btn on">Map</span>
+        <div class="name"><b>Delay · Device On</b><small><i class="dot ok"></i>mapped</small></div>
+        <div class="ctl"><span class="lamp on"></span><span>on</span><span class="x" title="Unmap">×</span></div>
+      </div>
+
+      <div class="row">
+        <span class="num">3</span>
+        <span class="chip sel">Menu</span>
+        <span class="btn on">Map</span>
+        <div class="name"><b>Auto Filter · Filter Type</b><small><i class="dot ok"></i>mapped</small></div>
+        <div class="ctl"><span class="chip">Lowpass</span><span class="x" title="Unmap">×</span></div>
+      </div>
+
+      <div class="row">
+        <span class="num">4</span>
+        <span class="chip sel">Dial</span>
+        <span class="btn">Map</span>
+        <div class="name"><b class="muted">no parameter</b><small><i class="dot wait"></i>waiting</small></div>
+        <div class="ctl"></div>
+      </div>
+    </div>
+
+    <div>
+      <h3>What a row shows, by type</h3>
+      <table>
+        <tr><th>Type</th><th>Control in the row</th><th>Meaning</th></tr>
+        <tr><td><b>Dial</b></td><td>amount dial</td><td>trim on top of the cable's amount on the board</td></tr>
+        <tr><td><b>Switch</b></td><td>lamp</td><td>the state the board last set</td></tr>
+        <tr><td><b>Menu</b></td><td>item name</td><td>the item the board last picked</td></tr>
+      </table>
+      <h3>Status line</h3>
+      <p class="note">Messages the logic already produces:</p>
+      <p style="margin:0">
+        <i class="dot ok" style="background:var(--green)"></i> mapped &nbsp;
+        <i class="dot" style="background:#9a978f"></i> waiting, reading &nbsp;
+        <i class="dot" style="background:var(--red)"></i> dials only · switches and menus only · not mappable · channel in use
+      </p>
+    </div>
+  </div>
+
+  <h3>A refused row</h3>
+  <div class="grid one">
+    <div class="panel dev dev-wrap">
+      <div class="row refused" style="border-top:0">
+        <span class="num">3</span>
+        <span class="chip sel">Dial</span>
+        <span class="btn">Map</span>
+        <div class="name"><b>Auto Filter · Filter Type</b><small><i class="dot bad"></i>dials only</small></div>
+        <div class="ctl"></div>
+      </div>
+    </div>
+    <p class="note">A dial row refuses a quantised parameter, and a switch or menu row refuses a continuous one. The row unmaps itself and says why.</p>
+  </div>
+
+  <!-- ================= BOARD ================= -->
+  <h2>2. On the board: the Live Params node <span class="tag">Beautiful Bleep</span></h2>
+  <p class="lead">A node has four inputs and a Channel setting. Add one node per device, up to eight. Each jack gets the Live parameter's name once the device sends it; until then it reads "Ch 1 · Row 2". Beside each jack sits the widget for that row's type.</p>
+
+  <div class="grid">
+    <div style="display:grid;gap:16px">
+      <div class="panel node" aria-label="Live Params node, channel 1">
+        <header><strong>Live Params</strong><span class="sp"></span><span class="muted">Channel</span><span class="chip sel">1</span></header>
+        <div class="port">
+          <span class="jack"></span>
+          <span class="lbl">Auto Filter · Frequency<small>dial</small></span>
+          <svg width="46" height="30" viewBox="0 0 46 30" aria-label="Ring: value sent to Live"><circle cx="15" cy="15" r="11" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M15 4 A11 11 0 1 1 5 20" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/><text x="30" y="19">.62</text></svg>
+        </div>
+        <div class="port">
+          <span class="jack"></span>
+          <span class="lbl">Delay · Device On<small>switch</small></span>
+          <span><span class="lamp on"></span> on</span>
+        </div>
+        <div class="port">
+          <span class="jack"></span>
+          <span class="lbl">Auto Filter · Filter Type<small>menu</small></span>
+          <span class="chip">Lowpass</span>
+        </div>
+        <div class="port off">
+          <span class="jack"></span>
+          <span class="lbl">Ch 1 · Row 4<small>not mapped</small></span><span></span>
+        </div>
+      </div>
+      <div class="panel node" aria-label="Live Params node, channel 2">
+        <header><strong>Live Params</strong><span class="sp"></span><span class="muted">Channel</span><span class="chip sel">2</span></header>
+        <div class="port">
+          <span class="jack"></span>
+          <span class="lbl">Reverb · Dry/Wet<small>dial</small></span>
+          <svg width="46" height="30" viewBox="0 0 46 30"><circle cx="15" cy="15" r="11" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M15 4 A11 11 0 0 1 24 9" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/><text x="30" y="19">.18</text></svg>
+        </div>
+        <div class="port off"><span class="jack"></span><span class="lbl">Ch 2 · Row 2<small>not mapped</small></span><span></span></div>
+        <div class="port off"><span class="jack"></span><span class="lbl">Ch 2 · Row 3<small>not mapped</small></span><span></span></div>
+        <div class="port off"><span class="jack"></span><span class="lbl">Ch 2 · Row 4<small>not mapped</small></span><span></span></div>
+      </div>
+    </div>
+
+    <div>
+      <h3>The three widgets</h3>
+      <table>
+        <tr><th>Type</th><th>Jack</th><th>Widget</th></tr>
+        <tr><td><b>Dial</b></td><td>control</td><td>a ring with the value the device is sending to Live</td></tr>
+        <tr><td><b>Switch</b></td><td>any signal; a gate fits</td><td>a lamp: on at 0.5 or more</td></tr>
+        <tr><td><b>Menu</b></td><td>0–1 value</td><td>the current item's name; click for the list</td></tr>
+      </table>
+      <p class="note">All four jacks are <code>control</code> jacks. The board only refuses cables to or from notes and patch bays, so a gate or trigger cable fits any row; the row type, chosen in the device, decides what the value means.</p>
+
+      <h3>A menu, opened</h3>
+      <div class="panel node" style="padding:10px;display:inline-block">
+        <div class="items">
+          <div>Lowpass</div><div class="cur">Highpass</div><div>Bandpass</div><div>Notch</div>
+        </div>
+      </div>
+      <p class="note">The four items come from <code>get value_items</code>; the 0–1 value picks one, so 0.34 is the second item. Showing the list needs the device to send the items.</p>
+    </div>
+  </div>
+
+  <!-- ================= WHAT IS BUILT ================= -->
+  <h2>3. What is built, and what each mockup needs</h2>
+  <table>
+    <tr><th>Piece</th><th>State</th></tr>
+    <tr><td>Dial row, logic and a working one-row device</td><td class="built">built, tried in Live</td></tr>
+    <tr><td>Switch and menu row logic in <code>live-link.js</code></td><td class="built">built, tested outside Max; not tried in Live</td></tr>
+    <tr><td>Four rows, Channel menu, type menu, Map and × per row, status line</td><td class="todo">to build in Max</td></tr>
+    <tr><td>Lamp and item name in the device</td><td class="todo">small: <code>js</code> already knows the state it sent</td></tr>
+    <tr><td>Name of the Live parameter on the board's jack</td><td class="todo">device sends it back, board parses and shows it</td></tr>
+    <tr><td>Ring, lamp and item widgets in the node</td><td class="todo">node view and a path from the engine to it</td></tr>
+    <tr><td>Item list on the board</td><td class="todo">same path, with the items</td></tr>
+    <tr><td>Four-input node with a Channel setting</td><td class="built">built, tested; not yet seen in the board UI</td></tr>
+  </table>
+</main>
+</body>
+</html>
