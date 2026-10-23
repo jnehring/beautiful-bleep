@@ -31,7 +31,7 @@ namespace bleep::engine {
 /// The MAJOR version: changes whenever the layout of this interface or the data it passes changes.
 constexpr const char* kAbiTag = "bleep-engine-abi-8";
 /// The MINOR version: methods added at the end of IEngine since this major's first release (0 at the start).
-constexpr int kAbiMinor = 3;
+constexpr int kAbiMinor = 4;
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port
@@ -152,9 +152,15 @@ public:
     virtual int portLatencySamples(int handle) noexcept = 0;
 
     /// [minor 3] What the board's Live Params nodes (doc: bridges/ableton/live-link/live-params-node.md) want Live to do: writes the values of their
-    /// rows (32 of them, 8 channels of 4, as engine/LiveParams.h defines them) into `offsets32` and returns the bit mask of
-    /// the inputs that have a cable. Any thread; the values are those of the last block.
-    virtual uint32_t liveParams(float* offsets32) noexcept = 0;
+    /// rows (32 of them, 8 channels of 4, as engine/LiveParams.h defines them) into `values32` (0..1, or -1 for a row no node
+    /// drives) and returns the bit mask of the rows a node drives. Any thread; the values are those of the last block.
+    virtual uint32_t liveParams(float* values32) noexcept = 0;
+
+    /// [minor 4] The Bleep Live Link device on `channel` (1..8) says what its `row` (0..3) is mapped to, as a JSON object:
+    /// {"kind":"continuous"|"discrete"|"none", "name":"…", "current":0..1, "min":…, "max":…, "items":["…"], "adopt":true|false}.
+    /// The engine keeps it for the board's Live Params view, and with "adopt" (the row was just mapped) moves that node's row
+    /// knob so the parameter starts where it is. Message thread.
+    virtual void setLiveRowInfo(int channel, int row, const char* json) noexcept = 0;
 };
 
 /// Finds the process's engine or creates it in this binary. Retained; call

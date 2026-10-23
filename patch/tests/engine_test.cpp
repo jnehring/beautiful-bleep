@@ -16,6 +16,7 @@ int main() {
     runHostTests();
     runVoiceTests();
     runCellPluginTests();
+    runLiveParamsTests();
     std::printf(g_failures ? "%d failure(s)\n" : "engine tests passed\n", g_failures);
     return g_failures ? 1 : 0;
 }

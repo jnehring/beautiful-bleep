@@ -74,7 +74,8 @@ public:
     size_t uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept override;
     void setBridged(int handle, bool bridged) noexcept override;
     int portLatencySamples(int handle) noexcept override;
-    uint32_t liveParams(float* offsets32) noexcept override;
+    uint32_t liveParams(float* values32) noexcept override;
+    void setLiveRowInfo(int channel, int row, const char* json) noexcept override;
 
     // ---- for the board window (message thread) ----------------------------
     bool hasBoard() const noexcept { return mainHandle_ != 0 || implicit_; }
@@ -114,6 +115,8 @@ public:
     void perform(const juce::String& nodeId, const juce::String& action, const juce::var& args);
     /// Live values for the UI: outputs of every node, params of `detailed`.
     juce::var liveState(const std::set<juce::String>& detailed) const;
+    /// {rows: [{channel, row, kind, name, …}]} for every row a device has reported on.
+    juce::var liveLinkInfo() const;
     juce::String statusLine() const;
 
     // ---- the standalone app (spec §11) ---------------------------------------
@@ -180,6 +183,10 @@ private:
     // Board (message thread).
     juce::var board_;
     std::atomic<uint64_t> generation_{0};
+    // What the Bleep Live Link devices report about their rows (setLiveRowInfo): one JSON object per row, for the Live Params view.
+    mutable juce::CriticalSection liveInfoLock_;
+    juce::var liveInfo_[32];
+    void adoptLiveRow(int channel, int row, const juce::var& info);
     std::vector<juce::String> undo_, redo_;
     std::map<std::string, std::shared_ptr<Module>> modules_;
     struct Inner {

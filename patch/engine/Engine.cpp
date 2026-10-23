@@ -175,10 +175,66 @@ int Engine::portLatencySamples(int handle) noexcept {
     return s != nullptr && s->local.load(std::memory_order_relaxed) ? 0 : latencySamples();
 }
 
-uint32_t Engine::liveParams(float* offsets32) noexcept {
+uint32_t Engine::liveParams(float* values32) noexcept {
     const patch::LiveParamsMailbox& box = patch::liveParams();
-    for (int k = 0; k < patch::kNumLiveParams; ++k) offsets32[k] = box.offset[k].load(std::memory_order_relaxed);
-    return box.cabled.load(std::memory_order_relaxed);
+    for (int k = 0; k < patch::kNumLiveParams; ++k) values32[k] = box.value[k].load(std::memory_order_relaxed);
+    return box.present.load(std::memory_order_relaxed);
+}
+
+void Engine::setLiveRowInfo(int channel, int row, const char* json) noexcept {
+    if (channel < 1 || channel > patch::kNumChannels || row < 0 || row >= patch::kRowsPerChannel) return;
+    const int k = (channel - 1) * patch::kRowsPerChannel + row;
+    const juce::var info = bleep::safejson::parse(juce::String::fromUTF8(json ? json : "{}"));
+    if (info.getDynamicObject() == nullptr || !info.getDynamicObject()->hasProperty("kind")) return;   // rubbish is ignored, not a "none"
+    info.getDynamicObject()->setProperty("channel", channel);
+    info.getDynamicObject()->setProperty("row", row);
+    const juce::String kind = info.getProperty("kind", "none").toString();
+    {
+        const juce::ScopedLock lock(liveInfoLock_);
+        liveInfo_[k] = kind == "none" ? juce::var() : info;
+    }
+    patch::liveParams().setDiscrete(k, kind == "discrete");
+    patch::liveRowInfo().set(k, kind == "none" ? std::string() : juce::JSON::toString(info, true).toStdString());
+    if (kind != "none" && (bool)info.getProperty("adopt", false)) adoptLiveRow(channel, row, info);
+}
+
+/// The row was just mapped: the node's row knob moves so that the parameter starts where it is (no jump).
+/// A continuous row's value is scaled into Min..Max, so the knob is `current` taken back out of that range.
+void Engine::adoptLiveRow(int channel, int row, const juce::var& info) {
+    if (!hasBoard()) return;
+    const auto* spec = Registry::get().find("live-params");
+    if (spec == nullptr) return;
+    const juce::var nodes = board_.getProperty("nodes", juce::var());
+    const auto* list = nodes.getArray();
+    if (list == nullptr) return;
+    for (const auto& n : *list) {
+        auto* node = n.getDynamicObject();
+        if (node == nullptr || node->getProperty("type").toString() != "live-params") continue;
+        auto* params = node->getProperty("params").getDynamicObject();
+        if (params == nullptr) continue;
+        const int ch = (int)std::lround(spec->params[0].fromNormalised((float)params->getProperty("channel")));
+        if (ch != channel) continue;
+        const juce::String r = juce::String(row + 1);
+        const float current = juce::jlimit(0.0f, 1.0f, (float)info.getProperty("current", 0.5));
+        float knob = current;
+        if (info.getProperty("kind", "").toString() == "continuous") {
+            const float lo = params->hasProperty("lo" + r) ? (float)params->getProperty("lo" + r) : 0.0f;
+            const float hi = params->hasProperty("hi" + r) ? (float)params->getProperty("hi" + r) : 1.0f;
+            knob = std::abs(hi - lo) < 1e-6f ? 0.5f : juce::jlimit(0.0f, 1.0f, (current - lo) / (hi - lo));
+        }
+        setParam(node->getProperty("id").toString(), "v" + r, knob);
+        return;
+    }
+}
+
+juce::var Engine::liveLinkInfo() const {
+    juce::Array<juce::var> rows;
+    const juce::ScopedLock lock(liveInfoLock_);
+    for (const auto& info : liveInfo_)
+        if (info.getDynamicObject() != nullptr) rows.add(info);
+    auto* o = new juce::DynamicObject();
+    o->setProperty("rows", rows);
+    return juce::var(o);
 }
 
 int Engine::latencySamples() noexcept {
@@ -309,6 +365,7 @@ public:
     void setBridged(int, bool) noexcept override {}
     int portLatencySamples(int) noexcept override { return 0; }
     uint32_t liveParams(float*) noexcept override { return 0; }
+    void setLiveRowInfo(int, int, const char*) noexcept override {}
 
 private:
     int refs_ = 1;

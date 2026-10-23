@@ -29,6 +29,7 @@ juce::var Engine::uiDispatch(int handle, const juce::String& m, const juce::var&
         return r;
     }
     if (m == "board") return uiMessage();
+    if (m == "liveLinkInfo") return liveLinkInfo();
     if (m == "cellParams") return cellParams(handle);
     if (m == "pluginCell") {  // {cell: id}: JSON results are objects or arrays, never a bare string
         juce::String cell;

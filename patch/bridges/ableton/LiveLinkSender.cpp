@@ -27,20 +27,23 @@ void LiveLinkSender::timerCallback() {
         retry_ = 500;   // 5 s
     }
     if (listening_) {
-        uint8_t packet[64];
+        uint8_t packet[4096];   // a /bleep/info for a menu with many items is longer than a /bleep/param
         while (in_.waitUntilReady(true, 0) == 1) {
             const int n = in_.read(packet, (int)sizeof(packet), false);
             if (n <= 0) break;
             int channel = 0;
+            osc::RowInfo info;
             if (osc::parseHello(packet, (size_t)n, channel)) sender_.resendChannel(channel);
+            else if (engine_.supports(4) && osc::parseInfo(packet, (size_t)n, info))
+                engine_.setLiveRowInfo(info.channel, info.row, osc::infoToJson(info).c_str());
         }
     }
 
-    float offsets[kNumLiveParams];
+    float values[kNumLiveParams];
     LiveParamsMailbox snapshot;
-    const uint32_t cabled = engine_.liveParams(offsets);
-    snapshot.cabled.store(cabled, std::memory_order_relaxed);
-    for (int k = 0; k < kNumLiveParams; ++k) snapshot.offset[k].store(offsets[k], std::memory_order_relaxed);
+    const uint32_t present = engine_.liveParams(values);
+    snapshot.present.store(present, std::memory_order_relaxed);
+    for (int k = 0; k < kNumLiveParams; ++k) snapshot.value[k].store(values[k], std::memory_order_relaxed);
 
     sender_.poll(snapshot, [&](int input, float value) {
         uint8_t packet[64];

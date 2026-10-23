@@ -1,21 +1,31 @@
 # Bleep Live Link
 
-Status: engine side and OSC sender are built; the Max for Live device is **not** built. Sections 6 and 7 list what
-has to be tried in Live before the device is final.
+Status: the board side (the Live Params node with its view, the sender, the engine calls), the device's logic
+(`live-link.js`, 46 tests outside Max) and a one-row device prototype are built and were tried in Live. The four-row device
+and the new board-driven model (below) have not been built in Max or tried in Live together. Sections 6 and 7 list what was
+tried and what is open.
 
-Bleep Live Link is a Max for Live device (Suite only) that lets the board modulate parameters of Ableton Live, or of any
-plugin in the set. It is the "M4L bridge" of [specs.md §5.8](specs.md). Without Max for Live, use the MIDI Out workaround
-described there.
+Bleep Live Link is a Max for Live device (Suite only) that lets the board modulate, switch and select parameters of Ableton
+Live, or of any plugin in the set. It is the "M4L bridge" of [specs.md §5.8](specs.md). Without Max for Live, use the MIDI Out
+workaround described there.
+
+**The model.** The *board* decides each row's value. A row of the Live Params node is a **knob that cables can feed** (the board's
+usual "knob plus cables"), with a **Min** and a **Max** that scale it into part of a continuous parameter's range. The device
+only writes the value: a position `0..1` within the Live parameter's own range. When a row is mapped, the device **tells the
+board what it is mapped to** (name, continuous or discrete, range, choices), and the board shows it in the node's view and moves
+the row's knob to the parameter's position, so nothing jumps. There is no base value and no amount dial in the device.
 
 ## 1. Pieces
 
 | Piece | Where | State |
 |---|---|---|
-| **Live Params** node: 4 `control` inputs and a *Channel* setting (1–8) | board, built into the engine (`patch/engine/PortModules.cpp`, with the ports) | built |
-| Mailbox: 8 channels × 4 rows; each node publishes its cabled inputs' last sample into its channel's rows | engine, `LiveParams.h` | built |
-| `IEngine::liveParams()` (ABI minor 3): the plugins read the mailbox through the shared engine | `EngineApi.h` | built |
-| **Sender**: Bleep Board, 100 Hz, OSC over UDP | `bridges/ableton/LiveLinkSender.*` | built |
-| **Device**: 4 rows, one channel; receives the OSC, owns the mappings, drives `live.remote~` | `.amxd`, on any track, up to four of them | one row works as a prototype |
+| **Live Params** node: a *Channel* setting (1–8) and four rows, each a knob with a Min and a Max (no input jacks: cables go onto the knobs) | board, built into the engine (`patch/engine/PortModules.cpp`, with the ports) | built |
+| Mailbox: 8 channels × 4 rows of absolute values (0..1, or -1: not driven); a flag per row for "discrete" | engine, `LiveParams.h` | built |
+| `IEngine::liveParams()` (ABI minor 3): the plugins read the values through the shared engine | `EngineApi.h` | built |
+| `IEngine::setLiveRowInfo()` (ABI minor 4): a device reports what a row is mapped to; the engine keeps it and moves the node's knob | `EngineApi.h`, `Engine.cpp` | built |
+| The node's **view**: per row the name, continuous or discrete, for a discrete one its choices and the value that picks each | `board/ui/live-params.js`, text from `Module::liveText` | built, shown in a browser with a made-up state; not yet seen in the plugin |
+| **Sender**: Bleep Board, 100 Hz, OSC over UDP; reads the devices' `/bleep/info` | `bridges/ableton/LiveLinkSender.*`, `LiveLinkOsc.h` | built |
+| **Device**: 4 rows, one channel; receives the OSC, owns the mappings, drives `live.remote~` (continuous) or `set value` (discrete), reports to the board | `.amxd`, on any track, up to eight of them; logic in `live-link.js` | logic built and tested; one-row prototype tried in Live (the older offset model) |
 
 The standalone app has no Live Params sender yet; with the board in the app (Board = App) the node publishes, but
 nothing sends. Add the same sender there once the device works.
@@ -24,65 +34,66 @@ nothing sends. Add the same sender there once the device works.
 
 OSC 1.0 over UDP, localhost only. Packets are one message each.
 
-A device has **4 rows** and a **channel** (1, 2, 3, 4). A UDP port can be bound only once, so each channel has its own:
-channel *c* listens on port `9871 + c − 1`. Board input *k* (0..31) belongs to channel `k ÷ 4 + 1` as row `k mod 4`; so a
-board has up to eight channels (one Live Params node and one device each), 32 rows. Two devices on one channel cannot both listen: the second shows "channel in use".
+A device has **4 rows** and a **channel** (1..8). A UDP port can be bound only once, so each channel has its own: channel *c*
+listens on port `9871 + c − 1`. Board row *k* (0..31) belongs to channel `k ÷ 4 + 1` as row `k mod 4`; so a board has up to eight
+channels (one Live Params node and one device each), 32 rows. Two devices on one channel cannot both listen.
 
 | Direction | Port | Message | Meaning |
 |---|---|---|---|
-| board → device | 9871 + channel − 1 | `/bleep/param ,if <row 0..3> <offset>` | The offset of the row. Sent when it changed by 0.0005 or more, and once when a cable is added. |
-| board → device | 9871 + channel − 1 | `/bleep/param ,if <row> 0.0` | Sent once when the cable of the row is removed (or the node is deleted): release the parameter. |
+| board → device | 9871 + channel − 1 | `/bleep/param ,if <row 0..3> <position>` | The row's position, 0..1 within the Live parameter's own range (a menu: 0 is the first choice, 1 the last). Sent when it changed by 0.0005 or more. |
+| board → device | 9871 + channel − 1 | `/bleep/param ,if <row> -1.0` | Sent once when no node drives the row any more (the node was deleted or changed channel): let the parameter go, put it back. |
 | device → board | 9880 | `/bleep/hello ,i <channel>` | The device (re)started or was loaded: send that channel's rows again. |
+| device → board | 9880 | `/bleep/info ,iis…` | What a row is mapped to, see below. |
 
-Offsets are plain control values (not limited to 0..1). The sender never sends NaN or infinity.
+`/bleep/info` arguments, in order: `channel` (i), `row` (i), `kind` (s: `continuous`, `discrete` or `none`), `name` (s), `current`
+(f: the parameter's position 0..1 when it was mapped), `min`, `max` (f: its own range), `adopt` (i: 1 right after mapping), then for
+a discrete parameter its choices, one string each. `none` ends after the kind: the row is not mapped. Max sends whole numbers as
+ints and a name like "4" as a number, so every argument is read as either. The board moves the node's row knob to `current` when
+`adopt` is 1; the device ignores the board's values for 300 ms meanwhile, so the parameter does not jump.
 
-`patch/bridges/ableton/live-link/osc_test.py` sends the same packets (`--channel` picks the device), so a device can be built
-without the board.
+`patch/bridges/ableton/live-link/osc_test.py` plays either side: it sends the board's `/bleep/param` (`--channel` picks the
+device), plays the device's `/bleep/info` to a running board (`info`), shows what the board sends (`listen`) and what the devices
+send (`watch`).
 
 ## 3. What the device does
 
-4 rows, and a **Channel** menu (1–4, a `live.menu` stored with the set) that picks which inputs of the board the device
-serves and which UDP port it listens on (section 2):
+4 rows, and a **Channel** menu (1–8, a `live.menu` stored with the set) that picks which rows of the board the device serves and
+which UDP port it listens on (section 2):
 
 ```
  Channel [1 ▾]
- 1  [Map]  Filter 1 Freq  (Wavetable)     amount ─●──  [x]
- 2  [Map]  Track Volume                   amount ─●──  [x]
- 3  [Map]  (waiting)
- 4  [Map]  (waiting)
+ 1  [ Frequency        ]  [x]          the locked Map button shows the parameter's name
+ 2  [ Filter Type      ]  Highpass  [x]
+ 3  [ Map              ]               not mapped yet
+ 4  [ Map              ]
 ```
 
-- **Map** (a `live.map` object): the user presses it, then clicks a parameter in Live. The row shows the parameter's
-  name. Mappings are saved with the set (the device's `pattr` state), per row.
-- **Base**: the parameter's own value when the row was mapped, or when its offset returned to 0. It is the position the
-  user set; the device never changes it by itself.
-- **Value sent to Live**: `clamp(base + offset × range)`, where *range* is a per-row amount control (default 1.0, i.e.
-  an offset of 1.0 moves the parameter over its whole range). The cable amounts on the board scale the offset before it
-  arrives, so the board decides the depth and the row amount is only a trim.
-- **Release**: when a row gets offset 0 from an uncabled input, it stops driving the parameter (`live.remote~` receives
-  `id 0`), so the user can move the knob again. While a row is driven the knob does not follow the user's mouse; that is
-  how `live.remote~` works and is also why nothing is written to automation or undo.
-- **Hello**: on load, and when a row's mapping changes, the device sends `/bleep/hello`.
+- **Map** (a `live.map` object): the user presses it, then clicks a parameter in Live. The button then shows the parameter's
+  name, is locked, and only × lets go of it. Mappings are saved with the set.
+- **Two kinds of parameter.** The row asks `live.object` for `is_quantized`. Continuous (0): the position goes to `live.remote~`,
+  whose 0..1 is the parameter's whole range. Discrete (1): `get value_items` gives the choices, and the position picks one,
+  `min + round(position × (max − min))`, set with `set value` only when it changes. A switch is a menu of two choices.
+- **Mapping holds the parameter where it is**, reports to the board (`/bleep/info` with adopt), and ignores the board's values for
+  300 ms while the board moves the node's knob there.
+- **Release**: × (or the board sending -1) puts the parameter back where it was when it was mapped. While a continuous row is
+  driven the knob does not follow the user's mouse; that is how `live.remote~` works and is also why nothing is written to
+  automation or undo.
+- **Hello**: on load, and when the channel changes, the device sends `/bleep/hello`; it also tells the board its rows again.
 - **No sound**: the device passes audio through untouched; it is an audio effect so it can sit on any track.
 - **Speed**: about 100 values per second per row. Modulation, not audio rate (`live.remote~` is control rate in Live).
 
-**Scope of the first version: dials only.** The device drives continuous parameters only. At map time it asks
-`live.object` for the parameter's `is_quantized` property (to be confirmed in Live) and refuses a quantised one with a
-message in the row ("dials only") instead of mapping it. Switches, menus, Solo, Tempo and other song-level
-parameters are out of scope. A row whose parameter does not respond must show that it does not.
-
-Not in the first version: more than 4 rows per device, mapping a row to several parameters, a custom curve per row, a MIDI or
-audio input.
+Parameters that were found not to work: song-level ones (Tempo, which was disabled, Solo, which `live.map` refuses). Not in the
+first version: more than 4 rows per device, mapping a row to several parameters, a custom curve per row, trigger rows.
 
 ## 4. Failure behaviour
 
-- Board not running or the sender not bound: the device receives nothing; mapped parameters keep their base value.
+- Board not running or the sender not bound: the device receives nothing; mapped parameters stay where they are.
 - Device not loaded: the board's `sendto` to a closed UDP port is ignored. Nothing is reported, and nothing breaks.
 - Two devices on one channel, or two Live instances on one machine: the ports are fixed, so the second device cannot bind its
   port and gets nothing; it shows "channel in use". For now there is one Live per machine.
 - Two Live Params nodes on one board: the last one to run wins (the mailbox is one per process).
 
-## 5. Building the first prototype
+## 5. Building the first prototype (the older model: the device added an offset to a base)
 
 In Live (Suite) with Max for Live:
 
@@ -149,24 +160,29 @@ Still to do: the four-row device with channel and name display; and the whole ch
 
 ## 8a. Decisions (2026-10-23)
 
-- **A Live Params node has 4 inputs and a *Channel* setting (1–8)**, matching one device (4 rows, one channel). A board uses as
-  many nodes as it has devices; two nodes on one channel are a mistake the node should show. Built (replaces the single
-  16-input node); 8 channels, so 32 rows and a 32-value `liveParams()` call.
+- **A Live Params node has a *Channel* setting (1–8) and four rows**, matching one device (4 rows, one channel). A board uses as
+  many nodes as it has devices; two nodes on one channel are a mistake the node should show (not built). 8 channels, so 32 rows
+  and a 32-value `liveParams()` call.
+- **A row is a knob that cables can feed, with a Min and a Max** (the board's usual "knob plus cables"), not an input jack. The
+  knob is the base value, the cable's amount is the depth, and Min and Max scale a *continuous* row into part of the parameter's
+  range. The device therefore has no base logic and no amount dial: it writes the position the board sends.
+- **The device tells the board what a row is mapped to** (`/bleep/info`): the node's view shows the name, continuous or
+  discrete, and for a discrete parameter every choice with the value that picks it. When a row is mapped, the node's knob moves to
+  the parameter's position (adopt), so nothing jumps.
 - **A menu row takes a 0–1 value** (0 is the first item, 1 the last). A "step" mode (a trigger moves to the next item) and one
-  gate per option are possible later; the second does not fit long menus with only four jacks.
-- The dial row's **amount** dial stays: the board's cable amount sets the depth, the amount is a per-row trim.
-- All four jacks are `control`. **A row has no type setting**: what it does follows from what it is mapped to. The row asks
-  `get is_quantized`: 0 is continuous (a dial: `min`, `max`, a base, `live.remote~`), 1 is discrete (`get value_items` gives the
-  names; the board's 0..1 value picks the item). A switch is a menu of two items, since `round(value × 1)` is 0 below 0.5 and 1
-  from 0.5 up. So nothing is ever refused as "dials only".
+  gate per option are possible later; the second does not fit long menus with only four rows.
+- **A row has no type setting**: what it does follows from what it is mapped to. The row asks `get is_quantized`: 0 is continuous
+  (`live.remote~`), 1 is discrete (`get value_items` gives the names; the board's 0..1 value picks the item). A switch is a menu
+  of two items, since `round(value × 1)` is 0 below 0.5 and 1 from 0.5 up. Min and Max do not apply to a discrete row.
+- **-1 is "no longer driven"**: when the node is deleted or changes channel, the device puts the parameter back.
 
-## 8. Discrete parameters (mechanism tried by hand in Live; the logic is in live-link.js, not yet tried in Live)
+## 8. Discrete parameters (mechanism tried by hand in Live; the logic is in live-link.js, tested outside Max)
 
 `live.remote~` is for continuous values only, so a discrete parameter is set with `live.object` (tried by hand, 2026-10-23).
 
 | Parameter | Board signal | Mechanism in the device | Notes |
 |---|---|---|---|
-| Continuous (`is_quantized` 0) | control | `live.remote~`, base + offset × range | works (sections 3 and 6) |
+| Continuous (`is_quantized` 0) | control | `live.remote~`, the position from the board | works (section 6) |
 | Discrete (`is_quantized` 1): a switch, a menu | control, 0..1 → item | `live.object`, `set value <n>` when the item changes | **works** on a device on/off button and on Auto Filter *Filter Type*: `set value 0` is the first item, `set value 1` the second, …. `get value_items` lists the item names; `n = min + round(v × (max − min))`. Only on a change, never at 100 Hz |
 | Trigger | trigger | `live.object`, `call fire` (clips, scenes), a function of the Live API | not written; transport, scene launch |
 

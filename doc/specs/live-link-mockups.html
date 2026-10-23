@@ -69,6 +69,18 @@
   .items .cur { background: var(--orange); color: #1b1100; font-weight: 600; }
   svg text { fill: var(--panel-ink); font: 11px -apple-system, system-ui, sans-serif; }
 
+  .vrow { background: var(--panel-3); border-radius: 8px; padding: 6px 9px; margin: 6px 0; display: flex; flex-direction: column; gap: 4px; }
+  .vhead { display: flex; align-items: baseline; gap: 8px; } .vhead b { min-width: 3.4em; }
+  .kind { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; border: 1px solid; border-radius: 99px; padding: 0 7px; }
+  .kind.c { color: var(--orange); } .kind.d { color: var(--blue); }
+  .vnote { color: var(--panel-muted); font-size: 11px; }
+  .vtab { width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .vtab th { color: var(--panel-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; padding: 1px 6px; border-top: 0; }
+  .vtab td { padding: 1px 6px; border-top: 1px solid var(--panel-2); } .vtab td.n { text-align: right; }
+  .vtab tr.now td { background: var(--orange); color: #1b1100; }
+  .knobs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .ksec { background: var(--panel-2); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .ksec { flex-direction: row; align-items: center; gap: 12px; } .kn { display: inline-flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--panel-muted); text-transform: uppercase; }
   table { border-collapse: collapse; width: 100%; font-size: 14px; }
   th, td { text-align: left; padding: 7px 10px 7px 0; border-top: 1px solid var(--rule); vertical-align: top; }
   th { border-top: 0; color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
@@ -84,7 +96,7 @@
 
   <!-- ================= LIVE DEVICE ================= -->
   <h2>1. In Live: the Bleep Live Link device <span class="tag">Max for Live</span></h2>
-  <p class="lead">One device = one channel = four rows. Each row has a Map button that doubles as its status line, the mapped parameter's controls, and a × to let go of it. A row works out by itself whether it was mapped to a continuous parameter (a dial) or a discrete one (a switch or a menu).</p>
+  <p class="lead">One device = one channel = four rows. Each row has a Map button that doubles as its status line, the state of a discrete parameter, and a × to let go of it. The board decides every value; the device only writes it and reports what each row is mapped to. A row works out by itself whether it was mapped to a continuous parameter (a dial) or a discrete one (a switch or a menu).</p>
 
   <div class="grid one">
     <div class="panel dev dev-wrap" aria-label="Device with four rows">
@@ -96,10 +108,7 @@
       <div class="row">
         <span class="num">1</span>
         <span class="btn on locked">Frequency</span>
-        <div class="ctl">
-          <svg width="34" height="34" viewBox="0 0 34 34" aria-label="Amount dial"><circle cx="17" cy="17" r="12" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M7 25 A12 12 0 1 1 26 25" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" opacity="0"/><path d="M17 17 L17 8" stroke="#ff9f43" stroke-width="3" stroke-linecap="round"/><path d="M17 5 A12 12 0 0 1 28 22" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/></svg>
-          <span>amount 1.0</span><span class="x" title="Unmap">×</span>
-        </div>
+        <div class="ctl"><span class="x" title="Unmap">×</span></div>
       </div>
 
       <div class="row">
@@ -125,7 +134,7 @@
       <h3>What a row shows, by what it is mapped to</h3>
       <table>
         <tr><th>Parameter</th><th>Control in the row</th><th>Meaning</th></tr>
-        <tr><td><b>Continuous</b></td><td>amount dial</td><td>trim on top of the cable's amount on the board</td></tr>
+        <tr><td><b>Continuous</b></td><td>nothing</td><td>the board decides the value and the depth; the Map button shows the name</td></tr>
         <tr><td><b>Discrete, two steps</b></td><td>on/off (or its names)</td><td>the state the board last set</td></tr>
         <tr><td><b>Discrete, more steps</b></td><td>item name</td><td>the item the board last picked</td></tr>
       </table>
@@ -155,64 +164,46 @@
 
   <!-- ================= BOARD ================= -->
   <h2>2. On the board: the Live Params node <span class="tag">Beautiful Bleep</span></h2>
-  <p class="lead">A node has four inputs and a Channel setting. Add one node per device, up to eight. Each jack gets the Live parameter's name once the device sends it; until then it reads "Ch 1 · Row 2". Beside each jack sits the widget for that row's type.</p>
+  <p class="lead">A node has a Channel and four rows. Each row is a <b>knob that cables can feed</b> (drag a cable onto it), with a
+  <b>Min</b> and a <b>Max</b> that scale it into part of a continuous parameter's range. The node's view shows what the device on the
+  channel has mapped each row to. When you map a row, its knob jumps to the parameter's position, so nothing jumps in Live. This is
+  a sketch of the view that is built (it was checked in a browser with a made-up state).</p>
 
-  <div class="grid">
-    <div style="display:grid;gap:16px">
-      <div class="panel node" aria-label="Live Params node, channel 1">
-        <header><strong>Live Params</strong><span class="sp"></span><span class="muted">Channel</span><span class="chip sel">1</span></header>
-        <div class="port">
-          <span class="jack"></span>
-          <span class="lbl">Auto Filter · Frequency<small>dial</small></span>
-          <svg width="46" height="30" viewBox="0 0 46 30" aria-label="Ring: value sent to Live"><circle cx="15" cy="15" r="11" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M15 4 A11 11 0 1 1 5 20" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/><text x="30" y="19">.62</text></svg>
-        </div>
-        <div class="port">
-          <span class="jack"></span>
-          <span class="lbl">Delay · Device On<small>switch</small></span>
-          <span><span class="lamp on"></span> on</span>
-        </div>
-        <div class="port">
-          <span class="jack"></span>
-          <span class="lbl">Auto Filter · Filter Type<small>menu</small></span>
-          <span class="chip">Lowpass</span>
-        </div>
-        <div class="port off">
-          <span class="jack"></span>
-          <span class="lbl">Ch 1 · Row 4<small>not mapped</small></span><span></span>
-        </div>
-      </div>
-      <div class="panel node" aria-label="Live Params node, channel 2">
-        <header><strong>Live Params</strong><span class="sp"></span><span class="muted">Channel</span><span class="chip sel">2</span></header>
-        <div class="port">
-          <span class="jack"></span>
-          <span class="lbl">Reverb · Dry/Wet<small>dial</small></span>
-          <svg width="46" height="30" viewBox="0 0 46 30"><circle cx="15" cy="15" r="11" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M15 4 A11 11 0 0 1 24 9" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/><text x="30" y="19">.18</text></svg>
-        </div>
-        <div class="port off"><span class="jack"></span><span class="lbl">Ch 2 · Row 2<small>not mapped</small></span><span></span></div>
-        <div class="port off"><span class="jack"></span><span class="lbl">Ch 2 · Row 3<small>not mapped</small></span><span></span></div>
-        <div class="port off"><span class="jack"></span><span class="lbl">Ch 2 · Row 4<small>not mapped</small></span><span></span></div>
-      </div>
-    </div>
-
-    <div>
-      <h3>The three widgets</h3>
-      <table>
-        <tr><th>Parameter</th><th>Jack</th><th>Widget</th></tr>
-        <tr><td><b>Continuous</b></td><td>control</td><td>a ring with the value the device is sending to Live</td></tr>
-        <tr><td><b>Discrete, two steps</b></td><td>any signal; a gate fits</td><td>a lamp: on at 0.5 or more</td></tr>
-        <tr><td><b>Discrete, more steps</b></td><td>0–1 value</td><td>the current item's name; click for the list</td></tr>
-      </table>
-      <p class="note">All four jacks are <code>control</code> jacks. The board only refuses cables to or from notes and patch bays, so a gate or trigger cable fits any row; what the value means depends on what the row is mapped to (a dial, a switch or a menu).</p>
-
-      <h3>A menu, opened</h3>
-      <div class="panel node" style="padding:10px;display:inline-block">
-        <div class="items">
-          <div>Lowpass</div><div class="cur">Highpass</div><div>Bandpass</div><div>Notch</div>
-        </div>
-      </div>
-      <p class="note">The four items come from <code>get value_items</code>; the 0–1 value picks one, so 0.34 is the second item. Showing the list needs the device to send the items.</p>
+  <div class="panel node" style="max-width:640px" aria-label="Live Params view">
+    <header><strong>Live Params</strong><span class="sp"></span><span class="muted">Channel</span><span class="chip sel">2</span></header>
+    <div class="vrow"><div class="vhead"><b>Row 1</b><span class="kind c">continuous</span><span>Auto Filter · Frequency</span></div>
+      <div class="vnote">Moves through <b>20%–80%</b> of the parameter's range (Min and Max). Now at 42%.</div></div>
+    <div class="vrow"><div class="vhead"><b>Row 2</b><span class="kind d">discrete</span><span>Filter Type</span></div>
+      <table class="vtab"><tr><th>#</th><th>Choice</th><th>Send</th><th>Knob</th></tr>
+        <tr><td>0</td><td>Lowpass</td><td class="n">0.00</td><td class="n">0%</td></tr>
+        <tr><td>1</td><td>Highpass</td><td class="n">0.33</td><td class="n">33%</td></tr>
+        <tr class="now"><td>2</td><td>Bandpass</td><td class="n">0.67</td><td class="n">67%</td></tr>
+        <tr><td>3</td><td>Notch</td><td class="n">1.00</td><td class="n">100%</td></tr></table>
+      <div class="vnote">The row's value picks the choice: send the number in <b>Send</b> (0 to 1), or set the knob to the percentage.</div></div>
+    <div class="vrow"><div class="vhead"><b>Row 3</b><span class="kind d">discrete</span><span>Device On</span></div>
+      <table class="vtab"><tr><th>#</th><th>Choice</th><th>Send</th><th>Knob</th></tr>
+        <tr><td>0</td><td>Off</td><td class="n">0.00</td><td class="n">0%</td></tr>
+        <tr class="now"><td>1</td><td>On</td><td class="n">1.00</td><td class="n">100%</td></tr></table></div>
+    <div class="vrow"><div class="vhead"><b>Row 4</b><span class="muted">not mapped</span></div>
+      <div class="vnote">Map a parameter in the Bleep Live Link device on channel 2, row 4.</div></div>
+    <div class="knobs">
+      <div class="ksec"><span class="muted">Row 1</span>
+        <span class="kn"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="13" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M8 27 A13 13 0 1 1 30 27" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" stroke-dasharray="40 100"/></svg>Row 1</span>
+        <span class="kn"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="13" fill="none" stroke="#3a3a3a" stroke-width="4"/></svg>Min 1</span>
+        <span class="kn"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="13" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M8 27 A13 13 0 1 1 30 27" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/></svg>Max 1</span></div>
+      <div class="ksec"><span class="muted">Rows 2 to 4 the same</span></div>
     </div>
   </div>
+
+  <h3>How the pieces fit</h3>
+  <table>
+    <tr><th>You do</th><th>What happens</th></tr>
+    <tr><td>Press <b>Map</b> in the device and click a parameter</td><td>the device reads its position, holds it there, and tells the board its name, kind, range and choices</td></tr>
+    <tr><td>(nothing)</td><td>the board moves the row's knob to that position: the parameter does not jump</td></tr>
+    <tr><td>Cable an LFO onto the row's knob</td><td>the board sends knob + cable, scaled into Min..Max for a dial; the device writes it</td></tr>
+    <tr><td>Delete the node, or change its channel</td><td>the board sends -1; the device puts the parameter back where it was</td></tr>
+    <tr><td>Press <b>×</b> on a row</td><td>the device puts the parameter back and tells the board the row is not mapped</td></tr>
+  </table>
 
   <!-- ================= WHAT IS BUILT ================= -->
   <h2>3. What is built, and what each mockup needs</h2>
@@ -222,10 +213,10 @@
     <tr><td>Switch and menu row logic in <code>live-link.js</code></td><td class="built">built, tested outside Max; not tried in Live</td></tr>
     <tr><td>Four rows, Channel menu, Map and × per row, status line</td><td class="todo">to build in Max</td></tr>
     <tr><td>Lamp and item name in the device</td><td class="todo">small: <code>js</code> already knows the state it sent</td></tr>
-    <tr><td>Name of the Live parameter on the board's jack</td><td class="todo">device sends it back, board parses and shows it</td></tr>
-    <tr><td>Ring, lamp and item widgets in the node</td><td class="todo">node view and a path from the engine to it</td></tr>
-    <tr><td>Item list on the board</td><td class="todo">same path, with the items</td></tr>
-    <tr><td>Four-input node with a Channel setting</td><td class="built">built, tested; not yet seen in the board UI</td></tr>
+    <tr><td>The device reports the name, kind, range and choices; the board shows them and adopts the position</td><td class="built">built and tested outside Max and Live (<code>/bleep/info</code>); the Max device itself is not rebuilt for it yet</td></tr>
+    <tr><td>The four-row device in Max with the new wiring (channel and row messages, the info to <code>udpsend</code>)</td><td class="todo">to build, following BUILD.md</td></tr>
+    <tr><td>A badge on the node card itself (not only in its view)</td><td class="todo">not built</td></tr>
+    <tr><td>The node: four rows as knobs with Min and Max, the Channel, the view, the device's report, adopt</td><td class="built">built and tested (engine tests, 21 board-side checks, a browser check of the view); not yet seen in the plugin</td></tr>
   </table>
 </main>
 </body>

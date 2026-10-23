@@ -21,7 +21,9 @@ The minor is the first method of `IEngine` and never moves, so a plugin can alwa
 
 **Minors so far** (of `bleep-engine-abi-8`): **1** `setBridged(handle, bool)`: a plugin whose Board is the app or Bleep Play (doc/specs/bridges.md) tells the engine that its node is a ghost on this set's board. A plugin checks `supports(1)` before calling it; without it the node stays live and receives nothing.
 
-**3** `liveParams(float* offsets32)`: the values of the board's Live Params node, which Bleep Board sends to the Bleep Live Link device in Live. A plugin checks `supports(3)` before calling it; without it nothing is sent.
+**3** `liveParams(float* values32)`: the values of the board's Live Params nodes (0..1 per row, 32 rows, plus the mask of the rows a node drives), which Bleep Board sends to the Bleep Live Link devices in Live. A plugin checks `supports(3)` before calling it; without it nothing is sent.
+
+**4** `setLiveRowInfo(channel, row, json)`: a Bleep Live Link device says what one of its rows is mapped to (name, continuous or discrete, range, choices), and the engine keeps it for the Live Params node's view and moves the node's row knob to the parameter's position. A plugin checks `supports(4)` before calling it; without it the board shows nothing about the rows.
 
 ## Rules for changing `IEngine`
 

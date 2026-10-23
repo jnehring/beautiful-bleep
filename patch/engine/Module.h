@@ -146,6 +146,9 @@ public:
     virtual void perform(const std::string& action, const std::vector<double>& args) { (void)action; (void)args; }
     /// [message thread] Extra live values for the module view, e.g. a playhead.
     virtual void liveValues(std::vector<std::pair<std::string, double>>& out) const { (void)out; }
+    /// [message thread] Text for the module's view next to the numbers of liveValues(): key → string (JSON, say). Only while
+    /// the view is open. The Live Params node shows what its Bleep Live Link device reports about each row this way.
+    virtual void liveText(std::vector<std::pair<std::string, std::string>>& out) const { (void)out; }
     /// [message thread] Live arrays for custom displays (a spectrum, a register's
     /// bits, a buffer overview). Read audio-thread data safely (atomics).
     virtual void liveArrays(std::vector<std::pair<std::string, std::vector<float>>>& out) const { (void)out; }

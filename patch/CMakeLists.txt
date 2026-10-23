@@ -359,6 +359,7 @@ if (BLEEP_BUILD_TESTS AND NOT BLEEP_LIGHT_TESTS)
         tests/engine/host_tests.cpp
         tests/engine/voice_tests.cpp
         tests/engine/cellplugin_tests.cpp
+        tests/engine/live_params_tests.cpp
         ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_engine_tests PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_engine_tests PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0

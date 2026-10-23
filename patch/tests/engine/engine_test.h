@@ -130,3 +130,4 @@ void runDocumentTests();
 void runHostTests();
 void runVoiceTests();
 void runCellPluginTests();
+void runLiveParamsTests();

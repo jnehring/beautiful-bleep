@@ -223,6 +223,9 @@ juce::var Engine::liveState(const std::set<juce::String>& detailed) const {
             std::vector<std::pair<std::string, double>> extra;
             m->liveValues(extra);
             for (const auto& [key, value] : extra) n->setProperty(juce::Identifier(key), value);
+            std::vector<std::pair<std::string, std::string>> text;
+            m->liveText(text);
+            for (const auto& [key, value] : text) n->setProperty(juce::Identifier(key), juce::String::fromUTF8(value.c_str()));
             std::vector<std::pair<std::string, std::vector<float>>> arrays;
             m->liveArrays(arrays);
             if (!arrays.empty()) {

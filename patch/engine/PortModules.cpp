@@ -460,15 +460,18 @@ std::vector<ParamSpec> ccParams() {
 }
 
 // ---- Live Params ---------------------------------------------------------------------------------------------
-// Four control inputs for one Bleep Live Link Max for Live device (the one with the same channel), which modulates,
-// switches or selects parameters of Ableton Live (or of any plugin in the set). The node only publishes its inputs
-// (LiveParams.h); Bleep Board's sender (bridges/ableton/LiveLinkSender) reads them through IEngine::liveParams and sends
-// them to the device, which owns the mapping to Live's parameters. It is part of the engine, not a .wasm module: a
-// wasm module's memory is its own, so it could not reach the mailbox.
+// The board's side of one Bleep Live Link Max for Live device (the one with the same channel), which modulates, switches or
+// selects parameters of Ableton Live (or of any plugin in the set). Each of the four rows is a knob that cables can also
+// feed (the board's usual model: knob + cables), with a Min and a Max: the row's value 0..1 is scaled into that part of a
+// continuous parameter's range. A discrete parameter (a switch, a menu) takes the value as it is: 0 is its first item,
+// 1 its last. The node only publishes the values (LiveParams.h); Bleep Board's sender (bridges/ableton/LiveLinkSender)
+// reads them through IEngine::liveParams and sends them to the device, which owns the mapping to Live's parameters. It is
+// part of the engine, not a .wasm module: a wasm module's memory is its own, so it could not reach the mailbox.
 
 class LiveParamsModule final : public Module {
 public:
-    enum { Channel };
+    // The knobs: the channel, then each row's value, Min and Max.
+    enum { Channel, Row1, Min1 = Row1 + patch::kRowsPerChannel, Max1 = Min1 + patch::kRowsPerChannel };
 
     using Module::Module;
 
@@ -476,25 +479,44 @@ public:
 
     void reset() override { leave(); }
 
+    /// The view's text: what the device of this node's channel reports about each of the four rows (LiveParams.h).
+    void liveText(std::vector<std::pair<std::string, std::string>>& out) const override {
+        const int ch = channel_.load(std::memory_order_relaxed);
+        if (ch < 1) return;
+        std::string json = "{\"channel\":" + std::to_string(ch) + ",\"rows\":[";
+        bool first = true;
+        for (int r = 0; r < patch::kRowsPerChannel; ++r) {
+            const std::string row = patch::liveRowInfo().get((ch - 1) * patch::kRowsPerChannel + r);
+            if (row.empty()) continue;
+            if (!first) json += ",";
+            json += row;
+            first = false;
+        }
+        out.push_back({"info", json + "]}"});
+    }
+
     void process(const ProcessContext& c) override {
         patch::LiveParamsMailbox& box = patch::liveParams();
         const int ch = std::clamp((int)std::lround(setting(Channel)), 1, patch::kNumChannels);
-        if (ch != channel_) {   // the Channel setting moved: the old channel's rows are no longer ours
+        if (ch != channel_.load(std::memory_order_relaxed)) {   // the Channel setting moved: the old channel's rows are no longer ours
             leave();
-            channel_ = ch;
+            channel_.store(ch, std::memory_order_relaxed);
         }
-        for (int r = 0; r < patch::kRowsPerChannel; ++r)
-            box.publish((ch - 1) * patch::kRowsPerChannel + r, c.inputConnected[r],
-                        c.inputConnected[r] ? c.inputs[r][c.numSamples - 1] : 0.0f);
+        const int last = c.numSamples - 1;
+        for (int r = 0; r < patch::kRowsPerChannel; ++r) {
+            const int k = (ch - 1) * patch::kRowsPerChannel + r;
+            const float v = c.params[Row1 + r][last];   // the knob plus the cables that feed it
+            box.publish(k, box.isDiscrete(k) ? v : patch::scaleIntoRange(v, c.params[Min1 + r][last], c.params[Max1 + r][last]));
+        }
     }
 
 private:
     void leave() {
-        if (channel_ > 0) patch::liveParams().clearChannel(channel_);
-        channel_ = 0;
+        const int ch = channel_.exchange(0, std::memory_order_relaxed);
+        if (ch > 0) patch::liveParams().clearChannel(ch);
     }
 
-    int channel_ = 0;   ///< the channel whose rows this node publishes (0: none yet)
+    std::atomic<int> channel_{0};   ///< the channel whose rows this node publishes (0: none yet); the view reads it too
 };
 
 ModuleSpec portSpec(const char* type, const char* name, PortKind kind, const char* description) {
@@ -627,11 +649,18 @@ void registerPortModules(Registry& r) {
         s.category = "Ports";
         s.colour = "#ff9f43";
         s.description = "Modulates, switches and selects parameters of Ableton Live, or of any plugin in the set: four rows, "
-                        "matching one Bleep Live Link Max for Live device with the same channel. In the device you pick the "
-                        "parameter for each row.";
+                        "matching one Bleep Live Link Max for Live device with the same channel. Each row is a knob that "
+                        "cables can feed; Min and Max scale it into part of a continuous parameter's range.";
         s.params = {ParamSpec::integer("channel", "Channel", 1, patch::kNumChannels, 1)};
         for (int k = 1; k <= patch::kRowsPerChannel; ++k)
-            s.inputs.push_back({"r" + std::to_string(k), "Row " + std::to_string(k), Signal::Control});
+            s.params.push_back(ParamSpec::percent("v" + std::to_string(k), "Row " + std::to_string(k), 0.0f, 1.0f, 0.5f)
+                                   .inGroup("Row " + std::to_string(k)));
+        for (int k = 1; k <= patch::kRowsPerChannel; ++k)
+            s.params.push_back(ParamSpec::percent("lo" + std::to_string(k), "Min " + std::to_string(k), 0.0f, 1.0f, 0.0f)
+                                   .inGroup("Row " + std::to_string(k)));
+        for (int k = 1; k <= patch::kRowsPerChannel; ++k)
+            s.params.push_back(ParamSpec::percent("hi" + std::to_string(k), "Max " + std::to_string(k), 0.0f, 1.0f, 1.0f)
+                                   .inGroup("Row " + std::to_string(k)));
         r.add(std::move(s), [](const ModuleSpec& spec) { return std::make_unique<LiveParamsModule>(spec); });
     }
 }
