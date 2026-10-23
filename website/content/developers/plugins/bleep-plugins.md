@@ -32,7 +32,8 @@ MIDI In/Out and Audio In/Out have a **Board** menu (*This set*, *Bleep App*, *Bl
 
 ```bash
 ./bleep build plugins --juce /path/to/JUCE    # or BLEEP_JUCE_DIR; otherwise JUCE 8.0.9 is downloaded
-./bleep build plugins --install               # also copy the VST3s to your plugin folder
+./bleep build plugins                         # builds, then copies the VST3s to your plugin folder (not while Live is running)
+./bleep build plugins --no-install            # only build them; --install copies even while Live is running
 ```
 
 The script builds into `build/patch/` and runs the DSP, engine and headless-host tests. VST3 and Live only for now. Without the script: `cmake -S patch -B build/patch -DBLEEP_JUCE_DIR=… -DBLEEP_FORMATS=VST3`, then `cmake --build`, with `--target BleepMidiIn_VST3` and so on to build only some plugins. Build them all when the engine major has changed.

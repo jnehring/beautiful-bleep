@@ -19,7 +19,7 @@ This machine's settings (JUCE checkout, signing kit, release token file, registr
 
 | Command | What it does |
 |---|---|
-| `./bleep build [bus\|plugins\|app\|web\|modules\|agent-data]` | Builds (default: the plugins as VST3 into `build/patch/`, then the DSP, engine and host tests). Options: `--juce <dir>`, `--install`, `--ui-dev`, `--debug`, `--clean`, `--no-test`, `--plugins-only`, `--no-app`; web/modules: `--docker`, `--no-modules`, `--out` |
+| `./bleep build [bus\|plugins\|app\|web\|modules\|agent-data]` | Builds (default: the plugins as VST3 into `build/patch/`, copied to your plugin folders, then the DSP, engine and host tests). Options: `--juce <dir>`, `--install` / `--no-install`, `--ui-dev`, `--debug`, `--clean`, `--no-test`, `--plugins-only`, `--no-app`; web/modules: `--docker`, `--no-modules`, `--out` |
 | `./bleep run app\|ui\|site\|play\|live` | `app`: builds only the standalone app and starts it (`--no-build`, `--smoke`, `--ui-dev`, a `.bleepboard` project); `ui`: the board UI in a browser with a fake engine (http://localhost:8765); `site`: the website in Docker (`--action up\|down\|logs\|rebuild`); `play`: updates the dev site's Bleep Play; `live`: macOS, rebuilds the plugins, quits Ableton Live, replaces the VST3s and reopens a set |
 | `./bleep test [py\|js\|script\|presets\|bus\|native\|check\|all]` | The unit tests: default is `py js presets check` (seconds, no compiler); `bus` and `native` are the C++ suites, `all` runs everything |
 | `./bleep check [repo\|api-docs\|account]` | Dependency rules, SPDX headers and LICENSE files; documented bus API; the app's sign-in against a real API |
@@ -47,7 +47,8 @@ Live keeps a plugin's code loaded until it quits, so:
 - **DSP, bus or C++ changes:** save your test set and run `./bleep run live <set.als>`.
   It builds first, and only quits Live if the build succeeded. It never
   force-quits Live: answer Live's save dialog if one appears.
-  Don't use `--install` while Live is running: overwriting a loaded plugin can crash Live.
+  While Live is running, `./bleep build plugins` only builds and says it did not copy: overwriting a loaded plugin can crash
+  Live. Quit Live and run `./bleep build plugins --install` (the plain command copies by default when Live is not running).
 - **Quick checks without Live:** `./bleep run ui` runs the board UI in a browser
   against a fake engine; the engine tests (`ctest --test-dir build/patch`) simulate Live's
   parallel tracks.

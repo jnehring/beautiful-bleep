@@ -9,11 +9,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import bleep  # noqa: E402
 
 
-def dispatch(argv, settings=None):
-    """Runs ./bleep with the external commands replaced: returns the commands it would have run."""
+def dispatch(argv, settings=None, live=False):
+    """Runs ./bleep with the external commands replaced: returns the commands it would have run.
+    `live`: whether Ableton Live counts as running."""
     calls = []
     with mock.patch.object(bleep, "run", lambda cmd, **kw: calls.append([str(c) for c in cmd])), \
             mock.patch.object(bleep, "have", lambda tool: False), \
+            mock.patch.object(bleep, "live_running", lambda: live), \
             mock.patch.object(bleep.settings, "load", lambda: dict(settings or {})):
         bleep.main(argv)
     return calls
@@ -28,6 +30,17 @@ class Commands(unittest.TestCase):
     def test_command_line_beats_the_setting(self):
         conf = dispatch(["build", "plugins", "--juce", "/cli"], {"juceDir": "/j"})[0]
         self.assertIn("-DBLEEP_JUCE_DIR=/cli", conf)
+
+    def test_build_plugins_copies_them_to_the_plugin_folders_by_default(self):
+        self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins"])[0])
+        self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build"])[0])
+        self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins", "--install"])[0])
+        self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins", "--no-install"])[0])
+
+    def test_while_live_runs_the_default_builds_without_copying_but_install_still_copies(self):
+        self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins"], live=True)[0])
+        self.assertIn("-DBLEEP_COPY_PLUGINS=ON", dispatch(["build", "plugins", "--install"], live=True)[0])
+        self.assertIn("-DBLEEP_COPY_PLUGINS=OFF", dispatch(["build", "plugins", "--no-install"], live=True)[0])
 
     def test_plugins_only_builds_no_tests_and_no_ctest(self):
         calls = dispatch(["build", "plugins", "--plugins-only"])

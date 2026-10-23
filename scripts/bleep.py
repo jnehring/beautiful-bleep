@@ -99,10 +99,25 @@ def build_bus(args, s):
     print(f"\nBleep Bus built in {BUILD / 'bus'}")
 
 
+def live_running():
+    """Whether Ableton Live is running (macOS): the same test `run live` uses."""
+    if sys.platform != "darwin":
+        return False
+    return bool(subprocess.run("pgrep -f '\\.app/Contents/MacOS/Live$' | head -1", shell=True, capture_output=True, text=True).stdout.strip())
+
+
 def build_plugins(args, s):
-    """The plugins as VST3 (and the standalone app unless --no-app), then the DSP, engine and bridge tests."""
+    """The plugins as VST3 (and the standalone app unless --no-app), then the DSP, engine and bridge tests.
+    Copies them to the user plugin folders (args.install True), unless told not to (False). By default (None) it copies,
+    except while Live is running: overwriting a plugin Live has loaded can crash it."""
     config = cfg_name(args, s)
-    d = patch_defines(args, s, tests=not (args.plugins_only or args.no_test_build), app=not args.no_app, install=args.install)
+    install = args.install
+    if install is None:
+        install = not live_running()
+        if not install:
+            print("Ableton Live is running, so the plugins are built but NOT copied to your plugin folders "
+                  "(overwriting a loaded plugin can crash Live).\nQuit Live, then run: ./bleep build plugins --install\n")
+    d = patch_defines(args, s, tests=not (args.plugins_only or args.no_test_build), app=not args.no_app, install=install)
     cmake(ROOT / "patch", BUILD / "patch", config, d, test=not (args.no_test or args.plugins_only), clean=args.clean)
     print("\nBleep plugins built (VST3):")
     for p in sorted((BUILD / "patch").glob(f"*_artefacts/{config}/*")):
@@ -476,7 +491,9 @@ def parser():
     b.add_argument("--plugins-only", action="store_true", help="no test targets (they compile every module in), no ctest")
     b.add_argument("--no-test-build", action="store_true", help=argparse.SUPPRESS)
     b.add_argument("--no-app", action="store_true", help="plugins without the standalone app")
-    b.add_argument("--install", action="store_true", help="copy the plugins into the user plugin folders")
+    b.add_argument("--install", action=argparse.BooleanOptionalAction, default=None,
+                   help="plugins: copy the plugins into the user plugin folders. The default, unless Ableton Live is running "
+                        "(overwriting a loaded plugin can crash it); --install copies anyway, --no-install only builds")
     b.add_argument("--docker", action="store_true", help="web/modules: build in the Emscripten Docker image (or webDocker in the config)")
     b.add_argument("--no-modules", action="store_true", help="web: only the board UI and the web engine")
     b.add_argument("--out", help="web/modules: output folder")
