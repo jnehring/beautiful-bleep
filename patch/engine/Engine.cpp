@@ -9,6 +9,7 @@
 #include <unistd.h>
 #endif
 #include "EngineInternal.h"
+#include "LiveParamsDsp.h"
 
 namespace bleep::engine {
 
@@ -174,6 +175,12 @@ int Engine::portLatencySamples(int handle) noexcept {
     return s != nullptr && s->local.load(std::memory_order_relaxed) ? 0 : latencySamples();
 }
 
+uint32_t Engine::liveParams(float* offsets32) noexcept {
+    const patch::LiveParamsMailbox& box = patch::liveParams();
+    for (int k = 0; k < patch::kNumLiveParams; ++k) offsets32[k] = box.offset[k].load(std::memory_order_relaxed);
+    return box.cabled.load(std::memory_order_relaxed);
+}
+
 int Engine::latencySamples() noexcept {
     // The two blocks a signal really spends in the engine are blocks of the size the host runs, which can be far
     // below the maximum it announces (Live announces 512 whatever its buffer is). Report what has been seen once
@@ -301,6 +308,7 @@ public:
     size_t uiCall(int, const char*, const char*, char*, size_t) noexcept override { return 0; }
     void setBridged(int, bool) noexcept override {}
     int portLatencySamples(int) noexcept override { return 0; }
+    uint32_t liveParams(float*) noexcept override { return 0; }
 
 private:
     int refs_ = 1;

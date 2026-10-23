@@ -566,6 +566,7 @@ function(bleep_add_plugin)
         bridges/ableton/PortEditor.cpp
         bridges/ableton/PanelView.cpp
         bridges/ableton/PresetLibrary.cpp
+        bridges/ableton/LiveLinkSender.cpp
         ${BLEEP_BRIDGE_CLIENT_SOURCES})
     target_include_directories(${P_TARGET} PRIVATE ${BLEEP_ENGINE_INCLUDES} ${BLEEP_BRIDGE_INCLUDES}
         "${CMAKE_CURRENT_SOURCE_DIR}/board" "${CMAKE_CURRENT_SOURCE_DIR}/bridges/ableton")

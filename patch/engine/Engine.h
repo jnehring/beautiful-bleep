@@ -74,6 +74,7 @@ public:
     size_t uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept override;
     void setBridged(int handle, bool bridged) noexcept override;
     int portLatencySamples(int handle) noexcept override;
+    uint32_t liveParams(float* offsets32) noexcept override;
 
     // ---- for the board window (message thread) ----------------------------
     bool hasBoard() const noexcept { return mainHandle_ != 0 || implicit_; }

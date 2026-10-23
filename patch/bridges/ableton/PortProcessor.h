@@ -13,6 +13,7 @@
 
 #include "BridgeClient.h"
 #include "EngineApi.h"
+#include "LiveLinkSender.h"
 
 #include <array>
 #include <atomic>
@@ -107,6 +108,7 @@ private:
     juce::AudioParameterFloat* mix_ = nullptr;
     juce::AudioParameterChoice* boardChoice_ = nullptr;   ///< This set / App / Web
     bridge::BridgeClient client_;
+    std::unique_ptr<LiveLinkSender> liveLink_;   ///< Bleep Board: sends the Live Params node to the Bleep Live Link device
     std::vector<bridge::Midi> bridgeMidiIn_, bridgeMidiOut_;
     juce::AudioBuffer<float> bridgeRet_;
     juce::String track_;

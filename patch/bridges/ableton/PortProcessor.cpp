@@ -75,10 +75,12 @@ PortProcessor::PortProcessor(PortKind kind)
     midiIn_.resize(engine::kMaxMidiEvents);
     midiOut_.resize(engine::kMaxMidiEvents);
     startTimerHz(loadsPresets() ? 30 : 4);
+    if (kind_ == engine::PortKind::Patch) liveLink_ = std::make_unique<LiveLinkSender>(engine(), handle());
 }
 
 PortProcessor::~PortProcessor() {
     stopTimer();
+    liveLink_.reset();
     for (auto* p : slots_)
         if (p) p->removeListener(this);
 }

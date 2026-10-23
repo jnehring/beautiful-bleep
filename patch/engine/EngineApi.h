@@ -31,7 +31,7 @@ namespace bleep::engine {
 /// The MAJOR version: changes whenever the layout of this interface or the data it passes changes.
 constexpr const char* kAbiTag = "bleep-engine-abi-8";
 /// The MINOR version: methods added at the end of IEngine since this major's first release (0 at the start).
-constexpr int kAbiMinor = 2;
+constexpr int kAbiMinor = 3;
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port
@@ -150,6 +150,11 @@ public:
     /// whose cell has no cable to another plugin, which the engine runs in the plugin's own block. May change when the board is
     /// edited. Any thread.
     virtual int portLatencySamples(int handle) noexcept = 0;
+
+    /// [minor 3] What the board's Live Params nodes (doc: modules/live-params) want Live to do: writes the values of their
+    /// rows (32 of them, 8 channels of 4, as modules/live-params/dsp/LiveParamsDsp.h defines them) into `offsets32` and returns the bit mask of
+    /// the inputs that have a cable. Any thread; the values are those of the last block.
+    virtual uint32_t liveParams(float* offsets32) noexcept = 0;
 };
 
 /// Finds the process's engine or creates it in this binary. Retained; call

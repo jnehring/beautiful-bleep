@@ -21,6 +21,8 @@ The minor is the first method of `IEngine` and never moves, so a plugin can alwa
 
 **Minors so far** (of `bleep-engine-abi-8`): **1** `setBridged(handle, bool)`: a plugin whose Board is the app or Bleep Play (doc/specs/bridges.md) tells the engine that its node is a ghost on this set's board. A plugin checks `supports(1)` before calling it; without it the node stays live and receives nothing.
 
+**3** `liveParams(float* offsets32)`: the values of the board's Live Params node, which Bleep Board sends to the Bleep Live Link device in Live. A plugin checks `supports(3)` before calling it; without it nothing is sent.
+
 ## Rules for changing `IEngine`
 
 1. **Add a method:** put it below the destructor, after a `public:`, with `[minor N]` in its comment; raise `kAbiMinor` to `N`; guard every call in the plugins with `supports(N)`; add it to `MismatchEngine`.
