@@ -31,7 +31,7 @@ namespace bleep::engine {
 /// The MAJOR version: changes whenever the layout of this interface or the data it passes changes.
 constexpr const char* kAbiTag = "bleep-engine-abi-8";
 /// The MINOR version: methods added at the end of IEngine since this major's first release (0 at the start).
-constexpr int kAbiMinor = 1;
+constexpr int kAbiMinor = 2;
 
 constexpr int kMaxHostBlock = 4096;   ///< larger host blocks are processed in part and padded
 constexpr int kMaxMidiEvents = 512;   ///< per host block and port
@@ -145,6 +145,11 @@ public:
     /// [minor 1] The plugin's other side is not this set's board (Board = App or Web, doc/specs/bridges.md §1): the
     /// instance stays registered, but its node becomes a ghost and gets no node of its own. Message thread.
     virtual void setBridged(int handle, bool bridged) noexcept = 0;
+
+    /// [minor 2] The latency this plugin reports to the host: latencySamples(), or 0 for a cell plugin (Instrument, Audio Insert)
+    /// whose cell has no cable to another plugin, which the engine runs in the plugin's own block. May change when the board is
+    /// edited. Any thread.
+    virtual int portLatencySamples(int handle) noexcept = 0;
 };
 
 /// Finds the process's engine or creates it in this binary. Retained; call

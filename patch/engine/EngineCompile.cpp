@@ -31,7 +31,7 @@ void Engine::recompile() {
     if (hasBoard()) {
         BoardModel model = board::parse(board_);
         board::addPanelSources(model, board_);
-        next = Program::compile(model, modules_, ports, sampleRate_);
+        next = Program::compile(model, modules_, ports, sampleRate_, nullptr, !standalone_);
     }
     else modules_.clear();
     // The modules inside Voice Cells, one per voice, for knob changes and views.
@@ -42,7 +42,9 @@ void Engine::recompile() {
             cell->collect(found);
             for (auto& [nodeId, mods] : found) inner_[nodeId] = Inner{std::move(mods), cell};
         }
+    const Program* fresh = next.get();
     if (Program* old = program_.exchange(next.release(), std::memory_order_seq_cst)) retired_.push_back(old);
+    for (const auto& s : instances_) s->local.store(fresh != nullptr && fresh->localGroup(s.get()) >= 0, std::memory_order_relaxed);
 }
 
 void Engine::collectGarbage() {
@@ -50,6 +52,8 @@ void Engine::collectGarbage() {
     retired_.erase(std::remove_if(retired_.begin(), retired_.end(),
                                   [&](Program* p) {
                                       if (p == busy) return false;
+                                      for (const auto& s : instances_)  // a plugin running its cell in its own block
+                                          if (s->hazard.load(std::memory_order_seq_cst) == p) return false;
                                       delete p;
                                       return true;
                                   }),

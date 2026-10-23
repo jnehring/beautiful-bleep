@@ -169,8 +169,17 @@ PortState Engine::state(int handle) noexcept {
     return hasBoard() ? PortState::Ok : PortState::NoBoard;
 }
 
+int Engine::portLatencySamples(int handle) noexcept {
+    PortSlot* s = slot(handle);
+    return s != nullptr && s->local.load(std::memory_order_relaxed) ? 0 : latencySamples();
+}
+
 int Engine::latencySamples() noexcept {
-    const int m = maxBlock_.load();
+    // The two blocks a signal really spends in the engine are blocks of the size the host runs, which can be far
+    // below the maximum it announces (Live announces 512 whatever its buffer is). Report what has been seen once
+    // there is something, so Live compensates the delay that is there and not more.
+    const int seen = seenBlock_.load(std::memory_order_relaxed);
+    const int m = seen > 0 ? seen : maxBlock_.load();
     return 2 * (m > 0 ? m : 512);
 }
 
@@ -182,7 +191,7 @@ void Engine::statusText(int handle, char* out, int capacity) noexcept {
         case PortState::NoBoard: text = "No board in this set. Add Bleep Board."; break;
         case PortState::VersionMismatch: text = "Another version of Bleep Board is loaded."; break;
         case PortState::Ok: {
-            const int l = latencySamples();
+            const int l = s ? portLatencySamples(s->handle) : latencySamples();
             text = "Board running";
             if (s && s->kind != PortKind::Patch && s->kind != PortKind::MidiIn && s->kind != PortKind::AudioIn)
                 text << u8(" · latency ") << l << " smp (" << juce::String(1000.0 * l / sampleRate_, 1) << " ms)";
@@ -291,6 +300,7 @@ public:
     size_t cellPreset(int, char*, size_t) noexcept override { return 0; }
     size_t uiCall(int, const char*, const char*, char*, size_t) noexcept override { return 0; }
     void setBridged(int, bool) noexcept override {}
+    int portLatencySamples(int) noexcept override { return 0; }
 
 private:
     int refs_ = 1;

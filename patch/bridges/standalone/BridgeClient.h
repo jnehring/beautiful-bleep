@@ -34,7 +34,11 @@ public:
     uint32_t drops() const noexcept;
     /// Another live bridge uses the same ID (a duplicated device): pick a new one.
     bool idTaken() const noexcept { return idTaken_; }
-    int latencySamples() const noexcept { return 2 * maxBlock_ + extraLatency(); }
+    /// Two blocks of the size the host really runs (what it announced in prepare() until a block has come).
+    int latencySamples() const noexcept {
+        const int seen = seenBlock_.load(std::memory_order_relaxed);
+        return 2 * (seen > 0 ? seen : maxBlock_) + extraLatency();
+    }
     /// What the app asks the plugin to add (Bleep Play in the loop); 0 without one.
     int extraLatency() const noexcept;
 
@@ -77,6 +81,7 @@ private:
     bool trackChanged_ = false;
     bool idTaken_ = false;
     int maxBlock_ = 512;
+    std::atomic<int> seenBlock_{0};  ///< largest block exchange() has been called with
     double sampleRate_ = 48000.0;
     int64_t counter_ = -1;  // audio thread
 };

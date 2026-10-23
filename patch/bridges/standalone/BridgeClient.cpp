@@ -158,6 +158,7 @@ bool BridgeClient::exchange(Block& b) noexcept {
     if (!s || k < 0 || status_.load() != Status::Connected) return false;
     Slot& slot = s->slots[k];
     const int n = std::min(b.numSamples, kMaxBlock);
+    if (n > seenBlock_.load(std::memory_order_relaxed)) seenBlock_.store(n, std::memory_order_relaxed);
     const int channels = std::max(1, std::min(b.numChannels, 2));
 
     // Which host block is this? Same claiming as inside Live (spec §5.3).

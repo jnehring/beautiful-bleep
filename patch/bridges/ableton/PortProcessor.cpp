@@ -136,6 +136,10 @@ bool PortProcessor::acceptsMidi() const {
 
 bool PortProcessor::reportsLatency() const noexcept {
     return kind_ == PortKind::Patch || kind_ == PortKind::AudioOut || kind_ == PortKind::Instrument ||
+int PortProcessor::boardLatency() noexcept {
+    return engine().supports(2) ? engine().portLatencySamples(handle()) : engine().latencySamples();
+}
+
            kind_ == PortKind::AudioInsert;
 }
 
@@ -158,7 +162,7 @@ void PortProcessor::prepareToPlay(double sampleRate, int maxBlock) {
     engine().prepare(handle(), sampleRate, maxBlock);
     client_.prepare(sampleRate, maxBlock);
     bridgeRet_.setSize(2, juce::jmax(maxBlock, 1));
-    latency_ = reportsLatency() ? (bridged() ? client_.latencySamples() : engine().latencySamples()) : 0;
+    latency_ = reportsLatency() ? (bridged() ? client_.latencySamples() : boardLatency()) : 0;
     setLatencySamples(latency_);
     board_.setSize(2, juce::jmax(maxBlock, 1));
     delay_.setSize(2, kMaxDelay + engine::kMaxHostBlock);
@@ -424,7 +428,7 @@ void PortProcessor::applyBoard() {
     client_.setIdentity(b != 0 ? id : "", track_.toStdString());
     client_.setPort((uint32_t)kind_, (bridge::Board)b);
     if (reportsLatency()) {
-        latency_ = b != 0 ? client_.latencySamples() : engine().latencySamples();
+        latency_ = b != 0 ? client_.latencySamples() : boardLatency();
         setLatencySamples(latency_);
     }
 }
@@ -447,7 +451,7 @@ void PortProcessor::timerCallback() {
         if (engine().cellPreset(handle(), nullptr, 0) == 0) loadPreset(PresetLibrary::defaultName(kind_));
     }
     if (reportsLatency() && !bridged()) {
-        const int l = engine().latencySamples();
+        const int l = boardLatency();
         if (l != latency_.load()) {
             latency_ = l;
             setLatencySamples(l);

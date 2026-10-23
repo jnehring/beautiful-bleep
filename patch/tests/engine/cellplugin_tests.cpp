@@ -181,7 +181,11 @@ void cellPlugins() {
         on.bytes[0] = 0x90;
         on.bytes[1] = 60;
         on.bytes[2] = 100;
-        const float sound = peakAfter(p, 60, 4, [&](int b) { if (b == 0) p.midiIn.push_back(on); });
+        // The cell is cabled to no other plugin: it runs in the plugin's own block, so the note sounds in the block it arrives in.
+        EXPECT(e->portLatencySamples(inst) == 0);
+        const float first = peakAfter(p, 1, 0, [&](int b) { if (b == 0) p.midiIn.push_back(on); });
+        EXPECT(first > 0.01f);
+        const float sound = std::max(first, peakAfter(p, 60, 0));
         EXPECT(sound > 0.01f && std::isfinite(sound));
         EXPECT(sound < 2.0f);
 
@@ -235,7 +239,7 @@ void cellPlugins() {
         e->collectGarbage();
         e->release();
     }
-    // An FX: Empty FX passes the track's audio through the board and back, two blocks later.
+    // An FX: Empty FX passes the track's audio through the board and back, in the same block (its cell is cabled to no other plugin).
     {
         auto* e = new Engine();
         const int main = e->registerInstance(PortKind::Patch);
@@ -251,7 +255,7 @@ void cellPlugins() {
             pFx.run((int64_t)b * kBlock);
             if (arrivedAt < 0 && std::fabs(pFx.out[0][7]) > 0.25f) arrivedAt = b;
         }
-        EXPECT(arrivedAt == 3);
+        EXPECT(arrivedAt == 1 && e->portLatencySamples(fx) == 0);
         e->unregisterInstance(fx);
         e->unregisterInstance(main);
         e->collectGarbage();

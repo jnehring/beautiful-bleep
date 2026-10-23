@@ -73,6 +73,7 @@ public:
     size_t cellPreset(int handle, char* out, size_t capacity) noexcept override;
     size_t uiCall(int handle, const char* method, const char* argsJson, char* out, size_t capacity) noexcept override;
     void setBridged(int handle, bool bridged) noexcept override;
+    int portLatencySamples(int handle) noexcept override;
 
     // ---- for the board window (message thread) ----------------------------
     bool hasBoard() const noexcept { return mainHandle_ != 0 || implicit_; }
@@ -148,6 +149,8 @@ private:
     void modulesChanged();
     void reconcile(bool force);
     void runTick(int64_t block, const BlockIO& claimer) noexcept;
+    /// Runs a cell plugin's cell in the plugin's own block, if the board has it apart from the other plugins. [RT]
+    bool runLocal(PortSlot& s, BlockIO& io) noexcept;
     void clearBoard();
     void promoteMain();
     juce::var uiDispatch(int handle, const juce::String& method, const juce::var& args);
@@ -170,7 +173,8 @@ private:
     bool implicit_ = false;    ///< a board kept for cell plugins while there is no Bleep Board
     double sampleRate_ = 48000.0;              ///< message thread: what modules are prepared for
     std::atomic<double> pendingRate_{0.0};     ///< set by prepare() on any thread, applied by the timer
-    std::atomic<int> maxBlock_{0};             ///< largest host block of any plugin (never shrinks)
+    std::atomic<int> maxBlock_{0};             ///< largest host block any plugin announced in prepare() (never shrinks)
+    std::atomic<int> seenBlock_{0};            ///< largest host block process() has actually been called with (never shrinks)
 
     // Board (message thread).
     juce::var board_;

@@ -26,11 +26,9 @@ void silence(BlockIO& io) noexcept {
         if (io.audioOut[ch]) std::fill_n(io.audioOut[ch], io.numSamples, 0.0f);
 }
 
-/// Hands a plugin's host block `c` to the engine. [RT]
-void writeIn(PortSlot& s, int64_t c, const BlockIO& io) noexcept {
+/// A plugin's host block as a frame. [RT]
+void fillFrame(PortFrame& f, const BlockIO& io) noexcept {
     const int n = std::min(io.numSamples, kMaxHostBlock);
-    PortFrame& f = s.in[c % kRing];
-    f.beginWrite(c);
     f.numSamples = n;
     f.transport = io.transport;
     f.numChannels = std::min(io.numAudioIn, 2);
@@ -40,6 +38,13 @@ void writeIn(PortSlot& s, int64_t c, const BlockIO& io) noexcept {
     for (int i = 0; i < io.numMidiIn && f.numMidi < kMaxMidiEvents; ++i)
         if (io.midiIn[i].offset < n) f.midi[f.numMidi++] = io.midiIn[i];
     if (io.macros) std::memcpy(f.macros, io.macros, sizeof(f.macros));
+}
+
+/// Hands a plugin's host block `c` to the engine. [RT]
+void writeIn(PortSlot& s, int64_t c, const BlockIO& io) noexcept {
+    PortFrame& f = s.in[c % kRing];
+    f.beginWrite(c);
+    fillFrame(f, io);
     f.endWrite();
 }
 
@@ -102,9 +107,42 @@ void Engine::process(int handle, BlockIO& io) noexcept {
     s->counter = c;
     s->lastBlock.store(c, std::memory_order_relaxed);
 
-    writeIn(*s, c, io);
+    const int n = std::min(io.numSamples, kMaxHostBlock);
+    int seen = seenBlock_.load(std::memory_order_relaxed);
+    while (n > seen && !seenBlock_.compare_exchange_weak(seen, n, std::memory_order_relaxed)) {}
+
+    // A cell plugin with nothing cabled to other plugins runs its cell right here, in its own block.
+    const bool local = (s->kind == PortKind::Instrument || s->kind == PortKind::AudioInsert) && runLocal(*s, io);
+    if (!local) writeIn(*s, c, io);
     if (claimed) runTick(c, io);
-    readOut(*s, c - 2, io);  // the tick in block c-1 processed block c-2
+    if (!local) readOut(*s, c - 2, io);  // the tick in block c-1 processed block c-2
+}
+
+bool Engine::runLocal(PortSlot& s, BlockIO& io) noexcept {
+    Program* p = nullptr;
+    do {  // announce the program before using it, like runTick: the message thread deletes only what nobody runs
+        p = program_.load(std::memory_order_seq_cst);
+        s.hazard.store(p, std::memory_order_seq_cst);
+    } while (p != program_.load(std::memory_order_seq_cst));
+    const int g = p != nullptr ? p->localGroup(&s) : -1;
+    if (g >= 0) {
+        fillFrame(s.tickIn, io);
+        s.tickIn.block = -1;
+        const Transport t = io.transport;
+        const bool started = t.playing && !s.localWasPlaying;
+        s.localWasPlaying = t.playing;
+        p->runLocal(g, t, started, s.tickIn, s.localOut);
+        const int n = s.localOut.numSamples;
+        for (int ch = 0; ch < io.numAudioOut; ++ch) {
+            if (!io.audioOut[ch]) continue;
+            const int m = std::min(n, io.numSamples);
+            std::memcpy(io.audioOut[ch], s.localOut.audio[std::min(ch, 1)], sizeof(float) * (size_t)m);
+            std::fill(io.audioOut[ch] + m, io.audioOut[ch] + io.numSamples, 0.0f);
+        }
+        io.boardAudioValid = true;
+    }
+    s.hazard.store(nullptr, std::memory_order_seq_cst);
+    return g >= 0;
 }
 
 void Engine::processAll(const int* handles, BlockIO* const* ios, int count) noexcept {
@@ -144,6 +182,8 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
         bool found = false;
         for (const auto& slotPtr : p->slots()) {
             PortSlot& s = *slotPtr;
+            s.tickInValid = false;
+            if (p->localGroup(&s) >= 0) continue;  // runs in its own plugin's block
             s.tickInValid = readFrame(s.in[idx], b, s.tickIn);
             if (s.tickInValid && !found) {
                 t = s.tickIn.transport;
@@ -156,7 +196,7 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
         uiBpm_.store(t.bpm, std::memory_order_relaxed);
         uiPlaying_.store(t.playing, std::memory_order_relaxed);
         for (auto& st : p->steps()) {
-            if (!st.port) continue;
+            if (!st.port || st.local >= 0) continue;
             st.io.in = st.port->tickInValid ? &st.port->tickIn : nullptr;
             st.io.out = nullptr;
             if (st.portWritesOut) {
@@ -172,7 +212,7 @@ void Engine::runTick(int64_t block, const BlockIO& claimer) noexcept {
         }
         p->run(t, n, started);
         for (auto& st : p->steps())
-            if (st.io.out) st.io.out->endWrite();
+            if (st.local < 0 && st.io.out) st.io.out->endWrite();
     }
     inFlight_.store(nullptr, std::memory_order_seq_cst);
 }

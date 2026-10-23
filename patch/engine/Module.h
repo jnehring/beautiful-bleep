@@ -194,6 +194,12 @@ public:
         cmdRead_.store(r, std::memory_order_release);
     }
 
+    /// [audio threads] Only one thread runs a module at a time. A module belongs to one thread in steady state (the tick, or the
+    /// plugin whose cell it is in, Program::runLocal); a recompile can move it from one to the other while the old program is still
+    /// running somewhere, and the one that finds it taken skips the module for that chunk.
+    bool tryEnter() noexcept { return !busy_.exchange(true, std::memory_order_acquire); }
+    void leave() noexcept { busy_.store(false, std::memory_order_release); }
+
     // ---- knobs: written by the message thread, read by the audio thread ----
     void setKnob(int i, float normalised) noexcept { knobs_[(size_t)i].store(normalised, std::memory_order_relaxed); }
     float knob(int i) const noexcept { return knobs_[(size_t)i].load(std::memory_order_relaxed); }
@@ -239,6 +245,7 @@ private:
     static constexpr uint32_t kCommandQueue = 64;
     Command commands_[kCommandQueue];
     std::atomic<uint32_t> cmdWrite_{0}, cmdRead_{0};
+    std::atomic<bool> busy_{false};                  // see tryEnter()
     std::atomic<uint32_t> runaways_{0};
 
     const ModuleSpec& spec_;

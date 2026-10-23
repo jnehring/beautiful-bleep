@@ -60,6 +60,8 @@ public:
     juce::String presetName() const;
     bool reportsLatency() const noexcept;
     /// Bleep MIDI In/Out and Audio In/Out can talk to another board: the app's or a browser's (bridges.md §1).
+    /// The board's latency for this plugin: 0 for a cell plugin whose cell the engine runs in the plugin's own block.
+    int boardLatency() noexcept;
     bool canBridge() const noexcept;
     juce::AudioParameterChoice* boardParameter() const noexcept { return boardChoice_; }
     bridge::Board board() const noexcept;

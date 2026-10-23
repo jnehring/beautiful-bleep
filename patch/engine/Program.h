@@ -37,6 +37,7 @@ public:
         bool bypassed = false;            ///< audio in goes to audio out; the module does not run
         std::vector<std::pair<int, int>> bypassRoute;  ///< (input jack, output jack) pairs: the n-th audio in feeds the n-th audio out
         PortIO io;
+        int local = -1;                   ///< the local group this step runs in (Program::localGroup), -1: the tick runs it
 
         std::vector<std::vector<Source>> paramSources;   ///< per param
         std::vector<std::vector<Source>> inputSources;   ///< per input jack (signal)
@@ -70,10 +71,24 @@ public:
     static std::unique_ptr<Program> compile(const BoardModel& board,
                                             std::map<std::string, std::shared_ptr<Module>>& modules,
                                             const std::map<std::string, std::shared_ptr<PortSlot>>& ports,
-                                            double sampleRate, const Scope* scope = nullptr);
+                                            double sampleRate, const Scope* scope = nullptr, bool allowLocal = false);
 
-    /// Runs one host block of `numSamples`. [RT]
+    /// Runs one host block of `numSamples`: every step that is not in a local group. [RT]
     void run(const Transport& transport, int numSamples, bool transportStarted) noexcept;
+
+    /// Cell plugins (Instrument, Audio Insert) whose cell is cabled to no other plugin: the connected part of the board around
+    /// such a plugin's port (the port node, the cell, whatever is cabled to it) has no cable to anything else, so the plugin's own
+    /// audio thread can run it in the plugin's own block. That takes no hand-over between plugins, so no latency. Only with
+    /// `allowLocal` (compile): the standalone app has one driving thread and no latency anyway.
+    /// The group of `slot`, or -1 if the tick runs its steps.
+    int localGroup(const PortSlot* slot) const noexcept {
+        for (size_t g = 0; g < local_.size(); ++g)
+            if (local_[g].slot == slot) return (int)g;
+        return -1;
+    }
+    /// Runs one host block of group `g` in the calling plugin's thread, with the plugin's block as input in `in`
+    /// (audio, MIDI, transport); the group's output audio ends in `out`. [RT]
+    void runLocal(int g, const Transport& transport, bool transportStarted, PortFrame& in, PortFrame& out) noexcept;
     /// Runs one chunk (at most kChunk samples) described by `chunk`. [RT]
     void runChunk(const ProcessContext& chunk) noexcept;
     /// Sources feeding taps[i] of the scope, valid after runChunk. [RT]
@@ -87,7 +102,15 @@ public:
     const std::set<std::string>& feedback() const noexcept { return feedback_; }
 
 private:
+    struct Local {
+        const PortSlot* slot = nullptr;
+        std::vector<size_t> steps;   ///< indices into steps_, in processing order
+    };
     static bool outputsSane(Step& st, int numSamples) noexcept;
+    void runSteps(const Transport& transport, int numSamples, bool transportStarted, int group) noexcept;
+    void runStep(Step& st, ProcessContext& ctx) noexcept;
+    void splitLocal();
+    std::vector<Local> local_;
     std::vector<Step> steps_;
     std::vector<std::vector<Source>> taps_;
     std::vector<std::shared_ptr<PortSlot>> slots_;

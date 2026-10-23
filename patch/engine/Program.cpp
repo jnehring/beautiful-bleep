@@ -194,7 +194,7 @@ BoardModel flattenPatchbays(const BoardModel& in) {
 std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
                                           std::map<std::string, std::shared_ptr<Module>>& modules,
                                           const std::map<std::string, std::shared_ptr<PortSlot>>& ports,
-                                          double sampleRate, const Scope* scope) {
+                                          double sampleRate, const Scope* scope, bool allowLocal) {
     auto program = std::make_unique<Program>();
     const std::string root = scope ? scope->root : std::string();
     program->sampleRate_ = sampleRate;
@@ -479,10 +479,33 @@ std::unique_ptr<Program> Program::compile(const BoardModel& boardIn,
             st.outConnected[k] = st.outputBuffers[k] ? read.count(st.outputBuffers[k].get()) > 0
                                                      : read.count(st.noteOutputs[k].get()) > 0;
     }
+    if (allowLocal && scope == nullptr) program->splitLocal();
     return program;
 }
 
 void Program::run(const Transport& t, int numSamples, bool transportStarted) noexcept {
+    runSteps(t, numSamples, transportStarted, -1);
+}
+
+void Program::runLocal(int g, const Transport& t, bool transportStarted, PortFrame& in, PortFrame& out) noexcept {
+    Local& group = local_[(size_t)g];
+    const int n = std::min(in.numSamples, kMaxHostBlock);
+    out.numSamples = n;
+    out.numChannels = 2;
+    out.numMidi = 0;
+    std::fill_n(out.audio[0], n, 0.0f);
+    std::fill_n(out.audio[1], n, 0.0f);
+    for (size_t k : group.steps) {
+        Step& st = steps_[k];
+        if (!st.port) continue;
+        st.io.in = &in;
+        st.io.out = st.portWritesOut ? &out : nullptr;
+    }
+    runSteps(t, n, transportStarted, g);
+}
+
+/// The steps of group `group` (-1: the ones no group has) over one host block, a chunk at a time.
+void Program::runSteps(const Transport& t, int numSamples, bool transportStarted, int group) noexcept {
     const int n = std::min(numSamples, kMaxHostBlock);
     const double ppqPerSample = t.bpm / 60.0 / std::max(t.sampleRate, 1.0);
     for (int off = 0; off < n; off += kChunk) {
@@ -493,7 +516,12 @@ void Program::run(const Transport& t, int numSamples, bool transportStarted) noe
         ctx.transportStarted = transportStarted && off == 0;
         ctx.ppqStart = t.ppq + ppqPerSample * off;
         ctx.ppqPerSample = ppqPerSample;
-        runChunk(ctx);
+        if (group < 0) {
+            runChunk(ctx);
+        } else {
+            ctx.harmony = harmony_.data();
+            for (size_t k : local_[(size_t)group].steps) runStep(steps_[k], ctx);
+        }
     }
 }
 
@@ -525,87 +553,154 @@ bool Program::outputsSane(Step& st, int m) noexcept {
 void Program::runChunk(const ProcessContext& chunk) noexcept {
     ProcessContext ctx = chunk;
     if (!ctx.harmony) ctx.harmony = harmony_.data();  // a Voice Cell's inside shares the board's buses
+    for (auto& st : steps_)
+        if (st.local < 0) runStep(st, ctx);
+}
+
+void Program::runStep(Step& st, ProcessContext& ctx) noexcept {
     const int m = ctx.numSamples;
-    {
-        for (auto& st : steps_) {
-            Module& mod = *st.module;
-            for (size_t i = 0; i < st.paramBuffers.size(); ++i) {
-                float* buf = st.paramBuffers[i].get();
-                const float base = mod.knob((int)i);
-                const auto& sources = st.paramSources[i];
-                if (sources.empty()) {
-                    std::fill_n(buf, m, base);
-                } else {
-                    for (int s = 0; s < m; ++s) {
-                        float v = base;
-                        for (const auto& src : sources) v += src.buffer[s] * src.amount;
-                        buf[s] = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
-                    }
-                }
-                if (mod.spec().params[i].cableable) mod.setDriven((int)i, sources.empty() ? -1.0f : buf[0]);   // a setting is read once per block
-                auto& d = mod.paramDisplay((int)i);
-                d.value.store(buf[m - 1], std::memory_order_relaxed);
-                d.active.store(!sources.empty(), std::memory_order_relaxed);
-            }
-            for (size_t j = 0; j < st.inputSources.size(); ++j) {
-                if (NoteBuffer* nb = st.noteInputs[j].get()) {
-                    nb->clear();
-                    for (const NoteBuffer* src : st.noteSources[j])
-                        for (int k = 0; k < src->count; ++k) nb->push(src->events[k]);
-                    std::stable_sort(nb->events, nb->events + nb->count,
-                                     [](const NoteEvent& a, const NoteEvent& b) { return a.offset < b.offset; });
-                    continue;
-                }
-                float* buf = st.inputBuffers[j].get();
-                const auto& sources = st.inputSources[j];
-                if (sources.empty()) {
-                    std::fill_n(buf, m, 0.0f);
-                    continue;
-                }
-                const Source& first = sources[0];
-                for (int s = 0; s < m; ++s) buf[s] = first.buffer[s] * first.amount;
-                for (size_t k = 1; k < sources.size(); ++k)
-                    for (int s = 0; s < m; ++s) buf[s] += sources[k].buffer[s] * sources[k].amount;
-            }
-            for (auto& nb : st.noteOutputs)
-                if (nb) nb->clear();
-
-            ctx.params = st.paramPtrs.data();
-            ctx.inputs = st.inputPtrs.data();
-            ctx.inputConnected = st.connected.get();
-            ctx.notesIn = st.notesInPtrs.data();
-            ctx.outputs = st.outputPtrs.data();
-            ctx.notesOut = st.notesOutPtrs.data();
-            ctx.outputConnected = st.outConnected.get();
-            ctx.port = st.port ? &st.io : nullptr;
-            if (st.bypassed) {
-                for (auto& ob : st.outputBuffers)
-                    if (ob) std::fill_n(ob.get(), m, 0.0f);
-                for (const auto& [in, out] : st.bypassRoute)
-                    std::copy_n(st.inputPtrs[in], m, st.outputBuffers[out].get());
-            } else {
-                mod.process(ctx);
-                if (!outputsSane(st, m)) mod.noteRunaway();
-            }
-
-            for (size_t k = 0; k < st.outputBuffers.size(); ++k) {
-                auto& d = mod.outputDisplay((int)k);
-                if (const float* b = st.outputBuffers[k].get()) {
-                    d.value.store(b[m - 1], std::memory_order_relaxed);
-                    float lo = d.lo.load(std::memory_order_relaxed), hi = d.hi.load(std::memory_order_relaxed);
-                    for (int s = 0; s < m; ++s) {
-                        lo = std::min(lo, b[s]);
-                        hi = std::max(hi, b[s]);
-                    }
-                    d.lo.store(lo, std::memory_order_relaxed);
-                    d.hi.store(hi, std::memory_order_relaxed);
-                } else if (const NoteBuffer* nb = st.noteOutputs[k].get(); nb && nb->count > 0) {
-                    d.value.store(1.0f, std::memory_order_relaxed);
-                    d.lo.store(0.0f, std::memory_order_relaxed);
-                    d.hi.store(1.0f, std::memory_order_relaxed);
-                }
+    Module& mod = *st.module;
+    if (!mod.tryEnter()) return;  // another thread is in it (a recompile moved it); this chunk goes without
+    struct Leave {
+        Module& m;
+        ~Leave() { m.leave(); }
+    } leave{mod};
+    for (size_t i = 0; i < st.paramBuffers.size(); ++i) {
+        float* buf = st.paramBuffers[i].get();
+        const float base = mod.knob((int)i);
+        const auto& sources = st.paramSources[i];
+        if (sources.empty()) {
+            std::fill_n(buf, m, base);
+        } else {
+            for (int s = 0; s < m; ++s) {
+                float v = base;
+                for (const auto& src : sources) v += src.buffer[s] * src.amount;
+                buf[s] = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
             }
         }
+        if (mod.spec().params[i].cableable) mod.setDriven((int)i, sources.empty() ? -1.0f : buf[0]);   // a setting is read once per block
+        auto& d = mod.paramDisplay((int)i);
+        d.value.store(buf[m - 1], std::memory_order_relaxed);
+        d.active.store(!sources.empty(), std::memory_order_relaxed);
+    }
+    for (size_t j = 0; j < st.inputSources.size(); ++j) {
+        if (NoteBuffer* nb = st.noteInputs[j].get()) {
+            nb->clear();
+            for (const NoteBuffer* src : st.noteSources[j])
+                for (int k = 0; k < src->count; ++k) nb->push(src->events[k]);
+            std::stable_sort(nb->events, nb->events + nb->count,
+                             [](const NoteEvent& a, const NoteEvent& b) { return a.offset < b.offset; });
+            continue;
+        }
+        float* buf = st.inputBuffers[j].get();
+        const auto& sources = st.inputSources[j];
+        if (sources.empty()) {
+            std::fill_n(buf, m, 0.0f);
+            continue;
+        }
+        const Source& first = sources[0];
+        for (int s = 0; s < m; ++s) buf[s] = first.buffer[s] * first.amount;
+        for (size_t k = 1; k < sources.size(); ++k)
+            for (int s = 0; s < m; ++s) buf[s] += sources[k].buffer[s] * sources[k].amount;
+    }
+    for (auto& nb : st.noteOutputs)
+        if (nb) nb->clear();
+
+    ctx.params = st.paramPtrs.data();
+    ctx.inputs = st.inputPtrs.data();
+    ctx.inputConnected = st.connected.get();
+    ctx.notesIn = st.notesInPtrs.data();
+    ctx.outputs = st.outputPtrs.data();
+    ctx.notesOut = st.notesOutPtrs.data();
+    ctx.outputConnected = st.outConnected.get();
+    ctx.port = st.port ? &st.io : nullptr;
+    if (st.bypassed) {
+        for (auto& ob : st.outputBuffers)
+            if (ob) std::fill_n(ob.get(), m, 0.0f);
+        for (const auto& [in, out] : st.bypassRoute)
+            std::copy_n(st.inputPtrs[in], m, st.outputBuffers[out].get());
+    } else {
+        mod.process(ctx);
+        if (!outputsSane(st, m)) mod.noteRunaway();
+    }
+
+    for (size_t k = 0; k < st.outputBuffers.size(); ++k) {
+        auto& d = mod.outputDisplay((int)k);
+        if (const float* b = st.outputBuffers[k].get()) {
+            d.value.store(b[m - 1], std::memory_order_relaxed);
+            float lo = d.lo.load(std::memory_order_relaxed), hi = d.hi.load(std::memory_order_relaxed);
+            for (int s = 0; s < m; ++s) {
+                lo = std::min(lo, b[s]);
+                hi = std::max(hi, b[s]);
+            }
+            d.lo.store(lo, std::memory_order_relaxed);
+            d.hi.store(hi, std::memory_order_relaxed);
+        } else if (const NoteBuffer* nb = st.noteOutputs[k].get(); nb && nb->count > 0) {
+            d.value.store(1.0f, std::memory_order_relaxed);
+            d.lo.store(0.0f, std::memory_order_relaxed);
+            d.hi.store(1.0f, std::memory_order_relaxed);
+        }
+    }
+}
+
+/// Finds the cell plugins whose part of the board touches no other plugin and gives each its group (see localGroup()).
+void Program::splitLocal() {
+    const size_t n = steps_.size();
+    std::vector<size_t> parent(n);
+    for (size_t i = 0; i < n; ++i) parent[i] = i;
+    auto root = [&](size_t i) {
+        while (parent[i] != i) i = parent[i] = parent[parent[i]];
+        return i;
+    };
+    auto unite = [&](size_t a, size_t b) { parent[root(a)] = root(b); };
+
+    std::map<const void*, size_t> owner;  // an output buffer → the step that writes it
+    for (size_t i = 0; i < n; ++i) {
+        for (const auto& b : steps_[i].outputBuffers)
+            if (b) owner[b.get()] = i;
+        for (const auto& b : steps_[i].noteOutputs)
+            if (b) owner[b.get()] = i;
+    }
+    auto join = [&](size_t i, const void* buffer) {
+        if (auto it = owner.find(buffer); it != owner.end()) unite(i, it->second);
+    };
+    std::map<const PortSlot*, size_t> portStep;  // the send and the return of an Audio Insert are one plugin
+    for (size_t i = 0; i < n; ++i) {
+        const Step& st = steps_[i];
+        for (const auto& list : st.paramSources)
+            for (const auto& src : list) join(i, src.buffer);
+        for (const auto& list : st.inputSources)
+            for (const auto& src : list) join(i, src.buffer);
+        for (const auto& list : st.noteSources)
+            for (const NoteBuffer* b : list) join(i, b);
+        if (st.port) {
+            if (auto it = portStep.find(st.port.get()); it != portStep.end()) unite(i, it->second);
+            else portStep[st.port.get()] = i;
+        }
+    }
+
+    struct Component {
+        std::set<const PortSlot*> ports;
+        bool shared = false;  // something in it uses state the board shares (the harmony buses)
+    };
+    std::map<size_t, Component> components;
+    for (size_t i = 0; i < n; ++i) {
+        Component& c = components[root(i)];
+        if (steps_[i].port) c.ports.insert(steps_[i].port.get());
+        if (steps_[i].module->spec().harmony != HarmonyRole::None) c.shared = true;
+    }
+    for (size_t i = 0; i < n; ++i) {
+        const Component& c = components[root(i)];
+        if (c.shared || c.ports.size() != 1) continue;
+        const PortSlot* slot = *c.ports.begin();
+        if (slot->kind != PortKind::Instrument && slot->kind != PortKind::AudioInsert) continue;
+        int g = localGroup(slot);
+        if (g < 0) {
+            g = (int)local_.size();
+            local_.push_back({slot, {}});
+        }
+        local_[(size_t)g].steps.push_back(i);  // i ascends: processing order
+        steps_[i].local = g;
     }
 }
 

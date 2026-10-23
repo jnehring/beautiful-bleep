@@ -21,6 +21,8 @@
 
 namespace bleep::engine {
 
+class Program;
+
 constexpr int kRing = 4;
 
 struct PortFrame {
@@ -83,6 +85,13 @@ struct PortSlot {
     // Engine (audio thread of the claiming plugin).
     PortFrame tickIn;               ///< snapshot of in[N-1] for the running tick
     bool tickInValid = false;
+
+    // A cell plugin whose cell is cabled to no other plugin runs in its own plugin's block (Program::runLocal): no hand-over,
+    // no latency. The input is tickIn, filled from the block itself; the output goes to localOut.
+    PortFrame localOut;
+    bool localWasPlaying = false;            ///< audio thread of this plugin
+    std::atomic<bool> local{false};          ///< the running program runs this slot's cell in its own block (message thread writes)
+    std::atomic<Program*> hazard{nullptr};   ///< the program this plugin's audio thread is running, so it is not deleted under it
 
     // Statistics, shown in the plugin's status line.
     std::atomic<int64_t> lastBlock{-1};
