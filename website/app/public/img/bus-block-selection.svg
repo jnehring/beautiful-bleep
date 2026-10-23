@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 304" role="img" aria-labelledby="t d">
+  <title id="t">How a reader picks a block</title>
+  <desc id="d">Each output keeps four block slots. A reader considers the three newest finished blocks and picks one by the position rule, then the time rule, otherwise it holds its last sample.</desc>
+  <style>
+    :root { --bg:#fbfaf7; --fg:#1b1d22; --muted:#646b78; --card:#ffffff; --line:#cfcdc6; --accent:#0f9488; --tint:#e3f4f1; --warn:#b4570a; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#15171c; --fg:#e7e9ee; --muted:#9aa1b1; --card:#1d2027; --line:#3a404d; --accent:#4fd1c5; --tint:#1c3a38; --warn:#f0a050; } }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: var(--fg); }
+    .box { fill: var(--card); stroke: var(--line); stroke-width: 1.5; }
+    .hub { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .name { font-size: 16px; font-weight: 650; text-anchor: middle; }
+    .sub { font-size: 12.5px; fill: var(--muted); text-anchor: middle; }
+    .cap { font-size: 12.5px; font-weight: 600; text-anchor: middle; }
+    .capa { font-size: 12.5px; font-weight: 600; text-anchor: middle; fill: var(--accent); }
+    .link { stroke: var(--accent); stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .thin { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+    .head { fill: var(--accent); }
+    .on { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .cur { fill: var(--card); stroke: var(--warn); stroke-width: 2.5; }
+  </style>
+  <rect width="760" height="304" rx="14" fill="var(--bg)"/>
+<text class="name" x="380" y="30">One output, four slots, blocks_written = W</text><rect class="on" x="40" y="46" width="160" height="56" rx="10"/><text class="name" x="120" y="70">block W−3</text><text class="sub" x="120" y="90">finished</text><rect class="on" x="215" y="46" width="160" height="56" rx="10"/><text class="name" x="295" y="70">block W−2</text><text class="sub" x="295" y="90">finished</text><rect class="on" x="390" y="46" width="160" height="56" rx="10"/><text class="name" x="470" y="70">block W−1</text><text class="sub" x="470" y="90">finished</text><rect class="cur" x="565" y="46" width="160" height="56" rx="10"/><text class="name" x="645" y="70">block W</text><text class="sub" x="645" y="90">being written</text>
+  <text class="capa" x="380" y="128">Reader candidates, newest first: W−1, W−2, W−3</text>
+
+  <rect class="box" x="24" y="146" width="224" height="112" rx="12"/>
+  <text class="name" x="136" y="172">1 · Position rule</text>
+  <text class="sub" x="136" y="194">both reader blocks playing:</text>
+  <text class="sub" x="136" y="212">newest candidate with the same</text>
+  <text class="sub" x="136" y="230">transport_sample_pos as prev</text>
+  <text class="sub" x="136" y="248">exact, also in loops and export</text>
+
+  <rect class="box" x="268" y="146" width="224" height="112" rx="12"/>
+  <text class="name" x="380" y="172">2 · Time rule</text>
+  <text class="sub" x="380" y="194">otherwise, or if 1 finds none:</text>
+  <text class="sub" x="380" y="212">newest candidate with</text>
+  <text class="sub" x="380" y="230">time_ns + guard ≤ now</text>
+  <text class="sub" x="380" y="248">guard = half a block</text>
+
+  <rect class="box" x="512" y="146" width="224" height="112" rx="12"/>
+  <text class="name" x="624" y="172">3 · Hold</text>
+  <text class="sub" x="624" y="194">nothing valid found:</text>
+  <text class="sub" x="624" y="212">repeat the last sample read</text>
+  <text class="sub" x="624" y="230">from this cable</text>
+  <text class="sub" x="624" y="248">(0 at first)</text>
+
+  <path class="link" d="M252 202 H260"/><path class="head" d="M268 202 l-10 -6 v12 z"/>
+  <path class="link" d="M496 202 H504"/><path class="head" d="M512 202 l-10 -6 v12 z"/>
+  <text class="sub" x="380" y="286">A candidate counts only if its seqlock reads consistently and its block_index matches.</text>
+</svg>

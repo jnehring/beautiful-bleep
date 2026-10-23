@@ -12,6 +12,7 @@ order: -10
 
 | Step | Page |
 |---|---|
+| See how it fits together | [Architecture and signal flow](architecture.md) |
 | Send and receive a signal in 15 minutes | [Quickstart](quickstart.md) |
 | Every function, type and error | [API reference](../api-reference/00-overview.md) |
 | Implement the protocol without the SDK | [Specification v0.1](../spec/v0.1/00-overview.md) |
