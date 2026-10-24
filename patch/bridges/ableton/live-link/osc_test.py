@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 """Stands in for Bleep Board while you build the Bleep Live Link device in Max for Live.
 
 A device has 4 rows (0..3) and a CHANNEL (1..8); it listens on UDP port 9871 + channel - 1. This sends

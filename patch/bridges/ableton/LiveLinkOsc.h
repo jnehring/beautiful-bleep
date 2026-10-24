@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // The few OSC messages between the board and the Bleep Live Link devices (Max for Live), without JUCE.
 //
 // A device has 4 rows and listens on the port of its CHANNEL (1, 2, …): a UDP port can only be bound once, so each device
