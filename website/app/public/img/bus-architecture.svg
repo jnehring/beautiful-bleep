@@ -19,7 +19,7 @@
   </style>
   <rect width="760" height="376" rx="14" fill="var(--bg)"/>
 
-  <rect class="hub" x="200" y="196" width="360" height="62" rx="12"/>
+  <rect class="hub" x="24" y="196" width="712" height="62" rx="12"/>
   <text class="name" x="380" y="222">Shared-memory segment</text>
   <text class="sub" x="380" y="242">/bleepbus-v0-default · 17 187 072 bytes · mode 0600</text>
 
@@ -41,8 +41,7 @@
   <rect class="box" x="562" y="86" width="158" height="22" rx="6"/><text class="cap" x="641" y="101">edits cables</text>
   <rect class="box" x="562" y="112" width="158" height="22" rx="6"/><text class="cap" x="641" y="127">bb_conformance inspect</text>
 
-  <path class="link" d="M119 142 V188"/><path class="head" d="M119 196 l-6 -10 h12 z"/><path class="link" d="M380 142 V188"/><path class="head" d="M380 196 l-6 -10 h12 z"/><path class="link" d="M641 142 V227 H568"/>
-  <path class="head" d="M560 227 l10 -6 v12 z"/>
+  <path class="link" d="M119 142 V188"/><path class="head" d="M119 196 l-6 -10 h12 z"/><path class="link" d="M380 142 V188"/><path class="head" d="M380 196 l-6 -10 h12 z"/><path class="link" d="M641 142 V188"/><path class="head" d="M641 196 l-6 -10 h12 z"/>
   <text class="sub" x="160" y="172" style="text-anchor:start">publish / read</text>
   <text class="sub" x="420" y="172" style="text-anchor:start">publish / read</text>
   <text class="sub" x="652" y="172" style="text-anchor:start">registry lock</text>
