@@ -462,7 +462,8 @@ std::vector<ParamSpec> ccParams() {
 // ---- Live Params ---------------------------------------------------------------------------------------------
 // The board's side of one Bleep Live Link Max for Live device (the one with the same channel), which modulates, switches or
 // selects parameters of Ableton Live (or of any plugin in the set). Each of the four rows is a knob that cables can also
-// feed (the board's usual model: knob + cables), with a Min and a Max: the row's value 0..1 is scaled into that part of a
+// feed (the board's usual model: knob + cables), and has a CV input jack that adds to it: a row's value is its knob plus
+// its CV input. Min and Max scale it: the row's value 0..1 is scaled into that part of a
 // continuous parameter's range. A discrete parameter (a switch, a menu) takes the value as it is: 0 is its first item,
 // 1 its last. The node only publishes the values (LiveParams.h); Bleep Board's sender (bridges/ableton/LiveLinkSender)
 // reads them through IEngine::liveParams and sends them to the device, which owns the mapping to Live's parameters. It is
@@ -505,7 +506,8 @@ public:
         const int last = c.numSamples - 1;
         for (int r = 0; r < patch::kRowsPerChannel; ++r) {
             const int k = (ch - 1) * patch::kRowsPerChannel + r;
-            const float v = c.params[Row1 + r][last];   // the knob plus the cables that feed it
+            // the knob plus the cables that feed it, plus this row's CV input (its cables, each at its own amount)
+            const float v = c.params[Row1 + r][last] + (c.inputConnected[r] ? c.inputs[r][last] : 0.0f);
             box.publish(k, box.isDiscrete(k) ? v : patch::scaleIntoRange(v, c.params[Min1 + r][last], c.params[Max1 + r][last]));
         }
     }
@@ -650,8 +652,11 @@ void registerPortModules(Registry& r) {
         s.colour = "#ff9f43";
         s.description = "Modulates, switches and selects parameters of Ableton Live, or of any plugin in the set: four rows, "
                         "matching one Bleep Live Link Max for Live device with the same channel. Each row is a knob that "
-                        "cables can feed; Min and Max scale it into part of a continuous parameter's range.";
+                        "cables can feed, with a CV input that adds to it; Min and Max scale it into part of a continuous "
+                        "parameter's range.";
         s.params = {ParamSpec::integer("channel", "Channel", 1, patch::kNumChannels, 1)};
+        for (int k = 1; k <= patch::kRowsPerChannel; ++k)   // a CV input per row: it adds to the row's knob
+            s.inputs.push_back({"cv" + std::to_string(k), "CV " + std::to_string(k), Signal::Control});
         for (int k = 1; k <= patch::kRowsPerChannel; ++k)
             s.params.push_back(ParamSpec::percent("v" + std::to_string(k), "Row " + std::to_string(k), 0.0f, 1.0f, 0.5f)
                                    .inGroup("Row " + std::to_string(k)));

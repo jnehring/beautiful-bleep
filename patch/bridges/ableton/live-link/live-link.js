@@ -43,7 +43,7 @@
 //                It also sets the button's texts: `text` (when off) and `texton` (when on). Give the button the texts
 //                "Map" and "Mapping..." in its Inspector. Unmapped: "Map" / "Mapping..."; mapped: the on-text is the
 //                parameter's name; "not mappable" while waiting for a click; "no answer" after a failed read.
-//     9  info    to `udpsend 127.0.0.1 9880`: "/bleep/info <channel> <row> <kind> <name> <current> <min> <max> <adopt> <items…>"
+//     9  info    (repeated every 2 s while the row is mapped) to `udpsend 127.0.0.1 9880`: "/bleep/info <channel> <row> <kind> <name> <current> <min> <max> <adopt> <items…>"
 //                what this row is mapped to (kind: continuous or discrete; current: the parameter's position 0..1 when it was
 //                mapped; min, max: its range; adopt: 1 right after mapping), or "/bleep/info <channel> <row> none".
 
@@ -67,8 +67,10 @@ var expectZero = false;                   // we told live.map to unmap, and it a
 var awaitingName = false;                 // live.object was asked for the parameter's name
 var ANSWER_MS = 500;                      // live.object answers at once; no answer by then means it cannot
 var ADOPT_MS = 300;                       // how long the board's values are ignored after mapping
+var INFO_MS = 2000;                       // while a row is mapped its report is repeated this often (a board that starts late, or was busy, then catches up)
 var waiting = new Task(giveUp, this);
 var adoptTask = new Task(endAdopt, this);
+var infoTask = new Task(repeatInfo, this);
 
 // "set <text>": a comment or textedit shows it (a plain symbol would not be shown).
 function status(text) { outlet(1, "set", text); }
@@ -100,6 +102,14 @@ function sendInfo(adopt) {
                    position(orig), lo, hi, adopt ? 1 : 0];
     if (kind === "discrete") message = message.concat(items);
     outlet(9, message);
+}
+
+/// The report again, without "adopt": nothing moves on the board, but a board that missed it (it started later, its port was busy)
+/// learns it. Repeats itself while the row is mapped.
+function repeatInfo() {
+    if (!attached || infoName === null) return;
+    sendInfo(false);
+    infoTask.schedule(INFO_MS);
 }
 
 function sendNone(forChannel) {
@@ -186,6 +196,7 @@ function boardReleased() {
 function release(putBack) {
     waiting.cancel();
     adoptTask.cancel();
+    infoTask.cancel();
     var wasMapped = attached;
     if (attached) {
         if (kind === "dial") {
@@ -309,6 +320,7 @@ function anything() {
                 status(infoName);
                 outlet(8, "texton", infoName);   // the locked Map button shows what it is mapped to
                 sendInfo(true);
+                infoTask.schedule(INFO_MS);
             }
             break;
         case "value_items":

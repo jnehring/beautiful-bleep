@@ -19,7 +19,7 @@ the row's knob to the parameter's position, so nothing jumps. There is no base v
 
 | Piece | Where | State |
 |---|---|---|
-| **Live Params** node: a *Channel* setting (1–8) and four rows, each a knob with a Min and a Max (no input jacks: cables go onto the knobs) | board, built into the engine (`patch/engine/PortModules.cpp`, with the ports) | built |
+| **Live Params** node: a *Channel* setting (1–8) and four rows, each a knob with a Min and a Max and a CV input jack that adds to the knob (cables can also go straight onto the knob) | board, built into the engine (`patch/engine/PortModules.cpp`, with the ports) | built |
 | Mailbox: 8 channels × 4 rows of absolute values (0..1, or -1: not driven); a flag per row for "discrete" | engine, `LiveParams.h` | built |
 | `IEngine::liveParams()` (ABI minor 3): the plugins read the values through the shared engine | `EngineApi.h` | built |
 | `IEngine::setLiveRowInfo()` (ABI minor 4): a device reports what a row is mapped to; the engine keeps it and moves the node's knob | `EngineApi.h`, `Engine.cpp` | built |
@@ -49,7 +49,8 @@ channels (one Live Params node and one device each), 32 rows. Two devices on one
 (f: the parameter's position 0..1 when it was mapped), `min`, `max` (f: its own range), `adopt` (i: 1 right after mapping), then for
 a discrete parameter its choices, one string each. `none` ends after the kind: the row is not mapped. Max sends whole numbers as
 ints and a name like "4" as a number, so every argument is read as either. The board moves the node's row knob to `current` when
-`adopt` is 1; the device ignores the board's values for 300 ms meanwhile, so the parameter does not jump.
+`adopt` is 1; the device ignores the board's values for 300 ms meanwhile, so the parameter does not jump. While a row is mapped the
+device repeats its report every 2 seconds (with adopt 0), so a board that started later, or whose port was busy, catches up.
 
 `patch/bridges/ableton/live-link/osc_test.py` plays either side: it sends the board's `/bleep/param` (`--channel` picks the
 device), plays the device's `/bleep/info` to a running board (`info`), shows what the board sends (`listen`) and what the devices
@@ -163,7 +164,7 @@ Still to do: the four-row device with channel and name display; and the whole ch
 - **A Live Params node has a *Channel* setting (1–8) and four rows**, matching one device (4 rows, one channel). A board uses as
   many nodes as it has devices; two nodes on one channel are a mistake the node should show (not built). 8 channels, so 32 rows
   and a 32-value `liveParams()` call.
-- **A row is a knob that cables can feed, with a Min and a Max** (the board's usual "knob plus cables"), not an input jack. The
+- **A row is a knob that cables can feed, with a CV input jack and a Min and a Max** (the board's usual "knob plus cables"). The
   knob is the base value, the cable's amount is the depth, and Min and Max scale a *continuous* row into part of the parameter's
   range. The device therefore has no base logic and no amount dial: it writes the position the board sends.
 - **The device tells the board what a row is mapped to** (`/bleep/info`): the node's view shows the name, continuous or

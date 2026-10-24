@@ -84,6 +84,31 @@ void cablesFeedTheKnobs() {
     EXPECT_NEAR(r.values()[2], 0.1 + 0.5 * 0.5, 1e-3);   // the knob plus the cable: the board's usual model
 }
 
+void cvInputsAddToTheirRows() {
+    g_test = "live params: cv inputs";
+    clearMailbox();
+    Rig r;
+    auto src = node("d", "dial");
+    src.getDynamicObject()->setProperty("params", obj({{"value", 0.5}}));
+    r.addNode("lp", obj({{"v2", 0.1}, {"lo2", 0.0}, {"hi2", 1.0}, {"v4", 0.2}}));
+    auto edited = copyOf(r.e->board());
+    edited["nodes"].getArray()->add(src);
+    edited["cables"].getArray()->add(cable("d", "out", "lp", "cv2", 0.5));   // into row 2's CV input, at half amount
+    r.e->commit(edited, "cv");
+    r.run();
+    const auto v = r.values();
+    EXPECT_NEAR(v[1], 0.1 + 0.5 * 0.5, 1e-3);   // the knob plus the CV input
+    EXPECT_NEAR(v[3], 0.2, 1e-4);               // a row whose CV input is not patched: just its knob
+    EXPECT_NEAR(v[0], 0.5, 1e-4);               // and the other rows keep theirs
+    // the CV input is scaled into Min..Max like everything else
+    auto again = copyOf(r.e->board());
+    for (auto& n : *again["nodes"].getArray())
+        if (n["id"].toString() == "lp") n.getDynamicObject()->getProperty("params").getDynamicObject()->setProperty("hi2", 0.5);
+    r.e->commit(again, "max");
+    r.run();
+    EXPECT_NEAR(r.values()[1], 0.0 + 0.35 * 0.5, 1e-3);
+}
+
 void discreteRowsAreNotScaled() {
     g_test = "live params: discrete";
     clearMailbox();
@@ -201,6 +226,7 @@ void whatTheDeviceReportsIsKept() {
 void runLiveParamsTests() {
     publishesTheKnobScaledIntoMinMax();
     cablesFeedTheKnobs();
+    cvInputsAddToTheirRows();
     discreteRowsAreNotScaled();
     aNodeOnAnotherChannelDrivesOtherRows();
     removingTheNodeReleasesItsRows();

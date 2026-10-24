@@ -156,7 +156,7 @@ Bleep Board **not** running (or its Live Params node on another channel), so the
 | Info | `osc_test.py watch`, then map a row | it prints the channel and row, *continuous* or *discrete*, the name, the range, and for a discrete parameter its choices; × prints *not mapped* |
 | Reload | Save the set, quit Live, reopen | the mappings and the Channel are still there |
 
-With the board: Bleep Board, a **Live Params** node on the device's channel, a source cabled onto a row's knob (drag a cable onto the
+With the board: Bleep Board, a **Live Params** node on the device's channel, a source cabled into a row's **CV** input (or onto its
 knob). After you map a row, the node's view shows what it is mapped to, and its knob jumps to the parameter's position.
 
 ## 7. Open points to look at
@@ -164,7 +164,8 @@ knob). After you map a row, the node's view shows what it is mapped to, and its 
 - **Mappings after a reload:** it is not known whether `live.map` sends the id again when the set loads. If it does, `js` reads the
   parameter's position again and tells the board, which moves the knob there; that may be a driven position, not the one you set.
   Check after reopening.
-- **A board that starts after the device:** it has not heard the info. Change the channel, or press × and map again, to send it.
+- **A board that starts after the device, or whose port 9880 was busy:** the device repeats each mapped row's report every 2 seconds, so the node
+  catches up by itself. (A leftover `osc_test.py watch` holds port 9880 and keeps the board from hearing anything: stop it.)
 - **`channel in use`:** two devices on one channel is not detected; the second one silently receives nothing.
 - **`udpreceive` `port` message:** see section 1.
 - **The first 300 ms after mapping** ignore the board's values (they would be the knob's old position). If the board is slow to

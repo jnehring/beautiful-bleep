@@ -12,9 +12,10 @@ supports eight channels, so 32 rows.
 
 ## How does it work?
 
-**A row is a knob.** Each row has a **Row** knob, and the board's usual rule applies: *the knob plus the cables that feed it*.
-Drag a cable from an LFO, an envelope or any other source onto the knob, and set the cable's amount for the depth. The knob is
-the centre the modulation moves around.
+**A row is a knob with a CV input.** Each row has a **Row** knob and a **CV** input jack on the node, and the board's usual rule
+applies: *the knob plus the signals that feed it*. Cable an LFO, an envelope or any other source into **CV 1 to CV 4** (or drag a
+cable straight onto the knob: it does the same), and set the cable's amount for the depth. The knob is the centre the modulation
+moves around.
 
 **Min and Max.** For a *continuous* parameter (a dial) the row's value is scaled into **Min** to **Max**: 0% to 100% is the whole
 range of the Live parameter, and Min 30% / Max 70% keeps the modulation in the middle of it. Max below Min turns it round.
@@ -43,12 +44,12 @@ fills the undo history.
 
 | Knob | Does |
 |---|---|
-| Channel | which Bleep Live Link device (1 to 8) this node talks to |
+| Channel | which Bleep Live Link device (1 to 8) this node talks to; in the view it is the menu in the top right corner |
 | Row 1 … 4 | the row's value, 0 to 1, and a target for cables |
 | Min 1 … 4 | where a continuous parameter's range starts (default 0%) |
 | Max 1 … 4 | where it ends (default 100%) |
 
-There are no input jacks: cables go onto the knobs.
+| CV 1 … 4 (inputs) | add to the row's knob; each takes any number of cables, each at its own amount |
 
 ## Without Max for Live
 

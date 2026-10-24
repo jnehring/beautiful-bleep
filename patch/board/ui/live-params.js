@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
 // live-params.js — the Live Params node's view: for each of its four rows, what the Bleep Live Link device on the node's channel has
 // mapped it to (the parameter's name and whether it is continuous or discrete), and for a discrete parameter its choices and the value
-// that picks each one. The knobs below are the rows' values and their Min and Max. The engine sends the device's report as text with
+// that picks each one. The knobs below are the rows' values and their Min and Max; the Channel is a menu in the top right corner.
+// The node also has a CV input per row (it adds to the row's knob). The engine sends the device's report as text with
 // the node's live state (Module::liveText, "info": {channel, rows: [{row, kind, name, current, min, max, items}]}).
 (function () {
   "use strict";
@@ -10,6 +11,8 @@
   const pct = (v) => Math.round(Math.min(1, Math.max(0, v)) * 100) + "%";
 
   const CSS =
+    ".lp-top{position:absolute;top:8px;right:10px;display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);z-index:1}" +
+    ".lp-top select{font:inherit;letter-spacing:normal;text-transform:none;font-size:12px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:2px 4px}" +
     ".lp{display:flex;flex-direction:column;gap:6px;flex:1 1 100%;font-size:12px}" +
     ".lp-row{background:var(--panel-3);border-radius:8px;padding:6px 9px;display:flex;flex-direction:column;gap:4px}" +
     ".lp-head{display:flex;align-items:baseline;gap:8px;min-width:0}" +
@@ -30,6 +33,12 @@
   function parse(st) {
     if (!st || typeof st.info !== "string" || !st.info) return null;
     try { return JSON.parse(st.info); } catch (e) { return null; }
+  }
+
+  /// The Channel menu in the top right corner follows the node (undo, another edit) and moves it.
+  function syncChannel(view) {
+    const sel = view.lpChannel;
+    if (sel && document.activeElement !== sel) sel.value = String(channelOf(view));
   }
 
   function channelOf(view) {
@@ -89,15 +98,38 @@
     width: 560,
     top: true,
     template: `<style>${CSS}</style><div class="lp"></div>`,
-    layout: [
-      { title: "Channel", params: ["channel"] },
-      ...Array.from({ length: ROWS }, (_, r) => ({ title: "Row " + (r + 1), params: ["v" + (r + 1), "lo" + (r + 1), "hi" + (r + 1)] })),
-    ],
+    hideParams: ["channel"],   // the menu in the corner replaces it (cables can still drive it)
+    layout: Array.from({ length: ROWS }, (_, r) => ({ title: "Row " + (r + 1), params: ["v" + (r + 1), "lo" + (r + 1), "hi" + (r + 1)] })),
     afterBuild(view, el) {
       view.lpBox = el.querySelector(".lp");
+      // The Channel menu: top right corner of the view. The description makes room for it.
+      const p = view.type.params.find((x) => x.id === "channel");
+      const top = document.createElement("label");
+      top.className = "lp-top";
+      top.appendChild(document.createTextNode("Channel"));
+      const sel = document.createElement("select");
+      for (let c = p.min; c <= p.max; ++c) {
+        const o = document.createElement("option");
+        o.value = o.textContent = String(c);
+        sel.appendChild(o);
+      }
+      sel.addEventListener("change", () => {
+        const v = (parseInt(sel.value, 10) - p.min) / (p.max - p.min);
+        view.api.beginGesture();
+        view.node.params.channel = v;
+        view.api.setParam("channel", v);
+        render(view, view.lpState || null);
+      });
+      top.appendChild(sel);
+      view.root.style.position = "relative";
+      view.root.appendChild(top);
+      const description = view.root.querySelector(".bv-description");
+      if (description) description.style.paddingRight = "130px";
+      view.lpChannel = sel;
+      syncChannel(view);
       render(view, null);
     },
-    onState(st, view) { render(view, st); },
-    onRefresh(view) { render(view, view.lpState || null); },
+    onState(st, view) { syncChannel(view); render(view, st); },
+    onRefresh(view) { syncChannel(view); render(view, view.lpState || null); },
   });
 })();

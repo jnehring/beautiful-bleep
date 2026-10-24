@@ -44445,7 +44445,7 @@
     "name": "Live Params",
     "category": "Ports",
     "colour": "#ff9f43",
-    "description": "Modulates, switches and selects parameters of Ableton Live, or of any plugin in the set: four rows, matching one Bleep Live Link Max for Live device with the same channel. Each row is a knob that cables can feed; Min and Max scale it into part of a continuous parameter's range.",
+    "description": "Modulates, switches and selects parameters of Ableton Live, or of any plugin in the set: four rows, matching one Bleep Live Link Max for Live device with the same channel. Each row is a knob that cables can feed, with a CV input that adds to it; Min and Max scale it into part of a continuous parameter's range.",
     "port": "",
     "creatable": true,
     "standaloneOnly": false,
@@ -44645,7 +44645,32 @@
         "group": "Row 4"
       }
     ],
-    "inputs": [],
+    "inputs": [
+      {
+        "id": "cv1",
+        "name": "CV 1",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cv2",
+        "name": "CV 2",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cv3",
+        "name": "CV 3",
+        "type": "control",
+        "bipolar": true
+      },
+      {
+        "id": "cv4",
+        "name": "CV 4",
+        "type": "control",
+        "bipolar": true
+      }
+    ],
     "outputs": []
   },
   {

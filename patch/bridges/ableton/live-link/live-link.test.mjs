@@ -29,6 +29,7 @@ function row() {
         ctx, send, drain, out,
         timeout: () => fire(ctx.waiting),          // live.object did not answer in time
         settle: () => fire(ctx.adoptTask),         // the board had its moment to move the row's knob
+        tick: () => fire(ctx.infoTask),            // two seconds passed: the report is repeated
         value: (x) => ctx.msg_float(x),            // a value from the board
     };
 }
@@ -608,6 +609,47 @@ test("a late answer after × does not lock the button again", () => {
     r.send("max", 1);
     r.send("value", 0.5);
     assert.deepEqual(button(r.drain()), []);
+});
+
+test("while a row is mapped its report is repeated, without adopt, so a board that missed it catches up", () => {
+    const r = row();
+    named(r, { args: [7, 0.25, 0, 1] });
+    r.tick();
+    assert.deepEqual(infos(r.drain()), [["/bleep/info", 2, 2, "continuous", "Frequency", 0.25, 0, 1, 0]]);
+    r.tick();
+    assert.deepEqual(infos(r.drain()), [["/bleep/info", 2, 2, "continuous", "Frequency", 0.25, 0, 1, 0]], "and again");
+});
+
+test("the repeated report carries the choices of a discrete row, and stops when the row is unmapped", () => {
+    const r = row();
+    r.send("channel", 1);
+    r.send("row", 1);
+    r.send("id", 7);
+    r.send("is_quantized", 1);
+    r.send("value_items", "Off", "On");
+    r.send("min", 0);
+    r.send("max", 1);
+    r.send("value", 0);
+    r.drain();
+    r.send("name", "Device", "On");
+    r.drain();
+    r.tick();
+    assert.deepEqual(infos(r.drain()), [["/bleep/info", 1, 0, "discrete", "Device On", 0, 0, 1, 0, "Off", "On"]]);
+    r.send("unmap");
+    r.drain();
+    r.tick();
+    assert.deepEqual(r.drain(), [], "nothing is repeated for an unmapped row");
+    assert.equal(r.ctx.infoTask.armed, false);
+});
+
+test("a row without channel and row repeats nothing", () => {
+    const r = row();
+    mapDial(r);
+    r.drain();
+    r.send("name", "Frequency");
+    r.drain();
+    r.tick();
+    assert.deepEqual(infos(r.drain()), []);
 });
 
 console.log(`${n} tests passed`);
