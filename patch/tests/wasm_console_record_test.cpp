@@ -247,45 +247,6 @@ int main(int argc, char** argv) {
             CHECK(a.frames == 100 * kChunk && b.frames == 100 * kChunk, "take lengths %zu %zu (expected %d)", a.frames, b.frames, 100 * kChunk);
         }
     }
-    std::printf("mp3: the format reaches the host's encoder, which writes .mp3 files\n");
-    {
-        const fs::path root = freshRoot("mp3");
-        Rig r(spec, package);
-        r.set("ch1_arm", 1.0f);
-        r.set("master_arm", 1.0f);
-        r.set("recformat", 3.0f);   // MP3 192 kbps
-        r.run(70);
-        r.module->command("record", 1.0f);
-        r.run(5);
-        r.run(1000);   // 0.67 s of audio
-        r.module->command("record", 1.0f);
-        for (int i = 0; i < 4; ++i) { r.run(70); r.poll(); }
-        // the files are done when they stop growing (close() finishes them on another thread)
-        std::uintmax_t last = 0, now = 0;
-        fs::path found;
-        for (int i = 0; i < 300; ++i) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
-            found.clear();
-            if (fs::exists(root))
-                for (const auto& e : fs::directory_iterator(root))
-                    if (fs::exists(e.path() / "Ch 1.mp3") && fs::exists(e.path() / "Master.mp3")) found = e.path();
-            if (found.empty()) continue;
-            now = fs::file_size(found / "Master.mp3");
-            if (now > 0 && now == last) break;
-            last = now;
-        }
-        if (!recording::mp3Available()) {
-            CHECK(found.empty(), "no MP3 without an encoder");
-        } else {
-            CHECK(!found.empty(), "the .mp3 files were not made");
-            if (!found.empty()) {
-                const double expected = 0.667 * 24000.0;   // 192 kbps, per track
-                CHECK(std::fabs((double)fs::file_size(found / "Ch 1.mp3") - expected) < expected * 0.25, "Ch 1.mp3 is %ju bytes", (std::uintmax_t)fs::file_size(found / "Ch 1.mp3"));
-                CHECK(std::fabs((double)fs::file_size(found / "Master.mp3") - expected) < expected * 0.25, "Master.mp3 is %ju bytes", (std::uintmax_t)fs::file_size(found / "Master.mp3"));
-                CHECK(!fs::exists(found / "Ch 1.wav"), "no WAV next to it");
-            }
-        }
-    }
     std::printf("wasm audio console record: %d failures\n", failures);
     return failures == 0 ? 0 : 1;
 }

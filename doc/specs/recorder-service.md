@@ -1,6 +1,6 @@
 # Recorder service
 
-Status: built for the apps and the plugins (native engine, with MP3 when built with LAME and a Recordings folder chosen in Settings) and for wasm modules: the Audio Console built as a real
+Status: built for the apps and the plugins (native engine, with a Recordings folder chosen in Settings) and for wasm modules: the Audio Console built as a real
 `.wasm` records through the host's imports (`tests/wasm_console_record_test.cpp`). The browser has a memory recorder
 (`web/js/web-recorder.js`, `web-recordings.js`) that keeps takes under a fixed budget and offers them as a zip; it is tested
 under node with the real console and has not been run in a browser yet.
@@ -38,8 +38,7 @@ Session::status() → { takeOpen, take, frames, failed, message, folder }   [any
 
 - **Tracks.** A track is `{name, channels}` with one or two channels; one track is one file. A session has at most
   `kMaxTracks` (40) tracks, fixed when it opens.
-- **Formats.** WAV, 16-bit or 24-bit integer, or 32-bit float; or MP3 at 192 or 320 kbps (section 3, *MP3*). `bytesPerSecond(format, channels, rate)`
-  is what one track takes per second, for the *time left* display (an MP3 track takes its bit rate, whether it has one channel or two).
+- **Formats.** WAV, 16-bit or 24-bit integer, or 32-bit float.
 - **Takes.** `beginTake()` and `endTake()` mark a take on every track at once. A session has any number of takes,
   recorded one after the other into new files. Within a take every track must receive the same number of frames.
 - **`write()`** copies into the track's ring buffer and returns at once. It returns false when the ring is full
@@ -62,14 +61,6 @@ the library's settings use (`~/Library/Application Support/Bleep`, `%APPDATA%\Bl
 overrides it), so the app and every plugin share it, and is read once when the service is installed. A running session keeps its
 folder. `recording::setFolder` sets it for one run only (tests). The page can also open a folder chooser and show the folder in the
 file manager.
-
-**MP3.** The encoder is LAME (LGPL), used through `lame/lame.h`: one encoder per track and take, constant bit rate (192 or 320 kbps),
-joint stereo for a stereo track, quality 2, fed by the writer thread, which flushes it when the take ends; above 48 kHz LAME resamples.
-It is a build option: `BLEEP_MP3` (on) finds `libmp3lame.a` and the header on the system and defines `BLEEP_HAVE_LAME`; without them
-everything builds and `open()` refuses an MP3 session with "This build cannot write MP3" (`mp3Available()`). A release build has to bring
-LAME itself (vendored, or a build without its decoder: Homebrew's static library also needs libmpg123, which CMake links when it finds it).
-MP3 costs CPU on the writer thread, one encoder per track; there is no gapless tag at the start of the files yet. The browser does
-not write MP3 (section 5).
 
 **What is written.**
 
@@ -104,7 +95,7 @@ host provides (`developers/modules/module-abi.md`, section 5b). In a wasm build,
 whose calls become these imports; on the host, `WasmModule` answers them with the same disk service.
 
 ```
-bleep_record_open(spec, specLength, sampleRate, format) → handle    spec: JSON {"name", "tracks": [{"name", "channels"}]}; format 0-2 WAV, 3 MP3 192, 4 MP3 320
+bleep_record_open(spec, specLength, sampleRate, format) → handle    spec: JSON {"name", "tracks": [{"name", "channels"}]}; format 0 = 16-bit, 1 = 24-bit, 2 = 32-bit float
 bleep_record_take(handle, begin) → ok
 bleep_record_write(handle, track, left, right, frames) → ok
 bleep_record_status(handle, frames*, take*) → flags
@@ -172,9 +163,9 @@ follow-transport session with two takes.
   browsers that have the File System Access API, into a folder the user picks.
 - **Browser: streaming downloads.** A service worker that streams a zip to the download manager while the take
   is recorded.
-- **MP3 in the browser.** The memory service refuses it today ("MP3 is not available in the browser yet"). An encoder compiled to
-  wasm (LAME or lamejs) could convert the take after it ends, faster than real time, as one more step of the zip.
-- **A gapless header** (the LAME tag) in the MP3 files, VBR, and FLAC.
+- **MP3** (and FLAC). LAME (LGPL) is the usual encoder: one per track on the writer's thread, constant bit rate, and a gapless header; the
+  browser could convert after a take with an encoder compiled to wasm. Left out for now: an encoder is a dependency that a release has to
+  bring and a licence it has to carry.
 - **A sandbox-aware Recordings folder** for hosts that restrict the folders a plugin may write to.
 - **Pre-roll** for takes that start on a transport start, and **punch in/out** from a gate.
 - Writing 64-bit WAV (RF64) so a take can pass 4 GB.

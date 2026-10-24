@@ -176,54 +176,6 @@ static void refusals() {
     EXPECT(rec::service()->freeBytes() > 0.0);
 }
 
-static void mp3() {
-    TEST("MP3: a take is a valid .mp3 file of the right size that decodes to what was recorded, or the build says it cannot");
-    std::string error;
-    if (!rec::mp3Available()) {
-        const fs::path root = freshRoot("mp3-none");
-        EXPECT(rec::service()->open("x", {{"A", 1}}, 48000.0, rec::Format::Mp3_192, &error) == nullptr && error.find("MP3") != std::string::npos);
-        return;
-    }
-    const fs::path root = freshRoot("mp3");
-    auto s = rec::service()->open("Mp3", {{"A", 1}, {"B", 2}}, 48000.0, rec::Format::Mp3_192, &error);
-    EXPECT(s != nullptr);
-    if (!s) return;
-    const int seconds = 3, total = seconds * 48000;
-    s->beginTake();
-    for (int at = 0; at < total; at += 1024) {
-        const int n = std::min(1024, total - at);
-        std::vector<float> l((size_t)n), r((size_t)n);
-        for (int i = 0; i < n; ++i) l[(size_t)i] = 0.5f * (float)std::sin(2.0 * 3.14159265358979 * 1000.0 * (at + i) / 48000.0), r[(size_t)i] = -l[(size_t)i];
-        const float* ch[2] = {l.data(), r.data()};
-        EXPECT(s->write(0, ch, n) && s->write(1, ch, n));
-        std::this_thread::sleep_for(std::chrono::milliseconds(4));   // a full buffer would fail the session (by design): stay ahead of the writer
-    }
-    s->endTake();
-    s.reset();
-    const fs::path dir = sessionDir(root);
-    const fs::path a = dir / "A.mp3", b = dir / "B.mp3";
-    EXPECT(fs::exists(a) && fs::exists(b) && !fs::exists(dir / "A.wav"));
-    const double expected = seconds * 24000.0;   // 192 kbps, a track of one or two channels
-    EXPECT(std::fabs((double)fs::file_size(a) - expected) < expected * 0.1);
-    EXPECT(std::fabs((double)fs::file_size(b) - expected) < expected * 0.1);
-    {
-        std::ifstream in(a, std::ios::binary);
-        unsigned char h[2] = {};
-        in.read(reinterpret_cast<char*>(h), 2);
-        EXPECT(h[0] == 0xFF && (h[1] & 0xE0) == 0xE0);   // a frame sync
-    }
-    if (std::system("which lame > /dev/null 2>&1") == 0) {   // the lame tool can decode what the library encoded
-        const fs::path wav = dir / "decoded.wav";
-        EXPECT(std::system(("lame --decode --silent \"" + b.string() + "\" \"" + wav.string() + "\"").c_str()) == 0);
-        const Wav d = readWav(wav);
-        EXPECT(d.ok && d.channels == 2 && d.rate == 48000);
-        EXPECT(d.frames() > (size_t)(seconds * 48000 - 4000) && d.frames() < (size_t)(seconds * 48000 + 4000));
-        double peakL = 0.0, peakR = 0.0;
-        for (size_t i = 24000; i < d.frames(); ++i) peakL = std::max(peakL, std::fabs(d.sample(i, 0))), peakR = std::max(peakR, std::fabs(d.sample(i, 1)));
-        EXPECT(std::fabs(peakL - 0.5) < 0.06 && std::fabs(peakR - 0.5) < 0.06);   // MP3 is lossy, not that lossy
-    }
-}
-
 static void settingsChoice() {
     TEST("the Recordings folder chosen in Settings is checked, applied and kept for the next start");
     std::string error;
@@ -278,7 +230,6 @@ int main() {
     unfinishedTakeIsFinishedOnClose();
     tooSlowFails();
     refusals();
-    mp3();
     settingsChoice();
     fs::remove_all(dataDir);
     return test::finish("recording");

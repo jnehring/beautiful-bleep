@@ -69,8 +69,7 @@ See [Recording](/docs/musicians/use/recording/) for the steps. In short:
   *Follow Transport* makes one take for every play-to-stop.
 - **Channel Tap:** *Input* records the channel as it arrives (the dry stem), *Post-fader* records it after the
   filters, EQ, fader and mute.
-- **Format:** WAV at 16-bit, 24-bit or 32-bit float, or MP3 at 192 or 320 kbps (about a tenth of the space; in the app and the
-  plugins, when they were built with the encoder).
+- **Format:** WAV at 16-bit, 24-bit or 32-bit float.
 - The panel shows how long you can still record. If the disk cannot keep up, the take ends and the panel says why.
 
 The tracks armed when you press Record are the tracks of that recording; arming during a recording changes the next one.

@@ -27,7 +27,7 @@ change applies to the next one.
 | An aux bus | The send bus, as it leaves the console: the sum of every channel's send. |
 | The master | The main output (after the master's EQ, fader and limiter). |
 
-The files are WAV, 24-bit by default (16-bit and 32-bit float are in **Format**), or **MP3** at 192 or 320 kbps, which is about a tenth of the space (the app and the plugins only, and only when your copy was built with the MP3 encoder; otherwise Bleep says so when you press Record and you choose a WAV format). Channels are named after their
+The files are WAV, 24-bit by default (16-bit and 32-bit float are in **Format**). Channels are named after their
 strip: click the name above a channel to rename it, and the file gets that name ("Kick.wav").
 
 ## Takes: manual or with the transport
@@ -63,8 +63,7 @@ what it has: download it before you start another. See the [recorder service](/d
 ## How long can I record?
 
 The panel shows **Time left**. It is the free space on the disk divided by how fast your armed tracks fill it: a mono
-track at 24 bit and 48 kHz is about 12 GB per day, so 32 tracks make about 0.4 TB per day (as MP3 at 192 kbps a track is about
-2 GB per day). If the disk cannot keep up or
+track at 24 bit and 48 kHz is about 12 GB per day, so 32 tracks make about 0.4 TB per day. If the disk cannot keep up or
 a file reaches 4 GB (the limit of a WAV file), the take ends and the panel says why. What was recorded up to then is
 kept.
 

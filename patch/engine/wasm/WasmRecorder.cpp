@@ -29,13 +29,7 @@ int32_t DiskRecorder::open(const std::string& specJson, double sampleRate, int32
         message_ = "Too many recordings are open.";
         return -1;
     }
-    if (format < 0 || format > 4) {
-        message_ = "Unknown file format.";
-        return -1;
-    }
-    const recording::Format formats[] = {recording::Format::Pcm16, recording::Format::Pcm24, recording::Format::Float32, recording::Format::Mp3_192,
-                                         recording::Format::Mp3_320};
-    const auto fmt = formats[format];
+    const auto fmt = format == 0 ? recording::Format::Pcm16 : format == 1 ? recording::Format::Pcm24 : recording::Format::Float32;
     std::string error;
     auto session = svc->open(v["name"].toString().toStdString(), tracks, sampleRate, fmt, &error);
     if (!session) {

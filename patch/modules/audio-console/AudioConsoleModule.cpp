@@ -304,8 +304,7 @@ private:
 
     recording::Format format() const {
         const int f = (int)setting(RecFormat);
-        return f == 0 ? recording::Format::Pcm16 : f == 1 ? recording::Format::Pcm24 : f == 2 ? recording::Format::Float32
-             : f == 3 ? recording::Format::Mp3_192 : recording::Format::Mp3_320;
+        return f == 0 ? recording::Format::Pcm16 : f == 1 ? recording::Format::Pcm24 : recording::Format::Float32;
     }
 
     std::string nameOf(int k) const {
@@ -326,9 +325,9 @@ private:
     }
 
     double armedBytesPerSecond() const {
-        double bytes = 0.0;
-        for (const auto& t : armedTracks()) bytes += recording::bytesPerSecond(format(), t.channels, sampleRate_);
-        return bytes;
+        int frames = 0;
+        for (const auto& t : armedTracks()) frames += t.channels;
+        return (double)frames * sampleRate_ * recording::bytesPerSample(format());
     }
 
     void openSession() {
@@ -347,7 +346,7 @@ private:
             s.channels = t.channels;
             s.name = t.kind == SessionBox::Track::Channel ? nameOf(t.index) : t.kind == SessionBox::Track::Aux ? "Aux " + std::to_string(t.index + 1) : "Master";
             specs.push_back(s);
-            bytes += recording::bytesPerSecond(format(), t.channels, sampleRate_);
+            bytes += (double)t.channels * sampleRate_ * recording::bytesPerSample(format());
         }
         box->bytesPerSecond = bytes;
         std::string error;
@@ -432,7 +431,7 @@ static void registerAudioConsoleModule(Registry& r) {
         s.params.push_back(ParamSpec::toggle("aux" + n + "_arm", "Aux " + n + " Arm", false).when("aux", j, kConsoleAux));
     }
     s.params.push_back(ParamSpec::choice("recmode", "Start and Stop", {"Manual", "Follow Transport"}, 0).inGroup("Record"));
-    s.params.push_back(ParamSpec::choice("recformat", "Format", {"WAV 16-bit", "WAV 24-bit", "WAV 32-bit float", "MP3 192 kbps", "MP3 320 kbps"}, 1).inGroup("Record"));
+    s.params.push_back(ParamSpec::choice("recformat", "Format", {"WAV 16-bit", "WAV 24-bit", "WAV 32-bit float"}, 1).inGroup("Record"));
     s.params.push_back(ParamSpec::choice("rectap", "Channel Tap", {"Input", "Post-Fader"}, 0).inGroup("Record"));
     for (int k = 0; k < kConsoleChannels; ++k) {
         const std::string n = std::to_string(k + 1), pre = "ch" + n + "_", nm = "Ch " + n + " ";

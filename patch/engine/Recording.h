@@ -22,11 +22,7 @@
 
 namespace bleep::engine::recording {
 
-/// The file format of a session. The first three are WAV; the others are MP3 at a constant bit rate per track (a track of one channel or
-/// two): they need an encoder, which the native engine has when it was built with LAME (mp3Available()).
-enum class Format { Pcm16, Pcm24, Float32, Mp3_192, Mp3_320 };
-inline bool isMp3(Format f) noexcept { return f == Format::Mp3_192 || f == Format::Mp3_320; }
-inline int mp3Kbps(Format f) noexcept { return f == Format::Mp3_320 ? 320 : 192; }
+enum class Format { Pcm16, Pcm24, Float32 };  ///< WAV files
 
 constexpr int kMaxTracks = 40;  ///< one file per track: 32 channels, 4 aux buses and the master, with room to spare
 
@@ -98,19 +94,12 @@ inline Service*& service() noexcept {
     return s;
 }
 
-/// Bytes of one sample of a WAV format (not meaningful for MP3: use bytesPerSecond).
 inline int bytesPerSample(Format f) noexcept { return f == Format::Pcm16 ? 2 : f == Format::Pcm24 ? 3 : 4; }
-/// What one track (one file of `channels` channels) takes per second of recording: the number for the "time left" display.
-inline double bytesPerSecond(Format f, int channels, double sampleRate) noexcept {
-    return isMp3(f) ? mp3Kbps(f) * 125.0 : (double)channels * sampleRate * bytesPerSample(f);
-}
 
 #ifndef __wasm__
 /// Installs the disk service if no service is installed yet (the native engine: Recording.cpp). Safe to call from
 /// any module's prepare(), any number of times.
 void ensureDiskService();
-/// Can this engine write MP3? It was built with LAME (the CMake option BLEEP_MP3). A wasm module cannot tell: its host answers when it opens a session.
-bool mp3Available();
 /// The folder recordings go to: ~/Music/Beautiful Bleep/Recordings unless the settings changed it.
 std::string folder();
 /// Sets the folder for this run only; an empty string goes back to the default. Affects sessions opened afterwards.

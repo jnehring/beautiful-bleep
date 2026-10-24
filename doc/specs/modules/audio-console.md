@@ -74,7 +74,7 @@ on one bus.
 | Setting | Values | Default |
 |---|---|---|
 | Start and Stop | Manual, Follow Transport | Manual |
-| Format | WAV 16-bit, WAV 24-bit, WAV 32-bit float, MP3 192 kbps, MP3 320 kbps | WAV 24-bit |
+| Format | WAV 16-bit, WAV 24-bit, WAV 32-bit float | WAV 24-bit |
 | Channel Tap | Input, Post-fader | Input |
 
 Button: **Record**. The view adds Arm all and Unarm all (they set every visible *Arm*).
@@ -194,7 +194,7 @@ settings. A session is never saved: a board that is loaded does not record.
 - A second mid band, per-channel inserts, and channel strips that can be dragged into any order.
 - Groups (link the faders or the mutes of several channels), VCA masters, a mute-gate input per channel.
 - A record gate input; punch in and out; a pre-roll for *Follow Transport*.
-- MP3 in the browser, a gapless MP3 header, VBR, and FLAC.
+- MP3 and FLAC as formats (see `doc/specs/recorder-service.md`, *Later*); WAV is the only format now.
 - Solo modes (AFL, PFL) and a cue/monitor output.
 - The browser: it records into memory with a fixed budget and offers a zip (`doc/specs/recorder-service.md`, section 5); later the
   Origin Private File System, and streaming downloads (*Later* there).

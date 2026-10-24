@@ -59,30 +59,6 @@ option(BLEEP_BUILD_APP "Build the standalone Bleep App" ON)
 option(BLEEP_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
 
-# MP3 in the recorder service (engine/Recording.cpp, doc/specs/recorder-service.md): the encoder is LAME (LGPL), found on the system:
-# libmp3lame as a static library (so the apps do not depend on a file in /opt/homebrew) and lame/lame.h. Without it everything builds and
-# the service says "this build cannot write MP3". A release build has to bring LAME itself (doc/licensing).
-option(BLEEP_MP3 "Write MP3 in the recorder service (needs LAME: lame/lame.h and libmp3lame.a)" ON)
-set(BLEEP_HAVE_LAME OFF)
-if (BLEEP_MP3)
-    find_path(BLEEP_LAME_INCLUDE lame/lame.h HINTS /opt/homebrew/include /usr/local/include /usr/include)
-    find_library(BLEEP_LAME_LIBRARY NAMES libmp3lame.a mp3lame HINTS /opt/homebrew/lib /usr/local/lib /usr/lib)
-    if (BLEEP_LAME_INCLUDE AND BLEEP_LAME_LIBRARY)
-        set(BLEEP_HAVE_LAME ON)
-        add_compile_definitions(BLEEP_HAVE_LAME=1)
-        include_directories("${BLEEP_LAME_INCLUDE}")
-        link_libraries("${BLEEP_LAME_LIBRARY}")
-        # A libmp3lame built with its decoder (Homebrew's) needs libmpg123 as well; one built without it does not.
-        find_library(BLEEP_MPG123_LIBRARY NAMES libmpg123.a mpg123 HINTS /opt/homebrew/lib /usr/local/lib /usr/lib)
-        if (BLEEP_MPG123_LIBRARY)
-            link_libraries("${BLEEP_MPG123_LIBRARY}")
-        endif ()
-        message(STATUS "MP3: LAME found (${BLEEP_LAME_LIBRARY})")
-    else ()
-        message(STATUS "MP3: LAME not found: the recorder service writes WAV only")
-    endif ()
-endif ()
-
 # The bus, as a third party would consume it.
 if (NOT TARGET bleep_bus)
     set(BLEEP_BUS_BUILD_TESTS OFF CACHE BOOL "" FORCE)

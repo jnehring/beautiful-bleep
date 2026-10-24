@@ -9,10 +9,6 @@
 
 #ifndef __wasm__
 
-#ifdef BLEEP_HAVE_LAME
-#include <lame/lame.h>
-#endif
-
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -125,7 +121,6 @@ public:
         }
         files_.assign(tracks.size(), nullptr);
         dataBytes_.assign(tracks.size(), 0);
-        encoders_.assign(tracks.size(), nullptr);
         writer_ = std::thread([this] { run(); });
     }
     ~DiskSession() override {
@@ -227,24 +222,16 @@ private:
         }
         const int take = take_.load() + 1;
         for (int t = 0; t < n_; ++t) {
-            const std::string file = names_[(size_t)t] + (take > 1 ? " (take " + std::to_string(take) + ")" : std::string()) + (isMp3(fmt_) ? ".mp3" : ".wav");
+            const std::string file = names_[(size_t)t] + (take > 1 ? " (take " + std::to_string(take) + ")" : std::string()) + ".wav";
             FILE* f = std::fopen((root_ / file).string().c_str(), "wb");
             if (!f) {
                 failed_.store(CannotWrite);
                 break;
             }
             std::setvbuf(f, nullptr, _IOFBF, 1 << 18);
-            if (isMp3(fmt_)) {
-                if (!(encoders_[(size_t)t] = newEncoder(rings_[t].channels))) {
-                    std::fclose(f);
-                    failed_.store(CannotWrite);
-                    break;
-                }
-            } else {
-                uint8_t h[44];
-                wavHeader(h, rings_[t].channels, sr_, fmt_, 0);
-                std::fwrite(h, 1, 44, f);
-            }
+            uint8_t h[44];
+            wavHeader(h, rings_[t].channels, sr_, fmt_, 0);
+            std::fwrite(h, 1, 44, f);
             files_[(size_t)t] = f;
             dataBytes_[(size_t)t] = 0;
         }
@@ -264,9 +251,7 @@ private:
         while (rd < pos) {
             const int n = (int)std::min<uint64_t>(kChunkFrames, pos - rd);
             FILE* f = files_[(size_t)t];
-            if (f && failed_.load() == Ok && isMp3(fmt_)) {
-                encode(t, rd, n);
-            } else if (f && failed_.load() == Ok) {
+            if (f && failed_.load() == Ok) {
                 out.resize((size_t)n * (size_t)r.channels * (size_t)bps);
                 uint8_t* p = out.data();
                 for (int i = 0; i < n; ++i)
@@ -296,74 +281,14 @@ private:
         for (int t = 0; t < n_; ++t) {
             FILE*& f = files_[(size_t)t];
             if (!f) continue;
-            if (isMp3(fmt_)) {
-                flushEncoder(t, f);
-            } else {
-                uint8_t h[44];
-                wavHeader(h, rings_[t].channels, sr_, fmt_, dataBytes_[(size_t)t]);
-                std::fseek(f, 0, SEEK_SET);
-                std::fwrite(h, 1, 44, f);
-            }
+            uint8_t h[44];
+            wavHeader(h, rings_[t].channels, sr_, fmt_, dataBytes_[(size_t)t]);
+            std::fseek(f, 0, SEEK_SET);
+            std::fwrite(h, 1, 44, f);
             std::fclose(f);
             f = nullptr;
         }
         takeOpen_.store(false);
-    }
-
-    // ---- MP3: one LAME encoder per track and take, fed by the writer thread -------------------------------------------------------
-
-    void* newEncoder(int channels) {
-#ifdef BLEEP_HAVE_LAME
-        lame_t l = lame_init();
-        if (!l) return nullptr;
-        lame_set_in_samplerate(l, (int)std::lround(sr_));   // above 48 kHz LAME resamples to what MP3 can carry
-        lame_set_num_channels(l, channels);
-        lame_set_mode(l, channels == 1 ? MONO : JOINT_STEREO);
-        lame_set_VBR(l, vbr_off);
-        lame_set_brate(l, mp3Kbps(fmt_));
-        lame_set_quality(l, 2);
-        if (lame_init_params(l) < 0) {
-            lame_close(l);
-            return nullptr;
-        }
-        return l;
-#else
-        (void)channels;
-        return nullptr;
-#endif
-    }
-
-    /// Encodes `n` frames of track `t` starting at absolute frame `from` and writes what comes out.
-    void encode(int t, uint64_t from, int n) {
-#ifdef BLEEP_HAVE_LAME
-        Ring& r = rings_[t];
-        mp3In_[0].resize((size_t)n);
-        mp3In_[1].resize((size_t)n);
-        for (int c = 0; c < r.channels; ++c)
-            for (int i = 0; i < n; ++i) mp3In_[c][(size_t)i] = std::clamp(r.data[c][(uint32_t)((from + (uint64_t)i) & kRingMask)], -1.0f, 1.0f);
-        mp3Out_.resize((size_t)(1.25 * n) + 7200);
-        const int got = lame_encode_buffer_ieee_float(static_cast<lame_t>(encoders_[(size_t)t]), mp3In_[0].data(), r.channels == 2 ? mp3In_[1].data() : nullptr,
-                                                       n, mp3Out_.data(), (int)mp3Out_.size());
-        if (got < 0 || (got > 0 && std::fwrite(mp3Out_.data(), 1, (size_t)got, files_[(size_t)t]) != (size_t)got)) failed_.store(CannotWrite);
-        if (got > 0) dataBytes_[(size_t)t] += (uint64_t)got;
-#else
-        (void)t; (void)from; (void)n;
-#endif
-    }
-
-    /// The end of a take: what the encoder still holds, then the encoder itself.
-    void flushEncoder(int t, FILE* f) {
-#ifdef BLEEP_HAVE_LAME
-        void*& e = encoders_[(size_t)t];
-        if (!e) return;
-        mp3Out_.resize(7200);
-        const int got = lame_encode_flush(static_cast<lame_t>(e), mp3Out_.data(), (int)mp3Out_.size());
-        if (got > 0) std::fwrite(mp3Out_.data(), 1, (size_t)got, f);
-        lame_close(static_cast<lame_t>(e));
-        e = nullptr;
-#else
-        (void)t; (void)f;
-#endif
     }
 
     fs::path root_;
@@ -375,9 +300,6 @@ private:
     std::vector<FILE*> files_;            // writer thread
     std::vector<uint64_t> dataBytes_;     // writer thread
     std::vector<uint8_t> scratch_;        // writer thread
-    std::vector<void*> encoders_;         // writer thread: a lame_t per track while an MP3 take is open
-    std::vector<float> mp3In_[2];         // writer thread
-    std::vector<uint8_t> mp3Out_;         // writer thread
     uint64_t takeStart_ = 0;              // writer thread
     Marker markers_[kMarkers];
     std::atomic<uint32_t> mHead_{0}, mTail_{0};
@@ -397,7 +319,6 @@ public:
             if (error) *error = why;
             return nullptr;
         };
-        if (isMp3(format) && !mp3Available()) return fail("This build cannot write MP3. Choose a WAV format.");
         if (tracks.empty()) return fail("No track is armed.");
         if ((int)tracks.size() > kMaxTracks) return fail("Too many tracks.");
         for (const auto& t : tracks)
@@ -434,14 +355,6 @@ void setFolder(const std::string& path) {
 }
 
 std::string defaultFolder() { return bleep::engine::recording::defaultFolder_(); }
-
-bool mp3Available() {
-#ifdef BLEEP_HAVE_LAME
-    return true;
-#else
-    return false;
-#endif
-}
 
 // ---- the saved choice (Settings → Recordings) -----------------------------------------------------------------------------------
 
@@ -638,7 +551,7 @@ public:
             channels.push_back(tracks[i].channels);
         }
         spec += "]}";
-        const int32_t h = bleep_record_open(spec.data(), (int32_t)spec.size(), sampleRate, format == Format::Pcm16 ? 0 : format == Format::Pcm24 ? 1 : format == Format::Float32 ? 2 : format == Format::Mp3_192 ? 3 : 4);
+        const int32_t h = bleep_record_open(spec.data(), (int32_t)spec.size(), sampleRate, format == Format::Pcm16 ? 0 : format == Format::Pcm24 ? 1 : 2);
         if (h <= 0) {
             if (error) *error = h == 0 ? "Recording is not available here." : hostText(0, 1);
             if (error && error->empty()) *error = "Recording could not start.";

@@ -7714,19 +7714,17 @@
         "id": "recformat",
         "name": "Format",
         "kind": "choice",
-        "default": 0.25,
-        "steps": 5,
+        "default": 0.5,
+        "steps": 3,
         "modulatable": false,
         "cableable": false,
         "choices": [
           "WAV 16-bit",
           "WAV 24-bit",
-          "WAV 32-bit float",
-          "MP3 192 kbps",
-          "MP3 320 kbps"
+          "WAV 32-bit float"
         ],
         "min": 0.0,
-        "max": 4.0,
+        "max": 2.0,
         "def": 1.0,
         "format": "choice",
         "decimals": 2,

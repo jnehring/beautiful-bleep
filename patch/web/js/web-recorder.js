@@ -53,7 +53,6 @@ class Bound {
     for (const t of tracks) if (t.channels !== 1 && t.channels !== 2) { this.message = "A track has one or two channels."; return -1; }
     const slot = this.sessions.indexOf(null);
     if (slot < 0) { this.message = "Too many recordings are open."; return -1; }
-    if (format === 3 || format === 4) { this.message = "MP3 is not available in the browser yet. Choose a WAV format."; return -1; }
     const fmt = format === 0 || format === 1 ? format : 2;
     this.sessions[slot] = {
       name: String(spec.name || "Recording"), rate: sampleRate, format: fmt, bps: BYTES[fmt], startedAt: Date.now(),

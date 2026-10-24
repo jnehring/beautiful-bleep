@@ -184,23 +184,4 @@ if (!existsSync(file)) { console.log("web-recorder-test: ok (Audio Console wasm 
   assert.ok(Math.abs(peak - 0.5) < 0.01, "channel 1 recorded the input: peak " + peak);
 }
 
-// ---- MP3 is not in the browser yet: the module says so, in a text the view can show -----------------------------------------------------
-{
-  const posted = [];
-  const rec = new MemoryRecorder({ post: (m) => posted.push(m) });
-  const module = await compileModule(readFileSync(file));
-  const m = new ModuleInstance(module, 48000, "audio-console", new Map(), rec);
-  const idx = (id) => m.spec.params.findIndex((p) => p.id === id);
-  m.setKnob(idx("ch1_arm"), 1);
-  m.setKnob(idx("recformat"), 0.75);   // the fourth of five choices: MP3 192 kbps
-  m.setConnected(Array.from({ length: m.spec.inputs.length }, (_, i) => (i === 0 ? 1 : 0)), new Array(m.spec.outputs.length).fill(1));
-  m.setTransport(120, 0, true, 0);
-  m.process(32);
-  m.command("record", 1);
-  for (let i = 0; i < 70; i++) m.process(32);
-  const live = m.live();
-  assert.equal(live.values.recState, 0, "no session opened");
-  assert.match(live.text.recMessage, /MP3 is not available in the browser yet/);
-  assert.equal(posted.length, 0);
-}
 console.log("web-recorder-test: ok");

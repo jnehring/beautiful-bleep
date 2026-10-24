@@ -68,12 +68,8 @@ show `session->status().message`.
 
 ## The formats
 
-WAV, as 16-bit or 24-bit integer or 32-bit float, and **MP3** at 192 or 320 kbps. The MP3 encoder is LAME (LGPL), found on the
-system when the engine is built (`BLEEP_MP3`, on by default; it needs `lame/lame.h` and `libmp3lame.a`). A build without it still
-works and refuses an MP3 session with a reason (`recording::mp3Available()` says which). One encoder runs per track on the
-writer's thread, so many MP3 tracks cost real CPU; the bit rate is per track, and `recording::bytesPerSecond(format, channels, rate)`
-gives what a track takes per second. The browser does not write MP3 yet. A release build has to bring LAME itself: Homebrew's static
-library also needs libmpg123, which CMake links when it finds it, and a library built without its decoder does not.
+WAV, as 16-bit or 24-bit integer or 32-bit float. Other formats (MP3, FLAC) are not offered: an MP3 encoder (LAME, LGPL) would be a
+dependency a release has to bring and a licence it has to carry, and the WAV files are easy to convert afterwards.
 
 ## What the apps and the plugins do
 
@@ -142,7 +138,7 @@ Audio Console; it has not been run in a browser yet:
   the take and not the tab.
 
 Planned next: recording into the browser's Origin Private File System from a worker (no budget; a take
-survives a reload), streaming downloads through a service worker, and MP3 conversion after the take (the browser refuses MP3 for now).
+survives a reload), streaming downloads through a service worker, and MP3 conversion after the take.
 
 ## Tests
 
