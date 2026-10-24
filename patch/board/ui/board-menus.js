@@ -196,8 +196,9 @@
           if (offered(t) && t.category !== "Cells")
             t.category.split("/").reduce(submenu, cats).push({ label: t.name, hint: t.description, run: place({ type: t.type }) });
         const byLabel = (a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base", numeric: true });
+        // Subcategories first, then the modules, each A–Z.
         const sortTree = (items) => {
-          items.sort(byLabel);
+          items.sort((a, b) => !a.items - !b.items || byLabel(a, b));
           for (const it of items) if (it.items) sortTree(it.items);
           return items;
         };
