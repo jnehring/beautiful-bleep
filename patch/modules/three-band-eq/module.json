@@ -1,0 +1,13 @@
+{
+  "name": "3-Band EQ",
+  "slug": "three-band-eq",
+  "license": "GPL-3.0-or-later",
+  "language": "bleep-script",
+  "tagline": "A simple stereo equaliser: low shelf, mid bell and high shelf, each with its own gain and frequency.",
+  "category": "Effects/Dynamics & EQ",
+  "colour": "#22c55e",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/three-band-eq.md"
+}
