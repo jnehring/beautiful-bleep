@@ -1,12 +1,12 @@
 ---
 title: Modulating any Live parameter (loopback workaround)
-description: Modulate any Live parameter with a virtual MIDI port until the Max for Live bridge exists.
-order: 3
+description: Modulate any Live parameter with a virtual MIDI port, without Max for Live.
+order: 4
 ---
 
-# Modulating any Live parameter (v1 workaround)
+# Modulating any Live parameter (loopback workaround)
 
-Until the Max for Live bridge exists, a virtual MIDI port lets you map signals from the board to any parameter in Live:
+Without Max for Live, a virtual MIDI port lets you map signals from the board to any parameter in Live. With Max for Live, [Control Live from the board](live-control.md) is simpler and also handles switches and menus:
 
 1. **macOS:** open *Audio MIDI Setup → MIDI Studio → IAC Driver*, tick
    *Device is online*. **Windows:** install loopMIDI and create a port.

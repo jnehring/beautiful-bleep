@@ -1,7 +1,7 @@
 ---
 title: Play with a MIDI controller
 description: Connect a MIDI keyboard or pad controller to the Bleep App, to Bleep Play in your browser, or to Live, and map its knobs.
-order: 5
+order: 6
 ---
 
 # Play with a MIDI controller

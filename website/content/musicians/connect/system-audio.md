@@ -1,7 +1,7 @@
 ---
 title: Process what your computer plays
 description: Take the sound of your music player, browser or video call into the Bleep App with the System node, on macOS, Windows and Linux.
-order: 4
+order: 5
 ---
 
 # Process what your computer plays

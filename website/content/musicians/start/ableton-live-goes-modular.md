@@ -41,6 +41,14 @@ what it costs in latency, especially when several plugins are connected to each 
   (*Bleep Instrument* or *Bleep FX*) with its own front panel.
 - **Modulate other plugins.** Plugins that use the Bleep Bus protocol appear on
   the board as nodes, so the board can modulate them too.
+- **Control Live itself from the board.** With the *Live Params* node and the
+  *Bleep Live Link* device (Max for Live), a cable on the board can move a knob of
+  any Live device or of any plugin in your set, switch a device on and off, or pick
+  a choice in a menu such as a filter type. The node shows what each of its four
+  rows is mapped to, and for a menu every choice with the number that picks it.
+  A slider with two handles keeps a sweep to the part of the range you want. Nothing
+  is written to Live's automation, and a parameter goes back where it was when you
+  let go. See [Control Live from the board](../connect/live-control.md).
 - **Take the board out of Live.** The [Bleep App](../use/standalone.md) runs the
   same board next to Live and stays in time through Ableton Link.
 
@@ -114,6 +122,9 @@ delayed to match. Some paths are not compensated:
   delay compensation for them.
 - **Modulation sent to other plugins through the Bleep Bus.** It arrives one
   buffer late, which you cannot hear for modulation.
+- **Control of Live's own parameters (Live Params).** The values go out about a
+  hundred times a second, so they are smooth for modulation but not sample-accurate
+  and not delay-compensated. Use it to move knobs, not to time events to the beat.
 - **Feedback cables.** A cable that closes a loop is delayed by one engine
   step (32 samples, 0.7 ms at 44.1 kHz).
 
@@ -143,6 +154,8 @@ option that reduces the delay to one sample is planned.
 
 - [Ports](../use/ports.md): every plugin you can add in Live
 - [Your first patch](../learn/first-patch.md): build your first connection
+- [Control Live from the board](../connect/live-control.md): move Live's own
+  parameters, switches and menus from the board
 - [Modulation](../learn/modulation.md): sources, cables and amounts
 - [Connecting plugin, app and web](../connect/connecting.md): latency when
   the board lives in the Bleep App or in the browser

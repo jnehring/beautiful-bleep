@@ -33,3 +33,5 @@ tracks you monitor while *Reduced Latency When Monitoring* is on.
 **Ghosts:** when a port's plugin is deleted, deactivated or its track is
 frozen, its node turns grey and its outputs fall silent. The cables stay;
 when the plugin comes back (for example after undo in Live), it reconnects.
+
+**Controlling Live itself:** the *Bleep Live Link* Max for Live device is not one of these plugins. It pairs with the *Live Params* node on the board and moves parameters of other devices. See [Control Live from the board](../connect/live-control.md).
