@@ -17,17 +17,20 @@ applies: *the knob plus the signals that feed it*. Cable an LFO, an envelope or 
 cable straight onto the knob: it does the same), and set the cable's amount for the depth. The knob is the centre the modulation
 moves around.
 
-**Min and Max.** For a *continuous* parameter (a dial) the row's value is scaled into **Min** to **Max**: 0% to 100% is the whole
-range of the Live parameter, and Min 30% / Max 70% keeps the modulation in the middle of it. Max below Min turns it round.
-Both can be modulated too.
+**Min and Max: a slider with two handles.** For a *continuous* parameter (a dial) the row's value is scaled into **Min** to **Max**. In
+the node's view each continuous row has a horizontal slider with two handles: drag them to choose the part of the parameter's range the
+row moves through (double-click a handle to reset it). 0% to 100% is the whole range; 30% to 70% keeps the modulation in the middle of
+it. Drag a handle past the other and the range turns round (the view says so). Inside the span a triangle is the row's value (the
+knob), and a thin line is where the row is asking the parameter to be right now (knob plus CV input plus cables).
 
 **Mapping.** In Live, put *Bleep Live Link* on any track, set its channel to the node's, press *Map* on a row and click the
 parameter. The device tells the board what it found, and **the row's knob jumps to the parameter's position**, so nothing jumps
 in Live. The device lets go of the parameter, and puts it back where it was, when you press × on its row or when you delete the
 node or change its channel.
 
-**What the node shows.** Open the node's view: for each row, its parameter's name, whether it is *continuous* or *discrete*,
-and for a discrete parameter (a switch, a menu) every **choice** with the **value that picks it**.
+**What the node shows, and how you control it.** Open the node's view: for each row, its parameter's name, whether it is
+*continuous* or *discrete*, and the row's controls. A continuous row has the two-handle slider. For a discrete parameter (a switch, a
+menu) the view lists every **choice** with the **value that picks it**, and a click on a choice sets the row to it.
 
 | The mapped parameter is | The row's value does | The view shows |
 |---|---|---|
@@ -45,9 +48,12 @@ fills the undo history.
 | Knob | Does |
 |---|---|
 | Channel | which Bleep Live Link device (1 to 8) this node talks to; in the view it is the menu in the top right corner |
-| Row 1 … 4 | the row's value, 0 to 1, and a target for cables |
-| Min 1 … 4 | where a continuous parameter's range starts (default 0%) |
-| Max 1 … 4 | where it ends (default 100%) |
+| Row 1 … 4 | the row's value, 0 to 1, and a target for cables; in the view, the triangle on a continuous row's slider, or a click on a choice of a discrete one |
+| Min 1 … 4 | where a continuous parameter's range starts (default 0%); the left handle of the slider |
+| Max 1 … 4 | where it ends (default 100%); the right handle of the slider |
+
+The view draws these as sliders and clickable choices and hides their knobs; they remain the node's parameters, so they are saved with
+the board, and an undo step is made for each drag.
 
 | CV 1 … 4 (inputs) | add to the row's knob; each takes any number of cables, each at its own amount |
 

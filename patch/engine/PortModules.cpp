@@ -480,6 +480,16 @@ public:
 
     void reset() override { leave(); }
 
+    /// Where each row is asking its parameter to be right now (knob plus CV input plus cables, scaled into Min..Max for a
+    /// continuous parameter): 0..1 within the parameter's range. The view draws it as a marker.
+    void liveValues(std::vector<std::pair<std::string, double>>& out) const override {
+        const int ch = channel_.load(std::memory_order_relaxed);
+        if (ch < 1) return;
+        for (int r = 0; r < patch::kRowsPerChannel; ++r)
+            out.push_back({"pos" + std::to_string(r + 1),
+                           (double)patch::liveParams().value[(ch - 1) * patch::kRowsPerChannel + r].load(std::memory_order_relaxed)});
+    }
+
     /// The view's text: what the device of this node's channel reports about each of the four rows (LiveParams.h).
     void liveText(std::vector<std::pair<std::string, std::string>>& out) const override {
         const int ch = channel_.load(std::memory_order_relaxed);

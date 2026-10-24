@@ -65,6 +65,10 @@ void publishesTheKnobScaledIntoMinMax() {
     const auto v = r.values(&present);
     EXPECT((present & 0xFu) == 0xFu);               // the node drives its four rows on channel 1
     EXPECT_NEAR(v[0], 0.2 + 0.25 * 0.6, 1e-4);      // Min + value × (Max − Min)
+    // the view gets the same positions with the live state (while it is open)
+    const juce::var st = r.e->liveState({juce::String("lp")});
+    EXPECT_NEAR((double)st["nodes"]["lp"]["pos1"], 0.2 + 0.25 * 0.6, 1e-4);
+    EXPECT_NEAR((double)st["nodes"]["lp"]["pos2"], 0.5, 1e-4);
     EXPECT_NEAR(v[1], 0.5, 1e-4);
     EXPECT((present & ~0xFu) == 0u);                // and no others
 }

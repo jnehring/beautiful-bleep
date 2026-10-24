@@ -23,7 +23,7 @@ the row's knob to the parameter's position, so nothing jumps. There is no base v
 | Mailbox: 8 channels × 4 rows of absolute values (0..1, or -1: not driven); a flag per row for "discrete" | engine, `LiveParams.h` | built |
 | `IEngine::liveParams()` (ABI minor 3): the plugins read the values through the shared engine | `EngineApi.h` | built |
 | `IEngine::setLiveRowInfo()` (ABI minor 4): a device reports what a row is mapped to; the engine keeps it and moves the node's knob | `EngineApi.h`, `Engine.cpp` | built |
-| The node's **view**: per row the name, continuous or discrete, for a discrete one its choices and the value that picks each | `board/ui/live-params.js`, text from `Module::liveText` | built, shown in a browser with a made-up state; not yet seen in the plugin |
+| The node's **view**, the node's control surface: per row the name and kind; for a continuous row a **slider with two handles** (Min and Max), the row's value as a triangle and the live position as a line; for a discrete row its choices with the value that picks each, clickable; the Channel menu in the corner | `board/ui/live-params.js`, text from `Module::liveText`, positions from `Module::liveValues` | built; shown in a browser with a made-up state (drags, crossing, reset, clicks tested there); not yet seen in the plugin |
 | **Sender**: Bleep Board, 100 Hz, OSC over UDP; reads the devices' `/bleep/info` | `bridges/ableton/LiveLinkSender.*`, `LiveLinkOsc.h` | built |
 | **Device**: 4 rows, one channel; receives the OSC, owns the mappings, drives `live.remote~` (continuous) or `set value` (discrete), reports to the board | `.amxd`, on any track, up to eight of them; logic in `live-link.js` | logic built and tested; one-row prototype tried in Live (the older offset model) |
 

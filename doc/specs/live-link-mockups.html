@@ -78,6 +78,7 @@
   .vtab th { color: var(--panel-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; padding: 1px 6px; border-top: 0; }
   .vtab td { padding: 1px 6px; border-top: 1px solid var(--panel-2); } .vtab td.n { text-align: right; }
   .vtab tr.now td { background: var(--orange); color: #1b1100; }
+  .slider { position: relative; height: 30px; margin: 2px 9px 0; } .slider .bar { position: absolute; left: 0; right: 0; top: 12px; height: 6px; border-radius: 3px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--panel-3); } .slider .span { position: absolute; top: 12px; height: 6px; border-radius: 3px; background: var(--orange); opacity: .55; } .slider .hd { position: absolute; top: 7px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--orange); border: 2px solid var(--panel-3); box-sizing: border-box; } .slider .hd.sq { border-radius: 4px; } .slider .tri { position: absolute; top: 19px; margin-left: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 9px solid var(--panel-ink); } .slider .line { position: absolute; top: 4px; width: 2px; height: 22px; margin-left: -1px; background: var(--panel-ink); } .vread { display: flex; justify-content: space-between; font-size: 11px; color: var(--panel-muted); } .vread b { color: var(--panel-ink); font-weight: 500; }
   .knobs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
   .ksec { background: var(--panel-2); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
   .ksec { flex-direction: row; align-items: center; gap: 12px; } .kn { display: inline-flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--panel-muted); text-transform: uppercase; }
@@ -167,12 +168,13 @@
   <p class="lead">A node has a Channel and four rows. Each row is a <b>knob that cables can feed</b> (a <b>CV 1 to 4</b> input jack on the node adds to it, or drag a cable onto the knob), with a
   <b>Min</b> and a <b>Max</b> that scale it into part of a continuous parameter's range. The node's view shows what the device on the
   channel has mapped each row to. When you map a row, its knob jumps to the parameter's position, so nothing jumps in Live. This is
-  a sketch of the view that is built (it was checked in a browser with a made-up state).</p>
+  a sketch of the view that is built (it was checked in a browser with a made-up state). A continuous row has a <b>slider with two handles</b> for Min and Max (circle and square), the row's value as a triangle inside the span, and a line where the row is asking the parameter to be right now.</p>
 
   <div class="panel node" style="max-width:640px" aria-label="Live Params view">
     <header><strong>Live Params</strong><span class="sp"></span><span class="muted">Channel</span><span class="chip sel">2</span></header>
     <div class="vrow"><div class="vhead"><b>Row 1</b><span class="kind c">continuous</span><span>Auto Filter · Frequency</span></div>
-      <div class="vnote">Moves through <b>20%–80%</b> of the parameter's range (Min and Max). Now at 42%.</div></div>
+      <div class="slider"><div class="bar"></div><div class="span" style="left:20%;width:60%"></div><div class="hd" style="left:20%"></div><div class="hd sq" style="left:80%"></div><div class="tri" style="left:50%"></div><div class="line" style="left:47%"></div></div>
+      <div class="vread"><span>Min <b>20%</b></span><span>Row <b>50%</b></span><span>Max <b>80%</b></span></div></div>
     <div class="vrow"><div class="vhead"><b>Row 2</b><span class="kind d">discrete</span><span>Filter Type</span></div>
       <table class="vtab"><tr><th>#</th><th>Choice</th><th>Send</th><th>Knob</th></tr>
         <tr><td>0</td><td>Lowpass</td><td class="n">0.00</td><td class="n">0%</td></tr>
@@ -186,13 +188,6 @@
         <tr class="now"><td>1</td><td>On</td><td class="n">1.00</td><td class="n">100%</td></tr></table></div>
     <div class="vrow"><div class="vhead"><b>Row 4</b><span class="muted">not mapped</span></div>
       <div class="vnote">Map a parameter in the Bleep Live Link device on channel 2, row 4.</div></div>
-    <div class="knobs">
-      <div class="ksec"><span class="muted">Row 1</span>
-        <span class="kn"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="13" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M8 27 A13 13 0 1 1 30 27" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round" stroke-dasharray="40 100"/></svg>Row 1</span>
-        <span class="kn"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="13" fill="none" stroke="#3a3a3a" stroke-width="4"/></svg>Min 1</span>
-        <span class="kn"><svg width="38" height="38" viewBox="0 0 38 38"><circle cx="19" cy="19" r="13" fill="none" stroke="#3a3a3a" stroke-width="4"/><path d="M8 27 A13 13 0 1 1 30 27" fill="none" stroke="#ff9f43" stroke-width="4" stroke-linecap="round"/></svg>Max 1</span></div>
-      <div class="ksec"><span class="muted">Rows 2 to 4 the same</span></div>
-    </div>
   </div>
 
   <h3>How the pieces fit</h3>
