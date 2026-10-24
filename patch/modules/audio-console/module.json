@@ -1,0 +1,12 @@
+{
+  "name": "Audio Console",
+  "slug": "audio-console",
+  "license": "GPL-3.0-only",
+  "tagline": "Up to 32 channels with filters, EQ, sends, solo, mute and record arm; aux returns, a master with a limiter, direct outputs and a multitrack recorder.",
+  "category": "Audio/Mixing",
+  "colour": "#f97316",
+  "formats": [
+    "Board module"
+  ],
+  "doc": "doc/audio-console.md"
+}

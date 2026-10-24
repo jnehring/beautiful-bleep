@@ -16,6 +16,7 @@
 
 import { CHUNK, ModuleInstance } from "./module-host.js";
 import { expandVoiceCells, VoiceAllocNode } from "./voices.js";
+import { MemoryRecorder } from "./web-recorder.js";
 
 /// A bypassed module with audio in and audio out: [input, output] pairs (the n-th audio in feeds the n-th audio out,
 /// the last in feeds the rest), as the native engine does. null: the module runs.
@@ -248,6 +249,7 @@ export class Engine {
     this.onError = null;  // (message) — set by the host
     this.generation = 0;
     this.media = new Map();        // media id → {rate, channels: [Float32Array]}: the audio files the page sent (web-media.js)
+    this.recorder = new MemoryRecorder();   // the bleep_record_* imports of the modules (web-recorder.js); the host sets recorder.post
     this.pendingData = new Map();  // node id → sanitised data the UI's board does not have yet
     this.voiceLimit = 16;          // the most voices a Voice Cell runs: every voice costs CPU all the time here (voices.js)
     this.copies = new Map();       // a node inside a Voice Cell → the ids of its copies, one per voice
@@ -436,7 +438,7 @@ export class Engine {
     if (!mod) return null;
     if (probe) return true;
     try {
-      const host = new ModuleInstance(mod, this.sampleRate, n.type.split("@")[0], this.media);   // "filter@0.1.2" is the module's "filter" in its 0.1.2 file
+      const host = new ModuleInstance(mod, this.sampleRate, n.type.split("@")[0], this.media, this.recorder);   // "filter@0.1.2" is the module's "filter" in its 0.1.2 file
       host.connectedIn = new Uint8Array(s.inputs.length);
       return host;
     } catch (e) {  // one broken module must not stop the board
@@ -573,6 +575,7 @@ export class Engine {
       st.spec.outputs.forEach((o, k) => { if (st.activity[k] > 1e-4) entry.activity[o.id] = st.activity[k]; st.activity[k] = 0; });
       const live = host.live();
       Object.assign(entry, live.values);
+      if (live.text) Object.assign(entry, live.text);   // strings for the view (Module::liveText), like the native engine's state
       Object.assign(entry, live.arrays);
       entry.arrays = live.arrays;   // the native engine's shape, which the module views read (st.arrays.<key>)
       if (this.watched.has(key)) {

@@ -108,6 +108,10 @@ juce::DynamicObject* findNodeByPort(const juce::var& doc, const juce::String& po
 juce::DynamicObject* findCable(const juce::var& doc, const juce::String& id);
 /// Adds a node (with default params) and returns its id.
 juce::String addNode(juce::var& doc, const ModuleSpec& spec, double x, double y, const juce::String& portId = {});
+/// How tall the board draws a top-level node, in board units (an estimate from its jack count: header, one row per jack,
+/// a long output list cut to four and a "more" row), and the gap left between stacked nodes.
+double nodeHeight(const juce::var& node);
+constexpr double kNodeGap = 24.0;
 
 // ---- cell presets on the board (Bleep Instrument and Bleep FX, doc/specs/cell-plugins.md) -------
 

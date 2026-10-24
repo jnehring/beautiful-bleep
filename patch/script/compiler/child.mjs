@@ -19,6 +19,7 @@ const PARENT = "parent";
 /// The imports a module file may keep (module-abi.md section 2): what is left over after linking, the child's own, must be in this list.
 const ALLOWED_IMPORTS = new Set([
   "env.emscripten_notify_memory_growth", "env.bleep_media_info", "env.bleep_media_read",
+  ...["open", "take", "write", "status", "text", "free", "close"].map((n) => `env.bleep_record_${n}`),
   ...["fd_close", "fd_read", "fd_seek", "fd_write", "environ_get", "environ_sizes_get", "clock_time_get"].map((n) => `wasi_snapshot_preview1.${n}`),
 ]);
 

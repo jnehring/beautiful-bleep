@@ -20,6 +20,8 @@ ENGINE_ABI = 1
 ALLOWED_IMPORTS = {
     ("env", "emscripten_notify_memory_growth"),
     ("env", "bleep_media_info"), ("env", "bleep_media_read"),  # sample files, answered by the host (module-abi.md, "Media")
+    *(("env", n) for n in ("bleep_record_open", "bleep_record_take", "bleep_record_write", "bleep_record_status", "bleep_record_text",
+                           "bleep_record_free", "bleep_record_close")),  # recording, answered by the host (module-abi.md, "Recording")
     *(("wasi_snapshot_preview1", n) for n in ("fd_close", "fd_read", "fd_seek", "fd_write", "environ_get", "environ_sizes_get", "clock_time_get")),
 }
 REQUIRED_EXPORTS = {

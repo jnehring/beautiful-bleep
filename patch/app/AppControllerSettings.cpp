@@ -2,6 +2,8 @@
 // AppControllerSettings.cpp — the Settings section of the board window and the web link.
 #include "AppControllerInternal.h"
 
+#include "RecordingsSettings.h"
+
 namespace bleep::app {
 
 // ---- the Settings section of the board window ------------------------------------------------
@@ -105,6 +107,7 @@ juce::var AppController::settingsState() {
     o->setProperty("link", juce::var(link));
     o->setProperty("system", systemAudioState());
     o->setProperty("web", webState());
+    o->setProperty("recordings", engine::recordingsState());
     return juce::var(o);
 }
 
@@ -227,6 +230,8 @@ juce::var AppController::settingsCall(const juce::String& fn, const juce::var& a
         applyWeb();
         saveSettings();
         error = webError_;
+    } else if (fn == "recordings") {
+        engine::recordingsCall(arg);   // its error, if any, is in the state it hands back (state.recordings.error)
     } else if (fn == "webForget") {
         {
             const juce::CriticalSection::ScopedLockType lock(originsLock_);

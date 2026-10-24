@@ -307,6 +307,19 @@ juce::DynamicObject* findCable(const juce::var& doc, const juce::String& id) {
     return nullptr;
 }
 
+double nodeHeight(const juce::var& node) {
+    size_t ins = 0, outs = 0;
+    if (const auto* spec = Registry::get().find(node["type"].toString().toStdString())) {
+        ins = spec->inputs.size();
+        outs = spec->outputs.size();
+    } else {
+        if (const auto* a = node["inputs"].getArray()) ins = (size_t)a->size();
+        if (const auto* a = node["outputs"].getArray()) outs = (size_t)a->size();
+    }
+    if (outs > 5) outs = 5;
+    return 34.0 + 19.0 * (double)std::max<size_t>(std::max(ins, outs), 1);
+}
+
 juce::String addNode(juce::var& doc, const ModuleSpec& spec, double x, double y, const juce::String& portId) {
     auto* o = new juce::DynamicObject();
     const juce::String id = newId("n");

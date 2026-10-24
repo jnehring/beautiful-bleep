@@ -3,6 +3,8 @@
 
 #include "HostControl.h"
 #include "Media.h"
+#include "Recording.h"
+#include "WasmRecorder.h"
 #include "dsp/Harmony.h"
 
 #include <juce_core/juce_core.h>
@@ -292,6 +294,8 @@ void WasmModule::prepare(double sampleRate) {
     inst_->setBudgetMs(wasm::kInitBudgetMs);  // bleep_create may allocate a lot; from the first block on, calls are held to kAudioBudgetMs
     media_ = std::make_unique<Media>(*this);
     inst_->setMedia(media_.get());
+    recorder_ = std::make_unique<wasm::DiskRecorder>();
+    inst_->setRecorder(recorder_.get());
     MediaService::get().listen(this, [this] { replayData(); });
     auto need = [&](const char* name) { return inst_->find(name); };
     const int create = need("bleep_create"), params = need("bleep_params_ptr"), inputs = need("bleep_inputs_ptr"), outputs = need("bleep_outputs_ptr"),

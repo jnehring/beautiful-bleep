@@ -2,8 +2,8 @@
 // settings.js — the Settings section of the board window, in the standalone app, the plugins and Bleep Play (doc/specs/settings.md).
 // The host names itself in the first answer of native "settings" "get" (state.host: "app", "plugin" or "web"; no host = "app") and
 // that decides the tabs:
-//   app     Audio, MIDI and sync, Web, Library, Security
-//   plugin  Latency, Library, Security (Live owns the audio device and MIDI)
+//   app     Audio, MIDI and sync, Web, Recordings, Library, Security
+//   plugin  Latency, Recordings, Library, Security (Live owns the audio device and MIDI)
 //   web     Audio, MIDI, App, Library, Security, Data (answered by the browser: patch/web/js/web-settings.js)
 // Settings are applied as they are changed; there is no Save button.
 //
@@ -20,8 +20,8 @@
   let host = "";              // "app" | "plugin" | "web", known after the first "get"
   let root, body, tabsEl, noteEl, poll = null, hasLibrary = false;
   const TABS = {
-    app: [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"], ["library", "Library"], ["security", "Security"]],
-    plugin: [["latency", "Latency"], ["library", "Library"], ["security", "Security"]],
+    app: [["audio", "Audio"], ["midi", "MIDI and sync"], ["web", "Web"], ["recordings", "Recordings"], ["library", "Library"], ["security", "Security"]],
+    plugin: [["latency", "Latency"], ["recordings", "Recordings"], ["library", "Library"], ["security", "Security"]],
     web: [["audio", "Audio"], ["midi", "MIDI"], ["app", "App"], ["library", "Library"], ["security", "Security"], ["data", "Data"]],
   };
   const tabsOf = () => (TABS[host] || []).filter(([id]) => hasLibrary || host === "web" || id === "latency" || (id !== "library" && id !== "security"));
@@ -128,6 +128,40 @@
     const ms = (n) => (1000 * n / (l.sampleRate || 48000)).toFixed(1);
     body.appendChild(el("div", "st-row single", `Reported by Bleep Board: ${l.boardSamples} samples (${ms(l.boardSamples)} ms) · Live's block: ${l.blockSamples} samples`));
     if (!l.crossIn) body.appendChild(el("div", "st-note", "No Bleep MIDI In or Audio In on another track is on this board."));
+  }
+
+  const sizeText = (b) => (b >= 1e12 ? (b / 1e12).toFixed(1) + " TB" : b >= 1e9 ? (b / 1e9).toFixed(1) + " GB" : Math.round(b / 1e6) + " MB");
+
+  /// Where the recorder service writes its files (the Audio Console): doc/specs/recorder-service.md. Kept in the data folder the app
+  /// and every plugin share, so a folder chosen in one is the folder of all.
+  function renderRecordings() {
+    const r = state.recordings;
+    if (!r) { body.appendChild(el("div", "st-empty", "This build has no recorder.")); return; }
+    body.appendChild(el("h3", "", "Recordings folder"));
+    body.appendChild(el("div", "st-note", "Where the Audio Console and other recording modules save their files. Each recording gets a folder of its own, named after the time it started, so nothing is overwritten."));
+    const field = el("input");
+    field.type = "text";
+    field.value = r.folder;
+    field.spellcheck = false;
+    field.size = 48;
+    field.addEventListener("change", () => change("recordings", { folder: field.value }));
+    row("Folder", field, r.isDefault ? "The default folder." : "The default is " + r.defaultFolder);
+    const buttons = el("div", "st-row");
+    buttons.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
+    const choose = el("button", "", r.choosing ? "Choosing…" : "Choose…");
+    choose.addEventListener("click", () => change("recordings", { choose: true }));
+    const show = el("button", "", "Show in the file manager");
+    show.addEventListener("click", () => change("recordings", { reveal: true }));
+    buttons.append(choose, show);
+    if (!r.isDefault) {
+      const reset = el("button", "", "Use the default folder");
+      reset.addEventListener("click", () => change("recordings", { reset: true }));
+      buttons.append(reset);
+    }
+    body.appendChild(buttons);
+    if (r.error) body.appendChild(el("div", "st-note bad", r.error));
+    if (r.freeBytes) body.appendChild(el("div", "st-row single", sizeText(r.freeBytes) + " free on that disk (a reserve of 1 GB is left alone)."));
+    body.appendChild(el("div", "st-note", "A change applies to the next recording; one that is running keeps writing where it started."));
   }
 
   /// What the computer plays, as a System node on the board (doc/specs/system-audio.md). Shown with the audio device,
@@ -383,7 +417,7 @@
     if (state.stored === false) body.appendChild(el("div", "st-note", "This browser does not let the page store anything: settings last until the page is closed."));
     const shown = host === "web"
       ? { audio: renderWebAudio, midi: renderWebMidi, app: renderWebApp, library: renderWebLibrary, security: renderWebSecurity, data: renderWebData }
-      : { audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity, latency: renderLatency };
+      : { audio: renderAudio, midi: renderMidi, web: renderWeb, library: renderLibrary, security: renderSecurity, latency: renderLatency, recordings: renderRecordings };
     (shown[tab] || (() => {}))();
   }
 
@@ -421,7 +455,7 @@
       P.BleepModal.mount(root, () => P.BleepSettingsView.hide());
       onNative("openSettings", () => P.BleepSettingsView.show());
     },
-    /// `which`: the tab to show ("audio", "midi", "web", "library", "security", "app", "data"); without it the last one. A tab this host
+    /// `which`: the tab to show ("audio", "midi", "web", "recordings", "library", "security", "app", "data"); without it the last one. A tab this host
     /// does not have (the audio button in a plugin) shows the first one.
     async show(which) {
       if (P.BleepLibraryView) P.BleepLibraryView.hide();

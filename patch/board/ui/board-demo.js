@@ -315,7 +315,8 @@
       latencyMs: 9.4, xruns: 0, cpu: 0.07, outputChannels: [{ name: "Out 1", on: true }, { name: "Out 2", on: true }, { name: "Out 3", on: false }, { name: "Out 4", on: false }],
       inputChannels: [{ name: "In 1", on: true }, { name: "In 2", on: true }] },
     midi: { inputs: [{ id: "a", name: "Launchkey Mini", on: true }, { id: "b", name: "IAC Driver Bus 1", on: false }], outputs: [{ id: "a", name: "Launchkey Mini" }], output: "a", virtualPorts: 2 },
-    link: { available: true, enabled: true, peers: 1, tempo: 120, playing: true } };
+    link: { available: true, enabled: true, peers: 1, tempo: 120, playing: true },
+    recordings: { folder: "/Users/you/Music/Beautiful Bleep/Recordings", defaultFolder: "/Users/you/Music/Beautiful Bleep/Recordings", isDefault: true, freeBytes: 180e9, choosing: false } };
   function demoSettings(fn, arg) {
     const s = demoSettingsState;
     if (fn === "audio") {
@@ -327,6 +328,18 @@
     else if (fn === "link") s.link.enabled = arg.on;
     else if (fn === "tempo") s.link.tempo = arg.bpm;
     else if (fn === "play") s.link.playing = !!arg.on;
+    else if (fn === "recordings") {   // as engine/Recording.cpp saveFolder: a full path, or nothing for the default
+      const r = s.recordings;
+      delete r.error;
+      if (arg.reset) { r.folder = r.defaultFolder; }
+      else if (typeof arg.folder === "string") {
+        const f = arg.folder.trim();
+        if (!f) r.folder = r.defaultFolder;
+        else if (!/^(\/|[A-Za-z]:[\\/])/.test(f)) r.error = "Enter the full path of a folder: it starts with / (or with a drive letter on Windows).";
+        else r.folder = f;
+      }
+      r.isDefault = r.folder === r.defaultFolder;
+    }
     return JSON.parse(JSON.stringify(s));
   }
 

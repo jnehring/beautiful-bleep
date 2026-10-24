@@ -21,6 +21,7 @@
 #include "BoardWindow.h"
 #include "BoardFiles.h"
 #include "BoardResources.h"
+#include "RecordingsSettings.h"
 #include "Engine.h"
 #include <cstdlib>
 #if defined(BLEEP_WASM_MODULES)
@@ -274,9 +275,11 @@ public:
                     if (style().onSettings) { done(style().onSettings(a[0].toString(), a[1])); return; }
                     // A plugin: Live owns audio, MIDI and sync. The board has the library and what it does with latency.
                     if (a[0].toString() == "latency") engine_.setBoardSetting("zeroHostLatencyInputs", a[1]["zeroHostLatencyInputs"]);
+                    if (a[0].toString() == "recordings") recordingsCall(a[1]);
                     auto* o = new juce::DynamicObject();
                     o->setProperty("host", "plugin");
                     o->setProperty("latency", engine_.latencyInfo());
+                    o->setProperty("recordings", recordingsState());
                     done(juce::var(o));
                 }))
                 .withNativeFunction("watch", gated([this](const juce::Array<juce::var>& a, Completion done) {

@@ -35,6 +35,7 @@ Settings live where the thing they control lives. A setting is never offered in 
 | Audio | yes (device, rate, buffer, channels, System audio) | | **new** (§4.2) |
 | MIDI and sync | yes | | **new**, named *MIDI* (§4.3) |
 | Web | yes (hub) | | **new**, named *App* (§4.4) |
+| Recordings | yes (§4.7) | yes (§4.7) | |
 | Library | yes, plus *Check for module updates at start* (§4.1) | **moved here** (§5) | **new** (§4.5) |
 | Security | yes | **moved here** (§5) | **new** (§4.5), modules only |
 | Data | | | **new** (§4.6) |
@@ -76,6 +77,16 @@ Settings live where the thing they control lives. A setting is never offered in 
 - What Bleep Play keeps in this browser: the board, saved presets, these settings. **Clear** deletes one kind or all of it after a confirmation; the page reloads with the default board.
 - *Download Project* stays in the File menu.
 
+### 4.7 App and plugin: Recordings
+
+Where the recorder service writes (`doc/specs/recorder-service.md`, section 3): the **Recordings folder**. A text field with the full path
+(applied when it is left), **Choose…** (a folder chooser: `juce::FileChooser`, launched on the message thread; the page sees the result at its
+next refresh, 1.5 s), **Show in the file manager**, **Use the default folder** (shown when the folder is not the default), the free space of
+that disk and the reason when a choice was refused. A path is refused when it is not a full path, cannot be made or cannot be written to,
+and then nothing changes. The choice is kept in `recordings.json` in the data folder the library's settings use, so the app and every plugin
+share it. A change applies to the next recording. The same code serves both hosts (`board/RecordingsSettings.cpp`); Bleep Play has no such
+tab, because it has no folder.
+
 ## 5. Plugin: one Settings, no Audio
 
 A plugin has no audio, MIDI or sync settings of its own: Live owns them. What it has is the library. Today the plugin's Library window carries a Security tab; the app keeps Security in Settings and removes it from the Library window (`library.js`, `host.settings`). The plugin does the same:
@@ -97,6 +108,7 @@ A plugin has no audio, MIDI or sync settings of its own: Live owns them. What it
 | `webApp` | web | `{ connect }` |
 | `webLibrary` | web | `{ channel, allowUnsigned: { module }, reload }` |
 | `webClear` | web | `{ what: "board" \| "presets" \| "settings" \| "all" }` |
+| `recordings` | app, plugin | `{ folder }`, `{ reset: true }`, `{ choose: true }` or `{ reveal: true }`; the state has `recordings: { folder, defaultFolder, isDefault, freeBytes, choosing, error }` |
 
 The library tabs of the app and the plugin use the existing `libraryStatus` and `librarySettings` (the new field is `updateCheck`). The plugin's BoardWindow offers Settings when the build has the library (`BLEEP_WASM_MODULES`); the Library window then drops its Security tab, as in the app.
 
@@ -118,4 +130,5 @@ The library tabs of the app and the plugin use the existing `libraryStatus` and 
 1. Page: host-aware tabs (`settings.js`), the update-check switch (`library.js`, `settings.js`), the audio indicator opening nothing in a plugin (`board.js`).
 2. Web: `patch/web/js/web-settings.js`, wired in `bleep-web.js` (latency hint, output, MIDI base switch, library configuration at load) and `board-demo.js`; `scripts/build/build-web.sh` loads it.
 3. Native: `library::Settings::updateCheck` (`Client.h/.cpp`, `ModuleLibrary.cpp`, `BoardWindow.cpp`), the plugin's Settings answer and flag (`BoardWindow.cpp`), `host: "app"` (`AppController.cpp`).
-4. Docs: `website/content/musicians/use/settings.md` (all three places, one article), pointers in `musicians/use/standalone.md`, `musicians/overview.md`, `developers/app/standalone-app.md` and a Settings section in `developers/web/bleep-play.md`; the board's Help index is regenerated. Still to do: `patch/app/README.md`.
+4. Recordings (§4.7): `recording::saveFolder` and `settingsFile` (`engine/Recording.cpp`), `board/RecordingsSettings.{h,cpp}` (state, choose, reveal), the `recordings` call in `AppController::settingsCall` and `BoardWindow`'s plugin Settings answer, the tab in `settings.js` and a pretend state in `board-demo.js`; tested by `tests/recording_test.cpp` (`settingsChoice`), the page by the fake engine only.
+5. Docs: `website/content/musicians/use/settings.md` (all three places, one article), pointers in `musicians/use/standalone.md`, `musicians/overview.md`, `developers/app/standalone-app.md` and a Settings section in `developers/web/bleep-play.md`; the board's Help index is regenerated. Still to do: `patch/app/README.md`.

@@ -191,6 +191,8 @@ def build(d, out, include_dirs, juce=None, force=False):
             extra = [f"-I{juce[0]}", *JUCE_DEFINES, str(juce[1])]
         if any("Media.h" in f.read_text() for f in sources + list(d.glob("dsp/*.h"))):
             extra.append(str(PATCH / "engine/Media.cpp"))  # no media folder in a browser yet: loads find nothing
+        if any("Recording.h" in f.read_text() for f in sources + list(d.glob("dsp/*.h"))):
+            extra.append(str(PATCH / "engine/Recording.cpp"))  # the client over the bleep_record_* imports (module-abi.md 5b)
         cmd = (["emcc"] + flags + [f"-I{tmp}"] + [f"-I{i}" for i in include_dirs] + extra
                + [str(PATCH / "web/src/WebShim.cpp")] + [str(s) for s in sources]
                + ["-o", str(target)])

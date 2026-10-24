@@ -17,6 +17,10 @@
 #include <string>
 #include <vector>
 
+namespace bleep::engine::wasm {
+class DiskRecorder;
+}
+
 namespace bleep::engine {
 
 /// A compiled module file and the node types it provides, in the order of its spec (the order bleep_create takes).
@@ -112,6 +116,7 @@ private:
     std::vector<Message> queue_, work_;
     std::string lastData_;                         // sent again when a sample file the module asked for has been read
     std::unique_ptr<Media> media_;
+    std::unique_ptr<wasm::DiskRecorder> recorder_;  // answers the bleep_record_* imports (module-abi.md, "Recording")
 
     mutable std::mutex snapMutex_;                 // the audio thread only try-locks it
     mutable std::atomic<bool> wantLive_{false}, wantData_{false};

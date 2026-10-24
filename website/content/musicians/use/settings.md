@@ -19,6 +19,7 @@ Play. Bleep never offers a setting it cannot change.
 | [Audio](#audio) | yes | | yes |
 | [MIDI](#midi) | yes, with sync | | yes |
 | [Web](#web-the-app) / [App](#app-bleep-play) | Web | | App |
+| [Recordings](#recordings) | yes | yes | |
 | [Library](#library) | yes | yes | yes |
 | [Security](#security) | yes | yes | yes, modules only |
 | [Data](#data-bleep-play) | | | yes |
@@ -96,6 +97,20 @@ the whole path.
 - **Connected boards:** which pages are connected and in which latency mode.
 - **Pages you allowed:** a page that is not served by the app asks first. **Forget**
   takes a page off the list.
+
+## Recordings
+
+Where the [Audio Console](recording.md) and other recording modules save their files.
+
+- **Folder:** the Recordings folder. The default is `Music/Beautiful Bleep/Recordings` in your home folder. Type a full path, or press
+  **Choose…** to pick a folder. A path that is not a full path, that cannot be made or that Bleep cannot write to is refused
+  with a reason, and nothing changes.
+- **Show in the file manager** opens the folder, and **Use the default folder** goes back to the default.
+- The line below shows how much room the disk has.
+
+A change applies to the next recording; one that is running keeps writing where it started. The choice is kept in Bleep's
+data folder, which the app and every plugin share, so a folder chosen in one is the folder of all. Bleep Play has no
+folder: it keeps recordings in memory and offers them as a download.
 
 ## App (Bleep Play)
 

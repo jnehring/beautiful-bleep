@@ -42,6 +42,25 @@ public:
     virtual bool read(const std::string& id, int32_t channel, float* dst, int64_t frames) = 0;
 };
 
+/// Answers a module's recording calls (module-abi.md, section 5b): audio goes out, nothing comes in but the status. Called on
+/// the thread that is inside the module, so none of it may block: `open` does only the quick part, `close` hands the session on.
+class RecordHandler {
+public:
+    virtual ~RecordHandler() = default;
+    /// A session for `specJson` ({"name", "tracks": [{"name", "channels"}]}); format 0 = 16-bit, 1 = 24-bit, 2 = 32-bit float.
+    /// A handle (>= 1), 0 when there is no recorder, -1 when the spec is refused (`text(0, 1)` says why).
+    virtual int32_t open(const std::string& specJson, double sampleRate, int32_t format) = 0;
+    virtual bool take(int32_t handle, bool begin) = 0;
+    /// `right` is null for a track of one channel.
+    virtual bool write(int32_t handle, int32_t track, const float* left, const float* right, int32_t frames) = 0;
+    /// Bit 0: a take is open; bit 1: the session failed.
+    virtual int32_t status(int32_t handle, int64_t& frames, int32_t& take) = 0;
+    /// 0 = where the files go, 1 = the last message, 2 = the session's folder.
+    virtual std::string text(int32_t handle, int32_t what) = 0;
+    virtual double freeBytes() = 0;
+    virtual void close(int32_t handle) = 0;
+};
+
 /// Limits on what a module (untrusted code) may take from the host.
 constexpr size_t kMaxModuleBytes = size_t(32) << 20;   ///< a larger file is not compiled
 constexpr int64_t kMaxTableElements = 100000;          ///< per table
@@ -86,6 +105,9 @@ public:
 
     /// Who answers bleep_media_info / bleep_media_read. None: every clip is missing. Must outlive the instance.
     void setMedia(MediaHandler* handler) noexcept;
+
+    /// Who answers the bleep_record_* imports. None: there is no recorder (open returns 0). Must outlive the instance.
+    void setRecorder(RecordHandler* handler) noexcept;
 
     /// True once a call trapped (an exception that escaped, an unreachable, out of memory). The instance should then be bypassed.
     bool failed() const noexcept { return failed_; }

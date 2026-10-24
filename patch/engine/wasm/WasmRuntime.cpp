@@ -76,17 +76,21 @@ std::string trapText(wasm_trap_t* trap) {
 
 // ---- the imports a module may have (module-abi.md section 2), as stubs (section 8) ---------------------
 
-enum class Stub { Nop, FdWrite, FdClose, FdSeek, FdRead, FdFdstatGet, SizesGet, Zero, ClockTimeGet, ProcExit, MediaInfo, MediaRead };
+enum class Stub { Nop, FdWrite, FdClose, FdSeek, FdRead, FdFdstatGet, SizesGet, Zero, ClockTimeGet, ProcExit, MediaInfo, MediaRead,
+                  RecOpen, RecTake, RecWrite, RecStatus, RecText, RecFree, RecClose };
 
 const std::pair<const char*, const char*> kNames[] = {
     {"env", "emscripten_notify_memory_growth"}, {"wasi_snapshot_preview1", "fd_close"}, {"wasi_snapshot_preview1", "fd_read"},
     {"wasi_snapshot_preview1", "fd_seek"}, {"wasi_snapshot_preview1", "fd_write"}, {"wasi_snapshot_preview1", "fd_fdstat_get"},
     {"wasi_snapshot_preview1", "environ_get"}, {"wasi_snapshot_preview1", "environ_sizes_get"}, {"wasi_snapshot_preview1", "args_get"},
     {"wasi_snapshot_preview1", "args_sizes_get"}, {"wasi_snapshot_preview1", "clock_time_get"}, {"wasi_snapshot_preview1", "proc_exit"},
-    {"env", "bleep_media_info"}, {"env", "bleep_media_read"}};
+    {"env", "bleep_media_info"}, {"env", "bleep_media_read"}, {"env", "bleep_record_open"}, {"env", "bleep_record_take"},
+    {"env", "bleep_record_write"}, {"env", "bleep_record_status"}, {"env", "bleep_record_text"}, {"env", "bleep_record_free"},
+    {"env", "bleep_record_close"}};
 const Stub kStubs[] = {Stub::Nop, Stub::FdClose, Stub::FdRead, Stub::FdSeek, Stub::FdWrite, Stub::FdFdstatGet,
                        Stub::Zero, Stub::SizesGet, Stub::Zero, Stub::SizesGet, Stub::ClockTimeGet, Stub::ProcExit,
-                       Stub::MediaInfo, Stub::MediaRead};
+                       Stub::MediaInfo, Stub::MediaRead, Stub::RecOpen, Stub::RecTake, Stub::RecWrite, Stub::RecStatus, Stub::RecText,
+                       Stub::RecFree, Stub::RecClose};
 
 bool stubFor(const std::string& mod, const std::string& name, Stub& out) {
     for (size_t i = 0; i < std::size(kNames); ++i)
@@ -108,6 +112,10 @@ void put(uint8_t* mem, size_t size, uint32_t at, T value) {
 }
 
 MediaHandler* mediaOf(wasmtime_caller_t* caller);
+RecordHandler* recorderOf(wasmtime_caller_t* caller);
+
+// What a module may ask of the recorder in one call: a host call cannot be interrupted, so its work is bounded.
+constexpr uint32_t kMaxRecordSpec = 16384, kMaxRecordFrames = 16384, kMaxRecordText = 1024;
 
 wasm_trap_t* stubCall(void* env, wasmtime_caller_t* caller, const wasmtime_val_t* args, size_t nargs, wasmtime_val_t* results, size_t nresults) {
     const Stub stub = (Stub)(intptr_t)env;
@@ -173,6 +181,59 @@ wasm_trap_t* stubCall(void* env, wasmtime_caller_t* caller, const wasmtime_val_t
                 result = ok;
             }
             break;
+        case Stub::RecOpen:  // (spec ptr, spec length, sample rate f64, format) → i32 handle
+            if (nargs == 4 && nresults == 1 && (mem = callerMemory(caller, &size))) {
+                const uint32_t at = (uint32_t)args[0].of.i32, len = (uint32_t)args[1].of.i32;
+                if (RecordHandler* rec = recorderOf(caller); rec && len > 0 && len <= kMaxRecordSpec && (size_t)at + len <= size)
+                    result = rec->open(std::string(reinterpret_cast<const char*>(mem + at), len), args[2].of.f64, args[3].of.i32);
+            }
+            break;
+        case Stub::RecTake:  // (handle, begin) → i32 ok
+            if (nargs == 2 && nresults == 1)
+                if (RecordHandler* rec = recorderOf(caller)) result = rec->take(args[0].of.i32, args[1].of.i32 != 0) ? 1 : 0;
+            break;
+        case Stub::RecWrite:  // (handle, track, left ptr, right ptr, frames) → i32 ok
+            if (nargs == 5 && nresults == 1 && (mem = callerMemory(caller, &size))) {
+                const uint32_t l = (uint32_t)args[2].of.i32, r = (uint32_t)args[3].of.i32;
+                const int32_t frames = args[4].of.i32;
+                if (RecordHandler* rec = recorderOf(caller);
+                    rec && frames > 0 && (uint32_t)frames <= kMaxRecordFrames && (size_t)l + (size_t)frames * 4 <= size && (size_t)r + (size_t)frames * 4 <= size)
+                    result = rec->write(args[0].of.i32, args[1].of.i32, reinterpret_cast<const float*>(mem + l), reinterpret_cast<const float*>(mem + r), frames) ? 1 : 0;
+            }
+            break;
+        case Stub::RecStatus:  // (handle, frames ptr → i64, take ptr → i32) → i32 flags
+            if (nargs == 3 && nresults == 1 && (mem = callerMemory(caller, &size)))
+                if (RecordHandler* rec = recorderOf(caller)) {
+                    int64_t frames = 0;
+                    int32_t take = 0;
+                    result = rec->status(args[0].of.i32, frames, take);
+                    put<int64_t>(mem, size, (uint32_t)args[1].of.i32, frames);
+                    put<int32_t>(mem, size, (uint32_t)args[2].of.i32, take);
+                }
+            break;
+        case Stub::RecText:  // (handle, what, dst ptr, capacity) → i32 length
+            if (nargs == 4 && nresults == 1 && (mem = callerMemory(caller, &size))) {
+                const uint32_t dst = (uint32_t)args[2].of.i32, cap = std::min<uint32_t>((uint32_t)std::max<int32_t>(args[3].of.i32, 0), kMaxRecordText);
+                if (RecordHandler* rec = recorderOf(caller); rec && (size_t)dst + cap <= size) {
+                    const std::string text = rec->text(args[0].of.i32, args[1].of.i32);
+                    const uint32_t n = std::min<uint32_t>((uint32_t)text.size(), cap);
+                    std::memcpy(mem + dst, text.data(), n);
+                    result = (int32_t)n;
+                }
+            }
+            break;
+        case Stub::RecFree:  // () → f64 bytes
+            if (nresults == 1) {
+                RecordHandler* rec = recorderOf(caller);
+                results[0].kind = WASMTIME_F64;
+                results[0].of.f64 = rec ? rec->freeBytes() : 0.0;
+                return nullptr;
+            }
+            break;
+        case Stub::RecClose:  // (handle)
+            if (nargs == 1)
+                if (RecordHandler* rec = recorderOf(caller)) rec->close(args[0].of.i32);
+            break;
         case Stub::ProcExit: {
             static const char text[] = "the module called proc_exit";
             return wasmtime_trap_new(text, sizeof(text) - 1);
@@ -231,6 +292,7 @@ struct Instance::Impl {
     wasmtime_instance_t instance{};
     wasmtime_memory_t memory{};
     MediaHandler* media = nullptr;
+    RecordHandler* recorder = nullptr;
     std::vector<wasmtime_func_t> funcs;
     std::vector<size_t> results;
     uint64_t budgetTicks = kDefaultBudgetMs / kTickMs;
@@ -307,11 +369,16 @@ namespace {
 MediaHandler* mediaOf(wasmtime_caller_t* caller) {
     return static_cast<Instance::Impl*>(wasmtime_context_get_data(wasmtime_caller_context(caller)))->media;
 }
+RecordHandler* recorderOf(wasmtime_caller_t* caller) {
+    return static_cast<Instance::Impl*>(wasmtime_context_get_data(wasmtime_caller_context(caller)))->recorder;
+}
 }  // namespace
 
 void Instance::setBudgetMs(int ms) noexcept { impl->budgetTicks = (uint64_t)std::max(ms, kTickMs) / kTickMs + 1; }  // +1: the first tick comes at any moment
 
 void Instance::setMedia(MediaHandler* handler) noexcept { impl->media = handler; }
+
+void Instance::setRecorder(RecordHandler* handler) noexcept { impl->recorder = handler; }
 
 uint8_t* Instance::memory() noexcept { return wasmtime_memory_data(impl->cx, &impl->memory); }
 size_t Instance::memorySize() noexcept { return wasmtime_memory_data_size(impl->cx, &impl->memory); }

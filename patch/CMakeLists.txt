@@ -59,6 +59,30 @@ option(BLEEP_BUILD_APP "Build the standalone Bleep App" ON)
 option(BLEEP_LINK "Include Ableton Link in the app (makes the app binary GPL)" ON)
 set(BLEEP_LINK_DIR "" CACHE PATH "Local Ableton Link checkout (empty: download Link 4.1)")
 
+# MP3 in the recorder service (engine/Recording.cpp, doc/specs/recorder-service.md): the encoder is LAME (LGPL), found on the system:
+# libmp3lame as a static library (so the apps do not depend on a file in /opt/homebrew) and lame/lame.h. Without it everything builds and
+# the service says "this build cannot write MP3". A release build has to bring LAME itself (doc/licensing).
+option(BLEEP_MP3 "Write MP3 in the recorder service (needs LAME: lame/lame.h and libmp3lame.a)" ON)
+set(BLEEP_HAVE_LAME OFF)
+if (BLEEP_MP3)
+    find_path(BLEEP_LAME_INCLUDE lame/lame.h HINTS /opt/homebrew/include /usr/local/include /usr/include)
+    find_library(BLEEP_LAME_LIBRARY NAMES libmp3lame.a mp3lame HINTS /opt/homebrew/lib /usr/local/lib /usr/lib)
+    if (BLEEP_LAME_INCLUDE AND BLEEP_LAME_LIBRARY)
+        set(BLEEP_HAVE_LAME ON)
+        add_compile_definitions(BLEEP_HAVE_LAME=1)
+        include_directories("${BLEEP_LAME_INCLUDE}")
+        link_libraries("${BLEEP_LAME_LIBRARY}")
+        # A libmp3lame built with its decoder (Homebrew's) needs libmpg123 as well; one built without it does not.
+        find_library(BLEEP_MPG123_LIBRARY NAMES libmpg123.a mpg123 HINTS /opt/homebrew/lib /usr/local/lib /usr/lib)
+        if (BLEEP_MPG123_LIBRARY)
+            link_libraries("${BLEEP_MPG123_LIBRARY}")
+        endif ()
+        message(STATUS "MP3: LAME found (${BLEEP_LAME_LIBRARY})")
+    else ()
+        message(STATUS "MP3: LAME not found: the recorder service writes WAV only")
+    endif ()
+endif ()
+
 # The bus, as a third party would consume it.
 if (NOT TARGET bleep_bus)
     set(BLEEP_BUS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -136,6 +160,11 @@ if (BLEEP_BUILD_TESTS)
     target_include_directories(bleep_live_link_tests PRIVATE engine bridges/ableton)
     target_link_libraries(bleep_live_link_tests PRIVATE bleep_dsp)
     add_test(NAME patch.live-link COMMAND bleep_live_link_tests)
+    # The recorder service (engine/Recording.h): files, takes, formats, a writer that falls behind. Pure C++.
+    add_executable(bleep_recording_test tests/recording_test.cpp engine/Recording.cpp)
+    target_include_directories(bleep_recording_test PRIVATE engine)
+    target_link_libraries(bleep_recording_test PRIVATE bleep_dsp)
+    add_test(NAME patch.recording COMMAND bleep_recording_test)
     # DSP tests next to the code they test: common/dsp/tests/*.cpp and
     # modules/<name>/tests/*.cpp, one executable (and one ctest) per file.
     file(GLOB dsp_test_sources CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/common/dsp/tests/*.cpp")
@@ -179,6 +208,7 @@ set(BLEEP_ENGINE_SOURCES
     engine/EngineAudio.cpp
     engine/Media.cpp
     engine/PortModules.cpp
+    engine/Recording.cpp
     engine/Program.cpp
     engine/Registry.cpp
     engine/VoiceCell.cpp)
@@ -216,7 +246,7 @@ if (BLEEP_BUILD_TESTS)
     # finite outputs, data round trips (tests/module_harness.cpp). juce_core only.
     juce_add_console_app(bleep_module_harness PRODUCT_NAME "Bleep Module Harness")
     target_sources(bleep_module_harness PRIVATE tests/module_harness.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
-        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
         target_sources(bleep_module_harness PRIVATE ${s})
@@ -226,6 +256,19 @@ if (BLEEP_BUILD_TESTS)
     target_link_libraries(bleep_module_harness PRIVATE bleep_dsp juce::juce_core
         juce::juce_recommended_config_flags)
     add_test(NAME patch.modules COMMAND bleep_module_harness)
+
+    # The Audio Console's recorder on the real module, with the audio on another thread (tests/audio_console_record_test.cpp).
+    juce_add_console_app(bleep_audio_console_record_test PRODUCT_NAME "Bleep Audio Console Record Test")
+    target_sources(bleep_audio_console_record_test PRIVATE tests/audio_console_record_test.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
+    foreach (m IN LISTS BLEEP_MODULES)
+        file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+        target_sources(bleep_audio_console_record_test PRIVATE ${s})
+    endforeach ()
+    target_include_directories(bleep_audio_console_record_test PRIVATE ${BLEEP_ENGINE_INCLUDES})
+    target_compile_definitions(bleep_audio_console_record_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    target_link_libraries(bleep_audio_console_record_test PRIVATE bleep_dsp juce::juce_core juce::juce_recommended_config_flags)
+    add_test(NAME patch.audio-console-record COMMAND bleep_audio_console_record_test)
 
     # The library's checks (signing.md): the packages of patch/tests/library-fixtures get the verdicts Python gave them.
     juce_add_console_app(bleep_library_test PRODUCT_NAME "Bleep Library Test")
@@ -249,14 +292,14 @@ if (BLEEP_BUILD_TESTS)
         if (APPLE)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
-        set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp
+        set(BLEEP_WASM_HOST_SOURCES engine/wasm/WasmRuntime.cpp engine/wasm/WasmRecorder.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp
             engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp library/Package.cpp library/Client.cpp library/Account.cpp
             third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
         # Every module twice, native and as its .wasm, on the same input (tests/wasm_parity.cpp). Not a ctest: it needs the
         # wasm files (scripts/build/build-web.sh --modules-only).
         juce_add_console_app(bleep_wasm_parity PRODUCT_NAME "Bleep Wasm Parity")
         target_sources(bleep_wasm_parity PRIVATE tests/wasm_parity.cpp ${BLEEP_WASM_HOST_SOURCES} ${BLEEP_BOARD_SOURCES} engine/Program.cpp
-            engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+            engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
         foreach (m IN LISTS BLEEP_MODULES)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_wasm_parity PRIVATE ${s})
@@ -271,7 +314,7 @@ if (BLEEP_BUILD_TESTS)
         # The Transport module as a .wasm asks the host through its mailbox (tests/wasm_host_control_test.cpp). Not a ctest either.
         juce_add_console_app(bleep_wasm_host_control_test PRODUCT_NAME "Bleep Wasm Host Control Test")
         target_sources(bleep_wasm_host_control_test PRIVATE tests/wasm_host_control_test.cpp ${BLEEP_WASM_HOST_SOURCES} ${BLEEP_BOARD_SOURCES}
-            engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+            engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
         foreach (m IN LISTS BLEEP_MODULES)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_wasm_host_control_test PRIVATE ${s})
@@ -280,11 +323,32 @@ if (BLEEP_BUILD_TESTS)
         target_compile_definitions(bleep_wasm_host_control_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
         target_link_libraries(bleep_wasm_host_control_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
             juce::juce_recommended_config_flags)
+        # The bleep_record_* imports (module-abi.md 5b) with a hand-assembled module and the real recorder service (tests/wasm_record_test.cpp).
+        juce_add_console_app(bleep_wasm_record_test PRODUCT_NAME "Bleep Wasm Record Test")
+        target_sources(bleep_wasm_record_test PRIVATE tests/wasm_record_test.cpp engine/wasm/WasmRuntime.cpp engine/wasm/WasmRecorder.cpp
+            engine/Recording.cpp)
+        target_include_directories(bleep_wasm_record_test PRIVATE engine engine/wasm)
+        target_compile_definitions(bleep_wasm_record_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+        target_link_libraries(bleep_wasm_record_test PRIVATE juce::juce_core bleep_wasmtime juce::juce_recommended_config_flags)
+        add_test(NAME patch.wasm-record COMMAND bleep_wasm_record_test)
+        # The Audio Console as a .wasm recording through the host's imports (tests/wasm_console_record_test.cpp). Not a ctest: it needs the wasm
+        # file (BLEEP_WEB_ONLY=audio-console scripts/build/build-web.sh --modules-only).
+        juce_add_console_app(bleep_wasm_console_record_test PRODUCT_NAME "Bleep Wasm Console Record Test")
+        target_sources(bleep_wasm_console_record_test PRIVATE tests/wasm_console_record_test.cpp ${BLEEP_WASM_HOST_SOURCES} ${BLEEP_BOARD_SOURCES}
+            engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
+        foreach (m IN LISTS BLEEP_MODULES)
+            file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
+            target_sources(bleep_wasm_console_record_test PRIVATE ${s})
+        endforeach ()
+        target_include_directories(bleep_wasm_console_record_test PRIVATE ${BLEEP_ENGINE_INCLUDES} engine/wasm "${CMAKE_CURRENT_SOURCE_DIR}" third_party/monocypher)
+        target_compile_definitions(bleep_wasm_console_record_test PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+        target_link_libraries(bleep_wasm_console_record_test PRIVATE bleep_dsp juce::juce_core juce::juce_cryptography bleep_wasmtime
+            juce::juce_recommended_config_flags)
         # Code nodes (engine/wasm/CodeNodes.h): a Bleep Script module compiled by the UI runs for one node (tests/code_node_test.cpp). Not a ctest:
         # it needs the module built in patch/script (cd patch/script && npm run build).
         juce_add_console_app(bleep_code_node_test PRODUCT_NAME "Bleep Code Node Test")
         target_sources(bleep_code_node_test PRIVATE tests/code_node_test.cpp ${BLEEP_WASM_HOST_SOURCES} ${BLEEP_BOARD_SOURCES}
-            engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+            engine/Program.cpp engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
         foreach (m IN LISTS BLEEP_MODULES)
             file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
             target_sources(bleep_code_node_test PRIVATE ${s})
@@ -299,7 +363,7 @@ if (BLEEP_BUILD_TESTS)
     # warning and make sound (tests/demo_patches_test.cpp). juce_core only.
     juce_add_console_app(bleep_demo_patches PRODUCT_NAME "Bleep Demo Patches")
     target_sources(bleep_demo_patches PRIVATE tests/demo_patches_test.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
-        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
         target_sources(bleep_demo_patches PRIVATE ${s})
@@ -320,7 +384,7 @@ if (BLEEP_BUILD_TESTS)
     # it and must make sound / die away (tests/cell_plugin_presets_test.cpp). juce_core only.
     juce_add_console_app(bleep_cell_plugin_presets PRODUCT_NAME "Bleep Cell Plugin Presets")
     target_sources(bleep_cell_plugin_presets PRIVATE tests/cell_plugin_presets_test.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
-        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
         target_sources(bleep_cell_plugin_presets PRIVATE ${s})
@@ -339,7 +403,7 @@ if (BLEEP_BUILD_TESTS)
     # stepped knobs, view metadata, commands, media). juce_core only.
     juce_add_console_app(bleep_engine_features PRODUCT_NAME "Bleep Engine Features")
     target_sources(bleep_engine_features PRIVATE tests/engine_features_test.cpp ${BLEEP_BOARD_SOURCES} engine/Program.cpp
-        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp)
+        engine/Registry.cpp engine/PortModules.cpp engine/VoiceCell.cpp engine/Media.cpp engine/Recording.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
         target_sources(bleep_engine_features PRIVATE ${s})
@@ -412,7 +476,7 @@ if (BLEEP_BUILD_TESTS)
     # Writes the node types for the board UI's browser demo (board/ui/demo-types.json).
     juce_add_console_app(bleep_dump_types PRODUCT_NAME "Bleep Dump Types")
     target_sources(bleep_dump_types PRIVATE tests/dump_types.cpp ${BLEEP_BOARD_SOURCES} engine/Registry.cpp
-        engine/PortModules.cpp engine/Media.cpp)
+        engine/PortModules.cpp engine/Media.cpp engine/Recording.cpp)
     foreach (m IN LISTS BLEEP_MODULES)
         file(GLOB s CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/modules/${m}/*Module.cpp")
         target_sources(bleep_dump_types PRIVATE ${s})
@@ -515,7 +579,7 @@ function(bleep_use_library target)
             set_property(TARGET bleep_wasmtime PROPERTY INTERFACE_LINK_LIBRARIES "-framework CoreFoundation;-framework Security")
         endif ()
     endif ()
-    target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
+    target_sources(${target} PRIVATE engine/wasm/WasmRuntime.cpp engine/wasm/WasmRecorder.cpp engine/wasm/WasmModule.cpp engine/wasm/SpecJson.cpp
         engine/wasm/WasmRegistry.cpp engine/wasm/CodeNodes.cpp engine/wasm/InstalledModules.cpp engine/wasm/ModuleLibrary.cpp library/Verify.cpp
         library/Package.cpp library/Client.cpp library/Account.cpp third_party/monocypher/monocypher.c third_party/monocypher/monocypher-ed25519.c)
     if (WIN32)
@@ -567,7 +631,7 @@ function(bleep_add_plugin)
         COPY_PLUGIN_AFTER_BUILD ${BLEEP_COPY_PLUGINS})
     target_sources(${P_TARGET} PRIVATE
         ${BLEEP_APP_ENGINE_SOURCES}
-        board/BoardWindow.cpp
+        board/BoardWindow.cpp board/RecordingsSettings.cpp
         board/BoardFiles.cpp
         bridges/ableton/PortProcessor.cpp
         bridges/ableton/PortEditor.cpp
@@ -630,7 +694,7 @@ bleep_add_plugin(TARGET BleepFx PRODUCT "Bleep FX" CODE BpFx KIND AudioInsert
 # Opens the real board window on a real engine for a few seconds (not in ctest).
 if (BLEEP_BUILD_TESTS)
     juce_add_gui_app(bleep_board_smoke PRODUCT_NAME "Bleep Board Smoke")
-    target_sources(bleep_board_smoke PRIVATE tests/board_smoke.cpp board/BoardWindow.cpp board/BoardFiles.cpp ${BLEEP_ENGINE_SOURCES})
+    target_sources(bleep_board_smoke PRIVATE tests/board_smoke.cpp board/BoardWindow.cpp board/RecordingsSettings.cpp board/BoardFiles.cpp ${BLEEP_ENGINE_SOURCES})
     target_include_directories(bleep_board_smoke PRIVATE ${BLEEP_ENGINE_INCLUDES})
     target_compile_definitions(bleep_board_smoke PRIVATE JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0
         BLEEP_BOARD_SMOKE_TEST=1 "BLEEP_UI_DEV_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
@@ -721,7 +785,7 @@ if (BLEEP_BUILD_APP)
         app/AppControllerSettings.cpp
         ${BLEEP_SYSTEM_AUDIO_SOURCES}
         bridges/standalone/LinkClock.cpp
-        board/BoardWindow.cpp
+        board/BoardWindow.cpp board/RecordingsSettings.cpp
         board/BoardFiles.cpp
         ${BLEEP_APP_ENGINE_SOURCES}
         ${BLEEP_BRIDGE_SERVER_SOURCES}

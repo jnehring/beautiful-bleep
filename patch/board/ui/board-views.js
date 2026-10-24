@@ -55,6 +55,10 @@
           importMedia: (name, base64) => native("importMedia", name, base64),
           exportMedia: (slot) => native("exportMedia", id, slot),
           revealMedia: (mediaId) => native("revealMedia", mediaId),
+          // Recordings the browser keeps in memory (web-recordings.js: the Audio Console in Bleep Play): null where the host writes files itself.
+          recordings: () => (window.BleepWeb && BleepWeb.recordings ? BleepWeb.recordings.list() : null),
+          downloadRecording: (recordingId) => (window.BleepWeb && BleepWeb.recordings ? BleepWeb.recordings.download(recordingId) : { error: "no recordings here" }),
+          discardRecording: (recordingId) => { if (window.BleepWeb && BleepWeb.recordings) BleepWeb.recordings.discard(recordingId); },
           setData: (data) => {
             const m = nodeById(id);
             if (m) m.data = clone(data);

@@ -120,10 +120,55 @@ function mediaImports(getMemory, media) {
   };
 }
 
-function instantiate(module, media) {
+/// bleep_record_* (module-abi.md §5b). With a `bound` recorder (web-recorder.js: one per module instance) the module records into
+/// memory; without one the host has no recorder and every module that asks is told so (open returns 0, the free space is 0). The
+/// fallback below this must not be reached: an unknown import would answer 52, which reads as a handle.
+function recordImports(getMemory, bound) {
+  if (!bound) {
+    return {
+      bleep_record_open: () => 0, bleep_record_take: () => 0, bleep_record_write: () => 0, bleep_record_status: () => 0,
+      bleep_record_text: () => 0, bleep_record_free: () => 0, bleep_record_close: () => {},
+    };
+  }
+  const MAX_FRAMES = 16384;
+  return {
+    bleep_record_open: (ptr, length, rate, format) => {
+      const bytes = new Uint8Array(getMemory().buffer);
+      if (!(ptr >= 0 && length > 0 && length <= 16384 && ptr + length <= bytes.length)) return -1;
+      return bound.open(utf8Decode(bytes.subarray(ptr, ptr + length)), rate, format);
+    },
+    bleep_record_take: (handle, begin) => bound.take(handle, begin !== 0),
+    bleep_record_write: (handle, track, left, right, frames) => {
+      const buffer = getMemory().buffer;
+      if (!(frames > 0 && frames <= MAX_FRAMES) || left < 0 || right < 0 || left % 4 || right % 4 ||
+          left + frames * 4 > buffer.byteLength || right + frames * 4 > buffer.byteLength) return 0;
+      return bound.write(handle, track, new Float32Array(buffer, left, frames), new Float32Array(buffer, right, frames), frames);
+    },
+    bleep_record_status: (handle, framesPtr, takePtr) => {
+      const out = { frames: 0, take: 0 };
+      const flags = bound.status(handle, out);
+      const view = new DataView(getMemory().buffer);
+      if (framesPtr >= 0 && framesPtr + 8 <= view.byteLength) view.setBigInt64(framesPtr, BigInt(out.frames), true);
+      if (takePtr >= 0 && takePtr + 4 <= view.byteLength) view.setInt32(takePtr, out.take, true);
+      return flags;
+    },
+    bleep_record_text: (handle, what, dst, capacity) => {
+      const text = utf8Encode(bound.text(handle, what));
+      const memory = new Uint8Array(getMemory().buffer);
+      const n = Math.min(text.length, Math.min(Math.max(capacity, 0), 1024));
+      if (dst >= 0 && dst + n <= memory.length) memory.set(text.subarray(0, n), dst);
+      return n;
+    },
+    bleep_record_free: () => bound.free,
+    bleep_record_close: (handle) => bound.close(handle),
+  };
+}
+
+function instantiate(module, media, recorder) {
   let memory = null;
   const imports = wasiImports(() => memory);
-  imports.env = { ...imports.env, ...mediaImports(() => memory, media) };
+  const bound = recorder ? recorder.bind() : null;
+  imports.env = { ...imports.env, ...mediaImports(() => memory, media), ...recordImports(() => memory, bound) };
   for (const { module: ns, name, kind } of WebAssembly.Module.imports(module)) {  // anything else: "not supported"
     imports[ns] = imports[ns] || {};
     if (kind === "function" && !imports[ns][name]) imports[ns][name] = () => 52;  // ENOSYS
@@ -135,15 +180,17 @@ function instantiate(module, media) {
   const ptr = x.bleep_spec_json();
   const len = x.bleep_spec_json_length();
   const specs = JSON.parse(utf8Decode(new Uint8Array(memory.buffer, ptr, len)));
-  return { instance, x, memory, specs };
+  return { instance, x, memory, specs, recorder: bound };
 }
 
 /// One running module instance: write inputs / params, process(), read outputs.
 export class ModuleInstance {
   /// `type`: a node type id, when the file holds several (default: the first).
   /// `media`: the clips the engine has, a Map of media id → {rate, channels} (see mediaImports).
-  constructor(module, sampleRate, type, media) {
-    const { x, memory, specs } = instantiate(module, media);
+  /// `recorder`: a MemoryRecorder (web-recorder.js) for the bleep_record_* imports; none: this host has no recorder.
+  constructor(module, sampleRate, type, media, recorder) {
+    const { x, memory, specs, recorder: bound } = instantiate(module, media, recorder);
+    this.recorder = bound;
     const typeIndex = Math.max(0, type ? specs.findIndex((s) => s.type === type) : 0);
     const spec = specs[typeIndex];
     this.typeIndex = typeIndex;
@@ -241,7 +288,11 @@ export class ModuleInstance {
     }
     return out;
   }
-  destroy() { if (this.handle) this.x.bleep_destroy(this.handle); this.handle = 0; }
+  destroy() {
+    if (this.recorder) this.recorder.dispose();   // a session that is still open is finished, not lost
+    if (this.handle) this.x.bleep_destroy(this.handle);
+    this.handle = 0;
+  }
 }
 
 export { CHUNK };

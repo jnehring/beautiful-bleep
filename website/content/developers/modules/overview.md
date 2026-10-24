@@ -22,6 +22,7 @@ The same source is built for every host. The result is **one standalone `.wasm` 
 
 - [Module ABI](module-abi.md): the exports, memory limits, determinism rules and versioning a host expects of the `.wasm` file.
 - [Signing](signing.md): the chain of trust the apps check before they run a module.
+- [Recorder service](recorder-service.md): how a module writes audio to files without a disk: sessions, takes, the Recordings folder and the imports that reach it.
 - [Licensing](licensing.md): modules may be open source, closed source or paid; the module exception explains what that needs.
 - Licences of ported code: a module ported from other code keeps the original's licence and says so in `module.json`; copyleft ports ship only through the library, never inside the apps. [Writing a module](writing-a-module.md) has the rules.
 

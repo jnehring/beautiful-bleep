@@ -419,13 +419,15 @@ BLEEP_EXPORT void bleep_command(void* h, float value) { guarded(0, [&] {
     auto* i = static_cast<Instance*>(h);
     i->module->command(i->scratch.data(), value);
 return 0; }); }
-/// Live values and arrays for the module's view, as {"values":{},"arrays":{}}.
+/// Live values, arrays and texts for the module's view, as {"values":{},"arrays":{},"text":{}}.
 BLEEP_EXPORT int bleep_live(void* h) { return guarded<int>(0, [&]() -> int {
     auto* i = static_cast<Instance*>(h);
     std::vector<std::pair<std::string, double>> values;
     std::vector<std::pair<std::string, std::vector<float>>> arrays;
+    std::vector<std::pair<std::string, std::string>> texts;
     i->module->liveValues(values);
     i->module->liveArrays(arrays);
+    i->module->liveText(texts);
     std::string out = "{\"values\":{";
     for (size_t k = 0; k < values.size(); ++k) {
         if (k) out += ',';
@@ -439,6 +441,13 @@ BLEEP_EXPORT int bleep_live(void* h) { return guarded<int>(0, [&]() -> int {
         out += ":[";
         for (size_t m = 0; m < arrays[k].second.size(); ++m) out += (m ? "," : "") + num(arrays[k].second[m]);
         out += ']';
+    }
+    out += "},\"text\":{";
+    for (size_t k = 0; k < texts.size(); ++k) {
+        if (k) out += ',';
+        quote(out, texts[k].first);
+        out += ':';
+        quote(out, texts[k].second);
     }
     out += "}}";
     i->text = std::move(out);

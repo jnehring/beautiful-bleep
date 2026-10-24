@@ -107,14 +107,14 @@ void Engine::collectGarbage() {
 namespace {
 
 /// Where the next top-level node goes on a board that already has some: left-aligned with what is there, one row
-/// below its lowest node (a node is about 110 tall, with the gap).
+/// below its lowest node.
 std::pair<double, double> belowExisting(const juce::var& doc) {
     double left = 1e9, bottom = 0.0;
     if (const auto* a = doc["nodes"].getArray())
         for (const auto& n : *a) {
             if (n["parent"].toString().isNotEmpty()) continue;
             left = std::min(left, (double)n["x"]);
-            bottom = std::max(bottom, (double)n["y"] + 110.0);
+            bottom = std::max(bottom, (double)n["y"] + board::nodeHeight(n) + board::kNodeGap);
         }
     return {left > 1e8 ? 40.0 : left, bottom > 0.0 ? bottom : 40.0};
 }

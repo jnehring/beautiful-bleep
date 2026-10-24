@@ -112,7 +112,7 @@ python3 - "$OUT/index.html" <<'PY'
 import sys
 p = sys.argv[1]
 s = open(p).read()
-tag = '<script src="js/user-modules.js"></script>\n  <script src="js/bleepmod.js"></script>\n  <script src="js/library-client.js"></script>\n  <script src="js/library-roots.js"></script>\n  <script src="js/web-settings.js"></script>\n  <script src="js/web-media.js"></script>\n  <script src="js/bleep-web.js"></script>\n  <script src="js/bridge-ui.js"></script>\n  '
+tag = '<script src="js/user-modules.js"></script>\n  <script src="js/bleepmod.js"></script>\n  <script src="js/library-client.js"></script>\n  <script src="js/library-roots.js"></script>\n  <script src="js/web-settings.js"></script>\n  <script src="js/web-media.js"></script>\n  <script src="js/web-recordings.js"></script>\n  <script src="js/bleep-web.js"></script>\n  <script src="js/bridge-ui.js"></script>\n  '
 assert '<script src="board-demo.js"></script>' in s
 s = s.replace('<script src="board-demo.js"></script>', tag + '<script src="board-demo.js"></script>', 1)
 # Content-Security-Policy for the browser build: no inline script and no eval anywhere in the UI; 'wasm-unsafe-eval' only because the

@@ -14,6 +14,7 @@ class BleepProcessor extends AudioWorkletProcessor {
     // [bridge] remote nodes (graph.js) read and write the endpoint; MIDI delays count in engine samples
     this.engine.bridge = bridgeEndpoint();
     this.engine.bridge.now = () => this.engine.samplePos;
+    this.engine.recorder.post = (message, transfer) => this.port.postMessage(message, transfer);   // finished recordings go to the page (web-recordings.js)
     this.frames = 0;
     this.board = null;
     this.port.onmessage = (e) => this.#message(e.data);
@@ -27,6 +28,8 @@ class BleepProcessor extends AudioWorkletProcessor {
         case "types": e.setTypes(m.types); break;
         case "module": e.addModule(m.slug, new WebAssembly.Module(m.bytes), m.types); if (this.board) e.setBoard(this.board); break;
         case "media": e.addMedia(m.id, m.rate, m.channels); break;
+        case "recorderBudget": e.recorder.setBudget(m.bytes); break;      // how much memory recordings may use (web-recordings.js budgetFor)
+        case "recorderRelease": e.recorder.release(m.bytes); break;       // the page dropped a recording
         case "board": this.board = m.board; e.setBoard(m.board); break;
         case "knob": e.setKnob(m.node, m.param, m.value); break;
         case "amount": e.setAmount(m.cable, m.value); break;

@@ -96,6 +96,9 @@
 
   // ---- Media (web-media.js): the audio files modules use. Kept here; the clips a board uses go to the worklet once each. -----
   const M = window.BleepWebMedia ? window.BleepWebMedia.create({ idb: (() => { try { return window.indexedDB; } catch (e) { return null; } })() }) : null;
+  // ---- Recordings (web-recordings.js): what modules record in the browser (the Audio Console). The worklet keeps it in memory under a
+  // budget and hands each finished session over; the page keeps it until it is downloaded as a zip or discarded. ------------------
+  const R = window.BleepWebRecordings ? window.BleepWebRecordings.create({ onRelease: (bytes) => post({ cmd: "recorderRelease", bytes }) }) : null;
   const mediaSent = new Set();   // ids the worklet has been sent (or is being sent)
   /// Sends the clips named in `value` (a board's nodes, or one node's data) that the worklet does not have yet. The engine makes
   /// the modules load them when they arrive, so the order against the node data does not matter.
@@ -217,6 +220,7 @@
 
   Object.assign(W, {
     media: M,
+    recordings: R,
     libraryTypes,
     /// The older versions that boards pin and that were loaded: the board page's entries for them (`older`, `version`).
     versionTypes: () => [...versionSpecs.values()],
@@ -365,9 +369,11 @@
       node.port.onmessage = (e) => {
         const m = e.data;
         if (m.cmd === "state" && W.onState) W.onState(m.state);
+        if (m.cmd === "recording" && R) R.add(m.recording);
         if (m.cmd === "error") { console.error("[bleep worklet]", m.message); setStatus("audio error: " + m.message.split("\n")[0]); }
       };
       post({ cmd: "types", types });
+      if (R) post({ cmd: "recorderBudget", bytes: window.BleepWebRecordings.budgetFor(navigator) });
       for (const id of code.keys()) sendCode(id);   // Code nodes compiled before the audio started (board-code.js)
       post({ cmd: "watch", nodes: watched });
       post({ cmd: "tempo", bpm: W.transport.bpm });

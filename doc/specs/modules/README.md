@@ -24,6 +24,7 @@ section 21): no hardware names in the files, the UI or the docs.
 | Attenuverter | [attenuverter.md](attenuverter.md) | Implemented |
 | CV Mixer | [cv-mixer.md](cv-mixer.md) | Implemented |
 | Audio Mixer | [audio-mixer.md](audio-mixer.md) | Implemented |
+| Audio Console | [audio-console.md](audio-console.md) | Implemented |
 | Multiplier | [multiplier.md](multiplier.md) | Implemented |
 | Crossfader | [crossfader.md](crossfader.md) | Implemented |
 | Logic | [logic.md](logic.md) | Implemented |
