@@ -148,6 +148,8 @@
       const read = el("div", "lp-read");
       parts.rmin = el("span");
       parts.rval = el("span");
+      parts.rval.title = "The row's own value: how far along the span from Min to Max it is set (0% is Min, 100% is Max). The triangle shows it. " +
+        "Min, Max and \"now\" are positions in the parameter's whole range; this one is a position inside the span.";
       parts.rmax = el("span");
       for (const p of [parts.rmin, parts.rval, parts.rmax]) read.appendChild(p);
       card.appendChild(read);
@@ -213,7 +215,7 @@
       parts.pos.style.left = at * 100 + "%";
       parts.now.textContent = "now " + pct(at);
       parts.rmin.innerHTML = "Min <b>" + pct(lo) + "</b>";
-      parts.rval.innerHTML = lo > hi ? "Max below Min: turned round" : "Row <b>" + pct(v) + "</b>";
+      parts.rval.innerHTML = (lo > hi ? "Max below Min, turned round: " : "") + "Row <b>" + pct(v) + "</b> of the way from Min to Max";
       parts.rmax.innerHTML = "Max <b>" + pct(hi) + "</b>";
     } else {            // discrete
       const at = live === null ? v : live;
