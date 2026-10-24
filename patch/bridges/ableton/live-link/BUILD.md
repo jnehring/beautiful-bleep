@@ -7,6 +7,12 @@ section 7 lists what to check. Background: [`doc/specs/live-link.md`](../../../.
 
 Needs Live Suite (Max for Live). The logic is `live-link.js`, tested outside Max (`node live-link.test.mjs`).
 
+**The device in this folder.** `Bleep Live Link.amxd` is the finished four-row device. Its rows are embedded subpatchers (four copies of
+the one-row patch of section 2), and it needs nothing but `live-link.js` next to it, which is this folder's copy. To use it, open it in
+Live from here, or copy the `.amxd` into your User Library next to a link to `live-link.js` (`ln -s` the repo's script, so you never run a
+stale copy). `m4lbridge.amxd` is the first one-row prototype (the older offset model), kept for reference. The sections below are how it
+is built; if you change the device, save it back into this folder.
+
 **What the device does, in one paragraph.** The *board* decides each row's value: a row of the Live Params node is a knob that
 cables can feed, scaled into its Min..Max, and it arrives as a position `0..1` within the Live parameter's own range (`-1` means
 the board no longer drives the row). The device only writes it: a continuous parameter through `live.remote~`, a discrete one
