@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bit Formula view: the formula as text (the built-in ones are shown read-only,
 // "Custom" is edited here and compiled by the module), the eight bits of the
 // current byte as lamps, and the output over a few milliseconds.

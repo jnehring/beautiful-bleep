@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Pitch Follower: factory presets (see ../build-modules.mjs).
 export default [
   ["Voice", { low: 80, high: 1000, glide: 0.03, hold: 0.25, confidence: 0.75, guard: "Light", vote: "Off", release: 0.15 }, "All-round setting for a singing or speaking voice."],

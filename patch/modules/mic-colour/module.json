@@ -1,7 +1,7 @@
 {
   "name": "Mic Colour",
   "slug": "mic-colour",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "language": "bleep-script",
   "tagline": "Records any source through a microphone model (ribbon, dynamic, condenser, tube condenser) in a room: proximity, distance, presence, off-axis, early reflections, soft saturation and self-noise. Stereo.",
   "category": "Effects/Dynamics & EQ",

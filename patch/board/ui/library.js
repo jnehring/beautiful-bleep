@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // library.js — the Library section of the board window (developers/modules/library.md section 9): what is installed on this machine, what the
 // Bleep Library offers, and the Security settings. The board is the other section. Not in Bleep Play: it installs by itself.
 //

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Turns what a patch script described (run.mjs) into real board content: a cell with its modules and cables. Everything the script asked
 // for is checked here, against the module types of the board: the module exists and can be added, the knobs exist and the values fit,
 // the jacks exist and the signal types match. The checks and the unit conversions are those of patch/presets/kit.mjs (the factory

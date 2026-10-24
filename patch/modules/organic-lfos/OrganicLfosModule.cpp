@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Organic LFOs node (doc/specs/modules/organic-lfos.md): eight related LFOs with
 // seeded drift, a shared wave twist, Sum and Max, free or locked to the bars.
 #include "OrganicLfosDsp.h"

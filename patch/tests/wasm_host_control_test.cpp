@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // The Transport module as a .wasm file asks the host through its mailbox (engine/HostControl.h, module-abi.md "Host mailbox"):
 // WasmModule copies the host's status in before a block and moves the requests out after it.

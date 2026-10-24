@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Shape Table: the curve table (presets, interpolation, antiderivative),
 // edge modes, aliasing against a naive shaper, dry/wet phase alignment, DC
 // handling, harmonics and bounds.

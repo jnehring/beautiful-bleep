@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // SpringTank: the "Spring" character of the Verb. A dispersive loop, one per
 // channel: a delay line (the length of the coil), a chain of 36 first-order
 // allpasses (the dispersion: low frequencies travel slower than highs, so every

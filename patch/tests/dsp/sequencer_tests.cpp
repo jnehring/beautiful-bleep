@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // sequencer_tests.cpp — Step Sequencer (doc/specs/modules/step-sequencer.md §8).
 
 #include "dsp_test.h"

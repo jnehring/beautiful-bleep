@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // BridgeProtocol.h — how Bleep Audio Bridge plugins in Live and the Bleep
 // Patch app exchange audio (spec §11.3).

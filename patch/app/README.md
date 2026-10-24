@@ -47,7 +47,7 @@ audio permission is not the app's and the capture stays silent:
 ## Ableton Link and the license
 
 Link (fetched from github.com/Ableton/link, tag `Link-4.1`) is licensed
-GPLv2-or-later. Our source is GPL-3.0-or-later, so that fits; **app binaries built with Link are
+GPLv2-or-later. Our source is GPL-3.0-only, so that fits; **app binaries built with Link are
 distributed under the GPL**, as every build of the app now is,, together with their source (fine for this open
 project; JUCE builds are AGPLv3 anyway, which is compatible with GPLv2-or-later
 via GPLv3). A closed-source build needs a license from Ableton

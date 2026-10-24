@@ -1,7 +1,7 @@
 {
   "name": "Ring Drums",
   "slug": "ring-drums",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A deep, round drum kit, one node per drum: struck resonators, noise and detuned square waves.",
   "colour": "#f59e0b",
   "formats": [

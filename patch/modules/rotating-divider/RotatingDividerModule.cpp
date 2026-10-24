@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rotating Div node (doc/specs/modules/rotating-divider.md): eight dividers of
 // one base clock; Rotate shifts the set of divisions across the outputs.
 #include "RotatingDividerDsp.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // 3-Band EQ: a low shelf, a mid bell and a high shelf in a row, per channel. Written in Bleep Script.
 
 import { Biquad, Smoother, PeakHold } from "./bleep/dsp";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // web-media.js and the media imports of module-host.js: a WAV is imported, stored and decoded, and the Sampler module (a real wasm file)
 // loads it, shows its peaks and plays it. Needs the Sampler built for the browser:
 //   node --experimental-wasm-exnref patch/web/test/web-media-test.mjs [path/to/sampler.wasm]

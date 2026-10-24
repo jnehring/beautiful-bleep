@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Zone Delay node (doc/specs/modules/zone-delay.md): a stereo delay over five
 // time zones with tape or crossfade time changes, loop characters, diffusion
 // and the Reverse / Hold / Ping-Pong switches (gates ORed with the view's

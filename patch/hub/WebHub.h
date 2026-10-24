@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // WebHub — the app's side of the web link (doc/specs/bridges.md §2, §3.2, §10). Owns the WebSocket server,
 // the web peers and their channels, and does three jobs:

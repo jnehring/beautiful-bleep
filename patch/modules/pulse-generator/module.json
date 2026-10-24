@@ -1,7 +1,7 @@
 {
   "name": "Pulse Generator",
   "slug": "pulse-generator",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Exactly timed pulses with delay, width and slewed edges, ringing like a badly terminated cable.",
   "colour": "#facc15",
   "formats": [

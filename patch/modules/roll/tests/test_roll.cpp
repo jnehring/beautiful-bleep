@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Roll DSP: note timing and length, overlapping notes and the mono outputs,
 // loop region, ratchet, probability, Morph, slot changes, humanise, Clock mode
 // and no hanging notes.

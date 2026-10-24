@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spatial Pan view: the listener from above (nose up) with the source on its
 // azimuth and distance (modulation included), and a side view of elevation.
 // Dragging in the top view sets azimuth and distance.

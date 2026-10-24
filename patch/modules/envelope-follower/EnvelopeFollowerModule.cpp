@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Envelope Follower node (doc/specs/modules/envelope-follower.md): audio or CV
 // in, a smooth control signal out, plus an inverted copy and a threshold gate.
 #include "EnvelopeFollowerDsp.h"

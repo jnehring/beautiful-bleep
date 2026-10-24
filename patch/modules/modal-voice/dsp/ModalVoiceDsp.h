@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Modal Voice DSP (doc/specs/modules/modal-voice.md): exciters (bow, blow,
 // mallet, external audio) drive the shared modal bank, and a small room
 // places it. Everything runs sample by sample, so the bow's and the jet's

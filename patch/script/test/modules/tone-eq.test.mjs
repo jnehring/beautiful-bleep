@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tone EQ: realised response against the analog prototypes, valve stage harmonics and aliasing, drift, input choice, safety.
 //   node test/modules/tone-eq.test.mjs
 import { loadModule, render, sine, gainAt, harmonicsDb, spectrum, check, finish, finiteAll, peak, SR } from "./lib.mjs";

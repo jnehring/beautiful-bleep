@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Endless Tone view: the loudness window over log-frequency (a Gaussian times a
 // raised cosine, as the module computes it) with one vertical line per partial
 // at its live position, so the lines slide through the window while the sound

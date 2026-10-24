@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bender view (doc/specs/modules/bender.md §5): with transport sync, the
 // decisions of the current and the next bar (computed from the same seeded
 // hash as the audio, so you see what Chance and Seed will do before it

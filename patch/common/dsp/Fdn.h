@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Reverb core (doc/specs/modules/reverb.md §4): a feedback delay network of 8 or
 // 16 lines mixed by a lossless Householder or Hadamard matrix, after a
 // pre-delay and an allpass input diffuser. All decay comes from per-line

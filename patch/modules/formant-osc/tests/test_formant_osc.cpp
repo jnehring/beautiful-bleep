@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Formant Osc: pitch, harmonic bursts, formant peak position (Ratio and
 // Fixed), sweeping through zero, click-free modulation, aliasing, stereo,
 // Body, Sync (doc/specs/modules/formant-oscillator.md §8).

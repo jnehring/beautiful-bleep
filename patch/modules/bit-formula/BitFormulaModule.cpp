@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bit Formula node (doc/specs/modules/bit-formula.md): an integer expression
 // evaluated once per clock tick. The expression is compiled on the message
 // thread (setData) and handed to the audio thread with RtHandoff.

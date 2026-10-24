@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Examples for the playground. "Gains" is the real module in src/; the others are written here.
 
 const FOLD_SOURCE = `import { Smoother, PeakHold } from "./bleep/dsp";

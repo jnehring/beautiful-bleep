@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Neuron view (doc/specs/modules/neuron.md §5): per neuron the membrane over the
 // last 2 seconds with the threshold and hysteresis band, the gate as a strip
 // below and a dot that flashes on each spike. Drag the threshold line to set

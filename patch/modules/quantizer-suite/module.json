@@ -1,7 +1,7 @@
 {
   "name": "Quantizer Suite",
   "slug": "quantizer-suite",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Four quantizer channels: scale with a note mask, transpose in the scale, arpeggiate, or follow the board's harmony.",
   "colour": "#7cb7f5",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Gate: range, velocity floor/ceiling/curve, remap, gate, rule lanes,
 // note-off pairing.
 #include "NoteGateDsp.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // bleepmod.js (the package of a community module, built in the browser) against the library's own checks (website/api/app/community.py):
 // the zip must open in Python's zipfile with good CRCs and pass `community.inspect`. Needs python3 with the library's dependencies.

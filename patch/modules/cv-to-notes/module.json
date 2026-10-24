@@ -1,7 +1,7 @@
 {
   "name": "CV to Notes",
   "slug": "cv-to-notes",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Pitch and gate in, notes out: mono sources play Voice Cells.",
   "colour": "#a78bfa",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Pitch Follower node (doc/specs/modules/pitch-follower.md): audio in, the pitch of
 // a single voice or instrument out as V/oct, with a gate, a confidence signal and
 // an envelope.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Cheap Speaker: corners of every device, level-dependent behaviour, noise, wobble, mix phase, aliasing, safety.   node test/modules/cheap-speaker.test.mjs
 import { loadModule, render, sine, gainAt, check, finish, spectrum, db, rms, finiteAll, harmonicsDb } from "./lib.mjs";
 

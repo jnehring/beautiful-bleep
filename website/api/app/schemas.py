@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 Role = Literal["admin", "user"]
-LICENSE_PATTERN = r"^[A-Za-z0-9.+() -]+$"  # an SPDX id or expression, e.g. "GPL-3.0-or-later" or "MIT AND AGPL-3.0-only"
+LICENSE_PATTERN = r"^[A-Za-z0-9.+() -]+$"  # an SPDX id or expression, e.g. "GPL-3.0-only" or "MIT AND AGPL-3.0-only"
 Password = Field(min_length=10, max_length=128)
 
 

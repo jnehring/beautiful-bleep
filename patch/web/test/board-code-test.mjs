@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-code.js (the Code node): what the board asks of it without a compiler: the node's type description, when its view is rebuilt,
 // and that a board with Code nodes is handed to the compiler once.   node patch/web/test/board-code-test.mjs
 import assert from "node:assert/strict";

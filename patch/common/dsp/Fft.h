@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // A small in-place radix-2 FFT with tables built once (prepare), so the audio
 // thread never allocates. Sizes are powers of two up to the size given to
 // prepare().

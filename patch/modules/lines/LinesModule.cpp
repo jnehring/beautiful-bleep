@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Lines node (doc/specs/modules/lines.md): patterns of rows and an order list
 // from the node's data, four tracks each with its own speed and length, timing
 // from the transport or a clock; notes, gate, pitch and velocity per track.

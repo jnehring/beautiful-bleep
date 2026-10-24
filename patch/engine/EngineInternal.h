@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // EngineInternal.h — what the files of the Engine implementation share: the includes and a few small helpers.
 // Engine.cpp (lifetime, instances, finding the engine), EngineBoard.cpp (the board and cell presets), EngineEdit.cpp
 // (what the board UI does), EngineCompile.cpp (compiling and reconciling, live state), EngineAudio.cpp (the audio path).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Compiles one script module of patch/modules/ to a .wasm (and its node type descriptions): what patch/web/build_modules.py runs for them.
 //   node build-module.mjs <slug> <out.wasm> [<out.spec.json>]
 import { writeFileSync } from "node:fs";

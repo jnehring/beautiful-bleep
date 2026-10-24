@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Drum Grid node (doc/specs/modules/drum-grid.md): patterns from the node's
 // data, timing from the transport, its own tempo or a clock; gate, accent
 // and velocity out per track.

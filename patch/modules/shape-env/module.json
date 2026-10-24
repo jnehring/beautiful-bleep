@@ -1,7 +1,7 @@
 {
   "name": "Shape Env",
   "slug": "shape-env",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Envelope and LFO that plays shapes from a library of 96, plus 8 you draw yourself.",
   "colour": "#fda4af",
   "formats": [

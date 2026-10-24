@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Meta Mod (doc/specs/modules/meta-modulator.md): combines a carrier and a
 // modulator with one of eight algorithms, morphing continuously between
 // neighbours: crossfade, fold, analog (diode) ring, digital ring, bitwise,

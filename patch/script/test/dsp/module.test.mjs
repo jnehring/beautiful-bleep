@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The library as a module script uses it: a Code-node-style source compiled with the Bleep transform and the subset checker (no real-time
 // rule broken by calling library code, a cost is estimated), then run in the module host.   node test/dsp/module.test.mjs
 import { readFileSync, readdirSync } from "node:fs";

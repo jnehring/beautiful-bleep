@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scope node (doc/specs/modules/scope.md): two to four signals drawn over time,
 // started by a trigger, with cursors for measuring in the view. What it
 // measures on one trace comes out as signals: Amplitude, Frequency and Valid.

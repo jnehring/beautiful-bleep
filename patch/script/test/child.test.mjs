@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Child modules: a script imports a module of the library and the compiler links the two (compiler/child.mjs, compiler/wasm-merge.mjs).
 //   node test/child.test.mjs
 import { readFileSync } from "node:fs";

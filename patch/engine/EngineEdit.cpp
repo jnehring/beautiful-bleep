@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // EngineEdit.cpp — what the board window does to the engine: UI calls, commit, undo, parameters and media.
 #include "EngineInternal.h"
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Valve Stage: one to three cascaded tube gain stages (12AX7, 12AU7, or an EL34 pentode power stage), written in Bleep Script.
 // Each stage is a small circuit: Miller-capacitance roll-off, a coupling capacitor that grid current charges (blocking), a plate current
 // of the form u^1.5 with a soft cutoff, a plate load line that bottoms out, a cathode with a bypass capacitor, and a shared supply that sags.

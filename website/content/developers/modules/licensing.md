@@ -8,7 +8,7 @@ order: 5
 
 The short version:
 
-- **Bleep itself is free software** under the GPL (version 3 or later).
+- **Bleep itself is free software** under the GPL (version 3 only).
 - **Your module is yours.** Write it against the module API and you can
   license it as you like: open source, free, closed source or paid.
 - **Forks of Bleep stay free.** If you change Bleep itself and give it to
@@ -22,8 +22,8 @@ and [`LICENSE-EXCEPTION.md`](https://github.com/jnehring/beautiful-bleep/blob/ma
 
 | Part | Licence | Why |
 |---|---|---|
-| The engine, board, apps and hub (`patch/`) | **GPL-3.0-or-later with the Bleep Module Exception** | Keeps Bleep and everything built from it free, while letting modules be anything |
-| The built-in modules (`patch/modules/`) | **GPL-3.0-or-later**, unless a module's `module.json` says otherwise (the three ported ones keep their original licence) | Free to copy as a starting point for your own, under the GPL |
+| The engine, board, apps and hub (`patch/`) | **GPL-3.0-only with the Bleep Module Exception** | Keeps Bleep and everything built from it free, while letting modules be anything |
+| The built-in modules (`patch/modules/`) | **GPL-3.0-only**, unless a module's `module.json` says otherwise (the three ported ones keep their original licence) | Free to copy as a starting point for your own, under the GPL |
 | [Bleep Bus](../bleep-bus/quickstart.md) (`bus/`) | **MIT** | An open protocol: anyone can implement it in any product |
 | Scripts and the website (`scripts/`, `website/`) | **MIT** | Tools, not the product |
 | Factory presets (`patch/presets/`) | **MIT** | Shared patches |

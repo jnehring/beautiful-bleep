@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scene Arranger core (doc/specs/modules/scene-arranger.md): up to 16 scenes
 // played in a list of up to 16 slots (scene + repeat count). When a scene has
 // played its repeats, its follow action picks the next one. Launches (the

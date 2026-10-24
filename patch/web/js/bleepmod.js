@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleepmod.js — builds the package of a community module in the browser (the developer docs, "Publishing a module", "Share a module with the
 // community"): an unsigned .bleepmod, a zip with module.json, module.wasm, spec.json, the help page as doc/<name>.md and the module's own picture as view.sandbox.js and, if the author shares it, the source as source.dsp.ts, and the tile's picture as image.png|jpg|webp. The library checks it,
 // signs it and publishes it (PUT /api/registry/community/modules/<name>/<version>).

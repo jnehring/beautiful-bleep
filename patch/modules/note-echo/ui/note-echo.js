@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Echo view (doc/note-echo.md): the repeat train of one note as the
 // current knobs shape it: height = velocity after Decay, row = scale steps
 // walked (Scale Steps plus the Spread fan), position = time with Gravity

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Attenuverter node (doc/specs/modules/attenuverter.md): four rows of scale and
 // offset; an unpatched row is a manual constant.
 #include "AttenuverterDsp.h"

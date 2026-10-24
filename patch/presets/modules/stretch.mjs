@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Stretch: factory presets (see ../build-modules.mjs).
 export default [
   ["Half Speed", { stretch: 2, engine: "Smear", pitch: 0, window: "2048", record: "Once", length: 8, mix: 1 }, "Plays the recording at half speed with the pitch where it was."],

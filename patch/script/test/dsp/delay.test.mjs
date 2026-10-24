@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/delay: DelayLine reads, table interpolation, TapeDelay, KarplusStrong.   node test/dsp/delay.test.mjs
 import { harness, check, finish, SR, rms, peak, finiteAll, responseAt, noise, spectrum } from "./lib.mjs";
 

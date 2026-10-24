@@ -1,7 +1,7 @@
 {
   "name": "Math",
   "slug": "math",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Two rows of arithmetic on signals",
   "colour": " add, subtract, multiply, divide, power, min, max.:#fcd34d",
   "formats": [

@@ -1,7 +1,7 @@
 {
   "name": "Note Echo",
   "slug": "note-echo",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Every note comes back as a train of repeats that fade, climb the scale, fan into chord tones and lean on or away from the grid.",
   "colour": "#7dd3c0",
   "formats": [

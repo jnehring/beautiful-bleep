@@ -1,7 +1,7 @@
 {
   "name": "Zone Delay",
   "slug": "zone-delay",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Stereo delay from tuned combs to 20-second loops: five time zones, tape or crossfade time changes, loop characters, Reverse, Hold and Ping-Pong.",
   "colour": "#3b82f6",
   "formats": [

@@ -6,7 +6,7 @@ order: -10
 
 # Build with Beautiful Bleep
 
-Bleep is GPL-3.0-or-later with a module exception, so your modules can be closed source or paid; Bleep Bus is MIT. See [Licensing](modules/licensing.md). The documentation has five parts, each with its own overview page and its own menu in the sidebar.
+Bleep is GPL-3.0-only with a module exception, so your modules can be closed source or paid; Bleep Bus is MIT. See [Licensing](modules/licensing.md). The documentation has five parts, each with its own overview page and its own menu in the sidebar.
 
 | Section | What it is for | Start here |
 |---|---|---|

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Valve Stage (src/valve-stage.dsp.ts): tube cascades with plate load, grid current, Miller roll-off, blocking, cathode bypass and sag.
 //   node test/modules/valve-stage.test.mjs
 import { loadModule, render, sine, gainAt, harmonicsDb, check, finish, spectrum, db, rms, peak, finiteAll } from "./lib.mjs";

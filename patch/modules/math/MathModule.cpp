@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Math node: two rows, each one operation (add, subtract, multiply, divide, power, min, max) on
 // A and B. A patched input replaces its constant knob.
 #include "MathDsp.h"

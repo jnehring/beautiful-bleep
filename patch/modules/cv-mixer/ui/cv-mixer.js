@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CV Mixer view: the four channel levels as glowing bars, how the mode combines
 // them (sum, average, max, min, or a scan that crossfades neighbours at the Scan
 // position: CvMixerDsp.h) and the live Out level at the right.

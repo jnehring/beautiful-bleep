@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Modal Voice node: bow, blow, mallet and external audio drive a modal body
 // in a small room (doc/specs/modules/modal-voice.md). Built for Voice Cells: an
 // Active output, and the voice sleeps when silent. The view shows an

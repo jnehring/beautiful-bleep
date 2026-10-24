@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Noise: white, pink, brown and blue noise, plus a Colour knob that sweeps
 // continuously brown → pink → white → blue → violet.
 #pragma once

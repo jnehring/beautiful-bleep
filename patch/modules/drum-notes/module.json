@@ -1,7 +1,7 @@
 {
   "name": "Drum Notes",
   "slug": "drum-notes",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "General MIDI drum notes in; a trigger per drum out.",
   "colour": "#c084fc",
   "formats": [

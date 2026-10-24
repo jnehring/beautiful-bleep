@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Polymeter Seq DSP: track positions for every division and direction (also
 // after a jump), loop windows, Bar and Track Ends, probability and bias,
 // seeds, ratchets and Ratchet Amt, scale degrees, pattern changes, Hold and

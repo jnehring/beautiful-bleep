@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Bleep Script patch builder, as the code that runs INSIDE the sandbox (QuickJS, run.mjs) before the user's script. It defines `cell()`
 // and the builder the script uses, records what the script asks for as plain data, and has no other way out: no fetch, no storage,
 // no host functions. The host reads the result (globalThis.__result) as JSON and checks it against the board's module types

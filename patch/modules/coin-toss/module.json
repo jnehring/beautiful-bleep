@@ -1,7 +1,7 @@
 {
   "name": "Coin Toss",
   "slug": "coin-toss",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Sends each gate to A or B by a weighted, seeded coin.",
   "colour": "#7c3aed",
   "formats": [

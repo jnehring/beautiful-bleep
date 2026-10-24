@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Strange Osc: bounded and finite everywhere, seeded and repeatable, pitch by
 // time-scaling, and Tame turning chaos into a periodic orbit.
 #include "StrangeDsp.h"

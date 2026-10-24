@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/osc — oscillator shapes for Bleep Script. Phases run 0 to 1 (one cycle) and `dt` is the phase step of one sample (frequency / sampleRate).
 // Keep phase accumulators in f64. Everything here is plain AssemblyScript: allocate in constructors only.
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // module_tests.cpp — small modules: Function, Random, Utility, Oscillator, ADSR, LFO and Noise.
 
 #include "dsp_test.h"

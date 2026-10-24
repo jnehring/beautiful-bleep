@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Mult: factory presets (six ratios, skips, swing, humanize, phase lock).
 export default [
   ["Ratio Ladder", { ratio1: "2", ratio2: "3", ratio3: "4", ratio4: "3/2", ratio5: "5/4", ratio6: "8" }, "Whole and fractional ratios side by side: 2, 3, 4, 3/2, 5/4 and 8 per clock."],

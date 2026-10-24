@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // A small stereo room: a feedback delay network of 4 (or 8) lines with a
 // Householder mixing matrix, a one-pole damping filter per line, two slow
 // modulated lines against metallic ringing and an early-reflection tap pair

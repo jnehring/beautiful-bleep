@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // A bank of up to 64 ringing modes, the body of the physical models
 // (Resonator, Modal Voice, Macro Osc's Modal, Perc Voice). Each mode is a
 // complex one-pole (a rotation times a decay, like dsp::Resonator in

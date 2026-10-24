@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectral Blend DSP (doc/specs/modules/spectral-blend.md): cross-synthesis of two
 // signals in the frequency domain, the textbook short-time Fourier analysis /
 // overlap-add scheme (Hann analysis and synthesis windows, 75 % overlap).

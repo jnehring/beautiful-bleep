@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // web-media.js — the media folder of the browser build (engine/Media.h has the native one). The audio files that modules use (the
 // Sampler's reel, a wavetable, a grain buffer) are kept in IndexedDB under the same ids as the native folder: "<16 hex digits>.wav",

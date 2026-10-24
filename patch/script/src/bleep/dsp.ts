@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/dsp — the start of the Bleep Script standard library (doc/specs/bleep-script.md, section 3.5).
 // Plain AssemblyScript, so it inlines into the modules that use it. Allocate in constructors only.
 

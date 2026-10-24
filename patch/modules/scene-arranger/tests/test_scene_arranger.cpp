@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scene Arranger: play order with repeats, every follow action, launch
 // quantize, Next/Previous/Launch, the Scene CV (matches a 16-slot selector),
 // lane gates and triggers, Reset, transport start/stop/jump.

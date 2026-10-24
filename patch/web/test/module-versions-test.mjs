@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Module versions on the board (board/ui/library.js): a preset, project or paste says which version of a module it was made with
 // (`needs.<slug>.version`, or a node's own `version`); if the installed module is another version, the dialog asks which to use,

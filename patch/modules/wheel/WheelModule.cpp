@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wheel node (doc/specs/modules/wheel.md): a pitch or mod wheel as a control
 // signal.
 #include "Registry.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Channel Strip's own UI (src/channel-strip.view.js) run against the mock sandbox.   node test/modules/channel-strip.view.test.mjs
 import { loadModule, gainAt, check, finish } from "./lib.mjs";
 import { runView, viewSource } from "./view-lib.mjs";

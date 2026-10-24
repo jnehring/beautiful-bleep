@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Macro Osc models 1–9, the pitched ones (doc/specs/modules/macro-oscillator.md
 // 4.2): reduced versions of the dedicated oscillators, built from the shared
 // cores in patch/common/dsp (SyncOsc, Folder, FormantOsc, PartialBank, the

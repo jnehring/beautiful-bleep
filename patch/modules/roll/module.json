@@ -1,7 +1,7 @@
 {
   "name": "Roll",
   "slug": "roll",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Draw free-length, overlapping notes on a pitch grid: eight slots, a ghost of the last one and a Morph between two.",
   "colour": "#7cc4a4",
   "formats": [

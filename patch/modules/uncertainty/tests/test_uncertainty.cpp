@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Uncertainty: Fluctuating continuity and sync, Quantized levels and divide,
 // Stored correlation / shape / distribution, seeking, Integrated
 // (doc/specs/modules/uncertainty.md §8).

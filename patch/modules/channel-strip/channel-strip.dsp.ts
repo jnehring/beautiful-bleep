@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Channel Strip: a console channel in one module, written in Bleep Script. A high-pass filter, an input transformer (core saturation), a four-band
 // equaliser with switchable centre frequencies and proportional Q, and a drive stage with three characters (warm iron, punchy op-amp, clean).
 // The equaliser and the drive stage can swap places: boosts that run into the saturator drive it harder, so the colour follows the equaliser.

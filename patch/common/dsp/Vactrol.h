@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // A photoresistive cell ("vactrol") and the low-pass gate built on it
 // (doc/specs/modules/low-pass-gate.md). Light opens the cell almost at once; in
 // the dark it recovers slowly, more slowly the darker it gets, and more

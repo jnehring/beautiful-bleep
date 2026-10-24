@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Speak node (doc/specs/modules/speak.md): a phoneme string sequenced through
 // a small formant voice. The text is node data, parsed on the message thread
 // and handed over with RtHandoff.

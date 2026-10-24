@@ -1,7 +1,7 @@
 {
   "name": "Chord Osc",
   "slug": "chord-osc",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "One pitch in, a whole chord out: up to six oscillators on a chromatic or diatonic chord, with inversion, voicing and latch.",
   "colour": "#22d3ee",
   "formats": [

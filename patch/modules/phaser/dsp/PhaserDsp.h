@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Phaser: a cascade of first-order allpass stages swept by an LFO, with feedback from the last stage back
 // to the input. Mixed with the dry signal, every pair of stages makes one notch. Textbook design.
 #pragma once

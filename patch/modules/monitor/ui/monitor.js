@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Monitor view (doc/specs/modules/monitor.md §5): a table of the MIDI events that
 // arrive (newest on top, with filters, Pause and Clear) over a keyboard that shows
 // the held notes, and below it three meters side by side: the audio bars (peak and

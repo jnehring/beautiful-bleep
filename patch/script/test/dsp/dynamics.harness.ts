@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 import { OUT, IN, Unit } from "./common";
 import { Compressor, Limiter, Gate, softClip, hardClip, foldback, asymSat, chebyshev, Bitcrush, Decimate, Oversampler2x, Oversampler4x } from "../../src/bleep/dynamics";
 export { outPtr, inPtr } from "./common";

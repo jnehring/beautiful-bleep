@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Mic Colour's own UI (the JavaScript of the Code node's UI tab): a top-down view of the room.
 // The microphone (left) shows the polar pattern of the chosen model; the source (the loudspeaker) is a dot you drag left and right to set Distance.
 // Grab the microphone to turn it away from the source (Off-Axis). Rings round the capsule thicken with the proximity effect, dots bounce off the walls

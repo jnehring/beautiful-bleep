@@ -1,7 +1,7 @@
 {
   "name": "Noise",
   "slug": "noise",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "White, pink, brown and blue noise, and a Colour knob that sweeps from dark to bright.",
   "colour": "#cbd5e1",
   "formats": [

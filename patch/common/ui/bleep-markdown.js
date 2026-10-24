@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep-markdown.js — renders the modules' documentation (modules/<name>/doc/<type>.md).
 // A small Markdown subset, enough for the docs: headings, paragraphs, lists,
 // tables, code (fenced or indented), **bold**, *italic*, `code`, links and

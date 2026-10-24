@@ -1,7 +1,7 @@
 {
   "name": "Recorder",
   "slug": "recorder",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Bounces its stereo input to a file: arm, start on signal or by gate, a length limit, and a pre-roll that catches the start.",
   "colour": "#fca5a5",
   "category": "Utility",

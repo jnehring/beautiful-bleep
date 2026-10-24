@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Test Oscillator node (doc/specs/modules/test-oscillator.md): a lamp-stabilised
 // bridge oscillator with a calibrated dial, a range switch and a loop that
 // bounces, drifts, hums and, below 100 % loop gain, rings when kicked.

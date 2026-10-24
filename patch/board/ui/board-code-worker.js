@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-code-worker.js — runs the Bleep Script compiler (bleep-script-compiler.js, patch/script) off the page: it takes seconds of
 // CPU the first time, and it needs a plain JavaScript environment (the board seals the built-ins in the page).
 //   page -> worker   { id, cmd: "init" }                         -> { id, examples } | { id, error }

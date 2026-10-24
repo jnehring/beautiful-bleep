@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/fx (Reverb, Phaser, Chorus, PitchShift) and bleep/fft.   node test/dsp/fx.test.mjs
 import { harness, check, finish, SR, rms, peak, finiteAll, spectrum, db, noise, responseAt } from "./lib.mjs";
 

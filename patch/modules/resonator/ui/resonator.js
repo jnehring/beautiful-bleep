@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Resonator view: the active voice's modes (Modal) or strings (Sympathetic)
 // as lines on a log frequency axis (height = amplitude, brightness = what is
 // still ringing), or the string with its excitation point and two pickups

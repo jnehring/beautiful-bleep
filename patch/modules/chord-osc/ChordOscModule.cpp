@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Chord Osc node (doc/specs/modules/chord-oscillator.md): up to six oscillator
 // cores playing a chord built on one pitch, chromatic or diatonic, with
 // inversion, voicing, latch, detune and stereo spread.

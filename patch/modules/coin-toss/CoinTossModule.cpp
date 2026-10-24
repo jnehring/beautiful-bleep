@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Coin Toss node (doc/specs/modules/coin-toss.md): two seeded probability routers.
 #include "CoinTossDsp.h"
 #include "Registry.h"

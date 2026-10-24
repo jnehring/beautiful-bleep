@@ -1,7 +1,7 @@
 {
   "name": "Rate Counter",
   "slug": "rate-counter",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Measures how often something happens: the frequency of a wave or the tempo of a pulse train, with a stable gate and a tap-averaged tempo.",
   "colour": "#fdba74",
   "category": "Utility",

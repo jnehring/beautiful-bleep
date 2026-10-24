@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/util — small helpers: ranges and mapping, pitch conversion, fast approximations, pan and mid/side, a running RMS.
 // Plain AssemblyScript, so it inlines into the modules that use it. Allocate in constructors only. Math takes f64; audio is f32.
 

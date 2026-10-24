@@ -1,7 +1,7 @@
 {
   "name": "Level Meter",
   "slug": "level-meter",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Stereo peak and RMS meters with clip lights; the loudness as a control signal.",
   "colour": "#c4b5fd",
   "formats": [

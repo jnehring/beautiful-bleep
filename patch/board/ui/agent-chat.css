@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception */
+/* SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception */
 /* The patch assistant's chat panel (agent-chat.js). Loaded only when the website's backend has the assistant switched on.
    Colours come from the board's tokens (board.css), so it follows the board's theme. */
 

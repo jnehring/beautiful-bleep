@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Bleep Script transform for the AssemblyScript compiler (doc/specs/bleep-script.md, sections 3 and 7).
 //
 // It reads the decorators on a module class:

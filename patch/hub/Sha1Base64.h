@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // SHA-1 and base64, just enough for the WebSocket handshake (RFC 6455 §4.2.2).
 // juce_core has base64 but no SHA-1, and the hub must not pull in a crypto library for one hash.

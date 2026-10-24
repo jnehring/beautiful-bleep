@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Test helpers for whole module scripts (src/<name>.dsp.ts): compile one with the Bleep transform and the subset checker, run it in the
 // browser module host (V8), feed it signals and read its outputs by jack id.
 //   import { loadModule, render, ... } from "./lib.mjs";

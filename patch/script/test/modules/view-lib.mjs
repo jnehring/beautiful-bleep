@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Runs a module's own UI (src/<name>.view.js, the JavaScript of a Code node's UI tab) in node against a mock of the sandbox's `bleep` object and a
 // recording canvas, so a test can check that the UI runs for many frames, draws, reacts to probes and knobs, and sets knobs when dragged.
 //   const v = runView(spec, source, { probes: (t) => ({ level: ... }) });  v.frames(120);  v.drag(0.3, 0.5);  v.failures  // [] when fine

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rate Counter core (doc/specs/modules/rate-counter.md §4): finds the rising edges of a wave
 // (a Schmitt trigger that follows the signal's own centre and swing) or of a gate train
 // (fixed thresholds), times them to a fraction of a sample, and keeps the last sixteen

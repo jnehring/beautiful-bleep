@@ -1,6 +1,6 @@
 # Licensing
 
-The repository is **GPL-3.0-or-later with the Bleep Module Exception**
+The repository is **GPL-3.0-only with the Bleep Module Exception**
 for `patch/`; `bus/`, the built-in modules, `scripts/`, `website/` and
 `patch/presets/` are MIT. In force:
 

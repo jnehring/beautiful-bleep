@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bit Formula (doc/specs/modules/bit-formula.md): a restricted integer expression
 // language compiled to a small stack bytecode, and the generator that runs it
 // once per clock tick. Nothing is evaluated from text on the audio thread: the

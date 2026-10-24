@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rhythm Bank node (doc/specs/modules/rhythm-bank.md): four related rhythms
 // from a Family and a Pattern number, stepped by the transport or a clock.
 #include "RhythmBankDsp.h"

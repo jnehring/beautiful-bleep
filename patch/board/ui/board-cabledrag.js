@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-cabledrag.js — patching by hand (spec §9.4, §9.5): dragging a cable from an output jack, or picking up an existing
 // cable by either end, dropping it on a jack, a knob in a module view or a module, and the module views that open under it.
 //

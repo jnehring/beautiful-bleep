@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wobble node (doc/specs/modules/wobble.md): stepped, smooth and wobbling random.
 #include "Registry.h"
 #include "WobbleDsp.h"

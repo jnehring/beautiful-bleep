@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spatial Pan node (doc/specs/modules/spatial-pan.md): a binaural panner from synthesised cues.
 #include "Registry.h"
 #include "SpatialDsp.h"

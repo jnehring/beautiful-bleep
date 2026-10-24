@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // 2× and 4× oversampling with linear-phase half-band FIR stages, for
 // nonlinear processing such as the Multiplier (doc/specs/modules/multiplier.md
 // §4.3). Each stage delays by (kTaps − 1) / 2 = 47 samples at its own rate:

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // AudioLink — the jitter buffer of one web audio channel (doc/specs/bridges.md §10.4). One thread pushes
 // packets as they arrive, the audio thread pulls blocks. The two clocks drift apart, so the pull side

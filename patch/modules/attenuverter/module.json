@@ -1,7 +1,7 @@
 {
   "name": "Attenuverter",
   "slug": "attenuverter",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Four rows of scale and offset; unpatched rows become manual knobs.",
   "colour": "#c4b5fd",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spike: the Gains module, compiled from AssemblyScript, runs through the Bleep browser module host
 // (patch/web/js/module-host.js) and matches a reference model written in plain JS.
 //   node test/spike.mjs [path/to/gains.wasm]

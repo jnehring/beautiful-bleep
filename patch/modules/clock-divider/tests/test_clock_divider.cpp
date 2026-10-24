@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Div: per-output divisions, transport timing (straight, dotted,
 // triplet, loop jumps), Realign, division changes, Clock mode, Width,
 // Trigger output, Reset and transport stop.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Compiles src/gains.dsp.ts with asc in the page (no file system, no server-side step), with a transform that reads the
 // @module decorator, then runs the result through js/module-host.js and compares it with the build made by node.
 import asc from "assemblyscript/asc";

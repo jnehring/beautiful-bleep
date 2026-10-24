@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Endless Tone (doc/specs/modules/endless-tone.md): the rising-for-ever tone
 // illusion. N partials sit one octave apart; all of them slide by the same
 // amount in log-frequency, and each one's loudness comes from a fixed window

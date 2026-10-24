@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Sampler node: recording its audio inputs (Record button, Rec gate, fixed length in beats, overdub) and the saved result,
 // run through the Module API.

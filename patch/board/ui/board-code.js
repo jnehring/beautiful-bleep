@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-code.js — the Code node: a module written in Bleep Script (doc/specs/bleep-script.md). Each Code node carries its own
 // source and its own interface:
 //

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Compiles the Bleep Script modules in src/*.dsp.ts to build/*.wasm with the AssemblyScript compiler (asc) and the Bleep
 // transform, which generates each module's spec and bleep_* exports from its decorators (transform/bleep.mjs).
 // and the script modules of patch/modules/ (language "bleep-script") to build/<slug>.wasm and <slug>.spec.json.

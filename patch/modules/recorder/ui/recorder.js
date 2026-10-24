@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Recorder view (doc/specs/modules/recorder.md §5): a status lamp and time, a level bar, and the take's
 // waveform growing from the left across the length limit. When a take is done the view saves it to the
 // media folder (exportMedia("take"), at once if Save When Done is on, else with the Save button) and

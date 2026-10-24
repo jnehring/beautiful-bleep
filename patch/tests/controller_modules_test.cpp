@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Node-level tests for the controller modules (doc/specs/modules/dial.md,
 // button.md, keyboard.md): their specs, performance gestures from the view

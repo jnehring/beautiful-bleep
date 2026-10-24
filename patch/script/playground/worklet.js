@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The audio side of the playground: runs one compiled module (through the Bleep module host, as the browser engine does)
 // on a test signal and plays the module's first audio output.
 import { ModuleInstance, CHUNK } from "/web/js/module-host.js";

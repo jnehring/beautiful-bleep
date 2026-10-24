@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Drum Grid core (doc/specs/modules/drum-grid.md): 8 tracks × 32 steps
 // (Off/On/Accent) in 16 pattern slots; time from the transport, its own
 // tempo or a clock; per-track gate, accent and velocity outputs.

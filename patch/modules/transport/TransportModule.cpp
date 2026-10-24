@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Transport node (doc/specs/modules/transport.md): the song's clock in one place. Tempo, Ableton Link,
 // MIDI clock in and out, play and stop. Modules cannot change the transport themselves; this one asks the
 // host through HostControl.h, and only the standalone app answers.

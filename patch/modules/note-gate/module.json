@@ -1,7 +1,7 @@
 {
   "name": "Note Gate",
   "slug": "note-gate",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A door for a note stream: range windows, velocity limits and curve, a pitch-class remap, a gate input and rule lanes for beats, counts and density.",
   "colour": "#e0a458",
   "formats": [

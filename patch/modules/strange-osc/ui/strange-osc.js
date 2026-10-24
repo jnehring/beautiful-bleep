@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Strange Osc view: the orbit as a phase portrait (X against Y, a fading trail
 // of the last second or so, the head as a dot) next to X and Y over time.
 (function () {

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // IIR Hilbert transformer and single-sideband frequency shifter
 // (doc/specs/modules/frequency-shifter.md §4.1).
 //

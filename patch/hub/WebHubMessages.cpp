@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // WebHubMessages.cpp — messages from the web: hello, open, MIDI, binary packets and closing.
 #include "WebHubInternal.h"
 

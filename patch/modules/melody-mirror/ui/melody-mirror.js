@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Melody Mirror view (doc/melody-mirror.md): two strips. The upper one is the
 // phrase it remembers (the last Length notes), the lower one what it plays
 // back with the current Mode; while it plays, a head runs along the lower one.

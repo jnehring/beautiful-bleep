@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Quantizer Suite: masks and hysteresis, Transpose across octaves, the
 // normalled diatonic seventh, every Arp order, Follow targets (also driven by
 // a Harmony Master), sampling, slew timing and the Notes output.

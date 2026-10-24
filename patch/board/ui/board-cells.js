@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-cells.js — building cells out of the selection and taking them apart again (spec §8.1, §8.3.3).
 //
 // P.BoardCells.create(s)   s: the board and page helpers it needs (see the destructuring below); `types` is a getter.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The documentation's code: every ```ts compile block in website/content/developers/bleep-script compiles, and the tutorials' modules do what
 // the text says (a step sequencer's timing, a drive's aliasing, a sample and hold, ...).   node test/docs.test.mjs
 import { readFileSync, readdirSync, statSync } from "node:fs";

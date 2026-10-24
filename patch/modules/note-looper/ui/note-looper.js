@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Looper view (doc/note-looper.md): the loop as a piano-roll strip. Bars
 // and beats are the grid, every recorded note a bar at its pitch, a later
 // layer drawn paler; the head runs across it and the strip's frame glows red

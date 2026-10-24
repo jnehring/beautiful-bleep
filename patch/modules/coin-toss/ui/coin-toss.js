@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Coin Toss view (doc/specs/modules/coin-toss.md §5): per channel the last 32
 // tosses (filled = B, empty = A, newest right) and a coin that flips on each
 // toss; with Loop on, the loop's tosses and the current one are marked.

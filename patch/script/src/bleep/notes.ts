@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/notes — the `notes` signal for Bleep Script: a stream of note events (module-abi.md section 5, "Notes"). A NoteStream is a window
 // on the ABI's note buffer: 64 events of 16 bytes and then an i32 count. This is library code and trusted, so it may read and write the
 // module's memory; user code only sees the methods.

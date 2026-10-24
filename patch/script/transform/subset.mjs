@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Bleep Script subset checker (doc/specs/bleep-script.md, section 3.4). It runs in the transform, on the syntax tree, before the
 // compiler sees the code, and does two jobs:
 //

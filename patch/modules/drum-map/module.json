@@ -1,7 +1,7 @@
 {
   "name": "Drum Map",
   "slug": "drum-map",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Kick, snare and hats from a map of rhythms: travel with X and Y, thin or fill with Density, vary with seeded Chaos.",
   "colour": "#f08a4b",
   "formats": [

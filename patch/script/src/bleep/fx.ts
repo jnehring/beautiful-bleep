@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/fx — larger effect blocks built from the smaller ones: Reverb (Freeverb), Phaser, Chorus, PitchShift.
 // They allocate their buffers in the constructor (a reverb takes about 1 MB at 48 kHz) and nothing after.
 // set* methods may call trig and exp: call them in block() when a setting changed. next() is per sample.

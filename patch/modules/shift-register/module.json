@@ -1,7 +1,7 @@
 {
   "name": "Shift Register",
   "slug": "shift-register",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A looping register of bits: echoing gates, stepped voltages and melodies.",
   "colour": "#dc2626",
   "formats": [

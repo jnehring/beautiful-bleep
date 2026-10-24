@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep-credits.js — the credits of a preset (doc/specs/preset-system-plan.md, section 3).
 //
 // A preset is copied, never referenced. Where it came from is only a label: a list of credits that travels with the copy.

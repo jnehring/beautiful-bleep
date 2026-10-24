@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Pitch Follower DSP (doc/specs/modules/pitch-follower.md): the shared tracker
 // (common/dsp/PitchTrack.h) plus what makes its answer usable as a control
 // signal: a V/oct output with glide that holds still while the pitch is unknown,

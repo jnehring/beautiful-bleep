@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // app-menu.js — the menu bar: File, Edit, View, Library, Help (one list for all three hosts) and the Help answers.
 //
 //   The list below (MODEL) is the only definition of the menus. The browser board and the plugin window draw it in the top bar;

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Resonator node: a tuned body (modal, sympathetic strings or a plucked
 // string) that rings with its input and with an internal exciter on each
 // strum, up to four voices round robin (doc/specs/modules/resonator.md). The

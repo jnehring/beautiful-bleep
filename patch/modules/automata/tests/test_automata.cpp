@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Automata: ring and grid rules, determinism, Interference, Rewind, Reset,
 // Markov table and learning, walker, rewriting strings, pitch mapping,
 // clocking (doc/specs/modules/automata.md §8).

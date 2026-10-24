@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Formant Osc node (doc/specs/modules/formant-oscillator.md): a pulse-formant
 // oscillator with a second formant on the right channel, square and sub.
 #include "FormantOscDsp.h"

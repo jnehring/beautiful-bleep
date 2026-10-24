@@ -1,7 +1,7 @@
 {
   "name": "Crossfader",
   "slug": "crossfader",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Blend two stereo signals with one knob, equal-power or linear.",
   "colour": "#fb7185",
   "formats": [

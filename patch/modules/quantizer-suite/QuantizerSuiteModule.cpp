@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Quantizer Suite node (doc/specs/modules/quantizer-suite.md): four quantizer
 // channels (Quantize, Transpose, Arp, Follow) with normalled inputs, a note
 // mask per channel in the node's data, and a merged Notes output.

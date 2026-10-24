@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rotating Div core (doc/specs/modules/rotating-divider.md): eight clock
 // dividers on one base clock, their divisions taken from a series (Set) and
 // rotated across the outputs. Transport mode derives every cycle from the

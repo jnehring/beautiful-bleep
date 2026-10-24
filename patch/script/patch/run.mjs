@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Runs a patch script (layer 1 of Bleep Script, doc/specs/bleep-script.md): TypeScript or JavaScript that builds a cell with
 // `cell(...)`. The script runs inside QuickJS compiled to WebAssembly: a JavaScript engine with no network, no files, no clock, no DOM and
 // no way out but the data it returns, held to a memory limit and a time limit. Works in node, a worker and a page.

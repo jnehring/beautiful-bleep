@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Organic LFOs (doc/specs/modules/organic-lfos.md §8): identical without drift,
 // irrational rate fan, bounded drift with an exact anchor, bit-identical
 // renders, the bar lock (seekable), the Twist formulas, Sum and Max.

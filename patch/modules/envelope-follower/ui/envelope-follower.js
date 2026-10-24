@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Envelope Follower view (doc/specs/modules/envelope-follower.md §5): the last
 // seconds of the Env output as a glowing area, the open gate shaded behind it
 // and the threshold as a dashed line. A signed follower (Peak + None) gets a

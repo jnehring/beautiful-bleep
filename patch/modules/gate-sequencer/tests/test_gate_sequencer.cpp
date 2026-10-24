@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Gate Sequencer DSP: polymeter and Cycle, loop jumps, exact triplet tracks,
 // probability, dice and Chance, conditions, ratchets and their decay, nudge
 // (early hits in Transport and Clock mode), gate gaps, ties, mutes and no

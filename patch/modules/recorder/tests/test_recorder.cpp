@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Recorder: what is recorded is what came in (sample for sample), the length limit, start by
 // hand / on signal / by gate, the pre-roll, stop and clear, the done trigger, reading out
 // while a new take starts (doc/specs/modules/recorder.md §8).

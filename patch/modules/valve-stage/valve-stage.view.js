@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Valve Stage UI: one to three glowing tubes (as many as the Stages knob). The plate glows with the supply voltage and dims in a brownout when the
 // supply sags; blue-white sparks jump at the grid when it conducts (the `grid` probe); with a starved plate the tubes sputter orange sparks.
 // CLICK a tube to cycle the tube type (12AX7, 12AU7, EL34). DRAG a tube up or down to set Gain.

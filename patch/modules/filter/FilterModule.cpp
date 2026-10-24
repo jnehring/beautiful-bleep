@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Filter node: stereo multimode filter with the algorithms of "The Art of VA
 // Filter Design" (Type). Every knob is a destination; cutoff modulation works
 // in octaves and may run at audio rate.

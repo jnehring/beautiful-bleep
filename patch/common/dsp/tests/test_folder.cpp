@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Folder: fold curves and antiderivatives, ADAA accuracy and aliasing, stages,
 // taps, symmetry, DC blocker, bounds, and use with the Oversampler.
 #include "dsp/Folder.h"

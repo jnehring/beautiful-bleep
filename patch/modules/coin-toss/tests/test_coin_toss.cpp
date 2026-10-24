@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Coin Toss: probabilities, memory runs, modes, link modes, determinism,
 // Reset and Loop (doc/specs/modules/coin-toss.md §8).
 #include "CoinTossDsp.h"

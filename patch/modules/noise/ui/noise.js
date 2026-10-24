@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Noise view: the spectrum the Colour knob makes. Brown, pink, white, blue and
 // violet are tilts of -6, -3, 0, +3 and +6 dB/octave, all at the same loudness
 // (RMS), mixed linearly in amplitude between neighbours (NoiseDsp::colour).

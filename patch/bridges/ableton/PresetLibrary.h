@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // PresetLibrary — the cell presets a plugin can load (doc/specs/cell-plugins.md §4): the factory
 // presets compiled into the plugin, each with its panels, filtered by what the plugin plays.

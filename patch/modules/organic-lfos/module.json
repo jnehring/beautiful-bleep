@@ -1,7 +1,7 @@
 {
   "name": "Organic LFOs",
   "slug": "organic-lfos",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Eight slow LFOs that drift like living things: related, never quite in step, the same on every render.",
   "colour": "#bef264",
   "formats": [

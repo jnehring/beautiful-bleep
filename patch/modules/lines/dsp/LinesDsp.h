@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Lines core (doc/specs/modules/lines.md): a text-and-grid tracker. Patterns of
 // 16-64 rows hold four tracks; a cell has a note, a velocity, a gate length and
 // an effect (retrigger, slide, probability, transpose, jump, skip). A pattern

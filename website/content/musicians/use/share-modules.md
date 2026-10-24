@@ -24,7 +24,7 @@ A module you wrote in a **Code node** can be published in the Bleep Library, whe
    |---|---|
    | **Summary** | One or two sentences, up to 280 characters. The library shows it next to the module. Required |
    | **Category** | Where the module goes in the Add menu, for example *Effects*  |
-   | **Licence** | The terms others get: MIT, Apache-2.0, CC0-1.0, GPL-3.0-or-later and others |
+   | **Licence** | The terms others get: MIT, Apache-2.0, CC0-1.0, GPL-3.0-only and others |
    | **Version** | Three numbers with dots, such as `1.0.0` |
    | **Share the source code** | On by default. See [Source code](#share-the-source-code) |
    | **Help page** | Markdown, shown by the module's **?** button. Headings, lists, tables, bold, code and links work; images are left out |

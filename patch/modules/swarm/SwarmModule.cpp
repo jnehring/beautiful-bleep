@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Swarm node (doc/specs/modules/swarm-oscillator.md): up to 16 oscillators spread
 // over a chord or scale around one pitch, gliding, drifting, cross-modulating
 // and scattered in stereo.

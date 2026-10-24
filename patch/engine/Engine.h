@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Engine.h — the shared engine (spec §5.3, §5.4). One per process; plugins
 // reach it through IEngine (EngineApi.h). The board window, in the same

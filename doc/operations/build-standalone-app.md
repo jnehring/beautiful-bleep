@@ -37,7 +37,7 @@ The Windows executable ends up in `build/patch/BleepApp_artefacts/Release/`.
 | CMake option | Default | Effect |
 |---|---|---|
 | `BLEEP_BUILD_APP` | ON | Build the standalone app |
-| `BLEEP_LINK` | ON | Include Ableton Link. Link is GPLv2-or-later, which fits the app's GPL-3.0-or-later. Turn it off for a closed-source build, which then also needs its own JUCE licence |
+| `BLEEP_LINK` | ON | Include Ableton Link. Link is GPLv2-or-later, which fits the app's GPL-3.0-only. Turn it off for a closed-source build, which then also needs its own JUCE licence |
 | `BLEEP_UI_DEV` | OFF | Development only: the UI comes from the source tree. Never ship |
 | `BLEEP_LINK_DIR` | unset | Use a local Link checkout instead of downloading it |
 

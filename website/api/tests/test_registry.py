@@ -250,15 +250,15 @@ def test_library_tile_metadata_and_image(client, make_admin, storage):
 def test_library_detail_shows_licence_and_origin(client, make_admin, storage):
     token = make_token(client, make_admin)
     h = {"Authorization": f"Bearer {token}"}
-    origin = {"name": "Foo", "author": "A. Author", "url": "https://example.org/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}
-    body = {"version": "0.1.0", "license": "GPL-3.0-or-later", "origin": origin, "files": [declare("fuzz.zip", b"x", slug="fuzz", version="0.1.0")]}
+    origin = {"name": "Foo", "author": "A. Author", "url": "https://example.org/foo", "license": "GPL-3.0-only", "copyright": "(c) A"}
+    body = {"version": "0.1.0", "license": "GPL-3.0-only", "origin": origin, "files": [declare("fuzz.zip", b"x", slug="fuzz", version="0.1.0")]}
     assert client.post("/api/registry/plugin/fuzz/releases", json=body, headers=h).status_code == 201
     client.put("/api/registry/plugin/fuzz/releases/0.1.0/files/fuzz.zip", content=b"x", headers=h)
     assert client.post("/api/registry/plugin/fuzz/releases/0.1.0/publish", headers=h).status_code == 200
     detail = client.get("/api/library/plugin/fuzz").json()
-    assert (detail["license"], detail["origin"]["name"], detail["releases"][0]["license"]) == ("GPL-3.0-or-later", "Foo", "GPL-3.0-or-later")
+    assert (detail["license"], detail["origin"]["name"], detail["releases"][0]["license"]) == ("GPL-3.0-only", "Foo", "GPL-3.0-only")
     entry = json.loads(storage.objects["v1/plugins/fuzz/0.1.0/entry.json"])
-    assert (entry["license"], entry["origin"]["url"]) == ("GPL-3.0-or-later", "https://example.org/foo")
+    assert (entry["license"], entry["origin"]["url"]) == ("GPL-3.0-only", "https://example.org/foo")
     assert "license" not in client.get("/api/library").json()["items"][0]  # not on the tile
     bad = {**body, "version": "0.2.0", "origin": {**origin, "url": "javascript:alert(1)"}}
     assert client.post("/api/registry/plugin/fuzz/releases", json=bad, headers=h).status_code == 422
@@ -695,12 +695,12 @@ def test_module_types_are_published_and_cannot_be_taken_over(client, make_admin,
 def test_a_module_release_must_declare_the_licence_of_its_package(client, make_admin, capsys):
     token = new_token(capsys)
     kit = PKI.first_party
-    origin = {"name": "Foo", "author": "A", "url": "https://example.org/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}
-    gpl = {**json.loads(module_files(["pitch"])["module.json"]), "license": "GPL-3.0-or-later", "origin": origin}
+    origin = {"name": "Foo", "author": "A", "url": "https://example.org/foo", "license": "GPL-3.0-only", "copyright": "(c) A"}
+    gpl = {**json.loads(module_files(["pitch"])["module.json"]), "license": "GPL-3.0-only", "origin": origin}
     files = {**module_files(["pitch"]), "module.json": json.dumps(gpl).encode()}
     assert release_module(client, token, kit, "pitch", "1.0.0", files).status_code == 204
     detail = client.get("/api/library/module/pitch").json()
-    assert (detail["license"], detail["origin"]["name"]) == ("GPL-3.0-or-later", "Foo")
+    assert (detail["license"], detail["origin"]["name"]) == ("GPL-3.0-only", "Foo")
     # a release that says MIT for a GPL package, or leaves the origin out, is refused at the upload
     up = release_module(client, token, kit, "pitch", "1.0.1", files, license="MIT")
     assert up.status_code == 422 and "must match the package's module.json" in up.json()["detail"]

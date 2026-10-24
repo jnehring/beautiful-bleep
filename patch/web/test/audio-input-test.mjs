@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The audio input of the browser engine (js/graph.js): Engine.render's inL/inR feed the Audio In nodes, scaled by their Gain knob.
 // Needs no module files: Audio In and Audio Out are ports of the engine itself.
 //

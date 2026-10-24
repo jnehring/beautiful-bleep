@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectrum: the strongest partial and centroid as pitch signals, the display's level and
 // frequency axis, tilt, peak line, flux triggers on onsets only, and determinism
 // (doc/specs/modules/spectrum.md §8).

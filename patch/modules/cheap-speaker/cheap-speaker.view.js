@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Cheap Speaker UI: a cartoon speaker whose cone pumps with the sound (it stops at its travel limit on the devices that have one, and rattles when
 // it is overdriven), static speckles that follow Noise, and a picture of the frequency response of the chosen device drawn from the same formulas the
 // module designs it from.

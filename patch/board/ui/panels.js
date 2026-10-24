@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // panels.js — front panels (doc/specs/panels.md): a cell's or the board's dials,
 // faders, buttons, selects, meters, labels and the views of the modules, laid
 // out on a 20 px grid, with tabs. "set" wires on knobs (with a range per wire),

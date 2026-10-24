@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Preamp (src/preamp.dsp.ts): the transformer iron, the gain stage and the housekeeping.   node test/modules/preamp.test.mjs
 import { loadModule, render, sine, gainAt, harmonicsDb, check, finish, spectrum, db, rms, peak, finiteAll } from "./lib.mjs";
 

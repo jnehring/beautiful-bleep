@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // play-wrap.js: which factory presets Bleep Play can play on their own, and how they are wired.
 //
 //   node patch/web/test/play-wrap-test.mjs

@@ -1,7 +1,7 @@
 {
   "name": "Transport",
   "slug": "transport",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "The song's clock in one place: tempo, Ableton Link, MIDI clock in and out, play and stop.",
   "colour": "#ff9f43",
   "formats": [

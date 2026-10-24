@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wavetable Osc node (doc/specs/modules/wavetable-oscillator.md): 2-D wavetable
 // oscillator over factory banks and one user bank imported from the media
 // store. The node data names the media (never the samples); setData loads the

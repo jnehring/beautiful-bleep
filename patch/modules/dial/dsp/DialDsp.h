@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Dial core (doc/specs/modules/dial.md §4): the dial's position, stepped and
 // scaled to a range, then smoothed.
 #pragma once

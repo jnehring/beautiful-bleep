@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // 3-Band EQ: flat at default, each band boosts and cuts where it should, stereo, safety.
 //   node test/modules/three-band-eq.test.mjs
 import { loadModule, render, sine, gainAt, check, finish, finiteAll, peak } from "./lib.mjs";

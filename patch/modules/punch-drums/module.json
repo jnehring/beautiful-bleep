@@ -1,7 +1,7 @@
 {
   "name": "Punch Drums",
   "slug": "punch-drums",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A tight, hard drum kit, one node per drum: swept sines, noise clicks and crunchy metal.",
   "colour": "#f43f5e",
   "formats": [

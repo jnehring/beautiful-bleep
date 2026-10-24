@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-views.js — the floating module views: a window with the module's controls, opened from its node, and the doc hint behind it.
 //
 // P.BoardViews.create(s)   s: the board and page helpers it needs (see the destructuring below); `board` is a getter.

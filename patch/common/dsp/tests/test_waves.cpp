@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Waves.h: the LFO wave set, the phasor and the ppq phase lock. The LFO was
 // refactored onto Waves.h; its previous implementation is copied below
 // verbatim (namespace oldlfo) and both run side by side: the outputs must be

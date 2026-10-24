@@ -1,7 +1,7 @@
 {
   "name": "Six Slopes",
   "slug": "six-slopes",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Six slope generators on one set of knobs: envelopes, LFOs or partials spread over harmonic ratios.",
   "colour": "#d97706",
   "formats": [

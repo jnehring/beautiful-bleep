@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Cheap Speaker: the sound of a small, poor playback device. Six devices (telephone, AM radio, car speaker, cassette player, tiny speaker,
 // megaphone), each a fixed designed curve: two fourth-order Butterworth sections for the low and high corners (so the corners are the real
 // -3 dB points), two resonances, a device-specific non-linearity (carbon-microphone asymmetry, envelope detector, cone excursion limit, hard horn

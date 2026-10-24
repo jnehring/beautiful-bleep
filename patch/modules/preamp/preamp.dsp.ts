@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Preamp: a transformer-coupled preamp channel (input transformer, gain stage, output transformer), written in Bleep Script.
 // The colour lives in the two transformer cores: a magnetising branch whose flux integrates the voltage, so low frequencies reach saturation
 // at much lower levels than high ones, with a little hysteresis memory, and a leakage-inductance / winding-capacitance roll-off.

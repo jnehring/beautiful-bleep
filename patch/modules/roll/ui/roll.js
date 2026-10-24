@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Roll view (doc/specs/modules/roll.md): the note editor. Notes are drawn on a
 // pitch grid (click and drag to draw, drag to move, drag the right edge to
 // resize, right-click or Delete to remove), a ruler sets the loop region and

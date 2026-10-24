@@ -1,7 +1,7 @@
 {
   "name": "Scene Arranger",
   "slug": "scene-arranger",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Sixteen scenes in a play order with repeats and follow actions (next, previous, random, hold, jump, chance), launched on the beat or bar, as a scene CV, change triggers and eight lane gates.",
   "colour": "#e9b44c",
   "category": "Sequencing/Clock",

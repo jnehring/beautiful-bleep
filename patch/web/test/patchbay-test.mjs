@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Patch bays in the browser build: flattenPatchbays leaves plain cables (the same cases as controller_modules_test.cpp).
 // usage: node patchbay-test.mjs
 import assert from "node:assert/strict";

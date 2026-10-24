@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // transport.js — the Transport module's view shows what the host is really doing: the Tempo knob follows the
 // running tempo (Link peers, MIDI clock, the app's own control), and Play is lit while the song plays.
 (function () {

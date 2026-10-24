@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Opto Compressor's own UI (src/opto-compressor.view.js) against the mock sandbox.   node test/modules/opto-compressor.view.test.mjs
 import { loadModule, check, finish } from "./lib.mjs";
 import { runView, viewSource } from "./view-lib.mjs";

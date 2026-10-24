@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // SafeJson — juce::JSON::parse with a nesting limit. JUCE's parser recurses once per '[' or '{' and has no depth
 // limit, so a few hundred KB of "[[[[…" overflows the stack. Everything that parses text from outside the process

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Meta Mod node (doc/specs/modules/meta-modulator.md): carrier and modulator
 // combined by one of eight morphing algorithms, with an internal oscillator
 // standing in for an unpatched input.

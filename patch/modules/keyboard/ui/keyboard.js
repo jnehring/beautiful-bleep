@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Keyboard view (doc/specs/modules/keyboard.md §5): three octaves of keys to
 // play with the mouse or a finger (drag for a glissando), or with the
 // computer keyboard while the keys have focus (A W S E D … like a piano,

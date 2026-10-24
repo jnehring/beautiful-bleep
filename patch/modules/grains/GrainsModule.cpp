@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Grains node (doc/specs/modules/grains.md): a granular processor over a live
 // buffer. A frozen buffer can be kept: the view saves it to the media store
 // (exportMedia("frozen")) and stores the id in the node's data; on load,

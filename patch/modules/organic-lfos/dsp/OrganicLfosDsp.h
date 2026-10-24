@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Organic LFOs core (doc/specs/modules/organic-lfos.md): eight slow LFOs fanned
 // out from one rate, each wandering a little in speed and shape along seeded
 // smooth-noise curves, so the group never lines up exactly but every render

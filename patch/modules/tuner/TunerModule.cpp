@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tuner node (doc/specs/modules/tuner.md): audio in, the note, its error in cents
 // and an in-tune gate out; the view shows a needle, the note name and the frequency.
 #include "Registry.h"

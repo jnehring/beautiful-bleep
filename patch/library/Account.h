@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Account.h — the user's login to the Bleep Library from the app and the plugins (developers/modules/library.md, "Login in the app"):
 // the device flow, the personal token in the OS keychain, and authenticated calls to the library's API (sharing presets, comments,

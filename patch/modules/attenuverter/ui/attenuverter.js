@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Attenuverter view: one transfer line per channel, out = in x scale + offset,
 // limited by the Clip mode (off, soft knee past 0.8, hard +-1). A dot sits where
 // the live Out is (an unpatched row's input is 1). Mirrors AttenuverterDsp.h.

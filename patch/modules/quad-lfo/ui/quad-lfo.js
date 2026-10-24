@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Quad LFO view (doc/specs/modules/quad-lfo.md §5): a four-trace scope of one
 // cycle of channel 1 (two in Divide) with a dot at each live phase, computed
 // from the knobs like QuadLfoDsp, and an XY view (Out 1 against Out 2). In

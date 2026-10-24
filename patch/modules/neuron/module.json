@@ -1,7 +1,7 @@
 {
   "name": "Neuron",
   "slug": "neuron",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Two leaky integrate-and-fire neurons with logic and cross-feedback.",
   "colour": "#c026d3",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Pitch Snap: factory presets (see ../build-modules.mjs).
 export default [
   ["Hard Snap", { amount: 1, speed: 1, drift: 0, scale: "Chromatic", formant: true, offset: 0, tracking: "Steady", latency: "Aligned" }, "Every note jumps straight to the nearest semitone: the classic stepped sound."],

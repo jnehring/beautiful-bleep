@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Bleep Script transform: the spec it generates, the errors it reports, and the parameter kinds (int, choice), with the
 // result run in the Bleep module host.   node test/transform.test.mjs
 import { readFileSync } from "node:fs";

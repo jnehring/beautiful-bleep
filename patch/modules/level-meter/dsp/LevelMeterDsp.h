@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Level Meter core (doc/specs/modules/level-meter.md §4): peak and RMS detectors
 // per channel, the Level output on a dB scale and the Clip gate.
 #pragma once

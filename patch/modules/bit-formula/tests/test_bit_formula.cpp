@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bit Formula: the expression compiler (precedence, rejection of anything outside
 // the grammar, limits), evaluation of every built-in formula, and the clock.
 #include "BitFormulaDsp.h"

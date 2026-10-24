@@ -1,7 +1,7 @@
 {
   "name": "Dial",
   "slug": "dial",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "One big knob as a control signal: a macro, a selector, a hand on the patch.",
   "colour": "#fda4af",
   "formats": [

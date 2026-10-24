@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectrum core (doc/specs/modules/spectrum.md §4): a windowed FFT every quarter of its
 // length, shown on a logarithmic frequency axis (averaged, tilted, with a peak line), and
 // three measurements of the same spectrum: the strongest partial, the spectral centroid and

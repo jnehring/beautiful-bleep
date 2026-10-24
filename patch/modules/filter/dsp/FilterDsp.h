@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Filter: stereo multimode filter with the algorithms of "The Art of VA
 // Filter Design" (see VaFilters.h), drive, key tracking and an envelope
 // follower that is published back to the bus. Drive and filter run at 4×

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Engine tests: board documents, the compiler (cells, feedback), block
 // claiming and port latency, persistence and undo. Plugins are simulated by

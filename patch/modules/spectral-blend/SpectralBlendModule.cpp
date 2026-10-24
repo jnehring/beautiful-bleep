@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectral Blend node (doc/specs/modules/spectral-blend.md): two audio inputs
 // cross-synthesised in the frequency domain, magnitude from one and phase from the
 // other or any morph between, with a tilt across the spectrum, blur, a three-region

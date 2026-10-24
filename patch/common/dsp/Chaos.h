@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Small chaotic and neural building blocks: a leaky integrate-and-fire neuron
 // (doc/specs/modules/neuron.md) and chaotic attractors for slow, never-repeating
 // drift. No randomness: the same inputs (and seed) give the same outputs,

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CV to Gate node: CV above a threshold becomes a gate, either following the input or of a fixed length.
 #include "CvToGateDsp.h"
 #include "Registry.h"

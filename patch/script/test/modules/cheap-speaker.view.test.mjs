@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Cheap Speaker UI (src/cheap-speaker.view.js) run against the UI mock: no failures over many frames at several probe states and extreme knobs,
 // paints every frame, idles when silent, and dragging the picture sets the intended knobs.   node test/modules/cheap-speaker.view.test.mjs
 import { loadModule, render, sine, gainAt, check, finish } from "./lib.mjs";

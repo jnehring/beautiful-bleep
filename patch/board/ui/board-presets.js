@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-presets.js — the cell presets of the Add menu (spec §9.6): the factory ones and the user's own, saving a cell as a
 // preset, and placing a preset (or copied panels) into the board.
 //

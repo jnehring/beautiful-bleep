@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/osc: shape, aliasing (against an additive band-limited reference), allocation-free processing.   node test/dsp/osc.test.mjs
 import { harness, check, finish, SR, rms, peak, spectrum, db, finiteAll } from "./lib.mjs";
 

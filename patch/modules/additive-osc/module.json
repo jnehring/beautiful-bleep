@@ -1,7 +1,7 @@
 {
   "name": "Additive Osc",
   "slug": "additive-osc",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "64 sine partials shaped by tilt, odd/even, stretch, comb and chorus, or a drawn spectrum. Never aliases.",
   "colour": "#a3e635",
   "formats": [

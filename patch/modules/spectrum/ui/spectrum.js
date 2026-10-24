@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectrum view (doc/specs/modules/spectrum.md §5): the averaged spectrum as a filled curve on a
 // logarithmic frequency axis, the peak line over it, a dB grid down to the Floor, marks for the
 // strongest partial and the centroid, and a readout line. The live arrays "spec" and "peak" hold

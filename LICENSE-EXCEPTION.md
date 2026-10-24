@@ -4,7 +4,7 @@ SPDX identifier: `AdditionRef-Bleep-Module-Exception`
 
 Additional permission under section 7 of the GNU General Public License,
 version 3. It applies to the files under `patch/` marked
-`GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception`.
+`GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception`.
 
 As a special exception, the copyright holders of Bleep give you
 permission to combine Bleep with a Module, to convey the resulting

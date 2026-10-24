@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Neuron node (doc/specs/modules/neuron.md): two integrate-and-fire neurons with
 // cross-feedback normals and logic outputs.
 #include "NeuronDsp.h"

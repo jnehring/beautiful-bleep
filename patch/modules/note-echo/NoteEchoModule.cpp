@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Echo node (doc/specs/modules/note-echo.md): notes in, the notes and a
 // train of repeats out. Repeats fade, walk through the board's scale, fan into
 // chord tones, may drop, and are pulled to or pushed off a grid.

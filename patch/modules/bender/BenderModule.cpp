@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bender node (doc/specs/modules/bender.md): seeded glitches on a segment grid.
 // Freeze latches in the node's data (ORed with the gate); Glitch is a view
 // button and a trigger input. The view's look-ahead of the next bar's

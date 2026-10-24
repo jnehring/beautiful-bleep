@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // CodeNodes.h — Code nodes (doc/specs/bleep-script.md): a module written in Bleep Script and compiled by the board UI, run for one node.
 // The UI sends the compiled module with the node's `code` property; the engine registers a node type for that node and source and the

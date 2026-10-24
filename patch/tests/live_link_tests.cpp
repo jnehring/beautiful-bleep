@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Live Link, board side: which Live Params rows the sender sends and when (engine/LiveParams.h), and the OSC packets between the
 // board and the device (bridges/ableton/LiveLinkOsc.h), so that Max's udpreceive and udpsend read them.
 #include "LiveLinkOsc.h"

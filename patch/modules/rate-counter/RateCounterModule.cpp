@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rate Counter node (doc/specs/modules/rate-counter.md): measures how often an input
 // repeats, either as a wave (frequency) or as a pulse train (tempo). The Tap button counts
 // as an extra edge, so the module can also average a hand-tapped tempo.

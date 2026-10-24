@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Pitch Snap DSP (doc/specs/modules/pitch-snap.md): a real-time pitch corrector.
 //
 // The shared tracker (common/dsp/PitchTrack.h) measures the period of the input.

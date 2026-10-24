@@ -1,7 +1,7 @@
 {
   "name": "Preamp",
   "slug": "preamp",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "language": "bleep-script",
   "tagline": "A transformer-coupled preamp: input transformer, gain stage, output transformer. The iron thickens and saturates the bass, and the more you push it the more it does.",
   "category": "Effects/Distortion",

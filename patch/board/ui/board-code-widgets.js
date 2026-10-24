@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-code-widgets.js — the widget layout of a Code node (doc: Bleep Script, Custom UIs). A module script declares
 // `layout: [{ fader: "vol", meter: "level" }, ...]` in @module; the compiler checks it and expands it (transform/bleep.mjs, normalizeLayout) and
 // this file draws the tree in the node's view in place of the automatic knobs. The widgets read and write the node's knob values through the

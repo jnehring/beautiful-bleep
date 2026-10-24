@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/dynamics — dynamics and distortion: Compressor, Limiter (look-ahead), Gate, wave shapers (softClip, hardClip, foldback, asymSat, chebyshev),
 // Bitcrush, Decimate, and the Oversampler2x / Oversampler4x that keep a shaper from aliasing.
 // Levels in decibels are plain numbers (dB); audio is f32 and 1.0 is full scale. Allocate in constructors only.

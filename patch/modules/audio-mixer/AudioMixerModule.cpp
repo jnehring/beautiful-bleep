@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Audio Mixer node (doc/specs/modules/audio-mixer.md): four stereo channels,
 // a send and return, a master with a limiter, a mono option and meters.
 #include "AudioMixerDsp.h"

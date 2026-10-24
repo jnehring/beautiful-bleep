@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wave Analyzer node (doc/specs/modules/wave-analyzer.md): a very narrow tunable
 // band-pass that picks single partials out of a sound, sweeps them into a
 // plotted spectrum or hunts for the strongest one and locks to it.

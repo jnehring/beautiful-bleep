@@ -1,7 +1,7 @@
 {
   "name": "Patch Bay In",
   "slug": "patchbay-in",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Collects signals into one bundle cable: every input you patch adds a channel, and a free one is always left.",
   "colour": "#a78bfa",
   "formats": [

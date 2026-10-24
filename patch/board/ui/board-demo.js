@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-demo.js — a fake engine so the board runs in a plain browser
 // (python3 scripts/run/ui-server.py). Inactive inside a plugin. It keeps a small
 // demo set, an undo stack and cell presets in localStorage, and animates

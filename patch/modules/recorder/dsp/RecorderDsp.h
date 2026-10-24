@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Recorder core (doc/specs/modules/recorder.md §4): a stereo take in memory with arm /
 // record / stop, a length limit, start on signal or on a gate, and a pre-roll: while armed the
 // last moments are kept, so a take that starts on a signal still has its beginning.

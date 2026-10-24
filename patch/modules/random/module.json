@@ -1,7 +1,7 @@
 {
   "name": "Random",
   "slug": "random",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Seeded stepped randomness with a looping memory, from always-new to locked.",
   "colour": "#f6a85b",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectral Blend: factory presets (see ../build-modules.mjs).
 export default [
   ["Cross Synthesis", { magnitude: 0, phase: 1, tilt: 0, blur: 0, smear: 0, freeze: false, size: "2048", law: "Linear", mix: 1 }, "The loudness shape of In A with the phases of In B: A speaks with B's texture."],

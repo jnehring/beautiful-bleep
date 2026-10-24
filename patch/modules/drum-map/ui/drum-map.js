@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Drum Map view (doc/specs/modules/drum-map.md §5): the map pad (drag the puck to
 // set X and Y; the modulated position with a trail; edited nodes marked), and
 // three lanes with the pattern as it plays now — levels as bars, each voice's

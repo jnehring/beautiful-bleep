@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // BoardWindow.h — how the board window looks and behaves. Plugins use the
 // defaults (a floating window that hides on close, spec §9.1); the standalone

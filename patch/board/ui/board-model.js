@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-model.js — what the board document means: node kinds, jacks, patch bays and cells (spec §8, §9).
 //
 //   P.BoardModel.create(s)   returns the helpers below, reading the page's state through `s`:

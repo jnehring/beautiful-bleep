@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Automata node (doc/specs/modules/automata.md): a sequencer driven by a small
 // evolving system. The Markov transition table lives in the node's data; the
 // view edits it. Learned weights, the cells and the string are shown live.

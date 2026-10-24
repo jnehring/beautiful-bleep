@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Vinyl: colours any signal with a record chain. The cutter makes the bass mono and applies the RIAA record pre-emphasis (time constants
 // 3180, 318 and 75 microseconds), the groove is where the stylus is pushed beyond what it can track (level- and frequency-dependent
 // distortion, worse near the centre), noise is picked up (surface hiss, rumble), the channels leak into each other, and the playback

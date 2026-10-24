@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Chords (doc/specs/modules/chord-oscillator.md §4.2–4.4, chord-quantizer.md
 // §4.1–4.3, harmony-master.md §4.2/4.4), shared by every module that builds,
 // voices or recognises chords:

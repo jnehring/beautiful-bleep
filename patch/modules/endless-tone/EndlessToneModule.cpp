@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Endless Tone node (doc/specs/modules/endless-tone.md): the tone that keeps rising or falling.
 #include "EndlessToneDsp.h"
 #include "Registry.h"

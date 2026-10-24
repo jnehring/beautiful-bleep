@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Gate Sequencer view (doc/specs/modules/gate-sequencer.md §5): four track rows
 // with their length and rate, edit modes (On, Prob, Len, Ratch, Nudge, Cond,
 // Vel), per-track playheads, steps that won't play this pass drawn hollow,

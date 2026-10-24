@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // An additive bank of up to 64 sine partials, for the Additive Osc
 // (doc/specs/modules/additive-oscillator.md), the Macro Osc's Harmonic model and
 // the Swarm. Each partial has a float phase (re-wrapped every sample) and a

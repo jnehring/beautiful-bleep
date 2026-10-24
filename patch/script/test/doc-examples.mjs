@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The library page's examples are the members of a module class, shown without the class around them. This wraps one into a whole module so that
 // it can be compiled: the class has the input `x`, the output `out` and the field `sampleRate`, which the constructor sets.
 export function wrapExample(code) {

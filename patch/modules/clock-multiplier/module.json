@@ -1,7 +1,7 @@
 {
   "name": "Clock Mult",
   "slug": "clock-multiplier",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Six faster clocks from one: a ratio per output (2, 3, 3/2, 5/4 …), a chance to skip ticks, swing and humanize that move only the in-between ticks, and a phase lock to the incoming clock.",
   "colour": "#e9b44c",
   "category": "Sequencing/Clock",

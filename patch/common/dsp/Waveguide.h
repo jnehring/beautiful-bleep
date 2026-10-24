@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Plucked and struck strings in the Karplus-Strong family, and a set of
 // sympathetic strings (doc/specs/modules/resonator.md 4.3 and 4.4, the Macro
 // Osc's Pluck). One delay line closed by a loop of: a first-order allpass

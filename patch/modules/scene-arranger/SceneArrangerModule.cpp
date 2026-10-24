@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scene Arranger node (doc/specs/modules/scene-arranger.md): scenes in a play
 // order with repeats and follow actions, launched on the beat or bar.
 #include "Registry.h"

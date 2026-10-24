@@ -1,7 +1,7 @@
 {
   "name": "Modal Voice",
   "slug": "modal-voice",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Bowed, blown and struck physical-modelling instrument with a small room, built for Voice Cells.",
   "colour": "#14b8a6",
   "formats": [

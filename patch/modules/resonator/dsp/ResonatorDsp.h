@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Resonator DSP (doc/specs/modules/resonator.md): up to four voices of a tuned
 // body (the shared ModalBank, SympatheticStrings or a WaveguideString), fed by
 // the input and by an internal noise-burst exciter on each strum. Voices take

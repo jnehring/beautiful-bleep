@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Melody Mirror core (doc/specs/modules/melody-mirror.md): remembers the last
 // N notes of a `notes` stream, with their timing, and plays them back turned
 // around:

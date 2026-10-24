@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Logic view: the comparator window and the live outputs. A test signal (a slow
 // wave with jitter) runs through the real Schmitt trigger (rise at the threshold,
 // fall at threshold - hysteresis; LogicDsp.h) so you can see what the hysteresis

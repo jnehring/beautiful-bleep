@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // A small radix-2 FFT for the spectral modules (Spectral Blend, Stretch): in place on
 // separate real and imaginary arrays, tables made once in prepare() (off the audio
 // thread), no allocation afterwards. Two real signals can share one transform

@@ -1,7 +1,7 @@
 {
   "name": "Audio Mixer",
   "slug": "audio-mixer",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Four stereo channels with level, pan, mute, solo and a send, plus a limiter.",
   "colour": "#fb7185",
   "formats": [

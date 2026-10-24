@@ -1,7 +1,7 @@
 {
   "name": "Cartesian Seq",
   "slug": "cartesian-sequencer",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "An 8 × 8 grid of notes walked by two playheads, or played by moving X and Y.",
   "colour": "#e8c547",
   "formats": [

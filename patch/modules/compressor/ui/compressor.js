@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Compressor view (doc/compressor.md): the volume envelopes of the last two seconds, input and output as two
 // lines over each other on a dB scale, the gain reduction in dB below them, and the input and output meters
 // next to each other. Live values from CompressorModule::liveValues (inPeakL/R, inRmsL/R, outPeakL/R, outRmsL/R,

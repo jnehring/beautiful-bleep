@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+# SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 """Compiles every board module to its own standalone .wasm and writes the
 manifest the browser loads them by.
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Dial node (doc/specs/modules/dial.md): one big knob, scaled to a range, as a
 // control signal.
 #include "DialDsp.h"

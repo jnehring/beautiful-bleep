@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wavetable Osc (doc/specs/modules/wavetable-oscillator.md): a two-dimensional
 // wavetable oscillator. A bank is a grid of single-cycle frames with
 // band-limited mipmaps (dsp::WavetableBank, common/dsp/Wavetable.h); X and Y

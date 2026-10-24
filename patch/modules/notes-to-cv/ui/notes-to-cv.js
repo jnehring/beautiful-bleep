@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Notes to CV view: a live strip of what the module sends (pitch trace, gate
 // lane, velocity), then the settings in the order a note travels: which notes
 // are listened to, how the voice is picked, the gate, then glide.

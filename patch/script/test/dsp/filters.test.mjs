@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/filters and the new Biquad modes: frequency response, stability, allocation-free processing.   node test/dsp/filters.test.mjs
 import { harness, check, finish, SR, responseAt, gainAt, rms, peak, finiteAll, spectrum, db, noise } from "./lib.mjs";
 

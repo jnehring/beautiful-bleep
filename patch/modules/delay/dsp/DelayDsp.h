@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Simple stereo delay (doc/specs/modules/delay.md): one delay line per side, a tape-style time follower
 // (a time change bends the pitch of the repeats, never clicks), and a feedback path with a low cut, a high cut
 // and a soft limiter (on the repeats, not the input) so that 100 % feedback holds instead of growing.

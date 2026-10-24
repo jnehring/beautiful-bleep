@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectrum node (doc/specs/modules/spectrum.md): an analyser for the view and three
 // signals taken from the same spectrum: Dominant (the strongest partial), Centroid
 // (the centre of gravity) and Flux (a trigger when new energy arrives).

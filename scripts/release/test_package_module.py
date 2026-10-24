@@ -103,7 +103,7 @@ class Package(unittest.TestCase):
         self.assertEqual(files["module.wasm"], self.wasm)
 
     def test_a_module_written_in_bleep_script_brings_its_ui_and_source(self):
-        (self.folder / "module.json").write_text(json.dumps({"name": "Fuzz", "slug": "fuzz", "language": "bleep-script", "license": "GPL-3.0-or-later"}))
+        (self.folder / "module.json").write_text(json.dumps({"name": "Fuzz", "slug": "fuzz", "language": "bleep-script", "license": "GPL-3.0-only"}))
         (self.folder / "fuzz.dsp.ts").write_text("@module({ name: 'Fuzz' })\nexport class Fuzz {}\n")
         (self.folder / "fuzz.view.js").write_text("const c = bleep.canvas(80);")
         (self.folder / "other.dsp.ts").write_text("not this one")
@@ -120,13 +120,13 @@ class Package(unittest.TestCase):
 
     def test_licence_and_origin_travel_with_the_package(self):
         self.assertEqual(json.loads(self.files()["module.json"])["license"], "MIT")  # none declared: MIT
-        origin = {"name": "Foo", "author": "A. Author", "url": "https://x.y/foo", "license": "GPL-3.0-or-later", "copyright": "(c) A"}
-        (self.folder / "module.json").write_text(json.dumps({"name": "Fuzz", "slug": "fuzz", "tagline": "Fuzzes.", "license": "GPL-3.0-or-later", "origin": origin}))
+        origin = {"name": "Foo", "author": "A. Author", "url": "https://x.y/foo", "license": "GPL-3.0-only", "copyright": "(c) A"}
+        (self.folder / "module.json").write_text(json.dumps({"name": "Fuzz", "slug": "fuzz", "tagline": "Fuzzes.", "license": "GPL-3.0-only", "origin": origin}))
         (self.folder / "LICENSE").write_text("GNU GENERAL PUBLIC LICENSE")
         files = self.files()
         meta = json.loads(files["module.json"])
-        self.assertEqual((meta["license"], meta["origin"]), ("GPL-3.0-or-later", origin))
-        self.assertEqual(meta["summary"], "Fuzzes. Based on Foo by A. Author (GPL-3.0-or-later).")
+        self.assertEqual((meta["license"], meta["origin"]), ("GPL-3.0-only", origin))
+        self.assertEqual(meta["summary"], "Fuzzes. Based on Foo by A. Author (GPL-3.0-only).")
         self.assertEqual(files["LICENSE"], b"GNU GENERAL PUBLIC LICENSE")
 
     def test_same_inputs_same_bytes(self):

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tuner DSP (doc/specs/modules/tuner.md): the shared pitch tracker
 // (common/dsp/PitchTrack.h) plus the note arithmetic of a chromatic tuner: the
 // nearest note of equal temperament around a reference A, the error in cents,

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bundles the compiler and the editor for the browser: node bundle.mjs -> dist/bleep-script-compiler.js and dist/bleep-script-editor.js (an ES module, about 10 MB: Binaryen is most of it).
 // The board loads it on first use; build-web.sh copies it next to the board when it exists.
 import { mkdirSync, readFileSync, statSync } from "node:fs";

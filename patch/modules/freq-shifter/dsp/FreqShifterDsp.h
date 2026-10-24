@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Freq Shifter (doc/specs/modules/frequency-shifter.md): single-sideband
 // frequency shifting per channel with a Hilbert pair and a quadrature
 // oscillator (dsp/Hilbert.h), a feedback loop with its own delay, opposite

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CV Mixer node (doc/specs/modules/cv-mixer.md): four bipolar channels combined
 // by sum, average, max, min or scan.
 #include "CvMixerDsp.h"

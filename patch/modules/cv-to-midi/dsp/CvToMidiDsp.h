@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CV to MIDI core (doc/specs/modules/cv-to-midi.md): one lane turns a control
 // signal into 7 or 14 bit controller values, sending only when the quantised
 // value changes and never faster than the rate limit.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Channel Strip (src/channel-strip.dsp.ts): high-pass filter, input transformer, four-band EQ, three drive characters, stage order.
 //   node test/modules/channel-strip.test.mjs
 import { loadModule, render, sine, gainAt, harmonicsDb, check, finish, spectrum, db, rms, peak, finiteAll } from "./lib.mjs";

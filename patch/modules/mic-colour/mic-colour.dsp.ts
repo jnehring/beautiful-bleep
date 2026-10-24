@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Mic Colour: makes any source sound as if it was recorded through a microphone in a room. Four microphone models (ribbon, dynamic, condenser,
 // tube condenser), each a chain of analog-prototype filters (discretised with the bilinear transform) followed by a level-dependent soft
 // saturation; distance (proximity effect, air absorption, direct level), off-axis dulling and a comb, a few early reflections and a trace of self-noise.

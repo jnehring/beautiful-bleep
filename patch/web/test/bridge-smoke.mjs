@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // A look at a running hub: connects to the app's web link with Node's WebSocket, says hello and prints what comes back
 // (welcome, channels, sync, the first pong). Without a hub it says "no hub" and exits 0, so it is safe in scripts.
 //

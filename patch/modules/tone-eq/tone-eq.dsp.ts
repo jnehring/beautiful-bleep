@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Tone EQ: a passive, interactive, musical equaliser. Three modes (passive shelving network, tilt, guitar-amp tone stack), each built
 // from an analog prototype that is discretised with the bilinear transform (pre-warped at the filter's own frequency), then a
 // valve-style make-up stage with level-dependent even-harmonic colour and a slow component drift. Written in Bleep Script.

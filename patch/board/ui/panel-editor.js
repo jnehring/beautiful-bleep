@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // panel-editor.js — the panel editor (doc/specs/panels.md §3): the panel with its
 // controls draggable, a palette and properties (Interface view), and the
 // outline of the cell with the wires of each control (Wiring view).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CV to Gate core: a comparator with hysteresis and an optional fixed pulse length.
 #pragma once
 

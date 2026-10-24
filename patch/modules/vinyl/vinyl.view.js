@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Vinyl UI: a record turns at the chosen speed with a tonearm riding the groove. Dust shows as specks, and from 40 % Dust the same scratches the
 // module plays are drawn on the disc: each one reaches the needle exactly when you hear it (the module reports where it is on the turn), and the
 // needle flashes on every click. The disc wobbles when Warp is up, and the label shows the cartridge.

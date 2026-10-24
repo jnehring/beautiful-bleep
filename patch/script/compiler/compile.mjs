@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Compiles one Bleep Script source: asc (the AssemblyScript compiler) with the Bleep transform, entirely in memory.
 // Shared by the playground, the tests and the bundle the board loads (compiler/bundle.mjs).
 import { BleepTransform } from "../transform/bleep.mjs";

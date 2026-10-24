@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Gains: volume, mute and solo for one mixer channel (doc/specs/bleep-script.md, section 5.2), written in Bleep Script.
 // The decorators declare the interface; the transform (transform/bleep.mjs) generates the spec JSON and the bleep_* exports.
 

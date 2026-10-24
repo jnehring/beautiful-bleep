@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Harmony Master node (doc/specs/modules/harmony-master.md): the board's key,
 // scale and chord from the knobs, a progression or played chords, published
 // on a harmony bus for the followers, and played as pitches and notes.

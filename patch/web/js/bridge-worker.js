@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // bridge-worker.js — a dedicated Worker that owns the WebSocket of the web link (doc/specs/bridges.md §4.1,
 // §10). Why a Worker: the main thread (UI, garbage collection) must not be in the audio path, which is what

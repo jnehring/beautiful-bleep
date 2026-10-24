@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/fft — a fixed-size FFT that allocates in its constructor and nowhere else.
 
 /// A complex FFT of `size` points (a power of two, 2 to 65536), in place, on the public arrays `re` and `im`. Fill them, call `forward()`, read the

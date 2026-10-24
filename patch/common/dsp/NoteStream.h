@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Helpers for modules that take a `notes` stream in and send one out (Note
 // Echo, Melody Mirror, Note Gate, Note Looper), free of the engine's types:
 //

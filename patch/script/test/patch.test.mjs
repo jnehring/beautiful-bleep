@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Layer 1 of Bleep Script: patch scripts run in the sandbox and become cells, checked against the module types.   node test/patch.test.mjs
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

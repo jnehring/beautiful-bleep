@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // LiveLinkSender — Bleep Board's side of the Bleep Live Link device (Max for Live). The board's Live Params nodes publish
 // their rows (four per channel, eight channels); this sends the ones that changed to the device as OSC over UDP on localhost,

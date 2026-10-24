@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // WebHubInternal.h — what the files of the WebHub implementation share: the includes, limits and small helpers.
 // WebHub.cpp (lifetime, HTTP, sync, status), WebHubMessages.cpp (messages from the web), WebHubSlots.cpp (Live slots and audio/MIDI
 // packets), WebHubBoard.cpp (web nodes in the app's board).

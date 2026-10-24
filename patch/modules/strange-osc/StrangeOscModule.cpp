@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Strange Osc node (doc/specs/modules/strange-osc.md): a chaotic attractor as an
 // oscillator, at audio or control rate.
 #include "Registry.h"

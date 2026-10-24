@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Verb (doc/specs/modules/reverb.md): the shared FDN tank (dsp/Fdn.h: pre-delay,
 // input diffuser, 8 or 16 lines, per-band decay, freeze, infinite decay)
 // plus what makes it a module: the Decay knob's mapping with its infinite

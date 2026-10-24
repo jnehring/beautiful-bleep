@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // ADSR node: attack, decay, sustain, release with velocity and retrigger.
 #include "AdsrDsp.h"
 #include "Registry.h"

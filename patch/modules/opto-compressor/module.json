@@ -1,7 +1,7 @@
 {
   "name": "Opto Compressor",
   "slug": "opto-compressor",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "language": "bleep-script",
   "tagline": "Optical leveling amplifier: program-dependent attack, two-stage photocell release with memory, HF emphasis, valve/transformer make-up, stereo link and an external sidechain.",
   "category": "Effects/Dynamics & EQ",

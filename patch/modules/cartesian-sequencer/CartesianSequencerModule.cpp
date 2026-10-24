@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Cartesian Seq node (doc/specs/modules/cartesian-sequencer.md): an 8 × 8 grid
 // from the node's data, two playheads (or the X/Y knobs) walking it, notes
 // and CV out.

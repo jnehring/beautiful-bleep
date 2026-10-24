@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Random node: seeded stepped randomness with a looping memory.
 #include "RandomDsp.h"
 #include "Registry.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Switch node (doc/specs/modules/switch.md): a sequential switch with up to 8
 // steps, 8 → 1 and 1 → 8 at once, stepped by triggers, the transport or
 // Select, with fades that never jump.

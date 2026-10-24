@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Bleep Live Link: the logic of one row, for a Max `js` object (doc/specs/live-link.md §3).
 //
 // The BOARD decides the value: a row of the Live Params node is a knob (plus the cables that feed it) scaled into the row's

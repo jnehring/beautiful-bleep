@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Shift Register: Lock extremes, flip share, determinism, seeking, timing,
 // voltage/pitch, bit gates, Combo, Mix, Data source
 // (doc/specs/modules/shift-register.md §8).

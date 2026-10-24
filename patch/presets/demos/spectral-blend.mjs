@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spectral Blend: five demo patches. Each plays by itself with the transport.
 import { patch } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";

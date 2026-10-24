@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Cartesian Seq DSP: raster order and end pulses, independent axes and their
 // period, loop jumps, skipped cells, Cartesian mode (Clock and Change), knob
 // offsets, Mod slew, ties and no hanging notes, seeded random walks.

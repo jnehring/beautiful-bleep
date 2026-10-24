@@ -1,7 +1,7 @@
 {
   "name": "Formant Osc",
   "slug": "formant-osc",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Pulse-formant oscillator: a resonant peak that sweeps through zero, vocal and filter-like with no filter.",
   "colour": "#e879f9",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Gate node (doc/specs/modules/note-gate.md): notes in, the notes that
 // pass out (remapped, reshaped), and a trigger for each note that passed or
 // was stopped. The remap table, the drawn velocity curve and the step lane

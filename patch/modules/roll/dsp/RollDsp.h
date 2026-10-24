@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Roll core (doc/specs/modules/roll.md): notes with a free start, length and
 // pitch on a 96-ticks-per-beat grid, 1-8 bars per pattern slot, eight slots.
 // The playhead is a tick count, either the song position (phase-locked) or a

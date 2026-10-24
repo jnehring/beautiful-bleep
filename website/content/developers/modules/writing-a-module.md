@@ -73,7 +73,7 @@ licence terms. `scripts/check/check-repo.py` enforces all of it in CI.
 }
 ```
 
-- `license` is the module's SPDX id; leave it out for MIT (the built-in modules are GPL-3.0-or-later). Every source file of
+- `license` is the module's SPDX id; leave it out for MIT (the built-in modules are GPL-3.0-only). Every source file of
   the module (`.cpp`, `.h`, `.js`, tests) starts with
   `// SPDX-License-Identifier: <that id>`.
 - `origin` is present exactly when code was taken from somewhere: `name`, `author`,

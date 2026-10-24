@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Melody Mirror: the four turns of a phrase, speed/transpose/snap, starting by
 // trigger and after a pause, Answer mode, no hanging notes.
 #include "MelodyMirrorDsp.h"

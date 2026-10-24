@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Resonator: tuning, decay, structure tables, position, anti-aliasing,
 // round robin, input onsets, levels and stability
 // (doc/specs/modules/resonator.md §8).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // LFO view: one cycle of the current wave (Pulse Width, Phase and Polarity applied) drawn as a
 // phosphor trace; a bright comet follows the live phase (st.phase, else it free-runs) and
 // the cycle fades out behind it. Mirrors LfoDsp::value.

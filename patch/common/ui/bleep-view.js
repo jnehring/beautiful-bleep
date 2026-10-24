@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep-view.js — module views (spec §9.4): a module's knobs, settings and
 // custom displays, built from its type description. The board shows them in
 // floating windows; panels (later) will combine several.

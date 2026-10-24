@@ -1,7 +1,7 @@
 {
   "name": "Resonator",
   "slug": "resonator",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A tuned resonant body (modal, sympathetic strings or a plucked string) that rings when anything hits it.",
   "colour": "#0891b2",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // modal.js — Library, Settings and Help open as modal dialogs over the board (the board stays visible behind them).
 //
 //   P.BleepModal.mount(root, close)   puts `root` (a section the view built) into a dialog with a ✕ button; `close()` hides the view

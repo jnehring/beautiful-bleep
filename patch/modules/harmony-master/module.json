@@ -1,7 +1,7 @@
 {
   "name": "Harmony Master",
   "slug": "harmony-master",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "The board's key, scale and chord, from knobs, a progression or played chords, for every module that follows harmony.",
   "colour": "#9333ea",
   "formats": [

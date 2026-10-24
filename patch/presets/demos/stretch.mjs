@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Stretch: five demo patches. Each plays by itself with the transport. The tape is a short rolling take of a looping
 // source (the loop is as long as the tape), so the stretched sound is there from the first bar.
 import { patch } from "../kit.mjs";

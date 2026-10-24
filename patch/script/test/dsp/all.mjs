@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Runs every library test in test/dsp/ (*.test.mjs), one process each.   node test/dsp/all.mjs
 import { readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";

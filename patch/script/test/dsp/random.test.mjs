@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/random: seeded generators, the noise colours (spectral slope), sample and hold, NoiseLfo.   node test/dsp/random.test.mjs
 import { harness, check, finish, SR, rms, peak, finiteAll, spectrum, noise } from "./lib.mjs";
 

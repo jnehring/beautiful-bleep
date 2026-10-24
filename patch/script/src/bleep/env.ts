@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/env — envelopes and control signals: Adsr, Ad, Ar, EnvFollower, Slew, Lfo, Line, Ramp, Trigger, Schmitt, Clock.
 // Times are in seconds. A set*/set method may call exp/log: call it in block() when a setting changed, not every sample. next() runs per sample.
 

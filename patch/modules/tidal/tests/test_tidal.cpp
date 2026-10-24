@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tidal (doc/specs/modules/tidal.md §8): rate and 1 V/oct, skew, curve, smooth and
 // fold, the four relations, clock following, transport lock, envelopes.
 #include "TidalDsp.h"

@@ -1,7 +1,7 @@
 {
   "name": "Uncertainty",
   "slug": "uncertainty",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Six kinds of randomness: fluctuating, quantized, stored and integrated.",
   "colour": "#db2777",
   "formats": [

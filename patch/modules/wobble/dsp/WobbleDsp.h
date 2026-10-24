@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wobble (doc/specs/modules/wobble.md): one stream of random values in three
 // shapes. Stepped jumps, Smooth glides (critically damped two-pole low-pass),
 // Wobble glides with resonance (overshoot and ringing). The cutoff follows the

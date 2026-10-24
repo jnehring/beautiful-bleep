@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Child modules: a script uses a module of the library (a standalone .wasm in the module ABI) as an object, and the compiler links the two
 // into one file that imports nothing.
 //

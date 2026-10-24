@@ -100,7 +100,7 @@ commit touches `patch/engine` or `patch/modules` and refuses the commit while th
 `bleep_board_smoke` opens the real board window on a real engine for a few
 seconds and checks the page through the real bridge (not part of ctest).
 
-**JUCE licensing:** this source is GPL-3.0-or-later with a module exception (the built-in modules are MIT), but binaries built with JUCE are
+**JUCE licensing:** this source is GPL-3.0-only with a module exception (the built-in modules are MIT), but binaries built with JUCE are
 also covered by JUCE's license (AGPLv3 or a commercial JUCE licence).
 Check that before you distribute builds.
 

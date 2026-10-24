@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Mult node (doc/specs/modules/clock-multiplier.md): six faster clocks
 // of one clock, each at its own ratio, with skips, swing and humanize.
 #include "ClockMultiplierDsp.h"

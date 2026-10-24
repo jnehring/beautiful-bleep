@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 #include "StretchDsp.h"
 #include "dsp/PitchTrack.h"
 #include "dsp/tests/TestUtil.h"

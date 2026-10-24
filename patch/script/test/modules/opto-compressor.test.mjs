@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Opto Compressor: static curve, attack and release time constants measured from step responses (program dependence, two-stage release with
 // memory), detector options, make-up stage colour, safety.   node test/modules/opto-compressor.test.mjs
 import { loadModule, render, sine, harmonicsDb, spectrum, check, finish, finiteAll, peak, rms, SR } from "./lib.mjs";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Multiplier node (doc/specs/modules/multiplier.md): two four-quadrant
 // multipliers with bias, chained, optionally oversampled.
 #include "MultiplierDsp.h"

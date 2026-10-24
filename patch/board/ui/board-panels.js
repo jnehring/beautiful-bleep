@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-panels.js — front panels: the panels of a board and of its cells, their menus, building and opening them (doc/specs/panels.md).
 //
 // P.BoardPanels.create(s)   s: the board and page helpers it needs (see the destructuring below); `board`, `types`, `path`, `trace`,

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Panel controls that show a controller module (board/ui/panel-wiring.js): add them to a panel and remove them again.
 // usage: node panel-wiring-test.mjs
 import assert from "node:assert/strict";

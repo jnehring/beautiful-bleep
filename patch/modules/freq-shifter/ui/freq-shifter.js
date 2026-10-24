@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Freq Shifter view (doc/specs/modules/frequency-shifter.md §5): the input and
 // output spectra (live arrays from FreqShifterModule::liveArrays, 20 Hz …
 // 20 kHz, log axis), a phase dial with the left and right oscillators, and

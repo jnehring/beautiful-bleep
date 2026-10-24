@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Pitch Snap node (doc/specs/modules/pitch-snap.md): a real-time pitch corrector.
 // Audio in; the same audio with its pitch pulled onto the notes of a scale (its own,
 // or the board's harmony), plus the note it is aiming at as a CV.

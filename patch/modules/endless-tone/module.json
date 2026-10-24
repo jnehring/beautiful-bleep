@@ -1,7 +1,7 @@
 {
   "name": "Endless Tone",
   "slug": "endless-tone",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A tone that rises or falls for ever: octave-spaced partials under a spectral window, with rate, direction, width, count, timbre, stereo spread and a loop phase output.",
   "colour": "#38bdf8",
   "formats": [

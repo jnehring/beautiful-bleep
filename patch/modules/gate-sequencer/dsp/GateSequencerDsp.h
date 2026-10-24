@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Gate Sequencer core (doc/specs/modules/gate-sequencer.md): four tracks of up to
 // 32 steps with probability, gate length or tie, ratchets, micro-timing
 // (nudge) and conditions; each track has its own length and rate.

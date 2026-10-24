@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // agent-chat.js — the patch assistant's chat panel (doc/specs/agent.md §3.2, §5; doc/agent-concept.md).
 //
 // Only exists when the website's backend says so: GET /api/agent/status must answer {enabled: true}. In an instrument or FX plugin

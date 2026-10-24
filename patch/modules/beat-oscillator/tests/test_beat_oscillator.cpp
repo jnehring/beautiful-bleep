@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Beat Oscillator: the free beat and its measurement, the square-root law and
 // locking, the bottleneck near the lock edge, the detector and aliasing,
 // coupling, determinism and warm-up (doc/specs/modules/beat-oscillator.md §8).

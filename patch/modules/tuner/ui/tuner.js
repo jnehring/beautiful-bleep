@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tuner view (doc/specs/modules/tuner.md §5): the note name large on the left with its
 // octave and the cents error, a needle over a −50 … +50 cent arc whose green zone is the
 // In Tune window, the heard frequency and the frequency of the note it is aiming at,

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Shape Table view: draw the transfer curve with the mouse (65 control points,
 // the node's data), pick a curve preset, watch the live operating point (input
 // after Drive and Bias → output) and the harmonics a full-scale sine would get.

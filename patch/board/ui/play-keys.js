@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // play-keys.js — an on-screen piano for Bleep Play, shown while an instrument preset is played on its own (play-wrap.js). The computer
 // keyboard and Web MIDI already play the MIDI In node (patch/web/js/bleep-web.js); this adds mouse and touch, for the phone.
 //

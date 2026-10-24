@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // ModuleLibrary.h — the modules of this machine as the app and the plugins see them: loaded at start, installed and removed
 // from the Library section of the board window (developers/modules/library.md, sections 5a and 9). One per process, owned by the engine.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Runs live-link.js outside Max with a small stand-in for the js object's environment:
 //   node patch/bridges/ableton/live-link/live-link.test.mjs
 import assert from "node:assert/strict";

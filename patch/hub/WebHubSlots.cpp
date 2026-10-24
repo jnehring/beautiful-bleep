@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // WebHubSlots.cpp — Live slots (SlotRelay) and the audio and MIDI packets of a channel.
 #include "WebHubInternal.h"
 

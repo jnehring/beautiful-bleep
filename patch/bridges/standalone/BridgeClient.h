@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // BridgeClient — the Live side of Bleep Audio Bridge (spec §11.3). One per
 // plugin instance. poll() runs on the message thread (connect, claim a slot,

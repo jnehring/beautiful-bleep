@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/dynamics: compressor curve and ballistics, limiter ceiling, gate hysteresis, shapers, bitcrush, oversampling.   node test/dsp/dynamics.test.mjs
 import { harness, check, finish, SR, rms, peak, finiteAll, spectrum, db, noise, responseAt } from "./lib.mjs";
 

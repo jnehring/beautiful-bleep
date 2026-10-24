@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tidal view (doc/specs/modules/tidal.md §5): a scope of all four outputs over two
 // cycles of A (one envelope in AD/AR), computed from the knobs like TidalDsp,
 // with a dot at A's live phase. Relabels Frequency for the Range, Sync and

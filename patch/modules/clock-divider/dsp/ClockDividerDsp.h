@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Div core (doc/specs/modules/clock-divider.md): eight clock dividers,
 // each with its own division. Transport mode derives every cycle from the
 // song position (a pure function of ppq, so loop jumps and renders agree);

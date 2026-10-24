@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Grains view (doc/specs/modules/grains.md §5): the buffer's waveform (oldest on
 // the left, the write head on the right), the Position window (± the Spread
 // jitter) shaded, every live grain as a dot (size = its window, brightness =

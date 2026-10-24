@@ -1,7 +1,7 @@
 {
   "name": "LFO",
   "slug": "lfo",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Classic low-frequency oscillator: seven waves with a morph, free, on a clock or on the tempo, with a fade-in.",
   "colour": "#7dd3fc",
   "formats": [

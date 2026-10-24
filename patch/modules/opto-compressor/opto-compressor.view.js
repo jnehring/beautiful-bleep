@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Opto Compressor's own UI (the JavaScript of the Code node's UI tab).
 // Left: the lamp. Its glow is the gain reduction; drag it up or down to turn Peak Reduction (the ring around it shows the setting).
 // Middle: the photocell, two bars filling at their own speeds: the fast stage (quick to answer, quick to let go) and the slow stage (the "charge":

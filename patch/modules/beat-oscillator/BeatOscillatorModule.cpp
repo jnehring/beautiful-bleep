@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Beat Oscillator node (doc/specs/modules/beat-oscillator.md): two high carriers
 // mixed down to their difference tone, with injection locking (Pull), seeded
 // drift and a warm-up glide.

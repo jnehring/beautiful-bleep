@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/delay — delay lines and interpolation: DelayLine (linear, cubic and all-pass reads), table interpolators, TapeDelay and a Karplus-Strong string.
 // Delays are in samples (fractions allowed) unless a name says seconds. All memory is allocated in the constructors.
 

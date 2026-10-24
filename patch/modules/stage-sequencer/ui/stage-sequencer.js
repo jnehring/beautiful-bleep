@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Stage Seq view (doc/specs/modules/stage-sequencer.md §5): a timeline where each
 // stage is a column as wide as its pulses, with lanes for pitch, pulses,
 // gate mode, slide, velocity and accent; the playhead (stage and pulse), the

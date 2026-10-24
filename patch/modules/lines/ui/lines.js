@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Lines view (doc/specs/modules/lines.md): the tracker. Four tracks of rows,
 // each cell with a note, a velocity, a gate length and an effect; type notes
 // on the keyboard, move with the arrows, Delete clears. A drift panel shows

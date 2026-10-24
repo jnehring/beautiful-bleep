@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Swarm (doc/specs/modules/swarm-oscillator.md): up to 16 oscillators spread over
 // a chord or scale around one root. Spread opens the cloud from unison into
 // the chord (each oscillator lands on the nearest chord note of its scaled

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Step Sequencer view (doc/specs/modules/step-sequencer.md §5): the lane editor
 // (gate and its length, pitch, velocity, ratchet), the playhead, and the Randomize
 // tools with a value range per lane. Steps live

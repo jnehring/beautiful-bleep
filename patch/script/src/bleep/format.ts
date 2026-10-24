@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // AssemblyScript has no toFixed: a number with a fixed count of decimals, by integer arithmetic. Used by the generated paramText.
 
 export function formatNumber(value: f64, decimals: i32): string {

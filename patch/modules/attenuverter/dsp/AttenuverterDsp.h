@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Attenuverter core (doc/specs/modules/attenuverter.md): four rows of
 // In × Scale + Offset, a sum, and optional clipping.
 #pragma once

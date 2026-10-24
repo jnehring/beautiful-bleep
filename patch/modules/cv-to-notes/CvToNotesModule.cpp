@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // CV to Notes node: pitch + gate → a `notes` stream, so mono sources play
 // Voice Cells (spec §8.3.1). A pitch change while the gate is high is legato.
 #include "Registry.h"

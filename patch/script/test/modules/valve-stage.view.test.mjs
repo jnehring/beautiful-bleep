@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Valve Stage's own UI (src/valve-stage.view.js) run against the mock sandbox.   node test/modules/valve-stage.view.test.mjs
 import { loadModule, check, finish } from "./lib.mjs";
 import { runView, viewSource } from "./view-lib.mjs";

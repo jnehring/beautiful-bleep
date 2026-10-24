@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scope core (doc/specs/modules/scope.md §4): a triggered capture of up to four
 // signals into a fixed number of display columns (the lowest and highest sample
 // of each column, so fast detail is never lost), and a measurement of one signal's

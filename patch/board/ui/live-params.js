@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // live-params.js — the Live Params node's view. It is the node's control surface: one card per row, with what the Bleep Live Link
 // device on the node's channel has mapped the row to (the parameter's name, continuous or discrete) and the row's controls.
 //

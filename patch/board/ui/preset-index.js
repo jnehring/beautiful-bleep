@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // preset-index.js — one list for every kind of preset the browser shows (doc/specs/preset-system-plan.md, sections 1 and 4).
 //
 // Every preset is an entry with a kind and an origin, wherever it comes from:

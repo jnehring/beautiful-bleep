@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // The presets compiled into Bleep Instrument and Bleep FX: each plugin's library is not empty, only holds
 // presets that play its role and has the default preset. (There are no hand-written presets at the moment: hand-written-presets.json

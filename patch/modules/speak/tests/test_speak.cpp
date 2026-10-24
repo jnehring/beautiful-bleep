@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Speak: the phoneme parser, determinism, the voice's formant peaks, silence in
 // plosive closures, the three modes and bounds.
 #include "SpeakDsp.h"

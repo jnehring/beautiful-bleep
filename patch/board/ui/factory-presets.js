@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Factory cell presets (spec §8.3.3), shown under Add → Cell next to the
 // user's own. Params left out take their defaults.
 (function () {

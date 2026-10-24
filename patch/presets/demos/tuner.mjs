@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tuner: five demo patches. Each plays by itself with the transport.
 // The Tuner has no audio output, so every patch also sends the sound it listens to (and what it triggers) to Out 1/2.
 import { patch } from "../kit.mjs";

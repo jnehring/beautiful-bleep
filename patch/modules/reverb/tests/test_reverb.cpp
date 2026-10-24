@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ReverbDsp.h"
 #include "dsp/Delay.h"
 #include "dsp/Svf.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // SeqNotes.h: gate timing, legato order, same-pitch ties, retriggers, note
 // sets with common tones, and no hanging notes driven by SeqClock.
 #include "dsp/SeqNotes.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The Live Params node's mailbox and the sender's logic, without the engine: the mailbox through which the audio thread hands the
 // values of the node's rows to the bridge, which sends them on to the Bleep Live Link device in Live
 // (Max for Live, live.remote~). One mailbox per process, like HostControl. Each node owns the four rows of its channel;

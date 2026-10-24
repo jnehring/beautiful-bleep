@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The wire format of the web link (bridge-protocol.js): audio packets, messages, clock, sync, epochs.
 // Pure node, no dependencies:  node patch/web/test/bridge-protocol-test.mjs
 import assert from "node:assert/strict";

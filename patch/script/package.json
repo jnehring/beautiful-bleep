@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "description": "Bleep Script: AssemblyScript modules for Beautiful Bleep (spike). See doc/specs/bleep-script.md.",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "scripts": {
     "build": "node build.mjs",
     "test": "node build.mjs && node test/transform.test.mjs && node test/child.test.mjs && node test/patch.test.mjs && node test/docs.test.mjs && node test/spike.mjs && node test/dsp/all.mjs && node test/modules/all.mjs",

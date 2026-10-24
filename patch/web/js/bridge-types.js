@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // bridge-types.js — the board node types the web link adds: Remote Audio and Remote MIDI (doc/specs/bridges.md
 // §10.3 `open`: "Bleep Play bridges one of its nodes"). They have the shape of the entries in

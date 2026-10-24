@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Every name the library exports is listed in website/content/developers/bleep-script/library.md, and the doc's code samples compile.   node test/dsp/docs.test.mjs
 import { readFileSync, readdirSync } from "node:fs";
 import asc from "assemblyscript/asc";

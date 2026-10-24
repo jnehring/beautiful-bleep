@@ -16,7 +16,7 @@ If you contribute on behalf of an employer, make sure they agree too.
 
 ## Licences of contributions
 
-Bleep is GPL-3.0-or-later with a module exception ([plain terms](website/content/developers/modules/licensing.md)). Your contribution is licensed as the part of the repository it goes into
+Bleep is GPL-3.0-only with a module exception ([plain terms](website/content/developers/modules/licensing.md)). Your contribution is licensed as the part of the repository it goes into
 (see the `LICENSE` file there and the SPDX header of each source file).
 
 ## Other

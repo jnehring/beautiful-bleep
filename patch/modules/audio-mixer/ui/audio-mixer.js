@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Audio Mixer view (doc/specs/modules/audio-mixer.md): a horizontal row of channel
 // strips, each with Pan (dial), Send (dial), Mute / Solo and a Level fader with
 // its own level meter, then a master strip (fader, stereo meter, Limiter, Mono).

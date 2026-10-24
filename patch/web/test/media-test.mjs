@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep-media.js: finding the audio a preset uses, attaching it, importing it, the limits for sharing.
 //
 //   node patch/web/test/media-test.mjs

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Punch drums: drum voices built the way the drum machines of the mid
 // eighties built them. Sine oscillators that restart on every hit and sweep
 // down fast (kick, toms, snare body), with a noise click on top, and bright,

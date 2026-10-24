@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Matrix Mixer core (doc/specs/modules/matrix-mixer.md): up to 8 inputs × 8
 // outputs, a bipolar gain at every crosspoint (modulatable per sample),
 // per-input mutes with a 5 ms ramp, output levels, an output stage (Clean,

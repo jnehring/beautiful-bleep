@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Mult core (doc/specs/modules/clock-multiplier.md): six outputs, each
 // ticking at its own ratio p/q of the input clock. Everything is worked out
 // from a position x measured in input clocks:

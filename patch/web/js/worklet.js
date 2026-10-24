@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // worklet.js — the real-time side of the browser build: an AudioWorklet that
 // runs the graph (graph.js) and the module wasm files it is sent. All board

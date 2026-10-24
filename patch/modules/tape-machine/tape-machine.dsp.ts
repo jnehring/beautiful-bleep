@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Tape Machine: a reel-to-reel recorder. Chain per channel: transport (wow and flutter on a fractional delay) -> tape compression -> input
 // level -> record pre-emphasis -> magnetic hysteresis (oversampled) -> hiss, modulation noise and dropouts -> playback de-emphasis (the exact
 // inverse of the pre-emphasis) -> head bump -> gap and spacing loss -> level-compensated output.

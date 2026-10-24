@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Automata (doc/specs/modules/automata.md): a sequencer whose gates and notes
 // come from a small system that evolves on every step. Five systems share one
 // state record and one history ring:

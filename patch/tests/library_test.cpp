@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // The library's checks in C++ (patch/library, developers/modules/signing.md): every package in patch/tests/library-fixtures must get the
 // verdict the Python reference gave it (scripts/release/signing.py fixture), and the pieces underneath (content hash,

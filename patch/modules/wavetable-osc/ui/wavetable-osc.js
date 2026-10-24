@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wavetable Osc view (doc/specs/modules/wavetable-oscillator.md §5): the bank's
 // grid of frame thumbnails with the played positions (L dot, R ring) and the
 // path, the current cycle after warp (L and R), and the current row drawn as

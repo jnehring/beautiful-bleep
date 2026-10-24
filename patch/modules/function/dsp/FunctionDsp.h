@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Function: a rise/fall slope generator. Free-running it is an LFO, triggered
 // it is an envelope; Spread derives three more related outputs from one gesture.
 #pragma once

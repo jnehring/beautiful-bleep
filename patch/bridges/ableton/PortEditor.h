@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // PortEditor — the small plugin window of every port (spec §6): the node's
 // name, a status line (board, latency, sync) and Open Board. Opening it also

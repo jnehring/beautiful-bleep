@@ -1,7 +1,7 @@
 {
   "name": "Note Looper",
   "slug": "note-looper",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Records the notes you play, with their timing, for one to sixteen bars and loops them: overdub, undo, per-pass probability, half and double speed, quantize strength.",
   "colour": "#f28b82",
   "formats": [

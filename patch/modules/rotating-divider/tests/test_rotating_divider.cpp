@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rotating Div: divisions and rotation per Set, transport timing (straight,
 // dotted, triplet, loop jumps), Realign, Rotate Sync, Clock mode, Width,
 // Trigger output, Stair, Align and transport stop.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Automata view (doc/specs/modules/automata.md §5): the system as it evolves.
 //   Ring     the cells on a circle (the read head marked) and, beside it, the last
 //            generations as rows

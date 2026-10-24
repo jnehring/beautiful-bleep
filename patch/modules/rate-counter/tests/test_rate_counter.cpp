@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rate Counter: frequency of waves, tempo of pulse trains, pulses per beat, the tap average,
 // the Steady gate, timeout and restart, taps (doc/specs/modules/rate-counter.md §8).
 #include "RateCounterDsp.h"

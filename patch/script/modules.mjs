@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The script modules in patch/modules/: a folder whose module.json says "language": "bleep-script" holds <slug>.dsp.ts (the module), <slug>.view.js
 // (its own UI, optional), doc/<slug>.md and module.json, like any module. This finds them and compiles one to a .wasm, the same way for the
 // board's build (patch/web/build_modules.py), the tests and npm run build.

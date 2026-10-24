@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 #include "BenderDsp.h"
 #include "dsp/tests/TestUtil.h"
 

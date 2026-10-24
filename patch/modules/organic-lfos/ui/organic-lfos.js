@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Organic LFOs view (doc/specs/modules/organic-lfos.md §5): a rate strip (each
 // LFO's live rate as a tick on a log axis) above an eight-trace scrolling
 // scope of about the last four cycles of LFO 1, with the Sum as a thicker

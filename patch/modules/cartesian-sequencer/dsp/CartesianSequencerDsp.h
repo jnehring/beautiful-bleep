@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Cartesian Seq core (doc/specs/modules/cartesian-sequencer.md): an 8 × 8 grid of
 // cells (gate, pitch, velocity, mod, access) walked by two playheads. In
 // Clocks mode X follows the transport or the X Clock, Y either wraps with X

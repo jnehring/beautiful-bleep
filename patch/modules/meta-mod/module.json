@@ -1,7 +1,7 @@
 {
   "name": "Meta Mod",
   "slug": "meta-mod",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Carrier meets modulator: one knob morphs through crossfade, fold, ring modulation, bitwise, comparator, vocoder and Chebyshev.",
   "colour": "#84cc16",
   "formats": [

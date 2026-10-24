@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Port nodes (spec §6): the board side of the plugins users add in Live.
 // A port node reads its plugin's host block from ctx.port->in and writes to

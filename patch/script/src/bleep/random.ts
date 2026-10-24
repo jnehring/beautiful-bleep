@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/random — seeded random numbers and noise. A generator with the same seed gives the same sequence on every run (a patch that
 // renders offline sounds like the one that played live). Allocate in constructors only; the generators are plain integer state.
 

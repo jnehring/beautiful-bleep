@@ -1,7 +1,7 @@
 {
   "name": "Test Oscillator",
   "slug": "test-oscillator",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A lamp-stabilised bridge oscillator: a dial, a range switch, and a sine that bounces, drifts and rings.",
   "colour": "#f59e0b",
   "formats": [

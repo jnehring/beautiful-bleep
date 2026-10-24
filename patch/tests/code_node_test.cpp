@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Code nodes in the engine (engine/wasm/CodeNodes.h, doc/specs/bleep-script.md): a board with a Code node keeps its cables, knob values and
 // `code` when it is loaded, before anything is compiled; the module the UI compiled is registered for the node and runs; a new source is a new

@@ -1,7 +1,7 @@
 {
   "name": "Compressor",
   "slug": "compressor",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Stereo compressor and limiter: soft knee, peak or RMS detection, sidechain input, parallel mix and a gain reduction output.",
   "colour": "#64748b",
   "formats": [

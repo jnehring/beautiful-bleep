@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Echo core (doc/specs/modules/note-echo.md): every note-on of a `notes`
 // stream is followed by up to 16 repeats. Each repeat comes later, softer, and
 // moved along the board's scale; a repeat can drop out, fan into a chord-tone

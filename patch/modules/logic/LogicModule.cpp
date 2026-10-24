@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Logic node (doc/specs/modules/logic.md): boolean gates, a flip-flop and edge
 // triggers for gates and triggers.
 #include "LogicDsp.h"

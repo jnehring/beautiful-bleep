@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later */
+/* SPDX-License-Identifier: GPL-3.0-only */
 :root {
   --bg: #15171c; --canvas: #111317; --panel: #1d2027; --panel-2: #252932; --panel-3: #2d323d; --line: #333845;
   --text: #e7e9ee; --muted: #8b92a3; --accent: #4fd1c5; --mod: #f6c35b; --warn: #ff7a6b; --sel: #7aa7ff;

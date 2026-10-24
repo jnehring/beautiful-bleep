@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Dual Osc: tuning, B tracking, linear vs exponential FM, hard sync period
 // and aliasing, folder transparency and bounds, stereo, determinism
 // (doc/specs/modules/dual-oscillator.md §8).

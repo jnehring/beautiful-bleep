@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // XY Pad view (doc/specs/modules/xy-pad.md §5): a square pad with a point; drag
 // to move X and Y together.
 (function () {

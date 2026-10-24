@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Mult: ratios on the transport (whole and fractional), loop jumps,
 // skips, swing and humanize (anchors never move), Clock mode, Phase Lock,
 // Reset, Width, Trigger output and transport stop.

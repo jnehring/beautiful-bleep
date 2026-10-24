@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // LFO waveforms as pure phase → value functions, a phase accumulator that
 // counts cycles, and helpers that lock a phase to the song position.
 // Shared by LFO (doc/specs/modules/lfo.md), Quad LFO and the other modulators.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wheel view (doc/specs/modules/wheel.md §5): a vertical wheel for Value. Drag
 // it up and down; with Spring on it returns to the middle when let go.
 (function () {

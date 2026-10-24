@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Sweep Generator: frequency laws, Freq output, synced position and End on
 // bars, phase continuity, Triggered/Gated/Hold, bursts, markers and retrace,
 // aliasing, drift and warm-up (doc/specs/modules/sweep-generator.md §8).

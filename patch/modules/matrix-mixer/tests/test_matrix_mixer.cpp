@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Matrix Mixer: identity and inversion, the mix formula, sparse = dense,
 // mute ramps, Normalize, Soft clip, morph ends and modulation on top, the
 // 20 ms ramp of knob changes, and hidden inputs/outputs.

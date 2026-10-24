@@ -1,7 +1,7 @@
 {
   "name": "Cheap Speaker",
   "slug": "cheap-speaker",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "language": "bleep-script",
   "tagline": "Tonal lo-fi: the bandwidth, resonances, distortion and noise of a telephone, an AM radio, a car speaker, a cassette player, a tiny speaker or a megaphone.",
   "category": "Effects/Distortion",

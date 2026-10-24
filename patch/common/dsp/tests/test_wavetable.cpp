@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Wavetable banks: FFT, exact spectra, band-limited mipmaps, mip selection,
 // bilinear morph, warps, factory banks and user tables.
 #include "dsp/Wavetable.h"

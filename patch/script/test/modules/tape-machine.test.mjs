@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tape Machine: head bump and gap loss per speed, harmonics against input level, bias, level compensation, wow and flutter as vibrato in cents,
 // stereo drift, hiss, dropouts, compression, mix phase, aliasing, safety.   node test/modules/tape-machine.test.mjs
 import { loadModule, render, sine, gainAt, check, finish, spectrum, db, rms, finiteAll, harmonicsDb } from "./lib.mjs";

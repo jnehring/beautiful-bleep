@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // patch/presets/build-docs.mjs: the generated sections of the module manuals and the outline check.
 //
 //   node patch/web/test/build-docs-test.mjs

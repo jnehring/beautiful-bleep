@@ -1,7 +1,7 @@
 {
   "name": "XY Scope",
   "slug": "xy-scope",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Lissajous figures on a green screen, with phase, correlation, ratio and a Still gate as outputs.",
   "colour": "#4ade80",
   "category": "Utility",

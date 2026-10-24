@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Lines DSP: row timing, gate lengths, the effect column (retrigger, slide,
 // probability, transpose, jump, skip), per-track speed and length drifting
 // apart, the pattern order, Free-run against restarting tracks, Clock mode and

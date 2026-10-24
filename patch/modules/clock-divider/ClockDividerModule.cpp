@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Div node (doc/specs/modules/clock-divider.md): eight clock dividers
 // of one base clock, each with its own division.
 #include "ClockDividerDsp.h"

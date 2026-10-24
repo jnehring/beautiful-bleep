@@ -1,7 +1,7 @@
 {
   "name": "Scope",
   "slug": "scope",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Up to four traces on a triggered time display with cursors; amplitude and frequency come out as signals.",
   "colour": "#5eead4",
   "category": "Utility",

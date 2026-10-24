@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // grid_tests.cpp — Drum Grid (doc/specs/modules/drum-grid.md).
 
 #include "dsp_test.h"

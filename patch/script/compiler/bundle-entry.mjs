@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The entry of the browser bundle (npm run bundle -> dist/bleep-script-compiler.js): the AssemblyScript compiler, Binaryen, the Bleep
 // transform and the Bleep Script library sources in one file, so a page needs no import map and no other request.
 import asc from "assemblyscript/asc";

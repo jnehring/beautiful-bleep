@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // cellplugin_tests.cpp — cell plugins (Bleep Instrument, Bleep FX): a preset cell next to the port node.
 
 #include "engine_test.h"

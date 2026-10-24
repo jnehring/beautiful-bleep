@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // WebHubBoard.cpp — web nodes in the app's board, and the per-block collect/after.
 #include "WebHubInternal.h"
 

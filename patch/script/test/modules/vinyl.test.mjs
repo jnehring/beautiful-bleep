@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Vinyl: RIAA curves, bass mono, crosstalk, tracking distortion, noise, dust statistics, scratches once per revolution, warp, mix, safety.
 //   node test/modules/vinyl.test.mjs
 import { loadModule, render, sine, check, finish, spectrum, db, rms, finiteAll, harmonicsDb } from "./lib.mjs";

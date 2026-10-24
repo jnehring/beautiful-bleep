@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tone EQ's own UI (src/tone-eq.view.js) against the mock sandbox.   node test/modules/tone-eq.view.test.mjs
 import { loadModule, gainAt, check, finish } from "./lib.mjs";
 import { runView, viewSource } from "./view-lib.mjs";

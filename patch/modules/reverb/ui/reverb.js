@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Verb view (doc/specs/modules/reverb.md §5): decay curves for the low, mid and
 // high bands from the effective (modulated) Decay, Bass and Damping on a log
 // time axis, with the pre-delay as a gap; "Infinite" in the ∞ region; a

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Preamp UI: the iron core. The loop is the B-H curve of the transformer (flux against magnetising force). A dot rides around it with the signal
 // level; the core warms from amber to red as it saturates (the `core` probe). DRAG the loop: left/right = Iron (the loop gets wider and its
 // knees lower), up/down = Drive (the dot swings further out).

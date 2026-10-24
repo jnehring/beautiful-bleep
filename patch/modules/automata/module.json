@@ -1,7 +1,7 @@
 {
   "name": "Automata",
   "slug": "automata",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Notes and gates grown by a small evolving system: rings, grids, chains, walkers and rewriting strings.",
   "colour": "#14b8a6",
   "formats": [

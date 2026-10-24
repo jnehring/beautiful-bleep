@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Tape Machine UI: two reels turn at the tape speed (7.5, 15 or 30 ips) and the tape pack moves from the left reel to the right one. The tape
 // sags and the reels speed up and slow down with the wow and flutter the module is making right now. The head glows warm as the tape saturates, a
 // VU needle follows the output, hiss sparkles when Hiss is up and the whole machine flashes when a dropout happens.

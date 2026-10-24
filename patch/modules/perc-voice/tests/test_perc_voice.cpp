@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Perc Voice: pure sine and T60, ratio tables, Damp, decay and Active per
 // engine, accent, click-free retriggers and choke, audio-rate modulation,
 // seeds (doc/specs/modules/perc-voice.md §8).

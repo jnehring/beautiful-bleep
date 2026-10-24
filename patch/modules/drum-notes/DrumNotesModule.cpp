@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Drum Notes (doc/drum-notes.md): General MIDI drum notes in; a trigger per drum out, and the hit's velocity.
 #include "Registry.h"
 

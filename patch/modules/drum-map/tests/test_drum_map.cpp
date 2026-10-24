@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Drum Map DSP: the generated map (shape of the default pattern, ASCII print
 // for review), interpolation, Density (monotonic), accents and velocity,
 // Fill, Chaos blocks, timing per Rate, loop jumps, Clock mode, Reset, notes

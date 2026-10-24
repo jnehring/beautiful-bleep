@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Test Oscillator: small-signal tuning on every range, lamp regulation, the
 // bounce after a range change, the resonator's ping and decay, power-up
 // determinism, warm-up and drift, Square duty and Sync

@@ -1,7 +1,7 @@
 {
   "name": "Wavetable Osc",
   "slug": "wavetable-osc",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "2-D wavetable oscillator: an 8 × 8 grid of band-limited cycles, paths, phase warps and your own WAV tables.",
   "colour": "#818cf8",
   "formats": [

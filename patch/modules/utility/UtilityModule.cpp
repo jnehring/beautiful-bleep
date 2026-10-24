@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Utility node: attenuverter, offset, mixer, shaper, slew and comparator.
 #include "Registry.h"
 #include "UtilityDsp.h"

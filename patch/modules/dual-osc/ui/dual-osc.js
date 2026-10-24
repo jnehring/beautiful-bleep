@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Dual Osc view (doc/specs/modules/dual-oscillator.md §5): a scope of A, B and Out
 // over two cycles of B (live arrays from the module), and the folder's
 // transfer curve at the current Fold and Symmetry with a dot at the input

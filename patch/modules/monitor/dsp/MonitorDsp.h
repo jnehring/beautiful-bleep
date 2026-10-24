@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Monitor core (doc/specs/modules/monitor.md §4): the MIDI event log and the held
 // notes, the CV statistics and the gate statistics. The audio meter is
 // LevelMeterDsp. No JUCE and no engine types; the audio thread writes, the

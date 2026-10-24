@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Speak (doc/specs/modules/speak.md): a small cascade-formant speech synthesiser.
 // A phoneme string is parsed (message thread) into segments; the voice runs
 // them at a rate. Vowels, nasals and approximants are a band-limited pulse

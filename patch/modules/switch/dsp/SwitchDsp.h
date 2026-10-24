@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Switch core (doc/specs/modules/switch.md §4): a sequential switch with up to
 // 8 steps. One step position drives both sections, 8 → 1 and 1 → 8. Steps
 // come from Step triggers or the transport, Select offsets them, and every

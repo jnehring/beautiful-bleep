@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // PanelView — the panel of the cell a Bleep Instrument or Bleep FX holds, in the plugin window
 // (doc/specs/cell-plugins.md §11). A web view of the board page in plugin mode: it shows only the cell's

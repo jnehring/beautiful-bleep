@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Patch Bay In (doc/specs/modules/patchbay.md): a pass-through the engine never runs. The board compiler (Program::compile)
 // replaces every chain through a bundle cable by plain cables; the channels (c1, c2 …) live in the cables, not in the spec.
 #include "Registry.h"

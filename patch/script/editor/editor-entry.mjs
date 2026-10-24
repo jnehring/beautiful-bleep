@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Bleep Script code editor: CodeMirror 6 (MIT) with TypeScript highlighting, line numbers, bracket matching, history, completion for
 // the Bleep decorators and library, and the compiler's problems as markers. Bundled (npm run bundle) to dist/bleep-script-editor.js.
 //

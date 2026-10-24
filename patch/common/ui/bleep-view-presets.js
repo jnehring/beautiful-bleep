@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep-view-presets.js — the preset bar of a module view (bleep-view.js): the module's factory presets and the user's own,
 // the previous/next buttons, the menu and Save.
 //

@@ -1,7 +1,7 @@
 {
   "name": "Channel Strip",
   "slug": "channel-strip",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "language": "bleep-script",
   "tagline": "A console channel in one module: high-pass filter, input transformer, four-band equaliser with switchable frequencies and proportional Q, and a drive stage that can be warm, punchy or clean. The equaliser can sit before or after the saturation, so the colour follows the equaliser.",
   "category": "Effects/Dynamics & EQ",

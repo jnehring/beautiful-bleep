@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // VoiceCell.h — the Voice Cell (spec §8.3): the user patches one voice
 // inside; this module compiles that inside once per voice, assigns incoming

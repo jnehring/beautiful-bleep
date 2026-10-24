@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Dial view (doc/specs/modules/dial.md §5): one big dial for Value, with its
 // detents, the modulation ring and the output in the range's units.
 (function () {

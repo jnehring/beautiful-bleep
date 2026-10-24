@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Melody Mirror node (doc/specs/modules/melody-mirror.md): the last notes of a
 // `notes` stream, remembered with their timing and played back reversed,
 // inverted, rotated, mirrored, or as an answer after a pause.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Transport: MIDI clock out from the song position, MIDI clock in to tempo, tap tempo.
 #include "TransportDsp.h"
 #include "dsp/tests/TestUtil.h"

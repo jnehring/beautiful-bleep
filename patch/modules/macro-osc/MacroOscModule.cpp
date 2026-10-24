@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Macro Osc node (doc/specs/modules/macro-oscillator.md): sixteen synthesis
 // models behind one stepped Model knob; Tone, Shape and Blend (and Aux) are
 // renamed per model; Trigger and Accent strike a built-in decay and low-pass

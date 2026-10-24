@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tuner: factory presets (see ../build-modules.mjs).
 export default [
   ["Standard", { reference: 440, tolerance: 5, damping: 0.08, low: 40, high: 1400, names: "Sharps", guard: "Light" }, "Concert pitch, A = 440 Hz."],

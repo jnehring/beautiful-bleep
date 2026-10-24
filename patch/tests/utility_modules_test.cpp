@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Node-level tests for the utility modules (doc/specs/modules/attenuverter.md,
 // cv-mixer.md, audio-mixer.md, multiplier.md, crossfader.md, logic.md,

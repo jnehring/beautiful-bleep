@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Room Print node (doc/specs/modules/room-print.md): partitioned convolution
 // reverb. The response (a built-in one or a WAV from the media folder) is
 // prepared on the message thread whenever it or its shaping settings change

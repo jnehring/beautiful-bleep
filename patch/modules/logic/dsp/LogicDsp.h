@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Logic core (doc/specs/modules/logic.md §4): boolean gates over A, B and an
 // optional C, a toggle flip-flop and edge triggers, with a shared threshold
 // and hysteresis.

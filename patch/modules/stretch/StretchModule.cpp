@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Stretch node (doc/specs/modules/stretch.md): records a stereo input and plays it back
 // slower or faster without changing its pitch, frozen, scrubbed, looped over a window,
 // with the speed of time itself modulated.

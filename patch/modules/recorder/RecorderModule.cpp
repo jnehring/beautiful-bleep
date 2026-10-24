@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Recorder node (doc/specs/modules/recorder.md): bounces its stereo input into a take, which the
 // view saves to the media folder (exportMedia("take")) as a WAV file and can show in the
 // computer's file manager. The audio passes through.

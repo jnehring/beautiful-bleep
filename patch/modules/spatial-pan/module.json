@@ -1,7 +1,7 @@
 {
   "name": "Spatial Pan",
   "slug": "spatial-pan",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A binaural panner built from synthesised cues: azimuth, distance and elevation with interaural time and level differences, head shadow, pinna notch, early reflections and Doppler.",
   "colour": "#2dd4bf",
   "formats": [

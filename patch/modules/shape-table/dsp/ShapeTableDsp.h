@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Shape Table (doc/specs/modules/shape-table.md): a waveshaper with a drawn
 // transfer curve. The curve is kPoints control points over x = −1 … +1, turned
 // into a fine piecewise-linear table by a Catmull-Rom spline. Aliasing is

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Pitch Snap: five demo patches. Each plays by itself with the transport.
 import { patch, steps } from "../kit.mjs";
 import { melody, beat } from "../demo-kit.mjs";

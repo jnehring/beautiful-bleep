@@ -1,7 +1,7 @@
 {
   "name": "Filter",
   "slug": "filter",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Stereo multimode filter with 32 zero-delay-feedback algorithms: SVF, ladders, shelves, phasers, a flanger, Sallen-Key, vowel formants, a tuned comb and a staircase.",
   "colour": "#f472b6",
   "formats": [

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // WebSocketServer — the web hub's transport (spec §4, §10.2): one port that serves the board page and
 // /health over HTTP and upgrades /ws to a WebSocket. Dependency-free (POSIX/Winsock sockets), because

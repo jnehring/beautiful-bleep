@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Media.h — audio files that modules use (a sampler's reel, a wavetable, a
 // frozen grain buffer). The board document stores only a media *id*; the

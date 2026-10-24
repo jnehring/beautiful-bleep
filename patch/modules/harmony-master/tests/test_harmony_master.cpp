@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Harmony Master: diatonic stacking, detection with the 30 ms window, Scale
 // Policy Adapt, progression timing (Transport, Trigger, Select), Transpose,
 // and the Notes output (common tones held, note-ons first, nothing hangs).

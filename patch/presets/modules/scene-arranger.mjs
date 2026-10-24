@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scene Arranger: factory presets (play orders, follow actions, launch quantize, lanes).
 export default [
   ["Four Scene Loop", { scenes: 4, steps: 4, length: "1 bar", quantize: "Bar" }, "Scenes 1 to 4, one bar each, round and round; manual launches wait for the bar line."],

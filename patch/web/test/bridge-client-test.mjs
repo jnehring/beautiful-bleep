@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The main-thread side of the web link (bridge-client.js) and the Worker's logic (bridge-worker.js) against a fake
 // hub: no network, no Worker threads, no timers waited on (a manual clock drives reconnects and pings).
 //   node patch/web/test/bridge-client-test.mjs

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Mic Colour's own UI (src/mic-colour.view.js) against the mock sandbox.   node test/modules/mic-colour.view.test.mjs
 import { loadModule, gainAt, check, finish } from "./lib.mjs";
 import { runView, viewSource } from "./view-lib.mjs";

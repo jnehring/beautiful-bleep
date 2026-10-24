@@ -1,7 +1,7 @@
 {
   "name": "Shape Table",
   "slug": "shape-table",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A waveshaper whose transfer curve you draw: curve presets, drive, bias, edge behaviour (clip, fold, wrap), oversampling with antiderivative anti-aliasing and a harmonic read-out.",
   "colour": "#f59e0b",
   "formats": [

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 # Builds and runs test/wasmtime_check.cpp: the compiled Gains module in the engine's Wasmtime host.
 # Needs the Wasmtime C API that scripts/experiments/wasm-spike.sh downloads to build/wasm-spike/wasmtime.
 set -euo pipefail

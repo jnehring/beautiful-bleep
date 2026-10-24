@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // project-browser.js — Open Project: the project browser (spec §11.5; standalone app, plugins and web). A project is a whole board with
 // its panels. Three sources, shown as groups:
 //

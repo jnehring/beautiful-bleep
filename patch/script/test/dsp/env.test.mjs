@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/env: envelopes (times, levels, retrigger), followers, Slew, Lfo, Line/Ramp, Trigger/Schmitt, Clock.   node test/dsp/env.test.mjs
 import { harness, check, finish, SR, rms, peak, finiteAll, spectrum } from "./lib.mjs";
 

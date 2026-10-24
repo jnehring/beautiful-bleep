@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Loads each module's own UI (script/src/<name>.view.js) in the real sandboxed frame in headless Chrome, with a real mouse driven through the
 // DevTools protocol, and checks that it paints, that dragging in the picture sets knobs, and that nothing is reported as an error. Takes a screenshot
 // of every UI at two widths into <outdir> (look at them: nothing else can tell whether a picture is any good).

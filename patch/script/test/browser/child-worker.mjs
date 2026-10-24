@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // A Worker that does what the board's compile Worker does for a script with a child module: loads the bundle, compiles, links, runs the result.
 let compile;
 try { ({ compile } = await import("../../dist/bleep-script-compiler.js")); } catch (err) { self.postMessage({ ok: false, error: "import: " + String(err && err.stack || err) }); }

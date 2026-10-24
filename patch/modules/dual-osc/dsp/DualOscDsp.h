@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Dual Osc (doc/specs/modules/dual-oscillator.md): two analog-style cores A and B.
 // B frequency-modulates A (linear through-zero or exponential), A syncs to B
 // (reversing soft sync → hard sync), and the A/B mix runs into a 4-stage

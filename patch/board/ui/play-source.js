@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // play-source.js — what an effect plays through in Bleep Play (play-wrap.js, board.js playCell): a looping instrument that comes with the app,
 // the microphone, or an audio file of your own. A bar under the board with the choice; it only draws, board.js does the rest.
 //

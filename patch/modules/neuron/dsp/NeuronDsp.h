@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Neuron (doc/specs/modules/neuron.md): two leaky integrate-and-fire neurons
 // (dsp::LifNeuron). Each sums three weighted inputs; In 1 unpatched is +1 (a
 // bias), In 3 unpatched hears the other neuron's Out or Gate from the previous

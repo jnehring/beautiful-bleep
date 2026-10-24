@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Gate view (doc/note-gate.md): three small editors that live in the
 // node's data. Remap: twelve keys, click one to send it to the next pitch
 // class (shift-click: the previous, right-click: back to itself, the last

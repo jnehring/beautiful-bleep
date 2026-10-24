@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Looper core (doc/specs/modules/note-looper.md): a loop of notes, not of
 // audio. Incoming notes are stored with their position in the loop and their
 // length (in quarter notes), then played again every pass:

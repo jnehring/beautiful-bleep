@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // graph.js — the board's graph runner for the browser: the JavaScript
 // counterpart of engine/Program.cpp. It compiles a board document into

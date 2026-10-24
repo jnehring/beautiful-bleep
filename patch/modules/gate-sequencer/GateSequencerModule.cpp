@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Gate Sequencer node (doc/specs/modules/gate-sequencer.md): four tracks of deep
 // steps from the node's data, gates, triggers, velocities and notes out.
 #include "GateSequencerDsp.h"

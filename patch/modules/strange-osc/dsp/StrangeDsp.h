@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Strange Osc (doc/specs/modules/strange-osc.md): a continuous chaotic system
 // run as an oscillator. Four attractors are integrated with RK4 in double;
 // pitch is time-scaling (the integration step follows the frequency), *Tame*

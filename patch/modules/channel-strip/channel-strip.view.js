@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Channel Strip UI: the strip's real frequency response, drawn from the knobs with the same filter formulas the module designs from (high-pass,
 // low shelf, two bells, high shelf, with the proportional Q). Four handles sit on the curve. DRAG a handle up/down for its gain; drag it sideways
 // and it snaps to the band's switchable frequencies. The bar on the right glows with the drive stage's `saturation` probe.

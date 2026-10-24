@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Arpeggiator node (doc/specs/modules/arpeggiator.md): the held notes of a
 // `notes` stream played one at a time; timing from the transport or a clock.
 #include "ArpeggiatorDsp.h"

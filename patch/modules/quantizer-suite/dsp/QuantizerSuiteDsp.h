@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Quantizer Suite core (doc/specs/modules/quantizer-suite.md): four quantizer
 // channels, each quantizing to a scale ∧ note mask, transposing in scale
 // steps, arpeggiating a scale chord, or following the board's harmony; with

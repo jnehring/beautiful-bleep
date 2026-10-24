@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep-media.js — the audio files a preset carries (doc/specs/preset-system-plan.md, "Samples in presets").
 //
 // A node stores only a media id (Media.h: "<16 hex digits>.wav", the hash of the file); the audio is a WAV in the media folder of the

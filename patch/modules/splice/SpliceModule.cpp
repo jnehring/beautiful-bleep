@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Splice node (doc/specs/modules/splice.md): a reel recorder and splice player.
 // The reel's audio lives in the media store: the view saves it with
 // exportMedia("reel") and keeps the id in the node's data together with the

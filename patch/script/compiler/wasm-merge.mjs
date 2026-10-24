@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Runs Binaryen's `wasm-merge` tool (the npm package `binaryen`, bin/wasm-merge) on byte arrays, with no file system.
 //
 // The tool is an Emscripten build for node (NODERAWFS): it throws unless it sees node, and it reads and writes files through `fs`.

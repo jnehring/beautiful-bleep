@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The helpers themselves, on the Gains module.   node test/modules/smoke.test.mjs
 import { loadModule, render, sine, gainAt, check, finish } from "./lib.mjs";
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Input/output spectrum for module views: the audio thread pushes samples, the
 // message thread asks for log-spaced magnitudes (20 Hz ... 20 kHz).
 #pragma once

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Spec.h — what a node type looks like from the outside: its parameters
 // (knobs and settings), input jacks and output jacks. The board UI, the board

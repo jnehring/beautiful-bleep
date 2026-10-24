@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // The cell presets Bleep Instrument and Bleep FX load (doc/specs/cell-plugins.md): every preset in
 // board/ui/factory-presets.json with a `plays` entry is played the way its plugin plays it.

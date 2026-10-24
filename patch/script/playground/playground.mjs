@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Code module as a page: source -> asc + the Bleep transform (in this page) -> a module that runs in an AudioWorklet,
 // with the automatic panel built by BleepView (the board's own view code) from the generated description.
 import { compileScript } from "../compiler/compile.mjs";

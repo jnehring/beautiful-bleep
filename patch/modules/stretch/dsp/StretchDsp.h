@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Stretch DSP (doc/specs/modules/stretch.md): records a stereo input into a buffer
 // and plays it back at a different speed without changing its pitch.
 //

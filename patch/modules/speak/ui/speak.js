@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Speak view: the phoneme text (edited here, parsed by the module) with a
 // progress bar through the sounds, and a short key to the symbols.
 (function () {

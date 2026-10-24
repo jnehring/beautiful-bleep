@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Sweep Generator node (doc/specs/modules/sweep-generator.md): a function
 // generator with a built-in frequency sweep, sweep ramp, pitch, marker, End
 // and Sync outputs.

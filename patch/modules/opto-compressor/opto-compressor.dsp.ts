@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Opto Compressor: a leveling amplifier. A light-emitting panel and a photocell form the gain-control element: the photocell has a program
 // dependent attack and a two-stage release (a fast stage and a slow stage that remembers how long and how hard it was driven), so it levels
 // sustained material gently and lets go quickly after a short peak. A valve and transformer style make-up stage adds a little level-dependent colour.

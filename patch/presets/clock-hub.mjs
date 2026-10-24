@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Hubs: plain cells that turn one clock into a bank of related clocks, to patch into drums, sequencers and envelopes.
 import { cell, category } from "./kit.mjs";
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // The Gains module (AssemblyScript) in the engine's real wasm host: Wasmtime through engine/wasm/WasmRuntime.
 // Same behaviour checks as test/spike.mjs, plus the time per sample under Wasmtime.
 //   test/wasmtime-check.sh [path/to/gains.wasm]

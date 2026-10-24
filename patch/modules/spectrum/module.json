@@ -1,7 +1,7 @@
 {
   "name": "Spectrum",
   "slug": "spectrum",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "A live spectrum with a peak line; the strongest partial, the centroid and the flux come out as signals.",
   "colour": "#f0abfc",
   "category": "Utility",

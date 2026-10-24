@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Monophonic pitch tracker shared by Pitch Follower, Pitch Snap and Tuner
 // (doc/specs/modules/pitch-follower.md). The estimator is the published
 // difference-function method (a normalised squared-difference

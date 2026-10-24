@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Splice view (doc/specs/modules/splice.md §5): the whole reel with its splices
 // (alternating tints, current and pending marked, markers, play heads), a
 // zoom on the current splice with the window shaded, and a drop target for

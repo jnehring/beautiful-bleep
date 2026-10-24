@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Oversampler: the half-band shortcut (only the non-zero taps) matches the
 // full convolution, and 2×/4× round trips pass the audio band.
 #include "dsp/Oversampler.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Endless Tone: the partials really glide, the window hides the wrap (no click
 // at the octave boundary in either direction), the loop output counts octaves,
 // and the level is steady.

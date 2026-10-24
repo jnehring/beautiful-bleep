@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Segments view (doc/specs/modules/segments.md §5): a breakpoint editor of the
 // chain (drag a node up/down for Level, left/right for Time; drag a curve's
 // middle for Shape), the loop bracket (drag across segments to set the Loop

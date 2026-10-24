@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // account.js — the user's login to the Bleep Library and what needs it: sharing presets (developers/modules/library.md, "Login in the app").
 // Same code in the app, the plugins and Bleep Play; only what `native("account", …)` does differs:
 //   app, plugins   the device flow: a code to confirm on the website, the token kept in the OS keychain (patch/library/Account.cpp)

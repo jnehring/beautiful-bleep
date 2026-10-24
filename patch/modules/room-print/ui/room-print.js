@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Room Print view: the prepared impulse response as an envelope (as the module
 // built it after stretch, trim and damping), with the early/late split marked,
 // and a drop target for a WAV used when Impulse is set to "Sample".

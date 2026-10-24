@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Crossfader view: the gain curves of A and B against the Fade position
 // (equal power: cos / sin, constant power; or linear), with a glowing marker at
 // the current (modulated) fade and the two gains. Mirrors CrossfaderDsp.h.

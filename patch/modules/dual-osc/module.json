@@ -1,7 +1,7 @@
 {
   "name": "Dual Osc",
   "slug": "dual-osc",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Two analog cores with B → A FM, sync and a stereo wavefolder: a complete complex-oscillator voice.",
   "colour": "#2dd4bf",
   "formats": [

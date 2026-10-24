@@ -1,7 +1,7 @@
 {
   "name": "Strange Osc",
   "slug": "strange-osc",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "An oscillator that is a chaotic system: four attractors at audio or control rate, a Tame knob toward periodic order, X/Y/Z outputs and a seeded start.",
   "colour": "#f472b6",
   "formats": [

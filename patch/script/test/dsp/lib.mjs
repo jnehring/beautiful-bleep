@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Test helpers for the Bleep Script library: compile an AssemblyScript harness (a file that wraps library classes as `Unit`s, see
 // test/dsp/*.harness.ts), run it in node, and analyse the output.
 import { fileURLToPath } from "node:url";

@@ -8,7 +8,7 @@
 3. Nothing depends on website/.
 4. Every source file carries an SPDX license identifier; every top-level
    part has a LICENSE file. patch/ (the engine, board, apps and hub) is
-   GPL-3.0-or-later with the Bleep Module Exception; a module's files carry
+   GPL-3.0-only with the Bleep Module Exception; a module's files carry
    the licence its module.json declares (MIT when it declares none); bus/,
    scripts/, website/ and patch/presets/ are MIT.
 5. Module provenance (website/content/developers/modules/writing-a-module.md, "Ported code and licences"): a
@@ -34,7 +34,7 @@ COPYLEFT = {"GPL-2.0-only", "GPL-2.0-or-later", "GPL-3.0-only", "GPL-3.0-or-late
             "LGPL-3.0-only", "LGPL-3.0-or-later", "AGPL-3.0-only", "AGPL-3.0-or-later", "MPL-2.0"}
 LICENSES = PERMISSIVE | COPYLEFT
 MODULES = ROOT / "patch" / "modules"
-CORE_LICENSE = "GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception"  # LICENSE-EXCEPTION.md
+CORE_LICENSE = "GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception"  # LICENSE-EXCEPTION.md
 
 
 def module_info(folder: Path) -> dict:

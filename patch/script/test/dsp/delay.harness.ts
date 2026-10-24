@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 import { OUT, IN, Unit } from "./common";
 import { DelayLine, TapeDelay, KarplusStrong, interpLinear, interpCubic, interpLagrange } from "../../src/bleep/delay";
 export { outPtr, inPtr } from "./common";

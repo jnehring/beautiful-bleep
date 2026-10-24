@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The Preamp's own UI (src/preamp.view.js) run against the mock sandbox.   node test/modules/preamp.view.test.mjs
 import { loadModule, check, finish } from "./lib.mjs";
 import { runView, viewSource } from "./view-lib.mjs";

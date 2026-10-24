@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Echo: repeat timing, decay, scale walk, drops, Spread fans, Gravity,
 // muted original, no hanging notes.
 #include "NoteEchoDsp.h"

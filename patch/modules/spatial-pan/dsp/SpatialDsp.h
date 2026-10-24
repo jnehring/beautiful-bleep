@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spatial Pan (doc/specs/modules/spatial-pan.md): a source placed around the
 // head, rendered for headphones from synthesised cues only (no measured data):
 //   * interaural time difference: a spherical-head path-length formula

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // bleep/util: ranges, pitch conversion, fast approximations, pan and mid/side, Rms.   node test/dsp/util.test.mjs
 import { harness, check, finish, SR } from "./lib.mjs";
 

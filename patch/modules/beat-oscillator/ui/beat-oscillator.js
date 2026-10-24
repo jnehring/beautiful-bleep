@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Beat Oscillator view (doc/specs/modules/beat-oscillator.md §5): the two
 // carriers A and B drawn as a glowing waveform pair with their sum and its
 // beat envelope (the envelope's period is 1 / |B − A|, scaled to the window:

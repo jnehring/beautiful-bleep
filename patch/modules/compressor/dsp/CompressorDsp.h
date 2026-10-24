@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Feed-forward compressor/limiter: level detector (peak or RMS, stereo-linked), a soft-knee gain computer in
 // the dB domain and attack/release smoothing of the gain reduction. Textbook design (Giannoulis, Massberg
 // and Reiss, "Digital Dynamic Range Compressor Design", JAES 2012, for the knee and the ballistics).

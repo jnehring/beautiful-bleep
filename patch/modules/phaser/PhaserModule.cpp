@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Phaser node (doc/phaser.md): a swept allpass cascade per channel, mixed with the dry signal.
 #include "PhaserDsp.h"
 #include "Registry.h"

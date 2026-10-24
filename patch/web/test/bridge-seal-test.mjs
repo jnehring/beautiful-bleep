@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bridge-seal-test.mjs — module view scripts cannot reach the native bridge (security finding H3).
 //
 //   node patch/web/test/bridge-seal-test.mjs

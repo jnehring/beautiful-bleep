@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-code-share.js — what a module script says about itself (the Code node's Metadata tab), and sharing it with the Bleep Library (the Share
 // button): a dialog that asks for the summary, category, licence, version and help text, builds the package in the browser (web/js/bleepmod.js)
 // and uploads it as a community module under the user's library name.
@@ -14,7 +14,7 @@
   const P = (G.BleepSeal && G.BleepSeal.priv) || G;
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 
-  const LICENSES = ["MIT", "Apache-2.0", "BSD-3-Clause", "ISC", "CC0-1.0", "Unlicense", "MPL-2.0", "LGPL-3.0-or-later", "GPL-3.0-or-later"];
+  const LICENSES = ["MIT", "Apache-2.0", "BSD-3-Clause", "ISC", "CC0-1.0", "Unlicense", "MPL-2.0", "LGPL-3.0-only", "GPL-3.0-only"];
   const SEMVER = /^\d+\.\d+\.\d+$/;
   const nextVersion = (v) => { const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(v || ""); return m ? `${m[1]}.${m[2]}.${Number(m[3]) + 1}` : "1.0.0"; };
 

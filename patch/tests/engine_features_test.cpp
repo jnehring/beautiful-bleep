@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // Tests for the engine features modules build on: normalled inputs, output
 // connection flags, the harmony bus order, stepped knobs, show/names metadata

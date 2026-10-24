@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Tone EQ's own UI (the JavaScript of the Code node's UI tab).
 // It draws the response of the network you are hearing, computed from the knobs with the same analog formulas the module designs from.
 // Passive Shelf shows the boost and the attenuation as two ghost curves (amber = boost, red = attenuation) whose sum is the white curve, so you

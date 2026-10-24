@@ -1,7 +1,7 @@
 {
   "name": "Keyboard",
   "slug": "keyboard",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Play notes with the mouse or the computer keyboard; Notes out plays a Voice Cell.",
   "colour": "#fda4af",
   "formats": [

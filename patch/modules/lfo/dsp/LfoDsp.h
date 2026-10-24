@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // LFO core (doc/specs/modules/lfo.md): fixed waveforms bent by Morph, free, following
 // a clock or phase-locked to the song position, seeded random waves and a fade-in. Random values are a
 // pure function of (seed, cycle), so synced renders repeat exactly. The waves

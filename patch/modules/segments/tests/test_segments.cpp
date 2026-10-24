@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Segments (doc/specs/modules/segments.md §8): the default ADSR, ramp curves,
 // click-free retrigger, Jump vs Finish release, loops, Seg inputs, the song
 // lock, and one segment gate at a time.

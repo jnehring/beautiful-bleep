@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Roll node (doc/specs/modules/roll.md): eight pattern slots of free-length
 // notes from the node's data, timing from the transport or a clock, notes and
 // low / high / latest-note CV out.

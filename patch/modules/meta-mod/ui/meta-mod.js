@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Meta Mod view: the algorithm strip (eight names, a marker on the modulated
 // Algorithm value, the two active neighbours lit by their weight; a click
 // sets the knob), a triggered scope of carrier, modulator and output, the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scope: amplitude and frequency measurement, trigger edges and levels (a stable
 // picture), Auto / Normal / Free Run, Hold, min/max columns that keep spikes, slow
 // sweeps that fill in as they go, and determinism (doc/specs/modules/scope.md §8).

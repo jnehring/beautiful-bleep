@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Polymeter Seq core (doc/specs/modules/polymeter-sequencer.md): a step split into
 // six tracks (Trigger, Note, Octave, Gate, Probability, Ratchet), each with
 // its own length, loop window, clock division and direction, in up to 8

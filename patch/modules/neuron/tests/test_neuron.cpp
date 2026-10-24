@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Neuron: compare thresholds, spike rate, leak, normals and cross delay,
 // logic, Out curve, the default rhythm, determinism (doc/specs/modules/neuron.md §8).
 #include "NeuronDsp.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // host_tests.cpp — plugins simulated through IEngine: block claiming, port latency, threads, MIDI and the standalone driver.
 
 #include "engine_test.h"

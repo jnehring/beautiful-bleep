@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Six Slopes node (doc/specs/modules/six-slopes.md): six slope generators with
 // shared controls, harmonic rate ratios and normalled triggers.
 #include "SixSlopesDsp.h"

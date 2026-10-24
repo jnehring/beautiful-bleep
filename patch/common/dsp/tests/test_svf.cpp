@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Svf.h: the float filter keeps its behaviour (5 Hz floor by default, lower
 // on request); SvfLow (double) is accurate and stable down to 0.001 Hz.
 #include "dsp/Svf.h"

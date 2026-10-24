@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Clock Mult: five demo patches. Each plays by itself with the transport.
 import { patch } from "../kit.mjs";
 import { melody } from "../demo-kit.mjs";

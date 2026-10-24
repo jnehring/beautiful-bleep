@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Spatial Pan: interaural time and level cues, mirror symmetry, the rear and
 // distance roll-offs, Doppler, early reflections and bounds.
 #include "SpatialDsp.h"

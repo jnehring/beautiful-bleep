@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Zone Delay view (doc/specs/modules/zone-delay.md §5): the zone strip, the
 // effective left/right times (with the synced note value), a scrolling strip
 // of the wet signal's level with a marker at every delay time, and the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // LFO node (doc/specs/modules/lfo.md): classic waveforms, free or synced.
 #include "LfoDsp.h"
 #include "Registry.h"

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // board-edit.js — what the user does to the selection: delete, bypass, mute, duplicate, copy, cut and paste (spec §9.6).
 //
 // P.BoardEdit.create(s)   s: the board and page helpers it needs (see the destructuring below); `board`, `types`, `selCable`, `pointer`, `pointerInside` are getters.

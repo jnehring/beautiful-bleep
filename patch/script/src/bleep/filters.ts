@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // bleep/filters — filters beyond Biquad (which is in bleep/dsp): one-pole, state-variable, Moog ladder, resonz, formants, all-passes, combs.
 // Every set* method takes trig/exp calls: call it in block() and only when a setting changed, not in sample(). next() is per sample.
 // Frequencies are in Hz and are clamped below Nyquist, so a modulated cutoff cannot blow a filter up.

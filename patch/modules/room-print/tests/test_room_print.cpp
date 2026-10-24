@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Room Print: the FFT, the partitioned convolver against direct convolution
 // (zero latency, any chunking), balance, the built-in responses, the shaping
 // (stretch, trim, damping, resampling) and bounds.

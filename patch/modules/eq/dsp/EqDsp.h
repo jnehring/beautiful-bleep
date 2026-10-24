@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Six-band parametric equaliser. Every band has a type (bell, shelves, cuts, notch, band-pass); RBJ "Audio EQ Cookbook"
 // biquads (the formulas are public), cuts as Butterworth cascades, transposed direct form II in double precision.
 #pragma once

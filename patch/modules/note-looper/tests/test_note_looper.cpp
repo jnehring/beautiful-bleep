@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Looper: record and loop, overdub, record replaces, probability, quantize,
 // half/double speed, undo and clear, position jumps, no hanging notes.
 #include "NoteLooperDsp.h"

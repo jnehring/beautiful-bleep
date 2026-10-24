@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Cartesian Seq view (doc/specs/modules/cartesian-sequencer.md §5): the 8 × 8
 // grid editor with layers (gate, pitch, velocity, mod, access), row and
 // column rotation, copy/paste, the playhead, the X/Y crosshair in Cartesian

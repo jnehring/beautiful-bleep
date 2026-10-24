@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Rise/fall slope generator: the common core of Tidal, Six Slopes and
 // Segments (doc/specs/modules/tidal.md, six-slopes.md, segments.md). One cycle is
 // a rise and a fall; Skew sets their ratio at a constant period. It runs as a

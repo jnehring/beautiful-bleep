@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wave Analyzer: unity band, skirts, −3 dB points, no image at low tunings,
 // long-run phase accuracy, Shifted, level mapping and needle, Peak, synced
 // sweep, hunt and lock, drift and repeatability (doc/specs/modules/wave-analyzer.md §8).

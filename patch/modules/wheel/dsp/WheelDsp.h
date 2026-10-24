@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Wheel core (doc/specs/modules/wheel.md §4): the wheel's position scaled to a
 // range, then smoothed. The spring is the view's (and a panel's) business: the
 // engine only sees the position.

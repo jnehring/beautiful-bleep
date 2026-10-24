@@ -1,7 +1,7 @@
 {
   "name": "Drum Grid",
   "slug": "drum-grid",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Eight drum tracks on a step grid, with accents, 16 pattern slots and a pattern library.",
   "colour": "#fb923c",
   "formats": [

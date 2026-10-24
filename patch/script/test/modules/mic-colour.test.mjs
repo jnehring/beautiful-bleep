@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Mic Colour: the response of each microphone model against its intended analog curve, proximity and distance, presence, off-axis,
 // early reflections, self-noise, level-dependent saturation and aliasing, safety.   node test/modules/mic-colour.test.mjs
 import { loadModule, render, sine, gainAt, harmonicsDb, spectrum, check, finish, finiteAll, peak, rms, noise, SR } from "./lib.mjs";

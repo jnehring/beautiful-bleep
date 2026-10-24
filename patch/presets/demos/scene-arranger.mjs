@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scene Arranger: five demo patches. Each plays by itself with the transport.
 import { patch, drumGrid, pattern } from "../kit.mjs";
 import { melody } from "../demo-kit.mjs";

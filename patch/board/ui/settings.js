@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // settings.js — the Settings section of the board window, in the standalone app, the plugins and Bleep Play (doc/specs/settings.md).
 // The host names itself in the first answer of native "settings" "get" (state.host: "app", "plugin" or "web"; no host = "app") and
 // that decides the tabs:

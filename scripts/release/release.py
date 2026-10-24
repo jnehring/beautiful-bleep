@@ -106,7 +106,7 @@ PLUGIN_TILES = {
 
 # What the library's detail view says about a plugin's licence: the sources are MIT, but the binaries are built with JUCE
 # (AGPLv3, or a commercial JUCE licence: change this if you hold one), and the app includes Ableton Link (GPL), doc/operations/release.md.
-PLUGIN_LICENSES = {"bleep-app": "GPL-3.0-or-later AND AGPL-3.0-only"}
+PLUGIN_LICENSES = {"bleep-app": "GPL-3.0-only AND AGPL-3.0-only"}
 PLUGIN_LICENSE_DEFAULT = "AGPL-3.0-only"
 
 

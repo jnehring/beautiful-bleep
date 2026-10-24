@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Rate Counter view (doc/specs/modules/rate-counter.md §5): the tap-averaged tempo as a big number,
 // the latest rate beside it in BPM and Hz, a lamp for Steady, and a bar for each of the last sixteen
 // intervals against their average, so an uneven pulse train shows at a glance.

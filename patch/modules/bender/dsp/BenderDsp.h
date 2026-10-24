@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Bender core (doc/specs/modules/bender.md): a glitch effect. The input is
 // recorded into a 4 s ring; time is cut into segments (song grid, free
 // Time, or Clock pulses), and at each segment start a seeded decision

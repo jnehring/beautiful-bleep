@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Gate core (doc/specs/modules/note-gate.md): decides for every note-on of
 // a `notes` stream whether it passes, and what it becomes: range window,
 // velocity floor/ceiling, rule lanes (steps of the bar, every Nth note,

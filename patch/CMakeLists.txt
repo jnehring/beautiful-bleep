@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+# SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 #
 # Beautiful Bleep — the shared engine, the board and the plugins users add in
 # Live (spec §6). Uses Bleep Bus only through its public API, exactly like a

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Step Sequencer node (doc/specs/modules/step-sequencer.md): steps from the
 // node's data, timing from the transport or a clock, notes and CV out.
 #include "StepSequencerDsp.h"

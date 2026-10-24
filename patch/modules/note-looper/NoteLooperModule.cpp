@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Note Looper node (doc/specs/modules/note-looper.md): records the notes of a
 // `notes` stream with their timing for 1-16 bars and loops them. The loop is
 // the node's data (saved with the board); the view draws it as a piano roll.

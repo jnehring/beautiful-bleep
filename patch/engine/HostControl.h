@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // HostControl.h — what the Transport module asks of the host, and what the host
 // tells it back (doc/specs/modules/transport.md). Modules cannot change the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Onset and tempo detection for slicing a sample (doc/specs/modules/sampler.md
 // section 4.2). An energy-flux detector: the signal is high-passed with a
 // first difference (so low rumble doesn't mask a click), cut into 256-sample

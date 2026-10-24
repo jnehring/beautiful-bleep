@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Room Print (doc/specs/modules/room-print.md): a partitioned convolution reverb.
 //
 //   * The first 512 samples of the impulse response run as a direct FIR, so the

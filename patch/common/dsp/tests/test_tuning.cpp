@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 // Microtonal tunings (Scales.h): equal divisions, scale-file parsing, nearest-step
 // rounding, and the tuned path of the Quantizer core.
 #include "TestUtil.h"

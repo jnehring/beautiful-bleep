@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // The UI mock itself, on the playground's "Wave folder with its own UI" example.   node test/modules/view-smoke.test.mjs
 import { EXAMPLES } from "../../playground/examples.mjs";
 import { runView } from "./view-lib.mjs";

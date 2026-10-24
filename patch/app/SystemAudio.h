@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-Bleep-Module-Exception
+// SPDX-License-Identifier: GPL-3.0-only WITH AdditionRef-Bleep-Module-Exception
 //
 // SystemAudio — captures what the computer plays (doc/specs/system-audio.md) and hands it to the app as a stereo
 // stream in a StereoRing. One backend per platform, chosen at build time:

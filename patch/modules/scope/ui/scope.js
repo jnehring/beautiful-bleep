@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Scope view (doc/specs/modules/scope.md §5): a 10 × 8 graticule with up to four coloured
 // traces, a trigger-level marker, two time cursors and two level cursors with a readout of
 // what lies between them, and a status line (time / div, frequency, amplitude, trigger lamp).

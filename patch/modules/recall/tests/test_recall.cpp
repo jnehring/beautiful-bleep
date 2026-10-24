@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Recall: transport grid, rebuild on jumps, T modes, jitter, X distribution,
 // Steps, Recall rings, Sorted, captured loops (doc/specs/modules/recall.md §8).
 #include "RecallDsp.h"

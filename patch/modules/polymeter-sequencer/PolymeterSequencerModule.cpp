@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Polymeter Seq node (doc/specs/modules/polymeter-sequencer.md): six parameter
 // tracks in up to 8 slots from the node's data, base ticks from the
 // transport or a clock, notes and CV out.

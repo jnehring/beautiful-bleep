@@ -1,7 +1,7 @@
 {
   "name": "CV to Gate",
   "slug": "cv-to-gate",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "tagline": "Turns CV above a threshold into a gate, following the input or of a set length.",
   "colour": "#86efac",
   "formats": [

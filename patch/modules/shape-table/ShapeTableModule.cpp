@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Shape Table node (doc/specs/modules/shape-table.md): a waveshaper with a drawn
 // transfer curve, kept as node data ({"curve": [65 numbers]}). The curve is
 // turned into a table on the message thread (setData) and handed to the audio

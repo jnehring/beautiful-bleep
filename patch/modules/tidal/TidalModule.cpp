@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Tidal node (doc/specs/modules/tidal.md): slope oscillator / envelope with four
 // related outputs, smoothing or folding, 1 V/oct, sync and clock following.
 #include "TidalDsp.h"
