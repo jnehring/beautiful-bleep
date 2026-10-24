@@ -94,6 +94,14 @@ public:
     /// Sources feeding taps[i] of the scope, valid after runChunk. [RT]
     const std::vector<Source>& tap(size_t i) const noexcept { return taps_[i]; }
 
+    /// What feeds the audio and MIDI a plugin's port nodes send to its track: `cabled` if anything is patched into them, and the
+    /// other plugins whose port nodes the signal comes through (followed through the modules). Message thread.
+    struct Origins {
+        bool cabled = false;
+        std::set<const PortSlot*> ports;
+    };
+    Origins originsOf(const PortSlot* slot) const;
+
     const std::vector<Step>& steps() const noexcept { return steps_; }
     std::vector<Step>& steps() noexcept { return steps_; }
     const std::vector<std::shared_ptr<PortSlot>>& slots() const noexcept { return slots_; }

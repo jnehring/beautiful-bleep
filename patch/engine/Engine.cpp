@@ -176,12 +176,9 @@ int Engine::portLatencySamples(int handle) noexcept {
     if (s->local.load(std::memory_order_relaxed)) return 0;
     if (driver_.load(std::memory_order_acquire) == nullptr) return latencySamples();
     // Bleep Board runs the board in its own block. A plugin on another track is one block away from it in each
-    // direction: a MIDI In or Audio In is one block before the board, an Audio Out one block after it. What the host is
-    // told is the delay between the plugin's signal and the board's own track, or the track the Audio Out is on.
-    const int m = hostBlock();
-    const int in = crossIn_.load(std::memory_order_relaxed) && inputsReported_.load(std::memory_order_relaxed) ? m : 0;
-    if (s->kind == PortKind::Patch) return in;
-    if (s->kind == PortKind::AudioOut) return m + in;
+    // direction: a MIDI In or Audio In is one block before the board, an Audio Out one block after it. Only signals that
+    // really cross cost a block: updateLatencyModel counts them per plugin, from what is patched.
+    if (s->kind == PortKind::Patch || s->kind == PortKind::AudioOut) return s->reportedBlocks.load(std::memory_order_relaxed) * hostBlock();
     return latencySamples();  // a cell plugin that is cabled to others: in and out, two blocks
 }
 

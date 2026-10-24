@@ -66,8 +66,9 @@ cross the border between Live and the board:
 
 **Bleep Board runs the board on its own track, in the same audio buffer as the
 rest of that track.** Its own MIDI In, its own Audio In and its own Audio Out
-cost nothing. Only plugins on **other tracks** add latency, one audio buffer
-each way:
+cost nothing. Only a signal that really goes between plugins on **other
+tracks** adds latency, one audio buffer each way. A plugin that is only there,
+or an Audio Out with nothing patched into it, adds none:
 
 > **Into the board from another track (Bleep MIDI In, Bleep Audio In): 1 audio buffer.**
 > **Out of the board to another track (Bleep Audio Out): 1 audio buffer.**

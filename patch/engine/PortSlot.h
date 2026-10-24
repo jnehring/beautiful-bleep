@@ -105,6 +105,10 @@ struct PortSlot {
     std::atomic<uint32_t> drops{0};
     std::atomic<int> maxBlock{0};
 
+    /// Blocks of host latency this plugin reports while Bleep Board runs the board (Engine::updateLatencyModel): what actually
+    /// crosses between plugins, not what merely exists. Message thread writes.
+    std::atomic<int> reportedBlocks{0};
+
     /// Bleep Board: the board has an Audio Out node for this plugin, so its output is the board's (else the track passes through).
     std::atomic<bool> writesOut{false};
 };

@@ -140,13 +140,13 @@ void boardRunsInItsOwnBlock() {
     EXPECT(lb == 0);                               // 0 host latency for inputs is the default: the Audio In's block is kept inside
     auto toOut = run(false, true, false, lb, lo);  // own → a plugin on another track
     EXPECT(toOut.block == 3 && toOut.sample == 0);
-    EXPECT(lo == 2 * kBlock);
+    EXPECT(lo == kBlock);                          // one block: only what is patched into it crosses (the Audio In is not)
     auto fromIn = run(true, false, false, lb, lo); // another track → own
     EXPECT(fromIn.block == 3 && fromIn.sample == 5);
     EXPECT(lb == 0);
     auto through = run(true, true, false, lb, lo); // another track → another track
     EXPECT(through.block == 4 && through.sample == 5);
-    EXPECT(lb == kBlock && lo == 2 * kBlock);
+    EXPECT(lb == 0 && lo == 2 * kBlock);           // the board's own track gets nothing from the Audio In; the Audio Out reports both blocks
 
     // With the setting off the block of the input is reported to Live (and the signal arrives at the same time).
     fromIn = run(true, false, true, lb, lo);
@@ -154,9 +154,39 @@ void boardRunsInItsOwnBlock() {
     EXPECT(lb == kBlock);
     through = run(true, true, true, lb, lo);
     EXPECT(through.block == 4 && through.sample == 5);
-    EXPECT(lb == kBlock && lo == 2 * kBlock);
+    EXPECT(lb == 0 && lo == 2 * kBlock);
     // With it on (the default) the block stays inside the board ... unless audio goes back to Live on another track: then the
     // host must be told, or that track would be a block late. That is the `through` run above.
+}
+
+/// Latency is for what really crosses between plugins: a plugin that exists, or an Audio Out nothing is patched into, adds none.
+void latencyOnlyForWhatCrosses() {
+    g_test = "latency only for what crosses";
+    auto* e = new Engine();
+    const int main = e->registerInstance(PortKind::Patch);
+    const int ain = e->registerInstance(PortKind::AudioIn);
+    const int aout = e->registerInstance(PortKind::AudioOut);
+    const int aout2 = e->registerInstance(PortKind::AudioOut);
+    e->reconcileNow();
+    FakePort pMain(*e, main), pIn(*e, ain), pOut(*e, aout), pOut2(*e, aout2);
+    e->setBoardSetting("zeroHostLatencyInputs", false);
+    EXPECT(e->portLatencySamples(main) == 0 && e->portLatencySamples(aout) == 0 && e->portLatencySamples(aout2) == 0);
+    // The Audio In patched to one Audio Out: that one reports the way in and the way out, the other plugins nothing.
+    auto edited = copyOf(e->board());
+    edited["cables"].getArray()->add(cable(portNode(*e, ain), "l", portNode(*e, aout), "l"));
+    e->commit(edited, "patch");
+    EXPECT(e->portLatencySamples(aout) == 2 * kBlock);
+    EXPECT(e->portLatencySamples(aout2) == 0);
+    EXPECT(e->portLatencySamples(main) == 0);
+    // A signal made on the board alone (the Macros node) into the other Audio Out: one block, the input is not part of it.
+    edited = copyOf(e->board());
+    edited["cables"].getArray()->add(cable(portNode(*e, main), "m1", portNode(*e, aout2), "l"));
+    e->commit(edited, "patch");
+    EXPECT(e->portLatencySamples(aout2) == kBlock);
+    EXPECT(e->portLatencySamples(aout) == 2 * kBlock);
+    for (int h : {main, ain, aout, aout2}) e->unregisterInstance(h);
+    e->collectGarbage();
+    e->release();
 }
 
 /// The setting is saved with the board, and a board without it reports the delay.
@@ -166,6 +196,9 @@ void zeroLatencySettingIsSaved() {
     const int main = e->registerInstance(PortKind::Patch);
     const int ain = e->registerInstance(PortKind::AudioIn);
     e->reconcileNow();
+    auto edited = copyOf(e->board());
+    edited["cables"].getArray()->add(cable(portNode(*e, ain), "l", ownNode(*e, main, ":audio"), "l"));
+    e->commit(edited, "patch");
     FakePort pMain(*e, main), pIn(*e, ain);
     EXPECT(e->portLatencySamples(main) == 0);   // on by default: a board that never heard of the setting
     e->setBoardSetting("zeroHostLatencyInputs", false);
@@ -537,6 +570,7 @@ void runHostTests() {
     latencyAndClaiming();
     latencyFollowsRealBlocks();
     boardRunsInItsOwnBlock();
+    latencyOnlyForWhatCrosses();
     zeroLatencySettingIsSaved();
     cellPluginRunsInItsOwnBlock();
     cellPluginThreads();

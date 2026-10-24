@@ -59,23 +59,35 @@ void Engine::updateLatencyModel() {
     if (!standalone_ && hasBoard())
         for (const auto& s : instances_)
             if (s->kind == PortKind::Patch && s->handle == mainHandle_ && !s->bridged) driver = s.get();
-    bool crossIn = false, crossOut = false;
-    if (const Program* p = program_.load(std::memory_order_seq_cst); p != nullptr && driver != nullptr)
+    const Program* p = program_.load(std::memory_order_seq_cst);
+    // A MIDI In or Audio In on another track is one block before the board.
+    auto fromOtherTrack = [&](const Program::Origins& o) {
+        for (const PortSlot* s : o.ports)
+            if (s != driver && (s->kind == PortKind::MidiIn || s->kind == PortKind::AudioIn)) return true;
+        return false;
+    };
+    bool crossIn = false, feedsOtherTrack = false;
+    std::vector<std::pair<PortSlot*, Program::Origins>> outs;  // the plugins whose output the board sends
+    if (p != nullptr && driver != nullptr)
         for (const auto& s : p->slots()) {
-            if (s.get() == driver || p->localGroup(s.get()) >= 0) continue;
-            crossIn = crossIn || s->kind == PortKind::MidiIn || s->kind == PortKind::AudioIn;
-        }
-    if (const Program* p = program_.load(std::memory_order_seq_cst); p != nullptr && driver != nullptr)
-        for (const auto& st : p->steps()) {  // an Audio Out with nothing patched into it plays nothing
-            if (!st.port || st.port.get() == driver || st.local >= 0 || st.port->kind != PortKind::AudioOut) continue;
-            for (const auto& sources : st.inputSources) crossOut = crossOut || !sources.empty();
+            if (s.get() != driver && p->localGroup(s.get()) >= 0) continue;
+            crossIn = crossIn || (s.get() != driver && (s->kind == PortKind::MidiIn || s->kind == PortKind::AudioIn));
+            if (s.get() != driver && s->kind != PortKind::AudioOut) continue;
+            outs.emplace_back(s.get(), p->originsOf(s.get()));
+            if (s.get() != driver) feedsOtherTrack = feedsOtherTrack || fromOtherTrack(outs.back().second);
         }
     // "0 host latency for inputs" keeps the one block of the inputs inside the board and tells the host nothing. That only
-    // holds while no audio comes back to Live on another track: the Audio Out reports its own block, the host could not
-    // tell it the block of the input as well, and the signal would arrive a block late. Then the delay is reported.
-    const bool zero = zeroHostLatencyInputs();
+    // holds while no input's signal goes back to Live on another track: the Audio Out reports its own block, the host could
+    // not be told the block of the input as well, and the signal would arrive a block late. Then the delay is reported.
+    const bool reported = !zeroHostLatencyInputs() || feedsOtherTrack;
+    for (const auto& s : instances_) s->reportedBlocks.store(0, std::memory_order_relaxed);
+    for (auto& [s, o] : outs) {
+        const int in = reported && fromOtherTrack(o) ? 1 : 0;
+        // Audio Out: nothing patched, nothing sent: no latency. Else one block to another track, plus the inputs'.
+        s->reportedBlocks.store(s == driver ? in : (o.cabled ? 1 + in : 0), std::memory_order_relaxed);
+    }
     crossIn_.store(crossIn, std::memory_order_relaxed);
-    inputsReported_.store(!zero || crossOut, std::memory_order_relaxed);
+    inputsReported_.store(reported, std::memory_order_relaxed);
     driver_.store(driver, std::memory_order_release);
 }
 
@@ -296,7 +308,9 @@ juce::var Engine::latencyInfo() const {
     o->setProperty("crossIn", crossIn);
     o->setProperty("forced", zero && reported);   // audio goes back to Live on another track: the setting cannot hold
     o->setProperty("blockSamples", m);
-    o->setProperty("boardSamples", crossIn && reported ? m : 0);
+    int blocks = 0;
+    if (const PortSlot* d = driver_.load(std::memory_order_relaxed)) blocks = d->reportedBlocks.load(std::memory_order_relaxed);
+    o->setProperty("boardSamples", blocks * m);
     o->setProperty("sampleRate", sampleRate_);
     return juce::var(o);
 }

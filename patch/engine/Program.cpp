@@ -643,6 +643,43 @@ void Program::runStep(Step& st, ProcessContext& ctx) noexcept {
     }
 }
 
+Program::Origins Program::originsOf(const PortSlot* slot) const {
+    Origins result;
+    std::map<const void*, size_t> owner;  // an output buffer → the step that writes it
+    for (size_t i = 0; i < steps_.size(); ++i) {
+        for (const auto& b : steps_[i].outputBuffers)
+            if (b) owner[b.get()] = i;
+        for (const auto& b : steps_[i].noteOutputs)
+            if (b) owner[b.get()] = i;
+    }
+    std::vector<size_t> todo;
+    std::set<size_t> seen;
+    auto visit = [&](const void* buffer) {
+        if (auto it = owner.find(buffer); it != owner.end() && seen.insert(it->second).second) todo.push_back(it->second);
+    };
+    auto follow = [&](const Step& st, bool start) {
+        for (const auto& list : st.inputSources) {
+            if (start && !list.empty()) result.cabled = true;
+            for (const auto& src : list) visit(src.buffer);
+        }
+        for (const auto& list : st.paramSources)
+            for (const auto& src : list) visit(src.buffer);
+        for (const auto& list : st.noteSources) {
+            if (start && !list.empty()) result.cabled = true;
+            for (const NoteBuffer* b : list) visit(b);
+        }
+    };
+    for (const auto& st : steps_)
+        if (st.port.get() == slot && st.portWritesOut) follow(st, true);
+    while (!todo.empty()) {
+        const Step& st = steps_[todo.back()];
+        todo.pop_back();
+        if (st.port && st.port.get() != slot) result.ports.insert(st.port.get());
+        follow(st, false);
+    }
+    return result;
+}
+
 /// Finds the cell plugins whose part of the board touches no other plugin and gives each its group (see localGroup()).
 void Program::splitLocal() {
     const size_t n = steps_.size();
